@@ -3721,21 +3721,33 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 
     ;; Use all-completions to do an initial cull.  This is a big win,
     ;; since all-completions is written in C!
-    (let* (;; Convert search pattern to a standard regular expression.
-	   (regex (completion-pcm--pattern->regex pattern))
-           (case-fold-search completion-ignore-case)
-           (completion-regexp-list (cons regex completion-regexp-list))
-	   (compl (all-completions
-                   (concat prefix
-                           (if (stringp (car pattern)) (car pattern) ""))
-		   table pred)))
-      (if (not (functionp table))
-	  ;; The internal functions already obeyed completion-regexp-list.
-	  compl
-	(let ((poss ()))
-	  (dolist (c compl)
-	    (when (string-match-p regex c) (push c poss)))
-	  (nreverse poss))))))
+    (let* ((case-fold-search completion-ignore-case)
+           (completion-regexp-list (cons
+                                    ;; Convert search pattern to a
+                                    ;; standard regular expression.
+                                    (completion-pcm--pattern->regex pattern)
+                                    completion-regexp-list))
+	   (completions (all-completions
+                         (concat prefix
+                                 (if (stringp (car pattern)) (car pattern) ""))
+		         table pred)))
+      (cond ((or (not (functionp table))
+                 (cl-loop for e in pattern never (stringp e)))
+	     ;; The internal functions already obeyed completion-regexp-list.
+	     completions)
+            (t
+             ;; The pattern has something interesting to match, in
+             ;; which case we take the opportunity to add an early
+             ;; completion-score cookie to each completion.
+             (cl-loop with re = (completion-pcm--pattern->regex pattern 'group)
+                      for orig in completions
+                      for comp = (copy-sequence orig)
+                      for score = (completion--flex-score comp re t)
+                      when score
+                      do (put-text-property 0 1 'completion-score
+                                      score
+                                      comp)
+                      and collect comp))))))
 
 (defvar flex-score-match-tightness 3
   "Controls how the `flex' completion style scores its matches.
@@ -3799,11 +3811,11 @@ details."
       (add-face-text-property from me 'completions-common-part nil string))
     string))
 
-(defun completion--flex-score-1 (md match-end len)
+(defun completion--flex-score-1 (md-groups match-end len)
   "Compute matching score of completion.
 The score lies in the range between 0 and 1, where 1 corresponds to
 the full match.
-MD is the match data.
+MD-GROUPS is the \"group\"  part of the match data.
 MATCH-END is the end of the match.
 LEN is the length of the completion string."
   (let* ((from 0)
@@ -3845,9 +3857,9 @@ LEN is the length of the completion string."
          (score-numerator 0)
          (score-denominator 0)
          (last-b 0))
-    (while md
+    (while (and md-groups (car md-groups))
       (let ((a from)
-            (b (pop md)))
+            (b (pop md-groups)))
         (setq
          score-numerator   (+ score-numerator (- b a)))
         (unless (or (= a last-b)
@@ -3861,7 +3873,7 @@ LEN is the length of the completion string."
                                          flex-score-match-tightness)))))
         (setq
          last-b              b))
-      (setq from (pop md)))
+      (setq from (pop md-groups)))
     ;; If `pattern' doesn't have an explicit trailing any, the
     ;; regex `re' won't produce match data representing the
     ;; region after the match.  We need to account to account
@@ -3884,6 +3896,22 @@ LEN is the length of the completion string."
          last-b              b)))
     (/ score-numerator (* len (1+ score-denominator)) 1.0)))
 
+(defvar completion--flex-score-last-md nil
+  "Helper variable for `completion--flex-score'.")
+
+(defun completion--flex-score (str re &optional dont-error)
+  "Compute flex score of completion STR based on RE.
+If DONT-ERROR, just return nil if RE doesn't match STR."
+  (cond ((string-match re str)
+         (let* ((match-end (match-end 0))
+                (md (cddr
+                     (setq
+                      completion--flex-score-last-md
+                      (match-data t completion--flex-score-last-md)))))
+           (completion--flex-score-1 md match-end (length str))))
+        ((not dont-error)
+         (error "Internal error: %s does not match %s" re str))))
+
 (defun completion-pcm--hilit-commonality (pattern completions)
   "Show where and how well PATTERN matches COMPLETIONS.
 PATTERN, a list of symbols and strings as seen
@@ -3902,24 +3930,20 @@ highlighting."
   (cond
    ((and completions (cl-loop for e in pattern thereis (stringp e)))
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
-           last-md
-           (score (lambda (str)
-                    (unless (string-match re str)
-                      (error "Internal error: %s does not match %s" re str))
-                    (let* ((match-end (match-end 0))
-                           (md (cddr (setq last-md (match-data t last-md)))))
-                      (completion--flex-score-1 md match-end (length str))))))
+           (score-maybe (lambda (str)
+                          (unless (get-text-property 0 'completion-score str)
+                            (put-text-property 0 1 'completion-score
+                                               (completion--flex-score str re)
+                                               str)))))
       (cond (completion-lazy-hilit
              (setq completion-lazy-hilit-fn
                    (lambda (str) (completion--hilit-from-re str re)))
-             (mapc (lambda (str)
-                     (put-text-property 0 1 'completion-score (funcall score str) str))
-                   completions))
+             (mapc score-maybe completions))
             (t
              (mapcar
               (lambda (str)
                 (setq str (copy-sequence str))
-                (put-text-property 0 1 'completion-score (funcall score str) str)
+                (funcall score-maybe str)
                 (completion--hilit-from-re str re)
                 str)
               completions)))))
