@@ -379,6 +379,8 @@ Font for POD headers."
   :type 'face
   :version "21.1"
   :group 'cperl-faces)
+(make-obsolete-variable 'cperl-invalid-face
+                        'show-trailing-whitespace "30.1")
 
 (defcustom cperl-pod-here-fontify t
   "Not-nil after evaluation means to highlight POD and here-docs sections."
@@ -730,7 +732,6 @@ voice);
 
         m) Highlights (by user-choice) either 3-delimiters constructs
 	   (such as tr/a/b/), or regular expressions and `y/tr';
-        n) Highlights trailing whitespace;
         o) Is able to manipulate Perl Regular Expressions to ease
 	   conversion to a more readable form.
         p) Can ispell POD sections and HERE-DOCs.
@@ -828,7 +829,6 @@ B) Speed of editing operations.
   `font-lock-type-face'		Overridable keywords
   `font-lock-variable-name-face' Variable declarations, indirect array and
 				hash names, POD headers/item names
-  `cperl-invalid-face'		Trailing whitespace
 
 Note that in several situations the highlighting tries to inform about
 possible confusion, such as different colors for function names in
@@ -5858,9 +5858,6 @@ functions (which they are not).  Inherits from `default'.")
 	  (setq
 	   t-font-lock-keywords
 	   (list
-            ;; -------- trailing spaces -> use invalid-face as a warning
-            ;; (matcher subexp facespec)
-	    `("[ \t]+$" 0 ',cperl-invalid-face t)
             ;; -------- function definition _and_ declaration
             ;; (matcher (subexp facespec))
             ;; facespec is evaluated depending on whether the

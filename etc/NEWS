@@ -876,6 +876,10 @@ The Perl documentation in info format is no longer distributed with
 Perl or on CPAN since more than 10 years.  Perl documentation can be
 read with 'cperl-perldoc' instead.
 
+*** Highlighting trailing whitespace has been removed.
+The user option 'cperl-invalid-face' is now obsolete, and does
+nothing.  See the user option 'show-trailing-whitespace' instead.
+
 ** Emacs Sessions (Desktop)
 
 +++
