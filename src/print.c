@@ -2580,7 +2580,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			       HASH_TABLE_SIZE (h));
 	    strout (buf, len, len, printcharfun);
 
-	    if (!NILP (h->test.name))
+	    if (!BASE_EQ (h->test.name, Qeql))
 	      {
 		print_c_string (" test ", printcharfun);
 		print_object (h->test.name, printcharfun, escapeflag);
