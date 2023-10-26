@@ -30,7 +30,6 @@
 ;; Scheme: https://groups.csail.mit.edu/mac/ftpdir/scm/r5rs.info.tar.gz
 ;; LaTeX: https://mirrors.ctan.org/info/latex2e-help-texinfo/latex2e.texi
 ;;  (or CTAN mirrors)
-;; Perl: <URL:http://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/> (or CPAN mirrors)
 
 ;; Traditionally, makeinfo quoted `like this', but version 5 and later
 ;; quotes 'like this' or ‘like this’.  Doc specs with patterns
