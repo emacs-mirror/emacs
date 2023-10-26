@@ -2729,8 +2729,6 @@ dump_hash_table (struct dump_context *ctx, Lisp_Object object)
   DUMP_FIELD_COPY (out, hash, weakness);
   DUMP_FIELD_COPY (out, hash, purecopy);
   DUMP_FIELD_COPY (out, hash, mutable);
-  DUMP_FIELD_COPY (out, hash, rehash_threshold);
-  DUMP_FIELD_COPY (out, hash, rehash_size);
   dump_field_lv (ctx, out, hash, &hash->key_and_value, WEIGHT_STRONG);
   dump_field_lv (ctx, out, hash, &hash->test.name, WEIGHT_STRONG);
   dump_field_lv (ctx, out, hash, &hash->test.user_hash_function,

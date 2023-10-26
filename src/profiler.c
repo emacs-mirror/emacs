@@ -564,8 +564,6 @@ export_log (struct profiler_log *plog)
      the log but close enough, and will never confuse two distinct
      keys in the log.  */
   Lisp_Object h = make_hash_table (hashtest_equal, DEFAULT_HASH_SIZE,
-				   DEFAULT_REHASH_SIZE,
-				   DEFAULT_REHASH_THRESHOLD,
 				   Weak_None, false);
   for (int i = 0; i < log->size; i++)
     {

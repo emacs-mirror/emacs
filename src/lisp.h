@@ -2482,17 +2482,6 @@ struct Lisp_Hash_Table
      immutable for recursive attempts to mutate it.  */
   bool mutable;
 
-  /* Resize hash table when number of entries / table size is >= this
-     ratio.  */
-  float rehash_threshold;
-
-  /* Used when the table is resized.  If equal to a negative integer,
-     the user rehash-size is the integer -REHASH_SIZE, and the new
-     size is the old size plus -REHASH_SIZE.  If positive, the user
-     rehash-size is the floating-point value REHASH_SIZE + 1, and the
-     new size is the old size times REHASH_SIZE + 1.  */
-  float rehash_size;
-
   /* Vector of keys and values.  The key of item I is found at index
      2 * I, the value is found at index 2 * I + 1.
      If the key is HASH_UNUSED_ENTRY_KEY, then this slot is unused.
@@ -2579,16 +2568,6 @@ void hash_table_rehash (Lisp_Object);
 /* Default size for hash tables if not specified.  */
 
 enum DEFAULT_HASH_SIZE { DEFAULT_HASH_SIZE = 65 };
-
-/* Default threshold specifying when to resize a hash table.  The
-   value gives the ratio of current entries in the hash table and the
-   size of the hash table.  */
-
-static float const DEFAULT_REHASH_THRESHOLD = 0.8125;
-
-/* Default factor by which to increase the size of a hash table, minus 1.  */
-
-static float const DEFAULT_REHASH_SIZE = 1.5 - 1;
 
 /* Combine two integers X and Y for hashing.  The result might exceed
    INTMASK.  */
@@ -4060,7 +4039,7 @@ extern char *extract_data_from_object (Lisp_Object, ptrdiff_t *, ptrdiff_t *);
 EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object);
 Lisp_Object hashfn_user_defined (Lisp_Object, struct Lisp_Hash_Table *);
-Lisp_Object make_hash_table (struct hash_table_test, EMACS_INT, float, float,
+Lisp_Object make_hash_table (struct hash_table_test, EMACS_INT,
                              hash_table_weakness_t, bool);
 Lisp_Object hash_table_weakness_symbol (hash_table_weakness_t weak);
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object *);

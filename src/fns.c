@@ -4509,11 +4509,17 @@ allocate_hash_table (void)
 		      - header_size - GCALIGNMENT) \
 		     / word_size)))
 
+/* Default factor by which to increase the size of a hash table.  */
+static const double std_rehash_size = 1.5;
+
+/* Resize hash table when number of entries / table size is >= this
+   ratio.  */
+static const double std_rehash_threshold = 0.8125;
+
 static ptrdiff_t
-hash_index_size (struct Lisp_Hash_Table *h, ptrdiff_t size)
+hash_index_size (ptrdiff_t size)
 {
-  double threshold = h->rehash_threshold;
-  double index_float = size / threshold;
+  double index_float = size * (1.0 / std_rehash_threshold);
   ptrdiff_t index_size = (index_float < INDEX_SIZE_BOUND + 1
 	                  ? next_almost_prime (index_float)
 	                  : INDEX_SIZE_BOUND + 1);
@@ -4531,16 +4537,6 @@ hash_index_size (struct Lisp_Hash_Table *h, ptrdiff_t size)
 
    Give the table initial capacity SIZE, 0 <= SIZE <= MOST_POSITIVE_FIXNUM.
 
-   If REHASH_SIZE is equal to a negative integer, this hash table's
-   new size when it becomes full is computed by subtracting
-   REHASH_SIZE from its old size.  Otherwise it must be positive, and
-   the table's new size is computed by multiplying its old size by
-   REHASH_SIZE + 1.
-
-   REHASH_THRESHOLD must be a float <= 1.0, and > 0.  The table will
-   be resized when the approximate ratio of table entries to table
-   size exceeds REHASH_THRESHOLD.
-
    WEAK specifies the weakness of the table.
 
    If PURECOPY is non-nil, the table can be copied to pure storage via
@@ -4549,7 +4545,6 @@ hash_index_size (struct Lisp_Hash_Table *h, ptrdiff_t size)
 
 Lisp_Object
 make_hash_table (struct hash_table_test test, EMACS_INT size,
-		 float rehash_size, float rehash_threshold,
 		 hash_table_weakness_t weak, bool purecopy)
 {
   struct Lisp_Hash_Table *h;
@@ -4559,8 +4554,6 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
   /* Preconditions.  */
   eassert (SYMBOLP (test.name));
   eassert (0 <= size && size <= MOST_POSITIVE_FIXNUM);
-  eassert (rehash_size <= -1 || 0 < rehash_size);
-  eassert (0 < rehash_threshold && rehash_threshold <= 1);
 
   if (size == 0)
     size = 1;
@@ -4571,13 +4564,11 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
   /* Initialize hash table slots.  */
   h->test = test;
   h->weakness = weak;
-  h->rehash_threshold = rehash_threshold;
-  h->rehash_size = rehash_size;
   h->count = 0;
   h->key_and_value = make_vector (2 * size, HASH_UNUSED_ENTRY_KEY);
   h->hash = make_nil_vector (size);
   h->next = make_vector (size, make_fixnum (-1));
-  h->index = make_vector (hash_index_size (h, size), make_fixnum (-1));
+  h->index = make_vector (hash_index_size (size), make_fixnum (-1));
   h->next_weak = NULL;
   h->purecopy = purecopy;
   h->mutable = true;
@@ -4648,18 +4639,12 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
     {
       ptrdiff_t old_size = HASH_TABLE_SIZE (h);
       EMACS_INT new_size;
-      double rehash_size = h->rehash_size;
 
-      if (rehash_size < 0)
-	new_size = old_size - rehash_size;
+      double float_new_size = old_size * std_rehash_size;
+      if (float_new_size < EMACS_INT_MAX)
+	new_size = float_new_size;
       else
-	{
-	  double float_new_size = old_size * (rehash_size + 1);
-	  if (float_new_size < EMACS_INT_MAX)
-	    new_size = float_new_size;
-	  else
-	    new_size = EMACS_INT_MAX;
-	}
+	new_size = EMACS_INT_MAX;
       if (PTRDIFF_MAX < new_size)
 	new_size = PTRDIFF_MAX;
       if (new_size <= old_size)
@@ -4682,7 +4667,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       Lisp_Object hash = alloc_larger_vector (h->hash, new_size);
       memclear (XVECTOR (hash)->contents + old_size,
 		(new_size - old_size) * word_size);
-      ptrdiff_t index_size = hash_index_size (h, new_size);
+      ptrdiff_t index_size = hash_index_size (new_size);
       h->index = make_vector (index_size, make_fixnum (-1));
       h->key_and_value = key_and_value;
       h->hash = hash;
@@ -5281,15 +5266,6 @@ keys.  Default is `eql'.  Predefined are the tests `eq', `eql', and
 :size SIZE -- A hint as to how many elements will be put in the table.
 Default is 65.
 
-:rehash-size REHASH-SIZE - Indicates how to expand the table when it
-fills up.  If REHASH-SIZE is an integer, increase the size by that
-amount.  If it is a float, it must be > 1.0, and the new size is the
-old size multiplied by that factor.  Default is 1.5.
-
-:rehash-threshold THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.
-Resize the hash table when the ratio (table entries / table size)
-exceeds an approximation to THRESHOLD.  Default is 0.8125.
-
 :weakness WEAK -- WEAK must be one of nil, t, `key', `value',
 `key-or-value', or `key-and-value'.  If WEAK is not nil, the table
 returned is a weak table.  Key/value pairs are removed from a weak
@@ -5302,6 +5278,9 @@ is nil.
 to pure storage when Emacs is being dumped, making the contents of the
 table read only. Any further changes to purified tables will result
 in an error.
+
+The keywords arguments :rehash-threshold and :rehash-size are obsolete
+and ignored.
 
 usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -5352,26 +5331,6 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   else
     signal_error ("Invalid hash table size", size_arg);
 
-  /* Look for `:rehash-size SIZE'.  */
-  float rehash_size;
-  i = get_key_arg (QCrehash_size, nargs, args, used);
-  if (!i)
-    rehash_size = DEFAULT_REHASH_SIZE;
-  else if (FIXNUMP (args[i]) && 0 < XFIXNUM (args[i]))
-    rehash_size = - XFIXNUM (args[i]);
-  else if (FLOATP (args[i]) && 0 < (float) (XFLOAT_DATA (args[i]) - 1))
-    rehash_size = (float) (XFLOAT_DATA (args[i]) - 1);
-  else
-    signal_error ("Invalid hash table rehash size", args[i]);
-
-  /* Look for `:rehash-threshold THRESHOLD'.  */
-  i = get_key_arg (QCrehash_threshold, nargs, args, used);
-  float rehash_threshold = (!i ? DEFAULT_REHASH_THRESHOLD
-			    : !FLOATP (args[i]) ? 0
-			    : (float) XFLOAT_DATA (args[i]));
-  if (! (0 < rehash_threshold && rehash_threshold <= 1))
-    signal_error ("Invalid hash table rehash threshold", args[i]);
-
   /* Look for `:weakness WEAK'.  */
   i = get_key_arg (QCweakness, nargs, args, used);
   Lisp_Object weakness = i ? args[i] : Qnil;
@@ -5392,11 +5351,16 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   /* Now, all args should have been used up, or there's a problem.  */
   for (i = 0; i < nargs; ++i)
     if (!used[i])
-      signal_error ("Invalid argument list", args[i]);
+      {
+	/* Ignore obsolete arguments.  */
+	if (EQ (args[i], QCrehash_threshold) || EQ (args[i], QCrehash_size))
+	  i++;
+	else
+	  signal_error ("Invalid argument list", args[i]);
+      }
 
   SAFE_FREE ();
-  return make_hash_table (testdesc, size, rehash_size, rehash_threshold, weak,
-			  purecopy);
+  return make_hash_table (testdesc, size, weak, purecopy);
 }
 
 
@@ -5422,14 +5386,8 @@ DEFUN ("hash-table-rehash-size", Fhash_table_rehash_size,
        doc: /* Return the current rehash size of TABLE.  */)
   (Lisp_Object table)
 {
-  double rehash_size = check_hash_table (table)->rehash_size;
-  if (rehash_size < 0)
-    {
-      EMACS_INT s = -rehash_size;
-      return make_fixnum (min (s, MOST_POSITIVE_FIXNUM));
-    }
-  else
-    return make_float (rehash_size + 1);
+  CHECK_HASH_TABLE (table);
+  return make_float (std_rehash_size);
 }
 
 
@@ -5438,7 +5396,8 @@ DEFUN ("hash-table-rehash-threshold", Fhash_table_rehash_threshold,
        doc: /* Return the current rehash threshold of TABLE.  */)
   (Lisp_Object table)
 {
-  return make_float (check_hash_table (table)->rehash_threshold);
+  CHECK_HASH_TABLE (table);
+  return make_float (std_rehash_threshold);
 }
 
 

@@ -2590,14 +2590,6 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			      printcharfun, escapeflag);
 	      }
 
-	    print_c_string (" rehash-size ", printcharfun);
-	    print_object (Fhash_table_rehash_size (obj),
-			  printcharfun, escapeflag);
-
-	    print_c_string (" rehash-threshold ", printcharfun);
-	    print_object (Fhash_table_rehash_threshold (obj),
-			  printcharfun, escapeflag);
-
 	    if (h->purecopy)
 	      print_c_string (" purecopy t", printcharfun);
 

@@ -1697,9 +1697,7 @@ syms_of_module (void)
 {
   staticpro (&Vmodule_refs_hash);
   Vmodule_refs_hash
-    = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE,
-		       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
-		       Weak_None, false);
+    = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE, Weak_None, false);
 
   DEFSYM (Qmodule_load_failed, "module-load-failed");
   Fput (Qmodule_load_failed, Qerror_conditions,
