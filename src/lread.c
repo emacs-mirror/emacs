@@ -3426,7 +3426,6 @@ hash_table_from_plist (Lisp_Object plist)
       }							\
   } while (0)
 
-  ADDPARAM (size);
   ADDPARAM (test);
   ADDPARAM (weakness);
   ADDPARAM (rehash_size);
@@ -3434,23 +3433,25 @@ hash_table_from_plist (Lisp_Object plist)
   ADDPARAM (purecopy);
 
   Lisp_Object data = plist_get (plist, Qdata);
+  if (!(NILP (data) || CONSP (data)))
+    error ("Hash table data is not a list");
+  ptrdiff_t data_len = list_length (data);
+  if (data_len & 1)
+    error ("Hash table data length is odd");
+  *par++ = QCsize;
+  *par++ = make_fixnum (data_len / 2);
 
   /* Now use params to make a new hash table and fill it.  */
   Lisp_Object ht = Fmake_hash_table (par - params, params);
 
-  Lisp_Object last = data;
-  FOR_EACH_TAIL_SAFE (data)
+  while (!NILP (data))
     {
       Lisp_Object key = XCAR (data);
       data = XCDR (data);
-      if (!CONSP (data))
-	break;
       Lisp_Object val = XCAR (data);
-      last = XCDR (data);
       Fputhash (key, val, ht);
+      data = XCDR (data);
     }
-  if (!NILP (last))
-    error ("Hash table data is not a list of even length");
 
   return ht;
 }
