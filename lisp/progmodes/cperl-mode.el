@@ -7328,9 +7328,6 @@ One may build such TAGS files from CPerl mode menu."
 			    (nreverse list2))
 		      list1)))))
 
-(defvar imenu-max-items nil
-  "Max items in an imenu list.  Defined in imenu.el.")
-
 (defun cperl-menu-to-keymap (menu)
   (let (list)
     (cons 'keymap
