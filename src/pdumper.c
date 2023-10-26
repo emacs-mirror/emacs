@@ -2862,8 +2862,10 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   DUMP_FIELD_COPY (out, buffer, long_line_optimizations_p);
 
   if (!itree_empty_p (buffer->overlays))
-    /* We haven't implemented the code to dump overlays.  */
-    emacs_abort ();
+    {
+      /* We haven't implemented the code to dump overlays.  */
+      error ("Dumping overlays in buffers is not yet implemented.  Aborting...");
+    }
   else
     out->overlays = NULL;
 
