@@ -33,6 +33,7 @@
 (declare-function sqlite-finalize "sqlite.c")
 (declare-function sqlite-select "sqlite.c")
 (declare-function sqlite-open "sqlite.c")
+(declare-function sqlite-close "sqlite.c")
 
 (defvar-keymap sqlite-mode-map
   "g" #'sqlite-mode-list-tables
