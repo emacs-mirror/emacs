@@ -3763,24 +3763,28 @@ than the latter (which has two \"holes\" and three
 one-letter-long matches).")
 
 (defvar-local completion-lazy-hilit nil
-  "If non-nil, request completion lazy hilighting.
+  "If non-nil, request completion lazy highlighting.
 
 Completion-presenting frontends may opt to bind this variable to
 non-nil value in the context of completion-producing calls (such
 as `completion-all-sorted-completions').  This hints the
-intervening completion styles that they do not need to propertize
-completion strings with the `face' property.
+intervening completion styles that they do not need to
+fontify (i.e. propertize with the `face' property) completion
+strings with highlights of the matching parts.
 
 When doing so, it is the frontend -- not the style -- who becomes
-responsible for `face'-propertizing only the completion strings
-that are meant to be displayed to the user.  This is done by
-calling `completion-lazy-hilit' on each such string, which
-produces the suitably propertized string.
+responsible this fontification.  The frontend binds this variable
+to non-nil, and calls the function with the same name
+`completion-lazy-hilit' on each completion string that is to be
+displayed to the user.
 
-Note that the optimization enabled by variable is only actually
-performed some completions styles.  To others, it is a harmless
-and useless hint.  To author a completion style that takes
-advantage of this, look in the source of
+Note that only some completion styles take advantage of this
+variable for optimization purposes.  Other styles will ignore the
+hint and greedily fontify as usual.  It is still safe for a
+frontend to call `completion-lazy-hilit' in these situations.
+
+To author a completion style that takes advantage see
+`completion-lazy-hilit-fn' and look in the source of
 `completion-pcm--hilit-commonality'.")
 
 (defvar completion-lazy-hilit-fn nil
