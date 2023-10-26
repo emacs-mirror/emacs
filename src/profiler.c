@@ -566,7 +566,7 @@ export_log (struct profiler_log *plog)
   Lisp_Object h = make_hash_table (hashtest_equal, DEFAULT_HASH_SIZE,
 				   DEFAULT_REHASH_SIZE,
 				   DEFAULT_REHASH_THRESHOLD,
-				   Qnil, false);
+				   Weak_None, false);
   for (int i = 0; i < log->size; i++)
     {
       int count = get_log_count (log, i);

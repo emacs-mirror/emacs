@@ -5887,7 +5887,7 @@ make_pure_vector (ptrdiff_t len)
 static struct Lisp_Hash_Table *
 purecopy_hash_table (struct Lisp_Hash_Table *table)
 {
-  eassert (NILP (table->weak));
+  eassert (table->weakness == Weak_None);
   eassert (table->purecopy);
 
   struct Lisp_Hash_Table *pure = pure_alloc (sizeof *pure, Lisp_Vectorlike);
@@ -5960,7 +5960,7 @@ purecopy (Lisp_Object obj)
       /* Do not purify hash tables which haven't been defined with
          :purecopy as non-nil or are weak - they aren't guaranteed to
          not change.  */
-      if (!NILP (table->weak) || !table->purecopy)
+      if (table->weakness != Weak_None || !table->purecopy)
         {
           /* Instead, add the hash table to the list of pinned objects,
              so that it will be marked during GC.  */
@@ -7233,7 +7233,7 @@ process_mark_stack (ptrdiff_t base_sp)
 		  mark_stack_push_value (h->test.name);
 		  mark_stack_push_value (h->test.user_hash_function);
 		  mark_stack_push_value (h->test.user_cmp_function);
-		  if (NILP (h->weak))
+		  if (h->weakness == Weak_None)
 		    mark_stack_push_value (h->key_and_value);
 		  else
 		    {

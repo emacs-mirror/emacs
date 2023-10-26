@@ -1699,7 +1699,7 @@ syms_of_module (void)
   Vmodule_refs_hash
     = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE,
 		       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
-		       Qnil, false);
+		       Weak_None, false);
 
   DEFSYM (Qmodule_load_failed, "module-load-failed");
   Fput (Qmodule_load_failed, Qerror_conditions,

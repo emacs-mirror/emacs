@@ -4541,8 +4541,7 @@ hash_index_size (struct Lisp_Hash_Table *h, ptrdiff_t size)
    be resized when the approximate ratio of table entries to table
    size exceeds REHASH_THRESHOLD.
 
-   WEAK specifies the weakness of the table.  If non-nil, it must be
-   one of the symbols `key', `value', `key-or-value', or `key-and-value'.
+   WEAK specifies the weakness of the table.
 
    If PURECOPY is non-nil, the table can be copied to pure storage via
    `purecopy' when Emacs is being dumped. Such tables can no longer be
@@ -4551,7 +4550,7 @@ hash_index_size (struct Lisp_Hash_Table *h, ptrdiff_t size)
 Lisp_Object
 make_hash_table (struct hash_table_test test, EMACS_INT size,
 		 float rehash_size, float rehash_threshold,
-		 Lisp_Object weak, bool purecopy)
+		 hash_table_weakness_t weak, bool purecopy)
 {
   struct Lisp_Hash_Table *h;
   Lisp_Object table;
@@ -4571,7 +4570,7 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
 
   /* Initialize hash table slots.  */
   h->test = test;
-  h->weak = weak;
+  h->weakness = weak;
   h->rehash_threshold = rehash_threshold;
   h->rehash_size = rehash_size;
   h->count = 0;
@@ -4869,6 +4868,23 @@ hash_clear (struct Lisp_Hash_Table *h)
 			   Weak Hash Tables
  ************************************************************************/
 
+/* Whether to keep an entry whose key and value are known to be retained
+   if STRONG_KEY and STRONG_VALUE, respectively, are true.  */
+static inline bool
+keep_entry_p (hash_table_weakness_t weakness,
+	      bool strong_key, bool strong_value)
+{
+  switch (weakness)
+    {
+    case Weak_None:          return true;
+    case Weak_Key:           return strong_key;
+    case Weak_Value:         return strong_value;
+    case Weak_Key_Or_Value:  return strong_key || strong_value;
+    case Weak_Key_And_Value: return strong_key && strong_value;
+    }
+  emacs_abort();
+}
+
 /* Sweep weak hash table H.  REMOVE_ENTRIES_P means remove
    entries from the table that don't survive the current GC.
    !REMOVE_ENTRIES_P means mark entries that are in use.  Value is
@@ -4890,18 +4906,9 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
         {
 	  bool key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
 	  bool value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
-	  bool remove_p;
-
-	  if (EQ (h->weak, Qkey))
-	    remove_p = !key_known_to_survive_p;
-	  else if (EQ (h->weak, Qvalue))
-	    remove_p = !value_known_to_survive_p;
-	  else if (EQ (h->weak, Qkey_or_value))
-	    remove_p = !(key_known_to_survive_p || value_known_to_survive_p);
-	  else if (EQ (h->weak, Qkey_and_value))
-	    remove_p = !(key_known_to_survive_p && value_known_to_survive_p);
-	  else
-	    emacs_abort ();
+	  bool remove_p = !keep_entry_p (h->weakness,
+					 key_known_to_survive_p,
+					 value_known_to_survive_p);
 
 	  next = HASH_NEXT (h, i);
 
@@ -5367,15 +5374,20 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* Look for `:weakness WEAK'.  */
   i = get_key_arg (QCweakness, nargs, args, used);
-  Lisp_Object weak = i ? args[i] : Qnil;
-  if (EQ (weak, Qt))
-    weak = Qkey_and_value;
-  if (!NILP (weak)
-      && !EQ (weak, Qkey)
-      && !EQ (weak, Qvalue)
-      && !EQ (weak, Qkey_or_value)
-      && !EQ (weak, Qkey_and_value))
-    signal_error ("Invalid hash table weakness", weak);
+  Lisp_Object weakness = i ? args[i] : Qnil;
+  hash_table_weakness_t weak;
+  if (NILP (weakness))
+    weak = Weak_None;
+  else if (EQ (weakness, Qkey))
+    weak = Weak_Key;
+  else if (EQ (weakness, Qvalue))
+    weak = Weak_Value;
+  else if (EQ (weakness, Qkey_or_value))
+    weak = Weak_Key_Or_Value;
+  else if (EQ (weakness, Qt) || EQ (weakness, Qkey_and_value))
+    weak = Weak_Key_And_Value;
+  else
+    signal_error ("Invalid hash table weakness", weakness);
 
   /* Now, all args should have been used up, or there's a problem.  */
   for (i = 0; i < nargs; ++i)
@@ -5449,13 +5461,26 @@ DEFUN ("hash-table-test", Fhash_table_test, Shash_table_test, 1, 1, 0,
   return check_hash_table (table)->test.name;
 }
 
+Lisp_Object
+hash_table_weakness_symbol (hash_table_weakness_t weak)
+{
+  switch (weak)
+    {
+    case Weak_None:          return Qnil;
+    case Weak_Key:           return Qkey;
+    case Weak_Value:         return Qvalue;
+    case Weak_Key_And_Value: return Qkey_and_value;
+    case Weak_Key_Or_Value:  return Qkey_or_value;
+    }
+  emacs_abort ();
+}
 
 DEFUN ("hash-table-weakness", Fhash_table_weakness, Shash_table_weakness,
        1, 1, 0,
        doc: /* Return the weakness of TABLE.  */)
   (Lisp_Object table)
 {
-  return check_hash_table (table)->weak;
+  return hash_table_weakness_symbol (check_hash_table (table)->weakness);
 }
 
 

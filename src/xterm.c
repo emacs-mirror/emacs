@@ -32557,7 +32557,7 @@ If set to a non-float value, there will be no wait at all.  */);
   Vx_keysym_table = make_hash_table (hashtest_eql, 900,
 				     DEFAULT_REHASH_SIZE,
 				     DEFAULT_REHASH_THRESHOLD,
-				     Qnil, false);
+				     Weak_None, false);
 
   DEFVAR_BOOL ("x-frame-normalize-before-maximize",
 	       x_frame_normalize_before_maximize,

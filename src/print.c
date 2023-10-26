@@ -2583,10 +2583,11 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		print_object (h->test.name, printcharfun, escapeflag);
 	      }
 
-	    if (!NILP (h->weak))
+	    if (h->weakness != Weak_None)
 	      {
 		print_c_string (" weakness ", printcharfun);
-		print_object (h->weak, printcharfun, escapeflag);
+		print_object (hash_table_weakness_symbol (h->weakness),
+			      printcharfun, escapeflag);
 	      }
 
 	    print_c_string (" rehash-size ", printcharfun);

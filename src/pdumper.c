@@ -2726,6 +2726,7 @@ dump_hash_table (struct dump_context *ctx, Lisp_Object object)
      them as close to the hash table as possible.  */
   DUMP_FIELD_COPY (out, hash, count);
   DUMP_FIELD_COPY (out, hash, next_free);
+  DUMP_FIELD_COPY (out, hash, weakness);
   DUMP_FIELD_COPY (out, hash, purecopy);
   DUMP_FIELD_COPY (out, hash, mutable);
   DUMP_FIELD_COPY (out, hash, rehash_threshold);

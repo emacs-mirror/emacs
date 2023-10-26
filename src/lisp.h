@@ -2403,6 +2403,18 @@ struct hash_table_test
   Lisp_Object (*hashfn) (Lisp_Object, struct Lisp_Hash_Table *);
 };
 
+typedef enum {
+  Weak_None,		 /* No weak references.  */
+  Weak_Key,		 /* Reference to key is weak.  */
+  Weak_Value,		 /* Reference to value is weak.  */
+  Weak_Key_Or_Value,	 /* References to key or value are weak:
+			    element kept as long as strong reference to
+			    either key or value remains.  */
+  Weak_Key_And_Value,	 /* References to key and value are weak:
+			    element kept as long as strong references to
+			    both key and value remain.  */
+} hash_table_weakness_t;
+
 struct Lisp_Hash_Table
 {
   union vectorlike_header header;
@@ -2432,10 +2444,6 @@ struct Lisp_Hash_Table
      The table is physically split into three vectors (hash, next,
      key_and_value) which may or may not be beneficial.  */
 
-  /* Nil if table is non-weak.  Otherwise a symbol describing the
-     weakness of the table.  */
-  Lisp_Object weak;
-
   /* Vector of hash codes, or nil if the table needs rehashing.
      If the I-th entry is unused, then hash[I] should be nil.  */
   Lisp_Object hash;
@@ -2461,6 +2469,9 @@ struct Lisp_Hash_Table
 
   /* Index of first free entry in free list, or -1 if none.  */
   ptrdiff_t next_free;
+
+  /* Weakness of the table.  */
+  hash_table_weakness_t weakness : 8;
 
   /* True if the table can be purecopied.  The table cannot be
      changed afterwards.  */
@@ -2498,7 +2509,7 @@ struct Lisp_Hash_Table
 } GCALIGNED_STRUCT;
 
 /* Sanity-check pseudovector layout.  */
-verify (offsetof (struct Lisp_Hash_Table, weak) == header_size);
+verify (offsetof (struct Lisp_Hash_Table, hash) == header_size);
 
 /* Key value that marks an unused hash table entry.  */
 #define HASH_UNUSED_ENTRY_KEY Qunbound
@@ -4050,7 +4061,8 @@ EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object);
 Lisp_Object hashfn_user_defined (Lisp_Object, struct Lisp_Hash_Table *);
 Lisp_Object make_hash_table (struct hash_table_test, EMACS_INT, float, float,
-                             Lisp_Object, bool);
+                             hash_table_weakness_t, bool);
+Lisp_Object hash_table_weakness_symbol (hash_table_weakness_t weak);
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object *);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    Lisp_Object);

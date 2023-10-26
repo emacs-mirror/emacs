@@ -7179,7 +7179,8 @@ If set to a non-float value, there will be no wait at all.  */);
   DEFVAR_LISP ("pgtk-keysym-table", Vpgtk_keysym_table,
     doc: /* Hash table of character codes indexed by X keysym codes.  */);
   Vpgtk_keysym_table = make_hash_table (hashtest_eql, 900, DEFAULT_REHASH_SIZE,
-					DEFAULT_REHASH_THRESHOLD, Qnil, false);
+					DEFAULT_REHASH_THRESHOLD,
+					Weak_None, false);
 
   window_being_scrolled = Qnil;
   staticpro (&window_being_scrolled);
