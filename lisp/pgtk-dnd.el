@@ -238,10 +238,9 @@ WINDOW is the window where the drop happened.
 STRING is the uri-list as a string.  The URIs are separated by \\r\\n."
   (let ((uri-list (split-string string "[\0\r\n]" t))
 	retval)
-    (dolist (bf uri-list)
-      ;; If one URL is handled, treat as if the whole drop succeeded.
-      (let ((did-action (dnd-handle-one-url window action bf)))
-	(when did-action (setq retval did-action))))
+    (let ((did-action (dnd-handle-multiple-urls window uri-list
+                                                action)))
+      (when did-action (setq retval did-action)))
     retval))
 
 (defun pgtk-dnd-handle-file-name (window action string)
@@ -252,16 +251,20 @@ STRING is the file names as a string, separated by nulls."
 	(coding (or file-name-coding-system
 		    default-file-name-coding-system))
 	retval)
-    (dolist (bf uri-list)
-      ;; If one URL is handled, treat as if the whole drop succeeded.
-      (if coding (setq bf (encode-coding-string bf coding)))
-      (let* ((file-uri (concat "file://"
-			       (mapconcat 'url-hexify-string
-					  (split-string bf "/") "/")))
-	     (did-action (dnd-handle-one-url window action file-uri)))
-	(when did-action (setq retval did-action))))
+    (let ((did-action
+           (dnd-handle-multiple-urls
+            window action (mapcar
+                           (lambda (item)
+                             (when coding
+                               (setq item (encode-coding-string item
+                                                                coding)))
+                             (concat "file://"
+                                     (mapconcat 'url-hexify-string
+                                                (split-string item "/")
+                                                "/")))
+                           uri-list))))
+      (when did-action (setq retval did-action)))
     retval))
-
 
 (defun pgtk-dnd-choose-type (types &optional known-types)
   "Choose which type we want to receive for the drop.

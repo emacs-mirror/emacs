@@ -1122,6 +1122,16 @@ values.
 
 * Lisp Changes in Emacs 30.1
 
++++
+** Drag-and-drop functions can now be called once for compound drops.
+It is now possible for drag-and-drop handler functions to respond to
+drops incorporating more than one URL.  Functions capable of this must
+set their 'dnd-multiple-handler' symbol properties to a non-nil value.
+See the Info node "(elisp)Drag and Drop".
+
+Incident to this change, the function 'dnd-handle-one-url' has been
+made obsolete, for it cannot take these new handlers into account.
+
 ** New function 're-disassemble' to see the innards of a regexp.
 If you compiled with '--enable-checking', you can use this to help debug
 either your regexp performance problems or the regexp engine.

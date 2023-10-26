@@ -33,6 +33,7 @@
 (require 'tramp)
 (require 'select)
 (require 'ert-x)
+(require 'browse-url)
 
 (defvar dnd-tests-selection-table nil
   "Alist of selection names to their values.")
@@ -436,6 +437,101 @@ This function only tries to handle strings."
                       'copy)))
       (ignore-errors
         (delete-file normal-temp-file)))))
+
+
+
+(defvar dnd-tests-list-1 '("file:///usr/openwin/include/pixrect/pr_impl.h"
+                           "file:///usr/openwin/include/pixrect/pr_io.h")
+  "Sample data for tests concerning the treatment of drag-and-drop URLs.")
+
+(defvar dnd-tests-list-2 '("file:///usr/openwin/include/pixrect/pr_impl.h"
+                           "file://remote/usr/openwin/include/pixrect/pr_io.h")
+  "Sample data for tests concerning the treatment of drag-and-drop URLs.")
+
+(defvar dnd-tests-list-3 (append dnd-tests-list-2 '("http://example.com"))
+  "Sample data for tests concerning the treatment of drag-and-drop URLs.")
+
+(defvar dnd-tests-list-4 (append dnd-tests-list-3 '("scheme1://foo.bar"
+                                                    "scheme2://foo.bar"))
+  "Sample data for tests concerning the treatment of drag-and-drop URLs.")
+
+(defun dnd-tests-local-file-function (urls _action)
+  "Signal an error if URLS doesn't match `dnd-tests-list-1'.
+ACTION is ignored.  Return the symbol `copy' otherwise."
+  (should (equal urls dnd-tests-list-1))
+  'copy)
+
+(put 'dnd-tests-local-file-function 'dnd-multiple-handler t)
+
+(defun dnd-tests-remote-file-function (urls _action)
+  "Signal an error if URLS doesn't match `dnd-tests-list-2'.
+ACTION is ignored.  Return the symbol `copy' otherwise."
+  (should (equal urls dnd-tests-list-2))
+  'copy)
+
+(put 'dnd-tests-remote-file-function 'dnd-multiple-handler t)
+
+(defun dnd-tests-http-scheme-function (url _action)
+  "Signal an error if URLS doesn't match `dnd-tests-list-3''s third element.
+ACTION is ignored.  Return the symbol `private' otherwise."
+  (should (equal url (car (last dnd-tests-list-3))))
+  'private)
+
+(defun dnd-tests-browse-url-handler (url &rest _ignored)
+  "Verify URL is `dnd-tests-list-4''s fourth element."
+  (should (equal url (nth 3 dnd-tests-list-4))))
+
+(put 'dnd-tests-browse-url-handler 'browse-url-browser-kind 'internal)
+
+(ert-deftest dnd-tests-receive-multiple-urls ()
+  (let ((dnd-protocol-alist '(("^file:///" . dnd-tests-local-file-function)
+                              ("^file:" . error)
+                              ("^unrelated-scheme:" . error)))
+        (browse-url-handlers nil))
+    ;; Check that the order of the alist is respected when the
+    ;; precedences of two handlers are equal.
+    (should (equal (dnd-handle-multiple-urls (selected-window)
+                                             (copy-sequence
+                                              dnd-tests-list-1)
+                                             'copy)
+                   'copy))
+    ;; Check that sorting handlers by precedence functions correctly.
+    (setq dnd-protocol-alist '(("^file:///" . error)
+                               ("^file:" . dnd-tests-remote-file-function)
+                               ("^unrelated-scheme:" . error)))
+    (should (equal (dnd-handle-multiple-urls (selected-window)
+                                             (copy-sequence
+                                              dnd-tests-list-2)
+                                             'copy)
+                   'copy))
+    ;; Check that multiple handlers can be called at once, and actions
+    ;; are properly "downgraded" to private when multiple handlers
+    ;; return inconsistent values.
+    (setq dnd-protocol-alist '(("^file:" . dnd-tests-remote-file-function)
+                               ("^file:///" . error)
+                               ("^http://" . dnd-tests-http-scheme-function)))
+    (should (equal (dnd-handle-multiple-urls (selected-window)
+                                             (copy-sequence
+                                              dnd-tests-list-3)
+                                             'copy)
+                   'private))
+    ;; Now verify that the function's documented fallback behavior
+    ;; functions correctly.  Set browse-url-handlers to an association
+    ;; list incorporating a test function, then guarantee that is
+    ;; called.
+    (setq browse-url-handlers '(("^scheme1://" . dnd-tests-browse-url-handler)))
+    ;; Furthermore, guarantee the fifth argument of the test data is
+    ;; inserted, for no apposite handler exists.
+    (save-window-excursion
+      (set-window-buffer nil (get-buffer-create " *dnd-tests*"))
+      (set-buffer (get-buffer-create " *dnd-tests*"))
+      (erase-buffer)
+      (should (equal (dnd-handle-multiple-urls (selected-window)
+                                               (copy-sequence
+                                                dnd-tests-list-4)
+                                               'copy)
+                     'private))
+      (should (equal (buffer-string) (nth 4 dnd-tests-list-4))))))
 
 (provide 'dnd-tests)
 ;;; dnd-tests.el ends here

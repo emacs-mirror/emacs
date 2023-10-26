@@ -4724,9 +4724,9 @@ seldom consistent medley of data types.
 @cindex drag and drop
 
   Data transferred by drag and drop is generally either plain text or
-a URL designating a file or another resource.  When text is dropped,
-it is inserted at the location of the drop, with recourse to saving it
-into the kill ring if that is not possible.
+a list of URLs designating files or other resources.  When text is
+dropped, it is inserted at the location of the drop, with recourse to
+saving it into the kill ring if that is not possible.
 
   URLs dropped are supplied to pertinent @dfn{DND handler functions}
 in the variable @code{dnd-protocol-alist}, or alternatively ``URL
@@ -4740,9 +4740,14 @@ This variable is an alist between regexps against which URLs are
 matched and DND handler functions called on the dropping of matching
 URLs.
 
-Each handler function is called with the URL that matched it and one
-of the symbols @code{copy}, @code{move}, @code{link}, @code{private}
-or @code{ask} identifying the action to be taken.
+@cindex dnd-multiple-handler, a symbol property
+If a handler function is a symbol whose @code{dnd-multiple-handler}
+property (@pxref{Symbol Properties}) is set, then upon a drop it is
+given a list of every URL that matches its regexp; absent this
+property, it is called once for each of those URLs.  Following this
+first argument is one of the symbols @code{copy}, @code{move},
+@code{link}, @code{private} or @code{ask} identifying the action to be
+taken.
 
 If @var{action} is @code{private}, the program that initiated the drop
 does not insist on any particular behavior on the part of its
@@ -4750,19 +4755,29 @@ recipient; a reasonable action to take in that case is to open the URL
 or copy its contents into the current buffer.  The other values of
 @var{action} imply much the same as in the @var{action} argument to
 @code{dnd-begin-file-drag}.
+
+Once its work completes, a handler function must return a symbol
+designating the action it took: either the action it was provided, or
+the symbol @code{private}, which communicates to the source of the
+drop that the action it prescribed has not been executed.
+
+When multiple handlers match an overlapping subset of items within a
+drop, the handler matched against by the greatest number of items is
+called to open that subset.  The items it is supplied are subsequently
+withheld from other handlers, even those they also match.
 @end defvar
 
 @cindex drag and drop, X
 @cindex drag and drop, other formats
-  Emacs does not take measures to accept data besides text and URLs by
-default, for the window system interfaces which enable this are too
-far removed from each other to abstract over consistently.  Nor are
-DND handlers accorded the capacity to influence the action they are
-meant to take, as particular drag-and-drop protocols deny recipients
-such control.  The X11 drag-and-drop implementation rests on several
-underlying protocols that make use of selection transfer and share
-much in common, to which low level access is provided through the
-following functions and variables:
+  Emacs does not take measures to accept data besides text and URLs,
+for the window system interfaces which enable this are too far removed
+from each other to abstract over consistently.  Nor are DND handlers
+accorded influence over the actions they are meant to take, as
+particular drag-and-drop protocols deny recipients such control.  The
+X11 drag-and-drop implementation rests on several underlying protocols
+that make use of selection transfer and share much in common, to which
+low level access is provided through the following functions and
+variables:
 
 @defvar x-dnd-test-function
 This function is called to ascertain whether Emacs should accept a
