@@ -4058,11 +4058,12 @@ is used to encode selection data, and takes effect on MS-DOS,
 MS-Windows and X@.
 
 Under MS-DOS and MS-Windows, it is the coding system by which all
-clipboard text will be encoded and decoded, whereas on X it merely
-supplies the EOL format of the selection text sent in response to a
-request for text encoded by a matching coding system; which is to say
-that if its value is @code{utf-8-dos}, it will influence requests for
-@code{UTF8_STRING} data, but not those for @code{STRING}.
+non-ASCII clipboard text will be encoded and decoded; if set under X,
+it provides the coding system calls to @code{gui-get-selection} will
+decode selection data for a subset of text data types by, and also
+forces replies to selection requests for the polymorphic @code{TEXT}
+data type to be encoded by the @code{compound-text-with-extensions}
+coding system rather than Unicode.
 
 Its default value is the system code page under MS-Windows 95, 98 or
 Me, @code{utf-16le-dos} under NT/W2K/XP, @code{iso-latin-1-dos} on
@@ -4154,12 +4155,12 @@ format and data type to convert the data transferred by the selection
 owner to a Lisp representation, which @code{gui-get-selection}
 returns.
 
-  By default, Emacs converts selection data consisting of any series
-of bytes to a unibyte string holding those bytes, that consisting of a
-single 16-bit or 32-bit word as an unsigned number, and that
-consisting of multiple such words as a vector of unsigned numbers.
-However, Emacs applies special treatment for data from the following
-conversion targets:
+  Emacs converts selection data consisting of any series of bytes to a
+unibyte string holding those bytes, that consisting of a single 16-bit
+or 32-bit word as an unsigned number, and that consisting of multiple
+such words as a vector of unsigned numbers.  The exceptions to this
+general pattern are that Emacs applies special treatment for data from
+the following conversion targets:
 
 @table @code
 @item INTEGER
@@ -4384,8 +4385,8 @@ This selection converter returns selection data as:
 @itemize @bullet
 @item
 A string of type @code{C_STRING}, if the selection contents contain no
-multibyte characters, or contains 8-bit characters with all 8 bits
-set.
+multibyte characters, or contain ``raw 8-bit bytes'' (@pxref{Text
+Representations}).
 
 @item
 A string of type @code{STRING}, if the selection contents can be
