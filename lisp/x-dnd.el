@@ -384,16 +384,18 @@ STRING is the file names as a string, separated by nulls."
 	retval)
     (let ((did-action
            (dnd-handle-multiple-urls
-            window action (mapcar
-                           (lambda (item)
-                             (when coding
-                               (setq item (encode-coding-string item
-                                                                coding)))
-                             (concat "file://"
-                                     (mapconcat 'url-hexify-string
-                                                (split-string item "/")
-                                                "/")))
-                           uri-list))))
+            window
+            (mapcar
+             (lambda (item)
+               (when coding
+                 (setq item (encode-coding-string item
+                                                  coding)))
+               (concat "file://"
+                       (mapconcat 'url-hexify-string
+                                  (split-string item "/")
+                                  "/")))
+             uri-list)
+            action)))
       (when did-action (setq retval did-action)))
     retval))
 
