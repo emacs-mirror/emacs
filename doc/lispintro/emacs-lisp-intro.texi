@@ -3556,6 +3556,7 @@ and the two are not intended to refer to the same value.  The
 * Parts of let Expression::
 * Sample let Expression::
 * Uninitialized let Variables::
+* How let Binds Variables::
 @end menu
 
 @ifnottex
@@ -3569,24 +3570,26 @@ and the two are not intended to refer to the same value.  The
 @cindex @samp{variable, local}, defined
 The @code{let} special form prevents confusion.  @code{let} creates a
 name for a @dfn{local variable} that overshadows any use of the same
-name outside the @code{let} expression.  This is like understanding
-that whenever your host refers to ``the house'', he means his house, not
-yours.  (Symbols used in argument lists work the same way.
+name outside the @code{let} expression (in computer science jargon, we
+call this @dfn{binding} the variable).  This is like understanding
+that in your host's home, whenever he refers to ``the house'', he
+means his house, not yours.  (The symbols used to name function
+arguments are bound as local variables in exactly the same way.
 @xref{defun, , The @code{defun} Macro}.)
 
-Local variables created by a @code{let} expression retain their value
-@emph{only} within the @code{let} expression itself (and within
-expressions called within the @code{let} expression); the local
-variables have no effect outside the @code{let} expression.
-
-Another way to think about @code{let} is that it is like a @code{setq}
-that is temporary and local.  The values set by @code{let} are
-automatically undone when the @code{let} is finished.  The setting
-only affects expressions that are inside the bounds of the @code{let}
-expression.  In computer science jargon, we would say the binding of
-a symbol is visible only in functions called in the @code{let} form;
-in Emacs Lisp, the default scoping is dynamic, not lexical.  (The
-non-default lexical binding is not discussed in this manual.)
+Another way to think about @code{let} is that it defines a special
+region in your code: within the body of the @code{let} expression, the
+variables you've named have their own local meaning.  Outside of the
+@code{let} body, they have other meanings (or they may not be defined
+at all).  This means that inside the @code{let} body, calling
+@code{setq} for a variable named by the @code{let} expression will set
+the value of the @emph{local} variable of that name.  However, outside
+of the @code{let} body (such as when calling a function that was
+defined elsewhere), calling @code{setq} for a variable named by the
+@code{let} expression will @emph{not} affect that local
+variable.@footnote{This describes the behavior of @code{let} when
+using a style called ``lexical binding'' (@pxref{How let Binds
+Variables}).}
 
 @code{let} can create more than one variable at once.  Also,
 @code{let} gives each variable it creates an initial value, either a
@@ -3745,6 +3748,128 @@ evaluates to itself, the number does not need to be quoted.  Also, the
 number is printed in the message using a @samp{%d} rather than a
 @samp{%s}.)  The four variables as a group are put into a list to
 delimit them from the body of the @code{let}.
+
+@node How let Binds Variables
+@subsection How @code{let} Binds Variables
+
+Emacs Lisp supports two different ways of binding variable names to
+their values.  These ways affect the parts of your program where a
+particular binding is valid.  For historical reasons, Emacs Lisp uses
+a form of variable binding called @dfn{dynamic binding} by default.
+However, in this manual we discuss the preferred form of binding,
+called @dfn{lexical binding}, unless otherwise noted (in the future,
+the Emacs maintainers plan to change the default to lexical binding).
+If you have programmed in other languages before, you're likely
+already familiar with how lexical binding behaves.
+
+In order to use lexical binding in a program, you should add this to
+the first line of your Emacs Lisp file:
+
+@example
+;;; -*- lexical-binding: t -*-
+@end example
+
+For more information about this, @pxref{Selecting Lisp Dialect, , ,
+elisp, The Emacs Lisp Reference Manual}.
+
+@menu
+* Lexical & Dynamic Binding Differences::
+* Lexical vs. Dynamic Binding Example::
+@end menu
+
+@node Lexical & Dynamic Binding Differences
+@unnumberedsubsubsec Differences Between Lexical and Dynamic Binding
+
+@cindex Lexical binding
+@cindex Binding, lexical
+As we discussed before (@pxref{Prevent confusion}), when you create
+local variables with @code{let} under lexical binding, those variables
+are valid only within the body of the @code{let} expression.  In other
+parts of your code, they have other meanings, so if you call a
+function defined elsewhere within the @code{let} body, that function
+would be unable to ``see'' the local variables you've created.  (On
+the other hand, if you call a function that was defined within a
+@code{let} body, that function @emph{would} be able to see---and
+modify---the local variables from that @code{let} expression.)
+
+@cindex Dynamic binding
+@cindex Binding, dynamic
+Under dynamic binding, the rules are different: instead, when you use
+@code{let}, the local variables you've created are valid during
+execution of the @code{let} expression.  This means that, if your
+@code{let} expression calls a function, that function can see these
+local variables, regardless of where the function is defined
+(including in another file entirely).
+
+Another way to think about @code{let} when using dynamic binding is
+that every variable name has a global ``stack'' of bindings, and
+whenever you use that variable's name, it refers to the binding on the
+top of the stack.  (You can imagine this like a stack of papers on
+your desk with the values written on them.)  When you bind a variable
+dynamically with @code{let}, it puts the new binding you've specified
+on the top of the stack, and then executes the @code{let} body.  Once
+the @code{let} body finishes, it takes that binding off of the stack,
+revealing the one it had (if any) before the @code{let} expression.
+
+@node Lexical vs. Dynamic Binding Example
+@unnumberedsubsubsec Example of Lexical vs. Dynamic Binding
+In some cases, both lexical and dynamic binding behave identically.
+However, in other cases, they can change the meaning of your program.
+For example, see what happens in this code under lexical binding:
+
+@example
+;;; -*- lexical-binding: t -*-
+
+(setq x 0)
+
+(defun getx ()
+  x)
+
+(setq x 1)
+
+(let ((x 2))
+  (getx))
+     @result{} 1
+@end example
+
+@noindent
+Here, the result of @code{(getx)} is @code{1}.  Under lexical binding,
+@code{getx} doesn't see the value from our @code{let} expression.
+That's because the body of @code{getx} is outside of the body of our
+@code{let} expression.  Since @code{getx} is defined at the top,
+global level of our code (i.e.@: not inside the body of any @code{let}
+expression), it looks for and finds @code{x} at the global level as
+well.  When executing @code{getx}, the current global value of
+@code{x} is @code{1}, so that's what @code{getx} returns.
+
+If we use dynamic binding instead, the behavior is different:
+
+@example
+;;; -*- lexical-binding: nil -*-
+
+(setq x 0)
+
+(defun getx ()
+  x)
+
+(setq x 1)
+
+(let ((x 2))
+  (getx))
+     @result{} 2
+@end example
+
+@noindent
+Now, the result of @code{(getx)} is @code{2}!  That's because under
+dynamic binding, when executing @code{getx}, the current binding for
+@code{x} at the top of our stack is the one from our @code{let}
+binding.  This time, @code{getx} doesn't see the global value for
+@code{x}, since its binding is below the one from our @code{let}
+expression in the stack of bindings.
+
+(Some variables are also ``special'', and they are always dynamically
+bound even when @code{lexical-binding} is @code{t}.  @xref{defvar, ,
+Initializing a Variable with @code{defvar}}.)
 
 @node if
 @section The @code{if} Special Form
@@ -9101,12 +9226,14 @@ In Emacs Lisp, a variable such as the @code{kill-ring} is created and
 given an initial value by using the @code{defvar} special form.  The
 name comes from ``define variable''.
 
-The @code{defvar} special form is similar to @code{setq} in that it sets
-the value of a variable.  It is unlike @code{setq} in two ways: first,
-it only sets the value of the variable if the variable does not already
-have a value.  If the variable already has a value, @code{defvar} does
-not override the existing value.  Second, @code{defvar} has a
-documentation string.
+The @code{defvar} special form is similar to @code{setq} in that it
+sets the value of a variable.  It is unlike @code{setq} in three ways:
+first, it marks the variable as ``special'' so that it is always
+dynamically bound, even when @code{lexical-binding} is @code{t}
+(@pxref{How let Binds Variables}).  Second, it only sets the value of
+the variable if the variable does not already have a value.  If the
+variable already has a value, @code{defvar} does not override the
+existing value.  Third, @code{defvar} has a documentation string.
 
 (There is a related macro, @code{defcustom}, designed for variables
 that people customize.  It has more features than @code{defvar}.
