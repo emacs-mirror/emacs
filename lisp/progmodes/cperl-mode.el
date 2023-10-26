@@ -433,6 +433,11 @@ after reload."
 Older version of this page was called `perl5', newer `perl'."
   :type 'string
   :group 'cperl-help-system)
+(make-obsolete-variable 'cperl-info-page
+                        (concat "The Perl info page is no longer maintained. "
+                                "Consider installing the perl-doc package from "
+                                "GNU ELPA to access Perl documentation.")
+                        "30.1")
 
 (defcustom cperl-use-syntax-table-text-property t
   "Non-nil means CPerl sets up and uses `syntax-table' text property."
@@ -630,14 +635,9 @@ want it to: put the following into your .emacs file:
 
   (add-to-list \\='major-mode-remap-alist \\='(perl-mode . cperl-mode))
 
-Get perl5-info from
-  $CPAN/doc/manual/info/perl5-old/perl5-info.tar.gz
-Also, one can generate a newer documentation running `pod2texi' converter
-  $CPAN/doc/manual/info/perl5/pod2texi-0.1.tar.gz
-
-If you use imenu-go, run imenu on perl5-info buffer (you can do it
-from Perl menu).  If many files are related, generate TAGS files from
-Tools/Tags submenu in Perl menu.
+To read Perl documentation in info format you can convert POD to
+texinfo with the converter `pod2texi' from the texinfo project:
+  https://www.gnu.org/software/texinfo/manual/pod2texi.html
 
 If some class structure is too complicated, use Tools/Hierarchy-view
 from Perl menu, or hierarchic view of imenu.  The second one uses the
@@ -704,9 +704,7 @@ voice);
                 3) Separate list of packages/classes;
                 4) Hierarchical view of methods in (sub)packages;
                 5) and functions (by the full name - with package);
-        e) Has an interface to INFO docs for Perl; The interface is
-                very flexible, including shrink-wrapping of
-                documentation buffer/frame;
+        e) This item has retired.
         f) Has a builtin list of one-line explanations for perl constructs.
         g) Can show these explanations if you stay long enough at the
                 corresponding place (or on demand);
@@ -978,12 +976,12 @@ Unless KEEP, removes the old indentation."
     (define-key map "\177" 'cperl-electric-backspace)
     (define-key map "\t" 'cperl-indent-command)
     ;; don't clobber the backspace binding:
-    (define-key map [(control ?c) (control ?h) ?F] 'cperl-info-on-command)
+    (define-key map [(control ?c) (control ?h) ?F] 'cperl-perldoc)
     (if (cperl-val 'cperl-clobber-lisp-bindings)
         (progn
 	  (define-key map [(control ?h) ?f]
 	    ;;(concat (char-to-string help-char) "f") ; does not work
-	    'cperl-info-on-command)
+	    'cperl-perldoc)
 	  (define-key map [(control ?h) ?v]
 	    ;;(concat (char-to-string help-char) "v") ; does not work
 	    'cperl-get-help)
@@ -994,7 +992,7 @@ Unless KEEP, removes the old indentation."
 	    ;;(concat (char-to-string help-char) "v") ; does not work
 	    (key-binding "\C-hv")))
       (define-key map [(control ?c) (control ?h) ?f]
-        'cperl-info-on-current-command)
+        'cperl-perldoc)
       (define-key map [(control ?c) (control ?h) ?v]
 	;;(concat (char-to-string help-char) "v") ; does not work
 	'cperl-get-help))
@@ -1051,7 +1049,6 @@ Unless KEEP, removes the old indentation."
     "----"
     ("Tools"
      ["Imenu" imenu]
-     ["Imenu on Perl Info" cperl-imenu-on-info (featurep 'imenu)]
      "----"
      ["Ispell PODs" cperl-pod-spell
       ;; Better not to update syntaxification here:
@@ -1110,8 +1107,6 @@ Unless KEEP, removes the old indentation."
       ;; This is from imenu-go.el.  I can't find it on any ELPA
       ;; archive, so I'm not sure if it's still in use or not.
       (fboundp 'imenu-go-find-at-position)]
-     ["Help on function" cperl-info-on-command t]
-     ["Help on function at point" cperl-info-on-current-command t]
      ["Help on symbol at point" cperl-get-help t]
      ["Perldoc" cperl-perldoc t]
      ["Perldoc on word at point" cperl-perldoc-at-point t]
@@ -1716,16 +1711,8 @@ by setting them to `null'.  Note that one may undo the extra
 whitespace inserted by semis and braces in `auto-newline'-mode by
 consequent \\[cperl-electric-backspace].
 
-If your site has perl5 documentation in info format, you can use commands
-\\[cperl-info-on-current-command] and \\[cperl-info-on-command] to access it.
-These keys run commands `cperl-info-on-current-command' and
-`cperl-info-on-command', which one is which is controlled by variable
-`cperl-info-on-command-no-prompt' and `cperl-clobber-lisp-bindings'
-\(in turn affected by `cperl-hairy').
-
-Even if you have no info-format documentation, short one-liner-style
-help is available on \\[cperl-get-help], and one can run perldoc or
-man via menu.
+Short one-liner-style help is available on \\[cperl-get-help],
+and one can run perldoc or man via menu.
 
 It is possible to show this help automatically after some idle time.
 This is regulated by variable `cperl-lazy-help-time'.  Default with
@@ -1817,8 +1804,8 @@ or as help on variables `cperl-tips', `cperl-problems',
        (cperl-val 'cperl-info-on-command-no-prompt))
       (progn
 	;; don't clobber the backspace binding:
-	(define-key cperl-mode-map "\C-hf" 'cperl-info-on-current-command)
-	(define-key cperl-mode-map "\C-c\C-hf" 'cperl-info-on-command)))
+	(define-key cperl-mode-map "\C-hf" 'cperl-perldoc)
+	(define-key cperl-mode-map "\C-c\C-hf" 'cperl-perldoc)))
   (setq local-abbrev-table cperl-mode-abbrev-table)
   (if (cperl-val 'cperl-electric-keywords)
       (abbrev-mode 1))
@@ -6589,10 +6576,7 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
 		       'find-tag-default))))))
 
 (defun cperl-info-on-command (command)
-  "Show documentation for Perl command COMMAND in other window.
-If perl-info buffer is shown in some frame, uses this frame.
-Customized by setting variables `cperl-shrink-wrap-info-frame',
-`cperl-max-help-size'."
+  (declare (obsolete cperl-perldoc "30.1"))
   (interactive
    (let* ((default (cperl-word-at-point))
 	  (read (read-string
@@ -6668,25 +6652,26 @@ Customized by setting variables `cperl-shrink-wrap-info-frame',
     (select-window iniwin)))
 
 (defun cperl-info-on-current-command ()
-  "Show documentation for Perl command at point in other window."
+  (declare (obsolete cperl-perldoc "30.1"))
   (interactive)
   (cperl-info-on-command (cperl-word-at-point)))
 
 (defun cperl-imenu-info-imenu-search ()
+  (declare (obsolete nil "30.1"))
   (if (looking-at "^-X[ \t\n]") nil
     (re-search-backward
      "^\n\\([-a-zA-Z_]+\\)[ \t\n]")
     (forward-line 1)))
 
 (defun cperl-imenu-info-imenu-name ()
+  (declare (obsolete nil "30.1"))
   (buffer-substring
    (match-beginning 1) (match-end 1)))
 
 (declare-function imenu-choose-buffer-index "imenu" (&optional prompt alist))
 
 (defun cperl-imenu-on-info ()
-  "Show imenu for Perl Info Buffer.
-Opens Perl Info buffer if needed."
+  (declare (obsolete nil "30.1"))
   (interactive)
   (require 'imenu)
   (let* ((buffer (current-buffer))

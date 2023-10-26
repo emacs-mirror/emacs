@@ -870,6 +870,12 @@ value of "perl-code" is useful for trailing POD and for AutoSplit
 modules, the value "comment" makes cperl-mode treat trailers as
 comment, like perl-mode does.
 
+*** Commands using the Perl info page are obsolete.
+
+The Perl documentation in info format is no longer distributed with
+Perl or on CPAN since more than 10 years.  Perl documentation can be
+read with 'cperl-perldoc' instead.
+
 ** Emacs Sessions (Desktop)
 
 +++
