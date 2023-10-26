@@ -704,43 +704,42 @@ voice);
                 3) Separate list of packages/classes;
                 4) Hierarchical view of methods in (sub)packages;
                 5) and functions (by the full name - with package);
-        e) This item has retired.
-        f) Has a builtin list of one-line explanations for perl constructs.
-        g) Can show these explanations if you stay long enough at the
+        e) Has a builtin list of one-line explanations for perl constructs.
+        f) Can show these explanations if you stay long enough at the
                 corresponding place (or on demand);
-        h) Has an enhanced fontification (using 3 or 4 additional faces
+        g) Has an enhanced fontification (using 3 or 4 additional faces
                 comparing to font-lock - basically, different
                 namespaces in Perl have different colors);
-        i) Can construct TAGS basing on its knowledge of Perl syntax,
+        h) Can construct TAGS basing on its knowledge of Perl syntax,
                 the standard menu has 6 different way to generate
                 TAGS (if \"by directory\", .xs files - with C-language
                 bindings - are included in the scan);
-        j) Can build a hierarchical view of classes (via imenu) basing
+        i) Can build a hierarchical view of classes (via imenu) basing
                 on generated TAGS file;
-        k) Has electric parentheses, electric newlines, uses Abbrev
+        j) Has electric parentheses, electric newlines, uses Abbrev
                 for electric logical constructs
                         while () {}
                 with different styles of expansion (context sensitive
                 to be not so bothering).  Electric parentheses behave
                 \"as they should\" in a presence of a visible region.
-        l) Changes msb.el \"on the fly\" to insert a group \"Perl files\";
-        m) Can convert from
+        k) Changes msb.el \"on the fly\" to insert a group \"Perl files\";
+        l) Can convert from
 		if (A) { B }
 	   to
 		B if A;
 
-        n) Highlights (by user-choice) either 3-delimiters constructs
+        m) Highlights (by user-choice) either 3-delimiters constructs
 	   (such as tr/a/b/), or regular expressions and `y/tr';
-	o) Highlights trailing whitespace;
-	p) Is able to manipulate Perl Regular Expressions to ease
+        n) Highlights trailing whitespace;
+        o) Is able to manipulate Perl Regular Expressions to ease
 	   conversion to a more readable form.
-        q) Can ispell POD sections and HERE-DOCs.
-	r) Understands comments and character classes inside regular
+        p) Can ispell POD sections and HERE-DOCs.
+        q) Understands comments and character classes inside regular
 	   expressions; can find matching () and [] in a regular expression.
-	s) Allows indentation of //x-style regular expressions;
-	t) Highlights different symbols in regular expressions according
+        r) Allows indentation of //x-style regular expressions;
+        s) Highlights different symbols in regular expressions according
 	   to their function; much less problems with backslashitis;
-	u) Allows you to locate regular expressions which contain
+        t) Allows you to locate regular expressions which contain
 	   interpolated parts.
 
 5) The indentation engine was very smart, but most of tricks may be
