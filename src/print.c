@@ -1455,8 +1455,8 @@ print_preprocess (Lisp_Object obj)
 		    if (HASH_TABLE_P (obj))
 		      {
 			struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
-			obj = h->key_and_value;
-			continue;
+			pp_stack_push_values (h->key_and_value,
+					      2 * h->table_size);
 		      }
 		    break;
 		  }
