@@ -2832,9 +2832,12 @@ This may be inconvenient in some setups, so Emacs has mechanisms for
 changing the locations of all these files.
 
 @table @code
-@item auto-save-file-name-transforms (@pxref{Auto-Saving,,,elisp, GNU Emacs Lisp Reference Manual}).
-@item lock-file-name-transforms (@pxref{File Locks,,,elisp, GNU Emacs Lisp Reference Manual}).
-@item backup-directory-alist (@pxref{Making Backups,,,elisp, GNU Emacs Lisp Reference Manual}).
+@item auto-save-file-name-transforms
+(@pxref{Auto-Saving,,,elisp, GNU Emacs Lisp Reference Manual}).
+@item lock-file-name-transforms
+(@pxref{File Locks,,,elisp, GNU Emacs Lisp Reference Manual}).
+@item backup-directory-alist
+(@pxref{Making Backups,,,elisp, GNU Emacs Lisp Reference Manual}).
 @end table
 
 For instance, to write all these things to

@@ -181,9 +181,9 @@ present if the icon is represented by an image."
         (let ((parent-keywords (icon-spec-keywords elem))
               (current-keywords (icon-spec-keywords current)))
           (while parent-keywords
-            (unless (plist-get (car parent-keywords) current-keywords)
-              (nconc current (take 2 parent-keywords))
-              (setq parent-keywords (cddr parent-keywords))))))))
+            (unless (plist-get current-keywords (car parent-keywords))
+              (nconc current (take 2 parent-keywords)))
+            (setq parent-keywords (cddr parent-keywords)))))))
   merged)
 
 (cl-defmethod icons--create ((_type (eql 'image)) icon keywords)
