@@ -2940,6 +2940,7 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   dump_field_lv (ctx, &out, subr, &subr->lambda_list, WEIGHT_NORMAL);
   dump_field_lv (ctx, &out, subr, &subr->type, WEIGHT_NORMAL);
 #endif
+  dump_field_lv (ctx, &out, subr, &subr->defining_symbol, WEIGHT_NORMAL);
   dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
   if (native_comp && ctx->flags.dump_object_contents)
     /* We'll do the final addr relocation during VERY_LATE_RELOCS time

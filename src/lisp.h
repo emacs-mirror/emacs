@@ -2188,8 +2188,8 @@ struct Lisp_Subr
     char *native_c_name;
     Lisp_Object lambda_list;
     Lisp_Object type;
-    Lisp_Object defining_symbol;
 #endif
+    Lisp_Object defining_symbol;
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
   {
