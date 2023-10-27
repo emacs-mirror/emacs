@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <semaphore.h>
 
 #include "lisp.h"
@@ -5602,15 +5601,15 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
       class
 	= (*env)->FindClass (env, ("android/view/inputmethod"
 				   "/ExtractedTextRequest"));
-      assert (class);
+      eassert (class);
 
       request_class.hint_max_chars
 	= (*env)->GetFieldID (env, class, "hintMaxChars", "I");
-      assert (request_class.hint_max_chars);
+      eassert (request_class.hint_max_chars);
 
       request_class.token
 	= (*env)->GetFieldID (env, class, "token", "I");
-      assert (request_class.token);
+      eassert (request_class.token);
 
       request_class.initialized = true;
     }
@@ -5620,12 +5619,12 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
       text_class.class
 	= (*env)->FindClass (env, ("android/view/inputmethod"
 				   "/ExtractedText"));
-      assert (text_class.class);
+      eassert (text_class.class);
 
       class
 	= text_class.class
 	= (*env)->NewGlobalRef (env, text_class.class);
-      assert (text_class.class);
+      eassert (text_class.class);
 
       text_class.flags
 	= (*env)->GetFieldID (env, class, "flags", "I");
@@ -5924,7 +5923,7 @@ android_get_surrounding_text_internal (JNIEnv *env, jshort window,
 	  return NULL;
 	}
 #else /* __ANDROID_API__ >= 31 */
-      assert (class);
+      eassert (class);
 #endif /* __ANDROID_API__ < 31 */
 
       class = (*env)->NewGlobalRef (env, class);
@@ -5936,7 +5935,7 @@ android_get_surrounding_text_internal (JNIEnv *env, jshort window,
       /* Now look for its constructor.  */
       constructor = (*env)->GetMethodID (env, class, "<init>",
 					 "(Ljava/lang/CharSequence;III)V");
-      assert (constructor);
+      eassert (constructor);
     }
 
   context.before_length = before_length;
@@ -6032,7 +6031,7 @@ NATIVE_NAME (takeSnapshot) (JNIEnv *env, jobject object, jshort window)
 	  return NULL;
 	}
 #else /* __ANDROID_API__ >= 33 */
-      assert (class);
+      eassert (class);
 #endif /* __ANDROID_API__ < 33 */
 
       class = (*env)->NewGlobalRef (env, class);
@@ -6044,7 +6043,7 @@ NATIVE_NAME (takeSnapshot) (JNIEnv *env, jobject object, jshort window)
       constructor = (*env)->GetMethodID (env, class, "<init>",
 					 "(Landroid/view/inputmethod"
 					 "/SurroundingText;III)V");
-      assert (constructor);
+      eassert (constructor);
     }
 
   /* Try to create a TextSnapshot object.  */

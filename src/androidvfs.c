@@ -6557,12 +6557,12 @@ android_vfs_init (JNIEnv *env, jobject manager)
 
   /* Initialize some required classes.  */
   java_string_class = (*env)->FindClass (env, "java/lang/String");
-  assert (java_string_class);
+  eassert (java_string_class);
 
   old = java_string_class;
   java_string_class = (jclass) (*env)->NewGlobalRef (env,
 						     java_string_class);
-  assert (java_string_class);
+  eassert (java_string_class);
   (*env)->DeleteLocalRef (env, old);
 
   /* And initialize those used on Android 5.0 and later.  */

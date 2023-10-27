@@ -1531,7 +1531,7 @@ android_init_emacs_service (void)
     = (*android_java_env)->GetMethodID (android_java_env,	\
 					service_class.class,	\
 					name, signature);	\
-  assert (service_class.c_name);
+  eassert (service_class.c_name);
 
   FIND_METHOD (fill_rectangle, "fillRectangle",
 	       "(Lorg/gnu/emacs/EmacsDrawable;"
@@ -1647,7 +1647,7 @@ android_init_emacs_pixmap (void)
     = (*android_java_env)->GetMethodID (android_java_env,	\
 					pixmap_class.class,	\
 					name, signature);	\
-  assert (pixmap_class.c_name);
+  eassert (pixmap_class.c_name);
 
   FIND_METHOD (constructor_mutable, "<init>", "(SIII)V");
 
@@ -1678,7 +1678,7 @@ android_init_graphics_point (void)
     = (*android_java_env)->GetMethodID (android_java_env,	\
 					point_class.class,	\
 					name, signature);	\
-  assert (point_class.c_name);
+  eassert (point_class.c_name);
 
   FIND_METHOD (constructor, "<init>", "(II)V");
 #undef FIND_METHOD
@@ -1708,7 +1708,7 @@ android_init_emacs_drawable (void)
     = (*android_java_env)->GetMethodID (android_java_env,	\
 					drawable_class.class,	\
 					name, signature);	\
-  assert (drawable_class.c_name);
+  eassert (drawable_class.c_name);
 
   FIND_METHOD (get_bitmap, "getBitmap", "()Landroid/graphics/Bitmap;");
 #undef FIND_METHOD
@@ -1738,7 +1738,7 @@ android_init_emacs_window (void)
     = (*android_java_env)->GetMethodID (android_java_env,	\
 					window_class.class,	\
 					name, signature);	\
-  assert (window_class.c_name);
+  eassert (window_class.c_name);
 
   FIND_METHOD (swap_buffers, "swapBuffers", "()V");
   FIND_METHOD (toggle_on_screen_keyboard,
@@ -1798,7 +1798,7 @@ android_init_emacs_cursor (void)
     = (*android_java_env)->GetMethodID (android_java_env,	\
 					cursor_class.class,	\
 					name, signature);	\
-  assert (cursor_class.c_name);
+  eassert (cursor_class.c_name);
 
   FIND_METHOD (constructor, "<init>", "(SI)V");
 #undef FIND_METHOD
@@ -2695,12 +2695,12 @@ android_destroy_handle (android_handle handle)
       class
 	= (*android_java_env)->FindClass (android_java_env,
 					  "org/gnu/emacs/EmacsHandleObject");
-      assert (class != NULL);
+      eassert (class != NULL);
 
       method
 	= (*android_java_env)->GetMethodID (android_java_env, class,
 					    "destroyHandle", "()V");
-      assert (method != NULL);
+      eassert (method != NULL);
 
       old = class;
       class
@@ -2843,13 +2843,13 @@ android_create_window (android_window parent, int x, int y,
     {
       class = (*android_java_env)->FindClass (android_java_env,
 					      "org/gnu/emacs/EmacsWindow");
-      assert (class != NULL);
+      eassert (class != NULL);
 
       constructor
 	= (*android_java_env)->GetMethodID (android_java_env, class, "<init>",
 					    "(SLorg/gnu/emacs/EmacsWindow;"
 					    "IIIIZ)V");
-      assert (constructor != NULL);
+      eassert (constructor != NULL);
 
       old = class;
       class = (*android_java_env)->NewGlobalRef (android_java_env, class);
@@ -2925,12 +2925,12 @@ android_init_android_rect_class (void)
   android_rect_class
     = (*android_java_env)->FindClass (android_java_env,
 				      "android/graphics/Rect");
-  assert (android_rect_class);
+  eassert (android_rect_class);
 
   android_rect_constructor
     = (*android_java_env)->GetMethodID (android_java_env, android_rect_class,
 					"<init>", "(IIII)V");
-  assert (emacs_gc_constructor);
+  eassert (emacs_gc_constructor);
 
   old = android_rect_class;
   android_rect_class
@@ -2952,19 +2952,19 @@ android_init_emacs_gc_class (void)
   emacs_gc_class
     = (*android_java_env)->FindClass (android_java_env,
 				      "org/gnu/emacs/EmacsGC");
-  assert (emacs_gc_class);
+  eassert (emacs_gc_class);
 
   emacs_gc_constructor
     = (*android_java_env)->GetMethodID (android_java_env,
 					emacs_gc_class,
 					"<init>", "(S)V");
-  assert (emacs_gc_constructor);
+  eassert (emacs_gc_constructor);
 
   emacs_gc_mark_dirty
     = (*android_java_env)->GetMethodID (android_java_env,
 					emacs_gc_class,
 					"markDirty", "(Z)V");
-  assert (emacs_gc_mark_dirty);
+  eassert (emacs_gc_mark_dirty);
 
   old = emacs_gc_class;
   emacs_gc_class
@@ -6667,7 +6667,7 @@ android_begin_query (void)
   if (old == 1)
     {
       /* Answer the query that is currently being made.  */
-      assert (android_query_function != NULL);
+      eassert (android_query_function != NULL);
       android_answer_query ();
     }
 
