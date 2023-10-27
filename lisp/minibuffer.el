@@ -3738,9 +3738,10 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
             (t
              ;; The pattern has something interesting to match, in
              ;; which case we take the opportunity to add an early
-             ;; `completion-score' cookie to each completion.
+             ;; completion-score cookie to each completion.
              (cl-loop with re = (completion-pcm--pattern->regex pattern 'group)
-                      for comp in completions
+                      for orig in completions
+                      for comp = (copy-sequence orig)
                       for score = (completion--flex-score comp re t)
                       when score
                       do (put-text-property 0 1 'completion-score
