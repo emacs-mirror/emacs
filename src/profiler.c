@@ -235,9 +235,6 @@ static enum profiler_cpu_running
 /* Hash-table log of CPU profiler.  */
 static struct profiler_log cpu;
 
-/* Hash-table log of Memory profiler.  */
-static struct profiler_log memory;
-
 /* The current sampling interval in nanoseconds.  */
 static EMACS_INT current_sampling_interval;
 
@@ -455,6 +452,9 @@ Before returning, a new log is allocated for future samples.  */)
 #endif /* PROFILER_CPU_SUPPORT */
 
 /* Memory profiler.  */
+
+/* Hash-table log of Memory profiler.  */
+static struct profiler_log memory;
 
 /* True if memory profiler is running.  */
 bool profiler_memory_running;
