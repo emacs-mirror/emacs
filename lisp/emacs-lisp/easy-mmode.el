@@ -245,6 +245,9 @@ INIT-VALUE LIGHTER KEYMAP.
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
          (interactive t)
+;;;; NEW STOUGH, 2023-10-26
+         (defining-symbol mode)
+;;;; END OF NEW STOUGH
          (warnwrap (if (or (null body) (keywordp (car body))) #'identity
                      (lambda (exp)
                        (macroexp-warn-and-return
