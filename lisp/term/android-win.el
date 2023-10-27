@@ -288,8 +288,9 @@ content:// URIs into the special file names which represent them."
                            ;; transformed back into a content URI.
                            dnd-unescape-file-uris nil))))
                (push uri new-uri-list))
-             (dnd-handle-multiple-urls (posn-window posn) 'copy
-                                       new-uri-list))))))
+             (dnd-handle-multiple-urls (posn-window posn)
+                                       new-uri-list
+                                       'copy))))))
 
 (define-key special-event-map [drag-n-drop] 'android-handle-dnd-event)
 
