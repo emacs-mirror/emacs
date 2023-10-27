@@ -3721,33 +3721,21 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 
     ;; Use all-completions to do an initial cull.  This is a big win,
     ;; since all-completions is written in C!
-    (let* ((case-fold-search completion-ignore-case)
-           (completion-regexp-list (cons
-                                    ;; Convert search pattern to a
-                                    ;; standard regular expression.
-                                    (completion-pcm--pattern->regex pattern)
-                                    completion-regexp-list))
-	   (completions (all-completions
-                         (concat prefix
-                                 (if (stringp (car pattern)) (car pattern) ""))
-		         table pred)))
-      (cond ((or (not (functionp table))
-                 (cl-loop for e in pattern never (stringp e)))
-	     ;; The internal functions already obeyed completion-regexp-list.
-	     completions)
-            (t
-             ;; The pattern has something interesting to match, in
-             ;; which case we take the opportunity to add an early
-             ;; completion-score cookie to each completion.
-             (cl-loop with re = (completion-pcm--pattern->regex pattern 'group)
-                      for orig in completions
-                      for comp = (copy-sequence orig)
-                      for score = (completion--flex-score comp re t)
-                      when score
-                      do (put-text-property 0 1 'completion-score
-                                      score
-                                      comp)
-                      and collect comp))))))
+    (let* (;; Convert search pattern to a standard regular expression.
+	   (regex (completion-pcm--pattern->regex pattern))
+           (case-fold-search completion-ignore-case)
+           (completion-regexp-list (cons regex completion-regexp-list))
+	   (compl (all-completions
+                   (concat prefix
+                           (if (stringp (car pattern)) (car pattern) ""))
+		   table pred)))
+      (if (not (functionp table))
+	  ;; The internal functions already obeyed completion-regexp-list.
+	  compl
+	(let ((poss ()))
+	  (dolist (c compl)
+	    (when (string-match-p regex c) (push c poss)))
+	  (nreverse poss))))))
 
 (defvar flex-score-match-tightness 3
   "Controls how the `flex' completion style scores its matches.
@@ -3934,20 +3922,19 @@ highlighting."
   (cond
    ((and completions (cl-loop for e in pattern thereis (stringp e)))
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
-           (score-maybe (lambda (str)
-                          (unless (get-text-property 0 'completion-score str)
-                            (put-text-property 0 1 'completion-score
-                                               (completion--flex-score str re)
-                                               str)))))
+           (score (lambda (str)
+                    (put-text-property 0 1 'completion-score
+                                       (completion--flex-score str re)
+                                       str))))
       (cond (completion-lazy-hilit
              (setq completion-lazy-hilit-fn
                    (lambda (str) (completion--hilit-from-re str re)))
-             (mapc score-maybe completions))
+             (mapc score completions))
             (t
              (mapcar
               (lambda (str)
                 (setq str (copy-sequence str))
-                (funcall score-maybe str)
+                (funcall score str)
                 (completion--hilit-from-re str re)
                 str)
               completions)))))
