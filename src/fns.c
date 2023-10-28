@@ -4339,11 +4339,10 @@ get_key_arg (Lisp_Object key, ptrdiff_t nargs, Lisp_Object *args, char *used)
 /* Return a Lisp vector which has the same contents as VEC but has
    at least INCR_MIN more entries, where INCR_MIN is positive.
    If NITEMS_MAX is not -1, do not grow the vector to be any larger
-   than NITEMS_MAX.  New entries in the resulting vector are
-   uninitialized.  */
+   than NITEMS_MAX.  New entries in the resulting vector are nil.  */
 
-static Lisp_Object
-larger_vecalloc (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
+Lisp_Object
+larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
 {
   struct Lisp_Vector *v;
   ptrdiff_t incr, incr_max, old_size, new_size;
@@ -4360,21 +4359,9 @@ larger_vecalloc (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
   new_size = old_size + incr;
   v = allocate_vector (new_size);
   memcpy (v->contents, XVECTOR (vec)->contents, old_size * sizeof *v->contents);
+  memclear (v->contents + old_size, (new_size - old_size) * word_size);
   XSETVECTOR (vec, v);
   return vec;
-}
-
-/* Likewise, except set new entries in the resulting vector to nil.  */
-
-Lisp_Object
-larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
-{
-  ptrdiff_t old_size = ASIZE (vec);
-  Lisp_Object v = larger_vecalloc (vec, incr_min, nitems_max);
-  ptrdiff_t new_size = ASIZE (v);
-  memclear (XVECTOR (v)->contents + old_size,
-	    (new_size - old_size) * word_size);
-  return v;
 }
 
 
@@ -4631,6 +4618,20 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 }
 
 
+/* Allocate a Lisp vector of NEW_SIZE elements.
+   Copy elements from VEC and leave the rest undefined.  */
+static Lisp_Object
+alloc_larger_vector (Lisp_Object vec, ptrdiff_t new_size)
+{
+  eassert (VECTORP (vec));
+  ptrdiff_t old_size = ASIZE (vec);
+  eassert (new_size >= old_size);
+  struct Lisp_Vector *v = allocate_vector (new_size);
+  memcpy (v->contents, XVECTOR (vec)->contents, old_size * sizeof *v->contents);
+  XSETVECTOR (vec, v);
+  return vec;
+}
+
 /* Compute index into the index vector from a hash value.  */
 static inline ptrdiff_t
 hash_index_index (struct Lisp_Hash_Table *h, Lisp_Object hash_code)
@@ -4666,26 +4667,23 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	new_size = old_size + 1;
 
       /* Allocate all the new vectors before updating *H, to
-	 avoid problems if memory is exhausted.  larger_vecalloc
-	 finishes computing the size of the replacement vectors.  */
-      Lisp_Object next = larger_vecalloc (h->next, new_size - old_size,
-					  new_size);
-      ptrdiff_t next_size = ASIZE (next);
-      for (ptrdiff_t i = old_size; i < next_size - 1; i++)
+	 avoid problems if memory is exhausted.  */
+      Lisp_Object next = alloc_larger_vector (h->next, new_size);
+      for (ptrdiff_t i = old_size; i < new_size - 1; i++)
 	ASET (next, i, make_fixnum (i + 1));
-      ASET (next, next_size - 1, make_fixnum (-1));
+      ASET (next, new_size - 1, make_fixnum (-1));
 
       /* Build the new&larger key_and_value vector, making sure the new
          fields are initialized to `unbound`.  */
       Lisp_Object key_and_value
-	= larger_vecalloc (h->key_and_value, 2 * (next_size - old_size),
-			   2 * next_size);
-      for (ptrdiff_t i = 2 * old_size; i < 2 * next_size; i++)
+	= alloc_larger_vector (h->key_and_value, 2 * new_size);
+      for (ptrdiff_t i = 2 * old_size; i < 2 * new_size; i++)
         ASET (key_and_value, i, Qunbound);
 
-      Lisp_Object hash = larger_vector (h->hash, next_size - old_size,
-					next_size);
-      ptrdiff_t index_size = hash_index_size (h, next_size);
+      Lisp_Object hash = alloc_larger_vector (h->hash, new_size);
+      memclear (XVECTOR (hash)->contents + old_size,
+		(new_size - old_size) * word_size);
+      ptrdiff_t index_size = hash_index_size (h, new_size);
       h->index = make_vector (index_size, make_fixnum (-1));
       h->key_and_value = key_and_value;
       h->hash = hash;
@@ -4704,7 +4702,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 
 #ifdef ENABLE_CHECKING
       if (HASH_TABLE_P (Vpurify_flag) && XHASH_TABLE (Vpurify_flag) == h)
-	message ("Growing hash table to: %"pD"d", next_size);
+	message ("Growing hash table to: %"pD"d", new_size);
 #endif
     }
 }
