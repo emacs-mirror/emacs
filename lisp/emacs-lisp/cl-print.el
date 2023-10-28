@@ -193,11 +193,10 @@ into a button whose action shows the function's disassembly.")
 (cl-defmethod cl-print-object ((object compiled-function) stream)
   (unless stream (setq stream standard-output))
   (let ((defsym
-         (cond
-          ((subrp object)
-           (subr-native-defining-symbol object))
-          ((> (length object) 5)
-           (aref object 5)))))
+         ;; 2023-10-26: Currently `compiled-function' appears not to
+         ;; include subrs.
+         (and (> (length object) 5)
+           (aref object 5))))
     (when (and defsym (not (eq defsym t)) (symbolp defsym))
       (princ "{" stream)
       (;; cl-
@@ -255,8 +254,17 @@ into a button whose action shows the function's disassembly.")
           (with-current-buffer stream
             (make-text-button button-start (point)
                               :type 'help-byte-code
-                              'byte-code-function object)))))
-    (princ ")" stream)))
+                              'byte-code-function object))))))
+  (princ ")" stream))
+
+(cl-defmethod cl-print-object ((object subr) stream)
+  (unless stream (setq stream standard-output))
+  (let ((defsym (subr-native-defining-symbol object)))
+    (when (and defsym (not (eq defsym t)) (symbolp defsym))
+      (princ "{" stream)
+      (prin1 defsym stream)
+      (princ "} " stream)))
+  (prin1 object stream))
 
 ;; This belongs in oclosure.el, of course, but some load-ordering issues make it
 ;; complicated.
