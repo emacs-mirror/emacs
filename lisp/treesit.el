@@ -1425,8 +1425,10 @@ See `treesit-simple-indent-presets'.")
 
                     (goto-char bol)
                     (setq this-line-has-prefix
-                          (and (looking-at adaptive-fill-regexp)
-                               (match-string 1)))
+                          (and (looking-at-p adaptive-fill-regexp)
+                               (not (string-match-p
+                                     (rx bos (* whitespace) eos)
+                                     (match-string 0)))))
 
                     (forward-line -1)
                     (and (>= (point) comment-start-bol)
@@ -1434,7 +1436,7 @@ See `treesit-simple-indent-presets'.")
                          (looking-at adaptive-fill-regexp)
                          ;; If previous line is an empty line, don't
                          ;; indent.
-                         (not (looking-at (rx (* whitespace) eol)))
+                         (not (looking-at-p (rx (* whitespace) eol)))
                          ;; Return the anchor.  If the indenting line
                          ;; has a prefix and the previous line also
                          ;; has a prefix, indent to the beginning of
@@ -3210,13 +3212,13 @@ window."
               (treesit--explorer-tree-mode)))
           (display-buffer treesit--explorer-buffer
                           (cons nil '((inhibit-same-window . t))))
+          (setq-local treesit--explorer-last-node nil)
           (treesit--explorer-refresh)
           ;; Set up variables and hooks.
           (add-hook 'post-command-hook
                     #'treesit--explorer-post-command 0 t)
           (add-hook 'kill-buffer-hook
                     #'treesit--explorer-kill-explorer-buffer 0 t)
-          (setq-local treesit--explorer-last-node nil)
           ;; Tell `desktop-save' to not save explorer buffers.
           (when (boundp 'desktop-modes-not-to-save)
             (unless (memq 'treesit--explorer-tree-mode
@@ -3354,7 +3356,7 @@ nil, the grammar is installed to the standard location, the
                           " ")))
               ;; If success, Save the recipe for the current session.
               (setf (alist-get lang treesit-language-source-alist)
-                    recipe))))
+                    (cdr recipe)))))
       (error
        (display-warning
         'treesit
