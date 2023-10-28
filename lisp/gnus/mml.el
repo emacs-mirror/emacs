@@ -1369,9 +1369,9 @@ If not set, `default-directory' will be used."
 ;;; Attachment functions.
 
 (defcustom mml-dnd-protocol-alist
-  '(("^file:///" . mml-dnd-attach-file)
-    ("^file://"  . dnd-open-file)
-    ("^file:"    . mml-dnd-attach-file))
+  '(("^file:///" . mml-dnd-attach-file) ; GNOME, KDE, and suchlike.
+    ("^file:/[^/]" . mml-dnd-attach-file) ; Motif, other systems.
+    ("^file:[^/]" . mml-dnd-attach-file)) ; MS-Windows.
   "The functions to call when a drop in `mml-mode' is made.
 See `dnd-protocol-alist' for more information.  When nil, behave
 as in other buffers."
@@ -1460,29 +1460,36 @@ will be computed and used."
 		 (file-name-nondirectory file)))
       (goto-char at-end))))
 
-(defun mml-dnd-attach-file (uri _action)
-  "Attach a drag and drop file.
+(defun mml-dnd-attach-file (uris _action)
+  "Attach a drag and drop URIS, a list of local file URIs.
 
-Ask for type, description or disposition according to
-`mml-dnd-attach-options'."
-  (let ((file (dnd-get-local-file-name uri t)))
-    (when (and file (file-regular-p file))
-      (let ((mml-dnd-attach-options mml-dnd-attach-options)
-	    type description disposition)
-	(setq mml-dnd-attach-options
-	      (when (and (eq mml-dnd-attach-options t)
-			 (not
-			  (y-or-n-p
-			   "Use default type, disposition and description? ")))
-		'(type description disposition)))
-	(when (or (memq 'type mml-dnd-attach-options)
-		  (memq 'disposition mml-dnd-attach-options))
-	  (setq type (mml-minibuffer-read-type file)))
-	(when (memq 'description mml-dnd-attach-options)
-	  (setq description (mml-minibuffer-read-description)))
-	(when (memq 'disposition mml-dnd-attach-options)
-	  (setq disposition (mml-minibuffer-read-disposition type nil file)))
-	(mml-attach-file file type description disposition)))))
+Query whether to use the types, dispositions and descriptions
+default for each URL, subject to `mml-dnd-attach-options'.
+
+Return the action `private', communicating to the drop source
+that the file has been attached."
+  (let (file (mml-dnd-attach-options mml-dnd-attach-options))
+    (setq mml-dnd-attach-options
+	  (when (and (eq mml-dnd-attach-options t)
+		     (not
+		      (y-or-n-p
+		       "Use default type, disposition and description? ")))
+	    '(type description disposition)))
+    (dolist (uri uris)
+      (setq file (dnd-get-local-file-name uri t))
+      (when (and file (file-regular-p file))
+        (let (type description disposition)
+	  (when (or (memq 'type mml-dnd-attach-options)
+		    (memq 'disposition mml-dnd-attach-options))
+	    (setq type (mml-minibuffer-read-type file)))
+	  (when (memq 'description mml-dnd-attach-options)
+	    (setq description (mml-minibuffer-read-description)))
+	  (when (memq 'disposition mml-dnd-attach-options)
+	    (setq disposition (mml-minibuffer-read-disposition type nil file)))
+	  (mml-attach-file file type description disposition)))))
+  'private)
+
+(put 'mml-dnd-attach-file 'dnd-multiple-handler t)
 
 (defun mml-attach-buffer (buffer &optional type description disposition filename)
   "Attach a buffer to the outgoing MIME message.
