@@ -1323,6 +1323,8 @@ clashes."
   (let* ((f (symbol-function function-name))
          (byte-code (byte-compile function-name))
          (c-name (comp-c-func-name function-name "F"))
+         (defsym (and (> (length byte-code) 5)
+                      (aref byte-code 5)))
          (func
           (if (comp-lex-byte-func-p byte-code)
               (make-comp-func-l :name function-name
@@ -1333,7 +1335,7 @@ clashes."
                                 :speed (comp-spill-speed function-name)
                                 :pure (comp-spill-decl-spec function-name
                                                             'pure)
-                                :defining-symbol function-name)
+                                :defining-symbol defsym)
             (make-comp-func-d :name function-name
                               :c-name c-name
                               :doc (documentation f t)
@@ -1342,14 +1344,13 @@ clashes."
                               :speed (comp-spill-speed function-name)
                               :pure (comp-spill-decl-spec function-name
                                                           'pure)
-                              :defining-symbol function-name))))
+                              :defining-symbol defsym))))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 '("can't native compile an already byte-compiled function")))
       (setf (comp-func-byte-func func) byte-code)
       (let ((lap (byte-to-native-lambda-lap
-                  (gethash (aref (comp-func-byte-func func) 1)
-                           byte-to-native-lambdas-h))))
+                  (gethash (aref byte-code 1) byte-to-native-lambdas-h))))
         (cl-assert lap)
         (comp-log lap 2 t)
         (if (comp-func-l-p func)
@@ -1413,6 +1414,8 @@ clashes."
   "Given OBJ of type `byte-to-native-lambda', create a function in `comp-ctxt'."
   (when-let ((byte-func (byte-to-native-lambda-byte-func obj)))
     (let* ((lap (byte-to-native-lambda-lap obj))
+           (defsym (and (> (length byte-func) 5)
+                        (aref byte-func 5)))
            (top-l-form (cl-loop
                         for form in (comp-ctxt-top-level-forms comp-ctxt)
                         when (and (byte-to-native-func-def-p form)
@@ -1436,7 +1439,8 @@ clashes."
             (comp-func-lap func) lap
             (comp-func-frame-size func) (comp-byte-frame-size byte-func)
             (comp-func-speed func) (comp-spill-speed name)
-            (comp-func-pure func) (comp-spill-decl-spec name 'pure))
+            (comp-func-pure func) (comp-spill-decl-spec name 'pure)
+            (comp-func-defining-symbol func) defsym)
 
       ;; Store the c-name to have it retrievable from
       ;; `comp-ctxt-top-level-forms'.
@@ -3929,7 +3933,8 @@ Return the trampoline if found or nil otherwise."
                        (symbol-function subr-name)))
          ;; The synthesized trampoline must expose the exact same ABI of
          ;; the primitive we are replacing in the function reloc table.
-         (form `(lambda ,lambda-list
+         (form `(lambda ,subr-name      ; The defining symbol
+                  ,lambda-list
                   (let ((f #',subr-name))
                     (,(if (memq '&rest lambda-list) #'apply 'funcall)
                      f
