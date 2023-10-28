@@ -387,7 +387,6 @@ soon as a function returns non-nil.")
       (cond
        ((equal extension "plist")
         (auth-source-backend
-         source
          :source source
          :type 'plstore
          :search-function #'auth-source-plstore-search
@@ -395,13 +394,11 @@ soon as a function returns non-nil.")
          :data (plstore-open source)))
        ((member-ignore-case extension '("json"))
         (auth-source-backend
-         source
          :source source
          :type 'json
          :search-function #'auth-source-json-search))
        (t
         (auth-source-backend
-         source
          :source source
          :type 'netrc
          :search-function #'auth-source-netrc-search
@@ -449,7 +446,6 @@ soon as a function returns non-nil.")
         (setq source (symbol-name source)))
 
       (auth-source-backend
-       (format "Mac OS Keychain (%s)" source)
        :source source
        :type keychain-type
        :search-function #'auth-source-macos-keychain-search
@@ -490,7 +486,6 @@ soon as a function returns non-nil.")
 
       (if (featurep 'secrets)
           (auth-source-backend
-           (format "Secrets API (%s)" source)
            :source source
            :type 'secrets
            :search-function #'auth-source-secrets-search
@@ -498,7 +493,6 @@ soon as a function returns non-nil.")
         (auth-source-do-warn
          "auth-source-backend-parse: no Secrets API, ignoring spec: %S" entry)
         (auth-source-backend
-         (format "Ignored Secrets API (%s)" source)
          :source ""
          :type 'ignore))))))
 
