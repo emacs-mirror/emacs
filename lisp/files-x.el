@@ -700,7 +700,8 @@ Return a reordered plist."
   "Return the connection profiles list for CRITERIA.
 CRITERIA is a plist identifying a connection and the application
 using this connection, see `connection-local-criteria-alist'."
-  (let (profiles)
+  (let ((criteria (connection-local-normalize-criteria criteria))
+        profiles)
     (dolist (crit-alist connection-local-criteria-alist)
       (let ((crit criteria)
             (match t))

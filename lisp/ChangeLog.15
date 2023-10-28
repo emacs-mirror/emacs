@@ -14019,7 +14019,7 @@
 	* font-lock.el (font-lock-refresh-defaults): New function, which
 	can be used to let font-lock react to external changes in
 	variables like font-lock-defaults and keywords.
-	See http://thread.gmane.org/gmane.emacs.devel/118777/focus=118802
+	See http://thread.gmane.org/gmane.emacs.devel/118777/focus=118802 [dead link]
 
 2009-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 

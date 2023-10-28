@@ -1597,6 +1597,10 @@ discriminate for the properties @code{:protocol} (this is the Tramp
 method) or @code{:user} (a remote user name).  The @code{nil} criteria
 matches all buffers with a remote default directory.
 
+  Be careful when declaring different profiles with the same variable,
+and setting these profiles to criteria which could match in parallel.
+It is unspecified which variable value is used then.
+
 @node Key Bindings
 @section Customizing Key Bindings
 @cindex key bindings

@@ -2573,7 +2573,7 @@
 
 	* progmodes/grep.el (rgrep): Escape command line.  Sometimes, it
 	is too long for Tramp.  See discussion in
-	<http://thread.gmane.org/gmane.emacs.tramp/8233/focus=8244>.
+	<http://thread.gmane.org/gmane.emacs.tramp/8233/focus=8244>. [dead link]
 
 	* progmodes/compile.el (compilation-start): Remove line escape
 	template.
