@@ -152,6 +152,10 @@ public final class EmacsWindow extends EmacsHandleObject
   /* The position of this window relative to the root window.  */
   public int xPosition, yPosition;
 
+  /* The position of the last drag and drop event received; both
+     values are -1 if no drag and drop operation is under way.  */
+  private int dndXPosition, dndYPosition;
+
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
 	       int width, int height, boolean overrideRedirect)
@@ -202,6 +206,9 @@ public final class EmacsWindow extends EmacsHandleObject
 	    return size () > 10;
 	  }
 	};
+
+    dndXPosition = -1;
+    dndYPosition = -1;
   }
 
   public void
@@ -1617,11 +1624,26 @@ public final class EmacsWindow extends EmacsHandleObject
 	return true;
 
       case DragEvent.ACTION_DRAG_LOCATION:
-	/* Send this drag motion event to Emacs.  */
-	EmacsNative.sendDndDrag (handle, x, y);
+	/* Send this drag motion event to Emacs.  Skip this when the
+	   integer position hasn't changed, for Android sends events
+	   even if the movement from the previous position of the drag
+	   is less than 1 pixel on either axis.  */
+
+	if (x != dndXPosition || y != dndYPosition)
+	  {
+	    EmacsNative.sendDndDrag (handle, x, y);
+	    dndXPosition = x;
+	    dndYPosition = y;
+	  }
+
 	return true;
 
       case DragEvent.ACTION_DROP:
+	/* Reset this view's record of the previous drag and drop
+	   event's position.  */
+	dndXPosition = -1;
+	dndYPosition = -1;
+
 	/* Judge whether this is plain text, or if it's a file URI for
 	   which permissions must be requested.  */
 
@@ -1706,8 +1728,13 @@ public final class EmacsWindow extends EmacsHandleObject
 
 	if (builder.length () > 0)
 	  EmacsNative.sendDndUri (handle, x, y, builder.toString ());
-
 	return true;
+
+      default:
+	/* Reset this view's record of the previous drag and drop
+	   event's position.  */
+	dndXPosition = -1;
+	dndYPosition = -1;
       }
 
     return true;

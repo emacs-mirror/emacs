@@ -1515,6 +1515,11 @@ want to modify.  Although it doesn't have to exist, you must enter a
 valid filename, either @file{.dir-locals.el} or
 @file{.dir-locals-2.el}.
 
+@findex customize-dirlocals
+There's also a command to pop up an Easy Customization buffer
+(@pxref{Easy Customization}) to edit directory local variables,
+@code{customize-dirlocals}.
+
 @findex dir-locals-set-class-variables
 @findex dir-locals-set-directory-class
   Another method of specifying directory-local variables is to define
@@ -1596,6 +1601,10 @@ buffers which have a remote default directory matching the regexp
 discriminate for the properties @code{:protocol} (this is the Tramp
 method) or @code{:user} (a remote user name).  The @code{nil} criteria
 matches all buffers with a remote default directory.
+
+  Be careful when declaring different profiles with the same variable,
+and setting these profiles to criteria which could match in parallel.
+It is unspecified which variable value is used then.
 
 @node Key Bindings
 @section Customizing Key Bindings

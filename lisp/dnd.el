@@ -42,10 +42,11 @@
 
 ;;;###autoload
 (defcustom dnd-protocol-alist
-  `((,(purecopy "^file:///")  . dnd-open-local-file)	; XDND format.
-    (,(purecopy "^file://")   . dnd-open-file)		; URL with host
-    (,(purecopy "^file:")     . dnd-open-local-file)	; Old KDE, Motif, Sun
-    (,(purecopy "^\\(https?\\|ftp\\|file\\|nfs\\)://") . dnd-open-file))
+  `((,(purecopy "^file:///")    . dnd-open-local-file)	; XDND format.
+    (,(purecopy "^file://[^/]") . dnd-open-file)	; URL with host
+    (,(purecopy "^file:/[^/]")  . dnd-open-local-file)	; Old KDE, Motif, Sun
+    (,(purecopy "^file:[^/]")   . dnd-open-local-file)	; MS-Windows
+    (,(purecopy "^\\(https?\\|ftp\\|nfs\\)://") . dnd-open-file))
   "The functions to call for different protocols when a drop is made.
 This variable is used by `dnd-handle-multiple-urls'.
 The list contains of (REGEXP . FUNCTION) pairs.
@@ -59,7 +60,7 @@ is a pair of (REGEXP . FUNCTION), those regexps are tried for a match.
 If no match is found, the URL is inserted as text by calling `dnd-insert-text'.
 The function shall return the action done (move, copy, link or private)
 if some action was made, or nil if the URL is ignored."
-  :version "22.1"
+  :version "30.1"
   :type '(repeat (cons (regexp) (function)))
   :group 'dnd)
 
@@ -223,7 +224,8 @@ for it will be modified."
                               (let ((cell (cons handler nil)))
                                 (push cell list)
                                 cell))))
-                (setcdr cell (cons uri (cdr cell))))))))
+                (unless (memq uri cell)
+                  (setcdr cell (cons uri (cdr cell)))))))))
       (setq list (nreverse list))
       ;; While unassessed handlers still exist...
       (while list

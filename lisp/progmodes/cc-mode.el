@@ -257,7 +257,7 @@ control).  See \"cc-mode.el\" for more info."
 
   ;; Set up text conversion, for Emacs >= 30.0
   (when (boundp 'post-text-conversion-hook)
-    (add-hook 'post-text-conversion-hook #'c-post-text-conversion))
+    (add-hook 'post-text-conversion-hook #'c-post-text-conversion nil t))
 
   (unless new-style-init
     (c-init-language-vars-for 'c-mode)))

@@ -2682,17 +2682,15 @@ The variable list SPEC is the same as in `if-let*'."
   "Non-nil if MODE is derived from one of MODES.
 Uses the `derived-mode-parent' property of the symbol to trace backwards.
 If you just want to check `major-mode', use `derived-mode-p'."
-  ;; If MODE is an alias, then look up the real mode function first.
   (declare (side-effect-free t))
-  (when-let ((alias (symbol-function mode)))
-    (when (symbolp alias)
-      (setq mode alias)))
   (while
       (and
        (not (memq mode modes))
-       (let* ((parent (get mode 'derived-mode-parent))
-              (parentfn (symbol-function parent)))
-         (setq mode (if (and parentfn (symbolp parentfn)) parentfn parent)))))
+       (let* ((parent (get mode 'derived-mode-parent)))
+        (setq mode (or parent
+                       ;; If MODE is an alias, then follow the alias.
+                       (let ((alias (symbol-function mode)))
+                         (and (symbolp alias) alias)))))))
   mode)
 
 (defun derived-mode-p (&rest modes)

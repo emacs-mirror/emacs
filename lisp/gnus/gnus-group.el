@@ -286,10 +286,10 @@ If you want to modify the group buffer, you can use this hook."
   :type 'hook)
 
 (defcustom gnus-useful-groups
-  '(("(ding) mailing list mirrored at gmane.org"
+  '(("(ding) mailing list mirrored at gmane.io"
      "gmane.emacs.gnus.general"
      (nntp "Gmane"
-	   (nntp-address "news.gmane.org")))
+           (nntp-address "news.gmane.io")))
     ("Gnus bug archive"
      "gnus.gnus-bug"
      (nntp "news.gnus.org"
@@ -1436,14 +1436,8 @@ if it is a string, only list groups matching REGEXP."
 
 ;; Moving through the Group buffer (in topic mode) e.g. with C-n doesn't
 ;; update the state (enabled/disabled) of the icon `gnus-group-describe-group'
-;; automatically.  After `C-l' the state is correct.  See the following report
-;; on emacs-devel
-;; <http://thread.gmane.org/v9acdmrcse.fsf@marauder.physik.uni-ulm.de>:
-;; From: Reiner Steib
-;; Subject: tool bar icons not updated according to :active condition
-;; Newsgroups: gmane.emacs.devel
-;; Date: Mon, 23 Jan 2006 19:59:13 +0100
-;; Message-ID: <v9acdmrcse.fsf@marauder.physik.uni-ulm.de>
+;; automatically.  After `C-l' the state is correct.
+;; See: https://lists.gnu.org/r/emacs-devel/2006-01/msg00853.html
 
 ;; Using `redraw-frame' (see `gnus-tool-bar-update') in Emacs might
 ;; be confusing, so maybe we shouldn't call it by default.
@@ -2336,7 +2330,7 @@ Valid input formats include:
     (cond
      ;; URLs providing `group', `start' and `range':
      ((string-match
-       ;; http://thread.gmane.org/gmane.emacs.devel/86326/focus=86525
+       ;; http://thread.gmane.org/gmane.emacs.devel/86326/focus=86525 [dead link]
        "^http://thread\\.gmane\\.org/\\([^/]+\\)/\\([0-9]+\\)/focus=\\([0-9]+\\)$"
        url)
       (setq group (match-string 1 url)
@@ -2347,7 +2341,7 @@ Valid input formats include:
 		     start -1)))
      ;; URLs providing `group' and `start':
      ((or (string-match
-	   ;; http://article.gmane.org/gmane.comp.gnu.make.bugs/3584
+           ;; http://article.gmane.org/gmane.comp.gnu.make.bugs/3584 [dead link]
 	   "^http://\\(?:thread\\|article\\|permalink\\)\\.gmane\\.org/\\([^/]+\\)/\\([0-9]+\\)"
 	   url)
 	  (string-match
@@ -2355,7 +2349,7 @@ Valid input formats include:
 	   "^\\(?:nntp\\|news\\)://news\\.gmane\\.org/\\([^/]+\\)/\\([0-9]+\\)"
 	   url)
 	  (string-match
-	   ;; http://news.gmane.org/group/gmane.emacs.gnus.general/thread=65099/force_load=t
+           ;; http://news.gmane.org/group/gmane.emacs.gnus.general/thread=65099/force_load=t [dead link]
 	   "^http://news\\.gmane\\.org/group/\\([^/]+\\)/thread=\\([0-9]+\\)"
 	   url))
       (setq group (match-string 1 url)

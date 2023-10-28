@@ -145,10 +145,6 @@ Its value should be larger than that of the variable
   :package-version '(ERC . "5.6") ; FIXME sync on release
   :type '(choice (const nil) number))
 
-(defvar erc-fill--spaced-commands '(PRIVMSG NOTICE)
-  "Types of messages to add space between on graphical displays.
-Only considered when `erc-fill-line-spacing' is non-nil.")
-
 (defvar-local erc-fill--function nil
   "Internal copy of `erc-fill-function'.
 Takes precedence over the latter when non-nil.")
@@ -175,11 +171,11 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
           (when-let* ((erc-fill-line-spacing)
                       (p (point-min)))
             (widen)
-            (when (or (erc--check-msg-prop 'erc-cmd erc-fill--spaced-commands)
-                      (and-let* ((cmd (save-excursion
-                                        (forward-line -1)
-                                        (get-text-property (point) 'erc-cmd))))
-                        (memq cmd erc-fill--spaced-commands)))
+            (when (or (erc--check-msg-prop 'erc-msg 'msg)
+                      (and-let* ((m (save-excursion
+                                      (forward-line -1)
+                                      (erc--get-inserted-msg-prop 'erc-msg))))
+                        (eq 'msg m)))
               (put-text-property (1- p) p
                                  'line-spacing erc-fill-line-spacing))))))))
 
@@ -463,6 +459,7 @@ is not recommended."
    (kill-local-variable 'erc-fill--wrap-value)
    (kill-local-variable 'erc-fill--function)
    (kill-local-variable 'erc-fill--wrap-visual-keys)
+   (kill-local-variable 'erc-fill--wrap-last-msg)
    (remove-hook 'erc-button--prev-next-predicate-functions
                 #'erc-fill--wrap-merged-button-p t))
   'local)
@@ -479,13 +476,17 @@ variable can be converted to a public one if needed by third
 parties.")
 
 (defvar-local erc-fill--wrap-last-msg nil)
-(defvar-local erc-fill--wrap-max-lull (* 24 60 60))
+(defvar erc-fill--wrap-max-lull (* 24 60 60))
 
 (defun erc-fill--wrap-continued-message-p ()
   "Return non-nil when the current speaker hasn't changed.
 That is, indicate whether the text just inserted is from the same
 sender as that of the previous \"PRIVMSG\"."
-  (prog1 (and-let*
+  (and
+   (not (erc--check-msg-prop 'erc-ephemeral))
+   (progn ; preserve blame for now, unprogn on next major change
+     (prog1
+         (and-let*
              ((m (or erc-fill--wrap-last-msg
                      (setq erc-fill--wrap-last-msg (point-min-marker))
                      nil))
@@ -493,8 +494,9 @@ sender as that of the previous \"PRIVMSG\"."
               (props (save-restriction
                        (widen)
                        (and-let*
-                           (((eq 'PRIVMSG (get-text-property m 'erc-cmd)))
-                            ((not (eq (get-text-property m 'erc-msg) 'ACTION)))
+                           (((eq 'msg (get-text-property m 'erc-msg)))
+                            ((not (eq (get-text-property m 'erc-ctcp)
+                                      'ACTION)))
                             ((not (invisible-p m)))
                             (spr (next-single-property-change m 'erc-speaker)))
                          (cons (get-text-property m 'erc-ts)
@@ -509,7 +511,7 @@ sender as that of the previous \"PRIVMSG\"."
               ((not (erc--check-msg-prop 'erc-ctcp 'ACTION)))
               (nick (get-text-property speaker 'erc-speaker))
               ((erc-nick-equal-p props nick))))
-    (set-marker erc-fill--wrap-last-msg (point-min))))
+       (set-marker erc-fill--wrap-last-msg (point-min))))))
 
 (defun erc-fill--wrap-measure (beg end)
   "Return display spec width for inserted region between BEG and END.

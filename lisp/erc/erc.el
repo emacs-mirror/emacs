@@ -136,8 +136,62 @@ concerning buffers."
   :group 'erc)
 
 (defvar erc-message-parsed) ; only known to this file
-(defvar erc--msg-props nil)
-(defvar erc--msg-prop-overrides nil)
+
+(defvar erc--msg-props nil
+  "Hash table containing metadata properties for current message.
+Provided by the insertion functions `erc-display-message' and
+`erc-display-msg' while running their modification hooks.
+Initialized when null for each visitation round from function
+parameters and environmental factors, as well as the alist
+`erc--msg-prop-overrides'.  Keys are symbols.  Values are opaque
+objects, unless otherwise specified.  Items present after running
+`erc-insert-post-hook' or `erc-send-post-hook' become text
+properties added to the first character of an inserted message.
+A given message therefore spans the interval extending from one
+set of such properties to the newline before the next (or
+`erc-insert-marker').  As of ERC 5.6, this forms the basis for
+visiting and editing inserted messages.  Modules should align
+their markers accordingly.  The following properties have meaning
+as of ERC 5.6:
+
+ - `erc-msg': a symbol, guaranteed present; values include:
+
+   - `msg', signifying a `PRIVMSG' or an incoming `NOTICE'
+   - `self', a fallback used by `erc-display-msg' for callers
+     that don't specify an `erc-msg'
+   - `unknown', a similar fallback for `erc-display-message'
+   - a catalog key, such as `s401' or `finished'
+   - an `erc-display-message' TYPE parameter, like `notice'
+
+ - `erc-cmd': a message's associated IRC command, as read by
+   `erc--get-eq-comparable-cmd'; currently either a symbol, like
+   `PRIVMSG', or a number, like 5, which represents the numeric
+   \"005\"; absent on \"local\" messages, such as simple warnings
+   and help text, and on outgoing messages unless echoed back by
+   the server (assuming future support)
+
+ - `erc-ctcp': a CTCP command, like `ACTION'
+
+ - `erc-ts': a timestamp, possibly provided by the server; as of
+   5.6, a ticks/hertz pair on Emacs 29 and above, and a \"list\"
+   type otherwise; managed by the `stamp' module
+
+ - `erc-ephemeral': a symbol prefixed by or matching a module
+   name; indicates to other modules and members of modification
+   hooks that the current message should not affect stateful
+   operations, such as recording a channel's most recent speaker
+
+This is an internal API, and the selection of related helper
+utilities is fluid and provisional.  As of ERC 5.6, see the
+functions `erc--check-msg-prop' and `erc--get-inserted-msg-prop'.")
+
+(defvar erc--msg-prop-overrides nil
+  "Alist of \"message properties\" for populating `erc--msg-props'.
+These override any defaults normally shown to modification hooks
+by `erc-display-msg' and `erc-display-message'.  Modules should
+accommodate existing overrides when applicable.  Items toward the
+front shadow any that follow.  Ignored when `erc--msg-props' is
+already non-nil.")
 
 ;; Forward declarations
 (defvar tabbar--local-hlf)
@@ -2490,7 +2544,6 @@ ERC calls members with `erc-server-announced-name', falling back
 to the 376/422 message's \"sender\", as well as the current nick,
 as given by the 376/422 message's \"target\" parameter, which is
 typically the same as that reported by `erc-current-nick'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
   :group 'erc-hooks
   :type '(repeat function))
 
@@ -2899,9 +2952,9 @@ If ARG is non-nil, show the *erc-protocol* buffer."
   "Send CTCP ACTION information described by STR to TGT."
   (erc-send-ctcp-message tgt (format "ACTION %s" str) force)
   ;; Allow hooks that act on inserted PRIVMSG and NOTICES to process us.
-  (let ((erc--msg-prop-overrides '((erc-msg . msg)
-                                   (erc-cmd . PRIVMSG)
-                                   (erc-ctcp . ACTION)))
+  (let ((erc--msg-prop-overrides `((erc-msg . msg)
+                                   (erc-ctcp . ACTION)
+                                   ,@erc--msg-prop-overrides))
         (nick (erc-current-nick)))
     (setq nick (propertize nick 'erc-speaker nick))
     (erc-display-message nil '(t action input) (current-buffer)
@@ -2981,7 +3034,7 @@ POINT, search from POINT instead of `point'."
                           (and-let*
                               ((p (previous-single-property-change point
                                                                    'erc-msg)))
-                            (if (= p (1- point)) point (1- p)))))))
+                            (if (= p (1- point)) p (1- p)))))))
           ,@(and (member only '(nil 'end))
                  '((e (1- (next-single-property-change
                            (if at-start-p (1+ point) point)
@@ -3006,8 +3059,12 @@ Expect callers to know that this doesn't wrap BODY in
        ,@body)))
 
 (defun erc--traverse-inserted (beg end fn)
-  "Visit messages between BEG and END and run FN in narrowed buffer."
-  (setq end (min end (marker-position erc-insert-marker)))
+  "Visit messages between BEG and END and run FN in narrowed buffer.
+If END is a marker, possibly update its position."
+  (unless (markerp end)
+    (setq end (set-marker (make-marker) (or end erc-insert-marker))))
+  (unless (eq end erc-insert-marker)
+    (set-marker end (min erc-insert-marker end)))
   (save-excursion
     (goto-char beg)
     (let ((b (if (get-text-property (point) 'erc-msg)
@@ -3019,7 +3076,9 @@ Expect callers to know that this doesn't wrap BODY in
         (save-restriction
           (narrow-to-region b e)
           (funcall fn))
-        (setq b e)))))
+        (setq b e))))
+  (unless (eq end erc-insert-marker)
+    (set-marker end nil)))
 
 (defvar erc--insert-marker nil
   "Internal override for `erc-insert-marker'.")
@@ -3240,6 +3299,27 @@ don't bother including the preceding newline."
         (when (or (<= beg 4) (= ?\n (char-before (- beg 2))))
           (cl-incf beg))
         (erc--merge-prop (1- beg) (1- end) 'invisible value)))))
+
+(defun erc--delete-inserted-message (beg-or-point &optional end)
+  "Remove message between BEG and END.
+Expect BEG and END to match bounds as returned by the macro
+`erc--get-inserted-msg-bounds'.  Ensure all markers residing at
+the start of the deleted message end up at the beginning of the
+subsequent message."
+  (let ((beg beg-or-point))
+    (save-restriction
+      (widen)
+      (unless end
+        (setq end (erc--get-inserted-msg-bounds nil beg-or-point)
+              beg (pop end)))
+      (with-silent-modifications
+        (if erc-legacy-invisible-bounds-p
+            (delete-region beg (1+ end))
+          (save-excursion
+            (goto-char beg)
+            (insert-before-markers
+             (substring (delete-and-extract-region (1- (point)) (1+ end))
+                        -1))))))))
 
 (defvar erc--ranked-properties '(erc-msg erc-ts erc-cmd))
 
@@ -3528,9 +3608,9 @@ filling, and other effects."
                         table)
                (when cmd
                  (puthash 'erc-cmd cmd table))
-               (and erc--msg-prop-overrides
-                    (pcase-dolist (`(,k . ,v) erc--msg-prop-overrides)
-                      (puthash k v table)))
+               (and-let* ((ovs erc--msg-prop-overrides))
+                 (pcase-dolist (`(,k . ,v) (reverse ovs))
+                   (puthash k v table)))
                table)))
         (erc-message-parsed parsed))
     (setq string
@@ -5804,7 +5884,8 @@ See also `erc-display-message'."
           (let* ((type (upcase (car (split-string (car queries)))))
                  (hook (intern-soft (concat "erc-ctcp-query-" type "-hook")))
                  (erc--msg-prop-overrides `((erc-msg . msg)
-                                            (erc-ctcp . ,(intern type)))))
+                                            (erc-ctcp . ,(intern type))
+                                            ,@erc--msg-prop-overrides)))
             (if (and hook (boundp hook))
                 (if (string-equal type "ACTION")
                     (run-hook-with-args-until-success
@@ -6809,8 +6890,8 @@ ERC prints them as a single message joined by newlines.")
             (when-let (((not (erc--input-split-abortp state)))
                        (inhibit-read-only t)
                        (old-buf (current-buffer)))
-              (let ((erc--msg-prop-overrides '((erc-cmd . PRIVMSG)
-                                               (erc-msg . msg))))
+              (let ((erc--msg-prop-overrides `((erc-msg . msg)
+                                               ,@erc--msg-prop-overrides)))
                 (erc-set-active-buffer (current-buffer))
                 ;; Kill the input and the prompt
                 (delete-region erc-input-marker (erc-end-of-input-line))
@@ -6952,15 +7033,18 @@ Return non-nil only if we actually send anything."
           t)))))
 
 (defun erc-display-msg (line)
-  "Display LINE as a message of the user to the current target at point."
+  "Insert LINE into current buffer and run \"send\" hooks.
+Expect LINE to originate from input submitted interactively at
+the prompt, such as outgoing chat messages or echoed slash
+commands."
   (when erc-insert-this
     (save-excursion
       (erc--assert-input-bounds)
       (let ((insert-position (marker-position (goto-char erc-insert-marker)))
-            (erc--msg-props (or erc--msg-props
-                                (map-into (cons '(erc-msg . self)
-                                                erc--msg-prop-overrides)
-                                          'hash-table)))
+            (erc--msg-props (or erc--msg-props ; prefer `self' to `unknown'
+                                (let ((ovs erc--msg-prop-overrides))
+                                  (map-into `((erc-msg . self) ,@(reverse ovs))
+                                            'hash-table))))
             beg)
         (insert (erc-format-my-nick))
         (setq beg (point))

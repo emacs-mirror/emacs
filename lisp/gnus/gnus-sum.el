@@ -122,7 +122,7 @@ The server has to support NOV for any of this to work.
 
 This feature can seriously impact performance it ignores all
 locally cached header entries.  Setting it to t for groups for a
-server that doesn't expire articles (such as news.gmane.org),
+server that doesn't expire articles (such as news.gmane.io),
 leads to very slow summary generation."
   :group 'gnus-thread
   :type '(choice (const :tag "off" nil)
@@ -322,7 +322,8 @@ This can either be a regular expression or list of regular expressions
 that will be removed from subject strings if fuzzy subject
 simplification is selected."
   :group 'gnus-thread
-  :type '(repeat regexp))
+  :type '(choice regexp
+                 (repeat regexp)))
 
 (defcustom gnus-show-threads t
   "If non-nil, display threads in summary mode."

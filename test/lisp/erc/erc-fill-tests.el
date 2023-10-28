@@ -33,7 +33,6 @@
   (declare (indent 1))
   (let* ((msg (erc-format-privmessage speaker
                                       (apply #'concat msg-parts) nil t))
-         ;; (erc--msg-prop-overrides '((erc-msg . msg) (erc-cmd . PRIVMSG)))
          (parsed (make-erc-response :unparsed msg :sender speaker
                                     :command "PRIVMSG"
                                     :command-args (list "#chan" msg)
@@ -129,10 +128,10 @@
       (should (equal (get-text-property (1- (pos-eol)) 'wrap-prefix)
                      '(space :width erc-fill--wrap-value))))))
 
-;; Set this variable to t to generate new snapshots after carefully
+;; Use this variable to generate new snapshots after carefully
 ;; reviewing the output of *each* snapshot (not just first and last).
 ;; Obviously, only run one test at a time.
-(defvar erc-fill-tests--save-p nil)
+(defvar erc-fill-tests--save-p (getenv "ERC_TESTS_FILL_SAVE"))
 
 ;; On graphical displays, echo .graphic >> .git/info/exclude
 (defvar erc-fill-tests--graphic-dir "fill/snapshots/.graphic")
@@ -162,8 +161,12 @@
         (insert (setq got (read repr))))
       (erc-mode))
     (if erc-fill-tests--save-p
-        (with-temp-file expect-file
-          (insert repr))
+        (let (inhibit-message)
+          (with-temp-file expect-file
+            (insert repr))
+          ;; Limit writing snapshots to one test at a time.
+          (setq erc-fill-tests--save-p nil)
+          (message "erc-fill-tests--compare: wrote %S" expect-file))
       (if (file-exists-p expect-file)
           ;; Ensure string-valued properties, like timestamps, aren't
           ;; recursive (signals `max-lisp-eval-depth' exceeded).
@@ -297,16 +300,20 @@
      ;; Set this here so that the first few messages are from 1970
      (let ((erc-fill-tests--time-vals (lambda () 1680332400)))
        (erc-fill-tests--insert-privmsg "bob" "zero.")
+       (erc-fill-tests--insert-privmsg "bob" "0.5")
 
        (erc-process-ctcp-query
         erc-server-process
         (make-erc-response
-         :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION one\1"
-         :sender "bob!~u@fake" :command "PRIVMSG"
-         :command-args '("#chan" "\1ACTION one\1") :contents "\1ACTION one\1")
+         :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION one.\1"
+         :sender "bob!~u@fake"
+         :command "PRIVMSG"
+         :command-args '("#chan" "\1ACTION one.\1")
+         :contents "\1ACTION one.\1")
         "bob" "~u" "fake")
 
        (erc-fill-tests--insert-privmsg "bob" "two.")
+       (erc-fill-tests--insert-privmsg "bob" "2.5")
 
        ;; Compat switch to opt out of overhanging speaker.
        (let (erc-fill--wrap-action-dedent-p)

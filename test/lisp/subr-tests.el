@@ -348,15 +348,17 @@
 (defalias 'subr-tests--parent-mode
   (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
 
+(define-derived-mode subr-tests--derived-mode-1 prog-mode "test")
+(define-derived-mode subr-tests--derived-mode-2 subr-tests--parent-mode "test")
 (ert-deftest provided-mode-derived-p ()
   ;; base case: `derived-mode' directly derives `prog-mode'
-  (should (progn
-            (define-derived-mode derived-mode prog-mode "test")
-            (provided-mode-derived-p 'derived-mode 'prog-mode)))
-  ;; edge case: `derived-mode' derives an alias of `prog-mode'
-  (should (progn
-            (define-derived-mode derived-mode subr-tests--parent-mode "test")
-            (provided-mode-derived-p 'derived-mode 'prog-mode))))
+  (should (provided-mode-derived-p 'subr-tests--derived-mode-1 'prog-mode))
+  ;; Edge cases: aliases along the derivation.
+  (should (provided-mode-derived-p 'subr-tests--parent-mode
+                                   'subr-tests--parent-mode))
+  (should (provided-mode-derived-p 'subr-tests--derived-mode-2
+                                   'subr-tests--parent-mode))
+  (should (provided-mode-derived-p 'subr-tests--derived-mode-2 'prog-mode)))
 
 (ert-deftest number-sequence-test ()
   (should (= (length

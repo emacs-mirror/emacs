@@ -243,7 +243,8 @@ or `erc-send-modify-hook'."
            (erc-stamp--invisible-property
             ;; FIXME on major version bump, make this `erc-' prefixed.
             (if invisible `(timestamp ,@(ensure-list invisible)) 'timestamp))
-           (skipp (and erc-stamp--skip-when-invisible invisible))
+           (skipp (or (and erc-stamp--skip-when-invisible invisible)
+                      (erc--check-msg-prop 'erc-ephemeral)))
            (erc-stamp--current-time ct))
       (when erc--msg-props
         (puthash 'erc-ts ct erc--msg-props))
@@ -638,7 +639,8 @@ printed just after each line's text (no alignment)."
 (defun erc-stamp--propertize-left-date-stamp ()
   (add-text-properties (point-min) (1- (point-max))
                        '(field erc-timestamp erc-stamp-type date-left))
-  (erc--hide-message 'timestamp))
+  (erc--hide-message 'timestamp)
+  (run-hooks 'erc-stamp--insert-date-hook))
 
 ;; A kludge to pass state from insert hook to nested insert hook.
 (defvar erc-stamp--current-datestamp-left nil)
@@ -665,19 +667,18 @@ printed just after each line's text (no alignment)."
   (cl-assert string)
   (let ((erc-stamp--skip t)
         (erc--msg-props (map-into `((erc-msg . datestamp)
-                                    (erc-ts . ,erc-stamp--current-time))
+                                    (erc-ts . ,(erc-stamp--current-time)))
                                   'hash-table))
-        (erc-send-modify-hook `(,@erc-send-modify-hook
-                                erc-stamp--propertize-left-date-stamp
-                                ,@erc-stamp--insert-date-hook))
         (erc-insert-modify-hook `(,@erc-insert-modify-hook
-                                  erc-stamp--propertize-left-date-stamp
-                                  ,@erc-stamp--insert-date-hook)))
+                                  erc-stamp--propertize-left-date-stamp))
+        ;; Don't run hooks that aren't expecting a narrowed buffer.
+        (erc-insert-pre-hook nil)
+        (erc-insert-done-hook nil))
     (erc-display-message nil nil (current-buffer) string)
     (setq erc-timestamp-last-inserted-left string)))
 
 (defun erc-stamp--lr-date-on-pre-modify (_)
-  (when-let ((ct (or erc-stamp--current-time (erc-stamp--current-time)))
+  (when-let ((ct (erc-stamp--current-time))
              (rendered (erc-stamp--format-date-stamp ct))
              ((not (string-equal rendered erc-timestamp-last-inserted-left)))
              (erc-stamp--current-datestamp-left rendered)
@@ -688,6 +689,16 @@ printed just after each line's text (no alignment)."
                         (or erc--insert-marker erc-insert-marker))
       (let (erc-timestamp-format erc-away-timestamp-format)
         (erc-add-timestamp)))))
+
+(defvar erc-stamp-prepend-date-stamps-p nil
+  "When non-nil, date stamps are not independent messages.
+Users should think twice about enabling this escape hatch.  It
+will likely degraded the user experience by causing post-5.5
+features, like `fill-wrap', dynamic invisibility, etc., to
+malfunction.  Basic support for the default configuration may
+expire earlier than normally expected.")
+(make-obsolete-variable 'erc-stamp-prepend-date-stamps-p
+                        "unsupported legacy behavior" "30.1")
 
 (defun erc-insert-timestamp-left-and-right (string)
   "Insert a stamp on either side when it changes.
@@ -703,7 +714,7 @@ requirements related to `erc-legacy-invisible-bounds-p'.
 Additionally, ensure every date stamp is identifiable as such so
 that internal modules can easily distinguish between other
 left-sided stamps and date stamps inserted by this function."
-  (unless erc-stamp--date-format-end
+  (unless (or erc-stamp--date-format-end erc-stamp-prepend-date-stamps-p)
     (add-hook 'erc-insert-pre-hook #'erc-stamp--lr-date-on-pre-modify -95 t)
     (add-hook 'erc-send-pre-functions #'erc-stamp--lr-date-on-pre-modify -95 t)
     (let ((erc--insert-marker (point-min-marker))
@@ -713,12 +724,19 @@ left-sided stamps and date stamps inserted by this function."
       (narrow-to-region erc--insert-marker end-marker)
       (set-marker end-marker nil)
       (set-marker erc--insert-marker nil)))
-  (let* ((ct (or erc-stamp--current-time (erc-stamp--current-time)))
+  (let* ((ct (erc-stamp--current-time))
          (ts-right (with-suppressed-warnings
                        ((obsolete erc-timestamp-format-right))
                      (if erc-timestamp-format-right
                          (erc-format-timestamp ct erc-timestamp-format-right)
                        string))))
+    ;; Maybe insert legacy date stamp.
+    (when-let ((erc-stamp-prepend-date-stamps-p)
+               (ts-left (erc-format-timestamp ct erc-timestamp-format-left))
+               ((not (string= ts-left erc-timestamp-last-inserted-left))))
+      (goto-char (point-min))
+      (erc-put-text-property 0 (length ts-left) 'field 'erc-timestamp ts-left)
+      (insert (setq erc-timestamp-last-inserted-left ts-left)))
     ;; insert right timestamp
     (let ((erc-timestamp-only-if-changed-flag t)
 	  (erc-timestamp-last-inserted erc-timestamp-last-inserted-right))

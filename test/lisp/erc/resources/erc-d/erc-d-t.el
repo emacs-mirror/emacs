@@ -157,6 +157,7 @@ ON-SUCCESS, is nonexistent.  To reset, specify a FROM argument."
   (let (positions)
     (lambda (timeout text &optional reset-from)
       (let* ((pos (cdr (assq (current-buffer) positions)))
+             (erc-d-t--wait-message-prefix (and (< timeout 0) "Sustaining: "))
              (cb (lambda ()
                    (unless pos
                      (push (cons (current-buffer) (setq pos (make-marker)))

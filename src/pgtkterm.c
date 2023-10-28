@@ -5894,7 +5894,7 @@ motion_notify_event (GtkWidget *widget, GdkEvent *event,
 	{
 	  static Lisp_Object last_mouse_window;
 	  Lisp_Object window = window_from_coordinates
-	    (f, event->motion.x, event->motion.y, 0, false, false);
+	    (f, event->motion.x, event->motion.y, 0, false, false, false);
 
 	  /* A window will be autoselected only when it is not
 	     selected now and the last mouse movement event was
@@ -6047,7 +6047,7 @@ button_event (GtkWidget *widget, GdkEvent *event,
 	  int x = event->button.x;
 	  int y = event->button.y;
 
-	  window = window_from_coordinates (f, x, y, 0, true, true);
+	  window = window_from_coordinates (f, x, y, 0, true, true, true);
 	  tab_bar_p = EQ (window, f->tab_bar_window);
 
 	  if (tab_bar_p)

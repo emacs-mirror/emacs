@@ -15985,7 +15985,7 @@
 	(imap-message-copyuid-1): Use it.
 	(imap-message-appenduid-1): Likewise.  Based on patch by Nathan
 	J. Williams in
-	<http://permalink.gmane.org/gmane.emacs.gnus.general/65855>.
+	<http://permalink.gmane.org/gmane.emacs.gnus.general/65855>. [dead link]
 
 2008-04-02  Alan Mackenzie  <acm@muc.de>
 
