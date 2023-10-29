@@ -2661,7 +2661,7 @@ hash_table_contents (struct Lisp_Hash_Table *h)
      relies on it by expecting hash table indices to stay constant
      across the dump.  */
   for (ptrdiff_t i = 0; i < old_size; i++)
-    if (!NILP (HASH_HASH (h, i)))
+    if (HASH_HASH (h, i) != hash_unused)
       {
 	key_and_value[n++] = HASH_KEY (h, i);
 	key_and_value[n++] = HASH_VALUE (h, i);

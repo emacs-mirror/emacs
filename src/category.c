@@ -53,7 +53,7 @@ hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
       (table, 1,
        make_hash_table (hashtest_equal, DEFAULT_HASH_SIZE, Weak_None, false));
   struct Lisp_Hash_Table *h = XHASH_TABLE (XCHAR_TABLE (table)->extras[1]);
-  Lisp_Object hash;
+  hash_hash_t hash;
   ptrdiff_t i = hash_lookup (h, category_set, &hash);
   if (i >= 0)
     return HASH_KEY (h, i);

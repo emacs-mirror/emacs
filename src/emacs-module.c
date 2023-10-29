@@ -427,7 +427,8 @@ module_make_global_ref (emacs_env *env, emacs_value value)
 {
   MODULE_FUNCTION_BEGIN (NULL);
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
-  Lisp_Object new_obj = value_to_lisp (value), hashcode;
+  Lisp_Object new_obj = value_to_lisp (value);
+  hash_hash_t hashcode;
   ptrdiff_t i = hash_lookup (h, new_obj, &hashcode);
 
   /* Note: This approach requires the garbage collector to never move

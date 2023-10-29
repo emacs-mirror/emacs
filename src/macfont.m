@@ -980,7 +980,7 @@ macfont_invalidate_family_cache (void)
       ptrdiff_t i, size = HASH_TABLE_SIZE (h);
 
       for (i = 0; i < size; ++i)
-	if (!NILP (HASH_HASH (h, i)))
+	if (HASH_HASH (h, i) != hash_unused)
 	  {
 	    Lisp_Object value = HASH_VALUE (h, i);
 
@@ -1017,12 +1017,13 @@ macfont_set_family_cache (Lisp_Object symbol, CFStringRef string)
 {
   struct Lisp_Hash_Table *h;
   ptrdiff_t i;
-  Lisp_Object hash, value;
+  Lisp_Object value;
 
   if (!HASH_TABLE_P (macfont_family_cache))
     macfont_family_cache = CALLN (Fmake_hash_table, QCtest, Qeq);
 
   h = XHASH_TABLE (macfont_family_cache);
+  hash_hash_t hash;
   i = hash_lookup (h, symbol, &hash);
   value = string ? make_mint_ptr ((void *) CFRetain (string)) : Qnil;
   if (i >= 0)

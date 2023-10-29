@@ -2385,6 +2385,10 @@ INLINE int
 
 struct Lisp_Hash_Table;
 
+/* The type of a hash value stored in the table.
+   It's unsigned and a subtype of EMACS_UINT.  */
+typedef EMACS_UINT hash_hash_t;
+
 typedef enum {
   Test_eql,
   Test_eq,
@@ -2406,7 +2410,7 @@ struct hash_table_test
   Lisp_Object (*cmpfn) (Lisp_Object, Lisp_Object, struct Lisp_Hash_Table *);
 
   /* C function to compute hash code.  */
-  Lisp_Object (*hashfn) (Lisp_Object, struct Lisp_Hash_Table *);
+  hash_hash_t (*hashfn) (Lisp_Object, struct Lisp_Hash_Table *);
 };
 
 typedef enum {
@@ -2420,6 +2424,11 @@ typedef enum {
 			    element kept as long as strong references to
 			    both key and value remain.  */
 } hash_table_weakness_t;
+
+/* An value that marks an unused hash entry.
+   Any hash_hash_t value that is not a valid fixnum will do here.  */
+enum { hash_unused = (hash_hash_t)MOST_POSITIVE_FIXNUM + 1 };
+verify (FIXNUM_OVERFLOW_P (hash_unused));
 
 struct Lisp_Hash_Table
 {
@@ -2462,9 +2471,9 @@ struct Lisp_Hash_Table
 
   ptrdiff_t table_size;	  /* Size of the next and hash vectors.  */
 
-  /* Vector of hash codes.  Each entry is either a fixnum, or nil if unused.
+  /* Vector of hash codes.  The value hash_unused marks an unused table entry.
      This vector is table_size entries long.  */
-  Lisp_Object *hash;
+  hash_hash_t *hash;
 
   /* Vector used to chain entries.  If entry I is free, next[I] is the
      entry number of the next free item.  If entry I is non-free,
@@ -2553,7 +2562,7 @@ HASH_VALUE (const struct Lisp_Hash_Table *h, ptrdiff_t idx)
 }
 
 /* Value is the hash code computed for entry IDX in hash table H.  */
-INLINE Lisp_Object
+INLINE hash_hash_t
 HASH_HASH (const struct Lisp_Hash_Table *h, ptrdiff_t idx)
 {
   eassert (idx >= 0 && idx < h->table_size);
@@ -2567,8 +2576,8 @@ HASH_TABLE_SIZE (const struct Lisp_Hash_Table *h)
   return h->table_size;
 }
 
-/* Compute hash value for KEY in hash table H.  */
-INLINE Lisp_Object
+/* Hash value for KEY in hash table H.  */
+INLINE hash_hash_t
 hash_from_key (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
   return h->test.hashfn (key, h);
@@ -4054,9 +4063,9 @@ EMACS_UINT sxhash (Lisp_Object);
 Lisp_Object make_hash_table (struct hash_table_test, EMACS_INT,
                              hash_table_weakness_t, bool);
 Lisp_Object hash_table_weakness_symbol (hash_table_weakness_t weak);
-ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object *);
+ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, hash_hash_t *);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
-		    Lisp_Object);
+		    hash_hash_t);
 void hash_remove_from_table (struct Lisp_Hash_Table *, Lisp_Object);
 extern struct hash_table_test const hashtest_eq, hashtest_eql, hashtest_equal;
 extern void validate_subarray (Lisp_Object, Lisp_Object, Lisp_Object,

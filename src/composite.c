@@ -166,7 +166,7 @@ ptrdiff_t
 get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 		    Lisp_Object prop, Lisp_Object string)
 {
-  Lisp_Object id, length, components, key, *key_contents, hash_code;
+  Lisp_Object id, length, components, key, *key_contents;
   ptrdiff_t glyph_len;
   struct Lisp_Hash_Table *hash_table = XHASH_TABLE (composition_hash_table);
   ptrdiff_t hash_index;
@@ -240,6 +240,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
   else
     goto invalid_composition;
 
+  hash_hash_t hash_code;
   hash_index = hash_lookup (hash_table, key, &hash_code);
   if (hash_index >= 0)
     {
@@ -653,7 +654,7 @@ composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   Lisp_Object header = LGSTRING_HEADER (gstring);
-  Lisp_Object hash = hash_from_key (h, header);
+  EMACS_UINT hash = hash_from_key (h, header);
   if (len < 0)
     {
       ptrdiff_t glyph_len = LGSTRING_GLYPH_LEN (gstring);

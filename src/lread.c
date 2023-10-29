@@ -4255,7 +4255,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 			struct Lisp_Hash_Table *h
 			  = XHASH_TABLE (read_objects_map);
 			Lisp_Object number = make_fixnum (n);
-			Lisp_Object hash;
+			hash_hash_t hash;
 			ptrdiff_t i = hash_lookup (h, number, &hash);
 			if (i >= 0)
 			  /* Not normal, but input could be malformed.  */
@@ -4571,7 +4571,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 		struct Lisp_Hash_Table *h2
 		  = XHASH_TABLE (read_objects_completed);
-		Lisp_Object hash;
+		hash_hash_t hash;
 		ptrdiff_t i = hash_lookup (h2, placeholder, &hash);
 		eassert (i < 0);
 		hash_put (h2, placeholder, Qnil, hash);
@@ -4586,7 +4586,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		  {
 		    struct Lisp_Hash_Table *h2
 		      = XHASH_TABLE (read_objects_completed);
-		    Lisp_Object hash;
+		    hash_hash_t hash;
 		    ptrdiff_t i = hash_lookup (h2, obj, &hash);
 		    eassert (i < 0);
 		    hash_put (h2, obj, Qnil, hash);
@@ -4598,7 +4598,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 		/* ...and #n# will use the real value from now on.  */
 		struct Lisp_Hash_Table *h = XHASH_TABLE (read_objects_map);
-		Lisp_Object hash;
+		hash_hash_t hash;
 		ptrdiff_t i = hash_lookup (h, e->u.numbered.number, &hash);
 		eassert (i >= 0);
 		set_hash_value_slot (h, i, obj);

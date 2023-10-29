@@ -879,7 +879,8 @@ json_to_lisp (json_t *json, const struct json_configuration *conf)
               json_t *value;
               json_object_foreach (json, key_str, value)
                 {
-		  Lisp_Object key = build_string_from_utf8 (key_str), hash;
+		  Lisp_Object key = build_string_from_utf8 (key_str);
+		  hash_hash_t hash;
                   ptrdiff_t i = hash_lookup (h, key, &hash);
                   /* Keys in JSON objects are unique, so the key can't
                      be present yet.  */
