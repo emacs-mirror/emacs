@@ -39,6 +39,9 @@ public final class EmacsNative
   /* Like `dup' in C.  */
   public static native int dup (int fd);
 
+  /* Like `close' in C.  */
+  public static native int close (int fd);
+
   /* Obtain the fingerprint of this build of Emacs.  The fingerprint
      can be used to determine the dump file name.  */
   public static native String getFingerprint ();
