@@ -299,7 +299,7 @@ Optional MARKER-CHAR is marker to use.
 Interactively, ask for EXTENSION.
 Prefixed with one \\[universal-argument], unmark files instead.
 Prefixed with two \\[universal-argument]'s, prompt for MARKER-CHAR and mark files with it."
-  (interactive (dired--mark-suffix-interactive-spec))
+  (interactive (dired--mark-suffix-interactive-spec) dired-mode)
   (setq extension (ensure-list extension))
   (dired-mark-files-regexp
    (concat ".";; don't match names with nothing but an extension
@@ -323,7 +323,7 @@ Optional MARKER-CHAR is marker to use.
 Interactively, ask for SUFFIX.
 Prefixed with one \\[universal-argument], unmark files instead.
 Prefixed with two \\[universal-argument]'s, prompt for MARKER-CHAR and mark files with it."
-  (interactive (dired--mark-suffix-interactive-spec))
+  (interactive (dired--mark-suffix-interactive-spec) dired-mode)
   (setq suffix (ensure-list suffix))
   (dired-mark-files-regexp
    (concat ".";; don't match names with nothing but an extension
@@ -335,7 +335,7 @@ Prefixed with two \\[universal-argument]'s, prompt for MARKER-CHAR and mark file
 (defun dired-flag-extension (extension)
   "In Dired, flag all files with a certain EXTENSION for deletion.
 A `.' is *not* automatically prepended to the string entered."
-  (interactive "sFlagging extension: ")
+  (interactive "sFlagging extension: " dired-mode)
   (dired-mark-extension extension dired-del-marker))
 
 ;; Define some unpopular file extensions.  Used for cleaning and omitting.
@@ -364,7 +364,7 @@ A `.' is *not* automatically prepended to the string entered."
 (defun dired-clean-patch ()
   "Flag dispensable files created by patch for deletion.
 See variable `dired-patch-unclean-extensions'."
-  (interactive)
+  (interactive nil dired-mode)
   (dired-flag-extension dired-patch-unclean-extensions))
 
 (defun dired-clean-tex ()
@@ -372,7 +372,7 @@ See variable `dired-patch-unclean-extensions'."
 See variables `dired-tex-unclean-extensions',
 `dired-latex-unclean-extensions', `dired-bibtex-unclean-extensions' and
 `dired-texinfo-unclean-extensions'."
-  (interactive)
+  (interactive nil dired-mode)
   (dired-flag-extension (append dired-texinfo-unclean-extensions
                                 dired-latex-unclean-extensions
                                 dired-bibtex-unclean-extensions
@@ -383,7 +383,7 @@ See variables `dired-tex-unclean-extensions',
 See variables `dired-texinfo-unclean-extensions',
 `dired-latex-unclean-extensions', `dired-bibtex-unclean-extensions' and
 `dired-texinfo-unclean-extensions'."
-  (interactive)
+  (interactive nil dired-mode)
   (dired-flag-extension (append dired-texinfo-unclean-extensions
                                 dired-latex-unclean-extensions
                                 dired-bibtex-unclean-extensions
@@ -419,7 +419,7 @@ Should never be used as marker by the user or other packages.")
 
 (defun dired-mark-omitted ()
   "Mark files matching `dired-omit-files' and `dired-omit-extensions'."
-  (interactive)
+  (interactive nil dired-mode)
   (let ((dired-omit-mode nil)) (revert-buffer)) ;; Show omitted files
   (dired-mark-unmarked-files (dired-omit-regexp) nil nil dired-omit-localp
                              (dired-omit-case-fold-p (if (stringp dired-directory)
@@ -455,7 +455,7 @@ if called from Lisp and buffer is bigger than `dired-omit-size-limit'.
 Optional arg INIT-COUNT is an initial count tha'is added to the number
 of lines omitted by this invocation of `dired-omit-expunge', in the
 status message."
-  (interactive "sOmit files (regexp): \nP")
+  (interactive "sOmit files (regexp): \nP" dired-mode)
   ;; Bind `dired-marker-char' to `dired-omit-marker-char',
   ;; then call `dired-do-kill-lines'.
   (if (and dired-omit-mode
@@ -531,7 +531,8 @@ files in the active region if `dired-mark-region' is non-nil."
    (list (read-regexp
           (format-prompt "Mark unmarked files matching regexp" "all")
           nil 'dired-regexp-history)
-	 nil current-prefix-arg nil))
+	 nil current-prefix-arg nil)
+   dired-mode)
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
     (dired-mark-if
      (and
@@ -736,7 +737,7 @@ displayed this way is restricted by the height of the current window and
 
 To keep Dired buffer displayed, type \\[split-window-below] first.
 To display just marked files, type \\[delete-other-windows] first."
-  (interactive "P")
+  (interactive "P" dired-mode)
   (dired-simultaneous-find-file (dired-get-marked-files nil nil nil nil t)
                                 noselect))
 
@@ -780,7 +781,7 @@ NOSELECT the files are merely found but not selected."
   "Run VM on this file.
 With optional prefix argument, visits the folder read-only.
 Otherwise obeys the value of `dired-vm-read-only-folders'."
-  (interactive "P")
+  (interactive "P" dired-mode)
   (let ((dir (dired-current-directory))
         (fil (dired-get-filename)))
     (vm-visit-folder fil (or read-only
@@ -792,7 +793,7 @@ Otherwise obeys the value of `dired-vm-read-only-folders'."
 
 (defun dired-rmail ()
   "Run RMAIL on this file."
-  (interactive)
+  (interactive nil dired-mode)
   (rmail (dired-get-filename)))
 
 (defun dired-do-run-mail ()
@@ -800,7 +801,7 @@ Otherwise obeys the value of `dired-vm-read-only-folders'."
 Prompt for confirmation first; if the user says yes, call
 `dired-vm' if `dired-bind-vm' is non-nil, `dired-rmail'
 otherwise."
-  (interactive)
+  (interactive nil dired-mode)
   (let ((file (dired-get-filename t)))
     (if dired-bind-vm
 	(if (y-or-n-p (format-message
@@ -886,7 +887,8 @@ only in the active region if `dired-mark-region' is non-nil."
                   (if current-prefix-arg
                       "UNmark"
                     "Mark")))
-         current-prefix-arg))
+         current-prefix-arg)
+   dired-mode)
   (message "%s" predicate)
   (let ((dired-marker-char (if unflag-p ?\040 dired-marker-char))
         inode s mode nlink uid gid size time name sym)
@@ -1012,7 +1014,7 @@ is loaded then call \\[dired-x-bind-find-file]."
   "Bind `dired-x-find-file' in place of `find-file' (or vice-versa).
 Similarly for `dired-x-find-file-other-window' and `find-file-other-window'.
 Binding direction based on `dired-x-hands-off-my-keys'."
-  (interactive)
+  (interactive nil)
   (if (called-interactively-p 'interactive)
       (setq dired-x-hands-off-my-keys
             (not (y-or-n-p (format-message
