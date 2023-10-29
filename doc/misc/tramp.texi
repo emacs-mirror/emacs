@@ -6096,7 +6096,7 @@ The verbosity levels are
 @item @w{ 0}  Silent (no @value{tramp} messages at all)
 @item @w{ 1}  Errors
 @item @w{ 2}  Warnings
-@item @w{ 3}  Connectioncccc to remote hosts (default verbosity)
+@item @w{ 3}  Connection to remote hosts (default verbosity)
 @item @w{ 4}  Activities
 @item @w{ 5}  Internal
 @item @w{ 6}  Sent and received strings
