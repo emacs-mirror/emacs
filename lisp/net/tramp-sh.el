@@ -31,8 +31,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-(require 'cl-seq)
+(require 'cl-lib)
 (require 'tramp)
 
 ;; `dired-*' declarations can be removed, starting with Emacs 29.1.
