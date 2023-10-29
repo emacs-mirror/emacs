@@ -1199,7 +1199,7 @@ If non-nil, then case operations such as 'upcase-initials' or
 'replace-match' (with nil FIXEDCASE) will treat the entire symbol name
 as a single word.  This is useful for programming languages and styles
 where only the first letter of a symbol's name is ever capitalized.
-It defaults to nil.
+The default value of this variable is nil.
 
 +++
 ** 'x-popup-menu' now understands touch screen events.
