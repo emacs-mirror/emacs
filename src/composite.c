@@ -653,7 +653,7 @@ composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   Lisp_Object header = LGSTRING_HEADER (gstring);
-  Lisp_Object hash = h->test.hashfn (header, h);
+  Lisp_Object hash = hash_from_key (h, header);
   if (len < 0)
     {
       ptrdiff_t glyph_len = LGSTRING_GLYPH_LEN (gstring);

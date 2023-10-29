@@ -2524,6 +2524,13 @@ HASH_TABLE_SIZE (const struct Lisp_Hash_Table *h)
   return size;
 }
 
+/* Compute hash value for KEY in hash table H.  */
+INLINE Lisp_Object
+hash_from_key (struct Lisp_Hash_Table *h, Lisp_Object key)
+{
+  return h->test.hashfn (key, h);
+}
+
 void hash_table_rehash (Lisp_Object);
 
 /* Default size for hash tables if not specified.  */

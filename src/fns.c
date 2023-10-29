@@ -4631,6 +4631,13 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 }
 
 
+/* Compute index into the index vector from a hash value.  */
+static inline ptrdiff_t
+hash_index_index (struct Lisp_Hash_Table *h, Lisp_Object hash_code)
+{
+  return XUFIXNUM (hash_code) % ASIZE (h->index);
+}
+
 /* Resize hash table H if it's too full.  If H cannot be resized
    because it's already too large, throw an error.  */
 
@@ -4689,8 +4696,8 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       for (ptrdiff_t i = 0; i < old_size; i++)
 	if (!NILP (HASH_HASH (h, i)))
 	  {
-	    EMACS_UINT hash_code = XUFIXNUM (HASH_HASH (h, i));
-	    ptrdiff_t start_of_bucket = hash_code % ASIZE (h->index);
+	    Lisp_Object hash_code = HASH_HASH (h, i);
+	    ptrdiff_t start_of_bucket = hash_index_index (h, hash_code);
 	    set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
 	    set_hash_index_slot (h, start_of_bucket, i);
 	  }
@@ -4718,8 +4725,8 @@ hash_table_rehash (Lisp_Object hash)
   for (i = 0; i < count; i++)
     {
       Lisp_Object key = HASH_KEY (h, i);
-      Lisp_Object hash_code = h->test.hashfn (key, h);
-      ptrdiff_t start_of_bucket = XUFIXNUM (hash_code) % ASIZE (h->index);
+      Lisp_Object hash_code = hash_from_key (h, key);
+      ptrdiff_t start_of_bucket = hash_index_index (h, hash_code);
       set_hash_hash_slot (h, i, hash_code);
       set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
       set_hash_index_slot (h, start_of_bucket, i);
@@ -4738,15 +4745,12 @@ hash_table_rehash (Lisp_Object hash)
 ptrdiff_t
 hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object *hash)
 {
-  ptrdiff_t start_of_bucket, i;
-
-  Lisp_Object hash_code;
-  hash_code = h->test.hashfn (key, h);
+  Lisp_Object hash_code = hash_from_key (h, key);
   if (hash)
     *hash = hash_code;
 
-  start_of_bucket = XUFIXNUM (hash_code) % ASIZE (h->index);
-
+  ptrdiff_t start_of_bucket = hash_index_index (h, hash_code);
+  ptrdiff_t i;
   for (i = HASH_INDEX (h, start_of_bucket); 0 <= i; i = HASH_NEXT (h, i))
     if (EQ (key, HASH_KEY (h, i))
 	|| (h->test.cmpfn
@@ -4773,14 +4777,12 @@ ptrdiff_t
 hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 	  Lisp_Object hash)
 {
-  ptrdiff_t start_of_bucket, i;
-
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
   h->count++;
 
   /* Store key/value in the key_and_value vector.  */
-  i = h->next_free;
+  ptrdiff_t i = h->next_free;
   eassert (NILP (HASH_HASH (h, i)));
   eassert (BASE_EQ (Qunbound, (HASH_KEY (h, i))));
   h->next_free = HASH_NEXT (h, i);
@@ -4791,7 +4793,7 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
   set_hash_hash_slot (h, i, hash);
 
   /* Add new entry to its collision chain.  */
-  start_of_bucket = XUFIXNUM (hash) % ASIZE (h->index);
+  ptrdiff_t start_of_bucket = hash_index_index (h, hash);
   set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
   set_hash_index_slot (h, start_of_bucket, i);
   return i;
@@ -4803,8 +4805,8 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 void
 hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
-  Lisp_Object hash_code = h->test.hashfn (key, h);
-  ptrdiff_t start_of_bucket = XUFIXNUM (hash_code) % ASIZE (h->index);
+  Lisp_Object hash_code = hash_from_key (h, key);
+  ptrdiff_t start_of_bucket = hash_index_index (h, hash_code);
   ptrdiff_t prev = -1;
 
   for (ptrdiff_t i = HASH_INDEX (h, start_of_bucket);
