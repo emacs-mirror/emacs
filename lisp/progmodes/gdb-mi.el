@@ -1960,19 +1960,23 @@ static char *magick[] = {
   :group 'gdb)
 
 
-(defvar gdb-python-guile-commands-regexp
-  "python\\|python-interactive\\|pi\\|guile\\|guile-repl\\|gr"
-  "Regexp that matches Python and Guile commands supported by GDB.")
-
 (defvar gdb-control-commands-regexp
-  (concat
-   "^\\("
-   "comm\\(a\\(n\\(ds?\\)?\\)?\\)?\\|if\\|while"
-   "\\|def\\(i\\(ne?\\)?\\)?\\|doc\\(u\\(m\\(e\\(nt?\\)?\\)?\\)?\\)?\\|"
-   gdb-python-guile-commands-regexp
-   "\\|while-stepping\\|stepp\\(i\\(ng?\\)?\\)?\\|ws\\|actions"
-   "\\|expl\\(o\\(re?\\)?\\)?"
-   "\\)\\([[:blank:]]+\\([^[:blank:]]*\\)\\)*$")
+  (rx bol
+      (or
+       (or "comm" "comma" "comman" "command" "commands"
+           "if" "while"
+           "def" "defi" "defin" "define"
+           "doc" "docu" "docum" "docume" "documen" "document"
+           "while-stepping"
+           "stepp" "steppi" "steppin" "stepping"
+           "ws" "actions"
+           "expl" "explo" "explor" "explore")
+       (group         ; group 1: Python and Guile commands
+        (or "python" "python-interactive" "pi" "guile" "guile-repl" "gr")))
+      (? (+ blank)
+         (group       ; group 2: command arguments
+          (* nonl)))
+      eol)
   "Regexp matching GDB commands that enter a recursive reading loop.
 As long as GDB is in the recursive reading loop, it does not expect
 commands to be prefixed by \"-interpreter-exec console\".")
@@ -2032,15 +2036,13 @@ commands to be prefixed by \"-interpreter-exec console\".")
       (setq gdb-continuation nil)))
   ;; Python and Guile commands that have an argument don't enter the
   ;; recursive reading loop.
-  (let* ((control-command-p (string-match gdb-control-commands-regexp string))
-         (command-arg (and control-command-p (match-string 3 string)))
-         (python-or-guile-p (string-match gdb-python-guile-commands-regexp
-                                          string)))
-    (if (and control-command-p
-             (or (not python-or-guile-p)
-                 (null command-arg)
-                 (zerop (length command-arg))))
-        (setq gdb-control-level (1+ gdb-control-level)))))
+  (when (string-match gdb-control-commands-regexp string)
+    (let ((python-or-guile-p (match-beginning 1))
+          (command-arg (match-string 2 string)))
+      (when (or (not python-or-guile-p)
+                (null command-arg)
+                (zerop (length command-arg)))
+        (setq gdb-control-level (1+ gdb-control-level))))))
 
 (defun gdb-mi-quote (string)
   "Return STRING quoted properly as an MI argument.
