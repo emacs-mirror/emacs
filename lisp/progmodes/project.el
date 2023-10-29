@@ -647,6 +647,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
             (include-untracked (project--value-in-dir
                                 'project-vc-include-untracked
                                 dir))
+            (submodules (project--git-submodules))
             files)
        (setq args (append args
                           '("-c" "--exclude-standard")
@@ -678,23 +679,25 @@ See `project-vc-extra-root-markers' for the marker value format.")
                                         i)))
                                    extra-ignores)))))
        (setq files
-             (mapcar
-              (lambda (file) (concat default-directory file))
-              (split-string
-               (apply #'vc-git--run-command-string nil "ls-files" args)
-               "\0" t)))
+             (delq nil
+                   (mapcar
+                    (lambda (file)
+                      (unless (member file submodules)
+                        (concat default-directory file)))
+                    (split-string
+                     (apply #'vc-git--run-command-string nil "ls-files" args)
+                     "\0" t))))
        (when (project--vc-merge-submodules-p default-directory)
          ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
-         (let* ((submodules (project--git-submodules))
-                (sub-files
-                 (mapcar
-                  (lambda (module)
-                    (when (file-directory-p module)
-                      (project--vc-list-files
-                       (concat default-directory module)
-                       backend
-                       extra-ignores)))
-                  submodules)))
+         (let ((sub-files
+                (mapcar
+                 (lambda (module)
+                   (when (file-directory-p module)
+                     (project--vc-list-files
+                      (concat default-directory module)
+                      backend
+                      extra-ignores)))
+                 submodules)))
            (setq files
                  (apply #'nconc files sub-files))))
        ;; 'git ls-files' returns duplicate entries for merge conflicts.
@@ -1326,8 +1329,7 @@ command \\[fileloop-continue]."
   (interactive "sSearch (regexp): ")
   (fileloop-initialize-search
    regexp
-   ;; XXX: See the comment in project-query-replace-regexp.
-   (cl-delete-if-not #'file-regular-p (project-files (project-current t)))
+   (project-files (project-current t))
    'default)
   (fileloop-continue))
 
@@ -1348,10 +1350,7 @@ If you exit the `query-replace', you can later continue the
        (list from to))))
   (fileloop-initialize-replace
    from to
-   ;; XXX: Filter out Git submodules, which are not regular files.
-   ;; `project-files' can return those, which is arguably suboptimal,
-   ;; but removing them eagerly has performance cost.
-   (cl-delete-if-not #'file-regular-p (project-files (project-current t)))
+   (project-files (project-current t))
    'default)
   (fileloop-continue))
 
