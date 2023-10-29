@@ -233,6 +233,17 @@ to enter the file you want to modify.
 It can be used to customize the look of the appointment notification
 displayed on the mode line when 'appt-display-mode-line' is non-nil.
 
+** Emacs Server and Client
+
+---
+*** 'server-eval-args-left' can be used to pop and eval subsequent args.
+When '--eval' is passed to emacsclient and Emacs is evaluating each
+argument, this variable is set to those arguments not yet evaluated.
+It can be used to 'pop' arguments and process them by the function
+called in the '--eval' expression, which is useful when those
+arguments contain arbitrary characters that otherwise might require
+elaborate and error-prone escaping (to protect them from the shell).
+
 
 * Editing Changes in Emacs 30.1
 
@@ -1192,6 +1203,14 @@ The new variables 'ctags-program-name', 'ebrowse-program-name',
 instead of "ctags", "ebrowse", "etags", "hexl", "emacsclient", and
 "rcs2log", when starting one of these built in programs in a
 subprocess.
+
++++
+** New variable 'case-symbols-as-words' affects case operations for symbols.
+If non-nil, then case operations such as 'upcase-initials' or
+'replace-match' (with nil FIXEDCASE) will treat the entire symbol name
+as a single word.  This is useful for programming languages and styles
+where only the first letter of a symbol's name is ever capitalized.
+The default value of this variable is nil.
 
 +++
 ** 'x-popup-menu' now understands touch screen events.

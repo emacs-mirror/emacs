@@ -4058,20 +4058,29 @@ under X, and @xref{Other Selections} for those elsewhere.
 
 @defopt selection-coding-system
 This variable provides a coding system (@pxref{Coding Systems}) which
-is used to encode selection data, and takes effect on MS-DOS,
-MS-Windows and X@.
+is used to encode selection data, and takes effect on MS-Windows and
+X@.  It is also used in the MS-DOS port when it runs on MS-Windows and
+can access the Windows clipboard text.
 
-Under MS-DOS and MS-Windows, it is the coding system by which all
-non-ASCII clipboard text will be encoded and decoded; if set under X,
-it provides the coding system calls to @code{gui-get-selection} will
-decode selection data for a subset of text data types by, and also
-forces replies to selection requests for the polymorphic @code{TEXT}
-data type to be encoded by the @code{compound-text-with-extensions}
-coding system rather than Unicode.
+On X, the value of this variable provides the coding system which
+@code{gui-get-selection} will use to decode selection data for a
+subset of text data types, and also forces replies to selection
+requests for the polymorphic @code{TEXT} data type to be encoded by
+the @code{compound-text-with-extensions} coding system rather than
+Unicode.
 
-Its default value is the system code page under MS-Windows 95, 98 or
-Me, @code{utf-16le-dos} under NT/W2K/XP, @code{iso-latin-1-dos} on
-MS-DOS, and @code{nil} elsewhere.
+On MS-Windows, this variable is generally ignored, as the MS-Windows
+clipboard provides the information about decoding as part of the
+clipboard data, and uses either UTF-16 or locale-specific encoding
+automatically as appropriate.  We recommend to set the value of this
+variable only on the older Windows 9X, as it is otherwise used only in
+the very rare cases when the information provided by the clipboard
+data is unusable for some reason.
+
+The default value of this variable is the system code page under
+MS-Windows 95, 98 or Me, @code{utf-16le-dos} on Windows
+NT/W2K/XP/Vista/7/8/10/11, @code{iso-latin-1-dos} on MS-DOS, and
+@code{nil} elsewhere.
 @end defopt
 
 For backward compatibility, there are obsolete aliases

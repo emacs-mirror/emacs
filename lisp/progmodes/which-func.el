@@ -208,21 +208,28 @@ non-nil.")
 (add-hook 'after-change-major-mode-hook #'which-func-ff-hook t)
 
 (defun which-func-try-to-enable ()
-  (unless (or (not which-function-mode)
-              (local-variable-p 'which-func-mode))
-    (setq which-func-mode (or (eq which-func-modes t)
-                              (member major-mode which-func-modes)))
-    (setq which-func--use-mode-line
-          (member which-func-display '(mode mode-and-header)))
-    (setq which-func--use-header-line
-          (member which-func-display '(header mode-and-header)))
-    (when (and which-func-mode which-func--use-header-line)
+  (when which-function-mode
+    (unless (local-variable-p 'which-func-mode)
+      (setq which-func-mode (or (eq which-func-modes t)
+                                (member major-mode which-func-modes)))
+      (setq which-func--use-mode-line
+            (member which-func-display '(mode mode-and-header)))
+      (setq which-func--use-header-line
+            (member which-func-display '(header mode-and-header))))
+    ;; We might need to re-add which-func-format to the header line,
+    ;; if which-function-mode was toggled off and on.
+    (when (and which-func-mode which-func--use-header-line
+               (listp header-line-format))
       (add-to-list 'header-line-format '("" which-func-format " ")))))
 
-(defun which-func--disable ()
-  (when (and which-func-mode which-func--use-header-line)
+(defun which-func--header-line-remove ()
+  (when (and which-func-mode which-func--use-header-line
+             (listp header-line-format))
     (setq header-line-format
-          (delete '("" which-func-format " ") header-line-format)))
+          (delete '("" which-func-format " ") header-line-format))))
+
+(defun which-func--disable ()
+  (which-func--header-line-remove)
   (setq which-func-mode nil))
 
 (defun which-func-ff-hook ()
@@ -288,9 +295,11 @@ in certain major modes."
   (when which-function-mode
     ;;Turn it on.
     (setq which-func-update-timer
-          (run-with-idle-timer idle-update-delay t #'which-func-update))
-    (dolist (buf (buffer-list))
-      (with-current-buffer buf (which-func-try-to-enable)))))
+          (run-with-idle-timer idle-update-delay t #'which-func-update)))
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (which-func--header-line-remove)
+      (which-func-ff-hook))))
 
 (defvar which-function-imenu-failed nil
   "Locally t in a buffer if `imenu--make-index-alist' found nothing there.")

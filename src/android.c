@@ -1260,6 +1260,14 @@ NATIVE_NAME (dup) (JNIEnv *env, jobject object, jint fd)
   return dup (fd);
 }
 
+JNIEXPORT jint JNICALL
+NATIVE_NAME (close) (JNIEnv *env, jobject object, jint fd)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  return close (fd);
+}
+
 JNIEXPORT jstring JNICALL
 NATIVE_NAME (getFingerprint) (JNIEnv *env, jobject object)
 {

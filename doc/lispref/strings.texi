@@ -1508,9 +1508,12 @@ has been capitalized.  This means that the first character of each
 word is converted to upper case, and the rest are converted to lower
 case.
 
+@vindex case-symbols-as-words
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
-table (@pxref{Syntax Class Table}).
+table (@pxref{Syntax Class Table}); if @code{case-symbols-as-words}
+is non-nil, characters assigned to the symbol constituent syntax
+class are also considered as word constituent.
 
 When @var{string-or-char} is a character, this function does the same
 thing as @code{upcase}.
@@ -1540,9 +1543,9 @@ letters other than the initials.  It returns a new string whose
 contents are a copy of @var{string-or-char}, in which each word has
 had its initial letter converted to upper case.
 
-The definition of a word is any sequence of consecutive characters that
-are assigned to the word constituent syntax class in the current syntax
-table (@pxref{Syntax Class Table}).
+The definition of a word for this function is the same as described
+for @code{capitalize} above, and @code{case-symbols-as-words} has the
+same effect on word constituent characters.
 
 When the argument to @code{upcase-initials} is a character,
 @code{upcase-initials} has the same result as @code{upcase}.

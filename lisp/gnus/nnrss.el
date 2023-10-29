@@ -629,7 +629,7 @@ which RSS 2.0 allows."
 	       (assoc 'href
 		      (nnrss-discover-feed
 		       (read-string
-			(format "URL to search for %s: " group) "http://")))))
+                        (format "URL to search for %s: " group) "https://")))))
 	(let ((pair (assoc-string group nnrss-server-data)))
 	  (if pair
 	      (setcdr (cdr pair) (list url))
