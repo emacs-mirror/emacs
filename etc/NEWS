@@ -236,12 +236,13 @@ displayed on the mode line when 'appt-display-mode-line' is non-nil.
 ** Emacs Server and Client
 
 ---
-*** 'server-eval-args-left' can be used to pop subsequent eval args
+*** 'server-eval-args-left' can be used to pop and eval subsequent args.
 When '--eval' is passed to emacsclient and Emacs is evaluating each
-argument, this variable is set to those which have not yet been
-evaluated.  It can be used to 'pop' arguments to prevent them from
-being evaluated, which is useful when those arguments contain
-arbitrary data.
+argument, this variable is set to those arguments not yet evaluated.
+It can be used to 'pop' arguments and process them by the function
+called in the '--eval' expression, which is useful when those
+arguments contain arbitrary characters that otherwise might require
+elaborate and error-prone escaping (to protect them from the shell).
 
 
 * Editing Changes in Emacs 30.1
