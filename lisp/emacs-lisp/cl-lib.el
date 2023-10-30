@@ -185,8 +185,7 @@ to an element already in the list stored in PLACE.
 
 (defun cl--defalias (cl-f el-f &optional doc)
   "Define function CL-F as definition EL-F.
-
-For example, (cl--defalias 'cl-first 'car)."
+Like `defalias' but marks the alias itself as inlinable."
   (defalias cl-f el-f doc)
   (put cl-f 'byte-optimizer 'byte-compile-inline-expand))
 
