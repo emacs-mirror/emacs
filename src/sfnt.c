@@ -158,6 +158,7 @@ static uint32_t sfnt_table_names[] =
     [SFNT_TABLE_CVAR] = 0x63766172,
     [SFNT_TABLE_AVAR] = 0x61766172,
     [SFNT_TABLE_OS_2] = 0x4f532f32,
+    [SFNT_TABLE_POST] = 0x706f7374,
   };
 
 /* Swap values from TrueType to system byte order.  */
@@ -15474,6 +15475,69 @@ sfnt_read_OS_2_table (int fd, struct sfnt_offset_subtable *subtable)
 
 
 
+/* PostScript metadata retrieval.
+
+   TrueType fonts electively incorporate a table of miscellaneous
+   information concerning such matters as the underline position or
+   whether the font is fixed pitch.  This table also assigns
+   human-readable names to glyphs, subject to the table format, but
+   these names are not read by the functions defined below.  */
+
+/* Read the header of a post table from the given font FD.  Refer to
+   the table directory SUBTABLE for its location.
+
+   Return the post table header if successful, NULL otherwise.  */
+
+TEST_STATIC struct sfnt_post_table *
+sfnt_read_post_table (int fd, struct sfnt_offset_subtable *subtable)
+{
+  struct sfnt_post_table *post;
+  struct sfnt_table_directory *directory;
+  ssize_t rc;
+
+  /* Search for the post table within SUBTABLE.  */
+
+  directory = sfnt_find_table (subtable, SFNT_TABLE_POST);
+
+  if (!directory)
+    return NULL;
+
+  /* Although the size of the table is affected by its format, this
+     function is meant to read only its header; guarantee that the
+     directory is that large.  */
+
+  if (directory->length < sizeof *post)
+    return NULL;
+
+  /* Seek to the location given in the directory.  */
+  if (lseek (fd, directory->offset, SEEK_SET) == (off_t) -1)
+    return NULL;
+
+  post = xmalloc (sizeof *post);
+  rc = read (fd, post, sizeof *post);
+
+  if (rc == -1 || rc != sizeof *post)
+    {
+      xfree (post);
+      return NULL;
+    }
+
+  /* Byte swap the data retrieved.  */
+  sfnt_swap32 (&post->format);
+  sfnt_swap32 (&post->italic_angle);
+  sfnt_swap16 (&post->underline_position);
+  sfnt_swap16 (&post->underline_thickness);
+  sfnt_swap32 (&post->is_fixed_pitch);
+  sfnt_swap32 (&post->min_mem_type_42);
+  sfnt_swap32 (&post->max_mem_type_42);
+  sfnt_swap32 (&post->min_mem_type_1);
+  sfnt_swap32 (&post->max_mem_type_1);
+
+  return post;
+}
+
+
+
 #ifdef TEST
 
 struct sfnt_test_dcontext
@@ -19359,6 +19423,7 @@ main (int argc, char **argv)
   struct sfnt_avar_table *avar;
   struct sfnt_cvar_table *cvar;
   struct sfnt_OS_2_table *OS_2;
+  struct sfnt_post_table *post;
   sfnt_fixed scale;
   char *fancy;
   int *advances;
@@ -19495,6 +19560,7 @@ main (int argc, char **argv)
   gvar = sfnt_read_gvar_table (fd, font);
   avar = sfnt_read_avar_table (fd, font);
   OS_2 = sfnt_read_OS_2_table (fd, font);
+  post = sfnt_read_post_table (fd, font);
   cvar = NULL;
   hmtx = NULL;
 
@@ -19514,6 +19580,17 @@ main (int argc, char **argv)
   if (OS_2)
     fprintf (stderr, "OS/2 table found!\nach_vendor_id: %.4s\n",
 	     OS_2->ach_vendor_id);
+
+  if (post)
+    fprintf (stderr, "post table: format: %g; italic-angle: %g;\n"
+	     "underline_position: %"PRIi16"; underline_thickness: %"
+	     PRIi16";\n"
+	     "is_fixed_pitch: %"PRIu32"\n",
+	     sfnt_coerce_fixed (post->format),
+	     sfnt_coerce_fixed (post->italic_angle),
+	     post->underline_position,
+	     post->underline_thickness,
+	     post->is_fixed_pitch);
 
   if (fvar)
     {
@@ -20178,6 +20255,7 @@ main (int argc, char **argv)
   xfree (avar);
   xfree (cvar);
   xfree (OS_2);
+  xfree (post);
 
   return 0;
 }

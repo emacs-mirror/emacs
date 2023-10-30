@@ -962,6 +962,7 @@ sfnt_enum_font_1 (int fd, const char *file,
   struct sfnt_maxp_table *maxp;
   struct sfnt_fvar_table *fvar;
   struct sfnt_OS_2_table *OS_2;
+  struct sfnt_post_table *post;
   struct sfnt_font_desc temp;
   Lisp_Object family, style, instance, style1;
   int i;
@@ -1041,12 +1042,25 @@ sfnt_enum_font_1 (int fd, const char *file,
   if (meta)
     sfnt_parse_languages (meta, desc);
 
-  /* Figure out the spacing.  Some fancy test like what Fontconfig
-     does is probably in order but not really necessary.  */
-  if (!NILP (Fstring_search (Fdowncase (family),
-			     build_string ("mono"),
-			     Qnil)))
-    desc->spacing = 100; /* FC_MONO */
+  /* Check whether the font claims to be a fixed pitch font and forgo
+     the rudimentary detection below if so.  */
+
+  post = sfnt_read_post_table (fd, subtables);
+
+  if (post)
+    {
+      desc->spacing = (post->is_fixed_pitch ? 100 : 0);
+      xfree (post);
+    }
+  else
+    {
+      /* Figure out the spacing.  Some fancy test like what Fontconfig
+	 does is probably in order but not really necessary.  */
+      if (!NILP (Fstring_search (Fdowncase (family),
+				 build_string ("mono"),
+				 Qnil)))
+	desc->spacing = 100; /* FC_MONO */
+    }
 
   /* Finally add mac-style flags.  Allow them to override styles that
      have not been found.  */
@@ -1654,6 +1668,12 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec,
       && !sfntfont_registries_compatible_p (tem, desc->registry))
     return 0;
 
+  /* If the font spacings disagree, reject this font also.  */
+
+  tem = AREF (spec, FONT_SPACING_INDEX);
+  if (FIXNUMP (tem) && (XFIXNUM (tem) != desc->spacing))
+    return 0;
+
   /* Check the style.  If DESC is a fixed font, just check once.
      Otherwise, check each instance.  */
 
@@ -1869,8 +1889,7 @@ sfntfont_desc_to_entity (struct sfnt_font_desc *desc, int instance)
   /* Size of 0 means the font is scalable.  */
   ASET (entity, FONT_SIZE_INDEX, make_fixnum (0));
   ASET (entity, FONT_AVGWIDTH_INDEX, make_fixnum (0));
-  ASET (entity, FONT_SPACING_INDEX,
-	make_fixnum (desc->spacing));
+  ASET (entity, FONT_SPACING_INDEX, make_fixnum (desc->spacing));
 
   if (instance >= 1)
     {
@@ -3227,8 +3246,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   /* Size of 0 means the font is scalable.  */
   ASET (font_object, FONT_SIZE_INDEX, make_fixnum (0));
   ASET (font_object, FONT_AVGWIDTH_INDEX, make_fixnum (0));
-  ASET (font_object, FONT_SPACING_INDEX,
-	make_fixnum (desc->spacing));
+  ASET (font_object, FONT_SPACING_INDEX, make_fixnum (desc->spacing));
 
   /* Set the font style.  */
 
@@ -3354,6 +3372,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   /* And set a reasonable full name, namely the name of the font
      file.  */
   font->props[FONT_FULLNAME_INDEX]
+    = font->props[FONT_FILE_INDEX]
     = DECODE_FILE (build_unibyte_string (desc->path));
 
   /* All done.  */
