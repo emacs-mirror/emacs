@@ -333,6 +333,9 @@ supertypes from the most specific to least specific.")
                            (cl--class-parents class)))))
     (nreverse parents)))
 
+(eval-and-compile
+  (cl-assert (null (cl--class-parents (cl--find-class 'cl-structure-object)))))
+
 ;; Make sure functions defined with cl-defsubst can be inlined even in
 ;; packages which do not require CL.  We don't put an autoload cookie
 ;; directly on that function, since those cookies only go to cl-loaddefs.
