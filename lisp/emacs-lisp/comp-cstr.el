@@ -293,6 +293,14 @@ Return them as multiple value."
           (setq notdirect (append notdirect (comp-supertypes parent))))
      finally return direct)))
 
+(defsubst comp-subtype-p (type1 type2)
+  "Return t if TYPE1 is a subtype of TYPE2 or nil otherwise."
+  (let ((types (cons type1 type2)))
+    (or (gethash types (comp-cstr-ctxt-subtype-p-mem comp-ctxt))
+        (puthash types
+                 (memq type2 (comp-supertypes type1))
+                 (comp-cstr-ctxt-subtype-p-mem comp-ctxt)))))
+
 (defun comp--normalize-typeset0 (typeset)
   ;; For every type search its supertypes.  If all the subtypes of a
   ;; supertype are presents remove all of them, add the identified
@@ -372,14 +380,6 @@ Return them as multiple value."
          (t (setq above
                   (if above (comp--intersection x above) x)))))
    finally return above))
-
-(defsubst comp-subtype-p (type1 type2)
-  "Return t if TYPE1 is a subtype of TYPE2 or nil otherwise."
-  (let ((types (cons type1 type2)))
-    (or (gethash types (comp-cstr-ctxt-subtype-p-mem comp-ctxt))
-        (puthash types
-                 (memq type2 (comp-supertypes type1))
-                 (comp-cstr-ctxt-subtype-p-mem comp-ctxt)))))
 
 (defun comp-union-typesets (&rest typesets)
   "Union types present into TYPESETS."
