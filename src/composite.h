@@ -84,23 +84,21 @@ composition_registered_p (Lisp_Object prop)
    ? XCDR (XCDR (XCDR (prop)))			\
    : CONSP (prop) ? XCDR (prop) : Qnil)
 
+#define COMPOSITION_KEY(cmp)						\
+  HASH_KEY (XHASH_TABLE (composition_hash_table), (cmp)->hash_index)
+
 /* Return the Nth glyph of composition specified by CMP.  CMP is a
    pointer to `struct composition'.  */
 #define COMPOSITION_GLYPH(cmp, n)					\
-  XFIXNUM (XVECTOR (XVECTOR (XHASH_TABLE (composition_hash_table)		\
-			  ->key_and_value)				\
-		 ->contents[cmp->hash_index * 2])			\
-	->contents[cmp->method == COMPOSITION_WITH_RULE_ALTCHARS	\
-		  ? (n) * 2 : (n)])
+  XFIXNUM (AREF (COMPOSITION_KEY (cmp),					\
+		 (cmp)->method == COMPOSITION_WITH_RULE_ALTCHARS	\
+		 ? (n) * 2 : (n)))
 
 /* Return the encoded composition rule to compose the Nth glyph of
    rule-base composition specified by CMP.  CMP is a pointer to
    `struct composition'. */
-#define COMPOSITION_RULE(cmp, n)				\
-  XFIXNUM (XVECTOR (XVECTOR (XHASH_TABLE (composition_hash_table)	\
-			  ->key_and_value)			\
-		 ->contents[cmp->hash_index * 2])		\
-	->contents[(n) * 2 - 1])
+#define COMPOSITION_RULE(cmp, n)					\
+  XFIXNUM (AREF (COMPOSITION_KEY (cmp), (n) * 2 - 1))
 
 /* Decode encoded composition rule RULE_CODE into GREF (global
    reference point code), NREF (new ref. point code).  Don't check RULE_CODE;
