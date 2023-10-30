@@ -2710,7 +2710,7 @@ PRESTART is the position basing on which START was found."
 (defun cperl-beginning-of-property (p prop &optional lim)
   "Given that P has a property PROP, find where the property starts.
 Will not look before LIM."
-;;; XXXX What to do at point-max???
+;; XXXX What to do at point-max???
   (or (previous-single-property-change (cperl-1+ p) prop lim)
       (point-min))
   ;; (cond ((eq p (point-min))
@@ -3061,7 +3061,7 @@ and closing parentheses and brackets."
             (error nil))
 	  (current-column))
 	 ((eq 'indentable (elt i 0))	; Indenter for REGEXP qw() etc
-	  (cond		       ;;; [indentable terminator start-pos is-block]
+	  (cond		       ; [indentable terminator start-pos is-block]
 	   ((eq 'terminator (elt i 1)) ; Lone terminator of "indentable string"
 	    (goto-char (elt i 2))	; After opening parens
 	    (1- (current-column)))
@@ -3948,8 +3948,6 @@ recursive calls in starting lines of here-documents."
 	   "\\|"
 	   ;; Second variant: Identifier or \ID (same as 'ID')
 	   "\\\\?\\(\\([a-zA-Z_][a-zA-Z_0-9]*\\)\\)" ; 5 + 1, 6 + 1
-	   ;; Do not have <<= or << 30 or <<30 or << $blah.
-	   ;; "\\([^= \t0-9$@%&]\\|[ \t]+[^ \t\n0-9$@%&]\\)" ; 6 + 1
 	   "\\)"
 	   "\\|"
            ;; -------- format capture groups 8-9
@@ -4137,20 +4135,10 @@ recursive calls in starting lines of here-documents."
 	       ;; Here document
 	       ;; We can do many here-per-line;
 	       ;; but multiline quote on the same line as <<HERE confuses us...
-               ;; ;; One extra () before this:
-	       ;;"<<"
+               ;; One extra () before this:
 	       ;;  "<<\\(~?\\)"		 ; HERE-DOC, indented-p = capture 2
-	       ;;  ;; First variant "BLAH" or just ``.
-	       ;;     "[ \t]*"			; Yes, whitespace is allowed!
-	       ;;     "\\([\"'`]\\)"	; 3 + 1
-	       ;;     "\\([^\"'`\n]*\\)"	; 4 + 1
-	       ;;     "\\4"
-	       ;;  "\\|"
-	       ;;  ;; Second variant: Identifier or \ID or empty
-	       ;;    "\\\\?\\(\\([a-zA-Z_][a-zA-Z_0-9]*\\)?\\)" ; 5 + 1, 6 + 1
-	       ;;    ;; Do not have <<= or << 30 or <<30 or << $blah.
-	       ;;    ;; "\\([^= \t0-9$@%&]\\|[ \t]+[^ \t\n0-9$@%&]\\)" ; 6 + 1
-	       ;;  "\\)"
+	       ;; First variant "BLAH" or just ``:  capture groups 4 and 5
+	       ;; Second variant: Identifier or \ID: capture group 6 and 7
                ((match-beginning 3)     ; 2 + 1: found "<<", detect its type
                 (let* ((matched-pos (match-beginning 0))
                        (quoted-delim-p (if (match-beginning 6) nil t))
@@ -4169,10 +4157,8 @@ recursive calls in starting lines of here-documents."
                             overshoot (nth 1 here-doc-results))
                       (and (nth 2 here-doc-results)
                            (setq warning-message (nth 2 here-doc-results)))))))
-	       ;; format
+	       ;; format capture groups 8-9
 	       ((match-beginning 8)
-		;; 1+6=7 extra () before this:
-		;;"^[ \t]*\\(format\\)[ \t]*\\([a-zA-Z0-9_]+\\)?[ \t]*=[ \t]*$"
 		(setq b (point)
 		      name (if (match-beginning 9) ; 7 + 2
                                (match-string-no-properties 9)        ; 7 + 2
@@ -4219,12 +4205,9 @@ recursive calls in starting lines of here-documents."
 		(if (> (point) max)
 		    (setq tmpend tb))
 		(put-text-property b (point) 'syntax-type 'format))
-	       ;; qq-like String or Regexp:
+	       ;; quotelike operator or regexp: capture groups 10 or 11
+               ;; matches some false postives, to be eliminated here
 	       ((or (match-beginning 10) (match-beginning 11))
-		;; 1+6+2=9 extra () before this:
-		;; "\\<\\(q[wxqr]?\\|[msy]\\|tr\\)\\>"
-		;; "\\|"
-		;; "\\([/<]\\)"	; /blah/ or <file*glob>
 		(setq b1 (if (match-beginning 10) 10 11)
 		      argument (buffer-substring
 				(match-beginning b1) (match-end b1))
@@ -4281,13 +4264,23 @@ recursive calls in starting lines of here-documents."
 				    (and (eq (char-syntax (preceding-char)) ?w)
 					 (progn
 					   (forward-sexp -1)
-;; After these keywords `/' starts a RE.  One should add all the
-;; functions/builtins which expect an argument, but ...
+                                           ;; After these keywords `/'
+                                           ;; starts a RE.  One should
+                                           ;; add all the
+                                           ;; functions/builtins which
+                                           ;; expect an argument, but
+                                           ;; ...
 					     (and
 					      (not (memq (preceding-char)
 							 '(?$ ?@ ?& ?%)))
 					      (looking-at
-					       "\\(while\\|if\\|unless\\|until\\|for\\(each\\)?\\|and\\|or\\|not\\|xor\\|split\\|grep\\|map\\|print\\|say\\|return\\)\\>"))))
+                                               (regexp-opt
+                                                '("while" "if" "unless"
+                                                  "until" "for" "foreach"
+                                                  "and" "or" "not"
+					          "xor" "split" "grep" "map"
+                                                  "print" "say" "return")
+                                                'symbols)))))
 				    (and (eq (preceding-char) ?.)
 					 (eq (char-after (- (point) 2)) ?.))
 				    (bobp))
@@ -4487,12 +4480,13 @@ recursive calls in starting lines of here-documents."
 			   (1- e) e 'face my-cperl-delimiters-face)))
 		    (if (and is-REx cperl-regexp-scan)
 			;; Process RExen: embedded comments, charclasses and ]
-;;;/\3333\xFg\x{FFF}a\ppp\PPP\qqq\C\99f(?{  foo  })(??{  foo  })/;
-;;;/a\.b[^a[:ff:]b]x$ab->$[|$,$ab->[cd]->[ef]|$ab[xy].|^${a,b}{c,d}/;
-;;;/(?<=foo)(?<!bar)(x)(?:$ab|\$\/)$|\\\b\x888\776\[\:$/xxx;
-;;;m?(\?\?{b,a})? + m/(??{aa})(?(?=xx)aa|bb)(?#aac)/;
-;;;m$(^ab[c]\$)$ + m+(^ab[c]\$\+)+ + m](^ab[c\]$|.+)] + m)(^ab[c]$|.+\));
-;;;m^a[\^b]c^ + m.a[^b]\.c.;
+                        ;; Examples:
+                        ;;/\3333\xFg\x{FFF}a\ppp\PPP\qqq\C\99f(?{  foo  })(??{  foo  })/;
+                        ;;/a\.b[^a[:ff:]b]x$ab->$[|$,$ab->[cd]->[ef]|$ab[xy].|^${a,b}{c,d}/;
+                        ;;/(?<=foo)(?<!bar)(x)(?:$ab|\$\/)$|\\\b\x888\776\[\:$/xxx;
+                        ;;m?(\?\?{b,a})? + m/(??{aa})(?(?=xx)aa|bb)(?#aac)/;
+                        ;;m$(^ab[c]\$)$ + m+(^ab[c]\$\+)+ + m](^ab[c\]$|.+)] + m)(^ab[c]$|.+\));
+                        ;;m^a[\^b]c^ + m.a[^b]\.c.;
 			(save-excursion
 			  (goto-char (1+ b))
 			  ;; First
@@ -4556,8 +4550,6 @@ recursive calls in starting lines of here-documents."
 				          "\\?([0-9]+)"	; (?(1)foo|bar)
 				       "\\|"
 					  "\\?<[=!]"
-				       ;;;"\\|"
-				       ;;;   "\\?"
 				       "\\)?"
 				    "\\)"
 				 "\\|"
@@ -4702,8 +4694,8 @@ recursive calls in starting lines of here-documents."
 			      (setq REx-subgr-end qtag)	;End smart-highlighted
 			      ;; Apparently, I can't put \] into a charclass
 			      ;; in m]]: m][\\\]\]] produces [\\]]
-;;;   POSIX?  [:word:] [:^word:] only inside []
-;;;	       "\\=\\(\\\\.\\|[^][\\]\\|\\[:\\^?\sw+:]\\|\\[[^:]\\)*]")
+                              ;; POSIX?  [:word:] [:^word:] only inside []
+                              ;; "\\=\\(\\\\.\\|[^][\\]\\|\\[:\\^?\sw+:]\\|\\[[^:]\\)*]")
 			      (while	; look for unescaped ]
 				  (and argument
 				       (re-search-forward
@@ -4891,7 +4883,6 @@ recursive calls in starting lines of here-documents."
 	       ;;    "\\(\\<sub[ \t\n\f]+\\|[&*$@%]\\)[a-zA-Z0-9_]*'")
 	       ((match-beginning 19)	; old $abc'efg syntax
 		(setq bb (match-end 0))
-		;;;(if (nth 3 state) nil	; in string
 		(put-text-property (1- bb) bb 'syntax-table cperl-st-word)
 		(goto-char bb))
 	       ;; 1+6+2+1+1+6+1+1=19 extra () before this:
@@ -4908,7 +4899,7 @@ recursive calls in starting lines of here-documents."
 		(setq bb (match-end 0))
 		(goto-char b)
 		(skip-chars-backward "\\\\")
-		;;;(setq i2 (= (% (skip-chars-backward "\\\\") 2) -1))
+		;; (setq i2 (= (% (skip-chars-backward "\\\\") 2) -1))
 		(cperl-modify-syntax-type b cperl-st-punct)
 		(goto-char bb))
 	       (t (error "Error in regexp of the sniffer")))
@@ -6053,9 +6044,9 @@ functions (which they are not).  Inherits from `default'.")
                  (group (eval cperl--basic-identifier-rx))))
               1 font-lock-constant-face)
 	    ;; Uncomment to get perl-mode-like vars
-            ;;; '("[$*]{?\\(\\sw+\\)" 1 font-lock-variable-name-face)
-            ;;; '("\\([@%]\\|\\$#\\)\\(\\sw+\\)"
-            ;;;  (2 (cons font-lock-variable-name-face '(underline))))
+            ;; '("[$*]{?\\(\\sw+\\)" 1 font-lock-variable-name-face)
+            ;; '("\\([@%]\\|\\$#\\)\\(\\sw+\\)"
+            ;;  (2 (cons font-lock-variable-name-face '(underline))))
 	    ;; 1=my_etc, 2=white? 3=(+white? 4=white? 5=var
             ;; -------- variable declarations
             ;; (matcher (subexp facespec) ...
@@ -6196,13 +6187,13 @@ functions (which they are not).  Inherits from `default'.")
              (,(rx (group-n 1 (group-n 2 (or (in "@%") "$#"))
                             (eval cperl--normal-identifier-rx)))
               1
-;;	     ("\\(\\([@%]\\|\\$#\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)" 1
+              ;; ("\\(\\([@%]\\|\\$#\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)" 1
 	      (if (eq (char-after (match-beginning 2)) ?%)
 		  'cperl-hash-face
 		'cperl-array-face)
 	      nil)
-;;("\\([smy]\\|tr\\)\\([^a-z_A-Z0-9]\\)\\(\\([^\n\\]*||\\)\\)\\2")
-;;; Too much noise from \s* @s[ and friends
+             ;;("\\([smy]\\|tr\\)\\([^a-z_A-Z0-9]\\)\\(\\([^\n\\]*||\\)\\)\\2")
+             ;; Too much noise from \s* @s[ and friends
 	     ;;("\\(\\<\\([msy]\\|tr\\)[ \t]*\\([^ \t\na-zA-Z0-9_]\\)\\|\\(/\\)\\)"
 	     ;;(3 font-lock-function-name-face t t)
 	     ;;(4
@@ -8929,7 +8920,8 @@ do extra unwind via `cperl-unwind-to-safe'."
 
 (defun cperl-fontify-update-bad (end)
   ;; Since fontification happens with different region than syntaxification,
-  ;; do to the end of buffer, not to END;;; likewise, start earlier if needed
+  ;; do to the end of buffer, not to END
+  ;; likewise, start earlier if needed
   (let* ((pos (point)) (prop (get-text-property pos 'cperl-postpone)) posend)
     (if prop
 	(setq pos (or (cperl-beginning-of-property
