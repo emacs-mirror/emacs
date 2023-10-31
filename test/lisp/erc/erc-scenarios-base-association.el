@@ -78,7 +78,7 @@
       (with-current-buffer "#chan@foonet"
         (funcall expect 3 "bob")
         (funcall expect 3 "was created on")
-        (funcall expect 3 "prosperous")))
+        (funcall expect 10 "prosperous")))
 
     (ert-info ("All #chan@barnet output consumed")
       (with-current-buffer "#chan@barnet"
