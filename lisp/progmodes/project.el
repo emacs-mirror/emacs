@@ -2074,14 +2074,21 @@ is part of the default mode line beginning with Emacs 30."
 (defun project-mode-line-format ()
   "Compose the project mode-line."
   (when-let ((project (project-current)))
-    (concat
-     " "
-     (propertize
-      (project-name project)
-      'face project-mode-line-face
-      'mouse-face 'mode-line-highlight
-      'help-echo "mouse-1: Project menu"
-      'local-map project-mode-line-map))))
+    ;; Preserve the global value of 'last-coding-system-used'
+    ;; that 'write-region' needs to set for 'basic-save-buffer',
+    ;; but updating the mode line might occur at the same time
+    ;; during saving the buffer and 'project-name' can change
+    ;; 'last-coding-system-used' when reading the project name
+    ;; from .dir-locals.el also enables flyspell-mode (bug#66825).
+    (let ((last-coding-system-used last-coding-system-used))
+      (concat
+       " "
+       (propertize
+        (project-name project)
+        'face project-mode-line-face
+        'mouse-face 'mode-line-highlight
+        'help-echo "mouse-1: Project menu"
+        'local-map project-mode-line-map)))))
 
 (provide 'project)
 ;;; project.el ends here
