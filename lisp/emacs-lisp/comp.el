@@ -29,10 +29,7 @@
 ;;; Code:
 
 (require 'bytecomp)
-(require 'cl-extra)
 (require 'cl-lib)
-(require 'cl-macs)
-(require 'cl-seq)
 (require 'gv)
 (require 'rx)
 (require 'subr-x)
