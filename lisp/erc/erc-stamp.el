@@ -187,12 +187,7 @@ from entering them and instead jump over them."
    (remove-hook 'erc-send-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
    (remove-hook 'erc--pre-clear-functions #'erc-stamp--reset-on-clear)
-   (erc-with-all-buffers-of-server nil nil
-     (erc-stamp--setup)
-     (kill-local-variable 'erc-stamp--last-stamp)
-     (kill-local-variable 'erc-timestamp-last-inserted)
-     (kill-local-variable 'erc-timestamp-last-inserted-left)
-     (kill-local-variable 'erc-timestamp-last-inserted-right))))
+   (erc-buffer-do #'erc-stamp--setup)))
 
 (defvar erc-stamp--invisible-property nil
   "Existing `invisible' property value and/or symbol `timestamp'.")
@@ -664,11 +659,7 @@ printed just after each line's text (no alignment)."
 (defun erc-stamp--insert-date-stamp-as-phony-message (string)
   (cl-assert (string-empty-p string))
   (setq string erc-stamp--current-datestamp-left)
-  (cl-assert string)
   (let ((erc-stamp--skip t)
-        (erc--msg-props (map-into `((erc-msg . datestamp)
-                                    (erc-ts . ,(erc-stamp--current-time)))
-                                  'hash-table))
         (erc-insert-modify-hook `(,@erc-insert-modify-hook
                                   erc-stamp--propertize-left-date-stamp))
         ;; Don't run hooks that aren't expecting a narrowed buffer.
@@ -684,11 +675,17 @@ printed just after each line's text (no alignment)."
              (erc-stamp--current-datestamp-left rendered)
              (erc-insert-timestamp-function
               #'erc-stamp--insert-date-stamp-as-phony-message))
-    (save-restriction
-      (narrow-to-region (or erc--insert-marker erc-insert-marker)
-                        (or erc--insert-marker erc-insert-marker))
-      (let (erc-timestamp-format erc-away-timestamp-format)
-        (erc-add-timestamp)))))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region (or erc--insert-marker erc-insert-marker)
+                          (or erc--insert-marker erc-insert-marker))
+        ;; Forget current `erc-cmd', etc.
+        (let ((erc--msg-props
+               (map-into `((erc-msg . datestamp)
+                           (erc-ts . ,(erc-stamp--current-time)))
+                         'hash-table))
+              erc-timestamp-format erc-away-timestamp-format)
+          (erc-add-timestamp))))))
 
 (defvar erc-stamp-prepend-date-stamps-p nil
   "When non-nil, date stamps are not independent messages.
@@ -714,9 +711,13 @@ requirements related to `erc-legacy-invisible-bounds-p'.
 Additionally, ensure every date stamp is identifiable as such so
 that internal modules can easily distinguish between other
 left-sided stamps and date stamps inserted by this function."
-  (unless (or erc-stamp--date-format-end erc-stamp-prepend-date-stamps-p)
-    (add-hook 'erc-insert-pre-hook #'erc-stamp--lr-date-on-pre-modify -95 t)
-    (add-hook 'erc-send-pre-functions #'erc-stamp--lr-date-on-pre-modify -95 t)
+  (unless (or erc-stamp--date-format-end erc-stamp-prepend-date-stamps-p
+              (and (or (null erc-timestamp-format-left)
+                       (string-empty-p ; compat
+                        (string-trim erc-timestamp-format-left "\n")))
+                   (setq erc-stamp-prepend-date-stamps-p t)))
+    (add-hook 'erc-insert-pre-hook #'erc-stamp--lr-date-on-pre-modify 10 t)
+    (add-hook 'erc-pre-send-functions #'erc-stamp--lr-date-on-pre-modify 10 t)
     (let ((erc--insert-marker (point-min-marker))
           (end-marker (point-max-marker)))
       (set-marker-insertion-type erc--insert-marker t)
@@ -817,7 +818,11 @@ Return the empty string if FORMAT is nil."
       (erc-munge-invisibility-spec))
     ;; Undo local mods from `erc-insert-timestamp-left-and-right'.
     (remove-hook 'erc-insert-pre-hook #'erc-stamp--lr-date-on-pre-modify t)
-    (remove-hook 'erc-send-pre-functions #'erc-stamp--lr-date-on-pre-modify t)
+    (remove-hook 'erc-pre-send-functions #'erc-stamp--lr-date-on-pre-modify t)
+    (kill-local-variable 'erc-stamp--last-stamp)
+    (kill-local-variable 'erc-timestamp-last-inserted)
+    (kill-local-variable 'erc-timestamp-last-inserted-left)
+    (kill-local-variable 'erc-timestamp-last-inserted-right)
     (kill-local-variable 'erc-stamp--date-format-end)))
 
 (defun erc-hide-timestamps ()
