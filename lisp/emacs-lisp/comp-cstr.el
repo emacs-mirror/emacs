@@ -36,7 +36,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'cl-macs)
+(require 'cl-extra) ;HACK: For `cl-find-class' when `cl-loaddefs' is missing.
 
 (defconst comp--typeof-builtin-types (mapcar (lambda (x)
                                                (append x '(t)))

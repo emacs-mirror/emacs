@@ -272,7 +272,7 @@ DEFAULT-BODY, if present, is used as the body of a default method.
               (list
                (macroexp-warn-and-return
                 (format "Non-symbol arguments to cl-defgeneric: %s"
-                        (mapconcat #'prin1-to-string nonsymargs ""))
+                        (mapconcat #'prin1-to-string nonsymargs " "))
                 nil nil nil nonsymargs)))))
          next-head)
     (while (progn (setq next-head (car-safe (car options-and-methods)))

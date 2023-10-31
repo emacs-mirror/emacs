@@ -872,7 +872,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
                       "%s")
               formats)
         (cl-incf col (+ col-space (aref cols i))))
-      (let ((format (mapconcat #'identity (nreverse formats) "")))
+      (let ((format (mapconcat #'identity (nreverse formats))))
         (insert (apply #'format format
                        (mapcar (lambda (str) (propertize str 'face 'italic))
                                header))

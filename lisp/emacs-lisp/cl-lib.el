@@ -533,7 +533,12 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (unless (load "cl-loaddefs" 'noerror 'quiet)
   ;; When bootstrapping, cl-loaddefs hasn't been built yet!
   (require 'cl-macs)
-  (require 'cl-seq))
+  (require 'cl-seq)
+  ;; FIXME: Arguably we should also load `cl-extra', except that this
+  ;; currently causes more bootstrap troubles, and `cl-extra' is
+  ;; rarely used, so instead we explicitly (require 'cl-extra) at
+  ;; those rare places where we do need it.
+  )
 
 (defun cl--old-struct-type-of (orig-fun object)
   (or (and (vectorp object) (> (length object) 0)
