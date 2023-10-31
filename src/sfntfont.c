@@ -3286,11 +3286,11 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   else
     {
       font_info->font.underline_position
-	= sfnt_coerce_fixed (SFNT_CEIL_FIXED (-desc->underline_position
-					      * font_info->scale));
+	= sfnt_coerce_fixed (-desc->underline_position
+			     * font_info->scale);
       font_info->font.underline_thickness
-	= sfnt_coerce_fixed (SFNT_CEIL_FIXED (desc->underline_thickness
-					      * font_info->scale));
+	= sfnt_coerce_fixed (desc->underline_thickness
+			     * font_info->scale);
     }
 
   /* Now try to set up grid fitting for this font.  */
