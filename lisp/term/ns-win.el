@@ -520,11 +520,12 @@ string dropped into the current buffer."
       (goto-char (posn-point (event-start event)))
       (cond ((or (memq 'ns-drag-operation-generic operations)
                  (memq 'ns-drag-operation-copy operations))
-             ;; Perform the default/copy action.
-             (dolist (data objects)
-               (dnd-handle-one-url window 'private (if (eq type 'file)
-                                                       (concat "file:" data)
-                                                     data))))
+             (let ((urls (if (eq type 'file) (mapcar
+                                              (lambda (file)
+                                                (concat "file:" file))
+                                              objects)
+                           objects)))
+               (dnd-handle-multiple-urls window urls 'private)))
             (t
              ;; Insert the text as is.
              (dnd-insert-text window 'private string))))))

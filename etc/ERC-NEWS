@@ -228,6 +228,12 @@ with a legitimate use for this option likely also possesses the
 knowledge to rig up a suitable analog with minimal effort.  That said,
 the road to removal is long.
 
+** The 'track' module always ignores date stamps.
+Users of the stamp module who leave 'erc-insert-timestamp-function'
+set to its default of 'erc-insert-timestamp-left-and-right' will find
+that date stamps no longer affect the mode line, even for IRC commands
+not included in 'erc-track-exclude-types'.
+
 ** Option 'erc-warn-about-blank-lines' is more informative.
 Enabled by default, this option now produces more useful feedback
 whenever ERC rejects prompt input containing whitespace-only lines.
@@ -288,6 +294,29 @@ ERC also provisionally reserves the same depth interval for
 continue to modify non-ERC hooks locally whenever possible, especially
 in new code.
 
+*** A singular entry point for inserting messages.
+Displaying "local" messages, like help text and interactive-command
+feedback, in ERC buffers has never been straightforward.  As such,
+ancient patterns, like the pairing of preformatted "notice" text with
+ERC's oldest insertion function, 'erc-display-line', still appear
+quite frequently in the wild despite having been largely phased out of
+ERC's own code base in 2002.  That this example has endured makes some
+sense because it's probably seen as less cumbersome than fiddling with
+the more powerful and complicated 'erc-display-message'.
+
+The latest twist in this saga comes with this release, in which a
+healthy bit of "pre-insertion" business has taken up residence in
+'erc-display-message'.  While this would seem to put antiquated
+patterns, like the above mentioned 'erc-make-notice' combo, at risk of
+having messages ignored or subject to degraded treatment by built-in
+modules, an adaptive measure has been introduced that recasts
+'erc-display-line' as a thin wrapper around 'erc-display-message'.
+And though nothing of the sort has been done for the lower-level
+'erc-display-line-1' (now an obsolete alias for 'erc-insert-line'),
+some last-ditch fallback code is in place to ensure baseline
+functionality.  As always, if you find these developments disturbing,
+please say so on the tracker.
+
 *** ERC now manages timestamp-related properties a bit differently.
 For starters, the 'cursor-sensor-functions' text property is absent by
 default unless the option 'erc-echo-timestamps' is already enabled on
@@ -325,7 +354,9 @@ leading portion of message bodies as well as special casing to act on
 these areas without inflicting collateral damage.  It may also be
 worth noting that as consequence of these changes, the internally
 managed variable 'erc-timestamp-last-inserted-left' no longer records
-the final trailing newline in 'erc-timestamp-format-left'.
+the final trailing newline in 'erc-timestamp-format-left'.  If you
+must, see variable 'erc-stamp-prepend-date-stamps-p' for a temporary
+escape hatch.
 
 *** The role of a module's Custom group is now more clearly defined.
 Associating built-in modules with Custom groups and provided library
@@ -401,6 +432,24 @@ may mean third-party code needs tweaking, for example, requiring the
 use of 'insert-before-markers' instead of 'insert'.  As always, users
 feeling unduly inconvenienced by these changes are encouraged to voice
 their concerns on the bug list.
+
+*** Introducing new ways to detect ERC buffer types.
+The old standby 'erc-default-target' has served ERC well for over two
+decades.  But a lesser known gotcha affecting its use has always
+haunted an unlucky few, that is, the function has always returned
+non-nil in "unjoined" channel buffers (those that the client has
+parted with or been kicked from).  While perhaps not itself a major
+footgun, recessive pitfalls rooted in this subtlety continue to affect
+dependent functions, like 'erc-get-buffer'.
+
+To discourage misuse of 'erc-default-target', ERC 5.6 offers an
+alternative in the function 'erc-target', which is identical to the
+former except for its disregard for "joinedness."  As a related bonus,
+the dependent function 'erc-server-buffer-p' is being rebranded as
+'erc-server-or-unjoined-channel-buffer-p'.  Unfortunately, this
+release lacks a similar solution for detecting "joinedness" directly,
+but users can turn to 'xor'-ing 'erc-default-target' and 'erc-target'
+as a makeshift kludge.
 
 *** Miscellaneous changes
 Two helper macros from GNU ELPA's Compat library are now available to

@@ -4989,6 +4989,7 @@ extern void keys_of_keyboard (void);
 
 /* Defined in indent.c.  */
 extern ptrdiff_t current_column (void);
+extern void line_number_display_width (struct window *, int *, int *);
 extern void invalidate_current_column (void);
 extern bool indented_beyond_p (ptrdiff_t, ptrdiff_t, EMACS_INT);
 extern void syms_of_indent (void);

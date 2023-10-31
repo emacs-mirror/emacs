@@ -2326,7 +2326,7 @@ If cursor is not at the end of the user input, move to end of input."
 			  (if (eq ido-use-filename-at-point 'guess)
 			      (ffap-guesser)
 			    (ffap-string-at-point))))
-	       (not (string-match "\\`http:/" fn)))
+               (not (string-match (rx bos "http" (? "s") ":/") fn)))
           (let ((absolute-fn (expand-file-name fn)))
             (cond
              ((file-directory-p absolute-fn)

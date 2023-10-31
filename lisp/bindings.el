@@ -298,6 +298,35 @@ Value is used for `mode-line-frame-identification', which see."
 ;;;###autoload
 (put 'mode-line-frame-identification 'risky-local-variable t)
 
+(defvar mode-line-window-dedicated-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-1] #'toggle-window-dedicated)
+    (purecopy map)) "\
+Keymap for what is displayed by `mode-line-window-dedicated'.")
+
+(defun mode-line-window-control ()
+  "Compute mode line construct for window dedicated state.
+Value is used for `mode-line-window-dedicated', which see."
+  (cond
+   ((eq (window-dedicated-p) t)
+    (propertize
+     "D"
+     'help-echo "Window strongly dedicated to its buffer\nmouse-1: Toggle"
+     'local-map mode-line-window-dedicated-keymap
+     'mouse-face 'mode-line-highlight))
+   ((window-dedicated-p)
+    (propertize
+     "d"
+     'help-echo "Window dedicated to its buffer\nmouse-1: Toggle"
+     'local-map mode-line-window-dedicated-keymap
+     'mouse-face 'mode-line-highlight))
+   (t "")))
+
+(defvar mode-line-window-dedicated '(:eval (mode-line-window-control))
+  "Mode line construct to describe the current window.")
+;;;###autoload
+(put 'mode-line-window-dedicated 'risky-local-variable t)
+
 (defvar-local mode-line-process nil
   "Mode line construct for displaying info on process status.
 Normally nil in most modes, since there is no process to display.")
@@ -676,8 +705,9 @@ By default, this shows the information specified by `global-mode-string'.")
 	            'mode-line-mule-info
 	            'mode-line-client
 	            'mode-line-modified
-	            'mode-line-remote)
-              'display '(min-width (5.0)))
+		    'mode-line-remote
+		    'mode-line-window-dedicated)
+              'display '(min-width (6.0)))
 	     'mode-line-frame-identification
 	     'mode-line-buffer-identification
 	     "   "

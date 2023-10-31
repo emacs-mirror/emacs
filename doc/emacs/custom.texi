@@ -1507,7 +1507,18 @@ mode or subdirectory, and for variable and value, and adds the
 entry defining the directory-local variable.  @kbd{M-x
 delete-dir-local-variable} deletes an entry.  @kbd{M-x
 copy-file-locals-to-dir-locals} copies the file-local variables in the
-current file into @file{.dir-locals.el}.
+current file into @file{.dir-locals.el}, or @file{.dir-locals-2.el} if
+that file is also present.
+
+With a prefix argument, all three commands prompt for the file you
+want to modify.  Although it doesn't have to exist, you must enter a
+valid filename, either @file{.dir-locals.el} or
+@file{.dir-locals-2.el}.
+
+@findex customize-dirlocals
+There's also a command to pop up an Easy Customization buffer
+(@pxref{Easy Customization}) to edit directory local variables,
+@code{customize-dirlocals}.
 
 @findex dir-locals-set-class-variables
 @findex dir-locals-set-directory-class
@@ -1590,6 +1601,10 @@ buffers which have a remote default directory matching the regexp
 discriminate for the properties @code{:protocol} (this is the Tramp
 method) or @code{:user} (a remote user name).  The @code{nil} criteria
 matches all buffers with a remote default directory.
+
+  Be careful when declaring different profiles with the same variable,
+and setting these profiles to criteria which could match in parallel.
+It is unspecified which variable value is used then.
 
 @node Key Bindings
 @section Customizing Key Bindings

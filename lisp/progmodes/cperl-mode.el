@@ -379,6 +379,8 @@ Font for POD headers."
   :type 'face
   :version "21.1"
   :group 'cperl-faces)
+(make-obsolete-variable 'cperl-invalid-face
+                        'show-trailing-whitespace "30.1")
 
 (defcustom cperl-pod-here-fontify t
   "Not-nil after evaluation means to highlight POD and here-docs sections."
@@ -433,6 +435,11 @@ after reload."
 Older version of this page was called `perl5', newer `perl'."
   :type 'string
   :group 'cperl-help-system)
+(make-obsolete-variable 'cperl-info-page
+                        (concat "The Perl info page is no longer maintained. "
+                                "Consider installing the perl-doc package from "
+                                "GNU ELPA to access Perl documentation.")
+                        "30.1")
 
 (defcustom cperl-use-syntax-table-text-property t
   "Non-nil means CPerl sets up and uses `syntax-table' text property."
@@ -472,12 +479,6 @@ If nil, the value of `cperl-indent-level' will be used."
   :type 'boolean
   :group 'cperl)
 (make-obsolete-variable 'cperl-under-as-char 'superword-mode "24.4")
-
-(defcustom cperl-extra-perl-args ""
-  "Extra arguments to use when starting Perl.
-Currently used with `cperl-check-syntax' only."
-  :type 'string
-  :group 'cperl)
 
 (defcustom cperl-message-electric-keyword t
   "Non-nil means that the `cperl-electric-keyword' prints a help message."
@@ -631,22 +632,14 @@ imenu entries."
 ;;; Short extra-docs.
 
 (defvar cperl-tips 'please-ignore-this-line
-  "Note that to enable Compile choices in the menu you need to install
-mode-compile.el.
-
-If your Emacs does not default to `cperl-mode' on Perl files, and you
+  "If your Emacs does not default to `cperl-mode' on Perl files, and you
 want it to: put the following into your .emacs file:
 
   (add-to-list \\='major-mode-remap-alist \\='(perl-mode . cperl-mode))
 
-Get perl5-info from
-  $CPAN/doc/manual/info/perl5-old/perl5-info.tar.gz
-Also, one can generate a newer documentation running `pod2texi' converter
-  $CPAN/doc/manual/info/perl5/pod2texi-0.1.tar.gz
-
-If you use imenu-go, run imenu on perl5-info buffer (you can do it
-from Perl menu).  If many files are related, generate TAGS files from
-Tools/Tags submenu in Perl menu.
+To read Perl documentation in info format you can convert POD to
+texinfo with the converter `pod2texi' from the texinfo project:
+  https://www.gnu.org/software/texinfo/manual/pod2texi.html
 
 If some class structure is too complicated, use Tools/Hierarchy-view
 from Perl menu, or hierarchic view of imenu.  The second one uses the
@@ -713,45 +706,41 @@ voice);
                 3) Separate list of packages/classes;
                 4) Hierarchical view of methods in (sub)packages;
                 5) and functions (by the full name - with package);
-        e) Has an interface to INFO docs for Perl; The interface is
-                very flexible, including shrink-wrapping of
-                documentation buffer/frame;
-        f) Has a builtin list of one-line explanations for perl constructs.
-        g) Can show these explanations if you stay long enough at the
+        e) Has a builtin list of one-line explanations for perl constructs.
+        f) Can show these explanations if you stay long enough at the
                 corresponding place (or on demand);
-        h) Has an enhanced fontification (using 3 or 4 additional faces
+        g) Has an enhanced fontification (using 3 or 4 additional faces
                 comparing to font-lock - basically, different
                 namespaces in Perl have different colors);
-        i) Can construct TAGS basing on its knowledge of Perl syntax,
+        h) Can construct TAGS basing on its knowledge of Perl syntax,
                 the standard menu has 6 different way to generate
                 TAGS (if \"by directory\", .xs files - with C-language
                 bindings - are included in the scan);
-        j) Can build a hierarchical view of classes (via imenu) basing
+        i) Can build a hierarchical view of classes (via imenu) basing
                 on generated TAGS file;
-        k) Has electric parentheses, electric newlines, uses Abbrev
+        j) Has electric parentheses, electric newlines, uses Abbrev
                 for electric logical constructs
                         while () {}
                 with different styles of expansion (context sensitive
                 to be not so bothering).  Electric parentheses behave
                 \"as they should\" in a presence of a visible region.
-        l) Changes msb.el \"on the fly\" to insert a group \"Perl files\";
-        m) Can convert from
+        k) Changes msb.el \"on the fly\" to insert a group \"Perl files\";
+        l) Can convert from
 		if (A) { B }
 	   to
 		B if A;
 
-        n) Highlights (by user-choice) either 3-delimiters constructs
+        m) Highlights (by user-choice) either 3-delimiters constructs
 	   (such as tr/a/b/), or regular expressions and `y/tr';
-	o) Highlights trailing whitespace;
-	p) Is able to manipulate Perl Regular Expressions to ease
+        o) Is able to manipulate Perl Regular Expressions to ease
 	   conversion to a more readable form.
-        q) Can ispell POD sections and HERE-DOCs.
-	r) Understands comments and character classes inside regular
+        p) Can ispell POD sections and HERE-DOCs.
+        q) Understands comments and character classes inside regular
 	   expressions; can find matching () and [] in a regular expression.
-	s) Allows indentation of //x-style regular expressions;
-	t) Highlights different symbols in regular expressions according
+        r) Allows indentation of //x-style regular expressions;
+        s) Highlights different symbols in regular expressions according
 	   to their function; much less problems with backslashitis;
-	u) Allows you to locate regular expressions which contain
+        t) Allows you to locate regular expressions which contain
 	   interpolated parts.
 
 5) The indentation engine was very smart, but most of tricks may be
@@ -840,7 +829,6 @@ B) Speed of editing operations.
   `font-lock-type-face'		Overridable keywords
   `font-lock-variable-name-face' Variable declarations, indirect array and
 				hash names, POD headers/item names
-  `cperl-invalid-face'		Trailing whitespace
 
 Note that in several situations the highlighting tries to inform about
 possible confusion, such as different colors for function names in
@@ -987,12 +975,12 @@ Unless KEEP, removes the old indentation."
     (define-key map "\177" 'cperl-electric-backspace)
     (define-key map "\t" 'cperl-indent-command)
     ;; don't clobber the backspace binding:
-    (define-key map [(control ?c) (control ?h) ?F] 'cperl-info-on-command)
+    (define-key map [(control ?c) (control ?h) ?F] 'cperl-perldoc)
     (if (cperl-val 'cperl-clobber-lisp-bindings)
         (progn
 	  (define-key map [(control ?h) ?f]
 	    ;;(concat (char-to-string help-char) "f") ; does not work
-	    'cperl-info-on-command)
+	    'cperl-perldoc)
 	  (define-key map [(control ?h) ?v]
 	    ;;(concat (char-to-string help-char) "v") ; does not work
 	    'cperl-get-help)
@@ -1003,7 +991,7 @@ Unless KEEP, removes the old indentation."
 	    ;;(concat (char-to-string help-char) "v") ; does not work
 	    (key-binding "\C-hv")))
       (define-key map [(control ?c) (control ?h) ?f]
-        'cperl-info-on-current-command)
+        'cperl-perldoc)
       (define-key map [(control ?c) (control ?h) ?v]
 	;;(concat (char-to-string help-char) "v") ; does not work
 	'cperl-get-help))
@@ -1056,17 +1044,10 @@ Unless KEEP, removes the old indentation."
     ["Comment region" cperl-comment-region (use-region-p)]
     ["Uncomment region" cperl-uncomment-region (use-region-p)]
     "----"
-    ["Run" mode-compile (fboundp 'mode-compile)]
-    ["Kill" mode-compile-kill (and (fboundp 'mode-compile-kill)
-                                   (get-buffer "*compilation*"))]
-    ["Next error" next-error (get-buffer "*compilation*")]
-    ["Check syntax" cperl-check-syntax (fboundp 'mode-compile)]
-    "----"
     ["Debugger" cperl-db t]
     "----"
     ("Tools"
      ["Imenu" imenu]
-     ["Imenu on Perl Info" cperl-imenu-on-info (featurep 'imenu)]
      "----"
      ["Ispell PODs" cperl-pod-spell
       ;; Better not to update syntaxification here:
@@ -1125,8 +1106,6 @@ Unless KEEP, removes the old indentation."
       ;; This is from imenu-go.el.  I can't find it on any ELPA
       ;; archive, so I'm not sure if it's still in use or not.
       (fboundp 'imenu-go-find-at-position)]
-     ["Help on function" cperl-info-on-command t]
-     ["Help on function at point" cperl-info-on-current-command t]
      ["Help on symbol at point" cperl-get-help t]
      ["Perldoc" cperl-perldoc t]
      ["Perldoc on word at point" cperl-perldoc-at-point t]
@@ -1731,16 +1710,8 @@ by setting them to `null'.  Note that one may undo the extra
 whitespace inserted by semis and braces in `auto-newline'-mode by
 consequent \\[cperl-electric-backspace].
 
-If your site has perl5 documentation in info format, you can use commands
-\\[cperl-info-on-current-command] and \\[cperl-info-on-command] to access it.
-These keys run commands `cperl-info-on-current-command' and
-`cperl-info-on-command', which one is which is controlled by variable
-`cperl-info-on-command-no-prompt' and `cperl-clobber-lisp-bindings'
-\(in turn affected by `cperl-hairy').
-
-Even if you have no info-format documentation, short one-liner-style
-help is available on \\[cperl-get-help], and one can run perldoc or
-man via menu.
+Short one-liner-style help is available on \\[cperl-get-help],
+and one can run perldoc or man via menu.
 
 It is possible to show this help automatically after some idle time.
 This is regulated by variable `cperl-lazy-help-time'.  Default with
@@ -1832,8 +1803,8 @@ or as help on variables `cperl-tips', `cperl-problems',
        (cperl-val 'cperl-info-on-command-no-prompt))
       (progn
 	;; don't clobber the backspace binding:
-	(define-key cperl-mode-map "\C-hf" 'cperl-info-on-current-command)
-	(define-key cperl-mode-map "\C-c\C-hf" 'cperl-info-on-command)))
+	(define-key cperl-mode-map "\C-hf" 'cperl-perldoc)
+	(define-key cperl-mode-map "\C-c\C-hf" 'cperl-perldoc)))
   (setq local-abbrev-table cperl-mode-abbrev-table)
   (if (cperl-val 'cperl-electric-keywords)
       (abbrev-mode 1))
@@ -5887,9 +5858,6 @@ functions (which they are not).  Inherits from `default'.")
 	  (setq
 	   t-font-lock-keywords
 	   (list
-            ;; -------- trailing spaces -> use invalid-face as a warning
-            ;; (matcher subexp facespec)
-	    `("[ \t]+$" 0 ',cperl-invalid-face t)
             ;; -------- function definition _and_ declaration
             ;; (matcher (subexp facespec))
             ;; facespec is evaluated depending on whether the
@@ -6561,13 +6529,6 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
 	    cperl-old-style (cdr cperl-old-style))
       (set (car setting) (cdr setting)))))
 
-(defvar perl-dbg-flags)
-(defun cperl-check-syntax ()
-  (interactive)
-  (require 'mode-compile)
-  (let ((perl-dbg-flags (concat cperl-extra-perl-args " -wc")))
-    (eval '(mode-compile))))		; Avoid a warning
-
 (declare-function Info-find-node "info"
 		  (filename nodename &optional no-going-back strict-case
                             noerror))
@@ -6611,10 +6572,7 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
 		       'find-tag-default))))))
 
 (defun cperl-info-on-command (command)
-  "Show documentation for Perl command COMMAND in other window.
-If perl-info buffer is shown in some frame, uses this frame.
-Customized by setting variables `cperl-shrink-wrap-info-frame',
-`cperl-max-help-size'."
+  (declare (obsolete cperl-perldoc "30.1"))
   (interactive
    (let* ((default (cperl-word-at-point))
 	  (read (read-string
@@ -6690,25 +6648,26 @@ Customized by setting variables `cperl-shrink-wrap-info-frame',
     (select-window iniwin)))
 
 (defun cperl-info-on-current-command ()
-  "Show documentation for Perl command at point in other window."
+  (declare (obsolete cperl-perldoc "30.1"))
   (interactive)
   (cperl-info-on-command (cperl-word-at-point)))
 
 (defun cperl-imenu-info-imenu-search ()
+  (declare (obsolete nil "30.1"))
   (if (looking-at "^-X[ \t\n]") nil
     (re-search-backward
      "^\n\\([-a-zA-Z_]+\\)[ \t\n]")
     (forward-line 1)))
 
 (defun cperl-imenu-info-imenu-name ()
+  (declare (obsolete nil "30.1"))
   (buffer-substring
    (match-beginning 1) (match-end 1)))
 
 (declare-function imenu-choose-buffer-index "imenu" (&optional prompt alist))
 
 (defun cperl-imenu-on-info ()
-  "Show imenu for Perl Info Buffer.
-Opens Perl Info buffer if needed."
+  (declare (obsolete nil "30.1"))
   (interactive)
   (require 'imenu)
   (let* ((buffer (current-buffer))
@@ -7368,9 +7327,6 @@ One may build such TAGS files from CPerl mode menu."
       (nreverse (cons (cons name
 			    (nreverse list2))
 		      list1)))))
-
-(defvar imenu-max-items nil
-  "Max items in an imenu list.  Defined in imenu.el.")
 
 (defun cperl-menu-to-keymap (menu)
   (let (list)

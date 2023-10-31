@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(require 'cl-macs)
+(require 'cl-lib)
 (require 'ert)
 (require 'ert-x)
 (require 'seq)

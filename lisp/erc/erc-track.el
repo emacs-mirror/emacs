@@ -785,6 +785,9 @@ that face with highest priority in NEW-FACES is also a member of
               choice))
         choice))))
 
+(defvar erc-track--skipped-msgs '(datestamp)
+  "Values of `erc-msg' text prop to ignore.")
+
 (defun erc-track-modified-channels ()
   "Hook function for `erc-insert-post-hook'.
 Check if the current buffer should be added to the mode line as a
@@ -795,11 +798,16 @@ the current buffer is in `erc-mode'."
     (if (and (not (erc-buffer-visible (current-buffer)))
 	     (not (member this-channel erc-track-exclude))
 	     (not (and erc-track-exclude-server-buffer
-		       (erc-server-buffer-p)))
-	     (not (erc-message-type-member
-		   (or (erc-find-parsed-property)
-		       (point-min))
-		   erc-track-exclude-types)))
+                       ;; FIXME either use `erc--server-buffer-p' or
+                       ;; explain why that's unwise.
+                       (erc-server-or-unjoined-channel-buffer-p)))
+             (not (let ((parsed (erc-find-parsed-property)))
+                    (or (erc-message-type-member (or parsed (point-min))
+                                                 erc-track-exclude-types)
+                        ;; Skip certain non-server-sent messages.
+                        (and (not parsed)
+                             (erc--check-msg-prop 'erc-msg
+                                                  erc-track--skipped-msgs))))))
 	;; If the active buffer is not visible (not shown in a
 	;; window), and not to be excluded, determine the kinds of
 	;; faces used in the current message, and unless the user

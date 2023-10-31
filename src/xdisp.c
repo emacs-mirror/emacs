@@ -2778,7 +2778,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
       goto virtual_glyph;
     }
   else if (!f->glyphs_initialized_p
-	   || (window = window_from_coordinates (f, gx, gy, &part, false, false),
+	   || (window = window_from_coordinates (f, gx, gy, &part, false, false, false),
 	       NILP (window)))
     {
       width = FRAME_SMALLEST_CHAR_WIDTH (f);
@@ -35439,7 +35439,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
     return;
 
   /* Which window is that in?  */
-  window = window_from_coordinates (f, x, y, &part, true, true);
+  window = window_from_coordinates (f, x, y, &part, true, true, true);
 
   /* If displaying active text in another window, clear that.  */
   if (! EQ (window, hlinfo->mouse_face_window)
@@ -35537,6 +35537,16 @@ note_mouse_highlight (struct frame *f, int x, int y)
   /* Convert to window-relative pixel coordinates.  */
   w = XWINDOW (window);
   frame_to_window_pixel_xy (w, &x, &y);
+
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_MENU_BAR)
+  /* Handle menu-bar window differently since it doesn't display a
+     buffer.  */
+  if (EQ (window, f->menu_bar_window))
+    {
+      cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
+      goto set_cursor;
+    }
+#endif
 
 #if defined (HAVE_WINDOW_SYSTEM)
   /* Handle tab-bar window differently since it doesn't display a

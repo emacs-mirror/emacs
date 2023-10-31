@@ -272,6 +272,7 @@ content:// URIs into the special file names which represent them."
           ((eq (car message) 'uri)
            (let ((uri-list (split-string (cdr message)
                                          "[\0\r\n]" t))
+                 (new-uri-list nil)
                  (dnd-unescape-file-uris t))
              (dolist (uri uri-list)
                (ignore-errors
@@ -286,7 +287,10 @@ content:// URIs into the special file names which represent them."
                            ;; subject to URI decoding, for it must be
                            ;; transformed back into a content URI.
                            dnd-unescape-file-uris nil))))
-               (dnd-handle-one-url (posn-window posn) 'copy uri)))))))
+               (push uri new-uri-list))
+             (dnd-handle-multiple-urls (posn-window posn)
+                                       new-uri-list
+                                       'copy))))))
 
 (define-key special-event-map [drag-n-drop] 'android-handle-dnd-event)
 

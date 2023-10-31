@@ -218,7 +218,9 @@ with args, toggle notify status of people."
 	    ;; from your notify list.
 	    (dolist (buf (erc-buffer-list))
 	      (with-current-buffer buf
-		(if (erc-server-buffer-p)
+                ;; FIXME replace with `erc--server-buffer-p' or
+                ;; explain why that's unwise.
+                (if (erc-server-or-unjoined-channel-buffer-p)
 		    (setq erc-last-ison (delete (car args) erc-last-ison))))))
 	(setq erc-notify-list (cons (erc-string-no-properties (car args))
 				    erc-notify-list)))

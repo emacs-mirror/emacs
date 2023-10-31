@@ -3969,20 +3969,17 @@ interrupted, even by input from the standard input descriptor.  It is
 thus equivalent to @code{sleep-for}, which is described below.
 @end defun
 
-@defun sleep-for seconds &optional millisec
+@defun sleep-for seconds
 This function simply pauses for @var{seconds} seconds without updating
 the display.  It pays no attention to available input.  It returns
 @code{nil}.
 
 The argument @var{seconds} need not be an integer.  If it is floating
 point, @code{sleep-for} waits for a fractional number of seconds.
-Some systems support only a whole number of seconds; on these systems,
-@var{seconds} is rounded down.
 
-The optional argument @var{millisec} specifies an additional waiting
-period measured in milliseconds.  This adds to the period specified by
-@var{seconds}.  If the system doesn't support waiting fractions of a
-second, you get an error if you specify nonzero @var{millisec}.
+It is also possible to call @code{sleep-for} with two arguments,
+as @code{(sleep-for @var{seconds} @var{millisec})},
+but that is considered obsolete and will be removed in the future.
 
 Use @code{sleep-for} when you wish to guarantee a delay.
 @end defun

@@ -42,14 +42,14 @@
                       ',expected-type-spec))))
 
   (defconst comp-cstr-typespec-tests-alist
-    `(;; 1
+    '(;; 1
       (symbol . symbol)
       ;; 2
       ((or string array) . array)
       ;; 3
       ((or symbol number) . (or number symbol))
       ;; 4
-      ((or cons atom) . (or atom cons)) ;; SBCL return T
+      ((or cons atom) . t) ;; SBCL return T
       ;; 5
       ((or integer number) . number)
       ;; 6
@@ -219,14 +219,18 @@
       ;; 88
       ((and (or (member a b c)) (not (or (member a b)))) . (member c))
       ;; 89
-      ((or cons symbol) . list)
+      ((or cons symbol) . (or list symbol)) ;; FIXME: Why `list'?
       ;; 90
       ((or string char-table bool-vector vector) . array)
       ;; 91
       ((or string char-table bool-vector vector number) . (or array number))
       ;; 92
       ((or string char-table bool-vector vector cons symbol number) .
-       (or number sequence)))
+       (or number sequence symbol))
+      ;; 93?
+      ;; FIXME: I get `cons' rather than `list'?
+      ;;((or null cons) . list)
+      )
     "Alist type specifier -> expected type specifier."))
 
 (defmacro comp-cstr-synthesize-tests ()

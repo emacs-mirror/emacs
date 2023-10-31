@@ -90,7 +90,7 @@ android_init_emacs_clipboard (void)
     = (*android_java_env)->GetMethodID (android_java_env,	\
 					clipboard_class.class,	\
 					name, signature);	\
-  assert (clipboard_class.c_name);
+  eassert (clipboard_class.c_name);
 
   FIND_METHOD (set_clipboard, "setClipboard", "([B)V");
   FIND_METHOD (owns_clipboard, "ownsClipboard", "()I");
@@ -107,7 +107,7 @@ android_init_emacs_clipboard (void)
 					      "makeClipboard",
 					      "()Lorg/gnu/emacs/"
 					      "EmacsClipboard;");
-  assert (clipboard_class.make_clipboard);
+  eassert (clipboard_class.make_clipboard);
 
 #undef FIND_METHOD
 }
@@ -511,7 +511,7 @@ android_init_emacs_desktop_notification (void)
     = (*android_java_env)->GetMethodID (android_java_env,		\
 				        notification_class.class,	\
 					name, signature);		\
-  assert (notification_class.c_name);
+  eassert (notification_class.c_name);
 
   FIND_METHOD (init, "<init>", "(Ljava/lang/String;"
 	       "Ljava/lang/String;Ljava/lang/String;"

@@ -11769,8 +11769,8 @@ reflected in a subsequent paste operation."
 		(setq comment (substring type (match-beginning 2)))
 		(setq type (substring type 0 (match-beginning 1))))
 	      ;; strip of trailing group-comment
-	      (string-match "\\(\\(\\s-*\\S-+\\)+\\)\\s-*" type)
-	      (setq type (substring type 0 (match-end 1)))
+              (when (string-match "\\S-\\s-*\\'" type)
+	        (setq type (substring type 0 (1+ (match-beginning 0)))))
 	      ;; parse initialization expression
 	      (setq init nil)
 	      (when (vhdl-parse-string ":=[ \t\n\r\f]*" t)
@@ -11844,8 +11844,8 @@ reflected in a subsequent paste operation."
 		(setq comment (substring type (match-beginning 2)))
 		(setq type (substring type 0 (match-beginning 1))))
 	      ;; strip of trailing group-comment
-	      (string-match "\\(\\(\\s-*\\S-+\\)+\\)\\s-*" type)
-	      (setq type (substring type 0 (match-end 1)))
+              (when (string-match "\\S-\\s-*\\'" type)
+	        (setq type (substring type 0 (1+ (match-beginning 0)))))
 	      (vhdl-forward-syntactic-ws)
 	      (setq end-of-list (vhdl-parse-string ")" t))
 	      (vhdl-parse-string "\\s-*;\\s-*")
@@ -12580,8 +12580,8 @@ reflected in a subsequent paste operation."
 	      (setq comment (substring type (match-beginning 2)))
 	      (setq type (substring type 0 (match-beginning 1))))
 	    ;; strip off trailing group-comment
-	    (string-match "\\(\\(\\s-*\\S-+\\)+\\)\\s-*" type)
-	    (setq type (substring type 0 (match-end 1)))
+            (when (string-match "\\S-\\s-*\\'" type)
+	      (setq type (substring type 0 (1+ (match-beginning 0)))))
 	    ;; parse initialization expression
 	    (setq init nil)
 	    (when (vhdl-parse-string ":=[ \t\n\r\f]*" t)
@@ -12621,8 +12621,9 @@ reflected in a subsequent paste operation."
 		(setq return-comment (substring return-type (match-beginning 2)))
 		(setq return-type (substring return-type 0 (match-beginning 1))))
 	      ;; strip of trailing group-comment
-	      (string-match "\\(\\(\\s-*\\S-+\\)+\\)\\s-*" return-type)
-	      (setq return-type (substring return-type 0 (match-end 1)))
+              (when (string-match "\\S-\\s-*\\'" return-type)
+	        (setq return-type
+                      (substring return-type 0 (1+ (match-beginning 0)))))
 	      ;; parse return comment
 	      (unless return-comment
 		(setq return-comment (and (vhdl-parse-string "--\\s-*\\([^\n]*\\)" t)

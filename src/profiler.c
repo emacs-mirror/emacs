@@ -55,6 +55,8 @@ struct profiler_log {
   EMACS_INT discarded; /* Samples evicted during table overflow.  */
 };
 
+static Lisp_Object export_log (struct profiler_log *);
+
 static struct profiler_log
 make_log (void)
 {
@@ -213,6 +215,23 @@ record_backtrace (struct profiler_log *plog, EMACS_INT count)
 
 /* Sampling profiler.  */
 
+/* Signal handler for sampling profiler.  */
+
+static void
+add_sample (struct profiler_log *plog, EMACS_INT count)
+{
+  if (EQ (backtrace_top_function (), QAutomatic_GC)) /* bug#60237 */
+    /* Special case the time-count inside GC because the hash-table
+       code is not prepared to be used while the GC is running.
+       More specifically it uses ASIZE at many places where it does
+       not expect the ARRAY_MARK_FLAG to be set.  We could try and
+       harden the hash-table code, but it doesn't seem worth the
+       effort.  */
+    plog->gc_count = saturated_add (plog->gc_count, count);
+  else
+    record_backtrace (plog, count);
+}
+
 #ifdef PROFILER_CPU_SUPPORT
 
 /* The profiler timer and whether it was properly initialized, if
@@ -235,29 +254,8 @@ static enum profiler_cpu_running
 /* Hash-table log of CPU profiler.  */
 static struct profiler_log cpu;
 
-/* Hash-table log of Memory profiler.  */
-static struct profiler_log memory;
-
 /* The current sampling interval in nanoseconds.  */
 static EMACS_INT current_sampling_interval;
-
-/* Signal handler for sampling profiler.  */
-
-static void
-add_sample (struct profiler_log *plog, EMACS_INT count)
-{
-  if (EQ (backtrace_top_function (), QAutomatic_GC)) /* bug#60237 */
-    /* Special case the time-count inside GC because the hash-table
-       code is not prepared to be used while the GC is running.
-       More specifically it uses ASIZE at many places where it does
-       not expect the ARRAY_MARK_FLAG to be set.  We could try and
-       harden the hash-table code, but it doesn't seem worth the
-       effort.  */
-    plog->gc_count = saturated_add (plog->gc_count, count);
-  else
-    record_backtrace (plog, count);
-}
-
 
 static void
 handle_profiler_signal (int signal)
@@ -421,26 +419,6 @@ DEFUN ("profiler-cpu-running-p",
   return profiler_cpu_running ? Qt : Qnil;
 }
 
-static Lisp_Object
-export_log (struct profiler_log *log)
-{
-  Lisp_Object result = log->log;
-  if (log->gc_count)
-    Fputhash (CALLN (Fvector, QAutomatic_GC, Qnil),
-	      make_fixnum (log->gc_count),
-	      result);
-  if (log->discarded)
-    Fputhash (CALLN (Fvector, QDiscarded_Samples, Qnil),
-	      make_fixnum (log->discarded),
-	      result);
-  /* Here we're making the log visible to Elisp, so it's not safe any
-     more for our use afterwards since we can't rely on its special
-     pre-allocated keys anymore.  So we have to allocate a new one.  */
-  if (profiler_cpu_running)
-    *log = make_log ();
-  return result;
-}
-
 DEFUN ("profiler-cpu-log", Fprofiler_cpu_log, Sprofiler_cpu_log,
        0, 0, 0,
        doc: /* Return the current cpu profiler log.
@@ -453,8 +431,33 @@ Before returning, a new log is allocated for future samples.  */)
   return (export_log (&cpu));
 }
 #endif /* PROFILER_CPU_SUPPORT */
+
+static Lisp_Object
+export_log (struct profiler_log *log)
+{
+  Lisp_Object result = log->log;
+  if (log->gc_count)
+    Fputhash (CALLN (Fvector, QAutomatic_GC, Qnil),
+	      make_fixnum (log->gc_count),
+	      result);
+  if (log->discarded)
+    Fputhash (CALLN (Fvector, QDiscarded_Samples, Qnil),
+	      make_fixnum (log->discarded),
+	      result);
+#ifdef PROFILER_CPU_SUPPORT
+  /* Here we're making the log visible to Elisp, so it's not safe any
+     more for our use afterwards since we can't rely on its special
+     pre-allocated keys anymore.  So we have to allocate a new one.  */
+  if (profiler_cpu_running)
+    *log = make_log ();
+#endif /* PROFILER_CPU_SUPPORT */
+  return result;
+}
 
 /* Memory profiler.  */
+
+/* Hash-table log of Memory profiler.  */
+static struct profiler_log memory;
 
 /* True if memory profiler is running.  */
 bool profiler_memory_running;

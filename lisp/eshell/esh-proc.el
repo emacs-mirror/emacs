@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+(require 'esh-arg)
 (require 'esh-io)
 (require 'esh-util)
 
@@ -158,6 +159,14 @@ PROC and STATUS to functions on the latter."
 (defun eshell-proc-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the process handling code."
   (make-local-variable 'eshell-process-list)
+  (setq-local eshell-special-ref-alist
+              (cons
+               `("process"
+                 (creation-function   get-process)
+                 (insertion-function  eshell-insert-process)
+                 (completion-function eshell-complete-process-ref))
+               eshell-special-ref-alist))
+
   (eshell-proc-mode))
 
 (define-obsolete-function-alias 'eshell-reset-after-proc
@@ -226,23 +235,6 @@ and signal names."
   nil)
 
 (put 'eshell/kill 'eshell-no-numeric-conversions t)
-
-(defun eshell-read-process-name (prompt)
-  "Read the name of a process from the minibuffer, using completion.
-The prompt will be set to PROMPT."
-  (completing-read prompt
-		   (mapcar
-                    (lambda (proc)
-                      (cons (process-name proc) t))
-		    (process-list))
-                   nil t))
-
-(defun eshell-insert-process (process)
-  "Insert the name of PROCESS into the current buffer at point."
-  (interactive
-   (list (get-process
-	  (eshell-read-process-name "Name of process: "))))
-  (insert-and-inherit "#<process " (process-name process) ">"))
 
 (defsubst eshell-record-process-object (object)
   "Record OBJECT as now running."
@@ -694,6 +686,31 @@ everything."
 ;    ;; example, `eshell-reset' will be called, and so will
 ;    ;; `eshell-resume-eval'.
 ;    (eshell--reset-after-signal "continue\n")))
+
+;;; Special references
+
+(defun eshell-read-process-name (prompt)
+  "Read the name of a process from the minibuffer, using completion.
+The prompt will be set to PROMPT."
+  (completing-read prompt
+		   (mapcar
+                    (lambda (proc)
+                      (cons (process-name proc) t))
+		    (process-list))
+                   nil t))
+
+(defun eshell-insert-process (process)
+  "Insert the name of PROCESS into the current buffer at point."
+  (interactive
+   (list (get-process
+	  (eshell-read-process-name "Name of process: "))))
+  (insert-and-inherit "#<process "
+                      (eshell-quote-argument (process-name process))
+                      ">"))
+
+(defun eshell-complete-process-ref ()
+  "Perform completion for process references."
+  (pcomplete-here (mapcar #'process-name (process-list))))
 
 (provide 'esh-proc)
 ;;; esh-proc.el ends here

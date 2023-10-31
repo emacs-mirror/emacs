@@ -1135,9 +1135,11 @@ the function needs to examine, starting with FILE."
     (while (not (or root
                     (null file)
                     (string-match locate-dominating-stop-dir-regexp file)))
-      (setq try (if (stringp name)
-                    (and (file-directory-p file)
-                         (file-exists-p (expand-file-name name file)))
+      (setq file (if (file-directory-p file)
+                     file
+                   (file-name-directory file))
+            try (if (stringp name)
+                    (file-exists-p (expand-file-name name file))
                   (funcall name file)))
       (cond (try (setq root file))
             ((equal file (setq file (file-name-directory
@@ -5936,9 +5938,10 @@ Before and after saving the buffer, this function runs
                          t))
 	;; If file not writable, see if we can make it writable
 	;; temporarily while we write it (its original modes will be
-	;; restored in 'basic-save-buffer').  But no need to do so if
-	;; we have just backed it up (setmodes is set) because that
-	;; says we're superseding.
+	;; restored in 'basic-save-buffer' or, in case of an error, in
+	;; the `unwind-protect' below).  But no need to do so if we
+	;; have just backed it up (setmodes is set) because that says
+	;; we're superseding.
 	(cond ((and tempsetmodes (not setmodes))
 	       ;; Change the mode back, after writing.
 	       (setq setmodes
@@ -5948,7 +5951,12 @@ Before and after saving the buffer, this function runs
 			     (file-extended-attributes buffer-file-name))
 			   buffer-file-name))
 	       ;; If set-file-extended-attributes fails to make the
-	       ;; file writable, fall back on set-file-modes.
+	       ;; file writable, fall back on set-file-modes.  Calling
+	       ;; set-file-extended-attributes here may or may not be
+	       ;; actually necessary.  However, since its exact
+	       ;; behavior is highly port-specific, since calling it
+	       ;; does not do any harm, and since the call has a long
+	       ;; history, we decided to leave it in (bug#66546).
 	       (with-demoted-errors "Error setting attributes: %s"
 		 (set-file-extended-attributes buffer-file-name
 					       (nth 1 setmodes)))
@@ -5965,12 +5973,22 @@ Before and after saving the buffer, this function runs
                               buffer-file-name nil t buffer-file-truename)
                 (when save-silently (message nil))
 		(setq success t))
-	    ;; If we get an error writing the new file, and we made
-	    ;; the backup by renaming, undo the backing-up.
-	    (and setmodes (not success)
-		 (progn
-		   (rename-file (nth 2 setmodes) buffer-file-name t)
-		   (setq buffer-backed-up nil)))))))
+            (cond
+             ;; If we get an error writing the file, and there is no
+             ;; backup file, then we (most likely) made that file
+             ;; writable above.  Attempt to undo the write-access.
+             ((and setmodes (not success)
+                   (equal (nth 2 setmodes) buffer-file-name))
+	      (with-demoted-errors "Error setting file modes: %S"
+		(set-file-modes buffer-file-name (car setmodes)))
+	      (with-demoted-errors "Error setting attributes: %s"
+		(set-file-extended-attributes buffer-file-name
+					      (nth 1 setmodes))))
+	     ;; If we get an error writing the new file, and we made
+	     ;; the backup by renaming, undo the backing-up.
+	     ((and setmodes (not success))
+	      (rename-file (nth 2 setmodes) buffer-file-name t)
+	      (setq buffer-backed-up nil)))))))
     setmodes))
 
 (declare-function diff-no-select "diff"

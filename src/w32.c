@@ -9387,7 +9387,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 	 break them into smaller chunks.  See the Comments section of
 	 the MSDN documentation of WriteFile for details behind the
 	 choice of the value of CHUNK below.  See also the thread
-	 http://thread.gmane.org/gmane.comp.version-control.git/145294
+	 http://thread.gmane.org/gmane.comp.version-control.git/145294 [dead link]
 	 in the git mailing list.  */
       const unsigned char *p = buffer;
       const bool is_pipe = (fd < MAXDESC

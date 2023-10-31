@@ -2860,8 +2860,10 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   DUMP_FIELD_COPY (out, buffer, long_line_optimizations_p);
 
   if (!itree_empty_p (buffer->overlays))
-    /* We haven't implemented the code to dump overlays.  */
-    emacs_abort ();
+    {
+      /* We haven't implemented the code to dump overlays.  */
+      error ("dumping overlays is not yet implemented");
+    }
   else
     out->overlays = NULL;
 
@@ -2954,7 +2956,7 @@ dump_native_comp_unit (struct dump_context *ctx,
 		       struct Lisp_Native_Comp_Unit *comp_u)
 {
   if (!CONSP (comp_u->file))
-    error ("Trying to dump non fixed-up eln file");
+    error ("trying to dump non fixed-up eln file");
 
   /* Have function documentation always lazy loaded to optimize load-time.  */
   comp_u->data_fdoc_v = Qnil;
@@ -4088,6 +4090,10 @@ types.  */)
 
   if (!NILP (XCDR (Fall_threads ())))
     error ("No other Lisp threads can be running when this function is called");
+
+#ifdef HAVE_NATIVE_COMP
+  CALLN (Ffuncall, intern_c_string ("load--fixup-all-elns"));
+#endif
 
   check_pure_size ();
 
@@ -5349,11 +5355,11 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  dump_ptr (dump_base, reloc_offset);
 	comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
 	if (STRINGP (comp_u->file))
-	  error ("Trying to load incoherent dumped eln file %s",
+	  error ("trying to load incoherent dumped eln file %s",
 		 SSDATA (comp_u->file));
 
 	if (!CONSP (comp_u->file))
-	  error ("Incoherent compilation unit for dump was dumped");
+	  error ("incoherent compilation unit for dump was dumped");
 
 	/* emacs_execdir is always unibyte, but the file names in
 	   comp_u->file could be multibyte, so we need to encode

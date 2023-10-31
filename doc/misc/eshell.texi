@@ -400,6 +400,14 @@ Return the buffer named @var{name}.  This is equivalent to
 @samp{$(get-buffer-create "@var{name}")} (@pxref{Creating Buffers, , ,
 elisp, The Emacs Lisp Reference Manual}).
 
+@item #<marker @var{position} @var{buffer-or-name}>
+Return a marker at @var{position} in the buffer @var{buffer-or-name}.
+@var{buffer-or-name} can either be a string naming a buffer or an
+actual buffer object.  This is roughly equivalent to creating a new
+marker and calling @samp{$(set-marker marker @var{position}
+@var{buffer-or-name})} (@pxref{Moving Markers, , , elisp, The Emacs
+Lisp Reference Manual}).
+
 @item #<process @var{name}>
 Return the process named @var{name}.  This is equivalent to
 @samp{$(get-process "@var{name}")} (@pxref{Process Information, , ,
@@ -2589,11 +2597,6 @@ This would be expanded by @code{eshell-expand-file-name} (see above).
 If it's a Lisp function, input redirection implies @command{xargs} (in a
 way@dots{}).  If input redirection is added, also update the
 @code{file-name-quote-list}, and the delimiter list.
-
-@item Allow @samp{#<@var{word} @var{arg}>} as a generic syntax
-
-With the handling of @emph{word} specified by an
-@code{eshell-special-alist}.
 
 @item In @code{eshell-eval-using-options}, allow a @code{:complete} tag
 

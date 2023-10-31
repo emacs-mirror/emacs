@@ -118,86 +118,87 @@ as though it were Eshell syntax."
   ;; other members of `eshell-parse-argument-hook'.  We must avoid
   ;; misinterpreting a quoted `*|', `*<' or `*>' as indicating an
   ;; external pipeline, hence the structure of the loop in `findbeg1'.
-  (cl-flet
-      ((findbeg1 (pat &optional go (bound (point-max)))
-         (let* ((start (point))
-                (result
-                 (catch 'found
-                   (while (> bound (point))
-                     (let* ((found
-                             (save-excursion
-                               (re-search-forward
-                                "\\(?:#?'\\|\"\\|\\\\\\)" bound t)))
-                            (next (or (and found (match-beginning 0))
-                                      bound)))
-                       (if (re-search-forward pat next t)
-                           (throw 'found (match-beginning 1))
-                         (goto-char next)
-                         (while (eshell-extpipe--or-with-catch
-                                 (eshell-parse-lisp-argument)
-                                 (eshell-parse-backslash)
-                                 (eshell-parse-double-quote)
-                                 (eshell-parse-literal-quote)))
-                         ;; Guard against an infinite loop if none of
-                         ;; the parsers moved us forward.
-                         (unless (or (> (point) next) (eobp))
-                           (forward-char 1))))))))
-           (goto-char (if (and result go) (match-end 0) start))
-           result)))
-    (unless (or eshell-current-argument eshell-current-quoted)
-      (let ((beg (point)) end
-            (next-marked (findbeg1 "\\(?:\\=\\|\\s-\\)\\(\\*[|<>]\\)"))
-            (next-unmarked
-             (or (findbeg1 "\\(?:\\=\\|[^*]\\|\\S-\\*\\)\\(|\\)")
-                 (point-max))))
-        (when (and next-marked (> next-unmarked next-marked)
-                   (or (> next-marked (point))
-                       (looking-back "\\`\\|\\s-" nil)))
-          ;; Skip to the final segment of the external pipeline.
-          (while (findbeg1 "\\(?:\\=\\|\\s-\\)\\(\\*|\\)" t))
-          ;; Find output redirections.
-          (while (findbeg1
-                  "\\([0-9]?>+&?[0-9]?\\s-*\\S-\\)" t next-unmarked)
-            ;; Is the output redirection Eshell-specific?  We have our
-            ;; own logic, rather than calling `eshell-parse-argument',
-            ;; to avoid specifying here all the possible cars of
-            ;; parsed special references -- `get-buffer-create' etc.
-            (forward-char -1)
-            (let ((this-end
-                   (save-match-data
-                     (cond ((looking-at "#<")
-                            (forward-char 1)
-                            (1+ (eshell-find-delimiter ?\< ?\>)))
-                           ((and (looking-at "/\\S-+")
-                                 (assoc (match-string 0)
-                                        eshell-virtual-targets))
-                            (match-end 0))))))
-              (cond ((and this-end end)
-                     (goto-char this-end))
-                    (this-end
-                     (goto-char this-end)
-                     (setq end (match-beginning 0)))
-                    (t
-                     (setq end nil)))))
-          ;; We've moved past all Eshell-specific output redirections
-          ;; we could find.  If there is only whitespace left, then
-          ;; `end' is right before redirections we should exclude;
-          ;; otherwise, we must include everything.
-          (unless (and end (skip-syntax-forward "\s" next-unmarked)
-                       (= next-unmarked (point)))
-            (setq end next-unmarked))
-          (let ((cmd (string-trim
-                      (buffer-substring-no-properties beg end))))
-            (goto-char end)
-            ;; We must now drop the asterisks, unless quoted/escaped.
-            (with-temp-buffer
-              (insert cmd)
-              (goto-char (point-min))
-              (cl-loop
-               for next = (findbeg1 "\\(?:\\=\\|\\s-\\)\\(\\*[|<>]\\)" t)
-               while next do (forward-char -2) (delete-char 1))
-              (eshell-finish-arg
-               `(eshell-external-pipeline ,(buffer-string))))))))))
+  (unless eshell-current-argument-plain
+    (cl-flet
+        ((findbeg1 (pat &optional go (bound (point-max)))
+           (let* ((start (point))
+                  (result
+                   (catch 'found
+                     (while (> bound (point))
+                       (let* ((found
+                               (save-excursion
+                                 (re-search-forward
+                                  "\\(?:#?'\\|\"\\|\\\\\\)" bound t)))
+                              (next (or (and found (match-beginning 0))
+                                        bound)))
+                         (if (re-search-forward pat next t)
+                             (throw 'found (match-beginning 1))
+                           (goto-char next)
+                           (while (eshell-extpipe--or-with-catch
+                                   (eshell-parse-lisp-argument)
+                                   (eshell-parse-backslash)
+                                   (eshell-parse-double-quote)
+                                   (eshell-parse-literal-quote)))
+                           ;; Guard against an infinite loop if none of
+                           ;; the parsers moved us forward.
+                           (unless (or (> (point) next) (eobp))
+                             (forward-char 1))))))))
+             (goto-char (if (and result go) (match-end 0) start))
+             result)))
+      (unless (or eshell-current-argument eshell-current-quoted)
+        (let ((beg (point)) end
+              (next-marked (findbeg1 "\\(?:\\=\\|\\s-\\)\\(\\*[|<>]\\)"))
+              (next-unmarked
+               (or (findbeg1 "\\(?:\\=\\|[^*]\\|\\S-\\*\\)\\(|\\)")
+                   (point-max))))
+          (when (and next-marked (> next-unmarked next-marked)
+                     (or (> next-marked (point))
+                         (looking-back "\\`\\|\\s-" nil)))
+            ;; Skip to the final segment of the external pipeline.
+            (while (findbeg1 "\\(?:\\=\\|\\s-\\)\\(\\*|\\)" t))
+            ;; Find output redirections.
+            (while (findbeg1
+                    "\\([0-9]?>+&?[0-9]?\\s-*\\S-\\)" t next-unmarked)
+              ;; Is the output redirection Eshell-specific?  We have our
+              ;; own logic, rather than calling `eshell-parse-argument',
+              ;; to avoid specifying here all the possible cars of
+              ;; parsed special references -- `get-buffer-create' etc.
+              (forward-char -1)
+              (let ((this-end
+                     (save-match-data
+                       (cond ((looking-at "#<")
+                              (forward-char 1)
+                              (1+ (eshell-find-delimiter ?\< ?\>)))
+                             ((and (looking-at "/\\S-+")
+                                   (assoc (match-string 0)
+                                          eshell-virtual-targets))
+                              (match-end 0))))))
+                (cond ((and this-end end)
+                       (goto-char this-end))
+                      (this-end
+                       (goto-char this-end)
+                       (setq end (match-beginning 0)))
+                      (t
+                       (setq end nil)))))
+            ;; We've moved past all Eshell-specific output redirections
+            ;; we could find.  If there is only whitespace left, then
+            ;; `end' is right before redirections we should exclude;
+            ;; otherwise, we must include everything.
+            (unless (and end (skip-syntax-forward "\s" next-unmarked)
+                         (= next-unmarked (point)))
+              (setq end next-unmarked))
+            (let ((cmd (string-trim
+                        (buffer-substring-no-properties beg end))))
+              (goto-char end)
+              ;; We must now drop the asterisks, unless quoted/escaped.
+              (with-temp-buffer
+                (insert cmd)
+                (goto-char (point-min))
+                (cl-loop
+                 for next = (findbeg1 "\\(?:\\=\\|\\s-\\)\\(\\*[|<>]\\)" t)
+                 while next do (forward-char -2) (delete-char 1))
+                (eshell-finish-arg
+                 `(eshell-external-pipeline ,(buffer-string)))))))))))
 
 (defun eshell-rewrite-external-pipeline (terms)
   "Rewrite an external pipeline in TERMS as parsed by

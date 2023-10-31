@@ -2201,6 +2201,10 @@ See also `emacs-lisp-byte-compile-and-load'."
               filename buffer-file-name))
       ;; Don't inherit lexical-binding from caller (bug#12938).
       (unless (local-variable-p 'lexical-binding)
+        (let ((byte-compile-current-buffer (current-buffer)))
+          (byte-compile-warn-x
+           (position-symbol 'a (point-min))
+           "file has no `lexical-binding' directive on its first line"))
         (setq-local lexical-binding nil))
       (unless (local-variable-p 'symbol-packages)
         (setq-local symbol-packages nil))

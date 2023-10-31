@@ -856,7 +856,7 @@ For changes in Emacs 23.1 and later, see the main Emacs NEWS file.
 
 ** Fixed obsolete trail tags gsmp, gneg, ginv to jsmp, jneg, jinv.
 
-** Fixed some errors and made improvements in units table [Ulrich Mueller].
+** Fixed some errors and made improvements in units table [Ulrich Müller].
 
 
 * Version 1.07:

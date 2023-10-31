@@ -7468,6 +7468,64 @@ Return WINDOW if BUFFER and WINDOW are live."
 The actual non-nil value of this variable will be copied to the
 `window-dedicated-p' flag.")
 
+(defcustom toggle-window-dedicated-flag 'interactive
+  "What dedicated flag should `toggle-window-dedicated' use by default.
+
+If `toggle-window-dedicated' does not receive a flag argument,
+the value of this variable is used and passed to
+`set-window-dedicated-p'.  Setting this to t will make
+`toggle-window-dedicated' use strong dedication by default.  Any
+other non-nil value will result in the same kind of non-strong
+dedication."
+  :type '(choice (const :tag "Strongly dedicated" t)
+                 (const :tag "Dedicated" interactive))
+  :version "30.0"
+  :group 'windows)
+
+(defun toggle-window-dedicated (&optional window flag interactive)
+  "Toggle whether WINDOW is dedicated to its current buffer.
+
+WINDOW must be a live window and defaults to the selected one.
+If FLAG is t (interactively, the prefix argument), make the window
+\"strongly\" dedicated to its buffer.  FLAG defaults to a non-nil,
+non-t value, and is passed to `set-window-dedicated-p', which see.
+If INTERACTIVE is non-nil, print a message describing the dedication
+status of WINDOW, after toggling it.  Interactively, this argument is
+always non-nil.
+
+When a window is dedicated to its buffer, `display-buffer' will avoid
+displaying another buffer in it, if possible.  When a window is
+strongly dedicated to its buffer, changing the buffer shown in the
+window will usually signal an error.
+
+You can control the default of FLAG with
+`toggle-window-dedicated-flag'.  Consequently, if you set that
+variable to t, strong dedication will be used by default and
+\\[universal-argument] will make the window weakly dedicated.
+
+See the info node `(elisp)Dedicated Windows' for more details."
+  (interactive "i\nP\np")
+  (setq window (window-normalize-window window))
+  (setq flag (cond
+              ((consp flag)
+               (if (eq toggle-window-dedicated-flag t)
+                   'interactive
+                 t))
+              ((null flag) toggle-window-dedicated-flag)
+              (t flag)))
+  (if (window-dedicated-p window)
+      (set-window-dedicated-p window nil)
+    (set-window-dedicated-p window flag))
+  (when interactive
+    (message "Window is %s dedicated to buffer %s"
+             (let ((status (window-dedicated-p window)))
+               (cond
+                ((null status) "no longer")
+                ((eq status t) "now strongly")
+                (t "now")))
+             (current-buffer))
+    (force-mode-line-update)))
+
 (defconst display-buffer--action-function-custom-type
   '(choice :tag "Function"
 	   (const :tag "--" ignore) ; default for insertion
@@ -7535,10 +7593,8 @@ where:
   arguments: a buffer to display and an alist of the same form as
   ALIST.  See `display-buffer' for details.
 
-`display-buffer' scans this alist until it either finds a
-matching regular expression or the function specified by a
-condition returns non-nil.  In any of these cases, it adds the
-associated action to the list of actions it will try."
+`display-buffer' scans this alist until the CONDITION is satisfied
+and adds the associated ACTION to the list of actions it will try."
   :type `(alist :key-type
 		(choice :tag "Condition"
 			regexp
@@ -10750,6 +10806,7 @@ Used in `repeat-mode'."
   "2" #'split-root-window-below
   "3" #'split-root-window-right
   "s" #'window-toggle-side-windows
+  "d" #'toggle-window-dedicated
   "^ f" #'tear-off-window
   "^ t" #'tab-window-detach
   "-" #'fit-window-to-buffer

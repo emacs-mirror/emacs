@@ -574,7 +574,7 @@ buffer-naming collisions involving bouncers in ERC."
                                 :password "changeme"
                                 :full-name "tester")
         (erc-scenarios-common-assert-initial-buf-name nil port)
-        (erc-d-t-wait-for 3 (eq (erc-network) 'foonet))
+        (erc-d-t-wait-for 6 (eq (erc-network) 'foonet))
         (erc-d-t-wait-for 3 (string= (buffer-name) "foonet"))
         (funcall expect 5 "foonet")))
 
@@ -713,7 +713,7 @@ Bug#48598: 28.0.50; buffer-naming collisions involving bouncers in ERC."
         (erc-d-t-wait-for 3 (eq erc-server-process erc-server-process-foo))
         (funcall expect 3 "<bob>")
         (erc-d-t-absent-for 0.1 "<joe>")
-        (funcall expect 10 "not given me")))
+        (funcall expect 20 "not given me")))
 
     (ert-info ("All #chan@barnet output received")
       (with-current-buffer chan-buf-bar

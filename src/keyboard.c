@@ -5531,6 +5531,10 @@ static Lisp_Object button_down_location;
    the down mouse event.  */
 static Lisp_Object frame_relative_event_pos;
 
+/* The line-number display width, in columns, at the time of most
+   recent down mouse event.  */
+static int down_mouse_line_number_width;
+
 /* Information about the most recent up-going button event:  Which
    button, what location, and what time.  */
 
@@ -5558,7 +5562,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
   int xret = 0, yret = 0;
   /* The window or frame under frame pixel coordinates (x,y)  */
   Lisp_Object window_or_frame = f
-    ? window_from_coordinates (f, mx, my, &part, true, true)
+    ? window_from_coordinates (f, mx, my, &part, true, true, true)
     : Qnil;
 #ifdef HAVE_WINDOW_SYSTEM
   bool tool_bar_p = false;
@@ -5926,6 +5930,57 @@ coords_in_tab_bar_window (struct frame *f, int x, int y)
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+static void
+save_line_number_display_width (struct input_event *event)
+{
+  struct window *w;
+  int pixel_width;
+
+  if (WINDOWP (event->frame_or_window))
+    w = XWINDOW (event->frame_or_window);
+  else if (FRAMEP (event->frame_or_window))
+    w = XWINDOW (XFRAME (event->frame_or_window)->selected_window);
+  else
+    w = XWINDOW (selected_window);
+  line_number_display_width (w, &down_mouse_line_number_width, &pixel_width);
+}
+
+/* Return non-zero if the change of position from START_POS to END_POS
+   is likely to be the effect of horizontal scrolling due to a change
+   in line-number width produced by redisplay between two mouse
+   events, like mouse-down followed by mouse-up, at those positions.
+   This is used to decide whether to converts mouse-down followed by
+   mouse-up event into a mouse-drag event.  */
+static bool
+line_number_mode_hscroll (Lisp_Object start_pos, Lisp_Object end_pos)
+{
+  if (!EQ (Fcar (start_pos), Fcar (end_pos)) /* different window */
+      || list_length (start_pos) < 7	     /* no COL/ROW info */
+      || list_length (end_pos) < 7)
+    return false;
+
+  Lisp_Object start_col_row = Fnth (make_fixnum (6), start_pos);
+  Lisp_Object end_col_row = Fnth (make_fixnum (6), end_pos);
+  Lisp_Object window = Fcar (end_pos);
+  int col_width, pixel_width;
+  Lisp_Object start_col, end_col;
+  struct window *w;
+  if (!WINDOW_VALID_P (window))
+    {
+      if (WINDOW_LIVE_P (window))
+	window = XFRAME (window)->selected_window;
+      else
+	window = selected_window;
+    }
+  w = XWINDOW (window);
+  line_number_display_width (w, &col_width, &pixel_width);
+  start_col = Fcar (start_col_row);
+  end_col = Fcar (end_col_row);
+  return EQ (start_col, end_col)
+	 && down_mouse_line_number_width >= 0
+	 && col_width != down_mouse_line_number_width;
+}
 
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
@@ -6329,6 +6384,8 @@ make_lispy_event (struct input_event *event)
 	    *start_pos_ptr = Fcopy_alist (position);
 	    frame_relative_event_pos = Fcons (event->x, event->y);
 	    ignore_mouse_drag_p = false;
+	    /* Squirrel away the line-number width, if any.  */
+	    save_line_number_display_width (event);
 	  }
 
 	/* Now we're releasing a button - check the coordinates to
@@ -6374,12 +6431,18 @@ make_lispy_event (struct input_event *event)
 			  it's probably OK to ignore it as well.  */
 		       && (EQ (Fcar (Fcdr (start_pos)),
 			       Fcar (Fcdr (position))) /* Same buffer pos */
+			   /* Redisplay hscrolled text between down- and
+                              up-events due to display-line-numbers-mode.  */
+			   || line_number_mode_hscroll (start_pos, position)
 			   || !EQ (Fcar (start_pos),
 				   Fcar (position))))) /* Different window */
+
 		  {
 		    /* Mouse has moved enough.  */
 		    button_down_time = 0;
 		    click_or_drag_modifier = drag_modifier;
+		    /* Reset the value for future clicks.  */
+		    down_mouse_line_number_width = -1;
 		  }
 		else if (((!EQ (Fcar (start_pos), Fcar (position)))
 			  || (!EQ (Fcar (Fcdr (start_pos)),

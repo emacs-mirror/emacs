@@ -269,8 +269,8 @@
     ;; and mu0 no longer has the previous exact value of 4 pi 10^(-7) H/m.
     ( eps0    "ech^2 / (2 alpha h c)"       "Permittivity of vacuum" )
     ( ε0      "eps0"                        "Permittivity of vacuum" )
-    ( mu0     "1 / (eps0 c^2)"              "Permeability of vacuum") ;; Exact
-    ( μ0      "mu0"                         "Permeability of vacuum") ;; Exact
+    ( mu0     "1 / (eps0 c^2)"              "Permeability of vacuum")
+    ( μ0      "mu0"                         "Permeability of vacuum")
     ( G       "6.67408*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
               "6.67408 10^-11 m^3/(kg s^2) (*)")
     ( Nav     "6.02214076*10^(23) / mol"    "Avogadro's constant" nil

@@ -3931,7 +3931,7 @@
 	* emacs-lisp/autoload.el (autoload-find-destination): The function
 	coding-system-eol-type may return non-numeric values.  (Bug#7414)
 
-2010-11-18  Ulrich Mueller  <ulm@gentoo.org>
+2010-11-18  Ulrich Müller  <ulm@gentoo.org>
 
 	* server.el (server-force-stop): Ensure the server is stopped (Bug#7409).
 
@@ -6386,7 +6386,7 @@
 	* eshell/esh-util.el, eshell/esh-var.el:
 	Remove leading `*' from docs of faces and defcustoms.
 
-2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
+2010-09-25  Ulrich Müller  <ulm@gentoo.org>
 
 	* eshell/em-ls.el (eshell-ls-archive-regexp):
 	* eshell/esh-util.el (eshell-tar-regexp):
@@ -14019,7 +14019,7 @@
 	* font-lock.el (font-lock-refresh-defaults): New function, which
 	can be used to let font-lock react to external changes in
 	variables like font-lock-defaults and keywords.
-	See http://thread.gmane.org/gmane.emacs.devel/118777/focus=118802
+	See http://thread.gmane.org/gmane.emacs.devel/118777/focus=118802 [dead link]
 
 2009-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -14485,7 +14485,7 @@
 	color queries.  Recompute faces after getting the background
 	color.
 
-2009-12-07  Ulrich Mueller  <ulm@gentoo.org>
+2009-12-07  Ulrich Müller  <ulm@gentoo.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-insert-header): Put the version
 	number comment back on its own line, for easier parsing.
@@ -17532,7 +17532,7 @@
 	(flyspell-word-search-backward): Remove nil argument in calls to
 	flyspell-get-word, since it is not needed now.
 
-2009-10-17  Ulrich Mueller  <ulm@gentoo.org>
+2009-10-17  Ulrich Müller  <ulm@gentoo.org>
 
 	* play/doctor.el (doctor-adverbp): Exclude some nouns.  (Bug#4565)
 

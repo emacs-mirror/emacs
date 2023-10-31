@@ -4149,7 +4149,7 @@ it add meta information to it.  The @code{:language} keyword declares
 name of @var{query}.  Users can control which features are enabled
 with @code{treesit-font-lock-level} and
 @code{treesit-font-lock-feature-list} (described below).  These two
-keywords are mandatory.
+keywords are mandatory (with exceptions).
 
 Other keywords are optional:
 
@@ -4161,6 +4161,9 @@ Other keywords are optional:
 @item @tab @code{append} @tab Append the new face to existing ones
 @item @tab @code{prepend} @tab Prepend the new face to existing ones
 @item @tab @code{keep} @tab Fill-in regions without an existing face
+@item @code{:default-language} @tab @var{language}
+@tab Every @var{query} after this keyword will use @var{language}
+by default.
 @end multitable
 
 Lisp programs mark patterns in @var{query} with capture names (names

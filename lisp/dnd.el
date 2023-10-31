@@ -42,23 +42,25 @@
 
 ;;;###autoload
 (defcustom dnd-protocol-alist
-  `((,(purecopy "^file:///")  . dnd-open-local-file)	; XDND format.
-    (,(purecopy "^file://")   . dnd-open-file)		; URL with host
-    (,(purecopy "^file:")     . dnd-open-local-file)	; Old KDE, Motif, Sun
-    (,(purecopy "^\\(https?\\|ftp\\|file\\|nfs\\)://") . dnd-open-file))
-
+  `((,(purecopy "^file:///")    . dnd-open-local-file)	; XDND format.
+    (,(purecopy "^file://[^/]") . dnd-open-file)	; URL with host
+    (,(purecopy "^file:/[^/]")  . dnd-open-local-file)	; Old KDE, Motif, Sun
+    (,(purecopy "^file:[^/]")   . dnd-open-local-file)	; MS-Windows
+    (,(purecopy "^\\(https?\\|ftp\\|nfs\\)://") . dnd-open-file))
   "The functions to call for different protocols when a drop is made.
-This variable is used by `dnd-handle-one-url' and `dnd-handle-file-name'.
+This variable is used by `dnd-handle-multiple-urls'.
 The list contains of (REGEXP . FUNCTION) pairs.
 The functions shall take two arguments, URL, which is the URL dropped and
 ACTION which is the action to be performed for the drop (move, copy, link,
 private or ask).
+If a function's `dnd-multiple-handler' property is set, it is provided
+a list of each URI dropped instead.
 If no match is found here, and the value of `browse-url-browser-function'
 is a pair of (REGEXP . FUNCTION), those regexps are tried for a match.
 If no match is found, the URL is inserted as text by calling `dnd-insert-text'.
 The function shall return the action done (move, copy, link or private)
 if some action was made, or nil if the URL is ignored."
-  :version "22.1"
+  :version "30.1"
   :type '(repeat (cons (regexp) (function)))
   :group 'dnd)
 
@@ -159,7 +161,10 @@ If no match is found here, `browse-url-handlers' and
 `browse-url-default-handlers' are searched for a match.
 If no match is found, just call `dnd-insert-text'.  WINDOW is
 where the drop happened, ACTION is the action for the drop, URL
-is what has been dropped.  Returns ACTION."
+is what has been dropped.  Returns ACTION.
+
+This function has been obsolete since Emacs 30.1; it has been
+supplanted by `dnd-handle-multiple-urls'."
   (let (ret)
     (or
      (catch 'done
@@ -180,6 +185,91 @@ is what has been dropped.  Returns ACTION."
        (setq ret 'private)))
     ret))
 
+(make-obsolete 'dnd-handle-one-url 'dnd-handle-multiple-urls "30.1")
+
+(defun dnd-handle-multiple-urls (window urls action)
+  "Select a handler for, then open, each element of URLS.
+The argument ACTION is the action which must be taken, much as
+that to `dnd-begin-file-drag'.
+
+Assign and give each URL to one of the \"DND handler\" functions
+listed in the variable `dnd-protocol-alist'.  When multiple
+handlers matching the same subset of URLs exist, give precedence
+to the handler assigned the greatest number of URLs.
+
+If a handler is a symbol with the property
+`dnd-multiple-handler', call it with ACTION and a list of every
+URL it is assigned.  Otherwise, call it once for each URL
+assigned with ACTION and the URL in question.
+
+Subsequently open URLs that don't match any handlers opened with
+any handler selected by `browse-url-select-handler', and failing
+even that, insert them with `dnd-insert-text'.
+
+Return a symbol designating the actions taken by each DND handler
+called.  If all DND handlers called return the same symbol,
+return that symbol; otherwise, or if no DND handlers are called,
+return `private'.
+
+Do not rely on the contents of URLS after calling this function,
+for it will be modified."
+  (let ((list nil) (return-value nil))
+    (with-selected-window window
+      (dolist (handler dnd-protocol-alist)
+        (let ((pattern (car handler))
+              (handler (cdr handler)))
+          (dolist (uri urls)
+            (when (string-match pattern uri)
+              (let ((cell (or (cdr (assq handler list))
+                              (let ((cell (cons handler nil)))
+                                (push cell list)
+                                cell))))
+                (unless (memq uri cell)
+                  (setcdr cell (cons uri (cdr cell)))))))))
+      (setq list (nreverse list))
+      ;; While unassessed handlers still exist...
+      (while list
+        ;; Sort list by the number of URLs assigned to each handler.
+        (setq list (sort list (lambda (first second)
+                                (> (length (cdr first))
+                                   (length (cdr second))))))
+        ;; Call the handler in its car before removing each URL from
+        ;; URLs.
+        (let ((handler (caar list))
+              (entry-urls (cdar list)))
+          (setq list (cdr list))
+          (when entry-urls
+            (if (and (symbolp handler)
+                     (get handler 'dnd-multiple-handler))
+                (progn
+                  (let ((value (funcall handler entry-urls action)))
+                    (if (or (not return-value)
+                            (eq return-value value))
+                        (setq return-value value)
+                      (setq return-value 'private)))
+                  (dolist (url entry-urls)
+                    (setq urls (delq url urls))
+                    ;; And each handler-URL list after this.
+                    (dolist (item list)
+                      (setcdr item (delq url (cdr item))))))
+              (dolist (url entry-urls)
+                (let ((value (funcall handler url action)))
+                  (if (or (not return-value) (eq return-value value))
+                      (setq return-value value)
+                    (setq return-value 'private)))
+                (setq urls (delq url urls))
+                ;; And each handler-URL list after this.
+                (dolist (item list)
+                  (setcdr item (delq url (cdr item)))))))))
+      ;; URLS should now incorporate only those which haven't been
+      ;; assigned their own handlers.
+      (dolist (leftover urls)
+        (setq return-value 'private)
+        (if-let ((handler (browse-url-select-handler leftover
+                                                     'internal)))
+            (funcall handler leftover action)
+          (dnd-insert-text window action leftover)))
+      (or return-value 'private))))
 
 (defun dnd-get-local-file-uri (uri)
   "Return an uri converted to file:/// syntax if uri is a local file.

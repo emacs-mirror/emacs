@@ -152,6 +152,10 @@ public final class EmacsWindow extends EmacsHandleObject
   /* The position of this window relative to the root window.  */
   public int xPosition, yPosition;
 
+  /* The position of the last drag and drop event received; both
+     values are -1 if no drag and drop operation is under way.  */
+  private int dndXPosition, dndYPosition;
+
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
 	       int width, int height, boolean overrideRedirect)
@@ -202,6 +206,9 @@ public final class EmacsWindow extends EmacsHandleObject
 	    return size () > 10;
 	  }
 	};
+
+    dndXPosition = -1;
+    dndYPosition = -1;
   }
 
   public void
@@ -1605,6 +1612,7 @@ public final class EmacsWindow extends EmacsHandleObject
     String type;
     Uri uri;
     EmacsActivity activity;
+    StringBuilder builder;
 
     x = (int) event.getX ();
     y = (int) event.getY ();
@@ -1616,11 +1624,26 @@ public final class EmacsWindow extends EmacsHandleObject
 	return true;
 
       case DragEvent.ACTION_DRAG_LOCATION:
-	/* Send this drag motion event to Emacs.  */
-	EmacsNative.sendDndDrag (handle, x, y);
+	/* Send this drag motion event to Emacs.  Skip this when the
+	   integer position hasn't changed, for Android sends events
+	   even if the movement from the previous position of the drag
+	   is less than 1 pixel on either axis.  */
+
+	if (x != dndXPosition || y != dndYPosition)
+	  {
+	    EmacsNative.sendDndDrag (handle, x, y);
+	    dndXPosition = x;
+	    dndYPosition = y;
+	  }
+
 	return true;
 
       case DragEvent.ACTION_DROP:
+	/* Reset this view's record of the previous drag and drop
+	   event's position.  */
+	dndXPosition = -1;
+	dndYPosition = -1;
+
 	/* Judge whether this is plain text, or if it's a file URI for
 	   which permissions must be requested.  */
 
@@ -1659,38 +1682,59 @@ public final class EmacsWindow extends EmacsHandleObject
 		EmacsNative.sendDndUri (handle, x, y, type);
 		return true;
 	      }
+	  }
+
+	/* There's no plain text data within this clipboard item, so
+	   each item within should be treated as a content URI
+	   designating a file.  */
+
+	/* Collect the URIs into a string with each suffixed
+	   by newlines, much as in a text/uri-list.  */
+	builder = new StringBuilder ();
+
+	for (i = 0; i < itemCount; ++i)
+	  {
+	    /* If the item dropped is a URI, send it to the
+	       main thread.  */
+
+	    uri = data.getItemAt (i).getUri ();
+
+	    /* Attempt to acquire permissions for this URI;
+	       failing which, insert it as text instead.  */
+		    
+	    if (uri != null
+		&& uri.getScheme () != null
+		&& uri.getScheme ().equals ("content")
+		&& (activity = EmacsActivity.lastFocusedActivity) != null)
+	      {
+		if ((activity.requestDragAndDropPermissions (event) == null))
+		  uri = null;
+	      }
+
+	    if (uri != null)
+	      builder.append (uri.toString ()).append ("\n");
 	    else
 	      {
-		/* If the item dropped is a URI, send it to the main
-		   thread.  */
-
-		uri = data.getItemAt (0).getUri ();
-
-		/* Attempt to acquire permissions for this URI;
-		   failing which, insert it as text instead.  */
-
-		if (uri != null
-		    && uri.getScheme () != null
-		    && uri.getScheme ().equals ("content")
-		    && (activity = EmacsActivity.lastFocusedActivity) != null)
-		  {
-		    if (activity.requestDragAndDropPermissions (event) == null)
-		      uri = null;
-		  }
-
-		if (uri != null)
-		  EmacsNative.sendDndUri (handle, x, y, uri.toString ());
-		else
-		  {
-		    type = (data.getItemAt (0)
-			    .coerceToText (EmacsService.SERVICE)
-			    .toString ());
-		    EmacsNative.sendDndText (handle, x, y, type);
-		  }
-
-		return true;
+		/* Treat each URI that Emacs cannot secure
+		   permissions for as plain text.  */
+		type = (data.getItemAt (i)
+			.coerceToText (EmacsService.SERVICE)
+			.toString ());
+		EmacsNative.sendDndText (handle, x, y, type);
 	      }
 	  }
+
+	/* Now send each URI to Emacs.  */
+
+	if (builder.length () > 0)
+	  EmacsNative.sendDndUri (handle, x, y, builder.toString ());
+	return true;
+
+      default:
+	/* Reset this view's record of the previous drag and drop
+	   event's position.  */
+	dndXPosition = -1;
+	dndYPosition = -1;
       }
 
     return true;

@@ -1681,7 +1681,9 @@ see `dired-use-ls-dired' for more details.")
       (cond (dir-wildcard
              (setq switches (concat "-d " switches))
              (let* ((default-directory (car dir-wildcard))
-                    (script (format "ls %s %s" switches (cdr dir-wildcard)))
+                    (script (format "%s %s %s"
+                                    insert-directory-program
+                                    switches (cdr dir-wildcard)))
                     (sh (or (and remotep "/bin/sh")
                             (executable-find shell-file-name)
                             (executable-find "sh")))

@@ -48,45 +48,6 @@
 
 (declare-function pgtk-use-im-context "pgtkim.c")
 
-(defun pgtk-drag-n-drop (event &optional new-frame force-text)
-  "Edit the files listed in the drag-n-drop EVENT.
-Switch to a buffer editing the last file dropped."
-  (interactive "e")
-  (let* ((window (posn-window (event-start event)))
-         (arg (car (cdr (cdr event))))
-         (type (car arg))
-         (data (car (cdr arg)))
-         (url-or-string (cond ((eq type 'file)
-                               (concat "file:" data))
-                              (t data))))
-    (set-frame-selected-window nil window)
-    (when new-frame
-      (select-frame (make-frame)))
-    (raise-frame)
-    (setq window (selected-window))
-    (if force-text
-        (dnd-insert-text window 'private data)
-      (dnd-handle-one-url window 'private url-or-string))))
-
-(defun pgtk-drag-n-drop-other-frame (event)
-  "Edit the files listed in the drag-n-drop EVENT, in other frames.
-May create new frames, or reuse existing ones.  The frame editing
-the last file dropped is selected."
-  (interactive "e")
-  (pgtk-drag-n-drop event t))
-
-(defun pgtk-drag-n-drop-as-text (event)
-  "Drop the data in EVENT as text."
-  (interactive "e")
-  (pgtk-drag-n-drop event nil t))
-
-(defun pgtk-drag-n-drop-as-text-other-frame (event)
-  "Drop the data in EVENT as text in a new frame."
-  (interactive "e")
-  (pgtk-drag-n-drop event t t))
-
-(global-set-key [drag-n-drop] 'pgtk-drag-n-drop)
-
 (defun pgtk-suspend-error ()
   "Don't allow suspending if any of the frames are PGTK frames."
   (if (memq 'pgtk (mapcar 'window-system (frame-list)))
@@ -391,7 +352,6 @@ Users should not call this function; see `device-class' instead."
             (8 'pad)))))))
 
 (defvaralias 'x-gtk-use-system-tooltips 'use-system-tooltips)
-
 
 (define-key special-event-map [drag-n-drop] #'pgtk-dnd-handle-drag-n-drop-event)
 (add-hook 'after-make-frame-functions #'pgtk-dnd-init-frame)

@@ -1103,7 +1103,7 @@ Change value of property `erc-prompt' from t to `hidden'."
             (erc--register-connection)
           ;; assume event is 'failed
           (erc-with-all-buffers-of-server cproc nil
-                                          (setq erc-server-connected nil))
+            (setq erc-server-connected nil))
           (when erc-server-ping-handler
             (progn (cancel-timer erc-server-ping-handler)
                    (setq erc-server-ping-handler nil)))
@@ -1111,6 +1111,8 @@ Change value of property `erc-prompt' from t to `hidden'."
                               (erc-current-nick) (system-name) "")
           (dolist (buf (erc-buffer-filter (lambda () (boundp 'erc-channel-users)) cproc))
             (with-current-buffer buf
+              (when (erc--target-channel-p erc--target)
+                (setf (erc--target-channel-joined-p erc--target) nil))
               (setq erc-channel-users (make-hash-table :test 'equal))))
           ;; Hide the prompt
           (erc--hide-prompt cproc)
@@ -1611,7 +1613,9 @@ Would expand to:
 
 \(fn (NAME &rest ALIASES) &optional EXTRA-FN-DOC EXTRA-VAR-DOC &rest FN-BODY)"
   (declare (debug (&define [&name "erc-response-handler@"
-                                  (symbolp &rest symbolp)]
+                                  ;; No `def-edebug-elem-spec' in 27.
+                                  ([&or integerp symbolp]
+                                   &rest [&or integerp symbolp])]
                            &optional sexp sexp def-body))
            (indent defun))
   (if (numberp name) (setq name (intern (format "%03i" name))))
@@ -1729,6 +1733,7 @@ add things to `%s' instead."
                         (with-suppressed-warnings
                             ((obsolete erc-add-default-channel))
                           (erc-add-default-channel chnl))
+                        (setf (erc--target-channel-joined-p erc--target) t)
                         (erc-server-send (format "MODE %s" chnl)))
                       (erc-with-buffer (chnl proc)
                         (erc-channel-begin-receiving-names))

@@ -124,6 +124,7 @@ Adapted from scenario clash-of-chans/uniquify described in Bug#48598:
         (erc-d-t-search-for 1 "shake my sword")
         (erc-cmd-PART "#chan")
         (funcall expect 3 "You have left channel #chan")
+        (should-not (erc-get-channel-user (erc-current-nick)))
         (erc-cmd-JOIN "#chan")))
 
     (ert-info ("Part #chan@barnet")
@@ -139,6 +140,7 @@ Adapted from scenario clash-of-chans/uniquify described in Bug#48598:
       (get-buffer "#chan/127.0.0.1<3>"))
 
     (ert-info ("Activity continues in new, <n>-suffixed #chan@foonet buffer")
+      ;; The first /JOIN did not cause the same buffer to be reused.
       (with-current-buffer "#chan/127.0.0.1"
         (should-not (erc-get-channel-user (erc-current-nick))))
       (with-current-buffer "#chan/127.0.0.1<3>"

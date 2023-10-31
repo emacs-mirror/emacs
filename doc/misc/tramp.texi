@@ -6089,20 +6089,23 @@ wrapping the timer function body as follows:
 to 10.  @value{tramp} does not display all messages; only those with a
 verbosity level less than or equal to @code{tramp-verbose}.
 
+@noindent
 The verbosity levels are
 
-          @w{ 0}  silent (no @value{tramp} messages at all)
-@*@indent @w{ 1}  errors
-@*@indent @w{ 2}  warnings
-@*@indent @w{ 3}  connection to remote hosts (default verbosity)
-@*@indent @w{ 4}  activities
-@*@indent @w{ 5}  internal
-@*@indent @w{ 6}  sent and received strings
-@*@indent @w{ 7}  connection properties
-@*@indent @w{ 8}  file caching
-@*@indent @w{ 9}  test commands
-@*@indent @w{10}  traces (huge)
-@*@indent @w{11}  call traces (maintainer only)
+@itemize @w{}
+@item @w{ 0}  Silent (no @value{tramp} messages at all)
+@item @w{ 1}  Errors
+@item @w{ 2}  Warnings
+@item @w{ 3}  Connection to remote hosts (default verbosity)
+@item @w{ 4}  Activities
+@item @w{ 5}  Internal
+@item @w{ 6}  Sent and received strings
+@item @w{ 7}  Connection properties
+@item @w{ 8}  File caching
+@item @w{ 9}  Test commands
+@item @w{10}  Traces (huge)
+@item @w{11}  Call traces (maintainer only)
+@end itemize
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
 also written to the @value{tramp} debug buffer @file{*debug

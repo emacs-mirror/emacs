@@ -31,6 +31,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'subr-x)) ; for string-trim-right
+(declare-function dosified-file-name "dos-fns" (file-name))
+(declare-function project-root "project" (project))
 
 
 ;;; Commands to add/delete file-local/directory-local variables.
@@ -410,7 +412,7 @@ then this function adds it."
 
 (defvar auto-insert) ; from autoinsert.el
 
-(defun modify-dir-local-variable (mode variable value op)
+(defun modify-dir-local-variable (mode variable value op &optional file)
   "Modify directory-local VARIABLE in .dir-locals.el depending on operation OP.
 
 If OP is `add-or-replace' then delete all existing settings of
@@ -422,28 +424,37 @@ If .dir-locals.el was not found and OP is not `delete' then create
 this file in the current directory.
 
 If OP is `delete' then delete all existing settings of VARIABLE
-from the MODE alist ignoring the input argument VALUE."
+from the MODE alist ignoring the input argument VALUE.
+
+Optional argument FILE, when non-nil, specifies what file to modify.  It
+should be an expanded filename."
   (catch 'exit
     (unless enable-local-variables
       (throw 'exit (message "Directory-local variables are disabled")))
-    (let* ((dir-or-cache (and (buffer-file-name)
-                              (not (file-remote-p (buffer-file-name)))
-                              (dir-locals-find-file (buffer-file-name))))
-           (variables-file
-            ;; If there are several .dir-locals, the user probably
-            ;; wants to edit the last one (the highest priority).
-            (cond ((stringp dir-or-cache)
-                   (car (last (dir-locals--all-files dir-or-cache))))
-                  ((consp dir-or-cache)	; result from cache
-                   ;; If cache element has an mtime, assume it came
-                   ;; from a file.  Otherwise, assume it was set
-                   ;; directly.
-                   (if (nth 2 dir-or-cache)
-                       (car (last (dir-locals--all-files (car dir-or-cache))))
-                     (cadr dir-or-cache)))
-                  ;; Try to make a proper file-name.
-                  (t (expand-file-name dir-locals-file))))
-           variables)
+    (let ((variables-file
+           (if (stringp file)
+               file
+             (let ((dir-or-cache
+                    (and (buffer-file-name)
+                         (not (file-remote-p (buffer-file-name)))
+                         (dir-locals-find-file (buffer-file-name)))))
+               ;; If there are several .dir-locals, the user probably
+               ;; wants to edit the last one (the highest priority).
+               (cond
+                ((stringp dir-or-cache)
+                 (car (last (dir-locals--all-files dir-or-cache))))
+                ((consp dir-or-cache)	; result from cache
+                 ;; If cache element has an mtime, assume it came
+                 ;; from a file.  Otherwise, assume it was set
+                 ;; directly.
+                 (if (nth 2 dir-or-cache)
+                     (car (last (dir-locals--all-files (car dir-or-cache))))
+                   (cadr dir-or-cache)))
+                ;; Try to make a proper file-name.
+                (t (expand-file-name (if (eq system-type 'ms-dos)
+                                         (dosified-file-name dir-locals-file)
+                                       dir-locals-file)))))))
+          variables)
       ;; I can't be bothered to handle this case right now.
       ;; Dir locals were set directly from a class.  You need to
       ;; directly modify the class in dir-locals-class-alist.
@@ -527,33 +538,75 @@ from the MODE alist ignoring the input argument VALUE."
                                      (cdr mode-variables) "\n"))))
            variables "\n")))
 
+(defun read-dir-locals-file ()
+  "Read a dir-locals filename using completion.
+Intended to be used in the `interactive' spec of `add-dir-local-variable',
+`delete-dir-local-variable' and `copy-file-locals-to-dir-locals'.
+
+Returns the filename, expanded."
+  (let* ((pri dir-locals-file)
+         (sec (replace-regexp-in-string ".el$" "-2.el" dir-locals-file))
+         (dir (or (locate-dominating-file default-directory pri)
+                  (locate-dominating-file default-directory sec))))
+    (expand-file-name
+     (read-file-name
+      "File: "
+      (cond (dir)
+            ((when-let ((proj (and (featurep 'project) (project-current))))
+               (project-root proj))))
+      nil
+      (lambda (fname)
+        (member (file-name-nondirectory fname) (list pri sec)))
+      dir-locals-file))))
+
 ;;;###autoload
-(defun add-dir-local-variable (mode variable value)
-  "Add directory-local VARIABLE with its VALUE and MODE to .dir-locals.el."
+(defun add-dir-local-variable (mode variable value &optional file)
+  "Add directory-local VARIABLE with its VALUE and MODE to .dir-locals.el.
+
+With a prefix argument, prompt for the file to modify.
+
+When called from Lisp, FILE may be the expanded name of the dir-locals file
+where to add VARIABLE."
   (interactive
    (let (variable)
      (list
       (read-file-local-variable-mode)
       (setq variable (read-file-local-variable "Add directory-local variable"))
-      (read-file-local-variable-value variable))))
-  (modify-dir-local-variable mode variable value 'add-or-replace))
+      (read-file-local-variable-value variable)
+      (when current-prefix-arg
+        (read-dir-locals-file)))))
+  (modify-dir-local-variable mode variable value 'add-or-replace file))
 
 ;;;###autoload
-(defun delete-dir-local-variable (mode variable)
-  "Delete all MODE settings of file-local VARIABLE from .dir-locals.el."
+(defun delete-dir-local-variable (mode variable &optional file)
+  "Delete all MODE settings of dir-local VARIABLE from .dir-locals.el.
+
+With a prefix argument, prompt for the file to modify.
+
+When called from Lisp, FILE may be the expanded name of the dir-locals file
+from where to delete VARIABLE."
   (interactive
    (list
     (read-file-local-variable-mode)
-    (read-file-local-variable "Delete directory-local variable")))
-  (modify-dir-local-variable mode variable nil 'delete))
+    (read-file-local-variable "Delete directory-local variable")
+    (when current-prefix-arg
+      (read-dir-locals-file))))
+  (modify-dir-local-variable mode variable nil 'delete file))
 
 ;;;###autoload
-(defun copy-file-locals-to-dir-locals ()
-  "Copy file-local variables to .dir-locals.el."
-  (interactive)
+(defun copy-file-locals-to-dir-locals (&optional file)
+  "Copy file-local variables to .dir-locals.el.
+
+With a prefix argument, prompt for the file to modify.
+
+When called from Lisp, FILE may be the expanded name of the dir-locals file
+where to copy the file-local variables."
+  (interactive
+   (list (when current-prefix-arg
+           (read-dir-locals-file))))
   (dolist (elt file-local-variables-alist)
     (unless (assq (car elt) dir-local-variables-alist)
-      (add-dir-local-variable major-mode (car elt) (cdr elt)))))
+      (add-dir-local-variable major-mode (car elt) (cdr elt) file))))
 
 ;;;###autoload
 (defun copy-dir-locals-to-file-locals ()
@@ -647,7 +700,8 @@ Return a reordered plist."
   "Return the connection profiles list for CRITERIA.
 CRITERIA is a plist identifying a connection and the application
 using this connection, see `connection-local-criteria-alist'."
-  (let (profiles)
+  (let ((criteria (connection-local-normalize-criteria criteria))
+        profiles)
     (dolist (crit-alist connection-local-criteria-alist)
       (let ((crit criteria)
             (match t))

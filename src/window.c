@@ -1680,7 +1680,8 @@ check_window_containing (struct window *w, void *user_data)
 
 Lisp_Object
 window_from_coordinates (struct frame *f, int x, int y,
-			 enum window_part *part, bool tab_bar_p, bool tool_bar_p)
+			 enum window_part *part, bool menu_bar_p,
+			 bool tab_bar_p, bool tool_bar_p)
 {
   Lisp_Object window;
   struct check_window_data cw;
@@ -1692,6 +1693,21 @@ window_from_coordinates (struct frame *f, int x, int y,
   window = Qnil;
   cw.window = &window, cw.x = x, cw.y = y; cw.part = part;
   foreach_window (f, check_window_containing, &cw);
+
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_MENU_BAR)
+  /* If not found above, see if it's in the menu bar window, if a menu
+     bar exists.  */
+  if (NILP (window)
+      && menu_bar_p
+      && WINDOWP (f->menu_bar_window)
+      && WINDOW_TOTAL_LINES (XWINDOW (f->menu_bar_window)) > 0
+      && (coordinates_in_window (XWINDOW (f->menu_bar_window), x, y)
+	  != ON_NOTHING))
+    {
+      *part = ON_TEXT;
+      window = f->menu_bar_window;
+    }
+#endif
 
 #if defined (HAVE_WINDOW_SYSTEM)
   /* If not found above, see if it's in the tab bar window, if a tab
@@ -1746,7 +1762,7 @@ function returns nil.  */)
 				   + FRAME_INTERNAL_BORDER_WIDTH (f)),
 				  (FRAME_PIXEL_Y_FROM_CANON_Y (f, y)
 				   + FRAME_INTERNAL_BORDER_WIDTH (f)),
-				  0, false, false);
+				  0, false, false, false);
 }
 
 ptrdiff_t

@@ -2395,9 +2395,13 @@ static Lisp_Object list_of_t;  /* Never-modified constant containing (t).  */
 
 DEFUN ("eval", Feval, Seval, 1, 2, 0,
        doc: /* Evaluate FORM and return its value.
-If LEXICAL is t, evaluate using lexical scoping.
-LEXICAL can also be an actual lexical environment, in the form of an
-alist mapping symbols to their value.  */)
+If LEXICAL is `t', evaluate using lexical binding by default.
+This is the recommended value.
+
+If absent or `nil', use dynamic scoping only.
+
+LEXICAL can also represent an actual lexical environment; see the Info
+node `(elisp)Eval' for details.  */)
   (Lisp_Object form, Lisp_Object lexical)
 {
   specpdl_ref count = SPECPDL_INDEX ();

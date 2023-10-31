@@ -11820,7 +11820,9 @@ x_frame_highlight (struct frame *f)
   x_stop_ignoring_errors (dpyinfo);
   unblock_input ();
   gui_update_cursor (f, true);
-  x_set_frame_alpha (f);
+
+  if (!FRAME_X_OUTPUT (f)->alpha_identical_p)
+    x_set_frame_alpha (f);
 }
 
 static void
@@ -11844,7 +11846,15 @@ x_frame_unhighlight (struct frame *f)
   unblock_input ();
 
   gui_update_cursor (f, true);
-  x_set_frame_alpha (f);
+
+  /* Eschew modifying the frame alpha when the alpha values for
+     focused and background frames are identical; otherwise, this will
+     upset the order in which changes to the alpha property
+     immediately subsequent to a focus change are propagated into a
+     frame's alpha property.  (bug#66398) */
+
+  if (!FRAME_X_OUTPUT (f)->alpha_identical_p)
+    x_set_frame_alpha (f);
 }
 
 /* The focus has changed.  Update the frames as necessary to reflect
@@ -21161,7 +21171,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  }
 
 		Lisp_Object window = window_from_coordinates
-		  (f, xmotion.x, xmotion.y, 0, false, false);
+		  (f, xmotion.x, xmotion.y, 0, false, false, false);
 
 		/* A window will be autoselected only when it is not
 		   selected now and the last mouse movement event was
@@ -21892,7 +21902,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                 int x = event->xbutton.x;
                 int y = event->xbutton.y;
 
-                window = window_from_coordinates (f, x, y, 0, true, true);
+                window = window_from_coordinates (f, x, y, 0, true, true, true);
                 tab_bar_p = EQ (window, f->tab_bar_window);
 
                 if (tab_bar_p)
@@ -21913,7 +21923,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                 int x = event->xbutton.x;
                 int y = event->xbutton.y;
 
-                window = window_from_coordinates (f, x, y, 0, true, true);
+                window = window_from_coordinates (f, x, y, 0, true, true, true);
                 tool_bar_p = (EQ (window, f->tool_bar_window)
 			      && (event->xbutton.type != ButtonRelease
 				  || f->last_tool_bar_item != -1));
@@ -22646,7 +22656,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    continue;
 
 			  window = window_from_coordinates (f, real_x, real_y, NULL,
-							    false, false);
+							    false, false, false);
 
 			  if (WINDOWP (window))
 			    scroll_height = XWINDOW (window)->pixel_height;
@@ -23089,7 +23099,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  || !NILP (focus_follows_mouse)))
 		    {
 		      static Lisp_Object last_mouse_window;
-		      Lisp_Object window = window_from_coordinates (f, ev.x, ev.y, 0, false, false);
+		      Lisp_Object window = window_from_coordinates (f, ev.x, ev.y, 0, false, false,
+								    false);
 
 		      /* A window will be autoselected only when it is not
 			 selected now and the last mouse movement event was
@@ -23667,7 +23678,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      int x = bv.x;
 		      int y = bv.y;
 
-		      window = window_from_coordinates (f, x, y, 0, true, true);
+		      window = window_from_coordinates (f, x, y, 0, true, true, true);
 		      tab_bar_p = EQ (window, f->tab_bar_window);
 
 		      if (tab_bar_p)
@@ -23688,7 +23699,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      int x = bv.x;
 		      int y = bv.y;
 
-		      window = window_from_coordinates (f, x, y, 0, true, true);
+		      window = window_from_coordinates (f, x, y, 0, true, true, true);
 		      /* Ignore button release events if the mouse
 			 wasn't previously pressed on the tool bar.
 			 We do this because otherwise selecting some
@@ -24694,7 +24705,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  int x = xev->event_x;
 		  int y = xev->event_y;
 
-		  window = window_from_coordinates (f, x, y, 0, true, true);
+		  window = window_from_coordinates (f, x, y, 0, true, true, true);
 		  /* Ignore button release events if the mouse
 		     wasn't previously pressed on the tool bar.
 		     We do this because otherwise selecting some

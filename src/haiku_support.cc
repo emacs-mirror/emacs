@@ -1059,6 +1059,8 @@ public:
 	msg->FindInt64 ("when", &rq.time);
 
 	rq.modifiers = 0;
+	rq.keysym = 0;
+
 	uint32_t mods = modifiers ();
 
 	if (mods & B_SHIFT_KEY)
@@ -1073,10 +1075,39 @@ public:
 	if (mods & B_OPTION_KEY)
 	  rq.modifiers |= HAIKU_MODIFIER_SUPER;
 
-	ret = keysym_from_raw_char (raw, key, &rq.keysym);
+	/* mods & B_SHIFT_KEY should be inverted if keycode is
+	   situated in the numeric keypad and Num Lock is set, for
+	   this transformation is not effected on key events
+	   themselves.  */
 
-	if (!ret)
-	  rq.keysym = 0;
+	if (mods & B_NUM_LOCK)
+	  {
+	    switch (key)
+	      {
+	      case 0x37:
+	      case 0x38:
+	      case 0x39:
+	      case 0x48:
+	      case 0x49:
+	      case 0x4a:
+	      case 0x58:
+	      case 0x59:
+	      case 0x5a:
+	      case 0x64:
+	      case 0x65:
+		mods ^= B_SHIFT_KEY;
+
+		/* If shift is set at this juncture, map these keys to
+		   the digits they represent.  Because raw is not
+		   affected by Num Lock, keysym_from_raw_char will map
+		   this to the keysym yielded by this key in the
+		   absence of any modifiers.  */
+		if (mods & B_SHIFT_KEY)
+		  goto map_keysym;
+	      }
+	  }
+
+	ret = keysym_from_raw_char (raw, key, &rq.keysym);
 
 	if (ret < 0)
 	  return;
@@ -1087,6 +1118,7 @@ public:
 	  {
 	    if (mods & B_SHIFT_KEY)
 	      {
+	  map_keysym:
 		if (mods & B_CAPS_LOCK)
 		  map_caps_shift (key, &rq.multibyte_char);
 		else

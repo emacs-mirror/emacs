@@ -15793,6 +15793,7 @@ of the @code{and} expression.
 
 @c colon in printed section title causes problem in Info cross reference
 This way, we avoid an error.
+
 @iftex
 @noindent
 (For information about @code{and}, see

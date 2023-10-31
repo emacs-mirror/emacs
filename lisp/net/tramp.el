@@ -6231,20 +6231,20 @@ Set connection properties \"{uid,gid,groups}-{integer,string}\"."
       (goto-char (point-min))
       ;; Read uid.
       (when (search-forward-regexp
-	     (rx "uid=" (group (+ digit)) "(" (group (+ (any "_" word))) ")")
+	     (rx "uid=" (group (+ digit)) "(" (group (+ (any "_-" alnum))) ")")
 	     nil 'noerror)
 	(setq uid-integer (string-to-number (match-string 1))
 	      uid-string (match-string 2)))
       ;; Read gid.
       (when (search-forward-regexp
-	     (rx "gid=" (group (+ digit)) "(" (group (+ (any "_" word))) ")")
+	     (rx "gid=" (group (+ digit)) "(" (group (+ (any "_-" alnum))) ")")
 	     nil 'noerror)
 	(setq gid-integer (string-to-number (match-string 1))
 	      gid-string (match-string 2)))
       ;; Read groups.
       (when (search-forward-regexp (rx "groups=") nil 'noerror)
 	(while (looking-at
-		(rx (group (+ digit)) "(" (group (+ (any "_" word))) ")"))
+		(rx (group (+ digit)) "(" (group (+ (any "_-" alnum))) ")"))
 	  (setq groups-integer (cons (string-to-number (match-string 1))
 				     groups-integer)
 		groups-string (cons (match-string 2) groups-string))

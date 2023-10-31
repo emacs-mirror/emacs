@@ -383,7 +383,8 @@ On the other hand, @var{precedence} explicitly assign the precedence
 level of the given terminal to a rule.
 
 @cindex semantic actions
-@item @anchor{action}action
+@anchor{action}
+@item action
 An action is an optional Emacs Lisp function call, like this:
 
 @code{(identity $1)}

@@ -1111,7 +1111,7 @@ extern Lisp_Object minibuf_selected_window;
 
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
-                                            enum window_part *, bool, bool);
+                                            enum window_part *, bool, bool, bool);
 extern void resize_frame_windows (struct frame *, int, bool);
 extern void restore_window_configuration (Lisp_Object);
 extern void delete_all_child_windows (Lisp_Object);

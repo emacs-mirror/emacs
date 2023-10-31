@@ -403,6 +403,16 @@ android_init_fd_class (JNIEnv *env)
 
 
 
+/* Account for SAF file names two times as large as PATH_MAX; larger
+   values are prohibitively slow, but smaller values can't face up to
+   some long file names within several nested layers of directories.
+
+   Buffers holding components or other similar file name constitutents
+   which don't represent SAF files must continue to use PATH_MAX, for
+   that is the restriction imposed by the Unix file system.  */
+
+#define EMACS_PATH_MAX (PATH_MAX * 2)
+
 /* Delete redundant instances of `.' and `..' from NAME in-place.
    NAME must be *LENGTH long, excluding a mandatory trailing NULL
    byte.
@@ -4990,7 +5000,7 @@ android_saf_tree_rename (struct android_vnode *src,
 {
   char *last, *dst_last;
   struct android_saf_tree_vnode *vp, *vdst;
-  char path[PATH_MAX], path1[PATH_MAX];
+  char path[EMACS_PATH_MAX], path1[EMACS_PATH_MAX];
   char *fill, *dst_id;
   int rc;
 
@@ -5076,8 +5086,8 @@ android_saf_tree_rename (struct android_vnode *src,
       /* The names of the source and destination directories will have
 	 to be copied to path.  */
 
-      if (last - vp->name >= PATH_MAX
-	  || dst_last - vdst->name >= PATH_MAX)
+      if (last - vp->name >= EMACS_PATH_MAX
+	  || dst_last - vdst->name >= EMACS_PATH_MAX)
 	{
 	  errno = ENAMETOOLONG;
 	  return -1;
@@ -5191,7 +5201,7 @@ android_saf_tree_rename (struct android_vnode *src,
      directory is required, as it provides the directory whose entries
      will be modified.  */
 
-  if (last - vp->name >= PATH_MAX)
+  if (last - vp->name >= EMACS_PATH_MAX)
     {
       errno = ENAMETOOLONG;
       return -1;
@@ -5480,7 +5490,7 @@ android_saf_tree_opendir (struct android_vnode *vnode)
   struct android_saf_tree_vdir *dir;
   char *fill, *end;
   jobject cursor;
-  char component[PATH_MAX];
+  char component[EMACS_PATH_MAX];
 
   vp = (struct android_saf_tree_vnode *) vnode;
 
@@ -5510,7 +5520,7 @@ android_saf_tree_opendir (struct android_vnode *vnode)
   if (!end)
     emacs_abort ();
 
-  if (end - fill >= PATH_MAX)
+  if (end - fill >= EMACS_PATH_MAX)
     {
       errno = ENAMETOOLONG;
       xfree (dir);
@@ -6455,7 +6465,7 @@ android_root_name (struct android_vnode *vnode, char *name,
    least N bytes.
 
    NAME may be either an absolute file name or a name relative to the
-   current working directory.  It must not be longer than PATH_MAX
+   current working directory.  It must not be longer than EMACS_PATH_MAX
    bytes.
 
    Value is NULL upon failure with errno set accordingly, or the
@@ -6464,14 +6474,14 @@ android_root_name (struct android_vnode *vnode, char *name,
 static struct android_vnode *
 android_name_file (const char *name)
 {
-  char buffer[PATH_MAX + 1], *head;
+  char buffer[EMACS_PATH_MAX + 1], *head;
   const char *end;
   size_t len;
   int nslash, c;
   struct android_vnode *vp;
 
   len = strlen (name);
-  if (len > PATH_MAX)
+  if (len > EMACS_PATH_MAX)
     {
       errno = ENAMETOOLONG;
       return NULL;
@@ -6557,12 +6567,12 @@ android_vfs_init (JNIEnv *env, jobject manager)
 
   /* Initialize some required classes.  */
   java_string_class = (*env)->FindClass (env, "java/lang/String");
-  assert (java_string_class);
+  eassert (java_string_class);
 
   old = java_string_class;
   java_string_class = (jclass) (*env)->NewGlobalRef (env,
 						     java_string_class);
-  assert (java_string_class);
+  eassert (java_string_class);
   (*env)->DeleteLocalRef (env, old);
 
   /* And initialize those used on Android 5.0 and later.  */
@@ -7009,7 +7019,7 @@ int
 android_fstatat (int dirfd, const char *restrict pathname,
 		 struct stat *restrict statbuf, int flags)
 {
-  char buffer[PATH_MAX + 1];
+  char buffer[EMACS_PATH_MAX + 1];
   struct android_vnode *vp;
   int rc;
 
@@ -7023,7 +7033,7 @@ android_fstatat (int dirfd, const char *restrict pathname,
   /* Now establish whether DIRFD is a file descriptor corresponding to
      an open VFS directory stream.  */
 
-  if (!android_fstatat_1 (dirfd, pathname, buffer, PATH_MAX + 1))
+  if (!android_fstatat_1 (dirfd, pathname, buffer, EMACS_PATH_MAX + 1))
     {
       pathname = buffer;
       goto vfs;
@@ -7049,7 +7059,7 @@ int
 android_faccessat (int dirfd, const char *restrict pathname,
 		   int mode, int flags)
 {
-  char buffer[PATH_MAX + 1];
+  char buffer[EMACS_PATH_MAX + 1];
   struct android_vnode *vp;
   int rc;
 
@@ -7063,7 +7073,7 @@ android_faccessat (int dirfd, const char *restrict pathname,
   /* Now establish whether DIRFD is a file descriptor corresponding to
      an open VFS directory stream.  */
 
-  if (!android_fstatat_1 (dirfd, pathname, buffer, PATH_MAX + 1))
+  if (!android_fstatat_1 (dirfd, pathname, buffer, EMACS_PATH_MAX + 1))
     {
       pathname = buffer;
       goto vfs;
@@ -7089,7 +7099,7 @@ int
 android_fchmodat (int dirfd, const char *pathname, mode_t mode,
 		  int flags)
 {
-  char buffer[PATH_MAX + 1];
+  char buffer[EMACS_PATH_MAX + 1];
   struct android_vnode *vp;
   int rc;
 
@@ -7099,7 +7109,7 @@ android_fchmodat (int dirfd, const char *pathname, mode_t mode,
   /* Now establish whether DIRFD is a file descriptor corresponding to
      an open VFS directory stream.  */
 
-  if (!android_fstatat_1 (dirfd, pathname, buffer, PATH_MAX + 1))
+  if (!android_fstatat_1 (dirfd, pathname, buffer, EMACS_PATH_MAX + 1))
     {
       pathname = buffer;
       goto vfs;
@@ -7125,7 +7135,7 @@ ssize_t
 android_readlinkat (int dirfd, const char *restrict pathname,
 		    char *restrict buf, size_t bufsiz)
 {
-  char buffer[PATH_MAX + 1];
+  char buffer[EMACS_PATH_MAX + 1];
   struct android_vnode *vp;
   ssize_t rc;
 
@@ -7135,7 +7145,7 @@ android_readlinkat (int dirfd, const char *restrict pathname,
   /* Now establish whether DIRFD is a file descriptor corresponding to
      an open VFS directory stream.  */
 
-  if (!android_fstatat_1 (dirfd, pathname, buffer, PATH_MAX + 1))
+  if (!android_fstatat_1 (dirfd, pathname, buffer, EMACS_PATH_MAX + 1))
     {
       pathname = buffer;
       goto vfs;

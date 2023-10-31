@@ -399,18 +399,18 @@ vulnerable to a variety of attacks, and you may want to avoid using
 these if what you're doing requires higher security.  (This is the
 @code{ssl} check in @code{network-security-protocol-checks}).
 
+@item Triple DES (or @acronym{3DES}) cipher
+The @acronym{3DES} stream cipher provides at most 112 bits of
+effective security, and a major security vulnerability in it was
+disclosed in 2016 (CVE-2016-2183).  It has been deprecated by NIST in
+all applications from late 2023 onwards.  (This is the
+@code{3des-cipher} check in @code{network-security-protocol-checks}).
 @end table
 
 If @code{network-security-level} is @code{high}, the following checks
 will be made, in addition to the above:
 
 @table @asis
-@item @acronym{3DES} cipher
-The @acronym{3DES} stream cipher provides at most 112 bits of
-effective security, which is considered to be towards the low end.
-(This is the @code{3des} check in
-@code{network-security-protocol-checks}).
-
 @item a validated certificate changes the public key
 Servers change their keys occasionally, and that is normally nothing
 to be concerned about.  However, if you are worried that your network
@@ -2077,6 +2077,18 @@ Tell Emacs to evaluate some Emacs Lisp code, instead of visiting some
 files.  When this option is given, the arguments to
 @command{emacsclient} are interpreted as a list of expressions to
 evaluate, @emph{not} as a list of files to visit.
+
+@vindex server-eval-args-left
+Passing complex Lisp expression via the @option{--eval} command-line
+option sometimes requires elaborate escaping of characters special to
+the shell.  To avoid this, you can pass arguments to Lisp functions in
+your expression as additional separate arguments to
+@command{emacsclient}, and use @var{server-eval-args-left} in the
+expression to access those arguments.  Be careful to have your
+expression remove the processed arguments from
+@var{server-eval-args-left} regardless of whether your code succeeds,
+for example by using @code{pop}, otherwise Emacs will attempt to
+evaluate those arguments as separate Lisp expressions.
 
 @item -f @var{server-file}
 @itemx --server-file=@var{server-file}

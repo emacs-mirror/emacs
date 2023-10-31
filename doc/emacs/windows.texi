@@ -411,6 +411,28 @@ selected window and (ii) prefer to either create a new frame or use a
 window on some other frame to display the desired buffer.  Several of
 these commands are bound in the @kbd{C-x 5} prefix key.
 
+@cindex dedicated window
+  Sometimes, a window is ``dedicated'' to its current buffer.
+@xref{Dedicated Windows,, elisp, The Emacs Lisp Reference Manual}.
+@code{display-buffer} will avoid reusing dedicated windows most of the
+time.  This is indicated by a @samp{d} in the mode line (@pxref{Mode
+Line}).  A window can also be strongly dedicated, which prevents any
+changes to the buffer displayed in the window.  This is indicated by a
+@samp{D} in the mode line.
+
+Usually, dedicated windows are used to display specialized buffers,
+but dedication can sometimes be useful interactively.  For example,
+when viewing errors with @kbd{M-g M-n} @code{next-error}, newly
+displayed source code may replace a buffer you want to refer to.  If
+you dedicate a window to that buffer, the command (through
+@code{display-buffer}) will prefer to use a different window instead.
+
+@kindex C-x w d
+@findex toggle-window-dedicated
+  Toggle whether the selected window is dedicated to the current
+buffer.  With a prefix argument, make the window strongly dedicated
+instead.
+
 @menu
 * Window Choice::   How @code{display-buffer} works.
 * Temporary Displays::   Displaying non-editable buffers.

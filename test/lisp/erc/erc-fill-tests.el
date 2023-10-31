@@ -33,7 +33,6 @@
   (declare (indent 1))
   (let* ((msg (erc-format-privmessage speaker
                                       (apply #'concat msg-parts) nil t))
-         ;; (erc--msg-prop-overrides '((erc-msg . msg) (erc-cmd . PRIVMSG)))
          (parsed (make-erc-response :unparsed msg :sender speaker
                                     :command "PRIVMSG"
                                     :command-args (list "#chan" msg)
@@ -129,10 +128,10 @@
       (should (equal (get-text-property (1- (pos-eol)) 'wrap-prefix)
                      '(space :width erc-fill--wrap-value))))))
 
-;; Set this variable to t to generate new snapshots after carefully
+;; Use this variable to generate new snapshots after carefully
 ;; reviewing the output of *each* snapshot (not just first and last).
 ;; Obviously, only run one test at a time.
-(defvar erc-fill-tests--save-p nil)
+(defvar erc-fill-tests--save-p (getenv "ERC_TESTS_FILL_SAVE"))
 
 ;; On graphical displays, echo .graphic >> .git/info/exclude
 (defvar erc-fill-tests--graphic-dir "fill/snapshots/.graphic")
@@ -162,8 +161,12 @@
         (insert (setq got (read repr))))
       (erc-mode))
     (if erc-fill-tests--save-p
-        (with-temp-file expect-file
-          (insert repr))
+        (let (inhibit-message)
+          (with-temp-file expect-file
+            (insert repr))
+          ;; Limit writing snapshots to one test at a time.
+          (setq erc-fill-tests--save-p nil)
+          (message "erc-fill-tests--compare: wrote %S" expect-file))
       (if (file-exists-p expect-file)
           ;; Ensure string-valued properties, like timestamps, aren't
           ;; recursive (signals `max-lisp-eval-depth' exceeded).
@@ -203,36 +206,39 @@
   (unless (>= emacs-major-version 29)
     (ert-skip "Emacs version too low, missing `buffer-text-pixel-size'"))
 
-  (erc-fill-tests--wrap-populate
+  (let ((erc-prompt (lambda () "ABC>")))
+    (erc-fill-tests--wrap-populate
 
-   (lambda ()
-     (should (= erc-fill--wrap-value 27))
-     (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
-     (erc-fill-tests--compare "monospace-01-start")
-
-     (ert-info ("Shift right by one (plus)")
-       ;; Args are all `erc-fill-wrap-nudge' +1 because interactive "p"
-       (ert-with-message-capture messages
-         ;; M-x erc-fill-wrap-nudge RET =
-         (ert-simulate-command '(erc-fill-wrap-nudge 2))
-         (should (string-match (rx "for further adjustment") messages)))
-       (should (= erc-fill--wrap-value 29))
-       (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
-       (erc-fill-tests--compare "monospace-02-right"))
-
-     (ert-info ("Shift left by five")
-       ;; "M-x erc-fill-wrap-nudge RET -----"
-       (ert-simulate-command '(erc-fill-wrap-nudge -4))
-       (should (= erc-fill--wrap-value 25))
-       (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
-       (erc-fill-tests--compare "monospace-03-left"))
-
-     (ert-info ("Reset")
-       ;; M-x erc-fill-wrap-nudge RET 0
-       (ert-simulate-command '(erc-fill-wrap-nudge 0))
+     (lambda ()
        (should (= erc-fill--wrap-value 27))
        (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
-       (erc-fill-tests--compare "monospace-04-reset")))))
+       (erc-fill-tests--compare "monospace-01-start")
+
+       (ert-info ("Shift right by one (plus)")
+         ;; Args are all `erc-fill-wrap-nudge' +1 because interactive "p"
+         (ert-with-message-capture messages
+           ;; M-x erc-fill-wrap-nudge RET =
+           (ert-simulate-command '(erc-fill-wrap-nudge 2))
+           (should (string-match (rx "for further adjustment") messages)))
+         (should (= erc-fill--wrap-value 29))
+         (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
+         (erc-fill-tests--compare "monospace-02-right"))
+
+       (ert-info ("Shift left by five")
+         ;; "M-x erc-fill-wrap-nudge RET -----"
+         (ert-simulate-command '(erc-fill-wrap-nudge -4))
+         (should (= erc-fill--wrap-value 25))
+         (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
+         (erc-fill-tests--compare "monospace-03-left"))
+
+       (ert-info ("Reset")
+         ;; M-x erc-fill-wrap-nudge RET 0
+         (ert-simulate-command '(erc-fill-wrap-nudge 0))
+         (should (= erc-fill--wrap-value 27))
+         (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
+         (erc-fill-tests--compare "monospace-04-reset"))
+
+       (erc--assert-input-bounds)))))
 
 (defun erc-fill-tests--simulate-refill ()
   ;; Simulate `erc-fill-wrap-refill-buffer' synchronously and without
@@ -294,16 +300,20 @@
      ;; Set this here so that the first few messages are from 1970
      (let ((erc-fill-tests--time-vals (lambda () 1680332400)))
        (erc-fill-tests--insert-privmsg "bob" "zero.")
+       (erc-fill-tests--insert-privmsg "bob" "0.5")
 
        (erc-process-ctcp-query
         erc-server-process
         (make-erc-response
-         :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION one\1"
-         :sender "bob!~u@fake" :command "PRIVMSG"
-         :command-args '("#chan" "\1ACTION one\1") :contents "\1ACTION one\1")
+         :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION one.\1"
+         :sender "bob!~u@fake"
+         :command "PRIVMSG"
+         :command-args '("#chan" "\1ACTION one.\1")
+         :contents "\1ACTION one.\1")
         "bob" "~u" "fake")
 
        (erc-fill-tests--insert-privmsg "bob" "two.")
+       (erc-fill-tests--insert-privmsg "bob" "2.5")
 
        ;; Compat switch to opt out of overhanging speaker.
        (let (erc-fill--wrap-action-dedent-p)

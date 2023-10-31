@@ -92,6 +92,12 @@ prepare_casing_context (struct casing_context *ctx,
     SETUP_BUFFER_SYNTAX_TABLE ();	/* For syntax_prefix_flag_p.  */
 }
 
+static bool
+case_ch_is_word (enum syntaxcode syntax)
+{
+  return syntax == Sword || (case_symbols_as_words && syntax == Ssymbol);
+}
+
 struct casing_str_buf
 {
   unsigned char data[max (6, MAX_MULTIBYTE_LENGTH)];
@@ -115,7 +121,7 @@ case_character_impl (struct casing_str_buf *buf,
 
   /* Update inword state */
   bool was_inword = ctx->inword;
-  ctx->inword = SYNTAX (ch) == Sword &&
+  ctx->inword = case_ch_is_word (SYNTAX (ch)) &&
     (!ctx->inbuffer || was_inword || !syntax_prefix_flag_p (ch));
 
   /* Normalize flag so its one of CASE_UP, CASE_DOWN or CASE_CAPITALIZE.  */
@@ -222,7 +228,7 @@ case_character (struct casing_str_buf *buf, struct casing_context *ctx,
      has a word syntax (i.e. current character is end of word), use final
      sigma.  */
   if (was_inword && ch == GREEK_CAPITAL_LETTER_SIGMA && changed
-      && (!next || SYNTAX (STRING_CHAR (next)) != Sword))
+      && (!next || !case_ch_is_word (SYNTAX (STRING_CHAR (next)))))
     {
       buf->len_bytes = CHAR_STRING (GREEK_SMALL_LETTER_FINAL_SIGMA, buf->data);
       buf->len_chars = 1;
@@ -719,6 +725,21 @@ Called with one argument METHOD which can be:
   is called, for each contiguous sub-region, with METHOD as its
   3rd argument.  */);
   Vregion_extract_function = Qnil; /* simple.el sets this.  */
+
+  DEFVAR_BOOL ("case-symbols-as-words", case_symbols_as_words,
+    doc: /* If non-nil, case functions treat symbol syntax as part of words.
+
+Functions such as `upcase-initials' and `replace-match' check or modify
+the case pattern of sequences of characters.  Normally, these operate on
+sequences of characters whose syntax is word constituent.  If this
+variable is non-nil, then they operate on sequences of characters whose
+syntax is either word constituent or symbol constituent.
+
+This is useful for programming languages and styles where only the first
+letter of a symbol's name is ever capitalized.*/);
+  case_symbols_as_words = 0;
+  DEFSYM (Qcase_symbols_as_words, "case-symbols-as-words");
+  Fmake_variable_buffer_local (Qcase_symbols_as_words);
 
   defsubr (&Supcase);
   defsubr (&Sdowncase);

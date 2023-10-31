@@ -12876,7 +12876,7 @@
 
 	* editfns.c (Ftranspose_regions): Doc fix (Bug#3248).
 
-2009-05-10  Ulrich Mueller  <ulm@gentoo.org>
+2009-05-10  Ulrich Müller  <ulm@gentoo.org>
 
 	* s/gnu-linux.h: Make GCPROs and UNGCPRO no-ops also on SuperH.
 
@@ -12978,7 +12978,7 @@
 	* process.c (create_process): Clean up merger residues of
 	2008-07-17 change.
 
-2009-04-29  Ulrich Mueller  <ulm@gentoo.org>
+2009-04-29  Ulrich Müller  <ulm@gentoo.org>
 
 	* lread.c (Vread_circle): New variable.
 	(read1): Disable recursive read if Vread_circle is nil.
@@ -14860,7 +14860,7 @@
 
 	* process.c (Fsystem_process_attributes, syms_of_process):
 	Fix typo in name of Ssystem_process_attributes.
-	Reported by Ulrich Mueller <ulm@kph.uni-mainz.de>.
+	Reported by Ulrich Müller <ulm@kph.uni-mainz.de>.
 
 2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -15356,7 +15356,7 @@
 	* keyboard.c (command_loop_1): Handle NORECORD in call of
 	Fselect_frame (currently ifdefd).
 
-2008-11-02  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+2008-11-02  Ulrich Müller  <ulm@kph.uni-mainz.de>
 
 	* emacs.c (USAGE2): Untabify.
 
@@ -15626,7 +15626,7 @@
 	(Fset_window_buffer): Respect any non-nil dedicated value for
 	window.  Rename "buffer" argument to "buffer_or_name".
 
-2008-10-18  Ulrich Mueller  <ulm@gentoo.org>
+2008-10-18  Ulrich Müller  <ulm@gentoo.org>
 
 	* m/sh3.h: New file, machine description for SuperH.
 
@@ -23405,7 +23405,7 @@
 	* Makefile.in (lisp): Add ${lispsource}language/tai-viet.el.
 	(shortlisp): Add ../lisp/language/tai-viet.el.
 
-2008-02-01  Ulrich Mueller  <ulm@gentoo.org>
+2008-02-01  Ulrich Müller  <ulm@gentoo.org>
 
 	* Makefile.in (${lispsource}international/charprop.el): Depend on
 	temacs${EXEEXT}.

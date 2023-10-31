@@ -2031,7 +2031,7 @@ vmotion (ptrdiff_t from, ptrdiff_t from_byte,
 }
 
 /* Return the width taken by line-number display in window W.  */
-static void
+void
 line_number_display_width (struct window *w, int *width, int *pixel_width)
 {
   if (NILP (Vdisplay_line_numbers))
@@ -2101,7 +2101,7 @@ numbers on display.  */)
 {
   int width, pixel_width;
   struct window *w = XWINDOW (selected_window);
-  line_number_display_width (XWINDOW (selected_window), &width, &pixel_width);
+  line_number_display_width (w, &width, &pixel_width);
   if (EQ (pixelwise, Qcolumns))
     {
       struct frame *f = XFRAME (w->frame);

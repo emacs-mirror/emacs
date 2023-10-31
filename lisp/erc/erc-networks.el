@@ -53,7 +53,6 @@
 (defvar erc-server-process)
 (defvar erc-session-server)
 
-(declare-function erc--default-target "erc" nil)
 (declare-function erc--get-isupport-entry "erc-backend" (key &optional single))
 (declare-function erc-buffer-filter "erc" (predicate &optional proc))
 (declare-function erc-current-nick "erc" nil)
@@ -991,12 +990,11 @@ object."
                                       (erc-networks--id-qualifying-len nid))
   (erc-networks--rename-server-buffer (or proc erc-server-process) parsed)
   (erc-networks--shrink-ids-and-buffer-names-any)
-  (erc-with-all-buffers-of-server
-      erc-server-process #'erc--default-target
-      (when-let* ((new-name (erc-networks--reconcile-buffer-names erc--target
-                                                                  nid))
-                  ((not (equal (buffer-name) new-name))))
-        (rename-buffer new-name 'unique))))
+  (erc-with-all-buffers-of-server erc-server-process #'erc-target
+    (when-let
+        ((new-name (erc-networks--reconcile-buffer-names erc--target nid))
+         ((not (equal (buffer-name) new-name))))
+      (rename-buffer new-name 'unique))))
 
 (cl-defgeneric erc-networks--id-ensure-comparable (self other)
   "Take measures to ensure two net identities are in comparable states.")

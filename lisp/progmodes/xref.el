@@ -281,9 +281,10 @@ current project's main and external roots."
          (xref-references-in-directory identifier dir)
        (message "Searching %s... done" dir)))
    (let ((pr (project-current t)))
-     (cons
-      (xref--project-root pr)
-      (project-external-roots pr)))))
+     (project-combine-directories
+      (cons
+       (xref--project-root pr)
+       (project-external-roots pr))))))
 
 (cl-defgeneric xref-backend-apropos (backend pattern)
   "Find all symbols that match PATTERN string.

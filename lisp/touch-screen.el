@@ -58,25 +58,30 @@ This is always cleared upon any significant state change.")
 If non-nil, the touch screen key event translation machinery
 is being called from `read-sequence' or some similar function.")
 
+(defgroup touch-screen nil
+  "Interact with Emacs from touch screen devices."
+  :group 'mouse
+  :version "30.0")
+
 (defcustom touch-screen-display-keyboard nil
   "If non-nil, always display the on screen keyboard.
 A buffer local value means to always display the on screen
 keyboard when the buffer is selected."
   :type 'boolean
-  :group 'mouse
+  :group 'touch-screen
   :version "30.1")
 
 (defcustom touch-screen-delay 0.7
   "Delay in seconds before Emacs considers a touch to be a long-press."
   :type 'number
-  :group 'mouse
+  :group 'touch-screen
   :version "30.1")
 
 (defcustom touch-screen-precision-scroll nil
   "Whether or not to use precision scrolling for touch screens.
 See `pixel-scroll-precision-mode' for more details."
   :type 'boolean
-  :group 'mouse
+  :group 'touch-screen
   :version "30.1")
 
 (defcustom touch-screen-word-select nil
@@ -84,7 +89,7 @@ See `pixel-scroll-precision-mode' for more details."
 If non-nil, long-press events (see `touch-screen-delay') followed
 by dragging will try to select entire words."
   :type 'boolean
-  :group 'mouse
+  :group 'touch-screen
   :version "30.1")
 
 (defcustom touch-screen-extend-selection nil
@@ -93,7 +98,7 @@ When enabled, tapping on the character containing the point or
 mark will resume dragging where it left off while the region is
 active."
   :type 'boolean
-  :group 'mouse
+  :group 'touch-screen
   :version "30.1")
 
 (defcustom touch-screen-preview-select nil
@@ -102,7 +107,15 @@ When enabled, a preview of the visible line within the window
 will be displayed in the echo area while dragging combined with
 an indication of the position of point within that line."
   :type 'boolean
-  :group 'mouse
+  :group 'touch-screen
+  :version "30.1")
+
+(defcustom touch-screen-enable-hscroll t
+  "If non-nil, hscroll can be changed from the touch screen.
+When enabled, tapping on a window and dragging your finger left
+or right will scroll that window horizontally."
+  :type 'boolean
+  :group 'touch-screen
   :version "30.1")
 
 (defvar-local touch-screen-word-select-bounds nil
@@ -229,7 +242,12 @@ horizontal scrolling according to the movement in DX."
                             (>= (- accumulator) column-width))
                        (progn
                          (setq accumulator (+ accumulator column-width))
-                         (scroll-right 1)
+                         ;; Maintain both hscroll counters even when
+                         ;; it's disabled to prevent unintentional or
+                         ;; patently horizontal gestures from
+                         ;; scrolling the window vertically.
+                         (when touch-screen-enable-hscroll
+                           (scroll-right 1))
                          (setq lines-hscrolled (1+ lines-hscrolled))
                          (when (not (zerop accumulator))
                            ;; If there is still an outstanding amount
@@ -238,7 +256,8 @@ horizontal scrolling according to the movement in DX."
                      (when (and (> accumulator 0)
                                 (>= accumulator column-width))
                        (setq accumulator (- accumulator column-width))
-                       (scroll-left 1)
+                       (when touch-screen-enable-hscroll
+                         (scroll-left 1))
                        (setq lines-hscrolled (1+ lines-hscrolled))
                        (when (not (zerop accumulator))
                          ;; If there is still an outstanding amount to

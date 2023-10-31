@@ -534,10 +534,10 @@ Variables
 
 Scoping Rules for Variable Bindings
 
-* Dynamic Binding::         The default for binding local variables in Emacs.
+* Lexical Binding::         The standard type of local variable binding.
+* Dynamic Binding::         A different type of local variable binding.
 * Dynamic Binding Tips::    Avoiding problems with dynamic binding.
-* Lexical Binding::         A different type of local variable binding.
-* Using Lexical Binding::   How to enable lexical binding.
+* Selecting Lisp Dialect::   How to select the Emacs Lisp dialect to use.
 * Converting to Lexical Binding:: Convert existing code to lexical binding.
 
 Buffer-Local Variables
