@@ -136,15 +136,15 @@ struct sfnt_font_desc
      present in the font.  */
   Lisp_Object char_cache;
 
-  /* Whether or not the character map can't be used by Emacs.  */
-  bool cmap_invalid;
-
   /* The header of the cmap being used.  May be invalid, in which case
      platform_id will be 500.  */
   struct sfnt_cmap_encoding_subtable subtable;
 
   /* The offset of the table directory within PATH.  */
   off_t offset;
+
+  /* List of font tables.  */
+  struct sfnt_font_tables *tables;
 
   /* The number of glyphs in this font.  Used to catch invalid cmap
      tables.  This is actually the number of glyphs - 1.  */
@@ -153,8 +153,15 @@ struct sfnt_font_desc
   /* The number of references to the font tables below.  */
   int refcount;
 
-  /* List of font tables.  */
-  struct sfnt_font_tables *tables;
+  /* The underline position and thickness if a post table supplies
+     this information.  */
+  sfnt_fword underline_position, underline_thickness;
+
+  /* Whether an underline position is available.  */
+  bool_bf underline_position_set : 1;
+
+  /* Whether or not the character map can't be used by Emacs.  */
+  bool cmap_invalid : 1;
 };
 
 /* List of fonts.  */
@@ -1050,6 +1057,9 @@ sfnt_enum_font_1 (int fd, const char *file,
   if (post)
     {
       desc->spacing = (post->is_fixed_pitch ? 100 : 0);
+      desc->underline_position = post->underline_position;
+      desc->underline_thickness = post->underline_thickness;
+      desc->underline_position_set = true;
       xfree (post);
     }
   else
@@ -3267,8 +3277,21 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   font_info->font.relative_compose = 0;
   font_info->font.default_ascent = 0;
   font_info->font.vertical_centering = 0;
-  font_info->font.underline_position = -1;
-  font_info->font.underline_thickness = 0;
+
+  if (!desc->underline_position_set)
+    {
+      font_info->font.underline_position = -1;
+      font_info->font.underline_thickness = 0;
+    }
+  else
+    {
+      font_info->font.underline_position
+	= sfnt_coerce_fixed (SFNT_CEIL_FIXED (-desc->underline_position
+					      * font_info->scale));
+      font_info->font.underline_thickness
+	= sfnt_coerce_fixed (SFNT_CEIL_FIXED (desc->underline_thickness
+					      * font_info->scale));
+    }
 
   /* Now try to set up grid fitting for this font.  */
   dpyinfo = FRAME_DISPLAY_INFO (f);
