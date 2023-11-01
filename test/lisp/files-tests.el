@@ -1717,6 +1717,154 @@ let-bound to PRED and passing nil as second arg of
             (set-buffer-modified-p nil)
             (kill-buffer buf)))))))
 
+(defmacro files-tests--with-yes-or-no-p (reply &rest body)
+  "Execute BODY, providing replies to `yes-or-no-p' queries.
+REPLY should be a cons (PROMPT . VALUE), and during execution of
+BODY this macro provides VALUE as return value to all
+`yes-or-no-p' calls prompting for PROMPT and nil to all other
+`yes-or-no-p' calls.  After execution of BODY, this macro ensures
+that exactly one `yes-or-no-p' call prompting for PROMPT has been
+executed during execution of BODY."
+  (declare (indent 1) (debug (sexp body)))
+  `(cl-letf*
+       ((reply ,reply)
+        (prompts nil)
+        ((symbol-function 'yes-or-no-p)
+         (lambda (prompt)
+           (let ((reply (cdr (assoc prompt (list reply)))))
+             (push (cons prompt reply) prompts)
+             reply))))
+     ,@body
+     (should (equal prompts (list reply)))))
+
+(ert-deftest files-tests-save-buffer-read-only-file ()
+  "Test writing to write-protected files with `save-buffer'.
+Ensure that the issues from bug#66546 are fixed."
+  (ert-with-temp-directory dir
+    (cl-flet (;; Define convenience functions.
+              (file-contents (file)
+                (if (file-exists-p file)
+                    (condition-case err
+                        (with-temp-buffer
+                          (insert-file-contents-literally file)
+                          (buffer-string))
+                      (error err))
+                  'missing))
+              (signal-write-failed (&rest _)
+                (signal 'file-error "Write failed")))
+
+      (let* (;; Sanitize environment.
+             (coding-system-for-read 'no-conversion)
+             (coding-system-for-write 'no-conversion)
+             (auto-save-default nil)
+             (backup-enable-predicate nil)
+             (before-save-hook nil)
+             (write-contents-functions nil)
+             (write-file-functions nil)
+             (after-save-hook nil)
+
+             ;; Set the name of the game.
+             (base "read-only-test")
+             (file (expand-file-name base dir))
+             (backup (make-backup-file-name file))
+
+             (override-read-only-prompt
+              (format "File %s is write-protected; try to save anyway? "
+                      base)))
+
+        ;; Ensure that set-file-modes renders our test file read-only,
+        ;; otherwise skip this test.  Use `file-writable-p' to test
+        ;; for read-only-ness, because that's what function
+        ;; `save-buffer' uses as well.
+        (with-temp-file file (insert "foo\n"))
+        (skip-unless (file-writable-p file))
+        (set-file-modes file (logand (file-modes file)
+                                     (lognot #o0222)))
+        (skip-unless (not (file-writable-p file)))
+
+        (with-current-buffer (find-file-noselect file)
+          ;; Prepare for tests backing up the file.
+          (setq buffer-read-only nil)
+          (goto-char (point-min))
+          (insert "bar\n")
+
+          ;; Save to read-only file with backup, declining prompt.
+          (files-tests--with-yes-or-no-p
+              (cons override-read-only-prompt nil)
+            (should-error
+             (save-buffer)
+             ;; "Attempt to save to a file that you aren't allowed to write"
+             :type 'error))
+          (should-not buffer-backed-up)
+          (should     (buffer-modified-p))
+          (should-not (file-writable-p file))
+          (should     (equal (file-contents file) "foo\n"))
+          (should     (equal (file-contents backup) 'missing))
+
+          ;; Save to read-only file with backup, accepting prompt,
+          ;; experiencing a write error.
+          (files-tests--with-yes-or-no-p
+              (cons override-read-only-prompt t)
+            (should-error
+             (cl-letf (((symbol-function 'write-region)
+                        #'signal-write-failed))
+               (save-buffer))
+             ;; "Write failed"
+             :type 'file-error))
+          (should-not buffer-backed-up)
+          (should     (buffer-modified-p))
+          (should-not (file-writable-p file))
+          (should     (equal (file-contents file) "foo\n"))
+          (should     (equal (file-contents backup) 'missing))
+
+          ;; Save to read-only file with backup, accepting prompt.
+          (files-tests--with-yes-or-no-p
+              (cons override-read-only-prompt t)
+            (save-buffer))
+          (should     buffer-backed-up)
+          (should-not (buffer-modified-p))
+          (should-not (file-writable-p file))
+          (should-not (file-writable-p backup))
+          (should     (equal (file-contents file) "bar\nfoo\n"))
+          (should     (equal (file-contents backup) "foo\n"))
+
+          ;; Prepare for tests not backing up the file.
+          (setq buffer-backed-up nil)
+          (delete-file backup)
+          (goto-char (point-min))
+          (insert "baz\n")
+
+          ;; Save to read-only file without backup, accepting prompt,
+          ;; experiencing a write error.  This tests that issue B of
+          ;; bug#66546 is fixed.  The results of the "with backup" and
+          ;; "without backup" subtests are identical when a write
+          ;; error occurs, but the code paths to reach these results
+          ;; are not.  In other words, this subtest is not redundant.
+          (files-tests--with-yes-or-no-p
+              (cons override-read-only-prompt t)
+            (should-error
+             (cl-letf (((symbol-function 'write-region)
+                        #'signal-write-failed))
+               (save-buffer 0))
+             ;; "Write failed"
+             :type 'file-error))
+          (should-not buffer-backed-up)
+          (should     (buffer-modified-p))
+          (should-not (file-writable-p file))
+          (should     (equal (file-contents file) "bar\nfoo\n"))
+          (should     (equal (file-contents backup) 'missing))
+
+          ;; Save to read-only file without backup, accepting prompt.
+          ;; This tests that issue A of bug#66546 is fixed.
+          (files-tests--with-yes-or-no-p
+              (cons override-read-only-prompt t)
+            (save-buffer 0))
+          (should-not buffer-backed-up)
+          (should-not (buffer-modified-p))
+          (should-not (file-writable-p file))
+          (should     (equal (file-contents file) "baz\nbar\nfoo\n"))
+          (should     (equal (file-contents backup) 'missing)))))))
+
 (ert-deftest files-tests-save-some-buffers ()
   "Test `save-some-buffers'.
 Test the 3 cases for the second argument PRED, i.e., nil, t, or
