@@ -4608,7 +4608,7 @@ extern void init_eval (void);
 extern void syms_of_eval (void);
 extern void prog_ignore (Lisp_Object);
 extern void mark_specpdl (union specbinding *first, union specbinding *ptr);
-extern void get_backtrace (Lisp_Object array);
+extern void get_backtrace (Lisp_Object *array, ptrdiff_t size);
 Lisp_Object backtrace_top_function (void);
 extern bool let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
 void do_debug_on_call (Lisp_Object code, specpdl_ref count);
@@ -5225,6 +5225,7 @@ void syms_of_dbusbind (void);
 extern bool profiler_memory_running;
 extern void malloc_probe (size_t);
 extern void syms_of_profiler (void);
+extern void mark_profiler (void);
 
 
 #ifdef DOS_NT

@@ -4250,23 +4250,18 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
     }
 }
 
+/* Fill ARRAY of size SIZE with backtrace entries, most recent call first.
+   Truncate the backtrace if longer than SIZE; pad with nil if shorter.  */
 void
-get_backtrace (Lisp_Object array)
+get_backtrace (Lisp_Object *array, ptrdiff_t size)
 {
-  union specbinding *pdl = backtrace_top ();
-  ptrdiff_t i = 0, asize = ASIZE (array);
-
   /* Copy the backtrace contents into working memory.  */
-  for (; i < asize; i++)
-    {
-      if (backtrace_p (pdl))
-	{
-	  ASET (array, i, backtrace_function (pdl));
-	  pdl = backtrace_next (pdl);
-	}
-      else
-	ASET (array, i, Qnil);
-    }
+  union specbinding *pdl = backtrace_top ();
+  ptrdiff_t i = 0;
+  for (; i < size && backtrace_p (pdl); i++, pdl = backtrace_next (pdl))
+    array[i] = backtrace_function (pdl);
+  for (; i < size; i++)
+    array[i] = Qnil;
 }
 
 Lisp_Object backtrace_top_function (void)
