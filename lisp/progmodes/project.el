@@ -1866,35 +1866,28 @@ the progress.  The function returns the number of detected
 projects."
   (interactive "DDirectory: \nP")
   (project--ensure-read-project-list)
-  (let ((queue (list dir))
-        (count 0)
-        (known (make-hash-table
-                :size (* 2 (length project--list))
-                :test #'equal )))
+  (let ((dirs (if recursive
+                  (directory-files-recursively dir "" t)
+                (directory-files dir t)))
+        (known (make-hash-table :size (* 2 (length project--list))
+                                :test #'equal))
+        (count 0))
     (dolist (project (mapcar #'car project--list))
       (puthash project t known))
-    (while queue
-      (when-let ((subdir (pop queue))
-                 ((file-directory-p subdir)))
-        (when-let ((project (project--find-in-directory subdir))
-                   (project-root (project-root project))
-                   ((not (gethash project-root known))))
-          (project-remember-project project t)
-          (puthash project-root t known)
-          (message "Found %s..." project-root)
-          (setq count (1+ count)))
-        (when (and recursive (file-directory-p subdir))
-          (setq queue
-                (nconc
-                 (directory-files
-                  subdir t directory-files-no-dot-files-regexp t)
-                 queue)))))
-    (unless (eq recursive 'in-progress)
-      (if (zerop count)
-          (message "No projects were found")
-        (project--write-project-list)
-        (message "%d project%s were found"
-                 count (if (= count 1) "" "s"))))
+    (dolist (subdir dirs)
+      (when-let (((file-directory-p subdir))
+                 (project (project--find-in-directory subdir))
+                 (project-root (project-root project))
+                 ((not (gethash project-root known))))
+        (project-remember-project project t)
+        (puthash project-root t known)
+        (message "Found %s..." project-root)
+        (setq count (1+ count))))
+    (if (zerop count)
+        (message "No projects were found")
+      (project--write-project-list)
+      (message "%d project%s were found"
+               count (if (= count 1) "" "s")))
     count))
 
 (defun project-forget-zombie-projects ()
