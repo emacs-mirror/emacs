@@ -6962,20 +6962,6 @@ mark_face_cache (struct face_cache *c)
     }
 }
 
-NO_INLINE /* To reduce stack depth in mark_object.  */
-static void
-mark_localized_symbol (struct Lisp_Symbol *ptr)
-{
-  struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
-  Lisp_Object where = blv->where;
-  /* If the value is set up for a killed buffer restore its global binding.  */
-  if ((BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where))))
-    swap_in_global_binding (ptr);
-  mark_object (blv->where);
-  mark_object (blv->valcell);
-  mark_object (blv->defcell);
-}
-
 /* Remove killed buffers or items whose car is a killed buffer from
    LIST, and mark other items.  Return changed LIST, which is marked.  */
 
@@ -7377,7 +7363,17 @@ process_mark_stack (ptrdiff_t base_sp)
 		  break;
 		}
 	      case SYMBOL_LOCALIZED:
-		mark_localized_symbol (ptr);
+		{
+		  struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
+		  Lisp_Object where = blv->where;
+		  /* If the value is set up for a killed buffer,
+		     restore its global binding.  */
+		  if (BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where)))
+		    swap_in_global_binding (ptr);
+		  mark_stack_push_value (blv->where);
+		  mark_stack_push_value (blv->valcell);
+		  mark_stack_push_value (blv->defcell);
+		}
 		break;
 	      case SYMBOL_FORWARDED:
 		/* If the value is forwarded to a buffer or keyboard field,
