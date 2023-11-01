@@ -4998,6 +4998,7 @@ Interactively with prefix argument, read FILE-NAME."
 ;;; Miscellaneous commands
 
 (declare-function Man-getpage-in-background "man" (topic))
+(defvar Man-support-remote-systems) ; from man.el
 (defvar manual-program) ; from man.el
 
 (defun dired-do-man ()
@@ -5005,10 +5006,11 @@ Interactively with prefix argument, read FILE-NAME."
   (interactive nil dired-mode)
   (require 'man)
   (let* ((file (dired-get-file-for-visit))
+         (Man-support-remote-systems (file-remote-p file))
          (manual-program (string-replace "*" "%s"
                                          (dired-guess-shell-command
                                           "Man command: " (list file)))))
-    (Man-getpage-in-background file)))
+    (Man-getpage-in-background (file-local-name file))))
 
 (defun dired-do-info ()
   "In Dired, run `info' on this file."

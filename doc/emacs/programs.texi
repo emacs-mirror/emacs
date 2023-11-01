@@ -1402,6 +1402,13 @@ asynchronously.  You can force the invocation to be synchronous by
 customizing @code{Man-prefer-synchronous-calls} to a non-@code{nil}
 value.
 
+@vindex Man-support-remote-systems
+  If the user option @code{Man-support-remote-systems} is
+non-@code{nil}, and @code{default-directory} indicates a remote system
+(@pxref{Remote Files}), the man page is taken from the remote system.
+Calling the @code{man} command with a prefix like @kbd{C-u M-x man}
+reverts the value of @code{Man-support-remote-systems} for that call.
+
 @findex woman
 @cindex manual pages, on MS-DOS/MS-Windows
   An alternative way of reading manual pages is the @kbd{M-x woman}

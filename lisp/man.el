@@ -105,6 +105,13 @@ When this is non-nil, call the \"man\" program synchronously
   :group 'man
   :version "30.1")
 
+(defcustom Man-support-remote-systems nil
+  "Whether to call the Un*x \"man\" program on remote systems.
+When this is non-nil, call the \"man\" program on the remote
+system determined by `default-directory'."
+  :type 'boolean
+  :version "30.1")
+
 (defcustom Man-filter-list nil
   "Manpage cleaning filter command phrases.
 This variable contains a list of the following form:
@@ -531,8 +538,9 @@ Otherwise, the value is whatever the function
 
 (define-button-type 'Man-xref-normal-file
   'action (lambda (button)
-	    (let ((f (substitute-in-file-name
-		      (button-get button 'Man-target-string))))
+	    (let ((f (concat (file-remote-p default-directory)
+                             (substitute-in-file-name
+		              (button-get button 'Man-target-string)))))
 	      (if (file-exists-p f)
 		  (if (file-readable-p f)
 		      (view-file f)
@@ -544,6 +552,63 @@ Otherwise, the value is whatever the function
 
 ;; ======================================================================
 ;; utilities
+
+(defun Man-default-directory ()
+  "Return a default directory according to `Man-support-remote-systems'."
+  ;; Ensure that `default-directory' exists and is readable.
+  ;; We assume, that this function is always called inside the `man'
+  ;; command, so that we can check `current-prefix-arg' for reverting
+  ;; `Man-support-remote-systems'.
+  (let ((result default-directory)
+        (remote (if current-prefix-arg
+                    (not Man-support-remote-systems)
+                  Man-support-remote-systems)))
+
+    ;; Use a local directory if remote isn't possible.
+    (when (and (file-remote-p default-directory)
+               (not (and remote
+                         ;; TODO:: Test that remote processes are supported.
+                         )))
+      (setq result (expand-file-name "~/")))
+
+    ;; Check, whether the directory is accessible.
+    (if (file-accessible-directory-p result)
+        result
+      (expand-file-name (concat (file-remote-p result) "~/")))))
+
+(defun Man-shell-file-name ()
+  "Return a proper shell file name, respecting remote directories."
+  (or ; This works also in the local case.
+      (with-connection-local-variables shell-file-name)
+      "/bin/sh"))
+
+(defun Man-header-file-path ()
+  "C Header file search path used in Man.
+In the local case, it is the value of `Man-header-file-path'.
+Otherwise, it will be checked on the remote system."
+  (let ((remote-id (file-remote-p default-directory)))
+    (if (null remote-id)
+        ;; The local case.
+        Man-header-file-path
+      ;; The remote case.  Use connection-local variables.
+      (mapcar
+       (lambda (elt) (concat remote-id elt))
+       (with-connection-local-variables
+        (or (and (local-variable-p 'Man-header-file-path (current-buffer))
+                 Man-header-file-path)
+            (setq-connection-local
+             Man-header-file-path
+             (let ((arch (with-temp-buffer
+                           (when (zerop (ignore-errors
+                                          (process-file "gcc" nil '(t nil) nil
+                                                        "-print-multiarch")))
+                             (goto-char (point-min))
+                             (buffer-substring (point) (line-end-position)))))
+                   (base '("/usr/include" "/usr/local/include")))
+               (if (zerop (length arch))
+                   base
+                 (append
+                  base (list (expand-file-name arch "/usr/include"))))))))))))
 
 (defun Man-init-defvars ()
   "Used for initializing variables based on display's color support.
@@ -583,7 +648,9 @@ This is necessary if one wants to dump man.el with Emacs."
 	     (if Man-sed-script
 		 (concat "-e '" Man-sed-script "'")
 	       "")
-	     "-e '/^[\001-\032][\001-\032]*$/d'"
+             ;; Use octal numbers.  Otherwise, \032 (Ctrl-Z) would
+             ;; suspend remote connections.
+	     "-e '/^[\\o001-\\o032][\\o001-\\o032]*$/d'"
 	     "-e '/\e[789]/s///g'"
 	     "-e '/Reformatting page.  Wait/d'"
 	     "-e '/Reformatting entry.  Wait/d'"
@@ -717,22 +784,23 @@ program has no such option, but interprets any name containing
 a \"/\" as a local filename.  The function returns either `man-db'
 `man', or nil."
   (if (eq Man-support-local-filenames 'auto-detect)
-      (setq Man-support-local-filenames
-            (with-temp-buffer
-              (let ((default-directory
-                      ;; Ensure that `default-directory' exists and is readable.
-                      (if (file-accessible-directory-p default-directory)
-                          default-directory
-                        (expand-file-name "~/"))))
-                (ignore-errors
-                  (call-process manual-program nil t nil "--help")))
-              (cond ((search-backward "--local-file" nil 'move)
-                     'man-db)
-                    ;; This feature seems to be present in at least ver 1.4f,
-                    ;; which is about 20 years old.
-                    ;; I don't know if this version has an official name?
-                    ((looking-at "^man, versione? [1-9]")
-                     'man))))
+      (with-connection-local-variables
+        (or (and (local-variable-p 'Man-support-local-filenames (current-buffer))
+                 Man-support-local-filenames)
+            (setq-connection-local
+             Man-support-local-filenames
+             (with-temp-buffer
+               (let ((default-directory (Man-default-directory)))
+                 (ignore-errors
+                   (process-file manual-program nil t nil "--help")))
+               (cond ((search-backward "--local-file" nil 'move)
+                      'man-db)
+                     ;; This feature seems to be present in at least
+                     ;; ver 1.4f, which is about 20 years old.  I
+                     ;; don't know if this version has an official
+                     ;; name?
+                     ((looking-at "^man, versione? [1-9]")
+                      'man))))))
     Man-support-local-filenames))
 
 
@@ -918,7 +986,8 @@ foo(sec)[, bar(sec) [, ...]] [other stuff] - description"
       (unless (and Man-completion-cache
                    (string-prefix-p (car Man-completion-cache) prefix))
         (with-temp-buffer
-          (setq default-directory "/") ;; in case inherited doesn't exist
+          ;; In case inherited doesn't exist.
+          (setq default-directory (Man-default-directory))
           ;; Actually for my `man' the arg is a regexp.
           ;; POSIX says it must be ERE and "man-db" seems to agree,
           ;; whereas under macOS it seems to be BRE-style and doesn't
@@ -932,7 +1001,7 @@ foo(sec)[, bar(sec) [, ...]] [other stuff] - description"
             ;; error later.
             (when (eq 0
                       (ignore-errors
-                        (call-process
+                        (process-file
                          manual-program nil '(t nil) nil
                          "-k" (concat (when (or Man-man-k-use-anchor
                                                 (string-equal prefix ""))
@@ -1016,7 +1085,14 @@ names or descriptions.  The pattern argument is usually an
 
 Note that in some cases you will need to use \\[quoted-insert] to quote the
 SPC character in the above examples, because this command attempts
-to auto-complete your input based on the installed manual pages."
+to auto-complete your input based on the installed manual pages.
+
+If `default-directory' is remote, and `Man-support-remote-systems'
+is non-nil, the man page will be formatted on the corresponding
+remote system.
+
+If `man' is called interactively with a prefix argument, the
+value of `Man-support-remote-systems' is reverted."
 
   (interactive
    (list (let* ((default-entry (Man-default-man-entry))
@@ -1082,12 +1158,7 @@ to auto-complete your input based on the installed manual pages."
              Man-coding-system
              locale-coding-system))
 	;; Avoid possible error by using a directory that always exists.
-	(default-directory
-	  (if (and (file-directory-p default-directory)
-		   (not (find-file-name-handler default-directory
-						'file-directory-p)))
-	      default-directory
-	    "/")))
+	(default-directory (Man-default-directory)))
     ;; Prevent any attempt to use display terminal fanciness.
     (setenv "TERM" "dumb")
     ;; In Debian Woody, at least, we get overlong lines under X
@@ -1116,9 +1187,13 @@ to auto-complete your input based on the installed manual pages."
 (defun Man-getpage-in-background (topic)
   "Use TOPIC to build and fire off the manpage and cleaning command.
 Return the buffer in which the manpage will appear."
-  (let* ((man-args topic)
-	 (bufname (concat "*Man " man-args "*"))
-	 (buffer  (get-buffer bufname)))
+  (let* ((default-directory (Man-default-directory))
+         (man-args topic)
+	 (bufname
+          (if (file-remote-p default-directory)
+              (format "*Man %s %s *" (file-remote-p default-directory) man-args)
+            (format "*Man %s *" man-args)))
+	 (buffer (get-buffer bufname)))
     (if buffer
 	(Man-notify-when-ready buffer)
       (message "Invoking %s %s in the background" manual-program man-args)
@@ -1137,20 +1212,19 @@ Return the buffer in which the manpage will appear."
 	(Man-start-calling
 	 (if (and (fboundp 'make-process)
                   (not Man-prefer-synchronous-call))
-	     (let ((proc (start-process
+	     (let ((proc (start-file-process
 			  manual-program buffer
-			  (if (memq system-type '(cygwin windows-nt))
-			      shell-file-name
-			    "sh")
+			  (Man-shell-file-name)
 			  shell-command-switch
 			  (format (Man-build-man-command) man-args))))
 	       (set-process-sentinel proc 'Man-bgproc-sentinel)
 	       (set-process-filter proc 'Man-bgproc-filter))
 	   (let* ((inhibit-read-only t)
 		  (exit-status
-		   (call-process shell-file-name nil (list buffer nil) nil
-				 shell-command-switch
-				 (format (Man-build-man-command) man-args)))
+		   (process-file
+                    (Man-shell-file-name) nil (list buffer nil) nil
+		    shell-command-switch
+		    (format (Man-build-man-command) man-args)))
 		  (msg ""))
 	     (or (and (numberp exit-status)
 		      (= exit-status 0))
@@ -1178,9 +1252,10 @@ Return the buffer in which the manpage will appear."
 	(buffer-read-only nil))
      (erase-buffer)
      (Man-start-calling
-      (call-process shell-file-name nil (list (current-buffer) nil) nil
-		    shell-command-switch
-		    (format (Man-build-man-command) Man-arguments)))
+      (process-file
+       (Man-shell-file-name) nil (list (current-buffer) nil) nil
+       shell-command-switch
+       (format (Man-build-man-command) Man-arguments)))
      (if Man-fontify-manpage-flag
 	 (Man-fontify-manpage)
        (Man-cleanup-manpage))
@@ -1944,7 +2019,7 @@ Specify which REFERENCE to use; default is based on word at point."
 ;; Header file support
 (defun Man-view-header-file (file)
   "View a header file specified by FILE from `Man-header-file-path'."
-  (let ((path Man-header-file-path)
+  (let ((path (Man-header-file-path))
         complete-path)
     (while path
       (setq complete-path (expand-file-name file (car path))
