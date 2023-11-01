@@ -677,6 +677,10 @@ for use at QPOS."
                                              'completions-common-part)
                                qprefix))))
                         (qcompletion (concat qprefix qnew)))
+                   ;; Attach unquoted completion string, which is needed
+                   ;; to score the completion in `completion--flex-score'.
+                   (put-text-property 0 1 'completion--unquoted
+                                      completion qcompletion)
 		   ;; FIXME: Similarly here, Cygwin's mapping trips this
 		   ;; assertion.
                    ;;(cl-assert
@@ -3904,6 +3908,9 @@ If DONT-ERROR, just return nil if RE doesn't match STR."
         ((not dont-error)
          (error "Internal error: %s does not match %s" re str))))
 
+(defvar completion-pcm--regexp nil
+  "Regexp from PCM pattern in `completion-pcm--hilit-commonality'.")
+
 (defun completion-pcm--hilit-commonality (pattern completions)
   "Show where and how well PATTERN matches COMPLETIONS.
 PATTERN, a list of symbols and strings as seen
@@ -3916,9 +3923,11 @@ COMPLETIONS where each string is propertized with
 `completions-common-part', `completions-first-difference' in the
 relevant segments.
 
-Else, if `completion-lazy-hilit' is t, return COMPLETIONS where
-each string now has a `completion-score' property and no
-highlighting."
+Else, if `completion-lazy-hilit' is t, return COMPLETIONS
+unchanged, but setup a suitable `completion-lazy-hilit-fn' (which
+see) for later lazy highlighting"
+  (setq completion-pcm--regexp nil
+        completion-lazy-hilit-fn nil)
   (cond
    ((and completions (cl-loop for e in pattern thereis (stringp e)))
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
@@ -3928,8 +3937,9 @@ highlighting."
                                        str))))
       (cond (completion-lazy-hilit
              (setq completion-lazy-hilit-fn
-                   (lambda (str) (completion--hilit-from-re str re)))
-             (mapc score completions))
+                   (lambda (str) (completion--hilit-from-re str re))
+                   completion-pcm--regexp re)
+             completions)
             (t
              (mapcar
               (lambda (str)
@@ -4288,15 +4298,44 @@ that is non-nil."
         (existing-csf
          (completion-metadata-get metadata 'cycle-sort-function)))
     (cl-flet
-        ((compose-flex-sort-fn
-          (existing-sort-fn) ; wish `cl-flet' had proper indentation...
-          (lambda (completions)
-            (sort
-             (funcall existing-sort-fn completions)
-             (lambda (c1 c2)
-               (let ((s1 (get-text-property 0 'completion-score c1))
-                     (s2 (get-text-property 0 'completion-score c2)))
-                 (> (or s1 0) (or s2 0))))))))
+        ((compose-flex-sort-fn (existing-sort-fn)
+           (lambda (completions)
+             (let ((pre-sorted (funcall existing-sort-fn completions)))
+               (cond (;; There's no useful scoring to apply, since the
+                      ;; pattern is empty
+                      (null completion-pcm--regexp)
+                      pre-sorted)
+                     (completion-lazy-hilit
+                      ;; Lazy highlight has been requested, so do the
+                      ;; scoring and sorting now.
+                      (let* ((sorted (sort
+                                      (mapcar
+                                       (lambda (str)
+                                         (cons
+                                          (- (completion--flex-score
+                                              (or (get-text-property
+                                                   0 'completion--unquoted str)
+                                                  str)
+                                              completion-pcm--regexp))
+                                          str))
+                                       pre-sorted)
+                                      #'car-less-than-car))
+                             (cell sorted))
+                        ;; Reuse the list
+                        (while cell
+                          (setcar cell (cdar cell))
+                          (pop cell))
+                        sorted))
+                     (t
+                      ;; Lazy highlight not requested, so strings are
+                      ;; assumed to already contain `completion-score'
+                      ;; (and highlighting) and we can freely destroy
+                      ;; list.
+                      (sort
+                       pre-sorted
+                       (lambda (c1 c2)
+                         (> (or (get-text-property 0 'completion-score c1) 0)
+                            (or (get-text-property 0 'completion-score c2) 0))))))))))
       `(metadata
         ,@(and flex-is-filtering-p
                `((display-sort-function
