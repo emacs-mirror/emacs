@@ -1007,8 +1007,15 @@ A major mode based on the tree-sitter library for editing Elixir files.
 *** New major mode 'lua-ts-mode'.
 A major mode based on the tree-sitter library for editing Lua files.
 
+** Minibuffer and Completions
+
+*** New commands 'previous-line-completion' and 'next-line-completion'.
+Bound to '<up>' and '<down>' respectively, they navigate the *Completions*
+buffer vertically, wrapping at the top/bottom when 'completion-auto-wrap'
+is non-nil.
+
 +++
-** New global minor mode 'minibuffer-regexp-mode'.
+*** New global minor mode 'minibuffer-regexp-mode'.
 This is a minor mode for editing regular expressions in the minibuffer.
 It highlights parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
 a user-friendly way, avoids reporting alleged paren mismatches and makes
