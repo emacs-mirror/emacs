@@ -2029,12 +2029,14 @@ to directory DIR."
   (interactive (list (funcall project-prompter)))
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
-                   (project--switch-project-command))))
+                   (project--switch-project-command)))
+        (buffer (current-buffer)))
     (unwind-protect
         (progn
           (setq-local project-current-directory-override dir)
           (call-interactively command))
-      (kill-local-variable 'project-current-directory-override))))
+      (with-current-buffer buffer
+        (kill-local-variable 'project-current-directory-override)))))
 
 ;;;###autoload
 (defun project-uniquify-dirname-transform (dirname)
