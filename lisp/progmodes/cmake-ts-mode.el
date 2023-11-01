@@ -63,7 +63,15 @@
      ((parent-is "foreach_loop") parent-bol cmake-ts-mode-indent-offset)
      ((parent-is "function_def") parent-bol cmake-ts-mode-indent-offset)
      ((parent-is "if_condition") parent-bol cmake-ts-mode-indent-offset)
-     ((parent-is "normal_command") parent-bol cmake-ts-mode-indent-offset)))
+     ((parent-is "normal_command") parent-bol cmake-ts-mode-indent-offset)
+     ;;; Release v0.4.0 wraps arguments in an argument_list node.
+     ,@(ignore-errors
+         (treesit-query-capture 'cmake '((argument_list) @capture))
+         `(((parent-is "argument_list") grand-parent cmake-ts-mode-indent-offset)))
+     ;;; Release v0.3.0 wraps the body of commands into a body node.
+     ,@(ignore-errors
+         (treesit-query-capture 'cmake '((body) @capture))
+         `(((parent-is "body") grand-parent cmake-ts-mode-indent-offset)))))
   "Tree-sitter indent rules for `cmake-ts-mode'.")
 
 (defvar cmake-ts-mode--constants
@@ -89,8 +97,8 @@
   "CMake if conditions for tree-sitter font-locking.")
 
 (defun cmake-ts-mode--font-lock-compatibility-fe9b5e0 ()
-  "Indent rules helper, to handle different releases of tree-sitter-cmake.
-Check if a node type is available, then return the right indent rules."
+  "Font lock helper, to handle different releases of tree-sitter-cmake.
+Check if a node type is available, then return the right font lock rules."
   ;; handle commit fe9b5e0
   (condition-case nil
       (progn (treesit-query-capture 'cmake '((argument_list) @capture))
