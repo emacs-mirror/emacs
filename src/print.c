@@ -2603,21 +2603,30 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	    if (h->purecopy)
 	      print_c_string (" purecopy t", printcharfun);
 
-	    print_c_string (" data (", printcharfun);
-
 	    ptrdiff_t size = h->count;
-	    /* Don't print more elements than the specified maximum.  */
-	    if (FIXNATP (Vprint_length) && XFIXNAT (Vprint_length) < size)
-	      size = XFIXNAT (Vprint_length);
+	    if (size > 0)
+	      {
+		print_c_string (" data (", printcharfun);
 
-	    print_stack_push ((struct print_stack_entry){
-		.type = PE_hash,
-		.u.hash.obj = obj,
-		.u.hash.nobjs = size * 2,
-		.u.hash.idx = 0,
-		.u.hash.printed = 0,
-		.u.hash.truncated = (size < h->count),
-	      });
+		/* Don't print more elements than the specified maximum.  */
+		if (FIXNATP (Vprint_length) && XFIXNAT (Vprint_length) < size)
+		  size = XFIXNAT (Vprint_length);
+
+		print_stack_push ((struct print_stack_entry){
+		    .type = PE_hash,
+		    .u.hash.obj = obj,
+		    .u.hash.nobjs = size * 2,
+		    .u.hash.idx = 0,
+		    .u.hash.printed = 0,
+		    .u.hash.truncated = (size < h->count),
+		  });
+	      }
+	    else
+	      {
+		/* Empty table: we can omit the data entirely.  */
+		printchar (')', printcharfun);
+		--print_depth;   /* Done with this.  */
+	      }
 	    goto next_obj;
 	  }
 
