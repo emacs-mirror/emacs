@@ -1056,6 +1056,13 @@ additionally traverse the parent directories until a VCS root is found
 (if any), so that the ignore rules for that repository are used, and
 the file listing's performance is still optimized.
 
+** JS Mode
+The binding 'M-.' has been removed from the major mode keymaps in
+'js-mode' and 'js-ts-mode', having it default to the global binding
+which calls 'xref-find-definitions'.  If the previous one worked
+better for you, use 'define-key' in your init script to bind
+'js-find-symbol' to that combination again.
+
 
 * Incompatible Lisp Changes in Emacs 30.1
 
