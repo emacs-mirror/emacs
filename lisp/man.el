@@ -583,9 +583,10 @@ Otherwise, the value is whatever the function
       "/bin/sh"))
 
 (defun Man-header-file-path ()
-  "C Header file search path used in Man.
-In the local case, it is the value of `Man-header-file-path'.
-Otherwise, it will be checked on the remote system."
+  "Return the C header file search path that Man uses.
+Normally, this is the value of the user option `Man-header-file-path',
+but when the man page is retrieved from a remote system this
+function tries to find the C header path on that system."
   (let ((remote-id (file-remote-p default-directory)))
     (if (null remote-id)
         ;; The local case.
@@ -1088,11 +1089,9 @@ SPC character in the above examples, because this command attempts
 to auto-complete your input based on the installed manual pages.
 
 If `default-directory' is remote, and `Man-support-remote-systems'
-is non-nil, the man page will be formatted on the corresponding
-remote system.
-
-If `man' is called interactively with a prefix argument, the
-value of `Man-support-remote-systems' is reverted."
+is non-nil, this command formats the man page on the remote system.
+A prefix argument reverses the value of `Man-support-remote-systems'
+for the current call."
 
   (interactive
    (list (let* ((default-entry (Man-default-man-entry))

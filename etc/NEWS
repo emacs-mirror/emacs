@@ -688,16 +688,15 @@ bound to 'C-c C-d' in 'go-ts-mode'.
 
 +++
 *** New user option 'Man-prefer-synchronous-call'.
-When this is non-nil, call the 'man' program synchronously rather than
+When this is non-nil, run the 'man' command synchronously rather than
 asynchronously (which is the default behavior).
 
 +++
 *** New user option 'Man-support-remote-systems'.
-If the user option 'Man-support-remote-systems' is non-nil, and
-'default-directory' indicates a remote system, the man page is taken
-from the remote system.  Calling the 'man' command with a prefix like
-'C-u M-x man' reverts the value of 'Man-support-remote-systems' for
-that call.
+This option controls whether the man page is taken from the remote
+system when the current buffer is remote.  You can invoke the 'man'
+command with a prefix argument to reverse the value of this option
+only for the current invocation.
 
 ** DocView
 
@@ -1011,7 +1010,7 @@ A major mode based on the tree-sitter library for editing Lua files.
 
 *** New commands 'previous-line-completion' and 'next-line-completion'.
 Bound to '<UP>' and '<DOWN>' arrow keys, respectively, they navigate
-the *Completions* buffer vertically by lines, wrapping at the
+the "*Completions*" buffer vertically by lines, wrapping at the
 top/bottom when 'completion-auto-wrap' is non-nil.
 
 +++
