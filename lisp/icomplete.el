@@ -755,13 +755,12 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
                            (overlay-end rfn-eshadow-overlay)))
           (let* ((field-string (icomplete--field-string))
                  (text (while-no-input
-                         (benchmark-progn
                          (icomplete-completions
                           field-string
                           (icomplete--completion-table)
                           (icomplete--completion-predicate)
                           (if (window-minibuffer-p)
-                              (eq minibuffer--require-match t))))))
+                              (eq minibuffer--require-match t)))))
                  (buffer-undo-list t)
                  deactivate-mark)
             ;; Do nothing if while-no-input was aborted.
