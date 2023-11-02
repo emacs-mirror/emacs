@@ -3759,20 +3759,20 @@ one-letter-long matches).")
 
 Completion-presenting frontends may opt to bind this variable to
 non-nil value in the context of completion-producing calls (such
-as `completion-all-sorted-completions').  This hints the
-intervening completion styles that they do not need to
+as `completion-all-completions').  This hints the intervening
+completion styles that they do not need to
 fontify (i.e. propertize with the `face' property) completion
 strings with highlights of the matching parts.
 
 When doing so, it is the frontend -- not the style -- who becomes
-responsible this fontification.  The frontend binds this variable
-to non-nil, and calls the function with the same name
+responsible for this fontification.  The frontend binds this
+variable to non-nil, and calls the function with the same name
 `completion-lazy-hilit' on each completion string that is to be
 displayed to the user.
 
 Note that only some completion styles take advantage of this
 variable for optimization purposes.  Other styles will ignore the
-hint and greedily fontify as usual.  It is still safe for a
+hint and fontify eagerly as usual.  It is still safe for a
 frontend to call `completion-lazy-hilit' in these situations.
 
 To author a completion style that takes advantage see
@@ -3780,7 +3780,7 @@ To author a completion style that takes advantage see
 `completion-pcm--hilit-commonality'.")
 
 (defvar completion-lazy-hilit-fn nil
-  "Used by completions styles to honouring `completion-lazy-hilit'.
+  "Used by completions styles honoring `completion-lazy-hilit'.
 When a given style wants to enable support for
 `completion-lazy-hilit' (which see), that style should set this
 variable to a function of one argument, a fresh string to be
@@ -3925,28 +3925,21 @@ relevant segments.
 
 Else, if `completion-lazy-hilit' is t, return COMPLETIONS
 unchanged, but setup a suitable `completion-lazy-hilit-fn' (which
-see) for later lazy highlighting"
+see) for later lazy highlighting."
   (setq completion-pcm--regexp nil
         completion-lazy-hilit-fn nil)
   (cond
    ((and completions (cl-loop for e in pattern thereis (stringp e)))
-    (let* ((re (completion-pcm--pattern->regex pattern 'group))
-           (score (lambda (str)
-                    (put-text-property 0 1 'completion-score
-                                       (completion--flex-score str re)
-                                       str))))
+    (let* ((re (completion-pcm--pattern->regex pattern 'group)))
+      (setq completion-pcm--regexp re)
       (cond (completion-lazy-hilit
              (setq completion-lazy-hilit-fn
-                   (lambda (str) (completion--hilit-from-re str re))
-                   completion-pcm--regexp re)
+                   (lambda (str) (completion--hilit-from-re str re)))
              completions)
             (t
              (mapcar
               (lambda (str)
-                (setq str (copy-sequence str))
-                (funcall score str)
-                (completion--hilit-from-re str re)
-                str)
+                (completion--hilit-from-re (copy-sequence str) re))
               completions)))))
    (t completions)))
 
@@ -4284,15 +4277,7 @@ that is non-nil."
 
 (defun completion--flex-adjust-metadata (metadata)
   "If `flex' is actually doing filtering, adjust sorting."
-  (let ((flex-is-filtering-p
-         ;; JT@2019-12-23: FIXME: this is kinda wrong.  What we need
-         ;; to test here is "some input that actually leads/led to
-         ;; flex filtering", not "something after the minibuffer
-         ;; prompt".  E.g. The latter is always true for file
-         ;; searches, meaning we'll be doing extra work when we
-         ;; needn't.
-         (or (not (window-minibuffer-p))
-             (> (point-max) (minibuffer-prompt-end))))
+  (let ((flex-is-filtering-p completion-pcm--regexp)
         (existing-dsf
          (completion-metadata-get metadata 'display-sort-function))
         (existing-csf
@@ -4300,49 +4285,31 @@ that is non-nil."
     (cl-flet
         ((compose-flex-sort-fn (existing-sort-fn)
            (lambda (completions)
-             (let ((pre-sorted (funcall existing-sort-fn completions)))
-               (cond (;; There's no useful scoring to apply, since the
-                      ;; pattern is empty
-                      (null completion-pcm--regexp)
-                      pre-sorted)
-                     (completion-lazy-hilit
-                      ;; Lazy highlight has been requested, so do the
-                      ;; scoring and sorting now.
-                      (let* ((sorted (sort
-                                      (mapcar
-                                       (lambda (str)
-                                         (cons
-                                          (- (completion--flex-score
-                                              (or (get-text-property
-                                                   0 'completion--unquoted str)
-                                                  str)
-                                              completion-pcm--regexp))
-                                          str))
-                                       pre-sorted)
-                                      #'car-less-than-car))
-                             (cell sorted))
-                        ;; Reuse the list
-                        (while cell
-                          (setcar cell (cdar cell))
-                          (pop cell))
-                        sorted))
-                     (t
-                      ;; Lazy highlight not requested, so strings are
-                      ;; assumed to already contain `completion-score'
-                      ;; (and highlighting) and we can freely destroy
-                      ;; list.
-                      (sort
-                       pre-sorted
-                       (lambda (c1 c2)
-                         (> (or (get-text-property 0 'completion-score c1) 0)
-                            (or (get-text-property 0 'completion-score c2) 0))))))))))
+             (let* ((sorted (sort
+                             (mapcar
+                              (lambda (str)
+                                (cons
+                                 (- (completion--flex-score
+                                     (or (get-text-property
+                                          0 'completion--unquoted str)
+                                         str)
+                                     completion-pcm--regexp))
+                                 str))
+                              (if existing-sort-fn
+                                  (funcall existing-sort-fn completions)
+                                completions))
+                             #'car-less-than-car))
+                    (cell sorted))
+               ;; Reuse the list
+               (while cell
+                 (setcar cell (cdar cell))
+                 (pop cell))
+               sorted))))
       `(metadata
         ,@(and flex-is-filtering-p
-               `((display-sort-function
-                  . ,(compose-flex-sort-fn (or existing-dsf #'identity)))))
+               `((display-sort-function . ,(compose-flex-sort-fn existing-dsf))))
         ,@(and flex-is-filtering-p
-               `((cycle-sort-function
-                  . ,(compose-flex-sort-fn (or existing-csf #'identity)))))
+               `((cycle-sort-function . ,(compose-flex-sort-fn existing-csf))))
         ,@(cdr metadata)))))
 
 (defun completion-flex--make-flex-pattern (pattern)
