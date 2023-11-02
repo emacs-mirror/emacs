@@ -60,7 +60,7 @@ If nil, timestamping is turned off."
 Only considered when `erc-insert-timestamp-function' is set to
 `erc-insert-timestamp-left-and-right'.  Used for displaying date
 stamps on their own line, between messages.  ERC inserts this
-flavor of stamp as a separate \"psuedo message\", so a final
+flavor of stamp as a separate \"pseudo message\", so a final
 newline isn't necessary.  For compatibility, only additional
 trailing newlines beyond the first become empty lines.  For
 example, the default value results in an empty line after the
@@ -69,7 +69,8 @@ followed immediately by the next message on the next line.  ERC
 expects to display these stamps less frequently, so the
 formatting specifiers should reflect that.  To omit these stamps
 entirely, use a different `erc-insert-timestamp-function', such
-as `erc-timestamp-format-right'."
+as `erc-timestamp-format-right'.  Note that changing this value
+during an ERC session requires cycling `erc-stamp-mode'."
   :type 'string)
 
 (defcustom erc-timestamp-format-right nil
@@ -147,8 +148,9 @@ appropriate ERC buffer before the change will take effect."
   "Format string to be used when `erc-echo-timestamps' is non-nil.
 This string specifies the format of the timestamp being echoed in
 the minibuffer."
-  :type '(choice (const "Timestamped %A, %H:%M:%S")
-                 (const  "%Y-%m-%d %H:%M:%S %Z")
+  :type '(choice (const :tag "Timestamped Monday, 15:04:05"
+                        "Timestamped %A, %H:%M:%S")
+                 (const :tag "2006-01-02 15:04:05 MST" "%F %T %Z")
                  string))
 
 (defcustom erc-echo-timestamp-zone nil
@@ -629,7 +631,11 @@ printed just after each line's text (no alignment)."
   "Functions appended to send and modify hooks when inserting date stamp.")
 
 (defvar-local erc-stamp--date-format-end nil
-  "Substring index marking usable portion of date stamp format.")
+  "Tristate value indicating how and whether date stamps have been set up.
+A non-nil value means the buffer has been initialized to use date
+stamps.  An integer marks the `substring' TO parameter for
+truncating `erc-timestamp-format-left' prior to rendering.  A
+value of t means the option's value doesn't require trimming.")
 
 (defun erc-stamp--propertize-left-date-stamp ()
   (add-text-properties (point-min) (1- (point-max))
@@ -645,12 +651,14 @@ printed just after each line's text (no alignment)."
   (unless erc-stamp--date-format-end
     ;; Don't add text properties to the trailing newline.
     (setq erc-stamp--date-format-end
-          (if (string-suffix-p "\n" erc-timestamp-format-left) -1 0)))
+          (if (string-suffix-p "\n" erc-timestamp-format-left) -1 t)))
   ;; Ignore existing `invisible' prop value because date stamps should
   ;; never be hideable except via `timestamp'.
   (let (erc-stamp--invisible-property)
-    (erc-format-timestamp ct (substring erc-timestamp-format-left
-                                        0 erc-stamp--date-format-end))))
+    (erc-format-timestamp ct (if (numberp erc-stamp--date-format-end)
+                                 (substring erc-timestamp-format-left
+                                            0 erc-stamp--date-format-end)
+                               erc-timestamp-format-left))))
 
 ;; Calling `erc-display-message' from within a hook it's currently
 ;; running is roundabout, but it's a definite means of ensuring hooks
@@ -689,11 +697,13 @@ printed just after each line's text (no alignment)."
 
 (defvar erc-stamp-prepend-date-stamps-p nil
   "When non-nil, date stamps are not independent messages.
-Users should think twice about enabling this escape hatch.  It
-will likely degraded the user experience by causing post-5.5
-features, like `fill-wrap', dynamic invisibility, etc., to
-malfunction.  Basic support for the default configuration may
-expire earlier than normally expected.")
+This flag restores pre-5.6 behavior in which date stamps formed
+the leading portion of affected messages.  Beware that enabling
+this degrades the user experience by causing 5.6+ features, like
+`fill-wrap', dynamic invisibility, etc., to malfunction.  When
+non-nil, none of the newline twiddling mentioned in the doc
+string for `erc-timestamp-format-left' occurs.  That is, ERC does
+not append or remove trailing newlines.")
 (make-obsolete-variable 'erc-stamp-prepend-date-stamps-p
                         "unsupported legacy behavior" "30.1")
 
@@ -731,7 +741,10 @@ left-sided stamps and date stamps inserted by this function."
                      (if erc-timestamp-format-right
                          (erc-format-timestamp ct erc-timestamp-format-right)
                        string))))
-    ;; Maybe insert legacy date stamp.
+    ;; We should arguably be ensuring a trailing newline on legacy
+    ;; "prepended" date stamps as well.  However, since this is a
+    ;; compatibility oriented code path, and pre-5.6 did no such
+    ;; thing, better to punt.
     (when-let ((erc-stamp-prepend-date-stamps-p)
                (ts-left (erc-format-timestamp ct erc-timestamp-format-left))
                ((not (string= ts-left erc-timestamp-last-inserted-left))))
