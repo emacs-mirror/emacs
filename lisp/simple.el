@@ -9883,7 +9883,7 @@ Go to the window from which completion was requested."
 	  (select-window (get-buffer-window buf))))))
 
 (defcustom completion-auto-wrap t
-  "Non-nil means to wrap around when selecting completion options.
+  "Non-nil means to wrap around when selecting completion candidates.
 This affects the commands `next-completion', `previous-completion',
 `next-line-completion' and `previous-line-completion'.
 When `completion-auto-select' is t, it wraps through the minibuffer
@@ -9893,12 +9893,12 @@ for the commands bound to the TAB key."
   :group 'completion)
 
 (defcustom completion-auto-select nil
-  "Non-nil means to automatically select the *Completions* buffer.
+  "If non-nil, automatically select the window showing the *Completions* buffer.
 When the value is t, pressing TAB will switch to the completion list
 buffer when Emacs pops up a window showing that buffer.
 If the value is `second-tab', then the first TAB will pop up the
 window showing the completions list buffer, and the next TAB will
-switch to that window.
+select that window.
 See `completion-auto-help' for controlling when the window showing
 the completions is popped up and down."
   :type '(choice (const :tag "Don't auto-select completions window" nil)
@@ -9909,7 +9909,7 @@ the completions is popped up and down."
   :group 'completion)
 
 (defun first-completion ()
-  "Move to the first item in the completion list."
+  "Move to the first item in the completions buffer."
   (interactive)
   (goto-char (point-min))
   (if (get-text-property (point) 'mouse-face)
@@ -9921,7 +9921,7 @@ the completions is popped up and down."
       (goto-char pos))))
 
 (defun last-completion ()
-  "Move to the last item in the completion list."
+  "Move to the last item in the completions buffer."
   (interactive)
   (goto-char (previous-single-property-change
               (point-max) 'mouse-face nil (point-min)))
@@ -9931,7 +9931,7 @@ the completions is popped up and down."
       (goto-char pos))))
 
 (defun previous-completion (n)
-  "Move to the previous item in the completion list.
+  "Move to the previous item in the completions buffer.
 With prefix argument N, move back N items (negative N means move
 forward).
 
@@ -9940,7 +9940,7 @@ Also see the `completion-auto-wrap' variable."
   (next-completion (- n)))
 
 (defun next-completion (n)
-  "Move to the next item in the completion list.
+  "Move to the next item in the completions buffer.
 With prefix argument N, move N items (negative N means move
 backward).
 
@@ -10004,18 +10004,16 @@ Also see the `completion-auto-wrap' variable."
       (switch-to-minibuffer))))
 
 (defun previous-line-completion (&optional n)
-  "Move to the item on the previous line in the completion list.
-With prefix argument N, move back N items line-wise (negative N
-means move forward).
+  "Move to completion candidate on the previous line in the completions buffer.
+With prefix argument N, move back N lines (negative N means move forward).
 
 Also see the `completion-auto-wrap' variable."
   (interactive "p")
   (next-line-completion (- n)))
 
 (defun next-line-completion (&optional n)
-  "Move to the item on the next line in the completion list.
-With prefix argument N, move N items line-wise (negative N
-means move backward).
+  "Move to completion candidate on the next line in the completions buffer.
+With prefix argument N, move N lines forward (negative N means move backward).
 
 Also see the `completion-auto-wrap' variable."
   (interactive "p")
