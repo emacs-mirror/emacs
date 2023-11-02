@@ -2577,10 +2577,10 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	       #s(hash-table test equal data (k1 v1 k2 v2)) */
 	    print_c_string ("#s(hash-table", printcharfun);
 
-	    if (!BASE_EQ (h->test.name, Qeql))
+	    if (!BASE_EQ (h->test->name, Qeql))
 	      {
 		print_c_string (" test ", printcharfun);
-		print_object (h->test.name, printcharfun, escapeflag);
+		print_object (h->test->name, printcharfun, escapeflag);
 	      }
 
 	    if (h->weakness != Weak_None)

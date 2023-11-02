@@ -5942,10 +5942,6 @@ purecopy_hash_table (struct Lisp_Hash_Table *table)
   *pure = *table;
   pure->mutable = false;
 
-  pure->test.name = purecopy (table->test.name);
-  pure->test.user_hash_function = purecopy (table->test.user_hash_function);
-  pure->test.user_cmp_function = purecopy (table->test.user_cmp_function);
-
   if (table->table_size > 0)
     {
       ptrdiff_t hash_bytes = table->table_size * sizeof *table->hash;
@@ -6630,6 +6626,7 @@ garbage_collect (void)
 #ifdef HAVE_NS
   mark_nsterm ();
 #endif
+  mark_fns ();
 
   /* Everything is now marked, except for the data in font caches,
      undo lists, and finalizers.  The first two are compacted by
@@ -7295,9 +7292,6 @@ process_mark_stack (ptrdiff_t base_sp)
 		{
 		  struct Lisp_Hash_Table *h = (struct Lisp_Hash_Table *)ptr;
 		  set_vector_marked (ptr);
-		  mark_stack_push_value (h->test.name);
-		  mark_stack_push_value (h->test.user_hash_function);
-		  mark_stack_push_value (h->test.user_cmp_function);
 		  if (h->weakness == Weak_None)
 		    mark_stack_push_values (h->key_and_value,
 					    2 * h->table_size);

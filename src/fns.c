@@ -4448,7 +4448,7 @@ static Lisp_Object
 cmpfn_user_defined (Lisp_Object key1, Lisp_Object key2,
 		    struct Lisp_Hash_Table *h)
 {
-  Lisp_Object args[] = { h->test.user_cmp_function, key1, key2 };
+  Lisp_Object args[] = { h->test->user_cmp_function, key1, key2 };
   return hash_table_user_defined_call (ARRAYELTS (args), args, h);
 }
 
@@ -4487,7 +4487,7 @@ hashfn_eql (Lisp_Object key, struct Lisp_Hash_Table *h)
 static hash_hash_t
 hashfn_user_defined (Lisp_Object key, struct Lisp_Hash_Table *h)
 {
-  Lisp_Object args[] = { h->test.user_hash_function, key };
+  Lisp_Object args[] = { h->test->user_hash_function, key };
   Lisp_Object hash = hash_table_user_defined_call (ARRAYELTS (args), args, h);
   return FIXNUMP (hash) ? XUFIXNUM(hash) : sxhash (hash);
 }
@@ -4557,10 +4557,10 @@ static const hash_idx_t empty_hash_index_vector[] = {-1};
    changed after purecopy.  */
 
 Lisp_Object
-make_hash_table (struct hash_table_test test, EMACS_INT size,
+make_hash_table (const struct hash_table_test *test, EMACS_INT size,
 		 hash_table_weakness_t weak, bool purecopy)
 {
-  eassert (SYMBOLP (test.name));
+  eassert (SYMBOLP (test->name));
   eassert (0 <= size && size <= min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX));
 
   struct Lisp_Hash_Table *h = allocate_hash_table ();
@@ -4763,7 +4763,7 @@ hash_table_thaw (Lisp_Object hash_table)
 
   /* Freezing discarded most non-essential information; recompute it.
      The allocation is minimal with no room for growth.  */
-  h->test = *hash_table_test_from_std (h->frozen_test);
+  h->test = hash_table_test_from_std (h->frozen_test);
   ptrdiff_t size = h->count;
   h->table_size = size;
   ptrdiff_t index_size = hash_index_size (size);
@@ -4805,9 +4805,9 @@ hash_lookup_with_hash (struct Lisp_Hash_Table *h,
   for (ptrdiff_t i = HASH_INDEX (h, start_of_bucket);
        0 <= i; i = HASH_NEXT (h, i))
     if (EQ (key, HASH_KEY (h, i))
-	|| (h->test.cmpfn
+	|| (h->test->cmpfn
 	    && hash == HASH_HASH (h, i)
-	    && !NILP (h->test.cmpfn (key, HASH_KEY (h, i), h))))
+	    && !NILP (h->test->cmpfn (key, HASH_KEY (h, i), h))))
       return i;
 
   return -1;
@@ -4884,9 +4884,9 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
        i = HASH_NEXT (h, i))
     {
       if (EQ (key, HASH_KEY (h, i))
-	  || (h->test.cmpfn
+	  || (h->test->cmpfn
 	      && hashval == HASH_HASH (h, i)
-	      && !NILP (h->test.cmpfn (key, HASH_KEY (h, i), h))))
+	      && !NILP (h->test->cmpfn (key, HASH_KEY (h, i), h))))
 	{
 	  /* Take entry out of collision chain.  */
 	  if (prev < 0)
@@ -5339,6 +5339,58 @@ Hash codes are not guaranteed to be preserved across Emacs sessions.  */)
   return make_ufixnum (hashfn_equal (obj, NULL));
 }
 
+
+/* This is a cache of hash_table_test structures so that they can be
+   shared between hash tables using the same test.
+   FIXME: This way of storing and looking up hash_table_test structs
+   isn't wonderful.  Find a better solution.  */
+struct hash_table_user_test
+{
+  struct hash_table_test test;
+  struct hash_table_user_test *next;
+};
+
+static struct hash_table_user_test *hash_table_user_tests = NULL;
+
+void
+mark_fns (void)
+{
+  for (struct hash_table_user_test *ut = hash_table_user_tests;
+       ut; ut = ut->next)
+    {
+      mark_object (ut->test.name);
+      mark_object (ut->test.user_cmp_function);
+      mark_object (ut->test.user_hash_function);
+    }
+}
+
+static struct hash_table_test *
+get_hash_table_user_test (Lisp_Object test)
+{
+  Lisp_Object prop = Fget (test, Qhash_table_test);
+  if (!CONSP (prop) || !CONSP (XCDR (prop)))
+    signal_error ("Invalid hash table test", test);
+
+  Lisp_Object equal_fn = XCAR (prop);
+  Lisp_Object hash_fn = XCAR (XCDR (prop));
+  struct hash_table_user_test *ut = hash_table_user_tests;
+  while (ut && !(EQ (equal_fn, ut->test.user_cmp_function)
+		 && EQ (hash_fn, ut->test.user_hash_function)))
+    ut = ut->next;
+  if (!ut)
+    {
+      ut = xmalloc (sizeof *ut);
+      ut->test.name = test;
+      ut->test.user_cmp_function = equal_fn;
+      ut->test.user_hash_function = hash_fn;
+      ut->test.hashfn = hashfn_user_defined;
+      ut->test.cmpfn = cmpfn_user_defined;
+      ut->next = hash_table_user_tests;
+      hash_table_user_tests = ut;
+    }
+  return &ut->test;
+}
+
 DEFUN ("make-hash-table", Fmake_hash_table, Smake_hash_table, 0, MANY, 0,
        doc: /* Create and return a new hash table.
 
@@ -5384,25 +5436,15 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   Lisp_Object test = i ? args[i] : Qeql;
   if (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (test))
     test = SYMBOL_WITH_POS_SYM (test);
-  struct hash_table_test testdesc;
+  const struct hash_table_test *testdesc;
   if (BASE_EQ (test, Qeq))
-    testdesc = hashtest_eq;
+    testdesc = &hashtest_eq;
   else if (BASE_EQ (test, Qeql))
-    testdesc = hashtest_eql;
+    testdesc = &hashtest_eql;
   else if (BASE_EQ (test, Qequal))
-    testdesc = hashtest_equal;
+    testdesc = &hashtest_equal;
   else
-    {
-      /* See if it is a user-defined test.  */
-      Lisp_Object prop = Fget (test, Qhash_table_test);
-      if (!CONSP (prop) || !CONSP (XCDR (prop)))
-	signal_error ("Invalid hash table test", test);
-      testdesc.name = test;
-      testdesc.user_cmp_function = XCAR (prop);
-      testdesc.user_hash_function = XCAR (XCDR (prop));
-      testdesc.hashfn = hashfn_user_defined;
-      testdesc.cmpfn = cmpfn_user_defined;
-    }
+    testdesc = get_hash_table_user_test (test);
 
   /* See if there's a `:purecopy PURECOPY' argument.  */
   i = get_key_arg (QCpurecopy, nargs, args, used);
@@ -5504,7 +5546,7 @@ DEFUN ("hash-table-test", Fhash_table_test, Shash_table_test, 1, 1, 0,
        doc: /* Return the test TABLE uses.  */)
   (Lisp_Object table)
 {
-  return check_hash_table (table)->test.name;
+  return check_hash_table (table)->test->name;
 }
 
 Lisp_Object

@@ -7333,7 +7333,7 @@ only for this purpose.  */);
     doc: /* Hash table of global face definitions (for internal use only.)  */);
   Vface_new_frame_defaults =
     /* 33 entries is enough to fit all basic faces */
-    make_hash_table (hashtest_eq, 33, Weak_None, false);
+    make_hash_table (&hashtest_eq, 33, Weak_None, false);
 
   DEFVAR_LISP ("face-default-stipple", Vface_default_stipple,
     doc: /* Default stipple pattern used on monochrome displays.

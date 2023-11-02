@@ -2397,6 +2397,7 @@ typedef enum {
 
 struct hash_table_test
 {
+  /* FIXME: reorder for efficiency */
   /* Function used to compare keys; always a bare symbol.  */
   Lisp_Object name;
 
@@ -2515,7 +2516,7 @@ struct Lisp_Hash_Table
   Lisp_Object *key_and_value;
 
   /* The comparison and hash functions.  */
-  struct hash_table_test test;
+  const struct hash_table_test *test;
 
   /* Next weak hash table if this is a weak hash table.  The head of
      the list is in weak_hash_tables.  Used only during garbage
@@ -2584,7 +2585,7 @@ HASH_TABLE_SIZE (const struct Lisp_Hash_Table *h)
 INLINE hash_hash_t
 hash_from_key (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
-  return h->test.hashfn (key, h);
+  return h->test->hashfn (key, h);
 }
 
 void hash_table_thaw (Lisp_Object hash_table);
@@ -4064,7 +4065,7 @@ extern void hexbuf_digest (char *, void const *, int);
 extern char *extract_data_from_object (Lisp_Object, ptrdiff_t *, ptrdiff_t *);
 EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object);
-Lisp_Object make_hash_table (struct hash_table_test, EMACS_INT,
+Lisp_Object make_hash_table (const struct hash_table_test *, EMACS_INT,
                              hash_table_weakness_t, bool);
 Lisp_Object hash_table_weakness_symbol (hash_table_weakness_t weak);
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object);
@@ -4098,6 +4099,7 @@ extern Lisp_Object plist_put (Lisp_Object plist, Lisp_Object prop,
 			      Lisp_Object val);
 extern Lisp_Object plist_member (Lisp_Object plist, Lisp_Object prop);
 extern void syms_of_fns (void);
+extern void mark_fns (void);
 
 /* Defined in sort.c  */
 extern void tim_sort (Lisp_Object, Lisp_Object *, const ptrdiff_t);
