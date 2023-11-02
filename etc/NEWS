@@ -1078,6 +1078,12 @@ It highlights parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
 a user-friendly way, avoids reporting alleged paren mismatches and makes
 sexp navigation more intuitive.
 
++++
+*** New minor mode 'completion-preview-mode'.
+This minor mode shows you symbol completion suggestions as you type,
+using an inline preview.  New user options in the 'completion-preview'
+customization group control exactly when Emacs displays this preview.
+
 ---
 ** The highly accessible Modus themes collection has eight items.
 The 'modus-operandi' and 'modus-vivendi' are the main themes that have

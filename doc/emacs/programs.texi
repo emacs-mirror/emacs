@@ -1701,6 +1701,17 @@ completion to the buffer.  @xref{Completion}.
   In Text mode and related modes, @kbd{M-@key{TAB}} completes words
 based on the spell-checker's dictionary.  @xref{Spelling}.
 
+@cindex completion preview
+@cindex preview completion
+@cindex suggestion preview
+@cindex Completion Preview mode
+@findex completion-preview-mode
+  Completion Preview mode is a minor mode that shows completion
+suggestions as you type.  When you enable this mode (with @kbd{M-x
+completion-preview-mode}), Emacs automatically displays the
+suggested completion for text around point as an in-line preview
+right after point; type @key{TAB} to accept the suggestion.
+
 @node MixedCase Words
 @section MixedCase Words
 @cindex camel case
