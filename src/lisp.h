@@ -2397,9 +2397,11 @@ typedef enum {
 
 struct hash_table_test
 {
-  /* FIXME: reorder for efficiency */
-  /* Function used to compare keys; always a bare symbol.  */
-  Lisp_Object name;
+  /* C function to compute hash code.  */
+  hash_hash_t (*hashfn) (Lisp_Object, struct Lisp_Hash_Table *);
+
+  /* C function to compare two keys.  */
+  Lisp_Object (*cmpfn) (Lisp_Object, Lisp_Object, struct Lisp_Hash_Table *);
 
   /* User-supplied hash function, or nil.  */
   Lisp_Object user_hash_function;
@@ -2407,11 +2409,8 @@ struct hash_table_test
   /* User-supplied key comparison function, or nil.  */
   Lisp_Object user_cmp_function;
 
-  /* C function to compare two keys.  */
-  Lisp_Object (*cmpfn) (Lisp_Object, Lisp_Object, struct Lisp_Hash_Table *);
-
-  /* C function to compute hash code.  */
-  hash_hash_t (*hashfn) (Lisp_Object, struct Lisp_Hash_Table *);
+  /* Function used to compare keys; always a bare symbol.  */
+  Lisp_Object name;
 };
 
 typedef enum {
@@ -2480,6 +2479,16 @@ struct Lisp_Hash_Table
      This vector is table_size entries long.  */
   hash_hash_t *hash;
 
+  /* Vector of keys and values.  The key of item I is found at index
+     2 * I, the value is found at index 2 * I + 1.
+     If the key is HASH_UNUSED_ENTRY_KEY, then this slot is unused.
+     This is gc_marked specially if the table is weak.
+     This vector is 2 * table_size entries long.  */
+  Lisp_Object *key_and_value;
+
+  /* The comparison and hash functions.  */
+  const struct hash_table_test *test;
+
   /* Vector used to chain entries.  If entry I is free, next[I] is the
      entry number of the next free item.  If entry I is non-free,
      next[I] is the index of the next entry in the collision chain,
@@ -2507,16 +2516,6 @@ struct Lisp_Hash_Table
      pure tables are not, and while a table is being mutated it is
      immutable for recursive attempts to mutate it.  */
   bool mutable;
-
-  /* Vector of keys and values.  The key of item I is found at index
-     2 * I, the value is found at index 2 * I + 1.
-     If the key is HASH_UNUSED_ENTRY_KEY, then this slot is unused.
-     This is gc_marked specially if the table is weak.
-     This vector is 2 * table_size entries long.  */
-  Lisp_Object *key_and_value;
-
-  /* The comparison and hash functions.  */
-  const struct hash_table_test *test;
 
   /* Next weak hash table if this is a weak hash table.  The head of
      the list is in weak_hash_tables.  Used only during garbage

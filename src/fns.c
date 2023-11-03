@@ -4493,12 +4493,12 @@ hashfn_user_defined (Lisp_Object key, struct Lisp_Hash_Table *h)
 }
 
 struct hash_table_test const
-  hashtest_eq = { LISPSYM_INITIALLY (Qeq), LISPSYM_INITIALLY (Qnil),
-		  LISPSYM_INITIALLY (Qnil), 0, hashfn_eq },
-  hashtest_eql = { LISPSYM_INITIALLY (Qeql), LISPSYM_INITIALLY (Qnil),
-		   LISPSYM_INITIALLY (Qnil), cmpfn_eql, hashfn_eql },
-  hashtest_equal = { LISPSYM_INITIALLY (Qequal), LISPSYM_INITIALLY (Qnil),
-		     LISPSYM_INITIALLY (Qnil), cmpfn_equal, hashfn_equal };
+  hashtest_eq = { .name = LISPSYM_INITIALLY (Qeq),
+		  .cmpfn = 0, .hashfn = hashfn_eq },
+  hashtest_eql = { .name = LISPSYM_INITIALLY (Qeql),
+		   .cmpfn = cmpfn_eql, .hashfn = hashfn_eql },
+  hashtest_equal = { .name = LISPSYM_INITIALLY (Qequal),
+		     .cmpfn = cmpfn_equal, .hashfn = hashfn_equal };
 
 /* Allocate basically initialized hash table.  */
 
