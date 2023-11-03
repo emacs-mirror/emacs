@@ -37,7 +37,7 @@
  (0.00 ":alice!~u@2fzfcku68ehqa.irc PRIVMSG #chan :bob: No remedy, my lord, when walls are so wilful to hear without warning.")
  (0.01 ":bob!~u@2fzfcku68ehqa.irc PRIVMSG #chan :alice: Let our reciprocal vows be remembered. You have many opportunities to cut him off; if your will want not, time and place will be fruitfully offered. There is nothing done if he return the conqueror; then am I the prisoner, and his bed my gaol; from the loathed warmth whereof deliver me, and supply the place for your labor."))
 
-((quit 1 "QUIT :\2ERC\2")
+((quit 10 "QUIT :\2ERC\2")
  (0.03 ":tester`!~u@u9iqi96sfwk9s.irc QUIT :Quit"))
 
 ((drop 0 DROP))

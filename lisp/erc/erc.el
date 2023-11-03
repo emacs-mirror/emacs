@@ -3026,16 +3026,19 @@ stored value.  Otherwise, return the stored value."
   "Return the bounds of a message in an ERC buffer.
 Return ONLY one side when the first arg is `end' or `beg'.  With
 POINT, search from POINT instead of `point'."
+  ;; TODO add edebug spec.
   `(let* ((point ,(or point '(point)))
           (at-start-p (get-text-property point 'erc-msg)))
      (and-let*
-         (,@(and (member only '(nil 'beg))
+         (,@(and (member only '(nil beg 'beg))
                  '((b (or (and at-start-p point)
                           (and-let*
                               ((p (previous-single-property-change point
                                                                    'erc-msg)))
-                            (if (= p (1- point)) p (1- p)))))))
-          ,@(and (member only '(nil 'end))
+                            (if (= p (1- point))
+                                (if (get-text-property p 'erc-msg) p (1- p))
+                              (1- p)))))))
+          ,@(and (member only '(nil end 'end))
                  '((e (1- (next-single-property-change
                            (if at-start-p (1+ point) point)
                            'erc-msg nil erc-insert-marker))))))

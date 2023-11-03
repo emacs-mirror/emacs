@@ -1432,6 +1432,55 @@
 
           (should-not calls))))))
 
+(ert-deftest erc--get-inserted-msg-bounds ()
+  (erc-mode)
+  (erc--initialize-markers (point) nil)
+  (let ((parsed (make-erc-response :unparsed ":bob PRIVMSG #chan :hi"
+                                   :sender "bob"
+                                   :command "PRIVMSG"
+                                   :command-args (list "#chan" "hi")
+                                   :contents "hi"))
+        (erc--msg-prop-overrides '((erc-ts . 0))))
+    (erc-display-message parsed nil (current-buffer)
+                         (erc-format-privmessage "bob" "hi" nil t)))
+  (goto-char 3)
+  (should (looking-at "<bob> hi"))
+  (goto-char 11)
+  (should (looking-back "<bob> hi"))
+
+  (ert-info ("Parameter `only' being `beg'")
+    (dolist (i (number-sequence 3 11))
+      (goto-char i)
+      (ert-info ((format "At %d (%c)" i (char-after i)))
+        (should (= 3 (erc--get-inserted-msg-bounds 'beg)))))
+
+    (ert-info ("Parameter `point'")
+      (dolist (i (number-sequence 3 11))
+        (ert-info ((format "At %d (%c)" i (char-after i)))
+          (should (= 3 (erc--get-inserted-msg-bounds 'beg i)))))))
+
+  (ert-info ("Parameter `only' being `end'")
+    (dolist (i (number-sequence 3 11))
+      (goto-char i)
+      (ert-info ((format "At %d (%c)" i (char-after i)))
+        (should (= 11 (erc--get-inserted-msg-bounds 'end)))))
+
+    (ert-info ("Parameter `point'")
+      (dolist (i (number-sequence 3 11))
+        (ert-info ((format "At %d (%c)" i (char-after i)))
+          (should (= 11 (erc--get-inserted-msg-bounds 'end i)))))))
+
+  (ert-info ("Parameter `only' being nil")
+    (dolist (i (number-sequence 3 11))
+      (goto-char i)
+      (ert-info ((format "At %d (%c)" i (char-after i)))
+        (should (equal '(3 . 11) (erc--get-inserted-msg-bounds nil)))))
+
+    (ert-info ("Parameter `point'")
+      (dolist (i (number-sequence 3 11))
+        (ert-info ((format "At %d (%c)" i (char-after i)))
+          (should (equal '(3 . 11) (erc--get-inserted-msg-bounds nil i))))))))
+
 (ert-deftest erc--delete-inserted-message ()
   (erc-mode)
   (erc--initialize-markers (point) nil)
