@@ -151,7 +151,7 @@ mode.")
   (when (and noninteractive (get symbol 'ert--test))
     ;; Make sure duplicated tests are discovered since the older test would
     ;; be ignored silently otherwise.
-    (error "Test `%s' redefined" symbol))
+    (error "Test `%s' redefined (or loaded twice)" symbol))
   (define-symbol-prop symbol 'ert--test definition)
   definition)
 
