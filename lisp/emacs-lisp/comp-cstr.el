@@ -269,16 +269,6 @@ Return them as multiple value."
   (string-lessp (symbol-name x)
                 (symbol-name y)))
 
-(defun comp--direct-supertype (type)    ;FIXME: There can be several!
-  "Return the direct supertype of TYPE."
-  (declare (obsolete comp--direct-supertype "30.1"))
-  (cl-loop
-   named outer
-   for i in (comp-cstr-ctxt-typeof-types comp-ctxt)
-   do (cl-loop for (j y) on i
-                   when (eq j type)
-                     do (cl-return-from outer y))))
-
 (defun comp--direct-supertypes (type)
   "Return the direct supertypes of TYPE."
   (let ((supers (comp-supertypes type)))
