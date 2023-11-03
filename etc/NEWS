@@ -693,10 +693,10 @@ asynchronously (which is the default behavior).
 
 +++
 *** New user option 'Man-support-remote-systems'.
-This option controls whether the man page is taken from the remote
-system when the current buffer is remote.  You can invoke the 'man'
-command with a prefix argument to reverse the value of this option
-only for the current invocation.
+This option controls whether the man page is formatted on the remote
+system when the current buffer's default-directory is remote.  You can
+invoke the 'man' command with a prefix argument to countermand the
+value of this option for the current invocation of 'man'.
 
 ** DocView
 
