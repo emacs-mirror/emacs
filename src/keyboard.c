@@ -3993,6 +3993,19 @@ kbd_buffer_get_event (KBOARD **kbp,
       if (CONSP (Vunread_command_events))
 	break;
 
+#ifdef HAVE_TEXT_CONVERSION
+      /* That text conversion events take priority over keyboard
+	 events, since input methods frequently send them immediately
+	 after edits, with the assumption that this order of events
+	 will be observed.  */
+
+      if (detect_conversion_events ())
+	{
+	  had_pending_conversion_events = true;
+	  break;
+	}
+#endif /* HAVE_TEXT_CONVERSION */
+
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
       if (some_mouse_moved ())
@@ -4018,13 +4031,6 @@ kbd_buffer_get_event (KBOARD **kbp,
       if (x_detect_pending_selection_requests ())
 	{
 	  had_pending_selection_requests = true;
-	  break;
-	}
-#endif
-#ifdef HAVE_TEXT_CONVERSION
-      if (detect_conversion_events ())
-	{
-	  had_pending_conversion_events = true;
 	  break;
 	}
 #endif

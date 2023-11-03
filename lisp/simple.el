@@ -11169,7 +11169,12 @@ place.  If undo information is being recorded, make sure
 `undo-auto-current-boundary-timer' will run within the next 5
 seconds."
   (interactive)
-  (let ((any-nonephemeral nil))
+  ;; One important consideration to bear in mind when adjusting this
+  ;; code is to _never_ move point in reaction to an edit so long as
+  ;; the additional processing undertaken by this function does not
+  ;; also edit the buffer text.
+  (let ((any-nonephemeral nil)
+        point-moved)
     ;; The list must be processed in reverse.
     (dolist (edit (reverse text-conversion-edits))
       ;; Filter out ephemeral edits and deletions after point.  Here, we
@@ -11177,6 +11182,9 @@ seconds."
       ;; can be identified.
       (when (stringp (nth 3 edit))
         (with-current-buffer (car edit)
+          ;; Record that the point hasn't been moved by the execution
+          ;; of a post command or text conversion hook.
+          (setq point-moved nil)
           (if (not (eq (nth 1 edit) (nth 2 edit)))
               ;; Process this insertion.  (nth 3 edit) is the text which
               ;; was inserted.
@@ -11192,7 +11200,8 @@ seconds."
                      ;; Save the current undo list to figure out
                      ;; whether or not auto-fill has actually taken
                      ;; place.
-                     (old-undo-list buffer-undo-list))
+                     (old-undo-list buffer-undo-list)
+                     (old-point (point)))
                 (save-excursion
                   (if (and auto-fill-function newline-p)
                       (progn (goto-char (nth 2 edit))
@@ -11211,10 +11220,22 @@ seconds."
                             (not (eq old-undo-list
                                      buffer-undo-list)))))
                 (goto-char (nth 2 edit))
-                (let ((last-command-event end))
+                (let ((last-command-event end)
+                      (point (point)))
                   (unless (run-hook-with-args-until-success
                            'post-text-conversion-hook)
-                    (run-hooks 'post-self-insert-hook))))
+                    (run-hooks 'post-self-insert-hook))
+                  (when (not (eq (point) point))
+                    (setq point-moved t)))
+                ;; If post-self-insert-hook doesn't move the point,
+                ;; restore it to its previous location.  Generally,
+                ;; the call to goto-char upon processing the last edit
+                ;; recorded text-conversion-edit will see to this, but
+                ;; if the input method sets point expressly, no edit
+                ;; will be recorded, and point will wind up away from
+                ;; where the input method believes it is.
+                (unless point-moved
+                  (goto-char old-point)))
             ;; Process this deletion before point.  (nth 2 edit) is the
             ;; text which was deleted.  Input methods typically prefer
             ;; to edit words instead of deleting characters off their
