@@ -3113,45 +3113,22 @@ prints using ANSI color escape sequences.  Emacs includes the
 @code{ansi-color} package, which lets Shell mode recognize these
 escape sequences.  It is enabled by default.
 
-@node Fullscreen mode on MS-Windows
-@section How can I start Emacs in fullscreen mode on MS-Windows?
+@node Start Emacs Maximized
+@section How can I start Emacs in full screen?
 @cindex Maximize frame
 @cindex Fullscreen mode
 
-Beginning with Emacs 24.4 either run Emacs with the @samp{--maximized}
-command-line option or put the following form in your init file
-(@pxref{Setting up a customization file}):
+Run Emacs with the @samp{--maximized} command-line option or put the
+following form in your early init file (@pxref{Early Init File,,,
+emacs, The GNU Emacs Manual}).
 
 @lisp
-(add-hook 'emacs-startup-hook 'toggle-frame-maximized)
+(push '(fullscreen . maximized) default-frame-alist)
 @end lisp
 
-With older versions use the function @code{w32-send-sys-command}.  For
-example, you can put the following in your init file:
-
-@lisp
-(add-hook 'emacs-startup-hook
-          (lambda () (w32-send-sys-command ?\xF030)))
-@end lisp
-
-To avoid the slightly distracting visual effect of Emacs starting with
-its default frame size and then growing to fullscreen, you can add an
-@samp{Emacs.Geometry} entry to the Windows Registry settings.  @xref{X
-Resources,,, emacs, The GNU Emacs Manual}.  To compute the correct
-values for width and height you use in the Registry settings, first
-maximize the Emacs frame and then evaluate @code{(frame-height)} and
-@code{(frame-width)} with @kbd{M-:}.
-
-Alternatively, you can avoid the visual effect of Emacs changing its
-frame size entirely in your init file (i.e., without using the
-Registry), like this:
-
-@lisp
-(setq frame-resize-pixelwise t)
-(set-frame-position nil 0 0)
-(set-frame-size nil (display-pixel-width) (display-pixel-height) t)
-@end lisp
-
+Note that while some customizations of @code{default-frame-alist}
+could have undesirable effects when modified in @file{early-init.el},
+it is okay to do it in this particular case.
 
 @node Emacs in a Linux console
 @section How can I alleviate the limitations of the Linux console?
