@@ -635,13 +635,12 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
     (and (cdr p) (progn (setcdr p (cdr (cdr (cdr p)))) t))))
 
 ;;;###autoload
-(defun cl-remprop (sym tag)
-  "Remove from SYMBOL's plist the property PROPNAME and its value.
-\n(fn SYMBOL PROPNAME)"
-  (let ((plist (symbol-plist sym)))
-    (if (and plist (eq tag (car plist)))
-	(progn (setplist sym (cdr (cdr plist))) t)
-      (cl--do-remf plist tag))))
+(defun cl-remprop (symbol propname)
+  "Remove from SYMBOL's plist the property PROPNAME and its value."
+  (let ((plist (symbol-plist symbol)))
+    (if (and plist (eq propname (car plist)))
+	(progn (setplist symbol (cdr (cdr plist))) t)
+      (cl--do-remf plist propname))))
 
 ;;; Streams.
 
