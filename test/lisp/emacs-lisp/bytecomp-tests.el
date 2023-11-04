@@ -1697,7 +1697,8 @@ mountpoint (Bug#44631)."
              (byte-compile-error-on-warn t))
         (should-not (file-remote-p input-file))
         (should-not (file-remote-p output-file))
-        (write-region "" nil input-file nil nil nil 'excl)
+        (write-region ";;; -*-lexical-binding:t-*-\n"
+                      nil input-file nil nil nil 'excl)
         (write-region "" nil output-file nil nil nil 'excl)
         (unwind-protect
             (progn
