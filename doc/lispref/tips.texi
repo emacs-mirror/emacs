@@ -1169,6 +1169,21 @@ element) is equivalent to entry with version "0".  For instance:
 ;; Package-Requires: ((gnus "1.0") (bubbles "2.7.2") cl-lib (seq))
 @end smallexample
 
+Packages that don't need to support Emacs versions older than Emacs 27
+can have the @samp{Package-Requires} header split across multiple
+lines, like this:
+
+@smallexample
+@group
+;; Package-Requires: ((emacs "27.1")
+;;                    (compat "29.1.4.1"))
+@end group
+@end smallexample
+
+@noindent
+Note that with this format, you still need to start the list on the
+same line as @samp{Package-Requires}.
+
 The package code automatically defines a package named @samp{emacs}
 with the version number of the currently running Emacs.  This can be
 used to require a minimal version of Emacs for a package.
