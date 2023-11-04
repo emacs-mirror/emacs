@@ -1721,7 +1721,7 @@ is better to write ``Emacs and XEmacs.''
 * Editing MS-DOS files::
 * Filling paragraphs with a single space::
 * Escape sequences in shell output::
-* Fullscreen mode on MS-Windows::
+* Start Emacs maximized::
 * Emacs in a Linux console::
 @end menu
 
@@ -3113,7 +3113,7 @@ prints using ANSI color escape sequences.  Emacs includes the
 @code{ansi-color} package, which lets Shell mode recognize these
 escape sequences.  It is enabled by default.
 
-@node Start Emacs Maximized
+@node Start Emacs maximized
 @section How can I start Emacs in full screen?
 @cindex Maximize frame
 @cindex Fullscreen mode
