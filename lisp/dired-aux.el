@@ -1176,7 +1176,7 @@ Return the result of `process-file' - zero for success."
          "unxz")
 
    ;; zstandard archives
-   `(,(rx (or ".tar.zst" ".tzst") eos) "unzstd -c %i | tar -xf -")
+   `(,(rx (or ".tar.zst" ".tzst") eos) "unzstd -c ? | tar -xf -")
    `(,(rx ".zst" eos)                  "unzstd --rm")
 
    '("\\.shar\\.Z\\'" "zcat * | unshar")

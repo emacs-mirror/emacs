@@ -1237,8 +1237,8 @@ For example, the plist
 @lisp
 (:pylsp (:plugins (:jedi_completion (:include_params t
                                      :fuzzy t
-                                     :cache_for ["pandas" "numpy"]
-                   :pylint (:enabled :json-false))))
+                                     :cache_for ["pandas" "numpy"])
+                   :pylint (:enabled :json-false)))
  :gopls (:usePlaceholders t))
 @end lisp
 
@@ -1252,7 +1252,7 @@ is serialized by Eglot to the following JSON text:
       "jedi_completion": @{
         "include_params": true,
         "fuzzy": true,
-        "cache_for": [ "pandas", "numpy" ],
+        "cache_for": [ "pandas", "numpy" ]
       @},
       "pylint": @{
         "enabled": false
@@ -1260,8 +1260,8 @@ is serialized by Eglot to the following JSON text:
     @}
   @},
   "gopls": @{
-    "usePlaceholders":true
-  @},
+    "usePlaceholders": true
+  @}
 @}
 @end example
 
