@@ -2560,9 +2560,7 @@ HASH_HASH (const struct Lisp_Hash_Table *h, ptrdiff_t idx)
 INLINE ptrdiff_t
 HASH_TABLE_SIZE (const struct Lisp_Hash_Table *h)
 {
-  ptrdiff_t size = ASIZE (h->next);
-  eassume (0 < size);
-  return size;
+  return ASIZE (h->next);
 }
 
 /* Compute hash value for KEY in hash table H.  */

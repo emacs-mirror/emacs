@@ -4555,9 +4555,6 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
   eassert (SYMBOLP (test.name));
   eassert (0 <= size && size <= MOST_POSITIVE_FIXNUM);
 
-  if (size == 0)
-    size = 1;
-
   /* Allocate a table and initialize it.  */
   h = allocate_hash_table ();
 
@@ -4576,7 +4573,9 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
   /* Set up the free list.  */
   for (i = 0; i < size - 1; ++i)
     set_hash_next_slot (h, i, i + 1);
-  h->next_free = 0;
+  if (size > 0)
+    set_hash_next_slot (h, size - 1, -1);
+  h->next_free = size > 0 ? 0 : -1;
 
   XSET_HASH_TABLE (table, h);
   eassert (HASH_TABLE_P (table));
