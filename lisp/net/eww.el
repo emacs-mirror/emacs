@@ -100,7 +100,7 @@ no parameters) that returns a directory name."
 Each of the elements is a function returning either a string or a list
 of strings.  The results will be joined into a single list with
 duplicate entries (if any) removed."
-  :version "27.1"
+  :version "30.1"
   :group 'eww
   :type 'hook
   :options '(eww-links-at-point
