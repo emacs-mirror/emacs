@@ -224,9 +224,19 @@ This becomes the message's `erc-ts' text property."
   "Non-nil means inhibit `erc-add-timestamp' completely.")
 
 (defvar erc-stamp--allow-unmanaged nil
-  "Non-nil means `erc-add-timestamp' runs unconditionally.
-Escape hatch for third-parties using lower-level API functions,
-such as `erc-display-line', directly.")
+  "Non-nil means run `erc-add-timestamp' almost unconditionally.
+This is an unofficial escape hatch for code wanting to use
+lower-level message-insertion functions, like `erc-insert-line',
+directly.  Third parties needing such functionality should
+petition for it via \\[erc-bug].")
+
+(defvar erc-stamp--permanent-cursor-sensor-functions nil
+  "Non-nil means add `cursor-sensor-functions' unconditionally.
+This is an unofficial escape hatch for code wanting the text
+property `cursor-sensor-functions' to always be present,
+regardless of the option `erc-echo-timestamps'.  Third parties
+needing such pre-5.6 behavior to stick around should make that
+known via \\[erc-bug].")
 
 (defun erc-add-timestamp ()
   "Add timestamp and text-properties to message.
@@ -256,8 +266,8 @@ or `erc-send-modify-hook'."
                  (erc-away-time))
 	(funcall erc-insert-away-timestamp-function
 		 (erc-format-timestamp ct erc-away-timestamp-format)))
-      (when erc-stamp--allow-unmanaged
-        (add-text-properties (point-min) (1- (point-max))
+      (when erc-stamp--permanent-cursor-sensor-functions
+        (add-text-properties (point-min) (max (point-min) (1- (point-max)))
 			   ;; It's important for the function to
 			   ;; be different on different entries (bug#22700).
 			   (list 'cursor-sensor-functions
@@ -793,16 +803,18 @@ Return the empty string if FORMAT is nil."
       (cursor-intangible-mode -1)))
   (if erc-echo-timestamps
       (progn
-        (dolist (hook '(erc-insert-post-hook erc-send-post-hook))
-          (add-hook hook #'erc-stamp--add-csf-on-post-modify nil t))
-        (erc--restore-initialize-priors erc-stamp-mode
-          erc-stamp--csf-props-updated-p nil)
-        (unless (or erc-stamp--allow-unmanaged erc-stamp--csf-props-updated-p)
-          (setq erc-stamp--csf-props-updated-p t)
-          (let ((erc--msg-props (map-into '((erc-ts . t)) 'hash-table)))
-            (with-silent-modifications
-              (erc--traverse-inserted (point-min) erc-insert-marker
-                                      #'erc-stamp--add-csf-on-post-modify))))
+        (unless erc-stamp--permanent-cursor-sensor-functions
+          (dolist (hook '(erc-insert-post-hook erc-send-post-hook))
+            (add-hook hook #'erc-stamp--add-csf-on-post-modify nil t))
+          (erc--restore-initialize-priors erc-stamp-mode
+            erc-stamp--csf-props-updated-p nil)
+          (unless erc-stamp--csf-props-updated-p
+            (setq erc-stamp--csf-props-updated-p t)
+            (let ((erc--msg-props (map-into '((erc-ts . t)) 'hash-table)))
+              (with-silent-modifications
+                (erc--traverse-inserted
+                 (point-min) erc-insert-marker
+                 #'erc-stamp--add-csf-on-post-modify)))))
         (cursor-sensor-mode +1) ; idempotent
         (when (>= emacs-major-version 29)
           (add-function :before-until (local 'clear-message-function)
