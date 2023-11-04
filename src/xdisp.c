@@ -29649,7 +29649,6 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
   struct face *face;
   unsigned code = 0;
 
-  eassert (glyph->type == CHAR_GLYPH);
   face = FACE_FROM_ID (f, glyph->face_id);
 
   /* Make sure X resources of the face are allocated.  */
