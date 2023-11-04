@@ -2591,7 +2591,7 @@ void hash_table_thaw (Lisp_Object hash_table);
 
 /* Default size for hash tables if not specified.  */
 
-enum DEFAULT_HASH_SIZE { DEFAULT_HASH_SIZE = 65 };
+enum DEFAULT_HASH_SIZE { DEFAULT_HASH_SIZE = 0 };
 
 /* Combine two integers X and Y for hashing.  The result might exceed
    INTMASK.  */

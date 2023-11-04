@@ -4508,31 +4508,18 @@ allocate_hash_table (void)
   return ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Hash_Table, PVEC_HASH_TABLE);
 }
 
-/* An upper bound on the size of a hash table index.  It must fit in
-   ptrdiff_t and be a valid Emacs fixnum.  This is an upper bound on
-   VECTOR_ELTS_MAX (see alloc.c) and gets as close as we can without
-   violating modularity.  */
-#define INDEX_SIZE_BOUND \
-  ((ptrdiff_t) min (MOST_POSITIVE_FIXNUM, \
-		    ((min (PTRDIFF_MAX, SIZE_MAX) \
-		      - header_size - GCALIGNMENT) \
-		     / word_size)))
-
-/* Default factor by which to increase the size of a hash table.  */
-static const double std_rehash_size = 1.5;
-
-/* Resize hash table when number of entries / table size is >= this
-   ratio.  */
-static const double std_rehash_threshold = 0.8125;
-
+/* Compute the size of the index from the table capacity.  */
 static ptrdiff_t
 hash_index_size (ptrdiff_t size)
 {
-  double index_float = size * (1.0 / std_rehash_threshold);
-  ptrdiff_t index_size = (index_float < INDEX_SIZE_BOUND + 1
-	                  ? next_almost_prime (index_float)
-	                  : INDEX_SIZE_BOUND + 1);
-  if (INDEX_SIZE_BOUND < index_size)
+  /* An upper bound on the size of a hash table index.  It must fit in
+     ptrdiff_t and be a valid Emacs fixnum.  */
+  ptrdiff_t upper_bound = min (MOST_POSITIVE_FIXNUM,
+			 PTRDIFF_MAX / sizeof (ptrdiff_t));
+  ptrdiff_t index_size = size + (size >> 2);  /* 1.25x larger */
+  if (index_size < upper_bound)
+    index_size = next_almost_prime (index_size);
+  if (index_size > upper_bound)
     error ("Hash table too large");
   return index_size;
 }
@@ -4671,16 +4658,12 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
   if (h->next_free < 0)
     {
       ptrdiff_t old_size = HASH_TABLE_SIZE (h);
-      /* FIXME: better growth management, ditch std_rehash_size */
-      EMACS_INT new_size = old_size * std_rehash_size;
-      if (new_size < EMACS_INT_MAX)
-	new_size = max (new_size, 32);  /* avoid slow initial growth */
-      else
-	new_size = EMACS_INT_MAX;
-      if (PTRDIFF_MAX < new_size)
-	new_size = PTRDIFF_MAX;
-      if (new_size <= old_size)
-	new_size = old_size + 1;
+      ptrdiff_t base_size = min (max (old_size, 8), PTRDIFF_MAX / 2);
+      /* Grow aggressively at small sizes, then just double.  */
+      ptrdiff_t new_size =
+	old_size == 0
+	? 8
+	: (base_size <= 64 ? base_size * 4 : base_size * 2);
 
       /* Allocate all the new vectors before updating *H, to
 	 avoid problems if memory is exhausted.  */
@@ -4738,7 +4721,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 
 #ifdef ENABLE_CHECKING
       if (HASH_TABLE_P (Vpurify_flag) && XHASH_TABLE (Vpurify_flag) == h)
-	message ("Growing hash table to: %"pI"d", new_size);
+	message ("Growing hash table to: %"pD"d", new_size);
 #endif
     }
 }
@@ -5403,7 +5386,8 @@ keys.  Default is `eql'.  Predefined are the tests `eq', `eql', and
 `define-hash-table-test'.
 
 :size SIZE -- A hint as to how many elements will be put in the table.
-Default is 65.
+The table will always grow as needed; this argument may help performance
+slightly if the size is known in advance but is never required.
 
 :weakness WEAK -- WEAK must be one of nil, t, `key', `value',
 `key-or-value', or `key-and-value'.  If WEAK is not nil, the table
@@ -5516,7 +5500,9 @@ DEFUN ("hash-table-rehash-size", Fhash_table_rehash_size,
   (Lisp_Object table)
 {
   CHECK_HASH_TABLE (table);
-  return make_float (std_rehash_size);
+  /* Nominal factor by which to increase the size of a hash table.
+     No longer used; this is for compatibility.  */
+  return make_float (1.5);
 }
 
 
@@ -5526,7 +5512,9 @@ DEFUN ("hash-table-rehash-threshold", Fhash_table_rehash_threshold,
   (Lisp_Object table)
 {
   CHECK_HASH_TABLE (table);
-  return make_float (std_rehash_threshold);
+  /* Nominal threshold for when to resize a hash table.
+     No longer used; this is for compatibility.  */
+  return make_float (0.8125);
 }
 
 
