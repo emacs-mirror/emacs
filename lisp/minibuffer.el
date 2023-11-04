@@ -3754,14 +3754,14 @@ one large \"hole\" and a clumped-together \"oo\" match) higher
 than the latter (which has two \"holes\" and three
 one-letter-long matches).")
 
-(defvar-local completion-lazy-hilit nil
+(defvar completion-lazy-hilit nil
   "If non-nil, request completion lazy highlighting.
 
 Completion-presenting frontends may opt to bind this variable to
 non-nil value in the context of completion-producing calls (such
 as `completion-all-completions').  This hints the intervening
 completion styles that they do not need to
-fontify (i.e. propertize with the `face' property) completion
+fontify (i.e. propertize with a `face' property) completion
 strings with highlights of the matching parts.
 
 When doing so, it is the frontend -- not the style -- who becomes
@@ -3780,12 +3780,12 @@ To author a completion style that takes advantage see
 `completion-pcm--hilit-commonality'.")
 
 (defvar completion-lazy-hilit-fn nil
-  "Used by completions styles honoring `completion-lazy-hilit'.
+  "Function set by lazy-highlighting completions styles.
 When a given style wants to enable support for
 `completion-lazy-hilit' (which see), that style should set this
 variable to a function of one argument, a fresh string to be
 displayed to the user.  The function is responsible for
-destructively highlighting the string.")
+destructively propertizing the string with a `face' property.")
 
 (defun completion-lazy-hilit (str)
   "Return a copy of completion STR that is `face'-propertized.
