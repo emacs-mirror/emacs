@@ -2385,6 +2385,12 @@ INLINE int
 
 struct Lisp_Hash_Table;
 
+typedef enum {
+  Test_eql,
+  Test_eq,
+  Test_equal,
+} hash_table_std_test_t;
+
 struct hash_table_test
 {
   /* Function used to compare keys; always a bare symbol.  */
@@ -2472,6 +2478,9 @@ struct Lisp_Hash_Table
 
   /* Weakness of the table.  */
   hash_table_weakness_t weakness : 8;
+
+  /* Hash table test (only used when frozen in dump)  */
+  hash_table_std_test_t frozen_test : 8;
 
   /* True if the table can be purecopied.  The table cannot be
      changed afterwards.  */
@@ -2563,7 +2572,7 @@ hash_from_key (struct Lisp_Hash_Table *h, Lisp_Object key)
   return h->test.hashfn (key, h);
 }
 
-void hash_table_rehash (Lisp_Object);
+void hash_table_thaw (Lisp_Object hash_table);
 
 /* Default size for hash tables if not specified.  */
 
@@ -4038,7 +4047,6 @@ extern void hexbuf_digest (char *, void const *, int);
 extern char *extract_data_from_object (Lisp_Object, ptrdiff_t *, ptrdiff_t *);
 EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object);
-Lisp_Object hashfn_user_defined (Lisp_Object, struct Lisp_Hash_Table *);
 Lisp_Object make_hash_table (struct hash_table_test, EMACS_INT,
                              hash_table_weakness_t, bool);
 Lisp_Object hash_table_weakness_symbol (hash_table_weakness_t weak);

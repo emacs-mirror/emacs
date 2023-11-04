@@ -4474,7 +4474,7 @@ hashfn_eql (Lisp_Object key, struct Lisp_Hash_Table *h)
 /* Given H, return a hash code for KEY which uses a user-defined
    function to compare keys.  */
 
-Lisp_Object
+static Lisp_Object
 hashfn_user_defined (Lisp_Object key, struct Lisp_Hash_Table *h)
 {
   Lisp_Object args[] = { h->test.user_hash_function, key };
@@ -4638,11 +4638,10 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
   if (h->next_free < 0)
     {
       ptrdiff_t old_size = HASH_TABLE_SIZE (h);
-      EMACS_INT new_size;
-
-      double float_new_size = old_size * std_rehash_size;
-      if (float_new_size < EMACS_INT_MAX)
-	new_size = float_new_size;
+      /* FIXME: better growth management, ditch std_rehash_size */
+      EMACS_INT new_size = old_size * std_rehash_size;
+      if (new_size < EMACS_INT_MAX)
+	new_size = max (new_size, 32);  /* avoid slow initial growth */
       else
 	new_size = EMACS_INT_MAX;
       if (PTRDIFF_MAX < new_size)
@@ -4691,20 +4690,39 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
     }
 }
 
-/* Recompute the hashes (and hence also the "next" pointers).
-   Normally there's never a need to recompute hashes.
-   This is done only on first access to a hash-table loaded from
-   the "pdump", because the objects' addresses may have changed, thus
-   affecting their hashes.  */
-void
-hash_table_rehash (Lisp_Object hash)
+static const struct hash_table_test *
+hash_table_test_from_std (hash_table_std_test_t test)
 {
-  struct Lisp_Hash_Table *h = XHASH_TABLE (hash);
-  ptrdiff_t i, count = h->count;
+  switch (test)
+    {
+    case Test_eq:    return &hashtest_eq;
+    case Test_eql:   return &hashtest_eql;
+    case Test_equal: return &hashtest_equal;
+    }
+  emacs_abort();
+}
+
+/* Rebuild a hash table from its frozen (dumped) form.  */
+void
+hash_table_thaw (Lisp_Object hash_table)
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (hash_table);
+
+  /* Freezing discarded most non-essential information; recompute it.
+     The allocation is minimal with no room for growth.  */
+  h->test = *hash_table_test_from_std (h->frozen_test);
+  ptrdiff_t size = ASIZE (h->key_and_value) / 2;
+  h->count = size;
+  ptrdiff_t index_size = hash_index_size (size);
+  h->next_free = -1;
+
+  h->hash = make_nil_vector (size);
+  h->next = make_vector (size, make_fixnum (-1));
+  h->index = make_vector (index_size, make_fixnum (-1));
 
   /* Recompute the actual hash codes for each entry in the table.
      Order is still invalid.  */
-  for (i = 0; i < count; i++)
+  for (ptrdiff_t i = 0; i < size; i++)
     {
       Lisp_Object key = HASH_KEY (h, i);
       Lisp_Object hash_code = hash_from_key (h, key);
@@ -4712,12 +4730,7 @@ hash_table_rehash (Lisp_Object hash)
       set_hash_hash_slot (h, i, hash_code);
       set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
       set_hash_index_slot (h, start_of_bucket, i);
-      eassert (HASH_NEXT (h, i) != i); /* Stop loops.  */
     }
-
-  ptrdiff_t size = ASIZE (h->next);
-  for (; i + 1 < size; i++)
-    set_hash_next_slot (h, i, i + 1);
 }
 
 /* Lookup KEY in hash table H.  If HASH is non-null, return in *HASH
