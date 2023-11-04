@@ -3083,6 +3083,9 @@ If END is a marker, possibly update its position."
   (unless (eq end erc-insert-marker)
     (set-marker end nil)))
 
+(defvar erc--insert-line-function nil
+  "When non-nil, an alterntive to `insert' for inserting messages.")
+
 (defvar erc--insert-marker nil
   "Internal override for `erc-insert-marker'.")
 
@@ -3134,7 +3137,9 @@ modification hooks)."
               (save-restriction
                 (widen)
                 (goto-char insert-position)
-                (insert string)
+                (if erc--insert-line-function
+                    (funcall erc--insert-line-function string)
+                  (insert string))
                 (erc--assert-input-bounds)
                 ;; run insertion hook, with point at restored location
                 (save-restriction

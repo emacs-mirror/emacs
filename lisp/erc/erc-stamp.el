@@ -670,6 +670,7 @@ value of t means the option's value doesn't require trimming.")
   (let ((erc-stamp--skip t)
         (erc-insert-modify-hook `(,@erc-insert-modify-hook
                                   erc-stamp--propertize-left-date-stamp))
+        (erc--insert-line-function #'insert-before-markers)
         ;; Don't run hooks that aren't expecting a narrowed buffer.
         (erc-insert-pre-hook nil)
         (erc-insert-done-hook nil))
