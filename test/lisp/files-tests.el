@@ -1754,6 +1754,9 @@ Ensure that the issues from bug#66546 are fixed."
                 (signal 'file-error "Write failed")))
 
       (let* (;; Sanitize environment.
+             ;; The tests below test text for equality, so we need to
+             ;; disable any code- and EOL-conversions to avoid false
+             ;; positives and false negatives.
              (coding-system-for-read 'no-conversion)
              (coding-system-for-write 'no-conversion)
              (auto-save-default nil)
