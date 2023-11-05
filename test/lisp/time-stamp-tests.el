@@ -89,12 +89,12 @@
 (iter-defun time-stamp-test-pattern-sequential ()
   "Iterate through each possibility for a part of `time-stamp-pattern'."
   (let ((pattern-value-parts
-         '(("4/" "10/" "-9/" "0/" "")                     ;0: line limit
-           ("stamp<" "")                                  ;1: start
-           ("%-d" "%_H" "%^a" "%#Z" "%:A" "%09z" "%%" "") ;2: format part 1
-           (" " "x" ":" "\n" "")                          ;3: format part 2
-           ("%-d" "%_H" "%^a" "%#Z" "%:A" "%09z" "%%")    ;4: format part 3
-           (">end" ""))))                                 ;5: end
+         '(("4/" "10/" "-9/" "0/" "")                      ;0: line limit
+           ("stamp:" "")                                   ;1: start
+           ("%-d" "%_H" "%^a" "%#Z" "%:A" "%019z" "%%" "") ;2: format part 1
+           (" " "x" ":" "\n" "")                           ;3: format part 2
+           ("%-d" "%_H" "%^a" "%#Z" "%:A" "%019z" "%%")    ;4: format part 3
+           ("end" ""))))                                   ;5: end
     (dotimes (cur (length pattern-value-parts))
       (dotimes (cur-index (length (nth cur pattern-value-parts)))
         (cl-flet ((extract-part
@@ -118,15 +118,21 @@
 (iter-defun time-stamp-test-pattern-multiply ()
   "Iterate through every combination of parts of `time-stamp-pattern'."
   (let ((line-limit-values '("" "4/"))
-        (start-values '("" "/stamp/"))
-        (format-values '("%%" "%m"))
+        (start-values '("" "/stamp1/"))
+        (format-values '("" "%%" "%m"))
         (end-values '("" ">end")))
     ;; yield all combinations of the above
     (dolist (line-limit line-limit-values)
       (dolist (start start-values)
         (dolist (format format-values)
           (dolist (end end-values)
-            (iter-yield (list line-limit start format end))))))))
+            ;; If the format is not supplied, the end cannot be either,
+            ;; so not all generated combinations are valid.
+            ;; (This is why the format can be supplied as "%%" to
+            ;; preserve the default format.)
+            (if (or (not (equal format ""))
+                    (equal end ""))
+                (iter-yield (list line-limit start format end)))))))))
 
 (iter-defun time-stamp-test-pattern-all ()
   (iter-yield-from (time-stamp-test-pattern-sequential))
@@ -156,7 +162,8 @@
               (if (equal start1 "")
                   (should (equal ts-start time-stamp-start))
                 (should (equal ts-start start1)))
-              (if (equal whole-format "%%")
+              (if (or (equal whole-format "")
+                      (equal whole-format "%%"))
                   (should (equal ts-format time-stamp-format))
                 (should (equal ts-format whole-format)))
               (if (equal end1 "")
@@ -165,7 +172,8 @@
               ;; return nil to stop time-stamp from calling us again
               nil)))
         (let ((time-stamp-pattern (concat
-                                   line-limit1 start1 whole-format end1)))
+                                   line-limit1 start1 whole-format end1))
+              (case-fold-search nil))
           (with-temp-buffer
             ;; prep the buffer with more than the
             ;; largest line-limit1 number of lines
@@ -758,12 +766,14 @@ and is called by some low-level `time-stamp' \"%z\" unit tests."
 
 (defun fz-make+zone (h &optional m s)
   "Creates a non-negative offset."
+  (declare (pure t))
   (let ((m (or m 0))
         (s (or s 0)))
     (+ (* 3600 h) (* 60 m) s)))
 
 (defun fz-make-zone (h &optional m s)
   "Creates a negative offset.  The arguments are all non-negative."
+  (declare (pure t))
   (- (fz-make+zone h m s)))
 
 (defmacro formatz-should-equal (zone expect)
