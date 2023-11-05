@@ -1637,33 +1637,35 @@ Use \\[xref-go-back] to return back to where you invoked this command."
   (xref--find-definitions identifier 'frame))
 
 ;;;###autoload
-(defun xref-find-extra (identifier)
-  "Find some specific kind of definition of the identifier at point.
-With prefix argument or when there's no identifier at point,
-prompt for the identifier.
+(defun xref-find-extra (identifier &optional kind)
+  "Find definitions of specific KIND for IDENTIFIER.
+Interactively with prefix argument, or when there's no identifier
+at point, prompt for the identifier.  Interactively, always
+prompt for KIND.
 
 If only one location is found, display it in the selected window.
 Otherwise, display the list of the possible definitions in a
 buffer where the user can select from the list.
 
 Use \\[xref-go-back] to return back to where you invoked this command."
-  (interactive (list
-                ;; XXX: Choose kind of "extra" first? That would fail
-                ;; to take advantage of the symbol-at-point, though.
-                (xref--read-identifier "Find definitions of: ")))
-  (let* ((kinds (xref-backend-extra-kinds (xref-find-backend) identifier))
-         ;; FIXME: We should probably skip asking when there's just
-         ;; one available kind, but let's keep completing-read while
-         ;; collecting the initial feedback about the interface.
-         (kind ;; (if (cdr kinds)
-          (completing-read "Definition kind: " kinds nil t nil nil (car kinds))
-          ;; (car kinds)
-          ;; )
-          ))
-    (unless kind (user-error "No supported kinds"))
-    (xref--show-defs
-     (xref--create-fetcher identifier 'extra-defs identifier kind)
-     nil)))
+  (interactive
+   (let* ((id (xref--read-identifier "Find definitions of: "))
+          ;; XXX: Choose kind of "extra" first? That would fail
+          ;; to take advantage of the symbol-at-point, though.
+          (kinds (xref-backend-extra-kinds (xref-find-backend) id))
+          ;; FIXME: We should probably skip asking when there's just
+          ;; one available kind, but let's keep completing-read while
+          ;; collecting the initial feedback about the interface.
+          (kind ;; (if (cdr kinds)
+           (completing-read "Definition kind: " kinds nil t nil nil (car kinds))
+           ;; (car kinds)
+           ;; )
+           ))
+     (unless kind (user-error "No supported kinds"))
+     (list id kind)))
+  (xref--show-defs
+   (xref--create-fetcher identifier 'extra-defs identifier kind)
+   nil))
 
 ;;;###autoload
 (defun xref-find-references (identifier)
