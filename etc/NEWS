@@ -1056,6 +1056,16 @@ additionally traverse the parent directories until a VCS root is found
 (if any), so that the ignore rules for that repository are used, and
 the file listing's performance is still optimized.
 
+*** New commands 'project-any-command' and 'project-prefix-or-any-command'.
+The former is now bound to 'C-x p o' by default.
+The latter is designed primarily for use as a value of
+'project-switch-commands'.  If instead of a short menu you prefer to
+have access to all keys defined inside 'project-prefix-map', as well
+as global bindings (to run other commands inside the project root),
+you can add this to your init script:
+
+  (setq project-switch-commands #'project-prefix-or-any-command)
+
 ** JS Mode
 The binding 'M-.' has been removed from the major mode keymaps in
 'js-mode' and 'js-ts-mode', having it default to the global binding

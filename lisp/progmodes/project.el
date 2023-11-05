@@ -855,6 +855,7 @@ DIRS must contain directory names."
     (define-key map "G" 'project-or-external-find-regexp)
     (define-key map "r" 'project-query-replace-regexp)
     (define-key map "x" 'project-execute-extended-command)
+    (define-key map "o" 'project-any-command)
     (define-key map "\C-b" 'project-list-buffers)
     map)
   "Keymap for project commands.")
@@ -1817,6 +1818,46 @@ It's also possible to enter an arbitrary directory not in the list."
   (let ((default-directory (project-root (project-current t))))
     (call-interactively #'execute-extended-command)))
 
+;;;###autoload
+(defun project-any-command (&optional overriding-map prompt-format)
+  "Run the next command in the current project.
+If the command is in `project-prefix-map', it gets passed that
+info with `project-current-directory-override'.  Otherwise,
+`default-directory' is temporarily set to the current project's
+root.
+
+If OVERRIDING-MAP is non-nil, it will be used as
+`overriding-local-map' to provide shorter bindings from that map
+which will take priority over the global ones."
+  (interactive)
+  (let* ((pr (project-current t))
+         (prompt-format (or prompt-format "[execute in %s]:"))
+         (command (let ((overriding-local-map overriding-map))
+                    (key-binding (read-key-sequence
+                                  (format prompt-format (project-root pr)))
+                                 t)))
+         (root (project-root pr))
+         found)
+    (when command
+      ;; We could also check the command name against "\\`project-",
+      ;; and/or (get command 'project-command).
+      (map-keymap
+       (lambda (_evt cmd) (if (eq cmd command) (setq found t)))
+       project-prefix-map)
+      (if found
+          (let ((project-current-directory-override root))
+            (call-interactively command))
+        (let ((default-directory root))
+          (call-interactively command))))))
+
+;;;###autoload
+(defun project-prefix-or-any-command ()
+  "Run the next command in the current project.
+Works like `project-any-command', but also mixes in the shorter
+bindings from `project-prefix-map'."
+  (interactive)
+  (project-any-command project-prefix-map "[execute in %s]:"))
+
 (defun project-remember-projects-under (dir &optional recursive)
   "Index all projects below a directory DIR.
 If RECURSIVE is non-nil, recurse into all subdirectories to find
@@ -1895,7 +1936,8 @@ forgotten projects."
     (project-find-regexp "Find regexp")
     (project-find-dir "Find directory")
     (project-vc-dir "VC-Dir")
-    (project-eshell "Eshell"))
+    (project-eshell "Eshell")
+    (project-any-command "Other"))
   "Alist mapping commands to descriptions.
 Used by `project-switch-project' to construct a dispatch menu of
 commands available upon \"switching\" to another project.
@@ -1919,7 +1961,9 @@ invoked immediately without any dispatch menu."
             (choice :tag "Key to press"
                     (const :tag "Infer from the keymap" nil)
                     (character :tag "Explicit key"))))
-          (symbol :tag "Single command")))
+          (const :tag "Use both short keys and global bindings"
+                 project-prefix-or-any-command)
+          (symbol :tag "Custom command")))
 
 (defcustom project-switch-use-entire-map nil
   "Whether `project-switch-project' will use the entire `project-prefix-map'.
