@@ -1226,7 +1226,7 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
      dump_tailq_length (&dump_queue->zero_weight_objects),
      dump_tailq_length (&dump_queue->one_weight_normal_objects),
      dump_tailq_length (&dump_queue->one_weight_strong_objects),
-     XHASH_TABLE (dump_queue->link_weights)->count);
+     (ptrdiff_t) XHASH_TABLE (dump_queue->link_weights)->count);
 
   static const int nr_candidates = 3;
   struct candidate

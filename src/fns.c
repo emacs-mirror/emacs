@@ -4539,7 +4539,7 @@ hash_index_size (ptrdiff_t size)
 
 /* Constant hash index vector used when the table size is zero.
    This avoids allocating it from the heap.  */
-static const ptrdiff_t empty_hash_index_vector[] = {-1};
+static const hash_idx_t empty_hash_index_vector[] = {-1};
 
 /* Create and initialize a new hash table.
 
@@ -4578,7 +4578,7 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
       h->hash = NULL;
       h->next = NULL;
       eassert (index_size == 1);
-      h->index = (ptrdiff_t *)empty_hash_index_vector;
+      h->index = (hash_idx_t *)empty_hash_index_vector;
       h->next_free = -1;
     }
   else
@@ -4684,7 +4684,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 
       /* Allocate all the new vectors before updating *H, to
 	 avoid problems if memory is exhausted.  */
-      ptrdiff_t *next = hash_table_alloc_bytes (new_size * sizeof *next);
+      hash_idx_t *next = hash_table_alloc_bytes (new_size * sizeof *next);
       for (ptrdiff_t i = old_size; i < new_size - 1; i++)
 	next[i] = i + 1;
       next[new_size - 1] = -1;
@@ -4703,7 +4703,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 
       ptrdiff_t old_index_size = h->index_size;
       ptrdiff_t index_size = hash_index_size (new_size);
-      ptrdiff_t *index = hash_table_alloc_bytes (index_size * sizeof *index);
+      hash_idx_t *index = hash_table_alloc_bytes (index_size * sizeof *index);
       for (ptrdiff_t i = 0; i < index_size; i++)
 	index[i] = -1;
 

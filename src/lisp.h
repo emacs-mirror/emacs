@@ -2430,6 +2430,10 @@ typedef enum {
 enum { hash_unused = (hash_hash_t)MOST_POSITIVE_FIXNUM + 1 };
 verify (FIXNUM_OVERFLOW_P (hash_unused));
 
+/* The type of a hash table index, both for table indices and index
+   (hash) indices.  It's signed and a subtype of ptrdiff_t.  */
+typedef ptrdiff_t hash_idx_t;
+
 struct Lisp_Hash_Table
 {
   union vectorlike_header header;
@@ -2459,6 +2463,9 @@ struct Lisp_Hash_Table
      The table is physically split into three vectors (hash, next,
      key_and_value) which may or may not be beneficial.  */
 
+  hash_idx_t index_size;   /* Size of the index vector.  */
+  hash_idx_t table_size;   /* Size of the next and hash vectors.  */
+
   /* Bucket vector.  An entry of -1 indicates no item is present,
      and a nonnegative entry is the index of the first item in
      a collision chain.
@@ -2466,10 +2473,7 @@ struct Lisp_Hash_Table
      If index_size is 1 (and table_size is 0), then this is the
      constant read-only vector {-1}, shared between all instances.
      Otherwise it is heap-allocated.  */
-  ptrdiff_t *index;
-  ptrdiff_t index_size;   /* Size of the index vector.  */
-
-  ptrdiff_t table_size;	  /* Size of the next and hash vectors.  */
+  hash_idx_t *index;
 
   /* Vector of hash codes.  The value hash_unused marks an unused table entry.
      This vector is table_size entries long.  */
@@ -2480,13 +2484,13 @@ struct Lisp_Hash_Table
      next[I] is the index of the next entry in the collision chain,
      or -1 if there is no such entry.
      This vector is table_size entries long.  */
-  ptrdiff_t *next;
+  hash_idx_t *next;
 
   /* Number of key/value entries in the table.  */
-  ptrdiff_t count;
+  hash_idx_t count;
 
   /* Index of first free entry in free list, or -1 if none.  */
-  ptrdiff_t next_free;
+  hash_idx_t next_free;
 
   /* Weakness of the table.  */
   hash_table_weakness_t weakness : 8;
