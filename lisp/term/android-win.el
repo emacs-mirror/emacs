@@ -295,5 +295,20 @@ content:// URIs into the special file names which represent them."
 (define-key special-event-map [drag-n-drop] 'android-handle-dnd-event)
 
 
+;; Bind keys sent by input methods to manipulate the state of the
+;; selection to commands which set or deactivate the mark.
+
+(defun android-deactivate-mark-command ()
+  "Deactivate the mark in this buffer.
+This command is generally invoked by input methods sending
+the `stop-selecting-text' editing key."
+  (interactive)
+  (deactivate-mark))
+
+(global-set-key [select-all] 'mark-whole-buffer)
+(global-set-key [start-selecting-text] 'set-mark-command)
+(global-set-key [stop-selecting-text] 'android-deactivate-mark-command)
+
+
 (provide 'android-win)
 ;; android-win.el ends here.

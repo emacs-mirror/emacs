@@ -5402,11 +5402,22 @@ NATIVE_NAME (performContextMenuAction) (JNIEnv *env, jobject object,
 
   switch (action)
     {
+      /* The subsequent three keycodes are addressed by
+	 android_get_keysym_name rather than in keyboard.c.  */
+
     case 0: /* android.R.id.selectAll */
+      key = 65536 + 1;
+      break;
+
     case 1: /* android.R.id.startSelectingText */
+      key = 65536 + 2;
+      break;
+
     case 2: /* android.R.id.stopSelectingText */
+      key = 65536 + 3;
+      break;
+
     default:
-      /* These actions are not implemented.  */
       return;
 
     case 3: /* android.R.id.cut */

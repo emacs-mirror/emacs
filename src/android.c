@@ -5598,6 +5598,27 @@ android_get_keysym_name (int keysym, char *name_return, size_t size)
   const char *buffer;
   jmethodID method;
 
+  /* These keysyms are special editor actions sent by the input
+     method.  */
+
+  switch (keysym)
+    {
+    case 65536 + 1:
+      strncpy (name_return, "select-all", size - 1);
+      name_return[size] = '\0';
+      return;
+
+    case 65536 + 2:
+      strncpy (name_return, "start-selecting-text", size - 1);
+      name_return[size] = '\0';
+      return;
+
+    case 65536 + 3:
+      strncpy (name_return, "stop-selecting-text", size - 1);
+      name_return[size] = '\0';
+      return;
+    }
+
   method = service_class.name_keysym;
   string
     = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
@@ -5606,6 +5627,13 @@ android_get_keysym_name (int keysym, char *name_return, size_t size)
 						       method,
 						       (jint) keysym);
   android_exception_check ();
+
+  if (!string)
+    {
+      strncpy (name_return, "stop-selecting-text", size - 1);
+      name_return[size] = '\0';
+      return;
+    }
 
   buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
 						   (jstring) string,
