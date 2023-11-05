@@ -1013,6 +1013,14 @@ Bound to '<UP>' and '<DOWN>' arrow keys, respectively, they navigate
 the "*Completions*" buffer vertically by lines, wrapping at the
 top/bottom when 'completion-auto-wrap' is non-nil.
 
+*** New user option 'minibuffer-visible-completions'.
+When customized to non-nil, you can use arrow key in the minibuffer
+to navigate the completions displayed in the *Completions* window.
+Typing 'RET' selects the highlighted candidate.  'C-g' hides the
+completions window.  When the completions window is not visible,
+then all these keys have their usual meaning in the minibuffer.
+This option is supported for in-buffer completion as well.
+
 +++
 *** New global minor mode 'minibuffer-regexp-mode'.
 This is a minor mode for editing regular expressions in the minibuffer.

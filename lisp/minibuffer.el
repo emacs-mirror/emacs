@@ -2707,8 +2707,14 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
 	  completion-in-region-mode-predicate)
     (setq-local minibuffer-completion-auto-choose nil)
     (add-hook 'post-command-hook #'completion-in-region--postch)
-    (push `(completion-in-region-mode . ,completion-in-region-mode-map)
-          minor-mode-overriding-map-alist)))
+    (let* ((keymap completion-in-region-mode-map)
+           (keymap (if minibuffer-visible-completions
+                       (make-composed-keymap
+                        (list minibuffer-visible-completions-map
+                              keymap))
+                     keymap)))
+      (push `(completion-in-region-mode . ,keymap)
+            minor-mode-overriding-map-alist))))
 
 ;; Define-minor-mode added our keymap to minor-mode-map-alist, but we want it
 ;; on minor-mode-overriding-map-alist instead.
@@ -2953,8 +2959,46 @@ the mode hook of this mode."
   :interactive nil
   ;; Enable text conversion, but always make sure `RET' does
   ;; something.
-  (setq text-conversion-style 'action))
+  (setq text-conversion-style 'action)
+  (when minibuffer-visible-completions
+    (setq-local minibuffer-completion-auto-choose nil)))
 
+(defcustom minibuffer-visible-completions nil
+  "When non-nil, visible completions can be navigated from the minibuffer.
+This means that when the *Completions* buffer is visible in a window,
+then you can use the arrow keys in the minibuffer to move the cursor
+in the *Completions* buffer.  Then you can type `RET',
+and the candidate highlighted in the *Completions* buffer
+will be accepted.
+But when the *Completions* buffer is not displayed on the screen,
+then the arrow keys move point in the minibuffer as usual, and
+`RET' accepts the input typed in the minibuffer."
+  :type 'boolean
+  :version "30.1")
+
+(defun minibuffer-visible-completions-bind (binding)
+  "Use BINDING when completions are visible.
+Return an item that is enabled only when a window
+displaying the *Completions* buffer exists."
+  `(menu-item
+    "" ,binding
+    :filter ,(lambda (cmd)
+               (when-let ((window (get-buffer-window "*Completions*" 0)))
+                 (when (eq (buffer-local-value 'completion-reference-buffer
+                                               (window-buffer window))
+                           (window-buffer (active-minibuffer-window)))
+                   cmd)))))
+
+(defvar-keymap minibuffer-visible-completions-map
+  :doc "Local keymap for minibuffer input with visible completions."
+  "<left>"  (minibuffer-visible-completions-bind #'minibuffer-previous-completion)
+  "<right>" (minibuffer-visible-completions-bind #'minibuffer-next-completion)
+  "<up>"    (minibuffer-visible-completions-bind #'minibuffer-previous-line-completion)
+  "<down>"  (minibuffer-visible-completions-bind #'minibuffer-next-line-completion)
+  "RET"     (minibuffer-visible-completions-bind #'minibuffer-choose-completion)
+  "C-g"     (minibuffer-visible-completions-bind #'minibuffer-hide-completions))
+
+
 ;;; Completion tables.
 
 (defun minibuffer--double-dollars (str)
@@ -4370,6 +4414,11 @@ See `completing-read' for the meaning of the arguments."
                     ;; in minibuffer-local-filename-completion-map can
                     ;; override bindings in base-keymap.
                     base-keymap)))
+         (keymap (if minibuffer-visible-completions
+                     (make-composed-keymap
+                      (list minibuffer-visible-completions-map
+                            keymap))
+                   keymap))
          (buffer (current-buffer))
          (c-i-c completion-ignore-case)
          (result
@@ -4489,16 +4538,21 @@ selected by these commands to the minibuffer."
   :type 'boolean
   :version "29.1")
 
-(defun minibuffer-next-completion (&optional n)
+(defun minibuffer-next-completion (&optional n vertical)
   "Move to the next item in its completions window from the minibuffer.
+When the optional argument VERTICAL is non-nil, move vertically
+to the next item on the next line using `next-line-completion'.
+Otherwise, move to the next item horizontally using `next-completion'.
 When `minibuffer-completion-auto-choose' is non-nil, then also
-insert the selected completion to the minibuffer."
+insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (let ((auto-choose minibuffer-completion-auto-choose))
     (with-minibuffer-completions-window
       (when completions-highlight-face
         (setq-local cursor-face-highlight-nonselected-window t))
-      (next-completion (or n 1))
+      (if vertical
+          (next-line-completion (or n 1))
+        (next-completion (or n 1)))
       (when auto-choose
         (let ((completion-use-base-affixes t))
           (choose-completion nil t t))))))
@@ -4506,17 +4560,35 @@ insert the selected completion to the minibuffer."
 (defun minibuffer-previous-completion (&optional n)
   "Move to the previous item in its completions window from the minibuffer.
 When `minibuffer-completion-auto-choose' is non-nil, then also
-insert the selected completion to the minibuffer."
+insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (minibuffer-next-completion (- (or n 1))))
 
+(defun minibuffer-next-line-completion (&optional n)
+  "Move to the next completion line from the minibuffer.
+This means to move to the completion candidate on the next line
+in the *Completions* buffer while point stays in the minibuffer.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion candidate to the minibuffer."
+  (interactive "p")
+  (minibuffer-next-completion (or n 1) t))
+
+(defun minibuffer-previous-line-completion (&optional n)
+  "Move to the previous completion line from the minibuffer.
+This means to move to the completion candidate on the previous line
+in the *Completions* buffer while point stays in the minibuffer.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion candidate to the minibuffer."
+  (interactive "p")
+  (minibuffer-next-completion (- (or n 1)) t))
+
 (defun minibuffer-choose-completion (&optional no-exit no-quit)
   "Run `choose-completion' from the minibuffer in its completions window.
-With prefix argument NO-EXIT, insert the completion at point to the
-minibuffer, but don't exit the minibuffer.  When the prefix argument
+With prefix argument NO-EXIT, insert the completion candidate at point to
+the minibuffer, but don't exit the minibuffer.  When the prefix argument
 is not provided, then whether to exit the minibuffer depends on the value
 of `completion-no-auto-exit'.
-If NO-QUIT is non-nil, insert the completion at point to the
+If NO-QUIT is non-nil, insert the completion candidate at point to the
 minibuffer, but don't quit the completions window."
   (interactive "P")
     (with-minibuffer-completions-window
