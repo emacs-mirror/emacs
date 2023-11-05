@@ -314,6 +314,17 @@ recognize and then delegate the work to an external process."
   "Return t if case is not significant in identifier completion."
   completion-ignore-case)
 
+(cl-defgeneric xref-backend-extra-kinds (_backend _identifier)
+  "Return the other definition types BACKEND could show for IDENTIFIER."
+  (user-error "Extra definitions not supported by the backend"))
+
+(cl-defgeneric xref-backend-extra-defs (_backend _identifier _kind)
+  "Find definitions of extra KIND for IDENTIFIER.
+
+The result must be a list of xref objects.  Refer to
+`xref-backend-definitions' for other details."
+  nil)
+
 
 ;;; misc utilities
 (defun xref--alistify (list key)
@@ -364,7 +375,8 @@ otherwise unused.")
 
 (defcustom xref-prompt-for-identifier '(not xref-find-definitions
                                             xref-find-definitions-other-window
-                                            xref-find-definitions-other-frame)
+                                            xref-find-definitions-other-frame
+                                            xref-find-extra)
   "If non-nil, prompt for the identifier to find.
 
 When t, always prompt for the identifier name.
@@ -1569,11 +1581,11 @@ The meanings of both arguments are the same as documented in
    (xref--create-fetcher id 'definitions id)
    display-action))
 
-(defun xref--create-fetcher (input kind arg)
+(defun xref--create-fetcher (input kind &rest args)
   "Return an xref list fetcher function.
 
 It revisits the saved position and delegates the finding logic to
-the xref backend method indicated by KIND and passes ARG to it."
+the xref backend method indicated by KIND and passes ARGS to it."
   (let* ((orig-buffer (current-buffer))
          (orig-position (point))
          (backend (xref-find-backend))
@@ -1589,7 +1601,7 @@ the xref backend method indicated by KIND and passes ARG to it."
         (when (buffer-live-p orig-buffer)
           (set-buffer orig-buffer)
           (ignore-errors (goto-char orig-position)))
-        (let ((xrefs (funcall method backend arg)))
+        (let ((xrefs (apply method backend args)))
           (unless xrefs
             (xref--not-found-error kind input))
           xrefs)))))
@@ -1623,6 +1635,35 @@ Use \\[xref-go-back] to return back to where you invoked this command."
   "Like `xref-find-definitions' but switch to the other frame."
   (interactive (list (xref--read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier 'frame))
+
+;;;###autoload
+(defun xref-find-extra (identifier)
+  "Find some specific kind of definition of the identifier at point.
+With prefix argument or when there's no identifier at point,
+prompt for the identifier.
+
+If only one location is found, display it in the selected window.
+Otherwise, display the list of the possible definitions in a
+buffer where the user can select from the list.
+
+Use \\[xref-go-back] to return back to where you invoked this command."
+  (interactive (list
+                ;; XXX: Choose kind of "extra" first? That would fail
+                ;; to take advantage of the symbol-at-point, though.
+                (xref--read-identifier "Find definitions of: ")))
+  (let* ((kinds (xref-backend-extra-kinds (xref-find-backend) identifier))
+         ;; FIXME: We should probably skip asking when there's just
+         ;; one available kind, but let's keep completing-read while
+         ;; collecting the initial feedback about the interface.
+         (kind ;; (if (cdr kinds)
+          (completing-read "Definition kind: " kinds nil t nil nil (car kinds))
+          ;; (car kinds)
+          ;; )
+          ))
+    (unless kind (user-error "No supported kinds"))
+    (xref--show-defs
+     (xref--create-fetcher identifier 'extra-defs identifier kind)
+     nil)))
 
 ;;;###autoload
 (defun xref-find-references (identifier)
@@ -1724,6 +1765,7 @@ output of this command when the backend is etags."
 ;;;###autoload (define-key esc-map [?\C-,] #'xref-go-forward)
 ;;;###autoload (define-key esc-map "?" #'xref-find-references)
 ;;;###autoload (define-key esc-map [?\C-.] #'xref-find-apropos)
+;;;###autoload (define-key esc-map "'" #'xref-find-extra)
 ;;;###autoload (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
 ;;;###autoload (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 

@@ -1212,6 +1212,66 @@ namespace but with lower confidence."
 
     xrefs))
 
+(cl-defmethod xref-backend-extra-kinds ((_backend (eql 'elisp)) identifier)
+  ;; The file name is not known when `symbol' is defined via interactive eval.
+  (let ((symbol (intern-soft identifier))
+        kinds)
+    ;; alphabetical by result type symbol
+
+    ;; FIXME: advised function; list of advice functions
+    ;; FIXME: aliased variable
+
+    ;; Coding system symbols do not appear in ‘load-history’,
+    ;; so we can’t get a location for them.
+    (when (and (symbolp symbol)
+               (symbol-function symbol)
+               (symbolp (symbol-function symbol)))
+      (push "defalias" kinds))
+
+    (when (facep symbol)
+      (push "face" kinds))
+
+    (when (fboundp symbol)
+      (let ((file (find-lisp-object-file-name symbol (symbol-function symbol)))
+            doc)
+        (when file
+          (cond
+           ((eq file 'C-source)
+            (push "function" kinds))
+           ((and (setq doc (documentation symbol t))
+                 ;; This doc string is defined in cl-macs.el cl-defstruct
+                 (string-match "Constructor for objects of type `\\(.*\\)'" doc))
+            (push "constructor" kinds))
+           ((cl--generic symbol)
+            (push "generic" kinds))
+           (t
+            (push "function" kinds))))))
+    (when (boundp symbol)
+      (push "variable" kinds))
+    (when (featurep symbol)
+      (push "feature" kinds))
+    (nreverse kinds)))
+
+(cl-defmethod xref-backend-extra-defs ((_backend (eql 'elisp)) identifier kind)
+  (require 'find-func)
+  (let ((sym (intern-soft identifier)))
+    (when sym
+      (let* ((defs (elisp--xref-find-definitions sym))
+             (expected-kind
+              (assoc-default kind
+                             '(("defalias" . defalias)
+                               ("face" . defface)
+                               ("function" . nil)
+                               ("variable" . defvar)
+                               ("constructor" . define-type)
+                               ("generic" . generic)))))
+        (cl-loop for d in defs
+                 for def-kind = (xref-elisp-location-type (xref-item-location d))
+                 when (if (eq expected-kind 'generic)
+                          (memq def-kind '(cl-defgeneric cl-defmethod))
+                        (eq def-kind expected-kind))
+                 collect d)))))
+
 (declare-function xref-apropos-regexp "xref" (pattern))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql 'elisp)) pattern)
