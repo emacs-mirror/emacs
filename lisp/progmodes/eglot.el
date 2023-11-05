@@ -2922,9 +2922,6 @@ If BUFFER, switch to it before."
                        eglot--workspace-symbols-cache))))
     (if attempt (car attempt) "LSP identifier at point")))
 
-(defvar eglot--lsp-xref-refs nil
-  "`xref' objects for overriding `xref-backend-references''s.")
-
 (cl-defun eglot--lsp-xrefs-for-method (method &key extra-params capability)
   "Make `xref''s for METHOD, EXTRA-PARAMS, check CAPABILITY."
   (eglot-server-capable-or-lose
@@ -2950,45 +2947,44 @@ If BUFFER, switch to it before."
                                                uri range))))))
        (if (vectorp response) response (and response (list response)))))))
 
-(cl-defun eglot--lsp-xref-helper (method &key extra-params capability)
-  "Helper for `eglot-find-declaration' & friends."
-  (let ((eglot--lsp-xref-refs (eglot--lsp-xrefs-for-method
-                               method
-                               :extra-params extra-params
-                               :capability capability)))
-    (if eglot--lsp-xref-refs
-        (xref-find-references "LSP identifier at point.")
-      (eglot--message "%s returned no references" method))))
+(defvar eglot--xref-kinds-alist
+  '((eglot--xref-declaration :declarationProvider :textDocument/declaration)
+    (eglot--xref-definition :definitionProvider :textDocument/definition)
+    (eglot--xref-implementation :implementationProvider :textDocument/implementation)
+    (eglot--xref-type-definition :typeDefinitionProvider :textDocument/typeDefinition)
+    (eglot--xref-references :referencesProvider :textDocument/references
+                            `(:context (:includeDeclaration t))))
+  "Alist of (KIND CAPABILITY METHOD EXTRA-PARAMS)")
 
 (defun eglot-find-declaration ()
   "Find declaration for SYM, the identifier at point."
   (interactive)
-  (eglot--lsp-xref-helper :textDocument/declaration))
+  (xref-find-extra "LSP identifier at point" 'eglot--xref-declaration))
 
 (defun eglot-find-implementation ()
   "Find implementation for SYM, the identifier at point."
   (interactive)
-  (eglot--lsp-xref-helper :textDocument/implementation))
+  (xref-find-extra "LSP identifier at point" 'eglot--xref-implementation))
 
 (defun eglot-find-typeDefinition ()
   "Find type definition for SYM, the identifier at point."
   (interactive)
-  (eglot--lsp-xref-helper :textDocument/typeDefinition))
+  (xref-find-extra "LSP identifier at point" 'eglot--xref-type-definition))
 
-(cl-defmethod xref-backend-definitions ((_backend (eql eglot)) id)
-  (let ((probe (eglot--recover-workspace-symbol-meta id)))
+(cl-defmethod xref-backend-definitions ((_backend (eql eglot)) identifier)
+  (let ((probe (eglot--recover-workspace-symbol-meta identifier)))
     (if probe
         (eglot--dbind ((WorkspaceSymbol) name location)
             (get-text-property 0 'eglot--lsp-workspaceSymbol probe)
           (eglot--dbind ((Location) uri range) location
             (list (eglot--xref-make-match name uri range))))
-      (eglot--lsp-xrefs-for-method :textDocument/definition))))
+      (eglot--lsp-xrefs-for-method :textDocument/definition
+                                   :capability :definitionProvider))))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) _identifier)
-  (or
-   eglot--lsp-xref-refs
-   (eglot--lsp-xrefs-for-method
-    :textDocument/references :extra-params `(:context (:includeDeclaration t)))))
+  (eglot--lsp-xrefs-for-method :textDocument/references
+                               :capability :referencesProvider
+                               :extra-params `(:context (:includeDeclaration t))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot-server-capable :workspaceSymbolProvider)
@@ -3000,6 +2996,19 @@ If BUFFER, switch to it before."
        (eglot--request (eglot--current-server-or-lose)
                        :workspace/symbol
                        `(:query ,pattern))))))
+
+(cl-defmethod xref-backend-extra-kinds ((_backend (eql eglot)) _identifier)
+  (cl-loop for (kind capability _method _extra) in eglot--xref-kinds-alist
+           when (eglot-server-capable capability) collect kind))
+
+(cl-defmethod xref-backend-extra-defs ((_backend (eql eglot)) identifier kind)
+  (cond ((eq kind 'eglot--xref-definition)
+         (xref-backend-definitions 'eglot identifier))
+        (t
+         (pcase-let ((`(,_ ,capability ,method ,extra-params)
+                      (assoc (intern kind) eglot--xref-kinds-alist)))
+           (eglot--lsp-xrefs-for-method method :capability capability
+                                        :extra-params extra-params)))))
 
 (defun eglot-format-buffer ()
   "Format contents of current buffer."
