@@ -5348,9 +5348,49 @@ The following properties have special meanings for this widget:
   :hidden-states '(standard)
   :action #'custom-icon-action
   :custom-set #'custom-icon-set
-  :custom-reset-current #'custom-redraw)
-  ;; Not implemented yet.
-  ;; :custom-reset-saved 'custom-icon-reset-saved)
+  :custom-mark-to-save #'custom-icon-mark-to-save
+  :custom-reset-current #'custom-redraw
+  :custom-reset-saved #'custom-icon-reset-saved
+  :custom-state-set-and-redraw #'custom-icon-state-set-and-redraw
+  :custom-reset-standard #'custom-icon-reset-standard
+  :custom-mark-to-reset-standard #'custom-icon-mark-to-reset-standard)
+
+(defun custom-icon-mark-to-save (widget)
+  "Mark user customization for icon edited by WIDGET to be saved later."
+  (let* ((icon (widget-value widget))
+         (value (custom--icons-widget-value
+                 (car (widget-get widget :children)))))
+    (custom-push-theme 'theme-icon icon 'user 'set value)))
+
+(defun custom-icon-reset-saved (widget)
+  "Restore icon customized by WIDGET to the icon's default attributes.
+
+If there's a theme value for the icon, resets to that.  Otherwise, resets to
+its standard value."
+  (let* ((icon (widget-value widget)))
+    (custom-push-theme 'theme-icon icon 'user 'reset)
+    (custom-icon-state-set widget)
+    (custom-redraw widget)))
+
+(defun custom-icon-state-set-and-redraw (widget)
+  "Set state of icon widget WIDGET and redraw it with up-to-date settings."
+  (custom-icon-state-set widget)
+  (custom-redraw-magic widget))
+
+(defun custom-icon-reset-standard (widget)
+  "Reset icon edited by WIDGET to its standard value."
+  (let* ((icon (widget-value widget))
+         (themes (get icon 'theme-icon)))
+    (dolist (theme themes)
+      (custom-push-theme 'theme-icon icon (car theme) 'reset))
+    (custom-save-all))
+  (widget-put widget :custom-state 'unknown)
+  (custom-redraw widget))
+
+(defun custom-icon-mark-to-reset-standard (widget)
+  "Reset icon edited by WIDGET to its standard value."
+  ;; Don't mark for now, there aren't that many icons.
+  (custom-icon-reset-standard widget))
 
 (defvar custom-icon-extended-menu
   (let ((map (make-sparse-keymap)))
@@ -5369,6 +5409,18 @@ The following properties have special meanings for this widget:
                   :enable (memq
                            (widget-get custom-actioned-widget :custom-state)
                            '(modified changed))))
+    (define-key-after map [custom-icon-reset-saved]
+      '(menu-item "Revert This Session's Customization"
+                  custom-icon-reset-saved
+                  :enable (memq
+                           (widget-get custom-actioned-widget :custom-state)
+                           '(modified set changed rogue))))
+    (when (or custom-file init-file-user)
+      (define-key-after map [custom-icon-reset-standard]
+        '(menu-item "Erase Customization" custom-icon-reset-standard
+                    :enable (memq
+                             (widget-get custom-actioned-widget :custom-state)
+                             '(modified set changed saved rogue)))))
     map)
   "A menu for `custom-icon' widgets.
 Used in `custom-icon-action' to show a menu to the user.")
