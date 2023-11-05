@@ -505,6 +505,7 @@ The value t means abort and give an error message.")
     ("⅝" "(5:8)") ; 5/8
     ("⅞" "(7:8)") ; 7/8
     ("⅟" "1:")    ; 1/...
+    ("⁄" ":")     ; arbitrary fractions of the form 123⁄456
     ;; superscripts
     ("⁰" "0")  ; 0
     ("¹" "1")  ; 1

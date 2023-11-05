@@ -734,6 +734,31 @@ An existing calc stack is reused, otherwise a new one is created."
                             (var c var-c))))))
     (calc-set-language nil)))
 
+(ert-deftest calc-frac-input ()
+  ;; precomposed fraction
+  (should (equal (math-read-expr "½")
+                 '(frac 1 2)))
+  ;; ascii solidus
+  (should (equal (math-read-expr "123/456")
+                 '(/ 123 456)))
+  (should (equal (math-read-expr "a/b")
+                 '(/ (var a var-a) (var b var-b))))
+  ;; fraction slash
+  (should (equal (math-read-expr "123⁄456")
+                 '(frac 41 152)))
+  (should (equal (math-read-expr "a⁄b")
+                 '(error 1 "Syntax error")))
+  ;; division slash
+  (should (equal (math-read-expr "123∕456")
+                 '(/ 123 456)))
+  (should (equal (math-read-expr "a∕b")
+                 '(/ (var a var-a) (var b var-b))))
+  ;; division sign
+  (should (equal (math-read-expr "123÷456")
+                 '(frac 41 152)))
+  (should (equal (math-read-expr "a÷b") ; I think this one is wrong
+                 '(error 1 "Syntax error"))))
+
 (defvar var-g)
 
 ;; Test `let'.
