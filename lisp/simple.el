@@ -10017,7 +10017,7 @@ With prefix argument N, move N lines forward (negative N means move backward).
 
 Also see the `completion-auto-wrap' variable."
   (interactive "p")
-  (let (line column pos)
+  (let (line column pos found)
     (when (and (bobp)
                (> n 0)
                (get-text-property (point) 'mouse-face)
@@ -10044,12 +10044,14 @@ Also see the `completion-auto-wrap' variable."
               ((< n 0) (first-completion)))))
 
     (while (> n 0)
-      (setq pos nil column (current-column) line (line-number-at-pos))
-      (when (and (or (not (eq (forward-line 1) 0))
-                     (eobp)
-                     (not (eq (move-to-column column) column))
-                     (not (get-text-property (point) 'mouse-face)))
-                 completion-auto-wrap)
+      (setq found nil pos nil column (current-column) line (line-number-at-pos))
+      (while (and (not found)
+                  (eq (forward-line 1) 0)
+                  (not (eobp))
+                  (eq (move-to-column column) column))
+        (when (get-text-property (point) 'mouse-face)
+          (setq found t)))
+      (when (and (not found) completion-auto-wrap)
         (save-excursion
           (goto-char (point-min))
           (when (and (eq (move-to-column column) column)
@@ -10064,11 +10066,13 @@ Also see the `completion-auto-wrap' variable."
       (setq n (1- n)))
 
     (while (< n 0)
-      (setq pos nil column (current-column) line (line-number-at-pos))
-      (when (and (or (not (eq (forward-line -1) 0))
-                     (not (eq (move-to-column column) column))
-                     (not (get-text-property (point) 'mouse-face)))
-                 completion-auto-wrap)
+      (setq found nil pos nil column (current-column) line (line-number-at-pos))
+      (while (and (not found)
+                  (eq (forward-line -1) 0)
+                  (eq (move-to-column column) column))
+        (when (get-text-property (point) 'mouse-face)
+          (setq found t)))
+      (when (and (not found) completion-auto-wrap)
         (save-excursion
           (goto-char (point-max))
           (when (and (eq (move-to-column column) column)
