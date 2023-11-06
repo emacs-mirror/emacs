@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This file defines ruby-ts-mode which is a major mode for editing
-;; Ruby files that uses Tree Sitter to parse the language. More
+;; Ruby files that uses Tree Sitter to parse the language.  More
 ;; information about Tree Sitter can be found in the ELisp Info pages
 ;; as well as this website: https://tree-sitter.github.io/tree-sitter/
 
@@ -1198,7 +1198,7 @@ leading double colon is not added."
       (syntax-ppss-flush-cache (cl-loop for r in ranges
                                         minimize (car r))))))
 
-(if (treesit-ready-p 'ruby)
+(if (treesit-ready-p 'ruby t)
     ;; Copied from ruby-mode.el.
     (add-to-list 'auto-mode-alist
                  (cons (concat "\\(?:\\.\\(?:"
