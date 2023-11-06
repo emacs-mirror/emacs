@@ -4059,6 +4059,120 @@ Use `math-format-value' as a printer for Calc objects."
     #'ses--cell-value
     (quote ,from) (quote ,to) ,(and rest `(quote ,rest))))
 
+(defun ses--setq-engine (arglist)
+  (let* (undo-list
+         undo-chunk
+         value
+         cell
+         old-value
+         old-formula
+         new-formula
+         old-ref
+         row col
+         x xrow xcol
+         sym
+         (setter 'sv))
+    (ses-initialize-Dijkstra-attempt)
+    (while arglist
+      (setq setter
+            (or (and (eq (car-safe arglist) ::)
+                     (progn
+                       (setq arglist (cdr arglist))
+                       (or (consp arglist) (error "Missing setter after ::"))
+                       (setq value  (car arglist)
+                             arglist (cdr arglist))
+                       (pcase value
+                         ((or 'sv 'sf 'rcv 'rcf)
+                          (setq undo-list (append (list value ::) undo-list)))
+                         (_ (error "Invalid setter %S" value)))
+                       value))
+                setter))
+      (pcase setter
+        ('sv
+         (setq sym (pop arglist)
+               value (pop arglist)
+               undo-chunk (list value sym)
+               value (eval value))
+         (or (ses-is-cell-sym-p sym)
+             (error "Not a SES cell symbol %S" sym))
+         (setq row (ses-sym-rowcol sym)
+               col (cdr row)
+               row (car row)
+               cell (ses-get-cell row col)
+               new-formula  (if (atom value) value `(quote ,value)))
+         .
+         #1=(;; This is a simplified ses-cell-set-formula, as values don't have
+             ;; reference lists
+             (setq old-formula (ses-cell-formula cell)
+                   old-ref (ses-formula-references old-formula)
+                   old-value (symbol-value sym))
+             (unless (and (equal old-value value)
+                          (equal old-formula new-formula))
+               (let ((inhibit-quit t))
+                 (set sym value)
+                 (ses-set-cell row col 'formula new-formula)
+                 (dolist (ref old-ref)
+	           (setq x (ses-sym-rowcol ref))
+                   (and (consp x)
+                        (< (setq xrow (car x)) ses--numrows)
+                        (< (setq xcol (cdr x)) ses--numcols)
+                        (ses-set-cell xrow xcol 'references
+                                      (delq sym (ses-cell-references xrow xcol)))))
+                 (ses-update-cells (ses-cell-references row col)))
+               (cl-pushnew (cons row col) ses--deferred-write :test #'equal)
+               (ses-print-cell row col))
+             (setq undo-list (append undo-chunk undo-list))))
+
+        ('rcv
+         (setq row (pop arglist)
+               col  (pop arglist)
+               value (pop arglist)
+               undo-chunk (list value col row)
+               row (eval row)
+               col (eval col)
+               value (eval value)
+               cell  (ses-get-cell row col)
+               sym (ses-cell-symbol cell)
+               new-formula  (if (atom value) value `(quote ,value)))
+         . #1#)
+        ('sf
+         (setq sym (pop arglist)
+               new-formula (pop arglist)
+               undo-chunk (list new-formula sym))
+         (or (ses-is-cell-sym-p sym)
+             (error "Not a SES cell symbol %S" sym))
+         (setq row (ses-sym-rowcol sym)
+               col (cdr row)
+               row (car row)
+               cell (ses-get-cell row col))
+         .
+         #2=((ses-cell-set-formula row col new-formula)
+             (ses-update-cells (prog1 ses--deferred-recalc
+                                 (setq ses--deferred-recalc nil)))
+             (ses-print-cell row col)
+             (ses-update-cells (ses-cell-references row col))
+             (setq undo-list (append undo-chunk undo-list))
+             ))
+        ('rcf
+         (setq row  (pop arglist)
+               col (pop arglist)
+               new-formula  (pop arglist)
+               undo-chunk (list new-formula col row)
+               row (eval row)
+               col (eval col)
+               cell (ses-get-cell row col)
+               sym (ses-cell-symbol cell))
+         . #2#)
+        (_ (error "INTERNAL"))))
+    (ses-write-cells)
+    value))
+
+(defmacro ses-setq (&rest args)
+  "Sets cells values or formulaes programmatically.
+
+ARGS is a list of elements that are processed "
+  `(ses--setq-engine (quote ,args)))
+
 (defun ses-delete-blanks (&rest args)
   "Return ARGS reversed, with the blank elements (nil and *skip*) removed."
   (let (result)
