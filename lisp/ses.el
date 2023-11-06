@@ -4018,8 +4018,8 @@ Use `math-format-value' as a printer for Calc objects."
 	  (_
 	   (cond
 					; shorthands one row
-	    ((and (null (cddr result)) (memq x '(> <)))
-	     (push (intern (concat (symbol-name x) "v")) rest))
+	       ((and (null (cdar ,result)) (memq x '(> <)))
+	        (push (intern (concat (symbol-name x) "v")) rest))
 					; shorthands one col
 	    ((and (null (cdar result)) (memq x '(v ^)))
 	     (push (intern (concat (symbol-name x) ">")) rest))
