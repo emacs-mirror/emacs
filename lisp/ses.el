@@ -4010,7 +4010,7 @@ Use `math-format-value' as a printer for Calc objects."
 	  (_
 	   (cond
 					; shorthands one row
-	    ((and (null (cddr result)) (memq x '(> <)))
+	    ((and (null (cadr result)) (memq x '(> <)))
 	     (push (intern (concat (symbol-name x) "v")) rest))
 					; shorthands one col
 	    ((and (null (cdar result)) (memq x '(v ^)))
@@ -4031,14 +4031,14 @@ Use `math-format-value' as a printer for Calc objects."
 	(setq result ret)))
 
     (cl-flet ((vectorize-*1
-               (clean result)
-               (cons clean (cons (quote 'vec) (apply #'append result))))
+                (clean result)
+                (cons clean (cons (quote 'vec) (apply #'append result))))
               (vectorize-*2
-               (clean result)
-               (cons clean (cons (quote 'vec)
-                                 (mapcar (lambda (x)
-                                           (cons  clean (cons (quote 'vec) x)))
-                                         result)))))
+                (clean result)
+                (cons clean (cons (quote 'vec)
+                                  (mapcar (lambda (x)
+                                            (cons  clean (cons (quote 'vec) x)))
+                                          result)))))
       (pcase vectorize
 	('nil (cons clean (apply #'append result)))
 	('*1 (vectorize-*1 clean result))
