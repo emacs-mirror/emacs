@@ -1932,12 +1932,12 @@ buffer or nil if no such result exists."
 
 (defun org-babel-result-names (&optional file)
   "Return the names of results in FILE or the current buffer."
-  (save-excursion
-    (when file (find-file file)) (goto-char (point-min))
-    (let ((case-fold-search t) names)
+  (with-current-buffer (if file (find-file-noselect file) (current-buffer))
+    (org-with-point-at 1
+      (let ((case-fold-search t) names)
       (while (re-search-forward org-babel-result-w-name-regexp nil t)
 	(setq names (cons (match-string-no-properties 9) names)))
-      names)))
+      names))))
 
 ;;;###autoload
 (defun org-babel-next-src-block (&optional arg)
@@ -2358,7 +2358,7 @@ INFO may provide the values of these header arguments (in the
           using the argument supplied to specify the export block
           or snippet type."
   (cond ((stringp result)
-	 (setq result (org-no-properties result))
+	 (setq result (substring-no-properties result))
 	 (when (member "file" result-params)
 	   (setq result
                  (org-babel-result-to-file

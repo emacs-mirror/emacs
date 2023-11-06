@@ -166,6 +166,11 @@ This function is called by `org-babel-execute-src-block'."
   "Return a list of statements declaring the values as a generic variable."
   (format "%s=%s" varname (org-babel-sh-var-to-sh values sep hline)))
 
+(defun org-babel--variable-assignments:fish
+    (varname values &optional sep hline)
+  "Return a list of statements declaring the values as a fish variable."
+  (format "set %s %s" varname (org-babel-sh-var-to-sh values sep hline)))
+
 (defun org-babel--variable-assignments:bash_array
     (varname values &optional sep hline)
   "Return a list of statements declaring the values as a bash array."
@@ -211,8 +216,11 @@ This function is called by `org-babel-execute-src-block'."
        (if (string-suffix-p "bash" shell-file-name)
 	   (org-babel--variable-assignments:bash
             (car pair) (cdr pair) sep hline)
-         (org-babel--variable-assignments:sh-generic
-	  (car pair) (cdr pair) sep hline)))
+         (if (string-suffix-p "fish" shell-file-name)
+	     (org-babel--variable-assignments:fish
+              (car pair) (cdr pair) sep hline)
+           (org-babel--variable-assignments:sh-generic
+	    (car pair) (cdr pair) sep hline))))
      (org-babel--get-vars params))))
 
 (defun org-babel-sh-var-to-sh (var &optional sep hline)

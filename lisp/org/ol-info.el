@@ -129,13 +129,13 @@ If LINK is not an info link then DESC is returned."
 
 (defconst org-info-emacs-documents
   '("ada-mode" "auth" "autotype" "bovine" "calc" "ccmode" "cl" "dbus" "dired-x"
-    "ebrowse" "ede" "ediff" "edt" "efaq-w32" "efaq" "eieio" "eintr" "elisp"
-    "emacs-gnutls" "emacs-mime" "emacs" "epa" "erc" "ert" "eshell" "eudc" "eww"
-    "flymake" "forms" "gnus" "htmlfontify" "idlwave" "ido" "info" "mairix-el"
-    "message" "mh-e" "newsticker" "nxml-mode" "octave-mode" "org" "pcl-cvs"
-    "pgg" "rcirc" "reftex" "remember" "sasl" "sc" "semantic" "ses" "sieve"
-    "smtpmail" "speedbar" "srecode" "todo-mode" "tramp" "url" "vip" "viper"
-    "widget" "wisent" "woman")
+    "ebrowse" "ede" "ediff" "edt" "efaq-w32" "efaq" "eglot" "eieio" "eintr"
+    "elisp" "emacs-gnutls" "emacs-mime" "emacs" "epa" "erc" "ert" "eshell"
+    "eudc" "eww" "flymake" "forms" "gnus" "htmlfontify" "idlwave" "ido" "info"
+    "mairix-el" "message" "mh-e" "modus-themes" "newsticker" "nxml-mode" "octave-mode"
+    "org" "pcl-cvs" "pgg" "rcirc" "reftex" "remember" "sasl" "sc" "semantic"
+    "ses" "sieve" "smtpmail" "speedbar" "srecode" "todo-mode" "tramp" "transient"
+    "url" "use-package" "vhdl-mode" "vip" "viper" "vtable" "widget" "wisent" "woman")
   "List of Emacs documents available.
 Taken from <https://www.gnu.org/software/emacs/manual/html_mono/.>")
 
