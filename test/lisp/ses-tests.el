@@ -109,7 +109,7 @@ to (1+ ses--foo), makes A2 value equal to 2."
 
 (ert-deftest ses-tests-renamed-cell-after-setting ()
   "Check that setting A1 to 1 and A2 to (1+ A1), and then
-renaming A1 to `ses--foo' makes `ses--foo' value equal to 2."
+renaming A2 to `ses--foo' makes `ses--foo' value equal to 2."
   (let ((ses-initial-size '(2 . 1)))
     (with-temp-buffer
       (ses-mode)
@@ -240,6 +240,51 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (ses-jump 'ses--toto)
       (ses-command-hook)
       (should (eq (ses--cell-at-pos (point)) 'ses--toto)))))
+
+(ert-deftest ses-expand-range ()
+  "Test `ses-range' expansion works well even if the current buffer is not a SES buffer during expansion."
+  (let ((ses-initial-size '(4 . 3))
+        ses-after-entry-functions
+        (ses-buffer (generate-new-buffer "*SES tests*")))
+    (unwind-protect
+        (progn
+          (with-current-buffer ses-buffer
+            (ses-mode)
+            (dolist (c '([0 0 1] [1 0 2] [2 0 3]))
+              (ses-set-cell (aref c 0) (aref c 1) 'value (aref c 2)))
+            (dolist (c '((0 1 (* 2 A1)) (1 1 (* 2 A2)) (2 1 (* 2 A3))))
+              (apply 'ses-cell-set-formula c)
+              (apply 'ses-calculate-cell (list (car c) (cadr c) nil))))
+
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 A3 v))
+                          '(1 2 3)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 A3 ^))
+                          '(3 2 1)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 B3 >v))
+                          '(1 2 2 4 3 6)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 B3 >^))
+                          '(3 6 2 4 1 2)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 B3 <v))
+                          '(2 1 4 2 6 3)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 B3 <^))
+                          '(6 3 4 2 2 1)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 A3 v !))
+                          '(1 2 3)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 B4 >v !))
+                          '(1 2 2 4 3 6)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 A4 v _ 10))
+                          '(1 2 3 10)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 B4 >v _ 10))
+                          '(1 2 2 4 3 6 10 10)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 A3 v *))
+                          '(vec 1 2 3)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 A3 v *1))
+                          '(vec 1 2 3)))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 A3 v *2))
+                          '(vec (vec 1 2 3))))
+          (should (equal  (with-current-buffer ses-buffer (ses-range A1 A3 > *2))
+                          '(vec (vec 1) (vec 2) (vec 3)))))
+      (kill-buffer ses-buffer))))
 
 (ert-deftest ses-set-formula-write-cells-with-changed-references ()
   "Test fix of bug#5852.
