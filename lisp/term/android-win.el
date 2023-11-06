@@ -75,19 +75,28 @@ DISPLAY is ignored on Android."
 
 (defvar android-primary-selection nil
   "The last string placed in the primary selection.
-Nil if there was no such string.
+nil if there was no such string.
 
-Android does not have a primary selection of its own, so Emacs
-emulates one inside Lisp.")
+Android is not equipped with a primary selection of its own, so
+Emacs emulates one in Lisp.")
+
+(defvar android-secondary-selection nil
+  "The last string placed in the secondary selection.
+nil if there was no such string.
+
+Android is not equipped with a secondary selection of its own, so
+Emacs emulates one in Lisp.")
 
 (defun android-get-clipboard-1 (data-type)
-  "Return the clipboard data.
-DATA-TYPE is a selection conversion target.  `STRING' means to
-return the contents of the clipboard as a string.  `TARGETS'
-means to return supported data types as a vector.
+  "Return data saved from the clipboard.
+DATA-TYPE is a selection conversion target.
 
-Interpret any other symbol as a MIME type, and return its
-corresponding data."
+`STRING' means return the contents of the clipboard as a string,
+while `TARGETS' means return the types of all data present within
+the clipboard as a vector.
+
+Interpret any other symbol as a MIME type for which any clipboard
+data is returned"
   (or (and (eq data-type 'STRING)
            (android-get-clipboard))
       (and (eq data-type 'TARGETS)
@@ -95,7 +104,8 @@ corresponding data."
            (vconcat [TARGETS STRING]
                     (let ((i nil))
                       (dolist (type (android-get-clipboard-targets))
-                        ;; Don't report plain text as a valid target.
+                        ;; Don't report plain text as a valid target
+                        ;; since it is addressed by STRING.
                         (unless (equal type "text/plain")
                           (push (intern type) i)))
                       (nreverse i))))
@@ -109,7 +119,16 @@ Return nil if DATA-TYPE is anything other than STRING or TARGETS."
     (or (and (eq data-type 'STRING)
              android-primary-selection)
         (and (eq data-type 'TARGETS)
-             [TARGETS]))))
+             [TARGETS STRING]))))
+
+(defun android-get-secondary (data-type)
+  "Return the last string placed in the secondary selection, or nil.
+Return nil if DATA-TYPE is anything other than STRING or TARGETS."
+  (when android-secondary-selection
+    (or (and (eq data-type 'STRING)
+             android-secondary-selection)
+        (and (eq data-type 'TARGETS)
+             [TARGETS STRING]))))
 
 (defun android-selection-bounds (value)
   "Return bounds of selection value VALUE.
@@ -152,26 +171,34 @@ VALUE should be something suitable for passing to
   (cond ((eq type 'CLIPBOARD)
          (android-get-clipboard-1 data-type))
         ((eq type 'PRIMARY)
-         (android-get-primary data-type))))
+         (android-get-primary data-type))
+        ((eq type 'SECONDARY)
+         (android-get-secondary data-type))))
 
 (cl-defmethod gui-backend-selection-exists-p (selection
                                               &context (window-system android))
   (cond ((eq selection 'CLIPBOARD)
          (android-clipboard-exists-p))
         ((eq selection 'PRIMARY)
-         (not (null android-primary-selection)))))
+         (not (null android-primary-selection)))
+        ((eq selection 'SECONDARY)
+         (not (null android-secondary-selection)))))
 
 (cl-defmethod gui-backend-selection-owner-p (selection
                                              &context (window-system android))
   (cond ((eq selection 'CLIPBOARD)
          (let ((ownership (android-clipboard-owner-p)))
-           ;; If ownership is `lambda', then Emacs couldn't determine
+           ;; If ownership is `lambda', then Emacs couldn't establish
            ;; whether or not it owns the clipboard.
            (and (not (eq ownership 'lambda)) ownership)))
         ((eq selection 'PRIMARY)
          ;; Emacs always owns its own primary selection as long as it
          ;; exists.
-         (not (null android-primary-selection)))))
+         (not (null android-primary-selection)))
+        ((eq selection 'SECONDARY)
+         ;; Emacs always owns its own secondary selection as long as
+         ;; it exists.
+         (not (null android-secondary-selection)))))
 
 (cl-defmethod gui-backend-set-selection (type value
                                               &context (window-system android))
@@ -181,7 +208,9 @@ VALUE should be something suitable for passing to
     (cond ((eq type 'CLIPBOARD)
            (android-set-clipboard string))
           ((eq type 'PRIMARY)
-           (setq android-primary-selection string)))))
+           (setq android-primary-selection string))
+          ((eq type 'SECONDARY)
+           (setq android-secondary-selection string)))))
 
 ;;; Character composition display.
 
