@@ -5560,6 +5560,68 @@ returns nil, then (funcall TEST x1 x2) also returns nil.  */)
   return Fput (name, Qhash_table_test, list2 (test, hash));
 }
 
+DEFUN ("internal--hash-table-histogram",
+       Finternal__hash_table_histogram,
+       Sinternal__hash_table_histogram,
+       1, 1, 0,
+       doc: /* Bucket size histogram of HASH-TABLE.  Internal use only. */)
+  (Lisp_Object hash_table)
+{
+  struct Lisp_Hash_Table *h = check_hash_table (hash_table);
+  ptrdiff_t size = HASH_TABLE_SIZE (h);
+  ptrdiff_t *freq = xzalloc (size * sizeof *freq);
+  ptrdiff_t index_size = ASIZE (h->index);
+  for (ptrdiff_t i = 0; i < index_size; i++)
+    {
+      ptrdiff_t n = 0;
+      for (ptrdiff_t j = HASH_INDEX (h, i); j != -1; j = HASH_NEXT (h, j))
+	n++;
+      if (n > 0)
+	freq[n - 1]++;
+    }
+  Lisp_Object ret = Qnil;
+  for (ptrdiff_t i = 0; i < size; i++)
+    if (freq[i] > 0)
+      ret = Fcons (Fcons (make_int (i + 1), make_int (freq[i])),
+		   ret);
+  xfree (freq);
+  return Fnreverse (ret);
+}
+
+DEFUN ("internal--hash-table-buckets",
+       Finternal__hash_table_buckets,
+       Sinternal__hash_table_buckets,
+       1, 1, 0,
+       doc: /* (KEY . HASH) in HASH-TABLE, grouped by bucket.
+Internal use only. */)
+  (Lisp_Object hash_table)
+{
+  struct Lisp_Hash_Table *h = check_hash_table (hash_table);
+  Lisp_Object ret = Qnil;
+  ptrdiff_t index_size = ASIZE (h->index);
+  for (ptrdiff_t i = 0; i < index_size; i++)
+    {
+      Lisp_Object bucket = Qnil;
+      for (ptrdiff_t j = HASH_INDEX (h, i); j != -1; j = HASH_NEXT (h, j))
+	bucket = Fcons (Fcons (HASH_KEY (h, j), HASH_HASH (h, j)),
+			bucket);
+      if (!NILP (bucket))
+	ret = Fcons (Fnreverse (bucket), ret);
+    }
+  return Fnreverse (ret);
+}
+
+DEFUN ("internal--hash-table-index-size",
+       Finternal__hash_table_index_size,
+       Sinternal__hash_table_index_size,
+       1, 1, 0,
+       doc: /* Index size of HASH-TABLE.  Internal use only. */)
+  (Lisp_Object hash_table)
+{
+  struct Lisp_Hash_Table *h = check_hash_table (hash_table);
+  ptrdiff_t index_size = ASIZE (h->index);
+  return make_int (index_size);
+}
 
 
 /************************************************************************
@@ -6250,6 +6312,9 @@ syms_of_fns (void)
   defsubr (&Sremhash);
   defsubr (&Smaphash);
   defsubr (&Sdefine_hash_table_test);
+  defsubr (&Sinternal__hash_table_histogram);
+  defsubr (&Sinternal__hash_table_buckets);
+  defsubr (&Sinternal__hash_table_index_size);
   defsubr (&Sstring_search);
   defsubr (&Sobject_intervals);
   defsubr (&Sline_number_at_pos);
