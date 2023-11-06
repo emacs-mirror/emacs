@@ -83,18 +83,20 @@ PASSWORD - What password to use.
 	 (pass (url-password url))
 	 (user (url-user url))
          (chan (url-filename url))
-         (type (url-type url))
-         (compatp (eql 5 (cdr (func-arity url-irc-function)))))
+         (type (url-type url)))
     (if (url-target url)
 	(setq chan (concat chan "#" (url-target url))))
     (if (string-match "^/" chan)
 	(setq chan (substring chan 1 nil)))
     (if (= (length chan) 0)
 	(setq chan nil))
-    (when compatp
-      (lwarn 'url :error "Obsolete value for `url-irc-function'"))
-    (apply url-irc-function
-           host port chan user pass (unless compatp (list type)))
+    (condition-case nil
+        (funcall url-irc-function host port chan user pass type)
+      (wrong-number-of-arguments
+       (display-warning 'url
+                        (concat "Incompatible value for `url-irc-function'."
+                                " Likely not expecting a 6th (SCHEME) arg."))
+       (funcall url-irc-function host port chan user pass)))
     nil))
 
 ;;;; ircs://
