@@ -2688,22 +2688,37 @@ The returned list is not fresh, don't modify it.
       (if (memq mode known-children)
           (error "Cycle in the major mode hierarchy: %S" mode)
         (push mode known-children))
-      (let* ((parent (or (get mode 'derived-mode-parent)
+      ;; The mode hierarchy (or DAG, actually), is very static, but we
+      ;; need to react to changes because `parent' may not be defined
+      ;; yet (e.g. it's still just an autoload), so the recursive call
+      ;; to `derived-mode-all-parents' may return an
+      ;; invalid/incomplete result which we'll need to update when the
+      ;; mode actually gets loaded.
+      (let* ((all-parents
+              (lambda (parent)
+                ;; Can't use `cl-lib' here (nor `gv') :-(
+                ;;(cl-assert (not (equal parent mode)))
+                ;;(cl-pushnew mode (get parent 'derived-mode--followers))
+                (let ((followers (get parent 'derived-mode--followers)))
+                  (unless (memq mode followers)
+                    (put parent 'derived-mode--followers
+                         (cons mode followers))))
+                (derived-mode-all-parents parent known-children)))
+             (parent (or (get mode 'derived-mode-parent)
                          ;; If MODE is an alias, then follow the alias.
                          (let ((alias (symbol-function mode)))
-                           (and (symbolp alias) alias)))))
+                           (and (symbolp alias) alias))))
+             (parents (cons mode (if parent (funcall all-parents parent))))
+             (extras (get mode 'derived-mode-extra-parents)))
         (put mode 'derived-mode--all-parents
-             (cons mode
-                   (when parent
-                     ;; Can't use `cl-lib' here (nor `gv') :-(
-                     ;;(cl-assert (not (equal parent mode)))
-                     ;;(cl-pushnew mode (get parent 'derived-mode--followers))
-                     (let ((followers (get parent 'derived-mode--followers)))
-                       (unless (memq mode followers)
-                         (put parent 'derived-mode--followers
-                              (cons mode followers))))
-                     (derived-mode-all-parents
-                      parent known-children))))))))
+             (if (null extras) ;; Common case.
+                 parents
+               (delete-dups
+                (apply #'append
+                       parents (mapcar (lambda (extra)
+                                         (copy-sequence
+                                          (funcall all-parents extra)))
+                                       extras)))))))))
 
 (defun provided-mode-derived-p (mode &rest modes)
   "Non-nil if MODE is derived from one of MODES.
@@ -2715,14 +2730,20 @@ If you just want to check `major-mode', use `derived-mode-p'."
     (car ps)))
 
 (defun derived-mode-p (&rest modes)
-  "Non-nil if the current major mode is derived from one of MODES.
-Uses the `derived-mode-parent' property of the symbol to trace backwards."
+  "Non-nil if the current major mode is derived from one of MODES."
   (declare (side-effect-free t))
   (apply #'provided-mode-derived-p major-mode modes))
 
 (defun derived-mode-set-parent (mode parent)
   "Declare PARENT to be the parent of MODE."
   (put mode 'derived-mode-parent parent)
+  (derived-mode--flush mode))
+
+(defun derived-mode-add-parents (mode extra-parents)
+  "Add EXTRA-PARENTS to the parents of MODE.
+Declares the parents of MODE to be its main parent (as defined
+in `define-derived-mode') plus EXTRA-PARENTS."
+  (put mode 'derived-mode-extra-parents extra-parents)
   (derived-mode--flush mode))
 
 (defun derived-mode--flush (mode)
