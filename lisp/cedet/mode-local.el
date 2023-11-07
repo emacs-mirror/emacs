@@ -68,22 +68,15 @@ walk through.  It defaults to `buffer-list'."
            (when (or (not predicate) (funcall predicate))
              (funcall function))))))
 
-(defsubst get-mode-local-parent (mode)
+(defun get-mode-local-parent (mode)
   "Return the mode parent of the major mode MODE.
 Return nil if MODE has no parent."
+  (declare (obsolete derived-mode-all-parents "30.1"))
   (or (get mode 'mode-local-parent)
       (get mode 'derived-mode-parent)))
 
-;; FIXME doc (and function name) seems wrong.
-;; Return a list of MODE and all its parent modes, if any.
-;; Lists parent modes first.
-(defun mode-local-equivalent-mode-p (mode)
-  "Is the major-mode in the current buffer equivalent to a mode in MODES."
-  (let ((modes nil))
-    (while mode
-      (setq modes (cons mode modes)
-	    mode  (get-mode-local-parent mode)))
-    modes))
+(define-obsolete-function-alias 'mode-local-equivalent-mode-p
+  #'derived-mode-all-parents "30.1")
 
 (defun mode-local-map-mode-buffers (function modes)
   "Run FUNCTION on every file buffer with major mode in MODES.
@@ -91,13 +84,7 @@ MODES can be a symbol or a list of symbols.
 FUNCTION does not have arguments."
   (setq modes (ensure-list modes))
   (mode-local-map-file-buffers
-   function (lambda ()
-              (let ((mm (mode-local-equivalent-mode-p major-mode))
-                    (ans nil))
-                (while (and (not ans) mm)
-                  (setq ans (memq (car mm) modes)
-                        mm (cdr mm)) )
-                ans))))
+   function (lambda () (apply #'derived-mode-p modes))))
 
 ;;; Hook machinery
 ;;
@@ -145,7 +132,8 @@ after changing the major mode."
   "Set parent of major mode MODE to PARENT mode.
 To work properly, this function should be called after PARENT mode
 local variables have been defined."
-  (put mode 'mode-local-parent parent)
+  (declare (obsolete derived-mode-add-parents "30.1"))
+  (derived-mode-add-parents mode (list parent))
   ;; Refresh mode bindings to get mode local variables inherited from
   ;; PARENT. To work properly, the following should be called after
   ;; PARENT mode local variables have been defined.
@@ -159,13 +147,8 @@ definition."
   (declare (obsolete define-derived-mode "27.1") (indent 2))
   `(mode-local--set-parent ',mode ',parent))
 
-(defun mode-local-use-bindings-p (this-mode desired-mode)
-  "Return non-nil if THIS-MODE can use bindings of DESIRED-MODE."
-  (let ((ans nil))
-    (while (and (not ans) this-mode)
-      (setq ans (eq this-mode desired-mode))
-      (setq this-mode (get-mode-local-parent this-mode)))
-    ans))
+(define-obsolete-function-alias 'mode-local-use-bindings-p
+  #'provided-mode-derived-p "30.1")
 
 
 ;;; Core bindings API
@@ -270,11 +253,13 @@ its parents."
         (setq mode major-mode
               bind (and mode-local-symbol-table
                         (intern-soft name mode-local-symbol-table))))
-    (while (and mode (not bind))
-      (or (and (get mode 'mode-local-symbol-table)
-               (setq bind (intern-soft
-                           name (get mode 'mode-local-symbol-table))))
-          (setq mode (get-mode-local-parent mode))))
+    (let ((parents (derived-mode-all-parents mode)))
+      (while (and parents (not bind))
+        (or (and (get (car parents) 'mode-local-symbol-table)
+                 (setq bind (intern-soft
+                             name (get (car parents)
+                                       'mode-local-symbol-table))))
+            (setq parents (cdr parents)))))
     bind))
 
 (defsubst mode-local-symbol-value (symbol &optional mode property)
@@ -311,16 +296,12 @@ Elements are (SYMBOL . PREVIOUS-VALUE), describing one variable."
       (mode-local-on-major-mode-change)
 
     ;; Do the normal thing.
-    (let (modes table old-locals)
+    (let (table old-locals)
       (unless mode
         (setq-local mode-local--init-mode major-mode)
 	(setq mode major-mode))
-      ;; Get MODE's parents & MODE in the right order.
-      (while mode
-	(setq modes (cons mode modes)
-	      mode  (get-mode-local-parent mode)))
       ;; Activate mode bindings following parent modes order.
-      (dolist (mode modes)
+      (dolist (mode (derived-mode-all-parents mode))
 	(when (setq table (get mode 'mode-local-symbol-table))
 	  (mapatoms
            (lambda (var)
@@ -345,14 +326,13 @@ If MODE is not specified it defaults to current `major-mode'."
     (kill-local-variable 'mode-local--init-mode)
     (setq mode major-mode))
   (let (table)
-    (while mode
+    (dolist (mode (derived-mode-all-parents mode))
       (when (setq table (get mode 'mode-local-symbol-table))
         (mapatoms
          (lambda (var)
            (when (get var 'mode-variable-flag)
              (kill-local-variable (intern (symbol-name var)))))
-         table))
-      (setq mode (get-mode-local-parent mode)))))
+         table)))))
 
 (defmacro with-mode-local-symbol (mode &rest body)
   "With the local bindings of MODE symbol, evaluate BODY.
@@ -866,12 +846,11 @@ META-NAME is a cons (OVERLOADABLE-SYMBOL . MAJOR-MODE)."
     (when table
       (princ "\n- Buffer local\n")
       (mode-local-print-bindings table))
-    (while mode
+    (dolist (mode (derived-mode-all-parents mode))
       (setq table (get mode 'mode-local-symbol-table))
       (when table
         (princ (format-message "\n- From `%s'\n" mode))
-        (mode-local-print-bindings table))
-      (setq mode (get-mode-local-parent mode)))))
+        (mode-local-print-bindings table)))))
 
 (defun mode-local-describe-bindings-1 (buffer-or-mode &optional interactive-p)
   "Display mode local bindings active in BUFFER-OR-MODE.

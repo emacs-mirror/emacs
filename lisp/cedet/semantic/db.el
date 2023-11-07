@@ -799,7 +799,7 @@ local variable."
      (null (oref table major-mode))
      ;; nil means the same as major-mode
      (and (not semantic-equivalent-major-modes)
-	  (mode-local-use-bindings-p major-mode (oref table major-mode)))
+	  (provided-mode-derived-p major-mode (oref table major-mode)))
      (and semantic-equivalent-major-modes
 	  (member (oref table major-mode) semantic-equivalent-major-modes))
      )

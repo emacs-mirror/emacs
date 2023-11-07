@@ -137,41 +137,36 @@ Tracks all the template-tables for a specific major mode.")
   "Get the SRecoder mode table for the major mode MODE.
 This will find the mode table specific to MODE, and then
 calculate all inherited templates from parent modes."
-  (let ((table nil)
-	(tmptable nil))
-    (while mode
-      (setq tmptable (eieio-instance-tracker-find
-		      mode 'major-mode 'srecode-mode-table-list)
-	    mode (get-mode-local-parent mode))
-      (when tmptable
-	(if (not table)
-	    (progn
-	      ;; If this is the first, update tables to have
-	      ;; all the mode specific tables in it.
-	      (setq table tmptable)
-	      (oset table tables (oref table modetables)))
-	  ;; If there already is a table, then reset the tables
-	  ;; slot to include all the tables belonging to this new child node.
-	  (oset table tables (append (oref table modetables)
-				     (oref tmptable modetables)))))
-      )
+  (let ((table nil))
+    (dolist (mode (derived-mode-all-parents mode))
+      (let ((tmptable (eieio-instance-tracker-find
+		       mode 'major-mode 'srecode-mode-table-list)))
+	(when tmptable
+	  (if (not table)
+	      (progn
+	        ;; If this is the first, update tables to have
+	        ;; all the mode specific tables in it.
+	        (setq table tmptable)
+	        (oset table tables (oref table modetables)))
+	    ;; If there already is a table, then reset the tables
+	    ;; slot to include all the tables belonging to this new child node.
+	    (oset table tables (append (oref table modetables)
+				       (oref tmptable modetables)))))
+	))
     table))
 
 (defun srecode-make-mode-table (mode)
   "Get the SRecoder mode table for the major mode MODE."
   (let ((old (eieio-instance-tracker-find
 	      mode 'major-mode 'srecode-mode-table-list)))
-    (if old
-	old
-      (let* ((ms (if (stringp mode) mode (symbol-name mode)))
-	     (new (srecode-mode-table ms
-				      :major-mode mode
-				      :modetables nil
-				      :tables nil)))
-	;; Save this new mode table in that mode's variable.
-	(eval `(setq-mode-local ,mode srecode-table ,new) t)
+    (or old
+	(let* ((new (srecode-mode-table :major-mode mode
+				        :modetables nil
+				        :tables nil)))
+	  ;; Save this new mode table in that mode's variable.
+	  (eval `(setq-mode-local ,mode srecode-table ,new) t)
 
-	new))))
+	  new))))
 
 (cl-defmethod srecode-mode-table-find ((mt srecode-mode-table) file)
   "Look in the mode table MT for a template table from FILE.
