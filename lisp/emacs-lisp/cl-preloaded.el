@@ -323,15 +323,9 @@ supertypes from the most specific to least specific.")
 (cl-assert (cl--class-p (cl--find-class 'cl-structure-object)))
 
 (defun cl--class-allparents (class)
-  (let ((parents ())
-        (classes (list class)))
-    ;; BFS precedence.  FIXME: Use a topological sort.
-    (while (let ((class (pop classes)))
-             (cl-pushnew (cl--class-name class) parents)
-             (setq classes
-                   (append classes
-                           (cl--class-parents class)))))
-    (nreverse parents)))
+  (cons (cl--class-name class)
+        (merge-ordered-lists (mapcar #'cl--class-allparents
+                                     (cl--class-parents class)))))
 
 (eval-and-compile
   (cl-assert (null (cl--class-parents (cl--find-class 'cl-structure-object)))))

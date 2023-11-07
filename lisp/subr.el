@@ -2678,16 +2678,68 @@ The variable list SPEC is the same as in `if-let*'."
 
 ;; PUBLIC: find if the current mode derives from another.
 
+(defun merge-ordered-lists (lists &optional error-function)
+  "Merge LISTS in a consistent order.
+LISTS is a list of lists of elements.
+Merge them into a single list containing the same elements (removing
+duplicates) using the C3 linearization, so as to obeying their relative
+positions in each list.  Equality of elements is tested with `eql'.
+
+If a consistent order does not exist, call ERROR-FUNCTION with
+a remaining list of lists that we do not know how to merge.
+It should return the candidate to use to continue the merge, which
+has to be the head of one of the lists.
+By default we choose the head of the first list."
+  (let ((result '()))
+    (while (cdr (setq lists (delq nil lists)))
+      ;; Try to find the next element of the result. This
+      ;; is achieved by considering the first element of each
+      ;; (non-empty) input list and accepting a candidate if it is
+      ;; consistent with the rests of the input lists.
+      (let* ((next nil)
+	     (tail lists))
+	(while tail
+	  (let ((candidate (caar tail))
+	        (other-lists lists))
+	    ;; Ensure CANDIDATE is not in any position but the first
+	    ;; in any of the element lists of LISTS.
+	    (while other-lists
+	      (if (not (memql candidate (cdr (car other-lists))))
+	          (setq other-lists (cdr other-lists))
+	        (setq candidate nil)
+	        (setq other-lists nil)))
+	    (if (not candidate)
+	        (setq tail (cdr tail))
+	      (setq next candidate)
+	      (setq tail nil))))
+	(unless next ;; The graph is inconsistent.
+	  (setq next (funcall (or error-function #'caar) lists))
+	  (unless (assoc next lists #'eql)
+	    (error "Invalid candidate returned by error-function: %S" next)))
+	;; The graph is consistent so far, add NEXT to result and
+	;; merge input lists, dropping NEXT from their heads where
+	;; applicable.
+	(push next result)
+	(setq lists
+	      (mapcar (lambda (l) (if (eql (car l) next) (cdr l) l))
+		      lists))))
+    (if (null result) (car lists) ;; Common case.
+      (append (nreverse result) (car lists)))))
+
 (defun derived-mode-all-parents (mode &optional known-children)
   "Return all the parents of MODE, starting with MODE.
 The returned list is not fresh, don't modify it.
 \n(fn MODE)"               ;`known-children' is for internal use only.
   ;; Can't use `with-memoization' :-(
   (let ((ps (get mode 'derived-mode--all-parents)))
-    (if ps ps
-      (if (memq mode known-children)
-          (error "Cycle in the major mode hierarchy: %S" mode)
-        (push mode known-children))
+    (cond
+     (ps ps)
+     ((memq mode known-children)
+      ;; These things happen, better not get all worked up about it.
+      ;;(error "Cycle in the major mode hierarchy: %S" mode)
+      nil)
+     (t
+      (push mode known-children)
       ;; The mode hierarchy (or DAG, actually), is very static, but we
       ;; need to react to changes because `parent' may not be defined
       ;; yet (e.g. it's still just an autoload), so the recursive call
@@ -2708,17 +2760,13 @@ The returned list is not fresh, don't modify it.
                          ;; If MODE is an alias, then follow the alias.
                          (let ((alias (symbol-function mode)))
                            (and (symbolp alias) alias))))
-             (parents (cons mode (if parent (funcall all-parents parent))))
              (extras (get mode 'derived-mode-extra-parents)))
         (put mode 'derived-mode--all-parents
-             (if (null extras) ;; Common case.
-                 parents
-               (delete-dups
-                (apply #'append
-                       parents (mapcar (lambda (extra)
-                                         (copy-sequence
-                                          (funcall all-parents extra)))
-                                       extras)))))))))
+             (cons mode
+                   (merge-ordered-lists
+                    (cons (if (and parent (not (memq parent extras)))
+                              (funcall all-parents parent))
+                          (mapcar all-parents extras))))))))))
 
 (defun provided-mode-derived-p (mode &rest modes)
   "Non-nil if MODE is derived from one of MODES.

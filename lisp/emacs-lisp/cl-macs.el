@@ -3337,19 +3337,6 @@ To see the documentation for a defined struct type, use
 
 ;;; Add cl-struct support to pcase
 
-;;In use by comp.el
-(defun cl--struct-all-parents (class) ;FIXME: Merge with `cl--class-allparents'
-  (when (cl--struct-class-p class)
-    (let ((res ())
-          (classes (list class)))
-      ;; BFS precedence.
-      (while (let ((class (pop classes)))
-               (push class res)
-               (setq classes
-                     (append classes
-                             (cl--class-parents class)))))
-      (nreverse res))))
-
 ;;;###autoload
 (pcase-defmacro cl-struct (type &rest fields)
   "Pcase patterns that match cl-struct EXPVAL of type TYPE.
@@ -3395,8 +3382,8 @@ the form NAME which is a shorthand for (NAME NAME)."
           (let ((c1 (cl--find-class t1))
                 (c2 (cl--find-class t2)))
             (and c1 c2
-                 (not (or (memq c1 (cl--struct-all-parents c2))
-                          (memq c2 (cl--struct-all-parents c1)))))))
+                 (not (or (memq t1 (cl--class-allparents c2))
+                          (memq t2 (cl--class-allparents c1)))))))
      (let ((c1 (and (symbolp t1) (cl--find-class t1))))
        (and c1 (cl--struct-class-p c1)
             (funcall orig (cl--defstruct-predicate t1)
