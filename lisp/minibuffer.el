@@ -3799,41 +3799,39 @@ than the latter (which has two \"holes\" and three
 one-letter-long matches).")
 
 (defvar completion-lazy-hilit nil
-  "If non-nil, request completion lazy highlighting.
+  "If non-nil, request lazy highlighting of completion candidates.
 
-Completion-presenting frontends may opt to bind this variable to
-non-nil value in the context of completion-producing calls (such
-as `completion-all-completions').  This hints the intervening
-completion styles that they do not need to
-fontify (i.e. propertize with a `face' property) completion
-strings with highlights of the matching parts.
-
-When doing so, it is the frontend -- not the style -- who becomes
-responsible for this fontification.  The frontend binds this
-variable to non-nil, and calls the function with the same name
-`completion-lazy-hilit' on each completion string that is to be
+Lisp programs (a.k.a. \"front ends\") that present completion
+candidates may opt to bind this variable to a non-nil value when
+calling functions (such as `completion-all-completions') which
+produce completion candidates.  This tells the underlying
+completion styles that they do not need to fontify (i.e.,
+propertize with the `face' property) completion candidates in a
+way that highlights the matching parts.  Then it is the front end
+which presents the candidates that becomes responsible for this
+fontification.  The front end does that by calling the function
+`completion-lazy-hilit' on each completion candidate that is to be
 displayed to the user.
 
 Note that only some completion styles take advantage of this
 variable for optimization purposes.  Other styles will ignore the
 hint and fontify eagerly as usual.  It is still safe for a
-frontend to call `completion-lazy-hilit' in these situations.
+front end to call `completion-lazy-hilit' in these situations.
 
-To author a completion style that takes advantage see
-`completion-lazy-hilit-fn' and look in the source of
-`completion-pcm--hilit-commonality'.")
+To author a completion style that takes advantage of this variable,
+see `completion-lazy-hilit-fn' and `completion-pcm--hilit-commonality'.")
 
 (defvar completion-lazy-hilit-fn nil
-  "Function set by lazy-highlighting completions styles.
-When a given style wants to enable support for
-`completion-lazy-hilit' (which see), that style should set this
-variable to a function of one argument, a fresh string to be
-displayed to the user.  The function is responsible for
-destructively propertizing the string with a `face' property.")
+  "Fontification function set by lazy-highlighting completions styles.
+When a given style wants to enable support for `completion-lazy-hilit'
+\(which see), that style should set this variable to a function of one
+argument.  It will be called with a completion candidate, a string, to
+be displayed to the user, and should destructively propertize the string
+with the `face' property.")
 
 (defun completion-lazy-hilit (str)
-  "Return a copy of completion STR that is `face'-propertized.
-See documentation for variable `completion-lazy-hilit' for more
+  "Return a copy of completion candidate STR that is `face'-propertized.
+See documentation of the variable `completion-lazy-hilit' for more
 details."
   (if (and completion-lazy-hilit completion-lazy-hilit-fn)
       (funcall completion-lazy-hilit-fn (copy-sequence str))
