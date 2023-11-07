@@ -3825,9 +3825,9 @@ see `completion-lazy-hilit-fn' and `completion-pcm--hilit-commonality'.")
   "Fontification function set by lazy-highlighting completions styles.
 When a given style wants to enable support for `completion-lazy-hilit'
 \(which see), that style should set this variable to a function of one
-argument.  It will be called with a completion candidate, a string, to
-be displayed to the user, and should destructively propertize the string
-with the `face' property.")
+argument.  It will be called with each completion candidate, a string, to
+be displayed to the user, and should destructively propertize these
+strings with the `face' property.")
 
 (defun completion-lazy-hilit (str)
   "Return a copy of completion candidate STR that is `face'-propertized.
