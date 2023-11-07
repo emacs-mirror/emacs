@@ -41,6 +41,40 @@
                    (propertize "echo bar" 'read-only t))
       (eshell-write-history histfile))))
 
+(ert-deftest em-hist-test/history-append ()
+  "Test 'history -a'."
+  (ert-with-temp-file histfile
+    (with-temp-eshell
+     (let ((eshell-history-file-name histfile))
+       (eshell-insert-command "echo hi")
+       (eshell-insert-command "history -w")
+       (eshell-insert-command "history -a")
+       (eshell-insert-command "echo bye")
+       (eshell-insert-command "history -a")
+       (eshell-insert-command "history -r")
+       (should (equal (ring-elements eshell-history-ring)
+                      '("history -a" "echo bye"
+                        "history -a" "history -w" "echo hi")))))))
+
+(ert-deftest em-hist-test/history-read ()
+  "Test 'history -r'."
+  (ert-with-temp-file histfile
+    (with-temp-eshell
+     (let ((eshell-history-file-name histfile))
+       (eshell-insert-command "echo hi")
+       (eshell-insert-command "echo bye")
+       (eshell-insert-command "echo bye")
+       (eshell-insert-command "echo hi")
+       (eshell-insert-command "history -w")
+       (let ((eshell-hist-ignoredups t))
+         (eshell-insert-command "history -r")
+         (should (equal (ring-elements eshell-history-ring)
+                        '("history -w" "echo hi" "echo bye" "echo hi"))))
+       (let ((eshell-hist-ignoredups 'erase))
+         (eshell-insert-command "history -r")
+         (should (equal (ring-elements eshell-history-ring)
+                        '("history -w" "echo hi" "echo bye"))))))))
+
 (ert-deftest em-hist-test/add-to-history/allow-dups ()
   "Test adding to history, allowing dups."
   (let ((eshell-hist-ignoredups nil))
