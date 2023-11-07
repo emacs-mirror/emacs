@@ -92,19 +92,6 @@ during bootstrap."
   :type '(repeat regexp)
   :version "28.1")
 
-(defcustom native-comp-never-optimize-functions
-  '(;; The following two are mandatory for Emacs to be working
-    ;; correctly (see comment in `advice--add-function'). DO NOT
-    ;; REMOVE.
-    macroexpand rename-buffer)
-  "Primitive functions to exclude from trampoline optimization.
-
-Primitive functions included in this list will not be called
-directly by the natively-compiled code, which makes trampolines for
-those primitives unnecessary in case of function redefinition/advice."
-  :type '(repeat symbol)
-  :version "28.1")
-
 (defcustom native-comp-compiler-options nil
   "Command line options passed verbatim to GCC compiler.
 Note that not all options are meaningful and some options might even
@@ -643,30 +630,6 @@ Useful to hook into pass checkers.")
 
 (defvar comp-no-spawn nil
   "Non-nil don't spawn native compilation processes.")
-
-(defconst comp-warn-primitives
-  '(null memq gethash and subrp not subr-native-elisp-p
-         comp--install-trampoline concat if symbolp symbol-name make-string
-         length aset aref length> mapcar expand-file-name
-         file-name-as-directory file-exists-p native-elisp-load)
-  "List of primitives we want to warn about in case of redefinition.
-This are essential for the trampoline machinery to work properly.")
-
-;; Moved early to avoid circularity when comp.el is loaded and
-;; `macroexpand' needs to be advised (bug#47049).
-;;;###autoload
-(defun comp-subr-trampoline-install (subr-name)
-  "Make SUBR-NAME effectively advice-able when called from native code."
-  (when (memq subr-name comp-warn-primitives)
-    (warn "Redefining `%s' might break native compilation of trampolines."
-          subr-name))
-  (unless (or (null native-comp-enable-subr-trampolines)
-              (memq subr-name native-comp-never-optimize-functions)
-              (gethash subr-name comp-installed-trampolines-h))
-    (cl-assert (subr-primitive-p (symbol-function subr-name)))
-    (when-let ((trampoline (or (comp-trampoline-search subr-name)
-                               (comp-trampoline-compile subr-name))))
-        (comp--install-trampoline subr-name trampoline))))
 
 
 (cl-defstruct (comp-vec (:copier nil))
@@ -3635,19 +3598,6 @@ Prepare every function for final compilation and drive the C back-end."
 
 ;; Primitive function advice machinery
 
-(defun comp-eln-load-path-eff ()
-  "Return a list of effective eln load directories.
-Account for `native-comp-eln-load-path' and `comp-native-version-dir'."
-  (mapcar (lambda (dir)
-            (expand-file-name comp-native-version-dir
-                              (file-name-as-directory
-                               (expand-file-name dir invocation-directory))))
-          native-comp-eln-load-path))
-
-(defun comp-trampoline-filename (subr-name)
-  "Given SUBR-NAME return the filename containing the trampoline."
-  (concat (comp-c-func-name subr-name "subr--trampoline-" t) ".eln"))
-
 (defun comp-make-lambda-list-from-subr (subr)
   "Given SUBR return the equivalent lambda-list."
   (pcase-let ((`(,min . ,max) (subr-arity subr))
@@ -3662,16 +3612,6 @@ Account for `native-comp-eln-load-path' and `comp-native-version-dir'."
       (push '&rest lambda-list)
       (push (gensym "arg") lambda-list))
     (reverse lambda-list)))
-
-(defun comp-trampoline-search (subr-name)
-  "Search a trampoline file for SUBR-NAME.
-Return the trampoline if found or nil otherwise."
-  (cl-loop
-   with rel-filename = (comp-trampoline-filename subr-name)
-   for dir in (comp-eln-load-path-eff)
-   for filename = (expand-file-name rel-filename dir)
-   when (file-exists-p filename)
-     do (cl-return (native-elisp-load filename))))
 
 (defun comp--trampoline-abs-filename (subr-name)
   "Return the absolute filename for a trampoline for SUBR-NAME."
@@ -3698,6 +3638,8 @@ Return the trampoline if found or nil otherwise."
             (make-temp-file (file-name-sans-extension rel-filename) nil ".eln"
                             nil))))
 
+;; Called from comp-run.el
+;;;###autoload
 (defun comp-trampoline-compile (subr-name)
   "Synthesize compile and return a trampoline for SUBR-NAME."
   (let* ((lambda-list (comp-make-lambda-list-from-subr
