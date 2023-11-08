@@ -2682,14 +2682,28 @@ The variable list SPEC is the same as in `if-let*'."
   "Return all the parents of MODE, starting with MODE.
 The returned list is not fresh, don't modify it.
 \n(fn MODE)"               ;`known-children' is for internal use only.
-  (if (memq mode known-children)
-      (error "Cycle in the major mode hierarchy: %S" mode)
-    (push mode known-children))
-  (let* ((parent (or (get mode 'derived-mode-parent)
-                     ;; If MODE is an alias, then follow the alias.
-                     (let ((alias (symbol-function mode)))
-                       (and (symbolp alias) alias)))))
-    (cons mode (if parent (derived-mode-all-parents parent known-children)))))
+  ;; Can't use `with-memoization' :-(
+  (let ((ps (get mode 'derived-mode--all-parents)))
+    (if ps ps
+      (if (memq mode known-children)
+          (error "Cycle in the major mode hierarchy: %S" mode)
+        (push mode known-children))
+      (let* ((parent (or (get mode 'derived-mode-parent)
+                         ;; If MODE is an alias, then follow the alias.
+                         (let ((alias (symbol-function mode)))
+                           (and (symbolp alias) alias)))))
+        (put mode 'derived-mode--all-parents
+             (cons mode
+                   (when parent
+                     ;; Can't use `cl-lib' here (nor `gv') :-(
+                     ;;(cl-assert (not (equal parent mode)))
+                     ;;(cl-pushnew mode (get parent 'derived-mode--followers))
+                     (let ((followers (get parent 'derived-mode--followers)))
+                       (unless (memq mode followers)
+                         (put parent 'derived-mode--followers
+                              (cons mode followers))))
+                     (derived-mode-all-parents
+                      parent known-children))))))))
 
 (defun provided-mode-derived-p (mode &rest modes)
   "Non-nil if MODE is derived from one of MODES.
@@ -2708,7 +2722,15 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
 
 (defun derived-mode-set-parent (mode parent)
   "Declare PARENT to be the parent of MODE."
-  (put mode 'derived-mode-parent parent))
+  (put mode 'derived-mode-parent parent)
+  (derived-mode--flush mode))
+
+(defun derived-mode--flush (mode)
+  (put mode 'derived-mode--all-parents nil)
+  (let ((followers (get mode 'derived-mode--followers)))
+    (when followers ;; Common case.
+      (put mode 'derived-mode--followers nil)
+      (mapc #'derived-mode--flush followers))))
 
 (defvar-local major-mode--suspended nil)
 (put 'major-mode--suspended 'permanent-local t)
