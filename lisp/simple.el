@@ -11205,15 +11205,19 @@ seconds."
                      ;; whether or not auto-fill has actually taken
                      ;; place.
                      (old-undo-list buffer-undo-list)
+                     ;; Save the point position to return it there
+                     ;; later.
                      (old-point (point)))
                 (save-excursion
                   (if (and auto-fill-function newline-p)
                       (progn (goto-char (nth 2 edit))
                              (previous-logical-line)
-                             (funcall auto-fill-function))
+                             (funcall auto-fill-function)
+                             (setq old-point (point)))
                     (when (and auto-fill-function auto-fill-p)
-                      (progn (goto-char (nth 2 edit))
-                             (funcall auto-fill-function))))
+                      (goto-char (nth 2 edit))
+                      (funcall auto-fill-function)
+                      (setq old-point (point))))
                   ;; Record whether or not this edit should result in
                   ;; an undo boundary being added.
                   (setq any-nonephemeral
