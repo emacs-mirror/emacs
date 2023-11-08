@@ -102,7 +102,7 @@ Only consulted for certain values of `erc-status-sidebar-style'."
   "Whether to highlight the selected window's buffer in the sidebar.
 ERC uses the same instance across all frames.  May not be
 compatible with all values of `erc-status-sidebar-style'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type 'boolean)
 
 (defcustom erc-status-sidebar-style 'all-queries-first
@@ -135,7 +135,7 @@ of the above sets aren't really interoperable, we don't offer
 them here as customization choices, but you can still specify
 them manually.  See doc strings for a description of their
 expected arguments and return values."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const channels-only)
                  (const all-mixed)
                  (const all-queries-first)
@@ -150,7 +150,7 @@ expected arguments and return values."
   "How to display a buffer when clicked.
 Values can be anything recognized by `display-buffer' for its
 ACTION parameter."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const :tag "Always use/create other window" t)
                  (const :tag "Let `display-buffer' decide" nil)
                  (const :tag "Same window" (display-buffer-same-window

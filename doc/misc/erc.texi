@@ -1066,14 +1066,14 @@ The name of an SASL subprotocol type as a @emph{lowercase} symbol.
 The value can be one of the following:
 
 @table @asis
-@item @code{plain} and @code{scram} (``password-based'')
+@item @code{plain} or @code{scram} (``password-based'')
 Here, ``password'' refers to your account password, which is usually
 your @samp{NickServ} password.  To make this work, customize
 @code{erc-sasl-user} and @code{erc-sasl-password} or specify the
 @code{:user} and @code{:password} keyword arguments when invoking
 @code{erc-tls}.
 
-@item @code{external} (via Client TLS Certificate)
+@item @code{external} (via client @acronym{TLS} certificate)
 This works in conjunction with the @code{:client-certificate} keyword
 offered by @code{erc-tls}.  Just ensure you've registered your
 fingerprint with the network beforehand.  The fingerprint is usually a

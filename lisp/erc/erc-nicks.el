@@ -71,7 +71,7 @@
 
 (defgroup erc-nicks nil
   "Colorize nicknames in ERC target buffers."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :group 'erc)
 
 (defcustom erc-nicks-ignore-chars ",`'_-"

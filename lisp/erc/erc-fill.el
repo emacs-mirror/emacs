@@ -127,7 +127,7 @@ However, when `erc-fill-wrap-margin-side' is `left' or
 \"resolves\" to `left', ERC uses the width of the prompt if it's
 wider on MOTD's end, which really only matters when `erc-prompt'
 is a function."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const nil) integer))
 
 (defcustom erc-fill-wrap-margin-side nil
@@ -135,14 +135,14 @@ is a function."
 A value of nil means ERC should decide based on the value of
 `erc-insert-timestamp-function', which does not work for
 user-defined functions."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const nil) (const left) (const right)))
 
 (defcustom erc-fill-line-spacing nil
   "Extra space between messages on graphical displays.
 Its value should be larger than that of the variable
 `line-spacing', if set.  When unsure, start with 0.5."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const nil) number))
 
 (defvar-local erc-fill--function nil
@@ -228,7 +228,7 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
 A value of nil means ERC should use columns, which may happen
 regardless, depending on the Emacs version.  This option only
 matters when `erc-fill-wrap-mode' is enabled."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type 'boolean)
 
 (defcustom erc-fill-wrap-visual-keys 'non-input
@@ -240,7 +240,7 @@ never do so.  A value of `non-input' tells ERC to act like the
 value is nil in the input area and t elsewhere.  See related
 option `erc-fill-wrap-force-screen-line-movement' for behavior
 involving `next-line' and `previous-line'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const nil) (const t) (const non-input)))
 
 (defcustom erc-fill-wrap-force-screen-line-movement '(non-input)
@@ -251,14 +251,14 @@ screen line even if the current `erc-fill-wrap-visual-keys' value
 would normally do otherwise.  For example, setting this to
 \\='(nil non-input) disables logical-line movement regardless of
 the value of `erc-fill-wrap-visual-keys'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(set (const nil) (const non-input)))
 
 (defcustom erc-fill-wrap-merge t
   "Whether to consolidate messages from the same speaker.
 This tells ERC to omit redundant speaker labels for subsequent
 messages less than a day apart."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type 'boolean)
 
 (defun erc-fill--wrap-move (normal-cmd visual-cmd &rest args)

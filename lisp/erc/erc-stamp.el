@@ -85,7 +85,7 @@ screen when `erc-insert-timestamp-function' is set to
 Unlike `erc-timestamp-format' and `erc-timestamp-format-left', if
 the value of this option is nil, it falls back to using the value
 of `erc-timestamp-format'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const nil)
 		 (string)))
 (make-obsolete-variable 'erc-timestamp-format-right
@@ -159,7 +159,7 @@ Also affects the command `erc-echo-timestamp' (singular).  See
 the ZONE parameter of `format-time-string' for a description of
 acceptable value types."
   :type '(choice boolean number (const wall) (list number string))
-  :package-version '(ERC . "5.6")) ; FIXME sync on release
+  :package-version '(ERC . "5.6"))
 
 (defcustom erc-timestamp-intangible nil
   "Whether the timestamps should be intangible, i.e. prevent the point
@@ -327,7 +327,7 @@ option adds a space after the end of a message if the stamp
 doesn't already start with one.  And when its value is t, it adds
 a single space, unconditionally."
   :type '(choice boolean integer)
-  :package-version '(ERC . "5.6")) ; FIXME sync on release
+  :package-version '(ERC . "5.6"))
 
 (defvar-local erc-stamp--margin-width nil
   "Width in columns of margin for `erc-stamp--display-margin-mode'.

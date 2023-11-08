@@ -100,7 +100,7 @@ one's optionally accessible from the keyboard, just like any other
 side window.  Hit '<RET>' over a nick to spawn a "/QUERY" or a
 "Lastlog" (Occur) session.  See 'erc-nickbar-mode' for more.
 
-** The option 'erc-timestamp-use-align-to' is more versatile.
+** Option 'erc-timestamp-use-align-to' more versatile.
 While this option has always offered to right-align stamps via the
 'display' text property, it's now more effective at doing so when set
 to a number indicating an offset from the right edge.  Users of the
@@ -220,7 +220,7 @@ the same effect by issuing a "/CLEAR" at the prompt.
 ** The 'truncate' module no longer enables logging automatically.
 Users expecting 'truncate' to perform logging based on the option
 'erc-enable-logging' need to instead add 'log' to 'erc-modules' for
-continued integration.  With the existing design, merely loading the
+continued integration.  Under the original design, merely loading the
 library 'erc-log' caused 'truncate' to start writing logs, possibly
 against a user's wishes.
 
@@ -257,10 +257,10 @@ tally of blank lines padded and trailing blanks culled.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, fool visibility has become togglable with the new
 command 'erc-match-toggle-hidden-fools'.  The 'button' module's
-'erc-button-previous' now moves to the beginning instead of the end of
-buttons.  A new command, 'erc-news', can be invoked to visit this very
-file.  And the 'irccontrols' module now supports additional colors and
-special handling for "spoilers" (hidden text).
+'erc-button-previous' command now moves to the beginning instead of
+the end of buttons.  A new command, 'erc-news', can be invoked to
+visit this very file.  And the 'irccontrols' module now supports
+additional colors and special handling for "spoilers" (hidden text).
 
 ** Changes in the library API.
 
@@ -276,21 +276,26 @@ sparingly, and the latter two have only been around for one minor
 release cycle, so their removal hopefully won't cause much churn.
 
 *** Some ERC-applied text properties have changed.
-Chiefly, 'rear-sticky' has been replaced by 'erc-command', which
-records the IRC command (or numeric) associated with a message.  Less
-impactfully, the value of the 'field' property for ERC's prompt has
-changed from 't' to the more useful 'erc-prompt', although the
-property of the same name has been retained and now has a value of
-'hidden' when disconnected.
+Chiefly, a new set of metadata-oriented properties, the details of
+which should be considered internal, now occupy the first character of
+all inserted messages, including local notices, date stamps, and
+interactive feedback.  These properties will likely form the basis for
+a new message-traversal/insertion/deletion API in future versions.
+Less impactfully, the no-op property 'rear-sticky' has been removed,
+and the value of the 'field' property for ERC's prompt has changed
+from 't' to the more useful 'erc-prompt', although the property of the
+same name has been retained and now has a value of 'hidden' when
+disconnected.
 
 *** Members of insert- and send-related hooks have been reordered.
-Built-in and third-party modules rely on certain hooks for adjusting
-incoming and outgoing messages upon insertion.  And some modules only
-want to do so after others have done their damage.  Traditionally,
-this has required various hacks and finagling to achieve.  And while
-this release makes an effort to load modules in a more consistent
-order, that alone isn't enough to ensure similar predictability among
-essential members of important hooks.
+As anyone reading this is no doubt aware, both built-in and
+third-party modules rely on certain hooks for adjusting incoming and
+outgoing messages upon insertion.  And some modules only want to do so
+after others have done their damage.  Traditionally, this has required
+various hacks and finagling to achieve.  And while this release makes
+an effort to load modules in a more consistent order, that alone isn't
+enough to ensure predictability among essential members of important
+hooks.
 
 Luckily, ERC now leverages a feature introduced in Emacs 27, "hook
 depth," to secure the positions of a few key members of
@@ -317,18 +322,18 @@ ERC's own code base in 2002.  That this example has endured makes some
 sense because it's probably seen as less cumbersome than fiddling with
 the more powerful and complicated 'erc-display-message'.
 
-The latest twist in this saga comes with this release, in which a
-healthy bit of "pre-insertion" business has taken up residence in
-'erc-display-message'.  While this would seem to put antiquated
-patterns, like the above mentioned 'erc-make-notice' combo, at risk of
-having messages ignored or subject to degraded treatment by built-in
-modules, an adaptive measure has been introduced that recasts
-'erc-display-line' as a thin wrapper around 'erc-display-message'.
-And though nothing of the sort has been done for the lower-level
-'erc-display-line-1' (now an obsolete alias for 'erc-insert-line'),
-some last-ditch fallback code is in place to ensure baseline
-functionality.  As always, if you find these developments disturbing,
-please say so on the tracker.
+The latest twist in this tale comes with this release, for which a
+healthy helping of "pre-insertion" business has permanently ensconced
+itself in none other than 'erc-display-message'.  While this would
+seem to put antiquated patterns, like the above mentioned
+'erc-make-notice' combo, at risk of having messages ignored or subject
+to degraded treatment by built-in modules, an adaptive measure has
+been introduced that recasts 'erc-display-line' as a thin wrapper
+around 'erc-display-message'.  And though nothing of the sort has been
+done for the lower-level 'erc-display-line-1' (now an obsolete alias
+for 'erc-insert-line'), some last-ditch fallback code has been
+introduced to guarantee baseline functionality.  As always, if you
+find these developments disturbing, please say so on the tracker.
 
 *** ERC now manages timestamp-related properties a bit differently.
 For starters, the 'cursor-sensor-functions' text property is absent by
@@ -342,37 +347,45 @@ Also affecting the 'stamp' module is the deprecation of the function
 the module now merges its 'invisible' property with existing ones and
 includes all white space around stamps when doing so.
 
-This "propertizing" of surrounding white space also extends to all
+This "propertizing" of surrounding white space extends to all
 'stamp'-applied properties, like 'field', in all intervening space
 between message text and timestamps.  Technically, this constitutes a
 breaking change from the perspective of detecting a timestamp's
 bounds.  However, ERC has always propertized leading space before
-right-sided stamps on the same line as message text but not those
-folded onto the next line.  Such inconsistency made stamp detection
-overly complex and produced uneven results when toggling stamp
-visibility.
+right-sided stamps on the same line as message text but not before
+those folded onto the next line.  Such inconsistency made stamp
+detection overly complex and produced uneven results when toggling
+stamp visibility.
 
-*** Date stamps are independent messages.
+*** Date stamps have become independent messages.
 ERC now inserts "date stamps" generated from the option
-'erc-timestamp-format-left' as separate, standalone messages.  (This
-only matters if 'erc-insert-timestamp-function' is set to its default
-value of 'erc-insert-timestamp-left-and-right'.)  ERC's near-term UI
-goals require exposing these stamps to existing code designed to
+'erc-timestamp-format-left' as separate, standalone messages.  This
+currently only matters if 'erc-insert-timestamp-function' is set to
+its default value of 'erc-insert-timestamp-left-and-right', however
+plans exist to decouple these features.  In any case, ERC's near-term
+UI goals require exposing these stamps to existing code designed to
 operate on complete messages.  For example, users likely expect date
 stamps to be togglable with 'erc-toggle-timestamps' while also being
 immune to hiding from commands like 'erc-match-toggle-hidden-fools'.
 Before this change, meeting such expectations demanded brittle
 heuristics that checked for the presence of these stamps in the
 leading portion of message bodies as well as special casing to act on
-these areas without inflicting collateral damage.  It may also be
-worth noting that as consequence of these changes, the internally
-managed variable 'erc-timestamp-last-inserted-left' no longer records
-the final trailing newline in 'erc-timestamp-format-left'.  If you
-must, see variable 'erc-stamp-prepend-date-stamps-p' for a temporary
-escape hatch.
+these areas without inflicting collateral damage.
+
+Despite the rationale, this move admittedly ushers in a heightened
+potential for disruption because third-party members of ERC's
+modification hooks may not take kindly to encountering stamp-only
+messages.  They may also expect members of 'erc-insert-pre-hook' and
+'erc-insert-done-hook' to run unconditionally, even though ERC
+suppresses those hooks when inserting date stamps.  Third parties may
+also not appreciate that 'erc-timestamp-last-inserted-left' no longer
+records the final trailing newline in 'erc-timestamp-format-left'.  If
+these inconveniences prove too encumbering to deal with right away,
+see the escape hatch 'erc-stamp-prepend-date-stamps-p', which should
+help ease the transition.
 
 *** The role of a module's Custom group is now more clearly defined.
-Associating built-in modules with Custom groups and provided library
+Associating built-in modules with Custom groups and "provided" library
 features has improved.  More specifically, a module's group now enjoys
 the singular purpose of determining where the module's minor mode
 variable lives in the Customize interface.  And although ERC is now
@@ -390,7 +403,8 @@ like bridges to other protocols.
 Some IRC "slash" commands are hierarchical and require users to
 specify a subcommand to actually carry out anything of consequence.
 Built-in modules can now provide more detailed help for a particular
-subcommand by telling ERC to defer to a specialized handler.
+subcommand by telling ERC to defer to a specialized handler.  This
+facility can be opened up to third parties should any one request it.
 
 *** Longtime quasi modules made proper.
 The 'fill' module is now defined by 'define-erc-module'.  The same
@@ -423,7 +437,9 @@ than lone ones.
 ERC now adjusts input lines to fall within allowed length limits
 before showing hook members the result.  For compatibility,
 third-party code can request that the final input be adjusted again
-prior to being sent.  See doc string for details.
+prior to being sent.  To facilitate this, the 'erc-input' object
+shared among hook members has gained a new 'refoldp' slot, making this
+a breaking change, if only in theory.  See doc string for details.
 
 *** ERC's prompt survives the insertion of user input and messages.
 Previously, ERC's prompt and its input marker disappeared while

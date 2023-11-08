@@ -73,7 +73,7 @@ messages, such as after typing \"/msg NickServ help\".
 Note that users should consider this option's non-nil behavior to
 be experimental.  It currently only works with Emacs 28+."
   :group 'erc-display
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice boolean (const relaxed)))
 
 ;;;###autoload(autoload 'erc-scrolltobottom-mode "erc-goodies" nil t)
@@ -286,7 +286,7 @@ displays an arrow in the left fringe or margin.  When it's
 `face', ERC adds the face `erc-keep-place-indicator-line' to the
 appropriate line.  A value of t does both."
   :group 'erc
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const :tag "Use arrow" arrow)
                  (const :tag "Use face" face)
                  (const :tag "Use both arrow and face" t)))
@@ -295,14 +295,14 @@ appropriate line.  A value of t does both."
   "ERC buffer type in which to display `keep-place-indicator'.
 A value of t means \"all\" ERC buffers."
   :group 'erc
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const t) (const server) (const target)))
 
 (defcustom erc-keep-place-indicator-follow nil
   "Whether to sync visual kept place to window's top when reading.
 For use with `erc-keep-place-indicator-mode'."
   :group 'erc
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type 'boolean)
 
 (defface erc-keep-place-indicator-line

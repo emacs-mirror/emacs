@@ -54,7 +54,7 @@ node `(speedbar) Top' for more about the underlying integration."
 
 (defcustom erc-speedbar-nicknames-window-width 18
   "Default width of the nicknames sidebar (in columns)."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type 'integer)
 
 (defcustom erc-speedbar-sort-users-type 'activity
@@ -69,7 +69,7 @@ nil            - Do not sort users"
 
 (defcustom erc-speedbar-hide-mode-topic 'headerline
   "Hide mode and topic lines."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const :tag "Always show" nil)
                  (const :tag "Always hide" t)
                  (const :tag "Omit when headerline visible" headerline)))
@@ -81,7 +81,7 @@ When the value is t, ERC uses `erc-current-nick-face' if
 When using the `nicks' module, you can see your nick as it
 appears to others by coordinating with the option
 `erc-nicks-skip-faces'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice face (const :tag "Current nick or own speaker face" t)))
 
 (defvar erc-speedbar-key-map nil
