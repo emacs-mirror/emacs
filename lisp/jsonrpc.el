@@ -443,7 +443,9 @@ connection object, called when the process dies.")
   (when method
     (plist-put args :method
                (cond ((keywordp method) (substring (symbol-name method) 1))
-                     ((and method (symbolp method)) (symbol-name method)))))
+                     ((symbolp method) (symbol-name method))
+                     ((stringp method) method)
+                     (t (error "[jsonrpc] invalid method %s" method)))))
   (let* ( (message `(:jsonrpc "2.0" ,@args))
           (json (jsonrpc--json-encode message))
           (headers
