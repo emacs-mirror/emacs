@@ -34,7 +34,7 @@
 (require 'rx)
 (require 'subr-x)
 (require 'warnings)
-(require 'comp-run)
+(require 'comp-common)
 (require 'comp-cstr)
 
 ;; These variables and functions are defined in comp.c
@@ -587,33 +587,6 @@ Useful to hook into pass checkers.")
                             comp-hint-cons)
   "List of fake functions used to give compiler hints.")
 
-(defconst comp-limple-sets '(set
-                             setimm
-                             set-par-to-local
-                             set-args-to-local
-                             set-rest-args-to-local)
-  "Limple set operators.")
-
-(defconst comp-limple-assignments `(assume
-                                    fetch-handler
-                                    ,@comp-limple-sets)
-  "Limple operators that clobber the first m-var argument.")
-
-(defconst comp-limple-calls '(call
-                              callref
-                              direct-call
-                              direct-callref)
-  "Limple operators used to call subrs.")
-
-(defconst comp-limple-branches '(jump cond-jump)
-  "Limple operators used for conditional and unconditional branches.")
-
-(defconst comp-limple-ops `(,@comp-limple-calls
-                            ,@comp-limple-assignments
-                            ,@comp-limple-branches
-                            return)
-  "All Limple operators.")
-
 (defvar comp-func nil
   "Bound to the current function by most passes.")
 
@@ -964,24 +937,6 @@ Assume allocation class `d-default' as default."
 
 
 ;;; Log routines.
-
-(defconst comp-limple-lock-keywords
-  `((,(rx bol "(comment" (1+ not-newline)) . font-lock-comment-face)
-    (,(rx "#(" (group-n 1 "mvar"))
-     (1 font-lock-function-name-face))
-    (,(rx bol "(" (group-n 1 "phi"))
-     (1 font-lock-variable-name-face))
-    (,(rx bol "(" (group-n 1 (or "return" "unreachable")))
-     (1 font-lock-warning-face))
-    (,(rx (group-n 1 (or "entry"
-                         (seq (or "entry_" "entry_fallback_" "bb_")
-                              (1+ num) (? (or "_latch"
-                                              (seq "_cstrs_" (1+ num))))))))
-     (1 font-lock-constant-face))
-    (,(rx-to-string
-       `(seq "(" (group-n 1 (or ,@(mapcar #'symbol-name comp-limple-ops)))))
-     (1 font-lock-keyword-face)))
-  "Highlights used by `native-comp-limple-mode'.")
 
 (defun comp-prettyformat-mvar (mvar)
   (format "#(mvar %s %s %S)"

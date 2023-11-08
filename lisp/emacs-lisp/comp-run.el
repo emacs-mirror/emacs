@@ -32,6 +32,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'comp-common)
 
 (defgroup comp-run nil
   "Emacs Lisp native compiler runtime."
@@ -96,13 +97,6 @@ compilation has completed."
   :type 'hook
   :version "28.1")
 
-(defcustom native-comp-async-env-modifier-form nil
-  "Form evaluated before compilation by each asynchronous compilation subprocess.
-Used to modify the compiler environment."
-  :type 'sexp
-  :risky t
-  :version "28.1")
-
 (defcustom native-comp-async-query-on-exit nil
   "Whether to query the user about killing async compilations when exiting.
 If this is non-nil, Emacs will ask for confirmation to exit and kill the
@@ -112,33 +106,6 @@ if `confirm-kill-processes' is non-nil."
   :type 'boolean
   :version "28.1")
 
-(defcustom native-comp-verbose 0
-  "Compiler verbosity for native compilation, a number between 0 and 3.
-This is intended for debugging the compiler itself.
-  0 no logging.
-  1 final LIMPLE is logged.
-  2 LAP, final LIMPLE, and some pass info are logged.
-  3 max verbosity."
-  :type 'natnum
-  :risky t
-  :version "28.1")
-
-(defcustom native-comp-never-optimize-functions
-  '(;; The following two are mandatory for Emacs to be working
-    ;; correctly (see comment in `advice--add-function'). DO NOT
-    ;; REMOVE.
-    macroexpand rename-buffer)
-  "Primitive functions to exclude from trampoline optimization.
-
-Primitive functions included in this list will not be called
-directly by the natively-compiled code, which makes trampolines for
-those primitives unnecessary in case of function redefinition/advice."
-  :type '(repeat symbol)
-  :version "28.1")
-
-(defconst comp-log-buffer-name "*Native-compile-Log*"
-  "Name of the native-compiler log buffer.")
-
 (defconst comp-async-buffer-name "*Async-native-compile-log*"
   "Name of the async compilation buffer log.")
 
@@ -147,63 +114,6 @@ those primitives unnecessary in case of function redefinition/advice."
 
 (defvar comp-async-compilations (make-hash-table :test #'equal)
   "Hash table file-name -> async compilation process.")
-
-(cl-defun comp-log (data &optional (level 1) quoted)
-  "Log DATA at LEVEL.
-LEVEL is a number from 1-3, and defaults to 1; if it is less
-than `native-comp-verbose', do nothing.  If `noninteractive', log
-with `message'.  Otherwise, log with `comp-log-to-buffer'."
-  (when (>= native-comp-verbose level)
-    (if noninteractive
-        (cl-typecase data
-          (atom (message "%s" data))
-          (t (dolist (elem data)
-               (message "%s" elem))))
-      (comp-log-to-buffer data quoted))))
-
-(define-derived-mode native-comp-limple-mode fundamental-mode "LIMPLE"
-  "Syntax-highlight LIMPLE IR."
-  (setf font-lock-defaults '(comp-limple-lock-keywords)))
-
-(cl-defun comp-log-to-buffer (data &optional quoted)
-  "Log DATA to `comp-log-buffer-name'."
-  (let* ((print-f (if quoted #'prin1 #'princ))
-         (log-buffer
-          (or (get-buffer comp-log-buffer-name)
-              (with-current-buffer (get-buffer-create comp-log-buffer-name)
-                (unless (derived-mode-p 'compilation-mode)
-                  (emacs-lisp-compilation-mode))
-                (current-buffer))))
-         (log-window (get-buffer-window log-buffer))
-         (inhibit-read-only t)
-         at-end-p)
-    (with-current-buffer log-buffer
-      (unless (eq major-mode 'native-comp-limple-mode)
-        (native-comp-limple-mode))
-      (when (= (point) (point-max))
-        (setf at-end-p t))
-      (save-excursion
-        (goto-char (point-max))
-        (cl-typecase data
-          (atom (funcall print-f data log-buffer))
-          (t (dolist (elem data)
-               (funcall print-f elem log-buffer)
-               (insert "\n"))))
-        (insert "\n"))
-      (when (and at-end-p log-window)
-        ;; When log window's point is at the end, follow the tail.
-        (with-selected-window log-window
-          (goto-char (point-max)))))))
-
-(defun comp-ensure-native-compiler ()
-  "Make sure Emacs has native compiler support and libgccjit can be loaded.
-Signal an error otherwise.
-To be used by all entry points."
-  (cond
-   ((null (featurep 'native-compile))
-    (error "Emacs was not compiled with native compiler support (--with-native-compilation)"))
-   ((null (native-comp-available-p))
-    (error "Cannot find libgccjit library"))))
 
 (defun native-compile-async-skip-p (file load selector)
   "Return non-nil if FILE's compilation should be skipped.
@@ -405,19 +315,6 @@ display a message."
          file-name-as-directory file-exists-p native-elisp-load)
   "List of primitives we want to warn about in case of redefinition.
 This are essential for the trampoline machinery to work properly.")
-
-(defun comp-trampoline-filename (subr-name)
-  "Given SUBR-NAME return the filename containing the trampoline."
-  (concat (comp-c-func-name subr-name "subr--trampoline-" t) ".eln"))
-
-(defun comp-eln-load-path-eff ()
-  "Return a list of effective eln load directories.
-Account for `native-comp-eln-load-path' and `comp-native-version-dir'."
-  (mapcar (lambda (dir)
-            (expand-file-name comp-native-version-dir
-                              (file-name-as-directory
-                               (expand-file-name dir invocation-directory))))
-          native-comp-eln-load-path))
 
 (defun comp-trampoline-search (subr-name)
   "Search a trampoline file for SUBR-NAME.
