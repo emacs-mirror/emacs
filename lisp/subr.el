@@ -2678,26 +2678,37 @@ The variable list SPEC is the same as in `if-let*'."
 
 ;; PUBLIC: find if the current mode derives from another.
 
+(defun derived-mode-all-parents (mode &optional known-children)
+  "Return all the parents of MODE, starting with MODE.
+The returned list is not fresh, don't modify it.
+\n(fn MODE)"               ;`known-children' is for internal use only.
+  (if (memq mode known-children)
+      (error "Cycle in the major mode hierarchy: %S" mode)
+    (push mode known-children))
+  (let* ((parent (or (get mode 'derived-mode-parent)
+                     ;; If MODE is an alias, then follow the alias.
+                     (let ((alias (symbol-function mode)))
+                       (and (symbolp alias) alias)))))
+    (cons mode (if parent (derived-mode-all-parents parent known-children)))))
+
 (defun provided-mode-derived-p (mode &rest modes)
   "Non-nil if MODE is derived from one of MODES.
-Uses the `derived-mode-parent' property of the symbol to trace backwards.
 If you just want to check `major-mode', use `derived-mode-p'."
   (declare (side-effect-free t))
-  (while
-      (and
-       (not (memq mode modes))
-       (let* ((parent (get mode 'derived-mode-parent)))
-        (setq mode (or parent
-                       ;; If MODE is an alias, then follow the alias.
-                       (let ((alias (symbol-function mode)))
-                         (and (symbolp alias) alias)))))))
-  mode)
+  (let ((ps (derived-mode-all-parents mode)))
+    (while (and ps (not (memq (car ps) modes)))
+      (setq ps (cdr ps)))
+    (car ps)))
 
 (defun derived-mode-p (&rest modes)
   "Non-nil if the current major mode is derived from one of MODES.
 Uses the `derived-mode-parent' property of the symbol to trace backwards."
   (declare (side-effect-free t))
   (apply #'provided-mode-derived-p major-mode modes))
+
+(defun derived-mode-set-parent (mode parent)
+  "Declare PARENT to be the parent of MODE."
+  (put mode 'derived-mode-parent parent))
 
 (defvar-local major-mode--suspended nil)
 (put 'major-mode--suspended 'permanent-local t)
