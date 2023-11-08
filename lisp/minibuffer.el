@@ -3000,7 +3000,7 @@ displaying the *Completions* buffer exists."
   "<right>" (minibuffer-visible-completions-bind #'minibuffer-next-completion)
   "<up>"    (minibuffer-visible-completions-bind #'minibuffer-previous-line-completion)
   "<down>"  (minibuffer-visible-completions-bind #'minibuffer-next-line-completion)
-  "RET"     (minibuffer-visible-completions-bind #'minibuffer-choose-completion)
+  "RET"     (minibuffer-visible-completions-bind #'minibuffer-choose-completion-or-exit)
   "C-g"     (minibuffer-visible-completions-bind #'minibuffer-hide-completions))
 
 
@@ -4682,9 +4682,19 @@ of `completion-no-auto-exit'.
 If NO-QUIT is non-nil, insert the completion candidate at point to the
 minibuffer, but don't quit the completions window."
   (interactive "P")
-    (with-minibuffer-completions-window
+  (with-minibuffer-completions-window
     (let ((completion-use-base-affixes t))
       (choose-completion nil no-exit no-quit))))
+
+(defun minibuffer-choose-completion-or-exit (&optional no-exit no-quit)
+  "Choose the completion from the minibuffer or exit the minibuffer.
+When `minibuffer-choose-completion' can't find a completion candidate
+in the completions window, then exit the minibuffer using its present
+contents."
+  (interactive "P")
+  (condition-case nil
+      (minibuffer-choose-completion no-exit no-quit)
+    (error (exit-minibuffer))))
 
 (defun minibuffer-complete-history ()
   "Complete the minibuffer history as far as possible.
