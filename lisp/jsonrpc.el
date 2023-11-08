@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.18
+;; Version: 1.0.19
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -133,6 +133,38 @@ immediately."
   (:method (_s _what)   ;; by default all connections are ready
            t))
 
+;;; API optional
+(cl-defgeneric jsonrpc-convert-to-endpoint (connection message subtype)
+  "Convert MESSAGE to JSONRPCesque message accepted by endpoint.
+MESSAGE is a plist, jsonrpc.el's internal representation of a
+JSONRPC message.  SUBTYPE is one of `request', `reply' or
+`notification'.
+
+Return a plist to be serialized to JSON with `json-serialize' and
+transmitted to endpoint."
+  ;; TODO: describe representations and serialization in manual and
+  ;; link here.
+  (:method (_s message subtype)
+           `(:jsonrpc "2.0"
+                      ,@(if (eq subtype 'reply)
+                            ;; true JSONRPC doesn't have `method'
+                            ;; fields in responses.
+                            (cl-loop for (k v) on message by #'cddr
+                                     unless (eq k :method)
+                                     collect k and collect v)
+                          message))))
+
+;;; API optional
+(cl-defgeneric jsonrpc-convert-from-endpoint (connection remote-message)
+  "Convert JSONRPC-esque REMOTE-MESSAGE to a plist.
+REMOTE-MESSAGE is a plist read with `json-parse'.
+
+Return a plist of jsonrpc.el's internal representation of a
+JSONRPC message."
+  ;; TODO: describe representations and serialization in manual and
+  ;; link here.
+  (:method (_s remote-message) remote-message))
+
 
 ;;; Convenience
 ;;;
@@ -170,9 +202,12 @@ circumvent that.")
 This function will destructure MESSAGE and call the appropriate
 dispatcher in CONNECTION."
   (cl-destructuring-bind (&key method id error params result _jsonrpc)
-      message
+      (jsonrpc-convert-from-endpoint connection message)
+    (jsonrpc--log-event connection message 'server
+                        (cond ((and method id)       'request)
+                              (method                'notification)
+                              (id                    'reply)))
     (let (continuations)
-      (jsonrpc--log-event connection message 'server)
       (setf (jsonrpc-last-error connection) error)
       (cond
        (;; A remote request
@@ -193,7 +228,7 @@ dispatcher in CONNECTION."
                                         "Internal error")))))
                   (error
                    '(:error (:code -32603 :message "Internal error"))))))
-          (apply #'jsonrpc--reply connection id reply)))
+          (apply #'jsonrpc--reply connection id method reply)))
        (;; A remote notification
         method
         (funcall (jsonrpc--notification-dispatcher connection)
@@ -435,11 +470,11 @@ connection object, called when the process dies.")
 (cl-defmethod jsonrpc-connection-send ((connection jsonrpc-process-connection)
                                        &rest args
                                        &key
-                                       _id
+                                       id
                                        method
                                        _params
-                                       _result
-                                       _error
+                                       (_result nil result-supplied-p)
+                                       error
                                        _partial)
   "Send MESSAGE, a JSON object, to CONNECTION."
   (when method
@@ -448,18 +483,21 @@ connection object, called when the process dies.")
                      ((symbolp method) (symbol-name method))
                      ((stringp method) method)
                      (t (error "[jsonrpc] invalid method %s" method)))))
-  (let* ( (message `(:jsonrpc "2.0" ,@args))
-          (json (jsonrpc--json-encode message))
-          (headers
-           `(("Content-Length" . ,(format "%d" (string-bytes json)))
-             ;; ("Content-Type" . "application/vscode-jsonrpc; charset=utf-8")
-             )))
+  (let* ((subtype (cond ((or result-supplied-p error) 'reply)
+                        (id                    'request)
+                        (method                'notification)))
+         (converted (jsonrpc-convert-to-endpoint connection args subtype))
+         (json (jsonrpc--json-encode converted))
+         (headers
+          `(("Content-Length" . ,(format "%d" (string-bytes json)))
+            ;; ("Content-Type" . "application/vscode-jsonrpc; charset=utf-8")
+            )))
     (process-send-string
      (jsonrpc--process connection)
      (cl-loop for (header . value) in headers
               concat (concat header ": " value "\r\n") into header-section
               finally return (format "%s\r\n%s" header-section json)))
-    (jsonrpc--log-event connection message 'client)))
+    (jsonrpc--log-event connection converted 'client subtype)))
 
 (defun jsonrpc-process-type (conn)
   "Return the `process-type' of JSONRPC connection CONN."
@@ -526,12 +564,13 @@ With optional CLEANUP, kill any associated buffers."
   "Encode OBJECT into a JSON string.")
 
 (cl-defun jsonrpc--reply
-    (connection id &key (result nil result-supplied-p) (error nil error-supplied-p))
+    (connection id method &key (result nil result-supplied-p) (error nil error-supplied-p))
   "Reply to CONNECTION's request ID with RESULT or ERROR."
   (apply #'jsonrpc-connection-send connection
          `(:id ,id
                ,@(and result-supplied-p `(:result ,result))
-               ,@(and error-supplied-p `(:error ,error)))))
+               ,@(and error-supplied-p `(:error ,error))
+               :method ,method)))
 
 (defun jsonrpc--call-deferred (connection)
   "Call CONNECTION's deferred actions, who may again defer themselves."
@@ -738,24 +777,19 @@ TIMEOUT is nil)."
                      (apply #'format format args)
                      :warning)))
 
-(defun jsonrpc--log-event (connection message &optional type)
+(defun jsonrpc--log-event (connection message &optional origin subtype)
   "Log a JSONRPC-related event.
 CONNECTION is the current connection.  MESSAGE is a JSON-like
-plist.  TYPE is a symbol saying if this is a client or server
-originated."
+plist.  ORIGIN is a symbol saying where event originated.
+SUBTYPE tells more about the event."
   (let ((max (jsonrpc--events-buffer-scrollback-size connection)))
     (when (or (null max) (cl-plusp max))
       (with-current-buffer (jsonrpc-events-buffer connection)
-        (cl-destructuring-bind (&key method id error &allow-other-keys) message
+        (cl-destructuring-bind (&key _method id error &allow-other-keys) message
           (let* ((inhibit-read-only t)
-                 (subtype (cond ((and method id)       'request)
-                                (method                'notification)
-                                (id                    'reply)
-                                (t                     'message)))
                  (type
-                  (concat (format "%s" (or type 'internal))
-                          (if type
-                              (format "-%s" subtype)))))
+                  (concat (format "%s" (or origin 'internal))
+                          (if origin (format "-%s" (or subtype 'message))))))
             (goto-char (point-max))
             (prog1
                 (let ((msg (format "[%s]%s%s %s:\n%s"
