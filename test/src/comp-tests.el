@@ -327,6 +327,14 @@ Check that the resulting binaries do not differ."
     (should (subr-native-elisp-p f))
     (should (= (funcall f 3) 4))))
 
+(comp-deftest lambda-return2 ()
+  "Check a nested lambda function gets native compiled."
+  (let ((f (comp-tests-lambda-return-f2)))
+    (should (subr-native-elisp-p f))
+    (let ((f2 (funcall f)))
+      (should (subr-native-elisp-p f2))
+      (should (= (funcall f2 3) 4)))))
+
 (comp-deftest recursive ()
   (should (= (comp-tests-fib-f 10) 55)))
 
@@ -388,7 +396,27 @@ Check that the resulting binaries do not differ."
                    "Some doc."))
   (should (commandp #'comp-tests-free-fun-f))
   (should (equal (interactive-form #'comp-tests-free-fun-f)
-                 '(interactive))))
+                 '(interactive nil))))
+
+(declare-function comp-tests-free-fun-f2 nil)
+
+(comp-deftest free-fun2 ()
+  "Check compiling a symbol's function compiles contained lambdas."
+  (eval '(defun comp-tests-free-fun-f2 ()
+           (lambda (x)
+             "Some doc."
+             (interactive)
+             x)))
+  (native-compile #'comp-tests-free-fun-f2)
+
+  (let* ((f (symbol-function 'comp-tests-free-fun-f2))
+         (f2 (funcall f)))
+    (should (subr-native-elisp-p f))
+    (should (subr-native-elisp-p f2))
+    (should (string= (documentation f2) "Some doc."))
+    (should (commandp f2))
+    (should (equal (interactive-form f2) '(interactive nil)))
+    (should (= (funcall f2 3) 3))))
 
 (declare-function comp-tests/free\fun-f nil)
 

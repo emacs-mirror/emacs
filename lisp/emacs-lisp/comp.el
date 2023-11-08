@@ -1316,86 +1316,31 @@ clashes."
                           nil ".eln")))
   (let* ((f (symbol-function function-name))
          (byte-code (byte-compile function-name))
-         (c-name (comp-c-func-name function-name "F"))
-         (func
-          (if (comp-lex-byte-func-p byte-code)
-              (make-comp-func-l :name function-name
-                                :c-name c-name
-                                :doc (documentation f t)
-                                :int-spec (interactive-form f)
-                                :command-modes (command-modes f)
-                                :speed (comp-spill-speed function-name)
-                                :pure (comp-spill-decl-spec function-name
-                                                            'pure))
-            (make-comp-func-d :name function-name
-                              :c-name c-name
-                              :doc (documentation f t)
-                              :int-spec (interactive-form f)
-                              :command-modes (command-modes f)
-                              :speed (comp-spill-speed function-name)
-                              :pure (comp-spill-decl-spec function-name
-                                                          'pure)))))
+         (c-name (comp-c-func-name function-name "F")))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 '("can't native compile an already byte-compiled function")))
-      (setf (comp-func-byte-func func) byte-code)
-      (let ((lap (byte-to-native-lambda-lap
-                  (gethash (aref (comp-func-byte-func func) 1)
-                           byte-to-native-lambdas-h))))
-        (cl-assert lap)
-        (comp-log lap 2 t)
-        (if (comp-func-l-p func)
-            (let ((arg-list (aref (comp-func-byte-func func) 0)))
-              (setf (comp-func-l-args func)
-                    (comp-decrypt-arg-list arg-list function-name)))
-          (setf (comp-func-d-lambda-list func) (cadr f)))
-        (setf (comp-func-lap func)
-              lap
-              (comp-func-frame-size func)
-              (comp-byte-frame-size (comp-func-byte-func func))
-              (comp-ctxt-top-level-forms comp-ctxt)
+        (setf (comp-ctxt-top-level-forms comp-ctxt)
               (list (make-byte-to-native-func-def :name function-name
-                                                  :c-name c-name)))
-        (comp-add-func-to-ctxt func))))
+                                                  :c-name c-name
+                                                  :byte-func byte-code)))
+      (maphash #'comp-intern-func-in-ctxt byte-to-native-lambdas-h)))
 
 (cl-defmethod comp-spill-lap-function ((form list))
   "Byte-compile FORM, spilling data from the byte compiler."
-  (unless (eq (car-safe form) 'lambda)
+  (unless (memq (car-safe form) '(lambda closure))
     (signal 'native-compiler-error
-            '("Cannot native-compile, form is not a lambda")))
+            '("Cannot native-compile, form is not a lambda or closure")))
   (unless (comp-ctxt-output comp-ctxt)
     (setf (comp-ctxt-output comp-ctxt)
           (make-temp-file "comp-lambda-" nil ".eln")))
   (let* ((byte-code (byte-compile form))
-         (c-name (comp-c-func-name "anonymous-lambda" "F"))
-         (func (if (comp-lex-byte-func-p byte-code)
-                   (make-comp-func-l :c-name c-name
-                                     :doc (documentation form t)
-                                     :int-spec (interactive-form form)
-                                     :command-modes (command-modes form)
-                                     :speed (comp-ctxt-speed comp-ctxt))
-                 (make-comp-func-d :c-name c-name
-                                   :doc (documentation form t)
-                                   :int-spec (interactive-form form)
-                                   :command-modes (command-modes form)
-                                   :speed (comp-ctxt-speed comp-ctxt)))))
-    (let ((lap (byte-to-native-lambda-lap
-                (gethash (aref byte-code 1)
-                         byte-to-native-lambdas-h))))
-      (cl-assert lap)
-      (comp-log lap 2 t)
-      (if (comp-func-l-p func)
-          (setf (comp-func-l-args func)
-                (comp-decrypt-arg-list (aref byte-code 0) byte-code))
-        (setf (comp-func-d-lambda-list func) (cadr form)))
-      (setf (comp-func-lap func) lap
-            (comp-func-frame-size func) (comp-byte-frame-size
-                                         byte-code))
-      (setf (comp-func-byte-func func) byte-code
-            (comp-ctxt-top-level-forms comp-ctxt)
+         (c-name (comp-c-func-name "anonymous-lambda" "F")))
+      (setf (comp-ctxt-top-level-forms comp-ctxt)
             (list (make-byte-to-native-func-def :name '--anonymous-lambda
-                                                :c-name c-name)))
-      (comp-add-func-to-ctxt func))))
+                                                :c-name c-name
+                                                :byte-func byte-code)))
+      (maphash #'comp-intern-func-in-ctxt byte-to-native-lambdas-h)))
 
 (defun comp-intern-func-in-ctxt (_ obj)
   "Given OBJ of type `byte-to-native-lambda', create a function in `comp-ctxt'."
