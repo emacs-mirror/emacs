@@ -1561,11 +1561,12 @@ scroll the window of possible completions."
    (t (prog1 (pcase (completion--do-completion beg end)
                (#b000 nil)
                (_     t))
-        (when (and (eq completion-auto-select t)
-                   (window-live-p minibuffer-scroll-window)
-                   (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
-          ;; When the completion list window was displayed, select it.
-          (switch-to-completions))))))
+        (if (window-live-p minibuffer-scroll-window)
+            (and (eq completion-auto-select t)
+                 (eq t (frame-visible-p (window-frame minibuffer-scroll-window)))
+                 ;; When the completion list window was displayed, select it.
+                 (switch-to-completions))
+          (completion-in-region-mode -1))))))
 
 (defun completion--cache-all-sorted-completions (beg end comps)
   (add-hook 'after-change-functions
