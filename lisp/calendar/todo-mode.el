@@ -5240,7 +5240,12 @@ changes you have made in the order of the categories.
            ;; Point is on done items separator.
            (save-excursion (beginning-of-line) (looking-at todo-category-done))
 	   ;; Buffer is widened.
-	   (looking-at (regexp-quote todo-category-beg)))
+	   (looking-at (regexp-quote todo-category-beg))
+           ;; Moving an item to a todo file (with `C-u m') that had
+           ;; not yet been read into a buffer puts point at the
+           ;; beginning of the file, from where it is impossible to
+           ;; reach todo-item-start by the loop below (bug#66994).
+	   (= (point) 1))
     (goto-char (line-beginning-position))
     (while (not (looking-at todo-item-start))
       (forward-line -1))
