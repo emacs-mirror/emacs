@@ -209,21 +209,21 @@ directory hierarchy."
                                client-replies))
            (advice-add
             #'jsonrpc--log-event :before
-            (lambda (_proc message &optional type)
+            (lambda (_proc message &optional origin subtype)
               (cl-destructuring-bind (&key method id _error &allow-other-keys)
                   message
-                (let ((req-p (and method id))
-                      (notif-p method)
-                      (reply-p id))
+                (let ((req-p (eq subtype 'request))
+                      (notif-p (eq subtype 'notification))
+                      (reply-p (eql subtype 'reply)))
                   (cond
-                   ((eq type 'server)
+                   ((eq origin 'server)
                     (cond (req-p ,(when server-requests
                                     `(push message ,server-requests)))
                           (notif-p ,(when server-notifications
                                       `(push message ,server-notifications)))
                           (reply-p ,(when server-replies
                                       `(push message ,server-replies)))))
-                   ((eq type 'client)
+                   ((eq origin 'client)
                     (cond (req-p ,(when client-requests
                                     `(push message ,client-requests)))
                           (notif-p ,(when client-notifications
