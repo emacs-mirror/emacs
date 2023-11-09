@@ -115,6 +115,16 @@ if `confirm-kill-processes' is non-nil."
 (defvar comp-async-compilations (make-hash-table :test #'equal)
   "Hash table file-name -> async compilation process.")
 
+;; These variables and functions are defined in comp.c
+(defvar comp--no-native-compile)
+(defvar comp-deferred-pending-h)
+(defvar comp-installed-trampolines-h)
+(defvar native-comp-enable-subr-trampolines)
+
+(declare-function comp--install-trampoline "comp.c")
+(declare-function comp-el-to-eln-filename "comp.c")
+(declare-function native-elisp-load "comp.c")
+
 (defun native-compile-async-skip-p (file load selector)
   "Return non-nil if FILE's compilation should be skipped.
 
