@@ -728,7 +728,7 @@ error data is something ERC recognizes.  Print an explanation to
 the server buffer in any case."
   (when (eq (process-status process) 'failed)
     (erc-display-message
-     nil 'error (process-buffer process)
+     nil '(notice error) (process-buffer process)
      (format "Process exit status: %S" (process-exit-status process)))
     (pcase (process-exit-status process)
       (111
@@ -995,7 +995,7 @@ When `erc-server-reconnect-attempts' is a number, increment
                     (- erc-server-reconnect-attempts
                        (cl-incf erc-server-reconnect-count (or incr 1)))))
         (proc (buffer-local-value 'erc-server-process buffer)))
-    (erc-display-message nil 'error buffer 'reconnecting
+    (erc-display-message nil '(notice error) buffer 'reconnecting
                          ?m erc-server-reconnect-timeout
                          ?i (if count erc-server-reconnect-count "N")
                          ?n (if count erc-server-reconnect-attempts "A"))

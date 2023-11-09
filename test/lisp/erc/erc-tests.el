@@ -317,7 +317,7 @@
         (insert "Howdy")
         (erc-send-current-line)
         (save-excursion (forward-line -1)
-                        (should (looking-at "No target"))
+                        (should (looking-at (rx "*** No target")))
                         (forward-line -1)
                         (should (looking-at "<tester> Howdy")))
         (should (looking-back "ServNet 6> "))

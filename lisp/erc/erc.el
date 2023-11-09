@@ -3729,7 +3729,7 @@ this function from interpreting the line as a command."
       (let ((r (erc-default-target)))
         (if r
             (funcall erc-send-input-line-function r line force)
-          (erc-display-message nil 'error (current-buffer) 'no-target)
+          (erc-display-message nil '(notice error) (current-buffer) 'no-target)
           nil)))))
 
 (defconst erc--shell-parse-regexp
@@ -4581,7 +4581,7 @@ Otherwise leave the channel indicated by LINE."
                                  (format "PART %s" ch)
                                (format "PART %s :%s" ch reason))
                              nil ch))
-        (erc-display-message nil 'error (current-buffer) 'no-target)))
+        (erc-display-message nil '(notice error) (current-buffer) 'no-target)))
     t)
    (t nil)))
 (put 'erc-cmd-PART 'do-not-parse-args t)
@@ -4921,7 +4921,7 @@ be displayed."
           (progn
             (erc-log (format "cmd: TOPIC [%s]: %s" ch topic))
             (erc-server-send (format "TOPIC %s :%s" ch topic) nil ch))
-        (erc-display-message nil 'error (current-buffer) 'no-target)))
+        (erc-display-message nil '(notice error) (current-buffer) 'no-target)))
     t)
    (t nil)))
 (defalias 'erc-cmd-T #'erc-cmd-TOPIC)
@@ -8194,9 +8194,10 @@ All windows are opened in the current frame."
    (flood-ctcp-off . "FLOOD PROTECTION: Automatic CTCP responses turned off.")
    (flood-strict-mode
     . "FLOOD PROTECTION: Switched to Strict Flood Control mode.")
-   (disconnected . "\n\nConnection failed!  Re-establishing connection...\n")
+   (disconnected
+    . "\n\n*** Connection failed!  Re-establishing connection...\n")
    (disconnected-noreconnect
-    . "\n\nConnection failed!  Not re-establishing connection.\n")
+    . "\n\n*** Connection failed!  Not re-establishing connection.\n")
    (reconnecting . "Reconnecting in %ms: attempt %i/%n ...")
    (reconnect-canceled . "Canceled %u reconnect timer with %cs to go...")
    (finished . "\n\n*** ERC finished ***\n")
