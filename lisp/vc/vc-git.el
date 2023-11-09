@@ -1982,6 +1982,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (defvar compilation-environment)
 
 ;; Derived from `lgrep'.
+;;;###autoload
 (defun vc-git-grep (regexp &optional files dir)
   "Run git grep, searching for REGEXP in FILES in directory DIR.
 The search is limited to file names matching shell pattern FILES.
