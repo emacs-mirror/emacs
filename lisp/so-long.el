@@ -783,8 +783,7 @@ an example."
   :package-version '(so-long . "1.0"))
 (make-variable-buffer-local 'so-long-file-local-mode-function)
 
-;; `provided-mode-derived-p' was added in 26.1
-(unless (fboundp 'provided-mode-derived-p)
+(unless (fboundp 'provided-mode-derived-p) ;Only in Emacs≥26.1
   (defun provided-mode-derived-p (mode &rest modes)
     "Non-nil if MODE is derived from one of MODES.
 Uses the `derived-mode-parent' property of the symbol to trace backwards.

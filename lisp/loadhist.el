@@ -149,14 +149,14 @@ documentation of `unload-feature' for details.")
   (save-current-buffer
     (dolist (buffer (buffer-list))
       (set-buffer buffer)
-      (let ((proposed major-mode))
+      (let ((proposed (derived-mode-all-parents major-mode)))
         ;; Look for a predecessor mode not defined in the feature we're processing
-        (while (and proposed (rassq proposed unload-function-defs-list))
-          (setq proposed (get proposed 'derived-mode-parent)))
-        (unless (eq proposed major-mode)
+        (while (and proposed (rassq (car proposed) unload-function-defs-list))
+          (setq proposed (cdr proposed)))
+        (unless (eq (car proposed) major-mode)
           ;; Two cases: either proposed is nil, and we want to switch to fundamental
           ;; mode, or proposed is not nil and not major-mode, and so we use it.
-          (funcall (or proposed 'fundamental-mode)))))))
+          (funcall (or (car proposed) 'fundamental-mode)))))))
 
 (defvar loadhist-unload-filename nil)
 

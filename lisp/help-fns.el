@@ -742,6 +742,7 @@ the C sources, too."
 (defun help-fns--parent-mode (function)
   ;; If this is a derived mode, link to the parent.
   (let ((parent-mode (and (symbolp function)
+                          ;; FIXME: Should we mention other parent modes?
                           (get function
                                'derived-mode-parent))))
     (when parent-mode
