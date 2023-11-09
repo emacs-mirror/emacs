@@ -456,7 +456,7 @@ use of `macroexpand-all' as a way to find the \"underlying raw code\".")
               (lambda (expander form &rest args)
                 (condition-case err
                     (apply expander form args)
-                  ((debug error)
+                  (error
                    (message "Ignoring macroexpansion error: %S" err) form))))
              (sexp
               (unwind-protect
