@@ -321,6 +321,18 @@ public final class EmacsService extends Service
       }
   }
 
+  @Override
+  public void
+  onDestroy ()
+  {
+    /* This function is called immediately before the system kills
+       Emacs.  In this respect, it is rather akin to a SIGDANGER
+       signal, so force an auto-save accordingly.  */
+
+    EmacsNative.shutDownEmacs ();
+    super.onDestroy ();
+  }
+
 
 
   /* Functions from here on must only be called from the Emacs
