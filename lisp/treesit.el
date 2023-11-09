@@ -1322,7 +1322,7 @@ MATCHER:
     NODE's index in PARENT.  Therefore, to match the first child
     where PARENT is \"argument_list\", use
 
-        (match nil \"argument_list\" nil nil 0 0).
+        (match nil \"argument_list\" nil 0 0).
 
     NODE-TYPE, PARENT-TYPE, and NODE-FIELD are regexps.
     NODE-TYPE can also be `null', which matches when NODE is nil.

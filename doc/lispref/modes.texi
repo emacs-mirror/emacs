@@ -5087,7 +5087,7 @@ this matcher doesn't check that argument.  For example, to match the
 first child where parent is @code{argument_list}, use
 
 @example
-(match nil "argument_list" nil nil 0 0)
+(match nil "argument_list" nil 0 0)
 @end example
 
 In addition, @var{node-type} can be a special value @code{null},
