@@ -155,31 +155,28 @@ their markers accordingly.  The following properties have meaning
 as of ERC 5.6:
 
  - `erc-msg': a symbol, guaranteed present; values include:
-
-   - `msg', signifying a `PRIVMSG' or an incoming `NOTICE'
-   - `self', a fallback used by `erc-display-msg' for callers
-     that don't specify an `erc-msg'
-   - `unknown', a similar fallback for `erc-display-message'
-   - a catalog key, such as `s401' or `finished'
-   - an `erc-display-message' TYPE parameter, like `notice'
+   `msg', signifying a `PRIVMSG' or an incoming `NOTICE';
+   `unknown', a fallback for `erc-display-message'; a catalog
+    key, such as `s401' or `finished'; an `erc-display-message'
+    TYPE parameter, like `notice'
 
  - `erc-cmd': a message's associated IRC command, as read by
    `erc--get-eq-comparable-cmd'; currently either a symbol, like
    `PRIVMSG', or a number, like 5, which represents the numeric
-   \"005\"; absent on \"local\" messages, such as simple warnings
-   and help text, and on outgoing messages unless echoed back by
-   the server (assuming future support)
+    \"005\"; absent on \"local\" messages, such as simple warnings
+    and help text, and on outgoing messages unless echoed back by
+    the server (assuming future support)
 
  - `erc-ctcp': a CTCP command, like `ACTION'
 
  - `erc-ts': a timestamp, possibly provided by the server; as of
-   5.6, a ticks/hertz pair on Emacs 29 and above, and a \"list\"
-   type otherwise; managed by the `stamp' module
+    5.6, a ticks/hertz pair on Emacs 29 and above, and a \"list\"
+    type otherwise; managed by the `stamp' module
 
  - `erc-ephemeral': a symbol prefixed by or matching a module
-   name; indicates to other modules and members of modification
-   hooks that the current message should not affect stateful
-   operations, such as recording a channel's most recent speaker
+    name; indicates to other modules and members of modification
+    hooks that the current message should not affect stateful
+    operations, such as recording a channel's most recent speaker
 
 This is an internal API, and the selection of related helper
 utilities is fluid and provisional.  As of ERC 5.6, see the
@@ -6966,8 +6963,7 @@ ERC prints them as a single message joined by newlines.")
                        (inhibit-read-only t)
                        (erc--current-line-input-split state)
                        (old-buf (current-buffer)))
-              (let ((erc--msg-prop-overrides `((erc-msg . msg)
-                                               ,@erc--msg-prop-overrides)))
+              (progn ; unprogn this during next major surgery
                 (erc-set-active-buffer (current-buffer))
                 ;; Kill the input and the prompt
                 (delete-region erc-input-marker (erc-end-of-input-line))
@@ -7114,16 +7110,15 @@ Return non-nil only if we actually send anything."
 
 (defun erc-display-msg (line)
   "Insert LINE into current buffer and run \"send\" hooks.
-Expect LINE to originate from input submitted interactively at
-the prompt, such as outgoing chat messages or echoed slash
-commands."
+Treat LINE as input submitted interactively at the prompt, such
+as outgoing chat messages and echoed slash commands."
   (when erc-insert-this
     (save-excursion
       (erc--assert-input-bounds)
       (let ((insert-position (marker-position (goto-char erc-insert-marker)))
-            (erc--msg-props (or erc--msg-props ; prefer `self' to `unknown'
+            (erc--msg-props (or erc--msg-props
                                 (let ((ovs erc--msg-prop-overrides))
-                                  (map-into `((erc-msg . self) ,@(reverse ovs))
+                                  (map-into `((erc-msg . msg) ,@(reverse ovs))
                                             'hash-table))))
             beg)
         (insert (erc-format-my-nick))
