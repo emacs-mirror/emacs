@@ -4695,7 +4695,7 @@ contents."
   (interactive "P")
   (condition-case nil
       (minibuffer-choose-completion no-exit no-quit)
-    (error (exit-minibuffer))))
+    (error (minibuffer-complete-and-exit))))
 
 (defun minibuffer-complete-history ()
   "Complete the minibuffer history as far as possible.
