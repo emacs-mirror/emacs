@@ -37,23 +37,6 @@
 (require 'comp-common)
 (require 'comp-cstr)
 
-;; These variables and functions are defined in comp.c
-(defvar native-comp-enable-subr-trampolines)
-(defvar comp-installed-trampolines-h)
-(defvar comp-subr-arities-h)
-(defvar native-comp-eln-load-path)
-(defvar comp-native-version-dir)
-(defvar comp-deferred-pending-h)
-(defvar comp--no-native-compile)
-
-(declare-function comp-el-to-eln-rel-filename "comp.c")
-(declare-function native-elisp-load "comp.c")
-(declare-function comp--release-ctxt "comp.c")
-(declare-function comp--init-ctxt "comp.c")
-(declare-function comp--compile-ctxt-to-file "comp.c")
-(declare-function comp-el-to-eln-filename "comp.c")
-(declare-function comp--install-trampoline "comp.c")
-
 (defgroup comp nil
   "Emacs Lisp native compiler."
   :group 'lisp)
