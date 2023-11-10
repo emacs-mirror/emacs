@@ -2061,7 +2061,7 @@ return nil without moving point."
         ;; the obstacle, like `forward-sexp' does.  If we couldn't
         ;; find a parent, we simply return nil without moving point,
         ;; then functions like `up-list' will signal "at top level".
-        (when-let* ((parent (nth 2 (treesit--things-around (point) pred)))
+        (when-let* ((parent (treesit--thing-at (point) pred t))
                     (boundary (if (> arg 0)
                                   (treesit-node-child parent -1)
                                 (treesit-node-child parent 0))))
@@ -2115,7 +2115,8 @@ friends."
 ;; - treesit-thing/defun-at-point
 ;;
 ;; And more generic functions like:
-;; - treesit--things-around
+;; - treesit--thing-prev/next
+;; - treesit--thing-at
 ;; - treesit--top-level-thing
 ;; - treesit--navigate-thing
 ;;
@@ -2124,11 +2125,13 @@ friends."
 ;;
 ;; TODO: I'm not entirely sure how would this go, so I only documented
 ;; the "defun" functions and didn't document any "thing" functions.
-;; We should also document `treesit-block-type-regexp' and support it
-;; in major modes if we can meaningfully integrate hideshow: I tried
-;; and failed, we need SomeOne that understands hideshow to look at
-;; it.  (BTW, hideshow should use its own
-;; `treesit-hideshow-block-type-regexp'.)
+;; We should also document `treesit-thing-settings'.
+
+;; TODO: Integration with thing-at-point: once our thing interface is
+;; stable.
+;;
+;; TODO: Integration with hideshow: I tried and failed, we need
+;; SomeOne that understands hideshow to look at it.
 
 (defvar-local treesit-defun-type-regexp nil
   "A regexp that matches the node type of defun nodes.
@@ -2564,9 +2567,15 @@ function is called recursively."
                       dest)))))
     (catch 'term
       (while (> counter 0)
-        (pcase-let
-            ((`(,prev ,next ,parent)
-              (treesit--things-around pos thing)))
+        (let ((prev (treesit--thing-prev pos thing))
+              (next (treesit--thing-next pos thing))
+              (parent (treesit--thing-at pos thing t)))
+          (when (and parent prev
+                     (not (treesit-node-enclosed-p prev parent)))
+            (setq prev nil))
+          (when (and parent next
+                     (not (treesit-node-enclosed-p next parent)))
+            (setq next nil))
           ;; When PARENT is nil, nested and top-level are the same, if
           ;; there is a PARENT, make PARENT to be the top-level parent
           ;; and pretend there is no nested PREV and NEXT.
@@ -2627,22 +2636,15 @@ function is called recursively."
 
 ;; TODO: In corporate into thing-at-point.
 (defun treesit-thing-at-point (thing tactic)
-  "Return the thing node at point or nil if none is found.
+  "Return the THING at point or nil if none is found.
 
-\"Thing\" is defined by THING, which can be a regexp, a
-predication function, and more, see `treesit-thing-settings'
-for details.
+THING can be a symbol, regexp, a predicate function, and more,
+see `treesit-thing-settings' for details.
 
-Return the top-level defun if TACTIC is `top-level', return the
-immediate parent thing if TACTIC is `nested'."
-  (pcase-let* ((`(,_ ,next ,parent)
-                (treesit--things-around (point) thing))
-               ;; If point is at the beginning of a thing, we
-               ;; prioritize that thing over the parent in nested
-               ;; mode.
-               (node (or (and (eq (treesit-node-start next) (point))
-                              next)
-                         parent)))
+Return the top-level THING if TACTIC is `top-level', return the
+smallest enclosing THING as POS if TACTIC is `nested'."
+
+  (let ((node (treesit--thing-at (point) thing)))
     (if (eq tactic 'top-level)
         (treesit-node-top-level node thing t)
       node)))
