@@ -157,6 +157,19 @@ asking users who've customized this option to switch to
 that some other solution, like automatic migration, is justified,
 please make that known on the bug list.
 
+** Module 'noncommands' deprecated, replaced by 'command-indicator'.
+Command-line echoing has returned to ERC after a near decade-long
+hiatus.  This means you can elect to have ERC leave a trail of (most)
+slash-command input submitted at the prompt, in a manner resembling
+that of a shell or a REPL.  The particulars are likely of little
+interest to most users, but the gist is that this functionality was
+removed in 5.3.x (Emacs 24.5) without mention in this document or a
+change log.  Everything's mostly been restored, except that the
+feature is now opt-in.  The only real gotcha is that related faces and
+options, like 'erc-command-indicator', have moved to the 'erc-goodies'
+library, although their Custom groups remain the same.  Add
+'command-indicator' to 'erc-modules' to get started.
+
 ** 'erc-button-alist' and 'erc-nick-popup-alist' have evolved slightly.
 It's no secret that the 'buttons' module treats potential nicknames
 specially.  This is perhaps most evident in its treatment of the

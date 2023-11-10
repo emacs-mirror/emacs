@@ -346,8 +346,13 @@ with a value of 2 and means disallow more than 1 line of input."
   "If non-nil, hide input prompt upon disconnecting.
 To unhide, type something in the input area.  Once revealed, a
 prompt remains unhidden until the next disconnection.  Channel
-prompts are unhidden upon rejoining.  See
-`erc-unhide-query-prompt' for behavior concerning query prompts."
+prompts are unhidden upon rejoining.  For behavior concerning
+query prompts, see `erc-unhide-query-prompt'.  Longtime ERC users
+should note that this option was repurposed in ERC 5.5 because it
+had lain dormant for years after being sidelined in 5.3 when its
+only use in the interactive client was removed.  Before then, its
+role was controlling whether `erc-command-indicator' would appear
+alongside echoed slash-command lines."
   :package-version '(ERC . "5.5")
   :group 'erc-display
   :type '(choice (const :tag "Always hide prompt" t)
@@ -758,28 +763,6 @@ See also the variable `erc-prompt'."
     (if (> (length prompt) 0)
         (concat prompt " ")
       prompt)))
-
-(defcustom erc-command-indicator nil
-  "Indicator used by ERC for showing commands.
-
-If non-nil, this will be used in the ERC buffer to indicate
-commands (i.e., input starting with a `/').
-
-If nil, the prompt will be constructed from the variable `erc-prompt'."
-  :group 'erc-display
-  :type '(choice (const nil) string function))
-
-(defun erc-command-indicator ()
-  "Return the command indicator prompt as a string.
-
-This only has any meaning if the variable `erc-command-indicator' is non-nil."
-  (and erc-command-indicator
-       (let ((prompt (if (functionp erc-command-indicator)
-                         (funcall erc-command-indicator)
-                       erc-command-indicator)))
-         (if (> (length prompt) 0)
-             (concat prompt " ")
-           prompt))))
 
 (defcustom erc-notice-prefix "*** "
   "Prefix for all notices."
@@ -1362,12 +1345,6 @@ This will only be used if `erc-header-line-face-method' is non-nil."
 (defface erc-prompt-face
   '((t :weight bold :foreground "Black" :background "lightBlue2"))
   "ERC face for the prompt."
-  :group 'erc-faces)
-
-(defface erc-command-indicator-face
-  '((t :weight bold))
-  "ERC face for the command indicator.
-See the variable `erc-command-indicator'."
   :group 'erc-faces)
 
 (defface erc-notice-face
@@ -2077,7 +2054,7 @@ buffer rather than a server buffer.")
 
 (defcustom erc-modules '( autojoin button completion fill imenu irccontrols
                           list match menu move-to-prompt netsplit
-                          networks noncommands readonly ring stamp track)
+                          networks readonly ring stamp track)
   "A list of modules which ERC should enable.
 If you set the value of this without using `customize' remember to call
 \(erc-update-modules) after you change it.  When using `customize', modules
@@ -2127,6 +2104,7 @@ removed from the list will be disabled."
     (const :tag "button: Buttonize URLs, nicknames, and other text" button)
     (const :tag "capab: Mark unidentified users on servers supporting CAPAB"
            capab-identify)
+    (const :tag "command-indicator: Echo command lines." command-indicator)
     (const :tag "completion: Complete nicknames and commands (programmable)"
            completion)
     (const :tag "dcc: Provide Direct Client-to-Client support" dcc)
@@ -2146,7 +2124,7 @@ removed from the list will be disabled."
     (const :tag "networks: Provide data about IRC networks" networks)
     (const :tag "nickbar: Show nicknames in a dyamic side window" nickbar)
     (const :tag "nicks: Uniquely colorize nicknames in target buffers" nicks)
-    (const :tag "noncommands: Don't display non-IRC commands after evaluation"
+    (const :tag "noncommands: Deprecated. See module `command-indicator'."
            noncommands)
     (const :tag "notifications: Desktop alerts on PRIVMSG or mentions"
            notifications)
@@ -3327,6 +3305,18 @@ don't bother including the preceding newline."
         (when (or (<= beg 4) (= ?\n (char-before (- beg 2))))
           (cl-incf beg))
         (erc--merge-prop (1- beg) (1- end) 'invisible value)))))
+
+(defun erc--toggle-hidden (prop arg)
+  "Toggle invisibility for spec member PROP.
+Treat ARG in a manner similar to mode toggles defined by
+`define-minor-mode'."
+  (when arg
+    (setq arg (prefix-numeric-value arg)))
+  (if (memq prop (ensure-list buffer-invisibility-spec))
+      (unless (natnump arg)
+        (remove-from-invisibility-spec prop))
+    (when (or (not arg) (natnump arg))
+      (add-to-invisibility-spec prop))))
 
 (defun erc--delete-inserted-message (beg-or-point &optional end)
   "Remove message between BEG and END.
@@ -7051,7 +7041,9 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
   (when (erc--input-split-sendp lines-obj)
     (dolist (line (erc--input-split-lines lines-obj))
       (when (erc--input-split-insertp lines-obj)
-        (erc-display-msg line))
+        (if (functionp (erc--input-split-insertp lines-obj))
+            (funcall (erc--input-split-insertp lines-obj) line)
+          (erc-display-msg line)))
       (erc-process-input-line (concat line "\n")
                               (null erc-flood-protect)
                               (not (erc--input-split-cmdp lines-obj))))))
@@ -7557,7 +7549,10 @@ sequences, process the lines verbatim.  Use this for multiline
 user input."
   (let* ((cb (current-buffer))
          (s "")
-         (sp (or (erc-command-indicator) (erc-prompt)))
+         (sp (or (and (bound-and-true-p erc-command-indicator-mode)
+                      (fboundp 'erc-command-indicator)
+                      (erc-command-indicator))
+                 (erc-prompt)))
          (args (and (boundp 'erc-script-args) erc-script-args)))
     (if (and args (string-match "^ " args))
         (setq args (substring args 1)))

@@ -450,6 +450,11 @@ Buttonize URLs, nicknames, and other text
 @item capab-identify
 Mark unidentified users on freenode and other servers supporting CAPAB.
 
+@cindex modules, command-indicator
+@item command-indicator
+Echo command lines for ``slash commands'', like @kbd{/JOIN #erc} and
+@kbd{/HELP join}
+
 @cindex modules, completion
 @cindex modules, pcomplete
 @item completion (aka pcomplete)
