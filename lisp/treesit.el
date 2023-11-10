@@ -2359,17 +2359,7 @@ the current line if the beginning of the defun is indented."
                        (line-beginning-position))
          (beginning-of-line))))
 
-;; prev-sibling:
-;; 1. end-of-node before pos
-;; 2. highest such node
-;;
-;; next-sibling:
-;; 1. beg-of-node after pos
-;; 2. highest such node
-;;
-;; parent:
-;; 1. node covers pos
-;; 2. smallest such node
+(make-obsolete 'treesit--things-around "`treesit--things-around' will be removed in a few months, use `treesit--thing-prev', `treesit--thing-next', `treesit--thing-at' instead." "30.0.5")
 (defun treesit--things-around (pos thing)
   "Return the previous, next, and parent thing around POS.
 
