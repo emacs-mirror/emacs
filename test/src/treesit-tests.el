@@ -166,6 +166,13 @@
       ;; `treesit-node-eq'.
       (should (treesit-node-eq root-node root-node))
       (should (not (treesit-node-eq root-node doc-node)))
+      ;; `treesit-node-enclosed-p'
+      (should (treesit-node-enclosed-p '(1 . 3) '(1 . 4)))
+      (should (treesit-node-enclosed-p '(1 . 3) '(1 . 3)))
+      (should (not (treesit-node-enclosed-p '(1 . 3) '(1 . 4) t)))
+      (should (treesit-node-enclosed-p '(1 . 3) '(1 . 4) 'partial))
+      (should (treesit-node-enclosed-p '(2 . 3) '(1 . 4) t))
+      (should (treesit-node-enclosed-p object-node root-node))
 
       ;; Further test for `treesit-node-check'.
       (treesit-parser-delete parser)

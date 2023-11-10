@@ -439,6 +439,41 @@ unlike in their original functions."
                       (treesit-node-prev-sibling node named)))))))
   node)
 
+(defun treesit-node-enclosed-p (smaller larger &optional strict)
+  "Return non-nil if SMALLER is enclosed in LARGER.
+SMALLER and LARGER can be either (BEG . END) or a node.
+
+Return non-nil if LARGER's start <= SMALLER's start and LARGER's
+end <= SMALLER's end.
+
+If STRICT is t, compare with < rather than <=.
+
+If STRICT is \\='partial, consider LARGER encloses SMALLER when
+at least one side is strictly enclosing."
+  (unless (and (or (consp larger) (treesit-node-p larger))
+               (or (consp smaller) (treesit-node-p smaller)))
+    (signal 'wrong-type-argument '((or cons treesit-node))))
+  (let ((larger-start (if (consp larger)
+                          (car larger)
+                        (treesit-node-start larger)))
+        (larger-end (if (consp larger)
+                        (cdr larger)
+                      (treesit-node-end larger)))
+        (smaller-start (if (consp smaller)
+                           (car smaller)
+                         (treesit-node-start smaller)))
+        (smaller-end (if (consp smaller)
+                         (cdr smaller)
+                       (treesit-node-end smaller))))
+    (pcase strict
+      ('t (and (< larger-start smaller-start)
+               (< smaller-end larger-end)))
+      ('partial (and (or (not (eq larger-start smaller-start))
+                         (not (eq larger-end smaller-end)))
+                     (<= larger-start smaller-start
+                         smaller-end larger-end)))
+      (_ (<= larger-start smaller-start smaller-end larger-end)))))
+
 ;;; Query API supplement
 
 (defun treesit-query-string (string query language)
@@ -3523,7 +3558,6 @@ function signals an error."
 
 (define-short-documentation-group treesit
 
-
   "Parsers"
   (treesit-parser-create
    :no-eval (treesit-parser-create 'c)
@@ -3669,7 +3703,9 @@ function signals an error."
   (treesit-node-check
    :no-eval (treesit-node-check node 'named)
    :eg-result t)
-
+  (treesit-node-enclosed-p
+   :no-eval (treesit-node-enclosed-p node1 node2)
+   :no-eval (treesit-node-enclosed-p node1 '(12 . 18)))
 
   (treesit-node-field-name-for-child
    :no-eval (treesit-node-field-name-for-child node)
