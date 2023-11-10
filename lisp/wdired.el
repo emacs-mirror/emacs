@@ -453,7 +453,7 @@ non-nil means return old filename."
   (force-mode-line-update)
   (setq buffer-read-only t)
   (setq major-mode 'dired-mode)
-  (setq mode-name "Dired")
+  (dired-sort-set-mode-line)
   (dired-advertise)
   (dired-hide-details-update-invisibility-spec)
   (remove-hook 'kill-buffer-hook #'wdired-check-kill-buffer t)
