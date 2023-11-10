@@ -154,7 +154,7 @@ If this variable is nil, no such courtesy message will be added."
   :type '(radio string (const nil)))
 
 (defcustom message-ignored-bounced-headers
-  "^\\(Received\\|Return-Path\\|Delivered-To\\):"
+  "^\\(Received\\|Return-Path\\|Delivered-To\\|DKIM-Signature\\|X-Hashcash\\):"
   "Regexp that matches headers to be removed in resent bounced mail."
   :group 'message-interface
   :type 'regexp)
@@ -9008,7 +9008,7 @@ to the E-mail."
           (message-goto-body)
           (dolist (body (cdr (assoc "body" args)))
 	    (insert body "\n")))
-      
+
       (setq need-body t))
     (if (assoc "subject" args)
 	(message-goto-body)
