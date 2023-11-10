@@ -3573,6 +3573,9 @@ function signals an error."
 
 
   "Retrieving a node from another node"
+  (treesit-node-get
+      :no-eval (treesit-node-get node '((parent 1) (sibling 1) (text)))
+      :eg-result-string "#<treesit-node (declaration) in 1-11>")
   (treesit-node-parent
    :no-eval (treesit-node-parent node)
    :eg-result-string "#<treesit-node (declaration) in 1-11>")
