@@ -29,32 +29,26 @@
 ;;; Code:
 
 (require 'bytecomp)
-(require 'cl-extra)
 (require 'cl-lib)
-(require 'cl-macs)
-(require 'cl-seq)
 (require 'gv)
 (require 'rx)
 (require 'subr-x)
 (require 'warnings)
+(require 'comp-common)
 (require 'comp-cstr)
 
 ;; These variables and functions are defined in comp.c
-(defvar native-comp-enable-subr-trampolines)
-(defvar comp-installed-trampolines-h)
+(defvar comp-native-version-dir)
 (defvar comp-subr-arities-h)
 (defvar native-comp-eln-load-path)
-(defvar comp-native-version-dir)
-(defvar comp-deferred-pending-h)
-(defvar comp--no-native-compile)
+(defvar native-comp-enable-subr-trampolines)
 
+(declare-function comp--compile-ctxt-to-file "comp.c")
+(declare-function comp--init-ctxt "comp.c")
+(declare-function comp--release-ctxt "comp.c")
+(declare-function comp-el-to-eln-filename "comp.c")
 (declare-function comp-el-to-eln-rel-filename "comp.c")
 (declare-function native-elisp-load "comp.c")
-(declare-function comp--release-ctxt "comp.c")
-(declare-function comp--init-ctxt "comp.c")
-(declare-function comp--compile-ctxt-to-file "comp.c")
-(declare-function comp-el-to-eln-filename "comp.c")
-(declare-function comp--install-trampoline "comp.c")
 
 (defgroup comp nil
   "Emacs Lisp native compiler."
@@ -86,111 +80,12 @@ This is intended for debugging the compiler itself.
   :safe #'natnump
   :version "29.1")
 
-(defcustom native-comp-verbose 0
-  "Compiler verbosity for native compilation, a number between 0 and 3.
-This is intended for debugging the compiler itself.
-  0 no logging.
-  1 final LIMPLE is logged.
-  2 LAP, final LIMPLE, and some pass info are logged.
-  3 max verbosity."
-  :type 'natnum
-  :risky t
-  :version "28.1")
-
-(defcustom native-comp-always-compile nil
-  "Non-nil means unconditionally (re-)compile all files."
-  :type 'boolean
-  :version "28.1")
-
-(defcustom native-comp-jit-compilation-deny-list
-  '()
-  "List of regexps to exclude matching files from deferred native compilation.
-Files whose names match any regexp are excluded from native compilation."
-  :type '(repeat regexp)
-  :version "28.1")
-
-(make-obsolete-variable 'native-comp-deferred-compilation-deny-list
-                        'native-comp-jit-compilation-deny-list
-                        "29.1")
-
 (defcustom native-comp-bootstrap-deny-list
   '()
   "List of regexps to exclude files from native compilation during bootstrap.
 Files whose names match any regexp are excluded from native compilation
 during bootstrap."
   :type '(repeat regexp)
-  :version "28.1")
-
-(defcustom native-comp-never-optimize-functions
-  '(;; The following two are mandatory for Emacs to be working
-    ;; correctly (see comment in `advice--add-function'). DO NOT
-    ;; REMOVE.
-    macroexpand rename-buffer)
-  "Primitive functions to exclude from trampoline optimization.
-
-Primitive functions included in this list will not be called
-directly by the natively-compiled code, which makes trampolines for
-those primitives unnecessary in case of function redefinition/advice."
-  :type '(repeat symbol)
-  :version "28.1")
-
-(defcustom native-comp-async-jobs-number 0
-  "Default number of subprocesses used for async native compilation.
-Value of zero means to use half the number of the CPU's execution units,
-or one if there's just one execution unit."
-  :type 'natnum
-  :risky t
-  :version "28.1")
-
-(defcustom native-comp-async-cu-done-functions nil
-  "List of functions to call when asynchronous compilation of a file is done.
-Each function is called with one argument FILE, the filename whose
-compilation has completed."
-  :type 'hook
-  :version "28.1")
-
-(defcustom native-comp-async-all-done-hook nil
-  "Hook run after completing asynchronous compilation of all input files."
-  :type 'hook
-  :version "28.1")
-
-(defcustom native-comp-async-env-modifier-form nil
-  "Form evaluated before compilation by each asynchronous compilation subprocess.
-Used to modify the compiler environment."
-  :type 'sexp
-  :risky t
-  :version "28.1")
-
-(defcustom native-comp-async-report-warnings-errors t
-  "Whether to report warnings and errors from asynchronous native compilation.
-
-When native compilation happens asynchronously, it can produce
-warnings and errors, some of which might not be emitted by a
-byte-compilation.  The typical case for that is native-compiling
-a file that is missing some `require' of a necessary feature,
-while having it already loaded into the environment when
-byte-compiling.
-
-As asynchronous native compilation always starts from a pristine
-environment, it is more sensitive to such omissions, and might be
-unable to compile such Lisp source files correctly.
-
-Set this variable to nil to suppress warnings altogether, or to
-the symbol `silent' to log warnings but not pop up the *Warnings*
-buffer."
-  :type '(choice
-          (const :tag "Do not report warnings" nil)
-          (const :tag "Report and display warnings" t)
-          (const :tag "Report but do not display warnings" silent))
-  :version "28.1")
-
-(defcustom native-comp-async-query-on-exit nil
-  "Whether to query the user about killing async compilations when exiting.
-If this is non-nil, Emacs will ask for confirmation to exit and kill the
-asynchronous native compilations if any are running.  If nil, when you
-exit Emacs, it will silently kill those asynchronous compilations even
-if `confirm-kill-processes' is non-nil."
-  :type 'boolean
   :version "28.1")
 
 (defcustom native-comp-compiler-options nil
@@ -248,15 +143,6 @@ Emacs Lisp file:
 (defvar comp-dry-run nil
   "If non-nil, run everything but the C back-end.")
 
-(defconst comp-valid-source-re (rx ".el" (? ".gz") eos)
-  "Regexp to match filename of valid input source files.")
-
-(defconst comp-log-buffer-name "*Native-compile-Log*"
-  "Name of the native-compiler log buffer.")
-
-(defconst comp-async-buffer-name "*Async-native-compile-log*"
-  "Name of the async compilation buffer log.")
-
 (defvar comp-native-compiling nil
   "This gets bound to t during native compilation.
 Intended to be used by code that needs to work differently when
@@ -290,346 +176,6 @@ For internal use by the test suite only.")
   "Alist whose elements are of the form (PASS FUNCTIONS...).
 Each function in FUNCTIONS is run after PASS.
 Useful to hook into pass checkers.")
-
-;; FIXME this probably should not be here but... good for now.
-(defconst comp-known-type-specifiers
-  `(
-    ;; Functions we can trust not to be redefined, or, if redefined,
-    ;; to expose the same type.  The vast majority of these are
-    ;; either pure or primitive; the original list is the union of
-    ;; pure + side-effect-free-fns + side-effect-and-error-free-fns:
-    (% (function ((or number marker) (or number marker)) number))
-    (* (function (&rest (or number marker)) number))
-    (+ (function (&rest (or number marker)) number))
-    (- (function (&rest (or number marker)) number))
-    (/ (function ((or number marker) &rest (or number marker)) number))
-    (/= (function ((or number marker) (or number marker)) boolean))
-    (1+ (function ((or number marker)) number))
-    (1- (function ((or number marker)) number))
-    (< (function ((or number marker) &rest (or number marker)) boolean))
-    (<= (function ((or number marker) &rest (or number marker)) boolean))
-    (= (function ((or number marker) &rest (or number marker)) boolean))
-    (> (function ((or number marker) &rest (or number marker)) boolean))
-    (>= (function ((or number marker) &rest (or number marker)) boolean))
-    (abs (function (number) number))
-    (acos (function (number) float))
-    (append (function (&rest t) t))
-    (aref (function (t fixnum) t))
-    (arrayp (function (t) boolean))
-    (ash (function (integer integer) integer))
-    (asin (function (number) float))
-    (assq (function (t list) list))
-    (atan (function (number &optional number) float))
-    (atom (function (t) boolean))
-    (bignump (function (t) boolean))
-    (bobp (function () boolean))
-    (bolp (function () boolean))
-    (bool-vector-count-consecutive
-     (function (bool-vector boolean integer) fixnum))
-    (bool-vector-count-population (function (bool-vector) fixnum))
-    (bool-vector-not (function (bool-vector &optional bool-vector) bool-vector))
-    (bool-vector-p (function (t) boolean))
-    (bool-vector-subsetp (function (bool-vector bool-vector) boolean))
-    (boundp (function (symbol) boolean))
-    (buffer-end (function ((or number marker)) integer))
-    (buffer-file-name (function (&optional buffer) (or string null)))
-    (buffer-list (function (&optional frame) list))
-    (buffer-local-variables (function (&optional buffer) list))
-    (buffer-modified-p
-     (function (&optional buffer) (or boolean (member autosaved))))
-    (buffer-size (function (&optional buffer) integer))
-    (buffer-string (function () string))
-    (buffer-substring
-     (function ((or integer marker) (or integer marker)) string))
-    (bufferp (function (t) boolean))
-    (byte-code-function-p (function (t) boolean))
-    (capitalize (function (or integer string) (or integer string)))
-    (car (function (list) t))
-    (car-less-than-car (function (list list) boolean))
-    (car-safe (function (t) t))
-    (case-table-p (function (t) boolean))
-    (cdr (function (list) t))
-    (cdr-safe (function (t) t))
-    (ceiling (function (number &optional number) integer))
-    (char-after (function (&optional (or marker integer)) (or fixnum null)))
-    (char-before (function (&optional (or marker integer)) (or fixnum null)))
-    (char-equal (function (integer integer) boolean))
-    (char-or-string-p (function (t) boolean))
-    (char-to-string (function (fixnum) string))
-    (char-width (function (fixnum) fixnum))
-    (characterp (function (t &optional t) boolean))
-    (charsetp (function (t) boolean))
-    (commandp (function (t &optional t) boolean))
-    (compare-strings
-     (function (string (or integer marker null) (or integer marker null) string
-                       (or integer marker null) (or integer marker null)
-                       &optional t)
-               (or (member t) fixnum)))
-    (concat (function (&rest sequence) string))
-    (cons (function (t t) cons))
-    (consp (function (t) boolean))
-    (coordinates-in-window-p
-     (function (cons window)
-               (or cons null
-                   (member bottom-divider right-divider mode-line header-line
-                           tab-line left-fringe right-fringe vertical-line
-                           left-margin right-margin))))
-    (copy-alist (function (list) list))
-    (copy-marker (function (&optional (or integer marker) boolean) marker))
-    (copy-sequence (function (sequence) sequence))
-    (copysign (function (float float) float))
-    (cos (function (number) float))
-    (count-lines
-     (function ((or integer marker) (or integer marker) &optional t) integer))
-    (current-buffer (function () buffer))
-    (current-global-map (function () cons))
-    (current-indentation (function () integer))
-    (current-local-map (function () (or cons null)))
-    (current-minor-mode-maps (function () (or cons null)))
-    (current-time (function () cons))
-    (current-time-string (function (&optional (or number list)
-                                              (or symbol string cons integer))
-                                   string))
-    (current-time-zone (function (&optional (or number list)
-                                            (or symbol string cons integer))
-                                 cons))
-    (custom-variable-p (function (symbol) t))
-    (decode-char (function (cons t) (or fixnum null)))
-    (decode-time (function (&optional (or number list)
-                                      (or symbol string cons integer)
-                                      symbol)
-                           cons))
-    (default-boundp (function (symbol) boolean))
-    (default-value (function (symbol) t))
-    (degrees-to-radians (function (number) float))
-    (documentation
-     (function ((or function symbol subr) &optional t) (or null string)))
-    (downcase (function ((or fixnum string)) (or fixnum string)))
-    (elt (function (sequence integer) t))
-    (encode-char (function (fixnum symbol) (or fixnum null)))
-    (encode-time (function (cons &rest t) cons))
-    (eobp (function () boolean))
-    (eolp (function () boolean))
-    (eq (function (t t) boolean))
-    (eql (function (t t) boolean))
-    (equal (function (t t) boolean))
-    (error-message-string (function (list) string))
-    (eventp (function (t) boolean))
-    (exp (function (number) float))
-    (expt (function (number number) number))
-    (fboundp (function (symbol) boolean))
-    (fceiling (function (float) float))
-    (featurep (function (symbol &optional symbol) boolean))
-    (ffloor (function (float) float))
-    (file-directory-p (function (string) boolean))
-    (file-exists-p (function (string) boolean))
-    (file-locked-p (function (string) (or boolean string)))
-    (file-name-absolute-p (function (string) boolean))
-    (file-newer-than-file-p (function (string string) boolean))
-    (file-readable-p (function (string) boolean))
-    (file-symlink-p (function (string) (or boolean string)))
-    (file-writable-p (function (string) boolean))
-    (fixnump (function (t) boolean))
-    (float (function (number) float))
-    (float-time (function (&optional (or number list)) float))
-    (floatp (function (t) boolean))
-    (floor (function (number &optional number) integer))
-    (following-char (function () fixnum))
-    (format (function (string &rest t) string))
-    (format-time-string (function (string &optional (or number list)
-                                          (or symbol string cons integer))
-                                  string))
-    (frame-first-window (function ((or frame window)) window))
-    (frame-root-window (function (&optional (or frame window)) window))
-    (frame-selected-window (function (&optional (or frame window)) window))
-    (frame-visible-p (function (frame) (or boolean (member icon))))
-    (framep (function (t) symbol))
-    (fround (function (float) float))
-    (ftruncate (function (float) float))
-    (get (function (symbol symbol) t))
-    (get-buffer (function ((or buffer string)) (or buffer null)))
-    (get-buffer-window
-     (function (&optional (or buffer string) (or symbol (integer 0 0)))
-               (or null window)))
-    (get-file-buffer (function (string) (or null buffer)))
-    (get-largest-window (function (&optional t t t) (or window null)))
-    (get-lru-window (function (&optional t t t) (or window null)))
-    (getenv (function (string &optional frame) (or null string)))
-    (gethash (function (t hash-table &optional t) t))
-    (hash-table-count (function (hash-table) integer))
-    (hash-table-p (function (t) boolean))
-    (identity (function (t) t))
-    (ignore (function (&rest t) null))
-    (int-to-string (function (number) string))
-    (integer-or-marker-p (function (t) boolean))
-    (integerp (function (t) boolean))
-    (interactive-p (function () boolean))
-    (intern-soft (function ((or string symbol) &optional vector) symbol))
-    (invocation-directory (function () string))
-    (invocation-name (function () string))
-    (isnan (function (float) boolean))
-    (keymap-parent (function (cons) (or cons null)))
-    (keymapp (function (t) boolean))
-    (keywordp (function (t) boolean))
-    (last (function (list &optional integer) list))
-    (lax-plist-get (function (list t) t))
-    (ldexp (function (number integer) float))
-    (length (function (t) (integer 0 *)))
-    (length< (function (sequence fixnum) boolean))
-    (length= (function (sequence fixnum) boolean))
-    (length> (function (sequence fixnum) boolean))
-    (line-beginning-position (function (&optional integer) integer))
-    (line-end-position (function (&optional integer) integer))
-    (list (function (&rest t) list))
-    (listp (function (t) boolean))
-    (local-variable-if-set-p (function (symbol &optional buffer) boolean))
-    (local-variable-p (function (symbol &optional buffer) boolean))
-    (locale-info (function ((member codeset days months paper)) (or null string)))
-    (log (function (number number) float))
-    (log10 (function (number) float))
-    (logand (function (&rest (or integer marker)) integer))
-    (logb (function (number) integer))
-    (logcount (function (integer) integer))
-    (logior (function (&rest (or integer marker)) integer))
-    (lognot (function (integer) integer))
-    (logxor (function (&rest (or integer marker)) integer))
-    ;; (lsh (function ((integer ,most-negative-fixnum *) integer) integer)) ?
-    (lsh (function (integer integer) integer))
-    (make-byte-code
-     (function ((or fixnum list) string vector integer &optional string t
-                &rest t)
-               vector))
-    (make-list (function (integer t) list))
-    (make-marker (function () marker))
-    (make-string (function (integer fixnum &optional t) string))
-    (make-symbol (function (string) symbol))
-    (mark (function (&optional t) (or integer null)))
-    (mark-marker (function () marker))
-    (marker-buffer (function (marker) (or buffer null)))
-    (markerp (function (t) boolean))
-    (max (function ((or number marker) &rest (or number marker)) number))
-    (max-char (function (&optional t) fixnum))
-    (member (function (t list) list))
-    (memory-limit (function () integer))
-    (memq (function (t list) list))
-    (memql (function (t list) list))
-    (min (function ((or number marker) &rest (or number marker)) number))
-    (minibuffer-selected-window (function () (or window null)))
-    (minibuffer-window (function (&optional frame) window))
-    (mod
-     (function ((or number marker) (or number marker))
-               (or (integer 0 *) (float 0 *))))
-    (mouse-movement-p (function (t) boolean))
-    (multibyte-char-to-unibyte (function (fixnum) fixnum))
-    (natnump (function (t) boolean))
-    (next-window (function (&optional window t t) window))
-    (nlistp (function (t) boolean))
-    (not (function (t) boolean))
-    (nth (function (integer list) t))
-    (nthcdr (function (integer t) t))
-    (null (function (t) boolean))
-    (number-or-marker-p (function (t) boolean))
-    (number-to-string (function (number) string))
-    (numberp (function (t) boolean))
-    (one-window-p (function (&optional t t) boolean))
-    (overlayp (function (t) boolean))
-    (parse-colon-path (function (string) cons))
-    (plist-get (function (list t &optional t) t))
-    (plist-member (function (list t &optional t) list))
-    (point (function () integer))
-    (point-marker (function () marker))
-    (point-max (function () integer))
-    (point-min (function () integer))
-    (preceding-char (function () fixnum))
-    (previous-window (function (&optional window t t) window))
-    (prin1-to-string (function (t &optional t t) string))
-    (processp (function (t) boolean))
-    (proper-list-p (function (t) (or fixnum null)))
-    (propertize (function (string &rest t) string))
-    (radians-to-degrees (function (number) float))
-    (rassoc (function (t list) list))
-    (rassq (function (t list) list))
-    (read-from-string (function (string &optional integer integer) cons))
-    (recent-keys (function (&optional (or cons null)) vector))
-    (recursion-depth (function () integer))
-    (regexp-opt (function (list) string))
-    (regexp-quote (function (string) string))
-    (region-beginning (function () integer))
-    (region-end (function () integer))
-    (reverse (function (sequence) sequence))
-    (round (function (number &optional number) integer))
-    (safe-length (function (t) integer))
-    (selected-frame (function () frame))
-    (selected-window (function () window))
-    (sequencep (function (t) boolean))
-    (sin (function (number) float))
-    (sqrt (function (number) float))
-    (standard-case-table (function () char-table))
-    (standard-syntax-table (function () char-table))
-    (string (function (&rest fixnum) string))
-    (string-as-multibyte (function (string) string))
-    (string-as-unibyte (function (string) string))
-    (string-equal (function ((or string symbol) (or string symbol)) boolean))
-    (string-lessp (function ((or string symbol) (or string symbol)) boolean))
-    (string-make-multibyte (function (string) string))
-    (string-make-unibyte (function (string) string))
-    (string-search (function (string string &optional integer) (or integer null)))
-    (string-to-char (function (string) fixnum))
-    (string-to-multibyte (function (string) string))
-    (string-to-number (function (string &optional integer) number))
-    (string-to-syntax (function (string) (or cons null)))
-    (string< (function ((or string symbol) (or string symbol)) boolean))
-    (string= (function ((or string symbol) (or string symbol)) boolean))
-    (stringp (function (t) boolean))
-    (subrp (function (t) boolean))
-    (substring
-     (function ((or string vector) &optional integer integer) (or string vector)))
-    (sxhash (function (t) integer))
-    (sxhash-eq (function (t) integer))
-    (sxhash-eql (function (t) integer))
-    (sxhash-equal (function (t) integer))
-    (symbol-function (function (symbol) t))
-    (symbol-name (function (symbol) string))
-    (symbol-plist (function (symbol) list))
-    (symbol-value (function (symbol) t))
-    (symbolp (function (t) boolean))
-    (syntax-table (function () char-table))
-    (syntax-table-p (function (t) boolean))
-    (tan (function (number) float))
-    (this-command-keys (function () string))
-    (this-command-keys-vector (function () vector))
-    (this-single-command-keys (function () vector))
-    (this-single-command-raw-keys (function () vector))
-    (time-convert (function ((or number list) &optional (or symbol integer))
-                            (or cons number)))
-    (truncate (function (number &optional number) integer))
-    (type-of (function (t) symbol))
-    (unibyte-char-to-multibyte (function (fixnum) fixnum)) ;; byte is fixnum
-    (upcase (function ((or fixnum string)) (or fixnum string)))
-    (user-full-name (function (&optional integer) (or string null)))
-    (user-login-name (function (&optional integer) (or string null)))
-    (user-original-login-name (function (&optional integer) (or string null)))
-    (user-real-login-name (function () string))
-    (user-real-uid (function () integer))
-    (user-uid (function () integer))
-    (vconcat (function (&rest sequence) vector))
-    (vector (function (&rest t) vector))
-    (vectorp (function (t) boolean))
-    (visible-frame-list (function () list))
-    (wholenump (function (t) boolean))
-    (window-configuration-p (function (t) boolean))
-    (window-live-p (function (t) boolean))
-    (window-valid-p (function (t) boolean))
-    (windowp (function (t) boolean))
-    (zerop (function (number) boolean))
-    ;; Type hints
-    (comp-hint-fixnum (function (t) fixnum))
-    (comp-hint-cons (function (t) cons))
-    ;; Non returning functions
-    (throw (function (t t) nil))
-    (error (function (string &rest t) nil))
-    (signal (function (symbol t) nil)))
-  "Alist used for type propagation.")
 
 (defconst comp-known-func-cstr-h
   (cl-loop
@@ -697,33 +243,6 @@ Useful to hook into pass checkers.")
                             comp-hint-cons)
   "List of fake functions used to give compiler hints.")
 
-(defconst comp-limple-sets '(set
-                             setimm
-                             set-par-to-local
-                             set-args-to-local
-                             set-rest-args-to-local)
-  "Limple set operators.")
-
-(defconst comp-limple-assignments `(assume
-                                    fetch-handler
-                                    ,@comp-limple-sets)
-  "Limple operators that clobber the first m-var argument.")
-
-(defconst comp-limple-calls '(call
-                              callref
-                              direct-call
-                              direct-callref)
-  "Limple operators used to call subrs.")
-
-(defconst comp-limple-branches '(jump cond-jump)
-  "Limple operators used for conditional and unconditional branches.")
-
-(defconst comp-limple-ops `(,@comp-limple-calls
-                            ,@comp-limple-assignments
-                            ,@comp-limple-branches
-                            return)
-  "All Limple operators.")
-
 (defvar comp-func nil
   "Bound to the current function by most passes.")
 
@@ -740,30 +259,6 @@ Useful to hook into pass checkers.")
 
 (defvar comp-no-spawn nil
   "Non-nil don't spawn native compilation processes.")
-
-(defconst comp-warn-primitives
-  '(null memq gethash and subrp not subr-native-elisp-p
-         comp--install-trampoline concat if symbolp symbol-name make-string
-         length aset aref length> mapcar expand-file-name
-         file-name-as-directory file-exists-p native-elisp-load)
-  "List of primitives we want to warn about in case of redefinition.
-This are essential for the trampoline machinery to work properly.")
-
-;; Moved early to avoid circularity when comp.el is loaded and
-;; `macroexpand' needs to be advised (bug#47049).
-;;;###autoload
-(defun comp-subr-trampoline-install (subr-name)
-  "Make SUBR-NAME effectively advice-able when called from native code."
-  (when (memq subr-name comp-warn-primitives)
-    (warn "Redefining `%s' might break native compilation of trampolines."
-          subr-name))
-  (unless (or (null native-comp-enable-subr-trampolines)
-              (memq subr-name native-comp-never-optimize-functions)
-              (gethash subr-name comp-installed-trampolines-h))
-    (cl-assert (subr-primitive-p (symbol-function subr-name)))
-    (when-let ((trampoline (or (comp-trampoline-search subr-name)
-                               (comp-trampoline-compile subr-name))))
-        (comp--install-trampoline subr-name trampoline))))
 
 
 (cl-defstruct (comp-vec (:copier nil))
@@ -1030,16 +525,6 @@ In use by the back-end."
 
 
 
-(defun comp-ensure-native-compiler ()
-  "Make sure Emacs has native compiler support and libgccjit can be loaded.
-Signal an error otherwise.
-To be used by all entry points."
-  (cond
-   ((null (featurep 'native-compile))
-    (error "Emacs was not compiled with native compiler support (--with-native-compilation)"))
-   ((null (native-comp-available-p))
-    (error "Cannot find libgccjit library"))))
-
 (defun comp-equality-fun-p (function)
   "Equality functions predicate for FUNCTION."
   (when (memq function '(eq eql equal)) t))
@@ -1108,71 +593,6 @@ Assume allocation class `d-default' as default."
 
 
 ;;; Log routines.
-
-(defconst comp-limple-lock-keywords
-  `((,(rx bol "(comment" (1+ not-newline)) . font-lock-comment-face)
-    (,(rx "#(" (group-n 1 "mvar"))
-     (1 font-lock-function-name-face))
-    (,(rx bol "(" (group-n 1 "phi"))
-     (1 font-lock-variable-name-face))
-    (,(rx bol "(" (group-n 1 (or "return" "unreachable")))
-     (1 font-lock-warning-face))
-    (,(rx (group-n 1 (or "entry"
-                         (seq (or "entry_" "entry_fallback_" "bb_")
-                              (1+ num) (? (or "_latch"
-                                              (seq "_cstrs_" (1+ num))))))))
-     (1 font-lock-constant-face))
-    (,(rx-to-string
-       `(seq "(" (group-n 1 (or ,@(mapcar #'symbol-name comp-limple-ops)))))
-     (1 font-lock-keyword-face)))
-  "Highlights used by `native-comp-limple-mode'.")
-
-(define-derived-mode native-comp-limple-mode fundamental-mode "LIMPLE"
-  "Syntax-highlight LIMPLE IR."
-  (setf font-lock-defaults '(comp-limple-lock-keywords)))
-
-(cl-defun comp-log (data &optional (level 1) quoted)
-  "Log DATA at LEVEL.
-LEVEL is a number from 1-3, and defaults to 1; if it is less
-than `native-comp-verbose', do nothing.  If `noninteractive', log
-with `message'.  Otherwise, log with `comp-log-to-buffer'."
-  (when (>= native-comp-verbose level)
-    (if noninteractive
-        (cl-typecase data
-          (atom (message "%s" data))
-          (t (dolist (elem data)
-               (message "%s" elem))))
-      (comp-log-to-buffer data quoted))))
-
-(cl-defun comp-log-to-buffer (data &optional quoted)
-  "Log DATA to `comp-log-buffer-name'."
-  (let* ((print-f (if quoted #'prin1 #'princ))
-         (log-buffer
-             (or (get-buffer comp-log-buffer-name)
-                 (with-current-buffer (get-buffer-create comp-log-buffer-name)
-                   (unless (derived-mode-p 'compilation-mode)
-                     (emacs-lisp-compilation-mode))
-                   (current-buffer))))
-         (log-window (get-buffer-window log-buffer))
-         (inhibit-read-only t)
-         at-end-p)
-    (with-current-buffer log-buffer
-      (unless (eq major-mode 'native-comp-limple-mode)
-        (native-comp-limple-mode))
-      (when (= (point) (point-max))
-        (setf at-end-p t))
-      (save-excursion
-        (goto-char (point-max))
-        (cl-typecase data
-          (atom (funcall print-f data log-buffer))
-          (t (dolist (elem data)
-               (funcall print-f elem log-buffer)
-               (insert "\n"))))
-        (insert "\n"))
-      (when (and at-end-p log-window)
-        ;; When log window's point is at the end, follow the tail.
-        (with-selected-window log-window
-          (goto-char (point-max)))))))
 
 (defun comp-prettyformat-mvar (mvar)
   (format "#(mvar %s %s %S)"
@@ -1319,86 +739,31 @@ clashes."
                           nil ".eln")))
   (let* ((f (symbol-function function-name))
          (byte-code (byte-compile function-name))
-         (c-name (comp-c-func-name function-name "F"))
-         (func
-          (if (comp-lex-byte-func-p byte-code)
-              (make-comp-func-l :name function-name
-                                :c-name c-name
-                                :doc (documentation f t)
-                                :int-spec (interactive-form f)
-                                :command-modes (command-modes f)
-                                :speed (comp-spill-speed function-name)
-                                :pure (comp-spill-decl-spec function-name
-                                                            'pure))
-            (make-comp-func-d :name function-name
-                              :c-name c-name
-                              :doc (documentation f t)
-                              :int-spec (interactive-form f)
-                              :command-modes (command-modes f)
-                              :speed (comp-spill-speed function-name)
-                              :pure (comp-spill-decl-spec function-name
-                                                          'pure)))))
+         (c-name (comp-c-func-name function-name "F")))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 '("can't native compile an already byte-compiled function")))
-      (setf (comp-func-byte-func func) byte-code)
-      (let ((lap (byte-to-native-lambda-lap
-                  (gethash (aref (comp-func-byte-func func) 1)
-                           byte-to-native-lambdas-h))))
-        (cl-assert lap)
-        (comp-log lap 2 t)
-        (if (comp-func-l-p func)
-            (let ((arg-list (aref (comp-func-byte-func func) 0)))
-              (setf (comp-func-l-args func)
-                    (comp-decrypt-arg-list arg-list function-name)))
-          (setf (comp-func-d-lambda-list func) (cadr f)))
-        (setf (comp-func-lap func)
-              lap
-              (comp-func-frame-size func)
-              (comp-byte-frame-size (comp-func-byte-func func))
-              (comp-ctxt-top-level-forms comp-ctxt)
+        (setf (comp-ctxt-top-level-forms comp-ctxt)
               (list (make-byte-to-native-func-def :name function-name
-                                                  :c-name c-name)))
-        (comp-add-func-to-ctxt func))))
+                                                  :c-name c-name
+                                                  :byte-func byte-code)))
+      (maphash #'comp-intern-func-in-ctxt byte-to-native-lambdas-h)))
 
 (cl-defmethod comp-spill-lap-function ((form list))
   "Byte-compile FORM, spilling data from the byte compiler."
-  (unless (eq (car-safe form) 'lambda)
+  (unless (memq (car-safe form) '(lambda closure))
     (signal 'native-compiler-error
-            '("Cannot native-compile, form is not a lambda")))
+            '("Cannot native-compile, form is not a lambda or closure")))
   (unless (comp-ctxt-output comp-ctxt)
     (setf (comp-ctxt-output comp-ctxt)
           (make-temp-file "comp-lambda-" nil ".eln")))
   (let* ((byte-code (byte-compile form))
-         (c-name (comp-c-func-name "anonymous-lambda" "F"))
-         (func (if (comp-lex-byte-func-p byte-code)
-                   (make-comp-func-l :c-name c-name
-                                     :doc (documentation form t)
-                                     :int-spec (interactive-form form)
-                                     :command-modes (command-modes form)
-                                     :speed (comp-ctxt-speed comp-ctxt))
-                 (make-comp-func-d :c-name c-name
-                                   :doc (documentation form t)
-                                   :int-spec (interactive-form form)
-                                   :command-modes (command-modes form)
-                                   :speed (comp-ctxt-speed comp-ctxt)))))
-    (let ((lap (byte-to-native-lambda-lap
-                (gethash (aref byte-code 1)
-                         byte-to-native-lambdas-h))))
-      (cl-assert lap)
-      (comp-log lap 2 t)
-      (if (comp-func-l-p func)
-          (setf (comp-func-l-args func)
-                (comp-decrypt-arg-list (aref byte-code 0) byte-code))
-        (setf (comp-func-d-lambda-list func) (cadr form)))
-      (setf (comp-func-lap func) lap
-            (comp-func-frame-size func) (comp-byte-frame-size
-                                         byte-code))
-      (setf (comp-func-byte-func func) byte-code
-            (comp-ctxt-top-level-forms comp-ctxt)
+         (c-name (comp-c-func-name "anonymous-lambda" "F")))
+      (setf (comp-ctxt-top-level-forms comp-ctxt)
             (list (make-byte-to-native-func-def :name '--anonymous-lambda
-                                                :c-name c-name)))
-      (comp-add-func-to-ctxt func))))
+                                                :c-name c-name
+                                                :byte-func byte-code)))
+      (maphash #'comp-intern-func-in-ctxt byte-to-native-lambdas-h)))
 
 (defun comp-intern-func-in-ctxt (_ obj)
   "Given OBJ of type `byte-to-native-lambda', create a function in `comp-ctxt'."
@@ -3844,19 +3209,6 @@ Prepare every function for final compilation and drive the C back-end."
 
 ;; Primitive function advice machinery
 
-(defun comp-eln-load-path-eff ()
-  "Return a list of effective eln load directories.
-Account for `native-comp-eln-load-path' and `comp-native-version-dir'."
-  (mapcar (lambda (dir)
-            (expand-file-name comp-native-version-dir
-                              (file-name-as-directory
-                               (expand-file-name dir invocation-directory))))
-          native-comp-eln-load-path))
-
-(defun comp-trampoline-filename (subr-name)
-  "Given SUBR-NAME return the filename containing the trampoline."
-  (concat (comp-c-func-name subr-name "subr--trampoline-" t) ".eln"))
-
 (defun comp-make-lambda-list-from-subr (subr)
   "Given SUBR return the equivalent lambda-list."
   (pcase-let ((`(,min . ,max) (subr-arity subr))
@@ -3871,16 +3223,6 @@ Account for `native-comp-eln-load-path' and `comp-native-version-dir'."
       (push '&rest lambda-list)
       (push (gensym "arg") lambda-list))
     (reverse lambda-list)))
-
-(defun comp-trampoline-search (subr-name)
-  "Search a trampoline file for SUBR-NAME.
-Return the trampoline if found or nil otherwise."
-  (cl-loop
-   with rel-filename = (comp-trampoline-filename subr-name)
-   for dir in (comp-eln-load-path-eff)
-   for filename = (expand-file-name rel-filename dir)
-   when (file-exists-p filename)
-     do (cl-return (native-elisp-load filename))))
 
 (defun comp--trampoline-abs-filename (subr-name)
   "Return the absolute filename for a trampoline for SUBR-NAME."
@@ -3907,6 +3249,8 @@ Return the trampoline if found or nil otherwise."
             (make-temp-file (file-name-sans-extension rel-filename) nil ".eln"
                             nil))))
 
+;; Called from comp-run.el
+;;;###autoload
 (defun comp-trampoline-compile (subr-name)
   "Synthesize compile and return a trampoline for SUBR-NAME."
   (let* ((lambda-list (comp-make-lambda-list-from-subr
@@ -3984,174 +3328,6 @@ session."
         (t (delete-file oldfile)
            (when newfile
              (rename-file newfile oldfile)))))
-
-(defvar comp-files-queue ()
-  "List of Emacs Lisp files to be compiled.")
-
-(defvar comp-async-compilations (make-hash-table :test #'equal)
-  "Hash table file-name -> async compilation process.")
-
-(defun comp-async-runnings ()
-  "Return the number of async compilations currently running.
-This function has the side effect of cleaning-up finished
-processes from `comp-async-compilations'"
-  (cl-loop
-   for file-name in (cl-loop
-                     for file-name being each hash-key of comp-async-compilations
-                     for prc = (gethash file-name comp-async-compilations)
-                     unless (process-live-p prc)
-                       collect file-name)
-   do (remhash file-name comp-async-compilations))
-  (hash-table-count comp-async-compilations))
-
-(defvar comp-num-cpus nil)
-(defun comp-effective-async-max-jobs ()
-  "Compute the effective number of async jobs."
-  (if (zerop native-comp-async-jobs-number)
-      (or comp-num-cpus
-          (setf comp-num-cpus
-		(max 1 (/ (num-processors) 2))))
-    native-comp-async-jobs-number))
-
-(defvar comp-last-scanned-async-output nil)
-(make-variable-buffer-local 'comp-last-scanned-async-output)
-(defun comp-accept-and-process-async-output (process)
-  "Accept PROCESS output and check for diagnostic messages."
-  (if native-comp-async-report-warnings-errors
-      (let ((warning-suppress-types
-             (if (eq native-comp-async-report-warnings-errors 'silent)
-                 (cons '(comp) warning-suppress-types)
-               warning-suppress-types)))
-        (with-current-buffer (process-buffer process)
-          (save-excursion
-            (accept-process-output process)
-            (goto-char (or comp-last-scanned-async-output (point-min)))
-            (while (re-search-forward "^.*?\\(?:Error\\|Warning\\): .*$"
-                                      nil t)
-              (display-warning 'comp (match-string 0)))
-            (setq comp-last-scanned-async-output (point-max)))))
-    (accept-process-output process)))
-
-(defun comp-run-async-workers ()
-  "Start compiling files from `comp-files-queue' asynchronously.
-When compilation is finished, run `native-comp-async-all-done-hook' and
-display a message."
-  (cl-assert (null comp-no-spawn))
-  (if (or comp-files-queue
-          (> (comp-async-runnings) 0))
-      (unless (>= (comp-async-runnings) (comp-effective-async-max-jobs))
-        (cl-loop
-         for (source-file . load) = (pop comp-files-queue)
-         while source-file
-         do (cl-assert (string-match-p comp-valid-source-re source-file) nil
-                       "`comp-files-queue' should be \".el\" files: %s"
-                       source-file)
-         when (or native-comp-always-compile
-                  load ; Always compile when the compilation is
-                       ; commanded for late load.
-                  ;; Skip compilation if `comp-el-to-eln-filename' fails
-                  ;; to find a writable directory.
-                  (with-demoted-errors "Async compilation :%S"
-                    (file-newer-than-file-p
-                     source-file (comp-el-to-eln-filename source-file))))
-         do (let* ((expr `((require 'comp)
-                           (setq comp-async-compilation t
-                                 warning-fill-column most-positive-fixnum)
-                           ,(let ((set (list 'setq)))
-                              (dolist (var '(comp-file-preloaded-p
-                                             native-compile-target-directory
-                                             native-comp-speed
-                                             native-comp-debug
-                                             native-comp-verbose
-                                             comp-libgccjit-reproducer
-                                             native-comp-eln-load-path
-                                             native-comp-compiler-options
-                                             native-comp-driver-options
-                                             load-path
-                                             backtrace-line-length
-                                             byte-compile-warnings
-                                             ;; package-load-list
-                                             ;; package-user-dir
-                                             ;; package-directory-list
-                                             ))
-                                (when (boundp var)
-                                  (push var set)
-                                  (push `',(symbol-value var) set)))
-                              (nreverse set))
-                           ;; FIXME: Activating all packages would align the
-                           ;; functionality offered with what is usually done
-                           ;; for ELPA packages (and thus fix some compilation
-                           ;; issues with some ELPA packages), but it's too
-                           ;; blunt an instrument (e.g. we don't even know if
-                           ;; we're compiling such an ELPA package at
-                           ;; this point).
-                           ;;(package-activate-all)
-                           ,native-comp-async-env-modifier-form
-                           (message "Compiling %s..." ,source-file)
-                           (comp--native-compile ,source-file ,(and load t))))
-                   (source-file1 source-file) ;; Make the closure works :/
-                   (temp-file (make-temp-file
-                               (concat "emacs-async-comp-"
-                                       (file-name-base source-file) "-")
-                               nil ".el"))
-                   (expr-strings (let ((print-length nil)
-                                       (print-level nil))
-                                   (mapcar #'prin1-to-string expr)))
-                   (_ (progn
-                        (with-temp-file temp-file
-                          (mapc #'insert expr-strings))
-                        (comp-log "\n")
-                        (mapc #'comp-log expr-strings)))
-                   (load1 load)
-                   (default-directory invocation-directory)
-                   (process (make-process
-                             :name (concat "Compiling: " source-file)
-                             :buffer (with-current-buffer
-                                         (get-buffer-create
-                                          comp-async-buffer-name)
-                                       (unless (derived-mode-p 'compilation-mode)
-                                         (emacs-lisp-compilation-mode))
-			               (current-buffer))
-                             :command (list
-                                       (expand-file-name invocation-name
-                                                         invocation-directory)
-                                       "-no-comp-spawn" "-Q" "--batch"
-                                       "--eval"
-                                       ;; Suppress Abort dialogs on MS-Windows
-                                       "(setq w32-disable-abort-dialog t)"
-                                       "-l" temp-file)
-                             :sentinel
-                             (lambda (process _event)
-                               (run-hook-with-args
-                                'native-comp-async-cu-done-functions
-                                source-file)
-                               (comp-accept-and-process-async-output process)
-                               (ignore-errors (delete-file temp-file))
-                               (let ((eln-file (comp-el-to-eln-filename
-                                                source-file1)))
-                                 (when (and load1
-                                            (zerop (process-exit-status
-                                                    process))
-                                            (file-exists-p eln-file))
-                                   (native-elisp-load eln-file
-                                                      (eq load1 'late))))
-                               (comp-run-async-workers))
-                             :noquery (not native-comp-async-query-on-exit))))
-              (puthash source-file process comp-async-compilations))
-         when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
-           do (cl-return)))
-    ;; No files left to compile and all processes finished.
-    (run-hooks 'native-comp-async-all-done-hook)
-    (with-current-buffer (get-buffer-create comp-async-buffer-name)
-      (save-excursion
-        (unless (derived-mode-p 'compilation-mode)
-          (emacs-lisp-compilation-mode))
-        (let ((inhibit-read-only t))
-          (goto-char (point-max))
-          (insert "Compilation finished.\n"))))
-    ;; `comp-deferred-pending-h' should be empty at this stage.
-    ;; Reset it anyway.
-    (clrhash comp-deferred-pending-h)))
 
 (defun comp--native-compile (function-or-file &optional with-late-load output)
   "Compile FUNCTION-OR-FILE into native code.
@@ -4234,102 +3410,6 @@ the deferred compilation mechanism."
                    ;; We may still be using the temporary .eln file.
                    (ignore-errors (delete-file (comp-ctxt-output comp-ctxt))))
                   (t (delete-file (comp-ctxt-output comp-ctxt))))))))))
-
-(defun native-compile-async-skip-p (file load selector)
-  "Return non-nil if FILE's compilation should be skipped.
-
-LOAD and SELECTOR work as described in `native--compile-async'."
-  ;; Make sure we are not already compiling `file' (bug#40838).
-  (or (gethash file comp-async-compilations)
-      (gethash (file-name-with-extension file "elc") comp--no-native-compile)
-      (cond
-       ((null selector) nil)
-       ((functionp selector) (not (funcall selector file)))
-       ((stringp selector) (not (string-match-p selector file)))
-       (t (error "SELECTOR must be a function a regexp or nil")))
-      ;; Also exclude files from deferred compilation if
-      ;; any of the regexps in
-      ;; `native-comp-jit-compilation-deny-list' matches.
-      (and (eq load 'late)
-           (cl-some (lambda (re)
-                      (string-match-p re file))
-                    native-comp-jit-compilation-deny-list))))
-
-;;;###autoload
-(defun native--compile-async (files &optional recursively load selector)
-  ;; BEWARE, this function is also called directly from C.
-  "Compile FILES asynchronously.
-FILES is one filename or a list of filenames or directories.
-
-If optional argument RECURSIVELY is non-nil, recurse into
-subdirectories of given directories.
-
-If optional argument LOAD is non-nil, request to load the file
-after compiling.
-
-The optional argument SELECTOR has the following valid values:
-
-nil -- Select all files.
-a string -- A regular expression selecting files with matching names.
-a function -- A function selecting files with matching names.
-
-The variable `native-comp-async-jobs-number' specifies the number
-of (commands) to run simultaneously.
-
-LOAD can also be the symbol `late'.  This is used internally if
-the byte code has already been loaded when this function is
-called.  It means that we request the special kind of load
-necessary in that situation, called \"late\" loading.
-
-During a \"late\" load, instead of executing all top-level forms
-of the original files, only function definitions are
-loaded (paying attention to have these effective only if the
-bytecode definition was not changed in the meantime)."
-  (comp-ensure-native-compiler)
-  (unless (member load '(nil t late))
-    (error "LOAD must be nil, t or 'late"))
-  (unless (listp files)
-    (setf files (list files)))
-  (let ((added-something nil)
-        file-list)
-    (dolist (file-or-dir files)
-      (cond ((file-directory-p file-or-dir)
-             (dolist (file (if recursively
-                               (directory-files-recursively
-                                file-or-dir comp-valid-source-re)
-                             (directory-files file-or-dir
-                                              t comp-valid-source-re)))
-               (push file file-list)))
-            ((file-exists-p file-or-dir) (push file-or-dir file-list))
-            (t (signal 'native-compiler-error
-                       (list "Not a file nor directory" file-or-dir)))))
-    (dolist (file file-list)
-      (if-let ((entry (cl-find file comp-files-queue :key #'car :test #'string=)))
-          ;; Most likely the byte-compiler has requested a deferred
-          ;; compilation, so update `comp-files-queue' to reflect that.
-          (unless (or (null load)
-                      (eq load (cdr entry)))
-            (setf comp-files-queue
-                  (cl-substitute (cons file load) (car entry) comp-files-queue
-                                 :key #'car :test #'string=)))
-
-        (unless (native-compile-async-skip-p file load selector)
-          (let* ((out-filename (comp-el-to-eln-filename file))
-                 (out-dir (file-name-directory out-filename)))
-            (unless (file-exists-p out-dir)
-              (make-directory out-dir t))
-            (if (file-writable-p out-filename)
-                (setf comp-files-queue
-                      (append comp-files-queue `((,file . ,load)))
-                      added-something t)
-              (display-warning 'comp
-                               (format "No write access for %s skipping."
-                                       out-filename)))))))
-    ;; Perhaps nothing passed `native-compile-async-skip-p'?
-    (when (and added-something
-               ;; Don't start if there's one already running.
-               (zerop (comp-async-runnings)))
-      (comp-run-async-workers))))
 
 
 ;;; Compiler entry points.
@@ -4438,29 +3518,6 @@ variable \"NATIVE_DISABLED\" is set, only byte compile."
       (comp-write-bytecode-file eln-file)
       (setq command-line-args-left (cdr command-line-args-left)))))
 
-;;;###autoload
-(defun native-compile-async (files &optional recursively load selector)
-  "Compile FILES asynchronously.
-FILES is one file or a list of filenames or directories.
-
-If optional argument RECURSIVELY is non-nil, recurse into
-subdirectories of given directories.
-
-If optional argument LOAD is non-nil, request to load the file
-after compiling.
-
-The optional argument SELECTOR has the following valid values:
-
-nil -- Select all files.
-a string -- A regular expression selecting files with matching names.
-a function -- A function selecting files with matching names.
-
-The variable `native-comp-async-jobs-number' specifies the number
-of (commands) to run simultaneously."
-  ;; Normalize: we only want to pass t or nil, never e.g. `late'.
-  (let ((load (not (not load))))
-    (native--compile-async files recursively load selector)))
-
 (defun native-compile-prune-cache ()
   "Remove .eln files that aren't applicable to the current Emacs invocation."
   (interactive)
@@ -4490,29 +3547,6 @@ of (commands) to run simultaneously."
           (when (directory-empty-p subdir)
             (delete-directory subdir))))))
   (message "Cache cleared"))
-
-;;;###autoload
-(defun comp-function-type-spec (function)
-  "Return the type specifier of FUNCTION.
-
-This function returns a cons cell whose car is the function
-specifier, and cdr is a symbol, either `inferred' or `know'.
-If the symbol is `inferred', the type specifier is automatically
-inferred from the code itself by the native compiler; if it is
-`know', the type specifier comes from `comp-known-type-specifiers'."
-  (let ((kind 'know)
-        type-spec )
-    (when-let ((res (gethash function comp-known-func-cstr-h)))
-      (setf type-spec (comp-cstr-to-type-spec res)))
-    (let ((f (and (symbolp function)
-                  (symbol-function function))))
-      (when (and f
-                 (null type-spec)
-                 (subr-native-elisp-p f))
-        (setf kind 'inferred
-              type-spec (subr-type f))))
-    (when type-spec
-        (cons type-spec kind))))
 
 (provide 'comp)
 

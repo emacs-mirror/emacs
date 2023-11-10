@@ -1938,6 +1938,45 @@ NATIVE_NAME (quit) (JNIEnv *env, jobject object)
   kill (getpid (), SIGIO);
 }
 
+/* Call shut_down_emacs subsequent to a call to the service's
+   onDestroy callback.  CLOSURE is ignored.  */
+
+static void
+android_shut_down_emacs (void *closure)
+{
+  __android_log_print (ANDROID_LOG_INFO, __func__,
+		       "The Emacs service is being shut down");
+  shut_down_emacs (0, Qnil);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (shutDownEmacs) (JNIEnv *env, jobject object)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  android_run_in_emacs_thread (android_shut_down_emacs, NULL);
+}
+
+/* Carry out garbage collection and clear all image caches on the
+   Android terminal.  Called when the system has depleted most of its
+   memory and desires that background processes release unused
+   core.  */
+
+static void
+android_on_low_memory (void *closure)
+{
+  Fclear_image_cache (Qt, Qt);
+  garbage_collect ();
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (onLowMemory) (JNIEnv *env, jobject object)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  android_run_in_emacs_thread (android_on_low_memory, NULL);
+}
+
 JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendConfigureNotify) (JNIEnv *env, jobject object,
 				   jshort window, jlong time,
@@ -5598,6 +5637,27 @@ android_get_keysym_name (int keysym, char *name_return, size_t size)
   const char *buffer;
   jmethodID method;
 
+  /* These keysyms are special editor actions sent by the input
+     method.  */
+
+  switch (keysym)
+    {
+    case 65536 + 1:
+      strncpy (name_return, "select-all", size - 1);
+      name_return[size] = '\0';
+      return;
+
+    case 65536 + 2:
+      strncpy (name_return, "start-selecting-text", size - 1);
+      name_return[size] = '\0';
+      return;
+
+    case 65536 + 3:
+      strncpy (name_return, "stop-selecting-text", size - 1);
+      name_return[size] = '\0';
+      return;
+    }
+
   method = service_class.name_keysym;
   string
     = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
@@ -5606,6 +5666,13 @@ android_get_keysym_name (int keysym, char *name_return, size_t size)
 						       method,
 						       (jint) keysym);
   android_exception_check ();
+
+  if (!string)
+    {
+      strncpy (name_return, "stop-selecting-text", size - 1);
+      name_return[size] = '\0';
+      return;
+    }
 
   buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
 						   (jstring) string,

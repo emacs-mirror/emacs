@@ -439,6 +439,41 @@ unlike in their original functions."
                       (treesit-node-prev-sibling node named)))))))
   node)
 
+(defun treesit-node-enclosed-p (smaller larger &optional strict)
+  "Return non-nil if SMALLER is enclosed in LARGER.
+SMALLER and LARGER can be either (BEG . END) or a node.
+
+Return non-nil if LARGER's start <= SMALLER's start and LARGER's
+end <= SMALLER's end.
+
+If STRICT is t, compare with < rather than <=.
+
+If STRICT is \\='partial, consider LARGER encloses SMALLER when
+at least one side is strictly enclosing."
+  (unless (and (or (consp larger) (treesit-node-p larger))
+               (or (consp smaller) (treesit-node-p smaller)))
+    (signal 'wrong-type-argument '((or cons treesit-node))))
+  (let ((larger-start (if (consp larger)
+                          (car larger)
+                        (treesit-node-start larger)))
+        (larger-end (if (consp larger)
+                        (cdr larger)
+                      (treesit-node-end larger)))
+        (smaller-start (if (consp smaller)
+                           (car smaller)
+                         (treesit-node-start smaller)))
+        (smaller-end (if (consp smaller)
+                         (cdr smaller)
+                       (treesit-node-end smaller))))
+    (pcase strict
+      ('t (and (< larger-start smaller-start)
+               (< smaller-end larger-end)))
+      ('partial (and (or (not (eq larger-start smaller-start))
+                         (not (eq larger-end smaller-end)))
+                     (<= larger-start smaller-start
+                         smaller-end larger-end)))
+      (_ (<= larger-start smaller-start smaller-end larger-end)))))
+
 ;;; Query API supplement
 
 (defun treesit-query-string (string query language)
@@ -2026,7 +2061,7 @@ return nil without moving point."
         ;; the obstacle, like `forward-sexp' does.  If we couldn't
         ;; find a parent, we simply return nil without moving point,
         ;; then functions like `up-list' will signal "at top level".
-        (when-let* ((parent (nth 2 (treesit--things-around (point) pred)))
+        (when-let* ((parent (treesit--thing-at (point) pred t))
                     (boundary (if (> arg 0)
                                   (treesit-node-child parent -1)
                                 (treesit-node-child parent 0))))
@@ -2080,7 +2115,8 @@ friends."
 ;; - treesit-thing/defun-at-point
 ;;
 ;; And more generic functions like:
-;; - treesit--things-around
+;; - treesit--thing-prev/next
+;; - treesit--thing-at
 ;; - treesit--top-level-thing
 ;; - treesit--navigate-thing
 ;;
@@ -2089,11 +2125,13 @@ friends."
 ;;
 ;; TODO: I'm not entirely sure how would this go, so I only documented
 ;; the "defun" functions and didn't document any "thing" functions.
-;; We should also document `treesit-block-type-regexp' and support it
-;; in major modes if we can meaningfully integrate hideshow: I tried
-;; and failed, we need SomeOne that understands hideshow to look at
-;; it.  (BTW, hideshow should use its own
-;; `treesit-hideshow-block-type-regexp'.)
+;; We should also document `treesit-thing-settings'.
+
+;; TODO: Integration with thing-at-point: once our thing interface is
+;; stable.
+;;
+;; TODO: Integration with hideshow: I tried and failed, we need
+;; SomeOne that understands hideshow to look at it.
 
 (defvar-local treesit-defun-type-regexp nil
   "A regexp that matches the node type of defun nodes.
@@ -2321,17 +2359,7 @@ the current line if the beginning of the defun is indented."
                        (line-beginning-position))
          (beginning-of-line))))
 
-;; prev-sibling:
-;; 1. end-of-node before pos
-;; 2. highest such node
-;;
-;; next-sibling:
-;; 1. beg-of-node after pos
-;; 2. highest such node
-;;
-;; parent:
-;; 1. node covers pos
-;; 2. smallest such node
+(make-obsolete 'treesit--things-around "`treesit--things-around' will be removed in a few months, use `treesit--thing-prev', `treesit--thing-next', `treesit--thing-at' instead." "30.0.5")
 (defun treesit--things-around (pos thing)
   "Return the previous, next, and parent thing around POS.
 
@@ -2391,6 +2419,77 @@ which see; it can also be a predicate."
       (setf (nth 2 result)
             (treesit-parent-until cursor iter-pred)))
     result))
+
+(defun treesit--thing-sibling (pos thing prev)
+  "Return the next or previous THING at POS.
+
+If PREV is non-nil, return the previous THING.  It's guaranteed
+that returned previous sibling's end <= POS, and returned next
+sibling's beginning >= POS.
+
+Return nil if no THING can be found.  THING should be a thing
+defined in `treesit-thing-settings', or a predicate as described
+in `treesit-thing-settings'."
+  (let* ((cursor (treesit-node-at pos))
+         (pos-pred (if prev
+                       (lambda (n) (<= (treesit-node-end n) pos))
+                     (lambda (n) (>= (treesit-node-start n) pos))))
+         (iter-pred (lambda (node)
+                      (and (treesit-node-match-p node thing t)
+                           (funcall pos-pred node))))
+         (sibling nil))
+    (when cursor
+      ;; Find the node just before/after POS to start searching.
+      (save-excursion
+        (while (and cursor (not (funcall pos-pred cursor)))
+          (setq cursor (treesit-search-forward-goto
+                        cursor "" prev prev t))))
+      ;; Keep searching until we run out of candidates or found a
+      ;; return value.
+      (while (and cursor
+                  (funcall pos-pred cursor)
+                  (null sibling))
+        (setq sibling (treesit-node-top-level cursor iter-pred t))
+        (setq cursor (treesit-search-forward cursor thing prev prev)))
+      sibling)))
+
+(defun treesit--thing-prev (pos thing)
+  "Return the previous THING at POS.
+
+The returned node, if non-nil, must be before POS, i.e., its end
+<= POS.
+
+THING should be a thing defined in `treesit-thing-settings', or a
+predicate as described in `treesit-thing-settings'."
+  (treesit--thing-sibling pos thing t))
+
+(defun treesit--thing-next (pos thing)
+  "Return the next THING at POS.
+
+The returned node, if non-nil, must be after POS, i.e., its
+start >= POS.
+
+THING should be a thing defined in `treesit-thing-settings', or a
+predicate as described in `treesit-thing-settings'."
+  (treesit--thing-sibling pos thing nil))
+
+(defun treesit--thing-at (pos thing &optional strict)
+  "Return the smallest THING enclosing POS.
+
+The returned node, if non-nil, must enclose POS, i.e., its start
+<= POS, its end > POS.  If STRICT is non-nil, the returned node's
+start must < POS rather than <= POS.
+
+THING should be a thing defined in `treesit-thing-settings', or
+it can be a predicate described in `treesit-thing-settings'."
+  (let* ((cursor (treesit-node-at pos))
+         (iter-pred (lambda (node)
+                      (and (treesit-node-match-p node thing t)
+                           (if strict
+                               (< (treesit-node-start node) pos)
+                             (<= (treesit-node-start node) pos))
+                           (< pos (treesit-node-end node))))))
+    (treesit-parent-until cursor iter-pred t)))
 
 ;; The basic idea for nested defun navigation is that we first try to
 ;; move across sibling defuns in the same level, if no more siblings
@@ -2458,9 +2557,15 @@ function is called recursively."
                       dest)))))
     (catch 'term
       (while (> counter 0)
-        (pcase-let
-            ((`(,prev ,next ,parent)
-              (treesit--things-around pos thing)))
+        (let ((prev (treesit--thing-prev pos thing))
+              (next (treesit--thing-next pos thing))
+              (parent (treesit--thing-at pos thing t)))
+          (when (and parent prev
+                     (not (treesit-node-enclosed-p prev parent)))
+            (setq prev nil))
+          (when (and parent next
+                     (not (treesit-node-enclosed-p next parent)))
+            (setq next nil))
           ;; When PARENT is nil, nested and top-level are the same, if
           ;; there is a PARENT, make PARENT to be the top-level parent
           ;; and pretend there is no nested PREV and NEXT.
@@ -2521,22 +2626,15 @@ function is called recursively."
 
 ;; TODO: In corporate into thing-at-point.
 (defun treesit-thing-at-point (thing tactic)
-  "Return the thing node at point or nil if none is found.
+  "Return the THING at point or nil if none is found.
 
-\"Thing\" is defined by THING, which can be a regexp, a
-predication function, and more, see `treesit-thing-settings'
-for details.
+THING can be a symbol, regexp, a predicate function, and more,
+see `treesit-thing-settings' for details.
 
-Return the top-level defun if TACTIC is `top-level', return the
-immediate parent thing if TACTIC is `nested'."
-  (pcase-let* ((`(,_ ,next ,parent)
-                (treesit--things-around (point) thing))
-               ;; If point is at the beginning of a thing, we
-               ;; prioritize that thing over the parent in nested
-               ;; mode.
-               (node (or (and (eq (treesit-node-start next) (point))
-                              next)
-                         parent)))
+Return the top-level THING if TACTIC is `top-level', return the
+smallest enclosing THING as POS if TACTIC is `nested'."
+
+  (let ((node (treesit--thing-at (point) thing)))
     (if (eq tactic 'top-level)
         (treesit-node-top-level node thing t)
       node)))
@@ -3523,7 +3621,6 @@ function signals an error."
 
 (define-short-documentation-group treesit
 
-
   "Parsers"
   (treesit-parser-create
    :no-eval (treesit-parser-create 'c)
@@ -3573,6 +3670,9 @@ function signals an error."
 
 
   "Retrieving a node from another node"
+  (treesit-node-get
+      :no-eval (treesit-node-get node '((parent 1) (sibling 1) (text)))
+      :eg-result-string "#<treesit-node (declaration) in 1-11>")
   (treesit-node-parent
    :no-eval (treesit-node-parent node)
    :eg-result-string "#<treesit-node (declaration) in 1-11>")
@@ -3666,7 +3766,9 @@ function signals an error."
   (treesit-node-check
    :no-eval (treesit-node-check node 'named)
    :eg-result t)
-
+  (treesit-node-enclosed-p
+   :no-eval (treesit-node-enclosed-p node1 node2)
+   :no-eval (treesit-node-enclosed-p node1 '(12 . 18)))
 
   (treesit-node-field-name-for-child
    :no-eval (treesit-node-field-name-for-child node)

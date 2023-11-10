@@ -36,7 +36,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'cl-macs)
+(require 'cl-extra) ;HACK: For `cl-find-class' when `cl-loaddefs' is missing.
 
 (defconst comp--typeof-builtin-types (mapcar (lambda (x)
                                                (append x '(t)))
@@ -269,16 +269,6 @@ Return them as multiple value."
   (string-lessp (symbol-name x)
                 (symbol-name y)))
 
-(defun comp--direct-supertype (type)    ;FIXME: There can be several!
-  "Return the direct supertype of TYPE."
-  (declare (obsolete comp--direct-supertype "30.1"))
-  (cl-loop
-   named outer
-   for i in (comp-cstr-ctxt-typeof-types comp-ctxt)
-   do (cl-loop for (j y) on i
-                   when (eq j type)
-                     do (cl-return-from outer y))))
-
 (defun comp--direct-supertypes (type)
   "Return the direct supertypes of TYPE."
   (let ((supers (comp-supertypes type)))
@@ -292,6 +282,14 @@ Return them as multiple value."
           (push parent direct)
           (setq notdirect (append notdirect (comp-supertypes parent))))
      finally return direct)))
+
+(defsubst comp-subtype-p (type1 type2)
+  "Return t if TYPE1 is a subtype of TYPE2 or nil otherwise."
+  (let ((types (cons type1 type2)))
+    (or (gethash types (comp-cstr-ctxt-subtype-p-mem comp-ctxt))
+        (puthash types
+                 (memq type2 (comp-supertypes type1))
+                 (comp-cstr-ctxt-subtype-p-mem comp-ctxt)))))
 
 (defun comp--normalize-typeset0 (typeset)
   ;; For every type search its supertypes.  If all the subtypes of a
@@ -372,14 +370,6 @@ Return them as multiple value."
          (t (setq above
                   (if above (comp--intersection x above) x)))))
    finally return above))
-
-(defsubst comp-subtype-p (type1 type2)
-  "Return t if TYPE1 is a subtype of TYPE2 or nil otherwise."
-  (let ((types (cons type1 type2)))
-    (or (gethash types (comp-cstr-ctxt-subtype-p-mem comp-ctxt))
-        (puthash types
-                 (memq type2 (comp-supertypes type1))
-                 (comp-cstr-ctxt-subtype-p-mem comp-ctxt)))))
 
 (defun comp-union-typesets (&rest typesets)
   "Union types present into TYPESETS."

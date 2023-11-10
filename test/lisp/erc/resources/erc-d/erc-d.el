@@ -297,7 +297,7 @@ With int SKIP, advance past that many exchanges."
   (when erc-d--m-debug
     (setq format-string (concat (format-time-string "%s.%N: ") format-string)))
   (let ((insertp (and process erc-d--in-process))
-        (buffer (process-buffer (process-get process :server))))
+        (buffer (and process (process-buffer (process-get process :server)))))
     (when (and insertp (buffer-live-p buffer))
       (princ (concat (apply #'format format-string args) "\n") buffer))
     (when (or erc-d--m-debug (not insertp))

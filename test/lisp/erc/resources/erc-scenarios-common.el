@@ -455,7 +455,7 @@ buffer-naming collisions involving bouncers in ERC."
                                            :id foo-id))
         (setq erc-server-process-foo erc-server-process)
         (erc-scenarios-common-assert-initial-buf-name foo-id port)
-        (erc-d-t-wait-for 3 (eq (erc-network) 'foonet))
+        (erc-d-t-wait-for 6 (eq (erc-network) 'foonet))
         (erc-d-t-wait-for 3 (string= (buffer-name) serv-buf-foo))
         (funcall expect 5 "foonet")))
 

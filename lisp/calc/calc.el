@@ -906,6 +906,8 @@ Used by `calc-user-invocation'.")
 (defvar calc-embedded-mode-hook nil
   "Hook run when starting embedded mode.")
 
+(defvar calc-eval-error)
+
 ;; The following modes use specially-formatted data.
 (put 'calc-mode 'mode-class 'special)
 

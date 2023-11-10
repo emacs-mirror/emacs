@@ -53,6 +53,7 @@ enum sfnt_table
     SFNT_TABLE_CVAR,
     SFNT_TABLE_AVAR,
     SFNT_TABLE_OS_2,
+    SFNT_TABLE_POST,
   };
 
 #define SFNT_ENDOF(type, field, type1)			\
@@ -1413,6 +1414,45 @@ struct sfnt_OS_2_table
 
 
 
+/* PostScript metadata.  */
+
+struct sfnt_post_table
+{
+  /* Format of this table.  This is a fixed point number rather than
+     an integer.  */
+  sfnt_fixed format;
+
+  /* Italic angle in degrees.  */
+  sfnt_fixed italic_angle;
+
+  /* Underline position.  */
+  sfnt_fword underline_position;
+
+  /* Underline thickness.  */
+  sfnt_fword underline_thickness;
+
+  /* Whether the font is monospaced.  */
+  uint32_t is_fixed_pitch;
+
+  /* Minimum memory usage (on a PostScript printer) when a TrueType
+     font is downloaded as a Type 42 font.  */
+  uint32_t min_mem_type_42;
+
+  /* Maximum memory usage (on a PostScript printer) when a TrueType
+     font is downloaded as a Type 42 font.  */
+  uint32_t max_mem_type_42;
+
+  /* Minimum memory usage (on a PostScript printer) when a TrueType
+     font is downloaded as a Type 42 font.  */
+  uint32_t min_mem_type_1;
+
+  /* Maximum memory usage (on a PostScript printer) when a TrueType
+     font is downloaded as a Type 42 font.  */
+  uint32_t max_mem_type_1;
+};
+
+
+
 #define SFNT_CEIL_FIXED(fixed)	(((fixed) + 0177777) & 037777600000)
 #define SFNT_FLOOR_FIXED(fixed) ((fixed) & 037777600000)
 
@@ -1591,6 +1631,14 @@ extern int sfnt_vary_compound_glyph (struct sfnt_blend *, sfnt_glyph,
 #define PROTOTYPE int, struct sfnt_offset_subtable *
 
 extern struct sfnt_OS_2_table *sfnt_read_OS_2_table (PROTOTYPE);
+
+#undef PROTOTYPE
+
+
+
+#define PROTOTYPE int, struct sfnt_offset_subtable *
+
+extern struct sfnt_post_table *sfnt_read_post_table (PROTOTYPE);
 
 #undef PROTOTYPE
 

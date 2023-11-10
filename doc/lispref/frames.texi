@@ -4686,15 +4686,18 @@ of available selection data types, as elsewhere.
 @cindex Android selections
   Much like MS-Windows, Android provides a clipboard but no primary or
 secondary selection; @code{gui-set-selection} simulates the primary
-selection by saving the value supplied into a variable subsequent
-calls to @code{gui-get-selection} return.
+and secondary selections by saving the value supplied into a variable
+subsequent calls to @code{gui-get-selection} return.
 
   From the clipboard, @code{gui-get-selection} is capable of returning
 UTF-8 string data of the type @code{STRING}, the @code{TAREGTS} data
 type, or image and application data of any MIME type.
 @code{gui-set-selection} sets only string data, much as under
 MS-Windows, although this data is not affected by the value of
-@code{selection-coding-system}.
+@code{selection-coding-system}.  By contrast, only string data can be
+saved to and from the primary and secondary selections; but since this
+data is not communicated to programs besides Emacs, it is not subject
+to encoding or decoding by any coding system.
 
 @node Yanking Media
 @section Yanking Media

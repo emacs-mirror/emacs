@@ -92,6 +92,13 @@ public final class EmacsNative
      loadup.el itself.  */
   public static native void initEmacs (String argv[], String dumpFile);
 
+  /* Call shut_down_emacs to auto-save and unlock files in the main
+     thread, then return.  */
+  public static native void shutDownEmacs ();
+
+  /* Garbage collect and clear each frame's image cache.  */
+  public static native void onLowMemory ();
+
   /* Abort and generate a native core dump.  */
   public static native void emacsAbort ();
 

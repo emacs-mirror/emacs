@@ -9821,6 +9821,8 @@ makes it easier to edit it."
     (define-key map "\C-m" 'choose-completion)
     (define-key map "\e\e\e" 'delete-completion-window)
     (define-key map [remap keyboard-quit] #'delete-completion-window)
+    (define-key map [up] 'previous-line-completion)
+    (define-key map [down] 'next-line-completion)
     (define-key map [left] 'previous-completion)
     (define-key map [right] 'next-completion)
     (define-key map [?\t] 'next-completion)
@@ -9882,8 +9884,9 @@ Go to the window from which completion was requested."
 	  (select-window (get-buffer-window buf))))))
 
 (defcustom completion-auto-wrap t
-  "Non-nil means to wrap around when selecting completion options.
-This affects the commands `next-completion' and `previous-completion'.
+  "Non-nil means to wrap around when selecting completion candidates.
+This affects the commands `next-completion', `previous-completion',
+`next-line-completion' and `previous-line-completion'.
 When `completion-auto-select' is t, it wraps through the minibuffer
 for the commands bound to the TAB key."
   :type 'boolean
@@ -9891,12 +9894,12 @@ for the commands bound to the TAB key."
   :group 'completion)
 
 (defcustom completion-auto-select nil
-  "Non-nil means to automatically select the *Completions* buffer.
+  "If non-nil, automatically select the window showing the *Completions* buffer.
 When the value is t, pressing TAB will switch to the completion list
 buffer when Emacs pops up a window showing that buffer.
 If the value is `second-tab', then the first TAB will pop up the
 window showing the completions list buffer, and the next TAB will
-switch to that window.
+select that window.
 See `completion-auto-help' for controlling when the window showing
 the completions is popped up and down."
   :type '(choice (const :tag "Don't auto-select completions window" nil)
@@ -9907,7 +9910,7 @@ the completions is popped up and down."
   :group 'completion)
 
 (defun first-completion ()
-  "Move to the first item in the completion list."
+  "Move to the first item in the completions buffer."
   (interactive)
   (goto-char (point-min))
   (if (get-text-property (point) 'mouse-face)
@@ -9919,7 +9922,7 @@ the completions is popped up and down."
       (goto-char pos))))
 
 (defun last-completion ()
-  "Move to the last item in the completion list."
+  "Move to the last item in the completions buffer."
   (interactive)
   (goto-char (previous-single-property-change
               (point-max) 'mouse-face nil (point-min)))
@@ -9929,7 +9932,7 @@ the completions is popped up and down."
       (goto-char pos))))
 
 (defun previous-completion (n)
-  "Move to the previous item in the completion list.
+  "Move to the previous item in the completions buffer.
 With prefix argument N, move back N items (negative N means move
 forward).
 
@@ -9938,7 +9941,7 @@ Also see the `completion-auto-wrap' variable."
   (next-completion (- n)))
 
 (defun next-completion (n)
-  "Move to the next item in the completion list.
+  "Move to the next item in the completions buffer.
 With prefix argument N, move N items (negative N means move
 backward).
 
@@ -10000,6 +10003,93 @@ Also see the `completion-auto-wrap' variable."
 
     (when (/= 0 n)
       (switch-to-minibuffer))))
+
+(defun previous-line-completion (&optional n)
+  "Move to completion candidate on the previous line in the completions buffer.
+With prefix argument N, move back N lines (negative N means move forward).
+
+Also see the `completion-auto-wrap' variable."
+  (interactive "p")
+  (next-line-completion (- n)))
+
+(defun next-line-completion (&optional n)
+  "Move to completion candidate on the next line in the completions buffer.
+With prefix argument N, move N lines forward (negative N means move backward).
+
+Also see the `completion-auto-wrap' variable."
+  (interactive "p")
+  (let (line column pos found)
+    (when (and (bobp)
+               (> n 0)
+               (get-text-property (point) 'mouse-face)
+               (not (get-text-property (point) 'first-completion)))
+      (let ((inhibit-read-only t))
+        (add-text-properties (point) (1+ (point)) '(first-completion t)))
+      (setq n (1- n)))
+
+    (if (get-text-property (point) 'mouse-face)
+        ;; If in a completion, move to the start of it.
+        (when (and (not (bobp))
+                   (get-text-property (1- (point)) 'mouse-face))
+          (goto-char (previous-single-property-change (point) 'mouse-face)))
+      ;; Try to move to the previous completion.
+      (setq pos (previous-single-property-change (point) 'mouse-face))
+      (if pos
+          ;; Move to the start of the previous completion.
+          (progn
+            (goto-char pos)
+            (unless (get-text-property (point) 'mouse-face)
+              (goto-char (previous-single-property-change
+                          (point) 'mouse-face nil (point-min)))))
+        (cond ((> n 0) (setq n (1- n)) (first-completion))
+              ((< n 0) (first-completion)))))
+
+    (while (> n 0)
+      (setq found nil pos nil column (current-column) line (line-number-at-pos))
+      (while (and (not found)
+                  (eq (forward-line 1) 0)
+                  (not (eobp))
+                  (eq (move-to-column column) column))
+        (when (get-text-property (point) 'mouse-face)
+          (setq found t)))
+      (when (not found)
+        (if (not completion-auto-wrap)
+            (last-completion)
+          (save-excursion
+            (goto-char (point-min))
+            (when (and (eq (move-to-column column) column)
+                       (get-text-property (point) 'mouse-face))
+              (setq pos (point)))
+            (while (and (not pos) (> line (line-number-at-pos)))
+              (forward-line 1)
+              (when (and (eq (move-to-column column) column)
+                         (get-text-property (point) 'mouse-face))
+                (setq pos (point)))))
+          (if pos (goto-char pos))))
+      (setq n (1- n)))
+
+    (while (< n 0)
+      (setq found nil pos nil column (current-column) line (line-number-at-pos))
+      (while (and (not found)
+                  (eq (forward-line -1) 0)
+                  (eq (move-to-column column) column))
+        (when (get-text-property (point) 'mouse-face)
+          (setq found t)))
+      (when (not found)
+        (if (not completion-auto-wrap)
+            (first-completion)
+          (save-excursion
+            (goto-char (point-max))
+            (when (and (eq (move-to-column column) column)
+                       (get-text-property (point) 'mouse-face))
+              (setq pos (point)))
+            (while (and (not pos) (< line (line-number-at-pos)))
+              (forward-line -1)
+              (when (and (eq (move-to-column column) column)
+                         (get-text-property (point) 'mouse-face))
+                (setq pos (point)))))
+          (if pos (goto-char pos))))
+      (setq n (1+ n)))))
 
 (defun choose-completion (&optional event no-exit no-quit)
   "Choose the completion at point.
@@ -11088,7 +11178,12 @@ place.  If undo information is being recorded, make sure
 `undo-auto-current-boundary-timer' will run within the next 5
 seconds."
   (interactive)
-  (let ((any-nonephemeral nil))
+  ;; One important consideration to bear in mind when adjusting this
+  ;; code is to _never_ move point in reaction to an edit so long as
+  ;; the additional processing undertaken by this function does not
+  ;; also edit the buffer text.
+  (let ((any-nonephemeral nil)
+        point-moved)
     ;; The list must be processed in reverse.
     (dolist (edit (reverse text-conversion-edits))
       ;; Filter out ephemeral edits and deletions after point.  Here, we
@@ -11096,6 +11191,9 @@ seconds."
       ;; can be identified.
       (when (stringp (nth 3 edit))
         (with-current-buffer (car edit)
+          ;; Record that the point hasn't been moved by the execution
+          ;; of a post command or text conversion hook.
+          (setq point-moved nil)
           (if (not (eq (nth 1 edit) (nth 2 edit)))
               ;; Process this insertion.  (nth 3 edit) is the text which
               ;; was inserted.
@@ -11111,15 +11209,20 @@ seconds."
                      ;; Save the current undo list to figure out
                      ;; whether or not auto-fill has actually taken
                      ;; place.
-                     (old-undo-list buffer-undo-list))
+                     (old-undo-list buffer-undo-list)
+                     ;; Save the point position to return it there
+                     ;; later.
+                     (old-point (point)))
                 (save-excursion
                   (if (and auto-fill-function newline-p)
                       (progn (goto-char (nth 2 edit))
                              (previous-logical-line)
-                             (funcall auto-fill-function))
+                             (funcall auto-fill-function)
+                             (setq old-point (point)))
                     (when (and auto-fill-function auto-fill-p)
-                      (progn (goto-char (nth 2 edit))
-                             (funcall auto-fill-function))))
+                      (goto-char (nth 2 edit))
+                      (funcall auto-fill-function)
+                      (setq old-point (point))))
                   ;; Record whether or not this edit should result in
                   ;; an undo boundary being added.
                   (setq any-nonephemeral
@@ -11130,10 +11233,22 @@ seconds."
                             (not (eq old-undo-list
                                      buffer-undo-list)))))
                 (goto-char (nth 2 edit))
-                (let ((last-command-event end))
+                (let ((last-command-event end)
+                      (point (point)))
                   (unless (run-hook-with-args-until-success
                            'post-text-conversion-hook)
-                    (run-hooks 'post-self-insert-hook))))
+                    (run-hooks 'post-self-insert-hook))
+                  (when (not (eq (point) point))
+                    (setq point-moved t)))
+                ;; If post-self-insert-hook doesn't move the point,
+                ;; restore it to its previous location.  Generally,
+                ;; the call to goto-char upon processing the last edit
+                ;; recorded text-conversion-edit will see to this, but
+                ;; if the input method sets point expressly, no edit
+                ;; will be recorded, and point will wind up away from
+                ;; where the input method believes it is.
+                (unless point-moved
+                  (goto-char old-point)))
             ;; Process this deletion before point.  (nth 2 edit) is the
             ;; text which was deleted.  Input methods typically prefer
             ;; to edit words instead of deleting characters off their

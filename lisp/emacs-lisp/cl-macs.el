@@ -101,6 +101,7 @@
     (and (> size 0) (1- size))))
 
 (defun cl--simple-exprs-p (xs)
+  "Map `cl--simple-expr-p' to each element of list XS."
   (while (and xs (cl--simple-expr-p (car xs)))
     (setq xs (cdr xs)))
   (not xs))
@@ -116,8 +117,10 @@
 	     (while (and (setq x (cdr x)) (cl--safe-expr-p (car x))))
 	     (null x)))))
 
-;;; Check if constant (i.e., no side effects or dependencies).
 (defun cl--const-expr-p (x)
+  "Check if X is constant (i.e., no side effects or dependencies).
+
+See `macroexp-const-p' for similar functionality without cl-lib dependency."
   (cond ((consp x)
 	 (or (eq (car x) 'quote)
 	     (and (memq (car x) '(function cl-function))
@@ -3732,7 +3735,7 @@ macro that returns its `&whole' argument."
 
 ;;; Things that are inline.
 (cl-proclaim '(inline cl-acons cl-map cl-notany cl-notevery cl-revappend
-                      cl-nreconc gethash))
+               cl-nreconc))
 
 ;;; Things that are side-effect-free.
 (mapc (lambda (x) (function-put x 'side-effect-free t))

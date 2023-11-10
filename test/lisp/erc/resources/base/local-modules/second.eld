@@ -41,7 +41,7 @@
  (0.07 ":alice!~u@2fzfcku68ehqa.irc PRIVMSG #chan :bob: To you that know them not. This to my mother.")
  (0.00 ":bob!~u@2fzfcku68ehqa.irc PRIVMSG #chan :alice: Some enigma, some riddle: come, thy l'envoy; begin."))
 
-((quit 1 "QUIT :\2ERC\2")
+((quit 10 "QUIT :\2ERC\2")
  (0.03 ":tester`!~u@u9iqi96sfwk9s.irc QUIT"))
 
 ((drop 0 DROP))

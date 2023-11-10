@@ -350,6 +350,7 @@ MUTABLE is a list of symbols indicating which of the BINDINGS
 should be mutable.
 No checking is performed."
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
+  (cl-assert lexical-binding)          ;Can't work in dynbind dialect.
   ;; FIXME: Fundamentally `oclosure-lambda' should be a special form.
   ;; We define it here as a macro which expands to something that
   ;; looks like "normal code" in order to avoid backward compatibility

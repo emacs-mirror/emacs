@@ -1337,7 +1337,7 @@ point."
     (setq url (browse-url-encode-url url)))
   ;; Make sure the URL starts with an appropriate scheme.
   (unless (string-match "\\(.+\\):/" url)
-    (setq url (concat "http://" url)))
+    (setq url (concat browse-url-default-scheme "://" url)))
   (android-browse-url url browse-url-android-share))
 
 (function-put 'browse-url-default-android-browser

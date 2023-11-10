@@ -27,13 +27,19 @@
 (require 'erc-fill)
 
 (defvar erc-fill-tests--buffers nil)
-(defvar erc-fill-tests--time-vals (lambda () 0))
+(defvar erc-fill-tests--current-time-value nil)
+
+(cl-defmethod erc-stamp--current-time
+  (&context (erc-fill-tests--current-time-value integer))
+  erc-fill-tests--current-time-value)
 
 (defun erc-fill-tests--insert-privmsg (speaker &rest msg-parts)
   (declare (indent 1))
   (let* ((msg (erc-format-privmessage speaker
                                       (apply #'concat msg-parts) nil t))
-         (parsed (make-erc-response :unparsed msg :sender speaker
+         (parsed (make-erc-response :unparsed (format ":%s PRIVMSG #chan :%s"
+                                                      speaker msg)
+                                    :sender speaker
                                     :command "PRIVMSG"
                                     :command-args (list "#chan" msg)
                                     :contents msg)))
@@ -45,12 +51,11 @@
         (erc-fill-function 'erc-fill-wrap)
         (pre-command-hook pre-command-hook)
         (inhibit-message noninteractive)
+        (erc-fill-tests--current-time-value 0)
         erc-insert-post-hook
         extended-command-history
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
-    (cl-letf (((symbol-function 'erc-stamp--current-time)
-               (lambda () (funcall erc-fill-tests--time-vals)))
-              ((symbol-function 'erc-server-connect)
+    (cl-letf (((symbol-function 'erc-server-connect)
                (lambda (&rest _)
                  (setq erc-server-process
                        (start-process "sleep" (current-buffer) "sleep" "1"))
@@ -261,7 +266,7 @@
      ;; Set this here so that the first few messages are from 1970.
      ;; Following the current date stamp, the speaker isn't merged
      ;; even though it's continued: "<bob> zero."
-     (let ((erc-fill-tests--time-vals (lambda () 1680332400)))
+     (let ((erc-fill-tests--current-time-value 1680332400))
        (erc-fill-tests--insert-privmsg "bob" "zero.")
        (erc-fill-tests--insert-privmsg "alice" "one.")
        (erc-fill-tests--insert-privmsg "alice" "two.")
@@ -297,8 +302,8 @@
   (erc-fill-tests--wrap-populate
 
    (lambda ()
-     ;; Set this here so that the first few messages are from 1970
-     (let ((erc-fill-tests--time-vals (lambda () 1680332400)))
+     ;; Allow prior messages to be from 1970.
+     (let ((erc-fill-tests--current-time-value 1680332400))
        (erc-fill-tests--insert-privmsg "bob" "zero.")
        (erc-fill-tests--insert-privmsg "bob" "0.5")
 

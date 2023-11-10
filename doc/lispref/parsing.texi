@@ -705,7 +705,7 @@ This function finds the previous sibling of @var{node}.  If
 To make the syntax tree easier to analyze, many language grammars
 assign @dfn{field names} to child nodes (@pxref{tree-sitter node field
 name, field name}).  For example, a @code{function_definition} node
-could have a @code{declarator} node and a @code{body} node.
+could have a @code{declarator} child and a @code{body} child.
 
 @defun treesit-node-child-by-field-name node field-name
 This function finds the child of @var{node} whose field name is
@@ -1079,6 +1079,22 @@ Note that @var{n} counts both named and anonymous children, and
 This function returns the number of children of @var{node}.  If
 @var{named} is non-@code{nil}, it only counts named children
 (@pxref{tree-sitter named node, named node}).
+@end defun
+
+@heading Convenience functions
+
+@defun treesit-node-enclosed-p smaller larger &optional strict
+This function returns non-@code{nil} if @var{smaller} is enclosed in
+@var{larger}.  @var{smaller} and @var{larger} can be either a cons
+@code{(@var{beg} . @var{end})} or a node.
+
+Return non-@code{nil} if @var{larger}'s start <= @var{smaller}'s start
+and @var{larger}'s end <= @var{smaller}'s end.
+
+If @var{strict} is @code{t}, compare with < rather than <=.
+
+If @var{strict} is @code{partial}, consider @var{larger} encloses
+@var{smaller} when at least one side is strictly enclosing.
 @end defun
 
 @node Pattern Matching

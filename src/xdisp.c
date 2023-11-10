@@ -29639,9 +29639,9 @@ get_char_face_and_encoding (struct frame *f, int c, int face_id,
 }
 
 
-/* Get face and two-byte form of character glyph GLYPH on frame F.
-   The encoding of GLYPH->u.ch is returned in *CHAR2B.  Value is
-   a pointer to a realized face that is ready for display.  */
+/* Get face glyph GLYPH on frame F, and if a character glyph, its
+   multi-byte character form in *CHAR2B.  Value is a pointer to a
+   realized face that is ready for display.  */
 
 static struct face *
 get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
@@ -29650,25 +29650,28 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
   struct face *face;
   unsigned code = 0;
 
-  eassert (glyph->type == CHAR_GLYPH);
   face = FACE_FROM_ID (f, glyph->face_id);
 
   /* Make sure X resources of the face are allocated.  */
   prepare_face_for_display (f, face);
 
-  if (face->font)
+  if (glyph->type == CHAR_GLYPH)
     {
-      if (CHAR_BYTE8_P (glyph->u.ch))
-	code = CHAR_TO_BYTE8 (glyph->u.ch);
-      else
-	code = face->font->driver->encode_char (face->font, glyph->u.ch);
+      if (face->font)
+	{
+	  if (CHAR_BYTE8_P (glyph->u.ch))
+	    code = CHAR_TO_BYTE8 (glyph->u.ch);
+	  else
+	    code = face->font->driver->encode_char (face->font, glyph->u.ch);
 
-      if (code == FONT_INVALID_CODE)
-	code = 0;
+	  if (code == FONT_INVALID_CODE)
+	    code = 0;
+	}
+
+      /* Ensure that the code is only 2 bytes wide.  */
+      *char2b = code & 0xFFFF;
     }
 
-  /* Ensure that the code is only 2 bytes wide.  */
-  *char2b = code & 0xFFFF;
   return face;
 }
 
@@ -30168,17 +30171,28 @@ normal_char_height (struct font *font, int c)
 void
 gui_get_glyph_overhangs (struct glyph *glyph, struct frame *f, int *left, int *right)
 {
+  unsigned char2b;
+  struct face *face;
+
   *left = *right = 0;
+  face = get_glyph_face_and_encoding (f, glyph, &char2b);
 
   if (glyph->type == CHAR_GLYPH)
     {
-      unsigned char2b;
-      struct face *face = get_glyph_face_and_encoding (f, glyph, &char2b);
       if (face->font)
 	{
-	  struct font_metrics *pcm = get_per_char_metric (face->font, &char2b);
+	  struct font_metrics *pcm
+	    = get_per_char_metric (face->font, &char2b);
+
 	  if (pcm)
 	    {
+	      /* Overstruck text is displayed twice, the second time
+		 one pixel to the right.  Increase the right-side
+		 bearing to match.  */
+
+	      if (face->overstrike)
+		pcm->rbearing++;
+
 	      if (pcm->rbearing > pcm->width)
 		*right = pcm->rbearing - pcm->width;
 	      if (pcm->lbearing < 0)
@@ -30191,8 +30205,18 @@ gui_get_glyph_overhangs (struct glyph *glyph, struct frame *f, int *left, int *r
       if (! glyph->u.cmp.automatic)
 	{
 	  struct composition *cmp = composition_table[glyph->u.cmp.id];
+	  int rbearing;
 
-	  if (cmp->rbearing > cmp->pixel_width)
+	  rbearing = cmp->rbearing;
+
+	  /* Overstruck text is displayed twice, the second time one
+	     pixel to the right.  Increase the right-side bearing to
+	     match.  */
+
+	  if (face->overstrike)
+	    rbearing++;
+
+	  if (rbearing > cmp->pixel_width)
 	    *right = cmp->rbearing - cmp->pixel_width;
 	  if (cmp->lbearing < 0)
 	    *left = - cmp->lbearing;
@@ -30204,6 +30228,14 @@ gui_get_glyph_overhangs (struct glyph *glyph, struct frame *f, int *left, int *r
 
 	  composition_gstring_width (gstring, glyph->slice.cmp.from,
 				     glyph->slice.cmp.to + 1, &metrics);
+
+	  /* Overstruck text is displayed twice, the second time one
+	     pixel to the right.  Increase the right-side bearing to
+	     match.  */
+
+	  if (face->overstrike)
+	    metrics.rbearing++;
+
 	  if (metrics.rbearing > metrics.width)
 	    *right = metrics.rbearing - metrics.width;
 	  if (metrics.lbearing < 0)
@@ -32312,6 +32344,14 @@ gui_produce_glyphs (struct it *it)
 	  if (get_char_glyph_code (it->char_to_display, font, &char2b))
 	    {
 	      pcm = get_per_char_metric (font, &char2b);
+
+	      /* Overstruck text is displayed twice, the second time
+		 one pixel to the right.  Increase the right-side
+		 bearing to match.  */
+
+	      if (pcm && face->overstrike)
+		pcm->rbearing++;
+
 	      if (pcm->width == 0
 		  && pcm->rbearing == 0 && pcm->lbearing == 0)
 		pcm = NULL;
@@ -32704,6 +32744,13 @@ gui_produce_glyphs (struct it *it)
 	  /* Initialize the bounding box.  */
 	  if (pcm)
 	    {
+	      /* Overstruck text is displayed twice, the second time
+		 one pixel to the right.  Increase the right-side
+		 bearing to match.  */
+
+	      if (face->overstrike)
+		pcm->rbearing++;
+
 	      width = cmp->glyph_len > 0 ? pcm->width : 0;
 	      ascent = pcm->ascent;
 	      descent = pcm->descent;
@@ -32765,6 +32812,13 @@ gui_produce_glyphs (struct it *it)
 		cmp->offsets[i * 2] = cmp->offsets[i * 2 + 1] = 0;
 	      else
 		{
+		  /* Overstruck text is displayed twice, the second
+		     time one pixel to the right.  Increase the
+		     right-side bearing to match.  */
+
+		  if (face->overstrike)
+		    pcm->rbearing++;
+
 		  width = pcm->width;
 		  ascent = pcm->ascent;
 		  descent = pcm->descent;

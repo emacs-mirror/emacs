@@ -679,6 +679,10 @@ for use at QPOS."
                                              'completions-common-part)
                                qprefix))))
                         (qcompletion (concat qprefix qnew)))
+                   ;; Attach unquoted completion string, which is needed
+                   ;; to score the completion in `completion--flex-score'.
+                   (put-text-property 0 1 'completion--unquoted
+                                      completion qcompletion)
 		   ;; FIXME: Similarly here, Cygwin's mapping trips this
 		   ;; assertion.
                    ;;(cl-assert
@@ -1236,6 +1240,7 @@ Only the elements of table that satisfy predicate PRED are considered.
 POINT is the position of point within STRING.
 The return value is a list of completions and may contain the base-size
 in the last `cdr'."
+  (setq completion-lazy-hilit-fn nil)
   ;; FIXME: We need to additionally return the info needed for the
   ;; second part of completion-base-position.
   (completion--nth-completion 2 string table pred point metadata))
@@ -1558,11 +1563,12 @@ scroll the window of possible completions."
    (t (prog1 (pcase (completion--do-completion beg end)
                (#b000 nil)
                (_     t))
-        (when (and (eq completion-auto-select t)
-                   (window-live-p minibuffer-scroll-window)
-                   (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
-          ;; When the completion list window was displayed, select it.
-          (switch-to-completions))))))
+        (if (window-live-p minibuffer-scroll-window)
+            (and (eq completion-auto-select t)
+                 (eq t (frame-visible-p (window-frame minibuffer-scroll-window)))
+                 ;; When the completion list window was displayed, select it.
+                 (switch-to-completions))
+          (completion-in-region-mode -1))))))
 
 (defun completion--cache-all-sorted-completions (beg end comps)
   (add-hook 'after-change-functions
@@ -2709,8 +2715,14 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
 	  completion-in-region-mode-predicate)
     (setq-local minibuffer-completion-auto-choose nil)
     (add-hook 'post-command-hook #'completion-in-region--postch)
-    (push `(completion-in-region-mode . ,completion-in-region-mode-map)
-          minor-mode-overriding-map-alist)))
+    (let* ((keymap completion-in-region-mode-map)
+           (keymap (if minibuffer-visible-completions
+                       (make-composed-keymap
+                        (list minibuffer-visible-completions-map
+                              keymap))
+                     keymap)))
+      (push `(completion-in-region-mode . ,keymap)
+            minor-mode-overriding-map-alist))))
 
 ;; Define-minor-mode added our keymap to minor-mode-map-alist, but we want it
 ;; on minor-mode-overriding-map-alist instead.
@@ -2955,8 +2967,46 @@ the mode hook of this mode."
   :interactive nil
   ;; Enable text conversion, but always make sure `RET' does
   ;; something.
-  (setq text-conversion-style 'action))
+  (setq text-conversion-style 'action)
+  (when minibuffer-visible-completions
+    (setq-local minibuffer-completion-auto-choose nil)))
 
+(defcustom minibuffer-visible-completions nil
+  "When non-nil, visible completions can be navigated from the minibuffer.
+This means that when the *Completions* buffer is visible in a window,
+then you can use the arrow keys in the minibuffer to move the cursor
+in the *Completions* buffer.  Then you can type `RET',
+and the candidate highlighted in the *Completions* buffer
+will be accepted.
+But when the *Completions* buffer is not displayed on the screen,
+then the arrow keys move point in the minibuffer as usual, and
+`RET' accepts the input typed in the minibuffer."
+  :type 'boolean
+  :version "30.1")
+
+(defun minibuffer-visible-completions-bind (binding)
+  "Use BINDING when completions are visible.
+Return an item that is enabled only when a window
+displaying the *Completions* buffer exists."
+  `(menu-item
+    "" ,binding
+    :filter ,(lambda (cmd)
+               (when-let ((window (get-buffer-window "*Completions*" 0)))
+                 (when (eq (buffer-local-value 'completion-reference-buffer
+                                               (window-buffer window))
+                           (window-buffer (active-minibuffer-window)))
+                   cmd)))))
+
+(defvar-keymap minibuffer-visible-completions-map
+  :doc "Local keymap for minibuffer input with visible completions."
+  "<left>"  (minibuffer-visible-completions-bind #'minibuffer-previous-completion)
+  "<right>" (minibuffer-visible-completions-bind #'minibuffer-next-completion)
+  "<up>"    (minibuffer-visible-completions-bind #'minibuffer-previous-line-completion)
+  "<down>"  (minibuffer-visible-completions-bind #'minibuffer-next-line-completion)
+  "RET"     (minibuffer-visible-completions-bind #'minibuffer-choose-completion-or-exit)
+  "C-g"     (minibuffer-visible-completions-bind #'minibuffer-hide-completions))
+
+
 ;;; Completion tables.
 
 (defun minibuffer--double-dollars (str)
@@ -3751,108 +3801,191 @@ one large \"hole\" and a clumped-together \"oo\" match) higher
 than the latter (which has two \"holes\" and three
 one-letter-long matches).")
 
+(defvar completion-lazy-hilit nil
+  "If non-nil, request lazy highlighting of completion candidates.
+
+Lisp programs (a.k.a. \"front ends\") that present completion
+candidates may opt to bind this variable to a non-nil value when
+calling functions (such as `completion-all-completions') which
+produce completion candidates.  This tells the underlying
+completion styles that they do not need to fontify (i.e.,
+propertize with the `face' property) completion candidates in a
+way that highlights the matching parts.  Then it is the front end
+which presents the candidates that becomes responsible for this
+fontification.  The front end does that by calling the function
+`completion-lazy-hilit' on each completion candidate that is to be
+displayed to the user.
+
+Note that only some completion styles take advantage of this
+variable for optimization purposes.  Other styles will ignore the
+hint and fontify eagerly as usual.  It is still safe for a
+front end to call `completion-lazy-hilit' in these situations.
+
+To author a completion style that takes advantage of this variable,
+see `completion-lazy-hilit-fn' and `completion-pcm--hilit-commonality'.")
+
+(defvar completion-lazy-hilit-fn nil
+  "Fontification function set by lazy-highlighting completions styles.
+When a given style wants to enable support for `completion-lazy-hilit'
+\(which see), that style should set this variable to a function of one
+argument.  It will be called with each completion candidate, a string, to
+be displayed to the user, and should destructively propertize these
+strings with the `face' property.")
+
+(defun completion-lazy-hilit (str)
+  "Return a copy of completion candidate STR that is `face'-propertized.
+See documentation of the variable `completion-lazy-hilit' for more
+details."
+  (if (and completion-lazy-hilit completion-lazy-hilit-fn)
+      (funcall completion-lazy-hilit-fn (copy-sequence str))
+    str))
+
+(defun completion--hilit-from-re (string regexp)
+  "Fontify STRING with `completions-common-part' using REGEXP."
+  (let* ((md (and regexp (string-match regexp string) (cddr (match-data t))))
+         (me (and md (match-end 0)))
+         (from 0))
+    (while md
+      (add-face-text-property from (pop md) 'completions-common-part nil string)
+      (setq from (pop md)))
+    (unless (or (not me) (= from me))
+      (add-face-text-property from me 'completions-common-part nil string))
+    string))
+
+(defun completion--flex-score-1 (md-groups match-end len)
+  "Compute matching score of completion.
+The score lies in the range between 0 and 1, where 1 corresponds to
+the full match.
+MD-GROUPS is the \"group\"  part of the match data.
+MATCH-END is the end of the match.
+LEN is the length of the completion string."
+  (let* ((from 0)
+         ;; To understand how this works, consider these simple
+         ;; ascii diagrams showing how the pattern "foo"
+         ;; flex-matches "fabrobazo", "fbarbazoo" and
+         ;; "barfoobaz":
+
+         ;;      f abr o baz o
+         ;;      + --- + --- +
+
+         ;;      f barbaz oo
+         ;;      + ------ ++
+
+         ;;      bar foo baz
+         ;;          +++
+
+         ;; "+" indicates parts where the pattern matched.  A
+         ;; "hole" in the middle of the string is indicated by
+         ;; "-".  Note that there are no "holes" near the edges
+         ;; of the string.  The completion score is a number
+         ;; bound by (0..1] (i.e., larger than (but not equal
+         ;; to) zero, and smaller or equal to one): the higher
+         ;; the better and only a perfect match (pattern equals
+         ;; string) will have score 1.  The formula takes the
+         ;; form of a quotient.  For the numerator, we use the
+         ;; number of +, i.e. the length of the pattern.  For
+         ;; the denominator, it first computes
+         ;;
+         ;;     hole_i_contrib = 1 + (Li-1)^(1/tightness)
+         ;;
+         ;; , for each hole "i" of length "Li", where tightness
+         ;; is given by `flex-score-match-tightness'.  The
+         ;; final value for the denominator is then given by:
+         ;;
+         ;;    (SUM_across_i(hole_i_contrib) + 1) * len
+         ;;
+         ;; , where "len" is the string's length.
+         (score-numerator 0)
+         (score-denominator 0)
+         (last-b 0))
+    (while (and md-groups (car md-groups))
+      (let ((a from)
+            (b (pop md-groups)))
+        (setq
+         score-numerator   (+ score-numerator (- b a)))
+        (unless (or (= a last-b)
+                    (zerop last-b)
+                    (= a len))
+          (setq
+           score-denominator (+ score-denominator
+                                1
+                                (expt (- a last-b 1)
+                                      (/ 1.0
+                                         flex-score-match-tightness)))))
+        (setq
+         last-b              b))
+      (setq from (pop md-groups)))
+    ;; If `pattern' doesn't have an explicit trailing any, the
+    ;; regex `re' won't produce match data representing the
+    ;; region after the match.  We need to account to account
+    ;; for that extra bit of match (bug#42149).
+    (unless (= from match-end)
+      (let ((a from)
+            (b match-end))
+        (setq
+         score-numerator   (+ score-numerator (- b a)))
+        (unless (or (= a last-b)
+                    (zerop last-b)
+                    (= a len))
+          (setq
+           score-denominator (+ score-denominator
+                                1
+                                (expt (- a last-b 1)
+                                      (/ 1.0
+                                         flex-score-match-tightness)))))
+        (setq
+         last-b              b)))
+    (/ score-numerator (* len (1+ score-denominator)) 1.0)))
+
+(defvar completion--flex-score-last-md nil
+  "Helper variable for `completion--flex-score'.")
+
+(defun completion--flex-score (str re &optional dont-error)
+  "Compute flex score of completion STR based on RE.
+If DONT-ERROR, just return nil if RE doesn't match STR."
+  (cond ((string-match re str)
+         (let* ((match-end (match-end 0))
+                (md (cddr
+                     (setq
+                      completion--flex-score-last-md
+                      (match-data t completion--flex-score-last-md)))))
+           (completion--flex-score-1 md match-end (length str))))
+        ((not dont-error)
+         (error "Internal error: %s does not match %s" re str))))
+
+(defvar completion-pcm--regexp nil
+  "Regexp from PCM pattern in `completion-pcm--hilit-commonality'.")
+
 (defun completion-pcm--hilit-commonality (pattern completions)
   "Show where and how well PATTERN matches COMPLETIONS.
 PATTERN, a list of symbols and strings as seen
 `completion-pcm--merge-completions', is assumed to match every
-string in COMPLETIONS.  Return a deep copy of COMPLETIONS where
-each string is propertized with `completion-score', a number
-between 0 and 1, and with faces `completions-common-part',
-`completions-first-difference' in the relevant segments."
+string in COMPLETIONS.
+
+If `completion-lazy-hilit' is nil, return a deep copy of
+COMPLETIONS where each string is propertized with
+`completion-score', a number between 0 and 1, and with faces
+`completions-common-part', `completions-first-difference' in the
+relevant segments.
+
+Else, if `completion-lazy-hilit' is t, return COMPLETIONS
+unchanged, but setup a suitable `completion-lazy-hilit-fn' (which
+see) for later lazy highlighting."
+  (setq completion-pcm--regexp nil
+        completion-lazy-hilit-fn nil)
   (cond
    ((and completions (cl-loop for e in pattern thereis (stringp e)))
-    (let* ((re (completion-pcm--pattern->regex pattern 'group))
-           (point-idx (completion-pcm--pattern-point-idx pattern))
-           (case-fold-search completion-ignore-case)
-           last-md)
-      (mapcar
-       (lambda (str)
-	 ;; Don't modify the string itself.
-         (setq str (copy-sequence str))
-         (unless (string-match re str)
-           (error "Internal error: %s does not match %s" re str))
-         (let* ((pos (if point-idx (match-beginning point-idx) (match-end 0)))
-                (match-end (match-end 0))
-                (md (cddr (setq last-md (match-data t last-md))))
-                (from 0)
-                (end (length str))
-                ;; To understand how this works, consider these simple
-                ;; ascii diagrams showing how the pattern "foo"
-                ;; flex-matches "fabrobazo", "fbarbazoo" and
-                ;; "barfoobaz":
-
-                ;;      f abr o baz o
-                ;;      + --- + --- +
-
-                ;;      f barbaz oo
-                ;;      + ------ ++
-
-                ;;      bar foo baz
-                ;;          +++
-
-                ;; "+" indicates parts where the pattern matched.  A
-                ;; "hole" in the middle of the string is indicated by
-                ;; "-".  Note that there are no "holes" near the edges
-                ;; of the string.  The completion score is a number
-                ;; bound by (0..1] (i.e., larger than (but not equal
-                ;; to) zero, and smaller or equal to one): the higher
-                ;; the better and only a perfect match (pattern equals
-                ;; string) will have score 1.  The formula takes the
-                ;; form of a quotient.  For the numerator, we use the
-                ;; number of +, i.e. the length of the pattern.  For
-                ;; the denominator, it first computes
-                ;;
-                ;;     hole_i_contrib = 1 + (Li-1)^(1/tightness)
-                ;;
-                ;; , for each hole "i" of length "Li", where tightness
-                ;; is given by `flex-score-match-tightness'.  The
-                ;; final value for the denominator is then given by:
-                ;;
-                ;;    (SUM_across_i(hole_i_contrib) + 1) * len
-                ;;
-                ;; , where "len" is the string's length.
-                (score-numerator 0)
-                (score-denominator 0)
-                (last-b 0)
-                (update-score-and-face
-                 (lambda (a b)
-                   "Update score and face given match range (A B)."
-                   (add-face-text-property a b
-                                           'completions-common-part
-                                           nil str)
-                   (setq
-                    score-numerator   (+ score-numerator (- b a)))
-                   (unless (or (= a last-b)
-                               (zerop last-b)
-                               (= a (length str)))
-                     (setq
-                      score-denominator (+ score-denominator
-                                           1
-                                           (expt (- a last-b 1)
-                                                 (/ 1.0
-                                                    flex-score-match-tightness)))))
-                   (setq
-                    last-b              b))))
-           (while md
-             (funcall update-score-and-face from (pop md))
-             (setq from (pop md)))
-           ;; If `pattern' doesn't have an explicit trailing any, the
-           ;; regex `re' won't produce match data representing the
-           ;; region after the match.  We need to account to account
-           ;; for that extra bit of match (bug#42149).
-           (unless (= from match-end)
-             (funcall update-score-and-face from match-end))
-           (if (> (length str) pos)
-               (add-face-text-property
-                pos (1+ pos)
-                'completions-first-difference
-                nil str))
-           (unless (zerop (length str))
-             (put-text-property
-              0 1 'completion-score
-              (/ score-numerator (* end (1+ score-denominator)) 1.0) str)))
-         str)
-       completions)))
+    (let* ((re (completion-pcm--pattern->regex pattern 'group)))
+      (setq completion-pcm--regexp re)
+      (cond (completion-lazy-hilit
+             (setq completion-lazy-hilit-fn
+                   (lambda (str) (completion--hilit-from-re str re)))
+             completions)
+            (t
+             (mapcar
+              (lambda (str)
+                (completion--hilit-from-re (copy-sequence str) re))
+              completions)))))
    (t completions)))
 
 (defun completion-pcm--find-all-completions (string table pred point
@@ -4189,36 +4322,39 @@ that is non-nil."
 
 (defun completion--flex-adjust-metadata (metadata)
   "If `flex' is actually doing filtering, adjust sorting."
-  (let ((flex-is-filtering-p
-         ;; JT@2019-12-23: FIXME: this is kinda wrong.  What we need
-         ;; to test here is "some input that actually leads/led to
-         ;; flex filtering", not "something after the minibuffer
-         ;; prompt".  E.g. The latter is always true for file
-         ;; searches, meaning we'll be doing extra work when we
-         ;; needn't.
-         (or (not (window-minibuffer-p))
-             (> (point-max) (minibuffer-prompt-end))))
+  (let ((flex-is-filtering-p completion-pcm--regexp)
         (existing-dsf
          (completion-metadata-get metadata 'display-sort-function))
         (existing-csf
          (completion-metadata-get metadata 'cycle-sort-function)))
     (cl-flet
-        ((compose-flex-sort-fn
-          (existing-sort-fn) ; wish `cl-flet' had proper indentation...
-          (lambda (completions)
-            (sort
-             (funcall existing-sort-fn completions)
-             (lambda (c1 c2)
-               (let ((s1 (get-text-property 0 'completion-score c1))
-                     (s2 (get-text-property 0 'completion-score c2)))
-                 (> (or s1 0) (or s2 0))))))))
+        ((compose-flex-sort-fn (existing-sort-fn)
+           (lambda (completions)
+             (let* ((sorted (sort
+                             (mapcar
+                              (lambda (str)
+                                (cons
+                                 (- (completion--flex-score
+                                     (or (get-text-property
+                                          0 'completion--unquoted str)
+                                         str)
+                                     completion-pcm--regexp))
+                                 str))
+                              (if existing-sort-fn
+                                  (funcall existing-sort-fn completions)
+                                completions))
+                             #'car-less-than-car))
+                    (cell sorted))
+               ;; Reuse the list
+               (while cell
+                 (setcar cell (cdar cell))
+                 (pop cell))
+               sorted))))
       `(metadata
         ,@(and flex-is-filtering-p
-               `((display-sort-function
-                  . ,(compose-flex-sort-fn (or existing-dsf #'identity)))))
+               `((display-sort-function . ,(compose-flex-sort-fn existing-dsf))))
         ,@(and flex-is-filtering-p
-               `((cycle-sort-function
-                  . ,(compose-flex-sort-fn (or existing-csf #'identity)))))
+               `((cycle-sort-function . ,(compose-flex-sort-fn existing-csf))))
         ,@(cdr metadata)))))
 
 (defun completion-flex--make-flex-pattern (pattern)
@@ -4372,6 +4508,11 @@ See `completing-read' for the meaning of the arguments."
                     ;; in minibuffer-local-filename-completion-map can
                     ;; override bindings in base-keymap.
                     base-keymap)))
+         (keymap (if minibuffer-visible-completions
+                     (make-composed-keymap
+                      (list minibuffer-visible-completions-map
+                            keymap))
+                   keymap))
          (buffer (current-buffer))
          (c-i-c completion-ignore-case)
          (result
@@ -4491,16 +4632,21 @@ selected by these commands to the minibuffer."
   :type 'boolean
   :version "29.1")
 
-(defun minibuffer-next-completion (&optional n)
+(defun minibuffer-next-completion (&optional n vertical)
   "Move to the next item in its completions window from the minibuffer.
+When the optional argument VERTICAL is non-nil, move vertically
+to the next item on the next line using `next-line-completion'.
+Otherwise, move to the next item horizontally using `next-completion'.
 When `minibuffer-completion-auto-choose' is non-nil, then also
-insert the selected completion to the minibuffer."
+insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (let ((auto-choose minibuffer-completion-auto-choose))
     (with-minibuffer-completions-window
       (when completions-highlight-face
         (setq-local cursor-face-highlight-nonselected-window t))
-      (next-completion (or n 1))
+      (if vertical
+          (next-line-completion (or n 1))
+        (next-completion (or n 1)))
       (when auto-choose
         (let ((completion-use-base-affixes t))
           (choose-completion nil t t))))))
@@ -4508,22 +4654,50 @@ insert the selected completion to the minibuffer."
 (defun minibuffer-previous-completion (&optional n)
   "Move to the previous item in its completions window from the minibuffer.
 When `minibuffer-completion-auto-choose' is non-nil, then also
-insert the selected completion to the minibuffer."
+insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (minibuffer-next-completion (- (or n 1))))
 
+(defun minibuffer-next-line-completion (&optional n)
+  "Move to the next completion line from the minibuffer.
+This means to move to the completion candidate on the next line
+in the *Completions* buffer while point stays in the minibuffer.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion candidate to the minibuffer."
+  (interactive "p")
+  (minibuffer-next-completion (or n 1) t))
+
+(defun minibuffer-previous-line-completion (&optional n)
+  "Move to the previous completion line from the minibuffer.
+This means to move to the completion candidate on the previous line
+in the *Completions* buffer while point stays in the minibuffer.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion candidate to the minibuffer."
+  (interactive "p")
+  (minibuffer-next-completion (- (or n 1)) t))
+
 (defun minibuffer-choose-completion (&optional no-exit no-quit)
   "Run `choose-completion' from the minibuffer in its completions window.
-With prefix argument NO-EXIT, insert the completion at point to the
-minibuffer, but don't exit the minibuffer.  When the prefix argument
+With prefix argument NO-EXIT, insert the completion candidate at point to
+the minibuffer, but don't exit the minibuffer.  When the prefix argument
 is not provided, then whether to exit the minibuffer depends on the value
 of `completion-no-auto-exit'.
-If NO-QUIT is non-nil, insert the completion at point to the
+If NO-QUIT is non-nil, insert the completion candidate at point to the
 minibuffer, but don't quit the completions window."
   (interactive "P")
-    (with-minibuffer-completions-window
+  (with-minibuffer-completions-window
     (let ((completion-use-base-affixes t))
       (choose-completion nil no-exit no-quit))))
+
+(defun minibuffer-choose-completion-or-exit (&optional no-exit no-quit)
+  "Choose the completion from the minibuffer or exit the minibuffer.
+When `minibuffer-choose-completion' can't find a completion candidate
+in the completions window, then exit the minibuffer using its present
+contents."
+  (interactive "P")
+  (condition-case nil
+      (minibuffer-choose-completion no-exit no-quit)
+    (error (minibuffer-complete-and-exit))))
 
 (defun minibuffer-complete-history ()
   "Complete the minibuffer history as far as possible.

@@ -157,6 +157,7 @@ to an element already in the list stored in PLACE.
     `(cl-callf2 cl-adjoin ,x ,place ,@keys)))
 
 (defun cl--set-buffer-substring (start end val)
+  "Delete region from START to END and insert VAL."
   (save-excursion (delete-region start end)
 		  (goto-char start)
 		  (insert val)
@@ -194,6 +195,8 @@ to an element already in the list stored in PLACE.
 ;; the target form to return the values as a list.
 
 (defun cl--defalias (cl-f el-f &optional doc)
+  "Define function CL-F as definition EL-F.
+Like `defalias' but marks the alias itself as inlinable."
   (defalias cl-f el-f doc)
   (put cl-f 'byte-optimizer 'byte-compile-inline-expand))
 
@@ -533,7 +536,12 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (unless (load "cl-loaddefs" 'noerror 'quiet)
   ;; When bootstrapping, cl-loaddefs hasn't been built yet!
   (require 'cl-macs)
-  (require 'cl-seq))
+  (require 'cl-seq)
+  ;; FIXME: Arguably we should also load `cl-extra', except that this
+  ;; currently causes more bootstrap troubles, and `cl-extra' is
+  ;; rarely used, so instead we explicitly (require 'cl-extra) at
+  ;; those rare places where we do need it.
+  )
 
 (defun cl--old-struct-type-of (orig-fun object)
   (or (and (vectorp object) (> (length object) 0)

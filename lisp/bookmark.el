@@ -511,6 +511,8 @@ BM is a bookmark as returned from function `bookmark-get-bookmark'.
 See user option `bookmark-fringe-mark'."
   (let ((filename (cdr (assq 'filename bm)))
         (pos (cdr (assq 'position bm)))
+        ;; Don't expand file names for non-existing remote connections.
+        (non-essential t)
         overlays found temp)
     (when (and pos filename)
       (setq filename (expand-file-name filename))

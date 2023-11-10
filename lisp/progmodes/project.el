@@ -245,7 +245,12 @@ of the project instance object."
     pr))
 
 (defun project--find-in-directory (dir)
-  (run-hook-with-args-until-success 'project-find-functions dir))
+  ;; Use 'ignore-error' when 27.1 is the minimum supported.
+  (condition-case nil
+      (run-hook-with-args-until-success 'project-find-functions dir)
+    ;; Maybe we'd like to continue to the next backend instead?  Let's
+    ;; see if somebody ever ends up in that situation.
+    (permission-denied nil)))
 
 (defvar project--within-roots-fallback nil)
 
@@ -850,6 +855,7 @@ DIRS must contain directory names."
     (define-key map "G" 'project-or-external-find-regexp)
     (define-key map "r" 'project-query-replace-regexp)
     (define-key map "x" 'project-execute-extended-command)
+    (define-key map "o" 'project-any-command)
     (define-key map "\C-b" 'project-list-buffers)
     map)
   "Keymap for project commands.")
@@ -1812,6 +1818,46 @@ It's also possible to enter an arbitrary directory not in the list."
   (let ((default-directory (project-root (project-current t))))
     (call-interactively #'execute-extended-command)))
 
+;;;###autoload
+(defun project-any-command (&optional overriding-map prompt-format)
+  "Run the next command in the current project.
+If the command is in `project-prefix-map', it gets passed that
+info with `project-current-directory-override'.  Otherwise,
+`default-directory' is temporarily set to the current project's
+root.
+
+If OVERRIDING-MAP is non-nil, it will be used as
+`overriding-local-map' to provide shorter bindings from that map
+which will take priority over the global ones."
+  (interactive)
+  (let* ((pr (project-current t))
+         (prompt-format (or prompt-format "[execute in %s]:"))
+         (command (let ((overriding-local-map overriding-map))
+                    (key-binding (read-key-sequence
+                                  (format prompt-format (project-root pr)))
+                                 t)))
+         (root (project-root pr))
+         found)
+    (when command
+      ;; We could also check the command name against "\\`project-",
+      ;; and/or (get command 'project-command).
+      (map-keymap
+       (lambda (_evt cmd) (if (eq cmd command) (setq found t)))
+       project-prefix-map)
+      (if found
+          (let ((project-current-directory-override root))
+            (call-interactively command))
+        (let ((default-directory root))
+          (call-interactively command))))))
+
+;;;###autoload
+(defun project-prefix-or-any-command ()
+  "Run the next command in the current project.
+Works like `project-any-command', but also mixes in the shorter
+bindings from `project-prefix-map'."
+  (interactive)
+  (project-any-command project-prefix-map "[execute in %s]:"))
+
 (defun project-remember-projects-under (dir &optional recursive)
   "Index all projects below a directory DIR.
 If RECURSIVE is non-nil, recurse into all subdirectories to find
@@ -1820,35 +1866,28 @@ the progress.  The function returns the number of detected
 projects."
   (interactive "DDirectory: \nP")
   (project--ensure-read-project-list)
-  (let ((queue (list dir))
-        (count 0)
-        (known (make-hash-table
-                :size (* 2 (length project--list))
-                :test #'equal )))
+  (let ((dirs (if recursive
+                  (directory-files-recursively dir "" t)
+                (directory-files dir t)))
+        (known (make-hash-table :size (* 2 (length project--list))
+                                :test #'equal))
+        (count 0))
     (dolist (project (mapcar #'car project--list))
       (puthash project t known))
-    (while queue
-      (when-let ((subdir (pop queue))
-                 ((file-directory-p subdir)))
-        (when-let ((project (project--find-in-directory subdir))
-                   (project-root (project-root project))
-                   ((not (gethash project-root known))))
-          (project-remember-project project t)
-          (puthash project-root t known)
-          (message "Found %s..." project-root)
-          (setq count (1+ count)))
-        (when (and recursive (file-directory-p subdir))
-          (setq queue
-                (nconc
-                 (directory-files
-                  subdir t directory-files-no-dot-files-regexp t)
-                 queue)))))
-    (unless (eq recursive 'in-progress)
-      (if (zerop count)
-          (message "No projects were found")
-        (project--write-project-list)
-        (message "%d project%s were found"
-                 count (if (= count 1) "" "s"))))
+    (dolist (subdir dirs)
+      (when-let (((file-directory-p subdir))
+                 (project (project--find-in-directory subdir))
+                 (project-root (project-root project))
+                 ((not (gethash project-root known))))
+        (project-remember-project project t)
+        (puthash project-root t known)
+        (message "Found %s..." project-root)
+        (setq count (1+ count))))
+    (if (zerop count)
+        (message "No projects were found")
+      (project--write-project-list)
+      (message "%d project%s were found"
+               count (if (= count 1) "" "s")))
     count))
 
 (defun project-forget-zombie-projects ()
@@ -1890,7 +1929,8 @@ forgotten projects."
     (project-find-regexp "Find regexp")
     (project-find-dir "Find directory")
     (project-vc-dir "VC-Dir")
-    (project-eshell "Eshell"))
+    (project-eshell "Eshell")
+    (project-any-command "Other"))
   "Alist mapping commands to descriptions.
 Used by `project-switch-project' to construct a dispatch menu of
 commands available upon \"switching\" to another project.
@@ -1914,7 +1954,9 @@ invoked immediately without any dispatch menu."
             (choice :tag "Key to press"
                     (const :tag "Infer from the keymap" nil)
                     (character :tag "Explicit key"))))
-          (symbol :tag "Single command")))
+          (const :tag "Use both short keys and global bindings"
+                 project-prefix-or-any-command)
+          (symbol :tag "Custom command")))
 
 (defcustom project-switch-use-entire-map nil
   "Whether `project-switch-project' will use the entire `project-prefix-map'.
@@ -2024,9 +2066,14 @@ to directory DIR."
   (interactive (list (funcall project-prompter)))
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
-                   (project--switch-project-command))))
-    (let ((project-current-directory-override dir))
-      (call-interactively command))))
+                   (project--switch-project-command)))
+        (buffer (current-buffer)))
+    (unwind-protect
+        (progn
+          (setq-local project-current-directory-override dir)
+          (call-interactively command))
+      (with-current-buffer buffer
+        (kill-local-variable 'project-current-directory-override)))))
 
 ;;;###autoload
 (defun project-uniquify-dirname-transform (dirname)
@@ -2058,7 +2105,7 @@ is part of the default mode line beginning with Emacs 30."
   :version "30.1")
 
 (defvar project-menu-entry
-  `(menu-item "Project" ,menu-bar-project-menu))
+  `(menu-item "Project" ,(bound-and-true-p menu-bar-project-menu)))
 
 (defvar project-mode-line-map
   (let ((map (make-sparse-keymap)))
@@ -2074,14 +2121,21 @@ is part of the default mode line beginning with Emacs 30."
 (defun project-mode-line-format ()
   "Compose the project mode-line."
   (when-let ((project (project-current)))
-    (concat
-     " "
-     (propertize
-      (project-name project)
-      'face project-mode-line-face
-      'mouse-face 'mode-line-highlight
-      'help-echo "mouse-1: Project menu"
-      'local-map project-mode-line-map))))
+    ;; Preserve the global value of 'last-coding-system-used'
+    ;; that 'write-region' needs to set for 'basic-save-buffer',
+    ;; but updating the mode line might occur at the same time
+    ;; during saving the buffer and 'project-name' can change
+    ;; 'last-coding-system-used' when reading the project name
+    ;; from .dir-locals.el also enables flyspell-mode (bug#66825).
+    (let ((last-coding-system-used last-coding-system-used))
+      (concat
+       " "
+       (propertize
+        (project-name project)
+        'face project-mode-line-face
+        'mouse-face 'mode-line-highlight
+        'help-echo "mouse-1: Project menu"
+        'local-map project-mode-line-map)))))
 
 (provide 'project)
 ;;; project.el ends here

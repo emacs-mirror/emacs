@@ -139,16 +139,19 @@ To start using Eglot for a project, type @kbd{M-x eglot @key{RET}} in
 a buffer visiting any file that belongs to the project.  This starts
 the language server configured for the programming language of that
 buffer, and causes Eglot to start managing all the files of the
-project which use the same programming language.  The notion of a
-``project'' used by Eglot is the same Emacs uses (@pxref{Projects,,,
-emacs, GNU Emacs Manual}): in the simplest case, the ``project'' is
-the single file you are editing, but it can also be all the files in a
-single directory or a directory tree under some version control
-system, such as Git.
+project which use the same programming language.  This includes files
+of a given project that are already visited at the time the
+@code{eglot} command is invoked as well as files visited after this
+invocation.
 
-Alternatively, you can start Eglot automatically from the major-mode
-hook of the mode used for the programming language; see @ref{Starting
-Eglot}.
+The notion of a ``project'' used by Eglot is the same Emacs uses
+(@pxref{Projects,,, emacs, GNU Emacs Manual}): in the simplest case,
+the ``project'' is the single file you are editing, but it can also be
+all the files in a single directory or a directory tree under some
+version control system, such as Git.
+
+There are alternate ways of starting Eglot; see @ref{Starting Eglot}
+for details.
 
 @item
 Use Eglot.
@@ -343,6 +346,12 @@ an Eglot session that handles the buffer.  Note that this variant of
 starting an Eglot session is non-interactive, so it should be used
 only when you are confident that Eglot can be started reliably for any
 file which may be visited with the major-mode in question.
+
+Note that it's often difficult to establish this confidence fully, so
+it may be wise to use the interactive command @code{eglot} instead.
+You only need to invoke it once per project, as all other files
+visited within the same project will automatically be managed with no
+further user intervention needed.
 
 When Eglot connects to a language server for the first time in an
 Emacs session, it runs the hook @code{eglot-connect-hook}
@@ -1237,8 +1246,8 @@ For example, the plist
 @lisp
 (:pylsp (:plugins (:jedi_completion (:include_params t
                                      :fuzzy t
-                                     :cache_for ["pandas" "numpy"]
-                   :pylint (:enabled :json-false))))
+                                     :cache_for ["pandas" "numpy"])
+                   :pylint (:enabled :json-false)))
  :gopls (:usePlaceholders t))
 @end lisp
 
@@ -1252,7 +1261,7 @@ is serialized by Eglot to the following JSON text:
       "jedi_completion": @{
         "include_params": true,
         "fuzzy": true,
-        "cache_for": [ "pandas", "numpy" ],
+        "cache_for": [ "pandas", "numpy" ]
       @},
       "pylint": @{
         "enabled": false
@@ -1260,8 +1269,8 @@ is serialized by Eglot to the following JSON text:
     @}
   @},
   "gopls": @{
-    "usePlaceholders":true
-  @},
+    "usePlaceholders": true
+  @}
 @}
 @end example
 

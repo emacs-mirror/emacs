@@ -944,6 +944,8 @@ elnlisp := \
 	international/charscript.eln \
 	emacs-lisp/comp.eln \
 	emacs-lisp/comp-cstr.eln \
+	emacs-lisp/comp-common.eln \
+	emacs-lisp/comp-run.eln \
 	international/emoji-zwj.eln
 elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 

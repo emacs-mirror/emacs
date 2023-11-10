@@ -321,6 +321,30 @@ public final class EmacsService extends Service
       }
   }
 
+  /* The native functions the subsequent two functions call do nothing
+     in the infrequent case the Emacs thread is awaiting a response
+     for the main thread.  Caveat emptor! */
+
+  @Override
+  public void
+  onDestroy ()
+  {
+    /* This function is called immediately before the system kills
+       Emacs.  In this respect, it is rather akin to a SIGDANGER
+       signal, so force an auto-save accordingly.  */
+
+    EmacsNative.shutDownEmacs ();
+    super.onDestroy ();
+  }
+
+  @Override
+  public void
+  onLowMemory ()
+  {
+    EmacsNative.onLowMemory ();
+    super.onLowMemory ();
+  }
+
 
 
   /* Functions from here on must only be called from the Emacs

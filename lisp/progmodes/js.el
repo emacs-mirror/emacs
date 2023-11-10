@@ -672,15 +672,6 @@ This variable is like `sgml-attribute-offset'."
   :type 'integer
   :safe 'integerp)
 
-;;; Keymap
-
-(defvar-keymap js-mode-map
-  :doc "Keymap for `js-mode'."
-  "M-." #'js-find-symbol)
-
-(defvar js-ts-mode-map (copy-keymap js-mode-map)
-  "Keymap used in `js-ts-mode'.")
-
 ;;; Syntax table and parsing
 
 (defvar js-mode-syntax-table

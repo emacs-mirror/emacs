@@ -32,13 +32,13 @@
  (0 ":irc.foonet.org 353 tester = #spam :alice tester @bob")
  (0 ":irc.foonet.org 366 tester #spam :End of NAMES list"))
 
-((~mode-chan 4 "MODE #chan")
+((~mode-chan 10 "MODE #chan")
  (0 ":irc.foonet.org 324 tester #chan +nt")
  (0 ":irc.foonet.org 329 tester #chan 1620104779")
  (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #chan :alice: But, as it seems, did violence on herself.")
  (0.1 ":alice!~u@rz2v467q4rwhy.irc PRIVMSG #chan :bob: Well, this is the forest of Arden."))
 
-((mode-spam 4 "MODE #spam")
+((mode-spam 20 "MODE #spam")
  (0 ":irc.foonet.org 324 tester #spam +nt")
  (0 ":irc.foonet.org 329 tester #spam 1620104779")
  (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #spam :alice: Signior Iachimo will not from it. Pray, let us follow 'em.")

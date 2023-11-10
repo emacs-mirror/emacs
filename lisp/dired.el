@@ -4877,22 +4877,30 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 (eval-when-compile (require 'desktop))
 (declare-function desktop-file-name "desktop" (filename dirname))
 
+(defun dired-desktop-save-p ()
+  "Should `dired-directory' be desktop saved?"
+  (if (consp dired-directory)
+      (not (string-match-p desktop-files-not-to-save (car dired-directory)))
+    (not (string-match-p desktop-files-not-to-save dired-directory))))
+
 (defun dired-desktop-buffer-misc-data (dirname)
   "Auxiliary information to be saved in desktop file."
-  (cons
-   ;; Value of `dired-directory'.
-   (if (consp dired-directory)
-       ;; Directory name followed by list of files.
-       (cons (desktop-file-name (car dired-directory) dirname)
-             (cdr dired-directory))
-     ;; Directory name, optionally with shell wildcard.
-     (desktop-file-name dired-directory dirname))
-   ;; Subdirectories in `dired-subdir-alist'.
-   (cdr
-    (nreverse
-     (mapcar
-      (lambda (f) (desktop-file-name (car f) dirname))
-      dired-subdir-alist)))))
+  (when (and (stringp desktop-files-not-to-save)
+             (dired-desktop-save-p))
+    (cons
+     ;; Value of `dired-directory'.
+     (if (consp dired-directory)
+         ;; Directory name followed by list of files.
+         (cons (desktop-file-name (car dired-directory) dirname)
+               (cdr dired-directory))
+       ;; Directory name, optionally with shell wildcard.
+       (desktop-file-name dired-directory dirname))
+     ;; Subdirectories in `dired-subdir-alist'.
+     (cdr
+      (nreverse
+       (mapcar
+        (lambda (f) (desktop-file-name (car f) dirname))
+        dired-subdir-alist))))))
 
 (defun dired-restore-desktop-buffer (_file-name
                                      _buffer-name
@@ -4998,6 +5006,7 @@ Interactively with prefix argument, read FILE-NAME."
 ;;; Miscellaneous commands
 
 (declare-function Man-getpage-in-background "man" (topic))
+(defvar Man-support-remote-systems) ; from man.el
 (defvar manual-program) ; from man.el
 
 (defun dired-do-man ()
@@ -5005,10 +5014,11 @@ Interactively with prefix argument, read FILE-NAME."
   (interactive nil dired-mode)
   (require 'man)
   (let* ((file (dired-get-file-for-visit))
+         (Man-support-remote-systems (file-remote-p file))
          (manual-program (string-replace "*" "%s"
                                          (dired-guess-shell-command
                                           "Man command: " (list file)))))
-    (Man-getpage-in-background file)))
+    (Man-getpage-in-background (file-local-name file))))
 
 (defun dired-do-info ()
   "In Dired, run `info' on this file."

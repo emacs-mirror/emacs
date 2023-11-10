@@ -1723,7 +1723,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                       "^refs/\\(heads\\|tags\\|remotes\\)/\\(.*\\)$")))
         (while (re-search-forward regexp nil t)
           (push (match-string 2) table))))
-    table))
+    (nreverse table)))
 
 (defun vc-git-revision-completion-table (files)
   (letrec ((table (lazy-completion-table

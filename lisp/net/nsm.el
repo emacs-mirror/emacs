@@ -550,14 +550,14 @@ Due to its use of 64-bit block size, it is known that a
 ciphertext collision is highly likely when 2^32 blocks are
 encrypted with the same key bundle under 3-key 3DES.  Practical
 birthday attacks of this kind have been demonstrated by Sweet32[1].
-As such, NIST is in the process of disallowing its use in TLS[2].
+As such, NIST has disallowed its use after December 31, 2023[2].
 
 [1]: Bhargavan, Leurent (2016).  \"On the Practical (In-)Security of
 64-bit Block Ciphers — Collision Attacks on HTTP over TLS and
 OpenVPN\", `https://sweet32.info/'
-[2]: NIST Information Technology Laboratory (Jul 2017).  \"Update to
-Current Use and Deprecation of TDEA\",
-`https://csrc.nist.gov/News/2017/Update-to-Current-Use-and-Deprecation-of-TDEA'"
+[2]: National Institute of Standards and Technology (Mar 2019).
+\"Transitioning the Use of Cryptographic Algorithms and Key
+Lengths\", `https://doi.org/10.6028/NIST.SP.800-131Ar2'"
   (let ((cipher (plist-get status :cipher)))
     (and (string-match "\\b3DES\\b" cipher)
          (format-message

@@ -3026,16 +3026,19 @@ stored value.  Otherwise, return the stored value."
   "Return the bounds of a message in an ERC buffer.
 Return ONLY one side when the first arg is `end' or `beg'.  With
 POINT, search from POINT instead of `point'."
+  ;; TODO add edebug spec.
   `(let* ((point ,(or point '(point)))
           (at-start-p (get-text-property point 'erc-msg)))
      (and-let*
-         (,@(and (member only '(nil 'beg))
+         (,@(and (member only '(nil beg 'beg))
                  '((b (or (and at-start-p point)
                           (and-let*
                               ((p (previous-single-property-change point
                                                                    'erc-msg)))
-                            (if (= p (1- point)) p (1- p)))))))
-          ,@(and (member only '(nil 'end))
+                            (if (= p (1- point))
+                                (if (get-text-property p 'erc-msg) p (1- p))
+                              (1- p)))))))
+          ,@(and (member only '(nil end 'end))
                  '((e (1- (next-single-property-change
                            (if at-start-p (1+ point) point)
                            'erc-msg nil erc-insert-marker))))))
@@ -3079,6 +3082,9 @@ If END is a marker, possibly update its position."
         (setq b e))))
   (unless (eq end erc-insert-marker)
     (set-marker end nil)))
+
+(defvar erc--insert-line-function nil
+  "When non-nil, an alterntive to `insert' for inserting messages.")
 
 (defvar erc--insert-marker nil
   "Internal override for `erc-insert-marker'.")
@@ -3131,7 +3137,9 @@ modification hooks)."
               (save-restriction
                 (widen)
                 (goto-char insert-position)
-                (insert string)
+                (if erc--insert-line-function
+                    (funcall erc--insert-line-function string)
+                  (insert string))
                 (erc--assert-input-bounds)
                 ;; run insertion hook, with point at restored location
                 (save-restriction

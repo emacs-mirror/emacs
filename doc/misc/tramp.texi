@@ -2984,7 +2984,7 @@ connection cleanup or on Emacs exiting.
 @cindex rclone setup
 
 The default arguments of the @command{rclone} operations
-@command{mount}, @command{coopyto}, @command{moveto} and
+@command{mount}, @command{copyto}, @command{moveto} and
 @command{about} are declared in the variable @code{tramp-methods} as
 method specific parameters.  Usually, they don't need to be overwritten.
 
