@@ -156,7 +156,9 @@ either `setopt' or M-x customize-variable to set this option."
   :set (lambda (sym val)
          (set-default sym val)
          (or save-place-loaded (save-place-load-alist-from-file))
-         (let ((fun (if val #'abbreviate-file-name #'expand-file-name)))
+         (let ((fun (if val #'abbreviate-file-name #'expand-file-name))
+               ;; Don't expand file names for non-existing remote connections.
+               (non-essential t))
            (setq save-place-alist
                  (cl-delete-duplicates
                   (cl-loop for (k . v) in save-place-alist
