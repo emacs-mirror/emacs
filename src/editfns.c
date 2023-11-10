@@ -2780,7 +2780,7 @@ labeled_restrictions_pop (Lisp_Object buf)
   Lisp_Object restrictions = assq_no_quit (buf, labeled_restrictions);
   if (NILP (restrictions))
     return;
-  if (EQ (labeled_restrictions_peek_label (buf), Qoutermost_restriction))
+  if (BASE_EQ (labeled_restrictions_peek_label (buf), Qoutermost_restriction))
     labeled_restrictions_remove (buf);
   else
     XSETCDR (restrictions, list1 (XCDR (XCAR (XCDR (restrictions)))));
@@ -2920,7 +2920,7 @@ To gain access to other portions of the buffer, use
 	 current_buffer are the bounds that were set by the user, no
 	 labeled restriction is in effect in current_buffer anymore:
 	 remove it from the labeled_restrictions alist.  */
-      if (EQ (label, Qoutermost_restriction))
+      if (BASE_EQ (label, Qoutermost_restriction))
 	labeled_restrictions_pop (buf);
     }
   /* Changing the buffer bounds invalidates any recorded current column.  */

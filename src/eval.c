@@ -689,7 +689,7 @@ lexbound_p (Lisp_Object symbol)
 	{
 	case SPECPDL_LET_DEFAULT:
 	case SPECPDL_LET:
-	  if (EQ (specpdl_symbol (pdl), Qinternal_interpreter_environment))
+	  if (BASE_EQ (specpdl_symbol (pdl), Qinternal_interpreter_environment))
 	    {
 	      Lisp_Object env = specpdl_old_value (pdl);
 	      if (CONSP (env) && !NILP (Fassq (symbol, env)))
@@ -4107,7 +4107,7 @@ NFRAMES and BASE specify the activation frame to use, as in `backtrace-frame'.  
 	    {
 	      Lisp_Object sym = specpdl_symbol (tmp);
 	      Lisp_Object val = specpdl_old_value (tmp);
-	      if (EQ (sym, Qinternal_interpreter_environment))
+	      if (BASE_EQ (sym, Qinternal_interpreter_environment))
 		{
 		  Lisp_Object env = val;
 		  for (; CONSP (env); env = XCDR (env))
