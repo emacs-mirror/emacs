@@ -168,16 +168,14 @@ The function's value is the number of actions taken."
 				(key-description (vector help-char)))
 		       (if minibuffer-auto-raise
 			   (raise-frame (window-frame (minibuffer-window))))
-		       (while (progn
-				(setq char (read-event))
-				;; If we get -1, from end of keyboard
-				;; macro, try again.
-                                (equal char -1)))
+		       (setq char (read-event))
 		       ;; Show the answer to the question.
 		       (message "%s(y, n, !, ., q, %sor %s) %s"
 				prompt user-keys
 				(key-description (vector help-char))
-				(single-key-description char)))
+				(if (equal char -1)
+                                    "[end-of-keyboard-macro]"
+                                  (single-key-description char))))
 		     (setq def (lookup-key map (vector char))))
 		   (cond ((eq def 'exit)
 			  (setq next (lambda () nil)))
