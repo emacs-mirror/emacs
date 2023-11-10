@@ -2427,6 +2427,77 @@ which see; it can also be a predicate."
             (treesit-parent-until cursor iter-pred)))
     result))
 
+(defun treesit--thing-sibling (pos thing prev)
+  "Return the next or previous THING at POS.
+
+If PREV is non-nil, return the previous THING.  It's guaranteed
+that returned previous sibling's end <= POS, and returned next
+sibling's beginning >= POS.
+
+Return nil if no THING can be found.  THING should be a thing
+defined in `treesit-thing-settings', or a predicate as described
+in `treesit-thing-settings'."
+  (let* ((cursor (treesit-node-at pos))
+         (pos-pred (if prev
+                       (lambda (n) (<= (treesit-node-end n) pos))
+                     (lambda (n) (>= (treesit-node-start n) pos))))
+         (iter-pred (lambda (node)
+                      (and (treesit-node-match-p node thing t)
+                           (funcall pos-pred node))))
+         (sibling nil))
+    (when cursor
+      ;; Find the node just before/after POS to start searching.
+      (save-excursion
+        (while (and cursor (not (funcall pos-pred cursor)))
+          (setq cursor (treesit-search-forward-goto
+                        cursor "" prev prev t))))
+      ;; Keep searching until we run out of candidates or found a
+      ;; return value.
+      (while (and cursor
+                  (funcall pos-pred cursor)
+                  (null sibling))
+        (setq sibling (treesit-node-top-level cursor iter-pred t))
+        (setq cursor (treesit-search-forward cursor thing prev prev)))
+      sibling)))
+
+(defun treesit--thing-prev (pos thing)
+  "Return the previous THING at POS.
+
+The returned node, if non-nil, must be before POS, i.e., its end
+<= POS.
+
+THING should be a thing defined in `treesit-thing-settings', or a
+predicate as described in `treesit-thing-settings'."
+  (treesit--thing-sibling pos thing t))
+
+(defun treesit--thing-next (pos thing)
+  "Return the next THING at POS.
+
+The returned node, if non-nil, must be after POS, i.e., its
+start >= POS.
+
+THING should be a thing defined in `treesit-thing-settings', or a
+predicate as described in `treesit-thing-settings'."
+  (treesit--thing-sibling pos thing nil))
+
+(defun treesit--thing-at (pos thing &optional strict)
+  "Return the smallest THING enclosing POS.
+
+The returned node, if non-nil, must enclose POS, i.e., its start
+<= POS, its end > POS.  If STRICT is non-nil, the returned node's
+start must < POS rather than <= POS.
+
+THING should be a thing defined in `treesit-thing-settings', or
+it can be a predicate described in `treesit-thing-settings'."
+  (let* ((cursor (treesit-node-at pos))
+         (iter-pred (lambda (node)
+                      (and (treesit-node-match-p node thing t)
+                           (if strict
+                               (< (treesit-node-start node) pos)
+                             (<= (treesit-node-start node) pos))
+                           (< pos (treesit-node-end node))))))
+    (treesit-parent-until cursor iter-pred t)))
+
 ;; The basic idea for nested defun navigation is that we first try to
 ;; move across sibling defuns in the same level, if no more siblings
 ;; exist, we move to parents's beg/end, rinse and repeat.  We never
