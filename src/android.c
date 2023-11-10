@@ -1957,6 +1957,26 @@ NATIVE_NAME (shutDownEmacs) (JNIEnv *env, jobject object)
   android_run_in_emacs_thread (android_shut_down_emacs, NULL);
 }
 
+/* Carry out garbage collection and clear all image caches on the
+   Android terminal.  Called when the system has depleted most of its
+   memory and desires that background processes release unused
+   core.  */
+
+static void
+android_on_low_memory (void *closure)
+{
+  Fclear_image_cache (Qt, Qt);
+  garbage_collect ();
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (onLowMemory) (JNIEnv *env, jobject object)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  android_run_in_emacs_thread (android_on_low_memory, NULL);
+}
+
 JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendConfigureNotify) (JNIEnv *env, jobject object,
 				   jshort window, jlong time,

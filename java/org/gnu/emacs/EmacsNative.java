@@ -96,6 +96,9 @@ public final class EmacsNative
      thread, then return.  */
   public static native void shutDownEmacs ();
 
+  /* Garbage collect and clear each frame's image cache.  */
+  public static native void onLowMemory ();
+
   /* Abort and generate a native core dump.  */
   public static native void emacsAbort ();
 

@@ -321,6 +321,10 @@ public final class EmacsService extends Service
       }
   }
 
+  /* The native functions the subsequent two functions call do nothing
+     in the infrequent case the Emacs thread is awaiting a response
+     for the main thread.  Caveat emptor! */
+
   @Override
   public void
   onDestroy ()
@@ -331,6 +335,14 @@ public final class EmacsService extends Service
 
     EmacsNative.shutDownEmacs ();
     super.onDestroy ();
+  }
+
+  @Override
+  public void
+  onLowMemory ()
+  {
+    EmacsNative.onLowMemory ();
+    super.onLowMemory ();
   }
 
 
