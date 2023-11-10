@@ -193,10 +193,10 @@ default:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
         - "**.in"
-        - lisp/emacs-lisp/comp.el
-        - lisp/emacs-lisp/comp-cstr.el
+        - lisp/emacs-lisp/comp*.el
         - src/comp.{h,m}
         - test/infra/*
+        - test/lisp/emacs-lisp/comp*-tests.el
         - test/src/comp-resources/*.el
         - test/src/comp-tests.el
   timeout: 8 hours
