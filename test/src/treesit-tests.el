@@ -1083,6 +1083,36 @@ This tests bug#60355."
      treesit--ert-defun-navigation-python-program
      treesit--ert-defun-navigation-top-level-master)))
 
+(ert-deftest treesit-search-subtree-forward-1 ()
+  "Test search subtree forward."
+  (skip-unless (treesit-language-available-p 'python))
+  (require 'python)
+  (python-ts-mode)
+  (insert "Temp(1, 2)")
+  (goto-char (point-min))
+  (let ((node (treesit-search-subtree
+               (treesit--thing-at (point) "call")
+               (lambda (n) (equal (treesit-node-type n ) "integer")))))
+
+    (should node)
+    (should (equal (treesit-node-text node) "1"))))
+
+(ert-deftest treesit-search-subtree-backward-1 ()
+  "Test search subtree with backward=t."
+  (skip-unless (treesit-language-available-p 'python))
+  (require 'python)
+  (python-ts-mode)
+  (insert "Temp(1, 2)")
+  (goto-char (point-min))
+  (let ((node (treesit-search-subtree
+               (treesit--thing-at (point) "call")
+               (lambda (n) (equal (treesit-node-type n ) "integer"))
+               t)))
+
+    (should node)
+    (should (equal (treesit-node-text node) "2"))))
+
+
 ;; TODO
 ;; - Functions in treesit.el
 ;; - treesit-load-name-override-list

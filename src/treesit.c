@@ -3061,9 +3061,9 @@ treesit_traverse_child_helper (TSTreeCursor *cursor,
       /* First go to the last child.  */
       while (ts_tree_cursor_goto_next_sibling (cursor));
 
-      if (!named)
+      if (!named || (named && ts_node_is_named (ts_tree_cursor_current_node(cursor))))
 	return true;
-      /* Else named... */
+      /* Else named is required and last child is not named node */
       if (treesit_traverse_sibling_helper(cursor, false, true))
 	return true;
       else
