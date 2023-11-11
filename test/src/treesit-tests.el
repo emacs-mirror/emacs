@@ -1090,9 +1090,12 @@ This tests bug#60355."
   (python-ts-mode)
   (insert "Temp(1, 2)")
   (goto-char (point-min))
-  (let ((node (treesit-search-subtree
-               (treesit--thing-at (point) "call")
-               (lambda (n) (equal (treesit-node-type n ) "integer")))))
+  (pcase-let* ((`((,_ . ,call-node))
+                (treesit-query-capture (treesit-buffer-root-node)
+                                       '((call) @c)))
+               (node (treesit-search-subtree
+                      call-node
+                      (lambda (n) (equal (treesit-node-type n) "integer")))))
 
     (should node)
     (should (equal (treesit-node-text node) "1"))))
@@ -1104,10 +1107,13 @@ This tests bug#60355."
   (python-ts-mode)
   (insert "Temp(1, 2)")
   (goto-char (point-min))
-  (let ((node (treesit-search-subtree
-               (treesit--thing-at (point) "call")
-               (lambda (n) (equal (treesit-node-type n ) "integer"))
-               t)))
+  (pcase-let* ((`((,_ . ,call-node))
+                (treesit-query-capture (treesit-buffer-root-node)
+                                       '((call) @c)))
+               (node (treesit-search-subtree
+                      call-node
+                      (lambda (n) (equal (treesit-node-type n) "integer"))
+                      t)))
 
     (should node)
     (should (equal (treesit-node-text node) "2"))))
