@@ -4765,15 +4765,6 @@ check_mutable_hash_table (Lisp_Object obj, struct Lisp_Hash_Table *h)
   eassert (!PURE_P (h));
 }
 
-static void
-collect_interval (INTERVAL interval, Lisp_Object collector)
-{
-  nconc2 (collector,
-	  list1(list3 (make_fixnum (interval->position),
-		       make_fixnum (interval->position + LENGTH (interval)),
-		       interval->plist)));
-}
-
 /* Put an entry into hash table H that associates KEY with VALUE.
    HASH is a previously computed hash code of KEY.
    Value is the index of the entry in H matching KEY.  */
@@ -5196,6 +5187,15 @@ sxhash_obj (Lisp_Object obj, int depth)
     default:
       emacs_abort ();
     }
+}
+
+static void
+collect_interval (INTERVAL interval, Lisp_Object collector)
+{
+  nconc2 (collector,
+	  list1(list3 (make_fixnum (interval->position),
+		       make_fixnum (interval->position + LENGTH (interval)),
+		       interval->plist)));
 }
 
 
