@@ -3838,17 +3838,26 @@ details."
       (funcall completion-lazy-hilit-fn (copy-sequence str))
     str))
 
-(defun completion--hilit-from-re (string regexp)
-  "Fontify STRING with `completions-common-part' using REGEXP."
-  (let* ((md (and regexp (string-match regexp string) (cddr (match-data t))))
-         (me (and md (match-end 0)))
-         (from 0))
-    (while md
-      (add-face-text-property from (pop md) 'completions-common-part nil string)
-      (setq from (pop md)))
-    (unless (or (not me) (= from me))
-      (add-face-text-property from me 'completions-common-part nil string))
-    string))
+(defun completion--hilit-from-re (string regexp &optional point-idx)
+  "Fontify STRING using REGEXP POINT-IDX.
+`completions-common-part' and `completions-first-difference' are
+used.  POINT-IDX is the position of point in the presumed \"PCM\"
+pattern that was used to generate derive REGEXP from."
+(let* ((md (and regexp (string-match regexp string) (cddr (match-data t))))
+       (pos (if point-idx (match-beginning point-idx) (match-end 0)))
+       (me (and md (match-end 0)))
+       (from 0))
+  (while md
+    (add-face-text-property from (pop md) 'completions-common-part nil string)
+    (setq from (pop md)))
+  (if (> (length string) pos)
+      (add-face-text-property
+       pos (1+ pos)
+       'completions-first-difference
+       nil string))
+  (unless (or (not me) (= from me))
+    (add-face-text-property from me 'completions-common-part nil string))
+  string))
 
 (defun completion--flex-score-1 (md-groups match-end len)
   "Compute matching score of completion.
@@ -3973,16 +3982,17 @@ see) for later lazy highlighting."
         completion-lazy-hilit-fn nil)
   (cond
    ((and completions (cl-loop for e in pattern thereis (stringp e)))
-    (let* ((re (completion-pcm--pattern->regex pattern 'group)))
+    (let* ((re (completion-pcm--pattern->regex pattern 'group))
+           (point-idx (completion-pcm--pattern-point-idx pattern)))
       (setq completion-pcm--regexp re)
       (cond (completion-lazy-hilit
              (setq completion-lazy-hilit-fn
-                   (lambda (str) (completion--hilit-from-re str re)))
+                   (lambda (str) (completion--hilit-from-re str re point-idx)))
              completions)
             (t
              (mapcar
               (lambda (str)
-                (completion--hilit-from-re (copy-sequence str) re))
+                (completion--hilit-from-re (copy-sequence str) re point-idx))
               completions)))))
    (t completions)))
 
