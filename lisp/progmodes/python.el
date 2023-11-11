@@ -969,19 +969,30 @@ It makes underscores and dots word constituent chars.")
     "raise" "return" "try" "while" "with" "yield"
     ;; These are technically operators, but we fontify them as
     ;; keywords.
-    "and" "in" "is" "not" "or" "not in"))
+    "and" "in" "is" "not" "or" "not in" "is not"))
+
+(defvar python--treesit-builtin-types
+  '("int" "float" "complex" "bool" "list" "tuple" "range" "str"
+    "bytes" "bytearray" "memoryview" "set" "frozenset" "dict"))
+
+(defvar python--treesit-type-regex
+  (rx-to-string `(seq bol (or
+                           ,@python--treesit-builtin-types
+                           (seq (?  "_") (any "A-Z") (+ (any "a-zA-Z_0-9"))))
+                  eol)))
 
 (defvar python--treesit-builtins
-  '("abs" "all" "any" "ascii" "bin" "bool" "breakpoint" "bytearray"
-    "bytes" "callable" "chr" "classmethod" "compile" "complex"
-    "delattr" "dict" "dir" "divmod" "enumerate" "eval" "exec"
-    "filter" "float" "format" "frozenset" "getattr" "globals"
-    "hasattr" "hash" "help" "hex" "id" "input" "int" "isinstance"
-    "issubclass" "iter" "len" "list" "locals" "map" "max"
-    "memoryview" "min" "next" "object" "oct" "open" "ord" "pow"
-    "print" "property" "range" "repr" "reversed" "round" "set"
-    "setattr" "slice" "sorted" "staticmethod" "str" "sum" "super"
-    "tuple" "type" "vars" "zip" "__import__"))
+  (append python--treesit-builtin-types
+          '("abs" "all" "any" "ascii" "bin" "breakpoint"
+            "callable" "chr" "classmethod" "compile"
+            "delattr" "dir" "divmod" "enumerate" "eval" "exec"
+            "filter" "format" "getattr" "globals"
+            "hasattr" "hash" "help" "hex" "id" "input" "isinstance"
+            "issubclass" "iter" "len" "locals" "map" "max"
+            "min" "next" "object" "oct" "open" "ord" "pow"
+            "print" "property" "repr" "reversed" "round"
+            "setattr" "slice" "sorted" "staticmethod" "sum" "super"
+            "type" "vars" "zip" "__import__")))
 
 (defvar python--treesit-constants
   '("Ellipsis" "False" "None" "NotImplemented" "True" "__debug__"
@@ -1032,9 +1043,7 @@ NODE is the string node.  Do not fontify the initial f for
 f-strings.  OVERRIDE is the override flag described in
 `treesit-font-lock-rules'.  START and END mark the region to be
 fontified."
-  (let* ((string-beg (treesit-node-start node))
-         (string-end (treesit-node-end node))
-         (maybe-expression (treesit-node-parent node))
+  (let* ((maybe-expression (treesit-node-parent node))
          (grandparent (treesit-node-parent
                        (treesit-node-parent
                         maybe-expression)))
@@ -1062,28 +1071,92 @@ fontified."
                         (equal (treesit-node-type maybe-expression)
                                "expression_statement"))
                    'font-lock-doc-face
-                 'font-lock-string-face)))
-    ;; Don't highlight string prefixes like f/r/b.
-    (save-excursion
-      (goto-char string-beg)
-      (when (re-search-forward "[\"']" string-end t)
-        (setq string-beg (match-beginning 0))))
-    (treesit-fontify-with-override
-     string-beg string-end face override start end)))
+                 'font-lock-string-face))
 
-(defun python--treesit-fontify-string-interpolation
-    (node _ start end &rest _)
-  "Fontify string interpolation.
-NODE is the string node.  Do not fontify the initial f for
-f-strings.  START and END mark the region to be
+         (ignore-interpolation (not
+                                (seq-some
+                                 (lambda (feats) (memq 'string-interpolation feats))
+                                 (seq-take treesit-font-lock-feature-list treesit-font-lock-level))))
+         ;; If interpolation is enabled, highlight only
+         ;; string_start/string_content/string_end children.  Do not
+         ;; touch interpolation node that can occur inside of the
+         ;; string.
+         (string-nodes (if ignore-interpolation
+                           (list node)
+                         (treesit-filter-child
+                          node
+                          (lambda (ch) (member (treesit-node-type ch)
+                                               '("string_start"
+                                                 "string_content"
+                                                 "string_end")))
+                          t))))
+
+    (dolist (string-node string-nodes)
+      (let ((string-beg (treesit-node-start string-node))
+            (string-end (treesit-node-end string-node)))
+        (when (or ignore-interpolation
+                  (equal (treesit-node-type string-node) "string_start"))
+          ;; Don't highlight string prefixes like f/r/b.
+          (save-excursion
+            (goto-char string-beg)
+            (when (re-search-forward "[\"']" string-end t)
+              (setq string-beg (match-beginning 0)))))
+
+        (treesit-fontify-with-override
+         string-beg string-end face override start end)))))
+
+(defun python--treesit-fontify-union-types (node override start end &optional type-regex &rest _)
+  "Fontify nested union types in the type hints.
+For examlpe, Lvl1 | Lvl2[Lvl3[Lvl4[Lvl5 | None]], Lvl2].  This
+structure is represented via nesting binary_operator and
+subscript nodes.  This function iterates over all levels and
+highlight identifier nodes. If TYPE-REGEX is not nil fontify type
+identifier only if it matches against TYPE-REGEX. NODE is the
+binary_operator node.  OVERRIDE is the override flag described in
+`treesit-font-lock-rules'.  START and END mark the region to be
 fontified."
-  ;; This is kind of a hack, it basically removes the face applied by
-  ;; the string feature, so that following features can apply their
-  ;; face.
-  (let ((n-start (treesit-node-start node))
-        (n-end (treesit-node-end node)))
-    (remove-text-properties
-     (max start n-start) (min end n-end) '(face))))
+  (dolist (child (treesit-node-children node t))
+    (let (font-node)
+      (pcase (treesit-node-type child)
+        ((or "identifier" "none")
+         (setq font-node child))
+        ("attribute"
+         (when-let ((type-node (treesit-node-child-by-field-name child "attribute")))
+           (setq font-node type-node)))
+        ((or "binary_operator" "subscript")
+         (python--treesit-fontify-union-types child override start end type-regex)))
+
+      (when (and font-node
+                 (or (null type-regex)
+                     (let ((case-fold-search nil))
+                       (string-match-p type-regex (treesit-node-text font-node)))))
+        (treesit-fontify-with-override
+         (treesit-node-start font-node) (treesit-node-end font-node)
+         'font-lock-type-face override start end)))))
+
+(defun python--treesit-fontify-union-types-strict (node override start end &rest _)
+  "Fontify nested union types.
+Same as `python--treesit-fontify-union-types' but type identifier
+should match against `python--treesit-type-regex'.  For NODE,
+OVERRIDE, START and END description see
+`python--treesit-fontify-union-types'."
+  (python--treesit-fontify-union-types node override start end python--treesit-type-regex))
+
+(defun python--treesit-fontify-dotted-decorator (node override start end &rest _)
+  "Fontify dotted decorators.
+For example @pytes.mark.skip.  Iterate over all nested attribute
+nodes and highlight identifier nodes.  NODE is the first attribute
+node.  OVERRIDE is the override flag described in
+`treesit-font-lock-rules'.  START and END mark the region to be
+fontified."
+  (dolist (child (treesit-node-children node t))
+    (pcase (treesit-node-type child)
+      ("identifier"
+       (treesit-fontify-with-override
+        (treesit-node-start child) (treesit-node-end child)
+        'font-lock-type-face override start end))
+      ("attribute"
+       (python--treesit-fontify-dotted-decorator child override start end)))))
 
 (defvar python--treesit-settings
   (treesit-font-lock-rules
@@ -1093,14 +1166,9 @@ fontified."
 
    :feature 'string
    :language 'python
-   '((string) @python--treesit-fontify-string)
+   '((string) @python--treesit-fontify-string
+     (interpolation ["{" "}"] @font-lock-misc-punctuation-face))
 
-   ;; HACK: This feature must come after the string feature and before
-   ;; other features.  Maybe we should make string-interpolation an
-   ;; option rather than a feature.
-   :feature 'string-interpolation
-   :language 'python
-   '((interpolation) @python--treesit-fontify-string-interpolation)
 
    :feature 'keyword
    :language 'python
@@ -1117,12 +1185,6 @@ fontified."
      (parameters (identifier) @font-lock-variable-name-face)
      (parameters (default_parameter name: (identifier) @font-lock-variable-name-face)))
 
-   :feature 'function
-   :language 'python
-   '((call function: (identifier) @font-lock-function-call-face)
-     (call function: (attribute
-                      attribute: (identifier) @font-lock-function-call-face)))
-
    :feature 'builtin
    :language 'python
    `(((identifier) @font-lock-builtin-face
@@ -1132,6 +1194,19 @@ fontified."
                           ,@python--treesit-special-attributes)
                       eol))
               @font-lock-builtin-face)))
+
+   :feature 'decorator
+   :language 'python
+   '((decorator "@" @font-lock-type-face)
+     (decorator (call function: (identifier) @font-lock-type-face))
+     (decorator (identifier) @font-lock-type-face)
+     (decorator [(attribute) (call (attribute))] @python--treesit-fontify-dotted-decorator))
+
+   :feature 'function
+   :language 'python
+   '((call function: (identifier) @font-lock-function-call-face)
+     (call function: (attribute
+                      attribute: (identifier) @font-lock-function-call-face)))
 
    :feature 'constant
    :language 'python
@@ -1144,30 +1219,71 @@ fontified."
                  @font-lock-variable-name-face)
      (assignment left: (attribute
                         attribute: (identifier)
-                        @font-lock-property-use-face))
-     (pattern_list (identifier)
+                        @font-lock-variable-name-face))
+     (augmented_assignment left: (identifier)
+                           @font-lock-variable-name-face)
+     (named_expression name: (identifier)
+                       @font-lock-variable-name-face)
+     (pattern_list [(identifier)
+                    (list_splat_pattern (identifier))]
                    @font-lock-variable-name-face)
-     (tuple_pattern (identifier)
+     (tuple_pattern [(identifier)
+                     (list_splat_pattern (identifier))]
                     @font-lock-variable-name-face)
-     (list_pattern (identifier)
-                   @font-lock-variable-name-face)
-     (list_splat_pattern (identifier)
-                         @font-lock-variable-name-face))
+     (list_pattern [(identifier)
+                    (list_splat_pattern (identifier))]
+                   @font-lock-variable-name-face))
 
-   :feature 'decorator
-   :language 'python
-   '((decorator "@" @font-lock-type-face)
-     (decorator (call function: (identifier) @font-lock-type-face))
-     (decorator (identifier) @font-lock-type-face))
 
    :feature 'type
    :language 'python
+   ;; Override built-in faces when dict/list are used for type hints.
+   :override t
    `(((identifier) @font-lock-type-face
       (:match ,(rx-to-string
                 `(seq bol (or ,@python--treesit-exceptions)
-                      eol))
+                  eol))
               @font-lock-type-face))
-     (type (identifier) @font-lock-type-face))
+     (type [(identifier) (none)] @font-lock-type-face)
+     (type (attribute attribute: (identifier) @font-lock-type-face))
+     ;; We don't want to highlight a package of the type
+     ;; (e.g. pack.ClassName).  So explicitly exclude patterns with
+     ;; attribute, since we handle dotted type name in the previous
+     ;; rule.  The following rule handle
+     ;; generic_type/list/tuple/splat_type nodes.
+     (type (_ !attribute [[(identifier) (none)] @font-lock-type-face
+                          (attribute attribute: (identifier) @font-lock-type-face) ]))
+     ;; collections.abc.Iterator[T] case.
+     (type (subscript (attribute attribute: (identifier) @font-lock-type-face)))
+     ;; Nested optional type hints, e.g. val: Lvl1 | Lvl2[Lvl3[Lvl4]].
+     (type (binary_operator) @python--treesit-fontify-union-types)
+     ;;class Type(Base1, Sequence[T]).
+     (class_definition
+      superclasses:
+      (argument_list [(identifier) @font-lock-type-face
+                      (attribute attribute: (identifier) @font-lock-type-face)
+                      (subscript (identifier) @font-lock-type-face)
+                      (subscript (attribute attribute: (identifier) @font-lock-type-face))]))
+
+     ;; Patern matching: case [str(), pack0.Type0()].  Take only the
+     ;; last identifier.
+     (class_pattern (dotted_name (identifier) @font-lock-type-face :anchor))
+
+     ;; Highlight the second argument as a type in isinstance/issubclass.
+     ((call function: (identifier) @func-name
+            (argument_list :anchor (_)
+                           [(identifier) @font-lock-type-face
+                            (attribute attribute: (identifier) @font-lock-type-face)
+                            (tuple (identifier) @font-lock-type-face)
+                            (tuple (attribute attribute: (identifier) @font-lock-type-face))]
+                           (:match ,python--treesit-type-regex @font-lock-type-face)))
+      (:match "^is\\(?:instance\\|subclass\\)$" @func-name))
+
+     ;; isinstance(t, int|float).
+     ((call function: (identifier) @func-name
+            (argument_list :anchor (_)
+                           (binary_operator) @python--treesit-fontify-union-types-strict))
+      (:match "^is\\(?:instance\\|subclass\\)$" @func-name)))
 
    :feature 'escape-sequence
    :language 'python
