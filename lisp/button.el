@@ -495,7 +495,7 @@ pushing a button, use the `button-describe' command."
               (if (eq (car-safe pos) 'touchscreen-down)
                   ;; If touch-screen-track tap returns nil, then the
                   ;; tap was cancelled.
-                  (when (touch-screen-track-tap pos)
+                  (when (touch-screen-track-tap pos nil nil t)
                     (push-button (posn-point posn) t))
                 (push-button (posn-point posn) t))))))
     ;; POS is just normal position

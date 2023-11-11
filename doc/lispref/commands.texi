@@ -2207,7 +2207,7 @@ below is from commands bound directly to @code{touchscreen-begin}
 events; they allow responding to commonly used touch screen gestures
 separately from mouse event translation.
 
-@defun touch-screen-track-tap event &optional update data
+@defun touch-screen-track-tap event &optional update data threshold
 This function is used to track a single ``tap'' gesture originating
 from the @code{touchscreen-begin} event @var{event}, often used to
 set the point or to activate a button.  It waits for a
@@ -2219,6 +2219,14 @@ contains at least one touchpoint with the same identifier as in
 @var{event}, the function @var{update} is called with two arguments,
 the list of touchpoints in that @code{touchscreen-update} event, and
 @var{data}.
+
+If @var{threshold} is non-@code{nil} and such an event indicates that
+the touchpoint represented by @var{event} has moved beyond a threshold
+of either @var{threshold} or 10 pixels if it is not a number from the
+position of @var{event}, @code{nil} is returned and mouse event
+translation is resumed for that touchpoint, so as not to impede the
+recognition of any subsequent touchscreen gesture arising from its
+sequence.
 
 If any other event arrives in the mean time, @code{nil} is returned.
 The caller should not perform any action in that case.

@@ -1539,7 +1539,7 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
 
 ;; Exports.  These functions are intended for use externally.
 
-(defun touch-screen-track-tap (event &optional update data)
+(defun touch-screen-track-tap (event &optional update data threshold)
   "Track a single tap starting from EVENT.
 EVENT should be a `touchscreen-begin' event.
 
@@ -1549,16 +1549,45 @@ a `touchscreen-update' event is received in the mean time and
 contains a touch point with the same ID as in EVENT, call UPDATE
 with that event and DATA.
 
+If THRESHOLD is non-nil, enforce a threshold of movement that is
+either itself or 10 pixels when it is not a number.  If the touch
+point moves beyond that threshold EVENT on any axis, return nil
+immediately, and further resume mouse event translation for the
+touch point at hand.
+
 Return nil immediately if any other kind of event is received;
 otherwise, return t once the `touchscreen-end' event arrives."
-  (let ((disable-inhibit-text-conversion t))
+  (let ((disable-inhibit-text-conversion t)
+        (threshold (and threshold (or (and (numberp threshold)
+                                           threshold)
+                                      10)))
+        (original-x-y (posn-x-y (cdadr event)))
+        (original-window (posn-window (cdadr event))))
     (catch 'finish
       (while t
-        (let ((new-event (read-event nil)))
+        (let ((new-event (read-event nil))
+              touch-point)
           (cond
            ((eq (car-safe new-event) 'touchscreen-update)
-            (when (and update (assq (caadr event) (cadr new-event)))
-              (funcall update new-event data)))
+            (when (setq touch-point (assq (caadr event) (cadr new-event)))
+              (when update
+                (funcall update new-event data))
+              (when threshold
+                (setq touch-point (cdr touch-point))
+                ;; Detect the touch point moving past the threshold.
+                (let* ((x-y (touch-screen-relative-xy touch-point
+                                                      original-window))
+                       (x (car x-y)) (y (cdr x-y)))
+                  (when (or (> (abs (- x (car original-x-y))) threshold)
+                            (> (abs (- y (cdr original-x-y))) threshold))
+                    ;; Resume normal touch-screen to mouse event
+                    ;; translation for this touch sequence by
+                    ;; supplying both the event starting it and the
+                    ;; motion event that overstepped the threshold to
+                    ;; touch-screen-handle-touch.
+                    (touch-screen-handle-touch event nil t)
+                    (touch-screen-handle-touch new-event nil t)
+                    (throw 'finish nil))))))
            ((eq (car-safe new-event) 'touchscreen-end)
             (throw 'finish
                    ;; Now determine whether or not the `touchscreen-end'
