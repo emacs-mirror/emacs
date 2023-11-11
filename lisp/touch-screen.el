@@ -1550,10 +1550,10 @@ contains a touch point with the same ID as in EVENT, call UPDATE
 with that event and DATA.
 
 If THRESHOLD is non-nil, enforce a threshold of movement that is
-either itself or 10 pixels when it is not a number.  If the touch
-point moves beyond that threshold EVENT on any axis, return nil
-immediately, and further resume mouse event translation for the
-touch point at hand.
+either itself or 10 pixels when it is not a number.  If the
+aformentioned touch point moves beyond that threshold on any
+axis, return nil immediately, and further resume mouse event
+translation for the touch point at hand.
 
 Return nil immediately if any other kind of event is received;
 otherwise, return t once the `touchscreen-end' event arrives."
