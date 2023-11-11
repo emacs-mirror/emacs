@@ -122,7 +122,9 @@ If nil, don't pass \"--dired\" to \"ls\".
 The special value of `unspecified' means to check whether \"ls\"
 supports the \"--dired\" option, and save the result in this
 variable.  This is performed the first time `dired-insert-directory'
-is invoked.
+is invoked.  (If `ls-lisp' is used by default, the test is performed
+only if `ls-lisp-use-insert-directory-program' is non-nil, i.e., if
+Dired actually uses \"ls\".)
 
 Note that if you set this option to nil, either through choice or
 because your \"ls\" program does not support \"--dired\", Dired
