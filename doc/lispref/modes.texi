@@ -3607,7 +3607,9 @@ errors are suppressed, is instead run by a timer.  Thus, this mode
 allows using debugging aids such as @code{debug-on-error}
 (@pxref{Error Debugging}) and Edebug (@pxref{Edebug}) for finding and
 fixing problems in font-lock code and any other code run by JIT
-font-lock.
+font-lock.  Another command that could be useful when developing and
+debugging font-lock is @code{font-lock-debug-fontify}, see @ref{Font
+Lock Basics}.
 @end deffn
 
 @node Levels of Font Lock
