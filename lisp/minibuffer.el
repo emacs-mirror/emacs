@@ -677,6 +677,13 @@ for use at QPOS."
                                              'completions-common-part)
                                qprefix))))
                         (qcompletion (concat qprefix qnew)))
+                   ;; Some completion tables (including this one) pass
+                   ;; along necessary information as text properties
+                   ;; on the first character of the completion.  Make
+                   ;; sure the quoted completion has these properties
+                   ;; too.
+                   (add-text-properties 0 1 (text-properties-at 0 completion)
+                                        qcompletion)
                    ;; Attach unquoted completion string, which is needed
                    ;; to score the completion in `completion--flex-score'.
                    (put-text-property 0 1 'completion--unquoted
