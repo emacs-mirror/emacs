@@ -96,6 +96,12 @@ Hash notation cannot be read at all, so the Lisp reader signals the
 error @code{invalid-read-syntax} whenever it encounters @samp{#<}.
 @kindex invalid-read-syntax
 
+  We describe the read syntax and the printed representation of each
+Lisp data type where we describe that data type, in the following
+sections of this chapter.  For example, see @ref{String Type}, and its
+subsections for the read syntax and printed representation of strings;
+see @ref{Vector Type} for the same information about vectors; etc.
+
   In other languages, an expression is text; it has no other form.  In
 Lisp, an expression is primarily a Lisp object and only secondarily the
 text that is the object's read syntax.  Often there is no need to
@@ -321,6 +327,8 @@ number whose value is 1500.  They are all equivalent.
   A @dfn{character} in Emacs Lisp is nothing more than an integer.  In
 other words, characters are represented by their character codes.  For
 example, the character @kbd{A} is represented as the @w{integer 65}.
+That is also their usual printed representation; see @ref{Basic Char
+Syntax}.
 
   Individual characters are used occasionally in programs, but it is
 more common to work with @emph{strings}, which are sequences composed
@@ -1106,6 +1114,22 @@ character.  Likewise, you can include a backslash by preceding it with
 another backslash, like this: @code{"this \\ is a single embedded
 backslash"}.
 
+  Since a string is an array of characters, you can specify the string
+characters using the read syntax of characters, but without the
+leading question mark.  This is useful for including in string
+constants characters that don't stand for themselves.  Thus, control
+characters can be specified as escape sequences that start with a
+backslash; for example, @code{"foo\r"} yields @samp{foo} followed by
+the carriage return character.  @xref{Basic Char Syntax}, for escape
+sequences of other control characters.  Similarly, you can use the
+special read syntax for control characters (@pxref{Ctl-Char Syntax}),
+as in @code{"foo\^Ibar"}, which produces a tab character embedded
+within a string.  You can also use the escape sequences for non-ASCII
+characters described in @ref{General Escape Syntax}, as in
+@w{@code{"\N@{LATIN SMALL LETTER A WITH GRAVE@}"}} and @code{"\u00e0"}
+(however, see a caveat with non-ASCII characters in @ref{Non-ASCII in
+Strings}).
+
 @cindex newline in strings
   The newline character is not special in the read syntax for strings;
 if you write a new line between the double-quotes, it becomes a
@@ -1182,8 +1206,9 @@ but it does terminate any preceding hex escape.
 as in character literals (but do not use the question mark that begins a
 character constant).  For example, you can write a string containing the
 nonprinting characters tab and @kbd{C-a}, with commas and spaces between
-them, like this: @code{"\t, \C-a"}.  @xref{Character Type}, for a
-description of the read syntax for characters.
+them, like this: @code{"\t, \C-a"}.  @xref{Character Type}, and its
+subsections for a description of the various kinds of read syntax for
+characters.
 
   However, not all of the characters you can write with backslash
 escape-sequences are valid in strings.  The only control characters that

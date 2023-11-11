@@ -1883,6 +1883,9 @@ verbatim, don't just write @code{(error @var{string})}.  If @var{string}
 @var{string} contains @samp{%}, @samp{`}, or @samp{'} it may be
 reformatted, with undesirable results.  Instead, use @code{(error "%s"
 @var{string})}.
+
+When @code{noninteractive} is non-@code{nil} (@pxref{Batch Mode}),
+this function kills Emacs if the signaled error has no handler.
 @end defun
 
 @defun signal error-symbol data
@@ -1916,6 +1919,9 @@ variable to a list of the form @code{(@var{error-symbol} .@:
 
 The function @code{signal} never returns.
 @c (though in older Emacs versions it sometimes could).
+If the error @var{error-symbol} has no handler, and
+@code{noninteractive} is non-@code{nil} (@pxref{Batch Mode}),
+this function eventually kills Emacs.
 
 @example
 @group
@@ -1980,11 +1986,14 @@ function which called the primitive that signaled the error.
 @end defvar
 
 @cindex @code{debug-on-error} use
-An error that has no explicit handler may call the Lisp debugger.  The
-debugger is enabled if the variable @code{debug-on-error} (@pxref{Error
-Debugging}) is non-@code{nil}.  Unlike error handlers, the debugger runs
-in the environment of the error, so that you can examine values of
-variables precisely as they were at the time of the error.
+An error that has no explicit handler may call the Lisp debugger
+(@pxref{Invoking the Debugger}).  The debugger is enabled if the
+variable @code{debug-on-error} (@pxref{Error Debugging}) is
+non-@code{nil}.  Unlike error handlers, the debugger runs in the
+environment of the error, so that you can examine values of variables
+precisely as they were at the time of the error.  In batch mode
+(@pxref{Batch Mode}), the Emacs process then normally exits with a
+non-zero exit status.
 
 @node Handling Errors
 @subsubsection Writing Code to Handle Errors

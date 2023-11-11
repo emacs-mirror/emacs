@@ -1678,6 +1678,10 @@ DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
        doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
 This function does not return.
 
+When `noninteractive' is non-nil (in particular, in batch mode), an
+unhandled error calls `kill-emacs', which terminates the Emacs
+session with a non-zero exit code.
+
 An error symbol is a symbol with an `error-conditions' property
 that is a list of condition names.  The symbol should be non-nil.
 A handler for any of those names will get to handle this signal.

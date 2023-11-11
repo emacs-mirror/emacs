@@ -6321,6 +6321,11 @@ specification like [h]h:mm."
         (org-element-cache-map
          (lambda (el)
            (when (and (org-element-property :deadline el)
+                      ;; Only consider active timestamp values.
+                      (memq (org-element-property
+                             :type
+                             (org-element-property :deadline el))
+                            '(diary active active-range))
                       (or (not with-hour)
                           (org-element-property
                            :hour-start
@@ -6662,6 +6667,11 @@ scheduled items with an hour specification like [h]h:mm."
         (org-element-cache-map
          (lambda (el)
            (when (and (org-element-property :scheduled el)
+                      ;; Only consider active timestamp values.
+                      (memq (org-element-property
+                             :type
+                             (org-element-property :scheduled el))
+                            '(diary active active-range))
                       (or (not with-hour)
                           (org-element-property
                            :hour-start

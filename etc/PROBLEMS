@@ -2017,6 +2017,16 @@ modern X servers have so many other ways to send input to clients
 without signifying that the event is synthesized that it does not
 matter.
 
+*** Programs which use XSendEvent cannot send input events to Emacs.
+
+Emacs built to use the X Input Extension cannot receive core input
+events sent through the SendEvent server request, since these events
+intercepted by the X server when sent to input extension clients.
+
+For such programs to function again, Emacs must be run on an X server
+where the input extension is disabled, or alternatively be configured
+with the "--without-xinput2" option.
+
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.

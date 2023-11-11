@@ -2759,6 +2759,35 @@ way to specify the programs to run is with @samp{-l @var{file}}, which
 loads the library named @var{file}, or @samp{-f @var{function}}, which
 calls @var{function} with no arguments, or @samp{--eval=@var{form}}.
 
+@defvar noninteractive
+This variable is non-@code{nil} when Emacs is running in batch mode.
+@end defvar
+
+  If the specified Lisp program signals an unhandled error in batch
+mode, Emacs exits with a non-zero exit status after invoking the Lisp
+debugger which shows the Lisp backtrace (@pxref{Invoking the
+Debugger}) on the standard error stream:
+
+@example
+$ emacs -Q --batch --eval '(error "foo")'; echo $?
+
+@group
+Error: error ("foo")
+mapbacktrace(#f(compiled-function (evald func args flags) #<bytecode -0x4f85c5
+7c45e2f81>))
+debug-early-backtrace()
+debug-early(error (error "foo"))
+signal(error ("foo"))
+error("foo")
+eval((error "foo") t)
+command-line-1(("--eval" "(error \"foo\")"))
+command-line()
+normal-top-level()
+@end group
+foo
+255
+@end example
+
   Any Lisp program output that would normally go to the echo area,
 either using @code{message}, or using @code{prin1}, etc., with
 @code{t} as the stream (@pxref{Output Streams}), goes instead to
@@ -2776,25 +2805,13 @@ if it is non-@code{nil}; this can be overridden by binding
 @code{coding-system-for-write} to a coding system of you choice
 (@pxref{Explicit Encoding}).
 
+@vindex gc-cons-percentage@r{, in batch mode}
 In batch mode, Emacs will enlarge the value of the
 @code{gc-cons-percentage} variable from the default of @samp{0.1} up to
 @samp{1.0}.  Batch jobs that are supposed to run for a long time
 should adjust the limit back down again, because this means that less
 garbage collection will be performed by default (and more memory
 consumed).
-
-@defvar noninteractive
-This variable is non-@code{nil} when Emacs is running in batch mode.
-@end defvar
-
-If Emacs exits due to signaling an error in batch mode, the exit
-status of the Emacs command is non-zero:
-
-@example
-$ emacs -Q --batch --eval '(error "foo")'; echo $?
-foo
-255
-@end example
 
 @node Session Management
 @section Session Management
