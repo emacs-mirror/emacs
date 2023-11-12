@@ -1384,7 +1384,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (set-text-properties
    :no-eval (set-text-properties (point) (1+ (point)) '(face error)))
   (add-face-text-property
-   (add-face-text-property START END '(:foreground "green")))
+   :no-eval (add-face-text-property START END '(:foreground "green")))
   (propertize
    :eval (propertize "foo" 'face 'italic 'mouse-face 'bold-italic))
   "Searching for Text Properties"
