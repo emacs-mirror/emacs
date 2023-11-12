@@ -149,10 +149,6 @@
    '(["," ";"] @font-lock-delimiter-face)
 
    :language 'lua
-   :feature 'escape
-   '((escape_sequence) @font-lock-escape-face)
-
-   :language 'lua
    :feature 'constant
    '((variable_list
       attribute: (attribute (["<" ">"] (identifier))))
@@ -212,6 +208,11 @@
    :language 'lua
    :feature 'string
    '((string) @font-lock-string-face)
+
+   :language 'lua
+   :feature 'escape
+   :override t
+   '((escape_sequence) @font-lock-escape-face)
 
    :language 'lua
    :feature 'comment
