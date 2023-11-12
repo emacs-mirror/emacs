@@ -120,30 +120,49 @@ Signal an error if X is not a list."
 
 ;;;###autoload
 (defun cl-reduce (cl-func cl-seq &rest cl-keys)
-  "Reduce two-argument FUNCTION across SEQ.
-\nKeywords supported:  :start :end :from-end :initial-value :key
+  "Reduce two-argument FUNCTION across sequence SEQ.
 
 Return the result of calling FUNCTION with the first and the
 second element of SEQ, then calling FUNCTION with that result and
 the third element of SEQ, then with that result and the fourth
 element of SEQ, etc.
 
-If :INITIAL-VALUE is specified, it is logically added to the
-front of SEQ (or the back if :FROM-END is non-nil).  If SEQ is
-empty, return :INITIAL-VALUE and FUNCTION is not called.
+If FROM-END is supplied and non-nil, the reduction occurs from
+the back of the SEQ towards the front, and the order of arguments
+to FUNCTION is also reversed.
 
-If SEQ is empty and no :INITIAL-VALUE is specified, then return
-the result of calling FUNCTION with zero arguments.  This is the
-only case where FUNCTION is called with fewer than two arguments.
+START and END designate the subsequence of SEQ to operate on.
+They can be 0-based numeric indexes or nil, depending on the
+direction of processing.  If END is nil and FROM-END is nil,
+process to the end. If START is nil and FROM-END is non-nil,
+process to the beginning.  If neither is supplied, the whole
+sequence is considered.
 
-If SEQ contains exactly one element and no :INITIAL-VALUE is
-specified, then return that element and FUNCTION is not called.
+If INITIAL-VALUE is supplied, it is logically added to the front
+of the first element of SEQ to be processed (or to the back of
+the last such element if FROM-END is non-nil).  If SEQ is empty,
+return INITIAL-VALUE and FUNCTION is not called.
 
-If :FROM-END is non-nil, the reduction occurs from the back of
-the SEQ moving forward, and the order of arguments to the
-FUNCTION is also reversed.
+If KEY is supplied, it is a function called on each of the
+elements of SEQ to be processed (except INITIAL-VALUE) to produce
+the arguments for FUNCTION.
 
-\n(fn FUNCTION SEQ [KEYWORD VALUE]...)"
+If SEQ is empty and no INITIAL-VALUE is specified, return the
+result of calling FUNCTION with zero arguments.  This is the only
+case where FUNCTION is called with fewer than two arguments.
+
+If there is exactly one element in SEQ to be processed and no
+INITIAL-VALUE is supplied, FUNCTION is not called.  Return that
+element or, if KEY is supplied, result of calling KEY on it.
+
+This is a non-destructive function: the structure of SEQ is not
+modified.
+
+FROM-END, START, END, INITIAL-VALUE and KEY are keyword
+arguments.  See info node `(cl) Program Structure > Argument
+Lists' for details.
+
+\n(fn FUNCTION SEQ &key FROM-END START END INITIAL-VALUE KEY...)"
   (cl--parsing-keywords (:from-end (:start 0) :end :initial-value :key) ()
     (or (listp cl-seq) (setq cl-seq (append cl-seq nil)))
     (setq cl-seq (cl-subseq cl-seq cl-start cl-end))
@@ -160,46 +179,79 @@ FUNCTION is also reversed.
 				  (cl--check-key (pop cl-seq))))))
       cl-accum)))
 
-;;;###autoload
-(defun cl-fill (cl-seq cl-item &rest cl-keys)
-  "Fill the elements of SEQ with ITEM.
-\nKeywords supported:  :start :end
-\n(fn SEQ ITEM [KEYWORD VALUE]...)"
+ ;;;###autoload
+(defun cl-fill (seq item &rest cl-keys)
+  "Replace elements of SEQ between START and END with ITEM.
+SEQ is a Lisp sequence.
+
+SEQ is destructively modified and returned; no new cons cells,
+vectors or strings are created.
+
+START and END designate the subsequence of SEQ to operate on.
+They are 0-based numeric indexes.  END can also be nil meaning
+process to the end.  If neither is supplied, the whole sequence
+is considered.
+
+START and END are keyword arguments.  See info node `(cl) Program
+Structure > Argument Lists' for details.
+
+\n(fn SEQ ITEM &key START END...)"
   (cl--parsing-keywords ((:start 0) :end) ()
-    (if (listp cl-seq)
-	(let ((p (nthcdr cl-start cl-seq))
+    (if (listp seq)
+ (let ((p (nthcdr cl-start seq))
 	      (n (and cl-end (- cl-end cl-start))))
 	  (while (and p (or (null n) (>= (cl-decf n) 0)))
-	    (setcar p cl-item)
+	    (setcar p item)
 	    (setq p (cdr p))))
-      (or cl-end (setq cl-end (length cl-seq)))
-      (if (and (= cl-start 0) (= cl-end (length cl-seq)))
-	  (fillarray cl-seq cl-item)
+      (or cl-end (setq cl-end (length seq)))
+      (if (and (= cl-start 0) (= cl-end (length seq)))
+	  (fillarray seq item)
 	(while (< cl-start cl-end)
-	  (aset cl-seq cl-start cl-item)
+	  (aset seq cl-start item)
 	  (setq cl-start (1+ cl-start)))))
-    cl-seq))
+    seq))
 
-;;;###autoload
-(defun cl-replace (cl-seq1 cl-seq2 &rest cl-keys)
-  "Replace the elements of SEQ1 with the elements of SEQ2.
-SEQ1 is destructively modified, then returned.
-\nKeywords supported:  :start1 :end1 :start2 :end2
-\n(fn SEQ1 SEQ2 [KEYWORD VALUE]...)"
+ ;;;###autoload
+(defun cl-replace (seq1 seq2 &rest cl-keys)
+  "Replace the elements of SEQ1 with elements of SEQ2.
+SEQ1 and SEQ2 are both Lisp sequences.
+
+SEQ is destructively modified and returned; no new cons cells,
+vectors or strings are created.
+
+START1, END1, START2 and END2 can be indexes like in `aref' or
+`elt'.  Each pair designates two subsequences of SEQ1 and SEQ2,
+respectively, to operate on.  If END1 or END2 is nil, consider
+the respective sequences to the end.
+
+Consecutive elements of the subsequence of SEQ1 are replaced by
+consecutive elements of the subsequence of SEQ2.
+
+If the subsequences vary in length, the shorter one determines
+how many elements are replaced.  Extra elements in either
+subsequence are ignored.
+
+START1 and START2 default to 0, END1 and END2 default to nil,
+meaning replace as much of SEQ1 as possible with elements from
+SEQ2.
+
+START1, END1, START2 and END2 are keyword arguments.  See info
+node `(cl) Program Structure > Argument Lists' for details.
+
+\n(fn SEQ1 SEQ2 &key START1 END1 START2 END2...)"
   (cl--parsing-keywords ((:start1 0) :end1 (:start2 0) :end2) ()
-    (if (and (eq cl-seq1 cl-seq2) (<= cl-start2 cl-start1))
-	(or (= cl-start1 cl-start2)
-	    (let* ((cl-len (length cl-seq1))
+    (if (and (eq seq1 seq2) (<= cl-start2 cl-start1))
+ (or (= cl-start1 cl-start2)	    (let* ((cl-len (length seq1))
 		   (cl-n (min (- (or cl-end1 cl-len) cl-start1)
 			      (- (or cl-end2 cl-len) cl-start2))))
 	      (while (>= (setq cl-n (1- cl-n)) 0)
-		(setf (elt cl-seq1 (+ cl-start1 cl-n))
-			    (elt cl-seq2 (+ cl-start2 cl-n))))))
-      (if (listp cl-seq1)
-	  (let ((cl-p1 (nthcdr cl-start1 cl-seq1))
+		(setf (elt seq1 (+ cl-start1 cl-n))
+			    (elt seq2 (+ cl-start2 cl-n))))))
+      (if (listp seq1)
+	  (let ((cl-p1 (nthcdr cl-start1 seq1))
 		(cl-n1 (and cl-end1 (- cl-end1 cl-start1))))
-	    (if (listp cl-seq2)
-		(let ((cl-p2 (nthcdr cl-start2 cl-seq2))
+	    (if (listp seq2)
+		(let ((cl-p2 (nthcdr cl-start2 seq2))
 		      (cl-n (cond ((and cl-n1 cl-end2)
 				   (min cl-n1 (- cl-end2 cl-start2)))
 				  ((and cl-n1 (null cl-end2)) cl-n1)
@@ -208,96 +260,156 @@ SEQ1 is destructively modified, then returned.
 		    (setcar cl-p1 (car cl-p2))
 		    (setq cl-p1 (cdr cl-p1) cl-p2 (cdr cl-p2))))
 	      (setq cl-end2 (if (null cl-n1)
-				(or cl-end2 (length cl-seq2))
-			      (min (or cl-end2 (length cl-seq2))
+				(or cl-end2 (length seq2))
+			      (min (or cl-end2 (length seq2))
 				   (+ cl-start2 cl-n1))))
 	      (while (and cl-p1 (< cl-start2 cl-end2))
-		(setcar cl-p1 (aref cl-seq2 cl-start2))
+		(setcar cl-p1 (aref seq2 cl-start2))
 		(setq cl-p1 (cdr cl-p1) cl-start2 (1+ cl-start2)))))
-	(setq cl-end1 (min (or cl-end1 (length cl-seq1))
-			   (+ cl-start1 (- (or cl-end2 (length cl-seq2))
+	(setq cl-end1 (min (or cl-end1 (length seq1))
+			   (+ cl-start1 (- (or cl-end2 (length seq2))
 					   cl-start2))))
-	(if (listp cl-seq2)
-	    (let ((cl-p2 (nthcdr cl-start2 cl-seq2)))
+	(if (listp seq2)
+	    (let ((cl-p2 (nthcdr cl-start2 seq2)))
 	      (while (< cl-start1 cl-end1)
-		(aset cl-seq1 cl-start1 (car cl-p2))
+		(aset seq1 cl-start1 (car cl-p2))
 		(setq cl-p2 (cdr cl-p2) cl-start1 (1+ cl-start1))))
 	  (while (< cl-start1 cl-end1)
-	    (aset cl-seq1 cl-start1 (aref cl-seq2 cl-start2))
+	    (aset seq1 cl-start1 (aref seq2 cl-start2))
 	    (setq cl-start2 (1+ cl-start2) cl-start1 (1+ cl-start1))))))
-    cl-seq1))
+    seq1))
 
 ;;;###autoload
-(defun cl-remove (cl-item cl-seq &rest cl-keys)
-  "Remove all occurrences of ITEM in SEQ.
-This is a non-destructive function; it makes a copy of SEQ if necessary
-to avoid corrupting the original SEQ.
-\nKeywords supported:  :test :test-not :key :count :start :end :from-end
-\n(fn ITEM SEQ [KEYWORD VALUE]...)"
+(defun cl-remove (item seq &rest cl-keys)
+  "Return a subsequence of SEQ from which ITEM has been removed.
+
+This is like `remove', except that the test that determines
+whether each element in SEQ should be removed can optionally be
+customized and the default comparison uses `eql' instead of
+`equal'.
+
+The test comparing ITEM to elements of SEQ proceeds is customized
+by supplying keyword supplied.  KEY is a unary function
+called individually on element of SEQ.  Its return value is
+compared to ITEM using the binary functions TEST or TEST-NOT.  If
+the call to TEST returns non-nil or the call to TEST-NOT returns
+nil, the test is satisfied and the element is removed.
+
+If TEST-NOT is supplied, TEST is ignored, whether supplied or
+not.
+
+If FROM-END is supplied, proceed from the back towards the front,
+else proceed towards the back.
+
+START and END designate the subsequence of SEQ to operate on.
+They can be 0-based numeric indexes or nil, depending on the
+direction of processing.  If END is nil and FROM-END is nil,
+process to the end. If START is nil and FROM-END is non-nil,
+process to the beginning.  If neither is supplied, the whole
+sequence is considered.
+
+If COUNT, an integer, is supplied, remove no more than COUNT
+elements of SEQ and ignore the rest.
+
+This is a non-destructive function; it makes a copy of SEQ if
+necessary to avoid corrupting the original SEQ.
+
+TEST, TEST-NOT, FROM-END, START, END and COUNT are keyword
+arguments.  See info node `(cl) Program Structure > Argument
+Lists' for details.
+
+\n(fn ITEM SEQ &key KEY TEST TEST-NOT COUNT START END FROM-END)"
   (cl--parsing-keywords (:test :test-not :key :if :if-not :count :from-end
 			(:start 0) :end) ()
-    (let ((len (length cl-seq)))
+    (let ((len (length seq)))
       (if (<= (or cl-count (setq cl-count len)) 0)
-	cl-seq
-        (if (or (nlistp cl-seq) (and cl-from-end (< cl-count (/ len 2))))
-	  (let ((cl-i (cl--position cl-item cl-seq cl-start cl-end
+	seq
+        (if (or (nlistp seq) (and cl-from-end (< cl-count (/ len 2))))
+	  (let ((cl-i (cl--position item seq cl-start cl-end
                                     cl-from-end)))
 	    (if cl-i
-		(let ((cl-res (apply 'cl-delete cl-item (append cl-seq nil)
+		(let ((cl-res (apply 'cl-delete item (append seq nil)
 				     (append (if cl-from-end
 						 (list :end (1+ cl-i))
 					       (list :start cl-i))
 					     cl-keys))))
-		  (if (listp cl-seq) cl-res
-		    (if (stringp cl-seq) (concat cl-res) (vconcat cl-res))))
-	      cl-seq))
+		  (if (listp seq) cl-res
+		    (if (stringp seq) (concat cl-res) (vconcat cl-res))))
+	      seq))
 	  (setq cl-end (- (or cl-end len) cl-start))
 	(if (= cl-start 0)
-	    (while (and cl-seq (> cl-end 0)
-			(cl--check-test cl-item (car cl-seq))
-			(setq cl-end (1- cl-end) cl-seq (cdr cl-seq))
+	    (while (and seq (> cl-end 0)
+			(cl--check-test item (car seq))
+			(setq cl-end (1- cl-end) seq (cdr seq))
 			(> (setq cl-count (1- cl-count)) 0))))
 	(if (and (> cl-count 0) (> cl-end 0))
-	    (let ((cl-p (if (> cl-start 0) (nthcdr cl-start cl-seq)
-			  (setq cl-end (1- cl-end)) (cdr cl-seq))))
+	    (let ((cl-p (if (> cl-start 0) (nthcdr cl-start seq)
+			  (setq cl-end (1- cl-end)) (cdr seq))))
 	      (while (and cl-p (> cl-end 0)
-			  (not (cl--check-test cl-item (car cl-p))))
+			  (not (cl--check-test item (car cl-p))))
 		(setq cl-p (cdr cl-p) cl-end (1- cl-end)))
 	      (if (and cl-p (> cl-end 0))
-		  (nconc (cl-ldiff cl-seq cl-p)
+		  (nconc (cl-ldiff seq cl-p)
 			 (if (= cl-count 1) (cdr cl-p)
 			   (and (cdr cl-p)
-				(apply 'cl-delete cl-item
+				(apply 'cl-delete item
 				       (copy-sequence (cdr cl-p))
 				       :start 0 :end (1- cl-end)
 				       :count (1- cl-count) cl-keys))))
-		cl-seq))
-	  cl-seq))))))
+		seq))
+	  seq))))))
 
 ;;;###autoload
 (defun cl-remove-if (cl-pred cl-list &rest cl-keys)
-  "Remove all items satisfying PREDICATE in SEQ.
-This is a non-destructive function; it makes a copy of SEQ if necessary
-to avoid corrupting the original SEQ.
-\nKeywords supported:  :key :count :start :end :from-end
-\n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
+  "Remove all items satisfying the test PRED in SEQ.
+
+PRED is a function of a single argument.  If it returns non-nil
+the test is satisfied and the element is removed.
+
+If supplied, KEY is a function called on each element of SEQ, and
+its return value is passed to PRED instead of the element itself.
+
+If FROM-END is supplied, proceed from the back towards the front,
+else proceed towards the back.
+
+START and END designate the subsequence of SEQ to operate on.
+They can be 0-based numeric indexes or nil, depending on the
+direction of processing.  If END is nil and FROM-END is nil,
+process to the end. If START is nil and FROM-END is non-nil,
+process to the beginning.  If neither is supplied, the whole
+sequence is considered.
+
+If COUNT, an integer, is supplied, remove no more than COUNT
+elements of SEQ and ignore the rest.  Else, process the whole SEQ.
+
+This is a non-destructive function; it makes a copy of SEQ if
+necessary to avoid corrupting the original SEQ.
+
+KEY, FROM-END, START, END and COUNT are keyword arguments.  See
+info node `(cl) Program Structure > Argument Lists' for details.
+
+\n(fn PRED SEQ &key KEY FROM-END START END COUNT...)"
   (apply 'cl-remove nil cl-list :if cl-pred cl-keys))
 
 ;;;###autoload
-(defun cl-remove-if-not (cl-pred cl-list &rest cl-keys)
-  "Remove all items not satisfying PREDICATE in SEQ.
-This is a non-destructive function; it makes a copy of SEQ if necessary
-to avoid corrupting the original SEQ.
-\nKeywords supported:  :key :count :start :end :from-end
-\n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
-  (apply 'cl-remove nil cl-list :if-not cl-pred cl-keys))
+(defun cl-remove-if-not (pred seq &rest cl-keys)
+  "Remove all items not satisfying the test PRED in SEQ.
+
+This is like `cl-remove-if' (which see), except that elements of
+SEQ are removed if PRED returns nil.
+
+\n(fn PRED SEQ &key KEY COUNT START END FROM-END...)"
+  (apply 'cl-remove nil seq :if-not pred cl-keys))
 
 ;;;###autoload
 (defun cl-delete (cl-item cl-seq &rest cl-keys)
   "Remove all occurrences of ITEM in SEQ.
-This is a destructive function; it reuses the storage of SEQ whenever possible.
-\nKeywords supported:  :test :test-not :key :count :start :end :from-end
-\n(fn ITEM SEQ [KEYWORD VALUE]...)"
+
+This is like `cl-remove' (which see) except that it is a
+destructive function; it reuses the storage of SEQ whenever
+possible.
+
+\n(fn ITEM SEQ &key TEST TEST-NOT COUNT START END FROM-END)"
   (cl--parsing-keywords (:test :test-not :key :if :if-not :count :from-end
 			(:start 0) :end) ()
     (let ((len (length cl-seq)))
@@ -338,20 +450,26 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
 	(apply 'cl-remove cl-item cl-seq cl-keys))))))
 
 ;;;###autoload
-(defun cl-delete-if (cl-pred cl-list &rest cl-keys)
-  "Remove all items satisfying PREDICATE in SEQ.
-This is a destructive function; it reuses the storage of SEQ whenever possible.
-\nKeywords supported:  :key :count :start :end :from-end
-\n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
-  (apply 'cl-delete nil cl-list :if cl-pred cl-keys))
+(defun cl-delete-if (pred seq &rest cl-keys)
+  "Remove all items satisfying PRED in SEQ.
+
+This is like `cl-remove-if' (which see) except that it is a
+destructive function; it reuses the storage of SEQ whenever
+possible.
+
+\n(fn PRED SEQ &key KEY COUNT START END FROM-END...)"
+  (apply 'cl-delete nil seq :if pred cl-keys))
 
 ;;;###autoload
-(defun cl-delete-if-not (cl-pred cl-list &rest cl-keys)
-  "Remove all items not satisfying PREDICATE in SEQ.
-This is a destructive function; it reuses the storage of SEQ whenever possible.
-\nKeywords supported:  :key :count :start :end :from-end
-\n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
-  (apply 'cl-delete nil cl-list :if-not cl-pred cl-keys))
+(defun cl-delete-if-not (pred seq &rest cl-keys)
+  "Remove all items not satisfying PRED in SEQ.
+
+This is like `cl-remove-if-not' (which see) except that it is a
+destructive function; it reuses the storage of SEQ whenever
+possible.
+
+\n(fn PRED SEQ &key KEY COUNT START END FROM-END...)"
+  (apply 'cl-delete nil seq :if-not pred cl-keys))
 
 ;;;###autoload
 (defun cl-remove-duplicates (cl-seq &rest cl-keys)
