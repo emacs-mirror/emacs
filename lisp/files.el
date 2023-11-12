@@ -3245,8 +3245,16 @@ and `inhibit-local-variables-suffixes'.  If
     temp))
 
 (defvar auto-mode-interpreter-regexp
-  (purecopy "#![ \t]?\\([^ \t\n]*\
-/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
+  (purecopy
+   (concat
+    "#![ \t]*"
+    ;; Optional group 1: env(1) invocation.
+    "\\("
+    "[^ \t\n]*/bin/env[ \t]*"
+    "\\(?:-S[ \t]*\\|--split-string\\(?:=\\|[ \t]*\\)\\)?"
+    "\\)?"
+    ;; Group 2: interpreter.
+    "\\([^ \t\n]+\\)"))
   "Regexp matching interpreters, for file mode determination.
 This regular expression is matched against the first line of a file
 to determine the file's mode in `set-auto-mode'.  If it matches, the file
