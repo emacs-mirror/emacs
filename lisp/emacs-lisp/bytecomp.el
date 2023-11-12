@@ -3601,7 +3601,7 @@ lambda-expression."
          (cl-nsubst 3) (cl-nsubst-if 3) (cl-nsubst-if-not 3)
          (cl-nsubstitute 3) (cl-nsubstitute-if 3) (cl-nsubstitute-if-not 3)
          (cl-nsublis 2)
-         (cl-nunion 1 2) (cl-nintersection 1 2) (cl-nset-difference 1 2)
+         (cl-nunion 1 2) (cl-nintersection 1 2) (cl-nset-difference 1)
          (cl-nset-exclusive-or 1 2)
          (cl-nreconc 1)
          (cl-sort 1) (cl-stable-sort 1) (cl-merge 2 3)

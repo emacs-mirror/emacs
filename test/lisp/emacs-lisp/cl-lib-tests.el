@@ -558,5 +558,37 @@
   (should (equal (mapcar (cl-constantly 3) '(a b c d))
                  '(3 3 3 3))))
 
+(ert-deftest cl-set-difference ()
+  ;; our set-difference preserves order, though it is not required to
+  ;; by cl standards. Nevertheless better keep that invariant
+  (should (equal (cl-set-difference '(1 2 3 4) '(3 4 5 6))
+                 '(1 2))))
+
+(ert-deftest cl-nset-difference ()
+  ;; our nset-difference doesn't
+  (let* ((l1 (list 1 2 3 4)) (l2 '(3 4 5 6))
+         (diff (cl-nset-difference l1 l2)))
+    (should (memq 1 diff))
+    (should (memq 2 diff))
+    (should (= (length diff) 2))
+    (should (equal l2 '(3 4 5 6))))
+  (let* ((l1 (list "1" "2" "3" "4")) (l2 '("3" "4" "5" "6"))
+         (diff (cl-nset-difference l1 l2 :test #'equal)))
+    (should (member "1" diff))
+    (should (member "2" diff))
+    (should (= (length diff) 2))
+    (should (equal l2 '("3" "4" "5" "6"))))
+  (let* ((l1 (list '(a . 1) '(b . 2) '(c . 3) '(d . 4)))
+         (l2 (list '(c . 3) '(d . 4) '(e . 5) '(f . 6)))
+         (diff (cl-nset-difference l1 l2 :key #'car)))
+    (should (member '(a . 1) diff))
+    (should (member '(b . 2) diff))
+    (should (= (length diff) 2)))
+  (let* ((l1 (list '("a" . 1) '("b" . 2) '("c" . 3) '("d" . 4)))
+         (l2 (list '("c" . 3) '("d" . 4) '("e" . 5) '("f" . 6)))
+         (diff (cl-nset-difference l1 l2 :key #'car :test #'string=)))
+    (should (member '("a" . 1) diff))
+    (should (member '("b" . 2) diff))
+    (should (= (length diff) 2))))
 
 ;;; cl-lib-tests.el ends here

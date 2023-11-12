@@ -983,36 +983,122 @@ whenever possible.
 \n(fn LIST1 LIST2 [KEYWORD VALUE]...)"
   (and cl-list1 cl-list2 (apply 'cl-intersection cl-list1 cl-list2 cl-keys)))
 
+(defmacro cl--with-member-test (mtest keyword-plist &rest body)
+  (declare (indent 2) (debug (sexp sexp &rest form)))
+  (let ((plist (gensym "plist-"))
+        (key (gensym "key-"))
+        (test (gensym "test-"))
+        (test-not (gensym "test-not-")))
+    `(let* ((,plist ,keyword-plist)
+            (,key (plist-get ,plist :key))
+            (,test (plist-get ,plist :test))
+            (,test-not (plist-get ,plist :test-not))
+            (,mtest
+             (cond (,test-not
+                    (cond (,key
+                           (lambda (e l)
+                             (setq e (funcall ,key e))
+                             (catch 'done
+                               (while l
+                                 (unless (funcall ,test-not e (funcall ,key (car l)))
+                                   (throw 'done t))
+                                 (setq l (cdr l))))))
+                          (t
+                           (lambda (e l)
+                             (catch 'done
+                               (while l
+                                 (unless (funcall ,test-not e (car l))
+                                   (throw 'done t))
+                                 (setq l (cdr l))))))))
+                   (,test
+                    (cond (,key
+                           (lambda (e l)
+                             (setq e (funcall ,key e))
+                             (catch 'done
+                               (while l
+                                 (when (funcall ,test e (funcall ,key (car l)))
+                                   (throw 'done t))
+                                 (setq l (cdr l))))))
+                          ((eq ,test #'eq) #'memq)
+                          ((eq ,test #'eql) #'memql)
+                          ((eq ,test #'equal) #'member)
+                          (t
+                           (lambda (e l)
+                             (catch 'done
+                               (while l
+                                 (when (funcall ,test e (car l))
+                                   (throw 'done t))
+                                 (setq l (cdr l))))))))
+                   (,key
+                    (lambda (e l)
+                      (setq e (funcall ,key e))
+                      (catch 'done
+                        (while l
+                          (when (eql e (funcall ,key (car l)))
+                            (throw 'done t))
+                          (setq l (cdr l))))))
+                   (t #'memql))))
+       ,@body)))
+
 ;;;###autoload
-(defun cl-set-difference (cl-list1 cl-list2 &rest cl-keys)
+(defun cl-set-difference (list1 list2 &rest keys)
   "Combine LIST1 and LIST2 using a set-difference operation.
-The resulting list contains all items that appear in LIST1 but not LIST2.
+
+The resulting list contains all items that appear in LIST1 but
+not LIST2.  An element is said to appear in a list if the element
+and at least one member of that list satisfy the comparison test
+to.  By default, elements are compared with `eql'.
+
+If KEY is supplied, is should be a unary function.  In that case
+elements are not compared directly.  Intead, the result of
+calling the KEY on each pair of elements is used.
+
+If TEST is supplied, it it used to compare elements.  If TEST-NOT
+is supplied, the comparison test is satisfied if TEST-NOT returns
+false.
+
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
-\nKeywords supported:  :test :test-not :key
-\n(fn LIST1 LIST2 [KEYWORD VALUE]...)"
-  (if (or (null cl-list1) (null cl-list2)) cl-list1
-    (cl--parsing-keywords (:key) (:test :test-not)
+
+\n(fn LIST1 LIST2 &key TEST TEST-NOT KEY)"
+  (if (or (null list1) (null list2)) list1
+    (cl--with-member-test mtest keys
       (let ((cl-res nil))
-	(while cl-list1
-	  (or (if (or cl-keys (numberp (car cl-list1)))
-		  (apply 'cl-member (cl--check-key (car cl-list1))
-			 cl-list2 cl-keys)
-		(memq (car cl-list1) cl-list2))
-	      (push (car cl-list1) cl-res))
-	  (pop cl-list1))
+        (while list1
+          (or (funcall mtest (car list1) list2)
+              (push (car list1) cl-res))
+          (pop list1))
         (nreverse cl-res)))))
 
 ;;;###autoload
-(defun cl-nset-difference (cl-list1 cl-list2 &rest cl-keys)
+(defun cl-nset-difference (list1 list2 &rest keys)
   "Combine LIST1 and LIST2 using a set-difference operation.
-The resulting list contains all items that appear in LIST1 but not LIST2.
+
+The resulting list contains all items that appear in LIST1 but
+not LIST2.  An element is said to appear in a list if the element
+and at least one member of that list satisfy the comparison test
+to.  By default, elements are compared with `eql'.
+
+If KEY is supplied, is should be a unary function.  In that case
+elements are not compared directly.  Intead, the result of
+calling the KEY on each pair of elements is used.
+
+If TEST is supplied, it it used to compare elements.  If TEST-NOT
+is supplied, the comparison test is satisfied if TEST-NOT returns
+false.
+
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
-\nKeywords supported:  :test :test-not :key
-\n(fn LIST1 LIST2 [KEYWORD VALUE]...)"
-  (if (or (null cl-list1) (null cl-list2)) cl-list1
-    (apply 'cl-set-difference cl-list1 cl-list2 cl-keys)))
+
+\n(fn LIST1 LIST2 &key TEST TEST-NOT KEY)"
+  (if (or (null list1) (null list2)) list1
+    (cl--with-member-test mtest keys
+      (let ((res nil))
+        (while (consp list1)
+          (if (funcall mtest (car list1) list2)
+              (setf list1 (cdr list1))
+            (cl-shiftf list1 (cdr list1) res list1)))
+        res))))
 
 ;;;###autoload
 (defun cl-set-exclusive-or (cl-list1 cl-list2 &rest cl-keys)
