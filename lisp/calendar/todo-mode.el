@@ -189,20 +189,53 @@ The final element is \"*\", indicating an unspecified month.")
   "Array of abbreviated month names, in order.
 The final element is \"*\", indicating an unspecified month.")
 
+(defconst todo--date-pattern-groups
+  (pcase calendar-date-style
+          ('american '((monthname . "6") (month . "7") (day . "8") (year . "9")))
+          ('european '((day . "6") (monthname . "7") (month . "8") (year . "9")))
+          ('iso '((year . "6") (monthname . "7") (month . "8") (day . "9"))))
+  "Alist for grouping date components in `todo-date-pattern'.")
+
 (defconst todo-date-pattern
-  (let ((dayname (diary-name-pattern calendar-day-name-array nil t)))
-    (concat "\\(?4:\\(?5:" dayname "\\)\\|"
-	    (calendar-dlet
-                ((dayname)
-		 (monthname (format "\\(?6:%s\\)" (diary-name-pattern
-						   todo-month-name-array
-						   todo-month-abbrev-array)))
-		 (month "\\(?7:[0-9]+\\|\\*\\)")
-		 (day "\\(?8:[0-9]+\\|\\*\\)")
-		 (year "-?\\(?9:[0-9]+\\|\\*\\)"))
-	      (mapconcat #'eval calendar-date-display-form))
-	    "\\)"))
-  "Regular expression matching a todo item date header.")
+  (let* ((dayname (diary-name-pattern calendar-day-name-array nil t))
+         (d (concat "\\(?" (alist-get 'day todo--date-pattern-groups)
+                    ":[0-9]+\\|\\*\\)"))
+         (mn (format (concat "\\(?" (alist-get 'monthname
+                                               todo--date-pattern-groups)
+                             ":%s\\)")
+                     (diary-name-pattern todo-month-name-array
+                                         todo-month-abbrev-array)))
+         (m (concat "\\(?" (alist-get 'month todo--date-pattern-groups)
+                    ":[0-9]+\\|\\*\\)"))
+         (y (concat "\\(?" (alist-get 'year todo--date-pattern-groups)
+                    ":[0-9]+\\|\\*\\)"))
+         (dd "1111111")
+         (mm "2222222")
+         (yy "3333333")
+         (s (concat "\\(?4:\\(?5:" dayname "\\)\\|"
+	            (calendar-dlet
+                        ((dayname)
+		         (monthname mn)
+		         (year yy)
+		         (month mm)
+		         (day dd))
+                      (mapconcat #'eval calendar-date-display-form))
+	            "\\)")))
+    ;; The default value of calendar-iso-date-display-form calls
+    ;; `string-to-number' on the values of `month' and `day', so we
+    ;; gave them placeholder values above and now replace these with
+    ;; the necessary regexps with appropriately numbered groups, because
+    ;; `todo-edit-item--header' uses these groups.
+    (when (string-match dd s nil t)
+      (setq s (string-replace dd d s)))
+    (when (string-match mm s nil t)
+      (setq s (string-replace mm m s)))
+    (when (string-match yy s nil t)
+      (setq s (string-replace yy y s)))
+    s)
+  "Regular expression matching a todo item date header.
+The value of `calendar-date-display-form' determines the form of
+the date header.")
 
 ;; By itself this matches anything, because of the `?'; however, it's only
 ;; used in the context of `todo-date-pattern' (but Emacs Lisp lacks
@@ -2350,10 +2383,18 @@ made in the number or names of categories."
 			     (line-end-position) t)
 	  (let* ((otime (match-string-no-properties 2))
 		 (odayname (match-string-no-properties 5))
-		 (omonthname (match-string-no-properties 6))
-		 (omonth (match-string-no-properties 7))
-		 (oday (match-string-no-properties 8))
-		 (oyear (match-string-no-properties 9))
+                 (mngroup (string-to-number
+                           (alist-get 'monthname todo--date-pattern-groups)))
+		 (omonthname (match-string-no-properties mngroup))
+                 (mgroup (string-to-number
+                          (alist-get 'month todo--date-pattern-groups)))
+		 (omonth (match-string-no-properties mgroup))
+                 (dgroup (string-to-number
+                          (alist-get 'day todo--date-pattern-groups)))
+		 (oday (match-string-no-properties dgroup))
+                 (ygroup (string-to-number
+                          (alist-get 'year todo--date-pattern-groups)))
+		 (oyear (match-string-no-properties ygroup))
 		 (tmn-array todo-month-name-array)
 		 (mlist (append tmn-array nil))
 		 (tma-array todo-month-abbrev-array)
@@ -2399,11 +2440,23 @@ made in the number or names of categories."
 		 ((eq what 'month)
 		  (setf day oday
 			year oyear
-			(if (memq 'month calendar-date-display-form)
+                        ;; With default ISO style, 'month is in a
+                        ;; sublist of c-d-d-f, so we flatten it.
+			(if (memq 'month (flatten-tree
+                                          calendar-date-display-form))
 			    month
 			  monthname)
 			(cond ((not current-prefix-arg)
-			       (todo-read-date 'month))
+			       (let ((nmonth (todo-read-date 'month)))
+                                 ;; If old month is given as a number,
+                                 ;; have to convert new month name to
+                                 ;; the corresponding number.
+                                 (when omonth
+                                   (setq nmonth
+                                         (number-to-string
+                                          (1+ (seq-position tma-array
+                                                            nmonth)))))
+                                 nmonth))
 			      ((or (string= omonth "*") (= mm 13))
 			       (user-error "Cannot increment *"))
 			      (t
