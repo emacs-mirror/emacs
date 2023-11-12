@@ -37,7 +37,7 @@
   "Check that the contents of FILE-NAME match the EXPECTED history entries.
 Additonally, check that after loading the file, the history ring
 matches too.  If EXPECTED-RING is a list, compare the ring
-elements against that; if t (the default), check again EXPECTED."
+elements against that; if t (the default), check against EXPECTED."
   (when (eq expected-ring t) (setq expected-ring expected))
   ;; First check the actual file.
   (should (equal (with-temp-buffer
