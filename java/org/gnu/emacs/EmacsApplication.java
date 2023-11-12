@@ -25,19 +25,61 @@ import java.io.FileFilter;
 import android.content.Context;
 
 import android.app.Application;
+
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager.ApplicationInfoFlags;
+import android.content.pm.PackageManager;
+
+import android.os.Build;
+
 import android.util.Log;
 
 public final class EmacsApplication extends Application
 {
   private static final String TAG = "EmacsApplication";
 
-  /* The name of the dump file to use.  */
+  /* The name of the dump file to use, or NULL if this Emacs binary
+     has yet to be dumped.  */
   public static String dumpFileName;
+
+  /* The name of the APK file housing Emacs, or NULL if it could not
+     be ascertained.  */
+  public static String apkFileName;
+
+  @SuppressWarnings ("deprecation")
+  private String
+  getApkFile ()
+  {
+    PackageManager manager;
+    ApplicationInfo info;
+
+    manager = getPackageManager ();
+
+    try
+      {
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+	  info = manager.getApplicationInfo ("org.gnu.emacs", 0);
+	else
+	  info = manager.getApplicationInfo ("org.gnu.emacs",
+					     ApplicationInfoFlags.of (0));
+
+	/* Return an empty string upon failure.  */
+
+	if (info.sourceDir != null)
+	  return info.sourceDir;
+
+	return null;
+      }
+    catch (Exception e)
+      {
+	return null;
+      }
+  }
 
   public static void
   findDumpFile (Context context)
   {
-    File filesDirectory;
+    File filesDirectory, apk;
     File[] allFiles;
     String wantedDumpFile;
     int i;
@@ -67,7 +109,29 @@ public final class EmacsApplication extends Application
     for (i = 0; i < allFiles.length; ++i)
       {
 	if (allFiles[i].getName ().equals (wantedDumpFile))
-	  dumpFileName = allFiles[i].getAbsolutePath ();
+	  {
+	    /* Compare the last modified time of the dumpfile with
+	       that of apkFileName, the time at which Emacs was
+	       installed.  Delete it if the dump file was created
+	       before Emacs was installed, even if the C signature
+	       (representing libemacs.so) remains identical.  */
+
+	    if (apkFileName != null)
+	      {
+		apk = new File (apkFileName);
+
+		if (apk.lastModified ()
+		    > allFiles[i].lastModified ())
+		  {
+		    allFiles[i].delete ();
+
+		    /* Don't set the dump file name in this case.  */
+		    continue;
+		  }
+	      }
+
+	    dumpFileName = allFiles[i].getAbsolutePath ();
+	  }
 	else
 	  /* Delete this outdated dump file.  */
 	  allFiles[i].delete ();
@@ -82,6 +146,9 @@ public final class EmacsApplication extends Application
        descendants created by the system.  The original signal mask
        will be restored for the Emacs thread in `initEmacs'.  */
     EmacsNative.setupSystemThread ();
+
+    /* Establish the name of the APK.  */
+    apkFileName = getApkFile ();
 
     /* Locate a suitable dump file.  */
     findDumpFile (this);

@@ -1965,7 +1965,7 @@ NATIVE_NAME (shutDownEmacs) (JNIEnv *env, jobject object)
 static void
 android_on_low_memory (void *closure)
 {
-  Fclear_image_cache (Qt, Qt);
+  Fclear_image_cache (Qt, Qnil);
   garbage_collect ();
 }
 

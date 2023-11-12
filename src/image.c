@@ -2342,6 +2342,7 @@ evicted.  */)
 {
   if (!NILP (animation_cache))
     {
+      CHECK_CONS (animation_cache);
 #if defined (HAVE_WEBP) || defined (HAVE_GIF)
       anim_prune_animation_cache (XCDR (animation_cache));
 #endif
