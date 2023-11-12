@@ -199,37 +199,94 @@ the elements themselves.
   (apply #'nconc (apply #'cl-maplist cl-func cl-list cl-rest)))
 
 ;;;###autoload
-(defun cl-some (cl-pred cl-seq &rest cl-rest)
-  "Say whether PREDICATE is true for any element in the SEQ sequences.
-More specifically, the return value of this function will be the
-same as the first return value of PREDICATE where PREDICATE has a
-non-nil value.
+(defun cl-some (pred seq &rest moreseqs)
+  "Tell if PRED is true for any tuple of elements of SEQS.
 
-\n(fn PREDICATE SEQ...)"
-  (if (or cl-rest (nlistp cl-seq))
-      (catch 'cl-some
-        (apply #'cl-map nil
-               (lambda (&rest cl-x)
-                 (let ((cl-res (apply cl-pred cl-x)))
-                   (if cl-res (throw 'cl-some cl-res))))
-	       cl-seq cl-rest) nil)
-    (let ((cl-x nil))
-      (while (and cl-seq (not (setq cl-x (funcall cl-pred (pop cl-seq))))))
-      cl-x)))
+Each sequence in SEQS may be of different types.  PRED is a
+function that takes as many arguments as the number of sequences
+in SEQS.  It is first applied to the first elements of each of
+SEQS, then to the second elements, and so on.
+
+If there is more than one sequence in SEQS and they vary in
+length, stop when any of them is exhausted.
+
+The return value of this function is the first non-nil return
+value of PREDICATE, or nil if PREDICATE never returned non-nil.
+
+Examples:
+
+  (cl-some #\\='identity (list nil nil \"foo\")) ; returns t
+
+  (cl-some #\\='identity [nil nil nil]) ; returns nil
+
+  (cl-some (lambda (a b) (> (+ a b) 198))
+            (list ?a ?b ?c) \"abcz\") ; returns nil
+
+  (cl-some (lambda (a b) (> (+ a b) 198))
+            (list ?a ?b ?c) \"abz\") ; returns t
+
+\n(fn PRED SEQS...)"
+  (cond (moreseqs
+         (catch 'done (apply #'cl-map nil
+                             (lambda (&rest x)
+                               (let ((res (apply pred x)))
+                                 (if res (throw 'done res))))
+                             seq moreseqs)
+                nil))
+        ((nlistp seq)
+         (let ((x nil) (l (length seq)) (i 0))
+           (while (and (< i l)
+                       (prog1 (not (setq x (funcall pred (aref seq i))))
+                         (cl-incf i))))
+           x))
+        (t (let ((x nil))
+             (while (and seq (not (setq x (funcall pred (pop seq))))))
+             x))))
 
 ;;;###autoload
-(defun cl-every (cl-pred cl-seq &rest cl-rest)
-  "Return true if PREDICATE is true of every element of SEQ or SEQs.
-\n(fn PREDICATE SEQ...)"
-  (if (or cl-rest (nlistp cl-seq))
-      (catch 'cl-every
-        (apply #'cl-map nil
-               (lambda (&rest cl-x)
-                 (or (apply cl-pred cl-x) (throw 'cl-every nil)))
-	       cl-seq cl-rest) t)
-    (while (and cl-seq (funcall cl-pred (car cl-seq)))
-      (setq cl-seq (cdr cl-seq)))
-    (null cl-seq)))
+(defun cl-every (pred seq &rest moreseqs)
+  "Tell if PRED is true for all tuples of elements of SEQS.
+
+Each sequence in SEQS may be of different types.  PRED is a
+function that takes as many arguments as the number of sequences
+in SEQS.  It is first applied to the first elements of each of
+SEQS, then to the second elements, and so on.
+
+If there is more than one sequence in SEQS and they vary in
+length, stop when any of them is exhausted.
+
+The return value of this function is true if all invocations of
+PRED returned non-nil, otherwise it is false.
+
+Examples:
+
+  (cl-every #\\='identity (list t 42 \"foo\")) ; returns t
+
+  (cl-every #\\='identity [t nil \"foo\"]) ; returns nil
+
+  (cl-every (lambda (a b) (<= (+ a b) 198))
+            (list ?a ?b ?c) \"abcz\") ; returns t
+
+  (cl-every (lambda (a b) (<= (+ a b) 198))
+            (list ?a ?b ?c) \"abz\") ; returns nil
+
+\n(fn PRED SEQS...)"
+  (cond (moreseqs
+         (catch 'done (apply #'cl-map nil
+                             (lambda (&rest x)
+                               (or (apply pred x) (throw 'done nil)))
+                             seq moreseqs)
+                t))
+        ((nlistp seq)
+         (let ((l (length seq)) (i 0))
+           (while (and (< i l)
+                       (prog1 (not (funcall pred (aref seq i)))
+                         (cl-incf i))))
+           (= i l)))
+        (t
+         (while (and seq (funcall pred (car seq)))
+           (setq seq (cdr seq)))
+         (null seq))))
 
 ;;;###autoload
 (defun cl-notany (cl-pred cl-seq &rest cl-rest)
