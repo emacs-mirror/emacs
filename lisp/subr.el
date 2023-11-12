@@ -2682,14 +2682,18 @@ The variable list SPEC is the same as in `if-let*'."
   "Merge LISTS in a consistent order.
 LISTS is a list of lists of elements.
 Merge them into a single list containing the same elements (removing
-duplicates) using the C3 linearization, so as to obeying their relative
-positions in each list.  Equality of elements is tested with `eql'.
+duplicates), obeying their relative positions in each list.
+The order of the (sub)lists determines the final order in those cases where
+the order within the sublists does not impose a unique choice.
+Equality of elements is tested with `eql'.
 
 If a consistent order does not exist, call ERROR-FUNCTION with
 a remaining list of lists that we do not know how to merge.
 It should return the candidate to use to continue the merge, which
 has to be the head of one of the lists.
 By default we choose the head of the first list."
+  ;; Algorithm inspired from
+  ;; [C3](https://en.wikipedia.org/wiki/C3_linearization)
   (let ((result '()))
     (while (cdr (setq lists (delq nil lists)))
       ;; Try to find the next element of the result. This
@@ -2737,16 +2741,17 @@ The returned list is not fresh, don't modify it.
      ((memq mode known-children)
       ;; These things happen, better not get all worked up about it.
       ;;(error "Cycle in the major mode hierarchy: %S" mode)
-      nil)
+      ;; But do try to return something meaningful.
+      (memq mode (reverse known-children)))
      (t
-      (push mode known-children)
       ;; The mode hierarchy (or DAG, actually), is very static, but we
       ;; need to react to changes because `parent' may not be defined
       ;; yet (e.g. it's still just an autoload), so the recursive call
       ;; to `derived-mode-all-parents' may return an
       ;; invalid/incomplete result which we'll need to update when the
       ;; mode actually gets loaded.
-      (let* ((all-parents
+      (let* ((new-children (cons mode known-children))
+             (get-all-parents
               (lambda (parent)
                 ;; Can't use `cl-lib' here (nor `gv') :-(
                 ;;(cl-assert (not (equal parent mode)))
@@ -2755,27 +2760,31 @@ The returned list is not fresh, don't modify it.
                   (unless (memq mode followers)
                     (put parent 'derived-mode--followers
                          (cons mode followers))))
-                (derived-mode-all-parents parent known-children)))
+                (derived-mode-all-parents parent new-children)))
              (parent (or (get mode 'derived-mode-parent)
                          ;; If MODE is an alias, then follow the alias.
                          (let ((alias (symbol-function mode)))
                            (and (symbolp alias) alias))))
-             (extras (get mode 'derived-mode-extra-parents)))
-        (put mode 'derived-mode--all-parents
-             (cons mode
-                   (merge-ordered-lists
-                    (cons (if (and parent (not (memq parent extras)))
-                              (funcall all-parents parent))
-                          (mapcar all-parents extras))))))))))
+             (extras (get mode 'derived-mode-extra-parents))
+             (all-parents
+              (merge-ordered-lists
+               (cons (if (and parent (not (memq parent extras)))
+                         (funcall get-all-parents parent))
+                     (mapcar get-all-parents extras)))))
+        ;; Cache the result unless it was affected by `known-children'
+        ;; because of a cycle.
+        (if (and (memq mode all-parents) known-children)
+            (cons mode (remq mode all-parents))
+          (put mode 'derived-mode--all-parents (cons mode all-parents))))))))
 
 (defun provided-mode-derived-p (mode &rest modes)
   "Non-nil if MODE is derived from one of MODES.
 If you just want to check `major-mode', use `derived-mode-p'."
   (declare (side-effect-free t))
   (let ((ps (derived-mode-all-parents mode)))
-    (while (and ps (not (memq (car ps) modes)))
-      (setq ps (cdr ps)))
-    (car ps)))
+    (while (and modes (not (memq (car modes) ps)))
+      (setq modes (cdr modes)))
+    (car modes)))
 
 (defun derived-mode-p (&rest modes)
   "Non-nil if the current major mode is derived from one of MODES."

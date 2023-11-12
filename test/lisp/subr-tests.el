@@ -345,8 +345,7 @@
 
 ;;;; Mode hooks.
 
-(defalias 'subr-tests--parent-mode
-  (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
+(defalias 'subr-tests--parent-mode #'prog-mode)
 
 (define-derived-mode subr-tests--derived-mode-1 prog-mode "test")
 (define-derived-mode subr-tests--derived-mode-2 subr-tests--parent-mode "test")
@@ -359,6 +358,29 @@
   (should (provided-mode-derived-p 'subr-tests--derived-mode-2
                                    'subr-tests--parent-mode))
   (should (provided-mode-derived-p 'subr-tests--derived-mode-2 'prog-mode)))
+
+
+(define-derived-mode subr-tests--mode-A subr-tests--derived-mode-1 "t")
+(define-derived-mode subr-tests--mode-B subr-tests--mode-A "t")
+(defalias 'subr-tests--mode-C #'subr-tests--mode-B)
+(derived-mode-add-parents 'subr-tests--mode-A '(subr-tests--mode-C))
+
+(ert-deftest subt-tests--derived-mode-add-parents ()
+  ;; The Right Answer is somewhat unclear in the presence of cycles,
+  ;; but let's make sure we get tolerable answers.
+  ;; FIXME: Currently `prog-mode' doesn't always end up at the end :-(
+  (let ((set-equal (lambda (a b)
+                     (not (or (cl-set-difference a b)
+                              (cl-set-difference b a))))))
+    (dolist (mode '(subr-tests--mode-A subr-tests--mode-B subr-tests--mode-C))
+      (should (eq (derived-mode-all-parents mode)
+                  (derived-mode-all-parents mode)))
+      (should (eq mode (car (derived-mode-all-parents mode))))
+      (should (funcall set-equal
+                       (derived-mode-all-parents mode)
+                       '(subr-tests--mode-A subr-tests--mode-B prog-mode
+                         subr-tests--mode-C subr-tests--derived-mode-1))))))
+
 
 (ert-deftest number-sequence-test ()
   (should (= (length
