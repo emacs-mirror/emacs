@@ -1847,10 +1847,13 @@ appear to be a match."
    ;; Allow user to specify null string
    ((= beg end) (funcall exit-function))
    ;; The CONFIRM argument is a predicate.
-   ((and (functionp minibuffer-completion-confirm)
-         (funcall minibuffer-completion-confirm
-                  (buffer-substring beg end)))
-    (funcall exit-function))
+   ((functionp minibuffer-completion-confirm)
+    (if (funcall minibuffer-completion-confirm
+                 (buffer-substring beg end))
+        (funcall exit-function)
+      (unless completion-fail-discreetly
+	(ding)
+	(completion--message "No match"))))
    ;; See if we have a completion from the table.
    ((test-completion (buffer-substring beg end)
                      minibuffer-completion-table
