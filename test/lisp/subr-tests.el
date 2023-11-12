@@ -381,6 +381,16 @@
                        '(subr-tests--mode-A subr-tests--mode-B prog-mode
                          subr-tests--mode-C subr-tests--derived-mode-1))))))
 
+(ert-deftest subt-tests--merge-ordered-lists ()
+  (should (equal (merge-ordered-lists
+                  '((B A) (C A) (D B) (E D C)))
+                 '(E D B C A)))
+  (should (equal (merge-ordered-lists
+                  '((E D C) (B A) (C A) (D B)))
+                 '(E D C B A)))
+  (should-error (merge-ordered-lists
+                 '((E C D) (B A) (A C) (D B))
+                 (lambda (_) (error "cycle")))))
 
 (ert-deftest number-sequence-test ()
   (should (= (length
