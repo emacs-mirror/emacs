@@ -416,7 +416,7 @@ have access to all keys defined inside 'project-prefix-map', as well
 as global bindings (to run other commands inside the project root),
 you can add this to your init script:
 
-  (setq project-switch-commands #'project-prefix-or-any-command)
+  (setopt project-switch-commands #'project-prefix-or-any-command)
 
 ** VC
 
