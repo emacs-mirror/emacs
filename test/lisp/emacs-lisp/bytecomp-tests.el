@@ -643,6 +643,16 @@ inner loops respectively."
       (funcall (car f) 3)
       (list a b))
 
+    (let ((x (list 1)))
+      (let ((y x)
+            (z (setq x (vector x))))
+        (list x y z)))
+
+    (let ((x (list 1)))
+      (let* ((y x)
+             (z (setq x (vector x))))
+        (list x y z)))
+
     (cond)
     (mapcar (lambda (x) (cond ((= x 0)))) '(0 1))
 
