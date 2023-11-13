@@ -384,6 +384,40 @@ This is because it partly acts by modifying other rules which may
 occasionally be surprising.  It can be re-enabled by adding 'omake' to
 'compilation-error-regexp-alist'.
 
+** Project
+
++++
+*** New user option 'project-mode-line'.
+When non-nil, display the name of the current project on the mode
+line.  Clicking 'mouse-1' on the project name pops up the project
+menu.  The default value is nil.
+
+*** New user option 'project-file-history-behavior'.
+Customizing it to 'relativize' makes commands like 'project-find-file'
+and 'project-find-dir' display previous history entries relative to
+the current project.
+
+*** New user option 'project-key-prompt-style'.
+The look of the key prompt in the project switcher has been changed
+slightly.  To get the previous one, set this option to 'brackets'.
+
+*** 'project-try-vc' tries harder to find the responsible VCS.
+When 'project-vc-extra-root-markers' is non-nil, and causes
+subdirectory project to be detected which is not a VCS root, we now
+additionally traverse the parent directories until a VCS root is found
+(if any), so that the ignore rules for that repository are used, and
+the file listing's performance is still optimized.
+
+*** New commands 'project-any-command' and 'project-prefix-or-any-command'.
+The former is now bound to 'C-x p o' by default.
+The latter is designed primarily for use as a value of
+'project-switch-commands'.  If instead of a short menu you prefer to
+have access to all keys defined inside 'project-prefix-map', as well
+as global bindings (to run other commands inside the project root),
+you can add this to your init script:
+
+  (setq project-switch-commands #'project-prefix-or-any-command)
+
 ** VC
 
 ---
@@ -539,6 +573,21 @@ calling external rgrep.
 
 +++
 *** If a command exits abnormally, the Eshell prompt now shows its exit code.
+
+** Minibuffer and Completions
+
+*** New commands 'previous-line-completion' and 'next-line-completion'.
+Bound to '<UP>' and '<DOWN>' arrow keys, respectively, they navigate
+the "*Completions*" buffer vertically by lines, wrapping at the
+top/bottom when 'completion-auto-wrap' is non-nil.
+
+*** New user option 'minibuffer-visible-completions'.
+When customized to non-nil, you can use arrow key in the minibuffer
+to navigate the completions displayed in the *Completions* window.
+Typing 'RET' selects the highlighted candidate.  'C-g' hides the
+completions window.  When the completions window is not visible,
+then all these keys have their usual meaning in the minibuffer.
+This option is supported for in-buffer completion as well.
 
 ** Pcomplete
 
@@ -767,6 +816,13 @@ the end of the line.  Depending on your preference, this can either be
 distracting and easily confused with actual code, or a significant
 early aid that relieves you from moving the buffer or reaching for the
 mouse to consult an error message.
+
+** JS Mode
+The binding 'M-.' has been removed from the major mode keymaps in
+'js-mode' and 'js-ts-mode', having it default to the global binding
+which calls 'xref-find-definitions'.  If the previous one worked
+better for you, use 'define-key' in your init script to bind
+'js-find-symbol' to that combination again.
 
 ** Python mode
 
@@ -1015,23 +1071,8 @@ A major mode based on the tree-sitter library for editing Elixir files.
 *** New major mode 'lua-ts-mode'.
 A major mode based on the tree-sitter library for editing Lua files.
 
-** Minibuffer and Completions
-
-*** New commands 'previous-line-completion' and 'next-line-completion'.
-Bound to '<UP>' and '<DOWN>' arrow keys, respectively, they navigate
-the "*Completions*" buffer vertically by lines, wrapping at the
-top/bottom when 'completion-auto-wrap' is non-nil.
-
-*** New user option 'minibuffer-visible-completions'.
-When customized to non-nil, you can use arrow key in the minibuffer
-to navigate the completions displayed in the *Completions* window.
-Typing 'RET' selects the highlighted candidate.  'C-g' hides the
-completions window.  When the completions window is not visible,
-then all these keys have their usual meaning in the minibuffer.
-This option is supported for in-buffer completion as well.
-
 +++
-*** New global minor mode 'minibuffer-regexp-mode'.
+** New global minor mode 'minibuffer-regexp-mode'.
 This is a minor mode for editing regular expressions in the minibuffer.
 It highlights parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
 a user-friendly way, avoids reporting alleged paren mismatches and makes
@@ -1048,47 +1089,6 @@ dark.  In addition to these, we now have 'modus-operandi-tinted' and
 the needs of users with red-green or blue-yellow color deficiency.
 The Info manual "(modus-themes) Top" describes the details and
 showcases all their customization options.
-
-** Project
-
-+++
-*** New user option 'project-mode-line'.
-When non-nil, display the name of the current project on the mode
-line.  Clicking 'mouse-1' on the project name pops up the project
-menu.  The default value is nil.
-
-*** New user option 'project-file-history-behavior'.
-Customizing it to 'relativize' makes commands like 'project-find-file'
-and 'project-find-dir' display previous history entries relative to
-the current project.
-
-*** New user option 'project-key-prompt-style'.
-The look of the key prompt in the project switcher has been changed
-slightly.  To get the previous one, set this option to 'brackets'.
-
-*** 'project-try-vc' tries harder to find the responsible VCS.
-When 'project-vc-extra-root-markers' is non-nil, and causes
-subdirectory project to be detected which is not a VCS root, we now
-additionally traverse the parent directories until a VCS root is found
-(if any), so that the ignore rules for that repository are used, and
-the file listing's performance is still optimized.
-
-*** New commands 'project-any-command' and 'project-prefix-or-any-command'.
-The former is now bound to 'C-x p o' by default.
-The latter is designed primarily for use as a value of
-'project-switch-commands'.  If instead of a short menu you prefer to
-have access to all keys defined inside 'project-prefix-map', as well
-as global bindings (to run other commands inside the project root),
-you can add this to your init script:
-
-  (setq project-switch-commands #'project-prefix-or-any-command)
-
-** JS Mode
-The binding 'M-.' has been removed from the major mode keymaps in
-'js-mode' and 'js-ts-mode', having it default to the global binding
-which calls 'xref-find-definitions'.  If the previous one worked
-better for you, use 'define-key' in your init script to bind
-'js-find-symbol' to that combination again.
 
 
 * Incompatible Lisp Changes in Emacs 30.1
