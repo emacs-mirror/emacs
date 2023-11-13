@@ -6641,7 +6641,7 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
 (defun cperl-info-on-current-command ()
   (declare (obsolete cperl-perldoc "30.1"))
   (interactive)
-  (cperl-info-on-command (cperl-word-at-point)))
+  (cperl-perldoc (cperl-word-at-point)))
 
 (defun cperl-imenu-info-imenu-search ()
   (declare (obsolete nil "30.1"))
@@ -6660,32 +6660,9 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
 (defun cperl-imenu-on-info ()
   (declare (obsolete nil "30.1"))
   (interactive)
-  (require 'imenu)
-  (let* ((buffer (current-buffer))
-	 imenu-create-index-function
-	 imenu-prev-index-position-function
-	 imenu-extract-index-name-function
-	 (index-item (save-restriction
-		       (save-window-excursion
-			 (set-buffer (cperl-info-buffer nil))
-			 (setq imenu-create-index-function
-			       'imenu-default-create-index-function
-			       imenu-prev-index-position-function
-			       #'cperl-imenu-info-imenu-search
-			       imenu-extract-index-name-function
-			       #'cperl-imenu-info-imenu-name)
-			 (imenu-choose-buffer-index)))))
-    (and index-item
-	 (progn
-	   (push-mark)
-	   (pop-to-buffer "*info-perl*")
-	   (cond
-	    ((markerp (cdr index-item))
-	     (goto-char (marker-position (cdr index-item))))
-	    (t
-	     (goto-char (cdr index-item))))
-	   (set-window-start (selected-window) (point))
-	   (pop-to-buffer buffer)))))
+  (message
+   (concat "The info file `perl' is no longer available.\n"
+           "Consider installing the perl-doc package from GNU ELPA.")))
 
 (defun cperl-lineup (beg end &optional step minshift)
   "Lineup construction in a region.
