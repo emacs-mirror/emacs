@@ -423,7 +423,9 @@ in the order given by `git status'."
                (rev (vc-working-revision file 'Git))
                (disp-rev (or (vc-git--symbolic-ref file)
                              (and rev (substring rev 0 7))))
-               (state-string (concat backend-name indicator disp-rev)))
+               (state-string (concat (unless (eq vc-display-status 'no-backend)
+                                       backend-name)
+                                     indicator disp-rev)))
     (propertize state-string 'face face 'help-echo
                 (concat state-echo " under the " backend-name
                         " version control system"

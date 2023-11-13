@@ -393,6 +393,10 @@ switches for shortlogs, such as the one produced by 'C-x v L'.
 'vc-git-log-switches' is no longer used for shortlogs.
 
 ---
+*** New value 'no-backend' for user option 'vc-display-status'.
+With this value only the revision number is displayed on the mode-line.
+
+---
 *** Obsolete command 'vc-switch-backend' re-added as 'vc-change-backend'.
 The command was previously obsoleted and unbound in Emacs 28.
 

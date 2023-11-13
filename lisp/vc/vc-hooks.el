@@ -152,8 +152,12 @@ visited and a warning displayed."
 
 (defcustom vc-display-status t
   "If non-nil, display revision number and lock status in mode line.
-Otherwise, not displayed."
-  :type 'boolean
+If nil, only the backend name is displayed.  When the value
+is `no-backend', then no backend name is displayed before the
+revision number and lock status."
+  :type '(choice (const :tag "Show only revision/status" no-backend)
+                 (const :tag "Show backend and revision/status" t)
+                 (const :tag "Show only backend name" nil))
   :group 'vc)
 
 
@@ -766,7 +770,9 @@ This function assumes that the file is registered."
                (rev (vc-working-revision file backend))
                (`(,state-echo ,face ,indicator)
                 (vc-mode-line-state state))
-               (state-string (concat backend-name indicator rev)))
+               (state-string (concat (unless (eq vc-display-status 'no-backend)
+                                       backend-name)
+                                     indicator rev)))
     (propertize state-string 'face face 'help-echo
                 (concat state-echo " under the " backend-name
                         " version control system"))))
