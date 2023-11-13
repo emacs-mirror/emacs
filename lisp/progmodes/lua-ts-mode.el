@@ -506,17 +506,18 @@ Calls REPORT-FN directly."
                                             (group (0+ nonl))
                                             eol))
                                    nil t)
-                            for line = (string-to-number (match-string 1))
-                            for beg = (string-to-number (match-string 2))
-                            for end = (string-to-number (match-string 3))
+                            for (beg . end) = (flymake-diag-region
+                                               source
+                                               (string-to-number (match-string 1))
+                                               (string-to-number (match-string 2)))
                             for msg = (match-string 4)
                             for type = (if (string-match "^(W" msg)
                                            :warning
                                          :error)
                             when (and beg end)
                             collect (flymake-make-diagnostic source
-                                                             (cons line beg)
-                                                             (cons line (1+ end))
+                                                             beg
+                                                             end
                                                              type
                                                              msg)
                             into diags
