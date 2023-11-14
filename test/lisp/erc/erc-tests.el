@@ -115,14 +115,20 @@
   (setq erc-away 1)
   (erc-tests--set-fake-server-process "sleep" "1")
 
-  (let (calls)
-    (advice-add 'buffer-local-value :after (lambda (&rest r) (push r calls))
+  (let (mockingp calls)
+    (advice-add 'buffer-local-value :after
+                (lambda (&rest r) (when mockingp (push r calls)))
                 '((name . erc-with-server-buffer)))
 
-    (should (= 1 (erc-with-server-buffer erc-away)))
+    (should (= 1 (prog2 (setq mockingp t)
+                     (erc-with-server-buffer erc-away)
+                   (setq mockingp nil))))
+
     (should (equal (pop calls) (list 'erc-away (current-buffer))))
 
-    (should (= 1 (erc-with-server-buffer (ignore 'me) erc-away)))
+    (should (= 1 (prog2 (setq mockingp t)
+                     (erc-with-server-buffer (ignore 'me) erc-away)
+                   (setq mockingp nil))))
     (should-not calls)
 
     (advice-remove 'buffer-local-value 'erc-with-server-buffer)))
@@ -642,6 +648,58 @@
       (should (equal '("abc" "!123@" "xy") (erc-parse-user "abc!!123@@xy")))
 
       (should (equal '("de" "" "fg@xy") (erc-parse-user "abc\nde!fg@xy"))))))
+
+(ert-deftest erc--parsed-prefix ()
+  (erc-mode)
+  (erc-tests--set-fake-server-process "sleep" "1")
+  (setq erc--isupport-params (make-hash-table))
+
+  ;; Uses fallback values when no PREFIX parameter yet received, thus
+  ;; ensuring caller can use slot accessors immediately intead of
+  ;; checking if null beforehand.
+  (should-not erc--parsed-prefix)
+  (should (equal (erc--parsed-prefix)
+                 #s(erc--parsed-prefix nil "qaohv" "~&@%+"
+                                       ((?q . ?~) (?a . ?&)
+                                        (?o . ?@) (?h . ?%) (?v . ?+)))))
+  (let ((cached (should erc--parsed-prefix)))
+    (should (eq (erc--parsed-prefix) cached)))
+
+  ;; Cache broken.  (Notice not setting `erc--parsed-prefix' to nil).
+  (setq erc-server-parameters '(("PREFIX" . "(Yqaohv)!~&@%+")))
+
+  (let ((proc erc-server-process)
+        (expected '((?Y . ?!) (?q . ?~) (?a . ?&)
+                    (?o . ?@) (?h . ?%) (?v . ?+)))
+        cached)
+
+    (with-temp-buffer
+      (erc-mode)
+      (setq erc-server-process proc)
+      (should (equal expected
+                     (erc--parsed-prefix-alist (erc--parsed-prefix)))))
+
+    (should (equal expected (erc--parsed-prefix-alist erc--parsed-prefix)))
+    (setq cached erc--parsed-prefix)
+    (should (equal cached
+                   #s(erc--parsed-prefix ("(Yqaohv)!~&@%+") "Yqaohv" "!~&@%+"
+                                         ((?Y . ?!) (?q . ?~) (?a . ?&)
+                                          (?o . ?@) (?h . ?%) (?v . ?+)))))
+    ;; Second target buffer reuses cached value.
+    (with-temp-buffer
+      (erc-mode)
+      (setq erc-server-process proc)
+      (should (eq cached (erc--parsed-prefix))))
+
+    ;; New value computed when cache broken.
+    (puthash 'PREFIX (list "(Yqaohv)!~&@%+") erc--isupport-params)
+    (with-temp-buffer
+      (erc-mode)
+      (setq erc-server-process proc)
+      (should-not (eq cached (erc--parsed-prefix)))
+      (should (equal (erc--parsed-prefix-alist
+                      (erc-with-server-buffer erc--parsed-prefix))
+                     expected)))))
 
 (ert-deftest erc--parse-isupport-value ()
   (should (equal (erc--parse-isupport-value "a,b") '("a" "b")))

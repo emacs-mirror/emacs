@@ -106,6 +106,13 @@
 For use with the macro `erc--with-isupport-data'."
   (key nil :type (or null cons)))
 
+(cl-defstruct (erc--parsed-prefix (:include erc--isupport-data))
+  "Server-local data for recognized membership-status prefixes.
+Derived from the advertised \"PREFIX\" ISUPPORT parameter."
+  (letters "qaohv" :type string)
+  (statuses "~&@%+" :type string)
+  (alist nil :type (list-of cons)))
+
 ;; After dropping 28, we can use prefixed "erc-autoload" cookies.
 (defun erc--normalize-module-symbol (symbol)
   "Return preferred SYMBOL for `erc--modules'."

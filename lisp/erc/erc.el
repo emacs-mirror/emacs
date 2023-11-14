@@ -6193,22 +6193,38 @@ See also `erc-channel-begin-receiving-names'."
 
 (defun erc-parse-prefix ()
   "Return an alist of valid prefix character types and their representations.
-Example: (operator) o => @, (voiced) v => +."
-  (let ((str (or (erc-with-server-buffer (erc--get-isupport-entry 'PREFIX t))
-                 ;; provide a sane default
-                 "(qaohv)~&@%+"))
-        types chars)
-    (when (string-match "^(\\([^)]+\\))\\(.+\\)$" str)
-      (setq types (match-string 1 str)
-            chars (match-string 2 str))
-      (let ((len (min (length types) (length chars)))
-            (i 0)
-            (alist nil))
-        (while (< i len)
-          (setq alist (cons (cons (elt types i) (elt chars i))
-                            alist))
-          (setq i (1+ i)))
-        alist))))
+For example, if the current ISUPPORT \"PREFIX\" is \"(ov)@+\",
+return an alist `equal' to ((?v . ?+) (?o . ?@)).  For historical
+reasons, ensure the ordering of the returned alist is opposite
+that of the advertised parameter."
+  (let* ((str (or (erc--get-isupport-entry 'PREFIX t) "(qaohv)~&@%+"))
+         (i 0)
+         (j (string-search ")" str))
+         collected)
+    (when j
+      (while-let ((u (aref str (cl-incf i)))
+                  ((not (=  ?\) u))))
+        (push (cons u (aref str (cl-incf j))) collected)))
+    collected))
+
+(defvar-local erc--parsed-prefix nil
+  "Possibly stale `erc--parsed-prefix' struct instance for the server.
+Use the \"getter\" function of the same name to obtain the current
+value.")
+
+(defun erc--parsed-prefix ()
+  "Return possibly cached `erc--parsed-prefix' object for the server.
+Ensure the returned value describes the most recent \"PREFIX\"
+parameter advertised by the current server, with the original
+ordering intact.  If no such parameter has yet arrived, return a
+stand-in from the fallback value \"(qaohv)~&@%+\"."
+  (erc--with-isupport-data PREFIX erc--parsed-prefix
+    (let ((alist (nreverse (erc-parse-prefix))))
+      (make-erc--parsed-prefix
+       :key key
+       :letters (apply #'string (map-keys alist))
+       :statuses (apply #'string (map-values alist))
+       :alist alist))))
 
 (defcustom erc-channel-members-changed-hook nil
   "This hook is called every time the variable `channel-members' changes.
@@ -6222,7 +6238,7 @@ The buffer where the change happened is current while this hook is called."
 Update `erc-channel-users' according to NAMES-STRING.
 NAMES-STRING is a string listing some of the names on the
 channel."
-  (let* ((prefix (erc-parse-prefix))
+  (let* ((prefix (erc--parsed-prefix-alist (erc--parsed-prefix)))
          (voice-ch (cdr (assq ?v prefix)))
          (op-ch (cdr (assq ?o prefix)))
          (hop-ch (cdr (assq ?h prefix)))
