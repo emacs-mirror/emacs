@@ -682,12 +682,12 @@ This command reformats the current buffer, in the same manner as
 These commands allow you to invoke the so-called @dfn{code actions}:
 requests for the language server to provide editing commands for
 correcting, refactoring or beautifying your code.  These commands may
-affect more than one visited file belong to the project.
+affect more than one visited file belonging to the project.
 
 The command @code{eglot-code-actions} asks the server if there any
 code actions for any point in the buffer or contained in the active
-region.  If there are, you the choice to execute one of them via the
-minibuffer.
+region.  If there are, you have the choice to execute one of them via
+the minibuffer.
 
 A common use of code actions is fixing the Flymake error diagnostics
 issued by Eglot (@pxref{Top,,, flymake, GNU Flymake manual}).
