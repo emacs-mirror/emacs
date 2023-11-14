@@ -661,7 +661,7 @@ list."
           (throw 'found nil))
          ((and (consp elem)
                (eq (car elem) 'not))
-          (when (apply #'derived-mode-p (cdr elem))
+          (when (derived-mode-p (cdr elem))
             (throw 'found nil)))
          ((symbolp elem)
           (when (derived-mode-p elem)

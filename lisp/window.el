@@ -8054,10 +8054,8 @@ indirectly called by the latter."
       (dolist (window windows)
         (let ((mode?
                (with-current-buffer (window-buffer window)
-                 (cond ((memq major-mode allowed-modes)
-                        'same)
-                       ((apply #'derived-mode-p allowed-modes)
-                        'derived)))))
+                 (cond ((memq major-mode allowed-modes) 'same)
+                       ((derived-mode-p allowed-modes)  'derived)))))
           (when (and mode?
                      (not (and inhibit-same-window-p
                                (eq window curwin))))

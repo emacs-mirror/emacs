@@ -6892,7 +6892,7 @@ If these don't exist, a letter in the string is automatically selected."
     ;; Display prompt and wait for quick reply
     (message "%s[%s]" prompt
              (mapconcat (lambda(x) (char-to-string (car x)))
-                        keys-alist ""))
+                        keys-alist))
     (if (sit-for delay)
         ;; No quick reply: Show help
         (save-window-excursion
@@ -7958,7 +7958,7 @@ demand _EXTRA in the keyword list."
     ;; If this is the OBJ_NEW function, try to figure out the class and use
     ;; the keywords from the corresponding INIT method.
     (if (and (equal (upcase name) "OBJ_NEW")
-	     (derived-mode-p 'idlwave-mode 'idlwave-shell-mode))
+	     (derived-mode-p '(idlwave-mode idlwave-shell-mode)))
 	(let* ((bos (save-excursion (idlwave-beginning-of-statement) (point)))
 	       (string (buffer-substring bos (point)))
 	       (case-fold-search t)

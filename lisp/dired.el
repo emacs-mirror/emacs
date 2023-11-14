@@ -3074,7 +3074,7 @@ permissions are hidden from view.
 See options: `dired-hide-details-hide-symlink-targets' and
 `dired-hide-details-hide-information-lines'."
   :group 'dired
-  (unless (derived-mode-p 'dired-mode 'wdired-mode)
+  (unless (derived-mode-p '(dired-mode wdired-mode))
     (error "Not a Dired buffer"))
   (dired-hide-details-update-invisibility-spec)
   (if dired-hide-details-mode
@@ -5101,7 +5101,7 @@ Dired operation (command whose name starts with `dired-do')
 completes."
   :group 'dired
   :lighter " Click-To-Select"
-  (unless (derived-mode-p 'dired-mode 'wdired-mode)
+  (unless (derived-mode-p '(dired-mode wdired-mode))
     (error "Not a Dired buffer"))
   (if dired-click-to-select-mode
       (setq-local tool-bar-map

@@ -1084,7 +1084,7 @@ When nil, the backend is deduced in all modes.")
 	((derived-mode-p 'log-edit-mode) log-edit-vc-backend)
 	((derived-mode-p 'diff-mode)     diff-vc-backend)
 	((or (null vc-deduce-backend-nonvc-modes)
-	     (apply #'derived-mode-p vc-deduce-backend-nonvc-modes))
+	     (derived-mode-p vc-deduce-backend-nonvc-modes))
 	 (ignore-errors (vc-responsible-backend default-directory)))
 	(vc-mode (vc-backend buffer-file-name))))
 

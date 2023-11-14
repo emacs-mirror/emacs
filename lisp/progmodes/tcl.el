@@ -1340,7 +1340,7 @@ to update the alist.")
 If FLAG is nil, just uses `current-word'.
 Otherwise scans backward for most likely Tcl command word."
   (if (and flag
-	   (derived-mode-p 'tcl-mode 'inferior-tcl-mode))
+	   (derived-mode-p '(tcl-mode inferior-tcl-mode)))
       (condition-case nil
 	  (save-excursion
 	    ;; Look backward for first word actually in alist.
@@ -1575,7 +1575,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 	       (if (memq char '(?\[ ?\] ?{ ?} ?\\ ?\" ?$ ?\s ?\;))
 		   (concat "\\" (char-to-string char))
 		 (char-to-string char)))
-	     string ""))
+	     string))
 
 
 

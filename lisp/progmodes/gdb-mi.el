@@ -1006,9 +1006,10 @@ detailed description of this mode.
   (gud-def gud-pp
 	   (gud-call
 	    (concat
-	     "pp " (if (eq (buffer-local-value
-			    'major-mode (window-buffer)) 'speedbar-mode)
-		       (gdb-find-watch-expression) "%e")) arg)
+	     "pp " (if (eq (buffer-local-value 'major-mode (window-buffer))
+			   'speedbar-mode)
+		       (gdb-find-watch-expression) "%e"))
+	    arg)
 	   nil   "Print the Emacs s-expression.")
 
   (define-key gud-minor-mode-map [left-margin mouse-1]
@@ -4586,7 +4587,8 @@ left-to-right display order of the properties."
                            (gdb-set-window-buffer
                             (gdb-get-buffer-create
                              'gdb-registers-buffer
-                             gdb-thread-number) t)))
+                             gdb-thread-number)
+                            t)))
     map))
 
 (define-derived-mode gdb-locals-mode gdb-parent-mode "Locals"
@@ -4706,7 +4708,8 @@ executes FUNCTION."
                            (gdb-set-window-buffer
                             (gdb-get-buffer-create
                              'gdb-locals-buffer
-                             gdb-thread-number) t)))
+                             gdb-thread-number)
+                            t)))
     (define-key map "f" #'gdb-registers-toggle-filter)
     map))
 
@@ -5106,7 +5109,7 @@ Function buffers are locals buffer, registers buffer, etc, but
 not including main command buffer (the one where you type GDB
 commands) or source buffers (that display program source code)."
   (with-current-buffer buffer
-    (derived-mode-p 'gdb-parent-mode 'gdb-inferior-io-mode)))
+    (derived-mode-p '(gdb-parent-mode gdb-inferior-io-mode))))
 
 (defun gdb--buffer-type (buffer)
   "Return the type of BUFFER if it is a function buffer.

@@ -467,10 +467,10 @@ and set it if applicable."
 (defun bug-reference--try-setup-gnus-article ()
   (when (and bug-reference-mode ;; Only if enabled in article buffers.
              (derived-mode-p
-              'gnus-article-mode
-              ;; Apparently, gnus-article-prepare-hook is run in the
-              ;; summary buffer...
-              'gnus-summary-mode)
+              '(gnus-article-mode
+                ;; Apparently, `gnus-article-prepare-hook' is run in the
+                ;; summary buffer...
+                gnus-summary-mode))
              gnus-article-buffer
              gnus-original-article-buffer
              (buffer-live-p (get-buffer gnus-article-buffer))

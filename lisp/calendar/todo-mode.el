@@ -6350,7 +6350,7 @@ the empty string (i.e., no time string)."
 		      (replace-match (nth 1 value) t t nil 2))
 		  (forward-line)))
 	      (if buf
-		  (when (derived-mode-p 'todo-mode 'todo-archive-mode)
+		  (when (derived-mode-p '(todo-mode todo-archive-mode))
 		    (todo-category-select))
 		(save-buffer)
 		(kill-buffer)))))))))
@@ -6394,7 +6394,7 @@ the empty string (i.e., no time string)."
 		    (replace-match value t t nil 1)
 		  (forward-line)))
 	      (if buf
-		  (when (derived-mode-p 'todo-mode 'todo-archive-mode)
+		  (when (derived-mode-p '(todo-mode todo-archive-mode))
 		    (todo-category-select))
 		(save-buffer)
 		(kill-buffer)))))))))
@@ -6420,7 +6420,7 @@ the empty string (i.e., no time string)."
 		    (replace-match value t t nil 1)
 		  (forward-line)))
 	      (if buf
-		  (when (derived-mode-p 'todo-mode 'todo-archive-mode)
+		  (when (derived-mode-p '(todo-mode todo-archive-mode))
 		    (todo-category-select))
 		(save-buffer)
 		(kill-buffer)))))))))

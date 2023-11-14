@@ -2240,7 +2240,7 @@ documentation for the major and minor modes of that buffer."
                   (not (get sym 'byte-obsolete-info))
                   ;; Ignore everything bound.
                   (not (where-is-internal sym nil t))
-                  (apply #'derived-mode-p (command-modes sym)))
+                  (derived-mode-p (command-modes sym)))
          (push sym functions))))
     (with-temp-buffer
       (when functions
