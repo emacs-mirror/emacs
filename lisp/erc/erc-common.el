@@ -101,6 +101,11 @@
   (contents "" :type string)
   (tags '() :type list))
 
+(cl-defstruct erc--isupport-data
+  "Abstract \"class\" for parsed ISUPPORT data.
+For use with the macro `erc--with-isupport-data'."
+  (key nil :type (or null cons)))
+
 ;; After dropping 28, we can use prefixed "erc-autoload" cookies.
 (defun erc--normalize-module-symbol (symbol)
   "Return preferred SYMBOL for `erc--modules'."

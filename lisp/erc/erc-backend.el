@@ -2098,7 +2098,9 @@ primitive value."
                        (erc-with-server-buffer erc--isupport-params)))
             (value (with-memoization (gethash key table)
                      (when-let ((v (assoc (symbol-name key)
-                                          erc-server-parameters)))
+                                          (or erc-server-parameters
+                                              (erc-with-server-buffer
+                                                erc-server-parameters)))))
                        (if (cdr v)
                            (erc--parse-isupport-value (cdr v))
                          '--empty--)))))
@@ -2107,6 +2109,22 @@ primitive value."
         (`(,head . ,_) (if single head (cons key value))))
     (when table
       (remhash key table))))
+
+;; While it's better to depend on interfaces than specific types,
+;; using `cl-struct-slot-value' or similar to extract a known slot at
+;; runtime would incur a small "ducktyping" tax, which should probably
+;; be avoided when running dozens of times per incoming message.
+(defmacro erc--with-isupport-data (param var &rest body)
+  "Return structured data stored in VAR for \"ISUPPORT\" PARAM.
+Expect VAR's value to be an instance of `erc--isupport-data'.  If
+VAR is uninitialized or stale, evaluate BODY and assign the
+result to VAR."
+  (declare (indent defun))
+  `(erc-with-server-buffer
+     (pcase-let (((,@(list '\` (list param  '\, 'key)))
+                  (erc--get-isupport-entry ',param)))
+       (or (and ,var (eq key (erc--isupport-data-key ,var)) ,var)
+           (setq ,var (progn ,@body))))))
 
 (define-erc-response-handler (005)
   "Set the variable `erc-server-parameters' and display the received message.
@@ -2128,8 +2146,11 @@ A server may send more than one 005 message."
             key
             value
             negated)
-        (when (string-match "^\\([A-Z]+\\)=\\(.*\\)$\\|^\\(-\\)?\\([A-Z]+\\)$"
-                            section)
+        (when (string-match
+               (rx bot (| (: (group (+ (any "A-Z"))) "=" (group (* nonl)))
+                          (: (? (group "-")) (group (+ (any "A-Z")))))
+                   eot)
+               section)
           (setq key (or (match-string 1 section) (match-string 4 section))
                 value (match-string 2 section)
                 negated (and (match-string 3 section) '-))
