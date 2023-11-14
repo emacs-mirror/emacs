@@ -325,8 +325,10 @@ be set in `.emacs' instead."
 	 0 5
 	 (list 'display
 	       (find-image
-		'((:type xpm :file "gnus-pointer.xpm"
-			 :ascent center)
+		'((:type svg :file "gnus-pointer.svg"
+                         :ascent center)
+                  (:type xpm :file "gnus-pointer.xpm"
+			    :ascent center)
 		  (:type xbm :file "gnus-pointer.xbm"
 			 :ascent center))
 		t)
