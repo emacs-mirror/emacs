@@ -132,8 +132,10 @@
 (defvar erc-verbose-server-ping)
 (defvar erc-whowas-on-nosuchnick)
 
+(declare-function erc--init-channel-modes "erc" (channel raw-args))
 (declare-function erc--open-target "erc" (target))
 (declare-function erc--target-from-string "erc" (string))
+(declare-function erc--update-modes "erc" (raw-args))
 (declare-function erc-active-buffer "erc" nil)
 (declare-function erc-add-default-channel "erc" (channel))
 (declare-function erc-banlist-update "erc" (proc parsed))
@@ -179,7 +181,6 @@
 (declare-function erc-server-buffer "erc" nil)
 (declare-function erc-set-active-buffer "erc" (buffer))
 (declare-function erc-set-current-nick "erc" (nick))
-(declare-function erc-set-modes "erc" (tgt mode-string))
 (declare-function erc-time-diff "erc" (t1 t2))
 (declare-function erc-trim-string "erc" (s))
 (declare-function erc-update-mode-line "erc" (&optional buffer))
@@ -194,8 +195,6 @@
                   (proc parsed nick login host msg))
 (declare-function erc-update-channel-topic "erc"
                   (channel topic &optional modify))
-(declare-function erc-update-modes "erc"
-                  (tgt mode-string &optional _nick _host _login))
 (declare-function erc-update-user-nick "erc"
                   (nick &optional new-nick host login full-name info))
 (declare-function erc-open "erc"
@@ -1804,7 +1803,7 @@ add things to `%s' instead."
                        (t (erc-get-buffer tgt)))))
         (with-current-buffer (or buf
                                  (current-buffer))
-          (erc-update-modes tgt mode nick host login))
+          (erc--update-modes (cdr (erc-response.command-args parsed))))
           (if (or (string= login "") (string= host ""))
               (erc-display-message parsed 'notice buf
                                    'MODE-nick ?n nick
@@ -2165,7 +2164,7 @@ A server may send more than one 005 message."
   (let* ((nick (car (erc-response.command-args parsed)))
          (modes (mapconcat #'identity
                            (cdr (erc-response.command-args parsed)) " ")))
-    (erc-set-modes nick modes)
+    (erc--update-modes (cdr (erc-response.command-args parsed)))
     (erc-display-message parsed 'notice 'active 's221 ?n nick ?m modes)))
 
 (define-erc-response-handler (252)
@@ -2331,7 +2330,7 @@ See `erc-display-server-message'." nil
   (let ((channel (cadr (erc-response.command-args parsed)))
         (modes (mapconcat #'identity (cddr (erc-response.command-args parsed))
                           " ")))
-    (erc-set-modes channel modes)
+    (erc--init-channel-modes channel (cddr (erc-response.command-args parsed)))
     (erc-display-message
      parsed 'notice (erc-get-buffer channel proc)
      's324 ?c channel ?m modes)))

@@ -113,6 +113,11 @@ Derived from the advertised \"PREFIX\" ISUPPORT parameter."
   (statuses "~&@%+" :type string)
   (alist nil :type (list-of cons)))
 
+(cl-defstruct (erc--channel-mode-types (:include erc--isupport-data))
+  "Server-local \"CHANMODES\" data."
+  (fallbackp nil :type boolean)
+  (table (make-char-table 'erc--channel-mode-types) :type char-table))
+
 ;; After dropping 28, we can use prefixed "erc-autoload" cookies.
 (defun erc--normalize-module-symbol (symbol)
   "Return preferred SYMBOL for `erc--modules'."

@@ -480,6 +480,17 @@ release lacks a similar solution for detecting "joinedness" directly,
 but users can turn to 'xor'-ing 'erc-default-target' and 'erc-target'
 as a makeshift kludge.
 
+*** Channel-mode handling has become stricter and more predictable.
+ERC has always processed channel modes using "standardized" letters
+and popular status prefixes.  Starting with this release, ERC will
+begin preferring advertised "CHANMODES" when interpreting letters and
+their arguments.  To facilitate this transition, the functions
+'erc-set-modes', 'erc-parse-modes', and 'erc-update-modes', have all
+been provisionally deprecated.  Expect a new, replacement API for
+handling specific "MODE" types and letters in coming releases.  If
+you'd like a say in shaping how this transpires, please share your
+ideas and use cases on the tracker.
+
 *** Miscellaneous changes
 Two helper macros from GNU ELPA's Compat library are now available to
 third-party modules as 'erc-compat-call' and 'erc-compat-function'.

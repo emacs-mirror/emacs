@@ -701,6 +701,152 @@
                       (erc-with-server-buffer erc--parsed-prefix))
                      expected)))))
 
+;; This exists as a reference to assert legacy behavior in order to
+;; preserve and incorporate it as a fallback in the 5.6+ replacement.
+(ert-deftest erc-parse-modes ()
+  (with-suppressed-warnings ((obsolete erc-parse-modes))
+    (should (equal (erc-parse-modes "+u") '(("u") nil nil)))
+    (should (equal (erc-parse-modes "-u") '(nil ("u") nil)))
+    (should (equal (erc-parse-modes "+o bob") '(nil nil (("o" on "bob")))))
+    (should (equal (erc-parse-modes "-o bob") '(nil nil (("o" off "bob")))))
+    (should (equal (erc-parse-modes "+uo bob") '(("u") nil (("o" on "bob")))))
+    (should (equal (erc-parse-modes "+o-u bob") '(nil ("u") (("o" on "bob")))))
+    (should (equal (erc-parse-modes "+uo-tv bob alice")
+                   '(("u") ("t") (("o" on "bob") ("v" off "alice")))))
+
+    (ert-info ("Modes of type B are always grouped as unary")
+      (should (equal (erc-parse-modes "+k h2") '(nil nil (("k" on "h2")))))
+      ;; Channel key args are thrown away.
+      (should (equal (erc-parse-modes "-k *") '(nil nil (("k" off nil))))))
+
+    (ert-info ("Modes of type C are grouped as unary even when disabling")
+      (should (equal (erc-parse-modes "+l 3") '(nil nil (("l" on "3")))))
+      (should (equal (erc-parse-modes "-l") '(nil nil (("l" off nil))))))))
+
+(ert-deftest erc--update-channel-modes ()
+  (erc-mode)
+  (setq erc-channel-users (make-hash-table :test #'equal)
+        erc-server-users (make-hash-table :test #'equal)
+        erc--isupport-params (make-hash-table)
+        erc--target (erc--target-from-string "#test"))
+  (erc-tests--set-fake-server-process "sleep" "1")
+
+  (let ((orig-handle-fn (symbol-function 'erc--handle-channel-mode))
+        calls)
+    (cl-letf (((symbol-function 'erc--handle-channel-mode)
+               (lambda (&rest r) (push r calls) (apply orig-handle-fn r)))
+              ((symbol-function 'erc-update-mode-line) #'ignore))
+
+      (ert-info ("Unknown user not created")
+        (erc--update-channel-modes "+o" "bob")
+        (should-not (erc-get-channel-user "bob")))
+
+      (ert-info ("Status updated when user known")
+        (puthash "bob" (cons (erc-add-server-user
+                              "bob" (make-erc-server-user :nickname "bob"))
+                             (make-erc-channel-user))
+                 erc-channel-users)
+        ;; Also asserts fallback behavior for traditional prefixes.
+        (should-not (erc-channel-user-op-p "bob"))
+        (erc--update-channel-modes "+o" "bob")
+        (should (erc-channel-user-op-p "bob"))
+        (erc--update-channel-modes "-o" "bob") ; status revoked
+        (should-not (erc-channel-user-op-p "bob")))
+
+      (ert-info ("Unknown nullary added and removed")
+        (should-not erc--channel-modes)
+        (should-not erc-channel-modes)
+        (erc--update-channel-modes "+u")
+        (should (equal erc-channel-modes '("u")))
+        (should (eq t (gethash ?u erc--channel-modes)))
+        (should (equal (pop calls) '(?d ?u t nil)))
+        (erc--update-channel-modes "-u")
+        (should (equal (pop calls) '(?d ?u nil nil)))
+        (should-not (gethash ?u erc--channel-modes))
+        (should-not erc-channel-modes)
+        (should-not calls))
+
+      (ert-info ("Fallback for Type B includes mode letter k")
+        (erc--update-channel-modes "+k" "h2")
+        (should (equal (pop calls) '(?b ?k t "h2")))
+        (should-not erc-channel-modes)
+        (should (equal "h2" (gethash ?k erc--channel-modes)))
+        (erc--update-channel-modes "-k" "*")
+        (should (equal (pop calls) '(?b ?k nil "*")))
+        (should-not calls)
+        (should-not (gethash ?k erc--channel-modes))
+        (should-not erc-channel-modes))
+
+      (ert-info ("Fallback for Type C includes mode letter l")
+        (erc--update-channel-modes "+l" "3")
+        (should (equal (pop calls) '(?c ?l t "3")))
+        (should-not erc-channel-modes)
+        (should (equal "3" (gethash ?l erc--channel-modes)))
+        (erc--update-channel-modes "-l" nil)
+        (should (equal (pop calls) '(?c ?l nil nil)))
+        (should-not (gethash ?l erc--channel-modes))
+        (should-not erc-channel-modes))
+
+      (ert-info ("Advertised supersedes heuristics")
+        (setq erc-server-parameters
+              '(("PREFIX" . "(ov)@+")
+                ;; Add phony 5th type for this CHANMODES value for
+                ;; robustness in case some server gets creative.
+                ("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz,FAKE")))
+        (erc--update-channel-modes "+qu" "fool!*@*")
+        (should (equal (pop calls) '(?d ?u t nil)))
+        (should (equal (pop calls) '(?a ?q t "fool!*@*")))
+        (should (equal "fool!*@*" (gethash ?q erc--channel-modes)))
+        (should (eq t (gethash ?u erc--channel-modes)))
+        (should (equal erc-channel-modes '("u")))
+        (should-not (erc-channel-user-owner-p "bob")))
+
+      (should-not calls))))
+
+(ert-deftest erc--update-user-modes ()
+  (let ((erc--user-modes (list ?a)))
+    (should (equal (erc--update-user-modes "+a") '(?a)))
+    (should (equal (erc--update-user-modes "-b") '(?a)))
+    (should (equal erc--user-modes '(?a))))
+
+  (let ((erc--user-modes (list ?b)))
+    (should (equal (erc--update-user-modes "+ac") '(?a ?b ?c)))
+    (should (equal (erc--update-user-modes "+a-bc") '(?a)))
+    (should (equal erc--user-modes '(?a)))))
+
+(ert-deftest erc--user-modes ()
+  (let ((erc--user-modes '(?a ?b)))
+    (should (equal (erc--user-modes) '(?a ?b)))
+    (should (equal (erc--user-modes 'string) "ab"))
+    (should (equal (erc--user-modes 'strings) '("a" "b")))
+    (should (equal (erc--user-modes '?+) "+ab"))))
+
+(ert-deftest erc--parse-user-modes ()
+  (should (equal (erc--parse-user-modes "a" '(?a)) '(() ())))
+  (should (equal (erc--parse-user-modes "+a" '(?a)) '(() ())))
+  (should (equal (erc--parse-user-modes "a" '()) '((?a) ())))
+  (should (equal (erc--parse-user-modes "+a" '()) '((?a) ())))
+  (should (equal (erc--parse-user-modes "-a" '()) '(() ())))
+  (should (equal (erc--parse-user-modes "-a" '(?a)) '(() (?a))))
+
+  (should (equal (erc--parse-user-modes "+a-b" '(?a)) '(() ())))
+  (should (equal (erc--parse-user-modes "+a-b" '(?b)) '((?a) (?b))))
+  (should (equal (erc--parse-user-modes "+ab-c" '(?b)) '((?a) ())))
+  (should (equal (erc--parse-user-modes "+ab-c" '(?b ?c)) '((?a) (?c))))
+  (should (equal (erc--parse-user-modes "+a-c+b" '(?b ?c)) '((?a) (?c))))
+  (should (equal (erc--parse-user-modes "-c+ab" '(?b ?c)) '((?a) (?c))))
+
+  ;; Param `extrap' returns groups of redundant chars.
+  (should (equal (erc--parse-user-modes "+a" '() t) '((?a) () () ())))
+  (should (equal (erc--parse-user-modes "+a" '(?a) t) '(() () (?a) ())))
+  (should (equal (erc--parse-user-modes "-a" '() t) '(() () () (?a))))
+  (should (equal (erc--parse-user-modes "-a" '(?a) t) '(() (?a) () ())))
+
+  (should (equal (erc--parse-user-modes "+a-b" '(?a) t) '(() () (?a) (?b))))
+  (should (equal (erc--parse-user-modes "-b+a" '(?a) t) '(() () (?a) (?b))))
+  (should (equal (erc--parse-user-modes "+a-b" '(?b) t) '((?a) (?b) () ())))
+  (should (equal (erc--parse-user-modes "-b+a" '(?b) t) '((?a) (?b) () ()))))
+
 (ert-deftest erc--parse-isupport-value ()
   (should (equal (erc--parse-isupport-value "a,b") '("a" "b")))
   (should (equal (erc--parse-isupport-value "a,b,c") '("a" "b" "c")))
