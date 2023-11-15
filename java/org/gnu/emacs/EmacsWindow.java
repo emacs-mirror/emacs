@@ -918,8 +918,8 @@ public final class EmacsWindow extends EmacsHandleObject
 	   it in the map.  */
 	pointerIndex = event.getActionIndex ();
 	pointerID = event.getPointerId (pointerIndex);
-	coordinate = new Coordinate ((int) event.getX (0),
-				     (int) event.getY (0),
+	coordinate = new Coordinate ((int) event.getX (pointerIndex),
+				     (int) event.getY (pointerIndex),
 				     buttonForEvent (event),
 				     pointerID);
 	pointerMap.put (pointerID, coordinate);
