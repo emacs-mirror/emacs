@@ -2227,7 +2227,7 @@ that no such event exists, the centerpoint between both touch points
 when the ancillary tool was first registered.
 
 Such events are sent when the magnitude of the changes they represent
-will yield a @code{ratio} which differs by more than @code{0.2} from
+will yield a @var{ratio} which differs by more than @code{0.2} from
 that in the previous event, or the sum of @var{pan-x} and @var{pan-y}
 will surpass half the frame's character width in pixels (@pxref{Frame
 Font}).
