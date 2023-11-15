@@ -33,15 +33,41 @@
 
 (defvar touch-screen-current-tool nil
   "The touch point currently being tracked, or nil.
-If non-nil, this is a list of nine elements: the ID of the touch
+If non-nil, this is a list of ten elements: the ID of the touch
 point being tracked, the window where the touch began, a cons
-containing the last known position of the touch point, relative
+holding the last registered position of the touch point, relative
 to that window, a field used to store data while tracking the
-touch point, the initial position of the touchpoint, and another
-four fields to used store data while tracking the touch point.
+touch point, the initial position of the touchpoint, another four
+fields to used store data while tracking the touch point, and the
+last known position of the touch point.
+
 See `touch-screen-handle-point-update' and
 `touch-screen-handle-point-up' for the meanings of the fourth
-element.")
+element.
+
+The third and last elements differ in that the former is not
+modified until after a gesture is recognized in reaction to an
+update, whereas the latter is updated upon each apposite
+`touchscreen-update' event.")
+
+(defvar touch-screen-aux-tool nil
+  "The ancillary tool being tracked, or nil.
+If non-nil, this is a vector of eight elements: the ID of the
+touch point being tracked, the window where the touch began, a
+cons holding the initial position of the touch point, and the
+last known position of the touch point, all in the same format as
+in `touch-screen-current-tool', the distance in pixels between
+the current tool and the aformentioned initial position, the
+center of the line formed between those two points, the ratio
+between the present distance between both tools and the aforesaid
+initial distance when a pinch gesture was last sent, and an
+element into which commands can save data particular to a tool.
+
+The ancillary tool is a second tool whose movement is interpreted
+in unison with that of the current tool to recognize gestures
+comprising the motion of both such as \"pinch\" gestures, in
+which the text scale is adjusted in proportion to the distance
+between both tools.")
 
 (defvar touch-screen-set-point-commands '(mouse-set-point)
   "List of commands known to set the point.
@@ -844,6 +870,68 @@ keeping the bounds of the region intact, and set up state for
 
 
 
+;; Pinch gesture.
+
+(defvar text-scale-mode)
+(defvar text-scale-mode-amount)
+(defvar text-scale-mode-step)
+
+(defun touch-screen-scroll-point-to-y (target-point target-y)
+  "Move the row surrounding TARGET-POINT to TARGET-Y.
+Scroll the current window such that the position of TARGET-POINT
+within it on the Y axis approaches TARGET-Y."
+  (condition-case nil
+      (let* ((last-point (point))
+	     (current-y (cadr (pos-visible-in-window-p target-point
+                                                       nil t)))
+	     (direction (if (if current-y
+                                (< target-y current-y)
+			      (< (window-start) target-point))
+			    -1 1)))
+	(while (< 0 (* direction (if current-y
+				     (- target-y current-y)
+				   (- (window-start) target-point))))
+	  (scroll-down direction)
+	  (setq last-point (point))
+	  (setq current-y (cadr (pos-visible-in-window-p target-point nil t))))
+	(unless (and (< direction 0) current-y)
+	  (scroll-up direction)
+	  (goto-char last-point)))
+    ;; Ignore BOB and EOB.
+    ((beginning-of-buffer end-of-buffer) nil)))
+
+(defun touch-screen-pinch (event)
+  "Scroll the window in the touchscreen-pinch event EVENT.
+Pan the display by the pan deltas in EVENT, and adjust the
+text scale by the ratio therein."
+  (interactive "e")
+  (require 'face-remap)
+  (let* ((posn (cadr event))
+         (window (posn-window posn))
+         (current-scale (if text-scale-mode
+                            text-scale-mode-amount
+                          0))
+         (start-scale (or (aref touch-screen-aux-tool 7)
+                          (aset touch-screen-aux-tool 7
+                                current-scale)))
+         (scale (nth 2 event)))
+    (with-selected-window window
+      ;; Set the text scale.
+      (text-scale-set (+ start-scale
+                         (round (log scale text-scale-mode-step))))
+      ;; Subsequently move the row which was at the centrum to its Y
+      ;; position.  TODO: pan by the deltas in EVENT when the text
+      ;; scale has not changed, and hscroll to the centrum as well.
+      (when (and (not (eq current-scale
+                          text-scale-mode-amount))
+                 (posn-point posn))
+        (touch-screen-scroll-point-to-y (posn-point posn)
+                                        (cdr (posn-x-y posn)))))))
+
+(define-key global-map [touchscreen-pinch] #'touch-screen-pinch)
+
+
+
 ;; Touch screen event translation.  The code here translates raw touch
 ;; screen events into `touchscreen-scroll' events and mouse events in
 ;; a ``DWIM'' fashion, consulting the keymaps at the position of the
@@ -886,6 +974,11 @@ Perform the editing operations or throw to the input translation
 function with an input event tied to any gesture that is
 recognized.
 
+Update the tenth element of `touch-screen-current-tool' with
+POINT relative to the window it was placed on.  Update the third
+element in like fashion, once sufficient motion has accumulated
+that an event is generated.
+
 POINT must be the touch point currently being tracked as
 `touch-screen-current-tool'.
 
@@ -899,7 +992,7 @@ has moved relative to its previous position in the X and Y axes.
 
 If the fourth element of `touchscreen-current-tool' is `scroll',
 then generate a `touchscreen-scroll' event with the window that
-qPOINT was initially placed upon, and pixel deltas describing how
+POINT was initially placed upon, and pixel deltas describing how
 much point has moved relative to its previous position in the X
 and Y axes.
 
@@ -918,16 +1011,17 @@ If the fourth element of `touch-screen-current-tool' is
 
 If the fourth element of `touch-screen-current-tool' is `drag',
 then move point to the position of POINT."
-  (let ((window (nth 1 touch-screen-current-tool))
-        (what (nth 3 touch-screen-current-tool)))
+  (let* ((window (nth 1 touch-screen-current-tool))
+         (what (nth 3 touch-screen-current-tool))
+         (posn (cdr point))
+         ;; Now get the position of X and Y relative to WINDOW.
+         (relative-xy
+         (touch-screen-relative-xy posn window)))
+    ;; Update the 10th field of the tool list with RELATIVE-XY.
+    (setcar (nthcdr 9 touch-screen-current-tool) relative-xy)
     (cond ((null what)
-           (let* ((posn (cdr point))
-                  (last-posn (nth 2 touch-screen-current-tool))
+           (let* ((last-posn (nth 2 touch-screen-current-tool))
                   (original-posn (nth 4 touch-screen-current-tool))
-                  ;; Now get the position of X and Y relative to
-                  ;; WINDOW.
-                  (relative-xy
-                   (touch-screen-relative-xy posn window))
                   (col (and (not (posn-area original-posn))
                             (car (posn-col-row original-posn
                                                (posn-window posn)))))
@@ -966,12 +1060,7 @@ then move point to the position of POINT."
            (when touch-screen-current-timer
              (cancel-timer touch-screen-current-timer)
              (setq touch-screen-current-timer nil))
-           (let* ((posn (cdr point))
-                  (last-posn (nth 2 touch-screen-current-tool))
-                  ;; Now get the position of X and Y relative to
-                  ;; WINDOW.
-                  (relative-xy
-                   (touch-screen-relative-xy posn window))
+           (let* ((last-posn (nth 2 touch-screen-current-tool))
                   (diff-x (- (car last-posn) (car relative-xy)))
                   (diff-y (- (cdr last-posn) (cdr relative-xy))))
              (setcar (nthcdr 3 touch-screen-current-tool)
@@ -1014,6 +1103,100 @@ then move point to the position of POINT."
              ;; Generate a (touchscreen-drag POSN) event.
              (throw 'input-event (list 'touchscreen-drag posn)))))))
 
+(defsubst touch-screen-distance (pos1 pos2)
+  "Compute the distance in pixels between POS1 and POS2.
+Each is a coordinate whose car and cdr are respectively its X and
+Y values."
+  (let ((v1 (- (cdr pos2) (cdr pos1)))
+        (v2 (- (car pos2) (car pos1))))
+    (abs (sqrt (+ (* v1 v1) (* v2 v2))))))
+
+(defsubst touch-screen-centrum (pos1 pos2)
+  "Compute the center of a line between the points POS1 and POS2.
+Each, and value, is a coordinate whose car and cdr are
+respectively its X and Y values."
+  (let ((v1 (+ (cdr pos2) (cdr pos1)))
+        (v2 (+ (car pos2) (car pos1))))
+    (cons (/ v2 2) (/ v1 2))))
+
+(defun touch-screen-handle-aux-point-update (point number)
+  "Notice that a point being observed has moved.
+Register motion from either the current or ancillary tool while
+an ancillary tool is present.
+
+POINT must be the cdr of an element of a `touchscreen-update'
+event's list of touch points.  NUMBER must be its touch ID.
+
+Calculate the distance between POINT's position and that of the
+other tool (which is to say the ancillary tool of POINT is the
+current tool, and vice versa).  Compare this distance to that
+between both points at the time they were placed on the screen,
+and signal a pinch event to adjust the text scale and scroll the
+window by the factor so derived.  Such events are lists formed as
+so illustrated:
+
+    (touchscreen-pinch CENTRUM RATIO PAN-X PAN-Y)
+
+in which CENTRUM is a posn representing the midpoint of a line
+between the present locations of both tools, PAN-X is the number
+of pixels on the X axis that centrum has moved since the last
+event, and PAN-Y is that on the Y axis."
+  (let (this-point-position
+        other-point-position
+        (window (cadr touch-screen-current-tool)))
+    (when (windowp window)
+      (if (eq number (aref touch-screen-aux-tool 0))
+          (progn
+            ;; The point pressed is the ancillary tool.  Set
+            ;; other-point-position to that of the current tool.
+            (setq other-point-position (nth 9 touch-screen-current-tool))
+            ;; Update the position within touch-screen-aux-tool.
+            (aset touch-screen-aux-tool 3
+                  (setq this-point-position
+                        (touch-screen-relative-xy point window))))
+        (setq other-point-position (aref touch-screen-aux-tool 3))
+        (setcar (nthcdr 2 touch-screen-current-tool)
+                (setq this-point-position
+                      (touch-screen-relative-xy point window)))
+        (setcar (nthcdr 9 touch-screen-current-tool)
+                this-point-position))
+      ;; Now compute, and take the absolute of, this distance.
+      (let ((distance (touch-screen-distance this-point-position
+                                             other-point-position))
+            (centrum (touch-screen-centrum this-point-position
+                                           other-point-position))
+            (initial-distance (aref touch-screen-aux-tool 4))
+            (initial-centrum (aref touch-screen-aux-tool 5)))
+        (let* ((ratio (/ distance initial-distance))
+               (diff (abs (- ratio (aref touch-screen-aux-tool 6))))
+               (centrum-diff (+ (abs (- (car initial-centrum)
+                                        (car centrum)))
+                                (abs (- (cdr initial-centrum)
+                                        (cdr centrum))))))
+          ;; If the difference in ratio has surpassed a threshold of
+          ;; 0.2 or the centrum difference exceeds the frame's char
+          ;; width, send a touchscreen-pinch event with this
+          ;; information and update that saved in
+          ;; touch-screen-aux-tool.
+          (when (or (> diff 0.2)
+                    (> centrum-diff
+                       (/ (frame-char-width) 2)))
+            (aset touch-screen-aux-tool 5 centrum)
+            (aset touch-screen-aux-tool 6 ratio)
+            (throw 'input-event (list 'touchscreen-pinch
+                                      (if (or (<= (car centrum) 0)
+                                              (<= (cdr centrum) 0))
+                                          (list window centrum nil nil nil
+                                                nil nil nil)
+                                        (posn-at-x-y (car centrum)
+                                                     (cdr centrum)
+                                                     window))
+                                      ratio
+                                      (- (car centrum)
+                                         (car initial-centrum))
+                                      (- (cdr centrum)
+                                         (cdr initial-centrum))))))))))
+
 (defun touch-screen-window-selection-changed (frame)
   "Notice that FRAME's selected window has changed.
 Cancel any timer that is supposed to hide the keyboard in
@@ -1036,6 +1219,13 @@ POINT should be the point currently tracked as
 `touch-screen-current-tool'.
 PREFIX should be a virtual function key used to look up key
 bindings.
+
+If an ancillary touch point is being observed, transfer touch
+information from `touch-screen-aux-tool' to
+`touch-screen-current-tool' and set it to nil, thereby resuming
+gesture recognition with that tool replacing the tool removed.
+
+Otherwise:
 
 If the fourth element of `touch-screen-current-tool' is nil or
 `restart-drag', move point to the position of POINT, selecting
@@ -1061,140 +1251,161 @@ If the command being executed is listed in
 `touch-screen-set-point-commands' also display the on-screen
 keyboard if the current buffer and the character at the new point
 is not read-only."
-  (let ((what (nth 3 touch-screen-current-tool))
-        (posn (cdr point)) window point)
-    (cond ((or (null what)
-               ;; If dragging has been restarted but the touch point
-               ;; hasn't been moved, translate the sequence into a
-               ;; regular mouse click.
-               (eq what 'restart-drag))
-           (when (windowp (posn-window posn))
-             (setq point (posn-point posn)
-                   window (posn-window posn))
-             ;; Select the window that was tapped given that it isn't
-             ;; an inactive minibuffer window.
-             (when (or (not (eq window
-                                (minibuffer-window
-                                 (window-frame window))))
-                       (minibuffer-window-active-p window))
-               (select-window window))
-             ;; Now simulate a mouse click there.  If there is a link
-             ;; or a button, use mouse-2 to push it.
-             (let* ((event (list (if (or (mouse-on-link-p posn)
-                                         (and point (button-at point)))
-                                     'mouse-2
-                                   'mouse-1)
-                                 posn))
-                    ;; Look for the command bound to this event.
-                    (command (key-binding (if prefix
-                                              (vector prefix
-                                                      (car event))
-                                            (vector (car event)))
-                                          t nil posn)))
-               (deactivate-mark)
-               (when point
-                 ;; This is necessary for following links.
-                 (goto-char point))
-               ;; Figure out if the on screen keyboard needs to be
-               ;; displayed.
-               (when command
-                 (if (memq command touch-screen-set-point-commands)
-                     (if touch-screen-translate-prompt
-                         ;; When a `mouse-set-point' command is
-                         ;; encountered and
-                         ;; `touch-screen-handle-touch' is being
-                         ;; called from the keyboard command loop,
-                         ;; call it immediately so that point is set
-                         ;; prior to the on screen keyboard being
-                         ;; displayed.
-                         (call-interactively command nil
-                                             (vector event))
-                       (if (and (or (not buffer-read-only)
-                                    touch-screen-display-keyboard)
-                                ;; Detect the splash screen and avoid
-                                ;; displaying the on screen keyboard
-                                ;; there.
-                                (not (equal (buffer-name) "*GNU Emacs*")))
-                           ;; Once the on-screen keyboard has been
-                           ;; opened, add
-                           ;; `touch-screen-window-selection-changed'
-                           ;; as a window selection change function
-                           ;; This then prevents it from being hidden
-                           ;; after exiting the minibuffer.
-                           (progn
-                             (add-hook 'window-selection-change-functions
-                                       #'touch-screen-window-selection-changed)
-                             (frame-toggle-on-screen-keyboard (selected-frame)
-                                                              nil))
-                         ;; Otherwise, hide the on screen keyboard
-                         ;; now.
-                         (frame-toggle-on-screen-keyboard (selected-frame) t))
-                       ;; But if it's being called from `describe-key'
-                       ;; or some such, return it as a key sequence.
-                       (throw 'input-event event)))
-                 ;; If not, return the event.
-                 (throw 'input-event event)))))
-          ((eq what 'mouse-drag)
-           ;; Generate a corresponding `mouse-1' event.
-           (let* ((new-window (posn-window posn))
-                  (new-point (posn-point posn))
-                  (old-posn (nth 4 touch-screen-current-tool))
-                  (old-window (posn-window posn))
-                  (old-point (posn-point posn)))
+  (if touch-screen-aux-tool
+      (progn
+        (let ((posn (cdr point))
+              (window (cadr touch-screen-current-tool))
+              (point-no (aref touch-screen-aux-tool 0)))
+          ;; Replace the current position of touch-screen-current-tool
+          ;; with posn and its number with point-no, but leave other
+          ;; information (such as its starting position) intact: this
+          ;; touchpoint is meant to continue the gesture interrupted
+          ;; by the removal of the last, not to commence a new one.
+          (setcar touch-screen-current-tool point-no)
+          (setcar (nthcdr 2 touch-screen-current-tool)
+                  (touch-screen-relative-xy posn window))
+          (setcar (nthcdr 9 touch-screen-current-tool)
+                  (touch-screen-relative-xy posn window)))
+        (setq touch-screen-aux-tool nil))
+    (let ((what (nth 3 touch-screen-current-tool))
+          (posn (cdr point)) window point)
+      (cond ((or (null what)
+                 ;; If dragging has been restarted but the touch point
+                 ;; hasn't been moved, translate the sequence into a
+                 ;; regular mouse click.
+                 (eq what 'restart-drag))
+             (when (windowp (posn-window posn))
+               (setq point (posn-point posn)
+                     window (posn-window posn))
+               ;; Select the window that was tapped given that it
+               ;; isn't an inactive minibuffer window.
+               (when (or (not (eq window
+                                  (minibuffer-window
+                                   (window-frame window))))
+                         (minibuffer-window-active-p window))
+                 (select-window window))
+               ;; Now simulate a mouse click there.  If there is a
+               ;; link or a button, use mouse-2 to push it.
+               (let* ((event (list (if (or (mouse-on-link-p posn)
+                                           (and point (button-at point)))
+                                       'mouse-2
+                                     'mouse-1)
+                                   posn))
+                      ;; Look for the command bound to this event.
+                      (command (key-binding (if prefix
+                                                (vector prefix
+                                                        (car event))
+                                              (vector (car event)))
+                                            t nil posn)))
+                 (deactivate-mark)
+                 (when point
+                   ;; This is necessary for following links.
+                   (goto-char point))
+                 ;; Figure out if the on screen keyboard needs to be
+                 ;; displayed.
+                 (when command
+                   (if (memq command touch-screen-set-point-commands)
+                       (if touch-screen-translate-prompt
+                           ;; When a `mouse-set-point' command is
+                           ;; encountered and
+                           ;; `touch-screen-handle-touch' is being
+                           ;; called from the keyboard command loop,
+                           ;; call it immediately so that point is set
+                           ;; prior to the on screen keyboard being
+                           ;; displayed.
+                           (call-interactively command nil
+                                               (vector event))
+                         (if (and (or (not buffer-read-only)
+                                      touch-screen-display-keyboard)
+                                  ;; Detect the splash screen and
+                                  ;; avoid displaying the on screen
+                                  ;; keyboard there.
+                                  (not (equal (buffer-name) "*GNU Emacs*")))
+                             ;; Once the on-screen keyboard has been
+                             ;; opened, add
+                             ;; `touch-screen-window-selection-changed'
+                             ;; as a window selection change function
+                             ;; This then prevents it from being
+                             ;; hidden after exiting the minibuffer.
+                             (progn
+                               (add-hook
+                                'window-selection-change-functions
+                                #'touch-screen-window-selection-changed)
+                               (frame-toggle-on-screen-keyboard
+                                (selected-frame) nil))
+                           ;; Otherwise, hide the on screen keyboard
+                           ;; now.
+                           (frame-toggle-on-screen-keyboard (selected-frame)
+                                                            t))
+                         ;; But if it's being called from `describe-key'
+                         ;; or some such, return it as a key sequence.
+                         (throw 'input-event event)))
+                   ;; If not, return the event.
+                   (throw 'input-event event)))))
+            ((eq what 'mouse-drag)
+             ;; Generate a corresponding `mouse-1' event.
+             (let* ((new-window (posn-window posn))
+                    (new-point (posn-point posn))
+                    (old-posn (nth 4 touch-screen-current-tool))
+                    (old-window (posn-window posn))
+                    (old-point (posn-point posn)))
+               (throw 'input-event
+                      ;; If the position of the touch point hasn't
+                      ;; changed, or it doesn't start or end on a
+                      ;; window...
+                      (if (and (not old-point) (not new-point))
+                          ;; Should old-point and new-point both equal
+                          ;; nil, compare the posn areas and nominal
+                          ;; column position.  If either are
+                          ;; different, generate a drag event.
+                          (let ((new-col-row (posn-col-row posn))
+                                (new-area (posn-area posn))
+                                (old-col-row (posn-col-row old-posn))
+                                (old-area (posn-area old-posn)))
+                            (if (and (equal new-col-row old-col-row)
+                                     (eq new-area old-area))
+                                ;; ... generate a mouse-1 event...
+                                (list 'mouse-1 posn)
+                              ;; ... otherwise, generate a
+                              ;; drag-mouse-1 event.
+                              (list 'drag-mouse-1 old-posn posn)))
+                        (if (and (eq new-window old-window)
+                                 (eq new-point old-point)
+                                 (windowp new-window)
+                                 (windowp old-window))
+                            ;; ... generate a mouse-1 event...
+                            (list 'mouse-1 posn)
+                          ;; ... otherwise, generate a drag-mouse-1
+                          ;; event.
+                          (list 'drag-mouse-1 old-posn posn))))))
+            ((eq what 'mouse-1-menu)
+             ;; Generate a `down-mouse-1' event at the position the tap
+             ;; took place.
              (throw 'input-event
-                    ;; If the position of the touch point hasn't
-                    ;; changed, or it doesn't start or end on a
-                    ;; window...
-                    (if (and (not old-point) (not new-point))
-                        ;; Should old-point and new-point both equal
-                        ;; nil, compare the posn areas and nominal
-                        ;; column position.  If either are different,
-                        ;; generate a drag event.
-                        (let ((new-col-row (posn-col-row posn))
-                              (new-area (posn-area posn))
-                              (old-col-row (posn-col-row old-posn))
-                              (old-area (posn-area old-posn)))
-                          (if (and (equal new-col-row old-col-row)
-                                   (eq new-area old-area))
-                              ;; ... generate a mouse-1 event...
-                              (list 'mouse-1 posn)
-                            ;; ... otherwise, generate a drag-mouse-1 event.
-                            (list 'drag-mouse-1 old-posn posn)))
-                      (if (and (eq new-window old-window)
-                               (eq new-point old-point)
-                               (windowp new-window)
-                               (windowp old-window))
-                          ;; ... generate a mouse-1 event...
-                          (list 'mouse-1 posn)
-                        ;; ... otherwise, generate a drag-mouse-1 event.
-                        (list 'drag-mouse-1 old-posn posn))))))
-          ((eq what 'mouse-1-menu)
-           ;; Generate a `down-mouse-1' event at the position the tap
-           ;; took place.
-           (throw 'input-event
-                  (list 'down-mouse-1
-                        (nth 4 touch-screen-current-tool))))
-          ((or (eq what 'drag)
-               ;; Merely initiating a drag is sufficient to select a
-               ;; word if word selection is enabled.
-               (eq what 'held))
-           ;; Display the on screen keyboard if the region is now
-           ;; active.  Check this within the window where the tool was
-           ;; first place.
-           (setq window (nth 1 touch-screen-current-tool))
-           (when window
-             (with-selected-window window
-               (when (and (region-active-p)
-                          (not buffer-read-only))
-                 ;; Once the on-screen keyboard has been opened, add
-                 ;; `touch-screen-window-selection-changed' as a window
-                 ;; selection change function This then prevents it from
-                 ;; being hidden after exiting the minibuffer.
-                 (progn
-                   (add-hook 'window-selection-change-functions
-                             #'touch-screen-window-selection-changed)
-                   (frame-toggle-on-screen-keyboard (selected-frame)
-                                                    nil)))))))))
+                    (list 'down-mouse-1
+                          (nth 4 touch-screen-current-tool))))
+            ((or (eq what 'drag)
+                 ;; Merely initiating a drag is sufficient to select a
+                 ;; word if word selection is enabled.
+                 (eq what 'held))
+             ;; Display the on screen keyboard if the region is now
+             ;; active.  Check this within the window where the tool
+             ;; was first place.
+             (setq window (nth 1 touch-screen-current-tool))
+             (when window
+               (with-selected-window window
+                 (when (and (region-active-p)
+                            (not buffer-read-only))
+                   ;; Once the on-screen keyboard has been opened, add
+                   ;; `touch-screen-window-selection-changed' as a
+                   ;; window selection change function.  This then
+                   ;; prevents it from being hidden after exiting the
+                   ;; minibuffer.
+                   (progn
+                     (add-hook 'window-selection-change-functions
+                               #'touch-screen-window-selection-changed)
+                     (frame-toggle-on-screen-keyboard (selected-frame)
+                                                      nil))))))))))
 
 (defun touch-screen-handle-touch (event prefix &optional interactive)
   "Handle a single touch EVENT, and perform associated actions.
@@ -1234,81 +1445,126 @@ the place of EVENT within the key sequence being translated, or
         (when touch-screen-current-timer
           (cancel-timer touch-screen-current-timer)
           (setq touch-screen-current-timer nil))
-        ;; Replace any previously ongoing gesture.  If POSITION has no
-        ;; window or position, make it nil instead.
-        (setq tool-list (and (windowp window)
-                             (list touchpoint window
-                                   (posn-x-y position)
-                                   nil position
-                                   nil nil nil nil))
-              touch-screen-current-tool tool-list)
-
-        ;; Select the window underneath the event as the checks below
-        ;; will look up keymaps and markers inside its buffer.
-        (save-selected-window
-          ;; Check if `touch-screen-extend-selection' is enabled, the
-          ;; tap lies on the point or the mark, and the region is
-          ;; active.  If that's the case, set the fourth element of
-          ;; `touch-screen-current-tool' to `restart-drag', then
-          ;; generate a `touchscreen-restart-drag' event.
-          (when tool-list
-            ;; tool-list is always non-nil where the selected window
-            ;; matters.
-            (select-window window)
-            (when (and touch-screen-extend-selection
-                       (or (eq point (point))
-                           (eq point (mark)))
-                       (region-active-p)
-                       ;; Only restart drag-to-select if the tap falls
-                       ;; on the same row as the selection.  This
-                       ;; prevents dragging from starting if the tap
-                       ;; is below the last window line with text and
-                       ;; `point' is at ZV, as the user most likely
-                       ;; meant to scroll the window instead.
-                       (when-let* ((posn-point (posn-at-point point))
-                                   (posn-row (cdr (posn-col-row posn-point))))
-                         (eq (cdr (posn-col-row position)) posn-row)))
-              ;; Indicate that a drag is about to restart.
-              (setcar (nthcdr 3 tool-list) 'restart-drag)
-              ;; Generate the `restart-drag' event.
-              (throw 'input-event (list 'touchscreen-restart-drag
-                                        position))))
-          ;; Determine if there is a command bound to `down-mouse-1'
-          ;; at the position of the tap and that command is not a
-          ;; command whose functionality is replaced by the long-press
-          ;; mechanism.  If so, set the fourth element of
-          ;; `touch-screen-current-tool' to `mouse-drag' and generate
-          ;; an emulated `mouse-1' event.
-          ;;
-          ;; If the command in question is a keymap, set that element
-          ;; to `mouse-1-menu' instead of `mouse-drag', and don't
-          ;; generate a `down-mouse-1' event immediately.  Instead,
-          ;; wait for the touch point to be released.
-          (if (and tool-list
-                   (and (setq binding
-                              (key-binding (if prefix
-                                               (vector prefix
-                                                       'down-mouse-1)
-                                             [down-mouse-1])
-                                           t nil position))
-                        (not (and (symbolp binding)
-                                  (get binding 'ignored-mouse-command)))))
-              (if (or (keymapp binding)
-                      (and (symbolp binding)
-                           (get binding 'mouse-1-menu-command)))
-                  ;; binding is a keymap, or a command that does
-                  ;; almost the same thing.  If a `mouse-1' event is
-                  ;; generated after the keyboard command loop
-                  ;; displays it as a menu, that event could cause
-                  ;; unwanted commands to be run.  Set what to
-                  ;; `mouse-1-menu' instead and wait for the up event
-                  ;; to display the menu.
-                  (setcar (nthcdr 3 tool-list) 'mouse-1-menu)
-                (progn (setcar (nthcdr 3 tool-list) 'mouse-drag)
-                       (throw 'input-event (list 'down-mouse-1 position))))
-            (and point
-                 ;; Start the long-press timer.
-                 (touch-screen-handle-timeout nil))))))
+        ;; If a tool already exists...
+        (if touch-screen-current-tool
+            ;; Then record this tool as the ``auxiliary tool''.
+            ;; Updates to the auxiliary tool are considered in unison
+            ;; with those to the current tool; the distance between
+            ;; both tools is measured and compared with that when the
+            ;; auxiliary tool was first pressed, then interpreted as a
+            ;; scale by which to adjust text within the current tool's
+            ;; window.
+            (progn
+              ;; Set touch-screen-aux-tool as is proper.  Mind that
+              ;; the last field is always relative to the current
+              ;; tool's window.
+              (let* ((window (nth 1 touch-screen-current-tool))
+                     (relative-x-y (touch-screen-relative-xy position
+                                                             window))
+                     (initial-pos (nth 4 touch-screen-current-tool))
+                     (initial-x-y (touch-screen-relative-xy initial-pos
+                                                            window))
+                     computed-distance computed-centrum)
+                ;; Calculate the distance and centrum from this point
+                ;; to the initial position of the current tool.
+                (setq computed-distance (touch-screen-distance relative-x-y
+                                                               initial-x-y)
+                      computed-centrum (touch-screen-centrum relative-x-y
+                                                             initial-x-y))
+                ;; If computed-distance is zero, ignore this tap.
+                (unless (zerop computed-distance)
+                  (setq touch-screen-aux-tool (vector touchpoint window
+                                                      position relative-x-y
+                                                      computed-distance
+                                                      computed-centrum
+                                                      1.0 nil)))
+                ;; When an auxiliary tool is pressed, any gesture
+                ;; previously in progress must be terminated, so long
+                ;; as it represents a gesture recognized from the
+                ;; current tool's motion rather than ones detected by
+                ;; this function from circumstances surrounding its
+                ;; first press, such as the presence of a menu or
+                ;; down-mouse-1 button beneath its first press.
+                (unless (memq (nth 3 touch-screen-current-tool)
+                              '(mouse-drag mouse-1-menu))
+                  (setcar (nthcdr 3 touch-screen-current-tool) nil))))
+          ;; Replace any previously ongoing gesture.  If POSITION has no
+          ;; window or position, make it nil instead.
+          (setq tool-list (and (windowp window)
+                               (list touchpoint window
+                                     (posn-x-y position)
+                                     nil position
+                                     nil nil nil nil
+                                     (posn-x-y position)))
+                touch-screen-current-tool tool-list)
+          ;; Select the window underneath the event as the checks below
+          ;; will look up keymaps and markers inside its buffer.
+          (save-selected-window
+            ;; Check if `touch-screen-extend-selection' is enabled,
+            ;; the tap lies on the point or the mark, and the region
+            ;; is active.  If that's the case, set the fourth element
+            ;; of `touch-screen-current-tool' to `restart-drag', then
+            ;; generate a `touchscreen-restart-drag' event.
+            (when tool-list
+              ;; tool-list is always non-nil where the selected window
+              ;; matters.
+              (select-window window)
+              (when (and touch-screen-extend-selection
+                         (or (eq point (point))
+                             (eq point (mark)))
+                         (region-active-p)
+                         ;; Only restart drag-to-select if the tap
+                         ;; falls on the same row as the selection.
+                         ;; This prevents dragging from starting if
+                         ;; the tap is below the last window line with
+                         ;; text and `point' is at ZV, as the user
+                         ;; most likely meant to scroll the window
+                         ;; instead.
+                         (when-let* ((posn-point (posn-at-point point))
+                                     (posn-row (cdr
+                                                (posn-col-row posn-point))))
+                           (eq (cdr (posn-col-row position)) posn-row)))
+                ;; Indicate that a drag is about to restart.
+                (setcar (nthcdr 3 tool-list) 'restart-drag)
+                ;; Generate the `restart-drag' event.
+                (throw 'input-event (list 'touchscreen-restart-drag
+                                          position))))
+            ;; Determine if there is a command bound to `down-mouse-1'
+            ;; at the position of the tap and that command is not a
+            ;; command whose functionality is replaced by the
+            ;; long-press mechanism.  If so, set the fourth element of
+            ;; `touch-screen-current-tool' to `mouse-drag' and
+            ;; generate an emulated `mouse-1' event.
+            ;;
+            ;; If the command in question is a keymap, set that
+            ;; element to `mouse-1-menu' instead of `mouse-drag', and
+            ;; don't generate a `down-mouse-1' event immediately.
+            ;; Instead, wait for the touch point to be released.
+            (if (and tool-list
+                     (and (setq binding
+                                (key-binding (if prefix
+                                                 (vector prefix
+                                                         'down-mouse-1)
+                                               [down-mouse-1])
+                                             t nil position))
+                          (not (and (symbolp binding)
+                                    (get binding 'ignored-mouse-command)))))
+                (if (or (keymapp binding)
+                        (and (symbolp binding)
+                             (get binding 'mouse-1-menu-command)))
+                    ;; binding is a keymap, or a command that does
+                    ;; almost the same thing.  If a `mouse-1' event is
+                    ;; generated after the keyboard command loop
+                    ;; displays it as a menu, that event could cause
+                    ;; unwanted commands to be run.  Set what to
+                    ;; `mouse-1-menu' instead and wait for the up
+                    ;; event to display the menu.
+                    (setcar (nthcdr 3 tool-list) 'mouse-1-menu)
+                  (progn (setcar (nthcdr 3 tool-list) 'mouse-drag)
+                         (throw 'input-event (list 'down-mouse-1 position))))
+              (and point
+                   ;; Start the long-press timer.
+                   (touch-screen-handle-timeout nil)))))))
      ((eq (car event) 'touchscreen-update)
       (unless touch-screen-current-tool
         ;; If a stray touchscreen-update event arrives (most likely
@@ -1320,7 +1576,17 @@ the place of EVENT within the key sequence being translated, or
       (let ((new-point (assq (car touch-screen-current-tool)
                              (cadr event))))
         (when new-point
-          (touch-screen-handle-point-update new-point))))
+          (if touch-screen-aux-tool
+              (touch-screen-handle-aux-point-update (cdr new-point)
+                                                    (car new-point))
+            (touch-screen-handle-point-update new-point))))
+      ;; Check for updates to any ancillary point being monitored.
+      (when touch-screen-aux-tool
+        (let ((new-point (assq (aref touch-screen-aux-tool 0)
+                               (cadr event))))
+          (when new-point
+            (touch-screen-handle-aux-point-update (cdr new-point)
+                                                  (car new-point))))))
      ((eq (car event) 'touchscreen-end)
       ;; A tool has been removed from the screen.  If it is the tool
       ;; currently being tracked, clear `touch-screen-current-tool'.
@@ -1339,6 +1605,21 @@ the place of EVENT within the key sequence being translated, or
           ;; Make sure the tool list is cleared even if
           ;; `touch-screen-handle-point-up' throws.
           (setq touch-screen-current-tool nil)))
+      ;; If it is rather the ancillary tool, delete its vector.  No
+      ;; further action is required, for the next update received will
+      ;; resume regular gesture recognition.
+      ;;
+      ;; The what field in touch-screen-current-tool is cleared when
+      ;; the ancillary tool is pressed, so gesture recognition will
+      ;; commence with a clean slate, save for when the first touch
+      ;; landed atop a menu or some other area down-mouse-1 was bound.
+      ;;
+      ;; Gesture recognition will be inhibited in that case, so that
+      ;; menu bar or mouse motion events are generated in its place as
+      ;; they would be were no ancillary tool ever pressed.
+      (when (and touch-screen-aux-tool
+                 (eq (caadr event) (aref touch-screen-aux-tool 0)))
+        (setq touch-screen-aux-tool nil))
       ;; Throw to the key translation function.
       (throw 'input-event nil)))))
 

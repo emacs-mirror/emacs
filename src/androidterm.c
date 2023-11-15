@@ -1377,7 +1377,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	{
 	  /* Simply update the tool position and send an update.  */
 	  touchpoint->x = event->touch.x;
-	  touchpoint->y = event->touch.x;
+	  touchpoint->y = event->touch.y;
 	  android_update_tools (any, &inev.ie);
 	  inev.ie.timestamp = event->touch.time;
 
@@ -1390,7 +1390,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       touchpoint = xmalloc (sizeof *touchpoint);
       touchpoint->tool_id = event->touch.pointer_id;
       touchpoint->x = event->touch.x;
-      touchpoint->y = event->touch.x;
+      touchpoint->y = event->touch.y;
       touchpoint->next = FRAME_OUTPUT_DATA (any)->touch_points;
       touchpoint->tool_bar_p = false;
       FRAME_OUTPUT_DATA (any)->touch_points = touchpoint;

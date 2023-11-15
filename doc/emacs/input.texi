@@ -62,6 +62,13 @@ commence selecting text under the tool as it continues its motion, as
 if @code{mouse-1} were to be held down and a mouse moved analogously.
 @xref{Mouse Commands}.
 
+@item
+@cindex pinching, touchscreens
+  @dfn{Pinching}, which is placing two tools apart on the screen and
+adjusting their position such as to increase or decrease the distance
+between them will modify the text scale (@xref{Text Scale}) in
+proportion to the change in that distance.
+
 @vindex touch-screen-word-select
 @cindex word selection mode, touchscreens
   To the detriment of text selection, it can prove challenging to
