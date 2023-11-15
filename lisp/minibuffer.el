@@ -2405,9 +2405,14 @@ These include:
              (base-prefix (buffer-substring (minibuffer--completion-prompt-end)
                                             (+ start base-size)))
              (base-suffix
-              (if (eq (alist-get 'category (cdr md)) 'file)
-                  (buffer-substring (save-excursion (or (search-forward "/" nil t) (point-max)))
-                                    (point-max))
+              (if (or (eq (alist-get 'category (cdr md)) 'file)
+                      completion-in-region-mode-predicate)
+                  (buffer-substring
+                   (save-excursion
+                     (if completion-in-region-mode-predicate
+                         (point)
+                       (or (search-forward "/" nil t) (point-max))))
+                   (point-max))
                 ""))
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))
