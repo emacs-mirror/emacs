@@ -74,6 +74,13 @@
   :safe 'integerp
   :group 'elixir-ts)
 
+(defcustom elixir-ts-mode-hook nil
+  "Hook run after entering `elixir-ts-mode'."
+  :type 'hook
+  :options '(eglot-ensure)
+  :group 'elixir-ts
+  :version "30.1")
+
 (defface elixir-ts-font-comment-doc-identifier-face
   '((t (:inherit font-lock-doc-face)))
   "Face used for @comment.doc tags in Elixir files.")
