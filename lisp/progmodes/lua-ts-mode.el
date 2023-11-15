@@ -58,7 +58,8 @@
 (defcustom lua-ts-mode-hook nil
   "Hook run after entering `lua-ts-mode'."
   :type 'hook
-  :options '(flymake-mode
+  :options '(eglot-ensure
+             flymake-mode
              hs-minor-mode
              outline-minor-mode)
   :version "30.1")
