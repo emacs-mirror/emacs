@@ -389,8 +389,6 @@ is also interactive.  There are 3 cases:
   `(advice--add-function ,how (gv-ref ,(advice--normalize-place place))
                          ,function ,props))
 
-(declare-function comp-subr-trampoline-install "comp-run")
-
 ;;;###autoload
 (defun advice--add-function (how ref function props)
   (when (and (featurep 'native-compile)
@@ -408,6 +406,7 @@ is also interactive.  There are 3 cases:
         ;; Must require explicitly as during bootstrap we have no
         ;; autoloads.
         (require 'comp-run)
+        (declare-function comp-subr-trampoline-install "comp-run")
         (comp-subr-trampoline-install subr-name))))
   (let* ((name (cdr (assq 'name props)))
          (a (advice--member-p (or name function) (if name t) (gv-deref ref))))
