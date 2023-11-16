@@ -723,6 +723,7 @@ This function does not move point.  Also see `line-beginning-position'.  */)
 DEFUN ("line-beginning-position",
        Fline_beginning_position, Sline_beginning_position, 0, 1, 0,
        doc: /* Return the position of the first character in the current line/field.
+With optional argument N non-nil, move forward N - 1 lines first.
 This function is like `pos-bol' (which see), but respects fields.
 
 This function constrains the returned position to the current field
