@@ -2209,7 +2209,7 @@ aformentioned user option) with @var{posn} set to the position list of
 the initial @code{touchscreen-begin} event within that touch sequence.
 
 @cindex @code{touchscreen-pinch} event
-@item (touchscreen-pinch @var{posn} @var{ratio} @var{pan-x} @var{pan-y})
+@item (touchscreen-pinch @var{posn} @var{ratio} @var{pan-x} @var{pan-y} @var{ratio-diff})
 This event is delivered upon significant changes to the positions of
 either active touch point when an ancillary tool is active.
 
@@ -2225,6 +2225,10 @@ position of @var{posn} and this position within the last event
 delivered appertaining to this series of touch events, or in the case
 that no such event exists, the centerpoint between both touch points
 when the ancillary tool was first registered.
+
+@var{ratio-diff} is the difference between this event's ratio and
+@var{ratio} in the last event delivered; it is @var{ratio} if no such
+event exists.
 
 Such events are sent when the magnitude of the changes they represent
 will yield a @var{ratio} which differs by more than @code{0.2} from

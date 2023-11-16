@@ -52,7 +52,7 @@ update, whereas the latter is updated upon each apposite
 
 (defvar touch-screen-aux-tool nil
   "The ancillary tool being tracked, or nil.
-If non-nil, this is a vector of eight elements: the ID of the
+If non-nil, this is a vector of ten elements: the ID of the
 touch point being tracked, the window where the touch began, a
 cons holding the initial position of the touch point, and the
 last known position of the touch point, all in the same format as
@@ -60,8 +60,8 @@ in `touch-screen-current-tool', the distance in pixels between
 the current tool and the aformentioned initial position, the
 center of the line formed between those two points, the ratio
 between the present distance between both tools and the aforesaid
-initial distance when a pinch gesture was last sent, and an
-element into which commands can save data particular to a tool.
+initial distance when a pinch gesture was last sent, and three
+elements into which commands can save data particular to a tool.
 
 The ancillary tool is a second tool whose movement is interpreted
 in unison with that of the current tool to recognize gestures
@@ -914,19 +914,50 @@ text scale by the ratio therein."
          (start-scale (or (aref touch-screen-aux-tool 7)
                           (aset touch-screen-aux-tool 7
                                 current-scale)))
-         (scale (nth 2 event)))
-    (with-selected-window window
-      ;; Set the text scale.
-      (text-scale-set (+ start-scale
-                         (round (log scale text-scale-mode-step))))
-      ;; Subsequently move the row which was at the centrum to its Y
-      ;; position.  TODO: pan by the deltas in EVENT when the text
-      ;; scale has not changed, and hscroll to the centrum as well.
-      (when (and (not (eq current-scale
+         (scale (nth 2 event))
+         (ratio-diff (nth 5 event)))
+    (when (windowp window)
+      (with-selected-window window
+        ;; Set the text scale.
+        (text-scale-set (+ start-scale
+                           (round (log scale text-scale-mode-step))))
+        ;; Subsequently move the row which was at the centrum to its Y
+        ;; position.
+        (if (and (not (eq current-scale
                           text-scale-mode-amount))
                  (posn-point posn))
-        (touch-screen-scroll-point-to-y (posn-point posn)
-                                        (cdr (posn-x-y posn)))))))
+            (touch-screen-scroll-point-to-y (posn-point posn)
+                                            (cdr (posn-x-y posn)))
+          ;; Rather than scroll POSN's point to its old row, scroll the
+          ;; display by the Y axis deltas within EVENT.
+          (let ((height (window-default-line-height))
+                (y-accumulator (or (aref touch-screen-aux-tool 8) 0)))
+            (setq y-accumulator (+ y-accumulator (nth 4 event)))
+            (when (or (> y-accumulator height)
+                      (< y-accumulator (- height)))
+              (ignore-errors
+                (if (> y-accumulator 0)
+                    (scroll-down 1)
+                  (scroll-up 1)))
+              (setq y-accumulator 0))
+            (aset touch-screen-aux-tool 8 y-accumulator))
+          ;; Likewise for the X axis deltas.
+          (let ((width (frame-char-width))
+                (x-accumulator (or (aref touch-screen-aux-tool 9) 0)))
+            (setq x-accumulator (+ x-accumulator (nth 3 event)))
+            (when (or (> x-accumulator width)
+                      (< x-accumulator (- width)))
+              ;; Do not hscroll if the ratio has shrunk, for that is
+              ;; generally attended by the centerpoint moving left,
+              ;; and Emacs can hscroll left even when no lines are
+              ;; truncated.
+              (unless (and (< x-accumulator 0)
+                           (< ratio-diff -0.2))
+                (if (> x-accumulator 0)
+                    (scroll-right 1)
+                  (scroll-left 1)))
+              (setq x-accumulator 0))
+            (aset touch-screen-aux-tool 9 x-accumulator)))))))
 
 (define-key global-map [touchscreen-pinch] #'touch-screen-pinch)
 
@@ -1135,12 +1166,14 @@ and signal a pinch event to adjust the text scale and scroll the
 window by the factor so derived.  Such events are lists formed as
 so illustrated:
 
-    (touchscreen-pinch CENTRUM RATIO PAN-X PAN-Y)
+    (touchscreen-pinch CENTRUM RATIO PAN-X PAN-Y RATIO-DIFF)
 
 in which CENTRUM is a posn representing the midpoint of a line
-between the present locations of both tools, PAN-X is the number
-of pixels on the X axis that centrum has moved since the last
-event, and PAN-Y is that on the Y axis."
+between the present locations of both tools, RATIO is the said
+factor, PAN-X is the number of pixels on the X axis that centrum
+has moved since the last event, PAN-Y is that on the Y axis, and
+RATIO-DIFF is the difference between RATIO and the ratio in the
+last such event."
   (let (this-point-position
         other-point-position
         (window (cadr touch-screen-current-tool)))
@@ -1168,6 +1201,7 @@ event, and PAN-Y is that on the Y axis."
             (initial-distance (aref touch-screen-aux-tool 4))
             (initial-centrum (aref touch-screen-aux-tool 5)))
         (let* ((ratio (/ distance initial-distance))
+               (ratio-diff (- ratio (aref touch-screen-aux-tool 6)))
                (diff (abs (- ratio (aref touch-screen-aux-tool 6))))
                (centrum-diff (+ (abs (- (car initial-centrum)
                                         (car centrum)))
@@ -1195,7 +1229,8 @@ event, and PAN-Y is that on the Y axis."
                                       (- (car centrum)
                                          (car initial-centrum))
                                       (- (cdr centrum)
-                                         (cdr initial-centrum))))))))))
+                                         (cdr initial-centrum))
+                                      ratio-diff))))))))
 
 (defun touch-screen-window-selection-changed (frame)
   "Notice that FRAME's selected window has changed.
@@ -1477,7 +1512,7 @@ the place of EVENT within the key sequence being translated, or
                                                       position relative-x-y
                                                       computed-distance
                                                       computed-centrum
-                                                      1.0 nil)))
+                                                      1.0 nil nil nil)))
                 ;; When an auxiliary tool is pressed, any gesture
                 ;; previously in progress must be terminated, so long
                 ;; as it represents a gesture recognized from the
