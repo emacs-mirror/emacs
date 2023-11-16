@@ -597,6 +597,10 @@ Two symbols to avoid are @code{t}, which behaves like @code{_}
 Likewise, it makes no sense to bind keyword symbols
 (@pxref{Constant Variables}).
 
+@item `@var{qpat}
+A backquote-style pattern.  @xref{Backquote Patterns}, for the
+details.
+
 @item (cl-type @var{type})
 Matches if @var{expval} is of type @var{type}, which is a type
 descriptor as accepted by @code{cl-typep} (@pxref{Type Predicates,,,cl,Common
@@ -1235,7 +1239,8 @@ The first three clauses use backquote-style patterns.
 @code{`(add ,x ,y)} is a pattern that checks that @code{form}
 is a three-element list starting with the literal symbol @code{add},
 then extracts the second and third elements and binds them
-to symbols @code{x} and @code{y}, respectively.
+to symbols @code{x} and @code{y}, respectively.  This is known as
+@dfn{destructuring}, see @ref{Destructuring with pcase Patterns}.
 The clause body evaluates @code{x} and @code{y} and adds the results.
 Similarly, the @code{call} clause implements a function call,
 and the @code{fn} clause implements an anonymous function definition.
