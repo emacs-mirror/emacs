@@ -440,12 +440,45 @@ whether an element was found or not."
 (cl-defgeneric seq-contains-p (sequence elt &optional testfn)
   "Return non-nil if SEQUENCE contains an element \"equal\" to ELT.
 \"Equality\" is defined by the function TESTFN, which defaults to `equal'."
+  (cond
+   ((and (listp sequence) (or (null testfn) (eq testfn 'equal)))
+    (member elt sequence))
+   ((and (listp sequence) (eq testfn 'eq))
+    (memq elt sequence))
+   (t
     (catch 'seq--break
-      (seq-doseq (e sequence)
-        (let ((r (funcall (or testfn #'equal) e elt)))
-          (when r
-            (throw 'seq--break r))))
-      nil))
+    (seq-doseq (e sequence)
+      (let ((r (funcall (or testfn #'equal) e elt)))
+        (when r
+          (throw 'seq--break r))))
+    nil)))
+  )
+
+;; (cl-defmethod seq-contains-p ((sequence list) elt &optional testfn)
+;;   (cond
+;;    ((or (null testfn) (eq testfn 'equal))
+;;     (member elt sequence))
+;;    ((eq testfn 'eq)
+;;     (memq elt sequence))
+;;    (t
+;;     (cl-call-next-method))))
+
+(cl-defgeneric seq-contains-pred (sequence &optional testfn)
+  (cond
+   ((and (listp sequence) (or (null testfn) (eq testfn 'equal)))
+    #'member)
+   ((and (listp sequence) (eq testfn 'eql))
+    #'memql)
+   ((and (listp sequence) (eq testfn 'eq))
+    #'memq)
+   (t
+    (lambda (elt sequence)
+      (catch 'seq--break
+        (seq-doseq (e sequence)
+          (let ((r (funcall testfn e elt)))
+            (when r
+              (throw 'seq--break r))))
+        nil)))))
 
 (cl-defgeneric seq-set-equal-p (sequence1 sequence2 &optional testfn)
   "Return non-nil if SEQUENCE1 and SEQUENCE2 contain the same elements.
@@ -488,9 +521,10 @@ The result is a list of (zero-based) indices."
 (cl-defgeneric seq-uniq (sequence &optional testfn)
   "Return a list of the elements of SEQUENCE with duplicates removed.
 TESTFN is used to compare elements, and defaults to `equal'."
-  (let ((result '()))
+  (let ((result '())
+        (pred (seq-contains-pred testfn)))
     (seq-doseq (elt sequence)
-      (unless (seq-contains-p result elt testfn)
+      (unless (funcall pred elt result)
         (setq result (cons elt result))))
     (nreverse result)))
 
@@ -573,6 +607,20 @@ defaults to `equal'."
                   (cons elt acc)))
               (seq-reverse sequence1)
               '()))
+
+(cl-defgeneric seq-difference-2 (sequence1 sequence2 &optional testfn)
+  "Return list of all the elements that appear in SEQUENCE1 but not in SEQUENCE2.
+\"Equality\" of elements is defined by the function TESTFN, which
+defaults to `equal'."
+  (seq-filter
+   (lambda (elt) (not (seq-contains-p sequence2 elt testfn)))
+   sequence1))
+
+(cl-defgeneric seq-difference-3 (sequence1 sequence2 &optional testfn)
+  (let ((pred (seq-contains-pred sequence2 testfn)))
+    (seq-filter
+     (lambda (elt) (not (funcall pred elt sequence2)))
+     sequence1)))
 
 ;;;###autoload
 (cl-defgeneric seq-group-by (function sequence)
