@@ -391,23 +391,6 @@ is also interactive.  There are 3 cases:
 
 ;;;###autoload
 (defun advice--add-function (how ref function props)
-  (when (and (featurep 'native-compile)
-             (subr-primitive-p (gv-deref ref)))
-    (let ((subr-name (intern (subr-name (gv-deref ref)))))
-      ;; Requiring the native compiler to advice `macroexpand' cause a
-      ;; circular dependency in eager macro expansion.  uniquify is
-      ;; advising `rename-buffer' while being loaded in loadup.el.
-      ;; This would require the whole native compiler machinery but we
-      ;; don't want to include it in the dump.  Because these two
-      ;; functions are already handled in
-      ;; `native-comp-never-optimize-functions' we hack the problem
-      ;; this way for now :/
-      (unless (memq subr-name '(macroexpand rename-buffer))
-        ;; Must require explicitly as during bootstrap we have no
-        ;; autoloads.
-        (require 'comp-run)
-        (declare-function comp-subr-trampoline-install "comp-run")
-        (comp-subr-trampoline-install subr-name))))
   (let* ((name (cdr (assq 'name props)))
          (a (advice--member-p (or name function) (if name t) (gv-deref ref))))
     (when a
