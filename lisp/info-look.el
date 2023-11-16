@@ -53,13 +53,13 @@ Automatically becomes buffer local when set in any fashion.")
 (make-variable-buffer-local 'info-lookup-mode)
 
 (defcustom info-lookup-other-window-flag t
-  "Non-nil means pop up the Info buffer in another window."
-  :group 'info-lookup :type 'boolean)
+ "Non-nil means pop up the Info buffer in another window."
+ :type 'boolean)
 
 (defcustom info-lookup-highlight-face 'match
   "Face for highlighting looked up help items.
 Setting this variable to nil disables highlighting."
-  :group 'info-lookup :type 'face)
+  :type 'face)
 
 (defvar info-lookup-highlight-overlay nil
   "Overlay object used for highlighting.")
@@ -73,7 +73,7 @@ List elements are cons cells of the form
 
 If a file name matches REGEXP, then use help mode MODE instead of the
 buffer's major mode."
-  :group 'info-lookup :type '(repeat (cons (regexp :tag "Regexp")
+  :type '(repeat (cons (regexp :tag "Regexp")
 					   (symbol :tag "Mode"))))
 
 (defvar info-lookup-history nil
@@ -167,13 +167,13 @@ the value of `:mode' as HELP-MODE, etc..
 
 If no topic or mode option has been specified, then the help topic defaults
 to `symbol', and the help mode defaults to the current major mode."
-  (apply 'info-lookup-add-help* nil arg))
+  (apply #'info-lookup-add-help* nil arg))
 
 (defun info-lookup-maybe-add-help (&rest arg)
   "Add a help specification if none is defined.
 See the documentation of the function `info-lookup-add-help'
 for more details."
-  (apply 'info-lookup-add-help* t arg))
+  (apply #'info-lookup-add-help* t arg))
 
 (defun info-lookup-add-help* (maybe &rest arg)
   (let (topic mode regexp ignore-case doc-spec
@@ -349,18 +349,18 @@ If optional argument QUERY is non-nil, query for the help mode."
 	(setq file-name-alist (cdr file-name-alist)))))
 
   ;; If major-mode has no setups in info-lookup-alist, under any topic, then
-  ;; search up through derived-mode-parent to find a parent mode which does
-  ;; have some setups.  This means that a `define-derived-mode' with no
+  ;; search up through `derived-mode-all-parents' to find a parent mode which
+  ;; does have some setups.  This means that a `define-derived-mode' with no
   ;; setups of its own will select its parent mode for lookups, if one of
   ;; its parents has some setups.  Good for example on `makefile-gmake-mode'
   ;; and similar derivatives of `makefile-mode'.
   ;;
-  (let ((mode major-mode)) ;; Look for `mode' with some setups.
-    (while (and mode (not info-lookup-mode))
+  (let ((modes (derived-mode-all-parents major-mode))) ;; Look for `mode' with some setups.
+    (while (and modes (not info-lookup-mode))
       (dolist (topic-cell info-lookup-alist) ;; Usually only two topics here.
-        (if (info-lookup->mode-value (car topic-cell) mode)
-            (setq info-lookup-mode mode)))
-      (setq mode (get mode 'derived-mode-parent))))
+        (if (info-lookup->mode-value (car topic-cell) (car modes))
+            (setq info-lookup-mode (car modes))))
+      (setq modes (cdr modes))))
 
   (or info-lookup-mode (setq info-lookup-mode major-mode)))
 
@@ -526,7 +526,7 @@ different window."
 		(nconc (condition-case nil
 			   (info-lookup-make-completions topic mode)
 			 (error nil))
-		       (apply 'append
+		       (apply #'append
 			      (mapcar (lambda (arg)
 					(info-lookup->completions topic arg))
 				      refer-modes))))

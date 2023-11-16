@@ -240,7 +240,9 @@ No problems result if this variable is not bound.
 	       (unless (get ',abbrev 'variable-documentation)
 		 (put ',abbrev 'variable-documentation
 		      (purecopy ,(format "Abbrev table for `%s'." child))))))
-       (put ',child 'derived-mode-parent ',parent)
+       (if (fboundp 'derived-mode-set-parent) ;; Emacs≥30.1
+           (derived-mode-set-parent ',child ',parent)
+         (put ',child 'derived-mode-parent ',parent))
        ,(if group `(put ',child 'custom-mode-group ,group))
 
        (defun ,child ()

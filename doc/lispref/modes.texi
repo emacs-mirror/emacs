@@ -937,6 +937,31 @@ This function returns non-@code{nil} if the current major mode is
 derived from any of the major modes given by the symbols @var{modes}.
 @end defun
 
+The graph of major modes is accessed with the following lower-level
+functions:
+
+@defun derived-mode-set-parent mode parent
+This function declares that @var{mode} inherits from @code{parent}.
+This is the function that @code{define-derived-mode} calls after
+defining @var{mode} to register the fact that @var{mode} was defined
+by reusing @code{parent}.
+@end defun
+
+@defun derived-mode-add-parents mode extra-parents
+This function makes it possible to register additional parents beside
+the one that was used when defining @var{mode}.  This can be used when
+the similarity between @var{mode} and the modes in @var{extra-parents}
+is such that it makes sense to treat it as a child of those
+modes for purposes like applying directory-local variables.
+@end defun
+
+@defun derived-mode-all-parents mode
+This function returns the list of all the modes in the ancestry of
+@var{mode}, ordered from the most specific to the least specific, and
+starting with @var{mode} itself.
+@end defun
+
+
 @node Basic Major Modes
 @subsection Basic Major Modes
 

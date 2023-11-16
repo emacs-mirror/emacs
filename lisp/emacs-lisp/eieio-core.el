@@ -964,49 +964,6 @@ need be... May remove that later...)"
 	(cdr tuple)
       nil)))
 
-;;;
-;; Method Invocation order: C3
-(defun eieio--c3-candidate (class remaining-inputs)
-  "Return CLASS if it can go in the result now, otherwise nil."
-  ;; Ensure CLASS is not in any position but the first in any of the
-  ;; element lists of REMAINING-INPUTS.
-  (and (not (let ((found nil))
-	      (while (and remaining-inputs (not found))
-		(setq found (member class (cdr (car remaining-inputs)))
-		      remaining-inputs (cdr remaining-inputs)))
-	      found))
-       class))
-
-(defun eieio--c3-merge-lists (reversed-partial-result remaining-inputs)
-  "Try to merge REVERSED-PARTIAL-RESULT REMAINING-INPUTS in a consistent order.
-If a consistent order does not exist, signal an error."
-  (setq remaining-inputs (delq nil remaining-inputs))
-  (if (null remaining-inputs)
-      ;; If all remaining inputs are empty lists, we are done.
-      (nreverse reversed-partial-result)
-    ;; Otherwise, we try to find the next element of the result. This
-    ;; is achieved by considering the first element of each
-    ;; (non-empty) input list and accepting a candidate if it is
-    ;; consistent with the rests of the input lists.
-    (let* ((found nil)
-	   (tail remaining-inputs)
-	   (next (progn
-		   (while (and tail (not found))
-		     (setq found (eieio--c3-candidate (caar tail)
-                                                      remaining-inputs)
-			   tail (cdr tail)))
-		   found)))
-      (if next
-	  ;; The graph is consistent so far, add NEXT to result and
-	  ;; merge input lists, dropping NEXT from their heads where
-	  ;; applicable.
-	  (eieio--c3-merge-lists
-	   (cons next reversed-partial-result)
-	   (mapcar (lambda (l) (if (eq (cl-first l) next) (cl-rest l) l))
-		   remaining-inputs))
-	;; The graph is inconsistent, give up
-	(signal 'inconsistent-class-hierarchy (list remaining-inputs))))))
-
 (defsubst eieio--class/struct-parents (class)
   (or (eieio--class-parents class)
       `(,eieio-default-superclass)))
@@ -1014,14 +971,16 @@ If a consistent order does not exist, signal an error."
 (defun eieio--class-precedence-c3 (class)
   "Return all parents of CLASS in c3 order."
   (let ((parents (eieio--class-parents class)))
-    (eieio--c3-merge-lists
-     (list class)
-     (append
-      (or
-       (mapcar #'eieio--class-precedence-c3 parents)
-       `((,eieio-default-superclass)))
-      (list parents))))
-  )
+    (cons class
+          (merge-ordered-lists
+           (append
+            (or
+             (mapcar #'eieio--class-precedence-c3 parents)
+             `((,eieio-default-superclass)))
+            (list parents))
+           (lambda (remaining-inputs)
+            (signal 'inconsistent-class-hierarchy
+                    (list remaining-inputs)))))))
 ;;;
 ;; Method Invocation Order: Depth First
 

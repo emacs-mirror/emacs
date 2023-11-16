@@ -1029,7 +1029,7 @@ that if you use overwrite mode as your normal editing mode, you can use
 this function to insert characters when necessary.
 
 In binary overwrite mode, this function does overwrite, and octal
-(or decimal or hex) digits are interpreted as a character code.  This
+\(or decimal or hex) digits are interpreted as a character code.  This
 is intended to be useful for editing binary files."
   (interactive "*p")
   (let* ((char
