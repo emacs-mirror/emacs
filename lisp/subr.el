@@ -2782,19 +2782,31 @@ The returned list is not fresh, don't modify it.
             (cons mode (remq mode all-parents))
           (put mode 'derived-mode--all-parents (cons mode all-parents))))))))
 
-(defun provided-mode-derived-p (mode &rest modes)
-  "Non-nil if MODE is derived from one of MODES.
-If you just want to check `major-mode', use `derived-mode-p'."
-  (declare (side-effect-free t))
+(defun provided-mode-derived-p (mode &optional modes &rest old-modes)
+  "Non-nil if MODE is derived from a mode that is a member of the list MODES.
+MODES can also be a single mode instead of a list.
+If you just want to check `major-mode', use `derived-mode-p'.
+We also still support the deprecated calling convention:
+\(provided-mode-derived-p MODE &rest MODES)."
+  (declare (side-effect-free t)
+           (advertised-calling-convention (mode modes) "30.1"))
+  (cond
+   (old-modes (setq modes (cons modes old-modes)))
+   ((not (listp modes)) (setq modes (list modes))))
   (let ((ps (derived-mode-all-parents mode)))
     (while (and modes (not (memq (car modes) ps)))
       (setq modes (cdr modes)))
     (car modes)))
 
-(defun derived-mode-p (&rest modes)
-  "Non-nil if the current major mode is derived from one of MODES."
-  (declare (side-effect-free t))
-  (apply #'provided-mode-derived-p major-mode modes))
+(defun derived-mode-p (&optional modes &rest old-modes)
+ "Non-nil if the current major mode is derived from one of MODES.
+MODES should be a list of symbols or a single mode symbol instead of a list.
+We also still support the deprecated calling convention:
+\(derived-mode-p &rest MODES)."
+ (declare (side-effect-free t)
+          (advertised-calling-convention (modes) "30.1"))
+ (provided-mode-derived-p major-mode (if old-modes (cons modes old-modes)
+                                       modes)))
 
 (defun derived-mode-set-parent (mode parent)
   "Declare PARENT to be the parent of MODE."

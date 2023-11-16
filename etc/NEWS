@@ -1228,8 +1228,15 @@ values.
 Mostly used internally to do a kind of topological sort of
 inheritance hierarchies.
 
-** New API to control the graph of major modes.
-While 'define-derived-mode' still only support single inheritance,
+** New API for 'derived-mode-p' and control of the graph of major modes.
+
+*** 'derived-mode-p' now takes the list of modes as a single argument.
+The same holds for `provided-mode-derived-p`.
+The old calling convention where multiple modes are passed as
+separate arguments is deprecated.
+
+*** New functions to access the graph of major modes.
+While 'define-derived-mode' still only supports single inheritance,
 modes can declare additional parents (for tests like 'derived-mode-p')
 with `derived-mode-add-parents`.
 Accessing the 'derived-mode-parent' property directly is now

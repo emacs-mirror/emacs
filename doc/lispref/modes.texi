@@ -932,9 +932,14 @@ Do not write an @code{interactive} spec in the definition;
 @code{define-derived-mode} does that automatically.
 @end defmac
 
-@defun derived-mode-p &rest modes
+@defun derived-mode-p modes
 This function returns non-@code{nil} if the current major mode is
-derived from any of the major modes given by the symbols @var{modes}.
+derived from any of the major modes given by the list of symbols
+in @var{modes}.
+Instead of a list, @var{modes} can also be a single mode symbol.
+
+Furthermore, we still support a deprecated calling convention where the
+@var{modes} were passed as separate arguments.
 @end defun
 
 The graph of major modes is accessed with the following lower-level
