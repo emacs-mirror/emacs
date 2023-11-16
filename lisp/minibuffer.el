@@ -3531,8 +3531,13 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
 (defun completion-emacs22-try-completion (string table pred point)
   (let ((suffix (substring string point))
         (completion (try-completion (substring string 0 point) table pred)))
-    (if (not (stringp completion))
-        completion
+    (cond
+     ((eq completion t)
+      (if (equal "" suffix)
+          t
+        (cons string point)))
+     ((not (stringp completion)) completion)
+     (t
       ;; Merge a trailing / in completion with a / after point.
       ;; We used to only do it for word completion, but it seems to make
       ;; sense for all completions.
@@ -3546,7 +3551,7 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
                (eq ?/ (aref suffix 0)))
           ;; This leaves point after the / .
           (setq suffix (substring suffix 1)))
-      (cons (concat completion suffix) (length completion)))))
+      (cons (concat completion suffix) (length completion))))))
 
 (defun completion-emacs22-all-completions (string table pred point)
   (let ((beforepoint (substring string 0 point)))
