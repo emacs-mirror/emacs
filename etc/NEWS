@@ -1099,6 +1099,9 @@ showcases all their customization options.
 
 * Incompatible Lisp Changes in Emacs 30.1
 
+** 'pp' and 'pp-to-string' now always include a terminating newline.
+In the past they included a terminating newline in most cases but not all.
+
 ** 'buffer-match-p' and 'match-buffers' take '&rest args'.
 They used to take a single '&optional arg' and were documented to use
 an unreliable hack to try and support condition predicates that
