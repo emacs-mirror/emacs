@@ -81,7 +81,7 @@ first candidate, and you can cycle between the candidates with
                                          insert-char
                                          delete-backward-char
                                          backward-delete-char-untabify
-                                         text-conversion)
+                                         analyze-text-conversion)
   "List of commands that should trigger completion preview."
   :type '(repeat (function :tag "Command" :value self-insert-command))
   :version "30.1")
