@@ -952,7 +952,7 @@ text scale by the ratio therein."
               ;; and Emacs can hscroll left even when no lines are
               ;; truncated.
               (unless (and (< x-accumulator 0)
-                           (< ratio-diff -0.2))
+                           (< ratio-diff 0))
                 (if (> x-accumulator 0)
                     (scroll-right 1)
                   (scroll-left 1)))
