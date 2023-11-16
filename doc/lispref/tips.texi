@@ -43,6 +43,7 @@ in batch mode, e.g., with a command run by @kbd{@w{M-x compile
 @section Emacs Lisp Coding Conventions
 
 @cindex coding conventions in Emacs Lisp
+@cindex conventions for Emacs Lisp programs
   Here are conventions that you should follow when writing Emacs Lisp
 code intended for widespread use:
 
@@ -264,6 +265,7 @@ which are lists of directory names.
 @node Key Binding Conventions
 @section Key Binding Conventions
 @cindex key binding, conventions for
+@cindex conventions for key bindings
 
 @itemize @bullet
 @item
@@ -345,6 +347,7 @@ after @key{ESC}.  In these states, you should define @kbd{@key{ESC}
 @node Programming Tips
 @section Emacs Programming Tips
 @cindex programming conventions
+@cindex conventions for Emacs programming
 
   Following these conventions will make your program fit better
 into Emacs when it runs.
@@ -477,6 +480,7 @@ buffer and let the user switch back at will.  @xref{Recursive Editing}.
 @section Tips for Making Compiled Code Fast
 @cindex execution speed
 @cindex speedups
+@cindex tips for faster Lisp code
 
   Here are ways of improving the execution speed of byte-compiled
 Lisp programs.
@@ -531,6 +535,7 @@ the speed.  @xref{Inline Functions}.
 @node Warning Tips
 @section Tips for Avoiding Compiler Warnings
 @cindex byte compiler warnings, how to avoid
+@cindex warnings from byte compiler
 
 @itemize @bullet
 @item
@@ -585,6 +590,8 @@ is to put it inside @code{with-no-warnings}.  @xref{Compiler Errors}.
 @node Documentation Tips
 @section Tips for Documentation Strings
 @cindex documentation strings, conventions and tips
+@cindex tips for documentation strings
+@cindex conventions for documentation strings
 
 @findex checkdoc-minor-mode
   Here are some tips and conventions for the writing of documentation
@@ -915,6 +922,7 @@ versions, there is no need for this work-around.
 @node Comment Tips
 @section Tips on Writing Comments
 @cindex comments, Lisp convention for
+@cindex conventions for Lisp comments
 
   We recommend these conventions for comments:
 
@@ -1030,6 +1038,7 @@ semicolons.
 @section Conventional Headers for Emacs Libraries
 @cindex header comments
 @cindex library header comments
+@cindex conventions for library header comments
 
   Emacs has conventions for using special comments in Lisp libraries
 to divide them into sections and give information such as who wrote
