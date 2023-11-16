@@ -1071,8 +1071,10 @@ A major mode based on the tree-sitter library for editing Elixir files.
 *** New major mode 'lua-ts-mode'.
 A major mode based on the tree-sitter library for editing Lua files.
 
+** Minibuffer and Completions
+
 +++
-** New global minor mode 'minibuffer-regexp-mode'.
+*** New global minor mode 'minibuffer-regexp-mode'.
 This is a minor mode for editing regular expressions in the minibuffer.
 It highlights parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
 a user-friendly way, avoids reporting alleged paren mismatches and makes
