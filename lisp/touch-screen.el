@@ -255,7 +255,7 @@ horizontal scrolling according to the movement in DX."
         (window (cadr touch-screen-current-tool))
         (lines-vscrolled (or (nth 7 touch-screen-current-tool) 0))
         (lines-hscrolled (or (nth 8 touch-screen-current-tool) 0)))
-    (setq accumulator (+ accumulator dx)) ; Add dx;
+    (setq accumulator (+ accumulator dx)) ; Add dx.
     ;; Figure out how much it has scrolled and how much remains on the
     ;; left or right of the window.  If a line has already been
     ;; vscrolled but no hscrolling has happened, don't hscroll, as
@@ -1014,12 +1014,15 @@ POINT must be the touch point currently being tracked as
 `touch-screen-current-tool'.
 
 If the fourth element of `touch-screen-current-tool' is nil, then
-the touch has just begun.  Determine how much POINT has moved.
-If POINT has moved upwards or downwards by a significant amount,
-then set the fourth element to `scroll'.  Then, generate a
-`touchscreen-scroll' event with the window that POINT was
-initially placed upon, and pixel deltas describing how much point
-has moved relative to its previous position in the X and Y axes.
+the touch has just begun.  In a related case, if it is
+`ancillary-tool', then the ancillary tool has been removed and
+gesture translation must be resumed.  Determine how much POINT
+has moved.  If POINT has moved upwards or downwards by a
+significant amount, then set the fourth element to `scroll'.
+Then, generate a `touchscreen-scroll' event with the window that
+POINT was initially placed upon, and pixel deltas describing how
+much point has moved relative to its previous position in the X
+and Y axes.
 
 If the fourth element of `touchscreen-current-tool' is `scroll',
 then generate a `touchscreen-scroll' event with the window that
@@ -1050,7 +1053,8 @@ then move point to the position of POINT."
          (touch-screen-relative-xy posn window)))
     ;; Update the 10th field of the tool list with RELATIVE-XY.
     (setcar (nthcdr 9 touch-screen-current-tool) relative-xy)
-    (cond ((null what)
+    (cond ((or (null what)
+               (eq what 'ancillary-tool))
            (let* ((last-posn (nth 2 touch-screen-current-tool))
                   (original-posn (nth 4 touch-screen-current-tool))
                   (col (and (not (posn-area original-posn))
@@ -1288,19 +1292,19 @@ keyboard if the current buffer and the character at the new point
 is not read-only."
   (if touch-screen-aux-tool
       (progn
-        (let ((posn (cdr point))
-              (window (cadr touch-screen-current-tool))
-              (point-no (aref touch-screen-aux-tool 0)))
+        (let ((point-no (aref touch-screen-aux-tool 0))
+              (relative-xy (aref touch-screen-aux-tool 3)))
           ;; Replace the current position of touch-screen-current-tool
-          ;; with posn and its number with point-no, but leave other
-          ;; information (such as its starting position) intact: this
-          ;; touchpoint is meant to continue the gesture interrupted
-          ;; by the removal of the last, not to commence a new one.
+          ;; with relative-xy and its number with point-no, but leave
+          ;; other information (such as its starting position) intact:
+          ;; this touchpoint is meant to continue the gesture
+          ;; interrupted by the removal of the last, not to commence a
+          ;; new one.
           (setcar touch-screen-current-tool point-no)
           (setcar (nthcdr 2 touch-screen-current-tool)
-                  (touch-screen-relative-xy posn window))
+                  relative-xy)
           (setcar (nthcdr 9 touch-screen-current-tool)
-                  (touch-screen-relative-xy posn window)))
+                  relative-xy))
         (setq touch-screen-aux-tool nil))
     (let ((what (nth 3 touch-screen-current-tool))
           (posn (cdr point)) window point)
@@ -1522,7 +1526,15 @@ the place of EVENT within the key sequence being translated, or
                 ;; down-mouse-1 button beneath its first press.
                 (unless (memq (nth 3 touch-screen-current-tool)
                               '(mouse-drag mouse-1-menu))
-                  (setcar (nthcdr 3 touch-screen-current-tool) nil))))
+                  ;; Set the what field to the symbol `ancillary-tool'
+                  ;; rather than nil, that mouse events may not be
+                  ;; generated if no gesture is subsequently
+                  ;; recognized; this, among others, prevents
+                  ;; undesirable point movement (through the execution
+                  ;; of `mouse-set-point') after both points are
+                  ;; released without any gesture being detected.
+                  (setcar (nthcdr 3 touch-screen-current-tool)
+                          'ancillary-tool))))
           ;; Replace any previously ongoing gesture.  If POSITION has no
           ;; window or position, make it nil instead.
           (setq tool-list (and (windowp window)
@@ -1644,14 +1656,15 @@ the place of EVENT within the key sequence being translated, or
       ;; further action is required, for the next update received will
       ;; resume regular gesture recognition.
       ;;
-      ;; The what field in touch-screen-current-tool is cleared when
-      ;; the ancillary tool is pressed, so gesture recognition will
-      ;; commence with a clean slate, save for when the first touch
-      ;; landed atop a menu or some other area down-mouse-1 was bound.
+      ;; The what field in touch-screen-current-tool is set to a
+      ;; signal value when the ancillary tool is pressed, so gesture
+      ;; recognition will commence with a clean slate, save for when
+      ;; the first touch landed atop a menu or some other area
+      ;; down-mouse-1 was bound.
       ;;
       ;; Gesture recognition will be inhibited in that case, so that
-      ;; menu bar or mouse motion events are generated in its place as
-      ;; they would be were no ancillary tool ever pressed.
+      ;; mouse menu or mouse motion events are generated in its place
+      ;; as they would be were no ancillary tool ever pressed.
       (when (and touch-screen-aux-tool
                  (eq (caadr event) (aref touch-screen-aux-tool 0)))
         (setq touch-screen-aux-tool nil))
