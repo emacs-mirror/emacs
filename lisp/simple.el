@@ -2990,8 +2990,8 @@ this by calling a function defined by `minibuffer-default-add-function'.")
   "Return a list of all completions without the default value.
 This function is used to add all elements of the completion table to
 the end of the list of defaults just after the default value.
-When you don't want to add initial completions to the default value,
-you can use either `minibuffer-setup-hook' or `minibuffer-with-setup-hook'
+If you don't want to add initial completions to the default value,
+use either `minibuffer-setup-hook' or `minibuffer-with-setup-hook'
 to set the value of `minibuffer-default-add-function' to nil."
   (let ((def minibuffer-default)
         ;; Avoid some popular completions with undefined order
