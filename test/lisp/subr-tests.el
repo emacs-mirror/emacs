@@ -365,7 +365,7 @@
 (defalias 'subr-tests--mode-C #'subr-tests--mode-B)
 (derived-mode-add-parents 'subr-tests--mode-A '(subr-tests--mode-C))
 
-(ert-deftest subt-tests--derived-mode-add-parents ()
+(ert-deftest subr-tests--derived-mode-add-parents ()
   ;; The Right Answer is somewhat unclear in the presence of cycles,
   ;; but let's make sure we get tolerable answers.
   ;; FIXME: Currently `prog-mode' doesn't always end up at the end :-(
@@ -381,12 +381,14 @@
                        '(subr-tests--mode-A subr-tests--mode-B prog-mode
                          subr-tests--mode-C subr-tests--derived-mode-1))))))
 
-(ert-deftest subt-tests--merge-ordered-lists ()
+(ert-deftest subr-tests--merge-ordered-lists ()
   (should (equal (merge-ordered-lists
-                  '((B A) (C A) (D B) (E D C)))
+                  '((B A) (C A) (D B) (E D C))
+                  (lambda (_) (error "cycle")))
                  '(E D B C A)))
   (should (equal (merge-ordered-lists
-                  '((E D C) (B A) (C A) (D B)))
+                  '((E D C) (B A) (C A) (D B))
+                  (lambda (_) (error "cycle")))
                  '(E D C B A)))
   (should-error (merge-ordered-lists
                  '((E C D) (B A) (A C) (D B))

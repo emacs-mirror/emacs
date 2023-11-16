@@ -2695,6 +2695,7 @@ By default we choose the head of the first list."
   ;; Algorithm inspired from
   ;; [C3](https://en.wikipedia.org/wiki/C3_linearization)
   (let ((result '()))
+    (setq lists (remq nil lists)) ;Don't mutate the original `lists' argument.
     (while (cdr (setq lists (delq nil lists)))
       ;; Try to find the next element of the result. This
       ;; is achieved by considering the first element of each
