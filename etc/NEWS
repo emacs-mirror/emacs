@@ -617,6 +617,12 @@ calling external rgrep.
 +++
 *** If a command exits abnormally, the Eshell prompt now shows its exit code.
 
++++
+*** New user option 'eshell-history-append'.
+If non-nil, each Eshell session will save history by appending new
+entries of that session to the history file rather than overwriting
+the file with the whole history of the session.  The default is nil.
+
 ** Minibuffer and Completions
 
 *** New commands 'previous-line-completion' and 'next-line-completion'.

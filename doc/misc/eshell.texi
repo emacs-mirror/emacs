@@ -1237,11 +1237,20 @@ command containing @code{foo}.  The n-th argument of the last command
 beginning with @code{foo} is accessible by @code{!foo:n}.
 
 @vindex eshell-history-file-name
-The history ring is loaded from a file at the start of every session,
-and written back to the file at the end of every session.  The file path
-is specified in @code{eshell-history-file-name}.  Unlike other shells,
-such as Bash, Eshell can not be configured to keep a history ring of a
-different size than that of the history file.
+@vindex eshell-history-append
+The history is loaded to the history ring from the file
+@code{eshell-history-file-name} at the start of every session, and
+saved to that file at the end of every session.  The default history
+saving behavior is to overwrite the history file with the whole
+history ring of the session.  If @code{eshell-history-append} is
+non-@code{nil}, the history will instead be saved by appending new
+entries from the session to the history file, which could prevent
+potential history loss with multiple Eshell sessions.  Unlike other
+shells, such as Bash, Eshell cannot currently be configured to control
+the size of the history file.  In particular, when
+@code{eshell-history-append} is non-@code{nil}, the size of the file
+will keep increasing, and the recommended way to truncate the file is
+to run the @samp{history -w} command in an Eshell session.
 
 Since the default buffer navigation and searching key-bindings are
 still present in the Eshell buffer, the commands for history
