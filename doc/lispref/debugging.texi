@@ -47,6 +47,7 @@ You can use the ERT package to write regression tests for the program.
 
 @item
 You can profile the program to get hints about how to make it more efficient.
+@xref{Profiling}.
 @end itemize
 
   Other useful tools for debugging input and output problems are the
