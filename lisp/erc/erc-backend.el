@@ -1284,8 +1284,10 @@ protection algorithm."
                              nil #'erc-server-send-queue buffer)))))))
 
 (defun erc-message (message-command line &optional force)
-  "Send LINE to the server as a privmsg or a notice.
-MESSAGE-COMMAND should be either \"PRIVMSG\" or \"NOTICE\".
+  "Send LINE, possibly expanding a target specifier beforehand.
+Expect MESSAGE-COMMAND to be an IRC command with a single
+positional target parameter followed by a trailing parameter.
+
 If the target is \",\", the last person you've got a message from will
 be used.  If the target is \".\", the last person you've sent a message
 to will be used."
