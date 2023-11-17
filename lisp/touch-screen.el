@@ -908,16 +908,17 @@ text scale by the ratio therein."
   (require 'face-remap)
   (let* ((posn (cadr event))
          (window (posn-window posn))
-         (current-scale (if text-scale-mode
-                            text-scale-mode-amount
-                          0))
-         (start-scale (or (aref touch-screen-aux-tool 7)
-                          (aset touch-screen-aux-tool 7
-                                current-scale)))
          (scale (nth 2 event))
-         (ratio-diff (nth 5 event)))
+         (ratio-diff (nth 5 event))
+         current-scale start-scale)
     (when (windowp window)
       (with-selected-window window
+        (setq current-scale (if text-scale-mode
+                                text-scale-mode-amount
+                              0)
+              start-scale (or (aref touch-screen-aux-tool 7)
+                              (aset touch-screen-aux-tool 7
+                                    current-scale)))
         ;; Set the text scale.
         (text-scale-set (+ start-scale
                            (round (log scale text-scale-mode-step))))
@@ -1057,25 +1058,12 @@ then move point to the position of POINT."
     (cond ((or (null what)
                (eq what 'ancillary-tool))
            (let* ((last-posn (nth 2 touch-screen-current-tool))
-                  (original-posn (nth 4 touch-screen-current-tool))
-                  (col (and (not (posn-area original-posn))
-                            (car (posn-col-row original-posn
-                                               (posn-window posn)))))
-                  ;; Don't start horizontal scrolling if the touch
-                  ;; point originated within two columns of the window
-                  ;; edges, as systems like Android use those two
-                  ;; columns to implement gesture navigation.
-                  (diff-x-eligible
-                   (and col (> col 2)
-                        (< col (- (window-width window) 2))))
                   (diff-x (- (car last-posn) (car relative-xy)))
                   (diff-y (- (cdr last-posn) (cdr relative-xy))))
              (when (or (> diff-y 10)
-                       (and diff-x-eligible
-                            (> diff-x (frame-char-width)))
+                       (> diff-x (frame-char-width))
                        (< diff-y -10)
-                       (and diff-x-eligible
-                            (< diff-x (- (frame-char-width)))))
+                       (< diff-x (- (frame-char-width))))
                (setcar (nthcdr 3 touch-screen-current-tool)
                        'scroll)
                (setcar (nthcdr 2 touch-screen-current-tool)
