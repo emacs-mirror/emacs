@@ -925,7 +925,8 @@ text scale by the ratio therein."
         ;; position.
         (if (and (not (eq current-scale
                           text-scale-mode-amount))
-                 (posn-point posn))
+                 (posn-point posn)
+                 (cdr (posn-x-y posn)))
             (touch-screen-scroll-point-to-y (posn-point posn)
                                             (cdr (posn-x-y posn)))
           ;; Rather than scroll POSN's point to its old row, scroll the
@@ -1224,11 +1225,22 @@ last such event."
             (throw 'input-event (list 'touchscreen-pinch
                                       (if (or (<= (car centrum) 0)
                                               (<= (cdr centrum) 0))
-                                          (list window centrum nil nil nil
-                                                nil nil nil)
-                                        (posn-at-x-y (car centrum)
-                                                     (cdr centrum)
-                                                     window))
+                                          (list window nil centrum nil nil
+                                                nil nil nil nil nil)
+                                        (let ((posn (posn-at-x-y (car centrum)
+                                                                 (cdr centrum)
+                                                                 window)))
+                                          (if (eq (posn-window posn)
+                                                  window)
+                                              posn
+                                            ;; Return a placeholder
+                                            ;; outside the window if
+                                            ;; the centrum has moved
+                                            ;; beyond the confines of
+                                            ;; the window where the
+                                            ;; gesture commenced.
+                                            (list window nil centrum nil nil
+                                                  nil nil nil nil nil))))
                                       ratio
                                       (- (car centrum)
                                          (car initial-centrum))
