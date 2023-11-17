@@ -595,7 +595,12 @@ callback data (if any)."
 		       (if (epg-context-textmode context) '("--textmode"))
 		       (if (epg-context-output-file context)
 			   (list "--output" (epg-context-output-file context)))
-		       (if (epg-context-pinentry-mode context)
+		       (if (and (epg-context-pinentry-mode context)
+				(not
+				 ;; loopback doesn't work with gpgsm
+				 (and (eq (epg-context-protocol context) 'CMS)
+				      (eq (epg-context-pinentry-mode context)
+					  'loopback))))
 			   (list "--pinentry-mode"
 				 (symbol-name (epg-context-pinentry-mode
 					       context))))
