@@ -645,11 +645,11 @@ include before the first blank line so as to make this display useful.
 
 @item
 The first line should mention all the important arguments of the
-function, and should mention them in the order that they are written
-in a function call.  If the function has many arguments, then it is
-not feasible to mention them all in the first line; in that case, the
-first line should mention the first few arguments, including the most
-important arguments.
+function (in particular, the mandatory arguments), and should mention
+them in the order that they are written in a function call.  If the
+function has many arguments, then it is not feasible to mention them
+all in the first line; in that case, the first line should mention the
+first few arguments, including the most important arguments.
 
 @item
 When a function's documentation string mentions the value of an argument
