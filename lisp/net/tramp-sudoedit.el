@@ -489,7 +489,7 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (ignore-error file-missing
+  (tramp-skeleton-file-name-all-completions filename directory
     (all-completions
      filename
      (with-parsed-tramp-file-name (expand-file-name directory) nil
@@ -503,13 +503,11 @@ the result will be a local, non-Tramp, file name."
 	    (if (ignore-errors (file-directory-p (expand-file-name f directory)))
 		(file-name-as-directory f)
 	      f))
-	  (delq
-	   nil
-	   (mapcar
-	    (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	    (split-string
-	     (tramp-get-buffer-string (tramp-get-connection-buffer v))
-	     "\n" 'omit)))))))))
+	  (mapcar
+	   (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
+	   (split-string
+	    (tramp-get-buffer-string (tramp-get-connection-buffer v))
+	    "\n" 'omit))))))))
 
 (defun tramp-sudoedit-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
