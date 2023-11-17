@@ -13,11 +13,12 @@ Lisp program.
 @itemize @bullet
 @item
 If a problem occurs when you run the program, you can use the built-in
-Emacs Lisp debugger to suspend the Lisp evaluator, and examine and/or
-alter its internal state.
+Emacs Lisp debugger (@pxref{Debugger}) to suspend the Lisp evaluator,
+and examine and/or alter its internal state.
 
 @item
 You can use Edebug, a source-level debugger for Emacs Lisp.
+@xref{Edebug}.
 
 @item
 @cindex tracing Lisp programs
