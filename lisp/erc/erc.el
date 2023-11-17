@@ -4591,6 +4591,7 @@ The rest of LINE is the message to send."
 
 The rest of LINE is the message to send."
   (erc-message "SQUERY" line))
+(put 'erc-cmd-SQUERY 'do-not-parse-args t)
 
 (defun erc-cmd-NICK (nick)
   "Change current nickname to NICK."
