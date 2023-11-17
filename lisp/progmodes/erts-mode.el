@@ -181,7 +181,8 @@ expected results and the actual results in a separate buffer."
         (ert-test--erts-test
          (list (cons 'dummy t)
                (cons 'code (car (read-from-string test-function)))
-               (cons 'point-char (erts-mode--preceding-spec "Point-Char")))
+               (cons 'point-char (save-match-data
+                                   (erts-mode--preceding-spec "Point-Char"))))
          (buffer-file-name))
       (:success (message "Test successful"))
       (ert-test-failed
