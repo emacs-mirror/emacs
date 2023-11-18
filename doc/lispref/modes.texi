@@ -2692,7 +2692,7 @@ display in pixels, by multiplying the value of this variable by the
 value returned by @code{frame-char-width} (@pxref{Frame Font}), and
 then use the result to align header-line text using the
 @code{:align-to} display property spec (@pxref{Specified Space}) in
-pixels on the relevant parts of @code{header-line-frormat}.
+pixels on the relevant parts of @code{header-line-format}.
 @end defvar
 
 @defun window-header-line-height &optional window
