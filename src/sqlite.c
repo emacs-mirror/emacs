@@ -716,7 +716,9 @@ Only modules on Emacs' list of allowed modules can be loaded.  */)
     "rtree",
     "sha1",
     "uuid",
+    "vector0",
     "vfslog",
+    "vss0",
     "zipfile",
     NULL
   };
