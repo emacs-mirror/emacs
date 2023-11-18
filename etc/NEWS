@@ -330,6 +330,10 @@ or narrow (if the variable is customized to the nil value).
 This setting affects the results of 'string-width' and similar
 functions in CJK locales.
 
+---
+*** New input methods for the Urdu, Pashto, and Sindhi languages.
+These languages are spoken in Pakistan and Afganistan.
+
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
