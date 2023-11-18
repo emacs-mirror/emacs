@@ -969,7 +969,7 @@ It makes underscores and dots word constituent chars.")
     "raise" "return" "try" "while" "with" "yield"
     ;; These are technically operators, but we fontify them as
     ;; keywords.
-    "and" "in" "is" "not" "or"))
+    "and" "in" "is" "not" "or" "not in"))
 
 (defvar python--treesit-builtins
   '("abs" "all" "any" "ascii" "bin" "bool" "breakpoint" "bytearray"
