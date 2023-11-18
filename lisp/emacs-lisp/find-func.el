@@ -42,8 +42,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 ;;; User variables:
 
 (defgroup find-function nil
@@ -247,13 +245,19 @@ LIBRARY should be a string (the name of the library)."
   ;; LIBRARY may be "foo.el" or "foo".
   (let ((load-re
          (concat "\\(" (regexp-quote (file-name-sans-extension library)) "\\)"
-                 (regexp-opt (get-load-suffixes)) "\\'")))
-    (cl-loop
-     for (file . _) in load-history thereis
-     (and (stringp file) (string-match load-re file)
-          (let ((dir (substring file 0 (match-beginning 1)))
-                (basename (match-string 1 file)))
-            (locate-file basename (list dir) (find-library-suffixes)))))))
+                 (regexp-opt (get-load-suffixes)) "\\'"))
+        (alist load-history)
+        elt file found)
+    (while (and alist (null found))
+      (setq elt (car alist)
+            alist (cdr alist)
+            file (car elt)
+            found (and (stringp file) (string-match load-re file)
+                       (let ((dir (substring file 0 (match-beginning 1)))
+                             (basename (match-string 1 file)))
+                         (locate-file basename (list dir)
+                                      (find-library-suffixes))))))
+    found))
 
 (defvar find-function-C-source-directory
   (let ((dir (expand-file-name "src" source-directory)))
@@ -469,7 +473,8 @@ Return t if any PRED returns t."
    ((not (consp form)) nil)
    ((funcall pred form) t)
    (t
-    (cl-destructuring-bind (left-child . right-child) form
+    (let ((left-child (car form))
+          (right-child (cdr form)))
       (or
        (find-function--any-subform-p left-child pred)
        (find-function--any-subform-p right-child pred))))))
