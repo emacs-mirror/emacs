@@ -274,8 +274,8 @@ absolute file names."
 		     (not (directory-name-p newname)))
 	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	  (if (or (and (file-remote-p filename) (not t1))
-		  (and (file-remote-p newname)  (not t2)))
+	  (if (or (and (tramp-tramp-file-p filename) (not t1))
+		  (and (tramp-tramp-file-p newname)  (not t2)))
 	      ;; We cannot copy or rename directly.
 	      (let ((tmpfile (tramp-compat-make-temp-file filename)))
 		(if (eq op 'copy)
@@ -296,7 +296,7 @@ absolute file names."
 
 	  ;; When `newname' is local, we must change the ownership to
 	  ;; the local user.
-	  (unless (file-remote-p newname)
+	  (unless (tramp-tramp-file-p newname)
 	    (tramp-set-file-uid-gid
 	     (concat (file-remote-p filename) newname)
 	     (tramp-get-local-uid 'integer)

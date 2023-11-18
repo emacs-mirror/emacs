@@ -3447,7 +3447,7 @@ BODY is the backend specific code."
 	       "Apparent cycle of symbolic links for %s" ,filename))
 	    ;; If the resulting localname looks remote, we must quote
 	    ;; it for security reasons.
-	    (when (file-remote-p result)
+	    (when (tramp-tramp-file-p result)
 	      (setq result (file-name-quote result 'top)))
 	    result)))))))
 
@@ -3587,7 +3587,7 @@ BODY is the backend specific code."
 	   ;; Lock file.
 	   (when (and (not (auto-save-file-name-p
 			    (file-name-nondirectory filename)))
-		      (file-remote-p lockname)
+		      (tramp-tramp-file-p lockname)
 		      (not file-locked))
 	     (setq file-locked t)
 	     ;; `lock-file' exists since Emacs 28.1.
@@ -4117,7 +4117,7 @@ Let-bind it when necessary.")
 		  (< numchase numchase-limit))
 	(setq numchase (1+ numchase)
 	      result
-	      (if (file-remote-p symlink-target)
+	      (if (tramp-tramp-file-p symlink-target)
 		  (file-name-quote symlink-target 'top)
 		(tramp-drop-volume-letter
 		 (expand-file-name
