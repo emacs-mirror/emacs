@@ -4881,6 +4881,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
                (if (tramp--test-expensive-test-p)
                    ;; It doesn't work for `initials' and `shorthand'
                    ;; completion styles.  Should it?
+		   ;; `orderless' passes the tests, but it is an ELPA package.
                    '(emacs21 emacs22 basic partial-completion substring flex)
 		 '(basic)))
 
@@ -5193,10 +5194,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (defun tramp--test-timeout-handler (&rest _ignore)
   "Timeout handler, reporting a failed test."
   (interactive)
-  (let ((proc (get-buffer-process (current-buffer))))
-    (when (processp proc)
-      (tramp--test-message
-       "cmd: %s\nbuf:\n%s\n---" (process-command proc) (buffer-string))))
+  (tramp--test-message "proc: %s" (get-buffer-process (current-buffer)))
+  (when-let ((proc (get-buffer-process (current-buffer)))
+	     ((processp proc)))
+    (tramp--test-message "cmd: %s" (process-command proc)))
+  (tramp--test-message "buf: %s\n%s\n---" (current-buffer) (buffer-string))
   (ert-fail (format "`%s' timed out" (ert-test-name (ert-running-test)))))
 
 (ert-deftest tramp-test29-start-file-process ()
