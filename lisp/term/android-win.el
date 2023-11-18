@@ -404,9 +404,9 @@ If storage permissions are as yet denied to Emacs, insert a short
 notice to that effect, followed by a button that enables the user
 to grant such permissions.
 
-FANCY-P controls if the inserted notice should be displayed in a
-variable space consequent on its being incorporated within the
-fancy splash screen."
+FANCY-P non-nil means the notice will be displayed with faces, in
+the style appropriate for its incorporation within the fancy splash
+screen display; see `francy-splash-insert'."
   (unless (android-external-storage-available-p)
     (if fancy-p
         (fancy-splash-insert

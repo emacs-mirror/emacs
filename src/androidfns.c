@@ -3101,7 +3101,7 @@ within the directory `/content/storage'.  */)
 DEFUN ("android-external-storage-available-p",
        Fandroid_external_storage_available_p,
        Sandroid_external_storage_available_p, 0, 0, 0,
-       doc: /* Return whether Emacs is entitled to access external storage.
+       doc: /* Return non-nil if Emacs is entitled to access external storage.
 Return nil if the requisite permissions for external storage access
 have not been granted to Emacs, t otherwise.  Such permissions can be
 requested by means of the `android-request-storage-access'
@@ -3117,13 +3117,13 @@ absent these permissions.  */)
 
 DEFUN ("android-request-storage-access", Fandroid_request_storage_access,
        Sandroid_request_storage_access, 0, 0, "",
-       doc: /* Request rights to access external storage.
+       doc: /* Request permissions to access external storage.
 
-Return nil whether access is accorded or not, immediately subsequent
-to displaying the permissions request dialog.
+Return nil regardless of whether access permissions are granted or not,
+immediately after displaying the permissions request dialog.
 
-`android-external-storage-available-p' (which see) ascertains if Emacs
-has received such rights.  */)
+Use `android-external-storage-available-p' (which see) to verify
+whether Emacs has actually received such access permissions.  */)
   (void)
 {
   android_request_storage_access ();
