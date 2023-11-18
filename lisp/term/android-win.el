@@ -339,5 +339,91 @@ the `stop-selecting-text' editing key."
 (global-set-key [stop-selecting-text] 'android-deactivate-mark-command)
 
 
+;; Splash screen notice.  Users are frequently left scratching their
+;; heads when they overlook the Android appendex in the Emacs manual
+;; and discover that external storage is not accessible; worse yet,
+;; Android 11 and later veil the settings panel controlling such
+;; permissions behind layer upon layer of largely immaterial settings
+;; panels, such that several modified copies of the Android Settings
+;; app have omitted them altogether after their developers conducted
+;; their own interface simplifications.  Display a button on the
+;; splash screen that instructs users on granting these permissions
+;; when they are denied.
+
+(declare-function android-external-storage-available-p "androidfns.c")
+(declare-function android-request-storage-access "androidfns.c")
+(declare-function android-request-directory-access "androidfns.c")
+
+(defun android-display-storage-permission-popup (&optional _ignored)
+  "Display a dialog regarding storage permissions.
+Display a buffer explaining the need for storage permissions and
+offering to grant them."
+  (interactive)
+  (with-current-buffer (get-buffer-create "*Android Permissions*")
+    (setq buffer-read-only nil)
+    (erase-buffer)
+    (insert (propertize "Storage Access Permissions"
+                        'face '(bold (:height 1.2))))
+    (insert "
+
+Before Emacs can access your device's external storage
+directories, such as /sdcard and /storage/emulated/0, you must
+grant it permission to do so.
+
+Alternatively, you can request access to a particular directory
+in external storage, whereafter it will be available under the
+directory /content/storage.
+
+")
+    (insert-button "Grant storage permissions"
+                   'action (lambda (_)
+                             (android-request-storage-access)
+                             (quit-window)))
+    (newline)
+    (newline)
+    (insert-button "Request access to directory"
+                   'action (lambda (_)
+                             (android-request-directory-access)))
+    (newline)
+    (special-mode)
+    (setq buffer-read-only t))
+  (let ((window (display-buffer "*Android Permissions*")))
+    (when (windowp window)
+      (with-selected-window window
+        ;; Fill the text to the width of this window in columns if it
+        ;; does not exceed 72, that the text might not be wrapped or
+        ;; truncated.
+        (when (<= (window-width window) 72)
+          (let ((fill-column (window-width window))
+                (inhibit-read-only t))
+            (fill-region (point-min) (point-max))))))))
+
+(defun android-after-splash-screen (fancy-p)
+  "Insert a brief notice on the absence of storage permissions.
+If storage permissions are as yet denied to Emacs, insert a short
+notice to that effect, followed by a button that enables the user
+to grant such permissions.
+
+FANCY-P controls if the inserted notice should be displayed in a
+variable space consequent on its being incorporated within the
+fancy splash screen."
+  (unless (android-external-storage-available-p)
+    (if fancy-p
+        (fancy-splash-insert
+         :face '(variable-pitch
+                 font-lock-function-call-face)
+         "\nPermissions necessary to access external storage directories have
+been denied.  Click "
+         :link '("here" android-display-storage-permission-popup)
+         " to grant them.")
+      (insert
+       "Permissions necessary to access external storage directories have been
+denied.  ")
+      (insert-button "Click here to grant them."
+                     'action #'android-display-storage-permission-popup
+                     'follow-link t)
+      (newline))))
+
+
 (provide 'android-win)
 ;; android-win.el ends here.
