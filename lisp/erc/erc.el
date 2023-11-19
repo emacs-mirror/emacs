@@ -2993,23 +2993,70 @@ debugging purposes, try `erc-debug-irc-protocol'."
           (cl-assert (< erc-insert-marker erc-input-marker))
           (cl-assert (= (field-end erc-insert-marker) erc-input-marker)))))
 
-(defvar erc--refresh-prompt-hook nil)
+(defvar erc--merge-prop-behind-p nil
+  "When non-nil, put merged prop(s) behind existing.")
+
+(defvar erc--refresh-prompt-hook nil
+  "Hook called after refreshing the prompt in the affected buffer.")
+
+(defvar-local erc--inhibit-prompt-display-property-p nil
+  "Tell `erc-prompt' related functions to avoid the `display' text prop.
+Modules can enable this when needing to reserve the prompt's
+display property for some other purpose, such as displaying it
+elsewhere, abbreviating it, etc.")
+
+(defconst erc--prompt-properties '( rear-nonsticky t
+                                    erc-prompt t ; t or `hidden'
+                                    field erc-prompt
+                                    front-sticky t
+                                    read-only t)
+  "Mandatory text properties added to ERC's prompt.")
+
+(defvar erc--refresh-prompt-continue-request nil
+  "State flag for refreshing prompt in all buffers.
+When the value is zero, functions assigned to the variable
+`erc-prompt' can set this to run `erc--refresh-prompt-hook' (1)
+or `erc--refresh-prompt' (2) in all buffers of the server.")
+
+(defun erc--refresh-prompt-continue (&optional hooks-only-p)
+  "Ask ERC to refresh the prompt in all buffers.
+Functions assigned to `erc-prompt' can call this if needing to
+recreate the prompt in other buffers as well.  With HOOKS-ONLY-P,
+run `erc--refresh-prompt-hook' in other buffers instead of doing
+a full refresh."
+  (when (and erc--refresh-prompt-continue-request
+             (zerop erc--refresh-prompt-continue-request))
+    (setq erc--refresh-prompt-continue-request (if hooks-only-p 1 2))))
 
 (defun erc--refresh-prompt ()
   "Re-render ERC's prompt when the option `erc-prompt' is a function."
   (erc--assert-input-bounds)
   (unless (erc--prompt-hidden-p)
-    (when (functionp erc-prompt)
-      (save-excursion
-        (goto-char erc-insert-marker)
-        (set-marker-insertion-type erc-insert-marker nil)
-        ;; Avoid `erc-prompt' (the named function), which appends a
-        ;; space, and `erc-display-prompt', which propertizes all but
-        ;; that space.
-        (insert-and-inherit (funcall erc-prompt))
-        (set-marker-insertion-type erc-insert-marker t)
-        (delete-region (point) (1- erc-input-marker))))
-    (run-hooks 'erc--refresh-prompt-hook)))
+    (let ((erc--refresh-prompt-continue-request
+           (or erc--refresh-prompt-continue-request 0)))
+      (when (functionp erc-prompt)
+        (save-excursion
+          (goto-char (1- erc-input-marker))
+          ;; Avoid `erc-prompt' (the named function), which appends a
+          ;; space, and `erc-display-prompt', which propertizes all
+          ;; but that space.
+          (let ((s (funcall erc-prompt))
+                (p (point))
+                (erc--merge-prop-behind-p t))
+            (erc--merge-prop 0 (length s) 'font-lock-face 'erc-prompt-face s)
+            (add-text-properties 0 (length s) erc--prompt-properties s)
+            (insert s)
+            (delete-region erc-insert-marker p))))
+      (run-hooks 'erc--refresh-prompt-hook)
+      (when-let (((> erc--refresh-prompt-continue-request 0))
+                 (n erc--refresh-prompt-continue-request)
+                 (erc--refresh-prompt-continue-request -1)
+                 (b (current-buffer)))
+        (erc-with-all-buffers-of-server erc-server-process
+            (lambda () (not (eq b (current-buffer))))
+          (if (= n 1)
+              (run-hooks 'erc--refresh-prompt-hook)
+            (erc--refresh-prompt)))))))
 
 (defun erc--check-msg-prop (prop &optional val)
   "Return PROP's value in `erc--msg-props' when populated.
@@ -3247,9 +3294,12 @@ value.  See also `erc-button-add-face'."
         new)
     (while (< pos to)
       (setq new (if old
-                    (if (listp val)
-                        (append val (ensure-list old))
-                      (cons val (ensure-list old)))
+                    ;; Can't `nconc' without more info.
+                    (if erc--merge-prop-behind-p
+                        `(,@(ensure-list old) ,@(ensure-list val))
+                      (if (listp val)
+                          (append val (ensure-list old))
+                        (cons val (ensure-list old))))
                   val))
       (put-text-property pos end prop new object)
       (setq pos end
@@ -5209,12 +5259,7 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
         ;; Do not extend the text properties when typing at the end
         ;; of the prompt, but stuff typed in front of the prompt
         ;; shall remain part of the prompt.
-        (setq prompt (propertize prompt
-                                 'rear-nonsticky t
-                                 'erc-prompt t ; t or `hidden'
-                                 'field 'erc-prompt
-                                 'front-sticky t
-                                 'read-only t))
+        (setq prompt (apply #'propertize prompt erc--prompt-properties))
         (erc-put-text-property 0 (1- (length prompt))
                                'font-lock-face (or face 'erc-prompt-face)
                                prompt)

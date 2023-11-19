@@ -1881,6 +1881,18 @@
              (buffer-substring 1 4)
              #("ghi" 0 1 (erc-test (w x)) 1 2 (erc-test (w x y z)))))
 
+    ;; Flag `erc--merge-prop-behind-p'.
+    (goto-char (point-min))
+    (insert "jkl\n")
+    (erc--merge-prop 2 3 'erc-test '(y z))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("jkl" 1 2 (erc-test (y z)))))
+    (let ((erc--merge-prop-behind-p t))
+      (erc--merge-prop 1 3 'erc-test '(w x)))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4)
+             #("jkl" 0 1 (erc-test (w x)) 1 2 (erc-test (y z w x)))))
+
     (when noninteractive
       (kill-buffer))))
 
