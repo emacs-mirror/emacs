@@ -8165,9 +8165,9 @@ the expectation that all goes well has a @code{when}.  The code uses
 text that exists.
 
 A @code{when} expression is simply a programmers' convenience.  It is
-an @code{if} without the possibility of an else clause.  In your mind,
-you can replace @code{when} with @code{if} and understand what goes
-on.  That is what the Lisp interpreter does.
+like an @code{if} without the possibility of an else clause.  In your
+mind, you can replace @code{when} with @code{if} and understand what
+goes on.  That is what the Lisp interpreter does.
 
 Technically speaking, @code{when} is a Lisp macro.  A Lisp macro
 enables you to define new control constructs and other language
@@ -8176,8 +8176,9 @@ expression which will in turn compute the value.  In this case, the
 other expression is an @code{if} expression.
 
 The @code{kill-region} function definition also has an @code{unless}
-macro; it is the converse of @code{when}.  The @code{unless} macro is
-an @code{if} without a then clause
+macro; it is the opposite of @code{when}.  The @code{unless} macro is
+like an @code{if} except that it has no then-clause, and it supplies
+an implicit @code{nil} for that.
 
 For more about Lisp macros, see @ref{Macros, , Macros, elisp, The GNU
 Emacs Lisp Reference Manual}.  The C programming language also
