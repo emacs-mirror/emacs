@@ -1274,11 +1274,6 @@ Emacs and Android
 * Android Troubleshooting::     Dealing with problems.
 * Android Software::            Getting extra software.
 
-Emacs and Unconventional Input Devices
-
-* Touchscreens::        Using Emacs on touchscreens.
-* On-Screen Keyboards:: Using Emacs with virtual keyboards.
-
 Emacs and Microsoft Windows/MS-DOS
 
 * Windows Startup::     How to start Emacs on Windows.
