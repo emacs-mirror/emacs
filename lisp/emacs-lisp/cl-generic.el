@@ -1379,6 +1379,7 @@ See the full list and their hierarchy in `cl--typeof-types'."
 (cl--generic-prefill-dispatchers 0 integer)
 (cl--generic-prefill-dispatchers 1 integer)
 (cl--generic-prefill-dispatchers 0 cl--generic-generalizer integer)
+(cl--generic-prefill-dispatchers 0 (eql 'x) integer)
 
 ;;; Dispatch on major mode.
 
