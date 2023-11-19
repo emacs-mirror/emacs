@@ -1345,15 +1345,13 @@ is not read-only."
                  (when command
                    (if (memq command touch-screen-set-point-commands)
                        (if touch-screen-translate-prompt
-                           ;; When a `mouse-set-point' command is
-                           ;; encountered and
-                           ;; `touch-screen-handle-touch' is being
-                           ;; called from the keyboard command loop,
-                           ;; call it immediately so that point is set
-                           ;; prior to the on screen keyboard being
-                           ;; displayed.
-                           (call-interactively command nil
-                                               (vector event))
+                           ;; Forgo displaying the virtual keyboard
+                           ;; should touch-screen-translate-prompt be
+                           ;; set, for then the key won't be delivered
+                           ;; to the command loop, but rather to a
+                           ;; caller of read-key-sequence such as
+                           ;; describe-key.
+                           (throw 'input-event event)
                          (if (and (or (not buffer-read-only)
                                       touch-screen-display-keyboard)
                                   ;; Detect the splash screen and
