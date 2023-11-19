@@ -155,7 +155,9 @@ first candidate, and you can cycle between the candidates with
     (setq completion-preview--overlay (make-overlay pos pos))
     (overlay-put completion-preview--overlay 'window (selected-window)))
   (let ((previous (overlay-get completion-preview--overlay 'after-string)))
-    (unless (and previous (string= previous string))
+    (unless (and previous (string= previous string)
+                 (eq (get-text-property 0 'face previous)
+                     (get-text-property 0 'face string)))
       (add-text-properties 0 1 '(cursor 1) string)
       (overlay-put completion-preview--overlay 'after-string string))
     completion-preview--overlay))
@@ -178,48 +180,71 @@ first candidate, and you can cycle between the candidates with
     (completion-preview-active-mode -1)
     (when (functionp func) (apply func args))))
 
+(defun completion-preview--try-table (table beg end props)
+  "Check TABLE for a completion matching the text between BEG and END.
+
+PROPS is a property list with additional information about TABLE.
+See `completion-at-point-functions' for more details.
+
+If TABLE contains a matching completion, return a list
+\(PREVIEW BEG END ALL EXIT-FN) where PREVIEW is the text to show
+in the completion preview, ALL is the list of all matching
+completion candidates, and EXIT-FN is either a function to call
+after inserting PREVIEW or nil.  If TABLE does not contain
+matching completions, or if there are multiple matching
+completions and `completion-preview-exact-match-only' is non-nil,
+return nil instead."
+  (let* ((pred (plist-get props :predicate))
+         (exit-fn (completion-preview--exit-function
+                   (plist-get props :exit-function)))
+         (string (buffer-substring beg end))
+         (md (completion-metadata string table pred))
+         (sort-fn (or (completion-metadata-get md 'cycle-sort-function)
+                      (completion-metadata-get md 'display-sort-function)
+                      completion-preview-sort-function))
+         (all (let ((completion-lazy-hilit t))
+                (completion-all-completions string table pred
+                                            (- (point) beg) md)))
+         (last (last all))
+         (base (or (cdr last) 0))
+         (prefix (substring string base)))
+    (when last
+      (setcdr last nil)
+      (when-let ((sorted (funcall sort-fn
+                                  (delete prefix (all-completions prefix all)))))
+        (unless (and (cdr sorted) completion-preview-exact-match-only)
+          (list (propertize (substring (car sorted) (length prefix))
+                            'face (if (cdr sorted)
+                                      'completion-preview
+                                    'completion-preview-exact))
+                (+ beg base) end sorted exit-fn))))))
+
+(defun completion-preview--capf-wrapper (capf)
+  "Translate return value of CAPF to properties for completion preview overlay."
+  (unless (eq capf #'completion-preview--insert)
+    (let ((res (ignore-errors (funcall capf))))
+      (and (consp res)
+           (not (functionp res))
+           (seq-let (beg end table &rest plist) res
+             (or (completion-preview--try-table table beg end plist)
+                 (unless (eq 'no (plist-get plist :exclusive))
+                   ;; Return non-nil to exclude other capfs.
+                   '(nil))))))))
+
 (defun completion-preview--update ()
   "Update completion preview."
-  (seq-let (beg end table &rest plist)
-      (let ((completion-preview-insert-on-completion nil))
-        (run-hook-with-args-until-success 'completion-at-point-functions))
-    (when (and beg end table)
-      (let* ((pred (plist-get plist :predicate))
-             (exit-fn (completion-preview--exit-function
-                       (plist-get plist :exit-function)))
-             (string (buffer-substring beg end))
-             (md (completion-metadata string table pred))
-             (sort-fn (or (completion-metadata-get md 'cycle-sort-function)
-                          (completion-metadata-get md 'display-sort-function)
-                          completion-preview-sort-function))
-             (all (let ((completion-lazy-hilit t))
-                    (completion-all-completions string table pred
-                                                (- (point) beg) md)))
-             (last (last all))
-             (base (or (cdr last) 0))
-             (bbeg (+ beg base))
-             (prefix (substring string base)))
-        (when last
-          (setcdr last nil)
-          (let* ((filtered (remove prefix (all-completions prefix all)))
-                 (sorted (funcall sort-fn filtered))
-                 (multi (cadr sorted))  ; multiple candidates
-                 (cand (car sorted)))
-            (when (and cand
-                       (not (and multi
-                                 completion-preview-exact-match-only)))
-              (let* ((face (if multi
-                               'completion-preview
-                             'completion-preview-exact))
-                     (after (propertize (substring cand (length prefix))
-                                        'face face))
-                     (ov (completion-preview--make-overlay end after)))
-                (overlay-put ov 'completion-preview-beg bbeg)
-                (overlay-put ov 'completion-preview-end end)
-                (overlay-put ov 'completion-preview-index 0)
-                (overlay-put ov 'completion-preview-cands sorted)
-                (overlay-put ov 'completion-preview-exit-fn exit-fn)
-                (completion-preview-active-mode)))))))))
+  (seq-let (preview beg end all exit-fn)
+      (run-hook-wrapped
+       'completion-at-point-functions
+       #'completion-preview--capf-wrapper)
+    (when preview
+      (let ((ov (completion-preview--make-overlay end preview)))
+        (overlay-put ov 'completion-preview-beg beg)
+        (overlay-put ov 'completion-preview-end end)
+        (overlay-put ov 'completion-preview-index 0)
+        (overlay-put ov 'completion-preview-cands all)
+        (overlay-put ov 'completion-preview-exit-fn exit-fn)
+        (completion-preview-active-mode)))))
 
 (defun completion-preview--show ()
   "Show a new completion preview.
