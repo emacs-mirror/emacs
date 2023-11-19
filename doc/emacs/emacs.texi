@@ -258,6 +258,10 @@ The Organization of the Screen
 * Mode Line::           Interpreting the mode line.
 * Menu Bar::            How to use the menu bar.
 
+Touchscreen Input and Virtual Keyboards
+* Touchscreens::        Interacting with Emacs from touchscreens.
+* On-Screen Keyboards:: Text input with virtual keyboards.
+
 Basic Editing Commands
 
 * Inserting Text::      Inserting text by simply typing it.
