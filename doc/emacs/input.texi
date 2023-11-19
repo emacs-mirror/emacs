@@ -97,7 +97,7 @@ the position of point relative to the first.
   @dfn{Pinching}, the placement of two tools apart on the screen
 followed by adjustments to their position such as to increase or
 decrease the distance between them will modify the text scale
-(@xref{Text Scale}) in proportion to the change in that distance.
+(@pxref{Text Scale}) in proportion to the change in that distance.
 @end itemize
 
 @vindex touch-screen-delay
