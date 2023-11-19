@@ -234,10 +234,10 @@ It can be used to customize the look of the appointment notification
 displayed on the mode line when 'appt-display-mode-line' is non-nil.
 
 ---
-*** Emacs now recognizes shebang lines that pass -S/--split-string to env.
+*** Emacs now recognizes shebang lines that pass -S/--split-string to 'env'.
 When visiting a script that invokes 'env -S INTERPRETER ARGS...' in
 its shebang line, Emacs will now skip over 'env -S' and deduce the
-major mode based on the interpreter.
+major mode based on the interpreter after 'env -S'.
 
 ** Emacs Server and Client
 
