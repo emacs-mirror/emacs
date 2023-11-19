@@ -664,7 +664,7 @@ to the window-local tab line of buffers, and clicking on the @kbd{x}
 icon of a tab deletes it.  The mouse wheel on the tab line scrolls
 the tabs horizontally.
 
-  Touch screen input (@pxref{Other Input Devices}) can also be used to
+  Touch screen input (@pxref{Other Input}) can also be used to
 interact with the ``tab line''.  Long-pressing (@pxref{Touchscreens})
 a tab will display a context menu with items that operate on the tab
 that was pressed; tapping a tab itself will result in switching to

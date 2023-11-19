@@ -149,6 +149,7 @@ Important General Concepts
                           editing action.
 * Mouse Input::         Using the mouse and keypads.
 * Commands::            Named functions run by key sequences to do editing.
+* Other Input::         Input besides the mouse, keyboard and keypads.
 * Entering Emacs::      Starting Emacs from the shell.
 * Exiting::             Stopping or killing Emacs.
 
@@ -224,7 +225,6 @@ Appendices
 * Haiku::               Using Emacs on Haiku.
 * Android::             Using Emacs on Android.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
-* Other Input Devices:: Using Emacs with other input devices.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
 
 * Glossary::            Terms used in this manual.
@@ -1652,7 +1652,6 @@ Lisp programming.
 @include android.texi
 @c Includes msdos-xtra.
 @include msdos.texi
-@include input.texi
 @include gnu.texi
 @include glossary.texi
 @ifnottex

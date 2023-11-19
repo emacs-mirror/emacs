@@ -227,6 +227,8 @@ until you are interested in customizing them.  Then read the basic
 information on variables (@pxref{Variables}) and the information about
 specific variables will make sense.
 
+@include input.texi
+
 @ifnottex
 @lowersections
 @end ifnottex

@@ -1586,14 +1586,13 @@ the items that operate on the clicked tab.  Dragging the tab with
 wheel scrolling switches to the next or previous tab.  Holding down
 the @key{SHIFT} key during scrolling moves the tab to the left or right.
 
-  Touch screen input (@pxref{Other Input Devices}) can also be used to
-operate on tabs.  Long-pressing (@pxref{Touchscreens}) a tab will
-display a context menu with items that operate on the tab that was
-pressed, and long-pressing the tab bar itself will display a context
-menu which lets you create and remove tabs; tapping a tab itself will
-result in that tab's window configuration being selected, and tapping
-a button on the tab bar will behave as if it was clicked with
-@kbd{mouse-1}.
+  Touch screen input (@pxref{Other Input}) can also be used to operate
+on tabs.  Long-pressing (@pxref{Touchscreens}) a tab will display a
+context menu with items that operate on the tab that was pressed, and
+long-pressing the tab bar itself will display a context menu which
+lets you create and remove tabs; tapping a tab itself will result in
+that tab's window configuration being selected, and tapping a button
+on the tab bar will behave as if it was clicked with @kbd{mouse-1}.
 
 @findex tab-bar-history-mode
   You can enable @code{tab-bar-history-mode} to remember window
