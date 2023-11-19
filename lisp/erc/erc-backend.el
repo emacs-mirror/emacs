@@ -1043,13 +1043,20 @@ Conditionally try to reconnect and take appropriate action."
       ;; unexpected disconnect
       (erc-process-sentinel-2 event buffer))))
 
+(defvar-local erc--hidden-prompt-overlay nil
+  "Overlay for hiding the prompt when disconnected.")
+
 (cl-defmethod erc--reveal-prompt ()
-  (remove-text-properties erc-insert-marker erc-input-marker
-                          '(display nil)))
+  (when erc--hidden-prompt-overlay
+    (delete-overlay erc--hidden-prompt-overlay)
+    (setq erc--hidden-prompt-overlay nil)))
 
 (cl-defmethod erc--conceal-prompt ()
-  (add-text-properties erc-insert-marker (1- erc-input-marker)
-                       `(display ,erc-prompt-hidden)))
+  (when-let (((null erc--hidden-prompt-overlay))
+             (ov (make-overlay erc-insert-marker (1- erc-input-marker)
+                               nil 'front-advance)))
+    (overlay-put ov 'display erc-prompt-hidden)
+    (setq erc--hidden-prompt-overlay ov)))
 
 (defun erc--prompt-hidden-p ()
   (and (marker-position erc-insert-marker)
@@ -1061,7 +1068,8 @@ Conditionally try to reconnect and take appropriate action."
              (marker-position erc-input-marker))
     (with-silent-modifications
       (put-text-property erc-insert-marker (1- erc-input-marker) 'erc-prompt t)
-      (erc--reveal-prompt))))
+      (erc--reveal-prompt)
+      (run-hooks 'erc--refresh-prompt-hook))))
 
 (defun erc--unhide-prompt-on-self-insert ()
   (when (and (eq this-command #'self-insert-command)
@@ -1086,7 +1094,8 @@ Change value of property `erc-prompt' from t to `hidden'."
       (with-silent-modifications
         (put-text-property erc-insert-marker (1- erc-input-marker)
                            'erc-prompt 'hidden)
-        (erc--conceal-prompt))
+        (erc--conceal-prompt)
+        (run-hooks 'erc--refresh-prompt-hook))
       (add-hook 'pre-command-hook #'erc--unhide-prompt-on-self-insert 80 t))))
 
 (defun erc-process-sentinel (cproc event)

@@ -187,101 +187,101 @@
       (with-current-buffer "ServNet"
         (should (= (point) erc-insert-marker))
         (erc--hide-prompt erc-server-process)
-        (should (string= ">" (get-text-property (point) 'display))))
+        (should (string= ">" (get-char-property (point) 'display))))
 
       (with-current-buffer "#chan"
         (goto-char erc-insert-marker)
-        (should (string= ">" (get-text-property (point) 'display)))
+        (should (string= ">" (get-char-property (point) 'display)))
         (should (memq #'erc--unhide-prompt-on-self-insert pre-command-hook))
         (goto-char erc-input-marker)
         (ert-simulate-command '(self-insert-command 1 ?/))
         (goto-char erc-insert-marker)
-        (should-not (get-text-property (point) 'display))
+        (should-not (get-char-property (point) 'display))
         (should-not (memq #'erc--unhide-prompt-on-self-insert
                           pre-command-hook)))
 
       (with-current-buffer "bob"
         (goto-char erc-insert-marker)
-        (should (string= ">" (get-text-property (point) 'display)))
+        (should (string= ">" (get-char-property (point) 'display)))
         (should (memq #'erc--unhide-prompt-on-self-insert pre-command-hook))
         (goto-char erc-input-marker)
         (ert-simulate-command '(self-insert-command 1 ?/))
         (goto-char erc-insert-marker)
-        (should-not (get-text-property (point) 'display))
+        (should-not (get-char-property (point) 'display))
         (should-not (memq #'erc--unhide-prompt-on-self-insert
                           pre-command-hook)))
 
       (with-current-buffer "ServNet"
-        (should (get-text-property erc-insert-marker 'display))
+        (should (get-char-property erc-insert-marker 'display))
         (should (memq #'erc--unhide-prompt-on-self-insert pre-command-hook))
         (erc--unhide-prompt)
         (should-not (memq #'erc--unhide-prompt-on-self-insert
                           pre-command-hook))
-        (should-not (get-text-property erc-insert-marker 'display))))
+        (should-not (get-char-property erc-insert-marker 'display))))
 
     (ert-info ("Value: server")
       (setq erc-hide-prompt '(server))
       (with-current-buffer "ServNet"
         (erc--hide-prompt erc-server-process)
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) 'hidden))
-        (should (string= ">" (get-text-property erc-insert-marker 'display))))
+        (should (string= ">" (get-char-property erc-insert-marker 'display))))
 
       (with-current-buffer "#chan"
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "bob"
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "ServNet"
         (erc--unhide-prompt)
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) t))
-        (should-not (get-text-property erc-insert-marker 'display))))
+        (should-not (get-char-property erc-insert-marker 'display))))
 
     (ert-info ("Value: channel")
       (setq erc-hide-prompt '(channel))
       (with-current-buffer "ServNet"
         (erc--hide-prompt erc-server-process)
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "bob"
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "#chan"
-        (should (string= ">" (get-text-property erc-insert-marker 'display)))
+        (should (string= ">" (get-char-property erc-insert-marker 'display)))
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) 'hidden))
         (erc--unhide-prompt)
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) t))
-        (should-not (get-text-property erc-insert-marker 'display))))
+        (should-not (get-char-property erc-insert-marker 'display))))
 
     (ert-info ("Value: query")
       (setq erc-hide-prompt '(query))
       (with-current-buffer "ServNet"
         (erc--hide-prompt erc-server-process)
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "bob"
-        (should (string= ">" (get-text-property erc-insert-marker 'display)))
+        (should (string= ">" (get-char-property erc-insert-marker 'display)))
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) 'hidden))
         (erc--unhide-prompt)
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) t))
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "#chan"
-        (should-not (get-text-property erc-insert-marker 'display))))
+        (should-not (get-char-property erc-insert-marker 'display))))
 
     (ert-info ("Value: nil")
       (setq erc-hide-prompt nil)
       (with-current-buffer "ServNet"
         (erc--hide-prompt erc-server-process)
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "bob"
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "#chan"
-        (should-not (get-text-property erc-insert-marker 'display))
+        (should-not (get-char-property erc-insert-marker 'display))
         (erc--unhide-prompt) ; won't blow up when prompt already showing
-        (should-not (get-text-property erc-insert-marker 'display))))
+        (should-not (get-char-property erc-insert-marker 'display))))
 
     (when noninteractive
       (kill-buffer "#chan")
