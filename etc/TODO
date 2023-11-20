@@ -888,6 +888,19 @@ It would make it easy to add (and remove) mappings like
 
 * Things to be done for specific packages or features
 
+** Native compiler improvements
+
+*** Performance
+
+**** Intra compilation unit call optimization
+
+We could have a mechanism similar to what we use for optimizing calls
+to primitive functions.  IE using a link table for each compilation
+unit (CU) such that calls from functions in a CU targeting functions
+in the same CU don't have to go through funcall.  If one of these
+functions is redefined a trampoline is compiled and installed to
+restore the redirection through funcall.
+
 ** NeXTstep port
 
 *** Missing features
