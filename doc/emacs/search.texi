@@ -407,8 +407,11 @@ characters, that disables character folding during that search.
 @cindex invisible text, searching for
 @kindex M-s i @r{(Incremental search)}
 @findex isearch-toggle-invisible
-  To toggle whether or not invisible text is searched, type
-@kbd{M-s i} (@code{isearch-toggle-invisible}).  @xref{Outline Search}.
+  To toggle whether or not the search will find text made invisible by
+overlays, type @kbd{M-s i} (@code{isearch-toggle-invisible}).
+@xref{Outline Search}.  To make all incremental searches find matches
+inside invisible text, whether due to text properties or overlay
+properties, customize @code{search-invisible} to the value @code{t}.
 
 @kindex M-r @r{(Incremental Search)}
 @kindex M-s r @r{(Incremental Search)}
