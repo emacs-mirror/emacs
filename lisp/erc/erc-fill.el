@@ -138,6 +138,11 @@ user-defined functions."
   :package-version '(ERC . "5.6")
   :type '(choice (const nil) (const left) (const right)))
 
+(defcustom erc-fill-wrap-align-prompt nil
+  "Whether to align the prompt at the common `wrap-prefix'."
+  :package-version '(ERC . "5.6")
+  :type 'boolean)
+
 (defcustom erc-fill-line-spacing nil
   "Extra space between messages on graphical displays.
 Its value should be larger than that of the variable
@@ -223,13 +228,11 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
 (defvar-local erc-fill--wrap-value nil)
 (defvar-local erc-fill--wrap-visual-keys nil)
 
-(defcustom erc-fill-wrap-use-pixels t
+(defvar erc-fill-wrap-use-pixels t
   "Whether to calculate padding in pixels when possible.
 A value of nil means ERC should use columns, which may happen
 regardless, depending on the Emacs version.  This option only
-matters when `erc-fill-wrap-mode' is enabled."
-  :package-version '(ERC . "5.6")
-  :type 'boolean)
+matters when `erc-fill-wrap-mode' is enabled.")
 
 (defcustom erc-fill-wrap-visual-keys 'non-input
   "Whether to retain keys defined by `visual-line-mode'.
@@ -448,6 +451,13 @@ is not recommended."
          (or (eq erc-fill-wrap-margin-side 'left)
              (eq (default-value 'erc-insert-timestamp-function)
                  #'erc-insert-timestamp-left)))
+   (when erc-fill-wrap-align-prompt
+     (add-hook 'erc--refresh-prompt-hook
+               #'erc-fill--wrap-indent-prompt nil t))
+   (when erc-stamp--margin-left-p
+     (if erc-fill-wrap-align-prompt
+         (setq erc-stamp--skip-left-margin-prompt-p t)
+       (setq erc--inhibit-prompt-display-property-p t)))
    (setq erc-fill--function #'erc-fill-wrap)
    (when erc-fill-wrap-merge
      (add-hook 'erc-button--prev-next-predicate-functions
@@ -460,6 +470,9 @@ is not recommended."
    (kill-local-variable 'erc-fill--function)
    (kill-local-variable 'erc-fill--wrap-visual-keys)
    (kill-local-variable 'erc-fill--wrap-last-msg)
+   (kill-local-variable 'erc--inhibit-prompt-display-property-p)
+   (remove-hook 'erc--refresh-prompt-hook
+                #'erc-fill--wrap-indent-prompt)
    (remove-hook 'erc-button--prev-next-predicate-functions
                 #'erc-fill--wrap-merged-button-p t))
   'local)
@@ -515,15 +528,20 @@ sender as that of the previous \"PRIVMSG\"."
 
 (defun erc-fill--wrap-measure (beg end)
   "Return display spec width for inserted region between BEG and END.
-Ignore any `invisible' props that may be present when figuring."
-  (if (and erc-fill-wrap-use-pixels (fboundp 'buffer-text-pixel-size))
+Ignore any `invisible' props that may be present when figuring.
+Expect the target region to be free of `line-prefix' and
+`wrap-prefix' properties, and expect `display-line-numbers-mode'
+to be disabled."
+  (if (fboundp 'buffer-text-pixel-size)
       ;; `buffer-text-pixel-size' can move point!
       (save-excursion
         (save-restriction
           (narrow-to-region beg end)
           (let* ((buffer-invisibility-spec)
                  (rv (car (buffer-text-pixel-size))))
-            (if (zerop rv) 0 (list rv)))))
+            (if erc-fill-wrap-use-pixels
+                (if (zerop rv) 0 (list rv))
+              (/ rv (frame-char-width))))))
     (- end beg)))
 
 ;; An escape hatch for third-party code expecting speakers of ACTION
@@ -574,6 +592,21 @@ See `erc-fill-wrap-mode' for details."
                                          `(- erc-fill--wrap-value ,len)
                                        'erc-fill--wrap-value))
           wrap-prefix (space :width erc-fill--wrap-value))))))
+
+(defun erc-fill--wrap-indent-prompt ()
+  "Recompute the `line-prefix' of the prompt."
+  ;; Clear an existing `line-prefix' before measuring (bug#64971).
+  (remove-text-properties erc-insert-marker erc-input-marker
+                          '(line-prefix nil wrap-prefix nil))
+  ;; Restoring window configuration seems to prevent unwanted
+  ;; recentering reminiscent of `scrolltobottom'-related woes.
+  (let ((c (and (get-buffer-window) (current-window-configuration)))
+        (len (erc-fill--wrap-measure erc-insert-marker erc-input-marker)))
+    (when c
+      (set-window-configuration c))
+    (put-text-property erc-insert-marker erc-input-marker
+                       'line-prefix
+                       `(space :width (- erc-fill--wrap-value ,len)))))
 
 (defvar erc-fill--wrap-rejigger-last-message nil
   "Temporary working instance of `erc-fill--wrap-last-msg'.")
