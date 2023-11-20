@@ -894,6 +894,22 @@ restore the redirection through funcall.
 
 *** Features to be improved or missing
 
+**** Diagnostic
+
+***** Filtering async warnings
+
+Add a new 'native-comp-async-report-warnings-errors' value such that
+we filter out all the uninteresting warnings (that the programmer
+already got during byte compilation) but we still report the important
+ones ('the function ‘xxx’ is not known to be defined.').
+
+This way even if the package developer doesn't use native compilation
+it can get the bug report for the issue and
+'*Async-native-compile-log*' is not too crowded.
+
+This new value for 'native-comp-async-report-warnings-errors' should
+be default.
+
 **** Fix portable dumping so that you can redump without using -batch
 
 ***** Redumps and native compiler "preloaded" sub-folder.
