@@ -49,11 +49,10 @@ This is intended for debugging the compiler itself.
   :version "28.1")
 
 (defcustom native-comp-never-optimize-functions
-  '(eval
-    ;; The following two are mandatory for Emacs to be working
-    ;; correctly (see comment in `advice--add-function'). DO NOT
-    ;; REMOVE.
-    macroexpand rename-buffer)
+  ;; We used to list those functions here that were advised during
+  ;; preload, but we now prefer to disallow preload advices in
+  ;; loadup.el (bug#67005).
+  '(eval)
   "Primitive functions to exclude from trampoline optimization.
 
 Primitive functions included in this list will not be called

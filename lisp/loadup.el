@@ -393,6 +393,15 @@
 ;; from the repository.  It is generated just after temacs is built.
 (load "leim/leim-list.el" t)
 
+;; Actively disallow advised functions during preload since:
+;; - advices in Emacs's core are generally considered bad style;
+;; - `Snarf-documentation' looses docstrings of primitives advised
+;;   during preload (bug#66032#20).
+(mapatoms
+ (lambda (f)
+   (and (advice--p (symbol-function f))
+        (error "Preload advice on %s" f))))
+
 ;; If you want additional libraries to be preloaded and their
 ;; doc strings kept in the DOC file rather than in core,
 ;; you may load them with a "site-load.el" file.

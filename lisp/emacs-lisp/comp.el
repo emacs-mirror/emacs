@@ -2789,6 +2789,14 @@ FUNCTION can be a function-name or byte compiled function."
                     (symbol-function callee)
                   (cl-assert (byte-code-function-p callee))
                   callee))
+             ;; Below call to `subrp' returns nil on an advised
+             ;; primitive F, so that we do not optimize calls to F
+             ;; with the funcall trampoline removal below.  But if F
+             ;; is advised while we compile its call, it is very
+             ;; likely to be advised also when that call is executed.
+             ;; And in that case an "unoptimized" call to F is
+             ;; actually cheaper since it avoids the call to the
+             ;; intermediate native trampoline (bug#67005).
              (subrp (subrp f))
              (comp-func-callee (comp-func-in-unit callee)))
         (cond
