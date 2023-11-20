@@ -49,7 +49,8 @@ This is intended for debugging the compiler itself.
   :version "28.1")
 
 (defcustom native-comp-never-optimize-functions
-  '(;; The following two are mandatory for Emacs to be working
+  '(eval
+    ;; The following two are mandatory for Emacs to be working
     ;; correctly (see comment in `advice--add-function'). DO NOT
     ;; REMOVE.
     macroexpand rename-buffer)
