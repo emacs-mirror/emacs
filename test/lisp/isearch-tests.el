@@ -39,6 +39,157 @@
   (isearch-done))
 
 
+;; Search invisible.
+
+(declare-function outline-hide-sublevels "outline")
+
+(ert-deftest isearch--test-invisible ()
+  (require 'outline)
+  (with-temp-buffer
+    (set-window-buffer nil (current-buffer))
+    (insert "\n1\n"
+            (propertize "2" 'invisible t)
+            (propertize "3" 'inhibit-isearch t)
+            "\n* h\n4\n\n")
+    (outline-mode)
+    (outline-hide-sublevels 1)
+    (goto-char (point-min))
+
+    (let ((isearch-lazy-count nil)
+          (search-invisible t)
+          (inhibit-message t))
+
+      (isearch-forward-regexp nil 1)
+      (isearch-process-search-string "[0-9]" "[0-9]")
+      (should (eq (point) 3))
+
+      (isearch-lazy-highlight-start)
+      (should (equal (seq-uniq (mapcar #'overlay-start isearch-lazy-highlight-overlays))
+                     '(2)))
+
+      (isearch-repeat-forward)
+      (should (eq (point) 5))
+      (should (get-char-property 4 'invisible))
+      (isearch-repeat-forward)
+      (should (eq (point) 12))
+      (should (get-char-property 11 'invisible))
+
+      (goto-char isearch-opoint)
+      (isearch-done t)
+
+      (isearch-forward-regexp nil 1)
+      (setq isearch-invisible nil) ;; isearch-toggle-invisible
+      (isearch-process-search-string "[0-9]" "[0-9]")
+
+      (isearch-lazy-highlight-start)
+      (should (equal (seq-uniq (mapcar #'overlay-start isearch-lazy-highlight-overlays))
+                     '(2)))
+
+      (goto-char isearch-opoint)
+      (isearch-done t)
+
+      (isearch-forward-regexp nil 1)
+      (setq isearch-invisible 'open) ;; isearch-toggle-invisible
+      (isearch-process-search-string "[0-9]" "[0-9]")
+      (should (eq (point) 3))
+
+      (isearch-lazy-highlight-start)
+      (should (equal (seq-uniq (mapcar #'overlay-start isearch-lazy-highlight-overlays))
+                     '(2 11)))
+
+      (let ((isearch-hide-immediately t))
+        (isearch-repeat-forward)
+        (should (eq (point) 12))
+        (should-not (get-char-property 11 'invisible))
+        (isearch-delete-char)
+        (should (get-char-property 11 'invisible)))
+
+      (let ((isearch-hide-immediately nil))
+        (isearch-repeat-forward)
+        (should (eq (point) 12))
+        (should-not (get-char-property 11 'invisible))
+        (isearch-delete-char)
+        (should-not (get-char-property 11 'invisible)))
+
+      (goto-char isearch-opoint)
+      (isearch-done t)
+      (isearch-clean-overlays)
+      (should (get-char-property 11 'invisible)))
+
+    (let ((isearch-lazy-count t)
+          (search-invisible t)
+          (inhibit-message t))
+
+      (isearch-forward-regexp nil 1)
+      (isearch-process-search-string "[0-9]" "[0-9]")
+      (should (eq (point) 3))
+
+      (setq isearch-lazy-count-invisible nil isearch-lazy-count-total nil)
+      (isearch-lazy-highlight-start)
+      (isearch-lazy-highlight-buffer-update)
+      (should (eq isearch-lazy-count-invisible nil))
+      (should (eq isearch-lazy-count-total 3))
+      (should (equal (seq-uniq (mapcar #'overlay-start isearch-lazy-highlight-overlays))
+                     '(2)))
+
+      (isearch-repeat-forward)
+      (should (eq (point) 5))
+      (should (get-char-property 4 'invisible))
+      (isearch-repeat-forward)
+      (should (eq (point) 12))
+      (should (get-char-property 11 'invisible))
+
+      (goto-char isearch-opoint)
+      (isearch-done t)
+
+      (isearch-forward-regexp nil 1)
+      (setq isearch-invisible nil) ;; isearch-toggle-invisible
+      (isearch-process-search-string "[0-9]" "[0-9]")
+
+      (setq isearch-lazy-count-invisible nil isearch-lazy-count-total nil)
+      (isearch-lazy-highlight-start)
+      (isearch-lazy-highlight-buffer-update)
+      (should (eq isearch-lazy-count-invisible 2))
+      (should (eq isearch-lazy-count-total 1))
+      (should (equal (seq-uniq (mapcar #'overlay-start isearch-lazy-highlight-overlays))
+                     '(2)))
+
+      (goto-char isearch-opoint)
+      (isearch-done t)
+
+      (isearch-forward-regexp nil 1)
+      (setq isearch-invisible 'open) ;; isearch-toggle-invisible
+      (isearch-process-search-string "[0-9]" "[0-9]")
+      (should (eq (point) 3))
+
+      (setq isearch-lazy-count-invisible nil isearch-lazy-count-total nil)
+      (isearch-lazy-highlight-start)
+      (isearch-lazy-highlight-buffer-update)
+      (should (eq isearch-lazy-count-invisible 1))
+      (should (eq isearch-lazy-count-total 2))
+      (should (equal (seq-uniq (mapcar #'overlay-start isearch-lazy-highlight-overlays))
+                     '(2 11)))
+
+      (let ((isearch-hide-immediately t))
+        (isearch-repeat-forward)
+        (should (eq (point) 12))
+        (should-not (get-char-property 11 'invisible))
+        (isearch-delete-char)
+        (should (get-char-property 11 'invisible)))
+
+      (let ((isearch-hide-immediately nil))
+        (isearch-repeat-forward)
+        (should (eq (point) 12))
+        (should-not (get-char-property 11 'invisible))
+        (isearch-delete-char)
+        (should-not (get-char-property 11 'invisible)))
+
+      (goto-char isearch-opoint)
+      (isearch-done t)
+      (isearch-clean-overlays)
+      (should (get-char-property 11 'invisible)))))
+
+
 ;; Search functions.
 
 (defun isearch--test-search-within-boundaries (pairs)
