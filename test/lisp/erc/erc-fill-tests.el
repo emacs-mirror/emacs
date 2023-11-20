@@ -294,8 +294,7 @@
          (erc-fill-tests--simulate-refill) ; idempotent
          (erc-fill-tests--compare "merge-02-right"))))))
 
-(ert-deftest erc-fill-wrap--merge-action ()
-  :tags '(:unstable)
+(defun erc-fill-wrap-tests--merge-action (compare-file)
   (unless (>= emacs-major-version 29)
     (ert-skip "Emacs version too low, missing `buffer-text-pixel-size'"))
 
@@ -336,7 +335,23 @@
      (should (= erc-fill--wrap-value 27))
      (erc-fill-tests--wrap-check-prefixes
       "*** " "<alice> " "<bob> " "<bob> " "* bob " "<bob> " "* " "<bob> ")
-     (erc-fill-tests--compare "merge-wrap-01"))))
+     (erc-fill-tests--compare compare-file))))
+
+(ert-deftest erc-fill-wrap--merge-action ()
+  :tags '(:unstable)
+  (erc-fill-wrap-tests--merge-action "merge-wrap-01"))
+
+(ert-deftest erc-fill-wrap--merge-action/indicator-pre ()
+  :tags '(:unstable)
+  (let ((erc-fill-wrap-merge-indicator '(pre ?> shadow)))
+    (erc-fill-wrap-tests--merge-action "merge-wrap-indicator-pre-01")))
+
+;; One crucial thing this test asserts is that the indicator is
+;; omitted when the previous line ends in a stamp.
+(ert-deftest erc-fill-wrap--merge-action/indicator-post ()
+  :tags '(:unstable)
+  (let ((erc-fill-wrap-merge-indicator '(post ?~ shadow)))
+    (erc-fill-wrap-tests--merge-action "merge-wrap-indicator-post-01")))
 
 (ert-deftest erc-fill-line-spacing ()
   :tags '(:unstable)
