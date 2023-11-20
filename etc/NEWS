@@ -496,6 +496,13 @@ It also controls how to move point when encountering a boundary
 (e.g., if every line is visible, invoking 'dired-next-line' at
 the last line will move to the first line).  The default is nil.
 
+*** New user option 'dired-filename-display-length'.
+It is an integer representing the maximum display length of filenames.
+The middle part of filename whose length exceeds the restriction is
+hidden and an ellipsis is displayed instead.  A value of 'window'
+means using the right edge of window as the display restriction.  The
+default is nil.
+
 ** Ediff
 
 ---

@@ -350,6 +350,7 @@ with the buffer narrowed to the listing."
 (defcustom dired-make-directory-clickable t
   "When non-nil, make the directory at the start of the dired buffer clickable."
   :version "29.1"
+  :group 'dired
   :type 'boolean)
 
 (defcustom dired-initial-position-hook nil
@@ -429,6 +430,7 @@ is anywhere on its Dired line, except the beginning of the line."
 (defcustom dired-kill-when-opening-new-dired-buffer nil
   "If non-nil, kill the current buffer when selecting a new directory."
   :type 'boolean
+  :group 'dired
   :version "28.1")
 
 (defcustom dired-guess-shell-case-fold-search t
@@ -516,6 +518,22 @@ Possible non-nil values:
 (defcustom dired-hide-details-preserved-columns nil
   "List of columns which are not hidden in `dired-hide-details-mode'."
   :type '(repeat integer)
+  :group 'dired
+  :version "30.1")
+
+(defcustom dired-filename-display-length nil
+  "If non-nil, restrict the display length of filenames.
+If the value is the symbol `window', the right edge of current
+window is used as the restriction.  Otherwise, it should be an
+integer representing the maximum filename length.
+
+The middle part of filename whose length exceeds the restriction
+is hidden by using the `invisible' property and an ellipsis is
+displayed instead."
+  :type '(choice (const   :tag "No restriction" nil)
+                 (const   :tag "Window" window)
+                 (integer :tag "Integer"))
+  :group 'dired
   :version "30.1")
 
 
@@ -1901,51 +1919,72 @@ other marked file as well.  Otherwise, unmark all files."
 (defvar dired-click-to-select-map)
 
 (defun dired-insert-set-properties (beg end)
-  "Add various text properties to the lines in the region, from BEG to END."
+  "Add various text properties to the lines in the region, from BEG to END.
+Overlays could be added when some user options are enabled, e.g.,
+`dired-filename-display-length'."
+  (remove-overlays beg end 'invisible 'dired-filename-hide)
   (save-excursion
     (goto-char beg)
-    (while (< (point) end)
-      (ignore-errors
-	(if (not (dired-move-to-filename))
-	    (unless (or (looking-at-p "^$")
-			(looking-at-p dired-subdir-regexp))
-	      (put-text-property (line-beginning-position)
-				 (1+ (line-end-position))
-				 'invisible 'dired-hide-details-information))
-	  (save-excursion
-            (let ((end (1- (point)))
-                  (opoint (goto-char (1+ (pos-bol))))
-                  (i 0))
-              (put-text-property opoint end 'invisible 'dired-hide-details-detail)
-              (while (re-search-forward "[^ ]+" end t)
-                (when (member (cl-incf i) dired-hide-details-preserved-columns)
-                  (put-text-property opoint (point) 'invisible nil))
-                (setq opoint (point)))))
-          (let ((beg (point)) (end (save-excursion
-	                             (dired-move-to-end-of-filename)
-	                             (1- (point)))))
-            (if dired-click-to-select-mode
-                (put-text-property beg end 'keymap
-                                   dired-click-to-select-map)
-              (when (and dired-mouse-drag-files (fboundp 'x-begin-drag))
-                (put-text-property beg end 'keymap
-                                   dired-mouse-drag-files-map)))
-	    (add-text-properties
-	     beg (1+ end)
-	     `(mouse-face
-	       highlight
-	       dired-filename t
-	       help-echo ,(if dired-click-to-select-mode
-                              "mouse-2: mark or unmark this file"
-                            (if (and dired-mouse-drag-files
-                                     (fboundp 'x-begin-drag))
-                                "down-mouse-1: drag this file to another program
+    (let ((ell-len (dired--get-ellipsis-length)) maxlen filename-col)
+      (while (< (point) end)
+        (ignore-errors
+	  (if (not (dired-move-to-filename))
+	      (unless (or (looking-at-p "^$")
+			  (looking-at-p dired-subdir-regexp))
+	        (put-text-property (line-beginning-position)
+				   (1+ (line-end-position))
+				   'invisible 'dired-hide-details-information))
+	    (save-excursion
+              (let ((end (1- (point)))
+                    (opoint (goto-char (1+ (pos-bol))))
+                    (i 0))
+                (put-text-property opoint end 'invisible 'dired-hide-details-detail)
+                (while (re-search-forward "[^ ]+" end t)
+                  (when (member (cl-incf i) dired-hide-details-preserved-columns)
+                    (put-text-property opoint (point) 'invisible nil))
+                  (setq opoint (point)))))
+            (let ((beg (point)) (end (save-excursion
+	                               (dired-move-to-end-of-filename)
+	                               (1- (point)))))
+              (if dired-click-to-select-mode
+                  (put-text-property beg end 'keymap
+                                     dired-click-to-select-map)
+                (when (and dired-mouse-drag-files (fboundp 'x-begin-drag))
+                  (put-text-property beg end 'keymap
+                                     dired-mouse-drag-files-map)))
+              (when dired-filename-display-length
+                (let ((len (string-width (buffer-substring beg (1+ end))))
+                      ell-beg)
+                  (or maxlen (setq maxlen (dired--get-filename-display-length)))
+                  (when (and (integerp maxlen) (> len maxlen (+ ell-len 2)))
+                    (or filename-col (setq filename-col (current-column)))
+                    (move-to-column (+ filename-col (/ maxlen 2)))
+                    (setq ell-beg (point))
+                    (move-to-column (+ filename-col (/ maxlen 2)
+                                       (- len maxlen) ell-len))
+                    ;; Here we use overlays because isearch by default
+                    ;; doesn't support finding matches in hidden text
+                    ;; made invisible via text properties.
+                    (let ((ov (make-overlay ell-beg (point))))
+                      (overlay-put ov 'invisible 'dired-filename-hide)
+                      (overlay-put ov 'isearch-open-invisible t)
+                      (overlay-put ov 'evaporate t)))))
+	      (add-text-properties
+	       beg (1+ end)
+	       `(mouse-face
+	         highlight
+	         dired-filename t
+	         help-echo ,(if dired-click-to-select-mode
+                                "mouse-2: mark or unmark this file"
+                              (if (and dired-mouse-drag-files
+                                       (fboundp 'x-begin-drag))
+                                  "down-mouse-1: drag this file to another program
 mouse-2: visit this file in other window"
-                              "mouse-2: visit this file in other window"))))
-	    (when (< (+ end 5) (line-end-position))
-	      (put-text-property (+ end 5) (line-end-position)
-			         'invisible 'dired-hide-details-link)))))
-      (forward-line 1))))
+                                "mouse-2: visit this file in other window"))))
+	      (when (< (+ end 5) (line-end-position))
+	        (put-text-property (+ end 5) (line-end-position)
+			           'invisible 'dired-hide-details-link)))))
+        (forward-line 1)))))
 
 (defun dired--make-directory-clickable ()
   (save-excursion
@@ -1976,6 +2015,24 @@ mouse-2: visit this file in other window"
                           "<follow-link>" 'mouse-face
                           "RET" click))))
           (setq segment-start (point)))))))
+
+(defun dired--get-ellipsis-length ()
+  "Return length of ellipsis."
+  (let* ((dt (or (window-display-table)
+                 buffer-display-table
+                 standard-display-table))
+         (glyphs (and dt (display-table-slot dt 'selective-display))))
+    (string-width (if glyphs (concat glyphs) "..."))))
+
+(defun dired--get-filename-display-length ()
+  "Return maximum display length of filename.
+When `dired-filename-display-length' is not an integer, the
+function actually returns the number of columns available for
+displaying the file names, and should be called with point at the
+first character of the file name."
+  (if (integerp dired-filename-display-length)
+      dired-filename-display-length
+    (- (window-max-chars-per-line) 1 (current-column))))
 
 
 ;;; Reverting a dired buffer
@@ -2618,6 +2675,7 @@ Keybindings:
 	mode-line-buffer-identification
 	(propertized-buffer-identification "%17b"))
   (add-to-invisibility-spec '(dired . t))
+  (dired-filename-update-invisibility-spec)
   ;; Ignore dired-hide-details-* value of invisible text property by default.
   (when (eq buffer-invisibility-spec t)
     (setq buffer-invisibility-spec (list t)))
@@ -3116,6 +3174,15 @@ See options: `dired-hide-details-hide-symlink-targets' and
 
 
 ;;; Functions to hide/unhide text
+
+(defun dired-filename-update-invisibility-spec ()
+  "Update `buffer-invisibility-spec' for filenames.
+Specifically, the filename invisibility spec is added in Dired
+buffers and removed in WDired buffers."
+  (funcall (if (derived-mode-p 'dired-mode)
+               'add-to-invisibility-spec
+             'remove-from-invisibility-spec)
+           '(dired-filename-hide . t)))
 
 (defun dired--find-hidden-pos (start end)
   (text-property-any start end 'invisible 'dired))
