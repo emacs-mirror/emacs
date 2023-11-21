@@ -1693,7 +1693,7 @@ AC_ARG_WITH([native-compilation],
      *)      AC_MSG_ERROR([bad value $withval for native-compilation option]) ;;
    esac
    with_native_compilation=$withval],
-  [with_native_compilation=no]
+  [with_native_compilation=default]
 )
 AC_SUBST([NATIVE_COMPILATION_AOT])
 
@@ -5077,20 +5077,20 @@ AC_DEFUN([libgccjit_smoke_test], [
         return 0;
       }]])])
 
-AC_DEFUN([libgccjit_not_found], [
+AC_DEFUN([libgccjit_not_found_err], [
   AC_MSG_ERROR([ELisp native compiler was requested, but libgccjit was not found.
 Please try installing libgccjit or a similar package.
 If you are sure you want Emacs be compiled without ELisp native compiler,
 pass the --without-native-compilation option to configure.])])
 
-AC_DEFUN([libgccjit_dev_not_found], [
+AC_DEFUN([libgccjit_dev_not_found_err], [
   AC_MSG_ERROR([ELisp native compiler was requested, but libgccjit header files were
 not found.
 Please try installing libgccjit-dev or a similar package.
 If you are sure you want Emacs be compiled without ELisp native compiler,
 pass the --without-native-compilation option to configure.])])
 
-AC_DEFUN([libgccjit_broken], [
+AC_DEFUN([libgccjit_broken_err], [
   AC_MSG_ERROR([The installed libgccjit failed to compile and run a test program using
 the libgccjit library; see config.log for the details of the failure.
 The test program can be found here:
@@ -5113,6 +5113,50 @@ if test "$canonical" = i686-pc-cygwin; then
 If you really want to try it anyway, use the configure option
 '--with-cygwin32-native-compilation'.])
   fi
+fi
+
+AC_DEFUN([libgccjit_not_found], [
+  AC_MSG_WARN([Elisp native compiler can't be enabled as libgccjit was not
+found.
+Please try installing libgccjit or a similar package if you want to have it
+enabled.])
+
+  with_native_compilation=no
+])
+
+AC_DEFUN([libgccjit_dev_not_found], [
+  AC_MSG_WARN([Elisp native compiler can't be enabled as libgccjit header files
+were not found.
+Please try installing libgccjit-dev or a similar package if you want to have it
+enabled.])
+
+  with_native_compilation=no
+])
+
+AC_DEFUN([libgccjit_broken], [
+  AC_MSG_WARN([Elisp native compiler can't be enabled as the installed libgccjit
+failed to compile and run a test program using the libgccjit library; see
+config.log for the details of the failure.
+The test program can be found here:
+<https://gcc.gnu.org/onlinedocs/jit/intro/tutorial01.html>.
+You can try compiling it yourself to investigate the issues.
+Please report the issue to your distribution if libgccjit was installed
+through that.
+You can find the instructions on how to compile and install libgccjit from
+source on this site:
+<https://gcc.gnu.org/wiki/JIT>.])
+
+  with_native_compilation=no])
+
+if test "${with_native_compilation}" == "default"; then
+    # Check if libgccjit is available.
+    AC_CHECK_LIB([gccjit], [gcc_jit_context_acquire],
+      [], [libgccjit_not_found])
+    AC_CHECK_HEADERS([libgccjit.h], [], [libgccjit_dev_not_found])
+    if test "${with_native_compilation}" != "no"; then
+      # Check if libgccjit really works.
+      AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken])
+    fi
 fi
 
 if test "${with_native_compilation}" != "no"; then
@@ -5162,12 +5206,15 @@ if test "${with_native_compilation}" != "no"; then
       fi
     fi
 
-    # Check if libgccjit is available.
-    AC_CHECK_LIB([gccjit], [gcc_jit_context_acquire],
-      [], [libgccjit_not_found])
-    AC_CHECK_HEADERS([libgccjit.h], [], [libgccjit_dev_not_found])
-    # Check if libgccjit really works.
-    AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken])
+    # In the default case we already checked
+    if test "${with_native_compilation}" != "default"; then
+      # Check if libgccjit is available.
+      AC_CHECK_LIB([gccjit], [gcc_jit_context_acquire],
+        [], [libgccjit_not_found_err])
+      AC_CHECK_HEADERS([libgccjit.h], [], [libgccjit_dev_not_found_err])
+      # Check if libgccjit really works.
+      AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken_err])
+    fi
     HAVE_NATIVE_COMP=yes
     case "${opsys}" in
       # mingw32 loads the library dynamically.
