@@ -3392,11 +3392,21 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 	     (Vvertical_centering_font_regexp,
 	      font->props[FONT_NAME_INDEX]) >= 0));
 
-  /* And set a reasonable full name, namely the name of the font
-     file.  */
-  font->props[FONT_FULLNAME_INDEX]
-    = font->props[FONT_FILE_INDEX]
+  /* Set the name of the font file.  */
+  font->props[FONT_FILE_INDEX]
     = DECODE_FILE (build_unibyte_string (desc->path));
+
+  /* Encapsulate some information on the font useful while debugging
+     (along with being informative in general) in the font name.  */
+
+  AUTO_STRING (format, "%s %s interpreted: %s upem: %s charset: %s"
+	       " instance: %s");
+  font->props[FONT_FULLNAME_INDEX]
+    = CALLN (Fformat, format, desc->family, desc->style,
+	     font_info->interpreter ? Qt : Qnil,
+	     make_fixnum (font_info->head->units_per_em),
+	     CHARSET_NAME (charset),
+	     make_fixnum (instance));
 
   /* All done.  */
   unblock_input ();
