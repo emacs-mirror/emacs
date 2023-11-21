@@ -1721,13 +1721,12 @@ With some possible metadata (to be decided).")
             (current-buffer)))
       (write-region nil nil filename nil 'silent))))
 
-;;;###autoload
-(defun project-remember-project (pr &optional no-write)
-  "Add project PR to the front of the project list.
+(defun project--remember-dir (root &optional no-write)
+  "Add project root ROOT to the front of the project list.
 Save the result in `project-list-file' if the list of projects
 has changed, and NO-WRITE is nil."
   (project--ensure-read-project-list)
-  (let ((dir (abbreviate-file-name (project-root pr))))
+  (let ((dir (abbreviate-file-name root)))
     (unless (equal (caar project--list) dir)
       (dolist (ent project--list)
         (when (equal dir (car ent))
@@ -1735,6 +1734,13 @@ has changed, and NO-WRITE is nil."
       (push (list dir) project--list)
       (unless no-write
         (project--write-project-list)))))
+
+;;;###autoload
+(defun project-remember-project (pr &optional no-write)
+  "Add project PR to the front of the project list.
+Save the result in `project-list-file' if the list of projects
+has changed, and NO-WRITE is nil."
+  (project--remember-dir (project-root pr) no-write))
 
 (defun project--remove-from-project-list (project-root report-message)
   "Remove directory PROJECT-ROOT of a missing project from the project list.
@@ -1757,6 +1763,8 @@ the project list."
   (project--remove-from-project-list
    project-root "Project `%s' removed from known projects"))
 
+(defvar project--dir-history)
+
 (defun project-prompt-project-dir ()
   "Prompt the user for a directory that is one of the known project roots.
 The project is chosen among projects known from the project list,
@@ -1769,13 +1777,18 @@ It's also possible to enter an arbitrary directory not in the list."
           ;; completion style).
           (project--file-completion-table
            (append project--list `(,dir-choice))))
+         (project--dir-history (project-known-project-roots))
          (pr-dir ""))
     (while (equal pr-dir "")
       ;; If the user simply pressed RET, do this again until they don't.
-      (setq pr-dir (completing-read "Select project: " choices nil t)))
+      (setq pr-dir
+            (let (history-add-new-input)
+              (completing-read "Select project: " choices nil t nil 'project--dir-history))))
     (if (equal pr-dir dir-choice)
         (read-directory-name "Select directory: " default-directory nil t)
       pr-dir)))
+
+(defvar project--name-history)
 
 (defun project-prompt-project-name ()
   "Prompt the user for a project, by name, that is one of the known project roots.
@@ -1783,13 +1796,18 @@ The project is chosen among projects known from the project list,
 see `project-list-file'.
 It's also possible to enter an arbitrary directory not in the list."
   (let* ((dir-choice "... (choose a dir)")
+         project--name-history
          (choices
           (let (ret)
-            (dolist (dir (project-known-project-roots))
+            ;; Iterate in reverse order so project--name-history is in
+            ;; the correct order.
+            (dolist (dir (reverse (project-known-project-roots)))
               ;; we filter out directories that no longer map to a project,
               ;; since they don't have a clean project-name.
-              (if-let (proj (project--find-in-directory dir))
-                  (push (cons (project-name proj) proj) ret)))
+              (when-let (proj (project--find-in-directory dir))
+                (let ((name (project-name proj)))
+                  (push name project--name-history)
+                  (push (cons name proj) ret))))
             ret))
          ;; XXX: Just using this for the category (for the substring
          ;; completion style).
@@ -1798,7 +1816,9 @@ It's also possible to enter an arbitrary directory not in the list."
          (pr-name ""))
     (while (equal pr-name "")
       ;; If the user simply pressed RET, do this again until they don't.
-      (setq pr-name (completing-read "Select project: " table nil t)))
+      (setq pr-name
+            (let (history-add-new-input)
+              (completing-read "Select project: " table nil t nil 'project--name-history))))
     (if (equal pr-name dir-choice)
         (read-directory-name "Select directory: " default-directory nil t)
       (let ((proj (assoc pr-name choices)))
@@ -2064,6 +2084,7 @@ made from `project-switch-commands'.
 When called in a program, it will use the project corresponding
 to directory DIR."
   (interactive (list (funcall project-prompter)))
+  (project--remember-dir dir)
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
                    (project--switch-project-command)))
