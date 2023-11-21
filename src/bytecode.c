@@ -1751,7 +1751,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		    break;
               }
             else
-              i = hash_lookup (h, v1, NULL);
+              i = hash_lookup (h, v1);
 
 	    if (i >= 0)
 	      {

@@ -1380,7 +1380,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 		eop = (FIXNUM_OVERFLOW_P (reg[RRR])
 		       ? -1
-		       : hash_lookup (h, make_fixnum (reg[RRR]), NULL));
+		       : hash_lookup (h, make_fixnum (reg[RRR])));
 		if (eop >= 0)
 		  {
 		    Lisp_Object opl;
@@ -1409,7 +1409,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 		eop = (FIXNUM_OVERFLOW_P (i)
 		       ? -1
-		       : hash_lookup (h, make_fixnum (i), NULL));
+		       : hash_lookup (h, make_fixnum (i)));
 		if (eop >= 0)
 		  {
 		    Lisp_Object opl;

@@ -4063,7 +4063,9 @@ EMACS_UINT sxhash (Lisp_Object);
 Lisp_Object make_hash_table (struct hash_table_test, EMACS_INT,
                              hash_table_weakness_t, bool);
 Lisp_Object hash_table_weakness_symbol (hash_table_weakness_t weak);
-ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, hash_hash_t *);
+ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object);
+ptrdiff_t hash_lookup_get_hash (struct Lisp_Hash_Table *h, Lisp_Object key,
+				hash_hash_t *phash);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    hash_hash_t);
 void hash_remove_from_table (struct Lisp_Hash_Table *, Lisp_Object);

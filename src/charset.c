@@ -1108,8 +1108,8 @@ usage: (define-charset-internal ...)  */)
   ASET (attrs, charset_plist, args[charset_arg_plist]);
 
   hash_hash_t hash_code;
-  charset.hash_index = hash_lookup (hash_table, args[charset_arg_name],
-				    &hash_code);
+  charset.hash_index = hash_lookup_get_hash (hash_table, args[charset_arg_name],
+					     &hash_code);
   if (charset.hash_index >= 0)
     {
       new_definition_p = 0;

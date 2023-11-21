@@ -241,7 +241,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     goto invalid_composition;
 
   hash_hash_t hash_code;
-  hash_index = hash_lookup (hash_table, key, &hash_code);
+  hash_index = hash_lookup_get_hash (hash_table, key, &hash_code);
   if (hash_index >= 0)
     {
       /* We have already registered the same composition.  Change PROP
@@ -644,7 +644,7 @@ Lisp_Object
 composition_gstring_lookup_cache (Lisp_Object header)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
-  ptrdiff_t i = hash_lookup (h, header, NULL);
+  ptrdiff_t i = hash_lookup (h, header);
 
   return (i >= 0 ? HASH_VALUE (h, i) : Qnil);
 }
