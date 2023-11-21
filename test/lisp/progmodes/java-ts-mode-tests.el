@@ -28,6 +28,8 @@
   (ert-test-erts-file (ert-resource-file "indent.erts")))
 
 (ert-deftest java-ts-mode-test-movement ()
+  :expected-result :failed              ;in emacs-29 no sexp
+                                        ;navigation
   (skip-unless (treesit-ready-p 'java))
   (ert-test-erts-file (ert-resource-file "movement.erts")))
 
