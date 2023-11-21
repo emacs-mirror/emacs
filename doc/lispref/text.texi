@@ -5486,7 +5486,11 @@ made by the transaction.
 
 @defmac with-sqlite-transaction db body@dots{}
 Like @code{progn} (@pxref{Sequencing}), but executes @var{body} with a
-transaction held, and commits the transaction at the end.
+transaction held, and commits the transaction at the end if @var{body}
+completes normally.  If @var{body} signals an error, or committing the
+transaction fails, the changes in @var{db} performed by @var{body} are
+rolled back.  The macro returns the value of @var{body} if it
+completes normally and commit succeeds.
 @end defmac
 
 @defun sqlite-pragma db pragma

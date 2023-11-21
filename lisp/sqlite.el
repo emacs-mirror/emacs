@@ -24,19 +24,28 @@
 ;;; Code:
 
 (defmacro with-sqlite-transaction (db &rest body)
-  "Execute BODY while holding a transaction for DB."
+  "Execute BODY while holding a transaction for DB.
+If BODY completes normally, commit the changes and return
+the value of BODY.
+If BODY signals an error, or transaction commit fails, roll
+back the transaction changes."
   (declare (indent 1) (debug (form body)))
   (let ((db-var (gensym))
-        (func-var (gensym)))
+        (func-var (gensym))
+        (res-var (gensym))
+        (commit-var (gensym)))
     `(let ((,db-var ,db)
-           (,func-var (lambda () ,@body)))
+           (,func-var (lambda () ,@body))
+           ,res-var ,commit-var)
        (if (sqlite-available-p)
            (unwind-protect
                (progn
                  (sqlite-transaction ,db-var)
-                 (funcall ,func-var))
-             (sqlite-commit ,db-var))
-         (funcall ,func-var)))))
+                 (setq ,res-var (funcall ,func-var))
+                 (setq ,commit-var (sqlite-commit ,db-var))
+                 ,res-var)
+             (or ,commit-var (sqlite-rollback ,db-var))))
+         (funcall ,func-var))))
 
 (provide 'sqlite)
 
