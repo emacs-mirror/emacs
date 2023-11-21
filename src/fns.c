@@ -4515,7 +4515,8 @@ hash_index_size (ptrdiff_t size)
   /* An upper bound on the size of a hash table index.  It must fit in
      ptrdiff_t and be a valid Emacs fixnum.  */
   ptrdiff_t upper_bound = min (MOST_POSITIVE_FIXNUM,
-			 PTRDIFF_MAX / sizeof (ptrdiff_t));
+			       min (TYPE_MAXIMUM (hash_idx_t),
+				    PTRDIFF_MAX / sizeof (ptrdiff_t)));
   ptrdiff_t index_size = size + (size >> 2);  /* 1.25x larger */
   if (index_size < upper_bound)
     index_size = next_almost_prime (index_size);

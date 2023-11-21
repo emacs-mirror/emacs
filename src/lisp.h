@@ -2432,7 +2432,7 @@ verify (FIXNUM_OVERFLOW_P (hash_unused));
 
 /* The type of a hash table index, both for table indices and index
    (hash) indices.  It's signed and a subtype of ptrdiff_t.  */
-typedef ptrdiff_t hash_idx_t;
+typedef int32_t hash_idx_t;
 
 struct Lisp_Hash_Table
 {
