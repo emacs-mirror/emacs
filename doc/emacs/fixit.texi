@@ -295,8 +295,8 @@ Kill the spell-checker subprocess.
 @item M-@key{TAB}
 @itemx @key{ESC} @key{TAB}
 @itemx C-M-i
-Complete the word before point based on the spelling dictionary
-(@code{ispell-complete-word}).
+Complete the word before point based on the spelling dictionary and
+other completion sources (@code{completion-at-point}).
 @item M-x flyspell-mode
 Enable Flyspell mode, which highlights all misspelled words.
 @item M-x flyspell-prog-mode
@@ -398,14 +398,11 @@ Quit interactive spell-checking and kill the spell-checker subprocess.
 Show the list of options.
 @end table
 
-@findex ispell-complete-word
-  In Text mode and related modes, @kbd{M-@key{TAB}}
-(@code{ispell-complete-word}) performs in-buffer completion based on
-spelling correction.  Insert the beginning of a word, and then type
-@kbd{M-@key{TAB}}; this shows a list of completions.  (If your
+  Use the command @kbd{M-@key{TAB}} (@code{completion-at-point}) to
+complete the word at point.  Insert the beginning of a word, and then
+type @kbd{M-@key{TAB}} to select from a list of completions.  (If your
 window manager intercepts @kbd{M-@key{TAB}}, type @w{@kbd{@key{ESC}
-@key{TAB}}} or @kbd{C-M-i}.)  Each completion is listed with a digit or
-character; type that digit or character to choose it.
+@key{TAB}}} or @kbd{C-M-i}.)
 
 @cindex @code{ispell} program
 @findex ispell-kill-ispell

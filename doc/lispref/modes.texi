@@ -986,9 +986,9 @@ allows users to customize a single mode hook
 @deffn Command text-mode
 Text mode is a major mode for editing human languages.  It defines the
 @samp{"} and @samp{\} characters as having punctuation syntax
-(@pxref{Syntax Class Table}), and binds @kbd{M-@key{TAB}} to
-@code{ispell-complete-word} (@pxref{Spelling,,, emacs, The GNU Emacs
-Manual}).
+(@pxref{Syntax Class Table}), and arranges for
+@code{completion-at-point} to complete words based on the spelling
+dictionary (@pxref{Completion in Buffers}).
 
 An example of a major mode derived from Text mode is HTML mode.
 @xref{HTML Mode,,SGML and HTML Modes, emacs, The GNU Emacs Manual}.
@@ -1381,15 +1381,6 @@ the conventions listed above:
     @dots{}
     st)
   "Syntax table used while in `text-mode'.")
-@end group
-
-;; @r{Create the keymap for this mode.}
-@group
-(defvar-keymap text-mode-map
-  :doc "Keymap for `text-mode'.
-Many other modes, such as `mail-mode' and `outline-mode', inherit all
-the commands defined in this map."
-  "C-M-i" #'ispell-complete-word)
 @end group
 @end smallexample
 
