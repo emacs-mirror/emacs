@@ -280,7 +280,10 @@ an Emacs Lisp backtrace being printed.  To disable this behavior, set
 @opindex --script
 @cindex script mode
 Run Emacs in batch mode, like @samp{--batch}, and then read and
-execute the Lisp code in @var{file}.
+execute the Lisp code in @var{file}.  Note that when Emacs reads the
+Lisp code in this case, it ignores any file-local variables
+(@pxref{Specifying File Variables}), both in the first line and in a
+local-variables section near the end of the file.
 
 The normal use of this option is in executable script files that run
 Emacs.  They can start with this text on the first line
@@ -309,6 +312,8 @@ This is like @samp{--script}, but suppresses loading the init files
 reaches the end of the script, it exits Emacs and uses the value of
 the final form as the exit value from the script (if the final value
 is numerical).  Otherwise, it will always exit with a zero value.
+Note that, like with @samp{--script}, Emacs ignores file-local
+variables in the script.
 
 @item --no-build-details
 @opindex --no-build-details
