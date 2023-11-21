@@ -796,12 +796,56 @@
         (erc--update-channel-modes "+qu" "fool!*@*")
         (should (equal (pop calls) '(?d ?u t nil)))
         (should (equal (pop calls) '(?a ?q t "fool!*@*")))
-        (should (equal "fool!*@*" (gethash ?q erc--channel-modes)))
+        (should (equal 1 (gethash ?q erc--channel-modes)))
         (should (eq t (gethash ?u erc--channel-modes)))
         (should (equal erc-channel-modes '("u")))
-        (should-not (erc-channel-user-owner-p "bob")))
+        (should-not (erc-channel-user-owner-p "bob"))
+
+        ;; Remove fool!*@* from list mode "q".
+        (erc--update-channel-modes "-uq" "fool!*@*")
+        (should (equal (pop calls) '(?a ?q nil "fool!*@*")))
+        (should (equal (pop calls) '(?d ?u nil nil)))
+        (should-not (gethash ?u erc--channel-modes))
+        (should-not erc-channel-modes)
+        (should (equal 0 (gethash ?q erc--channel-modes))))
 
       (should-not calls))))
+
+(ert-deftest erc--channel-modes ()
+  (setq erc--isupport-params (make-hash-table)
+        erc--target (erc--target-from-string "#test")
+        erc-server-parameters
+        '(("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz")))
+
+  (erc-tests--set-fake-server-process "sleep" "1")
+
+  (cl-letf (((symbol-function 'erc-update-mode-line) #'ignore))
+    (erc--update-channel-modes "+bltk" "fool!*@*" "3" "h2"))
+
+  (should (equal (erc--channel-modes 'string) "klt"))
+  (should (equal (erc--channel-modes 'strings) '("k" "l" "t")))
+  (should (equal (erc--channel-modes) '((?k . "h2") (?l . "3") (?t))))
+  (should (equal (erc--channel-modes 3 ",") "klt h2,3"))
+
+  ;; Truncation cache populated and used.
+  (let ((cache (erc--channel-mode-types-shortargs erc--channel-mode-types))
+        first-run)
+    (should (zerop (hash-table-count cache)))
+    (should (equal (erc--channel-modes 1 ",") "klt h,3"))
+    (should (equal (setq first-run (map-pairs cache)) '(((1 ?k "h2") . "h"))))
+    (cl-letf (((symbol-function 'truncate-string-to-width)
+               (lambda (&rest _) (ert-fail "Shouldn't run"))))
+      (should (equal (erc--channel-modes 1 ",") "klt h,3")))
+    ;; Same key for only entry matches that of first result.
+    (should (pcase (map-pairs cache)
+              ((and '(((1 ?k "h2") . "h")) second-run)
+               (eq (pcase first-run (`((,k . ,_)) k))
+                   (pcase second-run (`((,k . ,_)) k)))))))
+
+  (should (equal (erc--channel-modes 0 ",") "klt ,"))
+  (should (equal (erc--channel-modes 2) "klt h2 3"))
+  (should (equal (erc--channel-modes 1) "klt h 3"))
+  (should (equal (erc--channel-modes 0) "klt  "))) ; 2 spaces
 
 (ert-deftest erc--update-user-modes ()
   (let ((erc--user-modes (list ?a)))
@@ -818,8 +862,7 @@
   (let ((erc--user-modes '(?a ?b)))
     (should (equal (erc--user-modes) '(?a ?b)))
     (should (equal (erc--user-modes 'string) "ab"))
-    (should (equal (erc--user-modes 'strings) '("a" "b")))
-    (should (equal (erc--user-modes '?+) "+ab"))))
+    (should (equal (erc--user-modes 'strings) '("a" "b")))))
 
 (ert-deftest erc--parse-user-modes ()
   (should (equal (erc--parse-user-modes "a" '(?a)) '(() ())))

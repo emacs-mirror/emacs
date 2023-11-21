@@ -6652,6 +6652,12 @@ or t, for type D.")
   "Possibly stale `erc--channel-mode-types' instance for the server.
 Use the getter of the same name to retrieve the current value.")
 
+(defvar-local erc--mode-line-mode-string nil
+  "Computed mode-line or header-line component for user/channel modes.")
+
+(defvar erc--mode-line-chanmodes-arg-len 10
+  "Max length at which to truncate channel-mode args in header line.")
+
 (defun erc--channel-mode-types ()
   "Return variable `erc--channel-mode-types', possibly initializing it."
   (erc--with-isupport-data CHANMODES erc--channel-mode-types
@@ -6686,13 +6692,16 @@ complement relevant letters in STRING."
                (erc--update-membership-prefix (pop args) c (if +p 'on 'off)))
               ((and-let* ((group (or (aref table c) (and fallbackp ?d))))
                  (erc--handle-channel-mode group c +p
-                                           (and (or (/= group ?c) +p)
+                                           (and (/= group ?d)
+                                                (or (/= group ?c) +p)
                                                 (pop args)))
                  t))
               ((not fallbackp)
                (erc-display-message nil '(notice error) (erc-server-buffer)
                                     (format "Unknown channel mode: %S" c))))))
     (setq erc-channel-modes (sort erc-channel-modes #'string<))
+    (setq erc--mode-line-mode-string
+          (concat "+" (erc--channel-modes erc--mode-line-chanmodes-arg-len)))
     (erc-update-mode-line (current-buffer))))
 
 (defvar-local erc--user-modes nil
@@ -6703,15 +6712,59 @@ Analogous to `erc-channel-modes' but chars rather than strings.")
   "Return user \"MODE\" letters in a form described by AS-TYPE.
 When AS-TYPE is the symbol `strings' (plural), return a list of
 strings.  When it's `string' (singular), return the same list
-concatenated into a single string.  When it's a single char, like
-?+, return the same value as `string' but with AS-TYPE prepended.
-When AS-TYPE is nil, return a list of chars."
+concatenated into a single string.  When AS-TYPE is nil, return a
+list of chars."
   (let ((modes (or erc--user-modes (erc-with-server-buffer erc--user-modes))))
     (pcase as-type
       ('strings (mapcar #'char-to-string modes))
       ('string (apply #'string modes))
-      ((and (pred characterp) c) (apply #'string (cons c modes)))
       (_ modes))))
+
+(defun erc--channel-modes (&optional as-type sep)
+  "Return channel \"MODE\" settings in a form described by AS-TYPE.
+When AS-TYPE is the symbol `strings' (plural), return letter keys
+as a list of sorted string.  When it's `string' (singular),
+return keys as a single string.  When it's a number N, return a
+single string consisting of the concatenated and sorted keys
+followed by a space and then their corresponding args, each
+truncated to N chars max.  ERC joins these args together with
+SEP, which defaults to a single space.  Otherwise, return a
+sorted alist of letter and arg pairs.  In all cases that include
+values, respect `erc-show-channel-key-p' and optionally omit the
+secret key associated with the letter k."
+  (and-let* ((modes erc--channel-modes)
+             (tobj (erc--channel-mode-types))
+             (types (erc--channel-mode-types-table tobj)))
+    (let (out)
+      (maphash (lambda (k v)
+                 (unless (eq ?a (aref types k))
+                   (push (cons k
+                               (and (not (eq t v))
+                                    (not (and (eq k ?k)
+                                              (not (bound-and-true-p
+                                                    erc-show-channel-key-p))))
+                                    v))
+                         out)))
+               modes)
+      (setq out (cl-sort out #'< :key #'car))
+      (pcase as-type
+        ('strings (mapcar (lambda (o) (char-to-string (car o))) out))
+        ('string (apply #'string (mapcar #'car out)))
+        ((and (pred natnump) c)
+         (let (keys vals)
+           (pcase-dolist (`(,k . ,v) out)
+             (when v
+               (push (if (> (length v) c)
+                         (with-memoization
+                             (gethash (list c k v)
+                                      (erc--channel-mode-types-shortargs tobj))
+                           (truncate-string-to-width v c 0 nil t))
+                       v)
+                     vals))
+             (push k keys))
+           (concat (apply #'string (nreverse keys)) (and vals " ")
+                   (string-join (nreverse vals) (or sep " ")))))
+        (_ out)))))
 
 (defun erc--parse-user-modes (string &optional current extrap)
   "Return lists of chars from STRING to add to and drop from CURRENT.
@@ -6743,11 +6796,14 @@ dropped were they not already absent."
 (defun erc--update-user-modes (string)
   "Update `erc--user-modes' from \"MODE\" STRING.
 Return its value, a list of characters sorted by character code."
-  (setq erc--user-modes
-        (pcase-let ((`(,adding ,dropping)
-                     (erc--parse-user-modes string erc--user-modes)))
-          (sort (seq-difference (nconc erc--user-modes adding) dropping)
-                #'<))))
+  (prog1
+      (setq erc--user-modes
+            (pcase-let ((`(,adding ,dropping)
+                         (erc--parse-user-modes string erc--user-modes)))
+              (sort (seq-difference (nconc erc--user-modes adding) dropping)
+                    #'<)))
+    (setq erc--mode-line-mode-string
+          (concat "+" (erc--user-modes 'string)))))
 
 (defun erc--update-channel-modes (string &rest args)
   "Update `erc-channel-modes' and call individual mode handlers.
@@ -6791,14 +6847,24 @@ expect STATE to be a boolean and ARGUMENT either a string or nil."
   (erc-log (format "Channel-mode %c (type %s, arg %S) %s"
                    letter type arg (if state 'enabled 'disabled))))
 
-(cl-defmethod erc--handle-channel-mode :before (_ c state arg)
-  "Record STATE change and ARG, if enabling, for mode letter C."
+(cl-defmethod erc--handle-channel-mode :before (type c state arg)
+  "Record STATE change for mode letter C.
+When STATE is non-nil, add or update C's mapping in
+`erc--channel-modes', associating it with ARG if C takes a
+parameter and t otherwise.  When STATE is nil, forget the
+mapping.  For type A, add up update a permanent mapping for C,
+associating it with an integer indicating a running total of
+STATE changes since joining the channel.  In most cases, this
+won't match the number known to the server."
   (unless erc--channel-modes
     (cl-assert (erc--target-channel-p erc--target))
     (setq erc--channel-modes (make-hash-table)))
-  (if state
-      (puthash c (or arg t) erc--channel-modes)
-    (remhash c erc--channel-modes)))
+  (if (= type ?a)
+      (cl-callf (lambda (s) (+ (or s 0) (if state +1 -1)))
+          (gethash c erc--channel-modes))
+    (if state
+        (puthash c (or arg t) erc--channel-modes)
+      (remhash c erc--channel-modes))))
 
 (cl-defmethod erc--handle-channel-mode :before ((_ (eql ?d)) c state _)
   "Update `erc-channel-modes' for any character C of nullary type D.
@@ -8231,7 +8297,7 @@ shortened server name instead."
   (with-current-buffer buffer
     (let ((spec `((?a . ,(erc-format-away-status))
                   (?l . ,(erc-format-lag-time))
-                  (?m . ,(erc-format-channel-modes))
+                  (?m . ,(or erc--mode-line-mode-string ""))
                   (?n . ,(or (erc-current-nick) ""))
                   (?N . ,(erc-format-network))
                   (?o . ,(or (erc-controls-strip erc-channel-topic) ""))

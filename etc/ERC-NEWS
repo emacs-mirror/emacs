@@ -253,6 +253,15 @@ whenever ERC rejects prompt input containing whitespace-only lines.
 When paired with option 'erc-send-whitespace-lines', ERC echoes a
 tally of blank lines padded and trailing blanks culled.
 
+** A context-dependent mode segment in header and mode lines.
+The "%m" specifier has traditionally expanded to a lone "+" in server
+and query buffers and a string containing all switch modes (plus
+"limit" and "key" args) in channel buffers.  It now becomes a string
+of user modes in server buffers and disappears completely in query
+buffers.  In channels, it's grown to include all letters and their
+possibly truncated arguments, with the exception of stateful list
+modes, like "b".
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, fool visibility has become togglable with the new
