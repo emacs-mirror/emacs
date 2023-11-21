@@ -980,7 +980,7 @@ macfont_invalidate_family_cache (void)
       ptrdiff_t i, size = HASH_TABLE_SIZE (h);
 
       for (i = 0; i < size; ++i)
-	if (HASH_HASH (h, i) != hash_unused)
+	if (!hash_unused_entry_key_p (HASH_KEY (h, i)))
 	  {
 	    Lisp_Object value = HASH_VALUE (h, i);
 

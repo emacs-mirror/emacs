@@ -4577,8 +4577,6 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
 	h->key_and_value[i] = HASH_UNUSED_ENTRY_KEY;
 
       h->hash = hash_table_alloc_bytes (size * sizeof *h->hash);
-      for (ptrdiff_t i = 0; i < size; i++)
-	h->hash[i] = hash_unused;
 
       h->next = hash_table_alloc_bytes (size * sizeof *h->next);
       for (ptrdiff_t i = 0; i < size - 1; i++)
@@ -4682,8 +4680,6 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 
       hash_hash_t *hash = hash_table_alloc_bytes (new_size * sizeof *hash);
       memcpy (hash, h->hash, old_size * sizeof *hash);
-      for (ptrdiff_t i = old_size; i < new_size; i++)
-	hash[i] = hash_unused;
 
       ptrdiff_t old_index_size = h->index_size;
       ptrdiff_t index_size = hash_index_size (new_size);
@@ -4755,8 +4751,6 @@ hash_table_thaw (Lisp_Object hash_table)
   h->next_free = -1;
 
   h->hash = hash_table_alloc_bytes (size * sizeof *h->hash);
-  for (ptrdiff_t i = 0; i < size; i++)
-    h->hash[i] = hash_unused;
 
   h->next = hash_table_alloc_bytes (size * sizeof *h->next);
   for (ptrdiff_t i = 0; i < size; i++)
@@ -4831,14 +4825,13 @@ ptrdiff_t
 hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 	  hash_hash_t hash)
 {
-  eassert (!BASE_EQ (key, Qunbound));
+  eassert (!hash_unused_entry_key_p (key));
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
   h->count++;
 
   /* Store key/value in the key_and_value vector.  */
   ptrdiff_t i = h->next_free;
-  eassert (HASH_HASH (h, i) == hash_unused);
   eassert (hash_unused_entry_key_p (HASH_KEY (h, i)));
   h->next_free = HASH_NEXT (h, i);
   set_hash_key_slot (h, i, key);
@@ -4883,7 +4876,6 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 	     the free list.  */
 	  set_hash_key_slot (h, i, HASH_UNUSED_ENTRY_KEY);
 	  set_hash_value_slot (h, i, Qnil);
-	  set_hash_hash_slot (h, i, hash_unused);
 	  set_hash_next_slot (h, i, h->next_free);
 	  h->next_free = i;
 	  h->count--;
@@ -4906,7 +4898,6 @@ hash_clear (struct Lisp_Hash_Table *h)
       ptrdiff_t size = HASH_TABLE_SIZE (h);
       for (ptrdiff_t i = 0; i < size; i++)
 	{
-	  set_hash_hash_slot (h, i, hash_unused);
 	  set_hash_next_slot (h, i, i < size - 1 ? i + 1 : -1);
 	  set_hash_key_slot (h, i, HASH_UNUSED_ENTRY_KEY);
 	  set_hash_value_slot (h, i, Qnil);
@@ -4986,10 +4977,9 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 		  set_hash_next_slot (h, i, h->next_free);
 		  h->next_free = i;
 
-		  /* Clear key, value, and hash.  */
+		  /* Clear key and value.  */
 		  set_hash_key_slot (h, i, HASH_UNUSED_ENTRY_KEY);
 		  set_hash_value_slot (h, i, Qnil);
-		  set_hash_hash_slot (h, i, hash_unused);
 
                   eassert (h->count != 0);
                   h->count--;

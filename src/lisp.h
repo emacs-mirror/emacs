@@ -2425,11 +2425,6 @@ typedef enum {
 			    both key and value remain.  */
 } hash_table_weakness_t;
 
-/* An value that marks an unused hash entry.
-   Any hash_hash_t value that is not a valid fixnum will do here.  */
-enum { hash_unused = (hash_hash_t)MOST_POSITIVE_FIXNUM + 1 };
-verify (FIXNUM_OVERFLOW_P (hash_unused));
-
 /* The type of a hash table index, both for table indices and index
    (hash) indices.  It's signed and a subtype of ptrdiff_t.  */
 typedef int32_t hash_idx_t;
@@ -2475,7 +2470,7 @@ struct Lisp_Hash_Table
      Otherwise it is heap-allocated.  */
   hash_idx_t *index;
 
-  /* Vector of hash codes.  The value hash_unused marks an unused table entry.
+  /* Vector of hash codes.  Unused entries have undefined values.
      This vector is table_size entries long.  */
   hash_hash_t *hash;
 
