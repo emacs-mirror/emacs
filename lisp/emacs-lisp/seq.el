@@ -463,22 +463,25 @@ whether an element was found or not."
 ;;    (t
 ;;     (cl-call-next-method))))
 
-(cl-defgeneric seq-contains-pred (sequence &optional testfn)
+(cl-defgeneric seq-contains-pred (_sequence &optional testfn)
+  (lambda (elt sequence)
+    (catch 'seq--break
+      (seq-doseq (e sequence)
+        (let ((r (funcall testfn e elt)))
+          (when r
+            (throw 'seq--break r))))
+      nil)))
+
+(cl-defmethod seq-contains-pred ((_sequence list) &optional testfn)
   (cond
-   ((and (listp sequence) (or (null testfn) (eq testfn 'equal)))
+   ((or (null testfn) (eq testfn 'equal))
     #'member)
-   ((and (listp sequence) (eq testfn 'eql))
+   ((eq testfn 'eql)
     #'memql)
-   ((and (listp sequence) (eq testfn 'eq))
+   ((eq testfn 'eq)
     #'memq)
    (t
-    (lambda (elt sequence)
-      (catch 'seq--break
-        (seq-doseq (e sequence)
-          (let ((r (funcall testfn e elt)))
-            (when r
-              (throw 'seq--break r))))
-        nil)))))
+    (cl-call-next-method))))
 
 (cl-defgeneric seq-set-equal-p (sequence1 sequence2 &optional testfn)
   "Return non-nil if SEQUENCE1 and SEQUENCE2 contain the same elements.
