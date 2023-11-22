@@ -321,7 +321,8 @@ PARENT and BOL are like other anchor functions."
                                (treesit-node-parent prev-sibling) t)))
           ;; If the start of the previous sibling isn't at the
           ;; beginning of a line, something's probably not quite
-          ;; right, go a step further.
+          ;; right, go a step further. (E.g., comment after a
+          ;; statement.)
           (_ (goto-char (treesit-node-start prev-sibling))
              (if (looking-back (rx bol (* whitespace))
                                (line-beginning-position))
@@ -363,6 +364,19 @@ PARENT, BOL, ARGS are the same as other anchor functions."
       (forward-line -1)
       (back-to-indentation)
       (looking-at-p regexp))))
+
+(defun c-ts-mode--first-sibling (node parent &rest _)
+  "Matches when NODE is the \"first sibling\".
+\"First sibling\" is defined as: the first child node of PARENT
+such that it's on its own line.  NODE is the node to match and
+PARENT is its parent."
+  (let ((prev-sibling (treesit-node-prev-sibling node t)))
+    (or (null prev-sibling)
+        (save-excursion
+          (goto-char (treesit-node-start prev-sibling))
+          (<= (line-beginning-position)
+              (treesit-node-start parent)
+              (line-end-position))))))
 
 (defun c-ts-mode--indent-styles (mode)
   "Indent rules supported by `c-ts-mode'.
@@ -457,7 +471,11 @@ MODE is either `c' or `cpp'."
            ((parent-is "field_declaration_list") c-ts-mode--anchor-prev-sibling 0)
 
            ;; Statement in {} blocks.
-           ((or (match nil "compound_statement" nil 1 1)
+           ((or (and (parent-is "compound_statement")
+                     ;; If the previous sibling(s) are not on their
+                     ;; own line, indent as if this node is the first
+                     ;; sibling (Bug#67357)
+                     c-ts-mode--first-sibling)
                 (match null "compound_statement"))
             standalone-parent c-ts-mode-indent-offset)
            ((parent-is "compound_statement") c-ts-mode--anchor-prev-sibling 0)
@@ -470,6 +488,7 @@ MODE is either `c' or `cpp'."
            ((parent-is "if_statement") standalone-parent c-ts-mode-indent-offset)
            ((parent-is "else_clause") standalone-parent c-ts-mode-indent-offset)
            ((parent-is "for_statement") standalone-parent c-ts-mode-indent-offset)
+           ((match "while" "do_statement") parent-bol 0) ; (do_statement "while")
            ((parent-is "while_statement") standalone-parent c-ts-mode-indent-offset)
            ((parent-is "do_statement") standalone-parent c-ts-mode-indent-offset)
 
