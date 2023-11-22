@@ -5509,7 +5509,7 @@ raises an error."
 		     (unless noerror signal-hook-function)))
 		(read (current-buffer)))
 	    ;; Error handling.
-	    (when (re-search-forward (rx (not blank)) (line-end-position) t)
+	    (when (re-search-forward (rx (not space)) (line-end-position) t)
 	      (error nil)))
 	(error (unless noerror
 		 (tramp-error
