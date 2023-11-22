@@ -1337,7 +1337,9 @@ dump_object_needs_dumping_p (Lisp_Object object)
      included in the dump despite all references to them being
      bitwise-invariant.  */
   return (!dump_object_self_representing_p (object)
-	  || dump_object_emacs_ptr (object));
+	  || (dump_object_emacs_ptr (object)
+	      /* Don't dump Qunbound -- it's not a legal hash table key.  */
+	      && !BASE_EQ (object, Qunbound)));
 }
 
 static void
@@ -2549,6 +2551,19 @@ dump_symbol (struct dump_context *ctx,
       break;
     }
   return offset;
+}
+
+/* Give Qunbound its name.
+   All other symbols are dumped and loaded but not Qunbound because it
+   cannot be used as a key in a hash table.
+   FIXME: A better solution would be to use a value other than Qunbound
+   as a marker for unused entries in hash tables.  */
+static void
+pdumper_init_symbol_unbound (void)
+{
+  eassert (NILP (SYMBOL_NAME (Qunbound)));
+  const char *name = "unbound";
+  init_symbol (Qunbound, make_pure_c_string (name, strlen (name)));
 }
 
 static dump_off
@@ -5748,6 +5763,8 @@ pdumper_load (const char *dump_filename, char *argv0)
      initialization.  */
   for (int i = 0; i < nr_dump_hooks; ++i)
     dump_hooks[i] ();
+
+  pdumper_init_symbol_unbound ();
 
 #ifdef HAVE_NATIVE_COMP
   pdumper_set_emacs_execdir (argv0);

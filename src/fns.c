@@ -4831,6 +4831,7 @@ ptrdiff_t
 hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 	  hash_hash_t hash)
 {
+  eassert (!BASE_EQ (key, Qunbound));
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
   h->count++;
