@@ -1320,6 +1320,7 @@ if test "$ANDROID" = "yes"; then
     with_mailutils=no
     with_pop=no
     with_harfbuzz=no
+    with_native_compilation=no
   fi
 
   with_rsvg=no
