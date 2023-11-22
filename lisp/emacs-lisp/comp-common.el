@@ -60,7 +60,7 @@ Primitive functions included in this list will not be called
 directly by the natively-compiled code, which makes trampolines for
 those primitives unnecessary in case of function redefinition/advice."
   :type '(repeat symbol)
-  :version "28.1")
+  :version "30.1")
 
 (defcustom native-comp-async-env-modifier-form nil
   "Form evaluated before compilation by each asynchronous compilation subprocess.
