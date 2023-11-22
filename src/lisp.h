@@ -2387,7 +2387,7 @@ struct Lisp_Hash_Table;
 
 /* The type of a hash value stored in the table.
    It's unsigned and a subtype of EMACS_UINT.  */
-typedef EMACS_UINT hash_hash_t;
+typedef uint32_t hash_hash_t;
 
 typedef enum {
   Test_eql,
