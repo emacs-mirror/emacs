@@ -106,17 +106,8 @@
     (tramp-fuse-remove-hidden-files
      (all-completions
       filename
-      (append
-       (file-name-all-completions
-	filename (tramp-fuse-local-file-name directory))
-       ;; Some storage systems do not return "." and "..".
-       (let (result)
-	 (dolist (item '(".." ".") result)
-	   (when (string-prefix-p filename item)
-	     (catch 'match
-	       (dolist (elt completion-regexp-list)
-		 (unless (string-match-p elt item) (throw 'match nil)))
-	       (setq result (cons (concat item "/") result)))))))))))
+      (file-name-all-completions
+       filename (tramp-fuse-local-file-name directory))))))
 
 ;; This function isn't used.
 (defun tramp-fuse-handle-insert-directory

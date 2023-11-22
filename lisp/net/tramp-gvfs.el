@@ -1469,7 +1469,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
        filename
        (with-parsed-tramp-file-name (expand-file-name directory) nil
 	 (with-tramp-file-property v localname "file-name-all-completions"
-           (let ((result '("./" "../")))
+           (let (result)
              ;; Get a list of directories and files.
 	     (dolist (item
 		      (tramp-gvfs-get-directory-attributes directory)

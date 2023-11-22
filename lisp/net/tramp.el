@@ -2742,19 +2742,27 @@ not in completion mode."
       (tramp-run-real-handler #'file-exists-p (list filename))))
 
 (defmacro tramp-skeleton-file-name-all-completions
-    (_filename _directory &rest body)
+    (filename directory &rest body)
   "Skeleton for `tramp-*-handle-filename-all-completions'.
 BODY is the backend specific code."
   (declare (indent 2) (debug t))
   `(ignore-error file-missing
      (delete-dups (delq nil
        (let* ((case-fold-search read-file-name-completion-ignore-case)
-	      (regexp (mapconcat #'identity completion-regexp-list "\\|"))
-	      (result ,@body))
+	      (result (progn ,@body)))
+	 ;; Some storage systems do not return "." and "..".
+	 (when (tramp-tramp-file-p ,directory)
+	   (dolist (elt '(".." "."))
+	     (when (string-prefix-p ,filename elt)
+	       (setq result (cons (concat elt "/") result)))))
 	 (if (consp completion-regexp-list)
 	     ;; Discriminate over `completion-regexp-list'.
 	     (mapcar
-	      (lambda (x) (and (stringp x) (string-match-p regexp x) x))
+	      (lambda (x)
+		(when (stringp x)
+		  (catch 'match
+		    (dolist (elt completion-regexp-list x)
+		      (unless (string-match-p elt x) (throw 'match nil))))))
 	      result)
 	   result))))))
 
