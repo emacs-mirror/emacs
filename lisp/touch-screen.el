@@ -1662,20 +1662,22 @@ the place of EVENT within the key sequence being translated, or
         (when touch-screen-current-timer
           (cancel-timer touch-screen-current-timer)
           (setq touch-screen-current-timer nil))
-        (unwind-protect
-            ;; Don't perform any actions associated with releasing the
-            ;; tool if the touch sequence was intercepted by another
-            ;; program.
-            (unless (caddr event)
-              (touch-screen-handle-point-up (cadr event) prefix))
-          ;; If an ancillary tool is present the function call above
-          ;; will merely transfer information from it into the current
-          ;; tool list, thereby rendering it the new current tool,
-          ;; until such time as it too is released.
-          (if (or (caddr event) touch-screen-aux-tool)
-            ;; Make sure the tool list is cleared even if
-            ;; `touch-screen-handle-point-up' throws.
-            (setq touch-screen-current-tool nil))))
+        (let ((old-aux-tool touch-screen-aux-tool))
+          (unwind-protect
+              ;; Don't perform any actions associated with releasing the
+              ;; tool if the touch sequence was intercepted by another
+              ;; program.
+              (if (caddr event)
+                  (setq touch-screen-current-tool nil)
+                (touch-screen-handle-point-up (cadr event) prefix))
+            ;; If an ancillary tool is present the function call above
+            ;; will merely transfer information from it into the current
+            ;; tool list, thereby rendering it the new current tool,
+            ;; until such time as it too is released.
+            (when (not (and old-aux-tool (not touch-screen-aux-tool)))
+              ;; Make sure the tool list is cleared even if
+              ;; `touch-screen-handle-point-up' throws.
+              (setq touch-screen-current-tool nil)))))
       ;; If it is rather the ancillary tool, delete its vector.  No
       ;; further action is required, for the next update received will
       ;; resume regular gesture recognition.
