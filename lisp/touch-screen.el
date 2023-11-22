@@ -1210,31 +1210,32 @@ last such event."
                        (/ (frame-char-width) 2)))
             (aset touch-screen-aux-tool 5 centrum)
             (aset touch-screen-aux-tool 6 ratio)
-            (throw 'input-event (list 'touchscreen-pinch
-                                      (if (or (<= (car centrum) 0)
-                                              (<= (cdr centrum) 0))
-                                          (list window nil centrum nil nil
-                                                nil nil nil nil nil)
-                                        (let ((posn (posn-at-x-y (car centrum)
-                                                                 (cdr centrum)
-                                                                 window)))
-                                          (if (eq (posn-window posn)
-                                                  window)
-                                              posn
-                                            ;; Return a placeholder
-                                            ;; outside the window if
-                                            ;; the centrum has moved
-                                            ;; beyond the confines of
-                                            ;; the window where the
-                                            ;; gesture commenced.
-                                            (list window nil centrum nil nil
-                                                  nil nil nil nil nil))))
-                                      ratio
-                                      (- (car centrum)
-                                         (car initial-centrum))
-                                      (- (cdr centrum)
-                                         (cdr initial-centrum))
-                                      ratio-diff))))))))
+            (throw 'input-event
+                   (list 'touchscreen-pinch
+                         (if (or (<= (car centrum) 0)
+                                 (<= (cdr centrum) 0))
+                             (list window nil centrum nil nil
+                                   nil nil nil nil nil)
+                           (let ((posn (posn-at-x-y (car centrum)
+                                                    (cdr centrum)
+                                                    window)))
+                             (if (eq (posn-window posn)
+                                     window)
+                                 posn
+                               ;; Return a placeholder
+                               ;; outside the window if
+                               ;; the centrum has moved
+                               ;; beyond the confines of
+                               ;; the window where the
+                               ;; gesture commenced.
+                               (list window nil centrum nil nil
+                                     nil nil nil nil nil))))
+                         ratio
+                         (- (car centrum)
+                            (car initial-centrum))
+                         (- (cdr centrum)
+                            (cdr initial-centrum))
+                         ratio-diff))))))))
 
 (defun touch-screen-window-selection-changed (frame)
   "Notice that FRAME's selected window has changed.
@@ -1491,7 +1492,12 @@ the place of EVENT within the key sequence being translated, or
             ;; auxiliary tool was first pressed, then interpreted as a
             ;; scale by which to adjust text within the current tool's
             ;; window.
-            (progn
+            (when (eq (if (framep window) window (window-frame window))
+                      ;; Verify that the new tool was placed on the
+                      ;; same frame the current tool has, so as not to
+                      ;; consider events distributed across distinct
+                      ;; frames components of a single gesture.
+                      (window-frame (nth 1 touch-screen-current-tool)))
               ;; Set touch-screen-aux-tool as is proper.  Mind that
               ;; the last field is always relative to the current
               ;; tool's window.
@@ -1618,13 +1624,28 @@ the place of EVENT within the key sequence being translated, or
       ;; The positions of tools currently pressed against the screen
       ;; have changed.  If there is a tool being tracked as part of a
       ;; gesture, look it up in the list of tools.
-      (let ((new-point (assq (car touch-screen-current-tool)
-                             (cadr event))))
-        (when new-point
+      (if-let ((new-point (assq (car touch-screen-current-tool)
+                                (cadr event))))
           (if touch-screen-aux-tool
               (touch-screen-handle-aux-point-update (cdr new-point)
                                                     (car new-point))
-            (touch-screen-handle-point-update new-point))))
+            (touch-screen-handle-point-update new-point))
+        ;; If the current tool exists no longer, a touchscreen-end
+        ;; event is certain to have been disregarded.  So that
+        ;; touchscreen gesture translation might continue as usual
+        ;; after this aberration to the normal flow of events, delete
+        ;; the current tool now.
+        (when touch-screen-current-timer
+          ;; Cancel the touch screen long-press timer, if it is still
+          ;; there by any chance.
+          (cancel-timer touch-screen-current-timer)
+          (setq touch-screen-current-timer nil))
+        ;; Don't call `touch-screen-handle-point-up' when terminating
+        ;; translation abnormally.
+        (setq touch-screen-current-tool nil
+              ;; Delete the ancillary tool while at it.
+              touch-screen-aux-tool nil)
+        (message "Current touch screen tool vanished!"))
       ;; Check for updates to any ancillary point being monitored.
       (when touch-screen-aux-tool
         (let ((new-point (assq (aref touch-screen-aux-tool 0)
@@ -1647,9 +1668,14 @@ the place of EVENT within the key sequence being translated, or
             ;; program.
             (unless (caddr event)
               (touch-screen-handle-point-up (cadr event) prefix))
-          ;; Make sure the tool list is cleared even if
-          ;; `touch-screen-handle-point-up' throws.
-          (setq touch-screen-current-tool nil)))
+          ;; If an ancillary tool is present the function call above
+          ;; will merely transfer information from it into the current
+          ;; tool list, thereby rendering it the new current tool,
+          ;; until such time as it too is released.
+          (if (or (caddr event) touch-screen-aux-tool)
+            ;; Make sure the tool list is cleared even if
+            ;; `touch-screen-handle-point-up' throws.
+            (setq touch-screen-current-tool nil))))
       ;; If it is rather the ancillary tool, delete its vector.  No
       ;; further action is required, for the next update received will
       ;; resume regular gesture recognition.
