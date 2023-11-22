@@ -32,6 +32,14 @@ NDK, SDK, and a suitable Java compiler must also be installed.
 See the file 'java/INSTALL' for more details.
 
 ---
+** Native compilation is now enabled by default.
+'configure' will enable the Emacs Lisp native compiler, so long as
+libgccjit is present and functional on the system.  To disable native
+compilation, configure Emacs with the option:
+
+  $ ./configure --with-native-compilation=no
+
+---
 ** Emacs now defaults to ossaudio library for sound on NetBSD and OpenBSD.
 Previously configure used ALSA libraries if installed on the
 system when configured '--with-sound=yes' (which is the default), with
