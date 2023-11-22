@@ -4612,8 +4612,8 @@ activations need to be changed, such as when `package-load-list' is modified."
                 (let ((load-suffixes '(".el" ".elc")))
                   (locate-library (package--autoloads-file-name pkg))))
                (pfile (prin1-to-string file)))
-          (insert "(let ((load-true-file-name " pfile ")\
-\(load-file-name " pfile "))\n")
+          (insert "(let* ((load-file-name " pfile ")\
+\(load-true-file-name load-file-name))\n")
           (insert-file-contents file)
           ;; Fixup the special #$ reader form and throw away comments.
           (while (re-search-forward "#\\$\\|^;\\(.*\n\\)" nil 'move)
