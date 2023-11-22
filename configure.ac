@@ -5149,7 +5149,7 @@ source on this site:
 
   with_native_compilation=no])
 
-if test "${with_native_compilation}" == "default"; then
+if test "${with_native_compilation}" = "default"; then
     # Check if libgccjit is available.
     AC_CHECK_LIB([gccjit], [gcc_jit_context_acquire],
       [], [libgccjit_not_found])
