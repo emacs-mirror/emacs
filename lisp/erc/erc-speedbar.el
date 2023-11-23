@@ -135,6 +135,14 @@ This will add a speedbar major display mode."
   (erase-buffer)
   (let (serverp chanp queryp)
     (with-current-buffer buffer
+      ;; The function `dframe-help-echo' checks the default value of
+      ;; `dframe-help-echo-function' when deciding whether to visit
+      ;; the buffer and fire the callback.  This works in normal
+      ;; speedbar frames because the event handler runs in the
+      ;; `window-buffer' of the active frame.  But in our hacked
+      ;; version, where the frame is hidden, `speedbar-item-info'
+      ;; never runs without this workaround.
+      (setq-local dframe-help-echo-function #'ignore)
       (setq serverp (erc--server-buffer-p))
       (setq chanp (erc-channel-p (erc-default-target)))
       (setq queryp (erc-query-buffer-p)))
@@ -212,6 +220,11 @@ This will add a speedbar major display mode."
      (buffer-name buffer) 'erc-speedbar-goto-buffer buffer nil
      depth)))
 
+(defconst erc-speedbar--fmt-sentinel (gensym "erc-speedbar-")
+  "Symbol for identifying a nonstandard `speedbar-token' text property.
+When encountered, ERC assumes the value's tail contains
+`format'-compatible args.")
+
 (defun erc-speedbar-expand-channel (text channel indent)
   "For the line matching TEXT, in CHANNEL, expand or contract a line.
 INDENT is the current indentation level."
@@ -221,35 +234,17 @@ INDENT is the current indentation level."
     (speedbar-with-writable
      (save-excursion
        (end-of-line) (forward-char 1)
-       (let ((modes (with-current-buffer channel
-		      (concat (apply #'concat
-				     erc-channel-modes)
-			      (cond
-			       ((and erc-channel-user-limit
-				     erc-channel-key)
-				(if erc-show-channel-key-p
-				    (format "lk %.0f %s"
-					    erc-channel-user-limit
-					    erc-channel-key)
-				  (format "kl %.0f" erc-channel-user-limit)))
-			       (erc-channel-user-limit
-				;; Emacs has no bignums
-				(format "l %.0f" erc-channel-user-limit))
-			       (erc-channel-key
-				(if erc-show-channel-key-p
-				    (format "k %s" erc-channel-key)
-				  "k"))
-			       (t "")))))
+       (let ((modes (buffer-local-value 'erc--mode-line-mode-string channel))
 	     (topic (erc-controls-interpret
 		     (with-current-buffer channel erc-channel-topic))))
-	 (speedbar-make-tag-line
-	  'angle ?i nil nil
-	  (concat "Modes: +" modes) nil nil nil
-	  (1+ indent))
+         (when modes
+           (speedbar-make-tag-line
+            'angle ?m nil (list erc-speedbar--fmt-sentinel "Mode: %s" modes)
+            modes nil nil 'erc-notice-face (1+ indent)))
 	 (unless (string= topic "")
 	   (speedbar-make-tag-line
-	    'angle ?i nil nil
-	    (concat "Topic: " topic) nil nil nil
+            'angle ?t nil (list erc-speedbar--fmt-sentinel  "Topic: %s" topic)
+            topic nil nil 'erc-notice-face
 	    (1+ indent)))
          (unless (pcase erc-speedbar-hide-mode-topic
                    ('nil 'show)
@@ -428,6 +423,13 @@ The INDENT level is ignored."
 	   (message "%s: %s" txt (car data)))
 	  ((bufferp data)
 	   (message "Channel: %s" txt))
+          ;; Print help if line has a non-standard ([-+?=]) button
+          ;; char and a `speedbar-token' property with a known CAR.
+          ((and-let* ((p (text-property-not-all (pos-bol) (pos-eol)
+                                                'speedbar-token nil))
+                      (v (get-text-property p 'speedbar-token))
+                      ((eq erc-speedbar--fmt-sentinel (car v))))
+             (apply #'message (cdr v))))
 	  (t
 	   (message "%s" txt)))))
 
@@ -469,6 +471,7 @@ The INDENT level is ignored."
   (cl-assert (eq speedbar-buffer (current-buffer)))
   (cl-assert (eq speedbar-frame (selected-frame)))
   (setq erc-speedbar--hidden-speedbar-frame speedbar-frame
+        ;; In Emacs 27, this is not `local-variable-if-set-p'.
         dframe-controlled #'erc-speedbar--dframe-controlled)
   (add-hook 'window-configuration-change-hook
             #'erc-speedbar--emulate-sidebar-set-window-preserve-size nil t)
