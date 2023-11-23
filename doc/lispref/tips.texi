@@ -631,7 +631,12 @@ first line with a capital letter and end it with a period.
 
 For a function, the first line should briefly answer the question,
 ``What does this function do?''  For a variable, the first line should
-briefly answer the question, ``What does this value mean?''
+briefly answer the question, ``What does this value mean?''  Prefer to
+answer these questions in a way that will make sense to users and
+callers of the function or the variable.  In particular, do @emph{not}
+tell what the function does by enumerating the actions of its code;
+instead, describe the role of these actions and the function's
+contract.
 
 Don't limit the documentation string to one line; use as many lines as
 you need to explain the details of how to use the function or
