@@ -499,7 +499,8 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 
 (defcustom dired-movement-style nil
   "Non-nil means point skips empty lines when moving in Dired buffers.
-This affects only `dired-next-line' and `dired-previous-line'.
+This affects only `dired-next-line', `dired-previous-line',
+`dired-next-dirline', `dired-prev-dirline'.
 
 Possible non-nil values:
  * `cycle':   when moving from the last/first visible line, cycle back
@@ -2688,11 +2689,11 @@ Otherwise, toggle `read-only-mode'."
 (defun dired--trivial-next-line (arg)
   "Move down ARG lines, then position at filename."
   (let ((line-move-visual)
-    (goal-column))
+        (goal-column))
     (line-move arg t))
   ;; We never want to move point into an invisible line.
   (while (and (invisible-p (point))
-          (not (if (and arg (< arg 0)) (bobp) (eobp))))
+              (not (if (and arg (< arg 0)) (bobp) (eobp))))
     (forward-char (if (and arg (< arg 0)) -1 1)))
   (dired-move-to-filename))
 
@@ -2705,43 +2706,40 @@ Whether to skip empty lines and how to move from last line
 is controlled by `dired-movement-style'."
   (interactive "^p" dired-mode)
   (if dired-movement-style
-      (let ((old-position (progn
-                            ;; It's always true that we should move
-                            ;; to the filename when possible.
-                            (dired-move-to-filename)
-                            (point)))
-            ;; Up/Down indicates the direction.
-            (moving-down (if (cl-plusp arg)
-                             1    ; means Down.
-                           -1)))  ; means Up.
-        ;; Line by line in case we forget to skip empty lines.
-        (while (not (zerop arg))
-          (dired--trivial-next-line moving-down)
-          (when (= old-position (point))
-            ;; Now point is at beginning/end of movable area,
-            ;; but it still wants to move farther.
-            (if (eq dired-movement-style 'cycle)
-                ;; `cycle': go to the other end.
-                (goto-char (if (cl-plusp moving-down)
-                               (point-min)
-                             (point-max)))
-              ;; `bounded': go back to the last non-empty line.
-              (while (string-match-p "\\`[[:blank:]]*\\'"
-                                     (buffer-substring-no-properties
-                                      (line-beginning-position)
-                                      (line-end-position)))
-                (dired--trivial-next-line (- moving-down)))
-              ;; Encountered a boundary, so let's stop movement.
-              (setq arg moving-down)))
-          (when (not (string-match-p "\\`[[:blank:]]*\\'"
-                                     (buffer-substring-no-properties
-                                      (line-beginning-position)
-                                      (line-end-position))))
-            ;; Has moved to a non-empty line.  This movement does
-            ;; make sense.
-            (cl-decf arg moving-down))
-          (setq old-position (point))))
+      (dired--move-to-next-line arg #'dired--trivial-next-line)
     (dired--trivial-next-line arg)))
+
+(defun dired--move-to-next-line (arg jumpfun)
+  (let ((old-position (progn
+                        ;; It's always true that we should move
+                        ;; to the filename when possible.
+                        (dired-move-to-filename)
+                        (point)))
+        ;; Up/Down indicates the direction.
+        (moving-down (if (cl-plusp arg)
+                         1              ; means Down.
+                       -1)))            ; means Up.
+    ;; Line by line in case we forget to skip empty lines.
+    (while (not (zerop arg))
+      (funcall jumpfun moving-down)
+      (when (= old-position (point))
+        ;; Now point is at beginning/end of movable area,
+        ;; but it still wants to move farther.
+        (if (eq dired-movement-style 'cycle)
+            ;; `cycle': go to the other end.
+            (goto-char (if (cl-plusp moving-down)
+                           (point-min)
+                         (point-max)))
+          ;; `bounded': go back to the last non-empty line.
+          (while (dired-between-files)
+            (funcall jumpfun (- moving-down)))
+          ;; Encountered a boundary, so let's stop movement.
+          (setq arg moving-down)))
+      (unless (dired-between-files)
+        ;; Has moved to a non-empty line.  This movement does
+        ;; make sense.
+        (cl-decf arg moving-down))
+      (setq old-position (point)))))
 
 (defun dired-previous-line (arg)
   "Move up ARG lines, then position at filename.
@@ -2753,9 +2751,8 @@ is controlled by `dired-movement-style'."
   (interactive "^p" dired-mode)
   (dired-next-line (- (or arg 1))))
 
-(defun dired-next-dirline (arg &optional opoint)
+(defun dired--trivial-next-dirline (arg &optional opoint)
   "Goto ARGth next directory file line."
-  (interactive "p" dired-mode)
   (or opoint (setq opoint (point)))
   (if (if (> arg 0)
 	  (re-search-forward dired-re-dir nil t arg)
@@ -2763,10 +2760,24 @@ is controlled by `dired-movement-style'."
 	(re-search-backward dired-re-dir nil t (- arg)))
       (dired-move-to-filename)		; user may type `i' or `f'
     (goto-char opoint)
-    (error "No more subdirectories")))
+    (unless dired-movement-style
+      (error "No more subdirectories"))))
+
+(defun dired-next-dirline (arg &optional _opoint)
+  "Goto ARGth next directory file line.
+
+Whether to skip empty lines and how to move from last line
+is controlled by `dired-movement-style'."
+  (interactive "p" dired-mode)
+  (if dired-movement-style
+      (dired--move-to-next-line arg #'dired--trivial-next-dirline)
+    (dired--trivial-next-dirline arg)))
 
 (defun dired-prev-dirline (arg)
-  "Goto ARGth previous directory file line."
+  "Goto ARGth previous directory file line.
+
+Whether to skip empty lines and how to move from last line
+is controlled by `dired-movement-style'."
   (interactive "p" dired-mode)
   (dired-next-dirline (- arg)))
 
