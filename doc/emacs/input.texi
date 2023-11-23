@@ -132,7 +132,7 @@ the text beneath the new point is not read-only, it activates the
 virtual keyboard, in anticipation that the user is about to enter text
 there.
 
-  The default value of @code{touch-point-set-point-commands} holds
+  The default value of @code{touch-screen-set-point-commands} holds
 only the command @code{mouse-set-point} (@pxref{Mouse Commands}),
 which is the default binding of @code{mouse-1}, and thus of
 touchscreen tap gestures as well.
@@ -144,7 +144,7 @@ only; it may also be set buffer locally, in which case Emacs will
 always display the keyboard in response to a tap on a window
 displaying the buffer it is set in.
 
-  There are moreover a set of functions to show or hide the on-screen
+  There are moreover several functions to show or hide the on-screen
 keyboard.  For more details, @xref{On-Screen Keyboards,,, elisp, The
 Emacs Lisp Reference Manual}.
 
