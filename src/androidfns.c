@@ -367,7 +367,15 @@ android_change_tab_bar_height (struct frame *f, int height)
      the tab bar by even 1 pixel, FRAME_TAB_BAR_LINES will be changed,
      leading to the tab bar height being incorrectly set upon the next
      call to android_set_font.  (bug#59285) */
+
   lines = height / unit;
+
+  /* Even so, HEIGHT might be less than unit if the tab bar face is
+     not so tall as the frame's font height; which if true lines will
+     be set to 0 and the tab bar will thus vanish.  */
+
+  if (lines == 0 && height != 0)
+    lines = 1;
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);
