@@ -2477,7 +2477,7 @@ the United States."
 (defun calcDigit-backspace ()
   (interactive)
   (cond ((eq last-command 'calcDigit-start)
-	 (erase-buffer))
+	 (delete-minibuffer-contents))
 	(t (backward-delete-char 1)))
   (if (= (calc-minibuffer-size) 0)
       (progn
