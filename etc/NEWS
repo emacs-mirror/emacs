@@ -628,6 +628,15 @@ completions window.  When the completions window is not visible,
 then all these keys have their usual meaning in the minibuffer.
 This option is supported for in-buffer completion as well.
 
+*** Selected completion candidates are deselected on typing.
+When a user types, point in the *Completions* window will be moved off
+any completion candidates.  'minibuffer-choose-completion' ('M-RET')
+will still choose a previously-selected completion candidate, but the
+new command 'minibuffer-choose-completion-or-exit' (bound by
+'minibuffer-visible-completions') will exit with the minibuffer
+contents instead.  The deselection behavior can be controlled with the
+new user option 'completion-auto-deselect'.
+
 ** Pcomplete
 
 ---
