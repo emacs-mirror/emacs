@@ -103,11 +103,11 @@ and also consults the `emoji-alternate-names' alist."
 
 ;;;###autoload
 (defun emoji-list ()
-  "List emojis and insert the one that's selected.
+  "List emojis and allow selecting and inserting one of them.
 Select the emoji by typing \\<emoji-list-mode-map>\\[emoji-list-select] on its picture.
 The glyph will be inserted into the buffer that was current
 when the command was invoked."
-  (interactive "*")
+  (interactive)
   (let ((buf (current-buffer)))
     (emoji--init)
     (switch-to-buffer (get-buffer-create "*Emoji*"))
@@ -219,7 +219,9 @@ the name is not known."
              (let ((buf emoji--insert-buffer))
                (quit-window)
                (if (buffer-live-p buf)
-                   (switch-to-buffer buf)
+                   (progn
+                     (switch-to-buffer buf)
+                     (barf-if-buffer-read-only))
                  (error "Buffer disappeared"))))))
       (if (not derived)
           ;; Glyph without derivations.
