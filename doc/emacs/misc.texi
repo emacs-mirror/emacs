@@ -2838,8 +2838,11 @@ want it to preserve certain buffers, customize the variable
 @code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
 expression matching the names of buffers not to kill.
 
+@vindex desktop-globals-to-save
   If you want to save minibuffer history from one session to
-another, use the @code{savehist} library.
+another, use the @code{savehist} library.  You can also save selected
+minibuffer-history variables as part of @code{desktop-save-mode} if
+you add those variables to the value of @code{desktop-globals-to-save}.
 
 @node Recursive Edit
 @section Recursive Editing Levels
