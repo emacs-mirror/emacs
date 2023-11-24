@@ -1456,8 +1456,15 @@ If INTERACTIVE, execute the command associated with any event
 generated instead of throwing `input-event'.  Otherwise, throw
 `input-event' with a single input event if that event should take
 the place of EVENT within the key sequence being translated, or
-`nil' if all tools have been released."
+`nil' if all tools have been released.
+
+Set `touch-screen-events-received' to `t' to indicate that touch
+screen events have been received, and thus by extension require
+functions undertaking event management themselves to call
+`read-key' rather than `read-event'."
   (interactive "e\ni\np")
+  (unless touch-screen-events-received
+    (setq touch-screen-events-received t))
   (if interactive
       ;; Called interactively (probably from wid-edit.el.)
       ;; Add any event generated to `unread-command-events'.
@@ -1484,7 +1491,19 @@ the place of EVENT within the key sequence being translated, or
           (cancel-timer touch-screen-current-timer)
           (setq touch-screen-current-timer nil))
         ;; If a tool already exists...
-        (if touch-screen-current-tool
+        (if (and touch-screen-current-tool
+                 ;; ..and the number of this tool is at variance with
+                 ;; that of the current tool: if a `touchscreen-end'
+                 ;; event is delivered that is somehow withheld from
+                 ;; this function and the system does not assign
+                 ;; monotonically increasing touch point identifiers,
+                 ;; then the ancillary tool will be set to a tool
+                 ;; bearing the same number as the current tool, and
+                 ;; consequently the mechanism for detecting
+                 ;; erroneously retained touch points upon the
+                 ;; registration of `touchscreen-update' events will
+                 ;; not be activated.
+                 (not (eq touchpoint (car touch-screen-current-tool))))
             ;; Then record this tool as the ``auxiliary tool''.
             ;; Updates to the auxiliary tool are considered in unison
             ;; with those to the current tool; the distance between

@@ -3332,22 +3332,30 @@ only unbound fallback disabled is downcasing of the last event."
       (message nil)
       (use-global-map old-global-map))))
 
+(defvar touch-screen-events-received nil
+  "Whether a touch screen event has ever been translated.
+The value of this variable governs whether
+`read--potential-mouse-event' calls read-key or read-event.")
+
 ;; FIXME: Once there's a safe way to transition away from read-event,
 ;; callers to this function should be updated to that way and this
 ;; function should be deleted.
 (defun read--potential-mouse-event ()
-    "Read an event that might be a mouse event.
+  "Read an event that might be a mouse event.
 
 This function exists for backward compatibility in code packaged
 with Emacs.  Do not call it directly in your own packages."
-    ;; `xterm-mouse-mode' events must go through `read-key' as they
-    ;; are decoded via `input-decode-map'.
-    (if xterm-mouse-mode
-        (read-key nil
-                  ;; Normally `read-key' discards all mouse button
-                  ;; down events.  However, we want them here.
-                  t)
-      (read-event)))
+  ;; `xterm-mouse-mode' events must go through `read-key' as they
+  ;; are decoded via `input-decode-map'.
+  (if (or xterm-mouse-mode
+          ;; If a touch screen is being employed, then mouse events
+          ;; are subject to translation as well.
+          touch-screen-events-received)
+      (read-key nil
+                ;; Normally `read-key' discards all mouse button
+                ;; down events.  However, we want them here.
+                t)
+    (read-event)))
 
 (defvar read-passwd-map
   ;; BEWARE: `defconst' would purecopy it, breaking the sharing with
