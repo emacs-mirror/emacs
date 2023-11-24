@@ -9440,37 +9440,47 @@ multi-line strings (but not C++, for example)."
 		 (or c-promote-possible-types (eq res t)))
 	(c-record-type-id (cons (match-beginning 1) (match-end 1))))
 
-      (if (and c-opt-type-component-key
+      (cond
+       ((and c-opt-type-component-key
 	       (save-match-data
 		 (looking-at c-opt-type-component-key)))
 	  ;; There might be more keywords for the type.
-	  (let (safe-pos)
-	    (c-forward-keyword-clause 1 t)
-	    (while (progn
-		     (setq safe-pos (point))
-		     (c-forward-syntactic-ws)
-		     (looking-at c-opt-type-component-key))
-	      (when (and c-record-type-identifiers
-			 (looking-at c-primitive-type-key))
-		(c-record-type-id (cons (match-beginning 1)
-					(match-end 1))))
-	      (c-forward-keyword-clause 1 t))
-	    (if (looking-at c-primitive-type-key)
-		(progn
-		  (when c-record-type-identifiers
-		    (c-record-type-id (cons (match-beginning 1)
-					    (match-end 1))))
-		  (c-forward-keyword-clause 1 t)
-		  (setq res t))
-	      (goto-char safe-pos)
-	      (setq res 'prefix))
-	    (setq pos (point)))
-	(if (save-match-data (c-forward-keyword-clause 1 t))
-	    (setq pos (point))
-	  (if pos
-	      (goto-char pos)
-	    (goto-char (match-end 1))
-	    (setq pos (point)))))
+	(let (safe-pos)
+	  (c-forward-keyword-clause 1 t)
+	  (while (progn
+		   (setq safe-pos (point))
+		   (c-forward-syntactic-ws)
+		   (looking-at c-opt-type-component-key))
+	    (when (and c-record-type-identifiers
+		       (looking-at c-primitive-type-key))
+	      (c-record-type-id (cons (match-beginning 1)
+				      (match-end 1))))
+	    (c-forward-keyword-clause 1 t))
+	  (if (looking-at c-primitive-type-key)
+	      (progn
+		(when c-record-type-identifiers
+		  (c-record-type-id (cons (match-beginning 1)
+					  (match-end 1))))
+		(c-forward-keyword-clause 1 t)
+		(setq res t)
+		(while (progn
+			 (setq safe-pos (point))
+			 (c-forward-syntactic-ws)
+			 (looking-at c-opt-type-component-key))
+		  (c-forward-keyword-clause 1 t)))
+	    (goto-char safe-pos)
+	    (setq res 'prefix))
+	  (setq pos (point))))
+	((save-match-data (c-forward-keyword-clause 1 t))
+	 (while (progn
+		  (setq pos (point))
+		  (c-forward-syntactic-ws)
+		  (and c-opt-type-component-key
+		       (looking-at c-opt-type-component-key)))
+	   (c-forward-keyword-clause 1 t)))
+	(pos (goto-char pos))
+	(t (goto-char (match-end 1))
+	   (setq pos (point))))
       (c-forward-syntactic-ws))
 
      ((and (eq name-res t)
