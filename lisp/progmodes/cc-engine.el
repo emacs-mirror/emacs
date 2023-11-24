@@ -12618,7 +12618,7 @@ comment at the start of cc-engine.el for more info."
     (c-syntactic-skip-backward c-block-prefix-charset limit t)
 
     (while
-	(or 
+	(or
 	 ;; Could be after a template arglist....
 	 (and c-recognize-<>-arglists
 	      (eq (char-before) ?>)
@@ -14174,7 +14174,8 @@ comment at the start of cc-engine.el for more info."
 (defun c-add-class-syntax (symbol
 			   containing-decl-open
 			   containing-decl-start
-			   containing-decl-kwd)
+			   containing-decl-kwd
+			   &rest args)
   ;; The inclass and class-close syntactic symbols are added in
   ;; several places and some work is needed to fix everything.
   ;; Therefore it's collected here.
@@ -14189,7 +14190,7 @@ comment at the start of cc-engine.el for more info."
     ;; Ought to use `c-add-stmt-syntax' instead of backing up to boi
     ;; here, but we have to do like this for compatibility.
     (back-to-indentation)
-    (c-add-syntax symbol (point))
+    (apply #'c-add-syntax symbol (point) args)
     (if (and (c-keyword-member containing-decl-kwd
 			       'c-inexpr-class-kwds)
 	     (/= containing-decl-start (c-point 'boi containing-decl-start)))
@@ -14223,9 +14224,10 @@ comment at the start of cc-engine.el for more info."
        ;; CASE B.1: class-open
        ((save-excursion
 	  (and (eq (char-after) ?{)
-	       (c-looking-at-decl-block t)
+	       (setq placeholder (c-looking-at-decl-block t))
 	       (setq beg-of-same-or-containing-stmt (point))))
-	(c-add-syntax 'class-open beg-of-same-or-containing-stmt))
+	(c-add-syntax 'class-open beg-of-same-or-containing-stmt
+		      (c-point 'boi placeholder)))
 
        ;; CASE B.2: brace-list-open
        ((or (consp special-brace-list)
@@ -14720,7 +14722,10 @@ comment at the start of cc-engine.el for more info."
 			    'lambda-intro-cont)))
 	(goto-char (cdr placeholder))
 	(back-to-indentation)
-	(c-add-stmt-syntax tmpsymbol nil t
+	(c-add-stmt-syntax tmpsymbol
+			   (and (eq tmpsymbol 'class-open)
+				(list (point)))
+			   t
 			   (c-most-enclosing-brace state-cache (point))
 			   paren-state)
 	(unless (eq (point) (cdr placeholder))
@@ -14763,9 +14768,10 @@ comment at the start of cc-engine.el for more info."
 	      (goto-char indent-point)
 	      (skip-chars-forward " \t")
 	      (and (eq (char-after) ?{)
-		   (c-looking-at-decl-block t)
+		   (setq tmp-pos (c-looking-at-decl-block t))
 		   (setq placeholder (point))))
-	    (c-add-syntax 'class-open placeholder))
+	    (c-add-syntax 'class-open placeholder
+			  (c-point 'boi tmp-pos)))
 
 	   ;; CASE 5A.3: brace list open
 	   ((save-excursion
@@ -15163,10 +15169,14 @@ comment at the start of cc-engine.el for more info."
 	 ((and containing-sexp
 	       (eq char-after-ip ?})
 	       (eq containing-decl-open containing-sexp))
+	  (save-excursion
+	    (goto-char containing-decl-open)
+	    (setq tmp-pos (c-looking-at-decl-block t)))
 	  (c-add-class-syntax 'class-close
 			      containing-decl-open
 			      containing-decl-start
-			      containing-decl-kwd))
+			      containing-decl-kwd
+			      (c-point 'boi tmp-pos)))
 
 	 ;; CASE 5H: we could be looking at subsequent knr-argdecls
 	 ((and c-recognize-knr-p
