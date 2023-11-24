@@ -188,7 +188,7 @@ chosen (interactively or automatically)."
                                 (vimrc-mode . ("vim-language-server" "--stdio"))
                                 ((python-mode python-ts-mode)
                                  . ,(eglot-alternatives
-                                     '("pylsp" "pyls" ("pyright-langserver" "--stdio") "jedi-language-server")))
+                                     '("pylsp" "pyls" ("pyright-langserver" "--stdio") "jedi-language-server" "ruff-lsp")))
                                 ((js-json-mode json-mode json-ts-mode)
                                  . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
                                                           ("vscode-json-languageserver" "--stdio")
