@@ -682,7 +682,9 @@ operation.  One of the following keywords is returned:
 `:non-existent': Service name does not exist on this bus.
 
 `:not-owner': We are neither the primary owner nor waiting in the
-queue of this service."
+queue of this service.
+
+When SERVICE is not a known name but a unique name, the function returns nil."
 
   (maphash
    (lambda (key value)
@@ -694,14 +696,17 @@ queue of this service."
 		 (puthash key (delete elt value) dbus-registered-objects-table)
 	       (remhash key dbus-registered-objects-table)))))))
    dbus-registered-objects-table)
-  (let ((reply (dbus-call-method
-		bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
-		"ReleaseName" service)))
-    (pcase reply
-      (1 :released)
-      (2 :non-existent)
-      (3 :not-owner)
-      (_ (signal 'dbus-error (list "Could not unregister service" service))))))
+
+  (unless (string-prefix-p ":" service)
+    (let ((reply (dbus-call-method
+		  bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+		  "ReleaseName" service)))
+      (pcase reply
+        (1 :released)
+        (2 :non-existent)
+        (3 :not-owner)
+        (_ (signal
+            'dbus-error (list "Could not unregister service" service)))))))
 
 (defun dbus-register-signal
   (bus service path interface signal handler &rest args)
