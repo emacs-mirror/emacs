@@ -23,6 +23,10 @@
 
 ;;; Code:
 
+(declare-function sqlite-transaction "sqlite.c")
+(declare-function sqlite-commit "sqlite.c")
+(declare-function sqlite-rollback "sqlite.c")
+
 (defmacro with-sqlite-transaction (db &rest body)
   "Execute BODY while holding a transaction for DB.
 If BODY completes normally, commit the changes and return
