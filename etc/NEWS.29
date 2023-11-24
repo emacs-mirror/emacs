@@ -62,6 +62,11 @@ of showing the shortcuts.
 
 * Incompatible Lisp Changes in Emacs 29.2
 
++++
+** 'with-sqlite-transaction' rolls back changes if its BODY fails.
+If the BODY of the macro signals an error, or committing the results
+of the transaction fails, the changes will now be rolled back.
+
 
 * Lisp Changes in Emacs 29.2
 

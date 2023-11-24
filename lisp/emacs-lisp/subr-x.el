@@ -341,10 +341,9 @@ This construct can only be used with lexical binding."
     ;; Keeping a work buffer around is more efficient than creating a
     ;; new temporary buffer.
     (with-current-buffer (get-buffer-create " *string-pixel-width*")
-      ;; If `display-line-numbers-mode' is enabled in internal
-      ;; buffers, it breaks width calculation, so disable it (bug#59311)
-      (when (bound-and-true-p display-line-numbers-mode)
-        (display-line-numbers-mode -1))
+      ;; If `display-line-numbers' is enabled in internal buffers
+      ;; (e.g. globally), it breaks width calculation (bug#59311)
+      (setq-local display-line-numbers nil)
       (delete-region (point-min) (point-max))
       ;; Disable line-prefix and wrap-prefix, for the same reason.
       (setq line-prefix nil
