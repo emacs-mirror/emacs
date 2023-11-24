@@ -1640,10 +1640,11 @@ Use \\[xref-go-back] to return back to where you invoked this command."
   (xref--find-definitions identifier 'frame))
 
 ;;;###autoload
-(defun xref-find-definitions-by-kind (identifier &optional kind)
+(defun xref-find-all-definitions (identifier &optional kind)
   "Find definitions of specific KIND for IDENTIFIER.
 Interactively with prefix argument, or when there's no identifier
-at point, prompt for the identifier.  Interactively, always
+at point, prompt for the identifier.  Interactively, show matches
+for all supported kinds.  When invoked with prefix argument,
 prompt for KIND.
 
 If only one location is found, display it in the selected window.
@@ -1656,18 +1657,35 @@ Use \\[xref-go-back] to return back to where you invoked this command."
           ;; XXX: Choose the definition kind first? That would fail
           ;; to take advantage of the symbol-at-point, though.
           (kinds (xref-backend-definition-kinds (xref-find-backend) id))
+          (_ (unless kinds (user-error "No supported kinds")))
           ;; FIXME: We should probably skip asking when there's just
           ;; one available kind, but let's keep completing-read while
           ;; collecting the initial feedback about the interface.
-          (kind ;; (if (cdr kinds)
-           (completing-read "Definition kind: " kinds nil t nil nil (car kinds))
-           ;; (car kinds)
-           ;; )
-           ))
-     (unless kind (user-error "No supported kinds"))
+          (kind
+           (if current-prefix-arg
+               ;; (if (cdr kinds)
+               (completing-read "Definition kind: " kinds nil t nil nil (car kinds))
+             ;; (car kinds)
+             'all)))
      (list id kind)))
   (xref--show-defs
-   (xref--create-fetcher identifier 'definitions-by-kind identifier kind)
+   (if (eq kind 'all)
+       (let ((fetchers
+              (mapcar (lambda (kind)
+                        (xref--create-fetcher identifier 'definitions-by-kind
+                                              identifier kind))
+                      (xref-backend-definition-kinds (xref-find-backend) identifier))))
+         (lambda ()
+           (or
+            (delete-dups
+             (apply #'nconc (mapcar
+                             (lambda (fetcher)
+                               (condition-case nil
+                                   (funcall fetcher)
+                                 (user-error nil)))
+                             fetchers)))
+            (user-error "Nothing found"))))
+     (xref--create-fetcher identifier 'definitions-by-kind identifier kind))
    nil))
 
 ;;;###autoload
@@ -1770,7 +1788,7 @@ output of this command when the backend is etags."
 ;;;###autoload (define-key esc-map [?\C-,] #'xref-go-forward)
 ;;;###autoload (define-key esc-map "?" #'xref-find-references)
 ;;;###autoload (define-key esc-map [?\C-.] #'xref-find-apropos)
-;;;###autoload (define-key esc-map "'" #'xref-find-definitions-by-kind)
+;;;###autoload (define-key esc-map "'" #'xref-find-all-definitions)
 ;;;###autoload (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
 ;;;###autoload (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 
