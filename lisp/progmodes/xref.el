@@ -1780,6 +1780,18 @@ output of this command when the backend is etags."
            (user-error "No word list given"))
      pattern)))
 
+(defun xref-find-declarations (identifier)
+  (interactive (list (xref--read-identifier "Find declarations of: ")))
+  (xref-find-all-definitions identifier "declaration"))
+
+(defun xref-find-implementations (identifier)
+  (interactive (list (xref--read-identifier "Find implementations of: ")))
+  (xref-find-all-definitions identifier "implementation"))
+
+(defun xref-find-type-definitions (identifier)
+  (interactive (list (xref--read-identifier "Find type definitions of: ")))
+  (xref-find-all-definitions identifier "type-definition"))
+
 
 ;;; Key bindings
 
@@ -1788,7 +1800,10 @@ output of this command when the backend is etags."
 ;;;###autoload (define-key esc-map [?\C-,] #'xref-go-forward)
 ;;;###autoload (define-key esc-map "?" #'xref-find-references)
 ;;;###autoload (define-key esc-map [?\C-.] #'xref-find-apropos)
-;;;###autoload (define-key esc-map "'" #'xref-find-all-definitions)
+;;;###autoload (define-key esc-map (kbd "' M-'") #'xref-find-all-definitions)
+;;;###autoload (define-key esc-map (kbd "' e") #'xref-find-declarations)
+;;;###autoload (define-key esc-map (kbd "' i") #'xref-find-implementations)
+;;;###autoload (define-key esc-map (kbd "' t") #'xref-find-type-definitions)
 ;;;###autoload (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
 ;;;###autoload (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 

@@ -1610,7 +1610,6 @@ if `inhibit-field-text-motion' is non-nil."
   "'"   #'expand-abbrev)
 (define-key ctl-x-map "a" abbrev-map)
 
-(define-key esc-map "'" 'abbrev-prefix-mark)
 (define-key ctl-x-map "'" 'expand-abbrev)
 (define-key ctl-x-map "\C-b" 'list-buffers)
 
