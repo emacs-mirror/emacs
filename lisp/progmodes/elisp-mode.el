@@ -1212,7 +1212,7 @@ namespace but with lower confidence."
 
     xrefs))
 
-(cl-defmethod xref-backend-extra-kinds ((_backend (eql 'elisp)) identifier)
+(cl-defmethod xref-backend-definition-kinds ((_backend (eql 'elisp)) identifier)
   ;; The file name is not known when `symbol' is defined via interactive eval.
   (let ((symbol (intern-soft identifier))
         kinds)
@@ -1252,7 +1252,7 @@ namespace but with lower confidence."
       (push "feature" kinds))
     (nreverse kinds)))
 
-(cl-defmethod xref-backend-extra-defs ((_backend (eql 'elisp)) identifier kind)
+(cl-defmethod xref-backend-definitions-by-kind ((_backend (eql 'elisp)) identifier kind)
   (require 'find-func)
   (let ((sym (intern-soft identifier)))
     (when sym

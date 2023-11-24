@@ -2948,12 +2948,10 @@ If BUFFER, switch to it before."
        (if (vectorp response) response (and response (list response)))))))
 
 (defvar eglot--xref-kinds-alist
-  '((eglot--xref-declaration :declarationProvider :textDocument/declaration)
-    (eglot--xref-definition :definitionProvider :textDocument/definition)
-    (eglot--xref-implementation :implementationProvider :textDocument/implementation)
-    (eglot--xref-type-definition :typeDefinitionProvider :textDocument/typeDefinition)
-    (eglot--xref-references :referencesProvider :textDocument/references
-                            `(:context (:includeDeclaration t))))
+  '(("declaration" :declarationProvider :textDocument/declaration)
+    ("definition" :definitionProvider :textDocument/definition)
+    ("implementation" :implementationProvider :textDocument/implementation)
+    ("type-definition" :typeDefinitionProvider :textDocument/typeDefinition))
   "Alist of (KIND CAPABILITY METHOD EXTRA-PARAMS)")
 
 (defun eglot-find-declaration ()
@@ -2997,16 +2995,16 @@ If BUFFER, switch to it before."
                        :workspace/symbol
                        `(:query ,pattern))))))
 
-(cl-defmethod xref-backend-extra-kinds ((_backend (eql eglot)) _identifier)
+(cl-defmethod xref-backend-definition-kinds ((_backend (eql eglot)) _identifier)
   (cl-loop for (kind capability _method _extra) in eglot--xref-kinds-alist
            when (eglot-server-capable capability) collect kind))
 
-(cl-defmethod xref-backend-extra-defs ((_backend (eql eglot)) identifier kind)
+(cl-defmethod xref-backend-definitions-by-kind ((_backend (eql eglot)) identifier kind)
   (cond ((eq kind 'eglot--xref-definition)
          (xref-backend-definitions 'eglot identifier))
         (t
          (pcase-let ((`(,_ ,capability ,method ,extra-params)
-                      (assoc (intern kind) eglot--xref-kinds-alist)))
+                      (assoc kind eglot--xref-kinds-alist)))
            (eglot--lsp-xrefs-for-method method :capability capability
                                         :extra-params extra-params)))))
 

@@ -314,12 +314,15 @@ recognize and then delegate the work to an external process."
   "Return t if case is not significant in identifier completion."
   completion-ignore-case)
 
-(cl-defgeneric xref-backend-extra-kinds (_backend _identifier)
-  "Return the other definition types BACKEND could show for IDENTIFIER."
-  (user-error "Extra definitions not supported by the backend"))
+(cl-defgeneric xref-backend-definition-kinds (_backend _identifier)
+  "Return all definition kinds BACKEND could show for IDENTIFIER.
 
-(cl-defgeneric xref-backend-extra-defs (_backend _identifier _kind)
-  "Find definitions of extra KIND for IDENTIFIER.
+These can include both kinds returned by `xref-backend-definitions'
+(possibly split into categories) and some additional ones."
+  (user-error "Definitions kinds not supported by the backend"))
+
+(cl-defgeneric xref-backend-definitions-by-kind (_backend _identifier _kind)
+  "Find definitions of specific KIND for IDENTIFIER.
 
 The result must be a list of xref objects.  Refer to
 `xref-backend-definitions' for other details."
@@ -1637,7 +1640,7 @@ Use \\[xref-go-back] to return back to where you invoked this command."
   (xref--find-definitions identifier 'frame))
 
 ;;;###autoload
-(defun xref-find-extra (identifier &optional kind)
+(defun xref-find-definitions-by-kind (identifier &optional kind)
   "Find definitions of specific KIND for IDENTIFIER.
 Interactively with prefix argument, or when there's no identifier
 at point, prompt for the identifier.  Interactively, always
@@ -1650,9 +1653,9 @@ buffer where the user can select from the list.
 Use \\[xref-go-back] to return back to where you invoked this command."
   (interactive
    (let* ((id (xref--read-identifier "Find definitions of: "))
-          ;; XXX: Choose kind of "extra" first? That would fail
+          ;; XXX: Choose the definition kind first? That would fail
           ;; to take advantage of the symbol-at-point, though.
-          (kinds (xref-backend-extra-kinds (xref-find-backend) id))
+          (kinds (xref-backend-definition-kinds (xref-find-backend) id))
           ;; FIXME: We should probably skip asking when there's just
           ;; one available kind, but let's keep completing-read while
           ;; collecting the initial feedback about the interface.
@@ -1664,7 +1667,7 @@ Use \\[xref-go-back] to return back to where you invoked this command."
      (unless kind (user-error "No supported kinds"))
      (list id kind)))
   (xref--show-defs
-   (xref--create-fetcher identifier 'extra-defs identifier kind)
+   (xref--create-fetcher identifier 'definitions-by-kind identifier kind)
    nil))
 
 ;;;###autoload
@@ -1767,7 +1770,7 @@ output of this command when the backend is etags."
 ;;;###autoload (define-key esc-map [?\C-,] #'xref-go-forward)
 ;;;###autoload (define-key esc-map "?" #'xref-find-references)
 ;;;###autoload (define-key esc-map [?\C-.] #'xref-find-apropos)
-;;;###autoload (define-key esc-map "'" #'xref-find-extra)
+;;;###autoload (define-key esc-map "'" #'xref-find-definitions-by-kind)
 ;;;###autoload (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
 ;;;###autoload (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 
