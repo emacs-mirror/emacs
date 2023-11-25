@@ -2957,17 +2957,17 @@ If BUFFER, switch to it before."
 (defun eglot-find-declaration ()
   "Find declaration for SYM, the identifier at point."
   (interactive)
-  (xref-find-extra "LSP identifier at point" 'eglot--xref-declaration))
+  (xref-find-all-definitions "LSP identifier at point" 'eglot--xref-declaration))
 
 (defun eglot-find-implementation ()
   "Find implementation for SYM, the identifier at point."
   (interactive)
-  (xref-find-extra "LSP identifier at point" 'eglot--xref-implementation))
+  (xref-find-all-definitions "LSP identifier at point" 'eglot--xref-implementation))
 
 (defun eglot-find-typeDefinition ()
   "Find type definition for SYM, the identifier at point."
   (interactive)
-  (xref-find-extra "LSP identifier at point" 'eglot--xref-type-definition))
+  (xref-find-all-definitions "LSP identifier at point" 'eglot--xref-type-definition))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql eglot)) identifier)
   (let ((probe (eglot--recover-workspace-symbol-meta identifier)))
