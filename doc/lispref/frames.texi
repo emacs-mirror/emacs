@@ -4014,7 +4014,7 @@ storing their own data; however, only three are commonly used: the
 selection}.  @xref{Cut and Paste,, Cut and Paste, emacs, The GNU Emacs
 Manual}, for Emacs commands that make use of these selections.  This
 section documents the low-level functions for reading and setting
-window-system selections; @xref{Accessing Selections} for
+window-system selections; @xref{Accessing Selections}, for
 documentation concerning selection types and data formats under
 particular window systems.
 
@@ -4052,7 +4052,7 @@ programs.  It takes two optional arguments, @var{type} and
 
 The @var{data-type} argument specifies the form of data conversion to
 use, to convert the raw data obtained from another program into Lisp
-data.  @xref{X Selections} for an enumeration of data types valid
+data.  @xref{X Selections}, for an enumeration of data types valid
 under X, and @xref{Other Selections} for those elsewhere.
 @end defun
 
