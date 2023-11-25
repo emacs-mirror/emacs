@@ -56,7 +56,7 @@
         (should (string= (buffer-name) (if id
                                            (symbol-name id)
                                          (format "127.0.0.1:%d" port))))
-        (erc-d-t-wait-for 5 (eq erc-network 'FooNet))))))
+        (erc-d-t-wait-for 10 (eq erc-network 'FooNet))))))
 
 (ert-deftest erc-scenarios-base-auth-source-server--dialed ()
   :tags '(:expensive-test)

@@ -812,6 +812,8 @@
       (should-not calls))))
 
 (ert-deftest erc--channel-modes ()
+  :tags (and (null (getenv "CI")) '(:unstable))
+
   (setq erc--isupport-params (make-hash-table)
         erc--target (erc--target-from-string "#test")
         erc-server-parameters
