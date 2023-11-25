@@ -1800,7 +1800,7 @@ It's also possible to enter an arbitrary directory not in the list."
          (choices
           (let (ret)
             ;; Iterate in reverse order so project--name-history is in
-            ;; the correct order.
+            ;; the same order as project--list.
             (dolist (dir (reverse (project-known-project-roots)))
               ;; we filter out directories that no longer map to a project,
               ;; since they don't have a clean project-name.
