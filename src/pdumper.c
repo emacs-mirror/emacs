@@ -3004,7 +3004,8 @@ dump_vectorlike (struct dump_context *ctx,
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
-  switch (PSEUDOVECTOR_TYPE (v))
+  enum pvec_type ptype = PSEUDOVECTOR_TYPE (v);
+  switch (ptype)
     {
     case PVEC_FONT:
       /* There are three kinds of font objects that all use PVEC_FONT,
@@ -3021,76 +3022,60 @@ dump_vectorlike (struct dump_context *ctx,
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
-      offset = dump_vectorlike_generic (ctx, &v->header);
-      break;
+      return dump_vectorlike_generic (ctx, &v->header);
     case PVEC_BOOL_VECTOR:
-      offset = dump_bool_vector(ctx, v);
-      break;
+      return dump_bool_vector(ctx, v);
     case PVEC_HASH_TABLE:
-      offset = dump_hash_table (ctx, lv, offset);
-      break;
+      return dump_hash_table (ctx, lv, offset);
     case PVEC_BUFFER:
-      offset = dump_buffer (ctx, XBUFFER (lv));
-      break;
+      return dump_buffer (ctx, XBUFFER (lv));
     case PVEC_SUBR:
-      offset = dump_subr (ctx, XSUBR (lv));
-      break;
+      return dump_subr (ctx, XSUBR (lv));
     case PVEC_FRAME:
     case PVEC_WINDOW:
     case PVEC_PROCESS:
     case PVEC_TERMINAL:
-      offset = dump_nilled_pseudovec (ctx, &v->header);
-      break;
+      return dump_nilled_pseudovec (ctx, &v->header);
     case PVEC_MARKER:
-      offset = dump_marker (ctx, XMARKER (lv));
-      break;
+      return dump_marker (ctx, XMARKER (lv));
     case PVEC_OVERLAY:
-      offset = dump_overlay (ctx, XOVERLAY (lv));
-      break;
+      return dump_overlay (ctx, XOVERLAY (lv));
     case PVEC_FINALIZER:
-      offset = dump_finalizer (ctx, XFINALIZER (lv));
-      break;
+      return dump_finalizer (ctx, XFINALIZER (lv));
     case PVEC_BIGNUM:
-      offset = dump_bignum (ctx, lv);
-      break;
-#ifdef HAVE_NATIVE_COMP
+      return dump_bignum (ctx, lv);
     case PVEC_NATIVE_COMP_UNIT:
-      offset = dump_native_comp_unit (ctx, XNATIVE_COMP_UNIT (lv));
-      break;
+#ifdef HAVE_NATIVE_COMP
+      return dump_native_comp_unit (ctx, XNATIVE_COMP_UNIT (lv));
 #endif
-    case PVEC_WINDOW_CONFIGURATION:
-      error_unsupported_dump_object (ctx, lv, "window configuration");
-    case PVEC_OTHER:
-      error_unsupported_dump_object (ctx, lv, "other?!");
-    case PVEC_XWIDGET:
-      error_unsupported_dump_object (ctx, lv, "xwidget");
-    case PVEC_XWIDGET_VIEW:
-      error_unsupported_dump_object (ctx, lv, "xwidget view");
-    case PVEC_MISC_PTR:
-    case PVEC_USER_PTR:
-      error_unsupported_dump_object (ctx, lv, "smuggled pointers");
+      break;
     case PVEC_THREAD:
       if (main_thread_p (v))
         {
           eassert (dump_object_emacs_ptr (lv));
           return DUMP_OBJECT_IS_RUNTIME_MAGIC;
         }
-      error_unsupported_dump_object (ctx, lv, "thread");
+      break;
+    case PVEC_WINDOW_CONFIGURATION:
+    case PVEC_OTHER:
+    case PVEC_XWIDGET:
+    case PVEC_XWIDGET_VIEW:
+    case PVEC_MISC_PTR:
+    case PVEC_USER_PTR:
     case PVEC_MUTEX:
-      error_unsupported_dump_object (ctx, lv, "mutex");
     case PVEC_CONDVAR:
-      error_unsupported_dump_object (ctx, lv, "condvar");
     case PVEC_SQLITE:
-      error_unsupported_dump_object (ctx, lv, "sqlite");
     case PVEC_MODULE_FUNCTION:
-      error_unsupported_dump_object (ctx, lv, "module function");
     case PVEC_SYMBOL_WITH_POS:
-      error_unsupported_dump_object (ctx, lv, "symbol with pos");
-    default:
-      error_unsupported_dump_object(ctx, lv, "weird pseudovector");
+    case PVEC_FREE:
+    case PVEC_TS_PARSER:
+    case PVEC_TS_NODE:
+    case PVEC_TS_COMPILED_QUERY:
+      break;
     }
-
-  return offset;
+  char msg[60];
+  snprintf (msg, sizeof msg, "pseudovector type %d", ptype);
+  error_unsupported_dump_object (ctx, lv, msg);
 }
 
 /* Add an object to the dump.
