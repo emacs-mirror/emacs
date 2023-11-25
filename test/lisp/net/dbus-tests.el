@@ -465,6 +465,9 @@
   (should (eq (dbus-unregister-service bus dbus--test-service) :non-existent))
   (should-not (member dbus--test-service (dbus-list-known-names bus)))
 
+  ;; Unregistering a unique name returns nil.
+  (should-not (dbus-unregister-service bus ":1.1"))
+
   ;; A service name is a string, constructed of at least two words
   ;; separated by ".".
   (should

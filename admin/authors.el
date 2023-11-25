@@ -176,6 +176,7 @@ files.")
     ("Miha Rihtaršič" "Miha Rihtarsic")
     ("Mikio Nakajima" "Nakajima Mikio")
     ("Nelson Jose dos Santos Ferreira" "Nelson Ferreira")
+    ("Noah Peart" "noah\\.v\\.peart@gmail\\.com")
     ("Noorul Islam" "Noorul Islam K M")
 ;;;    ("Tetsurou Okazaki" "OKAZAKI Tetsurou") ; FIXME?
     ("Óscar Fuentes" "Oscar Fuentes")
