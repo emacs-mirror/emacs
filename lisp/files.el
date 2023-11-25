@@ -228,7 +228,7 @@ If non-nil, this directory is used instead of `temporary-file-directory'
 by programs that create small temporary files.  This is for systems that
 have fast storage with limited space, such as a RAM disk."
   :group 'files
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-delay
   :type '(choice (const nil) directory))
 
 ;; The system null device. (Should reference NULL_DEVICE from C.)
@@ -434,7 +434,7 @@ ignored."
                         ,@(mapcar (lambda (algo)
                                     (list 'const algo))
                                   (secure-hash-algorithms)))))
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-delay
   :version "21.1")
 
 (defvar auto-save--timer nil "Timer for `auto-save-visited-mode'.")
@@ -1296,7 +1296,7 @@ Tip: You can use this expansion of remote identifier components
 (defcustom remote-shell-program (or (executable-find "ssh") "ssh")
   "Program to use to execute commands on a remote host (i.e. ssh)."
   :version "29.1"
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-delay
   :group 'environment
   :type 'file)
 
@@ -3245,8 +3245,16 @@ and `inhibit-local-variables-suffixes'.  If
     temp))
 
 (defvar auto-mode-interpreter-regexp
-  (purecopy "#![ \t]?\\([^ \t\n]*\
-/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
+  (purecopy
+   (concat
+    "#![ \t]*"
+    ;; Optional group 1: env(1) invocation.
+    "\\("
+    "[^ \t\n]*/bin/env[ \t]*"
+    "\\(?:-S[ \t]*\\|--split-string\\(?:=\\|[ \t]*\\)\\)?"
+    "\\)?"
+    ;; Group 2: interpreter.
+    "\\([^ \t\n]+\\)"))
   "Regexp matching interpreters, for file mode determination.
 This regular expression is matched against the first line of a file
 to determine the file's mode in `set-auto-mode'.  If it matches, the file
@@ -4587,12 +4595,7 @@ applied in order then that means the more specific modes will
 variables will override modes."
   (let ((key (car node)))
     (cond ((null key) -1)
-          ((symbolp key)
-           (let ((mode key)
-                 (depth 0))
-             (while (setq mode (get mode 'derived-mode-parent))
-               (setq depth (1+ depth)))
-             depth))
+          ((symbolp key) (length (derived-mode-all-parents key)))
           ((stringp key)
            (+ 1000 (length key)))
           (t -2))))

@@ -979,7 +979,7 @@ It makes underscores and dots word constituent chars.")
     "raise" "return" "try" "while" "with" "yield"
     ;; These are technically operators, but we fontify them as
     ;; keywords.
-    "and" "in" "is" "not" "or"))
+    "and" "in" "is" "not" "or" "not in"))
 
 (defvar python--treesit-builtins
   '("abs" "all" "any" "ascii" "bin" "bool" "breakpoint" "bytearray"
@@ -1235,7 +1235,7 @@ For NODE, OVERRIDE, START, END, and ARGS, see
   (when (python--treesit-variable-p node)
     (treesit-fontify-with-override
      (treesit-node-start node) (treesit-node-end node)
-     'font-lock-variable-name-face override start end)))
+     'font-lock-variable-use-face override start end)))
 
 
 ;;; Indentation
@@ -6842,8 +6842,8 @@ implementations: `python-mode' and `python-ts-mode'."
                 '(( comment definition)
                   ( keyword string type)
                   ( assignment builtin constant decorator
-                    escape-sequence number property string-interpolation )
-                  ( bracket delimiter function operator variable)))
+                    escape-sequence number string-interpolation )
+                  ( bracket delimiter function operator variable property)))
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)

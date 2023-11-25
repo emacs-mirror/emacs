@@ -1,5 +1,5 @@
 ;; -*- mode: lisp-data; -*-
-((pass 1 "PASS :changeme"))
+((pass 10 "PASS :changeme"))
 ((nick 1 "NICK tester"))
 ((user 1 "USER user 0 * :tester")
  (0.0 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")

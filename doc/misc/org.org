@@ -20266,12 +20266,12 @@ packages are documented here.
   #+vindex: org-table-formula-constants
 
   Org can use names for constants in formulas in tables.  Org can also
-  use calculation suffixes for units, such as =M= for =Mega=.  For
-  a standard collection of such constants, install the =constants=
+  use calculation suffixes for units, such as =M= for =Mega=.  For a
+  standard collection of such constants, install the =constants=
   package.  Install version 2.0 of this package, available at
-  [[http://www.astro.uva.nl/~dominik/Tools]].  Org checks if the function
-  ~constants-get~ has been autoloaded.  Installation instructions are
-  in the file =constants.el=.
+  [[https://github.com/cdominik/constants-for-Emacs]].  Org checks if the
+  function ~constants-get~ has been autoloaded.  Installation
+  instructions are in the file =constants.el=.
 
 - =cdlatex.el= by Carsten Dominik ::
   #+cindex: @file{cdlatex.el}

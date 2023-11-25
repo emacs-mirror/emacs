@@ -2017,6 +2017,16 @@ modern X servers have so many other ways to send input to clients
 without signifying that the event is synthesized that it does not
 matter.
 
+*** Programs which use XSendEvent cannot send input events to Emacs.
+
+Emacs built to use the X Input Extension cannot receive core input
+events sent through the SendEvent server request, since these events
+intercepted by the X server when sent to input extension clients.
+
+For such programs to function again, Emacs must be run on an X server
+where the input extension is disabled, or alternatively be configured
+with the "--without-xinput2" option.
+
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.
@@ -3556,6 +3566,27 @@ Introducing support for the byzantine CFF font format into the Android
 port is a large undertaking that we are looking for volunteers to
 perform.  If you are interested in taking responsibility for this
 task, please contact <emacs-devel@gnu.org>.
+
+** Emacs can only execute spasmodically in the background.
+
+Recent Android releases impose "battery optimization" on programs for
+which it is not expressly disabled; such optimization inhibits the
+execution of background services outside brief windows of time
+distributed at intervals of several dozens of minutes.  Such programs
+as ERC which must send "keep-alive" packets at a rate beyond that at
+which these windows arrive consequently lose, yielding connection
+timeouts after Emacs has been in the background long enough that
+battery optimization enters into effect.
+
+This optimization can be disabled through the Settings app: navigate
+to "Apps & notifications", "Emacs", "Battery", "Battery Optimization",
+before clicking the drop-down menu labeled "Not Optimized", selecting
+the option "All Apps", scrolling to "Emacs", clicking on its entry and
+selecting "Don't Optimize" in the dialog box thus displayed.
+
+The organization of the Settings app might disagree with that
+illustrated above, which if true you should consult the documentation
+or any search mechanism for it.
 
 * Build-time problems
 

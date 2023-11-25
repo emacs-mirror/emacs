@@ -53,8 +53,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.UriPermission;
 
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager.ApplicationInfoFlags;
 import android.content.pm.PackageManager;
 
 import android.content.res.AssetManager;
@@ -65,6 +63,7 @@ import android.net.Uri;
 
 import android.os.BatteryManager;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Looper;
 import android.os.IBinder;
 import android.os.Handler;
@@ -75,6 +74,7 @@ import android.os.VibrationEffect;
 
 import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
+import android.provider.Settings;
 
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -193,36 +193,6 @@ public final class EmacsService extends Service
     return null;
   }
 
-  @SuppressWarnings ("deprecation")
-  private String
-  getApkFile ()
-  {
-    PackageManager manager;
-    ApplicationInfo info;
-
-    manager = getPackageManager ();
-
-    try
-      {
-	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
-	  info = manager.getApplicationInfo ("org.gnu.emacs", 0);
-	else
-	  info = manager.getApplicationInfo ("org.gnu.emacs",
-					     ApplicationInfoFlags.of (0));
-
-	/* Return an empty string upon failure.  */
-
-	if (info.sourceDir != null)
-	  return info.sourceDir;
-
-	return "";
-      }
-    catch (Exception e)
-      {
-	return "";
-      }
-  }
-
   /* Return the display density, adjusted in accord with the user's
      text scaling preferences.  */
 
@@ -288,7 +258,7 @@ public final class EmacsService extends Service
 	/* Now provide this application's apk file, so a recursive
 	   invocation of app_process (through android-emacs) can
 	   find EmacsNoninteractive.  */
-	classPath = getApkFile ();
+	classPath = EmacsApplication.apkFileName;
 
 	Log.d (TAG, "Initializing Emacs, where filesDir = " + filesDir
 	       + ", libDir = " + libDir + ", and classPath = " + classPath
@@ -1940,5 +1910,125 @@ public final class EmacsService extends Service
       }
 
     return false;
+  }
+
+
+
+  /* Functions for detecting and requesting storage permissions.  */
+
+  public boolean
+  externalStorageAvailable ()
+  {
+    final String readPermission;
+
+    readPermission = "android.permission.READ_EXTERNAL_STORAGE";
+
+    return (Build.VERSION.SDK_INT < Build.VERSION_CODES.R
+	    ? (checkSelfPermission (readPermission)
+	       == PackageManager.PERMISSION_GRANTED)
+	    : Environment.isExternalStorageManager ());
+  }
+
+  private void
+  requestStorageAccess23 ()
+  {
+    Runnable runnable;
+
+    runnable = new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  EmacsActivity activity;
+	  String permission, permission1;
+
+	  permission = "android.permission.READ_EXTERNAL_STORAGE";
+	  permission1 = "android.permission.WRITE_EXTERNAL_STORAGE";
+
+	  /* Find an activity that is entitled to display a permission
+	     request dialog.  */
+
+	  if (EmacsActivity.focusedActivities.isEmpty ())
+	    {
+	      /* If focusedActivities is empty then this dialog may
+		 have been displayed immediately after another popup
+		 dialog was dismissed.  Try the EmacsActivity to be
+		 focused.  */
+
+	      activity = EmacsActivity.lastFocusedActivity;
+
+	      if (activity == null)
+		{
+		  /* Still no luck.  Return failure.  */
+		  return;
+		}
+	    }
+	  else
+	    activity = EmacsActivity.focusedActivities.get (0);
+
+	  /* Now request these permissions.  */
+	  activity.requestPermissions (new String[] { permission,
+						      permission1, },
+	    0);
+	}
+      };
+
+    runOnUiThread (runnable);
+  }
+
+  private void
+  requestStorageAccess30 ()
+  {
+    Runnable runnable;
+    final Intent intent;
+
+    intent
+      = new Intent (Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+		    Uri.parse ("package:org.gnu.emacs"));
+
+    runnable = new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  EmacsActivity activity;
+
+	  /* Find an activity that is entitled to display a permission
+	     request dialog.  */
+
+	  if (EmacsActivity.focusedActivities.isEmpty ())
+	    {
+	      /* If focusedActivities is empty then this dialog may
+		 have been displayed immediately after another popup
+		 dialog was dismissed.  Try the EmacsActivity to be
+		 focused.  */
+
+	      activity = EmacsActivity.lastFocusedActivity;
+
+	      if (activity == null)
+		{
+		  /* Still no luck.  Return failure.  */
+		  return;
+		}
+	    }
+	  else
+	    activity = EmacsActivity.focusedActivities.get (0);
+
+	  /* Now request these permissions.  */
+
+	  activity.startActivity (intent);
+	}
+      };
+
+    runOnUiThread (runnable);
+  }
+
+  public void
+  requestStorageAccess ()
+  {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R)
+      requestStorageAccess23 ();
+    else
+      requestStorageAccess30 ();
   }
 };

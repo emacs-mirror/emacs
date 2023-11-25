@@ -1601,7 +1601,7 @@ command_loop_1 (void)
 	      if ((!NILP (Fwindow_system (Qnil))
 		   || ((symval =
 			find_symbol_value (Qtty_select_active_regions),
-			(!EQ (symval, Qunbound) && !NILP (symval)))
+			(!BASE_EQ (symval, Qunbound) && !NILP (symval)))
 		       && !NILP (Fterminal_parameter (Qnil,
 						      Qxterm__set_selection))))
 		  /* Even if mark_active is non-nil, the actual buffer

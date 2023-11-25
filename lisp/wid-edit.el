@@ -1127,7 +1127,7 @@ If nothing was called, return non-nil."
                       ;; This a touchscreen event and must be handled
                       ;; specially through `touch-screen-track-tap'.
                       (progn
-                        (unless (touch-screen-track-tap event)
+                        (unless (touch-screen-track-tap event nil nil t)
                           (throw 'button-press-cancelled t)))
                     (unless (widget-apply button :mouse-down-action event)
                       (let ((track-mouse t))

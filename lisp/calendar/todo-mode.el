@@ -139,8 +139,8 @@ automatically recalculated when the window width changes.  If the
 string consists of more (or less) than one character, it will be
 the value of `todo-done-separator'."
   :type 'string
-  :initialize 'custom-initialize-default
-  :set 'todo-reset-done-separator-string
+  :initialize #'custom-initialize-default
+  :set #'todo-reset-done-separator-string
   :group 'todo-display)
 
 (defun todo-done-separator ()
@@ -170,8 +170,8 @@ have its intended effect.  The second string is inserted after
 the diary date."
   :type '(list string string)
   :group 'todo-edit
-  :initialize 'custom-initialize-default
-  :set 'todo-reset-nondiary-marker)
+  :initialize #'custom-initialize-default
+  :set #'todo-reset-nondiary-marker)
 
 (defconst todo-nondiary-start (nth 0 todo-nondiary-marker)
   "String inserted before item date to block diary inclusion.")
@@ -189,20 +189,53 @@ The final element is \"*\", indicating an unspecified month.")
   "Array of abbreviated month names, in order.
 The final element is \"*\", indicating an unspecified month.")
 
+(defconst todo--date-pattern-groups
+  (pcase calendar-date-style
+          ('american '((monthname . "6") (month . "7") (day . "8") (year . "9")))
+          ('european '((day . "6") (monthname . "7") (month . "8") (year . "9")))
+          ('iso '((year . "6") (monthname . "7") (month . "8") (day . "9"))))
+  "Alist for grouping date components in `todo-date-pattern'.")
+
 (defconst todo-date-pattern
-  (let ((dayname (diary-name-pattern calendar-day-name-array nil t)))
-    (concat "\\(?4:\\(?5:" dayname "\\)\\|"
-	    (calendar-dlet
-                ((dayname)
-		 (monthname (format "\\(?6:%s\\)" (diary-name-pattern
-						   todo-month-name-array
-						   todo-month-abbrev-array)))
-		 (month "\\(?7:[0-9]+\\|\\*\\)")
-		 (day "\\(?8:[0-9]+\\|\\*\\)")
-		 (year "-?\\(?9:[0-9]+\\|\\*\\)"))
-	      (mapconcat #'eval calendar-date-display-form))
-	    "\\)"))
-  "Regular expression matching a todo item date header.")
+  (let* ((dayname (diary-name-pattern calendar-day-name-array nil t))
+         (d (concat "\\(?" (alist-get 'day todo--date-pattern-groups)
+                    ":[0-9]+\\|\\*\\)"))
+         (mn (format (concat "\\(?" (alist-get 'monthname
+                                               todo--date-pattern-groups)
+                             ":%s\\)")
+                     (diary-name-pattern todo-month-name-array
+                                         todo-month-abbrev-array)))
+         (m (concat "\\(?" (alist-get 'month todo--date-pattern-groups)
+                    ":[0-9]+\\|\\*\\)"))
+         (y (concat "\\(?" (alist-get 'year todo--date-pattern-groups)
+                    ":[0-9]+\\|\\*\\)"))
+         (dd "1111111")
+         (mm "2222222")
+         (yy "3333333")
+         (s (concat "\\(?4:\\(?5:" dayname "\\)\\|"
+	            (calendar-dlet
+                        ((dayname)
+		         (monthname mn)
+		         (year yy)
+		         (month mm)
+		         (day dd))
+                      (mapconcat #'eval calendar-date-display-form))
+	            "\\)")))
+    ;; The default value of calendar-iso-date-display-form calls
+    ;; `string-to-number' on the values of `month' and `day', so we
+    ;; gave them placeholder values above and now replace these with
+    ;; the necessary regexps with appropriately numbered groups, because
+    ;; `todo-edit-item--header' uses these groups.
+    (when (string-match dd s nil t)
+      (setq s (string-replace dd d s)))
+    (when (string-match mm s nil t)
+      (setq s (string-replace mm m s)))
+    (when (string-match yy s nil t)
+      (setq s (string-replace yy y s)))
+    s)
+  "Regular expression matching a todo item date header.
+The value of `calendar-date-display-form' determines the form of
+the date header.")
 
 ;; By itself this matches anything, because of the `?'; however, it's only
 ;; used in the context of `todo-date-pattern' (but Emacs Lisp lacks
@@ -215,8 +248,8 @@ The final element is \"*\", indicating an unspecified month.")
 (defcustom todo-done-string "DONE "
   "Identifying string appended to the front of done todo items."
   :type 'string
-  :initialize 'custom-initialize-default
-  :set 'todo-reset-done-string
+  :initialize #'custom-initialize-default
+  :set #'todo-reset-done-string
   :group 'todo-edit)
 
 (defconst todo-done-string-start
@@ -242,16 +275,16 @@ The final element is \"*\", indicating an unspecified month.")
 		      (format-message
 		       "Invalid value: must be distinct from `todo-item-mark'"))
 		     widget)))
-  :initialize 'custom-initialize-default
-  :set 'todo-reset-prefix
+  :initialize #'custom-initialize-default
+  :set #'todo-reset-prefix
   :group 'todo-display)
 
 (defcustom todo-number-prefix t
   "Non-nil to prefix items with consecutively increasing integers.
 These reflect the priorities of the items in each category."
   :type 'boolean
-  :initialize 'custom-initialize-default
-  :set 'todo-reset-prefix
+  :initialize #'custom-initialize-default
+  :set #'todo-reset-prefix
   :group 'todo-display)
 
 (defun todo-mode-line-control (cat)
@@ -273,8 +306,8 @@ todo category.  The resulting control becomes the local value of
 (defcustom todo-highlight-item nil
   "Non-nil means highlight items at point."
   :type 'boolean
-  :initialize 'custom-initialize-default
-  :set 'todo-reset-highlight-item
+  :initialize #'custom-initialize-default
+  :set #'todo-reset-highlight-item
   :group 'todo-display)
 
 (defcustom todo-wrap-lines t
@@ -572,8 +605,8 @@ This lacks the extension and directory components."
   "Non-nil to make `todo-show' visit the current todo file.
 Otherwise, `todo-show' always visits `todo-default-todo-file'."
   :type 'boolean
-  :initialize 'custom-initialize-default
-  :set 'todo-set-show-current-file
+  :initialize #'custom-initialize-default
+  :set #'todo-set-show-current-file
   :group 'todo)
 
 (defcustom todo-show-first 'first
@@ -1334,7 +1367,7 @@ category there as well."
 			      (list archive)))))
       (dolist (buf buffers)
 	(with-current-buffer (find-file-noselect buf)
-	  (let (buffer-read-only)
+	  (let ((inhibit-read-only t))
 	    (setq todo-categories (todo-set-categories))
 	    (save-excursion
 	      (save-restriction
@@ -1382,7 +1415,7 @@ todo or done items."
 				     "\"" (and arg " and all its entries")
 				     "? "))))
 	(widen)
-	(let ((buffer-read-only)
+	(let ((inhibit-read-only t)
 	      (beg (re-search-backward
 		    (concat "^" (regexp-quote (concat todo-category-beg cat))
 			    "\n")
@@ -1762,8 +1795,8 @@ only when no items are marked."
 (defcustom todo-comment-string "COMMENT"
   "String inserted before optional comment appended to done item."
   :type 'string
-  :initialize 'custom-initialize-default
-  :set 'todo-reset-comment-string
+  :initialize #'custom-initialize-default
+  :set #'todo-reset-comment-string
   :group 'todo-edit)
 
 (defcustom todo-undo-item-omit-comment 'ask
@@ -2044,7 +2077,7 @@ their associated keys and their effects."
 	(todo-date-from-calendar
 	 (let (calendar-view-diary-initially-flag)
 	   (calendar)) 			; *Calendar* is now current buffer.
-	 (define-key calendar-mode-map [remap newline] 'exit-recursive-edit)
+	 (define-key calendar-mode-map [remap newline] #'exit-recursive-edit)
 	 ;; If user exits Calendar before choosing a date, clean up properly.
 	 (define-key calendar-mode-map
 	   [remap calendar-exit] (lambda ()
@@ -2079,7 +2112,7 @@ prompt for a todo file and then for a category in it."
   (calendar-exit)
   (todo-insert-item--basic arg nil todo-date-from-calendar))
 
-(define-key calendar-mode-map "it" 'todo-insert-item-from-calendar)
+(define-key calendar-mode-map "it" #'todo-insert-item-from-calendar)
 
 (defun todo-delete-item ()
   "Delete at least one item in this category.
@@ -2100,7 +2133,7 @@ the item at point."
 				     (save-excursion (todo-item-end))))
 			   (overlay-put ov 'face 'todo-search)
 			   (todo-y-or-n-p "Permanently delete this item? "))))
-	       buffer-read-only)
+	       (inhibit-read-only t))
 	  (when answer
 	    (and marked (goto-char (point-min)))
 	    (catch 'done
@@ -2350,10 +2383,18 @@ made in the number or names of categories."
 			     (line-end-position) t)
 	  (let* ((otime (match-string-no-properties 2))
 		 (odayname (match-string-no-properties 5))
-		 (omonthname (match-string-no-properties 6))
-		 (omonth (match-string-no-properties 7))
-		 (oday (match-string-no-properties 8))
-		 (oyear (match-string-no-properties 9))
+                 (mngroup (string-to-number
+                           (alist-get 'monthname todo--date-pattern-groups)))
+		 (omonthname (match-string-no-properties mngroup))
+                 (mgroup (string-to-number
+                          (alist-get 'month todo--date-pattern-groups)))
+		 (omonth (match-string-no-properties mgroup))
+                 (dgroup (string-to-number
+                          (alist-get 'day todo--date-pattern-groups)))
+		 (oday (match-string-no-properties dgroup))
+                 (ygroup (string-to-number
+                          (alist-get 'year todo--date-pattern-groups)))
+		 (oyear (match-string-no-properties ygroup))
 		 (tmn-array todo-month-name-array)
 		 (mlist (append tmn-array nil))
 		 (tma-array todo-month-abbrev-array)
@@ -2399,11 +2440,23 @@ made in the number or names of categories."
 		 ((eq what 'month)
 		  (setf day oday
 			year oyear
-			(if (memq 'month calendar-date-display-form)
+                        ;; With default ISO style, 'month is in a
+                        ;; sublist of c-d-d-f, so we flatten it.
+			(if (memq 'month (flatten-tree
+                                          calendar-date-display-form))
 			    month
 			  monthname)
 			(cond ((not current-prefix-arg)
-			       (todo-read-date 'month))
+			       (let ((nmonth (todo-read-date 'month)))
+                                 ;; If old month is given as a number,
+                                 ;; have to convert new month name to
+                                 ;; the corresponding number.
+                                 (when omonth
+                                   (setq nmonth
+                                         (number-to-string
+                                          (1+ (seq-position tma-array
+                                                            nmonth)))))
+                                 nmonth))
 			      ((or (string= omonth "*") (= mm 13))
 			       (user-error "Cannot increment *"))
 			      (t
@@ -2513,7 +2566,7 @@ made in the number or names of categories."
 
 (defun todo-edit-item--diary-inclusion (&optional nonmarking)
   "Function providing diary marking facilities of `todo-edit-item'."
-  (let ((buffer-read-only)
+  (let ((inhibit-read-only t)
 	(marked (assoc (todo-current-category) todo-categories-with-marks)))
     (when marked (todo--user-error-if-marked-done-item))
     (catch 'stop
@@ -2563,7 +2616,7 @@ items."
     (goto-char (point-min))
     (let ((todo-count (todo-get-count 'todo))
 	  (diary-count (todo-get-count 'diary))
-	  (buffer-read-only))
+	  (inhibit-read-only t))
       (catch 'stop
 	(while (not (eobp))
 	  (if (todo-done-item-p)	; We've gone too far.
@@ -2599,7 +2652,7 @@ items in this category."
   (interactive "P")
   (save-excursion
     (goto-char (point-min))
-    (let (buffer-read-only)
+    (let ((inhibit-read-only t))
       (catch 'stop
 	(while (not (eobp))
 	  (if (todo-done-item-p)		; We've gone too far.
@@ -3269,13 +3322,14 @@ this category does not exist in the archive, it is created."
 	    (with-current-buffer archive
 	      (unless (derived-mode-p 'todo-archive-mode) (todo-archive-mode))
 	      (let ((headers-hidden todo--item-headers-hidden)
-                    buffer-read-only)
+                    (inhibit-read-only t))
                 (if headers-hidden (todo-toggle-item-header))
 		(widen)
 		(goto-char (point-min))
 		(if (and (re-search-forward
 			  (concat "^" (regexp-quote
-				       (concat todo-category-beg cat)) "$")
+				       (concat todo-category-beg cat))
+				  "$")
 			  nil t)
 			 (re-search-forward (regexp-quote todo-category-done)
 					    nil t))
@@ -3367,7 +3421,7 @@ the only category in the archive, the archive file is deleted."
 	   (item (concat (todo-item-string) "\n"))
 	   (marked-count 0)
 	   marked-items
-	   buffer-read-only)
+	   (inhibit-read-only t))
       (when marked
 	(save-excursion
 	  (goto-char (point-min))
@@ -3379,7 +3433,7 @@ the only category in the archive, the archive file is deleted."
       ;; Restore items to top of category's done section and update counts.
       (with-current-buffer tbuf
 	(let ((headers-hidden todo--item-headers-hidden)
-              buffer-read-only newcat)
+              (inhibit-read-only t) newcat)
           (if headers-hidden (todo-toggle-item-header))
 	  (widen)
 	  (goto-char (point-min))
@@ -3869,7 +3923,7 @@ which is the value of the user option
     (kill-all-local-variables)
     (todo-categories-mode)
     (let ((archive (member todo-current-todo-file todo-archives))
-	  buffer-read-only)
+	  (inhibit-read-only t))
       (erase-buffer)
       (insert (format (concat "Category counts for todo "
 			      (if archive "archive" "file")
@@ -3908,7 +3962,7 @@ which is the value of the user option
 		   (forward-line -2)
 		   (goto-char (next-single-char-property-change
 			       (point) 'face nil (line-end-position))))))
-	 (buffer-read-only))
+	 (inhibit-read-only t))
     (forward-line 2)
     (delete-region (point) (point-max))
     ;; Fill in the table with buttonized lines, each showing a category and
@@ -4480,7 +4534,7 @@ the values of FILTER and FILE-LIST."
 		  (widen)))
 		(setq bufstr (buffer-string))
 		(with-current-buffer buf
-		  (let (buffer-read-only)
+		  (let ((inhibit-read-only t))
 		    (insert bufstr)))))))
       (set-window-buffer (selected-window) (set-buffer buf))
       (todo-prefix-overlays)
@@ -5277,7 +5331,12 @@ changes you have made in the order of the categories.
            ;; Point is on done items separator.
            (save-excursion (beginning-of-line) (looking-at todo-category-done))
 	   ;; Buffer is widened.
-	   (looking-at (regexp-quote todo-category-beg)))
+	   (looking-at (regexp-quote todo-category-beg))
+           ;; Moving an item to a todo file (with `C-u m') that had
+           ;; not yet been read into a buffer puts point at the
+           ;; beginning of the file, from where it is impossible to
+           ;; reach todo-item-start by the loop below (bug#66994).
+	   (= (point) 1))
     (goto-char (line-beginning-position))
     (while (not (looking-at todo-item-start))
       (forward-line -1))
@@ -5842,7 +5901,7 @@ Also return t if answer is \"Y\", but unlike `y-or-n-p', allow
 SPC to affirm the question only if option `todo-y-with-space' is
 non-nil."
   (unless todo-y-with-space
-    (define-key query-replace-map " " 'ignore))
+    (define-key query-replace-map " " #'ignore))
   (prog1
    (y-or-n-p prompt)
    (define-key query-replace-map " " 'act)))
@@ -6275,7 +6334,7 @@ the empty string (i.e., no time string)."
       (dolist (f files)
 	(let ((buf (find-buffer-visiting f)))
 	  (with-current-buffer (find-file-noselect f)
-	    (let (buffer-read-only)
+	    (let ((inhibit-read-only t))
 	      (widen)
 	      (goto-char (point-min))
 	      (while (not (eobp))
@@ -6291,7 +6350,7 @@ the empty string (i.e., no time string)."
 		      (replace-match (nth 1 value) t t nil 2))
 		  (forward-line)))
 	      (if buf
-		  (when (derived-mode-p 'todo-mode 'todo-archive-mode)
+		  (when (derived-mode-p '(todo-mode todo-archive-mode))
 		    (todo-category-select))
 		(save-buffer)
 		(kill-buffer)))))))))
@@ -6305,7 +6364,7 @@ the empty string (i.e., no time string)."
     (when (not (equal value oldvalue))
       (dolist (f files)
 	(with-current-buffer (find-file-noselect f)
-	  (let (buffer-read-only)
+	  (let ((inhibit-read-only t))
 	    (setq todo-done-separator (todo-done-separator))
 	    (when (= 1 (length value))
 	      (todo-reset-done-separator sep)))
@@ -6324,7 +6383,7 @@ the empty string (i.e., no time string)."
       (dolist (f files)
 	(let ((buf (find-buffer-visiting f)))
 	  (with-current-buffer (find-file-noselect f)
-	    (let (buffer-read-only)
+	    (let ((inhibit-read-only t))
 	      (widen)
 	      (goto-char (point-min))
 	      (while (not (eobp))
@@ -6335,7 +6394,7 @@ the empty string (i.e., no time string)."
 		    (replace-match value t t nil 1)
 		  (forward-line)))
 	      (if buf
-		  (when (derived-mode-p 'todo-mode 'todo-archive-mode)
+		  (when (derived-mode-p '(todo-mode todo-archive-mode))
 		    (todo-category-select))
 		(save-buffer)
 		(kill-buffer)))))))))
@@ -6350,7 +6409,7 @@ the empty string (i.e., no time string)."
       (dolist (f files)
 	(let ((buf (find-buffer-visiting f)))
 	  (with-current-buffer (find-file-noselect f)
-	    (let (buffer-read-only)
+	    (let ((inhibit-read-only t))
 	      (widen)
 	      (goto-char (point-min))
 	      (while (not (eobp))
@@ -6361,7 +6420,7 @@ the empty string (i.e., no time string)."
 		    (replace-match value t t nil 1)
 		  (forward-line)))
 	      (if buf
-		  (when (derived-mode-p 'todo-mode 'todo-archive-mode)
+		  (when (derived-mode-p '(todo-mode todo-archive-mode))
 		    (todo-category-select))
 		(save-buffer)
 		(kill-buffer)))))))))
@@ -6585,32 +6644,32 @@ Filtered Items mode following todo (not done) items."
       (define-key map (nth 0 kb) (nth 1 kb)))
     (dolist (kb todo-key-bindings-t+a)
       (define-key map (nth 0 kb) (nth 1 kb)))
-    (define-key map "a" 'todo-jump-to-archive-category)
-    (define-key map "u" 'todo-unarchive-items)
+    (define-key map "a" #'todo-jump-to-archive-category)
+    (define-key map "u" #'todo-unarchive-items)
     map)
   "Todo Archive mode keymap.")
 
 (defvar todo-edit-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-q" 'todo-edit-quit)
+    (define-key map "\C-x\C-q" #'todo-edit-quit)
     map)
   "Todo Edit mode keymap.")
 
 (defvar todo-categories-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "c" 'todo-sort-categories-alphabetically-or-numerically)
-    (define-key map "t" 'todo-sort-categories-by-todo)
-    (define-key map "y" 'todo-sort-categories-by-diary)
-    (define-key map "d" 'todo-sort-categories-by-done)
-    (define-key map "a" 'todo-sort-categories-by-archived)
-    (define-key map "#" 'todo-set-category-number)
-    (define-key map "l" 'todo-lower-category)
-    (define-key map "r" 'todo-raise-category)
-    (define-key map "n" 'todo-next-button)
-    (define-key map "p" 'todo-previous-button)
-    (define-key map [tab] 'todo-next-button)
-    (define-key map [backtab] 'todo-previous-button)
-    (define-key map "q" 'todo-quit)
+    (define-key map "c" #'todo-sort-categories-alphabetically-or-numerically)
+    (define-key map "t" #'todo-sort-categories-by-todo)
+    (define-key map "y" #'todo-sort-categories-by-diary)
+    (define-key map "d" #'todo-sort-categories-by-done)
+    (define-key map "a" #'todo-sort-categories-by-archived)
+    (define-key map "#" #'todo-set-category-number)
+    (define-key map "l" #'todo-lower-category)
+    (define-key map "r" #'todo-raise-category)
+    (define-key map "n" #'todo-next-button)
+    (define-key map "p" #'todo-previous-button)
+    (define-key map [tab] #'todo-next-button)
+    (define-key map [backtab] #'todo-previous-button)
+    (define-key map "q" #'todo-quit)
     map)
   "Todo Categories mode keymap.")
 
@@ -6620,8 +6679,8 @@ Filtered Items mode following todo (not done) items."
       (define-key map (nth 0 kb) (nth 1 kb)))
     (dolist (kb todo-key-bindings-t+f)
       (define-key map (nth 0 kb) (nth 1 kb)))
-    (define-key map "g" 'todo-go-to-source-item)
-    (define-key map [remap newline] 'todo-go-to-source-item)
+    (define-key map "g" #'todo-go-to-source-item)
+    (define-key map [remap newline] #'todo-go-to-source-item)
     map)
   "Todo Filtered Items mode keymap.")
 
@@ -6777,13 +6836,9 @@ Added to `window-configuration-change-hook' in Todo mode."
   ;; (add-hook 'find-file-hook #'todo-display-as-todo-file nil t)
   )
 
-(put 'todo-mode 'mode-class 'special)
-
 ;;;###autoload
 (define-derived-mode todo-mode special-mode "Todo"
-  "Major mode for displaying, navigating and editing todo lists.
-
-\\{todo-mode-map}"
+  "Major mode for displaying, navigating and editing todo lists."
   (if (called-interactively-p 'any)
       (message "%s"
                (substitute-command-keys
@@ -6805,15 +6860,11 @@ Added to `window-configuration-change-hook' in Todo mode."
 	      #'todo-reset-and-enable-done-separator nil t)
     (add-hook 'kill-buffer-hook #'todo-reset-global-current-todo-file nil t)))
 
-(put 'todo-archive-mode 'mode-class 'special)
-
 ;; If todo-mode is parent, all todo-mode key bindings appear to be
 ;; available in todo-archive-mode (e.g. shown by C-h m).
 ;;;###autoload
 (define-derived-mode todo-archive-mode special-mode "Todo-Arch"
-  "Major mode for archived todo categories.
-
-\\{todo-archive-mode-map}"
+  "Major mode for archived todo categories."
   (todo-modes-set-1)
   (todo-modes-set-2)
   (todo-modes-set-3)
@@ -6821,9 +6872,7 @@ Added to `window-configuration-change-hook' in Todo mode."
   (setq-local todo-show-done-only t))
 
 (define-derived-mode todo-edit-mode text-mode "Todo-Ed"
-  "Major mode for editing multiline todo items.
-
-\\{todo-edit-mode-map}"
+  "Major mode for editing multiline todo items."
   (todo-modes-set-1)
   (setq-local indent-line-function #'todo-indent)
   (if (> (buffer-size) (- (point-max) (point-min)))
@@ -6836,12 +6885,8 @@ Added to `window-configuration-change-hook' in Todo mode."
     (setq-local todo-categories (todo-set-categories)))
   (setq buffer-read-only nil))
 
-(put 'todo-categories-mode 'mode-class 'special)
-
 (define-derived-mode todo-categories-mode special-mode "Todo-Cats"
-  "Major mode for displaying and editing todo categories.
-
-\\{todo-categories-mode-map}"
+  "Major mode for displaying and editing todo categories."
   (setq-local todo-current-todo-file todo-global-current-todo-file)
   (setq-local todo-categories
 	      ;; Can't use find-buffer-visiting when
@@ -6852,13 +6897,9 @@ Added to `window-configuration-change-hook' in Todo mode."
                                     todo-current-todo-file 'nowarn)
                 todo-categories)))
 
-(put 'todo-filtered-items-mode 'mode-class 'special)
-
 ;;;###autoload
 (define-derived-mode todo-filtered-items-mode special-mode "Todo-Fltr"
-  "Mode for displaying and reprioritizing top priority Todo.
-
-\\{todo-filtered-items-mode-map}"
+  "Mode for displaying and reprioritizing top priority Todo."
   (todo-modes-set-1)
   (todo-modes-set-2))
 

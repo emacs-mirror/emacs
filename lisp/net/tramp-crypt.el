@@ -739,7 +739,7 @@ absolute file names."
 
 (defun tramp-crypt-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (ignore-error file-missing
+  (tramp-skeleton-file-name-all-completions filename directory
     (all-completions
      filename
      (let* (completion-regexp-list

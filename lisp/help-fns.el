@@ -742,6 +742,7 @@ the C sources, too."
 (defun help-fns--parent-mode (function)
   ;; If this is a derived mode, link to the parent.
   (let ((parent-mode (and (symbolp function)
+                          ;; FIXME: Should we mention other parent modes?
                           (get function
                                'derived-mode-parent))))
     (when parent-mode
@@ -2239,7 +2240,7 @@ documentation for the major and minor modes of that buffer."
                   (not (get sym 'byte-obsolete-info))
                   ;; Ignore everything bound.
                   (not (where-is-internal sym nil t))
-                  (apply #'derived-mode-p (command-modes sym)))
+                  (derived-mode-p (command-modes sym)))
          (push sym functions))))
     (with-temp-buffer
       (when functions

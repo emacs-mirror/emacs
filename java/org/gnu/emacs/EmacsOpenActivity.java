@@ -414,6 +414,7 @@ public final class EmacsOpenActivity extends Activity
     String subjectString, textString, attachmentString;
     CharSequence tem;
     String tem1;
+    String[] emails;
     StringBuilder builder;
     List<Parcelable> list;
 
@@ -466,16 +467,16 @@ public final class EmacsOpenActivity extends Activity
 	    /* If fileName is merely mailto: (absent either an email
 	       address or content), then the program launching Emacs
 	       conceivably provided such an URI to exclude non-email
-	       programs from being enumerated within the Share dialog;
-	       whereupon Emacs should replace it with any address
-	       provided as EXTRA_EMAIL.  */
+	       programs from the Share dialog.  Intents created thus
+	       might hold the recipient email as a string array, which
+	       is non-standard behavior.  */
 
 	    if (fileName.equals ("mailto:") || fileName.equals ("mailto://"))
 	      {
-		tem = intent.getCharSequenceExtra (Intent.EXTRA_EMAIL);
+	        emails = intent.getStringArrayExtra (Intent.EXTRA_EMAIL);
 
-		if (tem != null)
-		  fileName = "mailto:" + tem;
+		if (emails[0] != null && emails.length > 0)
+		  fileName = "mailto:" + emails[0];
 	      }
 
 	    /* Subsequently, escape fileName such that it is rendered

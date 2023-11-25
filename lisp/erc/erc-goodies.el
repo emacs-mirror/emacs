@@ -73,7 +73,7 @@ messages, such as after typing \"/msg NickServ help\".
 Note that users should consider this option's non-nil behavior to
 be experimental.  It currently only works with Emacs 28+."
   :group 'erc-display
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice boolean (const relaxed)))
 
 ;;;###autoload(autoload 'erc-scrolltobottom-mode "erc-goodies" nil t)
@@ -286,7 +286,7 @@ displays an arrow in the left fringe or margin.  When it's
 `face', ERC adds the face `erc-keep-place-indicator-line' to the
 appropriate line.  A value of t does both."
   :group 'erc
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const :tag "Use arrow" arrow)
                  (const :tag "Use face" face)
                  (const :tag "Use both arrow and face" t)))
@@ -295,14 +295,14 @@ appropriate line.  A value of t does both."
   "ERC buffer type in which to display `keep-place-indicator'.
 A value of t means \"all\" ERC buffers."
   :group 'erc
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const t) (const server) (const target)))
 
 (defcustom erc-keep-place-indicator-follow nil
   "Whether to sync visual kept place to window's top when reading.
 For use with `erc-keep-place-indicator-mode'."
   :group 'erc
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type 'boolean)
 
 (defface erc-keep-place-indicator-line
@@ -471,21 +471,26 @@ For use with `keep-place-indicator' module."
                                erc-cmd-COUNTRY
                                erc-cmd-SV
                                erc-cmd-SM
-                               erc-cmd-SMV
+                               erc-cmd-SAY
                                erc-cmd-LASTLOG)
-  "List of commands that are aliases for CTCP ACTION or for ERC messages.
-
-If a command's function symbol is in this list, the typed command
-does not appear in the ERC buffer after the user presses ENTER.")
+  "List of client \"slash commands\" that perform their own buffer I/O.
+The `command-indicator' module forgoes echoing these commands,
+most of which aren't actual interactive lisp commands.")
 
 ;;;###autoload(autoload 'erc-noncommands-mode "erc-goodies" nil t)
 (define-erc-module noncommands nil
-  "This mode distinguishes non-commands.
-Commands listed in `erc-insert-this' know how to display
-themselves."
+  "Treat commands that display themselves specially.
+This module has been a no-op since ERC 5.3 and has likely only
+ever made sense in the context of `erc-command-indicator'.  It
+was deprecated in ERC 5.6."
   ((add-hook 'erc--input-review-functions #'erc-send-distinguish-noncommands))
   ((remove-hook 'erc--input-review-functions
                 #'erc-send-distinguish-noncommands)))
+(make-obsolete-variable 'erc-noncommand-mode
+                        'erc-command-indicator-mode "30.1")
+(make-obsolete 'erc-noncommand-mode 'erc-command-indicator-mode "30.1")
+(make-obsolete 'erc-noncommand-enable 'erc-command-indicator-enable "30.1")
+(make-obsolete 'erc-noncommand-disable 'erc-command-indicator-disable "30.1")
 
 (defun erc-send-distinguish-noncommands (state)
   "If STR is an ERC non-command, set `insertp' in STATE to nil."
@@ -498,6 +503,106 @@ themselves."
                (memq cmd-fun erc-noncommands-list))
       ;; Inhibit sending this string.
       (setf (erc-input-insertp state) nil))))
+
+
+;;; Command-indicator
+
+(defface erc-command-indicator-face
+  '((t :inherit (erc-input-face fixed-pitch-serif)))
+  "Face for echoed command lines, including the prompt.
+See option `erc-command-indicator'."
+  :package-version '(ERC . "5.6") ; standard value, from bold
+  :group 'erc-faces)
+
+(defcustom erc-command-indicator 'erc-prompt
+  "Pseudo prompt for echoed command lines.
+An analog of the option `erc-prompt' that replaces the \"speaker
+label\" for echoed \"slash\" commands submitted at the prompt.  A
+value of nil means ERC only inserts the command-line portion
+alone, without the prompt, which may trick certain modules, like
+`fill', into treating the leading slash command itself as the
+message's speaker."
+  :package-version '(ERC . "5.6")
+  :group 'erc-display
+  :type '(choice (const :tag "Defer to `erc-prompt'" erc-prompt)
+                 (const :tag "Print command lines without a prompt" nil)
+                 (string :tag "User-provided string")
+                 (function :tag "User-provided function")))
+
+;;;###autoload(autoload 'erc-command-indicator-mode "erc-goodies" nil t)
+(define-erc-module command-indicator nil
+  "Echo command lines for \"slash commands,\" like /JOIN, /HELP, etc.
+Skip those appearing in `erc-noncommands-list'.
+
+Users can run \\[erc-command-indicator-toggle-hidden] to hide and
+reveal echoed command lines after they've been inserted."
+  ((add-hook 'erc--input-review-functions
+             #'erc--command-indicator-permit-insertion 80 t)
+   (erc-command-indicator-toggle-hidden -1))
+  ((remove-hook 'erc--input-review-functions
+                #'erc--command-indicator-permit-insertion t)
+   (erc-command-indicator-toggle-hidden +1))
+  'local)
+
+(defun erc-command-indicator ()
+  "Return the command-indicator prompt as a string.
+Do nothing if the variable `erc-command-indicator' is nil."
+  (and erc-command-indicator
+       (let ((prompt (if (functionp erc-command-indicator)
+                         (funcall erc-command-indicator)
+                       erc-command-indicator)))
+         (concat prompt (and (not (string-empty-p prompt))
+                             (not (string-suffix-p " " prompt))
+                             " ")))))
+
+(defun erc-command-indicator-toggle-hidden (arg)
+  "Toggle whether echoed \"slash commands\" are visible."
+  (interactive "P")
+  (erc--toggle-hidden 'command-indicator arg))
+
+(defun erc--command-indicator-permit-insertion (state)
+  "Insert `erc-input' STATE's message if it's an echoed command."
+  (cl-assert erc-command-indicator-mode)
+  (when (erc--input-split-cmdp state)
+    (setf (erc--input-split-insertp state) #'erc--command-indicator-display)
+    (erc-send-distinguish-noncommands state)))
+
+;; This function used to be called `erc-display-command'.  It was
+;; neutered in ERC 5.3.x (Emacs 24.5), commented out in 5.4, removed
+;; in 5.5, and restored in 5.6.
+(defun erc--command-indicator-display (line)
+  "Insert command LINE as echoed input resembling that of REPLs and shells."
+  (when erc-insert-this
+    (save-excursion
+      (erc--assert-input-bounds)
+      (let ((insert-position (marker-position (goto-char erc-insert-marker)))
+            (erc--msg-props (or erc--msg-props
+                                (let ((ovs erc--msg-prop-overrides))
+                                  (map-into `((erc-msg . slash-cmd)
+                                              ,@(reverse ovs))
+                                            'hash-table)))))
+        (when-let ((string (erc-command-indicator))
+                   (erc-input-marker (copy-marker erc-input-marker)))
+          (erc-display-prompt nil nil string 'erc-command-indicator-face)
+          (remove-text-properties insert-position (point)
+                                  '(field nil erc-prompt nil))
+          (set-marker erc-input-marker nil))
+        (let ((beg (point)))
+          (insert line)
+          (erc-put-text-property beg (point)
+                                 'font-lock-face 'erc-command-indicator-face)
+          (insert "\n"))
+        (save-restriction
+          (narrow-to-region insert-position (point))
+          (run-hooks 'erc-send-modify-hook)
+          (run-hooks 'erc-send-post-hook)
+          (cl-assert (> (- (point-max) (point-min)) 1))
+          (erc--hide-message 'command-indicator)
+          (add-text-properties (point-min) (1+ (point-min))
+                               (erc--order-text-properties-from-hash
+                                erc--msg-props))))
+      (erc--refresh-prompt))))
+
 
 ;;; IRC control character processing.
 (defgroup erc-control-characters nil

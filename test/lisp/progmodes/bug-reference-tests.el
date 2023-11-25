@@ -25,6 +25,7 @@
 
 (require 'bug-reference)
 (require 'ert)
+(require 'ert-x)
 
 (defun test--get-github-entry (url)
   (and (string-match
@@ -124,5 +125,19 @@
    (equal
     (test--get-gitea-entry "https://gitea.com/magit/magit/")
     "magit/magit")))
+
+(ert-deftest test-thing-at-point ()
+  "Ensure that (thing-at-point 'url) returns the bug URL."
+  (ert-with-test-buffer (:name "thingatpt")
+    (setq-local bug-reference-url-format "https://debbugs.gnu.org/%s")
+    (insert "bug#1234")
+    (bug-reference-mode)
+    (jit-lock-fontify-now (point-min) (point-max))
+    (goto-char (point-min))
+    ;; Make sure we get the URL when `bug-reference-mode' is active...
+    (should (equal (thing-at-point 'url) "https://debbugs.gnu.org/1234"))
+    (bug-reference-mode -1)
+    ;; ... and get nil when `bug-reference-mode' is inactive.
+    (should-not (thing-at-point 'url))))
 
 ;;; bug-reference-tests.el ends here

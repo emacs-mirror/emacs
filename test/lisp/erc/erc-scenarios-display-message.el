@@ -59,6 +59,4 @@
 
     (erc-cmd-QUIT "")))
 
-(eval-when-compile (require 'erc-join))
-
 ;;; erc-scenarios-display-message.el ends here

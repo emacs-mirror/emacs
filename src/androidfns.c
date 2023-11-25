@@ -367,7 +367,15 @@ android_change_tab_bar_height (struct frame *f, int height)
      the tab bar by even 1 pixel, FRAME_TAB_BAR_LINES will be changed,
      leading to the tab bar height being incorrectly set upon the next
      call to android_set_font.  (bug#59285) */
+
   lines = height / unit;
+
+  /* Even so, HEIGHT might be less than unit if the tab bar face is
+     not so tall as the frame's font height; which if true lines will
+     be set to 0 and the tab bar will thus vanish.  */
+
+  if (lines == 0 && height != 0)
+    lines = 1;
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);
@@ -3096,6 +3104,42 @@ within the directory `/content/storage'.  */)
 
 
 
+/* Functions concerning storage permissions.  */
+
+DEFUN ("android-external-storage-available-p",
+       Fandroid_external_storage_available_p,
+       Sandroid_external_storage_available_p, 0, 0, 0,
+       doc: /* Return non-nil if Emacs is entitled to access external storage.
+Return nil if the requisite permissions for external storage access
+have not been granted to Emacs, t otherwise.  Such permissions can be
+requested by means of the `android-request-storage-access'
+command.
+
+External storage on Android encompasses the `/sdcard' and
+`/storage/emulated' directories, access to which is denied to programs
+absent these permissions.  */)
+  (void)
+{
+  return android_external_storage_available_p () ? Qt : Qnil;
+}
+
+DEFUN ("android-request-storage-access", Fandroid_request_storage_access,
+       Sandroid_request_storage_access, 0, 0, "",
+       doc: /* Request permissions to access external storage.
+
+Return nil regardless of whether access permissions are granted or not,
+immediately after displaying the permissions request dialog.
+
+Use `android-external-storage-available-p' (which see) to verify
+whether Emacs has actually received such access permissions.  */)
+  (void)
+{
+  android_request_storage_access ();
+  return Qnil;
+}
+
+
+
 /* Miscellaneous input method related stuff.  */
 
 /* Report X, Y, by the phys cursor width and height as the cursor
@@ -3302,6 +3346,8 @@ bell being rung.  */);
 #ifndef ANDROID_STUBIFY
   defsubr (&Sandroid_query_battery);
   defsubr (&Sandroid_request_directory_access);
+  defsubr (&Sandroid_external_storage_available_p);
+  defsubr (&Sandroid_request_storage_access);
 
   tip_timer = Qnil;
   staticpro (&tip_timer);

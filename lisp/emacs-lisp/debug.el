@@ -158,6 +158,13 @@ where CAUSE can be:
 ;;;###autoload
 (defun debug (&rest args)
   "Enter debugger.  \\<debugger-mode-map>`\\[debugger-continue]' returns from the debugger.
+
+In interactive sessions, this switches to a backtrace buffer and shows
+the Lisp backtrace of function calls there.  In batch mode (more accurately,
+when `noninteractive' is non-nil), it shows the Lisp backtrace on the
+standard error stream (unless `backtrace-on-error-noninteractive' is nil),
+and then kills Emacs, causing it to exit with a negative exit code.
+
 Arguments are mainly for use when this is called from the internals
 of the evaluator.
 

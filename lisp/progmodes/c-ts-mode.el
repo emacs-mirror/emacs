@@ -135,7 +135,7 @@ symbol."
               res)
       (let ((buffer (car buffers)))
         (with-current-buffer buffer
-          (if (derived-mode-p 'c-ts-mode 'c++-ts-mode)
+          (if (derived-mode-p '(c-ts-mode c++-ts-mode))
               (loop (append res (list buffer)) (cdr buffers))
             (loop res (cdr buffers))))))))
 
@@ -193,7 +193,7 @@ in this Emacs session."
 To set the default indent style globally, use
 `c-ts-mode-set-global-style'."
   (interactive (list (c-ts-mode--prompt-for-style)))
-  (if (not (derived-mode-p 'c-ts-mode 'c++-ts-mode))
+  (if (not (derived-mode-p '(c-ts-mode c++-ts-mode)))
       (user-error "The current buffer is not in `c-ts-mode' nor `c++-ts-mode'")
     (setq-local c-ts-mode-indent-style style)
     (setq treesit-simple-indent-rules

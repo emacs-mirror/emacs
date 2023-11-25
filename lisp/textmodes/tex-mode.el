@@ -2133,6 +2133,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
                   t "%r.pdf"))
               '("pdf" "xe" "lua"))
     ((concat tex-command
+             " " tex-start-options
 	     " " (if (< 0 (length tex-start-commands))
 		     (shell-quote-argument tex-start-commands))
              " %f")

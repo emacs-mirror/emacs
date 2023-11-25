@@ -400,9 +400,9 @@ format.  See `ibuffer-update-saved-filters-format' and
     (error "This buffer is not in Ibuffer mode"))
   (cond (ibuffer-auto-mode
          (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed) ; Initialize state vector
-         (add-hook 'post-command-hook 'ibuffer-auto-update-changed))
+         (add-hook 'post-command-hook #'ibuffer-auto-update-changed))
         (t
-         (remove-hook 'post-command-hook 'ibuffer-auto-update-changed))))
+         (remove-hook 'post-command-hook #'ibuffer-auto-update-changed))))
 
 (defun ibuffer-auto-update-changed ()
   (when (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed)
@@ -557,7 +557,7 @@ See `ibuffer-do-view-and-eval' for that."
    (list (read--expression "Eval in buffers (form): "))
    :opstring "evaluated in"
    :modifier-p :maybe)
-  (eval form))
+  (eval form t))
 
 ;;;###autoload (autoload 'ibuffer-do-view-and-eval "ibuf-ext")
 (define-ibuffer-op view-and-eval (form)
@@ -575,7 +575,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
     (unwind-protect
 	(progn
 	  (switch-to-buffer buf)
-	  (eval form))
+	  (eval form t))
       (switch-to-buffer ibuffer-buf))))
 
 ;;;###autoload (autoload 'ibuffer-do-rename-uniquely "ibuf-ext")
@@ -1185,10 +1185,12 @@ Interactively, prompt for NAME, and use the current filters."
      (concat " [filter: " (cdr qualifier) "]"))
     ('or
      (concat " [OR" (mapconcat #'ibuffer-format-qualifier
-                               (cdr qualifier) "") "]"))
+                               (cdr qualifier))
+             "]"))
     ('and
      (concat " [AND" (mapconcat #'ibuffer-format-qualifier
-                                (cdr qualifier) "") "]"))
+                                (cdr qualifier))
+             "]"))
     (_
      (let ((type (assq (car qualifier) ibuffer-filtering-alist)))
        (unless qualifier
@@ -1202,11 +1204,12 @@ Interactively, prompt for NAME, and use the current filters."
 If INCLUDE-PARENTS is non-nil then include parent modes."
   (let ((modes))
     (dolist (buf (buffer-list))
-      (let ((this-mode (buffer-local-value 'major-mode buf)))
-        (while (and this-mode (not (memq this-mode modes)))
-          (push this-mode modes)
-          (setq this-mode (and include-parents
-                               (get this-mode 'derived-mode-parent))))))
+      (let ((this-modes (derived-mode-all-parents
+                         (buffer-local-value 'major-mode buf))))
+        (while (and this-modes (not (memq (car this-modes) modes)))
+          (push (car this-modes) modes)
+          (setq this-modes (and include-parents
+                                (cdr this-modes))))))
     (mapcar #'symbol-name modes)))
 
 
@@ -1391,7 +1394,7 @@ matches against the value of `default-directory' in that buffer."
   (:description "predicate"
    :reader (read-minibuffer "Filter by predicate (form): "))
   (with-current-buffer buf
-    (eval qualifier)))
+    (eval qualifier t)))
 
 ;;;###autoload (autoload 'ibuffer-filter-chosen-by-completion "ibuf-ext")
 (defun ibuffer-filter-chosen-by-completion ()
@@ -1508,7 +1511,7 @@ Ordering is lexicographic."
   "Emulate `bs-show' from the bs.el package."
   (interactive)
   (ibuffer t "*Ibuffer-bs*" '((filename . ".*")) nil t)
-  (define-key (current-local-map) "a" 'ibuffer-bs-toggle-all))
+  (define-key (current-local-map) "a" #'ibuffer-bs-toggle-all))
 
 (defun ibuffer-bs-toggle-all ()
   "Emulate `bs-toggle-show-all' from the bs.el package."
@@ -1746,7 +1749,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
                        (t (file-name-nondirectory name))))))
            buffers))
          (string
-          (mapconcat 'identity (delete "" file-names) " ")))
+          (mapconcat #'identity (delete "" file-names) " ")))
     (unless (string= string "")
       (if (eq last-command 'kill-region)
           (kill-append string nil)

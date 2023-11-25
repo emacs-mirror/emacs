@@ -3239,7 +3239,7 @@ by a mouse, or by some window-system gesture, or via a menu.  */)
       && (CONSP (last_nonmenu_event)
 	  || (NILP (last_nonmenu_event) && CONSP (last_input_event))
 	  || (val = find_symbol_value (Qfrom__tty_menu_p),
-	      (!NILP (val) && !EQ (val, Qunbound))))
+	      (!NILP (val) && !BASE_EQ (val, Qunbound))))
       && use_dialog_box)
     {
       Lisp_Object pane, menu, obj;

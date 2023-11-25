@@ -3140,11 +3140,25 @@ update_search_regs (ptrdiff_t oldstart, ptrdiff_t oldend, ptrdiff_t newend)
   ptrdiff_t change = newend - oldend;
   ptrdiff_t i;
 
+  /* When replacing subgroup 3 in a match for regexp '\(\)\(\(\)\)\(\)'
+     start[i] should ideally stay unchanged for all but i=4 and end[i]
+     should move for all but i=1.
+     We don't have enough info here to distinguish those different subgroups
+     (except for subgroup 0), so instead we lean towards leaving the start[i]s
+     unchanged and towards moving the end[i]s.  */
+
   for (i = 0; i < search_regs.num_regs; i++)
     {
-      if (search_regs.start[i] >= oldend)
+      if (search_regs.start[i] <= oldstart)
+        /* If the subgroup that 'replace-match' is modifying encloses the
+           subgroup 'i', then its 'start' position should stay unchanged.
+           That's always true for subgroup 0.
+           For other subgroups it depends on details we don't have, so
+           we optimistically assume that it also holds for them.  */
+        ;
+      else if (search_regs.start[i] >= oldend)
         search_regs.start[i] += change;
-      else if (search_regs.start[i] > oldstart)
+      else
         search_regs.start[i] = oldstart;
       if (search_regs.end[i] >= oldend)
         search_regs.end[i] += change;

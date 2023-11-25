@@ -9,9 +9,9 @@
 Alliance.  This section describes the peculiarities of using Emacs on
 an Android device running Android 2.2 or later.
 
-  Android devices commonly rely on user input through a touch screen
-or digitizer device and on-screen keyboard.  For more information
-about using such devices with Emacs, @pxref{Other Input Devices}.
+  Android devices commonly rely a touch screen or digitizer device and
+virtual keyboard for user input.  For more information about using
+such devices with Emacs, @pxref{Other Input}.
 
 @menu
 * What is Android?::            Preamble.

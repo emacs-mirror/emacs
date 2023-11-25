@@ -1848,60 +1848,60 @@ ID-FORMAT valid values are `string' and `integer'."
 ;; files.
 (defun tramp-sh-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name directory) nil
-    (when (and (not (tramp-compat-string-search "/" filename))
-	       (tramp-connectable-p v))
-    (unless (tramp-compat-string-search "/" filename)
-      (ignore-error file-missing
-	(all-completions
-	 filename
-	 (with-tramp-file-property v localname "file-name-all-completions"
-	   (let (result)
-	     ;; Get a list of directories and files, including
-	     ;; reliably tagging the directories with a trailing "/".
-	     ;; Because I rock.  --daniel@danann.net
-	     (if (tramp-get-remote-perl v)
-		 (progn
-		   (tramp-maybe-send-script
-		    v tramp-perl-file-name-all-completions
-		    "tramp_perl_file_name_all_completions")
-		   (setq result
-			 (tramp-send-command-and-read
-			  v (format "tramp_perl_file_name_all_completions %s"
-				    (tramp-shell-quote-argument localname))
-			  'noerror))
-		   ;; Cached values.
-		   (dolist (elt result)
-		     (tramp-set-file-property
-		      v (cadr elt) "file-directory-p" (nth 2 elt))
-		     (tramp-set-file-property
-		      v (cadr elt) "file-exists-p" (nth 3 elt))
-		     (tramp-set-file-property
-		      v (cadr elt) "file-readable-p" (nth 4 elt)))
-		   ;; Result.
-		   (mapcar #'car result))
+  (tramp-skeleton-file-name-all-completions filename directory
+    (with-parsed-tramp-file-name (expand-file-name directory) nil
+      (when (and (not (tramp-compat-string-search "/" filename))
+		 (tramp-connectable-p v))
+	(unless (tramp-compat-string-search "/" filename)
+	  (all-completions
+	   filename
+	   (with-tramp-file-property v localname "file-name-all-completions"
+	     (let (result)
+	       ;; Get a list of directories and files, including
+	       ;; reliably tagging the directories with a trailing "/".
+	       ;; Because I rock.  --daniel@danann.net
+	       (if (tramp-get-remote-perl v)
+		   (progn
+		     (tramp-maybe-send-script
+		      v tramp-perl-file-name-all-completions
+		      "tramp_perl_file_name_all_completions")
+		     (setq result
+			   (tramp-send-command-and-read
+			    v (format "tramp_perl_file_name_all_completions %s"
+				      (tramp-shell-quote-argument localname))
+			    'noerror))
+		     ;; Cached values.
+		     (dolist (elt result)
+		       (tramp-set-file-property
+			v (cadr elt) "file-directory-p" (nth 2 elt))
+		       (tramp-set-file-property
+			v (cadr elt) "file-exists-p" (nth 3 elt))
+		       (tramp-set-file-property
+			v (cadr elt) "file-readable-p" (nth 4 elt)))
+		     ;; Result.
+		     (mapcar #'car result))
 
-	       ;; Do it with ls.
-	       (when (tramp-send-command-and-check
-		      v (format (concat
-				 "cd %s 2>&1 && %s -a 2>%s"
-				 " | while IFS= read f; do"
-				 " if %s -d \"$f\" 2>%s;"
-				 " then echo \"$f/\"; else echo \"$f\"; fi;"
-				 " done")
-				(tramp-shell-quote-argument localname)
-				(tramp-get-ls-command v)
-				(tramp-get-remote-null-device v)
-				(tramp-get-test-command v)
-				(tramp-get-remote-null-device v)))
+		 ;; Do it with ls.
+		 (when (tramp-send-command-and-check
+			v (format (concat
+				   "cd %s 2>&1 && %s -a 2>%s"
+				   " | while IFS= read f; do"
+				   " if %s -d \"$f\" 2>%s;"
+				   " then echo \"$f/\"; else echo \"$f\"; fi;"
+				   " done")
+				  (tramp-shell-quote-argument localname)
+				  (tramp-get-ls-command v)
+				  (tramp-get-remote-null-device v)
+				  (tramp-get-test-command v)
+				  (tramp-get-remote-null-device v)))
 
-		 ;; Now grab the output.
-		 (with-current-buffer (tramp-get-buffer v)
-		   (goto-char (point-max))
-		   (while (zerop (forward-line -1))
-		     (push
-		      (buffer-substring (point) (line-end-position)) result)))
-		 result))))))))))
+		   ;; Now grab the output.
+		   (with-current-buffer (tramp-get-buffer v)
+		     (goto-char (point-max))
+		     (while (zerop (forward-line -1))
+		       (push
+			(buffer-substring (point) (line-end-position)) result)))
+		   result))))))))))
 
 ;; cp, mv and ln
 
@@ -5540,7 +5540,7 @@ raises an error."
 		     (unless noerror signal-hook-function)))
 		(read (current-buffer)))
 	    ;; Error handling.
-	    (when (search-forward-regexp (rx (not blank)) (line-end-position) t)
+	    (when (search-forward-regexp (rx (not space)) (line-end-position) t)
 	      (error nil)))
 	(error (unless noerror
 		 (tramp-error

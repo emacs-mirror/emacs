@@ -52,7 +52,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (provide 'thingatpt)
 
 (defvar thing-at-point-provider-alist nil
@@ -175,11 +174,14 @@ See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
   (let ((text
          (cond
-          ((cl-loop for (pthing . function) in thing-at-point-provider-alist
-                    when (eq pthing thing)
-                    for result = (funcall function)
-                    when result
-                    return result))
+          ((let ((alist thing-at-point-provider-alist)
+                 elt result)
+             (while (and alist (null result))
+               (setq elt (car alist)
+                     alist (cdr alist))
+               (and (eq (car elt) thing)
+                    (setq result (funcall (cdr elt)))))
+             result))
           ((get thing 'thing-at-point)
            (funcall (get thing 'thing-at-point)))
           (t

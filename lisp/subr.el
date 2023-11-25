@@ -460,6 +460,10 @@ Also see `ignore'."
 Errors cause entry to the debugger when `debug-on-error' is non-nil.
 This can be overridden by `debug-ignored-errors'.
 
+When `noninteractive' is non-nil (in particular, in batch mode), an
+unhandled error calls `kill-emacs', which terminates the Emacs
+session with a non-zero exit code.
+
 To signal with MESSAGE without interpreting format characters
 like `%', `\\=`' and `\\='', use (error \"%s\" MESSAGE).
 In Emacs, the convention is that error messages start with a capital
@@ -2678,26 +2682,150 @@ The variable list SPEC is the same as in `if-let*'."
 
 ;; PUBLIC: find if the current mode derives from another.
 
-(defun provided-mode-derived-p (mode &rest modes)
-  "Non-nil if MODE is derived from one of MODES.
-Uses the `derived-mode-parent' property of the symbol to trace backwards.
-If you just want to check `major-mode', use `derived-mode-p'."
-  (declare (side-effect-free t))
-  (while
-      (and
-       (not (memq mode modes))
-       (let* ((parent (get mode 'derived-mode-parent)))
-        (setq mode (or parent
-                       ;; If MODE is an alias, then follow the alias.
-                       (let ((alias (symbol-function mode)))
-                         (and (symbolp alias) alias)))))))
-  mode)
+(defun merge-ordered-lists (lists &optional error-function)
+  "Merge LISTS in a consistent order.
+LISTS is a list of lists of elements.
+Merge them into a single list containing the same elements (removing
+duplicates), obeying their relative positions in each list.
+The order of the (sub)lists determines the final order in those cases where
+the order within the sublists does not impose a unique choice.
+Equality of elements is tested with `eql'.
 
-(defun derived-mode-p (&rest modes)
-  "Non-nil if the current major mode is derived from one of MODES.
-Uses the `derived-mode-parent' property of the symbol to trace backwards."
-  (declare (side-effect-free t))
-  (apply #'provided-mode-derived-p major-mode modes))
+If a consistent order does not exist, call ERROR-FUNCTION with
+a remaining list of lists that we do not know how to merge.
+It should return the candidate to use to continue the merge, which
+has to be the head of one of the lists.
+By default we choose the head of the first list."
+  ;; Algorithm inspired from
+  ;; [C3](https://en.wikipedia.org/wiki/C3_linearization)
+  (let ((result '()))
+    (setq lists (remq nil lists)) ;Don't mutate the original `lists' argument.
+    (while (cdr (setq lists (delq nil lists)))
+      ;; Try to find the next element of the result. This
+      ;; is achieved by considering the first element of each
+      ;; (non-empty) input list and accepting a candidate if it is
+      ;; consistent with the rests of the input lists.
+      (let* ((next nil)
+	     (tail lists))
+	(while tail
+	  (let ((candidate (caar tail))
+	        (other-lists lists))
+	    ;; Ensure CANDIDATE is not in any position but the first
+	    ;; in any of the element lists of LISTS.
+	    (while other-lists
+	      (if (not (memql candidate (cdr (car other-lists))))
+	          (setq other-lists (cdr other-lists))
+	        (setq candidate nil)
+	        (setq other-lists nil)))
+	    (if (not candidate)
+	        (setq tail (cdr tail))
+	      (setq next candidate)
+	      (setq tail nil))))
+	(unless next ;; The graph is inconsistent.
+	  (setq next (funcall (or error-function #'caar) lists))
+	  (unless (assoc next lists #'eql)
+	    (error "Invalid candidate returned by error-function: %S" next)))
+	;; The graph is consistent so far, add NEXT to result and
+	;; merge input lists, dropping NEXT from their heads where
+	;; applicable.
+	(push next result)
+	(setq lists
+	      (mapcar (lambda (l) (if (eql (car l) next) (cdr l) l))
+		      lists))))
+    (if (null result) (car lists) ;; Common case.
+      (append (nreverse result) (car lists)))))
+
+(defun derived-mode-all-parents (mode &optional known-children)
+  "Return all the parents of MODE, starting with MODE.
+The returned list is not fresh, don't modify it.
+\n(fn MODE)"               ;`known-children' is for internal use only.
+  ;; Can't use `with-memoization' :-(
+  (let ((ps (get mode 'derived-mode--all-parents)))
+    (cond
+     (ps ps)
+     ((memq mode known-children)
+      ;; These things happen, better not get all worked up about it.
+      ;;(error "Cycle in the major mode hierarchy: %S" mode)
+      ;; But do try to return something meaningful.
+      (memq mode (reverse known-children)))
+     (t
+      ;; The mode hierarchy (or DAG, actually), is very static, but we
+      ;; need to react to changes because `parent' may not be defined
+      ;; yet (e.g. it's still just an autoload), so the recursive call
+      ;; to `derived-mode-all-parents' may return an
+      ;; invalid/incomplete result which we'll need to update when the
+      ;; mode actually gets loaded.
+      (let* ((new-children (cons mode known-children))
+             (get-all-parents
+              (lambda (parent)
+                ;; Can't use `cl-lib' here (nor `gv') :-(
+                ;;(cl-assert (not (equal parent mode)))
+                ;;(cl-pushnew mode (get parent 'derived-mode--followers))
+                (let ((followers (get parent 'derived-mode--followers)))
+                  (unless (memq mode followers)
+                    (put parent 'derived-mode--followers
+                         (cons mode followers))))
+                (derived-mode-all-parents parent new-children)))
+             (parent (or (get mode 'derived-mode-parent)
+                         ;; If MODE is an alias, then follow the alias.
+                         (let ((alias (symbol-function mode)))
+                           (and (symbolp alias) alias))))
+             (extras (get mode 'derived-mode-extra-parents))
+             (all-parents
+              (merge-ordered-lists
+               (cons (if (and parent (not (memq parent extras)))
+                         (funcall get-all-parents parent))
+                     (mapcar get-all-parents extras)))))
+        ;; Cache the result unless it was affected by `known-children'
+        ;; because of a cycle.
+        (if (and (memq mode all-parents) known-children)
+            (cons mode (remq mode all-parents))
+          (put mode 'derived-mode--all-parents (cons mode all-parents))))))))
+
+(defun provided-mode-derived-p (mode &optional modes &rest old-modes)
+  "Non-nil if MODE is derived from a mode that is a member of the list MODES.
+MODES can also be a single mode instead of a list.
+If you just want to check `major-mode', use `derived-mode-p'.
+We also still support the deprecated calling convention:
+\(provided-mode-derived-p MODE &rest MODES)."
+  (declare (side-effect-free t)
+           (advertised-calling-convention (mode modes) "30.1"))
+  (cond
+   (old-modes (setq modes (cons modes old-modes)))
+   ((not (listp modes)) (setq modes (list modes))))
+  (let ((ps (derived-mode-all-parents mode)))
+    (while (and modes (not (memq (car modes) ps)))
+      (setq modes (cdr modes)))
+    (car modes)))
+
+(defun derived-mode-p (&optional modes &rest old-modes)
+ "Non-nil if the current major mode is derived from one of MODES.
+MODES should be a list of symbols or a single mode symbol instead of a list.
+We also still support the deprecated calling convention:
+\(derived-mode-p &rest MODES)."
+ (declare (side-effect-free t)
+          (advertised-calling-convention (modes) "30.1"))
+ (provided-mode-derived-p major-mode (if old-modes (cons modes old-modes)
+                                       modes)))
+
+(defun derived-mode-set-parent (mode parent)
+  "Declare PARENT to be the parent of MODE."
+  (put mode 'derived-mode-parent parent)
+  (derived-mode--flush mode))
+
+(defun derived-mode-add-parents (mode extra-parents)
+  "Add EXTRA-PARENTS to the parents of MODE.
+Declares the parents of MODE to be its main parent (as defined
+in `define-derived-mode') plus EXTRA-PARENTS."
+  (put mode 'derived-mode-extra-parents extra-parents)
+  (derived-mode--flush mode))
+
+(defun derived-mode--flush (mode)
+  (put mode 'derived-mode--all-parents nil)
+  (let ((followers (get mode 'derived-mode--followers)))
+    (when followers ;; Common case.
+      (put mode 'derived-mode--followers nil)
+      (mapc #'derived-mode--flush followers))))
 
 (defvar-local major-mode--suspended nil)
 (put 'major-mode--suspended 'permanent-local t)
@@ -3204,22 +3332,30 @@ only unbound fallback disabled is downcasing of the last event."
       (message nil)
       (use-global-map old-global-map))))
 
+(defvar touch-screen-events-received nil
+  "Whether a touch screen event has ever been translated.
+The value of this variable governs whether
+`read--potential-mouse-event' calls read-key or read-event.")
+
 ;; FIXME: Once there's a safe way to transition away from read-event,
 ;; callers to this function should be updated to that way and this
 ;; function should be deleted.
 (defun read--potential-mouse-event ()
-    "Read an event that might be a mouse event.
+  "Read an event that might be a mouse event.
 
 This function exists for backward compatibility in code packaged
 with Emacs.  Do not call it directly in your own packages."
-    ;; `xterm-mouse-mode' events must go through `read-key' as they
-    ;; are decoded via `input-decode-map'.
-    (if xterm-mouse-mode
-        (read-key nil
-                  ;; Normally `read-key' discards all mouse button
-                  ;; down events.  However, we want them here.
-                  t)
-      (read-event)))
+  ;; `xterm-mouse-mode' events must go through `read-key' as they
+  ;; are decoded via `input-decode-map'.
+  (if (or xterm-mouse-mode
+          ;; If a touch screen is being employed, then mouse events
+          ;; are subject to translation as well.
+          touch-screen-events-received)
+      (read-key nil
+                ;; Normally `read-key' discards all mouse button
+                ;; down events.  However, we want them here.
+                t)
+    (read-event)))
 
 (defvar read-passwd-map
   ;; BEWARE: `defconst' would purecopy it, breaking the sharing with

@@ -123,6 +123,8 @@ extern void android_wait_event (void);
 extern void android_toggle_on_screen_keyboard (android_window, bool);
 extern _Noreturn void android_restart_emacs (void);
 extern int android_request_directory_access (void);
+extern bool android_external_storage_available_p (void);
+extern void android_request_storage_access (void);
 extern int android_get_current_api_level (void)
   __attribute__ ((pure));
 
@@ -289,6 +291,8 @@ struct android_emacs_service
   jmethodID rename_document;
   jmethodID move_document;
   jmethodID valid_authority;
+  jmethodID external_storage_available;
+  jmethodID request_storage_access;
 };
 
 extern JNIEnv *android_java_env;

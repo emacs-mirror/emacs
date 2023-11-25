@@ -1985,6 +1985,7 @@ the piece of the prefix and suffix covered by the completion
 boundaries.  @xref{Basic Completion}, for the precise expected semantics
 of completion boundaries.
 
+@cindex completion metadata
 @item metadata
 This specifies a request for information about the state of the
 current completion.  The return value should have the form
@@ -2001,6 +2002,8 @@ The following is a list of metadata entries that a completion function
 may return in response to a @code{metadata} flag argument:
 
 @table @code
+@cindex @code{category}, in completion
+@cindex completion category
 @item category
 The value should be a symbol describing what kind of text the
 completion function is trying to complete.  If the symbol matches one

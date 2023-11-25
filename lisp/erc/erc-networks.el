@@ -478,7 +478,7 @@ NET is a symbol indicating to which network from `erc-networks-alist'
   this server corresponds,
 HOST is the server's hostname, and (TLS-)PORTS is either a
 number, a list of numbers, or a list of port ranges."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(alist :key-type (string :tag "Name")
 		:value-type
 		(group symbol (string :tag "Hostname")

@@ -189,7 +189,7 @@ CALLBACK is the function to call when the user push this button.
 
 PAR is a number of a regexp grouping whose text will be passed to
   CALLBACK.  There can be several PAR arguments."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(repeat
           (list :tag "Button"
                 (choice :tag "Matches"
@@ -713,7 +713,7 @@ Examples:
    (format
     \"ldapsearch -x -P 2 -h db.debian.org -b dc=debian,dc=org ircnick=%s\"
     nick)))"
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(repeat (cons (string :tag "Op")
                        (choice function sexp))))
 

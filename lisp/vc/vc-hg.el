@@ -365,7 +365,9 @@ specific file to query."
                             (and vc-hg-use-file-version-for-mode-line-version
                                  truename)))))
                (rev (or rev "???"))
-               (state-string (concat backend-name indicator rev)))
+               (state-string (concat (unless (eq vc-display-status 'no-backend)
+                                       backend-name)
+                                     indicator rev)))
     (propertize state-string 'face face 'help-echo
                 (concat state-echo " under the " backend-name
                         " version control system"))))

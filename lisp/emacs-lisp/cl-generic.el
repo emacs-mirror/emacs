@@ -1391,11 +1391,8 @@ See the full list and their hierarchy in `cl--typeof-types'."
 
 (defun cl--generic-derived-specializers (mode &rest _)
   ;; FIXME: Handle (derived-mode <mode1> ... <modeN>)
-  (let ((specializers ()))
-    (while mode
-      (push `(derived-mode ,mode) specializers)
-      (setq mode (get mode 'derived-mode-parent)))
-    (nreverse specializers)))
+  (mapcar (lambda (mode) `(derived-mode ,mode))
+          (derived-mode-all-parents mode)))
 
 (cl-generic-define-generalizer cl--generic-derived-generalizer
   90 (lambda (name) `(and (symbolp ,name) (functionp ,name) ,name))

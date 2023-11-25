@@ -4507,6 +4507,13 @@ languages are syntactically equivalent to classes.  Note however that
 the keyword @code{class} is meaningless in C and Objective-C.}.
 Similarly, line 18 is assigned @code{class-close} syntax.
 
+Note that @code{class-open} and @code{class-close} syntactic elements
+have two anchor points.  The first is the position of the beginning of
+the statement, the second is the position of the keyword which defines
+the construct (e.g.  @code{class}).  These are usually the same
+position, but differ when the statement starts off with
+@code{template} (C++ Mode) or @code{generic} (Java Mode) or similar.
+
 @ssindex inher-intro
 @ssindex inher-cont
 Line 2 introduces the inheritance list for the class so it is assigned

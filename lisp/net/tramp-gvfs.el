@@ -1463,13 +1463,13 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 
 (defun tramp-gvfs-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (unless (tramp-compat-string-search "/" filename)
-    (ignore-error file-missing
+  (tramp-skeleton-file-name-all-completions filename directory
+    (unless (tramp-compat-string-search "/" filename)
       (all-completions
        filename
        (with-parsed-tramp-file-name (expand-file-name directory) nil
 	 (with-tramp-file-property v localname "file-name-all-completions"
-           (let ((result '("./" "../")))
+           (let (result)
              ;; Get a list of directories and files.
 	     (dolist (item
 		      (tramp-gvfs-get-directory-attributes directory)

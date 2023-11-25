@@ -4778,7 +4778,7 @@ by calling `format-decode', which see.  */)
     make_gap (total - GAP_SIZE + 1);
 
   if (beg_offset != 0 || (!NILP (replace)
-			  && !EQ (replace, Qunbound)))
+			  && !BASE_EQ (replace, Qunbound)))
     {
       if (emacs_fd_lseek (fd, beg_offset, SEEK_SET) < 0)
 	report_file_error ("Setting file position", orig_filename);

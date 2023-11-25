@@ -598,6 +598,10 @@ Two symbols to avoid are @code{t}, which behaves like @code{_}
 Likewise, it makes no sense to bind keyword symbols
 (@pxref{Constant Variables}).
 
+@item `@var{qpat}
+A backquote-style pattern.  @xref{Backquote Patterns}, for the
+details.
+
 @item (cl-type @var{type})
 Matches if @var{expval} is of type @var{type}, which is a type
 descriptor as accepted by @code{cl-typep} (@pxref{Type Predicates,,,cl,Common
@@ -1236,7 +1240,8 @@ The first three clauses use backquote-style patterns.
 @code{`(add ,x ,y)} is a pattern that checks that @code{form}
 is a three-element list starting with the literal symbol @code{add},
 then extracts the second and third elements and binds them
-to symbols @code{x} and @code{y}, respectively.
+to symbols @code{x} and @code{y}, respectively.  This is known as
+@dfn{destructuring}, see @ref{Destructuring with pcase Patterns}.
 The clause body evaluates @code{x} and @code{y} and adds the results.
 Similarly, the @code{call} clause implements a function call,
 and the @code{fn} clause implements an anonymous function definition.
@@ -1883,6 +1888,9 @@ verbatim, don't just write @code{(error @var{string})}.  If @var{string}
 @var{string} contains @samp{%}, @samp{`}, or @samp{'} it may be
 reformatted, with undesirable results.  Instead, use @code{(error "%s"
 @var{string})}.
+
+When @code{noninteractive} is non-@code{nil} (@pxref{Batch Mode}),
+this function kills Emacs if the signaled error has no handler.
 @end defun
 
 @defun signal error-symbol data
@@ -1916,6 +1924,9 @@ variable to a list of the form @code{(@var{error-symbol} .@:
 
 The function @code{signal} never returns.
 @c (though in older Emacs versions it sometimes could).
+If the error @var{error-symbol} has no handler, and
+@code{noninteractive} is non-@code{nil} (@pxref{Batch Mode}),
+this function eventually kills Emacs.
 
 @example
 @group
@@ -1980,11 +1991,14 @@ function which called the primitive that signaled the error.
 @end defvar
 
 @cindex @code{debug-on-error} use
-An error that has no explicit handler may call the Lisp debugger.  The
-debugger is enabled if the variable @code{debug-on-error} (@pxref{Error
-Debugging}) is non-@code{nil}.  Unlike error handlers, the debugger runs
-in the environment of the error, so that you can examine values of
-variables precisely as they were at the time of the error.
+An error that has no explicit handler may call the Lisp debugger
+(@pxref{Invoking the Debugger}).  The debugger is enabled if the
+variable @code{debug-on-error} (@pxref{Error Debugging}) is
+non-@code{nil}.  Unlike error handlers, the debugger runs in the
+environment of the error, so that you can examine values of variables
+precisely as they were at the time of the error.  In batch mode
+(@pxref{Batch Mode}), the Emacs process then normally exits with a
+non-zero exit status.
 
 @node Handling Errors
 @subsubsection Writing Code to Handle Errors

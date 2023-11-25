@@ -555,8 +555,7 @@ The possible settings for `align-region-separate' are:
      (repeat   . t)
      (run-if   . ,(lambda ()
                     (and (not (eq '- current-prefix-arg))
-                         (not (apply #'provided-mode-derived-p
-                                     major-mode align-tex-modes))))))
+                         (not (derived-mode-p align-tex-modes))))))
 
     ;; With a negative prefix argument, lists of dollar figures will
     ;; be aligned.
@@ -1286,7 +1285,7 @@ Otherwise, create a new marker at position POS, with type TYPE."
 This is decided by the `modes' and `run-if' keys in the alist
 RULE.  Their meaning is documented in `align-rules-list' (which see)."
   (let-alist rule
-    (not (or (and .modes (not (apply #'derived-mode-p (eval .modes))))
+    (not (or (and .modes (not (derived-mode-p (eval .modes))))
              (and .run-if (not (funcall .run-if)))))))
 
 (defun align-region (beg end separate rules exclude-rules

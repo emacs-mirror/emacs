@@ -1565,7 +1565,7 @@ MATCHER:
     NODE's index in PARENT.  Therefore, to match the first child
     where PARENT is \"argument_list\", use
 
-        (match nil \"argument_list\" nil nil 0 0).
+        (match nil \"argument_list\" nil 0 0).
 
     NODE-TYPE, PARENT-TYPE, and NODE-FIELD are regexps.
     NODE-TYPE can also be `null', which matches when NODE is nil.
@@ -2034,7 +2034,8 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
       (goto-char current-pos)))
     node))
 
-(make-obsolete 'treesit-sexp-type-regexp "`treesit-sexp-type-regexp' will be removed in a few months, use `treesit-thing-settings' instead." "30.0.5")
+(make-obsolete 'treesit-sexp-type-regexp
+               "`treesit-sexp-type-regexp' will be removed soon, use `treesit-thing-settings' instead." "30.1")
 
 (defvar-local treesit-sexp-type-regexp nil
   "A regexp that matches the node type of sexp nodes.
@@ -2304,7 +2305,8 @@ set, Emacs also looks for definition of defun in
             (throw 'done nil)
           (setq arg (if (> arg 0) (1+ arg) (1- arg))))))))
 
-(make-obsolete 'treesit-text-type-regexp "`treesit-text-type-regexp' will be removed in a few months, use `treesit-thing-settings' instead." "30.0.5")
+(make-obsolete 'treesit-text-type-regexp
+               "`treesit-text-type-regexp' will be removed soon, use `treesit-thing-settings' instead." "30.1")
 
 (defvar-local treesit-text-type-regexp "\\`comment\\'"
   "A regexp that matches the node type of textual nodes.
@@ -2315,7 +2317,8 @@ comments and multiline string literals.  For example,
 \"text_block\" in the case of a string.  This is used by
 `prog-fill-reindent-defun' and friends.")
 
-(make-obsolete 'treesit-sentence-type-regexp "`treesit-sentence-type-regexp' will be removed in a few months, use `treesit-thing-settings' instead." "30.0.5")
+(make-obsolete 'treesit-sentence-type-regexp
+               "`treesit-sentence-type-regexp' will be removed soon, use `treesit-thing-settings' instead." "30.1")
 
 (defvar-local treesit-sentence-type-regexp nil
   "A regexp that matches the node type of sentence nodes.
@@ -2359,7 +2362,8 @@ the current line if the beginning of the defun is indented."
                        (line-beginning-position))
          (beginning-of-line))))
 
-(make-obsolete 'treesit--things-around "`treesit--things-around' will be removed in a few months, use `treesit--thing-prev', `treesit--thing-next', `treesit--thing-at' instead." "30.0.5")
+(make-obsolete 'treesit--things-around
+               "`treesit--things-around' will be removed soon, use `treesit--thing-prev', `treesit--thing-next', `treesit--thing-at' instead." "30.1")
 (defun treesit--things-around (pos thing)
   "Return the previous, next, and parent thing around POS.
 

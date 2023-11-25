@@ -32,6 +32,14 @@ NDK, SDK, and a suitable Java compiler must also be installed.
 See the file 'java/INSTALL' for more details.
 
 ---
+** Native compilation is now enabled by default.
+'configure' will enable the Emacs Lisp native compiler, so long as
+libgccjit is present and functional on the system.  To disable native
+compilation, configure Emacs with the option:
+
+  $ ./configure --with-native-compilation=no
+
+---
 ** Emacs now defaults to ossaudio library for sound on NetBSD and OpenBSD.
 Previously configure used ALSA libraries if installed on the
 system when configured '--with-sound=yes' (which is the default), with
@@ -233,6 +241,12 @@ to enter the file you want to modify.
 It can be used to customize the look of the appointment notification
 displayed on the mode line when 'appt-display-mode-line' is non-nil.
 
+---
+*** Emacs now recognizes shebang lines that pass -S/--split-string to 'env'.
+When visiting a script that invokes 'env -S INTERPRETER ARGS...' in
+its shebang line, Emacs will now skip over 'env -S' and deduce the
+major mode based on the interpreter after 'env -S'.
+
 ** Emacs Server and Client
 
 ---
@@ -330,6 +344,15 @@ or narrow (if the variable is customized to the nil value).
 This setting affects the results of 'string-width' and similar
 functions in CJK locales.
 
+---
+*** New input methods for the Urdu, Pashto, and Sindhi languages.
+These languages are spoken in Pakistan and Afganistan.
+
+*** Additional 'C-x 8' key translations for æ and Æ.
+These characters can now be input with 'C-x 8 a e' and 'C-x 8 A E',
+respectively, in addition to the existing translations 'C-x 8 / e' and
+'C-x 8 / E'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
@@ -384,6 +407,40 @@ This is because it partly acts by modifying other rules which may
 occasionally be surprising.  It can be re-enabled by adding 'omake' to
 'compilation-error-regexp-alist'.
 
+** Project
+
++++
+*** New user option 'project-mode-line'.
+When non-nil, display the name of the current project on the mode
+line.  Clicking 'mouse-1' on the project name pops up the project
+menu.  The default value is nil.
+
+*** New user option 'project-file-history-behavior'.
+Customizing it to 'relativize' makes commands like 'project-find-file'
+and 'project-find-dir' display previous history entries relative to
+the current project.
+
+*** New user option 'project-key-prompt-style'.
+The look of the key prompt in the project switcher has been changed
+slightly.  To get the previous one, set this option to 'brackets'.
+
+*** 'project-try-vc' tries harder to find the responsible VCS.
+When 'project-vc-extra-root-markers' is non-nil, and causes
+subdirectory project to be detected which is not a VCS root, we now
+additionally traverse the parent directories until a VCS root is found
+(if any), so that the ignore rules for that repository are used, and
+the file listing's performance is still optimized.
+
+*** New commands 'project-any-command' and 'project-prefix-or-any-command'.
+The former is now bound to 'C-x p o' by default.
+The latter is designed primarily for use as a value of
+'project-switch-commands'.  If instead of a short menu you prefer to
+have access to all keys defined inside 'project-prefix-map', as well
+as global bindings (to run other commands inside the project root),
+you can add this to your init script:
+
+  (setopt project-switch-commands #'project-prefix-or-any-command)
+
 ** VC
 
 ---
@@ -391,6 +448,10 @@ occasionally be surprising.  It can be re-enabled by adding 'omake' to
 This is a string or a list of strings that specifies the Git log
 switches for shortlogs, such as the one produced by 'C-x v L'.
 'vc-git-log-switches' is no longer used for shortlogs.
+
+---
+*** New value 'no-backend' for user option 'vc-display-status'.
+With this value only the revision number is displayed on the mode-line.
 
 ---
 *** Obsolete command 'vc-switch-backend' re-added as 'vc-change-backend'.
@@ -429,10 +490,11 @@ that shows as diffs replacements in the marked files in Dired.
 
 ---
 *** New user option 'dired-movement-style'.
-When non-nil, make 'dired-next-line' and 'dired-previous-line' skip
-empty lines.  It also controls how to move point when encountering a
-boundary (e.g., if every line is visible, invoking 'dired-next-line'
-at the last line will move to the first line).  The default is nil.
+When non-nil, make 'dired-next-line', 'dired-previous-line',
+'dired-next-dirline', 'dired-prev-dirline' skip empty lines.
+It also controls how to move point when encountering a boundary
+(e.g., if every line is visible, invoking 'dired-next-line' at
+the last line will move to the first line).  The default is nil.
 
 ** Ediff
 
@@ -535,6 +597,21 @@ calling external rgrep.
 
 +++
 *** If a command exits abnormally, the Eshell prompt now shows its exit code.
+
+** Minibuffer and Completions
+
+*** New commands 'previous-line-completion' and 'next-line-completion'.
+Bound to '<UP>' and '<DOWN>' arrow keys, respectively, they navigate
+the "*Completions*" buffer vertically by lines, wrapping at the
+top/bottom when 'completion-auto-wrap' is non-nil.
+
+*** New user option 'minibuffer-visible-completions'.
+When customized to non-nil, you can use arrow key in the minibuffer
+to navigate the completions displayed in the *Completions* window.
+Typing 'RET' selects the highlighted candidate.  'C-g' hides the
+completions window.  When the completions window is not visible,
+then all these keys have their usual meaning in the minibuffer.
+This option is supported for in-buffer completion as well.
 
 ** Pcomplete
 
@@ -764,6 +841,13 @@ distracting and easily confused with actual code, or a significant
 early aid that relieves you from moving the buffer or reaching for the
 mouse to consult an error message.
 
+** JS Mode
+The binding 'M-.' has been removed from the major mode keymaps in
+'js-mode' and 'js-ts-mode', having it default to the global binding
+which calls 'xref-find-definitions'.  If the previous one worked
+better for you, use 'define-key' in your init script to bind
+'js-find-symbol' to that combination again.
+
 ** Python mode
 
 ---
@@ -978,6 +1062,11 @@ For links in 'webjump-sites' without an explicit URI scheme, it was
 previously assumed that they should be prefixed with "http://".  Such
 URIs are now prefixed with "https://" instead.
 
+---
+*** 'bug-reference-mode' now supports 'thing-at-point'.
+Now, calling '(thing-at-point 'url)' when point is on a bug reference
+will return the URL for that bug.
+
 ** Customize
 
 +++
@@ -1008,25 +1097,18 @@ A major mode based on the tree-sitter library for editing Lua files.
 
 ** Minibuffer and Completions
 
-*** New commands 'previous-line-completion' and 'next-line-completion'.
-Bound to '<UP>' and '<DOWN>' arrow keys, respectively, they navigate
-the "*Completions*" buffer vertically by lines, wrapping at the
-top/bottom when 'completion-auto-wrap' is non-nil.
-
-*** New user option 'minibuffer-visible-completions'.
-When customized to non-nil, you can use arrow key in the minibuffer
-to navigate the completions displayed in the *Completions* window.
-Typing 'RET' selects the highlighted candidate.  'C-g' hides the
-completions window.  When the completions window is not visible,
-then all these keys have their usual meaning in the minibuffer.
-This option is supported for in-buffer completion as well.
-
 +++
 *** New global minor mode 'minibuffer-regexp-mode'.
 This is a minor mode for editing regular expressions in the minibuffer.
 It highlights parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
 a user-friendly way, avoids reporting alleged paren mismatches and makes
 sexp navigation more intuitive.
+
++++
+*** New minor mode 'completion-preview-mode'.
+This minor mode shows you symbol completion suggestions as you type,
+using an inline preview.  New user options in the 'completion-preview'
+customization group control exactly when Emacs displays this preview.
 
 ---
 ** The highly accessible Modus themes collection has eight items.
@@ -1040,49 +1122,11 @@ the needs of users with red-green or blue-yellow color deficiency.
 The Info manual "(modus-themes) Top" describes the details and
 showcases all their customization options.
 
-** Project
-
-+++
-*** New user option 'project-mode-line'.
-When non-nil, display the name of the current project on the mode
-line.  Clicking 'mouse-1' on the project name pops up the project
-menu.  The default value is nil.
-
-*** New user option 'project-file-history-behavior'.
-Customizing it to 'relativize' makes commands like 'project-find-file'
-and 'project-find-dir' display previous history entries relative to
-the current project.
-
-*** New user option 'project-key-prompt-style'.
-The look of the key prompt in the project switcher has been changed
-slightly.  To get the previous one, set this option to 'brackets'.
-
-*** 'project-try-vc' tries harder to find the responsible VCS.
-When 'project-vc-extra-root-markers' is non-nil, and causes
-subdirectory project to be detected which is not a VCS root, we now
-additionally traverse the parent directories until a VCS root is found
-(if any), so that the ignore rules for that repository are used, and
-the file listing's performance is still optimized.
-
-*** New commands 'project-any-command' and 'project-prefix-or-any-command'.
-The former is now bound to 'C-x p o' by default.
-The latter is designed primarily for use as a value of
-'project-switch-commands'.  If instead of a short menu you prefer to
-have access to all keys defined inside 'project-prefix-map', as well
-as global bindings (to run other commands inside the project root),
-you can add this to your init script:
-
-  (setq project-switch-commands #'project-prefix-or-any-command)
-
-** JS Mode
-The binding 'M-.' has been removed from the major mode keymaps in
-'js-mode' and 'js-ts-mode', having it default to the global binding
-which calls 'xref-find-definitions'.  If the previous one worked
-better for you, use 'define-key' in your init script to bind
-'js-find-symbol' to that combination again.
-
 
 * Incompatible Lisp Changes in Emacs 30.1
+
+** 'pp' and 'pp-to-string' now always include a terminating newline.
+In the past they included a terminating newline in most cases but not all.
 
 ** 'buffer-match-p' and 'match-buffers' take '&rest args'.
 They used to take a single '&optional arg' and were documented to use
@@ -1180,6 +1224,25 @@ values.
 
 
 * Lisp Changes in Emacs 30.1
+
+** New function 'merge-ordered-lists'.
+Mostly used internally to do a kind of topological sort of
+inheritance hierarchies.
+
+** New API for 'derived-mode-p' and control of the graph of major modes.
+
+*** 'derived-mode-p' now takes the list of modes as a single argument.
+The same holds for `provided-mode-derived-p`.
+The old calling convention where multiple modes are passed as
+separate arguments is deprecated.
+
+*** New functions to access the graph of major modes.
+While 'define-derived-mode' still only supports single inheritance,
+modes can declare additional parents (for tests like 'derived-mode-p')
+with `derived-mode-add-parents`.
+Accessing the 'derived-mode-parent' property directly is now
+deprecated in favor of the new functions 'derived-mode-set-parent'
+and 'derived-mode-all-parents'.
 
 +++
 ** Drag-and-drop functions can now be called once for compound drops.

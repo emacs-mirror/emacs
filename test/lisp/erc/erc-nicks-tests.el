@@ -493,7 +493,7 @@
     (should (equal (erc-nicks--gen-key-from-format-spec "bob")
                    "bob@Libera.Chat/tester"))))
 
-(ert-deftest erc-nicks--create-pool ()
+(ert-deftest erc-nicks--create-culled-pool ()
   (let ((erc-nicks--bg-luminance 1.0)
         (erc-nicks--bg-mode-value 'light)
         (erc-nicks--fg-rgb '(0.0 0.0 0.0))
@@ -502,37 +502,70 @@
         (erc-nicks--colors-rejects '(t)))
 
     ;; Reject
-    (should-not (erc-nicks--create-pool '(erc-nicks-invert) '("white")))
+    (should-not (erc-nicks--create-culled-pool '(erc-nicks-invert) '("white")))
     (should (equal (pop erc-nicks--colors-rejects) "white")) ; too close
-    (should-not (erc-nicks--create-pool '(erc-nicks-cap-contrast) '("black")))
+    (should-not
+     (erc-nicks--create-culled-pool '(erc-nicks-cap-contrast) '("black")))
     (should (equal (pop erc-nicks--colors-rejects) "black")) ; too far
-    (should-not (erc-nicks--create-pool '(erc-nicks-ensaturate) '("white")))
+    (should-not
+     (erc-nicks--create-culled-pool '(erc-nicks-ensaturate) '("white")))
     (should (equal (pop erc-nicks--colors-rejects) "white")) ; lacks color
-    (should-not (erc-nicks--create-pool '(erc-nicks-ensaturate) '("red")))
+    (should-not
+     (erc-nicks--create-culled-pool '(erc-nicks-ensaturate) '("red")))
     (should (equal (pop erc-nicks--colors-rejects) "red")) ; too much color
 
     ;; Safe
-    (should
-     (equal (erc-nicks--create-pool '(erc-nicks-invert) '("black"))
-            '("black")))
-    (should
-     (equal (erc-nicks--create-pool '(erc-nicks-add-contrast) '("black"))
-            '("black")))
-    (should
-     (equal (erc-nicks--create-pool '(erc-nicks-cap-contrast) '("white"))
-            '("white")))
+    (should (equal (erc-nicks--create-culled-pool '(erc-nicks-invert)
+                                                  '("black"))
+                   '("black")))
+    (should (equal (erc-nicks--create-culled-pool '(erc-nicks-add-contrast)
+                                                  '("black"))
+                   '("black")))
+    (should (equal (erc-nicks--create-culled-pool '(erc-nicks-cap-contrast)
+                                                  '("white"))
+                   '("white")))
     (let ((erc-nicks-saturation-range '(0.5 . 1.0)))
-      (should
-       (equal (erc-nicks--create-pool '(erc-nicks-ensaturate) '("green"))
-              '("green"))))
+      (should (equal (erc-nicks--create-culled-pool '(erc-nicks-ensaturate)
+                                                    '("green"))
+                     '("green"))))
     (let ((erc-nicks-saturation-range '(0.0 . 0.5)))
-      (should
-       (equal (erc-nicks--create-pool '(erc-nicks-ensaturate) '("gray"))
-              '("gray"))))
+      (should (equal (erc-nicks--create-culled-pool '(erc-nicks-ensaturate)
+                                                    '("gray"))
+                     '("gray"))))
     (unless noninteractive
-      (should
-       (equal (erc-nicks--create-pool '(erc-nicks-ensaturate) '("firebrick"))
-              '("firebrick"))))
+      (should (equal (erc-nicks--create-culled-pool '(erc-nicks-ensaturate)
+                                                    '("firebrick"))
+                     '("firebrick"))))
+    (should (equal erc-nicks--colors-rejects '(t)))))
+
+(ert-deftest erc-nicks--create-coerced-pool ()
+  (let ((erc-nicks--bg-luminance 1.0)
+        (erc-nicks--bg-mode-value 'light)
+        (erc-nicks--fg-rgb '(0.0 0.0 0.0))
+        (erc-nicks-bg-color "white")
+        (num-colors (length (defined-colors)))
+        ;;
+        (erc-nicks--colors-rejects '(t)))
+
+    ;; Deduplication.
+    (when (= 8 num-colors)
+      (should (equal (erc-nicks--create-coerced-pool '(erc-nicks-ensaturate)
+                                                     '("#ee0000" "#f80000"))
+                     '("red")))
+      (should (equal (pop erc-nicks--colors-rejects) "#f80000")))
+
+    ;; "Coercion" in Xterm.
+    (unless noninteractive
+      (when (= 665 num-colors)
+        (pcase-dolist (`(,adjustments ,candidates ,result)
+                       '(((erc-nicks-invert) ("white") ("gray10"))
+                         ((erc-nicks-cap-contrast) ("black") ("gray20"))
+                         ((erc-nicks-ensaturate) ("white") ("lavenderblush2"))
+                         ((erc-nicks-ensaturate) ("red") ("firebrick"))))
+          (should (equal (erc-nicks--create-coerced-pool adjustments
+                                                         candidates)
+                         result)))))
+
     (should (equal erc-nicks--colors-rejects '(t)))))
 
 ;;; erc-nicks-tests.el ends here

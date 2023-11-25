@@ -34,12 +34,12 @@
 (defun srecode-table (&optional mode)
   "Return the currently active Semantic Recoder table for this buffer.
 Optional argument MODE specifies the mode table to use."
-  (let* ((modeq (or mode major-mode))
-	 (table (srecode-get-mode-table modeq)))
+  (let ((modes (derived-mode-all-parents (or mode major-mode)))
+	(table nil))
 
     ;; If there isn't one, keep searching backwards for a table.
-    (while (and (not table) (setq modeq (get-mode-local-parent modeq)))
-      (setq table (srecode-get-mode-table modeq)))
+    (while (and modes (not (setq table (srecode-get-mode-table (car modes)))))
+      (setq modes (cdr modes)))
 
     ;; Last ditch effort.
     (when (not table)
@@ -57,35 +57,23 @@ Templates are found in the SRecode Template Map.
 See `srecode-get-maps' for more.
 APPNAME is the name of an application.  In this case,
 all template files for that application will be loaded."
-  (let ((files
-	 (apply #'append
-		(mapcar
-		 (if appname
+  (dolist (mmode (cons 'default (reverse (derived-mode-all-parents mmode))))
+    (let ((files
+	   (apply #'append
+		  (mapcar
+		   (if appname
+		       (lambda (map)
+		         (srecode-map-entries-for-app-and-mode map appname mmode))
 		     (lambda (map)
-		       (srecode-map-entries-for-app-and-mode map appname mmode))
-		   (lambda (map)
-		     (srecode-map-entries-for-mode map mmode)))
-		 (srecode-get-maps))))
-	)
-    ;; Don't recurse if we are already the 'default state.
-    (when (not (eq mmode 'default))
-      ;; Are we a derived mode?  If so, get the parent mode's
-      ;; templates loaded too.
-      (if (get-mode-local-parent mmode)
-	  (srecode-load-tables-for-mode (get-mode-local-parent mmode)
-					appname)
-	;; No parent mode, all templates depend on the defaults being
-	;; loaded in, so get that in instead.
-	(srecode-load-tables-for-mode 'default appname)))
+		       (srecode-map-entries-for-mode map mmode)))
+		   (srecode-get-maps)))))
 
-    ;; Load in templates for our major mode.
-    (dolist (f files)
-      (let ((mt (srecode-get-mode-table mmode))
-	    )
-	  (when (or (not mt) (not (srecode-mode-table-find mt (car f))))
-	    (srecode-compile-file (car f)))
-	))
-    ))
+      ;; Load in templates for our major mode.
+      (when files
+	(let ((mt (srecode-get-mode-table mmode)))
+	  (dolist (f files)
+	    (when (not (and mt (srecode-mode-table-find mt (car f))))
+	      (srecode-compile-file (car f)))))))))
 
 ;;; PROJECT
 ;;
@@ -227,12 +215,12 @@ Optional argument MODE is the major mode to look for.
 Optional argument HASH is the hash table to fill in.
 Optional argument PREDICATE can be used to filter the returned
 templates."
-  (let* ((mhash       (or hash (make-hash-table :test 'equal)))
-	 (mmode       (or mode major-mode))
-	 (parent-mode (get-mode-local-parent mmode)))
-    ;; Get the parent hash table filled into our current hash.
-    (unless (eq mode 'default)
-      (srecode-all-template-hash (or parent-mode 'default) mhash))
+  (let* ((mhash       (or hash (make-hash-table :test 'equal))))
+    (dolist (mmode (cons 'default
+	                 ;; Get the parent hash table filled into our
+	                 ;; current hash.
+	                 (reverse (derived-mode-all-parents
+	                           (or mode major-mode)))))
 
     ;; Load up the hash table for our current mode.
     (let* ((mt   (srecode-get-mode-table mmode))
@@ -246,7 +234,7 @@ templates."
 			       (funcall predicate temp))
 		       (puthash key temp mhash)))
 		   (oref tab namehash))))
-      mhash)))
+      mhash))))
 
 (defun srecode-calculate-default-template-string (hash)
   "Calculate the name of the template to use as a DEFAULT.

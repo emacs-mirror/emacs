@@ -441,7 +441,10 @@ as an integer unless JUNK-ALLOWED is non-nil."
 ;; Random numbers.
 
 (defun cl--random-time ()
-  (car (time-convert nil t)))
+    "Return high-precision timestamp from `time-convert'.
+
+For example, suitable for use as seed by `cl-make-random-state'."
+    (car (time-convert nil t)))
 
 ;;;###autoload (autoload 'cl-random-state-p "cl-extra")
 (cl-defstruct (cl--random-state
@@ -734,7 +737,11 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 (declare-function help-fns-short-filename "help-fns" (filename))
 
 ;;;###autoload
-(defun cl-find-class (type) (cl--find-class type))
+(defun cl-find-class (type)
+    "Return CL class of TYPE.
+
+Call `cl--find-class' to get TYPE's propname `cl--class'"
+  (cl--find-class type))
 
 ;;;###autoload
 (defun cl-describe-type (type)

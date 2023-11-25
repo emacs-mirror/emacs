@@ -115,14 +115,20 @@
   (setq erc-away 1)
   (erc-tests--set-fake-server-process "sleep" "1")
 
-  (let (calls)
-    (advice-add 'buffer-local-value :after (lambda (&rest r) (push r calls))
+  (let (mockingp calls)
+    (advice-add 'buffer-local-value :after
+                (lambda (&rest r) (when mockingp (push r calls)))
                 '((name . erc-with-server-buffer)))
 
-    (should (= 1 (erc-with-server-buffer erc-away)))
+    (should (= 1 (prog2 (setq mockingp t)
+                     (erc-with-server-buffer erc-away)
+                   (setq mockingp nil))))
+
     (should (equal (pop calls) (list 'erc-away (current-buffer))))
 
-    (should (= 1 (erc-with-server-buffer (ignore 'me) erc-away)))
+    (should (= 1 (prog2 (setq mockingp t)
+                     (erc-with-server-buffer (ignore 'me) erc-away)
+                   (setq mockingp nil))))
     (should-not calls)
 
     (advice-remove 'buffer-local-value 'erc-with-server-buffer)))
@@ -181,101 +187,101 @@
       (with-current-buffer "ServNet"
         (should (= (point) erc-insert-marker))
         (erc--hide-prompt erc-server-process)
-        (should (string= ">" (get-text-property (point) 'display))))
+        (should (string= ">" (get-char-property (point) 'display))))
 
       (with-current-buffer "#chan"
         (goto-char erc-insert-marker)
-        (should (string= ">" (get-text-property (point) 'display)))
+        (should (string= ">" (get-char-property (point) 'display)))
         (should (memq #'erc--unhide-prompt-on-self-insert pre-command-hook))
         (goto-char erc-input-marker)
         (ert-simulate-command '(self-insert-command 1 ?/))
         (goto-char erc-insert-marker)
-        (should-not (get-text-property (point) 'display))
+        (should-not (get-char-property (point) 'display))
         (should-not (memq #'erc--unhide-prompt-on-self-insert
                           pre-command-hook)))
 
       (with-current-buffer "bob"
         (goto-char erc-insert-marker)
-        (should (string= ">" (get-text-property (point) 'display)))
+        (should (string= ">" (get-char-property (point) 'display)))
         (should (memq #'erc--unhide-prompt-on-self-insert pre-command-hook))
         (goto-char erc-input-marker)
         (ert-simulate-command '(self-insert-command 1 ?/))
         (goto-char erc-insert-marker)
-        (should-not (get-text-property (point) 'display))
+        (should-not (get-char-property (point) 'display))
         (should-not (memq #'erc--unhide-prompt-on-self-insert
                           pre-command-hook)))
 
       (with-current-buffer "ServNet"
-        (should (get-text-property erc-insert-marker 'display))
+        (should (get-char-property erc-insert-marker 'display))
         (should (memq #'erc--unhide-prompt-on-self-insert pre-command-hook))
         (erc--unhide-prompt)
         (should-not (memq #'erc--unhide-prompt-on-self-insert
                           pre-command-hook))
-        (should-not (get-text-property erc-insert-marker 'display))))
+        (should-not (get-char-property erc-insert-marker 'display))))
 
     (ert-info ("Value: server")
       (setq erc-hide-prompt '(server))
       (with-current-buffer "ServNet"
         (erc--hide-prompt erc-server-process)
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) 'hidden))
-        (should (string= ">" (get-text-property erc-insert-marker 'display))))
+        (should (string= ">" (get-char-property erc-insert-marker 'display))))
 
       (with-current-buffer "#chan"
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "bob"
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "ServNet"
         (erc--unhide-prompt)
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) t))
-        (should-not (get-text-property erc-insert-marker 'display))))
+        (should-not (get-char-property erc-insert-marker 'display))))
 
     (ert-info ("Value: channel")
       (setq erc-hide-prompt '(channel))
       (with-current-buffer "ServNet"
         (erc--hide-prompt erc-server-process)
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "bob"
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "#chan"
-        (should (string= ">" (get-text-property erc-insert-marker 'display)))
+        (should (string= ">" (get-char-property erc-insert-marker 'display)))
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) 'hidden))
         (erc--unhide-prompt)
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) t))
-        (should-not (get-text-property erc-insert-marker 'display))))
+        (should-not (get-char-property erc-insert-marker 'display))))
 
     (ert-info ("Value: query")
       (setq erc-hide-prompt '(query))
       (with-current-buffer "ServNet"
         (erc--hide-prompt erc-server-process)
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "bob"
-        (should (string= ">" (get-text-property erc-insert-marker 'display)))
+        (should (string= ">" (get-char-property erc-insert-marker 'display)))
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) 'hidden))
         (erc--unhide-prompt)
         (should (eq (get-text-property erc-insert-marker 'erc-prompt) t))
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "#chan"
-        (should-not (get-text-property erc-insert-marker 'display))))
+        (should-not (get-char-property erc-insert-marker 'display))))
 
     (ert-info ("Value: nil")
       (setq erc-hide-prompt nil)
       (with-current-buffer "ServNet"
         (erc--hide-prompt erc-server-process)
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "bob"
-        (should-not (get-text-property erc-insert-marker 'display)))
+        (should-not (get-char-property erc-insert-marker 'display)))
 
       (with-current-buffer "#chan"
-        (should-not (get-text-property erc-insert-marker 'display))
+        (should-not (get-char-property erc-insert-marker 'display))
         (erc--unhide-prompt) ; won't blow up when prompt already showing
-        (should-not (get-text-property erc-insert-marker 'display))))
+        (should-not (get-char-property erc-insert-marker 'display))))
 
     (when noninteractive
       (kill-buffer "#chan")
@@ -317,7 +323,7 @@
         (insert "Howdy")
         (erc-send-current-line)
         (save-excursion (forward-line -1)
-                        (should (looking-at "No target"))
+                        (should (looking-at (rx "*** No target")))
                         (forward-line -1)
                         (should (looking-at "<tester> Howdy")))
         (should (looking-back "ServNet 6> "))
@@ -642,6 +648,247 @@
       (should (equal '("abc" "!123@" "xy") (erc-parse-user "abc!!123@@xy")))
 
       (should (equal '("de" "" "fg@xy") (erc-parse-user "abc\nde!fg@xy"))))))
+
+(ert-deftest erc--parsed-prefix ()
+  (erc-mode)
+  (erc-tests--set-fake-server-process "sleep" "1")
+  (setq erc--isupport-params (make-hash-table))
+
+  ;; Uses fallback values when no PREFIX parameter yet received, thus
+  ;; ensuring caller can use slot accessors immediately intead of
+  ;; checking if null beforehand.
+  (should-not erc--parsed-prefix)
+  (should (equal (erc--parsed-prefix)
+                 #s(erc--parsed-prefix nil "qaohv" "~&@%+"
+                                       ((?q . ?~) (?a . ?&)
+                                        (?o . ?@) (?h . ?%) (?v . ?+)))))
+  (let ((cached (should erc--parsed-prefix)))
+    (should (eq (erc--parsed-prefix) cached)))
+
+  ;; Cache broken.  (Notice not setting `erc--parsed-prefix' to nil).
+  (setq erc-server-parameters '(("PREFIX" . "(Yqaohv)!~&@%+")))
+
+  (let ((proc erc-server-process)
+        (expected '((?Y . ?!) (?q . ?~) (?a . ?&)
+                    (?o . ?@) (?h . ?%) (?v . ?+)))
+        cached)
+
+    (with-temp-buffer
+      (erc-mode)
+      (setq erc-server-process proc)
+      (should (equal expected
+                     (erc--parsed-prefix-alist (erc--parsed-prefix)))))
+
+    (should (equal expected (erc--parsed-prefix-alist erc--parsed-prefix)))
+    (setq cached erc--parsed-prefix)
+    (should (equal cached
+                   #s(erc--parsed-prefix ("(Yqaohv)!~&@%+") "Yqaohv" "!~&@%+"
+                                         ((?Y . ?!) (?q . ?~) (?a . ?&)
+                                          (?o . ?@) (?h . ?%) (?v . ?+)))))
+    ;; Second target buffer reuses cached value.
+    (with-temp-buffer
+      (erc-mode)
+      (setq erc-server-process proc)
+      (should (eq cached (erc--parsed-prefix))))
+
+    ;; New value computed when cache broken.
+    (puthash 'PREFIX (list "(Yqaohv)!~&@%+") erc--isupport-params)
+    (with-temp-buffer
+      (erc-mode)
+      (setq erc-server-process proc)
+      (should-not (eq cached (erc--parsed-prefix)))
+      (should (equal (erc--parsed-prefix-alist
+                      (erc-with-server-buffer erc--parsed-prefix))
+                     expected)))))
+
+;; This exists as a reference to assert legacy behavior in order to
+;; preserve and incorporate it as a fallback in the 5.6+ replacement.
+(ert-deftest erc-parse-modes ()
+  (with-suppressed-warnings ((obsolete erc-parse-modes))
+    (should (equal (erc-parse-modes "+u") '(("u") nil nil)))
+    (should (equal (erc-parse-modes "-u") '(nil ("u") nil)))
+    (should (equal (erc-parse-modes "+o bob") '(nil nil (("o" on "bob")))))
+    (should (equal (erc-parse-modes "-o bob") '(nil nil (("o" off "bob")))))
+    (should (equal (erc-parse-modes "+uo bob") '(("u") nil (("o" on "bob")))))
+    (should (equal (erc-parse-modes "+o-u bob") '(nil ("u") (("o" on "bob")))))
+    (should (equal (erc-parse-modes "+uo-tv bob alice")
+                   '(("u") ("t") (("o" on "bob") ("v" off "alice")))))
+
+    (ert-info ("Modes of type B are always grouped as unary")
+      (should (equal (erc-parse-modes "+k h2") '(nil nil (("k" on "h2")))))
+      ;; Channel key args are thrown away.
+      (should (equal (erc-parse-modes "-k *") '(nil nil (("k" off nil))))))
+
+    (ert-info ("Modes of type C are grouped as unary even when disabling")
+      (should (equal (erc-parse-modes "+l 3") '(nil nil (("l" on "3")))))
+      (should (equal (erc-parse-modes "-l") '(nil nil (("l" off nil))))))))
+
+(ert-deftest erc--update-channel-modes ()
+  (erc-mode)
+  (setq erc-channel-users (make-hash-table :test #'equal)
+        erc-server-users (make-hash-table :test #'equal)
+        erc--isupport-params (make-hash-table)
+        erc--target (erc--target-from-string "#test"))
+  (erc-tests--set-fake-server-process "sleep" "1")
+
+  (let ((orig-handle-fn (symbol-function 'erc--handle-channel-mode))
+        calls)
+    (cl-letf (((symbol-function 'erc--handle-channel-mode)
+               (lambda (&rest r) (push r calls) (apply orig-handle-fn r)))
+              ((symbol-function 'erc-update-mode-line) #'ignore))
+
+      (ert-info ("Unknown user not created")
+        (erc--update-channel-modes "+o" "bob")
+        (should-not (erc-get-channel-user "bob")))
+
+      (ert-info ("Status updated when user known")
+        (puthash "bob" (cons (erc-add-server-user
+                              "bob" (make-erc-server-user :nickname "bob"))
+                             (make-erc-channel-user))
+                 erc-channel-users)
+        ;; Also asserts fallback behavior for traditional prefixes.
+        (should-not (erc-channel-user-op-p "bob"))
+        (erc--update-channel-modes "+o" "bob")
+        (should (erc-channel-user-op-p "bob"))
+        (erc--update-channel-modes "-o" "bob") ; status revoked
+        (should-not (erc-channel-user-op-p "bob")))
+
+      (ert-info ("Unknown nullary added and removed")
+        (should-not erc--channel-modes)
+        (should-not erc-channel-modes)
+        (erc--update-channel-modes "+u")
+        (should (equal erc-channel-modes '("u")))
+        (should (eq t (gethash ?u erc--channel-modes)))
+        (should (equal (pop calls) '(?d ?u t nil)))
+        (erc--update-channel-modes "-u")
+        (should (equal (pop calls) '(?d ?u nil nil)))
+        (should-not (gethash ?u erc--channel-modes))
+        (should-not erc-channel-modes)
+        (should-not calls))
+
+      (ert-info ("Fallback for Type B includes mode letter k")
+        (erc--update-channel-modes "+k" "h2")
+        (should (equal (pop calls) '(?b ?k t "h2")))
+        (should-not erc-channel-modes)
+        (should (equal "h2" (gethash ?k erc--channel-modes)))
+        (erc--update-channel-modes "-k" "*")
+        (should (equal (pop calls) '(?b ?k nil "*")))
+        (should-not calls)
+        (should-not (gethash ?k erc--channel-modes))
+        (should-not erc-channel-modes))
+
+      (ert-info ("Fallback for Type C includes mode letter l")
+        (erc--update-channel-modes "+l" "3")
+        (should (equal (pop calls) '(?c ?l t "3")))
+        (should-not erc-channel-modes)
+        (should (equal "3" (gethash ?l erc--channel-modes)))
+        (erc--update-channel-modes "-l" nil)
+        (should (equal (pop calls) '(?c ?l nil nil)))
+        (should-not (gethash ?l erc--channel-modes))
+        (should-not erc-channel-modes))
+
+      (ert-info ("Advertised supersedes heuristics")
+        (setq erc-server-parameters
+              '(("PREFIX" . "(ov)@+")
+                ;; Add phony 5th type for this CHANMODES value for
+                ;; robustness in case some server gets creative.
+                ("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz,FAKE")))
+        (erc--update-channel-modes "+qu" "fool!*@*")
+        (should (equal (pop calls) '(?d ?u t nil)))
+        (should (equal (pop calls) '(?a ?q t "fool!*@*")))
+        (should (equal 1 (gethash ?q erc--channel-modes)))
+        (should (eq t (gethash ?u erc--channel-modes)))
+        (should (equal erc-channel-modes '("u")))
+        (should-not (erc-channel-user-owner-p "bob"))
+
+        ;; Remove fool!*@* from list mode "q".
+        (erc--update-channel-modes "-uq" "fool!*@*")
+        (should (equal (pop calls) '(?a ?q nil "fool!*@*")))
+        (should (equal (pop calls) '(?d ?u nil nil)))
+        (should-not (gethash ?u erc--channel-modes))
+        (should-not erc-channel-modes)
+        (should (equal 0 (gethash ?q erc--channel-modes))))
+
+      (should-not calls))))
+
+(ert-deftest erc--channel-modes ()
+  (setq erc--isupport-params (make-hash-table)
+        erc--target (erc--target-from-string "#test")
+        erc-server-parameters
+        '(("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz")))
+
+  (erc-tests--set-fake-server-process "sleep" "1")
+
+  (cl-letf (((symbol-function 'erc-update-mode-line) #'ignore))
+    (erc--update-channel-modes "+bltk" "fool!*@*" "3" "h2"))
+
+  (should (equal (erc--channel-modes 'string) "klt"))
+  (should (equal (erc--channel-modes 'strings) '("k" "l" "t")))
+  (should (equal (erc--channel-modes) '((?k . "h2") (?l . "3") (?t))))
+  (should (equal (erc--channel-modes 3 ",") "klt h2,3"))
+
+  ;; Truncation cache populated and used.
+  (let ((cache (erc--channel-mode-types-shortargs erc--channel-mode-types))
+        first-run)
+    (should (zerop (hash-table-count cache)))
+    (should (equal (erc--channel-modes 1 ",") "klt h,3"))
+    (should (equal (setq first-run (map-pairs cache)) '(((1 ?k "h2") . "h"))))
+    (cl-letf (((symbol-function 'truncate-string-to-width)
+               (lambda (&rest _) (ert-fail "Shouldn't run"))))
+      (should (equal (erc--channel-modes 1 ",") "klt h,3")))
+    ;; Same key for only entry matches that of first result.
+    (should (pcase (map-pairs cache)
+              ((and '(((1 ?k "h2") . "h")) second-run)
+               (eq (pcase first-run (`((,k . ,_)) k))
+                   (pcase second-run (`((,k . ,_)) k)))))))
+
+  (should (equal (erc--channel-modes 0 ",") "klt ,"))
+  (should (equal (erc--channel-modes 2) "klt h2 3"))
+  (should (equal (erc--channel-modes 1) "klt h 3"))
+  (should (equal (erc--channel-modes 0) "klt  "))) ; 2 spaces
+
+(ert-deftest erc--update-user-modes ()
+  (let ((erc--user-modes (list ?a)))
+    (should (equal (erc--update-user-modes "+a") '(?a)))
+    (should (equal (erc--update-user-modes "-b") '(?a)))
+    (should (equal erc--user-modes '(?a))))
+
+  (let ((erc--user-modes (list ?b)))
+    (should (equal (erc--update-user-modes "+ac") '(?a ?b ?c)))
+    (should (equal (erc--update-user-modes "+a-bc") '(?a)))
+    (should (equal erc--user-modes '(?a)))))
+
+(ert-deftest erc--user-modes ()
+  (let ((erc--user-modes '(?a ?b)))
+    (should (equal (erc--user-modes) '(?a ?b)))
+    (should (equal (erc--user-modes 'string) "ab"))
+    (should (equal (erc--user-modes 'strings) '("a" "b")))))
+
+(ert-deftest erc--parse-user-modes ()
+  (should (equal (erc--parse-user-modes "a" '(?a)) '(() ())))
+  (should (equal (erc--parse-user-modes "+a" '(?a)) '(() ())))
+  (should (equal (erc--parse-user-modes "a" '()) '((?a) ())))
+  (should (equal (erc--parse-user-modes "+a" '()) '((?a) ())))
+  (should (equal (erc--parse-user-modes "-a" '()) '(() ())))
+  (should (equal (erc--parse-user-modes "-a" '(?a)) '(() (?a))))
+
+  (should (equal (erc--parse-user-modes "+a-b" '(?a)) '(() ())))
+  (should (equal (erc--parse-user-modes "+a-b" '(?b)) '((?a) (?b))))
+  (should (equal (erc--parse-user-modes "+ab-c" '(?b)) '((?a) ())))
+  (should (equal (erc--parse-user-modes "+ab-c" '(?b ?c)) '((?a) (?c))))
+  (should (equal (erc--parse-user-modes "+a-c+b" '(?b ?c)) '((?a) (?c))))
+  (should (equal (erc--parse-user-modes "-c+ab" '(?b ?c)) '((?a) (?c))))
+
+  ;; Param `extrap' returns groups of redundant chars.
+  (should (equal (erc--parse-user-modes "+a" '() t) '((?a) () () ())))
+  (should (equal (erc--parse-user-modes "+a" '(?a) t) '(() () (?a) ())))
+  (should (equal (erc--parse-user-modes "-a" '() t) '(() () () (?a))))
+  (should (equal (erc--parse-user-modes "-a" '(?a) t) '(() (?a) () ())))
+
+  (should (equal (erc--parse-user-modes "+a-b" '(?a) t) '(() () (?a) (?b))))
+  (should (equal (erc--parse-user-modes "-b+a" '(?a) t) '(() () (?a) (?b))))
+  (should (equal (erc--parse-user-modes "+a-b" '(?b) t) '((?a) (?b) () ())))
+  (should (equal (erc--parse-user-modes "-b+a" '(?b) t) '((?a) (?b) () ()))))
 
 (ert-deftest erc--parse-isupport-value ()
   (should (equal (erc--parse-isupport-value "a,b") '("a" "b")))
@@ -1634,6 +1881,18 @@
              (buffer-substring 1 4)
              #("ghi" 0 1 (erc-test (w x)) 1 2 (erc-test (w x y z)))))
 
+    ;; Flag `erc--merge-prop-behind-p'.
+    (goto-char (point-min))
+    (insert "jkl\n")
+    (erc--merge-prop 2 3 'erc-test '(y z))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("jkl" 1 2 (erc-test (y z)))))
+    (let ((erc--merge-prop-behind-p t))
+      (erc--merge-prop 1 3 'erc-test '(w x)))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4)
+             #("jkl" 0 1 (erc-test (w x)) 1 2 (erc-test (y z w x)))))
+
     (when noninteractive
       (kill-buffer))))
 
@@ -2543,7 +2802,8 @@
     (kill-buffer "#chan")))
 
 (defconst erc-tests--modules
-  '( autoaway autojoin bufbar button capab-identify completion dcc fill identd
+  '( autoaway autojoin bufbar button capab-identify
+     command-indicator completion dcc fill identd
      imenu irccontrols keep-place list log match menu move-to-prompt netsplit
      networks nickbar nicks noncommands notifications notify page readonly
      replace ring sasl scrolltobottom services smiley sound

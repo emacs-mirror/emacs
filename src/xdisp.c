@@ -3766,18 +3766,25 @@ start_display (struct it *it, struct window *w, struct text_pos pos)
 
   /* Don't reseat to previous visible line start if current start
      position is in a string or image.  */
-  if (it->method == GET_FROM_BUFFER && it->line_wrap != TRUNCATE)
+  if (it->line_wrap != TRUNCATE)
     {
-      int first_y = it->current_y;
+      enum it_method method = it->method;
 
-      /* If window start is not at a line start, skip forward to POS to
-	 get the correct continuation lines width.  */
+      /* If window start is not at a line start, skip forward to POS
+	 from the beginning of physical line to get the correct
+	 continuation lines width.  */
       bool start_at_line_beg_p = (CHARPOS (pos) == BEGV
 				  || FETCH_BYTE (BYTEPOS (pos) - 1) == '\n');
       if (!start_at_line_beg_p)
 	{
+	  int first_y = it->current_y;
+	  int continuation_width;
+	  void *itdata = NULL;
+	  struct it it2;
 	  int new_x;
 
+	  if (method != GET_FROM_BUFFER)
+	    SAVE_IT (it2, *it, itdata);
 	  reseat_at_previous_visible_line_start (it);
 	  move_it_to (it, CHARPOS (pos), -1, -1, -1, MOVE_TO_POS);
 
@@ -3823,6 +3830,17 @@ start_display (struct it *it, struct window *w, struct text_pos pos)
 	     dpvec_index to the beginning of IT->dpvec.  */
 	  else if (it->current.dpvec_index >= 0)
 	    it->current.dpvec_index = 0;
+
+	  continuation_width = it->continuation_lines_width;
+	  /* If we started from a position in something other than a
+             buffer, restore the original iterator state, keeping only
+             the continuation_lines_width, since we could now be very
+             far from the original position.  */
+	  if (method != GET_FROM_BUFFER)
+	    {
+	      RESTORE_IT (it, &it2, itdata);
+	      it->continuation_lines_width = continuation_width;
+	    }
 
 	  /* We're starting a new display line, not affected by the
 	     height of the continued line, so clear the appropriate

@@ -1,26 +1,27 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 2023 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Other Input Devices
-@appendix Emacs and Unconventional Input Devices
+@node Other Input
+@section Touchscreen Input and Virtual Keyboards
 @cindex other input devices
 
-  Emacs was originally developed with the assumption that its users
-have access to a desktop computer or computer terminal, with a
-keyboard and perhaps a suitable pointing device such as a mouse.
+  Emacs was first written assuming that its users were to use it from
+a desktop computer or computer terminal, equipped with a keyboard and
+perhaps a suitable pointing device such as a mouse (@pxref{Mouse
+Input}).
 
-  However, recent developments in the X Window System and operating
-systems such as Android mean that this assumption no longer holds
-true.  Emacs supports input from various other kinds of input devices,
-which is detailed here.
+  Emacs is also capable of receiving input from alternative sources of
+input, enabling users to interact with it even if it is installed on a
+computer that substitutes such input sources for the customary
+combination of keyboard and mouse.
 
 @menu
-* Touchscreens::                Using Emacs on touchscreens.
-* On-Screen Keyboards::         Using Emacs with virtual keyboards.
+* Touchscreens::                Interacting with Emacs from touchscreens.
+* On-Screen Keyboards::         Text input with virtual keyboards.
 @end menu
 
 @node Touchscreens
-@section Using Emacs on Touchscreens
+@subsection Using Emacs on Touchscreens
 @cindex touchscreen input
 
   Touchscreen input is the manipulation of a frame's contents by the
@@ -28,9 +29,11 @@ placement and motion of tools (instanced by fingers and such pointing
 devices as styluses) on a monitor or computer terminal where it is
 displayed.
 
-  Under the X Window System or Android, Emacs detects and translates
-the following sequences of movements (@dfn{gestures}) to common
-actions:
+  Two factors, the order and position on which such tools are placed,
+are compared against predefined patterns dubbed @dfn{gestures}, after
+which any gesture those factors align with designates a series of
+actions to be taken on the text beneath the tools; the gestures
+presently recognized are:
 
 @itemize @bullet
 @item
@@ -88,6 +91,13 @@ indicating the position of the point within the echo area.  If
 surrounding point is displayed in the echo area (@pxref{Echo Area})
 during the motion of the tool, below which is another line indicating
 the position of point relative to the first.
+
+@item
+@cindex pinching, touchscreens
+  @dfn{Pinching}, the placement of two tools apart on the screen
+followed by adjustments to their position such as to increase or
+decrease the distance between them will modify the text scale
+(@pxref{Text Scale}) in proportion to the change in that distance.
 @end itemize
 
 @vindex touch-screen-delay
@@ -96,84 +106,87 @@ upon the screen exceeds 0.7 seconds.  This delay can be adjusted
 through customizing the variable @code{touch-screen-delay}.
 
 @node On-Screen Keyboards
-@section Using Emacs with Virtual Keyboards
+@subsection Using Emacs with Virtual Keyboards
 @cindex virtual keyboards
 @cindex on-screen keyboards
 
-  When there is no physical keyboard attached to a system, the
-windowing system typically provides an on-screen keyboard, more often
-known as a ``virtual keyboard'', containing rows of clickable buttons
-that send keyboard input to the application, much like a real keyboard
-would.  This virtual keyboard is hidden by default, as it uses up
-valuable on-screen real estate, and must be opened once the program
-being used is ready to accept keyboard input.
+  When there is no physical keyboard attached to a system, its
+windowing system might provide an on-screen keyboard, widely known as
+a ``virtual keyboard'', containing rows of clickable buttons that send
+keyboard input to the application, much as a real keyboard would.
 
-  Under the X Window System, the client that provides the on-screen
-keyboard typically detects when the application is ready to accept
-keyboard input through a set of complex heuristics, and automatically
-displays the keyboard when necessary.
-
-  On other systems such as Android, Emacs must tell the system when it
-is ready to accept keyboard input.  Typically, this is done in
-response to a touchscreen ``tap'' gesture (@pxref{Touchscreens}), or
-once to the minibuffer becomes in use (@pxref{Minibuffer}.)
+  This virtual keyboard is hidden when the focused program is not
+requesting text input as it occupies scarce space on display, and
+programs are therefore enjoined to display it once they are ready to
+accept keyboard input.  Systems running X detect when the presence of
+the virtual keyboard is warranted, but on others such as Android Emacs
+is responsible for displaying it when need be, generally in reaction
+to a touch screen ``tap'' gesture (@pxref{Touchscreens}) or the
+minibuffer being brought into use (@pxref{Minibuffer}).
 
 @vindex touch-screen-set-point-commands
   When a ``tap'' gesture results in a command being executed, Emacs
-checks to see whether or not the command is supposed to set the point
-by looking for it in the list @code{touch-screen-set-point-commands}.
-If it is, then Emacs looks up whether or not the text under the point
-is read-only; if not, it activates the on-screen keyboard, assuming
-that the user is about to enter text in to the current buffer.
+checks whether the command is meant to set the point by searching for
+it in the list @code{touch-screen-set-point-commands}.  If it is and
+the text beneath the new point is not read-only, it activates the
+virtual keyboard, in anticipation that the user is about to enter text
+there.
+
+  The default value of @code{touch-screen-set-point-commands} holds
+only the command @code{mouse-set-point} (@pxref{Mouse Commands}),
+which is the default binding of @code{mouse-1}, and thus of
+touchscreen tap gestures as well.
 
 @vindex touch-screen-display-keyboard
-  The user option @code{touch-screen-display-keyboard} forces Emacs to
-always display the on screen keyboard; it may also be set buffer
-locally, which means that Emacs should always display the keyboard
-when the buffer is selected.
+  The user option @code{touch-screen-display-keyboard} compels Emacs
+to display the virtual keyboard on such taps even if the text is read
+only; it may also be set buffer locally, in which case Emacs will
+always display the keyboard in response to a tap on a window
+displaying the buffer it is set in.
 
-  Emacs also provides a set of functions to show or hide the on-screen
-keyboard.  For more details, @pxref{On-Screen Keyboards,,, elisp, The
+  There are moreover several functions to show or hide the on-screen
+keyboard.  For more details, @xref{On-Screen Keyboards,,, elisp, The
 Emacs Lisp Reference Manual}.
 
 @cindex quitting, without a keyboard
-  Since it may not be possible for Emacs to display the on screen
+  Since it may not be possible for Emacs to display the virtual
 keyboard while it is executing a command, Emacs implements a feature
-on devices with only an on-screen keyboard, by which two rapid clicks
-of a hardware button that is always present on the device results in
-Emacs quitting.  @xref{Quitting}.
+on window systems frequently equipped with no physical keyboard, by
+which two rapid clicks of a hardware button that is always present on
+the device induces a quit.  @xref{Quitting}.
 
 @vindex x-quit-keysym
-  The button afforded such special treatment varies; under X, no such
-button exists by default, but one can be configured through the
-variable @code{x-quit-keysym}, whereas under Android it is always the
-volume down buttons.
+  No such button is enabled on X, but one can be configured through
+the variable @code{x-quit-keysym}.  On Android this button is always
+the volume down button.
 
 @cindex text conversion, keyboards
-  Most input methods designed to work with on-screen keyboards perform
-buffer edits differently from desktop input methods.
+  Most input methods designed to work with virtual keyboards edit text
+differently from desktop input methods.
 
   On a conventional desktop windowing system, an input method will
-simply display the contents of any on going character compositions on
-screen, and send the appropriate key events to Emacs after completion.
+simply display the contents of any ongoing character composition on
+screen, and send key events reflecting its contents to Emacs after it
+is confirmed by the user.
 
-  However, on screen keyboard input methods directly perform edits to
-the selected window of each frame; this is known as ``text
+  By contrast, virtual keyboard input methods directly perform edits
+to the selected window of each frame; this is known as ``text
 conversion'', or ``string conversion'' under the X Window System.
-Emacs enables these input methods whenever the buffer local value of
-@code{text-conversion-style} is non-@code{nil}, normally inside
-derivatives of @code{text-mode} and @code{prog-mode}.
+
+  Emacs enables these input methods whenever the buffer local value of
+@code{text-conversion-style} is non-@code{nil}, that is to say,
+generally inside derivatives of @code{text-mode} and @code{prog-mode}.
 
   Text conversion is performed asynchronously whenever Emacs receives
 a request to perform the conversion from the input method, and Emacs
 is not currently reading a key sequence for which one prefix key has
-already been read (@pxref{Keys}.)  After the conversion completes, a
+already been read (@pxref{Keys}).  After the conversion completes, a
 @code{text-conversion} event is sent.  @xref{Misc Events,,, elisp, the
 Emacs Reference Manual}.
 
 @vindex text-conversion-face
   If the input method needs to work on a region of the buffer, then
-the region becomes known as the ``composing region'' (or
-``preconversion region''.)  The variable @code{text-conversion-face}
-describes whether or not to display the composing region in a specific
-face.
+the region is designated the ``composing region'' (or ``preconversion
+region'').  The variable @code{text-conversion-face} controls whether
+to display the composing region in a distinctive face, and if so,
+which face to employ.

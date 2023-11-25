@@ -618,7 +618,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; with `jka-compr-handler', so we cannot trust its result as
       ;; indication for a remote file name.
       (if-let ((tmpfile
-		(and (file-remote-p filename) (file-local-copy filename))))
+		(and (tramp-tramp-file-p filename) (file-local-copy filename))))
 	  ;; Remote filename.
 	  (condition-case err
 	      (rename-file tmpfile newname ok-if-already-exists)
@@ -972,20 +972,19 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 ;; files.
 (defun tramp-smb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (ignore-error file-missing
+  (tramp-skeleton-file-name-all-completions filename directory
     (all-completions
      filename
      (when (file-directory-p directory)
        (with-parsed-tramp-file-name (expand-file-name directory) nil
 	 (with-tramp-file-property v localname "file-name-all-completions"
-	   (delete-dups
-	    (mapcar
-	     (lambda (x)
-	       (list
-		(if (tramp-compat-string-search "d" (nth 1 x))
-		    (file-name-as-directory (nth 0 x))
-		  (nth 0 x))))
-	     (tramp-smb-get-file-entries directory)))))))))
+	   (mapcar
+	    (lambda (x)
+	      (list
+	       (if (tramp-compat-string-search "d" (nth 1 x))
+		   (file-name-as-directory (nth 0 x))
+		 (nth 0 x))))
+	    (tramp-smb-get-file-entries directory))))))))
 
 (defun tramp-smb-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."

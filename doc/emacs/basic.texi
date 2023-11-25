@@ -360,15 +360,15 @@ preserve the horizontal position, as usual.
 
 @vindex line-move-visual
   When a line of text in the buffer is longer than the width of the
-window, Emacs usually displays it on two or more @dfn{screen lines}.
-For convenience, @kbd{C-n} and @kbd{C-p} move point by screen lines,
-as do the equivalent keys @kbd{@key{down}} and @kbd{@key{up}}.  You
-can force these commands to move according to @dfn{logical lines}
-(i.e., according to the text lines in the buffer) by setting the
-variable @code{line-move-visual} to @code{nil}; if a logical line
-occupies multiple screen lines, the cursor then skips over the
-additional screen lines.  For details, see @ref{Continuation Lines}.
-@xref{Variables}, for how to set variables such as
+window, Emacs usually displays it on two or more @dfn{screen lines},
+a.k.a.@: @dfn{visual lines}.  For convenience, @kbd{C-n} and @kbd{C-p}
+move point by screen lines, as do the equivalent keys @kbd{@key{down}}
+and @kbd{@key{up}}.  You can force these commands to move according to
+@dfn{logical lines} (i.e., according to the text lines in the buffer)
+by setting the variable @code{line-move-visual} to @code{nil}; if a
+logical line occupies multiple screen lines, the cursor then skips
+over the additional screen lines.  For details, see @ref{Continuation
+Lines}.  @xref{Variables}, for how to set variables such as
 @code{line-move-visual}.
 
   Unlike @kbd{C-n} and @kbd{C-p}, most of the Emacs commands that work
@@ -596,10 +596,13 @@ lines, if any exists.
 @cindex wrapping
 @cindex line wrapping
 @cindex fringes, and continuation lines
+@cindex logical line
+@cindex screen line
+@cindex visual line
   Sometimes, a line of text in the buffer---a @dfn{logical line}---is
 too long to fit in the window, and Emacs displays it as two or more
-@dfn{screen lines}.  This is called @dfn{line wrapping} or
-@dfn{continuation}, and the long logical line is called a
+@dfn{screen lines}, or @dfn{visual lines}.  This is called @dfn{line
+wrapping} or @dfn{continuation}, and the long logical line is called a
 @dfn{continued line}.  On a graphical display, Emacs indicates line
 wrapping with small bent arrows in the left and right window fringes.
 On a text terminal, Emacs indicates line wrapping by displaying a

@@ -23,6 +23,28 @@ const foo = () => {
 }
 =-=-=
 
+Name: Statement indentation without braces
+
+=-=
+const foo = () => {
+  if (true)
+    console.log("if_statement");
+  else if (false)
+    console.log("if_statement");
+  else
+    console.log("else_clause");
+  for (let i = 0; i < 1; i++)
+    console.log("for_statement");
+  for (let i of [true])
+    console.log("for_in_statement");
+  while (false)
+    console.log("while_statement");
+  do
+    console.log("do_statement");
+  while (false)
+};
+=-=-=
+
 Code:
   (lambda ()
     (setq indent-tabs-mode nil)

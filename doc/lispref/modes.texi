@@ -932,10 +932,40 @@ Do not write an @code{interactive} spec in the definition;
 @code{define-derived-mode} does that automatically.
 @end defmac
 
-@defun derived-mode-p &rest modes
+@defun derived-mode-p modes
 This function returns non-@code{nil} if the current major mode is
-derived from any of the major modes given by the symbols @var{modes}.
+derived from any of the major modes given by the list of symbols
+in @var{modes}.
+Instead of a list, @var{modes} can also be a single mode symbol.
+
+Furthermore, we still support a deprecated calling convention where the
+@var{modes} were passed as separate arguments.
 @end defun
+
+The graph of major modes is accessed with the following lower-level
+functions:
+
+@defun derived-mode-set-parent mode parent
+This function declares that @var{mode} inherits from @code{parent}.
+This is the function that @code{define-derived-mode} calls after
+defining @var{mode} to register the fact that @var{mode} was defined
+by reusing @code{parent}.
+@end defun
+
+@defun derived-mode-add-parents mode extra-parents
+This function makes it possible to register additional parents beside
+the one that was used when defining @var{mode}.  This can be used when
+the similarity between @var{mode} and the modes in @var{extra-parents}
+is such that it makes sense to treat it as a child of those
+modes for purposes like applying directory-local variables.
+@end defun
+
+@defun derived-mode-all-parents mode
+This function returns the list of all the modes in the ancestry of
+@var{mode}, ordered from the most specific to the least specific, and
+starting with @var{mode} itself.
+@end defun
+
 
 @node Basic Major Modes
 @subsection Basic Major Modes
@@ -2667,7 +2697,7 @@ display in pixels, by multiplying the value of this variable by the
 value returned by @code{frame-char-width} (@pxref{Frame Font}), and
 then use the result to align header-line text using the
 @code{:align-to} display property spec (@pxref{Specified Space}) in
-pixels on the relevant parts of @code{header-line-frormat}.
+pixels on the relevant parts of @code{header-line-format}.
 @end defvar
 
 @defun window-header-line-height &optional window
@@ -3614,7 +3644,9 @@ errors are suppressed, is instead run by a timer.  Thus, this mode
 allows using debugging aids such as @code{debug-on-error}
 (@pxref{Error Debugging}) and Edebug (@pxref{Edebug}) for finding and
 fixing problems in font-lock code and any other code run by JIT
-font-lock.
+font-lock.  Another command that could be useful when developing and
+debugging font-lock is @code{font-lock-debug-fontify}, see @ref{Font
+Lock Basics}.
 @end deffn
 
 @node Levels of Font Lock
@@ -5097,7 +5129,7 @@ this matcher doesn't check that argument.  For example, to match the
 first child where parent is @code{argument_list}, use
 
 @example
-(match nil "argument_list" nil nil 0 0)
+(match nil "argument_list" nil 0 0)
 @end example
 
 In addition, @var{node-type} can be a special value @code{null},

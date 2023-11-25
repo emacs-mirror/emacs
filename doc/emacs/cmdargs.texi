@@ -309,6 +309,9 @@ This is like @samp{--script}, but suppresses loading the init files
 reaches the end of the script, it exits Emacs and uses the value of
 the final form as the exit value from the script (if the final value
 is numerical).  Otherwise, it will always exit with a zero value.
+Note that when Emacs reads the Lisp code in this case, it ignores any
+file-local variables (@pxref{Specifying File Variables}), both in the
+first line and in a local-variables section near the end of the file.
 
 @item --no-build-details
 @opindex --no-build-details

@@ -217,10 +217,10 @@ This indicates the loop discovery phase.")
 
 (defvar byte-optimize--aliased-vars nil
   "List of variables which may be aliased by other lexical variables.
-If an entry in `byte-optimize--lexvars' has another variable as its VALUE,
-then that other variable must be in this list.
-This variable thus carries no essential information but is maintained
-for speeding up processing.")
+Each element is (NAME . ALIAS) where NAME is the aliased variable
+and ALIAS the variable record (in the format described for
+`byte-optimize--lexvars') for an alias, which may have NAME as its VALUE.
+There can be multiple entries for the same NAME if it has several aliases.")
 
 (defun byte-optimize--substitutable-p (expr)
   "Whether EXPR is a constant that can be propagated."
@@ -462,13 +462,17 @@ for speeding up processing.")
            (setcar (cdr lexvar) t)    ; Mark variable to be kept.
            (setcdr (cdr lexvar) nil)  ; Inhibit further substitution.
 
-           (when (memq var byte-optimize--aliased-vars)
-             ;; Cancel aliasing of variables aliased to this one.
-             (dolist (v byte-optimize--lexvars)
-               (when (eq (nth 2 v) var)
-                 ;; V is bound to VAR but VAR is now mutated:
-                 ;; cancel aliasing.
-                 (setcdr (cdr v) nil)))))
+           ;; Cancel substitution of variables aliasing this one.
+           (let ((aliased-vars byte-optimize--aliased-vars))
+             (while
+                 (let ((alias (assq var aliased-vars)))
+                   (and alias
+                        (progn
+                          ;; Found a variable bound to VAR but VAR is
+                          ;; now mutated; cancel aliasing.
+                          (setcdr (cddr alias) nil)
+                          (setq aliased-vars (cdr (memq alias aliased-vars)))
+                          t))))))
          `(,fn ,var ,value)))
 
       (`(defvar ,(and (pred symbolp) name) . ,rest)
@@ -587,7 +591,6 @@ for speeding up processing.")
       (let* ((byte-optimize--lexvars byte-optimize--lexvars)
              (byte-optimize--aliased-vars byte-optimize--aliased-vars)
              (new-lexvars nil)
-             (new-aliased-vars nil)
              (let-vars nil)
              (body (cdr form))
              (bindings (car form)))
@@ -597,7 +600,7 @@ for speeding up processing.")
                  (expr (byte-optimize-form (cadr binding) nil)))
             (setq bindings (cdr bindings))
             (when (and (eq head 'let*)
-                       (memq name byte-optimize--aliased-vars))
+                       (assq name byte-optimize--aliased-vars))
               ;; New variable shadows an aliased variable -- α-rename
               ;; it in this and all subsequent bindings.
               (let ((new-name (make-symbol (symbol-name name))))
@@ -610,14 +613,12 @@ for speeding up processing.")
                               bindings))
                 (setq body (byte-optimize--rename-var-body name new-name body))
                 (setq name new-name)))
-            (let* ((aliased nil)
-                   (value (and
-                           (or (byte-optimize--substitutable-p expr)
-                               ;; Aliasing another lexvar.
-                               (setq aliased
-                                     (and (symbolp expr)
-                                          (assq expr byte-optimize--lexvars))))
-                           (list expr)))
+            (let* ((aliased
+                    ;; Aliasing another lexvar.
+                    (and (symbolp expr) (assq expr byte-optimize--lexvars)))
+                   (value (and (or aliased
+                                   (byte-optimize--substitutable-p expr))
+                               (list expr)))
                    (lexical (not (or (special-variable-p name)
                                      (memq name byte-compile-bound-variables)
                                      (memq name byte-optimize--dynamic-vars))))
@@ -626,20 +627,16 @@ for speeding up processing.")
               (when lexinfo
                 (push lexinfo (if (eq head 'let*)
                                   byte-optimize--lexvars
-                                new-lexvars)))
-              (when aliased
-                (push expr (if (eq head 'let*)
-                               byte-optimize--aliased-vars
-                             new-aliased-vars))))))
+                                new-lexvars))
+                (when aliased
+                  (push (cons expr lexinfo) byte-optimize--aliased-vars))))))
 
-        (setq byte-optimize--aliased-vars
-              (append new-aliased-vars byte-optimize--aliased-vars))
         (when (and (eq head 'let) byte-optimize--aliased-vars)
           ;; Find new variables that shadow aliased variables.
           (let ((shadowing-vars nil))
             (dolist (lexvar new-lexvars)
               (let ((name (car lexvar)))
-                (when (and (memq name byte-optimize--aliased-vars)
+                (when (and (assq name byte-optimize--aliased-vars)
                            (not (memq name shadowing-vars)))
                   (push name shadowing-vars))))
             ;; α-rename them

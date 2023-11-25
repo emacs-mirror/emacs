@@ -463,15 +463,6 @@ One way of doing this is to start with fx's dynamic loading, and use it
 to implement things like auto-loaded buffer parsers and database
 access in cases which need more than Lisp.
 
-** Fix portable dumping so that you can redump without using -batch
-
-*** Redumps and native compiler "preloaded" sub-folder.
-In order to depose new .eln files being compiled into the "preloaded"
-sub-folder the native compiler needs to know in advance if this file
-will be preloaded or not.  As .eln files are not moved afterwards
-subsequent redumps might refer to .eln file out of the "preloaded"
-sub-folder.
-
 ** Imenu could be extended into a file-structure browsing mechanism
 This could use code like that of customize-groups.
 
@@ -887,6 +878,46 @@ It would make it easy to add (and remove) mappings like
 "H-FOO -> M-FOO", "C-x C-y FOO -> H-FOO", ...
 
 * Things to be done for specific packages or features
+
+** Native compiler improvements
+
+*** Performance
+
+**** Intra compilation unit call optimization
+
+We could have a mechanism similar to what we use for optimizing calls
+to primitive functions.  IE using a link table for each compilation
+unit (CU) such that calls from functions in a CU targeting functions
+in the same CU don't have to go through funcall.  If one of these
+functions is redefined, a trampoline is compiled and installed to
+restore the redirection through funcall.
+
+*** Features to be improved or missing
+
+**** Diagnostic
+
+***** Filtering async warnings
+
+Add a new 'native-comp-async-report-warnings-errors' value such that
+we filter out all the uninteresting warnings (that the programmer
+already got during byte compilation) but we still report the important
+ones ('the function ‘xxx’ is not known to be defined.').
+
+This way even if the package developer doesn't use native compilation
+it can get the bug report for the issue and
+'*Async-native-compile-log*' is not too crowded.
+
+This new value for 'native-comp-async-report-warnings-errors' should
+be default.
+
+**** Fix portable dumping so that you can redump without using -batch
+
+***** Redumps and native compiler "preloaded" sub-folder.
+In order to depose new .eln files being compiled into the "preloaded"
+sub-folder the native compiler needs to know in advance if this file
+will be preloaded or not.  As .eln files are not moved afterwards
+subsequent redumps might refer to .eln file out of the "preloaded"
+sub-folder.
 
 ** NeXTstep port
 

@@ -101,6 +101,24 @@
   (contents "" :type string)
   (tags '() :type list))
 
+(cl-defstruct erc--isupport-data
+  "Abstract \"class\" for parsed ISUPPORT data.
+For use with the macro `erc--with-isupport-data'."
+  (key nil :type (or null cons)))
+
+(cl-defstruct (erc--parsed-prefix (:include erc--isupport-data))
+  "Server-local data for recognized membership-status prefixes.
+Derived from the advertised \"PREFIX\" ISUPPORT parameter."
+  (letters "qaohv" :type string)
+  (statuses "~&@%+" :type string)
+  (alist nil :type (list-of cons)))
+
+(cl-defstruct (erc--channel-mode-types (:include erc--isupport-data))
+  "Server-local \"CHANMODES\" data."
+  (fallbackp nil :type boolean)
+  (table (make-char-table 'erc--channel-mode-types) :type char-table)
+  (shortargs (make-hash-table :test #'equal)))
+
 ;; After dropping 28, we can use prefixed "erc-autoload" cookies.
 (defun erc--normalize-module-symbol (symbol)
   "Return preferred SYMBOL for `erc--modules'."

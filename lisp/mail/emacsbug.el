@@ -509,7 +509,7 @@ Message buffer where you can explain more about the patch."
      (list (read-string (format-prompt "This patch is about" guess)
                         nil nil guess)
            file)))
-  (switch-to-buffer "*Patch Help*")
+  (pop-to-buffer-same-window "*Patch Help*")
   (let ((inhibit-read-only t))
     (erase-buffer)
     (insert "Thank you for considering submitting a patch to the Emacs project.\n\n"

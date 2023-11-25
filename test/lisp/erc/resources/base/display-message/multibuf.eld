@@ -37,7 +37,7 @@
  (0.07 ":bob!~u@uee7kge7ua5sy.irc PRIVMSG #chan :Would all themselves laugh mortal.")
  (0.04 ":dummy!~u@rdjcgiwfuwqmc.irc PRIVMSG tester :hi")
  (0.06 ":bob!~u@uee7kge7ua5sy.irc PRIVMSG #chan :alice: It hath pleased the devil drunkenness to give place to the devil wrath; one unperfectness shows me another, to make me frankly despise myself.")
- (0.05 ":dummy!~u@rdjcgiwfuwqmc.irc QUIT :Quit: \2ERC\2 5.6-git (IRC client for GNU Emacs 30.0.50)")
+ (0.05 ":dummy!~u@rdjcgiwfuwqmc.irc QUIT :Quit: \2ERC\2 5.x (IRC client for GNU Emacs)")
  (0.08 ":alice!~u@uee7kge7ua5sy.irc PRIVMSG #chan :You speak of him when he was less furnished than now he is with that which makes him both without and within."))
 
 ((quit 10 "QUIT :\2ERC\2")

@@ -85,7 +85,7 @@ screen when `erc-insert-timestamp-function' is set to
 Unlike `erc-timestamp-format' and `erc-timestamp-format-left', if
 the value of this option is nil, it falls back to using the value
 of `erc-timestamp-format'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const nil)
 		 (string)))
 (make-obsolete-variable 'erc-timestamp-format-right
@@ -159,7 +159,7 @@ Also affects the command `erc-echo-timestamp' (singular).  See
 the ZONE parameter of `format-time-string' for a description of
 acceptable value types."
   :type '(choice boolean number (const wall) (list number string))
-  :package-version '(ERC . "5.6")) ; FIXME sync on release
+  :package-version '(ERC . "5.6"))
 
 (defcustom erc-timestamp-intangible nil
   "Whether the timestamps should be intangible, i.e. prevent the point
@@ -327,7 +327,7 @@ option adds a space after the end of a message if the stamp
 doesn't already start with one.  And when its value is t, it adds
 a single space, unconditionally."
   :type '(choice boolean integer)
-  :package-version '(ERC . "5.6")) ; FIXME sync on release
+  :package-version '(ERC . "5.6"))
 
 (defvar-local erc-stamp--margin-width nil
   "Width in columns of margin for `erc-stamp--display-margin-mode'.
@@ -360,7 +360,18 @@ prompt is wider, use its width instead."
           (if resetp
               (or (and (not (zerop cols)) cols)
                   erc-stamp--margin-width
-                  (max (if leftp (string-width (erc-prompt)) 0)
+                  (max (if leftp
+                           (cond ((fboundp 'erc-fill--wrap-measure)
+                                  (let* ((b erc-insert-marker)
+                                         (e (1- erc-input-marker))
+                                         (w (erc-fill--wrap-measure b e)))
+                                    (/ (if (consp w) (car w) w)
+                                       (frame-char-width))))
+                                 ((fboundp 'string-pixel-width)
+                                  (/ (string-pixel-width (erc-prompt))
+                                     (frame-char-width)))
+                                 (t (string-width (erc-prompt))))
+                         0)
                        (1+ (string-width
                             (or (if leftp
                                     erc-timestamp-last-inserted
@@ -407,6 +418,9 @@ non-nil."
 (defvar erc-stamp--inherited-props '(line-prefix wrap-prefix)
   "Extant properties at the start of a message inherited by the stamp.")
 
+(defvar-local erc-stamp--skip-left-margin-prompt-p nil
+  "Don't display prompt in left margin.")
+
 (declare-function erc--remove-text-properties "erc" (string))
 
 ;; Currently, `erc-insert-timestamp-right' hard codes its display
@@ -437,7 +451,8 @@ and `erc-stamp--margin-left-p', before activating the mode."
                       #'erc--remove-text-properties)
         (add-hook 'erc--setup-buffer-hook
                   #'erc-stamp--refresh-left-margin-prompt nil t)
-        (when erc-stamp--margin-left-p
+        (when (and erc-stamp--margin-left-p
+                   (not erc-stamp--skip-left-margin-prompt-p))
           (add-hook 'erc--refresh-prompt-hook
                     #'erc-stamp--display-prompt-in-left-margin nil t)))
     (remove-function (local 'filter-buffer-substring-function)
@@ -451,6 +466,7 @@ and `erc-stamp--margin-left-p', before activating the mode."
     (kill-local-variable (if erc-stamp--margin-left-p
                              'left-margin-width
                            'right-margin-width))
+    (kill-local-variable 'erc-stamp--skip-left-margin-prompt-p)
     (kill-local-variable 'fringes-outside-margins)
     (kill-local-variable 'erc-stamp--margin-left-p)
     (kill-local-variable 'erc-stamp--margin-width)
@@ -485,18 +501,16 @@ and `erc-stamp--margin-left-p', before activating the mode."
       (setq erc-stamp--last-prompt nil))
     (erc--refresh-prompt)))
 
-(cl-defmethod erc--reveal-prompt
-  (&context (erc-stamp--display-margin-mode (eql t))
-            (erc-stamp--margin-left-p (eql t)))
-  (put-text-property erc-insert-marker (1- erc-input-marker)
-                     'display `((margin left-margin) ,erc-stamp--last-prompt)))
-
 (cl-defmethod erc--conceal-prompt
   (&context (erc-stamp--display-margin-mode (eql t))
-            (erc-stamp--margin-left-p (eql t)))
-  (let ((prompt (string-pad erc-prompt-hidden left-margin-width nil 'start)))
-    (put-text-property erc-insert-marker (1- erc-input-marker)
-                       'display `((margin left-margin) ,prompt))))
+            (erc-stamp--margin-left-p (eql t))
+            (erc-stamp--skip-left-margin-prompt-p null))
+  (when-let (((null erc--hidden-prompt-overlay))
+             (prompt (string-pad erc-prompt-hidden left-margin-width nil 'start))
+             (ov (make-overlay erc-insert-marker (1- erc-input-marker)
+                               nil 'front-advance)))
+    (overlay-put ov 'display `((margin left-margin) ,prompt))
+    (setq erc--hidden-prompt-overlay ov)))
 
 (defun erc-insert-timestamp-left (string)
   "Insert timestamps at the beginning of the line."

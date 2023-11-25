@@ -1029,7 +1029,7 @@ that if you use overwrite mode as your normal editing mode, you can use
 this function to insert characters when necessary.
 
 In binary overwrite mode, this function does overwrite, and octal
-(or decimal or hex) digits are interpreted as a character code.  This
+\(or decimal or hex) digits are interpreted as a character code.  This
 is intended to be useful for editing binary files."
   (interactive "*p")
   (let* ((char
@@ -2427,9 +2427,7 @@ BUFFER."
   "Say whether MODES are in action in BUFFER.
 This is the case if either the major mode is derived from one of MODES,
 or (if one of MODES is a minor mode), if it is switched on in BUFFER."
-  (or (apply #'provided-mode-derived-p
-             (buffer-local-value 'major-mode buffer)
-             modes)
+  (or (provided-mode-derived-p (buffer-local-value 'major-mode buffer) modes)
       ;; It's a minor mode.
       (seq-intersection modes
                         (buffer-local-value 'local-minor-modes buffer)
@@ -2990,11 +2988,17 @@ this by calling a function defined by `minibuffer-default-add-function'.")
 (defun minibuffer-default-add-completions ()
   "Return a list of all completions without the default value.
 This function is used to add all elements of the completion table to
-the end of the list of defaults just after the default value."
+the end of the list of defaults just after the default value.
+If you don't want to add initial completions to the default value,
+use either `minibuffer-setup-hook' or `minibuffer-with-setup-hook'
+to set the value of `minibuffer-default-add-function' to nil."
   (let ((def minibuffer-default)
-	(all (all-completions ""
-			      minibuffer-completion-table
-			      minibuffer-completion-predicate)))
+        ;; Avoid some popular completions with undefined order
+        (all (unless (memq minibuffer-completion-table
+                           `(help--symbol-completion-table ,obarray))
+               (all-completions ""
+                                minibuffer-completion-table
+                                minibuffer-completion-predicate))))
     (if (listp def)
 	(append def all)
       (cons def (delete def all)))))
@@ -11082,6 +11086,10 @@ If the buffer doesn't exist, create it first."
   (pop-to-buffer-same-window (get-scratch-buffer-create)))
 
 (defun kill-buffer--possibly-save (buffer)
+  "Ask the user to confirm killing of a modified BUFFER.
+
+If the user confirms, optionally save BUFFER that is about to be
+killed."
   (let ((response
          (cadr
           (read-multiple-choice

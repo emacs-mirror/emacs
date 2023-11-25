@@ -1656,6 +1656,31 @@ The door of all subtleties!
   (should (equal (file-name-base "foo") "foo"))
   (should (equal (file-name-base "foo/bar") "bar")))
 
+(defun files-tests--check-shebang (shebang expected-mode)
+  "Assert that mode for SHEBANG derives from EXPECTED-MODE."
+  (let ((actual-mode
+         (ert-with-temp-file script-file
+           :text shebang
+           (find-file script-file)
+           (if (derived-mode-p expected-mode)
+               expected-mode
+             major-mode))))
+    ;; Tuck all the information we need in the `should' form: input
+    ;; shebang, expected mode vs actual.
+    (should
+     (equal (list shebang actual-mode)
+            (list shebang expected-mode)))))
+
+(ert-deftest files-tests-auto-mode-interpreter ()
+  "Test that `set-auto-mode' deduces correct modes from shebangs."
+  (files-tests--check-shebang "#!/bin/bash" 'sh-mode)
+  (files-tests--check-shebang "#!/usr/bin/env bash" 'sh-mode)
+  (files-tests--check-shebang "#!/usr/bin/env python" 'python-base-mode)
+  (files-tests--check-shebang "#!/usr/bin/env python3" 'python-base-mode)
+  (files-tests--check-shebang "#!/usr/bin/env -S awk -v FS=\"\\t\" -v OFS=\"\\t\" -f" 'awk-mode)
+  (files-tests--check-shebang "#!/usr/bin/env -S make -f" 'makefile-mode)
+  (files-tests--check-shebang "#!/usr/bin/make -f" 'makefile-mode))
+
 (ert-deftest files-test-dir-locals-auto-mode-alist ()
   "Test an `auto-mode-alist' entry in `.dir-locals.el'"
   (find-file (ert-resource-file "whatever.quux"))

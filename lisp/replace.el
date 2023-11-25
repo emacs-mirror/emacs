@@ -2642,10 +2642,6 @@ passed in.  If LITERAL is set, no checking is done, anyway."
 	    noedit nil)))
   (set-match-data match-data)
   (replace-match newtext fixedcase literal)
-  ;; `query-replace' undo feature needs the beginning of the match position,
-  ;; but `replace-match' may change it, for instance, with a regexp like "^".
-  ;; Ensure that this function preserves the match data (Bug#31492).
-  (set-match-data match-data)
   ;; `replace-match' leaves point at the end of the replacement text,
   ;; so move point to the beginning when replacing backward.
   (when backward (goto-char (nth 0 match-data)))
@@ -2759,6 +2755,7 @@ to a regexp that is actually used for the search.")
 	    (isearch-regexp-lax-whitespace
 	     replace-regexp-lax-whitespace)
 	    (isearch-case-fold-search case-fold)
+	    (isearch-invisible search-invisible)
 	    (isearch-forward (not backward))
 	    (isearch-other-end match-beg)
 	    (isearch-error nil)

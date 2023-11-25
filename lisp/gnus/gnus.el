@@ -319,20 +319,25 @@ be set in `.emacs' instead."
 	    (not (stringp str))
 	    (not (string-match "^Gnus:" str)))
 	(list str)
-      (let ((load-path (append (mm-image-load-path) load-path)))
+      (let ((load-path (append (mm-image-load-path) load-path))
+            (gnus-emacs-version (gnus-emacs-version)))
 	;; Add the Gnus logo.
 	(add-text-properties
 	 0 5
 	 (list 'display
 	       (find-image
-		'((:type xpm :file "gnus-pointer.xpm"
+		'((:type svg :file "gnus-pointer.svg"
+                         :ascent center)
+                  (:type xpm :file "gnus-pointer.xpm"
 			 :ascent center)
 		  (:type xbm :file "gnus-pointer.xbm"
 			 :ascent center))
 		t)
-	       'help-echo (format
-			   "This is %s, %s."
-			   gnus-version (gnus-emacs-version)))
+	       'help-echo (if gnus-emacs-version
+                              (format
+			       "This is %s, %s."
+			       gnus-version gnus-emacs-version)
+                            (format "This is %s." gnus-version)))
 	 str)
 	(list str)))))
 

@@ -13,11 +13,12 @@ Lisp program.
 @itemize @bullet
 @item
 If a problem occurs when you run the program, you can use the built-in
-Emacs Lisp debugger to suspend the Lisp evaluator, and examine and/or
-alter its internal state.
+Emacs Lisp debugger (@pxref{Debugger}) to suspend the Lisp evaluator,
+and examine and/or alter its internal state.
 
 @item
 You can use Edebug, a source-level debugger for Emacs Lisp.
+@xref{Edebug}.
 
 @item
 @cindex tracing Lisp programs
@@ -47,6 +48,7 @@ You can use the ERT package to write regression tests for the program.
 
 @item
 You can profile the program to get hints about how to make it more efficient.
+@xref{Profiling}.
 @end itemize
 
   Other useful tools for debugging input and output problems are the
@@ -629,11 +631,18 @@ This is a list of functions that are set to break on entry by means of
 to invoke the debugger.
 
 @deffn Command debug &rest debugger-args
-This function enters the debugger.  It switches buffers to a buffer
-named @file{*Backtrace*} (or @file{*Backtrace*<2>} if it is the second
-recursive entry to the debugger, etc.), and fills it with information
-about the stack of Lisp function calls.  It then enters a recursive
-edit, showing the backtrace buffer in Debugger mode.
+This function enters the debugger.  In interactive sessions, it
+switches to a buffer named @file{*Backtrace*} (or
+@file{*Backtrace*<2>} if it is the second recursive entry to the
+debugger, etc.), and fills it with information about the stack of Lisp
+function calls.  It then enters a recursive edit, showing the
+backtrace buffer in Debugger mode.  In batch mode (more generally,
+when @code{noninteractive} is non-@code{nil}, @pxref{Batch Mode}),
+this function shows the Lisp backtrace on the standard error stream,
+and then kills Emacs, causing it to exit with a non-zero exit code
+(@pxref{Killing Emacs}).  Binding
+@code{backtrace-on-error-noninteractive} to @code{nil} suppresses the
+backtrace in batch mode, see below.
 
 The Debugger mode @kbd{c}, @kbd{d}, @kbd{j}, and @kbd{r} commands exit
 the recursive edit; then @code{debug} switches back to the previous
@@ -716,6 +725,13 @@ display messages---for example, to remind yourself of the conditions
 under which @code{debug} is called.
 @end table
 @end deffn
+
+@defvar backtrace-on-error-noninteractive
+If this variable is non-@code{nil}, the default, entering the debugger
+in batch mode shows the backtrace of Lisp functions calls.  Binding
+the variable to the @code{nil} value suppresses the backtrace and
+shows only the error message.
+@end defvar
 
 @node Internals of Debugger
 @subsection Internals of the Debugger

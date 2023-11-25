@@ -2106,8 +2106,9 @@ When no command is bound to @code{touchscreen-begin},
 translate key sequences containing touch screen events into ordinary
 mouse events (@pxref{Mouse Events}.)  Since Emacs doesn't support
 distinguishing events originating from separate mouse devices, it
-assumes that only one touchpoint is active while translation takes
-place; breaking this assumption may lead to unexpected behavior.
+assumes that a maximum of two touchpoints are active while translation
+takes place, and does not place any guarantees on the results of event
+translation when that restriction is overstepped.
 
 Emacs applies two different strategies for translating touch events
 into mouse events, contingent on factors such as the commands bound to
@@ -2159,6 +2160,15 @@ purpose of displaying pop-up menus, Emacs additionally behaves as
 illustrated in the last paragraph if @code{down-mouse-1} is bound to a
 command whose name has the property @code{mouse-1-menu-command}.
 
+@cindex pinch-to-zoom touchscreen gesture translation
+When a second touch point is registered as a touch point is already
+being translated, gesture translation is terminated, and the distance
+from the second touch point (the @dfn{ancillary tool}) to the first is
+measured.  Subsequent motion from either of those touch points will
+yield @code{touchscreen-pinch} events incorporating the ratio formed
+by the distance between their new positions and the distance measured
+at the outset, as illustrated in the following table.
+
 @cindex touchscreen gesture events
 If touch gestures are detected during translation, one of the
 following input events may be generated:
@@ -2197,6 +2207,34 @@ This event is sent upon the start of a touch sequence resulting in the
 continuation of a ``drag-to-select'' gesture (subject to the
 aformentioned user option) with @var{posn} set to the position list of
 the initial @code{touchscreen-begin} event within that touch sequence.
+
+@cindex @code{touchscreen-pinch} event
+@item (touchscreen-pinch @var{posn} @var{ratio} @var{pan-x} @var{pan-y} @var{ratio-diff})
+This event is delivered upon significant changes to the positions of
+either active touch point when an ancillary tool is active.
+
+@var{posn} is a mouse position list for the midpoint of a line drawn
+from the ancillary tool to the other touch point being observed.
+
+@var{ratio} is the distance between both touch points being observed
+divided by that distance when the ancillary point was first
+registered; which is to say, the scale of the ``pinch'' gesture.
+
+@var{pan-x} and @var{pan-y} are the difference between the pixel
+position of @var{posn} and this position within the last event
+delivered appertaining to this series of touch events, or in the case
+that no such event exists, the centerpoint between both touch points
+when the ancillary tool was first registered.
+
+@var{ratio-diff} is the difference between this event's ratio and
+@var{ratio} in the last event delivered; it is @var{ratio} if no such
+event exists.
+
+Such events are sent when the magnitude of the changes they represent
+will yield a @var{ratio} which differs by more than @code{0.2} from
+that in the previous event, or the sum of @var{pan-x} and @var{pan-y}
+will surpass half the frame's character width in pixels (@pxref{Frame
+Font}).
 @end table
 
 @cindex handling touch screen events
@@ -2207,7 +2245,7 @@ below is from commands bound directly to @code{touchscreen-begin}
 events; they allow responding to commonly used touch screen gestures
 separately from mouse event translation.
 
-@defun touch-screen-track-tap event &optional update data
+@defun touch-screen-track-tap event &optional update data threshold
 This function is used to track a single ``tap'' gesture originating
 from the @code{touchscreen-begin} event @var{event}, often used to
 set the point or to activate a button.  It waits for a
@@ -2219,6 +2257,14 @@ contains at least one touchpoint with the same identifier as in
 @var{event}, the function @var{update} is called with two arguments,
 the list of touchpoints in that @code{touchscreen-update} event, and
 @var{data}.
+
+If @var{threshold} is non-@code{nil} and such an event indicates that
+the touchpoint represented by @var{event} has moved beyond a threshold
+of either @var{threshold} or 10 pixels if it is not a number from the
+position of @var{event}, @code{nil} is returned and mouse event
+translation is resumed for that touchpoint, so as not to impede the
+recognition of any subsequent touchscreen gesture arising from its
+sequence.
 
 If any other event arrives in the mean time, @code{nil} is returned.
 The caller should not perform any action in that case.

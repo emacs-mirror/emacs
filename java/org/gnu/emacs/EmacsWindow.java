@@ -648,6 +648,21 @@ public final class EmacsWindow extends EmacsHandleObject
     long serial;
     String characters;
 
+    if (keyCode == KeyEvent.KEYCODE_BACK)
+      {
+	/* New Android systems display Back navigation buttons on a
+	   row of virtual buttons at the bottom of the screen.  These
+	   buttons function much as physical buttons do, in that key
+	   down events are produced when a finger taps them, even if
+	   the finger is not ultimately released after the OS's
+	   gesture navigation is activated.
+
+	   Deliver onKeyDown events in onKeyUp instead, so as not to
+	   navigate backwards during gesture navigation.  */
+
+	return;
+      }
+
     state = eventModifiers (event);
 
     /* Ignore meta-state understood by Emacs for now, or key presses
@@ -677,7 +692,7 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   onKeyUp (int keyCode, KeyEvent event)
   {
-    int state, state_1;
+    int state, state_1, unicode_char;
     long time;
 
     /* Compute the event's modifier mask.  */
@@ -691,11 +706,21 @@ public final class EmacsWindow extends EmacsHandleObject
       = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK
 		  | KeyEvent.META_SYM_ON | KeyEvent.META_META_MASK);
 
-    EmacsNative.sendKeyRelease (this.handle,
-				event.getEventTime (),
-				state, keyCode,
-				getEventUnicodeChar (event,
-						     state_1));
+    unicode_char = getEventUnicodeChar (event, state_1);
+
+    if (keyCode == KeyEvent.KEYCODE_BACK)
+      {
+	/* If the key press's been canceled, return immediately.  */
+
+	if ((event.getFlags () & KeyEvent.FLAG_CANCELED) != 0)
+	  return;
+
+	EmacsNative.sendKeyPress (this.handle, event.getEventTime (),
+				  state, keyCode, unicode_char);
+      }
+
+    EmacsNative.sendKeyRelease (this.handle, event.getEventTime (),
+				state, keyCode, unicode_char);
 
     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
       {
@@ -918,8 +943,8 @@ public final class EmacsWindow extends EmacsHandleObject
 	   it in the map.  */
 	pointerIndex = event.getActionIndex ();
 	pointerID = event.getPointerId (pointerIndex);
-	coordinate = new Coordinate ((int) event.getX (0),
-				     (int) event.getY (0),
+	coordinate = new Coordinate ((int) event.getX (pointerIndex),
+				     (int) event.getY (pointerIndex),
 				     buttonForEvent (event),
 				     pointerID);
 	pointerMap.put (pointerID, coordinate);

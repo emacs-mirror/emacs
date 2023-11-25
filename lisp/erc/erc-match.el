@@ -695,19 +695,7 @@ This function is meant to be called from `erc-text-matched-hook'."
 Expect the function `erc-hide-fools' or similar to be present in
 `erc-text-matched-hook'."
   (interactive "P")
-  (erc-match--toggle-hidden 'match-fools arg))
-
-(defun erc-match--toggle-hidden (prop arg)
-  "Toggle invisibility for spec member PROP.
-Treat ARG in a manner similar to mode toggles defined by
-`define-minor-mode'."
-  (when arg
-    (setq arg (prefix-numeric-value arg)))
-  (if (memq prop (ensure-list buffer-invisibility-spec))
-      (unless (natnump arg)
-        (remove-from-invisibility-spec prop))
-    (when (or (not arg) (natnump arg))
-      (add-to-invisibility-spec prop))))
+  (erc--toggle-hidden 'match-fools arg))
 
 (provide 'erc-match)
 

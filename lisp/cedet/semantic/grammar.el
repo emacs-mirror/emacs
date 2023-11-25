@@ -644,7 +644,7 @@ The symbols in the list are local variables in
                    (cond
                     (x (cdr x))
                     ((symbolp S) (symbol-value S))))))
-             template ""))
+             template))
 
 (defun semantic-grammar-header ()
   "Return text of a generated standard header."
