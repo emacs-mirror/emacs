@@ -1745,45 +1745,43 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
       gnus-level-killed))
 
 (defun gnus-group-search-forward (&optional backward all level first-too)
-  "Find the next newsgroup with unread articles.
-If BACKWARD is non-nil, find the previous newsgroup instead.
-If ALL is non-nil, just find any newsgroup.
-If LEVEL is non-nil, find group with level LEVEL, or higher if no such
-group exists.
-If FIRST-TOO, the current line is also eligible as a target."
+  "Move point to the next newsgroup with unread articles.
+If BACKWARD is non-nil, move to the previous newsgroup instead.
+If ALL is non-nil, consider any newsgroup, not only those with
+unread articles.  If LEVEL is non-nil, find group with level
+LEVEL, or higher if no such group exists.  If FIRST-TOO, the
+current line is also eligible as a target."
   (let ((way (if backward -1 1))
 	(low gnus-level-killed)
 	(beg (point))
 	pos found lev)
-    (if (and backward (progn (beginning-of-line)) (bobp))
-	nil
-      (unless first-too
-	(forward-line way))
-      (while (and
-	      (not (eobp))
-	      (not (setq
-		    found
-		    (and
-		     (get-text-property (point) 'gnus-group)
-		     (or all
-			 (and
-			  (let ((unread
-				 (get-text-property (point) 'gnus-unread)))
-			    (and (numberp unread) (> unread 0)))
-			  (setq lev (get-text-property (point)
-						       'gnus-level))
-			  (<= lev gnus-level-subscribed)))
-		     (or (not level)
-			 (and (setq lev (get-text-property (point)
-							   'gnus-level))
-			      (or (= lev level)
-				  (and (< lev low)
-				       (< level lev)
-				       (progn
-					 (setq low lev)
-					 (setq pos (point))
-					 nil))))))))
-	      (zerop (forward-line way)))))
+    (unless first-too
+      (forward-line way))
+    (while (and
+	    (not (if backward (bobp) (eobp)))
+	    (not (setq
+		  found
+		  (and
+		   (get-text-property (point) 'gnus-group)
+		   (or all
+		       (and
+			(let ((unread
+			       (get-text-property (point) 'gnus-unread)))
+			  (and (numberp unread) (> unread 0)))
+			(setq lev (get-text-property (point)
+						     'gnus-level))
+			(<= lev gnus-level-subscribed)))
+		   (or (not level)
+		       (and (setq lev (get-text-property (point)
+							 'gnus-level))
+			    (or (= lev level)
+				(and (< lev low)
+				     (< level lev)
+				     (progn
+				       (setq low lev)
+				       (setq pos (point))
+				       nil))))))))
+	    (zerop (forward-line way))))
     (if found
 	(progn (gnus-group-position-point) t)
       (goto-char (or pos beg))
