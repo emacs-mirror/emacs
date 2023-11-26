@@ -2394,7 +2394,9 @@ nil."
         (set-marker-insertion-type erc-insert-marker t)
         (cl-assert (= (field-end erc-insert-marker) erc-input-marker))
         (goto-char old-point)
-        (erc--unhide-prompt))
+        (let ((erc--hidden-prompt-overlay
+               (alist-get 'erc--hidden-prompt-overlay continued-session)))
+          (erc--unhide-prompt)))
     (cl-assert (not (get-text-property (point) 'erc-prompt)))
     ;; In the original version from `erc-open', the snippet that
     ;; handled these newline insertions appeared twice close in

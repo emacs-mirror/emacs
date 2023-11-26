@@ -155,7 +155,9 @@
   (set-process-query-on-exit-flag erc-server-process nil))
 
 (ert-deftest erc-hide-prompt ()
-  (let (erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+  (let ((erc-hide-prompt erc-hide-prompt)
+        ;;
+        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
 
     (with-current-buffer (get-buffer-create "ServNet")
       (erc-tests--send-prep)
