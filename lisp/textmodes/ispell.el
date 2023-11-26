@@ -3718,7 +3718,6 @@ This command uses a word-list file specified
 by `ispell-alternate-dictionary' or by `ispell-complete-word-dict';
 if none of those name an existing word-list file, this command
 signals an error."
-  ;; FIXME: completion-at-point-function.
   (interactive "P")
   (let ((case-fold-search-val case-fold-search)
 	(word (ispell-get-word nil "\\*")) ; force "previous-word" processing.
