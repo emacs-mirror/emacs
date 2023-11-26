@@ -642,7 +642,7 @@ to be disabled."
 
 (defun erc-fill--wrap-insert-merged-pre ()
   "Add `display' property in lieu of speaker."
-  (if erc-fill--wrap-merge-indicator-post
+  (if erc-fill--wrap-merge-indicator-pre
       (progn
         (put-text-property (point-min) (point) 'display
                            (car erc-fill--wrap-merge-indicator-pre))

@@ -57,6 +57,7 @@
         (funcall expect 10 "*** dummy (~u@rdjcgiwfuwqmc.irc) has quit")
         (should (eq 'QUIT (get-text-property (match-beginning 0) 'erc-msg)))))
 
-    (erc-cmd-QUIT "")))
+    (with-current-buffer "foonet"
+      (erc-cmd-QUIT ""))))
 
 ;;; erc-scenarios-display-message.el ends here
