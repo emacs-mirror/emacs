@@ -2477,10 +2477,9 @@ Call from the source buffer."
         (print-quoted t)
         (print-gensym t)
         (print-circle t))               ; Handle circular data structures.
-    (if (and (memq (car-safe form) '(defvar defvaralias defconst
-                                      autoload custom-declare-variable))
-             (stringp (nth 3 form)))
-        (byte-compile-output-docform nil nil '("\n(" 3 ")") form nil
+    (if (memq (car-safe form) '(defvar defvaralias defconst
+                                 autoload custom-declare-variable))
+        (byte-compile-output-docform nil nil nil '("\n(" ")") form nil 3 nil
                                      (memq (car form)
                                            '(defvaralias autoload
                                               custom-declare-variable)))
@@ -2490,10 +2489,105 @@ Call from the source buffer."
 
 (defvar byte-compile--for-effect)
 
-(defun byte-compile-output-docform (preface name info form specindex quoted)
-  "Print a form with a doc string.  INFO is (prefix doc-index postfix).
-If PREFACE and NAME are non-nil, print them too,
-before INFO and the FORM but after the doc string itself.
+(defun byte-compile--output-docform-recurse
+    (info position form cvecindex docindex specindex quoted)
+  "Print a form with a doc string.  INFO is (prefix postfix).
+POSITION is where the next doc string is to be inserted.
+CVECINDEX is the index in the FORM of the constant vector, or nil.
+DOCINDEX is the index of the doc string (or nil) in the FORM.
+If SPECINDEX is non-nil, it is the index in FORM
+of the function bytecode string.  In that case,
+we output that argument and the following argument
+\(the constants vector) together, for lazy loading.
+QUOTED says that we have to put a quote before the
+list that represents a doc string reference.
+`defvaralias', `autoload' and `custom-declare-variable' need that.
+
+Return the position after any inserted docstrings as comments."
+  (let ((index 0)
+        doc-string-position)
+    ;; Insert the doc string, and make it a comment with #@LENGTH.
+    (when (and byte-compile-dynamic-docstrings
+               (stringp (nth docindex form)))
+      (goto-char position)
+      (setq doc-string-position
+            (byte-compile-output-as-comment
+             (nth docindex form) nil)
+            position (point))
+      (goto-char (point-max)))
+
+    (insert (car info))
+    (prin1 (car form) byte-compile--outbuffer)
+    (while (setq form (cdr form))
+      (setq index (1+ index))
+      (insert " ")
+      (cond ((and (numberp specindex) (= index specindex)
+                  ;; Don't handle the definition dynamically
+                  ;; if it refers (or might refer)
+                  ;; to objects already output
+                  ;; (for instance, gensyms in the arg list).
+                  (let (non-nil)
+                    (when (hash-table-p print-number-table)
+                      (maphash (lambda (_k v) (if v (setq non-nil t)))
+                               print-number-table))
+                    (not non-nil)))
+             ;; Output the byte code and constants specially
+             ;; for lazy dynamic loading.
+             (goto-char position)
+             (let ((lazy-position (byte-compile-output-as-comment
+                                   (cons (car form) (nth 1 form))
+                                   t)))
+               (setq position (point))
+               (goto-char (point-max))
+               (princ (format "(#$ . %d) nil" lazy-position)
+                      byte-compile--outbuffer)
+               (setq form (cdr form))
+               (setq index (1+ index))))
+            ((eq index cvecindex)
+             (let* ((cvec (car form))
+                    (len (length cvec))
+                    (index2 0)
+                    elt)
+               (insert "[")
+               (while (< index2 len)
+                 (setq elt (aref cvec index2))
+                 (if (byte-code-function-p elt)
+                     (setq position
+                           (byte-compile--output-docform-recurse
+                            '("#[" "]") position
+                            (append elt nil) ; Convert the vector to a list.
+                            2 4 specindex nil))
+                   (prin1 elt byte-compile--outbuffer))
+                 (setq index2 (1+ index2))
+                 (unless (eq index2 len)
+                   (insert " ")))
+               (insert "]")))
+            ((= index docindex)
+             (cond
+              (doc-string-position
+               (princ (format (if quoted "'(#$ . %d)"  "(#$ . %d)")
+                              doc-string-position)
+                      byte-compile--outbuffer))
+              ((stringp (car form))
+               (let ((print-escape-newlines nil))
+                 (goto-char (prog1 (1+ (point))
+                              (prin1 (car form)
+                                     byte-compile--outbuffer)))
+                 (insert "\\\n")
+                 (goto-char (point-max))))
+              (t (prin1 (car form) byte-compile--outbuffer))))
+            (t (prin1 (car form) byte-compile--outbuffer))))
+    (insert (cadr info))
+    position))
+
+(defun byte-compile-output-docform (preface tailpiece name info form
+                                            cvecindex docindex
+                                            specindex quoted)
+  "Print a form with a doc string.  INFO is (prefix postfix).
+If PREFACE, NAME, and TAILPIECE are non-nil, print them too,
+before/after INFO and the FORM but after the doc string itself.
+CVECINDEX is the index in the FORM of the constant vector, or nil.
+DOCINDEX is the index of the doc string (or nil) in the FORM.
 If SPECINDEX is non-nil, it is the index in FORM
 of the function bytecode string.  In that case,
 we output that argument and the following argument
@@ -2503,73 +2597,30 @@ list that represents a doc string reference.
 `defvaralias', `autoload' and `custom-declare-variable' need that."
   ;; We need to examine byte-compile-dynamic-docstrings
   ;; in the input buffer (now current), not in the output buffer.
-  (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
+  (let ((byte-compile-dynamic-docstrings byte-compile-dynamic-docstrings))
     (with-current-buffer byte-compile--outbuffer
-      (let (position)
-        ;; Insert the doc string, and make it a comment with #@LENGTH.
-        (when (and (>= (nth 1 info) 0) dynamic-docstrings)
-          (setq position (byte-compile-output-as-comment
-                          (nth (nth 1 info) form) nil)))
-
-        (let ((print-continuous-numbering t)
-              print-number-table
-              (index 0)
-              ;; FIXME: The bindings below are only needed for when we're
-              ;; called from ...-defmumble.
-              (print-escape-newlines t)
-              (print-length nil)
-              (print-level nil)
-              (print-quoted t)
-              (print-gensym t)
-              (print-circle t))         ; Handle circular data structures.
-          (if preface
-              (progn
-                ;; FIXME: We don't handle uninterned names correctly.
-                ;; E.g. if cl-define-compiler-macro uses uninterned name we get:
-                ;;    (defalias '#1=#:foo--cmacro #[514 ...])
-                ;;    (put 'foo 'compiler-macro '#:foo--cmacro)
-                (insert preface)
-                (prin1 name byte-compile--outbuffer)))
-          (insert (car info))
-          (prin1 (car form) byte-compile--outbuffer)
-          (while (setq form (cdr form))
-            (setq index (1+ index))
-            (insert " ")
-            (cond ((and (numberp specindex) (= index specindex)
-                        ;; Don't handle the definition dynamically
-                        ;; if it refers (or might refer)
-                        ;; to objects already output
-                        ;; (for instance, gensyms in the arg list).
-                        (let (non-nil)
-                          (when (hash-table-p print-number-table)
-                            (maphash (lambda (_k v) (if v (setq non-nil t)))
-                                     print-number-table))
-                          (not non-nil)))
-                   ;; Output the byte code and constants specially
-                   ;; for lazy dynamic loading.
-                   (let ((position
-                          (byte-compile-output-as-comment
-                           (cons (car form) (nth 1 form))
-                           t)))
-                     (princ (format "(#$ . %d) nil" position)
-                            byte-compile--outbuffer)
-                     (setq form (cdr form))
-                     (setq index (1+ index))))
-                  ((= index (nth 1 info))
-                   (if position
-                       (princ (format (if quoted "'(#$ . %d)"  "(#$ . %d)")
-                                      position)
-                              byte-compile--outbuffer)
-                     (let ((print-escape-newlines nil))
-                       (goto-char (prog1 (1+ (point))
-                                    (prin1 (car form)
-                                           byte-compile--outbuffer)))
-                       (insert "\\\n")
-                       (goto-char (point-max)))))
-                  (t
-                   (prin1 (car form) byte-compile--outbuffer)))))
-        (insert (nth 2 info)))))
-  nil)
+      (let ((position (point))
+            (print-continuous-numbering t)
+            print-number-table
+            ;; FIXME: The bindings below are only needed for when we're
+            ;; called from ...-defmumble.
+            (print-escape-newlines t)
+            (print-length nil)
+            (print-level nil)
+            (print-quoted t)
+            (print-gensym t)
+            (print-circle t))       ; Handle circular data structures.
+        (when preface
+          ;; FIXME: We don't handle uninterned names correctly.
+          ;; E.g. if cl-define-compiler-macro uses uninterned name we get:
+          ;;    (defalias '#1=#:foo--cmacro #[514 ...])
+          ;;    (put 'foo 'compiler-macro '#:foo--cmacro)
+          (insert preface)
+          (prin1 name byte-compile--outbuffer))
+        (byte-compile--output-docform-recurse
+         info position form cvecindex docindex specindex quoted)
+        (when tailpiece
+          (insert tailpiece))))))
 
 (defun byte-compile-keep-pending (form &optional handler)
   (if (memq byte-optimize '(t source))
@@ -2897,60 +2948,58 @@ not to take responsibility for the actual compilation of the code."
           ;; Otherwise, we have a bona-fide defun/defmacro definition, and use
           ;; special code to allow dynamic docstrings and byte-code.
           (byte-compile-flush-pending)
-          (let ((index
-                 ;; If there's no doc string, provide -1 as the "doc string
-                 ;; index" so that no element will be treated as a doc string.
-                 (if (not (stringp (documentation code t))) -1 4)))
-            (when byte-native-compiling
-              ;; Spill output for the native compiler here.
-              (push
-                (if macro
-                    (make-byte-to-native-top-level
-                     :form `(defalias ',name '(macro . ,code) nil)
-                     :lexical lexical-binding)
-                  (make-byte-to-native-func-def :name name
-                                                :byte-func code))
-                byte-to-native-top-level-forms))
-            ;; Output the form by hand, that's much simpler than having
-            ;; b-c-output-file-form analyze the defalias.
-            (byte-compile-output-docform
-             "\n(defalias '"
-             bare-name
-             (if macro `(" '(macro . #[" ,index "])") `(" #[" ,index "]"))
-             (append code nil)          ; Turn byte-code-function-p into list.
-             (and (atom code) byte-compile-dynamic
-                  1)
-             nil))
-          (princ ")" byte-compile--outbuffer)
+          (when byte-native-compiling
+            ;; Spill output for the native compiler here.
+            (push
+             (if macro
+                 (make-byte-to-native-top-level
+                  :form `(defalias ',name '(macro . ,code) nil)
+                  :lexical lexical-binding)
+               (make-byte-to-native-func-def :name name
+                                             :byte-func code))
+             byte-to-native-top-level-forms))
+          ;; Output the form by hand, that's much simpler than having
+          ;; b-c-output-file-form analyze the defalias.
+          (byte-compile-output-docform
+           "\n(defalias '" ")"
+           bare-name
+           (if macro '(" '(macro . #[" "])") '(" #[" "]"))
+           (append code nil)          ; Turn byte-code-function-p into list.
+           2 4
+           (and (atom code) byte-compile-dynamic 1)
+           nil)
           t)))))
 
 (defun byte-compile-output-as-comment (exp quoted)
-  "Print Lisp object EXP in the output file, inside a comment.
-Return the file (byte) position it will have.
-If QUOTED is non-nil, print with quoting; otherwise, print without quoting."
+  "Print Lisp object EXP in the output file at point, inside a comment.
+Return the file (byte) position it will have.  Leave point after
+the inserted text.  If QUOTED is non-nil, print with quoting;
+otherwise, print without quoting."
   (with-current-buffer byte-compile--outbuffer
-    (let ((position (point)))
-
+    (let ((position (point)) end)
       ;; Insert EXP, and make it a comment with #@LENGTH.
       (insert " ")
       (if quoted
           (prin1 exp byte-compile--outbuffer)
         (princ exp byte-compile--outbuffer))
+      (setq end (point-marker))
+      (set-marker-insertion-type end t)
+
       (goto-char position)
       ;; Quote certain special characters as needed.
       ;; get_doc_string in doc.c does the unquoting.
-      (while (search-forward "\^A" nil t)
+      (while (search-forward "\^A" end t)
         (replace-match "\^A\^A" t t))
       (goto-char position)
-      (while (search-forward "\000" nil t)
+      (while (search-forward "\000" end t)
         (replace-match "\^A0" t t))
       (goto-char position)
-      (while (search-forward "\037" nil t)
+      (while (search-forward "\037" end t)
         (replace-match "\^A_" t t))
-      (goto-char (point-max))
+      (goto-char end)
       (insert "\037")
       (goto-char position)
-      (insert "#@" (format "%d" (- (position-bytes (point-max))
+      (insert "#@" (format "%d" (- (position-bytes end)
                                    (position-bytes position))))
 
       ;; Save the file position of the object.
@@ -2959,7 +3008,8 @@ If QUOTED is non-nil, print with quoting; otherwise, print without quoting."
       ;; position to a file position.
       (prog1
           (- (position-bytes (point)) (point-min) -1)
-        (goto-char (point-max))))))
+        (goto-char end)
+        (set-marker end nil)))))
 
 (defun byte-compile--reify-function (fun)
   "Return an expression which will evaluate to a function value FUN.
