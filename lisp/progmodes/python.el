@@ -58,7 +58,7 @@
 ;; `python-nav-backward-statement',
 ;; `python-nav-beginning-of-statement', `python-nav-end-of-statement',
 ;; `python-nav-beginning-of-block', `python-nav-end-of-block' and
-;; `python-nav-if-name-main' are included but no bound to any key.
+;; `python-nav-if-name-main' are included but not bound to any key.
 
 ;; Shell interaction: is provided and allows opening Python shells
 ;; inside Emacs and executing any block of code of your current buffer
@@ -170,7 +170,7 @@
 
 ;; (setq python-shell-virtualenv-root "/path/to/env/")
 
-;; Also the `python-shell-extra-pythonpaths' variable have been
+;; Also the `python-shell-extra-pythonpaths' variable has been
 ;; introduced as simple way of adding paths to the PYTHONPATH without
 ;; affecting existing values.
 
