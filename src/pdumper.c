@@ -3074,7 +3074,7 @@ dump_vectorlike (struct dump_context *ctx,
       break;
     }
   char msg[60];
-  snprintf (msg, sizeof msg, "pseudovector type %d", ptype);
+  snprintf (msg, sizeof msg, "pseudovector type %d", (int) ptype);
   error_unsupported_dump_object (ctx, lv, msg);
 }
 
