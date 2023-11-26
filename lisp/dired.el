@@ -2021,8 +2021,12 @@ mouse-2: visit this file in other window"
   (let* ((dt (or (window-display-table)
                  buffer-display-table
                  standard-display-table))
-         (glyphs (and dt (display-table-slot dt 'selective-display))))
-    (string-width (if glyphs (concat glyphs) "..."))))
+         (glyphs (and dt (display-table-slot dt 'selective-display)))
+         (vlen (length glyphs))
+         (char-glyphs (make-vector vlen nil)))
+    (dotimes (i vlen)
+      (aset char-glyphs i (glyph-char (aref glyphs i))))
+    (string-width (if glyphs (concat char-glyphs) "..."))))
 
 (defun dired--get-filename-display-length ()
   "Return maximum display length of filename.
