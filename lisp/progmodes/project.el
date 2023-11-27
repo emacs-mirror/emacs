@@ -1808,7 +1808,7 @@ It's also possible to enter an arbitrary directory not in the list."
                          (name (project-name proj)))
                 (push name project--name-history)
                 (push (cons name proj) ret)))
-            ret))
+            (reverse ret)))
          ;; XXX: Just using this for the category (for the substring
          ;; completion style).
          (table (project--file-completion-table
