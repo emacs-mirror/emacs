@@ -452,6 +452,7 @@ MODE is either `c' or `cpp'."
            ;; These rules are for cases where the body is bracketless.
            ;; Tested by the "Bracketless Simple Statement" test.
            ((parent-is "if_statement") standalone-parent c-ts-mode-indent-offset)
+           ((parent-is "else_clause") standalone-parent c-ts-mode-indent-offset)
            ((parent-is "for_statement") standalone-parent c-ts-mode-indent-offset)
            ((parent-is "while_statement") standalone-parent c-ts-mode-indent-offset)
            ((parent-is "do_statement") standalone-parent c-ts-mode-indent-offset)
