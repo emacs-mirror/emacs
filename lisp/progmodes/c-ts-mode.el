@@ -356,7 +356,7 @@ PARENT, BOL, ARGS are the same as other anchor functions."
          parent (treesit-node-parent parent) bol args))
 
 (defun c-ts-mode--prev-line-match (regexp)
-  "An indentation matcher that matches if prev line matches REGEXP."
+  "An indentation matcher that matches if previous line matches REGEXP."
   (lambda (_n _p bol &rest _)
     (save-excursion
       (goto-char bol)
@@ -369,8 +369,8 @@ PARENT, BOL, ARGS are the same as other anchor functions."
 MODE is either `c' or `cpp'."
   (let ((common
          `((c-ts-mode--for-each-tail-body-matcher prev-line c-ts-mode-indent-offset)
-           ;; If the user types "if (...)" and hit return, they expect
-           ;; the point on the empty line to be indented, this rule
+           ;; If the user types "if (...)" and hits RET, they expect
+           ;; point on the empty line to be indented; this rule
            ;; does that.
            ((and no-node
                  (c-ts-mode--prev-line-match
