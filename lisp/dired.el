@@ -2595,13 +2595,28 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   "Populate MENU with Dired mode commands at CLICK."
   (when (mouse-posn-property (event-start click) 'dired-filename)
     (define-key menu [dired-separator] menu-bar-separator)
-    (let ((easy-menu (make-sparse-keymap "Immediate")))
+    (let* ((filename (save-excursion
+                       (mouse-set-point click)
+                       (dired-get-filename nil t)))
+           (commands (shell-command-guess (list filename)))
+           (easy-menu (make-sparse-keymap "Immediate")))
       (easy-menu-define nil easy-menu nil
-        '("Immediate"
+        `("Immediate"
           ["Find This File" dired-mouse-find-file
            :help "Edit file at mouse click"]
           ["Find in Other Window" dired-mouse-find-file-other-window
-           :help "Edit file at mouse click in other window"]))
+           :help "Edit file at mouse click in other window"]
+          ,@(when commands
+              (list (cons "Open With"
+                          (append
+                           (mapcar (lambda (command)
+                                     `[,(or (get-text-property 0 'name command)
+                                            command)
+                                       (lambda ()
+                                         (interactive)
+                                         (dired-do-async-shell-command
+                                          ,command nil (list ,filename)))])
+                                   commands)))))))
       (dolist (item (reverse (lookup-key easy-menu [menu-bar immediate])))
         (when (consp item)
           (define-key menu (vector (car item)) (cdr item))))))
