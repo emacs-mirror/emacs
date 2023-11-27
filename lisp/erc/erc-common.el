@@ -29,9 +29,7 @@
 (defvar erc--casemapping-rfc1459)
 (defvar erc--casemapping-rfc1459-strict)
 (defvar erc-channel-users)
-(defvar erc-dbuf)
 (defvar erc-insert-this)
-(defvar erc-log-p)
 (defvar erc-modules)
 (defvar erc-send-this)
 (defvar erc-server-process)
@@ -458,6 +456,7 @@ nil."
     (if session-buffer
         (progn
           (set-buffer session-buffer)
+          (defvar erc-dbuf)
           (if (not (and erc-dbuf (bufferp erc-dbuf) (buffer-live-p erc-dbuf)))
               (progn
                 (setq erc-dbuf (get-buffer-create
@@ -472,6 +471,9 @@ nil."
             (goto-char point))
           (set-buffer cb))
       (message "ERC: ** %s" string))))
+
+(defvar erc-log-p nil
+  "When non-nil, generate debug messages in an \"*ERC-DEBUG*\" buffer.")
 
 (define-inline erc-log (string)
   "Logs STRING if logging is on (see `erc-log-p')."

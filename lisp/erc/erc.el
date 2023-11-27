@@ -191,10 +191,6 @@ front shadow any that follow.  Ignored when `erc--msg-props' is
 already non-nil.")
 
 ;; Forward declarations
-(defvar tabbar--local-hlf)
-(defvar motif-version-string)
-(defvar gtk-version-string)
-
 (declare-function decoded-time-period "time-date" (time))
 (declare-function iso8601-parse-duration "iso8601" (string))
 (declare-function word-at-point "thingatpt" (&optional no-properties))
@@ -1138,7 +1134,13 @@ user after \"/PART\"."
 ;; Hooks
 
 (defgroup erc-hooks nil
-  "Hook variables for fancy customizations of ERC."
+  "Hooks for ERC.
+Users of the interactive client should be aware that many of
+these hooks have names predating the modern convention of
+conveying abnormality via the \"-function\" suffix.  Users should
+likewise be aware that built-in and third-party modules use these
+hooks as well, and some of their variables may be buffer-local in
+particular sessions and/or `let'-bound for spells."
   :group 'erc)
 
 (defcustom erc-mode-hook nil
@@ -1148,9 +1150,8 @@ user after \"/PART\"."
   :options '(erc-add-scroll-to-bottom))
 
 (defcustom erc-timer-hook nil
-  "Put functions which should get called more or less periodically here.
-The idea is that servers always play ping pong with the client, and so there
-is no need for any idle-timer games with Emacs."
+  "Abnormal hook run after each response handler.
+Called with a float returned from `erc-current-time'."
   :group 'erc-hooks
   :type 'hook)
 
@@ -1450,9 +1451,8 @@ See also `erc-show-my-nick'."
 
 ;; Debugging support
 
-(defvar erc-log-p nil
-  "When set to t, generate debug messages in a separate debug buffer.")
-
+;; FIXME if this variable plays some role, indicate that here.
+;; Otherwise, deprecate.
 (defvar erc-debug-log-file (expand-file-name "ERC.debug")
   "Debug log file name.")
 
@@ -4969,9 +4969,11 @@ connection or, with -A, all applicable connections.
                             system-configuration
                             (concat
                              (cond ((featurep 'motif)
+                                    (defvar motif-version-string)
                                     (concat ", " (substring
                                                   motif-version-string 4)))
                                    ((featurep 'gtk)
+                                    (defvar gtk-version-string)
                                     (concat ", GTK+ Version "
                                             gtk-version-string))
                                    ((featurep 'x-toolkit) ", X toolkit")
@@ -8288,8 +8290,13 @@ See `erc-mode-line-format' for which characters are can be used."
   :type '(choice (const :tag "Disabled" nil)
                  string))
 
+;; This should optionally support the built-in `tab-bar'.
 (defcustom erc-header-line-uses-tabbar-p nil
-  "Use tabbar mode instead of the header line to display the header."
+  "Use `tabbar-mode' integration instead of the header line.
+This concerns a historical integration with the external library
+`tabbar' <https://www.emacswiki.org/emacs/tabbar.el>, which
+shouldn't be confused with the built-in `tab-bar' described in
+Info node `(emacs) Tab Bars'."
   :group 'erc-mode-line-and-header
   :type 'boolean)
 
@@ -8496,7 +8503,8 @@ buffers.  Also return nil when mode information is unavailable."
                         (format-spec erc-header-line-format spec)
                       nil)))
         (cond (erc-header-line-uses-tabbar-p
-               (setq-local tabbar--local-hlf header-line-format)
+               (when (boundp 'tabbar--local-hlf)
+                 (setq-local tabbar--local-hlf header-line-format))
                (kill-local-variable 'header-line-format))
               ((null header)
                (setq header-line-format nil))

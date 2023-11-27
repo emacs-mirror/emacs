@@ -101,36 +101,21 @@
 (eval-when-compile (require 'cl-lib))
 (require 'erc-common)
 
-(defvar erc--called-as-input-p)
 (defvar erc--display-context)
 (defvar erc--target)
-(defvar erc--cmem-from-nick-function)
 (defvar erc-channel-list)
 (defvar erc-channel-users)
 (defvar erc-default-nicks)
 (defvar erc-default-recipients)
 (defvar erc-ensure-target-buffer-on-privmsg)
-(defvar erc-format-nick-function)
-(defvar erc-format-query-as-channel-p)
 (defvar erc-hide-prompt)
 (defvar erc-input-marker)
 (defvar erc-insert-marker)
-(defvar erc-invitation)
 (defvar erc-join-buffer)
-(defvar erc-kill-buffer-on-part)
-(defvar erc-kill-server-buffer-on-quit)
-(defvar erc-log-p)
-(defvar erc-minibuffer-ignored)
 (defvar erc-networks--id)
 (defvar erc-nick)
 (defvar erc-nick-change-attempt-count)
-(defvar erc-prompt-for-channel-key)
-(defvar erc-prompt-hidden)
-(defvar erc-receive-query-display)
-(defvar erc-receive-query-display-defer)
-(defvar erc-reuse-buffers)
 (defvar erc-verbose-server-ping)
-(defvar erc-whowas-on-nosuchnick)
 
 (declare-function erc--init-channel-modes "erc" (channel raw-args))
 (declare-function erc--open-target "erc" (target))
@@ -816,6 +801,7 @@ Make sure you are in an ERC buffer when running this."
                   nil nil nil erc-session-client-certificate
                   erc-session-username
                   (erc-networks--id-given erc-networks--id))
+        (defvar erc-reuse-buffers)
         (unless (with-suppressed-warnings ((obsolete erc-reuse-buffers))
                   erc-reuse-buffers)
           (cl-assert (not (eq buffer (current-buffer)))))))))
@@ -1038,6 +1024,7 @@ Conditionally try to reconnect and take appropriate action."
           (erc-update-mode-line)
           ;; Kill server buffer if user wants it
           (set-buffer-modified-p nil)
+          (defvar erc-kill-server-buffer-on-quit)
           (when erc-kill-server-buffer-on-quit
             (kill-buffer (current-buffer))))
       ;; unexpected disconnect
@@ -1055,6 +1042,7 @@ Conditionally try to reconnect and take appropriate action."
   (when-let (((null erc--hidden-prompt-overlay))
              (ov (make-overlay erc-insert-marker (1- erc-input-marker)
                                nil 'front-advance)))
+    (defvar erc-prompt-hidden)
     (overlay-put ov 'display erc-prompt-hidden)
     (setq erc--hidden-prompt-overlay ov)))
 
@@ -1716,6 +1704,7 @@ add things to `%s' instead."
         (chnl (erc-response.contents parsed)))
     (pcase-let ((`(,nick ,login ,host)
                  (erc-parse-user (erc-response.sender parsed))))
+      (defvar erc-invitation)
       (setq erc-invitation chnl)
       (when (string= target (erc-current-nick))
         (erc-display-message
@@ -1888,6 +1877,7 @@ add things to `%s' instead."
         (with-suppressed-warnings ((obsolete erc-delete-default-channel))
           (erc-delete-default-channel chnl buffer))
         (erc-update-mode-line buffer)
+        (defvar erc-kill-buffer-on-part)
         (when erc-kill-buffer-on-part
           (kill-buffer buffer))))))
 
@@ -1921,6 +1911,7 @@ add things to `%s' instead."
         (cmd (erc-response.command parsed))
         (tgt (car (erc-response.command-args parsed)))
         (msg (erc-response.contents parsed)))
+    (defvar erc-minibuffer-ignored)
     (if (or (erc-ignored-user-p sender-spec)
             (erc-ignored-reply-p msg tgt proc))
         (when erc-minibuffer-ignored
@@ -1942,6 +1933,8 @@ add things to `%s' instead."
         ;; Even worth checking for empty target here? (invalid anyway)
         (unless (or buffer noticep (string-empty-p tgt) (eq ?$ (aref tgt 0))
                     (erc-is-message-ctcp-and-not-action-p msg))
+          (defvar erc-receive-query-display)
+          (defvar erc-receive-query-display-defer)
           (if privp
               (when-let ((erc-join-buffer
                           (or (and (not erc-receive-query-display-defer)
@@ -1963,6 +1956,8 @@ add things to `%s' instead."
             ;; at this point.
             (erc-update-channel-member (if privp nick tgt) nick nick
                                        privp nil nil nil nil nil host login nil nil t)
+            (defvar erc--cmem-from-nick-function)
+            (defvar erc-format-nick-function)
             (let ((cdata (funcall erc--cmem-from-nick-function
                                   (erc-downcase nick) sndr parsed)))
               (setq fnick (funcall erc-format-nick-function
@@ -1975,6 +1970,7 @@ add things to `%s' instead."
                                             (match-string 1 msg)))))
          (t
           (setq erc-server-last-peers (cons nick (cdr erc-server-last-peers)))
+          (defvar erc-format-query-as-channel-p)
           (setq s (erc-format-privmessage
                    (or fnick nick) msg
                    ;; If buffer is a query buffer,
@@ -2479,6 +2475,7 @@ See `erc-display-server-message'." nil
 (define-erc-response-handler (401)
   "No such nick/channel." nil
   (let ((nick/channel (cadr (erc-response.command-args parsed))))
+    (defvar erc-whowas-on-nosuchnick)
     (when erc-whowas-on-nosuchnick
       (erc-log (format "cmd: WHOWAS: %s" nick/channel))
       (erc-server-send (format "WHOWAS %s 1" nick/channel)))
@@ -2579,6 +2576,8 @@ See `erc-display-server-message'." nil
   "Channel key needed." nil
   (erc-display-message parsed '(notice error) nil 's475
                        ?c (cadr (erc-response.command-args parsed)))
+  (defvar erc-prompt-for-channel-key)
+  (defvar erc--called-as-input-p)
   (when erc-prompt-for-channel-key
     (let ((channel (cadr (erc-response.command-args parsed)))
           (erc--called-as-input-p t)

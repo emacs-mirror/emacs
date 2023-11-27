@@ -553,7 +553,9 @@ parties.")
 (defun erc-fill--wrap-continued-message-p ()
   "Return non-nil when the current speaker hasn't changed.
 That is, indicate whether the text just inserted is from the same
-sender as that of the previous \"PRIVMSG\"."
+sender as that of the previous \"PRIVMSG\".  As a side effect,
+advance `erc-fill--wrap-last-msg' unless the message has been
+marked as being ephemeral."
   (and
    (not (erc--check-msg-prop 'erc-ephemeral))
    (progn ; preserve blame for now, unprogn on next major change
