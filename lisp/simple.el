@@ -4273,19 +4273,17 @@ This buffer is used when `shell-command' or `shell-command-on-region'
 is run interactively.  A value of nil means that output to stderr and
 stdout will be intermixed in the output stream.")
 
-(declare-function mailcap-file-default-commands "mailcap" (files))
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
 
 (defun minibuffer-default-add-shell-commands ()
   "Return a list of all commands associated with the current file.
-This function is used to add all related commands retrieved by `mailcap'
-to the end of the list of defaults just after the default value."
-  (interactive)
+This function is used to add all related commands retrieved by
+`shell-command-guess' to the end of the list of defaults just
+after the default value."
   (let* ((filename (if (listp minibuffer-default)
 		       (car minibuffer-default)
 		     minibuffer-default))
-	 (commands (and filename (require 'mailcap nil t)
-			(mailcap-file-default-commands (list filename)))))
+	 (commands (and filename (shell-command-guess (list filename)))))
     (setq commands (mapcar (lambda (command)
 			     (concat command " " filename))
 			   commands))

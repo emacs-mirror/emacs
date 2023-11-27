@@ -503,6 +503,12 @@ hidden and an ellipsis is displayed instead.  A value of 'window'
 means using the right edge of window as the display restriction.  The
 default is nil.
 
+*** New user option 'shell-command-guess-functions'.
+It defines how to populate a list of commands available
+for 'M-!', 'M-&', '!', '&' based on marked files in Dired.
+Possible backends are 'dired-guess-default', MIME types,
+XDG configuration.
+
 ** Ediff
 
 ---

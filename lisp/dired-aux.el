@@ -763,22 +763,6 @@ with a prefix argument."
 
 ;;; Shell commands
 
-(declare-function mailcap-file-default-commands "mailcap" (files))
-
-(defvar dired-aux-files)
-
-(defun dired-minibuffer-default-add-shell-commands ()
-  "Return a list of all commands associated with current Dired files.
-This function is used to add all related commands retrieved by `mailcap'
-to the end of the list of defaults just after the default value."
-  (interactive)
-  (let ((commands (and (boundp 'dired-aux-files)
-		       (require 'mailcap nil t)
-		       (mailcap-file-default-commands dired-aux-files))))
-    (if (listp minibuffer-default)
-	(append minibuffer-default commands)
-      (cons minibuffer-default commands))))
-
 ;; This is an extra function so that you can redefine it, e.g., to use gmhist.
 (defun dired-read-shell-command (prompt arg files)
   "Read a Dired shell command.
@@ -789,14 +773,9 @@ file names.  The result is used as the prompt.
 
 Use `dired-guess-shell-command' to offer a smarter default choice
 of shell command."
-  (minibuffer-with-setup-hook
-      (lambda ()
-	(setq-local dired-aux-files files)
-	(setq-local minibuffer-default-add-function
-                    #'dired-minibuffer-default-add-shell-commands))
-    (setq prompt (format prompt (dired-mark-prompt arg files)))
-    (dired-mark-pop-up nil 'shell files
-                       'dired-guess-shell-command prompt files)))
+  (setq prompt (format prompt (dired-mark-prompt arg files)))
+  (dired-mark-pop-up nil 'shell files
+                     'dired-guess-shell-command prompt files))
 
 ;;;###autoload
 (defcustom dired-confirm-shell-command t
@@ -1316,7 +1295,7 @@ See `dired-guess-shell-alist-user'."
 ;;;###autoload
 (defun dired-guess-shell-command (prompt files)
   "Ask user with PROMPT for a shell command, guessing a default from FILES."
-  (let ((default (dired-guess-default files))
+  (let ((default (shell-command-guess files))
         default-list val)
     (if (null default)
         ;; Nothing to guess
@@ -1339,6 +1318,67 @@ See `dired-guess-shell-alist-user'."
                                     default-list))
       ;; If we got a return, then return default.
       (if (equal val "") default val))))
+
+(defcustom shell-command-guess-functions
+  '(shell-command-guess-dired)
+  "List of functions that guess shell commands for files.
+Each function receives a list of commands and a list of file names
+and should return the same list of commands with changes
+such as added new commands."
+  :type '(repeat
+          (choice (function-item shell-command-guess-dired)
+                  (function-item shell-command-guess-mailcap)
+                  (function-item shell-command-guess-xdg)
+                  (function :tag "Custom function")))
+  :group 'dired
+  :version "30.1")
+
+;;;###autoload
+(defun shell-command-guess (files)
+  "Return a list of shell commands, appropriate for FILES.
+The list is populated by calling functions from
+`shell-command-guess-functions'.  Each function receives the list
+of commands and the list of file names and returns the same list
+after adding own commands to the composite list."
+  (let ((commands nil))
+    (run-hook-wrapped 'shell-command-guess-functions
+                      (lambda (fun)
+                        (setq commands (funcall fun commands files))
+                        nil))
+    commands))
+
+(defun shell-command-guess-dired (commands files)
+  "Populate COMMANDS using `dired-guess-default'."
+  (append (ensure-list (dired-guess-default files)) commands))
+
+(declare-function mailcap-file-default-commands "mailcap" (files))
+
+(defun shell-command-guess-mailcap (commands files)
+  "Populate COMMANDS by MIME types of FILES."
+  (require 'mailcap)
+  (append (mailcap-file-default-commands files) commands))
+
+(declare-function xdg-mime-apps "xdg" (mime))
+(declare-function xdg-desktop-read-file "xdg" (filename &optional group))
+
+(defun shell-command-guess-xdg (commands files)
+  "Populate COMMANDS by XDG configuration for FILES."
+  (require 'xdg)
+  (let* ((xdg-mime (when (executable-find "xdg-mime")
+                     (string-trim-right
+                      (shell-command-to-string
+                       (concat "xdg-mime query filetype " (car files))))))
+         (xdg-mime-apps (unless (string-empty-p xdg-mime)
+                          (xdg-mime-apps xdg-mime)))
+         (xdg-commands
+          (mapcar (lambda (desktop)
+                    (setq desktop (xdg-desktop-read-file desktop))
+                    (propertize
+                     (replace-regexp-in-string
+                      " .*" "" (gethash "Exec" desktop))
+                     'name (gethash "Name" desktop)))
+                  xdg-mime-apps)))
+    (append xdg-commands commands)))
 
 
 ;;; Commands that delete or redisplay part of the dired buffer
@@ -3855,9 +3895,6 @@ case, the VERBOSE argument is ignored."
       (when (and state (not (eq state 'unregistered)))
         (setq model (vc-checkout-model backend only-files-list))))
     (list backend files only-files-list state model)))
-
-(define-obsolete-function-alias 'minibuffer-default-add-dired-shell-commands
-  #'dired-minibuffer-default-add-shell-commands "29.1")
 
 
 (provide 'dired-aux)
