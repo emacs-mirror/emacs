@@ -1967,7 +1967,7 @@ Overlays could be added when some user options are enabled, e.g.,
                     ;; made invisible via text properties.
                     (let ((ov (make-overlay ell-beg (point))))
                       (overlay-put ov 'invisible 'dired-filename-hide)
-                      (overlay-put ov 'isearch-open-invisible t)
+                      (overlay-put ov 'isearch-open-invisible #'delete-overlay)
                       (overlay-put ov 'evaporate t)))))
 	      (add-text-properties
 	       beg (1+ end)
