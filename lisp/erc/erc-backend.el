@@ -142,7 +142,6 @@
 (declare-function erc-display-server-message "erc" (_proc parsed))
 (declare-function erc-emacs-time-to-erc-time "erc" (&optional specified-time))
 (declare-function erc-format-message "erc" (msg &rest args))
-(declare-function erc-format-privmessage "erc" (nick msg privp msgp))
 (declare-function erc-get-buffer "erc" (target &optional proc))
 (declare-function erc-handle-login "erc" nil)
 (declare-function erc-handle-user-status-change "erc" (type nlh &optional l))
@@ -173,6 +172,9 @@
 (declare-function erc-update-mode-line-buffer "erc" (buffer))
 (declare-function erc-wash-quit-reason "erc" (reason nick login host))
 
+(declare-function erc--determine-speaker-message-format-args "erc"
+                  (nick target message queryp privmsgp statusmsgp inputp
+                        &optional prefix disp-nick))
 (declare-function erc-display-message "erc"
                   (parsed type buffer msg &rest args))
 (declare-function erc-get-buffer-create "erc"
@@ -1906,6 +1908,66 @@ add things to `%s' instead."
          ?s (if (/= erc-server-lag 1) "s" "")))
       (erc-update-mode-line))))
 
+(defun erc--statusmsg-target (target)
+  "Return actual target from given TARGET if it has a leading prefix char."
+  (and-let* ((erc-ensure-target-buffer-on-privmsg)
+             ((not (eq erc-ensure-target-buffer-on-privmsg 'status)))
+             ((not (erc-channel-p target)))
+             (chars (erc--get-isupport-entry 'STATUSMSG 'single))
+             ((string-search (string (aref target 0)) chars))
+             (trimmed (substring target 1))
+             ((erc-channel-p trimmed)))
+    trimmed))
+
+;; Moved to this file from erc.el in ERC 5.6.
+(defvar-local erc-current-message-catalog 'english
+  "Current language or context catalog for formatting inserted messages.
+See `erc-format-message'.")
+
+;; This variable can be made public if the current design proves
+;; sufficient.
+(defvar erc--message-speaker-catalog '-speaker
+  "The \"speaker\" catalog symbol used to format PRIVMSGs and NOTICEs.
+
+This symbol defines a \"catalog\" of variables and functions
+whose names reflect their membership via a corresponding CATALOG
+component, as in \"erc-message-CATALOG-KEY\".  Here, KEY refers
+to a common set of interface members (variables or functions),
+that an implementer must define:
+
+- `statusmsg' and `statusmsg-input': PRIVMSGs whose target is a
+   status-prefixed channel; the latter is the \"echoed\" version
+
+- `chan-privmsg', `query-privmsg', `chan-notice', `query-notice':
+   standard chat messages traditionally prefixed by a <nickname>
+   indicating the message's \"speaker\"
+
+- `input-chan-privmsg', `input-query-privmsg', `input-query-notice',
+  `input-chan-notice': \"echoed\" versions of the above
+
+- `ctcp-action', `ctcp-action-input', `ctcp-action-statusmsg',
+  `ctcp-action-statusmsg-input': \"CTCP ACTION\" versions of the
+   above
+
+The other part of this interface is the per-key collection of
+`format-spec' parameters members must support.  For simplicity,
+this catalog currently defines a common set for all keys, some of
+which may be assigned the empty string when not applicable:
+
+  %n - nickname
+  %m - message body
+  %p - nickname's status prefix (when applicable)
+  %s - current target's STATUSMSG prefix (when applicable)
+
+As an added means of communicating with various modules, if this
+catalog's symbol has the property `erc--msg-prop-overrides',
+consumers calling `erc-display-message' will see the value added
+to the `erc--msg-props' \"environment\" in modification hooks,
+like `erc-insert-modify-hook'.")
+
+(defvar erc--speaker-status-prefix-wanted-p (gensym "erc-")
+  "Sentinel to detect whether `erc-format-@nick' has just run.")
+
 (define-erc-response-handler (PRIVMSG NOTICE)
   "Handle private messages, including messages in channels." nil
   (let ((sender-spec (erc-response.sender parsed))
@@ -1927,12 +1989,15 @@ add things to `%s' instead."
              (msgp (string= cmd "PRIVMSG"))
              (noticep (string= cmd "NOTICE"))
              ;; S.B. downcase *both* tgt and current nick
-             (privp (erc-current-nick-p tgt))
+             (medown (erc-downcase (erc-current-nick)))
+             (inputp (string= medown (erc-downcase nick)))
+             (privp (string= (erc-downcase tgt) medown))
              (erc--display-context `((erc-buffer-display . ,(intern cmd))
                                      ,@erc--display-context))
-             (erc--msg-prop-overrides `((erc--msg . msg)
-                                        ,@erc--msg-prop-overrides))
-             s buffer
+             (erc--msg-prop-overrides `((erc--tmp) ,@erc--msg-prop-overrides))
+             (erc--speaker-status-prefix-wanted-p nil)
+             (erc-current-message-catalog erc--message-speaker-catalog)
+             s buffer statusmsg cmem-prefix
              fnick)
         (setq buffer (erc-get-buffer (if privp nick tgt) proc))
         ;; Even worth checking for empty target here? (invalid anyway)
@@ -1950,9 +2015,14 @@ add things to `%s' instead."
                 (push `(erc-receive-query-display . ,(intern cmd))
                       erc--display-context)
                 (setq buffer (erc--open-target nick)))
-            ;; A channel buffer has been killed but is still joined.
-            (when erc-ensure-target-buffer-on-privmsg
-              (setq buffer (erc--open-target tgt)))))
+            (cond
+             ;; Target is a channel and contains leading @+ chars.
+             ((and-let* ((trimmed(erc--statusmsg-target tgt)))
+                (setq buffer (erc-get-buffer trimmed proc)
+                      statusmsg (and buffer (substring tgt 0 1)))))
+             ;; A channel buffer has been killed but is still joined.
+             (erc-ensure-target-buffer-on-privmsg
+              (setq buffer (erc--open-target tgt))))))
         (when buffer
           (with-current-buffer buffer
             (when privp (erc--unhide-prompt))
@@ -1963,36 +2033,46 @@ add things to `%s' instead."
                                        privp nil nil nil nil nil host login nil nil t)
             (defvar erc--cmem-from-nick-function)
             (defvar erc-format-nick-function)
+            (defvar erc-show-speaker-membership-status)
+            (defvar erc-speaker-from-channel-member-function)
             (let ((cdata (funcall erc--cmem-from-nick-function
                                   (erc-downcase nick) sndr parsed)))
-              (setq fnick (funcall erc-format-nick-function
-                                   (car cdata) (cdr cdata))))))
+              (setq fnick (funcall erc-speaker-from-channel-member-function
+                                   (car cdata) (cdr cdata))
+                    cmem-prefix (and (or erc--speaker-status-prefix-wanted-p
+                                         erc-show-speaker-membership-status
+                                         inputp)
+                                     (cdr cdata))))))
         (cond
          ((erc-is-message-ctcp-p msg)
-          (setq s (if msgp
+          ;; FIXME explain undefined return values being assigned to `s'.
+          (setq s (if-let ((parsed
+                            (erc--ctcp-response-from-parsed
+                             :parsed parsed :buffer buffer :statusmsg statusmsg
+                             :prefix cmem-prefix :dispname fnick))
+                           (msgp))
                       (erc-process-ctcp-query proc parsed nick login host)
                     (erc-process-ctcp-reply proc parsed nick login host
                                             (match-string 1 msg)))))
          (t
           (setq erc-server-last-peers (cons nick (cdr erc-server-last-peers)))
-          (defvar erc-format-query-as-channel-p)
-          (setq s (erc-format-privmessage
-                   (or fnick nick) msg
-                   ;; If buffer is a query buffer,
-                   ;; format the nick as for a channel.
-                   (and (not (and buffer
-                                  (erc-query-buffer-p buffer)
-                                  erc-format-query-as-channel-p))
-                        privp)
-                   msgp))))
+          (with-current-buffer (or buffer (current-buffer))
+            ;; Re-bind in case either buffer has a local value.
+            (let ((erc-current-message-catalog erc--message-speaker-catalog))
+              (setq s (erc--determine-speaker-message-format-args
+                       nick msg privp msgp inputp statusmsg
+                       cmem-prefix fnick))))))
         (when s
           (if (and noticep privp)
               (progn
+                (push (cons 'erc--msg (car s)) erc--msg-prop-overrides)
+                (setq s (apply #'erc-format-message s))
                 (run-hook-with-args 'erc-echo-notice-always-hook
                                     s parsed buffer nick)
                 (run-hook-with-args-until-success
                  'erc-echo-notice-hook s parsed buffer nick))
-            (erc-display-message parsed nil buffer s)))))))
+            (apply #'erc-display-message parsed nil buffer
+                   (ensure-list s))))))))
 
 (define-erc-response-handler (QUIT)
   "Another user has quit IRC." nil

@@ -2285,7 +2285,8 @@
         calls
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
     (cl-letf (((symbol-function 'erc-display-message)
-               (lambda (_ _ _ line) (push line calls)))
+               (lambda (_ _ _ msg &rest args)
+                 (push (apply #'erc-format-message msg args) calls)))
               ((symbol-function 'erc-server-send)
                (lambda (line _) (push line calls)))
               ((symbol-function 'erc-server-buffer)
@@ -2327,7 +2328,7 @@
           (should-not erc-server-last-peers)
           (erc-message "PRIVMSG" ". hi")
           (should-not erc-server-last-peers)
-          (should (eq 'no-target (pop calls)))
+          (should (equal "No target" (pop calls)))
           (erc-message "PRIVMSG" ", hi")
           (should-not erc-server-last-peers)
           (should (string-match "alice :hi" (pop calls)))))
@@ -2360,42 +2361,208 @@
     (kill-buffer "ExampleNet")
     (kill-buffer "#chan")))
 
-(ert-deftest erc-format-privmessage ()
-  ;; Basic PRIVMSG
-  (should (erc-tests--equal-including-properties
-           (erc-format-privmessage (copy-sequence "bob")
-                                   (copy-sequence "oh my")
-                                   nil 'msgp)
-           #("<bob> oh my"
-             0 1 (font-lock-face erc-default-face)
-             1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
-             4 11 (font-lock-face erc-default-face))))
+;; This is an adapter that uses formatting templates from the
+;; `-speaker' catalog to mimic `erc-format-privmessage', for testing
+;; purposes.
+(defun erc-tests--format-privmessage (nick msg privp msgp &optional inputp pfx)
+  (let ((erc-current-message-catalog erc--message-speaker-catalog))
+    (apply #'erc-format-message
+           (erc--determine-speaker-message-format-args nick msg privp msgp
+                                                       inputp nil pfx))))
 
-  ;; Basic NOTICE
-  (should (erc-tests--equal-including-properties
-           (erc-format-privmessage (copy-sequence "bob")
-                                   (copy-sequence "oh my")
-                                   nil nil)
-           #("-bob- oh my"
-             0 1 (font-lock-face erc-default-face)
-             1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
-             4 11 (font-lock-face erc-default-face))))
+;; This asserts that `erc--determine-speaker-message-format-args'
+;; behaves identically to `erc-format-privmessage', the function whose
+;; role it basically replaced.
+(ert-deftest erc--determine-speaker-message-format-args ()
+  ;; Basic PRIVMSG.
+  (let ((expect #("<bob> oh my"
+                  0 1 (font-lock-face erc-default-face)
+                  1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
+                  4 11 (font-lock-face erc-default-face)))
+        (args (list (concat "bob") (concat "oh my") nil 'msgp)))
+    (should (erc-tests--equal-including-properties
+             (apply #'erc-format-privmessage args)
+             expect))
+    (should (erc-tests--equal-including-properties
+             (apply #'erc-tests--format-privmessage args)
+             expect)))
 
-  ;; Prefixed PRIVMSG
-  (let* ((user (make-erc-server-user :nickname (copy-sequence "Bob")))
+  ;; Basic NOTICE.
+  (let ((expect #("-bob- oh my"
+                  0 1 (font-lock-face erc-default-face)
+                  1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
+                  4 11 (font-lock-face erc-default-face)))
+        (args (list (copy-sequence "bob") (copy-sequence "oh my") nil nil)))
+    (should (erc-tests--equal-including-properties
+             (apply #'erc-format-privmessage args)
+             expect))
+    (should (erc-tests--equal-including-properties
+             (apply #'erc-tests--format-privmessage args)
+             expect)))
+
+  ;; Status-prefixed PRIVMSG.
+  (let* ((expect
+          #("<@Bob> oh my"
+            0 1 (font-lock-face erc-default-face)
+            1 2 (font-lock-face erc-nick-prefix-face help-echo "operator")
+            2 5 (erc--speaker "Bob" font-lock-face erc-nick-default-face)
+            5 12 (font-lock-face erc-default-face)))
+         (user (make-erc-server-user :nickname (copy-sequence "Bob")))
          (cuser (make-erc-channel-user :op t))
          (erc-channel-users (make-hash-table :test #'equal)))
     (puthash "bob" (cons user cuser) erc-channel-users)
 
+    (with-suppressed-warnings ((obsolete erc-format-@nick))
+      (should (erc-tests--equal-including-properties
+               (erc-format-privmessage (erc-format-@nick user cuser)
+                                       (copy-sequence "oh my")
+                                       nil 'msgp)
+               expect)))
+    (let ((nick "Bob")
+          (msg "oh my"))
+      (should (erc-tests--equal-including-properties
+               (erc-tests--format-privmessage nick msg nil 'msgp nil cuser)
+               expect)) ; overloaded on PREFIX arg
+      (should (erc-tests--equal-including-properties
+               (erc-tests--format-privmessage nick msg nil 'msgp nil t)
+               expect))
+      ;; The new version makes a copy instead of adding properties to
+      ;; the input.
+      (should-not
+       (text-property-not-all 0 (length nick) 'font-lock-face nil nick))
+      (should-not
+       (text-property-not-all 0 (length msg) 'font-lock-face nil msg)))))
+
+(ert-deftest erc--determine-speaker-message-format-args/queries-as-channel ()
+  (should erc-format-query-as-channel-p)
+
+  (with-current-buffer (get-buffer-create "bob")
+    (erc-mode)
+    (setq erc--target (erc--target-from-string "alice"))
+
+    (insert "PRIVMSG\n"
+            (erc-tests--format-privmessage "bob" "oh my" 'queryp 'msgp))
     (should (erc-tests--equal-including-properties
-             (erc-format-privmessage (erc-format-@nick user cuser)
-                                     (copy-sequence "oh my")
-                                     nil 'msgp)
-             #("<@Bob> oh my"
+             #("<bob> oh my"
                0 1 (font-lock-face erc-default-face)
-               1 2 (font-lock-face erc-nick-prefix-face help-echo "operator")
-               2 5 (erc--speaker "Bob" font-lock-face erc-nick-default-face)
-               5 12 (font-lock-face erc-default-face))))))
+               1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
+               4 11 (font-lock-face erc-default-face))
+             (buffer-substring (pos-bol) (pos-eol))))
+
+    (insert "\nNOTICE\n"
+            (erc-tests--format-privmessage "bob" "oh my" 'queryp nil))
+    (should (erc-tests--equal-including-properties
+             #("-bob- oh my"
+               0 1 (font-lock-face erc-default-face)
+               1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
+               4 11 (font-lock-face erc-default-face))
+             (buffer-substring (pos-bol) (pos-eol))))
+
+    (insert "\nInput PRIVMSG\n"
+            (erc-tests--format-privmessage "bob" "oh my"
+                                           'queryp 'privmsgp 'inputp))
+    (should (erc-tests--equal-including-properties
+             #("<bob> oh my"
+               0 1 (font-lock-face erc-default-face)
+               1 4 (erc--speaker "bob" font-lock-face erc-my-nick-face)
+               4 6 (font-lock-face erc-default-face)
+               6 11 (font-lock-face erc-input-face))
+             (buffer-substring (pos-bol) (pos-eol))))
+
+    (insert "\nInput NOTICE\n"
+            (erc-tests--format-privmessage "bob" "oh my" 'queryp nil 'inputp))
+    (should (erc-tests--equal-including-properties
+             #("-bob- oh my"
+               0 1 (font-lock-face erc-default-face)
+               1 4 (erc--speaker "bob" font-lock-face erc-my-nick-face)
+               4 6 (font-lock-face erc-default-face)
+               6 11 (font-lock-face erc-input-face))
+             (buffer-substring (pos-bol) (pos-eol))))
+
+    (when noninteractive (kill-buffer))))
+
+(ert-deftest erc--determine-speaker-message-format-args/queries ()
+  (should erc-format-query-as-channel-p)
+
+  (with-current-buffer (get-buffer-create "bob")
+    (erc-mode)
+    (setq-local erc-format-query-as-channel-p nil)
+    (setq erc--target (erc--target-from-string "alice"))
+
+    (insert "PRIVMSG\n"
+            (erc-tests--format-privmessage "bob" "oh my" 'queryp 'msgp))
+    (should (erc-tests--equal-including-properties
+             #("*bob* oh my"
+               0 1 (font-lock-face erc-direct-msg-face)
+               1 4 (erc--speaker "bob" font-lock-face erc-nick-msg-face)
+               4 11 (font-lock-face erc-direct-msg-face))
+             (buffer-substring (pos-bol) (pos-eol))))
+
+    (insert "\nNOTICE\n"
+            (erc-tests--format-privmessage "bob" "oh my" 'queryp nil))
+    (should (erc-tests--equal-including-properties
+             #("-bob- oh my"
+               0 1 (font-lock-face erc-direct-msg-face)
+               1 4 (erc--speaker "bob" font-lock-face erc-nick-msg-face)
+               4 11 (font-lock-face erc-direct-msg-face))
+             (buffer-substring (pos-bol) (pos-eol))))
+
+    (insert "\nInput PRIVMSG\n"
+            (erc-tests--format-privmessage "bob" "oh my"
+                                           'queryp 'privmsgp 'inputp))
+    (should (erc-tests--equal-including-properties
+             #("*bob* oh my"
+               0 1 (font-lock-face erc-direct-msg-face)
+               1 4 (erc--speaker "bob" font-lock-face erc-my-nick-face)
+               4 6 (font-lock-face erc-direct-msg-face)
+               6 11 (font-lock-face erc-input-face))
+             (buffer-substring (pos-bol) (pos-eol))))
+
+    (insert "\nInput NOTICE\n"
+            (erc-tests--format-privmessage "bob" "oh my" 'queryp nil 'inputp))
+    (should (erc-tests--equal-including-properties
+             #("-bob- oh my"
+               0 1 (font-lock-face erc-direct-msg-face)
+               1 4 (erc--speaker "bob" font-lock-face erc-my-nick-face)
+               4 6 (font-lock-face erc-direct-msg-face)
+               6 11 (font-lock-face erc-input-face))
+             (buffer-substring (pos-bol) (pos-eol))))
+
+    (when noninteractive (kill-buffer))))
+
+(defun erc-tests--format-my-nick (message)
+  (concat (erc-format-my-nick)
+          (propertize message 'font-lock-face 'erc-input-face)))
+
+;; This tests that the default behavior of the replacement formatting
+;; function for prompt input, `erc--format-speaker-input-message'
+;; matches that of the original being replaced, `erc-format-my-nick',
+;; though it only handled the speaker portion.
+(ert-deftest erc--format-speaker-input-message ()
+  ;; No status prefix.
+  (let ((erc-server-current-nick "tester")
+        (expect #("<tester> oh my"
+                  0 1 (font-lock-face erc-default-face)
+                  1 7 (font-lock-face erc-my-nick-face erc--speaker "tester")
+                  7 9 (font-lock-face erc-default-face)
+                  9 14 (font-lock-face erc-input-face))))
+    (should (equal (erc-tests--format-my-nick "oh my") expect))
+    (should (equal (erc--format-speaker-input-message "oh my") expect)))
+
+  ;; With channel-operator status prefix.
+  (let* ((erc-server-current-nick "tester")
+         (cmem (cons (make-erc-server-user :nickname "tester")
+                     (make-erc-channel-user :op t)))
+         (erc-channel-users (map-into (list "tester" cmem)
+                                      '(hash-table :test equal)))
+         (expect #("<@tester> oh my"
+                   0 1 (font-lock-face erc-default-face)
+                   1 2 (font-lock-face erc-my-nick-prefix-face)
+                   2 5 (font-lock-face erc-my-nick-face erc--speaker "bob")
+                   5 7 (font-lock-face erc-default-face)
+                   7 12 (font-lock-face erc-input-face))))
+    (should (equal (erc-tests--format-my-nick "oh my") expect))
+    (should (equal (erc--format-speaker-input-message "oh my") expect))))
 
 (ert-deftest erc--route-insertion ()
   (erc-tests--send-prep)

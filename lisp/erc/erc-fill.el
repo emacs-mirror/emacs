@@ -546,42 +546,38 @@ behavior of taking the length from the first \"word\".  This
 variable can be converted to a public one if needed by third
 parties.")
 
-(defvar-local erc-fill--wrap-last-msg nil)
-(defvar erc-fill--wrap-max-lull (* 24 60 60))
+(defvar-local erc-fill--wrap-last-msg nil "Marker for merging speakers.")
+(defvar erc-fill--wrap-max-lull (* 24 60 60) "Max secs for merging speakers.")
 
 (defun erc-fill--wrap-continued-message-p ()
   "Return non-nil when the current speaker hasn't changed.
-That is, indicate whether the text just inserted is from the same
-sender as that of the previous \"PRIVMSG\".  As a side effect,
-advance `erc-fill--wrap-last-msg' unless the message has been
-marked as being ephemeral."
-  (and
-   (not (erc--check-msg-prop 'erc--ephemeral))
-   (progn ; preserve blame for now, unprogn on next major change
-     (prog1
-         (and-let*
-             ((m (or erc-fill--wrap-last-msg
-                     (setq erc-fill--wrap-last-msg (point-min-marker))
-                     nil))
-              ((< (1+ (point-min)) (- (point) 2)))
-              (props (save-restriction
-                       (widen)
-                       (and-let*
-                           ((speaker (get-text-property m 'erc--spkr))
-                            ((not (eq (get-text-property m 'erc--ctcp)
-                                      'ACTION)))
-                            ((not (invisible-p m))))
-                         (cons (get-text-property m 'erc--ts) speaker))))
-              (ts (pop props))
-              (props)
-              ((not (time-less-p (erc-stamp--current-time) ts)))
-              ((time-less-p (time-subtract (erc-stamp--current-time) ts)
-                            erc-fill--wrap-max-lull))
-              ;; Assume presence of leading angle bracket or hyphen.
-              (nick (erc--check-msg-prop 'erc--spkr))
-              ((not (erc--check-msg-prop 'erc--ctcp 'ACTION)))
-              ((erc-nick-equal-p props nick))))
-       (set-marker erc-fill--wrap-last-msg (point-min))))))
+But only if the `erc--msg' text property also hasn't.  That is,
+indicate whether the chat message just inserted is from the same
+person as the prior one and is formatted in the same manner.  As
+a side effect, advance `erc-fill--wrap-last-msg' unless the
+message has been marked `erc--ephemeral'."
+  (and-let*
+      (((not (erc--check-msg-prop 'erc--ephemeral)))
+       ;; Always set/move `erc-fill--wrap-last-msg' from here on down.
+       (m (or (and erc-fill--wrap-last-msg
+                   (prog1 (marker-position erc-fill--wrap-last-msg)
+                     (set-marker erc-fill--wrap-last-msg (point-min))))
+              (ignore (setq erc-fill--wrap-last-msg (point-min-marker)))))
+       ((>= (point) 4)) ; skip the first message
+       (props (save-restriction
+                (widen)
+                (and-let* ((speaker (get-text-property m 'erc--spkr))
+                           (type (get-text-property m 'erc--msg))
+                           ((not (invisible-p m))))
+                  (list (get-text-property m 'erc--ts) type speaker))))
+       (ts (nth 0 props))
+       (type (nth 1 props))
+       (speaker (nth 2 props))
+       ((not (time-less-p (erc-stamp--current-time) ts)))
+       ((time-less-p (time-subtract (erc-stamp--current-time) ts)
+                     erc-fill--wrap-max-lull))
+       ((erc--check-msg-prop 'erc--msg type))
+       ((erc-nick-equal-p speaker (erc--check-msg-prop 'erc--spkr))))))
 
 (defun erc-fill--wrap-measure (beg end)
   "Return display spec width for inserted region between BEG and END.
@@ -747,8 +743,11 @@ With REPAIRP, destructively fill gaps and re-merge speakers."
                  ((equal "" dval)))
         (remove-text-properties
          dbeg (text-property-not-all dbeg end 'display dval) '(display)))
-      (let* ((pos (if (eq 'date-left (get-text-property beg 'erc-stamp-type))
-                      (field-beginning beg)
+      ;; This "should" work w/o `front-sticky' and `rear-nonsticky'.
+      (let* ((pos (if-let (((eq 'erc-timestamp (field-at-pos beg)))
+                           (b (field-beginning beg))
+                           ((eq 'datestamp (get-text-property b 'erc--msg))))
+                      b
                     beg))
              (erc--msg-props (map-into (text-properties-at pos) 'hash-table))
              (erc-stamp--current-time (gethash 'erc--ts erc--msg-props)))

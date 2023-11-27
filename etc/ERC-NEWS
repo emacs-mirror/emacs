@@ -275,6 +275,26 @@ buffers.  In channels, it's grown to include all letters and their
 possibly truncated arguments, with the exception of stateful list
 modes, like "b".
 
+** In-buffer "status messages" are now a thing.
+The ancient option 'erc-ensure-target-buffer-on-privmsg' has been
+repurposed slightly to express a third state denoted by the symbol
+'status'.  It tells ERC to revert to the old default behavior in which
+separate, "pseudo" target buffers for status-prefixed conversing
+co-existed alongside actual target buffers.  Instead of this awkward
+arrangement, ERC now acts like other clients by default and inserts
+so-called "status messages" in situ, right between other messages.
+Similar insertion-routing behavior now also applies to CTCP ACTIONs
+directed at status-prefixed channels.  Unfortunately, outgoing "/msg
+@#chan hi" messages aren't yet shown in the same fashion, but the
+groundwork has been laid, making such an addition almost trivial.
+
+** An easier way to see channel-membership prefixes on speakers.
+The option 'erc-format-@nick' has been deprecated in favor of the new
+boolean option 'erc-show-speaker-membership-status', a simple switch
+to enable the displaying of status prefixes on the speaker nicks of
+incoming chat messages.  Prefixes on your speaker nick for outgoing
+chat messages continue to always be present.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, fool visibility has become togglable with the new
@@ -532,6 +552,38 @@ ideas and use cases on the tracker.
 The functions 'erc-define-catalog-entry' and 'erc-define-catalog' have
 been deprecated in favor of 'erc-define-message-format-catalog', a new
 macro for defining template "catalogs" at the top level of libraries.
+
+*** Interface for determining display names renamed.
+The option 'erc-format-nick-function' has been renamed to
+'erc-speaker-from-channel-member-function' to better reflect its
+actual role.  So too has the related function 'erc-format-nick', which
+is now 'erc-determine-speaker-from user'.
+
+*** A template-based approach to formatting inserted chat messages.
+Predicting and influencing how ERC formats messages containing a
+leading "<speaker>" has never been straightforward.  The characters
+bracketing the speaker and the faces used for each component have
+always been hard-coded, with 'erc-format-query-as-channel-p' being the
+only knob of any consequence.  With this release, ERC begins its
+transition to a unified formatting paradigm that builds upon the
+already familiar "language catalog" templating system.  Using a
+separate "speaker catalog" keyed by contextual symbols, like
+'query-privmsg', ERC (and eventually everyone) will more easily be
+able to influence how inserted messages take shape in buffers.
+
+*** New format templates for inserted CTCP ACTION messages.
+In 5.5 and earlier, ERC displayed outgoing CTCP ACTION messages in
+'erc-input-face' alone (before buttonizing).  Incoming ACTION messages
+mirrored this, except with 'erc-action-face' throughout.  Going
+forward, inserted outgoing "/ME" messages will also incorporate
+'erc-action-face', only underneath 'erc-input-face', with
+'erc-my-nick-face' sitting atop both in the leading "speaker" nickname
+portion (again, pre-buttonizing).  This new behavior sidesteps the
+traditional format template 'erc-message-english-ACTION' from the
+default "language catalog" in favor of an entry from the new internal
+"speaker catalog".  Users needing to access the old behavior can do so
+by toggling a provided compatibility switch.  See source code around
+the function 'erc-send-action' for details.
 
 *** Miscellaneous changes
 Two helper macros from GNU ELPA's Compat library are now available to

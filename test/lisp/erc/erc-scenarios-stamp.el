@@ -68,7 +68,7 @@
         (ert-info ("Stamps appear in left margin and are invisible")
           (should (eq 'erc-timestamp (field-at-pos (pos-bol))))
           (should (= (pos-bol) (field-beginning (pos-bol))))
-          (should (eq 'msg (get-text-property (pos-bol) 'erc--msg)))
+          (should (eq 'query-notice (get-text-property (pos-bol) 'erc--msg)))
           (should (eq 'NOTICE (get-text-property (pos-bol) 'erc--cmd)))
           (should (= ?- (char-after (field-end (pos-bol)))))
           (should (equal (get-text-property (1+ (field-end (pos-bol)))

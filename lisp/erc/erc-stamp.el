@@ -660,8 +660,7 @@ truncating `erc-timestamp-format-left' prior to rendering.  A
 value of t means the option's value doesn't require trimming.")
 
 (defun erc-stamp--propertize-left-date-stamp ()
-  (add-text-properties (point-min) (1- (point-max))
-                       '(field erc-timestamp erc-stamp-type date-left))
+  (add-text-properties (point-min) (1- (point-max)) '(field erc-timestamp))
   (erc--hide-message 'timestamp)
   (run-hooks 'erc-stamp--insert-date-hook))
 

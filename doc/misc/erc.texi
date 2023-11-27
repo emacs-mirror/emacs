@@ -918,15 +918,10 @@ In the latter case, if the first nick in the list is already in use,
 other nicks are tried in the list order.
 @end defopt
 
-@defopt erc-format-nick-function
-A function to format a nickname for message display
-
-You can set this to @code{erc-format-@@nick} to display user mode prefix
+@defopt erc-show-speaker-membership-status
+A boolean for including a channel member's @dfn{status prefix} in
+their display name when they speak.
 @end defopt
-
-@example
-(setq erc-format-nick-function 'erc-format-@@nick)
-@end example
 
 @defopt erc-nick-uniquifier
 The string to append to the nick if it is already in use.

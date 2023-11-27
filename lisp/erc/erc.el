@@ -154,11 +154,10 @@ visiting and editing inserted messages.  Modules should align
 their markers accordingly.  The following properties have meaning
 as of ERC 5.6:
 
- - `erc--msg': a symbol, guaranteed present; values include:
-   `msg', signifying a `PRIVMSG' or an incoming `NOTICE';
-   `unknown', a fallback for `erc-display-message'; a catalog
-    key, such as `s401' or `finished'; an `erc-display-message'
-    TYPE parameter, like `notice'
+ - `erc--msg': a symbol, guaranteed present; possible values
+    include `unknown', a fallback used by `erc-display-message'; a
+    catalog key, such as `s401' or `finished'; an
+   `erc-display-message' TYPE parameter, like `notice'
 
  - `erc--cmd': a message's associated IRC command, as read by
    `erc--get-eq-comparable-cmd'; currently either a symbol, like
@@ -3017,20 +3016,34 @@ target, and an `erc-server-send' FORCE flag.")
   "Send STRING to TARGET, possibly immediately, with FORCE."
   (erc-send-ctcp-message target (format "ACTION %s" string) force))
 
+(defvar erc--use-language-catalog-for-ctcp-action-p nil
+  "When non-nil, use `ACTION' entry from language catalog for /ME's.
+Otherwise, use `ctcp-action' or `ctcp-action-input' from the
+internal `-speaker' catalog.  This is an escape hatch to restore
+pre-5.6 behavior for the `font-lock-face' property of incoming
+and outgoing \"CTCP ACTION\" messages, whose pre-buttonized state
+was a single interval of `erc-input-face' or `erc-action-face'.
+Newer modules, like `fill-wrap' and `nicks', are incompatible with
+this format style.  If you use this, please ask ERC to expose it
+as a public variable via \\[erc-bug] or similar.")
+
 (defun erc--send-action-display (string)
-  "Display STRING as an outgoing \"CTCP ACTION\" message."
+  "Display STRING as an outgoing \"CTCP ACTION\" message.
+Propertize the message according to the compatibility flag
+`erc--use-language-catalog-for-ctcp-action-p'."
   ;; Allow hooks acting on inserted PRIVMSG and NOTICES to process us.
-  (defvar erc--merge-prop-behind-p)
-  (let* ((nick (erc-current-nick))
-         (erc--msg-prop-overrides `((erc--msg . msg)
-                                    (erc--ctcp . ACTION)
-                                    (erc--spkr . ,nick)
-                                    ,@erc--msg-prop-overrides))
-         (erc--merge-prop-behind-p t))
-    (setq nick (propertize nick 'erc--speaker nick
-                           'font-lock-face 'erc-my-nick-face))
-    (erc-display-message nil '(t input action) (current-buffer)
-                         'ACTION ?n nick ?a string ?u "" ?h "")))
+  (let ((erc--msg-prop-overrides `((erc--ctcp . ACTION)
+                                   ,@erc--msg-prop-overrides))
+        (nick (erc-current-nick)))
+    (if erc--use-language-catalog-for-ctcp-action-p
+        (progn (erc--ensure-spkr-prop nick)
+               (erc-display-message nil 'input (current-buffer) 'ACTION
+                                    ?n (propertize nick 'erc--speaker nick)
+                                    ?a string ?u "" ?h ""))
+      (let ((erc-current-message-catalog erc--message-speaker-catalog))
+        (erc-display-message nil nil (current-buffer) 'ctcp-action-input
+                             ?p (erc-get-channel-membership-prefix nick)
+                             ?n (erc--speakerize-nick nick) ?m string)))))
 
 (defun erc--send-action (target string force)
   "Display STRING, then send to TARGET as a \"CTCP ACTION\" message."
@@ -3039,11 +3052,20 @@ target, and an `erc-server-send' FORCE flag.")
 
 ;; Display interface
 
-(defun erc--ensure-spkr-prop (nick)
-  "Maybe add NICK to `erc--msg-props' or `erc--msg-prop-overrides'."
-  (cond (erc--msg-props (puthash 'erc--spkr nick erc--msg-props))
+(defun erc--ensure-spkr-prop (nick &optional overrides)
+  "Add NICK as `erc--spkr' to the current \"msg props\" environment.
+Prefer `erc--msg-props' over `erc--msg-prop-overrides' when both
+are available.  Also include any members of the alist OVERRIDES,
+when present.  Assume NICK itself to be free of any text props,
+and return it."
+  (cond (erc--msg-props
+         (puthash 'erc--spkr nick erc--msg-props)
+         (dolist (entry overrides)
+           (puthash (car entry) (cdr entry) erc--msg-props)))
         (erc--msg-prop-overrides
-         (push (cons 'erc--spkr nick) erc--msg-prop-overrides))))
+         (setq erc--msg-prop-overrides
+               `((erc--spkr . ,nick) ,@overrides ,@erc--msg-prop-overrides))))
+  nick)
 
 (defun erc-string-invisible-p (string)
   "Check whether STRING is invisible or not.
@@ -4659,15 +4681,26 @@ See also `erc-message' and `erc-display-line'."
       (funcall erc--send-message-nested-function line force)
     (erc--send-message-external line force)))
 
-;; FIXME fully simulate `erc-display-msg'.  This doesn't currently add
-;; the correct text properties.  For example, the LINE should have
-;; `erc-default-face'.
 (defun erc--send-message-external (line force)
-  (erc-message "PRIVMSG" (concat (erc-default-target) " " line) force)
-  (erc-display-line
-   (concat (erc-format-my-nick) line)
-   (current-buffer))
+  "Send a \"PRIVMSG\" to the default target with optional FORCE.
+Expect caller to bind `erc-default-recipients' if needing to
+specify a status-prefixed target."
+  ;; Almost like an echoed message, but without the `erc--cmd'.
+  (let* ((erc-current-message-catalog erc--message-speaker-catalog)
+         (target (erc-default-target))
+         (erc--msg-prop-overrides `((erc--tmp) ,@erc--msg-prop-overrides))
+         ;; This util sets the `erc--spkr' property in ^.
+         (trimmed (erc--statusmsg-target target))
+         (stmsgindc (and trimmed (substring target 0 1)))
+         (queryp (and erc--target (not (erc--target-channel-p erc--target))))
+         (args (erc--determine-speaker-message-format-args
+                (erc-current-nick) line queryp 'privmsgp 'inputp
+                stmsgindc 'prefix)))
+    (erc-message "PRIVMSG" (concat target " " line) force)
+    (push (cons 'erc--msg (car args)) erc--msg-prop-overrides)
+    (apply #'erc-display-message nil nil (current-buffer) args))
   ;; FIXME - treat multiline, run hooks, or remove me?
+  ;; FIXME explain this ^ in more detail or remove.
   t)
 
 (defun erc--send-message-nested (input-line force)
@@ -5282,7 +5315,6 @@ Eventually add a # in front of it, if that turns it into a valid channel name."
      rear-nonsticky erc-prompt field front-sticky read-only
      ;; stamp
      cursor-intangible cursor-sensor-functions isearch-open-invisible
-     erc-stamp-type
      ;; match
      invisible intangible
      ;; button
@@ -5626,7 +5658,9 @@ manner implied above, which was lost sometime before ERC 5.4."
   :package-version '(ERC . "5.6") ; revived
   :group 'erc-buffers
   :group 'erc-query
-  :type 'boolean)
+  :type '(choice boolean
+                 (choice :tag "Create pseudo queries for STATUSMSGs"
+                         status)))
 
 (defcustom erc-format-query-as-channel-p t
   "If non-nil, format text from others in a query buffer like in a channel.
@@ -5803,14 +5837,210 @@ NUH, and the current `erc-response' object.")
                            'font-lock-face msg-face str)
     str))
 
-(defcustom erc-format-nick-function 'erc-format-nick
-  "Function to format a nickname for message display."
-  :group 'erc-display
-  :type 'function)
+;; The format strings in the following `-speaker' catalog shouldn't
+;; contain any non-protocol words, so they make sense in any language.
 
-(defun erc-format-nick (&optional user _channel-data)
-  "Return the nickname of USER.
-See also `erc-format-nick-function'."
+(defvar erc--message-speaker-statusmsg
+  #("(%p%n%s) %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-nick-prefix-face)
+    3 5 (font-lock-face erc-nick-default-face)
+    5 7 (font-lock-face erc-notice-face)
+    7 11 (font-lock-face erc-default-face))
+  "Message template for in-channel status messages.")
+
+(defvar erc--message-speaker-statusmsg-input
+  #("(%p%n%s) %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-my-nick-prefix-face)
+    3 5 (font-lock-face erc-my-nick-face)
+    5 7 (font-lock-face erc-notice-face)
+    7 8 (font-lock-face erc-default-face)
+    8 11 (font-lock-face erc-input-face))
+  "Message template for echoed status messages.")
+
+(defvar erc--message-speaker-input-chan-privmsg
+  #("<%p%n> %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-my-nick-prefix-face)
+    3 5 (font-lock-face erc-my-nick-face)
+    5 7 (font-lock-face erc-default-face)
+    7 9 (font-lock-face erc-input-face))
+  "Message template for prompt input or echoed PRIVMSG from own nick.")
+
+(defvar erc--message-speaker-input-query-privmsg
+  #("*%n* %m"
+    0 1 (font-lock-face erc-direct-msg-face)
+    1 3 (font-lock-face erc-my-nick-face)
+    3 5 (font-lock-face erc-direct-msg-face)
+    5 7 (font-lock-face erc-input-face))
+  "Message template for prompt input or echoed PRIVMSG query from own nick.")
+
+(defvar erc--message-speaker-input-query-notice
+  #("-%n- %m"
+    0 1 (font-lock-face erc-direct-msg-face)
+    1 3 (font-lock-face erc-my-nick-face)
+    3 5 (font-lock-face erc-direct-msg-face)
+    5 7 (font-lock-face erc-input-face))
+  "Message template for echoed or spoofed query NOTICE from own nick.")
+
+(defvar erc--message-speaker-input-chan-notice
+  #("-%p%n- %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-my-nick-prefix-face)
+    3 5 (font-lock-face erc-my-nick-face)
+    5 7 (font-lock-face erc-default-face)
+    7 9 (font-lock-face erc-input-face))
+  "Message template for prompt input or echoed NOTICE from own nick.")
+
+(defvar erc--message-speaker-chan-privmsg
+  #("<%p%n> %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-nick-prefix-face)
+    3 5 (font-lock-face erc-nick-default-face)
+    5 9 (font-lock-face erc-default-face))
+  "Message template for a PRIVMSG in a channel.")
+
+(defvar erc--message-speaker-query-privmsg
+  #("*%n* %m"
+    0 1 (font-lock-face erc-direct-msg-face)
+    1 3 (font-lock-face erc-nick-msg-face)
+    3 7 (font-lock-face erc-direct-msg-face))
+  "Message template for a PRIVMSG in query buffer.")
+
+(defvar erc--message-speaker-chan-notice
+  #("-%p%n- %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-nick-prefix-face)
+    3 5 (font-lock-face erc-nick-default-face)
+    5 9 (font-lock-face erc-default-face))
+  "Message template for a NOTICE in a channel.")
+
+(defvar erc--message-speaker-query-notice
+  #("-%n- %m"
+    0 1 (font-lock-face erc-direct-msg-face)
+    1 3 (font-lock-face erc-nick-msg-face)
+    3 7 (font-lock-face erc-direct-msg-face))
+  "Message template for a NOTICE in a query buffer.")
+
+(defvar erc--message-speaker-ctcp-action
+  #("* %p%n %m"
+    0 2 (font-lock-face erc-action-face)
+    2 4 (font-lock-face (erc-nick-prefix-face erc-action-face))
+    4 9 (font-lock-face erc-action-face))
+  "Message template for a CTCP ACTION from another user.")
+
+(defvar erc--message-speaker-ctcp-action-input
+  #("* %p%n %m"
+    0 2 (font-lock-face #1=(erc-input-face erc-action-face))
+    2 4 (font-lock-face (erc-my-nick-prefix-face . #1#))
+    4 6 (font-lock-face (erc-my-nick-face . #1#))
+    6 9 (font-lock-face #1#))
+  "Message template for a CTCP ACTION from current client.")
+
+(defvar erc--message-speaker-ctcp-action-statusmsg
+  #("* (%p%n%s) %m"
+    0 3 (font-lock-face erc-action-face)
+    3 5 (font-lock-face (erc-nick-prefix-face erc-action-face))
+    5 7 (font-lock-face erc-action-face)
+    7 9 (font-lock-face (erc-notice-face erc-action-face))
+    9 13 (font-lock-face erc-action-face))
+  "Template for a CTCP ACTION status message from another chan op.")
+
+(defvar erc--message-speaker-ctcp-action-statusmsg-input
+  #("* (%p%n%s) %m"
+    0 3 (font-lock-face #1=(erc-input-face erc-action-face))
+    3 5 (font-lock-face (erc-my-nick-prefix-face . #1#))
+    5 7 (font-lock-face (erc-my-nick-face . #1#))
+    7 9 (font-lock-face (erc-notice-face . #1#))
+    9 13 (font-lock-face #1#))
+  "Template for a CTCP ACTION status message from current client.")
+
+(defun erc--speakerize-nick (nick &optional disp)
+  "Propertize NICK with `erc--speaker' if not already present.
+Do so to DISP instead if it's non-nil.  In either case, assign
+NICK, sans properties, as the `erc--speaker' value.  As a side
+effect, pair the latter string (the same `eq'-able object) with
+the symbol `erc--spkr' in the \"msg prop\" environment for any
+imminent `erc-display-message' invocations.  While doing so,
+include any overrides defined in `erc--message-speaker-catalog'."
+  (let ((plain-nick (substring-no-properties nick)))
+    (erc--ensure-spkr-prop plain-nick (get erc--message-speaker-catalog
+                                           'erc--msg-prop-overrides))
+    (if (text-property-not-all 0 (length (or disp nick))
+                               'erc--speaker nil (or disp nick))
+        (or disp nick)
+      (propertize (or disp nick) 'erc--speaker plain-nick))))
+
+(defun erc--determine-speaker-message-format-args
+    (nick message queryp privmsgp inputp &optional statusmsg prefix disp-nick)
+  "Return a list consisting of a \"speaker\"-template key and spec args.
+Consider the three flags QUERYP, PRIVMSGP, and INPUTP, as well as
+the possibly null STATUSMSG string.  (Combined, these describe
+the context of a newly arrived \"PRIVMSG\" or, when PRIVMSGP is
+nil, a \"NOTICE\").  Interpret QUERYP to mean that MESSAGE is
+directed at the ERC client itself (a direct message), and INPUTP
+to mean MESSAGE is an outgoing or echoed message originating from
+or meant to simulate prompt input.  Interpret a non-nil STATUSMSG
+to mean MESSAGE should be formatted as a special channel message
+intended for privileged members of the same or greater status.
+
+After deciding on the template key for the current \"speaker\"
+catalog, use the remaining arguments, possibly along with
+STATUSMSG, to construct the appropriate spec-args plist forming
+the returned list's tail.  In this plist, pair the char ?n with
+NICK, the nickname of the speaker and ?m with MESSAGE, the
+message body.  When non-nil, assume DISP-NICK to be a possibly
+phony display name to take the place of NICK for ?n.  When PREFIX
+is non-nil, look up NICK's channel-membership status, possibly
+using PREFIX itself if it's an `erc-channel-user' object, which
+it must be when called outside of a channel buffer.  Pair the
+result with the ?p specifier.  When STATUSMSG is non-nil, pair it
+with the ?s specifier.  Ensure unused spec values are the empty
+string rather than nil."
+  (when prefix
+    (setq prefix (erc-get-channel-membership-prefix
+                  (if (erc-channel-user-p prefix) prefix nick))))
+  (when (and queryp erc--target erc-format-query-as-channel-p
+             (not (erc--target-channel-p erc--target)))
+    (setq queryp nil))
+  (list (cond (statusmsg (if inputp 'statusmsg-input 'statusmsg))
+              (privmsgp (if queryp
+                            (if inputp 'input-query-privmsg 'query-privmsg)
+                          (if inputp 'input-chan-privmsg 'chan-privmsg)))
+              (t (if queryp
+                     (if inputp 'input-query-notice 'query-notice)
+                   (if inputp 'input-chan-notice 'chan-notice))))
+        ?p (or prefix "") ?n (erc--speakerize-nick nick disp-nick)
+        ?s (or statusmsg "") ?m message))
+
+(defcustom erc-show-speaker-membership-status nil
+  "Whether to prefix speakers with their channel status.
+For example, when this option is non-nil and some nick \"Alice\"
+has operator status in the current channel, ERC displays their
+leading \"speaker\" label as <@Alice> instead of <Alice>."
+  :package-version '(ERC . "5.6")
+  :group 'erc-display
+  :type 'boolean)
+
+(define-obsolete-variable-alias 'erc-format-nick-function
+  'erc-speaker-from-channel-member-function "30.1")
+(defcustom erc-speaker-from-channel-member-function
+  #'erc-determine-speaker-from-user
+  "Function to determine a message's displayed \"speaker\" label.
+Called with an `erc-server-user' object and an `erc-channel-user'
+object, both possibly nil.  Use this option to do things like
+provide localized display names.  To ask ERC to prepend
+channel-membership \"status\" prefixes, like \"@\", to the
+returned name, see `erc-show-speaker-membership-status'."
+  :package-version '(ERC . "5.6")
+  :group 'erc-display
+  :type '(choice (function-item erc-determine-speaker-from-user) function))
+
+(define-obsolete-function-alias 'erc-format-nick
+  #'erc-determine-speaker-from-user "30.1")
+(defun erc-determine-speaker-from-user (&optional user _channel-data)
+  "Return nickname slot of `erc-server-user' USER, when non-nil."
   (when user (erc-server-user-nickname user)))
 
 (define-obsolete-function-alias 'erc-get-user-mode-prefix
@@ -5841,14 +6071,17 @@ string nickname, not necessarily downcased."
   "Format the nickname of USER showing if USER has a voice, is an
 operator, half-op, admin or owner.  Owners have \"~\", admins have
 \"&\", operators have \"@\" and users with voice have \"+\" as a
-prefix.  Use CHANNEL-DATA to determine op and voice status.  See
-also `erc-format-nick-function'."
+prefix.  Use CHANNEL-DATA to determine op and voice status."
+  (declare (obsolete "see option `erc-show-speaker-membership-status'" "30.1"))
   (when user
     (let ((nick (erc-server-user-nickname user)))
-      (concat (propertize
-               (erc-get-channel-membership-prefix channel-data)
-               'font-lock-face 'erc-nick-prefix-face)
-	      nick))))
+      (if (not erc--speaker-status-prefix-wanted-p)
+          (prog1 nick
+            (setq erc--speaker-status-prefix-wanted-p 'erc-format-@nick))
+        (concat (propertize
+                 (erc-get-channel-membership-prefix channel-data)
+                 'font-lock-face 'erc-nick-prefix-face)
+                nick)))))
 
 (defun erc-format-my-nick ()
   "Return the beginning of this user's message, correctly propertized."
@@ -5861,10 +6094,36 @@ also `erc-format-nick-function'."
         (concat
          (propertize open 'font-lock-face 'erc-default-face)
          (propertize mode 'font-lock-face 'erc-my-nick-prefix-face)
-         (propertize nick 'font-lock-face 'erc-my-nick-face 'erc--speaker nick)
+         (propertize nick 'erc--speaker nick 'font-lock-face 'erc-my-nick-face)
          (propertize close 'font-lock-face 'erc-default-face)))
     (let ((prefix "> "))
       (propertize prefix 'font-lock-face 'erc-default-face))))
+
+(defun erc--format-speaker-input-message (message)
+  "Assemble outgoing MESSAGE entered at the prompt for insertion.
+Intend \"input\" to refer to interactive prompt input as well as
+the group of associated message-format templates from the
+\"speaker\" catalog.  Format the speaker portion in a manner
+similar to that performed by `erc-format-my-nick', but use either
+`erc--message-speaker-input-chan-privmsg' or
+`erc--message-speaker-input-query-privmsg' as a formatting
+template, with MESSAGE being the actual message body.  Return a
+copy with possibly shared text-property values."
+  (if-let ((erc-show-my-nick)
+           (nick (erc-current-nick))
+           (pfx (erc-get-channel-membership-prefix nick))
+           (erc-current-message-catalog erc--message-speaker-catalog)
+           (key (if (or erc-format-query-as-channel-p
+                        (erc--target-channel-p erc--target))
+                    'input-chan-privmsg
+                  'input-query-privmsg)))
+      (progn
+        (cond (erc--msg-props (puthash 'erc--msg key erc--msg-props))
+              (erc--msg-prop-overrides (push (cons 'erc--msg key)
+                                             erc--msg-prop-overrides)))
+        (erc-format-message key ?p pfx ?n (erc--speakerize-nick nick)
+                            ?m message))
+    (propertize (concat "> " message) 'font-lock-face 'erc-input-face)))
 
 (defun erc-echo-notice-in-default-buffer (s parsed buffer _sender)
   "Echo a private notice in the default buffer, namely the
@@ -6105,8 +6364,7 @@ See also `erc-display-message'."
         (while queries
           (let* ((type (upcase (car (split-string (car queries)))))
                  (hook (intern-soft (concat "erc-ctcp-query-" type "-hook")))
-                 (erc--msg-prop-overrides `((erc--msg . msg)
-                                            (erc--ctcp . ,(intern type))
+                 (erc--msg-prop-overrides `((erc--ctcp . ,(intern type))
                                             ,@erc--msg-prop-overrides)))
             (if (and hook (boundp hook))
                 (if (string-equal type "ACTION")
@@ -6141,12 +6399,31 @@ See also `erc-display-message'."
     (let ((s (match-string 1 msg))
           (buf (or (erc-get-buffer to proc)
                    (erc-get-buffer nick proc)
-                   (process-buffer proc))))
-      (erc--ensure-spkr-prop nick)
-      (setq nick (propertize nick 'erc--speaker nick))
-      (erc-display-message
-       parsed 'action buf
-       'ACTION ?n nick ?u login ?h host ?a s))))
+                   (process-buffer proc)))
+          (selfp (erc-current-nick-p nick)))
+      (if erc--use-language-catalog-for-ctcp-action-p
+          (progn
+            (erc--ensure-spkr-prop nick)
+            (setq nick (propertize nick 'erc--speaker nick))
+            (erc-display-message parsed (if selfp 'input 'action) buf
+                                 'ACTION ?n nick ?u login ?h host ?a s))
+        (let* ((obj (and (erc--ctcp-response-p parsed) parsed))
+               (buffer (and obj (erc--ctcp-response-buffer obj)))
+               (stsmsg (and obj (erc--ctcp-response-statusmsg obj)))
+               (prefix (and obj (erc--ctcp-response-prefix obj)))
+               (dispnm (and obj (erc--ctcp-response-dispname obj)))
+               (erc-current-message-catalog erc--message-speaker-catalog))
+          (erc-display-message
+           parsed nil (or buffer buf)
+           (if selfp
+               (if stsmsg 'ctcp-action-statusmsg-input 'ctcp-action-input)
+             (if stsmsg 'ctcp-action-statusmsg 'ctcp-action))
+           ?s (or stsmsg to)
+           ?p (or (and (erc-channel-user-p prefix)
+                       (erc-get-channel-membership-prefix prefix))
+                  "")
+           ?n (erc--speakerize-nick nick dispnm)
+           ?m s))))))
 
 (defvar erc-ctcp-query-CLIENTINFO-hook '(erc-ctcp-query-CLIENTINFO))
 
@@ -7582,15 +7859,11 @@ as outgoing chat messages and echoed slash commands."
       (erc--assert-input-bounds)
       (let ((insert-position (marker-position (goto-char erc-insert-marker)))
             (erc--msg-props (or erc--msg-props
-                                (let ((ovs erc--msg-prop-overrides))
+                                (let ((ovs (seq-filter
+                                            #'cdr erc--msg-prop-overrides)))
                                   (map-into `((erc--msg . msg) ,@(reverse ovs))
-                                            'hash-table))))
-            beg)
-        (insert (erc-format-my-nick))
-        (setq beg (point))
-        (insert line)
-        (erc-put-text-property beg (point) 'font-lock-face 'erc-input-face)
-        (insert "\n")
+                                            'hash-table)))))
+        (insert (erc--format-speaker-input-message line) "\n")
         (save-restriction
           (narrow-to-region insert-position (point))
           (run-hooks 'erc-send-modify-hook)
@@ -8944,9 +9217,6 @@ functions."
                   (format ": %s"
                           (string-replace "%" "%%" reason))
                 "")))))
-
-
-(defvar-local erc-current-message-catalog 'english)
 
 (defun erc-retrieve-catalog-entry (key &optional catalog)
   "Retrieve `format-spec' entry for symbol KEY in CATALOG.

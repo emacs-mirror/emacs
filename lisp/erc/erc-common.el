@@ -100,6 +100,23 @@
   (contents "" :type string)
   (tags '() :type list))
 
+(cl-defstruct (erc--ctcp-response
+               (:include erc-response)
+               (:constructor
+                erc--ctcp-response-from-parsed
+                (&key parsed buffer statusmsg prefix dispname
+                      &aux (unparsed (erc-response.unparsed parsed))
+                      (sender (erc-response.sender parsed))
+                      (command (erc-response.command parsed))
+                      (command-args (erc-response.command-args parsed))
+                      (contents (erc-response.contents parsed))
+                      (tags (erc-response.tags parsed)))))
+  "Data for a processed CTCP query or reply."
+  (buffer nil :type (or buffer null))
+  (statusmsg nil :type (or null string))
+  (prefix nil :type (or erc-channel-user null))
+  (dispname nil :type (or string null)))
+
 (cl-defstruct erc--isupport-data
   "Abstract \"class\" for parsed ISUPPORT data.
 For use with the macro `erc--with-isupport-data'."

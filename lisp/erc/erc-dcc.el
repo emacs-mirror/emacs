@@ -1251,14 +1251,16 @@ other client."
 (defun erc-dcc-chat-parse-output (proc str)
   (save-match-data
     (let ((posn 0)
+          (erc--msg-prop-overrides `((erc--spkr . ,erc-dcc-from)))
+          (nick (propertize (erc--speakerize-nick erc-dcc-from)
+                            'font-lock-face 'erc-nick-default-face))
           line)
       (while (string-match "\n" str posn)
         (setq line (substring str posn (match-beginning 0)))
         (setq posn (match-end 0))
         (erc-display-message
          nil nil proc
-         'dcc-chat-privmsg ?n (propertize erc-dcc-from 'font-lock-face
-                                          'erc-nick-default-face) ?m line))
+         'dcc-chat-privmsg ?n nick ?m line))
       (setq erc-dcc-unprocessed-output (substring str posn)))))
 
 (defun erc-dcc-chat-buffer-killed ()
