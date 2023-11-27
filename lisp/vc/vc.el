@@ -1071,19 +1071,23 @@ Within directories, only files already under version control are noticed."
 (defvar diff-vc-backend)
 (defvar diff-vc-revisions)
 
-;; Maybe we could even use comint-mode rather than shell-mode?
-(defvar vc-deduce-backend-nonvc-modes
+(defcustom vc-deduce-backend-nonvc-modes
+  ;; Maybe we could even use comint-mode rather than shell-mode?
   '(dired-mode shell-mode eshell-mode compilation-mode)
   "List of modes not supported by VC where backend should be deduced.
 In these modes the backend is deduced based on `default-directory'.
-When nil, the backend is deduced in all modes.")
+If the value is t, the backend is deduced in all modes."
+  :type '(choice (const :tag "None" nil)
+                 (repeat symbol)
+                 (const :tag "All" t))
+  :version "30.1")
 
 (defun vc-deduce-backend ()
   (cond ((derived-mode-p 'vc-dir-mode)   vc-dir-backend)
 	((derived-mode-p 'log-view-mode) log-view-vc-backend)
 	((derived-mode-p 'log-edit-mode) log-edit-vc-backend)
 	((derived-mode-p 'diff-mode)     diff-vc-backend)
-	((or (null vc-deduce-backend-nonvc-modes)
+	((or (eq vc-deduce-backend-nonvc-modes t)
 	     (derived-mode-p vc-deduce-backend-nonvc-modes))
 	 (ignore-errors (vc-responsible-backend default-directory)))
 	(vc-mode (vc-backend buffer-file-name))))
