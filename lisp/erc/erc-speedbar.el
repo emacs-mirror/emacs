@@ -319,9 +319,7 @@ a list of four items: the userhost, the GECOS, the current
 	 (info (erc-server-user-info user))
 	 (login (erc-server-user-login user))
 	 (name (erc-server-user-full-name user))
-	 (voice (and cuser (erc-channel-user-voice cuser)))
-	 (op (and cuser (erc-channel-user-op cuser)))
-	 (nick-str (concat (if op "@" "") (if voice "+" "") nick))
+         (nick-str (concat (erc-get-channel-membership-prefix cuser) nick))
 	 (finger (concat login (when (or login host) "@") host))
          (sbtoken (list finger name info (buffer-name buffer))))
     (if (or login host name info) ; we want to be expandable

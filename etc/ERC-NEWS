@@ -437,6 +437,13 @@ The 'fill' module is now defined by 'define-erc-module'.  The same
 goes for ERC's imenu integration, which has 'imenu' now appearing in
 the default value of 'erc-modules'.
 
+*** Function 'erc-get-user-mode-prefix' renamed.
+This utility has been renamed to 'erc-get-channel-membership-prefix'
+to better reflect its role of delivering a formatted "status prefix",
+like "+" (for "voice"), and to avoid confusion with user modes, like
+"+i" (for "invisible").  Additionally, its lone parameter is now
+overloaded to accept an 'erc-channel-user' object as well as a string.
+
 *** Hidden messages contain a preceding rather than trailing newline.
 ERC has traditionally only offered to hide messages involving fools,
 but plans are to make hiding more powerful.  Anyone depending on the

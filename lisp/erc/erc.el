@@ -5798,21 +5798,31 @@ NUH, and the current `erc-response' object.")
 See also `erc-format-nick-function'."
   (when user (erc-server-user-nickname user)))
 
-(defun erc-get-user-mode-prefix (user)
+(define-obsolete-function-alias 'erc-get-user-mode-prefix
+  #'erc-get-channel-membership-prefix "30.1")
+(defun erc-get-channel-membership-prefix (user)
+  "Return channel membership prefix for USER as a string.
+Ensure returned string has a `help-echo' text property with the
+corresponding verbose membership type, like \"voice\", as its
+value.  Expect USER to be an `erc-channel-user' object or a
+string nickname, not necessarily downcased."
   (when user
-    (cond ((erc-channel-user-owner-p user)
+    (when (stringp user)
+      (setq user (and erc-channel-users (cdr (erc-get-channel-user user)))))
+    (cond ((null user) "")
+          ((erc-channel-user-owner user)
            (propertize "~" 'help-echo "owner"))
-          ((erc-channel-user-admin-p user)
+          ((erc-channel-user-admin user)
            (propertize "&" 'help-echo "admin"))
-          ((erc-channel-user-op-p user)
+          ((erc-channel-user-op user)
            (propertize "@" 'help-echo "operator"))
-          ((erc-channel-user-halfop-p user)
+          ((erc-channel-user-halfop user)
            (propertize "%" 'help-echo "half-op"))
-          ((erc-channel-user-voice-p user)
+          ((erc-channel-user-voice user)
            (propertize "+" 'help-echo "voice"))
           (t ""))))
 
-(defun erc-format-@nick (&optional user _channel-data)
+(defun erc-format-@nick (&optional user channel-data)
   "Format the nickname of USER showing if USER has a voice, is an
 operator, half-op, admin or owner.  Owners have \"~\", admins have
 \"&\", operators have \"@\" and users with voice have \"+\" as a
@@ -5821,7 +5831,7 @@ also `erc-format-nick-function'."
   (when user
     (let ((nick (erc-server-user-nickname user)))
       (concat (propertize
-               (erc-get-user-mode-prefix nick)
+               (erc-get-channel-membership-prefix channel-data)
                'font-lock-face 'erc-nick-prefix-face)
 	      nick))))
 
@@ -5831,7 +5841,7 @@ also `erc-format-nick-function'."
       (let* ((open "<")
              (close "> ")
              (nick (erc-current-nick))
-             (mode (erc-get-user-mode-prefix nick)))
+             (mode (erc-get-channel-membership-prefix nick)))
         (concat
          (propertize open 'font-lock-face 'erc-default-face)
          (propertize mode 'font-lock-face 'erc-my-nick-prefix-face)
@@ -8467,7 +8477,7 @@ Currently only used by the option `erc-prompt-format'.")
 (defun erc--format-channel-status-prefix ()
   "Return the current channel membership prefix."
   (and (erc--target-channel-p erc--target)
-       (erc-get-user-mode-prefix (erc-current-nick))))
+       (erc-get-channel-membership-prefix (erc-current-nick))))
 
 (defun erc--format-modes (&optional no-query-p)
   "Return a string of channel modes in channels and user modes elsewhere.
