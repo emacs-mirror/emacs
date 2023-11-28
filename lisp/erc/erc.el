@@ -7299,11 +7299,20 @@ a separate message."
   (when (< (point) (erc-beg-of-input-line))
     "Point is not in the input area"))
 
+;; Originally, `erc-send-current-line' inhibited sends whenever a
+;; server buffer was missing.  In 2007, this was narrowed to
+;; occurrences involving process-dependent commands.  However, the
+;; accompanying error message, which was identical to that emitted by
+;; `erc-server-send', "ERC: No process running", was always inaccurate
+;; because a server buffer can be alive and its process dead.
 (defun erc--check-prompt-input-for-running-process (string _)
-  "Return non-nil unless in an active ERC server buffer."
-  (unless (or (erc-server-buffer-live-p)
-              (erc-command-no-process-p string))
-    "ERC: No process running"))
+  "Return non-nil if STRING is a slash command missing a process.
+Also do so when the server buffer has been killed."
+  ;; Even if the server buffer has been killed, the user should still
+  ;; be able to /reconnect and recall previous commands.
+  (and (not (erc-command-no-process-p string))
+       (or (and (not (erc-server-buffer-live-p)) "Server buffer missing")
+           (and (not (erc-server-process-alive)) "Process not running"))))
 
 (defun erc--check-prompt-input-for-multiline-command (line lines)
   "Return non-nil when non-blank lines follow a command line."

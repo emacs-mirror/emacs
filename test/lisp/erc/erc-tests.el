@@ -1414,9 +1414,9 @@
        (ert-info ("Input remains untouched")
          (should (save-excursion (erc-bol) (looking-at "/msg #chan hi")))))
 
-     (ert-info ("Errors when no process running")
+     (ert-info ("Errors when server buffer absent")
        (let ((e (should-error (erc-send-current-line))))
-         (should (equal "ERC: No process running" (cadr e))))
+         (should (equal "Server buffer missing" (cadr e))))
        (ert-info ("Input remains untouched")
          (should (save-excursion (erc-bol) (looking-at "/msg #chan hi")))))
 
