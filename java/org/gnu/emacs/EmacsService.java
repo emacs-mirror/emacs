@@ -1413,7 +1413,7 @@ public final class EmacsService extends Service
      of OperationCanceledException, SecurityException,
      FileNotFoundException, or UnsupportedOperationException.  */
 
-  private int
+  public int
   documentIdFromName (String tree_uri, String name, String[] id_return)
   {
     /* Start the thread used to run SAF requests if it isn't already

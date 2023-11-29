@@ -1430,9 +1430,6 @@ public final class EmacsSafThread extends HandlerThread
 	    /* If so, don't check for FLAG_SUPPORTS_WRITE.
 	       Check for FLAG_DIR_SUPPORTS_CREATE instead.  */
 
-	    if (!writable)
-	      return 0;
-
 	    index = cursor.getColumnIndex (Document.COLUMN_FLAGS);
 	    if (index < 0)
 	      return -3;
