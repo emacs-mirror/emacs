@@ -64,6 +64,7 @@
     :initarg :notification-dispatcher
     :documentation "Dispatcher for remotely invoked notifications.")
    (last-error
+    :initform nil
     :accessor jsonrpc-last-error
     :documentation "Last JSONRPC error message received from endpoint.")
    (-request-continuations
@@ -71,6 +72,7 @@
     :accessor jsonrpc--request-continuations
     :documentation "A hash table of request ID to continuation lambdas.")
    (-events-buffer
+    :initform nil
     :accessor jsonrpc--events-buffer
     :documentation "A buffer pretty-printing the JSONRPC events")
    (-events-buffer-scrollback-size
@@ -353,6 +355,7 @@ ignored."
     :initarg :process :accessor jsonrpc--process
     :documentation "Process object wrapped by the this connection.")
    (-expected-bytes
+    :initform nil
     :accessor jsonrpc--expected-bytes
     :documentation "How many bytes declared by server.")
    (-on-shutdown
