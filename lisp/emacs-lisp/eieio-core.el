@@ -951,7 +951,10 @@ not nil."
   (let ((slots (eieio--class-slots (eieio--object-class obj))))
     (dotimes (i (length slots))
       (let* ((name (cl--slot-descriptor-name (aref slots i)))
-             (df (eieio-oref-default obj name)))
+             ;; If the `:initform` signals an error, just skip it,
+             ;; since the error is intended to be signal'ed from
+             ;; `initialize-instance` rather than at the time of `defclass`.
+             (df (ignore-errors (eieio-oref-default obj name))))
         (if (or df set-all)
             (eieio-oset obj name df))))))
 
