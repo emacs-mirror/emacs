@@ -190,7 +190,7 @@ prefix argument is ignored."
                      ('nil t)
                      ('eol (eolp))
                      ('word (not (eql 2 syn)))
-                     ('word-or-paren (not (memql syn '(2 4 5))))
+                     ('word-or-paren (not (memq syn '(2 4 5))))
                      ('word-or-paren-or-punct (not (memq syn '(2 4 5 1))))))))
         (completion-at-point))
 
