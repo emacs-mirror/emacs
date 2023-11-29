@@ -145,64 +145,69 @@ is a string giving details of the error."
     (if (file-regular-p fnfile)
         (with-temp-buffer
           (insert-file-contents fnfile)
+          (unless cflag
+            ;; If in Elisp, ensure syntax and shorthands available
+            (set-syntax-table emacs-lisp-mode-syntax-table)
+            (let (enable-local-variables) (hack-local-variables)))
           ;; defsubst's don't _have_ to be known at compile time.
-          (setq re (format (if cflag
-                               "^[ \t]*\\(DEFUN\\)[ \t]*([ \t]*\"%s\""
-                             "^[ \t]*(\\(fset[ \t]+'\\|\
+          (setq re (if cflag
+                       (format "^[ \t]*\\(DEFUN\\)[ \t]*([ \t]*\"%s\""
+                               (regexp-opt (mapcar 'cadr fnlist) t))
+                     "^[ \t]*(\\(fset[ \t]+'\\|\
 cl-def\\(?:generic\\|method\\|un\\)\\|\
 def\\(?:un\\|subst\\|foo\\|method\\|class\\|\
 ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\\|\
 \\(?:ine-obsolete-function-\\)?alias[ \t]+'\\|\
 ine-overloadable-function\\)\\)\
-[ \t]*%s\\([ \t;]+\\|$\\)")
-                           (regexp-opt (mapcar 'cadr fnlist) t)))
+[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)\\([ \t;]+\\|$\\)"))
           (while (re-search-forward re nil t)
             (skip-chars-forward " \t\n")
-            (setq fn (match-string 2)
-                  type (match-string 1)
-                  ;; (min . max) for a fixed number of arguments, or
-                  ;; arglists with optional elements.
-                  ;; (min) for arglists with &rest.
-                  ;; sig = 'err means we could not find an arglist.
-                  sig (cond (cflag
-                             (or
-                              (when (search-forward "," nil t 3)
-                                (skip-chars-forward " \t\n")
-                                ;; Assuming minargs and maxargs on same line.
-                                (when (looking-at "\\([0-9]+\\)[ \t]*,[ \t]*\
+            (setq fn (symbol-name (car (read-from-string (match-string 2)))))
+            (when (member fn (mapcar 'cadr fnlist))
+              (setq type (match-string 1)
+                    ;; (min . max) for a fixed number of arguments, or
+                    ;; arglists with optional elements.
+                    ;; (min) for arglists with &rest.
+                    ;; sig = 'err means we could not find an arglist.
+                    sig (cond (cflag
+                               (or
+                                (when (search-forward "," nil t 3)
+                                  (skip-chars-forward " \t\n")
+                                  ;; Assuming minargs and maxargs on same line.
+                                  (when (looking-at "\\([0-9]+\\)[ \t]*,[ \t]*\
 \\([0-9]+\\|MANY\\|UNEVALLED\\)")
-                                  (setq minargs (string-to-number
-                                                 (match-string 1))
-                                        maxargs (match-string 2))
-                                  (cons minargs (unless (string-match "[^0-9]"
-                                                                      maxargs)
-                                                 (string-to-number
-                                                  maxargs)))))
-                              'err))
-                            ((string-match
-                              "\\`define-\\(derived\\|generic\\)-mode\\'"
-                              type)
-                             '(0 . 0))
-                            ((string-match
-                              "\\`define\\(-global\\(ized\\)?\\)?-minor-mode\\'"
-                              type)
-                             '(0 . 1))
-                            ;; Prompt to update.
-                            ((string-match
-                              "\\`define-obsolete-function-alias\\>"
-                              type)
-                             'obsolete)
-                            ;; Can't easily check arguments in these cases.
-                            ((string-match "\\`\\(def\\(alias\\|class\\)\\|\
+                                    (setq minargs (string-to-number
+                                                   (match-string 1))
+                                          maxargs (match-string 2))
+                                    (cons minargs (unless (string-match "[^0-9]"
+                                                                        maxargs)
+                                                    (string-to-number
+                                                     maxargs)))))
+                                'err))
+                              ((string-match
+                                "\\`define-\\(derived\\|generic\\)-mode\\'"
+                                type)
+                               '(0 . 0))
+                              ((string-match
+                                "\\`define\\(-global\\(ized\\)?\\)?-minor-mode\\'"
+                                type)
+                               '(0 . 1))
+                              ;; Prompt to update.
+                              ((string-match
+                                "\\`define-obsolete-function-alias\\>"
+                                type)
+                               'obsolete)
+                              ;; Can't easily check arguments in these cases.
+                              ((string-match "\\`\\(def\\(alias\\|class\\)\\|\
 fset\\|\\(?:cl-\\)?defmethod\\)\\>" type)
-                             t)
-                            ((looking-at "\\((\\|nil\\)")
-                             (byte-compile-arglist-signature
-                              (read (current-buffer))))
-                            (t
-                             'err))
-                  ;; alist of functions and arglist signatures.
-                  siglist (cons (cons fn sig) siglist)))))
+                               t)
+                              ((looking-at "\\((\\|nil\\)")
+                               (byte-compile-arglist-signature
+                                (read (current-buffer))))
+                              (t
+                               'err))
+                    ;; alist of functions and arglist signatures.
+                    siglist (cons (cons fn sig) siglist))))))
     (dolist (e fnlist)
       (setq arglist (nth 2 e)
             type
