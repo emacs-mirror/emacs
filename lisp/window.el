@@ -5668,7 +5668,8 @@ Return the new window.
 If optional argument SIZE is omitted or nil, both windows get the
 same height, or close to it.  If SIZE is positive, the upper
 \(selected) window gets SIZE lines.  If SIZE is negative, the
-lower (new) window gets -SIZE lines.
+lower (new) window gets -SIZE lines.  Interactively, SIZE is
+the prefix numeric argument.
 
 If the variable `split-window-keep-point' is non-nil, both
 windows get the same value of point as the WINDOW-TO-SPLIT.
@@ -5720,8 +5721,9 @@ amount of redisplay; this is convenient on slow terminals."
   "Split root window of current frame in two.
 The current window configuration is retained in the top window,
 the lower window takes up the whole width of the frame.  SIZE is
-handled as in `split-window-below'."
-  (interactive "P")
+handled as in `split-window-below', and interactively is the
+prefix numeric argument."
+  (interactive "p")
   (split-window-below size (frame-root-window)))
 
 (defun split-window-right (&optional size window-to-split)
@@ -5738,7 +5740,7 @@ same width, or close to it.  If SIZE is positive, the left-hand
 right-hand (new) window gets -SIZE columns.  Here, SIZE includes
 the width of the window's scroll bar; if there are no scroll
 bars, it includes the width of the divider column to the window's
-right, if any."
+right, if any.  Interactively, SIZE is the prefix numeric argument."
   (interactive `(,(when current-prefix-arg
                     (prefix-numeric-value current-prefix-arg))
                  ,(selected-window)))
@@ -5760,8 +5762,8 @@ right, if any."
 The current window configuration is retained within the left
 window, and a new window is created on the right, taking up the
 whole height of the frame.  SIZE is treated as by
-`split-window-right'."
-  (interactive "P")
+`split-window-right' and interactively, is the prefix numeric argument."
+  (interactive "p")
   (split-window-right size (frame-root-window)))
 
 ;;; Balancing windows.
