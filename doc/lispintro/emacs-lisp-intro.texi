@@ -5447,9 +5447,9 @@ as the one to which you are copying, or if such a buffer does not
 exist, to create it.  Then, the @code{with-current-buffer} function
 evaluates its body with that buffer temporarily current, after which
 it will switch back to the buffer we are at now@footnote{It is like
-calling @code{(save-excursion (set-buffer ...) ...)} in one go, though
-it is defined slightly differently which interested reader can find
-out using @code{describe-function}}.
+calling @w{@code{(save-excursion (set-buffer @dots{}) @dots{})}} in
+one go, though it is defined slightly differently which interested
+reader can find out using @code{describe-function}.}.
 
 (This demonstrates another way to shift the computer's attention but
 not the user's.  The @code{append-to-buffer} function showed how to do
