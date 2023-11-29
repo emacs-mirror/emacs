@@ -43,11 +43,12 @@
 ;;;             Measures, by François Cardarelli)
 ;;; All conversions are exact unless otherwise noted.
 
-;; CODATA values updated February 2016, using 2014 adjustment
-;; https://arxiv.org/pdf/1507.07956.pdf
-
 ;; Updated November 2018 for the redefinition of the SI
 ;; https://www.bipm.org/utils/en/pdf/CGPM/Draft-Resolution-A-EN.pdf
+
+;; CODATA values last updated November 2023, using 2018 adjustment:
+;; E. Tiesinga, P. J. Mohr, D. B. Newell, and B. N. Taylor,
+;; Rev. Mod. Phys. 93, 025010 (2021)
 
 (defvar math-standard-units
   '( ;; Length
@@ -122,7 +123,6 @@
     ( mph     "mi/hr"                "*Miles per hour" )
     ( kph     "km/hr"                "Kilometers per hour" )
     ( knot    "nmi/hr"               "Knot" )
-    ( c       "299792458 m/s"        "Speed of light" ) ;; SI definition
 
     ;; Acceleration
     ( ga      "980665*10^(-5) m/s^2" "*\"g\" acceleration" nil
@@ -143,8 +143,8 @@
               "31.10347680 g") ;; ESUWM, 1/12 exact value for lbt
     ( ct      "(2/10) g"             "Carat" nil
               "0.2 g") ;; ESUWM
-    ( u       "1.660539040*10^(-27) kg"    "Unified atomic mass" nil
-              "1.660539040 10^-27 kg (*)");;(approx) CODATA
+    ( u       "1.66053906660*10^(-27) kg"    "Unified atomic mass" nil
+              "1.66053906660 10^-27 kg (*)") ;; (approx) CODATA
 
     ;; Force
     ( N       "m kg/s^2"             "*Newton" )
@@ -210,9 +210,6 @@
     ( A       nil                     "*Ampere" )
     ( C       "A s"                   "Coulomb" )
     ( Fdy     "ech Nav"               "Faraday" )
-    ( e       "ech"                   "Elementary charge" )
-    ( ech     "1.602176634*10^(-19) C"    "Elementary charge" nil
-              "1.602176634 10^-19 C")     ;; SI definition
     ( V       "W/A"                   "Volt" )
     ( ohm     "V/A"                   "Ohm" )
     ( Ω       "ohm"                   "Ohm" )
@@ -259,53 +256,61 @@
     ;; Solid angle
     ( sr      nil                      "*Steradian" )
 
+    ;; Constants defining the International System of Units (SI)
+    ( c       "299792458 m/s"               "*Speed of light" )
+    ( h       "6.62607015*10^(-34) J s"     "Planck constant" nil
+              "6.62607015 10^-34 J s")
+    ( ech     "1.602176634*10^(-19) C"      "Elementary charge" nil
+              "1.602176634 10^-19 C")
+    ( e       "ech"                         "Elementary charge" nil
+              "1.602176634 10^-19 C")
+    ( k       "1.380649*10^(-23) J/K"       "Boltzmann constant" nil
+              "1.380649 10^-23 J/K")
+    ( Nav     "6.02214076*10^(23) / mol"    "Avogadro constant" nil
+              "6.02214076 10^23 / mol")
+
     ;; Other physical quantities
     ;; Unless otherwise mentioned, the values are from CODATA,
     ;; and are approximate.
-    ( h       "6.62607015*10^(-34) J s"     "*Planck's constant" nil
-              "6.62607015 10^-34 J s")      ;; SI definition
-    ( hbar    "h / (2 pi)"                  "Planck's constant" ) ;; Exact
+    ( hbar    "h / (2 pi)"                  "*Reduced Planck constant" )
     ;; After the 2018 SI redefinition, eps0 and mu0 are measured quantities,
     ;; and mu0 no longer has the previous exact value of 4 pi 10^(-7) H/m.
     ( eps0    "ech^2 / (2 alpha h c)"       "Permittivity of vacuum" )
     ( ε0      "eps0"                        "Permittivity of vacuum" )
     ( mu0     "1 / (eps0 c^2)"              "Permeability of vacuum")
     ( μ0      "mu0"                         "Permeability of vacuum")
-    ( G       "6.67408*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
-              "6.67408 10^-11 m^3/(kg s^2) (*)")
-    ( Nav     "6.02214076*10^(23) / mol"    "Avogadro's constant" nil
-              "6.02214076 10^23 / mol")     ;; SI definition
-    ( me      "9.10938356*10^(-31) kg"      "Electron rest mass" nil
-              "9.10938356 10^-31 kg (*)")
-    ( mp      "1.672621898*10^(-27) kg"     "Proton rest mass" nil
-              "1.672621898 10^-27 kg (*)")
-    ( mn      "1.674927471*10^(-27) kg"     "Neutron rest mass" nil
-              "1.674927471 10^-27 kg (*)")
-    ( mmu     "1.883531594*10^(-28) kg"      "Muon rest mass" nil
-              "1.883531594 10^-28 kg (*)")
+    ( G       "6.67430*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
+              "6.67430 10^-11 m^3/(kg s^2) (*)")
+    ( me      "9.1093837015*10^(-31) kg"    "Electron rest mass" nil
+              "9.1093837015 10^-31 kg (*)")
+    ( mp      "1.67262192369*10^(-27) kg"   "Proton rest mass" nil
+              "1.67262192369 10^-27 kg (*)")
+    ( mn      "1.67492749804*10^(-27) kg"   "Neutron rest mass" nil
+              "1.67492749804 10^-27 kg (*)")
+    ( mmu     "1.883531627*10^(-28) kg"     "Muon rest mass" nil
+              "1.883531627 10^-28 kg (*)")
     ( mμ      "mmu"                         "Muon rest mass" nil
-              "1.883531594 10^-28 kg (*)")
-    ( Ryd     "10973731.568508 /m"          "Rydberg's constant" nil
-              "10973731.568508 /m (*)")
-    ( k       "1.380649*10^(-23) J/K"       "Boltzmann's constant" nil
-              "1.380649 10^-23 J/K")        ;; SI definition
+              "1.883531627 10^-28 kg (*)")
+    ( Ryd     "10973731.568160 /m"          "Rydberg constant" nil
+              "10973731.568160 /m (*)")
     ( sigma   "2 pi^5 k^4 / (15 h^3 c^2)"   "Stefan-Boltzmann constant")
     ( σ       "sigma"                       "Stefan-Boltzmann constant")
-    ( alpha   "7.2973525664*10^(-3)"        "Fine structure constant" nil
-              "7.2973525664 10^-3 (*)")
-    ( α       "alpha"                        "Fine structure constant" nil
-              "7.2973525664 10^-3 (*)")
-    ( muB     "927.4009994*10^(-26) J/T"     "Bohr magneton" nil
-              "927.4009994 10^-26 J/T (*)")
-    ( muN     "5.050783699*10^(-27) J/T"     "Nuclear magneton" nil
-              "5.050783699 10^-27 J/T (*)")
-    ( mue     "-928.4764620*10^(-26) J/T"    "Electron magnetic moment" nil
-              "-928.4764620 10^-26 J/T (*)")
-    ( mup     "1.4106067873*10^(-26) J/T"    "Proton magnetic moment" nil
-              "1.4106067873 10^-26 J/T (*)")
-    ( R0      "Nav k"                       "Molar gas constant") ;; Exact
-    ( V0      "22.710947*10^(-3) m^3/mol"   "Standard volume of ideal gas" nil
-              "22.710947 10^-3 m^3/mol (*)")
+    ( alpha   "7.2973525693*10^(-3)"        "Fine structure constant" nil
+              "7.2973525693 10^-3 (*)")
+    ( α       "alpha"                       "Fine structure constant" nil
+              "7.2973525693 10^-3 (*)")
+    ( muB     "9.2740100783*10^(-24) J/T"   "Bohr magneton" nil
+              "9.2740100783 10^-24 J/T (*)")
+    ( muN     "5.0507837461*10^(-27) J/T"   "Nuclear magneton" nil
+              "5.0507837461 10^-27 J/T (*)")
+    ( mue     "−9.2847647043*10^(-24) J/T"  "Electron magnetic moment" nil
+              "-9.2847647043 10^-24 J/T (*)")
+    ( mup     "1.41060679736*10^(-26) J/T"  "Proton magnetic moment" nil
+              "1.41060679736 10^-26 J/T (*)")
+    ( R0      "Nav k"                       "Molar gas constant" )
+    ( V0      "R0 273.15 K / 10^5 Pa"       "Standard volume of ideal gas" )
+              ;; IUPAC 1982 standard temperature and pressure
+
     ;; Logarithmic units
     ( Np      nil    "*Neper")
     ( dB      "(ln(10)/20) Np" "decibel"))
