@@ -44,7 +44,7 @@
 ;;; All conversions are exact unless otherwise noted.
 
 ;; Updated November 2018 for the redefinition of the SI
-;; https://www.bipm.org/utils/en/pdf/CGPM/Draft-Resolution-A-EN.pdf
+;; https://www.bipm.org/en/committees/cg/cgpm/26-2018/resolution-1
 
 ;; CODATA values last updated November 2023, using 2018 adjustment:
 ;; E. Tiesinga, P. J. Mohr, D. B. Newell, and B. N. Taylor,
