@@ -3262,4 +3262,113 @@ connection."
                       (put 'erc-mname-enable 'definition-name 'mname)
                       (put 'erc-mname-disable 'definition-name 'mname))))))
 
+(defun erc-tests--string-to-propertized-parts (string)
+  "Return a sequence of `propertize' forms for generating STRING.
+Expect maintainers manipulating template catalogs to use this
+with `pp-eval-last-sexp' or similar to convert back and forth
+between literal strings."
+  `(concat
+    ,@(mapcar
+       (pcase-lambda (`(,beg ,end ,plist))
+         ;; At the time of writing, `propertize' produces a string
+         ;; with the order of the input plist reversed.
+         `(propertize ,(substring-no-properties string beg end)
+                      ,@(let (out)
+                          (while-let ((plist)
+                                      (k (pop plist))
+                                      (v (pop plist)))
+                            (push (if (or (consp v) (symbolp v)) `',v v) out)
+                            (push `',k out))
+                          out)))
+       (object-intervals string))))
+
+(defun erc-tests-pp-propertized-parts (arg)
+  "Convert literal string before point into a `propertize'd form.
+For simplicity, assume string evaluates to itself."
+  (interactive "P")
+  (let ((sexp (erc-tests--string-to-propertized-parts (pp-last-sexp))))
+    (if arg (insert (pp-to-string sexp)) (pp-eval-expression sexp))))
+
+(ert-deftest erc-tests--string-to-propertized-parts ()
+  :tags '(:unstable) ; only run this locally
+  (unless (>= emacs-major-version 28) (ert-skip "Missing `object-intervals'"))
+
+  (should (equal (erc-tests--string-to-propertized-parts
+                  #("abc"
+                    0 1 (face default foo 1)
+                    1 3 (face (default italic) bar "2")))
+                 '(concat (propertize "a" 'foo 1 'face 'default)
+                          (propertize "bc" 'bar "2" 'face '(default italic)))))
+  (should (equal #("abc"
+                   0 1 (face default foo 1)
+                   1 3 (face (default italic) bar "2"))
+                 (concat (propertize "a" 'foo 1 'face 'default)
+                         (propertize "bc" 'bar "2" 'face '(default italic))))))
+
+(ert-deftest erc--make-message-variable-name ()
+  (should (erc--make-message-variable-name 'english 'QUIT 'softp))
+  (should (erc--make-message-variable-name 'english 'QUIT nil))
+
+  (let ((obarray (obarray-make)))
+    (should-not (erc--make-message-variable-name 'testcat 'testkey 'softp))
+    (should (erc--make-message-variable-name 'testcat 'testkey nil))
+    (should (intern-soft "erc-message-testcat-testkey" obarray))
+    (should-not (erc--make-message-variable-name 'testcat 'testkey 'softp))
+    (set (intern "erc-message-testcat-testkey" obarray) "hello world")
+    (should (equal (symbol-value
+                    (erc--make-message-variable-name 'testcat 'testkey nil))
+                   "hello world")))
+
+  ;; Hyphenated (internal catalog).
+  (let ((obarray (obarray-make)))
+    (should-not (erc--make-message-variable-name '-testcat 'testkey 'softp))
+    (should (erc--make-message-variable-name '-testcat 'testkey nil))
+    (should (intern-soft "erc--message-testcat-testkey" obarray))
+    (should-not (erc--make-message-variable-name '-testcat 'testkey 'softp))
+    (set (intern "erc--message-testcat-testkey" obarray) "hello world")
+    (should (equal (symbol-value
+                    (erc--make-message-variable-name '-testcat 'testkey nil))
+                   "hello world"))))
+
+(ert-deftest erc-retrieve-catalog-entry ()
+  (should (eq 'english erc-current-message-catalog))
+  (should (equal (erc-retrieve-catalog-entry 's221) "User modes for %n: %m"))
+
+  ;; Local binding.
+  (with-temp-buffer
+    (should (equal (erc-retrieve-catalog-entry 's221) "User modes for %n: %m"))
+    (setq erc-current-message-catalog 'test)
+    ;; No catalog named `test'.
+    (should (equal (erc-retrieve-catalog-entry 's221) "User modes for %n: %m"))
+
+    (let ((obarray (obarray-make)))
+      (set (intern "erc-message-test-s221") "test 221 val")
+      (should (equal (erc-retrieve-catalog-entry 's221) "test 221 val"))
+      (set (intern "erc-message-english-s221") "eng 221 val")
+
+      (let ((erc-current-message-catalog 'english))
+        (should (equal (erc-retrieve-catalog-entry 's221) "eng 221 val")))
+
+      (with-temp-buffer
+        (should (equal (erc-retrieve-catalog-entry 's221) "eng 221 val"))
+        (let ((erc-current-message-catalog 'test))
+          (should (equal (erc-retrieve-catalog-entry 's221) "test 221 val"))))
+
+      (should (equal (erc-retrieve-catalog-entry 's221) "test 221 val")))
+
+    (should (equal (erc-retrieve-catalog-entry 's221) "User modes for %n: %m"))
+    (should (equal erc-current-message-catalog 'test)))
+
+  ;; Default top-level value.
+  (set-default-toplevel-value 'erc-current-message-catalog 'test-top)
+  (should (equal (erc-retrieve-catalog-entry 's221) "User modes for %n: %m"))
+  (set (intern "erc-message-test-top-s221") "test-top 221 val")
+  (should (equal (erc-retrieve-catalog-entry 's221) "test-top 221 val"))
+
+  (setq erc-current-message-catalog 'test-local)
+  (should (equal (erc-retrieve-catalog-entry 's221) "test-top 221 val"))
+
+  (makunbound (intern "erc-message-test-top-s221"))
+  (unintern "erc-message-test-top-s221" obarray))
+
 ;;; erc-tests.el ends here

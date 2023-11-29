@@ -41,7 +41,7 @@ netsplits, so that it can filter the JOIN messages on a netjoin too."
 ;;;###autoload(autoload 'erc-netsplit-mode "erc-netsplit")
 (define-erc-module netsplit nil
   "This mode hides quit/join messages if a netsplit occurs."
-  ((erc-netsplit-install-message-catalogs)
+  ( ; FIXME delete newline on next edit
    (add-hook 'erc-server-JOIN-functions #'erc-netsplit-JOIN)
    (add-hook 'erc-server-MODE-functions #'erc-netsplit-MODE)
    (add-hook 'erc-server-QUIT-functions #'erc-netsplit-QUIT)
@@ -85,13 +85,22 @@ where FIRST-JOIN is t or nil, depending on whether or not the first
 join from that split has been detected or not.")
 
 (defun erc-netsplit-install-message-catalogs ()
+  (declare (obsolete "defined at top level in erc-netsplit.el" "30.1"))
+  (with-suppressed-warnings ((obsolete erc-define-catalog)) ; indentation
   (erc-define-catalog
    'english
    '((netsplit	       . "netsplit: %s")
      (netjoin	       . "netjoin: %s, %N were split")
      (netjoin-done     . "netjoin: All lost souls are back!")
      (netsplit-none    . "No netsplits in progress")
-     (netsplit-wholeft . "split: %s missing: %n %t"))))
+     (netsplit-wholeft . "split: %s missing: %n %t"))))) ; indentation
+
+(erc-define-message-format-catalog english
+  (netsplit . "netsplit: %s")
+  (netjoin . "netjoin: %s, %N were split")
+  (netjoin-done . "netjoin: All lost souls are back!")
+  (netsplit-none . "No netsplits in progress")
+  (netsplit-wholeft . "split: %s missing: %n %t"))
 
 (defun erc-netsplit-JOIN (proc parsed)
   "Show/don't show rejoins."

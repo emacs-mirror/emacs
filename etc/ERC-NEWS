@@ -425,6 +425,13 @@ Built-in modules can now provide more detailed help for a particular
 subcommand by telling ERC to defer to a specialized handler.  This
 facility can be opened up to third parties should any one request it.
 
+*** Message-formatting templates in 'notify' renamed.
+All templates beginning with the prefix "erc-message-english-notify_"
+have been renamed to begin with "erc-message-english-notify-".  For
+example, the variable 'erc-message-english-notify_current' is now
+'erc-message-english-notify_current'.  The old names have been
+preserved as obsolete aliases.
+
 *** Longtime quasi modules made proper.
 The 'fill' module is now defined by 'define-erc-module'.  The same
 goes for ERC's imenu integration, which has 'imenu' now appearing in
@@ -509,6 +516,11 @@ been provisionally deprecated.  Expect a new, replacement API for
 handling specific "MODE" types and letters in coming releases.  If
 you'd like a say in shaping how this transpires, please share your
 ideas and use cases on the tracker.
+
+*** A better way to define message-formatting templates.
+The functions 'erc-define-catalog-entry' and 'erc-define-catalog' have
+been deprecated in favor of 'erc-define-message-format-catalog', a new
+macro for defining template "catalogs" at the top level of libraries.
 
 *** Miscellaneous changes
 Two helper macros from GNU ELPA's Compat library are now available to

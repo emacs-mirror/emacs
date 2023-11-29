@@ -305,9 +305,8 @@ If necessary, pass PROMPT to `read-passwd'."
                        (| eot ",")))
                   (downcase offered)))
 
-(erc-define-catalog
- 'english
- '((s902 . "ERR_NICKLOCKED nick %n unavailable: %s")
+(erc--define-catalog english
+  ((s902 . "ERR_NICKLOCKED nick %n unavailable: %s")
    (s904 . "ERR_SASLFAIL (authentication failed) %s")
    (s905 . "ERR SASLTOOLONG (credentials too long) %s")
    (s906 . "ERR_SASLABORTED (authentication aborted) %s")

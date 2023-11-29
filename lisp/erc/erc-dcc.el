@@ -131,9 +131,8 @@ Looks like:
     (open-network-stream procname buffer addr port
                          :type (and (plist-get entry :secure) 'tls))))
 
-(erc-define-catalog
- 'english
- '((dcc-chat-discarded
+(erc--define-catalog english
+  ((dcc-chat-discarded
     . "DCC: previous chat request from %n (%u@%h) discarded")
    (dcc-chat-ended . "DCC: chat with %n ended %t: %e")
    (dcc-chat-no-request . "DCC: chat request from %n not found")

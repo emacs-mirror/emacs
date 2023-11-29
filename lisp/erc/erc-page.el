@@ -42,7 +42,8 @@
   "Process CTCP PAGE requests from IRC."
   nil nil)
 
-(erc-define-catalog-entry 'english 'CTCP-PAGE "Page from %n (%u@%h): %m")
+(defvar erc-message-english-CTCP-PAGE "Page from %n (%u@%h): %m"
+  "English template for a CTCP PAGE message.")
 
 (defcustom erc-page-function nil
   "A function to process a \"page\" request.

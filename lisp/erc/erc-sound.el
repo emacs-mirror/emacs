@@ -63,7 +63,8 @@ and play sound files as requested."
   ((remove-hook 'erc-ctcp-query-SOUND-hook #'erc-ctcp-query-SOUND)
    (define-key erc-mode-map "\C-c\C-s" #'undefined)))
 
-(erc-define-catalog-entry 'english 'CTCP-SOUND "%n (%u@%h) plays %s:%m")
+(defvar erc-message-english-CTCP-SOUND "%n (%u@%h) plays %s:%m"
+  "English template for a CTCP SOUND message.")
 
 (defcustom erc-play-sound t
   "Play sounds when you receive CTCP SOUND requests."

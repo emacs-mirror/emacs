@@ -8690,24 +8690,38 @@ All windows are opened in the current frame."
 
 ;;; Message catalog
 
+(define-inline erc--make-message-variable-name (catalog key softp)
+  "Return variable name conforming to ERC's message-catalog interface.
+Given a CATALOG symbol `mycat' and format-string KEY `mykey',
+also a symbol, return the symbol `erc-message-mycat-mykey'.  With
+SOFTP, only do so when defined as a variable."
+  (inline-quote
+   (let* ((catname (symbol-name ,catalog))
+          (prefix (if (eq ?- (aref catname 0)) "erc--message" "erc-message-"))
+          (name (concat prefix catname "-" (symbol-name ,key))))
+     (if ,softp
+         (and-let* ((s (intern-soft name)) ((boundp s))) s)
+       (intern name)))))
+
 (defun erc-make-message-variable-name (catalog entry)
   "Create a variable name corresponding to CATALOG's ENTRY."
-  (intern (concat "erc-message-"
-                  (symbol-name catalog) "-" (symbol-name entry))))
+  (erc--make-message-variable-name catalog entry nil))
 
 (defun erc-define-catalog-entry (catalog entry format-spec)
   "Set CATALOG's ENTRY to FORMAT-SPEC."
+  (declare (obsolete "define manually using `defvar' instead" "30.1"))
   (set (erc-make-message-variable-name catalog entry)
        format-spec))
 
 (defun erc-define-catalog (catalog entries)
   "Define a CATALOG according to ENTRIES."
-  (dolist (entry entries)
-    (erc-define-catalog-entry catalog (car entry) (cdr entry))))
+  (declare (obsolete erc-define-message-format-catalog "30.1"))
+  (with-suppressed-warnings ((obsolete erc-define-catalog-entry))
+    (dolist (entry entries)
+      (erc-define-catalog-entry catalog (car entry) (cdr entry)))))
 
-(erc-define-catalog
- 'english
- '((bad-ping-response . "Unexpected PING response from %n (time %t)")
+(erc--define-catalog english
+  ((bad-ping-response . "Unexpected PING response from %n (time %t)")
    (bad-syntax . "Error occurred - incorrect usage?\n%c %u\n%d")
    (incorrect-args . "Incorrect arguments. Usage:\n%c %u\n%d")
    (cannot-find-file . "Cannot find file %f")
@@ -8764,7 +8778,7 @@ All windows are opened in the current frame."
    (MODE-nick . "%n has changed mode for %t to %m")
    (NICK   . "%n (%u@%h) is now known as %N")
    (NICK-you . "Your new nickname is %N")
-   (PART   . erc-message-english-PART)
+   (PART   . #'erc-message-english-PART)
    (PING   . "PING from server (last: %s sec. ago)")
    (PONG   . "PONG from %h (%i second%s)")
    (QUIT   . "%n (%u@%h) has quit: %r")
@@ -8861,19 +8875,20 @@ functions."
 
 (defvar-local erc-current-message-catalog 'english)
 
-(defun erc-retrieve-catalog-entry (entry &optional catalog)
-  "Retrieve ENTRY from CATALOG.
-
-If CATALOG is nil, `erc-current-message-catalog' is used.
-
-If ENTRY is nil in CATALOG, it is retrieved from the fallback,
-english, catalog."
+(defun erc-retrieve-catalog-entry (key &optional catalog)
+  "Retrieve `format-spec' entry for symbol KEY in CATALOG.
+Without symbol CATALOG, use `erc-current-message-catalog'.  If
+lookup fails, try the latter's `default-toplevel-value' if it's
+not the same as CATALOG.  Failing that, try the `english' catalog
+if yet untried."
   (unless catalog (setq catalog erc-current-message-catalog))
-  (let ((var (erc-make-message-variable-name catalog entry)))
-    (if (boundp var)
-        (symbol-value var)
-      (when (boundp (erc-make-message-variable-name 'english entry))
-        (symbol-value (erc-make-message-variable-name 'english entry))))))
+  (symbol-value
+   (or (erc--make-message-variable-name catalog key 'softp)
+       (let ((default (default-toplevel-value 'erc-current-message-catalog)))
+         (or (and (not (eq default catalog))
+                  (erc--make-message-variable-name default key 'softp))
+             (and (not (memq 'english (list default catalog)))
+                  (erc--make-message-variable-name 'english key 'softp)))))))
 
 (defun erc-format-message (msg &rest args)
   "Format MSG according to ARGS.

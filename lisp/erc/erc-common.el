@@ -506,6 +506,41 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
                              (,(widget-get (widget-convert type) :match) w v))
                     ',(cdr type)))
 
+;; This internal variant exists as a transition aid to avoid
+;; immediately having to reflow lengthy definition lists, like the one
+;; in erc.el.  These sites should switch to using the public macro
+;; when undergoing their next major edit.
+(defmacro erc--define-catalog (name entries)
+  "Define `erc-display-message' formatting templates for NAME, a symbol.
+
+See `erc-define-message-format-catalog' for the meaning of
+ENTRIES, an alist.  Also see `erc-tests-pp-propertized-parts' in
+tests/lisp/erc/erc-tests.el for a convenience command to convert
+a literal string into a sequence of `propertize' forms, which
+are much easier to review and edit."
+  (declare (indent 1))
+  (let (out)
+    (dolist (e entries (cons 'progn (nreverse out)))
+      (push `(defvar ,(intern (format "erc-message-%s-%s" name (car e)))
+               ,(cdr e)
+               ,(let* ((first (format "Message template for key `%s'" (car e)))
+                       (last (format "catalog `%s'." name))
+                       (combined (concat first " in " last)))
+                  (if (< (length combined) 80)
+                      combined
+                    (concat first ".\nFor use with " last))))
+            out))))
+
+(defmacro erc-define-message-format-catalog (language &rest entries)
+  "Define message-formatting templates for LANGUAGE, a symbol.
+Expect ENTRIES to be pairs of (KEY . FORMAT), where KEY is a
+symbol, and FORMAT evaluates to a format string compatible with
+`format-spec'.  Expect modules that only define a handful of
+entries to do so manually, instead of using this macro, so that
+the resulting variables will end up with more useful doc strings."
+  (declare (indent 1))
+  `(erc--define-catalog ,language ,entries))
+
 (provide 'erc-common)
 
 ;;; erc-common.el ends here
