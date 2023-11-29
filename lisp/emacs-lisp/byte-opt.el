@@ -485,10 +485,6 @@ There can be multiple entries for the same NAME if it has several aliases.")
       (`(,(pred byte-code-function-p) . ,exps)
        (cons fn (mapcar #'byte-optimize-form exps)))
 
-      (`(,(pred (not symbolp)) . ,_)
-       (byte-compile-warn-x form "`%s' is a malformed function" fn)
-       form)
-
       ((guard (when for-effect
 		(if-let ((tmp (byte-opt--fget fn 'side-effect-free)))
 		    (or byte-compile-delete-errors
@@ -514,7 +510,6 @@ There can be multiple entries for the same NAME if it has several aliases.")
     (byte-optimize-form form for-effect)))
 
 (defun byte-optimize-form (form &optional for-effect)
-  (push form byte-compile-form-stack)
   (while
       (progn
         ;; First, optimize all sub-forms of this one.
@@ -531,7 +526,6 @@ There can be multiple entries for the same NAME if it has several aliases.")
 	              (byte-compile-log "  %s\t==>\t%s" old new)
                       (setq form new)
                       (not (eq new old))))))))
-  (pop byte-compile-form-stack)
   form)
 
 (defun byte-optimize--rename-var-body (var new-var body)
