@@ -147,7 +147,7 @@
 
    :language 'rust
    :feature 'comment
-   '(([(block_comment) (line_comment)]) @font-lock-comment-face)
+   '(([(block_comment) (line_comment)]) @rust-ts-mode--comment-docstring)
 
    :language 'rust
    :feature 'delimiter
@@ -286,6 +286,17 @@
    :override t
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `rust-ts-mode'.")
+
+(defun rust-ts-mode--comment-docstring (node override start end &rest _args)
+  "Use the comment or documentation face appropriately for comments."
+  (let* ((beg (treesit-node-start node))
+         (end (treesit-node-end node))
+         (face (save-excursion
+                 (goto-char beg)
+                 (if (looking-at "///")
+                     'font-lock-doc-face
+                   'font-lock-comment-face))))
+    (treesit-fontify-with-override beg end face override start end)))
 
 (defun rust-ts-mode--fontify-scope (node override start end &optional tail-p)
   (let* ((case-fold-search nil)
