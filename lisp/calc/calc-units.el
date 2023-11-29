@@ -303,7 +303,7 @@
               "9.2740100783 10^-24 J/T (*)")
     ( muN     "5.0507837461*10^(-27) J/T"   "Nuclear magneton" nil
               "5.0507837461 10^-27 J/T (*)")
-    ( mue     "−9.2847647043*10^(-24) J/T"  "Electron magnetic moment" nil
+    ( mue     "-9.2847647043*10^(-24) J/T"  "Electron magnetic moment" nil
               "-9.2847647043 10^-24 J/T (*)")
     ( mup     "1.41060679736*10^(-26) J/T"  "Proton magnetic moment" nil
               "1.41060679736 10^-26 J/T (*)")
