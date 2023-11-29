@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.17
+;; Version: 1.0.18
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -288,6 +288,7 @@ CANCEL-ON-INPUT-RETVAL.  Any future replies (normal or error) are
 ignored."
   (let* ((tag (cl-gensym "jsonrpc-request-catch-tag")) id-and-timer
          canceled
+         (throw-on-input nil)
          (retval
           (unwind-protect
               (catch tag
