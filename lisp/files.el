@@ -3735,7 +3735,8 @@ function is allowed to change the contents of this alist.
 This hook is called only if there is at least one file-local
 variable to set.")
 
-(defvar permanently-enabled-local-variables '(lexical-binding)
+(defvar permanently-enabled-local-variables
+  '(lexical-binding read-symbol-shorthands)
   "A list of file-local variables that are always enabled.
 This overrides any `enable-local-variables' setting.")
 
