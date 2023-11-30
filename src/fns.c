@@ -5299,10 +5299,6 @@ in an error.
 usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object test, weak;
-  bool purecopy;
-  struct hash_table_test testdesc;
-  ptrdiff_t i;
   USE_SAFE_ALLOCA;
 
   /* The vector `used' is used to keep track of arguments that
@@ -5311,20 +5307,21 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   memset (used, 0, nargs * sizeof *used);
 
   /* See if there's a `:test TEST' among the arguments.  */
-  i = get_key_arg (QCtest, nargs, args, used);
-  test = i ? args[i] : Qeql;
-  if (EQ (test, Qeq))
+  ptrdiff_t i = get_key_arg (QCtest, nargs, args, used);
+  Lisp_Object test = i ? args[i] : Qeql;
+  if (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (test))
+    test = SYMBOL_WITH_POS_SYM (test);
+  struct hash_table_test testdesc;
+  if (BASE_EQ (test, Qeq))
     testdesc = hashtest_eq;
-  else if (EQ (test, Qeql))
+  else if (BASE_EQ (test, Qeql))
     testdesc = hashtest_eql;
-  else if (EQ (test, Qequal))
+  else if (BASE_EQ (test, Qequal))
     testdesc = hashtest_equal;
   else
     {
       /* See if it is a user-defined test.  */
-      Lisp_Object prop;
-
-      prop = Fget (test, Qhash_table_test);
+      Lisp_Object prop = Fget (test, Qhash_table_test);
       if (!CONSP (prop) || !CONSP (XCDR (prop)))
 	signal_error ("Invalid hash table test", test);
       testdesc.name = test;
@@ -5336,7 +5333,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* See if there's a `:purecopy PURECOPY' argument.  */
   i = get_key_arg (QCpurecopy, nargs, args, used);
-  purecopy = i && !NILP (args[i]);
+  bool purecopy = i && !NILP (args[i]);
   /* See if there's a `:size SIZE' argument.  */
   i = get_key_arg (QCsize, nargs, args, used);
   Lisp_Object size_arg = i ? args[i] : Qnil;
@@ -5370,7 +5367,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* Look for `:weakness WEAK'.  */
   i = get_key_arg (QCweakness, nargs, args, used);
-  weak = i ? args[i] : Qnil;
+  Lisp_Object weak = i ? args[i] : Qnil;
   if (EQ (weak, Qt))
     weak = Qkey_and_value;
   if (!NILP (weak)
