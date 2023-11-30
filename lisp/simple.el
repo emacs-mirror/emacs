@@ -4274,6 +4274,7 @@ is run interactively.  A value of nil means that output to stderr and
 stdout will be intermixed in the output stream.")
 
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
+(declare-function shell-command-guess "dired-aux" (files))
 
 (defun minibuffer-default-add-shell-commands ()
   "Return a list of all commands associated with the current file.

@@ -1334,7 +1334,6 @@ such as added new commands."
   :group 'dired
   :version "30.1")
 
-;;;###autoload
 (defun shell-command-guess (files)
   "Return a list of shell commands, appropriate for FILES.
 The list is populated by calling functions from
