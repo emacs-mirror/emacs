@@ -552,14 +552,17 @@ host runs a restricted shell, it shall be added to this list, too."
 
 ;;;###tramp-autoload
 (defcustom tramp-local-host-regexp
-  (rx
-   bos
-   (| (literal tramp-system-name)
-      (| "localhost" "localhost4" "localhost6" "127.0.0.1" "::1"))
-   eos)
+  (rx bos
+      (| (literal tramp-system-name)
+	 (| "localhost" "127.0.0.1" "::1"
+	    ;; Fedora.
+	    "localhost4" "localhost6"
+	    ;; Ubuntu.
+	    "ip6-localhost" "ip6-loopback"))
+      eos)
   "Host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
-  :version "29.1"
+  :version "30.1"
   :type '(choice (const :tag "Chrooted environment" nil)
 		 (regexp :tag "Host regexp")))
 
