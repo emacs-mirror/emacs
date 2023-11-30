@@ -1329,6 +1329,7 @@ such as added new commands."
           (choice (function-item shell-command-guess-dired)
                   (function-item shell-command-guess-mailcap)
                   (function-item shell-command-guess-xdg)
+                  (function-item shell-command-guess-open)
                   (function :tag "Custom function")))
   :group 'dired
   :version "30.1")
@@ -1379,6 +1380,27 @@ after adding own commands to the composite list."
                      'name (gethash "Name" desktop)))
                   xdg-mime-apps)))
     (append xdg-commands commands)))
+
+(defcustom shell-command-guess-open
+  (cond
+   ((executable-find "xdg-open")
+    "xdg-open")
+   ((memq system-type '(gnu/linux darwin))
+    "open")
+   ((memq system-type '(windows-nt ms-dos))
+    "start")
+   ((eq system-type 'cygwin)
+    "cygstart")
+   ((executable-find "run-mailcap")
+    "run-mailcap"))
+  "A shell command to open a file externally."
+  :type 'string
+  :group 'dired
+  :version "30.1")
+
+(defun shell-command-guess-open (commands _files)
+  "Populate COMMANDS by the `open' command."
+  (append (ensure-list shell-command-guess-open) commands))
 
 
 ;;; Commands that delete or redisplay part of the dired buffer

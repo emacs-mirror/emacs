@@ -505,9 +505,11 @@ default is nil.
 
 *** New user option 'shell-command-guess-functions'.
 It defines how to populate a list of commands available
-for 'M-!', 'M-&', '!', '&' based on marked files in Dired.
-Possible backends are 'dired-guess-default', MIME types,
-XDG configuration.
+for 'M-!', 'M-&', '!', '&' and the context menu "Open With"
+based on marked files in Dired.  Possible backends are
+'dired-guess-default', MIME types, XDG configuration
+and a universal command such as "open" or "start"
+that delegates to the OS.
 
 ** Ediff
 
