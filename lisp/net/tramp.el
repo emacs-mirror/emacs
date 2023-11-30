@@ -6730,7 +6730,14 @@ If PROCESS is a process object which contains the property
 `remote-pid', or PROCESS is a number and REMOTE is a remote file name,
 PROCESS is interpreted as process on the respective remote host, which
 will be the process to signal.
+If PROCESS is a string, it is interpreted as process object with
+the respective process name, or as a number.
 SIGCODE may be an integer, or a symbol whose name is a signal name."
+  (when (stringp process)
+    (setq process (or (get-process process)
+		      (and (string-match-p (rx bol (+ digit) eol) process)
+			   (string-to-number process))
+		      (signal 'wrong-type-argument (list #'processp process)))))
   (let (pid vec)
     (cond
      ((processp process)
