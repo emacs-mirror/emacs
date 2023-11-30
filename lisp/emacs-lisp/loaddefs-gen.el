@@ -499,7 +499,11 @@ don't include."
     (while (re-search-forward
             "^(\\(def[^ \t\n]+\\)[ \t\n]+['(]*\\([^' ()\"\n]+\\)[\n \t]" nil t)
       (unless (member (match-string 1) autoload-ignored-definitions)
-        (let ((name (match-string-no-properties 2)))
+        (let* ((name (match-string-no-properties 2))
+               ;; Consider `read-symbol-shorthands'.
+               (probe (let ((obarray (obarray-make)))
+                        (car (read-from-string name)))))
+          (setq name (symbol-name probe))
           (when (save-excursion
                   (goto-char (match-beginning 0))
                   (or (bobp)
