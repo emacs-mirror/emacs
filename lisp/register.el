@@ -131,7 +131,8 @@ See the documentation of the variable `register-alist' for possible VALUEs."
 (defun register-preview-default (r)
   "Function that is the default value of the variable `register-preview-function'."
   (format "%s: %s\n"
-	  (single-key-description (car r))
+	  (propertize (string (car r))
+                      'display (single-key-description (car r)))
 	  (register-describe-oneline (car r))))
 
 (defvar register-preview-function #'register-preview-default
