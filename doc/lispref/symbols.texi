@@ -761,6 +761,23 @@ instead of @code{snu-}.
 ;; End:
 @end example
 
+Note that if you have two shorthands in the same file where one is the
+prefix of the other, the longer shorthand will be attempted first.
+This happens regardless of the order you specify shorthands in the
+local variables section of your file.
+
+@example
+'(
+  t//foo ; reads to 'my-tricks--foo', not 'my-tricks-/foo'
+  t/foo  ; reads to 'my-tricks-foo'
+  )
+
+;; Local Variables:
+;; read-symbol-shorthands: (("t/" . "my-tricks-")
+;;                          ("t//" . "my-tricks--")
+;; End:
+@end example
+
 @subsection Exceptions
 
 There are two exceptions to rules governing Shorthand transformations:

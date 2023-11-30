@@ -4172,6 +4172,13 @@ major-mode."
                                 ;; to use 'thisbuf's name in the
                                 ;; warning message.
                                 (or (buffer-file-name thisbuf) ""))))))
+                          ((eq var 'read-symbol-shorthands)
+                           ;; Sort automatically by shorthand length
+                           ;; descending
+                           (setq val (sort val
+                                           (lambda (sh1 sh2) (> (length (car sh1))
+                                                                (length (car sh2))))))
+                           (push (cons 'read-symbol-shorthands val) result))
                           ((and (eq var 'mode) handle-mode))
 			  (t
 			   (ignore-errors
