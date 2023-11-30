@@ -1497,6 +1497,9 @@ If @var{process} is a process object which contains the property
 @code{remote-pid}, or @var{process} is a number and @var{remote} is a
 remote file name, @var{process} is interpreted as process on the
 respective remote host, which will be the process to signal.
+
+If @var{process} is a string, it is interpreted as process object with
+the respective process name, or as a number.
 @end deffn
 
 Sometimes, it is necessary to send a signal to a non-local
