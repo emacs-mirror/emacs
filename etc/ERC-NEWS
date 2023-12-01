@@ -464,8 +464,9 @@ ERC now adjusts input lines to fall within allowed length limits
 before showing hook members the result.  For compatibility,
 third-party code can request that the final input be adjusted again
 prior to being sent.  To facilitate this, the 'erc-input' object
-shared among hook members has gained a new 'refoldp' slot, making this
-a breaking change, if only in theory.  See doc string for details.
+shared among hook members has gained a "phony" 'refoldp' slot that's
+only accessible from 'erc-pre-send-functions'.  See doc string for
+details.
 
 *** ERC's prompt survives the insertion of user input and messages.
 Previously, ERC's prompt and its input marker disappeared while

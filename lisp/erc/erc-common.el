@@ -49,7 +49,7 @@
 (declare-function widget-type "wid-edit" (widget))
 
 (cl-defstruct erc-input
-  string insertp sendp refoldp)
+  string insertp sendp)
 
 (cl-defstruct (erc--input-split (:include erc-input
                                           (string :read-only)
@@ -57,6 +57,7 @@
                                           (sendp (with-suppressed-warnings
                                                      ((obsolete erc-send-this))
                                                    erc-send-this))))
+  (refoldp nil :type boolean)
   (lines nil :type (list-of string))
   (abortp nil :type (list-of symbol))
   (cmdp nil :type boolean))

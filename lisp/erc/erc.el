@@ -1195,13 +1195,18 @@ The struct has three slots:
   `string': The current input string.
   `insertp': Whether the string should be inserted into the erc buffer.
   `sendp': Whether the string should be sent to the irc server.
+
+And one \"phony\" slot only accessible by hook members at runtime:
+
   `refoldp': Whether the string should be re-split per protocol limits.
 
 This hook runs after protocol line splitting has taken place, so
 the value of `string' is originally \"pre-filled\".  If you need
-ERC to refill the entire payload before sending it, set the
-`refoldp' slot to a non-nil value.  Preformatted text and encoded
-subprotocols should probably be handled manually."
+ERC to refill the entire payload before sending it, set the phony
+`refoldp' slot to a non-nil value.  Note that this refilling is
+only a convenience, and modules with special needs, such as
+preserving \"preformatted\" text or encoding for subprotocol
+\"tunneling\", should handle splitting manually."
   :group 'erc
   :type 'hook
   :version "27.1")
@@ -7405,6 +7410,22 @@ When all lines are empty, remove all but the first."
     (setf (erc--input-split-lines state)
           (mapcan #'erc--split-line (erc--input-split-lines state)))))
 
+(defun erc--input-ensure-hook-context ()
+  (unless (erc--input-split-p erc--current-line-input-split)
+    (error "Invoked outside of `erc-pre-send-functions'")))
+
+(defun erc-input-refoldp (_)
+  "Impersonate accessor for phony `erc-input' `refoldp' slot.
+This function only works inside `erc-pre-send-functions' members."
+  (declare (gv-setter (lambda (v)
+                        `(progn
+                           (erc--input-ensure-hook-context)
+                           (setf (erc--input-split-refoldp
+                                  erc--current-line-input-split)
+                                 ,v)))))
+  (erc--input-ensure-hook-context)
+  (erc--input-split-refoldp erc--current-line-input-split))
+
 (defun erc--run-send-hooks (lines-obj)
   "Run send-related hooks that operate on the entire prompt input.
 Sequester some of the back and forth involved in honoring old
@@ -7424,8 +7445,6 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
                       (run-hook-with-args 'erc-send-pre-hook str)
                       (make-erc-input :string str
                                       :insertp erc-insert-this
-                                      :refoldp (erc--input-split-refoldp
-                                                lines-obj)
                                       :sendp erc-send-this))))
         (run-hook-with-args 'erc-pre-send-functions state)
         (setf (erc--input-split-sendp lines-obj) (erc-input-sendp state)
@@ -7437,7 +7456,7 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
                 (if erc--allow-empty-outgoing-lines-p
                     lines
                   (cl-nsubst " " "" lines :test #'equal))))
-        (when (erc-input-refoldp state)
+        (when (erc--input-split-refoldp lines-obj)
           (erc--split-lines lines-obj)))))
   (when (and (erc--input-split-cmdp lines-obj)
              (cdr (erc--input-split-lines lines-obj)))

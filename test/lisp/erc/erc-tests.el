@@ -2254,10 +2254,11 @@
               erc-pre-send-functions
               (lambda (o) (setf (erc-input-string o) "foo bar baz"
                                 (erc-input-refoldp o) t)))
-        (let ((erc-split-line-length 8))
+        (let* ((split (make-erc--input-split :string "foo" :lines '("foo")))
+               (erc--current-line-input-split split)
+               (erc-split-line-length 8))
           (should
-           (pcase (erc--run-send-hooks (make-erc--input-split
-                                        :string "foo" :lines '("foo")))
+           (pcase (erc--run-send-hooks split)
              ((cl-struct erc--input-split
                          (string "foo") (sendp 't) (insertp 't)
                          (lines '("foo bar " "baz")) (cmdp 'nil))
