@@ -5986,12 +5986,12 @@ In outline, the whole function looks like this:
       (and @var{are-both-transient-mark-mode-and-mark-active-true})
       (push-mark))
   (let (@var{determine-size-and-set-it})
-  (goto-char
-    (@var{if-there-is-an-argument}
-        @var{figure-out-where-to-go}
-      @var{else-go-to}
-      (point-min))))
-   @var{do-nicety}
+    (goto-char
+      (@var{if-there-is-an-argument}
+          @var{figure-out-where-to-go}
+        @var{else-go-to}
+        (point-min))))
+  @var{do-nicety}
 @end group
 @end smallexample
 
