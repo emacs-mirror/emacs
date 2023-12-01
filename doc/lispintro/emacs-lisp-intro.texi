@@ -6044,12 +6044,13 @@ like this:
 @group
 (if (> (buffer-size) 10000)
     ;; @r{Avoid overflow for large buffer sizes!}
-                          (* (prefix-numeric-value arg)
-                             (/ size 10))
+    (* (prefix-numeric-value arg)
+       (/ size 10))
   (/
    (+ 10
-      (*
-       size (prefix-numeric-value arg))) 10)))
+      (* size
+         (prefix-numeric-value arg)))
+   10))
 @end group
 @end smallexample
 
