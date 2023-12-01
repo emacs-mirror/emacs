@@ -5684,6 +5684,12 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	(delete-exited-processes t)
 	kill-buffer-query-functions command proc)
 
+    ;; If PROCESS is a string, it must be a process name or a process
+    ;; number.  Check error handling.
+    (should-error
+     (signal-process (md5 (current-time-string)) 0)
+     :type 'wrong-type-argument)
+
     ;; The PROCESS argument of `signal-process' can be a string.  Test
     ;; this as well.
     (dolist
