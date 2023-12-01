@@ -3388,8 +3388,10 @@ FRAME 0 means change the face on all frames, and change the default
 		}
 	      else if (EQ (k, QCstyle))
 		{
-		  if (!EQ (v, Qpressed_button) && !EQ (v, Qreleased_button)
-		      && !EQ(v, Qflat_button))
+		  if (!NILP (v)
+		      && !EQ (v, Qpressed_button)
+		      && !EQ (v, Qreleased_button)
+		      && !EQ (v, Qflat_button))
 		    break;
 		}
 	      else
