@@ -44,6 +44,7 @@
 (declare-function treesit-node-first-child-for-pos "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
 (declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-search-subtree "treesit.c")
@@ -140,7 +141,7 @@
 (defun lua-ts--comment-font-lock (node override start end &rest _)
   "Apply font lock to comment NODE within START and END.
 Applies `font-lock-comment-delimiter-face' and
-`font-lock-comment-face' See `treesit-fontify-with-override' for
+`font-lock-comment-face'.  See `treesit-fontify-with-override' for
 values of OVERRIDE."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
