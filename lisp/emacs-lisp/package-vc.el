@@ -941,7 +941,6 @@ for the last released version of the package."
                            (lambda (dir) (or (not (file-exists-p dir))
                                              (directory-empty-p dir))))
            (and current-prefix-arg :last-release))))
-  (setf directory (expand-file-name directory))
   (package-vc--archives-initialize)
   (let ((pkg-spec (or (package-vc--desc->spec pkg-desc)
                       (and-let* ((extras (package-desc-extras pkg-desc))
