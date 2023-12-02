@@ -177,10 +177,10 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
           (when-let ((erc-fill-line-spacing)
                      (p (point-min)))
             (widen)
-            (when (or (erc--check-msg-prop 'erc-msg 'msg)
+            (when (or (erc--check-msg-prop 'erc--msg 'msg)
                       (and-let* ((m (save-excursion
                                       (forward-line -1)
-                                      (erc--get-inserted-msg-prop 'erc-msg))))
+                                      (erc--get-inserted-msg-prop 'erc--msg))))
                         (eq 'msg m)))
               (put-text-property (1- p) p
                                  'line-spacing erc-fill-line-spacing))))))))
@@ -190,7 +190,7 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
   (save-restriction
     (goto-char (point-min))
     (when-let (((looking-at "^\\(\\S-+\\)"))
-               ((not (erc--check-msg-prop 'erc-msg 'datestamp)))
+               ((not (erc--check-msg-prop 'erc--msg 'datestamp)))
                (nick (match-string 1)))
       (progn
         (let ((fill-column (- erc-fill-column (erc-timestamp-offset)))
@@ -557,7 +557,7 @@ sender as that of the previous \"PRIVMSG\".  As a side effect,
 advance `erc-fill--wrap-last-msg' unless the message has been
 marked as being ephemeral."
   (and
-   (not (erc--check-msg-prop 'erc-ephemeral))
+   (not (erc--check-msg-prop 'erc--ephemeral))
    (progn ; preserve blame for now, unprogn on next major change
      (prog1
          (and-let*
@@ -568,22 +568,22 @@ marked as being ephemeral."
               (props (save-restriction
                        (widen)
                        (and-let*
-                           (((eq 'msg (get-text-property m 'erc-msg)))
-                            ((not (eq (get-text-property m 'erc-ctcp)
+                           (((eq 'msg (get-text-property m 'erc--msg)))
+                            ((not (eq (get-text-property m 'erc--ctcp)
                                       'ACTION)))
                             ((not (invisible-p m)))
-                            (spr (next-single-property-change m 'erc-speaker)))
-                         (cons (get-text-property m 'erc-ts)
-                               (get-text-property spr 'erc-speaker)))))
+                            (spr (next-single-property-change m 'erc--speaker)))
+                         (cons (get-text-property m 'erc--ts)
+                               (get-text-property spr 'erc--speaker)))))
               (ts (pop props))
               (props)
               ((not (time-less-p (erc-stamp--current-time) ts)))
               ((time-less-p (time-subtract (erc-stamp--current-time) ts)
                             erc-fill--wrap-max-lull))
               ;; Assume presence of leading angle bracket or hyphen.
-              (speaker (next-single-property-change (point-min) 'erc-speaker))
-              ((not (erc--check-msg-prop 'erc-ctcp 'ACTION)))
-              (nick (get-text-property speaker 'erc-speaker))
+              (speaker (next-single-property-change (point-min) 'erc--speaker))
+              ((not (erc--check-msg-prop 'erc--ctcp 'ACTION)))
+              (nick (get-text-property speaker 'erc--speaker))
               ((erc-nick-equal-p props nick))))
        (set-marker erc-fill--wrap-last-msg (point-min))))))
 
@@ -668,12 +668,12 @@ See `erc-fill-wrap-mode' for details."
     (goto-char (point-min))
     (let ((len (or (and erc-fill--wrap-length-function
                         (funcall erc-fill--wrap-length-function))
-                   (and-let* ((msg-prop (erc--check-msg-prop 'erc-msg))
+                   (and-let* ((msg-prop (erc--check-msg-prop 'erc--msg))
                               ((not (eq msg-prop 'unknown))))
                      (when-let ((e (erc--get-speaker-bounds))
                                 (b (pop e))
                                 ((or erc-fill--wrap-action-dedent-p
-                                     (not (erc--check-msg-prop 'erc-ctcp
+                                     (not (erc--check-msg-prop 'erc--ctcp
                                                                'ACTION)))))
                        (goto-char e))
                      (skip-syntax-forward "^-")
@@ -746,7 +746,7 @@ With REPAIRP, destructively fill gaps and re-merge speakers."
       (remove-text-properties beg (1+ end) '(line-prefix nil wrap-prefix nil))
       (when-let ((repairp)
                  (dbeg (text-property-not-all beg end 'display nil))
-                 ((get-text-property (1+ dbeg) 'erc-speaker))
+                 ((get-text-property (1+ dbeg) 'erc--speaker))
                  (dval (get-text-property dbeg 'display))
                  ((equal "" dval)))
         (remove-text-properties
@@ -755,7 +755,7 @@ With REPAIRP, destructively fill gaps and re-merge speakers."
                       (field-beginning beg)
                     beg))
              (erc--msg-props (map-into (text-properties-at pos) 'hash-table))
-             (erc-stamp--current-time (gethash 'erc-ts erc--msg-props)))
+             (erc-stamp--current-time (gethash 'erc--ts erc--msg-props)))
         (save-restriction
           (narrow-to-region beg (1+ end))
           (let ((erc-fill--wrap-last-msg erc-fill--wrap-rejigger-last-message))

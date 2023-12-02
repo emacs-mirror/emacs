@@ -786,7 +786,7 @@ that face with highest priority in NEW-FACES is also a member of
         choice))))
 
 (defvar erc-track--skipped-msgs '(datestamp)
-  "Values of `erc-msg' text prop to ignore.")
+  "Values of `erc--msg' text prop to ignore.")
 
 (defun erc-track-modified-channels ()
   "Hook function for `erc-insert-post-hook'.
@@ -806,7 +806,7 @@ the current buffer is in `erc-mode'."
                                                  erc-track-exclude-types)
                         ;; Skip certain non-server-sent messages.
                         (and (not parsed)
-                             (erc--check-msg-prop 'erc-msg
+                             (erc--check-msg-prop 'erc--msg
                                                   erc-track--skipped-msgs))))))
 	;; If the active buffer is not visible (not shown in a
 	;; window), and not to be excluded, determine the kinds of

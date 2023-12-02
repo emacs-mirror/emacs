@@ -154,26 +154,26 @@ visiting and editing inserted messages.  Modules should align
 their markers accordingly.  The following properties have meaning
 as of ERC 5.6:
 
- - `erc-msg': a symbol, guaranteed present; values include:
+ - `erc--msg': a symbol, guaranteed present; values include:
    `msg', signifying a `PRIVMSG' or an incoming `NOTICE';
    `unknown', a fallback for `erc-display-message'; a catalog
     key, such as `s401' or `finished'; an `erc-display-message'
     TYPE parameter, like `notice'
 
- - `erc-cmd': a message's associated IRC command, as read by
+ - `erc--cmd': a message's associated IRC command, as read by
    `erc--get-eq-comparable-cmd'; currently either a symbol, like
    `PRIVMSG', or a number, like 5, which represents the numeric
     \"005\"; absent on \"local\" messages, such as simple warnings
     and help text, and on outgoing messages unless echoed back by
     the server (assuming future support)
 
- - `erc-ctcp': a CTCP command, like `ACTION'
+ - `erc--ctcp': a CTCP command, like `ACTION'
 
- - `erc-ts': a timestamp, possibly provided by the server; as of
+ - `erc--ts': a timestamp, possibly provided by the server; as of
     5.6, a ticks/hertz pair on Emacs 29 and above, and a \"list\"
     type otherwise; managed by the `stamp' module
 
- - `erc-ephemeral': a symbol prefixed by or matching a module
+ - `erc--ephemeral': a symbol prefixed by or matching a module
     name; indicates to other modules and members of modification
     hooks that the current message should not affect stateful
     operations, such as recording a channel's most recent speaker
@@ -3004,7 +3004,7 @@ target, and an `erc-server-send' FORCE flag.")
 ;; Sending and displaying are provided separately to afford modules
 ;; more flexibility, e.g., to forgo displaying on the way out when
 ;; expecting the server to echo messages back and/or to associate
-;; outgoing messages with IDs generated for `erc-ephemeral'
+;; outgoing messages with IDs generated for `erc--ephemeral'
 ;; placeholders.
 (defun erc--send-action-perform-ctcp (target string force)
   "Send STRING to TARGET, possibly immediately, with FORCE."
@@ -3013,11 +3013,11 @@ target, and an `erc-server-send' FORCE flag.")
 (defun erc--send-action-display (string)
   "Display STRING as an outgoing \"CTCP ACTION\" message."
   ;; Allow hooks acting on inserted PRIVMSG and NOTICES to process us.
-  (let ((erc--msg-prop-overrides `((erc-msg . msg)
-                                   (erc-ctcp . ACTION)
+  (let ((erc--msg-prop-overrides `((erc--msg . msg)
+                                   (erc--ctcp . ACTION)
                                    ,@erc--msg-prop-overrides))
         (nick (erc-current-nick)))
-    (setq nick (propertize nick 'erc-speaker nick
+    (setq nick (propertize nick 'erc--speaker nick
                            'font-lock-face 'erc-my-nick-face))
     (erc-display-message nil '(t action input) (current-buffer)
                          'ACTION ?n nick ?a string ?u "" ?h "")))
@@ -3142,20 +3142,20 @@ Return ONLY one side when the first arg is `end' or `beg'.  With
 POINT, search from POINT instead of `point'."
   ;; TODO add edebug spec.
   `(let* ((point ,(or point '(point)))
-          (at-start-p (get-text-property point 'erc-msg)))
+          (at-start-p (get-text-property point 'erc--msg)))
      (and-let*
          (,@(and (member only '(nil beg 'beg))
                  '((b (or (and at-start-p point)
                           (and-let*
                               ((p (previous-single-property-change point
-                                                                   'erc-msg)))
+                                                                   'erc--msg)))
                             (if (= p (1- point))
-                                (if (get-text-property p 'erc-msg) p (1- p))
+                                (if (get-text-property p 'erc--msg) p (1- p))
                               (1- p)))))))
           ,@(and (member only '(nil end 'end))
                  '((e (1- (next-single-property-change
                            (if at-start-p (1+ point) point)
-                           'erc-msg nil erc-insert-marker))))))
+                           'erc--msg nil erc-insert-marker))))))
        ,(pcase only
           ('(quote beg) 'b)
           ('(quote end) 'e)
@@ -3184,12 +3184,12 @@ If END is a marker, possibly update its position."
     (set-marker end (min erc-insert-marker end)))
   (save-excursion
     (goto-char beg)
-    (let ((b (if (get-text-property (point) 'erc-msg)
+    (let ((b (if (get-text-property (point) 'erc--msg)
                  (point)
-               (next-single-property-change (point) 'erc-msg nil end))))
+               (next-single-property-change (point) 'erc--msg nil end))))
       (while-let ((b)
                   ((< b end))
-                  (e (next-single-property-change (1+ b) 'erc-msg nil end)))
+                  (e (next-single-property-change (1+ b) 'erc--msg nil end)))
         (save-restriction
           (narrow-to-region b e)
           (funcall fn))
@@ -3267,7 +3267,7 @@ modification hooks)."
                   (let ((props (if erc--msg-props
                                    (erc--order-text-properties-from-hash
                                     erc--msg-props)
-                                 '(erc-msg unknown))))
+                                 '(erc--msg unknown))))
                     (add-text-properties (point-min) (1+ (point-min)) props)))
                 (erc--refresh-prompt)))))
         (run-hooks 'erc-insert-done-hook)
@@ -3340,8 +3340,8 @@ the old pattern (erc-display-line (erc-make-notice) my-buffer) as
 being equivalent to a `erc-display-message' TYPE of `notice'."
   (let ((erc--msg-prop-overrides erc--msg-prop-overrides))
     (when (eq 'erc-notice-face (get-text-property 0 'font-lock-face string))
-      (unless (assq 'erc-msg erc--msg-prop-overrides)
-        (push '(erc-msg . notice) erc--msg-prop-overrides)))
+      (unless (assq 'erc--msg erc--msg-prop-overrides)
+        (push '(erc--msg . notice) erc--msg-prop-overrides)))
     (erc-display-message nil nil buffer string)))
 
 (defvar erc--merge-text-properties-p nil
@@ -3458,7 +3458,7 @@ subsequent message."
              (substring (delete-and-extract-region (1- (point)) (1+ end))
                         -1))))))))
 
-(defvar erc--ranked-properties '(erc-msg erc-ts erc-cmd))
+(defvar erc--ranked-properties '(erc--msg erc--ts erc--cmd))
 
 (defun erc--order-text-properties-from-hash (table)
   "Return a plist of text props from items in TABLE.
@@ -3732,7 +3732,7 @@ filling, and other effects."
              (let ((table (make-hash-table :size 5))
                    (cmd (and parsed (erc--get-eq-comparable-cmd
                                      (erc-response.command parsed)))))
-               (puthash 'erc-msg
+               (puthash 'erc--msg
                         (cond ((and msg (symbolp msg)) msg)
                               ((and cmd (memq cmd '(PRIVMSG NOTICE)) 'msg))
                               (type (pcase type
@@ -3744,7 +3744,7 @@ filling, and other effects."
                               (t 'unknown))
                         table)
                (when cmd
-                 (puthash 'erc-cmd cmd table))
+                 (puthash 'erc--cmd cmd table))
                (and-let* ((ovs erc--msg-prop-overrides))
                  (pcase-dolist (`(,k . ,v) (reverse ovs))
                    (puthash k v table)))
@@ -5258,7 +5258,7 @@ Eventually add a # in front of it, if that turns it into a valid channel name."
     (concat "#" channel)))
 
 (defvar erc--own-property-names
-  '( tags erc-speaker erc-parsed display ; core
+  '( tags erc--speaker erc-parsed display ; core
      ;; `erc-display-prompt'
      rear-nonsticky erc-prompt field front-sticky read-only
      ;; stamp
@@ -5742,12 +5742,12 @@ and as second argument the event parsed as a vector."
        (not (string-match "^\C-aACTION.*\C-a$" message))))
 
 (defun erc--get-speaker-bounds ()
-  "Return the bounds of `erc-speaker' text property when present.
+  "Return the bounds of `erc--speaker' text property when present.
 Assume buffer is narrowed to the confines of an inserted message."
-  (and-let* (((erc--check-msg-prop 'erc-msg 'msg))
+  (and-let* (((erc--check-msg-prop 'erc--msg 'msg))
              (beg (text-property-not-all (point-min) (point-max)
-                                         'erc-speaker nil)))
-    (cons beg (next-single-property-change beg 'erc-speaker))))
+                                         'erc--speaker nil)))
+    (cons beg (next-single-property-change beg 'erc--speaker))))
 
 (defvar erc--cmem-from-nick-function #'erc--cmem-get-existing
   "Function maybe returning a \"channel member\" cons from a nick.
@@ -5776,7 +5776,7 @@ NUH, and the current `erc-response' object.")
     (erc-put-text-property 0 (length mark-s) 'font-lock-face msg-face str)
     (erc-put-text-properties (+ (length mark-s) prefix-len)
                              (+ (length mark-s) (length nick))
-                             '(font-lock-face erc-speaker) str
+                             '(font-lock-face erc--speaker) str
                              (list nick-face
                                    (substring-no-properties nick prefix-len)))
     (erc-put-text-property (+ (length mark-s) (length nick)) (length str)
@@ -5830,7 +5830,7 @@ also `erc-format-nick-function'."
         (concat
          (propertize open 'font-lock-face 'erc-default-face)
          (propertize mode 'font-lock-face 'erc-my-nick-prefix-face)
-         (propertize nick 'font-lock-face 'erc-my-nick-face 'erc-speaker nick)
+         (propertize nick 'font-lock-face 'erc-my-nick-face 'erc--speaker nick)
          (propertize close 'font-lock-face 'erc-default-face)))
     (let ((prefix "> "))
       (propertize prefix 'font-lock-face 'erc-default-face))))
@@ -6074,8 +6074,8 @@ See also `erc-display-message'."
         (while queries
           (let* ((type (upcase (car (split-string (car queries)))))
                  (hook (intern-soft (concat "erc-ctcp-query-" type "-hook")))
-                 (erc--msg-prop-overrides `((erc-msg . msg)
-                                            (erc-ctcp . ,(intern type))
+                 (erc--msg-prop-overrides `((erc--msg . msg)
+                                            (erc--ctcp . ,(intern type))
                                             ,@erc--msg-prop-overrides)))
             (if (and hook (boundp hook))
                 (if (string-equal type "ACTION")
@@ -6111,7 +6111,7 @@ See also `erc-display-message'."
           (buf (or (erc-get-buffer to proc)
                    (erc-get-buffer nick proc)
                    (process-buffer proc))))
-      (setq nick (propertize nick 'erc-speaker nick))
+      (setq nick (propertize nick 'erc--speaker nick))
       (erc-display-message
        parsed 'action buf
        'ACTION ?n nick ?u login ?h host ?a s))))
@@ -7521,7 +7521,7 @@ as outgoing chat messages and echoed slash commands."
       (let ((insert-position (marker-position (goto-char erc-insert-marker)))
             (erc--msg-props (or erc--msg-props
                                 (let ((ovs erc--msg-prop-overrides))
-                                  (map-into `((erc-msg . msg) ,@(reverse ovs))
+                                  (map-into `((erc--msg . msg) ,@(reverse ovs))
                                             'hash-table))))
             beg)
         (insert (erc-format-my-nick))

@@ -1738,7 +1738,7 @@
                                    :command "PRIVMSG"
                                    :command-args (list "#chan" "hi")
                                    :contents "hi"))
-        (erc--msg-prop-overrides '((erc-ts . 0))))
+        (erc--msg-prop-overrides '((erc--ts . 0))))
     (erc-display-message parsed nil (current-buffer)
                          (erc-format-privmessage "bob" "hi" nil t)))
   (goto-char 3)
@@ -1785,7 +1785,7 @@
   ;; Put unique invisible properties on the line endings.
   (erc-display-message nil 'notice nil "one")
   (put-text-property (1- erc-insert-marker) erc-insert-marker 'invisible 'a)
-  (let ((erc--msg-prop-overrides '((erc-msg . datestamp) (erc-ts . 0))))
+  (let ((erc--msg-prop-overrides '((erc--msg . datestamp) (erc--ts . 0))))
     (erc-display-message nil nil nil
                          (propertize "\n[date]" 'field 'erc-timestamp)))
   (put-text-property (1- erc-insert-marker) erc-insert-marker 'invisible 'b)
@@ -1794,7 +1794,7 @@
   (ert-info ("Date stamp deleted cleanly")
     (goto-char 11)
     (should (looking-at (rx "\n[date]")))
-    (should (eq 'datestamp (get-text-property (point) 'erc-msg)))
+    (should (eq 'datestamp (get-text-property (point) 'erc--msg)))
     (should (eq (point) (field-beginning (1+ (point)))))
 
     (erc--delete-inserted-message (point))
@@ -1855,19 +1855,19 @@
 
 (ert-deftest erc--order-text-properties-from-hash ()
   (let ((table (map-into '((a . 1)
-                           (erc-ts . 0)
-                           (erc-msg . s005)
+                           (erc--ts . 0)
+                           (erc--msg . s005)
                            (b . 2)
-                           (erc-cmd . 5)
+                           (erc--cmd . 5)
                            (c . 3))
                          'hash-table)))
     (with-temp-buffer
       (erc-mode)
       (insert "abc\n")
       (add-text-properties 1 2 (erc--order-text-properties-from-hash table))
-      (should (equal '( erc-msg s005
-                        erc-ts 0
-                        erc-cmd 5
+      (should (equal '( erc--msg s005
+                        erc--ts 0
+                        erc--cmd 5
                         a 1
                         b 2
                         c 3)
@@ -2341,7 +2341,7 @@
                                    nil 'msgp)
            #("<bob> oh my"
              0 1 (font-lock-face erc-default-face)
-             1 4 (erc-speaker "bob" font-lock-face erc-nick-default-face)
+             1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
              4 11 (font-lock-face erc-default-face))))
 
   ;; Basic NOTICE
@@ -2351,7 +2351,7 @@
                                    nil nil)
            #("-bob- oh my"
              0 1 (font-lock-face erc-default-face)
-             1 4 (erc-speaker "bob" font-lock-face erc-nick-default-face)
+             1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
              4 11 (font-lock-face erc-default-face))))
 
   ;; Prefixed PRIVMSG
@@ -2367,7 +2367,7 @@
              #("<@Bob> oh my"
                0 1 (font-lock-face erc-default-face)
                1 2 (font-lock-face erc-nick-prefix-face help-echo "operator")
-               2 5 (erc-speaker "Bob" font-lock-face erc-nick-default-face)
+               2 5 (erc--speaker "Bob" font-lock-face erc-nick-default-face)
                5 12 (font-lock-face erc-default-face))))))
 
 (ert-deftest erc--route-insertion ()
@@ -2392,7 +2392,7 @@
 
         (ert-info ("Cons `buffer' routes to live members")
           ;; Copies a let-bound `erc--msg-props' before mutating.
-          (let* ((table (map-into '(erc-msg msg) 'hash-table))
+          (let* ((table (map-into '(erc--msg msg) 'hash-table))
                  (erc--msg-props table))
             (erc--route-insertion "cons" (list server-buffer spam-buffer))
             (should-not (eq table erc--msg-props)))

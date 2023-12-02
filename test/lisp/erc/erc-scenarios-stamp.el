@@ -29,7 +29,7 @@
 (defvar erc-scenarios-stamp--user-marker nil)
 
 (defun erc-scenarios-stamp--on-post-modify ()
-  (when-let (((erc--check-msg-prop 'erc-cmd 4)))
+  (when-let (((erc--check-msg-prop 'erc--cmd 4)))
     (set-marker erc-scenarios-stamp--user-marker (point-max))
     (ert-info ("User marker correctly placed at `erc-insert-marker'")
       (should (= ?\n (char-before erc-scenarios-stamp--user-marker)))
@@ -68,11 +68,11 @@
         (ert-info ("Stamps appear in left margin and are invisible")
           (should (eq 'erc-timestamp (field-at-pos (pos-bol))))
           (should (= (pos-bol) (field-beginning (pos-bol))))
-          (should (eq 'msg (get-text-property (pos-bol) 'erc-msg)))
-          (should (eq 'NOTICE (get-text-property (pos-bol) 'erc-cmd)))
+          (should (eq 'msg (get-text-property (pos-bol) 'erc--msg)))
+          (should (eq 'NOTICE (get-text-property (pos-bol) 'erc--cmd)))
           (should (= ?- (char-after (field-end (pos-bol)))))
           (should (equal (get-text-property (1+ (field-end (pos-bol)))
-                                            'erc-speaker)
+                                            'erc--speaker)
                          "irc.foonet.org"))
           (should (pcase (get-text-property (pos-bol) 'display)
                     (`((margin left-margin) ,s)
@@ -104,14 +104,14 @@
           (funcall expect 5 "Opening connection")
           (goto-char (1- (match-beginning 0)))
           (should (eq 'erc-timestamp (field-at-pos (point))))
-          (should (eq 'unknown (erc--get-inserted-msg-prop 'erc-msg)))
+          (should (eq 'unknown (erc--get-inserted-msg-prop 'erc--msg)))
           ;; Force redraw of date stamp.
           (setq erc-timestamp-last-inserted-left nil)
 
           (funcall expect 5 "This server is in debug mode")
           (while (and (zerop (forward-line -1))
                       (not (eq 'erc-timestamp (field-at-pos (point))))))
-          (should (erc--get-inserted-msg-prop 'erc-cmd)))))))
+          (should (erc--get-inserted-msg-prop 'erc--cmd)))))))
 
 ;; This user-owned hook member places a marker on the first message in
 ;; a buffer.  Inserting a date stamp in front of it shouldn't move the
@@ -125,18 +125,18 @@
 
   ;; Sometime after the first message ("Opening connection.."), assert
   ;; that the marker we just placed hasn't moved.
-  (when (erc--check-msg-prop 'erc-cmd 2)
+  (when (erc--check-msg-prop 'erc--cmd 2)
     (save-restriction
       (widen)
       (ert-info ("Date stamp preserves opening user marker")
         (goto-char erc-scenarios-stamp--user-marker)
         (should-not (eq 'erc-timestamp (field-at-pos (point))))
         (should (looking-at "Opening"))
-        (should (eq 'unknown (get-text-property (point) 'erc-msg))))))
+        (should (eq 'unknown (get-text-property (point) 'erc--msg))))))
 
   ;; On 003 ("*** This server was created on"), clear state to force a
   ;; new date stamp on the next message.
-  (when (erc--check-msg-prop 'erc-cmd 3)
+  (when (erc--check-msg-prop 'erc--cmd 3)
     (setq erc-timestamp-last-inserted-left nil)
     (set-marker erc-scenarios-stamp--user-marker erc-insert-marker)))
 
@@ -174,7 +174,7 @@
           (goto-char erc-scenarios-stamp--user-marker)
           (should-not (eq 'erc-timestamp (field-at-pos (point))))
           (should (looking-at (rx "*** irc.foonet.org oragono")))
-          (should (eq 's004 (get-text-property (point) 'erc-msg))))
+          (should (eq 's004 (get-text-property (point) 'erc--msg))))
 
         (funcall expect 5 "This server is in debug mode")))))
 

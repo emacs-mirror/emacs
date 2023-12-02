@@ -212,7 +212,7 @@ the stamp passed to `erc-insert-timestamp-function'.")
 
 (cl-defgeneric erc-stamp--current-time ()
   "Return a lisp time object to associate with an IRC message.
-This becomes the message's `erc-ts' text property."
+This becomes the message's `erc--ts' text property."
   (erc-compat--current-lisp-time))
 
 (cl-defmethod erc-stamp--current-time :around ()
@@ -249,10 +249,10 @@ or `erc-send-modify-hook'."
             ;; FIXME on major version bump, make this `erc-' prefixed.
             (if invisible `(timestamp ,@(ensure-list invisible)) 'timestamp))
            (skipp (or (and erc-stamp--skip-when-invisible invisible)
-                      (erc--check-msg-prop 'erc-ephemeral)))
+                      (erc--check-msg-prop 'erc--ephemeral)))
            (erc-stamp--current-time ct))
       (when erc--msg-props
-        (puthash 'erc-ts ct erc--msg-props))
+        (puthash 'erc--ts ct erc--msg-props))
       (unless skipp
         (funcall erc-insert-timestamp-function
                  (erc-format-timestamp ct erc-timestamp-format)))
@@ -270,7 +270,7 @@ or `erc-send-modify-hook'."
 			   ;; be different on different entries (bug#22700).
 			   (list 'cursor-sensor-functions
                                  ;; Regions are no longer contiguous ^
-                                 '(erc--echo-ts-csf) 'erc-ts ct))))))
+                                 '(erc--echo-ts-csf) 'erc--ts ct))))))
 
 (defvar-local erc-timestamp-last-window-width nil
   "The width of the last window that showed the current buffer.
@@ -403,7 +403,7 @@ non-nil."
                    ;; Skip a line that's just a timestamp.
                    ((> beg (point))))
           (delete-region beg (1+ end)))
-        (when-let (time (erc--get-inserted-msg-prop 'erc-ts))
+        (when-let (time (erc--get-inserted-msg-prop 'erc--ts))
           (insert (format-time-string "[%H:%M:%S] " time)))
         (zerop (forward-line))))
   "")
@@ -711,8 +711,8 @@ value of t means the option's value doesn't require trimming.")
         (setq erc-timestamp-last-inserted-left nil)
         (let* ((aligned (erc-stamp--time-as-day ct))
                (erc-stamp--current-time aligned)
-               ;; Forget current `erc-cmd', etc.
-               (erc--msg-props (map-into `((erc-msg . datestamp))
+               ;; Forget current `erc--cmd', etc.
+               (erc--msg-props (map-into `((erc--msg . datestamp))
                                          'hash-table))
                (erc-timestamp-last-inserted-left rendered)
                erc-timestamp-format erc-away-timestamp-format)
@@ -867,7 +867,7 @@ Return the empty string if FORMAT is nil."
             erc-stamp--csf-props-updated-p nil)
           (unless erc-stamp--csf-props-updated-p
             (setq erc-stamp--csf-props-updated-p t)
-            (let ((erc--msg-props (map-into '((erc-ts . t)) 'hash-table)))
+            (let ((erc--msg-props (map-into '((erc--ts . t)) 'hash-table)))
               (with-silent-modifications
                 (erc--traverse-inserted
                  (point-min) erc-insert-marker
@@ -889,7 +889,7 @@ Return the empty string if FORMAT is nil."
 
 (defun erc-stamp--add-csf-on-post-modify ()
   "Add `cursor-sensor-functions' to narrowed buffer."
-  (when (erc--check-msg-prop 'erc-ts)
+  (when (erc--check-msg-prop 'erc--ts)
     (put-text-property (point-min) (1- (point-max))
                        'cursor-sensor-functions '(erc--echo-ts-csf))))
 
@@ -940,7 +940,7 @@ enabled when the message was inserted."
 (defun erc-stamp--on-clear-message (&rest _)
   "Return `dont-clear-message' when operating inside the same stamp."
   (and erc-stamp--last-stamp erc-echo-timestamps
-       (eq (erc--get-inserted-msg-prop 'erc-ts) erc-stamp--last-stamp)
+       (eq (erc--get-inserted-msg-prop 'erc--ts) erc-stamp--last-stamp)
        'dont-clear-message))
 
 (defun erc-echo-timestamp (dir stamp &optional zone)
@@ -950,7 +950,7 @@ hours (or seconds, if its abs value is larger than 14), and
 interpret a \"raw\" prefix as UTC.  To specify a zone for use
 with the option `erc-echo-timestamps', see the companion option
 `erc-echo-timestamp-zone'."
-  (interactive (list nil (erc--get-inserted-msg-prop 'erc-ts)
+  (interactive (list nil (erc--get-inserted-msg-prop 'erc--ts)
                      (pcase current-prefix-arg
                        ((and (pred numberp) v)
                         (if (<= (abs v) 14) (* v 3600) v))
@@ -964,7 +964,7 @@ with the option `erc-echo-timestamps', see the companion option
       (setq erc-stamp--last-stamp nil))))
 
 (defun erc--echo-ts-csf (_window _before dir)
-  (erc-echo-timestamp dir (erc--get-inserted-msg-prop 'erc-ts)))
+  (erc-echo-timestamp dir (erc--get-inserted-msg-prop 'erc--ts)))
 
 (defun erc-stamp--update-saved-position (&rest _)
   (remove-hook 'erc-stamp--insert-date-hook
