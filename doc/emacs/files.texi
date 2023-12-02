@@ -547,6 +547,10 @@ buffer name with the buffer's default directory (@pxref{File Names}).
 to that major mode, in most cases.  The command
 @code{set-visited-file-name} also does this.  @xref{Choosing Modes}.
 
+   If you wish to save the current buffer to a different file without
+visiting that file, use @code{mark-whole-buffer} (@kbd{C-x h}), then
+@w{@kbd{M-x write-region}} (@pxref{Misc File Ops}).
+
   If Emacs is about to save a file and sees that the date of the latest
 version on disk does not match what Emacs last read or wrote, Emacs
 notifies you of this fact, because it probably indicates a problem caused

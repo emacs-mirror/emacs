@@ -5986,12 +5986,12 @@ In outline, the whole function looks like this:
       (and @var{are-both-transient-mark-mode-and-mark-active-true})
       (push-mark))
   (let (@var{determine-size-and-set-it})
-  (goto-char
-    (@var{if-there-is-an-argument}
-        @var{figure-out-where-to-go}
-      @var{else-go-to}
-      (point-min))))
-   @var{do-nicety}
+    (goto-char
+      (@var{if-there-is-an-argument}
+          @var{figure-out-where-to-go}
+        @var{else-go-to}
+        (point-min))))
+  @var{do-nicety}
 @end group
 @end smallexample
 
@@ -6044,12 +6044,13 @@ like this:
 @group
 (if (> (buffer-size) 10000)
     ;; @r{Avoid overflow for large buffer sizes!}
-                          (* (prefix-numeric-value arg)
-                             (/ size 10))
+    (* (prefix-numeric-value arg)
+       (/ size 10))
   (/
    (+ 10
-      (*
-       size (prefix-numeric-value arg))) 10)))
+      (* size
+         (prefix-numeric-value arg)))
+   10))
 @end group
 @end smallexample
 
@@ -6186,7 +6187,7 @@ The code looks like this:
 
 @c Keep this on one line.
 @smallexample
-(/ (+ 10 (* size (prefix-numeric-value arg))) 10))
+(/ (+ 10 (* size (prefix-numeric-value arg))) 10)
 @end smallexample
 
 @need 1200
@@ -6203,7 +6204,7 @@ enclosing expression:
       (*
        size
        (prefix-numeric-value arg)))
-   10))
+   10)
 @end group
 @end smallexample
 
