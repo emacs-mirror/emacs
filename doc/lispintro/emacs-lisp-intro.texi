@@ -6187,7 +6187,7 @@ The code looks like this:
 
 @c Keep this on one line.
 @smallexample
-(/ (+ 10 (* size (prefix-numeric-value arg))) 10))
+(/ (+ 10 (* size (prefix-numeric-value arg))) 10)
 @end smallexample
 
 @need 1200
@@ -6204,7 +6204,7 @@ enclosing expression:
       (*
        size
        (prefix-numeric-value arg)))
-   10))
+   10)
 @end group
 @end smallexample
 
