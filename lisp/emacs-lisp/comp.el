@@ -3363,7 +3363,7 @@ the deferred compilation mechanism."
                    for pass in comp-passes
                    unless (memq pass comp-disabled-passes)
                    do
-                   (comp-log (format "(%s) Running pass %s:\n"
+                   (comp-log (format "\n(%s) Running pass %s:\n"
                                      function-or-file pass)
                              2)
                    (setf data (funcall pass data))
