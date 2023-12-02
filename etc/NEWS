@@ -1140,6 +1140,11 @@ showcases all their customization options.
 
 * Incompatible Lisp Changes in Emacs 30.1
 
+---
+** 'register-preview-delay' is no longer used.
+Register preview is no more delayed.  If you want to disable it use
+'register-use-preview' instead with a boolean value.
+
 +++
 ** 'M-TAB' now invokes 'completion-at-point' also in Text mode.
 Text mode no longer binds 'M-TAB' to 'ispell-complete-word', and
