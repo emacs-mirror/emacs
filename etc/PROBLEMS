@@ -534,6 +534,16 @@ is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
 future, upgrade to a newer version which solves the problem, when such
 a fixed version becomes available).
 
+*** EasyPG loopback pinentry does not work with gpgsm.
+
+This happens with the 'gpgsm' command from all versions of GnuPG.
+EasyPG relies on the machine-parseable interface that is provided by
+'gpg2' with option '--status-fd', but gpgsm does not support this.
+
+As a workaround, input the passphrase with a GUI-capable pinentry
+program like 'pinentry-gnome' or 'pinentry-qt5'.  Alternatively, you
+can use the 'pinentry' package from Emacs 25.
+
 *** Emacs running on WSL receives stray characters as input.
 
 For example, you could see Emacs inserting 'z' characters even though

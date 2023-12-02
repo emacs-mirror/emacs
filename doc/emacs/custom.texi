@@ -2007,8 +2007,8 @@ the one for @kbd{C-c C-x x} in Texinfo mode:
             (keymap-set texinfo-mode-map "C-c p"
                         'backward-paragraph)
             (keymap-set texinfo-mode-map "C-c n"
-                        'forward-paragraph)))
-            (keymap-set texinfo-mode-map "C-c C-x x" nil)
+                        'forward-paragraph)
+            (keymap-set texinfo-mode-map "C-c C-x x" nil)))
 @end example
 
 @node Modifier Keys

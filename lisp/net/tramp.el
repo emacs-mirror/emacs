@@ -750,8 +750,9 @@ The regexp should match at end of buffer."
 
 ;; A security key requires the user physically to touch the device
 ;; with their finger.  We must tell it to the user.
-;; Added in OpenSSH 8.2.  I've tested it with yubikey.  Nitrokey,
-;; which has also passed the tests, does not show such a message.
+;; Added in OpenSSH 8.2.  I've tested it with yubikey.  Nitrokey and
+;; Titankey, which have also passed the tests, do not show such a
+;; message.
 (defcustom tramp-security-key-confirm-regexp
   (rx bol (* "\r") "Confirm user presence for key " (* nonl) (* (any "\r\n")))
   "Regular expression matching security key confirmation message.
