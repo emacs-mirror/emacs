@@ -4015,7 +4015,7 @@ height of the mode lines, but also remove their border:
 #+end_src
 
 The above relies on the ~set-face-attribute~ function, though users who
-plan to re-use colors from the theme and do so at scale are better off
+plan to reuse colors from the theme and do so at scale are better off
 with the more streamlined combination of the ~modus-themes-with-colors~
 macro and ~custom-set-faces~.
 
@@ -4023,7 +4023,7 @@ macro and ~custom-set-faces~.
 
 As explained before in this document, this approach has a syntax that is
 consistent with the source code of the themes, so it probably is easier
-to re-use parts of the design.
+to reuse parts of the design.
 
 The following emulates the stock Emacs style, while still using the
 colors of the Modus themes (whichever attribute is not explicitly stated
@@ -5076,7 +5076,7 @@ advanced customization options of the themes.
 [[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]].
 
 In the following example, we are assuming that the user wants to (i)
-re-use color variables provided by the themes, (ii) be able to retain
+reuse color variables provided by the themes, (ii) be able to retain
 their tweaks while switching between ~modus-operandi~ and ~modus-vivendi~,
 and (iii) have the option to highlight either the foreground of the
 parentheses or the background as well.
@@ -5096,7 +5096,7 @@ Then we can update our preference with this:
 (setq my-highlight-parentheses-use-background nil)
 #+end_src
 
-To re-use colors from the themes, we must wrap our code in the
+To reuse colors from the themes, we must wrap our code in the
 ~modus-themes-with-colors~ macro.  Our implementation must interface with
 the variables ~highlight-parentheses-background-colors~ and/or
 ~highlight-parentheses-colors~.
@@ -5770,7 +5770,7 @@ more effective than trying to do the same with either red or blue (the
 latter is the least effective in that regard).
 
 When we need to work with several colors, it is always better to have
-sufficient manoeuvring space, especially since we cannot pick arbitrary
+sufficient maneuvering space, especially since we cannot pick arbitrary
 colors but only those that satisfy the accessibility objectives of the
 themes.
 

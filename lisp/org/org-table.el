@@ -4894,7 +4894,7 @@ This function sets up the following dynamically scoped variables:
 			(push (cons field v) org-table-local-parameters)
 			(push (list field line col)
 			      org-table-named-field-locations))))))))))
-      ;; Re-use existing markers when possible.
+      ;; Reuse existing markers when possible.
       (if (markerp org-table-current-begin-pos)
 	  (move-marker org-table-current-begin-pos (point))
 	(setq org-table-current-begin-pos (point-marker)))

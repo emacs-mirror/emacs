@@ -1230,7 +1230,7 @@ This applies to indirect buffers created with the commands
 Valid values are:
 current-window   Display in the current window
 other-window     Just display in another window.
-dedicated-frame  Create one new frame, and re-use it each time.
+dedicated-frame  Create one new frame, and reuse it each time.
 new-frame        Make a new frame each time.  Note that in this case
                  previously-made indirect buffers are kept, and you need to
                  kill these buffers yourself."
@@ -4582,7 +4582,7 @@ is available.  This option applies only if FILE is a URL."
                            file)
                   nil))
             (error (if noerror
-                       (message "Org could't download \"%s\": %s %S" file (car error) (cdr error))
+                       (message "Org couldn't download \"%s\": %s %S" file (car error) (cdr error))
                      (signal (car error) (cdr error)))))
         (funcall (if noerror #'message #'user-error)
                  "The remote resource %S is considered unsafe, and will not be downloaded."

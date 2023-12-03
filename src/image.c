@@ -11424,7 +11424,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
       }
 
 #if HAVE_NTGUI
-    /* Windows stores the image colours in BGR format, and SVG expects
+    /* Windows stores the image colors in BGR format, and SVG expects
        them in RGB.  */
     foreground = (foreground & 0x0000FF) << 16
       | (foreground & 0xFF0000) >> 16

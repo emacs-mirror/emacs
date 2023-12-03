@@ -2245,7 +2245,7 @@ Based on the current set of columns and `window-hscroll' position."
 ;; Redisplay and recalculation
 ;;----------------------------------------------------------------------------
 (defun ses-jump-prefix (prefix-int)
-  "Convert an integer (unversal prefix) into a (ROW . COL).
+  "Convert an integer (universal prefix) into a (ROW . COL).
 Does it by numbering cells starting from 0 from top left to bottom right,
 going row by row."
   (and (>= prefix-int 0)

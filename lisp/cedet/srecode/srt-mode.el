@@ -420,7 +420,7 @@ Moves to the end of one named section."
 	      (when (string= (car (car subdicts)) name)
 		(setq res (cdr (car subdicts))))
 	      (setq subdicts (cdr subdicts)))
-	    ;; Pre-pend our global vars.
+	    ;; Prepend our global vars.
 	    (append global res))
 	;; If we aren't in a subsection, just do the global variables
 	global

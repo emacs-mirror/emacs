@@ -526,7 +526,7 @@ select_window (Lisp_Object window, Lisp_Object norecord,
     /* Do not select a tooltip window (Bug#47207).  */
     error ("Cannot select a tooltip window");
 
-  /* We deinitely want to select WINDOW, not the mini-window.  */
+  /* We definitely want to select WINDOW, not the mini-window.  */
   f->select_mini_window_flag = false;
 
   /* Make the selected window's buffer current.  */

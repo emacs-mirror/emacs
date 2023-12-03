@@ -758,7 +758,7 @@ DEFUN ("file-name-concat", Ffile_name_concat, Sfile_name_concat, 1, MANY, 0,
 Elements in COMPONENTS must be a string or nil.
 DIRECTORY or the non-final elements in COMPONENTS may or may not end
 with a slash -- if they don't end with a slash, a slash will be
-inserted before contatenating.
+inserted before concatenating.
 usage: (record DIRECTORY &rest COMPONENTS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {

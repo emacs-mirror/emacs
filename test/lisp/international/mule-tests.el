@@ -49,7 +49,7 @@
                        (kbd "C-x RET c u t f - 8 RET C-u C-u c a b RET")
                      (read-string "prompt:"))))))
 
-;;Bug#65997, ensure that old-names haven't overriden new names.
+;;Bug#65997, ensure that old-names haven't overridden new names.
 (ert-deftest mule-cmds-tests--ucs-names-old-name-override ()
   (let (code-points)
     (dotimes (u (1+ (max-char 'ucs)))

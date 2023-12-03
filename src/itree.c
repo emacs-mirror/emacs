@@ -74,7 +74,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    Consider the case where next-overlay-change is called at POS, all
    interval BEG positions are less than pos POS and all interval END
-   posistions are after.  These END positions have no order, and so
+   positions are after.  These END positions have no order, and so
    *every* interval must be examined.  This is at least O(N).  The
    previous-overlay-change case is similar.  The root issue is that
    the iterative "narrowing" approach is not guaranteed to reduce the

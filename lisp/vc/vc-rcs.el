@@ -714,7 +714,7 @@ Optional arg REVISION is a revision to annotate from."
             (insert insn)
           (delete-char insn)))
       ;; Now apply the forward-chronological edits (directly from the
-      ;; parse-tree) for the branch(es), if necessary.  We re-use vars
+      ;; parse-tree) for the branch(es), if necessary.  We reuse vars
       ;; `pre' and `meta' for the sake of internal func `r/d/a'.
       (while nbls
         (setq pre (cdr (pop nbls)))

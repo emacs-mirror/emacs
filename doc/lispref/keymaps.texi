@@ -491,7 +491,7 @@ useful if there is a command which doesn't exist in the map being
 defined, but which should have the @code{repeat-map} property.
 
 If the @code{:exit} list is empty then no commands in the map exit
-@code{repeat-mode}.  Specifying one ore more commands in this list is
+@code{repeat-mode}.  Specifying one or more commands in this list is
 useful if the keymap being defined contains a command that should not
 have the @code{repeat-map} property.
 @end table

@@ -29,7 +29,7 @@
 ;; To install a package from source use `package-vc-install'.  If you
 ;; aren't interested in activating a package, you can use
 ;; `package-vc-checkout' instead, which will prompt you for a target
-;; directory.  If you wish to re-use an existing checkout, the command
+;; directory.  If you wish to reuse an existing checkout, the command
 ;; `package-vc-install-from-checkout' will create a symbolic link and
 ;; prepare the package.
 ;;

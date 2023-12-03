@@ -28,7 +28,7 @@
     (font-lock-ensure (point-min) (point-max))
     (should (equal (get-text-property 4 'face) 'font-lock-variable-name-face))))
 
-;;;; Re-use cperl-mode tests
+;;;; Reuse cperl-mode tests
 
 (defvar cperl-test-mode)
 (setq cperl-test-mode #'perl-mode)

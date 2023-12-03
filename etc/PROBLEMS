@@ -1994,7 +1994,7 @@ remote X server, try this:
 
 *** Dropping text on xterm doesn't work.
 
-Emacs sends sythetic button events to legacy clients such as xterm
+Emacs sends synthetic button events to legacy clients such as xterm
 that do not support either the XDND or Motif drag-and-drop protocols
 in order to "paste" the text that was dropped.  Unfortunately, xterm
 is configured to ignore these events by default.  Add the following to

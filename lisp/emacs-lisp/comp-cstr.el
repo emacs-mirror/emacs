@@ -690,7 +690,7 @@ DST is returned."
             (cl-loop
              for val in (valset src)
              ;; If (member value) is subtypep of all other sources then
-             ;; is good to be colleted.
+             ;; is good to be collected.
              when (cl-every (lambda (s)
                               (or (memql val (valset s))
                                   (cl-some (lambda (type)

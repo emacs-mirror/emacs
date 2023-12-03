@@ -479,7 +479,7 @@ lost after dumping")))
 (defvar comp-subr-arities-h)
 (when (featurep 'native-compile)
   ;; Save the arity for all primitives so the compiler can always
-  ;; retrive it even in case of redefinition.
+  ;; retrieve it even in case of redefinition.
   (mapatoms (lambda (f)
               (when (subr-primitive-p (symbol-function f))
                 (puthash f (func-arity f) comp-subr-arities-h))))

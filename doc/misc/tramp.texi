@@ -3619,7 +3619,7 @@ ssh@value{postfixhop}you@@remotehost@value{postfix}/path @key{RET}}
 Each involved method must be an inline method (@pxref{Inline methods}).
 
 @value{tramp} adds the ad-hoc definitions on the fly to
-@code{tramp-default-proxies-alist} and is available for re-use during
+@code{tramp-default-proxies-alist} and is available for reuse during
 that Emacs session.  Subsequent @value{tramp} connections to the same
 remote host can then use the shortcut form:
 @samp{@trampfn{ssh,you@@remotehost,/path}}.

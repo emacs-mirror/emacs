@@ -1466,7 +1466,7 @@ Move to next item unless DONT-PROCEED is non-nil."
       nil)))
 
 (defun newsticker--treeview-get-second-child (node)
-  "Get scond child of NODE."
+  "Get second child of NODE."
   (let ((children (widget-get node :children)))
     (if children
         (car (cdr children))

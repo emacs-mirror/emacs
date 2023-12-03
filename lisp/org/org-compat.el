@@ -141,7 +141,7 @@ Unibyte strings are converted to multibyte for comparison."
 Elements in COMPONENTS must be a string or nil.
 DIRECTORY or the non-final elements in COMPONENTS may or may not end
 with a slash -- if they don't end with a slash, a slash will be
-inserted before contatenating."
+inserted before concatenating."
     (save-match-data
       (mapconcat
        #'identity

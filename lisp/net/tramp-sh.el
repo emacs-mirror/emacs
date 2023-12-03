@@ -2498,7 +2498,7 @@ The method used must be an out-of-band method."
 		      copy-program copy-args)))
 		(tramp-message v 6 "%s" (string-join (process-command p) " "))
 		(process-put p 'tramp-vector v)
-		;; This is neded for ssh or PuTTY based processes, and
+		;; This is needed for ssh or PuTTY based processes, and
 		;; only if the respective options are set.  Perhaps,
 		;; the setting could be more fine-grained.
 		;; (process-put p 'tramp-shared-socket t)
@@ -3840,7 +3840,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   (string-join sequence " "))
 	(tramp-message v 6 "Run `%s', %S" (string-join sequence " ") p)
 	(process-put p 'tramp-vector v)
-	;; This is neded for ssh or PuTTY based processes, and only if
+	;; This is needed for ssh or PuTTY based processes, and only if
 	;; the respective options are set.  Perhaps, the setting could
 	;; be more fine-grained.
 	;; (process-put p 'tramp-shared-socket t)
@@ -5224,7 +5224,7 @@ connection if a previous connection has died for some reason."
 		;; Set sentinel and query flag.  Initialize variables.
 		(set-process-sentinel p #'tramp-process-sentinel)
 		(process-put p 'tramp-vector vec)
-		;; This is neded for ssh or PuTTY based processes, and
+		;; This is needed for ssh or PuTTY based processes, and
 		;; only if the respective options are set.  Perhaps,
 		;; the setting could be more fine-grained.
 		;; (process-put p 'tramp-shared-socket t)

@@ -5083,7 +5083,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	    (when filter
 	      (set-process-filter p filter))
 	    (process-put p 'tramp-vector v)
-	    ;; This is neded for ssh or PuTTY based processes, and
+	    ;; This is needed for ssh or PuTTY based processes, and
 	    ;; only if the respective options are set.  Perhaps, the
 	    ;; setting could be more fine-grained.
 	    ;; (process-put p 'tramp-shared-socket t)

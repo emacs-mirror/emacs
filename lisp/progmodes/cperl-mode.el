@@ -1329,7 +1329,7 @@ Covers packages, subroutines, and POD headings.")
 
 (defun cperl-block-declaration-p ()
   "Test whether the following ?\\{ opens a declaration block.
-Returns the column where the declarating keyword is found, or nil
+Returns the column where the declaring keyword is found, or nil
 if this isn't a declaration block.  Declaration blocks are named
 subroutines, packages and the like.  They start with a keyword
 and a name, to be followed by various descriptive items which are

@@ -1195,7 +1195,7 @@ Only the macros in cl-macs.el are used.
 
 ** Make flood protection toggle-able as on/off, removing the 'strict option.
 
-** If possible, re-use channel buffers when reconnecting to a server.
+** If possible, reuse channel buffers when reconnecting to a server.
 
 ** Text in ERC buffers is now read-only by default.
 To get the previous behavior,
