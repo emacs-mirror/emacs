@@ -1806,7 +1806,7 @@ print_vectorlike_unreadable (Lisp_Object obj, Lisp_Object printcharfun,
 	}
       else
 	print_c_string ("#<deleted package>", printcharfun);
-      break;
+      return;
 
     case PVEC_XWIDGET:
 #ifdef HAVE_XWIDGETS

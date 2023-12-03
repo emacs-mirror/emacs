@@ -390,3 +390,4 @@ exec/config-mips.m4
 exec/configure
 exec/*.s.s
 /nextstep/Pkg.app/
+/nextstep/Emacs PKG.app/
