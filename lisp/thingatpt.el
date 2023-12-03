@@ -652,7 +652,7 @@ back from point."
 
 ;;   Email addresses
 (defvar thing-at-point-email-regexp
-  "<?[-+_~a-zA-Z0-9][-+_.~:a-zA-Z0-9]*@[-a-zA-Z0-9]+[-.a-zA-Z0-9]*>?"
+  "<?[-+_~a-zA-Z0-9/][-+_.~:a-zA-Z0-9/]*@[-a-zA-Z0-9]+[-.a-zA-Z0-9]*>?"
   "A regular expression probably matching an email address.
 This does not match the real name portion, only the address, optionally
 with angle brackets.")
