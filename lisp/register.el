@@ -385,12 +385,16 @@ display such a window regardless."
                                         (minibuffer-message
                                          "Register `%s' is empty" pat))))))
                             (unless (string= pat "")
-                              (if (member pat strs)
-                                  (with-selected-window (minibuffer-window)
-                                    (minibuffer-message msg pat))
-                                (with-selected-window (minibuffer-window)
-                                  (minibuffer-message
-                                   "Register `%s' is empty" pat)))))))))
+                              (with-selected-window (minibuffer-window)
+                                (if (and (member pat strs) (memq act '(set modify)))
+                                    (with-selected-window (minibuffer-window)
+                                      (minibuffer-message msg pat))
+                                  ;; An empty register or an existing
+                                  ;; one but the action is insert or
+                                  ;; jump, don't ask for confirmation
+                                  ;; and exit immediately (bug#66394).
+                                  (setq result pat)
+                                  (exit-minibuffer)))))))))
              (setq result (read-from-minibuffer
                            prompt nil map nil nil (register-preview-get-defaults act))))
            (cl-assert (and result (not (string= result "")))
