@@ -1755,33 +1755,35 @@ current line is also eligible as a target."
 	(low gnus-level-killed)
 	(beg (point))
 	pos found lev)
-    (unless first-too
-      (forward-line way))
-    (while (and
-	    (not (if backward (bobp) (eobp)))
-	    (not (setq
-		  found
-		  (and
-		   (get-text-property (point) 'gnus-group)
-		   (or all
-		       (and
-			(let ((unread
-			       (get-text-property (point) 'gnus-unread)))
-			  (and (numberp unread) (> unread 0)))
-			(setq lev (get-text-property (point)
-						     'gnus-level))
-			(<= lev gnus-level-subscribed)))
-		   (or (not level)
-		       (and (setq lev (get-text-property (point)
-							 'gnus-level))
-			    (or (= lev level)
-				(and (< lev low)
-				     (< level lev)
-				     (progn
-				       (setq low lev)
-				       (setq pos (point))
-				       nil))))))))
-	    (zerop (forward-line way))))
+    (if (and backward (progn (beginning-of-line) (bobp)))
+	nil
+      (unless first-too
+	(forward-line way))
+      (while (and
+	      (not (eobp))
+	      (not (setq
+		    found
+		    (and
+		     (get-text-property (point) 'gnus-group)
+		     (or all
+			 (and
+			  (let ((unread
+				 (get-text-property (point) 'gnus-unread)))
+			    (and (numberp unread) (> unread 0)))
+			  (setq lev (get-text-property (point)
+						       'gnus-level))
+			  (<= lev gnus-level-subscribed)))
+		     (or (not level)
+			 (and (setq lev (get-text-property (point)
+							   'gnus-level))
+			      (or (= lev level)
+				  (and (< lev low)
+				       (< level lev)
+				       (progn
+					 (setq low lev)
+					 (setq pos (point))
+					 nil))))))))
+	      (zerop (forward-line way)))))
     (if found
 	(progn (gnus-group-position-point) t)
       (goto-char (or pos beg))
