@@ -45,6 +45,23 @@ const foo = () => {
 };
 =-=-=
 
+Name: Switch statement
+
+=-=
+const foo = (x: string) => {
+  switch (x) {
+    case "a":
+      console.log(x);
+      return 1;
+    case "b":
+      return 2;
+    case "c":
+    default:
+      return 0;
+  }
+};
+=-=-=
+
 Code:
   (lambda ()
     (setq indent-tabs-mode nil)

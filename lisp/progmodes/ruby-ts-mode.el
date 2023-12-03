@@ -197,8 +197,8 @@
 (defun ruby-ts--comment-font-lock (node override start end &rest _)
   "Apply font lock to comment NODE within START and END.
 Applies `font-lock-comment-delimiter-face' and
-`font-lock-comment-face' See `treesit-fontify-with-override' for
-values of OVERRIDE"
+`font-lock-comment-face'.  See `treesit-fontify-with-override' for
+values of OVERRIDE."
   ;; Empirically it appears as if (treesit-node-start node) will be
   ;; where the # character is at and (treesit-node-end node) will be
   ;; the end of the line
@@ -1128,6 +1128,7 @@ leading double colon is not added."
                                bol
                                (or
                                 "class"
+                                "singleton_class"
                                 "module"
                                 "method"
                                 "array"
@@ -1137,15 +1138,22 @@ leading double colon is not added."
                                 "array_pattern"
                                 "hash_pattern"
                                 "if"
+                                "else"
+                                "then"
                                 "unless"
                                 "case"
                                 "case_match"
                                 "when"
+                                "while"
+                                "until"
+                                "for"
                                 "block"
                                 "do_block"
                                 "begin"
                                 "integer"
                                 "identifier"
+                                "self"
+                                "super"
                                 "constant"
                                 "simple_symbol"
                                 "hash_key_symbol"

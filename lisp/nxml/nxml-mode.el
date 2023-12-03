@@ -390,7 +390,6 @@ reference.")
   "C-c C-u" #'nxml-insert-named-char
   "C-c C-o" nxml-outline-prefix-map
   "/"       #'nxml-electric-slash
-  "M-TAB"   #'completion-at-point
   "S-<mouse-2>" #'nxml-mouse-hide-direct-text-content)
 
 (defvar nxml-font-lock-keywords

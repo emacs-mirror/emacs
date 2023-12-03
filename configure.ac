@@ -5158,6 +5158,9 @@ if test "${with_native_compilation}" = "default"; then
       # Check if libgccjit really works.
       AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken])
     fi
+    if test "$with_unexec" = yes; then
+      with_native_compilation=no
+    fi
 fi
 
 if test "${with_native_compilation}" != "no"; then

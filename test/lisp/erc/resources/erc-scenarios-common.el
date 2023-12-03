@@ -654,10 +654,17 @@ Bug#48598: 28.0.50; buffer-naming collisions involving bouncers in ERC."
       (with-current-buffer erc-server-buffer-foo (erc-cmd-JOIN "#chan"))
       (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "#chan"))
         (funcall expect 5 "vile thing")
-        (erc-cmd-QUIT "")))
+        (erc-cmd-QUIT "")
 
-    (erc-d-t-wait-for 2 "Foonet connection deceased"
-      (not (erc-server-process-alive erc-server-buffer-foo)))
+        (ert-info ("Prompt hidden in channel buffer upon quitting")
+          (erc-d-t-wait-for 10 (erc--prompt-hidden-p))
+          (should (overlays-in erc-insert-marker erc-input-marker)))))
+
+    (with-current-buffer erc-server-buffer-foo
+      (ert-info ("Prompt hidden after process dies in server buffer")
+        (erc-d-t-wait-for 2 (not (erc-server-process-alive)))
+        (erc-d-t-wait-for 10 (erc--prompt-hidden-p))
+        (should (overlays-in erc-insert-marker erc-input-marker))))
 
     (should (equal erc-autojoin-channels-alist
                    (if foo-id '((oofnet "#chan")) '((foonet "#chan")))))
@@ -706,6 +713,10 @@ Bug#48598: 28.0.50; buffer-naming collisions involving bouncers in ERC."
         (setq erc-server-process-foo erc-server-process)
         (erc-d-t-wait-for 2 (eq erc-network 'foonet))
         (should (string= (buffer-name) (if foo-id "oofnet" "foonet")))
+
+        (ert-info ("Prompt unhidden")
+          (should-not (erc--prompt-hidden-p))
+          (should-not (overlays-in erc-insert-marker erc-input-marker)))
         (funcall expect 5 "foonet")))
 
     (ert-info ("#chan@foonet is clean, no cross-contamination")
@@ -713,7 +724,11 @@ Bug#48598: 28.0.50; buffer-naming collisions involving bouncers in ERC."
         (erc-d-t-wait-for 3 (eq erc-server-process erc-server-process-foo))
         (funcall expect 3 "<bob>")
         (erc-d-t-absent-for 0.1 "<joe>")
-        (funcall expect 20 "not given me")))
+        (funcall expect 30 "not given me")
+
+        (ert-info ("Prompt unhidden")
+          (should-not (erc--prompt-hidden-p))
+          (should-not (overlays-in erc-insert-marker erc-input-marker)))))
 
     (ert-info ("All #chan@barnet output received")
       (with-current-buffer chan-buf-bar

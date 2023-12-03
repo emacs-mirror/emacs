@@ -5684,55 +5684,69 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	(delete-exited-processes t)
 	kill-buffer-query-functions command proc)
 
-    (dolist (sigcode '(2 INT))
-      (unwind-protect
-	  (with-temp-buffer
-	    (setq command "trap 'echo boom; exit 1' 2; sleep 100"
-		  proc (start-file-process-shell-command
-		        (format "test1%s" sigcode) (current-buffer) command))
-	    (should (processp proc))
-	    (should (process-live-p proc))
-	    (should (equal (process-status proc) 'run))
-	    (should (numberp (process-get proc 'remote-pid)))
-	    (should (equal (process-get proc 'remote-command)
-			   (with-connection-local-variables
-			    `(,shell-file-name ,shell-command-switch ,command))))
-	    (should (zerop (signal-process proc sigcode)))
-	    ;; Let the process accept the signal.
-	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (accept-process-output proc 0 nil t)))
-            (should-not (process-live-p proc)))
+    ;; If PROCESS is a string, it must be a process name or a process
+    ;; number.  Check error handling.
+    (should-error
+     (signal-process (md5 (current-time-string)) 0)
+     :type 'wrong-type-argument)
 
-        ;; Cleanup.
-        (ignore-errors (kill-process proc))
-        (ignore-errors (delete-process proc)))
-
-      (unwind-protect
-	  (with-temp-buffer
-	    (setq command "trap 'echo boom; exit 1' 2; sleep 100"
-		  proc (start-file-process-shell-command
-		        (format "test2%s" sigcode) (current-buffer) command))
-	    (should (processp proc))
-	    (should (process-live-p proc))
-	    (should (equal (process-status proc) 'run))
-	    (should (numberp (process-get proc 'remote-pid)))
-	    (should (equal (process-get proc 'remote-command)
-			   (with-connection-local-variables
-			    `(,shell-file-name ,shell-command-switch ,command))))
-	    ;; `signal-process' has argument REMOTE since Emacs 29.
-	    (with-no-warnings
+    ;; The PROCESS argument of `signal-process' can be a string.  Test
+    ;; this as well.
+    (dolist
+	(func '(identity
+		(lambda (x) (format "%s" (if (processp x) (process-name x) x)))))
+      (dolist (sigcode '(2 INT))
+	(unwind-protect
+	    (with-temp-buffer
+	      (setq command "trap 'echo boom; exit 1' 2; sleep 100"
+		    proc (start-file-process-shell-command
+		          (format "test1-%s" sigcode) (current-buffer) command))
+	      (should (processp proc))
+	      (should (process-live-p proc))
+	      (should (equal (process-status proc) 'run))
+	      (should (numberp (process-get proc 'remote-pid)))
 	      (should
-               (zerop
-		(signal-process
-		 (process-get proc 'remote-pid) sigcode default-directory))))
-	    ;; Let the process accept the signal.
-	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (accept-process-output proc 0 nil t)))
-            (should-not (process-live-p proc)))
+	       (equal (process-get proc 'remote-command)
+		      (with-connection-local-variables
+		       `(,shell-file-name ,shell-command-switch ,command))))
+	      (should (zerop (signal-process (funcall func proc) sigcode)))
+	      ;; Let the process accept the signal.
+	      (with-timeout (10 (tramp--test-timeout-handler))
+		(while (accept-process-output proc 0 nil t)))
+              (should-not (process-live-p proc)))
 
-        ;; Cleanup.
-        (ignore-errors (kill-process proc))
-        (ignore-errors (delete-process proc))))))
+          ;; Cleanup.
+          (ignore-errors (kill-process proc))
+          (ignore-errors (delete-process proc)))
+
+	(unwind-protect
+	    (with-temp-buffer
+	      (setq command "trap 'echo boom; exit 1' 2; sleep 100"
+		    proc (start-file-process-shell-command
+		          (format "test2-%s" sigcode) (current-buffer) command))
+	      (should (processp proc))
+	      (should (process-live-p proc))
+	      (should (equal (process-status proc) 'run))
+	      (should (numberp (process-get proc 'remote-pid)))
+	      (should
+	       (equal (process-get proc 'remote-command)
+		      (with-connection-local-variables
+		       `(,shell-file-name ,shell-command-switch ,command))))
+	      ;; `signal-process' has argument REMOTE since Emacs 29.
+	      (with-no-warnings
+		(should
+		 (zerop
+		  (signal-process
+		   (funcall func (process-get proc 'remote-pid))
+		   sigcode default-directory))))
+	      ;; Let the process accept the signal.
+	      (with-timeout (10 (tramp--test-timeout-handler))
+		(while (accept-process-output proc 0 nil t)))
+              (should-not (process-live-p proc)))
+
+          ;; Cleanup.
+          (ignore-errors (kill-process proc))
+          (ignore-errors (delete-process proc)))))))
 
 (ert-deftest tramp-test31-list-system-processes ()
   "Check `list-system-processes'."

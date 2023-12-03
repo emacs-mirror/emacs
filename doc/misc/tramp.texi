@@ -5240,7 +5240,7 @@ Yes.  @command{OpenSSH} has added support for @acronym{FIDO} hardware
 devices via special key types @option{*-sk}.  @value{tramp} supports
 the additional handshaking messages for them.  This requires at least
 @command{OpenSSH} 8.2, and a @acronym{FIDO} @acronym{U2F} compatible
-security key, like yubikey, solokey, or nitrokey.
+security key, like yubikey, solokey, nitrokey, or titankey.
 
 
 @item

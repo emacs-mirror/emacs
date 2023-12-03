@@ -3680,6 +3680,28 @@ If APPEND is non-nil, don't erase previous debugging output."
 	  (if (>= column (- (window-width) 2))
 	      (scroll-left (max (- column (window-width) -3) 10)))))))
 
+;;;###autoload
+(defun ispell-completion-at-point ()
+  "Word completion function for use in `completion-at-point-functions'."
+  (pcase (bounds-of-thing-at-point 'word)
+    (`(,beg . ,end)
+     (when (and (< beg (point)) (<= (point) end))
+       (let* ((word (buffer-substring-no-properties beg end))
+              (len (length word))
+              (inhibit-message t)
+              (all (cons word (ispell-lookup-words word)))
+              (cur all))
+         (while cur
+           (unless (string-prefix-p word (car cur))
+             (setcar cur (concat word (substring (car cur) len))))
+           (while (when-let ((next (cadr cur)))
+                    (not (string-prefix-p word next t)))
+             (setcdr cur (cddr cur)))
+           (setq cur (cdr cur)))
+         (list beg end (cdr all)
+               :annotation-function (lambda (_) " Dictionary word")
+               :exclusive 'no))))))
+
 
 ;;; Interactive word completion.
 ;; Forces "previous-word" processing.  Do we want to make this selectable?
@@ -3696,7 +3718,6 @@ This command uses a word-list file specified
 by `ispell-alternate-dictionary' or by `ispell-complete-word-dict';
 if none of those name an existing word-list file, this command
 signals an error."
-  ;; FIXME: completion-at-point-function.
   (interactive "P")
   (let ((case-fold-search-val case-fold-search)
 	(word (ispell-get-word nil "\\*")) ; force "previous-word" processing.

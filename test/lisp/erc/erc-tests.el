@@ -155,7 +155,9 @@
   (set-process-query-on-exit-flag erc-server-process nil))
 
 (ert-deftest erc-hide-prompt ()
-  (let (erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+  (let ((erc-hide-prompt erc-hide-prompt)
+        ;;
+        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
 
     (with-current-buffer (get-buffer-create "ServNet")
       (erc-tests--send-prep)
@@ -812,6 +814,8 @@
       (should-not calls))))
 
 (ert-deftest erc--channel-modes ()
+  :tags (and (null (getenv "CI")) '(:unstable))
+
   (setq erc--isupport-params (make-hash-table)
         erc--target (erc--target-from-string "#test")
         erc-server-parameters
@@ -827,15 +831,25 @@
   (should (equal (erc--channel-modes) '((?k . "h2") (?l . "3") (?t))))
   (should (equal (erc--channel-modes 3 ",") "klt h2,3"))
 
+  ;; The function this tests behaves differently in different
+  ;; environments.  For example, on one GNU Linux system, it returns
+  ;; truncation ellipsis when run interactively.  Rather than have
+  ;; hard-to-read "nondeterministic" comparisons against sets of
+  ;; acceptable values, we use separate tests.
+  (when (display-graphic-p) (ert-pass))
+
   ;; Truncation cache populated and used.
   (let ((cache (erc--channel-mode-types-shortargs erc--channel-mode-types))
         first-run)
     (should (zerop (hash-table-count cache)))
     (should (equal (erc--channel-modes 1 ",") "klt h,3"))
     (should (equal (setq first-run (map-pairs cache)) '(((1 ?k "h2") . "h"))))
+
+    ;; Second call uses cache.
     (cl-letf (((symbol-function 'truncate-string-to-width)
                (lambda (&rest _) (ert-fail "Shouldn't run"))))
       (should (equal (erc--channel-modes 1 ",") "klt h,3")))
+
     ;; Same key for only entry matches that of first result.
     (should (pcase (map-pairs cache)
               ((and '(((1 ?k "h2") . "h")) second-run)
@@ -846,6 +860,43 @@
   (should (equal (erc--channel-modes 2) "klt h2 3"))
   (should (equal (erc--channel-modes 1) "klt h 3"))
   (should (equal (erc--channel-modes 0) "klt  "))) ; 2 spaces
+
+(ert-deftest erc--channel-modes/graphic-p ()
+  :tags '(:unstable)
+  (unless (display-graphic-p) (ert-skip "See non-/graphic-p variant"))
+
+  (erc-tests--set-fake-server-process "sleep" "1")
+  (setq erc--isupport-params (make-hash-table)
+        erc--target (erc--target-from-string "#test")
+        erc-server-parameters
+        '(("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz")))
+
+  (cl-letf (((symbol-function 'erc-update-mode-line) #'ignore))
+    (erc--update-channel-modes "+bltk" "fool!*@*" "3" "hun2"))
+
+  ;; Truncation cache populated and used.
+  (let ((cache (erc--channel-mode-types-shortargs erc--channel-mode-types))
+        first-run)
+    (should (zerop (hash-table-count cache)))
+    (should (equal (erc--channel-modes 2 ",") "klt h…,3" ))
+    (should (equal (setq first-run (map-pairs cache))
+                   '(((2 ?k "hun2") . "h…"))))
+
+    ;; Second call uses cache.
+    (cl-letf (((symbol-function 'truncate-string-to-width)
+               (lambda (&rest _) (ert-fail "Shouldn't run"))))
+      (should (equal (erc--channel-modes 2 ",") "klt h…,3" )))
+
+    ;; Same key for only entry matches that of first result.
+    (should (pcase (map-pairs cache)
+              ((and `(((2 ?k "hun2") . "h…")) second-run)
+               (eq (pcase first-run (`((,k . ,_)) k))
+                   (pcase second-run (`((,k . ,_)) k)))))))
+
+  ;; A max length of 0 is nonsensical anyway, so skip those.
+  (should (equal (erc--channel-modes 3) "klt hu… 3"))
+  (should (equal (erc--channel-modes 2) "klt h… 3"))
+  (should (equal (erc--channel-modes 1) "klt … 3")))
 
 (ert-deftest erc--update-user-modes ()
   (let ((erc--user-modes (list ?a)))

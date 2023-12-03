@@ -1800,15 +1800,15 @@ It's also possible to enter an arbitrary directory not in the list."
          (choices
           (let (ret)
             ;; Iterate in reverse order so project--name-history is in
-            ;; the correct order.
+            ;; the same order as project--list.
             (dolist (dir (reverse (project-known-project-roots)))
-              ;; we filter out directories that no longer map to a project,
+              ;; We filter out directories that no longer map to a project,
               ;; since they don't have a clean project-name.
-              (when-let (proj (project--find-in-directory dir))
-                (let ((name (project-name proj)))
-                  (push name project--name-history)
-                  (push (cons name proj) ret))))
-            ret))
+              (when-let ((proj (project--find-in-directory dir))
+                         (name (project-name proj)))
+                (push name project--name-history)
+                (push (cons name proj) ret)))
+            (reverse ret)))
          ;; XXX: Just using this for the category (for the substring
          ;; completion style).
          (table (project--file-completion-table

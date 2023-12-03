@@ -213,9 +213,8 @@ and reference them using the function `class-option'."
                    ,(internal--format-docstring-line
                      "Retrieve the slot `%S' from an object of class `%S'."
                      sname name)
-                   ;; FIXME: Why is this different from the :reader case?
-                   (if (slot-boundp this ',sname) (eieio-oref this ',sname)))
-                accessors)
+                   (slot-value this ',sname))
+                  accessors)
           (when (and eieio-backward-compatibility (eq alloc :class))
             ;; FIXME: How could I declare this *method* as obsolete.
             (push `(cl-defmethod ,acces ((this (subclass ,name)))

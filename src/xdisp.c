@@ -18084,7 +18084,8 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	    else if (dpos == 0)
 	      match_with_avoid_cursor = true;
 	  }
-	else if (STRINGP (glyph->object))
+	else if (STRINGP (glyph->object)
+		 && !glyph->avoid_cursor_p)
 	  {
 	    Lisp_Object chprop;
 	    ptrdiff_t glyph_pos = glyph->charpos;
@@ -18310,7 +18311,8 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	      /* Any glyphs that come from the buffer are here because
 		 of bidi reordering.  Skip them, and only pay
 		 attention to glyphs that came from some string.  */
-	      if (STRINGP (glyph->object))
+	      if (STRINGP (glyph->object)
+		  && !glyph->avoid_cursor_p)
 		{
 		  Lisp_Object str;
 		  ptrdiff_t tem;

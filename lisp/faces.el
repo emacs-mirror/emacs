@@ -2440,7 +2440,10 @@ If you set `term-file-prefix' to nil, this function does nothing."
   '((((supports :slant italic))
      :slant italic)
     (((supports :underline t))
-     :underline t)
+     ;; Include italic, even if it isn't supported by the default
+     ;; font, because this face could be merged with another face
+     ;; which uses font that does have an italic variant.
+     :underline t :slant italic)
     (t
      ;; Default to italic, even if it doesn't appear to be supported,
      ;; because in some cases the display engine will do its own
@@ -2457,7 +2460,9 @@ If you set `term-file-prefix' to nil, this function does nothing."
 (defface underline
   '((((supports :underline t))
      :underline t)
-    (((supports :weight bold))
+    ;; Include underline, for when this face is merged with another
+    ;; whose font does support underline.
+    (((supports :weight bold :underline t))
      :weight bold)
     (t :underline t))
   "Basic underlined face."

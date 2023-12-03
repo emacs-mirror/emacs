@@ -640,6 +640,9 @@ Customize variable @code{epg-pinentry-mode} to @code{loopback} in
 Emacs.
 @end enumerate
 
+Note that loopback Pinentry does not work with @command{gpgsm},
+therefore EasyPG will ignore this setting for it.
+
 There are other options available to use Emacs as Pinentry, you might
 come across a Pinentry called @command{pinentry-emacs} or
 @command{gpg-agent} option @code{allow-emacs-pinentry}.  However,

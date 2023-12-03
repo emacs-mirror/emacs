@@ -107,6 +107,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "statement_block") parent-bol typescript-ts-mode-indent-offset)
+     ((or (node-is "case")
+          (node-is "default"))
+      parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "switch_case") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "switch_default") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "type_arguments") parent-bol typescript-ts-mode-indent-offset)
@@ -483,7 +486,7 @@ This mode is intended to be inherited by concrete major modes."
                 '((comment declaration)
                   (keyword string escape-sequence)
                   (constant expression identifier number pattern property)
-                  (function bracket delimiter)))
+                  (operator function bracket delimiter)))
     (setq-local syntax-propertize-function #'typescript-ts--syntax-propertize)
 
     (treesit-major-mode-setup)))

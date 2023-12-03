@@ -173,7 +173,7 @@
       (with-current-buffer erc-server-buffer-foo
         (should (string= (buffer-name) (format "127.0.0.1:%d" port)))))
 
-    (erc-d-t-wait-for 1 (get-buffer "foonet"))
+    (erc-d-t-wait-for 10 (get-buffer "foonet"))
 
     (ert-info ("Joined by bouncer to #foo, pal persent")
       (with-current-buffer (erc-d-t-wait-for 1 (get-buffer "#foo"))

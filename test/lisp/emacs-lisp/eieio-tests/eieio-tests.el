@@ -1046,6 +1046,27 @@ Subclasses to override slot attributes."))
     (should (eq (eieio-test--struct-a x) 1))
     (should-error (setf (slot-value x 'c) 3) :type 'eieio-read-only)))
 
+(defclass foo-bug-66938 (eieio-instance-inheritor)
+  ((x :initarg :x
+      :accessor ref-x
+      :reader get-x))
+  "A class to test that delegation occurs under certain
+circumstances when using an accessor function, as it would when
+using the reader function.")
+
+(ert-deftest eieio-test-use-accessor-function-with-cloned-object ()
+  "The class FOO-BUG-66938 is a subclass of
+`eieio-instance-inheritor'. Therefore, given an instance OBJ1 of
+FOO-BUG-66938, and a clone (OBJ2), OBJ2 should delegate to OBJ1
+when accessing an unbound slot.
+
+In particular, its behavior should be identical to that of the
+reader function, when reading a slot."
+  (let* ((obj1 (foo-bug-66938 :x 4))
+         (obj2 (clone obj1)))
+    (should (eql (ref-x obj2) 4))
+    (should (eql (get-x obj2) (ref-x obj2)))))
+
 (provide 'eieio-tests)
 
 ;;; eieio-tests.el ends here

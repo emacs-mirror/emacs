@@ -1787,11 +1787,24 @@ By default, go to the current Info node."
   (interactive (list (Info-read-node-name
                       "Go to node (default current page): " Info-current-node))
                Info-mode)
-  (browse-url-button-open-url
-   (Info-url-for-node (format "(%s)%s" (file-name-sans-extension
-                                        (file-name-nondirectory
-                                         Info-current-file))
-                              node))))
+  (let (filename)
+    (string-match "\\s *\\((\\s *\\([^\t)]*\\)\\s *)\\s *\\|\\)\\(.*\\)"
+		  node)
+    (setq filename (if (= (match-beginning 1) (match-end 1))
+		       ""
+		     (match-string 2 node))
+	  node (match-string 3 node))
+    (let ((trim (string-match "\\s +\\'" filename)))
+      (if trim (setq filename (substring filename 0 trim))))
+    (let ((trim (string-match "\\s +\\'" node)))
+      (if trim (setq node (substring node 0 trim))))
+    (if (equal filename "")
+        (setq filename (file-name-sans-extension (file-name-nondirectory
+                                                  Info-current-file))))
+    (if (equal node "")
+        (setq node "Top"))
+    (browse-url-button-open-url
+     (Info-url-for-node (format "(%s)%s" filename node)))))
 
 (defun Info-url-for-node (node)
   "Return a URL for NODE, a node in the GNU Emacs or Elisp manual.
@@ -1817,8 +1830,10 @@ and elisp manuals are supported."
                      ""))
     (concat "https://www.gnu.org/software/emacs/manual/html_node/"
             manual "/"
-            (url-hexify-string (string-replace " " "-" node))
-            ".html")))
+            (and (not (equal node "Top"))
+                 (concat
+                  (url-hexify-string (string-replace " " "-" node))
+                  ".html")))))
 
 (defvar Info-read-node-completion-table)
 

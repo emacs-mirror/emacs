@@ -1191,8 +1191,8 @@ Return the buffer in which the manpage will appear."
          (man-args topic)
 	 (bufname
           (if (file-remote-p default-directory)
-              (format "*Man %s %s *" (file-remote-p default-directory) man-args)
-            (format "*Man %s *" man-args)))
+              (format "*Man %s %s*" (file-remote-p default-directory) man-args)
+            (format "*Man %s*" man-args)))
 	 (buffer (get-buffer bufname)))
     (if buffer
 	(Man-notify-when-ready buffer)

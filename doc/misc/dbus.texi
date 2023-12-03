@@ -1418,6 +1418,9 @@ The name @var{service} does not exist on the bus.
 @item :not-owner
 We are not an owner of the name @var{service}.
 @end table
+
+When @var{service} is not a known name but a unique name, the function
+returns nil.
 @end defun
 
 When a name has been chosen, Emacs can offer its own methods, which

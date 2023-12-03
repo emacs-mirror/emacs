@@ -3370,12 +3370,13 @@ FRAME 0 means change the face on all frames, and change the default
 	      if (!CONSP (tem))
 		break;
 	      v = XCAR (tem);
-	      tem = XCDR (tem);
 
 	      if (EQ (k, QCline_width))
 		{
-		  if ((!CONSP(v) || !FIXNUMP (XCAR (v)) || XFIXNUM (XCAR (v)) == 0
-		                 || !FIXNUMP (XCDR (v)) || XFIXNUM (XCDR (v)) == 0)
+		  if ((!CONSP(v)
+		       || !FIXNUMP (XCAR (v))
+		       || XFIXNUM (XCAR (v)) == 0
+		       || !FIXNUMP (XCDR (v)) || XFIXNUM (XCDR (v)) == 0)
 		      && (!FIXNUMP (v) || XFIXNUM (v) == 0))
 		    break;
 		}
@@ -3386,12 +3387,16 @@ FRAME 0 means change the face on all frames, and change the default
 		}
 	      else if (EQ (k, QCstyle))
 		{
-		  if (!EQ (v, Qpressed_button) && !EQ (v, Qreleased_button)
-		      && !EQ(v, Qflat_button))
+		  if (!NILP (v)
+		      && !EQ (v, Qpressed_button)
+		      && !EQ (v, Qreleased_button)
+		      && !EQ (v, Qflat_button))
 		    break;
 		}
 	      else
 		break;
+
+	      tem = XCDR (tem);
 	    }
 
 	  valid_p = NILP (tem);

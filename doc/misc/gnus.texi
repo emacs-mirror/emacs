@@ -21596,7 +21596,7 @@ Search Groups}).
 Search queries can be specified one of two ways: either using the
 syntax of the engine responsible for the group you're searching, or
 using Gnus' generalized search syntax.  Set the option
-@code{gnus-search-use-parsed-queries} to a non-@code{nil} value to used the
+@code{gnus-search-use-parsed-queries} to a non-@code{nil} value to use the
 generalized syntax.  The advantage of this syntax is that, if you have
 multiple backends indexed by different engines, you don't need to
 remember which one you're searching---it's also possible to issue the

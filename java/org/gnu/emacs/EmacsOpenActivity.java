@@ -533,8 +533,7 @@ public final class EmacsOpenActivity extends Activity
 		else
 		  uri = intent.getParcelableExtra (Intent.EXTRA_STREAM);
 
-		if (uri != null
-		    && (scheme = uri.getScheme ()) != null
+		if ((scheme = uri.getScheme ()) != null
 		    && scheme.equals ("content"))
 		  {
 		    tem1 = EmacsService.buildContentName (uri);

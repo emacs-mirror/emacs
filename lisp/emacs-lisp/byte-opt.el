@@ -485,10 +485,6 @@ There can be multiple entries for the same NAME if it has several aliases.")
       (`(,(pred byte-code-function-p) . ,exps)
        (cons fn (mapcar #'byte-optimize-form exps)))
 
-      (`(,(pred (not symbolp)) . ,_)
-       (byte-compile-warn-x form "`%s' is a malformed function" fn)
-       form)
-
       ((guard (when for-effect
 		(if-let ((tmp (byte-opt--fget fn 'side-effect-free)))
 		    (or byte-compile-delete-errors

@@ -44,6 +44,7 @@
 (declare-function treesit-node-first-child-for-pos "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
 (declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-search-subtree "treesit.c")
@@ -133,135 +134,141 @@
   "Lua built-in functions for tree-sitter font-locking.")
 
 (defvar lua-ts--keywords
-  '("and" "do" "else" "elseif" "end" "for" "function"
-    "goto" "if" "in" "local" "not" "or" "repeat"
-    "return" "then" "until" "while")
+  '("and" "do" "else" "elseif" "end" "for" "function" "goto" "if"
+    "in" "local" "not" "or" "repeat" "return" "then" "until" "while")
   "Lua keywords for tree-sitter font-locking and navigation.")
+
+(defun lua-ts--comment-font-lock (node override start end &rest _)
+  "Apply font lock to comment NODE within START and END.
+Applies `font-lock-comment-delimiter-face' and
+`font-lock-comment-face'.  See `treesit-fontify-with-override' for
+values of OVERRIDE."
+  (let* ((node-start (treesit-node-start node))
+         (node-end (treesit-node-end node))
+         (node-text (treesit-node-text node t))
+         (delimiter-end (+ 2 node-start)))
+    (when (and (>= node-start start)
+               (<= delimiter-end end)
+               (string-match "\\`--" node-text))
+      (treesit-fontify-with-override node-start
+                                     delimiter-end
+                                     font-lock-comment-delimiter-face
+                                     override))
+    (treesit-fontify-with-override (max delimiter-end start)
+                                   (min node-end end)
+                                   font-lock-comment-face
+                                   override)))
 
 (defvar lua-ts--font-lock-settings
   (treesit-font-lock-rules
-   :language 'lua
+   :default-language 'lua
    :feature 'bracket
    '(["(" ")" "[" "]" "{" "}"] @font-lock-bracket-face)
 
-   :language 'lua
    :feature 'delimiter
    '(["," ";"] @font-lock-delimiter-face)
 
-   :language 'lua
    :feature 'constant
-   '((variable_list
-      attribute: (attribute (["<" ">"] (identifier))))
-     @font-lock-constant-face
-     (goto_statement (identifier) @font-lock-constant-face)
-     (label_statement) @font-lock-constant-face)
+   '([(variable_list
+       attribute: (attribute (["<" ">"] (identifier))))
+      (label_statement)
+      (true) (false) (nil)]
+     @font-lock-constant-face)
 
-   :language 'lua
    :feature 'operator
-   '(["and" "not" "or" "+" "-" "*" "/" "%" "^"
-      "#" "==" "~=" "<=" ">=" "<" ">" "=" "&"
-      "~" "|" "<<" ">>" "//" ".."]
-     @font-lock-operator-face
-     (vararg_expression) @font-lock-operator-face)
+   '(["+" "-" "*" "/" "%" "^" "#" "==" "~=" "<=" ">="
+      "<" ">" "=" "&" "~" "|" "<<" ">>" "//" ".."
+      (vararg_expression)]
+     @font-lock-operator-face)
 
-   :language 'lua
    :feature 'builtin
    `(((identifier) @font-lock-builtin-face
       (:match ,(regexp-opt lua-ts--builtins 'symbols)
               @font-lock-builtin-face)))
 
-   :language 'lua
    :feature 'function
    '((function_call name: (identifier) @font-lock-function-call-face)
      (function_call
-      name: (method_index_expression
-             method: (identifier) @font-lock-function-call-face))
+      (method_index_expression
+       method: (identifier) @font-lock-function-call-face))
      (function_call
-      name: (dot_index_expression (identifier) @font-lock-function-call-face)))
+      (dot_index_expression
+       field: (identifier) @font-lock-function-call-face)))
 
-   :language 'lua
    :feature 'punctuation
    '(["." ":"] @font-lock-punctuation-face)
 
-   :language 'lua
    :feature 'variable
    '((function_call
-      arguments: (arguments (identifier))
-      @font-lock-variable-use-face)
+      (arguments (identifier) @font-lock-variable-use-face))
      (function_call
-      name: (method_index_expression
-             table: (identifier) @font-lock-variable-use-face)))
+      (arguments
+       (binary_expression (identifier) @font-lock-variable-use-face)))
+     (function_call
+      (arguments
+       (bracket_index_expression (identifier) @font-lock-variable-use-face)))
+     (function_declaration
+      (parameters name: (identifier) @font-lock-variable-name-face)))
 
-   :language 'lua
    :feature 'number
    '((number) @font-lock-number-face)
 
-   :language 'lua
    :feature 'keyword
-   `((break_statement) @font-lock-keyword-face
-     (true) @font-lock-constant-face
-     (false) @font-lock-constant-face
-     (nil) @font-lock-constant-face
-     ,(vconcat lua-ts--keywords)
-     @font-lock-keyword-face)
+   `([(break_statement)
+      ,(vconcat lua-ts--keywords)]
+     @font-lock-keyword-face
+     (goto_statement ((identifier) @font-lock-constant-face)))
 
-   :language 'lua
    :feature 'string
    '((string) @font-lock-string-face)
 
-   :language 'lua
    :feature 'escape
    :override t
    '((escape_sequence) @font-lock-escape-face)
 
-   :language 'lua
    :feature 'comment
-   '((comment) @font-lock-comment-face
+   '((comment) @lua-ts--comment-font-lock
      (hash_bang_line) @font-lock-comment-face)
 
-   :language 'lua
    :feature 'definition
    '((function_declaration
-      name: (identifier) @font-lock-function-name-face)
-     (assignment_statement
-      (variable_list name: [(identifier)]) @font-lock-function-name-face
-      (expression_list value: (function_definition)))
-     (table_constructor
-      (field
-        name: (identifier) @font-lock-function-name-face
-        value: (function_definition)))
+      (identifier) @font-lock-function-name-face)
      (function_declaration
-      name: (dot_index_expression (identifier) @font-lock-function-name-face))
-     (function_declaration
-      name: (method_index_expression (identifier) @font-lock-function-name-face))
+      (dot_index_expression
+       field: (identifier) @font-lock-function-name-face))
      (function_declaration
       (method_index_expression
+       method: (identifier) @font-lock-function-name-face))
+     (assignment_statement
+      (variable_list
+       (identifier) @font-lock-function-name-face)
+      (expression_list value: (function_definition)))
+     (field
+      name: (identifier) @font-lock-function-name-face
+      value: (function_definition))
+     (assignment_statement
+      (variable_list
        (dot_index_expression
-        table: (identifier) @font-lock-function-name-face
-        field: (identifier) @font-lock-property-name-face
-        )))
-     (parameters
-      name: (identifier) @font-lock-variable-name-face)
+        field: (identifier) @font-lock-function-name-face))
+      (expression_list
+       value:
+       (function_definition))))
+
+   :feature 'assignment
+   '((variable_list (identifier) @font-lock-variable-name-face)
+     (variable_list
+      (bracket_index_expression
+       field: (identifier) @font-lock-variable-name-face))
+     (variable_list
+      (dot_index_expression
+       field: (identifier) @font-lock-variable-name-face))
      (for_numeric_clause name: (identifier) @font-lock-variable-name-face))
 
-   :language 'lua
    :feature 'property
    '((field name: (identifier) @font-lock-property-name-face)
      (dot_index_expression
       field: (identifier) @font-lock-property-use-face))
 
-   :language 'lua
-   :feature 'assignment
-   '((variable_list
-      [(identifier)
-       (bracket_index_expression)]
-      @font-lock-variable-name-face)
-     (variable_list
-      (dot_index_expression
-       table: (identifier))
-      @font-lock-variable-name-face))
-
-   :language 'lua
    :feature 'error
    :override t
    '((ERROR) @font-lock-warning-face))
@@ -665,13 +672,14 @@ Calls REPORT-FN directly."
     (setq-local treesit-font-lock-settings lua-ts--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
                 '((comment definition)
-                  (keyword property string)
+                  (keyword string)
                   (assignment builtin constant number)
                   (bracket
                    delimiter
                    escape
                    function
                    operator
+                   property
                    punctuation
                    variable)))
 

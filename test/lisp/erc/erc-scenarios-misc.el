@@ -75,7 +75,7 @@
 
     (ert-info ("All output sent")
       (with-current-buffer "#chan/foonet"
-        (funcall expect 8 "Some man or other"))
+        (funcall expect 16 "Some man or other"))
       (with-current-buffer "#chan/barnet"
         (funcall expect 10 "That's he that was Othello")))))
 

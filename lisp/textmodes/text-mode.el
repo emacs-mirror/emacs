@@ -73,8 +73,20 @@
 (defvar-keymap text-mode-map
   :doc "Keymap for `text-mode'.
 Many other modes, such as `mail-mode' and `outline-mode', inherit
-all the commands defined in this map."
-  "C-M-i" #'ispell-complete-word)
+all the commands defined in this map.")
+
+(defcustom text-mode-meta-tab-ispell-complete-word nil
+  "Whether M-TAB invokes `ispell-complete-word' in Text mode.
+
+This user option only takes effect when you customize it in
+Custom or with `setopt', not with `setq'."
+  :group 'text
+  :type 'boolean
+  :version "30.1"
+  :set (lambda (sym val)
+         (if (set sym val)
+	     (keymap-set text-mode-map "C-M-i" #'ispell-complete-word)
+           (keymap-unset text-mode-map "C-M-i" t))))
 
 (easy-menu-define text-mode-menu text-mode-map
   "Menu for `text-mode'."
@@ -131,7 +143,8 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
 
   ;; Enable text conversion in this buffer.
   (setq-local text-conversion-style t)
-  (add-hook 'context-menu-functions 'text-mode-context-menu 10 t))
+  (add-hook 'context-menu-functions 'text-mode-context-menu 10 t)
+  (add-hook 'completion-at-point-functions #'ispell-completion-at-point 10 t))
 
 (define-derived-mode paragraph-indent-text-mode text-mode "Parindent"
   "Major mode for editing text, with leading spaces starting a paragraph.

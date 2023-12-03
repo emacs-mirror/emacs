@@ -496,6 +496,21 @@ It also controls how to move point when encountering a boundary
 (e.g., if every line is visible, invoking 'dired-next-line' at
 the last line will move to the first line).  The default is nil.
 
+*** New user option 'dired-filename-display-length'.
+It is an integer representing the maximum display length of filenames.
+The middle part of filename whose length exceeds the restriction is
+hidden and an ellipsis is displayed instead.  A value of 'window'
+means using the right edge of window as the display restriction.  The
+default is nil.
+
+*** New user option 'shell-command-guess-functions'.
+It defines how to populate a list of commands available
+for 'M-!', 'M-&', '!', '&' and the context menu "Open With"
+based on marked files in Dired.  Possible backends are
+'dired-guess-default', MIME types, XDG configuration
+and a universal command such as "open" or "start"
+that delegates to the OS.
+
 ** Ediff
 
 ---
@@ -1124,6 +1139,20 @@ showcases all their customization options.
 
 
 * Incompatible Lisp Changes in Emacs 30.1
+
+---
+** 'register-preview-delay' is no longer used.
+Register preview is no more delayed.  If you want to disable it use
+'register-use-preview' instead with a boolean value.
+
++++
+** 'M-TAB' now invokes 'completion-at-point' also in Text mode.
+Text mode no longer binds 'M-TAB' to 'ispell-complete-word', and
+instead this mode arranges for 'completion-at-point', globally bound
+to 'M-TAB', to perform word completion as well.  If you want 'M-TAB'
+to invoke 'ispell-complete-word', as it did in previous Emacs
+versions, customize the new option
+'text-mode-meta-tab-ispell-complete-word' to non-nil.
 
 ** 'pp' and 'pp-to-string' now always include a terminating newline.
 In the past they included a terminating newline in most cases but not all.

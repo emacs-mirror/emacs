@@ -163,6 +163,48 @@ the specpdl size.  If nil, just give up."
   :version "28.1"
   :type 'boolean)
 
+(defcustom shr-fill-text t
+  "Non-nil means to fill the text according to the width of the window.
+If nil, text is not filled, and `visual-line-mode' can be used to reflow text."
+  :version "30.1"
+  :type 'boolean)
+
+
+(defcustom shr-sup-raise-factor 0.2
+  "The value of raise property for superscripts.
+Should be a non-negative float number between 0 and 1."
+  :version "30.1"
+  :type 'float)
+
+(defcustom shr-sub-raise-factor -0.2
+  "The value of raise property for subscripts.
+Should be a non-positive float number between 0 and 1."
+  :version "30.1"
+  :type 'float)
+
+(defcustom shr-image-ascent 100
+  "The value to be used for :ascent property when inserting images."
+  :version "30.1"
+  :type 'integer)
+
+(defcustom shr-max-inline-image-size nil
+  "If non-nil, determines when the images can be displayed inline.
+If nil, images are never displayed inline.
+
+It non-nil, it should be cons (WIDTH . HEIGHT).
+
+WIDTH can be an integer which is interpreted as number of pixels.  If the width
+of an image exceeds this amount, the image is displayed on a separate line.
+WIDTH can also be floating point number, in which case the image is displayed
+inline if it occupies less than this fraction of window width.
+
+HEIGHT can be also be an integer or a floating point number.  If it is an
+integer and the pixel height of an image exceeds it, the image image is
+displyed on a separate line.  If it is a float number , the limit is
+interpreted as a multiple of the height of default font."
+  :version "30.1"
+  :type '(choice (const nil) (cons number number)))
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -697,7 +739,8 @@ size, and full-buffer size."
     (replace-match " " t t)))
 
 (defun shr-insert (text)
-  (when (and (not (bolp))
+  (when (and (not shr-max-inline-image-size)
+	     (not (bolp))
 	     (get-text-property (1- (point)) 'image-url))
     (insert "\n"))
   (cond
@@ -741,7 +784,7 @@ size, and full-buffer size."
 			       (or shr-current-font 'shr-text)))))))))
 
 (defun shr-fill-lines (start end)
-  (if (<= shr-internal-width 0)
+  (if (or (not shr-fill-text) (<= shr-internal-width 0))
       nil
     (save-restriction
       (narrow-to-region start end)
@@ -1049,6 +1092,19 @@ the mouse click event."
 (declare-function image-size "image.c" (spec &optional pixels frame))
 (declare-function image-animate "image" (image &optional index limit position))
 
+(defun shr--inline-image-p (image)
+  "Return non-nil if IMAGE should be displayed inline."
+  (when shr-max-inline-image-size
+    (let ((size (image-size image t))
+	  (max-width (car shr-max-inline-image-size))
+	  (max-height (cdr shr-max-inline-image-size)))
+      (unless (integerp max-width)
+	(setq max-width (* max-width (window-width nil t))))
+      (unless (integerp max-height)
+	(setq max-height (* max-height (frame-char-height))))
+      (and (< (car size) max-width)
+	   (< (cdr size) max-height)))))
+
 (defun shr-put-image (spec alt &optional flags)
   "Insert image SPEC with a string ALT.  Return image.
 SPEC is either an image data blob, or a list where the first
@@ -1063,11 +1119,11 @@ element is the data blob and the second element is the content-type."
 	     (start (point))
 	     (image (cond
 		     ((eq size 'original)
-		      (create-image data nil t :ascent 100
+		      (create-image data nil t :ascent shr-image-ascent
 				    :format content-type))
 		     ((eq content-type 'image/svg+xml)
                       (when (image-type-available-p 'svg)
-		        (create-image data 'svg t :ascent 100)))
+		        (create-image data 'svg t :ascent shr-image-ascent)))
 		     ((eq size 'full)
 		      (ignore-errors
 			(shr-rescale-image data content-type
@@ -1079,19 +1135,25 @@ element is the data blob and the second element is the content-type."
                                            (plist-get flags :width)
                                            (plist-get flags :height)))))))
         (when image
+          ;; The trailing space can confuse shr-insert into not
+          ;; putting any space after inline images.
+	  (setq alt (string-trim alt))
 	  ;; When inserting big-ish pictures, put them at the
 	  ;; beginning of the line.
-	  (when (and (> (current-column) 0)
-		     (> (car (image-size image t)) 400))
-	    (insert "\n"))
-          (let ((image-pos (point)))
-	    (if (eq size 'original)
-	        (insert-sliced-image image (or alt "*") nil 20 1)
-	      (insert-image image (or alt "*")))
-	    (put-text-property start (point) 'image-size size)
-	    (when (and shr-image-animate
-                       (cdr (image-multi-frame-p image)))
-              (image-animate image nil 60 image-pos))))
+	  (let ((inline (shr--inline-image-p image)))
+	    (when (and (> (current-column) 0)
+		     (not inline))
+		(insert "\n"))
+	    (let ((image-pos (point)))
+	      (if (eq size 'original)
+		  (insert-sliced-image image (or alt "*") nil 20 1)
+		(insert-image image (or alt "*")))
+	      (put-text-property start (point) 'image-size size)
+	      (when (and (not inline) shr-max-inline-image-size)
+		(insert "\n"))
+	      (when (and shr-image-animate
+			 (cdr (image-multi-frame-p image)))
+		(image-animate image nil 60 image-pos)))))
 	image)
     (insert (or alt ""))))
 
@@ -1114,7 +1176,7 @@ The size of the displayed image will not exceed
 MAX-WIDTH/MAX-HEIGHT.  If not given, use the current window
 width/height instead."
   (if (not (get-buffer-window (current-buffer) t))
-      (create-image data nil t :ascent 100)
+      (create-image data nil t :ascent shr-image-ascent)
     (let* ((edges (window-inside-pixel-edges
                    (get-buffer-window (current-buffer))))
            (max-width (truncate (* shr-max-image-proportion
@@ -1135,13 +1197,13 @@ width/height instead."
                (< (* height scaling) max-height))
           (create-image
            data (shr--image-type) t
-           :ascent 100
+           :ascent shr-image-ascent
            :width width
            :height height
            :format content-type)
         (create-image
          data (shr--image-type) t
-         :ascent 100
+         :ascent shr-image-ascent
          :max-width max-width
          :max-height max-height
          :format content-type)))))
@@ -1210,7 +1272,11 @@ START, and END.  Note that START and END should be markers."
 
 (defun shr-heading (dom &rest types)
   (shr-ensure-paragraph)
-  (apply #'shr-fontize-dom dom types)
+  (let ((start (point))
+	(level (string-to-number
+		(string-remove-prefix "shr-h" (symbol-name (car types))))))
+   (apply #'shr-fontize-dom dom types)
+   (put-text-property start (pos-eol) 'outline-level level))
   (shr-ensure-paragraph))
 
 (defun shr-urlify (start url &optional title)
@@ -1381,13 +1447,20 @@ ones, in case fg and bg are nil."
 (defun shr-tag-sup (dom)
   (let ((start (point)))
     (shr-generic dom)
-    (put-text-property start (point) 'display '(raise 0.2))
+    (put-text-property start (point) 'display `(raise ,shr-sup-raise-factor))
     (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-sub (dom)
+  ;; Why would a subscript be at the beginning of a line?  It does
+  ;; happen sometimes because of a <br> tag and the intent seems to be
+  ;; alignment of subscript and superscript but I don't think that is
+  ;; possible in Emacs.  So we remove the newline in that case.
+  (when (bolp)
+    (forward-char -1)
+    (delete-char 1))
   (let ((start (point)))
     (shr-generic dom)
-    (put-text-property start (point) 'display '(raise -0.2))
+    (put-text-property start (point) 'display `(raise ,shr-sub-raise-factor))
     (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-p (dom)
@@ -1652,7 +1725,8 @@ The preference is a float determined from `shr-prefer-media-type'."
 	    (and dom
 		 (or (> (length (dom-attr dom 'src)) 0)
                      (> (length (dom-attr dom 'srcset)) 0))))
-    (when (> (current-column) 0)
+    (when (and (not shr-max-inline-image-size)
+	       (> (current-column) 0))
       (insert "\n"))
     (let ((alt (dom-attr dom 'alt))
           (width (shr-string-number (dom-attr dom 'width)))
@@ -1703,8 +1777,14 @@ The preference is a float determined from `shr-prefer-media-type'."
           (when (image-type-available-p 'svg)
             (insert-image
              (shr-make-placeholder-image dom)
-             (or alt "")))
-          (insert " ")
+             (or (string-trim alt) "")))
+	  ;; Paradoxically this space causes shr not to insert spaces after
+	  ;; inline images. Since the image is temporary it seem like there
+	  ;; should be no downside to not inserting it but since I don't
+	  ;; understand the code well and for the sake of backward compatibility
+	  ;; we preserve it unless user has set `shr-max-inline-image-size'.
+          (unless shr-max-inline-image-size
+	      (insert " "))
 	  (url-queue-retrieve
            url #'shr-image-fetched
 	   (list (current-buffer) start (set-marker (make-marker) (point))
@@ -1840,7 +1920,7 @@ BASE is the URL of the HTML being rendered."
     (svg-rectangle svg 0 0 width height :gradient "background"
                    :stroke-width 2 :stroke-color "black")
     (let ((image (svg-image svg :scale 1)))
-      (setf (image-property image :ascent) 100)
+      (setf (image-property image :ascent) shr-image-ascent)
       image)))
 
 (defun shr-tag-pre (dom)
@@ -1999,6 +2079,41 @@ BASE is the URL of the HTML being rendered."
   (insert ?\N{FIRST STRONG ISOLATE})
   (shr-generic dom)
   (insert ?\N{POP DIRECTIONAL ISOLATE}))
+
+;;; Outline Support
+(defun shr-outline-search (&optional bound move backward looking-at)
+  "A function that can be used as `outline-search-function' for rendered html.
+See `outline-search-function' for BOUND, MOVE, BACKWARD and LOOKING-AT."
+  (if looking-at
+      (get-text-property (point) 'outline-level)
+    (let ((heading-found nil)
+	  (bound (or bound
+		     (if backward (point-min) (point-max)))))
+      (save-excursion
+	(when (and (not (bolp))
+		   (get-text-property (point) 'outline-level))
+	  (forward-line (if backward -1 1)))
+	(if backward
+	    (unless (get-text-property (point) 'outline-level)
+	      (goto-char (or (previous-single-property-change
+			      (point) 'outline-level nil bound)
+			     bound)))
+	  (goto-char (or (text-property-not-all (point) bound 'outline-level nil)
+			 bound)))
+	(goto-char (pos-bol))
+	(when (get-text-property (point) 'outline-level)
+	  (setq heading-found (point))))
+      (if heading-found
+	  (progn
+	    (set-match-data (list heading-found heading-found))
+	    (goto-char heading-found))
+	(when move
+	  (goto-char bound)
+	  nil)))))
+
+(defun shr-outline-level ()
+  "Function to be used as `outline-level' with `shr-outline-search'."
+  (get-text-property (point) 'outline-level))
 
 ;;; Table rendering algorithm.
 

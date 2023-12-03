@@ -48,6 +48,7 @@ Standard prefixes won't be registered anyway.  I.e. if a file
 \"foo.el\" defines variables or functions that use \"foo-\" as
 prefix, that will not be registered.  But all other prefixes will
 be included.")
+;;;###autoload
 (put 'autoload-compute-prefixes 'safe-local-variable #'booleanp)
 
 (defvar no-update-autoloads nil

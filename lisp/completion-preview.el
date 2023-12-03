@@ -22,10 +22,11 @@
 ;;; Commentary:
 
 ;; This library provides the Completion Preview mode.  This minor mode
-;; displays the top completion candidate for the symbol at point in an
+;; displays a completion suggestion for the symbol at point in an
 ;; overlay after point.  Check out the customization group
 ;; `completion-preview' for user options that you may want to tweak.
 ;;
+;; To enable Completion Preview mode, use `completion-preview-mode'.
 ;; To accept the completion suggestion, press TAB.  If you want to
 ;; ignore a completion suggestion, just go on editing or moving around
 ;; the buffer.  Completion Preview mode continues to update the
@@ -48,15 +49,6 @@
 ;; that should appear around point for Emacs to suggest a completion.
 ;; By default, this option is set to 3, so Emacs suggests a completion
 ;; if you type "foo", but typing just "fo" doesn't show the preview.
-;;
-;; The user option `completion-preview-insert-on-completion' controls
-;; what happens when you invoke `completion-at-point' while the
-;; completion preview is visible.  By default this option is nil,
-;; which tells `completion-at-point' to ignore the completion preview
-;; and show the list of completion candidates as usual.  If you set
-;; `completion-preview-insert-on-completion' to non-nil, then
-;; `completion-at-point' inserts the preview directly without looking
-;; for more candidates.
 
 ;;; Code:
 
@@ -91,9 +83,20 @@ first candidate, and you can cycle between the candidates with
   :type 'natnum
   :version "30.1")
 
-(defcustom completion-preview-insert-on-completion nil
-  "Whether \\[completion-at-point] inserts the previewed suggestion."
-  :type 'boolean
+(defcustom completion-preview-message-format
+  "Completion suggestion %i out of %n"
+  "Message to show after cycling the completion preview suggestion.
+
+If the value is a string, `completion-preview-next-candidate' and
+`completion-preview-prev-candidate' display this string in the
+echo area, after substituting \"%i\" with the 1-based index of
+the completion suggestion that the preview is showing, and \"%n\"
+with the total number of available completion suggestions for the
+text around point.
+
+If this option is nil, these commands do not display any message."
+  :type '(choice (string :tag "Message format")
+                 (const :tag "No message" nil))
   :version "30.1")
 
 (defvar completion-preview-sort-function #'minibuffer--sort-by-length-alpha
@@ -113,6 +116,11 @@ first candidate, and you can cycle between the candidates with
   "Face for exact completion preview overlay."
   :version "30.1")
 
+(defface completion-preview-highlight
+  '((t :inherit highlight))
+  "Face for highlighting the completion preview when the mouse is over it."
+  :version "30.1")
+
 (defvar-keymap completion-preview-active-mode-map
   :doc "Keymap for Completion Preview Active mode."
   "C-i" #'completion-preview-insert
@@ -120,11 +128,26 @@ first candidate, and you can cycle between the candidates with
   ;; "M-p" #'completion-preview-prev-candidate
   )
 
+(defvar-keymap completion-preview--mouse-map
+  :doc "Keymap for mouse clicks on the completion preview."
+  "<down-mouse-1>" #'completion-preview-insert
+  "C-<down-mouse-1>" #'completion-at-point
+  "<down-mouse-2>" #'completion-at-point
+  (format "<%s>" mouse-wheel-up-event)             #'completion-preview-prev-candidate
+  (format "<%s>" mouse-wheel-up-alternate-event)   #'completion-preview-prev-candidate
+  (format "<%s>" mouse-wheel-down-event)           #'completion-preview-next-candidate
+  (format "<%s>" mouse-wheel-down-alternate-event) #'completion-preview-next-candidate)
+
 (defvar-local completion-preview--overlay nil)
 
 (defvar completion-preview--internal-commands
-  '(completion-preview-next-candidate completion-preview-prev-candidate)
-  "List of commands that manipulate the completion preview.")
+  '(completion-preview-next-candidate
+    completion-preview-prev-candidate
+    ;; Don't dismiss or update the preview when the user scrolls.
+    mwheel-scroll)
+  "List of commands that manipulate the completion preview.
+
+Completion Preview mode avoids updating the preview after these commands.")
 
 (defsubst completion-preview--internal-command-p ()
   "Return non-nil if `this-command' manipulates the completion preview."
@@ -149,77 +172,96 @@ first candidate, and you can cycle between the candidates with
     (setq completion-preview--overlay nil)))
 
 (defun completion-preview--make-overlay (pos string)
-  "Make a new completion preview overlay at POS showing STRING."
+  "Make preview overlay showing STRING at POS, or move existing preview there."
   (if completion-preview--overlay
       (move-overlay completion-preview--overlay pos pos)
     (setq completion-preview--overlay (make-overlay pos pos))
     (overlay-put completion-preview--overlay 'window (selected-window)))
   (let ((previous (overlay-get completion-preview--overlay 'after-string)))
-    (unless (and previous (string= previous string))
+    (unless (and previous (string= previous string)
+                 (eq (get-text-property 0 'face previous)
+                     (get-text-property 0 'face string)))
       (add-text-properties 0 1 '(cursor 1) string)
       (overlay-put completion-preview--overlay 'after-string string))
     completion-preview--overlay))
 
-(defun completion-preview--get (prop)
+(defsubst completion-preview--get (prop)
   "Return property PROP of the completion preview overlay."
   (overlay-get completion-preview--overlay prop))
 
 (define-minor-mode completion-preview-active-mode
   "Mode for when the completion preview is shown."
   :interactive nil
-  (if completion-preview-active-mode
-      (add-hook 'completion-at-point-functions #'completion-preview--insert -1 t)
-    (remove-hook 'completion-at-point-functions #'completion-preview--insert t)
-    (completion-preview-hide)))
+  (unless completion-preview-active-mode (completion-preview-hide)))
 
-(defun completion-preview--exit-function (func)
-  "Return an exit function that hides the completion preview and calls FUNC."
-  (lambda (&rest args)
-    (completion-preview-active-mode -1)
-    (when (functionp func) (apply func args))))
+(defun completion-preview--try-table (table beg end props)
+  "Check TABLE for a completion matching the text between BEG and END.
+
+PROPS is a property list with additional information about TABLE.
+See `completion-at-point-functions' for more details.
+
+If TABLE contains a matching completion, return a list
+\(PREVIEW BEG END ALL BASE EXIT-FN) where PREVIEW is the text to
+show in the completion preview, ALL is the list of all matching
+completion candidates, BASE is a common prefix that TABLE elided
+from the start of each candidate, and EXIT-FN is either a
+function to call after inserting PREVIEW or nil.  If TABLE does
+not contain matching completions, or if there are multiple
+matching completions and `completion-preview-exact-match-only' is
+non-nil, return nil instead."
+  (let* ((pred (plist-get props :predicate))
+         (exit-fn (plist-get props :exit-function))
+         (string (buffer-substring beg end))
+         (md (completion-metadata string table pred))
+         (sort-fn (or (completion-metadata-get md 'cycle-sort-function)
+                      (completion-metadata-get md 'display-sort-function)
+                      completion-preview-sort-function))
+         (all (let ((completion-lazy-hilit t))
+                (completion-all-completions string table pred
+                                            (- (point) beg) md)))
+         (last (last all))
+         (base (or (cdr last) 0))
+         (prefix (substring string base)))
+    (when last
+      (setcdr last nil)
+      (when-let ((sorted (funcall sort-fn
+                                  (delete prefix (all-completions prefix all)))))
+        (unless (and (cdr sorted) completion-preview-exact-match-only)
+          (list (propertize (substring (car sorted) (length prefix))
+                            'face (if (cdr sorted)
+                                      'completion-preview
+                                    'completion-preview-exact)
+                            'mouse-face 'completion-preview-highlight
+                            'keymap completion-preview--mouse-map)
+                (+ beg base) end sorted
+                (substring string 0 base) exit-fn))))))
+
+(defun completion-preview--capf-wrapper (capf)
+  "Translate return value of CAPF to properties for completion preview overlay."
+  (let ((res (ignore-errors (funcall capf))))
+    (and (consp res)
+         (not (functionp res))
+         (seq-let (beg end table &rest plist) res
+           (or (completion-preview--try-table table beg end plist)
+               (unless (eq 'no (plist-get plist :exclusive))
+                 ;; Return non-nil to exclude other capfs.
+                 '(nil)))))))
 
 (defun completion-preview--update ()
   "Update completion preview."
-  (seq-let (beg end table &rest plist)
-      (let ((completion-preview-insert-on-completion nil))
-        (run-hook-with-args-until-success 'completion-at-point-functions))
-    (when (and beg end table)
-      (let* ((pred (plist-get plist :predicate))
-             (exit-fn (completion-preview--exit-function
-                       (plist-get plist :exit-function)))
-             (string (buffer-substring beg end))
-             (md (completion-metadata string table pred))
-             (sort-fn (or (completion-metadata-get md 'cycle-sort-function)
-                          (completion-metadata-get md 'display-sort-function)
-                          completion-preview-sort-function))
-             (all (let ((completion-lazy-hilit t))
-                    (completion-all-completions string table pred
-                                                (- (point) beg) md)))
-             (last (last all))
-             (base (or (cdr last) 0))
-             (bbeg (+ beg base))
-             (prefix (substring string base)))
-        (when last
-          (setcdr last nil)
-          (let* ((filtered (remove prefix (all-completions prefix all)))
-                 (sorted (funcall sort-fn filtered))
-                 (multi (cadr sorted))  ; multiple candidates
-                 (cand (car sorted)))
-            (when (and cand
-                       (not (and multi
-                                 completion-preview-exact-match-only)))
-              (let* ((face (if multi
-                               'completion-preview
-                             'completion-preview-exact))
-                     (after (propertize (substring cand (length prefix))
-                                        'face face))
-                     (ov (completion-preview--make-overlay end after)))
-                (overlay-put ov 'completion-preview-beg bbeg)
-                (overlay-put ov 'completion-preview-end end)
-                (overlay-put ov 'completion-preview-index 0)
-                (overlay-put ov 'completion-preview-cands sorted)
-                (overlay-put ov 'completion-preview-exit-fn exit-fn)
-                (completion-preview-active-mode)))))))))
+  (seq-let (preview beg end all base exit-fn)
+      (run-hook-wrapped
+       'completion-at-point-functions
+       #'completion-preview--capf-wrapper)
+    (when preview
+      (let ((ov (completion-preview--make-overlay end preview)))
+        (overlay-put ov 'completion-preview-beg beg)
+        (overlay-put ov 'completion-preview-end end)
+        (overlay-put ov 'completion-preview-index 0)
+        (overlay-put ov 'completion-preview-cands all)
+        (overlay-put ov 'completion-preview-base base)
+        (overlay-put ov 'completion-preview-exit-fn exit-fn)
+        (completion-preview-active-mode)))))
 
 (defun completion-preview--show ()
   "Show a new completion preview.
@@ -251,7 +293,9 @@ point, otherwise hide it."
           ;; The previous preview is still applicable, update it.
           (overlay-put (completion-preview--make-overlay
                         cur (propertize (substring cand (- cur beg))
-                                        'face face))
+                                        'face face
+                                        'mouse-face 'completion-preview-highlight
+                                        'keymap completion-preview--mouse-map))
                        'completion-preview-end cur)
         ;; The previous preview is no longer applicable, hide it.
         (completion-preview-active-mode -1))))
@@ -271,35 +315,30 @@ point, otherwise hide it."
        (completion-preview--show))
     (completion-preview-active-mode -1)))
 
-(defun completion-preview--insert ()
-  "Completion at point function for inserting the current preview.
-
-When `completion-preview-insert-on-completion' is nil, this
-function returns nil.  Completion Preview mode adds this function
-to `completion-at-point-functions' when the preview is shown,
-such that `completion-at-point' inserts the preview candidate if
-and only if `completion-preview-insert-on-completion' is non-nil."
-  (when (and completion-preview-active-mode
-             completion-preview-insert-on-completion)
-    (list (completion-preview--get 'completion-preview-beg)
-          (completion-preview--get 'completion-preview-end)
-          (list (nth (completion-preview--get 'completion-preview-index)
-                     (completion-preview--get 'completion-preview-cands)))
-          :exit-function (completion-preview--get 'completion-preview-exit-fn))))
-
 (defun completion-preview-insert ()
-  "Insert the completion candidate that the preview shows."
+  "Insert the completion candidate that the preview is showing."
   (interactive)
-  (let ((completion-preview-insert-on-completion t))
-    (completion-at-point)))
+  (if completion-preview-active-mode
+      (let* ((pre (completion-preview--get 'completion-preview-base))
+             (end (completion-preview--get 'completion-preview-end))
+             (ind (completion-preview--get 'completion-preview-index))
+             (all (completion-preview--get 'completion-preview-cands))
+             (efn (completion-preview--get 'completion-preview-exit-fn))
+             (aft (completion-preview--get 'after-string))
+             (str (concat pre (nth ind all))))
+        (completion-preview-active-mode -1)
+        (goto-char end)
+        (insert (substring-no-properties aft))
+        (when (functionp efn) (funcall efn str 'finished)))
+    (user-error "No current completion preview")))
 
 (defun completion-preview-prev-candidate ()
-  "Cycle the candidate that the preview shows to the previous suggestion."
+  "Cycle the candidate that the preview is showing to the previous suggestion."
   (interactive)
   (completion-preview-next-candidate -1))
 
 (defun completion-preview-next-candidate (direction)
-  "Cycle the candidate that the preview shows in direction DIRECTION.
+  "Cycle the candidate that the preview is showing in direction DIRECTION.
 
 DIRECTION should be either 1 which means cycle forward, or -1
 which means cycle backward.  Interactively, DIRECTION is the
@@ -319,14 +358,37 @@ prefix argument and defaults to 1."
       (let ((aft (propertize (substring str (- pos beg))
                              'face (if (< 1 len)
                                        'completion-preview
-                                     'completion-preview-exact))))
+                                     'completion-preview-exact)
+                             'mouse-face 'completion-preview-highlight
+                             'keymap completion-preview--mouse-map)))
         (add-text-properties 0 1 '(cursor 1) aft)
         (overlay-put completion-preview--overlay 'completion-preview-index new)
-        (overlay-put completion-preview--overlay 'after-string aft)))))
+        (overlay-put completion-preview--overlay 'after-string aft))
+      (when completion-preview-message-format
+        (message (format-spec completion-preview-message-format
+                              `((?i . ,(1+ new)) (?n . ,len))))))))
+
+(defun completion-preview--active-p (_symbol buffer)
+  "Check if the completion preview is currently shown in BUFFER."
+  (buffer-local-value 'completion-preview-active-mode buffer))
+
+(dolist (cmd '(completion-preview-insert
+               completion-preview-prev-candidate
+               completion-preview-next-candidate))
+  (put cmd 'completion-predicate #'completion-preview--active-p))
 
 ;;;###autoload
 (define-minor-mode completion-preview-mode
-  "Show in-buffer completion preview as you type."
+  "Show in-buffer completion suggestions in a preview as you type.
+
+This mode automatically shows and updates the completion preview
+according to the text around point.
+\\<completion-preview-active-mode-map>\
+When the preview is visible, \\[completion-preview-insert]
+accepts the completion suggestion,
+\\[completion-preview-next-candidate] cycles forward to the next
+completion suggestion, and \\[completion-preview-prev-candidate]
+cycles backward."
   :lighter " CP"
   (if completion-preview-mode
       (add-hook 'post-command-hook #'completion-preview--post-command nil t)

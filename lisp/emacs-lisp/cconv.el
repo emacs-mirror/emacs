@@ -615,11 +615,15 @@ places where they originally did not directly appear."
      (cconv-convert exp env extend))
 
     (`(,func . ,forms)
-     ;; First element is function or whatever function-like forms are: or, and,
-     ;; if, catch, progn, prog1, while, until
-     `(,func . ,(mapcar (lambda (form)
-                          (cconv-convert form env extend))
-                        forms)))
+     (if (symbolp func)
+         ;; First element is function or whatever function-like forms are:
+         ;; or, and, if, catch, progn, prog1, while, until
+         `(,func . ,(mapcar (lambda (form)
+                              (cconv-convert form env extend))
+                            forms))
+       (macroexp--warn-wrap form (format-message "Malformed function `%S'"
+                                                 (car form))
+                            nil nil)))
 
     (_ (or (cdr (assq form env)) form))))
 

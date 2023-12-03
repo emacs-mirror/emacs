@@ -193,7 +193,7 @@
 
      (lambda (_)
        (with-current-buffer "FooNet"
-         (should erc--server-reconnect-display-timer))
+         (erc-d-t-wait-for 1 erc--server-reconnect-display-timer))
 
        ;; A non-interactive JOIN command doesn't signal that we're
        ;; done auto-reconnecting.

@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.17
+;; Version: 1.0.18
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -64,6 +64,7 @@
     :initarg :notification-dispatcher
     :documentation "Dispatcher for remotely invoked notifications.")
    (last-error
+    :initform nil
     :accessor jsonrpc-last-error
     :documentation "Last JSONRPC error message received from endpoint.")
    (-request-continuations
@@ -71,6 +72,7 @@
     :accessor jsonrpc--request-continuations
     :documentation "A hash table of request ID to continuation lambdas.")
    (-events-buffer
+    :initform nil
     :accessor jsonrpc--events-buffer
     :documentation "A buffer pretty-printing the JSONRPC events")
    (-events-buffer-scrollback-size
@@ -286,6 +288,7 @@ CANCEL-ON-INPUT-RETVAL.  Any future replies (normal or error) are
 ignored."
   (let* ((tag (cl-gensym "jsonrpc-request-catch-tag")) id-and-timer
          canceled
+         (throw-on-input nil)
          (retval
           (unwind-protect
               (catch tag
@@ -353,6 +356,7 @@ ignored."
     :initarg :process :accessor jsonrpc--process
     :documentation "Process object wrapped by the this connection.")
    (-expected-bytes
+    :initform nil
     :accessor jsonrpc--expected-bytes
     :documentation "How many bytes declared by server.")
    (-on-shutdown

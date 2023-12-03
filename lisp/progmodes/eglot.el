@@ -977,15 +977,19 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
     :accessor eglot--project-nickname
     :reader eglot-project-nickname)
    (languages
+    :initform nil
     :documentation "Alist ((MODE . LANGUAGE-ID-STRING)...) of managed languages."
     :accessor eglot--languages)
    (capabilities
+    :initform nil
     :documentation "JSON object containing server capabilities."
     :accessor eglot--capabilities)
    (server-info
+    :initform nil
     :documentation "JSON object containing server info."
     :accessor eglot--server-info)
    (shutdown-requested
+    :initform nil
     :documentation "Flag set when server is shutting down."
     :accessor eglot--shutdown-requested)
    (project
@@ -1002,6 +1006,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
     :documentation "Map (DIR -> (WATCH ID1 ID2...)) for `didChangeWatchedFiles'."
     :initform (make-hash-table :test #'equal) :accessor eglot--file-watches)
    (managed-buffers
+    :initform nil
     :documentation "List of buffers managed by server."
     :accessor eglot--managed-buffers)
    (saved-initargs
