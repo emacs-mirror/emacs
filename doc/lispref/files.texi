@@ -1865,9 +1865,10 @@ multiple names, it continues to exist under the other names.  If
 @var{filename} is a symbolic link, @code{delete-file} deletes only the
 symbolic link and not its target.
 
-A suitable kind of @code{file-error} error is signaled if the file
-does not exist, or is not deletable.  (On GNU and other POSIX-like
-systems, a file is deletable if its directory is writable.)
+A suitable kind of @code{file-error} error is signaled is not
+deletable.  (On GNU and other POSIX-like systems, a file is deletable
+if its directory is writable.)  No error is signaled if the file does
+not exist.
 
 If the optional argument @var{trash} is non-@code{nil} and the
 variable @code{delete-by-moving-to-trash} is non-@code{nil}, this
