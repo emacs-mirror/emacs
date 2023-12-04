@@ -582,6 +582,10 @@ dedicated byte-op code."
       (advice-remove #'delete-region f)
       (should (equal comp-test-primitive-redefine-args '(1 2))))))
 
+(comp-deftest 67239-1 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-11/msg00925.html>"
+  (should-not (comp-test-67239-1-f)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;

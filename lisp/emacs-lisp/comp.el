@@ -1967,10 +1967,14 @@ TARGET-BB-SYM is the symbol name of the target block."
          (set ,(and (pred comp-mvar-p) mvar-3)
               (call memq ,(and (pred comp-mvar-p) mvar-1) ,(and (pred comp-mvar-p) mvar-2)))
          (cond-jump ,(and (pred comp-mvar-p) mvar-3) ,(pred comp-mvar-p) ,bb1 ,bb2))
-       (push  `(assume ,mvar-tested ,(make-comp-mvar :type (comp-cstr-cl-tag mvar-tag)))
-              (comp-block-insns (comp-add-cond-cstrs-target-block b bb2)))
-       (push  `(assume ,mvar-tested ,(make-comp-mvar :type (comp-cstr-cl-tag mvar-tag) :neg t))
-              (comp-block-insns (comp-add-cond-cstrs-target-block b bb1))))
+       (comp-emit-assume 'and mvar-tested
+                         (make-comp-mvar :type (comp-cstr-cl-tag mvar-tag))
+                         (comp-add-cond-cstrs-target-block b bb2)
+                         nil)
+       (comp-emit-assume 'and mvar-tested
+                         (make-comp-mvar :type (comp-cstr-cl-tag mvar-tag))
+                         (comp-add-cond-cstrs-target-block b bb1)
+                         t))
       (`((set ,(and (pred comp-mvar-p) cmp-res)
               (,(pred comp--call-op-p)
                ,(and (or (pred comp--equality-fun-p)
@@ -2645,6 +2649,8 @@ Fold the call in case."
        (_
         (comp-cstr-shallow-copy lval rval))))
     (`(assume ,lval ,(and (pred comp-mvar-p) rval))
+     ;; NOTE we should probably assert this case in the future when
+     ;; will be possible.
      (comp-cstr-shallow-copy lval rval))
     (`(assume ,lval (,kind . ,operands))
      (cl-case kind
