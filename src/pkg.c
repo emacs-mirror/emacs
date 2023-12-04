@@ -1105,6 +1105,7 @@ syms_of_pkg (void)
 		     doc: /* The keyword package.  For internal use only.  */);
   DEFVAR_LISP_NOPRO ("*package*", Vearmuffs_package,
 		     doc: /* The current package.  */);
+  /* This make *package* have a buffer-local binding only if set.  */
   Fmake_variable_buffer_local (Qearmuffs_package);
   Fadd_variable_watcher (Qearmuffs_package, Fsymbol_function (Qwatch_earmuffs_package));
   DEFVAR_LISP_NOPRO ("symbol-packages", Vsymbol_packages,

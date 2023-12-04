@@ -39,6 +39,7 @@
 (gv-define-simple-setter package-%shadowing-symbols
                          package-%set-shadowing-symbols)
 (gv-define-simple-setter package-%lock package-%set-lock)
+(gv-define-simple-setter buffer-package set-buffer-package)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -178,12 +179,18 @@ Otherwise assume that "
              (package-name package) name))))
 
 ;;;###autoload
-(cl-defun buffer-package (&optional (buffer (current-buffer)))
-  "Return the value of *package* set in BUFFER.
-BUFFER must be either a buffer object or the name of an existing buffer."
-  (let ((buffer (or (get-buffer buffer)
-                    (error "Buffer not found: %s" buffer))))
-    (default-buffer-local-value '*package* buffer)))
+(cl-defun buffer-package (buffer)
+  "Return the value of *package* set in BUFFER."
+  (default-buffer-local-value '*package* buffer))
+
+;;;###autoload
+(cl-defun set-buffer-package (buffer package)
+  "Set the value of *package* in BUFFER to PACKAGE."
+  (unless (local-variable-p '*package* buffer)
+    (with-current-buffer buffer
+      (make-local-variable '*package*)))
+  (let ((*package* *emacs-package*))
+    (set-default-buffer-local-value '*package* package buffer)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Macros

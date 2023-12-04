@@ -690,6 +690,30 @@ default_buffer_local_binding (Lisp_Object symbol, Lisp_Object buffer)
   return binding;
 }
 
+DEFUN ("default-buffer-local-value", Fdefault_buffer_local_value,
+       Sdefault_buffer_local_value, 2, 2, 0,
+       doc: /* Return SYMBOL's toplevel buffer-local value in BUFFER. */)
+  (Lisp_Object symbol, Lisp_Object buffer)
+{
+  union specbinding *binding = default_buffer_local_binding (symbol, buffer);
+  if (binding)
+    return specpdl_old_value (binding);
+  return Fdefault_toplevel_value (symbol);
+}
+
+DEFUN ("set-default-buffer-local-value", Fset_default_buffer_local_value,
+       Sset_default_buffer_local_value, 3, 3, 0,
+       doc: /* Return SYMBOL's toplevel buffer-local value in BUFFER. */)
+  (Lisp_Object symbol, Lisp_Object value, Lisp_Object buffer)
+{
+  union specbinding *binding = default_buffer_local_binding (symbol, buffer);
+  if (binding)
+    set_specpdl_old_value (binding, value);
+  else
+    Fset_default (symbol, value);
+  return Qnil;
+}
+
 /* Look for a lexical-binding of SYMBOL somewhere up the stack.
    This will only find bindings created with interpreted code, since once
    compiled names of lexical variables are basically gone anyway.  */
@@ -725,19 +749,6 @@ DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_valu
   (Lisp_Object symbol)
 {
   union specbinding *binding = default_toplevel_binding (symbol);
-  Lisp_Object value
-    = binding ? specpdl_old_value (binding) : Fdefault_value (symbol);
-  if (!BASE_EQ (value, Qunbound))
-    return value;
-  xsignal1 (Qvoid_variable, symbol);
-}
-
-DEFUN ("default-buffer-local-value", Fdefault_buffer_local_value,
-       Sdefault_buffer_local_value, 2, 2, 0,
-       doc: /* Return SYMBOL's toplevel buffer-local value in BUFFER. */)
-  (Lisp_Object symbol, Lisp_Object buffer)
-{
-  union specbinding *binding = default_buffer_local_binding (symbol, buffer);
   Lisp_Object value
     = binding ? specpdl_old_value (binding) : Fdefault_value (symbol);
   if (!BASE_EQ (value, Qunbound))
@@ -4470,6 +4481,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sfunction);
   defsubr (&Sdefault_toplevel_value);
   defsubr (&Sdefault_buffer_local_value);
+  defsubr (&Sset_default_buffer_local_value);
   defsubr (&Sset_default_toplevel_value);
   defsubr (&Sdefvar);
   defsubr (&Sdefvar_1);
