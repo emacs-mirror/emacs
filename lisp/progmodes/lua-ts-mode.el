@@ -552,7 +552,6 @@ Calls REPORT-FN directly."
     (with-current-buffer lua-ts-inferior-buffer
       (setq-local comint-input-ignoredups t
                   comint-input-ring-file-name lua-ts-inferior-history
-                  comint-use-prompt-regexp t
                   comint-prompt-read-only t
                   comint-prompt-regexp (rx-to-string `(: bol
                                                          ,lua-ts-inferior-prompt
