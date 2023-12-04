@@ -2508,6 +2508,7 @@ already is one it will be completely replaced; the value in the
 earlier definition will not affect `c-lang-const' on the same
 constant.  A file is identified by its base name."
   (declare (indent 1)
+	   (defining-symbol 1)
 	   (debug (&define name [&optional stringp] [&rest sexp def-form])))
   (let* ((sym (intern (symbol-name name) c-lang-constants))
 	 ;; Make `c-lang-const' expand to a straightforward call to

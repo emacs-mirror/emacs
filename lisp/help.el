@@ -1314,6 +1314,25 @@ mode lighter was clicked."
     result))
 
 
+(defun help-strip-pos-info (string)
+  "Remove the POS info, if any, from STRING, returning the result.
+STRING may be nil.
+
+If no changes are made, return the original STRING.  If there are
+no characters other than the POS info, return nil instead."
+  (when string
+    (let (start index)
+      (while
+          (and (setq index (string-match ";POS.\000\000\000 " string start))
+               (string-match "\n" string index))
+        (setq start (match-end 0)))
+      (cond
+       ((and start (< start (length string)))
+        (substring string start))
+       ((and start (eq start (length string)))
+        nil)
+       ((null index) string)))))
+
 (defcustom help-link-key-to-documentation t
   "Non-nil means link keys to their command in *Help* buffers.
 This affects \\\\=\\[command] substitutions in documentation
@@ -2268,7 +2287,8 @@ When SECTION is \\='usage or \\='doc, return only that part."
   ;; In cases where `function' has been fset to a subr we can't search for
   ;; function's name in the doc string so we use `fn' as the anonymous
   ;; function name instead.
-  (let* ((found (and docstring
+  (let* ((docstring (help-strip-pos-info docstring))
+         (found (and docstring
                      (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring)))
          (doc (if found
                   (and (memq section '(t nil doc))
@@ -2300,9 +2320,14 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
           (eq arglist t))
       docstring
     (concat docstring
-	    (if (string-match "\n?\n\\'" docstring)
-		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
-	      "\n\n")
+            (cond
+             ((progn (string-match
+                      "\\(?:;POS.\000\000\000 \\[[^]]+]\n\\)?\\(\n*\\)\\'"
+                      docstring)
+                     (zerop (- (match-end 1) (match-beginning 1))))
+              "\n\n")
+             ((< (- (match-end 1) (match-beginning 1)) 2) "\n")
+             (t ""))
 	    (if (stringp arglist)
                 (if (string-match "\\`[^ ]+\\(.*\\))\\'" arglist)
                     (concat "(fn" (match-string 1 arglist) ")")

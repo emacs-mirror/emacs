@@ -66,7 +66,8 @@ Returned tokens must have the form:
   (TOKSYM VALUE START . END)
 
 where VALUE is the buffer substring between START and END positions."
-  (declare (debug (&define name stringp def-body)) (indent 1))
+  (declare (defining-symbol 1)
+           (debug (&define name stringp def-body)) (indent 1))
   `(defun
      ,name () ,doc
      (cond

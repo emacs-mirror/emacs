@@ -217,6 +217,7 @@ INIT-VALUE LIGHTER KEYMAP.
 \(fn MODE DOC [KEYWORD VAL ... &rest BODY])"
   (declare (doc-string 2)
            (indent defun)
+           (defining-symbol 1)
            (debug (&define name string-or-null-p
 			   [&optional [&not keywordp] sexp
 			    &optional [&not keywordp] sexp

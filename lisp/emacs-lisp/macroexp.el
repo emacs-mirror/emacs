@@ -213,6 +213,37 @@ It should normally be a symbol with position and it defaults to FORM."
    ((consp form)
     (let* ((head (car form))
            (env-expander (assq head environment)))
+      ;; Special handling for `lambda', preserving any symbol position
+      ;; in it, and amending/creating its doc string for position
+      ;; information.
+      (if (eq head 'lambda)
+          (let* ((ds (and (stringp (nth 2 form))
+                          ;; (nthcdr 3 form)
+                                        ; Ensure we don't have
+                                        ; (lambda () "str").
+                          (nth 2 form)))
+                 (new-ds (byte-run-posify-doc-string ds head))
+                 new-link)
+            (setq form
+                  (cond
+                   ;; Overwrite the existing doc string with the new one
+                   (;;ds ;; (setcar (nthcdr 2 form) new-ds)
+                    (and (stringp (nth 2 form))
+                         (nthcdr 3 form))
+                    (nconc (list (car form) (cadr form) new-ds)
+                           (nthcdr 3 form))
+                    )
+                   ((and (consp (nth 2 form))
+                         (eq (car (nth 2 form)) ':documentation))
+                    form
+                    ;; How should we deal with a dynamic doc string?
+                    )
+                   ;; Insert the new doc string into the structure.
+                   (t (setq new-link (cons new-ds (nthcdr 2 form)))
+                      ;; (setcdr (cdr form) new-link)
+                      (nconc (list (car form) (cadr form)) new-link)
+                      )))
+            (list 'function form))
       (if env-expander
           (if (cdr env-expander)
               (apply (cdr env-expander) (cdr form))
@@ -228,7 +259,7 @@ It should normally be a symbol with position and it defaults to FORM."
              (t
               (if (eq 'macro (car def))
                   (apply (cdr def) (cdr form))
-                form))))))))
+                form)))))))))
    (t form)))
 
 (defun macroexp-macroexpand (form env)

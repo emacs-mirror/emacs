@@ -257,16 +257,67 @@ HOW is a symbol to select an entry in `advice--how-alist'."
         (advice--copy (cadr proto)
                       function main how props)))))
 
+(defun advice--equal (function adv)
+  "Return non-nil when FUNCTION is essentially the same as ADV.
+FUNCTION and ADV are both functions.  They are considered
+essentially the same when all components apart, possibly, from
+the \"defining-symbol\" are `equal'.
+
+On such sameness, ADV is returned, otherwise nil."
+  (cond
+   ((and (byte-code-function-p function)
+         (byte-code-function-p adv))
+    (and (equal (aref function 0) (aref adv 0)) ; parameter spec.
+         (equal (aref function 1) (aref adv 1)) ; byte code.
+         (equal (aref function 2) (aref adv 2)) ; constant vector.
+         (equal (aref function 3) (aref adv 3)) ; Stack usage.
+         ;; `documentation' currently (2023-12-01) strips the position
+         ;; information from the doc strings.
+         (equal (documentation function t) (documentation adv t))
+         (or (and (< (length function) 6) (< (length adv) 6))
+             (equal (aref function 5) (aref adv 5))) ; interactive spec.
+         adv))
+   ((and (consp function)
+         (consp adv))                   ; Interpreted functions.
+    (let* ((doc-pos (cond ((eq (car function) 'lambda) 2)
+                          ((eq (car function) 'closure) 3)
+                          (t (error "advice--equal: Unknown function type: %s"
+                                    (car function)))))
+           (f-doc-cdr (nthcdr doc-pos function))
+           (a-doc-cdr (nthcdr doc-pos adv))
+           (f-doc (car f-doc-cdr))
+           (a-doc (car a-doc-cdr))
+           )
+      ;; Mask out the ;POS info in the doc strings, and compare everything.
+      (if (and f-doc-cdr a-doc-cdr)
+          (unwind-protect
+              (progn
+                (when (stringp f-doc)
+                  (setcar f-doc-cdr (help-strip-pos-info f-doc)))
+                (when (stringp a-doc)
+                  (setcar a-doc-cdr (help-strip-pos-info a-doc)))
+                (equal function adv))
+            (setcar f-doc-cdr f-doc)
+            (setcar a-doc-cdr a-doc))
+        (equal function adv))))
+   ;; Insert an arm for native-compiled functions here.  FIXME!!!
+   (t (and (equal function adv)
+           adv))
+   ))
+
 (defun advice--member-p (function use-name definition)
   (let ((found nil))
     (while (and (not found) (advice--p definition))
       (if (if (eq use-name :use-both)
-	      (or (equal function
-			 (cdr (assq 'name (advice--props definition))))
-		  (equal function (advice--car definition)))
-	    (equal function (if use-name
-				(cdr (assq 'name (advice--props definition)))
-			      (advice--car definition))))
+	      (or (advice--equal
+                   function
+		   (cdr (assq 'name (advice--props definition))))
+		  (advice--equal
+                   function (advice--car definition)))
+	    (advice--equal
+             function (if use-name
+			  (cdr (assq 'name (advice--props definition)))
+			(advice--car definition))))
           (setq found definition)
         (setq definition (advice--cdr definition))))
     found))
@@ -288,8 +339,10 @@ HOW is a symbol to select an entry in `advice--how-alist'."
   (advice--tweak flist
                  (lambda (first rest props)
                    (cond ((not first) rest)
-                         ((or (equal function first)
-                              (equal function (cdr (assq 'name props))))
+                         ((or (advice--equal
+                               function first)
+                              (advice--equal
+                               function (cdr (assq 'name props))))
                           (list (advice--remove-function rest function)))))))
 
 (oclosure-define (advice--forward

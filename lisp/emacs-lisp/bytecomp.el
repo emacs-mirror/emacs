@@ -495,15 +495,15 @@ Return the compile-time value of FORM."
   ;; 3.2.3.1, "Processing of Top Level Forms".  The semantics are very
   ;; subtle: see test/lisp/emacs-lisp/bytecomp-tests.el for interesting
   ;; cases.
-  (setf form (macroexp-macroexpand form byte-compile-macro-environment))
-  (if (eq (car-safe form) 'progn)
-      (cons (car form)
-            (mapcar (lambda (subform)
-                      (byte-compile-recurse-toplevel
-                       subform non-toplevel-case))
-                    (cdr form)))
-    (funcall non-toplevel-case form)))
-
+  (let ((defining-symbol defining-symbol))
+    (setf form (macroexp-macroexpand form byte-compile-macro-environment))
+    (if (eq (car-safe form) 'progn)
+        (cons (car form)
+              (mapcar (lambda (subform)
+                        (byte-compile-recurse-toplevel
+                         subform non-toplevel-case))
+                      (cdr form)))
+      (funcall non-toplevel-case form))))
 
 (defvar bytecomp--copy-tree-seen)
 
@@ -1781,7 +1781,8 @@ It is too wide if it has any lines longer than the largest of
         ('lambda
           (setq kind "")          ; can't be "function", unfortunately
           (setq docs (nth 2 form))))
-      (when (and kind docs (stringp docs))
+      (when (and kind docs (stringp docs)
+                 (setq docs (help-strip-pos-info docs)))
         (let ((col (max byte-compile-docstring-max-column fill-column)))
           (when (and (byte-compile-warning-enabled-p 'docstrings-wide)
                      (byte-compile--wide-docstring-p docs col))
@@ -2314,6 +2315,7 @@ With argument ARG, insert value in current buffer after the form."
 	   (start-read-position (point))
 	   (byte-compile-last-warned-form 'nothing)
            (symbols-with-pos-enabled t)
+           (defining-symbol nil)
 	   (value (eval
 		   (displaying-byte-compile-warnings
 		    (byte-compile-sexp
@@ -2409,7 +2411,8 @@ With argument ARG, insert value in current buffer after the form."
                  ;; at a lower level must not get symbols with
                  ;; position.
                  (form (read-positioning-symbols inbuffer))
-                 (warning (byte-run--unescaped-character-literals-warning)))
+                 (warning (byte-run--unescaped-character-literals-warning))
+                 defining-symbol)
             (when warning (byte-compile-warn-x form "%s" warning))
 	    (byte-compile-toplevel-file-form form)))
 	;; Compile pending forms at end of file.
@@ -2748,11 +2751,12 @@ list that represents a doc string reference.
   (push sym byte-compile--seen-defvars))
 
 (defun byte-compile-file-form-defvar (form)
-  (let ((sym (nth 1 form)))
+  (let* ((sym (nth 1 form))
+         (defining-symbol sym))
     (byte-compile--declare-var sym)
     (if (eq (car form) 'defconst)
-        (push sym byte-compile-const-variables)))
-  (if (and (null (cddr form))		;No `value' provided.
+        (push sym byte-compile-const-variables))
+    (if (and (null (cddr form))		;No `value' provided.
            (eq (car form) 'defvar))     ;Just a declaration.
       nil
     (byte-compile-docstring-style-warn form)
@@ -2760,7 +2764,13 @@ list that represents a doc string reference.
     (when (consp (nth 2 form))
       (setcar (cdr (cdr form))
               (byte-compile-top-level (nth 2 form) nil 'file)))
-    form))
+    (let ((posified-doc-string
+           (byte-run-posify-doc-string
+            (and (nth 3 form) (stringp (nth 3 form)) (nth 3 form)))))
+      (if (nthcdr 3 form)
+          (setcar (nthcdr 3 form) posified-doc-string)
+        (nconc form (list posified-doc-string))))
+    form)))
 
 (put 'define-abbrev-table 'byte-hunk-handler
      'byte-compile-file-form-defvar-function)
@@ -2964,7 +2974,7 @@ not to take responsibility for the actual compilation of the code."
            "\n(defalias '" ")"
            bare-name
            (if macro '(" '(macro . #[" "])") '(" #[" "]"))
-           (append code nil)          ; Turn byte-code-function-p into list.
+           (append code nil)    ; Turn byte-code-function-p into list.
            2 4
            (and (atom code) byte-compile-dynamic 1)
            nil)
@@ -3060,7 +3070,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
                      (if (symbolp form) form "provided"))
             fun)
            (t
-            (let (final-eval)
+            (let (final-eval defining-symbol)
               (when (or (symbolp form) (eq (car-safe fun) 'closure))
                 ;; `fun' is a function *value*, so try to recover its corresponding
                 ;; source code.
@@ -4240,7 +4250,11 @@ This function is never called when `lexical-binding' is nil."
            (docstring-exp (nth 3 form))
            (body (nthcdr 4 form))
            (fun
-            (byte-compile-lambda `(lambda ,vars . ,body) nil (length env))))
+            (byte-compile-lambda `(,(if (symbol-with-pos-p (car form))
+                                        (position-symbol 'lambda (car form))
+                                      'lambda)
+                                   ,vars . ,body)
+                                 nil (length env))))
       (cl-assert (or (> (length env) 0)
 		     docstring-exp))	;Otherwise, we don't need a closure.
       (cl-assert (byte-code-function-p fun))

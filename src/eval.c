@@ -1144,8 +1144,15 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	 and if TEM is nil then DEF is SYM's function definition.  */
       if (NILP (tem))
 	{
-	  /* SYM is not mentioned in ENVIRONMENT.
-	     Look at its function definition.  */
+	  /* SYM is not mentioned in ENVIRONMENT.  */
+	  /* We handle `lambda' specially, to preserve any symbol
+	     position which may be attached to it.  */
+	  if (EQ (sym, Qlambda))
+	    {
+	      form = list2 (Qfunction, form);
+	      break;
+	    }
+	  /* Look at its function definition.  */
 	  def = Fautoload_do_load (def, sym, Qmacro);
 	  if (!CONSP (def))
 	    /* Not defined or definition not suitable.  */

@@ -3129,6 +3129,7 @@ usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
           BODY...)"
   (declare (doc-string 3) (indent 2)
            (obsolete "use `advice-add' or `define-advice'" "30.1")
+           (defining-symbol (cadr args))
            (debug (&define name  ;; thing being advised.
                            (name ;; class is [&or "before" "around" "after"
                                  ;;               "activation" "deactivation"]

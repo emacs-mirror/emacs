@@ -905,7 +905,8 @@ a bindat type expression."
 
 (defmacro bindat-defmacro (name args &rest body)
   "Define a new Bindat type as a macro."
-  (declare (indent 2) (doc-string 3) (debug (&define name sexp def-body)))
+  (declare (indent 2) (doc-string 3) (debug (&define name sexp def-body))
+           (defining-symbol 1))
   (let ((leaders ()))
     (while (and (cdr body)
                 (or (stringp (car body))

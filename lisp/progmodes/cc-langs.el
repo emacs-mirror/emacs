@@ -160,6 +160,7 @@ the macro `c-init-language-vars' is evaluated.
 language being initialized, and such calls will be macro expanded to
 the evaluated constant value at compile time."
   (declare (indent defun)
+	   (defining-symbol 1)
 	   (debug (&define name def-form
 			   &optional &or ("quote" symbolp) stringp)))
   (when (and (not doc)
@@ -193,7 +194,8 @@ Emacs variable like `comment-start'.
 `c-lang-const' is typically used in VAL to get the right value for the
 language being initialized, and such calls will be macro expanded to
 the evaluated constant value at compile time."
-  (declare (debug (&define name def-form)))
+  (declare (defining-symbol 1)
+	   (debug (&define name def-form)))
   (let ((elem (assq var (cdr c-emacs-variable-inits))))
     (if elem
 	(setcdr elem (list val)) ; Maybe remove "list", sometime. 2006-07-19

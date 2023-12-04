@@ -171,7 +171,8 @@ the hook will be named `foo-mode-hook'.
 See Info node `(elisp)Derived Modes' for more details.
 
 \(fn CHILD PARENT NAME [DOCSTRING] [KEYWORD-ARGS...] &rest BODY)"
-  (declare (debug (&define name symbolp sexp [&optional stringp]
+  (declare (defining-symbol 1)
+           (debug (&define name symbolp sexp [&optional stringp]
 			   [&rest keywordp sexp] def-body))
 	   (doc-string 4)
 	   (indent defun))

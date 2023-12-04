@@ -390,7 +390,8 @@ written simply `VAR'.  See the Info node `(cl)Argument Lists' for
 more details.
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
-  (declare (debug
+  (declare (defining-symbol 1)
+           (debug
             ;; Same as defun but use cl-lambda-list.
             (&define [&name symbolp]
                      cl-lambda-list
@@ -408,7 +409,8 @@ Like normal `iter-defun', except ARGLIST allows full Common Lisp conventions,
 and BODY is implicitly surrounded by (cl-block NAME ...).
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
-  (declare (debug
+  (declare (defining-symbol 1)
+           (debug
             ;; Same as iter-defun but use cl-lambda-list.
             (&define [&name sexp]   ;Allow (setf ...) additionally to symbols.
                      cl-lambda-list
@@ -472,7 +474,8 @@ written simply `VAR'.  See the Info node `(cl)Argument Lists' for
 more details.
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
-  (declare (debug
+  (declare (defining-symbol 1)
+           (debug
             (&define name cl-macro-list cl-declarations-or-string def-body))
            (doc-string 3)
            (indent 2))
@@ -2999,6 +3002,8 @@ To see the documentation for a defined struct type, use
 
 \(fn NAME &optional DOCSTRING &rest SLOTS)"
   (declare (doc-string 2) (indent 1)
+           (defining-symbol
+            (if (consp struct) (car struct) struct))
            (debug
             (&define                    ;Makes top-level form not be wrapped.
              [&or symbolp
@@ -3616,7 +3621,8 @@ possible.  Unlike regular macros, BODY can decide to \"punt\" and leave the
 original function call alone by declaring an initial `&whole foo' parameter
 and then returning foo."
   ;; Like `cl-defmacro', but with the `&whole' special case.
-  (declare (debug (&define [&name symbolp "@cl-compiler-macro"]
+  (declare (defining-symbol 1)
+           (debug (&define [&name symbolp "@cl-compiler-macro"]
                            cl-macro-list
                            cl-declarations-or-string def-body))
            (indent 2))

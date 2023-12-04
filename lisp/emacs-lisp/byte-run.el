@@ -100,6 +100,56 @@ record, containing symbols with position."
         (byte-run--strip-vector/record arg))
        (t arg))))
 
+(defalias 'byte-run-posify-doc-string
+  #'(lambda (doc-string &optional lambda-token)
+      "Prefix a doc string with defining position information.
+DOC-STRING is the existing doc string, or if nil, the new doc
+string is created from scratch.
+LAMBDA-TOKEN when non-nil is the symbol `lambda' for which the new
+doc string is being created.  It should be a symbol with position."
+      (let ((pos-string
+             (concat
+              ";POS"
+              ;; (let ((version ; See comments in `byte-compile-insert-header'.
+              ;; (if (zerop emacs-minor-version)
+              ;;     (1- emacs-major-version)
+              ;; emacs-major-version));)
+              "\036"       ; Hard coded version 30, for now.  FIXME!!!
+              ;; (cl-assert (and (> version 13) (< version 128)))
+              ;; (string version))
+              "\000\000\000 ["
+              (if defining-symbol
+                  (symbol-name (bare-symbol defining-symbol))
+                "nil")
+              " "
+              (let* ((cur-buf
+                      (or (and (boundp 'byte-compile-current-buffer)
+                               byte-compile-current-buffer)
+                          (current-buffer)))
+                     (cur-file-name
+                      (or (and (boundp 'byte-compile-current-file)
+                               (if (bufferp byte-compile-current-file)
+                                   (buffer-name byte-compile-current-file)
+                                 byte-compile-current-file))
+                          (buffer-file-name (current-buffer)))))
+                (cond
+                 (cur-file-name)
+                 (cur-buf (buffer-name cur-buf))
+                 (t                     ; ?minibuffer
+                  "nil")))
+              " "
+              (if (symbol-with-pos-p defining-symbol)
+                  (format "%d" (symbol-with-pos-pos defining-symbol))
+                "nil")
+              " "
+              (if (symbol-with-pos-p lambda-token)
+                  (format "%d" (symbol-with-pos-pos lambda-token))
+                "nil")
+              "]\n")))
+        (if doc-string
+            (concat pos-string doc-string)
+          pos-string))))
+
 (defalias 'function-put
   ;; We don't want people to just use `put' because we can't conveniently
   ;; hook into `put' to remap old properties to new ones.  But for now, there's
@@ -217,6 +267,15 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
                  (cadr elem)))
               val)))))
 
+(defalias 'byte-run--set-defining-symbol
+  #'(lambda (_name args &rest def-sym-poses)
+      (list 'if '(null defining-symbol)
+            (list 'setq 'defining-symbol
+                  (if (numberp (car def-sym-poses))
+                      (nth (1- (car def-sym-poses)) args)
+                    (car def-sym-poses))))))
+(put 'byte-run--set-defining-symbol 'pre-form t)
+
 ;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
   (list
@@ -277,6 +336,10 @@ This is used by `declare'.")
                  (let* ((form (car body))
                         (head (car-safe form)))
                    (cond
+                    ((and (stringp form) (null (cdr body)))
+                     ;; The doc string is also the defun's return value.
+                     (setq docstring form)
+                     nil)     ; Don't remove the doc string from BODY.
                     ((or (and (stringp form) (cdr body))
                          (eq head :documentation))
                      (cond
@@ -315,6 +378,11 @@ This is used by `declare'.")
                #'(lambda (x)
                    (let ((f (cdr (assq (car x) declarations-alist))))
                      (cond
+                      ((and f (symbolp (car f)) (get (car f) 'pre-form))
+                       (setq cl-decls
+                             (cons (apply (car f) name arglist (cdr x))
+                                   cl-decls))
+                       nil)
                       (f (apply (car f) name arglist (cdr x)))
                       ;; Yuck!!
                       ((and (featurep 'cl)
@@ -332,10 +400,12 @@ This is used by `declare'.")
 
 (defvar macro-declarations-alist
   (cons
-   (list 'debug #'byte-run--set-debug)
+   (list 'defining-symbol #'byte-run--set-defining-symbol)
    (cons
-    (list 'no-font-lock-keyword #'byte-run--set-no-font-lock-keyword)
-    defun-declarations-alist))
+    (list 'debug #'byte-run--set-debug)
+    (cons
+     (list 'no-font-lock-keyword #'byte-run--set-no-font-lock-keyword)
+     defun-declarations-alist)))
   "List associating properties of macros to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is a function.
 For each (PROP . VALUES) in a macro's declaration, the FUN corresponding
@@ -359,10 +429,16 @@ interpreted according to `macro-declarations-alist'.
 The return value is undefined.
 
 \(fn NAME ARGLIST [DOCSTRING] [DECL] BODY...)"
+       (if (null defining-symbol) ; For, e.g., components of cl-defstruct's;
+           (setq defining-symbol name)) ; they must get the original symbol.
        (let* ((parse (byte-run--parse-body body nil))
-              (docstring (nth 0 parse))
+              (docstring
+               (if (or (stringp (nth 0 parse)) (null (nth 0 parse)))
+                   (byte-run-posify-doc-string (nth 0 parse))
+                 (nth 0 parse)))
               (declare-form (nth 1 parse))
-              (body (nth 3 parse))
+              (body (or (nth 3 parse)
+                        '(nil)))
               (warnings (nth 4 parse))
               (declarations
                (and declare-form (byte-run--parse-declarations
@@ -393,17 +469,23 @@ INTERACTIVE is an optional `interactive' specification.
 The return value is undefined.
 
 \(fn NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] BODY...)"
-  (declare (doc-string 3) (indent 2))
+  (declare (doc-string 3) (indent 2)
+           (defining-symbol 1))
   (or name (error "Cannot define '%s' as a function" name))
   (if (null
        (and (listp arglist)
             (null (delq t (mapcar #'symbolp arglist)))))
       (error "Malformed arglist: %s" arglist))
   (let* ((parse (byte-run--parse-body body t))
-         (docstring (nth 0 parse))
+         (docstring
+          (if (or (stringp (nth 0 parse)) (null (nth 0 parse)))
+              (byte-run-posify-doc-string (nth 0 parse))
+            (nth 0 parse)))
          (declare-form (nth 1 parse))
          (interactive-form (nth 2 parse))
-         (body (nth 3 parse))
+         (body
+          (or (nth 3 parse)
+              '(nil)))
          (warnings (nth 4 parse))
          (declarations
           (and declare-form (byte-run--parse-declarations

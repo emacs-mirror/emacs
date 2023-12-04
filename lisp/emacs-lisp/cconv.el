@@ -167,7 +167,8 @@ Returns a form where all lambdas don't have any free variables."
       (unless (memq (car b) s) (push b res)))
     (nreverse res)))
 
-(defun cconv--convert-function (args body env parentform &optional docstring)
+(defun cconv--convert-function (args body env parentform
+                                     &optional lambda-token docstring)
   (cl-assert (equal body (caar cconv-freevars-alist)))
   (let* ((fvs (cdr (pop cconv-freevars-alist)))
          (body-new '())
@@ -198,9 +199,12 @@ Returns a form where all lambdas don't have any free variables."
                      args body new-env parentform))
     (cond
      ((not (or envector docstring))     ;If no freevars - do nothing.
-      `(function (lambda ,args . ,body-new)))
+      `(function (,(or lambda-token 'lambda)
+                  ,args . ,body-new)))
      (t
-      `(internal-make-closure
+      `(,(if (symbol-with-pos-p lambda-token)
+             (position-symbol 'internal-make-closure lambda-token)
+           'internal-make-closure)
         ,args ,envector ,docstring . ,body-new)))))
 
 (defun cconv--remap-llv (new-env var closedsym)
@@ -477,7 +481,7 @@ places where they originally did not directly appear."
                                         branch))
                               cond-forms)))
 
-    (`(function (lambda ,args . ,body) . ,rest)
+    (`(function (,(and 'lambda lambda-token) ,args . ,body) . ,rest)
      (let* ((docstring (if (eq :documentation (car-safe (car body)))
                            (cconv-convert (cadr (pop body)) env extend)))
             (bf (if (stringp (car body)) (cdr body) body))
@@ -505,12 +509,13 @@ places where they originally did not directly appear."
          (setq body (if (stringp (car body))
                         (cons (car body) bf)
                       bf)
-               form `(function (lambda ,args . ,body) . ,rest))
+               form `(function (,lambda-token ,args . ,body) . ,rest))
          ;; Also, remove the current old entry on the alist, replacing
          ;; it with the new one.
          (let ((entry (pop cconv-freevars-alist)))
            (push (cons body (cdr entry)) cconv-freevars-alist)))
-       (setq cf (cconv--convert-function args body env form docstring))
+       (setq cf (cconv--convert-function args body env form
+                                         lambda-token docstring))
        (if (not cif)
            ;; Normal case, the interactive form needs no special treatment.
            cf

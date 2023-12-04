@@ -213,7 +213,8 @@ in batch mode, an error is signaled.
 
 \(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
 [:tags \\='(TAG...)] BODY...)"
-  (declare (debug (&define [&name "test@" symbolp]
+  (declare (defining-symbol 1)
+           (debug (&define [&name "test@" symbolp]
 			   sexp [&optional stringp]
 			   [&rest keywordp sexp] def-body))
            (doc-string 3)

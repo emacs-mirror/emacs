@@ -242,6 +242,13 @@ DEFAULT-BODY, if present, is used as the body of a default method.
 
 \(fn NAME ARGS [DOC-STRING] [OPTIONS-AND-METHODS...] &rest DEFAULT-BODY)"
   (declare (indent 2) (doc-string 3)
+           (defining-symbol
+            (if (eq (car-safe name) 'setf)
+                (progn
+                  (require 'gv)
+                  (declare-function gv-setter "gv" (name))
+                  (gv-setter (cadr name)))
+              name))
            (debug
             (&define
              &interpose
@@ -348,7 +355,8 @@ This macro can only be used within the lexical scope of a cl-generic method."
   "Define a special kind of context named NAME.
 Whenever a context specializer of the form (NAME . ARGS) appears,
 the specializer used will be the one returned by BODY."
-  (declare (debug (&define name lambda-list def-body)) (indent defun))
+  (declare (defining-symbol 1)
+           (debug (&define name lambda-list def-body)) (indent defun))
   `(eval-and-compile
      (put ',name 'cl-generic--context-rewriter
           (lambda ,args ,@body))))
@@ -556,6 +564,13 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
 
 \(fn NAME [EXTRA] [QUALIFIER] ARGS &rest [DOCSTRING] BODY)"
   (declare (doc-string cl--defmethod-doc-pos) (indent defun)
+           (defining-symbol
+            (if (eq (car-safe name) 'setf)
+                (progn
+                  (require 'gv)
+                  (declare-function gv-setter "gv" (name))
+                  (gv-setter (cadr name)))
+              name))
            (debug
             (&define                    ; this means we are defining something
              [&name [sexp   ;Allow (setf ...) additionally to symbols.
@@ -1111,9 +1126,11 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
             (cl-assert (consp qualifiers))
             (let ((s (prin1-to-string qualifiers)))
               (concat (substring s 1 -1) " "))))
-         (doconly (if docstring
-                      (let ((split (help-split-fundoc docstring nil)))
-                        (if split (cdr split) docstring))))
+         (doconly
+          (help-strip-pos-info
+           (if docstring
+               (let ((split (help-split-fundoc docstring nil)))
+                 (if split (cdr split) docstring)))))
          (combined-args ()))
     (if (eq t call-con) (setq args (cdr args)))
     (dolist (specializer specializers)

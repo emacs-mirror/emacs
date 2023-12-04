@@ -757,7 +757,8 @@ If two analyzers can match the same text, it is important to order the
 analyzers so that the one you want to match first occurs first.  For
 example, it is good to put a number analyzer in front of a symbol
 analyzer which might mistake a number for a symbol."
-  (declare (debug (&define name stringp (&rest symbolp))) (indent 1))
+  (declare (defining-symbol 1)
+           (debug (&define name stringp (&rest symbolp))) (indent 1))
   `(defun ,name  (start end &optional depth length)
      ,(concat doc "\nSee `semantic-lex' for more information.")
      ;; Make sure the state of block parsing starts over.
@@ -1093,7 +1094,8 @@ Proper action in FORMS is to move the value of `semantic-lex-end-point' to
 after the location of the analyzed entry, and to add any discovered tokens
 at the beginning of `semantic-lex-token-stream'.
 This can be done by using `semantic-lex-push-token'."
-  (declare (debug (&define name stringp form def-body)) (indent 1))
+  (declare (defining-symbol 1)
+           (debug (&define name stringp form def-body)) (indent 1))
   `(eval-and-compile
      ;; This is the real info used by `define-lex' (via semantic-lex-one-token).
      (defconst ,name '(,condition ,@forms) ,doc)
@@ -1115,7 +1117,8 @@ This can be done by using `semantic-lex-push-token'."
   "Create a lexical analyzer with NAME and DOC that will match REGEXP.
 FORMS are evaluated upon a successful match.
 See `define-lex-analyzer' for more about analyzers."
-  (declare (debug (&define name stringp form def-body)) (indent 1))
+  (declare (defining-symbol 1)
+           (debug (&define name stringp form def-body)) (indent 1))
   `(define-lex-analyzer ,name
      ,doc
      (looking-at ,regexp)
@@ -1133,7 +1136,8 @@ expression.
 FORMS are evaluated upon a successful match BEFORE the new token is
 created.  It is valid to ignore FORMS.
 See `define-lex-analyzer' for more about analyzers."
-  (declare (debug
+  (declare (defining-symbol 1)
+           (debug
             (&define name stringp form symbolp [ &optional form ] def-body))
            (indent 1))
   `(define-lex-analyzer ,name
@@ -1160,7 +1164,8 @@ where BLOCK-SYM is the symbol returned in a block token.  OPEN-DELIM
 and CLOSE-DELIM are respectively the open and close delimiters
 identifying a block.  OPEN-SYM and CLOSE-SYM are respectively the
 symbols returned in open and close tokens."
-  (declare (debug (&define name stringp form (&rest form)))
+  (declare (defining-symbol 1)
+           (debug (&define name stringp form (&rest form)))
            (indent 1))
   (let ((specs (cons spec1 specs))
         spec open olist clist)

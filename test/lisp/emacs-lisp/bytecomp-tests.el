@@ -1983,7 +1983,7 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
       (should (equal (aref bc 5) "P"))
       (should (equal (get fname 'pure) t))
       (should (equal (get fname 'lisp-indent-function) 1))
-      (should (equal (aref bc 4) "tata\n\n(fn X)")))))
+      (should (equal (help-strip-pos-info (aref bc 4)) "tata\n\n(fn X)")))))
 
 (ert-deftest bytecomp-fun-attr-warn ()
   ;; Check that warnings are emitted when doc strings, `declare' and

@@ -75,6 +75,7 @@ If FUNCTION exists, then NAME becomes an alias for FUNCTION.
 Otherwise, create function NAME with ARG-LIST and BODY."
   (declare (obsolete defun "29.1")
            (indent defun) (doc-string 4)
+           (defining-symbol 1)
            (debug (&define name symbolp sexp def-body)))
   `(defalias ',name
      (if (fboundp ',function)
@@ -88,6 +89,7 @@ If MACRO exists, then NAME becomes an alias for MACRO.
 Otherwise, create macro NAME with ARG-LIST and BODY."
   (declare (obsolete defmacro "29.1")
            (indent defun) (doc-string 4)
+           (defining-symbol 1)
            (debug (&define name symbolp sexp def-body)))
   (let ((defined-p (fboundp macro)))
     (if defined-p

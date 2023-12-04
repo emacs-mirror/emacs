@@ -674,6 +674,7 @@ When called as a function, NAME returns an iterator value that
 encapsulates the state of a computation that produces a sequence
 of values.  Callers can retrieve each value using `iter-next'."
   (declare (indent defun)
+           (defining-symbol 1)
            (debug (&define name lambda-list lambda-doc &rest sexp))
            (doc-string 3))
   (cl-assert lexical-binding)

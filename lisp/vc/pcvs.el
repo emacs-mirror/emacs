@@ -897,7 +897,8 @@ clear what alternative to use.
 - `NOARGS' will get all the arguments from the *cvs* buffer and will
   always behave as if called interactively.
 - `DOUBLE' is the generic case."
-  (declare (debug (&define sexp lambda-list stringp
+  (declare (defining-symbol (if (symbolp fun) fun (car fun)))
+           (debug (&define sexp lambda-list stringp
                            ("interactive" interactive) def-body))
            (indent defun)
 	   (doc-string 3))

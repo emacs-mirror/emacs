@@ -1163,7 +1163,9 @@ namespace but with lower confidence."
 
                   (when (and file
                              (or non-default
-                                 (nth 2 info))) ;; assuming only co-located default has null doc string
+                                 (and
+                                  (nth 2 info)
+                                  (help-split-fundoc (nth 2 info) nil 'doc)))) ;; assuming only co-located default has null doc string
                     (if specializers
                         (let ((summary (format elisp--xref-format-extra 'cl-defmethod symbol (nth 1 info))))
                           (push (elisp--xref-make-xref 'cl-defmethod met-name file summary) xrefs))
@@ -1539,7 +1541,8 @@ output with no limit on the length and level of lists, and
 include additional formats for integers \(octal, hexadecimal, and
 character)."
   (pcase-let*
-      ((`(,insert-value ,no-truncate ,char-print-limit)
+      ((defining-symbol nil)
+       (`(,insert-value ,no-truncate ,char-print-limit)
         (eval-expression-get-print-arguments eval-last-sexp-arg-internal)))
     ;; Setup the lexical environment if lexical-binding is enabled.
     (elisp--eval-last-sexp-print-value

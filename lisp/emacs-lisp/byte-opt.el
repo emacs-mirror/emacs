@@ -510,6 +510,7 @@ There can be multiple entries for the same NAME if it has several aliases.")
     (byte-optimize-form form for-effect)))
 
 (defun byte-optimize-form (form &optional for-effect)
+  (push form byte-compile-form-stack)
   (while
       (progn
         ;; First, optimize all sub-forms of this one.
@@ -526,6 +527,7 @@ There can be multiple entries for the same NAME if it has several aliases.")
 	              (byte-compile-log "  %s\t==>\t%s" old new)
                       (setq form new)
                       (not (eq new old))))))))
+  (pop byte-compile-form-stack)
   form)
 
 (defun byte-optimize--rename-var-body (var new-var body)

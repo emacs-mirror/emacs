@@ -2399,6 +2399,9 @@ readevalloop_eager_expand_eval (Lisp_Object val, Lisp_Object macroexpand)
      form in the progn as a top-level form.  This way, if one form in
      the progn defines a macro, that macro is in effect when we expand
      the remaining forms.  See similar code in bytecomp.el.  */
+  specpdl_ref count = SPECPDL_INDEX ();
+
+  specbind (Qdefining_symbol, Qnil); /* This gets setq'd in macros. */
   val = call2 (macroexpand, val, Qnil);
   if (EQ (CAR_SAFE (val), Qprogn))
     {
@@ -2409,7 +2412,7 @@ readevalloop_eager_expand_eval (Lisp_Object val, Lisp_Object macroexpand)
     }
   else
       val = eval_sub (call2 (macroexpand, val, Qt));
-  return val;
+  return unbind_to (count, val);
 }
 
 /* UNIBYTE specifies how to set load_convert_to_unibyte
@@ -2594,7 +2597,12 @@ readevalloop (Lisp_Object readcharfun,
       if (!NILP (macroexpand))
         val = readevalloop_eager_expand_eval (val, macroexpand);
       else
-        val = eval_sub (val);
+	{
+	  specpdl_ref count2 = SPECPDL_INDEX ();
+
+	  specbind (Qdefining_symbol, Qnil);
+	  val = unbind_to (count2, eval_sub (val));
+	}
 
       if (printflag)
 	{
@@ -5916,6 +5924,13 @@ variables, this must be set in the first line of a file.  */);
   Vlexical_binding = Qnil;
   Fmake_variable_buffer_local (Qlexical_binding);
 
+  DEFSYM (Qdefining_symbol, "defining-symbol");
+  DEFVAR_LISP ("defining-symbol", Vdefining_symbol,
+	       doc: /* The symbol currently being defined by a defining form.
+This variable is bound in the read-eval-print loop and certain
+high-level functions in the byte compiler.  It is set to a value by
+functions and macros such as `defun', `defmacro', and `defvar'.  */);
+
   DEFVAR_LISP ("eval-buffer-list", Veval_buffer_list,
 	       doc: /* List of buffers being read from by calls to `eval-buffer' and `eval-region'.  */);
   Veval_buffer_list = Qnil;
@@ -5931,6 +5946,8 @@ For internal use only.  */);
   /* Defined in lisp/emacs-lisp/byte-run.el.  */
   DEFSYM (Qbyte_run_unescaped_character_literals_warning,
           "byte-run--unescaped-character-literals-warning");
+  DEFSYM (Qbyte_run_strip_symbol_positions,
+	  "byte-run-strip-symbol-positions");
 
   DEFVAR_BOOL ("load-prefer-newer", load_prefer_newer,
                doc: /* Non-nil means `load' prefers the newest version of a file.

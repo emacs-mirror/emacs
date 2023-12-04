@@ -408,7 +408,12 @@ string is passed through `substitute-command-keys'.  */)
     }
 
   if (NILP (raw))
-    doc = call1 (Qsubstitute_command_keys, doc);
+    {
+      doc = call1 (Qhelp_strip_pos_info, doc);
+      doc = call1 (Qsubstitute_command_keys, doc);
+    }
+  else
+    doc = call1 (Qhelp_strip_pos_info, doc);
   return doc;
 }
 
@@ -738,6 +743,7 @@ syms_of_doc (void)
 {
   DEFSYM (Qlisp_directory, "lisp-directory");
   DEFSYM (Qsubstitute_command_keys, "substitute-command-keys");
+  DEFSYM (Qhelp_strip_pos_info, "help-strip-pos-info");
   DEFSYM (Qfunction_documentation, "function-documentation");
   DEFSYM (Qgrave, "grave");
   DEFSYM (Qstraight, "straight");
