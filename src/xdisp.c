@@ -31364,7 +31364,10 @@ produce_image_glyph (struct it *it)
      the cursor on same display row.  But don't do that under
      word-wrap, unless the image starts at column zero, because
      wrapping correctly needs the real pixel width of the image.  */
-  if ((it->line_wrap != WORD_WRAP || it->hpos == 0)
+  if ((it->line_wrap != WORD_WRAP
+       || it->hpos == 0
+       /* Always crop images larger than the window-width, minus 1 space.  */
+       || it->pixel_width > it->last_visible_x - FRAME_COLUMN_WIDTH (it->f))
       && (crop = it->pixel_width - (it->last_visible_x - it->current_x),
 	  crop > 0)
       && (it->hpos == 0 || it->pixel_width > it->last_visible_x / 4))
