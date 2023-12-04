@@ -142,6 +142,19 @@
                                     (widget-editable-list-match w v))
                    '(face)))))
 
+(ert-deftest erc--doarray ()
+  (let ((array "abcdefg")
+        out)
+    ;; No return form.
+    (should-not (erc--doarray (c array) (push c out)))
+    (should (equal out '(?g ?f ?e ?d ?c ?b ?a)))
+
+    ;; Return form evaluated upon completion.
+    (setq out nil)
+    (should (= 42 (erc--doarray (c array (+ 39 (length out)))
+                    (when (cl-evenp c) (push c out)))))
+    (should (equal out '(?f ?d ?b)))))
+
 (defun erc-tests--send-prep ()
   ;; Caller should probably shadow `erc-insert-modify-hook' or
   ;; populate user tables for erc-button.

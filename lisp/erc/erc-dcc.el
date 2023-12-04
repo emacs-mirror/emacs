@@ -713,8 +713,8 @@ It extracts the information about the dcc request and adds it to
              (port (match-string 4 query))
              (size (match-string 5 query))
              (sub (substring (match-string 6 query) 0 -4))
-             (secure (seq-contains-p sub ?S #'eq))
-             (turbo (seq-contains-p sub ?T #'eq)))
+             (secure (string-search "S" sub))
+             (turbo (string-search "T" sub)))
         ;; FIXME: a warning really should also be sent
         ;; if the ip address != the host the dcc sender is on.
         (erc-display-message
