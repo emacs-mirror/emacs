@@ -213,6 +213,53 @@ a version of Emacs without installing it.")
 These directories are searched after those in `Info-directory-list'."
   :type '(repeat directory))
 
+(defcustom Info-url-alist
+  '((("auth" "autotype" "bovine" "calc" "ccmode" "cl" "dbus" "dired-x"
+      "ebrowse" "ede" "ediff" "edt" "efaq" "efaq-w32" "eglot" "eieio"
+      "eintr" "elisp" "emacs" "emacs-gnutls" "emacs-mime" "epa" "erc"
+      "ert" "eshell" "eudc" "eww" "flymake" "forms" "gnus"
+      "htmlfontify" "idlwave" "ido" "info" "mairix-el" "message"
+      "mh-e" "modus-themes" "newsticker" "nxml-mode" "octave-mode"
+      "org" "pcl-cvs" "pgg" "rcirc" "reftex" "remember" "sasl" "sc"
+      "semantic" "ses" "sieve" "smtpmail" "speedbar" "srecode"
+      "todo-mode" "tramp" "transient" "url" "use-package" "vhdl-mode"
+      "vip" "viper" "vtable" "widget" "wisent" "woman") .
+     "https://www.gnu.org/software/emacs/manual/html_node/%m/%e"))
+  "Alist telling `Info-mode' where manuals are accessible online.
+
+Each element of this list has the form (MANUALs . URL-SPEC).
+MANUALs represents the name of one or more manuals.  It can
+either be a string or a list of strings.  URL-SPEC can be a
+string in which the substring \"%m\" will be expanded to the
+manual-name, \"%n\" to the node-name, and \"%e\" to the
+URL-encoded node-name (without a `.html' suffix).  (The
+URL-encoding of the node-name mimics GNU Texinfo, as documented
+at Info node `(texinfo)HTML Xref Node Name Expansion'.)
+Alternatively, URL-SPEC can be a function which is given
+manual-name, node-name and URL-encoded node-name as arguments,
+and is expected to return the corresponding URL as a string.
+
+This variable particularly affects the command
+`Info-goto-node-web', which see.
+
+The default value of this variable refers to the official,
+HTTPS-accessible HTML-representations of all manuals that Emacs
+includes.  These URLs refer to the most recently released version
+of Emacs, disregarding the version of the running Emacs.  In
+other words, the content of your local Info node and the
+associated online node may differ.  The resource represented by
+the generated URL may even be not found by the gnu.org server."
+  :version "30.1"
+  :type '(alist
+           :tag "Mapping from manual-name(s) to URL-specification"
+           :key-type (choice
+                       (string :tag "A single manual-name")
+                       (repeat :tag "List of manual-names" string))
+           :value-type (choice
+                         (string :tag "URL-specification string")
+                         (function
+                           :tag "URL-specification function"))))
+
 (defcustom Info-scroll-prefer-subnodes nil
   "If non-nil, \\<Info-mode-map>\\[Info-scroll-up] in a menu visits subnodes.
 
@@ -1854,33 +1901,50 @@ By default, go to the current Info node."
      (Info-url-for-node (format "(%s)%s" filename node)))))
 
 (defun Info-url-for-node (node)
-  "Return a URL for NODE, a node in the GNU Emacs or Elisp manual.
-NODE should be a string on the form \"(manual)Node\".  Only emacs
-and elisp manuals are supported."
-  (unless (string-match "\\`(\\(.+\\))\\(.+\\)\\'" node)
-    (error "Invalid node name %s" node))
-  (let ((manual (match-string 1 node))
-        (node (match-string 2 node)))
-    (unless (member manual '("emacs" "elisp"))
-      (error "Only emacs/elisp manuals are supported"))
-    ;; Encode a bunch of characters the way that makeinfo does.
-    (setq node
-          (mapconcat (lambda (ch)
-                       (if (or (< ch 32)        ; ^@^A-^Z^[^\^]^^^-
+  "Return the URL corresponding to NODE.
+
+NODE should be a string of the form \"(manual)Node\"."
+  ;; GNU Texinfo skips whitespaces and newlines between the closing
+  ;; parenthesis and the node-name, i.e. space, tab, line feed and
+  ;; carriage return.
+  (unless (string-match "\\`(\\(.+\\))[ \t\n\r]*\\(.+\\)\\'" node)
+    (error "Invalid node-name %s" node))
+  ;; Use `if-let*' instead of `let*' so we check if an association was
+  ;; found.
+  (if-let* ((manual (match-string 1 node))
+             (node (match-string 2 node))
+             (association (seq-find
+                            (lambda (pair)
+                              (seq-contains-p (ensure-list (car pair))
+                                manual #'string-equal-ignore-case))
+                            Info-url-alist))
+             (url-spec (cdr association))
+             (encoded-node
+               ;; Reproduce GNU Texinfo's way of URL-encoding.
+               ;; (info "(texinfo) HTML Xref Node Name Expansion")
+               (if (equal node "Top")
+                 ""
+                 (url-hexify-string
+                   (string-replace " " "-"
+                     (mapconcat
+                       (lambda (ch)
+                         (if (or (< ch 32)      ; ^@^A-^Z^[^\^]^^^-
                                (<= 33 ch 47)    ; !"#$%&'()*+,-./
                                (<= 58 ch 64)    ; :;<=>?@
                                (<= 91 ch 96)    ; [\]_`
                                (<= 123 ch 127)) ; {|}~ DEL
                            (format "_00%x" ch)
-                         (char-to-string ch)))
-                     node
-                     ""))
-    (concat "https://www.gnu.org/software/emacs/manual/html_node/"
-            manual "/"
-            (and (not (equal node "Top"))
-                 (concat
-                  (url-hexify-string (string-replace " " "-" node))
-                  ".html")))))
+                           (char-to-string ch)))
+                       node ""))))))
+    (cond
+      ((stringp url-spec)
+        (format-spec url-spec
+          `((?m . ,manual) (?n . ,node) (?e . ,encoded-node))))
+      ((functionp url-spec)
+        (funcall url-spec manual node encoded-node))
+      (t (error "URL-specification neither string nor function")))
+    (error "No URL-specification associated with manual-name `%s'"
+      manual)))
 
 (defvar Info-read-node-completion-table)
 
