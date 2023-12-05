@@ -3,11 +3,9 @@
 ;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Homepage: https://github.com/magit/transient
+;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
-
 ;; Version: 0.5.2
-;; Package-Requires: ((emacs "26.1") (compat "29.1.4.4") (seq "2.24"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -35,7 +33,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'compat)
 (require 'eieio)
 (require 'edmacro)
 (require 'format-spec)
@@ -858,6 +855,7 @@ elements themselves.")
 
 ;;; Define
 
+;;;###autoload
 (defmacro transient-define-prefix (name arglist &rest args)
   "Define NAME as a transient prefix command.
 
