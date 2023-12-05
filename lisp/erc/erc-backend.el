@@ -1919,6 +1919,7 @@ add things to `%s' instead."
             (and erc-ignore-reply-list (erc-ignored-reply-p msg tgt proc)))
         (when erc-minibuffer-ignored
           (message "Ignored %s from %s to %s" cmd sender-spec tgt))
+      (defvar erc--msg-prop-overrides)
       (let* ((sndr (erc-parse-user sender-spec))
              (nick (nth 0 sndr))
              (login (nth 1 sndr))
@@ -1929,6 +1930,8 @@ add things to `%s' instead."
              (privp (erc-current-nick-p tgt))
              (erc--display-context `((erc-buffer-display . ,(intern cmd))
                                      ,@erc--display-context))
+             (erc--msg-prop-overrides `((erc--msg . msg)
+                                        ,@erc--msg-prop-overrides))
              s buffer
              fnick)
         (setq buffer (erc-get-buffer (if privp nick tgt) proc))

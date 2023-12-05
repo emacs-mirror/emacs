@@ -1883,6 +1883,7 @@
                            (erc--msg . s005)
                            (b . 2)
                            (erc--cmd . 5)
+                           (erc--spkr . "X")
                            (c . 3))
                          'hash-table)))
     (with-temp-buffer
@@ -1890,6 +1891,7 @@
       (insert "abc\n")
       (add-text-properties 1 2 (erc--order-text-properties-from-hash table))
       (should (equal '( erc--msg s005
+                        erc--spkr "X"
                         erc--ts 0
                         erc--cmd 5
                         a 1

@@ -214,7 +214,10 @@ Users of the default theme may notice that 'erc-action-face' and
 'erc-notice-face' now appear slightly less bold on systems supporting
 a weight of 'semi-bold'.  This was done to make buttons detectable and
 to spare users from resorting to tweaking these faces, or options like
-'erc-notice-highlight-type', just to achieve this effect.
+'erc-notice-highlight-type', just to achieve this effect.  It's
+currently most prominent in "/ME" messages, where 'erc-action-face'
+sits beneath 'erc-input-face', as well as 'erc-my-nick-face' in the
+speaker portion.
 
 ** Improved interplay between buffer truncation and message logging.
 While most of these improvements are subtle, some affect everyday use.

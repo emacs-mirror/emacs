@@ -177,11 +177,10 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
           (when-let ((erc-fill-line-spacing)
                      (p (point-min)))
             (widen)
-            (when (or (erc--check-msg-prop 'erc--msg 'msg)
-                      (and-let* ((m (save-excursion
-                                      (forward-line -1)
-                                      (erc--get-inserted-msg-prop 'erc--msg))))
-                        (eq 'msg m)))
+            (when (or (erc--check-msg-prop 'erc--spkr)
+                      (save-excursion
+                        (forward-line -1)
+                        (erc--get-inserted-msg-prop 'erc--spkr)))
               (put-text-property (1- p) p
                                  'line-spacing erc-fill-line-spacing))))))))
 
@@ -568,22 +567,19 @@ marked as being ephemeral."
               (props (save-restriction
                        (widen)
                        (and-let*
-                           (((eq 'msg (get-text-property m 'erc--msg)))
+                           ((speaker (get-text-property m 'erc--spkr))
                             ((not (eq (get-text-property m 'erc--ctcp)
                                       'ACTION)))
-                            ((not (invisible-p m)))
-                            (spr (next-single-property-change m 'erc--speaker)))
-                         (cons (get-text-property m 'erc--ts)
-                               (get-text-property spr 'erc--speaker)))))
+                            ((not (invisible-p m))))
+                         (cons (get-text-property m 'erc--ts) speaker))))
               (ts (pop props))
               (props)
               ((not (time-less-p (erc-stamp--current-time) ts)))
               ((time-less-p (time-subtract (erc-stamp--current-time) ts)
                             erc-fill--wrap-max-lull))
               ;; Assume presence of leading angle bracket or hyphen.
-              (speaker (next-single-property-change (point-min) 'erc--speaker))
+              (nick (erc--check-msg-prop 'erc--spkr))
               ((not (erc--check-msg-prop 'erc--ctcp 'ACTION)))
-              (nick (get-text-property speaker 'erc--speaker))
               ((erc-nick-equal-p props nick))))
        (set-marker erc-fill--wrap-last-msg (point-min))))))
 
