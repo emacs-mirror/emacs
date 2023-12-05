@@ -2874,7 +2874,7 @@ run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
     return ret;
 
   specpdl_ref count = SPECPDL_INDEX ();
-  specbind (Qearmuffs_package, Vemacs_package);
+  pkg_in_emacs_package ();
 
   if (!CONSP (val) || FUNCTIONP (val))
     {

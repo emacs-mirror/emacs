@@ -4591,7 +4591,7 @@ handle_fontified_prop (struct it *it)
 
       val = Vfontification_functions;
       specbind (Qfontification_functions, Qnil);
-      specbind (Qearmuffs_package, Vemacs_package);
+      pkg_in_emacs_package ();
 
       eassert (it->end_charpos == ZV);
 

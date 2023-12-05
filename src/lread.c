@@ -1585,7 +1585,7 @@ Return t if the file exists and loads successfully.  */)
      Vload_source_file_function.  */
   specbind (Qlexical_binding, Qnil);
   specbind (Qsymbol_packages, Qnil);
-  specbind (Qearmuffs_package, Vemacs_package);
+  pkg_in_emacs_package ();
 
   Lisp_Object found_eff =
     is_native_elisp

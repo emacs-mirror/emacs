@@ -1001,6 +1001,17 @@ DEFUN ("test-completion-in-all-packages",
   return Qnil;
 }
 
+/* Bind *package* to the emacs package, but make sure that we have a
+   buffer-local *package*, so that we can change the value with
+   set-buffer-local-value.  */
+
+void
+pkg_in_emacs_package (void)
+{
+  Fmake_local_variable (Qearmuffs_package);
+  specbind (Qearmuffs_package, Vemacs_package);
+}
+
 
 /***********************************************************************
 			    Initialization

@@ -2311,6 +2311,7 @@ extern void pkg_define_builtin_symbols (void);
 extern void pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg);
 extern Lisp_Object pkg_find_package (Lisp_Object name);
 extern Lisp_Object pkg_find_symbol (Lisp_Object name, Lisp_Object package, Lisp_Object *status);
+extern void pkg_in_emacs_package (void);
 
 
 /* Return whether a value might be a valid docstring.
