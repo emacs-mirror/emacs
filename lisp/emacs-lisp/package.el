@@ -1732,8 +1732,13 @@ The variable `package-load-list' controls which packages to load."
                  t)))
         (progn
           (require 'package)
-          (declare-function package--activate-all "package" ())
-          (package--activate-all))))))
+          ;; Silence the "unknown function" warning when this is compiled
+          ;; inside `loaddefs.el'.
+          ;; FIXME: We use `with-no-warnings' because the effect of
+          ;; `declare-function' is currently not scoped, so if we use
+          ;; it here, we end up with a redefinition warning instead :-)
+          (with-no-warnings
+            (package--activate-all)))))))
 
 (defun package--activate-all ()
   (dolist (elt (package--alist))
