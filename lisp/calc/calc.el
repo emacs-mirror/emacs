@@ -1285,6 +1285,8 @@ the trail buffer."
           (setq calc-trail-buffer nil)
           t))))
 
+(defvar touch-screen-display-keyboard)
+
 (defun calc-mode ()
   "Calculator major mode.
 

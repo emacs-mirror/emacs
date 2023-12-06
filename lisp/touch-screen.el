@@ -1913,6 +1913,7 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
 
 ;; Exports.  These functions are intended for use externally.
 
+;;;###autoload
 (defun touch-screen-track-tap (event &optional update data threshold)
   "Track a single tap starting from EVENT.
 EVENT should be a `touchscreen-begin' event.
@@ -1970,6 +1971,7 @@ otherwise, return t once the `touchscreen-end' event arrives."
                    (eq (caadr event) (caadr new-event))))
            (t (throw 'finish nil))))))))
 
+;;;###autoload
 (defun touch-screen-track-drag (event update &optional data)
   "Track a single drag starting from EVENT.
 EVENT should be a `touchscreen-begin' event.
@@ -2017,6 +2019,7 @@ touch point in EVENT did not move significantly, and t otherwise."
 ;;; Event handling exports.  These functions are intended for use by
 ;;; Lisp commands bound to touch screen gesture events.
 
+;;;###autoload
 (defun touch-screen-inhibit-drag ()
   "Inhibit subsequent `touchscreen-drag' events from being sent.
 Prevent `touchscreen-drag' and translated mouse events from being

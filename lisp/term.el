@@ -1085,6 +1085,8 @@ underlying shell."
   (setq term-ansi-current-invisible nil)
   (setq term-ansi-current-bg-color 0))
 
+(defvar touch-screen-display-keyboard)
+
 (define-derived-mode term-mode fundamental-mode "Term"
   "Major mode for interacting with an inferior interpreter.
 The interpreter name is same as buffer name, sans the asterisks.

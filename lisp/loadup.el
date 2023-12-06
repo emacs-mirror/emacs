@@ -298,12 +298,9 @@
 (if (featurep 'dynamic-setting)
     (load "dynamic-setting"))
 
-;; touch-screen.el is tiny and is used liberally throughout the button
-;; code etc, so it may as well be preloaded everywhere.
-(load "touch-screen")
-
 (if (featurep 'x)
     (progn
+      (load "touch-screen")
       (load "x-dnd")
       (load "term/common-win")
       (load "term/x-win")))
@@ -316,6 +313,7 @@
 (if (featurep 'android)
     (progn
       (load "ls-lisp")
+      (load "touch-screen")
       (load "term/common-win")
       (load "term/android-win")))
 
