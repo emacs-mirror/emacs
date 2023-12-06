@@ -258,6 +258,11 @@ called in the '--eval' expression, which is useful when those
 arguments contain arbitrary characters that otherwise might require
 elaborate and error-prone escaping (to protect them from the shell).
 
++++
+** 'recover-file' can show diffs between auto save file and current file.
+When answering the prompt with "diff" or "=", it now shows the diffs
+between the auto save file and the current file.
+
 
 * Editing Changes in Emacs 30.1
 

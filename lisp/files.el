@@ -7083,7 +7083,15 @@ auto-save file, if that is more recent than the visited file."
 	    #'(lambda (window _value)
 		(with-selected-window window
 		  (unwind-protect
-		      (yes-or-no-p (format "Recover auto save file %s? " file-name))
+                      (let ((prompt (format "Recover auto save file %s? " file-name))
+                            (choices
+                             '(("yes" ?y "recover auto save file")
+                               ("no" ?n "don't recover auto save file")
+                               ("diff" ?= "show changes between auto save file and current file")))
+                            ans)
+                        (while (equal "diff" (setq ans (read-answer prompt choices)))
+                          (diff file file-name))
+                        (equal ans "yes"))
 		    (when (window-live-p window)
 		      (quit-restore-window window 'kill)))))
 	    (with-current-buffer standard-output

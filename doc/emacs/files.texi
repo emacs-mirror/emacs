@@ -1329,6 +1329,10 @@ directory listing describing the specified file and the auto-save file,
 so you can compare their sizes and dates.  If the auto-save file
 is older, @kbd{M-x recover-file} does not offer to read it.
 
+When @kbd{M-x recover-file} asks for confirmation, if you answer with
+@kbd{diff} or @kbd{=}, it shows the diffs between @var{file} and its
+auto-save file @file{#@var{file}#} and reprompts you for confirmation.
+
 @findex recover-session
   If Emacs or the computer crashes, you can recover all the files you
 were editing from their auto save files with the command @kbd{M-x
