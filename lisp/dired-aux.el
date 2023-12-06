@@ -1367,7 +1367,8 @@ after adding own commands to the composite list."
   (let* ((xdg-mime (when (executable-find "xdg-mime")
                      (string-trim-right
                       (shell-command-to-string
-                       (concat "xdg-mime query filetype " (car files))))))
+                       (concat "xdg-mime query filetype "
+                               (shell-quote-argument (car files)))))))
          (xdg-mime-apps (unless (string-empty-p xdg-mime)
                           (xdg-mime-apps xdg-mime)))
          (xdg-commands
@@ -1400,6 +1401,39 @@ after adding own commands to the composite list."
 (defun shell-command-guess-open (commands _files)
   "Populate COMMANDS by the `open' command."
   (append (ensure-list shell-command-guess-open) commands))
+
+(declare-function w32-shell-execute "w32fns.c")
+
+(defun dired-do-open (&optional arg)
+  "Open the marked files or a file at click/point externally.
+If files are marked, run the command from `shell-command-guess-open'
+on each of marked files.  Otherwise, run it on the file where
+the mouse is clicked, or on the file at point."
+  (interactive "P" dired-mode)
+  (let ((files (if (mouse-event-p last-nonmenu-event)
+                   (save-excursion
+                     (mouse-set-point last-nonmenu-event)
+                     (dired-get-marked-files nil arg))
+                 (dired-get-marked-files nil arg)))
+        (command shell-command-guess-open))
+    (when (and (memq system-type '(windows-nt))
+               (equal command "start"))
+      (setq command "open"))
+    (when command
+      (dolist (file files)
+        (cond
+         ((memq system-type '(gnu/linux))
+          (call-process command nil 0 nil file))
+         ((memq system-type '(ms-dos))
+          (shell-command (concat command " " (shell-quote-argument file))))
+         ((memq system-type '(windows-nt))
+          (w32-shell-execute command (convert-standard-filename file)))
+         ((memq system-type '(cygwin))
+          (call-process command nil nil nil file))
+         ((memq system-type '(darwin))
+          (start-process (concat command " " file) nil command file))
+         (t
+          (error "Open not supported on this system")))))))
 
 
 ;;; Commands that delete or redisplay part of the dired buffer
