@@ -148,6 +148,8 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (and tramp-crypt-enabled (stringp name)
 	 (not (file-name-quoted-p name))
 	 (not (string-suffix-p tramp-crypt-encfs-config name))
+	 ;; No lock file name.
+	 (not (string-prefix-p ".#" (file-name-nondirectory name)))
 	 (dolist (dir tramp-crypt-directories)
 	   (and (string-prefix-p
 		 dir (file-name-as-directory (expand-file-name name)))
@@ -157,7 +159,7 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-crypt-file-name-handler-alist
-  '(;; `abbreviate-file-name' performed by default handler.
+  '((abbreviate-file-name . identity)
     (access-file . tramp-crypt-handle-access-file)
     (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
@@ -492,7 +494,7 @@ See `tramp-crypt-do-encrypt-or-decrypt-file'."
 
 ;;;###tramp-autoload
 (defun tramp-crypt-add-directory (name)
-  "Mark remote directory NAME for encryption.
+  "Mark expanded remote directory NAME for encryption.
 Files in that directory and all subdirectories will be encrypted
 before copying to, and decrypted after copying from that
 directory.  File names will be also encrypted."
@@ -516,7 +518,7 @@ directory.  File names will be also encrypted."
  #'tramp-crypt-command-completion-p)
 
 (defun tramp-crypt-remove-directory (name)
-  "Unmark remote directory NAME for encryption.
+  "Unmark expanded remote directory NAME for encryption.
 Existing files in that directory and its subdirectories will be
 kept in their encrypted form."
   ;; (declare (completion tramp-crypt-command-completion-p))
@@ -852,6 +854,22 @@ WILDCARD is not supported."
     ;; `unlock-file' exists since Emacs 28.1.
     (tramp-compat-funcall
      'unlock-file (tramp-crypt-encrypt-file-name filename))))
+
+(defun tramp-crypt-cleanup-connection (vec)
+  "Cleanup crypt ressources determined by VEC."
+  (let ((tramp-cleanup-connection-hook
+	 (remove
+	  #'tramp-crypt-cleanup-connection tramp-cleanup-connection-hook)))
+    (dolist (dir tramp-crypt-directories)
+      (when (tramp-file-name-equal-p vec (tramp-dissect-file-name dir))
+	(tramp-cleanup-connection (tramp-crypt-dissect-file-name dir))))))
+
+;; Add cleanup hooks.
+(add-hook 'tramp-cleanup-connection-hook #'tramp-crypt-cleanup-connection)
+(add-hook 'tramp-crypt-unload-hook
+	  (lambda ()
+	    (remove-hook 'tramp-cleanup-connection-hook
+			 #'tramp-crypt-cleanup-connection)))
 
 (with-eval-after-load 'bookmark
   (add-hook 'bookmark-inhibit-context-functions

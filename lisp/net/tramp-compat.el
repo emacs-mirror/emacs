@@ -61,6 +61,7 @@
 ;; avoid them in cases we know what we do.
 (defmacro tramp-compat-funcall (function &rest arguments)
   "Call FUNCTION with ARGUMENTS if it exists.  Do not raise compiler warnings."
+  (declare (indent 1) (debug t))
   `(when (functionp ,function)
      (with-no-warnings (funcall ,function ,@arguments))))
 

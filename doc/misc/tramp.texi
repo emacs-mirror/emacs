@@ -3671,7 +3671,7 @@ ssh@value{postfixhop}you@@remotehost@value{postfix}/path @key{RET}}
 Each involved method must be an inline method (@pxref{Inline methods}).
 
 @value{tramp} adds the ad-hoc definitions on the fly to
-@code{tramp-default-proxies-alist} and is available for re-use during
+@code{tramp-default-proxies-alist} and is available for reuse during
 that Emacs session.  Subsequent @value{tramp} connections to the same
 remote host can then use the shortcut form:
 @samp{@trampfn{ssh,you@@remotehost,/path}}.
@@ -4201,7 +4201,7 @@ To open @command{powershell} as a remote shell, use this:
 
 @subsection Remote process connection type
 @vindex process-connection-type
-@cindex tramp-process-connection-type
+@vindex tramp-process-connection-type
 
 Asynchronous processes behave differently based on whether they use a
 pseudo tty or not.  This is controlled by the variable
@@ -4338,7 +4338,7 @@ called @code{tramp-connection-local-*-ps-profile} and
 @end group
 @end lisp
 
-@cindex proced
+@cindex @code{proced}
 @vindex proced-show-remote-processes
 If you want to see a listing of remote system processes when calling
 @code{proced}, set user option @code{proced-show-remote-processes} to
