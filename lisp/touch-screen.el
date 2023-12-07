@@ -320,6 +320,7 @@ the event."
 
 ;;; Drag-to-select gesture.
 
+;;;###autoload
 (defun touch-screen-hold (event)
   "Handle a long press EVENT.
 Ding and select the window at EVENT, then activate the mark.  If

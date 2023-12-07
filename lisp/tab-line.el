@@ -958,6 +958,8 @@ sight of the tab line."
 
 ;;; Touch screen support.
 
+(defvar touch-screen-delay)
+
 (defun tab-line-track-tap (event &optional function)
   "Track a tap starting from EVENT.
 If EVENT is not a `touchscreen-begin' event, return t.
