@@ -409,6 +409,16 @@ Startup}) connect the Android system to another computer, and run:
 $ adb shell "settings put global settings_enable_monitor_phantom_procs false"
 @end example
 
+@cindex C locale settings, Android
+  Emacs does not respect the locale configured for user applications
+in the system, for the selection of locales available there does not
+match that supplied by the C library.  When Emacs starts on Android
+5.0 or newer, the @code{LANG} environment variable is set to
+@code{en_US.utf8}, which induces subprocesses linked against the
+Android C library to print output sensibly.  Earlier versions of
+Android do not implement locales at all, on account of which the
+variable is set to @code{C} instead.
+
 @cindex running emacs in the background, android
 @cindex emacs killed, android
 @cindex emacs in the background, android

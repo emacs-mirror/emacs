@@ -1455,6 +1455,18 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
      the possibility of Java locating libemacs later.  */
   setenv ("EMACS_LD_LIBRARY_PATH", android_lib_dir, 1);
 
+  /* If the system is Android 5.0 or later, set LANG to en_US.utf8,
+     which is understood by the C library.  In other instances set it
+     to C, a meaningless value, for good measure.  */
+
+  if (emacs_service_object)
+    {
+      if (api_level >= 21)
+	setenv ("LANG", "en_US.utf8", 1);
+      else
+	setenv ("LANG", "C", 1);
+    }
+
   /* Make a reference to the Emacs service.  */
 
   if (emacs_service_object)
