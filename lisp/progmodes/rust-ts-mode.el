@@ -435,6 +435,10 @@ delimiters < and >'s."
     (setq-local indent-tabs-mode nil
                 treesit-simple-indent-rules rust-ts-mode--indent-rules)
 
+    ;; Electric
+    (setq-local electric-indent-chars
+                (append "{}():;,#" electric-indent-chars))
+
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
                 (regexp-opt '("enum_item"
