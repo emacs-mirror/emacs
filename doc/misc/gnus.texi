@@ -5868,15 +5868,23 @@ original message but ignore the @code{Reply-To} field
 @findex gnus-summary-mail-forward
 @c @icon{gnus-summary-mail-forward}
 Forward the current article to some other person
-(@code{gnus-summary-mail-forward}).  If no prefix is given, the message
-is forwarded according to the value of (@code{message-forward-as-mime})
-and (@code{message-forward-show-mml}); if the prefix is 1, decode the
-message and forward directly inline; if the prefix is 2, forward message
-as an rfc822 @acronym{MIME} section; if the prefix is 3, decode message and
-forward as an rfc822 @acronym{MIME} section; if the prefix is 4, forward message
-directly inline; otherwise, the message is forwarded as no prefix given
-but use the flipped value of (@code{message-forward-as-mime}).  By
-default, the forwarded message is inlined into the mail.
+(@code{gnus-summary-mail-forward}).  If no prefix is given, the
+message is forwarded according to the value of
+(@code{message-forward-as-mime}) and
+(@code{message-forward-show-mml}); if the prefix is 1, decode the
+message and forward directly inline; if the prefix is 2, forward
+message as an rfc822 @acronym{MIME} section; if the prefix is 3,
+decode message and forward as an rfc822 @acronym{MIME} section; if the
+prefix is 4, forward message directly inline; otherwise, the message
+is forwarded as no prefix given but use the negated value of
+(@code{message-forward-as-mime}).  By default, the forwarded message
+is inlined into the mail.
+
+Which headers from the original message are included in the forwarded
+message is determined by options specific to @code{message-mode},
+@pxref{Forwarding,,, message}.  In addition, this command can be given
+the symbolic prefix @samp{a}, using @kbd{M-i a}, to include most original
+headers.
 
 @item S m
 @itemx m

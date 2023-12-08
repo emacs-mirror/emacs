@@ -1209,7 +1209,7 @@ The original article(s) will be yanked."
   (gnus-summary-reply
    (gnus-summary-work-articles n) t (gnus-summary-work-articles n)))
 
-(defun gnus-summary-mail-forward (&optional arg post)
+(defun gnus-summary-mail-forward (&optional arg all-headers post)
   "Forward the current message(s) to another user.
 If process marks exist, forward all marked messages;
 if ARG is nil, see `message-forward-as-mime' and `message-forward-show-mml';
@@ -1217,17 +1217,25 @@ if ARG is 1, decode the message and forward directly inline;
 if ARG is 2, forward message as an rfc822 MIME section;
 if ARG is 3, decode message and forward as an rfc822 MIME section;
 if ARG is 4, forward message directly inline;
-otherwise, use flipped `message-forward-as-mime'.
+otherwise, use negated `message-forward-as-mime'.
 If POST, post instead of mail.
-For the \"inline\" alternatives, also see the variable
-`message-forward-ignored-headers'."
-  (interactive "P" gnus-summary-mode)
+If symbolic prefix ALL-HEADERS is the symbol `a', include all
+original headers in the forwarded message, except those matching
+`message-forward-ignored-headers'.  Otherwise, include headers
+based on the options `message-forward-included-headers',
+`message-forward-ignored-headers', and potentially
+`message-forward-included-mime-headers'."
+  (interactive (gnus-interactive "P\ny") gnus-summary-mode)
   (if (cdr (gnus-summary-work-articles nil))
       ;; Process marks are given.
       (gnus-uu-digest-mail-forward nil post)
     ;; No process marks.
     (let ((message-forward-as-mime message-forward-as-mime)
-	  (message-forward-show-mml message-forward-show-mml))
+	  (message-forward-show-mml message-forward-show-mml)
+          (message-forward-included-headers
+           (if (eq all-headers 'a)
+               nil
+             message-forward-included-headers)))
       (cond
        ((null arg))
        ((eq arg 1)
@@ -1380,11 +1388,11 @@ composing a new message."
 	  (forward-char 1))
 	(widen)))))
 
-(defun gnus-summary-post-forward (&optional arg)
+(defun gnus-summary-post-forward (&optional arg all-headers)
   "Forward the current article to a newsgroup.
 See `gnus-summary-mail-forward' for ARG."
-  (interactive "P" gnus-summary-mode)
-  (gnus-summary-mail-forward arg t))
+  (interactive (gnus-interactive "P\ny") gnus-summary-mode)
+  (gnus-summary-mail-forward arg all-headers t))
 
 (defun gnus-summary-mail-crosspost-complaint (n)
   "Send a complaint about crossposting to the current article(s)."
