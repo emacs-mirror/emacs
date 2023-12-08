@@ -3600,13 +3600,7 @@ Check if a node type is available, then return the right indent rules."
       function: [(identifier) @font-lock-function-call-face
                  (member_expression
                   property:
-                  (property_identifier) @font-lock-function-call-face)])
-     (method_definition
-      name: (property_identifier) @font-lock-function-name-face)
-     (function_declaration
-      name: (identifier) @font-lock-function-call-face)
-     (function
-      name: (identifier) @font-lock-function-name-face))
+                  (property_identifier) @font-lock-function-call-face)]))
 
    :language 'javascript
    :feature 'jsx
