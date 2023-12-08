@@ -1280,14 +1280,18 @@ be guessed."
                          (concat "`%s' not found in PATH, but can't form"
                                  " an interactive prompt for to fix %s!")
                          program guess))))))
+         (input (and prompt (read-shell-command prompt
+                                                full-program-invocation
+                                                'eglot-command-history)))
          (contact
-          (or (and prompt
-                   (split-string-and-unquote
-                    (read-shell-command
-                     prompt
-                     full-program-invocation
-                     'eglot-command-history)))
-              guess)))
+          (if input
+              (if (string-match
+                   "^[\s\t]*\\(.*\\):\\([[:digit:]]+\\)[\s\t]*$" input)
+                  ;; <host>:<port> special case (bug#67682)
+                  (list (match-string 1 input)
+                        (string-to-number (match-string 2 input)))
+                (split-string-and-unquote input))
+            guess)))
     (list managed-modes (eglot--current-project) class contact language-ids)))
 
 (defvar eglot-lsp-context)
