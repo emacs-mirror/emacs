@@ -3545,7 +3545,10 @@ Check if a node type is available, then return the right indent rules."
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
 
-     (formal_parameters (identifier) @font-lock-variable-name-face)
+     (formal_parameters
+      [(identifier) @font-lock-variable-name-face
+       (array_pattern (identifier) @font-lock-variable-name-face)
+       (object_pattern (shorthand_property_identifier_pattern) @font-lock-variable-name-face)])
 
      (variable_declarator
       name: (identifier) @font-lock-variable-name-face)
