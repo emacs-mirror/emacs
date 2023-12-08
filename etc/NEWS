@@ -639,13 +639,15 @@ then all these keys have their usual meaning in the minibuffer.
 This option is supported for in-buffer completion as well.
 
 *** Selected completion candidates are deselected on typing.
-When a user types, point in the *Completions* window will be moved off
-any completion candidates.  'minibuffer-choose-completion' ('M-RET')
-will still choose a previously-selected completion candidate, but the
-new command 'minibuffer-choose-completion-or-exit' (bound by
-'minibuffer-visible-completions') will exit with the minibuffer
-contents instead.  The deselection behavior can be controlled with the
-new user option 'completion-auto-deselect'.
+When you type at the minibuffer prompt, the current completion
+candidate will be un-highlighted,and point in the *Completions* window
+will be moved off that candidate.  'minibuffer-choose-completion'
+('M-RET') will still choose a previously-selected completion
+candidate, but the new command 'minibuffer-choose-completion-or-exit'
+(bound to 'RET' by 'minibuffer-visible-completions') will exit with
+the minibuffer contents instead.  This deselection behavior can be
+controlled with the new user option 'completion-auto-deselect', which
+is t by default.
 
 *** New value 'historical' for user option 'completions-sort'
 When 'completions-sort' is set to 'historical', completion candidates
