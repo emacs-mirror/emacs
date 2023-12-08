@@ -107,8 +107,17 @@ If nil, do not show register previews, unless `help-char' (or a member of
   :type '(repeat string))
 
 (defcustom register-use-preview t
-  "Always show register preview when non nil."
-  :type 'boolean)
+  "Maybe show register preview.
+
+When set to `t' show a preview buffer with navigation and highlighting.
+When nil show a basic preview buffer and exit minibuffer
+immediately after insertion in minibuffer.
+When set to \\='never behave as above but with no preview buffer at
+all."
+  :type '(choice
+          (const :tag "Use preview" t)
+          (const :tag "Use quick preview" nil)
+          (const :tag "Never use preview" never)))
 
 (defun get-register (register)
   "Return contents of Emacs register named REGISTER, or nil if none."
@@ -310,6 +319,8 @@ Prompt with the string PROMPT.
 If `help-char' (or a member of `help-event-list') is pressed,
 display such a window regardless."
   (let* ((buffer "*Register Preview*")
+         (buffer1 "*Register quick preview*")
+         (buf (if register-use-preview buffer buffer1))
          (pat "")
          (map (let ((m (make-sparse-keymap)))
                 (set-keymap-parent m minibuffer-local-map)
@@ -334,15 +345,16 @@ display such a window regardless."
       (define-key map
           (vector k) (lambda ()
                        (interactive)
-                       (unless (get-buffer-window buffer)
+                       ;; Do nothing when buffer1 is in use.
+                       (unless (get-buffer-window buf)
                          (with-selected-window (minibuffer-selected-window)
                            (register-preview buffer 'show-empty types))))))
     (define-key map (kbd "<down>") 'register-preview-next)
     (define-key map (kbd "<up>")   'register-preview-previous)
     (define-key map (kbd "C-n")    'register-preview-next)
     (define-key map (kbd "C-p")    'register-preview-previous)
-    (unless (or executing-kbd-macro (null register-use-preview))
-      (register-preview buffer nil types))
+    (unless (or executing-kbd-macro (eq register-use-preview 'never))
+      (register-preview buf nil types))
     (unwind-protect
          (progn
            (minibuffer-with-setup-hook
@@ -402,9 +414,9 @@ display such a window regardless."
                       nil "No register specified")
            (string-to-char result))
       (when timer (cancel-timer timer))
-      (let ((w (get-buffer-window buffer)))
+      (let ((w (get-buffer-window buf)))
         (and (window-live-p w) (delete-window w)))
-      (and (get-buffer buffer) (kill-buffer buffer)))))
+      (and (get-buffer buf) (kill-buffer buf)))))
 
 (defun point-to-register (register &optional arg)
   "Store current location of point in REGISTER.
