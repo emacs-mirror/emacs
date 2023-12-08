@@ -3487,12 +3487,18 @@ sfnt_build_append (int flags, sfnt_fixed x, sfnt_fixed y)
 {
   struct sfnt_glyph_outline *outline;
 
+  outline = build_outline_context.outline;
+
   if (x == build_outline_context.x
-      && y == build_outline_context.y)
+      && y == build_outline_context.y
+      /* If the outline is presently empty, the first move_to must be
+	 recorded even if its X and Y are set to origin.  Without this
+	 initial vertex, edges will be generated from the next vertex
+	 onward, and thus be misaligned.  */
+      && outline->outline_used)
     /* Ignore redundant motion.  */
     return build_outline_context.outline;
 
-  outline = build_outline_context.outline;
   outline->outline_used++;
 
   /* See if the outline has to be extended.  Checking for overflow
