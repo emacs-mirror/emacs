@@ -3664,7 +3664,8 @@ OVERRIDE is the override flag described in
 (defvar js--treesit-lhs-identifier-query
   (when (treesit-available-p)
     (treesit-query-compile 'javascript '((identifier) @id
-                                         (property_identifier) @id)))
+                                         (property_identifier) @id
+                                         (shorthand_property_identifier_pattern) @id)))
   "Query that captures identifier and query_identifier.")
 
 (defun js--treesit-fontify-assignment-lhs (node override start end &rest _)
@@ -3676,7 +3677,8 @@ For OVERRIDE, START, END, see `treesit-font-lock-rules'."
      (treesit-node-start node) (treesit-node-end node)
      (pcase (treesit-node-type node)
        ("identifier" 'font-lock-variable-use-face)
-       ("property_identifier" 'font-lock-property-use-face))
+       ("property_identifier" 'font-lock-property-use-face)
+       ("shorthand_property_identifier_pattern" 'font-lock-variable-use-face))
      override start end)))
 
 (defun js--treesit-defun-name (node)
