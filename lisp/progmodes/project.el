@@ -1841,10 +1841,12 @@ It's also possible to enter an arbitrary directory not in the list."
 ;;;###autoload
 (defun project-any-command (&optional overriding-map prompt-format)
   "Run the next command in the current project.
-If the command is in `project-prefix-map', it gets passed that
-info with `project-current-directory-override'.  Otherwise,
-`default-directory' is temporarily set to the current project's
-root.
+
+If the command name starts with `project-', or its symbol has
+property `project-related', it gets passed the project to use
+with the variable `project-current-directory-override'.
+Otherwise, `default-directory' is temporarily set to the current
+project's root.
 
 If OVERRIDING-MAP is non-nil, it will be used as
 `overriding-local-map' to provide shorter bindings from that map
@@ -1856,15 +1858,11 @@ which will take priority over the global ones."
                     (key-binding (read-key-sequence
                                   (format prompt-format (project-root pr)))
                                  t)))
-         (root (project-root pr))
-         found)
+         (root (project-root pr)))
     (when command
-      ;; We could also check the command name against "\\`project-",
-      ;; and/or (get command 'project-command).
-      (map-keymap
-       (lambda (_evt cmd) (if (eq cmd command) (setq found t)))
-       project-prefix-map)
-      (if found
+      (if (when (symbolp command)
+            (or (string-prefix-p "project-" (symbol-name command))
+                (get command 'project-command)))
           (let ((project-current-directory-override root))
             (call-interactively command))
         (let ((default-directory root))
