@@ -1862,7 +1862,7 @@ which will take priority over the global ones."
     (when command
       (if (when (symbolp command)
             (or (string-prefix-p "project-" (symbol-name command))
-                (get command 'project-command)))
+                (get command 'project-related)))
           (let ((project-current-directory-override root))
             (call-interactively command))
         (let ((default-directory root))
