@@ -3506,7 +3506,7 @@ Check if a node type is available, then return the right indent rules."
 
    :language 'javascript
    :feature 'comment
-   '((comment) @font-lock-comment-face)
+   '([(comment) (hash_bang_line)] @font-lock-comment-face)
 
    :language 'javascript
    :feature 'constant
