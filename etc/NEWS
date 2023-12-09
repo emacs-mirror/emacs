@@ -1289,6 +1289,10 @@ values.
 
 * Lisp Changes in Emacs 30.1
 
+** New 'pop-up-frames' action alist entry for 'display-buffer'.
+This has the same effect as the variable of the same name and takes
+precedence over the variable when present.
+
 ** New function 'merge-ordered-lists'.
 Mostly used internally to do a kind of topological sort of
 inheritance hierarchies.
