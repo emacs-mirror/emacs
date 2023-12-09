@@ -482,5 +482,66 @@ If it's not initialized yet, initialize it."
      `(connection-local-profile-alist ',clpa now)
      `(connection-local-criteria-alist ',clca now))))
 
+(ert-deftest files-x-test-connection-local-value ()
+  "Test getting connection-local values."
+
+  (let ((clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist))
+    (connection-local-set-profile-variables
+     'remote-bash files-x-test--variables1)
+    (connection-local-set-profile-variables
+     'remote-ksh files-x-test--variables2)
+    (connection-local-set-profile-variables
+     'remote-nullfile files-x-test--variables3)
+
+    (connection-local-set-profiles
+     nil 'remote-ksh 'remote-nullfile)
+
+    (connection-local-set-profiles
+     files-x-test--application 'remote-bash)
+
+    (with-temp-buffer
+      ;; We need a remote `default-directory'.
+      (let ((enable-connection-local-variables t)
+	    (default-directory "/method:host:")
+	    (remote-null-device "null"))
+        (should-not connection-local-variables-alist)
+        (should-not (local-variable-p 'remote-shell-file-name))
+        (should-not (local-variable-p 'remote-null-device))
+        (should-not (boundp 'remote-shell-file-name))
+        (should (string-equal (symbol-value 'remote-null-device) "null"))
+
+        ;; The proper variable values are set.
+        (should
+         (string-equal
+          (connection-local-value remote-shell-file-name) "/bin/ksh"))
+        (should
+         (string-equal
+          (connection-local-value remote-null-device) "/dev/null"))
+
+        ;; Run with a different application.
+        (should
+         (string-equal
+          (connection-local-value
+           remote-shell-file-name (cadr files-x-test--application))
+          "/bin/bash"))
+        (should
+         (string-equal
+          (connection-local-value
+           remote-null-device (cadr files-x-test--application))
+          "/dev/null"))
+
+        ;; The previous bindings haven't changed.
+        (should-not connection-local-variables-alist)
+        (should-not (local-variable-p 'remote-shell-file-name))
+        (should-not (local-variable-p 'remote-null-device))
+        (should-not (boundp 'remote-shell-file-name))
+        (should (string-equal (symbol-value 'remote-null-device) "null"))))
+
+    ;; Cleanup.
+    (custom-set-variables
+     `(connection-local-profile-alist ',clpa now)
+     `(connection-local-criteria-alist ',clca now))))
+
 (provide 'files-x-tests)
 ;;; files-x-tests.el ends here

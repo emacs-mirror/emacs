@@ -1641,6 +1641,13 @@ A 5th argument, optional, has been added to
 'modify-dir-local-variable'.  It can be used to specify which
 dir-locals file to modify.
 
+** Connection local variables
+
++++
+*** New macro 'connection-local-value'.
+This macro returns the connection-local value of a variable if any, or
+its current value.
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 

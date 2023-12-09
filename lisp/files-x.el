@@ -926,17 +926,30 @@ earlier in the `setq-connection-local'.  The return value of the
           connection-local-profile-name-for-setq)))))
 
 ;;;###autoload
+(defmacro connection-local-value (variable &optional application)
+  "Return connection-local VARIABLE for APPLICATION in `default-directory'.
+If VARIABLE does not have a connection-local binding, the value
+is the default binding of the variable."
+  (unless (symbolp variable)
+    (signal 'wrong-type-argument (list 'symbolp variable)))
+  `(let (connection-local-variables-alist file-local-variables-alist)
+     (hack-connection-local-variables
+      (connection-local-criteria-for-default-directory ,application))
+     (if-let ((result (assq ',variable connection-local-variables-alist)))
+         (cdr result)
+       ,variable)))
+
+;;;###autoload
 (defun path-separator ()
   "The connection-local value of `path-separator'."
-  (with-connection-local-variables path-separator))
+  (connection-local-value path-separator))
 
 ;;;###autoload
 (defun null-device ()
   "The connection-local value of `null-device'."
-  (with-connection-local-variables null-device))
+  (connection-local-value null-device))
 
 
-
 (provide 'files-x)
 
 ;;; files-x.el ends here

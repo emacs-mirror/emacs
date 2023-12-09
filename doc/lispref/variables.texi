@@ -2545,6 +2545,12 @@ profile.
 This variable must not be changed globally.
 @end defvar
 
+@defmac connection-local-value symbol &optional application
+This macro returns the connection-local value of @var{symbol} for
+@var{application}.  If @var{symbol} does not have a connection-local
+binding, the value is the default binding of the variable.
+@end defmac
+
 @defvar enable-connection-local-variables
 If @code{nil}, connection-local variables are ignored.  This variable
 shall be changed temporarily only in special modes.
