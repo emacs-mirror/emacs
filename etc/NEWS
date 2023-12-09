@@ -512,8 +512,10 @@ and a universal command such as "open" or "start"
 that delegates to the OS.
 
 *** New command 'dired-do-open'.
-Bound to the context menu "Open", delegates opening the marked files
-to the OS.
+This command is bound to "Open" in the context menu; it "opens" the
+marked or clicked on files according to the OS conventions.  For
+example, on systems supporting XDG, this runs 'xdg-open' on the
+files.
 
 ** Ediff
 

@@ -1405,10 +1405,13 @@ after adding own commands to the composite list."
 (declare-function w32-shell-execute "w32fns.c")
 
 (defun dired-do-open (&optional arg)
-  "Open the marked files or a file at click/point externally.
-If files are marked, run the command from `shell-command-guess-open'
-on each of marked files.  Otherwise, run it on the file where
-the mouse is clicked, or on the file at point."
+  "Open all marked (or next ARG) files using an external program.
+This \"opens\" the file(s) using the external command that is most
+appropriate for the file(s) according to the system conventions.
+If files are marked, run the command on each marked file.  Otherwise,
+run it on the next ARG files, or on the file at mouse-click, or on the
+file at point.  The appropriate command to \"open\" a file on each
+system is determined by `shell-command-guess-open'."
   (interactive "P" dired-mode)
   (let ((files (if (mouse-event-p last-nonmenu-event)
                    (save-excursion
