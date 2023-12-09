@@ -1176,8 +1176,9 @@ showcases all their customization options.
 
 ---
 ** 'register-preview-delay' is no longer used.
-Register preview is no more delayed.  If you want to disable it, use
-'register-use-preview' instead with a boolean value.
+Register preview is no longer delayed.  If you want to disable the
+preview, customize the new option 'register-use-preview' to the value
+'never'.
 
 +++
 ** 'M-TAB' now invokes 'completion-at-point' also in Text mode.

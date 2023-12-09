@@ -107,17 +107,18 @@ If nil, do not show register previews, unless `help-char' (or a member of
   :type '(repeat string))
 
 (defcustom register-use-preview t
-  "Maybe show register preview.
+  "Whether to show preview of registers.
 
-When set to `t' show a preview buffer with navigation and highlighting.
-When nil show a basic preview buffer and exit minibuffer
-immediately after insertion in minibuffer.
-When set to \\='never behave as above but with no preview buffer at
-all."
+If the value is t, show a preview buffer with navigation and highlighting.
+If the value is nil, show a basic preview buffer and exit minibuffer
+immediately after the register name is inserted into minibuffer.
+If the value is \\='never, behave as for nil, but with no preview buffer
+at all."
   :type '(choice
           (const :tag "Use preview" t)
           (const :tag "Use quick preview" nil)
-          (const :tag "Never use preview" never)))
+          (const :tag "Never use preview" never))
+  :version "30.1")
 
 (defun get-register (register)
   "Return contents of Emacs register named REGISTER, or nil if none."
