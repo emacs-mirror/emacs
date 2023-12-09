@@ -3536,14 +3536,10 @@ Check if a node type is available, then return the right indent rules."
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
 
-     (method_definition
-      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
-
-     (arrow_function
-      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
-
-     (function_declaration
-      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
+     (formal_parameters
+      [(identifier) @font-lock-variable-name-face
+       (array_pattern (identifier) @font-lock-variable-name-face)
+       (object_pattern (shorthand_property_identifier_pattern) @font-lock-variable-name-face)])
 
      (variable_declarator
       name: (identifier) @font-lock-variable-name-face)
@@ -3591,13 +3587,7 @@ Check if a node type is available, then return the right indent rules."
       function: [(identifier) @font-lock-function-call-face
                  (member_expression
                   property:
-                  (property_identifier) @font-lock-function-call-face)])
-     (method_definition
-      name: (property_identifier) @font-lock-function-name-face)
-     (function_declaration
-      name: (identifier) @font-lock-function-call-face)
-     (function
-      name: (identifier) @font-lock-function-name-face))
+                  (property_identifier) @font-lock-function-call-face)]))
 
    :language 'javascript
    :feature 'jsx
@@ -3668,7 +3658,8 @@ OVERRIDE is the override flag described in
 (defvar js--treesit-lhs-identifier-query
   (when (treesit-available-p)
     (treesit-query-compile 'javascript '((identifier) @id
-                                         (property_identifier) @id)))
+                                         (property_identifier) @id
+                                         (shorthand_property_identifier_pattern) @id)))
   "Query that captures identifier and query_identifier.")
 
 (defun js--treesit-fontify-assignment-lhs (node override start end &rest _)
@@ -3680,7 +3671,8 @@ For OVERRIDE, START, END, see `treesit-font-lock-rules'."
      (treesit-node-start node) (treesit-node-end node)
      (pcase (treesit-node-type node)
        ("identifier" 'font-lock-variable-use-face)
-       ("property_identifier" 'font-lock-property-use-face))
+       ("property_identifier" 'font-lock-property-use-face)
+       ("shorthand_property_identifier_pattern" 'font-lock-variable-use-face))
      override start end)))
 
 (defun js--treesit-defun-name (node)

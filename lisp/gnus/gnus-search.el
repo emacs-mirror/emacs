@@ -1450,7 +1450,7 @@ Returns a list of [group article score] vectors."
 	(when (and f-name
                    (file-readable-p f-name)
 		   (null (file-directory-p f-name)))
-          ;; `expand-file-name' canoncalizes the file name,
+          ;; `expand-file-name' canonicalizes the file name,
           ;; specifically collapsing multiple consecutive directory
           ;; separators.
           (setq f-name (expand-file-name f-name)

@@ -1789,7 +1789,7 @@ to a function that generates a unique name."
 ;; run compile with the default command line
 (defun recompile (&optional edit-command)
   "Re-compile the program including the current buffer.
-If this is run in a Compilation mode buffer, re-use the arguments from the
+If this is run in a Compilation mode buffer, reuse the arguments from the
 original use.  Otherwise, recompile using `compile-command'.
 If the optional argument `edit-command' is non-nil, the command can be edited."
   (interactive "P")

@@ -1030,7 +1030,7 @@ all.  This may very well take some time.")
 (defun nndiary-generate-nov-databases (&optional server)
   "Generate NOV databases in all nndiary directories."
   (interactive (list (or (nnoo-current-server 'nndiary) "")))
-  ;; Read the active file to make sure we don't re-use articles
+  ;; Read the active file to make sure we don't reuse articles
   ;; numbers in empty groups.
   (nnmail-activate 'nndiary)
   (unless (nndiary-server-opened server)

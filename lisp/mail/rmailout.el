@@ -453,7 +453,7 @@ display message number MSG."
       (narrow-to-region (point-max) (point-max)))
     (insert-buffer-substring tembuf)
     (rmail-count-new-messages t)
-    ;; FIXME should re-use existing windows.
+    ;; FIXME should reuse existing windows.
     (if (rmail-summary-exists)
 	(rmail-select-summary (rmail-update-summary)))
     (rmail-show-message-1 msg)))

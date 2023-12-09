@@ -111,7 +111,7 @@
 ;;
 ;; Each collection is represented as a plist containing the following
 ;; properties:
-;; - `:container'   : list of data continers to be stored in single
+;; - `:container'   : list of data containers to be stored in single
 ;;                    file;
 ;; - `:persist-file': data file name;
 ;; - `:associated'  : list of associated objects;
@@ -253,7 +253,7 @@ The index is a list of plists.  Each plist contains information about
 persistent data storage.  Each plist contains the following
 properties:
 
-  - `:container'  : list of data continers to be stored in single file
+  - `:container'  : list of data containers to be stored in single file
   - `:persist-file': data file name
   - `:associated'  : list of associated objects
   - `:last-access' : last date when the container has been read

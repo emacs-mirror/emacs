@@ -1312,7 +1312,7 @@ may have been stored before."
 		(while (< (point) end)
 		  (indent-to i)
 		  (forward-line)))
-	      ;; Pre-pending an item could change the type of the list
+	      ;; Prepending an item could change the type of the list
 	      ;; if there is a mismatch.  In this situation,
 	      ;; prioritize the existing list.
 	      (when prepend?

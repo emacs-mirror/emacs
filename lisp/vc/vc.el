@@ -668,7 +668,7 @@
 ;;;; New Primitives:
 ;;
 ;; - uncommit: undo last checkin, leave changes in place in the workfile,
-;;   stash the commit comment for re-use.
+;;   stash the commit comment for reuse.
 ;;
 ;; - deal with push operations.
 ;;

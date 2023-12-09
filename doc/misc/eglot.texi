@@ -1222,7 +1222,7 @@ in @ref{Project-specific configuration}.  Here is an example:
 @end lisp
 
 Note that the global value of @code{eglot-workspace-configuration} is
-always overriden if a directory-local value is detected.
+always overridden if a directory-local value is detected.
 
 @node JSONRPC objects in Elisp
 @section JSONRPC objects in Elisp

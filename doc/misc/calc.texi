@@ -11954,7 +11954,7 @@ trail pointer in various ways.
 @cindex Retrieving previous results
 The @kbd{t y} (@code{calc-trail-yank}) command reads the selected value in
 the trail and pushes it onto the Calculator stack.  It allows you to
-re-use any previously computed value without retyping.  With a numeric
+reuse any previously computed value without retyping.  With a numeric
 prefix argument @var{n}, it yanks the value @var{n} lines above the current
 trail pointer.
 

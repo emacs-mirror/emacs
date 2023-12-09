@@ -169,7 +169,7 @@ You can also use \\[erc-nickserv-identify-mode] to change modes."
   :type 'boolean)
 
 (defcustom erc-use-auth-source-for-nickserv-password nil
-  "Query auth-source for a password when identifiying to NickServ.
+  "Query auth-source for a password when identifying to NickServ.
 Passwords from `erc-nickserv-passwords' take precedence.  See
 function `erc-nickserv-get-password'."
   :version "28.1"

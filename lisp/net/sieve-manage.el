@@ -171,8 +171,8 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
   "Append ARGS to sieve-manage log buffer.
 
 ARGS can be a string or a list of strings.
-The buffer to use for logging is specifified via
-`sieve-manage-log'. If it is nil, logging is disabled."
+The buffer to use for logging is specified via `sieve-manage-log'.
+If it is nil, logging is disabled."
   (when sieve-manage-log
     (with-current-buffer (or (get-buffer sieve-manage-log)
                              (with-current-buffer

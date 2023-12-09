@@ -519,9 +519,9 @@ This to have it working when installed or if Emacs source
 directory got moved.  This is set to be a pair in the form of:
 \(rel-filename-from-install-bin . rel-filename-from-local-bin)."
   (when (and load--bin-dest-dir load--eln-dest-dir)
-    (setq eln-dest-dir
+      (setq eln-dest-dir
           (concat load--eln-dest-dir "native-lisp/" comp-native-version-dir "/"))
-    (maphash (lambda (_ cu)
+      (maphash (lambda (_ cu)
                (when (stringp (native-comp-unit-file cu))
                  (let* ((file (native-comp-unit-file cu))
                         (preloaded (equal (substring (file-name-directory file)
@@ -547,7 +547,7 @@ directory got moved.  This is set to be a pair in the form of:
 (defvar comp-subr-arities-h)
 (when (featurep 'native-compile)
   ;; Save the arity for all primitives so the compiler can always
-  ;; retrive it even in case of redefinition.
+  ;; retrieve it even in case of redefinition.
   (mapatoms (lambda (f)
               (when (subr-primitive-p (symbol-function f))
                 (puthash f (func-arity f) comp-subr-arities-h))))

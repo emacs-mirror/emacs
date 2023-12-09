@@ -45,7 +45,7 @@
     (skip-chars-forward " \t")
     (should (equal (current-column) perl-indent-level))))
 
-;;;; Re-use cperl-mode tests
+;;;; Reuse cperl-mode tests
 
 (defvar cperl-test-mode)
 (setq cperl-test-mode #'perl-mode)

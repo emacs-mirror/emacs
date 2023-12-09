@@ -183,7 +183,7 @@ tparam1 (const char *string, char *outstring, int len,
 	      argp++;
 	      break;
 
-	    case 'b':		/* %b means back up one arg (and re-use it).  */
+	    case 'b':		/* %b means back up one arg (and reuse it).  */
 	      argp--;
 	      break;
 

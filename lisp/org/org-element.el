@@ -5484,7 +5484,7 @@ This variable is used to determine when re-parsing buffer is not going
 to slow down the command.
 
 If the commands end up modifying the cache, the worst case scenario is
-performance drop.  So, advicing these commands is safe.  Yet, it is
+performance drop.  So, advising these commands is safe.  Yet, it is
 better to remove the commands advised in such a way from this list.")
 
 (defmacro org-element--request-key (request)

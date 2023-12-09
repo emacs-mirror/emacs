@@ -14630,7 +14630,7 @@ almost the same code as for the recursive version of
 
 @need 800
 @noindent
-Let's re-use @kbd{C-c =} as a convenient key binding:
+Let's reuse @kbd{C-c =} as a convenient key binding:
 
 @smallexample
 (global-set-key "\C-c=" 'count-words-defun)

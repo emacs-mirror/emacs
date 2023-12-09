@@ -8756,7 +8756,7 @@ node `(elisp) Word Motion' for details."
 
 (defun mark-word (&optional arg allow-extend)
   "Set mark ARG words from point or move mark one word.
-When called from Lisp with ALLOW-EXTEND ommitted or nil, mark is
+When called from Lisp with ALLOW-EXTEND omitted or nil, mark is
 set ARG words from point.
 With ARG and ALLOW-EXTEND both non-nil (interactively, with prefix
 argument), the place to which mark goes is the same place \\[forward-word]

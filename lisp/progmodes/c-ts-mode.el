@@ -1362,7 +1362,7 @@ recommended to enable `electric-pair-mode' with this mode."
                                                 c-ts-mode-indent-style)
       :help "Show the name of the C/C++ indentation style for current buffer"]
      ["Set Comment Style" c-ts-mode-toggle-comment-style
-      :help "Toglle C/C++ comment style between block and line comments"])
+      :help "Toggle C/C++ comment style between block and line comments"])
     "--"
     ("Toggle..."
      ["SubWord Mode" subword-mode
