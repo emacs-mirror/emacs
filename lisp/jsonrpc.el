@@ -51,6 +51,7 @@
 (defclass jsonrpc-connection ()
   ((name
     :accessor jsonrpc-name
+    :initform (error "`name' is required!")
     :initarg :name
     :documentation "A name for the connection")
    (-request-dispatcher
@@ -76,6 +77,7 @@
     :accessor jsonrpc--events-buffer
     :documentation "A buffer pretty-printing the JSONRPC events")
    (-events-buffer-scrollback-size
+    :initform nil
     :initarg :events-buffer-scrollback-size
     :accessor jsonrpc--events-buffer-scrollback-size
     :documentation "Max size of events buffer.  0 disables, nil means infinite.")
