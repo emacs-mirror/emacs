@@ -10381,8 +10381,8 @@ sfnt_interpret_mdrp (struct sfnt_interpreter *interpreter,
 		     uint32_t opcode)
 {
   uint32_t p;
-  sfnt_f26dot6 distance, delta;
-  sfnt_f26dot6 current_projection, original_projection;
+  sfnt_f26dot6 distance, applied;
+  sfnt_f26dot6 current_projection;
   sfnt_f26dot6 x, y, org_x, org_y;
   sfnt_f26dot6 rx, ry, org_rx, org_ry;
 
@@ -10394,20 +10394,21 @@ sfnt_interpret_mdrp (struct sfnt_interpreter *interpreter,
   sfnt_address_zp0 (interpreter, interpreter->state.rp0,
 		    &rx, &ry, &org_rx, &org_ry);
 
+  /* Calculate the distance between P and rp0 prior to hinting.  */
   distance = DUAL_PROJECT (org_x - org_rx,
 			   org_y - org_ry);
-  original_projection = distance;
+
+  /* Calculate the distance between P and rp0 as of now in the hinting
+     process.  */
   current_projection = PROJECT (x - rx, y - ry);
 
   /* Test against the single width value.  */
 
-  delta = sfnt_sub (distance,
-		    interpreter->state.single_width_value);
-
-  if (delta < 0)
-    delta = -delta;
-
-  if (delta < interpreter->state.sw_cut_in)
+  if (interpreter->state.sw_cut_in > 0
+      && distance < (interpreter->state.single_width_value
+		     + interpreter->state.sw_cut_in)
+      && distance > (interpreter->state.single_width_value
+		     - interpreter->state.sw_cut_in))
     {
       /* Use the single width instead, as the CVT entry is too
 	 small.  */
@@ -10418,38 +10419,34 @@ sfnt_interpret_mdrp (struct sfnt_interpreter *interpreter,
 	distance = -interpreter->state.single_width_value;
     }
 
-  /* Flag B means look at the cvt cut in and round the
-     distance.  */
+  /* Flag B implies that the distance should be rounded.  The CVT cut
+     in is not taken into account by MDRP, contrary to earlier
+     presumptions.  */
 
   if (opcode & 4)
-    {
-      delta = sfnt_sub (distance, original_projection);
-
-      if (delta < 0)
-	delta = -delta;
-
-      if (delta > interpreter->state.cvt_cut_in)
-	distance = original_projection;
-
-      /* Now, round the distance.  */
-      distance = sfnt_round_symmetric (interpreter, distance);
-    }
+    applied = sfnt_round_symmetric (interpreter, distance);
+  else
+    applied = distance;
 
   /* Flag C means look at the minimum distance.  */
 
   if (opcode & 8)
     {
-      if (original_projection >= 0
-	  && distance < interpreter->state.minimum_distance)
-	distance = interpreter->state.minimum_distance;
-      else if (original_projection < 0
-	       && distance > -interpreter->state.minimum_distance)
-	distance = -interpreter->state.minimum_distance;
+      /* Test the sign of the initial distance, but compare the
+	 distance that will be applied in reality against the minimum
+	 distance.  */
+
+      if (distance >= 0
+	  && applied < interpreter->state.minimum_distance)
+	applied = interpreter->state.minimum_distance;
+      else if (distance < 0
+	       && applied > -interpreter->state.minimum_distance)
+	applied = -interpreter->state.minimum_distance;
     }
 
   /* Finally, move the point.  */
   sfnt_move_zp1 (interpreter, p, 1,
-		 sfnt_sub (distance, current_projection));
+		 sfnt_sub (applied, current_projection));
 
   /* Set RP1 to RP0 and RP2 to the point.  If flag 3 is set, also make
      it RP0.  */
@@ -11431,8 +11428,8 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
   /* Load phantom points.  */
   zone->y_points[i] = phantom_point_1_y;
   zone->y_points[i + 1] = phantom_point_2_y;
-  zone->y_current[i] = phantom_point_1_x;
-  zone->y_current[i + 1] = phantom_point_2_x;
+  zone->y_current[i] = phantom_point_1_y;
+  zone->y_current[i + 1] = phantom_point_2_y;
 
   /* Load phantom point flags.  */
   zone->flags[i] = SFNT_POINT_PHANTOM;
@@ -19549,8 +19546,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 18
-#define EASY_PPEM  18
+#define FANCY_PPEM 40
+#define EASY_PPEM  40
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
