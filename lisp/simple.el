@@ -11181,7 +11181,7 @@ For each insertion:
     and delete the adjascent pair if
     `electric-pair-delete-adjacent-pairs'.
 
-  - Run `post-self-insert-functions' for the last character of
+  - Run `post-self-insert-hook' for the last character of
     any inserted text so that modes such as `electric-pair-mode'
     can work.
 

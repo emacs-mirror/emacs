@@ -256,6 +256,9 @@ control).  See \"cc-mode.el\" for more info."
 	(put 'c-initialize-cc-mode initprop c-initialization-ok))))
 
   ;; Set up text conversion, for Emacs >= 30.0
+  ;; This is needed here because CC-mode's implementation of
+  ;; electricity does not rely on `post-self-insert-hook' (which is
+  ;; already handled adequately by `analyze-text-conversion').
   (when (boundp 'post-text-conversion-hook)
     (add-hook 'post-text-conversion-hook #'c-post-text-conversion nil t))
 
