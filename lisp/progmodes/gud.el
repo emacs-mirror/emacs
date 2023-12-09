@@ -4057,7 +4057,7 @@ Please note that completion framework that complete while you
 type, like Corfu, do not work well with this mode.  You should
 consider to turn them off in this mode.
 
-This command runs functions from `lldb-mode-hook'. "
+This command runs functions from `lldb-mode-hook'."
   (interactive (list (gud-query-cmdline 'lldb)))
 
   (when (and gud-comint-buffer
