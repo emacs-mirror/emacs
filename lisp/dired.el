@@ -4989,14 +4989,15 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 (defun dired-desktop-save-p ()
   "Should `dired-directory' be desktop saved?"
-  (if (consp dired-directory)
-      (not (string-match-p desktop-files-not-to-save (car dired-directory)))
-    (not (string-match-p desktop-files-not-to-save dired-directory))))
+  (or (null desktop-files-not-to-save)
+      (and (stringp desktop-files-not-to-save)
+           (if (consp dired-directory)
+               (not (string-match-p desktop-files-not-to-save (car dired-directory)))
+             (not (string-match-p desktop-files-not-to-save dired-directory))))))
 
 (defun dired-desktop-buffer-misc-data (dirname)
   "Auxiliary information to be saved in desktop file."
-  (when (and (stringp desktop-files-not-to-save)
-             (dired-desktop-save-p))
+  (when (dired-desktop-save-p)
     (cons
      ;; Value of `dired-directory'.
      (if (consp dired-directory)
