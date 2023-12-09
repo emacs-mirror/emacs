@@ -7539,12 +7539,12 @@ default directory.  However, if FULL is non-nil, they are absolute."
 	   ;; if DIRPART contains wildcards.
 	   (dirs (if (and dirpart
 			  (string-match "[[*?]" (file-local-name dirpart)))
-		     (mapcar 'file-name-as-directory
+		     (mapcar #'file-name-as-directory
 			     (file-expand-wildcards
                               (directory-file-name dirpart) nil regexp))
 		   (list dirpart)))
 	   contents)
-      (dolist (dir dirs)
+      (dolist (dir (nreverse dirs))
 	(when (or (null dir)	; Possible if DIRPART is not wild.
 		  (file-accessible-directory-p dir))
 	  (let ((this-dir-contents
