@@ -1307,10 +1307,10 @@ settings (@pxref{Sample configuration via Customize}).
 
 (use-package erc
   :config
-  ;; Prefer SASL to NickServ, colorize nicknames, interpret mIRC colors,
-  ;; and list buffers and channel members in separate side panels.
+  ;; Prefer SASL to NickServ, colorize nicknames, and show side panels
+  ;; with joined channels and members
   (setopt erc-modules
-          (seq-union '(sasl nicks irccontrols bufbar nickbar scrolltobottom)
+          (seq-union '(sasl nicks bufbar nickbar scrolltobottom)
                      erc-modules))
 
   :custom
@@ -1318,6 +1318,8 @@ settings (@pxref{Sample configuration via Customize}).
   (erc-inhibit-multiline-input t)
   (erc-send-whitespace-lines t)
   (erc-ask-about-multiline-input t)
+  ;; Scroll all windows to prompt when submitting input.
+  (erc-scrolltobottom-all t)
 
   ;; Reconnect automatically using a fancy strategy.
   (erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
@@ -1401,13 +1403,13 @@ As mentioned, Customize users can accomplish nearly all of the above
 via the Customize interface.  Start by running @kbd{M-x
 customize-group @key{RET} erc @key{RET}}, and search for ``Modules''
 with @kbd{C-s modules @key{RET}}.  Toggle open the flyout menu to
-reveal the full ``widget'' panel, a web-form-like interface for ``Erc
-Modules''.  Tick the boxes for @samp{bufbar}, @samp{irccontrols},
-@samp{nickbar}, @samp{nicks}, @samp{sasl}, and @samp{scrolltobottom}.
+reveal the full @dfn{widget} panel, a web-form-like interface for
+``Erc Modules''.  Tick the boxes for @samp{bufbar}, @samp{nickbar},
+@samp{nicks}, @samp{sasl}, and @samp{scrolltobottom}.
 
 Next, search for the phrases ``Erc Ask About Multiline Input'', ``Erc
-Inhibit Mulitline Input'', and ``Erc Send Whitespace Lines''.  These
-are the print names of three Boolean options that control how ERC
+Inhibit Multiline Input'', and ``Erc Send Whitespace Lines''.  These
+are the print names of three boolean options that control how ERC
 treats prompt input containing line breaks.  When visiting each
 option's section, twirl open its triangle icon to reveal its widget
 UI, and click its @samp{[Toggle]} button to set its value to @code{t}.
@@ -1453,11 +1455,18 @@ To make sure you've got this, try quickly customizing the option
 @code{erc-interactive-display}, which lives in the @samp{Erc Buffers}
 group (@kbd{M-x customize-group @key{RET} erc-buffers @key{RET}}).  As
 its doc string explains, the option controls where new buffers show up
-when you do @kbd{M-x erc-tls @key{RET}} or issue certain ``slash''
-commands, like @kbd{/JOIN #emacs-beginners @key{RET}}, at ERC's
+when you do @kbd{M-x erc-tls @key{RET}} or issue certain @dfn{slash
+commands}, like @kbd{/JOIN #emacs-beginners @key{RET}}, at ERC's
 prompt.  Change its value to the symbol @code{buffer} by choosing
 @samp{Use current window} (item @kbd{5}) from the option's
 @samp{[Value Menu]}.  Don't forget to save.
+
+If you need more practice, try enabling the boolean option
+@code{erc-scrolltobottom-all}, which lives in the @samp{Erc Display}
+group (@kbd{M-x customize-group @key{RET} erc-display @key{RET}}).
+When enabled, this option tells the @samp{scrolltobottom} module to
+adjust all ERC windows instead of just the one you're currently typing
+in.
 
 Now it's time to set some key bindings for @code{erc-mode-map}, a
 major-mode keymap active in all ERC buffers.  In general, it's best to
@@ -1535,8 +1544,8 @@ and save your changes.  Next, customize the related option
 @code{erc-track-priority-faces-only} to the @samp{[Value Menu]} choice
 @samp{all}.  Once again, save your changes.
 
-Let's say you'd like to enable a ``local module'' (ERC's version of a
-local minor mode) in a specific channel.  One way to do that is by
+Let's say you'd like to enable a @dfn{local module} (ERC's version of
+a local minor mode) in a specific channel.  One way to do that is by
 running some code to activate the module if the channel's name
 matches.  Try that now by customizing the option @code{erc-join-hook}.
 Add the following in the value field before saving your changes:
@@ -1548,7 +1557,7 @@ Add the following in the value field before saving your changes:
     (erc-keep-place-indicator-mode +1)))
 @end lisp
 
-Lastly, if you really want the two ``slash'' commands defined at the
+Lastly, if you really want the two @dfn{slash commands} defined at the
 end of the previous section, you can put them in any file listed in
 @code{erc-startup-file-list}, such as @file{~/.emacs.d/.ercrc.el}.
 Make sure to put @code{(require 'erc-track)} near the top of the file.
