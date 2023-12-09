@@ -503,10 +503,6 @@ identify a package as a VC package later on), building
 documentation and marking the package as installed."
   (let ((pkg-spec (package-vc--desc->spec pkg-desc))
         missing)
-    ;; Remove any previous instance of PKG-DESC from `package-alist'
-    (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
-      (when pkgs
-        (setf (cdr pkgs) (seq-remove #'package-vc-p (cdr pkgs)))))
 
     ;; In case the package was installed directly from source, the
     ;; dependency list wasn't know beforehand, and they might have
@@ -575,6 +571,11 @@ documentation and marking the package as installed."
       (when (executable-find "install-info")
         (dolist (doc-file (ensure-list (plist-get pkg-spec :doc)))
           (package-vc--build-documentation pkg-desc doc-file))))
+
+    ;; Remove any previous instance of PKG-DESC from `package-alist'
+    (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
+      (when pkgs
+        (setf (cdr pkgs) (seq-remove #'package-vc-p (cdr pkgs)))))
 
     ;; Update package-alist.
     (let ((new-desc (package-load-descriptor pkg-dir)))

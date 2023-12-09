@@ -189,10 +189,24 @@ Completion Preview mode avoids updating the preview after these commands.")
   "Return property PROP of the completion preview overlay."
   (overlay-get completion-preview--overlay prop))
 
+(defun completion-preview--window-selection-change (window)
+  "Hide completion preview in WINDOW after switching to another window.
+Completion Preview mode adds this function to
+`window-selection-change-functions', which see."
+  (unless (or (eq window (selected-window))
+              (eq window (minibuffer-selected-window)))
+    (with-current-buffer (window-buffer window)
+      (completion-preview-active-mode -1))))
+
 (define-minor-mode completion-preview-active-mode
   "Mode for when the completion preview is shown."
   :interactive nil
-  (unless completion-preview-active-mode (completion-preview-hide)))
+  (if completion-preview-active-mode
+      (add-hook 'window-selection-change-functions
+                #'completion-preview--window-selection-change nil t)
+    (remove-hook 'window-selection-change-functions
+                 #'completion-preview--window-selection-change t)
+    (completion-preview-hide)))
 
 (defun completion-preview--try-table (table beg end props)
   "Check TABLE for a completion matching the text between BEG and END.
