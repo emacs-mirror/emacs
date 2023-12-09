@@ -1323,7 +1323,9 @@ If it's nil, sorting is disabled.
 If it's the symbol `alphabetical', candidates are sorted by
 `minibuffer-sort-alphabetically'.
 If it's the symbol `historical', candidates are sorted by
-`minibuffer-sort-by-history'.
+`minibuffer-sort-by-history', which first sorts alphabetically,
+and then rearranges the order according to the order of the
+candidates in the minibuffer history.
 If it's a function, the function is called to sort the candidates.
 The sorting function takes a list of completion candidate
 strings, which it may modify; it should return a sorted list,

@@ -653,8 +653,8 @@ is t by default.
 
 *** New value 'historical' for user option 'completions-sort'
 When 'completions-sort' is set to 'historical', completion candidates
-will be sorted by their chronological order in the minibuffer history,
-with more recent candidates appearing first.
+will be first sorted alphabetically, and then re-sorted by their order
+in the minibuffer history, with more recent candidates appearing first.
 
 ** Pcomplete
 
