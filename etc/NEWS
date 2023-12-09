@@ -1066,6 +1066,12 @@ This can help avoid some awkward skip conditions.  For example
 '(skip-unless (not noninteractive))' can be changed to the easier
 to read '(skip-when noninteractive)'.
 
++++
+*** Syntax highlighting unit testing support.
+An ERT extension ('ert-font-lock') now provides support for face
+assignment unit testing.  For more information, see the "(ert) Syntax
+Highlighting Tests" node in the ERT manual.
+
 ** URL
 
 +++
