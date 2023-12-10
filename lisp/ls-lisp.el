@@ -449,36 +449,6 @@ not contain `d', so that a full listing is expected."
                       "Directory doesn't exist or is inaccessible"
                       file))))))
 
-(declare-function dired-read-dir-and-switches "dired" (str))
-(declare-function dired-goto-next-file "dired" ())
-
-(defun ls-lisp--dired (orig-fun dir-or-list &optional switches)
-  (interactive (dired-read-dir-and-switches ""))
-  (unless dir-or-list
-    (setq dir-or-list default-directory))
-  (if (consp dir-or-list)
-      (funcall orig-fun dir-or-list switches)
-    (let ((dir-wildcard (insert-directory-wildcard-in-dir-p
-                         (expand-file-name dir-or-list))))
-      (if (not dir-wildcard)
-          (funcall orig-fun dir-or-list switches)
-        (let* ((default-directory (car dir-wildcard))
-               (files (file-expand-wildcards (cdr dir-wildcard)))
-               (dir (car dir-wildcard)))
-          (if files
-              (let ((inhibit-read-only t)
-                    (buf
-                     (apply orig-fun (nconc (list dir) files) (and switches (list switches)))))
-                (with-current-buffer buf
-                  (save-excursion
-                    (goto-char (point-min))
-                    (dired-goto-next-file)
-                    (forward-line 0)
-                    (insert "  wildcard " (cdr dir-wildcard) "\n"))))
-            (user-error "No files matching wildcard")))))))
-
-(advice-add 'dired :around #'ls-lisp--dired)
-
 (defun ls-lisp-sanitize (file-alist)
   "Sanitize the elements in FILE-ALIST.
 Fixes any elements in the alist for directory entries whose file
@@ -865,12 +835,6 @@ All ls time options, namely c, t and u, are handled."
 		ls-lisp-filesize-d-fmt)
 	      file-size)
     (format " %7s" (file-size-human-readable file-size))))
-
-(defun ls-lisp-unload-function ()
-  "Unload ls-lisp library."
-  (advice-remove 'dired #'ls-lisp--dired)
-  ;; Continue standard unloading.
-  nil)
 
 (defun ls-lisp--sanitize-switches (switches)
   "Convert long options of GNU \"ls\" to their short form.

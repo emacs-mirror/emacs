@@ -1696,7 +1696,7 @@ see `dired-use-ls-dired' for more details.")
     ;; Expand directory wildcards and fill file-list.
     (let ((dir-wildcard (and (null file-list) wildcard
                              (insert-directory-wildcard-in-dir-p dir))))
-      (cond (dir-wildcard
+      (cond ((and dir-wildcard (files--use-insert-directory-program-p))
              (setq switches (concat "-d " switches))
              (let* ((default-directory (car dir-wildcard))
                     (script (format "%s %s %s"
@@ -1723,12 +1723,15 @@ see `dired-use-ls-dired' for more details.")
             ;; month names; but this should not be necessary any
             ;; more, with the new value of
             ;; `directory-listing-before-filename-regexp'.
-            (file-list
-	     (dolist (f file-list)
-	       (let ((beg (point)))
-	         (insert-directory f switches nil nil)
-	         ;; Re-align fields, if necessary.
-	         (dired-align-file beg (point)))))
+            ((or file-list dir-wildcard)
+	     (let ((default-directory
+	            (or (car dir-wildcard) default-directory)))
+	       (dolist (f (or file-list
+	                      (file-expand-wildcards (cdr dir-wildcard))))
+	         (let ((beg (point)))
+	           (insert-directory f switches nil nil)
+	           ;; Re-align fields, if necessary.
+	           (dired-align-file beg (point))))))
 	    (t
              (insert-directory dir switches wildcard (not wildcard))))
       ;; Quote certain characters, unless ls quoted them for us.
