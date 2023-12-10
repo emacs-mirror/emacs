@@ -1,6 +1,6 @@
 ;;; asm-mode.el --- mode for editing assembler code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -52,9 +52,13 @@
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
+(defun asm--safe-comment-char-p (char)
+  (memq char '(?\; ?# ?@)))
+
 (defcustom asm-comment-char ?\;
   "The `comment-start' character assumed by Asm mode."
-  :type 'character)
+  :type 'character
+  :safe #'asm--safe-comment-char-p)
 
 (defvar asm-mode-syntax-table
   (let ((st (make-syntax-table)))
