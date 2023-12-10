@@ -119,12 +119,11 @@ checks this alist to enable globstar in the shell subprocess.")
 (defcustom dired-use-ls-dired 'unspecified
   "Non-nil means Dired should pass the \"--dired\" option to \"ls\".
 If nil, don't pass \"--dired\" to \"ls\".
-The special value of `unspecified' means to check whether \"ls\"
-supports the \"--dired\" option, and save the result in this
-variable.  This is performed the first time `dired-insert-directory'
-is invoked.  (If `ls-lisp' is used by default, the test is performed
-only if `ls-lisp-use-insert-directory-program' is non-nil, i.e., if
-Dired actually uses \"ls\".)
+The special value of `unspecified' means to check whether
+`insert-directory-program' supports the \"--dired\" option, and save
+the result in this variable.
+This is performed the first time `dired-insert-directory'
+invokes `insert-directory-program'.
 
 Note that if you set this option to nil, either through choice or
 because your \"ls\" program does not support \"--dired\", Dired
@@ -1643,9 +1642,6 @@ BEG..END is the line where the file info is located."
 	  (skip-chars-forward "^ ") (skip-chars-forward " "))
 	(set-marker file nil)))))
 
-
-(defvar ls-lisp-use-insert-directory-program)
-
 (defun dired-check-switches (switches short &optional long)
   "Return non-nil if the string SWITCHES matches LONG or SHORT format."
   (let (case-fold-search)
@@ -1676,11 +1672,8 @@ If HDR is non-nil, insert a header line with the directory name."
         (remotep (file-remote-p dir))
 	end)
     (if (and
-	 ;; Don't try to invoke `ls' if we are on DOS/Windows where
-	 ;; ls-lisp emulation is used, except if they want to use `ls'
-	 ;; as indicated by `ls-lisp-use-insert-directory-program'.
-	 (not (and (featurep 'ls-lisp)
-		   (null ls-lisp-use-insert-directory-program)))
+	 ;; Don't try to invoke `ls' if ls-lisp emulation should be used.
+	 (files--use-insert-directory-program-p)
          ;; FIXME: Big ugly hack for Eshell's eshell-ls-use-in-dired.
          (not (bound-and-true-p eshell-ls-use-in-dired))
 	 (or remotep
