@@ -4339,7 +4339,7 @@
 	(verilog-beg-of-statement-1, verilog-at-constraint-p):
 	Fix hanging with many curly-bracket pairs, bug663.
 	(verilog-do-indent): Fix electric tab deleting form-feeds.
-	Note caused by indent-line-to deleting tabls pre 24.5.
+	Note caused by indent-line-to deleting tables pre 24.5.
 	(verilog-auto-output, verilog-auto-input, verilog-auto-inout)
 	(verilog-auto-inout-module, verilog-auto-inout-in): Doc fixes.
 	(verilog-read-always-signals, verilog-auto-sense-sigs)

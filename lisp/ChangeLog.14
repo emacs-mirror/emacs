@@ -16505,7 +16505,7 @@
 	(diary-list-entries-2): Simplify finding start of date.
 	(diary-show-all-entries, make-diary-entry): Respect non-nil values of
 	pop-up-frames.
-	(diary-mark-entries-1): Re-use offset in abbreviated-year case.
+	(diary-mark-entries-1): Reuse offset in abbreviated-year case.
 	(mark-sexp-diary-entries): Remove superfluous call to diary-pull-attrs.
 
 2008-03-27  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -17072,14 +17072,14 @@
 	* calendar/cal-bahai.el (calendar-bahai-leap-year-p)
 	(calendar-bahai-leap-base, calendar-bahai-from-absolute): Doc fixes.
 	(calendar-absolute-from-bahai): Fix the leap-year case.
-	(calendar-bahai-from-absolute): Re-use the Gregorian month.
+	(calendar-bahai-from-absolute): Reuse the Gregorian month.
 	(calendar-bahai-date-string, calendar-bahai-print-date):
 	Handle pre-Bahai dates.
 
 	* calendar/cal-china.el (chinese-calendar-celestial-stem)
 	(chinese-calendar-terrestrial-branch): Make defcustoms.
 
-	* calendar/cal-menu.el (calendar-mouse-holidays): Re-use the title.
+	* calendar/cal-menu.el (calendar-mouse-holidays): Reuse the title.
 	(calendar-mouse-view-diary-entries): Use or.
 	(calendar-mouse-chinese-date): Remove unused command.
 	(cal-menu-load-hook): Mark as obsolete.

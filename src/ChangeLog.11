@@ -2029,7 +2029,7 @@
 	(update_frame_tool_bar): Calculate tool-bar style once per call.
 	Instead of hiding text labels, omit them.  Don't use
 	xg_show_toolbar_item; create new GtkToolItems from scratch if
-	necessary, instead of trying to re-use them.  This avoids an
+	necessary, instead of trying to reuse them.  This avoids an
 	annoying animation when changing tool-bars.
 
 2010-12-31  Jan Djärv  <jan.h.d@swipnet.se>
@@ -2048,7 +2048,7 @@
 	(ns_set_name): Call ns_set_name_internal.
 	(x_explicitly_set_name): Remove call to ns_set_name_iconic.
 	(x_implicitly_set_name): Ditto.
-	(x_set_title): Remove commet about EXPLICIT.  Call ns_set_name_internal.
+	(x_set_title): Remove comment about EXPLICIT.  Call ns_set_name_internal.
 	(ns_set_name_as_filename): Encode name with ENCODE_UTF_8 (Bug#7517).
 
 2010-12-29  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
@@ -9435,7 +9435,7 @@
 	continuation line, and start looking for a suitable row from
 	there.
 
-	* term.c (append_glyph): Reverse glyphs by pre-pending them,
+	* term.c (append_glyph): Reverse glyphs by prepending them,
 	rather than appending, if the glyph_row's reversed_p flag is set.
 	Set the resolved_level and bidi_type members of each glyph.
 
