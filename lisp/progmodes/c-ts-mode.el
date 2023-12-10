@@ -356,14 +356,15 @@ PARENT, BOL, ARGS are the same as other anchor functions."
   (apply (alist-get 'standalone-parent treesit-simple-indent-presets)
          parent (treesit-node-parent parent) bol args))
 
-(defun c-ts-mode--prev-line-match (regexp)
-  "An indentation matcher that matches if previous line matches REGEXP."
-  (lambda (_n _p bol &rest _)
-    (save-excursion
-      (goto-char bol)
-      (forward-line -1)
-      (back-to-indentation)
-      (looking-at-p regexp))))
+(defun c-ts-mode--else-heuristic (node parent bol &rest _)
+  "Heuristic matcher for when else is followed by a closing bracket.
+NODE, PARENT, BOL are the same as other matchers."
+  (and (null node)
+       (save-excursion
+         (forward-line -1)
+         (looking-at (rx (* whitespace) "else" (* whitespace) eol)))
+       (let ((next-node (treesit-node-first-child-for-pos parent bol)))
+         (equal (treesit-node-type next-node) "}"))))
 
 (defun c-ts-mode--first-sibling (node parent &rest _)
   "Matches when NODE is the \"first sibling\".
@@ -383,13 +384,12 @@ PARENT is its parent."
 MODE is either `c' or `cpp'."
   (let ((common
          `((c-ts-mode--for-each-tail-body-matcher prev-line c-ts-mode-indent-offset)
-           ;; If the user types "if (...)" and hits RET, they expect
-           ;; point on the empty line to be indented; this rule
-           ;; does that.
-           ((and no-node
-                 (c-ts-mode--prev-line-match
-                  ,(rx (or "if" "else" "while" "do" "for"))))
-            prev-line c-ts-mode-indent-offset)
+           ;; If the user types "else" and hits RET, they expect point
+           ;; on the empty line to be indented; this rule does that.
+           ;; This heuristic is intentionally very specific because
+           ;; more general heuristic is very error-prone, see
+           ;; discussion in bug#67417.
+           (c-ts-mode--else-heuristic prev-line c-ts-mode-indent-offset)
 
            ((parent-is "translation_unit") column-0 0)
            ((query "(ERROR (ERROR)) @indent") column-0 0)
