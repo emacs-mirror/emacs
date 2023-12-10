@@ -230,5 +230,5 @@ dnl	syscall				# syscall
 	.quad	10
 
 # Local Variables:
-# asm-comment-char: 35
+# asm-comment-char: ?#
 # End:

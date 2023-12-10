@@ -200,5 +200,5 @@ timespec:
 	.long 10
 
 @ Local Variables:
-@ asm-comment-char: 64
+@ asm-comment-char: ?@
 @ End:
