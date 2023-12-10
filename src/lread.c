@@ -5097,7 +5097,8 @@ OBARRAY defaults to the value of `obarray'.  */)
 void
 init_obarray_once (void)
 {
-  Vobarray = Vemacs_package;
+  Vobarray = make_vector (1, make_fixnum (0));
+  Faset (Vobarray, make_fixnum (0), Vemacs_package);
 
   DEFSYM (Qunbound, "unbound");
 
