@@ -791,6 +791,7 @@ definitions that aren't listed in VARIABLES."
     (setq variables (nreverse existing-variables)))
   (connection-local-set-profile-variables profile variables))
 
+;;;###autoload
 (defun hack-connection-local-variables (criteria)
   "Read connection-local variables according to CRITERIA.
 Store the connection-local variables in buffer local
@@ -935,13 +936,8 @@ value is the default binding of the variable."
   (unless (symbolp variable)
     (signal 'wrong-type-argument (list 'symbolp variable)))
   `(let (connection-local-variables-alist file-local-variables-alist)
-     ;; This is a macro, so whether it is autoloaded doesn't influence
-     ;; whether its callers will induce the loading of files-x.el.
-     ;;
-     ;; Verify that h-c-l-v is autoloaded before calling it.
-     (when (fboundp 'hack-connection-local-variables)
-       (hack-connection-local-variables
-        (connection-local-criteria-for-default-directory ,application)))
+     (hack-connection-local-variables
+      (connection-local-criteria-for-default-directory ,application))
      (if-let ((result (assq ',variable connection-local-variables-alist)))
          (cdr result)
        ,variable)))
