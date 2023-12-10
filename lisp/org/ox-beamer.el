@@ -930,7 +930,7 @@ holding export options."
    '((":\\(B_[a-z]+\\|BMCOL\\):" 1 'org-beamer-tag prepend))
    'prepend))
 
-(defface org-beamer-tag '((t (:box (:line-width 1 :color grey40))))
+(defface org-beamer-tag '((t (:box (:line-width 1 :color "grey40"))))
   "The special face for beamer tags."
   :group 'org-export-beamer)
 
