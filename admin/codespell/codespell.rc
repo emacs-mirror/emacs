@@ -1,0 +1,4 @@
+[codespell]
+skip=.git/*,*.elc,*.eln,*.gpg,*.gz,*.icns,*.jpg,*.kbx,*.key,*.pbm,*.png,*.rnc,*.so,*.tiff,*.tit,*.xml,*.xpm,*.zip,*random_seed
+builtin=clear,rare,en-GB_to_en-US
+quiet-level=35

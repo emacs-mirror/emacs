@@ -1,0 +1,27 @@
+This directory contains supporting files for running codespell.
+See the ./admin/run-codespell script.
+
+codespell.dictionary
+
+    This file contains additional, Emacs-specific corrections.  When
+    fixing typos in Emacs, consider adding them to this file.
+
+codespell.exclude
+
+    This file contains lines that are correct and should be ignored by
+    codespell.  Add any false positives to this file.
+
+    The lines must match lines in the Emacs source tree exactly,
+    including any whitespace.
+
+codespell.ignore
+
+    This file contains any words that are correct in the context of
+    Emacs, or that we otherwise choose to ignore.  Use your best
+    judgment when adding words to this file.  Common typos that are
+    only correct in highly specific contexts should probably be in
+    codespell.exclude instead.
+
+codespell.rc
+
+    This file contains the Emacs specific codespell configuration.
