@@ -270,8 +270,8 @@
   "Test for https://debbugs.gnu.org/27631 ."
   ;; For dired using 'ls' emulation we test for this bug in
   ;; ls-lisp-tests.el and em-ls-tests.el.
-  (skip-unless (and (not (featurep 'ls-lisp))
-                    (not (featurep 'eshell))))
+  (skip-unless (not (or (featurep 'ls-lisp)
+                        (featurep 'eshell))))
   (ert-with-temp-directory dir
     (let* ((dir1 (expand-file-name "dir1" dir))
            (dir2 (expand-file-name "dir2" dir))

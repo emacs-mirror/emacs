@@ -1521,18 +1521,21 @@ wildcards, erases the buffer, and builds the subdir-alist anew
       (setq dir dired-directory
 	    file-list nil))
     (setq dir (expand-file-name dir))
-    (if (and (equal "" (file-name-nondirectory dir))
-	     (not file-list))
-	;; If we are reading a whole single directory...
-	(dired-insert-directory dir dired-actual-switches nil nil t)
-      (if (and (not (insert-directory-wildcard-in-dir-p dir))
-               (not (file-readable-p
-		     (directory-file-name (file-name-directory dir)))))
-	  (error "Directory %s inaccessible or nonexistent" dir))
+    (cond
+     ((and (equal "" (file-name-nondirectory dir))
+           (not file-list))
+      ;; If we are reading a whole single directory...
+      (dired-insert-directory dir dired-actual-switches nil
+                              (not (file-directory-p dir)) t))
+     ((not (or (insert-directory-wildcard-in-dir-p dir)
+               (file-readable-p
+                (directory-file-name (file-name-directory dir)))))
+      (error "Directory %s inaccessible or nonexistent" dir))
+     (t
       ;; Else treat it as a wildcard spec
       ;; unless we have an explicit list of files.
       (dired-insert-directory dir dired-actual-switches
-			      file-list (not file-list) t))))
+       file-list (not file-list) t)))))
 
 (defun dired-align-file (beg end)
   "Align the fields of a file to the ones of surrounding lines.
@@ -1541,7 +1544,7 @@ BEG..END is the line where the file info is located."
   ;; hold the largest element ("largest" in the current invocation, of
   ;; course).  So when a single line is output, the size of each field is
   ;; just big enough for that one output.  Thus when dired refreshes one
-  ;; line, the alignment if this line w.r.t the rest is messed up because
+  ;; line, the alignment of this line w.r.t the rest is messed up because
   ;; the fields of that one line will generally be smaller.
   ;;
   ;; To work around this problem, we here add spaces to try and
@@ -1698,7 +1701,8 @@ see `dired-use-ls-dired' for more details.")
         (unless remotep
 	  (setq switches (concat "--dired -N " switches))))
     ;; Expand directory wildcards and fill file-list.
-    (let ((dir-wildcard (insert-directory-wildcard-in-dir-p dir)))
+    (let ((dir-wildcard (and (null file-list) wildcard
+                             (insert-directory-wildcard-in-dir-p dir))))
       (cond (dir-wildcard
              (setq switches (concat "-d " switches))
              (let* ((default-directory (car dir-wildcard))
@@ -1722,78 +1726,78 @@ see `dired-use-ls-dired' for more details.")
                  (user-error
                   "%s: No files matching wildcard" (cdr dir-wildcard)))
                (insert-directory-clean (point) switches)))
-            (t
-             ;; We used to specify the C locale here, to force English
-             ;; month names; but this should not be necessary any
-             ;; more, with the new value of
-             ;; `directory-listing-before-filename-regexp'.
-             (if file-list
-	         (dolist (f file-list)
-	           (let ((beg (point)))
-	             (insert-directory f switches nil nil)
-	             ;; Re-align fields, if necessary.
-	             (dired-align-file beg (point))))
-               (insert-directory dir switches wildcard (not wildcard))))))
-    ;; Quote certain characters, unless ls quoted them for us.
-    (if (not (dired-switches-escape-p dired-actual-switches))
+            ;; We used to specify the C locale here, to force English
+            ;; month names; but this should not be necessary any
+            ;; more, with the new value of
+            ;; `directory-listing-before-filename-regexp'.
+            (file-list
+	     (dolist (f file-list)
+	       (let ((beg (point)))
+	         (insert-directory f switches nil nil)
+	         ;; Re-align fields, if necessary.
+	         (dired-align-file beg (point)))))
+	    (t
+             (insert-directory dir switches wildcard (not wildcard))))
+      ;; Quote certain characters, unless ls quoted them for us.
+      (if (not (dired-switches-escape-p dired-actual-switches))
+	  (save-excursion
+	    (setq end (point-marker))
+	    (goto-char opoint)
+	    (while (search-forward "\\" end t)
+	      (replace-match (apply #'propertize
+				    "\\\\"
+				    (text-properties-at (match-beginning 0)))
+			     nil t))
+	    (goto-char opoint)
+	    (while (search-forward "\^m" end t)
+	      (replace-match (apply #'propertize
+				    "\\015"
+				    (text-properties-at (match-beginning 0)))
+			     nil t))
+	    (set-marker end nil))
+	;; Replace any newlines in DIR with literal "\n"s, for the sake
+	;; of the header line.  To disambiguate a literal "\n" in the
+	;; actual dirname, we also replace "\" with "\\".
+	;; Personally, I think this should always be done, irrespective
+	;; of the value of dired-actual-switches, because:
+	;;  i) Dired simply does not work with an unescaped newline in
+	;;  the directory name used in the header (bug=10469#28), and
+	;;  ii) "\" is always replaced with "\\" in the listing, so doing
+	;;  it in the header as well makes things consistent.
+	;; But at present it is only done if "-b" is in ls-switches,
+	;; because newlines in dirnames are uncommon, and people may
+	;; have gotten used to seeing unescaped "\" in the headers.
+	;; Note: adjust dired-build-subdir-alist if you change this.
+	(setq dir (string-replace "\\" "\\\\" dir)
+              dir (string-replace "\n" "\\n" dir)))
+      ;; If we used --dired and it worked, the lines are already indented.
+      ;; Otherwise, indent them.
+      (unless (save-excursion
+	        (goto-char opoint)
+	        (looking-at-p "  "))
+	(let ((indent-tabs-mode nil))
+	  (indent-rigidly opoint (point) 2)))
+      ;; Insert text at the beginning to standardize things.
+      (let ((content-point opoint))
 	(save-excursion
-	  (setq end (point-marker))
 	  (goto-char opoint)
-	  (while (search-forward "\\" end t)
-	    (replace-match (apply #'propertize
-				  "\\\\"
-				  (text-properties-at (match-beginning 0)))
-			   nil t))
-	  (goto-char opoint)
-	  (while (search-forward "\^m" end t)
-	    (replace-match (apply #'propertize
-				  "\\015"
-				  (text-properties-at (match-beginning 0)))
-			   nil t))
-	  (set-marker end nil))
-      ;; Replace any newlines in DIR with literal "\n"s, for the sake
-      ;; of the header line.  To disambiguate a literal "\n" in the
-      ;; actual dirname, we also replace "\" with "\\".
-      ;; Personally, I think this should always be done, irrespective
-      ;; of the value of dired-actual-switches, because:
-      ;;  i) Dired simply does not work with an unescaped newline in
-      ;;  the directory name used in the header (bug=10469#28), and
-      ;;  ii) "\" is always replaced with "\\" in the listing, so doing
-      ;;  it in the header as well makes things consistent.
-      ;; But at present it is only done if "-b" is in ls-switches,
-      ;; because newlines in dirnames are uncommon, and people may
-      ;; have gotten used to seeing unescaped "\" in the headers.
-      ;; Note: adjust dired-build-subdir-alist if you change this.
-      (setq dir (string-replace "\\" "\\\\" dir)
-            dir (string-replace "\n" "\\n" dir)))
-    ;; If we used --dired and it worked, the lines are already indented.
-    ;; Otherwise, indent them.
-    (unless (save-excursion
-	      (goto-char opoint)
-	      (looking-at-p "  "))
-      (let ((indent-tabs-mode nil))
-	(indent-rigidly opoint (point) 2)))
-    ;; Insert text at the beginning to standardize things.
-    (let ((content-point opoint))
-      (save-excursion
-	(goto-char opoint)
-	(when (and (or hdr wildcard)
-		   (not (and (looking-at "^  \\(.*\\):$")
-			     (file-name-absolute-p (match-string 1)))))
-	  ;; Note that dired-build-subdir-alist will replace the name
-	  ;; by its expansion, so it does not matter whether what we insert
-	  ;; here is fully expanded, but it should be absolute.
-	  (insert "  " (or (car-safe (insert-directory-wildcard-in-dir-p dir))
-                           (directory-file-name (file-name-directory dir)))
-                  ":\n")
-	  (setq content-point (point)))
-	(when wildcard
-	  ;; Insert "wildcard" line where "total" line would be for a full dir.
-	  (insert "  wildcard " (or (cdr-safe (insert-directory-wildcard-in-dir-p dir))
-                                    (file-name-nondirectory dir))
-                  "\n"))
-        (setq content-point (dired--insert-disk-space opoint dir)))
-      (dired-insert-set-properties content-point (point)))))
+	  (when (and (or hdr wildcard)
+		     (not (and (looking-at "^  \\(.*\\):$")
+			       (file-name-absolute-p (match-string 1)))))
+	    ;; Note that dired-build-subdir-alist will replace the name
+	    ;; by its expansion, so it does not matter whether what we insert
+	    ;; here is fully expanded, but it should be absolute.
+	    (insert "  " (or (car-safe dir-wildcard)
+                             (directory-file-name (file-name-directory dir)))
+                    ":\n")
+	    (setq content-point (point)))
+	  (when wildcard
+	    ;; Insert "wildcard" line where "total" line would be for a full dir.
+	    (insert "  wildcard " (or (cdr-safe (insert-directory-wildcard-in-dir-p dir))
+                                      (file-name-nondirectory dir))
+                    "\n"))
+          (setq content-point (dired--insert-disk-space opoint dir)))
+        (dired-insert-set-properties content-point (point))))))
 
 (defun dired--insert-disk-space (beg file)
   ;; Try to insert the amount of free space.
