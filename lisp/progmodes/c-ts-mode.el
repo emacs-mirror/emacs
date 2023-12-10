@@ -357,8 +357,8 @@ PARENT, BOL, ARGS are the same as other anchor functions."
          parent (treesit-node-parent parent) bol args))
 
 (defun c-ts-mode--else-heuristic (node parent bol &rest _)
-  "Heuristic matcher for when else is followed by a closing bracket.
-NODE, PARENT, BOL are the same as other matchers."
+  "Heuristic matcher for when \"else\" is followed by a closing bracket.
+NODE, PARENT, and BOL are the same as in other matchers."
   (and (null node)
        (save-excursion
          (forward-line -1)
