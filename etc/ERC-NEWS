@@ -163,6 +163,19 @@ options, like 'erc-command-indicator', have moved to the 'erc-goodies'
 library, although their Custom groups remain the same.  Add
 'command-indicator' to 'erc-modules' to get started.
 
+** Option 'erc-track-faces-normal-list' slightly more influential.
+This option has always been a source of confusion for users, mainly
+because its influence rode heavily on the makeup of faces in a given
+message.  Historically, when a buffer's current mode-line face was a
+member of this option's value, ERC would only swap it out for a fellow
+"normal" if it was absent from the message being processed.  Beginning
+with this release, ERC now looks to other ranked and, if necessary,
+unranked "normals" instead of sustaining the same face between
+messages.  This was done to better honor the stated purpose of the
+option, which is to provide consistent visual feedback when buffer
+activity occurs.  If you experience problems with this development,
+see the compatibility flag 'erc-track-ignore-normal-contenders-p'.
+
 ** 'erc-button-alist' and 'erc-nick-popup-alist' have evolved slightly.
 It's no secret that the 'buttons' module treats potential nicknames
 specially.  This is perhaps most evident in its treatment of the
@@ -176,6 +189,23 @@ functions, which ERC calls non-interactively, over arbitrary
 s-expressions, which ERC will continue to honor.  Although the default
 lineup remains functionally equivalent, its members have all been
 updated accordingly.
+
+** 'erc-track-faces-priority-list' and 'erc-track-faces-normal-list' slimmed.
+These options have been purged of certain 'button'-related face
+combinations.  Originally added in ERC 5.3, these combinations
+described the effect of "buttonizing" atop faces added by the 'match'
+module, like '(erc-nick-default-face erc-pal-face)'.  However, since
+at least Emacs 27, 'match' has run before 'button' in
+'erc-insert-modify-hook', meaning such permutations aren't possible.
+
+More importantly, users who've customized either of these options
+should update them with the new default value of the option
+'erc-button-nickname-face'.  Like 'erc-nick-default-face', which it
+replaces, the new 'erc-button-nick-default-face' is also a "real"
+face.  Its sole reason for existing is to make it easier for users and
+modules to distinguish between basic buttonized faces and
+'erc-nick-default-face', which is now reserved to mean the base
+"speaker" face.
 
 ** Option 'erc-query-on-unjoined-chan-privmsg' restored and renamed.
 This option was accidentally removed from the default client in ERC
@@ -328,6 +358,15 @@ and the value of the 'field' property for ERC's prompt has changed
 from 't' to the more useful 'erc-prompt', although the property of the
 same name has been retained and now has a value of 'hidden' when
 disconnected.
+
+*** Lists of faces in buttonized text are no longer nested.
+Previously, when "buttonizing" a new region, ERC would combine faces
+by blindly consing the new onto the existing.  In theory, this kept a
+nice record of all modifications to a given region.  However, it also
+complicated life for other modules wanting to analyze and operate on
+these regions.  Beginning with this release, ERC now merges combined
+faces together when creating buttons, although the odd nested list may
+still crop up here and there.
 
 *** Members of insert- and send-related hooks have been reordered.
 As anyone reading this is no doubt aware, both built-in and

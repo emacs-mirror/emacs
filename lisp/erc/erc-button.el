@@ -70,6 +70,11 @@
   "ERC button face."
   :group 'erc-faces)
 
+(defface erc-button-nick-default-face '((t :inherit erc-nick-default-face))
+  "Default face for a buttonized nickname."
+  :package-version '(ERC . "5.6")
+  :group 'erc-faces)
+
 (defcustom erc-button-face 'erc-button
   "Face used for highlighting buttons in ERC buffers.
 
@@ -78,8 +83,9 @@ A button is a piece of text that you can activate by pressing
   :type 'face
   :group 'erc-faces)
 
-(defcustom erc-button-nickname-face 'erc-nick-default-face
+(defcustom erc-button-nickname-face 'erc-button-nick-default-face
   "Face used for ERC nickname buttons."
+  :package-version '(ERC . "5.6")
   :type 'face
   :group 'erc-faces)
 
