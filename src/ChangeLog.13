@@ -5464,7 +5464,7 @@
 	(set_horizontal_scroll_bar): New function.
 	(redisplay_window): Set ignore_mouse_drag_p when tool bar has
 	more than one line.  Handle horizontal scroll bars.
-	(note_mouse_highlight): Handle horizontal scrol bars.
+	(note_mouse_highlight): Handle horizontal scroll bars.
 	(expose_frame): Set dimensions of XRectangle from frame's text
 	sizes.
 	(Vvoid_text_area_pointer): Update doc-string.
@@ -8437,7 +8437,7 @@
 
 	* xdisp.c (syms_of_xdisp): Doc clarification (bug#15657).
 
-	* keyboard.c (Frecursive_edit): Say more precicely how throwing
+	* keyboard.c (Frecursive_edit): Say more precisely how throwing
 	`exit' works (bug#15865).
 
 2014-02-07  Martin Rudalics  <rudalics@gmx.at>
@@ -16678,7 +16678,7 @@
 
 2013-05-27  Eli Zaretskii  <eliz@gnu.org>
 
-	* xdisp.c (pos_visible_p): When CHARPOS is displayed frrom a
+	* xdisp.c (pos_visible_p): When CHARPOS is displayed from a
 	display vector, and we backtrack, handle the case that the
 	previous character position is also displayed from a display
 	vector or covered by a display string or image.  (Bug#14476)

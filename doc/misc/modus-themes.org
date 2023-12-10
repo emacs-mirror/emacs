@@ -5080,7 +5080,7 @@ each of the three channels of light (red, green, blue).  For example:
 : xrandr --output LVDS1 --brightness 1.0 --gamma 0.76:0.75:0.68
 
 Typography is another variable.  Some font families are blurry at small
-point sizes.  Others may have a regular weight that is lighter (thiner)
+point sizes.  Others may have a regular weight that is lighter (thinner)
 than that of their peers which may, under certain circumstances, cause a
 halo effect around each glyph.
 

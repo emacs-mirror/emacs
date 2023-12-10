@@ -2125,7 +2125,7 @@ It will be properly highlighted even when the call omits parens.")
                    "or" "not" "&&" "||"))
      ;; Method name from the list.
      "\\|\\_<"
-     (regexp-opt ruby-syntax-methods-before-regexp)
+     (regexp-opt ruby-syntax-methods-before-regexp t)
      "\\)\\s *")
     "Regexp to match text that can be followed by a regular expression."))
 
@@ -2183,14 +2183,20 @@ It will be properly highlighted even when the call omits parens.")
         (when (save-excursion
                 (forward-char -1)
                 (cl-evenp (skip-chars-backward "\\\\")))
-          (let ((state (save-excursion (syntax-ppss (match-beginning 1)))))
+          (let ((state (save-excursion (syntax-ppss (match-beginning 1))))
+                division-like)
             (when (or
                    ;; Beginning of a regexp.
                    (and (null (nth 8 state))
                         (save-excursion
+                          (setq division-like
+                                (or (eql (char-after) ?\s)
+                                    (not (eql (char-before (1- (point))) ?\s))))
                           (forward-char -1)
                           (looking-back ruby-syntax-before-regexp-re
-                                        (line-beginning-position))))
+                                        (line-beginning-position)))
+                        (not (and division-like
+                                  (match-beginning 2))))
                    ;; End of regexp.  We don't match the whole
                    ;; regexp at once because it can have
                    ;; string interpolation inside, or span

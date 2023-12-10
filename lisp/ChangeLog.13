@@ -12592,7 +12592,7 @@
 
 	* textmodes/org.el (org-agenda-skip): Allow a form for
 	`org-agenda-skip-function'.
-	(org-agenda-redo): Re-use local settings.
+	(org-agenda-redo): Reuse local settings.
 	(org-agenda): Store local settings.
 	(org-agenda-deadline-faces): New option.
 	(org-agenda-deadline-face): New function.

@@ -8956,10 +8956,10 @@
 
 2016-02-04  Carlos Pita  <carlosjosepita@gmail.com>  (tiny change)
 
-	Make complection in erc use consistent casing
+	Make completion in erc use consistent casing
 
 	* lisp/erc/erc-pcomplete.el (pcomplete-erc-all-nicks): Make
-	case in the complection consistent (bug#18509).
+	case in the completion consistent (bug#18509).
 
 2016-02-04  Francis Litterio  <flitterio@gmail.com>
 
@@ -17094,11 +17094,11 @@
 	* lisp/json.el (json-encoding-object-sort-predicate): New variable
 	for specifying a sorting predicate for JSON objects during encoding.
 	(json--plist-to-alist): New utility function.
-	(json-encode-hash-table): Re-use `json-encode-alist' when object keys
+	(json-encode-hash-table): Reuse `json-encode-alist' when object keys
 	are to be sorted.
 	(json-encode-alist): Sort output by
 	`json-encoding-object-sort-predicate, when set.
-	(json-encode-plist): Re-use `json-encode-alist' when object keys are
+	(json-encode-plist): Reuse `json-encode-alist' when object keys are
 	to be sorted.
 	(json-pretty-print-buffer-ordered): New command to pretty print the
 	buffer with object keys sorted alphabetically.
@@ -19542,7 +19542,7 @@
 	calling low-level functions.
 
 	* test/automated/file-notify-tests.el (file-notify--test-timeout):
-	Decrase to 6 seconds for remote directories.
+	Decrease to 6 seconds for remote directories.
 	(file-notify-test02-events): Expect different number of
 	`attribute-changed' events for the local and remote cases.  Apply
 	short delays between the operations, in order to receive all
@@ -32624,7 +32624,7 @@
 	(verilog-set-auto-endcomments): Fix end comments for functions of
 	type void, etc.  Reported by Alex Reed.
 	(verilog-do-indent): Fix electric tab deleting form-feeds.  Note
-	caused by indent-line-to deleting tabls pre 24.5.
+	caused by indent-line-to deleting tables pre 24.5.
 	(verilog-nameable-item-re): Fix nameable items that can have an
 	end-identifier to include endchecker, endgroup, endprogram,
 	endproperty, and endsequence.  Reported by Alex Reed.

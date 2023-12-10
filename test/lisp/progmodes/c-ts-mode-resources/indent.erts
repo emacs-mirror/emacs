@@ -330,7 +330,7 @@ label:
 
 Name: Bracket-less Block-Statement (Linux Style) (bug#61026)
 
-=-=-=
+=-=
 int main() {
   while (true)
     if (true) {
@@ -351,6 +351,8 @@ int main() {
     if (true) {
       puts ("Hello");
     }
+    else
+      puts("Hello");
 }
 =-=-=
 
@@ -396,6 +398,34 @@ void foo(
                 && false)
               return 6;
     }
+}
+=-=-=
+
+Name: Block-Statement where first siblings are comments (Linux Style)
+
+=-=
+int main() {
+  while (true) { /* foo */
+    if (true) { // bar
+      puts ("Hello");
+    }
+  }
+  for (;;) {  // 1. fooo
+    /* 2. baaa */
+    /* 3. rrr */
+    if (true)
+      // 2. baaa
+      puts ("Hello");
+  }
+  if (1) { // 1
+    /*
+     * 2
+     */
+    if (1) /*3*/ {
+      /* 4 */
+      puts("Hello");
+    }
+  }
 }
 =-=-=
 
@@ -497,4 +527,20 @@ int
 main (void)
 {
   |
+=-=-=
+
+Code:
+  (lambda ()
+    (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (goto-line 3)
+    (indent-for-tab-command))
+
+Name: Block-Statement where previous sibling is comment
+
+=-=
+int main() {
+    puts ("Hello"); // unusual indent and has trailing comment.
+    return true; // Should align with previous non-comment sibling (rather than one level up against parent).
+}
 =-=-=
