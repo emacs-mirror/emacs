@@ -612,7 +612,7 @@ public final class EmacsService extends Service
 	  context.startService (new Intent (context,
 					    EmacsService.class));
 	else
-	  /* Display the permanant notification and start Emacs as a
+	  /* Display the permanent notification and start Emacs as a
 	     foreground service.  */
 	  context.startForegroundService (new Intent (context,
 						      EmacsService.class));
@@ -679,7 +679,7 @@ public final class EmacsService extends Service
 	    /* Display a list of programs able to send this URL.  */
 	    intent = Intent.createChooser (intent, "Send");
 
-	    /* Apparently flags need to be set after a choser is
+	    /* Apparently flags need to be set after a chooser is
 	       created.  */
 	    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
 	  }
@@ -927,7 +927,7 @@ public final class EmacsService extends Service
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
       /* Since the system predates drag and drop, return this resolver
-	 to avoid any unforseen difficulties.  */
+	 to avoid any unforeseen difficulties.  */
       return resolver;
 
     activity = EmacsActivity.lastFocusedActivity;
@@ -947,7 +947,7 @@ public final class EmacsService extends Service
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
       /* Since the system predates drag and drop, return this resolver
-	 to avoid any unforseen difficulties.  */
+	 to avoid any unforeseen difficulties.  */
       return this;
 
     activity = EmacsActivity.lastFocusedActivity;

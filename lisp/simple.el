@@ -11178,7 +11178,7 @@ For each insertion:
     enabled.
 
   - Look for the deletion of a single electric pair character,
-    and delete the adjascent pair if
+    and delete the adjacent pair if
     `electric-pair-delete-adjacent-pairs'.
 
   - Run `post-self-insert-hook' for the last character of

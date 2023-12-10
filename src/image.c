@@ -11785,7 +11785,7 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
 
 	 If we do set explicit width and height values in the image
 	 spec, this will work out correctly as librsvg will still
-	 honour the percentage sizes in its final rendering no matter
+	 honor the percentage sizes in its final rendering no matter
 	 what size we make the image.  */
       value = 0;
       break;

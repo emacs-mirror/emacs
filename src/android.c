@@ -2779,7 +2779,7 @@ android_destroy_handle (android_handle handle)
 
   /* Just clear any exception thrown.  If destroying the handle
      fails from an out-of-memory error, then Emacs loses some
-     resources, but that is not as big deal as signalling.  */
+     resources, but that is not as big deal as signaling.  */
   (*android_java_env)->ExceptionClear (android_java_env);
 
   /* Delete the global reference regardless of any error.  */
@@ -5797,7 +5797,7 @@ android_check_string (Lisp_Object text)
    better represent the UCS-16 based Java String format, and to let
    strings contain NULL characters while remaining valid C strings:
    NULL bytes are encoded as two-byte sequences, and Unicode surrogate
-   pairs encoded as two-byte sequences are prefered to four-byte
+   pairs encoded as two-byte sequences are preferred to four-byte
    sequences when encoding characters above the BMP.  */
 
 int

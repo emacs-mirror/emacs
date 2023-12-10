@@ -4762,7 +4762,7 @@ sfnt_get_scale (struct sfnt_head_table *head, int ppem)
   /* Figure out how to convert from font unit-space to pixel space.
      To turn one unit to its corresponding pixel size given a ppem of
      1, the unit must be divided by head->units_per_em.  Then, it must
-     be multipled by the ppem.  So,
+     be multiplied by the ppem.  So,
 
        PIXEL = UNIT / UPEM * PPEM
 
@@ -4902,7 +4902,7 @@ sfnt_read_name_table (int fd, struct sfnt_offset_subtable *subtable)
       return NULL;
     }
 
-  /* Read REQURIED bytes into the string data.  */
+  /* Read REQUIRED bytes into the string data.  */
   name->data = (unsigned char *) (name->name_records
 				  + name->count);
   rc = read (fd, name->data, required);
@@ -14256,7 +14256,7 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
 	    }
 	  else
 	    {
-	      /* ... otheriwse, move point j by the delta of the
+	      /* ... otherwise, move point j by the delta of the
 		 nearest touched point.  */
 
 	      if (x[j] >= max_pos)
@@ -14320,7 +14320,7 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
 	    }
 	  else
 	    {
-	      /* ... otheriwse, move point j by the delta of the
+	      /* ... otherwise, move point j by the delta of the
 		 nearest touched point.  */
 
 	      if (y[j] >= max_pos)
@@ -14404,7 +14404,7 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
 	    }
 	  else
 	    {
-	      /* ... otheriwse, move point j by the delta of the
+	      /* ... otherwise, move point j by the delta of the
 		 nearest touched point.  */
 
 	      if (x[j] >= max_pos)
@@ -14468,7 +14468,7 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
 	    }
 	  else
 	    {
-	      /* ... otheriwse, move point j by the delta of the
+	      /* ... otherwise, move point j by the delta of the
 		 nearest touched point.  */
 
 	      if (y[j] >= max_pos)
@@ -14557,7 +14557,7 @@ sfnt_infer_deltas (struct sfnt_glyph *glyph, bool *touched,
    of one or two coordinates for each axis.  Each such list is
    referred to as a ``tuple''.
 
-   The deltas, one for each point, are multipled by the normalized
+   The deltas, one for each point, are multiplied by the normalized
    value of each axis and applied to those points for each tuple that
    is found to be applicable.
 

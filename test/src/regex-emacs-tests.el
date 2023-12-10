@@ -912,7 +912,7 @@ This evaluates the TESTS test cases from glibc."
     ))
 
 (ert-deftest regexp-tests-zero-width-assertion-repetition ()
-  ;; Check compatibility behaviour with repetition operators after
+  ;; Check compatibility behavior with repetition operators after
   ;; certain zero-width assertions (bug#64128).
 
   ;; This function is just to hide ugly regexps from relint so that it

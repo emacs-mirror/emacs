@@ -690,7 +690,7 @@ property.  If LANGUAGE is non-nil, only return parsers for LANGUAGE."
 
 (defun treesit--update-ranges-local
     (query embedded-lang &optional beg end)
-  "Update range for local parsers betwwen BEG and END.
+  "Update range for local parsers between BEG and END.
 Use QUERY to get the ranges, and make sure each range has a local
 parser for EMBEDDED-LANG."
   ;; Clean up.

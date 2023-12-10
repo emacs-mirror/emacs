@@ -3539,7 +3539,7 @@ The Microsoft scaler and FreeType promptly disregard such points.
 
 Nothing in the TrueType specifications implies that points "hidden" in
 this fashion should be afforded any special treatment, and thus Emacs
-eschews doing so.  Consequentially, black streaks are displayed as
+eschews doing so.  Consequently, black streaks are displayed as
 Emacs interpolates glyph edges between points within the glyph and
 points the test font attempts to hide.
 

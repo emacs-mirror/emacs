@@ -200,7 +200,7 @@ inline if it occupies less than this fraction of window width.
 
 HEIGHT can be also be an integer or a floating point number.  If it is an
 integer and the pixel height of an image exceeds it, the image image is
-displyed on a separate line.  If it is a float number , the limit is
+displayed on a separate line.  If it is a float number , the limit is
 interpreted as a multiple of the height of default font."
   :version "30.1"
   :type '(choice (const nil) (cons number number)))

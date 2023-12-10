@@ -1399,7 +1399,7 @@ public final class EmacsWindow extends EmacsHandleObject
 		  }
 
 		/* Effect the same adjustment upon the view
-		   hiearchy.  */
+		   hierarchy.  */
 
 		EmacsService.SERVICE.runOnUiThread (new Runnable () {
 		    @Override

@@ -90,7 +90,7 @@ The Modus themes consist of eight themes, divided into four subgroups.
   are variants of the two main themes.  They slightly tone down the
   intensity of the background and provide a bit more color variety.
   ~modus-operandi-tinted~ has a set of base tones that are shades of
-  light ochre (earthly colors), while ~modus-vivendi-tinted~ gives a
+  light ocher (earthly colors), while ~modus-vivendi-tinted~ gives a
   night sky impression.
 
 - Deuteranopia themes :: ~modus-operandi-deuteranopia~ and its
@@ -2518,7 +2518,7 @@ manual, here is what Protesilaos uses:
         ;; Add a nuanced background as well.
         (bg-prompt bg-magenta-nuanced)
         (fg-prompt magenta-cooler)
-        ;; Tweak some more constructs for stylistic constistency.
+        ;; Tweak some more constructs for stylistic consistency.
         (name blue-warmer)
         (identifier magenta-faint)
         (keybind magenta-cooler)
@@ -2717,7 +2717,7 @@ For a more elaborate design, it is better to inspect the source code of
 [[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Use theme colors in code with modus-themes-with-colors]].
 
 #+findex: modus-themes-get-color-value
-The fuction ~modus-themes-get-color-value~ can be called from Lisp to
+The function ~modus-themes-get-color-value~ can be called from Lisp to
 return the value of a color from the active Modus theme palette.  It
 takea a =COLOR= argument and an optional =OVERRIDES=.
 
@@ -2886,7 +2886,7 @@ above:
 The reason we no longer provide this option is because it depends on a
 non-~nil~ value for ~x-underline-at-descent-line~.  That variable
 affects ALL underlines, including those of links.  The effect is
-intrusive and looks awkard in prose.
+intrusive and looks awkward in prose.
 
 As such, the Modus themes no longer provide that option but instead
 offer this piece of documentation to make the user fully aware of the
@@ -3229,7 +3229,7 @@ specification of that variable looks like this:
 
 With the exception of ~org-verbatim~ and ~org-code~ faces, everything else
 uses the corresponding type of emphasis: a bold typographic weight, or
-italicised, underlined, and struck through text.
+italicized, underlined, and struck through text.
 
 The best way for users to add some extra attributes, such as a
 foreground color, is to define their own faces and assign them to the
@@ -5132,7 +5132,7 @@ it is already understood that one must follow the indicator or headline
 to view its contents and (ii) underlining everything would make the
 interface virtually unusable.
 
-Again, one must exercise judgement in order to avoid discrimination,
+Again, one must exercise judgment in order to avoid discrimination,
 where "discrimination" refers to:
 
 + The treatment of substantially different magnitudes as if they were of
@@ -5206,7 +5206,7 @@ the themes, which is partially fleshed out in this manual.
 
 With regard to the artistic aspect (where "art" qua skill may amount to
 an imprecise science), there is no hard-and-fast rule in effect as it
-requires one to exercize discretion and make decisions based on
+requires one to exercise discretion and make decisions based on
 context-dependent information or constraints.  As is true with most
 things in life, when in doubt, do not cling on to the letter of the law
 but try to understand its spirit.

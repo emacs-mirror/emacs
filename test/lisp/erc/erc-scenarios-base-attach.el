@@ -47,11 +47,11 @@
 ;;   Author:     Mario Lang <mlang@delysid.org>
 ;;   AuthorDate: Mon Nov 26 18:33:19 2001 +0000
 ;;
-;;   * new function erc-BBDB-NICK to handle nickname anotation ...
+;;   * new function erc-BBDB-NICK to handle nickname annotation ...
 ;;   * Applied antifuchs/mhp patches, the latest on erc-help, unmodified
 ;;   * New variable: erc-reuse-buffers default to t.
 ;;   * Modified erc-generate-new-buffer-name to use it. it checks if
-;;     server and port are the same, then one can assume thats the same
+;;     server and port are the same, then one can assume that's the same
 ;;     channel/query target again.
 
 ;;; Code:

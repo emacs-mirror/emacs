@@ -717,7 +717,7 @@ inner loops respectively."
       (set (make-local-variable 'bytecomp-tests--xx) 2)
       bytecomp-tests--xx)
 
-    ;; Check for-effect optimisation of `condition-case' body form.
+    ;; Check for-effect optimization of `condition-case' body form.
     ;; With `condition-case' in for-effect context:
     (let ((x (bytecomp-test-identity ?A))
           (r nil))
@@ -797,7 +797,7 @@ inner loops respectively."
     (let ((x 0))
       (list (= (setq x 1))
             x))
-    ;; Aristotelian identity optimisation
+    ;; Aristotelian identity optimization
     (let ((x (bytecomp-test-identity 1)))
       (list (eq x x) (eql x x) (equal x x)))
     )
@@ -2120,7 +2120,7 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
     ))
 
 (ert-deftest bytecomp--byte-op-error-backtrace ()
-  "Check that signalling byte ops show up in the backtrace."
+  "Check that signaling byte ops show up in the backtrace."
   (dolist (case bytecomp-tests--byte-op-error-cases)
     (ert-info ((prin1-to-string case) :prefix "case: ")
       (let* ((call (nth 0 case))
@@ -2151,7 +2151,7 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
                                call))))))))))
 
 (ert-deftest bytecomp--eq-symbols-with-pos-enabled ()
-  ;; Verify that we don't optimise away a binding of
+  ;; Verify that we don't optimize away a binding of
   ;; `symbols-with-pos-enabled' around an application of `eq' (bug#65017).
   (let* ((sym-with-pos1 (read-positioning-symbols "sym"))
          (sym-with-pos2 (read-positioning-symbols " sym"))  ; <- space!

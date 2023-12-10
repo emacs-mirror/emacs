@@ -515,7 +515,7 @@ This shouldn't be changed globally, but let-bind where needed.")
 Bound in `tramp-*-file-name-handler' functions.")
 
 (defun tramp-debug-message-buttonize (position)
-  "Buttonize function in current buffer, at next line starting after POSTION."
+  "Buttonize function in current buffer, at next line starting after POSITION."
   (declare (tramp-suppress-trace t))
   (save-excursion
     (goto-char position)

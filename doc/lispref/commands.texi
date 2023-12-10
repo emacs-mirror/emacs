@@ -2151,7 +2151,7 @@ is dismissed (@pxref{Mouse Menus}), Emacs also avoids simple
 translation if @code{down-mouse-1} is bound to a keymap, making it a
 prefix key.  In lieu of simple translation, it translates the closing
 @code{touchscreen-end} to a @code{down-mouse-1} event with the
-starting position of the touch sequence, consequentially displaying
+starting position of the touch sequence, consequently displaying
 the mouse menu.
 
 @cindex @code{mouse-1-menu-command}, a symbol property
@@ -2205,7 +2205,7 @@ position of the touchpoint.
 @item (touchscreen-restart-drag @var{posn})
 This event is sent upon the start of a touch sequence resulting in the
 continuation of a ``drag-to-select'' gesture (subject to the
-aformentioned user option) with @var{posn} set to the position list of
+aforementioned user option) with @var{posn} set to the position list of
 the initial @code{touchscreen-begin} event within that touch sequence.
 
 @cindex @code{touchscreen-pinch} event

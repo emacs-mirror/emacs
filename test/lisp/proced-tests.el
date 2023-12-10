@@ -46,7 +46,7 @@
   (move-to-column (string-match attribute proced-header-line)))
 
 (defun proced--assert-process-valid-pid-refinement (pid)
-  "Fail unless the process at point could be present after a refinment using PID."
+  "Fail unless the process at point could be present after a refinement using PID."
   (proced--move-to-column "PID")
   (let ((pid-equal (string= pid (word-at-point))))
     (should

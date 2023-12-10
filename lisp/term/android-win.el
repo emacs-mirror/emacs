@@ -340,7 +340,7 @@ the `stop-selecting-text' editing key."
 
 
 ;; Splash screen notice.  Users are frequently left scratching their
-;; heads when they overlook the Android appendex in the Emacs manual
+;; heads when they overlook the Android appendix in the Emacs manual
 ;; and discover that external storage is not accessible; worse yet,
 ;; Android 11 and later veil the settings panel controlling such
 ;; permissions behind layer upon layer of largely immaterial settings

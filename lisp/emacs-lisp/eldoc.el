@@ -607,7 +607,7 @@ known to be truncated."
 
 (defun eldoc-display-in-echo-area (docs interactive)
   "Display DOCS in echo area.
-INTERACTIVE is non-nil if user explictly invoked ElDoc.  Honor
+INTERACTIVE is non-nil if user explicitly invoked ElDoc.  Honor
 `eldoc-echo-area-use-multiline-p' and
 `eldoc-echo-area-prefer-doc-buffer'."
   (cond
@@ -933,7 +933,7 @@ the docstrings eventually produced, using
       (let* ((eldoc--make-callback #'make-callback)
              (res (funcall eldoc-documentation-strategy)))
         ;; Observe the old and the new protocol:
-        (cond (;; Old protocol: got string, e-d-strategy is iself the
+        (cond (;; Old protocol: got string, e-d-strategy is itself the
                ;; origin function, and we output immediately;
                (stringp res)
                (register-doc 0 res nil eldoc-documentation-strategy)

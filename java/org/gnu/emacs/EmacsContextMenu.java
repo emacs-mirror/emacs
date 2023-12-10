@@ -36,7 +36,7 @@ import android.view.SubMenu;
 import android.util.Log;
 
 /* Context menu implementation.  This object is built from JNI and
-   describes a menu hiearchy.  Then, `inflate' can turn it into an
+   describes a menu hierarchy.  Then, `inflate' can turn it into an
    Android menu, which can be turned into a popup (or other kind of)
    menu.  */
 

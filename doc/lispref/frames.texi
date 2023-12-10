@@ -4160,7 +4160,7 @@ code, for it's only meant to abet synchronization between the X
 server, owner and requestor.
 @end itemize
 
-  The selection owner responds by tranferring to the requestor a
+  The selection owner responds by transferring to the requestor a
 series of bytes, 16 bit words, or 32 bit words, along with another
 atom identifying the type of those words.  After requesting a
 selection, Emacs then applies its own interpretation of the data

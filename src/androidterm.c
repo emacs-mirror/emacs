@@ -6101,7 +6101,7 @@ android_update_selection (struct frame *f, struct window *w)
   else
     start = -1, end = -1;
 
-  /* Now constrain START and END to the maximium size of a Java
+  /* Now constrain START and END to the maximum size of a Java
      integer.  */
   start = min (start, TYPE_MAXIMUM (jint));
   end = min (end, TYPE_MAXIMUM (jint));
@@ -6238,7 +6238,7 @@ android_reset_conversion (struct frame *f)
 
   android_reset_ic (FRAME_ANDROID_WINDOW (f), mode);
 
-  /* Clear extracted text flags.  Since the IM has been reinitialised,
+  /* Clear extracted text flags.  Since the IM has been reinitialized,
      it should no longer be displaying extracted text.  */
   FRAME_ANDROID_OUTPUT (f)->extracted_text_flags = 0;
 

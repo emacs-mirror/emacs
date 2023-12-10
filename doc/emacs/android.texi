@@ -234,7 +234,7 @@ Document Providers}.)
 the (normally read-only) root directory named @file{content} or
 @file{assets}, you may want to access real files by these names if the
 Android installation in use has been customized.  These files will
-conflict with the aformentioned special directories, but can
+conflict with the aforementioned special directories, but can
 nevertheless be accessed by writing their names relative to the
 ``parent'' directory of the root directory, as so illustrated:
 @file{/../content}, @file{/../assets}.
@@ -258,7 +258,7 @@ at startup to symlink the application library directory to its
 traditional location within the parent of the app data directory.
 
   If Emacs is reinstalled and the location of the app library
-directory consequentially changes, that symlink will also be updated
+directory consequently changes, that symlink will also be updated
 to point to its new location the next time Emacs is started by the
 system.
 
@@ -340,7 +340,7 @@ to its app data directory (@pxref{Android File
 System}.)@footnote{Except in cases where a ``shared user ID'' is
 specified and other applications signed using the same ``package
 signing key'' are installed, in which case Emacs runs as the same user
-and has access to the same files as each of the aformentioned
+and has access to the same files as each of the aforementioned
 applications.}
 
   Each application is also prohibited from accessing many system

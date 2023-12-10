@@ -1514,7 +1514,7 @@ invoked from.
 Regular suffix commands, which are not prefixes, do not have to
 concern themselves with this distinction, so they can use this
 function instead.  In the context of a plain suffix, it always
-returns the value of the appropiate variable."
+returns the value of the appropriate variable."
   (or transient--prefix transient-current-prefix))
 
 (defun transient-suffix-object (&optional command)

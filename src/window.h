@@ -292,7 +292,7 @@ struct window
 
        `last_point' is normally used during redisplay to indicate the
        position of point as seem by the input method.  However, it is
-       not updated if consequtive conversions are processed at the
+       not updated if consecutive conversions are processed at the
        same time.
 
        This `ephemeral_last_point' field is either the last point as

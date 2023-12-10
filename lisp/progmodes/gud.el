@@ -3974,11 +3974,11 @@ def gud_complete(s, max):
         print(f'\"{string_list.GetStringAtIndex(i)}\" ')
     print(')##')
 "
-  "Python code sent to LLDB for gud-specific initialisation.")
+  "Python code sent to LLDB for gud-specific initialization.")
 
 (defun gud-lldb-fetch-completions (context command)
   "Return the data to complete the LLDB command before point.
-This is what the Python function we installed at initialzation
+This is what the Python function we installed at initialization
 time returns, as a Lisp list.
 Maximum number of completions requested from LLDB is controlled
 by `gud-lldb-max-completions', which see."

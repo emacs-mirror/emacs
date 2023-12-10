@@ -10,7 +10,7 @@ re-implementation of the operating system BeOS.
 
   This appendix describes the peculiarities of using Emacs built with
 the Application Kit, the windowing system indigenous to Haiku.  The
-idiosyncracies illustrated here do not apply to Emacs on Haiku built
+idiosyncrasies illustrated here do not apply to Emacs on Haiku built
 without windowing support, or configured with X11.
 
 @menu

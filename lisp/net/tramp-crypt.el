@@ -856,7 +856,7 @@ WILDCARD is not supported."
      'unlock-file (tramp-crypt-encrypt-file-name filename))))
 
 (defun tramp-crypt-cleanup-connection (vec)
-  "Cleanup crypt ressources determined by VEC."
+  "Cleanup crypt resources determined by VEC."
   (let ((tramp-cleanup-connection-hook
 	 (remove
 	  #'tramp-crypt-cleanup-connection tramp-cleanup-connection-hook)))

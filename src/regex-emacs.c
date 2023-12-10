@@ -2824,7 +2824,7 @@ group_in_compile_stack (compile_stack_type compile_stack, regnum_t regnum)
 
 /* Iterate through all the char-matching operations directly reachable from P.
    This is the inner loop of `forall_firstchar`, which see.
-   LOOP_BEG..LOOP_END delimit the currentl "block" of code (we assume
+   LOOP_BEG..LOOP_END delimit the currently "block" of code (we assume
    the code is made of syntactically nested loops).
    LOOP_END is blindly assumed to be "safe".
    To guarantee termination, at each iteration, either LOOP_BEG should

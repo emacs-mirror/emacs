@@ -3566,7 +3566,7 @@ lambda-expression."
             (cond
              ((and sef (or (eq sef 'error-free)
                            byte-compile-delete-errors))
-              ;; This transform is normally done in the Lisp optimiser,
+              ;; This transform is normally done in the Lisp optimizer,
               ;; so maybe we don't need to bother about it here?
               (setq form (cons 'progn (cdr form)))
               (setq handler #'byte-compile-progn))
@@ -3603,7 +3603,7 @@ lambda-expression."
 (let ((important-return-value-fns
        '(
          ;; These functions are side-effect-free except for the
-         ;; behaviour of functions passed as argument.
+         ;; behavior of functions passed as argument.
          mapcar mapcan mapconcat
          assoc plist-get plist-member
 
@@ -4148,7 +4148,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
     (byte-compile-two-args
      (if (macroexp-const-p (nth 1 form))
          ;; First argument is constant: flip it so that the constant
-         ;; is last, which may allow more lapcode optimisations.
+         ;; is last, which may allow more lapcode optimizations.
          (let* ((op (car form))
                 (flipped-op (cdr (assq op '((< . >) (<= . >=)
                                             (> . <) (>= . <=) (= . =))))))
@@ -4312,7 +4312,7 @@ This function is never called when `lexical-binding' is nil."
            (arg2 (nth 2 form)))
        (when (and (memq (car form) '(+ *))
                   (macroexp-const-p arg1))
-         ;; Put constant argument last for better LAP optimisation.
+         ;; Put constant argument last for better LAP optimization.
          (cl-rotatef arg1 arg2))
        (byte-compile-form arg1)
        (byte-compile-form arg2)
@@ -5326,7 +5326,7 @@ FORM is used to provide location, `bytecomp--cus-function' and
   "Warn about common mistakes in the `defcustom' type TYPE."
   (let ((invalid-types
          '(
-           ;; Lisp type predicates, often confused with customisation types:
+           ;; Lisp type predicates, often confused with customization types:
            functionp numberp integerp fixnump natnump floatp booleanp
            characterp listp stringp consp vectorp symbolp keywordp
            hash-table-p facep

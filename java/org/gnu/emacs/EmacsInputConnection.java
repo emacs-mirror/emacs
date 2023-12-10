@@ -60,7 +60,7 @@ public final class EmacsInputConnection implements InputConnection
 
      This helps with on screen keyboard programs found in some vendor
      versions of Android, which rely on immediate updates to the point
-     position after text is commited in order to place the cursor
+     position after text is committed in order to place the cursor
      within that text.  */
 
   private static boolean syncAfterCommit;

@@ -863,7 +863,7 @@ package uses `file-name-base' on the URL to obtain the package
 name, otherwise NAME is the package name as a symbol.
 
 PACKAGE can also be a cons cell (PNAME . SPEC) where PNAME is the
-package name as a symbol, and SPEC is a plist that specifes how
+package name as a symbol, and SPEC is a plist that specifies how
 to fetch and build the package.  For possible values, see the
 subsection \"Specifying Package Sources\" in the Info
 node `(emacs)Fetching Package Sources'.

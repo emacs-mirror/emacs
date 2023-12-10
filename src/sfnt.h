@@ -1283,7 +1283,7 @@ struct sfnt_gvar_table
   unsigned char *glyph_variation_data;
 };
 
-/* Structure repesenting a set of axis coordinates and their
+/* Structure representing a set of axis coordinates and their
    normalized equivalents.
 
    To use this structure, call

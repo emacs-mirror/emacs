@@ -3335,7 +3335,7 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
 	  if (!CONSP (cdr))
 	    {
 	      *signal_data = list3 (Qtreesit_invalid_predicate,
-				    build_string ("Invalide `not' "
+				    build_string ("Invalid `not' "
 						  "predicate"),
 				    pred);
 	      return false;

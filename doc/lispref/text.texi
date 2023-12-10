@@ -6205,7 +6205,7 @@ cons it was set to at the time @code{prepare-change-group} was called.
 
   If @code{buffer-undo-list} no longer contains that cons, Emacs will
 lose track of any change groups, resulting in an error when the change
-group is cancelled.  To avoid this, do not call any functions which
+group is canceled.  To avoid this, do not call any functions which
 may edit the undo list in such a manner, when a change group is
 active: notably, ``amalgamating'' commands such as @code{delete-char},
 which call @code{undo-auto-amalgamate}.

@@ -636,7 +636,7 @@ public final class EmacsOpenActivity extends Activity
 		  {
 		    /* This means Emacs lacks the rights to open this
 		       file.  Display the error message and exit.  */
-		    displayFailureDialog ("Error openining file",
+		    displayFailureDialog ("Error opening file",
 					  exception.toString ());
 		    return;
 		  }

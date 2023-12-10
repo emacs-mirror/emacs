@@ -440,7 +440,7 @@ There can be multiple entries for the same NAME if it has several aliases.")
 
       (`(unwind-protect ,protected-expr :fun-body ,unwind-fun)
        ;; FIXME: The return value of UNWIND-FUN is never used so we
-       ;; could potentially optimise it for-effect, but we don't do
+       ;; could potentially optimize it for-effect, but we don't do
        ;; that right no.
        `(,fn ,(byte-optimize-form protected-expr for-effect)
              :fun-body ,(byte-optimize-form unwind-fun)))
@@ -973,7 +973,7 @@ There can be multiple entries for the same NAME if it has several aliases.")
     (list (car form) (nth 2 form) (nth 1 form)))))
 
 (defun byte-opt--nary-comparison (form)
-  "Optimise n-ary comparisons such as `=', `<' etc."
+  "Optimize n-ary comparisons such as `=', `<' etc."
   (let ((nargs (length (cdr form))))
     (cond
      ((= nargs 1)
@@ -988,7 +988,7 @@ There can be multiple entries for the same NAME if it has several aliases.")
         (if (memq nil (mapcar #'macroexp-copyable-p (cddr form)))
             ;; At least one arg beyond the first is non-constant non-variable:
             ;; create temporaries for all args to guard against side-effects.
-            ;; The optimiser will eliminate trivial bindings later.
+            ;; The optimizer will eliminate trivial bindings later.
             (let ((i 1))
               (dolist (arg (cdr form))
                 (let ((var (make-symbol (format "arg%d" i))))

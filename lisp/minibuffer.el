@@ -1685,7 +1685,7 @@ names, where this is the directory component of the file name.")
   "Sort COMPLETIONS by their position in `minibuffer-history-variable'.
 
 COMPLETIONS are sorted first by `minibuffer-sort-alphbetically',
-then any elements occuring in the minibuffer history list are
+then any elements occurring in the minibuffer history list are
 moved to the front based on the chronological order they occur in
 the history.  If a history variable hasn't been specified for
 this call of `completing-read', COMPLETIONS are sorted only by
@@ -4942,7 +4942,7 @@ This is run upon minibuffer setup."
 (defun minibuffer-exit-on-screen-keyboard ()
   "Hide the on-screen keyboard if it was displayed.
 Hide the on-screen keyboard in a timer set to run in 0.1 seconds.
-It will be cancelled if the minibuffer is displayed again within
+It will be canceled if the minibuffer is displayed again within
 that timeframe.
 
 Do not hide the on screen keyboard inside a recursive edit.

@@ -299,7 +299,7 @@ data type available from the clipboard.  */)
 						bytes_array);
   for (i = 0; i < length; ++i)
     {
-      /* Retireve the MIME type.  */
+      /* Retrieve the MIME type.  */
       bytes
 	= (*android_java_env)->GetObjectArrayElement (android_java_env,
 						      bytes_array, i);

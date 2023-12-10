@@ -1348,7 +1348,7 @@ sfntfont_charset_for_cmap (struct sfnt_cmap_encoding_subtable subtable)
    subtable in *SUBTABLE upon success, NULL otherwise.
 
    If FORMAT14 is non-NULL, return any associated format 14 variation
-   selection context in *FORMAT14 should the selected charcter map be
+   selection context in *FORMAT14 should the selected character map be
    a Unicode character map.  */
 
 static struct sfnt_cmap_encoding_subtable_data *
@@ -1371,7 +1371,7 @@ sfntfont_select_cmap (struct sfnt_cmap_table *cmap,
 	  if (!format14)
 	    return data[i];
 
-	  /* Search for a correspoinding format 14 character map.
+	  /* Search for a corresponding format 14 character map.
 	     This is used in conjunction with the selected character
 	     map to map variation sequences.  */
 
@@ -1400,7 +1400,7 @@ sfntfont_select_cmap (struct sfnt_cmap_table *cmap,
 	  if (!format14)
 	    return data[i];
 
-	  /* Search for a correspoinding format 14 character map.
+	  /* Search for a corresponding format 14 character map.
 	     This is used in conjunction with the selected character
 	     map to map variation sequences.  */
 

@@ -657,7 +657,7 @@
   (setq erc--isupport-params (make-hash-table))
 
   ;; Uses fallback values when no PREFIX parameter yet received, thus
-  ;; ensuring caller can use slot accessors immediately intead of
+  ;; ensuring caller can use slot accessors immediately instead of
   ;; checking if null beforehand.
   (should-not erc--parsed-prefix)
   (should (equal (erc--parsed-prefix)
@@ -2918,7 +2918,7 @@
     (while (accept-process-output proc 10))
     (goto-char (point-min))
     (unless (equal (read (current-buffer)) expected)
-      (message "Exepcted: %S\nGot: %s" expected (buffer-string))
+      (message "Expected: %S\nGot: %s" expected (buffer-string))
       (ert-fail "Mismatch"))))
 
 ;; Worrying about which library a module comes from is mostly not

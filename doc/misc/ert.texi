@@ -954,7 +954,7 @@ comments directly and can be read either from inline strings or files.
 
 Test assertion parser extracts tests from comment-only lines.  Every
 comment assertion line starts either with a caret (@samp{^}) or an
-arrow (@samp{<-}).  A caret/arrow should be followed immedately by the
+arrow (@samp{<-}).  A caret/arrow should be followed immediately by the
 name of a face to be checked.
 
 The test then checks if the first non-assertion column above the caret

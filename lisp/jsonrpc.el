@@ -158,7 +158,7 @@ immediately."
 (defvar jsonrpc-inhibit-debug-on-error nil
   "Inhibit `debug-on-error' when answering requests.
 Some extensions, notably ert.el, set `debug-on-error' to non-nil,
-which makes it hard to test the behaviour of catching the Elisp
+which makes it hard to test the behavior of catching the Elisp
 error and replying to the endpoint with an JSONRPC-error.  This
 variable can be set around calls like `jsonrpc-request' to
 circumvent that.")

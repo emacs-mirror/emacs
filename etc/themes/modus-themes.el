@@ -1535,7 +1535,7 @@ color that is combined with FG-FOR-BG."
           :foreground fg
           :weight
           ;; If we have `bold' specifically, we inherit the face of
-          ;; the same name.  This allows the user to customise that
+          ;; the same name.  This allows the user to customize that
           ;; face, such as to change its font family.
           (if (and weight (not (eq weight 'bold)))
               weight

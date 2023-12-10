@@ -57,7 +57,7 @@ touch point being tracked, the window where the touch began, a
 cons holding the initial position of the touch point, and the
 last known position of the touch point, all in the same format as
 in `touch-screen-current-tool', the distance in pixels between
-the current tool and the aformentioned initial position, the
+the current tool and the aforementioned initial position, the
 center of the line formed between those two points, the ratio
 between the present distance between both tools and the aforesaid
 initial distance when a pinch gesture was last sent, and three
@@ -1927,7 +1927,7 @@ with that event and DATA.
 
 If THRESHOLD is non-nil, enforce a threshold of movement that is
 either itself or 10 pixels when it is not a number.  If the
-aformentioned touch point moves beyond that threshold on any
+aforementioned touch point moves beyond that threshold on any
 axis, return nil immediately, and further resume mouse event
 translation for the touch point at hand.
 
