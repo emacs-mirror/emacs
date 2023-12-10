@@ -92,7 +92,7 @@ Otherwise, `rmdir' is required."
   :group 'eshell-unix)
 
 (define-widget 'eshell-interactive-query 'radio
-  "When to interatively query the user about a particular operation.
+  "When to interactively query the user about a particular operation.
 If t, always query.  If nil, never query.  If `root', query when
 the user is logged in as root (including when `default-directory'
 is remote with a root user)."

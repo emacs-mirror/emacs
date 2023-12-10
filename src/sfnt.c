@@ -2783,7 +2783,7 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
       else
 	{
 	  /* The offset is determined by matching a point location in
-	     a preceeding component with a point location in the
+	     a preceding component with a point location in the
 	     current component.  The index of the point in the
 	     previous component can be determined by adding
 	     component->argument1.a or component->argument1.c to
@@ -11880,7 +11880,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
       else
 	{
 	  /* The offset is determined by matching a point location in
-	     a preceeding component with a point location in the
+	     a preceding component with a point location in the
 	     current component.  The index of the point in the
 	     previous component is established by adding
 	     component->argument1.a or component->argument1.c to

@@ -428,7 +428,7 @@ public final class EmacsWindow extends EmacsHandleObject
 		  manager = EmacsWindowAttachmentManager.MANAGER;
 
 		  /* If parent is the root window, notice that there are new
-		     children available for interested activites to pick
+		     children available for interested activities to pick
 		     up.  */
 		  manager.registerWindow (EmacsWindow.this);
 

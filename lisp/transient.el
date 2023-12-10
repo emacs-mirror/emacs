@@ -3566,7 +3566,7 @@ have a history of their own.")
             (propertize "\n" 'face face 'line-height t))))
 
 (defmacro transient-with-shadowed-buffer (&rest body)
-  "While in the transient buffer, temporarly make the shadowed buffer current."
+  "While in the transient buffer, temporarily make the shadowed buffer current."
   (declare (indent 0) (debug t))
   `(with-current-buffer (or transient--shadowed-buffer (current-buffer))
      ,@body))

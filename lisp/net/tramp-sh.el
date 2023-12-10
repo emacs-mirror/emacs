@@ -1239,7 +1239,7 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
       (with-current-buffer (tramp-get-connection-buffer v)
 	(goto-char (point-min))
 	(tramp-set-file-property v localname "file-symlink-marker" (read (current-buffer)))
-	;; We cannote call `read', the file name isn't quoted.
+	;; We cannot call `read', the file name isn't quoted.
 	(forward-line)
 	(buffer-substring (point) (line-end-position))))
 

@@ -2189,7 +2189,7 @@ removed from the list will be disabled."
            move-to-prompt)
     (const :tag "netsplit: Detect netsplits" netsplit)
     (const :tag "networks: Provide data about IRC networks" networks)
-    (const :tag "nickbar: Show nicknames in a dyamic side window" nickbar)
+    (const :tag "nickbar: Show nicknames in a dynamic side window" nickbar)
     (const :tag "nicks: Uniquely colorize nicknames in target buffers" nicks)
     (const :tag "noncommands: Deprecated. See module `command-indicator'."
            noncommands)
