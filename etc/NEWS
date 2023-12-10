@@ -517,6 +517,10 @@ marked or clicked on files according to the OS conventions.  For
 example, on systems supporting XDG, this runs 'xdg-open' on the
 files.
 
++++
+*** 'dired-listing-switches' handles connection-local values if exist.
+This allows to customize different switches for different remote machines.
+
 ** Ediff
 
 ---

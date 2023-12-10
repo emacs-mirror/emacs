@@ -7087,7 +7087,7 @@ auto-save file, if that is more recent than the visited file."
 		    (when (window-live-p window)
 		      (quit-restore-window window 'kill)))))
 	    (with-current-buffer standard-output
-	      (let ((switches dired-listing-switches))
+	      (let ((switches (connection-local-value dired-listing-switches)))
 		(if (file-symlink-p file)
 		    (setq switches (concat switches " -L")))
 		;; Use insert-directory-safely, not insert-directory,
@@ -7139,7 +7139,7 @@ Then you'll be asked about a number of files to recover."
         ;; hook.
         (dired-mode-hook (delete 'dired-omit-mode dired-mode-hook)))
     (dired (concat auto-save-list-file-prefix "*")
-	   (concat dired-listing-switches " -t")))
+	   (concat (connection-local-value dired-listing-switches) " -t")))
   (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
   (define-key (current-local-map) "\C-c\C-c" 'recover-session-finish)
   (save-excursion

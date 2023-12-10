@@ -5322,17 +5322,39 @@ customization is explained in user option
 @item
 Remote host does not understand default options for directory listing
 
-Emacs computes the @command{dired} options based on the local host but
-if the remote host cannot understand the same @command{ls} command,
-then set them with a hook as follows:
+@vindex dired-listing-switches
+Emacs computes the @command{dired} options based on the local host.
+Since @w{Emacs 30}, these options can be set connection-local.
+@ifinfo
+@xref{Connection Variables, , , emacs}.
+@end ifinfo
+
+@lisp
+@group
+(connection-local-set-profile-variables
+  'my-dired-profile
+  '((dired-listing-switches . "-ahl")))
+@end group
+
+@group
+(connection-local-set-profiles
+ '(:application tramp :machine "remotehost")
+ 'my-dired-profile)
+@end group
+@end lisp
+
+@vindex dired-actual-switches
+In older Emacsen, you can set the @command{dired} options with a hook
+as follows:
 
 @lisp
 @group
 (add-hook
  'dired-before-readin-hook
  (lambda ()
-   (when (file-remote-p default-directory)
-     (setq dired-actual-switches "-al"))))
+   (when (string-equal
+           (file-remote-p default-directory 'host) "remotehost")
+     (setq dired-actual-switches "-ahl"))))
 @end group
 @end lisp
 

@@ -75,7 +75,9 @@ each option.
 
 On systems such as MS-DOS and MS-Windows, which use `ls' emulation in Lisp,
 some of the `ls' switches are not supported; see the doc string of
-`insert-directory' in `ls-lisp.el' for more details."
+`insert-directory' in `ls-lisp.el' for more details.
+
+For remote Dired buffers, this option supports connection-local values."
   :type 'string
   :group 'dired)
 
@@ -1383,7 +1385,8 @@ The return value is the target column for the file names."
 	        ;; is passed in directory name syntax
 	        ;; if it was the name of a directory at all.
 	        (file-name-directory dirname)))
-      (or switches (setq switches dired-listing-switches))
+      (or switches
+          (setq switches (connection-local-value dired-listing-switches)))
       (if mode (funcall mode)
         (dired-mode dir-or-list switches))
       ;; default-directory and dired-actual-switches are set now
@@ -2714,7 +2717,8 @@ Keybindings:
 	(expand-file-name (if (listp dired-directory)
 			      (car dired-directory)
 			    dired-directory)))
-  (setq-local dired-actual-switches (or switches dired-listing-switches))
+  (setq-local dired-actual-switches
+              (or switches (connection-local-value dired-listing-switches)))
   (setq-local font-lock-defaults
               '(dired-font-lock-keywords t nil nil beginning-of-line))
   (setq-local desktop-save-buffer 'dired-desktop-buffer-misc-data)

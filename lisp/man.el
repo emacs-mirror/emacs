@@ -579,7 +579,7 @@ Otherwise, the value is whatever the function
 (defun Man-shell-file-name ()
   "Return a proper shell file name, respecting remote directories."
   (or ; This works also in the local case.
-      (with-connection-local-variables shell-file-name)
+      (connection-local-value shell-file-name)
       "/bin/sh"))
 
 (defun Man-header-file-path ()

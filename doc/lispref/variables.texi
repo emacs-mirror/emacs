@@ -2487,9 +2487,10 @@ are unwound.  Example:
 
 @defvar connection-local-default-application
 The default application, a symbol, to be applied in
-@code{with-connection-local-variables}.  It defaults to @code{tramp},
-but you can let-bind it to change the application temporarily
-(@pxref{Local Variables}).
+@code{with-connection-local-variables} and
+@code{connection-local-value}.  It defaults to @code{tramp}, but you
+can let-bind it to change the application temporarily (@pxref{Local
+Variables}).
 
 This variable must not be changed globally.
 @end defvar
@@ -2547,7 +2548,10 @@ This variable must not be changed globally.
 
 @defmac connection-local-value symbol &optional application
 This macro returns the connection-local value of @var{symbol} for
-@var{application}.  If @var{symbol} does not have a connection-local
+@var{application}.  If @var{application} is @code{nil}, the value of
+@code{connection-local-default-application} is used.
+
+If @var{symbol} does not have a connection-local
 binding, the value is the default binding of the variable.
 @end defmac
 
