@@ -3472,6 +3472,11 @@ Check if a node type is available, then return the right indent rules."
        ((parent-is "class_body") parent-bol js-indent-level)
        ((parent-is ,switch-case) parent-bol js-indent-level)
        ((parent-is "statement_block") parent-bol js-indent-level)
+       ((match "while" "do_statement") parent-bol 0)
+       ((match "else" "if_statement") parent-bol 0)
+       ((parent-is ,(rx (or (seq (or "if" "for" "for_in" "while" "do") "_statement")
+                            "else_clause")))
+        parent-bol js-indent-level)
 
        ;; JSX
        ,@(js-jsx--treesit-indent-compatibility-bb1f97b)
