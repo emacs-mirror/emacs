@@ -6256,7 +6256,7 @@ symbol_to_drag_action (Lisp_Object act)
   if (NILP (act))
     return GDK_ACTION_DEFAULT;
 
-  signal_error ("Invalid drag acction", act);
+  signal_error ("Invalid drag action", act);
 }
 
 static Lisp_Object
