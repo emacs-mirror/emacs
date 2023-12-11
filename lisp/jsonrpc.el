@@ -583,27 +583,12 @@ With optional CLEANUP, kill any associated buffers."
         (delete-process proc)
         (funcall (jsonrpc--on-shutdown connection) connection)))))
 
-(defvar jsonrpc--in-process-filter nil
-  "Non-nil if inside `jsonrpc--process-filter'.")
-
 (cl-defun jsonrpc--process-filter (proc string)
   "Called when new data STRING has arrived for PROC."
-  (when jsonrpc--in-process-filter
-    ;; Problematic recursive process filters may happen if
-    ;; `jsonrpc--connection-receive', called by us, eventually calls
-    ;; client code which calls `process-send-string' (which see) to,
-    ;; say send a follow-up message.  If that happens to writes enough
-    ;; bytes for pending output to be received, we will lose JSONRPC
-    ;; messages.  In that case, remove recursiveness by re-scheduling
-    ;; ourselves to run from within a timer as soon as possible
-    ;; (bug#60088)
-    (run-at-time 0 nil #'jsonrpc--process-filter proc string)
-    (cl-return-from jsonrpc--process-filter))
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
-      (let* ((jsonrpc--in-process-filter t)
-             (connection (process-get proc 'jsonrpc-connection))
-             (expected-bytes (jsonrpc--expected-bytes connection)))
+      (let* ((conn (process-get proc 'jsonrpc-connection))
+             (expected-bytes (jsonrpc--expected-bytes conn)))
         ;; Insert the text, advancing the process marker.
         ;;
         (save-excursion
@@ -638,24 +623,24 @@ With optional CLEANUP, kill any associated buffers."
                           expected-bytes)
                       (let* ((message-end (byte-to-position
                                            (+ (position-bytes (point))
-                                              expected-bytes))))
+                                              expected-bytes)))
+                             message
+                             )
                         (unwind-protect
                             (save-restriction
                               (narrow-to-region (point) message-end)
-                              (let* ((json-message
-                                      (condition-case-unless-debug oops
-                                          (jsonrpc--json-read)
-                                        (error
-                                         (jsonrpc--warn "Invalid JSON: %s %s"
-                                                        (cdr oops) (buffer-string))
-                                         nil))))
-                                (when json-message
-                                  ;; Process content in another
-                                  ;; buffer, shielding proc buffer from
-                                  ;; tamper
-                                  (with-temp-buffer
-                                    (jsonrpc-connection-receive connection
-                                                                json-message)))))
+                              (setq message
+                                    (condition-case-unless-debug oops
+                                        (jsonrpc--json-read)
+                                      (error
+                                       (jsonrpc--warn "Invalid JSON: %s %s"
+                                                      (cdr oops) (buffer-string))
+                                       nil)))
+                              (when message
+                                (process-put proc 'jsonrpc-mqueue
+                                             (nconc (process-get proc
+                                                                 'jsonrpc-mqueue)
+                                                    (list message)))))
                           (goto-char message-end)
                           (let ((inhibit-read-only t))
                             (delete-region (point-min) (point)))
@@ -664,9 +649,21 @@ With optional CLEANUP, kill any associated buffers."
                       ;; Message is still incomplete
                       ;;
                       (setq done :waiting-for-more-bytes-in-this-message))))))))
-          ;; Saved parsing state for next visit to this filter
+          ;; Saved parsing state for next visit to this filter, which
+          ;; may well be a recursive one stemming from the tail call
+          ;; to `jsonrpc-connection-receive' below (bug#60088).
           ;;
-          (setf (jsonrpc--expected-bytes connection) expected-bytes))))))
+          (setf (jsonrpc--expected-bytes conn) expected-bytes)
+          ;; Now, time to notify user code of one or more messages in
+          ;; order.  Very often `jsonrpc-connection-receive' will exit
+          ;; non-locally (typically the reply to a request), so do
+          ;; this all this processing in top-level loops timer.
+          (cl-loop
+           for msg = (pop (process-get proc 'jsonrpc-mqueue)) while msg
+           do (run-at-time 0 nil
+                           (lambda (m) (with-temp-buffer
+                                         (jsonrpc-connection-receive conn m)))
+                           msg)))))))
 
 (cl-defun jsonrpc--async-request-1 (connection
                                     method
