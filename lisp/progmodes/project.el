@@ -1843,7 +1843,7 @@ It's also possible to enter an arbitrary directory not in the list."
   "Run the next command in the current project.
 
 If the command name starts with `project-', or its symbol has
-property `project-related', it gets passed the project to use
+property `project-aware', it gets passed the project to use
 with the variable `project-current-directory-override'.
 Otherwise, `default-directory' is temporarily set to the current
 project's root.
@@ -1862,7 +1862,7 @@ which will take priority over the global ones."
     (when command
       (if (when (symbolp command)
             (or (string-prefix-p "project-" (symbol-name command))
-                (get command 'project-related)))
+                (get command 'project-aware)))
           (let ((project-current-directory-override root))
             (call-interactively command))
         (let ((default-directory root))
