@@ -210,26 +210,24 @@ directory hierarchy."
            (advice-add
             #'jsonrpc--log-event :before
             (lambda (_proc message &optional origin subtype)
-              (cl-destructuring-bind (&key method id _error &allow-other-keys)
-                  message
-                (let ((req-p (eq subtype 'request))
-                      (notif-p (eq subtype 'notification))
-                      (reply-p (eql subtype 'reply)))
-                  (cond
-                   ((eq origin 'server)
-                    (cond (req-p ,(when server-requests
-                                    `(push message ,server-requests)))
-                          (notif-p ,(when server-notifications
-                                      `(push message ,server-notifications)))
-                          (reply-p ,(when server-replies
-                                      `(push message ,server-replies)))))
-                   ((eq origin 'client)
-                    (cond (req-p ,(when client-requests
-                                    `(push message ,client-requests)))
-                          (notif-p ,(when client-notifications
-                                      `(push message ,client-notifications)))
-                          (reply-p ,(when client-replies
-                                      `(push message ,client-replies)))))))))
+              (let ((req-p (eq subtype 'request))
+                    (notif-p (eq subtype 'notification))
+                    (reply-p (eql subtype 'reply)))
+                (cond
+                 ((eq origin 'server)
+                  (cond (req-p ,(when server-requests
+                                  `(push message ,server-requests)))
+                        (notif-p ,(when server-notifications
+                                    `(push message ,server-notifications)))
+                        (reply-p ,(when server-replies
+                                    `(push message ,server-replies)))))
+                 ((eq origin 'client)
+                  (cond (req-p ,(when client-requests
+                                  `(push message ,client-requests)))
+                        (notif-p ,(when client-notifications
+                                    `(push message ,client-notifications)))
+                        (reply-p ,(when client-replies
+                                    `(push message ,client-replies))))))))
             '((name . ,log-event-ad-sym)))
            ,@body)
        (advice-remove #'jsonrpc--log-event ',log-event-ad-sym))))
