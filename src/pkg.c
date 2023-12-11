@@ -1012,6 +1012,38 @@ pkg_in_emacs_package (void)
   specbind (Qearmuffs_package, Vemacs_package);
 }
 
+Lisp_Object
+pkg_symbol_completion_string (Lisp_Object sym, Lisp_Object status)
+{
+  const Lisp_Object package_name = PACKAGE_NAMEX (SYMBOL_PACKAGE (sym));
+  const char *sep = EQ (status, QCinternal) ? "::" : ":";
+  return CALLN (Fconcat, package_name, build_string (sep), SYMBOL_NAME (sym));
+}
+
+Lisp_Object
+pkg_strip_package_prefix (Lisp_Object string, Lisp_Object package)
+{
+  const Lisp_Object package_name = PACKAGE_NAMEX (package);
+  if (SCHARS (string) <= SCHARS (package_name))
+    return string;
+
+  if (!BASE_EQ (Qt, Fcompare_strings (package_name, make_fixnum (0),
+				      make_fixnum (SCHARS (package_name)),
+				      string, make_fixnum (0),
+				      make_fixnum (SCHARS (package_name)),
+				      completion_ignore_case ? Qt : Qnil)))
+    return string;
+
+  ptrdiff_t start = SCHARS (package_name);
+  if (SREF (string, start) != ':')
+    return string;
+
+  ++start;
+  if (start < SCHARS (string) & SREF (string, start) == ':')
+    ++start;
+  return Fsubstring (string, make_fixnum (start), Qnil);
+}
+
 
 /***********************************************************************
 			    Initialization
@@ -1028,6 +1060,7 @@ init_pkg_once (void)
   DEFSYM (QCinternal, ":internal");
   DEFSYM (QCnicknames, ":nicknames");
   DEFSYM (QCuse, ":use");
+  DEFSYM (QCsymbol, ":symbol");
 
   DEFSYM (Qearmuffs_package, "*package*");
   DEFSYM (Qemacs_package, "emacs-package");

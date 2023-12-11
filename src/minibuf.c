@@ -1618,6 +1618,9 @@ or from one of the possible completions.  */)
 
   CHECK_STRING (string);
 
+  if (EQ (collection, Vobarray))
+    return Ftry_completion_in_all_packages (string, collection, predicate);
+
   if (FUNCTIONP (collection))
     return call3 (collection, string, predicate, Qnil);
 
@@ -1655,20 +1658,19 @@ or from one of the possible completions.  */)
 
       if (HASH_TABLE_P (collection))
 	{
-	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
-			     Qunbound))
-	    idx++;
-	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
+	  const struct Lisp_Hash_Table *ht = XHASH_TABLE (collection);
+	  while (idx < HASH_TABLE_SIZE (ht)
+		 && BASE_EQ (HASH_KEY (ht, idx), Qunbound))
+	    ++idx;
+	  if (idx >= HASH_TABLE_SIZE (ht))
 	    break;
-	  else if (symbol_table_p)
+	  elt = eltstring = HASH_KEY (ht, idx);
+	  if (symbol_table_p)
 	    {
-	      elt = HASH_KEY (XHASH_TABLE (collection), idx);
-	      eltstring = SYMBOL_NAME (elt);
-	      ++idx;
+	      const Lisp_Object status = HASH_VALUE (ht, idx);
+	      eltstring = pkg_symbol_completion_string (elt, status);
 	    }
-	  else
-	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
+	  ++idx;
 	}
       else
 	{
@@ -1854,6 +1856,9 @@ with a space are ignored unless STRING itself starts with a space.  */)
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
 
+  if (EQ (collection, Vobarray))
+    return Fall_completions_in_all_packages (string, collection, predicate, hide_spaces);
+
   /* Fake obarray?  */
   if (VECTORP (collection))
     collection = Faref (collection, make_fixnum (0));
@@ -1903,19 +1908,19 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	}
       else /* if (type == 3) */
 	{
-	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
-			     Qunbound))
-	    idx++;
-	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
+	  const struct Lisp_Hash_Table *ht = XHASH_TABLE (collection);
+	  while (idx < HASH_TABLE_SIZE (ht)
+		 && BASE_EQ (HASH_KEY (ht, idx), Qunbound))
+	    ++idx;
+	  if (idx >= HASH_TABLE_SIZE (ht))
 	    break;
-	  else if (symbol_table_p)
+	  elt = eltstring = HASH_KEY (ht, idx);
+	  if (symbol_table_p)
 	    {
-	      elt = HASH_KEY (XHASH_TABLE (collection), idx++);
-	      eltstring = SYMBOL_NAME (elt);
+	      const Lisp_Object status = HASH_VALUE (ht, idx);
+	      eltstring = pkg_symbol_completion_string (elt, status);
 	    }
-	  else
-	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
+	  ++idx;
 	}
 
       /* Is this element a possible completion?  */
@@ -2060,6 +2065,9 @@ the values STRING, PREDICATE and `lambda'.  */)
 
   CHECK_STRING (string);
 
+  if (EQ (collection, Vobarray))
+    return Ftest_completion_in_all_packages (string, collection, predicate);
+
   /* If a vector (obarray), use the package stored in slot 0.  */
   if (VECTORP (collection))
     collection = Faref (collection, make_fixnum (0));
@@ -2068,7 +2076,11 @@ the values STRING, PREDICATE and `lambda'.  */)
      normal hash-table.  */
   const bool symbol_table_p = PACKAGEP (collection);
   if (symbol_table_p)
-    collection = PACKAGE_SYMBOLS (collection);
+    {
+      const Lisp_Object package = collection;
+      collection = PACKAGE_SYMBOLS (package);
+      string = pkg_strip_package_prefix (string, package);
+    }
 
   if (NILP (collection) || (CONSP (collection) && !FUNCTIONP (collection)))
     {
@@ -2078,28 +2090,32 @@ the values STRING, PREDICATE and `lambda'.  */)
     }
   else if (HASH_TABLE_P (collection))
     {
+      /* STRING is some input from the minibuffer, without intersting
+	 properties.  It may be, for example, "emacs:cd".
+       */
       struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
       i = hash_lookup (h, string, NULL);
       if (i >= 0)
-        {
-          tem = HASH_KEY (h, i);
-          goto found_matching_key;
-        }
+	tem = HASH_KEY (h, i);
       else
-	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
-          {
-            tem = HASH_KEY (h, i);
-            if (BASE_EQ (tem, Qunbound)) continue;
-            Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
-            if (!STRINGP (strkey)) continue;
-            if (BASE_EQ (Fcompare_strings (string, Qnil, Qnil,
-					   strkey, Qnil, Qnil,
-					   completion_ignore_case ? Qt : Qnil),
-                    Qt))
-              goto found_matching_key;
-          }
-      return Qnil;
-    found_matching_key: ;
+	{
+	  for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
+	    {
+	      tem = HASH_KEY (h, i);
+	      if (BASE_EQ (tem, Qunbound))
+		continue;
+	      Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
+	      if (!STRINGP (strkey))
+		continue;
+	      if (BASE_EQ (Fcompare_strings (string, Qnil, Qnil,
+					     strkey, Qnil, Qnil,
+					     completion_ignore_case ? Qt : Qnil),
+			   Qt))
+		break;
+	    }
+	  if (i >= HASH_TABLE_SIZE (h))
+	    return Qnil;
+	}
     }
   else
     return call3 (collection, string, predicate, Qlambda);

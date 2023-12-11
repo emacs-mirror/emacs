@@ -2583,7 +2583,11 @@ customizing `read-extended-command-predicate'."
           (execute-extended-command--last-typed nil))
       (setq command-name (read-extended-command))
       (setq typed execute-extended-command--last-typed)))
-  (let* ((function (and (stringp command-name) (intern-soft command-name)))
+  (let* ((function (and (stringp command-name)
+                        ;; PKG-FIXME: what if some schmock has
+                        ;; a commands with ":" in it?
+                        (let ((symbol-packages t))
+                          (car (read-from-string command-name)))))
          (binding (and suggest-key-bindings
 		       (not executing-kbd-macro)
 		       (where-is-internal function overriding-local-map t)))
