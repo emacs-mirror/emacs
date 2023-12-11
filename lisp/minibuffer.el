@@ -2551,7 +2551,7 @@ The candidate will still be chosen by `choose-completion' unless
              . ,#'(lambda (_window)
                     (with-current-buffer mainbuf
                       (when completion-auto-deselect
-                        (add-hook 'after-change-functions #'completions--after-change t))
+                        (add-hook 'after-change-functions #'completions--after-change nil t))
                       ;; Remove the base-size tail because `sort' requires a properly
                       ;; nil-terminated list.
                       (when last (setcdr last nil))
