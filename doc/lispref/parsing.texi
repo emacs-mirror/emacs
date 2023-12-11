@@ -1015,8 +1015,8 @@ This function returns the field name of the @var{n}'th child of
 @var{node}.  It returns @code{nil} if there is no @var{n}'th child, or
 the @var{n}'th child doesn't have a field name.
 
-Note that @var{n} counts both named and anonymous children, and
-@var{n} can be negative, e.g., @minus{}1 represents the last child.
+Note that @var{n} counts named nodes only, and @var{n} can be
+negative, e.g., @minus{}1 represents the last child.
 @end defun
 
 @defun treesit-node-child-count node &optional named
