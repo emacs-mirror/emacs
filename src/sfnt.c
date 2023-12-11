@@ -7450,6 +7450,8 @@ static void
 sfnt_interpret_utp (struct sfnt_interpreter *interpreter,
 		    uint32_t p)
 {
+  unsigned char mask;
+
   if (!interpreter->state.zp0)
     {
       if (p >= interpreter->twilight_zone_size)
@@ -7463,7 +7465,31 @@ sfnt_interpret_utp (struct sfnt_interpreter *interpreter,
       || p >= interpreter->glyph_zone->num_points)
     TRAP ("UTP[] p lies outside glyph zone");
 
-  interpreter->glyph_zone->flags[p] &= ~SFNT_POINT_TOUCHED_X;
+  /* The flags unset by UTP are subject to which axes in the freedom
+     vector are significant, as stated in the TrueType reference
+     manual by this needless mouthful:
+
+       A point may be touched in the x-direction, the y-direction, or
+       in both the x and y-directions.  The position of the freedom
+       vector determines whether the point is untouched in the
+       x-direction, the y-direction, or both.  If the vector is set to
+       the x-axis, the point will be untouched in the x-direction.  If
+       the vector is set to the y-axis, the point will be untouched in
+       the y-direction.  Otherwise the point will be untouched in both
+       directions.
+
+       A points that is marked as untouched will be moved by an IUP[]
+       instruction even if the point was previously touched.  */
+
+  mask = 0xff;
+
+  if (interpreter->state.freedom_vector.x)
+    mask &= ~SFNT_POINT_TOUCHED_X;
+
+  if (interpreter->state.freedom_vector.y)
+    mask &= ~SFNT_POINT_TOUCHED_Y;
+
+  interpreter->glyph_zone->flags[p] &= mask;
 }
 
 /* Save the specified unit VECTOR into INTERPRETER's graphics state as
