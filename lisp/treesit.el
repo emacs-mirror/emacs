@@ -1962,7 +1962,7 @@ the current line if the beginning of the defun is indented."
          (forward-line 1))
         ;; Moving backward, but there are some whitespace (and only
         ;; whitespace) between point and BOL: go back to BOL.
-        ((looking-back (rx (+ (or " " "\t")))
+        ((looking-back (rx bol (+ (or " " "\t")))
                        (line-beginning-position))
          (beginning-of-line))))
 
