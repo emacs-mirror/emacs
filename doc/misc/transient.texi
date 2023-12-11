@@ -203,6 +203,18 @@ easy.  Fun even.  Once you've tried it, it's hard to go back to the
 @node Usage
 @chapter Usage
 
+@menu
+* Invoking Transients::
+* Aborting and Resuming Transients::
+* Common Suffix Commands::
+* Saving Values::
+* Using History::
+* Getting Help for Suffix Commands::
+* Enabling and Disabling Suffixes::
+* Other Commands::
+* Configuration::
+@end menu
+
 @node Invoking Transients
 @section Invoking Transients
 
@@ -925,6 +937,15 @@ signal an error.
 
 @node Defining New Commands
 @chapter Defining New Commands
+
+@menu
+* Technical Introduction::
+* Defining Transients::
+* Binding Suffix and Infix Commands::
+* Defining Suffix and Infix Commands::
+* Using Infix Arguments::
+* Transient State::
+@end menu
 
 @node Technical Introduction
 @section Technical Introduction
