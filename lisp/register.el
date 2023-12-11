@@ -156,7 +156,7 @@ TYPES are the types of register supported.
 MSG is the minibuffer message to send when a register is selected.
 ACT is the type of action the command is doing on register.
 SMATCH accept a boolean value to say if command accept non matching register."
-  types msg act smatch)
+  types msg act smatch noconfirm)
 
 (cl-defgeneric register-command-info (command)
   "Returns a `register-preview-info' object storing data for COMMAND."
@@ -179,24 +179,66 @@ SMATCH accept a boolean value to say if command accept non matching register."
    :types '(all)
    :msg "View register `%s'"
    :act 'view
+   :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql append-to-register)))
   (make-register-preview-info
    :types '(string number)
    :msg "Append to register `%s'"
    :act 'modify
+   :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql prepend-to-register)))
   (make-register-preview-info
    :types '(string number)
    :msg "Prepend to register `%s'"
    :act 'modify
+   :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql increment-register)))
   (make-register-preview-info
    :types '(string number)
    :msg "Increment register `%s'"
    :act 'modify
+   :noconfirm (memq register-use-preview '(nil never))
+   :smatch t))
+(cl-defmethod register-command-info ((_command (eql copy-to-register)))
+  (make-register-preview-info
+   :types '(all)
+   :msg "Copy to register `%s'"
+   :act 'set
+   :noconfirm (memq register-use-preview '(nil never))))
+(cl-defmethod register-command-info ((_command (eql point-to-register)))
+  (make-register-preview-info
+   :types '(all)
+   :msg "Point to register `%s'"
+   :act 'set
+   :noconfirm (memq register-use-preview '(nil never))))
+(cl-defmethod register-command-info ((_command (eql number-to-register)))
+  (make-register-preview-info
+   :types '(all)
+   :msg "Number to register `%s'"
+   :act 'set
+   :noconfirm (memq register-use-preview '(nil never))))
+(cl-defmethod register-command-info
+    ((_command (eql window-configuration-to-register)))
+  (make-register-preview-info
+   :types '(all)
+   :msg "Window configuration to register `%s'"
+   :act 'set
+   :noconfirm (memq register-use-preview '(nil never))))
+(cl-defmethod register-command-info ((_command (eql frameset-to-register)))
+  (make-register-preview-info
+   :types '(all)
+   :msg "Frameset to register `%s'"
+   :act 'set
+   :noconfirm (memq register-use-preview '(nil never))))
+(cl-defmethod register-command-info ((_command (eql copy-rectangle-to-register)))
+  (make-register-preview-info
+   :types '(all)
+   :msg "Copy rectangle to register `%s'"
+   :act 'set
+   :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 
 (defun register-preview-forward-line (arg)
@@ -328,12 +370,13 @@ display such a window regardless."
                 m))
          (data (register-command-info this-command))
          (enable-recursive-minibuffers t)
-         types msg result timer act win strs smatch)
+         types msg result timer act win strs smatch noconfirm)
     (if data
-        (setq types  (register-preview-info-types data)
-              msg    (register-preview-info-msg   data)
-              act    (register-preview-info-act   data)
-              smatch (register-preview-info-smatch data))
+        (setq types     (register-preview-info-types data)
+              msg       (register-preview-info-msg   data)
+              act       (register-preview-info-act   data)
+              smatch    (register-preview-info-smatch data)
+              noconfirm (register-preview-info-noconfirm data))
       (setq types '(all)
             msg   "Overwrite register `%s'"
             act   'set))
@@ -405,13 +448,15 @@ display such a window regardless."
                                          "Register `%s' is empty" pat))))))
                             (unless (string= pat "")
                               (with-selected-window (minibuffer-window)
-                                (if (and (member pat strs) (memq act '(set modify)))
+                                (if (and (member pat strs)
+                                         (memq act '(set modify))
+                                         (null noconfirm))
                                     (with-selected-window (minibuffer-window)
                                       (minibuffer-message msg pat))
-                                  ;; An empty register or an existing
-                                  ;; one but the action is insert or
-                                  ;; jump, don't ask for confirmation
-                                  ;; and exit immediately (bug#66394).
+                                  ;; The action is insert or
+                                  ;; jump or noconfirm is specifed
+                                  ;; explicitely, don't ask for
+                                  ;; confirmation and exit immediately (bug#66394).
                                   (setq result pat)
                                   (exit-minibuffer)))))))))
              (setq result (read-from-minibuffer
