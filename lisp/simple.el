@@ -2473,7 +2473,9 @@ or (if one of MODES is a minor mode), if it is switched on in BUFFER."
   (with-selected-window (or (minibuffer-selected-window) (selected-window))
     (mapcar
      (lambda (command-name)
-       (let* ((fun (and (stringp command-name) (intern-soft command-name)))
+       (let* ((fun (and (stringp command-name)
+			(let ((symbol-packages t))
+			  (car (read-from-string command-name)))))
               (binding (where-is-internal fun overriding-local-map t))
               (obsolete (get fun 'byte-obsolete-info))
               (alias (symbol-function fun))
