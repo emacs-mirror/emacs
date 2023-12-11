@@ -134,15 +134,35 @@ immediately."
            t))
 
 ;;; API optional
-(cl-defgeneric jsonrpc-convert-to-endpoint (connection message method)
-  "Convert JSONRPC message to a JSONRPCesque message accepted by endpoint.
-METHOD duplicates MESSAGE's `:method' property for requests and
-notifications.  Return a plist."
-  (:method (_s message _method) `(:jsonrpc "2.0" ,@message)))
+(cl-defgeneric jsonrpc-convert-to-endpoint (connection message subtype)
+  "Convert MESSAGE to JSONRPCesque message accepted by endpoint.
+MESSAGE is a plist, jsonrpc.el's internal representation of a
+JSONRPC message.  SUBTYPE is one of `request', `reply' or
+`notification'.
+
+Return a plist to be serialized to JSON with `json-serialize' and
+transmitted to endpoint."
+  ;; TODO: describe representations and serialization in manual and
+  ;; link here.
+  (:method (_s message subtype)
+           `(:jsonrpc "2.0"
+                      ,@(if (eq subtype 'reply)
+                            ;; true JSONRPC doesn't have `method'
+                            ;; fields in responses.
+                            (cl-loop for (k v) on message by #'cddr
+                                     unless (eq k :method)
+                                     collect k and collect v)
+                          message))))
 
 ;;; API optional
 (cl-defgeneric jsonrpc-convert-from-endpoint (connection remote-message)
-  "Convert JSONRPC-esque REMOTE-MESSAGE to a JSONRPC message plist."
+  "Convert JSONRPC-esque REMOTE-MESSAGE to a plist.
+REMOTE-MESSAGE is a plist read with `json-parse'.
+
+Return a plist of jsonrpc.el's internal representation of a
+JSONRPC message."
+  ;; TODO: describe representations and serialization in manual and
+  ;; link here.
   (:method (_s remote-message) remote-message))
 
 
@@ -463,7 +483,10 @@ connection object, called when the process dies.")
                      ((symbolp method) (symbol-name method))
                      ((stringp method) method)
                      (t (error "[jsonrpc] invalid method %s" method)))))
-  (let* ((converted (jsonrpc-convert-to-endpoint connection args method))
+  (let* ((subtype (cond ((or result-supplied-p error) 'reply)
+                        (id                    'request)
+                        (method                'notification)))
+         (converted (jsonrpc-convert-to-endpoint connection args subtype))
          (json (jsonrpc--json-encode converted))
          (headers
           `(("Content-Length" . ,(format "%d" (string-bytes json)))
@@ -474,10 +497,7 @@ connection object, called when the process dies.")
      (cl-loop for (header . value) in headers
               concat (concat header ": " value "\r\n") into header-section
               finally return (format "%s\r\n%s" header-section json)))
-    (jsonrpc--log-event connection converted 'client
-                        (cond ((or result-supplied-p error) 'reply)
-                              (id                    'request)
-                              (method                'notification)))))
+    (jsonrpc--log-event connection converted 'client subtype)))
 
 (defun jsonrpc-process-type (conn)
   "Return the `process-type' of JSONRPC connection CONN."
