@@ -278,6 +278,11 @@ elaborate and error-prone escaping (to protect them from the shell).
 When answering the prompt with "diff" or "=", it now shows the diffs
 between the auto save file and the current file.
 
+---
+** 'ffap-lax-url' now defaults to nil.
+Previously, it was set to 'ffap-lax-url' to t but this broke remote file
+name detection.
+
 
 * Editing Changes in Emacs 30.1
 
