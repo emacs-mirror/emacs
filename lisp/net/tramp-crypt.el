@@ -859,7 +859,8 @@ WILDCARD is not supported."
   "Cleanup crypt resources determined by VEC."
   (let ((tramp-cleanup-connection-hook
 	 (remove
-	  #'tramp-crypt-cleanup-connection tramp-cleanup-connection-hook)))
+	  #'tramp-crypt-cleanup-connection tramp-cleanup-connection-hook))
+	(tramp-crypt-enabled t))
     (dolist (dir tramp-crypt-directories)
       (when (tramp-file-name-equal-p vec (tramp-dissect-file-name dir))
 	(tramp-cleanup-connection (tramp-crypt-dissect-file-name dir))))))

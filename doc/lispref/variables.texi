@@ -2487,7 +2487,7 @@ are unwound.  Example:
 
 @defvar connection-local-default-application
 The default application, a symbol, to be applied in
-@code{with-connection-local-variables} and
+@code{with-connection-local-variables}, @code{connection-local-p} and
 @code{connection-local-value}.  It defaults to @code{tramp}, but you
 can let-bind it to change the application temporarily (@pxref{Local
 Variables}).
@@ -2545,6 +2545,13 @@ profile.
 
 This variable must not be changed globally.
 @end defvar
+
+@defmac connection-local-p symbol &optional application
+This macro returns non-@code{nil} if @var{symbol} has a
+connection-local binding for @var{application}.  If @var{application}
+is @code{nil}, the value of
+@code{connection-local-default-application} is used.
+@end defmac
 
 @defmac connection-local-value symbol &optional application
 This macro returns the connection-local value of @var{symbol} for
