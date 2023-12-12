@@ -3581,16 +3581,6 @@ Check if a node type is available, then return the right indent rules."
      (import_clause (namespace_import (identifier) @font-lock-variable-name-face)))
 
    :language 'javascript
-   :feature 'property
-   '(((property_identifier) @font-lock-property-use-face
-      (:pred js--treesit-property-not-function-p
-             @font-lock-property-use-face))
-
-     (pair value: (identifier) @font-lock-variable-use-face)
-
-     ((shorthand_property_identifier) @font-lock-property-use-face))
-
-   :language 'javascript
    :feature 'assignment
    '((assignment_expression
       left: (_) @js--treesit-fontify-assignment-lhs))
@@ -3609,6 +3599,12 @@ Check if a node type is available, then return the right indent rules."
      (jsx_closing_element name: (_) @font-lock-function-call-face)
      (jsx_self_closing_element name: (_) @font-lock-function-call-face)
      (jsx_attribute (property_identifier) @font-lock-constant-face))
+
+   :language 'javascript
+   :feature 'property
+   '(((property_identifier) @font-lock-property-use-face)
+     (pair value: (identifier) @font-lock-variable-use-face)
+     ((shorthand_property_identifier) @font-lock-property-use-face))
 
    :language 'javascript
    :feature 'number
@@ -3660,14 +3656,6 @@ OVERRIDE is the override flag described in
            font-beg font-end 'font-lock-string-face override start end)))
       (setq font-beg (treesit-node-end child)
             child (treesit-node-next-sibling child)))))
-
-(defun js--treesit-property-not-function-p (node)
-  "Check that NODE, a property_identifier, is not used as a function."
-  (not (equal (treesit-node-type
-               (treesit-node-parent ; Maybe call_expression.
-                (treesit-node-parent ; Maybe member_expression.
-                 node)))
-              "call_expression")))
 
 (defvar js--treesit-lhs-identifier-query
   (when (treesit-available-p)
