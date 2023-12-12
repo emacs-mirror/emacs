@@ -409,7 +409,7 @@
              (push-button)
              (should (search-forward-regexp
                       (rx "Foreground: #" (group (+ xdigit)) eol)))
-             (forward-button 1)
+             (forward-button 2) ; skip Inherit:...
              (push-button))
 
            (ert-info ("First entry's sample is rendered correctly")

@@ -372,7 +372,8 @@ specified by `erc-button-alist'."
   ( nickname-face erc-button-nickname-face :type symbol
     :documentation "Temp `erc-button-nickname-face' while buttonizing.")
   ( mouse-face erc-button-mouse-face :type symbol
-    :documentation "Temp `erc-button-mouse-face' while buttonizing."))
+    :documentation "Function to return possibly cached face.")
+  ( face-cache nil :type (or null function)))
 
 ;; This variable is intended to serve as a "core" to be wrapped by
 ;; (built-in) modules during setup.  It's unclear whether
@@ -479,8 +480,7 @@ retrieve it during buttonizing via
                      (erc-bounds-of-word-at-point)))
          (word (buffer-substring-no-properties (car bounds) (cdr bounds)))
          (down (erc-downcase word)))
-      (let* ((erc-button-mouse-face erc-button-mouse-face)
-             (erc-button-nickname-face erc-button-nickname-face)
+      (let* ((nick-obj t)
              (cuser (and erc-channel-users
                          (or (gethash down erc-channel-users)
                              (funcall erc-button--fallback-cmem-function
@@ -489,19 +489,15 @@ retrieve it during buttonizing via
                        (and erc-server-users (gethash down erc-server-users))))
              (data (list word)))
         (when (or (not (functionp form))
-                  (and-let* ((user)
-                             (obj (funcall form (make-erc-button--nick
-                                                 :bounds bounds :data data
-                                                 :downcased down :user user
-                                                 :cuser (cdr cuser)))))
-                    (setq erc-button-mouse-face ; might be null
-                          (erc-button--nick-mouse-face obj)
-                          erc-button-nickname-face ; might be null
-                          (erc-button--nick-nickname-face obj)
-                          data (erc-button--nick-data obj)
-                          bounds (erc-button--nick-bounds obj))))
+                  (and user
+                       (setq nick-obj (funcall form (make-erc-button--nick
+                                                     :bounds bounds :data data
+                                                     :downcased down :user user
+                                                     :cuser (cdr cuser)))
+                             data (erc-button--nick-data nick-obj)
+                             bounds (erc-button--nick-bounds nick-obj))))
           (erc-button-add-button (car bounds) (cdr bounds) (nth 3 entry)
-                                 'nickp data))))))
+                                 nick-obj data))))))
 
 (defun erc-button-add-buttons-1 (regexp entry)
   "Search through the buffer for matches to ENTRY and add buttons."
@@ -560,13 +556,20 @@ REGEXP is the regular expression which matched for this button."
           (move-marker pos (point))))))
   (if nick-p
       (when erc-button-nickname-face
-        (erc-button-add-face from to erc-button-nickname-face))
+        (erc--merge-prop from to 'font-lock-face
+                         (or (and (erc-button--nick-p nick-p)
+                                  (erc-button--nick-nickname-face nick-p))
+                             erc-button-nickname-face)
+                         nil (and (erc-button--nick-p nick-p)
+                                  (erc-button--nick-face-cache nick-p))))
     (when erc-button-face
-      (erc-button-add-face from to erc-button-face)))
+      (erc--merge-prop from to 'font-lock-face erc-button-face)))
   (add-text-properties
    from to
-   (nconc (and erc-button-mouse-face
-               (list 'mouse-face erc-button-mouse-face))
+   (nconc (and-let* ((face (or (and (erc-button--nick-p nick-p)
+                                    (erc-button--nick-mouse-face nick-p))
+                               erc-button-mouse-face)))
+            (list 'mouse-face face))
           (list 'erc-callback fun)
           (list 'keymap erc-button-keymap)
           (list 'rear-nonsticky t)

@@ -3413,12 +3413,14 @@ being equivalent to a `erc-display-message' TYPE of `notice'."
 ;; values and optionally dispense archetypal constants in their place
 ;; in order to ensure all occurrences of some list (a b) across all
 ;; text-properties in all ERC buffers are actually the same object.
-(defun erc--merge-prop (from to prop val &optional object)
+(defun erc--merge-prop (from to prop val &optional object cache-fn)
   "Combine existing PROP values with VAL between FROM and TO in OBJECT.
 For spans where PROP is non-nil, cons VAL onto the existing
 value, ensuring a proper list.  Otherwise, just set PROP to VAL.
 When VAL is itself a list, prepend its members onto an existing
-value.  See also `erc-button-add-face'."
+value.  Call CACHE-FN, when given, with the new value for prop.
+It must return a suitable replacement or the same value.  See
+also `erc-button-add-face'."
   (let ((old (get-text-property from prop object))
         (pos from)
         (end (next-single-property-change from prop object to))
@@ -3432,6 +3434,8 @@ value.  See also `erc-button-add-face'."
                           (append val (ensure-list old))
                         (cons val (ensure-list old))))
                   val))
+      (when cache-fn
+        (setq new (funcall cache-fn new)))
       (put-text-property pos end prop new object)
       (setq pos end
             old (get-text-property pos prop object)
