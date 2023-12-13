@@ -12847,7 +12847,40 @@ The next line of the @code{forward-paragraph} function begins a
 introduced}), in which Emacs binds a total of seven variables:
 @code{opoint}, @code{fill-prefix-regexp}, @code{parstart},
 @code{parsep}, @code{sp-parstart}, @code{start}, and
-@code{found-start}.
+@code{found-start}.  The first part of the @code{let*} expression
+looks like below:
+
+@smallexample
+@group
+(let* ((opoint (point))
+       (fill-prefix-regexp
+        (and fill-prefix (not (equal fill-prefix ""))
+             (not paragraph-ignore-fill-prefix)
+             (regexp-quote fill-prefix)))
+       ;; Remove ^ from paragraph-start and paragraph-sep if they are there.
+       ;; These regexps shouldn't be anchored, because we look for them
+       ;; starting at the left-margin.  This allows paragraph commands to
+       ;; work normally with indented text.
+       ;; This hack will not find problem cases like "whatever\\|^something".
+       (parstart (if (and (not (equal "" paragraph-start))
+                          (equal ?^ (aref paragraph-start 0)))
+                     (substring paragraph-start 1)
+                   paragraph-start))
+       (parsep (if (and (not (equal "" paragraph-separate))
+                        (equal ?^ (aref paragraph-separate 0)))
+                   (substring paragraph-separate 1)
+                 paragraph-separate))
+       (parsep
+        (if fill-prefix-regexp
+            (concat parsep "\\|"
+                    fill-prefix-regexp "[ \t]*$")
+          parsep))
+       ;; This is used for searching.
+       (sp-parstart (concat "^[ \t]*\\(?:" parstart "\\|" parsep "\\)"))
+       start found-start)
+  ...)
+@end group
+@end smallexample
 
 The variable @code{parsep} appears twice, first, to remove instances
 of @samp{^}, and second, to handle fill prefixes.
