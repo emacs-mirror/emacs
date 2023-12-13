@@ -216,6 +216,9 @@ PAR is a number of a regexp grouping whose text will be passed to
   "URL of the EmacsWiki ELisp area."
   :type 'string)
 
+(defvar erc-button-highlight-nick-once '(QUIT PART JOIN)
+  "Messages for which to buttonize only the first nick occurrence.")
+
 (defvar erc-button-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") #'erc-button-press-button)
@@ -382,11 +385,22 @@ be updated at will.")
 
 (defvar-local erc-button--phantom-cmems nil)
 
-(defvar erc-button--fallback-cmem-function #'ignore
+(defvar erc-button--fallback-cmem-function
+  #'erc-button--get-user-from-spkr-prop
   "Function to determine channel member if not found in the usual places.
-Called with DOWNCASED-NICK, NICK, and NICK-BOUNDS when
+Called with DOWNCASED-NICK, NICK, NICK-BOUNDS, and COUNT when
 `erc-button-add-nickname-buttons' cannot find a user object for
-DOWNCASED-NICK in `erc-channel-users' or `erc-server-users'.")
+DOWNCASED-NICK in `erc-channel-users' or `erc-server-users'.
+NICK-BOUNDS is a cons of buffer positions, and COUNT is a number
+incremented with each visit, starting at 1.")
+
+(defun erc-button--get-user-from-spkr-prop (_ _ _ count)
+  "Attempt to obtain an `erc-channel-user' from current \"msg props\".
+But only do so when COUNT is 1, meaning this is the first button
+candidate in the just-inserted message."
+  (and-let* (((= 1 count))
+             (nick (erc--check-msg-prop 'erc--spkr)))
+    (gethash nick erc-channel-users)))
 
 ;; Historical or fictitious users.  As long as these two structs
 ;; remain superficial "subclasses" with the same slots and defaults,
@@ -408,7 +422,7 @@ DOWNCASED-NICK in `erc-channel-users' or `erc-server-users'.")
     (puthash downcased (cons user cuser) erc-button--phantom-cmems)
     (cons user cuser)))
 
-(defun erc-button--get-phantom-cmem (down _word _bounds)
+(defun erc-button--get-phantom-cmem (down _word _bounds _count)
   (gethash down erc-button--phantom-cmems))
 
 (define-minor-mode erc-button--phantom-users-mode
@@ -446,10 +460,15 @@ retrieve it during buttonizing via
                           (and erc-button-buttonize-nicks
                                erc-button--modify-nick-function)))
                      (erc-button--extract-form form)))
+             (oncep (if-let ((erc-button-highlight-nick-once)
+                             (c (erc--check-msg-prop 'erc--cmd))
+                             ((memq c erc-button-highlight-nick-once)))
+                        1 0))
              (seen 0))
     (goto-char (point-min))
     (while-let
-        (((erc-forward-word))
+        (((or (zerop seen) (zerop oncep)))
+         ((erc-forward-word))
          (bounds (or (and (= 1 (cl-incf seen)) (erc--get-speaker-bounds))
                      (erc-bounds-of-word-at-point)))
          (word (buffer-substring-no-properties (car bounds) (cdr bounds)))
@@ -459,7 +478,7 @@ retrieve it during buttonizing via
              (cuser (and erc-channel-users
                          (or (gethash down erc-channel-users)
                              (funcall erc-button--fallback-cmem-function
-                                      down word bounds))))
+                                      down word bounds seen))))
              (user (or (and cuser (car cuser))
                        (and erc-server-users (gethash down erc-server-users))))
              (data (list word)))

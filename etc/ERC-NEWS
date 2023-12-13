@@ -212,6 +212,13 @@ currently most prominent in "/ME" messages, where 'erc-action-face'
 sits beneath 'erc-input-face', as well as 'erc-my-nick-face' in the
 speaker portion.
 
+** Fewer nick buttons in QUIT, JOIN, and PART messages.
+Common messages that show a nickname followed by a "userhost" often
+end up with redundant buttons because the nick reappears in or is the
+same as the "~user" portion.  ERC now tamps down on this to make
+<TAB>ing around more convenient.  To opt out, see the new variable
+'erc-button-highlight-nick-once'.
+
 ** Improved interplay between buffer truncation and message logging.
 While most of these improvements are subtle, some affect everyday use.
 For example, users of the 'truncate' module may notice that truncation
