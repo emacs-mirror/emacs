@@ -1284,7 +1284,9 @@ it is displayed along with the global value."
                 t nil nil
                 (if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
-	       v (car (read-from-string val))))))
+	       v
+	     (let ((symbol-packages t))
+	       (car (read-from-string val)))))))
   (let (file-name
         (help-buffer-under-preparation t))
     (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
