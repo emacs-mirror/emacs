@@ -6032,7 +6032,8 @@ and corresponding effects."
             :buffer :host :service :type :family :local :remote :coding
             :nowait :noquery :stop :filter :filter-multibyte :sentinel
             :log :plist :tls-parameters :server :broadcast :dontroute
-            :keepalive :linger :oobinline :priority :reuseaddr :nodelay
+            :keepalive :keepalive-idle :keepalive-interval :keepalive-count
+            :linger :oobinline :priority :reuseaddr :nodelay
             :bindtodevice :use-external-socket)
           '(:name :service))))
 

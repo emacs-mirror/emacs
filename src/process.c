@@ -2886,7 +2886,7 @@ static const struct socket_options {
   /* Option number SO_...  */
   int optnum;
   enum { SOPT_UNKNOWN, SOPT_BOOL, SOPT_INT, SOPT_IFNAME, SOPT_LINGER } opttype;
-  enum { OPIX_NONE = 0, OPIX_MISC = 1, OPIX_REUSEADDR = 2 } optbit;
+  enum { OPIX_NONE = 0, OPIX_MISC = 1, OPIX_REUSEADDR = 2, OPIX_KEEPALIVE = 3 } optbit;
 } socket_options[] =
   {
 #ifdef SO_BINDTODEVICE
@@ -2899,7 +2899,19 @@ static const struct socket_options {
     { ":dontroute", SOL_SOCKET, SO_DONTROUTE, SOPT_BOOL, OPIX_MISC },
 #endif
 #ifdef SO_KEEPALIVE
-    { ":keepalive", SOL_SOCKET, SO_KEEPALIVE, SOPT_BOOL, OPIX_MISC },
+    { ":keepalive", SOL_SOCKET, SO_KEEPALIVE, SOPT_BOOL, OPIX_KEEPALIVE },
+#endif
+#ifdef TCP_KEEPIDLE
+    { ":keepalive-idle", IPPROTO_TCP, TCP_KEEPIDLE, SOPT_INT, OPIX_KEEPALIVE },
+#elif defined (TCP_KEEPALIVE)
+    /* macOS.  */
+    { ":keepalive-idle", IPPROTO_TCP, TCP_KEEPALIVE, SOPT_INT, OPIX_KEEPALIVE },
+#endif
+#ifdef TCP_KEEPINTVL
+    { ":keepalive-interval", IPPROTO_TCP, TCP_KEEPINTVL, SOPT_INT, OPIX_KEEPALIVE },
+#endif
+#ifdef TCP_KEEPCNT
+    { ":keepalive-count", IPPROTO_TCP, TCP_KEEPCNT, SOPT_INT, OPIX_KEEPALIVE },
 #endif
 #ifdef SO_LINGER
     { ":linger", SOL_SOCKET, SO_LINGER, SOPT_LINGER, OPIX_MISC },
@@ -3948,8 +3960,11 @@ The following network options can be specified for this connection:
 
 :broadcast BOOL    -- Allow send and receive of datagram broadcasts.
 :dontroute BOOL    -- Only send to directly connected hosts.
-:keepalive BOOL    -- Send keep-alive messages on network stream.
 :nodelay BOOL      -- Set TCP_NODELAY on the network socket.
+:keepalive BOOL         -- Send keep-alive messages on network stream.
+:keepalive-idle INT     -- Set keep-alive idle time.
+:keepalive-interval INT -- Set keep-alive message interval.
+:keepalive-count INT    -- Set keep-alive probe count.
 :linger BOOL or TIMEOUT -- Send queued messages before closing.
 :oobinline BOOL    -- Place out-of-band data in receive data stream.
 :priority INT      -- Set protocol defined priority for sent packets.

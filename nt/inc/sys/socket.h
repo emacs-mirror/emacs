@@ -35,6 +35,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define MUST_REDEF_SELECT
 #endif
 
+/* These are not defined by mingw.org's MinGW headers.  */
+#ifndef TCP_KEEPIDLE
+# define TCP_KEEPIDLE 3
+#endif
+#ifndef TCP_KEEPCNT
+# define TCP_KEEPCNT 16
+#endif
+#ifndef TCP_KEEPINTVL
+# define TCP_KEEPINTVL 17
+#endif
+
 /* avoid clashing with our version of FD_SET if already defined */
 #ifdef FD_SET
 #undef FD_SET

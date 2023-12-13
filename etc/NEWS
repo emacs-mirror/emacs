@@ -182,6 +182,15 @@ terminfo database.  For terminals where the terminfo database does not
 correctly declare the 'Smol' capability, the new function
 'tty-enable-overline' allows manually enabling or disabling support.
 
++++
+** 'make-network-process' now supports setting TCP keepalive options.
+The ':keepalive-idle', ':keepalive-interval', and ':keepalive-count'
+options can now be used to set the various timers and counters used
+when TCP keepalive is enabled for a connection.  The support for this
+is platform-dependent, but works on at least GNU/Linux, FreeBSD,
+NetBSD, and MS Windows.  (OpenBSD does not work, but specifying the
+options does not cause any errors).
+
 
 * Editing Changes in Emacs 32.1
 
