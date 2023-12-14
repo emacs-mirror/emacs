@@ -1011,10 +1011,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
     :accessor eglot--managed-buffers)
    (saved-initargs
     :documentation "Saved initargs for reconnection purposes."
-    :accessor eglot--saved-initargs)
-   (inferior-process
-    :documentation "Server subprocess started automatically."
-    :accessor eglot--inferior-process))
+    :accessor eglot--saved-initargs))
   :documentation
   "Represents a server. Wraps a process for LSP communication.")
 
@@ -1151,9 +1148,6 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
   (maphash (lambda (_dir watch-and-ids)
              (file-notify-rm-watch (car watch-and-ids)))
            (eglot--file-watches server))
-  ;; Kill any autostarted inferior processes
-  (when-let (proc (eglot--inferior-process server))
-    (delete-process proc))
   ;; Sever the project/server relationship for `server'
   (setf (gethash (eglot--project server) eglot--servers-by-project)
         (delq server
@@ -1464,7 +1458,6 @@ This docstring appeases checkdoc, that's all."
   (let* ((default-directory (project-root project))
          (nickname (project-name project))
          (readable-name (format "EGLOT (%s/%s)" nickname managed-modes))
-         autostart-inferior-process
          server-info
          (contact (if (functionp contact) (funcall contact) contact))
          (initargs
@@ -1477,16 +1470,16 @@ This docstring appeases checkdoc, that's all."
                                       readable-name nil
                                       (car contact) (cadr contact)
                                       (cddr contact)))))
-                ((and (stringp (car contact)) (memq :autoport contact))
+                ((and (stringp (car contact))
+                      (cl-find-if (lambda (x)
+                                    (or (eq x :autoport)
+                                        (eq (car-safe x) :autoport)))
+                                  contact))
                  (setq server-info (list "<inferior process>"))
-                 `(:process ,(lambda ()
-                               (pcase-let ((`(,connection . ,inferior)
-                                            (eglot--inferior-bootstrap
+                 `(:process ,(jsonrpc-autoport-bootstrap
                                              readable-name
                                              contact
-                                             '(:noquery t))))
-                                 (setq autostart-inferior-process inferior)
-                                 connection))))
+                                             :connect-args '(:noquery t))))
                 ((stringp (car contact))
                  (let* ((probe (cl-position-if #'keywordp contact))
                         (more-initargs (and probe (cl-subseq contact probe)))
@@ -1535,7 +1528,6 @@ This docstring appeases checkdoc, that's all."
     (setf (eglot--languages server)
           (cl-loop for m in managed-modes for l in language-ids
                    collect (cons m l)))
-    (setf (eglot--inferior-process server) autostart-inferior-process)
     (run-hook-with-args 'eglot-server-initialized-hook server)
     ;; Now start the handshake.  To honor `eglot-sync-connect'
     ;; maybe-sync-maybe-async semantics we use `jsonrpc-async-request'
@@ -1627,55 +1619,6 @@ in project `%s'."
                 (_ server)))
           (quit (jsonrpc-shutdown server) (setq canceled 'quit)))
       (setq tag nil))))
-
-(defun eglot--inferior-bootstrap (name contact &optional connect-args)
-  "Use CONTACT to start a server, then connect to it.
-Return a cons of two process objects (CONNECTION . INFERIOR).
-Name both based on NAME.
-CONNECT-ARGS are passed as additional arguments to
-`open-network-stream'."
-  (let* ((port-probe (make-network-process :name "eglot-port-probe-dummy"
-                                           :server t
-                                           :host "localhost"
-                                           :service 0))
-         (port-number (unwind-protect
-                          (process-contact port-probe :service)
-                        (delete-process port-probe)))
-         inferior connection)
-    (unwind-protect
-        (progn
-          (setq inferior
-                (make-process
-                 :name (format "autostart-inferior-%s" name)
-                 :stderr (format "*%s stderr*" name)
-                 :noquery t
-                 :command (cl-subst
-                           (format "%s" port-number) :autoport contact)))
-          (setq connection
-                (cl-loop
-                 repeat 10 for i from 1
-                 do (accept-process-output nil 0.5)
-                 while (process-live-p inferior)
-                 do (eglot--message
-                     "Trying to connect to localhost and port %s (attempt %s)"
-                     port-number i)
-                 thereis (ignore-errors
-                           (apply #'open-network-stream
-                                  (format "autoconnect-%s" name)
-                                  nil
-                                  "localhost" port-number connect-args))))
-          (cons connection inferior))
-      (cond ((and (process-live-p connection)
-                  (process-live-p inferior))
-             (eglot--message "Done, connected to %s!" port-number))
-            (t
-             (when inferior (delete-process inferior))
-             (when connection (delete-process connection))
-             (eglot--error "Could not start and connect to server%s"
-                           (if inferior
-                               (format " started with %s"
-                                       (process-command inferior))
-                             "!")))))))
 
 
 ;;; Helpers (move these to API?)
