@@ -641,7 +641,23 @@ It is the default value of the variable `top-level'."
       (setq eol-mnemonic-dos  "(DOS)"
 	    eol-mnemonic-mac  "(Mac)")))
 
-    (set-locale-environment nil)
+    (if (and (featurep 'android)
+             (eq system-type 'android)
+             initial-window-system)
+        ;; If Android windowing is enabled, derive a proper locale
+        ;; from the system's language preferences.  On Android, LANG
+        ;; and LC_* must be set to one of the two locales the C
+        ;; library supports, but, by contrast with other systems, the
+        ;; C library locale does not reflect the configured system
+        ;; language.
+        ;;
+        ;; For this reason, the locale from which Emacs derives a
+        ;; default language environment is computed from such
+        ;; preferences, rather than environment variables that the C
+        ;; library refers to.
+        (set-locale-environment
+         (funcall 'android-locale-for-system-language))
+      (set-locale-environment nil))
     ;; Decode all default-directory's (probably, only *scratch* exists
     ;; at this point).  default-directory of *scratch* is the basis
     ;; for many other file-name variables and directory lists, so it

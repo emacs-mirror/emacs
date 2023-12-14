@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "buffer.h"
 #include "androidgui.h"
+#include "pdumper.h"
 
 #ifndef ANDROID_STUBIFY
 
@@ -3170,6 +3171,186 @@ android_set_preeditarea (struct window *w, int x, int y)
 
 
 
+#ifndef ANDROID_STUBIFY
+
+static void
+syms_of_androidfns_for_pdumper (void)
+{
+  jclass locale;
+  jmethodID method;
+  jobject object;
+  jstring string;
+  Lisp_Object language, country, script, variant;
+  const char *data;
+
+  /* Find the Locale class.  */
+
+  locale = (*android_java_env)->FindClass (android_java_env,
+					   "java/util/Locale");
+  if (!locale)
+    emacs_abort ();
+
+  /* And the method from which the default locale can be
+     extracted.  */
+
+  method = (*android_java_env)->GetStaticMethodID (android_java_env,
+						   locale,
+						   "getDefault",
+						   "()Ljava/util/Locale;");
+  if (!method)
+    emacs_abort ();
+
+  /* Retrieve the default locale.  */
+
+  object = (*android_java_env)->CallStaticObjectMethod (android_java_env,
+							locale, method);
+  android_exception_check_1 (locale);
+
+  if (!object)
+    emacs_abort ();
+
+  /* Retrieve its language field.  Each of these methods is liable to
+     return the empty string, though if language is empty, the locale
+     is malformed.  */
+
+  method = (*android_java_env)->GetMethodID (android_java_env, locale,
+					     "getLanguage",
+					     "()Ljava/lang/String;");
+  if (!method)
+    emacs_abort ();
+
+  string = (*android_java_env)->CallObjectMethod (android_java_env, object,
+						  method);
+  android_exception_check_2 (object, locale);
+
+  if (!string)
+    language = empty_unibyte_string;
+  else
+    {
+      data = (*android_java_env)->GetStringUTFChars (android_java_env,
+						     string, NULL);
+      android_exception_check_3 (object, locale, string);
+
+      if (!data)
+	language = empty_unibyte_string;
+      else
+	{
+	  language = build_unibyte_string (data);
+	  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						      string, data);
+	}
+    }
+
+  /* Delete the reference to this string.  */
+  ANDROID_DELETE_LOCAL_REF (string);
+
+  /* Proceed to retrieve the country code.  */
+
+  method = (*android_java_env)->GetMethodID (android_java_env, locale,
+					     "getCountry",
+					     "()Ljava/lang/String;");
+  if (!method)
+    emacs_abort ();
+
+  string = (*android_java_env)->CallObjectMethod (android_java_env, object,
+						  method);
+  android_exception_check_2 (object, locale);
+
+  if (!string)
+    country = empty_unibyte_string;
+  else
+    {
+      data = (*android_java_env)->GetStringUTFChars (android_java_env,
+						     string, NULL);
+      android_exception_check_3 (object, locale, string);
+
+      if (!data)
+	country = empty_unibyte_string;
+      else
+	{
+	  country = build_unibyte_string (data);
+	  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						      string, data);
+	}
+    }
+
+  ANDROID_DELETE_LOCAL_REF (string);
+
+  /* Proceed to retrieve the script.  */
+
+  method = (*android_java_env)->GetMethodID (android_java_env, locale,
+					     "getScript",
+					     "()Ljava/lang/String;");
+  if (!method)
+    emacs_abort ();
+
+  string = (*android_java_env)->CallObjectMethod (android_java_env, object,
+						  method);
+  android_exception_check_2 (object, locale);
+
+  if (!string)
+    script = empty_unibyte_string;
+  else
+    {
+      data = (*android_java_env)->GetStringUTFChars (android_java_env,
+						     string, NULL);
+      android_exception_check_3 (object, locale, string);
+
+      if (!data)
+	script = empty_unibyte_string;
+      else
+	{
+	  script = build_unibyte_string (data);
+	  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						      string, data);
+	}
+    }
+
+  ANDROID_DELETE_LOCAL_REF (string);
+
+  /* And variant.  */
+
+  method = (*android_java_env)->GetMethodID (android_java_env, locale,
+					     "getVariant",
+					     "()Ljava/lang/String;");
+  if (!method)
+    emacs_abort ();
+
+  string = (*android_java_env)->CallObjectMethod (android_java_env, object,
+						  method);
+  android_exception_check_2 (object, locale);
+
+  if (!string)
+    variant = empty_unibyte_string;
+  else
+    {
+      data = (*android_java_env)->GetStringUTFChars (android_java_env,
+						     string, NULL);
+      android_exception_check_3 (object, locale, string);
+
+      if (!data)
+        variant = empty_unibyte_string;
+      else
+	{
+	  variant = build_unibyte_string (data);
+	  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						      string, data);
+	}
+    }
+
+  /* Delete the reference to this string.  */
+  ANDROID_DELETE_LOCAL_REF (string);
+
+  /* And other remaining local references.  */
+  ANDROID_DELETE_LOCAL_REF (object);
+  ANDROID_DELETE_LOCAL_REF (locale);
+
+  /* Set Vandroid_os_language.  */
+  Vandroid_os_language = list4 (language, country, script, variant);
+}
+
+#endif /* ANDROID_STUBIFY */
+
 void
 syms_of_androidfns (void)
 {
@@ -3313,6 +3494,26 @@ element that is activated for a given number of milliseconds upon the
 bell being rung.  */);
   android_keyboard_bell_duration = 50;
 
+  DEFVAR_LISP ("android-os-language", Vandroid_os_language,
+    doc: /* List representing the system language configured.
+This list incorporates four elements LANGUAGE, COUNTRY, SCRIPT
+and VARIANT, of which:
+
+LANGUAGE and COUNTRY are ISO language and country codes identical to
+those stored within POSIX locales.
+
+SCRIPT is an ISO 15924 script tag, representing the script used
+if available, or if required to disambiguate between distinct
+writing systems for the same combination of language and country.
+
+VARIANT is an arbitrary string representing the variant of the
+LANGUAGE or SCRIPT represented.
+
+Each of these fields might be empty or nil, but the locale is invalid
+if LANGUAGE is empty.  Users of this variable should consider the
+language US English in this scenario.  */);
+  Vandroid_os_language = Qnil;
+
   /* Functions defined.  */
   defsubr (&Sx_create_frame);
   defsubr (&Sxw_color_defined_p);
@@ -3363,5 +3564,7 @@ bell being rung.  */);
   staticpro (&tip_dx);
   tip_dy = Qnil;
   staticpro (&tip_dy);
+
+  pdumper_do_now_and_after_load (syms_of_androidfns_for_pdumper);
 #endif /* !ANDROID_STUBIFY */
 }
