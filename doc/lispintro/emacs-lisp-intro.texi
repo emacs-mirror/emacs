@@ -13248,6 +13248,10 @@ The last expression when there is no fill prefix is
 @end smallexample
 
 @noindent
+(Note that this code snippet is copied verbatim from the original code,
+so the two extra ending parentheses are matching the previous @code{if}
+and @code{while}.)
+
 This says that if there is no fill prefix and if we are not at the
 end, point should move to the beginning of whatever was found by the
 regular expression search for @code{sp-parstart}.
