@@ -2034,13 +2034,15 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
   "Return logical Eglot server for current buffer, nil if none."
   (setq eglot--cached-server
         (or eglot--cached-server
-            (cl-find-if #'eglot--languageId
-                        (gethash (eglot--current-project)
-                                 eglot--servers-by-project))
-            (and eglot-extend-to-xref
-                 buffer-file-name
-                 (gethash (expand-file-name buffer-file-name)
-                          eglot--servers-by-xrefed-file)))))
+            (and (not (eq major-mode 'fundamental-mode)) ; gh#1330
+                 (or
+                  (cl-find-if #'eglot--languageId
+                              (gethash (eglot--current-project)
+                                       eglot--servers-by-project))
+                  (and eglot-extend-to-xref
+                       buffer-file-name
+                       (gethash (expand-file-name buffer-file-name)
+                                eglot--servers-by-xrefed-file)))))))
 
 (defun eglot--current-server-or-lose ()
   "Return current logical Eglot server connection or error."
