@@ -144,12 +144,14 @@ user-defined functions."
   :package-version '(ERC . "5.6")
   :type 'boolean)
 
-(defcustom erc-fill-line-spacing nil
+(defvar erc-fill-line-spacing nil
   "Extra space between messages on graphical displays.
-Its value should be larger than that of the variable
-`line-spacing', if set.  When unsure, start with 0.5."
-  :package-version '(ERC . "5.6")
-  :type '(choice (const nil) number))
+Its value should probably be larger than that of the variable
+`line-spacing', if non-nil.  When unsure, start with 1.0.  Note
+that as of ERC 5.6, this feature doesn't combine well with the
+`scrolltobottom' module, which is de facto required when using
+the `fill-wrap' filling style.  Users should therefore regard
+this variable as experimental for the time being.")
 
 (defvar-local erc-fill--function nil
   "Internal copy of `erc-fill-function'.
@@ -261,9 +263,7 @@ the value of `erc-fill-wrap-visual-keys'."
   "Whether to consolidate consecutive messages from the same speaker.
 When non-nil, ERC omits redundant speaker labels for subsequent
 messages less than a day apart.  To help distinguish between
-merged messages, see related options `erc-fill-line-spacing', for
-graphical displays, and `erc-fill-wrap-merge-indicator' for text
-terminals."
+merged messages, see option `erc-fill-wrap-merge-indicator'."
   :package-version '(ERC . "5.6")
   :type 'boolean)
 
@@ -281,19 +281,25 @@ Only matters when the option `erc-fill-wrap-merge' is enabled.
 If the first element is the symbol `pre', ERC uses this option to
 generate a replacement for the speaker's name tag.  If the first
 element is `post', ERC affixes a short string to the end of the
-previous message.  (Note that the latter variant nullifies any
-intervening padding supplied by `erc-fill-line-spacing' and is
-meant to supplant that option in text terminals.)  In either
-case, the second element should be a character, like ?>, and the
-last element a valid face.  In special cases, you may also
-specify a cons of `pre'/`post' and a string, which tells ERC you
-know what you're doing and not to manage the process for you.  If
-unsure, try either of the first two presets, both of which
-replace a continued speaker's name with a dot-product-like glyph
-in `shadow' face.  Note that this option is still experimental,
-and changing its value mid-session is not yet supported (though,
-if you must, make sure to run \\[erc-fill-wrap-refill-buffer]
-afterward)."
+previous message.  In either case, the second element should be a
+character, like ?>, and the last element a valid face.  In
+special cases, you may also specify a cons of either
+aforementioned symbol and a string, which tells ERC not to manage
+the process for you.  If unsure, try either of the first two
+presets, both of which replace a continued speaker's name with a
+dot-product-like character in a `shadow'-like face.
+
+Note that as of ERC 5.6, this option is still experimental, and
+changing its value mid-session is not yet supported (though, if
+you must, make sure to run \\[erc-fill-wrap-refill-buffer]
+afterward).  Also note that users on versions of Emacs older than
+29.2 may experience a \"glitching\" effect when point resides on
+a \"merged\" message occupying the first or last line in a
+window.  If that happens, try replacing `top' with the integer 1
+in the option `recenter-positions' while also maybe adjusting
+`scroll-margin' and/or `scroll-preserve-screen-position' to avoid
+\"dragging\" point when issuing a `scroll-up' or `scroll-down'
+command."
   :package-version '(ERC . "5.6")
   :type
   '(choice (const nil)
@@ -468,12 +474,12 @@ cycling between logical- and screen-line oriented command
 movement.  Similarly, use \\[erc-fill-wrap-refill-buffer] to fix
 alignment problems after running certain commands, like
 `text-scale-adjust'.  Also see related stylistic options
-`erc-fill-line-spacing', `erc-fill-wrap-merge', and
-`erc-fill-wrap-merge-indicator'.  Hint: in narrow windows, where
-is space tight, try setting `erc-fill-static-center' to 1.  And
-if you also use the option `erc-fill-wrap-merge-indicator', set
-that to value-menu item \"Leading MIDDLE DOT (U+00B7) sans gap\"
-or one of the various \"trailing\" items.
+`erc-fill-wrap-merge', and `erc-fill-wrap-merge-indicator'.
+\(Hint: in narrow windows, where is space tight, try setting
+`erc-fill-static-center' to 1.  And if you also use the option
+`erc-fill-wrap-merge-indicator', set that to value-menu item
+\"Leading MIDDLE DOT sans gap\" or one of the various
+\"trailing\" items.)
 
 This module imposes various restrictions on the appearance of
 timestamps.  Most notably, it insists on displaying them in the

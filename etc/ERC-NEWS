@@ -131,13 +131,6 @@ connectivity before attempting to reconnect in earnest.  See option
 'erc-server-reconnect-function' and new local module 'services-regain'
 (also experimental) to get started.
 
-** Module 'fill' can add a bit of space between messages.
-On graphical displays, it's now possible to add some breathing room
-around certain messages via the new option 'erc-fill-line-spacing'.
-This is especially handy when using the option 'erc-fill-wrap-merge'
-to omit repeated speaker tags, which can make message boundaries less
-detectable by tired eyes.
-
 ** Modules rather than their libraries set major-mode keybindings.
 To put it another way, simply loading a built-in module's library no
 longer modifies 'erc-mode-map'.  Instead, modifications occur during
