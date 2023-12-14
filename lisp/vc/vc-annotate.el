@@ -162,6 +162,11 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   :type '(repeat number)
   :group 'vc)
 
+(defcustom vc-annotate-use-short-revision t
+  "If non-nil, \\[vc-annotate] will use short revisions in its buffer name."
+  :type 'boolean
+  :group 'vc)
+
 (defvar-keymap vc-annotate-mode-map
   :doc "Local keymap used for VC-Annotate mode."
   "a"   #'vc-annotate-revision-previous-to-line
@@ -397,7 +402,10 @@ should be applied to the background or to the foreground."
    (save-current-buffer
      (vc-ensure-vc-buffer)
      (list buffer-file-name
-	   (let ((def (vc-working-revision buffer-file-name)))
+	   (let ((def (funcall (if vc-annotate-use-short-revision
+                                   #'vc-short-revision
+                                 #'vc-working-revision)
+                               buffer-file-name)))
 	     (if (null current-prefix-arg) def
 	       (vc-read-revision
 		(format-prompt "Annotate from revision" def)

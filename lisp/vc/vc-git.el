@@ -1857,8 +1857,11 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (defun vc-git--rev-parse (rev)
   (with-temp-buffer
     (and
-     (vc-git--out-ok "rev-parse" rev)
-     (buffer-substring-no-properties (point-min) (+ (point-min) 40)))))
+     (apply #'vc-git--out-ok "rev-parse"
+            (append (when vc-use-short-revision '("--short"))
+                    (list rev)))
+     (goto-char (point-min))
+     (buffer-substring-no-properties (point) (pos-eol)))))
 
 (defun vc-git-next-revision (file rev)
   "Git-specific version of `vc-next-revision'."

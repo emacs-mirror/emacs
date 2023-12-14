@@ -506,6 +506,18 @@ If FILE is not registered, this function always returns nil."
                            (vc-call-backend
                             backend 'working-revision file))))))
 
+(defvar vc-use-short-revision nil
+  "If non-nil, VC backend functions should return short revisions if possible.
+This is set to t when calling `vc-short-revision', which will
+then call the \\=`working-revision' backend function.")
+
+(defun vc-short-revision (file &optional backend)
+  "Return the repository version for FILE in a shortened form.
+If FILE is not registered, this function always returns nil."
+  (let ((vc-use-short-revision t))
+    (vc-call-backend (or backend (vc-backend file))
+                     'working-revision file)))
+
 (defun vc-default-registered (backend file)
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
   (let ((sym (vc-make-backend-sym backend 'master-templates)))
