@@ -387,6 +387,9 @@
     (load "tooltip"))
 (load "international/iso-transl") ; Binds Alt-[ and friends.
 
+;; Used by `kill-buffer', for instance.
+(load "emacs-lisp/rmc")
+
 ;; This file doesn't exist when building a development version of Emacs
 ;; from the repository.  It is generated just after temacs is built.
 (load "leim/leim-list.el" t)
@@ -405,9 +408,6 @@
   (or (equal lp load-path)
       (message "Warning: Change in load-path due to site-load will be \
 lost after dumping")))
-
-;; Used by `kill-buffer', for instance.
-(load "emacs-lisp/rmc")
 
 ;; Actively check for advised functions during preload since:
 ;; - advices in Emacs's core are generally considered bad style;
