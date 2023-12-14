@@ -3278,31 +3278,36 @@ syms_of_androidfns_for_pdumper (void)
 
   /* Proceed to retrieve the script.  */
 
-  method = (*android_java_env)->GetMethodID (android_java_env, locale,
-					     "getScript",
-					     "()Ljava/lang/String;");
-  if (!method)
-    emacs_abort ();
-
-  string = (*android_java_env)->CallObjectMethod (android_java_env, object,
-						  method);
-  android_exception_check_2 (object, locale);
-
-  if (!string)
+  if (android_get_current_api_level () < 21)
     script = empty_unibyte_string;
   else
     {
-      data = (*android_java_env)->GetStringUTFChars (android_java_env,
-						     string, NULL);
-      android_exception_check_3 (object, locale, string);
+      method = (*android_java_env)->GetMethodID (android_java_env, locale,
+						 "getScript",
+						 "()Ljava/lang/String;");
+      if (!method)
+	emacs_abort ();
 
-      if (!data)
+      string = (*android_java_env)->CallObjectMethod (android_java_env,
+						      object, method);
+      android_exception_check_2 (object, locale);
+
+      if (!string)
 	script = empty_unibyte_string;
       else
 	{
-	  script = build_unibyte_string (data);
-	  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
-						      string, data);
+	  data = (*android_java_env)->GetStringUTFChars (android_java_env,
+							 string, NULL);
+	  android_exception_check_3 (object, locale, string);
+
+	  if (!data)
+	    script = empty_unibyte_string;
+	  else
+	    {
+	      script = build_unibyte_string (data);
+	      (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+							  string, data);
+	    }
 	}
     }
 
