@@ -2709,6 +2709,8 @@ LIMIT is nil, or if PL-RETURN is `limit-unsupported'."
       (if (< entries limit)
           ;; The log has been printed in full.  Perhaps it started
           ;; with a copy or rename?
+          ;; FIXME: We'd probably still want this button even when
+          ;; vc-log-show-limit is customized to 0 (should be rare).
           (let* ((last-revision (log-view-current-tag (point-max)))
                  ;; XXX: Could skip this when vc-git-print-log-follow = t.
                  (name-changes
@@ -2743,7 +2745,14 @@ LIMIT is nil, or if PL-RETURN is `limit-unsupported'."
                            (with-current-buffer vc-parent-buffer
                              ;; To set up parent buffer in the new viewer.
                              (vc-print-log-internal backend old-names
-                                                    last-revision nil limit))))
+                                                    last-revision t limit))))
+               ;; XXX: Showing the full history for OLD-NAMES (with
+               ;; IS-START-REVISION=nil) can be better sometimes
+               ;; (e.g. when some edits still occurred after a rename
+               ;; -- multiple branches scenario), but it also can hurt
+               ;; in others because of Git's automatic history
+               ;; simplification: as a result, the logs for some
+               ;; use-package's files before merge could not be found.
                'help-echo
                "Show the log for the file name(s) before the rename")))
         ;; Perhaps there are more entries in the log.

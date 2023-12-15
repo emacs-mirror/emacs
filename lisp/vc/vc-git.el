@@ -153,8 +153,6 @@ comparing changes.  See Man page `git-blame' for more."
                  (repeat :tag "Argument List" :value ("") string))
   :version "30.1")
 
-;; XXX: (setq vc-git-log-switches '("--simplify-merges")) can also
-;; create fuller history when using this feature.  Not sure why.
 (defcustom vc-git-file-name-changes-switches '("-M" "-C")
   "String or list of string to pass to Git when finding previous names.
 
