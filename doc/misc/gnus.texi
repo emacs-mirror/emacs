@@ -6243,13 +6243,6 @@ Presumably, you want to use the demon for sending due delayed articles.
 Just don't forget to set that up :-)
 @end table
 
-When delaying an article with @kbd{C-c C-j}, Message mode will
-automatically add a @code{"Date"} header with the current time.  In
-many cases you probably want the @code{"Date"} header to reflect the
-time the message is sent instead.  To do this, you have to delete
-@code{Date} from @code{message-draft-headers}.
-
-
 @node Marking Articles
 @section Marking Articles
 @cindex article marking
