@@ -2320,7 +2320,6 @@ syms_of_minibuf (void)
 
   DEFSYM (Qcurrent_input_method, "current-input-method");
   DEFSYM (Qactivate_input_method, "activate-input-method");
-  DEFSYM (Qcase_fold_search, "case-fold-search");
   DEFSYM (Qmetadata, "metadata");
   DEFSYM (Qcycle_sort_function, "cycle-sort-function");
 

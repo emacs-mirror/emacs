@@ -379,7 +379,6 @@ struct buffer
   /* Values of several buffer-local variables.  */
   /* tab-width is buffer-local so that redisplay can find it
      in buffers that are not current.  */
-  Lisp_Object case_fold_search_;
   Lisp_Object tab_width_;
   Lisp_Object fill_column_;
   Lisp_Object left_margin_;

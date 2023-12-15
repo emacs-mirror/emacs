@@ -210,11 +210,6 @@ bset_buffer_file_coding_system (struct buffer *b, Lisp_Object val)
   b->buffer_file_coding_system_ = val;
 }
 static void
-bset_case_fold_search (struct buffer *b, Lisp_Object val)
-{
-  b->case_fold_search_ = val;
-}
-static void
 bset_ctl_arrow (struct buffer *b, Lisp_Object val)
 {
   b->ctl_arrow_ = val;
@@ -4692,7 +4687,6 @@ init_buffer_once (void)
   XSETFASTINT (BVAR (&buffer_local_flags, mode_line_format), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, abbrev_mode), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, overwrite_mode), idx); ++idx;
-  XSETFASTINT (BVAR (&buffer_local_flags, case_fold_search), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, auto_fill_function), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, selective_display), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, selective_display_ellipses), idx); ++idx;
@@ -4785,7 +4779,6 @@ init_buffer_once (void)
   bset_tab_line_format (&buffer_defaults, Qnil);
   bset_abbrev_mode (&buffer_defaults, Qnil);
   bset_overwrite_mode (&buffer_defaults, Qnil);
-  bset_case_fold_search (&buffer_defaults, Qt);
   bset_auto_fill_function (&buffer_defaults, Qnil);
   bset_selective_display (&buffer_defaults, Qnil);
   bset_selective_display_ellipses (&buffer_defaults, Qt);
@@ -5214,10 +5207,6 @@ Format with `format-mode-line' to produce a string value.  */);
   DEFVAR_PER_BUFFER ("abbrev-mode", &BVAR (current_buffer, abbrev_mode), Qnil,
 		     doc: /*  Non-nil if Abbrev mode is enabled.
 Use the command `abbrev-mode' to change this variable.  */);
-
-  DEFVAR_PER_BUFFER ("case-fold-search", &BVAR (current_buffer, case_fold_search),
-		     Qnil,
-		     doc: /* Non-nil if searches and matches should ignore case.  */);
 
   DEFVAR_PER_BUFFER ("fill-column", &BVAR (current_buffer, fill_column),
 		     Qintegerp,
@@ -5950,6 +5939,12 @@ If `delete-auto-save-files' is nil, any autosave deletion is inhibited.  */);
 	       doc: /* Non-nil means delete auto-save file when a buffer is saved.
 This is the default.  If nil, auto-save file deletion is inhibited.  */);
   delete_auto_save_files = 1;
+
+  DEFVAR_LISP ("case-fold-search", Vcase_fold_search,
+	       doc: /* Non-nil if searches and matches should ignore case.  */);
+  Vcase_fold_search = Qt;
+  DEFSYM (Qcase_fold_search, "case-fold-search");
+  Fmake_variable_buffer_local (Qcase_fold_search);
 
   DEFVAR_LISP ("clone-indirect-buffer-hook", Vclone_indirect_buffer_hook,
 	       doc: /* Normal hook to run in the new buffer at the end of `make-indirect-buffer'.

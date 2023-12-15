@@ -1785,7 +1785,7 @@ determines whether case is significant or ignored.  */)
   register EMACS_INT begp1, endp1, begp2, endp2, temp;
   register struct buffer *bp1, *bp2;
   register Lisp_Object trt
-    = (!NILP (BVAR (current_buffer, case_fold_search))
+    = (!NILP (Vcase_fold_search)
        ? BVAR (current_buffer, case_canon_table) : Qnil);
   ptrdiff_t chars = 0;
   ptrdiff_t i1, i2, i1_byte, i2_byte;
@@ -4367,7 +4367,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
 
   if (XFIXNUM (c1) == XFIXNUM (c2))
     return Qt;
-  if (NILP (BVAR (current_buffer, case_fold_search)))
+  if (NILP (Vcase_fold_search))
     return Qnil;
 
   i1 = XFIXNAT (c1);

@@ -2519,7 +2519,6 @@ when the buffer is not current.
 
 @item mode_line_format
 @itemx header_line_format
-@itemx case_fold_search
 @itemx tab_width
 @itemx fill_column
 @itemx left_margin

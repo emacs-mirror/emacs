@@ -281,7 +281,7 @@ looking_at_1 (Lisp_Object string, bool posix, bool modify_data)
   struct regexp_cache *cache_entry = compile_pattern (
     string,
     modify_match_data ? &search_regs : NULL,
-    (!NILP (BVAR (current_buffer, case_fold_search))
+    (!NILP (Vcase_fold_search)
      ? BVAR (current_buffer, case_canon_table) : Qnil),
     posix,
     !NILP (BVAR (current_buffer, enable_multibyte_characters)));
@@ -402,7 +402,7 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
   struct regexp_cache *cache_entry
     = compile_pattern (regexp,
 		       modify_match_data ? &search_regs : NULL,
-		       (!NILP (BVAR (current_buffer, case_fold_search))
+		       (!NILP (Vcase_fold_search)
 			? BVAR (current_buffer, case_canon_table)
 			: Qnil),
 		       posix,
@@ -1068,10 +1068,10 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
 			 BVAR (current_buffer, case_eqv_table));
 
   np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
-		      (!NILP (BVAR (current_buffer, case_fold_search))
+		      (!NILP (Vcase_fold_search)
 		       ? BVAR (current_buffer, case_canon_table)
 		       : Qnil),
-		      (!NILP (BVAR (current_buffer, case_fold_search))
+		      (!NILP (Vcase_fold_search)
 		       ? BVAR (current_buffer, case_eqv_table)
 		       : Qnil),
 		      posix);
@@ -3402,7 +3402,7 @@ If RAW is non-nil, just return the actual bytecode.  */)
 {
   struct regexp_cache *cache_entry
     = compile_pattern (regexp, NULL,
-                       (!NILP (BVAR (current_buffer, case_fold_search))
+                       (!NILP (Vcase_fold_search)
                         ? BVAR (current_buffer, case_canon_table) : Qnil),
                        false,
                        !NILP (BVAR (current_buffer,
