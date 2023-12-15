@@ -383,7 +383,12 @@ display such a window regardless."
                                 (setq pat input))))
                           (if (setq win (get-buffer-window buffer))
                               (with-selected-window win
-                                (let ((ov (make-overlay (point-min) (point-min))))
+                                (let ((ov (make-overlay
+                                           (point-min) (point-min)))
+                                      ;; Allow upper-case and
+                                      ;; lower-case letters to refer
+                                      ;; to different registers.
+                                      (case-fold-search nil))
                                   (goto-char (point-min))
                                   (remove-overlays)
                                   (unless (string= pat "")
