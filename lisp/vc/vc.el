@@ -517,6 +517,13 @@
 ;;   Return the revision number that precedes REV for FILE, or nil if no such
 ;;   revision exists.
 ;;
+;; - file-name-changes (rev)
+;;
+;;   Return the list of pairs with changes in file names in REV.  When
+;;   a file was added, it should be a cons with nil car.  When
+;;   deleted, a cons with nil cdr.  When copied or renamed, a cons
+;;   with the source name as car and destination name as cdr.
+;;
 ;; - next-revision (file rev)
 ;;
 ;;   Return the revision number that follows REV for FILE, or nil if no such
@@ -2695,9 +2702,47 @@ or if PL-RETURN is `limit-unsupported'."
       (goto-char (point-min))
       (while (re-search-forward log-view-message-re nil t)
         (cl-incf entries))
-      ;; If we got fewer entries than we asked for, then displaying
-      ;; the "more" buttons isn't useful.
-      (when (>= entries limit)
+      (if (< entries limit)
+          ;; The log has been printed in full.  Perhaps it started
+          ;; with a copy or rename?
+          (let* ((last-revision (log-view-current-tag (point-max)))
+                 ;; XXX: Could skip this when vc-git-print-log-follow = t.
+                 (name-changes
+                  (condition-case nil
+                      (vc-call-backend log-view-vc-backend
+                                       'file-name-changes last-revision)
+                    (vc-not-supported nil)))
+                 (matching-changes
+                  (cl-delete-if-not (lambda (f) (member f log-view-vc-fileset))
+                                    name-changes :key #'cdr))
+                 (old-names (delq nil (mapcar #'car matching-changes)))
+                 (relatives (mapcar #'file-relative-name old-names)))
+            (when old-names
+              (goto-char (point-max))
+              (unless (looking-back "\n\n" (- (point) 2))
+                (insert "\n"))
+              (insert
+               (format
+                "Renamed from %s"
+                (mapconcat (lambda (s)
+                             (propertize s 'font-lock-face
+                                         'log-view-file))
+                           relatives ", "))
+               " ")
+              ;; TODO: Also print a different button somewhere in the
+              ;; created buffer to be able to go back easily.  (There
+              ;; are different ways to do that.)
+              (insert-text-button
+               "View log"
+               'action (lambda (&rest _ignore)
+                         (let ((backend log-view-vc-backend))
+                           (with-current-buffer vc-parent-buffer
+                             ;; To set up parent buffer in the new viewer.
+                             (vc-print-log-internal backend old-names
+                                                    last-revision nil limit))))
+               'help-echo
+               "Show the log for the file name(s) before the rename")))
+        ;; Perhaps there are more entries in the log.
         (goto-char (point-max))
         (insert "\n")
         (insert-text-button
