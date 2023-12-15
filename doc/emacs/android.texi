@@ -411,7 +411,7 @@ $ adb shell "settings put global settings_enable_monitor_phantom_procs false"
 
 @cindex system language settings, Android
   The ``Languages & Input'' preferences which apply to the operating
-system do not influence the C locale set for programs, but is taken
+system do not influence the C locale set for programs, but are taken
 into account by Emacs during startup: a locale name is generated from
 the selected language and regional variant and a language environment
 (@pxref{Language Environment}) is selected on that basis, which does
@@ -424,8 +424,8 @@ fashion is @code{utf-8-unix} without exception.
 Variables}) is set to @code{en_US.utf8} when Emacs starts on Android
 5.0 or newer, which induces subprocesses linked against the Android C
 library to print output sensibly.  Earlier versions of Android do not
-implement locales at all, on account of which the variable is set to
-@code{C} instead.
+implement locales at all, and on that account, the variable is set to
+@code{C}.
 
 @cindex running emacs in the background, android
 @cindex emacs killed, android
