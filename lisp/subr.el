@@ -2804,7 +2804,11 @@ MODES should be a list of symbols or a single mode symbol instead of a list.
 We also still support the deprecated calling convention:
 \(derived-mode-p &rest MODES)."
  (declare (side-effect-free t)
-          (advertised-calling-convention (modes) "30.1"))
+          ;; FIXME: It's cumbersome for external packages to write code which
+          ;; accommodates both the old and the new calling conventions *and*
+          ;; doesn't cause spurious warnings.  So let's be more lenient
+          ;; for now and maybe remove `deprecated-args' for Emacs-31.
+          (advertised-calling-convention (modes &rest deprecated-args) "30.1"))
  (provided-mode-derived-p major-mode (if old-modes (cons modes old-modes)
                                        modes)))
 
