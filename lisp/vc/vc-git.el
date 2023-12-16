@@ -1429,15 +1429,16 @@ This prompts for a branch to merge from."
 ;; Long explanation here:
 ;; https://stackoverflow.com/questions/46487476/git-log-follow-graph-skips-commits
 (defcustom vc-git-print-log-follow nil
-  "If true, use the flag `--follow' when producing single file logs.
+  "If non-nil, use the flag `--follow' when producing single file logs.
 
-It will make the printed log automatically follow the renames.
-The downsides is that the log produced this way may omit
-certain (merge) commits, and that `log-view-diff' fails on
-commits that used the previous name, in that log buffer.
+A non-nil value will make the printed log automatically follow
+the file renames.  The downsides is that the log produced this
+way may omit certain (merge) commits, and that `log-view-diff'
+fails on commits that used the previous name, in that log buffer.
 
 When this variable is nil, and the log ends with a rename, we
-print a button below that shows the log for the previous name."
+show a button below that which allows to show the log for the
+file name before the rename."
   :type 'boolean
   :version "26.1")
 
