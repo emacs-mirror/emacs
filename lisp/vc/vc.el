@@ -2736,8 +2736,9 @@ LIMIT is nil, or if PL-RETURN is `limit-unsupported'."
                            relatives ", "))
                " ")
               ;; TODO: Also print a different button somewhere in the
-              ;; created buffer to be able to go back easily.  (There
-              ;; are different ways to do that.)
+              ;; created buffer to be able to go back easily.  Might
+              ;; require some sort of stack/history because a file can
+              ;; be renamed multiple times.
               (insert-text-button
                "View log"
                'action (lambda (&rest _ignore)
