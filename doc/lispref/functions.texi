@@ -564,6 +564,7 @@ The @code{(fn)} feature is typically used in the following situations:
   "@dots{}
 \(fn ABBREV PROP)")
 @end example
+@end itemize
 @end ifnottex
 
 @cindex computed documentation string
