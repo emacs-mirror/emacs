@@ -1390,7 +1390,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (interactive)
    (term-send-raw-string (current-kill 0)))
 
-(defun term--xterm-paste ()
+(defun term--xterm-paste (event)
   "Insert the text pasted in an XTerm bracketed paste operation."
   (interactive "e")
   (unless (eq (car-safe event) 'xterm-paste)
