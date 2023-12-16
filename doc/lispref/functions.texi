@@ -533,6 +533,40 @@ Instead, use the @code{advertised-calling-convention} declaration
 compiler emit a warning message when it compiles Lisp programs which
 use the deprecated calling convention.
 
+@ifnottex
+The @code{(fn)} feature is typically used in the following situations:
+
+@itemize @minus
+@item To spell out arguments and their purposes in a macro or a function.  Example:
+
+@example
+(defmacro lambda (&rest cdr)
+  "@dots{}
+\(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"@dots{})
+@end example
+
+@item To provide a more detailed description and names of arguments.  Example:
+
+@example
+(defmacro macroexp--accumulate (var+list &rest body)
+  "@dots{}
+\(fn (VAR LIST) BODY@dots{})"
+  (declare (indent 1))
+  (let ((var (car var+list))
+	  (list (cadr var+list))
+@dots{})))
+@end example
+
+@item To better explain the purpose of a @code{defalias}.  Example:
+
+@example
+(defalias 'abbrev-get 'get
+  "@dots{}
+\(fn ABBREV PROP)")
+@end example
+@end itemize
+@end ifnottex
+
 @cindex computed documentation string
 @kindex :documentation
 Documentation strings are usually static, but occasionally it can be

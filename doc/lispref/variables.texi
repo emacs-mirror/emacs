@@ -3002,7 +3002,7 @@ meant to be used, here's a small example:
 
 @lisp
 @group
-(define-multisession-variable foo-var 0)
+(define-multisession-variable foo 0)
 (defun my-adder (num)
   (interactive "nAdd number: ")
   (setf (multisession-value foo)
@@ -3012,7 +3012,7 @@ meant to be used, here's a small example:
 @end lisp
 
 @noindent
-This defines the variable @code{foo-var} and binds it to a special
+This defines the variable @code{foo} and binds it to a special
 multisession object which is initialized with the value @samp{0} (if
 the variable doesn't already exist from a previous session).  The
 @code{my-adder} command queries the user for a number, adds this to
@@ -3035,7 +3035,7 @@ specified by @var{package-symbol}.  The combination of
 @var{package-symbol} isn't given, this will default to the first
 ``segment'' of the @var{name} symbol's name, which is the part of its
 name up to and excluding the first @samp{-}.  For instance, if
-@var{name} is @code{foo-var} and @var{package-symbol} isn't given,
+@var{name} is @code{foo} and @var{package-symbol} isn't given,
 @var{package-symbol} will default to @code{foo}.
 
 @cindex synchronized multisession variables
@@ -3043,7 +3043,7 @@ name up to and excluding the first @samp{-}.  For instance, if
 Multisession variables can be @dfn{synchronized} if @var{bool} is
 non-@code{nil}.  This means that if there're two concurrent Emacs
 instances running, and the other Emacs changes the multisession
-variable @code{foo-var}, the current Emacs instance will retrieve that
+variable @code{foo}, the current Emacs instance will retrieve that
 modified data when accessing the value.  If @var{synchronized} is
 @code{nil} or missing, this won't happen, and the values in all
 Emacs sessions using the variable will be independent of each other.
