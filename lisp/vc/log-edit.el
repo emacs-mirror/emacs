@@ -61,12 +61,12 @@
   "C-c C-d" #'log-edit-show-diff
   "C-c C-f" #'log-edit-show-files
   "C-c C-k" #'log-edit-kill-buffer
-  "C-a"     #'log-edit-beginning-of-line
   "M-n"     #'log-edit-next-comment
   "M-p"     #'log-edit-previous-comment
   "M-r"     #'log-edit-comment-search-backward
   "M-s"     #'log-edit-comment-search-forward
-  "C-c ?"   #'log-edit-mode-help)
+  "C-c ?"   #'log-edit-mode-help
+  "<remap> <move-beginning-of-line>" #'log-edit-beginning-of-line)
 
 (easy-menu-define log-edit-menu log-edit-mode-map
   "Menu used for `log-edit-mode'."
