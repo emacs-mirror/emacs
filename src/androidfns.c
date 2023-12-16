@@ -3500,23 +3500,22 @@ bell being rung.  */);
   android_keyboard_bell_duration = 50;
 
   DEFVAR_LISP ("android-os-language", Vandroid_os_language,
-    doc: /* List representing the system language configured.
-This list incorporates four elements LANGUAGE, COUNTRY, SCRIPT
-and VARIANT, of which:
+    doc: /* A list representing the configured system language on Android.
+This list has four elements: LANGUAGE, COUNTRY, SCRIPT and VARIANT, where:
 
 LANGUAGE and COUNTRY are ISO language and country codes identical to
-those stored within POSIX locales.
+those found in POSIX locale specifications.
 
 SCRIPT is an ISO 15924 script tag, representing the script used
 if available, or if required to disambiguate between distinct
 writing systems for the same combination of language and country.
 
 VARIANT is an arbitrary string representing the variant of the
-LANGUAGE or SCRIPT represented.
+LANGUAGE or SCRIPT.
 
 Each of these fields might be empty or nil, but the locale is invalid
 if LANGUAGE is empty.  Users of this variable should consider the
-language US English in this scenario.  */);
+language to be US English if LANGUAGE is empty.  */);
   Vandroid_os_language = Qnil;
 
   /* Functions defined.  */
