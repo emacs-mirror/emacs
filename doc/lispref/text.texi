@@ -2945,7 +2945,10 @@ character.
 
   Copying text between strings and buffers preserves the properties
 along with the characters; this includes such diverse functions as
-@code{substring}, @code{insert}, and @code{buffer-substring}.
+@code{substring}, @code{insert}, and @code{buffer-substring}.  Killing
+and then yanking text (@pxref{The Kill Ring}) also preserves the
+properties, except that some properties are handled specially and
+might be removed when text is yanked; @pxref{Yanking}.
 
 @menu
 * Examining Properties::   Looking at the properties of one character.
