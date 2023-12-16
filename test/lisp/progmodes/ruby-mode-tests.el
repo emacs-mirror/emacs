@@ -164,7 +164,7 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-assert-state "x = index/3" 3 nil))
 
 (ert-deftest ruby-regexp-not-division-when-only-space-before ()
-  (ruby-assert-state "x = index /3" 3 ?/))
+  (ruby-assert-state "x = foo_index /3" 3 ?/))
 
 (ert-deftest ruby-slash-not-regexp-when-only-space-after ()
   (ruby-assert-state "x = index/ 3" 3 nil))

@@ -2106,12 +2106,6 @@ or `gem' statement around point."
     "\\(%\\)[qQrswWxIi]?\\([[:punct:]]\\)"
     "Regexp to match the beginning of percent literal.")
 
-  (defconst ruby-syntax-methods-before-regexp
-    '("gsub" "gsub!" "sub" "sub!" "scan" "split" "split!" "index" "match"
-      "assert_match" "Given" "Then" "When")
-    "Methods that can take regexp as the first argument.
-It will be properly highlighted even when the call omits parens.")
-
   (defvar ruby-syntax-before-regexp-re
     (concat
      ;; Special tokens that can't be followed by a division operator.
@@ -2123,11 +2117,9 @@ It will be properly highlighted even when the call omits parens.")
      "\\|\\(?:^\\|\\s \\)"
      (regexp-opt '("if" "elsif" "unless" "while" "until" "when" "and"
                    "or" "not" "&&" "||"))
-     ;; Method name from the list.
-     "\\|\\_<"
-     (regexp-opt ruby-syntax-methods-before-regexp t)
      "\\)\\s *")
-    "Regexp to match text that can be followed by a regular expression."))
+    "Regexp to match text that disambiguates a regular expression.
+A slash character after any of these should begin a regexp."))
 
 (defun ruby-syntax-propertize (start end)
   "Syntactic keywords for Ruby mode.  See `syntax-propertize-function'."
@@ -2183,20 +2175,18 @@ It will be properly highlighted even when the call omits parens.")
         (when (save-excursion
                 (forward-char -1)
                 (cl-evenp (skip-chars-backward "\\\\")))
-          (let ((state (save-excursion (syntax-ppss (match-beginning 1))))
-                division-like)
+          (let ((state (save-excursion (syntax-ppss (match-beginning 1)))))
             (when (or
                    ;; Beginning of a regexp.
                    (and (null (nth 8 state))
-                        (save-excursion
-                          (setq division-like
-                                (or (eql (char-after) ?\s)
-                                    (not (eql (char-before (1- (point))) ?\s))))
-                          (forward-char -1)
-                          (looking-back ruby-syntax-before-regexp-re
-                                        (line-beginning-position)))
-                        (not (and division-like
-                                  (match-beginning 2))))
+                        (or (not
+                             ;; Looks like division.
+                             (or (eql (char-after) ?\s)
+                                 (not (eql (char-before (1- (point))) ?\s))))
+                            (save-excursion
+                              (forward-char -1)
+                              (looking-back ruby-syntax-before-regexp-re
+                                            (line-beginning-position)))))
                    ;; End of regexp.  We don't match the whole
                    ;; regexp at once because it can have
                    ;; string interpolation inside, or span

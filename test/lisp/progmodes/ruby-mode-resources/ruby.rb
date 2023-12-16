@@ -34,11 +34,11 @@ x = # "tot %q/to"; =
 # Regexp after whitelisted method.
 "abc".sub /b/, 'd'
 
-# Don't mismatch "sub" at the end of words.
-a = asub / aslb + bsub / bslb;
+# Don't mistake division for regexp.
+a = sub / aslb + bsub / bslb;
 
 # Highlight the regexp after "if".
-x = toto / foo if /do bar/ =~ "dobar"
+x = toto / foo if / do bar/ =~ "dobar"
 
 # Regexp options are highlighted.
 
