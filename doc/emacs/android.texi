@@ -414,7 +414,7 @@ $ adb shell "settings put global settings_enable_monitor_phantom_procs false"
 system do not influence the C locale set for programs, but are taken
 into account by Emacs during startup: a locale name is generated from
 the selected language and regional variant and a language environment
-(@pxref{Language Environment}) is selected on that basis, which does
+(@pxref{Language Environments}) is selected on that basis, which does
 not overwrite @code{LANG} or other locale-related environment
 variables.  The coding system for language environments set in this
 fashion is @code{utf-8-unix} without exception.
