@@ -1392,8 +1392,13 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 
 (defun term--xterm-paste ()
   "Insert the text pasted in an XTerm bracketed paste operation."
-  (interactive)
-  (term-send-raw-string (xterm--pasted-text)))
+  (interactive "e")
+  (unless (eq (car-safe event) 'xterm-paste)
+    (error "term--xterm-paste must be found to xterm-paste event"))
+  (let ((str (nth 1 event)))
+    (unless (stringp str)
+      (error "term--xterm-paste provided event does not contain paste text"))
+    (term-send-raw-string str)))
 
 (declare-function xterm--pasted-text "term/xterm" ())
 
