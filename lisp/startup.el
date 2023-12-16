@@ -643,6 +643,7 @@ It is the default value of the variable `top-level'."
 
     (if (and (featurep 'android)
              (eq system-type 'android)
+             (fboundp 'android-locale-for-system-language)
              initial-window-system)
         ;; If Android windowing is enabled, derive a proper locale
         ;; from the system's language preferences.  On Android, LANG
