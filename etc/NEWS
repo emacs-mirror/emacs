@@ -66,6 +66,17 @@ URI scheme.  See the Org mode manual, Info node "(org) Protocols" for
 more details.
 
 
+* Incompatible Changes in Emacs 30.1
+
++++
+** URL now never sends user email addresses in HTTP requests.
+Emacs never sent email addresses by default, but it used to be
+possible to customize 'url-privacy-level' so that the users email
+address was sent along in HTTP requests.  This feature has now been
+removed, as it was considered more risky than useful.  The user option
+'url-personal-mail-address' is now also obsolete.
+
+
 * Changes in Emacs 30.1
 
 ** Emacs now supports Unicode Standard version 15.1.
@@ -1092,14 +1103,6 @@ assignment unit testing.  For more information, see the "(ert) Syntax
 Highlighting Tests" node in the ERT manual.
 
 ** URL
-
-+++
-*** URL now never sends user email addresses in HTTP requests.
-Emacs never sent email addresses by default, but it used to be
-possible to customize 'url-privacy-level' so that the users email
-address was sent along in HTTP requests.  This feature has now been
-removed, as it was considered more risky than useful.  The user option
-'url-personal-mail-address' is now also obsolete.
 
 +++
 *** 'url-gateway-broken-resolution' is now obsolete.
