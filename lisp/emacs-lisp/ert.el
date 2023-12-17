@@ -2278,7 +2278,8 @@ SELECTOR works as described in `ert-select-tests'."
                             ;; not compiled, and `first' is not
                             ;; defined without cl.
                             (car ert--selector-history)
-                          "t")))
+                          "t"))
+               (symbol-packages t))
            (read
             (completing-read (format-prompt "Run tests" default)
                              obarray #'ert-test-boundp nil nil
