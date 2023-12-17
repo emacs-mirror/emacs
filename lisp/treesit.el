@@ -1088,6 +1088,72 @@ parser notifying of the change."
       (with-silent-modifications
         (put-text-property (car range) (cdr range) 'fontified nil)))))
 
+(defvar-local treesit--syntax-propertize-start nil
+  "If non-nil, next `syntax-propertize' should start at this position.
+
+When tree-sitter parser reparses, it calls
+`treesit--syntax-propertize-notifier' with the affected region,
+and that function sets this variable to the start of the affected
+region.")
+
+(defun treesit--syntax-propertize-notifier (ranges parser)
+  "Sets `treesit--syntax-propertize-start' to the smallest start.
+Specifically, the smallest start position among all the ranges in
+RANGES for PARSER."
+  (with-current-buffer (treesit-parser-buffer parser)
+    (when-let* ((range-starts (mapcar #'car ranges))
+                (min-range-start
+                 (seq-reduce
+                  #'min (cdr range-starts) (car range-starts))))
+      (if (null treesit--syntax-propertize-start)
+          (setq treesit--syntax-propertize-start min-range-start)
+        (setq treesit--syntax-propertize-start
+              (min treesit--syntax-propertize-start min-range-start))))))
+
+(defvar-local treesit--pre-redisplay-tick nil
+  "The last `buffer-chars-modified-tick' that we've processed.
+Because `pre-redisplay-functions' could be called multiple times
+during a single command loop, we use this variable to debounce
+calls to `treesit--pre-redisplay'.")
+
+(defun treesit--pre-redisplay (&rest _)
+  "Force reparse and consequently run all notifiers.
+
+One of the notifiers is `treesit--font-lock-notifier', which will
+mark the region whose syntax has changed to \"need to refontify\".
+
+For example, when the user types the final slash of a C block
+comment /* xxx */, not only do we need to fontify the slash, but
+also the whole block comment, which previously wasn't fontified
+as comment due to incomplete parse tree."
+  (unless (eq treesit--pre-redisplay-tick (buffer-chars-modified-tick))
+    ;; `treesit-update-ranges' will force the host language's parser to
+    ;; reparse and set correct ranges for embedded parsers.  Then
+    ;; `treesit-parser-root-node' will force those parsers to reparse.
+    (treesit-update-ranges)
+    ;; Force repase on _all_ the parsers might not be necessary, but
+    ;; this is probably the most robust way.
+    (dolist (parser (treesit-parser-list))
+      (treesit-parser-root-node parser))
+    (setq treesit--pre-redisplay-tick (buffer-chars-modified-tick))))
+
+(defun treesit--pre-syntax-ppss (start end)
+  "Force reparse and consequently run all notifiers.
+
+Similar to font-lock, we want to update the `syntax' text
+property before `syntax-ppss' starts working on the text.  We
+also want to extend the to-be-propertized region to include the
+whole region affected by the last reparse.
+
+START and END mark the current to-be-propertized region."
+  (treesit--pre-redisplay)
+  (let ((new-start treesit--syntax-propertize-start))
+    (if (and new-start (< new-start start))
+        (progn
+          (setq treesit--syntax-propertize-start nil)
+          (cons new-start end))
+      nil)))
+
 ;;; Indent
 
 (define-error 'treesit-indent-error
@@ -2392,7 +2458,11 @@ before calling this function."
     (treesit-font-lock-recompute-features)
     (dolist (parser (treesit-parser-list))
       (treesit-parser-add-notifier
-       parser #'treesit--font-lock-notifier)))
+       parser #'treesit--font-lock-notifier))
+    (add-hook 'pre-redisplay-functions #'treesit--pre-redisplay 0 t))
+  ;; Syntax
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'treesit--pre-syntax-ppss 0 t)
   ;; Indent.
   (when treesit-simple-indent-rules
     (setq-local treesit-simple-indent-rules

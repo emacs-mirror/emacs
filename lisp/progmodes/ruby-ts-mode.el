@@ -1135,19 +1135,7 @@ leading double colon is not added."
 
   (treesit-major-mode-setup)
 
-  (treesit-parser-add-notifier (car (treesit-parser-list))
-                               #'ruby-ts--parser-after-change)
-
   (setq-local syntax-propertize-function #'ruby-ts--syntax-propertize))
-
-(defun ruby-ts--parser-after-change (ranges parser)
-  ;; Make sure we re-syntax-propertize the full node that is being
-  ;; edited.  This is most pertinent to multi-line complex nodes such
-  ;; as heredocs.
-  (when ranges
-    (with-current-buffer (treesit-parser-buffer parser)
-      (syntax-ppss-flush-cache (cl-loop for r in ranges
-                                        minimize (car r))))))
 
 (if (treesit-ready-p 'ruby)
     ;; Copied from ruby-mode.el.
