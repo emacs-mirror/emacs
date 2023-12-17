@@ -59,16 +59,6 @@
 	    ('tty "TTY")
 	    (_ nil)))))
 
-  (setq url-personal-mail-address (or url-personal-mail-address
-				      user-mail-address
-				      (format "%s@%s"  (user-real-login-name)
-					      (system-name))))
-
-  (if (or (memq url-privacy-level '(paranoid high))
-	  (and (listp url-privacy-level)
-	       (memq 'email url-privacy-level)))
-      (setq url-personal-mail-address nil))
-
   (setq url-os-type
 	(cond
 	 ((or (eq url-privacy-level 'paranoid)

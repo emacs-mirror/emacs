@@ -90,6 +90,7 @@ This is what is sent to HTTP servers as the FROM field in an HTTP
 request."
   :type '(choice (const :tag "Unspecified" nil) string)
   :group 'url)
+(make-obsolete-variable 'url-personal-mail-address nil "30.1")
 
 (defcustom url-directory-index-file "index.html"
   "The filename to look for when indexing a directory.
@@ -113,18 +114,22 @@ paranoid -- don't send anything
 
 If a list, this should be a list of symbols of what NOT to send.
 Valid symbols are:
-email    -- the email address
+email    -- the email address (in Emacs 29 or older)
 os       -- the operating system info
 emacs    -- the version of Emacs
 lastloc  -- the last location (see also `url-lastloc-privacy-level')
 agent    -- do not send the User-Agent string
 cookies  -- never accept HTTP cookies
 
+Emacs 30 and newer never includes the email address in the
+User-Agent string.  If you expect to use older versions of Emacs,
+it is recommended to always customize this list to include `email'.
+
 Samples:
 
  (setq url-privacy-level \\='high)
  (setq url-privacy-level \\='(email lastloc))    ;; equivalent to \\='high
- (setq url-privacy-level \\='(os))
+ (setq url-privacy-level \\='(email lastloc os emacs))
 
 ::NOTE::
 This variable controls several other variables and is _NOT_ automatically

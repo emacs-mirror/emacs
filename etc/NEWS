@@ -1094,6 +1094,14 @@ Highlighting Tests" node in the ERT manual.
 ** URL
 
 +++
+*** URL now never sends user email addresses in HTTP requests.
+Emacs never sent email addresses by default, but it used to be
+possible to customize 'url-privacy-level' so that the users email
+address was sent along in HTTP requests.  This feature has now been
+removed, as it was considered more risky than useful.  The user option
+'url-personal-mail-address' is now also obsolete.
+
++++
 *** 'url-gateway-broken-resolution' is now obsolete.
 This option was intended for use on SunOS 4.x and Ultrix systems,
 neither of which have been supported by Emacs since version 23.1.
