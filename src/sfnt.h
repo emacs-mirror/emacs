@@ -123,6 +123,7 @@ typedef int16_t sfnt_fword;
 typedef uint16_t sfnt_ufword;
 
 #define sfnt_coerce_fixed(fixed) ((sfnt_fixed) (fixed) / 65535.0)
+#define sfnt_fixed_float(fixed)  ((sfnt_fixed) (fixed) / 65535.0f)
 
 typedef unsigned int sfnt_glyph;
 typedef unsigned int sfnt_char;
@@ -778,7 +779,7 @@ struct sfnt_edge
   /* X position, top and bottom of edges.  */
   sfnt_fixed x, top, bottom;
 
-  /* Amount to move X by upon each change of Y.  */
+  /* Amount to move X by upon each change of Y, and vice versa.  */
   sfnt_fixed step_x;
 };
 
