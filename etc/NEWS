@@ -73,8 +73,12 @@ more details.
 Emacs never sent email addresses by default, but it used to be
 possible to customize 'url-privacy-level' so that the users email
 address was sent along in HTTP requests.  This feature has now been
-removed, as it was considered more risky than useful.  The user option
+removed, as it was considered more dangerous than useful.  RFC 9110
+(§ 10.1.2) also recommends against it.  The user option
 'url-personal-mail-address' is now also obsolete.
+
+To send an email address in the header of individual HTTP requests,
+see the variable `url-request-extra-headers'.
 
 
 * Changes in Emacs 30.1
