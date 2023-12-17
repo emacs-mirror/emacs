@@ -4637,8 +4637,8 @@ sfnt_raster_glyph_outline (struct sfnt_glyph_outline *outline)
    generating at length an array of scanlines, in which each is
    represented by a list of steps.  Each step holds an X coordinate
    and a coverage value, which contributes to the coverage of each
-   pixel within the scanline leftwards or equal to the pixel with its
-   X coordinate within.
+   pixel within the scanline rightwards or equal to the pixel with its
+   X coordinate.
 
    Such a coverage value can be positive or negative; when the winding
    direction of the span it derives from is positive, so is the
