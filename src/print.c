@@ -1618,7 +1618,7 @@ print_bool_vector (Lisp_Object obj, Lisp_Object printcharfun)
   ptrdiff_t real_size_in_bytes = size_in_bytes;
   unsigned char *data = bool_vector_uchar_data (obj);
 
-  char buf[sizeof "#&" + INT_STRLEN_BOUND (ptrdiff_t)];
+  char buf[sizeof "#&\"" + INT_STRLEN_BOUND (ptrdiff_t)];
   int len = sprintf (buf, "#&%"pI"d\"", size);
   strout (buf, len, len, printcharfun);
 
