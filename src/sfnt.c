@@ -67,6 +67,19 @@ xmalloc (size_t size)
   return ptr;
 }
 
+MAYBE_UNUSED static void *
+xzalloc (size_t size)
+{
+  void *ptr;
+
+  ptr = calloc (1, size);
+
+  if (!ptr)
+    abort ();
+
+  return ptr;
+}
+
 static void *
 xrealloc (void *ptr, size_t size)
 {
@@ -4211,7 +4224,6 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
 
       /* Compute the step X.  This is how much X changes for each
 	 increase in Y.  */
-
       step_x = sfnt_div_fixed (dx, dy);
       edges[edge].next = NULL;
 
@@ -4301,7 +4313,6 @@ sfnt_poly_edges (struct sfnt_edge *edges, size_t size,
   /* Step down line by line.  Find active edges.  */
 
   y = edges[0].bottom;
-  active = 0;
   active = NULL;
   e = 0;
 
@@ -4596,6 +4607,899 @@ sfnt_raster_glyph_outline (struct sfnt_glyph_outline *outline)
   /* All done.  */
   return data;
 }
+
+
+
+#define sfnt_add(a, b)				\
+  ((int) ((unsigned int) (a) + (unsigned int) (b)))
+
+#define sfnt_sub(a, b)				\
+  ((int) ((unsigned int) (a) - (unsigned int) (b)))
+
+#define sfnt_mul(a, b)				\
+  ((int) ((unsigned int) (a) * (unsigned int) (b)))
+
+
+
+#ifdef SFNT_EXACT_SCALING
+
+/* Exact coverage scaler.
+
+   The foregoing routines calculate partial coverage for each pixel by
+   increasing each span in increments finer than a single pixel, then
+   merging active spans into the raster.
+
+   Experience has proven this yields imperfect display results,
+   particularly when combined with glyph instruction code which aligns
+   points in a certain and as yet undetermined manner.
+
+   The scaler implemented in this page attains greater precision,
+   generating at length an array of scanlines, in which each is
+   represented by a list of steps.  Each step holds an X coordinate
+   and a coverage value, which contributes to the coverage of each
+   pixel within the scanline leftwards or equal to the pixel with its
+   X coordinate within.
+
+   Such a coverage value can be positive or negative; when the winding
+   direction of the span it derives from is positive, so is the
+   coverage value, that the pixels to its right (thus further into the
+   polygon it demarcates) might be painted in.  In the other case, the
+   value is negative, thus negating the effect of preceding steps and
+   marking the outer boundary of the section of the polygon's
+   intersection with the scanline.
+
+   The procedure for producing this array of scanlines is largely an
+   adaptation of that which sfnt_poly_edges implements; in particular
+   the process of sorting and filtering edges remains untouched.
+
+   Rather than advancing through the edges SFNT_POLY_STEP at a time,
+   the edges are iterated over scanline-by-scanline.  Every edge
+   overlapping with a particular scanline is considered piecemeal to
+   generate its array of steps.
+
+   An edge might overlap pixels within the scanline in one of four
+   fashions; each is illustrated with a graphic below:
+
+   +--------ee-----+------------------------------------------------+ (I)
+   |      ee.......|................................................|
+   |    ee.........|................................................|
+   |  ee...........|................................................|
+   |ee.............|................................................|
+  ee---------------+------------------------------------------------+
+
+   In this instance, the edge partially overlaps its first pixel, but
+   the remainder all receive complete coverage.
+
+   +---------------+---------eeeeee+--------------------------------+ (II)
+   |               |   eeeeee......|................................|
+   |   	          eeeee............|................................|
+   |        eeeeee.|...............|................................|
+   |  eeeeee.......|...............|................................|
+   eee-------------+---------------+--------------------------------+
+
+   In this instance, the edge partially overlaps two or more pixels on
+   this scanline.  These pixels are referred to as a run.
+
+   +---------------+---------------+----------------+---------------+ (III)
+   |       eeeeeee.|...............|................|...............|
+   |   	 eeeeeeee..|...............|................|...............|
+   |   eeeeeeee....|...............|................|...............|
+   |  eeeeeee......|...............|................|...............|
+   +---------------+---------------+----------------+---------------+
+
+   This instance is much like the first instance, save that the
+   covered vertical area does not span the entire scanline.
+
+   +---------------+---------------+----------------+---------------+ (IV)
+   |               |               |                | eeeeeeeeeee...|
+   |   	           |              eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee...|
+   |          eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee|...............|
+   |eeeeeeeeeeeeeeeeeeeeeee........|................|...............|
+   +---------------+---------------+----------------+---------------+
+
+   And this the second, again with the same distinction therefrom.
+
+   In each of these instances, a trapezoid is formed within every
+   pixel of the scanline, between:
+
+     - The point of the span's entry into the first pixel, either that
+       point itself or, for subsequent pixels, its projection onto
+       those pixels.
+
+     - The point of the span's exit or its termination.
+
+     - Both those points projected into the outer boundary of the
+       pertinent pixel.
+
+   The proportion formed by the area of this trapezoid and that of the
+   pixel then constitutes the coverage value to be recorded.  */
+
+/* Structure representing a step, as above.  */
+
+struct sfnt_step
+{
+  /* The next step in this list.  */
+  struct sfnt_step *next;
+
+  /* X coordinate of the step.  This value affects all pixels at and
+     beyond this X coordinate.  */
+  int x;
+
+  /* Coverage value between -1 and 1.  */
+  float coverage;
+};
+
+/* Structure representing an array of steps, one for each
+   scanline.  */
+
+struct sfnt_step_raster
+{
+  /* Number of scanlines within this raster.  */
+  size_t scanlines;
+
+  /* Array of steps with one element for each scanline.  */
+  struct sfnt_step **steps;
+
+  /* Linked list of chunks of steps allocated for this raster.  */
+  struct sfnt_step_chunk *chunks;
+};
+
+enum
+  {
+    SFNT_BLOCK_STEPS = 128,
+  };
+
+/* Structure representing a block of steps, which are allocated
+   SFNT_BLOCK_STEPS at a time.  */
+
+struct sfnt_step_chunk
+{
+  /* The next chunk in this list, or NULL.  */
+  struct sfnt_step_chunk *next;
+
+  /* Number of steps used within this chunk thus far.  */
+  size_t nused;
+
+  /* The steps themselves.  */
+  struct sfnt_step steps[SFNT_BLOCK_STEPS];
+};
+
+/* Structure representing an edge as consumed by the exact coverage
+   scaler.  This structure is much like struct sfnt_edge, albeit with
+   all fractionals replaced by floating point numbers and an extra
+   field holding a Y delta.  */
+
+struct sfnt_fedge
+{
+  /* Next edge in this chain.  */
+  struct sfnt_fedge *next;
+
+  /* Winding direction.  1 if clockwise, -1 if counterclockwise.  */
+  int winding;
+
+  /* X position, top and bottom of edges.  */
+  float x, top, bottom;
+
+  /* Amount to move X by upon each change of Y, and vice versa.  */
+  float step_x, step_y;
+};
+
+typedef void (*sfnt_fedge_proc) (struct sfnt_fedge *, size_t,
+				 void *);
+
+/* Build a list of edges for each contour in OUTLINE, displacing each
+   edge by xmin and ymin.  Call EDGE_PROC with DCONTEXT and the edges
+   produced as arguments.  */
+
+static void
+sfnt_build_outline_fedges (struct sfnt_glyph_outline *outline,
+			   sfnt_fedge_proc edge_proc, void *dcontext)
+{
+  struct sfnt_fedge *edges;
+  size_t i, edge, next_vertex;
+  sfnt_fixed dx, dy, step_x, step_y, ymin, xmin;
+  size_t top, bottom;
+
+  edges = alloca (outline->outline_used * sizeof *edges);
+  edge = 0;
+
+  /* ymin and xmin must be the same as the offset used to set offy and
+     offx in rasters.  */
+  ymin = sfnt_floor_fixed (outline->ymin);
+  xmin = sfnt_floor_fixed (outline->xmin);
+
+  for (i = 0; i < outline->outline_used; ++i)
+    {
+      /* Set NEXT_VERTEX to the next point (vertex) in this contour.
+
+	 If i is past the end of the contour, then don't build edges
+	 for this point.  */
+      next_vertex = i + 1;
+
+      if (next_vertex == outline->outline_used
+	  || !(outline->outline[next_vertex].flags
+	       & SFNT_GLYPH_OUTLINE_LINETO))
+	continue;
+
+      /* Skip past horizontal vertices.  */
+      if (outline->outline[next_vertex].y == outline->outline[i].y)
+	continue;
+
+      /* Figure out the winding direction.  */
+      if (outline->outline[next_vertex].y < outline->outline[i].y)
+	/* Vector will cross imaginary ray from its bottom from the
+	   left of the ray.  Winding is thus 1.  */
+	edges[edge].winding = 1;
+      else
+	/* Moving clockwise.  Winding is thus -1.  */
+	edges[edge].winding = -1;
+
+      /* Figure out the top and bottom values of this edge.  If the
+	 next edge is below, top is here and bot is the edge below.
+	 If the next edge is above, then top is there and this is the
+	 bottom.  */
+
+      if (outline->outline[next_vertex].y < outline->outline[i].y)
+	{
+	  /* End of edge is below this one (keep in mind this is a
+	     cartesian coordinate system, so smaller values are below
+	     larger ones.) */
+	  top = i;
+	  bottom = next_vertex;
+	}
+      else
+	{
+	  /* End of edge is above this one.  */
+	  bottom = i;
+	  top = next_vertex;
+	}
+
+      /* Record the edge.  Rasterization happens from bottom to
+	 up, so record the X at the bottom.  */
+      dx = (outline->outline[top].x - outline->outline[bottom].x);
+      dy = abs (outline->outline[top].y
+		- outline->outline[bottom].y);
+
+      /* Compute the step X.  This is how much X changes for each
+	 increase in Y.  */
+      step_x = sfnt_div_fixed (dx, dy);
+
+      /* And the step Y, which is the amount of movement to Y an
+	 increase in X will incur.  */
+      step_y = dx ? sfnt_div_fixed (dy, dx) : 0;
+
+      /* Save information computed above into the edge.  */
+      edges[edge].top
+	= sfnt_fixed_float (outline->outline[top].y - ymin);
+      edges[edge].bottom
+	= sfnt_fixed_float (outline->outline[bottom].y - ymin);
+      edges[edge].x
+	= sfnt_fixed_float (outline->outline[bottom].x - xmin);
+      edges[edge].step_x = sfnt_fixed_float (step_x);
+      edges[edge].step_y = sfnt_fixed_float (step_y);
+      edges[edge].next = NULL;
+
+      /* Increment the edge index.  */
+      edge++;
+    }
+
+  if (edge)
+    edge_proc (edges, edge, dcontext);
+}
+
+typedef void (*sfnt_step_raster_proc) (struct sfnt_step_raster *, void *);
+
+/* Append a step with the supplied COVERAGE at X to the sorted list of
+   scanline steps within the container RASTER.  Y is the scanline to
+   append to.  */
+
+static void
+sfnt_insert_raster_step (struct sfnt_step_raster *raster,
+			 int x, float coverage, size_t scanline)
+{
+  struct sfnt_step_chunk *chunk;
+  struct sfnt_step *step, **p_next;
+
+  if (scanline >= raster->scanlines)
+    return;
+
+  if (x < 0)
+    x = 0;
+
+  /* Search within RASTER->steps[scanline] for a step at X.  */
+
+  p_next = &raster->steps[scanline];
+
+  while (true)
+    {
+      step = *p_next;
+
+      if (!step)
+	break;
+
+      if (step->x > x)
+	break;
+
+      if (step->x == x)
+	goto found;
+
+      p_next = &step->next;
+    }
+
+  if (!raster->chunks || raster->chunks->nused == SFNT_BLOCK_STEPS)
+    {
+      /* All chunks have been consumed, and consequently a new chunk
+	 must be allocated.  */
+      chunk = xmalloc (sizeof *chunk);
+      chunk->next = raster->chunks;
+      chunk->nused = 0;
+      raster->chunks = chunk;
+    }
+  else
+    chunk = raster->chunks;
+
+  step		 = &chunk->steps[chunk->nused++];
+  step->next	 = *p_next;
+  *p_next	 = step;
+  step->x	 = x;
+  step->coverage = 0;
+
+ found:
+  step->coverage += coverage;
+}
+
+/* Sort an array of SIZE edges to increase by bottom Y position, in
+   preparation for building spans.
+
+   Insertion sort is used because there are usually not very many
+   edges, and anything larger would bloat up the code.  */
+
+static void
+sfnt_fedge_sort (struct sfnt_fedge *edges, size_t size)
+{
+  ssize_t i, j;
+  struct sfnt_fedge edge;
+
+  for (i = 1; i < size; ++i)
+    {
+      edge = edges[i];
+      j = i - 1;
+
+      /* Comparing truncated values yields a faint speedup, for not as
+	 many edges must be moved as would be otherwise.  */
+      while (j >= 0 && ((int) edges[j].bottom
+			> (int) edge.bottom))
+	{
+	  edges[j + 1] = edges[j];
+	  j--;
+	}
+
+      edges[j + 1] = edge;
+    }
+}
+
+/* Draw EDGES, an unsorted array of polygon edges of size NEDGES.
+
+   Transform EDGES into an array of steps representing a raster with
+   HEIGHT scanlines, then call POLY_FUNC with DCONTEXT and the
+   resulting struct sfnt_step_raster to transfer it onto an actual
+   raster.
+
+   WIDTH must be the width of the raster.  Although there is no
+   guarantee that no steps generated extend past WIDTH, steps starting
+   after width might be omitted, and as such it must be accurate.  */
+
+static void
+sfnt_poly_edges_exact (struct sfnt_fedge *edges, size_t nedges,
+		       size_t height, size_t width,
+		       sfnt_step_raster_proc proc, void *dcontext)
+{
+  int y;
+  size_t size, e;
+  struct sfnt_fedge *active, **prev, *a;
+  struct sfnt_step_raster raster;
+  struct sfnt_step_chunk *next, *last;
+
+  if (!height)
+    return;
+
+  /* Sort edges to ascend by Y-order.  Once again, remember: cartesian
+     coordinates.  */
+  sfnt_fedge_sort (edges, nedges);
+
+  /* Step down line by line.  Find active edges.  */
+
+  y = sfnt_floor_fixed (MAX (0, edges[0].bottom));
+  e = 0;
+  active = NULL;
+
+  /* Allocate the array of edges.  */
+
+  raster.scanlines = height;
+  raster.chunks    = NULL;
+
+  if (!INT_MULTIPLY_OK (height, sizeof *raster.steps, &size))
+    abort ();
+
+  raster.steps = xzalloc (size);
+
+  for (; y != height; y += 1)
+    {
+      /* Add in new edges keeping them sorted.  */
+      for (; e < nedges && edges[e].bottom < y + 1; ++e)
+	{
+	  if (edges[e].top > y)
+	    {
+	      /* Find where to place this edge.  */
+	      for (prev = &active; (a = *prev); prev = &(a->next))
+		{
+		  if (a->x > edges[e].x)
+		    break;
+		}
+
+	      edges[e].next = *prev;
+	      *prev = &edges[e];
+	    }
+	}
+
+      /* Iterate through each active edge, appending steps for it, and
+	 removing it if it does not overlap with the next
+	 scanline.  */
+
+      for (prev = &active; (a = *prev);)
+	{
+	  float x_top, x_bot, x_min, x_max;
+	  float y_top, y_bot;
+	  int x_pixel_min, x_pixel_max;
+
+#define APPEND_STEP(x, coverage)				\
+	  sfnt_insert_raster_step (&raster, x, coverage, y);
+
+	  /* Calculate several values to establish which overlap
+	     category this edge falls into.  */
+
+	  y_top = y + 1; /* Topmost coordinate covered by this
+			    edge in this scanline.  */
+	  y_bot = y;     /* Bottom-most coordinate covered by this
+			    edge in this scanline.  */
+
+	  /* III or IV?  If the edge terminates before the next
+	     scanline, make its terminus y_top.  */
+
+	  if (y_top > a->top)
+	    y_top = a->top;
+
+	  /* Same goes for y_bottom.  */
+
+	  if (a->bottom > y_bot)
+	    y_bot = a->bottom;
+
+	  /* y_top should never equal y_bottom, but check to be on the
+	     safe side.  */
+	  if (y_top == y_bot)
+	    goto next;
+
+	  /* x_top and x_bot are the X positions where the edge enters
+	     and exits this scanline.  */
+
+	  /*
+	    (x_top)
+   +--------ee-----+------------------------------------------------+ (y_top)
+   |      ee.......|................................................|
+   |    ee.........|................................................|
+   |  ee...........|................................................|
+   |ee.............|................................................|
+  ee---------------+------------------------------------------------+ (y_bot)
+(x_bot)
+            (y_bot might be further below.)
+	  */
+
+	  x_top = (y_top - a->bottom) * a->step_x + a->x;
+	  x_bot = (y_bot - a->bottom) * a->step_x + a->x;
+
+	  x_min = MIN (x_top, x_bot);
+	  x_max = MAX (x_top, x_bot);
+
+	  /* Pixels containing x_bot and x_top respectively.  */
+	  x_pixel_min = (int) (x_min);
+	  x_pixel_max = (int) (x_max);
+
+#define TRAPEZOID_AREA(height, top_start, top_end, bot_start, bot_end)	\
+	  ((((float) (top_end) - (top_start))				\
+	    + ((float) (bot_end) - (bot_start)))			\
+	   / 2.0f * (float) (height))
+
+	  /* I, III?  These two instances' criteria are that the edge
+	     enters and exits within one pixel.  */
+
+	  if (x_pixel_min == x_pixel_max)
+	    {
+	      float xmin, xmax, ytop, ybot, height;
+	      float coverage, delta;
+
+	      /* Partial coverage for the first pixel.  */
+
+	      xmin = (x_min);
+	      xmax = (x_max);
+	      ytop = (y_top);
+	      ybot = (y_bot);
+	      height = ytop - ybot;
+
+	      /* The trapezoid here is one of the following two:
+
+  ytop+------xmax--+-----------+---------------------------------------------+
+      |     /................................................................|
+      |    /.......|...........|.............................................|
+      |   /........|...........|.............................................|
+      |  /.........|...........|.............................................|
+      | / ...................................................................|
+  xmin+------------+-----------+---------------------------------------------+
+      ybot
+  ytop+------------+-----------+---------------------------------------------+
+      |\ xmin................................................................|
+      | \..........|...........|.............................................|
+      |  \.........|...........|.............................................|
+      |   \........|...........|.............................................|
+      |    \.......|...........|.............................................|
+      |     \................................................................|
+      +------xmax--+-----------+---------------------------------------------+
+
+                 In either situation, the first pixel's coverage is
+                 the space occupied by a trapezoid whose corners are
+                 xmin and x_pixel_min + 1 and xmax and x_pixel_min +
+                 1, and whose height is ytop - ybot.  The coverage for
+                 the remainder is the height alone.  */
+
+	      coverage = (TRAPEZOID_AREA (height,
+					  xmin, (int) xmin + 1,
+					  xmax, (int) xmax + 1)
+			  * a->winding);
+	      APPEND_STEP (x_pixel_min, coverage);
+
+	      /* Then if the next pixel isn't beyond the raster,
+		 append complete coverage for it.  */
+
+	      if (x_pixel_min + 1 < width)
+		{
+		  delta = (y_top - y_bot) * a->winding;
+		  APPEND_STEP (x_pixel_max + 1, delta - coverage);
+		}
+	    }
+	  else
+	    {
+	      float dy, y_crossing, coverage;
+	      float ytop, ybot, xtop, xbot, increment;
+	      float x, last, here;
+
+	      ytop = (y_top);
+	      ybot = (y_bot);
+	      xtop = (x_top);
+	      xbot = (x_bot);
+
+#define TRIANGLE_AREA(width, height)					\
+	      ((width) * (height) / 2.0f)
+
+	      /* II, IV.  Coverage must be computed for each pixel
+		 from x_pixel_min to x_pixel_max, with the latter
+		 treated much as in I or III.  */
+
+	      if (x_bot < x_top)
+		{
+		  /*
+
+
+  y_top                                                         x_top
+       +-----------+-----------+-----------+------------+-------/------+-------------------------------+
+       |           |           |           |            |    /--.......|...............................|
+       |x_pixel_min|           |           |            | /--..........|...............................|
+       |           |           |           |           /+-y_crossing...|...............................|
+       |           |           |           |        /--.|..............|...............................|
+       |           |           |           |      /-....|..............|...............................|
+       |           |           |           |   /--......|..x_pixel_max.|...............................|
+       |           |           |           |/--.........|..............|...............................|
+       |           |           |         /-+............|..............|...............................|
+       |           |           |      /--..|............|..............|...............................|
+       |           |           |   /--.....|............|..............|...............................|
+       |           |           |/--........|............|..............|...............................|
+       |           |         /-+...........|............|..............|...............................|
+       |           |      /--..|...........|............|..............|...............................|
+       |           |   /--.....|...........|............|..............|...............................|
+       |           | /-........|...........|............|..............|...............................|
+       |          /+-y_crossing|...........|............|..............|...............................|
+       |       /--.|...........|...........|............|..............|...............................|
+       |    /--....|...........|...........|............|..............|...............................|
+       | /--.......|...........|...........|............|..............|...............................|
+       +-----------+-----------+-----------+------------+--------------+-------------------------------+
+  y_bot x_bot
+
+
+The purpose of this code is to calculate the area occupied by dots of
+each pixel in between x_pixel_min and x_pixel_max + 1.
+
+The area occupied in the first pixel is a triangle comprising [x_bot,
+y_bot], [x_bot + 1, y_bot], and [x_bot + 1, y_crossing].
+
+The area occupied in the second pixel through x_pixel_max - 1 is that
+of a rectangle comprising [y_bot, pixel], [the previous rectangle's
+y_crossing, pixel], [the previous rectangle's y_crossing, pixel + 1],
+and [pixel + 1, y_bot] summed with the area the remaining triangle.
+
+The area occupied in the last pixel is a trapezoid proper.
+
+Thus the procedure is roughly as follows: dy is computed, which is the
+increase to the Y of the edge for each increase in scanline X.  */
+
+		  dy = a->step_y;
+
+		  /* As is y_crossing for the first pixel.  */
+		  y_crossing = ybot + dy * ((int) xbot + 1 - xbot);
+
+		  /* And the area of the first triangle.
+
+		     The width is (int) xbot + 1 - xbot, and the
+		     height is y_crossing - ybot.  */
+		  last = ((TRIANGLE_AREA (y_crossing - ybot,
+					  (int) xbot + 1 - xbot))
+			  * a->winding);
+		  APPEND_STEP (x_pixel_min, last);
+
+		  /* Coverage value for subsequent rectangles.  The
+		     value set here is for the next pixel, which is
+		     filled from ybot to y_crossing.  */
+
+		  coverage = (y_crossing - ybot) * a->winding;
+		  increment = dy * a->winding;
+
+		  for (x = x_pixel_min + 1; x < x_pixel_max; x++)
+		    {
+		      here = coverage + increment / 2;
+		      APPEND_STEP (x, here - last);
+		      last = here;
+		      coverage += increment;
+		    }
+
+		  /* The y_crossing for the last pixel.  */
+		  y_crossing = ybot + dy * ((int) xtop - xbot);
+
+		  /* And calculate the area of the trapezoid in the
+		     last pixel.  */
+
+		  coverage += a->winding * TRAPEZOID_AREA (ytop - y_crossing,
+							   xtop,
+							   (int) xtop + 1,
+							   (int) xtop,
+							   (int) xtop + 1);
+		  here = coverage;
+		  APPEND_STEP (x_pixel_max, here - last);
+		  last = here;
+
+		  /* Fill the remainder of the scanline with
+		     height-derived coverage.  */
+
+		  if (x_pixel_max < width)
+		    APPEND_STEP (x_pixel_max, ((y_top - y_bot)
+					       * a->winding - last));
+		}
+	      else /* if (x_bot > x_top) */
+		{
+		  /*
+
+  y_top   x_top
+    +----------------+----------------+-----------------+-----------------+-----------------------------+
+    |     \--........|................|.................|.................|.............................|
+    |        \--.....|................|.................|.................|.............................|
+    |           \--..|................|.................|.................|.............................|
+    |              \-+.y_crossing.....|.................|.................|.............................|
+    |                |\--.............|.................|.................|.............................|
+    |                |   \--..........|.................|.................|.............................|
+    |  x_pixel_min   |      \---......|.................|.................|.............................|
+    |                |          \--...|.................|.................|.............................|
+    |                |             \--|y_crossing.......|.................|.............................|
+    |                |                \--...............|.................|.............................|
+    |                |                |  \--............|.................|.............................|
+    |                |                |     \--.........|.................|.............................|
+    |                |                |        \--......|.................|.............................|
+    +----------------+----------------+-----------\-----+-----------------+-----------------------------+
+  y_bot                                        x_bot
+
+Whereas in this situation the trapezoid is inverted, and the code must
+be as well.  */
+
+		  /* The edge's Y decreases as the edge's X increases,
+		     yielding a negative a->step_x.  */
+		  dy = a->step_y;
+
+		  /* Calculate y_crossing for the first pixel.  */
+		  y_crossing = ytop + dy * ((int) xtop + 1 - xtop);
+
+		  /* And the area of the first triangle.  */
+		  last = ((TRIANGLE_AREA ((int) xtop + 1 - xtop,
+					  ytop - y_crossing))
+			  * a->winding);
+		  APPEND_STEP (x_pixel_min, last);
+
+		  /* Coverage value for subsequent rectangles.  The
+		     value set here is for the next pixel, which is
+		     filled from ytop to y_crossing.  */
+		  coverage = (ytop - y_crossing) * a->winding;
+		  increment = -dy * a->winding;
+
+		  for (x = x_pixel_min + 1; x < x_pixel_max; x ++)
+		    {
+		      here = coverage + increment / 2;
+		      APPEND_STEP (x, here - last);
+		      last = here;
+		      coverage += increment;
+		    }
+
+		  /* The y_crossing for the last pixel.  */
+		  y_crossing = ytop + dy * ((int) xbot - xtop);
+
+		  /* And calculate the area of the trapezoid in the
+		     last pixel.  */
+
+		  coverage += a->winding * TRAPEZOID_AREA (y_crossing - ybot,
+							   (int) xbot,
+							   (int) xbot + 1,
+							   xbot,
+							   (int) xbot + 1);
+		  here = coverage;
+		  APPEND_STEP (x_pixel_max, here - last);
+		  last = here;
+
+		  /* Fill the remainder of the scanline with
+		     height-derived coverage.  */
+
+		  if (x_pixel_max + 1 < width)
+		    APPEND_STEP (x_pixel_max + 1, ((y_top - y_bot)
+						   * a->winding - last));
+		}
+
+#undef TRIANGLE_AREA
+	    }
+
+#undef APPEND_STEP
+#undef TRAPEZOID_AREA
+
+	  /* When an edge is created, its a->bottom (and by extension
+	     a->y) is not aligned to a->x.  Since this iteration can
+	     only affect the scan line Y, align a to the next
+	     scanline, that the next iteration of this loop to
+	     consider it might consider its entire intersection.  */
+	  a->x += a->step_x * (y + 1 - a->bottom);
+	  a->bottom = y + 1;
+	next:
+
+	  if (a->top < y + 1)
+	    *prev = a->next;
+	  else
+	    prev = &a->next;
+	}
+
+      /* Break if all is done.  */
+      if (!active && e == nedges)
+	break;
+    }
+
+  (*proc) (&raster, dcontext);
+  xfree (raster.steps);
+
+  /* Free each block of steps allocated.  */
+  next = raster.chunks;
+  while (next)
+    {
+      last = next;
+      next = next->next;
+      xfree (last);
+    }
+
+#undef ONE_PIXEL
+}
+
+/* Apply winding rule to the coverage value VALUE.  Convert VALUE to a
+   number between 0 and 255.  If VALUE is negative, invert it.  If it
+   exceeds 255 afterwards, truncate it to 255.  */
+
+static int
+sfnt_compute_fill (float value)
+{
+  if (value < 0)
+    value = -value;
+
+  return MIN (value * 255, 255);
+}
+
+/* Transfer steps generated by sfnt_poly_edges_exact from STEPS to the
+   provided raster RASTER.  */
+
+static void
+sfnt_poly_steps (struct sfnt_step_raster *steps,
+		 struct sfnt_raster *raster)
+{
+  int y;
+  unsigned char *data;
+  int x, xend, fill;
+  float total;
+  struct sfnt_step *step;
+
+  y = 0; /* This y is an X-style coordinate in RASTER's space.
+
+	    Its counterpart array of steps is STEPS->steps[
+	    raster->height - y - 1].  */
+  data = raster->cells;
+
+  for (y = 0; y < raster->height; ++y, data += raster->stride)
+    {
+      fill = total = x = 0;
+
+      for (step = steps->steps[raster->height - y - 1];
+	   step && x < raster->width; step = step->next)
+	{
+	  xend = MIN (step->x, raster->width);
+
+	  if (fill)
+	    memset (data + x, fill, xend - x);
+
+	  total += step->coverage;
+	  fill = sfnt_compute_fill (total);
+	  x = xend;
+	}
+
+      if (x < raster->width)
+	memset (data + x, fill, raster->width - x);
+    }
+}
+
+/* Poly each edge in EDGES onto the raster supplied in DCONTEXT.  */
+
+static void
+sfnt_raster_steps (struct sfnt_step_raster *steps, void *dcontext)
+{
+  sfnt_poly_steps (steps, dcontext);
+}
+
+/* Call sfnt_poly_edges_exact with suitable arguments for polying
+   EDGES onto DCONTEXT, a raster structure.  */
+
+static void
+sfnt_raster_edges_exact (struct sfnt_fedge *edges, size_t size,
+			 void *dcontext)
+{
+  struct sfnt_raster *raster;
+
+  raster = dcontext;
+  sfnt_poly_edges_exact (edges, size, raster->height,
+			 raster->width, sfnt_raster_steps,
+			 dcontext);
+}
+
+/* Generate an alpha mask for the glyph outline OUTLINE by means of
+   the exact coverage scaler.  Value is the alpha mask upon success,
+   NULL upon failure.  */
+
+TEST_STATIC struct sfnt_raster *
+sfnt_raster_glyph_outline_exact (struct sfnt_glyph_outline *outline)
+{
+  struct sfnt_raster raster, *data;
+
+  /* Get the raster parameters.  */
+  sfnt_prepare_raster (&raster, outline);
+
+  /* Allocate the raster data.  */
+  data = xmalloc (sizeof *data + raster.stride * raster.height);
+  *data = raster;
+  data->cells = (unsigned char *) (data + 1);
+  memset (data->cells, 0, raster.stride * raster.height);
+
+  /* Generate edges for the outline, polying each array of edges to
+     the raster.  */
+  sfnt_build_outline_fedges (outline, sfnt_raster_edges_exact, data);
+
+  /* All done.  */
+  return data;
+}
+
+#endif /* SFNT_EXACT_SCALING */
 
 
 
@@ -5859,15 +6763,6 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
   if (!is_prep)					\
     TRAP ("instruction executed not valid"	\
 	  " outside control value program")	\
-
-#define sfnt_add(a, b)				\
-  ((int) ((unsigned int) (a) + (unsigned int) (b)))
-
-#define sfnt_sub(a, b)				\
-  ((int) ((unsigned int) (a) - (unsigned int) (b)))
-
-#define sfnt_mul(a, b)				\
-  ((int) ((unsigned int) (a) * (unsigned int) (b)))
 
 
 
@@ -15569,6 +16464,10 @@ sfnt_read_post_table (int fd, struct sfnt_offset_subtable *subtable)
 
 #ifdef TEST
 
+#ifdef SFNT_EXACT_SCALING
+#define sfnt_raster_glyph_outline sfnt_raster_glyph_outline_exact
+#endif /* SFNT_EXACT_SCALING */
+
 struct sfnt_test_dcontext
 {
   /* Context for sfnt_test_get_glyph.  */
@@ -15963,7 +16862,7 @@ sfnt_x_raster (struct sfnt_raster **rasters,
 	  ascent = sfnt_mul_fixed (hhea->ascent * 65536,
 				   scale) / 65536;
 
-	  origin = 0;
+	  origin = 5;
 
 	  for (i = 0; i < nrasters; ++i)
 	    {
@@ -19572,8 +20471,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 40
-#define EASY_PPEM  40
+#define FANCY_PPEM 12
+#define EASY_PPEM  12
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
