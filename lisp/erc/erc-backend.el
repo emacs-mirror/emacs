@@ -1996,8 +1996,8 @@ like `erc-insert-modify-hook'.")
              (erc--msg-prop-overrides `((erc--tmp) ,@erc--msg-prop-overrides))
              (erc--speaker-status-prefix-wanted-p nil)
              (erc-current-message-catalog erc--message-speaker-catalog)
-             s buffer statusmsg cmem-prefix
-             fnick)
+             ;;
+             buffer statusmsg cmem-prefix fnick)
         (setq buffer (erc-get-buffer (if privp nick tgt) proc))
         ;; Even worth checking for empty target here? (invalid anyway)
         (unless (or buffer noticep (string-empty-p tgt) (eq ?$ (aref tgt 0))
@@ -2042,36 +2042,31 @@ like `erc-insert-modify-hook'.")
                                          erc-show-speaker-membership-status
                                          inputp)
                                      (cdr cdata))))))
-        (cond
-         ((erc-is-message-ctcp-p msg)
-          ;; FIXME explain undefined return values being assigned to `s'.
-          (setq s (if-let ((parsed
-                            (erc--ctcp-response-from-parsed
-                             :parsed parsed :buffer buffer :statusmsg statusmsg
-                             :prefix cmem-prefix :dispname fnick))
-                           (msgp))
-                      (erc-process-ctcp-query proc parsed nick login host)
-                    (erc-process-ctcp-reply proc parsed nick login host
-                                            (match-string 1 msg)))))
-         (t
+        (if (erc-is-message-ctcp-p msg)
+            (if noticep
+                (erc-process-ctcp-reply proc parsed nick login host
+                                        (match-string 1 msg))
+              (setq parsed (erc--ctcp-response-from-parsed
+                            :parsed parsed :buffer buffer :statusmsg statusmsg
+                            :prefix cmem-prefix :dispname fnick))
+              (erc-process-ctcp-query proc parsed nick login host))
           (setq erc-server-last-peers (cons nick (cdr erc-server-last-peers)))
           (with-current-buffer (or buffer (current-buffer))
             ;; Re-bind in case either buffer has a local value.
-            (let ((erc-current-message-catalog erc--message-speaker-catalog))
-              (setq s (erc--determine-speaker-message-format-args
-                       nick msg privp msgp inputp statusmsg
-                       cmem-prefix fnick))))))
-        (when s
-          (if (and noticep privp)
-              (progn
-                (push (cons 'erc--msg (car s)) erc--msg-prop-overrides)
-                (setq s (apply #'erc-format-message s))
-                (run-hook-with-args 'erc-echo-notice-always-hook
-                                    s parsed buffer nick)
-                (run-hook-with-args-until-success
-                 'erc-echo-notice-hook s parsed buffer nick))
-            (apply #'erc-display-message parsed nil buffer
-                   (ensure-list s))))))))
+            (let ((erc-current-message-catalog erc--message-speaker-catalog)
+                  (msg-args (erc--determine-speaker-message-format-args
+                             nick msg privp msgp inputp statusmsg
+                             cmem-prefix fnick)))
+              (if (or msgp (not privp))
+                  ;; This is a PRIVMSG or a NOTICE to a channel.
+                  (apply #'erc-display-message parsed nil buffer msg-args)
+                ;; This is a NOTICE directed at the client's current nick.
+                (push (cons 'erc--msg (car msg-args)) erc--msg-prop-overrides)
+                (let ((fmtmsg (apply #'erc-format-message msg-args)))
+                  (run-hook-with-args 'erc-echo-notice-always-hook
+                                      fmtmsg parsed buffer nick)
+                  (run-hook-with-args-until-success
+                   'erc-echo-notice-hook fmtmsg parsed buffer nick))))))))))
 
 (define-erc-response-handler (QUIT)
   "Another user has quit IRC." nil

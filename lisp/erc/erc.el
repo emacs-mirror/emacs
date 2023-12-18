@@ -6528,8 +6528,14 @@ See also `erc-display-message'."
 (defun erc-process-ctcp-reply (proc parsed nick login host msg)
   "Process MSG as a CTCP reply."
   (let* ((type (car (split-string msg)))
-         (hook (intern (concat "erc-ctcp-reply-" type "-hook"))))
-    (if (boundp hook)
+         (hook (intern-soft (concat "erc-ctcp-reply-" type "-hook")))
+         ;; Help `erc-display-message' by ensuring subsequent
+         ;; insertions retain the necessary props.
+         (cmd (erc--get-eq-comparable-cmd (erc-response.command parsed)))
+         (erc--msg-prop-overrides `((erc--ctcp . ,(and hook (intern type)))
+                                    (erc--cmd . ,cmd)
+                                    ,@erc--msg-prop-overrides)))
+    (if (and hook (boundp hook))
         (run-hook-with-args-until-success
          hook proc nick login host
          (car (erc-response.command-args parsed)) msg)
