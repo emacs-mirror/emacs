@@ -1608,10 +1608,8 @@ POS specifies the starting position where EXP was found and defaults to point."
           (package (buffer-package (current-buffer))))
       (when (or (re-search-backward regexp nil t)
                 (re-search-forward regexp nil t))
-	(let ((name (read (match-string 1))))
-	  (if-let (pkg (find-package name))
-	      (setq package pkg)
-	    (warn "Package %S is not defined" name))))
+	(when-let (pkg (find-package (read (match-string 1))))
+	  (setq package pkg)))
       package)))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
