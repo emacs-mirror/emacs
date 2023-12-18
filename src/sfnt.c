@@ -4983,7 +4983,7 @@ sfnt_fedge_sort (struct sfnt_fedge *edges, size_t size)
    guarantee that no steps generated extend past WIDTH, steps starting
    after width might be omitted, and as such it must be accurate.  */
 
-TEST_STATIC void
+static void
 sfnt_poly_edges_exact (struct sfnt_fedge *edges, size_t nedges,
 		       size_t height, size_t width,
 		       sfnt_step_raster_proc proc, void *dcontext)
