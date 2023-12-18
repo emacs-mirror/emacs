@@ -6829,7 +6829,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
    ? (TRAP ("stack underflow"), 0)		\
    : *(interpreter->SP - 1))
 
-#if !defined TEST || !0
+#if !defined TEST
 
 #define PUSH(value)				\
   {						\
@@ -6847,7 +6847,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     interpreter->SP++;				\
   }
 
-#else /* TEST && 0 */
+#else /* TEST */
 
 #define PUSH(value)				\
   {						\
@@ -9799,11 +9799,9 @@ sfnt_interpret_mdap (struct sfnt_interpreter *interpreter,
 
 static void
 sfnt_deltap (int number, struct sfnt_interpreter *interpreter,
-	     unsigned char operand, unsigned int index)
+	     unsigned char operand, unsigned int p)
 {
   int ppem, delta;
-
-  return;
 
   /* Extract the ppem from OPERAND.  The format is the same as in
      sfnt_deltac.  */
@@ -9908,8 +9906,8 @@ sfnt_deltap (int number, struct sfnt_interpreter *interpreter,
   delta *= 1l << (6 - interpreter->state.delta_shift);
 
   /* Move the point.  */
-  sfnt_check_zp0 (interpreter, index);
-  sfnt_move_zp0 (interpreter, index, 1, delta);
+  sfnt_check_zp0 (interpreter, p);
+  sfnt_move_zp0 (interpreter, p, 1, delta);
 }
 
 /* Needed by sfnt_interpret_call.  */
@@ -12239,6 +12237,7 @@ sfnt_compute_phantom_points (struct sfnt_glyph *glyph,
 			     sfnt_f26dot6 *x2, sfnt_f26dot6 *y2)
 {
   sfnt_fword f1, f2;
+  sfnt_fixed s1, s2;
 
   /* Two ``phantom points'' are appended to each outline by the scaler
      prior to instruction interpretation.  One of these points
@@ -12256,8 +12255,14 @@ sfnt_compute_phantom_points (struct sfnt_glyph *glyph,
   f2 += glyph->advance_distortion;
 
   /* Next, scale both up.  */
-  *x1 = sfnt_mul_f26dot6_fixed (f1 * 64, scale);
-  *x2 = sfnt_mul_f26dot6_fixed (f2 * 64, scale);
+  s1 = sfnt_mul_f26dot6_fixed (f1 * 64, scale);
+  s2 = sfnt_mul_f26dot6_fixed (f2 * 64, scale);
+
+  /* While not expressly provided in the manual, the phantom points
+     (at times termed the advance and origin points) represent pixel
+     coordinates within the raster, and are therefore rounded.  */
+  *x1 = sfnt_round_f26dot6 (s1);
+  *x2 = sfnt_round_f26dot6 (s2);
 
   /* Clear y1 and y2.  */
   *y1 = 0;
