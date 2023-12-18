@@ -5270,9 +5270,9 @@ increase to the Y of the edge for each increase in scanline X.  */
 		  /* Fill the remainder of the scanline with
 		     height-derived coverage.  */
 
-		  if (x_pixel_max < width)
-		    APPEND_STEP (x_pixel_max, ((y_top - y_bot)
-					       * a->winding - last));
+		  if (x_pixel_max + 1 < width)
+		    APPEND_STEP (x_pixel_max + 1, ((y_top - y_bot)
+						   * a->winding - last));
 		}
 	      else /* if (x_bot > x_top) */
 		{
@@ -20508,8 +20508,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 30
-#define EASY_PPEM  30
+#define FANCY_PPEM 12
+#define EASY_PPEM  12
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
