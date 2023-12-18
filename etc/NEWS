@@ -482,7 +482,10 @@ When a fileset's VC change history ('C-x v l') ends at a rename, we
 now print the old name(s) and a button which jumps to their history.
 Git and Hg are supported.  Naturally, 'vc-git-print-log-follow' should
 be nil for this to work (or '--follow' should not be in
-'vc-hg-print-log-switches', in Hg's case).
+'vc-hg-print-log-switches', in Hg's case).  Unlike when the '--follow'
+switch is used, commands to see the diff of the old revision ('d'),
+check out an old file version ('f') or annotate it right away ('a'),
+also work on revisions which precede renames.
 
 *** New option 'vc-git-file-name-changes-switches'.
 It allows tweaking the thresholds for rename and copy detection.
