@@ -2444,7 +2444,11 @@ sfntfont_get_glyph_raster (sfnt_glyph glyph_code,
     }
 
   /* Not already cached.  Raster the outline.  */
-  raster = sfnt_raster_glyph_outline (outline);
+
+  if (!sfnt_raster_glyphs_exactly)
+    raster = sfnt_raster_glyph_outline (outline);
+  else
+    raster = sfnt_raster_glyph_outline_exact (outline);
 
   if (!raster)
     return NULL;
@@ -4116,6 +4120,13 @@ eliminating artifacts and chance effects consequent upon the direct
 upscaling of glyph outline data.  Instruction code is occasionally
 incompatible with Emacs and must be disregarded.  */);
   Vsfnt_uninstructable_family_regexp = Qnil;
+
+  DEFVAR_BOOL ("sfnt-raster-glyphs-exactly", sfnt_raster_glyphs_exactly,
+    doc: /* How font glyph outlines should be converted to graphics.
+If non-nil, glyphs will be displayed in a more precise manner, at the
+cost of performance on devices where floating-point math operations
+are slow.  */);
+  sfnt_raster_glyphs_exactly = true;
 }
 
 void

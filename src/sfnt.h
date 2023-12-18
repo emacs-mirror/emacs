@@ -1512,6 +1512,7 @@ extern void sfnt_prepare_raster (struct sfnt_raster *,
 
 #define PROTOTYPE struct sfnt_glyph_outline *
 extern struct sfnt_raster *sfnt_raster_glyph_outline (PROTOTYPE);
+extern struct sfnt_raster *sfnt_raster_glyph_outline_exact (PROTOTYPE);
 #undef PROTOTYPE
 
 #define PROTOTYPE			\
