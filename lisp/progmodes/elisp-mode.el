@@ -1596,6 +1596,24 @@ POS specifies the starting position where EXP was found and defaults to point."
               (push var vars))))
         `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
 
+(declare-function find-package "pkg" (name))
+(declare-function buffer-package "pkg" (buffer))
+
+(defun elisp-eval-package ()
+  "Value is package to evaluate forms in."
+  (save-excursion
+    (let ((regexp (rx line-start (0+ space) "(" (0+ space)
+		      (optional "emacs:") "in-package" (1+ space)
+		      (group (1+ (not (any ")\n"))))))
+          (package (buffer-package (current-buffer))))
+      (when (or (re-search-backward regexp nil t)
+                (re-search-forward regexp nil t))
+	(let ((name (read (match-string 1))))
+	  (if-let (pkg (find-package name))
+	      (setq package pkg)
+	    (warn "Package %S is not defined" name))))
+      package)))
+
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in the echo area.
 Interactively, EVAL-LAST-SEXP-ARG-INTERNAL is the prefix argument.
@@ -1617,16 +1635,17 @@ integer value is also printed as a character of that codepoint.
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
   (interactive "P")
-  (if (null eval-expression-debug-on-error)
-      (values--store-value
-       (elisp--eval-last-sexp eval-last-sexp-arg-internal))
-    (let ((value
-	   (let ((debug-on-error elisp--eval-last-sexp-fake-value))
-	     (cons (elisp--eval-last-sexp eval-last-sexp-arg-internal)
-		   debug-on-error))))
-      (unless (eq (cdr value) elisp--eval-last-sexp-fake-value)
-	(setq debug-on-error (cdr value)))
-      (car value))))
+  (let ((*package* (elisp-eval-package)))
+    (if (null eval-expression-debug-on-error)
+        (values--store-value
+         (elisp--eval-last-sexp eval-last-sexp-arg-internal))
+      (let ((value
+	     (let ((debug-on-error elisp--eval-last-sexp-fake-value))
+	       (cons (elisp--eval-last-sexp eval-last-sexp-arg-internal)
+		     debug-on-error))))
+        (unless (eq (cdr value) elisp--eval-last-sexp-fake-value)
+	  (setq debug-on-error (cdr value)))
+        (car value)))))
 
 (defun elisp--eval-defun-1 (form)
   "Treat some expressions in FORM specially.
@@ -1685,7 +1704,8 @@ Return the result of evaluation."
   ;; FIXME: the print-length/level bindings should only be applied while
   ;; printing, not while evaluating.
   (defvar elisp--eval-defun-result)
-  (let ((debug-on-error eval-expression-debug-on-error)
+  (let ((*package* (elisp-eval-package))
+        (debug-on-error eval-expression-debug-on-error)
         (edebugging edebug-all-defs)
         elisp--eval-defun-result)
     (save-excursion
