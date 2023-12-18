@@ -9756,7 +9756,7 @@ sfnt_deltac (int number, struct sfnt_interpreter *interpreter,
 
    Touch the point P (within the zone specified in zp0) in the
    directions specified in the freedom vector.  Then, if OPCODE is
-   0x7f, round the point and move it the rounded distance along the
+   0x2f, round the point and move it the rounded distance along the
    freedom vector.
 
    Finally, set the RP0 and RP1 registers to P.  */
@@ -9772,7 +9772,7 @@ sfnt_interpret_mdap (struct sfnt_interpreter *interpreter,
   /* Measure the current distance.  */
   here = sfnt_project_vector (interpreter, px, py);
 
-  if (opcode == 0x7f)
+  if (opcode == 0x2f)
     {
       /* Measure distance, round, then move to the distance.  */
       distance = sfnt_project_vector (interpreter, px, py);
@@ -20508,8 +20508,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 12
-#define EASY_PPEM  12
+#define FANCY_PPEM 14
+#define EASY_PPEM  14
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
