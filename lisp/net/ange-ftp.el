@@ -2164,7 +2164,7 @@ Create a new process if needed."
       proc)))
 
 (defun ange-ftp-passive-mode (proc on-or-off)
-  (if (string-match (concat "Passive mode " on-or-off)
+  (if (string-match (concat "Passive mode:? " on-or-off)
                     (cdr (ange-ftp-raw-send-cmd
                           proc (concat "passive " on-or-off)
                           "Trying passive mode..." nil)))
