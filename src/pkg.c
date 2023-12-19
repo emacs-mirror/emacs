@@ -836,6 +836,22 @@ DEFUN ("package-%set-nicknames", Fpackage_percent_set_nicknames,
   return XPACKAGE (package)->nicknames = nicknames;
 }
 
+DEFUN ("package-%local-nicknames", Fpackage_percent_local_nicknames,
+       Spackage_percent_local_nicknames, 1, 1, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object package)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->local_nicknames;
+}
+
+DEFUN ("package-%set-local-nicknames", Fpackage_percent_set_local_nicknames,
+       Spackage_percent_set_local_nicknames, 2, 2, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object package, Lisp_Object nicknames)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->local_nicknames = nicknames;
+}
+
 DEFUN ("package-%use-list", Fpackage_percent_use_list,
        Spackage_percent_use_list, 1, 1, 0, doc:  /* Internal use only.  */)
   (Lisp_Object package)
@@ -1120,9 +1136,11 @@ syms_of_pkg (void)
   defsubr (&Smake_percent_package);
   defsubr (&Spackage_percent_name);
   defsubr (&Spackage_percent_nicknames);
+  defsubr (&Spackage_percent_local_nicknames);
   defsubr (&Spackage_percent_register);
   defsubr (&Spackage_percent_set_name);
   defsubr (&Spackage_percent_set_nicknames);
+  defsubr (&Spackage_percent_set_local_nicknames);
   defsubr (&Spackage_percent_set_shadowing_symbols);
   defsubr (&Spackage_percent_set_status);
   defsubr (&Spackage_percent_set_symbol_package);

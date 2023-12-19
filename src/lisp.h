@@ -2229,6 +2229,9 @@ struct Lisp_Package
   /* Package nicknames, a List of strings.  */
   Lisp_Object nicknames;
 
+  /* Package-local nicknames, an alist of (NICKNAME . PACKAGE).  */
+  Lisp_Object local_nicknames;
+
   /* List of package objects for the packages used by this
      package.  */
   Lisp_Object use_list;
