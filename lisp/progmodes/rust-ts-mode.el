@@ -298,7 +298,8 @@
   (let* ((beg (treesit-node-start node))
          (face (save-excursion
                  (goto-char beg)
-                 (if (looking-at "/\\(?:/\\(?:/[^/]\\|!\\)\\|*\\(?:*[^*/]\\|!\\)\\)" t)
+                 (if (looking-at-p
+                      "/\\(?:/\\(?:/[^/]\\|!\\)\\|\\*\\(?:\\*[^*/]\\|!\\)\\)")
                      'font-lock-doc-face
                    'font-lock-comment-face))))
     (treesit-fontify-with-override beg (treesit-node-end node)
