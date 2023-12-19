@@ -1543,7 +1543,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
    if KEY is not present in SPEC.  Set *FOUND depending on whether KEY
    was found in SPEC.  */
 
-static Lisp_Object
+Lisp_Object
 image_spec_value (Lisp_Object spec, Lisp_Object key, bool *found)
 {
   Lisp_Object tail;

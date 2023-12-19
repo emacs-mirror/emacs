@@ -30940,6 +30940,26 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 	  }
     }
 
+#ifdef HAVE_RSVG
+  /* Update SVG image glyphs with mouse face features.  FIXME: it
+     should be possible to have this behaviour with transparent
+     background PNG.  */
+  if (hl == DRAW_MOUSE_FACE)
+    {
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+      for (s = head; s; s = s->next)
+	if (s->first_glyph->type == IMAGE_GLYPH)
+	  if (s->img
+	      && (EQ (image_spec_value (s->img->spec, QCtype, NULL), Qsvg)))
+	    {
+	      ptrdiff_t id;
+	      id = lookup_image (f, s->img->spec, hlinfo->mouse_face_face_id);
+	      s->img = IMAGE_FROM_ID (f, id);
+	      prepare_image_for_display(f, s->img);
+	    }
+    }
+#endif
+
   /* Draw all strings.  */
   for (s = head; s; s = s->next)
     FRAME_RIF (f)->draw_glyph_string (s);
