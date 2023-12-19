@@ -2087,6 +2087,9 @@ of the prefix argument for `eval-expression' and
                 ((= num -1) most-positive-fixnum)
                 (t eval-expression-print-maximum-character)))))
 
+(defun eval-expression--debug (err)
+  (funcall debugger 'error err :backtrace-base #'eval-expression--debug))
+
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-buffer.
 (defun eval-expression (exp &optional insert-value no-truncate char-print-limit)
@@ -2120,23 +2123,17 @@ this command arranges for all errors to enter the debugger."
    (cons (read--expression "Eval: ")
          (eval-expression-get-print-arguments current-prefix-arg)))
 
-  (let (result)
+  (let* (result
+         (runfun
+          (lambda ()
+            (setq result
+                  (values--store-value
+                   (eval (let ((lexical-binding t)) (macroexpand-all exp))
+                         t))))))
     (if (null eval-expression-debug-on-error)
-        (setq result
-              (values--store-value
-               (eval (let ((lexical-binding t)) (macroexpand-all exp)) t)))
-      (let ((old-value (make-symbol "t")) new-value)
-        ;; Bind debug-on-error to something unique so that we can
-        ;; detect when evalled code changes it.
-        (let ((debug-on-error old-value))
-          (setq result
-	        (values--store-value
-                 (eval (let ((lexical-binding t)) (macroexpand-all exp)) t)))
-	  (setq new-value debug-on-error))
-        ;; If evalled code has changed the value of debug-on-error,
-        ;; propagate that change to the global binding.
-        (unless (eq old-value new-value)
-	  (setq debug-on-error new-value))))
+        (funcall runfun)
+      (handler-bind ((error #'eval-expression--debug))
+        (funcall runfun)))
 
     (let ((print-length (unless no-truncate eval-expression-print-length))
           (print-level  (unless no-truncate eval-expression-print-level))
