@@ -8080,8 +8080,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     vector					\
       = interpreter->state.projection_vector;	\
 						\
-    PUSH ((uint16_t) vector.x);			\
-    PUSH ((uint16_t) vector.y);			\
+    PUSH ((int32_t) vector.x);			\
+    PUSH ((int32_t) vector.y);			\
   }
 
 #define GFV()					\
@@ -8091,8 +8091,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     vector					\
       = interpreter->state.freedom_vector;	\
 						\
-    PUSH ((uint16_t) vector.x);			\
-    PUSH ((uint16_t) vector.y);			\
+    PUSH ((int32_t) vector.x);			\
+    PUSH ((int32_t) vector.y);			\
   }
 
 #define SFVTPV()				\
