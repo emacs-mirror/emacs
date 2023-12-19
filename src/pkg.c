@@ -143,9 +143,12 @@ pkg_find_package (Lisp_Object name)
     = XPACKAGE (Vearmuffs_package)->local_nicknames;
   if (!NILP (local_nicknames))
     {
-      const Lisp_Object entry = CALLN (Fassoc, name, local_nicknames);
+      const Lisp_Object entry = Fassoc (name, local_nicknames, Qnil);
       if (!NILP (entry))
-	return XCDR (entry);
+	{
+	  eassert (PACKAGEP (XCDR (entry)));
+	  return XCDR (entry);
+	}
     }
 
   return Fgethash (name, Vpackage_registry, Qnil);

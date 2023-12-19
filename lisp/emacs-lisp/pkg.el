@@ -503,8 +503,11 @@ returned if found.
 Value is nil if no package with the given name is found. "
   (if (packagep package)
       package
-    (let ((name (pkg--stringify-name package "package name")))
-      (gethash name *package-registry*))))
+    (let* ((name (pkg--stringify-name package "package name"))
+           (local (assoc name (package-local-nicknames *package*))))
+      (if local
+          (cdr local)
+        (gethash name *package-registry*)))))
 
 ;;;###autoload
 (defun delete-package (package)
