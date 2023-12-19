@@ -149,23 +149,25 @@
        (erc-modules (cons 'sasl erc-modules))
        (erc-sasl-password "wrong")
        (erc-sasl-mechanism 'plain)
-       (expect (erc-d-t-make-expecter))
-       (buf nil))
+       (erc--warnings-buffer-name  "*ERC test warnings*")
+       (warnings-buffer (get-buffer-create erc--warnings-buffer-name))
+       (expect (erc-d-t-make-expecter)))
 
-    (ert-info ("Connect")
-      (setq buf (erc :server "127.0.0.1"
-                     :port port
-                     :nick "tester"
-                     :user "tester"
-                     :full-name "tester"))
-      (let ((err (should-error
-                  (with-current-buffer buf
-                    (funcall expect 20 "Connection failed!")))))
-        (should (string-search "please review" (cadr err)))
-        (with-current-buffer buf
-          (funcall expect 10 "Opening connection")
-          (funcall expect 20 "SASL authentication failed")
-          (should-not (erc-server-process-alive)))))))
+    (with-current-buffer (erc :server "127.0.0.1"
+                              :port port
+                              :nick "tester"
+                              :user "tester"
+                              :full-name "tester")
+      (funcall expect 10 "Opening connection")
+      (funcall expect 20 "SASL authentication failed")
+      (funcall expect 20 "Connection failed!")
+      (should-not (erc-server-process-alive)))
+
+    (with-current-buffer warnings-buffer
+      (funcall expect 10 "please review SASL settings")))
+
+  (when noninteractive
+    (should-not (get-buffer "*ERC test warnings*"))))
 
 (defun erc-scenarios--common--sasl (mech)
   (erc-scenarios-common-with-cleanup

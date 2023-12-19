@@ -332,8 +332,8 @@ This doesn't solicit or validate a suite of supported mechanisms."
             (client (erc-sasl--create-client mech)))
        (unless client
          (erc-display-error-notice
-          nil (format "Unknown or unsupported SASL mechanism: %s" mech))
-         (erc-error "Unknown or unsupported SASL mechanism: %s" mech))
+          nil (format "Unknown or unsupported SASL mechanism: `%s'" mech))
+         (error "Unknown or unsupported SASL mechanism: `%s'" mech))
        (setf (erc-sasl--state-client erc-sasl--state) client))))
   ((kill-local-variable 'erc-sasl--state)
    (kill-local-variable 'erc-sasl--options))
@@ -370,9 +370,10 @@ This doesn't solicit or validate a suite of supported mechanisms."
           (setq data (concat (substring data end) (and (= end 400) "+"))))))))
 
 (defun erc-sasl--destroy (proc)
-  (run-hook-with-args 'erc-quit-hook proc)
+  "Destroy process PROC and warn user that their settings are likely faulty."
   (delete-process proc)
-  (erc-error "Disconnected from %s; please review SASL settings" proc))
+  (erc--lwarn 'erc-sasl :error
+              "Disconnected from %s; please review SASL settings" proc))
 
 (define-erc-response-handler (902)
   "Handle an ERR_NICKLOCKED response." nil

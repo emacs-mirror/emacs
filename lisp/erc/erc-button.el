@@ -869,8 +869,8 @@ non-strings, concatenate leading string members before applying
       (with-syntax-table lisp-mode-syntax-table
         (skip-syntax-forward "^-"))
       (forward-char)
-      (display-warning
-       'erc (buffer-substring-no-properties (point) (point-max))))))
+      (erc--lwarn
+       'erc :warning (buffer-substring-no-properties (point) (point-max))))))
 
 (provide 'erc-button)
 

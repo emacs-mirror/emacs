@@ -453,10 +453,7 @@ The INDENT level is ignored."
          `(display-buffer-in-side-window
            . ((side . right)
               (window-width . ,erc-speedbar-nicknames-window-width)))))
-    (erc-status-sidebar-set-window-preserve-size)
-    (when-let ((window (get-buffer-window speedbar-buffer)))
-      (set-window-parameter window 'no-other-window nil)
-      (internal-show-cursor window t))))
+    (erc-status-sidebar-set-window-preserve-size)))
 
 (defun erc-speedbar--status-sidebar-mode--unhook ()
   "Remove hooks installed by `erc-status-sidebar-mode'."
@@ -504,7 +501,8 @@ The INDENT level is ignored."
                   (speedbar-set-mode-line-format)))
             (when (or (not force) (>= arg 0))
               (with-selected-frame speedbar-frame
-                (erc-speedbar--emulate-sidebar-set-window-preserve-size)))))
+                (erc-speedbar--emulate-sidebar-set-window-preserve-size)
+                (erc-speedbar-toggle-nicknames-window-lock -1)))))
       (when-let (((or (not force) (>= arg 0)))
                  (speedbar-frame-parameters (backquote-list*
                                              '(visibility . nil)
@@ -522,7 +520,8 @@ The INDENT level is ignored."
         ;; Emacs in the meantime.
         (make-frame-invisible speedbar-frame)
         (select-frame (setq speedbar-frame (previous-frame)))
-        (erc-speedbar--emulate-sidebar-set-window-preserve-size))))
+        (erc-speedbar--emulate-sidebar-set-window-preserve-size)
+        (erc-speedbar-toggle-nicknames-window-lock -1))))
   (cl-assert (not (cdr (erc-speedbar--get-timers))) t))
 
 (defun erc-speedbar--ensure (&optional force)
@@ -563,12 +562,10 @@ such a thing and can reproduce it, please file a bug report with
                (and-let* ((speedbar-buffer)
                           (win (get-buffer-window speedbar-buffer 'all-frames))
                           ((eq speedbar-frame (window-frame win))))))
-     (if speedbar-buffer
-         (erc-speedbar--ensure 'force)
-       (setq erc-nickbar-mode nil)
-       (when (derived-mode-p 'erc-mode)
-         (erc-error "Not initializing `erc-nickbar-mode' in %s"
-                    (current-buffer))))))
+     (when-let ((buf (or (and (derived-mode-p 'erc-mode) (current-buffer))
+                         (car (erc-buffer-filter #'erc--server-buffer-p)))))
+       (with-current-buffer buf
+         (erc-speedbar--ensure 'force)))))
   ((remove-hook 'erc--setup-buffer-hook #'erc-speedbar--ensure)
    (when erc-track-mode
      (setq erc-track--switch-fallback-blockers
@@ -609,15 +606,21 @@ such a thing and can reproduce it, please file a bug report with
     ;; erc-speedbar.el resets this to nil.
     (setq speedbar-buffer nil)))
 
-(defun erc-speedbar-toggle-nicknames-window-lock ()
-  "Toggle whether nicknames window is selectable with \\[other-window]."
-  (interactive)
+(defun erc-speedbar-toggle-nicknames-window-lock (arg)
+  "Toggle whether nicknames window is selectable with \\[other-window].
+When arg is a number, lock the window if non-negative, otherwise
+unlock."
+  (interactive "P")
   (unless erc-nickbar-mode
     (user-error "`erc-nickbar-mode' inactive"))
   (when-let ((window (get-buffer-window speedbar-buffer)))
-    (let ((val (window-parameter window 'no-other-window)))
-      (set-window-parameter window 'no-other-window (not val))
-      (message "nick-window: %s" (if val "selectable" "protected")))))
+    (let ((val (cond ((natnump arg) t)
+                     ((integerp arg) nil)
+                     (t (not (window-parameter window
+                                               'no-other-window))))))
+      (set-window-parameter window 'no-other-window val)
+      (unless (numberp arg)
+        (message "nick-window: %s" (if val "protected" "selectable"))))))
 
 
 ;;;; Nicks integration

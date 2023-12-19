@@ -2880,6 +2880,15 @@ message instead, to make debugging easier."
     (apply #'message args)
     (beep)))
 
+(defvar erc--warnings-buffer-name nil
+  "Name of possibly existing alternate warnings buffer for unit tests.")
+
+(defun erc--lwarn (type level format-string &rest args)
+  "Issue a warning of TYPE and LEVEL with FORMAT-STRING and ARGS."
+  (let ((message (substitute-command-keys
+                  (apply #'format-message format-string args))))
+    (display-warning type message level erc--warnings-buffer-name)))
+
 ;;; Debugging the protocol
 
 (defvar erc-debug-irc-protocol-time-format "%FT%T.%6N%z "
@@ -5032,6 +5041,8 @@ connection or, with -A, all applicable connections.
 
 (put 'erc-cmd-RECONNECT 'process-not-needed t)
 
+;; FIXME use less speculative error message or lose `condition-case',
+;; since most connection failures don't signal anything.
 (defun erc-cmd-SERVER (server)
   "Connect to SERVER, leaving existing connection intact."
   (erc-log (format "cmd: SERVER: %s" server))
