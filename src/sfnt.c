@@ -10499,7 +10499,7 @@ sfnt_dot_fix_14 (int32_t ax, int32_t ay, int bx, int by)
   yy = xx >> 63;
   xx += 0x2000 + yy;
 
-  return (int32_t) (xx / (2 << 14));
+  return (int32_t) (xx / (1 << 14));
 #endif
 }
 
@@ -12227,17 +12227,20 @@ sfnt_build_instructed_outline (struct sfnt_instructed_outline *instructed)
    scale SCALE.
 
    Place the X and Y coordinates of the first phantom point in *X1 and
-   *Y1, and those of the second phantom point in *X2 and *Y2.  */
+   *Y1, and those of the second phantom point in *X2 and *Y2.
+
+   Place the unrounded X coordinates of both phantom points in *S1 and
+   *S2 respectively.  */
 
 static void
 sfnt_compute_phantom_points (struct sfnt_glyph *glyph,
 			     struct sfnt_glyph_metrics *metrics,
 			     sfnt_fixed scale,
 			     sfnt_f26dot6 *x1, sfnt_f26dot6 *y1,
-			     sfnt_f26dot6 *x2, sfnt_f26dot6 *y2)
+			     sfnt_f26dot6 *x2, sfnt_f26dot6 *y2,
+			     sfnt_f26dot6 *s1, sfnt_f26dot6 *s2)
 {
   sfnt_fword f1, f2;
-  sfnt_fixed s1, s2;
 
   /* Two ``phantom points'' are appended to each outline by the scaler
      prior to instruction interpretation.  One of these points
@@ -12255,14 +12258,14 @@ sfnt_compute_phantom_points (struct sfnt_glyph *glyph,
   f2 += glyph->advance_distortion;
 
   /* Next, scale both up.  */
-  s1 = sfnt_mul_f26dot6_fixed (f1 * 64, scale);
-  s2 = sfnt_mul_f26dot6_fixed (f2 * 64, scale);
+  *s1 = sfnt_mul_f26dot6_fixed (f1 * 64, scale);
+  *s2 = sfnt_mul_f26dot6_fixed (f2 * 64, scale);
 
   /* While not expressly provided in the manual, the phantom points
      (at times termed the advance and origin points) represent pixel
      coordinates within the raster, and are therefore rounded.  */
-  *x1 = sfnt_round_f26dot6 (s1);
-  *x2 = sfnt_round_f26dot6 (s2);
+  *x1 = sfnt_round_f26dot6 (*s1);
+  *x2 = sfnt_round_f26dot6 (*s2);
 
   /* Clear y1 and y2.  */
   *y1 = 0;
@@ -12285,9 +12288,7 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
   size_t zone_size, temp, outline_size, i;
   struct sfnt_interpreter_zone *zone;
   struct sfnt_interpreter_zone *volatile preserved_zone;
-  sfnt_f26dot6 phantom_point_1_x;
   sfnt_f26dot6 phantom_point_1_y;
-  sfnt_f26dot6 phantom_point_2_x;
   sfnt_f26dot6 phantom_point_2_y;
   sfnt_f26dot6 tem;
   volatile bool zone_was_allocated;
@@ -12349,16 +12350,18 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
       zone->x_current[i] = tem;
     }
 
-  /* Compute phantom points.  */
+  /* Compute and load phantom points.  */
   sfnt_compute_phantom_points (glyph, metrics, interpreter->scale,
-			       &phantom_point_1_x, &phantom_point_1_y,
-			       &phantom_point_2_x, &phantom_point_2_y);
-
-  /* Load phantom points.  */
-  zone->x_points[i] = phantom_point_1_x;
-  zone->x_points[i + 1] = phantom_point_2_x;
-  zone->x_current[i] = phantom_point_1_x;
-  zone->x_current[i + 1] = phantom_point_2_x;
+			       &zone->x_current[i], &phantom_point_1_y,
+			       &zone->x_current[i + 1], &phantom_point_2_y,
+			       /* Phantom points are rounded to the
+				  pixel grid once they are inserted
+				  into the glyph zone, but the
+				  original coordinates must remain
+				  untouched, as fonts rely on this to
+				  interpolate points by this
+				  scale.  */
+			       &zone->x_points[i], &zone->x_points[i + 1]);
 
   /* Load y_points and y_current, along with flags.  */
   for (i = 0; i < glyph->simple->number_of_points; ++i)
@@ -12553,6 +12556,11 @@ sfnt_transform_f26dot6 (struct sfnt_compound_glyph_component *component,
    In addition, CONTEXT also contains two additional ``phantom
    points'' supplying the left and right side bearings of GLYPH.
 
+   S1 and S2 are the unrounded values of the last two phantom points,
+   which supply the original values saved into the glyph zone.  In
+   practical terms, they are set as the last two values of the glyph
+   zone's original position array.
+
    Value is NULL upon success, or a description of the error upon
    failure.  */
 
@@ -12561,7 +12569,8 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
 				 struct sfnt_interpreter *interpreter,
 				 struct sfnt_compound_glyph_context *context,
 				 size_t base_index, size_t base_contour,
-				 struct sfnt_glyph_metrics *metrics)
+				 struct sfnt_glyph_metrics *metrics,
+				 sfnt_f26dot6 s1, sfnt_f26dot6 s2)
 {
   size_t num_points, num_contours, i;
   size_t zone_size, temp;
@@ -12650,6 +12659,11 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
       zone->flags[i] = (context->flags[i + base_index]
 			& ~SFNT_POINT_TOUCHED_BOTH);
     }
+
+  /* Copy S1 and S2 into the glyph zone.  */
+  assert (num_points >= 2);
+  zone->x_points[num_points - 1] = s2;
+  zone->x_points[num_points - 2] = s1;
 
   /* Load the compound glyph program.  */
   interpreter->IP = 0;
@@ -12756,6 +12770,8 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
   sfnt_f26dot6 phantom_point_1_y;
   sfnt_f26dot6 phantom_point_2_x;
   sfnt_f26dot6 phantom_point_2_y;
+  sfnt_f26dot6 phantom_point_1_s;
+  sfnt_f26dot6 phantom_point_2_s;
 
   error = NULL;
 
@@ -13096,7 +13112,8 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
   /* Compute phantom points.  */
   sfnt_compute_phantom_points (glyph, metrics, interpreter->scale,
 			       &phantom_point_1_x, &phantom_point_1_y,
-			       &phantom_point_2_x, &phantom_point_2_y);
+			       &phantom_point_2_x, &phantom_point_2_y,
+			       &phantom_point_1_s, &phantom_point_2_s);
 
   /* Grow various arrays to include those points.  */
   rc = sfnt_expand_compound_glyph_context (context,
@@ -13123,7 +13140,9 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
       error = sfnt_interpret_compound_glyph_2 (glyph, interpreter,
 					       context, base_index,
 					       base_contour,
-					       metrics);
+					       metrics,
+					       phantom_point_1_s,
+					       phantom_point_2_s);
     }
 
   return error;

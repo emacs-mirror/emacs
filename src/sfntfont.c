@@ -2290,22 +2290,12 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
     }
 
   if (!outline)
-    {
-      if (!interpreter)
-	outline = sfnt_build_glyph_outline (glyph, scale,
-					    &temp,
-					    sfntfont_get_glyph,
-					    sfntfont_free_glyph,
-					    sfntfont_get_metrics,
-					    &dcontext);
-      else
-	outline = sfnt_build_glyph_outline (glyph, scale,
-					    &temp,
-					    sfntfont_get_glyph,
-					    sfntfont_free_glyph,
-					    sfntfont_get_metrics,
-					    &dcontext);
-    }
+    outline = sfnt_build_glyph_outline (glyph, scale,
+					&temp,
+					sfntfont_get_glyph,
+					sfntfont_free_glyph,
+					sfntfont_get_metrics,
+					&dcontext);
 
   /* At this point, the glyph metrics are unscaled.  Scale them up.
      If INTERPRETER is set, use the scale placed within.  */
