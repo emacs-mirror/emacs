@@ -4347,14 +4347,14 @@ might not be safe to continue.  */);
   DEFSYM (Qdebugger, "debugger");
   DEFVAR_LISP ("debugger", Vdebugger,
 	       doc: /* Function to call to invoke debugger.
-If due to frame exit, args are `exit' and the value being returned;
+If due to frame exit, arguments are `exit' and the value being returned;
  this function's value will be returned instead of that.
-If due to error, args are `error' and a list of the args to `signal'.
-If due to `apply' or `funcall' entry, one arg, `lambda'.
-If due to `eval' entry, one arg, t.
+If due to error, arguments are `error' and a list of arguments to `signal'.
+If due to `apply' or `funcall' entry, one argument, `lambda'.
+If due to `eval' entry, one argument, t.
 IF the desired entry point of the debugger is higher in the call stack,
-it can can be specified with the keyword argument `:backtrace-base'
-whose format should be the same as the BASE arg of `backtrace-frame'.  */);
+it can be specified with the keyword argument `:backtrace-base', whose
+format should be the same as the BASE argument of `backtrace-frame'.  */);
   Vdebugger = Qdebug_early;
 
   DEFVAR_LISP ("signal-hook-function", Vsignal_hook_function,
