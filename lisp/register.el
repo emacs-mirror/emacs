@@ -207,14 +207,16 @@ SMATCH accept a boolean value to say if command accept non matching register."
    :types '(string number)
    :msg "Insert register `%s'"
    :act 'insert
-   :smatch t))
+   :smatch t
+   :noconfirm (memq register-use-preview '(nil never))))
 (cl-defmethod register-command-info ((_command (eql jump-to-register)))
   (make-register-preview-info
    :types  '(window frame marker kmacro
              file buffer file-query)
    :msg "Jump to register `%s'"
    :act 'jump
-   :smatch t))
+   :smatch t
+   :noconfirm (memq register-use-preview '(nil never))))
 (cl-defmethod register-command-info ((_command (eql view-register)))
   (make-register-preview-info
    :types '(all)
@@ -555,12 +557,10 @@ display such a window regardless."
                                (unless (string= pat "")
                                  (with-selected-window (minibuffer-window)
                                    (if (and (member pat strs)
-                                            (memq act '(set modify))
                                             (null noconfirm))
                                        (with-selected-window (minibuffer-window)
                                          (minibuffer-message msg pat))
-                                     ;; The action is insert or
-                                     ;; jump or noconfirm is specifed
+                                     ;; :noconfirm is specifed
                                      ;; explicitely, don't ask for
                                      ;; confirmation and exit immediately (bug#66394).
                                      (setq result pat)
