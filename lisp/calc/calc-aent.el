@@ -547,22 +547,41 @@ The value t means abort and give an error message.")
   "₀₁₂₃₄₅₆₇₈₉₊₋₍₎" ; 0123456789+-()
   "A string consisting of the subscripts allowed by Calc.")
 
+(defvar math--read-preprocess-re-cache nil
+  "Cached regexp and tag: (REGEXP REPLACEMENTS SUPERSCRIPTS SUBSCRIPTS)")
+
 ;;;###autoload
 (defun math-read-preprocess-string (str)
   "Replace some substrings of STR by Calc equivalents."
-  (setq str
-        (replace-regexp-in-string (concat "[" math-read-superscripts "]+")
-                                  "^(\\&)" str))
-  (setq str
-        (replace-regexp-in-string (concat "[" math-read-subscripts "]+")
-                                  "_(\\&)" str))
-  (let ((rep-list math-read-replacement-list))
-    (while rep-list
-      (setq str
-            (replace-regexp-in-string (nth 0 (car rep-list))
-                                      (nth 1 (car rep-list)) str))
-      (setq rep-list (cdr rep-list))))
-  str)
+  (unless (and (eq (nth 1 math--read-preprocess-re-cache)
+                   math-read-replacement-list)
+               (eq (nth 2 math--read-preprocess-re-cache)
+                   math-read-superscripts)
+               (eq (nth 3 math--read-preprocess-re-cache)
+                   math-read-subscripts))
+    ;; Cache invalid, recompute.
+    (setq math--read-preprocess-re-cache
+          (list (rx-to-string
+                 `(or (or (+ (in ,math-read-superscripts))
+                          (group (+ (in ,math-read-subscripts))))
+                      (group (or ,@(mapcar #'car math-read-replacement-list))))
+                 t)
+                math-read-replacement-list
+                math-read-superscripts
+                math-read-subscripts)))
+  (replace-regexp-in-string
+   (nth 0 math--read-preprocess-re-cache)
+   (lambda (s)
+     (if (match-beginning 2)
+         (cadr (assoc s math-read-replacement-list))  ; not super/subscript
+       (concat (if (match-beginning 1) "_" "^")
+               "("
+               (mapconcat (lambda (c)
+                            (cadr (assoc (char-to-string c)
+                                         math-read-replacement-list)))
+                          s)
+               ")")))
+   str t))
 
 ;; The next few variables are local to math-read-exprs (and math-read-expr
 ;; in calc-ext.el), but are set in functions they call.
