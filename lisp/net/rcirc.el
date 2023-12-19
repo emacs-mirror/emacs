@@ -229,6 +229,12 @@ Uninteresting lines are those whose responses are listed in
 Used as the first arg to `format-time-string'."
   :type 'string)
 
+(defcustom rcirc-log-time-format "%d-%b %H:%M "
+  "Describes how timestamps are printed in the log files.
+Used as the first arg to `format-time-string'."
+  :version "30.1"
+  :type 'string )
+
 (defcustom rcirc-input-ring-size 1024
   "Size of input history ring."
   :type 'integer)
@@ -2209,7 +2215,7 @@ disk.  PROCESS is the process object for the current connection."
                 (parse-iso8601-time-string time t))))
     (unless (null filename)
       (let ((cell (assoc-string filename rcirc-log-alist))
-            (line (concat (format-time-string rcirc-time-format time)
+            (line (concat (format-time-string rcirc-log-time-format time)
                           (substring-no-properties
                            (rcirc-format-response-string process sender
                                                          response target text))

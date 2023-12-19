@@ -929,6 +929,7 @@ Manual}, for details.
 @cindex date time
 @cindex format time stamp
 @vindex rcirc-time-format
+@vindex rcirc-log-time-format
 
 @code{rcirc-time-format} is the format used for the time stamp.  Here's
 how to include the date in the time stamp:
@@ -936,6 +937,9 @@ how to include the date in the time stamp:
 @example
 (setopt rcirc-time-format "%Y-%m-%d %H:%M ")
 @end example
+
+For log files, a different time format can be specified using the
+@code{rcirc-log-time-format} user option.
 
 @findex rcirc-when
 If you don't wish to use verbose time formatting all the time, you can

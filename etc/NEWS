@@ -1153,6 +1153,11 @@ URIs are now prefixed with "https://" instead.
 Now, calling '(thing-at-point 'url)' when point is on a bug reference
 will return the URL for that bug.
 
++++
+*** New user option 'rcirc-log-time-format'
+This allows for rcirc logs to use a custom timestamp format, than the
+chat buffers use by default.
+
 ** Customize
 
 +++
