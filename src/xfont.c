@@ -238,7 +238,7 @@ xfont_chars_supported (Lisp_Object chars, XFontStruct *xfont,
 
 static Lisp_Object xfont_scripts_cache;
 
-/* Re-usable vector to store characteristic font properties.   */
+/* Reusable vector to store characteristic font properties.   */
 static Lisp_Object xfont_scratch_props;
 
 /* Return a list of scripts supported by the font of FONTNAME whose

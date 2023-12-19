@@ -61,6 +61,7 @@
 ;; avoid them in cases we know what we do.
 (defmacro tramp-compat-funcall (function &rest arguments)
   "Call FUNCTION with ARGUMENTS if it exists.  Do not raise compiler warnings."
+  (declare (indent 1) (debug t))
   `(when (functionp ,function)
      (with-no-warnings (funcall ,function ,@arguments))))
 
@@ -305,6 +306,16 @@ Also see `ignore'."
       ?\N{PRESENTATION FORM FOR VERTICAL COLON}
       ?\N{KHMER SIGN CAMNUC PII KUUH})
     "List of characters equivalent to trailing colon in \"password\" prompts."))
+
+;; Macro `connection-local-p' is new in Emacs 30.1.
+(if (macrop 'connection-local-p)
+    (defalias 'tramp-compat-connection-local-p #'connection-local-p)
+  (defmacro tramp-compat-connection-local-p (variable)
+    "Non-nil if VARIABLE has a connection-local binding in `default-directory'."
+    `(let (connection-local-variables-alist file-local-variables-alist)
+       (hack-connection-local-variables
+	(connection-local-criteria-for-default-directory))
+       (and (assq ',variable connection-local-variables-alist) t))))
 
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (function-put (intern elt) 'tramp-suppress-trace t))

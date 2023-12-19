@@ -26,7 +26,7 @@
 
 ;; The processor relies on "biblatex" LaTeX package.  As such it ensures that
 ;; the package is properly required in the document's preamble.  More
-;; accurately, it will re-use any "\usepackage{biblatex}" already present in
+;; accurately, it will reuse any "\usepackage{biblatex}" already present in
 ;; the document (e.g., through `org-latex-packages-alist'), or insert one using
 ;; options defined in `org-cite-biblatex-options'.
 

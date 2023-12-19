@@ -640,6 +640,11 @@ set this in the ``Regional Settings'' Control Panel on some versions
 of MS-Windows, and in the ``Language and Region'' System Preference on
 macOS.
 
+When running a GUI session on Android, @env{LANG} is set to a fixed
+value, but the language and locale environment is derived from the
+system's ``Languages & Input'' preferences.  @xref{Android
+Environment}.
+
 The value of the @env{LC_CTYPE} category is
 matched against entries in @code{locale-language-names},
 @code{locale-charset-language-names}, and

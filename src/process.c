@@ -7520,7 +7520,7 @@ handle_child_signal (int sig)
 
 		   emacs_unlink is not async signal safe because
 		   deleting files from content providers must proceed
-		   through Java code.  Consequentially, if XCDR (head)
+		   through Java code.  Consequently, if XCDR (head)
 		   lies on a content provider it will not be removed,
 		   which is a bug.  */
 		unlink (SSDATA (XCDR (head)));

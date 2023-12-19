@@ -791,6 +791,7 @@ definitions that aren't listed in VARIABLES."
     (setq variables (nreverse existing-variables)))
   (connection-local-set-profile-variables profile variables))
 
+;;;###autoload
 (defun hack-connection-local-variables (criteria)
   "Read connection-local variables according to CRITERIA.
 Store the connection-local variables in buffer local
@@ -926,17 +927,46 @@ earlier in the `setq-connection-local'.  The return value of the
           connection-local-profile-name-for-setq)))))
 
 ;;;###autoload
+(defmacro connection-local-p (variable &optional application)
+  "Non-nil if VARIABLE has a connection-local binding in `default-directory'.
+If APPLICATION is nil, the value of
+`connection-local-default-application' is used."
+  (declare (debug (symbolp &optional form)))
+  (unless (symbolp variable)
+    (signal 'wrong-type-argument (list 'symbolp variable)))
+  `(let (connection-local-variables-alist file-local-variables-alist)
+     (hack-connection-local-variables
+      (connection-local-criteria-for-default-directory ,application))
+     (and (assq ',variable connection-local-variables-alist) t)))
+
+;;;###autoload
+(defmacro connection-local-value (variable &optional application)
+  "Return connection-local VARIABLE for APPLICATION in `default-directory'.
+If APPLICATION is nil, the value of
+`connection-local-default-application' is used.
+If VARIABLE does not have a connection-local binding, the return
+value is the default binding of the variable."
+  (declare (debug (symbolp &optional form)))
+  (unless (symbolp variable)
+    (signal 'wrong-type-argument (list 'symbolp variable)))
+  `(let (connection-local-variables-alist file-local-variables-alist)
+     (hack-connection-local-variables
+      (connection-local-criteria-for-default-directory ,application))
+     (if-let ((result (assq ',variable connection-local-variables-alist)))
+         (cdr result)
+       ,variable)))
+
+;;;###autoload
 (defun path-separator ()
   "The connection-local value of `path-separator'."
-  (with-connection-local-variables path-separator))
+  (connection-local-value path-separator))
 
 ;;;###autoload
 (defun null-device ()
   "The connection-local value of `null-device'."
-  (with-connection-local-variables null-device))
+  (connection-local-value null-device))
 
 
-
 (provide 'files-x)
 
 ;;; files-x.el ends here

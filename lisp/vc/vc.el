@@ -517,6 +517,13 @@
 ;;   Return the revision number that precedes REV for FILE, or nil if no such
 ;;   revision exists.
 ;;
+;; - file-name-changes (rev)
+;;
+;;   Return the list of pairs with changes in file names in REV.  When
+;;   a file was added, it should be a cons with nil car.  When
+;;   deleted, a cons with nil cdr.  When copied or renamed, a cons
+;;   with the source name as car and destination name as cdr.
+;;
 ;; - next-revision (file rev)
 ;;
 ;;   Return the revision number that follows REV for FILE, or nil if no such
@@ -668,7 +675,7 @@
 ;;;; New Primitives:
 ;;
 ;; - uncommit: undo last checkin, leave changes in place in the workfile,
-;;   stash the commit comment for re-use.
+;;   stash the commit comment for reuse.
 ;;
 ;; - deal with push operations.
 ;;
@@ -2686,18 +2693,70 @@ Not all VC backends support short logs!")
 (defun vc-print-log-setup-buttons (working-revision is-start-revision limit pl-return)
   "Insert at the end of the current buffer buttons to show more log entries.
 In the new log, leave point at WORKING-REVISION (if non-nil).
-LIMIT is the number of entries currently shown.
-Does nothing if IS-START-REVISION is non-nil, or if LIMIT is nil,
-or if PL-RETURN is `limit-unsupported'."
+LIMIT is the current maximum number of entries shown.  Does
+nothing if IS-START-REVISION is non-nil and LIMIT is 1, or if
+LIMIT is nil, or if PL-RETURN is `limit-unsupported'."
+  ;; LIMIT=1 is set by vc-annotate-show-log-revision-at-line
+  ;; or by vc-print-root-log with current-prefix-arg=1.
+  ;; In either case only one revision is wanted, no buttons.
   (when (and limit (not (eq 'limit-unsupported pl-return))
-	     (not is-start-revision))
+             (not (and is-start-revision
+                       (= limit 1))))
     (let ((entries 0))
       (goto-char (point-min))
       (while (re-search-forward log-view-message-re nil t)
         (cl-incf entries))
-      ;; If we got fewer entries than we asked for, then displaying
-      ;; the "more" buttons isn't useful.
-      (when (>= entries limit)
+      (if (< entries limit)
+          ;; The log has been printed in full.  Perhaps it started
+          ;; with a copy or rename?
+          ;; FIXME: We'd probably still want this button even when
+          ;; vc-log-show-limit is customized to 0 (should be rare).
+          (let* ((last-revision (log-view-current-tag (point-max)))
+                 ;; XXX: Could skip this when vc-git-print-log-follow = t.
+                 (name-changes
+                  (condition-case nil
+                      (vc-call-backend log-view-vc-backend
+                                       'file-name-changes last-revision)
+                    (vc-not-supported nil)))
+                 (matching-changes
+                  (cl-delete-if-not (lambda (f) (member f log-view-vc-fileset))
+                                    name-changes :key #'cdr))
+                 (old-names (delq nil (mapcar #'car matching-changes)))
+                 (relatives (mapcar #'file-relative-name old-names)))
+            (when old-names
+              (goto-char (point-max))
+              (unless (looking-back "\n\n" (- (point) 2))
+                (insert "\n"))
+              (insert
+               (format
+                "Renamed from %s"
+                (mapconcat (lambda (s)
+                             (propertize s 'font-lock-face
+                                         'log-view-file))
+                           relatives ", "))
+               " ")
+              ;; TODO: Also print a different button somewhere in the
+              ;; created buffer to be able to go back easily.  Might
+              ;; require some sort of stack/history because a file can
+              ;; be renamed multiple times.
+              (insert-text-button
+               "View log"
+               'action (lambda (&rest _ignore)
+                         (let ((backend log-view-vc-backend))
+                           (with-current-buffer vc-parent-buffer
+                             ;; To set up parent buffer in the new viewer.
+                             (vc-print-log-internal backend old-names
+                                                    last-revision t limit))))
+               ;; XXX: Showing the full history for OLD-NAMES (with
+               ;; IS-START-REVISION=nil) can be better sometimes
+               ;; (e.g. when some edits still occurred after a rename
+               ;; -- multiple branches scenario), but it also can hurt
+               ;; in others because of Git's automatic history
+               ;; simplification: as a result, the logs for some
+               ;; use-package's files before merge could not be found.
+               'help-echo
+               "Show the log for the file name(s) before the rename")))
+        ;; Perhaps there are more entries in the log.
         (goto-char (point-max))
         (insert "\n")
         (insert-text-button
@@ -2725,9 +2784,6 @@ Leave point at WORKING-REVISION, if it is non-nil.
 If IS-START-REVISION is non-nil, start the log from WORKING-REVISION
 \(not all backends support this); i.e., show only WORKING-REVISION and
 earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
-  ;; As of 2013/04 the only thing that passes IS-START-REVISION non-nil
-  ;; is vc-annotate-show-log-revision-at-line, which sets LIMIT = 1.
-
   ;; Don't switch to the output buffer before running the command,
   ;; so that any buffer-local settings in the vc-controlled
   ;; buffer can be accessed by the command.

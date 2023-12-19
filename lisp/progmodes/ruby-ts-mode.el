@@ -601,7 +601,7 @@ a statement container is a node that matches
 
            ;; case expression: when, in_clause, and else are all
            ;; children of case.  when and in_clause have pattern and
-           ;; body as fields.  body has "then" and then the statemets.
+           ;; body as fields.  body has "then" and then the statements.
            ;; i.e. the statements are not children of when but then.
            ;; But for the statements are children of else.
            ((match "when" "case")

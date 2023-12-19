@@ -144,12 +144,14 @@ user-defined functions."
   :package-version '(ERC . "5.6")
   :type 'boolean)
 
-(defcustom erc-fill-line-spacing nil
+(defvar erc-fill-line-spacing nil
   "Extra space between messages on graphical displays.
-Its value should be larger than that of the variable
-`line-spacing', if set.  When unsure, start with 0.5."
-  :package-version '(ERC . "5.6")
-  :type '(choice (const nil) number))
+Its value should probably be larger than that of the variable
+`line-spacing', if non-nil.  When unsure, start with 1.0.  Note
+that as of ERC 5.6, this feature doesn't combine well with the
+`scrolltobottom' module, which is de facto required when using
+the `fill-wrap' filling style.  Users should therefore regard
+this variable as experimental for the time being.")
 
 (defvar-local erc-fill--function nil
   "Internal copy of `erc-fill-function'.
@@ -177,11 +179,10 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
           (when-let ((erc-fill-line-spacing)
                      (p (point-min)))
             (widen)
-            (when (or (erc--check-msg-prop 'erc-msg 'msg)
-                      (and-let* ((m (save-excursion
-                                      (forward-line -1)
-                                      (erc--get-inserted-msg-prop 'erc-msg))))
-                        (eq 'msg m)))
+            (when (or (erc--check-msg-prop 'erc--spkr)
+                      (save-excursion
+                        (forward-line -1)
+                        (erc--get-inserted-msg-prop 'erc--spkr)))
               (put-text-property (1- p) p
                                  'line-spacing erc-fill-line-spacing))))))))
 
@@ -190,7 +191,7 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
   (save-restriction
     (goto-char (point-min))
     (when-let (((looking-at "^\\(\\S-+\\)"))
-               ((not (erc--check-msg-prop 'erc-msg 'datestamp)))
+               ((not (erc--check-msg-prop 'erc--msg 'datestamp)))
                (nick (match-string 1)))
       (progn
         (let ((fill-column (- erc-fill-column (erc-timestamp-offset)))
@@ -262,9 +263,7 @@ the value of `erc-fill-wrap-visual-keys'."
   "Whether to consolidate consecutive messages from the same speaker.
 When non-nil, ERC omits redundant speaker labels for subsequent
 messages less than a day apart.  To help distinguish between
-merged messages, see related options `erc-fill-line-spacing', for
-graphical displays, and `erc-fill-wrap-merge-indicator' for text
-terminals."
+merged messages, see option `erc-fill-wrap-merge-indicator'."
   :package-version '(ERC . "5.6")
   :type 'boolean)
 
@@ -282,19 +281,25 @@ Only matters when the option `erc-fill-wrap-merge' is enabled.
 If the first element is the symbol `pre', ERC uses this option to
 generate a replacement for the speaker's name tag.  If the first
 element is `post', ERC affixes a short string to the end of the
-previous message.  (Note that the latter variant nullifies any
-intervening padding supplied by `erc-fill-line-spacing' and is
-meant to supplant that option in text terminals.)  In either
-case, the second element should be a character, like ?>, and the
-last element a valid face.  In special cases, you may also
-specify a cons of `pre'/`post' and a string, which tells ERC you
-know what you're doing and not to manage the process for you.  If
-unsure, try either of the first two presets, both of which
-replace a continued speaker's name with a dot-product-like glyph
-in `shadow' face.  Note that this option is still experimental,
-and changing its value mid-session is not yet supported (though,
-if you must, make sure to run \\[erc-fill-wrap-refill-buffer]
-afterward)."
+previous message.  In either case, the second element should be a
+character, like ?>, and the last element a valid face.  In
+special cases, you may also specify a cons of either
+aforementioned symbol and a string, which tells ERC not to manage
+the process for you.  If unsure, try either of the first two
+presets, both of which replace a continued speaker's name with a
+dot-product-like character in a `shadow'-like face.
+
+Note that as of ERC 5.6, this option is still experimental, and
+changing its value mid-session is not yet supported (though, if
+you must, make sure to run \\[erc-fill-wrap-refill-buffer]
+afterward).  Also note that users on versions of Emacs older than
+29.2 may experience a \"glitching\" effect when point resides on
+a \"merged\" message occupying the first or last line in a
+window.  If that happens, try replacing `top' with the integer 1
+in the option `recenter-positions' while also maybe adjusting
+`scroll-margin' and/or `scroll-preserve-screen-position' to avoid
+\"dragging\" point when issuing a `scroll-up' or `scroll-down'
+command."
   :package-version '(ERC . "5.6")
   :type
   '(choice (const nil)
@@ -469,12 +474,12 @@ cycling between logical- and screen-line oriented command
 movement.  Similarly, use \\[erc-fill-wrap-refill-buffer] to fix
 alignment problems after running certain commands, like
 `text-scale-adjust'.  Also see related stylistic options
-`erc-fill-line-spacing', `erc-fill-wrap-merge', and
-`erc-fill-wrap-merge-indicator'.  Hint: in narrow windows, where
-is space tight, try setting `erc-fill-static-center' to 1.  And
-if you also use the option `erc-fill-wrap-merge-indicator', set
-that to value-menu item \"Leading MIDDLE DOT (U+00B7) sans gap\"
-or one of the various \"trailing\" items.
+`erc-fill-wrap-merge', and `erc-fill-wrap-merge-indicator'.
+\(Hint: in narrow windows, where is space tight, try setting
+`erc-fill-static-center' to 1.  And if you also use the option
+`erc-fill-wrap-merge-indicator', set that to value-menu item
+\"Leading MIDDLE DOT sans gap\" or one of the various
+\"trailing\" items.)
 
 This module imposes various restrictions on the appearance of
 timestamps.  Most notably, it insists on displaying them in the
@@ -547,43 +552,38 @@ behavior of taking the length from the first \"word\".  This
 variable can be converted to a public one if needed by third
 parties.")
 
-(defvar-local erc-fill--wrap-last-msg nil)
-(defvar erc-fill--wrap-max-lull (* 24 60 60))
+(defvar-local erc-fill--wrap-last-msg nil "Marker for merging speakers.")
+(defvar erc-fill--wrap-max-lull (* 24 60 60) "Max secs for merging speakers.")
 
 (defun erc-fill--wrap-continued-message-p ()
   "Return non-nil when the current speaker hasn't changed.
-That is, indicate whether the text just inserted is from the same
-sender as that of the previous \"PRIVMSG\"."
-  (and
-   (not (erc--check-msg-prop 'erc-ephemeral))
-   (progn ; preserve blame for now, unprogn on next major change
-     (prog1
-         (and-let*
-             ((m (or erc-fill--wrap-last-msg
-                     (setq erc-fill--wrap-last-msg (point-min-marker))
-                     nil))
-              ((< (1+ (point-min)) (- (point) 2)))
-              (props (save-restriction
-                       (widen)
-                       (and-let*
-                           (((eq 'msg (get-text-property m 'erc-msg)))
-                            ((not (eq (get-text-property m 'erc-ctcp)
-                                      'ACTION)))
-                            ((not (invisible-p m)))
-                            (spr (next-single-property-change m 'erc-speaker)))
-                         (cons (get-text-property m 'erc-ts)
-                               (get-text-property spr 'erc-speaker)))))
-              (ts (pop props))
-              (props)
-              ((not (time-less-p (erc-stamp--current-time) ts)))
-              ((time-less-p (time-subtract (erc-stamp--current-time) ts)
-                            erc-fill--wrap-max-lull))
-              ;; Assume presence of leading angle bracket or hyphen.
-              (speaker (next-single-property-change (point-min) 'erc-speaker))
-              ((not (erc--check-msg-prop 'erc-ctcp 'ACTION)))
-              (nick (get-text-property speaker 'erc-speaker))
-              ((erc-nick-equal-p props nick))))
-       (set-marker erc-fill--wrap-last-msg (point-min))))))
+But only if the `erc--msg' text property also hasn't.  That is,
+indicate whether the chat message just inserted is from the same
+person as the prior one and is formatted in the same manner.  As
+a side effect, advance `erc-fill--wrap-last-msg' unless the
+message has been marked `erc--ephemeral'."
+  (and-let*
+      (((not (erc--check-msg-prop 'erc--ephemeral)))
+       ;; Always set/move `erc-fill--wrap-last-msg' from here on down.
+       (m (or (and erc-fill--wrap-last-msg
+                   (prog1 (marker-position erc-fill--wrap-last-msg)
+                     (set-marker erc-fill--wrap-last-msg (point-min))))
+              (ignore (setq erc-fill--wrap-last-msg (point-min-marker)))))
+       ((>= (point) 4)) ; skip the first message
+       (props (save-restriction
+                (widen)
+                (and-let* ((speaker (get-text-property m 'erc--spkr))
+                           (type (get-text-property m 'erc--msg))
+                           ((not (invisible-p m))))
+                  (list (get-text-property m 'erc--ts) type speaker))))
+       (ts (nth 0 props))
+       (type (nth 1 props))
+       (speaker (nth 2 props))
+       ((not (time-less-p (erc-stamp--current-time) ts)))
+       ((time-less-p (time-subtract (erc-stamp--current-time) ts)
+                     erc-fill--wrap-max-lull))
+       ((erc--check-msg-prop 'erc--msg type))
+       ((erc-nick-equal-p speaker (erc--check-msg-prop 'erc--spkr))))))
 
 (defun erc-fill--wrap-measure (beg end)
   "Return display spec width for inserted region between BEG and END.
@@ -666,12 +666,12 @@ See `erc-fill-wrap-mode' for details."
     (goto-char (point-min))
     (let ((len (or (and erc-fill--wrap-length-function
                         (funcall erc-fill--wrap-length-function))
-                   (and-let* ((msg-prop (erc--check-msg-prop 'erc-msg))
+                   (and-let* ((msg-prop (erc--check-msg-prop 'erc--msg))
                               ((not (eq msg-prop 'unknown))))
                      (when-let ((e (erc--get-speaker-bounds))
                                 (b (pop e))
                                 ((or erc-fill--wrap-action-dedent-p
-                                     (not (erc--check-msg-prop 'erc-ctcp
+                                     (not (erc--check-msg-prop 'erc--ctcp
                                                                'ACTION)))))
                        (goto-char e))
                      (skip-syntax-forward "^-")
@@ -744,16 +744,19 @@ With REPAIRP, destructively fill gaps and re-merge speakers."
       (remove-text-properties beg (1+ end) '(line-prefix nil wrap-prefix nil))
       (when-let ((repairp)
                  (dbeg (text-property-not-all beg end 'display nil))
-                 ((get-text-property (1+ dbeg) 'erc-speaker))
+                 ((get-text-property (1+ dbeg) 'erc--speaker))
                  (dval (get-text-property dbeg 'display))
                  ((equal "" dval)))
         (remove-text-properties
          dbeg (text-property-not-all dbeg end 'display dval) '(display)))
-      (let* ((pos (if (eq 'date-left (get-text-property beg 'erc-stamp-type))
-                      (field-beginning beg)
+      ;; This "should" work w/o `front-sticky' and `rear-nonsticky'.
+      (let* ((pos (if-let (((eq 'erc-timestamp (field-at-pos beg)))
+                           (b (field-beginning beg))
+                           ((eq 'datestamp (get-text-property b 'erc--msg))))
+                      b
                     beg))
              (erc--msg-props (map-into (text-properties-at pos) 'hash-table))
-             (erc-stamp--current-time (gethash 'erc-ts erc--msg-props)))
+             (erc-stamp--current-time (gethash 'erc--ts erc--msg-props)))
         (save-restriction
           (narrow-to-region beg (1+ end))
           (let ((erc-fill--wrap-last-msg erc-fill--wrap-rejigger-last-message))

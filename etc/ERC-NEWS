@@ -131,13 +131,6 @@ connectivity before attempting to reconnect in earnest.  See option
 'erc-server-reconnect-function' and new local module 'services-regain'
 (also experimental) to get started.
 
-** Module 'fill' can add a bit of space between messages.
-On graphical displays, it's now possible to add some breathing room
-around certain messages via the new option 'erc-fill-line-spacing'.
-This is especially handy when using the option 'erc-fill-wrap-merge'
-to omit repeated speaker tags, which can make message boundaries less
-detectable by tired eyes.
-
 ** Modules rather than their libraries set major-mode keybindings.
 To put it another way, simply loading a built-in module's library no
 longer modifies 'erc-mode-map'.  Instead, modifications occur during
@@ -170,6 +163,19 @@ options, like 'erc-command-indicator', have moved to the 'erc-goodies'
 library, although their Custom groups remain the same.  Add
 'command-indicator' to 'erc-modules' to get started.
 
+** Option 'erc-track-faces-normal-list' slightly more influential.
+This option has always been a source of confusion for users, mainly
+because its influence rode heavily on the makeup of faces in a given
+message.  Historically, when a buffer's current mode-line face was a
+member of this option's value, ERC would only swap it out for a fellow
+"normal" if it was absent from the message being processed.  Beginning
+with this release, ERC now looks to other ranked and, if necessary,
+unranked "normals" instead of sustaining the same face between
+messages.  This was done to better honor the stated purpose of the
+option, which is to provide consistent visual feedback when buffer
+activity occurs.  If you experience problems with this development,
+see the compatibility flag 'erc-track-ignore-normal-contenders-p'.
+
 ** 'erc-button-alist' and 'erc-nick-popup-alist' have evolved slightly.
 It's no secret that the 'buttons' module treats potential nicknames
 specially.  This is perhaps most evident in its treatment of the
@@ -183,6 +189,23 @@ functions, which ERC calls non-interactively, over arbitrary
 s-expressions, which ERC will continue to honor.  Although the default
 lineup remains functionally equivalent, its members have all been
 updated accordingly.
+
+** 'erc-track-faces-priority-list' and 'erc-track-faces-normal-list' slimmed.
+These options have been purged of certain 'button'-related face
+combinations.  Originally added in ERC 5.3, these combinations
+described the effect of "buttonizing" atop faces added by the 'match'
+module, like '(erc-nick-default-face erc-pal-face)'.  However, since
+at least Emacs 27, 'match' has run before 'button' in
+'erc-insert-modify-hook', meaning such permutations aren't possible.
+
+More importantly, users who've customized either of these options
+should update them with the new default value of the option
+'erc-button-nickname-face'.  Like 'erc-nick-default-face', which it
+replaces, the new 'erc-button-nick-default-face' is also a "real"
+face.  Its sole reason for existing is to make it easier for users and
+modules to distinguish between basic buttonized faces and
+'erc-nick-default-face', which is now reserved to mean the base
+"speaker" face.
 
 ** Option 'erc-query-on-unjoined-chan-privmsg' restored and renamed.
 This option was accidentally removed from the default client in ERC
@@ -214,7 +237,17 @@ Users of the default theme may notice that 'erc-action-face' and
 'erc-notice-face' now appear slightly less bold on systems supporting
 a weight of 'semi-bold'.  This was done to make buttons detectable and
 to spare users from resorting to tweaking these faces, or options like
-'erc-notice-highlight-type', just to achieve this effect.
+'erc-notice-highlight-type', just to achieve this effect.  It's
+currently most prominent in "/ME" messages, where 'erc-action-face'
+sits beneath 'erc-input-face', as well as 'erc-my-nick-face' in the
+speaker portion.
+
+** Fewer nick buttons in QUIT, JOIN, and PART messages.
+Common messages that show a nickname followed by a "userhost" often
+end up with redundant buttons because the nick reappears in or is the
+same as the "~user" portion.  ERC now tamps down on this to make
+<TAB>ing around more convenient.  To opt out, see the new variable
+'erc-button-highlight-nick-once'.
 
 ** Improved interplay between buffer truncation and message logging.
 While most of these improvements are subtle, some affect everyday use.
@@ -272,6 +305,26 @@ buffers.  In channels, it's grown to include all letters and their
 possibly truncated arguments, with the exception of stateful list
 modes, like "b".
 
+** In-buffer "status messages" are now a thing.
+The ancient option 'erc-ensure-target-buffer-on-privmsg' has been
+repurposed slightly to express a third state denoted by the symbol
+'status'.  It tells ERC to revert to the old default behavior in which
+separate, "pseudo" target buffers for status-prefixed conversing
+co-existed alongside actual target buffers.  Instead of this awkward
+arrangement, ERC now acts like other clients by default and inserts
+so-called "status messages" in situ, right between other messages.
+Similar insertion-routing behavior now also applies to CTCP ACTIONs
+directed at status-prefixed channels.  Unfortunately, outgoing "/msg
+@#chan hi" messages aren't yet shown in the same fashion, but the
+groundwork has been laid, making such an addition almost trivial.
+
+** An easier way to see channel-membership prefixes on speakers.
+The option 'erc-format-@nick' has been deprecated in favor of the new
+boolean option 'erc-show-speaker-membership-status', a simple switch
+to enable the displaying of status prefixes on the speaker nicks of
+incoming chat messages.  Prefixes on your speaker nick for outgoing
+chat messages continue to always be present.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, fool visibility has become togglable with the new
@@ -305,6 +358,15 @@ and the value of the 'field' property for ERC's prompt has changed
 from 't' to the more useful 'erc-prompt', although the property of the
 same name has been retained and now has a value of 'hidden' when
 disconnected.
+
+*** Lists of faces in buttonized text are no longer nested.
+Previously, when "buttonizing" a new region, ERC would combine faces
+by blindly consing the new onto the existing.  In theory, this kept a
+nice record of all modifications to a given region.  However, it also
+complicated life for other modules wanting to analyze and operate on
+these regions.  Beginning with this release, ERC now merges combined
+faces together when creating buttons, although the odd nested list may
+still crop up here and there.
 
 *** Members of insert- and send-related hooks have been reordered.
 As anyone reading this is no doubt aware, both built-in and
@@ -425,10 +487,43 @@ Built-in modules can now provide more detailed help for a particular
 subcommand by telling ERC to defer to a specialized handler.  This
 facility can be opened up to third parties should any one request it.
 
+*** Message-formatting templates in 'notify' renamed.
+All templates beginning with the prefix "erc-message-english-notify_"
+have been renamed to begin with "erc-message-english-notify-".  For
+example, the variable 'erc-message-english-notify_current' is now
+'erc-message-english-notify_current'.  The old names have been
+preserved as obsolete aliases.
+
 *** Longtime quasi modules made proper.
 The 'fill' module is now defined by 'define-erc-module'.  The same
 goes for ERC's imenu integration, which has 'imenu' now appearing in
 the default value of 'erc-modules'.
+
+*** Function 'erc-get-user-mode-prefix' renamed.
+This utility has been renamed to 'erc-get-channel-membership-prefix'
+to better reflect its role of delivering a formatted "status prefix",
+like "+" (for "voice"), and to avoid confusion with user modes, like
+"+i" (for "invisible").  Additionally, its lone parameter is now
+overloaded to accept an 'erc-channel-user' object as well as a string.
+
+*** Channel-membership table 'erc-channel-users' renamed.
+Distinguishing between 'erc-channel-user' objects and values of the
+'erc-channel-users' (plural) hash-table has been a constant source of
+confusion, even within ERC's own code base.  The hash-table's values
+are cons cells whose CDR slot is an 'erc-channel-user'.  To help keep
+things sane, 'erc-channel-users' (plural) is now officially being
+redubbed 'erc-channel-members'.  Similarly, the utility function
+'erc-get-channel-user' has been renamed to 'erc-get-channel-member'.
+Expect deprecations of the old names to follow in a future release.
+
+*** The 'erc-channel-user' struct has a changed internally.
+The five boolean slots for membership prefixes have been folded
+("encoded") into a single integer slot.  However, the old 'setf'-able
+accessors remain available, and the constructor's signature remains
+unchanged.  Since third-party code must be recompiled when upgrading
+ERC anyway, users shouldn't experience any churn.  The only caveat is
+that third-party code using the literal read-syntax of these objects,
+for example, in unit tests, will have to be updated.
 
 *** Hidden messages contain a preceding rather than trailing newline.
 ERC has traditionally only offered to hide messages involving fools,
@@ -457,8 +552,9 @@ ERC now adjusts input lines to fall within allowed length limits
 before showing hook members the result.  For compatibility,
 third-party code can request that the final input be adjusted again
 prior to being sent.  To facilitate this, the 'erc-input' object
-shared among hook members has gained a new 'refoldp' slot, making this
-a breaking change, if only in theory.  See doc string for details.
+shared among hook members has gained a "phony" 'refoldp' slot that's
+only accessible from 'erc-pre-send-functions'.  See doc string for
+details.
 
 *** ERC's prompt survives the insertion of user input and messages.
 Previously, ERC's prompt and its input marker disappeared while
@@ -509,6 +605,43 @@ been provisionally deprecated.  Expect a new, replacement API for
 handling specific "MODE" types and letters in coming releases.  If
 you'd like a say in shaping how this transpires, please share your
 ideas and use cases on the tracker.
+
+*** A better way to define message-formatting templates.
+The functions 'erc-define-catalog-entry' and 'erc-define-catalog' have
+been deprecated in favor of 'erc-define-message-format-catalog', a new
+macro for defining template "catalogs" at the top level of libraries.
+
+*** Interface for determining display names renamed.
+The option 'erc-format-nick-function' has been renamed to
+'erc-speaker-from-channel-member-function' to better reflect its
+actual role.  So too has the related function 'erc-format-nick', which
+is now 'erc-determine-speaker-from user'.
+
+*** A template-based approach to formatting inserted chat messages.
+Predicting and influencing how ERC formats messages containing a
+leading "<speaker>" has never been straightforward.  The characters
+bracketing the speaker and the faces used for each component have
+always been hard-coded, with 'erc-format-query-as-channel-p' being the
+only knob of any consequence.  With this release, ERC begins its
+transition to a unified formatting paradigm that builds upon the
+already familiar "language catalog" templating system.  Using a
+separate "speaker catalog" keyed by contextual symbols, like
+'query-privmsg', ERC (and eventually everyone) will more easily be
+able to influence how inserted messages take shape in buffers.
+
+*** New format templates for inserted CTCP ACTION messages.
+In 5.5 and earlier, ERC displayed outgoing CTCP ACTION messages in
+'erc-input-face' alone (before buttonizing).  Incoming ACTION messages
+mirrored this, except with 'erc-action-face' throughout.  Going
+forward, inserted outgoing "/ME" messages will also incorporate
+'erc-action-face', only underneath 'erc-input-face', with
+'erc-my-nick-face' sitting atop both in the leading "speaker" nickname
+portion (again, pre-buttonizing).  This new behavior sidesteps the
+traditional format template 'erc-message-english-ACTION' from the
+default "language catalog" in favor of an entry from the new internal
+"speaker catalog".  Users needing to access the old behavior can do so
+by toggling a provided compatibility switch.  See source code around
+the function 'erc-send-action' for details.
 
 *** Miscellaneous changes
 Two helper macros from GNU ELPA's Compat library are now available to
@@ -1706,7 +1839,7 @@ Only the macros in cl-macs.el are used.
 
 ** Make flood protection toggle-able as on/off, removing the 'strict option.
 
-** If possible, re-use channel buffers when reconnecting to a server.
+** If possible, reuse channel buffers when reconnecting to a server.
 
 ** Text in ERC buffers is now read-only by default.
 To get the previous behavior,

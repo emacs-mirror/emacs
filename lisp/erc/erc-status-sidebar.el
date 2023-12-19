@@ -130,7 +130,7 @@ buffers, using the functions
   `erc-status-sidebar-pad-hierarchy'
 
 for the above-mentioned purposes.  ERC also accepts a list of
-functions to preform these roles a la carte.  Since the members
+functions to perform these roles a la carte.  Since the members
 of the above sets aren't really interoperable, we don't offer
 them here as customization choices, but you can still specify
 them manually.  See doc strings for a description of their

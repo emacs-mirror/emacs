@@ -157,6 +157,18 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-regexp-is-not-mistaken-for-slash-symbol ()
   (ruby-assert-state "x = /foo:/" 3 nil))
 
+(ert-deftest ruby-slash-not-regexp-when-surrounded-by-spaces ()
+  (ruby-assert-state "x = index / 3" 3 nil))
+
+(ert-deftest ruby-slash-not-regexp-when-no-spaces ()
+  (ruby-assert-state "x = index/3" 3 nil))
+
+(ert-deftest ruby-regexp-not-division-when-only-space-before ()
+  (ruby-assert-state "x = foo_index /3" 3 ?/))
+
+(ert-deftest ruby-slash-not-regexp-when-only-space-after ()
+  (ruby-assert-state "x = index/ 3" 3 nil))
+
 (ert-deftest ruby-indent-simple ()
   (ruby-should-indent-buffer
    "if foo

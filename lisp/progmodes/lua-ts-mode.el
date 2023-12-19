@@ -552,7 +552,6 @@ Calls REPORT-FN directly."
     (with-current-buffer lua-ts-inferior-buffer
       (setq-local comint-input-ignoredups t
                   comint-input-ring-file-name lua-ts-inferior-history
-                  comint-use-prompt-regexp t
                   comint-prompt-read-only t
                   comint-prompt-regexp (rx-to-string `(: bol
                                                          ,lua-ts-inferior-prompt
@@ -560,9 +559,7 @@ Calls REPORT-FN directly."
       (comint-read-input-ring t)
       (add-hook 'comint-preoutput-filter-functions
                 (lambda (string)
-                  (if (or (not (equal (buffer-name) lua-ts-inferior-buffer))
-                          (equal string
-                                 (concat lua-ts-inferior-prompt-continue " ")))
+                  (if (equal string (concat lua-ts-inferior-prompt-continue " "))
                       string
                     (concat
                      ;; Filter out the extra prompt characters that
@@ -576,7 +573,8 @@ Calls REPORT-FN directly."
                                                     (group (* nonl))))
                                                "\\1" string)
                      ;; Re-add the prompt for the next line.
-                     lua-ts-inferior-prompt " "))))))
+                     lua-ts-inferior-prompt " ")))
+                nil t)))
   (select-window (display-buffer lua-ts-inferior-buffer
                                  '((display-buffer-reuse-window
                                     display-buffer-pop-up-frame)

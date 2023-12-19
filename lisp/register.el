@@ -107,8 +107,18 @@ If nil, do not show register previews, unless `help-char' (or a member of
   :type '(repeat string))
 
 (defcustom register-use-preview t
-  "Always show register preview when non nil."
-  :type 'boolean)
+  "Whether to show preview of registers.
+
+If the value is t, show a preview buffer with navigation and highlighting.
+If the value is nil, show a basic preview buffer and exit minibuffer
+immediately after the register name is inserted into minibuffer.
+If the value is \\='never, behave as for nil, but with no preview buffer
+at all."
+  :type '(choice
+          (const :tag "Use preview" t)
+          (const :tag "Use quick preview" nil)
+          (const :tag "Never use preview" never))
+  :version "30.1")
 
 (defun get-register (register)
   "Return contents of Emacs register named REGISTER, or nil if none."
@@ -310,11 +320,14 @@ Prompt with the string PROMPT.
 If `help-char' (or a member of `help-event-list') is pressed,
 display such a window regardless."
   (let* ((buffer "*Register Preview*")
+         (buffer1 "*Register quick preview*")
+         (buf (if register-use-preview buffer buffer1))
          (pat "")
          (map (let ((m (make-sparse-keymap)))
                 (set-keymap-parent m minibuffer-local-map)
                 m))
          (data (register-command-info this-command))
+         (enable-recursive-minibuffers t)
          types msg result timer act win strs smatch)
     (if data
         (setq types  (register-preview-info-types data)
@@ -333,15 +346,16 @@ display such a window regardless."
       (define-key map
           (vector k) (lambda ()
                        (interactive)
-                       (unless (get-buffer-window buffer)
+                       ;; Do nothing when buffer1 is in use.
+                       (unless (get-buffer-window buf)
                          (with-selected-window (minibuffer-selected-window)
                            (register-preview buffer 'show-empty types))))))
     (define-key map (kbd "<down>") 'register-preview-next)
     (define-key map (kbd "<up>")   'register-preview-previous)
     (define-key map (kbd "C-n")    'register-preview-next)
     (define-key map (kbd "C-p")    'register-preview-previous)
-    (unless (or executing-kbd-macro (null register-use-preview))
-      (register-preview buffer nil types))
+    (unless (or executing-kbd-macro (eq register-use-preview 'never))
+      (register-preview buf nil types))
     (unwind-protect
          (progn
            (minibuffer-with-setup-hook
@@ -369,7 +383,12 @@ display such a window regardless."
                                 (setq pat input))))
                           (if (setq win (get-buffer-window buffer))
                               (with-selected-window win
-                                (let ((ov (make-overlay (point-min) (point-min))))
+                                (let ((ov (make-overlay
+                                           (point-min) (point-min)))
+                                      ;; Allow upper-case and
+                                      ;; lower-case letters to refer
+                                      ;; to different registers.
+                                      (case-fold-search nil))
                                   (goto-char (point-min))
                                   (remove-overlays)
                                   (unless (string= pat "")
@@ -385,21 +404,25 @@ display such a window regardless."
                                         (minibuffer-message
                                          "Register `%s' is empty" pat))))))
                             (unless (string= pat "")
-                              (if (member pat strs)
-                                  (with-selected-window (minibuffer-window)
-                                    (minibuffer-message msg pat))
-                                (with-selected-window (minibuffer-window)
-                                  (minibuffer-message
-                                   "Register `%s' is empty" pat)))))))))
+                              (with-selected-window (minibuffer-window)
+                                (if (and (member pat strs) (memq act '(set modify)))
+                                    (with-selected-window (minibuffer-window)
+                                      (minibuffer-message msg pat))
+                                  ;; An empty register or an existing
+                                  ;; one but the action is insert or
+                                  ;; jump, don't ask for confirmation
+                                  ;; and exit immediately (bug#66394).
+                                  (setq result pat)
+                                  (exit-minibuffer)))))))))
              (setq result (read-from-minibuffer
                            prompt nil map nil nil (register-preview-get-defaults act))))
            (cl-assert (and result (not (string= result "")))
                       nil "No register specified")
            (string-to-char result))
       (when timer (cancel-timer timer))
-      (let ((w (get-buffer-window buffer)))
+      (let ((w (get-buffer-window buf)))
         (and (window-live-p w) (delete-window w)))
-      (and (get-buffer buffer) (kill-buffer buffer)))))
+      (and (get-buffer buf) (kill-buffer buf)))))
 
 (defun point-to-register (register &optional arg)
   "Store current location of point in REGISTER.

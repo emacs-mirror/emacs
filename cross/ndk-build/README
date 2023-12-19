@@ -86,7 +86,7 @@ $(ANDROID_MAKEFILE), the ``Android.mk'' file, for the first time.  The
 purpose of this evaluation is to establish a list of packages (or
 modules) provided by the ``Android.mk'' file, and the corresponding
 Makefile targets and compiler and linker flags required to build and
-link to those tagets.
+link to those targets.
 
 Before doing so, build-aux/ndk-build-helper.mk will define several
 variables and functions required by all ``Android.mk'' files.  The
@@ -164,7 +164,7 @@ module_cxx_deps=""
 module_imports=""
 
 which is then evaluated by `configure'.	 Once the variable
-`module_name' is set, configure apends the remaining
+`module_name' is set, configure appends the remaining
 $(module_includes), $(module_cflags) and $(module_ldflags) to the
 module's CFLAGS and LIBS variables, and appends the list of Makefile
 targets specified to the variable NDK_BUILD_MODULES.

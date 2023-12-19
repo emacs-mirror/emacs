@@ -1,0 +1,44 @@
+Code:
+  (lambda ()
+    (setq indent-tabs-mode nil)
+    (setq js-indent-level 2)
+    (js-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Name: Basic indentation
+
+=-=
+const foo = () => {
+  console.log("bar");
+  if (x) {
+    return y;
+  } else if (y) {
+    return u;
+  }
+  return baz.x()
+    ? true
+    : false;
+}
+=-=-=
+
+Name: Statement indentation without braces
+
+=-=
+function bracketless_statements(x) {
+  if (x == 0)
+    console.log("if_statement");
+  else if (x == 1)
+    console.log("if_statement");
+  else
+    console.log("else_clause");
+  for (let i = 0; i < 1; i++)
+    console.log("for_statement");
+  for (let _ of [true])
+    console.log("for_in_statement");
+  while (x-- > 0)
+    console.log("while_statement");
+  do
+    console.log("do_statement");
+  while (false)
+};
+=-=-=

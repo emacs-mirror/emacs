@@ -340,7 +340,7 @@ the `stop-selecting-text' editing key."
 
 
 ;; Splash screen notice.  Users are frequently left scratching their
-;; heads when they overlook the Android appendex in the Emacs manual
+;; heads when they overlook the Android appendix in the Emacs manual
 ;; and discover that external storage is not accessible; worse yet,
 ;; Android 11 and later veil the settings panel controlling such
 ;; permissions behind layer upon layer of largely immaterial settings
@@ -423,6 +423,61 @@ denied.  ")
                      'action #'android-display-storage-permission-popup
                      'follow-link t)
       (newline))))
+
+
+;;; Locale preferences.
+
+(defvar android-os-language)
+
+(defun android-locale-for-system-language ()
+  "Return a locale representing the system language.
+This locale reflects the system's language preferences in its
+language name and country variant fields, and always specifies
+the UTF-8 coding system."
+  ;; android-os-language is a list comprising four elements LANGUAGE,
+  ;; COUNTRY, SCRIPT, and VARIANT.
+  ;;
+  ;; LANGUAGE and COUNTRY are ISO language and country codes identical
+  ;; to those stored within POSIX locales.
+  ;;
+  ;; SCRIPT is an ISO 15924 script tag, representing the script used
+  ;; if available, or if required to disambiguate between distinct
+  ;; writing systems for the same combination of language and country.
+  ;;
+  ;; VARIANT is an arbitrary string representing the variant of the
+  ;; LANGUAGE or SCRIPT represented.
+  ;;
+  ;; Each of these fields might be empty, but the locale is invalid if
+  ;; LANGUAGE is empty, which if true "en_US.UTF-8" is returned as a
+  ;; placeholder.
+  (let ((language (or (nth 0 android-os-language) ""))
+        (country (or (nth 1 android-os-language) ""))
+        (script (or (nth 2 android-os-language) ""))
+        (variant (or (nth 3 android-os-language) ""))
+        locale-base locale-modifier)
+    (if (string-empty-p language)
+        (setq locale-base "en_US.UTF-8")
+      (if (string-empty-p country)
+          (setq locale-base (concat language ".UTF-8"))
+        (setq locale-base (concat language "_" country
+                                  ".UTF-8"))))
+    ;; No straightforward relation between Java script and variant
+    ;; combinations exist: Java permits both a script and a variant to
+    ;; be supplied at once, whereas POSIX's closest analog "modifiers"
+    ;; permit only either an alternative script or a variant to be
+    ;; supplied.
+    ;;
+    ;; Emacs disregards variants besides "EURO" and scripts besides
+    ;; "Cyrl", for these two never coexist in existing locales, and
+    ;; their POSIX equivalents are the sole modifiers recognized by
+    ;; Emacs.
+    (if (string-equal script "Cyrl")
+        (setq locale-modifier "@cyrillic")
+      (if (string-equal variant "EURO")
+          (setq locale-modifier "@euro")
+        (setq locale-modifier "")))
+    ;; Return the concatenation of both these values.
+    (concat locale-base locale-modifier)))
 
 
 (provide 'android-win)

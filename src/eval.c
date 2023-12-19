@@ -3855,9 +3855,17 @@ get_backtrace_starting_at (Lisp_Object base)
 
   if (!NILP (base))
     { /* Skip up to `base'.  */
+      int offset = 0;
+      if (CONSP (base) && FIXNUMP (XCAR (base)))
+        {
+          offset = XFIXNUM (XCAR (base));
+          base = XCDR (base);
+        }
       base = Findirect_function (base, Qt);
       while (backtrace_p (pdl)
              && !EQ (base, Findirect_function (backtrace_function (pdl), Qt)))
+        pdl = backtrace_next (pdl);
+      while (backtrace_p (pdl) && offset-- > 0)
         pdl = backtrace_next (pdl);
     }
 
@@ -3898,13 +3906,14 @@ backtrace_frame_apply (Lisp_Object function, union specbinding *pdl)
     }
 }
 
-DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 2, 0,
+DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 3, 0,
        doc: /* Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
+LEVEL and BASE specify the activation frame to use, as in `backtrace-frame'.
 The debugger is entered when that frame exits, if the flag is non-nil.  */)
-  (Lisp_Object level, Lisp_Object flag)
+  (Lisp_Object level, Lisp_Object flag, Lisp_Object base)
 {
   CHECK_FIXNUM (level);
-  union specbinding *pdl = get_backtrace_frame(level, Qnil);
+  union specbinding *pdl = get_backtrace_frame (level, base);
 
   if (backtrace_p (pdl))
     set_backtrace_debug_on_exit (pdl, !NILP (flag));
@@ -4391,7 +4400,10 @@ If due to frame exit, args are `exit' and the value being returned;
  this function's value will be returned instead of that.
 If due to error, args are `error' and a list of the args to `signal'.
 If due to `apply' or `funcall' entry, one arg, `lambda'.
-If due to `eval' entry, one arg, t.  */);
+If due to `eval' entry, one arg, t.
+IF the desired entry point of the debugger is higher in the call stack,
+it can can be specified with the keyword argument `:backtrace-base'
+whose format should be the same as the BASE arg of `backtrace-frame'.  */);
   Vdebugger = Qdebug_early;
 
   DEFVAR_LISP ("signal-hook-function", Vsignal_hook_function,

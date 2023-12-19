@@ -2639,7 +2639,7 @@ and @samp{:capability-command} are supplied, try to upgrade to an encrypted
 connection via @acronym{STARTTLS}.  If that fails, retain the
 unencrypted connection.
 @item starttls
-As for @code{nil}, but if @acronym{STARTTLS} fails drop the connection.
+As for @code{nil}, but if @acronym{STARTTLS} fails, drop the connection.
 @item shell
 A shell connection.
 @end table
@@ -2650,9 +2650,9 @@ doing a @samp{plain} connection.
 
 @item :capability-command @var{capability-command}
 Command to query the host capabilities.  This can either be a string
-(which will then be sent verbatim to the server), or a function
-(called with a single parameter; the "greeting" from the server when
-connecting), and should return a string.
+(which will then be sent verbatim to the server) or a function
+(called with a single parameter: the ``greeting'' from the server when
+connecting) that should return a string.
 
 @item :end-of-command @var{regexp}
 @itemx :end-of-capability @var{regexp}
@@ -2661,8 +2661,8 @@ command @var{capability-command}.  The latter defaults to the former.
 
 @item :starttls-function @var{function}
 Function of one argument (the response to @var{capability-command}),
-which returns either @code{nil}, or the command to activate @acronym{STARTTLS}
-if supported.
+which returns either @code{nil} or the command to activate
+@acronym{STARTTLS}, if supported.
 
 @item :success @var{regexp}
 Regular expression matching a successful @acronym{STARTTLS} negotiation.
@@ -2690,8 +2690,9 @@ enable automatic queries of @code{auth-source} when
 
 @item :return-list @var{cons-or-nil}
 The return value of this function.  If omitted or @code{nil}, return a
-process object.  Otherwise, a cons of the form @code{(@var{process-object}
-. @var{plist})}, where @var{plist} has keywords:
+process object.  Otherwise, a cons of the form
+@w{@code{(@var{process-object} . @var{plist})}}, where @var{plist} can
+include the following keywords:
 
 @table @code
 @item :greeting @var{string-or-nil}
@@ -2704,11 +2705,12 @@ The connection type: @samp{plain} or @samp{tls}.
 
 @item :shell-command @var{string-or-nil}
 If the connection @code{type} is @code{shell}, this parameter will be
-interpreted as a format-spec string that will be executed to make the
-connection.  The specs available are @samp{%s} for the host name and
-@samp{%p} for the port number.  For instance, if you want to first ssh
-to @samp{gateway} before making a plain connection, then this
-parameter could be something like @samp{ssh gateway nc %s %p}.
+interpreted as a format-spec string (@pxref{Custom Format Strings})
+that will be executed to make the connection.  The specs available are
+@samp{%s} for the host name and @samp{%p} for the port number.  For
+instance, if you want to first ssh to @samp{gateway} before making a
+plain connection, then this parameter's value could be something like
+@samp{ssh gateway nc %s %p}.
 
 @end table
 

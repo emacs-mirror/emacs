@@ -2063,9 +2063,8 @@ DEFUN ("treesit-node-field-name-for-child",
 Return nil if there's no Nth child, or if it has no field.
 If NODE is nil, return nil.
 
-N counts all children, i.e., named ones and anonymous ones.
-
-N could be negative, e.g., -1 represents the last child.  */)
+Note that N counts named nodes only.  Also, N could be negative, e.g.,
+-1 represents the last child.  */)
   (Lisp_Object node, Lisp_Object n)
 {
   if (NILP (node))
@@ -2079,7 +2078,7 @@ N could be negative, e.g., -1 represents the last child.  */)
 
   /* Process negative index.  */
   if (idx < 0)
-    idx = ts_node_child_count (treesit_node) + idx;
+    idx = ts_node_named_child_count (treesit_node) + idx;
   if (idx < 0)
     return Qnil;
   if (idx > UINT32_MAX)
@@ -3286,7 +3285,7 @@ treesit_traverse_get_predicate (Lisp_Object thing, Lisp_Object language)
    there's an error, set SIGNAL_DATA to (ERR . DATA), where ERR is an
    error symbol, and DATA is something signal accepts, and return
    false, otherwise return true.  This function also check for
-   recusion levels: we place a arbitrary 100 level limit on recursive
+   recursion levels: we place a arbitrary 100 level limit on recursive
    predicates.  RECURSION_LEVEL is the current recursion level (that
    starts at 0), if it goes over 99, return false and set SIGNAL_DATA.
    LANGUAGE is a LANGUAGE symbol.  */
@@ -3335,7 +3334,7 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
 	  if (!CONSP (cdr))
 	    {
 	      *signal_data = list3 (Qtreesit_invalid_predicate,
-				    build_string ("Invalide `not' "
+				    build_string ("Invalid `not' "
 						  "predicate"),
 				    pred);
 	      return false;

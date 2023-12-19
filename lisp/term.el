@@ -1085,6 +1085,8 @@ underlying shell."
   (setq term-ansi-current-invisible nil)
   (setq term-ansi-current-bg-color 0))
 
+(defvar touch-screen-display-keyboard)
+
 (define-derived-mode term-mode fundamental-mode "Term"
   "Major mode for interacting with an inferior interpreter.
 The interpreter name is same as buffer name, sans the asterisks.
@@ -1391,10 +1393,15 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (interactive)
    (term-send-raw-string (current-kill 0)))
 
-(defun term--xterm-paste ()
+(defun term--xterm-paste (event)
   "Insert the text pasted in an XTerm bracketed paste operation."
-  (interactive)
-  (term-send-raw-string (xterm--pasted-text)))
+  (interactive "e")
+  (unless (eq (car-safe event) 'xterm-paste)
+    (error "term--xterm-paste must be found to xterm-paste event"))
+  (let ((str (nth 1 event)))
+    (unless (stringp str)
+      (error "term--xterm-paste provided event does not contain paste text"))
+    (term-send-raw-string str)))
 
 (declare-function xterm--pasted-text "term/xterm" ())
 

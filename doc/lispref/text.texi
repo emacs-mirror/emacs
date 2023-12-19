@@ -5919,74 +5919,109 @@ Nevertheless, we can define two distinct APIs around the
 @cindex JSONRPC application interfaces
 @enumerate
 
-@item A user interface for building JSONRPC applications
+@item An API for building JSONRPC applications
 
 @findex :request-dispatcher
 @findex :notification-dispatcher
 @findex jsonrpc-notify
 @findex jsonrpc-request
 @findex jsonrpc-async-request
-In this scenario, the JSONRPC application selects a concrete subclass
-of @code{jsonrpc-connection}, and proceeds to create objects of that
-subclass using @code{make-instance}.  To initiate a contact to the
-remote endpoint, the JSONRPC application passes this object to the
-functions @code{jsonrpc-notify}, @code{jsonrpc-request}, and/or
-@code{jsonrpc-async-request}.  For handling remotely initiated
-contacts, which generally come in asynchronously, the instantiation
-should include @code{:request-dispatcher} and
-@code{:notification-dispatcher} initargs, which are both functions of
-3 arguments: the connection object; a symbol naming the JSONRPC method
-invoked remotely; and a JSONRPC @code{params} object.
+In this scenario, a new aspiring JSONRPC-based application selects a
+concrete subclass of @code{jsonrpc-connection} that provides the
+transport for the JSONRPC messages to be exchanged between endpoints.
+
+The application creates objects of that subclass using
+@code{make-instance}.  To initiate a contact to a remote endpoint, the
+application passes this object to the functions such as
+@code{jsonrpc-notify}, @code{jsonrpc-request}, or
+@code{jsonrpc-async-request}.
+
+For handling remotely initiated contacts, which generally come in
+asynchronously, the @code{make-instance} instantiation should
+initialize it the @code{:request-dispatcher} and
+@code{:notification-dispatcher} EIEIO keyword arguments.  These are
+both functions of 3 arguments: the connection object; a symbol naming
+the JSONRPC method invoked remotely; and a JSONRPC @code{params}
+object.
 
 @findex jsonrpc-error
 The function passed as @code{:request-dispatcher} is responsible for
 handling the remote endpoint's requests, which expect a reply from the
-local endpoint (in this case, the program you're building).  Inside
-that function, you may either return locally (a normal return) or
-non-locally (an error return).  A local return value must be a Lisp
-object that can be serialized as JSON (@pxref{Parsing JSON}).  This
-determines a success response, and the object is forwarded to the
-server as the JSONRPC @code{result} object.  A non-local return,
-achieved by calling the function @code{jsonrpc-error}, causes an error
-response to be sent to the server.  The details of the accompanying
-JSONRPC @code{error} are filled out with whatever was passed to
+local endpoint (in this case, the application you're building).
+Inside that function, you may either return locally (a regular return)
+or non-locally (throw an error).  Both exits from the request
+dispatcher cause a reply to the remote endpoint's request to be sent
+through the transport.
+
+A regular return determines a success response, and the return value
+must be a Lisp object that can be serialized as JSON (@pxref{Parsing
+JSON}).  The result is forwarded to the server as the JSONRPC
+@code{result} object.  A non-local return, achieved by calling the
+function @code{jsonrpc-error}, causes an error response to be sent to
+the server.  The details of the accompanying JSONRPC @code{error}
+object are filled out with whatever was passed to
 @code{jsonrpc-error}.  A non-local return triggered by an unexpected
 error of any other type also causes an error response to be sent
 (unless you have set @code{debug-on-error}, in which case this calls
 the Lisp debugger, @pxref{Error Debugging}).
 
-@item A inheritance interface for building JSONRPC transport implementations
+@findex jsonrpc-convert-to-endpoint
+@findex jsonrpc-convert-from-endpoint
+It's possible to use the @code{jsonrpc} library to build applications
+based on transport protocols that can be described as
+``quasi-JSONRPC''.  These are similar, but not quite identical to
+JSONRPC, such as the @uref{https://www.jsonrpc.org/, DAP (Debug
+Adapter Protocol)}.  These protocols also define request, response and
+notification messages but the format is not quite the same as JSONRPC.
+The generic functions @code{jsonrpc-convert-to-endpoint} and
+@code{jsonrpc-convert-from-endpoint} can be customized for converting
+between the internal representation of JSONRPC and whatever the
+endpoint accepts (@pxref{Generic Functions}).
 
-In this scenario, @code{jsonrpc-connection} is subclassed to implement
+@item An API for building JSONRPC transports
+
+In this scenario, @code{jsonrpc-connection} is sub-classed to implement
 a different underlying transport strategy (for details on how to
 subclass, see @ref{Inheritance,Inheritance,,eieio}.).  Users of the
 application-building interface can then instantiate objects of this
 concrete class (using the @code{make-instance} function) and connect
-to JSONRPC endpoints using that strategy.
+to JSONRPC endpoints using that strategy.  See @ref{Process-based
+JSONRPC connections} for a built-in transport implementation.
 
 This API has mandatory and optional parts.
 
 @findex jsonrpc-connection-send
 To allow its users to initiate JSONRPC contacts (notifications or
-requests) or reply to endpoint requests, the subclass must have an
-implementation of the @code{jsonrpc-connection-send} method.
+requests) or reply to endpoint requests, the new transport
+implementation must equip the @code{jsonrpc-connection-send} generic
+function with a specialization for the the new subclass
+(@pxref{Generic Functions}).  This generic function is called
+automatically by primitives such as @code{jsonrpc-request} and
+@code{jsonrpc-notify}.  The specialization should ensure that the
+message described in the argument list is sent through whatever
+underlying communication mechanism (a.k.a.@: ``wire'') is used by the
+new transport to talk to endpoints.  This ``wire'' may be a network
+socket, a serial interface, an HTTP connection, etc.
 
 @findex jsonrpc-connection-receive
 Likewise, for handling the three types of remote contacts (requests,
 notifications, and responses to local requests), the transport
 implementation must arrange for the function
-@code{jsonrpc-connection-receive} to be called after noticing a new
-JSONRPC message on the wire (whatever that "wire" may be).
+@code{jsonrpc-connection-receive} to be called from Elisp after
+noticing some data on the ``wire'' that can be used to craft a JSONRPC
+(or quasi-JSONRPC) message.
 
 @findex jsonrpc-shutdown
 @findex jsonrpc-running-p
 Finally, and optionally, the @code{jsonrpc-connection} subclass should
-implement the @code{jsonrpc-shutdown} and @code{jsonrpc-running-p}
-methods if these concepts apply to the transport.  If they do, then
-any system resources (e.g.@: processes, timers, etc.) used to listen for
-messages on the wire should be released in @code{jsonrpc-shutdown},
-i.e.@: they should only be needed while @code{jsonrpc-running-p} is
-non-@code{nil}.
+add specializations to the @code{jsonrpc-shutdown} and
+@code{jsonrpc-running-p} generic functions if these concepts apply to
+the transport.  The specialization of @code{jsonrpc-shutdown} should
+ensure the release of any system resources (e.g.@: processes, timers,
+etc.) used to listen for messages on the wire.  The specialization of
+@code{jsonrpc-running-p} should tell if these resources are still
+active or have already been released (via @code{jsonrpc-shutdown} or
+otherwise).
 
 @end enumerate
 
@@ -6205,7 +6240,7 @@ cons it was set to at the time @code{prepare-change-group} was called.
 
   If @code{buffer-undo-list} no longer contains that cons, Emacs will
 lose track of any change groups, resulting in an error when the change
-group is cancelled.  To avoid this, do not call any functions which
+group is canceled.  To avoid this, do not call any functions which
 may edit the undo list in such a manner, when a change group is
 active: notably, ``amalgamating'' commands such as @code{delete-char},
 which call @code{undo-auto-amalgamate}.

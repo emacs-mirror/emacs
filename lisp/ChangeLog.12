@@ -10678,7 +10678,7 @@
 	for root variables.
 
 	* progmodes/gdb-ui.el (gdb-pc-address): Rename from gdb-frame-address.
-	(gdb-frame-address): Re-use to identify frame for watch expression.
+	(gdb-frame-address): Reuse to identify frame for watch expression.
 	(gdb-var-list, gdb-var-create-handler): Add frame address for root
 	variables.
 	(gdb-init-1, gdb-source, gdb-post-prompt)

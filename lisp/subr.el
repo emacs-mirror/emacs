@@ -2804,7 +2804,11 @@ MODES should be a list of symbols or a single mode symbol instead of a list.
 We also still support the deprecated calling convention:
 \(derived-mode-p &rest MODES)."
  (declare (side-effect-free t)
-          (advertised-calling-convention (modes) "30.1"))
+          ;; FIXME: It's cumbersome for external packages to write code which
+          ;; accommodates both the old and the new calling conventions *and*
+          ;; doesn't cause spurious warnings.  So let's be more lenient
+          ;; for now and maybe remove `deprecated-args' for Emacs-31.
+          (advertised-calling-convention (modes &rest deprecated-args) "30.1"))
  (provided-mode-derived-p major-mode (if old-modes (cons modes old-modes)
                                        modes)))
 
@@ -6380,13 +6384,14 @@ If non-nil, BASE should be a function, and frames before its
 nearest activation frame are discarded."
   (let ((frames nil))
     (mapbacktrace (lambda (&rest frame) (push frame frames))
-                  (or base 'backtrace-frames))
+                  (or base #'backtrace-frames))
     (nreverse frames)))
 
 (defun backtrace-frame (nframes &optional base)
   "Return the function and arguments NFRAMES up from current execution point.
 If non-nil, BASE should be a function, and NFRAMES counts from its
-nearest activation frame.
+nearest activation frame.  BASE can also be of the form (OFFSET . FUNCTION)
+in which case OFFSET will be added to NFRAMES.
 If the frame has not evaluated the arguments yet (or is a special form),
 the value is (nil FUNCTION ARG-FORMS...).
 If the frame has evaluated its arguments and called its function already,
@@ -6397,7 +6402,7 @@ or a lambda expression for macro calls.
 If NFRAMES is more than the number of frames, the value is nil."
   (backtrace-frame--internal
    (lambda (evald func args _) `(,evald ,func ,@args))
-   nframes (or base 'backtrace-frame)))
+   nframes (or base #'backtrace-frame)))
 
 
 (defvar called-interactively-p-functions nil

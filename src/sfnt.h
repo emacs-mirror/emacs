@@ -123,6 +123,7 @@ typedef int16_t sfnt_fword;
 typedef uint16_t sfnt_ufword;
 
 #define sfnt_coerce_fixed(fixed) ((sfnt_fixed) (fixed) / 65535.0)
+#define sfnt_fixed_float(fixed)  ((sfnt_fixed) (fixed) / 65535.0f)
 
 typedef unsigned int sfnt_glyph;
 typedef unsigned int sfnt_char;
@@ -778,7 +779,7 @@ struct sfnt_edge
   /* X position, top and bottom of edges.  */
   sfnt_fixed x, top, bottom;
 
-  /* Amount to move X by upon each change of Y.  */
+  /* Amount to move X by upon each change of Y, and vice versa.  */
   sfnt_fixed step_x;
 };
 
@@ -1283,7 +1284,7 @@ struct sfnt_gvar_table
   unsigned char *glyph_variation_data;
 };
 
-/* Structure repesenting a set of axis coordinates and their
+/* Structure representing a set of axis coordinates and their
    normalized equivalents.
 
    To use this structure, call
@@ -1511,6 +1512,7 @@ extern void sfnt_prepare_raster (struct sfnt_raster *,
 
 #define PROTOTYPE struct sfnt_glyph_outline *
 extern struct sfnt_raster *sfnt_raster_glyph_outline (PROTOTYPE);
+extern struct sfnt_raster *sfnt_raster_glyph_outline_exact (PROTOTYPE);
 #undef PROTOTYPE
 
 #define PROTOTYPE			\

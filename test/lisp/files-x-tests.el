@@ -39,6 +39,7 @@
 (defconst files-x-test--variables5
   '((remote-lazy-var . nil)
     (remote-null-device . "/dev/null")))
+(defvar remote-shell-file-name)
 (defvar remote-null-device)
 (defvar remote-lazy-var nil)
 (put 'remote-shell-file-name 'safe-local-variable #'identity)
@@ -476,6 +477,81 @@ If it's not initialized yet, initialize it."
       (with-connection-local-application-variables
           (cadr files-x-test--application)
         (should (equal remote-null-device "null"))))
+
+    ;; Cleanup.
+    (custom-set-variables
+     `(connection-local-profile-alist ',clpa now)
+     `(connection-local-criteria-alist ',clca now))))
+
+(ert-deftest files-x-test-connection-local-value ()
+  "Test getting connection-local values."
+
+  (let ((clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist))
+    (connection-local-set-profile-variables
+     'remote-bash files-x-test--variables1)
+    (connection-local-set-profile-variables
+     'remote-ksh files-x-test--variables2)
+    (connection-local-set-profile-variables
+     'remote-nullfile files-x-test--variables3)
+
+    (connection-local-set-profiles
+     nil 'remote-ksh 'remote-nullfile)
+
+    (connection-local-set-profile-variables
+     'remote-lazy files-x-test--variables5)
+    (connection-local-set-profiles
+     files-x-test--application 'remote-lazy 'remote-bash)
+
+    (with-temp-buffer
+      ;; We need a remote `default-directory'.
+      (let ((enable-connection-local-variables t)
+	    (default-directory "/method:host:")
+	    (remote-null-device "null"))
+        (should-not connection-local-variables-alist)
+        (should-not (local-variable-p 'remote-shell-file-name))
+        (should-not (local-variable-p 'remote-null-device))
+        (should-not (boundp 'remote-shell-file-name))
+        (should (string-equal (symbol-value 'remote-null-device) "null"))
+
+        ;; The proper variable values are set.
+        (should (connection-local-p remote-shell-file-name))
+        (should
+         (string-equal
+          (connection-local-value remote-shell-file-name) "/bin/ksh"))
+        (should (connection-local-p remote-null-device))
+        (should
+         (string-equal
+          (connection-local-value remote-null-device) "/dev/null"))
+        (should-not (connection-local-p remote-lazy-var))
+
+        ;; Run with a different application.
+        (should
+         (connection-local-p
+          remote-shell-file-name (cadr files-x-test--application)))
+        (should
+         (string-equal
+          (connection-local-value
+           remote-shell-file-name (cadr files-x-test--application))
+          "/bin/bash"))
+        (should
+         (connection-local-p
+          remote-null-device (cadr files-x-test--application)))
+        (should
+         (string-equal
+          (connection-local-value
+           remote-null-device (cadr files-x-test--application))
+          "/dev/null"))
+        (should
+         (connection-local-p
+          remote-lazy-var (cadr files-x-test--application)))
+
+        ;; The previous bindings haven't changed.
+        (should-not connection-local-variables-alist)
+        (should-not (local-variable-p 'remote-shell-file-name))
+        (should-not (local-variable-p 'remote-null-device))
+        (should-not (boundp 'remote-shell-file-name))
+        (should (string-equal (symbol-value 'remote-null-device) "null"))))
 
     ;; Cleanup.
     (custom-set-variables

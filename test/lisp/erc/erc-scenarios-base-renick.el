@@ -267,7 +267,7 @@
 
     (ert-info ("Sync convo for rando@foonet")
       (with-current-buffer "rando@foonet"
-        (funcall expect 1 "u are dumb")
+        (funcall expect 10 "u are dumb")
         (erc-scenarios-common-say "not so")))
 
     (ert-info ("Sync convo for rando@barnet")

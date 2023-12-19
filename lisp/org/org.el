@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.6.11
+;; Version: 9.6.13
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -1230,7 +1230,7 @@ This applies to indirect buffers created with the commands
 Valid values are:
 current-window   Display in the current window
 other-window     Just display in another window.
-dedicated-frame  Create one new frame, and re-use it each time.
+dedicated-frame  Create one new frame, and reuse it each time.
 new-frame        Make a new frame each time.  Note that in this case
                  previously-made indirect buffers are kept, and you need to
                  kill these buffers yourself."
@@ -4582,7 +4582,7 @@ is available.  This option applies only if FILE is a URL."
                            file)
                   nil))
             (error (if noerror
-                       (message "Org could't download \"%s\": %s %S" file (car error) (cdr error))
+                       (message "Org couldn't download \"%s\": %s %S" file (car error) (cdr error))
                      (signal (car error) (cdr error)))))
         (funcall (if noerror #'message #'user-error)
                  "The remote resource %S is considered unsafe, and will not be downloaded."
@@ -19985,7 +19985,7 @@ With argument N not nil or 1, move forward N - 1 lines first."
 	(if (eq special 'reversed)
 	    (when (and (= origin bol) (eq last-command this-command))
 	      (goto-char refpos))
-	  (when (or (> origin refpos) (= origin bol))
+	  (when (or (> origin refpos) (<= origin bol))
 	    (goto-char refpos)))))
      ((and (looking-at org-list-full-item-re)
 	   (memq (org-element-type (save-match-data (org-element-at-point)))
@@ -20000,7 +20000,7 @@ With argument N not nil or 1, move forward N - 1 lines first."
 	(if (eq special 'reversed)
 	    (when (and (= (point) origin) (eq last-command this-command))
 	      (goto-char after-bullet))
-	  (when (or (> origin after-bullet) (= (point) origin))
+	  (when (or (> origin after-bullet) (>= (point) origin))
 	    (goto-char after-bullet)))))
      ;; No special context.  Point is already at beginning of line.
      (t nil))))
@@ -20055,7 +20055,7 @@ With argument N not nil or 1, move forward N - 1 lines first."
 		   (goto-char tags)
 		 (end-of-line)))
 	      (t
-	       (if (or (< origin tags) (= origin (line-end-position)))
+	       (if (or (< origin tags) (>= origin (line-end-position)))
 		   (goto-char tags)
 		 (end-of-line))))))
      ((bound-and-true-p visual-line-mode)

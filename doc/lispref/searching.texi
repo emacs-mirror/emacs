@@ -2990,7 +2990,7 @@ values of the variables @code{sentence-end-double-space}
 @section Emacs versus POSIX Regular Expressions
 @cindex POSIX regular expressions
 
-Regular expression syntax varies signficantly among computer programs.
+Regular expression syntax varies significantly among computer programs.
 When writing Elisp code that generates regular expressions for use by other
 programs, it is helpful to know how syntax variants differ.
 To give a feel for the variation, this section discusses how

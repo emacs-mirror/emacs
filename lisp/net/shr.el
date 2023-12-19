@@ -200,7 +200,7 @@ inline if it occupies less than this fraction of window width.
 
 HEIGHT can be also be an integer or a floating point number.  If it is an
 integer and the pixel height of an image exceeds it, the image image is
-displyed on a separate line.  If it is a float number , the limit is
+displayed on a separate line.  If it is a float number , the limit is
 interpreted as a multiple of the height of default font."
   :version "30.1"
   :type '(choice (const nil) (cons number number)))
@@ -1137,7 +1137,9 @@ element is the data blob and the second element is the content-type."
         (when image
           ;; The trailing space can confuse shr-insert into not
           ;; putting any space after inline images.
-	  (setq alt (string-trim alt))
+          ;; ALT may be nil when visiting image URLs in eww
+          ;; (bug#67764).
+	  (setq alt (if alt (string-trim alt) "*"))
 	  ;; When inserting big-ish pictures, put them at the
 	  ;; beginning of the line.
 	  (let ((inline (shr--inline-image-p image)))
@@ -1146,8 +1148,8 @@ element is the data blob and the second element is the content-type."
 		(insert "\n"))
 	    (let ((image-pos (point)))
 	      (if (eq size 'original)
-		  (insert-sliced-image image (or alt "*") nil 20 1)
-		(insert-image image (or alt "*")))
+		  (insert-sliced-image image alt nil 20 1)
+		(insert-image image alt))
 	      (put-text-property start (point) 'image-size size)
 	      (when (and (not inline) shr-max-inline-image-size)
 		(insert "\n"))

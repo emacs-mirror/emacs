@@ -205,7 +205,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   (treesit-font-lock-rules
    :language language
    :feature 'comment
-   `((comment) @font-lock-comment-face)
+   `([(comment) (hash_bang_line)] @font-lock-comment-face)
 
    :language language
    :feature 'constant

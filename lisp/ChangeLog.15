@@ -7702,7 +7702,7 @@
 
 	* finder.el: Load finder-inf using `require'.
 	(finder-list-matches): Sorting by status is now the default.
-	(finder-compile-keywords): Simpify printing.
+	(finder-compile-keywords): Simplify printing.
 
 2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 

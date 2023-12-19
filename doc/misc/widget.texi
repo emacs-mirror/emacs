@@ -1703,7 +1703,7 @@ A variable that holds the history of field minibuffer edits.
 
 @item :prompt-value
 A function that uses the @code{:prompt-internal} function and the
-@code{:prompt-history} value to prompt for a string, and retun the
+@code{:prompt-history} value to prompt for a string, and return the
 user response in the external format.
 
 @item :action
@@ -1714,7 +1714,7 @@ Function that takes care of creating the widget, respecting its
 @code{:size} and @code{:value}.
 
 @item :value-set
-Function to use to modify programatically the current value of the
+Function to use to modify programmatically the current value of the
 widget.
 
 @item :value-delete
@@ -2455,7 +2455,7 @@ difference from the @code{const} widget is that they will allow the
 user to see the variable or function documentation for the symbol.
 
 This is accomplished via using the @samp{%h} format escape, and adding
-an appropiate @code{:documentation-property} function for each widget.
+an appropriate @code{:documentation-property} function for each widget.
 
 @deffn Widget variable-item
 An immutable symbol that is bound as a variable.

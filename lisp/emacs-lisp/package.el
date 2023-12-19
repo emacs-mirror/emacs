@@ -1720,18 +1720,26 @@ The variable `package-load-list' controls which packages to load."
                    package-quickstart-file))))
     ;; The quickstart file presumes that it has a blank slate,
     ;; so don't use it if we already activated some packages.
-    (if (and qs (not (bound-and-true-p package-activated-list)))
-        ;; Skip load-source-file-function which would slow us down by a factor
-        ;; 2 when loading the .el file (this assumes we were careful to
-        ;; save this file so it doesn't need any decoding).
-        (let ((load-source-file-function nil))
-          (unless (boundp 'package-activated-list)
-            (setq package-activated-list nil))
-          (load qs nil 'nomessage))
-      (require 'package)
-      (package--activate-all)))))
+    (or (and qs (not (bound-and-true-p package-activated-list))
+             ;; Skip `load-source-file-function' which would slow us down by
+             ;; a factor 2 when loading the .el file (this assumes we were
+             ;; careful to save this file so it doesn't need any decoding).
+             (with-demoted-errors "Error during quickstart: %S"
+               (let ((load-source-file-function nil))
+                 (unless (boundp 'package-activated-list)
+                   (setq package-activated-list nil))
+                 (load qs nil 'nomessage)
+                 t)))
+        (progn
+          (require 'package)
+          ;; Silence the "unknown function" warning when this is compiled
+          ;; inside `loaddefs.el'.
+          ;; FIXME: We use `with-no-warnings' because the effect of
+          ;; `declare-function' is currently not scoped, so if we use
+          ;; it here, we end up with a redefinition warning instead :-)
+          (with-no-warnings
+            (package--activate-all)))))))
 
-;;;###autoload
 (defun package--activate-all ()
   (dolist (elt (package--alist))
     (condition-case err

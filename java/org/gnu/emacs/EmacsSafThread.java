@@ -504,7 +504,7 @@ public final class EmacsSafThread extends HandlerThread
   cacheDirectoryFromCursor (CacheToplevel toplevel, String documentId,
 			    Cursor cursor)
   {
-    CacheEntry entry, constitutent;
+    CacheEntry entry, constituent;
     int nameColumn, idColumn, typeColumn;
     String id, name, type;
     DocIdEntry idEntry;
@@ -561,8 +561,8 @@ public final class EmacsSafThread extends HandlerThread
 
 	    /* Otherwise, create a new cache entry comprised of its
 	       type.  */
-	    constitutent = new CacheEntry ();
-	    constitutent.type = type;
+	    constituent = new CacheEntry ();
+	    constituent.type = type;
 	    toplevel.idCache.put (documentId, entry);
 	  }
 	catch (Exception e)
@@ -767,7 +767,7 @@ public final class EmacsSafThread extends HandlerThread
 
   private abstract class SafIntFunction
   {
-    /* The ``throws Throwable'' here is a Java idiosyncracy that tells
+    /* The ``throws Throwable'' here is a Java idiosyncrasy that tells
        the compiler to allow arbitrary error objects to be signaled
        from within this function.
 
@@ -782,7 +782,7 @@ public final class EmacsSafThread extends HandlerThread
 
   private abstract class SafObjectFunction
   {
-    /* The ``throws Throwable'' here is a Java idiosyncracy that tells
+    /* The ``throws Throwable'' here is a Java idiosyncrasy that tells
        the compiler to allow arbitrary error objects to be signaled
        from within this function.
 
@@ -1216,7 +1216,7 @@ public final class EmacsSafThread extends HandlerThread
       });
   }
 
-  /* The bulk of `statDocument'.  SIGNAL should be a cancelation
+  /* The bulk of `statDocument'.  SIGNAL should be a cancellation
      signal.  */
 
   private long[]

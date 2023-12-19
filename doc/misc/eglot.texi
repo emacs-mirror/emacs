@@ -138,11 +138,10 @@ Turn on Eglot for your project.
 To start using Eglot for a project, type @kbd{M-x eglot @key{RET}} in
 a buffer visiting any file that belongs to the project.  This starts
 the language server configured for the programming language of that
-buffer, and causes Eglot to start managing all the files of the
-project which use the same programming language.  This includes files
-of a given project that are already visited at the time the
-@code{eglot} command is invoked as well as files visited after this
-invocation.
+buffer, and causes Eglot to start @dfn{managing} file-visiting buffers
+related to that programming language.  This includes files that are
+already visited at the time the @code{eglot} command is invoked, as
+well as any files visited after this invocation.
 
 The notion of a ``project'' used by Eglot is the same Emacs uses
 (@pxref{Projects,,, emacs, GNU Emacs Manual}): in the simplest case,
@@ -405,11 +404,13 @@ commands and variables.
 @section Eglot Features
 @cindex features in buffers supported by Eglot
 
-Once Eglot is enabled in a buffer, it uses LSP and the language-server
-capabilities to activate, enable, and enhance modern IDE features in
-Emacs.  The features themselves are usually provided via other Emacs
-packages.  Here's the list of the main features that Eglot enables and
-provides:
+While Eglot is enabled in a buffer, it is said to be @dfn{managing}
+it, using LSP and the specific capabilities of the language server to
+activate and enhance modern IDE features in Emacs.  Some of these
+features are provided via other Emacs packages, and some via Eglot
+directly (@pxref{Eglot Commands}).
+
+Here's an overview of the main features that Eglot provides:
 
 @itemize @bullet
 @item
@@ -422,10 +423,11 @@ allows major modes to provide extensive help and documentation about
 the program identifiers.
 
 @item
-On-the-fly diagnostic annotations with server-suggested fixes, via the
-Flymake package (@pxref{Top,,, flymake, GNU Flymake manual}).  This
-improves and enhances the Flymake diagnostics, replacing the other
-Flymake backends.
+On-the-fly diagnostic annotations, via the Flymake package
+(@pxref{Top,,, flymake, GNU Flymake manual}).  Eglot's Flymake backend
+replaces other Flymake backends while it is managing a buffer, and
+enhances diagnostics with interactive server-suggested fixes
+(so-called @dfn{code actions}, @pxref{Eglot Commands})
 
 @item
 Finding definitions and uses of identifiers, via Xref (@pxref{Xref,,,
@@ -484,9 +486,17 @@ with @kbd{eglot-code-actions}.  @xref{Eglot Commands}.
 
 Not all servers support the full set of LSP capabilities, but most of
 them support enough to enable the basic set of features mentioned
-above.  Conversely, some servers offer capabilities for which no
-equivalent Emacs package exists yet, and so Eglot cannot (yet) expose
-these capabilities to Emacs users.
+above.
+
+Conversely, some servers offer capabilities for which no equivalent
+Emacs package exists yet, and so Eglot cannot (yet) expose these
+capabilities to Emacs users.  However, @xref{Extending Eglot}.
+
+Finally, it's worth noting that, by default, Eglot generally turns on
+all features that it @emph{can} turn on.  It's possible to opt out of
+some features via user options (@pxref{Customizing Eglot}) and a hook
+that runs after Eglot starts managing a buffer (@pxref{Eglot and
+Buffers}).
 
 @node Eglot and Buffers
 @section Buffers, Projects, and Eglot
@@ -694,7 +704,7 @@ requests for the language server to provide editing commands for
 correcting, refactoring or beautifying your code.  These commands may
 affect more than one visited file belonging to the project.
 
-The command @code{eglot-code-actions} asks the server if there any
+The command @code{eglot-code-actions} asks the server if there are any
 code actions for any point in the buffer or contained in the active
 region.  If there are, you have the choice to execute one of them via
 the minibuffer.
@@ -1222,7 +1232,7 @@ in @ref{Project-specific configuration}.  Here is an example:
 @end lisp
 
 Note that the global value of @code{eglot-workspace-configuration} is
-always overriden if a directory-local value is detected.
+always overridden if a directory-local value is detected.
 
 @node JSONRPC objects in Elisp
 @section JSONRPC objects in Elisp

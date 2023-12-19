@@ -262,7 +262,7 @@ struct android_output
      text''.  */
   int extracted_text_flags;
 
-  /* Token asssociated with that request.  */
+  /* Token associated with that request.  */
   int extracted_text_token;
 
   /* The number of characters of extracted text wanted by the IM.  */

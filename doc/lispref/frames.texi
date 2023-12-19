@@ -4160,7 +4160,7 @@ code, for it's only meant to abet synchronization between the X
 server, owner and requestor.
 @end itemize
 
-  The selection owner responds by tranferring to the requestor a
+  The selection owner responds by transferring to the requestor a
 series of bytes, 16 bit words, or 32 bit words, along with another
 atom identifying the type of those words.  After requesting a
 selection, Emacs then applies its own interpretation of the data
@@ -4514,7 +4514,7 @@ bounds of the selection data in the buffer @var{buf}.
   Selections under such window systems as MS-Windows, Nextstep, Haiku
 and Android are not aligned with those under X@.  Each of these window
 system improvises its own selection mechanism without employing the
-``selection converter'' mechanism illustrated in the preceeding node.
+``selection converter'' mechanism illustrated in the preceding node.
 Only the @code{PRIMARY}, @code{CLIPBOARD}, and @code{SECONDARY}
 selections are generally supported, with the @code{XdndSelection}
 selection that records drag-and-drop data also available under
@@ -4852,7 +4852,7 @@ is the selection data itself (@pxref{Accessing Selections}).
 sometimes distinct from those provided by the ICCCM and conforming
 clipboard or primary selection owners.  Frequently, the name of a MIME
 type, such as @code{"text/plain;charset=utf-8"} (with discrepant
-capitalization of the ``utf-8''), is substitued for a standard X
+capitalization of the ``utf-8''), is substituted for a standard X
 selection name such as @code{UTF8_STRING}.
 
 @cindex XDS

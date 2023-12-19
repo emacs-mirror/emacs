@@ -85,16 +85,16 @@
     ("<foo@example.com>" 5 email "<foo@example.com>")
     ("<foo@example.com>" 16 email "<foo@example.com>")
     ("<foo@example.com>" 17 email "<foo@example.com>")
-    ;; email adresses containing numbers
+    ;; email addresses containing numbers
     ("foo1@example.com" 1 email "foo1@example.com")
     ("1foo@example.com" 1 email "1foo@example.com")
     ("11@example.com" 1 email "11@example.com")
     ("1@example.com" 1 email "1@example.com")
-    ;; email adresses user portion containing dots
+    ;; email addresses user portion containing dots
     ("foo.bar@example.com" 1 email "foo.bar@example.com")
     (".foobar@example.com" 1 email nil)
     (".foobar@example.com" 2 email "foobar@example.com")
-    ;; email adresses domain portion containing dots and dashes
+    ;; email addresses domain portion containing dots and dashes
     ("foobar@.example.com" 1 email nil)
     ("foobar@-example.com" 1 email "foobar@-example.com")
     ;; These are illegal, but thingatpt doesn't yet handle them

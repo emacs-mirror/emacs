@@ -234,7 +234,7 @@ Document Providers}.)
 the (normally read-only) root directory named @file{content} or
 @file{assets}, you may want to access real files by these names if the
 Android installation in use has been customized.  These files will
-conflict with the aformentioned special directories, but can
+conflict with the aforementioned special directories, but can
 nevertheless be accessed by writing their names relative to the
 ``parent'' directory of the root directory, as so illustrated:
 @file{/../content}, @file{/../assets}.
@@ -258,7 +258,7 @@ at startup to symlink the application library directory to its
 traditional location within the parent of the app data directory.
 
   If Emacs is reinstalled and the location of the app library
-directory consequentially changes, that symlink will also be updated
+directory consequently changes, that symlink will also be updated
 to point to its new location the next time Emacs is started by the
 system.
 
@@ -340,7 +340,7 @@ to its app data directory (@pxref{Android File
 System}.)@footnote{Except in cases where a ``shared user ID'' is
 specified and other applications signed using the same ``package
 signing key'' are installed, in which case Emacs runs as the same user
-and has access to the same files as each of the aformentioned
+and has access to the same files as each of the aforementioned
 applications.}
 
   Each application is also prohibited from accessing many system
@@ -408,6 +408,24 @@ Startup}) connect the Android system to another computer, and run:
 @example
 $ adb shell "settings put global settings_enable_monitor_phantom_procs false"
 @end example
+
+@cindex system language settings, Android
+  The ``Languages & Input'' preferences which apply to the operating
+system do not influence the C locale set for programs, but are taken
+into account by Emacs during startup: a locale name is generated from
+the selected language and regional variant and a language environment
+(@pxref{Language Environments}) is selected on that basis, which does
+not overwrite @code{LANG} or other locale-related environment
+variables.  The coding system for language environments set in this
+fashion is @code{utf-8-unix} without exception.
+
+@cindex C locale settings, Android
+  Instead, the @code{LANG} environment variable (@pxref{General
+Variables}) is set to @code{en_US.utf8} when Emacs starts on Android
+5.0 or newer, which induces subprocesses linked against the Android C
+library to print output sensibly.  Earlier versions of Android do not
+implement locales at all, and on that account, the variable is set to
+@code{C}.
 
 @cindex running emacs in the background, android
 @cindex emacs killed, android

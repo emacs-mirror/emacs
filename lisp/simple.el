@@ -8763,7 +8763,7 @@ node `(elisp) Word Motion' for details."
 
 (defun mark-word (&optional arg allow-extend)
   "Set mark ARG words from point or move mark one word.
-When called from Lisp with ALLOW-EXTEND ommitted or nil, mark is
+When called from Lisp with ALLOW-EXTEND omitted or nil, mark is
 set ARG words from point.
 With ARG and ALLOW-EXTEND both non-nil (interactively, with prefix
 argument), the place to which mark goes is the same place \\[forward-word]
@@ -10101,6 +10101,11 @@ Also see the `completion-auto-wrap' variable."
           (if pos (goto-char pos))))
       (setq n (1+ n)))))
 
+(defvar choose-completion-deselect-if-after nil
+  "If non-nil, don't choose a completion candidate if point is right after it.
+
+This makes `completions--deselect' effective.")
+
 (defun choose-completion (&optional event no-exit no-quit)
   "Choose the completion at point.
 If EVENT, use EVENT's position to determine the starting position.
@@ -10121,6 +10126,10 @@ minibuffer, but don't quit the completions window."
           (insert-function completion-list-insert-choice-function)
           (completion-no-auto-exit (if no-exit t completion-no-auto-exit))
           (choice
+           (if choose-completion-deselect-if-after
+               (if-let ((str (get-text-property (posn-point (event-start event)) 'completion--string)))
+                   (substring-no-properties str)
+                 (error "No completion here"))
            (save-excursion
              (goto-char (posn-point (event-start event)))
              (let (beg)
@@ -10136,7 +10145,7 @@ minibuffer, but don't quit the completions window."
                               beg 'completion--string)
                              beg))
                (substring-no-properties
-                (get-text-property beg 'completion--string))))))
+                (get-text-property beg 'completion--string)))))))
 
       (unless (buffer-live-p buffer)
         (error "Destination buffer is dead"))
@@ -11176,10 +11185,10 @@ For each insertion:
     enabled.
 
   - Look for the deletion of a single electric pair character,
-    and delete the adjascent pair if
+    and delete the adjacent pair if
     `electric-pair-delete-adjacent-pairs'.
 
-  - Run `post-self-insert-functions' for the last character of
+  - Run `post-self-insert-hook' for the last character of
     any inserted text so that modes such as `electric-pair-mode'
     can work.
 

@@ -288,6 +288,12 @@ function bar() {
     ;; end-of-defun should move point to eob.
     (should (eobp))))
 
+;;;; Tree-sitter tests.
+
+(ert-deftest js-ts-mode-test-indentation ()
+  (skip-unless (treesit-ready-p 'javascript))
+  (ert-test-erts-file (ert-resource-file "js-ts-indents.erts")))
+
 (provide 'js-tests)
 
 ;;; js-tests.el ends here

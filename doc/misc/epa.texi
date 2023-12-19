@@ -456,9 +456,9 @@ public key, it does not prompt for a passphrase for the buffer save,
 but it will prompt for your passphrase for file reads every now and
 then, depending on the GnuPG Agent cache configuration.
 
-@cindex tempory files created by easypg assistant
+@cindex temporary files created by easypg assistant
 To encrypt and decrypt files as described above EasyPG Assistant under
-certain circumstances uses intermediate tempory files that contain the
+certain circumstances uses intermediate temporary files that contain the
 plain-text contents of the files it processes.  EasyPG Assistant
 creates them below the directory returned by function
 @code{temporary-file-directory} (@pxref{Unique File Names, ,

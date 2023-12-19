@@ -1876,9 +1876,13 @@ downcased."
   :type '(repeat (repeat string)))
 
 (defcustom message-mail-user-agent nil
-  "Like `mail-user-agent'.
-Except if it is nil, use Gnus native MUA; if it is t, use
-`mail-user-agent'."
+  "Your preferred package for composing and sending email when using message.el.
+Like `mail-user-agent' (which see), this specifies the package you prefer
+to use for composing and sending email messages.
+The value can be anything accepted by `mail-user-agent', and in addition
+it can be nil or t.  If the value is nil, use the Gnus native Mail User
+Agent (MUA); if it is t, use the value of `mail-user-agent'.
+For more about mail user agents, see Info node `(emacs)Mail Methods'"
   :version "22.1"
   :type '(radio (const :tag "Gnus native"
 		       :format "%t\n"

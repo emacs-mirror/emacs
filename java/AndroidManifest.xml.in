@@ -94,7 +94,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	      android:launchMode="singleInstance"
 	      android:windowSoftInputMode="adjustResize"
 	      android:exported="true"
-	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|locale|fontScale">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.DEFAULT" />
@@ -149,7 +149,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
     <activity android:name="org.gnu.emacs.EmacsMultitaskActivity"
 	      android:windowSoftInputMode="adjustResize"
 	      android:exported="true"
-	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"/>
+	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|locale|fontScale"/>
 
     <activity android:autoRemoveFromRecents="true"
               android:label="Emacs options"

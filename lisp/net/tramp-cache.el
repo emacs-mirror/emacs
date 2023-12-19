@@ -340,7 +340,7 @@ Preserve timestamps."
   (declare (indent 3) (debug t))
   `(progn
      ;; Unify localname.  Remove hop from `tramp-file-name' structure.
-     (setq ,key (tramp-file-name-unify ,key ,file))
+     (setf ,key (tramp-file-name-unify ,key ,file))
      (let* ((hash (tramp-get-hash-table ,key))
 	    (cached (and (hash-table-p hash) (gethash ,property hash))))
        (unwind-protect (progn ,@body)
@@ -358,7 +358,7 @@ Preserve timestamps."
   (declare (indent 3) (debug t))
   `(progn
      ;; Unify localname.  Remove hop from `tramp-file-name' structure.
-     (setq ,key (tramp-file-name-unify ,key ,file))
+     (setf ,key (tramp-file-name-unify ,key ,file))
      (let* ((hash (tramp-get-hash-table ,key))
 	    (values
 	     (and (hash-table-p hash)
@@ -474,7 +474,7 @@ used to cache connection properties of the local machine."
   "Save PROPERTY, run BODY, reset PROPERTY."
   (declare (indent 2) (debug t))
   `(progn
-     (setq ,key (tramp-file-name-unify ,key))
+     (setf ,key (tramp-file-name-unify ,key))
      (let* ((hash (tramp-get-hash-table ,key))
 	    (cached (and (hash-table-p hash)
 			 (gethash ,property hash tramp-cache-undefined))))
@@ -491,7 +491,7 @@ used to cache connection properties of the local machine."
 PROPERTIES is a list of file properties (strings)."
   (declare (indent 2) (debug t))
   `(progn
-     (setq ,key (tramp-file-name-unify ,key))
+     (setf ,key (tramp-file-name-unify ,key))
      (let* ((hash (tramp-get-hash-table ,key))
 	    (values
 	     (mapcar

@@ -29,9 +29,7 @@
 (defvar erc--casemapping-rfc1459)
 (defvar erc--casemapping-rfc1459-strict)
 (defvar erc-channel-users)
-(defvar erc-dbuf)
 (defvar erc-insert-this)
-(defvar erc-log-p)
 (defvar erc-modules)
 (defvar erc-send-this)
 (defvar erc-server-process)
@@ -51,7 +49,7 @@
 (declare-function widget-type "wid-edit" (widget))
 
 (cl-defstruct erc-input
-  string insertp sendp refoldp)
+  string insertp sendp)
 
 (cl-defstruct (erc--input-split (:include erc-input
                                           (string :read-only)
@@ -59,6 +57,7 @@
                                           (sendp (with-suppressed-warnings
                                                      ((obsolete erc-send-this))
                                                    erc-send-this))))
+  (refoldp nil :type boolean)
   (lines nil :type (list-of string))
   (abortp nil :type (list-of symbol))
   (cmdp nil :type boolean))
@@ -69,8 +68,23 @@
   ;; Buffers
   (buffers nil))
 
-(cl-defstruct (erc-channel-user (:type vector) :named)
-  voice halfop op admin owner
+(cl-defstruct (erc-channel-user (:type vector)
+                                (:constructor
+                                 erc-channel-user--make
+                                 (&key (status 0) (last-message-time nil)))
+                                (:constructor
+                                 make-erc-channel-user
+                                 ( &key voice halfop op admin owner
+                                   last-message-time
+                                   &aux (status (+ (if voice  1 0)
+                                                   (if halfop 2 0)
+                                                   (if op     4 0)
+                                                   (if admin  8 0)
+                                                   (if owner 16 0)))))
+                                :named)
+  "Object containing channel-specific data for a single user."
+  ;; voice halfop op admin owner
+  (status 0 :type integer)
   ;; Last message time (in the form of the return value of
   ;; (current-time)
   ;;
@@ -100,6 +114,23 @@
   (command-args '() :type list)
   (contents "" :type string)
   (tags '() :type list))
+
+(cl-defstruct (erc--ctcp-response
+               (:include erc-response)
+               (:constructor
+                erc--ctcp-response-from-parsed
+                (&key parsed buffer statusmsg prefix dispname
+                      &aux (unparsed (erc-response.unparsed parsed))
+                      (sender (erc-response.sender parsed))
+                      (command (erc-response.command parsed))
+                      (command-args (erc-response.command-args parsed))
+                      (contents (erc-response.contents parsed))
+                      (tags (erc-response.tags parsed)))))
+  "Data for a processed CTCP query or reply."
+  (buffer nil :type (or buffer null))
+  (statusmsg nil :type (or null string))
+  (prefix nil :type (or erc-channel-user null))
+  (dispname nil :type (or string null)))
 
 (cl-defstruct erc--isupport-data
   "Abstract \"class\" for parsed ISUPPORT data.
@@ -458,6 +489,7 @@ nil."
     (if session-buffer
         (progn
           (set-buffer session-buffer)
+          (defvar erc-dbuf)
           (if (not (and erc-dbuf (bufferp erc-dbuf) (buffer-live-p erc-dbuf)))
               (progn
                 (setq erc-dbuf (get-buffer-create
@@ -472,6 +504,9 @@ nil."
             (goto-char point))
           (set-buffer cb))
       (message "ERC: ** %s" string))))
+
+(defvar erc-log-p nil
+  "When non-nil, generate debug messages in an \"*ERC-DEBUG*\" buffer.")
 
 (define-inline erc-log (string)
   "Logs STRING if logging is on (see `erc-log-p')."
@@ -488,15 +523,17 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
                      (_ erc--casemapping-rfc1459))
     (downcase string)))
 
-(define-inline erc-get-channel-user (nick)
-  "Find NICK in the current buffer's `erc-channel-users' hash table."
+(define-inline erc-get-channel-member (nick)
+  "Find NICK in the current buffer's `erc-channel-members' hash table."
   (inline-quote (gethash (erc-downcase ,nick) erc-channel-users)))
+(defalias 'erc-get-channel-user #'erc-get-channel-member)
 
 (define-inline erc-get-server-user (nick)
   "Find NICK in the current server's `erc-server-users' hash table."
   (inline-letevals (nick)
-    (inline-quote (erc-with-server-buffer
-                    (gethash (erc-downcase ,nick) erc-server-users)))))
+    (inline-quote
+     (gethash (erc-downcase ,nick)
+              (erc-with-server-buffer erc-server-users)))))
 
 (defmacro erc--with-dependent-type-match (type &rest features)
   "Massage Custom :type TYPE with :match function that pre-loads FEATURES."
@@ -505,6 +542,60 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
                              ,@(mapcar (lambda (ft) `(require ',ft)) features)
                              (,(widget-get (widget-convert type) :match) w v))
                     ',(cdr type)))
+
+;; This internal variant exists as a transition aid to avoid
+;; immediately having to reflow lengthy definition lists, like the one
+;; in erc.el.  These sites should switch to using the public macro
+;; when undergoing their next major edit.
+(defmacro erc--define-catalog (name entries)
+  "Define `erc-display-message' formatting templates for NAME, a symbol.
+
+See `erc-define-message-format-catalog' for the meaning of
+ENTRIES, an alist.  Also see `erc-tests-pp-propertized-parts' in
+tests/lisp/erc/erc-tests.el for a convenience command to convert
+a literal string into a sequence of `propertize' forms, which
+are much easier to review and edit."
+  (declare (indent 1))
+  (let (out)
+    (dolist (e entries (cons 'progn (nreverse out)))
+      (push `(defvar ,(intern (format "erc-message-%s-%s" name (car e)))
+               ,(cdr e)
+               ,(let* ((first (format "Message template for key `%s'" (car e)))
+                       (last (format "catalog `%s'." name))
+                       (combined (concat first " in " last)))
+                  (if (< (length combined) 80)
+                      combined
+                    (concat first ".\nFor use with " last))))
+            out))))
+
+(defmacro erc-define-message-format-catalog (language &rest entries)
+  "Define message-formatting templates for LANGUAGE, a symbol.
+Expect ENTRIES to be pairs of (KEY . FORMAT), where KEY is a
+symbol, and FORMAT evaluates to a format string compatible with
+`format-spec'.  Expect modules that only define a handful of
+entries to do so manually, instead of using this macro, so that
+the resulting variables will end up with more useful doc strings."
+  (declare (indent 1))
+  `(erc--define-catalog ,language ,entries))
+
+(defmacro erc--doarray (spec &rest body)
+  "Map over ARRAY, running BODY with VAR bound to iteration element.
+Behave more or less like `seq-doseq', but tailor operations for
+arrays.
+
+\(fn (VAR ARRAY [RESULT]) BODY...)"
+  (declare (indent 1) (debug ((symbolp form &optional form) body)))
+  (let ((array (make-symbol "array"))
+        (len (make-symbol "len"))
+        (i (make-symbol "i")))
+    `(let* ((,array ,(nth 1 spec))
+            (,len (length ,array))
+            (,i 0))
+       (while-let (((< ,i ,len))
+                   (,(car spec) (aref ,array ,i)))
+         ,@body
+         (cl-incf ,i))
+       ,(nth 2 spec))))
 
 (provide 'erc-common)
 

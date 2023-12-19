@@ -897,7 +897,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
 
       /* Find a valid (non-zero) serial for the selection transfer.
 	 Any asynchronously trapped errors will then cause the
-	 selection transfer to be cancelled.  */
+	 selection transfer to be canceled.  */
       transfer->serial = (++selection_serial
 			  ? selection_serial
 			  : ++selection_serial);

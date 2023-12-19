@@ -700,7 +700,7 @@
 	(build-counter.c): New target.  Generate this file using
 	makecounter.sh upon changes to lisp.mk or shortlisp.
 	(lisp.mk): Make and load relative to abs_top_builddir.
-	(emacs$(EXEEXT)): Adjust acordingly.
+	(emacs$(EXEEXT)): Adjust accordingly.
 	(mostlyclean): Remove build-counter.c.
 
 2023-07-18  Po Lu  <luangruo@yahoo.com>
@@ -735,7 +735,7 @@
 	prototypes.
 
 	* java/org/gnu/emacs/EmacsWindow.java (motionEvent): Set
-	cancelation flag in events sent where appropriate.
+	cancellation flag in events sent where appropriate.
 
 	* lisp/touch-screen.el (touch-screen-handle-point-update):
 	Improve treatment of horizontal scrolling near window edges.
@@ -749,7 +749,7 @@
 	(struct android_touch_event): New field `flags'.
 
 	* src/androidterm.c (handle_one_android_event): Report
-	cancelation in TOUCHSCREEN_END_EVENTs.
+	cancellation in TOUCHSCREEN_END_EVENTs.
 
 	* src/keyboard.c (make_lispy_event): Fix botched merge.
 
@@ -1005,7 +1005,7 @@
 
 	* java/org/gnu/emacs/EmacsWindow.java (Coordinate): New fields
 	`button' and `id'.
-	(<init>): Add new arguments to the construtor.
+	(<init>): Add new arguments to the constructor.
 	(whatButtonWasIt): Return 0 if the button state has not changed.
 	(buttonForEvent): New function.
 	(figureChange): Return the Coordinate object associated to EVENT.
@@ -2384,7 +2384,7 @@
 	(sfnt_read_avar_table): Fix sequencing problem.
 
 	* src/sfntfont.c (sfntfont_setup_interpreter): Don't create
-	interpreter for blatently broken fonts.
+	interpreter for blatantly broken fonts.
 	(sfntfont_open): Avoid specifying redundant blends.
 
 	* src/sfnt.c (sfnt_validate_gs): Fix validation of projection
@@ -3466,7 +3466,7 @@
 	(src/verbose.mk): Depend on verbose.mk.android in srcdir.
 	(lib/Makefile): Edit srcdir and VPATH to LIB_SRCDIR.
 	(src/Makefile): Edit -I$$(top_srcdir) to -I../$(srcdir)/lib,
-	instead of ommitting it.
+	instead of omitting it.
 	(clean): Allow ndk-build clean to fail.
 
 	* java/Makefile.in (builddir): New variable.
@@ -3714,7 +3714,7 @@
 	module detection.
 
 	* src/android.c (android_run_select_thread): Fix typos.
-	(android_run_select_thread): Lock select_mutex before signalling
+	(android_run_select_thread): Lock select_mutex before signaling
 	condition variable.
 	(android_select): Unlock event queue mutex prior to waiting for
 	it.
@@ -4663,7 +4663,7 @@
 	(ndk_CONFIG_FILES): Export NDK_BUILD_CFLAGS.
 
 	* java/AndroidManifest.xml.in: Prevent the Emacs activity from
-	being overlayed by the emacsclient wrapper.
+	being overlaid by the emacsclient wrapper.
 	* java/org/gnu/emacs/EmacsOpenActivity.java (run): Likewise.
 	(onCreate): Set an appropriate theme on ICS and up.
 
@@ -5151,7 +5151,7 @@
 	* m4/ndk-build.m4 (ndk_package_mape): Add package mapping for
 	sqlite3.
 
-	* src/Makefile.in (SQLITE3_CFLAGS): New substition.
+	* src/Makefile.in (SQLITE3_CFLAGS): New substitution.
 	(EMACS_CFLAGS): Add that variable.
 
 	* src/android.c (android_api_level): New variable.
@@ -5532,7 +5532,7 @@
 	(touch-screen-precision-scroll): New user option.
 	(touch-screen-handle-scroll): Use traditional scrolling by
 	default.
-	(touch-screen-handle-touch): Adust format of
+	(touch-screen-handle-touch): Adjust format of
 	touch-screen-current-tool.
 	(touch-screen-track-tap): Don't print waiting for events.
 	(touch-screen-track-drag): Likewise.  Also, don't call UPDATE
@@ -5555,7 +5555,7 @@
 	* lisp/ls-lisp.el (ls-lisp-use-insert-directory-program): Default
 	to off on Android.
 
-	* src/android.c (android_is_directory): New fucntion.
+	* src/android.c (android_is_directory): New function.
 	(android_fstatat): Handle directories created by
 	`android_opendir'.
 	(android_open): Return meaningful file mode.
@@ -5645,7 +5645,7 @@
 	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): Make all
 	event sending functions return long.
 
-	* java/org/gnu/emacs/EmacsPreferencesActivity.java: New fle.
+	* java/org/gnu/emacs/EmacsPreferencesActivity.java: New file.
 
 	* java/org/gnu/emacs/EmacsService.java (EmacsService)
 	(onStartCommand, onCreate, startEmacsService): Start as a
@@ -6310,7 +6310,7 @@
 	and `detectMouse'.
 	(struct android_event_queue, android_init_events)
 	(android_next_event, android_write_event): Remove write limit.
-	(android_file_access_p): Handle directories correcty.
+	(android_file_access_p): Handle directories correctly.
 	(android_close): Fix coding style.
 	(android_fclose): New function.
 	(android_init_emacs_service): Initialize new methods.

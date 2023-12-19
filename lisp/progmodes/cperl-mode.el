@@ -1463,7 +1463,7 @@ function tests that property."
 
 (defun cperl-block-declaration-p ()
   "Test whether the following ?\\{ opens a declaration block.
-Returns the column where the declarating keyword is found, or nil
+Returns the column where the declaring keyword is found, or nil
 if this isn't a declaration block.  Declaration blocks are named
 subroutines, packages and the like.  They start with a keyword
 and a name, to be followed by various descriptive items which are
@@ -4206,7 +4206,7 @@ recursive calls in starting lines of here-documents."
 		    (setq tmpend tb))
 		(put-text-property b (point) 'syntax-type 'format))
 	       ;; quotelike operator or regexp: capture groups 10 or 11
-               ;; matches some false postives, to be eliminated here
+               ;; matches some false positives, to be eliminated here
 	       ((or (match-beginning 10) (match-beginning 11))
 		(setq b1 (if (match-beginning 10) 10 11)
 		      argument (buffer-substring
@@ -5877,7 +5877,7 @@ functions (which they are not).  Inherits from `default'.")
                                              (eval cperl--ws*-rx))
                                    ;; ... or the start of a "sloppy" signature
                                    (sequence (eval cperl--sloppy-signature-rx)
-                                             ;; arbtrarily continue "a few lines"
+                                             ;; arbitrarily continue "a few lines"
                                              (repeat 0 200 (not (in "{"))))
                                    ;; make sure we have a reasonably
                                    ;; short match for an incomplete sub

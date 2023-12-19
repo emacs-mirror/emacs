@@ -1564,7 +1564,7 @@ Interactively, or when @var{display} is non-@code{nil}, the return
 value is also displayed in the echo area.
 
 The optional arguments @var{foreground} and @var{face} control the
-appearence of the completion candidates in the @file{*Completions*}
+appearance of the completion candidates in the @file{*Completions*}
 buffer.  The candidates are displayed in the specified @var{face} but
 with different colors: if @var{foreground} is non-@code{nil}, the
 foreground color is changed to be the color of the candidate,

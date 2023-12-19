@@ -526,6 +526,7 @@ to find where a test was defined if the test was loaded from a file.
 * Tests and Their Environment:: Don't depend on customizations; no side effects.
 * Useful Techniques::           Some examples.
 * erts files::                  Files containing many buffer tests.
+* Syntax Highlighting Tests::   Tests for face assignment.
 @end menu
 
 
@@ -942,6 +943,102 @@ non-@code{nil} value, the test will be skipped.
 If you need to use the literal line single line @samp{=-=} in a test
 section, you can quote it with a @samp{\} character.
 
+@node Syntax Highlighting Tests
+@section Syntax Highlighting Tests
+
+Syntax highlighting is normally provided by the Font Lock minor mode
+that assigns face properties to parts of the buffer.  The
+@code{ert-font-lock} package makes it possible to introduce unit tests
+checking face assignment.  Test assertions are included in code-level
+comments directly and can be read either from inline strings or files.
+
+Test assertion parser extracts tests from comment-only lines.  Every
+comment assertion line starts either with a caret (@samp{^}) or an
+arrow (@samp{<-}).  A caret/arrow should be followed immediately by the
+name of a face to be checked.
+
+The test then checks if the first non-assertion column above the caret
+contains a face expected by the assertion:
+
+@example
+var variable = 11;
+//   ^ font-lock-variable-name-face
+//             ^ font-lock-literal-face
+//               ^ font-lock-punctuation-face
+// this is not an assertion, it's just a comment
+//   ^ font-lock-comment-face
+@end example
+
+The arrow means that the first non-empty column of the assertion line
+will be used for the check:
+
+@example
+var variable = 1;
+// <- font-lock-keyword-face
+  11;
+   // <- font-lock-literal-face
+@end example
+
+@findex ert-font-lock-test-string
+
+The @code{ert-font-lock-test-string} function extracts ERT assertions
+from an inline string.  The @code{javascript-mode} symbol below
+specifies the major mode used for comments and font locking:
+
+@lisp
+(ert-deftest test-font-lock-test-string--correct ()
+  (ert-font-lock-test-string
+   "
+var abc = function(d) @{
+// <- font-lock-keyword-face
+//   ^ font-lock-variable-name-face
+    //        ^ font-lock-keyword-face
+    //             ^ font-lock-variable-name-face
+@};
+"
+   'javascript-mode))
+@end lisp
+
+@findex ert-font-lock-test-file
+
+It is also possible to extract test assertions from a file:
+
+@lisp
+(ert-deftest test-font-lock-test-file--correct ()
+  (ert-font-lock-test-file
+   (ert-resource-file "correct.js")
+   'javascript-mode))
+@end lisp
+
+@findex ert-font-lock-deftest
+
+The @code{ert-font-lock-deftest} macro simplifies inline test
+definition:
+
+@lisp
+(ert-font-lock-deftest test-macro-test--inline
+    emacs-lisp-mode
+  "
+(defun fun ())
+;; ^ font-lock-keyword-face
+;;      ^ font-lock-function-name-face")
+@end lisp
+
+@findex ert-font-lock-deftest-file
+
+The @code{ert-font-lock-deftest-file} macro reads assertions from a
+file:
+
+@lisp
+(ert-font-lock-deftest-file test-macro-test--file
+    "Test reading correct assertions from a file"
+  javascript-mode
+  "correct.js")
+@end lisp
+
+The @code{ert-font-lock-deftest} and @code{ert-font-lock-deftest-file}
+macros accept the same keyword parameters as @code{ert-deftest} i.e.,
+@code{:tag} and @code{:expected-result}.
 
 @node How to Debug Tests
 @chapter How to Debug Tests

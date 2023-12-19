@@ -3699,7 +3699,6 @@ If APPEND is non-nil, don't erase previous debugging output."
              (setcdr cur (cddr cur)))
            (setq cur (cdr cur)))
          (list beg end (cdr all)
-               :annotation-function (lambda (_) " Dictionary word")
                :exclusive 'no))))))
 
 

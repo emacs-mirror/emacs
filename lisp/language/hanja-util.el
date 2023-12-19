@@ -6437,7 +6437,7 @@ character.  This variable is initialized by `hanja-init-load'.")
     (message "")))
 
 ;; List of current conversion status.
-;; The first element is the strating position of shown list.
+;; The first element is the starting position of shown list.
 ;; It is a group number each split by `hanja-list-width'.
 ;; The second element is the position of selected element.
 ;; The third element is a list of suitable Hanja candidate.

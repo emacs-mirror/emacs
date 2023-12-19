@@ -407,7 +407,7 @@ android_init_fd_class (JNIEnv *env)
    values are prohibitively slow, but smaller values can't face up to
    some long file names within several nested layers of directories.
 
-   Buffers holding components or other similar file name constitutents
+   Buffers holding components or other similar file name constituents
    which don't represent SAF files must continue to use PATH_MAX, for
    that is the restriction imposed by the Unix file system.  */
 
@@ -4179,7 +4179,7 @@ android_saf_stat (const char *uri_name, const char *id_name,
 }
 
 /* Detect if Emacs has access to the document designated by the the
-   documen ID ID_NAME within the tree URI_NAME.  If ID_NAME is NULL,
+   document ID ID_NAME within the tree URI_NAME.  If ID_NAME is NULL,
    use the document ID in URI_NAME itself.
 
    If WRITABLE, also check that the file is writable, which is true
@@ -6427,7 +6427,7 @@ android_root_name (struct android_vnode *vnode, char *name,
   if (!component_end)
     component_end = name + length;
   else
-    /* Move past the spearator character.  */
+    /* Move past the separator character.  */
     component_end++;
 
   /* Now, find out if the first component is a special vnode; if so,
@@ -7172,7 +7172,7 @@ android_readlinkat (int dirfd, const char *restrict pathname,
    while file streams also require ownership over file descriptors
    they are created on behalf of.
 
-   Detaching the parcel file descriptor linked to FD consequentially
+   Detaching the parcel file descriptor linked to FD consequently
    prevents the owner from being notified when it is eventually
    closed, but for now that hasn't been demonstrated to be problematic
    yet, as Emacs doesn't write to file streams.  */

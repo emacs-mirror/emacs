@@ -37,7 +37,7 @@ See the file 'java/INSTALL' for more details.
 libgccjit is present and functional on the system.  To disable native
 compilation, configure Emacs with the option:
 
-  $ ./configure --with-native-compilation=no
+    ./configure --with-native-compilation=no
 
 ---
 ** Emacs now defaults to ossaudio library for sound on NetBSD and OpenBSD.
@@ -64,6 +64,21 @@ now open in Emacs automatically, as the "emacsclient.desktop" file now
 arranges for Emacs to be the default application for the 'org-protocol'
 URI scheme.  See the Org mode manual, Info node "(org) Protocols" for
 more details.
+
+
+* Incompatible Changes in Emacs 30.1
+
++++
+** URL now never sends user email addresses in HTTP requests.
+Emacs never sent email addresses by default, but it used to be
+possible to customize 'url-privacy-level' so that the users email
+address was sent along in HTTP requests.  This feature has now been
+removed, as it was considered more dangerous than useful.  RFC 9110
+(§ 10.1.2) also recommends against it.  The user option
+'url-personal-mail-address' is now also obsolete.
+
+To send an email address in the header of individual HTTP requests,
+see the variable `url-request-extra-headers'.
 
 
 * Changes in Emacs 30.1
@@ -242,7 +257,7 @@ It can be used to customize the look of the appointment notification
 displayed on the mode line when 'appt-display-mode-line' is non-nil.
 
 ---
-*** Emacs now recognizes shebang lines that pass -S/--split-string to 'env'.
+*** Emacs now recognizes shebang lines that pass '-S'/'--split-string' to 'env'.
 When visiting a script that invokes 'env -S INTERPRETER ARGS...' in
 its shebang line, Emacs will now skip over 'env -S' and deduce the
 major mode based on the interpreter after 'env -S'.
@@ -257,6 +272,11 @@ It can be used to 'pop' arguments and process them by the function
 called in the '--eval' expression, which is useful when those
 arguments contain arbitrary characters that otherwise might require
 elaborate and error-prone escaping (to protect them from the shell).
+
++++
+** 'recover-file' can show diffs between auto save file and current file.
+When answering the prompt with "diff" or "=", it now shows the diffs
+between the auto save file and the current file.
 
 
 * Editing Changes in Emacs 30.1
@@ -348,7 +368,7 @@ functions in CJK locales.
 *** New input methods for the Urdu, Pashto, and Sindhi languages.
 These languages are spoken in Pakistan and Afganistan.
 
-*** Additional 'C-x 8' key translations for æ and Æ.
+*** Additional 'C-x 8' key translations for "æ" and "Æ".
 These characters can now be input with 'C-x 8 a e' and 'C-x 8 A E',
 respectively, in addition to the existing translations 'C-x 8 / e' and
 'C-x 8 / E'.
@@ -425,7 +445,7 @@ The look of the key prompt in the project switcher has been changed
 slightly.  To get the previous one, set this option to 'brackets'.
 
 *** 'project-try-vc' tries harder to find the responsible VCS.
-When 'project-vc-extra-root-markers' is non-nil, and causes
+When 'project-vc-extra-root-markers' is non-nil, and causes a
 subdirectory project to be detected which is not a VCS root, we now
 additionally traverse the parent directories until a VCS root is found
 (if any), so that the ignore rules for that repository are used, and
@@ -439,7 +459,7 @@ have access to all keys defined inside 'project-prefix-map', as well
 as global bindings (to run other commands inside the project root),
 you can add this to your init script:
 
-  (setopt project-switch-commands #'project-prefix-or-any-command)
+    (setopt project-switch-commands #'project-prefix-or-any-command)
 
 ** VC
 
@@ -456,6 +476,19 @@ With this value only the revision number is displayed on the mode-line.
 ---
 *** Obsolete command 'vc-switch-backend' re-added as 'vc-change-backend'.
 The command was previously obsoleted and unbound in Emacs 28.
+
+*** Support for viewing VC change history across renames.
+When a fileset's VC change history ('C-x v l') ends at a rename, we
+now print the old name(s) and a button which jumps to their history.
+Git and Hg are supported.  Naturally, 'vc-git-print-log-follow' should
+be nil for this to work (or '--follow' should not be in
+'vc-hg-print-log-switches', in Hg's case).  Unlike when the '--follow'
+switch is used, commands to see the diff of the old revision ('d'),
+check out an old file version ('f') or annotate it right away ('a'),
+also work on revisions which precede renames.
+
+*** New option 'vc-git-file-name-changes-switches'.
+It allows tweaking the thresholds for rename and copy detection.
 
 ** Diff mode
 
@@ -498,7 +531,7 @@ the last line will move to the first line).  The default is nil.
 
 *** New user option 'dired-filename-display-length'.
 It is an integer representing the maximum display length of filenames.
-The middle part of filename whose length exceeds the restriction is
+The middle part of a filename whose length exceeds the restriction is
 hidden and an ellipsis is displayed instead.  A value of 'window'
 means using the right edge of window as the display restriction.  The
 default is nil.
@@ -510,6 +543,16 @@ based on marked files in Dired.  Possible backends are
 'dired-guess-default', MIME types, XDG configuration
 and a universal command such as "open" or "start"
 that delegates to the OS.
+
+*** New command 'dired-do-open'.
+This command is bound to "Open" in the context menu; it "opens" the
+marked or clicked on files according to the OS conventions.  For
+example, on systems supporting XDG, this runs 'xdg-open' on the
+files.
+
++++
+*** 'dired-listing-switches' handles connection-local values if exist.
+This allows to customize different switches for different remote machines.
 
 ** Ediff
 
@@ -613,20 +656,42 @@ calling external rgrep.
 +++
 *** If a command exits abnormally, the Eshell prompt now shows its exit code.
 
++++
+*** New user option 'eshell-history-append'.
+If non-nil, each Eshell session will save history by appending new
+entries of that session to the history file rather than overwriting
+the file with the whole history of the session.  The default is nil.
+
 ** Minibuffer and Completions
 
 *** New commands 'previous-line-completion' and 'next-line-completion'.
-Bound to '<UP>' and '<DOWN>' arrow keys, respectively, they navigate
+Bound to '<up>' and '<down>' arrow keys, respectively, they navigate
 the "*Completions*" buffer vertically by lines, wrapping at the
 top/bottom when 'completion-auto-wrap' is non-nil.
 
 *** New user option 'minibuffer-visible-completions'.
-When customized to non-nil, you can use arrow key in the minibuffer
-to navigate the completions displayed in the *Completions* window.
+When customized to non-nil, you can use arrow keys in the minibuffer
+to navigate the completions displayed in the "*Completions*" window.
 Typing 'RET' selects the highlighted candidate.  'C-g' hides the
 completions window.  When the completions window is not visible,
 then all these keys have their usual meaning in the minibuffer.
 This option is supported for in-buffer completion as well.
+
+*** Selected completion candidates are deselected on typing.
+When you type at the minibuffer prompt, the current completion
+candidate will be un-highlighted, and point in the "*Completions*" window
+will be moved off that candidate.  'minibuffer-choose-completion'
+('M-RET') will still choose a previously-selected completion
+candidate, but the new command 'minibuffer-choose-completion-or-exit'
+(bound to 'RET' by 'minibuffer-visible-completions') will exit with
+the minibuffer contents instead.  This deselection behavior can be
+controlled with the new user option 'completion-auto-deselect', which
+is t by default.
+
+*** New value 'historical' for user option 'completions-sort'.
+When 'completions-sort' is set to 'historical', completion candidates
+will be first sorted alphabetically, and then re-sorted by their order
+in the minibuffer history, with more recent candidates appearing first.
 
 ** Pcomplete
 
@@ -640,7 +705,7 @@ suppress remote file name completion at all.
 *** Completion for the 'doas' command has been added.
 Command completion for 'doas' in Eshell and Shell mode will now work.
 
-** Shell Mode
+** Shell mode
 
 +++
 *** New user option 'shell-get-old-input-include-continuation-lines'.
@@ -856,7 +921,7 @@ distracting and easily confused with actual code, or a significant
 early aid that relieves you from moving the buffer or reaching for the
 mouse to consult an error message.
 
-** JS Mode
+** JS mode.
 The binding 'M-.' has been removed from the major mode keymaps in
 'js-mode' and 'js-ts-mode', having it default to the global binding
 which calls 'xref-find-definitions'.  If the previous one worked
@@ -1038,6 +1103,12 @@ This can help avoid some awkward skip conditions.  For example
 '(skip-unless (not noninteractive))' can be changed to the easier
 to read '(skip-when noninteractive)'.
 
++++
+*** Syntax highlighting unit testing support.
+An ERT extension ('ert-font-lock') now provides support for face
+assignment unit testing.  For more information, see the "(ert) Syntax
+Highlighting Tests" node in the ERT manual.
+
 ** URL
 
 +++
@@ -1142,8 +1213,9 @@ showcases all their customization options.
 
 ---
 ** 'register-preview-delay' is no longer used.
-Register preview is no more delayed.  If you want to disable it use
-'register-use-preview' instead with a boolean value.
+Register preview is no longer delayed.  If you want to disable the
+preview, customize the new option 'register-use-preview' to the value
+'never'.
 
 +++
 ** 'M-TAB' now invokes 'completion-at-point' also in Text mode.
@@ -1151,7 +1223,7 @@ Text mode no longer binds 'M-TAB' to 'ispell-complete-word', and
 instead this mode arranges for 'completion-at-point', globally bound
 to 'M-TAB', to perform word completion as well.  If you want 'M-TAB'
 to invoke 'ispell-complete-word', as it did in previous Emacs
-versions, customize the new option
+versions, customize the new user option
 'text-mode-meta-tab-ispell-complete-word' to non-nil.
 
 ** 'pp' and 'pp-to-string' now always include a terminating newline.
@@ -1185,7 +1257,7 @@ This user option has been obsoleted in Emacs 27, use
 ---
 ** User options 'eshell-NAME-unload-hook' are now obsolete.
 These hooks were named incorrectly, and so they never actually ran
-when unloading the correspending feature.  Instead, you should use
+when unloading the corresponding feature.  Instead, you should use
 hooks named after the feature name, like 'esh-mode-unload-hook'.
 
 +++
@@ -1254,6 +1326,10 @@ values.
 
 * Lisp Changes in Emacs 30.1
 
+** New 'pop-up-frames' action alist entry for 'display-buffer'.
+This has the same effect as the variable of the same name and takes
+precedence over the variable when present.
+
 ** New function 'merge-ordered-lists'.
 Mostly used internally to do a kind of topological sort of
 inheritance hierarchies.
@@ -1261,14 +1337,14 @@ inheritance hierarchies.
 ** New API for 'derived-mode-p' and control of the graph of major modes.
 
 *** 'derived-mode-p' now takes the list of modes as a single argument.
-The same holds for `provided-mode-derived-p`.
+The same holds for 'provided-mode-derived-p'.
 The old calling convention where multiple modes are passed as
 separate arguments is deprecated.
 
 *** New functions to access the graph of major modes.
 While 'define-derived-mode' still only supports single inheritance,
 modes can declare additional parents (for tests like 'derived-mode-p')
-with `derived-mode-add-parents`.
+with 'derived-mode-add-parents'.
 Accessing the 'derived-mode-parent' property directly is now
 deprecated in favor of the new functions 'derived-mode-set-parent'
 and 'derived-mode-all-parents'.
@@ -1612,6 +1688,14 @@ default to use 'LANGUAGE'.
 A 5th argument, optional, has been added to
 'modify-dir-local-variable'.  It can be used to specify which
 dir-locals file to modify.
+
+** Connection local variables
+
++++
+*** New macros 'connection-local-p' and 'connection-local-value'.
+The former macro returns non-nil if a variable has a connection-local
+binding.  The latter macro returns the connection-local value of a
+variable if any, or its current value.
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems

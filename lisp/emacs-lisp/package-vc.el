@@ -29,7 +29,7 @@
 ;; To install a package from source use `package-vc-install'.  If you
 ;; aren't interested in activating a package, you can use
 ;; `package-vc-checkout' instead, which will prompt you for a target
-;; directory.  If you wish to re-use an existing checkout, the command
+;; directory.  If you wish to reuse an existing checkout, the command
 ;; `package-vc-install-from-checkout' will create a symbolic link and
 ;; prepare the package.
 ;;
@@ -503,10 +503,6 @@ identify a package as a VC package later on), building
 documentation and marking the package as installed."
   (let ((pkg-spec (package-vc--desc->spec pkg-desc))
         missing)
-    ;; Remove any previous instance of PKG-DESC from `package-alist'
-    (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
-      (when pkgs
-        (setf (cdr pkgs) (seq-remove #'package-vc-p (cdr pkgs)))))
 
     ;; In case the package was installed directly from source, the
     ;; dependency list wasn't know beforehand, and they might have
@@ -575,6 +571,11 @@ documentation and marking the package as installed."
       (when (executable-find "install-info")
         (dolist (doc-file (ensure-list (plist-get pkg-spec :doc)))
           (package-vc--build-documentation pkg-desc doc-file))))
+
+    ;; Remove any previous instance of PKG-DESC from `package-alist'
+    (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
+      (when pkgs
+        (setf (cdr pkgs) (seq-remove #'package-vc-p (cdr pkgs)))))
 
     ;; Update package-alist.
     (let ((new-desc (package-load-descriptor pkg-dir)))
@@ -862,7 +863,7 @@ package uses `file-name-base' on the URL to obtain the package
 name, otherwise NAME is the package name as a symbol.
 
 PACKAGE can also be a cons cell (PNAME . SPEC) where PNAME is the
-package name as a symbol, and SPEC is a plist that specifes how
+package name as a symbol, and SPEC is a plist that specifies how
 to fetch and build the package.  For possible values, see the
 subsection \"Specifying Package Sources\" in the Info
 node `(emacs)Fetching Package Sources'.

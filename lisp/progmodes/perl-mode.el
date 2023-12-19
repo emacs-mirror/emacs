@@ -468,7 +468,7 @@
 		      (scan-error (goto-char startpos) nil))
 		  (not (or (nth 8 (parse-partial-sexp
 				   ;; Since we don't know if point is within
-				   ;; the first or the scond arg, we have to
+				   ;; the first or the second arg, we have to
 				   ;; start from the beginning.
 				   (if twoargs (1+ (nth 8 state)) (point))
 				   limit nil nil state 'syntax-table))
@@ -514,7 +514,7 @@
 				     (string-to-syntax "|e")
 				   (string-to-syntax "\"e")))
 	      (forward-char 1)
-	      ;; Re-use perl-syntax-propertize-special-constructs to handle the
+	      ;; Reuse perl-syntax-propertize-special-constructs to handle the
 	      ;; second part (the first delimiter of second part can't be
 	      ;; preceded by "s" or "tr" or "y", so it will not be considered
 	      ;; as twoarg).

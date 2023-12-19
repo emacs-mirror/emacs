@@ -7554,7 +7554,7 @@ multi-line strings (but not C++, for example)."
 (defun c-ml-string-opener-intersects-region (&optional start finish)
   ;; If any part of the region [START FINISH] is inside an ml-string opener,
   ;; return a dotted list of the start, end and double-quote position of the
-  ;; first such opener.  That list wlll not include any "context characters"
+  ;; first such opener.  That list will not include any "context characters"
   ;; before or after the opener.  If an opener is found, the match-data will
   ;; indicate it, with (match-string 1) being the entire delimiter, and
   ;; (match-string 2) the "main" double-quote.  Otherwise, the match-data is
@@ -9891,7 +9891,7 @@ point unchanged and return nil."
   ;; Note that this function is incomplete, handling only those cases expected
   ;; to be common in a C++20 requires clause.
   ;;
-  ;; Note also that (...) is not recognised as a primary expression if the
+  ;; Note also that (...) is not recognized as a primary expression if the
   ;; next token is an open brace.
   (let ((here (point))
 	(c-restricted-<>-arglists t)
@@ -13021,7 +13021,7 @@ comment at the start of cc-engine.el for more info."
 
 (defun c-laomib-get-cache (containing-sexp start)
   ;; Get an element from `c-laomib-cache' matching CONTAINING-SEXP, and which
-  ;; is suitable for start postiion START.
+  ;; is suitable for start position START.
   ;; Return that element or nil if one wasn't found.
   (let ((ptr c-laomib-cache)
 	elt)

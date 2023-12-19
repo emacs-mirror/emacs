@@ -428,7 +428,7 @@ public final class EmacsWindow extends EmacsHandleObject
 		  manager = EmacsWindowAttachmentManager.MANAGER;
 
 		  /* If parent is the root window, notice that there are new
-		     children available for interested activites to pick
+		     children available for interested activities to pick
 		     up.  */
 		  manager.registerWindow (EmacsWindow.this);
 
@@ -644,7 +644,7 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   onKeyDown (int keyCode, KeyEvent event)
   {
-    int state, state_1;
+    int state, state_1, num_lock_flag;
     long serial;
     String characters;
 
@@ -665,13 +665,23 @@ public final class EmacsWindow extends EmacsHandleObject
 
     state = eventModifiers (event);
 
+    /* Num Lock and Scroll Lock aren't supported by systems older than
+       Android 3.0. */
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+      num_lock_flag = (KeyEvent.META_NUM_LOCK_ON
+		       | KeyEvent.META_SCROLL_LOCK_ON);
+    else
+      num_lock_flag = 0;
+
     /* Ignore meta-state understood by Emacs for now, or key presses
        such as Ctrl+C and Meta+C will not be recognized as an ASCII
        key press event.  */
 
     state_1
       = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK
-		  | KeyEvent.META_SYM_ON | KeyEvent.META_META_MASK);
+		  | KeyEvent.META_SYM_ON | KeyEvent.META_META_MASK
+		  | num_lock_flag);
 
     synchronized (eventStrings)
       {
@@ -692,11 +702,20 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   onKeyUp (int keyCode, KeyEvent event)
   {
-    int state, state_1, unicode_char;
+    int state, state_1, unicode_char, num_lock_flag;
     long time;
 
     /* Compute the event's modifier mask.  */
     state = eventModifiers (event);
+
+    /* Num Lock and Scroll Lock aren't supported by systems older than
+       Android 3.0. */
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+      num_lock_flag = (KeyEvent.META_NUM_LOCK_ON
+		       | KeyEvent.META_SCROLL_LOCK_ON);
+    else
+      num_lock_flag = 0;
 
     /* Ignore meta-state understood by Emacs for now, or key presses
        such as Ctrl+C and Meta+C will not be recognized as an ASCII
@@ -704,7 +723,8 @@ public final class EmacsWindow extends EmacsHandleObject
 
     state_1
       = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK
-		  | KeyEvent.META_SYM_ON | KeyEvent.META_META_MASK);
+		  | KeyEvent.META_SYM_ON | KeyEvent.META_META_MASK
+		  | num_lock_flag);
 
     unicode_char = getEventUnicodeChar (event, state_1);
 
@@ -1399,7 +1419,7 @@ public final class EmacsWindow extends EmacsHandleObject
 		  }
 
 		/* Effect the same adjustment upon the view
-		   hiearchy.  */
+		   hierarchy.  */
 
 		EmacsService.SERVICE.runOnUiThread (new Runnable () {
 		    @Override

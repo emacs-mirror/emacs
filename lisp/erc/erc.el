@@ -154,26 +154,27 @@ visiting and editing inserted messages.  Modules should align
 their markers accordingly.  The following properties have meaning
 as of ERC 5.6:
 
- - `erc-msg': a symbol, guaranteed present; values include:
-   `msg', signifying a `PRIVMSG' or an incoming `NOTICE';
-   `unknown', a fallback for `erc-display-message'; a catalog
-    key, such as `s401' or `finished'; an `erc-display-message'
-    TYPE parameter, like `notice'
+ - `erc--msg': a symbol, guaranteed present; possible values
+    include `unknown', a fallback used by `erc-display-message'; a
+    catalog key, such as `s401' or `finished'; an
+   `erc-display-message' TYPE parameter, like `notice'
 
- - `erc-cmd': a message's associated IRC command, as read by
+ - `erc--cmd': a message's associated IRC command, as read by
    `erc--get-eq-comparable-cmd'; currently either a symbol, like
    `PRIVMSG', or a number, like 5, which represents the numeric
     \"005\"; absent on \"local\" messages, such as simple warnings
     and help text, and on outgoing messages unless echoed back by
     the server (assuming future support)
 
- - `erc-ctcp': a CTCP command, like `ACTION'
+ - `erc--spkr': a string, the nick of the person speaking
 
- - `erc-ts': a timestamp, possibly provided by the server; as of
+ - `erc--ctcp': a CTCP command, like `ACTION'
+
+ - `erc--ts': a timestamp, possibly provided by the server; as of
     5.6, a ticks/hertz pair on Emacs 29 and above, and a \"list\"
     type otherwise; managed by the `stamp' module
 
- - `erc-ephemeral': a symbol prefixed by or matching a module
+ - `erc--ephemeral': a symbol prefixed by or matching a module
     name; indicates to other modules and members of modification
     hooks that the current message should not affect stateful
     operations, such as recording a channel's most recent speaker
@@ -191,10 +192,6 @@ front shadow any that follow.  Ignored when `erc--msg-props' is
 already non-nil.")
 
 ;; Forward declarations
-(defvar tabbar--local-hlf)
-(defvar motif-version-string)
-(defvar gtk-version-string)
-
 (declare-function decoded-time-period "time-date" (time))
 (declare-function iso8601-parse-duration "iso8601" (string))
 (declare-function word-at-point "thingatpt" (&optional no-properties))
@@ -477,13 +474,14 @@ Functions are passed a buffer as the first argument."
   :group 'erc-hooks
   :type 'hook)
 
-
-(defvar-local erc-channel-users nil
+(defvaralias 'erc-channel-users 'erc-channel-members)
+(defvar-local erc-channel-members nil
   "Hash table of members in the current channel.
-It associates nicknames with cons cells of the form:
-\(USER . MEMBER-DATA) where USER is a pointer to an
-erc-server-user struct, and MEMBER-DATA is a pointer to an
-erc-channel-user struct.")
+It associates nicknames with cons cells of the form
+\(SERVER-USER . MEMBER-DATA), where SERVER-USER is a
+`erc-server-user' object and MEMBER-DATA is a `erc-channel-user'
+object.  Convenient abbreviations for these two components are
+`susr' and `cusr', along with `cmem' for the pair.")
 
 (defvar-local erc-server-users nil
   "Hash table of users on the current server.
@@ -599,6 +597,29 @@ Removes all users in the current channel.  This is called by
                (erc-remove-channel-user nick))
              erc-channel-users)
     (clrhash erc-channel-users)))
+
+(defmacro erc--define-channel-user-status-compat-getter (name n)
+  "Define a gv getter for historical `erc-channel-user' status slot NAME.
+Expect NAME to be a string and N to be its associated power-of-2
+\"enumerated flag\" integer."
+  `(defun ,(intern (concat "erc-channel-user-" name)) (u)
+     ,(format "Get equivalent of pre-5.6 `%s' slot for `erc-channel-user'."
+              name)
+     (declare (gv-setter (lambda (v)
+                           (macroexp-let2 nil v v
+                             (,'\`(let ((val (erc-channel-user-status ,',u)))
+                                    (setf (erc-channel-user-status ,',u)
+                                          (if ,',v
+                                              (logior val ,n)
+                                            (logand val ,(lognot n))))
+                                    ,',v))))))
+     (= ,n (logand ,n (erc-channel-user-status u)))))
+
+(erc--define-channel-user-status-compat-getter "voice"  1)
+(erc--define-channel-user-status-compat-getter "halfop" 2)
+(erc--define-channel-user-status-compat-getter "op"     4)
+(erc--define-channel-user-status-compat-getter "admin"  8)
+(erc--define-channel-user-status-compat-getter "owner" 16)
 
 (defun erc-channel-user-owner-p (nick)
   "Return non-nil if NICK is an owner of the current channel."
@@ -1138,7 +1159,13 @@ user after \"/PART\"."
 ;; Hooks
 
 (defgroup erc-hooks nil
-  "Hook variables for fancy customizations of ERC."
+  "Hooks for ERC.
+Users of the interactive client should be aware that many of
+these hooks have names predating the modern convention of
+conveying abnormality via the \"-function\" suffix.  Users should
+likewise be aware that built-in and third-party modules use these
+hooks as well, and some of their variables may be buffer-local in
+particular sessions and/or `let'-bound for spells."
   :group 'erc)
 
 (defcustom erc-mode-hook nil
@@ -1148,9 +1175,8 @@ user after \"/PART\"."
   :options '(erc-add-scroll-to-bottom))
 
 (defcustom erc-timer-hook nil
-  "Put functions which should get called more or less periodically here.
-The idea is that servers always play ping pong with the client, and so there
-is no need for any idle-timer games with Emacs."
+  "Abnormal hook run after each response handler.
+Called with a float returned from `erc-current-time'."
   :group 'erc-hooks
   :type 'hook)
 
@@ -1194,13 +1220,18 @@ The struct has three slots:
   `string': The current input string.
   `insertp': Whether the string should be inserted into the erc buffer.
   `sendp': Whether the string should be sent to the irc server.
+
+And one \"phony\" slot only accessible by hook members at runtime:
+
   `refoldp': Whether the string should be re-split per protocol limits.
 
 This hook runs after protocol line splitting has taken place, so
 the value of `string' is originally \"pre-filled\".  If you need
-ERC to refill the entire payload before sending it, set the
-`refoldp' slot to a non-nil value.  Preformatted text and encoded
-subprotocols should probably be handled manually."
+ERC to refill the entire payload before sending it, set the phony
+`refoldp' slot to a non-nil value.  Note that this refilling is
+only a convenience, and modules with special needs, such as
+preserving \"preformatted\" text or encoding for subprotocol
+\"tunneling\", should handle splitting manually."
   :group 'erc
   :type 'hook
   :version "27.1")
@@ -1450,9 +1481,8 @@ See also `erc-show-my-nick'."
 
 ;; Debugging support
 
-(defvar erc-log-p nil
-  "When set to t, generate debug messages in a separate debug buffer.")
-
+;; FIXME if this variable plays some role, indicate that here.
+;; Otherwise, deprecate.
 (defvar erc-debug-log-file (expand-file-name "ERC.debug")
   "Debug log file name.")
 
@@ -2189,7 +2219,7 @@ removed from the list will be disabled."
            move-to-prompt)
     (const :tag "netsplit: Detect netsplits" netsplit)
     (const :tag "networks: Provide data about IRC networks" networks)
-    (const :tag "nickbar: Show nicknames in a dyamic side window" nickbar)
+    (const :tag "nickbar: Show nicknames in a dynamic side window" nickbar)
     (const :tag "nicks: Uniquely colorize nicknames in target buffers" nicks)
     (const :tag "noncommands: Deprecated. See module `command-indicator'."
            noncommands)
@@ -3004,23 +3034,40 @@ target, and an `erc-server-send' FORCE flag.")
 ;; Sending and displaying are provided separately to afford modules
 ;; more flexibility, e.g., to forgo displaying on the way out when
 ;; expecting the server to echo messages back and/or to associate
-;; outgoing messages with IDs generated for `erc-ephemeral'
+;; outgoing messages with IDs generated for `erc--ephemeral'
 ;; placeholders.
 (defun erc--send-action-perform-ctcp (target string force)
   "Send STRING to TARGET, possibly immediately, with FORCE."
   (erc-send-ctcp-message target (format "ACTION %s" string) force))
 
+(defvar erc--use-language-catalog-for-ctcp-action-p nil
+  "When non-nil, use `ACTION' entry from language catalog for /ME's.
+Otherwise, use `ctcp-action' or `ctcp-action-input' from the
+internal `-speaker' catalog.  This is an escape hatch to restore
+pre-5.6 behavior for the `font-lock-face' property of incoming
+and outgoing \"CTCP ACTION\" messages, whose pre-buttonized state
+was a single interval of `erc-input-face' or `erc-action-face'.
+Newer modules, like `fill-wrap' and `nicks', are incompatible with
+this format style.  If you use this, please ask ERC to expose it
+as a public variable via \\[erc-bug] or similar.")
+
 (defun erc--send-action-display (string)
-  "Display STRING as an outgoing \"CTCP ACTION\" message."
+  "Display STRING as an outgoing \"CTCP ACTION\" message.
+Propertize the message according to the compatibility flag
+`erc--use-language-catalog-for-ctcp-action-p'."
   ;; Allow hooks acting on inserted PRIVMSG and NOTICES to process us.
-  (let ((erc--msg-prop-overrides `((erc-msg . msg)
-                                   (erc-ctcp . ACTION)
+  (let ((erc--msg-prop-overrides `((erc--ctcp . ACTION)
                                    ,@erc--msg-prop-overrides))
         (nick (erc-current-nick)))
-    (setq nick (propertize nick 'erc-speaker nick
-                           'font-lock-face 'erc-my-nick-face))
-    (erc-display-message nil '(t action input) (current-buffer)
-                         'ACTION ?n nick ?a string ?u "" ?h "")))
+    (if erc--use-language-catalog-for-ctcp-action-p
+        (progn (erc--ensure-spkr-prop nick)
+               (erc-display-message nil 'input (current-buffer) 'ACTION
+                                    ?n (propertize nick 'erc--speaker nick)
+                                    ?a string ?u "" ?h ""))
+      (let ((erc-current-message-catalog erc--message-speaker-catalog))
+        (erc-display-message nil nil (current-buffer) 'ctcp-action-input
+                             ?p (erc-get-channel-membership-prefix nick)
+                             ?n (erc--speakerize-nick nick) ?m string)))))
 
 (defun erc--send-action (target string force)
   "Display STRING, then send to TARGET as a \"CTCP ACTION\" message."
@@ -3028,6 +3075,21 @@ target, and an `erc-server-send' FORCE flag.")
   (erc--send-action-perform-ctcp target string force))
 
 ;; Display interface
+
+(defun erc--ensure-spkr-prop (nick &optional overrides)
+  "Add NICK as `erc--spkr' to the current \"msg props\" environment.
+Prefer `erc--msg-props' over `erc--msg-prop-overrides' when both
+are available.  Also include any members of the alist OVERRIDES,
+when present.  Assume NICK itself to be free of any text props,
+and return it."
+  (cond (erc--msg-props
+         (puthash 'erc--spkr nick erc--msg-props)
+         (dolist (entry overrides)
+           (puthash (car entry) (cdr entry) erc--msg-props)))
+        (erc--msg-prop-overrides
+         (setq erc--msg-prop-overrides
+               `((erc--spkr . ,nick) ,@overrides ,@erc--msg-prop-overrides))))
+  nick)
 
 (defun erc-string-invisible-p (string)
   "Check whether STRING is invisible or not.
@@ -3142,20 +3204,20 @@ Return ONLY one side when the first arg is `end' or `beg'.  With
 POINT, search from POINT instead of `point'."
   ;; TODO add edebug spec.
   `(let* ((point ,(or point '(point)))
-          (at-start-p (get-text-property point 'erc-msg)))
+          (at-start-p (get-text-property point 'erc--msg)))
      (and-let*
          (,@(and (member only '(nil beg 'beg))
                  '((b (or (and at-start-p point)
                           (and-let*
                               ((p (previous-single-property-change point
-                                                                   'erc-msg)))
+                                                                   'erc--msg)))
                             (if (= p (1- point))
-                                (if (get-text-property p 'erc-msg) p (1- p))
+                                (if (get-text-property p 'erc--msg) p (1- p))
                               (1- p)))))))
           ,@(and (member only '(nil end 'end))
                  '((e (1- (next-single-property-change
                            (if at-start-p (1+ point) point)
-                           'erc-msg nil erc-insert-marker))))))
+                           'erc--msg nil erc-insert-marker))))))
        ,(pcase only
           ('(quote beg) 'b)
           ('(quote end) 'e)
@@ -3184,12 +3246,12 @@ If END is a marker, possibly update its position."
     (set-marker end (min erc-insert-marker end)))
   (save-excursion
     (goto-char beg)
-    (let ((b (if (get-text-property (point) 'erc-msg)
+    (let ((b (if (get-text-property (point) 'erc--msg)
                  (point)
-               (next-single-property-change (point) 'erc-msg nil end))))
+               (next-single-property-change (point) 'erc--msg nil end))))
       (while-let ((b)
                   ((< b end))
-                  (e (next-single-property-change (1+ b) 'erc-msg nil end)))
+                  (e (next-single-property-change (1+ b) 'erc--msg nil end)))
         (save-restriction
           (narrow-to-region b e)
           (funcall fn))
@@ -3267,7 +3329,7 @@ modification hooks)."
                   (let ((props (if erc--msg-props
                                    (erc--order-text-properties-from-hash
                                     erc--msg-props)
-                                 '(erc-msg unknown))))
+                                 '(erc--msg unknown))))
                     (add-text-properties (point-min) (1+ (point-min)) props)))
                 (erc--refresh-prompt)))))
         (run-hooks 'erc-insert-done-hook)
@@ -3340,8 +3402,8 @@ the old pattern (erc-display-line (erc-make-notice) my-buffer) as
 being equivalent to a `erc-display-message' TYPE of `notice'."
   (let ((erc--msg-prop-overrides erc--msg-prop-overrides))
     (when (eq 'erc-notice-face (get-text-property 0 'font-lock-face string))
-      (unless (assq 'erc-msg erc--msg-prop-overrides)
-        (push '(erc-msg . notice) erc--msg-prop-overrides)))
+      (unless (assq 'erc--msg erc--msg-prop-overrides)
+        (push '(erc--msg . notice) erc--msg-prop-overrides)))
     (erc-display-message nil nil buffer string)))
 
 (defvar erc--merge-text-properties-p nil
@@ -3351,12 +3413,14 @@ being equivalent to a `erc-display-message' TYPE of `notice'."
 ;; values and optionally dispense archetypal constants in their place
 ;; in order to ensure all occurrences of some list (a b) across all
 ;; text-properties in all ERC buffers are actually the same object.
-(defun erc--merge-prop (from to prop val &optional object)
+(defun erc--merge-prop (from to prop val &optional object cache-fn)
   "Combine existing PROP values with VAL between FROM and TO in OBJECT.
 For spans where PROP is non-nil, cons VAL onto the existing
 value, ensuring a proper list.  Otherwise, just set PROP to VAL.
 When VAL is itself a list, prepend its members onto an existing
-value.  See also `erc-button-add-face'."
+value.  Call CACHE-FN, when given, with the new value for prop.
+It must return a suitable replacement or the same value.  See
+also `erc-button-add-face'."
   (let ((old (get-text-property from prop object))
         (pos from)
         (end (next-single-property-change from prop object to))
@@ -3370,6 +3434,8 @@ value.  See also `erc-button-add-face'."
                           (append val (ensure-list old))
                         (cons val (ensure-list old))))
                   val))
+      (when cache-fn
+        (setq new (funcall cache-fn new)))
       (put-text-property pos end prop new object)
       (setq pos end
             old (get-text-property pos prop object)
@@ -3458,7 +3524,8 @@ subsequent message."
              (substring (delete-and-extract-region (1- (point)) (1+ end))
                         -1))))))))
 
-(defvar erc--ranked-properties '(erc-msg erc-ts erc-cmd))
+(defvar erc--ranked-properties
+  '(erc--msg erc--spkr erc--ts erc--cmd erc--ctcp erc--ephemeral))
 
 (defun erc--order-text-properties-from-hash (table)
   "Return a plist of text props from items in TABLE.
@@ -3724,32 +3791,29 @@ ERC to process arbitrary informative messages as if they'd been
 sent from a server.  That is, guarantee \"local\" messages, for
 which PARSED is typically nil, will be subject to buttonizing,
 filling, and other effects."
-  (let ((string (if (symbolp msg)
-                    (apply #'erc-format-message msg args)
-                  msg))
-        (erc--msg-props
-         (or erc--msg-props
-             (let ((table (make-hash-table :size 5))
-                   (cmd (and parsed (erc--get-eq-comparable-cmd
-                                     (erc-response.command parsed)))))
-               (puthash 'erc-msg
-                        (cond ((and msg (symbolp msg)) msg)
-                              ((and cmd (memq cmd '(PRIVMSG NOTICE)) 'msg))
-                              (type (pcase type
-                                      ((pred symbolp) type)
-                                      ((pred listp)
-                                       (intern (mapconcat #'prin1-to-string
-                                                          type "-")))
-                                      (_ 'unknown)))
-                              (t 'unknown))
-                        table)
-               (when cmd
-                 (puthash 'erc-cmd cmd table))
-               (and-let* ((ovs erc--msg-prop-overrides))
-                 (pcase-dolist (`(,k . ,v) (reverse ovs))
-                   (puthash k v table)))
-               table)))
-        (erc-message-parsed parsed))
+  (let* ((erc--msg-props
+          (or erc--msg-props
+              (let ((table (make-hash-table))
+                    (cmd (and parsed (erc--get-eq-comparable-cmd
+                                      (erc-response.command parsed)))))
+                (puthash 'erc--msg
+                         (cond ((and msg (symbolp msg)) msg)
+                               (type (pcase type
+                                       ((pred symbolp) type)
+                                       ((pred listp)
+                                        (intern (mapconcat #'prin1-to-string
+                                                           type "-")))
+                                       (_ 'unknown)))
+                               (t 'unknown))
+                         table)
+                (when cmd
+                  (puthash 'erc--cmd cmd table))
+                (when erc--msg-prop-overrides
+                  (pcase-dolist (`(,k . ,v) (reverse erc--msg-prop-overrides))
+                    (when v (puthash k v table))))
+                table)))
+         (erc-message-parsed parsed)
+         (string (if (symbolp msg) (apply #'erc-format-message msg args) msg)))
     (setq string
           (cond
            ((null type)
@@ -4646,11 +4710,25 @@ See also `erc-message' and `erc-display-line'."
     (erc--send-message-external line force)))
 
 (defun erc--send-message-external (line force)
-  (erc-message "PRIVMSG" (concat (erc-default-target) " " line) force)
-  (erc-display-line
-   (concat (erc-format-my-nick) line)
-   (current-buffer))
+  "Send a \"PRIVMSG\" to the default target with optional FORCE.
+Expect caller to bind `erc-default-recipients' if needing to
+specify a status-prefixed target."
+  ;; Almost like an echoed message, but without the `erc--cmd'.
+  (let* ((erc-current-message-catalog erc--message-speaker-catalog)
+         (target (erc-default-target))
+         (erc--msg-prop-overrides `((erc--tmp) ,@erc--msg-prop-overrides))
+         ;; This util sets the `erc--spkr' property in ^.
+         (trimmed (erc--statusmsg-target target))
+         (stmsgindc (and trimmed (substring target 0 1)))
+         (queryp (and erc--target (not (erc--target-channel-p erc--target))))
+         (args (erc--determine-speaker-message-format-args
+                (erc-current-nick) line queryp 'privmsgp 'inputp
+                stmsgindc 'prefix)))
+    (erc-message "PRIVMSG" (concat target " " line) force)
+    (push (cons 'erc--msg (car args)) erc--msg-prop-overrides)
+    (apply #'erc-display-message nil nil (current-buffer) args))
   ;; FIXME - treat multiline, run hooks, or remove me?
+  ;; FIXME explain this ^ in more detail or remove.
   t)
 
 (defun erc--send-message-nested (input-line force)
@@ -4969,9 +5047,11 @@ connection or, with -A, all applicable connections.
                             system-configuration
                             (concat
                              (cond ((featurep 'motif)
+                                    (defvar motif-version-string)
                                     (concat ", " (substring
                                                   motif-version-string 4)))
                                    ((featurep 'gtk)
+                                    (defvar gtk-version-string)
                                     (concat ", GTK+ Version "
                                             gtk-version-string))
                                    ((featurep 'x-toolkit) ", X toolkit")
@@ -5256,12 +5336,13 @@ Eventually add a # in front of it, if that turns it into a valid channel name."
     (concat "#" channel)))
 
 (defvar erc--own-property-names
-  '( tags erc-speaker erc-parsed display ; core
+  `( tags erc--speaker erc-parsed display ; core
+     ;; `erc--msg-props'
+     ,@erc--ranked-properties
      ;; `erc-display-prompt'
      rear-nonsticky erc-prompt field front-sticky read-only
      ;; stamp
      cursor-intangible cursor-sensor-functions isearch-open-invisible
-     erc-stamp-type
      ;; match
      invisible intangible
      ;; button
@@ -5605,7 +5686,9 @@ manner implied above, which was lost sometime before ERC 5.4."
   :package-version '(ERC . "5.6") ; revived
   :group 'erc-buffers
   :group 'erc-query
-  :type 'boolean)
+  :type '(choice boolean
+                 (choice :tag "Create pseudo queries for STATUSMSGs"
+                         status)))
 
 (defcustom erc-format-query-as-channel-p t
   "If non-nil, format text from others in a query buffer like in a channel.
@@ -5740,12 +5823,12 @@ and as second argument the event parsed as a vector."
        (not (string-match "^\C-aACTION.*\C-a$" message))))
 
 (defun erc--get-speaker-bounds ()
-  "Return the bounds of `erc-speaker' text property when present.
+  "Return the bounds of `erc--speaker' text property when present.
 Assume buffer is narrowed to the confines of an inserted message."
-  (and-let* (((erc--check-msg-prop 'erc-msg 'msg))
+  (and-let* (((erc--check-msg-prop 'erc--spkr))
              (beg (text-property-not-all (point-min) (point-max)
-                                         'erc-speaker nil)))
-    (cons beg (next-single-property-change beg 'erc-speaker))))
+                                         'erc--speaker nil)))
+    (cons beg (next-single-property-change beg 'erc--speaker))))
 
 (defvar erc--cmem-from-nick-function #'erc--cmem-get-existing
   "Function maybe returning a \"channel member\" cons from a nick.
@@ -5770,53 +5853,263 @@ NUH, and the current `erc-response' object.")
                                                 nick-prefix-face nick))
                          0))
          (msg-face (if privp 'erc-direct-msg-face 'erc-default-face)))
+    (erc--ensure-spkr-prop nick)
     ;; add text properties to text before the nick, the nick and after the nick
     (erc-put-text-property 0 (length mark-s) 'font-lock-face msg-face str)
     (erc-put-text-properties (+ (length mark-s) prefix-len)
                              (+ (length mark-s) (length nick))
-                             '(font-lock-face erc-speaker) str
+                             '(font-lock-face erc--speaker) str
                              (list nick-face
                                    (substring-no-properties nick prefix-len)))
     (erc-put-text-property (+ (length mark-s) (length nick)) (length str)
                            'font-lock-face msg-face str)
     str))
 
-(defcustom erc-format-nick-function 'erc-format-nick
-  "Function to format a nickname for message display."
-  :group 'erc-display
-  :type 'function)
+;; The format strings in the following `-speaker' catalog shouldn't
+;; contain any non-protocol words, so they make sense in any language.
 
-(defun erc-format-nick (&optional user _channel-data)
-  "Return the nickname of USER.
-See also `erc-format-nick-function'."
+(defvar erc--message-speaker-statusmsg
+  #("(%p%n%s) %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-nick-prefix-face)
+    3 5 (font-lock-face erc-nick-default-face)
+    5 7 (font-lock-face erc-notice-face)
+    7 11 (font-lock-face erc-default-face))
+  "Message template for in-channel status messages.")
+
+(defvar erc--message-speaker-statusmsg-input
+  #("(%p%n%s) %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-my-nick-prefix-face)
+    3 5 (font-lock-face erc-my-nick-face)
+    5 7 (font-lock-face erc-notice-face)
+    7 8 (font-lock-face erc-default-face)
+    8 11 (font-lock-face erc-input-face))
+  "Message template for echoed status messages.")
+
+(defvar erc--message-speaker-input-chan-privmsg
+  #("<%p%n> %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-my-nick-prefix-face)
+    3 5 (font-lock-face erc-my-nick-face)
+    5 7 (font-lock-face erc-default-face)
+    7 9 (font-lock-face erc-input-face))
+  "Message template for prompt input or echoed PRIVMSG from own nick.")
+
+(defvar erc--message-speaker-input-query-privmsg
+  #("*%n* %m"
+    0 1 (font-lock-face erc-direct-msg-face)
+    1 3 (font-lock-face erc-my-nick-face)
+    3 5 (font-lock-face erc-direct-msg-face)
+    5 7 (font-lock-face erc-input-face))
+  "Message template for prompt input or echoed PRIVMSG query from own nick.")
+
+(defvar erc--message-speaker-input-query-notice
+  #("-%n- %m"
+    0 1 (font-lock-face erc-direct-msg-face)
+    1 3 (font-lock-face erc-my-nick-face)
+    3 5 (font-lock-face erc-direct-msg-face)
+    5 7 (font-lock-face erc-input-face))
+  "Message template for echoed or spoofed query NOTICE from own nick.")
+
+(defvar erc--message-speaker-input-chan-notice
+  #("-%p%n- %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-my-nick-prefix-face)
+    3 5 (font-lock-face erc-my-nick-face)
+    5 7 (font-lock-face erc-default-face)
+    7 9 (font-lock-face erc-input-face))
+  "Message template for prompt input or echoed NOTICE from own nick.")
+
+(defvar erc--message-speaker-chan-privmsg
+  #("<%p%n> %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-nick-prefix-face)
+    3 5 (font-lock-face erc-nick-default-face)
+    5 9 (font-lock-face erc-default-face))
+  "Message template for a PRIVMSG in a channel.")
+
+(defvar erc--message-speaker-query-privmsg
+  #("*%n* %m"
+    0 1 (font-lock-face erc-direct-msg-face)
+    1 3 (font-lock-face erc-nick-msg-face)
+    3 7 (font-lock-face erc-direct-msg-face))
+  "Message template for a PRIVMSG in query buffer.")
+
+(defvar erc--message-speaker-chan-notice
+  #("-%p%n- %m"
+    0 1 (font-lock-face erc-default-face)
+    1 3 (font-lock-face erc-nick-prefix-face)
+    3 5 (font-lock-face erc-nick-default-face)
+    5 9 (font-lock-face erc-default-face))
+  "Message template for a NOTICE in a channel.")
+
+(defvar erc--message-speaker-query-notice
+  #("-%n- %m"
+    0 1 (font-lock-face erc-direct-msg-face)
+    1 3 (font-lock-face erc-nick-msg-face)
+    3 7 (font-lock-face erc-direct-msg-face))
+  "Message template for a NOTICE in a query buffer.")
+
+(defvar erc--message-speaker-ctcp-action
+  #("* %p%n %m"
+    0 2 (font-lock-face erc-action-face)
+    2 4 (font-lock-face (erc-nick-prefix-face erc-action-face))
+    4 9 (font-lock-face erc-action-face))
+  "Message template for a CTCP ACTION from another user.")
+
+(defvar erc--message-speaker-ctcp-action-input
+  #("* %p%n %m"
+    0 2 (font-lock-face #1=(erc-input-face erc-action-face))
+    2 4 (font-lock-face (erc-my-nick-prefix-face . #1#))
+    4 6 (font-lock-face (erc-my-nick-face . #1#))
+    6 9 (font-lock-face #1#))
+  "Message template for a CTCP ACTION from current client.")
+
+(defvar erc--message-speaker-ctcp-action-statusmsg
+  #("* (%p%n%s) %m"
+    0 3 (font-lock-face erc-action-face)
+    3 5 (font-lock-face (erc-nick-prefix-face erc-action-face))
+    5 7 (font-lock-face erc-action-face)
+    7 9 (font-lock-face (erc-notice-face erc-action-face))
+    9 13 (font-lock-face erc-action-face))
+  "Template for a CTCP ACTION status message from another chan op.")
+
+(defvar erc--message-speaker-ctcp-action-statusmsg-input
+  #("* (%p%n%s) %m"
+    0 3 (font-lock-face #1=(erc-input-face erc-action-face))
+    3 5 (font-lock-face (erc-my-nick-prefix-face . #1#))
+    5 7 (font-lock-face (erc-my-nick-face . #1#))
+    7 9 (font-lock-face (erc-notice-face . #1#))
+    9 13 (font-lock-face #1#))
+  "Template for a CTCP ACTION status message from current client.")
+
+(defun erc--speakerize-nick (nick &optional disp)
+  "Propertize NICK with `erc--speaker' if not already present.
+Do so to DISP instead if it's non-nil.  In either case, assign
+NICK, sans properties, as the `erc--speaker' value.  As a side
+effect, pair the latter string (the same `eq'-able object) with
+the symbol `erc--spkr' in the \"msg prop\" environment for any
+imminent `erc-display-message' invocations.  While doing so,
+include any overrides defined in `erc--message-speaker-catalog'."
+  (let ((plain-nick (substring-no-properties nick)))
+    (erc--ensure-spkr-prop plain-nick (get erc--message-speaker-catalog
+                                           'erc--msg-prop-overrides))
+    (if (text-property-not-all 0 (length (or disp nick))
+                               'erc--speaker nil (or disp nick))
+        (or disp nick)
+      (propertize (or disp nick) 'erc--speaker plain-nick))))
+
+(defun erc--determine-speaker-message-format-args
+    (nick message queryp privmsgp inputp &optional statusmsg prefix disp-nick)
+  "Return a list consisting of a \"speaker\"-template key and spec args.
+Consider the three flags QUERYP, PRIVMSGP, and INPUTP, as well as
+the possibly null STATUSMSG string.  (Combined, these describe
+the context of a newly arrived \"PRIVMSG\" or, when PRIVMSGP is
+nil, a \"NOTICE\").  Interpret QUERYP to mean that MESSAGE is
+directed at the ERC client itself (a direct message), and INPUTP
+to mean MESSAGE is an outgoing or echoed message originating from
+or meant to simulate prompt input.  Interpret a non-nil STATUSMSG
+to mean MESSAGE should be formatted as a special channel message
+intended for privileged members of the same or greater status.
+
+After deciding on the template key for the current \"speaker\"
+catalog, use the remaining arguments, possibly along with
+STATUSMSG, to construct the appropriate spec-args plist forming
+the returned list's tail.  In this plist, pair the char ?n with
+NICK, the nickname of the speaker and ?m with MESSAGE, the
+message body.  When non-nil, assume DISP-NICK to be a possibly
+phony display name to take the place of NICK for ?n.  When PREFIX
+is non-nil, look up NICK's channel-membership status, possibly
+using PREFIX itself if it's an `erc-channel-user' object, which
+it must be when called outside of a channel buffer.  Pair the
+result with the ?p specifier.  When STATUSMSG is non-nil, pair it
+with the ?s specifier.  Ensure unused spec values are the empty
+string rather than nil."
+  (when prefix
+    (setq prefix (erc-get-channel-membership-prefix
+                  (if (erc-channel-user-p prefix) prefix nick))))
+  (when (and queryp erc--target erc-format-query-as-channel-p
+             (not (erc--target-channel-p erc--target)))
+    (setq queryp nil))
+  (list (cond (statusmsg (if inputp 'statusmsg-input 'statusmsg))
+              (privmsgp (if queryp
+                            (if inputp 'input-query-privmsg 'query-privmsg)
+                          (if inputp 'input-chan-privmsg 'chan-privmsg)))
+              (t (if queryp
+                     (if inputp 'input-query-notice 'query-notice)
+                   (if inputp 'input-chan-notice 'chan-notice))))
+        ?p (or prefix "") ?n (erc--speakerize-nick nick disp-nick)
+        ?s (or statusmsg "") ?m message))
+
+(defcustom erc-show-speaker-membership-status nil
+  "Whether to prefix speakers with their channel status.
+For example, when this option is non-nil and some nick \"Alice\"
+has operator status in the current channel, ERC displays their
+leading \"speaker\" label as <@Alice> instead of <Alice>."
+  :package-version '(ERC . "5.6")
+  :group 'erc-display
+  :type 'boolean)
+
+(define-obsolete-variable-alias 'erc-format-nick-function
+  'erc-speaker-from-channel-member-function "30.1")
+(defcustom erc-speaker-from-channel-member-function
+  #'erc-determine-speaker-from-user
+  "Function to determine a message's displayed \"speaker\" label.
+Called with an `erc-server-user' object and an `erc-channel-user'
+object, both possibly nil.  Use this option to do things like
+provide localized display names.  To ask ERC to prepend
+channel-membership \"status\" prefixes, like \"@\", to the
+returned name, see `erc-show-speaker-membership-status'."
+  :package-version '(ERC . "5.6")
+  :group 'erc-display
+  :type '(choice (function-item erc-determine-speaker-from-user) function))
+
+(define-obsolete-function-alias 'erc-format-nick
+  #'erc-determine-speaker-from-user "30.1")
+(defun erc-determine-speaker-from-user (&optional user _channel-data)
+  "Return nickname slot of `erc-server-user' USER, when non-nil."
   (when user (erc-server-user-nickname user)))
 
-(defun erc-get-user-mode-prefix (user)
+(define-obsolete-function-alias 'erc-get-user-mode-prefix
+  #'erc-get-channel-membership-prefix "30.1")
+(defun erc-get-channel-membership-prefix (user)
+  "Return channel membership prefix for USER as a string.
+Ensure returned string has a `help-echo' text property with the
+corresponding verbose membership type, like \"voice\", as its
+value.  Expect USER to be an `erc-channel-user' object or a
+string nickname, not necessarily downcased."
   (when user
-    (cond ((erc-channel-user-owner-p user)
+    (when (stringp user)
+      (setq user (and erc-channel-users (cdr (erc-get-channel-user user)))))
+    (cond ((null user) "")
+          ((erc-channel-user-owner user)
            (propertize "~" 'help-echo "owner"))
-          ((erc-channel-user-admin-p user)
+          ((erc-channel-user-admin user)
            (propertize "&" 'help-echo "admin"))
-          ((erc-channel-user-op-p user)
+          ((erc-channel-user-op user)
            (propertize "@" 'help-echo "operator"))
-          ((erc-channel-user-halfop-p user)
+          ((erc-channel-user-halfop user)
            (propertize "%" 'help-echo "half-op"))
-          ((erc-channel-user-voice-p user)
+          ((erc-channel-user-voice user)
            (propertize "+" 'help-echo "voice"))
           (t ""))))
 
-(defun erc-format-@nick (&optional user _channel-data)
+(defun erc-format-@nick (&optional user channel-data)
   "Format the nickname of USER showing if USER has a voice, is an
 operator, half-op, admin or owner.  Owners have \"~\", admins have
 \"&\", operators have \"@\" and users with voice have \"+\" as a
-prefix.  Use CHANNEL-DATA to determine op and voice status.  See
-also `erc-format-nick-function'."
+prefix.  Use CHANNEL-DATA to determine op and voice status."
+  (declare (obsolete "see option `erc-show-speaker-membership-status'" "30.1"))
   (when user
     (let ((nick (erc-server-user-nickname user)))
-      (concat (propertize
-               (erc-get-user-mode-prefix nick)
-               'font-lock-face 'erc-nick-prefix-face)
-	      nick))))
+      (if (not erc--speaker-status-prefix-wanted-p)
+          (prog1 nick
+            (setq erc--speaker-status-prefix-wanted-p 'erc-format-@nick))
+        (concat (propertize
+                 (erc-get-channel-membership-prefix channel-data)
+                 'font-lock-face 'erc-nick-prefix-face)
+                nick)))))
 
 (defun erc-format-my-nick ()
   "Return the beginning of this user's message, correctly propertized."
@@ -5824,14 +6117,41 @@ also `erc-format-nick-function'."
       (let* ((open "<")
              (close "> ")
              (nick (erc-current-nick))
-             (mode (erc-get-user-mode-prefix nick)))
+             (mode (erc-get-channel-membership-prefix nick)))
+        (erc--ensure-spkr-prop nick)
         (concat
          (propertize open 'font-lock-face 'erc-default-face)
          (propertize mode 'font-lock-face 'erc-my-nick-prefix-face)
-         (propertize nick 'font-lock-face 'erc-my-nick-face 'erc-speaker nick)
+         (propertize nick 'erc--speaker nick 'font-lock-face 'erc-my-nick-face)
          (propertize close 'font-lock-face 'erc-default-face)))
     (let ((prefix "> "))
       (propertize prefix 'font-lock-face 'erc-default-face))))
+
+(defun erc--format-speaker-input-message (message)
+  "Assemble outgoing MESSAGE entered at the prompt for insertion.
+Intend \"input\" to refer to interactive prompt input as well as
+the group of associated message-format templates from the
+\"speaker\" catalog.  Format the speaker portion in a manner
+similar to that performed by `erc-format-my-nick', but use either
+`erc--message-speaker-input-chan-privmsg' or
+`erc--message-speaker-input-query-privmsg' as a formatting
+template, with MESSAGE being the actual message body.  Return a
+copy with possibly shared text-property values."
+  (if-let ((erc-show-my-nick)
+           (nick (erc-current-nick))
+           (pfx (erc-get-channel-membership-prefix nick))
+           (erc-current-message-catalog erc--message-speaker-catalog)
+           (key (if (or erc-format-query-as-channel-p
+                        (erc--target-channel-p erc--target))
+                    'input-chan-privmsg
+                  'input-query-privmsg)))
+      (progn
+        (cond (erc--msg-props (puthash 'erc--msg key erc--msg-props))
+              (erc--msg-prop-overrides (push (cons 'erc--msg key)
+                                             erc--msg-prop-overrides)))
+        (erc-format-message key ?p pfx ?n (erc--speakerize-nick nick)
+                            ?m message))
+    (propertize (concat "> " message) 'font-lock-face 'erc-input-face)))
 
 (defun erc-echo-notice-in-default-buffer (s parsed buffer _sender)
   "Echo a private notice in the default buffer, namely the
@@ -6072,8 +6392,7 @@ See also `erc-display-message'."
         (while queries
           (let* ((type (upcase (car (split-string (car queries)))))
                  (hook (intern-soft (concat "erc-ctcp-query-" type "-hook")))
-                 (erc--msg-prop-overrides `((erc-msg . msg)
-                                            (erc-ctcp . ,(intern type))
+                 (erc--msg-prop-overrides `((erc--ctcp . ,(intern type))
                                             ,@erc--msg-prop-overrides)))
             (if (and hook (boundp hook))
                 (if (string-equal type "ACTION")
@@ -6108,11 +6427,31 @@ See also `erc-display-message'."
     (let ((s (match-string 1 msg))
           (buf (or (erc-get-buffer to proc)
                    (erc-get-buffer nick proc)
-                   (process-buffer proc))))
-      (setq nick (propertize nick 'erc-speaker nick))
-      (erc-display-message
-       parsed 'action buf
-       'ACTION ?n nick ?u login ?h host ?a s))))
+                   (process-buffer proc)))
+          (selfp (erc-current-nick-p nick)))
+      (if erc--use-language-catalog-for-ctcp-action-p
+          (progn
+            (erc--ensure-spkr-prop nick)
+            (setq nick (propertize nick 'erc--speaker nick))
+            (erc-display-message parsed (if selfp 'input 'action) buf
+                                 'ACTION ?n nick ?u login ?h host ?a s))
+        (let* ((obj (and (erc--ctcp-response-p parsed) parsed))
+               (buffer (and obj (erc--ctcp-response-buffer obj)))
+               (stsmsg (and obj (erc--ctcp-response-statusmsg obj)))
+               (prefix (and obj (erc--ctcp-response-prefix obj)))
+               (dispnm (and obj (erc--ctcp-response-dispname obj)))
+               (erc-current-message-catalog erc--message-speaker-catalog))
+          (erc-display-message
+           parsed nil (or buffer buf)
+           (if selfp
+               (if stsmsg 'ctcp-action-statusmsg-input 'ctcp-action-input)
+             (if stsmsg 'ctcp-action-statusmsg 'ctcp-action))
+           ?s (or stsmsg to)
+           ?p (or (and (erc-channel-user-p prefix)
+                       (erc-get-channel-membership-prefix prefix))
+                  "")
+           ?n (erc--speakerize-nick nick dispnm)
+           ?m s))))))
 
 (defvar erc-ctcp-query-CLIENTINFO-hook '(erc-ctcp-query-CLIENTINFO))
 
@@ -6453,6 +6792,19 @@ which USER is a member, and t is returned."
                   (run-hooks 'erc-channel-members-changed-hook))))))
     changed))
 
+;; This exists solely to make `erc-update-current-channel-member' more
+;; readable.  Having to resort to it is admittedly not ideal.  While
+;; it would seem at first glance that we could go further and encode
+;; the combined status in one go, we can't without gating the entire
+;; operation on the parameters `admin', `halfop', etc. being non-nil.
+(defmacro erc--update-cusr-status-if-changed (cuser changed-var status-var)
+  "Maybe update STATUS-VAR slot of `erc-channel-user' CUSER, and CHANGED-VAR."
+  (let ((accessor (intern (format "erc-channel-user-%s" status-var))))
+    `(when (and ,status-var (not (eq (,accessor ,cuser) ,status-var)))
+       (setf (,accessor ,cuser) (and (not (eq ,status-var 'off))
+                                     (and ,status-var t))
+             ,changed-var t))))
+
 (defun erc-update-current-channel-member
   (nick new-nick &optional add voice halfop op admin owner host login full-name info
         update-message-time)
@@ -6480,41 +6832,11 @@ See also: `erc-update-user' and `erc-update-channel-member'."
     (if cuser
         (progn
           (erc-log (format "update-member: user = %S, cuser = %S" user cuser))
-          (when (and voice
-                     (not (eq (erc-channel-user-voice cuser) voice)))
-            (setq changed t)
-            (setf (erc-channel-user-voice cuser)
-                  (cond ((eq voice 'on) t)
-                        ((eq voice 'off) nil)
-                        (t voice))))
-          (when (and halfop
-                     (not (eq (erc-channel-user-halfop cuser) halfop)))
-            (setq changed t)
-            (setf (erc-channel-user-halfop cuser)
-                  (cond ((eq halfop 'on) t)
-                        ((eq halfop 'off) nil)
-                        (t halfop))))
-          (when (and op
-                     (not (eq (erc-channel-user-op cuser) op)))
-            (setq changed t)
-            (setf (erc-channel-user-op cuser)
-                  (cond ((eq op 'on) t)
-                        ((eq op 'off) nil)
-                        (t op))))
-          (when (and admin
-                     (not (eq (erc-channel-user-admin cuser) admin)))
-            (setq changed t)
-            (setf (erc-channel-user-admin cuser)
-                  (cond ((eq admin 'on) t)
-                        ((eq admin 'off) nil)
-                        (t admin))))
-          (when (and owner
-                     (not (eq (erc-channel-user-owner cuser) owner)))
-            (setq changed t)
-            (setf (erc-channel-user-owner cuser)
-                  (cond ((eq owner 'on) t)
-                        ((eq owner 'off) nil)
-                        (t owner))))
+          (erc--update-cusr-status-if-changed cuser changed voice)
+          (erc--update-cusr-status-if-changed cuser changed halfop)
+          (erc--update-cusr-status-if-changed cuser changed op)
+          (erc--update-cusr-status-if-changed cuser changed admin)
+          (erc--update-cusr-status-if-changed cuser changed owner)
           (when update-message-time
             (setf (erc-channel-user-last-message-time cuser) (current-time)))
           (setq user-changed
@@ -6535,21 +6857,11 @@ See also: `erc-update-user' and `erc-update-channel-member'."
                 (cons (current-buffer)
                       (erc-server-user-buffers user))))
         (setq cuser (make-erc-channel-user
-                     :voice (cond ((eq voice 'on) t)
-                                  ((eq voice 'off) nil)
-                                  (t voice))
-                     :halfop (cond ((eq halfop 'on) t)
-                                ((eq halfop 'off) nil)
-                                (t halfop))
-                     :op (cond ((eq op 'on) t)
-                               ((eq op 'off) nil)
-                               (t op))
-                     :admin (cond ((eq admin 'on) t)
-                                  ((eq admin 'off) nil)
-                                  (t admin))
-                     :owner (cond ((eq owner 'on) t)
-                                  ((eq owner 'off) nil)
-                                  (t owner))
+                     :voice  (and (not (eq voice  'off)) (and voice  t))
+                     :halfop (and (not (eq halfop 'off)) (and halfop t))
+                     :op     (and (not (eq op     'off)) (and op     t))
+                     :admin  (and (not (eq admin  'off)) (and admin  t))
+                     :owner  (and (not (eq owner  'off)) (and owner  t))
                      :last-message-time
                      (if update-message-time (current-time))))
         (puthash (erc-downcase nick) (cons user cuser)
@@ -6779,7 +7091,7 @@ Use the getter of the same name to retrieve the current value.")
           (ct (make-char-table 'erc--channel-mode-types))
           (type ?a))
       (dolist (cs types)
-        (dolist (c (append cs nil))
+        (erc--doarray (c cs)
           (aset ct c type))
         (cl-incf type))
       (make-erc--channel-mode-types :key key
@@ -6798,21 +7110,20 @@ complement relevant letters in STRING."
          (table (erc--channel-mode-types-table obj))
          (fallbackp (erc--channel-mode-types-fallbackp obj))
          (+p t))
-    (dolist (c (append string nil))
-      (let ((letter (char-to-string c)))
-        (cond ((= ?+ c) (setq +p t))
-              ((= ?- c) (setq +p nil))
-              ((and status-letters (string-search letter status-letters))
-               (erc--update-membership-prefix (pop args) c (if +p 'on 'off)))
-              ((and-let* ((group (or (aref table c) (and fallbackp ?d))))
-                 (erc--handle-channel-mode group c +p
-                                           (and (/= group ?d)
-                                                (or (/= group ?c) +p)
-                                                (pop args)))
-                 t))
-              ((not fallbackp)
-               (erc-display-message nil '(notice error) (erc-server-buffer)
-                                    (format "Unknown channel mode: %S" c))))))
+    (erc--doarray (c string)
+      (cond ((= ?+ c) (setq +p t))
+            ((= ?- c) (setq +p nil))
+            ((and status-letters (string-search (string c) status-letters))
+             (erc--update-membership-prefix (pop args) c (if +p 'on 'off)))
+            ((and-let* ((group (or (aref table c) (and fallbackp ?d))))
+               (erc--handle-channel-mode group c +p
+                                         (and (/= group ?d)
+                                              (or (/= group ?c) +p)
+                                              (pop args)))
+               t))
+            ((not fallbackp)
+             (erc-display-message nil '(notice error) (erc-server-buffer)
+                                  (format "Unknown channel mode: %S" c)))))
     (setq erc-channel-modes (sort erc-channel-modes #'string<))
     (setq erc--mode-line-mode-string
           (concat "+" (erc--channel-modes erc--mode-line-chanmodes-arg-len)))
@@ -6892,9 +7203,7 @@ dropped were they not already absent."
   (let ((addp t)
         ;;
         redundant-add redundant-drop adding dropping)
-    ;; For short strings, `append' appears to be no slower than
-    ;; iteration var + `aref' or `mapc' + closure.
-    (dolist (c (append string nil))
+    (erc--doarray (c string)
       (pcase c
         (?+ (setq addp t))
         (?- (setq addp nil))
@@ -7087,9 +7396,9 @@ EmacsSpeak support."
 (defalias 'erc-list 'ensure-list)
 
 (defconst erc--parse-user-regexp-pedantic
-  (rx bot (group (* (not (any "!\r\n"))))
-      "!" (group (* nonl))
-      "@" (group (* nonl)) eot))
+  (rx bot (? (? (group (+ (not (any "!@\r\n"))))) "!")
+      (? (? (group (+ nonl))) "@")
+      (? (group (+ nonl))) eot))
 
 (defconst erc--parse-user-regexp-legacy
   "^\\([^!\n]*\\)!\\([^@\n]*\\)@\\(.*\\)$")
@@ -7112,6 +7421,16 @@ Return a list of the three separate tokens."
           (match-string 2 string)))
    (t
     (list string "" ""))))
+
+(defun erc--parse-nuh (string)
+  "Match STRING against `erc--parse-user-regexp-pedantic'.
+Return matching groups or nil.  Interpret a lone token or one
+with only a leading \"!\" as a host.  See associated unit test
+for precise behavior."
+  (when (string-match erc--parse-user-regexp-pedantic string)
+    (list (match-string 1 string)
+          (match-string 2 string)
+          (match-string 3 string))))
 
 (defun erc-extract-nick (string)
   "Return the nick corresponding to a user specification STRING.
@@ -7285,11 +7604,20 @@ a separate message."
   (when (< (point) (erc-beg-of-input-line))
     "Point is not in the input area"))
 
+;; Originally, `erc-send-current-line' inhibited sends whenever a
+;; server buffer was missing.  In 2007, this was narrowed to
+;; occurrences involving process-dependent commands.  However, the
+;; accompanying error message, which was identical to that emitted by
+;; `erc-server-send', "ERC: No process running", was always inaccurate
+;; because a server buffer can be alive and its process dead.
 (defun erc--check-prompt-input-for-running-process (string _)
-  "Return non-nil unless in an active ERC server buffer."
-  (unless (or (erc-server-buffer-live-p)
-              (erc-command-no-process-p string))
-    "ERC: No process running"))
+  "Return non-nil if STRING is a slash command missing a process.
+Also do so when the server buffer has been killed."
+  ;; Even if the server buffer has been killed, the user should still
+  ;; be able to /reconnect and recall previous commands.
+  (and (not (erc-command-no-process-p string))
+       (or (and (not (erc-server-buffer-live-p)) "Server buffer missing")
+           (and (not (erc-server-process-alive)) "Process not running"))))
 
 (defun erc--check-prompt-input-for-multiline-command (line lines)
   "Return non-nil when non-blank lines follow a command line."
@@ -7406,6 +7734,22 @@ When all lines are empty, remove all but the first."
     (setf (erc--input-split-lines state)
           (mapcan #'erc--split-line (erc--input-split-lines state)))))
 
+(defun erc--input-ensure-hook-context ()
+  (unless (erc--input-split-p erc--current-line-input-split)
+    (error "Invoked outside of `erc-pre-send-functions'")))
+
+(defun erc-input-refoldp (_)
+  "Impersonate accessor for phony `erc-input' `refoldp' slot.
+This function only works inside `erc-pre-send-functions' members."
+  (declare (gv-setter (lambda (v)
+                        `(progn
+                           (erc--input-ensure-hook-context)
+                           (setf (erc--input-split-refoldp
+                                  erc--current-line-input-split)
+                                 ,v)))))
+  (erc--input-ensure-hook-context)
+  (erc--input-split-refoldp erc--current-line-input-split))
+
 (defun erc--run-send-hooks (lines-obj)
   "Run send-related hooks that operate on the entire prompt input.
 Sequester some of the back and forth involved in honoring old
@@ -7425,8 +7769,6 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
                       (run-hook-with-args 'erc-send-pre-hook str)
                       (make-erc-input :string str
                                       :insertp erc-insert-this
-                                      :refoldp (erc--input-split-refoldp
-                                                lines-obj)
                                       :sendp erc-send-this))))
         (run-hook-with-args 'erc-pre-send-functions state)
         (setf (erc--input-split-sendp lines-obj) (erc-input-sendp state)
@@ -7438,7 +7780,7 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
                 (if erc--allow-empty-outgoing-lines-p
                     lines
                   (cl-nsubst " " "" lines :test #'equal))))
-        (when (erc-input-refoldp state)
+        (when (erc--input-split-refoldp lines-obj)
           (erc--split-lines lines-obj)))))
   (when (and (erc--input-split-cmdp lines-obj)
              (cdr (erc--input-split-lines lines-obj)))
@@ -7518,15 +7860,11 @@ as outgoing chat messages and echoed slash commands."
       (erc--assert-input-bounds)
       (let ((insert-position (marker-position (goto-char erc-insert-marker)))
             (erc--msg-props (or erc--msg-props
-                                (let ((ovs erc--msg-prop-overrides))
-                                  (map-into `((erc-msg . msg) ,@(reverse ovs))
-                                            'hash-table))))
-            beg)
-        (insert (erc-format-my-nick))
-        (setq beg (point))
-        (insert line)
-        (erc-put-text-property beg (point) 'font-lock-face 'erc-input-face)
-        (insert "\n")
+                                (let ((ovs (seq-filter
+                                            #'cdr erc--msg-prop-overrides)))
+                                  (map-into `((erc--msg . msg) ,@(reverse ovs))
+                                            'hash-table)))))
+        (insert (erc--format-speaker-input-message line) "\n")
         (save-restriction
           (narrow-to-region insert-position (point))
           (run-hooks 'erc-send-modify-hook)
@@ -7671,6 +8009,8 @@ The previous default target of QUERY type gets removed."
         (setq erc-default-recipients d2)
       (error "Current target is not a QUERY"))))
 
+;; FIXME move all ignore-related functionality to its own module,
+;; required and enabled by default (until some major version change).
 (defun erc-ignored-user-p (spec)
   "Return non-nil if SPEC matches something in `erc-ignore-list'.
 
@@ -8288,8 +8628,13 @@ See `erc-mode-line-format' for which characters are can be used."
   :type '(choice (const :tag "Disabled" nil)
                  string))
 
+;; This should optionally support the built-in `tab-bar'.
 (defcustom erc-header-line-uses-tabbar-p nil
-  "Use tabbar mode instead of the header line to display the header."
+  "Use `tabbar-mode' integration instead of the header line.
+This concerns a historical integration with the external library
+`tabbar' <https://www.emacswiki.org/emacs/tabbar.el>, which
+shouldn't be confused with the built-in `tab-bar' described in
+Info node `(emacs) Tab Bars'."
   :group 'erc-mode-line-and-header
   :type 'boolean)
 
@@ -8425,7 +8770,7 @@ Currently only used by the option `erc-prompt-format'.")
 (defun erc--format-channel-status-prefix ()
   "Return the current channel membership prefix."
   (and (erc--target-channel-p erc--target)
-       (erc-get-user-mode-prefix (erc-current-nick))))
+       (erc-get-channel-membership-prefix (erc-current-nick))))
 
 (defun erc--format-modes (&optional no-query-p)
   "Return a string of channel modes in channels and user modes elsewhere.
@@ -8496,7 +8841,8 @@ buffers.  Also return nil when mode information is unavailable."
                         (format-spec erc-header-line-format spec)
                       nil)))
         (cond (erc-header-line-uses-tabbar-p
-               (setq-local tabbar--local-hlf header-line-format)
+               (when (boundp 'tabbar--local-hlf)
+                 (setq-local tabbar--local-hlf header-line-format))
                (kill-local-variable 'header-line-format))
               ((null header)
                (setq header-line-format nil))
@@ -8690,24 +9036,38 @@ All windows are opened in the current frame."
 
 ;;; Message catalog
 
+(define-inline erc--make-message-variable-name (catalog key softp)
+  "Return variable name conforming to ERC's message-catalog interface.
+Given a CATALOG symbol `mycat' and format-string KEY `mykey',
+also a symbol, return the symbol `erc-message-mycat-mykey'.  With
+SOFTP, only do so when defined as a variable."
+  (inline-quote
+   (let* ((catname (symbol-name ,catalog))
+          (prefix (if (eq ?- (aref catname 0)) "erc--message" "erc-message-"))
+          (name (concat prefix catname "-" (symbol-name ,key))))
+     (if ,softp
+         (and-let* ((s (intern-soft name)) ((boundp s))) s)
+       (intern name)))))
+
 (defun erc-make-message-variable-name (catalog entry)
   "Create a variable name corresponding to CATALOG's ENTRY."
-  (intern (concat "erc-message-"
-                  (symbol-name catalog) "-" (symbol-name entry))))
+  (erc--make-message-variable-name catalog entry nil))
 
 (defun erc-define-catalog-entry (catalog entry format-spec)
   "Set CATALOG's ENTRY to FORMAT-SPEC."
+  (declare (obsolete "define manually using `defvar' instead" "30.1"))
   (set (erc-make-message-variable-name catalog entry)
        format-spec))
 
 (defun erc-define-catalog (catalog entries)
   "Define a CATALOG according to ENTRIES."
-  (dolist (entry entries)
-    (erc-define-catalog-entry catalog (car entry) (cdr entry))))
+  (declare (obsolete erc-define-message-format-catalog "30.1"))
+  (with-suppressed-warnings ((obsolete erc-define-catalog-entry))
+    (dolist (entry entries)
+      (erc-define-catalog-entry catalog (car entry) (cdr entry)))))
 
-(erc-define-catalog
- 'english
- '((bad-ping-response . "Unexpected PING response from %n (time %t)")
+(erc--define-catalog english
+  ((bad-ping-response . "Unexpected PING response from %n (time %t)")
    (bad-syntax . "Error occurred - incorrect usage?\n%c %u\n%d")
    (incorrect-args . "Incorrect arguments. Usage:\n%c %u\n%d")
    (cannot-find-file . "Cannot find file %f")
@@ -8764,7 +9124,7 @@ All windows are opened in the current frame."
    (MODE-nick . "%n has changed mode for %t to %m")
    (NICK   . "%n (%u@%h) is now known as %N")
    (NICK-you . "Your new nickname is %N")
-   (PART   . erc-message-english-PART)
+   (PART   . #'erc-message-english-PART)
    (PING   . "PING from server (last: %s sec. ago)")
    (PONG   . "PONG from %h (%i second%s)")
    (QUIT   . "%n (%u@%h) has quit: %r")
@@ -8806,6 +9166,7 @@ All windows are opened in the current frame."
    (s368   . "Banlist of %c ends.")
    (s379   . "%c: Forwarded to %f")
    (s391   . "The time at %s is %t")
+   (s396   . "Your visible host has changed to %s")
    (s401   . "%n: No such nick/channel")
    (s402   . "%c: No such server")
    (s403   . "%c: No such channel")
@@ -8858,22 +9219,20 @@ functions."
                           (string-replace "%" "%%" reason))
                 "")))))
 
-
-(defvar-local erc-current-message-catalog 'english)
-
-(defun erc-retrieve-catalog-entry (entry &optional catalog)
-  "Retrieve ENTRY from CATALOG.
-
-If CATALOG is nil, `erc-current-message-catalog' is used.
-
-If ENTRY is nil in CATALOG, it is retrieved from the fallback,
-english, catalog."
+(defun erc-retrieve-catalog-entry (key &optional catalog)
+  "Retrieve `format-spec' entry for symbol KEY in CATALOG.
+Without symbol CATALOG, use `erc-current-message-catalog'.  If
+lookup fails, try the latter's `default-toplevel-value' if it's
+not the same as CATALOG.  Failing that, try the `english' catalog
+if yet untried."
   (unless catalog (setq catalog erc-current-message-catalog))
-  (let ((var (erc-make-message-variable-name catalog entry)))
-    (if (boundp var)
-        (symbol-value var)
-      (when (boundp (erc-make-message-variable-name 'english entry))
-        (symbol-value (erc-make-message-variable-name 'english entry))))))
+  (symbol-value
+   (or (erc--make-message-variable-name catalog key 'softp)
+       (let ((default (default-toplevel-value 'erc-current-message-catalog)))
+         (or (and (not (eq default catalog))
+                  (erc--make-message-variable-name default key 'softp))
+             (and (not (memq 'english (list default catalog)))
+                  (erc--make-message-variable-name 'english key 'softp)))))))
 
 (defun erc-format-message (msg &rest args)
   "Format MSG according to ARGS.

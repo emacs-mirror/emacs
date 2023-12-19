@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.14.0
+;; Version: 1.15.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -605,25 +605,29 @@ known to be truncated."
                     'maybe)))
        (get-buffer-window eldoc--doc-buffer t)))
 
-(defun eldoc-display-in-echo-area (docs _interactive)
+(defun eldoc-display-in-echo-area (docs interactive)
   "Display DOCS in echo area.
-Honor `eldoc-echo-area-use-multiline-p' and
+INTERACTIVE is non-nil if user explicitly invoked ElDoc.  Honor
+`eldoc-echo-area-use-multiline-p' and
 `eldoc-echo-area-prefer-doc-buffer'."
   (cond
-   (;; Check if we have permission to mess with echo area at all.  For
-    ;; example, if this-command is non-nil while running via an idle
-    ;; timer, we're still in the middle of executing a command, e.g. a
-    ;; query-replace where it would be annoying to overwrite the echo
-    ;; area.
-    (or
-     (not (eldoc-display-message-no-interference-p))
-     this-command
-     (not (eldoc--message-command-p last-command))))
-   (;; If we do but nothing to report, clear the echo area.
+   ((and (not interactive)
+         ;; When called non-interactively, check if we have permission
+         ;; to mess with echo area at all.  For example, if
+         ;; this-command is non-nil while running via an idle timer,
+         ;; we're still in the middle of executing a command, e.g. a
+         ;; query-replace where it would be annoying to overwrite the
+         ;; echo area.
+         (or
+          (not (eldoc-display-message-no-interference-p))
+          this-command
+          (not (eldoc--message-command-p last-command)))))
+   (;; If nothing to report, clear the echo area.
     (null docs)
     (eldoc--message nil))
    (t
-    ;; Otherwise, establish some parameters.
+    ;; Otherwise, proceed to change the echo area.  Start by
+    ;; establishing some parameters.
     (let*
         ((width (1- (window-width (minibuffer-window))))
          (val (if (and (symbolp eldoc-echo-area-use-multiline-p)
@@ -929,7 +933,7 @@ the docstrings eventually produced, using
       (let* ((eldoc--make-callback #'make-callback)
              (res (funcall eldoc-documentation-strategy)))
         ;; Observe the old and the new protocol:
-        (cond (;; Old protocol: got string, e-d-strategy is iself the
+        (cond (;; Old protocol: got string, e-d-strategy is itself the
                ;; origin function, and we output immediately;
                (stringp res)
                (register-doc 0 res nil eldoc-documentation-strategy)

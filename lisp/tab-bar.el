@@ -416,6 +416,8 @@ Beep, then throw to `context-menu' and return."
   (beep)
   (throw 'context-menu 'context-menu))
 
+(defvar touch-screen-delay)
+
 (defun tab-bar-touchscreen-begin (event)
   "Handle a touchscreen begin EVENT on the tab bar.
 

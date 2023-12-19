@@ -509,8 +509,6 @@ HOW can be one of:
 <<>>"
   ;; TODO:
   ;; - record the advice location, to display in describe-function.
-  ;; - change all defadvice in lisp/**/*.el.
-  ;; - obsolete advice.el.
   (let* ((f (symbol-function symbol))
 	 (nf (advice--normalize symbol f)))
     (unless (eq f nf) (fset symbol nf))

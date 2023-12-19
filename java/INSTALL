@@ -167,7 +167,7 @@ than a compressed package for a newer version of Android.
 BUILDING C++ DEPENDENCIES
 
 With a new version of the NDK, dependencies containing C++ code should
-build without any futher configuration.  However, older versions
+build without any further configuration.  However, older versions
 require that you use the ``make_standalone_toolchain.py'' script in
 the NDK distribution to create a ``standalone toolchain'', and use
 that instead, in order for C++ headers to be found.
@@ -309,7 +309,7 @@ work, along with what has to be patched to make them work:
 Many of these dependencies have been migrated over to the
 ``Android.bp'' build system now used to build Android itself.
 However, the old ``Android.mk'' Makefiles are still present in older
-branches, and can be easily adapte to newer versions.
+branches, and can be easily adapted to newer versions.
 
 In addition, some Emacs dependencies provide `ndk-build' support
 themselves:

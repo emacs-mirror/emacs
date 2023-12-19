@@ -75,7 +75,9 @@ each option.
 
 On systems such as MS-DOS and MS-Windows, which use `ls' emulation in Lisp,
 some of the `ls' switches are not supported; see the doc string of
-`insert-directory' in `ls-lisp.el' for more details."
+`insert-directory' in `ls-lisp.el' for more details.
+
+For remote Dired buffers, this option supports connection-local values."
   :type 'string
   :group 'dired)
 
@@ -1383,7 +1385,8 @@ The return value is the target column for the file names."
 	        ;; is passed in directory name syntax
 	        ;; if it was the name of a directory at all.
 	        (file-name-directory dirname)))
-      (or switches (setq switches dired-listing-switches))
+      (or switches
+          (setq switches (connection-local-value dired-listing-switches)))
       (if mode (funcall mode)
         (dired-mode dir-or-list switches))
       ;; default-directory and dired-actual-switches are set now
@@ -2591,6 +2594,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ["Delete Image Tag..." image-dired-delete-tag
      :help "Delete image tag from current or marked files"]))
 
+(declare-function shell-command-guess "dired-aux" (files))
+(defvar shell-command-guess-open)
+
 (defun dired-context-menu (menu click)
   "Populate MENU with Dired mode commands at CLICK."
   (when (mouse-posn-property (event-start click) 'dired-filename)
@@ -2606,6 +2612,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
            :help "Edit file at mouse click"]
           ["Find in Other Window" dired-mouse-find-file-other-window
            :help "Edit file at mouse click in other window"]
+          ,@(when shell-command-guess-open
+              '(["Open" dired-do-open
+                 :help "Open externally"]))
           ,@(when commands
               (list (cons "Open With"
                           (append
@@ -2708,7 +2717,8 @@ Keybindings:
 	(expand-file-name (if (listp dired-directory)
 			      (car dired-directory)
 			    dired-directory)))
-  (setq-local dired-actual-switches (or switches dired-listing-switches))
+  (setq-local dired-actual-switches
+              (or switches (connection-local-value dired-listing-switches)))
   (setq-local font-lock-defaults
               '(dired-font-lock-keywords t nil nil beginning-of-line))
   (setq-local desktop-save-buffer 'dired-desktop-buffer-misc-data)
@@ -4983,14 +4993,15 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 (defun dired-desktop-save-p ()
   "Should `dired-directory' be desktop saved?"
-  (if (consp dired-directory)
-      (not (string-match-p desktop-files-not-to-save (car dired-directory)))
-    (not (string-match-p desktop-files-not-to-save dired-directory))))
+  (or (null desktop-files-not-to-save)
+      (and (stringp desktop-files-not-to-save)
+           (if (consp dired-directory)
+               (not (string-match-p desktop-files-not-to-save (car dired-directory)))
+             (not (string-match-p desktop-files-not-to-save dired-directory))))))
 
 (defun dired-desktop-buffer-misc-data (dirname)
   "Auxiliary information to be saved in desktop file."
-  (when (and (stringp desktop-files-not-to-save)
-             (dired-desktop-save-p))
+  (when (dired-desktop-save-p)
     (cons
      ;; Value of `dired-directory'.
      (if (consp dired-directory)

@@ -2726,7 +2726,7 @@ Draw a box with lines of width 1, in color @var{color}.
 You can explicitly specify all aspects of the box with a plist on this
 form.  Any element in this plist can be omitted.
 
-The values @var{vwidth} and @var{hwidth} specifies respectively the
+The values of @var{vwidth} and @var{hwidth} specify respectively the
 width of the vertical and horizontal lines to draw; they default to (1
 . 1).  A negative horizontal or vertical width @minus{}@var{n} means
 to draw a line of width @var{n} that occupies the space of the
@@ -2735,16 +2735,16 @@ width. For simplification the width could be specified with only a
 single number @var{n} instead of a list, such case is equivalent to
 @code{((abs @var{n}) . @var{n})}.
 
-The value @var{style} specifies whether to draw a 3D box.  If it is
+The value of @var{color} specifies the color to draw with.  The default
+is the background color of the face for 3D boxes and
+@code{flat-button}, and the foreground color of the face for other
+boxes.
+
+The value of @var{style} specifies whether to draw a 3D box.  If it is
 @code{released-button}, the box looks like a 3D button that is not
 being pressed.  If it is @code{pressed-button}, the box looks like a
 3D button that is being pressed.  If it is @code{nil},
 @code{flat-button} or omitted, a plain 2D box is used.
-
-The value @var{color} specifies the color to draw with.  The default
-is the background color of the face for 3D boxes and
-@code{flat-button}, and the foreground color of the face for other
-boxes.
 @end table
 
 @item :inverse-video

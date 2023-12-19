@@ -33,6 +33,7 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'comp-common)
+(require 'bytecomp) ;; For `emacs-lisp-compilation-mode'.
 
 (defgroup comp-run nil
   "Emacs Lisp native compiler runtime."

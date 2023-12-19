@@ -1098,7 +1098,7 @@ Conversion to SVG exposes a number of additional customizations that
 give the user full control over the contents of the latex source
 block. ~org-babel-latex-preamble~, ~org-babel-latex-begin-env~ and
 ~org-babel-latex-end-env~ are new customization options added to allow
-the user to specify the preamble and code that preceedes and proceeds
+the user to specify the preamble and code that precedes and proceeds
 the contents of the source block.
 
 *** New option ~org-html-meta-tags~ allows for HTML meta tags customization

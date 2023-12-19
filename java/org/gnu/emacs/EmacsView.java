@@ -388,7 +388,7 @@ public final class EmacsView extends ViewGroup
 		&& !rootWindowInsets.isVisible (WindowInsets.Type.ime ())
 		/* N.B. that the keyboard is dismissed during gesture
 		   navigation under Android 30, but the system is
-		   quite tempermental regarding whether the window is
+		   quite temperamental regarding whether the window is
 		   focused at that point.  Ideally
 		   isCurrentlyTextEditor shouldn't be reset in that
 		   case, but detecting that situation appears to be

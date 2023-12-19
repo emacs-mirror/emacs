@@ -11787,7 +11787,7 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
 
 	 If we do set explicit width and height values in the image
 	 spec, this will work out correctly as librsvg will still
-	 honour the percentage sizes in its final rendering no matter
+	 honor the percentage sizes in its final rendering no matter
 	 what size we make the image.  */
       value = 0;
       break;
@@ -12055,7 +12055,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
       }
 
 #if HAVE_NTGUI
-    /* Windows stores the image colours in BGR format, and SVG expects
+    /* Windows stores the image colors in BGR format, and SVG expects
        them in RGB.  */
     foreground = (foreground & 0x0000FF) << 16
       | (foreground & 0xFF0000) >> 16

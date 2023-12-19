@@ -521,8 +521,8 @@ The string is used in `tramp-methods'.")
  (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh))
 
 (defcustom tramp-sh-extra-args
-  `((,(rx "/bash" eos) . "-noediting -norc -noprofile")
-    (,(rx "/zsh" eos) . "-f +Z -V"))
+  `((,(rx (| bos "/") "bash" eos) . "-noediting -norc -noprofile")
+    (,(rx (| bos "/") "zsh" eos) . "-f +Z -V"))
   "Alist specifying extra arguments to pass to the remote shell.
 Entries are (REGEXP . ARGS) where REGEXP is a regular expression
 matching the shell file name and ARGS is a string specifying the
@@ -533,7 +533,7 @@ This variable is only used when Tramp needs to start up another shell
 for tilde expansion.  The extra arguments should typically prevent the
 shell from reading its init file."
   :group 'tramp
-  :version "27.1"
+  :version "30.1"
   :type '(alist :key-type regexp :value-type string))
 
 (defconst tramp-actions-before-shell
@@ -1239,7 +1239,7 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
       (with-current-buffer (tramp-get-connection-buffer v)
 	(goto-char (point-min))
 	(tramp-set-file-property v localname "file-symlink-marker" (read (current-buffer)))
-	;; We cannote call `read', the file name isn't quoted.
+	;; We cannot call `read', the file name isn't quoted.
 	(forward-line)
 	(buffer-substring (point) (line-end-position))))
 
@@ -2523,7 +2523,7 @@ The method used must be an out-of-band method."
 		      (tramp-get-connection-name v)
 		      (tramp-get-connection-buffer v)
 		      copy-program copy-args)))
-		;; This is neded for ssh or PuTTY based processes, and
+		;; This is needed for ssh or PuTTY based processes, and
 		;; only if the respective options are set.  Perhaps,
 		;; the setting could be more fine-grained.
 		;; (process-put p 'tramp-shared-socket t)
@@ -3847,7 +3847,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   v 'file-notify-error
 	   "`%s' failed to start on remote host"
 	   (string-join sequence " "))
-	;; This is neded for ssh or PuTTY based processes, and only if
+	;; This is needed for ssh or PuTTY based processes, and only if
 	;; the respective options are set.  Perhaps, the setting could
 	;; be more fine-grained.
 	;; (process-put p 'tramp-shared-socket t)
@@ -5255,7 +5255,7 @@ connection if a previous connection has died for some reason."
 			      (and tramp-encoding-command-interactive
 				   `(,tramp-encoding-command-interactive)))))))
 
-		  ;; This is neded for ssh or PuTTY based processes,
+		  ;; This is needed for ssh or PuTTY based processes,
 		  ;; and only if the respective options are set.
 		  ;; Perhaps, the setting could be more fine-grained.
 		  ;; (process-put p 'tramp-shared-socket t)

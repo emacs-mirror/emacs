@@ -53,7 +53,7 @@ main (int argc, char **argv)
 
       tracing_execve (argv[2], argv + 2, environ);
 
-      /* An error occured.  Exit with failure.  */
+      /* An error occurred.  Exit with failure.  */
       exit (127);
     }
   else

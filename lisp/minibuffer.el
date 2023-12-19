@@ -963,6 +963,8 @@ is at its default value `grow-only'."
                (reverse multi-message-list)
                multi-message-separator)))
 
+(defvar touch-screen-current-tool)
+
 (defun clear-minibuffer-message ()
   "Clear message temporarily shown in the minibuffer.
 Intended to be called via `clear-message-function'."
@@ -977,7 +979,7 @@ Intended to be called via `clear-message-function'."
   ;; progress, because a preview message might currently be displayed
   ;; in the echo area.  FIXME: find some way to place this in
   ;; touch-screen.el.
-  (if (and touch-screen-preview-select
+  (if (and (bound-and-true-p touch-screen-preview-select)
            (eq (nth 3 touch-screen-current-tool) 'drag))
       'dont-clear-message
     ;; Return nil telling the caller that the message
@@ -1316,14 +1318,29 @@ completion candidates than this number."
 (defcustom completions-sort 'alphabetical
   "Sort candidates in the *Completions* buffer.
 
-The value can be nil to disable sorting, `alphabetical' for
-alphabetical sorting or a custom sorting function.  The sorting
-function takes and returns a list of completion candidate
-strings."
+Completion candidates in the *Completions* buffer are sorted
+depending on the value.
+
+If it's nil, sorting is disabled.
+If it's the symbol `alphabetical', candidates are sorted by
+`minibuffer-sort-alphabetically'.
+If it's the symbol `historical', candidates are sorted by
+`minibuffer-sort-by-history', which first sorts alphabetically,
+and then rearranges the order according to the order of the
+candidates in the minibuffer history.
+If it's a function, the function is called to sort the candidates.
+The sorting function takes a list of completion candidate
+strings, which it may modify; it should return a sorted list,
+which may be the same.
+
+If the completion-specific metadata provides a
+`display-sort-function', that function overrides the value of
+this variable."
   :type '(choice (const :tag "No sorting" nil)
                  (const :tag "Alphabetical sorting" alphabetical)
+                 (const :tag "Historical sorting" historical)
                  (function :tag "Custom function"))
-  :version "29.1")
+  :version "30.1")
 
 (defcustom completions-group nil
   "Enable grouping of completion candidates in the *Completions* buffer.
@@ -1648,6 +1665,44 @@ Remove completion BASE prefix string from history elements."
                    (when (string-prefix-p base c)
                      (substring c base-size)))
                  hist)))))
+
+(defun minibuffer-sort-alphabetically (completions)
+  "Sort COMPLETIONS alphabetically.
+
+COMPLETIONS are sorted alphabetically by `string-lessp'.
+
+This is a suitable function to use for `completions-sort' or to
+include as `display-sort-function' in completion metadata."
+  (sort completions #'string-lessp))
+
+(defvar minibuffer-completion-base nil
+  "The base for the current completion.
+
+This is the part of the current minibuffer input which comes
+before the current completion field, as determined by
+`completion-boundaries'.  This is primarily relevant for file
+names, where this is the directory component of the file name.")
+
+(defun minibuffer-sort-by-history (completions)
+  "Sort COMPLETIONS by their position in `minibuffer-history-variable'.
+
+COMPLETIONS are sorted first by `minibuffer-sort-alphbetically',
+then any elements occurring in the minibuffer history list are
+moved to the front based on the chronological order they occur in
+the history.  If a history variable hasn't been specified for
+this call of `completing-read', COMPLETIONS are sorted only by
+`minibuffer-sort-alphbetically'.
+
+This is a suitable function to use for `completions-sort' or to
+include as `display-sort-function' in completion metadata."
+  (let ((alphabetized (sort completions #'string-lessp)))
+    ;; Only use history when it's specific to these completions.
+    (if (eq minibuffer-history-variable
+            (default-value minibuffer-history-variable))
+        alphabetized
+      (minibuffer--sort-by-position
+       (minibuffer--sort-preprocess-history minibuffer-completion-base)
+       alphabetized))))
 
 (defun minibuffer--group-by (group-fun sort-fun elems)
   "Group ELEMS by GROUP-FUN and sort groups by SORT-FUN."
@@ -2312,8 +2367,11 @@ candidates."
 
     (with-current-buffer standard-output
       (goto-char (point-max))
-      (when completions-header-format
-        (insert (format completions-header-format (length completions))))
+      (if completions-header-format
+          (insert (format completions-header-format (length completions)))
+        (unless completion-show-help
+          ;; Ensure beginning-of-buffer isn't a completion.
+          (insert (propertize "\n" 'face '(:height 0)))))
       (completion--insert-strings completions group-fun)))
 
   (run-hooks 'completion-setup-hook)
@@ -2380,6 +2438,36 @@ These include:
         (resize-temp-buffer-window win))
     (fit-window-to-buffer win completions-max-height)))
 
+(defcustom completion-auto-deselect t
+  "If non-nil, deselect current completion candidate when you type in minibuffer.
+
+A non-nil value means that after typing at the minibuffer prompt,
+any completion candidate highlighted in *Completions* window (to
+indicate that it is the selected candidate) will be un-highlighted,
+and point in the *Completions* window will be moved off such a candidate.
+This means that `RET' (`minibuffer-choose-completion-or-exit') will exit
+the minubuffer with the minibuffer's current contents, instead of the
+selected completion candidate."
+  :type '(choice (const :tag "Candidates in *Completions* stay selected as you type" nil)
+                 (const :tag "Typing deselects any completion candidate in *Completions*" t))
+  :version "30.1")
+
+(defun completions--deselect ()
+  "If point is in a completion candidate, move to just after the end of it.
+
+The candidate will still be chosen by `choose-completion' unless
+`choose-completion-deselect-if-after' is non-nil."
+  (when (get-text-property (point) 'completion--string)
+    (goto-char (or (next-single-property-change (point) 'completion--string)
+                   (point-max)))))
+
+(defun completions--after-change (_start _end _old-len)
+  "Update displayed *Completions* buffer after change in buffer contents."
+  (when completion-auto-deselect
+    (when-let (window (get-buffer-window "*Completions*" 0))
+      (with-selected-window window
+        (completions--deselect)))))
+
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
@@ -2402,6 +2490,7 @@ These include:
           ;; If there are no completions, or if the current input is already
           ;; the sole completion, then hide (previous&stale) completions.
           (minibuffer-hide-completions)
+          (remove-hook 'after-change-functions #'completions--after-change t)
           (if completions
               (completion--message "Sole completion")
             (unless completion-fail-discreetly
@@ -2411,6 +2500,7 @@ These include:
       (let* ((last (last completions))
              (base-size (or (cdr last) 0))
              (prefix (unless (zerop base-size) (substring string 0 base-size)))
+             (minibuffer-completion-base (substring string 0 base-size))
              (base-prefix (buffer-substring (minibuffer--completion-prompt-end)
                                             (+ start base-size)))
              (base-suffix
@@ -2462,6 +2552,8 @@ These include:
             (body-function
              . ,#'(lambda (_window)
                     (with-current-buffer mainbuf
+                      (when completion-auto-deselect
+                        (add-hook 'after-change-functions #'completions--after-change nil t))
                       ;; Remove the base-size tail because `sort' requires a properly
                       ;; nil-terminated list.
                       (when last (setcdr last nil))
@@ -2475,7 +2567,8 @@ These include:
                                             (funcall sort-fun completions)
                                           (pcase completions-sort
                                             ('nil completions)
-                                            ('alphabetical (sort completions #'string-lessp))
+                                            ('alphabetical (minibuffer-sort-alphabetically completions))
+                                            ('historical (minibuffer-sort-by-history completions))
                                             (_ (funcall completions-sort completions)))))
 
                       ;; After sorting, group the candidates using the
@@ -3017,7 +3110,6 @@ displaying the *Completions* buffer exists."
   "<down>"  (minibuffer-visible-completions-bind #'minibuffer-next-line-completion)
   "RET"     (minibuffer-visible-completions-bind #'minibuffer-choose-completion-or-exit)
   "C-g"     (minibuffer-visible-completions-bind #'minibuffer-hide-completions))
-
 
 ;;; Completion tables.
 
@@ -4675,7 +4767,8 @@ insert the selected completion candidate to the minibuffer."
           (next-line-completion (or n 1))
         (next-completion (or n 1)))
       (when auto-choose
-        (let ((completion-use-base-affixes t))
+        (let ((completion-use-base-affixes t)
+              (completion-auto-deselect nil))
           (choose-completion nil t t))))))
 
 (defun minibuffer-previous-completion (&optional n)
@@ -4723,7 +4816,8 @@ in the completions window, then exit the minibuffer using its present
 contents."
   (interactive "P")
   (condition-case nil
-      (minibuffer-choose-completion no-exit no-quit)
+      (let ((choose-completion-deselect-if-after t))
+        (minibuffer-choose-completion no-exit no-quit))
     (error (minibuffer-complete-and-exit))))
 
 (defun minibuffer-complete-history ()
@@ -4850,7 +4944,7 @@ This is run upon minibuffer setup."
 (defun minibuffer-exit-on-screen-keyboard ()
   "Hide the on-screen keyboard if it was displayed.
 Hide the on-screen keyboard in a timer set to run in 0.1 seconds.
-It will be cancelled if the minibuffer is displayed again within
+It will be canceled if the minibuffer is displayed again within
 that timeframe.
 
 Do not hide the on screen keyboard inside a recursive edit.

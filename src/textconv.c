@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    They may then request that the text editor remove or substitute
    that text for something else, for example when providing the
    ability to ``undo'' or ``edit'' previously composed text.  This is
-   most commonly seen in input methods for CJK laguages for X Windows,
+   most commonly seen in input methods for CJK languages for X Windows,
    and is extensively used throughout Android by input methods for all
    kinds of scripts.
 
@@ -1311,7 +1311,7 @@ struct complete_edit_check_context
 
 /* Convert PTR to CONTEXT.  If CONTEXT->check is false, then update
    CONTEXT->w's ephemeral last point and give it to the input method,
-   the assumption being that an editing operation signalled.  */
+   the assumption being that an editing operation signaled.  */
 
 static void
 complete_edit_check (void *ptr)
@@ -1379,7 +1379,7 @@ handle_pending_conversion_events_1 (struct frame *f,
      or not the editing operation completed successfully.  */
   context.check = false;
 
-  /* Make sure completion is signalled.  */
+  /* Make sure completion is signaled.  */
   count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (complete_edit, &token);
   w = NULL;

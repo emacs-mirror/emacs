@@ -1142,7 +1142,7 @@ one to upload, like so:
   ../java/debug.sh --gdbserver /path/to/gdbserver
 
 This Gdbserver should be statically linked or compiled using the
-Android NDK, and must target the same architecture as the debugee
+Android NDK, and must target the same architecture as the debugged
 Emacs binary.  Older versions of the Android NDK (such as r24)
 distribute suitable Gdbserver binaries, usually located within
 

@@ -57,7 +57,7 @@ touch point being tracked, the window where the touch began, a
 cons holding the initial position of the touch point, and the
 last known position of the touch point, all in the same format as
 in `touch-screen-current-tool', the distance in pixels between
-the current tool and the aformentioned initial position, the
+the current tool and the aforementioned initial position, the
 center of the line formed between those two points, the ratio
 between the present distance between both tools and the aforesaid
 initial distance when a pinch gesture was last sent, and three
@@ -320,6 +320,7 @@ the event."
 
 ;;; Drag-to-select gesture.
 
+;;;###autoload
 (defun touch-screen-hold (event)
   "Handle a long press EVENT.
 Ding and select the window at EVENT, then activate the mark.  If
@@ -1913,6 +1914,7 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
 
 ;; Exports.  These functions are intended for use externally.
 
+;;;###autoload
 (defun touch-screen-track-tap (event &optional update data threshold)
   "Track a single tap starting from EVENT.
 EVENT should be a `touchscreen-begin' event.
@@ -1925,7 +1927,7 @@ with that event and DATA.
 
 If THRESHOLD is non-nil, enforce a threshold of movement that is
 either itself or 10 pixels when it is not a number.  If the
-aformentioned touch point moves beyond that threshold on any
+aforementioned touch point moves beyond that threshold on any
 axis, return nil immediately, and further resume mouse event
 translation for the touch point at hand.
 
@@ -1970,6 +1972,7 @@ otherwise, return t once the `touchscreen-end' event arrives."
                    (eq (caadr event) (caadr new-event))))
            (t (throw 'finish nil))))))))
 
+;;;###autoload
 (defun touch-screen-track-drag (event update &optional data)
   "Track a single drag starting from EVENT.
 EVENT should be a `touchscreen-begin' event.
@@ -2017,6 +2020,7 @@ touch point in EVENT did not move significantly, and t otherwise."
 ;;; Event handling exports.  These functions are intended for use by
 ;;; Lisp commands bound to touch screen gesture events.
 
+;;;###autoload
 (defun touch-screen-inhibit-drag ()
   "Inhibit subsequent `touchscreen-drag' events from being sent.
 Prevent `touchscreen-drag' and translated mouse events from being

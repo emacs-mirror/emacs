@@ -1046,7 +1046,7 @@ Output must be in semanticdb Find result format."
 		     (and last-prefix (string-prefix-p last-prefix prefix t)))
 		 ;; We have the same prefix, or last-prefix is a
 		 ;; substring of the of new prefix, in which case we are
-		 ;; refining our symbol so just re-use cache.
+		 ;; refining our symbol so just reuse cache.
 		 (oref obj last-all-completions))
 		((and last-prefix
 		      (> (length prefix) 1)

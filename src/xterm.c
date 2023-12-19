@@ -616,9 +616,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     - x_clear_errors
 
   Callers using this set should consult the comment(s) on top of the
-  aformentioned functions.  They should not be used when the requests
+  aforementioned functions.  They should not be used when the requests
   being made do not require roundtrips to the X server, and obtaining
-  the details of any error generated is unecessary, as
+  the details of any error generated is unnecessary, as
   `x_uncatch_errors' will always synchronize with the X server, which
   is a potentially slow operation.  */
 
@@ -5173,7 +5173,7 @@ record_event (char *locus, int type)
 
 
 
-/* Miscelaneous event handling functions.  */
+/* Miscellaneous event handling functions.  */
 
 static void
 x_toolkit_position (struct frame *f, int x, int y,
@@ -11296,7 +11296,7 @@ x_clear_frame (struct frame *f)
 
 /* Send a message to frame F telling the event loop to track whether
    or not an hourglass is being displayed.  This is required to ignore
-   the right events when the hourglass is mapped without callig XSync
+   the right events when the hourglass is mapped without calling XSync
    after displaying or hiding the hourglass.  */
 
 static void
@@ -12564,7 +12564,7 @@ x_dnd_process_quit (struct frame *f, Time timestamp)
 /* This function is defined far away from the rest of the XDND code so
    it can utilize `x_any_window_to_frame'.  */
 
-/* Implementors beware!  On most other platforms (where drag-and-drop
+/* Implementers beware!  On most other platforms (where drag-and-drop
    data is not provided via selections, but some kind of serialization
    mechanism), it is usually much easier to implement a suitable
    primitive instead of copying the C code here, and then to build
@@ -32094,7 +32094,7 @@ x_initialize (void)
 
 #ifdef HAVE_X_I18N
 
-/* Notice that a change has occured on F that requires its input
+/* Notice that a change has occurred on F that requires its input
    method state to be reset.  */
 
 static void

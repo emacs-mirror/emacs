@@ -3739,7 +3739,7 @@ macro that returns its `&whole' argument."
 (mapc (lambda (x) (function-put x 'important-return-value t))
        '(
          ;; Functions that are side-effect-free except for the
-         ;; behaviour of functions passed as argument.
+         ;; behavior of functions passed as argument.
          cl-mapcar cl-mapcan cl-maplist cl-map cl-mapcon
          cl-reduce
          cl-assoc cl-assoc-if cl-assoc-if-not

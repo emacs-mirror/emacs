@@ -1348,7 +1348,7 @@ sfntfont_charset_for_cmap (struct sfnt_cmap_encoding_subtable subtable)
    subtable in *SUBTABLE upon success, NULL otherwise.
 
    If FORMAT14 is non-NULL, return any associated format 14 variation
-   selection context in *FORMAT14 should the selected charcter map be
+   selection context in *FORMAT14 should the selected character map be
    a Unicode character map.  */
 
 static struct sfnt_cmap_encoding_subtable_data *
@@ -1371,7 +1371,7 @@ sfntfont_select_cmap (struct sfnt_cmap_table *cmap,
 	  if (!format14)
 	    return data[i];
 
-	  /* Search for a correspoinding format 14 character map.
+	  /* Search for a corresponding format 14 character map.
 	     This is used in conjunction with the selected character
 	     map to map variation sequences.  */
 
@@ -1400,7 +1400,7 @@ sfntfont_select_cmap (struct sfnt_cmap_table *cmap,
 	  if (!format14)
 	    return data[i];
 
-	  /* Search for a correspoinding format 14 character map.
+	  /* Search for a corresponding format 14 character map.
 	     This is used in conjunction with the selected character
 	     map to map variation sequences.  */
 
@@ -2444,7 +2444,11 @@ sfntfont_get_glyph_raster (sfnt_glyph glyph_code,
     }
 
   /* Not already cached.  Raster the outline.  */
-  raster = sfnt_raster_glyph_outline (outline);
+
+  if (!sfnt_raster_glyphs_exactly)
+    raster = sfnt_raster_glyph_outline (outline);
+  else
+    raster = sfnt_raster_glyph_outline_exact (outline);
 
   if (!raster)
     return NULL;
@@ -4116,6 +4120,13 @@ eliminating artifacts and chance effects consequent upon the direct
 upscaling of glyph outline data.  Instruction code is occasionally
 incompatible with Emacs and must be disregarded.  */);
   Vsfnt_uninstructable_family_regexp = Qnil;
+
+  DEFVAR_BOOL ("sfnt-raster-glyphs-exactly", sfnt_raster_glyphs_exactly,
+    doc: /* How font glyph outlines should be converted to graphics.
+If non-nil, glyphs will be displayed in a more precise manner, at the
+cost of performance on devices where floating-point math operations
+are slow.  */);
+  sfnt_raster_glyphs_exactly = true;
 }
 
 void

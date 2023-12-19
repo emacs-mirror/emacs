@@ -33,7 +33,7 @@
 ;; or deep template calls can be extracted.
 ;;
 ;; This code was specifically written for srecode-document, which
-;; wants to extract user written text, and re-use it in a reformatted
+;; wants to extract user written text, and reuse it in a reformatted
 ;; comment.
 
 (require 'srecode)

@@ -35,7 +35,8 @@
 
 (defun erc-fill-tests--insert-privmsg (speaker &rest msg-parts)
   (declare (indent 1))
-  (let* ((msg (erc-format-privmessage speaker
+  (let* ((erc--msg-prop-overrides `((erc--msg . msg)))
+         (msg (erc-format-privmessage speaker
                                       (apply #'concat msg-parts) nil t))
          (parsed (make-erc-response :unparsed (format ":%s PRIVMSG #chan :%s"
                                                       speaker msg)
@@ -150,7 +151,9 @@
                                                 "eld"))
          (erc--own-property-names
           (seq-difference `(font-lock-face ,@erc--own-property-names)
-                          '(field display wrap-prefix line-prefix)
+                          `(field display wrap-prefix line-prefix
+                                  erc--msg erc--cmd erc--spkr erc--ts erc--ctcp
+                                  erc--ephemeral)
                           #'eq))
          (print-circle t)
          (print-escape-newlines t)
@@ -165,12 +168,12 @@
       (with-silent-modifications
         (insert (setq got (read repr))))
       (erc-mode))
-    (if erc-fill-tests--save-p
+    ;; LHS is a string, RHS is a symbol.
+    (if (string= erc-fill-tests--save-p (ert-test-name (ert-running-test)))
         (let (inhibit-message)
           (with-temp-file expect-file
             (insert repr))
           ;; Limit writing snapshots to one test at a time.
-          (setq erc-fill-tests--save-p nil)
           (message "erc-fill-tests--compare: wrote %S" expect-file))
       (if (file-exists-p expect-file)
           ;; Ensure string-valued properties, like timestamps, aren't

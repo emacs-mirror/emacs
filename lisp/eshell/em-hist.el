@@ -116,6 +116,12 @@ If set to t, history will always be saved, silently."
 		 (const :tag "Ask" ask)
 		 (const :tag "Always save" t)))
 
+(defcustom eshell-history-append nil
+  "If non-nil, append new entries to the history file when saving history."
+  :type '(choice (const :tag "Overwrite history file" nil)
+		 (const :tag "Append new entries to file" t))
+  :version "30.1")
+
 (defcustom eshell-input-filter 'eshell-input-filter-default
   "Predicate for filtering additions to input history.
 Takes one argument, the input.  If non-nil, the input may be saved on
@@ -294,16 +300,20 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
     (if eshell-history-file-name
 	(eshell-read-history nil t))
 
-    (add-hook 'eshell-exit-hook #'eshell-write-history nil t))
+    (add-hook 'eshell-exit-hook #'eshell--save-history nil t))
 
   (unless eshell-history-ring
     (setq eshell-history-ring (make-ring eshell-history-size)))
 
-  (add-hook 'eshell-exit-hook #'eshell-write-history nil t)
+  (add-hook 'eshell-exit-hook #'eshell--save-history nil t)
 
   (add-hook 'kill-emacs-query-functions #'eshell-save-some-history)
 
   (add-hook 'eshell-input-filter-functions #'eshell-add-to-history nil t))
+
+(defun eshell--save-history ()
+  "Save the history for current Eshell buffer."
+  (eshell-write-history nil eshell-history-append))
 
 (defun eshell-save-some-history ()
   "Save the history for any open Eshell buffers."
@@ -318,7 +328,7 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
 			(format-message
 			 "Save input history for Eshell buffer `%s'? "
 			 (buffer-name buf)))))
-	      (eshell-write-history)))))
+	      (eshell--save-history)))))
   t)
 
 (defun eshell/history (&rest args)
@@ -389,7 +399,7 @@ input."
                ('nil t)                 ; Always add to history
                ('erase                  ; Add, removing any old occurrences
                 (when-let ((old-index (ring-member eshell-history-ring input)))
-                  ;; Remove the old occurence of this input so we can
+                  ;; Remove the old occurrence of this input so we can
                   ;; add it to the end.  FIXME: Should we try to
                   ;; remove multiple old occurrences, e.g. if the user
                   ;; recently changed to using `erase'?

@@ -1455,6 +1455,18 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
      the possibility of Java locating libemacs later.  */
   setenv ("EMACS_LD_LIBRARY_PATH", android_lib_dir, 1);
 
+  /* If the system is Android 5.0 or later, set LANG to en_US.utf8,
+     which is understood by the C library.  In other instances set it
+     to C, a meaningless value, for good measure.  */
+
+  if (emacs_service_object)
+    {
+      if (api_level >= 21)
+	setenv ("LANG", "en_US.utf8", 1);
+      else
+	setenv ("LANG", "C", 1);
+    }
+
   /* Make a reference to the Emacs service.  */
 
   if (emacs_service_object)
@@ -2767,7 +2779,7 @@ android_destroy_handle (android_handle handle)
 
   /* Just clear any exception thrown.  If destroying the handle
      fails from an out-of-memory error, then Emacs loses some
-     resources, but that is not as big deal as signalling.  */
+     resources, but that is not as big deal as signaling.  */
   (*android_java_env)->ExceptionClear (android_java_env);
 
   /* Delete the global reference regardless of any error.  */
@@ -5785,7 +5797,7 @@ android_check_string (Lisp_Object text)
    better represent the UCS-16 based Java String format, and to let
    strings contain NULL characters while remaining valid C strings:
    NULL bytes are encoded as two-byte sequences, and Unicode surrogate
-   pairs encoded as two-byte sequences are prefered to four-byte
+   pairs encoded as two-byte sequences are preferred to four-byte
    sequences when encoding characters above the BMP.  */
 
 int

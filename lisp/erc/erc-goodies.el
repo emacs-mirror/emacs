@@ -578,7 +578,7 @@ Do nothing if the variable `erc-command-indicator' is nil."
       (let ((insert-position (marker-position (goto-char erc-insert-marker)))
             (erc--msg-props (or erc--msg-props
                                 (let ((ovs erc--msg-prop-overrides))
-                                  (map-into `((erc-msg . slash-cmd)
+                                  (map-into `((erc--msg . slash-cmd)
                                               ,@(reverse ovs))
                                             'hash-table)))))
         (when-let ((string (erc-command-indicator))

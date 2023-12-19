@@ -3268,6 +3268,15 @@ The value specifies an alist of frame parameters to give a new frame,
 if one is created.  @code{display-buffer-pop-up-frame} is its one and
 only addressee.
 
+@vindex pop-up-frames@r{, a buffer display action alist entry}
+@item pop-up-frames
+The value controls whether @code{display-buffer} may display buffers
+by making new frames.  It has the same meaning as the
+@code{pop-up-frames} variable and takes precedence over it when present.
+Its main intended purpose is to override a non-nil value of the
+variable for particular buffers which the user prefers to keep
+in the selected frame.
+
 @vindex parent-frame@r{, a buffer display action alist entry}
 @item parent-frame
 The value specifies the parent frame to be used when the buffer is
@@ -3441,6 +3450,9 @@ A non-@code{nil} value also means that when @code{display-buffer} is
 looking for a window already displaying @var{buffer-or-name}, it can
 search any visible or iconified frame, not just the selected frame.
 
+An entry by the same name in @code{display-buffer}'s @var{alist}
+takes precedence over the variable.
+
 This variable is provided mainly for backward compatibility.  It is
 obeyed by @code{display-buffer} via a special mechanism in
 @code{display-buffer-fallback-action}, which calls the action function
@@ -3512,15 +3524,12 @@ functions it should try instead as, for example:
 
 @item pop-up-frames
 @vindex pop-up-frames@r{, replacement for}
-Instead of customizing this variable to @code{t}, customize
+Instead of customizing this variable to @code{t}, you can customize
 @code{display-buffer-base-action}, for example, as follows:
 
 @example
 @group
-(setopt
- display-buffer-base-action
- '((display-buffer-reuse-window display-buffer-pop-up-frame)
-   (reusable-frames . 0)))
+(setopt display-buffer-base-action '(nil (pop-up-frames . t)))
 @end group
 @end example
 

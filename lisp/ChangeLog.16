@@ -1770,7 +1770,7 @@
 	(jit-lock--debug-fontifying): New var.
 	(jit-lock--debug-fontify): New function.
 	* subr.el (condition-case-unless-debug): Don't prevent catching the
-	error, just let the debbugger run.
+	error, just let the debugger run.
 	* emacs-lisp/timer.el (timer-event-handler): Don't prevent debugging
 	timer code and don't drop errors silently.
 
@@ -4784,7 +4784,7 @@
 	Convert to defcustom.
 	(gdb-get-source-file): Don't bind pop-up-windows.
 
-	* progmodes/gud.el (gud-display-line): Don't specially re-use
+	* progmodes/gud.el (gud-display-line): Don't specially reuse
 	other frames for the gdb-mi case (Bug#12648).
 
 2012-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>

@@ -42,16 +42,12 @@
 
 (defvar erc--target)
 (defvar erc-insert-marker)
-(defvar erc-kill-buffer-hook)
-(defvar erc-kill-server-hook)
 (defvar erc-modules)
 (defvar erc-rename-buffers)
 (defvar erc-reuse-buffers)
 (defvar erc-server-announced-name)
 (defvar erc-server-connected)
-(defvar erc-server-parameters)
 (defvar erc-server-process)
-(defvar erc-session-server)
 
 (declare-function erc--get-isupport-entry "erc-backend" (key &optional single))
 (declare-function erc-buffer-filter "erc" (predicate &optional proc))
@@ -1229,6 +1225,8 @@ Use the server parameter NETWORK if provided, otherwise parse the
 server name and search for a match in `erc-networks-alist'."
   ;; The server made it easy for us and told us the name of the NETWORK
   (declare (obsolete "maybe see `erc-networks--determine'" "29.1"))
+  (defvar erc-server-parameters)
+  (defvar erc-session-server)
   (let ((network-name (cdr (assoc "NETWORK" erc-server-parameters))))
     (if network-name
 	(intern network-name)
@@ -1381,6 +1379,8 @@ already been copied over to the current, replacement buffer.")
 (defun erc-networks--copy-over-server-buffer-contents (existing name)
   "Kill off existing server buffer after copying its contents.
 Must be called from the replacement buffer."
+  (defvar erc-kill-buffer-hook)
+  (defvar erc-kill-server-hook)
   ;; ERC expects `erc-open' to be idempotent when setting up local
   ;; vars and other context properties for a new identity.  Thus, it's
   ;; unlikely we'll have to copy anything else over besides text.  And
@@ -1586,14 +1586,29 @@ return the host alone sans URL formatting (for compatibility)."
   '((pals Libera.Chat ("kensanata" "shapr" "anti\\(fuchs\\|gone\\)"))
     (format-nick-function (Libera.Chat "#emacs") erc-format-@nick))
   "Experimental: Alist of configuration options.
+
+WARNING: this variable is a vestige from a long-abandoned
+experiment.  ERC may redefine it using the same name for any
+purpose at any time.
+
 The format is (VARNAME SCOPE VALUE) where
 VARNAME is a symbol identifying the configuration option,
 SCOPE is either a symbol which identifies an entry from
   `erc-networks-alist' or a list (NET TARGET) where NET is a network symbol and
   TARGET is a string identifying the channel/query target.
 VALUE is the options value.")
+(make-obsolete-variable 'erc-settings
+                        "temporarily deprecated for later repurposing" "30.1")
 
 (defun erc-get (var &optional net target)
+  "Retrieve configuration values from `erc-settings'.
+
+WARNING: this function is a non-functioning remnant from a
+long-abandoned experiment.  ERC may redefine it using the same
+name for any purpose at any time.
+
+\(fn &rest UNKNOWN)"
+  (declare (obsolete "temporarily deprecated for later repurposing" "30.1"))
   (let ((items erc-settings)
 	elt val)
     (while items

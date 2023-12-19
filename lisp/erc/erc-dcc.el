@@ -131,9 +131,8 @@ Looks like:
     (open-network-stream procname buffer addr port
                          :type (and (plist-get entry :secure) 'tls))))
 
-(erc-define-catalog
- 'english
- '((dcc-chat-discarded
+(erc--define-catalog english
+  ((dcc-chat-discarded
     . "DCC: previous chat request from %n (%u@%h) discarded")
    (dcc-chat-ended . "DCC: chat with %n ended %t: %e")
    (dcc-chat-no-request . "DCC: chat request from %n not found")
@@ -714,8 +713,8 @@ It extracts the information about the dcc request and adds it to
              (port (match-string 4 query))
              (size (match-string 5 query))
              (sub (substring (match-string 6 query) 0 -4))
-             (secure (seq-contains-p sub ?S #'eq))
-             (turbo (seq-contains-p sub ?T #'eq)))
+             (secure (string-search "S" sub))
+             (turbo (string-search "T" sub)))
         ;; FIXME: a warning really should also be sent
         ;; if the ip address != the host the dcc sender is on.
         (erc-display-message
@@ -1252,14 +1251,16 @@ other client."
 (defun erc-dcc-chat-parse-output (proc str)
   (save-match-data
     (let ((posn 0)
+          (erc--msg-prop-overrides `((erc--spkr . ,erc-dcc-from)))
+          (nick (propertize (erc--speakerize-nick erc-dcc-from)
+                            'font-lock-face 'erc-nick-default-face))
           line)
       (while (string-match "\n" str posn)
         (setq line (substring str posn (match-beginning 0)))
         (setq posn (match-end 0))
         (erc-display-message
          nil nil proc
-         'dcc-chat-privmsg ?n (propertize erc-dcc-from 'font-lock-face
-                                          'erc-nick-default-face) ?m line))
+         'dcc-chat-privmsg ?n nick ?m line))
       (setq erc-dcc-unprocessed-output (substring str posn)))))
 
 (defun erc-dcc-chat-buffer-killed ()

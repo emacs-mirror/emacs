@@ -1231,8 +1231,6 @@ the @file{*URL-DEBUG*} buffer.
 A number means log all messages and show them with @code{message}.
 It may also be a list of the types of messages to be logged.
 @end defopt
-@defopt url-personal-mail-address
-@end defopt
 @defopt url-privacy-level
 @end defopt
 @defopt url-lastloc-privacy-level

@@ -171,7 +171,7 @@
           (funcall expect 2 "Canceled")
           (funcall expect 3 "Opening connection")
           (funcall expect 2 "Password incorrect")
-          (funcall expect 2 "Connection failed!")
+          (funcall expect 10 "Connection failed!")
           (funcall expect 2 "Re-establishing connection"))
         (ert-info ("Explicitly cancel timer")
           (erc-cmd-RECONNECT "cancel")

@@ -11437,7 +11437,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
       /* Start at the beginning of the line containing FROM.  Otherwise
 	 IT.current_x will be incorrectly set to zero at some arbitrary
 	 non-zero X coordinate.  */
-      reseat_at_previous_visible_line_start (&it);
+      move_it_by_lines (&it, 0);
       it.current_x = it.hpos = 0;
       if (IT_CHARPOS (it) != start)
 	{
@@ -11514,6 +11514,8 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
      the width of the last buffer position manually.  */
   if (IT_CHARPOS (it) > end)
     {
+      int end_y = it.current_y;
+
       end--;
       RESTORE_IT (&it, &it2, it2data);
       x = move_it_to (&it, end, to_x, max_y, -1, move_op);
@@ -11526,13 +11528,28 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
 
 	  /* DTRT if ignore_line_at_end is t.  */
 	  if (!NILP (ignore_line_at_end))
-	    doff = (max (it.max_ascent, it.ascent)
-		    + max (it.max_descent, it.descent));
+	    {
+	      /* If END-1 is on the previous screen line, we need to
+                 account for the vertical dimensions of previous line.  */
+	      if (it.current_y < end_y)
+		doff = (max (it.max_ascent, it.ascent)
+			+ max (it.max_descent, it.descent));
+	    }
 	  else
 	    {
 	      it.max_ascent = max (it.max_ascent, it.ascent);
 	      it.max_descent = max (it.max_descent, it.descent);
 	    }
+	}
+      else if (IT_CHARPOS (it) > end
+	       && it.line_wrap == TRUNCATE
+	       && it.current_x - it.first_visible_x >= it.last_visible_x)
+	{
+          /* If the display property at END is at the beginning of the
+             line, and the previous line was truncated, we are at END,
+             but it.current_y is not yet updated to reflect that.  */
+          it.current_y += max (it.max_ascent, it.ascent)
+                          + max (it.max_descent, it.descent);
 	}
     }
   else
@@ -31344,9 +31361,16 @@ produce_image_glyph (struct it *it)
 
   take_vertical_position_into_account (it);
 
-  /* Automatically crop wide image glyphs at right edge so we can
-     draw the cursor on same display row.  */
-  if ((crop = it->pixel_width - (it->last_visible_x - it->current_x), crop > 0)
+  /* Automatically crop wide image glyphs at right edge so we can draw
+     the cursor on same display row.  But don't do that under
+     word-wrap, unless the image starts at column zero, because
+     wrapping correctly needs the real pixel width of the image.  */
+  if ((it->line_wrap != WORD_WRAP
+       || it->hpos == 0
+       /* Always crop images larger than the window-width, minus 1 space.  */
+       || it->pixel_width > it->last_visible_x - FRAME_COLUMN_WIDTH (it->f))
+      && (crop = it->pixel_width - (it->last_visible_x - it->current_x),
+	  crop > 0)
       && (it->hpos == 0 || it->pixel_width > it->last_visible_x / 4))
     {
       it->pixel_width -= crop;

@@ -50,12 +50,12 @@
       (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "dummy"))
         (funcall expect 10 "<dummy> hi")
         (funcall expect 10 "*** dummy (~u@rdjcgiwfuwqmc.irc) has quit")
-        (should (eq 'QUIT (get-text-property (match-beginning 0) 'erc-msg)))))
+        (should (eq 'QUIT (get-text-property (match-beginning 0) 'erc--msg)))))
 
     (ert-info ("Dummy's QUIT notice in #chan contains metadata props")
       (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "#chan"))
         (funcall expect 10 "*** dummy (~u@rdjcgiwfuwqmc.irc) has quit")
-        (should (eq 'QUIT (get-text-property (match-beginning 0) 'erc-msg)))))
+        (should (eq 'QUIT (get-text-property (match-beginning 0) 'erc--msg)))))
 
     (with-current-buffer "foonet"
       (erc-cmd-QUIT ""))))

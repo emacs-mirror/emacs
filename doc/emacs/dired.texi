@@ -142,6 +142,10 @@ characters well.  If you have many such files, you may consider adding
 special characters and allow Dired to handle them better.  (You can
 also use the @kbd{C-u C-x d} command to add @samp{-b} temporarily.)
 
+@code{dired-listing-switches} can be declared as connection-local
+variable to adjust it to match what a remote system expects
+(@pxref{Connection Variables}).
+
 @vindex dired-switches-in-mode-line
   Dired displays in the mode line an indication of what were the
 switches used to invoke @command{ls}.  By default, Dired will try to
