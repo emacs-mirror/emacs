@@ -137,6 +137,17 @@ Lisp_Object
 pkg_find_package (Lisp_Object name)
 {
   CHECK_STRING (name);
+
+  /* Check for a package-local nickname.  */
+  const Lisp_Object local_nicknames
+    = XPACKAGE (Vearmuffs_package)->local_nicknames;
+  if (!NILP (local_nicknames))
+    {
+      const Lisp_Object entry = CALLN (Fassoc, name, local_nicknames);
+      if (!NILP (entry))
+	return XCDR (entry);
+    }
+
   return Fgethash (name, Vpackage_registry, Qnil);
 }
 

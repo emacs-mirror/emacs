@@ -713,7 +713,11 @@ Value is t."
     (register-package package)
 
     ;; Package-local nicknames.
-    (package-%set-local-nicknames package local-nicknames)
+    (let ((new-nicknames
+           (cl-loop for (nickname . package-name) in local-nicknames
+                    collect (cons nickname
+                                  (pkg--package-or-lose nickname)))))
+      (package-%set-local-nicknames package new-nicknames))
 
     ;; Shadows and Shadowing-imports.
     (let ((old-shadows (package-%shadowing-symbols package)))
