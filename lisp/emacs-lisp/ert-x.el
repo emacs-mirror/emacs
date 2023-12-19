@@ -543,7 +543,7 @@ The same keyword arguments are supported as in
 ;; If this defconst is used in a test file, `tramp' shall be loaded
 ;; prior `ert-x'.  There is no default value on w32 systems, which
 ;; could work out of the box.
-(defconst ert-remote-temporary-file-directory
+(defvar ert-remote-temporary-file-directory
   (when (featurep 'tramp)
     (cond
      ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
