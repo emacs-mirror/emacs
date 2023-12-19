@@ -54,9 +54,7 @@
 (declare-function erc-current-nick "erc" nil)
 (declare-function erc-display-error-notice "erc" (parsed string))
 (declare-function erc-display-message "erc" (parsed type buffer msg &rest args))
-(declare-function erc-error "erc" (&rest args))
 (declare-function erc-get-buffer "erc" (target &optional proc))
-(declare-function erc-server-buffer "erc" nil)
 (declare-function erc-server-process-alive "erc-backend" (&optional buffer))
 (declare-function erc-set-active-buffer "erc" (buffer))
 

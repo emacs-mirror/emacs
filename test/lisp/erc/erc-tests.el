@@ -1520,7 +1520,7 @@
 (ert-deftest erc--check-prompt-input-for-multiline-blanks ()
   (erc-tests--with-process-input-spy
    (lambda (next)
-     (erc-tests--set-fake-server-process "sleep" "1")
+     (erc-tests--set-fake-server-process "sleep" "10")
      (should-not erc-send-whitespace-lines)
      (should erc-warn-about-blank-lines)
 

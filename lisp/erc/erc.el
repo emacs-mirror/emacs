@@ -2852,12 +2852,15 @@ PARAMETERS should be a sequence of keywords and values, per
 
 (defun erc-open-socks-tls-stream (name buffer host service &rest parameters)
   "Connect to an IRC server via SOCKS proxy over TLS.
-Bind `erc-server-connect-function' to this function around calls
-to `erc-tls'.  See `erc-open-network-stream' for the meaning of
-NAME and BUFFER.  HOST should be a \".onion\" URL, SERVICE a TLS
-port number, and PARAMETERS a sequence of key/value pairs, per
-`open-network-stream'.  See Info node `(erc) SOCKS' for more
-info."
+Defer to the `socks' and `gnutls' libraries to make the actual
+connection and perform TLS negotiation.  Expect SERVICE to be a
+TLS port number and that the plist PARAMETERS contains a
+`:client-certificate' pair when necessary.  Otherwise, assume the
+arguments NAME, BUFFER, and HOST to be acceptable to
+`open-network-stream' and that users know to check out
+`erc-server-connect-function' and Info node `(erc) SOCKS' for
+more info, including an important example of how to \"wrap\" this
+function with SOCKS credentials."
   (require 'gnutls)
   (require 'socks)
   (let ((proc (socks-open-network-stream name buffer host service))
