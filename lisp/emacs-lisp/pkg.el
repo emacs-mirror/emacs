@@ -701,7 +701,8 @@ Value is t."
 ;;                            defpackage
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun pkg-defpackage (name nicknames size shadows shadowing-imports
+(defun pkg-defpackage (name nicknames local-nicknames
+                            size shadows shadowing-imports
 			    use imports interns exports _doc-string)
   (let ((package (or (find-package name)
                      (make-package name :use '("emacs") :size size
@@ -710,6 +711,9 @@ Value is t."
     ;; Removed old nicknames from the registry, and adds new ones.
     (unregister-package package)
     (register-package package)
+
+    ;; Package-local nicknames.
+    (package-%set-local-nicknames package local-nicknames)
 
     ;; Shadows and Shadowing-imports.
     (let ((old-shadows (package-%shadowing-symbols package)))
@@ -754,7 +758,8 @@ Value is t."
       (export exports package)
       (let ((diff (cl-set-difference old-exports exports)))
         (when diff
-          (warn "%s also exports the following symbols: %s" name diff))))
+          (warn "%s also exports the following symbols: %s" name
+                diff))))
 
     ;; Documentation (not yet)
     ;;(setf (package-doc-string package) doc-string)
@@ -763,18 +768,20 @@ Value is t."
 (defmacro defpackage (package &rest options)
   "Defines a new package called PACKAGE.  Each of OPTIONS should be one of the
    following:
-     (:NICKNAMES {package-name}*)
-     (:SIZE <integer>)
-     (:SHADOW {symbol-name}*)
-     (:SHADOWING-IMPORT-FROM <package-name> {symbol-name}*)
-     (:USE {package-name}*)
-     (:IMPORT-FROM <package-name> {symbol-name}*)
-     (:INTERN {symbol-name}*)
-     (:EXPORT {symbol-name}*)
-     (:DOCUMENTATION doc-string)
+     (:nicknames {package-name}*)
+     (:local-nicknames (local-nickname actual-package-name)*)
+     (:size <integer>)
+     (:shadow {symbol-name}*)
+     (:shadowing-import-from <package-name> {symbol-name}*)
+     (:use {package-name}*)
+     (:import-from <package-name> {symbol-name}*)
+     (:intern {symbol-name}*)
+     (:export {symbol-name}*)
+     (:documentation doc-string)
    All options except :SIZE and :DOCUMENTATION can be used multiple times."
   (declare (indent defun))
   (let ((nicknames nil)
+        (local-nicknames nil)
 	(size 10)
         (size-p nil)
 	(shadows nil)
@@ -790,7 +797,19 @@ Value is t."
 	(error "Valid defpackage options must be lists: '%s'" option))
       (cl-case (car option)
 	(:nicknames
-	 (setf nicknames (pkg--stringify-names (cdr option) "package")))
+	 (setf nicknames (pkg--stringify-names (cdr option)
+                                               "package")))
+        (:local-nicknames
+         (dolist (elt (cdr option))
+           (unless (and (listp elt) (= (length elt) 2))
+             (error "Local nickname must be (NAME PACKAGE)"))
+           (let ((nickname (pkg--stringify-name (cl-first elt)
+                                                "Local nickname"))
+                 (name (pkg--stringify-name (cl-second elt)
+                                            "package name")))
+             (when (assoc nickname local-nicknames #'string=)
+               (error "Duplicate package-local nickname %s" nickname))
+             (push (cons nickname name) local-nicknames))))
 	(:size
 	 (cond (size-p
 		(error "Can't specify :SIZE twice."))
@@ -844,7 +863,8 @@ Value is t."
 		         `(:shadowing-import-from
                            ,@(apply 'append (mapcar 'cl-rest shadowing-imports))))
     `(cl-eval-when (compile load eval)
-       (pkg-defpackage ,(pkg--stringify-name package "package") ',nicknames ',size
+       (pkg-defpackage ,(pkg--stringify-name package "package")
+                       ',nicknames ',local-nicknames ',size
 		       ',shadows ',shadowing-imports ',(if use-p use :default)
 		       ',imports ',interns ',exports ',doc))))
 
