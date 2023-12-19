@@ -2689,6 +2689,10 @@ Not all VC backends support short logs!")
 
 (defvar log-view-vc-fileset)
 (defvar log-view-message-re)
+;; XXX: File might have been renamed multiple times, so to support
+;; multiple jumps back, this probably should be a stack of entries.
+(defvar log-view-vc-prev-revision nil)
+(defvar log-view-vc-prev-fileset nil)
 
 (defun vc-print-log-setup-buttons (working-revision is-start-revision limit pl-return)
   "Insert at the end of the current buffer buttons to show more log entries.
@@ -2721,41 +2725,16 @@ LIMIT is nil, or if PL-RETURN is `limit-unsupported'."
                  (matching-changes
                   (cl-delete-if-not (lambda (f) (member f log-view-vc-fileset))
                                     name-changes :key #'cdr))
-                 (old-names (delq nil (mapcar #'car matching-changes)))
-                 (relatives (mapcar #'file-relative-name old-names)))
+                 (old-names (delq nil (mapcar #'car matching-changes))))
             (when old-names
               (goto-char (point-max))
               (unless (looking-back "\n\n" (- (point) 2))
                 (insert "\n"))
-              (insert
-               (format
-                "Renamed from %s"
-                (mapconcat (lambda (s)
-                             (propertize s 'font-lock-face
-                                         'log-view-file))
-                           relatives ", "))
-               " ")
-              ;; TODO: Also print a different button somewhere in the
-              ;; created buffer to be able to go back easily.  Might
-              ;; require some sort of stack/history because a file can
-              ;; be renamed multiple times.
-              (insert-text-button
-               "View log"
-               'action (lambda (&rest _ignore)
-                         (let ((backend log-view-vc-backend))
-                           (with-current-buffer vc-parent-buffer
-                             ;; To set up parent buffer in the new viewer.
-                             (vc-print-log-internal backend old-names
-                                                    last-revision t limit))))
-               ;; XXX: Showing the full history for OLD-NAMES (with
-               ;; IS-START-REVISION=nil) can be better sometimes
-               ;; (e.g. when some edits still occurred after a rename
-               ;; -- multiple branches scenario), but it also can hurt
-               ;; in others because of Git's automatic history
-               ;; simplification: as a result, the logs for some
-               ;; use-package's files before merge could not be found.
-               'help-echo
-               "Show the log for the file name(s) before the rename")))
+              (vc-print-log-renamed-add-button old-names log-view-vc-backend
+                                               log-view-vc-fileset
+                                               working-revision
+                                               last-revision
+                                               limit)))
         ;; Perhaps there are more entries in the log.
         (goto-char (point-max))
         (insert "\n")
@@ -2777,6 +2756,49 @@ LIMIT is nil, or if PL-RETURN is `limit-unsupported'."
          'help-echo "Show the log again, including all entries")
         (insert "\n")))))
 
+(defun vc-print-log-renamed-add-button ( renamed-files backend
+                                         current-fileset
+                                         current-revision
+                                         revision limit)
+  "Print the button for jump to the log for a different fileset.
+RENAMED-FILES is the fileset to use.  BACKEND is the VC backend.
+REVISION is the revision from which to start the new log.
+CURRENT-FILESET, if non-nil, is the fileset to use in the \"back\"
+button for.  Same for CURRENT-REVISION.  LIMIT means the usual."
+  (let ((relatives (mapcar #'file-relative-name renamed-files))
+        (from-to (if current-fileset "from" "to"))
+        (before-after (if current-fileset "before" "after")))
+    (insert
+     (format
+      "Renamed %s %s"
+      from-to
+      (mapconcat (lambda (s)
+                   (propertize s 'font-lock-face
+                               'log-view-file))
+                 relatives
+                 ", "))
+     " ")
+    (insert-text-button
+     "View log"
+     'action (lambda (&rest _ignore)
+               ;; To set up parent buffer in the new viewer.
+               (with-current-buffer vc-parent-buffer
+                 (let ((log-view-vc-prev-fileset current-fileset)
+                       (log-view-vc-prev-revision current-revision))
+                   (vc-print-log-internal backend renamed-files
+                                          revision t limit))))
+     ;; XXX: Showing the full history for OLD-NAMES (with
+     ;; IS-START-REVISION=nil) can be better sometimes
+     ;; (e.g. when some edits still occurred after a rename
+     ;; -- multiple branches scenario), but it also can hurt
+     ;; in others because of Git's automatic history
+     ;; simplification: as a result, the logs for some
+     ;; use-package's files before merge could not be found.
+     'help-echo
+     (format
+      "Show the log for the file name(s) %s the rename"
+      before-after))))
+
 (defun vc-print-log-internal (backend files working-revision
                                       &optional is-start-revision limit type)
   "For specified BACKEND and FILES, show the VC log.
@@ -2795,8 +2817,22 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
       (vc-log-internal-common
        backend buffer-name files type
        (lambda (bk buf _type-arg files-arg)
-	 (vc-call-backend bk 'print-log files-arg buf shortlog
-                          (when is-start-revision working-revision) limit))
+         (vc-call-backend bk 'print-log files-arg buf shortlog
+                          (when is-start-revision working-revision) limit)
+         (when log-view-vc-prev-fileset
+           (with-current-buffer buf
+             (let ((inhibit-read-only t)
+                   (pmark (process-mark (get-buffer-process buf))))
+               (goto-char (point-min))
+               (vc-print-log-renamed-add-button log-view-vc-prev-fileset
+                                                backend
+                                                nil
+                                                nil
+                                                log-view-vc-prev-revision
+                                                limit)
+               (insert "\n\n")
+               (when (< pmark (point))
+                 (set-marker pmark (point)))))))
        (lambda (_bk _files-arg ret)
          (save-excursion
            (vc-print-log-setup-buttons working-revision
