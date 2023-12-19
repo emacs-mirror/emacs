@@ -4059,15 +4059,16 @@ LEN is the length of the completion string."
 (defun completion--flex-score (str re &optional dont-error)
   "Compute flex score of completion STR based on RE.
 If DONT-ERROR, just return nil if RE doesn't match STR."
-  (cond ((string-match re str)
-         (let* ((match-end (match-end 0))
-                (md (cddr
-                     (setq
-                      completion--flex-score-last-md
-                      (match-data t completion--flex-score-last-md)))))
-           (completion--flex-score-1 md match-end (length str))))
-        ((not dont-error)
-         (error "Internal error: %s does not match %s" re str))))
+  (let ((case-fold-search completion-ignore-case))
+    (cond ((string-match re str)
+           (let* ((match-end (match-end 0))
+                  (md (cddr
+                       (setq
+                        completion--flex-score-last-md
+                        (match-data t completion--flex-score-last-md)))))
+             (completion--flex-score-1 md match-end (length str))))
+          ((not dont-error)
+           (error "Internal error: %s does not match %s" re str)))))
 
 (defvar completion-pcm--regexp nil
   "Regexp from PCM pattern in `completion-pcm--hilit-commonality'.")
