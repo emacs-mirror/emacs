@@ -396,9 +396,58 @@ registered package."
 ;;;###autoload
 (defun package-nicknames (package)
   "Return the list of nickname strings of PACKAGE.
-If PACKAGE is not a package object already, it must the name of a
+If PACKAGE is not a package object already, it must be the name of a
 registered package."
   (package-%nicknames (pkg--package-or-lose package)))
+
+;;;###autoload
+(defun package-local-nicknames (package)
+  "Return an alist of package-local nicknames of PACKAGE.
+If PACKAGE is not a package object already, it must be the name of a
+registered package."
+  (package-%local-nicknames (pkg--package-or-lose package)))
+
+;;;###autoload
+(cl-defun add-package-local-nickname (nickname package &optional (to *package*))
+  "Add a package-local nickname.
+Adds NICKNAME for PACKAGE in the designated package TO,
+defaulting to current package. NICKNAME must be a string
+designator, and PACKAGE must be a package designator."
+  (let* ((to (pkg--package-or-lose to))
+         (nickname (pkg--stringify-name nickname "package-local nickname"))
+         (package (pkg--package-or-lose package))
+         (local-nicknames (package-local-nicknames to))
+         (entry (assoc nickname local-nicknames #'string=)))
+    (if (null entry)
+        (package-%set-local-nicknames
+         to (cl-acons nickname package local-nicknames))
+      (unless (eq package (cdr entry))
+        (error "Local nickname %s already exists for oackage %s in %s"
+               nickname package to)))))
+
+(cl-defun remove-package-local-nickname (nickname &optional (from *package*))
+  "Remove a package-local nickname.
+If the designated package FROM had NICKNAME as a local nickname
+for another package, it is removed. Returns true if the nickname
+existed and was removed, and nil otherwise."
+  (let* ((from (pkg--package-or-lose from))
+         (nickname (pkg--stringify-name nickname "package-local nickname"))
+         (local-nicknames (package-local-nicknames from))
+         (entry (assoc nickname local-nicknames #'string=)))
+    (when entry
+      (package-%set-local-nicknames
+       from (delq entry local-nicknames))
+      t)))
+
+(cl-defun package-locally-nicknamed-by-list (package)
+  "Return a list of packages which have a local nickname for PACKAGE."
+  (let* ((package (pkg--package-or-lose package))
+         (result ()))
+    (cl-loop for p in (list-all-packages)
+             for local-nicknames = (package-local-nicknames p) do
+             (cl-loop for (_ . pkg) in local-nicknames
+                      when (eq pkg package) do (cl-pushnew p result)))
+    result))
 
 ;;;###autoload
 (defun package-shadowing-symbols (package)
