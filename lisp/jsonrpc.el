@@ -69,9 +69,9 @@
     :accessor jsonrpc-last-error
     :documentation "Last JSONRPC error message received from endpoint.")
    (-request-continuations
-    :initform (make-hash-table)
+    :initform nil
     :accessor jsonrpc--request-continuations
-    :documentation "A hash table of request ID to continuation lambdas.")
+    :documentation "An alist of request IDs to continuation lambdas.")
    (-events-buffer
     :initform nil
     :accessor jsonrpc--events-buffer
@@ -187,7 +187,7 @@ JSONRPC message."
 
 (defun jsonrpc-forget-pending-continuations (connection)
   "Stop waiting for responses from the current JSONRPC CONNECTION."
-  (clrhash (jsonrpc--request-continuations connection)))
+  (setf (jsonrpc--request-continuations connection) nil))
 
 (defvar jsonrpc-inhibit-debug-on-error nil
   "Inhibit `debug-on-error' when answering requests.
@@ -207,7 +207,7 @@ dispatcher in CONNECTION."
                         (cond ((and method id)       'request)
                               (method                'notification)
                               (id                    'reply)))
-    (let (continuations)
+    (let (triplet)
       (setf (jsonrpc-last-error connection) error)
       (cond
        (;; A remote request
@@ -234,13 +234,9 @@ dispatcher in CONNECTION."
         (funcall (jsonrpc--notification-dispatcher connection)
                  connection (intern method) params))
        (;; A remote response
-        (setq continuations
-              (and id (gethash id (jsonrpc--request-continuations connection))))
-        (let ((timer (nth 2 continuations)))
-          (when timer (cancel-timer timer)))
-        (remhash id (jsonrpc--request-continuations connection))
-        (if error (funcall (nth 1 continuations) error)
-          (funcall (nth 0 continuations) result))))
+        (setq triplet (and id (cdr (jsonrpc--remove connection id))))
+        (if error (funcall (nth 1 triplet) error)
+          (funcall (nth 0 triplet) result))))
       (jsonrpc--call-deferred connection))))
 
 
@@ -360,11 +356,8 @@ ignored."
             ;; timeout function and response filter, but we still have
             ;; to protect against user-quit (C-g) or the
             ;; `cancel-on-input' case.
-            (pcase-let* ((`(,id ,timer) id-and-timer))
-              (remhash id (jsonrpc--request-continuations connection))
-              (remhash (list deferred (current-buffer))
-                       (jsonrpc--deferred-actions connection))
-              (when timer (cancel-timer timer))))))
+            (pcase-let* ((`(,id ,_) id-and-timer))
+              (jsonrpc--remove connection id (list deferred (current-buffer)))))))
     (when (eq 'error (car retval))
       (signal 'jsonrpc-error
               (cons
@@ -577,14 +570,14 @@ With optional CLEANUP, kill any associated buffers."
         (let ((inhibit-read-only t))
           (insert "\n----------b---y---e---b---y---e----------\n")))
       ;; Cancel outstanding timers
-      (maphash (lambda (_id triplet)
-                 (pcase-let ((`(,_success ,_error ,timeout) triplet))
-                   (when timeout (cancel-timer timeout))))
-               (jsonrpc--request-continuations connection))
+      (mapc (lambda (_id &rest triplet)
+              (pcase-let ((`(,_success ,_error ,timeout) triplet))
+                (when timeout (cancel-timer timeout))))
+            (jsonrpc--request-continuations connection))
       (process-put proc 'jsonrpc-sentinel-cleanup-started t)
       (unwind-protect
           ;; Call all outstanding error handlers
-          (maphash (lambda (_id triplet)
+          (mapc (lambda (_id &rest triplet)
                      (pcase-let ((`(,_success ,error ,_timeout) triplet))
                        (funcall error '(:code -1 :message "Server died"))))
                    (jsonrpc--request-continuations connection))
@@ -675,6 +668,17 @@ With optional CLEANUP, kill any associated buffers."
                                          (jsonrpc-connection-receive conn m)))
                            msg)))))))
 
+(defun jsonrpc--remove (conn id &optional deferred-spec)
+  "Cancel CONN's continuations for ID, including its timer, if it exists.
+Also cancel \"deferred actions\" if DEFERRED-SPEC.
+Return the full continuation (ID SUCCESS-FN ERROR-FN TIMER)"
+  (with-slots ((conts -request-continuations) (defs -deferred-actions)) conn
+    (if deferred-spec (remhash deferred-spec defs))
+    (when-let ((ass (assq id conts)))
+      (cancel-timer (elt (cdr ass) 2))
+      (setf conts (delete ass conts))
+      ass)))
+
 (cl-defun jsonrpc--async-request-1 (connection
                                     method
                                     params
@@ -698,9 +702,7 @@ TIMEOUT is nil)."
                     (run-with-timer
                      timeout nil
                      (lambda ()
-                       (remhash id (jsonrpc--request-continuations connection))
-                       (remhash (list deferred buf)
-                                (jsonrpc--deferred-actions connection))
+                       (jsonrpc--remove connection id (list deferred buf))
                        (if timeout-fn (funcall timeout-fn)
                          (jsonrpc--debug
                           connection `(:timed-out ,method :id ,id
@@ -730,22 +732,22 @@ TIMEOUT is nil)."
                              :id id
                              :method method
                              :params params)
-    (puthash id
-             (list (or success-fn
-                       (lambda (&rest _ignored)
-                         (jsonrpc--debug
-                          connection (list :message "success ignored"
-                                           :id id))))
-                   (or error-fn
-                       (jsonrpc-lambda (&key code message &allow-other-keys)
-                         (jsonrpc--debug
-                          connection (list
-                                      :message
-                                      (format "error ignored, status set (%s)"
-                                              message)
-                                      :id id :error code))))
-                   (setq timer (funcall make-timer)))
-             (jsonrpc--request-continuations connection))
+    (push (cons id
+                (list (or success-fn
+                          (lambda (&rest _ignored)
+                            (jsonrpc--debug
+                             connection (list :message "success ignored"
+                                              :id id))))
+                      (or error-fn
+                          (jsonrpc-lambda (&key code message &allow-other-keys)
+                            (jsonrpc--debug
+                             connection (list
+                                         :message
+                                         (format "error ignored, status set (%s)"
+                                                 message)
+                                         :id id :error code))))
+                      (setq timer (funcall make-timer))))
+          (jsonrpc--request-continuations connection))
     (list id timer)))
 
 (defun jsonrpc--message (format &rest args)
@@ -905,6 +907,9 @@ CONNECT-ARGS are passed as additional arguments to
                (when np (delete-process np))
                (error "[jsonrpc] Could not start and/or connect")))))))
 
+(defun jsonrpc-continuation-count (conn)
+  "Number of outstanding continuations for CONN."
+  (length (jsonrpc--request-continuations conn)))
 
 (provide 'jsonrpc)
 ;;; jsonrpc.el ends here
