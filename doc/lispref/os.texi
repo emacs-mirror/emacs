@@ -2913,7 +2913,7 @@ interpreted as icon name.
 
 @item :category @var{category}
 The type of notification this is, a string.  See the
-@uref{https://developer.gnome.org/notification-spec/#categories,
+@url{https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html#categories,
 Desktop Notifications Specification} for a list of standard
 categories.
 
