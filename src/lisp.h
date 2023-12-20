@@ -2317,6 +2317,7 @@ extern Lisp_Object pkg_find_symbol (Lisp_Object name, Lisp_Object package, Lisp_
 extern void pkg_in_emacs_package (void);
 extern Lisp_Object pkg_symbol_completion_string (Lisp_Object sym, Lisp_Object status);
 extern Lisp_Object pkg_strip_package_prefix (Lisp_Object string, Lisp_Object package);
+extern Lisp_Object pkg_local_nickname (Lisp_Object package);
 
 
 /* Return whether a value might be a valid docstring.

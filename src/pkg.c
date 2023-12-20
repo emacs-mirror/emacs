@@ -21,8 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Common Lisp style packages.
 
    Useful features that could be added:
-   hierarchical packages
-   package-local nicknames  */
+   hierarchical packages? */
 
 #include <config.h>
 #include "lisp.h"
@@ -144,14 +143,23 @@ pkg_find_package (Lisp_Object name)
   if (!NILP (local_nicknames))
     {
       const Lisp_Object entry = Fassoc (name, local_nicknames, Qnil);
-      if (!NILP (entry))
-	{
-	  eassert (PACKAGEP (XCDR (entry)));
-	  return XCDR (entry);
-	}
+      if (CONSP (entry))
+	return XCDR (entry);
     }
 
   return Fgethash (name, Vpackage_registry, Qnil);
+}
+
+/* If PACKAGE has a local nickname in the current package, return it,
+   else return nil.  */
+
+Lisp_Object
+pkg_local_nickname (Lisp_Object package)
+{
+  const Lisp_Object local_nicknames
+    = XPACKAGE (Vearmuffs_package)->local_nicknames;
+  const Lisp_Object entry = Frassoc (package, local_nicknames);
+  return CONSP (entry) ? XCAR (entry) : Qnil;
 }
 
 /* Register package PACKAGE in the package registry, that is, make it

@@ -2316,7 +2316,14 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
       const bool accessible = !EQ (found, Qunbound);
       if (!accessible || !EQ (found, symbol))
 	{
-	  print_symbol_name (PACKAGE_NAMEX (package), printcharfun, escape, true);
+	  /* If PACKAGE has a package-local nickname in the current
+	     package, use that for printing, because that's why we
+	     have the nickname.  */
+	  const Lisp_Object nickname = pkg_local_nickname (package);
+	  if (STRINGP (nickname))
+	    print_symbol_name (nickname, printcharfun, escape, true);
+	  else
+	    print_symbol_name (PACKAGE_NAMEX (package), printcharfun, escape, true);
 	  const Lisp_Object found = pkg_find_symbol (name, package, &status);
 	  eassert (!EQ (found, Qunbound));
 	  if (EQ (status, QCexternal))
