@@ -179,7 +179,7 @@ Otherwise assume that "
              (package-name package) name))))
 
 ;;;###autoload
-(cl-defun buffer-package (buffer)
+(cl-defun buffer-package (&optional (buffer (current-buffer)))
   "Return the value of *package* set in BUFFER."
   (default-buffer-local-value '*package* buffer))
 
@@ -401,8 +401,9 @@ registered package."
   (package-%nicknames (pkg--package-or-lose package)))
 
 ;;;###autoload
-(defun package-local-nicknames (package)
+(cl-defun package-local-nicknames (&optional (package *package*))
   "Return an alist of package-local nicknames of PACKAGE.
+Optional PACKAGE defaults to the current package.
 If PACKAGE is not a package object already, it must be the name of a
 registered package."
   (package-%local-nicknames (pkg--package-or-lose package)))
