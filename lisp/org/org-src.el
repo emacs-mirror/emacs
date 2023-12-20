@@ -658,7 +658,9 @@ as `org-src-fontify-natively' is non-nil."
                     (when new-prop
                       (if (not (eq prop 'invisible))
 		          (put-text-property
-		           (+ start (1- pos)) (1- (+ start next)) prop new-prop
+		           (+ start (- pos (point-min)))
+		           (+ start (- next (point-min)))
+		           prop new-prop
 		           org-buffer)
                         ;; Special case.  `invisible' text property may
                         ;; clash with Org folding.  Do not assign
@@ -690,7 +692,8 @@ as `org-src-fontify-natively' is non-nil."
                             (when invisibility-spec
                               (add-to-invisibility-spec invisibility-spec))
                             (put-text-property
-		             (+ start (1- pos)) (1- (+ start next))
+		             (+ start (- pos (point-min)))
+		             (+ start (- next (point-min)))
                              'org-src-invisible new-prop
 		             org-buffer)))))))
 	        (setq pos next)))
