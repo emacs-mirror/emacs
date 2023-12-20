@@ -1837,7 +1837,7 @@ Initialized by `bibtex-set-dialect'.")
     (bibtex-font-lock-url) (bibtex-font-lock-crossref)
     ;; cite
     ,@(mapcar (lambda (matcher)
-                `((lambda (bound) (bibtex-font-lock-cite ',matcher bound))))
+                `(,(lambda (bound) (bibtex-font-lock-cite matcher bound))))
               bibtex-cite-matcher-alist))
   "Default expressions to highlight in BibTeX mode.")
 
@@ -2760,7 +2760,7 @@ Formats current entry according to variable `bibtex-entry-format'."
 			   (setq error-field-name
                                  (car (last (aref alt-fields idx))))
 			   (user-error "Alternative mandatory fields `%s' are missing"
-                                       (mapconcat 'identity
+                                       (mapconcat #'identity
                                                   (reverse
                                                    (aref alt-expect idx))
                                                   ", ")))
@@ -2768,7 +2768,7 @@ Formats current entry according to variable `bibtex-entry-format'."
 			   (setq error-field-name
                                  (car (last (aref alt-fields idx))))
 			   (user-error "Fields `%s' are alternatives"
-                                       (mapconcat 'identity
+                                       (mapconcat #'identity
                                                   (reverse
                                                    (aref alt-fields idx))
                                                   ", ")))))))
@@ -3624,7 +3624,7 @@ if that value is non-nil.
   (unless bibtex-parse-idle-timer
     (setq bibtex-parse-idle-timer (run-with-idle-timer
                                    bibtex-parse-keys-timeout t
-                                   'bibtex-parse-buffers-stealthily)))
+                                   #'bibtex-parse-buffers-stealthily)))
   (setq-local paragraph-start "[ \f\n\t]*$")
   (setq-local comment-column 0)
   (setq-local defun-prompt-regexp "^[ \t]*@[[:alnum:]]+[ \t]*")
@@ -3829,7 +3829,7 @@ for the templates of `bibtex-entry', whereas entry validation performed by
       (if (and (nth 3 elt)
                (<= 0 (nth 3 elt)))
           (push (nth 3 elt) alt-list)))
-    (setq alt-list (sort alt-list '<))
+    (setq alt-list (sort alt-list #'<))
     ;; Skip aliases.  If ELT is marked as "proper alternative", but all
     ;; alternatives for field ELT are aliases, we do not label ELT
     ;; as an alternative either.
@@ -4641,7 +4641,7 @@ Return t if test was successful, nil otherwise."
         (let ((file (file-name-nondirectory (buffer-file-name)))
               (dir default-directory)
               (err-buf "*BibTeX validation errors*"))
-          (setq error-list (sort error-list 'car-less-than-car))
+          (setq error-list (sort error-list #'car-less-than-car))
           (with-current-buffer (get-buffer-create err-buf)
             (setq default-directory dir)
             (unless (eq major-mode 'compilation-mode) (compilation-mode))
@@ -4714,7 +4714,7 @@ Return t if test was successful, nil otherwise."
               (delete-region (point-min) (point-max))
               (insert (substitute-command-keys
 		       "BibTeX mode command `bibtex-validate-globally'\n\n"))
-              (dolist (err (sort error-list 'string-lessp)) (insert err))
+              (dolist (err (sort error-list #'string-lessp)) (insert err))
               (set-buffer-modified-p nil))
             (goto-char (point-min))
             (forward-line 2)) ; first error message
