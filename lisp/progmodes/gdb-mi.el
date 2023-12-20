@@ -817,6 +817,39 @@ NOARG must be t when this macro is used outside `gud-def'."
 
 (defvar gdb-control-level 0)
 
+(defun gdb-load-history ()
+  (when (ring-empty-p comint-input-ring) ; cf shell-mode
+    (let ((hfile (expand-file-name (or (getenv "GDBHISTFILE")
+				       (if (eq system-type 'ms-dos)
+					   "_gdb_history"
+					 ".gdb_history"))))
+	  ;; gdb defaults to 256, but we'll default to comint-input-ring-size.
+	  (hsize (getenv "HISTSIZE")))
+      (dolist (file (append '("~/.gdbinit")
+			    (unless (string-equal (expand-file-name ".")
+                                                  (expand-file-name "~"))
+			      '(".gdbinit"))))
+	(if (file-readable-p (setq file (expand-file-name file)))
+	    (with-temp-buffer
+	      (insert-file-contents file)
+	      ;; TODO? check for "set history save\\(  *on\\)?" and do
+	      ;; not use history otherwise?
+	      (while (re-search-forward
+		      "^ *set history \\(filename\\|size\\)  *\\(.*\\)" nil t)
+		(cond ((string-equal (match-string 1) "filename")
+		       (setq hfile (expand-file-name
+				    (match-string 2)
+				    (file-name-directory file))))
+		      ((string-equal (match-string 1) "size")
+		       (setq hsize (match-string 2))))))))
+      (and (stringp hsize)
+	   (integerp (setq hsize (string-to-number hsize)))
+	   (> hsize 0)
+           (setq-local comint-input-ring-size hsize))
+      (if (stringp hfile)
+          (setq-local comint-input-ring-file-name hfile))
+      (comint-read-input-ring t))))
+
 ;;;###autoload
 (defun gdb (command-line)
   "Run gdb passing it COMMAND-LINE as arguments.
@@ -902,37 +935,8 @@ detailed description of this mode.
   (setq-local gud-minor-mode 'gdbmi)
   (setq-local gdb-control-level 0)
   (setq comint-input-sender 'gdb-send)
-  (when (ring-empty-p comint-input-ring) ; cf shell-mode
-    (let ((hfile (expand-file-name (or (getenv "GDBHISTFILE")
-				       (if (eq system-type 'ms-dos)
-					   "_gdb_history"
-					 ".gdb_history"))))
-	  ;; gdb defaults to 256, but we'll default to comint-input-ring-size.
-	  (hsize (getenv "HISTSIZE")))
-      (dolist (file (append '("~/.gdbinit")
-			    (unless (string-equal (expand-file-name ".")
-                                                  (expand-file-name "~"))
-			      '(".gdbinit"))))
-	(if (file-readable-p (setq file (expand-file-name file)))
-	    (with-temp-buffer
-	      (insert-file-contents file)
-	      ;; TODO? check for "set history save\\(  *on\\)?" and do
-	      ;; not use history otherwise?
-	      (while (re-search-forward
-		      "^ *set history \\(filename\\|size\\)  *\\(.*\\)" nil t)
-		(cond ((string-equal (match-string 1) "filename")
-		       (setq hfile (expand-file-name
-				    (match-string 2)
-				    (file-name-directory file))))
-		      ((string-equal (match-string 1) "size")
-		       (setq hsize (match-string 2))))))))
-      (and (stringp hsize)
-	   (integerp (setq hsize (string-to-number hsize)))
-	   (> hsize 0)
-           (setq-local comint-input-ring-size hsize))
-      (if (stringp hfile)
-          (setq-local comint-input-ring-file-name hfile))
-      (comint-read-input-ring t)))
+  (gdb-load-history)
+
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
 	   "Set temporary breakpoint at current line." t)
   (gud-def gud-jump
