@@ -123,30 +123,30 @@ Called with one argument, a cons (NAME . CONTENTS) as found in `register-alist'.
 The function should return a string, the description of the argument.
 It is set according to the value of `register--read-with-preview-function'.")
 
-(defcustom register-use-preview 'basic
+(defcustom register-use-preview 'traditional
   "Maybe show register preview.
 
 This has no effect when `register--read-with-preview-function' value
-is `register-read-with-preview-basic'.
+is `register-read-with-preview-traditional'.
 
 When set to `t' show a preview buffer with navigation and highlighting.
-When nil show a basic preview buffer and exit minibuffer
+When nil show a preview buffer with no such features and exit minibuffer
 immediately after insertion in minibuffer.
 When set to \\='never behave as above but with no preview buffer at
-all.
-When set to \\='basic provide a much more basic preview according to
+all but the preview buffer is still accessible with `help-char' (C-h).
+When set to \\='traditional provide a much more basic preview according to
 `register-preview-delay', it has the exact same behavior as in Emacs-29."
   :type '(choice
           (const :tag "Use preview" t)
           (const :tag "Use quick preview" nil)
           (const :tag "Never use preview" never)
-          (const :tag "Basic preview like Emacs-29" basic))
+          (const :tag "Basic preview like Emacs-29" traditional))
   :version 30.1
   :set (lambda (var val)
          (set var val)
          (setq register--read-with-preview-function
-               (if (eq val 'basic)
-                   #'register-read-with-preview-basic
+               (if (eq val 'traditional)
+                   #'register-read-with-preview-traditional
                  #'register-read-with-preview-fancy))
          (setq register-preview-function nil)))
 
@@ -185,7 +185,7 @@ See the documentation of the variable `register-alist' for possible VALUEs."
   "Returns a function to format a register for previewing.
 This according to the value of READ-PREVIEW-FUNCTION.")
 (cl-defmethod register--preview-function ((_read-preview-function
-                                           (eql register-read-with-preview-basic)))
+                                           (eql register-read-with-preview-traditional)))
   #'register-preview-default)
 (cl-defmethod register--preview-function ((_read-preview-function
                                            (eql register-read-with-preview-fancy)))
@@ -433,7 +433,7 @@ If `help-char' (or a member of `help-event-list') is pressed,
 display such a window regardless."
   (funcall register--read-with-preview-function prompt))
 
-(defun register-read-with-preview-basic (prompt)
+(defun register-read-with-preview-traditional (prompt)
   "Read and return a register name, possibly showing existing registers.
 Prompt with the string PROMPT.  If `register-alist' and
 `register-preview-delay' are both non-nil, display a window
