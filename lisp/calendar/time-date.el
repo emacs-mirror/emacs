@@ -408,6 +408,7 @@ right of \"%x\", trailing zero units are not output."
   "Formatting used by the function `seconds-to-string'.")
 ;;;###autoload
 (defun seconds-to-string (delay)
+  ;; FIXME: There's a similar (tho fancier) function in mastodon.el!
   "Convert the time interval in seconds to a short string."
   (cond ((> 0 delay) (concat "-" (seconds-to-string (- delay))))
         ((= 0 delay) "0s")
