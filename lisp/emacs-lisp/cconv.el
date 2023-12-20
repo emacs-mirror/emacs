@@ -621,9 +621,8 @@ places where they originally did not directly appear."
          `(,func . ,(mapcar (lambda (form)
                               (cconv-convert form env extend))
                             forms))
-       (macroexp--warn-wrap form (format-message "Malformed function `%S'"
-                                                 (car form))
-                            nil nil)))
+       (byte-compile-warn-x form "Malformed function `%S'" func)
+       nil))
 
     (_ (or (cdr (assq form env)) form))))
 
