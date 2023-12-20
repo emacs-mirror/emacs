@@ -704,6 +704,7 @@ Value is t."
 ;;                            defpackage
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;###autoload
 (defun pkg-defpackage (name nicknames local-nicknames
                             size shadows shadowing-imports
 			    use imports interns exports _doc-string)
@@ -772,6 +773,7 @@ Value is t."
     ;;(setf (package-doc-string package) doc-string)
     package))
 
+;;;###autoload
 (defmacro defpackage (package &rest options)
   "Defines a new package called PACKAGE.  Each of OPTIONS should be one of the
    following:
@@ -875,11 +877,13 @@ Value is t."
 		       ',shadows ',shadowing-imports ',(if use-p use :default)
 		       ',imports ',interns ',exports ',doc))))
 
+;;;###autoload
 (defun pkg--%in-package (name)
   (let ((package (or (find-package name)
                      (error "The package named '%s' doesn't exist." name))))
     (setf *package* package)))
 
+;;;###autoload
 (defmacro in-package (package)
   `(pkg--%in-package ',(pkg--stringify-name package "package")))
 
