@@ -2101,5 +2101,9 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
       (should (documentation 'bar))
       (should (documentation 'zot)))))
 
+(ert-deftest files-tests--expand-wildcards ()
+  (should (file-expand-wildcards
+           (concat (directory-file-name default-directory) "*/"))))
+
 (provide 'files-tests)
 ;;; files-tests.el ends here
