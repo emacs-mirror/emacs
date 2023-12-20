@@ -123,7 +123,8 @@ using dynamic scoping.
 Returns a form where all lambdas don't have any free variables."
   (let ((cconv--dynbound-variables dynbound-vars)
 	(cconv-freevars-alist '())
-	(cconv-var-classification '()))
+	(cconv-var-classification '())
+        (byte-compile-form-stack byte-compile-form-stack))
     ;; Analyze form - fill these variables with new information.
     (cconv-analyze-form form '())
     (setq cconv-freevars-alist (nreverse cconv-freevars-alist))
@@ -328,6 +329,7 @@ places where they originally did not directly appear."
   ;; to find the number of a specific variable in the environment vector,
   ;; so we never touch it(unless we enter to the other closure).
   ;;(if (listp form) (print (car form)) form)
+  (macroexp--with-extended-form-stack form
   (pcase form
     (`(,(and letsym (or 'let* 'let)) ,binders . ,body)
 
@@ -624,7 +626,7 @@ places where they originally did not directly appear."
        (byte-compile-warn-x form "Malformed function `%S'" func)
        nil))
 
-    (_ (or (cdr (assq form env)) form))))
+    (_ (or (cdr (assq form env)) form)))))
 
 (defvar byte-compile-lexical-variables)
 
