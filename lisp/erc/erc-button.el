@@ -829,6 +829,7 @@ argument when calling `erc-display-message'.  Otherwise, add it
 to STRINGS.  If STRINGS contains any trailing non-nil
 non-strings, concatenate leading string members before applying
 `format'.  Otherwise, just concatenate everything."
+  (defvar erc-stamp--skip)
   (let* ((buffer (if (bufferp maybe-buffer)
                      maybe-buffer
                    (when (stringp maybe-buffer)
@@ -844,8 +845,10 @@ non-strings, concatenate leading string members before applying
                  (push head strings))
                #'format))
          (string (apply op strings))
-         (erc-insert-modify-hook (remove 'erc-add-timestamp
-                                         erc-insert-modify-hook))
+         ;; Avoid timestamps unless left-sided.
+         (erc-stamp--skip (or (bound-and-true-p erc-stamp--display-margin-mode)
+                              (not (fboundp 'erc-timestamp-offset))
+                              (zerop (erc-timestamp-offset))))
          (erc-insert-post-hook
           (cons (lambda ()
                   (setq string (buffer-substring (point-min)

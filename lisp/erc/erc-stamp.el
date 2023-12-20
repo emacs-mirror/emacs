@@ -182,7 +182,7 @@ from entering them and instead jump over them."
    (add-hook 'erc-insert-modify-hook #'erc-add-timestamp 70)
    (add-hook 'erc-send-modify-hook #'erc-add-timestamp 70)
    (add-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
-   (add-hook 'erc--pre-clear-functions #'erc-stamp--reset-on-clear)
+   (add-hook 'erc--pre-clear-functions #'erc-stamp--reset-on-clear 40)
    (unless erc--updating-modules-p (erc-buffer-do #'erc-stamp--setup)))
   ((remove-hook 'erc-mode-hook #'erc-munge-invisibility-spec)
    (remove-hook 'erc-insert-modify-hook #'erc-add-timestamp)
@@ -973,8 +973,9 @@ with the option `erc-echo-timestamps', see the companion option
 (defun erc-stamp--reset-on-clear (pos)
   "Forget last-inserted stamps when POS is at insert marker."
   (when (= pos (1- erc-insert-marker))
-    (add-hook 'erc-stamp--insert-date-hook
-              #'erc-stamp--update-saved-position 0 t)
+    (when erc-stamp--date-mode
+      (add-hook 'erc-stamp--insert-date-hook
+                #'erc-stamp--update-saved-position 0 t))
     (setq erc-timestamp-last-inserted nil
           erc-timestamp-last-inserted-left nil
           erc-timestamp-last-inserted-right nil)))

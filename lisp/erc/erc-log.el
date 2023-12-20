@@ -231,7 +231,7 @@ also be a predicate function.  To only log when you are not set away, use:
    (add-hook 'erc-part-hook #'erc-conditional-save-buffer)
    ;; append, so that 'erc-initialize-log-marker runs first
    (add-hook 'erc-connect-pre-hook #'erc-log-setup-logging 'append)
-   (add-hook 'erc--pre-clear-functions #'erc-save-buffer-in-logs)
+   (add-hook 'erc--pre-clear-functions #'erc-save-buffer-in-logs 50)
    (dolist (buffer (erc-buffer-list))
      (erc-log-setup-logging buffer))
    (erc--modify-local-map t "C-c C-l" #'erc-save-buffer-in-logs))
@@ -430,7 +430,8 @@ You can save every individual message by putting this function on
 	      (if (and erc-truncate-buffer-on-save
 		       (called-interactively-p 'interactive))
                   (let ((erc-log--save-in-progress-p t))
-                    (erc-cmd-CLEAR)
+                    (save-excursion (goto-char erc-insert-marker)
+                                    (erc-cmd-CLEAR))
                     (erc-button--display-error-notice-with-keys
                      (erc-server-buffer) "Option `%s' is deprecated."
                      " Use /CLEAR instead." 'erc-truncate-buffer-on-save))

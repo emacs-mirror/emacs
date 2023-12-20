@@ -4160,12 +4160,16 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
 Called with position indicating boundary of interval to be excised.")
 
 (defun erc-cmd-CLEAR ()
-  "Clear the window content."
-  (let ((inhibit-read-only t))
-    (run-hook-with-args 'erc--pre-clear-functions (1- erc-insert-marker))
-    ;; Ostensibly, `line-beginning-position' is for use in lisp code.
-    (delete-region (point-min) (min (line-beginning-position)
-                                    (1- erc-insert-marker))))
+  "Clear messages in current buffer after informing active modules.
+Expect modules to perform housekeeping tasks to withstand the
+disruption.  When called from lisp code, only clear messages up
+to but not including the one occupying the current line."
+  (with-silent-modifications
+    (let ((max (if (>= (point) erc-insert-marker)
+                   (1- erc-insert-marker)
+                 (or (erc--get-inserted-msg-bounds 'beg) (pos-bol)))))
+      (run-hook-with-args 'erc--pre-clear-functions max)
+      (delete-region (point-min) max)))
   t)
 (put 'erc-cmd-CLEAR 'process-not-needed t)
 

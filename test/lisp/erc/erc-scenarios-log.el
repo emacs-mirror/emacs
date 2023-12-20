@@ -206,4 +206,59 @@
     (erc-truncate-mode -1)
     (when noninteractive (delete-directory tempdir :recursive))))
 
+(defvar erc-insert-timestamp-function)
+(declare-function erc-insert-timestamp-left "erc-stamp" (string))
+
+(ert-deftest erc-scenarios-log--save-buffer-in-logs/truncate-on-save ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "base/assoc/bouncer-history")
+       (dumb-server (erc-d-run "localhost" t 'foonet))
+       (tempdir (make-temp-file "erc-tests-log." t nil nil))
+       (erc-log-channels-directory tempdir)
+       (erc-modules (cons 'log erc-modules))
+       (port (process-contact dumb-server :service))
+       (erc-truncate-buffer-on-save t)
+       (logchan (expand-file-name (format "#chan!tester@127.0.0.1:%d.txt" port)
+                                  tempdir))
+       (erc-server-flood-penalty 0.1)
+       (erc-insert-timestamp-function #'erc-insert-timestamp-left)
+       (expect (erc-d-t-make-expecter)))
+
+    (unless noninteractive
+      (add-hook 'kill-emacs-hook
+                (lambda () (delete-directory tempdir :recursive))))
+
+    (ert-info ("Connect to foonet")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester"
+                                :password "foonet:changeme"
+                                :full-name "tester")
+        (should (string= (buffer-name) (format "127.0.0.1:%d" port)))))
+
+    (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "#chan"))
+      (funcall expect 10 "<someone> [07:04:10] hi everyone")
+      (should-not (file-exists-p logchan))
+      ;; Simulate an M-x erc-save-buffer-in-logs RET
+      (cl-letf (((symbol-function 'called-interactively-p) #'always))
+        (call-interactively #'erc-save-buffer-in-logs))
+      (should (file-exists-p logchan))
+      (funcall expect 10 "<alice> bob: As't please your lordship")
+      (erc-save-buffer-in-logs)
+      ;; Not truncated when called by lisp code.
+      (should (> (buffer-size) 400)))
+
+    (ert-info ("No double entries")
+      (with-temp-buffer
+        (insert-file-contents logchan)
+        (funcall expect 0.1 "hi everyone")
+        (funcall expect -0.1 "hi everyone")
+        (funcall expect 0.1 "Playback Complete")
+        (funcall expect -0.1 "Playback Complete")
+        (funcall expect 10 "<alice> bob: As't")))
+
+    (erc-log-mode -1)
+    (when noninteractive (delete-directory tempdir :recursive))))
+
 ;;; erc-scenarios-log.el ends here
