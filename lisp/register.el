@@ -104,7 +104,7 @@ If nil, do not show register previews, unless `help-char' (or a member of
 (defcustom register-preview-default-keys (mapcar #'string (number-sequence ?a ?z))
   "Default keys for setting a new register."
   :type '(repeat string)
-  :version 30.1)
+  :version "30.1")
 
 (defvar register--read-with-preview-function nil
   "The register read preview function to use.
@@ -141,7 +141,7 @@ When set to \\='traditional provide a much more basic preview according to
           (const :tag "Use quick preview" nil)
           (const :tag "Never use preview" never)
           (const :tag "Basic preview like Emacs-29" traditional))
-  :version 30.1
+  :version "30.1"
   :set (lambda (var val)
          (set var val)
          (setq register--read-with-preview-function
