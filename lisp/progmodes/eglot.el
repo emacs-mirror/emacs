@@ -993,6 +993,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
     :documentation "Flag set when server is shutting down."
     :accessor eglot--shutdown-requested)
    (project
+    :initform nil
     :documentation "Project associated with server."
     :accessor eglot--project)
    (progress-reporters
@@ -1512,7 +1513,7 @@ This docstring appeases checkdoc, that's all."
           (apply
            #'make-instance class
            :name readable-name
-           :events-buffer-scrollback-size eglot-events-buffer-size
+           :events-buffer-config `(:size ,eglot-events-buffer-size :format full)
            :notification-dispatcher (funcall spread #'eglot-handle-notification)
            :request-dispatcher (funcall spread #'eglot-handle-request)
            :on-shutdown #'eglot--on-shutdown

@@ -199,38 +199,40 @@ directory hierarchy."
                               &rest body)
   "Run BODY saving LSP JSON messages in variables, most recent first."
   (declare (indent 1) (debug (sexp &rest form)))
-  (let ((log-event-ad-sym (make-symbol "eglot--event-sniff")))
-    `(unwind-protect
-         (let ,(delq nil (list server-requests
-                               server-notifications
-                               server-replies
-                               client-requests
-                               client-notifications
-                               client-replies))
-           (advice-add
-            #'jsonrpc--log-event :before
-            (lambda (_proc message &optional origin subtype)
-              (let ((req-p (eq subtype 'request))
-                    (notif-p (eq subtype 'notification))
-                    (reply-p (eql subtype 'reply)))
-                (cond
-                 ((eq origin 'server)
-                  (cond (req-p ,(when server-requests
-                                  `(push message ,server-requests)))
-                        (notif-p ,(when server-notifications
-                                    `(push message ,server-notifications)))
-                        (reply-p ,(when server-replies
-                                    `(push message ,server-replies)))))
-                 ((eq origin 'client)
-                  (cond (req-p ,(when client-requests
-                                  `(push message ,client-requests)))
-                        (notif-p ,(when client-notifications
-                                    `(push message ,client-notifications)))
-                        (reply-p ,(when client-replies
-                                    `(push message ,client-replies))))))))
-            '((name . ,log-event-ad-sym)))
-           ,@body)
-       (advice-remove #'jsonrpc--log-event ',log-event-ad-sym))))
+  (let ((log-event-hook-sym (make-symbol "eglot--event-sniff")))
+    `(let* (,@(delq nil (list server-requests
+                              server-notifications
+                              server-replies
+                              client-requests
+                              client-notifications
+                              client-replies)))
+       (cl-flet ((,log-event-hook-sym (_connection
+                                       origin
+                                       &key _json kind message _foreign-message
+                                       &allow-other-keys)
+                   (let ((req-p (eq kind 'request))
+                         (notif-p (eq kind 'notification))
+                         (reply-p (eql kind 'reply)))
+                     (cond
+                      ((eq origin 'server)
+                       (cond (req-p ,(when server-requests
+                                       `(push message ,server-requests)))
+                             (notif-p ,(when server-notifications
+                                         `(push message ,server-notifications)))
+                             (reply-p ,(when server-replies
+                                         `(push message ,server-replies)))))
+                      ((eq origin 'client)
+                       (cond (req-p ,(when client-requests
+                                       `(push message ,client-requests)))
+                             (notif-p ,(when client-notifications
+                                         `(push message ,client-notifications)))
+                             (reply-p ,(when client-replies
+                                         `(push message ,client-replies)))))))))
+         (unwind-protect
+             (progn
+               (add-hook 'jsonrpc-event-hook #',log-event-hook-sym)
+               ,@body)
+           (remove-hook 'jsonrpc-event-hook #',log-event-hook-sym))))))
 
 (cl-defmacro eglot--wait-for ((events-sym &optional (timeout 1) message) args &body body)
   (declare (indent 2) (debug (sexp sexp sexp &rest form)))
@@ -542,10 +544,7 @@ directory hierarchy."
       `(("project" . (("coiso.c" . "#include <stdio.h>\nint main () {fprin"))))
     (with-current-buffer
         (eglot--find-file-noselect "project/coiso.c")
-      (eglot--sniffing (:server-notifications s-notifs)
-        (eglot--wait-for-clangd)
-        (eglot--wait-for (s-notifs 20) (&key method &allow-other-keys)
-          (string= method "textDocument/publishDiagnostics")))
+      (eglot--wait-for-clangd)
       (goto-char (point-max))
       (completion-at-point)
       (message (buffer-string))
