@@ -10633,7 +10633,7 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
 
   if (versor)
     {
-      /* Move along X axis, converting the distance to the freedom
+      /* Move along Y axis, converting the distance to the freedom
 	 vector.  */
       num = n;
       k = sfnt_multiply_divide_signed (distance,
@@ -12078,6 +12078,38 @@ sfnt_interpret_control_value_program (struct sfnt_interpreter *interpreter,
 
   if (interpreter->state.instruct_control & 4)
     sfnt_init_graphics_state (&interpreter->state);
+  else
+    {
+      /* And even if not, reset the following graphics state
+	 variables, to which both the Apple and MS scalers don't
+	 permit modifications from the preprogram.
+
+         Not only is such reversion undocumented, it is also
+         inefficient, for modern fonts at large only move points on
+         the Y axis.  As such, these fonts must issue a redundant
+         SVTCA[Y] instruction within each glyph program, in place of
+         initializing the projection and freedom vectors once and for
+         all in prep.  Unfortunately many fonts which do instruct on
+         the X axis now rely on this ill-conceived behavior, so Emacs
+         must, reluctantly, follow suit.  */
+
+      interpreter->state.dual_projection_vector.x = 040000; /* 1.0 */
+      interpreter->state.dual_projection_vector.y = 0;
+      interpreter->state.freedom_vector.x = 040000; /* 1.0 */
+      interpreter->state.freedom_vector.y = 0;
+      interpreter->state.projection_vector.x = 040000; /* 1.0 */
+      interpreter->state.projection_vector.y = 0;
+      interpreter->state.rp0 = 0;
+      interpreter->state.rp1 = 0;
+      interpreter->state.rp2 = 0;
+      interpreter->state.zp0 = 1;
+      interpreter->state.zp1 = 1;
+      interpreter->state.zp2 = 1;
+      interpreter->state.loop = 1;
+
+      /* Validate the graphics state.  */
+      sfnt_validate_gs (&interpreter->state);
+    }
 
   /* Save the graphics state upon success.  */
   memcpy (state, &interpreter->state, sizeof *state);
