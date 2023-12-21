@@ -334,8 +334,7 @@ Only valid during macro-expansion."
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.
 Assumes the caller has bound `macroexpand-all-environment'."
-  (push form byte-compile-form-stack)
-  (prog1
+  (macroexp--with-extended-form-stack form
       (if (eq (car-safe form) 'backquote-list*)
           ;; Special-case `backquote-list*', as it is normally a macro that
           ;; generates exceedingly deep expansions from relatively shallow input
@@ -520,8 +519,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                              newform
                            (macroexp--expand-all form)))
                      (macroexp--expand-all newform))))))
-            (_ form))))
-    (pop byte-compile-form-stack)))
+            (_ form))))))
 
 ;;;###autoload
 (defun macroexpand-all (form &optional environment)

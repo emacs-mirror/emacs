@@ -2663,16 +2663,12 @@ list that represents a doc string reference.
 
 ;; byte-hunk-handlers cannot call this!
 (defun byte-compile-toplevel-file-form (top-level-form)
-  ;; (let ((byte-compile-form-stack
-  ;;        (cons top-level-form byte-compile-form-stack)))
-  (push top-level-form byte-compile-form-stack)
-  (prog1
-      (byte-compile-recurse-toplevel
-       top-level-form
-       (lambda (form)
-         (let ((byte-compile-current-form nil)) ; close over this for warnings.
-           (byte-compile-file-form (byte-compile-preprocess form t)))))
-    (pop byte-compile-form-stack)))
+  (macroexp--with-extended-form-stack top-level-form
+    (byte-compile-recurse-toplevel
+     top-level-form
+     (lambda (form)
+       (let ((byte-compile-current-form nil)) ; close over this for warnings.
+         (byte-compile-file-form (byte-compile-preprocess form t)))))))
 
 ;; byte-hunk-handlers can call this.
 (defun byte-compile-file-form (form)
@@ -3483,122 +3479,121 @@ lambda-expression."
 ;;
 (defun byte-compile-form (form &optional for-effect)
   (let ((byte-compile--for-effect for-effect))
-    (push form byte-compile-form-stack)
-    (cond
-     ((not (consp form))
-      (cond ((or (not (symbolp form)) (macroexp--const-symbol-p form))
-             (byte-compile-constant form))
-            ((and byte-compile--for-effect byte-compile-delete-errors)
-             (setq byte-compile--for-effect nil))
-            (t (byte-compile-variable-ref form))))
-     ((symbolp (car form))
-      (let* ((fn (car form))
-             (handler (get fn 'byte-compile))
-	     (interactive-only
-	      (or (function-get fn 'interactive-only)
-		  (memq fn byte-compile-interactive-only-functions))))
-        (when (memq fn '(set symbol-value run-hooks ;; add-to-list
-                             add-hook remove-hook run-hook-with-args
-                             run-hook-with-args-until-success
-                             run-hook-with-args-until-failure))
-          (pcase (cdr form)
-            (`(',var . ,_)
-             (when (and (memq var byte-compile-lexical-variables)
-                        (byte-compile-warning-enabled-p 'lexical var))
-               (byte-compile-warn
-                (format-message "%s cannot use lexical var `%s'" fn var))))))
-        ;; Warn about using obsolete hooks.
-        (if (memq fn '(add-hook remove-hook))
-            (let ((hook (car-safe (cdr form))))
-              (if (eq (car-safe hook) 'quote)
-                  (byte-compile-check-variable (cadr hook) nil))))
-        (when (and (byte-compile-warning-enabled-p 'suspicious)
-                   (macroexp--const-symbol-p fn))
-          (byte-compile-warn-x fn "`%s' called as a function" fn))
-	(when (and (byte-compile-warning-enabled-p 'interactive-only fn)
-		   interactive-only)
-	  (byte-compile-warn-x fn "`%s' is for interactive use only%s"
-			       fn
-			       (cond ((stringp interactive-only)
-				      (format "; %s"
-					      (substitute-command-keys
-					       interactive-only)))
-				     ((and (symbolp interactive-only)
-					   (not (eq interactive-only t)))
-				      (format-message "; use `%s' instead."
-                                                      interactive-only))
-				     (t "."))))
-        (let ((mutargs (function-get (car form) 'mutates-arguments)))
-          (when mutargs
-            (dolist (idx (if (eq mutargs 'all-but-last)
-                             (number-sequence 1 (- (length form) 2))
-                           mutargs))
-              (let ((arg (nth idx form)))
-                (when (and (or (and (eq (car-safe arg) 'quote)
-                                    (consp (nth 1 arg)))
-                               (arrayp arg))
-                           (byte-compile-warning-enabled-p
-                            'mutate-constant (car form)))
-                  (byte-compile-warn-x form "`%s' on constant %s (arg %d)"
-                                       (car form)
-                                       (if (consp arg) "list" (type-of arg))
-                                       idx))))))
+    (macroexp--with-extended-form-stack form
+      (cond
+       ((not (consp form))
+        (cond ((or (not (symbolp form)) (macroexp--const-symbol-p form))
+               (byte-compile-constant form))
+              ((and byte-compile--for-effect byte-compile-delete-errors)
+               (setq byte-compile--for-effect nil))
+              (t (byte-compile-variable-ref form))))
+       ((symbolp (car form))
+        (let* ((fn (car form))
+               (handler (get fn 'byte-compile))
+	       (interactive-only
+	        (or (function-get fn 'interactive-only)
+		    (memq fn byte-compile-interactive-only-functions))))
+          (when (memq fn '(set symbol-value run-hooks ;; add-to-list
+                               add-hook remove-hook run-hook-with-args
+                               run-hook-with-args-until-success
+                               run-hook-with-args-until-failure))
+            (pcase (cdr form)
+              (`(',var . ,_)
+               (when (and (memq var byte-compile-lexical-variables)
+                          (byte-compile-warning-enabled-p 'lexical var))
+                 (byte-compile-warn
+                  (format-message "%s cannot use lexical var `%s'" fn var))))))
+          ;; Warn about using obsolete hooks.
+          (if (memq fn '(add-hook remove-hook))
+              (let ((hook (car-safe (cdr form))))
+                (if (eq (car-safe hook) 'quote)
+                    (byte-compile-check-variable (cadr hook) nil))))
+          (when (and (byte-compile-warning-enabled-p 'suspicious)
+                     (macroexp--const-symbol-p fn))
+            (byte-compile-warn-x fn "`%s' called as a function" fn))
+	  (when (and (byte-compile-warning-enabled-p 'interactive-only fn)
+		     interactive-only)
+	    (byte-compile-warn-x fn "`%s' is for interactive use only%s"
+			         fn
+			         (cond ((stringp interactive-only)
+				        (format "; %s"
+					        (substitute-command-keys
+					         interactive-only)))
+				       ((and (symbolp interactive-only)
+					     (not (eq interactive-only t)))
+				        (format-message "; use `%s' instead."
+                                                        interactive-only))
+				       (t "."))))
+          (let ((mutargs (function-get (car form) 'mutates-arguments)))
+            (when mutargs
+              (dolist (idx (if (eq mutargs 'all-but-last)
+                               (number-sequence 1 (- (length form) 2))
+                             mutargs))
+                (let ((arg (nth idx form)))
+                  (when (and (or (and (eq (car-safe arg) 'quote)
+                                      (consp (nth 1 arg)))
+                                 (arrayp arg))
+                             (byte-compile-warning-enabled-p
+                              'mutate-constant (car form)))
+                    (byte-compile-warn-x form "`%s' on constant %s (arg %d)"
+                                         (car form)
+                                         (if (consp arg) "list" (type-of arg))
+                                         idx))))))
 
-        (let ((funargs (function-get (car form) 'funarg-positions)))
-          (dolist (funarg funargs)
-            (let ((arg (if (numberp funarg)
-                           (nth funarg form)
-                         (cadr (memq funarg form)))))
-              (when (and (eq 'quote (car-safe arg))
-                         (eq 'lambda (car-safe (cadr arg))))
+          (let ((funargs (function-get (car form) 'funarg-positions)))
+            (dolist (funarg funargs)
+              (let ((arg (if (numberp funarg)
+                             (nth funarg form)
+                           (cadr (memq funarg form)))))
+                (when (and (eq 'quote (car-safe arg))
+                           (eq 'lambda (car-safe (cadr arg))))
+                  (byte-compile-warn-x
+                   arg "(lambda %s ...) quoted with %s rather than with #%s"
+                   (or (nth 1 (cadr arg)) "()")
+                   "'" "'")))))           ; avoid styled quotes
+
+          (if (eq (car-safe (symbol-function (car form))) 'macro)
+              (byte-compile-report-error
+               (format-message "`%s' defined after use in %S (missing `require' of a library file?)"
+                               (car form) form)))
+
+          (when byte-compile--for-effect
+            (let ((sef (function-get (car form) 'side-effect-free)))
+              (cond
+               ((and sef (or (eq sef 'error-free)
+                             byte-compile-delete-errors))
+                ;; This transform is normally done in the Lisp optimizer,
+                ;; so maybe we don't need to bother about it here?
+                (setq form (cons 'progn (cdr form)))
+                (setq handler #'byte-compile-progn))
+               ((and (or sef (function-get (car form) 'important-return-value))
+                     ;; Don't warn for arguments to `ignore'.
+                     (not (eq byte-compile--for-effect 'for-effect-no-warn))
+                     (byte-compile-warning-enabled-p
+                      'ignored-return-value (car form)))
                 (byte-compile-warn-x
-                 arg "(lambda %s ...) quoted with %s rather than with #%s"
-                 (or (nth 1 (cadr arg)) "()")
-                 "'" "'")))))           ; avoid styled quotes
+                 (car form)
+                 "value from call to `%s' is unused%s"
+                 (car form)
+                 (cond ((eq (car form) 'mapcar)
+                        "; use `mapc' or `dolist' instead")
+                       (t "")))))))
 
-        (if (eq (car-safe (symbol-function (car form))) 'macro)
-            (byte-compile-report-error
-             (format-message "`%s' defined after use in %S (missing `require' of a library file?)"
-                     (car form) form)))
-
-        (when byte-compile--for-effect
-          (let ((sef (function-get (car form) 'side-effect-free)))
-            (cond
-             ((and sef (or (eq sef 'error-free)
-                           byte-compile-delete-errors))
-              ;; This transform is normally done in the Lisp optimizer,
-              ;; so maybe we don't need to bother about it here?
-              (setq form (cons 'progn (cdr form)))
-              (setq handler #'byte-compile-progn))
-             ((and (or sef (function-get (car form) 'important-return-value))
-                   ;; Don't warn for arguments to `ignore'.
-                   (not (eq byte-compile--for-effect 'for-effect-no-warn))
-                   (byte-compile-warning-enabled-p
-                    'ignored-return-value (car form)))
-              (byte-compile-warn-x
-               (car form)
-               "value from call to `%s' is unused%s"
-               (car form)
-               (cond ((eq (car form) 'mapcar)
-                      "; use `mapc' or `dolist' instead")
-                     (t "")))))))
-
-        (if (and handler
-                 ;; Make sure that function exists.
-                 (and (functionp handler)
-                      ;; Ignore obsolete byte-compile function used by former
-                      ;; CL code to handle compiler macros (we do it
-                      ;; differently now).
-                      (not (eq handler 'cl-byte-compile-compiler-macro))))
-            (funcall handler form)
-          (byte-compile-normal-call form))))
-     ((and (byte-code-function-p (car form))
-           (memq byte-optimize '(t lap)))
-      (byte-compile-unfold-bcf form))
-     ((byte-compile-normal-call form)))
-    (if byte-compile--for-effect
-        (byte-compile-discard))
-    (pop byte-compile-form-stack)))
+          (if (and handler
+                   ;; Make sure that function exists.
+                   (and (functionp handler)
+                        ;; Ignore obsolete byte-compile function used by former
+                        ;; CL code to handle compiler macros (we do it
+                        ;; differently now).
+                        (not (eq handler 'cl-byte-compile-compiler-macro))))
+              (funcall handler form)
+            (byte-compile-normal-call form))))
+       ((and (byte-code-function-p (car form))
+             (memq byte-optimize '(t lap)))
+        (byte-compile-unfold-bcf form))
+       ((byte-compile-normal-call form)))
+      (if byte-compile--for-effect
+          (byte-compile-discard)))))
 
 (let ((important-return-value-fns
        '(
