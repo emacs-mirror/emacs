@@ -94,4 +94,8 @@ available before `debug' was usable.)"
   (prin1 (cdr (car (cdr args))))	; The error data.
   (debug-early-backtrace)))
 
+(defalias 'debug-early--handler         ;Called from C.
+  #'(lambda (err)
+      (if backtrace-on-error-noninteractive (debug-early 'error err))))
+
 ;;; debug-early.el ends here.

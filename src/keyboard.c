@@ -1163,7 +1163,17 @@ command_loop_2 (Lisp_Object handlers)
 static Lisp_Object
 top_level_2 (void)
 {
-  return Feval (Vtop_level, Qnil);
+  /* If we're in batch mode, print a backtrace unconditionally when
+     encountering an error, to help with debugging.  */
+  bool setup_handler = noninteractive;
+  if (setup_handler)
+    push_handler_bind (list1 (Qerror), Qdebug_early__handler, 0);
+
+  Lisp_Object res = Feval (Vtop_level, Qnil);
+
+  if (setup_handler)
+    pop_handler ();
+  return res;
 }
 
 static Lisp_Object

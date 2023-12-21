@@ -317,6 +317,7 @@ call_debugger (Lisp_Object arg)
   /* Interrupting redisplay and resuming it later is not safe under
      all circumstances.  So, when the debugger returns, abort the
      interrupted redisplay by going back to the top-level.  */
+  /* FIXME: Move this to the redisplay code?  */
   if (debug_while_redisplaying
       && !EQ (Vdebugger, Qdebug_early))
     Ftop_level ();
@@ -1198,7 +1199,7 @@ usage: (catch TAG BODY...)  */)
 
 #define clobbered_eassert(E) verify (sizeof (E) != 0)
 
-static void
+void
 pop_handler (void)
 {
   handlerlist = handlerlist->next;
@@ -1367,6 +1368,16 @@ usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
   return internal_lisp_condition_case (var, bodyform, handlers);
 }
 
+void
+push_handler_bind (Lisp_Object conditions, Lisp_Object handler, int skip)
+{
+  if (!CONSP (conditions))
+    conditions = Fcons (conditions, Qnil);
+  struct handler *c = push_handler (conditions, HANDLER_BIND);
+  c->val = handler;
+  c->bytecode_dest = skip;
+}
+
 DEFUN ("handler-bind-1", Fhandler_bind_1, Shandler_bind_1, 1, MANY, 0,
        doc: /* Setup error handlers around execution of BODYFUN.
 BODYFUN be a function and it is called with no arguments.
@@ -1392,11 +1403,7 @@ usage: (handler-bind BODYFUN [CONDITIONS HANDLER]...)  */)
       Lisp_Object conditions = args[i], handler = args[i + 1];
       if (NILP (conditions))
         continue;
-      else if (!CONSP (conditions))
-        conditions = Fcons (conditions, Qnil);
-      struct handler *c = push_handler (conditions, HANDLER_BIND);
-      c->val = handler;
-      c->bytecode_dest = count++;
+      push_handler_bind (conditions, handler, count++);
     }
   Lisp_Object ret = call0 (bodyfun);
   for (; count > 0; count--)
@@ -1883,24 +1890,6 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	 can continue code which has signaled a quit.  */
       if (keyboard_quit && debugger_called && EQ (real_error_symbol, Qquit))
 	return Qnil;
-    }
-
-  /* If we're in batch mode, print a backtrace unconditionally to help
-     with debugging.  Make sure to use `debug-early' unconditionally
-     to not interfere with ERT or other packages that install custom
-     debuggers.  */
-  /* FIXME: This could be turned into a `handler-bind` at toplevel?  */
-  if (!debugger_called && !NILP (error_symbol)
-      && (NILP (clause) || EQ (clause, Qerror))
-      && noninteractive && backtrace_on_error_noninteractive
-      && NILP (Vinhibit_debugger)
-      && !NILP (Ffboundp (Qdebug_early)))
-    {
-      max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
-      specpdl_ref count = SPECPDL_INDEX ();
-      specbind (Qdebugger, Qdebug_early);
-      call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
-      unbind_to (count, Qnil);
     }
 
   /* If an error is signaled during a Lisp hook in redisplay, write a
@@ -4392,6 +4381,7 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (QCdocumentation, ":documentation");
   DEFSYM (Qdebug, "debug");
   DEFSYM (Qdebug_early, "debug-early");
+  DEFSYM (Qdebug_early__handler, "debug-early--handler");
 
   DEFVAR_LISP ("inhibit-debugger", Vinhibit_debugger,
 	       doc: /* Non-nil means never enter the debugger.
