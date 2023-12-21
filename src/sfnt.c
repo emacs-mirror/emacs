@@ -7605,9 +7605,12 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     interpreter->state.scan_control = value;	\
   }
 
-/* Selector bit 8 is undocumented, but present in the Macintosh
+/* Selector bit 3 is undocumented, but present in the Macintosh
    rasterizer.  02000 is returned if there is a variation axis in
-   use.  */
+   use.
+
+   Selector bit 5 is undocumented, but relied on by several fonts.
+   010000 is returned if a grayscale rasterizer is in use.  */
 
 #define GETINFO()				\
   {						\
@@ -7623,6 +7626,9 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     if (selector & 8				\
 	&& interpreter->norm_coords)		\
       k |= 02000;				\
+						\
+    if (selector & 32)				\
+      k |= 010000;				\
 						\
     PUSH_UNCHECKED (k);				\
   }
