@@ -554,6 +554,21 @@ files.
 *** 'dired-listing-switches' handles connection-local values if exist.
 This allows to customize different switches for different remote machines.
 
+** Registers
+
++++
+*** New mode of prompting for register names and showing preview.
+The new user option 'register-use-preview' can be customized to the
+value t to request a different user interface of prompting for
+register names and previewing the registers: Emacs will require
+confirmation for overwriting the value of a register, and will show
+the preview of registers without delay.  You can also customize this
+new option to disable the preview completely.
+
+The default value of 'register-use-preview' preserves the behavior of
+Emacs 29 and before.  See the Info node "(emacs) Registers" for more
+details about the new UI and its variants.
+
 ** Ediff
 
 ---
@@ -1215,12 +1230,6 @@ showcases all their customization options.
 
 
 * Incompatible Lisp Changes in Emacs 30.1
-
----
-** 'register-preview-delay' is no longer used.
-Register preview is no longer delayed.  If you want to disable the
-preview, customize the new option 'register-use-preview' to the value
-'never'.
 
 +++
 ** 'M-TAB' now invokes 'completion-at-point' also in Text mode.

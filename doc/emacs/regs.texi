@@ -32,14 +32,46 @@ view-register}:
 Display a description of what register @var{r} contains.
 @end table
 
-@vindex register-preview-delay
+
 @cindex preview of registers
-  All of the commands that prompt for a register will display a
-preview window that lists the existing registers (if there are
-any) after a short delay.  To change the length of the delay,
-customize @code{register-preview-delay}.  To prevent this display, set
-that option to @code{nil}.  You can explicitly request a preview
-window by pressing @kbd{C-h} or @key{F1}.
+@vindex register-use-preview
+  All of the commands that prompt for a register will by default
+display a preview window that lists the existing registers (if there
+are any) and their current values, after a short delay.  This and
+other aspects of prompting for a register can be customized by setting
+the value of @code{register-use-preview}, which can have the following
+values:
+
+@table @code
+@vindex register-preview-delay
+@item traditional
+With this value, which is the default, Emacs behaves like it did in
+all the versions before Emacs 29: it shows a preview of existing registers
+after a delay, and lets you overwrite the values of existing registers
+by typing a single character, the name of the register.  The preview
+appears after the delay determined by the customizable variable
+@code{register-preview-delay}, which specifies the delay in seconds;
+setting it to @code{nil} disables the preview (but you can still
+explicitly request a preview window by pressing @kbd{C-h} or
+@key{F1} when Emacs prompts for a register).
+
+@item t
+This value requests a more flexible preview of existing registers.
+The preview appears immediately when Emacs prompts for a register
+(thus @code{register-preview-delay} has no effect), and the preview
+window provides navigation: by using @kbd{C-n} and @kbd{C-p} (or the
+@kbd{@key{UP}} and @kbd{@key{DOWN}} arrow keys), you can move between
+the registers in the preview window.  To overwrite the value of an
+existing registers in this mode, you need to type @key{RET} after
+selecting the register by navigation or typing its name.
+
+@item nil
+This value requests behavior similar to @code{traditional}, but the
+preview is shown without delay.
+
+@item never
+This value is like @code{nil}, but it disables the preview.
+@end table
 
   @dfn{Bookmarks} record files and positions in them, so you can
 return to those positions when you look at the file again.  Bookmarks

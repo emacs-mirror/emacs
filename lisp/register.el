@@ -96,7 +96,10 @@ of the marked text."
 (defcustom register-preview-delay 1
   "If non-nil, time to wait in seconds before popping up register preview window.
 If nil, do not show register previews, unless `help-char' (or a member of
-`help-event-list') is pressed."
+`help-event-list') is pressed.
+
+This variable has no effect when `register-use-preview' is set to any
+value except \\='traditional."
   :version "24.4"
   :type '(choice number (const :tag "No preview unless requested" nil))
   :group 'register)
@@ -107,35 +110,38 @@ If nil, do not show register previews, unless `help-char' (or a member of
   :version "30.1")
 
 (defvar register--read-with-preview-function nil
-  "The register read preview function to use.
-Two functions are provided, one that provide navigation and
-highlighting of the register selected, filtering of register
-according to command in use, defaults register to use when
-setting a new register, confirmation and notification when you
-are about to overwrite a register and generic functions to
-configure how each existing commands behave.  The other function
-provided is the same as what was used in Emacs-29, no filtering,
-no navigation, no defaults.")
+  "Function to use for reading a register name with preview.
+Two functions are provided, one that provide navigation and highlighting
+of the selected register, filtering of register according to command in
+use, defaults register to use when setting a new register, confirmation
+and notification when you are about to overwrite a register, and generic
+functions to configure how each existing command behaves.  Use the
+function `register-read-with-preview-fancy' for this.  The other
+provided function, `register-read-with-preview-traditional', behaves
+the same as in Emacs 29 and before: no filtering, no navigation,
+and no defaults.")
 
 (defvar register-preview-function nil
   "Function to format a register for previewing.
-Called with one argument, a cons (NAME . CONTENTS) as found in `register-alist'.
-The function should return a string, the description of the argument.
-It is set according to the value of `register--read-with-preview-function'.")
+Called with one argument, a cons (NAME . CONTENTS), as found
+in `register-alist'.  The function should return a string, the
+description of the argument.  The function to use is set according
+to the value of `register--read-with-preview-function'.")
 
 (defcustom register-use-preview 'traditional
-  "Maybe show register preview.
+  "Whether to show register preview when modifying registers.
 
-This has no effect when `register--read-with-preview-function' value
-is `register-read-with-preview-traditional'.
+When set to `t', show a preview buffer with navigation and highlighting.
+When nil, show a preview buffer without navigation and highlighting, and
+exit the minibuffer immediately after inserting response in minibuffer.
+When set to \\='never, behave as with nil, but with no preview buffer at
+all; the preview buffer is still accessible with `help-char' (C-h).
+When set to \\='traditional (the default), provide a more basic preview
+according to `register-preview-delay'; this preserves the traditional
+behavior of Emacs 29 and before.
 
-When set to `t' show a preview buffer with navigation and highlighting.
-When nil show a preview buffer with no such features and exit minibuffer
-immediately after insertion in minibuffer.
-When set to \\='never behave as above but with no preview buffer at
-all but the preview buffer is still accessible with `help-char' (C-h).
-When set to \\='traditional provide a much more basic preview according to
-`register-preview-delay', it has the exact same behavior as in Emacs-29."
+This has no effect when the value of `register--read-with-preview-function'
+is `register-read-with-preview-traditional'."
   :type '(choice
           (const :tag "Use preview" t)
           (const :tag "Use quick preview" nil)
@@ -155,7 +161,7 @@ When set to \\='traditional provide a much more basic preview according to
   (alist-get register register-alist))
 
 (defun set-register (register value)
-  "Set contents of Emacs register named REGISTER to VALUE.  Return VALUE.
+  "Set contents of Emacs register named REGISTER to VALUE, return VALUE.
 See the documentation of the variable `register-alist' for possible VALUEs."
   (setf (alist-get register register-alist) value))
 
@@ -169,21 +175,25 @@ See the documentation of the variable `register-alist' for possible VALUEs."
       d)))
 
 (defun register-preview-default-1 (r)
-  "Function that is the default value of the variable `register-preview-function'."
+  "Function used to format a register for fancy previewing.
+This is used as the value of the variable `register-preview-function'
+when `register-use-preview' is set to t or nil."
   (format "%s: %s\n"
 	  (propertize (string (car r))
                       'display (single-key-description (car r)))
 	  (register-describe-oneline (car r))))
 
 (defun register-preview-default (r)
-  "Function that is the default value of the variable `register-preview-function'."
+  "Function used to format a register for traditional preview.
+This is the default value of the variable `register-preview-function',
+and is used when `register-use-preview' is set to \\='traditional."
   (format "%s: %s\n"
 	  (single-key-description (car r))
 	  (register-describe-oneline (car r))))
 
 (cl-defgeneric register--preview-function (read-preview-function)
-  "Returns a function to format a register for previewing.
-This according to the value of READ-PREVIEW-FUNCTION.")
+  "Return a function to format a register for previewing.
+This is according to the value of `read-preview-function'.")
 (cl-defmethod register--preview-function ((_read-preview-function
                                            (eql register-read-with-preview-traditional)))
   #'register-preview-default)
@@ -193,14 +203,15 @@ This according to the value of READ-PREVIEW-FUNCTION.")
 
 (cl-defstruct register-preview-info
   "Store data for a specific register command.
-TYPES are the types of register supported.
-MSG is the minibuffer message to send when a register is selected.
+TYPES are the supported types of registers.
+MSG is the minibuffer message to show when a register is selected.
 ACT is the type of action the command is doing on register.
-SMATCH accept a boolean value to say if command accept non matching register."
+SMATCH accept a boolean value to say if the command accepts non-matching
+registers."
   types msg act smatch noconfirm)
 
 (cl-defgeneric register-command-info (command)
-  "Returns a `register-preview-info' object storing data for COMMAND."
+  "Return a `register-preview-info' object storing data for COMMAND."
   (ignore command))
 (cl-defmethod register-command-info ((_command (eql insert-register)))
   (make-register-preview-info
@@ -286,7 +297,7 @@ SMATCH accept a boolean value to say if command accept non matching register."
 
 (defun register-preview-forward-line (arg)
   "Move to next or previous line in register preview buffer.
-If ARG is positive goto next line, if negative to previous.
+If ARG is positive, go to next line; if negative, go to previous line.
 Do nothing when defining or executing kmacros."
   ;; Ensure user enter manually key in minibuffer when recording a macro.
   (unless (or defining-kbd-macro executing-kbd-macro
@@ -315,31 +326,31 @@ Do nothing when defining or executing kmacros."
             (insert str)))))))
 
 (defun register-preview-next ()
-  "Goto next line in register preview buffer."
+  "Go to next line in the register preview buffer."
   (interactive)
   (register-preview-forward-line 1))
 
 (defun register-preview-previous ()
-  "Goto previous line in register preview buffer."
+  "Go to previous line in the register preview buffer."
   (interactive)
   (register-preview-forward-line -1))
 
 (defun register-type (register)
   "Return REGISTER type.
-Current register types actually returned are one of:
-- string
-- number
-- marker
-- buffer
-- file
-- file-query
-- window
-- frame
-- kmacro
+Register type that can be returned is one of the following:
+ - string
+ - number
+ - marker
+ - buffer
+ - file
+ - file-query
+ - window
+ - frame
+ - kmacro
 
 One can add new types to a specific command by defining a new `cl-defmethod'
-matching this command. Predicate for type in new `cl-defmethod' should
-satisfy `cl-typep' otherwise the new type should be defined with
+matching that command.  Predicates for type in new `cl-defmethod' should
+satisfy `cl-typep', otherwise the new type should be defined with
 `cl-deftype'."
   ;; Call register--type against the register value.
   (register--type (if (consp (cdr register))
@@ -347,7 +358,7 @@ satisfy `cl-typep' otherwise the new type should be defined with
                    (cdr register))))
 
 (cl-defgeneric register--type (regval)
-  "Returns type of register value REGVAL."
+  "Return the type of register value REGVAL."
   (ignore regval))
 
 (cl-defmethod register--type ((_regval string)) 'string)
@@ -371,8 +382,8 @@ satisfy `cl-typep' otherwise the new type should be defined with
              collect register)))
 
 (defun register-preview (buffer &optional show-empty)
-  "Pop up a window showing the registers preview in BUFFER.
-If SHOW-EMPTY is non-nil, show the window even if no registers.
+  "Pop up a window showing the preview of registers in BUFFER.
+If SHOW-EMPTY is non-nil, show the preview window even if no registers.
 Format of each entry is controlled by the variable `register-preview-function'."
   (unless register-preview-function
     (setq register-preview-function (register--preview-function
@@ -392,13 +403,13 @@ Format of each entry is controlled by the variable `register-preview-function'."
              register-alist)))))
 
 (defun register-preview-1 (buffer &optional show-empty types)
-  "Pop up a window showing the registers preview in BUFFER.
+  "Pop up a window showing the preview of registers in BUFFER.
 
-This is the preview function use with
-`register-read-with-preview-fancy' function.
-If SHOW-EMPTY is non-nil, show the window even if no registers.
-Argument TYPES (a list) specify the types of register to show, when nil show all
-registers, see `register-type' for suitable types.
+This is the preview function used with the `register-read-with-preview-fancy'
+function.
+If SHOW-EMPTY is non-nil, show the preview window even if no registers.
+Optional argument TYPES (a list) specifies the types of register to show;
+if it is nil, show all the registers.  See `register-type' for suitable types.
 Format of each entry is controlled by the variable `register-preview-function'."
   (unless register-preview-function
     (setq register-preview-function (register--preview-function
@@ -419,7 +430,7 @@ Format of each entry is controlled by the variable `register-preview-function'."
                 registers))))))
 
 (cl-defgeneric register-preview-get-defaults (action)
-  "Returns default registers according to ACTION."
+  "Return default registers according to ACTION."
   (ignore action))
 (cl-defmethod register-preview-get-defaults ((_action (eql set)))
   (cl-loop for s in register-preview-default-keys
@@ -427,19 +438,25 @@ Format of each entry is controlled by the variable `register-preview-function'."
            collect s))
 
 (defun register-read-with-preview (prompt)
-  "Read and return a register name, possibly showing existing registers.
-Prompt with the string PROMPT.
+  "Read register name, prompting with PROMPT; possibly show existing registers.
+This reads and returns the name of a register.  PROMPT should be a string
+to prompt the user for the name.
 If `help-char' (or a member of `help-event-list') is pressed,
-display such a window regardless."
+display preview window unconditionally.
+This calls the function specified by `register--read-with-preview-function'."
   (funcall register--read-with-preview-function prompt))
 
 (defun register-read-with-preview-traditional (prompt)
-  "Read and return a register name, possibly showing existing registers.
-Prompt with the string PROMPT.  If `register-alist' and
-`register-preview-delay' are both non-nil, display a window
-listing existing registers after `register-preview-delay' seconds.
+  "Read register name, prompting with PROMPT; possibly show existing registers.
+This reads and returns the name of a register.  PROMPT should be a string
+to prompt the user for the name.
+If `register-alist' and `register-preview-delay' are both non-nil, display
+a window listing existing registers after `register-preview-delay' seconds.
 If `help-char' (or a member of `help-event-list') is pressed,
-display such a window regardless."
+display preview window unconditionally.
+
+This function is used as the value of `register--read-with-preview-function'
+when `register-use-preview' is set to \\='traditional."
   (let* ((buffer "*Register Preview*")
 	 (timer (when (numberp register-preview-delay)
 		  (run-with-timer register-preview-delay nil
@@ -467,10 +484,15 @@ display such a window regardless."
       (and (get-buffer buffer) (kill-buffer buffer)))))
 
 (defun register-read-with-preview-fancy (prompt)
-  "Read and return a register name, possibly showing existing registers.
-Prompt with the string PROMPT.
+  "Read register name, prompting with PROMPT; possibly show existing registers.
+This reads and returns the name of a register.  PROMPT should be a string
+to prompt the user for the name.
 If `help-char' (or a member of `help-event-list') is pressed,
-display such a window regardless."
+display preview window regardless.
+
+This function is used as the value of `register--read-with-preview-function'
+when `register-use-preview' is set to any value other than \\='traditional
+or \\='never."
   (let* ((buffer "*Register Preview*")
          (buffer1 "*Register quick preview*")
          (buf (if register-use-preview buffer buffer1))
