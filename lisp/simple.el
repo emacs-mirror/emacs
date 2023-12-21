@@ -10284,6 +10284,11 @@ Called from `temp-buffer-show-hook'."
   :version "22.1"
   :group 'completion)
 
+(define-minor-mode completions-narrow-mode
+  "Minor mode for *Completions* buffer with completions narrowing."
+  :interactive nil
+  :lighter " CompsNarrow")
+
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
 (defun completion-setup-function ()
@@ -10302,7 +10307,14 @@ Called from `temp-buffer-show-hook'."
           (if minibuffer-completing-file-name
               (file-name-directory
                (expand-file-name
-                (buffer-substring (minibuffer-prompt-end) (point)))))))
+                (buffer-substring (minibuffer-prompt-end) (point))))))
+         (narrow (and (functionp minibuffer-completion-predicate)
+                      (let ((result nil))
+                        (advice-function-mapc
+                         (lambda (_ alist)
+                           (setq result (alist-get 'description alist)))
+                         minibuffer-completion-predicate)
+                        result))))
     (with-current-buffer standard-output
       (let ((base-position completion-base-position)
             (base-affixes completion-base-affixes)
@@ -10310,7 +10322,8 @@ Called from `temp-buffer-show-hook'."
         (completion-list-mode)
         (setq-local completion-base-position base-position)
         (setq-local completion-base-affixes base-affixes)
-        (setq-local completion-list-insert-choice-function insert-fun))
+        (setq-local completion-list-insert-choice-function insert-fun)
+        (when narrow (completions-narrow-mode)))
       (setq-local completion-reference-buffer mainbuf)
       (if base-dir (setq default-directory base-dir))
       (when completion-tab-width

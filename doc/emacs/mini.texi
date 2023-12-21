@@ -290,6 +290,7 @@ Completion}.
 * Completion Commands::      A list of completion commands.
 * Completion Exit::          Completion and minibuffer text submission.
 * Completion Styles::        How completion matches are chosen.
+* Narrow Completions::       Restricting completion candidates.
 * Completion Options::       Options for completion.
 @end menu
 
@@ -352,6 +353,15 @@ arguments that often include spaces, such as file names.
 @item @key{RET}
 Submit the text in the minibuffer as the argument, possibly completing
 first (@code{minibuffer-complete-and-exit}).  @xref{Completion Exit}.
+@item C-x n n
+Narrow (restrict) the list of possible completions according to the
+current minibuffer input
+(@code{minibuffer-narrow-completions-to-current}).
+@item C-x n m
+Narrow the list of possible completions in a command-specific manner
+(@code{minibuffer-narrow-completions}).
+@item C-x n w
+Remove all completions restrictions (@code{minibuffer-widen-completions}).
 @item ?
 Display a list of completions (@code{minibuffer-completion-help}).
 @end table
@@ -372,6 +382,27 @@ are chosen.
 completion is @samp{auto-fill-mode}, but it only inserts @samp{ill-},
 giving @samp{auto-fill-}.  Another @key{SPC} at this point completes
 all the way to @samp{auto-fill-mode}.
+
+@kindex C-x n n @r{(completion)}
+@findex minibuffer-narrow-completions-to-current
+  @kbd{C-x n n} (@code{minibuffer-narrow-completions-to-current})
+narrows the list of possible completions according to the current
+minibuffer input.  This command clears your current minibuffer input
+and restricts the list of possible completions to candidates matching
+that input.  @xref{Narrow Completions}.
+
+@kindex C-x n m @r{(completion)}
+@findex minibuffer-narrow-completions
+  @kbd{C-x n m} (@code{minibuffer-narrow-completions}) is similar to
+@kbd{C-x n n}, except that this command can provide different ways to
+narrow the completions list depending on the kind of candidates in
+that list.  @xref{Narrow Completions}, for more details.
+
+@kindex C-x n w @r{(completion)}
+@findex minibuffer-widen-completions
+  @kbd{C-x n w} (@code{minibuffer-widen-completions}) removes all
+completions restrictions that you set with @kbd{C-x n n} or with
+@kbd{C-x n m}.
 
 @kindex ? @r{(completion)}
 @cindex completion list
@@ -608,6 +639,57 @@ by setting the variable @code{completion-category-overrides}.
 For example, the default setting says to use only @code{basic}
 and @code{substring} completion for buffer names.
 
+@node Narrow Completions
+@subsection Completions Narrowing
+
+@cindex completions restriction
+@cindex restrict completions
+@cindex completions filter
+@cindex filter completions
+@cindex completions narrowing
+  When there are many possible completion candidates, you may want to
+narrow the selection to a smaller subset by filtering out some of the
+options.  You can use the commands @kbd{C-x n n} and @kbd{C-x n m} in
+the minibuffer to restrict the completions list.  Narrowing the list
+of minibuffer completions is different from narrowing buffers
+(@pxref{Narrowing}), although the two are conceptually related since
+both allow you to focus on some part of a larger whole.
+
+  @kbd{C-x n n} (@code{minibuffer-narrow-completions-to-current}
+restricts the list of possible completions to only include candidates
+that match the current minibuffer input.  This command clears the
+minibuffer so you can type another (partial) input and complete it
+with completion candidates that also match the previous input.  If you
+call this command with a negative prefix argument (@kbd{C-- C-x n n}),
+it instead excludes all matches for the current input from subsequent
+completions.
+
+  @kbd{C-x n m} (@code{minibuffer-narrow-completions} is similar to
+@kbd{C-x n n}, but more versatile.  This command restricts the list of
+possible completions in different ways, depending on what kind of
+completion candidates you're dealing with.  For example, commands that
+read a symbol name from the minibuffer, such as @kbd{C-h f} and
+@kbd{C-h o} (@pxref{Name Help}), let you restrict the completions list
+with @kbd{C-x n m} to show only symbols with a given property.
+@xref{Symbol Properties,,,elisp,The Emacs Lisp Reference Manual}.
+When the command does not provide a specific way of restricting
+completion candidates, @kbd{C-x n m} prompts you for a regular
+expression and narrows the completions list to only include candidates
+which match that regular expression.  @xref{Regexps}.
+
+When you narrow the completions list with @kbd{C-x n n} or with
+@kbd{C-x n m}, Emacs extends the completions heading line with a
+description of the restriction that is currently in effect.  The mode
+line of the @file{*Completions*} buffer also indicates the restriction
+with the text @samp{CompsNarrow}.  You can apply multiple restrictions
+one after the other to narrow the completions list incrementally.  For
+example, typing @kbd{M-x C-x n m foo @key{RET} C-x n m bar @key{RET}}
+shows only commands that match both @samp{foo} and @samp{bar} in the
+completions list.
+
+  You can use @kbd{C-x n w} (@code{minibuffer-widen-completions}) in
+the minibuffer to remove the restrictions on the list of possible
+completions that you set with @kbd{C-x n n} or with @kbd{C-x n m}.
 
 @node Completion Options
 @subsection Completion Options
@@ -725,16 +807,17 @@ Alists,,Action Alists for Buffer Display, elisp, The Emacs Lisp
 Reference Manual}).
 
 @vindex completions-header-format
-The variable @code{completions-header-format} is a format spec string to
-control the informative line shown before the completions list of
-candidates.  If it contains a @samp{%s} construct, that get replaced
-by the number of completions shown in the completion list buffer.  To
-suppress the display of the heading line, customize this variable to
-@code{nil}.  The string that is the value of this variable can have
-text properties to change the visual appearance of the heading line;
-some useful properties @code{face} or @code{cursor-intangible}
-(@pxref{Special Properties,,Properties with Special Meanings, elisp,
-The Emacs Lisp Reference Manual}).
+The variable @code{completions-header-format} is a format spec string
+to control the informative line shown before the completions list of
+candidates.  Emacs substitutes @samp{%s} and @samp{%r} constructs that
+occur in this string with the number of completion candidates and a
+description of the current completions restriction, respectively.
+@xref{Narrow Completions}.  To suppress the display of the heading
+line, customize this variable to @code{nil}.  The string that is the
+value of this variable can have text properties to change the visual
+appearance of the heading line; some useful properties are @code{face}
+or @code{cursor-intangible} (@pxref{Special Properties,,Properties
+with Special Meanings, elisp, The Emacs Lisp Reference Manual}).
 
 @vindex completions-highlight-face
 When @code{completions-highlight-face} names a face, the current

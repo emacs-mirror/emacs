@@ -2556,6 +2556,22 @@ It must accept a buffer as its only required argument.")
     (cons "Minibuf" (make-sparse-keymap "Minibuf"))))
 
 (let ((map minibuffer-local-completion-map))
+  (bindings--define-key map
+      [menu-bar minibuf minibuffer-widen-completions]
+    '(menu-item "Remove Completions Restrictions"
+                minibuffer-widen-completions
+		:help "Remove all restrictions on completions list"
+                :enable (minibuffer-narrow-completions-p)))
+  (bindings--define-key map
+      [menu-bar minibuf minibuffer-narrow-completions]
+    '(menu-item "Restrict Completions"
+                minibuffer-narrow-completions
+		:help "Restrict list of completion candidates"))
+  (bindings--define-key map
+      [menu-bar minibuf minibuffer-narrow-completions-to-current]
+    '(menu-item "Restrict to Current Completions"
+                minibuffer-narrow-completions-to-current
+		:help "Restrict completions according to minibuffer input"))
   (bindings--define-key map [menu-bar minibuf ?\?]
     '(menu-item "List Completions" minibuffer-completion-help
 		:help "Display all possible completions"))

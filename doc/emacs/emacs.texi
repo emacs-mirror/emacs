@@ -294,6 +294,7 @@ Completion
 * Completion Commands:: A list of completion commands.
 * Completion Exit::     Completion and minibuffer text submission.
 * Completion Styles::   How completion matches are chosen.
+* Narrow Completions::  Restricting completion candidates.
 * Completion Options::  Options for completion.
 
 Help

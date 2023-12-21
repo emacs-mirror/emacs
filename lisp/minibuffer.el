@@ -1455,7 +1455,21 @@ pair of a group title string and a list of group candidate strings."
 (defvar completion-tab-width nil)
 
 (defvar completion-fail-discreetly nil
-  "If non-nil, stay quiet when there  is no match.")
+  "If non-nil, stay quiet when there is no match.")
+
+(defun completion--fail ()
+  (unless completion-fail-discreetly
+    (ding)
+    (completion--message
+     (format
+      "No match%s"
+      (if (minibuffer-narrow-completions-p)
+          (substitute-command-keys
+           (concat
+            ", \\[minibuffer-widen-completions] to clear restrictions ("
+            (minibuffer--completion-predicate-description)
+            ")"))
+        "")))))
 
 (defun completion--message (msg)
   (if completion-show-inline-help
@@ -1493,9 +1507,7 @@ when the buffer's text is already an exact match."
     (cond
      ((null comp)
       (minibuffer-hide-completions)
-      (unless completion-fail-discreetly
-	(ding)
-	(completion--message "No match"))
+      (completion--fail)
       (minibuffer--bitset nil nil nil))
      ((eq t comp)
       (minibuffer-hide-completions)
@@ -1546,9 +1558,9 @@ when the buffer's text is already an exact match."
                                           (substring completion 0 comp-pos)
                                           minibuffer-completion-table
                                           minibuffer-completion-predicate
-                                         ""))
-                                   comp-pos)))
-                   (completion-all-sorted-completions beg end))))
+                                          ""))
+                                    comp-pos)))
+                    (completion-all-sorted-completions beg end))))
             (completion--flush-all-sorted-completions)
             (cond
              ((and (consp (cdr comps)) ;; There's something to cycle.
@@ -2157,16 +2169,17 @@ completions."
   :version "28.1")
 
 (defcustom completions-header-format
-  (propertize "%s possible completions:\n" 'face 'shadow)
+  (propertize "%s possible completions%r:\n" 'face 'shadow)
   "If non-nil, the format string for completions heading line.
-The heading line is inserted before the completions, and is intended
-to summarize the completions.
-The format string may include one %s, which will be replaced with
-the total count of possible completions.
-If this is nil, no heading line will be shown."
+The heading line is inserted before the completions, and is
+intended to summarize the completions.  The format string may
+contain the sequences \"%s\" and \"%r\", which are substituted
+with the total count of possible completions and the description
+of a description of the current completions restriction,
+respectively.  If this option is nil, no heading line is shown."
   :type '(choice (const :tag "No heading line" nil)
                  (string :tag "Format string for heading line"))
-  :version "29.1")
+  :version "30.1")
 
 (defun completion--insert-strings (strings &optional group-fun)
   "Insert a list of STRINGS into the current buffer.
@@ -2401,6 +2414,16 @@ and with BASE-SIZE appended as the last element."
         completions)
        base-size))))
 
+(defun minibuffer--completion-predicate-description ()
+  (and (functionp minibuffer-completion-predicate)
+       (let ((descs nil))
+         (advice-function-mapc
+          (lambda (_ alist)
+            (when-let ((description (alist-get 'description alist)))
+              (push description descs)))
+          minibuffer-completion-predicate)
+         (when descs (mapconcat #'identity descs ", ")))))
+
 (defun display-completion-list (completions &optional common-substring group-fun)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
 Each element may be just a symbol or string
@@ -2428,15 +2451,20 @@ candidates."
           (with-suppressed-warnings ((callargs display-completion-list))
 	    (display-completion-list completions common-substring group-fun)))
 	(princ (buffer-string)))
-
-    (with-current-buffer standard-output
-      (goto-char (point-max))
-      (if completions-header-format
-          (insert (format completions-header-format (length completions)))
-        (unless completion-show-help
-          ;; Ensure beginning-of-buffer isn't a completion.
-          (insert (propertize "\n" 'face '(:height 0)))))
-      (completion--insert-strings completions group-fun)))
+    (let ((pred-desc
+           (if-let ((pd (minibuffer--completion-predicate-description)))
+               (concat ", " pd)
+             "")))
+      (with-current-buffer standard-output
+        (goto-char (point-max))
+        (if completions-header-format
+            (insert (format-spec completions-header-format
+                                 (list (cons ?s (length completions))
+                                       (cons ?r pred-desc))))
+          (unless completion-show-help
+            ;; Ensure beginning-of-buffer isn't a completion.
+            (insert (propertize "\n" 'face '(:height 0)))))
+        (completion--insert-strings completions group-fun))))
 
   (run-hooks 'completion-setup-hook)
   nil)
@@ -2569,9 +2597,7 @@ The candidate will still be chosen by `choose-completion' unless
           (remove-hook 'after-change-functions #'completions--after-change t)
           (if completions
               (completion--message "Sole completion")
-            (unless completion-fail-discreetly
-	      (ding)
-	      (completion--message "No match"))))
+            (completion--fail)))
 
       (let* ((last (last completions))
              (base-size (or (cdr last) 0))
@@ -3061,7 +3087,8 @@ The completion method is determined by `completion-at-point-functions'."
   "M-g M-c"   #'switch-to-completions
   "M-<up>"    #'minibuffer-previous-completion
   "M-<down>"  #'minibuffer-next-completion
-  "M-RET"     #'minibuffer-choose-completion)
+  "M-RET"     #'minibuffer-choose-completion
+  "C-x n"     'minibuffer-narrow-completions-map)
 
 (defvar-keymap minibuffer-local-must-match-map
   :doc "Local keymap for minibuffer input with completion, for exact match."
@@ -3081,6 +3108,15 @@ with `minibuffer-local-must-match-map'."
   "SPC" #'exit-minibuffer
   "TAB" #'exit-minibuffer
   "?"   #'self-insert-and-exit)
+
+(defvar-keymap minibuffer-narrow-completions-map
+  :doc "Keymap for completions narrowing commands."
+  "n" #'minibuffer-narrow-completions-to-current
+  "m" #'minibuffer-narrow-completions
+  "w" #'minibuffer-widen-completions)
+
+(defalias 'minibuffer-narrow-completions-map
+  minibuffer-narrow-completions-map)
 
 (defun read-no-blanks-input (prompt &optional initial inherit-input-method)
   "Read a string from the terminal, not allowing blanks.
@@ -4940,6 +4976,123 @@ instead of the completion table."
 
 (define-key minibuffer-local-map [?\C-x up] 'minibuffer-complete-history)
 (define-key minibuffer-local-map [?\C-x down] 'minibuffer-complete-defaults)
+
+(defun minibuffer-narrow-completions-p ()
+  "Return non-nil if there are restrictions on current completions list."
+  (functionp minibuffer-completion-predicate)
+  (let ((result nil))
+    (advice-function-mapc
+     (lambda (_ alist)
+       (setq result (alist-get 'description alist)))
+     minibuffer-completion-predicate)
+    result))
+
+(defvar minibuffer-narrow-completions-function
+  #'minibuffer-narrow-completions-by-regexp
+  "Function to use for restricting the list of completions candidates.
+
+Minibuffer command `minibuffer-narrow-completions' calls this
+function with no arguments.  This function should return a cons
+cell (PRED . DESC) where PRED is a function that takes one
+completion candidate and returns non-nil if it should appear in
+the *Completions* buffer, and DESC is a string describing PRED.")
+
+(defun minibuffer-narrow-completions-by-regexp ()
+  "Narrow completion candidates by matching a given regular expression.
+This function is the default value of variable
+`minibuffer-narrow-completions-function', which see."
+  (let* ((input (minibuffer-contents))
+         (point (- (point) (minibuffer-prompt-end)))
+         (regexp (minibuffer-with-setup-hook
+                     (lambda ()
+                       (insert input)
+                       (goto-char (+ point (minibuffer-prompt-end))))
+                   (read-regexp "Keep candidates matching regexp: "))))
+    (delete-minibuffer-contents)
+    (cons (lambda (cand &rest _)
+            (let ((string (cond
+                           ((stringp cand)              cand)
+                           ((symbolp cand) (symbol-name cand))
+                           (t              (car         cand)))))
+              (string-match-p regexp string)))
+          (concat "matching " (prin1-to-string regexp)))))
+
+(defun minibuffer--add-completions-predicate (pred desc)
+  "Restrict minibuffer completions list to candidates satisfying PRED.
+DESC is a string describing predicate PRED."
+  (unless minibuffer-completion-predicate
+    (setq-local minibuffer-completion-predicate #'always))
+  (add-function :after-while (local 'minibuffer-completion-predicate)
+                pred `((description . ,desc)))
+  (when completion-auto-help
+    (minibuffer-completion-help))
+  (when-let ((completions-buffer (get-buffer "*Completions*")))
+    (with-current-buffer completions-buffer
+      (completions-narrow-mode))))
+
+(defun minibuffer-narrow-completions ()
+  "Restrict completion candidates for current minibuffer interaction."
+  (interactive "" minibuffer-mode)
+  (let* ((enable-recursive-minibuffers t)
+         (filter-desc
+          (funcall (or (completion-metadata-get
+                        (completion--field-metadata (minibuffer-prompt-end))
+                        'narrow-completions-function)
+                       minibuffer-narrow-completions-function))))
+    (minibuffer--add-completions-predicate (car filter-desc) (cdr filter-desc))))
+
+(defun minibuffer-narrow-completions-to-current (arg)
+  "Restrict completion candidates according to current minibuffer input.
+ARG is the numeric prefix argument.  When ARG is negative,
+exclude matches to current input from completions list."
+  (interactive "p" minibuffer-mode)
+  (let* ((table (make-hash-table :test #'equal))
+         (start (minibuffer--completion-prompt-end))
+         (string (buffer-substring start (point-max)))
+         (all (completion-all-completions
+               string
+               minibuffer-completion-table
+               minibuffer-completion-predicate
+               (- (point) start)
+               (completion--field-metadata start)))
+         (last (last all)))
+    (unless all
+      (user-error "No matching completion candidates"))
+    (delete-minibuffer-contents)
+    (setcdr last nil)
+    (dolist (str all)
+      (puthash str t table))
+    (if (< arg 0)
+        (minibuffer--add-completions-predicate
+         (lambda (cand &rest _)
+           (let ((key (cond
+                       ((stringp cand)              cand)
+                       ((symbolp cand) (symbol-name cand))
+                       (t              (car         cand)))))
+             (not (gethash key table))))
+         (concat "excluding matches for " (prin1-to-string string)))
+      (minibuffer--add-completions-predicate
+       (lambda (cand &rest _)
+         (let ((key (cond
+                     ((stringp cand)              cand)
+                     ((symbolp cand) (symbol-name cand))
+                     (t              (car         cand)))))
+           (gethash key table)))
+       (concat "narrowing to " (prin1-to-string string))))))
+
+(defun minibuffer-widen-completions ()
+  "Remove all restrictions on current completion candidates."
+  (interactive "" minibuffer-mode)
+  (advice-function-mapc
+   (lambda (a p)
+     (when (alist-get 'description p)
+       (remove-function (local 'minibuffer-completion-predicate) a)))
+   minibuffer-completion-predicate)
+  (when completion-auto-help
+    (minibuffer-completion-help))
+  (when-let ((completions-buffer (get-buffer "*Completions*")))
+    (with-current-buffer completions-buffer
+      (completions-narrow-mode -1))))
 
 (defcustom minibuffer-default-prompt-format " (default %s)"
   "Format string used to output \"default\" values.

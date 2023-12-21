@@ -355,6 +355,14 @@ variable, or a face.  If the symbol has more than one definition, like
 it has both definition as a function and as a variable, this command
 will show the documentation of all of them, one after the other.
 
+  Help commands that read a symbol in the minibuffer, such as @kbd{C-h
+f}, @kbd{C-h v} and @kbd{C-h o}, provide completions based on known
+symbols.  @xref{Completion}.  You can narrow the list of possible
+completions to only include symbols with a given property by typing
+@kbd{C-x n m @var{property-name} @key{RET}} in the minibuffer.
+@xref{Narrow Completions}, and @ref{Symbol Properties,,,elisp,The
+Emacs Lisp Reference Manual}.
+
 @vindex completions-detailed
   If the @code{completions-detailed} user option is non-@code{nil},
 some commands provide details about the possible values when

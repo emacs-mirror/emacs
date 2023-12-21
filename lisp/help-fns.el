@@ -200,12 +200,35 @@ type specifier when available."
                       ""))))
           completions))
 
+(defun help--symbol-narrow-by-property ()
+  "Restrict symbol completions list to symbols with a given property."
+  (let ((prop (intern
+               (completing-read "Symbol property: "
+                                (let ((props (make-hash-table)))
+                                  (mapatoms
+                                   (lambda (sym)
+                                     (let ((plist (symbol-plist sym)))
+                                       (while plist
+                                         (puthash (car plist) t props)
+                                         (setq plist (cddr plist))))))
+                                  props)))))
+    (cons (lambda (cand &rest _)
+            (let ((sym (if (symbolp cand)
+                           cand
+                         (intern
+                          (if (stringp cand)
+                              cand
+                            (car cand))))))
+              (get sym prop)))
+          (format "with property %s" prop))))
+
 (defun help--symbol-completion-table (string pred action)
   (if (eq action 'metadata)
       `(metadata
         ,@(when completions-detailed
             '((affixation-function . help--symbol-completion-table-affixation)))
-        (category . symbol-help))
+        (category . symbol-help)
+        (narrow-completions-function . help--symbol-narrow-by-property))
     (when help-enable-completion-autoload
       (let ((prefixes (radix-tree-prefixes (help-definition-prefixes) string)))
         (help--load-prefixes prefixes)))

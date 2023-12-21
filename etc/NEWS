@@ -780,6 +780,13 @@ defined in completion metadata.
 The new supported completion properties are 'category',
 'group-function', 'display-sort-function', 'cycle-sort-function'.
 
++++
+*** New commands for narrowing (restricting) minibuffer completions list.
+You can now use 'C-x n n' ('minibuffer-narrow-completions-to-current')
+in the minibuffer to restrict the list of possible completions to only
+include candidates matching the current minibuffer input.  See the
+Info node "(emacs) Narrow Completions" for more information.
+
 ** Pcomplete
 
 ---
