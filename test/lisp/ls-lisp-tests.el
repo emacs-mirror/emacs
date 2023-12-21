@@ -29,13 +29,6 @@
 (require 'ls-lisp)
 (require 'dired)
 
-(ert-deftest ls-lisp-unload ()
-  "Test for https://debbugs.gnu.org/xxxxx ."
-  (should (advice-member-p 'ls-lisp--insert-directory 'insert-directory))
-  (unload-feature 'ls-lisp 'force)
-  (should-not (advice-member-p 'ls-lisp--insert-directory 'insert-directory))
-  (require 'ls-lisp))
-
 (ert-deftest ls-lisp-test-bug27762 ()
   "Test for https://debbugs.gnu.org/27762 ."
   (let* ((dir source-directory)

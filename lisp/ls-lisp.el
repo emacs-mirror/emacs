@@ -249,89 +249,69 @@ to fail to line up, e.g. if month names are not all of the same length."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun ls-lisp--insert-directory (orig-fun file switches &optional wildcard full-directory-p)
+(defun ls-lisp--insert-directory (file switches wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
-Leaves point after the inserted text.
-SWITCHES may be a string of options, or a list of strings.
-Optional third arg WILDCARD means treat FILE as shell wildcard.
-Optional fourth arg FULL-DIRECTORY-P means file is a directory and
-switches do not contain `d', so that a full listing is expected.
+This implementation of `insert-directory' works using Lisp functions rather
+than `insert-directory-program'.
 
-This version of the function comes from `ls-lisp.el'.
-If the value of `ls-lisp-use-insert-directory-program' is non-nil then
-this advice just delegates the work to ORIG-FUN (the normal `insert-directory'
-function from `files.el').
-But if the value of `ls-lisp-use-insert-directory-program' is nil
-then it runs a Lisp emulation.
-
-The Lisp emulation does not run any external programs or shells.  It
-supports ordinary shell wildcards if `ls-lisp-support-shell-wildcards'
+This Lisp emulation does not run any external programs or shells.
+ It supports ordinary shell wildcards if `ls-lisp-support-shell-wildcards'
 is non-nil; otherwise, it interprets wildcards as regular expressions
 to match file names.  It does not support all `ls' switches -- those
 that work are: A a B C c F G g h i n R r S s t U u v X.  The l switch
 is assumed to be always present and cannot be turned off.
 Long variants of the above switches, as documented for GNU `ls',
 are also supported; unsupported long options are silently ignored."
-  (if ls-lisp-use-insert-directory-program
-      (funcall orig-fun
-	       file switches wildcard full-directory-p)
-    ;; We need the directory in order to find the right handler.
-    (setq switches (or switches ""))
-    (let ((handler (find-file-name-handler (expand-file-name file)
-					   'insert-directory))
-	  (orig-file file)
-	  wildcard-regexp
-	  (ls-lisp-dirs-first
-           (or ls-lisp-dirs-first
-               (string-match "--group-directories-first" switches))))
-      (if handler
-	  (funcall handler 'insert-directory file switches
-		   wildcard full-directory-p)
-        (when (string-match "--group-directories-first" switches)
-            ;; if ls-lisp-dirs-first is nil, dirs are grouped but come out in
-            ;; reverse order:
-            (setq ls-lisp-dirs-first t)
-            (setq switches (replace-match "" nil nil switches)))
-	;; Remove unrecognized long options, and convert the
-	;; recognized ones to their short variants.
-        (setq switches (ls-lisp--sanitize-switches switches))
-	;; Convert SWITCHES to a list of characters.
-	(setq switches (delete ?\  (delete ?- (append switches nil))))
-	;; Sometimes we get ".../foo*/" as FILE.  While the shell and
-	;; `ls' don't mind, we certainly do, because it makes us think
-	;; there is no wildcard, only a directory name.
-	(if (and ls-lisp-support-shell-wildcards
-		 (string-match "[[?*]" file)
-		 ;; Prefer an existing file to wildcards, like
-		 ;; dired-noselect does.
-		 (not (file-exists-p file)))
-	    (progn
-	      (or (not (eq (aref file (1- (length file))) ?/))
-		  (setq file (substring file 0 (1- (length file)))))
-	      (setq wildcard t)))
-	(if wildcard
-	    (setq wildcard-regexp
-		  (if ls-lisp-support-shell-wildcards
-		      (wildcard-to-regexp (file-name-nondirectory file))
-		    (file-name-nondirectory file))
-		  file (file-name-directory file))
-	  (if (memq ?B switches) (setq wildcard-regexp "[^~]\\'")))
-	(condition-case err
-	    (ls-lisp-insert-directory
-	     file switches (ls-lisp-time-index switches)
-	     wildcard-regexp full-directory-p)
-	  (invalid-regexp
-	   ;; Maybe they wanted a literal file that just happens to
-	   ;; use characters special to shell wildcards.
-	   (if (equal (cadr err) "Unmatched [ or [^")
-	       (progn
-		 (setq wildcard-regexp (if (memq ?B switches) "[^~]\\'")
-		       file (file-relative-name orig-file))
-		 (ls-lisp-insert-directory
-		  file switches (ls-lisp-time-index switches)
-		  nil full-directory-p))
-	     (signal (car err) (cdr err)))))))))
-(advice-add 'insert-directory :around #'ls-lisp--insert-directory)
+  (setq switches (or switches ""))
+  (let ((orig-file file)
+	wildcard-regexp
+	(ls-lisp-dirs-first
+         (or ls-lisp-dirs-first
+             (string-match "--group-directories-first" switches))))
+    (when (string-match "--group-directories-first" switches)
+      ;; if ls-lisp-dirs-first is nil, dirs are grouped but come out in
+      ;; reverse order:
+      (setq ls-lisp-dirs-first t)
+      (setq switches (replace-match "" nil nil switches)))
+    ;; Remove unrecognized long options, and convert the
+    ;; recognized ones to their short variants.
+    (setq switches (ls-lisp--sanitize-switches switches))
+    ;; Convert SWITCHES to a list of characters.
+    (setq switches (delete ?\  (delete ?- (append switches nil))))
+    ;; Sometimes we get ".../foo*/" as FILE.  While the shell and
+    ;; `ls' don't mind, we certainly do, because it makes us think
+    ;; there is no wildcard, only a directory name.
+    (if (and ls-lisp-support-shell-wildcards
+	     (string-match "[[?*]" file)
+	     ;; Prefer an existing file to wildcards, like
+	     ;; dired-noselect does.
+	     (not (file-exists-p file)))
+	(progn
+	  (or (not (eq (aref file (1- (length file))) ?/))
+	      (setq file (substring file 0 (1- (length file)))))
+	  (setq wildcard t)))
+    (if wildcard
+	(setq wildcard-regexp
+	      (if ls-lisp-support-shell-wildcards
+		  (wildcard-to-regexp (file-name-nondirectory file))
+		(file-name-nondirectory file))
+	      file (file-name-directory file))
+      (if (memq ?B switches) (setq wildcard-regexp "[^~]\\'")))
+    (condition-case err
+	(ls-lisp-insert-directory
+	 file switches (ls-lisp-time-index switches)
+	 wildcard-regexp full-directory-p)
+      (invalid-regexp
+       ;; Maybe they wanted a literal file that just happens to
+       ;; use characters special to shell wildcards.
+       (if (equal (cadr err) "Unmatched [ or [^")
+	   (progn
+	     (setq wildcard-regexp (if (memq ?B switches) "[^~]\\'")
+		   file (file-relative-name orig-file))
+	     (ls-lisp-insert-directory
+	      file switches (ls-lisp-time-index switches)
+	      nil full-directory-p))
+	 (signal (car err) (cdr err)))))))
 
 (defun ls-lisp-insert-directory
   (file switches time-index wildcard-regexp full-directory-p)
@@ -468,36 +448,6 @@ not contain `d', so that a full listing is expected."
                 (list "Reading directory"
                       "Directory doesn't exist or is inaccessible"
                       file))))))
-
-(declare-function dired-read-dir-and-switches "dired" (str))
-(declare-function dired-goto-next-file "dired" ())
-
-(defun ls-lisp--dired (orig-fun dir-or-list &optional switches)
-  (interactive (dired-read-dir-and-switches ""))
-  (unless dir-or-list
-    (setq dir-or-list default-directory))
-  (if (consp dir-or-list)
-      (funcall orig-fun dir-or-list switches)
-    (let ((dir-wildcard (insert-directory-wildcard-in-dir-p
-                         (expand-file-name dir-or-list))))
-      (if (not dir-wildcard)
-          (funcall orig-fun dir-or-list switches)
-        (let* ((default-directory (car dir-wildcard))
-               (files (file-expand-wildcards (cdr dir-wildcard)))
-               (dir (car dir-wildcard)))
-          (if files
-              (let ((inhibit-read-only t)
-                    (buf
-                     (apply orig-fun (nconc (list dir) files) (and switches (list switches)))))
-                (with-current-buffer buf
-                  (save-excursion
-                    (goto-char (point-min))
-                    (dired-goto-next-file)
-                    (forward-line 0)
-                    (insert "  wildcard " (cdr dir-wildcard) "\n"))))
-            (user-error "No files matching wildcard")))))))
-
-(advice-add 'dired :around #'ls-lisp--dired)
 
 (defun ls-lisp-sanitize (file-alist)
   "Sanitize the elements in FILE-ALIST.
@@ -885,13 +835,6 @@ All ls time options, namely c, t and u, are handled."
 		ls-lisp-filesize-d-fmt)
 	      file-size)
     (format " %7s" (file-size-human-readable file-size))))
-
-(defun ls-lisp-unload-function ()
-  "Unload ls-lisp library."
-  (advice-remove 'insert-directory #'ls-lisp--insert-directory)
-  (advice-remove 'dired #'ls-lisp--dired)
-  ;; Continue standard unloading.
-  nil)
 
 (defun ls-lisp--sanitize-switches (switches)
   "Convert long options of GNU \"ls\" to their short form.
