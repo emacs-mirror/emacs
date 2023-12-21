@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.21
+;; Version: 1.0.22
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -585,7 +585,7 @@ With optional CLEANUP, kill any associated buffers."
         (let ((inhibit-read-only t))
           (insert "\n----------b---y---e---b---y---e----------\n")))
       ;; Cancel outstanding timers
-      (mapc (lambda (_id _success _error timer)
+      (mapc (jsonrpc-lambda (_id _success _error timer)
               (when timer (cancel-timer timer)))
             (jsonrpc--request-continuations connection))
       (maphash (lambda (_ triplet)
@@ -595,7 +595,7 @@ With optional CLEANUP, kill any associated buffers."
       (process-put proc 'jsonrpc-sentinel-cleanup-started t)
       (unwind-protect
           ;; Call all outstanding error handlers
-          (mapc (lambda (_id _success error _timer)
+          (mapc (jsonrpc-lambda (_id _success error _timer)
                   (funcall error '(:code -1 :message "Server died")))
                 (jsonrpc--request-continuations connection))
         (jsonrpc--message "Server exited with status %s" (process-exit-status proc))
