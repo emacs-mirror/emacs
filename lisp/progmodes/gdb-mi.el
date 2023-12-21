@@ -818,6 +818,9 @@ NOARG must be t when this macro is used outside `gud-def'."
 (defvar gdb-control-level 0)
 
 (defun gdb-load-history ()
+  "Load GDB history from a history file.
+The name of the history file is given by environment variable GDBHISTFILE,
+falling back to \".gdb_history\" and \".gdbinit\"."
   (when (ring-empty-p comint-input-ring) ; cf shell-mode
     (let ((hfile (expand-file-name (or (getenv "GDBHISTFILE")
 				       (if (eq system-type 'ms-dos)
