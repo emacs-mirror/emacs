@@ -496,13 +496,13 @@ display such a window regardless."
     (when (and (memq act '(insert jump view)) (null strs))
       (error "No register suitable for `%s'" act))
     (dolist (k (cons help-char help-event-list))
-      (define-key map
-          (vector k) (lambda ()
-                       (interactive)
-                       ;; Do nothing when buffer1 is in use.
-                       (unless (get-buffer-window buf)
-                         (with-selected-window (minibuffer-selected-window)
-                           (register-preview-1 buffer 'show-empty types))))))
+      (define-key map (vector k)
+                  (lambda ()
+                    (interactive)
+                    ;; Do nothing when buffer1 is in use.
+                    (unless (get-buffer-window buf)
+                      (with-selected-window (minibuffer-selected-window)
+                        (register-preview-1 buffer 'show-empty types))))))
     (define-key map (kbd "<down>") 'register-preview-next)
     (define-key map (kbd "<up>")   'register-preview-previous)
     (define-key map (kbd "C-n")    'register-preview-next)
@@ -510,67 +510,65 @@ display such a window regardless."
     (unless (or executing-kbd-macro (eq register-use-preview 'never))
       (register-preview-1 buf nil types))
     (unwind-protect
-         (progn
-           (minibuffer-with-setup-hook
+        (let ((setup
                (lambda ()
-                 (add-hook 'post-command-hook
-                           (lambda ()
+                 (with-selected-window (minibuffer-window)
+                   (let ((input (minibuffer-contents)))
+                     (when (> (length input) 1)
+                       (let ((new (substring input 1))
+                             (old (substring input 0 1)))
+                         (setq input (if (or (null smatch)
+                                             (member new strs))
+                                         new old))
+                         (delete-minibuffer-contents)
+                         (insert input)))
+                     (when (and smatch (not (string= input ""))
+                                (not (member input strs)))
+                       (setq input "")
+                       (delete-minibuffer-contents)
+                       (minibuffer-message "Not matching"))
+                     (when (not (string= input pat))
+                       (setq pat input))))
+                 (if (setq win (get-buffer-window buffer))
+                     (with-selected-window win
+                       (let ((ov (make-overlay
+                                  (point-min) (point-min)))
+                             ;; Allow upper-case and lower-case letters
+                             ;; to refer to different registers.
+                             (case-fold-search nil))
+                         (goto-char (point-min))
+                         (remove-overlays)
+                         (unless (string= pat "")
+                           (if (re-search-forward (concat "^" pat) nil t)
+                               (progn (move-overlay
+                                       ov
+                                       (match-beginning 0) (pos-eol))
+                                      (overlay-put ov 'face 'match)
+                                      (when msg
+                                        (with-selected-window
+                                            (minibuffer-window)
+                                          (minibuffer-message msg pat))))
                              (with-selected-window (minibuffer-window)
-                               (let ((input (minibuffer-contents)))
-                                 (when (> (length input) 1)
-                                   (let ((new (substring input 1))
-                                         (old (substring input 0 1)))
-                                     (setq input (if (or (null smatch)
-                                                         (member new strs))
-                                                     new old))
-                                     (delete-minibuffer-contents)
-                                     (insert input)))
-                                 (when (and smatch (not (string= input ""))
-                                            (not (member input strs)))
-                                   (setq input "")
-                                   (delete-minibuffer-contents)
-                                   (minibuffer-message "Not matching"))
-                                 (when (not (string= input pat))
-                                   (setq pat input))))
-                             (if (setq win (get-buffer-window buffer))
-                                 (with-selected-window win
-                                   (let ((ov (make-overlay
-                                              (point-min) (point-min)))
-                                         ;; Allow upper-case and
-                                         ;; lower-case letters to refer
-                                         ;; to different registers.
-                                         (case-fold-search nil))
-                                     (goto-char (point-min))
-                                     (remove-overlays)
-                                     (unless (string= pat "")
-                                       (if (re-search-forward (concat "^" pat) nil t)
-                                           (progn (move-overlay
-                                                   ov
-                                                   (match-beginning 0) (pos-eol))
-                                                  (overlay-put ov 'face 'match)
-                                                  (when msg
-                                                    (with-selected-window (minibuffer-window)
-                                                      (minibuffer-message msg pat))))
-                                         (with-selected-window (minibuffer-window)
-                                           (minibuffer-message
-                                            "Register `%s' is empty" pat))))))
-                               (unless (string= pat "")
-                                 (with-selected-window (minibuffer-window)
-                                   (if (and (member pat strs)
-                                            (null noconfirm))
-                                       (with-selected-window (minibuffer-window)
-                                         (minibuffer-message msg pat))
-                                     ;; :noconfirm is specifed
-                                     ;; explicitely, don't ask for
-                                     ;; confirmation and exit immediately (bug#66394).
-                                     (setq result pat)
-                                     (exit-minibuffer))))))
-                           nil 'local))
-             (setq result (read-from-minibuffer
-                           prompt nil map nil nil (register-preview-get-defaults act))))
-           (cl-assert (and result (not (string= result "")))
-                      nil "No register specified")
-           (string-to-char result))
+                               (minibuffer-message
+                                "Register `%s' is empty" pat))))))
+                   (unless (string= pat "")
+                     (with-selected-window (minibuffer-window)
+                       (if (and (member pat strs)
+                                (null noconfirm))
+                           (with-selected-window (minibuffer-window)
+                             (minibuffer-message msg pat))
+                         ;; `:noconfirm' is specified explicitly, don't ask for
+                         ;; confirmation and exit immediately (bug#66394).
+                         (setq result pat)
+                         (exit-minibuffer))))))))
+          (minibuffer-with-setup-hook
+              (lambda () (add-hook 'post-command-hook setup nil 'local))
+            (setq result (read-from-minibuffer
+                          prompt nil map nil nil
+                          (register-preview-get-defaults act))))
+          (cl-assert (and result (not (string= result "")))
+                     nil "No register specified")
+          (string-to-char result))
       (let ((w (get-buffer-window buf)))
         (and (window-live-p w) (delete-window w)))
       (and (get-buffer buf) (kill-buffer buf)))))
