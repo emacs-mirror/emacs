@@ -3088,7 +3088,8 @@ sfnt_decompose_glyph_1 (size_t here, size_t last,
   /* The contour is empty.  */
 
   if (here == last)
-    return 1;
+    /* An empty contour, if redundant, is not necessarily invalid.  */
+    return 0;
 
   /* Move the pen to the start of the contour.  Apparently some fonts
      have off the curve points as the start of a contour, so when that
@@ -3227,7 +3228,8 @@ sfnt_decompose_glyph_2 (size_t here, size_t last,
   /* The contour is empty.  */
 
   if (here == last)
-    return 1;
+    /* An empty contour, if redundant, is not necessarily invalid.  */
+    return 0;
 
   /* Move the pen to the start of the contour.  Apparently some fonts
      have off the curve points as the start of a contour, so when that
