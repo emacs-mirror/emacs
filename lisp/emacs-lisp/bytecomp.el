@@ -1876,35 +1876,37 @@ It is too wide if it has any lines longer than the largest of
 
 (defmacro displaying-byte-compile-warnings (&rest body)
   (declare (debug (def-body)))
-  `(let* ((--displaying-byte-compile-warnings-fn (lambda () ,@body))
-	  (warning-series-started
-	   (and (markerp warning-series)
-		(eq (marker-buffer warning-series)
-		    (get-buffer byte-compile-log-buffer))))
-          (byte-compile-form-stack byte-compile-form-stack))
-     (if (or (eq warning-series 'byte-compile-warning-series)
-	     warning-series-started)
-	 ;; warning-series does come from compilation,
-	 ;; so don't bind it, but maybe do set it.
-	 (let (tem)
-	   ;; Log the file name.  Record position of that text.
-	   (setq tem (byte-compile-log-file))
-	   (unless warning-series-started
-	     (setq warning-series (or tem 'byte-compile-warning-series)))
-	   (if byte-compile-debug
-	       (funcall --displaying-byte-compile-warnings-fn)
-	     (condition-case error-info
-		 (funcall --displaying-byte-compile-warnings-fn)
-	       (error (byte-compile-report-error error-info)))))
-       ;; warning-series does not come from compilation, so bind it.
-       (let ((warning-series
-	      ;; Log the file name.  Record position of that text.
-	      (or (byte-compile-log-file) 'byte-compile-warning-series)))
-	 (if byte-compile-debug
-	     (funcall --displaying-byte-compile-warnings-fn)
-	   (condition-case error-info
-	       (funcall --displaying-byte-compile-warnings-fn)
-	     (error (byte-compile-report-error error-info))))))))
+  `(bytecomp--displaying-warnings (lambda () ,@body)))
+
+(defun bytecomp--displaying-warnings (body-fn)
+  (let* ((warning-series-started
+	  (and (markerp warning-series)
+	       (eq (marker-buffer warning-series)
+		   (get-buffer byte-compile-log-buffer))))
+         (byte-compile-form-stack byte-compile-form-stack))
+    (if (or (eq warning-series 'byte-compile-warning-series)
+	    warning-series-started)
+	;; warning-series does come from compilation,
+	;; so don't bind it, but maybe do set it.
+	(let (tem)
+	  ;; Log the file name.  Record position of that text.
+	  (setq tem (byte-compile-log-file))
+	  (unless warning-series-started
+	    (setq warning-series (or tem 'byte-compile-warning-series)))
+	  (if byte-compile-debug
+	      (funcall body-fn)
+	    (condition-case error-info
+		(funcall body-fn)
+	      (error (byte-compile-report-error error-info)))))
+      ;; warning-series does not come from compilation, so bind it.
+      (let ((warning-series
+	     ;; Log the file name.  Record position of that text.
+	     (or (byte-compile-log-file) 'byte-compile-warning-series)))
+	(if byte-compile-debug
+	    (funcall body-fn)
+	  (condition-case error-info
+	      (funcall body-fn)
+	    (error (byte-compile-report-error error-info))))))))
 
 ;;;###autoload
 (defun byte-force-recompile (directory)
@@ -2202,9 +2204,10 @@ See also `emacs-lisp-byte-compile-and-load'."
       ;; Don't inherit lexical-binding from caller (bug#12938).
       (unless (local-variable-p 'lexical-binding)
         (let ((byte-compile-current-buffer (current-buffer)))
-          (byte-compile-warn-x
-           (position-symbol 'a (point-min))
-           "file has no `lexical-binding' directive on its first line"))
+          (displaying-byte-compile-warnings
+           (byte-compile-warn-x
+            (position-symbol 'a (point-min))
+            "file has no `lexical-binding' directive on its first line")))
         (setq-local lexical-binding nil))
       ;; Set the default directory, in case an eval-when-compile uses it.
       (setq default-directory (file-name-directory filename)))
