@@ -810,8 +810,29 @@ There can be multiple entries for the same NAME if it has several aliases.")
   (or (not form)   ; assume (quote nil) always being normalized to nil
       (and (consp form)
            (let ((head (car form)))
-             ;; FIXME: There are many other expressions that are statically nil.
-             (cond ((memq head '(while ignore)) t)
+             (cond ((memq head
+                          ;; Some forms that are statically nil.
+                          ;; FIXME: Replace with a function property?
+                          '( while ignore
+                             insert insert-and-inherit insert-before-markers
+                             insert-before-markers-and-inherit
+                             insert-char insert-byte insert-buffer-substring
+                             delete-region delete-char
+                             widen narrow-to-region transpose-regions
+                             forward-char backward-char
+                             beginning-of-line end-of-line
+                             erase-buffer buffer-swap-text
+                             delete-overlay delete-all-overlays
+                             remhash
+                             maphash
+                             map-charset-chars map-char-table
+                             mapbacktrace
+                             mapatoms
+                             ding beep sleep-for
+                             json-insert
+                             set-match-data
+                             ))
+                    t)
                    ((eq head 'if)
                     (and (byte-compile-nilconstp (nth 2 form))
                          (byte-compile-nilconstp (car (last (cdddr form))))))
