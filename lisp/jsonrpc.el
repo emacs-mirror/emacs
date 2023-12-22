@@ -626,7 +626,7 @@ With optional CLEANUP, kill any associated buffers."
   (when-let ((actions (hash-table-values (jsonrpc--deferred-actions connection))))
     (jsonrpc--run-event-hook
      connection 'internal
-     :log-text (format "re-attempting deffered requests %s"
+     :log-text (format "re-attempting deferred requests %s"
                        (mapcar (apply-partially #'nth 2) actions)))
     (mapc #'funcall (mapcar #'car actions))))
 
@@ -786,7 +786,7 @@ Return the full continuation (ID SUCCESS-FN ERROR-FN TIMER)"
              (funcall success-fn result)))
           (t
            ;; For clarity.  This happens if the `jsonrpc-request' was
-           ;; cancelled
+           ;; canceled
            ))))
 
 (cl-defun jsonrpc--async-request-1 (connection
