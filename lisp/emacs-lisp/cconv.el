@@ -123,8 +123,7 @@ using dynamic scoping.
 Returns a form where all lambdas don't have any free variables."
   (let ((cconv--dynbound-variables dynbound-vars)
 	(cconv-freevars-alist '())
-	(cconv-var-classification '())
-        (byte-compile-form-stack byte-compile-form-stack))
+	(cconv-var-classification '()))
     ;; Analyze form - fill these variables with new information.
     (cconv-analyze-form form '())
     (setq cconv-freevars-alist (nreverse cconv-freevars-alist))
