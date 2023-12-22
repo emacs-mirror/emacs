@@ -434,6 +434,38 @@ This can be found in an RCS or SCCS header."
 	     header-max t)
 	    (match-string-no-properties 1)))))))
 
+(defun lm--prepare-package-dependencies (deps)
+  "Turn DEPS into an acceptable list of dependencies.
+
+Any parts missing a version string get a default version string
+of \"0\" (meaning any version) and an appropriate level of lists
+is wrapped around any parts requiring it."
+  (cond
+   ((not (listp deps))
+    (error "Invalid requirement specifier: %S" deps))
+   (t (mapcar (lambda (dep)
+                (cond
+                 ((symbolp dep) `(,dep "0"))
+                 ((stringp dep)
+                  (error "Invalid requirement specifier: %S" dep))
+                 ((and (listp dep) (null (cdr dep)))
+                  (list (car dep) "0"))
+                 (t dep)))
+              deps))))
+
+(declare-function package-read-from-string "package" (str))
+
+(defun lm-package-requires (&optional file)
+  "Return dependencies listed in file FILE, or current buffer if FILE is nil.
+The return value is a list of elements of the form (PACKAGE VERSION)
+where PACKAGE is the package name (a symbol) and VERSION is the
+package version (a string)."
+  (require 'package)
+  (lm-with-file file
+    (and-let* ((require-lines (lm-header-multiline "package-requires")))
+      (lm--prepare-package-dependencies
+       (package-read-from-string (mapconcat #'identity require-lines " "))))))
+
 (defun lm-keywords (&optional file)
   "Return the keywords given in file FILE, or current buffer if FILE is nil.
 The return is a `downcase'-ed string, or nil if no keywords

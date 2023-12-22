@@ -1149,27 +1149,8 @@ Signal an error if the entire string was not used."
                (error "Can't read whole string"))
       (end-of-file expr))))
 
-(defun package--prepare-dependencies (deps)
-  "Turn DEPS into an acceptable list of dependencies.
-
-Any parts missing a version string get a default version string
-of \"0\" (meaning any version) and an appropriate level of lists
-is wrapped around any parts requiring it."
-  (cond
-   ((not (listp deps))
-    (error "Invalid requirement specifier: %S" deps))
-   (t (mapcar (lambda (dep)
-                (cond
-                 ((symbolp dep) `(,dep "0"))
-                 ((stringp dep)
-                  (error "Invalid requirement specifier: %S" dep))
-                 ((and (listp dep) (null (cdr dep)))
-                  (list (car dep) "0"))
-                 (t dep)))
-              deps))))
-
 (declare-function lm-header "lisp-mnt" (header))
-(declare-function lm-header-multiline "lisp-mnt" (header))
+(declare-function lm-package-requires "lisp-mnt" (header))
 (declare-function lm-website "lisp-mnt" (&optional file))
 (declare-function lm-keywords-list "lisp-mnt" (&optional file))
 (declare-function lm-maintainers "lisp-mnt" (&optional file))
@@ -1212,9 +1193,7 @@ boundaries."
            (error "Package lacks a \"Version\" or \"Package-Version\" header")))
       (package-desc-from-define
        file-name pkg-version desc
-       (and-let* ((require-lines (lm-header-multiline "package-requires")))
-         (package--prepare-dependencies
-          (package-read-from-string (mapconcat #'identity require-lines " "))))
+       (lm-package-requires)
        :kind 'single
        :url website
        :keywords keywords
