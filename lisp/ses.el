@@ -3653,8 +3653,7 @@ spreadsheet."
     (with-current-buffer (window-buffer minibuffer-scroll-window)
       (ses-command-hook)  ; For ses-coverage.
       (ses-check-curcell 'needrange)
-      (setq x (cdr (macroexpand `(ses-range ,(car ses--curcell)
-					    ,(cdr ses--curcell))))))
+      (ses-dorange ses--curcell (cl-pushnew (ses-cell-symbol row col) x :test #'equal)))
     (insert (substring (prin1-to-string (nreverse x)) 1 -1))))
 
 (defun ses-insert-ses-range ()
