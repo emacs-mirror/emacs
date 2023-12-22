@@ -583,7 +583,7 @@ Note that with \"ispell\" as the speller, the CASECHARS and
 OTHERCHARS slots of the alist should contain the same character
 set as casechars and otherchars in the LANGUAGE.aff file \(e.g.,
 english.aff).  Aspell and Hunspell don't have this limitation.
-Allso, when the speller program is \"aspell\" or \"hunspell\",
+Also, when the speller program is \"aspell\" or \"hunspell\",
 some parts of the database, notably OTHERCHARS, will be determined
 by parsing the dictionary data files, see `ispell-aspell-find-dictionary'
 and `ispell-parse-hunspell-affix-file'.")
