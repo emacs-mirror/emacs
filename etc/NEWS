@@ -78,7 +78,7 @@ removed, as it was considered more dangerous than useful.  RFC 9110
 'url-personal-mail-address' is now also obsolete.
 
 To send an email address in the header of individual HTTP requests,
-see the variable `url-request-extra-headers'.
+see the variable 'url-request-extra-headers'.
 
 
 * Changes in Emacs 30.1
@@ -808,6 +808,11 @@ It reverts the current buffer to visit with "sudo" permissions.  The
 buffer must either visit a file, or it must run 'dired-mode'.  Another
 method but "sudo" can be configured with user option
 'tramp-file-name-with-method'.
+
+---
+*** Direct asynchronous processes use 'tramp-remote-path'.
+When a direct asynchronous process is invoked, it uses 'tramp-remote-path'
+for setting the remote PATH environment variable.
 
 ** File Notifications
 

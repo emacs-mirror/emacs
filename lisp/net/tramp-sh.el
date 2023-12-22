@@ -4175,18 +4175,6 @@ This function expects to be in the right *tramp* buffer."
 ;; On hydra.nixos.org, the $PATH environment variable is too long to
 ;; send it.  This is likely not due to PATH_MAX, but PIPE_BUF.  We
 ;; check it, and use a temporary file in case of.  See Bug#33781.
-
-;; The PIPE_BUF in POSIX [1] can be as low as 512 [2]. Here are the values
-;; on various platforms:
-;;   - 512 on macOS, FreeBSD, NetBSD, OpenBSD, MirBSD, native Windows.
-;;   - 4 KiB on Linux, OSF/1, Cygwin, Haiku.
-;;   - 5 KiB on Solaris.
-;;   - 8 KiB on HP-UX, Plan9.
-;;   - 10 KiB on IRIX.
-;;   - 32 KiB on AIX, Minix.
-;; [1] https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html
-;; [2] https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html
-;; See Bug#65324.
 (defun tramp-set-remote-path (vec)
   "Set the remote environment PATH to existing directories.
 I.e., for each directory in `tramp-remote-path', it is tested
@@ -4196,13 +4184,7 @@ variable PATH."
 	 (format
 	  "PATH=%s && export PATH"
 	  (string-join (tramp-get-remote-path vec) ":")))
-	(pipe-buf
-	 (with-tramp-connection-property vec "pipe-buf"
-	   (tramp-send-command-and-read
-	    vec
-            (format "getconf PIPE_BUF / 2>%s || echo 4096"
-                    (tramp-get-remote-null-device vec))
-            'noerror)))
+	(pipe-buf (tramp-get-remote-pipe-buf vec))
 	tmpfile chunk chunksize)
     (tramp-message vec 5 "Setting $PATH environment variable")
     (if (tramp-compat-length< command pipe-buf)
@@ -5597,6 +5579,7 @@ raises an error."
   "Check whether REGEXP matches the connection property \"uname\"."
   (string-match-p regexp (tramp-get-connection-property vec "uname" "")))
 
+;;;###tramp-autoload
 (defun tramp-get-remote-path (vec)
   "Compile list of remote directories for PATH.
 Nonexistent directories are removed from spec."
@@ -5679,6 +5662,27 @@ Nonexistent directories are removed from spec."
 	  (cl-remove-if
 	   (lambda (x) (not (tramp-get-file-property vec x "file-directory-p")))
 	   remote-path))))))
+
+;; The PIPE_BUF in POSIX [1] can be as low as 512 [2]. Here are the values
+;; on various platforms:
+;;   - 512 on macOS, FreeBSD, NetBSD, OpenBSD, MirBSD, native Windows.
+;;   - 4 KiB on Linux, OSF/1, Cygwin, Haiku.
+;;   - 5 KiB on Solaris.
+;;   - 8 KiB on HP-UX, Plan9.
+;;   - 10 KiB on IRIX.
+;;   - 32 KiB on AIX, Minix.
+;; [1] https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html
+;; [2] https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html
+;; See Bug#65324.
+;;;###tramp-autoload
+(defun tramp-get-remote-pipe-buf (vec)
+  "Return PIPE_BUF config from the remote side."
+  (with-tramp-connection-property vec "pipe-buf"
+    (tramp-send-command-and-read
+     vec
+     (format "getconf PIPE_BUF / 2>%s || echo 4096"
+             (tramp-get-remote-null-device vec))
+     'noerror)))
 
 (defun tramp-get-remote-locale (vec)
   "Determine remote locale, supporting UTF8 if possible."

@@ -4406,9 +4406,6 @@ It does not report the remote terminal name via @code{process-tty-name}.
 
 @item
 It does not set process property @code{remote-pid}.
-
-@item
-It does not use @code{tramp-remote-path}.
 @end itemize
 
 In order to gain even more performance, it is recommended to bind
