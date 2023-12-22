@@ -1,0 +1,1624 @@
+\input texinfo   @c -*- mode: texinfo; coding: utf-8; -*-
+@c %**start of header
+@setfilename ../../../../info/ses-fr.info
+@documentlanguage fr
+@documentencoding UTF-8
+@settitle @acronym{SES}: Le tableur simple d’Emacs
+@include docstyle.texi
+@setchapternewpage off
+@syncodeindex fn cp
+@syncodeindex vr cp
+@syncodeindex ky cp
+@c %**end of header
+
+@copying
+Ce fichier documente @acronym{SES} : le tableur simple d’Emacs (Simple
+Emacs Spreadsheet).
+
+Copyright @copyright{} 2002--2023 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License.''
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.''
+@end quotation
+@end copying
+
+@dircategory Emacs misc features
+@direntry
+* @acronym{SES}-fr: (ses-fr).        Le tableur simple d’Emacs.
+@end direntry
+
+@finalout
+
+@titlepage
+@title @acronym{SES}
+@subtitle Le tableur simple d’Emacs
+@author Jonathan A. Yavner
+@author @email{jyavner@@member.fsf.org}
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@c ===================================================================
+
+@ifnottex
+@node Top
+@comment  node-name,  next,  previous,  up
+@top @acronym{SES}: Simple Emacs Spreadsheet
+
+@display
+@acronym{SES} est mode majeur de GNU Emacs pour éditer des fichiers
+tableur, c-à-d.@: des fichiers contenant une grille rectangulaire de
+cellules. Les valeurs des cellules sont spécifiés par des formules
+pouvant se référer aux valeurs d’autres cellules.
+@end display
+@end ifnottex
+
+Pour les rapports d’anomalie, utiliser @kbd{M-x report-emacs-bug}.
+
+@insertcopying
+
+@menu
+* Boniment: Sales Pitch.        Pourquoi utiliser @acronym{SES}?
+* Tuto: Quick Tutorial.         Une introduction sommaire
+* Les bases: The Basics.        Les commandes de base du tableur
+* Fonctions avancées: Advanced Features. Vous voulez en savoir plus ?
+* Pour les gourous: For Gurus.  Vous voulez en savoir @emph{encore plus} ?
+* Index: Index.                Index des concepts, fonctions et varaiables
+* Remerciements: Acknowledgments. Remerciements
+* Licence GNU pour la documentation libre: GNU Free Documentation License. La licence de cette documentation.
+@end menu
+
+@c ===================================================================
+
+@node Sales Pitch
+@comment  node-name,  next,  previous,  up
+@chapter Boniment
+@cindex features
+
+@itemize --
+@item Créer et éditer des feuilles de calcul avec un minimum de tracas.
+@item Prise en charge complète du Défaire/Refaire/Sauvegarde auto.
+@item Protection contre les virus enfouis dans les feuilles de calcul.
+@item Les formules de cellule sont directement du code Emacs Lisp.
+@item Fonctions d’impression pour contrôler l’apparence des cellules.
+@item Raccourcis clavier intuitifs: C-o = insérer une ligne, M-o = insérer une colonne, etc.
+@item « Débordement » des valeurs de cellule longues dans les cellules vides suivantes.
+@item La ligne d’en-tête montre les lettres désignant les colonnes.
+@item Autocomplétion pour la saisie des symboles de cellules nommées lors de la saisie des formules.
+@item Couper, copier et coller peut transferer les formules et les fonction d’impression.
+@item Import and export de valeur séparées par des tabulation, ou de formules séparés par des tabulations.
+@item Format de fichier en texte, facile à bidouiller.
+@end itemize
+
+@c ===================================================================
+
+@node Quick Tutorial
+@chapter Tuto
+@cindex introduction
+@cindex tuto
+
+Si vous désirez être rapidement lancé et pensez que vous savez ce que
+vous attendez d’un tableur simple, alors ce chapitre peut être tout ce
+dont vous avez besoin.
+
+Premièrment, visitez un nouveau fichier avec pour extension de nom de
+fichier @file{.ses}.  Emacs vous présente alors une feuille de calcul
+vide contenant une seule cellule.
+
+Commencez pas saisir une ligne d’en-tête: @kbd{"Revenu@key{RET}}.  Le
+guillemet double @code{"} indique que vous saisissez une cellule
+textuelle, il ne fait pas partie de la valeur de la cellule, et aucun
+guillemet de fermeture n’est nécessaire.
+
+Pour insérer votre première valeur de revenu, vous devez d’abord
+redimensionner la feuille. Appuyer sur la touche @key{TAB} pour
+ajouter une nouvelle cellule et revenez à elle en remontant.
+Saisissez un nombre, tel que @samp{2.23}.  Puis continuer pour ajouter
+quelques valeurs supplémentaires de revenu, par ex. :
+
+@example
+@group
+A
+ Revenu
+   2.23
+   0.02
+  15.76
+  -4.00
+@end group
+@end example
+
+Pour additionner les valeurs entre elles, saisissez une expression
+Lisp:
+
+@example
+(+ A2 A3 A4 A5)
+@end example
+
+Peut-être désirez vous ajouter une cellule à la droite de la cellule
+A4 pour expliquer pourquoi vous avez une valeur négative.  En appuyant
+sur @kbd{TAB} dans cette cellule vous ajouter entièrement une nouvelle
+colonne @samp{B} où vous pourrez ajouter une telle note.
+
+La colonne est assez étroite par défaut, mais en appyant sur @kbd{w}
+vous pouvez la redimensionner selon vos besoins.  Faites la de 22
+caractères de large.  Vous pouvez maintenant ajoutez des notes
+déscriptive pour chacune des cases, par ex. :
+
+@example
+@group
+A       B
+ Revenu
+   2.23  Frais de consultation
+   0.02       Opinion informée
+  15.76         Stand limonade
+     -4          Prêt à Joseph
+  14.01                  Total
+@end group
+@end example
+
+Par défault, l’impression des valeurs de cellule se fait aligné à
+droite, c’est la raison d’un tel alignement pour les notes dans la
+colonne @samp{B}.  Pour changer cela, vous pouvez saisir une fonction
+d’impression pour la colonne entière, en utilisant par ex. @kbd{M-p
+("%s")}. Le fait que @code{"%s"} soit contenu dans une liste indique à
+@acronym{SES} que l’alignement est à faire à gauche.  Vous pouvez
+l’emporter sur la fonction d’impression de colonne pour l’une
+quelconque de ses cellules en donnant une fonction d’impression par
+cellule avec @kbd{p}.
+
+Vous pouvez nommer une fonction d’impression, et utiliser le nom de la
+fonction à la place de sa définition, de sorte à faciliter la
+modification de l’impression de toutes les cellules utilisant cette
+fonction. Par exemple tapez @kbd{M-x
+ses-define-local-printer@key{ret}}, puis @kbd{note@key{ret}}, puis
+@kbd{("%s")} pour définir une fonction d’impression nommée @code{note}
+dont la définition est @code{("%s")}, puis sur la colonne @samp{B} tapez
+@kbd{M-p note@kbd{ret}}
+
+@example
+@group
+A       B
+ Revenu
+   2.23 Frais de consultation
+   0.02 Opinion informée
+  15.76 Stand limonade
+     -4 Prêt à Joseph
+  14.01 Total
+@end group
+@end example
+
+Si maintenant vous redéfinissez @code{note} avec pour nouvelle
+définition @kbd{("*%s")} qui ajoute une astérisque @code{*} devant le
+texte, la zone d’impression est modifiée ainsi:
+@example
+@group
+A       B
+ Revenu
+   2.23 *Frais de consultation
+   0.02 *Opinion informée
+  15.76 *Stand limonade
+     -4 *Prêt à Joseph
+  14.01 *Total
+@end group
+@end example
+
+Notez, que la cellule B1 reste vide est n’est pas affichée comme
+@code{*}. C’Est parce que la valeur de la cellule est @code{nil}, et
+que la fonction d’impression @code{("%s")} échoue sur cette valeur, et
+donc une fonction de repli est utilisée à la place.
+
+Si mainteneant Joseph rembourse son prêt, vous pourriez effacer cette
+case; par e. en positionant le curseur sur la cellule A5 et en
+appuyant sur @kbd{C-d}.  Si vous faites celle le total imprimé dans la
+cellule A6 affichera @samp{######}.  La raison de cela est la valeur
+dans une cellule vide est typiquement @code{nil} et que l’opérateur
+@code{+} ordinaire échoue à gérer une telle valeur. Au lieu de vider
+la cellule, vous pourriez littéralement saisir @samp{0}, ou supprimer
+entièrement la ligne en tlisant @kbd{C-k}.  Une alterative est
+d’utiliser la fonction spéciale @code{ses+} au lieu du @code{+}
+ordinaire :
+
+@example
+(ses+ A2 A3 A4 A5)
+@end example
+
+Pour rendre une formule robuste au changement de géométrie de la
+feuille, vous pouvez utiliser la macro @code{ses-range} pour faire
+référence à une plage de cellules par ses extrémités, par ex. :
+
+@example
+(apply 'ses+ (ses-range A2 A5))
+@end example
+
+(Le @code{apply} est nécessaire parce que @code{ses-range} produite
+une @emph{liste} de valeurs, ce qui ouvre des possibilités plus
+complexes).
+
+Alternativement vous pouvez utiliser le modificateur @code{!} de
+@code{ses-range} pour retirer les cellules vides de la liste renvoyée,
+ce qui permet d’utiliser @code{+} au lieu de @code{ses+}:
+
+@lisp
+(apply '+ (ses-range A2 A5 !))
+@end lisp
+
+@c ===================================================================
+
+@node The Basics
+@comment  node-name,  next,  previous,  up
+@chapter Les bases
+@cindex commandes de base
+@cindex base, commandes de
+@findex ses-jump
+@findex ses-mark-row
+@findex ses-mark-column
+@findex ses-mark-whole-buffer
+@findex set-mark-command
+@findex keyboard-quit
+
+Pour créer une nouveau tableur, visitez un fichier inexistant dont le
+nomre se termine en @file{.ses}.  Par exemple, @kbd{C-x C-f essai.ses
+@key{ret}}.
+
+
+Un @dfn{identificateur de cellule} est un symbole avec une lettre de
+colonne et un numéro de ligne.  La cellule B7 est la 2e column de la
+7e ligne.  Pour les feuille très larges, il ya deux lettre de
+colonne : la cellule AB7 les la 28e colonne de la 7e ligne. Les
+feuilles encore plus large ont AAA1, etc.  On se déplace avec les
+commandes ordinaire de déplacement d’Emacs.
+
+@table @kbd
+@item j
+Déplace le point vers la cellule spécifiée par identificateur
+(@code{ses-jump}). À moins que la cellule soit une cellule renommée,
+l’identificateur est insensible à la casse. UN argument préfixe
+@math{n} déplace vers la cellule de coordonnées @math{(n\div R, n \%
+C)} pour une feuille de @math{R} ligne et @math{C} colonnes, et A1
+étant aux coordonnées @math{(0,0)}. La façon dont l’identificateur ou
+l’argument préfixe de commande sont interprété peut être personnalisée
+via les variables @code{ses-jump-cell-name-function} et
+@code{ses-jump-prefix-function}.
+@end table
+
+Le Point est toujours sur le bord de gauche d’une cellule, ou à la fin
+de ligne vide. Quand la marque est inactive, la cellule courante est
+soulignée.  Quand la marque est active, la plage est le rectangle de
+cellules mis en vedette (@acronym{SES} utilise toujours le mode de
+marque transitoire).  Faire glisser la souris de A1 à A3 crée la plage
+A1-A2.  Beaucoup de commandes @acronym{SES} opèrent seulement sur une seule cellule, et non sur une plage.
+
+@table @kbd
+@item C-@key{SPC}
+@itemx C-@@
+Règle la marque au point (@code{set-mark-command}).
+
+@item C-g
+Désactive la marque (@code{keyboard-quit}).
+
+@item M-h
+Met en vedette la ligne courante (@code{ses-mark-row}).
+
+@item S-M-h
+Met en vedette la colonne courante (@code{ses-mark-column}).
+
+@item C-x h
+Mettre en vedette toutes les cellules (@code{mark-whole-buffer}).
+@end table
+
+@menu
+* Formules: Formulas.
+* Redimensionner: Resizing.
+* Fonctions d’impression: Printer functions.
+* Effacer des cellules: Clearing cells.
+* Copier/couper/coller: Copy/cut/paste.
+* Personnaliser @acronym{SES}: Customizing @acronym{SES}.
+@end menu
+
+@node Formulas
+@section Formules de cellule
+@cindex formules
+@cindex formules, saisire
+@cindex valeurs
+@cindex valeurs de cellule
+@cindex éditer des cellules
+@findex ses-read-cell
+@findex ses-read-symbole
+@findex ses-edit-cell
+@findex ses-recalculate-cell
+@findex ses-recalculate-all
+
+Pour insérer une valeur dans une cellule, tapez juste une expression
+numérique, un @samp{"texte entre guillemets anglais"}, ou une
+expression Lisp.
+
+@table @kbd
+@item 0..9
+Auto-insérer un nombre (@code{ses-read-cell}).
+
+@item -
+Auto-insérer un nombre négatif (@code{ses-read-cell}).
+
+@item .
+Auto-insérer un nombre décimal (@code{ses-read-cell}).
+
+@item "
+Auto-insérer une chaîne de caractères.  Le guillemet anglais de
+terminaison est inséré automatiquement (@code{ses-read-cell}).
+
+@item (
+Auto-insérer une expression.  La parenthèse de droite est insérée
+automatiquement (@code{ses-read-cell}).  Pour accéder à la valeur
+d’une autre cellule, il suffit d’utiliser son identificateur dans
+votre expression.  Dès que l’autre cellule change, la formule de cette
+cellule-ci est réévaluée.  En tapant l’expression, vous pouvez
+utiliser les raccourcis clavier suivants :
+@table @kbd
+@item M-@key{TAB}
+pour compléter les noms de symboles, et
+@item  C-h C-n
+pour lister les symboles de cellules renommées dans un tampon d’aide.
+@end table
+
+@item ' @r{(apostrophe)}
+Entrer un symbole (@code{ses-read-symbol}).  @acronym{SES} se souvient
+de tous les symboles qui ont été utilisés comme formules, de sorte que
+vous pouvez taper juste le début d’un symbole et utiliser
+@kbd{@key{SPC}}, @kbd{@key{TAB}}, et @kbd{?} pour le compléter.
+@end table
+
+Pour saisire quelque-chose d’autre (par ex., un vecteur), commencer
+avec un chiffre, puis effacer le chiffre et tapez ce que vous désirez.
+
+@table @kbd
+@item @key{RET}
+Édite la formule existante dans la cellule courante (@code{ses-edit-cell}).
+
+@item C-c C-c
+Force le  recalcul de la  cellule ou plage courante (@code{ses-recalculate-cell}).
+
+@item C-c C-l
+Recalcule la feuille entière (@code{ses-recalculate-all}).
+@end table
+
+@node Resizing
+@section Redimensionner la feuille
+@cindex redimensionner des feuilles
+@cindex dimensions
+@cindex ligne,  ajout ou suppression
+@cindex colonne, ajout ou suppression
+@cindex ajouter des lignes ou colonnes
+@cindex insérer des lignes ou colonnes
+@cindex enlever des lignes ou colonnes
+@cindex supprimer des lignes ou colonnes
+@findex ses-insert-row
+@findex ses-insert-column
+@findex ses-delete-row
+@findex ses-delete-column
+@findex ses-set-column-width
+@findex ses-forward-or-insert
+@findex ses-append-row-jump-first-column
+
+
+Commande de base :
+
+@table @kbd
+@item C-o
+(@code{ses-insert-row})
+
+@item M-o
+(@code{ses-insert-column})
+
+@item C-k
+(@code{ses-delete-row})
+
+@item M-k
+(@code{ses-delete-column})
+
+@item w
+(@code{ses-set-column-width})
+
+@item @key{TAB}
+Déplace le point sur la prochaine cellule vers la droite, ou insère
+une nouvelle colonne si on est déjà sur la dernière cellule de la
+ligne, ou insère une nouvelle ligne si on est sur la ligne de
+terminaison (@code{ses-forward-or-insert}).
+
+@item C-j
+Insère une nouvelle ligne sous la ligne courante et va à la colonne A
+de cette ligne (@code{ses-append-row-jump-first-column}).
+@end table
+
+En redimensionnant la feuille (à moins que vous ne fassiez que changer
+la largeur d’une colonne) les références de cellule au sein des
+formules sont toutes relocalisées de sorte à continuer à faire
+référence aux mêmes cellules.  Si une formule mentionne B1 et que vous
+insérez une nouvelle première ligne, alors la formule mentionnera B2.
+
+Si vous supprimez une cellule à laquelle une formule fait référence,
+le symbole de cellule est supprimé de la formule, de sorte que
+@code{(+ A1 B1 C1)} après suppression de la troisième colonne devient
+@code{(+ A1 B1)}.  Au cas où cela ne serait pas ce que vous désiriez :
+
+@table @kbd
+@item C-_
+@itemx C-x u
+Défait l’action action précédente (@code{(undo)}).
+@end table
+
+
+@node Printer functions
+@section Fonctions d’impression
+@cindex fonctions d’impression
+@cindex formatage de cellule
+@cindex cellules, formater
+
+Les fonctions d’impression convertissent des valeurs binaires de
+cellule en formes d’impression qu’Emacs affiche à l’écran.
+
+@menu
+* Différents types de fonctions d’impression: Various kinds of printer functions.
+* Configurer quelle fonction d’impression s’applique: Configuring what printer function applies.
+* Les fonctions d’impression standardes: Standard printer functions.
+* Les fonctions d’impression locales: Local printer functions.
+* Écrire une fonctions d’impression lambda: Writing a lambda printer function.
+@end menu
+
+@node Various kinds of printer functions
+@subsection Différents types de fonctions d’impression
+
+Lorsque on configure quelle fonction d’impression s’applique
+(@pxref{Configuring what printer function applies}), on peut saisir
+une fonction d’impression comme l’une des possibilités suivantes :
+
+@itemize
+@item
+Une chaîne de formatage, telle que @samp{"$%.2f"}.  la chaîne formatée
+résultante est alignée à droite au sein de la cellule
+d’impression. Pour obtenir un alignement à gauche, utilisez des
+parenthèses : @samp{("$%.2f")}.
+@item
+Une fonction d’impression peut aussi être une fonction à un argument
+dont la valeur renvoyée est une chaîne (pour obtenir un alignement à
+droite) ou une liste d’une chaîne (pour obtenir un alignement à
+gauche). Une telle fonction peut à son tour être configurée comme :
+@itemize
+@item
+Une expression lambda, par exemple :
+
+@lisp
+(lambda (x)
+  (cond
+     ((null x) "")
+     ((numberp x) (format "%.2f" x))
+     (t (ses-center-span x ?# 'ses-prin1))))
+@end lisp
+
+Pendant la saisie d’une lambda, vous pouvez utiliser @kbd{M-@key{TAB}}
+pour completer les noms de symboles.
+@item
+Un symbole faisant référence à une fonction d’impression standarde
+(@pxref{Standard printer functions}).
+@item
+Un symbole faisant référence à une fonction d’impression locale
+(@pxref{Local printer functions}).
+@end itemize
+
+
+@end itemize
+
+
+@node Configuring what printer function applies
+@subsection Configurer quelle fonction d’impression s’applique
+
+Chaque cellule a une fonction d’impression.  Si c’est @code{nil},
+alors la fonction d’impression de la colonne de cette cellule est
+utilisée. Et si cela est aussi @code{nil}, alors la fonction
+d’impression par défaut de la feuille est utilisée.
+
+@table @kbd
+@item p
+@findex ses-read-cell-printer
+Saisit une fonction d’impression pour la cellule ou plage courante
+(@code{ses-read-cell-printer}).
+
+@item M-p
+@findex ses-read-column-printer
+Saisit une fonction d’impression pour la colonne courante (@code{ses-read-column-printer}).
+
+@item C-c C-p
+@findex ses-read-default-printer
+Saisit la fonction d’impression par défaut de la feuille
+(@code{ses-read-default-printer}).
+@end table
+
+Les commandes @code{ses-read-@var{xxx}-printer} permettent les commandes
+suivantes pendant l’édition:
+
+@table @kbd
+@item @key{arrow-up}
+@itemx @key{arrow-down}
+Pour parcourir l’historique : les commandes
+@code{ses-read-@var{xxx}-printer} ont leur propre historique de
+mini-tampon, il est préchargé avec l’ensemble de toutes les fonctions
+d’impression utilisées dans cette feuille, plus les fonctions
+d’impression standardes (@pxref{Standard printer functions}) et les
+fonctions d’impression locales (@pxref{Local printer functions}).
+@item @key{TAB}
+Pour compléter les symboles de fonctions d’impression locales, et
+@item C-h C-p
+Pour lister les fonctions d’impression locales dans un tampon d’aide.
+@end table
+
+
+@node Standard printer functions
+@subsection Les fonctions d’impression standardes
+
+
+Mise à part @code{ses-prin1}, les autres fonctions d’impression
+standardes ne conviennent que pour les cellules, et non pour les
+colonnes ou comme fonction d’impression par défaut de la feuille,
+parce qu’elle formatent la valeur en utilisant la fonction
+d’impression de colonne (ou par défaut si @code{nil}) et ensuite
+post-traite le résultat, par ex.@: le centre :
+
+@ftable @code
+@item ses-center
+Centre juste.
+
+@item ses-center-span
+Centrer en débordant sur les cellules vides suivantes.
+
+@item ses-dashfill
+Centrer en utilisant des tirets (@samp{-}) au lieu d’espaces.
+
+@item ses-dashfill-span
+Centrer avec tirets et débordement.
+
+@item ses-tildefill-span
+Centrer avec tildes (@samp{~}) et débordement.
+
+@item ses-prin1
+C’est la fonction d’impression de repli, utilisée quand l’appel à la
+fonction d’impression configurée envoie une erreur.
+@end ftable
+
+@node Local printer functions
+@subsection Les fonctions d’impression locales
+
+@findex ses-define-local-printer
+Vous pouvez définir une fonction d’impression locale à la feuille avec
+la commande @code{ses-define-local-printer}.  Par exemple, définissez
+une fonction d’impression @samp{toto} à @code{"%.2f"}, et ensuite
+utilisez le symbole @samp{toto} comme fonction d’impression.  Ensuite,
+si vous rappelez @code{ses-define-local-printer} sur @samp{toto} pour
+le redéfinir comme @code{"%.3f"}, alors toutes les cellules utilisant
+la fonction d’impression @samp{toto} seront re-imprimées conformément.
+
+Il peut arriver que vous désiriez définir ou redéfinir certaines
+fonctions d’impression à chaque fois que vous ouvrez une feuille. Par
+exemple, imaginez que vous désiriez définir/re-définir automatiquement
+une fonction d’impression locale @code{euro} pour afficher un nombre
+comme une somme en euros, par exemple le nombre @code{3.1} serait
+affiché comme @code{3.10@dmn{}@euro{}}. Pour faire cela dans tout
+tampon SES qui n’est pas en lecture seule, vous pouvez ajouter ce
+genre de code à votre fichier d’init @file{.emacs} :
+
+@lisp
+(defun my-ses-mode-hook ()
+  (unless buffer-read-only
+    (ses-define-local-printer
+     'euro
+     (lambda (x)
+       (cond
+        ((null x) "")
+        ((numberp x) (format "%.2f€" x))
+        (t (ses-center-span x ?# 'ses-prin1)))))))
+(add-hook 'ses-mode-hook 'my-ses-mode-hook)
+@end lisp
+
+Si vous remplacez la commande @code{ses-define-local-printer} par la
+fonction @code{ses-define-if-new-local-printer}
+@findex ses-define-if-new-local-printer
+la définition ne se produira que si aucune fonction d’impression de
+même nom n’est déjà définie.
+
+
+@node Writing a lambda printer function
+@subsection Écrire une fonctions d’impression lambda
+
+Vous pouvez écrire une fonction d’impression avec une expression
+lambda prenant un seul argument en deux cas :
+
+@itemize
+@item
+quand vous configurez la fonction d’impression s’appliquant à
+une cellule ou colonne, ou
+@item
+quand vous définissez une fonction d’impression avec la commande
+@code{ses-define-local-printer}.
+@end itemize
+
+En faisant cela, prenez garde à ce que la valeur renvoyée soit une
+chaîne, ou une liste contenant une chaîne, même quand l’argument
+d’entrée a une valeur inattendue. Voici un exemple :
+
+@example
+(lambda (val)
+   (cond
+      ((null val) "")
+      ((and (numberp val) (>= val 0)) (format "%.1f" val))
+      (t (ses-center-span val ?# 'ses-prin1))))
+@end example
+
+Cet exemple fait ceci :
+
+@itemize
+@item
+Quand la cellule est vide (c-à-d.@: quand @code{val} est @code{nil}),
+imprime une chaîne vide @code{""}
+@item
+Quand la valeur de cellule est un nombre positif ou nul, formate la
+valeur en notation à virgule fixe avec une decimale après la virgule
+@item
+Sinon, gère la valeur comme erronnée en l’imprimant comme une
+s-expression (avec @code{ses-prin1}), centrée et entourée de
+croisillons @code{#} de bourrage.
+@end itemize
+
+Un autre précaution à prendre est d’éviter un débordement de pile à
+cause d’une fonction d’impression se rappelant elle-même sans
+fin. Cette erreur peut se produire quand vous utilisez une fonction
+d’impression locale comme fonction d’impression de colonne, et que
+cette fonction d’impression locale appelle implicitement la fonction
+d’impression de colonne courante, ainsi elle se rappelle elle-même
+récursivement. Imaginez par exemple que vous désirez créer une
+fonction d’impression locale @code{=bourre} qui centre le contenu
+imprimé d’une cellule et l’entoure de signes égal @code{=}, et que
+vous le faites (erronnément) comme cela :
+
+@lisp
+;; CODE ERRONÉ
+(lambda (x)
+  (cond
+   ((null x) "")
+   (t (ses-center x 0 ?=))))
+@end lisp
+
+Comme @code{=bourre} utilise la fonction d’impression standarde
+@code{ses-center} mais sans lui passer exemplicitement une fonction
+d’impression, @code{ses-center} appelle la fonction d’impression de
+colonne courante s’il y en a une, ou la fonction d’impression par
+défaut de la feuille sinon. Aussi, utiliser @code{=bourre} comme
+fonction d’impression de colonne aura pour résultat de causer un
+débordement de pile dans cette colonne sur toute cellule non vide,
+puisque @code{ses-center} rappelle récursivement la fonction qui l'a
+appelé.  @acronym{SES} ne vérifie pas cela ; il vous faut donc faire
+attention.  Par exemple, reécrivez @code{=bourre} ainsi :
+
+@lisp
+(lambda (x)
+  (cond
+   ((null x) "")
+   ((stringp x) (ses-center x 0 ?= " %s "))
+   (t (ses-center-span x ?# 'ses-prin1))))
+@end lisp
+
+Le code ci-dessus est réparé au sens où @code{ses-center} et
+@code{ses-center-span} sont toutes deux appelées avec un dernier
+argument @var{printer} explicite spécifiant la fonction d'impression,
+respectivement @code{" %s "} et @code{'ses-prin1}.
+
+
+Le code ci-dessus applique le bourrage de @code{=} seulement aux
+chaînes ; et aussi il entoure la chaîne par un espace de chaque côté
+avant de bourrer avec des signes @code{=}.  Ainsi la chaîne @samp{Ula}
+s’affichera comme @samp{@w{=== Ula ===}} dans une colonne large de 11
+caractères.  Toute valeur qui n’est ni @code{nil} (c-à-d.@: une
+cellule vide) ni une chaîne est affichée comme une erreur par l’usage
+de bourrage par des croisillons @code{#}.
+
+@node Clearing cells
+@section Effacer des cellules
+@cindex effacer, commandes
+@findex ses-clear-cell-backward
+@findex ses-clear-cell-forward
+
+Ces commandes règlent à la fois la formule et la fonction d’impression
+à @code{nil}:
+
+@table @kbd
+@item @key{DEL}
+Se deplace à gauche et efface la cellule (@code{ses-clear-cell-backward}).
+
+@item C-d
+Efface la cellule et se déplace à droite (@code{ses-clear-cell-forward}).
+@end table
+
+
+@node Copy/cut/paste
+@section Copier, couper, et coller
+@cindex copier
+@cindex couper
+@cindex coller
+@findex kill-ring-save
+@findex mouse-set-region
+@findex mouse-set-secondary
+@findex ses-kill-override
+@findex yank
+@findex clipboard-yank
+@findex mouse-yank-at-click
+@findex mouse-yank-at-secondary
+@findex ses-yank-pop
+
+Les fonctions de copie opèrent sur des regions rectangulaires de
+cellules.  Vous pouvez coller les copies dans des tampons
+non-@acronym{SES} pour exporter le texte d’impression.
+
+@table @kbd
+@item M-w
+@itemx [copy]
+@itemx [C-insert]
+Copie les cellules en vedette vers l’anneau presse-papier et le
+presse-papier primaire (@code{kill-ring-save}).
+
+@item [drag-mouse-1]
+Marque une region et la copie vers l’anneau presse-papier et le
+presse-papier primaire (@code{mouse-set-region}).
+
+@item [M-drag-mouse-1]
+Marque une region et la copie vers l’anneau presse-papier et le
+presse-papier secondaire (@code{mouse-set-secondary}).
+
+@item C-w
+@itemx [cut]
+@itemx [S-delete]
+Les fonctions couper ne suppriment pas en fait de lignes ou de
+colonnes --- elles les copient et puis les effacent
+(@code{ses-kill-override}).
+
+@item C-y
+@itemx [S-insert]
+Colle à partir de l’anneau presse-papier (@code{yank}).  Les fonctions
+coller se comportent différemment selon le format du texte qu’elles
+insèrent :
+@itemize @bullet
+@item
+Quand on colle des cellules qui ont été coupées ou copiées à partir
+d’un tampon @acronym{SES}, le texte d’impression est ignoré et
+seulement la formule et fonction d’impression jointes sont insérées ;
+les références de cellule de la formule sont relocalisées à moins que
+vous n’utilisiez @kbd{C-u}.
+@item
+Le texte collé écrase un rectangle de cellules dont le coin haut
+gauche est la cellule courante.  Si une partie du rectangle est
+au-délà des bords de la feuille, vous devez confirmer l’augmentation
+de la taille de la feuille.
+@item
+Du texte Non-@acronym{SES} est d’ordinaire inséré comme formule de
+remplacement pour la cellule courante.  Si la formule serait un
+symbole, elle est traitée comme une chaîne à moins que vous
+n’utilisiez @kbd{C-u}.  Les formules collées comprenant des erreurs de
+syntaxe sont toujours traitées comme des chaînes.
+@end itemize
+
+@item [paste]
+Colle à partir du presse-papier primaire ou de l’anneau presse-papier
+(@code{clipboard-yank}).
+
+@item [mouse-2]
+Règle le point et colle à partir du presse-papier primaire
+(@code{mouse-yank-at-click}).
+
+@item [M-mouse-2]
+Règle le point et colle à partir du presse-papier secondaire
+(@code{mouse-yank-secondary}).
+
+@item M-y
+Immédiatement après un coller, vous pouvez remplacer le texte avec un
+élément précédent à partir de l’anneau presse-papier
+(@code{ses-yank-pop}).  Contrairement au yank-pop standard d’Emacs, la
+version de @acronym{SES} utilise @code{undo} pour supprimer l’ancien
+collage.  Est-ce que cela ne fait aucune différence ?
+@end table
+
+@node Customizing @acronym{SES}
+@section Personnaliser @acronym{SES}
+@cindex personnaliser
+@vindex enable-local-eval
+
+Par défaut, une feuille venant d’être créée a 1 ligne et 1 colonne.
+La largeur de colonne est 7 et la fonction d’impression par défaut est
+@samp{"%.7g"}.  Chacune de ces choses peut être personnalisée.  Allez
+voir dans le groupe « ses ».
+
+Après avoir saisi une valeur de cellule, normalement
+@code{forward-char} est appelé, ce qui déplace le point vers la
+cellule suivante à droite, ou à la première cellule à gauche de la
+ligne suivante si la cellule courante est la plus à droite de la
+feuille.  Vous pouvez personnaliser @code{ses-after-entry-functions}
+pour que le déplacement soit vers la gauche ou le haut ou le bas.
+Pour un mouvement diagonal, selectionnez deux fonctions de la liste.
+
+@vindex ses-jump-cell-name-function
+@code{ses-jump-cell-name-function} est une variable personnalisable
+réglée par défaut à la fonction @code{upcase}. Cette fonction est
+appelée quand vous passez un nom de cellule à la commande
+@command{ses-jump} (@kbd{j}), et que ce nom n’est pas le nom d’une
+cellule renommée. Elle change le nom de cellule saisi en celui de la
+cellule vers laquelle sauter. Le réglage par défaut @code{upcase} vous
+permet de saisir le nom de cellule en bas de casse. Un autre usage de
+@code{ses-jump-cell-name-function} pourrait être une
+internationalisation pour convertir des caractères non latin en
+équivalents latin pour nommer la cellule. Au lieu d’un nom de cellule,
+la fonction peut renvoyer des coordonnées de cellule sous la forme
+d’un cons, par exemple @code{(0 . 0)} pour la cellule @code{A1},
+@code{(1 . 0)} pour la cellule @code{A2}, etc.
+
+@vindex ses-jump-prefix-function
+@code{ses-jump-prefix-function} est une variable personnalisable réglée
+par défaut à la fonction @code{ses-jump-prefix}. Cette fonction est
+appelée quand vous donnez un argument préfixe à la commande
+@command{ses-jump} (@kbd{j}). Elle renvoie un nom de cellule ou des
+coordonnées de cellule correspondant à l’argument préfixe. Les
+coordonnées de cellule sont sous la forme d’un cons, par exemple
+@code{(1 . 0)} pour la cellule @code{A2}. Le réglage par défaut
+@code{ses-jump-prefix} numérote les cellules de gauche à droite et
+puis de haut en bas, de sorte que si on suppose une feuille 4×3,
+l’argument préfixe 0 saute à la cellule A1, l’argument préfixe 2 saute
+à C1, l’argument préfixe 3 saute à A2, etc.
+
+@vindex ses-mode-hook
+@code{ses-mode-hook} est un crochet de mode normal (une liste de
+fonctions qui s’exécutent quand le mode @acronym{SES} démarre sur un
+tampon).
+
+@vindex safe-functions
+La variable @code{safe-functions} est une liste de fonctions
+potentiellement risquées à traiter comme si elles étaient sûres lors
+de l’analyse des formules et fonctions d’impression.  @xref{Virus
+protection}.  Avant de personnaliser @code{safe-functions},
+réfléchissez à quel point vous faites confiance à la personne qui vous
+suggère cette modification.  La valeur @code{t} désactive toute
+protection anti-virus.  Une valeur donnant une liste-de-fonctions peut
+rendre une feuille « trop bien », mais elle crée aussi des portes
+dérobées dans votre armure anti-virus.  Pour que votre protection
+contre les virus fonctionne, vous devez toujours appuyer sur @kbd{n}
+quand un avertissement contre un virus vous est présenté, à moins que
+vous compreniez ce que le code en question essaie de faire. N’écoutez
+pas ceux qui vous racontent de personnaliser @code{enable-local-eval}
+--- cette variable est pour les gens qui ne portent pas de ceinture de
+sécurité !
+
+
+@c ===================================================================
+
+@node Advanced Features
+@chapter Fonctions avancées
+@cindex avancées, fonctions
+@findex ses-read-header-row
+
+
+@table @kbd
+@item C-c M-C-h
+(@code{ses-set-header-row}).
+@findex ses-set-header-row
+@kindex C-c M-C-h
+La ligne d’en-tête au sommet de la fenêtre @acronym{SES} affiche
+normalement la ligne de colonne pour chaque colonne. Vous pouvez la
+régler pour afficher une copie de l’une des lignes, tell que qu’une
+ligne de titres de colonnes, ainsi cette ligne sera toujours visible.
+Par défaut la commande règle la ligne courante comme en-tête ;
+utiliser C-u pour une invite à désigner la ligne d’en-têre.  Régler la
+ligne d’en-tête à la ligne 0 pour afficher les lettres de colonne de
+nouveau.
+@item [header-line mouse-3]
+Affiche un menu pour régler la ligne courante comme en-tête, ou
+revenir à des lettres de colonne.
+@item M-x ses-rename-cell
+@findex ses-rename-cell
+Renomme une cellule pour passer d'un nom standard du genre de A1 à
+toute chaîne pouvant être un nom valide pour une variable locale (Voir
+aussi @ref{Nonrelocatable references}).
+@item M-x ses-repair-cell-reference-all
+@findex ses-repair-cell-reference-all
+Quand vous interrompez la mise à jour d’une formule de cellule en
+tapant @kbd{C-g}, alors cela peut casser le lien de référence de
+cellule, ce qui compromet la mise à jour automatique de cellule quand
+toute autre cellule dont elle dépend est modifiée. Pour réparer cela
+utilisez la fonction @code{ses-repair-cell-reference-all}
+@end table
+
+@menu
+* La zone d’impression:  The print area.
+* Plages dans les formules:  Ranges in formulas.
+* Trier par colonne:  Sorting by column.
+* Fonctions de formule standardes:  Standard formula functions.
+* Plus sur l’impression de cellule:  More on cell printing.
+* Import et export:  Import and export.
+* Protection contre les virus:  Virus protection.
+* Feuilles avec détails et synthèse:  Spreadsheets with details and summary.
+@end menu
+
+@node The print area
+@section La zone d’impression
+@cindex zone d’impression
+@cindex impression, zone d’
+@findex widen
+@findex ses-renarrow-buffer
+@findex ses-reprint-all
+
+Un fichier @acronym{SES} consiste en une zone d’impression et une zone
+de données.  Normalement le tampon est réduit de sorte à n’afficher
+que la zone d’impression. La zone d’impression est en lecture seule,
+hormis pour les commandes spéciales de @acronym{SES} ; elle contient
+les valeurs de cellule formatées par les fonctions d’impression.  La
+zone de données enregistre les formules, fonctions d’impression, etc.
+
+@table @kbd
+@item C-x n w
+Affiche à la fois les zones d’impression et de données (@code{widen}).
+
+@item C-c C-n
+Affiche seulement la zone d’impression (@code{ses-renarrow-buffer}).
+
+@item S-C-l
+@itemx M-C-l
+Recrée la zone d’impression en réévaluant pour toutes les cellules sa
+fonction d’impression (@code{ses-reprint-all}).
+@end table
+
+@node Ranges in formulas
+@section Plages dans les formules
+@cindex plages
+@findex ses-insert-plage-click
+@findex ses-insert-plage
+@findex ses-insert-ses-plage-click
+@findex ses-insert-ses-plage
+@vindex de
+@vindex à
+
+Une formule du genre de :
+@lisp
+(+ A1 A2 A3)
+@end lisp
+est la somme de trois cellules spécifiques.  Si vous insérez une
+nouvelle deuxième ligne, la formule devient
+@lisp
+(+ A1 A3 A4)
+@end lisp
+et la nouvelle ligne n’est pas incluse dans la somme.
+
+La macro @code{(ses-range @var{de} @var{à})} s’évalue en une liste des
+valeurs dans un rectangle de cellules.  Si votre formule est
+@lisp
+(apply '+ (ses-range A1 A3))
+@end lisp
+et que vous insérez une nouvelle deuxième ligne, elle devient
+@lisp
+(apply '+ (ses-range A1 A4))
+@end lisp
+et la nouvelle ligne est incluse dans la somme.
+
+Alors que vous saisissez ou éditez une formule dans le minitampon,
+vous pouvez sélectionner une plage dans la feuille (en utilisant la
+souris ou le clavier), et injecter une représentation de cette plage
+dans votre formule. Supposez que vous sélectionnez @samp{A1-C1} :
+
+@table @kbd
+@item [S-mouse-3]
+Insère @samp{A1 B1 C1} (@code{ses-insert-range-click})
+
+@item C-c C-r
+Version clavier (@code{ses-insert-range}).
+
+@item [C-S-mouse-3]
+Insère @samp{(ses-range A1 C1)} (@code{ses-insert-ses-range-click}).
+
+@item C-c C-s
+Version clavier (@code{ses-insert-ses-range}).
+@end table
+
+Si vous supprimez la cellule @var{de} ou @var{à} d’une plage, la
+cellule la plus proche toujours existante est utilisée à la place.  Si
+vous supprimez l’entière plage, le relocalisateur de formule supprime
+le @samp{ses-range} de la formule.
+
+Si vous insérez une nouvelle ligne juste au delà de la fin d’une plage
+à une colonne, ou une nouvelle colonne juste au delà d’une plage à une
+ligne, la nouvelle cellule est incluses dans la plage.  Les nouvelles
+cellules insérées juste avant une plage ne sont pas incluses.
+
+Des fanions peuvent être ajoutés à @code{ses-range} immédiatement
+après la cellule @var{à} .
+@table @code
+@item !
+Les cellules vides de la plage peuvent être enlevées en ajoutant le
+fanion @code{!}. Une cellule vide est une cellule dont la valeur est
+l’un des symboles @code{nil} ou @code{*skip*}. Par exemple
+@code{(ses-range A1 A4 !)} fait la même chose que @code{(list A1 A3)}
+quand les cellules @code{A2} et @code{A4} sont vides.
+@item _
+Les valeurs de cellules vides sont remplacées par l’argument suivant
+le fanion @code{_}, ou @code{0} quand le fanion @code{_} est le
+dernier dans la liste d’arguments. Par exemple @code{(ses-range A1 A4
+_ "vide")} fera la même chose que @code{(list A1 "vide" A3 "vide")}
+quand les cellules @code{A2} et @code{A4} sont vides. Similairement,
+@code{(ses-range A1 A4 _ )} fera la même chose que @code{(list A1 0 A3
+0)}.
+@item >v
+Quand l’ordre a de l’importance, liste les cellules en lisant les
+cellules ligne par ligne de la cellule en haut à gauche vers la
+cellule en bas à droite. Ce fanion est fourni pour être complet car
+c’est déjà l’ordre par défaut.
+@item <v
+Liste les cellules en lisant les cellules ligne par ligne de la
+cellule en haut à droite vers la cellule en bas à gauche.
+@item v>
+Liste les cellules en lisant les cellules colonne par colonne de la
+cellule en haut à gauche vers la cellule en bas à droite.
+@item v<
+Liste les cellules en lisant les cellules colonne par colonne de la
+cellule en haut à droite vers la cellule en bas à gauche.
+@item v
+Un raccourci pour @code{v>}.
+@item ^
+Un raccourci pour @code{^>}.
+@item >
+Un raccourci pour @code{>v}.
+@item <
+Un raccourci pour @code{>^}.
+@item *
+Au lieu de lister les cellules, en fait un vecteur ou une matrice Calc
+(@pxref{Top,,,calc,GNU Emacs Calc Manual}). Si la plage contient
+seulement une ligne ou une colonne un vecteur est fait, sinon une
+matrice est faite.
+@item *2
+Idem que @code{*} à ceci près qu’une matrice est toujours faite même
+quand il y a une seul ligne ou colonne dans la plage.
+@item *1
+Idem que @code{*} à ceci près qu’un vecteur est toujours fait même
+quand il n’y a qu’une ligne ou colonne dans la plage, c-à-d.@: que la
+matrice correspondante est aplatie.
+@end table
+
+@node Sorting by column
+@section Trier par colonne
+@cindex trier
+@findex ses-sort-column
+@findex ses-sort-column-click
+
+@table @kbd
+@item C-c M-C-s
+Trie les cellules d’une plage en utilisant l’une des colonnes
+(@code{ses-sort-column}).  Les lignes (ou lignes partielles si la
+plage n’inclut pas toutes les colonnes) sont réarrangées de sorte que
+la colonne choisie soit ordonnée.
+
+@item [header-line mouse-2]
+La façon la plus facile de trier est de cliquer sur mouse-2 sur la
+ligne d’en-tête de colonne (@code{ses-sort-column-click}).
+@end table
+
+La comparaison du tri utilise @code{string<}, ce qui fonctionne bien
+pour des nombres alignés à droite ou des chaînes alignées à gauche.
+
+Avec un argument préfixe, trie dans l’ordre descendant.
+
+Les lignes sont déplacées une à la fois, avec relocalisation des
+formules. Ceci fonctionne bien si les formules font référence à
+d’autres cellules dans leur ligne, mais non pas si bien pour des
+formules qui font référence à d’autres lignes dans la plage ou à des
+cellules hors de la plage.
+
+
+@node Standard formula functions
+@section Fonctions de formule standardes
+@cindex fonctions standardes de formule
+@cindex *skip*
+@cindex *error*
+@findex ses-delete-blanks
+@findex ses-average
+@findex ses+
+
+Souvent on désire qu’un calcul exclue les cellules vides.  Voici
+quelques fonctions utiles à appeler dans vos formules :
+
+@table @code
+@item (ses-delete-blanks &rest @var{args})
+Renvoie une liste dont toutes les cellules vides (dont la valeur est
+soit @code{nil} ou @code{'*skip*}) ont été supprimées. L’ordre des
+arguments est inversé. Prière de noter que @code{ses-range} a un
+modificateur @code{!} qui permet de supprimer les cellules vides,
+ainsi il est possible d’écrire :
+@lisp
+(ses-range A1 A5 !)
+@end lisp
+au lieu de
+@lisp
+(apply 'ses-delete-blanks (ses-range A1 A5 <))
+@end lisp
+
+@item (ses+ &rest @var{args})
+Somme des arguments non vides pris en ordre inverse.
+
+@item (ses-average @var{liste})
+Moyenne des éléments non vides de @var{liste}.  Ici la liste est passé
+comme un seul argument, vu que typiquement on la forme avec
+@code{ses-range}.
+@end table
+
+@node More on cell printing
+@section Plus sur l’impression de cellule
+@cindex cellule, plus sur l'impression
+@cindex impression de cellule
+@findex ses-truncate-cell
+@findex ses-recalculate-cell
+
+Valeurs spéciales de cellule :
+@itemize
+@item nil
+s’imprime typiquement de la même façon que "", mais permet que la
+cellule précédente déborde dessus.
+@item '*skip*
+remplace nil quand la cellule précédente déborde effectivement ; rien
+n’est donc imprimée pour cette cellule.
+@item '*error*
+indique que la formule a signalé une erreur au lieu de produire une
+valeur : la cellule imprimée est remplie de croisillons (#).
+@end itemize
+
+Lorsque la fonction d’impression est définie par une chaîne de
+formatage, par ex. @samp{"%.3f"}, @acronym{SES} imprime
+automatiquement @code{nil} comme une chaîne vide, mais si la fonction
+d’impression est définie par une expression lambda, vous devez définir
+explicitement comment @code{nil} est traité, par ex. :
+@example
+(lambda (x)
+  (cond
+   ((null x) "")
+   ((stringp x) (list x))
+   ((numberp x) (format "%.3f" x))
+   (t (ses-prin1 x)))
+@end example
+imprime @code{nil} comme une chaîne vide, aligne à gauche la valeur si
+c’est une chaîne, et si c’est un nombre l’aligne à droite en
+l’imprimant avec trois décimales.
+
+Il n’est pas nécessaire par contre que vous vous souciez de
+@code{'*skip*} dans la définition d’une fonction d’impression, en
+effet aucune fonction d’impression n’est appelée sur @code{'*skip*}.
+
+Si le résultat de la fonction d’impression est trop large pour la
+cellule et que la cellule suivante est @code{nil}, le résultat
+débordera sur la cellule suivante. Les résultats très larges peuvent
+déborder sur plusieurs cellules.  Si le résultat est trop large pour
+l’espace disponible (jusqu'à la fin de la ligne ou la prochaine
+cellule non-@code{nil}), le résultat est tronqué si la valeur de
+cellule est une chaîne, ou remplacé par des croisillons (@samp{#})
+sinon.
+
+@acronym{SES} pourrait être perturbé par des résultats de fonction
+d'impression contenant des sauts de ligne ou des tabulations, aussi
+ces caractères sont remplacés par des points d'interrogation.
+
+@table @kbd
+@item t
+Confine une cellule à sa propre colonne (@code{ses-truncate-cell}).
+Ceci vous permet de déplacer le point sur la cellule de droite qui
+sinon serait couverte par un débordement. Si vous ne modifiez pas la
+cellule de droite, la cellule confinée débordera de nouveau la
+prochaine fois qu’elle sera imprimée.
+
+@item c
+Appliquée à une seule cellule, cette commande affiche dans la zone
+d’écho toute erreur de formule ou erreur d’impression survenue pendant
+le recalcul/la réimpression (@code{ses-recalculate-cell}).  Vous
+pouvez utiliser cela pour défaire l’effet de @kbd{t}.
+@end table
+
+Quand une fonction d’impression signale une erreur, la fonction
+d’impression de repli
+@findex ses-prin1
+@code{ses-prin1} lui est substituée.  Ceci est utile quand votre
+fonction d’impression de colonne est seulement numérique et que vous
+utilisez une chaîne comme valeur de cellule.  Notez que la fonction
+d’impression par défaut standarde est @samp{"%.7g"} qui est numérique
+seulement, ainsi les cellules auxquelles la fonction d’impression par
+défaut standarde s’applique et qui ne sont pas vides et ne contiennent
+pas un nombre utilisent la fonction d’impression de repli
+@code{ses-prin1}, par ex.@: les cellules qui contiennent une chaîne
+font cela.  @kbd{c} sur de telles cellules affiche « Format specifier
+doesn't match argument type ».
+
+
+@node Import and export
+@section Import et export
+@cindex import et export
+@cindex export, et import
+@findex ses-export-tsv
+@findex ses-export-tsf
+
+@table @kbd
+@item x t
+Exporte une plage de cellules comme des valeurs séparées par des
+tabulations (@code{ses-export-tsv}).
+@item x T
+Exporte une plage de cellules comme des formules séparées par des
+tabulations (@code{ses-export-tsf}).
+@end table
+
+Le texte exporté va dans l’anneau presse-papier ; vous pouvez le
+coller dans un autre tampon.  Les colonnes sont séparées par des
+tabulations, les lignes par des sauts de lignes.
+
+Pour importer du texte, utilisez n’importe laquelle des commandes
+coller où le texte à coller contient des tabulations et/ou des sauts de
+lignes.  Les formules importées ne sont pas relocalisées.
+
+@node Virus protection
+@section Protection contre les virus
+@cindex virus protection
+
+À chaque fois une formule ou fonction d’impression est lue d’un
+fichier ou est collée dans la feuille, elle est marquée comme
+« nécessitant une vérification de sécurité ».  Plus tard, quand la
+formule ou la fonction d’impression est évaluée pour la première fois,
+elle est vérifiée comme sûre en utilisant le prédicat @code{unsafep} ;
+si elle s’avère « potentiellement risquée », la formule ou fonction
+d’impression en question est affichée et vous devez appuyer @kbd{Y}
+pour l’approuver ou @kbd{N} pour utiliser un substitut. Le substitut
+signale toujours une erreur.
+
+Les formules ou fonctions d’impression que vous tapez sont
+immédiatement vérifiées quant à leur sûreté. Si elles s’avèrent
+potentiellement risquées et que vous appuyez @kbd{N} pour refuser,
+l’action est annulée et l’ancienne formule ou fonction d’impression
+demeure.
+
+En plus des virus (qui tentent de se recopier dans d’autres
+fichiers), @code{unsafep} peut aussi détecter toutes sortes de chevaux
+de Troie, tels que des feuilles de calcul qui effacent les fichiers,
+envoient des courriels, inondent des sites Web, corrompent vos
+réglages d’Emacs, etc.
+
+Généralement, les formules et fonctions d’impression de feuilles sont
+des choses simples qui n’ont pas besoin de faire des traitements
+exotiques, aussi toute partie potentiellement dangereuse de
+l’environnement Emacs Lisp peut être exclus sans entraver votre style
+comme écrivain de formule.  Lisez la documentation dans
+@file{unsafep.el} pour plus d’information sur la façon dont les formes
+Lisp sont classifiées comme sûres ou risquées.
+
+@node Spreadsheets with details and summary
+@section Feuilles avec détails et synthèse
+@cindex détails et synthèse
+@cindex synthèses, et détails
+
+Une organisation usuelle pour une feuille de calcul est d’avoir un tas
+de lignes de « détail », chacune décrivant possiblement une
+transaction, et ensuite un ensemble de lignes de « synthèse » qui
+affichent chacune des données condensées pour un certain sous-ensemble
+des détails.  @acronym{SES} prend en charge ce type d’organisation via
+la fonction @code{ses-select}.
+
+@table @code
+@item (ses-select @var{de-plage} @var{test} @var{à-plage})
+Renvoie un sous-ensemble de @var{à-plage}.  Pour chaque membre dans
+@var{de-plage} qui est égal à @var{test}, le membre correspondant de
+@var{à-plage} est inclus dans le résultat.
+@end table
+
+Exemple d’utilisation:
+@lisp
+(ses-average (ses-select (ses-range A1 A5) 'Bidochon (ses-range B1 B5)))
+@end lisp
+Ceci calcule la moyenne des valeurs de la colonne @samp{B} pour les
+lignes dont la valeur dans la colonne @samp{A} est le symbole
+@samp{'Bidochon}.
+
+Vous vous demandez peut-être pourquoi les arguments de
+@code{ses-select} ne consistent pas au lieu de @var{à-plage} de
+décalages @var{décalage-à-la-ligne} et @var{décalage-à-la-colonne}
+relativement à @var{de-plage} : spécifier @var{à-plage} explicitement
+assure que la formule est recalculée si l’une quelconque des cellules
+de cette plage est modifiée.
+
+Le fichier @file{etc/ses-example.el} dans la distribution Emacs est un
+exemple d’une feuille organisée en détails-et-synthèse.
+
+
+@c ===================================================================
+
+@node For Gurus
+@chapter Pour les gourous
+@cindex avancées, fonctions
+@cindex fonctions avancées
+
+@menu
+* Mises à jour différées:  Deferred updates.
+* Références non-relocalisables:  Nonrelocatable references.
+* La zone données:  The data area.
+* Variables locales-tampon dans les feuilles: Buffer-local variables in spreadsheets.
+* Utilisation de advice-add dans @acronym{SES}: Uses of advice-add in @acronym{SES}.
+@end menu
+
+@node Deferred updates
+@section Mises à jour différées
+@cindex différées, mises à jour
+@cindex mises à jour différées
+@vindex run-with-idle-timer
+
+Pour épargner du temps de calcul redondant, les cellules dont le
+recalcul est rendu nécessaire par des changements dans d’autres
+cellules sont ajoutées à un ensemble.  À la fin de la commande, chaque
+cellule de cet ensemble est recalculée une fois.  Ceci peut créer un
+nouvel ensemble de cellules nécessitant un recalcul.  Ce processus est
+répété jusqu'à ce que l’ensemble soit vide ou que des références
+circulaires soient détectées.  Dans les cas extrêmes, et notamment si
+une référence circulaire est en cours de détection, vous pourriez voir
+des messages de progression de la forme « Recalculating... (@var{nnn}
+cells left) ».  Si vous interrompez le calcul avec @kbd{C-g}, la
+feuille demeurera dans un état incohérent, utilisez alors @kbd{C-_} ou
+@kbd{C-c C-l} pour réparer cela.
+
+Pour épargner encore plus de temps en évitant les écritures
+redondantes, les cellules qui sont modifiées sont ajoutées à un
+ensemble au lieu d’être immédiatement écrites dans la zone de
+données. Chaque cellule de cet ensemble est écrite une fois à la fin
+de la commande.  Si vous modifiez un grand nombre de cellules, vous
+pourriez voir un message de progression de la forme
+« Writing... (@var{nnn} cells left) ».  Ces écritures différées de
+cellules ne peuvent pas être interrompues par @kbd{C-g}, alors il vous
+faudra juste attendre.
+
+@acronym{SES} utilise @code{run-with-idle-timer} pour déplacer le
+souligné de cellule quand Emacs fait défiler le tampon à la fin d’une
+commande, et aussi pour @c xxx narrow and underline
+réduire et souligner après visiter un fichier.  Ceci peut être visible
+par une perturbation transitoire après visiter un fichier et certaines
+commandes de défilement.  Vous pouvez continuer à taper sans vous
+inquiéter de cette perturbation.
+
+
+@node Nonrelocatable references
+@section Références non relocalisables
+@cindex non-relocalisables, références
+@cindex références non-relocalisables
+
+@kbd{C-y} relocalise toutes les références de cellule dans une formule
+collée, alors que @kbd{C-u C-y} n’en relocalise aucune.  Et pour les
+cas mélangés ?
+
+La meilleure approche est de renommer les cellules que vous @emph{ne}
+voulez @emph{pas} être relocalisables en utilisant
+@code{ses-rename-cell}.
+@findex ses-rename-cell
+Les cellules qui n’ont pas un style de nom du genre de A1 ne sont pas
+relocalisées au collage. En utilisant cette méthode, les cellules
+concernées ne seront pas relocalisées quelle que soit la formule où
+elles apparaissent. Prière toutefois de noter que dans une formule
+contenant quelque plage @code{(ses-range @var{cell1} @var{cell2})}
+alors dans la formule collée chacune des bornes @var{cell1} et
+@var{cell2} de la plage est relocalisée, ou non, indépendemment, selon
+qu’elle est nommée du genre de A1 ou renommée.
+
+Un méthode alternative est d’utiliser
+@lisp
+(symbol-value 'B3)
+@end lisp
+pour faire une @dfn{référence absolue}.  Le relocalisateur de formule
+saute par dessus tout ce qui est sous un @code{quote}, aussi cela ne
+sera pas relocalisé quand on le colle ou quand des lignes/colonnes
+sont insérées/supprimées.  Toutefois, B3 ne sera pas enregistrée comme
+une dépendance de cette cellule, et donc cette cellule ne sera pas
+mise à jour automatiquement quand B3 est modifié, c’est pourquoi
+l’usage de @code{ses-rename-cell} est la plupart du temps préférable.
+
+Les variables @code{row} et @code{col} sont liées dynamiquement
+pendant l’évaluation d’une formule de cellule. Vous pouvez utiliser
+@lisp
+(ses-cell-value row 0)
+@end lisp
+pour obtenir la valeur de la colonne la plus à gauche de la ligne
+courante. Ce type de dépendance n’est pas non plus enregistré.
+
+
+@node The data area
+@section La zone de données
+@cindex données, zone de
+@cindex zone de données
+@findex ses-reconstruct-all
+
+Commence avec un caractère saut de page (de code ASCII 014 en octal),
+suivi par un ensemble de macros de définition de cellule pour chaque
+ligne, suivi par l’ensemble des définitions de fonctions d’impression
+locales, suivi par les largeurs de colonnes, fonctions d’impression de
+colonne, fonction d’impression par défaut, et ligne d’en-tête. Ensuite
+il y a les paramètres globaux (ID de format fichier, nombre de lignes,
+nombre de colonnes, nombre de fonctions d’impression locales) et les
+variables locales (spécification du mode @acronym{SES} pour le tampon,
+etc.).
+
+Quand un fichier @acronym{SES} est chargé, tout d’abord les paramètres
+globaux sont chargés, puis l’ensemble de la zone de données est
+@code{eval}ué, et finalement les variables locales sont traitées.
+
+Vous pouvez éditer la zone de données, mais n’insérez pas ni ne
+supprimez de sauts de ligne, hormis dans la partie des variables
+locales, en effet @acronym{SES} localise les choses en comptant les
+sauts de ligne. Utilisez @kbd{C-x C-e} à la fin d’une ligne pour
+installer ce que vous avez édité dans les structures de données de la
+feuille (ceci ne met pas à jour la zone d’impression, utilisez, par
+ex., @kbd{C-c C-l} pour cela).
+
+La zone de données est maintenue comme une image des structures de
+données de la feuille stockée dans des variables locales tampon au
+moment du chargement initial de la zone. Si le contenu de la zone de
+données se trouve corrompu par la suite, vous pouvez essayer de
+reconstruire la zone de données à partir des structures de données
+avec :
+
+@table @kbd
+@item C-c M-C-l
+(@code{ses-reconstruct-all}).
+@end table
+
+
+@node Buffer-local variables in spreadsheets
+@section Les variables locales-tampon dans les feuilles de calcul
+@cindex locales-tampon, variables
+@cindex variables locales-tampon
+
+Vous pouvez ajouter des variables locales supplémentaires à la liste
+au bas de la zone de données, telles que des constantes cachées
+auxquelles vous désirez faire référence dans vos formules.
+
+Vous pouvez initialiser la variable @code{ses--symbolic-formulas} pour
+être une liste de symboles (comme une suite de chaînes entre
+parenthèses) à proposer comme complétions pour la commande @kbd{'}.
+Cette liste initiale de complétions sera utilisée à la place de
+l’ensemble effectif des symboles-comme-formules de la feuille.
+
+Pour un exemple de ceci, voir le fichier @file{etc/ses-example.ses}.
+
+Si (pour une raison quelconque) vous désirez que vos formules ou
+fonctions d’impression sauvegardent des données dans des variables,
+vous devez déclarez ces variables comme locales tampon pour éviter un
+avertissement de virus.
+
+Vous pouvez définir des fonctions en en faisant des valeurs pour la
+fausse variable locale @code{eval}.  De telles fonctions peuvent
+ensuite être utilisées dans les formules et comme fonctions
+d’impression, mais d’ordinaire chaque @code{eval} est présenté à
+l’utilisateur pendant le chargement du fichier comme un virus
+potentiel.  Et cela peut devenir gênant.
+
+Vous pouvez définir des fonctions dans votre fichier @file{.emacs}.
+Toute personne pourra encore lire la zone d’impression de votre
+feuille, mais ne pourra pas recalculer ou réimprimer quoi que ce soit
+qui dépende de vos fonctions.  Pour éviter des avertissements contre
+les virus, chaque fonction utilisée dans une formule nécessite
+@lisp
+(put 'le-nom-de-votre-fonction 'safe-function t)
+@end lisp
+
+@node Uses of advice-add in @acronym{SES}
+@section Utilisation de advice-add dans @acronym{SES}
+@findex advice-add
+@findex copy-region-as-kill
+@findex yank
+
+@table @code
+@item copy-region-as-kill
+Quand on copie de la zone d’impression d’une feuille, traite la région
+comme un rectangle et joint pour chaque cellule sa formule et sa
+fonction d’impression comme des propriétés @code{'ses}.
+
+@item yank
+Quand on colle dans la zone d’impression d’une feuille de calcul,
+essaie de coller comme des cellules (si le texte à coller a des
+propriétés @code{'ses}), ensuite comme des formules séparées par des
+tabulations, ensuite (si tout le reste a échoué) comme une seule
+formule pour la cellule courante.
+@end table
+
+@c ===================================================================
+@node Index
+@unnumbered Index
+
+@printindex cp
+
+@c ===================================================================
+
+@node Acknowledgments
+@unnumbered Remerciements
+
+Codé par :
+@quotation
+@c jyavner@@member.fsf.org
+Jonathan Yavner,
+@c monnier@@gnu.org
+Stefan Monnier,
+@c shigeru.fukaya@@gmail.com
+Shigeru Fukaya,
+@c vincent.belaiche@@sourceforge.net
+Vincent Belaïche
+@end quotation
+
+@noindent
+Manuel Texinfo de :
+@quotation
+@c jyavner@@member.fsf.org
+Jonathan Yavner,
+@c brad@@chenla.org
+Brad Collins,
+@c vincent.belaiche@@sourceforge.net
+Vincent Belaïche
+@end quotation
+
+@noindent
+Idées de :
+@quotation
+@c christoph.conrad@@gmx.de
+Christoph Conrad,
+@c cyberbob@@redneck.gacracker.org
+CyberBob,
+@c syver-en@@online.no
+Syver Enstad,
+@c fischman@@zion.bpnetworks.com
+Ami Fischman,
+@c Thomas.Gehrlein@@t-online.de
+Thomas Gehrlein,
+@c c.f.a.johnson@@rogers.com
+Chris F.A. Johnson,
+@c lyusong@@hotmail.com
+Yusong Li,
+@c juri@@jurta.org
+Juri Linkov,
+@c maierh@@myself.com
+Harald Maier,
+@c anash@@san.rr.com
+Alan Nash,
+@c pinard@@iro.umontreal.ca
+François Pinard,
+@c ppinto@@cs.cmu.edu
+Pedro Pinto,
+@c xsteve@@riic.at
+Stefan Reichör,
+@c epameinondas@@gmx.de
+Oliver Scholz,
+@c rms@@gnu.org
+Richard M. Stallman,
+@c teirllm@@dms.auburn.edu
+Luc Teirlinck,
+@c jotto@@pobox.com
+J. Otto Tennant,
+@c jphil@@acs.pagesjaunes.fr
+Jean-Philippe Theberge,
+@c rrandresf@@hotmail.com
+Andrés Ramírez
+@end quotation
+
+@c ===================================================================
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@bye
+@c Local Variables:
+@c ispell-dictionary: "fr"
+@c End:

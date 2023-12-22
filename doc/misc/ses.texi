@@ -91,8 +91,8 @@ To report bugs, use @kbd{M-x report-emacs-bug}.
 @item Printer functions for control of cell appearance.
 @item Intuitive keystroke commands: C-o = insert row, M-o = insert column, etc.
 @item ``Spillover'' of lengthy cell values into following blank cells.
-@item Header line shows column letters or a selected row.
-@item Completing-read for entering symbols as cell values.
+@item Header line shows column letters.
+@item Completing-read for entering symbols of named cells when editing formulas.
 @item Cut, copy, and paste can transfer formulas and printer functions.
 @item Import and export of tab-separated values or tab-separated formulas.
 @item Plaintext, easily-hacked file format.
@@ -109,12 +109,12 @@ If you want to get started quickly and think that you know what to
 expect from a simple spreadsheet, this chapter may be all that you
 need.
 
-First, visit a new file with the @file{.ses} extension.
+First, visit a new file with the @file{.ses} file name extension.
 Emacs presents you with an empty spreadsheet containing a single cell.
 
-Begin by inserting a headline: @kbd{"Income"@key{RET}}.  The double
-quotes indicate that this is a text cell.  (Notice that Emacs
-automatically inserts the closing quotation mark.)
+Begin by inserting a headline: @kbd{"Income@key{RET}}.  The double
+quotes indicate that you are editing a text cell, it is not part of
+the cell value, and no closing quotation mark is needed.
 
 To insert your first income value, you must first resize the
 spreadsheet.  Press @key{TAB} to add a new cell and navigate back up
@@ -158,19 +158,66 @@ A       B
 @end group
 @end example
 
-By default, the labels in column B are right-justified.  To change
-that, you can enter a printer function for the whole column, using
-e.g., @kbd{M-p ("%s")}.  You can override a column's printer function
-in any individual cell using @kbd{p}.
+By default, the cell value print-out is right aligned, that is the
+reason for such an alignment for the notes in column @samp{B}.  To
+change that, you can enter a printer function for the whole column,
+using e.g., @kbd{M-p ("%s")}. Enclosing @code{"%s"} into a list tells
+@acronym{SES} to align left.  You can override a column's printer
+function in any individual cell using @kbd{p}.
+
+@c TODO : translate the sequel from French.
+@ignore
+Vous pouvez nommer une fonction d'impression, et utiliser le nom de la
+fonction à la place de sa définition, de sorte à faciliter la
+modification de l'impression de toutes les cellules utilisant cette
+fonction. Par exemple tapez @kbd{M-x
+ses-define-local-printer@key{ret}}, puis @kbd{note@key{ret}}, puis
+@kbd{("%s")} pour définir une fonction d'impression nommée @code{note}
+dont la définition est @code{("%s")}, puis sur la colonne B tapez
+@kbd{M-p note@kbd{ret}}
+
+@example
+@group
+A       B
+ Revenu
+   2.23 Frais de consultation
+   0.02 Opinion informée
+  15.76 Stand limonade
+     -4 Prêt à Joseph
+  14.01 Total
+@end group
+@end example
+
+Si maintenant vous redéfinissez @code{note} avec pour nouvelle
+définition @kbd{("*%s")} qui ajoute une astérisque @code{*} devant le
+texte, la zone d'impression est modifiée ainsi:
+@example
+@group
+A       B
+ Revenu
+   2.23 *Frais de consultation
+   0.02 *Opinion informée
+  15.76 *Stand limonade
+     -4 *Prêt à Joseph
+  14.01 *Total
+@end group
+@end example
+
+Notez, que la cellule B1 reste vide est n'est pas affichée comme
+@code{*}. C'est parce que la valeur de la cellule est @code{nil}, et
+que la fonction d'impression @code{("%s")} échoue sur cette valeur, et
+donc une fonction de repli est utilisée à la place.
+@end ignore
 
 If Joe pays back his loan, you might blank that entry; e.g., by
-positioning the cursor in cell A5 and pressing @kbd{C-d} twice.
-If you do that, the total cell will display @samp{######}.  That is
-because the regular @code{+} operator does not handle a range that
-contains some empty cells.  Instead of emptying the cell, you could
-enter a literal @samp{0}, or delete the entire row using @kbd{C-k}.
-An alternative is to use the special function @code{ses+} instead of
-the regular @code{+}:
+positioning the cursor in cell A5 and pressing @kbd{C-d}.  If you do
+that, the total printed out in cell A6 will display @samp{######}.
+That is because the value in an empty cell is typically @code{nil},
+and the regular @code{+} operator fails to handle a range that
+contains that value.  Instead of emptying the cell, you could enter a
+literal @samp{0}, or delete the entire row using @kbd{C-k}.  An
+alternative is to use the special function @code{ses+} instead of the
+regular @code{+}:
 
 @example
 (ses+ A2 A3 A4 A5)
@@ -214,7 +261,7 @@ order. You can also reverse the order of arguments returned by
 @findex keyboard-quit
 
 To create a new spreadsheet, visit a nonexistent file whose name ends
-with ".ses".  For example, @kbd{C-x C-f test.ses @key{RET}}.
+with @file{.ses}.  For example, @kbd{C-x C-f test.ses @key{RET}}.
 
 
 A @dfn{cell identifier} is a symbol with a column letter and a row
@@ -293,11 +340,11 @@ Self-insert a digit (@code{ses-read-cell}).
 Self-insert a negative number (@code{ses-read-cell}).
 
 @item .
-Self-insert a fractional number (@code{ses-read-cell}).
+Self-insert a decimal number (@code{ses-read-cell}).
 
 @item "
-Self-insert a quoted string.  The ending double-quote
-is inserted for you (@code{ses-read-cell}).
+Self-insert a string.  The ending double-quote is inserted for you
+(@code{ses-read-cell}).
 
 @item (
 Self-insert an expression.  The right-parenthesis is inserted for you
@@ -313,9 +360,10 @@ to list the named cells symbols in a help buffer.
 @end table
 
 @item ' @r{(apostrophe)}
-Enter a symbol (ses-read-symbol).  @acronym{SES} remembers all symbols that have
-been used as formulas, so you can type just the beginning of a symbol
-and use @kbd{@key{SPC}}, @kbd{@key{TAB}}, and @kbd{?} to complete it.
+Enter a symbol (@code{ses-read-symbol}).  @acronym{SES} remembers all
+symbols that have been used as formulas, so you can type just the
+beginning of a symbol and use @kbd{@key{SPC}}, @kbd{@key{TAB}}, and
+@kbd{?} to complete it.
 @end table
 
 To enter something else (e.g., a vector), begin with a digit, then
@@ -426,8 +474,8 @@ string is right-aligned within the print cell.  To get left-alignment,
 use parentheses: @samp{("$%.2f")}.
 @item
 A printer can also be a one-argument function, the result of which is
-a string (right-aligned) or list of one string (left-aligned). Such a
-function can be in turn configured as:
+a string (to get right alignment) or list of one string (to get left
+alignment). Such a function can be in turn configured as:
 @itemize
 @item
 A lambda expression, for instance:
@@ -500,7 +548,7 @@ To list the local printers in a help buffer.
 Except for @code{ses-prin1}, the other standard printers are suitable
 only for cells, not columns or default, because they format the value
 using the column-printer (or default-printer if @code{nil}) and then
-center the result:
+post-proces the result, eg.@: center it:
 
 @ftable @code
 @item ses-center
@@ -510,13 +558,13 @@ Just centering.
 Centering with spill-over to following blank cells.
 
 @item ses-dashfill
-Centering using dashes (-) instead of spaces.
+Centering using dashes (@samp{-}) instead of spaces.
 
 @item ses-dashfill-span
 Centering with dashes and spill-over.
 
 @item ses-tildefill-span
-Centering with tildes (~) and spill-over.
+Centering with tildes (@samp{~}) and spill-over.
 
 @item ses-prin1
 This is the fallback printer, used when calling the configured printer
@@ -550,9 +598,9 @@ you can add some code like this to your @file{.emacs} init file:
      'euro
      (lambda (x)
        (cond
-	((null x) "")
-	((numberp x) (format "%.2f€" x))
-	(t (ses-center-span x ?# 'ses-prin1)))))))
+        ((null x) "")
+        ((numberp x) (format "%.2f€" x))
+        (t (ses-center-span x ?# 'ses-prin1)))))))
 (add-hook 'ses-mode-hook 'my-ses-mode-hook)
 @end lisp
 
@@ -604,29 +652,31 @@ s-expression (using @code{ses-prin1}), centered and surrounded by
 @code{#} filling.
 @end itemize
 
-Another precaution to take is to avoid stack overflow due to a
-printer function calling itself indefinitely.  This mistake can
-happen when you use a local printer as a column printer,
-and this local printer implicitly calls the current column printer, so it
-will call itself recursively.  Imagine for instance that you want to
-create some local printer @code{=fill} that would center the content
-of a cell and surround it by equal signs @code{=}, and you do it this
+Another precaution to take is to avoid stack overflow due to a printer
+function calling itself indefinitely.  This mistake can happen when
+you use a local printer as a column printer, and this local printer
+implicitly calls the current column printer, so it will call itself
+recursively.  Imagine for instance that you want to create some local
+printer @code{=fill} that would center the content of a cell and
+surround it by equal signs @code{=}, and you do it (errounously) this
 way:
 
 @lisp
+;; ERRONEOUS CODE
 (lambda (x)
   (cond
    ((null x) "")
    (t (ses-center x 0 ?=))))
 @end lisp
 
-Because @code{=fill} uses the standard printer @code{ses-center} without
-explicitly passing any printer to it, @code{ses-center} will call the
-current column printer if any, or the spreadsheet default printer
-otherwise.  So using @code{=fill} as a column printer will result in a
-stack overflow in this column.  SES does not check for that;
-you just have to be careful.  For instance, re-write @code{=fill} like
-this:
+Because @code{=fill} uses the standard printer @code{ses-center}
+without explicitly passing any printer to it, @code{ses-center} will
+call the current column printer if any, or the spreadsheet default
+printer otherwise.  So using @code{=fill} as a column printer will
+result in a stack overflow in this column on any non empty cell as
+@code{ses-center} will recursively recall the function that has called
+it.  @acronym{SES} does not check for that; you just have to be
+careful.  For instance, re-write @code{=fill} like this:
 
 @lisp
 (lambda (x)
@@ -636,11 +686,17 @@ this:
    (t (ses-center-span x ?# 'ses-prin1))))
 @end lisp
 
+The code above is fixed as @code{ses-center} and
+@code{ses-center-span} are both called with an explicit last
+@var{printer} argument, respectively @code{" %s "} and
+@code{'ses-prin1}.
+
 The code above applies the @code{=} filling only to strings; it also
 surrounds the string by one space on each side before filling with
-@code{=} signs.  So the string @samp{Foo} will be displayed like @samp{@w{===
-Foo ===}} in an 11 character wide column.  Anything other than an empty cell
-or a non-string is displayed as an error by using @code{#} filling.
+@code{=} signs.  So the string @samp{Foo} will be displayed like
+@samp{@w{=== Foo ===}} in an 11 character wide column.  Any value that
+is neither @code{nil} (ie.@: an empty cell) nor a string is displayed
+as an error by using @code{#} filling.
 
 @node Clearing cells
 @section Clearing cells
@@ -652,7 +708,7 @@ These commands set both formula and printer to @code{nil}:
 
 @table @kbd
 @item @key{DEL}
-Clear cell and move left (@code{ses-clear-cell-backward}).
+Move left and clear cell  (@code{ses-clear-cell-backward}).
 
 @item C-d
 Clear cell and move right (@code{ses-clear-cell-forward}).
@@ -704,9 +760,10 @@ Paste from kill ring (@code{yank}).  The paste functions behave
 differently depending on the format of the text being inserted:
 @itemize @bullet
 @item
-When pasting cells that were cut from a @acronym{SES} buffer, the print text is
-ignored and only the attached formula and printer are inserted; cell
-references in the formula are relocated unless you use @kbd{C-u}.
+When pasting cells that were cut or copied from a @acronym{SES}
+buffer, the print text is ignored and only the attached formula and
+printer are inserted; cell references in the formula are relocated
+unless you use @kbd{C-u}.
 @item
 The pasted text overwrites a rectangle of cells whose top left corner
 is the current cell.  If part of the rectangle is beyond the edges of
@@ -743,8 +800,13 @@ By default, a newly-created spreadsheet has 1 row and 1 column.  The
 column width is 7 and the default printer is @samp{"%.7g"}.  Each of these
 can be customized.  Look in group ``ses''.
 
-After entering a cell value, point normally moves right to the next
-cell.  You can customize @code{ses-after-entry-functions} to move left or
+After entering a cell value, normally, @code{forward-char} is called,
+which moves point right to the next cell@c TODO translate from French
+@ignore
+, ou à la première cellule à gauche de la ligne suivante si la
+cellule courante est la plus à droite de la feuille
+@end ignore
+.  You can customize @code{ses-after-entry-functions} to move left or
 up or down.  For diagonal movement, select two functions from the
 list.
 
@@ -752,6 +814,10 @@ list.
 @code{ses-jump-cell-name-function} is a customizable variable by
 default set to the @code{upcase} function. This function is called
 when you pass a cell name to the @command{ses-jump} command (@kbd{j}),
+@c TODO translate from French
+@ignore
+, et que ce nom n'est pas le nom d'une cellule renommée.
+@end ignore
 it changes the entered cell name to that where to jump. The default
 setting @code{upcase} allows you to enter the cell name in low
 case. Another use of @code{ses-jump-cell-name-function} could be some
@@ -818,7 +884,7 @@ Rename a cell from a standard A1-like name to any string that can be a
 valid local variable name (See also @ref{Nonrelocatable references}).
 @item M-x ses-repair-cell-reference-all
 @findex ses-repair-cell-reference-all
-When you interrupt a cell formula update by clicking @kbd{C-g}, then
+When you interrupt a cell formula update by typing @kbd{C-g}, then
 the cell reference link may be broken, which will jeopardize automatic
 cell update when any other cell on which it depends is changed. To
 repair that use function @code{ses-repair-cell-reference-all}
@@ -896,17 +962,17 @@ and the new row is included in the sum.
 While entering or editing a formula in the minibuffer, you can select
 a range in the spreadsheet (using mouse or keyboard), then paste a
 representation of that range into your formula.  Suppose you select
-A1-C1:
+@samp{A1-C1}:
 
 @table @kbd
 @item [S-mouse-3]
-Inserts "A1 B1 C1" @code{(ses-insert-range-click})
+Inserts @samp{A1 B1 C1} (@code{ses-insert-range-click})
 
 @item C-c C-r
 Keyboard version (@code{ses-insert-range}).
 
 @item [C-S-mouse-3]
-Inserts "(ses-range A1 C1)" (@code{ses-insert-ses-range-click}).
+Inserts @samp{(ses-range A1 C1)} (@code{ses-insert-ses-range-click}).
 
 @item C-c C-s
 Keyboard version (@code{ses-insert-ses-range}).
@@ -914,7 +980,8 @@ Keyboard version (@code{ses-insert-ses-range}).
 
 If you delete the @var{from} or @var{to} cell for a range, the nearest
 still-existing cell is used instead.  If you delete the entire range,
-the formula relocator will delete the ses-range from the formula.
+the formula relocator will delete the @samp{ses-range} from the
+formula.
 
 If you insert a new row just beyond the end of a one-column range, or
 a new column just beyond a one-row range, the new cell is included in
@@ -1038,12 +1105,37 @@ as a single argument, since you'll probably use it with @code{ses-range}.
 
 Special cell values:
 @itemize
-@item nil prints the same as "", but allows previous cell to spill over.
+@item nil prints typically the same as "", but allows previous cell to spill over.
 @item '*skip* replaces nil when the previous cell actually does spill over;
 nothing is printed for it.
 @item '*error* indicates that the formula signaled an error instead of
 producing a value: the print cell is filled with hash marks (#).
 @end itemize
+
+@c TODO translate from French
+@ignore
+Lorsque la fonction d'impression est définie par une chaîne de
+formatage, par ex. @samp{"%.3f"}, @acronym{SES} imprime
+automatiquement @code{nil} comme une chaîne vide, mais si la fonction
+d'impression est définie par une expression lambda, vous devez définir
+explicitement comment @code{nil} est traité, par ex. :
+@example
+(lambda (x)
+  (cond
+   ((null x) "")
+   ((stringp x) (list x))
+   ((numberp x) (format "%.3f" x))
+   (t (ses-prin1 x)))
+@end example
+imprime @code{nil} comme une chaîne vide, aligne à gauche la valeur si
+c'est une chaîne, et si c'est un nombre l'aligne à droite en
+l'imprimant avec trois décimales.
+
+Il n'est pas nécessaire par contre que vous vous souciez de
+@code{'*skip*} dans la définition d'une fonction d'impression, en
+effet aucune fonction d'impression n'est appelée sur @code{'*skip*}.
+@end ignore
+
 
 If the result from the printer function is too wide for the cell and
 the following cell is @code{nil}, the result will spill over into the
@@ -1071,12 +1163,14 @@ this to undo the effect of @kbd{t}.
 
 When a printer function signals an error, the fallback printer
 @findex ses-prin1
-@code{ses-prin1} is substituted.  This is useful when your column printer
-is numeric-only and you use a string as a cell value.  Note that the
-standard default printer is @samp{"%.7g"} which is numeric-only, so cells
-that are empty of contain strings will use the fallback printer.
-@kbd{c} on such cells will display ``Format specifier doesn't match
-argument type''.
+@code{ses-prin1} is substituted.  This is useful when your printer is
+numeric-only and you use a string as a cell value.  Note that the
+standard default printer is @samp{"%.7g"} which is numeric-only, so
+cells for which the standard default printer applies, and that are not
+empty and do not contain a number will use the fallback printer
+@code{ses-prin1}, for instance cells that contain strings will do
+that.  @kbd{c} on such cells will display ``Format specifier doesn't
+match argument type''.
 
 
 @node Import and export
@@ -1108,11 +1202,11 @@ the spreadsheet, it receives a ``needs safety check'' marking.  Later,
 when the formula or printer is evaluated for the first time, it is
 checked for safety using the @code{unsafep} predicate; if found to be
 ``possibly unsafe'', the questionable formula or printer is displayed
-and you must press Y to approve it or N to use a substitute.  The
-substitute always signals an error.
+and you must press @kbd{Y} to approve it or @kbd{N} to use a
+substitute.  The substitute always signals an error.
 
 Formulas or printers that you type in are checked immediately for
-safety.  If found to be possibly unsafe and you press N to disapprove,
+safety.  If found to be possibly unsafe and you press @kbd{N} to disapprove,
 the action is canceled and the old formula or printer will remain.
 
 Besides viruses (which try to copy themselves to other files),
@@ -1148,13 +1242,23 @@ Example of use:
 @lisp
 (ses-average (ses-select (ses-range A1 A5) 'Smith (ses-range B1 B5)))
 @end lisp
-This computes the average of the B column values for those rows whose
-A column value is the symbol 'Smith.
+This computes the average of the @samp{B} column values for those rows
+whose @samp{A} column value is the symbol @samp{'Smith}.
 
 Arguably one could specify only @var{fromrange} plus
 @var{to-row-offset} and @var{to-column-offset}.  The @var{torange} is
 stated explicitly to ensure that the formula will be recalculated if
 any cell in either range is changed.
+@c TODO reword this paragraph more clearly as follows:
+@ignore
+Vous vous demandez peut-être pourquoi les arguments de
+@code{ses-select} ne consistent pas au lieu de @var{à-plage} de
+décalages @var{décalage-à-la-ligne} et @var{décalage-à-la-colonne}
+relativement à @var{de-plage} : spécifier @var{à-plage} explicitement
+assure que la formule est recalculée si l'une quelconque des cellules
+de cette plage est modifiée.
+@end ignore
+
 
 File @file{etc/ses-example.el} in the Emacs distribution is an example of a
 details-and-summary spreadsheet.
@@ -1184,12 +1288,13 @@ To save time by avoiding redundant computations, cells that need
 recalculation due to changes in other cells are added to a set.  At
 the end of the command, each cell in the set is recalculated once.
 This can create a new set of cells that need recalculation.  The
-process is repeated until either the set is empty or it stops changing
-(due to circular references among the cells).  In extreme cases, you
-might see progress messages of the form ``Recalculating... (@var{nnn}
-cells left)''.  If you interrupt the calculation using @kbd{C-g}, the
-spreadsheet will be left in an inconsistent state, so use @kbd{C-_} or
-@kbd{C-c C-l} to fix it.
+process is repeated until either the set is empty or a circular
+references are detected.  In extreme cases, and notably if a circular
+cell reference is under detection, you might see progress messages of
+the form ``Recalculating... (@var{nnn} cells left)''.  If you
+interrupt the calculation using @kbd{C-g}, the spreadsheet will be
+left in an inconsistent state, so use @kbd{C-_} or @kbd{C-c C-l} to
+fix it.
 
 To save even more time by avoiding redundant writes, cells that have
 changes are added to a set instead of being written immediately to the
@@ -1199,11 +1304,12 @@ progress message of the form ``Writing... (@var{nnn} cells left)''.
 These deferred cell-writes cannot be interrupted by @kbd{C-g}, so
 you'll just have to wait.
 
-@acronym{SES} uses @code{run-with-idle-timer} to move the cell underline when
-Emacs will be scrolling the buffer after the end of a command, and
-also to narrow and underline after @kbd{C-x C-v}.  This is visible as
-a momentary glitch after C-x C-v and certain scrolling commands.  You
-can type ahead without worrying about the glitch.
+@acronym{SES} uses @code{run-with-idle-timer} to move the cell
+underline when Emacs will be scrolling the buffer after the end of a
+command, and also to narrow and underline after visiting a file.  This
+may be visible as a momentary glitch after visiting and certain
+scrolling commands.  You can type ahead without worrying about the
+glitch.
 
 
 @node Nonrelocatable references
@@ -1215,8 +1321,8 @@ can type ahead without worrying about the glitch.
 @kbd{C-u C-y} relocates none of the cell-references.  What about mixed
 cases?
 
-The best way is to rename cells that you do not want to be relocatable
-by using @code{ses-rename-cell}.
+The best way is to rename cells that you do @emph{not} want to be
+relocatable by using @code{ses-rename-cell}.
 @findex ses-rename-cell
 Cells that do not have an A1-like name style are not relocated on
 yank. Using this method, the concerned cells won't be relocated
@@ -1251,12 +1357,13 @@ kind of dependency is also not recorded.
 @cindex data area
 @findex ses-reconstruct-all
 
-Begins with an 014 character, followed by sets of cell-definition
-macros for each row, followed by the set of local printer
-definitions, followed by column-widths, column-printers,
-default-printer, and header-row.  Then there's the global parameters
-(file-format ID, row count, column count, local printer count) and the
-local variables (specifying @acronym{SES} mode for the buffer, etc.).
+Begins with an form feed character (whose ASCII code is 014 in octal
+notation), followed by sets of cell-definition macros for each row,
+followed by the set of local printer definitions, followed by
+column-widths, column-printers, default-printer, and header-row.  Then
+there's the global parameters (file-format ID, row count, column
+count, local printer count) and the local variables (specifying
+@acronym{SES} mode for the buffer, etc.).
 
 When a @acronym{SES} file is loaded, first the global parameters are
 loaded, then the entire data area is @code{eval}ed, and finally the local
@@ -1268,10 +1375,10 @@ counting newlines.  Use @kbd{C-x C-e} at the end of a line to install
 your edits into the spreadsheet data structures (this does not update
 the print area, use, e.g., @kbd{C-c C-l} for that).
 
-The data area is maintained as an image of spreadsheet data
-structures that area stored in buffer-local variables.  If the data
-area gets messed up, you can try reconstructing the data area from the
-data structures:
+The data area is maintained as an image of spreadsheet data structures
+as stored in buffer-local variables from initially loading the area.
+If the data area gets messed up in the sequel, you can try
+reconstructing the data area from the data structures:
 
 @table @kbd
 @item C-c M-C-l
@@ -1288,7 +1395,7 @@ You can add additional local variables to the list at the bottom of
 the data area, such as hidden constants you want to refer to in your
 formulas.
 
-You can override the variable @code{ses--symbolic-formulas} to be a list of
+You can initialize the variable @code{ses--symbolic-formulas} to be a list of
 symbols (as parenthesized strings) to show as completions for the @kbd{'}
 command.  This initial completions list is used instead of the actual
 set of symbols-as-formulas in the spreadsheet.
@@ -1322,14 +1429,14 @@ avoid virus warnings, each function used in a formula needs
 @table @code
 @item copy-region-as-kill
 When copying from the print area of a spreadsheet, treat the region as
-a rectangle and attach each cell's formula and printer as 'ses
+a rectangle and attach each cell's formula and printer as @code{'ses}
 properties.
 
 @item yank
 When yanking into the print area of a spreadsheet, first try to yank
-as cells (if the yank text has 'ses properties), then as tab-separated
-formulas, then (if all else fails) as a single formula for the current
-cell.
+as cells (if the yank text has @code{'ses} properties), then as
+tab-separated formulas, then (if all else fails) as a single formula
+for the current cell.
 @end table
 
 @c ===================================================================
@@ -1350,7 +1457,9 @@ Jonathan Yavner,
 @c monnier@@gnu.org
 Stefan Monnier,
 @c shigeru.fukaya@@gmail.com
-Shigeru Fukaya
+Shigeru Fukaya,
+@c vincent.belaiche@@sourceforge.net
+Vincent Belaïche
 @end quotation
 
 @noindent
@@ -1359,7 +1468,9 @@ Texinfo manual by:
 @c jyavner@@member.fsf.org
 Jonathan Yavner,
 @c brad@@chenla.org
-Brad Collins
+Brad Collins,
+@c vincent.belaiche@@sourceforge.net
+Vincent Belaïche
 @end quotation
 
 @noindent
@@ -1400,7 +1511,9 @@ Luc Teirlinck,
 @c jotto@@pobox.com
 J. Otto Tennant,
 @c jphil@@acs.pagesjaunes.fr
-Jean-Philippe Theberge
+Jean-Philippe Theberge,
+@c rrandresf@@hotmail.com
+Andrés Ramírez
 @end quotation
 
 @c ===================================================================
