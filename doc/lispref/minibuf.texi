@@ -1339,12 +1339,12 @@ returns non-@code{nil} if that candidate should appear in the
 @var{pred}.
 @end defvar
 
-@deffn minibuffer-narrow-completions-by-regexp
+@defun minibuffer-narrow-completions-by-regexp
 This function is the default value of
 @code{minibuffer-narrow-completions-function}.  This function prompts
 for a regular expression, and returns a completions predicate that
 only keeps candidates matching that regular expression.
-@end deffn
+@end defun
 
 @deffn Command minibuffer-narrow-completions
 This function narrows (restricts) the list of possible completions.
@@ -1356,9 +1356,9 @@ completions predicate, and adds that predicate to
 
 @deffn Command minibuffer-narrow-completions-to-current
 This is similar to @code{minibuffer-narrow-completions}, except that
-@code{minibuffer-narrow-completions-to-current} restricts restricts
-the list of possible completions to only include candidates that match
-the current minibuffer input.
+@code{minibuffer-narrow-completions-to-current} restricts the list of
+possible completions to only include candidates that match the current
+minibuffer input.
 @end deffn
 
 @defun display-completion-list completions
