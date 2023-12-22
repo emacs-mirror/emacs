@@ -12618,15 +12618,14 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
   struct sfnt_interpreter_zone *zone;
   struct sfnt_interpreter_zone *volatile preserved_zone;
   volatile bool zone_was_allocated;
-  int rc;
   sfnt_f26dot6 *x_base, *y_base;
-  size_t *contour_base;
-  unsigned char *flags_base;
 
-  /* Figure out how many points and contours there are to
-     instruct.  */
+  /* Figure out how many points and contours there are to instruct.  A
+     minimum of two points must be present, to wit the origin and
+     advance phantom points.  */
   num_points = context->num_points - base_index;
   num_contours = context->num_end_points - base_contour;
+  assert (num_points >= 2);
 
   /* Nothing to instruct! */
   if (!num_points && !num_contours)
@@ -12740,27 +12739,14 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
       context->y_coordinates[base_index + i] = zone->y_current[i];
     }
 
-  /* Grow various arrays to fit the phantom points.  */
-  rc = sfnt_expand_compound_glyph_context (context, 0, 2,
-					   &x_base, &y_base,
-					   &flags_base,
-					   &contour_base);
-
-  if (rc)
-    {
-      if (zone_was_allocated)
-	xfree (zone);
-
-      return "Failed to expand arrays for phantom points";
-    }
-
-  /* Copy over the phantom points.  */
+  /* Return the phantom points after instructing completes to the
+     context's coordinate arrays.  */
+  x_base    = &context->x_coordinates[i - 2];
+  y_base    = &context->y_coordinates[i - 2];
   x_base[0] = zone->x_current[num_points - 2];
   x_base[1] = zone->x_current[num_points - 1];
   y_base[0] = zone->y_current[num_points - 2];
   y_base[1] = zone->y_current[num_points - 1];
-  flags_base[0] = zone->flags[num_points - 2];
-  flags_base[1] = zone->flags[num_points - 1];
 
   /* Free the zone if needed.  */
   if (zone_was_allocated)
@@ -20573,8 +20559,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 12
-#define EASY_PPEM  12
+#define FANCY_PPEM 14
+#define EASY_PPEM  14
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
