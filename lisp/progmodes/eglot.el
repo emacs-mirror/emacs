@@ -1289,9 +1289,8 @@ be guessed."
             guess)))
     (list managed-modes (eglot--current-project) class contact language-ids)))
 
-(defvar eglot-lsp-context)
-(put 'eglot-lsp-context 'variable-documentation
-     "Dynamically non-nil when searching for projects in LSP context.")
+(defvar eglot-lsp-context nil
+  "Dynamically non-nil when searching for projects in LSP context.")
 
 (defun eglot--current-project ()
   "Return a project object for Eglot's LSP purposes.
