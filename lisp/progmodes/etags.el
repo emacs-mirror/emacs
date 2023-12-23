@@ -732,6 +732,7 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
                       "File %s does not exist")
                     local-tags-file-name)))))
 
+;;;###autoload
 (defun tags-reset-tags-tables ()
   "Reset tags state to cancel effect of any previous \\[visit-tags-table] or \\[find-tag]."
   (interactive)
