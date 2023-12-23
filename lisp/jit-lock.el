@@ -500,6 +500,7 @@ This applies to the buffer associated with marker START."
          (setq start (point-min) end (max start end)))
        ;; Don't cause refontification (it's already been done), but just do
        ;; some random buffer change, so as to force redisplay.
+       (put-text-property start end 'fontified nil)
        (put-text-property start end 'fontified t)))))
 
 ;;; Stealth fontification.
