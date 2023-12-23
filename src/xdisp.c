@@ -30955,7 +30955,7 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 	      ptrdiff_t id;
 	      id = lookup_image (f, s->img->spec, hlinfo->mouse_face_face_id);
 	      s->img = IMAGE_FROM_ID (f, id);
-	      prepare_image_for_display(f, s->img);
+	      prepare_image_for_display (f, s->img);
 	    }
     }
 #endif
