@@ -3829,7 +3829,7 @@ run_window_change_functions_1 (Lisp_Object symbol, Lisp_Object buffer,
 	     frame.  Make sure to record changes for each live frame
 	     in window_change_record later.  */
 	  window_change_record_frames = true;
-	  safe_call1 (XCAR (funs), window_or_frame);
+	  safe_calln (XCAR (funs), window_or_frame);
 	}
 
       funs = XCDR (funs);

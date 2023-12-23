@@ -1189,7 +1189,7 @@ haiku_note_drag_wheel (struct input_event *ie)
   if (!NILP (Vhaiku_drag_wheel_function)
       && (haiku_dnd_allow_same_frame
 	  || XFRAME (ie->frame_or_window) != haiku_dnd_frame))
-    safe_call (7, Vhaiku_drag_wheel_function, ie->frame_or_window,
+    safe_calln (Vhaiku_drag_wheel_function, ie->frame_or_window,
 	       ie->x, ie->y, horizontal ? Qt : Qnil, up ? Qt : Qnil,
 	       make_int (ie->modifiers));
 

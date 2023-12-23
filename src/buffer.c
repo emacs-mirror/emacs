@@ -1739,7 +1739,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
   if (!NILP (notsogood))
     return notsogood;
   else
-    return safe_call (1, Qget_scratch_buffer_create);
+    return safe_calln (Qget_scratch_buffer_create);
 }
 
 /* The following function is a safe variant of Fother_buffer: It doesn't
@@ -1760,7 +1760,7 @@ other_buffer_safely (Lisp_Object buffer)
      becoming dead under our feet.  safe_call below could return nil
      if recreating *scratch* in Lisp, which does some fancy stuff,
      signals an error in some weird use case.  */
-  buf = safe_call (1, Qget_scratch_buffer_create);
+  buf = safe_calln (Qget_scratch_buffer_create);
   if (NILP (buf))
     {
       AUTO_STRING (scratch, "*scratch*");

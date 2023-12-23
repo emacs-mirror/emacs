@@ -1094,7 +1094,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 	  /* `substitute-command-keys' may bug out, which would lead
 	     to infinite recursion when we're called from
 	     skip_debugger, so ignore errors.  */
-	  Lisp_Object subs = safe_call1 (Qsubstitute_command_keys, errmsg);
+	  Lisp_Object subs = safe_calln (Qsubstitute_command_keys, errmsg);
 	  if (!NILP (subs))
 	    errmsg = subs;
 	}

@@ -2149,7 +2149,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       x_clipboard_manager_save_frame (frame);
 #endif
 
-      safe_call2 (Qrun_hook_with_args, Qdelete_frame_functions, frame);
+      safe_calln (Qrun_hook_with_args, Qdelete_frame_functions, frame);
     }
 
   /* delete_frame_functions may have deleted any frame, including this
@@ -2461,7 +2461,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       = Fcons (list3 (Qrun_hook_with_args, Qafter_delete_frame_functions, frame),
 	       pending_funcalls);
   else
-    safe_call2 (Qrun_hook_with_args, Qafter_delete_frame_functions, frame);
+    safe_calln (Qrun_hook_with_args, Qafter_delete_frame_functions, frame);
 
   if (!NILP (minibuffer_child_frame))
     /* If minibuffer_child_frame is non-nil, it was FRAME's minibuffer

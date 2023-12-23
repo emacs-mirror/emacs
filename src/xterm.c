@@ -5036,7 +5036,7 @@ x_dnd_note_self_drop (struct x_display_info *dpyinfo, Window target,
   XSETFRAME (lval, f);
   x_dnd_action = None;
   x_dnd_action_symbol
-    = safe_call2 (Vx_dnd_native_test_function,
+    = safe_calln (Vx_dnd_native_test_function,
 		  Fposn_at_x_y (make_fixnum (win_x),
 				make_fixnum (win_y),
 				lval, Qnil),
@@ -27202,7 +27202,7 @@ xim_open_dpy (struct x_display_info *dpyinfo, char *resource_name)
 	  /* Now try to determine the coding system that should be
 	     used.  locale is in Host Portable Character Encoding, and
 	     as such can be passed to build_string as is.  */
-	  dpyinfo->xim_coding = safe_call1 (Vx_input_coding_function,
+	  dpyinfo->xim_coding = safe_calln (Vx_input_coding_function,
 					    build_string (locale));
 	}
     }
@@ -30661,7 +30661,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	    terminal_list = terminal->next_terminal;
 	    unblock_input ();
 	    kset_system_key_alist (terminal->kboard,
-				   safe_call1 (Qvendor_specific_keysyms,
+				   safe_calln (Qvendor_specific_keysyms,
 					       (vendor
 						? build_string (vendor)
 						: empty_unibyte_string)));

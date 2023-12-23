@@ -1040,7 +1040,7 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
      for each of them.  */
   Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
   FOR_EACH_TAIL (functions)
-    safe_call2 (XCAR (functions), lisp_ranges, parser);
+    safe_calln (XCAR (functions), lisp_ranges, parser);
 
   unbind_to (count, Qnil);
 }

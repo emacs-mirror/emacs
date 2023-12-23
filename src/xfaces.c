@@ -2232,7 +2232,7 @@ merge_face_heights (Lisp_Object from, Lisp_Object to, Lisp_Object invalid)
     {
       /* Call function with current height as argument.
 	 From is the new height.  */
-      result = safe_call1 (from, to);
+      result = safe_calln (from, to);
 
       /* Ensure that if TO was absolute, so is the result.  */
       if (FIXNUMP (to) && !FIXNUMP (result))

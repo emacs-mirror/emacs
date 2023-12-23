@@ -468,7 +468,7 @@ parse_sexp_propertize (ptrdiff_t charpos)
       && syntax_propertize__done < zv)
     {
       modiff_count modiffs = CHARS_MODIFF;
-      safe_call1 (Qinternal__syntax_propertize,
+      safe_calln (Qinternal__syntax_propertize,
 		  make_fixnum (min (zv, 1 + charpos)));
       if (modiffs != CHARS_MODIFF)
 	error ("internal--syntax-propertize modified the buffer!");

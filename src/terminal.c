@@ -389,7 +389,7 @@ but if the second argument FORCE is non-nil, you may do so. */)
 		      Qdelete_terminal_functions, terminal),
 	       pending_funcalls);
   else
-    safe_call2 (Qrun_hook_with_args, Qdelete_terminal_functions, terminal);
+    safe_calln (Qrun_hook_with_args, Qdelete_terminal_functions, terminal);
 
   if (t->delete_terminal_hook)
     (*t->delete_terminal_hook) (t);

@@ -3023,6 +3023,35 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 }
 
 
+static Lisp_Object
+safe_eval_handler (Lisp_Object arg, ptrdiff_t nargs, Lisp_Object *args)
+{
+  add_to_log ("Error muted by safe_call: %S signaled %S",
+	      Flist (nargs, args), arg);
+  return Qnil;
+}
+
+Lisp_Object
+safe_funcall (ptrdiff_t nargs, Lisp_Object *args)
+{
+  specpdl_ref count = SPECPDL_INDEX ();
+  /* FIXME: This function started its life in 'xdisp.c' for use internally
+     by the redisplay.  So it was important to inhibit redisplay.
+     Not clear if we still need this 'specbind' now that 'xdisp.c' has its
+     own version of this code.  */
+  specbind (Qinhibit_redisplay, Qt);
+  /* Use Qt to ensure debugger does not run.  */
+  Lisp_Object val = internal_condition_case_n (Ffuncall, nargs, args, Qt,
+				               safe_eval_handler);
+  return unbind_to (count, val);
+}
+
+Lisp_Object
+safe_eval (Lisp_Object sexp)
+{
+  return safe_calln (Qeval, sexp, Qt);
+}
+
 /* Apply a C subroutine SUBR to the NUMARGS evaluated arguments in ARG_VECTOR
    and return the result of evaluation.  */
 

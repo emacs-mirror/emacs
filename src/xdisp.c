@@ -3031,10 +3031,10 @@ hscrolling_current_line_p (struct window *w)
 			Lisp form evaluation
  ***********************************************************************/
 
-/* Error handler for safe_eval and safe_call.  */
+/* Error handler for dsafe_eval and dsafe_call.  */
 
 static Lisp_Object
-safe_eval_handler (Lisp_Object arg, ptrdiff_t nargs, Lisp_Object *args)
+dsafe_eval_handler (Lisp_Object arg, ptrdiff_t nargs, Lisp_Object *args)
 {
   add_to_log ("Error during redisplay: %S signaled %S",
 	      Flist (nargs, args), arg);
@@ -3045,8 +3045,11 @@ safe_eval_handler (Lisp_Object arg, ptrdiff_t nargs, Lisp_Object *args)
    following.  Return the result, or nil if something went
    wrong.  Prevent redisplay during the evaluation.  */
 
+/* FIXME: What's the guiding principle behind the choice
+   of which calls should set 'inhibit_quit' and which don't.  */
 static Lisp_Object
-safe__call (bool inhibit_quit, ptrdiff_t nargs, Lisp_Object func, va_list ap)
+dsafe__call (bool inhibit_quit, Lisp_Object (f) (ptrdiff_t, Lisp_Object *),
+            ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object val;
 
@@ -3054,83 +3057,37 @@ safe__call (bool inhibit_quit, ptrdiff_t nargs, Lisp_Object func, va_list ap)
     val = Qnil;
   else
     {
-      ptrdiff_t i;
       specpdl_ref count = SPECPDL_INDEX ();
-      Lisp_Object *args;
-      USE_SAFE_ALLOCA;
-      SAFE_ALLOCA_LISP (args, nargs);
-
-      args[0] = func;
-      for (i = 1; i < nargs; i++)
-	args[i] = va_arg (ap, Lisp_Object);
 
       specbind (Qinhibit_redisplay, Qt);
       if (inhibit_quit)
 	specbind (Qinhibit_quit, Qt);
       /* Use Qt to ensure debugger does not run,
 	 so there is no possibility of wanting to redisplay.  */
-      val = internal_condition_case_n (Ffuncall, nargs, args, Qt,
-				       safe_eval_handler);
-      val = SAFE_FREE_UNBIND_TO (count, val);
+      val = internal_condition_case_n (f, nargs, args, Qt,
+				       dsafe_eval_handler);
+      val = unbind_to (count, val);
     }
 
   return val;
 }
 
-Lisp_Object
-safe_call (ptrdiff_t nargs, Lisp_Object func, ...)
+#define SAFE_CALLMANY(inhibit_quit, f, array) \
+  dsafe__call ((inhibit_quit), f, ARRAYELTS (array), array)
+#define dsafe_calln(inhibit_quit, ...) \
+  SAFE_CALLMANY ((inhibit_quit), Ffuncall, ((Lisp_Object []) {__VA_ARGS__}))
+
+static Lisp_Object
+dsafe_call1 (Lisp_Object f, Lisp_Object arg)
 {
-  Lisp_Object retval;
-  va_list ap;
-
-  va_start (ap, func);
-  retval = safe__call (false, nargs, func, ap);
-  va_end (ap);
-  return retval;
-}
-
-/* Call function FN with one argument ARG.
-   Return the result, or nil if something went wrong.  */
-
-Lisp_Object
-safe_call1 (Lisp_Object fn, Lisp_Object arg)
-{
-  return safe_call (2, fn, arg);
+  return dsafe_calln (false, f, arg);
 }
 
 static Lisp_Object
-safe__call1 (bool inhibit_quit, Lisp_Object fn, ...)
+dsafe_eval (Lisp_Object sexpr)
 {
-  Lisp_Object retval;
-  va_list ap;
-
-  va_start (ap, fn);
-  retval = safe__call (inhibit_quit, 2, fn, ap);
-  va_end (ap);
-  return retval;
+  return dsafe_calln (true, Qeval, sexpr, Qt);
 }
-
-Lisp_Object
-safe_eval (Lisp_Object sexpr)
-{
-  return safe__call1 (false, Qeval, sexpr);
-}
-
-static Lisp_Object
-safe__eval (bool inhibit_quit, Lisp_Object sexpr)
-{
-  return safe__call1 (inhibit_quit, Qeval, sexpr);
-}
-
-/* Call function FN with two arguments ARG1 and ARG2.
-   Return the result, or nil if something went wrong.  */
-
-Lisp_Object
-safe_call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2)
-{
-  return safe_call (3, fn, arg1, arg2);
-}
-
 
 
 /***********************************************************************
@@ -4615,7 +4572,7 @@ handle_fontified_prop (struct it *it)
       it->f->inhibit_clear_image_cache = true;
 
       if (!CONSP (val) || EQ (XCAR (val), Qlambda))
-	safe_call1 (val, pos);
+	dsafe_call1 (val, pos);
       else
 	{
 	  Lisp_Object fns, fn;
@@ -4639,11 +4596,11 @@ handle_fontified_prop (struct it *it)
 		    {
 		      fn = XCAR (fns);
 		      if (!EQ (fn, Qt))
-			safe_call1 (fn, pos);
+			dsafe_call1 (fn, pos);
 		    }
 		}
 	      else
-		safe_call1 (fn, pos);
+		dsafe_call1 (fn, pos);
 	    }
 	}
 
@@ -5855,7 +5812,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       /* Save and restore the bidi cache, since FORM could be crazy
 	 enough to re-enter redisplay, e.g., by calling 'message'.  */
       itdata = bidi_shelve_cache ();
-      form = safe_eval (form);
+      form = dsafe_eval (form);
       bidi_unshelve_cache (itdata, false);
       form = unbind_to (count, form);
     }
@@ -5897,7 +5854,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 		  struct face *face = FACE_FROM_ID (it->f, it->face_id);
 		  Lisp_Object height;
 		  itdata = bidi_shelve_cache ();
-		  height = safe_call1 (it->font_height,
+		  height = dsafe_call1 (it->font_height,
 				       face->lface[LFACE_HEIGHT_INDEX]);
 		  bidi_unshelve_cache (itdata, false);
 		  if (NUMBERP (height))
@@ -5922,7 +5879,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 
 		  specbind (Qheight, face->lface[LFACE_HEIGHT_INDEX]);
 		  itdata = bidi_shelve_cache ();
-		  value = safe_eval (it->font_height);
+		  value = dsafe_eval (it->font_height);
 		  bidi_unshelve_cache (itdata, false);
 		  value = unbind_to (count, value);
 
@@ -12801,7 +12758,7 @@ resize_mini_window (struct window *w, bool exact_p)
      displaying changes from under them.  Such a resizing can happen,
      for instance, when which-func prints a long message while
      we are running fontification-functions.  We're running these
-     functions with safe_call which binds inhibit-redisplay to t.  */
+     functions with dsafe_call which binds inhibit-redisplay to t.  */
   if (!NILP (Vinhibit_redisplay))
     return false;
 
@@ -12820,7 +12777,7 @@ resize_mini_window (struct window *w, bool exact_p)
   if (FRAME_MINIBUF_ONLY_P (f))
     {
       if (!NILP (resize_mini_frames))
-	safe_call1 (Qwindow__resize_mini_frame, WINDOW_FRAME (w));
+	dsafe_call1 (Qwindow__resize_mini_frame, WINDOW_FRAME (w));
     }
   else
     {
@@ -13067,7 +13024,7 @@ set_message (Lisp_Object string)
     {
       specpdl_ref count = SPECPDL_INDEX ();
       specbind (Qinhibit_quit, Qt);
-      message = safe_call1 (Vset_message_function, string);
+      message = dsafe_call1 (Vset_message_function, string);
       unbind_to (count, Qnil);
 
       if (STRINGP (message))
@@ -13146,7 +13103,7 @@ clear_message (bool current_p, bool last_displayed_p)
         {
           specpdl_ref count = SPECPDL_INDEX ();
           specbind (Qinhibit_quit, Qt);
-          preserve = safe_call (1, Vclear_message_function);
+          preserve = dsafe_calln (false, Vclear_message_function);
           unbind_to (count, Qnil);
         }
 
@@ -13757,7 +13714,7 @@ prepare_menu_bars (void)
 		windows = Fcons (this, windows);
 	    }
 	}
-      safe__call1 (true, Vpre_redisplay_function, windows);
+      dsafe_calln (true, Vpre_redisplay_function, windows);
     }
 
   /* Update all frame titles based on their buffer names, etc.  We do
@@ -18591,11 +18548,8 @@ run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
 
   if (!NILP (Vwindow_scroll_functions))
     {
-      specpdl_ref count = SPECPDL_INDEX ();
-      specbind (Qinhibit_quit, Qt);
       safe_run_hooks_2
 	(Qwindow_scroll_functions, window, make_fixnum (CHARPOS (startp)));
-      unbind_to (count, Qnil);
       SET_TEXT_POS_FROM_MARKER (startp, w->start);
       /* In case the hook functions switch buffers.  */
       set_buffer_internal (XBUFFER (w->contents));
@@ -18647,7 +18601,7 @@ cursor_row_fully_visible_p (struct window *w, bool force_p,
       XSETWINDOW (window, w);
       /* Implementation note: if the function we call here signals an
 	 error, we will NOT scroll when the cursor is partially-visible.  */
-      Lisp_Object val = safe_call1 (mclfv_p, window);
+      Lisp_Object val = dsafe_call1 (mclfv_p, window);
       if (NILP (val))
 	return true;
       else if (just_test_user_preference_p)
@@ -20215,7 +20169,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	     propagated its info to `w' anyway.  */
 	  w->redisplay = false;
 	  XBUFFER (w->contents)->text->redisplay = false;
-	  safe__call1 (true, Vpre_redisplay_function, Fcons (window, Qnil));
+	  dsafe_calln (true, Vpre_redisplay_function, Fcons (window, Qnil));
 
 	  if (w->redisplay || XBUFFER (w->contents)->text->redisplay
 	      || ((EQ (Vdisplay_line_numbers, Qrelative)
@@ -27092,7 +27046,7 @@ display_mode_lines (struct window *w)
 	 can reasonably tell whether a mouse click will select w.  */
       XSETWINDOW (window, w);
       if (FUNCTIONP (default_help))
-	wset_mode_line_help_echo (w, safe_call1 (default_help, window));
+	wset_mode_line_help_echo (w, dsafe_call1 (default_help, window));
       else if (STRINGP (default_help))
 	wset_mode_line_help_echo (w, default_help);
       else
@@ -27431,6 +27385,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		    /* PROPS might cause set-text-properties to signal
 		       an error, so we call it via internal_condition_case_n,
 		       to avoid an infloop in redisplay due to the error.  */
+		    /* FIXME: Use 'SAFE_CALLMANY'?  */
 		    internal_condition_case_n (safe_set_text_properties,
 					       4,
 					       ((Lisp_Object [])
@@ -27438,7 +27393,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 						   Flength (elt),
 						   props,
 						   elt}),
-					       Qt, safe_eval_handler);
+					       Qt, dsafe_eval_handler);
 		    /* Add this item to mode_line_proptrans_alist.  */
 		    mode_line_proptrans_alist
 		      = Fcons (Fcons (elt, props),
@@ -27691,7 +27646,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 	    if (CONSP (XCDR (elt)))
 	      {
 		Lisp_Object spec;
-		spec = safe__eval (true, XCAR (XCDR (elt)));
+		spec = dsafe_eval (XCAR (XCDR (elt)));
 		/* The :eval form could delete the frame stored in the
 		   iterator, which will cause a crash if we try to
 		   access faces and other fields (e.g., FRAME_KBOARD)
@@ -28663,7 +28618,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	Lisp_Object val = Qnil;
 
 	if (STRINGP (curdir))
-	  val = safe_call1 (intern ("file-remote-p"), curdir);
+	  val = dsafe_call1 (intern ("file-remote-p"), curdir);
 
 	val = unbind_to (count, val);
 
