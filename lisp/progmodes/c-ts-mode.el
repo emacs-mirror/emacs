@@ -437,7 +437,7 @@ MODE is either `c' or `cpp'."
 
            ((parent-is "function_definition") parent-bol 0)
            ((parent-is "pointer_declarator") parent-bol 0)
-           ((parent-is "declaration") parent-bol 0)
+           ((parent-is ,(rx bos "declaration" eos)) parent-bol 0)
            ((parent-is "conditional_expression") first-sibling 0)
            ((parent-is "assignment_expression") parent-bol c-ts-mode-indent-offset)
            ((parent-is "concatenated_string") first-sibling 0)
