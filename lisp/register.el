@@ -138,10 +138,7 @@ When set to \\='never, behave as with nil, but with no preview buffer at
 all; the preview buffer is still accessible with `help-char' (C-h).
 When set to \\='traditional (the default), provide a more basic preview
 according to `register-preview-delay'; this preserves the traditional
-behavior of Emacs 29 and before.
-
-This has no effect when the value of `register--read-with-preview-function'
-is `register-read-with-preview-traditional'."
+behavior of Emacs 29 and before."
   :type '(choice
           (const :tag "Use preview" t)
           (const :tag "Use quick preview" nil)
@@ -192,8 +189,7 @@ and is used when `register-use-preview' is set to \\='traditional."
 	  (register-describe-oneline (car r))))
 
 (cl-defgeneric register--preview-function (read-preview-function)
-  "Return a function to format a register for previewing.
-This is according to the value of `read-preview-function'.")
+  "Return a function to format registers for previewing by READ-PREVIEW-FUNCTION.")
 (cl-defmethod register--preview-function ((_read-preview-function
                                            (eql register-read-with-preview-traditional)))
   #'register-preview-default)
@@ -207,7 +203,8 @@ TYPES are the supported types of registers.
 MSG is the minibuffer message to show when a register is selected.
 ACT is the type of action the command is doing on register.
 SMATCH accept a boolean value to say if the command accepts non-matching
-registers."
+registers.
+If NOCONFIRM is non-nil, request confirmation of register name by RET."
   types msg act smatch noconfirm)
 
 (cl-defgeneric register-command-info (command)

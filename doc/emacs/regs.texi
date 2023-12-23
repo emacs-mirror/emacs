@@ -65,9 +65,16 @@ the registers in the preview window.  To overwrite the value of an
 existing registers in this mode, you need to type @key{RET} after
 selecting the register by navigation or typing its name.
 
+In addition, the registers shown by the preview are filtered according
+to the command that popped the preview: for example, the preview shown
+by @code{insert-register} will only show registers whose values can be
+inserted into the buffer, omitting registers which hold window
+configurations, positions, and other un-insertable values.
+
 @item nil
 This value requests behavior similar to @code{traditional}, but the
-preview is shown without delay.
+preview is shown without delay, and is filtered according to the
+command.
 
 @item never
 This value is like @code{nil}, but it disables the preview.
