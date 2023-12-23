@@ -67,9 +67,10 @@ If nil, the feature is disabled, i.e., all commands work normally.")
                "Here's the first part of its description:\n\n")
               ;; Keep only the first paragraph of the documentation.
               (with-temp-buffer
-                (insert (condition-case ()
-                            (documentation cmd)
-                          (error "<< not documented >>")))
+                (insert (or (condition-case ()
+			        (documentation cmd)
+			      (error nil))
+			    "<< not documented >>"))
                 (goto-char (point-min))
                 (when (search-forward "\n\n" nil t)
                   (delete-region (match-beginning 0) (point-max)))

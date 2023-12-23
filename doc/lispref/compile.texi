@@ -878,8 +878,7 @@ well.
    You can natively-compile either a single function or macro
 definition, or a whole file of Lisp code, with the
 @code{native-compile} function.  Natively-compiling a file will
-produce both the corresponding @file{.elc} file with byte code and the
-@file{.eln} file with native code.
+produce the @file{.eln} file with native code.
 
 @findex native-comp-limple-mode
 @vindex native-comp-verbose
@@ -970,6 +969,18 @@ compilation subprocesses in parallel, under the control of
 @code{native-comp-async-jobs-number} (@pxref{Native-Compilation
 Variables}).
 @end defun
+
+@deffn Command emacs-lisp-native-compile
+This command compiles the file visited by the current buffer into
+native code, if the file was changed since the last time it was
+natively-compiled.
+@end deffn
+
+@deffn Command emacs-lisp-native-compile-and-load
+This command compiles the file visited by the current buffer into
+native code, like @code{emacs-lisp-native-compile}, but it also loads
+the native code when the compilation finishes.
+@end deffn
 
   The following function allows Lisp programs to test whether
 native-compilation is available at runtime.

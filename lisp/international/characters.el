@@ -1696,6 +1696,9 @@ Setup `char-width-table' appropriate for non-CJK language environment."
 ;; Fix some exceptions that blocks.awk/Blocks.txt couldn't get right.
 (set-char-table-range char-script-table '(#x2ea . #x2eb) 'bopomofo)
 (set-char-table-range char-script-table #xab65 'greek)
+(set-char-table-range char-script-table #x16fe0 'tangut)
+(set-char-table-range char-script-table #x16fe1 'nushu)
+
 
 
 ;;; Setting unicode-category-table.

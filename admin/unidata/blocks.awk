@@ -60,6 +60,7 @@ BEGIN {
     alias["cjk strokes"] = "cjk-misc"
     alias["cjk symbols and punctuation"] = "cjk-misc"
     alias["halfwidth and fullwidth forms"] = "cjk-misc"
+    alias["yijing hexagram symbols"] = "cjk-misc"
     alias["common indic number forms"] = "north-indic-number"
 
     tohex["a"] = 10
@@ -94,7 +95,7 @@ function name2alias(name   , w, w2) {
     if (alias[name]) return alias[name]
     else if (name ~ /for symbols/) return "symbol"
     else if (name ~ /latin|combining .* marks|spacing modifier|tone letters|alphabetic presentation/) return "latin"
-    else if (name ~ /cjk|yijing|enclosed ideograph|kangxi/) return "han"
+    else if (name ~ /cjk|enclosed ideograph|kangxi/) return "han"
     else if (name ~ /arabic/) return "arabic"
     else if (name ~ /^greek/) return "greek"
     else if (name ~ /^coptic/) return "coptic"

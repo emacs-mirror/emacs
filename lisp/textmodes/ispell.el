@@ -522,7 +522,12 @@ re-start Emacs."
      "[^A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]"
      "[']" nil ("-C") "~list" iso-8859-1)
     ("hebrew" "[\340\341\342\343\344\345\346\347\350\351\353\352\354\356\355\360\357\361\362\364\363\367\366\365\370\371\372]" "[^\340\341\342\343\344\345\346\347\350\351\353\352\354\356\355\360\357\361\362\364\363\367\366\365\370\371\372]" "" nil ("-B") nil cp1255))
-  "Base value for `ispell-dictionary-alist'.")
+  "Base value for `ispell-dictionary-alist'.
+
+Note that when the speller program is \"aspell\" or \"hunspell\",
+some parts of the database, notably OTHERCHARS, will be overridden
+by parsing the dictionary data files, see `ispell-aspell-find-dictionary'
+and `ispell-parse-hunspell-affix-file'.")
 
 (defvar ispell-dictionary-alist nil
   "An alist of dictionaries and their associated parameters.
@@ -577,7 +582,11 @@ when the language uses non-ASCII characters.
 Note that with \"ispell\" as the speller, the CASECHARS and
 OTHERCHARS slots of the alist should contain the same character
 set as casechars and otherchars in the LANGUAGE.aff file \(e.g.,
-english.aff).  Aspell and Hunspell don't have this limitation.")
+english.aff).  Aspell and Hunspell don't have this limitation.
+Also, when the speller program is \"aspell\" or \"hunspell\",
+some parts of the database, notably OTHERCHARS, will be determined
+by parsing the dictionary data files, see `ispell-aspell-find-dictionary'
+and `ispell-parse-hunspell-affix-file'.")
 
 (defvar ispell-really-aspell nil
   "Non-nil if we can use Aspell extensions.")

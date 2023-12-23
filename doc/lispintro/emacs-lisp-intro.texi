@@ -317,7 +317,7 @@ List Processing
 * Evaluation::                  Running a program.
 * Variables::                   Returning a value from a variable.
 * Arguments::                   Passing information to a function.
-* set & setq::                  Setting the value of a variable.
+* setq::                        Setting the value of a variable.
 * Summary::                     The major points.
 * Error Message Exercises::
 
@@ -358,7 +358,6 @@ Arguments
 
 Setting the Value of a Variable
 
-* Using set::                  Setting values.
 * Using setq::                 Setting a quoted value.
 * Counting::                   Using @code{setq} to count.
 
@@ -1060,7 +1059,7 @@ of Lisp.
 * Evaluation::                  Running a program.
 * Variables::                   Returning a value from a variable.
 * Arguments::                   Passing information to a function.
-* set & setq::                  Setting the value of a variable.
+* setq::                        Setting the value of a variable.
 * Summary::                     The major points.
 * Error Message Exercises::
 @end menu
@@ -1782,7 +1781,7 @@ A symbol can have any value attached to it or, to use the jargon, we can
 string, @code{"such as this"}; to a list, such as @code{(spruce pine
 oak)}; we can even bind a variable to a function definition.
 
-A symbol can be bound to a value in several ways.  @xref{set & setq, ,
+A symbol can be bound to a value in several ways.  @xref{setq, ,
 Setting the Value of a Variable}, for information about one way to do
 this.
 
@@ -2273,52 +2272,52 @@ When your fill column is 70 and you evaluate the expression, the
 message @code{"He saw 38 red foxes leaping."} appears in your echo
 area.
 
-@node set & setq
+@node setq
 @section Setting the Value of a Variable
 @cindex Variable, setting value
 @cindex Setting value of variable
 
 @cindex @samp{bind} defined
-There are several ways by which a variable can be given a value.  One of
-the ways is to use either the function @code{set} or the special form
-@code{setq}.  Another way is to use @code{let} (@pxref{let}).  (The
-jargon for this process is to @dfn{bind} a variable to a value.)
+There are several ways by which a variable can be given a value.
+One of the ways is to use the special form @code{setq}.  Another way
+is to use @code{let} (@pxref{let}).  (The jargon for this process is
+to @dfn{bind} a variable to a value.)
 
-The following sections not only describe how @code{set} and @code{setq}
-work but also illustrate how arguments are passed.
+The following sections not only describe how @code{setq} works but
+also illustrate how arguments are passed.
 
 @menu
-* Using set::                  Setting values.
-* Using setq::                 Setting a quoted value.
+* Using setq::                 Setting variables.
 * Counting::                   Using @code{setq} to count.
 @end menu
 
-@node Using set
-@subsection Using @code{set}
+@node Using setq
+@subsection Using @code{setq}
 @findex set
 
-To set the value of the symbol @code{flowers} to the list @code{'(rose
+To set the value of the symbol @code{flowers} to the list @code{(rose
 violet daisy buttercup)}, evaluate the following expression by
 positioning the cursor after the expression and typing @kbd{C-x C-e}.
 
 @smallexample
-(set 'flowers '(rose violet daisy buttercup))
+(setq flowers '(rose violet daisy buttercup))
 @end smallexample
 
 @noindent
 The list @code{(rose violet daisy buttercup)} will appear in the echo
-area.  This is what is @emph{returned} by the @code{set} function.  As a
-side effect, the symbol @code{flowers} is bound to the list; that is,
-the symbol @code{flowers}, which can be viewed as a variable, is given
-the list as its value.  (This process, by the way, illustrates how a
-side effect to the Lisp interpreter, setting the value, can be the
-primary effect that we humans are interested in.  This is because every
-Lisp function must return a value if it does not get an error, but it
-will only have a side effect if it is designed to have one.)
+area.  This is what is @emph{returned} by the @code{setq} special
+form.  As a side effect, the symbol @code{flowers} is bound to the
+list; that is, the symbol @code{flowers}, which can be viewed as
+a variable, is given the list as its value.  (This process, by the
+way, illustrates how a side effect to the Lisp interpreter, setting
+the value, can be the primary effect that we humans are interested in.
+This is because every Lisp function must return a value if it does not
+get an error, but it will only have a side effect if it is designed to
+have one.)
 
-After evaluating the @code{set} expression, you can evaluate the symbol
-@code{flowers} and it will return the value you just set.  Here is the
-symbol.  Place your cursor after it and type @kbd{C-x C-e}.
+After evaluating the @code{setq} expression, you can evaluate the
+symbol @code{flowers} and it will return the value you just set.
+Here is the symbol.  Place your cursor after it and type @kbd{C-x C-e}.
 
 @smallexample
 flowers
@@ -2336,30 +2335,8 @@ in front of it, what you will see in the echo area is the symbol itself,
 'flowers
 @end smallexample
 
-Note also, that when you use @code{set}, you need to quote both
-arguments to @code{set}, unless you want them evaluated.  Since we do
-not want either argument evaluated, neither the variable
-@code{flowers} nor the list @code{(rose violet daisy buttercup)}, both
-are quoted.  (When you use @code{set} without quoting its first
-argument, the first argument is evaluated before anything else is
-done.  If you did this and @code{flowers} did not have a value
-already, you would get an error message that the @samp{Symbol's value
-as variable is void}; on the other hand, if @code{flowers} did return
-a value after it was evaluated, the @code{set} would attempt to set
-the value that was returned.  There are situations where this is the
-right thing for the function to do; but such situations are rare.)
-
-@node Using setq
-@subsection Using @code{setq}
-@findex setq
-
-As a practical matter, you almost always quote the first argument to
-@code{set}.  The combination of @code{set} and a quoted first argument
-is so common that it has its own name: the special form @code{setq}.
-This special form is just like @code{set} except that the first argument
-is quoted automatically, so you don't need to type the quote mark
-yourself.  Also, as an added convenience, @code{setq} permits you to set
-several different variables to different values, all in one expression.
+Also, as an added convenience, @code{setq} permits you to set several
+different variables to different values, all in one expression.
 
 To set the value of the variable @code{carnivores} to the list
 @code{'(lion tiger leopard)} using @code{setq}, the following expression
@@ -2367,18 +2344,6 @@ is used:
 
 @smallexample
 (setq carnivores '(lion tiger leopard))
-@end smallexample
-
-@noindent
-This is exactly the same as using @code{set} except the first argument
-is automatically quoted by @code{setq}.  (The @samp{q} in @code{setq}
-means @code{quote}.)
-
-@need 1250
-With @code{set}, the expression would look like this:
-
-@smallexample
-(set 'carnivores '(lion tiger leopard))
 @end smallexample
 
 Also, @code{setq} can be used to assign different values to
@@ -2400,14 +2365,14 @@ to the symbol @code{herbivores}:
 not have fit on a page; and humans find it easier to read nicely
 formatted lists.)
 
-Although I have been using the term ``assign'', there is another way of
-thinking about the workings of @code{set} and @code{setq}; and that is to
-say that @code{set} and @code{setq} make the symbol @emph{point} to the
-list.  This latter way of thinking is very common and in forthcoming
-chapters we shall come upon at least one symbol that has ``pointer'' as
-part of its name.  The name is chosen because the symbol has a value,
-specifically a list, attached to it; or, expressed another way,
-the symbol is set to point to the list.
+Although I have been using the term ``assign'', there is another way
+of thinking about the workings of @code{setq}; and that is to say that
+@code{setq} makes the symbol @emph{point} to the list.  This latter
+way of thinking is very common and in forthcoming chapters we shall
+come upon at least one symbol that has ``pointer'' as part of its
+name.  The name is chosen because the symbol has a value, specifically
+a list, attached to it; or, expressed another way, the symbol is set
+to point to the list.
 
 @node Counting
 @subsection Counting
@@ -3598,6 +3563,8 @@ and the two are not intended to refer to the same value.  The
 @unnumberedsubsec @code{let} Prevents Confusion
 @end ifnottex
 
+@c FIXME!! lexbind!!
+
 @cindex @samp{local variable} defined
 @cindex @samp{variable, local}, defined
 The @code{let} special form prevents confusion.  @code{let} creates a
@@ -4471,9 +4438,7 @@ number; it will be printed as the character with that @sc{ascii} code.
 The @code{setq} special form sets the value of its first argument to the
 value of the second argument.  The first argument is automatically
 quoted by @code{setq}.  It does the same for succeeding pairs of
-arguments.  Another function, @code{set}, takes only two arguments and
-evaluates both of them before setting the value returned by its first
-argument to the value returned by its second argument.
+arguments.
 
 @item buffer-name
 Without an argument, return the name of the buffer, as a string.
@@ -12882,7 +12847,40 @@ The next line of the @code{forward-paragraph} function begins a
 introduced}), in which Emacs binds a total of seven variables:
 @code{opoint}, @code{fill-prefix-regexp}, @code{parstart},
 @code{parsep}, @code{sp-parstart}, @code{start}, and
-@code{found-start}.
+@code{found-start}.  The first part of the @code{let*} expression
+looks like below:
+
+@smallexample
+@group
+(let* ((opoint (point))
+       (fill-prefix-regexp
+        (and fill-prefix (not (equal fill-prefix ""))
+             (not paragraph-ignore-fill-prefix)
+             (regexp-quote fill-prefix)))
+       ;; Remove ^ from paragraph-start and paragraph-sep if they are there.
+       ;; These regexps shouldn't be anchored, because we look for them
+       ;; starting at the left-margin.  This allows paragraph commands to
+       ;; work normally with indented text.
+       ;; This hack will not find problem cases like "whatever\\|^something".
+       (parstart (if (and (not (equal "" paragraph-start))
+                          (equal ?^ (aref paragraph-start 0)))
+                     (substring paragraph-start 1)
+                   paragraph-start))
+       (parsep (if (and (not (equal "" paragraph-separate))
+                        (equal ?^ (aref paragraph-separate 0)))
+                   (substring paragraph-separate 1)
+                 paragraph-separate))
+       (parsep
+        (if fill-prefix-regexp
+            (concat parsep "\\|"
+                    fill-prefix-regexp "[ \t]*$")
+          parsep))
+       ;; This is used for searching.
+       (sp-parstart (concat "^[ \t]*\\(?:" parstart "\\|" parsep "\\)"))
+       start found-start)
+  ...)
+@end group
+@end smallexample
 
 The variable @code{parsep} appears twice, first, to remove instances
 of @samp{^}, and second, to handle fill prefixes.
@@ -13250,6 +13248,10 @@ The last expression when there is no fill prefix is
 @end smallexample
 
 @noindent
+(Note that this code snippet is copied verbatim from the original code,
+so the two extra ending parentheses are matching the previous @code{if}
+and @code{while}.)
+
 This says that if there is no fill prefix and if we are not at the
 end, point should move to the beginning of whatever was found by the
 regular expression search for @code{sp-parstart}.
@@ -16949,15 +16951,15 @@ Here is the line again; how does it work?
 @noindent
 This line is a short, but complete Emacs Lisp expression.
 
-We are already familiar with @code{setq}.  It sets the following variable,
-@code{major-mode}, to the subsequent value, which is @code{text-mode}.
-The single-quote before @code{text-mode} tells Emacs to deal directly
-with the @code{text-mode} symbol, not with whatever it might stand for.
-@xref{set & setq, , Setting the Value of a Variable},
-for a reminder of how @code{setq} works.
-The main point is that there is no difference between the procedure you
-use to set a value in your @file{.emacs} file and the procedure you use
-anywhere else in Emacs.
+We are already familiar with @code{setq}.  It sets the following
+variable, @code{major-mode}, to the subsequent value, which is
+@code{text-mode}.  The single-quote before @code{text-mode} tells
+Emacs to deal directly with the @code{text-mode} symbol, not with
+whatever it might stand for.  @xref{setq, , Setting the Value of
+a Variable}, for a reminder of how @code{setq} works.  The main point
+is that there is no difference between the procedure you use to set
+a value in your @file{.emacs} file and the procedure you use anywhere
+else in Emacs.
 
 @need 800
 Here is the next line:

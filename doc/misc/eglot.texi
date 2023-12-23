@@ -1107,8 +1107,8 @@ To apply this to Eglot, and assuming you chose the
                                              :fuzzy t)
                            :pylint (:enabled :json-false)))
          :gopls (:usePlaceholders t)))))
- (python-mode . ((indent-tabs-mode . nil)))
- (go-mode     . ((indent-tabs-mode . t))))
+ (python-base-mode . ((indent-tabs-mode . nil)))
+ (go-mode          . ((indent-tabs-mode . t))))
 @end lisp
 
 @noindent
@@ -1123,7 +1123,7 @@ plists are used inside the value of
 This following form may also be used:
 
 @lisp
-((python-mode
+((python-base-mode
   . ((eglot-workspace-configuration
       . (:pylsp (:plugins (:jedi_completion (:include_params t
                                              :fuzzy t)
@@ -1138,7 +1138,7 @@ This following form may also be used:
 @noindent
 This sets up the value of @code{eglot-workspace-configuration}
 separately depending on the major mode of each of that project's
-buffers.  @code{python-mode} buffers will have the variable set to
+buffers.  @code{python-base-mode} buffers will have the variable set to
 @code{(:pylsp (:plugins ...))}.  @code{go-mode} buffers will have the
 variable set to @code{(:gopls (:usePlaceholders t))}.
 
@@ -1149,7 +1149,7 @@ want to set a different option for @code{gopls.usePlaceholders} , you
 may use something like:
 
 @lisp
-((python-mode
+((python-base-mode
   . ((eglot-workspace-configuration
       . (:pylsp (:plugins (:jedi_completion (:include_params t
                                              :fuzzy t)
