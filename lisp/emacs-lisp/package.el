@@ -1173,8 +1173,14 @@ boundaries."
     ;; requirement for a "footer line" without unduly impacting users
     ;; on earlier Emacs versions.  See Bug#26490 for more details.
     (unless (search-forward (concat ";;; " file-name ".el ends here") nil 'move)
-      (lwarn '(package package-format) :warning
-             "Package lacks a terminating comment"))
+      ;; Starting in Emacs 30.1, avoid warning if the minimum Emacs
+      ;; version is specified as 30.1 or later.
+      (let ((min-emacs (cadar (seq-filter (lambda (x) (eq (car x) 'emacs))
+                                          (lm-package-requires)))))
+        (when (or (null min-emacs)
+                  (version< min-emacs "30.1"))
+          (lwarn '(package package-format) :warning
+                 "Package lacks a terminating comment"))))
     ;; Try to include a trailing newline.
     (forward-line)
     (narrow-to-region start (point))
