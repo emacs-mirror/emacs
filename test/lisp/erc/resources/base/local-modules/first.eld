@@ -1,7 +1,7 @@
 ;; -*- mode: lisp-data; -*-
 ((cap 10 "CAP REQ :sasl"))
-((nick 1 "NICK tester"))
-((user 1 "USER tester 0 * :tester"))
+((nick 10 "NICK tester"))
+((user 10 "USER tester 0 * :tester"))
 
 ((authenticate 5 "AUTHENTICATE PLAIN")
  (0.0 ":irc.foonet.org CAP * ACK sasl")
@@ -11,7 +11,7 @@
  (0.0 ":irc.foonet.org 900 * * tester :You are now logged in as tester")
  (0.01 ":irc.foonet.org 903 * :Authentication successful"))
 
-((cap 3.2 "CAP END")
+((cap 10 "CAP END")
  (0.0 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
  (0.0 ":irc.foonet.org 002 tester :Your host is irc.foonet.org, running version ergo-v2.8.0")
  (0.2 ":irc.foonet.org 003 tester :This server was created Sun, 20 Nov 2022 23:10:36 UTC")

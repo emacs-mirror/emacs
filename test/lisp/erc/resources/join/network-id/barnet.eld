@@ -40,4 +40,4 @@
  (0.05 ":mike!~u@6yximxrnkg65a.irc PRIVMSG #chan :joe: And now, dear maid, be you as free to us.")
  (0.00 ":joe!~u@6yximxrnkg65a.irc PRIVMSG #chan :mike: He hath an uncle here in Messina will be very much glad of it."))
 
-((linger 3.5 LINGER))
+((linger 30 LINGER))

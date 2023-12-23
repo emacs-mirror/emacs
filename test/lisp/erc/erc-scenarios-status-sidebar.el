@@ -99,7 +99,8 @@
 (defvar speedbar-buffer)
 
 (ert-deftest erc-scenarios-status-sidebar--nickbar ()
-  :tags '(:unstable :expensive-test)
+  :tags `(:expensive-test :unstable ,@(and (getenv "ERC_TESTS_GRAPHICAL")
+                                           '(:erc--graphical)))
   (when noninteractive (ert-skip "Interactive only"))
 
   (erc-scenarios-common-with-cleanup

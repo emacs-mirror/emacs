@@ -61,6 +61,25 @@
 ;; always associated with the fake network FooNet, while nicks Joe and
 ;; Mike are always on BarNet.  (Networks are sometimes downcased.)
 ;;
+;; Environment variables:
+;;
+;;  `ERC_TESTS_GRAPHICAL': Internal variable to unskip those few tests
+;;   capable of running consecutively while interactive on a graphical
+;;   display.  This triggers both the tests and the suite to commence
+;;   with teardown activities normally skipped to allow for inspection
+;;   while interactive.  This is also handy when needing to quickly
+;;   run `ert-results-rerun-test-at-point-debugging-errors' on a
+;;   failing test because you don't have to go around hunting for and
+;;   killing associated buffers and processes.
+;;
+;;  `ERC_TESTS_GRAPHICAL_ALL': Currently targets a single "meta" test,
+;;   `erc-scenarios-internal--run-interactive-all', that runs all
+;;   tests tagged `:erc--graphical' in an interactive subprocess.
+;;
+;;  `ERC_TESTS_SUBPROCESS': Used internally to detect nested tests.
+;;
+;;  `ERC_D_DEBUG': Tells `erc-d' to emit debugging info to stderr.
+;;
 ;; XXX This file should *not* contain any test cases.
 
 ;;; Code:
@@ -91,6 +110,7 @@
 
 (defvar erc-scenarios-common-dialog nil)
 (defvar erc-scenarios-common-extra-teardown nil)
+(defvar erc-scenarios-common--graphical-p nil)
 
 (defun erc-scenarios-common--add-silence ()
   (advice-add #'erc-login :around #'erc-d-t-silence-around)
@@ -110,7 +130,11 @@
 
 (eval-and-compile
   (defun erc-scenarios-common--make-bindings (bindings)
-    `((erc-d-u-canned-dialog-dir (expand-file-name
+    `((erc-scenarios-common--graphical-p
+       (and (or erc-scenarios-common--graphical-p
+                (memq :erc--graphical (ert-test-tags (ert-running-test))))
+            (not (and noninteractive (ert-skip "Interactive only")))))
+      (erc-d-u-canned-dialog-dir (expand-file-name
                                   (or erc-scenarios-common-dialog
                                       (cadr (assq 'erc-scenarios-common-dialog
                                                   ',bindings)))
@@ -119,7 +143,7 @@
                          (quit . ,(erc-quit/part-reason-default))
                          (erc-version . ,erc-version)))
       (erc-modules (copy-sequence erc-modules))
-      (inhibit-interaction t)
+      (inhibit-interaction noninteractive)
       (auth-source-do-cache nil)
       (timer-list (copy-sequence timer-list))
       (timer-idle-list (copy-sequence timer-idle-list))
@@ -139,13 +163,19 @@ disabled by BODY.  Other defaults common to these test cases are added
 below and can be overridden, except when wanting the \"real\" default
 value, which must be looked up or captured outside of the calling form.
 
+When running tests tagged as serially runnable while interactive
+and the flag `erc-scenarios-common--graphical-p' is non-nil, run
+teardown tasks normally inhibited when interactive.  That is,
+behave almost as if `noninteractive' were also non-nil, and
+ensure buffers and other resources are destroyed on completion.
+
 Dialog resource directories are located by expanding the variable
 `erc-scenarios-common-dialog' or its value in BINDINGS."
   (declare (indent 1))
 
   (let* ((orig-autojoin-mode (make-symbol "orig-autojoin-mode"))
          (combined `((,orig-autojoin-mode (bound-and-true-p erc-autojoin-mode))
-                    ,@(erc-scenarios-common--make-bindings bindings))))
+                     ,@(erc-scenarios-common--make-bindings bindings))))
 
     `(erc-d-t-with-cleanup (,@combined)
 
@@ -165,8 +195,9 @@ Dialog resource directories are located by expanding the variable
                       (not (eq erc-autojoin-mode ,orig-autojoin-mode)))
              (erc-autojoin-mode (if ,orig-autojoin-mode +1 -1)))
 
-           (when noninteractive
-             (erc-scenarios-common--print-trace)
+           (when (or noninteractive erc-scenarios-common--graphical-p)
+             (when noninteractive
+               (erc-scenarios-common--print-trace))
              (erc-d-t-kill-related-buffers)
              (delete-other-windows)))
 
@@ -179,7 +210,8 @@ Dialog resource directories are located by expanding the variable
                (erc-d-t-search-for 3 "Starting")))))
 
        (ert-info ("Activate erc-debug-irc-protocol")
-         (unless (and noninteractive (not erc-debug-irc-protocol))
+         (unless (and (or noninteractive erc-scenarios-common--graphical-p)
+                      (not erc-debug-irc-protocol))
            (erc-toggle-debug-irc-protocol)))
 
        ,@body)))
@@ -417,7 +449,9 @@ See Info node `(emacs) Term Mode' for the various commands."
         (erc-scenarios-common-say "/msg NickServ help identify")
         ;; New arriving messages trigger a snap when inserted.
         (erc-d-t-wait-for 10 (erc-scenarios-common--at-win-end-p))
-        (funcall expect 10 "IDENTIFY lets you login")))))
+        (funcall expect 10 "IDENTIFY lets you login"))
+
+      (erc-scrolltobottom-mode -1))))
 
 (cl-defun erc-scenarios-common--base-network-id-bouncer
     ((&key autop foo-id bar-id after

@@ -30,7 +30,8 @@
 (require 'erc-goodies)
 
 (ert-deftest erc-scenarios-scrolltobottom--relaxed ()
-  :tags '(:expensive-test)
+  :tags `(:expensive-test
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (when (version< emacs-version "29") (ert-skip "Times out"))
 
   (should-not erc-scrolltobottom-all)

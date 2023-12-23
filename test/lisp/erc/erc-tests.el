@@ -886,7 +886,8 @@
   (should (equal (erc--channel-modes 0) "klt  "))) ; 2 spaces
 
 (ert-deftest erc--channel-modes/graphic-p ()
-  :tags '(:unstable)
+  :tags `(:unstable ,@(and (getenv "ERC_TESTS_GRAPHICAL")
+                           '(:erc--graphical)))
   (unless (display-graphic-p) (ert-skip "See non-/graphic-p variant"))
 
   (erc-tests--set-fake-server-process "sleep" "1")

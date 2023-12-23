@@ -30,7 +30,8 @@
 ;; now to stay in sync with `erc-scenarios-scrolltobottom--relaxed'.
 
 (ert-deftest erc-scenarios-scrolltobottom--normal ()
-  :tags '(:expensive-test)
+  :tags `(:expensive-test ,@(and (getenv "ERC_TESTS_GRAPHICAL")
+                                 '(:erc--graphical)))
   (when (version< emacs-version "29") (ert-skip "Times out"))
 
   (should-not erc-scrolltobottom-all)
@@ -45,7 +46,8 @@
              (not (erc-scenarios-common--at-win-end-p w))))))))
 
 (ert-deftest erc-scenarios-scrolltobottom--all ()
-  :tags '(:expensive-test)
+  :tags `(:expensive-test ,@(and (getenv "ERC_TESTS_GRAPHICAL")
+                                 '(:erc--graphical)))
   (when (version< emacs-version "29") (ert-skip "Times out"))
 
   (should-not erc-scrolltobottom-all)

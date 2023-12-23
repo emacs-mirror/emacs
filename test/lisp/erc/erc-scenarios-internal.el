@@ -28,4 +28,34 @@
                          load-path)))
     (load "erc-d-tests" nil 'silent)))
 
+;; Run all tests tagged `:erc--graphical' in an "interactive"
+;; subprocess.  Time out after 90 seconds.
+(ert-deftest erc-scenarios-internal--run-graphical-all ()
+  :tags '(:expensive-test :unstable)
+  (unless (and (getenv "ERC_TESTS_GRAPHICAL_ALL")
+               (not (getenv "ERC_TESTS_GRAPHICAL"))
+               (not (getenv "CI")))
+    (ert-skip "Environmental conditions unmet"))
+
+  (let* ((default-directory (expand-file-name "../" (ert-resource-directory)))
+         (libs (directory-files default-directory 'full (rx ".el" eot)))
+         (process-environment (cons "ERC_TESTS_GRAPHICAL=1"
+                                    process-environment))
+         (program '(progn (ert (quote (tag :erc--graphical)))
+                          (with-current-buffer ert--output-buffer-name
+                            (kill-emacs (ert--stats-failed-unexpected
+                                         ert--results-stats)))))
+         (args `("erc-interactive-all" ,(current-buffer)
+                 ,(concat invocation-directory invocation-name)
+                 "-Q" "-L" "." "-l" "ert"
+                 ,@(let (o) (while libs (push (pop libs) o) (push "-l" o)) o)
+                 "-eval" ,(format "%S" program)))
+         (proc (apply #'start-process args)))
+    (set-process-query-on-exit-flag proc nil)
+
+    (erc-d-t-wait-for 90 "interactive tests to complete"
+      (not (process-live-p proc)))
+
+    (should (zerop (process-exit-status proc)))))
+
 ;;; erc-scenarios-internal.el ends here

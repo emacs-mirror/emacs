@@ -210,7 +210,8 @@
 ;; or similar.
 
 (ert-deftest erc-fill-wrap--monospace ()
-  :tags '(:unstable)
+  :tags `(:unstable
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (unless (>= emacs-major-version 29)
     (ert-skip "Emacs version too low, missing `buffer-text-pixel-size'"))
 
@@ -256,7 +257,8 @@
       (erc-fill--wrap-rejigger-region (point-min) erc-insert-marker nil nil))))
 
 (ert-deftest erc-fill-wrap--merge ()
-  :tags '(:unstable)
+  :tags `(:unstable
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (unless (>= emacs-major-version 29)
     (ert-skip "Emacs version too low, missing `buffer-text-pixel-size'"))
 
@@ -341,23 +343,27 @@
      (erc-fill-tests--compare compare-file))))
 
 (ert-deftest erc-fill-wrap--merge-action ()
-  :tags '(:unstable)
+  :tags `(:unstable
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (erc-fill-wrap-tests--merge-action "merge-wrap-01"))
 
 (ert-deftest erc-fill-wrap--merge-action/indicator-pre ()
-  :tags '(:unstable)
+  :tags `(:unstable
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (let ((erc-fill-wrap-merge-indicator '(pre ?> shadow)))
     (erc-fill-wrap-tests--merge-action "merge-wrap-indicator-pre-01")))
 
 ;; One crucial thing this test asserts is that the indicator is
 ;; omitted when the previous line ends in a stamp.
 (ert-deftest erc-fill-wrap--merge-action/indicator-post ()
-  :tags '(:unstable)
+  :tags `(:unstable
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (let ((erc-fill-wrap-merge-indicator '(post ?~ shadow)))
     (erc-fill-wrap-tests--merge-action "merge-wrap-indicator-post-01")))
 
 (ert-deftest erc-fill-line-spacing ()
-  :tags '(:unstable)
+  :tags `(:unstable
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (unless (>= emacs-major-version 29)
     (ert-skip "Emacs version too low, missing `buffer-text-pixel-size'"))
 
@@ -371,7 +377,8 @@
        (erc-fill-tests--compare "spacing-01-mono")))))
 
 (ert-deftest erc-fill-wrap-visual-keys--body ()
-  :tags '(:unstable)
+  :tags `(:unstable
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (erc-fill-tests--wrap-populate
 
    (lambda ()
@@ -413,7 +420,8 @@
        (should-not (looking-at (rx "<alice> ")))))))
 
 (ert-deftest erc-fill-wrap-visual-keys--prompt ()
-  :tags '(:unstable)
+  :tags `(:unstable
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (erc-fill-tests--wrap-populate
 
    (lambda ()
@@ -456,7 +464,8 @@
        (execute-kbd-macro "\C-a")))))
 
 (ert-deftest erc-fill--left-hand-stamps ()
-  :tags '(:unstable)
+  :tags `(:unstable
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (unless (>= emacs-major-version 29)
     (ert-skip "Emacs version too low, missing `buffer-text-pixel-size'"))
 
