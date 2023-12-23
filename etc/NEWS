@@ -787,6 +787,10 @@ in the minibuffer to restrict the list of possible completions to only
 include candidates matching the current minibuffer input.  See the
 Info node "(emacs) Narrow Completions" for more information.
 
+*** New minor mode 'completions-auto-update-mode'.
+This global minor mode automatically updates the *Completions* buffer
+as you type in the minibuffer.
+
 ** Pcomplete
 
 ---

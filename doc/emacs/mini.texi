@@ -735,14 +735,19 @@ completion alternatives in the completion list.
 @pxref{Shell Options}.
 
 @vindex completion-auto-help
-  If @code{completion-auto-help} is set to @code{nil}, the completion
-commands never display the completion list buffer; you must type
-@kbd{?} to display the list.  If the value is @code{lazy}, Emacs only
-shows the completion list buffer on the second attempt to complete.
-In other words, if there is nothing to complete, the first @key{TAB}
-echoes @samp{Next char not unique}; the second @key{TAB} shows the
-completion list buffer.  If the value is @code{always}, the completion
-list buffer is always shown when completion is attempted.
+  Emacs can show the @samp{*Completions*} buffer automatically in
+certain conditions.  You can control this behavior by customizing the
+user option @code{completion-auto-help}.  By default, this option is
+set to @code{t}, which says to show the @samp{*Completions*} buffer
+when you try to complete the minibuffer input and there is more then
+one way to complete your input.  If the value is @code{lazy}, Emacs
+only shows the @samp{*Completions*} buffer on the second attempt to
+complete---the first @key{TAB} echoes @samp{Next char not unique}, and
+the second @key{TAB} shows the completion list buffer.  If the value
+is @code{always}, Emacs shows the @samp{*Completions*} buffer whenever
+you invoke completion.  If @code{completion-auto-help} is set to
+@code{nil}, the completion commands never display the completion list
+buffer; you must type @kbd{?} to display the list.
 
 The display of the completion list buffer after it is shown for the
 first time is also controlled by @code{completion-auto-help}.  If the
@@ -754,6 +759,15 @@ the completion.  The value @code{visible} is a hybrid: it behaves like
 @code{t} when it decides whether to pop up the window showing the
 completion list buffer, and like @code{always} when it decides whether
 to pop it down.
+
+@cindex Completions Auto Update minor mode
+@findex completions-auto-update-mode
+  Beyond showing the @samp{*Completions*} buffer when you invoke
+completion commands with non-@code{nil} @samp{completion-auto-help},
+Emacs also provides the Completions Auto Update minor mode that
+updates the @samp{*Completions*} buffer to reflect your new input as
+you type in the minibuffer.  To enable Completions Auto Update mode,
+type @kbd{M-x completions-auto-update-mode}.
 
 @vindex completion-auto-select
   Emacs can optionally select the window showing the completions when

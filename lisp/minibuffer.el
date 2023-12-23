@@ -5363,6 +5363,50 @@ interactions is customizable via `minibuffer-regexp-prompts'."
     (remove-hook 'minibuffer-setup-hook #'minibuffer--regexp-setup)
     (remove-hook 'minibuffer-exit-hook #'minibuffer--regexp-exit)))
 
+(defcustom completions-auto-update-idle-time 0.2
+  "Number of seconds of idle to wait for before updating *Completions*.
+This applies to `completions-auto-update-mode', which see."
+  :group 'minibuffer
+  :type 'number)
+
+(defvar-local completions-auto-update-timer nil)
+
+(defun completions-auto-update ()
+  "Update the *Completions* buffer, if it is visible."
+  (when (get-buffer-window "*Completions*" 0)
+    (if completion-in-region-mode
+        (completion-help-at-point)
+      (minibuffer-completion-help)))
+  (setq completions-auto-update-timer nil))
+
+(defun completions-auto-update-start-timer ()
+  "Start an idle timer for updating *Completions*."
+  (and (null completions-auto-update-timer)
+       (get-buffer-window "*Completions*" 0)
+       (setq completions-auto-update-timer
+             (run-with-idle-timer completions-auto-update-idle-time
+                                  nil #'completions-auto-update))))
+
+(defun completions-auto-update-setup ()
+  "Prepare for updating *Completions* as you type in the minibuffer."
+  (add-hook 'post-self-insert-hook
+            #'completions-auto-update-start-timer nil t))
+
+(defun completions-auto-update-exit ()
+  "Stop updating *Completions* as you type in the minibuffer."
+  (remove-hook 'post-self-insert-hook
+               #'completions-auto-update-start-timer t))
+
+(define-minor-mode completions-auto-update-mode
+  "Update the *Completions* buffer as you type in the minibuffer."
+  :global t
+  (if completions-auto-update-mode
+      (progn
+        (add-hook 'minibuffer-setup-hook #'completions-auto-update-setup)
+        (add-hook 'minibuffer-exit-hook #'completions-auto-update-exit))
+    (remove-hook 'minibuffer-setup-hook #'completions-auto-update-setup)
+    (remove-hook 'minibuffer-exit-hook #'completions-auto-update-exit)))
+
 (provide 'minibuffer)
 
 ;;; minibuffer.el ends here
