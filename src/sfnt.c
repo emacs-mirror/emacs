@@ -2421,6 +2421,8 @@ sfnt_read_glyph (sfnt_glyph glyph_code,
       glyph.ymin = 0;
       glyph.xmax = 0;
       glyph.ymax = 0;
+      glyph.advance_distortion = 0;
+      glyph.origin_distortion = 0;
       glyph.simple = xmalloc (sizeof *glyph.simple);
       glyph.compound = NULL;
       memset (glyph.simple, 0, sizeof *glyph.simple);
@@ -12202,15 +12204,18 @@ sfnt_decompose_instructed_outline (struct sfnt_instructed_outline *outline,
 
 /* Decompose and build an outline for the specified instructed outline
    INSTRUCTED.  Return the outline data with a refcount of 0 upon
-   success, or NULL upon failure.
+   success, and the advance width of the instructed glyph in
+   *ADVANCE_WIDTH, or NULL upon failure.
 
    This function is not reentrant.  */
 
 TEST_STATIC struct sfnt_glyph_outline *
-sfnt_build_instructed_outline (struct sfnt_instructed_outline *instructed)
+sfnt_build_instructed_outline (struct sfnt_instructed_outline *instructed,
+			       sfnt_fixed *advance_width)
 {
   struct sfnt_glyph_outline *outline;
   int rc;
+  sfnt_f26dot6 x1, x2;
 
   memset (&build_outline_context, 0, sizeof build_outline_context);
 
@@ -12247,10 +12252,23 @@ sfnt_build_instructed_outline (struct sfnt_instructed_outline *instructed)
      instructed.  */
 
   if (instructed->num_points > 1)
-    outline->origin
-      = instructed->x_points[instructed->num_points - 2];
+    {
+      x1 = instructed->x_points[instructed->num_points - 2];
+      x2 = instructed->x_points[instructed->num_points - 1];
+
+      /* Convert the origin point to a 16.16 fixed point number.  */
+      outline->origin = x1 * 1024;
+
+      /* Do the same for the advance width.  */
+      *advance_width = (x2 - x1) * 1024;
+    }
   else
-    outline->origin = 0;
+    {
+      /* Phantom points are absent from this outline, which is
+	 impossible.  */
+      *advance_width = 0;
+      outline->origin = 0;
+    }
 
   if (rc)
     {
@@ -13133,8 +13151,8 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
     }
 
   /* Run the program for the entire compound glyph, if any.  CONTEXT
-     should not contain phantom points by this point, so append its
-     own.  */
+     should not contain phantom points by this point, so append the
+     points for this glyph as a whole.  */
 
   /* Compute phantom points.  */
   sfnt_compute_phantom_points (glyph, metrics, interpreter->scale,
@@ -20216,6 +20234,7 @@ sfnt_verbose (struct sfnt_interpreter *interpreter)
   unsigned char opcode;
   const char *name;
   static unsigned int instructions;
+  sfnt_fixed advance;
 
   /* Build a temporary outline containing the values of the
      interpreter's glyph zone.  */
@@ -20229,7 +20248,7 @@ sfnt_verbose (struct sfnt_interpreter *interpreter)
       temp.y_points = interpreter->glyph_zone->y_current;
       temp.flags = interpreter->glyph_zone->flags;
 
-      outline = sfnt_build_instructed_outline (&temp);
+      outline = sfnt_build_instructed_outline (&temp, &advance);
 
       if (!outline)
 	return;
@@ -20444,6 +20463,7 @@ main (int argc, char **argv)
   struct sfnt_instance *instance;
   struct sfnt_blend blend;
   struct sfnt_metrics_distortion distortion;
+  sfnt_fixed advance;
 
   if (argc < 2)
     return 1;
@@ -20559,8 +20579,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 14
-#define EASY_PPEM  14
+#define FANCY_PPEM 12
+#define EASY_PPEM  12
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
@@ -20787,6 +20807,8 @@ main (int argc, char **argv)
 	  if (instance && gvar)
 	    sfnt_vary_simple_glyph (&blend, code, glyph,
 				    &distortion);
+	  else
+	    memset (&distortion, 0, sizeof distortion);
 
 	  if (sfnt_lookup_glyph_metrics (code, -1,
 					 &metrics,
@@ -20804,7 +20826,10 @@ main (int argc, char **argv)
 	      exit (5);
 	    }
 
-	  outline = sfnt_build_instructed_outline (value);
+	  outline = sfnt_build_instructed_outline (value, &advance);
+	  advances[i] = (advance / 65536);
+
+	  fprintf (stderr, "advance: %d\n", advances[i]);
 
 	  if (!outline)
 	    exit (6);
@@ -20819,8 +20844,6 @@ main (int argc, char **argv)
 	  xfree (outline);
 
 	  rasters[i] = raster;
-	  advances[i] = (sfnt_mul_fixed (metrics.advance, scale)
-			 + sfnt_mul_fixed (distortion.advance, scale));
 	}
 
       sfnt_x_raster (rasters, advances, length, hhea, scale);
@@ -21085,7 +21108,7 @@ main (int argc, char **argv)
 		  fprintf (stderr, "outline origin, rbearing: %"
 			   PRIi32" %"PRIi32"\n",
 			   outline->origin,
-			   outline->ymax - outline->origin);
+			   outline->xmax - outline->origin);
 		  sfnt_test_max = outline->ymax - outline->ymin;
 
 		  for (i = 0; i < outline->outline_used; i++)
@@ -21199,8 +21222,19 @@ main (int argc, char **argv)
 			      printf ("rasterizing instructed outline\n");
 			      if (outline)
 				xfree (outline);
-			      outline = sfnt_build_instructed_outline (value);
+			      outline
+				= sfnt_build_instructed_outline (value,
+								 &advance);
 			      xfree (value);
+
+#define LB outline->xmin - outline->origin
+#define RB outline->xmax - outline->origin
+			      printf ("instructed advance, lb, rb: %g %g %g\n",
+				      sfnt_coerce_fixed (advance),
+				      sfnt_coerce_fixed (LB),
+				      sfnt_coerce_fixed (RB));
+#undef LB
+#undef RB
 
 			      if (outline)
 				{

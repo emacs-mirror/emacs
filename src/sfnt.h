@@ -2102,7 +2102,7 @@ extern const char *sfnt_interpret_control_value_program (PROTOTYPE);
 
 #undef PROTOTYPE
 
-#define PROTOTYPE struct sfnt_instructed_outline *
+#define PROTOTYPE struct sfnt_instructed_outline *, sfnt_fixed *
 
 extern struct sfnt_glyph_outline *sfnt_build_instructed_outline (PROTOTYPE);
 
