@@ -300,7 +300,10 @@ A value of t means \"all\" ERC buffers."
 
 (defcustom erc-keep-place-indicator-follow nil
   "Whether to sync visual kept place to window's top when reading.
-For use with `erc-keep-place-indicator-mode'."
+For use with `erc-keep-place-indicator-mode'.  When enabled, the
+indicator updates when the last window displaying the same buffer
+switches away, but only if the indicator resides earlier in the
+buffer than the window's start."
   :group 'erc
   :package-version '(ERC . "5.6")
   :type 'boolean)
@@ -328,17 +331,26 @@ For use with `erc-keep-place-indicator-mode'."
 (defvar-local erc--keep-place-indicator-overlay nil
   "Overlay for `erc-keep-place-indicator-mode'.")
 
-(defun erc--keep-place-indicator-on-window-configuration-change ()
+(defun erc--keep-place-indicator-on-window-buffer-change (window)
   "Maybe sync `erc--keep-place-indicator-overlay'.
-Specifically, do so unless switching to or from another window in
-the active frame."
-  (when erc-keep-place-indicator-follow
-    (unless (or (minibuffer-window-active-p (minibuffer-window))
-                (eq (window-old-buffer) (current-buffer)))
-      (when (< (overlay-end erc--keep-place-indicator-overlay)
-               (window-start)
-               erc-insert-marker)
-        (erc-keep-place-move (window-start))))))
+Do so only when switching to a new buffer in the same window if
+the replaced buffer is no longer visible in another window and
+its `window-start' at the time of switching is strictly greater
+than the indicator's position."
+  (when-let ((erc-keep-place-indicator-follow)
+             ((eq window (selected-window)))
+             (old-buffer (window-old-buffer window))
+             ((buffer-live-p old-buffer))
+             ((not (eq old-buffer (current-buffer))))
+             (ov (buffer-local-value 'erc--keep-place-indicator-overlay
+                                     old-buffer))
+             ((not (get-buffer-window old-buffer 'visible)))
+             (prev (assq old-buffer (window-prev-buffers window)))
+             (old-start (nth 1 prev))
+             (old-inmkr (buffer-local-value 'erc-insert-marker old-buffer))
+             ((< (overlay-end ov) old-start old-inmkr)))
+    (with-current-buffer old-buffer
+      (erc-keep-place-move old-start))))
 
 (defun erc--keep-place-indicator-setup ()
   "Initialize buffer for maintaining `erc--keep-place-indicator-overlay'."
@@ -347,8 +359,8 @@ the active frame."
     erc--keep-place-indicator-overlay (make-overlay 0 0))
   (add-hook 'erc-keep-place-mode-hook
             #'erc--keep-place-indicator-on-global-module nil t)
-  (add-hook 'window-configuration-change-hook
-            #'erc--keep-place-indicator-on-window-configuration-change nil t)
+  (add-hook 'window-buffer-change-functions
+            #'erc--keep-place-indicator-on-window-buffer-change 40 t)
   (when-let* (((memq erc-keep-place-indicator-style '(t arrow)))
               (ov-property (if (zerop (fringe-columns 'left))
                                'after-string
@@ -368,7 +380,11 @@ the active frame."
   "Buffer-local `keep-place' with fringe arrow and/or highlighted face.
 Play nice with global module `keep-place' but don't depend on it.
 Expect that users may want different combinations of `keep-place'
-and `keep-place-indicator' in different buffers."
+and `keep-place-indicator' in different buffers.  Unlike global
+`keep-place', when `switch-to-buffer-preserve-window-point' is
+enabled, don't forcibly sync point in all windows where buffer
+has previously been shown because that defeats the purpose of
+having a placeholder."
   ((cond (erc-keep-place-mode)
          ((memq 'keep-place erc-modules)
           (erc-keep-place-mode +1))
@@ -382,8 +398,8 @@ and `keep-place-indicator' in different buffers."
      (erc-keep-place-indicator-mode -1)))
   ((when erc--keep-place-indicator-overlay
      (delete-overlay erc--keep-place-indicator-overlay))
-   (remove-hook 'window-configuration-change-hook
-                #'erc--keep-place-indicator-on-window-configuration-change t)
+   (remove-hook 'window-buffer-change-functions
+                #'erc--keep-place-indicator-on-window-buffer-change t)
    (remove-hook 'erc-keep-place-mode-hook
                 #'erc--keep-place-indicator-on-global-module t)
    (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t)
@@ -450,13 +466,13 @@ For use with `keep-place-indicator' module."
     (forward-line -1)
     (when erc-keep-place-indicator-mode
       (unless (or (minibuffer-window-active-p (selected-window))
-                  (and (frame-visible-p (selected-frame))
-                       (get-buffer-window (current-buffer) (selected-frame))))
+                  (get-buffer-window nil 'visible))
         (erc-keep-place-move nil)))
     ;; if `switch-to-buffer-preserve-window-point' is set,
     ;; we cannot rely on point being saved, and must commit
     ;; it to window-prev-buffers.
-    (when switch-to-buffer-preserve-window-point
+    (when (and switch-to-buffer-preserve-window-point
+               (not erc-keep-place-indicator-mode))
       (dolist (frame (frame-list))
         (walk-window-tree
          (lambda (window)

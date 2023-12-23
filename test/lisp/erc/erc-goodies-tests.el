@@ -247,7 +247,7 @@
 
 (defun erc-goodies-tests--assert-kp-indicator-on ()
   (should erc--keep-place-indicator-overlay)
-  (should (local-variable-p 'window-configuration-change-hook))
+  (should (local-variable-p 'window-buffer-change-functions))
   (should window-configuration-change-hook)
   (should (memq 'erc-keep-place erc-insert-pre-hook))
   (should (eq erc-keep-place-mode
@@ -255,7 +255,7 @@
 
 (defun erc-goodies-tests--assert-kp-indicator-off ()
   (should-not (local-variable-p 'erc-insert-pre-hook))
-  (should-not (local-variable-p 'window-configuration-change-hook))
+  (should-not (local-variable-p 'window-buffer-change-functions))
   (should-not erc--keep-place-indicator-overlay))
 
 (defun erc-goodies-tests--kp-indicator-populate ()
