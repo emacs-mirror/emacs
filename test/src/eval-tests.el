@@ -282,4 +282,25 @@ expressions works for identifiers starting with period."
   (should-error (defvaralias 'eval-tests--my-c 'eval-tests--my-d)
                 :type 'cyclic-variable-indirection))
 
+(defvar eval-tests/global-var 'value)
+(defvar-local eval-tests/buffer-local-var 'value)
+(ert-deftest eval-tests/default-value ()
+  ;; `let' overrides the default value for global variables.
+  (should (default-boundp 'eval-tests/global-var))
+  (should (eq 'value (default-value 'eval-tests/global-var)))
+  (should (eq 'value eval-tests/global-var))
+  (let ((eval-tests/global-var 'bar))
+    (should (eq 'bar (default-value 'eval-tests/global-var)))
+    (should (eq 'bar eval-tests/global-var)))
+  ;; `let' overrides the default value everywhere, but leaves
+  ;; buffer-local values unchanged in current buffer and in the
+  ;; buffers where there is no explicitly set buffer-local value.
+  (should (default-boundp 'eval-tests/buffer-local-var))
+  (should (eq 'value (default-value 'eval-tests/buffer-local-var)))
+  (should (eq 'value eval-tests/buffer-local-var))
+  (with-temp-buffer
+    (let ((eval-tests/buffer-local-var 'bar))
+      (should (eq 'bar (default-value 'eval-tests/buffer-local-var)))
+      (should (eq 'bar eval-tests/buffer-local-var)))))
+
 ;;; eval-tests.el ends here
