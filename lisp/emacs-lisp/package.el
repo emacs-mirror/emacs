@@ -1150,7 +1150,7 @@ Signal an error if the entire string was not used."
       (end-of-file expr))))
 
 (declare-function lm-header "lisp-mnt" (header))
-(declare-function lm-package-requires "lisp-mnt" (header))
+(declare-function lm-package-requires "lisp-mnt" (&optional file))
 (declare-function lm-website "lisp-mnt" (&optional file))
 (declare-function lm-keywords-list "lisp-mnt" (&optional file))
 (declare-function lm-maintainers "lisp-mnt" (&optional file))
