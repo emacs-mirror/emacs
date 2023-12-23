@@ -1613,14 +1613,21 @@ BEG..END is the line where the file info is located."
 		 ;; the beginning or the end of the next field, depending on
 		 ;; whether this field is left or right aligned).
 		 (align-pt-offset
-		  (save-excursion
-		    (goto-char other)
-		    (move-to-column curcol)
-		    (when (looking-at
-			   (concat
-			    (if (eq (char-before) ?\s) " *" "[^ ]* *")
-			    (if num-align "[0-9][^ ]*")))
-		      (- (match-end 0) (match-beginning 0)))))
+                  ;; It is never TRT to realign the first column of
+                  ;; file's data.  But the code below does attempt to
+                  ;; realign the first column if there's no whitespace
+                  ;; before it, so we force it to let the first column
+                  ;; alone.
+                  (if (zerop curcol)
+                      0
+		    (save-excursion
+		      (goto-char other)
+		      (move-to-column curcol)
+		      (when (looking-at
+			     (concat
+			      (if (eq (char-before) ?\s) " *" "[^ ]* *")
+			      (if num-align "[0-9][^ ]*")))
+		        (- (match-end 0) (match-beginning 0))))))
 		 ;; Now, the number of spaces to insert is align-pt-offset
 		 ;; minus the distance to the equivalent point on the
 		 ;; current line.
