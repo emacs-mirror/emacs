@@ -1674,6 +1674,7 @@ with the default backend, netrc, put a line like the following in your
 machine irc.example.net login mynick password sEcReT
 @end example
 
+@anchor{auth-source Server Password}
 @subsubheading Server Passwords
 When retrieving passwords to accompany the IRC @samp{PASS} command
 (@pxref{password parameter}), ERC asks auth-source to match the
@@ -1723,10 +1724,7 @@ auth-source experience.  (@xref{SASL}.)
 @subsubheading Default query behavior
 When preparing entries for your backend, it may help to get a feel for
 how ERC and its modules conduct searches, especially when exploring a
-new context, such as channel keys.  (Hint: in such situations, try
-temporarily setting the variable @code{auth-source-debug} to @code{t}
-and checking @file{*Messages*} periodically for insights into how
-auth-source is operating.)  Overall, though, ERC tries to be
+new context, such as channel keys.  Overall, though, ERC tries to be
 consistent in performing queries across various authentication
 contexts.  Here's what to expect with respect to the @samp{host}
 field, which, by default, most heavily influences the fate of a query:
@@ -1809,6 +1807,33 @@ required by certain channels you join.  When modifying a traditional
 @code{auth-source} entry for this purpose, put the channel name in the
 @samp{user} field (for example, @samp{login "#fsf"}, in netrc's case).
 The actual key goes in the @samp{password} (or @samp{secret}) field.
+
+@anchor{auth-source Troubleshooting}
+@subheading Troubleshooting
+By default, ERC queries @code{auth-source} for channel keys and server
+passwords (@pxref{auth-source Server Password}), as well as other,
+module-specific credentials.  In general, if you're having trouble
+calling @code{auth-source-search} in a custom query function, like
+@code{erc-auth-source-server-function}, try temporarily setting the
+variable @code{auth-source-debug} to @code{t} and checking
+@file{*Messages*} periodically for insights into how
+@code{auth-source} is operating.
+
+If you're using a @acronym{GPG}-encrypted file and find that
+customizing one of the function-valued query options doesn't solve
+your problem, explore options @code{epg-pinentry-mode} and
+@code{epg-debug} in the @code{epg} Custom group (@pxref{GnuPG
+Pinentry,,, epa, EasyPG Assistant}).  Additionally, keep an eye out
+for an @file{*Error*} buffer, which may contain more specific clues
+about your situation.  If you use the libsecrets integration
+(@pxref{Secret Service API,,, auth, Emacs auth-source}) with something
+like GNOME Keyring, you may need to check the ``remember'' box in the
+passphrase popup dialog to avoid being prompted for confirmation every
+time you run ERC.  If it doesn't work at first, try logging out.  And
+when in doubt, try using the Emacs command @code{secrets-show-secrets}
+to browse the @samp{Login} keyring.  There should be a
+@samp{GnuPG/stored-by} entry with a value of @samp{GnuPG Pinentry} or
+similar.
 
 @node display-buffer
 @subsection display-buffer

@@ -2542,8 +2542,8 @@ Returns the buffer for the given server or channel."
           (when erc-log-p
             (get-buffer-create (concat "*ERC-DEBUG: " server "*"))))
 
-    (erc-determine-parameters server port nick full-name user passwd)
     (erc--initialize-markers old-point continued-session)
+    (erc-determine-parameters server port nick full-name user passwd)
     (save-excursion (run-mode-hooks)
                     (dolist (mod (car delayed-modules)) (funcall mod +1))
                     (dolist (var (cdr delayed-modules)) (set var nil)))
@@ -4400,11 +4400,22 @@ the one with host foo would win."
       (plist-get (car sorted) :secret))))
 
 (defun erc-auth-source-search (&rest plist)
-  "Call `auth-source-search', possibly with keyword params in PLIST."
+  "Call `auth-source-search', possibly with keyword params in PLIST.
+If the search signals an error before returning, `warn' the user
+and ask whether to continue connecting anyway."
   ;; These exist as separate helpers in case folks should find them
   ;; useful.  If that's you, please request that they be exported.
-  (apply #'erc--auth-source-search
-         (apply #'erc--auth-source-determine-params-merge plist)))
+  (condition-case err
+      (apply #'erc--auth-source-search
+             (apply #'erc--auth-source-determine-params-merge plist))
+    (error
+     (erc--lwarn '(erc auth-source) :error
+                 "Problem querying `auth-source': %S. See %S for more."
+                 (error-message-string err)
+                 '(info "(erc) auth-source Troubleshooting"))
+     (when (or noninteractive
+               (not (y-or-n-p "Ignore auth-source error and continue? ")))
+       (signal (car err) (cdr err))))))
 
 (defun erc-server-join-channel (server channel &optional secret)
   "Join CHANNEL, optionally with SECRET.
