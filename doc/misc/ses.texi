@@ -195,6 +195,11 @@ remove blank cells from the returned list, which enables using
 (apply '+ (ses-range A2 A5 !))
 @end lisp
 
+Actually, both options are not exactly equivalent as the former makes
+the summing in reversed order of argument, and the latter in the same
+order. You can also reverse the order of arguments returned by
+@code{ses-range} with the @code{<} modifier.
+
 @c ===================================================================
 
 @node The Basics
@@ -1018,7 +1023,7 @@ instead of
 @end lisp
 
 @item (ses+ &rest @var{args})
-Sum of non-blank arguments.
+Sum of non-blank arguments taken in reverse order.
 
 @item (ses-average @var{list})
 Average of non-blank elements in @var{list}.  Here the list is passed
