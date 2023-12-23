@@ -12639,7 +12639,7 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
   sfnt_f26dot6 *x_base, *y_base;
 
   /* Figure out how many points and contours there are to instruct.  A
-     minimum of two points must be present, to wit the origin and
+     minimum of two points must be present, namely: the origin and
      advance phantom points.  */
   num_points = context->num_points - base_index;
   num_contours = context->num_end_points - base_contour;
