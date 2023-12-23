@@ -527,7 +527,7 @@ documentation and marking the package as installed."
               (thread-last
                 (mapconcat #'identity require-lines " ")
                 package-read-from-string
-                package--prepare-dependencies
+                lm--prepare-package-dependencies
                 (nconc deps)
                 (setq deps))))))
       (dolist (dep deps)
