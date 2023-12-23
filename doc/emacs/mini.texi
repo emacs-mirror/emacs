@@ -679,10 +679,11 @@ which match that regular expression.  @xref{Regexps}.
 
 When you narrow the completions list with @kbd{C-x n n} or with
 @kbd{C-x n m}, Emacs extends the completions heading line with a
-description of the restriction that is currently in effect.  The mode
-line of the @file{*Completions*} buffer also indicates the restriction
-with the text @samp{CompsNarrow}.  You can apply multiple restrictions
-one after the other to narrow the completions list incrementally.  For
+description of the restriction that is currently in effect
+(@pxref{Completions Heading Line}).  The mode line of the
+@file{*Completions*} buffer also indicates the restriction with the
+text @samp{CompsNarrow}.  You can apply multiple restrictions one
+after the other to narrow the completions list incrementally.  For
 example, typing @kbd{M-x C-x n m foo @key{RET} C-x n m bar @key{RET}}
 shows only commands that match both @samp{foo} and @samp{bar} in the
 completions list.
@@ -806,18 +807,22 @@ control of the Completion window display properties, you can use
 Alists,,Action Alists for Buffer Display, elisp, The Emacs Lisp
 Reference Manual}).
 
+@anchor{Completions Heading Line}
+@cindex completions heading line
+@cindex heading line, of completions
 @vindex completions-header-format
 The variable @code{completions-header-format} is a format spec string
 to control the informative line shown before the completions list of
-candidates.  Emacs substitutes @samp{%s} and @samp{%r} constructs that
-occur in this string with the number of completion candidates and a
-description of the current completions restriction, respectively.
-@xref{Narrow Completions}.  To suppress the display of the heading
-line, customize this variable to @code{nil}.  The string that is the
-value of this variable can have text properties to change the visual
-appearance of the heading line; some useful properties are @code{face}
-or @code{cursor-intangible} (@pxref{Special Properties,,Properties
-with Special Meanings, elisp, The Emacs Lisp Reference Manual}).
+candidates, called the @dfn{completions heading line}.  Emacs
+substitutes @samp{%s} and @samp{%r} constructs that occur in this
+string with the number of completion candidates and a description of
+the current completions restriction, respectively.  @xref{Narrow
+Completions}.  To suppress the display of the heading line, customize
+this variable to @code{nil}.  The string that is the value of this
+variable can have text properties to change the visual appearance of
+the heading line; some useful properties are @code{face} or
+@code{cursor-intangible} (@pxref{Special Properties,,Properties with
+Special Meanings, elisp, The Emacs Lisp Reference Manual}).
 
 @vindex completions-highlight-face
 When @code{completions-highlight-face} names a face, the current
