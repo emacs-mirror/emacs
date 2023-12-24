@@ -16893,11 +16893,13 @@ remember to look here to remind myself.
 @section Text and Auto Fill Mode
 
 Now we come to the part that turns on Text mode and Auto Fill
-mode.@footnote{This section suggests settings that are more suitable
-for writers.  For programmers, the default mode will be set to the
-corresponding prog-mode automatically based on the type of the file.
-And it's perfectly fine if you want to keep the fundamental mode as
-the default mode.}
+mode@footnote{
+This section suggests settings that are more suitable for writers.
+For programmers, the default mode will be set to the corresponding
+prog-mode automatically based on the type of the file.  And it's
+perfectly fine if you want to keep the fundamental mode as the default
+mode.
+}.
 
 @smallexample
 @group
@@ -16957,17 +16959,18 @@ This line is a short, but complete Emacs Lisp expression.
 
 We are already familiar with @code{setq}.  We use a similar macro
 @code{setq-default} to set the following variable,
-@code{major-mode}@footnote{We use @code{setq-default} because
-@code{text-mode} is buffer local.  If we use @code{setq} it will only
-apply to the current buffer, and using @code{setq-default} will also
-apply this to newly created buffers.}, to the subsequent value, which
-is @code{text-mode}.  The single-quote before @code{text-mode} tells
-Emacs to deal directly with the @code{text-mode} symbol, not with
-whatever it might stand for.  @xref{setq, , Setting the Value of
-a Variable}, for a reminder of how @code{setq} works.  The main point
-is that there is no difference between the procedure you use to set
-a value in your @file{.emacs} file and the procedure you use anywhere
-else in Emacs.
+@code{major-mode}@footnote{
+We use @code{setq-default} here because @code{text-mode} is
+buffer-local.  If we use @code{setq}, it will only apply to the
+current buffer, whereas using @code{setq-default} will also apply to
+newly created buffers.  This is not recommended for programmers.
+}, to the subsequent value, which is @code{text-mode}.  The
+single-quote before @code{text-mode} tells Emacs to deal directly with
+the @code{text-mode} symbol, not with whatever it might stand for.
+@xref{setq, , Setting the Value of a Variable}, for a reminder of how
+@code{setq} works.  The main point is that there is no difference
+between the procedure you use to set a value in your @file{.emacs}
+file and the procedure you use anywhere else in Emacs.
 
 @need 800
 Here is the next line:
