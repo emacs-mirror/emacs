@@ -556,13 +556,15 @@ the corresponding cell with name PROPERTY-NAME."
 
 (defun ses-is-cell-sym-p (sym)
   "Check whether SYM point at a cell of this spread sheet."
-  (let ((rowcol (get sym 'ses-cell)))
-    (and rowcol
-	 (if (eq rowcol :ses-named)
-	     (and ses--named-cell-hashmap (gethash sym ses--named-cell-hashmap))
-	   (and (< (car rowcol) ses--numrows)
-		(< (cdr rowcol) ses--numcols)
-		(eq (ses-cell-symbol (car rowcol) (cdr rowcol)) sym))))))
+  (and (symbolp sym)
+       (local-variable-p sym)
+       (let ((rowcol (get sym 'ses-cell)))
+         (and rowcol
+	      (if (eq rowcol :ses-named)
+	          (and ses--named-cell-hashmap (gethash sym ses--named-cell-hashmap))
+	        (and (< (car rowcol) ses--numrows)
+		     (< (cdr rowcol) ses--numcols)
+		     (eq (ses-cell-symbol (car rowcol) (cdr rowcol)) sym)))))))
 
 (defun ses--cell (sym value formula printer references)
   "Load a cell SYM from the spreadsheet file.
@@ -735,10 +737,8 @@ checking that it is a valid printer function."
 (defun ses-formula-record (formula)
   "If FORMULA is of the form \\='SYMBOL, add it to the list of symbolic formulas
 for this spreadsheet."
-  (when (and (eq (car-safe formula) 'quote)
-	     (symbolp (cadr formula)))
-    (add-to-list 'ses--symbolic-formulas
-		 (list (symbol-name (cadr formula))))))
+  (and (ses-is-cell-sym-p formula)
+    (cl-pushnew (symbol-name formula) ses--symbolic-formulas :test #'string=)))
 
 (defun ses-column-letter (col)
   "Return the alphabetic name of column number COL.
@@ -3677,9 +3677,8 @@ highlighted range in the spreadsheet."
   "Rename current cell."
   (interactive "*SEnter new name: ")
   (or
-   (and  (local-variable-p new-name)
-	 (ses-is-cell-sym-p new-name)
-	 (error "Already a cell name"))
+   (and (ses-is-cell-sym-p new-name)
+	(error "Already a cell name"))
    (and (boundp new-name)
 	(null (yes-or-no-p
 	       (format-message
