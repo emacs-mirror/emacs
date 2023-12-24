@@ -1611,8 +1611,11 @@ may require more formatting")
        (let ((f nil) (m nil) (start (point))
              ;; Ignore the "A-" modifier: it is uncommon in practice,
              ;; and leads to false positives in regexp ranges.
-             (re "[^`‘A-Za-z0-9_]\\([CMs]-[a-zA-Z]\\|\\(\\([CMs]-\\)?\
-mouse-[0-3]\\)\\)\\>"))
+             (re (rx (not (any "0-9A-Za-z_`‘-"))
+                     (group (or (seq (any "CMs") "-" (any "A-Za-z"))
+                                (group (opt (group (any "CMs") "-"))
+                                       "mouse-" (any "0-3"))))
+                     eow)))
 	 ;; Find the first key sequence not in a sample
 	 (while (and (not f) (setq m (re-search-forward re e t)))
 	   (setq f (not (checkdoc-in-sample-code-p start e))))

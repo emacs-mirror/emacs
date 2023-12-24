@@ -37,6 +37,15 @@
     (insert "(defun foo())")
     (should-error (checkdoc-defun) :type 'user-error)))
 
+(ert-deftest checkdoc-docstring-avoid-false-positive-ok ()
+  "Check that Bug#68002 is fixed."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(defvar org-element--cache-interrupt-C-g-count 0
+  \"Current number of `org-element--cache-sync' calls.
+See `org-element--cache-interrupt-C-g'.\")")
+    (checkdoc-defun)))
+
 (ert-deftest checkdoc-cl-defmethod-ok ()
   "Checkdoc should be happy with a simple correct cl-defmethod."
   (with-temp-buffer
