@@ -3663,6 +3663,15 @@ non-@code{nil} @code{help-echo-inhibit-substitution} property, then it
 is displayed as-is by @code{show-help-function}, without being passed
 through @code{substitute-command-keys}.
 
+@item left-fringe-help
+@itemx right-fringe-help
+@cindex help-echo text on fringes
+If any visible text of a buffer line has @code{left-fringe-help} or
+@code{right-fringe-help} string text property defined on it, then the
+string will be displayed for a corresponding line's fringe through
+@code{show-help-function} (@pxref{Help display}).  This is useful when
+used together with fringe cursors and bitmaps (@pxref{Fringes}).
+
 @item keymap
 @cindex keymap of character
 @kindex keymap @r{(text property)}

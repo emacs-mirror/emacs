@@ -35730,6 +35730,59 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 }
 
 
+/* Take proper action when mouse has moved to the window WINDOW, with
+   window-local x-position X and y-position Y. This is only used for
+   displaying user-defined fringe indicator help-echo messages.  */
+
+static void
+note_fringe_highlight (Lisp_Object window, int x, int y,
+		       enum window_part part)
+{
+  if (!NILP (help_echo_string))
+    return;
+
+  /* Find a message to display through the help-echo mechanism whenever
+     the mouse hovers over a fringe indicator.  Both text properties and
+     overlays have to be checked.  */
+
+  /* Check the text property symbol to use.  */
+  Lisp_Object sym;
+  if (part == ON_LEFT_FRINGE)
+    sym = Qleft_fringe_help;
+  else
+    sym = Qright_fringe_help;
+
+  /* Translate windows coordinates into a vertical window position.  */
+  int hpos, vpos, area;
+  struct window *w = XWINDOW (window);
+  x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0, 0, &area);
+
+  /* Get to the first glyph of a text row based on the vertical position
+     of the fringe.  */
+  struct glyph *glyph = MATRIX_ROW_GLYPH_START(w->current_matrix, vpos);
+  int glyph_num = MATRIX_ROW_USED(w->current_matrix, vpos);
+
+  /* Check all glyphs while looking for fringe tooltips.  */
+
+  /* NOTE: iterating over glyphs can only find text properties coming
+     from visible text.  This means that zero-length overlays and
+     invisibile text are NOT inspected.  */
+  for (;glyph_num; glyph_num--, glyph++)
+    {
+      Lisp_Object pos = make_fixnum(glyph->charpos);
+      Lisp_Object help_echo = Qnil;
+
+      if (STRINGP(glyph->object) || BUFFERP(glyph->object))
+	help_echo = get_char_property_and_overlay (pos, sym, glyph->object, NULL);
+
+      if (STRINGP (help_echo))
+	{
+	  help_echo_string = help_echo;
+	  break;
+	}
+    }
+}
+
 /* EXPORT:
    Take proper action when the mouse has moved to position X, Y on
    frame F with regards to highlighting portions of display that have
@@ -35957,8 +36010,12 @@ note_mouse_highlight (struct frame *f, int x, int y)
       }
     else
       cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
-  else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
-	   || part == ON_VERTICAL_SCROLL_BAR
+  else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
+    {
+      cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
+      note_fringe_highlight (window, x, y, part);
+    }
+  else if (part == ON_VERTICAL_SCROLL_BAR
 	   || part == ON_HORIZONTAL_SCROLL_BAR)
     cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
   else

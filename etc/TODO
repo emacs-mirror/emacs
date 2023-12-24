@@ -172,10 +172,6 @@ Change them to use report-emacs-bug.
 **** lm-report-bug
 **** tramp-bug
 **** c-submit-bug-report
-
-** Allow fringe indicators to display a tooltip
-Provide a help-echo property?
-
 ** Add a defcustom that supplies a function to name numeric backup files
 Like 'make-backup-file-name-function' for non-numeric backup files.
 

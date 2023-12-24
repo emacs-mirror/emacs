@@ -6383,6 +6383,7 @@ syms_of_frame (void)
   DEFSYM (Qchild_frame_border_width, "child-frame-border-width");
   DEFSYM (Qinternal_border_width, "internal-border-width");
   DEFSYM (Qleft_fringe, "left-fringe");
+  DEFSYM (Qleft_fringe_help, "left-fringe-help");
   DEFSYM (Qline_spacing, "line-spacing");
   DEFSYM (Qmenu_bar_lines, "menu-bar-lines");
   DEFSYM (Qtab_bar_lines, "tab-bar-lines");
@@ -6390,6 +6391,7 @@ syms_of_frame (void)
   DEFSYM (Qname, "name");
   DEFSYM (Qright_divider_width, "right-divider-width");
   DEFSYM (Qright_fringe, "right-fringe");
+  DEFSYM (Qright_fringe_help, "right-fringe-help");
   DEFSYM (Qscreen_gamma, "screen-gamma");
   DEFSYM (Qscroll_bar_background, "scroll-bar-background");
   DEFSYM (Qscroll_bar_foreground, "scroll-bar-foreground");

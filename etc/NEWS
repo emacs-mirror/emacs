@@ -1848,6 +1848,12 @@ the backtrace and other dynamic state at the point of the error.  See
 the Info node "(elisp) Handling Errors".
 
 +++
+** Tooltips on fringes.
+It is now possible to provide tooltips on fringes by adding special text
+properties.  See the "Special Properties" Info node in the Emacs Lisp
+Reference Manual.
+
++++
 ** New 'pop-up-frames' action alist entry for 'display-buffer'.
 This has the same effect as the variable of the same name and takes
 precedence over the variable when present.
