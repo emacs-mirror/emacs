@@ -109,39 +109,34 @@
     (tool-bar-local-item-from-menu 'log-edit-done "commit"
                                    map log-edit-mode-map :vert-only t
                                    :help
-                                   "Complete the actual action")
+                                   "Exit log buffer and commit the changes")
     (define-key-after map [separator-2] menu-bar-separator)
-    (tool-bar-local-item-from-menu 'log-edit-insert-changelog
-                                   "ins-changelog"
-                                   map log-edit-mode-map :vert-only t
-                                   :help
-                                   "Complete the actual action")
     (tool-bar-local-item-from-menu 'log-edit-insert-changelog
                                    "load-changelog"
                                    map log-edit-mode-map :vert-only t
                                    :help
-                                   "Insert log message from ChangeLog file")
+                                   "Produce log message from ChangeLog file")
     (tool-bar-local-item-from-menu 'log-edit-generate-changelog-from-diff
                                    "gen-changelog"
                                    map log-edit-mode-map :vert-only t
                                    :help
-                                   "Generate a log message from diff")
+                                   "Generate log message skeleton from diffs")
     (tool-bar-local-item-from-menu 'log-edit-add-to-changelog
                                    "ins-changelog"
                                    map log-edit-mode-map :vert-only t
                                    :help
-                                   "Insert this log message into the ChangeLog")
+                                   "Insert this log message into ChangeLog file")
     (define-key-after map [separator-3] menu-bar-separator)
     (tool-bar-local-item-from-menu 'log-edit-show-diff
                                    "view-diff"
                                    map log-edit-mode-map :vert-only t
                                    :help
-                                   "View the diff for the files to be committed")
+                                   "View diffs for the files to be committed")
     (tool-bar-local-item-from-menu 'log-edit-show-files
                                    "info"
                                    map log-edit-mode-map :vert-only t
                                    :help
-                                   "View the list of files to be committed")
+                                   "View list of files to be committed")
     (define-key-after map [separator-4] menu-bar-separator)
     (tool-bar-local-item-from-menu 'undo "undo" map nil)
     (define-key-after map [separator-5] menu-bar-separator)
