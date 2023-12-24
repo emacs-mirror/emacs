@@ -1841,7 +1841,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
     {
       max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
       specpdl_ref count = SPECPDL_INDEX ();
-      AUTO_STRING (redisplay_trace, "*Redisplay_trace*");
+      AUTO_STRING (redisplay_trace, "*Redisplay-trace*");
       Lisp_Object redisplay_trace_buffer;
       AUTO_STRING (gap, "\n\n\n\n"); /* Separates things in *Redisplay-trace* */
       Lisp_Object delayed_warning;
@@ -1857,7 +1857,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
       call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
       unbind_to (count, Qnil);
       delayed_warning = make_string
-	("Error in a redisplay Lisp hook.  See buffer *Redisplay_trace*", 61);
+	  ("Error in a redisplay Lisp hook.  See buffer *Redisplay-trace*", 61);
 
       Vdelayed_warnings_list = Fcons (list2 (Qerror, delayed_warning),
 				      Vdelayed_warnings_list);
