@@ -2877,7 +2877,16 @@ the result will be a local, non-Tramp, file name."
 		(tramp-run-real-handler
 		 #'expand-file-name (list localname))))))))))
 
-;;; Remote commands:
+;;; Remote processes:
+
+(defcustom tramp-pipe-stty-settings "-icanon min 1 time 0"
+  "How to prevent blocking read in pipeline processes.
+This is used in `make-process' with `connection-type' `pipe'."
+  :group 'tramp
+  :version "29.3"
+  :type '(choice (const :tag "Use size limit" "-icanon min 1 time 0")
+		 (const :tag "Use timeout" "-icanon min 0 time 1")
+		 string))
 
 ;; We use BUFFER also as connection buffer during setup.  Because of
 ;; this, its original contents must be saved, and restored once
@@ -3089,12 +3098,21 @@ implementation will be used."
 			      ;; otherwise strings larger than 4096
 			      ;; bytes, sent by the process, could
 			      ;; block, see termios(3) and Bug#61341.
+			      ;; In order to prevent blocking read
+			      ;; from pipe processes, "stty -icanon"
+			      ;; is used.  By default, it expects at
+			      ;; least one character to read.  When a
+			      ;; process does not read from stdin,
+			      ;; like magit, it should set a timeout
+			      ;; instead. See`tramp-pipe-stty-settings'.
+			      ;; (Bug#62093)
 			      ;; FIXME: Shall we rather use "stty raw"?
-			      (if (tramp-check-remote-uname v "Darwin")
-				  (tramp-send-command
-				   v "stty -icanon min 1 time 0")
-				(tramp-send-command
-				 v "stty -icrnl -icanon min 1 time 0")))
+			      (tramp-send-command
+			       v (format
+				  "stty %s %s"
+				  (if (tramp-check-remote-uname v "Darwin")
+				      "" "-icrnl")
+				  tramp-pipe-stty-settings)))
 			    ;; `tramp-maybe-open-connection' and
 			    ;; `tramp-send-command-and-read' could
 			    ;; have trashed the connection buffer.
