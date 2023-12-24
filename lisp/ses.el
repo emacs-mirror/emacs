@@ -2762,6 +2762,18 @@ See `ses-read-cell-printer' for input forms."
 ;;----------------------------------------------------------------------------
 ;; Spreadsheet size adjustments
 ;;----------------------------------------------------------------------------
+(defun ses--blank-line-needs-printing-p ()
+  "Returns `t' when blank new line print-out needs to be initialised
+by calling the printers on it, `nil' otherwise."
+  (let (ret
+        printer
+        (printers (append ses--col-printers (list ses--default-printer))))
+    (while printers
+      (if (and (setq printer (pop printers))
+               (null (string= "" (ses-call-printer printer))))
+          (setq ret t
+                printers nil)))
+    ret))
 
 (defun ses-insert-row (count)
   "Insert a new row before the current one.
@@ -2794,15 +2806,13 @@ With prefix, insert COUNT rows before current one."
     (ses-goto-data row 0)
     (insert (make-string (* (1+ ses--numcols) count) ?\n))
     (ses-relocate-all row 0 count 0)
-    ;;If any cell printers insert constant text, insert that text
-    ;;into the line.
-    (let ((cols   (mapconcat #'ses-call-printer ses--col-printers nil))
-	  (global (ses-call-printer ses--default-printer)))
-      (if (or (> (length cols) 0) (> (length global) 0))
-	  (dotimes (x count)
-	    (dotimes (col ses--numcols)
-	      ;;These cells are always nil, only constant formatting printed
-	      (1value (ses-print-cell (+ x row) col))))))
+    ;;If any cell printers insert constant text, insert that text into
+    ;;the line.
+    (if (ses--blank-line-needs-printing-p)
+	(dotimes (x count)
+	  (dotimes (col ses--numcols)
+	    ;;These cells are always nil, only constant formatting printed
+	    (1value (ses-print-cell (+ x row) col)))))
     (when (> ses--header-row row)
       ;;Inserting before header
       (ses-set-parameter 'ses--header-row (+ ses--header-row count))
