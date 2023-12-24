@@ -753,8 +753,9 @@ a statement container is a node that matches
 
            ((match "}" "hash")  ruby-ts--parent-call-or-bol 0)
            ((parent-is "hash")  ruby-ts--parent-call-or-bol ruby-indent-level)
-           ((match "]" "array") ruby-ts--parent-call-or-bol 0)
-           ((parent-is "array") ruby-ts--parent-call-or-bol ruby-indent-level)
+           ((match "]" "^array") ruby-ts--parent-call-or-bol 0)
+           ((parent-is "^array") ruby-ts--parent-call-or-bol ruby-indent-level)
+           ((match ")" "string_array") ruby-ts--parent-call-or-bol 0)
 
            ((parent-is "pair") ruby-ts--parent-call-or-bol 0)
 
