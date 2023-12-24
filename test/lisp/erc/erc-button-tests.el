@@ -21,12 +21,15 @@
 
 ;;; Code:
 
+(require 'ert-x) ; cl-lib
+(eval-and-compile
+  (let ((load-path (cons (ert-resource-directory) load-path)))
+    (require 'erc-tests-common)))
+
 (require 'erc-button)
 
 (ert-deftest erc-button-alist--url ()
-  (setq erc-server-process
-        (start-process "sleep" (current-buffer) "sleep" "1"))
-  (set-process-query-on-exit-flag erc-server-process nil)
+  (erc-tests-common-init-server-proc "sleep" "1")
   (with-current-buffer (erc--open-target "#chan")
     (let ((verify
            (lambda (p url)
@@ -65,9 +68,7 @@
   (apply #'erc-button-add-button rest))
 
 (defun erc-button-tests--erc-button-alist--function-as-form (func)
-  (setq erc-server-process
-        (start-process "sleep" (current-buffer) "sleep" "1"))
-  (set-process-query-on-exit-flag erc-server-process nil)
+  (erc-tests-common-init-server-proc "sleep" "1")
 
   (with-current-buffer (erc--open-target "#chan")
     (let* ((erc-button-tests--form nil)
@@ -102,9 +103,7 @@
      (apply #'erc-button-add-button r))))
 
 (defun erc-button-tests--erc-button-alist--nil-form (form)
-  (setq erc-server-process
-        (start-process "sleep" (current-buffer) "sleep" "1"))
-  (set-process-query-on-exit-flag erc-server-process nil)
+  (erc-tests-common-init-server-proc "sleep" "1")
 
   (with-current-buffer (erc--open-target "#chan")
     (let* ((erc-button-tests--form nil)
@@ -228,11 +227,9 @@
           (inhibit-message noninteractive)
           erc-modules
           erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
-      (erc-mode)
-      (setq erc-server-process
-            (start-process "sleep" (current-buffer) "sleep" "1"))
-      (set-process-query-on-exit-flag erc-server-process nil)
-      (erc--initialize-markers (point) nil)
+      (erc-tests-common-prep-for-insertion)
+      (erc-tests-common-init-server-proc "sleep" "1")
+
       (erc-button-mode +1)
       (should (equal (erc-button--display-error-notice-with-keys
                       "If \\[erc-bol] fails, "

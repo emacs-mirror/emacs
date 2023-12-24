@@ -151,6 +151,7 @@
        (erc-sasl-mechanism 'plain)
        (erc--warnings-buffer-name  "*ERC test warnings*")
        (warnings-buffer (get-buffer-create erc--warnings-buffer-name))
+       (inhibit-message noninteractive)
        (expect (erc-d-t-make-expecter)))
 
     (with-current-buffer (erc :server "127.0.0.1"

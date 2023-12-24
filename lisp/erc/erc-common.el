@@ -551,10 +551,10 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
   "Define `erc-display-message' formatting templates for NAME, a symbol.
 
 See `erc-define-message-format-catalog' for the meaning of
-ENTRIES, an alist.  Also see `erc-tests-pp-propertized-parts' in
+ENTRIES, an alist, and `erc-tests-common-pp-propertized-parts' in
 tests/lisp/erc/erc-tests.el for a convenience command to convert
-a literal string into a sequence of `propertize' forms, which
-are much easier to review and edit."
+a literal string into a sequence of `propertize' forms, which are
+much easier to review and edit."
   (declare (indent 1))
   (let (out)
     (dolist (e entries (cons 'progn (nreverse out)))

@@ -20,25 +20,21 @@
 ;;; Code:
 
 (require 'ert-x) ; cl-lib
-(require 'erc)
+(eval-and-compile
+  (let ((load-path (cons (ert-resource-directory) load-path)))
+    (require 'erc-tests-common)))
 
 (defun erc-networks-tests--create-dead-proc (&optional buf)
   (let ((p (start-process "true" (or buf (current-buffer)) "true")))
     (while (process-live-p p) (sit-for 0.1))
     p))
 
-(defun erc-networks-tests--create-live-proc (&optional buf)
-  (let ((proc (start-process "sleep" (or buf (current-buffer)) "sleep" "1")))
-    (set-process-query-on-exit-flag proc nil)
-    proc))
+(defun erc-networks-tests--create-live-proc ()
+  (erc-tests-common-init-server-proc "sleep" "1"))
 
 ;; When we drop 27, call `get-buffer-create with INHIBIT-BUFFER-HOOKS.
 (defun erc-networks-tests--clean-bufs ()
-  (let (erc-kill-channel-hook
-        erc-kill-server-hook
-        erc-kill-buffer-hook)
-    (dolist (buf (erc-buffer-list))
-      (kill-buffer buf))))
+  (erc-tests-common-kill-buffers))
 
 (defun erc-networks-tests--bufnames (prefix)
   (let* ((case-fold-search)
@@ -1442,10 +1438,12 @@
   (let* (erc-kill-server-hook
          erc-insert-modify-hook
          (old-buf (get-buffer-create "FooNet"))
-         (old-proc (erc-networks-tests--create-live-proc old-buf))) ; live
+         ;;
+         old-proc) ; live
 
     (with-current-buffer old-buf
       (erc-mode)
+      (setq old-proc (erc-networks-tests--create-live-proc))
       (erc--initialize-markers (point) nil)
       (insert "*** Old buf")
       (setq erc-network 'FooNet

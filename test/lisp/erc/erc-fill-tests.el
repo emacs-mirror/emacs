@@ -24,6 +24,10 @@
 
 ;;; Code:
 (require 'ert-x)
+(eval-and-compile
+  (let ((load-path (cons (ert-resource-directory) load-path)))
+    (require 'erc-tests-common)))
+
 (require 'erc-fill)
 
 (defvar erc-fill-tests--buffers nil)
@@ -58,9 +62,7 @@
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
     (cl-letf (((symbol-function 'erc-server-connect)
                (lambda (&rest _)
-                 (setq erc-server-process
-                       (start-process "sleep" (current-buffer) "sleep" "1"))
-                 (set-process-query-on-exit-flag erc-server-process nil))))
+                 (erc-tests-common-init-server-proc "sleep" "1"))))
       (with-current-buffer
           (car (push (erc-open "localhost" 6667 "tester" "Tester" 'connect
                                nil nil nil nil nil "tester" 'foonet)
@@ -106,10 +108,9 @@
             (when set-transient-map-timer
               (timer-event-handler set-transient-map-timer))
             (set-window-buffer (selected-window) original-window-buffer)
-            (when noninteractive
-              (while-let ((buf (pop erc-fill-tests--buffers)))
-                (kill-buffer buf))
-              (kill-buffer))))))))
+            (when (or noninteractive (getenv "ERC_TESTS_GRAPHICAL"))
+              (erc-tests-common-kill-buffers erc-fill-tests--buffers)
+              (setq erc-fill-tests--buffers nil))))))))
 
 (defun erc-fill-tests--wrap-check-prefixes (&rest prefixes)
   ;; Check that prefix props are applied over correct intervals.
@@ -134,74 +135,21 @@
       (should (equal (get-text-property (1- (pos-eol)) 'wrap-prefix)
                      '(space :width erc-fill--wrap-value))))))
 
-;; Use this variable to generate new snapshots after carefully
-;; reviewing the output of *each* snapshot (not just first and last).
-;; Obviously, only run one test at a time.
-(defvar erc-fill-tests--save-p (getenv "ERC_TESTS_FILL_SAVE"))
-
 ;; On graphical displays, echo .graphic >> .git/info/exclude
-(defvar erc-fill-tests--graphic-dir "fill/snapshots/.graphic")
+(defvar erc-fill-tests--graphic-dir "fill/snapshots/.graphic/")
 
 (defun erc-fill-tests--compare (name)
-  (let* ((dir (expand-file-name (if (display-graphic-p)
-                                    erc-fill-tests--graphic-dir
-                                  "fill/snapshots/")
-                                (ert-resource-directory)))
-         (expect-file (file-name-with-extension (expand-file-name name dir)
-                                                "eld"))
-         (erc--own-property-names
-          (seq-difference `(font-lock-face ,@erc--own-property-names)
-                          `(field display wrap-prefix line-prefix
-                                  erc--msg erc--cmd erc--spkr erc--ts erc--ctcp
-                                  erc--ephemeral)
-                          #'eq))
-         (print-circle t)
-         (print-escape-newlines t)
-         (print-escape-nonascii t)
-         (got (erc--remove-text-properties
-               (buffer-substring (point-min) erc-insert-marker)))
-         (repr (string-replace "erc-fill--wrap-value"
-                               (number-to-string erc-fill--wrap-value)
-                               (prin1-to-string got))))
-    (with-current-buffer (generate-new-buffer name)
-      (push (current-buffer) erc-fill-tests--buffers)
-      (with-silent-modifications
-        (insert (setq got (read repr))))
-      (erc-mode))
-    ;; LHS is a string, RHS is a symbol.
-    (if (string= erc-fill-tests--save-p (ert-test-name (ert-running-test)))
-        (let (inhibit-message)
-          (with-temp-file expect-file
-            (insert repr))
-          ;; Limit writing snapshots to one test at a time.
-          (message "erc-fill-tests--compare: wrote %S" expect-file))
-      (if (file-exists-p expect-file)
-          ;; Ensure string-valued properties, like timestamps, aren't
-          ;; recursive (signals `max-lisp-eval-depth' exceeded).
-          (named-let assert-equal
-              ((latest (read repr))
-               (expect (read (with-temp-buffer
-                               (insert-file-contents-literally expect-file)
-                               (buffer-string)))))
-            (pcase latest
-              ((or "" 'nil) t)
-              ((pred stringp)
-               (should (equal-including-properties latest expect))
-               (let ((latest-intervals (object-intervals latest))
-                     (expect-intervals (object-intervals expect)))
-                 (while-let ((l-iv (pop latest-intervals))
-                             (x-iv (pop expect-intervals))
-                             (l-tab (map-into (nth 2 l-iv) 'hash-table))
-                             (x-tab (map-into (nth 2 x-iv) 'hash-table)))
-                   (pcase-dolist (`(,l-k . ,l-v) (map-pairs l-tab))
-                     (assert-equal l-v (gethash l-k x-tab))
-                     (remhash l-k x-tab))
-                   (should (zerop (hash-table-count x-tab))))))
-              ((pred sequencep)
-               (assert-equal (seq-first latest) (seq-first expect))
-               (assert-equal (seq-rest latest) (seq-rest expect)))
-              (_ (should (equal latest expect)))))
-        (message "Snapshot file missing: %S" expect-file)))))
+  (let ((dir (expand-file-name (if (display-graphic-p)
+                                   erc-fill-tests--graphic-dir
+                                 "fill/snapshots/" )
+                               (ert-resource-directory)))
+        (transform-fn (lambda (got)
+                        (string-replace "erc-fill--wrap-value"
+                                        (number-to-string erc-fill--wrap-value)
+                                        got)))
+        (buffer-setup-fn (lambda ()
+                           (push (current-buffer) erc-fill-tests--buffers))))
+    (erc-tests-common-snapshot-compare name dir transform-fn buffer-setup-fn)))
 
 ;; To inspect variable pitch, set `erc-mode-hook' to
 ;;

@@ -20,6 +20,10 @@
 ;;; Commentary:
 ;;; Code:
 (require 'ert-x)
+(eval-and-compile
+  (let ((load-path (cons (ert-resource-directory) load-path)))
+    (require 'erc-tests-common)))
+
 (require 'erc-goodies)
 
 (defun erc-goodies-tests--assert-face (beg end-str present &optional absent)
@@ -419,5 +423,22 @@
        (should (= (point) erc-input-marker))
        (goto-char (overlay-start erc--keep-place-indicator-overlay))
        (should (looking-at (rx "*** This buffer is for text")))))))
+
+(ert-deftest erc--get-inserted-msg-beg/readonly ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-tests-common-assert-get-inserted-msg/basic
+   (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
+
+(ert-deftest erc--get-inserted-msg-end/readonly ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-tests-common-assert-get-inserted-msg/basic
+   (lambda (arg) (should (= 11 (erc--get-inserted-msg-end arg))))))
+
+(ert-deftest erc--get-inserted-msg-bounds/readonly ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-tests-common-assert-get-inserted-msg/basic
+   (lambda (arg)
+     (should (equal '(3 . 11) (erc--get-inserted-msg-bounds arg))))))
+
 
 ;;; erc-goodies-tests.el ends here

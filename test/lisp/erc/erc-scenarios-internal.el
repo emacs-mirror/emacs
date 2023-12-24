@@ -24,9 +24,12 @@
   (when (and (getenv "EMACS_TEST_DIRECTORY")
              (getenv "EMACS_TEST_JUNIT_REPORT"))
     (setq ert-load-file-name (or (macroexp-file-name) buffer-file-name)))
-  (let ((load-path (cons (expand-file-name "erc-d" (ert-resource-directory))
-                         load-path)))
-    (load "erc-d-tests" nil 'silent)))
+  (let ((load-path `(,(expand-file-name "erc-d" (ert-resource-directory))
+                     ,(ert-resource-directory)
+                     ,@load-path)))
+    ;; Run all tests in ./resources/erc-d/erc-d-tests.el.
+    (load "erc-d-tests" nil 'silent)
+    (require 'erc-tests-common)))
 
 ;; Run all tests tagged `:erc--graphical' in an "interactive"
 ;; subprocess.  Time out after 90 seconds.
@@ -45,13 +48,9 @@
                           (with-current-buffer ert--output-buffer-name
                             (kill-emacs (ert--stats-failed-unexpected
                                          ert--results-stats)))))
-         (args `("erc-interactive-all" ,(current-buffer)
-                 ,(concat invocation-directory invocation-name)
-                 "-Q" "-L" "." "-l" "ert"
-                 ,@(let (o) (while libs (push (pop libs) o) (push "-l" o)) o)
-                 "-eval" ,(format "%S" program)))
-         (proc (apply #'start-process args)))
-    (set-process-query-on-exit-flag proc nil)
+         (proc (erc-tests-common-create-subprocess program
+                                                   '( "-L" "." "-l" "ert")
+                                                   libs)))
 
     (erc-d-t-wait-for 90 "interactive tests to complete"
       (not (process-live-p proc)))

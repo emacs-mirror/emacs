@@ -21,6 +21,10 @@
 
 ;;; Code:
 (require 'ert-x)
+(eval-and-compile
+  (let ((load-path (cons (ert-resource-directory) load-path)))
+    (require 'erc-tests-common)))
+
 (require 'erc-stamp)
 (require 'erc-goodies) ; for `erc-make-read-only'
 
@@ -44,9 +48,7 @@
       (erc-mode)
       (erc-munge-invisibility-spec)
       (erc--initialize-markers (point) nil)
-      (setq erc-server-process (start-process "p" (current-buffer)
-                                              "sleep" "1"))
-      (set-process-query-on-exit-flag erc-server-process nil)
+      (erc-tests-common-init-server-proc "sleep" "1")
 
       (funcall test)
 
@@ -223,13 +225,13 @@
         (erc-timestamp-intangible t) ; default changed to nil in 2014
         (erc-hide-timestamps t)
         (erc-insert-timestamp-function 'erc-insert-timestamp-left)
-        (erc-server-process (start-process "true" (current-buffer) "true"))
         (erc-insert-modify-hook '(erc-make-read-only erc-add-timestamp))
         msg
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
     (should (not cursor-sensor-inhibit))
-    (set-process-query-on-exit-flag erc-server-process nil)
+
     (erc-mode)
+    (erc-tests-common-init-server-proc "true")
     (with-current-buffer (get-buffer-create "*erc-timestamp-intangible*")
       (erc-mode)
       (erc--initialize-markers (point) nil)
@@ -306,5 +308,45 @@
     (let ((current-prefix-arg -7))
       (should (equal (call-interactively #'erc-echo-timestamp)
                      "1983-09-26 21:00:00 -07")))))
+
+(defun erc-stamp-tests--assert-get-inserted-msg/stamp (test-fn)
+  (let ((erc-insert-modify-hook erc-insert-modify-hook)
+        (erc-insert-timestamp-function 'erc-insert-timestamp-right)
+        (erc-timestamp-use-align-to 0)
+        (erc-timestamp-format "[00:00]"))
+    (cl-pushnew 'erc-add-timestamp erc-insert-modify-hook)
+    (erc-tests-common-get-inserted-msg-setup))
+  (goto-char 19)
+  (should (looking-back (rx "<bob> hi [00:00]")))
+  (erc-tests-common-assert-get-inserted-msg 3 19 test-fn))
+
+(ert-deftest erc--get-inserted-msg-beg/stamp ()
+  (erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
+
+(ert-deftest erc--get-inserted-msg-beg/readonly/stamp ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
+
+(ert-deftest erc--get-inserted-msg-end/stamp ()
+  (erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 19 (erc--get-inserted-msg-end arg))))))
+
+(ert-deftest erc--get-inserted-msg-end/readonly/stamp ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 19 (erc--get-inserted-msg-end arg))))))
+
+(ert-deftest erc--get-inserted-msg-bounds/stamp ()
+  (erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg)
+     (should (equal '(3 . 19) (erc--get-inserted-msg-bounds arg))))))
+
+(ert-deftest erc--get-inserted-msg-bounds/readonly/stamp ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg)
+     (should (equal '(3 . 19) (erc--get-inserted-msg-bounds arg))))))
 
 ;;; erc-stamp-tests.el ends here
