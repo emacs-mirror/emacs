@@ -53,7 +53,9 @@ struct Lisp_TS_Parser
   /* Re-parsing an unchanged buffer is not free for tree-sitter, so we
      only make it re-parse when need_reparse == true.  That usually
      means some change is made in the buffer.  But others could set
-     this field to true to force tree-sitter to re-parse.  */
+     this field to true to force tree-sitter to re-parse.  When you
+     set this to true, you should _always_ also increment
+     timestamp.  */
   bool need_reparse;
   /* These two positions record the buffer byte position (1-based) of
      the "visible region" that tree-sitter sees.  Before re-parse, we

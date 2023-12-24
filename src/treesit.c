@@ -931,7 +931,10 @@ treesit_sync_visible_region (Lisp_Object parser)
      this function is called), we need to reparse.  */
   if (visible_beg != BUF_BEGV_BYTE (buffer)
       || visible_end != BUF_ZV_BYTE (buffer))
-    XTS_PARSER (parser)->need_reparse = true;
+    {
+      XTS_PARSER (parser)->need_reparse = true;
+      XTS_PARSER (parser)->timestamp++;
+    }
 
   /* Before we parse or set ranges, catch up with the narrowing
      situation.  We change visible_beg and visible_end to match
@@ -1671,6 +1674,7 @@ buffer.  */)
 	      ranges);
 
   XTS_PARSER (parser)->need_reparse = true;
+  XTS_PARSER (parser)->timestamp++;
   return Qnil;
 }
 
