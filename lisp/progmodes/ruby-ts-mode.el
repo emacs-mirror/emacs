@@ -1063,8 +1063,9 @@ leading double colon is not added."
         ('heredoc
          (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
                             'syntax-table (string-to-syntax "\""))
-         (put-text-property (treesit-node-end node) (1+ (treesit-node-end node))
-                            'syntax-table (string-to-syntax "\"")))
+         (when (< (treesit-node-end node) (point-max))
+           (put-text-property (treesit-node-end node) (1+ (treesit-node-end node))
+                              'syntax-table (string-to-syntax "\""))))
         ('percent
          ;; FIXME: Put the first one on the first paren in both %Q{} and %().
          ;; That would stop electric-pair-mode from pairing, though.  Hmm.
