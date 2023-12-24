@@ -768,7 +768,7 @@ With REPAIRP, destructively fill gaps and re-merge speakers."
       ;; Skip to end of message upon encountering accidental gaps
       ;; introduced by third parties (or bugs).
       (if-let (((/= ?\n (char-after end)))
-               (next (erc--get-inserted-msg-bounds 'end beg)))
+               (next (erc--get-inserted-msg-end beg)))
           (progn
             (cl-assert (= ?\n (char-after next)))
             (when repairp ; eol <= next

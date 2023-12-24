@@ -1754,7 +1754,7 @@
 
           (should-not calls))))))
 
-(ert-deftest erc--get-inserted-msg-bounds ()
+(defun erc-tests--get-inserted-msg-setup ()
   (erc-mode)
   (erc--initialize-markers (point) nil)
   (let ((parsed (make-erc-response :unparsed ":bob PRIVMSG #chan :hi"
@@ -1766,42 +1766,107 @@
     (erc-display-message parsed nil (current-buffer)
                          (erc-format-privmessage "bob" "hi" nil t)))
   (goto-char 3)
-  (should (looking-at "<bob> hi"))
+  (should (looking-at "<bob> hi")))
+
+;; All these bounds-finding functions take an optional POINT argument.
+;; So run each case with and without it at each pos in the message.
+(defun erc-tests--assert-get-inserted-msg (from to assert-fn)
+  (dolist (pt-arg '(nil t))
+    (dolist (i (number-sequence from to))
+      (goto-char i)
+      (ert-info ((format "At %d (%c) %s param" i (char-after i)
+                         (if pt-arg "with" "")))
+        (funcall assert-fn (and pt-arg i))))))
+
+(defun erc-tests--assert-get-inserted-msg/basic (test-fn)
+  (erc-tests--get-inserted-msg-setup)
   (goto-char 11)
   (should (looking-back "<bob> hi"))
+  (erc-tests--assert-get-inserted-msg 3 11 test-fn))
 
-  (ert-info ("Parameter `only' being `beg'")
-    (dolist (i (number-sequence 3 11))
-      (goto-char i)
-      (ert-info ((format "At %d (%c)" i (char-after i)))
-        (should (= 3 (erc--get-inserted-msg-bounds 'beg)))))
+(defun erc-tests--assert-get-inserted-msg/stamp (test-fn)
+  (require 'erc-stamp)
+  (defvar erc-insert-timestamp-function)
+  (defvar erc-timestamp-format)
+  (defvar erc-timestamp-use-align-to)
+  (let ((erc-insert-modify-hook erc-insert-modify-hook)
+        (erc-insert-timestamp-function 'erc-insert-timestamp-right)
+        (erc-timestamp-use-align-to 0)
+        (erc-timestamp-format "[00:00]"))
+    (cl-pushnew 'erc-add-timestamp erc-insert-modify-hook)
+    (erc-tests--get-inserted-msg-setup))
+  (goto-char 19)
+  (should (looking-back (rx "<bob> hi [00:00]")))
+  (erc-tests--assert-get-inserted-msg 3 19 test-fn))
 
-    (ert-info ("Parameter `point'")
-      (dolist (i (number-sequence 3 11))
-        (ert-info ((format "At %d (%c)" i (char-after i)))
-          (should (= 3 (erc--get-inserted-msg-bounds 'beg i)))))))
+;; This is a "mixin" and requires a base assertion function to work.
+(defun erc-tests--assert-get-inserted-msg-readonly-with (assert-fn test-fn)
+  (defvar erc-readonly-mode)
+  (defvar erc-readonly-mode-hook)
+  (let ((erc-readonly-mode nil)
+        (erc-readonly-mode-hook nil)
+        (erc-send-post-hook erc-send-post-hook)
+        (erc-insert-post-hook erc-insert-post-hook))
+    (erc-readonly-mode +1)
+    (funcall assert-fn test-fn)))
 
-  (ert-info ("Parameter `only' being `end'")
-    (dolist (i (number-sequence 3 11))
-      (goto-char i)
-      (ert-info ((format "At %d (%c)" i (char-after i)))
-        (should (= 11 (erc--get-inserted-msg-bounds 'end)))))
+(ert-deftest erc--get-inserted-msg-beg/basic ()
+  (erc-tests--assert-get-inserted-msg/basic
+   (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
 
-    (ert-info ("Parameter `point'")
-      (dolist (i (number-sequence 3 11))
-        (ert-info ((format "At %d (%c)" i (char-after i)))
-          (should (= 11 (erc--get-inserted-msg-bounds 'end i)))))))
+(ert-deftest erc--get-inserted-msg-beg/readonly ()
+  (erc-tests--assert-get-inserted-msg-readonly-with
+   #'erc-tests--assert-get-inserted-msg/basic
+   (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
 
-  (ert-info ("Parameter `only' being nil")
-    (dolist (i (number-sequence 3 11))
-      (goto-char i)
-      (ert-info ((format "At %d (%c)" i (char-after i)))
-        (should (equal '(3 . 11) (erc--get-inserted-msg-bounds nil)))))
+(ert-deftest erc--get-inserted-msg-beg/stamp ()
+  (erc-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
 
-    (ert-info ("Parameter `point'")
-      (dolist (i (number-sequence 3 11))
-        (ert-info ((format "At %d (%c)" i (char-after i)))
-          (should (equal '(3 . 11) (erc--get-inserted-msg-bounds nil i))))))))
+(ert-deftest erc--get-inserted-msg-beg/readonly/stamp ()
+  (erc-tests--assert-get-inserted-msg-readonly-with
+   #'erc-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
+
+(ert-deftest erc--get-inserted-msg-end/basic ()
+  (erc-tests--assert-get-inserted-msg/basic
+   (lambda (arg) (should (= 11 (erc--get-inserted-msg-end arg))))))
+
+(ert-deftest erc--get-inserted-msg-end/readonly ()
+  (erc-tests--assert-get-inserted-msg-readonly-with
+   #'erc-tests--assert-get-inserted-msg/basic
+   (lambda (arg) (should (= 11 (erc--get-inserted-msg-end arg))))))
+
+(ert-deftest erc--get-inserted-msg-end/stamp ()
+  (erc-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 19 (erc--get-inserted-msg-end arg))))))
+
+(ert-deftest erc--get-inserted-msg-end/readonly/stamp ()
+  (erc-tests--assert-get-inserted-msg-readonly-with
+   #'erc-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 19 (erc--get-inserted-msg-end arg))))))
+
+(ert-deftest erc--get-inserted-msg-bounds/basic ()
+  (erc-tests--assert-get-inserted-msg/basic
+   (lambda (arg)
+     (should (equal '(3 . 11) (erc--get-inserted-msg-bounds arg))))))
+
+(ert-deftest erc--get-inserted-msg-bounds/readonly ()
+  (erc-tests--assert-get-inserted-msg-readonly-with
+   #'erc-tests--assert-get-inserted-msg/basic
+   (lambda (arg)
+     (should (equal '(3 . 11) (erc--get-inserted-msg-bounds arg))))))
+
+(ert-deftest erc--get-inserted-msg-bounds/stamp ()
+  (erc-tests--assert-get-inserted-msg/stamp
+   (lambda (arg)
+     (should (equal '(3 . 19) (erc--get-inserted-msg-bounds arg))))))
+
+(ert-deftest erc--get-inserted-msg-bounds/readonly/stamp ()
+  (erc-tests--assert-get-inserted-msg-readonly-with
+   #'erc-tests--assert-get-inserted-msg/stamp
+   (lambda (arg)
+     (should (equal '(3 . 19) (erc--get-inserted-msg-bounds arg))))))
 
 (ert-deftest erc--delete-inserted-message ()
   (erc-mode)

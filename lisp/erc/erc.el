@@ -3210,34 +3210,45 @@ stored value.  Otherwise, return the stored value."
              (v (gethash prop erc--msg-props)))
     (if (consp val) (memq v val) (if val (eq v val) v))))
 
-(defmacro erc--get-inserted-msg-bounds (&optional only point)
-  "Return the bounds of a message in an ERC buffer.
-Return ONLY one side when the first arg is `end' or `beg'.  With
-POINT, search from POINT instead of `point'."
-  ;; TODO add edebug spec.
-  `(let* ((point ,(or point '(point)))
-          (at-start-p (get-text-property point 'erc--msg)))
-     (and-let*
-         (,@(and (member only '(nil beg 'beg))
-                 '((b (or (and at-start-p point)
-                          (and-let*
-                              ((p (previous-single-property-change point
-                                                                   'erc--msg)))
-                            (if (= p (1- point))
-                                (if (get-text-property p 'erc--msg) p (1- p))
-                              (1- p)))))))
-          ,@(and (member only '(nil end 'end))
-                 '((e (1- (next-single-property-change
-                           (if at-start-p (1+ point) point)
-                           'erc--msg nil erc-insert-marker))))))
-       ,(pcase only
-          ('(quote beg) 'b)
-          ('(quote end) 'e)
-          (_ '(cons b e))))))
+(defmacro erc--get-inserted-msg-beg-at (point at-start-p)
+  (macroexp-let2* nil ((point point)
+                       (at-start-p at-start-p))
+    `(or (and ,at-start-p ,point)
+         (and-let* ((p (previous-single-property-change ,point 'erc--msg)))
+           (if (and (= p (1- ,point)) (get-text-property p 'erc--msg))
+               p
+             (1- p))))))
+
+(defmacro erc--get-inserted-msg-end-at (point at-start-p)
+  (macroexp-let2 nil point point
+    `(1- (next-single-property-change (if ,at-start-p (1+ ,point) ,point)
+                                      'erc--msg nil erc-insert-marker))))
+
+(defun erc--get-inserted-msg-beg (&optional point)
+  "Maybe return the start of message in an ERC buffer."
+  (erc--get-inserted-msg-beg-at (or point (setq point (point)))
+                                (get-text-property point 'erc--msg)))
+
+(defun erc--get-inserted-msg-end (&optional point)
+  "Return the end of message in an ERC buffer.
+Include any trailing white space before final newline.  Expect
+POINT to be less than `erc-insert-marker', and don't bother
+considering `erc--insert-marker', for now."
+  (erc--get-inserted-msg-end-at (or point (setq point (point)))
+                                (get-text-property point 'erc--msg)))
+
+(defun erc--get-inserted-msg-bounds (&optional point)
+  "Return bounds of message at POINT in an ERC buffer when found.
+Search from POINT, when non-nil, instead of `point'.  Return nil
+if not found."
+  (let ((at-start-p (get-text-property (or point (setq point (point)))
+                                       'erc--msg)))
+    (and-let* ((b (erc--get-inserted-msg-beg-at point at-start-p)))
+      (cons b (erc--get-inserted-msg-end-at point at-start-p)))))
 
 (defun erc--get-inserted-msg-prop (prop)
   "Return the value of text property PROP for some message at point."
-  (and-let* ((stack-pos (erc--get-inserted-msg-bounds 'beg)))
+  (and-let* ((stack-pos (erc--get-inserted-msg-beg (point))))
     (get-text-property stack-pos prop)))
 
 (defmacro erc--with-inserted-msg (&rest body)
@@ -3525,7 +3536,7 @@ subsequent message."
     (save-restriction
       (widen)
       (unless end
-        (setq end (erc--get-inserted-msg-bounds nil beg-or-point)
+        (setq end (erc--get-inserted-msg-bounds beg-or-point)
               beg (pop end)))
       (with-silent-modifications
         (if erc-legacy-invisible-bounds-p
@@ -4167,7 +4178,7 @@ to but not including the one occupying the current line."
   (with-silent-modifications
     (let ((max (if (>= (point) erc-insert-marker)
                    (1- erc-insert-marker)
-                 (or (erc--get-inserted-msg-bounds 'beg) (pos-bol)))))
+                 (or (erc--get-inserted-msg-beg (point)) (pos-bol)))))
       (run-hook-with-args 'erc--pre-clear-functions max)
       (delete-region (point-min) max)))
   t)

@@ -102,7 +102,7 @@ present in `erc-modules'."
           ;; Truncate at message boundary (formerly line boundary
           ;; before 5.6).
 	  (goto-char end)
-          (goto-char (or (erc--get-inserted-msg-bounds 'beg)
+          (goto-char (or (erc--get-inserted-msg-beg end)
                          (pos-bol)))
 	  (setq end (point))
 	  ;; try to save the current buffer using

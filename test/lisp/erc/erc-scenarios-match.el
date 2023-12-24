@@ -191,7 +191,7 @@
            (should (= (next-single-property-change msg-end 'invisible) end)))))
 
      (lambda ()
-       (let ((end (erc--get-inserted-msg-bounds 'end)))
+       (let ((end (erc--get-inserted-msg-end (point))))
          ;; This message has a time stamp like all the others.
          (should (eq (field-at-pos (1- end)) 'erc-timestamp))
 
