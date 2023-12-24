@@ -2461,6 +2461,9 @@ before calling this function."
        parser #'treesit--font-lock-notifier))
     (add-hook 'pre-redisplay-functions #'treesit--pre-redisplay 0 t))
   ;; Syntax
+  (dolist (parser (treesit-parser-list))
+    (treesit-parser-add-notifier
+     parser #'treesit--syntax-propertize-notifier))
   (add-hook 'syntax-propertize-extend-region-functions
             #'treesit--pre-syntax-ppss 0 t)
   ;; Indent.
