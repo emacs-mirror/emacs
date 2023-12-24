@@ -469,6 +469,11 @@ you can add this to your init script:
 ** VC
 
 ---
+*** Log-Edit buffers now display a tool bar.
+This tool bar contains items for committing log entries and editing or
+generating log entries, among other editing operations.
+
+---
 *** New user option 'vc-git-shortlog-switches'.
 This is a string or a list of strings that specifies the Git log
 switches for shortlogs, such as the one produced by 'C-x v L'.

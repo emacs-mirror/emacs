@@ -76,6 +76,8 @@
     "--"
     ["Insert ChangeLog" log-edit-insert-changelog
      :help "Insert a log message by looking at the ChangeLog"]
+    ["Generate ChangeLog" log-edit-generate-changelog-from-diff
+     :help "Generate a log message from the diff and insert it into this buffer"]
     ["Add to ChangeLog" log-edit-add-to-changelog
      :help "Insert this log message into the appropriate ChangeLog file"]
     "--"
@@ -92,6 +94,65 @@
      :help "Search forwards through comment history for a substring match of str"]
     ["Search comment backward"	log-edit-comment-search-backward
      :help "Search backwards through comment history for substring match of str"]))
+
+(defvar log-edit-tool-bar-map
+  (let ((map (make-sparse-keymap)))
+    (tool-bar-local-item-from-menu 'find-file "new" map
+                                   nil :label "New File"
+			           :vert-only t)
+    (tool-bar-local-item-from-menu 'menu-find-file-existing "open" map
+                                   nil :label "Open" :vert-only t)
+    (tool-bar-local-item-from-menu 'dired "diropen" map nil :vert-only t)
+    (tool-bar-local-item-from-menu 'kill-this-buffer "close" map nil
+                                   :vert-only t)
+    (define-key-after map [separator-1] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'log-edit-done "commit"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "Complete the actual action")
+    (define-key-after map [separator-2] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'log-edit-insert-changelog
+                                   "ins-changelog"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "Complete the actual action")
+    (tool-bar-local-item-from-menu 'log-edit-insert-changelog
+                                   "load-changelog"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "Insert log message from ChangeLog file")
+    (tool-bar-local-item-from-menu 'log-edit-generate-changelog-from-diff
+                                   "gen-changelog"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "Generate a log message from diff")
+    (tool-bar-local-item-from-menu 'log-edit-add-to-changelog
+                                   "ins-changelog"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "Insert this log message into the ChangeLog")
+    (define-key-after map [separator-3] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'log-edit-show-diff
+                                   "view-diff"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "View the diff for the files to be committed")
+    (tool-bar-local-item-from-menu 'log-edit-show-files
+                                   "info"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "View the list of files to be committed")
+    (define-key-after map [separator-4] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'undo "undo" map nil)
+    (define-key-after map [separator-5] menu-bar-separator)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [cut])
+                                   "cut" map nil)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [copy])
+                                   "copy" map nil)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [paste])
+                                   "paste" map nil)
+    map)
+  "Like the default `tool-bar-map', but with additions for Log-Edit mode.")
 
 (defcustom log-edit-confirm 'changed
   "If non-nil, `log-edit-done' will request confirmation.
@@ -511,7 +572,9 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
   (setq-local fill-paragraph-function #'log-edit-fill-entry)
   (make-local-variable 'log-edit-comment-ring-index)
   (add-hook 'kill-buffer-hook 'log-edit-remember-comment nil t)
-  (hack-dir-local-variables-non-file-buffer))
+  (hack-dir-local-variables-non-file-buffer)
+  ;; Replace the tool bar map with `log-edit-tool-bar-map'.
+  (setq-local tool-bar-map log-edit-tool-bar-map))
 
 (defun log-edit--insert-filled-defuns (func-names)
   "Insert FUNC-NAMES, following ChangeLog formatting."

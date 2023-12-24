@@ -67,21 +67,25 @@ Emacs images and their source in the GNOME icons stock/ directory:
   attach.xpm                document/stock_attach
   bookmark_add.xpm          actions/bookmark_add
   cancel.xpm                slightly modified generic/stock_stop
-  connect.xpm               net/stock_connect
+  commit.xpm		    code/stock_run
   connect-to-url.xpm        net/stock_connect-to-url
+  connect.xpm               net/stock_connect
   contact.xpm               net/stock_contact
   data-save.xpm             data/stock_data-save
   delete.xpm                generic/stock_delete
   describe.xpm              generic/stock_properties
   disconnect.xpm            net/stock_disconnect
   exit.xpm                  generic/stock_exit
+  gen-changelog.xpm	    text/stock_autoformat
+  ins-changelog.xpm	    form/stock_show-form-dialog
+  load-changelog.xpm	    text/stock_insert_endnote
   lock-broken.xpm           data/stock_lock-broken
   lock-ok.xpm               data/stock_lock-ok
   lock.xpm                  data/stock_lock
-  redo.xpm                  generic/stock_redo
-  search-replace.xpm        slightly modified generic/stock_search-and-replace
   next-page.xpm             navigation/stock_next-page
+  redo.xpm                  generic/stock_redo
   refresh.xpm               generic/stock_refresh
+  search-replace.xpm        slightly modified generic/stock_search-and-replace
   separator.xpm             ?
   show.xpm                  slightly modified document/stock_new
   sort-ascending.xpm        slightly modified data/stock_sort-ascending
@@ -89,6 +93,7 @@ Emacs images and their source in the GNOME icons stock/ directory:
   sort-criteria.xpm         data/stock_sort-criteria
   sort-descending.xpm       slightly modified data/stock_sort-descending
   sort-row-ascending.xpm    data/stock_sort-row-ascending
+  view-diff.xpm		    text/stock_list_enum-restart
   zoom-in.xpm               navigation/stock_zoom-in
   zoom-out.xpm              navigation/stock_zoom-out
 
