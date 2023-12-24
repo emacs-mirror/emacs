@@ -792,14 +792,20 @@ DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
 You are not required to define a variable in order to use it, but
 defining it lets you supply an initial value and documentation, which
 can be referred to by the Emacs help facilities and other programming
-tools.  The `defvar' form also declares the variable as \"special\",
-so that it is always dynamically bound even if `lexical-binding' is t.
+tools.
 
 If SYMBOL's value is void and the optional argument INITVALUE is
 provided, INITVALUE is evaluated and the result used to set SYMBOL's
 value.  If SYMBOL is buffer-local, its default value is what is set;
 buffer-local values are not affected.  If INITVALUE is missing,
 SYMBOL's value is not set.
+
+If INITVALUE is provided, the `defvar' form also declares the variable
+as \"special\", so that it is always dynamically bound even if
+`lexical-binding' is t.  If INITVALUE is missing, the form marks the
+variable \"special\" locally (i.e., within the current
+lexical scope, or the current file, if the form is at top-level),
+and does nothing if `lexical-binding' is nil.
 
 If SYMBOL is let-bound, then this form does not affect the local let
 binding but the toplevel default binding instead, like
