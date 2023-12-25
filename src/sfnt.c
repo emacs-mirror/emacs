@@ -4946,36 +4946,6 @@ sfnt_insert_raster_step (struct sfnt_step_raster *raster,
   step->coverage += coverage;
 }
 
-/* Sort an array of SIZE edges to increase by bottom Y position, in
-   preparation for building spans.
-
-   Insertion sort is used because there are usually not very many
-   edges, and anything larger would bloat up the code.  */
-
-static void
-sfnt_fedge_sort (struct sfnt_fedge *edges, size_t size)
-{
-  ssize_t i, j;
-  struct sfnt_fedge edge;
-
-  for (i = 1; i < size; ++i)
-    {
-      edge = edges[i];
-      j = i - 1;
-
-      /* Comparing truncated values yields a faint speedup, for not as
-	 many edges must be moved as would be otherwise.  */
-      while (j >= 0 && ((int) edges[j].bottom
-			> (int) edge.bottom))
-	{
-	  edges[j + 1] = edges[j];
-	  j--;
-	}
-
-      edges[j + 1] = edge;
-    }
-}
-
 /* Draw EDGES, an unsorted array of polygon edges of size NEDGES.
 
    Transform EDGES into an array of steps representing a raster with
@@ -4993,23 +4963,19 @@ sfnt_poly_edges_exact (struct sfnt_fedge *edges, size_t nedges,
 		       sfnt_step_raster_proc proc, void *dcontext)
 {
   int y;
-  size_t size, e;
-  struct sfnt_fedge *active, **prev, *a;
+  size_t size, e, edges_processed;
+  struct sfnt_fedge *active, **prev, *a, sentinel;
   struct sfnt_step_raster raster;
   struct sfnt_step_chunk *next, *last;
 
   if (!height)
     return;
 
-  /* Sort edges to ascend by Y-order.  Once again, remember: cartesian
-     coordinates.  */
-  sfnt_fedge_sort (edges, nedges);
-
   /* Step down line by line.  Find active edges.  */
 
   y = sfnt_floor_fixed (MAX (0, edges[0].bottom));
-  e = 0;
-  active = NULL;
+  e = edges_processed = 0;
+  active = &sentinel;
 
   /* Allocate the array of edges.  */
 
@@ -5023,20 +4989,28 @@ sfnt_poly_edges_exact (struct sfnt_fedge *edges, size_t nedges,
 
   for (; y != height; y += 1)
     {
-      /* Add in new edges keeping them sorted.  */
-      for (; e < nedges && edges[e].bottom < y + 1; ++e)
+      /* Run over the whole array on each iteration of this loop;
+	 experiments demonstrate this is faster for the majority of
+	 glyphs.  */
+      for (e = 0; e < nedges; ++e)
 	{
-	  if (edges[e].top > y)
+	  /* Although edges is unsorted, edges which have already been
+	     processed will see their next fields set, and can thus be
+	     disregarded.  */
+	  if (!edges[e].next
+	      && (edges[e].bottom < y + 1)
+	      && (edges[e].top > y))
 	    {
-	      /* Find where to place this edge.  */
-	      for (prev = &active; (a = *prev); prev = &(a->next))
-		{
-		  if (a->x > edges[e].x)
-		    break;
-		}
+	      /* As steps generated from each edge are sorted at the
+		 time of their insertion, sorting the list of active
+		 edges itself is redundant.  */
+	      edges[e].next = active;
+	      active = &edges[e];
 
-	      edges[e].next = *prev;
-	      *prev = &edges[e];
+	      /* Increment the counter recording the number of edges
+		 processed, which is used to terminate this loop early
+		 once all have been processed.  */
+	      edges_processed++;
 	    }
 	}
 
@@ -5044,7 +5018,7 @@ sfnt_poly_edges_exact (struct sfnt_fedge *edges, size_t nedges,
 	 removing it if it does not overlap with the next
 	 scanline.  */
 
-      for (prev = &active; (a = *prev);)
+      for (prev = &active; (a = *prev) != &sentinel;)
 	{
 	  float x_top, x_bot, x_min, x_max;
 	  float y_top, y_bot;
@@ -5371,11 +5345,15 @@ be as well.  */
 	  if (a->top < y + 1)
 	    *prev = a->next;
 	  else
+	    /* This edge doesn't intersect with the next scanline;
+	       remove it from the list.  After the edge at hand is so
+	       deleted from the list, its next field remains set,
+	       excluding it from future consideration.  */
 	    prev = &a->next;
 	}
 
       /* Break if all is done.  */
-      if (!active && e == nedges)
+      if (active == &sentinel && edges_processed == nedges)
 	break;
     }
 
@@ -21139,7 +21117,7 @@ main (int argc, char **argv)
 
 		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 
-		  for (i = 0; i < 800; ++i)
+		  for (i = 0; i < 12800; ++i)
 		    {
 		      xfree (raster);
 		      raster = (*test_raster_glyph_outline) (outline);
@@ -21265,7 +21243,8 @@ main (int argc, char **argv)
 	      printf ("time spent building edges: %lld sec %ld nsec\n",
 		      (long long) sub1.tv_sec, sub1.tv_nsec);
 	      printf ("time spent rasterizing: %lld sec %ld nsec\n",
-		      (long long) sub2.tv_sec / 800, sub2.tv_nsec / 800);
+		      (long long) sub2.tv_sec / 12800,
+		      sub2.tv_nsec / 12800);
 
 	      xfree (outline);
 	    }
