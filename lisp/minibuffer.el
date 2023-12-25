@@ -5390,7 +5390,8 @@ This applies to `completions-auto-update-mode', which see."
   (when (get-buffer-window "*Completions*" 0)
     (if completion-in-region-mode
         (completion-help-at-point)
-      (minibuffer-completion-help)))
+      (let ((beg-end (minibuffer--completion-boundaries)))
+        (minibuffer-completion-help (car beg-end) (cdr beg-end)))))
   (setq completions-auto-update-timer nil))
 
 (defun completions-auto-update-start-timer ()
