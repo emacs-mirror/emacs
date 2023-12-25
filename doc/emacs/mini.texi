@@ -361,7 +361,8 @@ current minibuffer input
 Narrow the list of possible completions in a command-specific manner
 (@code{minibuffer-narrow-completions}).
 @item C-x n w
-Remove all completions restrictions (@code{minibuffer-widen-completions}).
+Remove restrictions on the list of possible completions
+(@code{minibuffer-widen-completions}).
 @item ?
 Display a list of completions (@code{minibuffer-completion-help}).
 @end table
@@ -400,9 +401,14 @@ that list.  @xref{Narrow Completions}, for more details.
 
 @kindex C-x n w @r{(completion)}
 @findex minibuffer-widen-completions
-  @kbd{C-x n w} (@code{minibuffer-widen-completions}) removes all
+  @kbd{C-x n w} (@code{minibuffer-widen-completions}) removes
 completions restrictions that you set with @kbd{C-x n n} or with
-@kbd{C-x n m}.
+@kbd{C-x n m}.  This command prompts you for one or more of the
+restrictions that you set, and removes those restrictions.  If there
+is only one restriction, @kbd{C-x n w} removes it without prompting.
+If you invoke this command with a prefix argument (@kbd{C-u C-x n w}),
+it removes all restrictions without prompting, regardless of how many
+there are.
 
 @kindex ? @r{(completion)}
 @cindex completion list
@@ -688,9 +694,19 @@ example, typing @kbd{M-x C-x n m foo @key{RET} C-x n m bar @key{RET}}
 shows only commands that match both @samp{foo} and @samp{bar} in the
 completions list.
 
-  You can use @kbd{C-x n w} (@code{minibuffer-widen-completions}) in
-the minibuffer to remove the restrictions on the list of possible
+  Use @kbd{C-x n w} (@code{minibuffer-widen-completions}) in the
+minibuffer to remove the restrictions on the list of possible
 completions that you set with @kbd{C-x n n} or with @kbd{C-x n m}.
+@kbd{C-x n w} prompts you for the description of a current completions
+restriction, and removes the corresponding restriction.  The default
+candidate is the most recent restriction, and you can use completion
+to select other restriction descriptions.  You can even specify
+multiple restrictions to remove at once, by separating their
+descriptions with commas in the minibuffer.  If there is only one
+restriction to begin with, @kbd{C-x n w} removes it without prompting.
+If you invoke this command with a prefix argument (@kbd{C-u C-x n w}),
+it removes all restrictions without prompting, regardless of how many
+there are.
 
 @node Completion Options
 @subsection Completion Options

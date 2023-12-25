@@ -2560,7 +2560,7 @@ It must accept a buffer as its only required argument.")
       [menu-bar minibuf minibuffer-widen-completions]
     '(menu-item "Remove Completions Restrictions"
                 minibuffer-widen-completions
-		:help "Remove all restrictions on completions list"
+		:help "Remove restrictions on completions list"
                 :enable (minibuffer-narrow-completions-p)))
   (bindings--define-key map
       [menu-bar minibuf minibuffer-narrow-completions]

@@ -5094,17 +5094,47 @@ exclude matches to current input from completions list."
            (gethash key table)))
        (concat "narrowing to " (prin1-to-string input))))))
 
-(defun minibuffer-widen-completions ()
-  "Remove all restrictions on current completion candidates."
-  (interactive "" minibuffer-mode)
-  (advice-function-mapc
-   (lambda (a p)
-     (when (alist-get 'description p)
-       (remove-function (local 'minibuffer-completion-predicate) a)))
-   minibuffer-completion-predicate)
+(defun minibuffer-widen-completions (&optional all)
+  "Remove restrictions on current minibuffer completions list.
+
+Prompt for one or more restrictions that currently apply to the
+list of possible minibuffer completions, and remove those
+restrictions.  You can use completion to select the restrictions
+to remove, separating each of your selections with
+`crm-separator' (usually, a comma).
+
+When there is only one restriction, remove it without prompting.
+With optional argument ALL (interactively, the prefix argument),
+remove all current restrictions without prompting."
+  (interactive "P" minibuffer-mode)
+  (let ((desc-pred-alist nil))
+    (advice-function-mapc
+     (lambda (a p)
+       (when-let ((d (alist-get 'description p)))
+         (push (cons d a) desc-pred-alist)))
+     minibuffer-completion-predicate)
+    (unless desc-pred-alist
+      (user-error "No completions restrictions"))
+    ;; Put latest restriction first.
+    (setq desc-pred-alist (reverse desc-pred-alist))
+    (mapc
+     (lambda (pair)
+       (remove-function (local 'minibuffer-completion-predicate) (cdr pair)))
+     (if (or all
+             ;; Only one restriction.
+             (not (cdr desc-pred-alist)))
+         desc-pred-alist
+       (mapcar (lambda (desc)
+                 (assoc desc desc-pred-alist))
+               (completing-read-multiple
+                (format-prompt "Remove completions restriction,s"
+                               (caar desc-pred-alist))
+                desc-pred-alist nil t nil nil (caar desc-pred-alist))))))
   (when completion-auto-help
-    (minibuffer-completion-help))
-  (when-let ((completions-buffer (get-buffer "*Completions*")))
+    (let ((beg-end (minibuffer--completion-boundaries)))
+      (minibuffer-completion-help (car beg-end) (cdr beg-end))))
+  (when-let ((completions-buffer (and (not (minibuffer-narrow-completions-p))
+                                      (get-buffer "*Completions*"))))
     (with-current-buffer completions-buffer
       (completions-narrow-mode -1))))
 
