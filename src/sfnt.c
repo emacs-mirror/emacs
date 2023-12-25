@@ -5656,18 +5656,21 @@ sfnt_lookup_glyph_metrics (sfnt_glyph glyph, int pixel_size,
   return 0;
 }
 
-/* Scale the specified glyph metrics by FACTOR.
-   Set METRICS->lbearing and METRICS->advance to their current
-   values times factor.  */
+/* Scale the specified glyph metrics by FACTOR.  Set METRICS->lbearing
+   and METRICS->advance to their current values times factor; take the
+   floor of the left bearing and round the advance width.  */
 
 MAYBE_UNUSED TEST_STATIC void
 sfnt_scale_metrics (struct sfnt_glyph_metrics *metrics,
 		    sfnt_fixed factor)
 {
-  metrics->lbearing
-    = sfnt_mul_fixed (metrics->lbearing * 65536, factor);
-  metrics->advance
-    = sfnt_mul_fixed (metrics->advance * 65536, factor);
+  sfnt_fixed lbearing, advance;
+
+  lbearing = sfnt_mul_fixed (metrics->lbearing * 65536, factor);
+  advance = sfnt_mul_fixed (metrics->advance * 65536, factor);
+
+  metrics->lbearing = sfnt_floor_fixed (lbearing);
+  metrics->advance = sfnt_round_fixed (advance);
 }
 
 /* Calculate the factor used to convert em space to device space for a

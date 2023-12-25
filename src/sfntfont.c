@@ -2304,7 +2304,8 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 		 instruction code or glyph variation.  The left side
 		 bearing is the distance from the origin point to the
 		 left most point on the X axis.  */
-	      temp.lbearing = outline->xmin - outline->origin;
+	      temp.lbearing
+		= SFNT_FLOOR_FIXED (outline->xmin - outline->origin);
 	    }
 	}
     }
@@ -3497,12 +3498,12 @@ sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
   if (!outline)
     return 1;
 
-  /* Round the left side bearing down.  */
-  pcm->lbearing = SFNT_FLOOR_FIXED (metrics.lbearing) / 65536;
+  /* The left side bearing has already been floored.  */
+  pcm->lbearing = metrics.lbearing / 65536;
   pcm->rbearing = SFNT_CEIL_FIXED (outline->xmax) / 65536;
 
-  /* Round the advance, ascent and descent upwards.  */
-  pcm->width = SFNT_CEIL_FIXED (metrics.advance) / 65536;
+  /* The advance is already rounded; ceil the ascent and descent.  */
+  pcm->width = metrics.advance / 65536;
   pcm->ascent = SFNT_CEIL_FIXED (outline->ymax) / 65536;
   pcm->descent = SFNT_CEIL_FIXED (-outline->ymin) / 65536;
 
