@@ -384,7 +384,7 @@ DOC is documentation text to insert at the start."
   (epa--list-keys name nil
                   "The letters at the start of a line have these meanings.
 e  expired key.  n  never trust.  m  trust marginally.  u  trust ultimately.
-f  trust fully (keys you have signed, usually).
+f  trust fully (keys you have signed, usually).  r  revoked key.
 q  trust status questionable.  -  trust status unspecified.
  See GPG documentation for more explanation.
 \n"))
