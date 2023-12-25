@@ -4997,18 +4997,30 @@ cell (PRED . DESC) where PRED is a function that takes one
 completion candidate and returns non-nil if it should appear in
 the *Completions* buffer, and DESC is a string describing PRED.")
 
+(defun minibuffer--completion-boundaries ()
+  "Return boundaries for minibuffer completion as a pair of buffer positions."
+  (let* ((prompt-end (minibuffer-prompt-end))
+         (beg-end (completion-boundaries
+                   (buffer-substring prompt-end (point))
+                   minibuffer-completion-table
+                   minibuffer-completion-predicate
+                   (buffer-substring (point) (point-max)))))
+    (cons (+ prompt-end (car beg-end)) (+ (point) (cdr beg-end)))))
+
 (defun minibuffer-narrow-completions-by-regexp ()
   "Narrow completion candidates by matching a given regular expression.
 This function is the default value of variable
 `minibuffer-narrow-completions-function', which see."
-  (let* ((input (minibuffer-contents))
-         (point (- (point) (minibuffer-prompt-end)))
+  (let* ((beg-end (minibuffer--completion-boundaries))
+         (beg (car beg-end)) (end (cdr beg-end))
+         (rel-point (- (point) beg))
+         (input (buffer-substring beg end))
          (regexp (minibuffer-with-setup-hook
                      (lambda ()
                        (insert input)
-                       (goto-char (+ point (minibuffer-prompt-end))))
+                       (goto-char (+ rel-point (minibuffer-prompt-end))))
                    (read-regexp "Keep candidates matching regexp: "))))
-    (delete-minibuffer-contents)
+    (delete-region beg end)
     (cons (lambda (cand &rest _)
             (let ((string (cond
                            ((stringp cand)              cand)
@@ -5025,7 +5037,8 @@ DESC is a string describing predicate PRED."
   (add-function :after-while (local 'minibuffer-completion-predicate)
                 pred `((description . ,desc)))
   (when completion-auto-help
-    (minibuffer-completion-help))
+    (let ((beg-end (minibuffer--completion-boundaries)))
+      (minibuffer-completion-help (car beg-end) (cdr beg-end))))
   (when-let ((completions-buffer (get-buffer "*Completions*")))
     (with-current-buffer completions-buffer
       (completions-narrow-mode))))
@@ -5047,18 +5060,19 @@ ARG is the numeric prefix argument.  When ARG is negative,
 exclude matches to current input from completions list."
   (interactive "p" minibuffer-mode)
   (let* ((table (make-hash-table :test #'equal))
-         (start (minibuffer--completion-prompt-end))
-         (string (buffer-substring start (point-max)))
+         (beg-end (minibuffer--completion-boundaries))
+         (beg (car beg-end)) (end (cdr beg-end))
+         (input (buffer-substring beg end))
          (all (completion-all-completions
-               string
+               input
                minibuffer-completion-table
                minibuffer-completion-predicate
-               (- (point) start)
-               (completion--field-metadata start)))
+               (- (point) beg)
+               (completion--field-metadata beg)))
          (last (last all)))
     (unless all
       (user-error "No matching completion candidates"))
-    (delete-minibuffer-contents)
+    (delete-region beg end)
     (setcdr last nil)
     (dolist (str all)
       (puthash str t table))
@@ -5070,7 +5084,7 @@ exclude matches to current input from completions list."
                        ((symbolp cand) (symbol-name cand))
                        (t              (car         cand)))))
              (not (gethash key table))))
-         (concat "excluding matches for " (prin1-to-string string)))
+         (concat "excluding matches for " (prin1-to-string input)))
       (minibuffer--add-completions-predicate
        (lambda (cand &rest _)
          (let ((key (cond
@@ -5078,7 +5092,7 @@ exclude matches to current input from completions list."
                      ((symbolp cand) (symbol-name cand))
                      (t              (car         cand)))))
            (gethash key table)))
-       (concat "narrowing to " (prin1-to-string string))))))
+       (concat "narrowing to " (prin1-to-string input))))))
 
 (defun minibuffer-widen-completions ()
   "Remove all restrictions on current completion candidates."
