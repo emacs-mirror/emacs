@@ -805,25 +805,31 @@ Filenames are relative to the `default-directory'."
 ;;; Rule based menu filters
 ;;
 (defcustom recentf-arrange-rules
-  '(
-    ("Elisp files (%d)" ".\\.el\\'")
-    ("Java files (%d)"  ".\\.java\\'")
-    ("C/C++ files (%d)" "c\\(pp\\)?\\'")
+  `(
+    ("Elisp files (%d)" ,(rx nonl ".el" eos))
+    ("C/C++ files (%d)" ,(rx nonl "."
+                             (or "c" "cc" "cpp" "h" "hpp" "cxx" "hxx")
+                             eos))
+    ("Python files (%d" ,(rx nonl ".py" eos))
+    ("Java files (%d)" ,(rx nonl ".java" eos))
     )
   "List of rules used by `recentf-arrange-by-rule' to build sub-menus.
+
 A rule is a pair (SUB-MENU-TITLE . MATCHER).  SUB-MENU-TITLE is the
 displayed title of the sub-menu where a `%d' `format' pattern is
 replaced by the number of items in the sub-menu.  MATCHER is a regexp
 or a list of regexps.  Items matching one of the regular expressions in
 MATCHER are added to the corresponding sub-menu.
-SUB-MENU-TITLE can be a function.  It is passed every items that
+
+SUB-MENU-TITLE can be a function.  It is passed every item that
 matched the corresponding MATCHER, and it must return a
 pair (SUB-MENU-TITLE . ITEM).  SUB-MENU-TITLE is a computed sub-menu
 title that can be another function.  ITEM is the received item which
 may have been modified to match another rule."
   :group 'recentf-filters
   :type '(repeat (cons (choice string function)
-                       (repeat regexp))))
+                       (repeat regexp)))
+  :version "30.1")
 
 (defcustom recentf-arrange-by-rule-others "Other files (%d)"
   "Title of the `recentf-arrange-by-rule' sub-menu.
