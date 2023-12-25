@@ -698,12 +698,12 @@ Typically \"page-%s.png\".")
     (tool-bar-local-item-from-menu 'doc-view-previous-page "last-page"
                                    map doc-view-mode-map :vert-only t
                                    :enable '(> (doc-view-current-page) 1)
-                                   :help "Move to the next page.")
+                                   :help "Move to the previous page.")
     (tool-bar-local-item-from-menu 'doc-view-next-page "next-page"
                                    map doc-view-mode-map :vert-only t
                                    :enable '(< (doc-view-current-page)
                                                (doc-view-last-page-number))
-                                   :help "Move to the last page.")
+                                   :help "Move to the next page.")
     map)
   "Like the default `tool-bar-map', but with additions for DocView.")
 
