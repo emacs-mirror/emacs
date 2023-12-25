@@ -1944,15 +1944,19 @@ mouse-2: visit this file in other window"
                                       (cond
                                        ((assoc current-dir dired-subdir-alist)
                                         (dired-goto-subdir current-dir))
-                                       ;; If there is a wildcard character in the directory, don't
-                                       ;; use the alternate file machinery which tries to keep only
-                                       ;; one dired buffer open at once.
+                                       ;; If there is a wildcard chars
+                                       ;; in the directory name, don't
+                                       ;; use the alternate file machinery
+                                       ;; which tries to keep only one
+                                       ;; dired buffer open at once.
                                        ;;
                                        ;; FIXME: Is this code path reachable?
-                                       ((insert-directory-wildcard-in-dir-p current-dir)
+                                       ((insert-directory-wildcard-in-dir-p
+                                         current-dir)
                                         (dired current-dir))
                                        (t
-                                        (dired--find-possibly-alternative-file current-dir))))))
+                                        (dired--find-possibly-alternative-file
+                                         current-dir))))))
                         (define-keymap
                           "<mouse-2>" click
                           "<follow-link>" 'mouse-face
