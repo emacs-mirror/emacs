@@ -2257,9 +2257,6 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 				 head, maxp))
     goto fail;
 
-  /* Add the advance width distortion.  */
-  temp.advance += distortion.advance;
-
   if (interpreter)
     {
       if (glyph->simple)
@@ -2295,8 +2292,11 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 
 	  if (outline)
 	    {
-	      /* Save the new advance width.  */
-	      temp.advance = advance;
+	      /* Save the new advance width.  This advance width is
+		 rounded again, as the instruction code executed might
+		 have moved both phantom points such that they no
+		 longer measure a fractional distance.  */
+	      temp.advance = SFNT_ROUND_FIXED (advance);
 
 	      /* Finally, adjust the left side bearing of the glyph
 		 metrics by the origin point of the outline, should a
@@ -2319,6 +2319,11 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 					  sfntfont_get_metrics,
 					  &dcontext);
 
+      /* Add the advance width distortion, which is not applied to
+	 glyph metrics in advance of their being instructed, and thus
+	 has to be applied before the metrics are.  */
+      temp.advance += distortion.advance;
+
       /* At this point, the glyph metrics are unscaled.  Scale them
 	 up.  If INTERPRETER is set, use the scale placed within.  */
       sfnt_scale_metrics (&temp, scale);
@@ -2328,7 +2333,6 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 	 been applied by either instruction code or glyph variation.
 	 The left side bearing is the distance from the origin point
 	 to the left most point on the X axis.  */
-
       if (index != -1)
 	temp.lbearing = outline->xmin - outline->origin;
     }
@@ -3707,7 +3711,7 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
       if (s->padding_p)
 	current_x += 1;
       else
-	current_x += SFNT_CEIL_FIXED (metrics.advance) / 65536;
+	current_x += metrics.advance / 65536;
     }
 
   /* Call the window system function to put the glyphs to the
