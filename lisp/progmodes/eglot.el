@@ -3031,6 +3031,7 @@ for which LSP on-type-formatting should be requested."
     (let* ((server (eglot--current-server-or-lose))
            (bounds (or (bounds-of-thing-at-point 'symbol)
                        (cons (point) (point))))
+           (bounds-string (buffer-substring (car bounds) (cdr bounds)))
            (sort-completions
             (lambda (completions)
               (cl-sort completions
@@ -3213,9 +3214,10 @@ for which LSP on-type-formatting should be requested."
                         ;; Revert buffer back to state when the edit
                         ;; was obtained from server. If a `proxy'
                         ;; "bar" was obtained from a buffer with
-                        ;; "foo.b", the LSP edit applies to that'
+                        ;; "foo.b", the LSP edit applies to that
                         ;; state, _not_ the current "foo.bar".
                         (delete-region orig-pos (point))
+                        (insert (substring bounds-string (- orig-pos (car bounds))))
                         (eglot--dbind ((TextEdit) range newText) textEdit
                           (pcase-let ((`(,beg . ,end)
                                        (eglot-range-region range)))
