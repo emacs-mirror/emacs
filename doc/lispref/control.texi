@@ -728,7 +728,7 @@ has over @code{cl-case}
   ;; symbol
   ('success       (message "Done!"))
   ('would-block   (message "Sorry, can't do it now"))
-  ('read-only     (message "The shmliblick is read-only"))
+  ('read-only     (message "The schmilblick is read-only"))
   ('access-denied (message "You do not have the needed rights"))
 @end group
 @group
