@@ -1396,6 +1396,13 @@ is already loaded, in which case it either signals an error or
 forcibly reloads the file that defines the feature.
 
 +++
+** New special form 'handler-bind'.
+Provides a functionality similar to `condition-case` except it runs the
+handler code without unwinding the stack, such that we can record the
+backtrace and other dynamic state at the point of the error.
+See the Info node "(elisp) Handling Errors".
+
++++
 ** New 'pop-up-frames' action alist entry for 'display-buffer'.
 This has the same effect as the variable of the same name and takes
 precedence over the variable when present.

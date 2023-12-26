@@ -3543,7 +3543,8 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
 }
 
 /* This structure helps implement the `catch/throw' and `condition-case/signal'
-   control structures.  A struct handler contains all the information needed to
+   control structures as well as 'handler-bind'.
+   A struct handler contains all the information needed to
    restore the state of the interpreter after a non-local jump.
 
    Handler structures are chained together in a doubly linked list; the `next'
@@ -3564,9 +3565,41 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
    state.
 
    Members are volatile if their values need to survive _longjmp when
-   a 'struct handler' is a local variable.  */
+   a 'struct handler' is a local variable.
 
-enum handlertype { CATCHER, CONDITION_CASE, CATCHER_ALL };
+   When running the HANDLER of a 'handler-bind', we need to
+   temporarily "mute" the CONDITION_CASEs and HANDLERs that are "below"
+   the current handler, but without hiding any CATCHERs.  We do that by
+   installing a SKIP_CONDITIONS which tells the search to skip the
+   N next conditions.  */
+
+enum handlertype {
+  CATCHER,                      /* Entry for 'catch'.
+                                   'tag_or_ch' holds the catch's tag.
+                                   'val' holds the retval during longjmp.  */
+  CONDITION_CASE,               /* Entry for 'condition-case'.
+                                   'tag_or_ch' holds the list of conditions.
+                                   'val' holds the retval during longjmp.  */
+  CATCHER_ALL,                  /* Wildcard which catches all 'throw's.
+                                   'tag_or_ch' is unused.
+                                   'val' holds the retval during longjmp.  */
+  HANDLER_BIND,                 /* Entry for 'handler-bind'.
+                                   'tag_or_ch' holds the list of conditions.
+                                   'val' holds the handler function.
+                                   The rest of the handler is unused,
+                                   except for 'bytecode_dest' that holds
+                                   the number of preceding HANDLER_BIND
+                                   entries which belong to the same
+                                   'handler-bind' (and hence need to
+                                   be muted together).  */
+  SKIP_CONDITIONS               /* Mask out the N preceding entries.
+                                   Used while running the handler of
+                                   a HANDLER_BIND to hides the condition
+                                   handlers underneath (and including)
+                                   the 'handler-bind'.
+                                   'tag_or_ch' holds that number, the rest
+                                   is unused.  */
+};
 
 enum nonlocal_exit
 {

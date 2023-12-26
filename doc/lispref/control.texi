@@ -2293,6 +2293,44 @@ should be robust if one does occur.  Note that this macro uses
 @code{condition-case-unless-debug} rather than @code{condition-case}.
 @end defmac
 
+Occasionally, we want to catch some errors and record some information
+about the conditions in which they occurred, such as the full
+backtrace, or the current buffer.  This kinds of information is sadly
+not available in the handlers of a @code{condition-case} because the
+stack is unwound before running that handler, so the handler is run in
+the dynamic context of the @code{condition-case} rather than that of
+the place where the error was signaled.  For those circumstances, you
+can use the following form:
+
+@defmac handler-bind handlers body@dots{}
+This special form runs @var{body} and if it executes without error,
+the value it returns becomes the value of the @code{handler-bind}
+form.  In this case, the @code{handler-bind} has no effect.
+
+@var{handlers} should be a list of elements of the form
+@code{(@var{conditions} @var{handler})} where @var{conditions} is an
+error condition name to be handled, or a list of condition names, and
+@var{handler} should be a form whose evaluation should return a function.
+
+Before running @var{body}, @code{handler-bind} evaluates all the
+@var{handler} forms and installs those handlers to be active during
+the evaluation of @var{body}.  These handlers are searched together
+with those installed by @code{condition-case}.  When the innermost
+matching handler is one installed by @code{handler-bind}, the
+@var{handler} function is called with a single argument holding the
+error description.
+
+@var{handler} is called in the dynamic context where the error
+happened, without first unwinding the stack, meaning that all the
+dynamic bindings are still in effect, except that all the error
+handlers between the code that signaled the error and the
+@code{handler-bind} are temporarily suspended.  Like any normal
+function, @var{handler} can exit non-locally, typically via
+@code{throw}, or it can return normally.  If @var{handler} returns
+normally, it means the handler @emph{declined} to handle the error and
+the search for an error handler is continued where it left off.
+@end defmac
+
 @node Error Symbols
 @subsubsection Error Symbols and Condition Names
 @cindex error symbol
