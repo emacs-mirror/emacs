@@ -343,7 +343,7 @@ This will generate compile-time constants from BINDINGS."
      (lisp-vdefs '("defvar"))
      (lisp-kw '("cond" "if" "while" "let" "let*" "progn" "prog1"
                 "prog2" "lambda" "unwind-protect" "condition-case"
-                "when" "unless" "with-output-to-string"
+                "when" "unless" "with-output-to-string" "handler-bind"
                 "ignore-errors" "dotimes" "dolist" "declare"))
      (lisp-errs '("warn" "error" "signal"))
      ;; Elisp constructs.  Now they are update dynamically
@@ -376,7 +376,7 @@ This will generate compile-time constants from BINDINGS."
      (cl-kw '("block" "break" "case" "ccase" "compiler-let" "ctypecase"
               "declaim" "destructuring-bind" "do" "do*"
               "ecase" "etypecase" "eval-when" "flet" "flet*"
-              "go" "handler-case" "handler-bind" "in-package" ;; "inline"
+              "go" "handler-case" "in-package" ;; "inline"
               "labels" "letf" "locally" "loop"
               "macrolet" "multiple-value-bind" "multiple-value-prog1"
               "proclaim" "prog" "prog*" "progv"
@@ -1346,7 +1346,6 @@ Lisp function does not specify a special indentation."
 (put 'catch 'lisp-indent-function 1)
 (put 'condition-case 'lisp-indent-function 2)
 (put 'handler-case 'lisp-indent-function 1) ;CL
-(put 'handler-bind 'lisp-indent-function 1) ;CL
 (put 'unwind-protect 'lisp-indent-function 1)
 (put 'with-output-to-temp-buffer 'lisp-indent-function 1)
 (put 'closure 'lisp-indent-function 2)

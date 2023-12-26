@@ -282,4 +282,41 @@ expressions works for identifiers starting with period."
   (should-error (defvaralias 'eval-tests--my-c 'eval-tests--my-d)
                 :type 'cyclic-variable-indirection))
 
+(ert-deftest eval-tests--handler-bind ()
+  ;; A `handler-bind' has no effect if no error is signaled.
+  (should (equal (catch 'tag
+                   (handler-bind ((error (lambda (_err) (throw 'tag 'wow))))
+                     'noerror))
+                 'noerror))
+  ;; The handler is called from within the dynamic extent where the
+  ;; error is signaled, unlike `condition-case'.
+  (should (equal (catch 'tag
+                   (handler-bind ((error (lambda (_err) (throw 'tag 'err))))
+                     (list 'inner-catch
+                           (catch 'tag
+                             (user-error "hello")))))
+                 '(inner-catch err)))
+  ;; But inner condition handlers are temporarily muted.
+  (should (equal (condition-case nil
+                     (handler-bind
+                         ((error (lambda (_err)
+                                   (signal 'wrong-type-argument nil))))
+                       (list 'result
+                             (condition-case nil
+                                 (user-error "hello")
+                               (wrong-type-argument 'inner-handler))))
+                   (wrong-type-argument 'wrong-type-argument))
+                 'wrong-type-argument))
+  ;; Handlers do not apply to the code run within the handlers.
+  (should (equal (condition-case nil
+                     (handler-bind
+                         ((error (lambda (_err)
+                                   (signal 'wrong-type-argument nil)))
+                          (wrong-type-argument
+                           (lambda (_err) (user-error "wrong-type-argument"))))
+                       (user-error "hello"))
+                   (wrong-type-argument 'wrong-type-argument)
+                   (error 'plain-error))
+                 'wrong-type-argument)))
+
 ;;; eval-tests.el ends here

@@ -1362,6 +1362,12 @@ values.
 * Lisp Changes in Emacs 30.1
 
 +++
+** New special form 'handler-bind'.
+Provides a functionality similar to `condition-case` except it runs the
+handler code without unwinding the stack, such that we can record the
+backtrace and other dynamic state at the point of the error.
+
++++
 ** New 'pop-up-frames' action alist entry for 'display-buffer'.
 This has the same effect as the variable of the same name and takes
 precedence over the variable when present.
