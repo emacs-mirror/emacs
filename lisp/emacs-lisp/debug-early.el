@@ -27,14 +27,17 @@
 ;; This file dumps a backtrace on stderr when an error is thrown.  It
 ;; has no dependencies on any Lisp libraries and is thus used for
 ;; generating backtraces for bugs in the early parts of bootstrapping.
-;; It is also always used in batch model.  It was introduced in Emacs
+;; It is also always used in batch mode.  It was introduced in Emacs
 ;; 29, before which there was no backtrace available during early
 ;; bootstrap.
 
 ;;; Code:
 
+;; For bootstrap reasons, we cannot use any macros here since they're
+;; not defined yet.
+
 (defalias 'debug-early-backtrace
-  #'(lambda ()
+  #'(lambda (&optional base)
       "Print a trace of Lisp function calls currently active.
 The output stream used is the value of `standard-output'.
 
@@ -51,26 +54,39 @@ of the build process."
                                 (require 'cl-print)
                               (error nil)))
                        #'cl-prin1
-                     #'prin1)))
+                     #'prin1))
+            (first t))
         (mapbacktrace
          #'(lambda (evald func args _flags)
-             (let ((args args))
-	       (if evald
+            (if first
+                ;; The first is the debug-early entry point itself.
+                (setq first nil)
+               (let ((args args))
+	         (if evald
+	             (progn
+	               (princ "  ")
+	               (funcall prin1 func)
+	               (princ "("))
 	           (progn
-	             (princ "  ")
-	             (funcall prin1 func)
-	             (princ "("))
-	         (progn
-	           (princ "  (")
-	           (setq args (cons func args))))
-	       (if args
-	           (while (progn
-	                    (funcall prin1 (car args))
-	                    (setq args (cdr args)))
-	             (princ " ")))
-	       (princ ")\n")))))))
+	             (princ "  (")
+	             (setq args (cons func args))))
+	         (if args
+	             (while (progn
+	                      (funcall prin1 (car args))
+	                      (setq args (cdr args)))
+	               (princ " ")))
+	         (princ ")\n"))))
+	 base))))
 
-(defalias 'debug-early
+(defalias 'debug--early
+  #'(lambda (error base)
+  (princ "\nError: ")
+  (prin1 (car error))	; The error symbol.
+  (princ " ")
+  (prin1 (cdr error))	; The error data.
+  (debug-early-backtrace base)))
+
+(defalias 'debug-early                  ;Called from C.
   #'(lambda (&rest args)
   "Print an error message with a backtrace of active Lisp function calls.
 The output stream used is the value of `standard-output'.
@@ -88,14 +104,31 @@ support the latter, except in batch mode which always uses
 
 \(In versions of Emacs prior to Emacs 29, no backtrace was
 available before `debug' was usable.)"
-  (princ "\nError: ")
-  (prin1 (car (car (cdr args))))	; The error symbol.
-  (princ " ")
-  (prin1 (cdr (car (cdr args))))	; The error data.
-  (debug-early-backtrace)))
+  (debug--early (car (cdr args)) #'debug-early)))	; The error object.
 
 (defalias 'debug-early--handler         ;Called from C.
   #'(lambda (err)
-      (if backtrace-on-error-noninteractive (debug-early 'error err))))
+      (if backtrace-on-error-noninteractive
+          (debug--early err #'debug-early--handler))))
+
+(defalias 'debug-early--muted           ;Called from C.
+  #'(lambda (err)
+      (save-current-buffer
+        (set-buffer (get-buffer-create "*Redisplay-trace*"))
+        (goto-char (point-max))
+        (if (bobp) nil
+          (let ((separator "\n\n\n\n"))
+            (save-excursion
+              ;; The C code tested `backtrace_yet', instead we
+              ;; keep a max of 10 backtraces.
+              (if (search-backward separator nil t 10)
+                (delete-region (point-min) (match-end 0))))
+            (insert separator)))
+        (insert "-- Caught at " (current-time-string) "\n")
+        (let ((standard-output (current-buffer)))
+          (debug--early err #'debug-early--muted))
+        (setq delayed-warnings-list
+              (cons '(error "Error in a redisplay Lisp hook.  See buffer *Redisplay-trace*")
+                    delayed-warnings-list)))))
 
 ;;; debug-early.el ends here.
