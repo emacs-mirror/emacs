@@ -42,14 +42,8 @@ condition-case handling a signaled error.")
 (defmacro macroexp--with-extended-form-stack (expr &rest body)
   "Evaluate BODY with EXPR pushed onto `byte-compile-form-stack'."
   (declare (indent 1))
-  ;; FIXME: We really should just be using a simple dynamic let-binding here,
-  ;; but these explicit push and pop make the extended stack value visible
-  ;; to error handlers.  Remove that need for that!
-  `(progn
-     (push ,expr byte-compile-form-stack)
-     (prog1
-         (progn ,@body)
-       (pop byte-compile-form-stack))))
+  `(let ((byte-compile-form-stack (cons ,expr byte-compile-form-stack)))
+     ,@body))
 
 ;; Bound by the top-level `macroexpand-all', and modified to include any
 ;; macros defined by `defmacro'.
