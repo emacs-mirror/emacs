@@ -57,12 +57,6 @@ Lisp_Object Vrun_hooks;
 /* FIXME: We should probably get rid of this!  */
 Lisp_Object Vsignaling_function;
 
-/* The handler structure which will catch errors in Lisp hooks called
-   from redisplay.  We do not use it for this; we compare it with the
-   handler which is about to be used in signal_or_quit, and if it
-   matches, cause a backtrace to be generated.  */
-static struct handler *redisplay_deep_handler;
-
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
 Lisp_Object *backtrace_args (union specbinding *) EXTERNALLY_VISIBLE;
@@ -244,7 +238,6 @@ init_eval (void)
   lisp_eval_depth = 0;
   /* This is less than the initial value of num_nonmacro_input_events.  */
   when_entered_debugger = -1;
-  redisplay_deep_handler = NULL;
 }
 
 static void
@@ -1611,16 +1604,12 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 						ptrdiff_t nargs,
 						Lisp_Object *args))
 {
-  struct handler *old_deep = redisplay_deep_handler;
   struct handler *c = push_handler (handlers, CONDITION_CASE);
-  if (redisplaying_p)
-    redisplay_deep_handler = c;
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
       clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
-      redisplay_deep_handler = old_deep;
       return hfun (val, nargs, args);
     }
   else
@@ -1628,7 +1617,6 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
       Lisp_Object val = bfun (nargs, args);
       eassert (handlerlist == c);
       handlerlist = c->next;
-      redisplay_deep_handler = old_deep;
       return val;
     }
 }
@@ -1766,11 +1754,6 @@ quit (void)
   return signal_or_quit (Qquit, Qnil, true);
 }
 
-/* Has an error in redisplay giving rise to a backtrace occurred as
-   yet in the current command?  This gets reset in the command
-   loop.  */
-bool backtrace_yet = false;
-
 /* Signal an error, or quit.  ERROR_SYMBOL and DATA are as with Fsignal.
    If CONTINUABLE, the caller allows this function to return
    (presumably after calling the debugger);
@@ -1897,51 +1880,13 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 	return Qnil;
     }
 
-  /* If an error is signaled during a Lisp hook in redisplay, write a
-     backtrace into the buffer *Redisplay-trace*.  */
-  /* FIXME: Turn this into a `handler-bind` installed during redisplay?  */
-  if (!debugger_called && !oom
-      && backtrace_on_redisplay_error
-      && (NILP (clause) || h == redisplay_deep_handler)
-      && NILP (Vinhibit_debugger)
-      && !NILP (Ffboundp (Qdebug_early)))
-    {
-      specpdl_ref count = SPECPDL_INDEX ();
-      max_ensure_room (100);
-      AUTO_STRING (redisplay_trace, "*Redisplay-trace*");
-      Lisp_Object redisplay_trace_buffer;
-      AUTO_STRING (gap, "\n\n\n\n"); /* Separates things in *Redisplay-trace* */
-      Lisp_Object delayed_warning;
-      redisplay_trace_buffer = Fget_buffer_create (redisplay_trace, Qnil);
-      current_buffer = XBUFFER (redisplay_trace_buffer);
-      if (!backtrace_yet) /* Are we on the first backtrace of the command?  */
-	Ferase_buffer ();
-      else
-	Finsert (1, &gap);
-      backtrace_yet = true;
-      specbind (Qstandard_output, redisplay_trace_buffer);
-      specbind (Qdebugger, Qdebug_early);
-      call_debugger (list2 (Qerror, error));
-      unbind_to (count, Qnil);
-      delayed_warning = make_string
-	  ("Error in a redisplay Lisp hook.  See buffer *Redisplay-trace*", 61);
-
-      Vdelayed_warnings_list = Fcons (list2 (Qerror, delayed_warning),
-				      Vdelayed_warnings_list);
-    }
-
   if (!NILP (clause))
-    {
-      unwind_to_catch (h, NONLOCAL_EXIT_SIGNAL, error);
-    }
-  else
-    {
-      if (handlerlist != handlerlist_sentinel)
-	/* FIXME: This will come right back here if there's no `top-level'
-	   catcher.  A better solution would be to abort here, and instead
-	   add a catch-all condition handler so we never come here.  */
-	Fthrow (Qtop_level, Qt);
-    }
+    unwind_to_catch (h, NONLOCAL_EXIT_SIGNAL, error);
+  else if (handlerlist != handlerlist_sentinel)
+    /* FIXME: This will come right back here if there's no `top-level'
+       catcher.  A better solution would be to abort here, and instead
+       add a catch-all condition handler so we never come here.  */
+    Fthrow (Qtop_level, Qt);
 
   string = Ferror_message_string (error);
   fatal ("%s", SDATA (string));

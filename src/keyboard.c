@@ -1167,9 +1167,10 @@ top_level_2 (void)
      encountering an error, to help with debugging.  */
   bool setup_handler = noninteractive;
   if (setup_handler)
+    /* FIXME: Should we (re)use `list_of_error` from `xdisp.c`? */
     push_handler_bind (list1 (Qerror), Qdebug_early__handler, 0);
 
-  Lisp_Object res = Feval (Vtop_level, Qnil);
+  Lisp_Object res = Feval (Vtop_level, Qt);
 
   if (setup_handler)
     pop_handler ();
@@ -1365,7 +1366,6 @@ command_loop_1 (void)
 	display_malloc_warning ();
 
       Vdeactivate_mark = Qnil;
-      backtrace_yet = false;
 
       /* Don't ignore mouse movements for more than a single command
 	 loop.  (This flag is set in xdisp.c whenever the tool bar is
