@@ -612,7 +612,7 @@ recommend to follow the procedure below to try to identify the cause:
      (declare (speed 1))
 
    at the beginning of the body of suspected function(s) to change
-   native-comp-speed only for those functions -- this could help you
+   'native-comp-speed' only for those functions -- this could help you
    identify the function(s) which cause(s) the problem.
 
  . Reduce the problematic function(s) to the minimal code that still
