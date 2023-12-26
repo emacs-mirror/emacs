@@ -3559,6 +3559,7 @@ int partial_line_height (struct it *it_origin);
 bool in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
 extern bool redisplaying_p;
+extern unsigned int redisplay_counter;
 extern bool display_working_on_window_p;
 extern void unwind_display_working_on_window (void);
 extern bool help_echo_showing_p;

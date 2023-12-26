@@ -302,6 +302,7 @@ call_debugger (Lisp_Object arg)
   /* Resetting redisplaying_p to 0 makes sure that debug output is
      displayed if the debugger is invoked during redisplay.  */
   debug_while_redisplaying = redisplaying_p;
+  int redisplay_counter_before = redisplay_counter;
   redisplaying_p = 0;
   specbind (Qdebugger_may_continue,
 	    debug_while_redisplaying ? Qnil : Qt);
@@ -323,9 +324,10 @@ call_debugger (Lisp_Object arg)
   /* Interrupting redisplay and resuming it later is not safe under
      all circumstances.  So, when the debugger returns, abort the
      interrupted redisplay by going back to the top-level.  */
-  /* FIXME: Move this to the redisplay code?  */
   if (debug_while_redisplaying
-      && !EQ (Vdebugger, Qdebug_early))
+      && redisplay_counter_before != redisplay_counter)
+    /* FIXME: Rather than jump all the way to `top-level`
+       we should exit only the current redisplay.  */
     Ftop_level ();
 
   return unbind_to (count, val);

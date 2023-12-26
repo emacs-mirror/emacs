@@ -3054,6 +3054,17 @@ hscrolling_current_line_p (struct window *w)
 			Lisp form evaluation
  ***********************************************************************/
 
+/* The redisplay is not re-entrant.  But we can run ELisp code during
+   redisplay, which in turn can trigger redisplay.
+   We try to make this inner redisplay work correctly, but it messes up
+   the state of the outer redisplay, so when we return to this outer
+   redisplay, we need to abort it.
+   To dect this case, we keep a counter that identifies every call to the
+   redisplay, so we can detect when a nested redisplay happened by the
+   fact that the counter has changed.  */
+
+unsigned int redisplay_counter = 0;
+
 /* Error handler for dsafe_eval and dsafe_call.  */
 
 static Lisp_Object
@@ -3085,10 +3096,17 @@ dsafe__call (bool inhibit_quit, Lisp_Object (f) (ptrdiff_t, Lisp_Object *),
       specbind (Qinhibit_redisplay, Qt);
       if (inhibit_quit)
 	specbind (Qinhibit_quit, Qt);
+      int redisplay_counter_before = redisplay_counter;
       /* Use Qt to ensure debugger does not run,
-	 so there is no possibility of wanting to redisplay.  */
+	 to reduce the risk of wanting to redisplay.  */
       val = internal_condition_case_n (f, nargs, args, Qt,
 				       dsafe_eval_handler);
+      if (redisplay_counter_before != redisplay_counter)
+        /* A nested redisplay happened, abort this one!  */
+        /* FIXME: Rather than jump all the way to `top-level`
+           we should exit only the current redisplay.  */
+        Ftop_level ();
+
       val = unbind_to (count, val);
     }
 
@@ -17108,6 +17126,8 @@ redisplay_internal (void)
   struct frame *sf;
   bool polling_stopped_here = false;
   Lisp_Object tail, frame;
+
+  redisplay_counter++;
 
   /* Set a limit to the number of retries we perform due to horizontal
      scrolling, this avoids getting stuck in an uninterruptible
