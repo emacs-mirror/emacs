@@ -3113,8 +3113,8 @@ for which LSP on-type-formatting should be requested."
           ((eq action 'lambda)                           ; test-completion
            (test-completion pattern (funcall proxies)))
           ((eq (car-safe action) 'boundaries) nil)       ; boundaries
-          ((null action)                                 ; try-completion
-           (try-completion pattern (funcall proxies)))
+          ((null action)                                 ; try-completion (github#1339)
+           pattern)
           ((eq action t)                                 ; all-completions
            (let ((comps (funcall proxies)))
              (dolist (c comps) (eglot--dumb-flex pattern c t))
@@ -3215,7 +3215,8 @@ for which LSP on-type-formatting should be requested."
                         ;; was obtained from server. If a `proxy'
                         ;; "bar" was obtained from a buffer with
                         ;; "foo.b", the LSP edit applies to that
-                        ;; state, _not_ the current "foo.bar".
+                        ;; state, _not_ the current "foo.bar"
+                        ;; (github#1339)
                         (delete-region orig-pos (point))
                         (insert (substring bounds-string (- orig-pos (car bounds))))
                         (eglot--dbind ((TextEdit) range newText) textEdit
