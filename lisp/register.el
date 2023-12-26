@@ -386,18 +386,21 @@ Format of each entry is controlled by the variable `register-preview-function'."
     (setq register-preview-function (register--preview-function
                                      register--read-with-preview-function)))
   (when (or show-empty (consp register-alist))
-    (with-current-buffer-window
-     buffer
-     (cons 'display-buffer-below-selected
-	   '((window-height . fit-window-to-buffer)
-	     (preserve-size . (nil . t))))
-     nil
-     (with-current-buffer standard-output
-       (setq cursor-in-non-selected-windows nil)
-       (mapc (lambda (elem)
-               (when (get-register (car elem))
-                 (insert (funcall register-preview-function elem))))
-             register-alist)))))
+    (with-current-buffer-window buffer
+        register-preview-display-buffer-alist
+        nil
+      (with-current-buffer standard-output
+        (setq cursor-in-non-selected-windows nil)
+        (mapc (lambda (elem)
+                (when (get-register (car elem))
+                  (insert (funcall register-preview-function elem))))
+              register-alist)))))
+
+(defcustom register-preview-display-buffer-alist '(display-buffer-at-bottom
+                                                   (window-height . fit-window-to-buffer)
+	                                           (preserve-size . (nil . t)))
+  "Window configuration for the register preview buffer."
+  :type display-buffer--action-custom-type)
 
 (defun register-preview-1 (buffer &optional show-empty types)
   "Pop up a window showing the preview of registers in BUFFER.
@@ -415,9 +418,7 @@ Format of each entry is controlled by the variable `register-preview-function'."
     (when (or show-empty (consp registers))
       (with-current-buffer-window
         buffer
-        (cons 'display-buffer-below-selected
-	      '((window-height . fit-window-to-buffer)
-	        (preserve-size . (nil . t))))
+        register-preview-display-buffer-alist
         nil
         (with-current-buffer standard-output
           (setq cursor-in-non-selected-windows nil)
