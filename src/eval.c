@@ -212,7 +212,6 @@ void
 init_eval_once (void)
 {
   /* Don't forget to update docs (lispref node "Eval").  */
-  max_lisp_eval_depth = 1600;
   Vrun_hooks = Qnil;
   pdumper_do_now_and_after_load (init_eval_once_for_pdumper);
 }
@@ -248,22 +247,29 @@ init_eval (void)
   redisplay_deep_handler = NULL;
 }
 
-/* Ensure that *M is at least A + B if possible, or is its maximum
-   value otherwise.  */
-
-static void
-max_ensure_room (intmax_t *m, intmax_t a, intmax_t b)
-{
-  intmax_t sum = ckd_add (&sum, a, b) ? INTMAX_MAX : sum;
-  *m = max (*m, sum);
-}
-
-/* Unwind-protect function used by call_debugger.  */
-
 static void
 restore_stack_limits (Lisp_Object data)
 {
-  integer_to_intmax (data, &max_lisp_eval_depth);
+  intmax_t old_depth;
+  integer_to_intmax (data, &old_depth);
+  lisp_eval_depth_reserve += max_lisp_eval_depth - old_depth;
+  max_lisp_eval_depth = old_depth;
+}
+
+/* Try and ensure that we have at least B dpeth available.  */
+
+static void
+max_ensure_room (intmax_t b)
+{
+  intmax_t sum = ckd_add (&sum, lisp_eval_depth, b) ? INTMAX_MAX : sum;
+  intmax_t diff = min (sum - max_lisp_eval_depth, lisp_eval_depth_reserve);
+  if (diff <= 0)
+    return;
+  intmax_t old_depth = max_lisp_eval_depth;
+  max_lisp_eval_depth += diff;
+  lisp_eval_depth_reserve -= diff;
+  /* Restore limits after leaving the debugger.  */
+  record_unwind_protect (restore_stack_limits, make_int (old_depth));
 }
 
 /* Call the Lisp debugger, giving it argument ARG.  */
@@ -274,16 +280,12 @@ call_debugger (Lisp_Object arg)
   bool debug_while_redisplaying;
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object val;
-  intmax_t old_depth = max_lisp_eval_depth;
 
   /* The previous value of 40 is too small now that the debugger
      prints using cl-prin1 instead of prin1.  Printing lists nested 8
      deep (which is the value of print-level used in the debugger)
      currently requires 77 additional frames.  See bug#31919.  */
-  max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
-
-  /* Restore limits after leaving the debugger.  */
-  record_unwind_protect (restore_stack_limits, make_int (old_depth));
+  max_ensure_room (100);
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -1802,16 +1804,13 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function)
-      && ! NILP (error_symbol)
-      /* Don't try to call a lisp function if we've already overflowed
-         the specpdl stack.  */
-      && specpdl_ptr < specpdl_end)
+      && ! NILP (error_symbol))
     {
-      /* Edebug takes care of restoring these variables when it exits.  */
-      max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 20);
-
+      specpdl_ref count = SPECPDL_INDEX ();
+      max_ensure_room (20);
       /* FIXME: 'handler-bind' makes `signal-hook-function' obsolete?  */
       call2 (Vsignal_hook_function, error_symbol, data);
+      unbind_to (count, Qnil);
     }
 
   conditions = Fget (real_error_symbol, Qerror_conditions);
@@ -1849,9 +1848,12 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	        Lisp_Object error_data
 	          = (NILP (error_symbol)
 	             ? data : Fcons (error_symbol, data));
+	        specpdl_ref count = SPECPDL_INDEX ();
+	        max_ensure_room (20);
 	        push_handler (make_fixnum (skip + h->bytecode_dest),
 	                      SKIP_CONDITIONS);
 	        call1 (h->val, error_data);
+	        unbind_to (count, Qnil);
 	        pop_handler ();
 	      }
 	    continue;
@@ -1901,8 +1903,8 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
       && NILP (Vinhibit_debugger)
       && !NILP (Ffboundp (Qdebug_early)))
     {
-      max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
       specpdl_ref count = SPECPDL_INDEX ();
+      max_ensure_room (100);
       AUTO_STRING (redisplay_trace, "*Redisplay-trace*");
       Lisp_Object redisplay_trace_buffer;
       AUTO_STRING (gap, "\n\n\n\n"); /* Separates things in *Redisplay-trace* */
@@ -4345,6 +4347,13 @@ actual stack overflow in C, which would be fatal for Emacs.
 You can safely make it considerably larger than its default value,
 if that proves inconveniently small.  However, if you increase it too far,
 Emacs could overflow the real C stack, and crash.  */);
+  max_lisp_eval_depth = 1600;
+
+  DEFVAR_INT ("lisp-eval-depth-reserve", lisp_eval_depth_reserve,
+	      doc: /* Extra depth that can be allocated to handle errors.
+This is the max depth that the system will add to `max-lisp-eval-depth'
+when calling debuggers or `handler-bind' handlers.  */);
+  lisp_eval_depth_reserve = 200;
 
   DEFVAR_LISP ("quit-flag", Vquit_flag,
 	       doc: /* Non-nil causes `eval' to abort, unless `inhibit-quit' is non-nil.
