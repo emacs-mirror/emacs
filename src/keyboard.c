@@ -11573,6 +11573,18 @@ requeued_command_events_pending_p (void)
   return (CONSP (Vunread_command_events));
 }
 
+/* Return true if there are any pending requeued events (command events
+   or events to be processed by other levels of the input processing
+   stages).  */
+
+bool
+requeued_events_pending_p (void)
+{
+  return (requeued_command_events_pending_p ()
+	  || !NILP (Vunread_post_input_method_events)
+	  || !NILP (Vunread_input_method_events));
+}
+
 DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 1, 0,
        doc: /* Return t if command input is currently available with no wait.
 Actually, the value is nil only if we can be sure that no input is available;
@@ -11581,9 +11593,7 @@ if there is a doubt, the value is t.
 If CHECK-TIMERS is non-nil, timers that are ready to run will do so.  */)
   (Lisp_Object check_timers)
 {
-  if (CONSP (Vunread_command_events)
-      || !NILP (Vunread_post_input_method_events)
-      || !NILP (Vunread_input_method_events))
+  if (requeued_events_pending_p ())
     return (Qt);
 
   /* Process non-user-visible events (Bug#10195).  */
