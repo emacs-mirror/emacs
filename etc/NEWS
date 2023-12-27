@@ -787,6 +787,13 @@ in the minibuffer to restrict the list of possible completions to only
 include candidates matching the current minibuffer input.  See the
 Info node "(emacs) Narrow Completions" for more information.
 
++++
+*** New command for reordering the minibuffer completions list.
+You can now use 'C-x C-v' ('minibuffer-sort-completions') in the
+minibuffer to change the sort order of the completions list.  If you
+invoke this command with a negative prefix argument ('C-- C-x C-v'),
+it reverses the current order.
+
 *** New minor mode 'completions-auto-update-mode'.
 This global minor mode automatically updates the *Completions* buffer
 as you type in the minibuffer.

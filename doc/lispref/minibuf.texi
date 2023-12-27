@@ -1326,25 +1326,23 @@ The list of completions is displayed as text in a buffer named
 @file{*Completions*}.
 @end deffn
 
-@defvar minibuffer-narrow-completions-function
-The value of this variable is a function that command
-@code{minibuffer-narrow-completions} (@kbd{C-x n m} in the minibuffer)
-calls to restrict the list of completion candidates.
-@code{minibuffer-narrow-completions} calls the function that is the
-value of this variable with no arguments, and this function should
-return a cons cell @code{(@var{pred} . @var{desc})} where @var{pred}
-is a function that takes one argument, a completion candidate, and
-returns non-@code{nil} if that candidate should appear in the
-@file{*Completions*} list, and @var{desc} is a string describing
-@var{pred}.
-@end defvar
+@deffn Command minibuffer-sort-completions
+This function reorders the list of the possible completions.  It
+prompts you for one of the orders in
+@code{minibuffer-completions-sort-orders}, and applies that ordering
+to the current completions list.  When you call this function
+interactively with a negative prefix argument (@kbd{C-- C-x C-v} in
+the minibuffer), it reverses the order of the completion candidates.
+@end deffn
 
-@defun minibuffer-narrow-completions-by-regexp
-This function is the default value of
-@code{minibuffer-narrow-completions-function}.  This function prompts
-for a regular expression, and returns a completions predicate that
-only keeps candidates matching that regular expression.
-@end defun
+@defopt minibuffer-completions-sort-orders
+This user option specifies which orders the command
+@code{minibuffer-sort-completions} suggests for sorting the
+completions list.  By default, this includes alphabetical sorting,
+sorting by candidate position in the minibuffer history, and no
+sorting at all.  See the documentation string of this user option for
+details about adding new sorting options.
+@end defopt
 
 @deffn Command minibuffer-narrow-completions
 This function narrows (restricts) the list of possible completions.
@@ -1353,6 +1351,25 @@ It calls the function that the variable
 completions predicate, and adds that predicate to
 @code{minibuffer-completion-predicate}.
 @end deffn
+
+@defvar minibuffer-narrow-completions-function
+The value of this variable is a function that command
+@code{minibuffer-narrow-completions} calls to restrict the list of
+completion candidates.  @code{minibuffer-narrow-completions} calls the
+function that is the value of this variable with no arguments, and
+this function should return a cons cell @code{(@var{pred}
+. @var{desc})} where @var{pred} is a function that takes one argument,
+a completion candidate, and returns non-@code{nil} if that candidate
+should appear in the @file{*Completions*} list, and @var{desc} is a
+string describing @var{pred}.
+@end defvar
+
+@defun minibuffer-narrow-completions-by-regexp
+This function is the default value of
+@code{minibuffer-narrow-completions-function}.  This function prompts
+for a regular expression, and returns a completions predicate that
+only keeps candidates matching that regular expression.
+@end defun
 
 @deffn Command minibuffer-narrow-completions-to-current
 This is similar to @code{minibuffer-narrow-completions}, except that
@@ -1403,6 +1420,9 @@ keymap makes the following bindings:
 
 @item @key{TAB}
 @code{minibuffer-complete}
+
+@item C-x C-v
+@code{minibuffer-sort-completions}
 
 @item C-x n
 @code{minibuffer-narrow-completions-map}

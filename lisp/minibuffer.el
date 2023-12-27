@@ -2172,14 +2172,15 @@ completions."
   :version "28.1")
 
 (defcustom completions-header-format
-  (propertize "%s possible completions%r:\n" 'face 'shadow)
+  (propertize "%s possible completions%t%r:\n" 'face 'shadow)
   "If non-nil, the format string for completions heading line.
 The heading line is inserted before the completions, and is
 intended to summarize the completions.  The format string may
-contain the sequences \"%s\" and \"%r\", which are substituted
-with the total count of possible completions and the description
-of a description of the current completions restriction,
-respectively.  If this option is nil, no heading line is shown."
+contain the sequences \"%s\", \"%t\" and \"%r\", which are
+substituted with the total count of possible completions, the
+current completions sort order, and a description of the current
+completions restriction.  If this option is nil, no heading line
+is shown."
   :type '(choice (const :tag "No heading line" nil)
                  (string :tag "Format string for heading line"))
   :version "30.1")
@@ -2427,6 +2428,44 @@ and with BASE-SIZE appended as the last element."
           minibuffer-completion-predicate)
          (when descs (mapconcat #'identity descs ", ")))))
 
+(defvar minibuffer-completions-sort-function nil
+  "Function for sorting minibuffer completion candidates, or nil.
+
+When the value of this variable is a function,
+`minibuffer-completion-help' uses that function to sort the
+completions list instead of using the `display-sort-function'
+from the completion table or the value of `completions-sort'.
+
+`minibuffer-sort-completions' sets the value of this variable to
+temporarily override the default completions sorting.")
+
+(defcustom minibuffer-completions-sort-orders
+  '((?a "alphabetical" "Sort alphabetically"
+        minibuffer-sort-alphabetically "sorted alphabetically")
+    (?h "historical" "Sort by position in minibuffer history"
+        minibuffer-sort-by-history "sorted by position in minibuffer history")
+    (?i "identity" "Disable sorting" identity nil)
+    (?d "default" "Default sort order" nil nil))
+  "List of minibuffer completions sort orders.
+Each element is a list of the form (CHAR NAME HELP FUNC DESC),
+where CHAR is a character that you type to select this sort order
+in `minibuffer-sort-completions', NAME is the name of the sort
+order, HELP is a short help string that explains what this sort
+order does, FUNC is the completions sorting function, and DESC is
+a desription that is shown in the *Completions* buffer when the
+sort order is in effect.
+
+FUNC can also be nil, which says to use the default sort order
+when you select this sort order."
+  :version "30.1"
+  :type '(repeat
+          (list character string string
+                (choice function
+                        (const :tag "No sorting" nil)
+                        (const :tag "Use default sort order" identity))
+                (choice string
+                        (const :tag "No description" nil)))))
+
 (defun display-completion-list (completions &optional common-substring group-fun)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
 Each element may be just a symbol or string
@@ -2457,12 +2496,29 @@ candidates."
     (let ((pred-desc
            (if-let ((pd (minibuffer--completion-predicate-description)))
                (concat ", " pd)
+             ""))
+          (sort-desc
+           (if minibuffer-completions-sort-function
+               (concat
+                (when-let
+                    ((sd (nth 4 (seq-find
+                                 (lambda (order)
+                                   (eq
+                                    (nth 3 order)
+                                    (advice--cd*r
+                                     minibuffer-completions-sort-function)))
+                                 minibuffer-completions-sort-orders))))
+                  (concat ", " sd))
+                (when (advice-function-member-p
+                       #'reverse minibuffer-completions-sort-function)
+                  ", reversed"))
              "")))
       (with-current-buffer standard-output
         (goto-char (point-max))
         (if completions-header-format
             (insert (format-spec completions-header-format
                                  (list (cons ?s (length completions))
+                                       (cons ?t sort-desc)
                                        (cons ?r pred-desc))))
           (unless completion-show-help
             ;; Ensure beginning-of-buffer isn't a completion.
@@ -2575,6 +2631,54 @@ The candidate will still be chosen by `choose-completion' unless
       (with-selected-window window
         (completions--deselect)))))
 
+(defcustom minibuffer-read-sort-order-with-completion nil
+  "Whether to use completion for reading minibuffer completions sort order.
+If this user options is nil (the default),
+`minibuffer-sort-completions' lets you to select a sort order by
+typing a single key, which is usually the first letter of the
+name of the sort order.  If you set this user option to non-nil,
+`minibuffer-sort-completions' instead reads the sort order name
+in the minibuffer, with completion."
+  :type 'boolean
+  :version "30.1")
+
+(defun minibuffer-sort-completions (arg)
+  "Sort the list of minibuffer completion candidates.
+Prompt for a sort order among
+`minibuffer-completions-sort-orders' and apply it to the current
+completions list.  With negative prefix argument ARG, reverse the
+current order instead."
+  (interactive "p" minibuffer-mode)
+  (if (< arg 0)
+      (if (advice-function-member-p
+           #'reverse minibuffer-completions-sort-function)
+          (remove-function
+           (local 'minibuffer-completions-sort-function) #'reverse)
+        (unless minibuffer-completions-sort-function
+          (setq-local minibuffer-completions-sort-function
+                      (or (completion-metadata-get
+                           (completion--field-metadata
+                            (car (minibuffer--completion-boundaries)))
+                           'display-sort-function)
+                          (pcase completions-sort
+                            ('nil #'identity)
+                            ('alphabetical #'minibuffer-sort-alphabetically)
+                            ('historical #'minibuffer-sort-by-history)
+                            ;; It's already a function, use it.
+                            (_ completions-sort)))))
+        (add-function
+         :filter-return
+         (local 'minibuffer-completions-sort-function) #'reverse))
+    (setq-local
+     minibuffer-completions-sort-function
+     (nth 3 (let ((enable-recursive-minibuffers t))
+              (read-multiple-choice
+               "Sort order" minibuffer-completions-sort-orders
+               nil nil minibuffer-read-sort-order-with-completion)))))
+  (when completion-auto-help
+    (let ((beg-end (minibuffer--completion-boundaries)))
+      (minibuffer-completion-help (car beg-end) (cdr beg-end)))))
+
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
@@ -2664,13 +2768,19 @@ The candidate will still be chosen by `choose-completion' unless
                       ;; all-completions, not
                       ;; completion-all-completions.  Often it's the
                       ;; same, but not always.
-                      (setq completions (if sort-fun
-                                            (funcall sort-fun completions)
-                                          (pcase completions-sort
-                                            ('nil completions)
-                                            ('alphabetical (minibuffer-sort-alphabetically completions))
-                                            ('historical (minibuffer-sort-by-history completions))
-                                            (_ (funcall completions-sort completions)))))
+                      (setq completions
+                            (cond
+                             (minibuffer-completions-sort-function
+                              (funcall minibuffer-completions-sort-function
+                                       completions))
+                             (sort-fun
+                              (funcall sort-fun completions))
+                             (t
+                              (pcase completions-sort
+                                ('nil completions)
+                                ('alphabetical (minibuffer-sort-alphabetically completions))
+                                ('historical (minibuffer-sort-by-history completions))
+                                (_ (funcall completions-sort completions))))))
 
                       ;; After sorting, group the candidates using the
                       ;; `group-function'.
@@ -3091,6 +3201,7 @@ The completion method is determined by `completion-at-point-functions'."
   "M-<up>"    #'minibuffer-previous-completion
   "M-<down>"  #'minibuffer-next-completion
   "M-RET"     #'minibuffer-choose-completion
+  "C-x C-v"   #'minibuffer-sort-completions
   "C-x n"     'minibuffer-narrow-completions-map)
 
 (defvar-keymap minibuffer-local-must-match-map

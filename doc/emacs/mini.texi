@@ -353,6 +353,9 @@ arguments that often include spaces, such as file names.
 @item @key{RET}
 Submit the text in the minibuffer as the argument, possibly completing
 first (@code{minibuffer-complete-and-exit}).  @xref{Completion Exit}.
+@item C-x C-v
+Change the order of the list of possible completions
+(@code{minibuffer-sort-completions}).
 @item C-x n n
 Narrow (restrict) the list of possible completions according to the
 current minibuffer input
@@ -383,6 +386,22 @@ are chosen.
 completion is @samp{auto-fill-mode}, but it only inserts @samp{ill-},
 giving @samp{auto-fill-}.  Another @key{SPC} at this point completes
 all the way to @samp{auto-fill-mode}.
+
+@kindex RET @r{(completion)}
+@findex minibuffer-complete-and-exit
+  @key{RET} (@code{minibuffer-complete-and-exit}) submits the text in
+the minibuffer, or completes it and then submits it, depending on the
+``strictness'' of the completion.  @xref{Completion Exit}.
+
+@kindex C-x C-v @r{(completion)}
+@findex minibuffer-sort-completions
+  @key{C-x C-v} (@code{minibuffer-sort-completions}) changes the order
+of the completions list.  By default, Emacs sorts the list of possible
+completion candidates in the order that you specify in user option
+@code{completions-sort} (@pxref{Completion Options}).  This command
+lets you change the order of the current completions list interactively.
+You can invoke it with a negative prefix argument (@kbd{C-- C-x C-v}) to
+reverse the current order.
 
 @kindex C-x n n @r{(completion)}
 @findex minibuffer-narrow-completions-to-current
@@ -490,8 +509,8 @@ showing it (@code{kill-current-buffer}).
 @node Completion Exit
 @subsection Completion Exit
 
-@kindex RET @r{(completion in minibuffer)}
-@findex minibuffer-complete-and-exit
+@cindex completion strictness
+@cindex strict completion
   When a command reads an argument using the minibuffer with
 completion, it also controls what happens when you type @key{RET}
 (@code{minibuffer-complete-and-exit}) to submit the argument.  There
@@ -844,15 +863,16 @@ Reference Manual}).
 The variable @code{completions-header-format} is a format spec string
 to control the informative line shown before the completions list of
 candidates, called the @dfn{completions heading line}.  Emacs
-substitutes @samp{%s} and @samp{%r} constructs that occur in this
-string with the number of completion candidates and a description of
-the current completions restriction, respectively.  @xref{Narrow
-Completions}.  To suppress the display of the heading line, customize
-this variable to @code{nil}.  The string that is the value of this
-variable can have text properties to change the visual appearance of
-the heading line; some useful properties are @code{face} or
-@code{cursor-intangible} (@pxref{Special Properties,,Properties with
-Special Meanings, elisp, The Emacs Lisp Reference Manual}).
+substitutes @samp{%s}, @samp{%t} and @samp{%r} constructs that occur
+in this string with the number of completion candidates, the current
+completions sort order, and a description of the current completions
+restriction, respectively.  @xref{Narrow Completions}.  To suppress
+the display of the heading line, customize this variable to
+@code{nil}.  The string that is the value of this variable can have
+text properties to change the visual appearance of the heading line;
+some useful properties are @code{face} or @code{cursor-intangible}
+(@pxref{Special Properties,,Properties with Special Meanings, elisp,
+The Emacs Lisp Reference Manual}).
 
 @vindex completions-highlight-face
 When @code{completions-highlight-face} names a face, the current

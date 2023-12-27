@@ -2572,6 +2572,11 @@ It must accept a buffer as its only required argument.")
     '(menu-item "Restrict to Current Completions"
                 minibuffer-narrow-completions-to-current
 		:help "Restrict completions according to minibuffer input"))
+  (bindings--define-key map
+      [menu-bar minibuf minibuffer-sort-completions]
+    '(menu-item "Sort Completions"
+                minibuffer-sort-completions
+		:help "Sort list of completion candidates"))
   (bindings--define-key map [menu-bar minibuf ?\?]
     '(menu-item "List Completions" minibuffer-completion-help
 		:help "Display all possible completions"))
