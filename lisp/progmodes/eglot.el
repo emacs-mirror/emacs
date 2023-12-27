@@ -138,6 +138,8 @@
                         'eglot-managed-mode-hook "1.6")
 (define-obsolete-variable-alias 'eglot-confirm-server-initiated-edits
   'eglot-confirm-server-edits "1.16")
+(make-obsolete-variable 'eglot-events-buffer-size
+  'eglot-events-buffer-config "1.16")
 (define-obsolete-function-alias 'eglot--uri-to-path 'eglot-uri-to-path "1.16")
 (define-obsolete-function-alias 'eglot--path-to-uri 'eglot-path-to-uri "1.16")
 (define-obsolete-function-alias 'eglot--range-region 'eglot-range-region "1.16")
@@ -413,17 +415,29 @@ as 0, i.e. don't block at all."
   "Don't tell server of changes before Emacs's been idle for this many seconds."
   :type 'number)
 
-(defcustom eglot-events-buffer-size 2000000
-  "Control the size of the Eglot events buffer.
-If a number, don't let the buffer grow larger than that many
-characters.  If 0, don't use an event's buffer at all.  If nil,
-let the buffer grow forever.
+(defcustom eglot-events-buffer-config
+  (list :size (or (bound-and-true-p eglot-events-buffer-size) 2000000)
+        :format 'full)
+  "Configure the Eglot events buffer.
 
-For changes on this variable to take effect on a connection
-already started, you need to restart the connection.  That can be
-done by `eglot-reconnect'."
-  :type '(choice (const :tag "No limit" nil)
-                 (integer :tag "Number of characters")))
+Value is a plist accepting the keys `:size', which controls the
+size in characters of the buffer (0 disables, nil means
+infinite), and `:format', which controls the shape of each log
+entry (`full' includes the original JSON, `lisp' uses
+pretty-printed Lisp).
+
+For changes on this variable to take effect, you need to restart
+the LSP connection.  That can be done by `eglot-reconnect'."
+  :type '(plist :key-type (symbol :tag "Keyword")
+                :options (((const :tag "Size" :size)
+                           (choice
+                            (const :tag "No limit" nil)
+                            (integer :tag "Number of characters")))
+                          ((const :tag "Format" :format)
+                           (choice
+                            (const :tag "Full with original JSON" full)
+                            (const :tag "Shortened" short)
+                            (const :tag "Pretty-printed lisp" lisp))))))
 
 (defcustom eglot-confirm-server-edits '((eglot-rename . nil)
                                         (t . maybe-summary))
@@ -1513,7 +1527,7 @@ This docstring appeases checkdoc, that's all."
           (apply
            #'make-instance class
            :name readable-name
-           :events-buffer-config `(:size ,eglot-events-buffer-size :format full)
+           :events-buffer-config eglot-events-buffer-config
            :notification-dispatcher (funcall spread #'eglot-handle-notification)
            :request-dispatcher (funcall spread #'eglot-handle-request)
            :on-shutdown #'eglot--on-shutdown
