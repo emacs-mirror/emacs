@@ -426,6 +426,10 @@ message.")
 	       (:conc-name ses-cell--))
   symbol formula printer references properties)
 
+(defun ses--cell-value (cell)
+  "Returns the value of cell CELL."
+  (symbol-value (ses-cell--symbol cell)))
+
 (cl-defstruct (ses--locprn
                (:constructor)
                (:constructor ses-make-local-printer-info
@@ -3947,6 +3951,78 @@ This will change X by making `setcar' on its cons cells."
       (setq ret (cdr ret))))
   x)
 
+(defun ses--range-engine (value-extractor from to &optional rest)
+  "Helper function for `ses-range'."
+  (let (result-row
+	result
+	(prev-row -1)
+	reorient-x
+	reorient-y
+	transpose vectorize
+	(clean #'list))
+    (ses-dorange (cons from to)
+      (when (/= prev-row row)
+	(push result-row result)
+	(setq result-row nil))
+      (push (funcall value-extractor (ses-get-cell row col)) result-row)
+      (setq prev-row row))
+    (push result-row result)
+    (while rest
+      (let ((x (pop rest)))
+	(pcase x
+	  ('>v (setq transpose nil reorient-x nil reorient-y nil))
+	  ('>^ (setq transpose nil reorient-x nil reorient-y t))
+	  ('<^ (setq transpose nil reorient-x t reorient-y t))
+	  ('<v (setq transpose nil reorient-x t reorient-y nil))
+	  ('v> (setq transpose t reorient-x nil reorient-y t))
+	  ('^> (setq transpose t reorient-x nil reorient-y nil))
+	  ('^< (setq transpose t reorient-x t reorient-y nil))
+	  ('v< (setq transpose t reorient-x t reorient-y t))
+	  ((or '* '*2 '*1) (setq vectorize x))
+	  ('! (setq clean #'ses--clean-!))
+	  ('_ (setq clean `(lambda (&rest x)
+			      (ses--clean-_  x ,(if rest (pop rest) 0)))))
+	  (_
+	   (cond
+					; shorthands one row
+	    ((and (null (cdar result)) (memq x '(> <)))
+	     (push (intern (concat (symbol-name x) "v")) rest))
+					; shorthands one col
+	    ((and (null (cdar result)) (memq x '(v ^)))
+	     (push (intern (concat (symbol-name x) ">")) rest))
+	    (t (error "Unexpected flag `%S' in ses-range" x)))))))
+    (if reorient-y
+	(setcdr (last result 2) nil)
+      (setq result (cdr (nreverse result))))
+    (unless reorient-x
+      (setq result (mapcar #'nreverse result)))
+    (when transpose
+      (let ((ret (mapcar (lambda (x) (list x)) (pop result))) iter)
+	(while result
+	  (setq iter ret)
+	  (dolist (elt (pop result))
+	    (setcar iter (cons elt (car iter)))
+	    (setq iter (cdr iter))))
+	(setq result ret)))
+
+    (cl-flet ((vectorize-*1
+		(clean result)
+		(apply clean (cons 'vec (apply #'append result))))
+	      (vectorize-*2
+		(clean result)
+		(apply clean (cons 'vec
+                                   (mapcar (lambda (x)
+                                             (apply  clean (cons 'vec x)))
+                                           result)))))
+      (pcase vectorize
+	('nil  (apply clean (apply #'append result)))
+	('*1 (vectorize-*1 clean result))
+	('*2 (vectorize-*2 clean result))
+	('* (funcall (if (cdr result)
+                         #'vectorize-*2
+		       #'vectorize-*1)
+		     clean result))))))
+
 (defmacro ses-range (from to &rest rest)
   "Expand to a list of cell-symbols for the range going from
 FROM up to TO.  The range automatically expands to include any
@@ -3988,89 +4064,9 @@ Warning: interaction with Calc is experimental and may produce
 confusing results if you are not aware of Calc data format.
 Use `math-format-value' as a printer for Calc objects."
   ;; Note ses-formula-references contains some simplified code for ses-range.
-  (let ((result-row (make-symbol "result-row"))
-	(result     (make-symbol "result"))
-	(prev-row   (make-symbol "prev-row"))
-	(reorient-x (make-symbol "reorient-x"))
-	(reorient-y (make-symbol "reorient-y"))
-	(transpose  (make-symbol "transpose"))
-	(vectorize  (make-symbol "vectorize"))
-	(clean      (make-symbol "clean"))
-	(elt        (make-symbol "elt"))
-	(x          (make-symbol "x"))
-	(iter       (make-symbol "iter"))
-	(rest-arg   (make-symbol "rest-arg"))
-	(ret        (make-symbol "ret")))
-    `(let (,result-row
-	   ,result
-	   (,prev-row -1)
-	   ,reorient-x
-	   ,reorient-y
-	   ,transpose ,vectorize
-	   (,clean #'list)
-           (,rest-arg (quote ,rest)))
-       (ses-dorange (cons (quote ,from) (quote ,to))
-	 (when (/= ,prev-row row)
-	   (push ,result-row ,result)
-	   (setq ,result-row nil))
-	 (push (ses-cell-value row col) ,result-row)
-	 (setq ,prev-row row))
-       (push ,result-row ,result)
-       (while ,rest-arg
-	 (let ((,x (pop ,rest-arg)))
-	   (pcase ,x
-	     ('>v (setq ,transpose nil ,reorient-x nil ,reorient-y nil))
-	     ('>^ (setq ,transpose nil ,reorient-x nil ,reorient-y t))
-	     ('<^ (setq ,transpose nil ,reorient-x t ,reorient-y t))
-	     ('<v (setq ,transpose nil ,reorient-x t ,reorient-y nil))
-	     ('v> (setq ,transpose t ,reorient-x nil ,reorient-y t))
-	     ('^> (setq ,transpose t ,reorient-x nil ,reorient-y nil))
-	     ('^< (setq ,transpose t ,reorient-x t ,reorient-y nil))
-	     ('v< (setq ,transpose t ,reorient-x t ,reorient-y t))
-	     ((or '* '*2 '*1) (setq ,vectorize ,x))
-	     ('! (setq ,clean #'ses--clean-!))
-	     ('_ (setq ,clean `(lambda (&rest x)
-				 (ses--clean-_  x ,(if ,rest-arg (pop ,rest-arg) 0)))))
-	     (_
-	      (cond
-					; shorthands one row
-	       ((and (null (cdar ,result)) (memq ,x '(> <)))
-	        (push (intern (concat (symbol-name ,x) "v")) ,rest-arg))
-					; shorthands one col
-	       ((and (null (cdar ,result)) (memq ,x '(v ^)))
-		(push (intern (concat (symbol-name ,x) ">")) ,rest-arg))
-	       (t (error "Unexpected flag `%S' in ses-range" ,x)))))))
-       (if ,reorient-y
-	   (setcdr (last ,result 2) nil)
-	 (setq ,result (cdr (nreverse ,result))))
-       (unless ,reorient-x
-	 (setq ,result (mapcar #'nreverse ,result)))
-       (when ,transpose
-	 (let ((,ret (mapcar #'list (pop ,result))) ,iter)
-	   (while ,result
-	     (setq ,iter ,ret)
-	     (dolist (,elt (pop ,result))
-	       (setcar ,iter (cons ,elt (car ,iter)))
-	       (setq ,iter (cdr ,iter))))
-	   (setq ,result ,ret)))
-
-       (cl-flet ((vectorize-*1
-		   (clean result)
-		   (apply clean (cons 'vec (apply #'append result))))
-		 (vectorize-*2
-		   (clean result)
-		   (apply clean (cons 'vec
-                                     (mapcar (lambda (x)
-                                               (apply  clean (cons 'vec x)))
-                                             result)))))
-         (pcase ,vectorize
-	   ('nil  (apply ,clean (apply #'append ,result)))
-	   ('*1 (vectorize-*1 ,clean ,result))
-	   ('*2 (vectorize-*2 ,clean ,result))
-	   ('* (funcall (if (cdr ,result)
-                            #'vectorize-*2
-			  #'vectorize-*1)
-		        ,clean ,result)))))))
+  `(ses--range-engine
+    #'ses--cell-value
+    (quote ,from) (quote ,to) ,(and rest `(quote ,rest))))
 
 (defun ses-delete-blanks (&rest args)
   "Return ARGS reversed, with the blank elements (nil and *skip*) removed."
