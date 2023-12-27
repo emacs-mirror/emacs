@@ -844,10 +844,21 @@ function body forms, as well as explicit calls in Lisp code.
 
 The default value of this variable is 1600.  If you set it to a value
 less than 100, Lisp will reset it to 100 if the given value is
-reached.  Entry to the Lisp debugger increases the value, if there is
-little room left, to make sure the debugger itself has room to
-execute.
+reached.
 @end defopt
+
+@defopt lisp-eval-depth-reserve
+In order to be able to debug infinite recursion errors, Entry to the
+Lisp debugger increases temporarily the value of
+@code{max-lisp-eval-depth}, if there is little room left, to make sure
+the debugger itself has room to execute.  The same happens when
+running the handler of a @code{handler-bind}.
+
+The variable @code{lisp-eval-depth-reserve} bounds the extra depth
+that Emacs can add to @code{max-lisp-eval-depth} for those
+exceptional circumstances.
+@end defopt
+
 
 @defvar values
 The value of this variable is a list of the values returned by all the
