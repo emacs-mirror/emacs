@@ -3554,11 +3554,6 @@ causes it to evaluate `help-form' and display the result."
 		 (help-form-show)))
 	   ((memq char chars)
 	    (setq done t))
-	   ((and executing-kbd-macro (= char -1))
-	    ;; read-event returns -1 if we are in a kbd macro and
-	    ;; there are no more events in the macro.  Attempt to
-	    ;; get an event interactively.
-	    (setq executing-kbd-macro nil))
 	   ((not inhibit-keyboard-quit)
 	    (cond
 	     ((and (null esc-flag) (eq char ?\e))
