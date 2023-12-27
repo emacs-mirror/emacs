@@ -600,8 +600,6 @@ treesit_load_language (Lisp_Object language_symbol,
   /* First push just the filenames to the candidate list, which will
      make dynlib_open look under standard system load paths.  */
   treesit_load_language_push_for_each_suffix (lib_base_name, &path_candidates);
-  /* This is used for reporting errors (i.e., just filenames).  */
-  Lisp_Object base_candidates = path_candidates;
   /* Then push ~/.emacs.d/tree-sitter paths.  */
   Lisp_Object lib_name
     = Fexpand_file_name (concat2 (build_string ("tree-sitter/"), lib_base_name),
@@ -624,6 +622,7 @@ treesit_load_language (Lisp_Object language_symbol,
      fail.  */
   dynlib_handle_ptr handle;
   const char *error;
+  Lisp_Object error_list = Qnil;
 
   tail = path_candidates;
   error = NULL;
@@ -637,13 +636,17 @@ treesit_load_language (Lisp_Object language_symbol,
       error = dynlib_error ();
       if (error == NULL)
 	break;
+      else
+	error_list = Fcons (build_string (error), error_list);
     }
 
   if (error != NULL)
     {
+      /* Yes, the error message list gets a bit verbose, but those
+         messages will be helpful for certain errors like libc version
+         mismatch.  */
       *signal_symbol = Qtreesit_load_language_error;
-      *signal_data = list3 (Qnot_found, base_candidates,
-			    build_string ("No such file or directory"));
+      *signal_data = Fcons (Qnot_found, Fnreverse (error_list));
       return NULL;
     }
 
