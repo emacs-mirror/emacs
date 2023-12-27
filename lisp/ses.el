@@ -4086,22 +4086,24 @@ args are integers."
   (setq list (apply #'ses-delete-blanks list))
   (/ (float (apply #'+ list)) (length list)))
 
-(defmacro ses-select (fromrange test torange)
+(defun ses-select (fromrange test torange &optional test-fn)
   "Select cells in FROMRANGE that are `equal' to TEST.
-For each match, return the corresponding cell from TORANGE.
-The ranges are macroexpanded but not evaluated so they should be
-either (ses-range BEG END) or (list ...).  The TEST is evaluated."
-  (setq fromrange (cdr (macroexpand fromrange))
-	torange   (cdr (macroexpand torange))
-	test      (eval test t))
+For each match, return the corresponding cell from TORANGE.  The
+ranges must be lists of cells values, so they should be
+either (ses-range BEG END) or (list CELL1 CELL2 CELL3), where
+BEG, END, CELL1, CELL2 and CELL3 are cell symbols. When TEST-FN
+is supplied it is used as a test function instead of `equal'. The
+test is evaluated for value X from FROMRANGE as (TEST-FN X
+TEST)."
+  (setq test-fn (or test-fn #'equal))
   (or (= (length fromrange) (length torange))
       (error "ses-select: Ranges not same length"))
   (let (result)
     (dolist (x fromrange)
-      (if (equal test (symbol-value x))
+      (if (funcall test-fn x test)
 	  (push (car torange) result))
       (setq torange (cdr torange)))
-    (cons 'list result)))
+    (nreverse result)))
 
 ;;All standard formulas are safe
 (dolist (x '(ses-cell-value ses-range ses-delete-blanks ses+ ses-average
