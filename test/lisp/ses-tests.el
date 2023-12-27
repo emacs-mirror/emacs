@@ -308,6 +308,36 @@ cell has to be rewritten to data area."
       (ses-mode)
       (should (equal (ses-cell-references 1 1) '(B3))))))
 
+;; Tests for ses-select
+
+(ert-deftest ses-select-different-list-sizes ()
+  "Test `ses-select' thows an error when list sizes have different size."
+  (should (null (eq (condition-case nil
+                        ;; protected form
+                        (progn
+                          (ses-select '(1 2) 2 '(1 2 3))
+                          :is-not-error)
+                      ;; handler
+                      (error
+                       :is-error))
+                    :is-not-error))))
+
+(ert-deftest ses-select-plain ()
+  "Test `ses-select' on a plain case."
+  (should (equal (ses-select '(nil t t) t '(1 2 3)) '(2 3))))
+
+(ert-deftest ses-select-specific-test-function ()
+  "Test `ses-select' with an specific test function."
+  (should (equal (ses-select '(1 2 3 4 5)
+                             nil
+                             '(6 7 8 9 10)
+                             (lambda (x y)
+                               (unless (null y) (error "y"))
+                               (unless (integerp x) (error "x"))
+                               (>= x 4)))
+                 '(9 10))))
+
+>>>>>>> 4cd3d4d635c (New tests for ses-select.)
 (provide 'ses-tests)
 
 ;;; ses-tests.el ends here
