@@ -1147,14 +1147,15 @@ by the user at will."
          (new-collection (project--file-completion-table substrings))
          (abs-cpd (expand-file-name common-parent-directory))
          (abs-cpd-length (length abs-cpd))
-         (relname (cl-letf (((symbol-value hist)
-                             (mapcan
-                              (lambda (s)
-                                (setq s (expand-file-name s))
-                                (and (string-prefix-p abs-cpd s)
-                                     (not (eq abs-cpd-length (length s)))
-                                     (list (substring s abs-cpd-length))))
-                              (symbol-value hist))))
+         (relname (cl-letf* ((non-essential t) ;Avoid new Tramp connections.
+                             ((symbol-value hist)
+                              (mapcan
+                               (lambda (s)
+                                 (setq s (expand-file-name s))
+                                 (and (string-prefix-p abs-cpd s)
+                                      (not (eq abs-cpd-length (length s)))
+                                      (list (substring s abs-cpd-length))))
+                               (symbol-value hist))))
                     (project--completing-read-strict prompt
                                                      new-collection
                                                      predicate
