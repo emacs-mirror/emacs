@@ -1026,7 +1026,7 @@ cmd_error_internal (Lisp_Object data, const char *context)
 {
   /* The immediate context is not interesting for Quits,
      since they are asynchronous.  */
-  if (signal_quit_p (XCAR (data)))
+  if (signal_quit_p (data))
     Vsignaling_function = Qnil;
 
   Vquit_flag = Qnil;
@@ -8619,7 +8619,7 @@ menu_item_eval_property_1 (Lisp_Object arg)
 {
   /* If we got a quit from within the menu computation,
      quit all the way out of it.  This takes care of C-] in the debugger.  */
-  if (CONSP (arg) && signal_quit_p (XCAR (arg)))
+  if (signal_quit_p (arg))
     quit ();
 
   return Qnil;

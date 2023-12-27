@@ -340,4 +340,14 @@ expressions works for identifiers starting with period."
                    (error 'plain-error))
                  'wrong-type-argument)))
 
+(ert-deftest eval-tests--error-id ()
+  (let* (inner-error
+         (outer-error
+          (condition-case err
+              (handler-bind ((error (lambda (err) (setq inner-error err))))
+                (car 1))
+            (error err))))
+    (should (eq inner-error outer-error))))
+
+
 ;;; eval-tests.el ends here

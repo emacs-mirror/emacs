@@ -1706,8 +1706,7 @@ push_handler_nosignal (Lisp_Object tag_ch_val, enum handlertype handlertype)
 
 static Lisp_Object signal_or_quit (Lisp_Object, Lisp_Object, bool);
 static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object);
-static bool maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
-				 Lisp_Object data);
+static bool maybe_call_debugger (Lisp_Object conditions, Lisp_Object error);
 
 static void
 process_quit_flag (void)
@@ -1773,20 +1772,25 @@ quit (void)
 bool backtrace_yet = false;
 
 /* Signal an error, or quit.  ERROR_SYMBOL and DATA are as with Fsignal.
-   If KEYBOARD_QUIT, this is a quit; ERROR_SYMBOL should be
-   Qquit and DATA should be Qnil, and this function may return.
+   If CONTINUABLE, the caller allows this function to return
+   (presumably after calling the debugger);
    Otherwise this function is like Fsignal and does not return.  */
 
 static Lisp_Object
-signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
+signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 {
   /* When memory is full, ERROR-SYMBOL is nil,
      and DATA is (REAL-ERROR-SYMBOL . REAL-DATA).
      That is a special case--don't do this in other situations.  */
+  bool oom = NILP (error_symbol);
+  Lisp_Object error             /* The error object.  */
+    = oom ? data
+      : (!SYMBOLP (error_symbol) && NILP (data)) ? error_symbol
+      : Fcons (error_symbol, data);
   Lisp_Object conditions;
   Lisp_Object string;
   Lisp_Object real_error_symbol
-    = (NILP (error_symbol) ? Fcar (data) : error_symbol);
+    = CONSP (error) ? XCAR (error) : error_symbol;
   Lisp_Object clause = Qnil;
   struct handler *h;
   int skip;
@@ -1804,11 +1808,13 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function)
-      && ! NILP (error_symbol))
+      && !oom)
     {
       specpdl_ref count = SPECPDL_INDEX ();
       max_ensure_room (20);
       /* FIXME: 'handler-bind' makes `signal-hook-function' obsolete?  */
+      /* FIXME: Here we still "split" the error object
+         into its error-symbol and its error-data?  */
       call2 (Vsignal_hook_function, error_symbol, data);
       unbind_to (count, Qnil);
     }
@@ -1820,7 +1826,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
      too.  Don't do this when ERROR_SYMBOL is nil, because that
      is a memory-full error.  */
   Vsignaling_function = Qnil;
-  if (!NILP (error_symbol))
+  if (!oom)
     {
       union specbinding *pdl = backtrace_next (backtrace_top ());
       if (backtrace_p (pdl) && EQ (backtrace_function (pdl), Qerror))
@@ -1845,14 +1851,11 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	  {
 	    if (!NILP (find_handler_clause (h->tag_or_ch, conditions)))
 	      {
-	        Lisp_Object error_data
-	          = (NILP (error_symbol)
-	             ? data : Fcons (error_symbol, data));
 	        specpdl_ref count = SPECPDL_INDEX ();
 	        max_ensure_room (20);
 	        push_handler (make_fixnum (skip + h->bytecode_dest),
 	                      SKIP_CONDITIONS);
-	        call1 (h->val, error_data);
+	        call1 (h->val, error);
 	        unbind_to (count, Qnil);
 	        pop_handler ();
 	      }
@@ -1875,7 +1878,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
   bool debugger_called = false;
   if (/* Don't run the debugger for a memory-full error.
 	 (There is no room in memory to do that!)  */
-      !NILP (error_symbol)
+      !oom
       && (!NILP (Vdebug_on_signal)
 	  /* If no handler is present now, try to run the debugger.  */
 	  || NILP (clause)
@@ -1887,17 +1890,17 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	  || EQ (clause, Qerror)))
     {
       debugger_called
-	= maybe_call_debugger (conditions, error_symbol, data);
+	= maybe_call_debugger (conditions, error);
       /* We can't return values to code which signaled an error, but we
 	 can continue code which has signaled a quit.  */
-      if (keyboard_quit && debugger_called && EQ (real_error_symbol, Qquit))
+      if (continuable && debugger_called)
 	return Qnil;
     }
 
   /* If an error is signaled during a Lisp hook in redisplay, write a
      backtrace into the buffer *Redisplay-trace*.  */
   /* FIXME: Turn this into a `handler-bind` installed during redisplay?  */
-  if (!debugger_called && !NILP (error_symbol)
+  if (!debugger_called && !oom
       && backtrace_on_redisplay_error
       && (NILP (clause) || h == redisplay_deep_handler)
       && NILP (Vinhibit_debugger)
@@ -1918,7 +1921,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
       backtrace_yet = true;
       specbind (Qstandard_output, redisplay_trace_buffer);
       specbind (Qdebugger, Qdebug_early);
-      call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
+      call_debugger (list2 (Qerror, error));
       unbind_to (count, Qnil);
       delayed_warning = make_string
 	  ("Error in a redisplay Lisp hook.  See buffer *Redisplay-trace*", 61);
@@ -1929,10 +1932,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 
   if (!NILP (clause))
     {
-      Lisp_Object unwind_data
-	= (NILP (error_symbol) ? data : Fcons (error_symbol, data));
-
-      unwind_to_catch (h, NONLOCAL_EXIT_SIGNAL, unwind_data);
+      unwind_to_catch (h, NONLOCAL_EXIT_SIGNAL, error);
     }
   else
     {
@@ -1943,10 +1943,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	Fthrow (Qtop_level, Qt);
     }
 
-  if (! NILP (error_symbol))
-    data = Fcons (error_symbol, data);
-
-  string = Ferror_message_string (data);
+  string = Ferror_message_string (error);
   fatal ("%s", SDATA (string));
 }
 
@@ -2071,14 +2068,15 @@ skip_debugger (Lisp_Object conditions, Lisp_Object data)
   return 0;
 }
 
-/* Say whether SIGNAL is a `quit' symbol (or inherits from it).  */
+/* Say whether SIGNAL is a `quit' error (or inherits from it).  */
 bool
-signal_quit_p (Lisp_Object signal)
+signal_quit_p (Lisp_Object error)
 {
+  Lisp_Object signal = CONSP (error) ? XCAR (error) : Qnil;
   Lisp_Object list;
 
   return EQ (signal, Qquit)
-    || (!NILP (Fsymbolp (signal))
+    || (SYMBOLP (signal)
 	&& CONSP (list = Fget (signal, Qerror_conditions))
 	&& !NILP (Fmemq (Qquit, list)));
 }
@@ -2089,27 +2087,23 @@ signal_quit_p (Lisp_Object signal)
     = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
       This is for memory-full errors only.  */
 static bool
-maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
+maybe_call_debugger (Lisp_Object conditions, Lisp_Object error)
 {
-  Lisp_Object combined_data;
-
-  combined_data = Fcons (sig, data);
-
   if (
       /* Don't try to run the debugger with interrupts blocked.
 	 The editing loop would return anyway.  */
       ! input_blocked_p ()
       && NILP (Vinhibit_debugger)
       /* Does user want to enter debugger for this kind of error?  */
-      && (signal_quit_p (sig)
+      && (signal_quit_p (error)
 	  ? debug_on_quit
 	  : wants_debugger (Vdebug_on_error, conditions))
-      && ! skip_debugger (conditions, combined_data)
+      && ! skip_debugger (conditions, error)
       /* See commentary on definition of
          `internal-when-entered-debugger'.  */
       && when_entered_debugger < num_nonmacro_input_events)
     {
-      call_debugger (list2 (Qerror, combined_data));
+      call_debugger (list2 (Qerror, error));
       return 1;
     }
 
