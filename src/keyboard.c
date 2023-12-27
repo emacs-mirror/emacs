@@ -2637,8 +2637,7 @@ read_char (int commandflag, Lisp_Object map,
       /* Exit the macro if we are at the end.
 	 Also, some things replace the macro with t
 	 to force an early exit.  */
-      if (EQ (Vexecuting_kbd_macro, Qt)
-	  || executing_kbd_macro_index >= XFIXNAT (Flength (Vexecuting_kbd_macro)))
+      if (at_end_of_macro_p ())
 	{
 	  XSETINT (c, -1);
 	  goto exit;

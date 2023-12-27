@@ -47,4 +47,9 @@ extern void finalize_kbd_macro_chars (void);
 
 extern void store_kbd_macro_char (Lisp_Object);
 
+/* Whether the execution of a macro has reached its end.
+   This should be called only while executing a macro.  */
+
+extern bool at_end_of_macro_p (void);
+
 #endif /* EMACS_MACROS_H */

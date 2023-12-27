@@ -353,6 +353,18 @@ init_macros (void)
   executing_kbd_macro = Qnil;
 }
 
+/* Whether the execution of a macro has reached its end.
+   This should be called only while executing a macro.  */
+
+bool
+at_end_of_macro_p (void)
+{
+  eassume (!NILP (Vexecuting_kbd_macro));
+  /* Some things replace the macro with t to force an early exit.  */
+  return EQ (Vexecuting_kbd_macro, Qt)
+    || executing_kbd_macro_index >= XFIXNAT (Flength (Vexecuting_kbd_macro));
+}
+
 void
 syms_of_macros (void)
 {
