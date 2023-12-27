@@ -173,11 +173,12 @@
   "Compute server-choosing function for `eglot-server-programs'.
 Each element of ALTERNATIVES is a string PROGRAM or a list of
 strings (PROGRAM ARGS...) where program names an LSP server
-program to start with ARGS.  Returns a function of one argument.
-When invoked, that function will return a list (ABSPATH ARGS),
-where ABSPATH is the absolute path of the PROGRAM that was
-chosen (interactively or automatically)."
-  (lambda (&optional interactive)
+program to start with ARGS.  Returns a function to be invoked
+automatically by Eglot on startup.  When invoked, that function
+will return a list (ABSPATH ARGS), where ABSPATH is the absolute
+path of the PROGRAM that was chosen (interactively or
+automatically)."
+  (lambda (&optional interactive _project)
     ;; JT@2021-06-13: This function is way more complicated than it
     ;; could be because it accounts for the fact that
     ;; `eglot--executable-find' may take much longer to execute on
@@ -187,7 +188,10 @@ chosen (interactively or automatically)."
            (err (lambda ()
                   (error "None of '%s' are valid executables"
                          (mapconcat #'car listified ", ")))))
-      (cond (interactive
+      (cond ((and interactive current-prefix-arg)
+             ;; A C-u always lets user input something manually,
+             nil)
+            (interactive
              (let* ((augmented (mapcar (lambda (a)
                                          (let ((found (eglot--executable-find
                                                        (car a) t)))
@@ -352,16 +356,16 @@ CONTACT can be:
   which you should see for the semantics of the mandatory
   :PROCESS argument.
 
-* A function of a single argument producing any of the above
-  values for CONTACT.  The argument's value is non-nil if the
-  connection was requested interactively (e.g. from the `eglot'
-  command), and nil if it wasn't (e.g. from `eglot-ensure').  If
-  the call is interactive, the function can ask the user for
-  hints on finding the required programs, etc.  Otherwise, it
-  should not ask the user for any input, and return nil or signal
-  an error if it can't produce a valid CONTACT.  The helper
-  function `eglot-alternatives' (which see) can be used to
-  produce a function that offers more than one server for a given
+* A function of two arguments (INTERACTIVE PROJECT) producing any
+  of the above values for CONTACT.  INTERACTIVE will be t if an
+  interactive `M-x eglot' was used, and nil otherwise (e.g. from
+  `eglot-ensure').  Interactive calls may ask the user for hints
+  on finding the required programs, etc.  PROJECT is whatever
+  project Eglot discovered via `project-find-functions' (which
+  see).  The function should return nil or signal an error if it
+  can't produce a valid CONTACT.  The helper function
+  `eglot-alternatives' (which see) can be used to produce a
+  function that offers more than one server for a given
   MAJOR-MODE.")
 
 (defface eglot-highlight-symbol-face
@@ -1232,7 +1236,8 @@ CONTACT-PROXY is the value of the corresponding
 Return (MANAGED-MODES PROJECT CLASS CONTACT LANG-IDS).  If INTERACTIVE is
 non-nil, maybe prompt user, else error as soon as something can't
 be guessed."
-  (let* ((guessed-mode (if buffer-file-name major-mode))
+  (let* ((project (eglot--current-project))
+         (guessed-mode (if buffer-file-name major-mode))
          (guessed-mode-name (and guessed-mode (symbol-name guessed-mode)))
          (main-mode
           (cond
@@ -1252,7 +1257,9 @@ be guessed."
          (language-ids (mapcar #'cdr (car languages-and-contact)))
          (guess (cdr languages-and-contact))
          (guess (if (functionp guess)
-                    (funcall guess interactive)
+                    (pcase (cdr (func-arity guess))
+                      (1 (funcall guess interactive))
+                      (_ (funcall guess interactive project)))
                   guess))
          (class (or (and (consp guess) (symbolp (car guess))
                          (prog1 (unless current-prefix-arg (car guess))
@@ -1303,7 +1310,7 @@ be guessed."
                         (string-to-number (match-string 2 input)))
                 (split-string-and-unquote input))
             guess)))
-    (list managed-modes (eglot--current-project) class contact language-ids)))
+    (list managed-modes project class contact language-ids)))
 
 (defvar eglot-lsp-context nil
   "Dynamically non-nil when searching for projects in LSP context.")
@@ -1318,6 +1325,9 @@ suitable root directory for a given LSP server's purposes."
   (let ((eglot-lsp-context t))
     (or (project-current)
         `(transient . ,(expand-file-name default-directory)))))
+
+(cl-defmethod project-root ((project (head eglot--project)))
+  (cadr project))
 
 ;;;###autoload
 (defun eglot (managed-major-modes project class contact language-ids
