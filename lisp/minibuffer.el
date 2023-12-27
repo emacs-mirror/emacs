@@ -138,6 +138,9 @@ This metadata is an alist.  Currently understood keys are:
    of completions.  Can operate destructively.
 - `cycle-sort-function': function to sort entries when cycling.
    Works like `display-sort-function'.
+- `narrow-completions-function': function for
+  narrowing (restricting) the completions list.  This function
+  overrides `minibuffer-narrow-completions-function', which see.
 The metadata of a completion table should be constant between two boundaries."
   (let ((metadata (if (functionp table)
                       (funcall table string pred 'metadata))))
