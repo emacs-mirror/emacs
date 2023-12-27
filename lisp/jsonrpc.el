@@ -1003,9 +1003,9 @@ of the API instead.")
                                            (or method "")
                                            (if id (format "[%s]" id) "")))))
                (msg
-                (cond ((eq format 'full)
+                (cond (nil(eq format 'full)
                        (format "%s%s\n" preamble (or json log-text)))
-                      ((eq format 'short)
+                      (nil(eq format 'short)
                        (format "%s%s\n" preamble (or log-text "")))
                       (t
                        (format "%s%s" preamble
