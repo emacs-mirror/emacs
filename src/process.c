@@ -5439,7 +5439,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
 	  /* If there is unread keyboard input, also return.  */
 	  if (read_kbd != 0
-	      && requeued_events_pending_p ())
+	      && requeued_command_events_pending_p ())
 	    break;
 
           /* This is so a breakpoint can be put here.  */
@@ -5849,7 +5849,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
       /* If there is unread keyboard input, also return.  */
       if (read_kbd != 0
-	  && requeued_events_pending_p ())
+	  && requeued_command_events_pending_p ())
 	break;
 
       /* If we are not checking for keyboard input now,
@@ -8036,7 +8036,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
 	  /* If there is unread keyboard input, also return.  */
 	  if (read_kbd != 0
-	      && requeued_events_pending_p ())
+	      && requeued_command_events_pending_p ())
 	    break;
 
 	  if (timespec_valid_p (timer_delay))
@@ -8109,7 +8109,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
       /* If there is unread keyboard input, also return.  */
       if (read_kbd
-	  && requeued_events_pending_p ())
+	  && requeued_command_events_pending_p ())
 	break;
 
       /* If wait_for_cell. check for keyboard input

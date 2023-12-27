@@ -11565,14 +11565,10 @@ clear_input_pending (void)
   input_pending = false;
 }
 
-/* Return true if there are pending requeued events.
-   This isn't used yet.  The hope is to make wait_reading_process_output
-   call it, and return if it runs Lisp code that unreads something.
-   The problem is, kbd_buffer_get_event needs to be fixed to know what
-   to do in that case.  It isn't trivial.  */
+/* Return true if there are pending requeued command events.  */
 
 bool
-requeued_events_pending_p (void)
+requeued_command_events_pending_p (void)
 {
   return (CONSP (Vunread_command_events));
 }
