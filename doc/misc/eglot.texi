@@ -1457,7 +1457,7 @@ indicate the problems or at least provide a hint.
 @cindex performance problems, with Eglot
 A common and easy-to-fix cause of performance problems in Eglot
 (especially in older versions) is its events buffer, since it
-represent additional work that Eglot must do (@pxref{Eglot Commands,
+represents additional work that Eglot must do (@pxref{Eglot Commands,
 eglot-events-buffer}).  If you find Eglot is operating correctly but
 slowly, try to customize the variable
 @code{eglot-events-buffer-config} (@pxref{Eglot Variables}) and set
