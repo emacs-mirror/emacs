@@ -1288,7 +1288,8 @@ be guessed."
                                   "\n" base-prompt)
                         (eglot--error
                          (concat "`%s' not found in PATH, but can't form"
-                                 " an interactive prompt for to fix %s!")
+                                 " an interactive prompt for help you fix"
+                                 " this.")
                          program guess))))))
          (input (and prompt (read-shell-command prompt
                                                 full-program-invocation
