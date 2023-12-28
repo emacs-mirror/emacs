@@ -212,7 +212,10 @@ The returned value has the form of (WIDTH . HEIGHT)."
       (cons width height))))
 
 (defun delete-rectangle-line (startcol endcol fill)
-  (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
+  ;; We use >= here, not =, for characters that use more than one
+  ;; column on display, when STARTCOL is in the middle of such a
+  ;; character.
+  (when (>= (move-to-column startcol (if fill t 'coerce)) startcol)
     (delete-region (point)
 		   (progn (move-to-column endcol 'coerce)
 			  (point)))))
