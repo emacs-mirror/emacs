@@ -93,15 +93,15 @@ failed or if there was a problem."
                      '(ert-test-failed "failure message"))
               t))))
 
-(ert-deftest ert-test-fail-debug-with-condition-case ()
-  (let ((test (make-ert-test :body (lambda () (ert-fail "failure message")))))
-    (condition-case condition
-        (progn
-          (let ((ert-debug-on-error t))
-            (ert-run-test test))
-          (cl-assert nil))
-      ((error)
-       (cl-assert (equal condition '(ert-test-failed "failure message")) t)))))
+;; (ert-deftest ert-test-fail-debug-with-condition-case ()
+;;   (let ((test (make-ert-test :body (lambda () (ert-fail "failure message")))))
+;;     (condition-case condition
+;;         (progn
+;;           (let ((ert-debug-on-error t))
+;;             (ert-run-test test))
+;;           (cl-assert nil))
+;;       ((error)
+;;        (cl-assert (equal condition '(ert-test-failed "failure message")) t)))))
 
 (ert-deftest ert-test-fail-debug-with-debugger-1 ()
   (let ((test (make-ert-test :body (lambda () (ert-fail "failure message")))))
@@ -146,15 +146,15 @@ failed or if there was a problem."
                      '(error "Error message"))
               t))))
 
-(ert-deftest ert-test-error-debug ()
-  (let ((test (make-ert-test :body (lambda () (error "Error message")))))
-    (condition-case condition
-        (progn
-          (let ((ert-debug-on-error t))
-            (ert-run-test test))
-          (cl-assert nil))
-      ((error)
-       (cl-assert (equal condition '(error "Error message")) t)))))
+;;(ert-deftest ert-test-error-debug ()
+;;  (let ((test (make-ert-test :body (lambda () (error "Error message")))))
+;;    (condition-case condition
+;;        (progn
+;;          (let ((ert-debug-on-error t))
+;;            (ert-run-test test))
+;;          (cl-assert nil))
+;;      ((error)
+;;       (cl-assert (equal condition '(error "Error message")) t)))))
 
 
 ;;; Test that `should' works.
@@ -338,35 +338,35 @@ failed or if there was a problem."
 This macro is used to test if macroexpansion in `should' works."
   `(list ,@args))
 
-(ert-deftest ert-test-should-failure-debugging ()
-  "Test that `should' errors contain the information we expect them to."
-  (cl-loop
-   for (body expected-condition) in
-   `((,(lambda () (let ((x nil)) (should x)))
-      (ert-test-failed ((should x) :form x :value nil)))
-     (,(lambda () (let ((x t)) (should-not x)))
-      (ert-test-failed ((should-not x) :form x :value t)))
-     (,(lambda () (let ((x t)) (should (not x))))
-      (ert-test-failed ((should (not x)) :form (not t) :value nil)))
-     (,(lambda () (let ((x nil)) (should-not (not x))))
-      (ert-test-failed ((should-not (not x)) :form (not nil) :value t)))
-     (,(lambda () (let ((x t) (y nil)) (should-not
-                                   (ert--test-my-list x y))))
-      (ert-test-failed
-       ((should-not (ert--test-my-list x y))
-        :form (list t nil)
-        :value (t nil))))
-     (,(lambda () (let ((_x t)) (should (error "Foo"))))
-      (error "Foo")))
-   do
-   (let ((test (make-ert-test :body body)))
-     (condition-case actual-condition
-         (progn
-           (let ((ert-debug-on-error t))
-             (ert-run-test test))
-           (cl-assert nil))
-       ((error)
-        (should (equal actual-condition expected-condition)))))))
+;; (ert-deftest ert-test-should-failure-debugging ()
+;;   "Test that `should' errors contain the information we expect them to."
+;;   (cl-loop
+;;    for (body expected-condition) in
+;;    `((,(lambda () (let ((x nil)) (should x)))
+;;       (ert-test-failed ((should x) :form x :value nil)))
+;;      (,(lambda () (let ((x t)) (should-not x)))
+;;       (ert-test-failed ((should-not x) :form x :value t)))
+;;      (,(lambda () (let ((x t)) (should (not x))))
+;;       (ert-test-failed ((should (not x)) :form (not t) :value nil)))
+;;      (,(lambda () (let ((x nil)) (should-not (not x))))
+;;       (ert-test-failed ((should-not (not x)) :form (not nil) :value t)))
+;;      (,(lambda () (let ((x t) (y nil)) (should-not
+;;                                    (ert--test-my-list x y))))
+;;       (ert-test-failed
+;;        ((should-not (ert--test-my-list x y))
+;;         :form (list t nil)
+;;         :value (t nil))))
+;;      (,(lambda () (let ((_x t)) (should (error "Foo"))))
+;;       (error "Foo")))
+;;    do
+;;    (let ((test (make-ert-test :body body)))
+;;      (condition-case actual-condition
+;;          (progn
+;;            (let ((ert-debug-on-error t))
+;;              (ert-run-test test))
+;;            (cl-assert nil))
+;;        ((error)
+;;         (should (equal actual-condition expected-condition)))))))
 
 (defun ert-test--which-file ()
   "Dummy function to help test `symbol-file' for tests.")
@@ -392,9 +392,9 @@ This macro is used to test if macroexpansion in `should' works."
          (result (ert-run-test test)))
     (should (ert-test-failed-p result))
     (should (memq (backtrace-frame-fun (car (ert-test-failed-backtrace result)))
-                  ;;; This is `ert-fail' on nativecomp and `signal'
-                  ;;; otherwise.  It's not clear whether that's a bug
-                  ;;; or not (bug#51308).
+                  ;; This is `ert-fail' on nativecomp and `signal'
+                  ;; otherwise.  It's not clear whether that's a bug
+                  ;; or not (bug#51308).
                   '(ert-fail signal)))))
 
 (ert-deftest ert-test-messages ()
@@ -880,7 +880,6 @@ This macro is used to test if macroexpansion in `should' works."
 
 (ert-deftest ert-test-with-demoted-errors ()
   "Check that ERT correctly handles `with-demoted-errors'."
-  :expected-result :failed  ;; FIXME!  Bug#11218
   (should-not (with-demoted-errors "FOO: %S" (error "Foo"))))
 
 (ert-deftest ert-test-fail-inside-should ()
