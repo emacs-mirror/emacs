@@ -4822,7 +4822,7 @@ A list of valid mode strings for Libera.Chat may be found at
    ((string-match "^\\s-\\(.*\\)$" line)
     (let ((s (match-string 1 line)))
       (erc-log (format "cmd: MODE: %s" s))
-      (erc-server-send (concat "MODE " line)))
+      (erc-server-send (concat "MODE " s)))
     t)
    (t nil)))
 (put 'erc-cmd-MODE 'do-not-parse-args t)
@@ -7487,9 +7487,13 @@ Return a list of the three separate tokens."
 
 (defun erc--parse-nuh (string)
   "Match STRING against `erc--parse-user-regexp-pedantic'.
-Return matching groups or nil.  Interpret a lone token or one
-with only a leading \"!\" as a host.  See associated unit test
-for precise behavior."
+Return nil or matching groups representing nick, login, and host,
+any of which may be nil.  Expect STRING not to contain leading
+prefix chars.  Return an empty nick component to indicate further
+processing is required based on context.  Interpret a lone token
+lacking delimiters or one with only a leading \"!\" as a host.
+
+See associated unit test for precise behavior."
   (when (string-match erc--parse-user-regexp-pedantic string)
     (list (match-string 1 string)
           (match-string 2 string)
