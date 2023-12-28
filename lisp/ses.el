@@ -2028,6 +2028,20 @@ Delete overlays, remove special text properties."
   "Hook when the current buffer is killed."
   (setq ses--ses-buffer-list (delq (current-buffer) ses--ses-buffer-list)))
 
+(defun ses--idle-timer-hook (ctxt)
+  "A wrapper function for ses-command-hook to be called from the
+ SES buffer idle timer.  CTXT is a two element vector whose
+ element vector is the target SES buffer for the hook, and
+ element 1 is the timer id. Cancel the timer when the target
+ buffer has been killed."
+  (let ((buff  (aref ctxt 0)) timer)
+    (if (buffer-live-p buff)
+        (with-current-buffer buff
+          (ses-command-hook))
+      ;; if buff is no longer live, then clean-up the idle timer.
+      (if (setq timer (aref ctxt 1))
+          (cancel-timer timer)))))
+
 
 ;;;###autoload
 (defun ses-mode ()
@@ -2135,7 +2149,8 @@ formula:
     ;; so use an idle timer to make sure.
     (setq ses--deferred-narrow 'ses-mode)
     (1value (add-hook 'post-command-hook #'ses-command-hook nil t))
-    (run-with-idle-timer 0.01 nil #'ses-command-hook)
+    (let ((ctxt (vector (current-buffer) nil)))
+      (aset ctxt 1 (run-with-idle-timer 0.01 nil #'ses--idle-timer-hook ctxt)))
     (run-mode-hooks 'ses-mode-hook)))
 
 (put 'ses-mode 'mode-class 'special)
