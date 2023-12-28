@@ -3282,6 +3282,21 @@ If END is a marker, possibly update its position."
   (unless (eq end erc-insert-marker)
     (set-marker end nil)))
 
+(defvar erc--insert-invisible-as-intangible-p nil
+  "When non-nil, ensure certain invisible messages are also intangible.
+That is, single out any message inserted via `erc-insert-line'
+that lacks a trailing newline but has a t-valued `invisible'
+property anywhere along its length, and ensure it's both
+`invisible' t and `intangible' t throughout.  Note that this is
+merely an escape hatch for accessing aberrant pre-5.6 behavior
+that ERC considers a bug because it applies a practice described
+as obsolete in the manual, and it does so heavy-handedly.  That
+the old behavior only acted when the input lacked a trailing
+newline was likely accidental but is ultimately incidental.  See
+info node `(elisp) Special Properties' for specifics.  Beware
+that this flag and the behavior it restores may disappear at any
+time, so if you need them, please let ERC know with \\[erc-bug].")
+
 (defvar erc--insert-line-function nil
   "When non-nil, an alterntive to `insert' for inserting messages.")
 
@@ -3310,13 +3325,15 @@ preformatted or anticipated by third-party members of the various
 modification hooks)."
   (when string
     (with-current-buffer (or buffer (process-buffer erc-server-process))
-      (let ((insert-position (marker-position erc-insert-marker)))
-        (let ((string string) ;; FIXME! Can this be removed?
-              (buffer-undo-list t)
+      (let (insert-position)
+        ;; Initialize ^ below to thwart rogue `erc-insert-pre-hook'
+        ;; members that dare to modify the buffer's length.
+        (let ((buffer-undo-list t)
               (inhibit-read-only t))
-          (unless (string-match "\n$" string)
+          (unless (string-suffix-p "\n" string)
             (setq string (concat string "\n"))
-            (when (erc-string-invisible-p string)
+            (when (and erc--insert-invisible-as-intangible-p
+                       (erc-string-invisible-p string))
               (erc-put-text-properties 0 (length string)
                                        '(invisible intangible) string)))
           (erc-log (concat "erc-display-message: " string

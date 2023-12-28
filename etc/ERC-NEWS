@@ -438,6 +438,17 @@ those folded onto the next line.  Such inconsistency made stamp
 detection overly complex and produced uneven results when toggling
 stamp visibility.
 
+*** Invisible message insertions not automatically made 'intangible'.
+Previously, when 'erc-display-message' and friends spotted the
+'invisible' text property with a value of t anywhere in text to be
+inserted, it would apply that property to the entire message, along
+with a t-valued 'intangible' property.  Beginning with ERC 5.6, users
+expecting this behavior will have to instead perform the treatment
+themselves.  To help with the transition, a temporary escape hatch has
+been made available to regain this behavior, but its existence is only
+guaranteed for this one minor version alone.  See source code in the
+vicinity of 'erc-insert-line' for more.
+
 *** Date stamps have become independent messages.
 ERC now inserts "date stamps" generated from the option
 'erc-timestamp-format-left' as separate, standalone messages.  This
