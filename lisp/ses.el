@@ -2028,6 +2028,13 @@ Delete overlays, remove special text properties."
   "Hook when the current buffer is killed."
   (setq ses--ses-buffer-list (delq (current-buffer) ses--ses-buffer-list)))
 
+(defun ses--idle-timer-hook (ses-buffer)
+  "A wrapper function for ses-command-hook to be called from the
+ SES buffer idle timer.  SES-BUFFER is the the target SES buffer for the
+ hook"
+  (if (buffer-live-p ses-buffer)
+      (with-current-buffer ses-buffer
+        (ses-command-hook))))
 
 ;;;###autoload
 (defun ses-mode ()
@@ -2135,7 +2142,7 @@ formula:
     ;; so use an idle timer to make sure.
     (setq ses--deferred-narrow 'ses-mode)
     (1value (add-hook 'post-command-hook #'ses-command-hook nil t))
-    (run-with-idle-timer 0.01 nil #'ses-command-hook)
+    (run-with-idle-timer 0.01 nil #'ses--idle-timer-hook (current-buffer))
     (run-mode-hooks 'ses-mode-hook)))
 
 (put 'ses-mode 'mode-class 'special)
