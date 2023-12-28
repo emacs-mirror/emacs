@@ -2108,16 +2108,14 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
    (t
     (archive-extract-by-stdout
      archive
-     ;; unzip expands wildcards in NAME, so we need to quote it.  But
-     ;; not on DOS/Windows, since that fails extraction on those
-     ;; systems (unless w32-quote-process-args is nil), and file names
-     ;; with wildcards in zip archives don't work there anyway.
-     ;; FIXME: Does pkunzip need similar treatment?
-     (if (and (or (not (memq system-type '(windows-nt ms-dos)))
-		  (and (boundp 'w32-quote-process-args)
-		       (null w32-quote-process-args)))
-	      (equal (car archive-zip-extract) "unzip"))
-	 (shell-quote-argument name)
+     ;; unzip expands wildcard characters in NAME, so we need to quote
+     ;; wildcard characters in a special way: replace each such
+     ;; character C with a single-character alternative [C].  We
+     ;; cannot use 'shell-quote-argument' here because that doesn't
+     ;; protect wildcard characters from being expanded by unzip
+     ;; itself.
+     (if (equal (car archive-zip-extract) "unzip")
+         (replace-regexp-in-string "[[?*]" "[\\&]" name)
        name)
      archive-zip-extract))))
 
