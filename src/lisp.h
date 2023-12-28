@@ -2462,7 +2462,7 @@ struct Lisp_Hash_Table
 
   /* Vector of keys and values.  The key of item I is found at index
      2 * I, the value is found at index 2 * I + 1.
-     If the key is equal to Qunbound, then this slot is unused.
+     If the key is HASH_UNUSED_ENTRY_KEY, then this slot is unused.
      This is gc_marked specially if the table is weak.  */
   Lisp_Object key_and_value;
 
@@ -2477,6 +2477,16 @@ struct Lisp_Hash_Table
 
 /* Sanity-check pseudovector layout.  */
 verify (offsetof (struct Lisp_Hash_Table, weak) == header_size);
+
+/* Key value that marks an unused hash table entry.  */
+#define HASH_UNUSED_ENTRY_KEY Qunbound
+
+/* KEY is a key of an unused hash table entry.  */
+INLINE bool
+hash_unused_entry_key_p (Lisp_Object key)
+{
+  return BASE_EQ (key, HASH_UNUSED_ENTRY_KEY);
+}
 
 INLINE bool
 HASH_TABLE_P (Lisp_Object a)

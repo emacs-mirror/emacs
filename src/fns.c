@@ -4575,7 +4575,7 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
   h->rehash_threshold = rehash_threshold;
   h->rehash_size = rehash_size;
   h->count = 0;
-  h->key_and_value = make_vector (2 * size, Qunbound);
+  h->key_and_value = make_vector (2 * size, HASH_UNUSED_ENTRY_KEY);
   h->hash = make_nil_vector (size);
   h->next = make_vector (size, make_fixnum (-1));
   h->index = make_vector (hash_index_size (h, size), make_fixnum (-1));
@@ -4678,7 +4678,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       Lisp_Object key_and_value
 	= alloc_larger_vector (h->key_and_value, 2 * new_size);
       for (ptrdiff_t i = 2 * old_size; i < 2 * new_size; i++)
-        ASET (key_and_value, i, Qunbound);
+        ASET (key_and_value, i, HASH_UNUSED_ENTRY_KEY);
 
       Lisp_Object hash = alloc_larger_vector (h->hash, new_size);
       memclear (XVECTOR (hash)->contents + old_size,
@@ -4782,7 +4782,7 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
   /* Store key/value in the key_and_value vector.  */
   ptrdiff_t i = h->next_free;
   eassert (NILP (HASH_HASH (h, i)));
-  eassert (BASE_EQ (Qunbound, (HASH_KEY (h, i))));
+  eassert (hash_unused_entry_key_p (HASH_KEY (h, i)));
   h->next_free = HASH_NEXT (h, i);
   set_hash_key_slot (h, i, key);
   set_hash_value_slot (h, i, value);
@@ -4824,7 +4824,7 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 
 	  /* Clear slots in key_and_value and add the slots to
 	     the free list.  */
-	  set_hash_key_slot (h, i, Qunbound);
+	  set_hash_key_slot (h, i, HASH_UNUSED_ENTRY_KEY);
 	  set_hash_value_slot (h, i, Qnil);
 	  set_hash_hash_slot (h, i, Qnil);
 	  set_hash_next_slot (h, i, h->next_free);
@@ -4851,7 +4851,7 @@ hash_clear (struct Lisp_Hash_Table *h)
       for (ptrdiff_t i = 0; i < size; i++)
 	{
 	  set_hash_next_slot (h, i, i < size - 1 ? i + 1 : -1);
-	  set_hash_key_slot (h, i, Qunbound);
+	  set_hash_key_slot (h, i, HASH_UNUSED_ENTRY_KEY);
 	  set_hash_value_slot (h, i, Qnil);
 	}
 
@@ -4922,7 +4922,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 		  h->next_free = i;
 
 		  /* Clear key, value, and hash.  */
-		  set_hash_key_slot (h, i, Qunbound);
+		  set_hash_key_slot (h, i, HASH_UNUSED_ENTRY_KEY);
 		  set_hash_value_slot (h, i, Qnil);
                   if (!NILP (h->hash))
                     set_hash_hash_slot (h, i, Qnil);
@@ -5535,7 +5535,7 @@ FUNCTION is called with two arguments, KEY and VALUE.
   for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
     {
       Lisp_Object k = HASH_KEY (h, i);
-      if (!BASE_EQ (k, Qunbound))
+      if (!hash_unused_entry_key_p (k))
         call2 (function, k, HASH_VALUE (h, i));
     }
 

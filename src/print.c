@@ -1290,7 +1290,7 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
             {
               Lisp_Object key =  HASH_KEY (h, i);
-	      if (!BASE_EQ (key, Qunbound)
+	      if (!hash_unused_entry_key_p (key)
 		  && EQ (HASH_VALUE (h, i), Qt))
 	        Fremhash (key, Vprint_number_table);
             }
@@ -2770,7 +2770,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	    {
 	      Lisp_Object key;
 	      ptrdiff_t idx = e->u.hash.idx;
-	      while (BASE_EQ ((key = HASH_KEY (h, idx)), Qunbound))
+	      while (hash_unused_entry_key_p ((key = HASH_KEY (h, idx))))
 		idx++;
 	      e->u.hash.idx = idx;
 	      obj = key;

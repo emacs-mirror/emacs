@@ -364,7 +364,7 @@ lisp_to_json_nonscalar_1 (Lisp_Object lisp,
       for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
         {
           Lisp_Object key = HASH_KEY (h, i);
-          if (!BASE_EQ (key, Qunbound))
+          if (!hash_unused_entry_key_p (key))
             {
               CHECK_STRING (key);
               Lisp_Object ekey = json_encode (key);
