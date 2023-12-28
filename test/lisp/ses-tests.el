@@ -241,6 +241,38 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (ses-command-hook)
       (should (eq (ses--cell-at-pos (point)) 'ses--toto)))))
 
+(ert-deftest ses-bug5852 ()
+  "This this bug is not yet fixed, the test is expected to fail.
+The bug is that after the second yank of the same formula the
+reference list of cell B2 is correct in the memory data
+structure, but not in the written ses-cell macros in the data
+area, this is why the second should statement fails after
+reloading the sheet."
+  :expected-result :failed
+  (let ((ses-initial-size '(4 . 3))
+        ses-after-entry-functions beg)
+    (with-temp-buffer
+      (ses-mode)
+      (dolist (c '((0 1 1); B1
+                   (1 0 2) (1 1 (+ B1 A2)); A2 B2
+                   (2 0 4); A3
+                   (3 0 3) (3 1 (+ B2 A4))));A4 B4
+        (apply 'ses-cell-set-formula c)
+        (apply 'ses-calculate-cell (list (car c) (cadr c) nil)))
+      (ses-jump 'B2)
+      (setq beg (point))
+      (ses-jump 'C2)
+      (kill-ring-save beg (point))
+      (ses-jump 'B3)
+      (yank)
+      (ses-command-hook)
+      (ses-jump 'B4)
+      (yank)
+      (ses-command-hook)
+      (should (equal (ses-cell-references 1 1) '(B3)))
+      (ses-mode)
+      (should (equal (ses-cell-references 1 1) '(B3))))))
+
 (provide 'ses-tests)
 
 ;;; ses-tests.el ends here
