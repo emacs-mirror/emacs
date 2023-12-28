@@ -2763,7 +2763,7 @@ See `ses-read-cell-printer' for input forms."
 ;; Spreadsheet size adjustments
 ;;----------------------------------------------------------------------------
 (defun ses--blank-line-needs-printing-p ()
-  "Returns `t' when blank new line print-out needs to be initialised
+  "Returns `t' when blank new line print-out needs to be initialized
 by calling the printers on it, `nil' otherwise."
   (let (ret
         printer

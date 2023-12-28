@@ -267,14 +267,14 @@ dispatcher in CONN."
               conn
             (setf last-error error)
             (cond
-             (;; A remote response whose request has been cancelled
+             (;; A remote response whose request has been canceled
               ;; (i.e. timeout or C-g)
               ;;
               (and response-p (null cont))
               (jsonrpc--event
                conn 'internal
                :log-text
-               (format "Response to request %s which has been cancelled"
+               (format "Response to request %s which has been canceled"
                        id)
                :id id)
               ;; TODO: food for thought: this seems to be also where
@@ -823,7 +823,7 @@ Return the full continuation (ID SUCCESS-FN ERROR-FN TIMER)"
         (funcall success-fn result)))
      (t
       ;; For clarity.  This happens if the `jsonrpc-request' was
-      ;; cancelled
+      ;; canceled
       ))))
 
 (cl-defun jsonrpc--async-request-1 (connection
