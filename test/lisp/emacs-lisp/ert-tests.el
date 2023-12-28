@@ -1,6 +1,6 @@
 ;;; ert-tests.el --- ERT's self-tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 
@@ -93,16 +93,6 @@ failed or if there was a problem."
                      '(ert-test-failed "failure message"))
               t))))
 
-(ert-deftest ert-test-fail-debug-with-condition-case ()
-  (let ((test (make-ert-test :body (lambda () (ert-fail "failure message")))))
-    (condition-case condition
-        (progn
-          (let ((ert-debug-on-error t))
-            (ert-run-test test))
-          (cl-assert nil))
-      ((error)
-       (cl-assert (equal condition '(ert-test-failed "failure message")) t)))))
-
 (ert-deftest ert-test-fail-debug-with-debugger-1 ()
   (let ((test (make-ert-test :body (lambda () (ert-fail "failure message")))))
     (let ((debugger (lambda (&rest _args)
@@ -145,16 +135,6 @@ failed or if there was a problem."
       (cl-assert (equal (ert-test-result-with-condition-condition result)
                      '(error "Error message"))
               t))))
-
-(ert-deftest ert-test-error-debug ()
-  (let ((test (make-ert-test :body (lambda () (error "Error message")))))
-    (condition-case condition
-        (progn
-          (let ((ert-debug-on-error t))
-            (ert-run-test test))
-          (cl-assert nil))
-      ((error)
-       (cl-assert (equal condition '(error "Error message")) t)))))
 
 
 ;;; Test that `should' works.
@@ -359,14 +339,10 @@ This macro is used to test if macroexpansion in `should' works."
      (,(lambda () (let ((_x t)) (should (error "Foo"))))
       (error "Foo")))
    do
-   (let ((test (make-ert-test :body body)))
-     (condition-case actual-condition
-         (progn
-           (let ((ert-debug-on-error t))
-             (ert-run-test test))
-           (cl-assert nil))
-       ((error)
-        (should (equal actual-condition expected-condition)))))))
+   (let* ((test (make-ert-test :body body))
+          (result (ert-run-test test)))
+     (should (ert-test-failed-p result))
+     (should (equal (ert-test-failed-condition result) expected-condition)))))
 
 (defun ert-test--which-file ()
   "Dummy function to help test `symbol-file' for tests.")
@@ -392,9 +368,9 @@ This macro is used to test if macroexpansion in `should' works."
          (result (ert-run-test test)))
     (should (ert-test-failed-p result))
     (should (memq (backtrace-frame-fun (car (ert-test-failed-backtrace result)))
-                  ;;; This is `ert-fail' on nativecomp and `signal'
-                  ;;; otherwise.  It's not clear whether that's a bug
-                  ;;; or not (bug#51308).
+                  ;; This is `ert-fail' on nativecomp and `signal'
+                  ;; otherwise.  It's not clear whether that's a bug
+                  ;; or not (bug#51308).
                   '(ert-fail signal)))))
 
 (ert-deftest ert-test-messages ()
@@ -880,7 +856,6 @@ This macro is used to test if macroexpansion in `should' works."
 
 (ert-deftest ert-test-with-demoted-errors ()
   "Check that ERT correctly handles `with-demoted-errors'."
-  :expected-result :failed  ;; FIXME!  Bug#11218
   (should-not (with-demoted-errors "FOO: %S" (error "Foo"))))
 
 (ert-deftest ert-test-fail-inside-should ()
