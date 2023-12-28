@@ -282,7 +282,8 @@ When called from a program the rectangle's corners are START and END.
 With a prefix (or a FILL) argument, also fill lines where nothing has
 to be deleted."
   (interactive "*r\nP")
-  (apply-on-rectangle 'delete-rectangle-line start end fill))
+  (let (indent-tabs-mode)
+    (apply-on-rectangle 'delete-rectangle-line start end fill)))
 
 ;;;###autoload
 (defun delete-extract-rectangle (start end &optional fill)
@@ -337,7 +338,8 @@ you can use this command to copy text from a read-only buffer.
 even beep.)"
   (interactive "r\nP")
   (condition-case nil
-      (setq killed-rectangle (delete-extract-rectangle start end fill))
+      (let (indent-tabs-mode)
+        (setq killed-rectangle (delete-extract-rectangle start end fill)))
     ((buffer-read-only text-read-only)
      (setq deactivate-mark t)
      (setq killed-rectangle (extract-rectangle start end))
