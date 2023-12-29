@@ -1696,19 +1696,18 @@ into
 
 \\{cperl-mode-map}
 
-Setting the variable `cperl-font-lock' to t switches on `font-lock-mode'
-\(even with older Emacsen), `cperl-electric-lbrace-space' to t switches
-on electric space between $ and {, `cperl-electric-parens-string' is
-the string that contains parentheses that should be electric in CPerl
-\(see also `cperl-electric-parens-mark' and `cperl-electric-parens'),
-setting `cperl-electric-keywords' enables electric expansion of
-control structures in CPerl.  `cperl-electric-linefeed' governs which
-one of two linefeed behavior is preferable.  You can enable all these
-options simultaneously (recommended mode of use) by setting
-`cperl-hairy' to t.  In this case you can switch separate options off
-by setting them to `null'.  Note that one may undo the extra
-whitespace inserted by semis and braces in `auto-newline'-mode by
-consequent \\[cperl-electric-backspace].
+Setting the variable `cperl-font-lock' to t switches on `font-lock-mode',
+`cperl-electric-lbrace-space' to t switches on electric space between $
+and {, `cperl-electric-parens-string' is the string that contains
+parentheses that should be electric in CPerl (see also
+`cperl-electric-parens-mark' and `cperl-electric-parens'), setting
+`cperl-electric-keywords' enables electric expansion of control
+structures in CPerl.  `cperl-electric-linefeed' governs which one of two
+linefeed behavior is preferable.  You can enable all these options
+simultaneously by setting `cperl-hairy' to t.  In this case you can
+switch separate options off by setting them to `null'.  Note that one may
+undo the extra whitespace inserted by semis and braces in
+`auto-newline'-mode by consequent \\[cperl-electric-backspace].
 
 Short one-liner-style help is available on \\[cperl-get-help],
 and one can run perldoc or man via menu.
