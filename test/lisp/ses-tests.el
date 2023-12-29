@@ -242,8 +242,9 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (should (eq (ses--cell-at-pos (point)) 'ses--toto)))))
 
 (ert-deftest ses-set-formula-write-cells-with-changed-references ()
-  "Fix of bug#5852. When setting a formula has some cell with
-changed references, this cell has to be rewritten to data area."
+  "Test fix of bug#5852.
+When setting a formula has some cell with changed references, this
+cell has to be rewritten to data area."
   (let ((ses-initial-size '(4 . 3))
         ses-after-entry-functions beg)
     (with-temp-buffer

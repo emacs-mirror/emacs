@@ -69,6 +69,8 @@
 (require 'macroexp)
 (eval-when-compile (require 'cl-lib))
 
+;; Autoloaded, but we have not loaded cl-loaddefs yet.
+(declare-function cl-member "cl-seq" (cl-item cl-list &rest cl-keys))
 
 ;;----------------------------------------------------------------------------
 ;; User-customizable variables
@@ -890,15 +892,15 @@ means Emacs will crash if FORMULA contains a circular list."
       ;;in the new list.
       (dolist (ref oldref)
 	(unless (memq ref newref)
-          ;; because we do not cancel edit when the user provides a
+          ;; Because we do not cancel edit when the user provides a
           ;; false reference in it, then we need to check that ref
           ;; points to a cell that is within the spreadsheet.
 	  (when
               (and (setq x (ses-sym-rowcol ref))
                    (< (setq xrow (car x)) ses--numrows)
                    (< (setq xcol (cdr x)) ses--numcols))
-            ;; cell ref has to be re-written to data area as its
-            ;; reference list is changed
+            ;; Cell reference has to be re-written to data area as its
+            ;; reference list is changed.
             (cl-pushnew x  ses--deferred-write  :test #'equal)
             (ses-set-cell xrow xcol 'references
                           (delq sym (ses-cell-references xrow xcol))))))
@@ -910,8 +912,8 @@ means Emacs will crash if FORMULA contains a circular list."
              (<  (setq xrow (car x)) ses--numrows)
              (<  (setq xcol (cdr x)) ses--numcols))
             (unless (memq sym (setq xref (ses-cell-references xrow xcol)))
-              ;; cell ref has to be re-written to data area as its
-              ;; reference list is changed
+              ;; Cell reference has to be re-written to data area as
+              ;; its reference list is changed.
               (cl-pushnew x  ses--deferred-write  :test #'equal)
               (ses-set-cell xrow xcol 'references (cons sym xref)))
           (cl-pushnew ref not-a-cell-ref-list)))
