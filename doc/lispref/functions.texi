@@ -2077,10 +2077,12 @@ Add the advice @var{function} to the named function @var{symbol}.
 (@pxref{Core Advising Primitives}).
 @end defun
 
-@defun advice-remove symbol function
+@deffn Command advice-remove symbol function
 Remove the advice @var{function} from the named function @var{symbol}.
-@var{function} can also be the @code{name} of a piece of advice.
-@end defun
+@var{function} can also be the @code{name} of a piece of advice.  When
+called interactively, prompt for both an advised @var{function} and
+the advice to remove.
+@end deffn
 
 @defun advice-member-p function symbol
 Return non-@code{nil} if the advice @var{function} is already in the named

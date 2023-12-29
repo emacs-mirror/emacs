@@ -104,6 +104,10 @@ to your init:
 
 * Changes in Emacs 30.1
 
+** 'advice-remove' is now an interactive command.
+When called interactively, 'advice-remove' now prompts for an advised
+function to the advice to remove.
+
 ** Emacs now supports Unicode Standard version 15.1.
 
 ** Network Security Manager
