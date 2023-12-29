@@ -366,8 +366,8 @@ specified by `erc-button-alist'."
   ( user nil :type (or null erc-server-user)
     ;; Not necessarily present in `erc-server-users'.
     :documentation "A possibly nil or spoofed `erc-server-user'.")
-  ( cuser nil :type (or null erc-channel-user)
-    ;; The CDR of a value from an `erc-channel-users' table.
+  ( cusr nil :type (or null erc-channel-user)
+    ;; The CDR of a value from an `erc-channel-members' table.
     :documentation "A possibly nil `erc-channel-user'.")
   ( nickname-face erc-button-nickname-face :type symbol
     :documentation "Temp `erc-button-nickname-face' while buttonizing.")
@@ -397,7 +397,7 @@ be updated at will.")
   "Function to determine channel member if not found in the usual places.
 Called with DOWNCASED-NICK, NICK, NICK-BOUNDS, and COUNT when
 `erc-button-add-nickname-buttons' cannot find a user object for
-DOWNCASED-NICK in `erc-channel-users' or `erc-server-users'.
+DOWNCASED-NICK in `erc-channel-members' or `erc-server-users'.
 NICK-BOUNDS is a cons of buffer positions, and COUNT is a number
 incremented with each visit, starting at 1.")
 
@@ -407,7 +407,7 @@ But only do so when COUNT is 1, meaning this is the first button
 candidate in the just-inserted message."
   (and-let* (((= 1 count))
              (nick (erc--check-msg-prop 'erc--spkr)))
-    (gethash nick erc-channel-users)))
+    (gethash nick erc-channel-members)))
 
 ;; Historical or fictitious users.  As long as these two structs
 ;; remain superficial "subclasses" with the same slots and defaults,
@@ -481,11 +481,11 @@ retrieve it during buttonizing via
          (word (buffer-substring-no-properties (car bounds) (cdr bounds)))
          (down (erc-downcase word)))
       (let* ((nick-obj t)
-             (cuser (and erc-channel-users
-                         (or (gethash down erc-channel-users)
-                             (funcall erc-button--fallback-cmem-function
-                                      down word bounds seen))))
-             (user (or (and cuser (car cuser))
+             (cmem (and erc-channel-members
+                        (or (gethash down erc-channel-members)
+                            (funcall erc-button--fallback-cmem-function
+                                     down word bounds seen))))
+             (user (or (and cmem (car cmem))
                        (and erc-server-users (gethash down erc-server-users))))
              (data (list word)))
         (when (or (not (functionp form))
@@ -493,7 +493,7 @@ retrieve it during buttonizing via
                        (setq nick-obj (funcall form (make-erc-button--nick
                                                      :bounds bounds :data data
                                                      :downcased down :user user
-                                                     :cuser (cdr cuser)))
+                                                     :cusr (cdr cmem)))
                              data (erc-button--nick-data nick-obj)
                              bounds (erc-button--nick-bounds nick-obj))))
           (erc-button-add-button (car bounds) (cdr bounds) (nth 3 entry)
@@ -557,9 +557,9 @@ REGEXP is the regular expression which matched for this button."
   (if nick-p
       (when erc-button-nickname-face
         (erc--merge-prop from to 'font-lock-face
-                         (or (and (erc-button--nick-p nick-p)
-                                  (erc-button--nick-nickname-face nick-p))
-                             erc-button-nickname-face)
+                         (if (erc-button--nick-p nick-p)
+                             (erc-button--nick-nickname-face nick-p)
+                           erc-button-nickname-face)
                          nil (and (erc-button--nick-p nick-p)
                                   (erc-button--nick-face-cache nick-p))))
     (when erc-button-face
