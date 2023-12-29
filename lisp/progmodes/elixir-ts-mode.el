@@ -546,7 +546,9 @@
      (body (identifier) @font-lock-variable-name-face)
      (unary_operator operand: (identifier) @font-lock-variable-name-face)
      (interpolation (identifier) @font-lock-variable-name-face)
-     (do_block (identifier) @font-lock-variable-name-face))
+     (do_block (identifier) @font-lock-variable-name-face)
+     (access_call target: (identifier) @font-lock-variable-name-face)
+     (access_call "[" key: (identifier) @font-lock-variable-name-face "]"))
 
    :language 'elixir
    :feature 'elixir-builtin
