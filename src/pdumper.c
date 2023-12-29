@@ -2708,9 +2708,7 @@ hash_table_thaw (Lisp_Object hash)
 }
 
 static dump_off
-dump_hash_table (struct dump_context *ctx,
-                 Lisp_Object object,
-                 dump_off offset)
+dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 {
 #if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_6D63EDB618
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
@@ -3026,7 +3024,7 @@ dump_vectorlike (struct dump_context *ctx,
     case PVEC_BOOL_VECTOR:
       return dump_bool_vector(ctx, v);
     case PVEC_HASH_TABLE:
-      return dump_hash_table (ctx, lv, offset);
+      return dump_hash_table (ctx, lv);
     case PVEC_BUFFER:
       return dump_buffer (ctx, XBUFFER (lv));
     case PVEC_SUBR:
