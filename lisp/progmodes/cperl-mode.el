@@ -8823,6 +8823,7 @@ Delay of auto-help controlled by `cperl-lazy-help-time'."
 ;;; Plug for wrong font-lock:
 
 (defun cperl-font-lock-unfontify-region-function (beg end)
+  (declare (obsolete nil "30.1"))
   (with-silent-modifications
     (remove-text-properties beg end '(face nil))))
 
