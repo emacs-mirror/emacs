@@ -116,13 +116,22 @@
 ;; having installed them, didn't correctly re-load them over the
 ;; built-in versions.
 (eval-and-compile
-  (load "project")
-  (load "eldoc")
-  (load "seq")
-  (load "flymake")
-  (load "xref")
-  (load "jsonrpc")
-  (load "external-completion"))
+  ;; For those packages that are preloaded, reload them if needed,
+  ;; since that's the best we can do anyway.
+  ;; FIXME: Maybe the ELPA packages for those preloaded packages should
+  ;; force-reload themselves eagerly when the package is activated!
+  (let ((reload (if (fboundp 'require-with-check) ;Emacs≥30
+                    #'require-with-check
+                  (lambda (feature &rest _)
+                    ;; Just blindly reload like we used to do before
+                    ;; `require-with-check'.
+                    (load (symbol-name feature) nil 'nomessage)))))
+
+    (funcall reload 'eldoc nil 'reload)
+    (funcall reload nil 'reload)
+    ;; For those packages which are not preloaded OTOH, signal an error if
+    ;; the loaded file is not the one that should have been loaded.
+    (mapc reload '(project flymake xref jsonrpc external-completion))))
 
 ;; forward-declare, but don't require (Emacs 28 doesn't seem to care)
 (defvar markdown-fontify-code-blocks-natively)
@@ -140,27 +149,27 @@
   'eglot-confirm-server-edits "1.16")
 (make-obsolete-variable 'eglot-events-buffer-size
   'eglot-events-buffer-config "1.16")
-(define-obsolete-function-alias 'eglot--uri-to-path 'eglot-uri-to-path "1.16")
-(define-obsolete-function-alias 'eglot--path-to-uri 'eglot-path-to-uri "1.16")
-(define-obsolete-function-alias 'eglot--range-region 'eglot-range-region "1.16")
-(define-obsolete-function-alias 'eglot--server-capable 'eglot-server-capable "1.16")
-(define-obsolete-function-alias 'eglot--server-capable-or-lose 'eglot-server-capable-or-lose "1.16")
+(define-obsolete-function-alias 'eglot--uri-to-path #'eglot-uri-to-path "1.16")
+(define-obsolete-function-alias 'eglot--path-to-uri #'eglot-path-to-uri "1.16")
+(define-obsolete-function-alias 'eglot--range-region #'eglot-range-region "1.16")
+(define-obsolete-function-alias 'eglot--server-capable #'eglot-server-capable "1.16")
+(define-obsolete-function-alias 'eglot--server-capable-or-lose #'eglot-server-capable-or-lose "1.16")
 (define-obsolete-function-alias
-  'eglot-lsp-abiding-column 'eglot-utf-16-linepos "1.12")
+  'eglot-lsp-abiding-column #'eglot-utf-16-linepos "1.12")
 (define-obsolete-function-alias
-  'eglot-current-column 'eglot-utf-32-linepos "1.12")
+  'eglot-current-column #'eglot-utf-32-linepos "1.12")
 (define-obsolete-variable-alias
   'eglot-current-column-function 'eglot-current-linepos-function "1.12")
 (define-obsolete-function-alias
-  'eglot-move-to-current-column 'eglot-move-to-utf-32-linepos "1.12")
+  'eglot-move-to-current-column #'eglot-move-to-utf-32-linepos "1.12")
 (define-obsolete-function-alias
-  'eglot-move-to-lsp-abiding-column 'eglot-move-to-utf-16-linepos "1.12")
+  'eglot-move-to-lsp-abiding-column #'eglot-move-to-utf-16-linepos "1.12")
 (define-obsolete-variable-alias
-'eglot-move-to-column-function 'eglot-move-to-linepos-function "1.12")
+  'eglot-move-to-column-function 'eglot-move-to-linepos-function "1.12")
 (define-obsolete-variable-alias 'eglot-ignored-server-capabilites
   'eglot-ignored-server-capabilities "1.8")
 ;;;###autoload
-(define-obsolete-function-alias 'eglot-update 'eglot-upgrade-eglot "29.1")
+(define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 
 
 ;;; User tweakable stuff
@@ -1926,23 +1935,23 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
       ("utf-8"
        (eglot--setq-saving eglot-current-linepos-function #'eglot-utf-8-linepos)
        (eglot--setq-saving eglot-move-to-linepos-function #'eglot-move-to-utf-8-linepos)))
-    (add-hook 'after-change-functions 'eglot--after-change nil t)
-    (add-hook 'before-change-functions 'eglot--before-change nil t)
+    (add-hook 'after-change-functions #'eglot--after-change nil t)
+    (add-hook 'before-change-functions #'eglot--before-change nil t)
     (add-hook 'kill-buffer-hook #'eglot--managed-mode-off nil t)
     ;; Prepend "didClose" to the hook after the "nonoff", so it will run first
-    (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
-    (add-hook 'before-revert-hook 'eglot--signal-textDocument/didClose nil t)
-    (add-hook 'after-revert-hook 'eglot--after-revert-hook nil t)
-    (add-hook 'before-save-hook 'eglot--signal-textDocument/willSave nil t)
-    (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
+    (add-hook 'kill-buffer-hook #'eglot--signal-textDocument/didClose nil t)
+    (add-hook 'before-revert-hook #'eglot--signal-textDocument/didClose nil t)
+    (add-hook 'after-revert-hook #'eglot--after-revert-hook nil t)
+    (add-hook 'before-save-hook #'eglot--signal-textDocument/willSave nil t)
+    (add-hook 'after-save-hook #'eglot--signal-textDocument/didSave nil t)
     (unless (eglot--stay-out-of-p 'xref)
-      (add-hook 'xref-backend-functions 'eglot-xref-backend nil t))
+      (add-hook 'xref-backend-functions #'eglot-xref-backend nil t))
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
     (add-hook 'completion-in-region-mode-hook #'eglot--capf-session-flush nil t)
     (add-hook 'company-after-completion-hook #'eglot--capf-session-flush nil t)
     (add-hook 'change-major-mode-hook #'eglot--managed-mode-off nil t)
-    (add-hook 'post-self-insert-hook 'eglot--post-self-insert-hook nil t)
-    (add-hook 'pre-command-hook 'eglot--pre-command-hook nil t)
+    (add-hook 'post-self-insert-hook #'eglot--post-self-insert-hook nil t)
+    (add-hook 'pre-command-hook #'eglot--pre-command-hook nil t)
     (eglot--setq-saving xref-prompt-for-identifier nil)
     (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend))
     (eglot--setq-saving company-backends '(company-capf))
@@ -1961,21 +1970,21 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
       (eldoc-mode 1))
     (cl-pushnew (current-buffer) (eglot--managed-buffers (eglot-current-server))))
    (t
-    (remove-hook 'after-change-functions 'eglot--after-change t)
-    (remove-hook 'before-change-functions 'eglot--before-change t)
+    (remove-hook 'after-change-functions #'eglot--after-change t)
+    (remove-hook 'before-change-functions #'eglot--before-change t)
     (remove-hook 'kill-buffer-hook #'eglot--managed-mode-off t)
-    (remove-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose t)
-    (remove-hook 'before-revert-hook 'eglot--signal-textDocument/didClose t)
-    (remove-hook 'after-revert-hook 'eglot--after-revert-hook t)
-    (remove-hook 'before-save-hook 'eglot--signal-textDocument/willSave t)
-    (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t)
-    (remove-hook 'xref-backend-functions 'eglot-xref-backend t)
+    (remove-hook 'kill-buffer-hook #'eglot--signal-textDocument/didClose t)
+    (remove-hook 'before-revert-hook #'eglot--signal-textDocument/didClose t)
+    (remove-hook 'after-revert-hook #'eglot--after-revert-hook t)
+    (remove-hook 'before-save-hook #'eglot--signal-textDocument/willSave t)
+    (remove-hook 'after-save-hook #'eglot--signal-textDocument/didSave t)
+    (remove-hook 'xref-backend-functions #'eglot-xref-backend t)
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-hook 'completion-in-region-mode-hook #'eglot--capf-session-flush t)
     (remove-hook 'company-after-completion-hook #'eglot--capf-session-flush t)
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-off t)
-    (remove-hook 'post-self-insert-hook 'eglot--post-self-insert-hook t)
-    (remove-hook 'pre-command-hook 'eglot--pre-command-hook t)
+    (remove-hook 'post-self-insert-hook #'eglot--post-self-insert-hook t)
+    (remove-hook 'pre-command-hook #'eglot--pre-command-hook t)
     (remove-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function t)
     (remove-hook 'eldoc-documentation-functions #'eglot-signature-eldoc-function t)
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
@@ -2042,7 +2051,7 @@ If it is activated, also signal textDocument/didOpen."
       (eglot-inlay-hints-mode 1)
       (run-hooks 'eglot-managed-mode-hook))))
 
-(add-hook 'after-change-major-mode-hook 'eglot--maybe-activate-editing-mode)
+(add-hook 'after-change-major-mode-hook #'eglot--maybe-activate-editing-mode)
 
 (defun eglot-clear-status (server)
   "Clear the last JSONRPC error for SERVER."
@@ -2215,12 +2224,12 @@ still unanswered LSP requests to the server\n")))
 (put 'eglot-warning 'flymake-category 'flymake-warning)
 (put 'eglot-error 'flymake-category 'flymake-error)
 
-(defalias 'eglot--make-diag 'flymake-make-diagnostic)
-(defalias 'eglot--diag-data 'flymake-diagnostic-data)
+(defalias 'eglot--make-diag #'flymake-make-diagnostic)
+(defalias 'eglot--diag-data #'flymake-diagnostic-data)
 
 (defvar eglot-diagnostics-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'eglot-code-actions-at-mouse)
+    (define-key map [mouse-2] #'eglot-code-actions-at-mouse)
     map)
   "Keymap active in Eglot-backed Flymake diagnostic overlays.")
 
@@ -2618,7 +2627,7 @@ root of the current project.  It should return an object of the
 format described above.")
 
 ;;;###autoload
-(put 'eglot-workspace-configuration 'safe-local-variable 'listp)
+(put 'eglot-workspace-configuration 'safe-local-variable #'listp)
 
 (defun eglot-show-workspace-configuration (&optional server)
   "Dump `eglot-workspace-configuration' as JSON for debugging."

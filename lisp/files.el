@@ -1246,6 +1246,29 @@ See `load-file' for a different interface to `load'."
   (interactive (list (read-library-name)))
   (load library))
 
+(defun require-with-check (feature &optional filename noerror)
+  "If FEATURE is not already loaded, load it from FILENAME.
+This is like `require' except if FEATURE is already a member of the list
+`features’, then we check if this was provided by a different file than the
+one that we would load now (presumably because `load-path' has been
+changed since the file was loaded).
+If it's the case, we either signal an error (the default), or forcibly reload
+the new file (if NOERROR is equal to `reload'), or otherwise emit a warning."
+  (let ((lh load-history)
+        (res (require feature filename (if (eq noerror 'reload) nil noerror))))
+    ;; If the `feature' was not yet provided, `require' just loaded the right
+    ;; file, so we're done.
+    (when (eq lh load-history)
+      ;; If `require' did nothing, we need to make sure that was warranted.
+      (let ((fn (locate-file (or filename (symbol-name feature))
+                             load-path (get-load-suffixes))))
+        (cond
+         ((assoc fn load-history) nil)  ;We loaded the right file.
+         ((eq noerror 'reload) (load fn nil 'nomessage))
+         (t (funcall (if noerror #'warn #'error)
+                     "Feature provided by other file: %S" feature)))))
+    res))
+
 (defun file-remote-p (file &optional identification connected)
   "Test whether FILE specifies a location on a remote system.
 A file is considered remote if accessing it is likely to
