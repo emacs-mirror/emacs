@@ -2115,9 +2115,8 @@ sfntfont_get_metrics (sfnt_glyph glyph, struct sfnt_glyph_metrics *metrics,
   struct sfntfont_get_glyph_outline_dcontext *tables;
 
   tables = dcontext;
-  return sfnt_lookup_glyph_metrics (glyph, -1, metrics,
-				    tables->hmtx, tables->hhea,
-				    NULL, tables->maxp);
+  return sfnt_lookup_glyph_metrics (glyph, metrics, tables->hmtx,
+				    tables->hhea, tables->maxp);
 }
 
 /* Dereference the outline OUTLINE.  Free it once refcount reaches
@@ -2253,8 +2252,7 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 
   /* Now load the glyph's unscaled metrics into TEMP.  */
 
-  if (sfnt_lookup_glyph_metrics (glyph_code, -1, &temp, hmtx, hhea,
-				 head, maxp))
+  if (sfnt_lookup_glyph_metrics (glyph_code, &temp, hmtx, hhea, maxp))
     goto fail;
 
   if (interpreter)
@@ -2312,6 +2310,8 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 
   if (!outline)
     {
+      /* Build the outline.  This will apply GX offsets within *GLYPH
+	 to TEMP.  */
       outline = sfnt_build_glyph_outline (glyph, scale,
 					  &temp,
 					  sfntfont_get_glyph,
@@ -2319,22 +2319,9 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 					  sfntfont_get_metrics,
 					  &dcontext);
 
-      /* Add the advance width distortion, which is not applied to
-	 glyph metrics in advance of their being instructed, and thus
-	 has to be applied before the metrics are.  */
-      temp.advance += distortion.advance;
-
       /* At this point, the glyph metrics are unscaled.  Scale them
 	 up.  If INTERPRETER is set, use the scale placed within.  */
       sfnt_scale_metrics (&temp, scale);
-
-      /* Finally, adjust the left side bearing of the glyph metrics by
-	 the origin point of the outline, should a transformation have
-	 been applied by either instruction code or glyph variation.
-	 The left side bearing is the distance from the origin point
-	 to the left most point on the X axis.  */
-      if (index != -1)
-	temp.lbearing = outline->xmin - outline->origin;
     }
 
  fail:
