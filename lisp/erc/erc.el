@@ -6130,27 +6130,53 @@ returned name, see `erc-show-speaker-membership-status'."
 
 (define-obsolete-function-alias 'erc-get-user-mode-prefix
   #'erc-get-channel-membership-prefix "30.1")
-(defun erc-get-channel-membership-prefix (user)
-  "Return channel membership prefix for USER as a string.
+(defun erc-get-channel-membership-prefix (nick-or-cusr)
+  "Return channel membership prefix for NICK-OR-CUSR as a string.
 Ensure returned string has a `help-echo' text property with the
 corresponding verbose membership type, like \"voice\", as its
-value.  Expect USER to be an `erc-channel-user' object or a
-string nickname, not necessarily downcased."
-  (when user
-    (when (stringp user)
-      (setq user (and erc-channel-users (cdr (erc-get-channel-user user)))))
-    (cond ((null user) "")
-          ((erc-channel-user-owner user)
-           (propertize "~" 'help-echo "owner"))
-          ((erc-channel-user-admin user)
-           (propertize "&" 'help-echo "admin"))
-          ((erc-channel-user-op user)
-           (propertize "@" 'help-echo "operator"))
-          ((erc-channel-user-halfop user)
-           (propertize "%" 'help-echo "half-op"))
-          ((erc-channel-user-voice user)
-           (propertize "+" 'help-echo "voice"))
-          (t ""))))
+value.  Expect NICK-OR-CUSR to be an `erc-channel-user' object or
+a string nickname, not necessarily downcased.  When called in a
+logically connected ERC buffer, use advertised prefix mappings.
+For compatibility reasons, don't error when NICK-OR-CUSR is null,
+but return nil instead of the empty string.  Otherwise, always
+return a possibly empty string."
+  (when nick-or-cusr
+    (when (stringp nick-or-cusr)
+      (setq nick-or-cusr (and erc-channel-members
+                              (cdr (erc-get-channel-member nick-or-cusr)))))
+    (cond
+     ((null nick-or-cusr) "")
+     ;; Special-case most common value.
+     ((zerop (erc-channel-user-status nick-or-cusr)) "")
+     ;; For compatibility, first check whether a parsed prefix exists.
+     ((and-let* ((pfx-obj (erc--parsed-prefix)))
+        (catch 'done
+          (pcase-dolist (`(,letter . ,pfx)
+                         (erc--parsed-prefix-alist pfx-obj))
+            (pcase letter
+              ((and ?q (guard (erc-channel-user-owner nick-or-cusr)))
+               (throw 'done (propertize (string pfx) 'help-echo "owner")))
+              ((and ?a (guard (erc-channel-user-admin nick-or-cusr)))
+               (throw 'done (propertize (string pfx) 'help-echo "admin")))
+              ((and ?o (guard (erc-channel-user-op nick-or-cusr)))
+               (throw 'done (propertize (string pfx) 'help-echo "operator")))
+              ((and ?h (guard (erc-channel-user-halfop nick-or-cusr)))
+               (throw 'done (propertize (string pfx) 'help-echo "half-op")))
+              ((and ?v (guard (erc-channel-user-voice nick-or-cusr)))
+               (throw 'done (propertize (string pfx) 'help-echo "voice")))))
+          "")))
+     (t
+      (cond ((erc-channel-user-owner nick-or-cusr)
+             (propertize "~" 'help-echo "owner"))
+            ((erc-channel-user-admin nick-or-cusr)
+             (propertize "&" 'help-echo "admin"))
+            ((erc-channel-user-op nick-or-cusr)
+             (propertize "@" 'help-echo "operator"))
+            ((erc-channel-user-halfop nick-or-cusr)
+             (propertize "%" 'help-echo "half-op"))
+            ((erc-channel-user-voice nick-or-cusr)
+             (propertize "+" 'help-echo "voice"))
+            (t ""))))))
 
 (defun erc-format-@nick (&optional user channel-data)
   "Format the nickname of USER showing if USER has a voice, is an

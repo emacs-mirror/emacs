@@ -40,6 +40,15 @@
 (require 'ert-x)
 (require 'erc)
 
+
+(defmacro erc-tests-common-equal-with-props (a b)
+  "Compare strings A and B for equality including text props.
+Use `ert-equal-including-properties' on older Emacsen."
+  (list (if (< emacs-major-version 29)
+            'ert-equal-including-properties
+          'equal-including-properties)
+        a b))
+
 ;; Caller should probably shadow `erc-insert-modify-hook' or populate
 ;; user tables for erc-button.
 ;; FIXME explain this comment ^ in more detail or delete.
@@ -98,14 +107,19 @@ recently passed to the mocked `erc-process-input-line'.  Make
         (funcall test-fn (lambda () (pop calls)))))
     (when noninteractive (kill-buffer))))
 
-(defun erc-tests-common-make-server-buf (name)
+(defun erc-tests-common-make-server-buf (&optional name)
   "Return a server buffer named NAME, creating it if necessary.
 Use NAME for the network and the session server as well."
+  (unless name
+    (cl-assert (string-prefix-p " *temp*" (setq name (buffer-name)))))
   (with-current-buffer (get-buffer-create name)
     (erc-tests-common-prep-for-insertion)
     (erc-tests-common-init-server-proc "sleep" "1")
     (setq erc-session-server (concat "irc." name ".org")
           erc-server-announced-name (concat "west." name ".org")
+          erc-server-users (make-hash-table :test #'equal)
+          erc-server-parameters nil
+          erc--isupport-params (make-hash-table)
           erc-session-port 6667
           erc-network (intern name)
           erc-networks--id (erc-networks--id-create nil))

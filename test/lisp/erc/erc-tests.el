@@ -667,9 +667,7 @@
   (should-not (erc--parse-nuh "abc\nde!fg@xy")))
 
 (ert-deftest erc--parsed-prefix ()
-  (erc-mode)
-  (erc-tests-common-init-server-proc "sleep" "1")
-  (setq erc--isupport-params (make-hash-table))
+  (erc-tests-common-make-server-buf (buffer-name))
 
   ;; Uses fallback values when no PREFIX parameter yet received, thus
   ;; ensuring caller can use slot accessors immediately instead of
@@ -683,11 +681,10 @@
     (should (eq (erc--parsed-prefix) cached)))
 
   ;; Cache broken.  (Notice not setting `erc--parsed-prefix' to nil).
-  (setq erc-server-parameters '(("PREFIX" . "(Yqaohv)!~&@%+")))
+  (setq erc-server-parameters '(("PREFIX" . "(ov)@+")))
 
   (let ((proc erc-server-process)
-        (expected '((?Y . ?!) (?q . ?~) (?a . ?&)
-                    (?o . ?@) (?h . ?%) (?v . ?+)))
+        (expected '((?o . ?@) (?v . ?+)))
         cached)
 
     (with-temp-buffer
@@ -699,9 +696,8 @@
     (should (equal expected (erc--parsed-prefix-alist erc--parsed-prefix)))
     (setq cached erc--parsed-prefix)
     (should (equal cached
-                   #s(erc--parsed-prefix ("(Yqaohv)!~&@%+") "Yqaohv" "!~&@%+"
-                                         ((?Y . ?!) (?q . ?~) (?a . ?&)
-                                          (?o . ?@) (?h . ?%) (?v . ?+)))))
+                   #s(erc--parsed-prefix ("(ov)@+") "ov" "@+"
+                                         ((?o . ?@) (?v . ?+)))))
     ;; Second target buffer reuses cached value.
     (with-temp-buffer
       (erc-mode)
@@ -709,14 +705,14 @@
       (should (eq cached (erc--parsed-prefix))))
 
     ;; New value computed when cache broken.
-    (puthash 'PREFIX (list "(Yqaohv)!~&@%+") erc--isupport-params)
+    (puthash 'PREFIX (list "(qh)~%") erc--isupport-params)
     (with-temp-buffer
       (erc-mode)
       (setq erc-server-process proc)
       (should-not (eq cached (erc--parsed-prefix)))
       (should (equal (erc--parsed-prefix-alist
                       (erc-with-server-buffer erc--parsed-prefix))
-                     expected)))))
+                     '((?q . ?~) (?h . ?%)))))))
 
 ;; This exists as a reference to assert legacy behavior in order to
 ;; preserve and incorporate it as a fallback in the 5.6+ replacement.
@@ -760,7 +756,9 @@
 
       (ert-info ("Status updated when user known")
         (puthash "bob" (cons (erc-add-server-user
-                              "bob" (make-erc-server-user :nickname "bob"))
+                              "bob" (make-erc-server-user
+                                     :nickname "bob"
+                                     :buffers (list (current-buffer))))
                              (make-erc-channel-user))
                  erc-channel-users)
         ;; Also asserts fallback behavior for traditional prefixes.
@@ -1852,21 +1850,15 @@
     (let ((v '(42 y)))
       (should-not (erc--check-msg-prop 'b v)))))
 
-(defmacro erc-tests--equal-including-properties (a b)
-  (list (if (< emacs-major-version 29)
-            'ert-equal-including-properties
-          'equal-including-properties)
-        a b))
-
 (ert-deftest erc--merge-prop ()
   (with-current-buffer (get-buffer-create "*erc-test*")
     ;; Baseline.
     (insert "abc\n")
     (erc--merge-prop 1 3 'erc-test 'x)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("abc" 0 2 (erc-test x))))
     (erc--merge-prop 1 3 'erc-test 'y)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("abc" 0 2 (erc-test (y x)))))
 
     ;; Multiple intervals.
@@ -1874,11 +1866,11 @@
     (insert "def\n")
     (erc--merge-prop 1 2 'erc-test 'x)
     (erc--merge-prop 2 3 'erc-test 'y)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4)
              #("def" 0 1 (erc-test x) 1 2 (erc-test y))))
     (erc--merge-prop 1 3 'erc-test 'z)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4)
              #("def" 0 1 (erc-test (z x)) 1 2 (erc-test (z y)))))
 
@@ -1886,10 +1878,10 @@
     (goto-char (point-min))
     (insert "ghi\n")
     (erc--merge-prop 2 3 'erc-test '(y z))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("ghi" 1 2 (erc-test (y z)))))
     (erc--merge-prop 1 3 'erc-test '(w x))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4)
              #("ghi" 0 1 (erc-test (w x)) 1 2 (erc-test (w x y z)))))
 
@@ -1897,11 +1889,11 @@
     (goto-char (point-min))
     (insert "jkl\n")
     (erc--merge-prop 2 3 'erc-test '(y z))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("jkl" 1 2 (erc-test (y z)))))
     (let ((erc--merge-prop-behind-p t))
       (erc--merge-prop 1 3 'erc-test '(w x)))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4)
              #("jkl" 0 1 (erc-test (w x)) 1 2 (erc-test (y z w x)))))
 
@@ -1915,22 +1907,22 @@
     (put-text-property 1 2 'erc-test 'a)
     (put-text-property 2 3 'erc-test 'b)
     (put-text-property 3 4 'erc-test 'c)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("abc"
                                       0 1 (erc-test a)
                                       1 2 (erc-test b)
                                       2 3 (erc-test c))))
 
     (erc--remove-from-prop-value-list 1 4 'erc-test 'b)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("abc"
                                       0 1 (erc-test a)
                                       2 3 (erc-test c))))
     (erc--remove-from-prop-value-list 1 4 'erc-test 'a)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("abc" 2 3 (erc-test c))))
     (erc--remove-from-prop-value-list 1 4 'erc-test 'c)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) "abc"))
 
     ;; List match.
@@ -1939,20 +1931,20 @@
     (put-text-property 1 2 'erc-test '(d x))
     (put-text-property 2 3 'erc-test '(e y))
     (put-text-property 3 4 'erc-test '(f z))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("def"
                                       0 1 (erc-test (d x))
                                       1 2 (erc-test (e y))
                                       2 3 (erc-test (f z)))))
     (erc--remove-from-prop-value-list 1 4 'erc-test 'y)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("def"
                                       0 1 (erc-test (d x))
                                       1 2 (erc-test e)
                                       2 3 (erc-test (f z)))))
     (erc--remove-from-prop-value-list 1 4 'erc-test 'd)
     (erc--remove-from-prop-value-list 1 4 'erc-test 'f)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("def"
                                       0 1 (erc-test x)
                                       1 2 (erc-test e)
@@ -1960,7 +1952,7 @@
     (erc--remove-from-prop-value-list 1 4 'erc-test 'e)
     (erc--remove-from-prop-value-list 1 4 'erc-test 'z)
     (erc--remove-from-prop-value-list 1 4 'erc-test 'x)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) "def"))
 
     ;; List match.
@@ -1969,20 +1961,20 @@
     (put-text-property 1 2 'erc-test '(g x))
     (put-text-property 2 3 'erc-test '(h x))
     (put-text-property 3 4 'erc-test '(i y))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("ghi"
                                       0 1 (erc-test (g x))
                                       1 2 (erc-test (h x))
                                       2 3 (erc-test (i y)))))
     (erc--remove-from-prop-value-list 1 4 'erc-test 'x)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("ghi"
                                       0 1 (erc-test g)
                                       1 2 (erc-test h)
                                       2 3 (erc-test (i y)))))
     (erc--remove-from-prop-value-list 1 2 'erc-test 'g) ; narrowed
     (erc--remove-from-prop-value-list 3 4 'erc-test 'i) ; narrowed
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("ghi"
                                       1 2 (erc-test h)
                                       2 3 (erc-test y))))
@@ -1994,7 +1986,7 @@
     (put-text-property 2 3 'erc-test '(k))
     (put-text-property 3 4 'erc-test '(k))
     (erc--remove-from-prop-value-list 1 4 'erc-test 'k)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("jkl" 0 1 (erc-test (j x)))))
 
     (when noninteractive
@@ -2007,20 +1999,20 @@
     (put-text-property 1 2 'erc-test 'a)
     (put-text-property 2 3 'erc-test 'b)
     (put-text-property 3 4 'erc-test 'c)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("abc"
                                       0 1 (erc-test a)
                                       1 2 (erc-test b)
                                       2 3 (erc-test c))))
 
     (erc--remove-from-prop-value-list 1 4 'erc-test '(a b))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("abc" 2 3 (erc-test c))))
     (erc--remove-from-prop-value-list 1 4 'erc-test 'a)
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("abc" 2 3 (erc-test c))))
     (erc--remove-from-prop-value-list 1 4 'erc-test '(c))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) "abc"))
 
     ;; List match.
@@ -2029,19 +2021,19 @@
     (put-text-property 1 2 'erc-test '(d x y))
     (put-text-property 2 3 'erc-test '(e y))
     (put-text-property 3 4 'erc-test '(f z))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("def"
                                       0 1 (erc-test (d x y))
                                       1 2 (erc-test (e y))
                                       2 3 (erc-test (f z)))))
     (erc--remove-from-prop-value-list 1 4 'erc-test '(d y f))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("def"
                                       0 1 (erc-test x)
                                       1 2 (erc-test e)
                                       2 3 (erc-test z))))
     (erc--remove-from-prop-value-list 1 4 'erc-test '(e z x))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) "def"))
 
     ;; Narrowed beg.
@@ -2050,13 +2042,13 @@
     (put-text-property 1 2 'erc-test '(g x))
     (put-text-property 2 3 'erc-test '(h x))
     (put-text-property 3 4 'erc-test '(i x))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("ghi"
                                       0 1 (erc-test (g x))
                                       1 2 (erc-test (h x))
                                       2 3 (erc-test (i x)))))
     (erc--remove-from-prop-value-list 1 3 'erc-test '(x g i))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("ghi"
                                       1 2 (erc-test h)
                                       2 3 (erc-test (i x)))))
@@ -2068,7 +2060,7 @@
     (put-text-property 2 3 'erc-test '(k))
     (put-text-property 3 4 'erc-test '(l y z))
     (erc--remove-from-prop-value-list 3 4 'erc-test '(k x y z))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (buffer-substring 1 4) #("jkl"
                                       0 1 (erc-test (j x))
                                       1 2 (erc-test (k))
@@ -2296,6 +2288,67 @@
     (kill-buffer "ExampleNet")
     (kill-buffer "#chan")))
 
+(ert-deftest erc-get-channel-membership-prefix ()
+  (ert-info ("Uses default prefixes when `erc--parsed-prefix' not available")
+    (should-not (erc--parsed-prefix))
+    ;; Baseline.
+    (should-not (erc-get-channel-membership-prefix nil))
+    (should (equal (erc-get-channel-membership-prefix "Bob") ""))
+    (should (equal (erc-get-channel-membership-prefix (make-erc-channel-user))
+                   ""))
+    ;; Defaults.
+    (should
+     (erc-tests-common-equal-with-props
+      (erc-get-channel-membership-prefix (make-erc-channel-user :owner t))
+      #("~" 0 1 (help-echo "owner"))))
+    (should
+     (erc-tests-common-equal-with-props
+      (erc-get-channel-membership-prefix (make-erc-channel-user :admin t))
+      #("&" 0 1 (help-echo "admin"))))
+    (should
+     (erc-tests-common-equal-with-props
+      (erc-get-channel-membership-prefix (make-erc-channel-user :op t))
+      #("@" 0 1 (help-echo "operator"))))
+    (should
+     (erc-tests-common-equal-with-props
+      (erc-get-channel-membership-prefix (make-erc-channel-user :halfop t))
+      #("%" 0 1 (help-echo "half-op"))))
+    (should
+     (erc-tests-common-equal-with-props
+      (erc-get-channel-membership-prefix (make-erc-channel-user :voice t))
+      #("+" 0 1 (help-echo "voice")))))
+
+  (ert-info ("Uses advertised prefixes when `erc--parsed-prefix' is available")
+    (erc-tests-common-make-server-buf (buffer-name))
+    (push '("PREFIX" . "(ov)@+") erc-server-parameters)
+    (should (erc--parsed-prefix))
+
+    (with-current-buffer (erc--open-target "#chan")
+      (erc-update-current-channel-member "Bob" nil t nil nil 'on)
+
+      ;; Baseline.
+      (should-not (erc-get-channel-membership-prefix nil))
+      (should (string-empty-p (erc-get-channel-membership-prefix
+                               (make-erc-channel-user))))
+
+      ;; Defaults.
+      (should (string-empty-p (erc-get-channel-membership-prefix
+                               (make-erc-channel-user :owner t))))
+      (should (string-empty-p (erc-get-channel-membership-prefix
+                               (make-erc-channel-user :admin t))))
+      (should (string-empty-p (erc-get-channel-membership-prefix
+                               (make-erc-channel-user :halfop t))))
+
+      (should (erc-tests-common-equal-with-props
+               (erc-get-channel-membership-prefix "Bob")
+               #("@" 0 1 (help-echo "operator"))))
+      (should (erc-tests-common-equal-with-props
+               (erc-get-channel-membership-prefix
+                (make-erc-channel-user :voice t))
+               #("+" 0 1 (help-echo "voice"))))
+
+      (kill-buffer))))
+
 ;; This is an adapter that uses formatting templates from the
 ;; `-speaker' catalog to mimic `erc-format-privmessage', for testing
 ;; purposes.
@@ -2315,10 +2368,10 @@
                   1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
                   4 11 (font-lock-face erc-default-face)))
         (args (list (concat "bob") (concat "oh my") nil 'msgp)))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (apply #'erc-format-privmessage args)
              expect))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (apply #'erc-tests--format-privmessage args)
              expect)))
 
@@ -2328,10 +2381,10 @@
                   1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
                   4 11 (font-lock-face erc-default-face)))
         (args (list (copy-sequence "bob") (copy-sequence "oh my") nil nil)))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (apply #'erc-format-privmessage args)
              expect))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              (apply #'erc-tests--format-privmessage args)
              expect)))
 
@@ -2348,17 +2401,17 @@
     (puthash "bob" (cons user cuser) erc-channel-users)
 
     (with-suppressed-warnings ((obsolete erc-format-@nick))
-      (should (erc-tests--equal-including-properties
+      (should (erc-tests-common-equal-with-props
                (erc-format-privmessage (erc-format-@nick user cuser)
                                        (copy-sequence "oh my")
                                        nil 'msgp)
                expect)))
     (let ((nick "Bob")
           (msg "oh my"))
-      (should (erc-tests--equal-including-properties
+      (should (erc-tests-common-equal-with-props
                (erc-tests--format-privmessage nick msg nil 'msgp nil cuser)
                expect)) ; overloaded on PREFIX arg
-      (should (erc-tests--equal-including-properties
+      (should (erc-tests-common-equal-with-props
                (erc-tests--format-privmessage nick msg nil 'msgp nil t)
                expect))
       ;; The new version makes a copy instead of adding properties to
@@ -2377,7 +2430,7 @@
 
     (insert "PRIVMSG\n"
             (erc-tests--format-privmessage "bob" "oh my" 'queryp 'msgp))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              #("<bob> oh my"
                0 1 (font-lock-face erc-default-face)
                1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
@@ -2386,7 +2439,7 @@
 
     (insert "\nNOTICE\n"
             (erc-tests--format-privmessage "bob" "oh my" 'queryp nil))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              #("-bob- oh my"
                0 1 (font-lock-face erc-default-face)
                1 4 (erc--speaker "bob" font-lock-face erc-nick-default-face)
@@ -2396,7 +2449,7 @@
     (insert "\nInput PRIVMSG\n"
             (erc-tests--format-privmessage "bob" "oh my"
                                            'queryp 'privmsgp 'inputp))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              #("<bob> oh my"
                0 1 (font-lock-face erc-default-face)
                1 4 (erc--speaker "bob" font-lock-face erc-my-nick-face)
@@ -2406,7 +2459,7 @@
 
     (insert "\nInput NOTICE\n"
             (erc-tests--format-privmessage "bob" "oh my" 'queryp nil 'inputp))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              #("-bob- oh my"
                0 1 (font-lock-face erc-default-face)
                1 4 (erc--speaker "bob" font-lock-face erc-my-nick-face)
@@ -2426,7 +2479,7 @@
 
     (insert "PRIVMSG\n"
             (erc-tests--format-privmessage "bob" "oh my" 'queryp 'msgp))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              #("*bob* oh my"
                0 1 (font-lock-face erc-direct-msg-face)
                1 4 (erc--speaker "bob" font-lock-face erc-nick-msg-face)
@@ -2435,7 +2488,7 @@
 
     (insert "\nNOTICE\n"
             (erc-tests--format-privmessage "bob" "oh my" 'queryp nil))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              #("-bob- oh my"
                0 1 (font-lock-face erc-direct-msg-face)
                1 4 (erc--speaker "bob" font-lock-face erc-nick-msg-face)
@@ -2445,7 +2498,7 @@
     (insert "\nInput PRIVMSG\n"
             (erc-tests--format-privmessage "bob" "oh my"
                                            'queryp 'privmsgp 'inputp))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              #("*bob* oh my"
                0 1 (font-lock-face erc-direct-msg-face)
                1 4 (erc--speaker "bob" font-lock-face erc-my-nick-face)
@@ -2455,7 +2508,7 @@
 
     (insert "\nInput NOTICE\n"
             (erc-tests--format-privmessage "bob" "oh my" 'queryp nil 'inputp))
-    (should (erc-tests--equal-including-properties
+    (should (erc-tests-common-equal-with-props
              #("-bob- oh my"
                0 1 (font-lock-face erc-direct-msg-face)
                1 4 (erc--speaker "bob" font-lock-face erc-my-nick-face)
