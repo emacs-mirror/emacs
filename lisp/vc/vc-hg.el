@@ -584,8 +584,8 @@ Optional arg REVISION is a revision to annotate from."
     (vc-annotate-convert-time
      (let ((str (match-string-no-properties 2)))
        (encode-time 0 0 0
-                    (string-to-number (substring str 6 8))
-                    (string-to-number (substring str 4 6))
+                    (string-to-number (substring str 8 10))
+                    (string-to-number (substring str 5 7))
                     (string-to-number (substring str 0 4)))))))
 
 (defun vc-hg-annotate-extract-revision-at-line ()
