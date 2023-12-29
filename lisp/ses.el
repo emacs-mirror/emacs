@@ -884,7 +884,7 @@ means Emacs will crash if FORMULA contains a circular list."
 	  (newref (ses-formula-references formula))
 	  (inhibit-quit t)
           not-a-cell-ref-list
-	  x xrow xcol)
+	  x xref xrow xcol)
       (cl-pushnew sym ses--deferred-recalc)
       ;;Delete old references from this cell.  Skip the ones that are also
       ;;in the new list.
@@ -893,24 +893,27 @@ means Emacs will crash if FORMULA contains a circular list."
           ;; because we do not cancel edit when the user provides a
           ;; false reference in it, then we need to check that ref
           ;; points to a cell that is within the spreadsheet.
-	  (setq x    (ses-sym-rowcol ref))
-          (and x
-               (< (setq xrow (car x)) ses--numrows)
-               (< (setq xcol (cdr x)) ses--numcols)
-               (ses-set-cell xrow xcol 'references
-                            (delq sym (ses-cell-references xrow xcol))))))
+	  (when
+              (and (setq x (ses-sym-rowcol ref))
+                   (< (setq xrow (car x)) ses--numrows)
+                   (< (setq xcol (cdr x)) ses--numcols))
+            ;; cell ref has to be re-written to data area as its
+            ;; reference list is changed
+            (cl-pushnew x  ses--deferred-write  :test #'equal)
+            (ses-set-cell xrow xcol 'references
+                          (delq sym (ses-cell-references xrow xcol))))))
       ;;Add new ones.  Skip ones left over from old list
       (dolist (ref newref)
-	(setq x    (ses-sym-rowcol ref))
         ;;Do not trust the user, the reference may be outside the spreadsheet
         (if (and
-             x
+             (setq x    (ses-sym-rowcol ref))
              (<  (setq xrow (car x)) ses--numrows)
              (<  (setq xcol (cdr x)) ses--numcols))
-          (progn
-            (setq x (ses-cell-references xrow xcol))
-            (or (memq sym x)
-                (ses-set-cell xrow xcol 'references (cons sym x))))
+            (unless (memq sym (setq xref (ses-cell-references xrow xcol)))
+              ;; cell ref has to be re-written to data area as its
+              ;; reference list is changed
+              (cl-pushnew x  ses--deferred-write  :test #'equal)
+              (ses-set-cell xrow xcol 'references (cons sym xref)))
           (cl-pushnew ref not-a-cell-ref-list)))
       (ses-formula-record formula)
       (ses-set-cell row col 'formula formula)
