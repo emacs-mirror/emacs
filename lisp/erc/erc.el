@@ -6855,57 +6855,53 @@ which USER is a member, and t is returned."
                   (run-hooks 'erc-channel-members-changed-hook))))))
     changed))
 
-;; This exists solely to make `erc-update-current-channel-member' more
-;; readable.  Having to resort to it is admittedly not ideal.  While
-;; it would seem at first glance that we could go further and encode
-;; the combined status in one go, we can't without gating the entire
-;; operation on the parameters `admin', `halfop', etc. being non-nil.
-(defmacro erc--update-cusr-status-if-changed (cuser changed-var status-var)
-  "Maybe update STATUS-VAR slot of `erc-channel-user' CUSER, and CHANGED-VAR."
-  (let ((accessor (intern (format "erc-channel-user-%s" status-var))))
-    `(when (and ,status-var (not (eq (,accessor ,cuser) ,status-var)))
-       (setf (,accessor ,cuser) (and (not (eq ,status-var 'off))
-                                     (and ,status-var t))
-             ,changed-var t))))
-
 (defun erc-update-current-channel-member
-  (nick new-nick &optional add voice halfop op admin owner host login full-name info
+  (nick new-nick &optional addp voice halfop op admin owner host login full-name info
         update-message-time)
-  "Update the stored user information for the user with nickname NICK.
-`erc-update-user' is called to handle changes to nickname,
-HOST, LOGIN, FULL-NAME, and INFO.  If VOICE HALFOP OP ADMIN or OWNER
-are non-nil, they must be equal to either `on' or `off', in which
-case the status of the user in the current channel is changed accordingly.
-If UPDATE-MESSAGE-TIME is non-nil, the last-message-time of the user
- in the current channel is set to (current-time).
+  "Update or create entry for NICK in current `erc-channel-members' table.
+With ADDP, ensure an entry exists.  If one already does, call
+`erc-update-user' to handle updates to HOST, LOGIN, FULL-NAME,
+INFO, and NEW-NICK.  Expect any non-nil membership status
+switches among VOICE, HALFOP, OP, ADMIN, and OWNER to be the
+symbol `on' or `off' when needing to influence a new or existing
+`erc-channel-user' object's `status' slot.  Likewise, when
+UPDATE-MESSAGE-TIME is non-nil, update or initialize the
+`last-message-time' slot to the current-time.  If changes occur,
+including creation, run `erc-channel-members-changed-hook'.
+Return non-nil when meaningful changes, including creation, have
+occurred.
 
-If ADD is non-nil, the user will be added with the specified
-information if it is not already present in the user or channel
-lists.
-
-If, and only if, changes are made, or the user is added,
-`erc-channel-members-changed-hook' is run, and t is returned.
-
-See also: `erc-update-user' and `erc-update-channel-member'."
-  (let* (changed user-changed
-                 (channel-data (erc-get-channel-user nick))
-                 (cuser (cdr channel-data))
-                 (user (if channel-data (car channel-data)
-                         (erc-get-server-user nick))))
-    (if cuser
+Without ADDP, do nothing unless a `erc-channel-members' entry
+exists.  When it doesn't, assume the sender is a non-joined
+entity, like the server itself or a historical speaker, or assume
+the prior buffer for the channel was killed without parting."
+  (let* (cusr-changed-p
+         user-changed-p
+         (cmem (erc-get-channel-member nick))
+         (cusr (cdr cmem))
+         (down (erc-downcase nick))
+         (user (or (car cmem)
+                   (gethash down (erc-with-server-buffer erc-server-users)))))
+    (if cusr
         (progn
-          (erc-log (format "update-member: user = %S, cuser = %S" user cuser))
-          (erc--update-cusr-status-if-changed cuser changed voice)
-          (erc--update-cusr-status-if-changed cuser changed halfop)
-          (erc--update-cusr-status-if-changed cuser changed op)
-          (erc--update-cusr-status-if-changed cuser changed admin)
-          (erc--update-cusr-status-if-changed cuser changed owner)
+          (erc-log (format "update-member: user = %S, cusr = %S" user cusr))
+          (when-let (((or voice halfop op admin owner))
+                     (existing (erc-channel-user-status cusr)))
+            (when voice  (setf (erc-channel-user-voice  cusr) (eq voice  'on)))
+            (when halfop (setf (erc-channel-user-halfop cusr) (eq halfop 'on)))
+            (when op     (setf (erc-channel-user-op     cusr) (eq op     'on)))
+            (when admin  (setf (erc-channel-user-admin  cusr) (eq admin  'on)))
+            (when owner  (setf (erc-channel-user-owner  cusr) (eq owner  'on)))
+            (setq cusr-changed-p (= existing (erc-channel-user-status cusr))))
           (when update-message-time
-            (setf (erc-channel-user-last-message-time cuser) (current-time)))
-          (setq user-changed
+            (setf (erc-channel-user-last-message-time cusr) (current-time)))
+          ;; Assume `user' exists and its `buffers' slot contains the
+          ;; current buffer so that `erc-channel-members-changed-hook'
+          ;; will run if changes are made.
+          (setq user-changed-p
                 (erc-update-user user new-nick
                                  host login full-name info)))
-      (when add
+      (when addp
         (if (null user)
             (progn
               (setq user (make-erc-server-user
@@ -6919,20 +6915,22 @@ See also: `erc-update-user' and `erc-update-channel-member'."
           (setf (erc-server-user-buffers user)
                 (cons (current-buffer)
                       (erc-server-user-buffers user))))
-        (setq cuser (make-erc-channel-user
-                     :voice  (and (not (eq voice  'off)) (and voice  t))
-                     :halfop (and (not (eq halfop 'off)) (and halfop t))
-                     :op     (and (not (eq op     'off)) (and op     t))
-                     :admin  (and (not (eq admin  'off)) (and admin  t))
-                     :owner  (and (not (eq owner  'off)) (and owner  t))
-                     :last-message-time
-                     (if update-message-time (current-time))))
-        (puthash (erc-downcase nick) (cons user cuser)
-                 erc-channel-users)
-        (setq changed t)))
-    (when (and changed (null user-changed))
+        (setq cusr (make-erc-channel-user
+                     :voice  (and voice  (eq voice  'on))
+                     :halfop (and halfop (eq halfop 'on))
+                     :op     (and op     (eq op     'on))
+                     :admin  (and admin  (eq admin  'on))
+                     :owner  (and owner  (eq owner  'on))
+                     :last-message-time (if update-message-time
+                                            (current-time))))
+        (puthash down (cons user cusr) erc-channel-users)
+        (setq cusr-changed-p t)))
+    ;; An existing `cusr' was changed or a new one was added, and
+    ;; `user' was not updated, though possibly just created (since
+    ;; `erc-update-user' runs this same hook in all a user's buffers).
+    (when (and cusr-changed-p (null user-changed-p))
       (run-hooks 'erc-channel-members-changed-hook))
-    (or changed user-changed add)))
+    (or cusr-changed-p user-changed-p)))
 
 (defun erc-update-channel-member (channel nick new-nick
                                           &optional add voice halfop op admin owner host login
