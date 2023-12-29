@@ -128,7 +128,7 @@
                     (load (symbol-name feature) nil 'nomessage)))))
 
     (funcall reload 'eldoc nil 'reload)
-    (funcall reload nil 'reload)
+    (funcall reload 'seq nil 'reload)
     ;; For those packages which are not preloaded OTOH, signal an error if
     ;; the loaded file is not the one that should have been loaded.
     (mapc reload '(project flymake xref jsonrpc external-completion))))
