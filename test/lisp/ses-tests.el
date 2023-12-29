@@ -1,4 +1,4 @@
-;;; ses-tests.el --- Tests for ses.el              -*- lexical-binding: t; -*-
+;;; SES-tests.el --- Tests for ses.el              -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
@@ -243,11 +243,10 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
 
 (ert-deftest ses-bug5852 ()
   "This this bug is not yet fixed, the test is expected to fail.
-The bug is that after the second yank of the same formula the
-reference list of cell B2 is correct in the memory data
-structure, but not in the written ses-cell macros in the data
-area, this is why the second should statement fails after
-reloading the sheet."
+The bug is that after modifying formula of B4 reference list of
+cell B2 is correct in the memory data structure, but not in the
+written ses-cell macros in the data area, this is why the second
+`should' statement fails after reloading the sheet."
   :expected-result :failed
   (let ((ses-initial-size '(4 . 3))
         ses-after-entry-functions beg)
@@ -259,15 +258,9 @@ reloading the sheet."
                    (3 0 3) (3 1 (+ B2 A4))));A4 B4
         (apply 'ses-cell-set-formula c)
         (apply 'ses-calculate-cell (list (car c) (cadr c) nil)))
-      (ses-jump 'B2)
-      (setq beg (point))
-      (ses-jump 'C2)
-      (kill-ring-save beg (point))
-      (ses-jump 'B3)
-      (yank)
+      (ses-cell-set-formula 2 1 '(+ B2 A3)); B3
       (ses-command-hook)
-      (ses-jump 'B4)
-      (yank)
+      (ses-cell-set-formula 3 1 (+ B3 A4)); B4
       (ses-command-hook)
       (should (equal (ses-cell-references 1 1) '(B3)))
       (ses-mode)
