@@ -1361,7 +1361,11 @@ values.
 
 * Lisp Changes in Emacs 30.1
 
++++
 ** New function 'require-with-check' to detect new versions shadowing.
+This is like 'require', but it checks whether the argument 'feature'
+is already loaded, in which case it either signals an error or
+forcibly reloads the file that defines the feature.
 
 +++
 ** New 'pop-up-frames' action alist entry for 'display-buffer'.

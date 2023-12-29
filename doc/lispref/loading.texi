@@ -1011,6 +1011,19 @@ If loading the file succeeds but does not provide @var{feature},
 @code{require} signals an error about the missing feature.
 @end defun
 
+@defun require-with-check feature &optional filename noerror
+This function works like @code{require}, except if @var{feature} is
+already loaded (i.e.@: is already a member of the list in
+@code{features}, see below).  If @var{feature} is already loaded, this
+function checks if @var{feature} was provided by a file different from
+@var{filename}, and if so, it by default signals an error.  If the
+value of the optional argument @var{noerror} is @code{reload}, the
+function doesn't signal an error, but instead forcibly reloads
+@var{filename}; if @var{noerror} is some other non-@code{nil} value,
+the function emits a warning about @var{feature} being already
+provided by another file.
+@end defun
+
 @defun featurep feature &optional subfeature
 This function returns @code{t} if @var{feature} has been provided in
 the current Emacs session (i.e., if @var{feature} is a member of
