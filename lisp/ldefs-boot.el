@@ -5619,19 +5619,18 @@ into
 
 \\{cperl-mode-map}
 
-Setting the variable `cperl-font-lock' to t switches on `font-lock-mode'
-(even with older Emacsen), `cperl-electric-lbrace-space' to t switches
-on electric space between $ and {, `cperl-electric-parens-string' is
-the string that contains parentheses that should be electric in CPerl
-(see also `cperl-electric-parens-mark' and `cperl-electric-parens'),
-setting `cperl-electric-keywords' enables electric expansion of
-control structures in CPerl.  `cperl-electric-linefeed' governs which
-one of two linefeed behavior is preferable.  You can enable all these
-options simultaneously (recommended mode of use) by setting
-`cperl-hairy' to t.  In this case you can switch separate options off
-by setting them to `null'.  Note that one may undo the extra
-whitespace inserted by semis and braces in `auto-newline'-mode by
-consequent \\[cperl-electric-backspace].
+Setting the variable `cperl-font-lock' to t switches on `font-lock-mode',
+`cperl-electric-lbrace-space' to t switches on electric space between $
+and {, `cperl-electric-parens-string' is the string that contains
+parentheses that should be electric in CPerl (see also
+`cperl-electric-parens-mark' and `cperl-electric-parens'), setting
+`cperl-electric-keywords' enables electric expansion of control
+structures in CPerl.  `cperl-electric-linefeed' governs which one of two
+linefeed behavior is preferable.  You can enable all these options
+simultaneously by setting `cperl-hairy' to t.  In this case you can
+switch separate options off by setting them to `null'.  Note that one may
+undo the extra whitespace inserted by semis and braces in
+`auto-newline'-mode by consequent \\[cperl-electric-backspace].
 
 Short one-liner-style help is available on \\[cperl-get-help],
 and one can run perldoc or man via menu.
@@ -7568,7 +7567,9 @@ each option.
 
 On systems such as MS-DOS and MS-Windows, which use `ls' emulation in Lisp,
 some of the `ls' switches are not supported; see the doc string of
-`insert-directory' in `ls-lisp.el' for more details.")
+`insert-directory' in `ls-lisp.el' for more details.
+
+For remote Dired buffers, this option supports connection-local values.")
 (custom-autoload 'dired-listing-switches "dired" t)
 (defvar-local dired-directory nil "\
 The directory name or wildcard spec that this Dired directory lists.
@@ -9358,8 +9359,8 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push (purecopy '(eglot 1 15)) package--builtin-versions)
-(define-obsolete-function-alias 'eglot-update 'eglot-upgrade-eglot "29.1")
+(push (purecopy '(eglot 1 16)) package--builtin-versions)
+(define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 (autoload 'eglot "eglot" "\
 Start LSP server for PROJECT's buffers under MANAGED-MAJOR-MODES.
 
@@ -9418,7 +9419,7 @@ needed.")
 Update Eglot to latest version.
 
 (fn &rest _)" t)
-(put 'eglot-workspace-configuration 'safe-local-variable 'listp)
+(put 'eglot-workspace-configuration 'safe-local-variable #'listp)
 (put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
 (defun eglot--debbugs-or-github-bug-uri nil (format (if (string= (match-string 2) "github") "https://github.com/joaotavora/eglot/issues/%s" "https://debbugs.gnu.org/%s") (match-string 3)))
 (register-definition-prefixes "eglot" '("eglot-"))
@@ -10891,6 +10892,8 @@ which is important if that buffer has a local value of `tags-file-name'.
 Returns t if it visits a tags table, or nil if there are no more in the list.
 
 (fn &optional CONT CBUF)")
+(autoload 'tags-reset-tags-tables "etags" "\
+Reset tags state to cancel effect of any previous \\[visit-tags-table] or \\[find-tag]." t)
 (autoload 'tags-table-files "etags" "\
 Return a list of files in the current tags table.
 Assumes the tags table is the current buffer.  The file names are returned
@@ -12321,6 +12324,14 @@ function preserves the values of any existing variable
 definitions that aren't listed in VARIABLES.
 
 (fn PROFILE VARIABLES)")
+(autoload 'hack-connection-local-variables "files-x" "\
+Read connection-local variables according to CRITERIA.
+Store the connection-local variables in buffer local
+variable `connection-local-variables-alist'.
+
+This does nothing if `enable-connection-local-variables' is nil.
+
+(fn CRITERIA)")
 (autoload 'hack-connection-local-variables-apply "files-x" "\
 Apply connection-local variables identified by CRITERIA.
 Other local variables, like file-local and dir-local variables,
@@ -12364,17 +12375,25 @@ earlier in the `setq-connection-local'.  The return value of the
 `setq-connection-local' form is the value of the last VALUE.
 
 (fn [VARIABLE VALUE]...)" nil t)
+(autoload 'connection-local-p "files-x" "\
+Non-nil if VARIABLE has a connection-local binding in `default-directory'.
+If APPLICATION is nil, the value of
+`connection-local-default-application' is used.
+
+(fn VARIABLE &optional APPLICATION)" nil t)
 (autoload 'connection-local-value "files-x" "\
 Return connection-local VARIABLE for APPLICATION in `default-directory'.
-If VARIABLE does not have a connection-local binding, the value
-is the default binding of the variable.
+If APPLICATION is nil, the value of
+`connection-local-default-application' is used.
+If VARIABLE does not have a connection-local binding, the return
+value is the default binding of the variable.
 
 (fn VARIABLE &optional APPLICATION)" nil t)
 (autoload 'path-separator "files-x" "\
 The connection-local value of `path-separator'.")
 (autoload 'null-device "files-x" "\
 The connection-local value of `null-device'.")
-(register-definition-prefixes "files-x" '("connection-local-" "dir-locals-to-string" "hack-connection-local-variables" "modify-" "read-"))
+(register-definition-prefixes "files-x" '("connection-local-" "dir-locals-to-string" "modify-" "read-"))
 
 
 ;;; Generated autoloads from filesets.el
@@ -19030,7 +19049,7 @@ Major mode for editing JSON, powered by tree-sitter.
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push (purecopy '(jsonrpc 1 0 18)) package--builtin-versions)
+(push (purecopy '(jsonrpc 1 0 23)) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -22744,7 +22763,7 @@ Coloring:
 
 ;;; Generated autoloads from org/org.el
 
-(push (purecopy '(org 9 6 11)) package--builtin-versions)
+(push (purecopy '(org 9 6 13)) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
 
@@ -23886,7 +23905,7 @@ package uses `file-name-base' on the URL to obtain the package
 name, otherwise NAME is the package name as a symbol.
 
 PACKAGE can also be a cons cell (PNAME . SPEC) where PNAME is the
-package name as a symbol, and SPEC is a plist that specifes how
+package name as a symbol, and SPEC is a plist that specifies how
 to fetch and build the package.  For possible values, see the
 subsection \"Specifying Package Sources\" in the Info
 node `(emacs)Fetching Package Sources'.
@@ -25746,7 +25765,7 @@ Execute an extended command in project root." t)
 Run the next command in the current project.
 
 If the command name starts with `project-', or its symbol has
-property `project-related', it gets passed the project to use
+property `project-aware', it gets passed the project to use
 with the variable `project-current-directory-override'.
 Otherwise, `default-directory' is temporarily set to the current
 project's root.
@@ -35032,7 +35051,7 @@ When invoked interactively in a Log View buffer with
 marked revisions, use those.
 
 (fn ADDRESSEE SUBJECT REVISIONS)" t)
-(register-definition-prefixes "vc" '("vc-" "with-vc-properties"))
+(register-definition-prefixes "vc" '("log-view-vc-prev-" "vc-" "with-vc-properties"))
 
 
 ;;; Generated autoloads from vc/vc-annotate.el
@@ -37694,7 +37713,7 @@ with that event and DATA.
 
 If THRESHOLD is non-nil, enforce a threshold of movement that is
 either itself or 10 pixels when it is not a number.  If the
-aformentioned touch point moves beyond that threshold on any
+aforementioned touch point moves beyond that threshold on any
 axis, return nil immediately, and further resume mouse event
 translation for the touch point at hand.
 
@@ -37726,6 +37745,7 @@ sent until the touch sequence currently being translated ends.
 Must be called from a command bound to a `touchscreen-hold' or
 `touchscreen-drag' event.")
 (register-definition-prefixes "touch-screen" '("touch-screen-"))
+
 
 ;;; End of scraped data
 
