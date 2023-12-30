@@ -753,8 +753,9 @@ a statement container is a node that matches
 
            ((match "}" "hash")  ruby-ts--parent-call-or-bol 0)
            ((parent-is "hash")  ruby-ts--parent-call-or-bol ruby-indent-level)
-           ((match "]" "array") ruby-ts--parent-call-or-bol 0)
-           ((parent-is "array") ruby-ts--parent-call-or-bol ruby-indent-level)
+           ((match "]" "^array") ruby-ts--parent-call-or-bol 0)
+           ((parent-is "^array") ruby-ts--parent-call-or-bol ruby-indent-level)
+           ((match ")" "string_array") ruby-ts--parent-call-or-bol 0)
 
            ((parent-is "pair") ruby-ts--parent-call-or-bol 0)
 
@@ -1063,8 +1064,9 @@ leading double colon is not added."
         ('heredoc
          (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
                             'syntax-table (string-to-syntax "\""))
-         (put-text-property (treesit-node-end node) (1+ (treesit-node-end node))
-                            'syntax-table (string-to-syntax "\"")))
+         (when (< (treesit-node-end node) (point-max))
+           (put-text-property (treesit-node-end node) (1+ (treesit-node-end node))
+                              'syntax-table (string-to-syntax "\""))))
         ('percent
          ;; FIXME: Put the first one on the first paren in both %Q{} and %().
          ;; That would stop electric-pair-mode from pairing, though.  Hmm.
@@ -1192,19 +1194,7 @@ leading double colon is not added."
 
   (treesit-major-mode-setup)
 
-  (treesit-parser-add-notifier (car (treesit-parser-list))
-                               #'ruby-ts--parser-after-change)
-
   (setq-local syntax-propertize-function #'ruby-ts--syntax-propertize))
-
-(defun ruby-ts--parser-after-change (ranges parser)
-  ;; Make sure we re-syntax-propertize the full node that is being
-  ;; edited.  This is most pertinent to multi-line complex nodes such
-  ;; as heredocs.
-  (when ranges
-    (with-current-buffer (treesit-parser-buffer parser)
-      (syntax-ppss-flush-cache (cl-loop for r in ranges
-                                        minimize (car r))))))
 
 (if (treesit-ready-p 'ruby)
     ;; Copied from ruby-mode.el.

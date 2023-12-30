@@ -605,7 +605,17 @@ recommend to follow the procedure below to try to identify the cause:
  . Reduce the problematic .el file to the minimum by bisection, and
    try identifying the function that causes the problem.
 
- . Reduce the problematic function to the minimal code that still
+ . Try natively compiling the problematic file with
+   'native-comp-speed' set to 1 or even zero.  If doing that solves
+   the problem, you can use
+
+     (declare (speed 1))
+
+   at the beginning of the body of suspected function(s) to change
+   'native-comp-speed' only for those functions -- this could help you
+   identify the function(s) which cause(s) the problem.
+
+ . Reduce the problematic function(s) to the minimal code that still
    reproduces the problem.
 
  . Study the problem's artifacts, like Lisp or C backtraces, to try

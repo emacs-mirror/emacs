@@ -1238,6 +1238,21 @@ For NODE, OVERRIDE, START, END, and ARGS, see
      (treesit-node-start node) (treesit-node-end node)
      'font-lock-variable-use-face override start end)))
 
+(defun python--treesit-syntax-propertize (start end)
+  "Propertize triple-quote strings between START and END."
+  (save-excursion
+    (goto-char start)
+    (while (re-search-forward (rx (or "\"\"\"" "'''")) end t)
+      (let ((node (treesit-node-at (point))))
+        ;; The triple quotes surround a non-empty string.
+        (when (equal (treesit-node-type node) "string_content")
+          (let ((start (treesit-node-start node))
+                (end (treesit-node-end node)))
+            (put-text-property (1- start) start
+                               'syntax-table (string-to-syntax "|"))
+            (put-text-property end (min (1+ end) (point-max))
+                               'syntax-table (string-to-syntax "|"))))))))
+
 
 ;;; Indentation
 
@@ -6853,6 +6868,8 @@ implementations: `python-mode' and `python-ts-mode'."
     (setq-local treesit-defun-name-function
                 #'python--treesit-defun-name)
     (treesit-major-mode-setup)
+
+    (setq-local syntax-propertize-function #'python--treesit-syntax-propertize)
 
     (python-skeleton-add-menu-items)
 

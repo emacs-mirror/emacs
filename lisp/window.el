@@ -5737,7 +5737,8 @@ The current window configuration is retained in the top window,
 the lower window takes up the whole width of the frame.  SIZE is
 handled as in `split-window-below', and interactively is the
 prefix numeric argument."
-  (interactive "p")
+  (interactive `(,(when current-prefix-arg
+                    (prefix-numeric-value current-prefix-arg))))
   (split-window-below size (frame-root-window)))
 
 (defun split-window-right (&optional size window-to-split)
@@ -5777,7 +5778,8 @@ The current window configuration is retained within the left
 window, and a new window is created on the right, taking up the
 whole height of the frame.  SIZE is treated as by
 `split-window-right' and interactively, is the prefix numeric argument."
-  (interactive "p")
+  (interactive `(,(when current-prefix-arg
+                    (prefix-numeric-value current-prefix-arg))))
   (split-window-right size (frame-root-window)))
 
 ;;; Balancing windows.
