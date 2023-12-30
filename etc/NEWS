@@ -80,6 +80,27 @@ removed, as it was considered more dangerous than useful.  RFC 9110
 To send an email address in the header of individual HTTP requests,
 see the variable 'url-request-extra-headers'.
 
++++
+** 'completion-auto-help' now affects 'icomplete-in-buffer'.
+Previously, completion-auto-help mostly affected only minibuffer
+completion.  Now, if 'completion-auto-help' has the value 'lazy', then
+Icomplete's in-buffer display of possible completions will only appear
+after the 'completion-at-point' command has been invoked twice, and if
+'completion-auto-help' is nil, then Icomplete's in-buffer display is
+completely suppressed.  Thus, if you use 'icomplete-in-buffer', ensure
+'completion-auto-help' is not customized to 'lazy' or nil.
+
++++
+** The *Completions* buffer now always accompanies 'icomplete-in-buffer'.
+Previously, it was not consistent when the *Completions* buffer would
+appear when using 'icomplete-in-buffer'.  Now the *Completions* buffer
+and Icomplete's in-buffer display of possible completions always
+appear together.  If you would prefer to see only Icomplete's
+in-buffer display, and not the *Completions* buffer, you can add this
+to your init:
+
+    (advice-add 'completion-at-point :after #'minibuffer-hide-completions)
+
 
 * Changes in Emacs 30.1
 
