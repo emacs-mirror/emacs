@@ -68,10 +68,11 @@
     (processes	. "processes, subshells, and compilation")
     (terminals	. "text terminals (ttys)")
     (tex	. "the TeX document formatter")
+    (text	. "editing text files")
     (tools	. "programming tools")
     (unix	. "UNIX feature interfaces and emulators")
     (vc		. "version control")
-    (wp		. "word processing"))
+    (wp		. "use keyword `text' instead; this keyword is deprecated"))
   "Association list of the standard \"Keywords:\" headers.
 Each element has the form (KEYWORD . DESCRIPTION).")
 
