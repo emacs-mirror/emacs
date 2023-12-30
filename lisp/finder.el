@@ -72,7 +72,7 @@
     (tools	. "programming tools")
     (unix	. "UNIX feature interfaces and emulators")
     (vc		. "version control")
-    (wp		. "use keyword `text' instead; this keyword is deprecated"))
+    (wp		. "use keyword `text' instead; this keyword is obsolete"))
   "Association list of the standard \"Keywords:\" headers.
 Each element has the form (KEYWORD . DESCRIPTION).")
 

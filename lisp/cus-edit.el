@@ -177,7 +177,7 @@
 
 (defgroup wp nil
   "Support for editing text files.
-Use group `text' for this instead.  This group is deprecated."
+Use group `text' for this instead.  This group is obsolete."
   :group 'emacs)
 
 (defgroup text nil
