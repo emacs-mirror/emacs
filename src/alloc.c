@@ -6605,7 +6605,7 @@ garbage_collect (void)
 
   /* Everything is now marked, except for the data in font caches,
      undo lists, and finalizers.  The first two are compacted by
-     removing an items which aren't reachable otherwise.  */
+     removing any items which aren't reachable otherwise.  */
 
   compact_font_caches ();
 
