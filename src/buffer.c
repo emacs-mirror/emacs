@@ -537,8 +537,8 @@ See also `find-buffer-visiting'.  */)
 }
 
 DEFUN ("find-buffer", Ffind_buffer, Sfind_buffer, 2, 2, 0,
-       doc: /* Return the buffer with buffer-local VARIABLE equal to VALUE.
-	       If there is no such live buffer, return nil.
+       doc: /* Return the buffer with buffer-local VARIABLE `equal' to VALUE.
+If there is no such live buffer, return nil.
 See also `find-buffer-visiting'.  */)
   (Lisp_Object variable, Lisp_Object value)
 {
