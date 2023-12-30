@@ -1806,6 +1806,21 @@ The former macro returns non-nil if a variable has a connection-local
 binding.  The latter macro returns the connection-local value of a
 variable if any, or its current value.
 
+** Hash tables
+
++++
+*** ':rehash-size' and ':rehash-threshold' args no longer have any effect.
+These keyword arguments are now ignored by 'make-hash-table'.  Emacs
+manages the memory for all hash table objects in the same way.
+The functions 'hash-table-rehash-size' and 'hash-table-rehash-threshold'
+remain for compatibility but now always return the old default values.
+
++++
+*** The printed representation has been shrunk and simplified.
+The 'test' parameter is omitted if it is 'eql' (the default), as is
+'data' if empty.  'rehash-size', 'rehash-threshold' and 'size' are
+always omitted, and ignored if present when the object is read back in.
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 

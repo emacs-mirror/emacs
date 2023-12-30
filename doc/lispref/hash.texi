@@ -121,32 +121,10 @@ referenced in the hash table are preserved from garbage collection.
 @item :size @var{size}
 This specifies a hint for how many associations you plan to store in the
 hash table.  If you know the approximate number, you can make things a
-little more efficient by specifying it this way.  If you specify too
-small a size, the hash table will grow automatically when necessary, but
-doing that takes some extra time.
+little more efficient by specifying it this way but since the hash
+table memory is managed automatically, the gain in speed is rarely
+significant.
 
-The default size is 65.
-
-@item :rehash-size @var{rehash-size}
-When you add an association to a hash table and the table is full,
-it grows automatically.  This value specifies how to make the hash table
-larger, at that time.
-
-If @var{rehash-size} is an integer, it should be positive, and the hash
-table grows by adding approximately that much to the nominal size.  If
-@var{rehash-size} is floating point, it had better be greater
-than 1, and the hash table grows by multiplying the old size by
-approximately that number.
-
-The default value is 1.5.
-
-@item :rehash-threshold @var{threshold}
-This specifies the criterion for when the hash table is full (so
-it should be made larger).  The value, @var{threshold}, should be a
-positive floating-point number, no greater than 1.  The hash table is
-full whenever the actual number of entries exceeds the nominal size
-multiplied by an approximation to this value.  The default for
-@var{threshold} is 0.8125.
 @end table
 @end defun
 
@@ -159,7 +137,7 @@ the following specifies a hash table containing the keys
 (a symbol) and @code{300} (a number) respectively.
 
 @example
-#s(hash-table size 30 data (key1 val1 key2 300))
+#s(hash-table data (key1 val1 key2 300))
 @end example
 
 Note, however, that when using this in Emacs Lisp code, it's
@@ -172,12 +150,11 @@ The printed representation for a hash table consists of @samp{#s}
 followed by a list beginning with @samp{hash-table}.  The rest of the
 list should consist of zero or more property-value pairs specifying
 the hash table's properties and initial contents.  The properties and
-values are read literally.  Valid property names are @code{size},
-@code{test}, @code{weakness}, @code{rehash-size},
-@code{rehash-threshold}, and @code{data}.  The @code{data} property
+values are read literally.  Valid property names are @code{test},
+@code{weakness} and @code{data}.  The @code{data} property
 should be a list of key-value pairs for the initial contents; the
 other properties have the same meanings as the matching
-@code{make-hash-table} keywords (@code{:size}, @code{:test}, etc.),
+@code{make-hash-table} keywords (@code{:test} and @code{:weakness}),
 described above.
 
 Note that you cannot specify a hash table whose initial contents
@@ -375,14 +352,6 @@ created, to specify how to hash and compare keys.  See
 @defun hash-table-weakness table
 This function returns the @var{weak} value that was specified for hash
 table @var{table}.
-@end defun
-
-@defun hash-table-rehash-size table
-This returns the rehash size of @var{table}.
-@end defun
-
-@defun hash-table-rehash-threshold table
-This returns the rehash threshold of @var{table}.
 @end defun
 
 @defun hash-table-size table

@@ -5495,25 +5495,25 @@ DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
 
 DEFUN ("hash-table-rehash-size", Fhash_table_rehash_size,
        Shash_table_rehash_size, 1, 1, 0,
-       doc: /* Return the current rehash size of TABLE.  */)
+       doc: /* Return the rehash size of TABLE.
+This function is for compatibility only; it returns a nominal value
+without current significance.  */)
   (Lisp_Object table)
 {
   CHECK_HASH_TABLE (table);
-  /* Nominal factor by which to increase the size of a hash table.
-     No longer used; this is for compatibility.  */
-  return make_float (1.5);
+  return make_float (1.5);  /* The old default rehash-size value.  */
 }
 
 
 DEFUN ("hash-table-rehash-threshold", Fhash_table_rehash_threshold,
        Shash_table_rehash_threshold, 1, 1, 0,
-       doc: /* Return the current rehash threshold of TABLE.  */)
+       doc: /* Return the rehash threshold of TABLE.
+This function is for compatibility only; it returns a nominal value
+without current significance.  */)
   (Lisp_Object table)
 {
   CHECK_HASH_TABLE (table);
-  /* Nominal threshold for when to resize a hash table.
-     No longer used; this is for compatibility.  */
-  return make_float (0.8125);
+  return make_float (0.8125);  /* The old default rehash-threshold value.  */
 }
 
 

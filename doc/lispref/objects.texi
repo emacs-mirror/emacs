@@ -1373,8 +1373,7 @@ and contents, like this:
 
 @example
 (make-hash-table)
-     @result{} #s(hash-table size 65 test eql rehash-size 1.5
-                             rehash-threshold 0.8125 data ())
+     @result{} #s(hash-table)
 @end example
 
 @noindent
