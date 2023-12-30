@@ -3,7 +3,7 @@
 ;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author:     Marcin Borkowski <mbork@mbork.pl>
-;; Keywords:   text, text
+;; Keywords:   text
 
 ;; This file is part of GNU Emacs.
 
