@@ -728,7 +728,7 @@ rule or another is easier for you to remember and apply quickly.
 @findex icomplete-mode
 @cindex Icomplete mode
 
-  Icomplete global minor mode provides a convenient way to quickly select an
+  Icomplete provides a convenient way to quickly select an
 element among the possible completions in a minibuffer.  When enabled, typing
 in the minibuffer continuously displays a list of possible completions that
 match the string you have typed.
@@ -746,9 +746,28 @@ further.  This is typically used when entering a file name, where
 @kbd{M-@key{TAB}} can be used a few times to descend in the hierarchy
 of directories.
 
-  To enable Icomplete mode, type @kbd{M-x icomplete-mode}, or customize
-the variable @code{icomplete-mode} to @code{t} (@pxref{Easy
-Customization}).
+  To enable Icomplete mode for the minibuffer, type @kbd{M-x
+icomplete-mode}, or customize the variable @code{icomplete-mode} to
+@code{t} (@pxref{Easy Customization}).
+
+  You can also additionally enable Icomplete for @kbd{C-M-i} (the
+command @code{completion-at-point}) by customizing the variable
+@code{icomplete-in-buffer} to @code{t}.  For in-buffer completion, the
+@code{completion-auto-help} variable controls when Icomplete's display
+of possible completions appears.  The default value of @code{t} means
+that the display of possible completions appears when you first type
+@kbd{C-M-i}.
+
+  By default, when you press @kbd{C-M-i}, both Icomplete's in-buffer
+display of possible completions and the @file{*Completions*} buffer
+appear.  If you are using @code{icomplete-in-buffer}, then you may
+wish to suppress this apperance of the @file{*Completions*} buffer.
+To do that, add the following to your initialization file (@pxref{Init
+File}):
+
+@example
+(advice-add 'completion-at-point :after #'minibuffer-hide-completions)
+@end example
 
 @findex fido-mode
 @cindex fido mode
