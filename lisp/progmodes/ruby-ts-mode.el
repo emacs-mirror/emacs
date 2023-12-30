@@ -1206,7 +1206,7 @@ leading double colon is not added."
       (syntax-ppss-flush-cache (cl-loop for r in ranges
                                         minimize (car r))))))
 
-(if (treesit-ready-p 'ruby t)
+(if (treesit-ready-p 'ruby)
     ;; Copied from ruby-mode.el.
     (add-to-list 'auto-mode-alist
                  (cons (concat "\\(?:\\.\\(?:"
