@@ -572,10 +572,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :result-string "#s(hash-table ...)")
   (hash-table-count
    :no-eval (hash-table-count table)
-   :eg-result 15)
-  (hash-table-size
-   :no-eval (hash-table-size table)
-   :eg-result 65))
+   :eg-result 15))
 
 (define-short-documentation-group list
   "Making Lists"

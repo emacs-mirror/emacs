@@ -5518,10 +5518,14 @@ DEFUN ("hash-table-rehash-threshold", Fhash_table_rehash_threshold,
 
 
 DEFUN ("hash-table-size", Fhash_table_size, Shash_table_size, 1, 1, 0,
-       doc: /* Return the size of TABLE.
-The size can be used as an argument to `make-hash-table' to create
-a hash table than can hold as many elements as TABLE holds
-without need for resizing.  */)
+       doc: /* Return the current allocation size of TABLE.
+
+This is probably not the function that you are looking for.  To get the
+number of entries in a table, use `hash-table-count' instead.
+
+The returned value is the number of entries that TABLE can currently
+hold without growing, but since hash tables grow automatically, this
+number is rarely of interest.  */)
   (Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);

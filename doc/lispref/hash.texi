@@ -386,5 +386,6 @@ This returns the rehash threshold of @var{table}.
 @end defun
 
 @defun hash-table-size table
-This returns the current nominal size of @var{table}.
+This returns the current allocation size of @var{table}.  Since hash table
+allocation is managed automatically, this is rarely of interest.
 @end defun
