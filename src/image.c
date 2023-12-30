@@ -11804,7 +11804,17 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
 
    Use librsvg to do most of the image processing.
 
-   Return true when successful.  */
+   Return true when successful.
+
+   The basic process, which is used for all versions of librsvg, is to
+   load the SVG and parse it, then extract the image dimensions.  We
+   then use those image dimensions to calculate the final size and
+   wrap the SVG data inside another SVG we build on the fly. This
+   wrapper does the necessary resizing and setting of foreground and
+   background colors and is then parsed and rasterized.
+
+   It should also be noted that setting up the SVG prior to 2.32 was
+   done differently, but the overall process is the same.  */
 static bool
 svg_load_image (struct frame *f, struct image *img, char *contents,
 		ptrdiff_t size, char *filename)
@@ -11858,7 +11868,13 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   Lisp_Object lcss = image_spec_value (img->spec, QCcss, NULL);
   if (!STRINGP (lcss))
     {
-      /* Generate the CSS for the SVG image.  */
+      /* Generate the CSS for the SVG image.
+
+         We use this to set the font (font-family in CSS lingo) and
+         the font size.  We can extend this to handle any CSS values
+         SVG supports, however it's only available in librsvg 2.48 and
+         above so some things we could set here are handled in the
+         wrapper below.  */
       /* FIXME: The below calculations leave enough space for a font
 	 size up to 9999, if it overflows we just throw an error but
 	 should probably increase the buffer size.  */
@@ -11904,7 +11920,23 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   if (err) goto rsvg_error;
 #endif
 
-  /* Get the image dimensions.  */
+  /* Get the image dimensions.
+
+     There are a couple of approaches used here, depending on the
+     contents of the SVG, and which version of librsvg we're using.
+     With librsvg versions prior to 2.46 we ask librsvg for the size
+     of the image, however this may include pats of the image that are
+     outside of the viewbox.
+
+     librsvg 2.46 allows us to request the image's "intrinsic
+     dimensions", which are the sizes given in the SVG in CSS units.
+     So, for example, if the image defines it's width as "10mm", we
+     are given a struct that we need to translate into pixel values
+     ourself (see svg_css_length_to_pixels).
+
+     2.52 introduces a function that will give us the pixel sizes
+     directly, assuming we provide the correct screen DPI values.
+  */
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
   gdouble gviewbox_width = 0, gviewbox_height = 0;
   gboolean has_viewbox = FALSE;
@@ -12096,6 +12128,8 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
                            FRAME_DISPLAY_INFO (f)->resy);
 
 #if LIBRSVG_CHECK_VERSION (2, 48, 0)
+  /* Set the CSS for the wrapped SVG.  See the comment above the
+     previous use of 'css'.  */
   rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *)css, strlen (css), NULL);
 #endif
 #else
