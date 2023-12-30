@@ -3339,9 +3339,9 @@ session."
         ;; Remove the old eln instead of copying the new one into it
         ;; to get a new inode and prevent crashes in case the old one
         ;; is currently loaded.
-        (t (delete-file oldfile)
-           (when newfile
-             (rename-file newfile oldfile)))))
+        (t (if newfile
+               (rename-file newfile oldfile t)
+             (delete-file oldfile)))))
 
 (defun comp--native-compile (function-or-file &optional with-late-load output)
   "Compile FUNCTION-OR-FILE into native code.
