@@ -3127,8 +3127,10 @@ emacs, The GNU Emacs Manual}).
 @end lisp
 
 Note that while some customizations of @code{default-frame-alist}
-could have undesirable effects when modified in @file{early-init.el},
-it is okay to do it in this particular case.
+could have undesirable effects when modified in the early init file,
+it is okay to do it in this particular case.  Adding it to the normal
+init file will also work, but leads to a visible resizing of the
+window that some find distracting.
 
 @node Emacs in a Linux console
 @section How can I alleviate the limitations of the Linux console?
