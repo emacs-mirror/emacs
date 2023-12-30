@@ -2019,8 +2019,9 @@ DEFUN ("treesit-node-field-name-for-child",
 Return nil if there's no Nth child, or if it has no field.
 If NODE is nil, return nil.
 
-Note that N counts named nodes only.  Also, N could be negative, e.g.,
--1 represents the last child.  */)
+N counts all children, i.e., named ones and anonymous ones.
+
+N could be negative, e.g., -1 represents the last child.  */)
   (Lisp_Object node, Lisp_Object n)
 {
   if (NILP (node))
@@ -2034,7 +2035,7 @@ Note that N counts named nodes only.  Also, N could be negative, e.g.,
 
   /* Process negative index.  */
   if (idx < 0)
-    idx = ts_node_named_child_count (treesit_node) + idx;
+    idx = ts_node_child_count (treesit_node) + idx;
   if (idx < 0)
     return Qnil;
   if (idx > UINT32_MAX)
