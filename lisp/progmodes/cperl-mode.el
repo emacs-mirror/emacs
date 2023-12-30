@@ -104,7 +104,10 @@
   :version "20.3")
 
 (defgroup cperl-indentation-details nil
-  "Indentation."
+  "Indentation.
+The option `cperl-file-style' (which see) can be used to set
+several indentation options in one go, following popular
+indentation styles."
   :prefix "cperl-"
   :group 'cperl)
 
@@ -156,6 +159,26 @@ instead of:
 for constructs with multiline if/unless/while/until/for/foreach condition."
   :type 'boolean
   :group 'cperl-autoinsert-details)
+
+(defcustom cperl-file-style nil
+  "Indentation style to use in cperl-mode.
+\"PBP\" is the style recommended in the Book \"Perl Best
+Practices\" by Damian Conway.  \"CPerl\" is the traditional style
+of cperl-mode, and \"PerlStyle\" follows the Perl documentation
+in perlstyle.  The other styles have been developed for other
+programming languages, mostly C."
+  :type '(choice (const "PBP")
+                 (const "CPerl")
+                 (const "PerlStyle")
+                 (const "GNU")
+                 (const "C++")
+                 (const "K&R")
+                 (const "BSD")
+                 (const "Whitesmith")
+                 (const :tag "Default" nil))
+  :group 'cperl-indentation-details
+  :version "29.1")
+;;;###autoload(put 'cperl-file-style 'safe-local-variable 'stringp)
 
 (defcustom cperl-indent-level 2
   "Indentation of CPerl statements with respect to containing block."
@@ -536,20 +559,6 @@ when syntaxifying a chunk of buffer."
 This way enabling/disabling of menu items is more correct."
   :type 'boolean
   :group 'cperl-speed)
-
-(defcustom cperl-file-style nil
-  "Indentation style to use in cperl-mode."
-  :type '(choice (const "CPerl")
-                 (const "PBP")
-                 (const "PerlStyle")
-                 (const "GNU")
-                 (const "C++")
-                 (const "K&R")
-                 (const "BSD")
-                 (const "Whitesmith")
-                 (const :tag "Default" nil))
-  :version "29.1")
-;;;###autoload(put 'cperl-file-style 'safe-local-variable 'stringp)
 
 (defcustom cperl-fontify-trailer
   'perl-code
