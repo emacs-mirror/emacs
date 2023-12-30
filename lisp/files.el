@@ -2220,15 +2220,17 @@ If there is no such live buffer, return nil."
                 (number (file-attribute-file-identifier attributes)))
            (and buffer-file-numbers-unique
                 (car-safe number)       ;Make sure the inode is not just nil.
-                (let ((buf (find-buffer 'buffer-file-number number)))
-                  (when (and buf (buffer-local-value 'buffer-file-name buf)
+                (let* ((buf (find-buffer 'buffer-file-number number))
+                       (buf-file-name (and buf (buffer-local-value 'buffer-file-name buf))))
+                  (when (and buf-file-name
                              ;; Verify this buffer's file number
                              ;; still belongs to its file.
-                             (file-exists-p buffer-file-name)
-                             (equal (file-attributes buffer-file-truename)
-                                    attributes)
+                             (file-exists-p buf-file-name)
+                             (equal
+                              (file-attributes (buffer-local-value 'buffer-file-truename buf))
+                              attributes)
                              (or (not predicate)
-                                 (funcall predicate (current-buffer))))
+                                 (funcall predicate buf)))
                     buf))))))))
 
 
