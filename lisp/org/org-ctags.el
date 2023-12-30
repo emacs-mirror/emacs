@@ -3,7 +3,7 @@
 ;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
-;; Keywords: org, wp
+;; Keywords: org, text
 
 ;; This file is part of GNU Emacs.
 ;;

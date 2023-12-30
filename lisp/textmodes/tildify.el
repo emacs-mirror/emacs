@@ -5,7 +5,7 @@
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;;             Michal Nazarewicz <mina86@mina86.com>
 ;; Version:    4.6.1
-;; Keywords:   text, TeX, SGML, wp
+;; Keywords:   text, TeX, SGML, text
 
 ;; This file is part of GNU Emacs.
 

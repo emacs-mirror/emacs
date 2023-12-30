@@ -3,7 +3,7 @@
 ;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Keywords: wp, ebnf, PostScript
+;; Keywords: text, ebnf, PostScript
 ;; Old-Version: 1.1
 ;; Package: ebnf2ps
 

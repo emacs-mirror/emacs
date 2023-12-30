@@ -4,7 +4,7 @@
 
 ;; Authors: Carsten Dominik <carsten.dominik@gmail.com>
 ;;       Thomas Baumann <thomas dot baumann at ch dot tum dot de>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.

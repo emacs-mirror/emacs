@@ -5,7 +5,7 @@
 ;; Authors: Bastien Guerry <bzg@gnu.org>
 ;;       Carsten Dominik <carsten dot dominik at gmail dot com>
 ;;       Eric Schulte <schulte dot eric at gmail dot com>
-;; Keywords: org, wp, capture
+;; Keywords: org, text, capture
 ;;
 ;; This file is part of GNU Emacs.
 ;;

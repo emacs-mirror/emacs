@@ -7,7 +7,7 @@
 ;; Maintainer: emacs-devel@gnu.org
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
 ;;             F.Potorti@cnuce.cnr.it
-;; Keywords: wp, hypermedia, comm, languages
+;; Keywords: text, hypermedia, comm, languages
 
 ;; This file is part of GNU Emacs.
 

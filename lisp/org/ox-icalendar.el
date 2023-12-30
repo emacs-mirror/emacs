@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;;      Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.

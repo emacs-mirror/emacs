@@ -7,7 +7,7 @@
 ;;             Chong Yidong <cyd@stupidchicken.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Obsolete-since: 24.4
-;; Keywords: convenience, wp
+;; Keywords: convenience, text
 
 ;; This file is part of GNU Emacs.
 

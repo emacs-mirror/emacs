@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;;      Luis R Anaya <papoanaya aroba hot mail punto com>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 
 ;; This file is part of GNU Emacs.
 

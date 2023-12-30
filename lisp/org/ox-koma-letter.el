@@ -7,7 +7,7 @@
 ;;         Viktor Rosenfeld <listuser36 AT gmail DOT com>
 ;;         Rasmus Pank Roulund <emacs AT pank DOT eu>
 ;; Maintainer: Marco Wahl <marcowahlsoft@gmail.com>
-;; Keywords: org, wp, tex
+;; Keywords: org, text, tex
 
 ;; This file is part of GNU Emacs.
 

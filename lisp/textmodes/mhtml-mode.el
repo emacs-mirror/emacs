@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
-;; Keywords: wp, hypermedia, comm, languages
+;; Keywords: text, hypermedia, comm, languages
 
 ;; This file is part of GNU Emacs.
 

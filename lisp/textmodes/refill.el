@@ -4,7 +4,7 @@
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Miles Bader <miles@gnu.org>
-;; Keywords: wp
+;; Keywords: text
 
 ;; This file is part of GNU Emacs.
 

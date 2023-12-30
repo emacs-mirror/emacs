@@ -3,7 +3,7 @@
 ;; Copyright (C) 1994-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
-;; Keywords: wp, faces
+;; Keywords: text, faces
 
 ;; This file is part of GNU Emacs.
 

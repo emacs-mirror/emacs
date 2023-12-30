@@ -3,7 +3,7 @@
 ;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Rasmus Pank Roulund <emacs at pank dot eu>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.

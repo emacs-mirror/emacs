@@ -4,7 +4,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
-;; Keywords: wp, print, PostScript, multibyte, mule
+;; Keywords: text, print, PostScript, multibyte, mule
 ;; Package: ps-print
 
 ;; This file is part of GNU Emacs.

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Keywords: wp, print, PostScript
+;; Keywords: text, print, PostScript
 ;; Old-Version: 6.9.3
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 

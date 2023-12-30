@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 
 ;; This file is part of GNU Emacs.
 

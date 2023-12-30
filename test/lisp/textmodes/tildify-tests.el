@@ -4,7 +4,7 @@
 
 ;; Author:     Michal Nazarewicz <mina86@mina86.com>
 ;; Version:    4.5
-;; Keywords:   text, TeX, SGML, wp
+;; Keywords:   text, TeX, SGML, text
 
 ;; This file is part of GNU Emacs.
 

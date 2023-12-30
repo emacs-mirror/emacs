@@ -3,7 +3,7 @@
 ;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Keywords: wp, ebnf, PostScript
+;; Keywords: text, ebnf, PostScript
 ;; Old-Version: 4.4
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 

@@ -5,7 +5,7 @@
 ;; Author: Danny Roozendaal (was: <danny@tvs.kun.nl>)
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: October 21 1996
-;; Keywords: wp, print, postscript, cursive writing
+;; Keywords: text, print, postscript, cursive writing
 
 ;; This file is part of GNU Emacs.
 

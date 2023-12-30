@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
-;; Keywords: org, wp
+;; Keywords: org, text
 
 ;; This file is part of GNU Emacs.
 

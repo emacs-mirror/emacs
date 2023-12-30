@@ -11,7 +11,7 @@
 
 ;; Author: Kenichi Handa <handa@gnu.org>
 ;; (according to ack.texi)
-;; Keywords: wp, BDF, font, PostScript
+;; Keywords: text, BDF, font, PostScript
 ;; Package: ps-print
 
 ;; This file is part of GNU Emacs.

@@ -7,7 +7,7 @@
 ;;	Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Keywords: wp, print, PostScript
+;; Keywords: text, print, PostScript
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 ;; Package: ps-print
 

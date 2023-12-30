@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Dec 1991 -- first release to usenet
 ;; Version: 2.3
-;; Keywords: outlines, wp, languages, PGP, GnuPG
+;; Keywords: outlines, text, languages, PGP, GnuPG
 ;; Website: https://myriadicity.net/software-and-systems/craft/emacs-allout
 
 ;; This file is part of GNU Emacs.

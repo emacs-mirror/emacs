@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;;         Nicolas Goaziou <n.goaziou AT gmail DOT com>
 ;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
-;; Keywords: org, wp, tex
+;; Keywords: org, text, tex
 
 ;; This file is part of GNU Emacs.
 

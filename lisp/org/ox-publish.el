@@ -3,7 +3,7 @@
 
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
-;; Keywords: hypermedia, outlines, wp
+;; Keywords: hypermedia, outlines, text
 
 ;; This file is part of GNU Emacs.
 ;;
