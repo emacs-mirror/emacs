@@ -22,6 +22,9 @@ package org.gnu.emacs;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+
 import android.content.Context;
 import android.content.Intent;
 
@@ -344,8 +347,7 @@ public final class EmacsContextMenu
   display (final EmacsWindow window, final int xPosition,
 	   final int yPosition, final int serial)
   {
-    Runnable runnable;
-    final EmacsHolder<Boolean> rc;
+    FutureTask<Boolean> task;
 
     /* Android will permanently cease to display any popup menus at
        all if the list of menu items is empty.  Prevent this by
@@ -354,25 +356,17 @@ public final class EmacsContextMenu
     if (menuItems.isEmpty ())
       return false;
 
-    rc = new EmacsHolder<Boolean> ();
-    rc.thing = false;
-
-    runnable = new Runnable () {
+    task = new FutureTask<Boolean> (new Callable<Boolean> () {
 	@Override
-	public void
-	run ()
+	public Boolean
+	call ()
 	{
-	  synchronized (this)
-	    {
-	      lastMenuEventSerial = serial;
-	      rc.thing = display1 (window, xPosition, yPosition);
-	      notify ();
-	    }
+	  lastMenuEventSerial = serial;
+	  return display1 (window, xPosition, yPosition);
 	}
-      };
+      });
 
-    EmacsService.syncRunnable (runnable);
-    return rc.thing;
+    return EmacsService.<Boolean>syncRunnable (task);
   }
 
   /* Dismiss this context menu.  WINDOW is the window where the

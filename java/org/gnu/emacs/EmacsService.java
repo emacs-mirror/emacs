@@ -27,6 +27,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 import android.database.Cursor;
@@ -331,52 +335,45 @@ public final class EmacsService extends Service
 		final boolean isFocusedByDefault)
   {
     Runnable runnable;
-    final EmacsHolder<EmacsView> view;
+    FutureTask<EmacsView> task;
 
-    view = new EmacsHolder<EmacsView> ();
-
-    runnable = new Runnable () {
+    task = new FutureTask<EmacsView> (new Callable<EmacsView> () {
 	@Override
-	public void
-	run ()
+	public EmacsView
+	call ()
 	{
-	  synchronized (this)
-	    {
-	      view.thing = new EmacsView (window);
-	      view.thing.setVisibility (visibility);
+	  EmacsView view;
 
-	      /* The following function is only present on Android 26
-		 or later.  */
-	      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-		view.thing.setFocusedByDefault (isFocusedByDefault);
+	  view = new EmacsView (window);
+	  view.setVisibility (visibility);
 
-	      notify ();
-	    }
+	  /* The following function is only present on Android 26
+	     or later.  */
+	  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+	    view.setFocusedByDefault (isFocusedByDefault);
+
+	  return view;
 	}
-      };
+      });
 
-    syncRunnable (runnable);
-    return view.thing;
+    return EmacsService.<EmacsView>syncRunnable (task);
   }
 
   public void
   getLocationOnScreen (final EmacsView view, final int[] coordinates)
   {
-    Runnable runnable;
+    FutureTask<Void> task;
 
-    runnable = new Runnable () {
-	public void
-	run ()
+    task = new FutureTask<Void> (new Callable<Void> () {
+	public Void
+	call ()
 	{
-	  synchronized (this)
-	    {
-	      view.getLocationOnScreen (coordinates);
-	      notify ();
-	    }
+	  view.getLocationOnScreen (coordinates);
+	  return null;
 	}
-      };
+      });
 
-    syncRunnable (runnable);
+    EmacsService.<Void>syncRunnable (task);
   }
 
 
@@ -702,28 +699,17 @@ public final class EmacsService extends Service
   public ClipboardManager
   getClipboardManager ()
   {
-    final EmacsHolder<ClipboardManager> manager;
-    Runnable runnable;
+    FutureTask<Object> task;
 
-    manager = new EmacsHolder<ClipboardManager> ();
-
-    runnable = new Runnable () {
-	public void
-	run ()
+    task = new FutureTask<Object> (new Callable<Object> () {
+	public Object
+	call ()
 	{
-	  Object tem;
-
-	  synchronized (this)
-	    {
-	      tem = getSystemService (Context.CLIPBOARD_SERVICE);
-	      manager.thing = (ClipboardManager) tem;
-	      notify ();
-	    }
+	  return getSystemService (Context.CLIPBOARD_SERVICE);
 	}
-      };
+      });
 
-    syncRunnable (runnable);
-    return manager.thing;
+    return (ClipboardManager) EmacsService.<Object>syncRunnable (task);
   }
 
   public void
@@ -738,33 +724,37 @@ public final class EmacsService extends Service
     System.exit (0);
   }
 
-  /* Wait synchronously for the specified RUNNABLE to complete in the
-     UI thread.  Must be called from the Emacs thread.  */
+  /* Wait synchronously for the specified TASK to complete in the UI
+     thread, then return its result.  Must be called from the Emacs
+     thread.  */
 
-  public static void
-  syncRunnable (Runnable runnable)
+  public static <V> V
+  syncRunnable (FutureTask<V> task)
   {
+    V object;
+
     EmacsNative.beginSynchronous ();
+    SERVICE.runOnUiThread (task);
 
-    synchronized (runnable)
+    try
       {
-	SERVICE.runOnUiThread (runnable);
-
-	while (true)
-	  {
-	    try
-	      {
-		runnable.wait ();
-		break;
-	      }
-	    catch (InterruptedException e)
-	      {
-		continue;
-	      }
-	  }
+	object = task.get ();
+      }
+    catch (ExecutionException exception)
+      {
+	/* Wrap this exception in a RuntimeException and signal it to
+	   the caller.  */
+	throw new RuntimeException (exception.getCause ());
+      }
+    catch (InterruptedException exception)
+      {
+	EmacsNative.emacsAbort ();
+	object = null;
       }
 
     EmacsNative.endSynchronous ();
+
+    return object;
   }
 
 
@@ -1283,71 +1273,61 @@ public final class EmacsService extends Service
   public int
   requestDirectoryAccess ()
   {
-    Runnable runnable;
-    final EmacsHolder<Integer> rc;
+    FutureTask<Integer> task;
 
     /* Return 1 if Android is too old to support this feature.  */
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
       return 1;
 
-    rc = new EmacsHolder<Integer> ();
-    rc.thing = Integer.valueOf (1);
-
-    runnable = new Runnable () {
+    task = new FutureTask<Integer> (new Callable<Integer> () {
 	@Override
-	public void
-	run ()
+	public Integer
+        call ()
 	{
 	  EmacsActivity activity;
 	  Intent intent;
-	  int id;
+	  int id, rc;
 
-	  synchronized (this)
+	  /* Try to obtain an activity that will receive the response
+	     from the file chooser dialog.  */
+
+	  if (EmacsActivity.focusedActivities.isEmpty ())
 	    {
-	      /* Try to obtain an activity that will receive the
-		 response from the file chooser dialog.  */
+	      /* If focusedActivities is empty then this dialog may
+		 have been displayed immediately after another popup
+		 dialog was dismissed.  Try the EmacsActivity to be
+		 focused.  */
 
-	      if (EmacsActivity.focusedActivities.isEmpty ())
-		{
-		  /* If focusedActivities is empty then this dialog
-		     may have been displayed immediately after another
-		     popup dialog was dismissed.  Try the
-		     EmacsActivity to be focused.  */
+	      activity = EmacsActivity.lastFocusedActivity;
 
-		  activity = EmacsActivity.lastFocusedActivity;
-
-		  if (activity == null)
-		    {
-		      /* Still no luck.  Return failure.  */
-		      notify ();
-		      return;
-		    }
-		}
-	      else
-		activity = EmacsActivity.focusedActivities.get (0);
-
-	      /* Now create the intent.  */
-	      intent = new Intent (Intent.ACTION_OPEN_DOCUMENT_TREE);
-
-	      try
-		{
-		  id = EmacsActivity.ACCEPT_DOCUMENT_TREE;
-		  activity.startActivityForResult (intent, id, null);
-		  rc.thing = Integer.valueOf (0);
-		}
-	      catch (Exception e)
-		{
-		  e.printStackTrace ();
-		}
-
-	      notify ();
+	      if (activity == null)
+		/* Still no luck.  Return failure.  */
+		return 1;
 	    }
-	}
-      };
+	  else
+	    activity = EmacsActivity.focusedActivities.get (0);
 
-    syncRunnable (runnable);
-    return rc.thing;
+	  /* Now create the intent.  */
+	  intent = new Intent (Intent.ACTION_OPEN_DOCUMENT_TREE);
+	  rc = 1;
+
+	  try
+	    {
+	      id = EmacsActivity.ACCEPT_DOCUMENT_TREE;
+	      activity.startActivityForResult (intent, id, null);
+	      rc = 0;
+	    }
+	  catch (Exception e)
+	    {
+	      e.printStackTrace ();
+	    }
+
+	  return rc;
+	}
+      });
+
+    return EmacsService.<Integer>syncRunnable (task);
   }
 
   /* Return an array of each tree provided by the document PROVIDER
@@ -1969,7 +1949,7 @@ public final class EmacsService extends Service
 	  /* Now request these permissions.  */
 	  activity.requestPermissions (new String[] { permission,
 						      permission1, },
-	    0);
+				       0);
 	}
       };
 
