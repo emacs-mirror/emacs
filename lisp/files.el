@@ -2221,14 +2221,16 @@ If there is no such live buffer, return nil."
            (and buffer-file-numbers-unique
                 (car-safe number)       ;Make sure the inode is not just nil.
                 (let* ((buf (find-buffer 'buffer-file-number number))
-                       (buf-file-name (and buf (buffer-local-value 'buffer-file-name buf))))
+                       (buf-file-name
+                        (and buf (buffer-local-value 'buffer-file-name buf))))
                   (when (and buf-file-name
                              ;; Verify this buffer's file number
                              ;; still belongs to its file.
                              (file-exists-p buf-file-name)
-                             (equal
-                              (file-attributes (buffer-local-value 'buffer-file-truename buf))
-                              attributes)
+                             (equal (file-attributes
+                                     (buffer-local-value
+                                      'buffer-file-truename buf))
+                                    attributes)
                              (or (not predicate)
                                  (funcall predicate buf)))
                     buf))))))))
