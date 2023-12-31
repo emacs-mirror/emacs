@@ -1377,8 +1377,14 @@ Note that the style variables are always made local to the buffer."
 		       (not (nth 3 s))
 		       (c-get-char-property (1- (point)) 'c-fl-syn-tab))
 		    (c-put-char-property pos 'syntax-table '(1))
-		    (c-put-char-properties (1+ pos) (c-point 'eol pos)
-					   'syntax-table '(1)))
+		    ;; Remove syntax-table text properties from template
+		    ;; delimiters.
+		    (c-clear-char-property-with-value
+		     (1+ pos) (c-point 'eol pos)
+		     'syntax-table c-<-as-paren-syntax)
+		    (c-clear-char-property-with-value
+		     (1+ pos) (c-point 'eol pos)
+		     'syntax-table c->-as-paren-syntax))
 		  (setq pos (point)))
 	      (setq pos (1+ pos)))))))))
 
