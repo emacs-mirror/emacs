@@ -541,7 +541,7 @@ See also `find-buffer-visiting'.  */)
 
   FOR_EACH_LIVE_BUFFER (tail, buf)
     {
-      if (!NILP (Fequal (value, Fbuffer_local_value(variable, buf))))
+      if (!NILP (Fequal (value, Fbuffer_local_value (variable, buf))))
 	return buf;
     }
   return Qnil;
