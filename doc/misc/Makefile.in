@@ -63,18 +63,20 @@ INSTALL_DATA = @INSTALL_DATA@
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force -I$(emacsdir)
 
+ifeq ($(LANG),)
+LANG:=default
+else ifeq ($(wildcard ../translations/$(LANG)/info_common.mk),)
+LANG:=default
+endif
+
+lang_suffix:=$(filter-out -default,-$(LANG))
+lang_subdir:=$(filter-out ../translations/default/misc/,../translations/$(LANG)/misc/)
+
 ## On MS Windows, efaq-w32; otherwise blank.
 DOCMISC_W32 = @DOCMISC_W32@
 
 ## Info files to build and install on all platforms.
-INFO_COMMON = auth autotype bovine calc ccmode cl dbus dired-x		\
-	ebrowse ede ediff edt efaq eglot eieio emacs-gnutls		\
-	emacs-mime epa erc ert eshell eudc eww flymake forms gnus	\
-	htmlfontify idlwave ido info.info mairix-el message mh-e	\
-	modus-themes newsticker nxml-mode octave-mode org pcl-cvs pgg	\
-	rcirc reftex remember sasl sc semantic ses sieve smtpmail	\
-	speedbar srecode todo-mode tramp transient url use-package	\
-	vhdl-mode viper vtable widget wisent woman
+include ../translations/$(LANG)/info_common.mk
 
 ## Info files to install on current platform.
 INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
@@ -82,13 +84,13 @@ INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
 ## Info files to build on current platform.
 ## This is all of them, even though they might not all get installed,
 ## because the info files are pre-built in release tarfiles.
-INFO_TARGETS = $(INFO_COMMON) efaq-w32
+INFO_TARGETS = $(INFO_COMMON) $(DOCMISC_W32_TARGET)
 
 ## Some manuals have their source in .org format.
 ## This is discouraged because the .texi files it generates
 ## are not as well formatted as handwritten ones.
-ORG_SETUP = $(wildcard ${srcdir}/*-setup.org)
-ORG_SRC = $(filter-out ${ORG_SETUP},$(wildcard ${srcdir}/*.org))
+ORG_SETUP = $(wildcard ${srcdir}/$(lang_subdir)*-setup.org)
+ORG_SRC = $(filter-out ${ORG_SETUP},$(wildcard ${srcdir}/$(lang_subdir)*.org))
 TEXI_FROM_ORG = ${ORG_SRC:.org=.texi}
 
 # There are some naming differences between the info targets and the other
@@ -96,15 +98,18 @@ TEXI_FROM_ORG = ${ORG_SRC:.org=.texi}
 TARGETS_1 = $(INFO_INSTALL:ccmode=cc-mode)
 TARGETS = $(TARGETS_1:info.info=info)
 
-texi_sources = $(addsuffix .texi,${TARGETS})
+# Sources are also suffixed, this is useless as they are in different
+# directories, but some people argued that there should not be
+# different files with same name in the repo.
+texi_sources = $(addsuffix $(lang_suffix).texi,${TARGETS})
 texi_notgen = $(filter-out $(notdir ${TEXI_FROM_ORG}),${texi_sources})
 texi_and_org = $(notdir ${ORG_SRC}) ${texi_notgen}
 SOURCES = $(sort ${texi_and_org})
 
-DVI_TARGETS  = $(TARGETS:=.dvi)
-HTML_TARGETS = $(TARGETS:=.html)
-PDF_TARGETS  = $(TARGETS:=.pdf)
-PS_TARGETS   = $(TARGETS:=.ps)
+DVI_TARGETS  = $(TARGETS:=$(lang_suffix).dvi)
+HTML_TARGETS = $(TARGETS:=$(lang_suffix).html)
+PDF_TARGETS  = $(TARGETS:=$(lang_suffix).pdf)
+PS_TARGETS   = $(TARGETS:=$(lang_suffix).ps)
 
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
@@ -132,7 +137,7 @@ info: $(INFO_TARGETS)
 ## Base file names of output info files.
 INFO_BASES = $(patsubst %.info,%,$(notdir $(INFO_INSTALL)))
 echo-info:
-	@: $(info $(addsuffix .info,$(INFO_BASES)))
+	@: $(info $(addsuffix $(lang_suffix).info,$(INFO_BASES)))
 
 echo-sources:
 	@: $(info $(SOURCES))
@@ -152,13 +157,13 @@ ${buildinfodir}:
 
 EXTRA_OPTS =
 
-${buildinfodir}/%.info: ${srcdir}/%.texi ${gfdl} ${style} | ${buildinfodir}
+${buildinfodir}/%$(lang_suffix).info: ${srcdir}/$(lang_subdir)%$(lang_suffix).texi ${gfdl} ${style} | ${buildinfodir}
 	$(AM_V_GEN)$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) $(EXTRA_OPTS) \
 	  -o $@ $<
 
 ## The short aliases, eg efaq = $(buildinfodir)/efaq.info.
 define info_template
- $(1): $$(buildinfodir)/$(1).info
+ $(1): $$(buildinfodir)/$(1)$(lang_suffix).info
 endef
 
 ## "info" is already taken.
@@ -167,17 +172,17 @@ info.info: $(buildinfodir)/info.info
 $(foreach ifile,$(filter-out info.info,$(INFO_TARGETS)),$(eval $(call info_template,$(ifile))))
 
 
-%.dvi: ${srcdir}/%.texi ${gfdl} ${style}
+%$(lang_suffix).dvi: ${srcdir}/$(lang_subdir)%$(lang_suffix).texi ${gfdl} ${style}
 	$(ENVADD) $(TEXI2DVI) $<
 
-%.pdf: ${srcdir}/%.texi ${gfdl} ${style}
+%$(lang_suffix).pdf: ${srcdir}/$(lang_subdir)%$(lang_suffix).texi ${gfdl} ${style}
 	$(ENVADD) $(TEXI2PDF) $<
 
-%.html: ${srcdir}/%.texi ${gfdl} ${style}
+%$(lang_suffix).html: ${srcdir}/$(lang_subdir)%$(lang_suffix).texi ${gfdl} ${style}
 	$(AM_V_GEN)$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) $(EXTRA_OPTS) \
 	  -o $@ $<
 
-%.ps: %.dvi
+%$(lang_suffix).ps: %$(lang_suffix).dvi
 	$(DVIPS) -o $@ $<
 
 
@@ -204,16 +209,16 @@ ${buildinfodir}/ccmode.info: \
 
 ## efaq, efaq_w32 do not depend on gfdl.
 ## Maybe we can use .SECONDEXPANSION for this.
-${buildinfodir}/efaq%.info: ${srcdir}/efaq%.texi ${style} | ${buildinfodir}
+${buildinfodir}/efaq%$(lang_suffix).info: ${srcdir}/efaq%$(lang_suffix).texi ${style} | ${buildinfodir}
 	$(AM_V_GEN)$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $<
 
-efaq%.dvi: ${srcdir}/efaq%.texi
+efaq%$(lang_suffix).dvi: ${srcdir}/efaq%$(lang_suffix).texi
 	$(ENVADD) $(TEXI2DVI) $<
 
-efaq%.pdf: ${srcdir}/efaq%.texi
+efaq%$(lang_suffix).pdf: ${srcdir}/efaq%$(lang_suffix).texi
 	$(ENVADD) $(TEXI2PDF) $<
 
-efaq%.html: ${srcdir}/efaq%.texi
+efaq%$(lang_suffix).html: ${srcdir}/efaq%$(lang_suffix).texi
 	$(AM_V_GEN)$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ $<
 
 ${buildinfodir}/emacs-mime.info emacs-mime.html: EXTRA_OPTS = --enable-encoding
@@ -248,7 +253,10 @@ emacs = "${EMACS}" -batch --no-site-file --no-site-lisp --eval '(setq load-prefe
 # things like org-setup's "version" macro work.  Sigh.
 define org_template
  $(1:.org=.texi): $(1) ${top_srcdir}/lisp/org/ox-texinfo.el
-	$${AM_V_GEN}cd "$${srcdir}" && $${emacs} -l ox-texinfo \
+	$${AM_V_GEN}cd "$${srcdir}" && $${emacs} \
+	  --eval '(add-to-list (quote load-path) "$(abspath ${top_srcdir}/lisp/org)")' \
+	  --eval '(setq org--inhibit-version-check t)' \
+	  -l ox-texinfo \
 	  --eval '(setq gc-cons-threshold 50000000)' \
 	  --eval '(setq org-confirm-babel-evaluate nil)' \
 	  --eval '(setq org-id-track-globally nil)' \
