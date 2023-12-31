@@ -761,11 +761,11 @@ In server buffers, also prompt for a channel."
                                       (erc-get-channel-user nick)))
                           t nil t (caar targets))))
    nick
-   (read-from-minibuffer "Reason: ")))
+   (read-string "Reason: ")))
 
 (defun erc-button-cmd-MSG (nick)
   "Prompt for a message to NICK, and send it via `erc-cmd-MSG'."
-  (let ((msg (read-from-minibuffer (concat "Message to " nick ": "))))
+  (let ((msg (read-string (concat "Message to " nick ": "))))
     (erc-cmd-MSG (concat nick " " msg))))
 
 (defvar-local erc-button--nick-popup-alist nil

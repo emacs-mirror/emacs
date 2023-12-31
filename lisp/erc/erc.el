@@ -2642,7 +2642,7 @@ With prefix arg, also prompt for user and full name."
   (let* ((input (let ((d (erc-compute-server)))
                   (if erc--prompt-for-server-function
                       (funcall erc--prompt-for-server-function)
-                    (read-string (format "Server or URL (default is %S): " d)
+                    (read-string (format-prompt "Server or URL" d)
                                  nil 'erc-server-history-list d))))
          ;; For legacy reasons, also accept a URL without a scheme.
          (url (url-generic-parse-url (erc--ensure-url input)))
@@ -2651,27 +2651,27 @@ With prefix arg, also prompt for user and full name."
          (port (or (url-portspec url)
                    (erc-compute-port
                     (let ((d (erc-compute-port sp))) ; may be a string
-                      (read-string (format "Port (default is %s): " d)
+                      (read-string (format-prompt "Port" d)
                                    nil nil d)))))
          ;; Trust the user not to connect twice accidentally.  We
          ;; can't use `erc-already-logged-in' to check for an existing
          ;; connection without modifying it to consider USER and PASS.
          (nick (or (url-user url)
                    (let ((d (erc-compute-nick)))
-                     (read-string (format "Nickname (default is %S): " d)
+                     (read-string (format-prompt "Nickname" d)
                                   nil 'erc-nick-history-list d))))
          (user (and current-prefix-arg
                     (let ((d (erc-compute-user (url-user url))))
-                      (read-string (format "User (default is %S): " d)
+                      (read-string (format-prompt "User" d)
                                    nil nil d))))
          (full (and current-prefix-arg
                     (let ((d (erc-compute-full-name (url-user url))))
-                      (read-string (format "Full name (default is %S): " d)
+                      (read-string (format-prompt "Full name" d)
                                    nil nil d))))
          (passwd (let* ((p (with-suppressed-warnings ((obsolete erc-password))
                              (or (url-password url) erc-password)))
                         (m (if p
-                               (format "Server password (default is %S): " p)
+                               (format-prompt "Server password" p)
                              "Server password (optional): ")))
                    (if erc-prompt-for-password (read-passwd m nil p) p)))
          (opener (and (or sp (eql port erc-default-port-tls)
