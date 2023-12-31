@@ -5265,11 +5265,8 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
     NSScreen *screen = [NSScreen mainScreen];
     NSWindowDepth depth = [screen depth];
 
-    NSDictionary *dict = [screen deviceDescription];
-    NSSize res = [[dict objectForKey:@"NSDeviceResolution"] sizeValue];
-    dpyinfo->resx = res.width;
-    dpyinfo->resy = res.height;
-
+    dpyinfo->resx = 72.27; /* used 75.0, but this makes pt == pixel, expected */
+    dpyinfo->resy = 72.27;
     dpyinfo->color_p = ![NSDeviceWhiteColorSpace isEqualToString:
                                                   NSColorSpaceFromDepth (depth)]
                 && ![NSCalibratedWhiteColorSpace isEqualToString:
