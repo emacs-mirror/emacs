@@ -2035,7 +2035,7 @@ C-a} is a way to enter @kbd{Hyper-Control-a}.  (Unfortunately, there
 is no way to add two modifiers by using @kbd{C-x @@} twice for the
 same character, because the first one goes to work on the @kbd{C-x}.)
 You can similarly enter the Shift, Control, and Meta modifiers by
-using @kbd{C-x @ S}, @kbd{C-x @ c}, and @kbd{C-x @ m}, respectively,
+using @kbd{C-x @@ S}, @kbd{C-x @@ c}, and @kbd{C-x @@ m}, respectively,
 although this is rarely needed.
 
 @node Function Keys
