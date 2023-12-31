@@ -7519,6 +7519,44 @@ error handler continues from where it left off."
         (push handler args)))
     `(handler-bind-1 (lambda () ,@body) ,@(nreverse args))))
 
+
+(defmacro handler-case (form &rest handlers)
+  "Setup control-transferring error HANDLERs around FORM.
+HANDLERS is a list of (CONDITION (VAR) . BODY) where BODY is a
+list of forms where VAR is bound to an error of type CONDITION.
+
+This is similar to handler-bind, with the important difference
+that the error propagation stops as soon as a handler is found to
+match and that BODY always runs in the same dynamic
+context (special variables, catch tags) of FORM, even if the
+error was signalled in a deeper stack frame where that dynamic
+context is different."
+  (declare (indent 1) (debug (form &rest (sexp sexp &rest form))))
+  (let ((outer (gensym "outer"))
+        (tag (gensym "tag")))
+    `(catch ',outer
+       (funcall
+        (catch ',tag
+          ;; FIXME: Also CL's version has :no-error, but that requires
+          ;; multiple values, which we don't have yet
+          (handler-bind ,(mapcar (lambda (handler)
+                                   (let ((type (car handler))
+                                         (var (or (cadr handler) '(_)))
+                                         (body (cddr handler)))
+                                     `(,type (lambda ,var
+                                               (throw ',tag
+                                                      (lambda ()
+                                                        ,@body))))) )
+                                 handlers)
+            ;; XXX: Not sure if better transfer control to outer or
+            ;; return lambda here.  Assuming the former makes better
+            ;; backtraces in the usual non-erroring case.
+            (throw ',outer ,form)))))))
+
+(handler-case
+    (signal 'wrong-type-argument nil)
+  (wrong-type-argument () 'rabo))
+
 (defmacro with-memoization (place &rest code)
   "Return the value of CODE and stash it in PLACE.
 If PLACE's value is non-nil, then don't bother evaluating CODE

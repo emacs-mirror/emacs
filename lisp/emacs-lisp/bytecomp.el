@@ -1887,12 +1887,13 @@ It is too wide if it has any lines longer than the largest of
 	      ;; active at the time the error is signaled, so as to
 	      ;; get more precise error locations.
 	      (let ((form-stack nil))
-		(condition-case error-info
+		(handler-case
 		    (handler-bind
 		        ((error (lambda (_err)
 		                  (setq form-stack byte-compile-form-stack))))
 		      (funcall body-fn))
-		  (error (let ((byte-compile-form-stack form-stack))
+		  (error (error-info)
+			 (let ((byte-compile-form-stack form-stack))
 		           (byte-compile-report-error error-info))))))))
 	 (warning-series-started
 	  (and (markerp warning-series)

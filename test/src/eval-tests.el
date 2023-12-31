@@ -289,7 +289,7 @@ expressions works for identifiers starting with period."
                      'noerror))
                  'noerror))
   ;; The handler is called from within the dynamic extent where the
-  ;; error is signaled, unlike `condition-case'.
+  ;; error is signaled, unlike `handler-case' (and `condition-case').
   (should (equal (catch 'tag
                    (handler-bind ((error (lambda (_err) (throw 'tag 'err))))
                      (list 'inner-catch
@@ -297,35 +297,36 @@ expressions works for identifiers starting with period."
                              (user-error "hello")))))
                  '(inner-catch err)))
   ;; But inner condition handlers are temporarily muted.
-  (should (equal (condition-case nil
+  (should (equal (handler-case
                      (handler-bind
                          ((error (lambda (_err)
                                    (signal 'wrong-type-argument nil))))
                        (list 'result
-                             (condition-case nil
+                             (user-error "hello")
+                             (handler-case
                                  (user-error "hello")
-                               (wrong-type-argument 'inner-handler))))
-                   (wrong-type-argument 'wrong-type-argument))
+                               (wrong-type-argument () 'inner-handler)) ))
+                   (wrong-type-argument () 'wrong-type-argument))
                  'wrong-type-argument))
   ;; Handlers do not apply to the code run within the handlers.
-  (should (equal (condition-case nil
+  (should (equal (handler-case
                      (handler-bind
                          ((error (lambda (_err)
                                    (signal 'wrong-type-argument nil)))
                           (wrong-type-argument
                            (lambda (_err) (user-error "wrong-type-argument"))))
                        (user-error "hello"))
-                   (wrong-type-argument 'wrong-type-argument)
-                   (error 'plain-error))
+                   (wrong-type-argument () 'wrong-type-argument)
+                   (error () 'plain-error))
                  'wrong-type-argument)))
 
 (ert-deftest eval-tests--error-id ()
   (let* (inner-error
          (outer-error
-          (condition-case err
+          (handler-case
               (handler-bind ((error (lambda (err) (setq inner-error err))))
                 (car 1))
-            (error err))))
+            (error (err) err))))
     (should (eq inner-error outer-error))))
 
 
