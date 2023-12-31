@@ -678,6 +678,13 @@ value of t means the option's value doesn't require trimming.")
                                             0 erc-stamp--date-format-end)
                                erc-timestamp-format-left))))
 
+(defun erc-stamp-inserting-date-stamp-p ()
+  "Return non-nil if the narrowed buffer contains a date stamp.
+Expect to be called by members of `erc-insert-modify-hook' and
+`erc-insert-post-hook' to detect whether the message being
+inserted is a date stamp."
+  (erc--check-msg-prop 'erc--msg 'datestamp))
+
 ;; Calling `erc-display-message' from within a hook it's currently
 ;; running is roundabout, but it's a definite means of ensuring hooks
 ;; can act on the date stamp as a standalone message to do things like

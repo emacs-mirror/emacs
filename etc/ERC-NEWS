@@ -474,7 +474,9 @@ also not appreciate that 'erc-timestamp-last-inserted-left' no longer
 records the final trailing newline in 'erc-timestamp-format-left'.  If
 these inconveniences prove too encumbering to deal with right away,
 see the escape hatch 'erc-stamp-prepend-date-stamps-p', which should
-help ease the transition.
+help ease the transition.  As for detecting these new stamp-only
+messages from members of 'erc-insert-modify-hook' and friends, see the
+function 'erc-stamp-inserting-date-stamp-p'.
 
 *** The role of a module's Custom group is now more clearly defined.
 Associating built-in modules with Custom groups and "provided" library
