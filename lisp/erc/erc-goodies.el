@@ -471,8 +471,7 @@ For use with `keep-place-indicator' module."
     ;; if `switch-to-buffer-preserve-window-point' is set,
     ;; we cannot rely on point being saved, and must commit
     ;; it to window-prev-buffers.
-    (when (and switch-to-buffer-preserve-window-point
-               (not erc-keep-place-indicator-mode))
+    (when switch-to-buffer-preserve-window-point
       (dolist (frame (frame-list))
         (walk-window-tree
          (lambda (window)

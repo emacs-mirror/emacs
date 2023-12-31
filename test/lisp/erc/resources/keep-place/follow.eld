@@ -71,3 +71,8 @@
 
  (0.03 ":bob!~u@2q6ysndq32az6.irc PRIVMSG #chan :alice: No egma, no riddle, no l'envoy; no salve in the mail, sir. O! sir, plantain, a plain plantain: no l'envoy, no l'envoy: no salve, sir, but a plantain.")
  (0.03 ":alice!~u@2q6ysndq32az6.irc PRIVMSG #chan :Signior Iachimo will not from it. Pray, let us follow 'em."))
+
+((privmsg 10 "PRIVMSG #spam :three")
+ ;; Third check point.
+ (0.01 ":bob!~u@2q6ysndq32az6.irc PRIVMSG #spam :Moved.")
+ (0.01 ":bob!~u@2q6ysndq32az6.irc PRIVMSG #chan :Ready."))
