@@ -333,7 +333,8 @@ possible."
     (`(r> . ,rest) (if on-region
                        (progn
                          (goto-char tempo-region-stop)
-                         (indent-region (mark) (point) nil))
+                         (indent-region tempo-region-start
+                                        tempo-region-stop))
                        (tempo-insert-prompt-compat rest)))
     (`(s ,name) (tempo-insert-named name))
     (`(l . ,rest) (dolist (elt rest) (tempo-insert elt on-region)))
@@ -344,7 +345,7 @@ possible."
     ('r> (if on-region
 	     (progn
 	       (goto-char tempo-region-stop)
-	       (indent-region (mark) (point) nil))
+	       (indent-region tempo-region-start tempo-region-stop))
 	   (tempo-insert-mark (point-marker))))
     ('> (indent-according-to-mode))
     ('& (if (not (or (= (current-column) 0)
