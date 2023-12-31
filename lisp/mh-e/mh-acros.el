@@ -42,80 +42,7 @@
 
 
 
-;;; Compatibility
-
-;;;###mh-autoload
-(defmacro mh-do-in-gnu-emacs (&rest body)
-  "Execute BODY if in GNU Emacs."
-  (declare (obsolete progn "29.1") (debug t) (indent defun))
-  (unless (featurep 'xemacs) `(progn ,@body)))
-
-;;;###mh-autoload
-(defmacro mh-do-in-xemacs (&rest body)
-  "Execute BODY if in XEmacs."
-  (declare (obsolete ignore "29.1") (debug t) (indent defun))
-  (when (featurep 'xemacs) `(progn ,@body)))
-
-;;;###mh-autoload
-(defmacro mh-funcall-if-exists (function &rest args)
-  "Call FUNCTION with ARGS as parameters if it exists."
-  (declare (obsolete "use `(when (fboundp 'foo) (foo))' instead." "29.1")
-           (debug (symbolp body)))
-  ;; FIXME: Not clear when this should be used.  If the function happens
-  ;; not to exist at compile-time (e.g. because the corresponding package
-  ;; wasn't loaded), then it won't ever be used :-(
-  (when (fboundp function)
-    `(when (fboundp ',function)
-       (funcall ',function ,@args))))
-
-;;;###mh-autoload
-(defmacro defun-mh (name function arg-list &rest body)
-  "Create function NAME.
-If FUNCTION exists, then NAME becomes an alias for FUNCTION.
-Otherwise, create function NAME with ARG-LIST and BODY."
-  (declare (obsolete defun "29.1")
-           (indent defun) (doc-string 4)
-           (debug (&define name symbolp sexp def-body)))
-  `(defalias ',name
-     (if (fboundp ',function)
-         ',function
-       (lambda ,arg-list ,@body))))
-
-;;;###mh-autoload
-(defmacro defmacro-mh (name macro arg-list &rest body)
-  "Create macro NAME.
-If MACRO exists, then NAME becomes an alias for MACRO.
-Otherwise, create macro NAME with ARG-LIST and BODY."
-  (declare (obsolete defmacro "29.1")
-           (indent defun) (doc-string 4)
-           (debug (&define name symbolp sexp def-body)))
-  (let ((defined-p (fboundp macro)))
-    (if defined-p
-        `(defalias ',name ',macro)
-      `(defmacro ,name ,arg-list ,@body))))
-
-
 ;;; Miscellaneous
-
-;;;###mh-autoload
-(defmacro mh-make-local-hook (hook)
-  "Make HOOK local if needed.
-XEmacs and versions of GNU Emacs before 21.1 require
-`make-local-hook' to be called."
-  (declare (obsolete nil "29.1"))
-  (when (and (fboundp 'make-local-hook)
-             (not (get 'make-local-hook 'byte-obsolete-info)))
-    `(make-local-hook ,hook)))
-
-;;;###mh-autoload
-(defmacro mh-mark-active-p (check-transient-mark-mode-flag)
-  "If CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then check if
-variable `transient-mark-mode' is active."
-  (declare (obsolete nil "29.1"))
-  (cond ((not check-transient-mark-mode-flag)
-         'mark-active)
-        (t
-         '(and transient-mark-mode mark-active))))
 
 ;;;###mh-autoload
 (defmacro with-mh-folder-updating (save-modification-flag &rest body)
