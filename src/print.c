@@ -1035,6 +1035,15 @@ error message is constructed.  */)
       && NILP (XCDR (XCDR (obj))))
     return XCAR (XCDR (obj));
 
+
+  if (RECORDP (obj)) {
+    /* If OBJ is #s(condition error STRING), proceed as above */
+    if (EQ (AREF (obj, 1), Qerror) && STRINGP (AREF (obj, 2)))
+      return AREF (obj, 2);
+
+    obj = Fcons(AREF (obj, 1), AREF (obj, 2));
+  }
+
   print_error_message (obj, Vprin1_to_string_buffer, 0, Qnil);
 
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
@@ -1052,7 +1061,7 @@ error message is constructed.  */)
    CALLER is the Lisp function inside which the error was signaled.  */
 
 void
-print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
+print_error_message (Lisp_Object error_as_cons, Lisp_Object stream, const char *context,
 		     Lisp_Object caller)
 {
   Lisp_Object errname, errmsg, file_error, tail;
@@ -1074,14 +1083,14 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
       SAFE_FREE ();
     }
 
-  errname = Fcar (data);
+  errname = Fcar (error_as_cons);
 
   if (EQ (errname, Qerror))
     {
-      data = Fcdr (data);
-      if (!CONSP (data))
-	data = Qnil;
-      errmsg = Fcar (data);
+      error_as_cons = Fcdr (error_as_cons);
+      if (!CONSP (error_as_cons))
+	error_as_cons = Qnil;
+      errmsg = Fcar (error_as_cons);
       file_error = Qnil;
     }
   else
@@ -1104,7 +1113,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 
   /* Print an error message including the data items.  */
 
-  tail = Fcdr_safe (data);
+  tail = Fcdr_safe (error_as_cons);
 
   /* For file-error, make error message by concatenating
      all the data items.  They are all strings.  */

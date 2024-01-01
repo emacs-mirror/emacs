@@ -1766,15 +1766,17 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
      and DATA is (REAL-ERROR-SYMBOL . REAL-DATA).
      That is a special case--don't do this in other situations.  */
   bool oom = NILP (error_symbol);
-  Lisp_Object error             /* The error object.  */
+  Lisp_Object args[3] = {Qcondition, error_symbol, data};
+  Lisp_Object condition             /* The error object.  */
     = oom ? data
       : (!SYMBOLP (error_symbol) && NILP (data)) ? error_symbol
-      : Fcons (error_symbol, data);
+	: Frecord (3, args);
   Lisp_Object conditions;
   Lisp_Object string;
   Lisp_Object real_error_symbol
-    = CONSP (error) ? XCAR (error) : error_symbol;
+    = RECORDP (condition) ? AREF (condition, 1) : error_symbol;
   Lisp_Object clause = Qnil;
+  bool legacy_cons = false;
   struct handler *h;
   int skip;
 
@@ -1827,7 +1829,8 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
           break;
 	case CATCHER:
 	  continue;
-        case CONDITION_CASE:
+	case CONDITION_CASE:
+	  legacy_cons = true;
           clause = find_handler_clause (h->tag_or_ch, conditions);
 	  break;
 	case HANDLER_BIND:
@@ -1838,7 +1841,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 	        max_ensure_room (20);
 	        push_handler (make_fixnum (skip + h->bytecode_dest),
 	                      SKIP_CONDITIONS);
-	        call1 (h->val, error);
+	        call1 (h->val, condition);
 	        unbind_to (count, Qnil);
 	        pop_handler ();
 	      }
@@ -1873,7 +1876,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 	  || EQ (clause, Qerror)))
     {
       debugger_called
-	= maybe_call_debugger (conditions, error);
+	= maybe_call_debugger (conditions, condition);
       /* We can't return values to code which signaled an error, but we
 	 can continue code which has signaled a quit.  */
       if (continuable && debugger_called)
@@ -1881,14 +1884,17 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
     }
 
   if (!NILP (clause))
-    unwind_to_catch (h, NONLOCAL_EXIT_SIGNAL, error);
+    unwind_to_catch (h,
+		     NONLOCAL_EXIT_SIGNAL,
+		     legacy_cons?Fcons(AREF(condition, 1), AREF(condition, 2))
+		     :condition);
   else if (handlerlist != handlerlist_sentinel)
     /* FIXME: This will come right back here if there's no `top-level'
        catcher.  A better solution would be to abort here, and instead
        add a catch-all condition handler so we never come here.  */
     Fthrow (Qtop_level, Qt);
 
-  string = Ferror_message_string (error);
+  string = Ferror_message_string (condition);
   fatal ("%s", SDATA (string));
 }
 
@@ -1980,7 +1986,7 @@ wants_debugger (Lisp_Object list, Lisp_Object conditions)
    according to debugger-ignored-errors.  */
 
 static bool
-skip_debugger (Lisp_Object conditions, Lisp_Object data)
+skip_debugger (Lisp_Object conditions, Lisp_Object condition)
 {
   Lisp_Object tail;
   bool first_string = 1;
@@ -1993,7 +1999,7 @@ skip_debugger (Lisp_Object conditions, Lisp_Object data)
 	{
 	  if (first_string)
 	    {
-	      error_message = Ferror_message_string (data);
+	      error_message = Ferror_message_string (condition);
 	      first_string = 0;
 	    }
 
@@ -2015,9 +2021,9 @@ skip_debugger (Lisp_Object conditions, Lisp_Object data)
 
 /* Say whether SIGNAL is a `quit' error (or inherits from it).  */
 bool
-signal_quit_p (Lisp_Object error)
+signal_quit_p (Lisp_Object condition)
 {
-  Lisp_Object signal = CONSP (error) ? XCAR (error) : Qnil;
+  Lisp_Object signal = RECORDP (condition) ? AREF (condition, 1) : Qnil;
   Lisp_Object list;
 
   return EQ (signal, Qquit)
@@ -2027,12 +2033,9 @@ signal_quit_p (Lisp_Object error)
 }
 
 /* Call the debugger if calling it is currently enabled for CONDITIONS.
-   SIG and DATA describe the signal.  There are two ways to pass them:
-    = SIG is the error symbol, and DATA is the rest of the data.
-    = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
       This is for memory-full errors only.  */
 static bool
-maybe_call_debugger (Lisp_Object conditions, Lisp_Object error)
+maybe_call_debugger (Lisp_Object conditions, Lisp_Object condition)
 {
   if (
       /* Don't try to run the debugger with interrupts blocked.
@@ -2040,15 +2043,15 @@ maybe_call_debugger (Lisp_Object conditions, Lisp_Object error)
       ! input_blocked_p ()
       && NILP (Vinhibit_debugger)
       /* Does user want to enter debugger for this kind of error?  */
-      && (signal_quit_p (error)
+      && (signal_quit_p (condition)
 	  ? debug_on_quit
 	  : wants_debugger (Vdebug_on_error, conditions))
-      && ! skip_debugger (conditions, error)
+      && ! skip_debugger (conditions, condition)
       /* See commentary on definition of
          `internal-when-entered-debugger'.  */
       && when_entered_debugger < num_nonmacro_input_events)
     {
-      call_debugger (list2 (Qerror, error));
+      call_debugger (list2 (Qerror, condition));
       return 1;
     }
 
@@ -4348,6 +4351,7 @@ is temporarily non-nil if `eval-expression-debug-on-error' is non-nil.
 The command `toggle-debug-on-error' toggles this.
 See also the variable `debug-on-quit' and `inhibit-debugger'.  */);
   Vdebug_on_error = Qnil;
+  DEFSYM (Qcondition, "condition")
 
   DEFVAR_LISP ("debug-ignored-errors", Vdebug_ignored_errors,
     doc: /* List of errors for which the debugger should not be called.
