@@ -58,7 +58,7 @@ modify this GNU manual.''
 @top @acronym{SES}: Simple Emacs Spreadsheet
 
 @display
-@acronym{SES} est mode majeur de GNU Emacs pour éditer des fichiers
+@acronym{SES} est un mode majeur de GNU Emacs pour éditer des fichiers
 tableur, c.-à-d.@: des fichiers contenant une grille rectangulaire de
 cellules. Les valeurs des cellules sont spécifiées par des formules
 pouvant se référer aux valeurs d’autres cellules.
@@ -70,7 +70,7 @@ Pour les rapports d’anomalie, utiliser @kbd{M-x report-emacs-bug}.
 @insertcopying
 
 @menu
-* Boniment: Sales Pitch.        Pourquoi utiliser @acronym{SES}?
+* Boniment: Sales Pitch.        Pourquoi utiliser @acronym{SES} ?
 * Tuto: Quick Tutorial.         Une introduction sommaire
 * Les bases: The Basics.        Les commandes de base du tableur
 * Fonctions avancées: Advanced Features. Vous voulez en savoir plus ?
