@@ -581,9 +581,17 @@ ERC now adjusts input lines to fall within allowed length limits
 before showing hook members the result.  For compatibility,
 third-party code can request that the final input be adjusted again
 prior to being sent.  To facilitate this, the 'erc-input' object
-shared among hook members has gained a "phony" 'refoldp' slot that's
-only accessible from 'erc-pre-send-functions'.  See doc string for
-details.
+shared among hook members has gained a 'refoldp' slot.  See doc string
+for details.
+
+*** More flexibility in sending and displaying prompt input.
+The abnormal hook 'erc-pre-send-functions' previously married outgoing
+message text to its inserted representation in an ERC target buffer.
+Going forward, users can populate the new slot 'substxt' with
+alternate text to insert in place of the 'string' slot's contents,
+which ERC still sends to the server.  This dichotomy lets users
+completely avoid the often fiddly 'erc-send-modify-hook' and friends
+for use cases like language translation and subprotocol encoding.
 
 *** ERC's prompt survives the insertion of user input and messages.
 Previously, ERC's prompt and its input marker disappeared while

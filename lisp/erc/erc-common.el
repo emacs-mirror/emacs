@@ -50,7 +50,23 @@
 (declare-function widget-type "wid-edit" (widget))
 
 (cl-defstruct erc-input
-  string insertp sendp)
+  "Object shared among members of `erc-pre-send-functions'.
+Any use outside of the hook is not supported."
+  ( string "" :type string
+    :documentation "String to send and, without `substxt', insert.
+ERC treats separate lines as separate messages.")
+  ( insertp nil :type boolean
+    :documentation "Whether to insert outgoing message.
+When nil, ERC still sends `string'.")
+  ( sendp nil :type boolean
+    :documentation "Whether to send and (for compat reasons) insert.
+To insert without sending, define a (slash) command.")
+  ( substxt nil :type (or function string null)
+    :documentation "Alternate string to insert without splitting.
+The function form is for internal use.")
+  ( refoldp nil :type boolean
+    :documentation "Whether to resplit a possibly overlong `string'.
+ERC only refolds `string', never `substxt'."))
 
 (cl-defstruct (erc--input-split (:include erc-input
                                           (string "" :read-only t)
@@ -58,7 +74,6 @@
                                           (sendp (with-suppressed-warnings
                                                      ((obsolete erc-send-this))
                                                    erc-send-this))))
-  (refoldp nil :type boolean)
   (lines nil :type (list-of string))
   (abortp nil :type (list-of symbol))
   (cmdp nil :type boolean))

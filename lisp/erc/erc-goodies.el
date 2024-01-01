@@ -583,15 +583,18 @@ Do nothing if the variable `erc-command-indicator' is nil."
   "Insert `erc-input' STATE's message if it's an echoed command."
   (cl-assert erc-command-indicator-mode)
   (when (erc--input-split-cmdp state)
-    (setf (erc--input-split-insertp state) #'erc--command-indicator-display)
+    (setf (erc--input-split-insertp state) t
+          (erc--input-split-substxt state) #'erc--command-indicator-display)
     (erc-send-distinguish-noncommands state)))
 
 ;; This function used to be called `erc-display-command'.  It was
 ;; neutered in ERC 5.3.x (Emacs 24.5), commented out in 5.4, removed
 ;; in 5.5, and restored in 5.6.
-(defun erc--command-indicator-display (line)
+(defun erc--command-indicator-display (line &rest rest)
   "Insert command LINE as echoed input resembling that of REPLs and shells."
   (when erc-insert-this
+    (when rest
+      (setq line (string-join (cons line rest) "\n")))
     (save-excursion
       (erc--assert-input-bounds)
       (let ((insert-position (marker-position (goto-char erc-insert-marker)))

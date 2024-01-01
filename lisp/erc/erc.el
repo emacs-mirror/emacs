@@ -1235,30 +1235,30 @@ anyway."
 (make-obsolete-variable 'erc-send-pre-hook 'erc-pre-send-functions "27.1")
 
 (defcustom erc-pre-send-functions nil
-  "Special hook run to possibly alter the string that is sent.
-The functions are called with one argument, an `erc-input' struct,
-and should alter that struct.
+  "Special hook to possibly alter the string to send and insert.
+ERC calls the member functions with one argument, an `erc-input'
+struct instance to modify as needed.
 
-The struct has three slots:
+The struct has five slots:
 
-  `string': The current input string.
-  `insertp': Whether the string should be inserted into the erc buffer.
-  `sendp': Whether the string should be sent to the irc server.
-
-And one \"phony\" slot only accessible by hook members at runtime:
-
-  `refoldp': Whether the string should be re-split per protocol limits.
+  `string': String to send, originally from prompt input.
+  `insertp': Whether a string should be inserted in the buffer.
+  `sendp': Whether `string' should be sent to the IRC server.
+  `substxt': String to display (but not send) instead of `string'.
+  `refoldp': Whether to re-split `string' per protocol limits.
 
 This hook runs after protocol line splitting has taken place, so
-the value of `string' is originally \"pre-filled\".  If you need
-ERC to refill the entire payload before sending it, set the phony
-`refoldp' slot to a non-nil value.  Note that this refilling is
-only a convenience, and modules with special needs, such as
-preserving \"preformatted\" text or encoding for subprotocol
-\"tunneling\", should handle splitting manually."
-  :group 'erc
-  :type 'hook
-  :version "27.1")
+the value of `string' comes \"pre-split\" according to the option
+`erc-split-line-length'.  If you need ERC to refill the entire
+payload before sending it, set the `refoldp' slot to a non-nil
+value.  Note that this refilling is only a convenience, and
+modules with special needs, such as preserving \"preformatted\"
+text or encoding for subprotocol \"tunneling\", should handle
+splitting manually and possibly also specify replacement text to
+display via the `substxt' slot."
+  :package-version '(ERC . "5.3")
+  :group 'erc-hooks
+  :type 'hook)
 
 (define-obsolete-variable-alias 'erc--pre-send-split-functions
   'erc--input-review-functions "30.1")
@@ -7899,22 +7899,6 @@ When all lines are empty, remove all but the first."
     (setf (erc--input-split-lines state)
           (mapcan #'erc--split-line (erc--input-split-lines state)))))
 
-(defun erc--input-ensure-hook-context ()
-  (unless (erc--input-split-p erc--current-line-input-split)
-    (error "Invoked outside of `erc-pre-send-functions'")))
-
-(defun erc-input-refoldp (_)
-  "Impersonate accessor for phony `erc-input' `refoldp' slot.
-This function only works inside `erc-pre-send-functions' members."
-  (declare (gv-setter (lambda (v)
-                        `(progn
-                           (erc--input-ensure-hook-context)
-                           (setf (erc--input-split-refoldp
-                                  erc--current-line-input-split)
-                                 ,v)))))
-  (erc--input-ensure-hook-context)
-  (erc--input-split-refoldp erc--current-line-input-split))
-
 (defun erc--run-send-hooks (lines-obj)
   "Run send-related hooks that operate on the entire prompt input.
 Sequester some of the back and forth involved in honoring old
@@ -7932,12 +7916,17 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
              (state (progn
                       ;; This may change `str' and `erc-*-this'.
                       (run-hook-with-args 'erc-send-pre-hook str)
-                      (make-erc-input :string str
-                                      :insertp erc-insert-this
-                                      :sendp erc-send-this))))
+                      (make-erc-input
+                       :string str
+                       :insertp erc-insert-this
+                       :sendp erc-send-this
+                       :substxt (erc--input-split-substxt lines-obj)
+                       :refoldp (erc--input-split-refoldp lines-obj)))))
         (run-hook-with-args 'erc-pre-send-functions state)
         (setf (erc--input-split-sendp lines-obj) (erc-input-sendp state)
               (erc--input-split-insertp lines-obj) (erc-input-insertp state)
+              (erc--input-split-substxt lines-obj) (erc-input-substxt state)
+              (erc--input-split-refoldp lines-obj) (erc-input-refoldp state)
               ;; See note in test of same name re trailing newlines.
               (erc--input-split-lines lines-obj)
               (let ((lines (split-string (erc-input-string state)
@@ -7955,15 +7944,19 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
 (defun erc--send-input-lines (lines-obj)
   "Send lines in `erc--input-split-lines' object LINES-OBJ."
   (when (erc--input-split-sendp lines-obj)
-    (dolist (line (erc--input-split-lines lines-obj))
-      (when (erc--input-split-insertp lines-obj)
-        (if (eq (erc--input-split-insertp lines-obj)
-                'erc--command-indicator-display)
-            (funcall (erc--input-split-insertp lines-obj) line)
-          (erc-display-msg line)))
-      (erc-process-input-line (concat line "\n")
-                              (null erc-flood-protect)
-                              (not (erc--input-split-cmdp lines-obj))))))
+    (let ((insertp (erc--input-split-insertp lines-obj))
+          (substxt (erc--input-split-substxt lines-obj)))
+      (when (and insertp substxt)
+        (setq insertp nil)
+        (if (functionp substxt)
+            (apply substxt (erc--input-split-lines lines-obj))
+          (erc-display-msg substxt)))
+      (dolist (line (erc--input-split-lines lines-obj))
+        (when insertp
+          (erc-display-msg line))
+        (erc-process-input-line (concat line "\n")
+                                (null erc-flood-protect)
+                                (not (erc--input-split-cmdp lines-obj)))))))
 
 (defun erc-send-input (input &optional skip-ws-chk)
   "Treat INPUT as typed in by the user.
