@@ -15314,6 +15314,188 @@ sfnt_compute_tuple_scale (struct sfnt_blend *blend, bool intermediate_p,
   return scale;
 }
 
+/* Move each point in the simple glyph GLYPH between PAIR_START and
+   PAIR_END to agree with the positions of those two anchor points as
+   compared with their initial positions recorded within the arrays X
+   and Y.
+
+   The range formed between PAIR_START and PAIR_END may encompass the
+   upper extreme of the contour between START and END.  */
+
+static void
+sfnt_infer_deltas_2 (struct sfnt_glyph *glyph, size_t pair_start,
+		     size_t pair_end, size_t start, size_t end,
+		     sfnt_fword *x, sfnt_fword *y)
+{
+  size_t j;
+  sfnt_fword min_pos, max_pos, position, d1, d2;
+  sfnt_fixed ratio, delta;
+
+  j = pair_start + 1;
+
+  while (j != pair_end)
+    {
+      /* Reset j to the contour's start position if it is about to
+	 overrun this contour.  */
+
+      if (j > end)
+	{
+	  /* The start of the contour might also be the end of this
+	     reference point.  */
+	  if (start == pair_end)
+	    return;
+
+	  j = start;
+	}
+
+      /* Consider the X axis.  Set min_pos and max_pos to the
+	 smallest and greatest values along that axis.  */
+      min_pos = MIN (x[pair_start], x[pair_end]);
+      max_pos = MAX (x[pair_start], x[pair_end]);
+
+      /* Now see if the current point lies between min and
+	 max...
+
+         GX interpolation differs from IUP in one important detail:
+         points are shifted to follow the movement of their reference
+         points if their positions are identical to those of any of
+         their reference points, whereas IUP considers such points to
+         fall within their reference points.  */
+      if (x[j] > min_pos && x[j] < max_pos)
+	{
+	  /* Interpolate between min_pos and max_pos.  */
+	  ratio = sfnt_div_fixed ((sfnt_sub (x[j], min_pos)
+				   * 65536),
+				  (sfnt_sub (max_pos, min_pos)
+				   * 65536));
+
+	  /* Load the current positions of pair_start and pair_end
+	     along this axis.  */
+	  min_pos = MIN (glyph->simple->x_coordinates[pair_start],
+			 glyph->simple->x_coordinates[pair_end]);
+	  max_pos = MAX (glyph->simple->x_coordinates[pair_start],
+			 glyph->simple->x_coordinates[pair_end]);
+
+	  /* Lerp in between.  */
+	  delta = sfnt_sub (max_pos, min_pos);
+	  delta = sfnt_mul_fixed (ratio, delta);
+	  glyph->simple->x_coordinates[j] = min_pos + delta;
+	}
+      else
+	{
+	  /* ... otherwise, move point j by the delta of the
+	     nearest touched point.  */
+
+	  /* If min_pos and max_pos are the same, apply
+	     pair_start's delta if it is identical to that of
+	     pair_end, or apply nothing at all otherwise.  */
+
+	  if (min_pos == max_pos)
+	    {
+	      d1 = (glyph->simple->x_coordinates[pair_start]
+		    - x[pair_start]);
+	      d2 = (glyph->simple->x_coordinates[pair_end]
+		    - x[pair_start]);
+
+	      if (d1 == d2)
+		glyph->simple->x_coordinates[j] += d1;
+
+	      goto consider_y;
+	    }
+
+	  if (x[j] >= max_pos)
+	    {
+	      position = MAX (glyph->simple->x_coordinates[pair_start],
+			      glyph->simple->x_coordinates[pair_end]);
+	      delta = position - max_pos;
+	    }
+	  else
+	    {
+	      position = MIN (glyph->simple->x_coordinates[pair_start],
+			      glyph->simple->x_coordinates[pair_end]);
+	      delta = position - min_pos;
+	    }
+
+	  glyph->simple->x_coordinates[j] = x[j] + delta;
+	}
+
+    consider_y:
+
+      /* Now, consider the Y axis.  */
+      min_pos = MIN (y[pair_start], y[pair_end]);
+      max_pos = MAX (y[pair_start], y[pair_end]);
+
+      /* Now see if the current point lies between min and
+	 max...
+
+         GX interpolation differs from IUP in one important detail:
+         points are shifted to follow the movement of their reference
+         points if their positions are identical to those of any of
+         their reference points, whereas IUP considers such points to
+         fall within their reference points.  */
+      if (y[j] > min_pos && y[j] < max_pos)
+	{
+	  /* Interpolate between min_pos and max_pos.  */
+	  ratio = sfnt_div_fixed ((sfnt_sub (y[j], min_pos)
+				   * 65536),
+				  (sfnt_sub (max_pos, min_pos)
+				   * 65536));
+
+	  /* Load the current positions of pair_start and pair_end
+	     along this axis.  */
+	  min_pos = MIN (glyph->simple->y_coordinates[pair_start],
+			 glyph->simple->y_coordinates[pair_end]);
+	  max_pos = MAX (glyph->simple->y_coordinates[pair_start],
+			 glyph->simple->y_coordinates[pair_end]);
+
+	  /* Lerp in between.  */
+	  delta = sfnt_sub (max_pos, min_pos);
+	  delta = sfnt_mul_fixed (ratio, delta);
+	  glyph->simple->y_coordinates[j] = min_pos + delta;
+	}
+      else
+	{
+	  /* ... otherwise, move point j by the delta of the
+	     nearest touched point.  */
+
+	  /* If min_pos and max_pos are the same, apply
+	     pair_start's delta if it is identical to that of
+	     pair_end, or apply nothing at all otherwise.  */
+
+	  if (min_pos == max_pos)
+	    {
+	      d1 = (glyph->simple->y_coordinates[pair_start]
+		    - y[pair_start]);
+	      d2 = (glyph->simple->y_coordinates[pair_end]
+		    - y[pair_start]);
+
+	      if (d1 == d2)
+		glyph->simple->y_coordinates[j] += d1;
+
+	      goto next;
+	    }
+
+	  if (y[j] >= max_pos)
+	    {
+	      position = MAX (glyph->simple->y_coordinates[pair_start],
+			      glyph->simple->y_coordinates[pair_end]);
+	      delta = position - max_pos;
+	    }
+	  else
+	    {
+	      position = MIN (glyph->simple->y_coordinates[pair_start],
+			      glyph->simple->y_coordinates[pair_end]);
+	      delta = position - min_pos;
+	    }
+
+	  glyph->simple->y_coordinates[j] = y[j] + delta;
+	}
+
+    next:
+      j++;
+    }
+}
+
 /* Infer point positions for points that have been partially moved
    within the contour in GLYPH denoted by START and END.  */
 
@@ -15322,9 +15504,7 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
 		     size_t end, bool *touched, sfnt_fword *x,
 		     sfnt_fword *y)
 {
-  size_t i, pair_start, pair_end, pair_first, j;
-  sfnt_fword min_pos, max_pos, position;
-  sfnt_fixed ratio, delta;
+  size_t i, pair_start, pair_end, pair_first;
 
   pair_start = pair_first = -1;
 
@@ -15343,140 +15523,10 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
 
       pair_end = i;
 
-      /* pair_start to pair_end are now a pair of points, where points
-	 in between should be interpolated.  */
-
-      for (j = pair_start + 1; j < pair_end; ++j)
-	{
-	  /* Consider the X axis.  Set min_pos and max_pos to the
-	     smallest and greatest values along that axis.  */
-	  min_pos = MIN (x[pair_start], x[pair_end]);
-	  max_pos = MAX (x[pair_start], x[pair_end]);
-
-	  /* Now see if the current point lies between min and
-	     max... */
-	  if (x[j] >= min_pos && x[j] <= max_pos)
-	    {
-	      /* If min_pos and max_pos are the same, apply
-		 pair_start's delta if it is identical to that of
-		 pair_end, or apply nothing at all otherwise.  */
-
-	      if (min_pos == max_pos)
-		{
-		  if ((glyph->simple->x_coordinates[pair_start]
-		       - x[pair_start])
-		      == (glyph->simple->x_coordinates[pair_end]
-			  - x[pair_end]))
-		    glyph->simple->x_coordinates[j]
-		      += (glyph->simple->x_coordinates[pair_start]
-			  - x[pair_start]);
-
-		  continue;
-		}
-
-	      /* Interpolate between min_pos and max_pos.  */
-	      ratio = sfnt_div_fixed ((sfnt_sub (x[j], min_pos)
-				       * 65536),
-				      (sfnt_sub (max_pos, min_pos)
-				       * 65536));
-
-	      /* Load the current positions of pair_start and pair_end
-	         along this axis.  */
-	      min_pos = MIN (glyph->simple->x_coordinates[pair_start],
-			     glyph->simple->x_coordinates[pair_end]);
-	      max_pos = MAX (glyph->simple->x_coordinates[pair_start],
-			     glyph->simple->x_coordinates[pair_end]);
-
-	      /* Lerp in between.  */
-	      delta = sfnt_sub (max_pos, min_pos);
-	      delta = sfnt_mul_fixed (ratio, delta);
-	      glyph->simple->x_coordinates[j] = min_pos + delta;
-	    }
-	  else
-	    {
-	      /* ... otherwise, move point j by the delta of the
-		 nearest touched point.  */
-
-	      if (x[j] >= max_pos)
-		{
-		  position = MAX (glyph->simple->x_coordinates[pair_start],
-				  glyph->simple->x_coordinates[pair_end]);
-		  delta = position - max_pos;
-		}
-	      else
-		{
-		  position = MIN (glyph->simple->x_coordinates[pair_start],
-				  glyph->simple->x_coordinates[pair_end]);
-		  delta = position - min_pos;
-		}
-
-	      glyph->simple->x_coordinates[j] = x[j] + delta;
-	    }
-
-	  /* Now, consider the Y axis.  */
-	  min_pos = MIN (y[pair_start], y[pair_end]);
-	  max_pos = MAX (y[pair_start], y[pair_end]);
-
-	  /* Now see if the current point lies between min and
-	     max... */
-	  if (y[j] >= min_pos && y[j] <= max_pos)
-	    {
-	      /* If min_pos and max_pos are the same, apply
-		 pair_start's delta if it is identical to that of
-		 pair_end, or apply nothing at all otherwise.  */
-
-	      if (min_pos == max_pos)
-		{
-		  if ((glyph->simple->y_coordinates[pair_start]
-		       - y[pair_start])
-		      == (glyph->simple->y_coordinates[pair_end]
-			  - y[pair_end]))
-		    glyph->simple->y_coordinates[j]
-		      += (glyph->simple->y_coordinates[pair_start]
-			  - y[pair_start]);
-
-		  continue;
-		}
-
-	      /* Interpolate between min_pos and max_pos.  */
-	      ratio = sfnt_div_fixed ((sfnt_sub (y[j], min_pos)
-				       * 65536),
-				      (sfnt_sub (max_pos, min_pos)
-				       * 65536));
-
-	      /* Load the current positions of pair_start and pair_end
-	         along this axis.  */
-	      min_pos = MIN (glyph->simple->y_coordinates[pair_start],
-			     glyph->simple->y_coordinates[pair_end]);
-	      max_pos = MAX (glyph->simple->y_coordinates[pair_start],
-			     glyph->simple->y_coordinates[pair_end]);
-
-	      /* Lerp in between.  */
-	      delta = sfnt_sub (max_pos, min_pos);
-	      delta = sfnt_mul_fixed (ratio, delta);
-	      glyph->simple->y_coordinates[j] = min_pos + delta;
-	    }
-	  else
-	    {
-	      /* ... otherwise, move point j by the delta of the
-		 nearest touched point.  */
-
-	      if (y[j] >= max_pos)
-		{
-		  position = MAX (glyph->simple->y_coordinates[pair_start],
-				  glyph->simple->y_coordinates[pair_end]);
-		  delta = position - max_pos;
-		}
-	      else
-		{
-		  position = MIN (glyph->simple->y_coordinates[pair_start],
-				  glyph->simple->y_coordinates[pair_end]);
-		  delta = position - min_pos;
-		}
-
-	      glyph->simple->y_coordinates[j] = y[j] + delta;
-	    }
-	}
+      /* pair_start to pair_end are now a pair of points whose
+	 intermediates should be interpolated.  */
+      sfnt_infer_deltas_2 (glyph, pair_start, pair_end,
+			   start, end, x, y);
 
     next:
       pair_start = i;
@@ -15487,149 +15537,12 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
 
   if (pair_start != (size_t) -1)
     {
-      j = pair_start + 1;
-
-      if (j > end)
-	j = start;
-
       pair_end = pair_first;
 
-      while (j != pair_first)
-	{
-	  /* Consider the X axis.  Set min_pos and max_pos to the
-	     smallest and greatest values along that axis.  */
-	  min_pos = MIN (x[pair_start], x[pair_end]);
-	  max_pos = MAX (x[pair_start], x[pair_end]);
-
-	  /* Now see if the current point lies between min and
-	     max... */
-	  if (x[j] >= min_pos && x[j] <= max_pos)
-	    {
-	      /* If min_pos and max_pos are the same, apply
-		 pair_start's delta if it is identical to that of
-		 pair_end, or apply nothing at all otherwise.  */
-
-	      if (min_pos == max_pos)
-		{
-		  if ((glyph->simple->x_coordinates[pair_start]
-		       - x[pair_start])
-		      == (glyph->simple->x_coordinates[pair_end]
-			  - x[pair_end]))
-		    glyph->simple->x_coordinates[j]
-		      += (glyph->simple->x_coordinates[pair_start]
-			  - x[pair_start]);
-
-		  goto next_1;
-		}
-
-	      /* Interpolate between min_pos and max_pos.  */
-	      ratio = sfnt_div_fixed ((sfnt_sub (x[j], min_pos)
-				       * 65536),
-				      (sfnt_sub (max_pos, min_pos)
-				       * 65536));
-
-	      /* Load the current positions of pair_start and pair_end
-	         along this axis.  */
-	      min_pos = MIN (glyph->simple->x_coordinates[pair_start],
-			     glyph->simple->x_coordinates[pair_end]);
-	      max_pos = MAX (glyph->simple->x_coordinates[pair_start],
-			     glyph->simple->x_coordinates[pair_end]);
-
-	      /* Lerp in between.  */
-	      delta = sfnt_sub (max_pos, min_pos);
-	      delta = sfnt_mul_fixed (ratio, delta);
-	      glyph->simple->x_coordinates[j] = min_pos + delta;
-	    }
-	  else
-	    {
-	      /* ... otherwise, move point j by the delta of the
-		 nearest touched point.  */
-
-	      if (x[j] >= max_pos)
-		{
-		  position = MAX (glyph->simple->x_coordinates[pair_start],
-				  glyph->simple->x_coordinates[pair_end]);
-		  delta = position - max_pos;
-		}
-	      else
-		{
-		  position = MIN (glyph->simple->x_coordinates[pair_start],
-				  glyph->simple->x_coordinates[pair_end]);
-		  delta = position - min_pos;
-		}
-
-	      glyph->simple->x_coordinates[j] = x[j] + delta;
-	    }
-
-	  /* Now, consider the Y axis.  */
-	  min_pos = MIN (y[pair_start], y[pair_end]);
-	  max_pos = MAX (y[pair_start], y[pair_end]);
-
-	  /* Now see if the current point lies between min and
-	     max... */
-	  if (y[j] >= min_pos && y[j] <= max_pos)
-	    {
-	      /* If min_pos and max_pos are the same, apply
-		 pair_start's delta if it is identical to that of
-		 pair_end, or apply nothing at all otherwise.  */
-
-	      if (min_pos == max_pos)
-		{
-		  if ((glyph->simple->y_coordinates[pair_start]
-		       - y[pair_start])
-		      == (glyph->simple->y_coordinates[pair_end]
-			  - y[pair_end]))
-		    glyph->simple->y_coordinates[j]
-		      += (glyph->simple->y_coordinates[pair_start]
-			  - y[pair_start]);
-
-		  goto next_1;
-		}
-
-	      /* Interpolate between min_pos and max_pos.  */
-	      ratio = sfnt_div_fixed ((sfnt_sub (y[j], min_pos)
-				       * 65536),
-				      (sfnt_sub (max_pos, min_pos)
-				       * 65536));
-
-	      /* Load the current positions of pair_start and pair_end
-	         along this axis.  */
-	      min_pos = MIN (glyph->simple->y_coordinates[pair_start],
-			     glyph->simple->y_coordinates[pair_end]);
-	      max_pos = MAX (glyph->simple->y_coordinates[pair_start],
-			     glyph->simple->y_coordinates[pair_end]);
-
-	      /* Lerp in between.  */
-	      delta = sfnt_sub (max_pos, min_pos);
-	      delta = sfnt_mul_fixed (ratio, delta);
-	      glyph->simple->y_coordinates[j] = min_pos + delta;
-	    }
-	  else
-	    {
-	      /* ... otherwise, move point j by the delta of the
-		 nearest touched point.  */
-
-	      if (y[j] >= max_pos)
-		{
-		  position = MAX (glyph->simple->y_coordinates[pair_start],
-				  glyph->simple->y_coordinates[pair_end]);
-		  delta = position - max_pos;
-		}
-	      else
-		{
-		  position = MIN (glyph->simple->y_coordinates[pair_start],
-				  glyph->simple->y_coordinates[pair_end]);
-		  delta = position - min_pos;
-		}
-
-	      glyph->simple->y_coordinates[j] = y[j] + delta;
-	    }
-
-	next_1:
-	  j++;
-	  if (j > end)
-	    j = start;
-	}
+      /* pair_start to pair_end are now a pair of points whose
+	 intermediates should be interpolated.  */
+      sfnt_infer_deltas_2 (glyph, pair_start, pair_end,
+			   start, end, x, y);
     }
 }
 
@@ -20696,8 +20609,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 30
-#define EASY_PPEM  30
+#define FANCY_PPEM 44
+#define EASY_PPEM  44
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
