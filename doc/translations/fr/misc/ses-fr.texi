@@ -70,7 +70,7 @@ Pour les rapports d’anomalie, utiliser @kbd{M-x report-emacs-bug}.
 @insertcopying
 
 @menu
-* Boniment: Sales Pitch.        Pourquoi utiliser @acronym{SES}?
+* Boniment: Sales Pitch.        Pourquoi utiliser @acronym{SES} ?
 * Tuto: Quick Tutorial.         Une introduction sommaire
 * Les bases: The Basics.        Les commandes de base du tableur
 * Fonctions avancées: Advanced Features. Vous voulez en savoir plus ?
