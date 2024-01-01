@@ -59,8 +59,8 @@ modify this GNU manual.''
 
 @display
 @acronym{SES} est mode majeur de GNU Emacs pour éditer des fichiers
-tableur, c-à-d.@: des fichiers contenant une grille rectangulaire de
-cellules. Les valeurs des cellules sont spécifiés par des formules
+tableur, c.-à-d.@: des fichiers contenant une grille rectangulaire de
+cellules. Les valeurs des cellules sont spécifiées par des formules
 pouvant se référer aux valeurs d’autres cellules.
 @end display
 @end ifnottex
@@ -75,7 +75,7 @@ Pour les rapports d’anomalie, utiliser @kbd{M-x report-emacs-bug}.
 * Les bases: The Basics.        Les commandes de base du tableur
 * Fonctions avancées: Advanced Features. Vous voulez en savoir plus ?
 * Pour les gourous: For Gurus.  Vous voulez en savoir @emph{encore plus} ?
-* Index: Index.                Index des concepts, fonctions et varaiables
+* Index: Index.                Index des concepts, fonctions et variables
 * Remerciements: Acknowledgments. Remerciements
 * Licence GNU pour la documentation libre: GNU Free Documentation License. La licence de cette documentation.
 @end menu
@@ -93,12 +93,12 @@ Pour les rapports d’anomalie, utiliser @kbd{M-x report-emacs-bug}.
 @item Protection contre les virus enfouis dans les feuilles de calcul.
 @item Les formules de cellule sont directement du code Emacs Lisp.
 @item Fonctions d’impression pour contrôler l’apparence des cellules.
-@item Raccourcis clavier intuitifs: C-o = insérer une ligne, M-o = insérer une colonne, etc.
+@item Raccourcis clavier intuitifs : C-o = insérer une ligne, M-o = insérer une colonne, etc.
 @item « Débordement » des valeurs de cellule longues dans les cellules vides suivantes.
 @item La ligne d’en-tête montre les lettres désignant les colonnes.
 @item Autocomplétion pour la saisie des symboles de cellules nommées lors de la saisie des formules.
-@item Couper, copier et coller peut transferer les formules et les fonction d’impression.
-@item Import and export de valeur séparées par des tabulation, ou de formules séparés par des tabulations.
+@item Couper, copier et coller peut transferer les formules et les fonctions d’impression.
+@item Import and export de valeurs séparées par des tabulations, ou de formules séparées par des tabulations.
 @item Format de fichier en texte, facile à bidouiller.
 @end itemize
 
@@ -113,11 +113,11 @@ Si vous désirez être rapidement lancé et pensez que vous savez ce que
 vous attendez d’un tableur simple, alors ce chapitre peut être tout ce
 dont vous avez besoin.
 
-Premièrment, visitez un nouveau fichier avec pour extension de nom de
+Premièrement, visitez un nouveau fichier avec pour extension de nom de
 fichier @file{.ses}.  Emacs vous présente alors une feuille de calcul
 vide contenant une seule cellule.
 
-Commencez pas saisir une ligne d’en-tête: @kbd{"Revenu@key{RET}}.  Le
+Commencez par saisir une ligne d’en-tête : @kbd{"Revenu@key{RET}}. Le
 guillemet double @code{"} indique que vous saisissez une cellule
 textuelle, il ne fait pas partie de la valeur de la cellule, et aucun
 guillemet de fermeture n’est nécessaire.
@@ -140,7 +140,7 @@ A
 @end example
 
 Pour additionner les valeurs entre elles, saisissez une expression
-Lisp:
+Lisp :
 
 @example
 (+ A2 A3 A4 A5)
@@ -151,10 +151,10 @@ A4 pour expliquer pourquoi vous avez une valeur négative.  En appuyant
 sur @kbd{TAB} dans cette cellule vous ajouter entièrement une nouvelle
 colonne @samp{B} où vous pourrez ajouter une telle note.
 
-La colonne est assez étroite par défaut, mais en appyant sur @kbd{w}
+La colonne est assez étroite par défaut, mais en appuyant sur @kbd{w}
 vous pouvez la redimensionner selon vos besoins.  Faites la de 22
 caractères de large.  Vous pouvez maintenant ajoutez des notes
-déscriptive pour chacune des cases, par ex. :
+descriptives pour chacune des cases, par ex.@: :
 
 @example
 @group
@@ -168,7 +168,7 @@ A       B
 @end group
 @end example
 
-Par défault, l’impression des valeurs de cellule se fait aligné à
+Par défaut, l’impression des valeurs de cellule se fait alignée à
 droite, c’est la raison d’un tel alignement pour les notes dans la
 colonne @samp{B}.  Pour changer cela, vous pouvez saisir une fonction
 d’impression pour la colonne entière, en utilisant par ex. @kbd{M-p
@@ -185,7 +185,7 @@ fonction. Par exemple tapez @kbd{M-x
 ses-define-local-printer@key{ret}}, puis @kbd{note@key{ret}}, puis
 @kbd{("%s")} pour définir une fonction d’impression nommée @code{note}
 dont la définition est @code{("%s")}, puis sur la colonne @samp{B} tapez
-@kbd{M-p note@kbd{ret}}
+@kbd{M-p note@key{ret}}
 
 @example
 @group
@@ -200,8 +200,8 @@ A       B
 @end example
 
 Si maintenant vous redéfinissez @code{note} avec pour nouvelle
-définition @kbd{("*%s")} qui ajoute une astérisque @code{*} devant le
-texte, la zone d’impression est modifiée ainsi:
+définition @kbd{("*%s")} qui ajoute un astérisque @code{*} devant le
+texte, la zone d’impression est modifiée ainsi :
 @example
 @group
 A       B
@@ -214,19 +214,19 @@ A       B
 @end group
 @end example
 
-Notez, que la cellule B1 reste vide est n’est pas affichée comme
-@code{*}. C’Est parce que la valeur de la cellule est @code{nil}, et
+Notez, que la cellule @samp{B1} reste vide est n’est pas affichée comme
+@code{*}. C’est parce que la valeur de la cellule est @code{nil}, et
 que la fonction d’impression @code{("%s")} échoue sur cette valeur, et
 donc une fonction de repli est utilisée à la place.
 
-Si mainteneant Joseph rembourse son prêt, vous pourriez effacer cette
-case; par e. en positionant le curseur sur la cellule A5 et en
+Si maintenant Joseph rembourse son prêt, vous pourriez effacer cette
+case ; par ex.@: en positionnant le curseur sur la cellule A5 et en
 appuyant sur @kbd{C-d}.  Si vous faites celle le total imprimé dans la
 cellule A6 affichera @samp{######}.  La raison de cela est la valeur
 dans une cellule vide est typiquement @code{nil} et que l’opérateur
 @code{+} ordinaire échoue à gérer une telle valeur. Au lieu de vider
 la cellule, vous pourriez littéralement saisir @samp{0}, ou supprimer
-entièrement la ligne en tlisant @kbd{C-k}.  Une alterative est
+entièrement la ligne en utilisant @kbd{C-k}.  Une alternative est
 d’utiliser la fonction spéciale @code{ses+} au lieu du @code{+}
 ordinaire :
 
@@ -269,36 +269,37 @@ ce qui permet d’utiliser @code{+} au lieu de @code{ses+}:
 @findex keyboard-quit
 
 Pour créer une nouveau tableur, visitez un fichier inexistant dont le
-nomre se termine en @file{.ses}.  Par exemple, @kbd{C-x C-f essai.ses
+nom se termine en @file{.ses}.  Par exemple, @kbd{C-x C-f essai.ses
 @key{ret}}.
 
 
 Un @dfn{identificateur de cellule} est un symbole avec une lettre de
 colonne et un numéro de ligne.  La cellule B7 est la 2e column de la
-7e ligne.  Pour les feuille très larges, il ya deux lettre de
+7e ligne.  Pour les feuilles très larges, il ya deux lettres de
 colonne : la cellule AB7 les la 28e colonne de la 7e ligne. Les
-feuilles encore plus large ont AAA1, etc.  On se déplace avec les
-commandes ordinaire de déplacement d’Emacs.
+feuilles encore plus larges ont AAA1, etc.  On se déplace avec les
+commandes ordinaires de déplacement d’Emacs.
 
 @table @kbd
 @item j
 Déplace le point vers la cellule spécifiée par identificateur
-(@code{ses-jump}). À moins que la cellule soit une cellule renommée,
-l’identificateur est insensible à la casse. UN argument préfixe
-@math{n} déplace vers la cellule de coordonnées @math{(n\div R, n \%
-C)} pour une feuille de @math{R} ligne et @math{C} colonnes, et A1
-étant aux coordonnées @math{(0,0)}. La façon dont l’identificateur ou
-l’argument préfixe de commande sont interprété peut être personnalisée
-via les variables @code{ses-jump-cell-name-function} et
-@code{ses-jump-prefix-function}.
+(@code{ses-jump}). À moins que la cellule ne soit une cellule
+renommée, l’identificateur est insensible à la casse. Un argument
+préfixe @math{n} déplace vers la cellule de coordonnées @math{(n\div
+R, n \% C)} pour une feuille de @math{R} ligne et @math{C} colonnes,
+et @samp{A1} étant aux coordonnées @math{(0,0)}. La façon dont
+l’identificateur ou l’argument préfixe de commande sont interprétés
+peut être personnalisée via les variables
+@code{ses-jump-cell-name-function} et @code{ses-jump-prefix-function}.
 @end table
 
 Le Point est toujours sur le bord de gauche d’une cellule, ou à la fin
 de ligne vide. Quand la marque est inactive, la cellule courante est
 soulignée.  Quand la marque est active, la plage est le rectangle de
 cellules mis en vedette (@acronym{SES} utilise toujours le mode de
-marque transitoire).  Faire glisser la souris de A1 à A3 crée la plage
-A1-A2.  Beaucoup de commandes @acronym{SES} opèrent seulement sur une seule cellule, et non sur une plage.
+marque transitoire).  Faire glisser la souris de @samp{A1} à @samp{A3}
+crée la plage @samp{A1-A2}.  Beaucoup de commandes @acronym{SES}
+opèrent seulement sur une seule cellule, et non sur une plage.
 
 @table @kbd
 @item C-@key{SPC}
@@ -570,7 +571,7 @@ Pour lister les fonctions d’impression locales dans un tampon d’aide.
 Mise à part @code{ses-prin1}, les autres fonctions d’impression
 standardes ne conviennent que pour les cellules, et non pour les
 colonnes ou comme fonction d’impression par défaut de la feuille,
-parce qu’elle formatent la valeur en utilisant la fonction
+parce qu’elles formatent la valeur en utilisant la fonction
 d’impression de colonne (ou par défaut si @code{nil}) et ensuite
 post-traite le résultat, par ex.@: le centre :
 
@@ -667,7 +668,7 @@ Cet exemple fait ceci :
 
 @itemize
 @item
-Quand la cellule est vide (c-à-d.@: quand @code{val} est @code{nil}),
+Quand la cellule est vide (c.-à-d.@: quand @code{val} est @code{nil}),
 imprime une chaîne vide @code{""}
 @item
 Quand la valeur de cellule est un nombre positif ou nul, formate la
@@ -678,7 +679,7 @@ s-expression (avec @code{ses-prin1}), centrée et entourée de
 croisillons @code{#} de bourrage.
 @end itemize
 
-Un autre précaution à prendre est d’éviter un débordement de pile à
+Une autre précaution à prendre est d’éviter un débordement de pile à
 cause d’une fonction d’impression se rappelant elle-même sans
 fin. Cette erreur peut se produire quand vous utilisez une fonction
 d’impression locale comme fonction d’impression de colonne, et que
@@ -726,7 +727,7 @@ Le code ci-dessus applique le bourrage de @code{=} seulement aux
 chaînes ; et aussi il entoure la chaîne par un espace de chaque côté
 avant de bourrer avec des signes @code{=}.  Ainsi la chaîne @samp{Ula}
 s’affichera comme @samp{@w{=== Ula ===}} dans une colonne large de 11
-caractères.  Toute valeur qui n’est ni @code{nil} (c-à-d.@: une
+caractères.  Toute valeur qui n’est ni @code{nil} (c.-à-d.@: une
 cellule vide) ni une chaîne est affichée comme une erreur par l’usage
 de bourrage par des croisillons @code{#}.
 
@@ -737,7 +738,7 @@ de bourrage par des croisillons @code{#}.
 @findex ses-clear-cell-forward
 
 Ces commandes règlent à la fois la formule et la fonction d’impression
-à @code{nil}:
+à @code{nil} :
 
 @table @kbd
 @item @key{DEL}
@@ -861,24 +862,25 @@ cellule renommée. Elle change le nom de cellule saisi en celui de la
 cellule vers laquelle sauter. Le réglage par défaut @code{upcase} vous
 permet de saisir le nom de cellule en bas de casse. Un autre usage de
 @code{ses-jump-cell-name-function} pourrait être une
-internationalisation pour convertir des caractères non latin en
-équivalents latin pour nommer la cellule. Au lieu d’un nom de cellule,
-la fonction peut renvoyer des coordonnées de cellule sous la forme
-d’un cons, par exemple @code{(0 . 0)} pour la cellule @code{A1},
+internationalisation pour convertir des caractères non latins en
+équivalents latins pour nommer la cellule. Au lieu d’un nom de
+cellule, la fonction peut renvoyer des coordonnées de cellule sous la
+forme d’un cons, par exemple @code{(0 . 0)} pour la cellule @code{A1},
 @code{(1 . 0)} pour la cellule @code{A2}, etc.
 
 @vindex ses-jump-prefix-function
-@code{ses-jump-prefix-function} est une variable personnalisable réglée
-par défaut à la fonction @code{ses-jump-prefix}. Cette fonction est
-appelée quand vous donnez un argument préfixe à la commande
+@code{ses-jump-prefix-function} est une variable personnalisable
+réglée par défaut à la fonction @code{ses-jump-prefix}. Cette fonction
+est appelée quand vous donnez un argument préfixe à la commande
 @command{ses-jump} (@kbd{j}). Elle renvoie un nom de cellule ou des
 coordonnées de cellule correspondant à l’argument préfixe. Les
 coordonnées de cellule sont sous la forme d’un cons, par exemple
 @code{(1 . 0)} pour la cellule @code{A2}. Le réglage par défaut
 @code{ses-jump-prefix} numérote les cellules de gauche à droite et
 puis de haut en bas, de sorte que si on suppose une feuille 4×3,
-l’argument préfixe 0 saute à la cellule A1, l’argument préfixe 2 saute
-à C1, l’argument préfixe 3 saute à A2, etc.
+l’argument préfixe @samp{0} saute à la cellule @samp{A1}, l’argument
+préfixe @samp{2} saute à @samp{C1}, l’argument préfixe @samp{3} saute
+à @samp{A2}, etc.
 
 @vindex ses-mode-hook
 @code{ses-mode-hook} est un crochet de mode normal (une liste de
@@ -937,7 +939,7 @@ aussi @ref{Nonrelocatable references}).
 Quand vous interrompez la mise à jour d’une formule de cellule en
 tapant @kbd{C-g}, alors cela peut casser le lien de référence de
 cellule, ce qui compromet la mise à jour automatique de cellule quand
-toute autre cellule dont elle dépend est modifiée. Pour réparer cela
+toute autre cellule dont elle dépend est modifiée. Pour réparer cela,
 utilisez la fonction @code{ses-repair-cell-reference-all}
 @end table
 
@@ -1038,7 +1040,7 @@ le @samp{ses-range} de la formule.
 
 Si vous insérez une nouvelle ligne juste au delà de la fin d’une plage
 à une colonne, ou une nouvelle colonne juste au delà d’une plage à une
-ligne, la nouvelle cellule est incluses dans la plage.  Les nouvelles
+ligne, la nouvelle cellule est incluse dans la plage.  Les nouvelles
 cellules insérées juste avant une plage ne sont pas incluses.
 
 Des fanions peuvent être ajoutés à @code{ses-range} immédiatement
@@ -1087,10 +1089,10 @@ seulement une ligne ou une colonne un vecteur est fait, sinon une
 matrice est faite.
 @item *2
 Idem que @code{*} à ceci près qu’une matrice est toujours faite même
-quand il y a une seul ligne ou colonne dans la plage.
+quand il y a une seule ligne ou colonne dans la plage.
 @item *1
 Idem que @code{*} à ceci près qu’un vecteur est toujours fait même
-quand il n’y a qu’une ligne ou colonne dans la plage, c-à-d.@: que la
+quand il n’y a qu’une ligne ou colonne dans la plage, c.-à-d.@: que la
 matrice correspondante est aplatie.
 @end table
 
@@ -1155,8 +1157,8 @@ au lieu de
 Somme des arguments non vides pris en ordre inverse.
 
 @item (ses-average @var{liste})
-Moyenne des éléments non vides de @var{liste}.  Ici la liste est passé
-comme un seul argument, vu que typiquement on la forme avec
+Moyenne des éléments non vides de @var{liste}.  Ici la liste est
+passée comme un seul argument, vu que typiquement on la forme avec
 @code{ses-range}.
 @end table
 
@@ -1321,7 +1323,7 @@ Renvoie un sous-ensemble de @var{à-plage}.  Pour chaque membre dans
 @var{à-plage} est inclus dans le résultat.
 @end table
 
-Exemple d’utilisation:
+Exemple d’utilisation :
 @lisp
 (ses-average (ses-select (ses-range A1 A5) 'Bidochon (ses-range B1 B5)))
 @end lisp
@@ -1413,19 +1415,20 @@ elles apparaissent. Prière toutefois de noter que dans une formule
 contenant quelque plage @code{(ses-range @var{cell1} @var{cell2})}
 alors dans la formule collée chacune des bornes @var{cell1} et
 @var{cell2} de la plage est relocalisée, ou non, indépendemment, selon
-qu’elle est nommée du genre de A1 ou renommée.
+qu’elle est nommée du genre de @samp{A1} ou renommée.
 
-Un méthode alternative est d’utiliser
+Une méthode alternative est d’utiliser
 @lisp
 (symbol-value 'B3)
 @end lisp
 pour faire une @dfn{référence absolue}.  Le relocalisateur de formule
 saute par dessus tout ce qui est sous un @code{quote}, aussi cela ne
 sera pas relocalisé quand on le colle ou quand des lignes/colonnes
-sont insérées/supprimées.  Toutefois, B3 ne sera pas enregistrée comme
-une dépendance de cette cellule, et donc cette cellule ne sera pas
-mise à jour automatiquement quand B3 est modifié, c’est pourquoi
-l’usage de @code{ses-rename-cell} est la plupart du temps préférable.
+sont insérées/supprimées.  Toutefois, @samp{B3} ne sera pas
+enregistrée comme une dépendance de cette cellule, et donc cette
+cellule ne sera pas mise à jour automatiquement quand @samp{B3} est
+modifiée, c’est pourquoi l’usage de @code{ses-rename-cell} est la
+plupart du temps préférable.
 
 Les variables @code{row} et @code{col} sont liées dynamiquement
 pendant l’évaluation d’une formule de cellule. Vous pouvez utiliser
@@ -1496,7 +1499,7 @@ Pour un exemple de ceci, voir le fichier @file{etc/ses-example.ses}.
 
 Si (pour une raison quelconque) vous désirez que vos formules ou
 fonctions d’impression sauvegardent des données dans des variables,
-vous devez déclarez ces variables comme locales tampon pour éviter un
+vous devez déclarer ces variables comme locales tampon pour éviter un
 avertissement de virus.
 
 Vous pouvez définir des fonctions en en faisant des valeurs pour la

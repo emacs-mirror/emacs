@@ -173,8 +173,8 @@ modification de l'impression de toutes les cellules utilisant cette
 fonction. Par exemple tapez @kbd{M-x
 ses-define-local-printer@key{ret}}, puis @kbd{note@key{ret}}, puis
 @kbd{("%s")} pour définir une fonction d'impression nommée @code{note}
-dont la définition est @code{("%s")}, puis sur la colonne B tapez
-@kbd{M-p note@kbd{ret}}
+dont la définition est @code{("%s")}, puis sur la colonne @samp{B} tapez
+@kbd{M-p note@key{ret}}
 
 @example
 @group
@@ -203,7 +203,7 @@ A       B
 @end group
 @end example
 
-Notez, que la cellule B1 reste vide est n'est pas affichée comme
+Notez, que la cellule @samp{B1} reste vide est n'est pas affichée comme
 @code{*}. C'est parce que la valeur de la cellule est @code{nil}, et
 que la fonction d'impression @code{("%s")} échoue sur cette valeur, et
 donc une fonction de repli est utilisée à la place.
@@ -276,18 +276,18 @@ Moves point to cell, specified by identifier (@code{ses-jump}). Unless
 the cell is a renamed cell, the identifier is case-insensitive. A
 prefix argument @math{n} move to cell with coordinates @math{(n\div R,
 n \% C)} for a spreadsheet of @math{R} rows and @math{C} columns, and
-A1 being of coordinates @math{(0,0)}. The way the identifier or the
-command prefix argument are interpreted can be customized through
+@samp{A1} being of coordinates @math{(0,0)}. The way the identifier or
+the command prefix argument are interpreted can be customized through
 variables @code{ses-jump-cell-name-function} and
 @code{ses-jump-prefix-function}.
 @end table
 
 Point is always at the left edge of a cell, or at the empty endline.
 When mark is inactive, the current cell is underlined.  When mark is
-active, the range is the highlighted rectangle of cells (@acronym{SES} always
-uses transient mark mode).  Drag the mouse from A1 to A3 to create the
-range A1-A2.  Many @acronym{SES} commands operate only on single cells, not
-ranges.
+active, the range is the highlighted rectangle of cells (@acronym{SES}
+always uses transient mark mode).  Drag the mouse from @samp{A1} to
+@samp{A3} to create the range @samp{A1-A2}.  Many @acronym{SES}
+commands operate only on single cells, not ranges.
 
 @table @kbd
 @item C-@key{SPC}
@@ -834,8 +834,9 @@ when you give a prefix argument to the @command{ses-jump} command
 the prefix argument. Cell coordinates are in the form of a cons, for
 instance @code{(1 . 0)} for cell @code{A2}. The default setting
 @code{ses-jump-prefix} will number cells left to right and then top
-down, so assuming a 4x3 spreadsheet prefix argument 0 jumps to cell
-A1, prefix argument 2 jumps to C1, prefix argument 3 jumps to A2, etc.
+down, so assuming a 4x3 spreadsheet prefix argument @samp{0} jumps to
+cell @samp{A1}, prefix argument @samp{2} jumps to @samp{C1}, prefix
+argument @samp{3} jumps to @samp{A2}, etc.
 
 @vindex ses-mode-hook
 @code{ses-mode-hook} is a normal mode hook (list of functions to
@@ -1330,7 +1331,7 @@ whatever formula they appear in. Please note however that when a
 formula contains some range @code{(ses-range @var{cell1} @var{cell2})}
 then in the yanked formula each range bound @var{cell1} and
 @var{cell2} are relocated, or not, independently, depending on whether
-they are A1-like or renamed.
+they are @samp{A1}-like or renamed.
 
 An alternative method is to use
 @lisp
@@ -1338,9 +1339,9 @@ An alternative method is to use
 @end lisp
 to make an @dfn{absolute reference}.  The formula relocator skips over
 quoted things, so this will not be relocated when pasted or when
-rows/columns are inserted/deleted.  However, B3 will not be recorded
-as a dependency of this cell, so this cell will not be updated
-automatically when B3 is changed, this is why using
+rows/columns are inserted/deleted.  However, @samp{B3} will not be
+recorded as a dependency of this cell, so this cell will not be
+updated automatically when @samp{B3} is changed, this is why using
 @code{ses-rename-cell} is most of the time preferable.
 
 The variables @code{row} and @code{col} are dynamically bound while a
