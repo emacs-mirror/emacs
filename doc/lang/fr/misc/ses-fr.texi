@@ -147,9 +147,9 @@ Lisp :
 @end example
 
 Peut-être désirez vous ajouter une cellule à la droite de la cellule
-A4 pour expliquer pourquoi vous avez une valeur négative.  En appuyant
-sur @kbd{TAB} dans cette cellule vous ajouter entièrement une nouvelle
-colonne @samp{B} où vous pourrez ajouter une telle note.
+@samp{A4} pour expliquer pourquoi vous avez une valeur négative.  En
+appuyant sur @kbd{TAB} dans cette cellule vous ajouter entièrement une
+nouvelle colonne @samp{B} où vous pourrez ajouter une telle note.
 
 La colonne est assez étroite par défaut, mais en appuyant sur @kbd{w}
 vous pouvez la redimensionner selon vos besoins.  Faites la de 22
@@ -214,10 +214,14 @@ A       B
 @end group
 @end example
 
-Notez, que la cellule @samp{B1} reste vide est n’est pas affichée comme
-@code{*}. C’est parce que la valeur de la cellule est @code{nil}, et
-que la fonction d’impression @code{("%s")} échoue sur cette valeur, et
-donc une fonction de repli est utilisée à la place.
+Notez que la cellule @samp{B1} reste affichée vide et n’est pas
+affichée comme @samp{*}. C’est parce que la valeur de la cellule est
+@code{nil}, et que les fonctions d’impression définies à partir d’une
+chaîne de formatage comme @code{"%s"} dans @code{("%s")} impriment
+systématiquement @code{nil} comme une chaîne vide, et tentent
+d’imprimer toute valeur non-@code{nil} en utilisant la fonction
+standarde @code{format} avec la chaîne de formatage, et si cela
+échoue, utilisent la fonction de repli @code{ses-prin1} la place.
 
 Si maintenant Joseph rembourse son prêt, vous pourriez effacer cette
 case ; par ex.@: en positionnant le curseur sur la cellule A5 et en

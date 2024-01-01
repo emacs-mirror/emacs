@@ -138,9 +138,10 @@ To add up the values, enter a Lisp expression:
 (+ A2 A3 A4 A5)
 @end example
 
-Perhaps you want to add a cell to the right of cell A4 to explain
-why you have a negative entry.  Pressing @kbd{TAB} in that cell
-adds an entire new column @samp{B}, where you can add such a note.
+Perhaps you want to add a cell to the right of cell @samp{A4} to
+explain why you have a negative entry.  Pressing @kbd{TAB} in that
+cell adds an entire new column @samp{B}, where you can add such a
+note.
 
 The column is fairly narrow by default, but pressing @kbd{w} allows
 you to resize it as needed.  Make it 20 characters wide.  You can
@@ -203,10 +204,14 @@ A       B
 @end group
 @end example
 
-Notez, que la cellule @samp{B1} reste vide est n'est pas affichée comme
-@code{*}. C'est parce que la valeur de la cellule est @code{nil}, et
-que la fonction d'impression @code{("%s")} échoue sur cette valeur, et
-donc une fonction de repli est utilisée à la place.
+Notez que la cellule @samp{B1} reste affichée vide et n’est pas
+affichée comme @samp{*}. C’est parce que la valeur de la cellule est
+@code{nil}, et que les fonctions d’impression définies à partir d’une
+chaîne de formatage comme @code{"%s"} dans @code{("%s")} impriment
+systématiquement @code{nil} comme une chaîne vide, et tentent
+d’imprimer toute valeur non-@code{nil} en utilisant la fonction
+standarde @code{format} avec la chaîne de formatage, et si cela
+échoue, utilisent la fonction de repli @code{ses-prin1} la place.
 @end ignore
 
 If Joe pays back his loan, you might blank that entry; e.g., by
