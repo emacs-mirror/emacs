@@ -305,7 +305,7 @@ INFO is a plist used as a communication channel."
          (section-title (org-html--translate "Footnotes" info)))
     (when fn-alist
       (format (plist-get info :md-footnotes-section)
-              (org-md--headline-title headline-style 1 section-title)
+              (org-md--headline-title headline-style (plist-get info :md-toplevel-hlevel) section-title)
               (mapconcat (lambda (fn) (org-md--footnote-formatted fn info))
                          fn-alist
                          "\n")))))

@@ -4606,7 +4606,7 @@ checked.
 #+cindex: statistics, for checkboxes
 #+cindex: checkbox statistics
 #+cindex: @samp{COOKIE_DATA}, property
-#+vindex: org-hierarchical-checkbox-statistics
+#+vindex: org-checkbox-hierarchical-statistics
 The =[2/4]= and =[1/3]= in the first and second line are cookies
 indicating how many checkboxes present in this entry have been checked
 off, and the total number of checkboxes present.  This can give you an
@@ -4614,7 +4614,7 @@ idea on how many checkboxes remain, even without opening a folded
 entry.  The cookies can be placed into a headline or into (the first
 line of) a plain list item.  Each cookie covers checkboxes of direct
 children structurally below the headline/item on which the cookie
-appears[fn:: Set the variable ~org-hierarchical-checkbox-statistics~
+appears[fn:: Set the variable ~org-checkbox-hierarchical-statistics~
 if you want such cookies to count all checkboxes below the cookie, not
 just those belonging to direct children.].  You have to insert the
 cookie yourself by typing either =[/]= or =[%]=.  With =[/]= you get

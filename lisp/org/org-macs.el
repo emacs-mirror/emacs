@@ -56,8 +56,8 @@ by `package-activate-all').")
   ;; `org-assert-version' calls would fail using strict
   ;; `org-git-version' check because the generated Org version strings
   ;; will not match.
-  `(unless (or org--inhibit-version-check (equal (org-release) ,(org-release)))
-     (warn "Org version mismatch.  Org loading aborted.
+  `(unless (or ,org--inhibit-version-check (equal (org-release) ,(org-release)))
+     (warn "Org version mismatch.
 This warning usually appears when a built-in Org version is loaded
 prior to the more recent Org version.
 
@@ -91,10 +91,15 @@ Version mismatch is commonly encountered in the following situations:
    early in the config.  Ideally, right after the straight.el
    bootstrap.  Moving `use-package' :straight declaration may not be
    sufficient if the corresponding `use-package' statement is
-   deferring the loading."
+   deferring the loading.
+
+4. A new Org version is synchronized with Emacs git repository and
+   stale .elc files are still left from the previous build.
+
+   It is recommended to remove .elc files from lisp/org directory and
+   re-compile."
            ;; Avoid `warn' replacing "'" with "’" (see `format-message').
-           "(straight-use-package 'org)")
-     (error "Org version mismatch.  Make sure that correct `load-path' is set early in init.el")))
+           "(straight-use-package 'org)")))
 
 ;; We rely on org-macs when generating Org version.  Checking Org
 ;; version here will interfere with Org build process.
