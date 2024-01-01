@@ -7878,12 +7878,13 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
     (user-error "Multiline command detected" ))
   lines-obj)
 
-(cl-defmethod erc--send-input-lines (lines-obj)
+(defun erc--send-input-lines (lines-obj)
   "Send lines in `erc--input-split-lines' object LINES-OBJ."
   (when (erc--input-split-sendp lines-obj)
     (dolist (line (erc--input-split-lines lines-obj))
       (when (erc--input-split-insertp lines-obj)
-        (if (functionp (erc--input-split-insertp lines-obj))
+        (if (eq (erc--input-split-insertp lines-obj)
+                'erc--command-indicator-display)
             (funcall (erc--input-split-insertp lines-obj) line)
           (erc-display-msg line)))
       (erc-process-input-line (concat line "\n")
