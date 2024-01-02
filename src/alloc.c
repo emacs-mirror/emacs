@@ -34,7 +34,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "intervals.h"
 #include "puresize.h"
-#include "sheap.h"
 #include "sysstdio.h"
 #include "systime.h"
 #include "character.h"
