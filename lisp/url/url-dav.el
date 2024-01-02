@@ -1,6 +1,6 @@
 ;;; url-dav.el --- WebDAV support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001, 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2024 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

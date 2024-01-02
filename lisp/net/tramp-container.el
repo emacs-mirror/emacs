@@ -1,6 +1,6 @@
 ;;; tramp-container.el --- Tramp integration for Docker-like containers  -*- lexical-binding: t; -*-
 
-;; Copyright © 2022-2023 Free Software Foundation, Inc.
+;; Copyright © 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Brian Cully <bjc@kublai.com>
 ;; Keywords: comm, processes

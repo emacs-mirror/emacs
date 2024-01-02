@@ -1,5 +1,5 @@
 /* ftcrfont.c -- FreeType font driver on cairo.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

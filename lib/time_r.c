@@ -1,6 +1,6 @@
 /* Reentrant time functions like localtime_r.
 
-   Copyright (C) 2003, 2006-2007, 2010-2023 Free Software Foundation,
+   Copyright (C) 2003, 2006-2007, 2010-2024 Free Software Foundation,
    Inc.
 
    This file is free software: you can redistribute it and/or modify

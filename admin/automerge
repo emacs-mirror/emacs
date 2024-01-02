@@ -1,7 +1,7 @@
 #!/bin/bash
 ### automerge - automatically merge the Emacs release branch to master
 
-## Copyright (C) 2018-2023 Free Software Foundation, Inc.
+## Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 ## Maintainer: Stefan Kangas <stefankangas@gmail.com>

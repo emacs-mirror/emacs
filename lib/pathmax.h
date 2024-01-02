@@ -1,5 +1,5 @@
 /* Define PATH_MAX somehow.  Requires sys/types.h.
-   Copyright (C) 1992, 1999, 2001, 2003, 2005, 2009-2023 Free Software
+   Copyright (C) 1992, 1999, 2001, 2003, 2005, 2009-2024 Free Software
    Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify

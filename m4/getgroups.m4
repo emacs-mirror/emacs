@@ -3,7 +3,7 @@
 dnl From Jim Meyering.
 dnl A wrapper around AC_FUNC_GETGROUPS.
 
-# Copyright (C) 1996-1997, 1999-2004, 2008-2023 Free Software
+# Copyright (C) 1996-1997, 1999-2004, 2008-2024 Free Software
 # Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation

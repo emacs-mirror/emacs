@@ -1,6 +1,6 @@
 ;;; tcover-ses.el --- Example use of `testcover' to test "SES"  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: spreadsheet lisp utility

@@ -1,6 +1,6 @@
 /* Generic frame functions.
 
-Copyright (C) 1993-1995, 1997, 1999-2023 Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 1997, 1999-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

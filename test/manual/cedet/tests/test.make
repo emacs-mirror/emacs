@@ -1,6 +1,6 @@
 # test.make --- Semantic unit test for Make -*- makefile -*-
 
-# Copyright (C) 2001-2002, 2010-2023 Free Software Foundation, Inc.
+# Copyright (C) 2001-2002, 2010-2024 Free Software Foundation, Inc.
 
 # Author: Eric M. Ludlam <zappo@gnu.org>
 

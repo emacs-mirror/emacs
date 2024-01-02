@@ -1,6 +1,6 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Dec 1991 -- first release to usenet

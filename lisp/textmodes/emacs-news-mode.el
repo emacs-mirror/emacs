@@ -1,6 +1,6 @@
 ;;; emacs-news-mode.el --- major mode to edit and view the NEWS file -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Keywords: tools
 

@@ -1,6 +1,6 @@
 ;;; philippine.el --- Quail package for inputting Philippine characters  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: समीर सिंह Sameer Singh <lumarzeli30@gmail.com>
 ;; Keywords: multilingual, input method, i18n, Philippines

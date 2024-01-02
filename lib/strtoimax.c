@@ -1,6 +1,6 @@
 /* Convert string representation of a number into an intmax_t value.
 
-   Copyright (C) 1999, 2001-2004, 2006, 2009-2023 Free Software
+   Copyright (C) 1999, 2001-2004, 2006, 2009-2024 Free Software
    Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify

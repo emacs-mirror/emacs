@@ -1,6 +1,6 @@
 /* Functions for the pure Gtk+-3.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020, 2022-2023 Free
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020, 2022-2024 Free
 Software Foundation, Inc.
 
 This file is part of GNU Emacs.

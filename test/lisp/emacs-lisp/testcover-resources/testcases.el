@@ -1,6 +1,6 @@
 ;;;; testcases.el -- Test cases for testcover-tests.el
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 

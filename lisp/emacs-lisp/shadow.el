@@ -1,6 +1,6 @@
 ;;; shadow.el --- locate Emacs Lisp file shadowings  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Terry Jones <terry@santafe.edu>
 ;; Keywords: lisp

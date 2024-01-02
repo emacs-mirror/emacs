@@ -1,6 +1,6 @@
 ;;; debug-early.el --- Dump a Lisp backtrace without frills  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Alan Mackenzie <acm@muc.de>
 ;; Maintainer: emacs-devel@gnu.org

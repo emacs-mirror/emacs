@@ -1,6 +1,6 @@
 ;;; erc-truncate.el --- Functions for truncating ERC buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2004, 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2024 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>

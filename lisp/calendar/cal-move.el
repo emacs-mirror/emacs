@@ -1,6 +1,6 @@
 ;;; cal-move.el --- calendar functions for movement in the calendar  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org

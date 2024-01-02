@@ -1,5 +1,5 @@
 /* Shared GDI and Uniscribe Font backend declarations for the Windows API.
-   Copyright (C) 2007-2023 Free Software Foundation, Inc.
+   Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
