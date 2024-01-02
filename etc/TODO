@@ -133,6 +133,20 @@ This should use a heuristic of some kind?
 ** In Emacs Info, examples of using Customize should be clickable
 They should create Custom buffers when clicked.
 
+** Replacements under 'Info-hide-note-references' should be language-sensitive
+Currently, we replace the "*note" cross-reference indicators with a
+hard-coded "see", which is English-centric and doesn't look well in
+manuals written in languages other than English.  To fix this, we need
+a change in the Texinfo's 'makeinfo' program so that it records the
+document's language (specified via the @documentlanguage directive in
+Texinfo) in a variable in the Local Variables section of the produced
+Info file.  Then 'Info-fontify-node' should be modified to look up the
+translation of "see" to that language in a database (which should be
+added), and should use that translation instead of "see".  See this
+discussion on the Texinfo mailing list for more details:
+
+  https://lists.gnu.org/archive/html/help-texinfo/2023-12/msg00011.html
+
 ** Add function to redraw the tool bar
 
 ** Redesign the load-history data structure

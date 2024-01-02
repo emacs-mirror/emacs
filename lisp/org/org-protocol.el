@@ -34,7 +34,10 @@
 ;; `org-protocol-protocol-alist' and `org-protocol-protocol-alist-default'.
 ;;
 ;; Any application that supports calling external programs with an URL
-;; as argument may be used with this functionality.
+;; as argument could use this functionality.  For example, you can
+;; configure bookmarks in your web browser to send a link to the
+;; current page to Org and create a note from it using `org-capture'.
+;; See Info node `(org) Protocols' for more information.
 ;;
 ;;
 ;; Usage:
@@ -44,13 +47,13 @@
 ;;
 ;;       (require 'org-protocol)
 ;;
-;;   3.) Ensure emacs-server is up and running.
-;;   4.) Try this from the command line (adjust the URL as needed):
+;;   2.) Ensure emacs-server is up and running.
+;;   3.) Try this from the command line (adjust the URL as needed):
 ;;
 ;;       $ emacsclient \
 ;;         "org-protocol://store-link?url=http:%2F%2Flocalhost%2Findex.html&title=The%20title"
 ;;
-;;   5.) Optionally add custom sub-protocols and handlers:
+;;   4.) Optionally, add custom sub-protocols and handlers:
 ;;
 ;;       (setq org-protocol-protocol-alist
 ;;             '(("my-protocol"
@@ -64,10 +67,11 @@
 ;; If it works, you can now setup other applications for using this feature.
 ;;
 ;;
-;; As of March 2009 Firefox users follow the steps documented on
-;; https://kb.mozillazine.org/Register_protocol, Opera setup is described here:
-;; http://www.opera.com/support/kb/view/535/
+;; Firefox users follow the steps documented on
+;; https://kb.mozillazine.org/Register_protocol, Opera setup is
+;; described here: http://www.opera.com/support/kb/view/535/
 ;;
+;; See also: https://orgmode.org/worg/org-contrib/org-protocol.html
 ;;
 ;; Documentation
 ;; -------------
@@ -122,9 +126,6 @@
 ;;
 ;; Note that using double slashes is optional from org-protocol.el's point of
 ;; view because emacsclient squashes the slashes to one.
-;;
-;;
-;; provides: 'org-protocol
 ;;
 ;;; Code:
 

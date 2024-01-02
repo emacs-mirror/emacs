@@ -574,7 +574,7 @@ See also `mh-compose-forward-as-mime-flag',
         (setq orig-subject (mh-get-header-field "Subject:")))
       (let ((forw-subject
              (mh-forwarded-letter-subject orig-from orig-subject)))
-        (mh-insert-fields "Subject:" forw-subject)
+        (mh-modify-header-field "Subject" forw-subject t)
         (goto-char (point-min))
         ;; Set the local value of mh-mail-header-separator according to what is
         ;; present in the buffer...
