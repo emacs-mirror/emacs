@@ -4682,7 +4682,7 @@ Argument MIME is non-nil if this is a mime message."
 		    (when armor-end
                       (if (null (nth 2 d))
                           nil
-                        ;; In a mime part -- 
+                        ;; In a mime part --
                         ;; replace CRLF with NL in it.
                         (save-restriction
                           (narrow-to-region armor-start armor-end)
