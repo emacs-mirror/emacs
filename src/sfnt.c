@@ -10721,6 +10721,15 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
     }
 }
 
+/* Compute the dot product of the two versors A and B with
+   rounding.  */
+
+static sfnt_f2dot14
+sfnt_short_frac_dot (sfnt_f2dot14 a, sfnt_f2dot14 b)
+{
+  return (sfnt_f2dot14) ((((long) a * b) + 8192) / 16384);
+}
+
 /* Validate the graphics state GS.
    Establish function pointers for rounding and projection.
    Establish dot product used to convert vector distances between
@@ -10797,11 +10806,18 @@ sfnt_validate_gs (struct sfnt_graphics_state *gs)
     gs->vector_dot_product = gs->projection_vector.y;
   else
     /* Actually calculate the dot product.  */
-    gs->vector_dot_product = ((((long) gs->projection_vector.x
-				* gs->freedom_vector.x)
-			       + ((long) gs->projection_vector.y
-				  * gs->freedom_vector.y))
-			      / 16384);
+    gs->vector_dot_product = (sfnt_short_frac_dot (gs->projection_vector.x,
+						   gs->freedom_vector.x)
+			      + sfnt_short_frac_dot (gs->projection_vector.y,
+						     gs->freedom_vector.y));
+
+  /* If the product is less than 1/16th of a vector, prevent overflow
+     by resetting it to 1.  */
+
+  if (gs->vector_dot_product > -0x400
+      && gs->vector_dot_product < 0x400)
+    gs->vector_dot_product = (gs->vector_dot_product < 0
+			      ? -0x4000 : 0x4000);
 
   /* Now figure out which function to use to move distances.  Handle
      the common case where both the freedom and projection vectors are
