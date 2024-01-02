@@ -27,7 +27,7 @@
 #ifndef MSDOS\
 #define MSDOS\
 #endif
-/^#undef COPYRIGHT *$/s/^.*$/#define COPYRIGHT "Copyright (C) 2023 Free Software Foundation, Inc."/
+/^#undef COPYRIGHT *$/s/^.*$/#define COPYRIGHT "Copyright (C) 2024 Free Software Foundation, Inc."/
 /^#undef DIRECTORY_SEP *$/s!^.*$!#define DIRECTORY_SEP '/'!
 /^#undef DOS_NT *$/s/^.*$/#define DOS_NT/
 /^#undef FLOAT_CHECK_DOMAIN *$/s/^.*$/#define FLOAT_CHECK_DOMAIN/

@@ -6169,7 +6169,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2023 Free Software Foundation, Inc."
+copyright="Copyright (C) 2024 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED([COPYRIGHT], ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST([copyright])
