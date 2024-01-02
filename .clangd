@@ -1,3 +1,5 @@
+CompileFlags:
+    Remove: -fstrict-flex-*
 ---
 If:
     PathMatch: "src/*.c"
