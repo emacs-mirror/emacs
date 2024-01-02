@@ -734,7 +734,10 @@ appropriate.
 
 INFO is the `ert--test-execution-info' corresponding to this test run.
 ERR is the error object."
-  (let* ((type (cl-case (car condition)
+  (let* ((type (cl-case
+                   ; TODO: aref ugly (not uglier than 'car' before
+                   ; it).  Needs accessors.
+                   (aref condition 1)
                  ((quit) 'quit)
 		 ((ert-test-skipped) 'skipped)
                  (otherwise 'failed)))
