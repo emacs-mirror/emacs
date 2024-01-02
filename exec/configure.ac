@@ -25,7 +25,7 @@ AC_PREREQ([2.65])
 AC_INIT([libexec], [30.0.50], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
-AH_TOP([/* Copyright (C) 2023 Free Software Foundation, Inc.
+AH_TOP([/* Copyright (C) 2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
