@@ -1,6 +1,6 @@
 NDK BUILD SYSTEM IMPLEMENTATION
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Emacs implements ndk-build itself, because the version that comes with

@@ -1,7 +1,7 @@
 /* memrchr -- find the last occurrence of a byte in a memory block
 
-   Copyright (C) 1991, 1993, 1996-1997, 1999-2000, 2003-2023 Free Software
-   Foundation, Inc.
+   Copyright (C) 1991, 1993, 1996-1997, 1999-2000, 2003-2024 Free
+   Software Foundation, Inc.
 
    Based on strlen implementation by Torbjorn Granlund (tege@sics.se),
    with help from Dan Sahlin (dan@sics.se) and

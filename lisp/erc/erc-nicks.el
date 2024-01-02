@@ -1,6 +1,6 @@
 ;;; erc-nicks.el -- Nick colors for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Author: David Leatherman <leathekd@gmail.com>
 ;;         Andy Stewart <lazycat.manatee@gmail.com>

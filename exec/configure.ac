@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 2023 Free Software Foundation, Inc.
+dnl Copyright (C) 2023-2024 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl

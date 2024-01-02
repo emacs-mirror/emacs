@@ -1,6 +1,6 @@
 ;;; em-prompt-tests.el --- em-prompt test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

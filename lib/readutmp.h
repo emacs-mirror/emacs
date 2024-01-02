@@ -1,6 +1,6 @@
 /* Declarations for GNU's read utmp module.
 
-   Copyright (C) 1992-2007, 2009-2023 Free Software Foundation, Inc.
+   Copyright (C) 1992-2007, 2009-2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

@@ -1,6 +1,6 @@
 ;;; lua-ts-mode.el --- Major mode for editing Lua files -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Author: John Muhl <jm@pub.pink>
 ;; Created: June 27, 2023
