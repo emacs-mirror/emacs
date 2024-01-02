@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1995, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Richard M. Stallman
 ;; Maintainer: emacs-devel@gnu.org

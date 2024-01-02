@@ -1,6 +1,6 @@
 ;;; vc-git-tests.el --- tests for vc/vc-git.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
 
 ;; Author: Justin Schell <justinmschell@gmail.com>
 ;; Maintainer: emacs-devel@gnu.org

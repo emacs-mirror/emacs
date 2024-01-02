@@ -1,6 +1,6 @@
 ;;; viper-mous.el --- mouse support for Viper  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1997, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper

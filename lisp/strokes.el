@@ -1,6 +1,6 @@
 ;;; strokes.el --- control Emacs through mouse strokes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org

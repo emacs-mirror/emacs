@@ -1,6 +1,6 @@
 ;;; comp-test-funcs-dyn.el --- compilation unit tested by comp-tests.el -*- lexical-binding: nil; -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <acorallo@gnu.org>
 

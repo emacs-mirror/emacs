@@ -1,6 +1,6 @@
 ;;; jit-lock-tests.el --- tests for jit-lock  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 

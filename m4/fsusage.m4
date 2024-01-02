@@ -1,7 +1,8 @@
 # serial 35
 # Obtaining file system usage information.
 
-# Copyright (C) 1997-1998, 2000-2001, 2003-2023 Free Software Foundation, Inc.
+# Copyright (C) 1997-1998, 2000-2001, 2003-2024 Free Software
+# Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,

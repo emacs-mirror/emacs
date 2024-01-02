@@ -1,6 +1,6 @@
 ;;; life.el --- John Horton Conway's Game of Life  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Kyle Jones <kyleuunet.uu.net>
 ;; Maintainer: emacs-devel@gnu.org

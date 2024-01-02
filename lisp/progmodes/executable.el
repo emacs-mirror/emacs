@@ -1,6 +1,6 @@
 ;;; executable.el --- base functionality for executable interpreter scripts  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1996, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: languages, unix

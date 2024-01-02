@@ -1,6 +1,6 @@
 ;;; pgtk-win.el --- parse relevant switches and set up for Pure-GTK  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2020, 2022-2023 Free Software Foundation,
+;; Copyright (C) 1995, 2001-2020, 2022-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: FSF

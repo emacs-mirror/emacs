@@ -1,6 +1,6 @@
 ;;; org-cycle.el --- Visibility cycling of Org entries -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 ;;
 ;; Maintainer: Ihor Radchenko <yantar92 at gmail dot com>
 ;; Keywords: folding, visibility cycling, invisible text

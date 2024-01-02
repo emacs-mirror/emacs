@@ -1,6 +1,6 @@
 ;;; xsd-regexp.el --- translate W3C XML Schema regexps to Emacs regexps  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: text, hypermedia, languages, XML, regexp

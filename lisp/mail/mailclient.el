@@ -1,6 +1,6 @@
 ;;; mailclient.el --- mail sending via system's mail client.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
 
 ;; Author: David Reitter <david.reitter@gmail.com>
 ;; Keywords: mail

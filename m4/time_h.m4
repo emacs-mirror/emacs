@@ -1,6 +1,7 @@
 # Configure a more-standard replacement for <time.h>.
 
-# Copyright (C) 2000-2001, 2003-2007, 2009-2023 Free Software Foundation, Inc.
+# Copyright (C) 2000-2001, 2003-2007, 2009-2024 Free Software
+# Foundation, Inc.
 
 # serial 24
 

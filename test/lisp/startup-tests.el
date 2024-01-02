@@ -1,6 +1,6 @@
 ;;; startup-tests.el --- unit tests for startup.el   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 

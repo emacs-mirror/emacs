@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2023 Free Software
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2024 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.

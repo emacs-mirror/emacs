@@ -1,6 +1,6 @@
 /* Declarations of functions and data types used for SHA1 sum
    library functions.
-   Copyright (C) 2000-2001, 2003, 2005-2006, 2008-2023 Free Software
+   Copyright (C) 2000-2001, 2003, 2005-2006, 2008-2024 Free Software
    Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify

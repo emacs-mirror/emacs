@@ -1,6 +1,6 @@
 ;;; calc-menu.el --- a menu for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

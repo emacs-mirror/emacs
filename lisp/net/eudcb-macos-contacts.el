@@ -1,6 +1,6 @@
 ;;; eudcb-macos-contacts.el --- EUDC - macOS Contacts backend  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Alexander Adolf
 ;; Package: eudc

@@ -1,6 +1,6 @@
 ;;; semantic/grammar.el --- Major mode framework for Semantic grammars  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2005, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2005, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 

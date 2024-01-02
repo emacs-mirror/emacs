@@ -1,6 +1,6 @@
 ;;; enriched.el --- read and save files in text/enriched format  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1996, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: text, faces

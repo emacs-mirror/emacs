@@ -1,6 +1,6 @@
 ;;; uvs.el --- utility for UVS (format 14) cmap subtables in OpenType fonts  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
 
 ;; Author: YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>
 

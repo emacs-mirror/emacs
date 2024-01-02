@@ -1,6 +1,6 @@
 ;;; image-transforms-tests.el --- Test suite for image transforms.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2024 Free Software Foundation, Inc.
 
 ;; Author: Alan Third <alan@idiocy.org>
 ;; Keywords:       internal

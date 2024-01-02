@@ -1,6 +1,6 @@
 ;;; pixel-scroll.el --- Scroll a line smoothly  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 ;; Author: Tak Kunihiro <tkk@misasa.okayama-u.ac.jp>
 ;; Keywords: mouse
 ;; Package: emacs

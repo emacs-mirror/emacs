@@ -1,6 +1,6 @@
 ;;; comint-tests.el --- Tests for comint.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

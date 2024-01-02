@@ -1,6 +1,6 @@
 ;;; tetris.el --- implementation of Tetris for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Old-Version: 2.01

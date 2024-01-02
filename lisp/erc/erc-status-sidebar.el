@@ -1,6 +1,6 @@
 ;;; erc-status-sidebar.el --- HexChat-like activity overview for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017, 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017, 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Andrew Barbarello
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>

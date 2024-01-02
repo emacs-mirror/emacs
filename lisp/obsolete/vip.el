@@ -1,6 +1,6 @@
 ;;; vip.el --- a VI Package for GNU Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2023 Free Software
+;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>

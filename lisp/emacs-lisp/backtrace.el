@@ -1,6 +1,6 @@
 ;;; backtrace.el --- generic major mode for Elisp backtraces -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 ;; Keywords: lisp, tools, maint

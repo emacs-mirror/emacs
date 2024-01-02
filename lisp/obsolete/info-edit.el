@@ -1,6 +1,6 @@
 ;;; info-edit.el --- Editing info files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help

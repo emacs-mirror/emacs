@@ -1,6 +1,6 @@
 ;;; ob-java.el --- org-babel functions for java evaluation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;          Dan Davison

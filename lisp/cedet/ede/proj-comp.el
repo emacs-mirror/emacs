@@ -1,6 +1,6 @@
 ;;; ede/proj-comp.el --- EDE Generic Project compiler/rule driver  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2023 Free Software
+;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
