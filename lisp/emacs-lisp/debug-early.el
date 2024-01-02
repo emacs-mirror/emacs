@@ -81,9 +81,9 @@ of the build process."
 (defalias 'debug--early
   #'(lambda (error base)
   (princ "\nError: ")
-  (prin1 (car error))	; The error symbol.
+  (prin1 (aref error 1))	; The error symbol.
   (princ " ")
-  (prin1 (cdr error))	; The error data.
+  (prin1 (aref error 2))	; The error data.
   (debug-early-backtrace base)))
 
 (defalias 'debug-early                  ;Called from C.
