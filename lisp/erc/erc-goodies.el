@@ -331,14 +331,15 @@ buffer than the window's start."
 (defvar-local erc--keep-place-indicator-overlay nil
   "Overlay for `erc-keep-place-indicator-mode'.")
 
-(defun erc--keep-place-indicator-on-window-buffer-change (window)
+(defun erc--keep-place-indicator-on-window-buffer-change (_)
   "Maybe sync `erc--keep-place-indicator-overlay'.
 Do so only when switching to a new buffer in the same window if
 the replaced buffer is no longer visible in another window and
 its `window-start' at the time of switching is strictly greater
 than the indicator's position."
   (when-let ((erc-keep-place-indicator-follow)
-             ((eq window (selected-window)))
+             (window (selected-window))
+             ((not (eq window (active-minibuffer-window))))
              (old-buffer (window-old-buffer window))
              ((buffer-live-p old-buffer))
              ((not (eq old-buffer (current-buffer))))
@@ -352,67 +353,70 @@ than the indicator's position."
     (with-current-buffer old-buffer
       (erc-keep-place-move old-start))))
 
-(defun erc--keep-place-indicator-setup ()
-  "Initialize buffer for maintaining `erc--keep-place-indicator-overlay'."
-  (require 'fringe)
-  (erc--restore-initialize-priors erc-keep-place-indicator-mode
-    erc--keep-place-indicator-overlay (make-overlay 0 0))
-  (add-hook 'erc-keep-place-mode-hook
-            #'erc--keep-place-indicator-on-global-module nil t)
-  (add-hook 'window-buffer-change-functions
-            #'erc--keep-place-indicator-on-window-buffer-change 40 t)
-  (when-let* (((memq erc-keep-place-indicator-style '(t arrow)))
-              (ov-property (if (zerop (fringe-columns 'left))
-                               'after-string
-                             'before-string))
-              (display (if (zerop (fringe-columns 'left))
-                           `((margin left-margin) ,overlay-arrow-string)
-                         '(left-fringe right-triangle
-                                       erc-keep-place-indicator-arrow)))
-              (bef (propertize " " 'display display)))
-    (overlay-put erc--keep-place-indicator-overlay ov-property bef))
-  (when (memq erc-keep-place-indicator-style '(t face))
-    (overlay-put erc--keep-place-indicator-overlay 'face
-                 'erc-keep-place-indicator-line)))
-
 ;;;###autoload(put 'keep-place-indicator 'erc--feature 'erc-goodies)
+;;;###autoload(autoload 'erc-keep-place-indicator-mode "erc-goodies" nil t)
 (define-erc-module keep-place-indicator nil
   "Buffer-local `keep-place' with fringe arrow and/or highlighted face.
 Play nice with global module `keep-place' but don't depend on it.
 Expect that users may want different combinations of `keep-place'
-and `keep-place-indicator' in different buffers.  Unlike global
-`keep-place', when `switch-to-buffer-preserve-window-point' is
-enabled, don't forcibly sync point in all windows where buffer
-has previously been shown because that defeats the purpose of
-having a placeholder."
+and `keep-place-indicator' in different buffers."
   ((cond (erc-keep-place-mode)
          ((memq 'keep-place erc-modules)
           (erc-keep-place-mode +1))
          ;; Enable a local version of `keep-place-mode'.
          (t (add-hook 'erc-insert-pre-hook  #'erc-keep-place 65 t)))
+   (require 'fringe)
+   (add-hook 'window-buffer-change-functions
+             #'erc--keep-place-indicator-on-window-buffer-change 40)
+   (add-hook 'erc-keep-place-mode-hook
+             #'erc--keep-place-indicator-on-global-module 40)
    (if (pcase erc-keep-place-indicator-buffer-type
          ('target erc--target)
          ('server (not erc--target))
          ('t t))
-       (erc--keep-place-indicator-setup)
+       (progn
+         (erc--restore-initialize-priors erc-keep-place-indicator-mode
+           erc--keep-place-indicator-overlay (make-overlay 0 0))
+         (when-let (((memq erc-keep-place-indicator-style '(t arrow)))
+                    (ov-property (if (zerop (fringe-columns 'left))
+                                     'after-string
+                                   'before-string))
+                    (display (if (zerop (fringe-columns 'left))
+                                 `((margin left-margin) ,overlay-arrow-string)
+                               '(left-fringe right-triangle
+                                             erc-keep-place-indicator-arrow)))
+                    (bef (propertize " " 'display display)))
+           (overlay-put erc--keep-place-indicator-overlay ov-property bef))
+         (when (memq erc-keep-place-indicator-style '(t face))
+           (overlay-put erc--keep-place-indicator-overlay 'face
+                        'erc-keep-place-indicator-line)))
      (erc-keep-place-indicator-mode -1)))
   ((when erc--keep-place-indicator-overlay
      (delete-overlay erc--keep-place-indicator-overlay))
-   (remove-hook 'window-buffer-change-functions
-                #'erc--keep-place-indicator-on-window-buffer-change t)
+   (let ((buffer (current-buffer)))
+     ;; Remove global hooks unless others exist with mode enabled.
+     (unless (erc-buffer-filter (lambda ()
+                                  (and (not (eq buffer (current-buffer)))
+                                       erc-keep-place-indicator-mode)))
+       (remove-hook 'erc-keep-place-mode-hook
+                    #'erc--keep-place-indicator-on-global-module)
+       (remove-hook 'window-buffer-change-functions
+                    #'erc--keep-place-indicator-on-window-buffer-change)))
+   (when (local-variable-p 'erc-insert-pre-hook)
+     (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t))
    (remove-hook 'erc-keep-place-mode-hook
                 #'erc--keep-place-indicator-on-global-module t)
-   (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t)
    (kill-local-variable 'erc--keep-place-indicator-overlay))
   'local)
 
 (defun erc--keep-place-indicator-on-global-module ()
-  "Ensure `keep-place-indicator' can cope with `erc-keep-place-mode'.
-That is, ensure the local module can survive a user toggling the
-global one."
-  (if erc-keep-place-mode
-      (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t)
-    (add-hook 'erc-insert-pre-hook  #'erc-keep-place 65 t)))
+  "Ensure `keep-place-indicator' survives toggling `erc-keep-place-mode'.
+Do this by simulating `keep-place' in all buffers where
+`keep-place-indicator' is enabled."
+  (erc-with-all-buffers-of-server nil (lambda () erc-keep-place-indicator-mode)
+    (if erc-keep-place-mode
+        (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t)
+      (add-hook 'erc-insert-pre-hook  #'erc-keep-place 65 t))))
 
 (defun erc-keep-place-move (pos)
   "Move keep-place indicator to current line or POS.

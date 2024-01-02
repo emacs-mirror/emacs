@@ -251,15 +251,16 @@
 
 (defun erc-goodies-tests--assert-kp-indicator-on ()
   (should erc--keep-place-indicator-overlay)
-  (should (local-variable-p 'window-buffer-change-functions))
-  (should window-configuration-change-hook)
+  (should (memq 'erc--keep-place-indicator-on-window-buffer-change
+                window-buffer-change-functions))
   (should (memq 'erc-keep-place erc-insert-pre-hook))
   (should (eq erc-keep-place-mode
               (not (local-variable-p 'erc-insert-pre-hook)))))
 
 (defun erc-goodies-tests--assert-kp-indicator-off ()
   (should-not (local-variable-p 'erc-insert-pre-hook))
-  (should-not (local-variable-p 'window-buffer-change-functions))
+  (should-not (memq 'erc--keep-place-indicator-on-window-buffer-change
+                    window-buffer-change-functions))
   (should-not erc--keep-place-indicator-overlay))
 
 (defun erc-goodies-tests--kp-indicator-populate ()
@@ -272,12 +273,9 @@
   (goto-char erc-input-marker))
 
 (defun erc-goodies-tests--keep-place-indicator (test)
-  (with-current-buffer (get-buffer-create "*erc-keep-place-indicator-mode*")
-    (erc-mode)
-    (erc--initialize-markers (point) nil)
-    (setq erc-server-process
-          (start-process "sleep" (current-buffer) "sleep" "1"))
-    (set-process-query-on-exit-flag erc-server-process nil)
+  (erc-keep-place-mode -1)
+  (with-current-buffer (erc-tests-common-make-server-buf
+                        "*erc-keep-place-indicator-mode*")
     (let (erc-connect-pre-hook
           erc-modules)
 
@@ -294,7 +292,7 @@
       (should-not (member 'erc-keep-place
                           (default-value 'erc-insert-pre-hook)))
       (should-not (local-variable-p 'erc-insert-pre-hook))
-      (kill-buffer))))
+      (erc-tests-common-kill-buffers))))
 
 (ert-deftest erc-keep-place-indicator-mode--no-global ()
   (erc-goodies-tests--keep-place-indicator
