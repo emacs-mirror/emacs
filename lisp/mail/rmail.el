@@ -4611,6 +4611,16 @@ Argument MIME is non-nil if this is a mime message."
     ;; Decode any base64-encoded material in what we just decrypted.
     (rmail-epa-decode armor-start after-end)
 
+    ;; If this is in a MIME part, convert CRLF into just LF (newline)
+    (when mime
+      (save-restriction
+        (narrow-to-region armor-start  (- (point-max) after-end))
+        (goto-char (point-min))
+        (let ((inhibit-read-only t))
+          (while (search-forward "\r\n" nil t)
+            (delete-region (- (point) 2) (- (point) 1)))))
+      )
+
     (list armor-start (- (point-max) after-end) mime
           armor-end-regexp
           (buffer-substring armor-start (- (point-max) after-end)))))
@@ -4654,7 +4664,33 @@ Argument MIME is non-nil if this is a mime message."
 	      (push (rmail-epa-decrypt-1 mime) decrypts))))
 
       (when (and decrypts (rmail-buffers-swapped-p))
-	(when (y-or-n-p "Replace the original message? ")
+	(if (not (y-or-n-p "Replace the original message? "))
+            ;; User wants to decrypt only temporarily.
+	    ;; Find, in the view buffer, the armors
+	    ;; that we made decrypts for, and replace each one
+            ;; with its decrypt.  In a mime part, replace CRLF with NL.
+            (dolist (d decrypts)
+	      (if (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
+		  (let (armor-start armor-end armor-end-regexp)
+		    (setq armor-start (match-beginning 0)
+			  armor-end-regexp (nth 3 d)
+			  armor-end (re-search-forward
+				     armor-end-regexp
+				     nil t))
+
+		    ;; Found as expected -- now replace it with the decrypt.
+		    (when armor-end
+                      (if (null (nth 2 d))
+                          nil
+                        ;; In a mime part -- 
+                        ;; replace CRLF with NL in it.
+                        (save-restriction
+                          (narrow-to-region armor-start armor-end)
+                          (goto-char (point-min))
+                          (while (search-forward "\r\n" nil t)
+                            (delete-region (- (point) 2) (- (point) 1))))))
+		      )))
+          ;; User wants to decrypt the message perenently.
           (when (eq major-mode 'rmail-mode)
             (rmail-add-label "decrypt"))
 	  (setq decrypts (nreverse decrypts))
