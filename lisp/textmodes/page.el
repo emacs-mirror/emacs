@@ -159,21 +159,23 @@ point, respectively."
              total before after)))
 
 (defun page--what-page ()
-  "Return a list of the page and line number of point."
+  "Return a list of the page and line number of point.
+The line number is relative to the start of the page."
   (save-restriction
     (widen)
     (save-excursion
       (let ((count 1)
+            (adjust (if (or (bolp) (looking-back page-delimiter)) 1 0))
             (opoint (point)))
         (goto-char (point-min))
         (while (re-search-forward page-delimiter opoint t)
           (when (= (match-beginning 0) (match-end 0))
             (forward-char))
           (setq count (1+ count)))
-        (list count (line-number-at-pos opoint))))))
+        (list count (+ adjust (count-lines (point) opoint)))))))
 
 (defun what-page ()
-  "Print page and line number of point."
+  "Display the page number, and the line number within that page."
   (interactive)
   (apply #'message (cons "Page %d, line %d" (page--what-page))))
 

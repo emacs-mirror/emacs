@@ -106,10 +106,14 @@
     (insert "foo\n\nbar\n\nbaz")
     (goto-char (point-min))
     (should (equal (page--what-page) '(1 1)))
+    (forward-char)
+    (should (equal (page--what-page) '(1 1)))
     (forward-page)
+    (should (equal (page--what-page) '(2 1)))
+    (next-line)
     (should (equal (page--what-page) '(2 2)))
     (forward-page)
-    (should (equal (page--what-page) '(3 4)))))
+    (should (equal (page--what-page) '(3 1)))))
 
 
 ;;; page-tests.el ends here
