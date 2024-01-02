@@ -31,15 +31,15 @@ File: mh-logo.xpm
 
 Files: gnus.pbm
   Author: Luis Fernandes <elf@ee.ryerson.ca>
-  Copyright (C) 2001-2023 Free Software Foundation, Inc.
+  Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
 Files: splash.png, splash.svg, splash.pbm, splash.xpm
   Author: Francesc Rocher <francesc.rocher@gmail.com>
-  Copyright (C) 2008-2023 Free Software Foundation, Inc.
+  Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 Files: checked.xpm, unchecked.xpm
   Author: Chong Yidong <cyd@stupidchicken.com>
-  Copyright (C) 2010-2023 Free Software Foundation, Inc.
+  Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 
 * The following icons are from GTK+ 2.x. They are not part of Emacs, but

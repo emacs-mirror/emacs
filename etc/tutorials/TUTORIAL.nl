@@ -1239,7 +1239,7 @@ Engels origineel van de copyrightmelding en condities:
 This version of the tutorial is a part of GNU Emacs.  It is copyrighted
 and comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2023 Free Software Foundation, Inc.
+  Copyright (C) 1985, 1996, 1998, 2001-2024 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
