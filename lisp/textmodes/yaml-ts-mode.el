@@ -117,6 +117,26 @@
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `yaml-ts-mode'.")
 
+(defun yaml-ts-mode--fill-paragraph (&optional justify)
+  "Fill paragraph.
+Behaves like `fill-paragraph', but respects block node
+boundaries.  JUSTIFY is passed to `fill-paragraph'."
+  (interactive "*P")
+  (save-restriction
+    (widen)
+    (let ((node (treesit-node-at (point))))
+      (when (string= "block_scalar" (treesit-node-type node))
+        (let* ((start (treesit-node-start node))
+               (end (treesit-node-end node))
+               (start-marker (point-marker))
+               (fill-paragraph-function nil))
+          (save-excursion
+            (goto-char start)
+            (forward-line)
+            (move-marker start-marker (point))
+            (narrow-to-region (point) end))
+          (fill-region start-marker end justify))))))
+
 ;;;###autoload
 (define-derived-mode yaml-ts-mode text-mode "YAML"
   "Major mode for editing YAML, powered by tree-sitter."
@@ -140,6 +160,8 @@
                   (string type)
                   (constant escape-sequence number property)
                   (bracket delimiter error misc-punctuation)))
+
+    (setq-local fill-paragraph-function #'yaml-ts-mode--fill-paragraph)
 
     (treesit-major-mode-setup)))
 
