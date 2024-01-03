@@ -2658,7 +2658,7 @@ current order instead."
           (setq-local minibuffer-completions-sort-function
                       (or (completion-metadata-get
                            (completion--field-metadata
-                            (car (minibuffer--completion-boundaries)))
+                            (minibuffer-prompt-end))
                            'display-sort-function)
                           (pcase completions-sort
                             ('nil #'identity)
@@ -2675,9 +2675,7 @@ current order instead."
               (read-multiple-choice
                "Sort order" minibuffer-completions-sort-orders
                nil nil minibuffer-read-sort-order-with-completion)))))
-  (when completion-auto-help
-    (let ((beg-end (minibuffer--completion-boundaries)))
-      (minibuffer-completion-help (car beg-end) (cdr beg-end)))))
+  (when completion-auto-help (minibuffer-completion-help)))
 
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
@@ -5150,9 +5148,7 @@ DESC is a string describing predicate PRED."
     (setq-local minibuffer-completion-predicate #'always))
   (add-function :after-while (local 'minibuffer-completion-predicate)
                 pred `((description . ,desc)))
-  (when completion-auto-help
-    (let ((beg-end (minibuffer--completion-boundaries)))
-      (minibuffer-completion-help (car beg-end) (cdr beg-end))))
+  (when completion-auto-help (minibuffer-completion-help))
   (when-let ((completions-buffer (get-buffer "*Completions*")))
     (with-current-buffer completions-buffer
       (completions-narrow-mode))))
@@ -5176,13 +5172,14 @@ exclude matches to current input from completions list."
   (let* ((table (make-hash-table :test #'equal))
          (beg-end (minibuffer--completion-boundaries))
          (beg (car beg-end)) (end (cdr beg-end))
-         (input (buffer-substring beg end))
+         (start (minibuffer-prompt-end))
+         (input (buffer-substring start (point-max)))
          (all (completion-all-completions
                input
                minibuffer-completion-table
                minibuffer-completion-predicate
-               (- (point) beg)
-               (completion--field-metadata beg)))
+               (- (point) start)
+               (completion--field-metadata start)))
          (last (last all)))
     (unless all
       (user-error "No matching completion candidates"))
@@ -5244,9 +5241,7 @@ remove all current restrictions without prompting."
                 (format-prompt "Remove completions restriction,s"
                                (caar desc-pred-alist))
                 desc-pred-alist nil t nil nil (caar desc-pred-alist))))))
-  (when completion-auto-help
-    (let ((beg-end (minibuffer--completion-boundaries)))
-      (minibuffer-completion-help (car beg-end) (cdr beg-end))))
+  (when completion-auto-help (minibuffer-completion-help))
   (when-let ((completions-buffer (and (not (minibuffer-narrow-completions-p))
                                       (get-buffer "*Completions*"))))
     (with-current-buffer completions-buffer
@@ -5534,8 +5529,7 @@ This applies to `completions-auto-update-mode', which see."
   (when (get-buffer-window "*Completions*" 0)
     (if completion-in-region-mode
         (completion-help-at-point)
-      (let ((beg-end (minibuffer--completion-boundaries)))
-        (minibuffer-completion-help (car beg-end) (cdr beg-end)))))
+      (minibuffer-completion-help)))
   (setq completions-auto-update-timer nil))
 
 (defun completions-auto-update-start-timer ()

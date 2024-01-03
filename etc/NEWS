@@ -798,6 +798,13 @@ it reverses the current order.
 This global minor mode automatically updates the *Completions* buffer
 as you type in the minibuffer.
 
++++
+*** New command 'crm-change-separator'.
+This command lets you change the separator that
+'completing-read-multiple' uses to split your input to multiple
+strings.  'completing-read-multiple' binds 'C-x ,' to
+'crm-change-separator' in the minibuffer.
+
 ** Pcomplete
 
 ---
