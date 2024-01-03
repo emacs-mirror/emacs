@@ -36,7 +36,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <utimens.h>
 
 #include "lisp.h"
-#include "sheap.h"
 #include "sysselect.h"
 #include "blockinput.h"
 
