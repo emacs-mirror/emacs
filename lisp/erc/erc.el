@@ -7821,7 +7821,7 @@ When all lines are empty, remove all but the first."
   "Partition non-command input into lines of protocol-compliant length."
   ;; Prior to ERC 5.6, line splitting used to be predicated on
   ;; `erc-flood-protect' being non-nil.
-  (unless (erc--input-split-cmdp state)
+  (unless (or (zerop erc-split-line-length) (erc--input-split-cmdp state))
     (setf (erc--input-split-lines state)
           (mapcan #'erc--split-line (erc--input-split-lines state)))))
 

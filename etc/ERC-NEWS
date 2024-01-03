@@ -560,6 +560,11 @@ third-party code, the key takeaway is that more 'font-lock-face'
 properties encountered in the wild may be combinations of faces rather
 than lone ones.
 
+*** 'erc-flood-protect' no longer influences input splitting.
+This variable's role has been narrowed to rate limiting only.  ERC
+used to suppress protocol line-splitting when its value was nil, but
+that's now handled by setting 'erc-split-line-length' to zero.
+
 *** 'erc-pre-send-functions' visits prompt input post-split.
 ERC now adjusts input lines to fall within allowed length limits
 before showing hook members the result.  For compatibility,

@@ -433,7 +433,11 @@ and optionally alter the attempts tally."
 
 (defcustom erc-split-line-length 440
   "The maximum length of a single message.
-If a message exceeds this size, it is broken into multiple ones.
+ERC normally splits chat input submitted at its prompt into
+multiple messages when the initial size exceeds this value in
+bytes.  Modules can tell ERC to forgo splitting entirely by
+setting this to zero locally or, preferably, by binding it around
+a remapped `erc-send-current-line' command.
 
 IRC allows for lines up to 512 bytes.  Two of them are CR LF.
 And a typical message looks like this:
@@ -596,7 +600,8 @@ escape hatch for inhibiting their transmission.")
                 (if (= (car cmp) (point-min))
                     (goto-char (nth 1 cmp))
                   (goto-char (car cmp)))))
-            (cl-assert (/= (point-min) (point)))
+            (when (= (point-min) (point))
+              (goto-char (point-max)))
             (push (buffer-substring-no-properties (point-min) (point)) out)
             (delete-region (point-min) (point)))
           (or (nreverse out) (list "")))

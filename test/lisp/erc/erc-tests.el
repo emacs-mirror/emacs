@@ -1298,6 +1298,14 @@
     (should-not erc-debug-irc-protocol)))
 
 (ert-deftest erc--split-line ()
+  (let ((erc-split-line-length 0))
+    (should (equal (erc--split-line "") '("")))
+    (should (equal (erc--split-line " ") '(" ")))
+    (should (equal (erc--split-line "1") '("1")))
+    (should (equal (erc--split-line " 1") '(" 1")))
+    (should (equal (erc--split-line "1 ") '("1 ")))
+    (should (equal (erc--split-line "abc") '("abc"))))
+
   (let ((erc-default-recipients '("#chan"))
         (erc-split-line-length 10))
     (should (equal (erc--split-line "") '("")))
