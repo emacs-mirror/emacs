@@ -1157,6 +1157,9 @@ BEWARE: this function may change the current buffer."
 	      (vc-checkout-model backend buffer-file-name))
 	(list backend (list buffer-file-name))))
      ((derived-mode-p 'log-view-mode)
+      ;; 'log-view-mode' stashes the backend and the fileset in the
+      ;; two special variables, so we use them to avoid any possible
+      ;; mistakes from a decision made here ad-hoc.
       (list log-view-vc-backend log-view-vc-fileset))
      ((and (buffer-live-p vc-parent-buffer)
            ;; FIXME: Why this test?  --Stef
