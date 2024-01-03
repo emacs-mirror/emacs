@@ -15411,7 +15411,7 @@ sfnt_infer_deltas_2 (struct sfnt_glyph *glyph, size_t pair_start,
 	      d1 = (glyph->simple->x_coordinates[pair_start]
 		    - x[pair_start]);
 	      d2 = (glyph->simple->x_coordinates[pair_end]
-		    - x[pair_start]);
+		    - x[pair_end]);
 
 	      if (d1 == d2)
 		glyph->simple->x_coordinates[j] += d1;
@@ -15483,7 +15483,7 @@ sfnt_infer_deltas_2 (struct sfnt_glyph *glyph, size_t pair_start,
 	      d1 = (glyph->simple->y_coordinates[pair_start]
 		    - y[pair_start]);
 	      d2 = (glyph->simple->y_coordinates[pair_end]
-		    - y[pair_start]);
+		    - y[pair_end]);
 
 	      if (d1 == d2)
 		glyph->simple->y_coordinates[j] += d1;
@@ -15915,13 +15915,19 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 				     * glyph->simple->number_of_points);
 
 	      original_y = original_x + glyph->simple->number_of_points;
-	      memcpy (original_x, glyph->simple->x_coordinates,
-		      (sizeof *original_x
-		       * glyph->simple->number_of_points));
-	      memcpy (original_y, glyph->simple->y_coordinates,
-		      (sizeof *original_y
-		       * glyph->simple->number_of_points));
 	    }
+
+	  /* The array of original coordinates should reflect the
+	     state of the glyph immediately before deltas from this
+	     tuple are applied, in contrast to the state before any
+	     deltas are applied.  */
+
+	  memcpy (original_x, glyph->simple->x_coordinates,
+		  (sizeof *original_x
+		   * glyph->simple->number_of_points));
+	  memcpy (original_y, glyph->simple->y_coordinates,
+		  (sizeof *original_y
+		   * glyph->simple->number_of_points));
 
 	  memset (touched, 0, (sizeof *touched
 			       * glyph->simple->number_of_points));
