@@ -411,10 +411,10 @@ jarring angry fruit salad look to reduce eye fatigue."
 
  '(cursor ((t (:background "orchid"))))
  '(custom-button-face ((t (:background "lightgrey" :foreground "black"
-                                       :box '(:line-width 2 :style released-button)))))
+                                       :box (:line-width 2 :style released-button)))))
  '(custom-button-pressed-face ((t (:background "lightgrey"
                                                :foreground "black"
-                                               :box '(:line-width 2 :style pressed-button)))))
+                                               :box (:line-width 2 :style pressed-button)))))
  '(custom-changed-face ((t (:foreground "wheat" :background "blue"))))
  '(custom-comment-face ((t (:background "dim gray"))))
  '(custom-comment-tag-face ((t (:foreground "gray80"))))
@@ -430,7 +430,7 @@ jarring angry fruit salad look to reduce eye fatigue."
  '(custom-variable-button-face ((t (:bold t :underline t :weight bold
                                           :background "lightgrey"
                                           :foreground "black"
-                                          :box '(:line-width 2 :style released-button)))))
+                                          :box (:line-width 2 :style released-button)))))
  '(custom-variable-tag-face ((t (:bold t :foreground "light blue"
                                          :weight bold :height 1.2))))
 
@@ -586,15 +586,16 @@ jarring angry fruit salad look to reduce eye fatigue."
  '(match ((t (:background "RoyalBlue3"))))
  '(minibuffer-prompt ((t (:foreground "cyan"))))
  '(mode-line ((t (:background "grey75" :foreground "Blue"
-                  :box '(:line-width -1 :style released-button)
+                  :box (:line-width -1 :style released-button)
                   :height 0.9))))
  '(mode-line-buffer-id ((t (:background "grey65" :foreground "red"
                                         :bold t :weight bold :height 0.9))))
  '(mode-line-emphasis ((t (:bold t :weight bold))))
  '(mode-line-highlight ((t (:box (:line-width 2 :color "grey40"
-                                              :style released-button :height 0.9)))))
+                                              :style released-button)
+                                 :height 0.9))))
  '(mode-line-inactive ((t (:background "grey30" :foreground "grey80"
-                                       :box '(:line-width -1 :color "grey40")
+                                       :box (:line-width -1 :color "grey40")
                                        :weight light :height 0.9))))
  '(mouse ((t (:background "OrangeRed"))))
 
