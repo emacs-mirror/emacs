@@ -2556,6 +2556,10 @@ It must accept a buffer as its only required argument.")
     (cons "Minibuf" (make-sparse-keymap "Minibuf"))))
 
 (let ((map minibuffer-local-completion-map))
+  (bindings--define-key map [menu-bar minibuf return]
+    '(menu-item "Enter" minibuffer-complete-and-exit
+                :key-sequence "\r"
+		:help "Complete input and exit minibuffer"))
   (bindings--define-key map
       [menu-bar minibuf minibuffer-widen-completions]
     '(menu-item "Remove Completions Restrictions"
