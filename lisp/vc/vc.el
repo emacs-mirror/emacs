@@ -1074,6 +1074,7 @@ Within directories, only files already under version control are noticed."
 
 (defvar vc-dir-backend)
 (defvar log-view-vc-backend)
+(defvar log-view-vc-fileset)
 (defvar log-edit-vc-backend)
 (defvar diff-vc-backend)
 (defvar diff-vc-revisions)
@@ -1155,6 +1156,8 @@ BEWARE: this function may change the current buffer."
 	      (vc-state buffer-file-name)
 	      (vc-checkout-model backend buffer-file-name))
 	(list backend (list buffer-file-name))))
+     ((derived-mode-p 'log-view-mode)
+      (list log-view-vc-backend log-view-vc-fileset))
      ((and (buffer-live-p vc-parent-buffer)
            ;; FIXME: Why this test?  --Stef
            (or (buffer-file-name vc-parent-buffer)
