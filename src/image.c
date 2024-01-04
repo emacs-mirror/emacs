@@ -3561,7 +3561,7 @@ anim_prune_animation_cache (Lisp_Object clear)
     {
       struct anim_cache *cache = *pcache;
       if (EQ (clear, Qt)
-	  || (EQ (clear, Qnil) && timespec_cmp (old, cache->update_time) > 0)
+	  || (NILP (clear) && timespec_cmp (old, cache->update_time) > 0)
 	  || EQ (clear, cache->spec))
 	{
 	  if (cache->handle)
