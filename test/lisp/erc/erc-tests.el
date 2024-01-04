@@ -3533,6 +3533,20 @@ connection."
   (should (equal (erc-retrieve-catalog-entry 's221) "test-top 221 val"))
 
   (makunbound (intern "erc-message-test-top-s221"))
-  (unintern "erc-message-test-top-s221" obarray))
+  (unintern "erc-message-test-top-s221" obarray)
+
+  ;; Inheritance.
+  (let ((obarray (obarray-make)))
+    (set (intern "erc-message-test1-abc") "val test1 abc")
+    (set (intern "erc-message-test2-abc") "val test2 abc")
+    (set (intern "erc-message-test2-def") "val test2 def")
+    (put (intern "test0") 'erc--base-format-catalog (intern "test1"))
+    (put (intern "test1") 'erc--base-format-catalog (intern "test2"))
+    (should (equal (erc-retrieve-catalog-entry 'abc (intern "test0"))
+                   "val test1 abc"))
+    (should (equal (erc-retrieve-catalog-entry 'def (intern "test0"))
+                   "val test2 def"))
+    ;; Terminates.
+    (should-not (erc-retrieve-catalog-entry 'ghi (intern "test0")))))
 
 ;;; erc-tests.el ends here

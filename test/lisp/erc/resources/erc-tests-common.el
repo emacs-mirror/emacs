@@ -150,7 +150,7 @@ between literal strings."
 For simplicity, assume string evaluates to itself."
   (interactive "P")
   (let ((sexp (erc-tests-common-string-to-propertized-parts (pp-last-sexp))))
-    (if arg (insert (pp-to-string sexp)) (pp-eval-expression sexp))))
+    (if arg (insert (pp-to-string sexp)) (pp-macroexpand-expression sexp))))
 
 ;; The following utilities are meant to help prepare tests for
 ;; `erc--get-inserted-msg-bounds' and friends.

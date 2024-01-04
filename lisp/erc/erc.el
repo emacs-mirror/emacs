@@ -9320,6 +9320,12 @@ if yet untried."
   (unless catalog (setq catalog erc-current-message-catalog))
   (symbol-value
    (or (erc--make-message-variable-name catalog key 'softp)
+       (let ((parent catalog)
+             last)
+         (while (and (setq parent (get parent 'erc--base-format-catalog))
+                     (not (setq last (erc--make-message-variable-name
+                                      parent key 'softp)))))
+         last)
        (let ((default (default-toplevel-value 'erc-current-message-catalog)))
          (or (and (not (eq default catalog))
                   (erc--make-message-variable-name default key 'softp))

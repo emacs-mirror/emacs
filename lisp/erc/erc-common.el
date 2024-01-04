@@ -554,9 +554,21 @@ See `erc-define-message-format-catalog' for the meaning of
 ENTRIES, an alist, and `erc-tests-common-pp-propertized-parts' in
 tests/lisp/erc/erc-tests.el for a convenience command to convert
 a literal string into a sequence of `propertize' forms, which are
-much easier to review and edit."
+much easier to review and edit.  When ENTRIES begins with a
+sequence of keyword-value pairs remove them and consider their
+evaluated values before processing the alist proper.
+
+Currently, the only recognized keyword is `:parent', which tells
+ERC to search recursively for a given template key using the
+keyword's associated value, another catalog symbol, if not found
+in catalog NAME."
   (declare (indent 1))
   (let (out)
+    (while (keywordp (car entries))
+      (push (pcase-exhaustive (pop entries)
+              (:parent `(put ',name 'erc--base-format-catalog
+                             ,(pop entries))))
+            out))
     (dolist (e entries (cons 'progn (nreverse out)))
       (push `(defvar ,(intern (format "erc-message-%s-%s" name (car e)))
                ,(cdr e)
@@ -575,7 +587,8 @@ symbol, and FORMAT evaluates to a format string compatible with
 `format-spec'.  Expect modules that only define a handful of
 entries to do so manually, instead of using this macro, so that
 the resulting variables will end up with more useful doc strings."
-  (declare (indent 1))
+  (declare (indent 1)
+           (debug (symbolp [&rest [keywordp form]] &rest (symbolp . form))))
   `(erc--define-catalog ,language ,entries))
 
 (defmacro erc--doarray (spec &rest body)
