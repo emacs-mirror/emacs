@@ -1880,10 +1880,12 @@ The value should be a value for @code{completion-cycle-threshold}
 category.
 
 @item display-sort-function
-The possible values are: @code{nil} that means to use either the sorting
-function from metadata or if it's nil then fall back to @code{completions-sort};
-@code{identity} that means to not use any sorting to keep the original order;
-and other values are the same as in @code{completions-sort}.
+The possible values are: @code{nil}, which means to use either the
+sorting function from metadata or if that is @code{nil}, fall back to
+@code{completions-sort}; @code{identity}, which means not to sort at
+all, leaving the original order; or any other value out of those used
+in @code{completions-sort} (@pxref{Completion Options,,, emacs, The
+GNU Emacs Manual}).
 @end table
 
 @noindent

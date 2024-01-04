@@ -1155,10 +1155,10 @@ Each override has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category.
-- `display-sort-function': where `nil' means to use either the sorting
-function from metadata or if it's nil then fall back to `completions-sort';
-`identity' means to not use any sorting to keep the original order;
-and other values are the same as in `completions-sort'.
+- `display-sort-function': nil means to use either the sorting
+function from metadata, or if that is nil, fall back to `completions-sort';
+`identity' disables sorting and keeps the original order; and other
+possible values are the same as in `completions-sort'.
 
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.

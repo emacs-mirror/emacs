@@ -709,7 +709,9 @@ will use just one column.
   The @code{completions-sort} user option controls the order in which
 the completions are sorted in the @samp{*Completions*} buffer.  The
 default is @code{alphabetical}, which sorts in alphabetical order.
-The value @code{nil} disables sorting.  The value can also be a
+The value @code{nil} disables sorting; the value @code{historical}
+sorts alphabetically first, and then rearranges according to the order
+of the candidates in the minibuffer history.  The value can also be a
 function, which will be called with the list of completions, and
 should return the list in the desired order.
 
