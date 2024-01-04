@@ -3431,11 +3431,6 @@ same as `substitute-in-file-name'."
             ;; into more such problematic cases.
             ,(min start (length string)) . ,end)))
 
-       ((eq action 'lambda)
-        (if (zerop (length string))
-            nil          ;Not sure why it's here, but it probably doesn't harm.
-          (funcall (or pred 'file-exists-p) string)))
-
        (t
         (let* ((name (file-name-nondirectory string))
                (specdir (file-name-directory string))
@@ -3448,26 +3443,17 @@ same as `substitute-in-file-name'."
                   (concat specdir comp)
                 comp)))
 
+           ((eq action 'lambda)
+            (or (not pred)
+                (let ((default-directory (expand-file-name realdir)))
+                  (funcall pred name))))
+
            ((eq action t)
             (let ((all (file-name-all-completions name realdir)))
-
-              ;; Check the predicate, if necessary.
-              (unless (memq pred '(nil file-exists-p))
-                (let ((comp ())
-                      (pred
-                       (if (eq pred 'file-directory-p)
-                           ;; Brute-force speed up for directory checking:
-                           ;; Discard strings which don't end in a slash.
-                           (lambda (s)
-                             (let ((len (length s)))
-                               (and (> len 0) (eq (aref s (1- len)) ?/))))
-                         ;; Must do it the hard (and slow) way.
-                         pred)))
-                  (let ((default-directory (expand-file-name realdir)))
-                    (dolist (tem all)
-                      (if (funcall pred tem) (push tem comp))))
-                  (setq all (nreverse comp))))
-
+              (when pred
+                (setq all
+                      (let ((default-directory (expand-file-name realdir)))
+                        (seq-filter pred all))))
               all))))))
     (file-error nil)))               ;PCM often calls with invalid directories.
 
@@ -3643,9 +3629,13 @@ full file name for INITIAL will usually lead to surprising
 results.
 
 Sixth arg PREDICATE, if non-nil, should be a function of one
-argument; then a file name is considered an acceptable completion
-alternative only if PREDICATE returns non-nil with the file name
-as its argument.
+argument; then a file name is considered existing (and hence an
+acceptable completion alternative) only if PREDICATE returns
+non-nil with the file name as its argument.  PREDICATE is called
+with `default-directory' bound to the direcotry part of the
+candidate file name, while the argument passed to PREDICATE does
+not include a directory part.  If PREDICATE is omitted or nil, it
+defaults to `file-exists-p'.
 
 If this command was invoked with the mouse, use a graphical file
 dialog if `use-dialog-box' is non-nil, and the window system or X

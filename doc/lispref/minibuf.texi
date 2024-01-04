@@ -1774,7 +1774,9 @@ current buffer visit no file using @kbd{M-x set-visited-file-name}.
 If @var{predicate} is non-@code{nil}, it specifies a function of one
 argument that decides which file names are acceptable completion
 alternatives.  A file name is an acceptable value if @var{predicate}
-returns non-@code{nil} for it.
+returns non-@code{nil} for it.  If @var{predicate} is @code{nil},
+@code{read-file-name} uses @code{file-exists-p}, so acceptable
+completions are existing file names.
 
 Here is an example of using @code{read-file-name}:
 
