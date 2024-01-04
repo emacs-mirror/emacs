@@ -214,7 +214,7 @@
          equiv))
       equiv)))
 
-(defconst char-fold-table
+(defvar char-fold-table
   (eval-when-compile
     (char-fold--make-table))
   "Used for folding characters of the same group during search.

@@ -61,7 +61,7 @@
   (pcomplete-opt "hVanfFrsvwt(pcmpl-linux-fs-types)o?L?U?")
   (while (pcomplete-here (pcomplete-entries) nil #'identity)))
 
-(defconst pcmpl-linux-fs-modules-path-format "/lib/modules/%s/kernel/fs/")
+(defvar pcmpl-linux-fs-modules-path-format "/lib/modules/%s/kernel/fs/")
 
 (defun pcmpl-linux-fs-types ()
   "Return a list of available fs modules on GNU/Linux systems."
@@ -69,7 +69,7 @@
     (directory-files
      (format pcmpl-linux-fs-modules-path-format kernel-ver))))
 
-(defconst pcmpl-linux-mtab-file "/etc/mtab")
+(defvar pcmpl-linux-mtab-file "/etc/mtab")
 
 (defun pcmpl-linux-mounted-directories ()
   "Return a list of mounted directory names."

@@ -262,7 +262,7 @@ This option is enabled by default because it reduces Emacs memory usage."
   :type 'boolean)
 ;;;###autoload(put 'byte-compile-dynamic-docstrings 'safe-local-variable 'booleanp)
 
-(defconst byte-compile-log-buffer "*Compile-Log*"
+(defvar byte-compile-log-buffer "*Compile-Log*"
   "Name of the byte-compiler's log buffer.")
 
 (defvar byte-compile--known-dynamic-vars nil
@@ -1874,7 +1874,7 @@ It is too wide if it has any lines longer than the largest of
          (setq byte-to-native-plist-environment
                overriding-plist-environment)))))
 
-(defmacro displaying-byte-compile-warnings (&rest body)
+(defmacro displaying-byte-compile-warnings (&rest body) ;FIXME: namespace!
   (declare (debug (def-body)))
   `(bytecomp--displaying-warnings (lambda () ,@body)))
 

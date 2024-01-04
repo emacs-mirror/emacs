@@ -40,7 +40,7 @@
 
 ;;; Code:
 
-(defconst check-declare-warning-buffer "*Check Declarations Warnings*"
+(defvar check-declare-warning-buffer "*Check Declarations Warnings*"
   "Name of buffer used to display any `check-declare' warnings.")
 
 (defun check-declare-locate (file basefile)

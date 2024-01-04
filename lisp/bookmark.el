@@ -142,7 +142,7 @@ Nil means don't prompt for confirmation."
   "Non-nil means show annotations when jumping to a bookmark."
   :type 'boolean)
 
-(defconst bookmark-bmenu-buffer "*Bookmark List*"
+(defvar bookmark-bmenu-buffer "*Bookmark List*"
   "Name of buffer used for Bookmark List.")
 
 (defvar bookmark-bmenu-use-header-line t
