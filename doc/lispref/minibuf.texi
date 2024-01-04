@@ -1878,6 +1878,12 @@ The value should be a list of completion styles (symbols).
 The value should be a value for @code{completion-cycle-threshold}
 (@pxref{Completion Options,,, emacs, The GNU Emacs Manual}) for this
 category.
+
+@item display-sort-function
+The possible values are: @code{nil} that means to use either the sorting
+function from metadata or if it's nil then fall back to @code{completions-sort};
+@code{identity} that means to not use any sorting to keep the original order;
+and other values are the same as in @code{completions-sort}.
 @end table
 
 @noindent

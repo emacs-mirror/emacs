@@ -740,6 +740,12 @@ When 'completions-sort' is set to 'historical', completion candidates
 will be first sorted alphabetically, and then re-sorted by their order
 in the minibuffer history, with more recent candidates appearing first.
 
++++
+*** 'completion-category-overrides' supports 'display-sort-function'.
+You can now customize the sorting order for any category in
+'completion-category-overrides' that will override the sorting order
+defined in the metadata or in 'completions-sort'.
+
 ** Pcomplete
 
 ---

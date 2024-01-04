@@ -1135,12 +1135,14 @@ styles for specific categories, such as files, buffers, etc."
     (project-file (styles . (substring)))
     (xref-location (styles . (substring)))
     (info-menu (styles . (basic substring)))
-    (symbol-help (styles . (basic shorthand substring))))
+    (symbol-help (styles . (basic shorthand substring)))
+    (calendar-month (display-sort-function . identity)))
   "Default settings for specific completion categories.
 Each entry has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category.
+- `display-sort-function': the sorting function.
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.
 
@@ -1148,10 +1150,16 @@ Also see `completion-category-overrides'.")
 
 (defcustom completion-category-overrides nil
   "List of category-specific user overrides for completion styles.
+
 Each override has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category.
+- `display-sort-function': where `nil' means to use either the sorting
+function from metadata or if it's nil then fall back to `completions-sort';
+`identity' means to not use any sorting to keep the original order;
+and other values are the same as in `completions-sort'.
+
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.
 
@@ -1171,11 +1179,27 @@ overrides the default specified in `completion-category-defaults'."
 		 ,completion--styles-type)
            (cons :tag "Completion Cycling"
 		 (const :tag "Select one value from the menu." cycle)
-                 ,completion--cycling-threshold-type))))
+                 ,completion--cycling-threshold-type)
+           (cons :tag "Completion Sorting"
+                 (const :tag "Select one value from the menu."
+                        display-sort-function)
+                 (choice (const :tag "Use default" nil)
+                         (const :tag "No sorting" identity)
+                         (const :tag "Alphabetical sorting"
+                                minibuffer-sort-alphabetically)
+                         (const :tag "Historical sorting"
+                                minibuffer-sort-by-history)
+                         (function :tag "Custom function"))))))
 
 (defun completion--category-override (category tag)
   (or (assq tag (cdr (assq category completion-category-overrides)))
       (assq tag (cdr (assq category completion-category-defaults)))))
+
+(defun completion-metadata-override-get (metadata prop)
+  (if-let ((cat (completion-metadata-get metadata 'category))
+           (over (completion--category-override cat prop)))
+      (cdr over)
+    (completion-metadata-get metadata prop)))
 
 (defun completion--styles (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))
@@ -2522,7 +2546,7 @@ The candidate will still be chosen by `choose-completion' unless
              (aff-fun (or (completion-metadata-get all-md 'affixation-function)
                           (plist-get completion-extra-properties
                                      :affixation-function)))
-             (sort-fun (completion-metadata-get all-md 'display-sort-function))
+             (sort-fun (completion-metadata-override-get all-md 'display-sort-function))
              (group-fun (completion-metadata-get all-md 'group-function))
              (mainbuf (current-buffer))
              ;; If the *Completions* buffer is shown in a new
