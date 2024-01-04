@@ -4373,7 +4373,7 @@ slurp_image (Lisp_Object filename, ptrdiff_t *size, const char *image_type)
   char *result = slurp_file (fd, size);
   if (result == NULL)
     image_error ("Error loading %s image `%s'",
-		 make_unibyte_string (image_type, strlen (image_type)),
+		 build_unibyte_string (image_type),
 		 file);
   return result;
 }

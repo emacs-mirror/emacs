@@ -6337,7 +6337,7 @@ The same variable also affects the function `read-answer'.  See also
   DEFVAR_LISP ("yes-or-no-prompt", Vyes_or_no_prompt,
     doc: /* String to append when `yes-or-no-p' asks a question.
 For best results this should end in a space.  */);
-  Vyes_or_no_prompt = make_unibyte_string ("(yes or no) ", strlen ("(yes or no) "));
+  Vyes_or_no_prompt = build_unibyte_string ("(yes or no) ");
 
   defsubr (&Sidentity);
   defsubr (&Srandom);
