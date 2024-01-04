@@ -5172,6 +5172,7 @@ exclude matches to current input from completions list."
   (let* ((table (make-hash-table :test #'equal))
          (beg-end (minibuffer--completion-boundaries))
          (beg (car beg-end)) (end (cdr beg-end))
+         (current (buffer-substring beg end))
          (start (minibuffer-prompt-end))
          (input (buffer-substring start (point-max)))
          (all (completion-all-completions
@@ -5195,7 +5196,7 @@ exclude matches to current input from completions list."
                        ((symbolp cand) (symbol-name cand))
                        (t              (car         cand)))))
              (not (gethash key table))))
-         (concat "excluding matches for " (prin1-to-string input)))
+         (concat "excluding matches for " (prin1-to-string current)))
       (minibuffer--add-completions-predicate
        (lambda (cand &rest _)
          (let ((key (cond
@@ -5203,7 +5204,7 @@ exclude matches to current input from completions list."
                      ((symbolp cand) (symbol-name cand))
                      (t              (car         cand)))))
            (gethash key table)))
-       (concat "narrowing to " (prin1-to-string input))))))
+       (concat "narrowing to " (prin1-to-string current))))))
 
 (defun minibuffer-widen-completions (&optional all)
   "Remove restrictions on current minibuffer completions list.
