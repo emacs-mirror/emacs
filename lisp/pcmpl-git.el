@@ -88,7 +88,7 @@ Files listed by `git ls-files ARGS' satisfy the predicate."
                  (pcomplete-entries
                   nil (pcmpl-git--tracked-file-predicate "-m"))))
                ;; Complete all tracked files
-               ((or "mv" "rm" "grep" "status")
+               ((or "mv" "rm" "grep" "status" "blame")
                 (pcomplete-here
                  (pcomplete-entries nil (pcmpl-git--tracked-file-predicate))))
                ;; Complete revisions
