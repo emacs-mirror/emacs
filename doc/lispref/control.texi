@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
+@c Copyright (C) 1990--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Control Structures
@@ -2311,24 +2311,102 @@ form.  In this case, the @code{handler-bind} has no effect.
 @code{(@var{conditions} @var{handler})} where @var{conditions} is an
 error condition name to be handled, or a list of condition names, and
 @var{handler} should be a form whose evaluation should return a function.
+As with @code{condition-case}, condition names are symbols.
 
 Before running @var{body}, @code{handler-bind} evaluates all the
 @var{handler} forms and installs those handlers to be active during
-the evaluation of @var{body}.  These handlers are searched together
-with those installed by @code{condition-case}.  When the innermost
+the evaluation of @var{body}.  When an error is signaled,
+Emacs searches all the active @code{condition-case} and
+@code{handler-bind} forms for a handler that
+specifies one or more of these condition names.  When the innermost
 matching handler is one installed by @code{handler-bind}, the
 @var{handler} function is called with a single argument holding the
 error description.
 
-@var{handler} is called in the dynamic context where the error
-happened, without first unwinding the stack, meaning that all the
-dynamic bindings are still in effect, except that all the error
-handlers between the code that signaled the error and the
-@code{handler-bind} are temporarily suspended.  Like any normal
-function, @var{handler} can exit non-locally, typically via
-@code{throw}, or it can return normally.  If @var{handler} returns
-normally, it means the handler @emph{declined} to handle the error and
-the search for an error handler is continued where it left off.
+Contrary to what happens with @code{condition-case}, @var{handler} is
+called in the dynamic context where the error happened.  This means it
+is executed unbinding any variable bindings or running any cleanups of
+@code{unwind-protect}, so that all those dynamic bindings are still in
+effect.  There is one exception: while running the @var{handler}
+function, all the error handlers between the code that signaled the
+error and the @code{handler-bind} are temporarily suspended, meaning
+that when an error is signaled, Emacs will only search the active
+@code{condition-case} and @code{handler-bind} forms that are inside
+the @var{handler} function or outside of the current
+@code{handler-bind}.  Note also that lexical variables are not
+affected, since they do not have dynamic extent.
+
+Like any normal function, @var{handler} can exit non-locally,
+typically via @code{throw}, or it can return normally.
+If @var{handler} returns normally, it means the handler
+@emph{declined} to handle the error and the search for an error
+handler is continued where it left off.
+
+For example, if we wanted to keep a log of all the errors that occur
+during the execution of a particular piece of code together with the
+buffer that's current when the error is signaled, but without
+otherwise affecting the behavior of that code, we can do it with:
+
+@example
+@group
+(handler-bind
+    ((error
+      (lambda (err)
+        (push (cons err (current-buffer)) my-log-of-errors))))
+  @var{body-forms}@dots{})
+@end group
+@end example
+
+This will log only those errors that are not caught internally to
+@var{body-forms}@dots{}, in other words errors that ``escape'' from
+@var{body-forms}@dots{}, and it will not prevent those errors from
+being passed on to surrounding @code{condition-case} handlers (or
+@code{handler-bind} handlers for that matter) since the above handler
+returns normally.
+
+We can also use @code{handler-bind} to replace an error with another,
+as in the code below which turns all errors of type @code{user-error}
+that occur during the execution of @var{body-forms}@dots{} into plain
+@code{error}:
+
+@example
+@group
+(handler-bind
+    ((user-error
+      (lambda (err)
+        (signal 'error (cdr err)))))
+  @var{body-forms}@dots{})
+@end group
+@end example
+
+We can get almost the same result with @code{condition-case}:
+
+@example
+@group
+(condition-case err
+    (progn @var{body-forms}@dots{})
+  (user-error (signal 'error (cdr err))))
+@end group
+@end example
+
+@noindent
+but with the difference that when we (re)signal the new error in
+@code{handler-bind} the dynamic environment from the original error is
+still active, which means for example that if we enter the
+debugger at this point, it will show us a complete backtrace including
+the point where we signaled the original error:
+
+@example
+@group
+Debugger entered--Lisp error: (error "Oops")
+  signal(error ("Oops"))
+  (closure (t) (err) (signal 'error (cdr err)))((user-error "Oops"))
+  user-error("Oops")
+  @dots{}
+  eval((handler-bind ((user-error (lambda (err) @dots{}
+@end group
+@end example
+
 @end defmac
 
 @node Error Symbols
