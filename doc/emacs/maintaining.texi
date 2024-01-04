@@ -2683,7 +2683,7 @@ use tags, separate from the @command{etags} facility.
 
 @menu
 * Tag Syntax::          Tag syntax for various types of code and text files.
-* Create Tags Table::   Creating a tags table with @command{etags}.
+* Create Tags Table::   Creating and updating tags tables with @command{etags}.
 * Etags Regexps::       Create arbitrary tags using regular expressions.
 @end menu
 
@@ -2998,6 +2998,38 @@ a list of all the available @command{etags} options, together with a short
 explanation.  If followed by one or more @samp{--language=@var{lang}}
 options, it outputs detailed information about how tags are generated for
 @var{lang}.
+
+@findex etags-regen-mode
+  Instead of creating and updating the tags table by manually invoking
+@command{etags}, you can ask Emacs to do it for you automatically.
+The global minor mode @code{etags-regen-mode}, if enabled, generates
+tags tables automatically as needed, and takes care of updating them
+when you edit any of the source files that contribute tags.  This mode
+uses the current project configuration (@pxref{Projects}) to determine
+which files to submit to @command{etags} for regenerating the tags
+table for the project.  You can customize how this minor mode works
+using the following user options:
+
+@vtable @code
+@item etags-regen-program
+The program to regenerate tags table; defaults to @command{etags}.
+
+@item etags-regen-program-options
+Command-line options to pass to the program which regenerates tags
+tables.
+
+@item etags-regen-ignores
+List of glob patterns which specify files to ignore when regenerating
+tags tables.
+@end vtable
+
+@cindex tags-reset-tags-tables
+  If you select a tags table manually, with @kbd{M-x visit-tags-table}
+(@pxref{Select Tags Table}), @code{etags-regen-mode} effectively
+disables itself: it will no longer automatically create and update
+tags tables, assuming that you prefer managing your tags tables
+manually.  You can cancel this effect of using @code{visit-tags-table}
+by invoking the command @code{tags-reset-tags-tables}.
 
 @node Etags Regexps
 @subsubsection Etags Regexps
