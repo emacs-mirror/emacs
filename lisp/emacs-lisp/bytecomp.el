@@ -1879,34 +1879,39 @@ It is too wide if it has any lines longer than the largest of
   `(bytecomp--displaying-warnings (lambda () ,@body)))
 
 (defun bytecomp--displaying-warnings (body-fn)
-  (let* ((warning-series-started
+  (let* ((wrapped-body
+	  (lambda ()
+	    (if byte-compile-debug
+	        (funcall body-fn)
+	      ;; Use a `handler-bind' to remember the `byte-compile-form-stack'
+	      ;; active at the time the error is signaled, so as to
+	      ;; get more precise error locations.
+	      (let ((form-stack nil))
+		(condition-case error-info
+		    (handler-bind
+		        ((error (lambda (_err)
+		                  (setq form-stack byte-compile-form-stack))))
+		      (funcall body-fn))
+		  (error (let ((byte-compile-form-stack form-stack))
+		           (byte-compile-report-error error-info))))))))
+	 (warning-series-started
 	  (and (markerp warning-series)
 	       (eq (marker-buffer warning-series)
 		   (get-buffer byte-compile-log-buffer))))
          (byte-compile-form-stack byte-compile-form-stack))
-    (if (or (eq warning-series 'byte-compile-warning-series)
+    (if (or (eq warning-series #'byte-compile-warning-series)
 	    warning-series-started)
 	;; warning-series does come from compilation,
 	;; so don't bind it, but maybe do set it.
-	(let (tem)
-	  ;; Log the file name.  Record position of that text.
-	  (setq tem (byte-compile-log-file))
+	(let ((tem (byte-compile-log-file))) ;; Log the file name.
 	  (unless warning-series-started
-	    (setq warning-series (or tem 'byte-compile-warning-series)))
-	  (if byte-compile-debug
-	      (funcall body-fn)
-	    (condition-case error-info
-		(funcall body-fn)
-	      (error (byte-compile-report-error error-info)))))
+	    (setq warning-series (or tem #'byte-compile-warning-series)))
+	  (funcall wrapped-body))
       ;; warning-series does not come from compilation, so bind it.
       (let ((warning-series
 	     ;; Log the file name.  Record position of that text.
-	     (or (byte-compile-log-file) 'byte-compile-warning-series)))
-	(if byte-compile-debug
-	    (funcall body-fn)
-	  (condition-case error-info
-	      (funcall body-fn)
-	    (error (byte-compile-report-error error-info))))))))
+	     (or (byte-compile-log-file) #'byte-compile-warning-series)))
+	(funcall wrapped-body)))))
 
 ;;;###autoload
 (defun byte-force-recompile (directory)

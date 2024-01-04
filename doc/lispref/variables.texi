@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2024 Free Software Foundation, Inc.
+@c Copyright (C) 1990--2024 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Variables
 @chapter Variables
@@ -978,6 +978,7 @@ program is executing, the binding exists.
 
 @cindex lexical binding
 @cindex lexical scope
+@cindex static scope
 @cindex indefinite extent
   For historical reasons, there are two dialects of Emacs Lisp,
 selected via the @code{lexical-binding} buffer-local variable.
@@ -989,6 +990,7 @@ binding can also be accessed from the Lisp debugger.}.  It also has
 @dfn{indefinite extent}, meaning that under some circumstances the
 binding can live on even after the binding construct has finished
 executing, by means of objects called @dfn{closures}.
+Lexical scoping is also commonly called @dfn{static scoping}.
 
 @cindex dynamic binding
 @cindex dynamic scope

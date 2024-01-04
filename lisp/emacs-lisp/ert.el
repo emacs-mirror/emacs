@@ -278,14 +278,6 @@ DATA is displayed to the user and should state the reason for skipping."
   (when ert--should-execution-observer
     (funcall ert--should-execution-observer form-description)))
 
-;; See Bug#24402 for why this exists
-(defun ert--should-signal-hook (error-symbol data)
-  "Stupid hack to stop `condition-case' from catching ert signals.
-It should only be stopped when ran from inside `ert--run-test-internal'."
-  (when (and (not (symbolp debugger))   ; only run on anonymous debugger
-             (memq error-symbol '(ert-test-failed ert-test-skipped)))
-    (funcall debugger 'error (cons error-symbol data))))
-
 (defun ert--special-operator-p (thing)
   "Return non-nil if THING is a symbol naming a special operator."
   (and (symbolp thing)
@@ -324,8 +316,7 @@ It should only be stopped when ran from inside `ert--run-test-internal'."
               (default-value (gensym "ert-form-evaluation-aborted-")))
           `(let* ((,fn (function ,fn-name))
                   (,args (condition-case err
-                             (let ((signal-hook-function #'ert--should-signal-hook))
-                               (list ,@arg-forms))
+                             (list ,@arg-forms)
                            (error (progn (setq ,fn #'signal)
                                          (list (car err)
                                                (cdr err)))))))
@@ -728,78 +719,68 @@ in front of the value of MESSAGE-FORM."
   ;; value and test execution should be terminated.  Should not
   ;; return.
   (exit-continuation (cl-assert nil))
-  ;; The binding of `debugger' outside of the execution of the test.
-  next-debugger
   ;; The binding of `ert-debug-on-error' that is in effect for the
   ;; execution of the current test.  We store it to avoid being
   ;; affected by any new bindings the test itself may establish.  (I
   ;; don't remember whether this feature is important.)
   ert-debug-on-error)
 
-(defun ert--run-test-debugger (info args)
-  "During a test run, `debugger' is bound to a closure that calls this function.
+(defun ert--run-test-debugger (info condition debugfun)
+  "Error handler used during the test run.
 
 This function records failures and errors and either terminates
 the test silently or calls the interactive debugger, as
 appropriate.
 
-INFO is the ert--test-execution-info corresponding to this test
-run.  ARGS are the arguments to `debugger'."
-  (cl-destructuring-bind (first-debugger-arg &rest more-debugger-args)
-      args
-    (cl-ecase first-debugger-arg
-      ((lambda debug t exit nil)
-       (apply (ert--test-execution-info-next-debugger info) args))
-      (error
-       (let* ((condition (car more-debugger-args))
-              (type (cl-case (car condition)
-                      ((quit) 'quit)
-		      ((ert-test-skipped) 'skipped)
-                      (otherwise 'failed)))
-              ;; We store the backtrace in the result object for
-              ;; `ert-results-pop-to-backtrace-for-test-at-point'.
-              ;; This means we have to limit `print-level' and
-              ;; `print-length' when printing result objects.  That
-              ;; might not be worth while when we can also use
-              ;; `ert-results-rerun-test-at-point-debugging-errors',
-              ;; (i.e., when running interactively) but having the
-              ;; backtrace ready for printing is important for batch
-              ;; use.
-              ;;
-              ;; Grab the frames above the debugger.
-              (backtrace (cdr (backtrace-get-frames debugger)))
-              (infos (reverse ert--infos)))
-         (setf (ert--test-execution-info-result info)
-               (cl-ecase type
-                 (quit
-                  (make-ert-test-quit :condition condition
-                                      :backtrace backtrace
-                                      :infos infos))
-                 (skipped
-                  (make-ert-test-skipped :condition condition
-                                        :backtrace backtrace
-                                        :infos infos))
-                 (failed
-                  (make-ert-test-failed :condition condition
-                                        :backtrace backtrace
-                                        :infos infos))))
-         ;; Work around Emacs's heuristic (in eval.c) for detecting
-         ;; errors in the debugger.
-         (cl-incf num-nonmacro-input-events)
-         ;; FIXME: We should probably implement more fine-grained
-         ;; control a la non-t `debug-on-error' here.
-         (cond
-          ((ert--test-execution-info-ert-debug-on-error info)
-           (apply (ert--test-execution-info-next-debugger info) args))
-          (t))
-         (funcall (ert--test-execution-info-exit-continuation info)))))))
+INFO is the `ert--test-execution-info' corresponding to this test run.
+ERR is the error object."
+  (let* ((type (cl-case (car condition)
+                 ((quit) 'quit)
+		 ((ert-test-skipped) 'skipped)
+                 (otherwise 'failed)))
+         ;; We store the backtrace in the result object for
+         ;; `ert-results-pop-to-backtrace-for-test-at-point'.
+         ;; This means we have to limit `print-level' and
+         ;; `print-length' when printing result objects.  That
+         ;; might not be worth while when we can also use
+         ;; `ert-results-rerun-test-at-point-debugging-errors',
+         ;; (i.e., when running interactively) but having the
+         ;; backtrace ready for printing is important for batch
+         ;; use.
+         ;;
+         ;; Grab the frames above ourselves.
+         (backtrace (cdr (backtrace-get-frames debugfun)))
+         (infos (reverse ert--infos)))
+    (setf (ert--test-execution-info-result info)
+          (cl-ecase type
+            (quit
+             (make-ert-test-quit :condition condition
+                                 :backtrace backtrace
+                                 :infos infos))
+            (skipped
+             (make-ert-test-skipped :condition condition
+                                    :backtrace backtrace
+                                    :infos infos))
+            (failed
+             (make-ert-test-failed :condition condition
+                                   :backtrace backtrace
+                                   :infos infos))))
+    ;; FIXME: We should probably implement more fine-grained
+    ;; control a la non-t `debug-on-error' here.
+    (cond
+     ((ert--test-execution-info-ert-debug-on-error info)
+      ;; The `debugfun' arg tells `debug' which backtrace frame starts
+      ;; the "entering the debugger" code so it can hide those frames
+      ;; from the backtrace.
+      (funcall debugger 'error condition :backtrace-base debugfun))
+     (t))
+    (funcall (ert--test-execution-info-exit-continuation info))))
 
 (defun ert--run-test-internal (test-execution-info)
   "Low-level function to run a test according to TEST-EXECUTION-INFO.
 
 This mainly sets up debugger-related bindings."
-  (setf (ert--test-execution-info-next-debugger test-execution-info) debugger
-        (ert--test-execution-info-ert-debug-on-error test-execution-info)
+  (setf (ert--test-execution-info-ert-debug-on-error test-execution-info)
         ert-debug-on-error)
   (catch 'ert--pass
     ;; For now, each test gets its own temp buffer and its own
@@ -807,26 +788,14 @@ This mainly sets up debugger-related bindings."
     ;; too expensive, we can remove it.
     (with-temp-buffer
       (save-window-excursion
-        ;; FIXME: Use `signal-hook-function' instead of `debugger' to
-        ;; handle ert errors. Once that's done, remove
-        ;; `ert--should-signal-hook'.  See Bug#24402 and Bug#11218 for
-        ;; details.
-        (let ((lexical-binding t)
-              (debugger (lambda (&rest args)
-                          (ert--run-test-debugger test-execution-info
-                                                  args)))
-              (debug-on-error t)
-              ;; Don't infloop if the error being called is erroring
-              ;; out, and we have `debug-on-error' bound to nil inside
-              ;; the test.
-              (backtrace-on-error-noninteractive nil)
-              (debug-on-quit t)
-              ;; FIXME: Do we need to store the old binding of this
-              ;; and consider it in `ert--run-test-debugger'?
-              (debug-ignored-errors nil)
+        (let ((lexical-binding t) ;;FIXME: Why?
               (ert--infos '()))
-          (funcall (ert-test-body (ert--test-execution-info-test
-                                   test-execution-info))))))
+          (letrec ((debugfun (lambda (err)
+                               (ert--run-test-debugger test-execution-info
+                                                       err debugfun))))
+            (handler-bind (((error quit) debugfun))
+              (funcall (ert-test-body (ert--test-execution-info-test
+                                       test-execution-info))))))))
     (ert-pass))
   (setf (ert--test-execution-info-result test-execution-info)
         (make-ert-test-passed))
