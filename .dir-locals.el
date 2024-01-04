@@ -8,6 +8,12 @@
          (vc-git-annotate-switches . "-w")
          (bug-reference-url-format . "https://debbugs.gnu.org/%s")
 	 (diff-add-log-use-relative-names . t)
+         (etags-regen-regexp-alist
+          .
+          ((("c" "objc") .
+            ("/[ \t]*DEFVAR_[A-Z_ \t(]+\"\\([^\"]+\\)\"/\\1/"
+             "/[ \t]*DEFVAR_[A-Z_ \t(]+\"[^\"]+\",[ \t]\\([A-Za-z0-9_]+\\)/\\1/"))))
+         (etags-regen-ignores . ("test/manual/etags/"))
          (vc-prepare-patches-separately . nil)))
  (c-mode . ((c-file-style . "GNU")
             (c-noise-macro-names . ("INLINE" "NO_INLINE" "ATTRIBUTE_NO_SANITIZE_UNDEFINED"
