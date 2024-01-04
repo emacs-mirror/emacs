@@ -4690,7 +4690,7 @@ Argument MIME is non-nil if this is a mime message."
                           (while (search-forward "\r\n" nil t)
                             (delete-region (- (point) 2) (- (point) 1))))))
 		      )))
-          ;; User wants to decrypt the message perenently.
+          ;; User wants to decrypt the message permanently.
           (when (eq major-mode 'rmail-mode)
             (rmail-add-label "decrypt"))
 	  (setq decrypts (nreverse decrypts))
