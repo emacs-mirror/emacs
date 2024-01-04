@@ -171,7 +171,10 @@ buffer.")
 
 ;; Inspired by a mg fork (https://github.com/troglobit/mg)
 (defun help-quick ()
-  "Display a quick-help buffer."
+  "Display a quick-help buffer showing popular commands and their bindings.
+The window showing quick-help can be toggled using \\[help-quick-toggle].
+You can click on a key binding shown in the quick-help buffer to display
+the documentation of the command bound to that key sequence."
   (interactive)
   (with-current-buffer (get-buffer-create "*Quick Help*")
     (let ((inhibit-read-only t) (padding 2) blocks)
@@ -244,10 +247,14 @@ buffer.")
       ;; ... and shrink it immediately.
       (fit-window-to-buffer))
     (message
-     (substitute-command-keys "Toggle the quick help buffer using \\[help-quick-toggle]."))))
+     (substitute-command-keys "Toggle display of quick-help buffer using \\[help-quick-toggle]."))))
 
 (defun help-quick-toggle ()
-  "Toggle the quick-help window."
+  "Toggle display of a window showing popular commands and their bindings.
+This toggles on and off the display of the quick-help buffer, which shows
+popular commands and their bindings as produced by `help-quick'.
+You can click on a key binding shown in the quick-help buffer to display
+the documentation of the command bound to that key sequence."
   (interactive)
   (if (and-let* ((window (get-buffer-window "*Quick Help*")))
         (quit-window t window))
