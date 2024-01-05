@@ -556,7 +556,8 @@ the users will view as each check is completed."
   "Display and update the status buffer for the current checkdoc mode.
 CHECK is a list of four strings stating the current status of each
 test; the nth string describes the status of the nth test."
-  (let (temp-buffer-setup-hook)
+  (let (temp-buffer-setup-hook
+        (temp-buffer-show-hook #'special-mode))
     (with-output-to-temp-buffer "*Checkdoc Status*"
       (mapc #'princ
             (list "Buffer comments and tags:  " (nth 0 check)
