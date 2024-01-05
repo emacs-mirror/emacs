@@ -1041,88 +1041,88 @@ init-file, or to a default value if loading is not possible."
   (let ((inhibit-null-byte-detection t)
         (body
          (lambda ()
-           (condition-case-unless-debug error
-               (when init-file-user
-                 (let ((init-file-name (funcall filename-function)))
+           (when init-file-user
+             (let ((init-file-name (funcall filename-function)))
 
-                   ;; If `user-init-file' is t, then `load' will store
-                   ;; the name of the file that it loads into
-                   ;; `user-init-file'.
-                   (setq user-init-file t)
-	           (when init-file-name
-		     (load (if (equal (file-name-extension init-file-name)
-				      "el")
-			       (file-name-sans-extension init-file-name)
-			     init-file-name)
-			   'noerror 'nomessage))
+               ;; If `user-init-file' is t, then `load' will store
+               ;; the name of the file that it loads into
+               ;; `user-init-file'.
+               (setq user-init-file t)
+	       (when init-file-name
+		 (load (if (equal (file-name-extension init-file-name)
+				  "el")
+			   (file-name-sans-extension init-file-name)
+			 init-file-name)
+		       'noerror 'nomessage))
 
-                   (when (and (eq user-init-file t) alternate-filename-function)
-                     (let ((alt-file (funcall alternate-filename-function)))
-		       (unless init-file-name
-		         (setq init-file-name alt-file))
-		       (and (equal (file-name-extension alt-file) "el")
-		            (setq alt-file (file-name-sans-extension alt-file)))
-		       (load alt-file 'noerror 'nomessage)))
+               (when (and (eq user-init-file t) alternate-filename-function)
+                 (let ((alt-file (funcall alternate-filename-function)))
+		   (unless init-file-name
+		     (setq init-file-name alt-file))
+		   (and (equal (file-name-extension alt-file) "el")
+		        (setq alt-file (file-name-sans-extension alt-file)))
+		   (load alt-file 'noerror 'nomessage)))
 
-                   ;; If we did not find the user's init file, set
-                   ;; user-init-file conclusively.  Don't let it be
-                   ;; set from default.el.
-                   (when (eq user-init-file t)
-                     (setq user-init-file init-file-name)))
+               ;; If we did not find the user's init file, set
+               ;; user-init-file conclusively.  Don't let it be
+               ;; set from default.el.
+               (when (eq user-init-file t)
+                 (setq user-init-file init-file-name)))
 
-                 ;; If we loaded a compiled file, set `user-init-file' to
-                 ;; the source version if that exists.
-                 (if (equal (file-name-extension user-init-file) "elc")
-                     (let* ((source (file-name-sans-extension user-init-file))
-                            (alt (concat source ".el")))
-                       (setq source (cond ((file-exists-p alt) alt)
-                                          ((file-exists-p source) source)
-                                          (t nil)))
-                       (when source
-                         (when (file-newer-than-file-p source user-init-file)
-                           (message "Warning: %s is newer than %s"
-                                    source user-init-file)
-                           (sit-for 1))
-                         (setq user-init-file source)))
-                   ;; Else, perhaps the user init file was compiled
-                   (when (and (equal (file-name-extension user-init-file) "eln")
-                              ;; The next test is for builds without native
-                              ;; compilation support or builds with unexec.
-                              (boundp 'comp-eln-to-el-h))
-                     (if-let (source (gethash (file-name-nondirectory
-                                               user-init-file)
-                                              comp-eln-to-el-h))
-                         ;; source exists or the .eln file would not load
-                         (setq user-init-file source)
-                       (message "Warning: unknown source file for init file %S"
-                                user-init-file)
-                       (sit-for 1))))
+             ;; If we loaded a compiled file, set `user-init-file' to
+             ;; the source version if that exists.
+             (if (equal (file-name-extension user-init-file) "elc")
+                 (let* ((source (file-name-sans-extension user-init-file))
+                        (alt (concat source ".el")))
+                   (setq source (cond ((file-exists-p alt) alt)
+                                      ((file-exists-p source) source)
+                                      (t nil)))
+                   (when source
+                     (when (file-newer-than-file-p source user-init-file)
+                       (message "Warning: %s is newer than %s"
+                                source user-init-file)
+                       (sit-for 1))
+                     (setq user-init-file source)))
+               ;; Else, perhaps the user init file was compiled
+               (when (and (equal (file-name-extension user-init-file) "eln")
+                          ;; The next test is for builds without native
+                          ;; compilation support or builds with unexec.
+                          (boundp 'comp-eln-to-el-h))
+                 (if-let (source (gethash (file-name-nondirectory
+                                           user-init-file)
+                                          comp-eln-to-el-h))
+                     ;; source exists or the .eln file would not load
+                     (setq user-init-file source)
+                   (message "Warning: unknown source file for init file %S"
+                            user-init-file)
+                   (sit-for 1))))
 
-                 (when (and load-defaults
-                            (not inhibit-default-init))
-                   ;; Prevent default.el from changing the value of
-                   ;; `inhibit-startup-screen'.
-                   (let ((inhibit-startup-screen nil))
-                     (load "default" 'noerror 'nomessage))))
-             (error
-              (display-warning
-               'initialization
-               (format-message "\
+             (when (and load-defaults
+                        (not inhibit-default-init))
+               ;; Prevent default.el from changing the value of
+               ;; `inhibit-startup-screen'.
+               (let ((inhibit-startup-screen nil))
+                 (load "default" 'noerror 'nomessage)))))))
+    (if (eq init-file-debug t)
+        (handler-bind ((error #'startup--debug))
+          (funcall body))
+      (condition-case-unless-debug error
+          (funcall body)
+        (error
+         (display-warning
+          'initialization
+          (format-message "\
 An error occurred while loading `%s':\n\n%s%s%s\n\n\
 To ensure normal operation, you should investigate and remove the
 cause of the error in your initialization file.  Start Emacs with
 the `--debug-init' option to view a complete error backtrace."
-                               user-init-file
-                               (get (car error) 'error-message)
-                               (if (cdr error) ": " "")
-                               (mapconcat (lambda (s) (prin1-to-string s t))
-                                          (cdr error) ", "))
-               :warning)
-              (setq init-file-had-error t))))))
-    (if (eq init-file-debug t)
-        (handler-bind ((error #'startup--debug))
-          (funcall body))
-      (funcall body))))
+                          user-init-file
+                          (get (car error) 'error-message)
+                          (if (cdr error) ": " "")
+                          (mapconcat (lambda (s) (prin1-to-string s t))
+                                     (cdr error) ", "))
+          :warning)
+         (setq init-file-had-error t))))))
 
 (defvar lisp-directory nil
   "Directory where Emacs's own *.el and *.elc Lisp files are installed.")
