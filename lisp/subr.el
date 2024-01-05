@@ -2737,6 +2737,8 @@ By default we choose the head of the first list."
 
 (defun derived-mode-all-parents (mode &optional known-children)
   "Return all the parents of MODE, starting with MODE.
+This includes the parents set by `define-derived-mode' and additional
+ones set by `derived-mode-add-parents'.
 The returned list is not fresh, don't modify it.
 \n(fn MODE)"               ;`known-children' is for internal use only.
   ;; Can't use `with-memoization' :-(
@@ -2785,7 +2787,9 @@ The returned list is not fresh, don't modify it.
 (defun provided-mode-derived-p (mode &optional modes &rest old-modes)
   "Non-nil if MODE is derived from a mode that is a member of the list MODES.
 MODES can also be a single mode instead of a list.
-If you just want to check `major-mode', use `derived-mode-p'.
+This examines the parent modes set by `define-derived-mode' and also
+additional ones set by `derived-mode-add-parents'.
+If you just want to check the current `major-mode', use `derived-mode-p'.
 We also still support the deprecated calling convention:
 \(provided-mode-derived-p MODE &rest MODES)."
   (declare (side-effect-free t)
@@ -2799,8 +2803,10 @@ We also still support the deprecated calling convention:
     (car modes)))
 
 (defun derived-mode-p (&optional modes &rest old-modes)
- "Non-nil if the current major mode is derived from one of MODES.
+ "Return non-nil if the current major mode is derived from one of MODES.
 MODES should be a list of symbols or a single mode symbol instead of a list.
+This examines the parent modes set by `define-derived-mode' and also
+additional ones set by `derived-mode-add-parents'.
 We also still support the deprecated calling convention:
 \(derived-mode-p &rest MODES)."
  (declare (side-effect-free t)
@@ -2820,7 +2826,8 @@ We also still support the deprecated calling convention:
 (defun derived-mode-add-parents (mode extra-parents)
   "Add EXTRA-PARENTS to the parents of MODE.
 Declares the parents of MODE to be its main parent (as defined
-in `define-derived-mode') plus EXTRA-PARENTS."
+in `define-derived-mode') plus EXTRA-PARENTS, which should be a list
+of symbols."
   (put mode 'derived-mode-extra-parents extra-parents)
   (derived-mode--flush mode))
 

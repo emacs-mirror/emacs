@@ -809,6 +809,7 @@ modes, rather than those of the current buffer.
 @node Derived Modes
 @subsection Defining Derived Modes
 @cindex derived mode
+@cindex parent mode
 
   The recommended way to define a new major mode is to derive it from an
 existing one using @code{define-derived-mode}.  If there is no closely
@@ -866,6 +867,9 @@ also a special mode (@pxref{Major Mode Conventions}).
 You can also specify @code{nil} for @var{parent}.  This gives the new
 mode no parent.  Then @code{define-derived-mode} behaves as described
 above, but, of course, omits all actions connected with @var{parent}.
+Conversely, you can use @code{derived-mode-set-parent} and
+@code{derived-mode-add-parents}, described below, to explicitly set
+the ancestry of the new mode.
 
 The argument @var{docstring} specifies the documentation string for the
 new mode.  @code{define-derived-mode} adds some general information
@@ -932,6 +936,7 @@ Do not write an @code{interactive} spec in the definition;
 @code{define-derived-mode} does that automatically.
 @end defmac
 
+@cindex ancestry, of major modes
 @defun derived-mode-p modes
 This function returns non-@code{nil} if the current major mode is
 derived from any of the major modes given by the list of symbols
@@ -940,10 +945,28 @@ Instead of a list, @var{modes} can also be a single mode symbol.
 
 Furthermore, we still support a deprecated calling convention where the
 @var{modes} were passed as separate arguments.
+
+When examining the parent modes of the current major mode, this
+function takes into consideration the current mode's parents set by
+@code{define-derived-mode}, and also its additional parents set by
+@code{derived-mode-add-parents}, described below.
 @end defun
 
-The graph of major modes is accessed with the following lower-level
-functions:
+@defun provided-mode-derived-p mode modes
+This function returns non-@code{nil} if @var{mode} is derived from any
+of the major modes given by the list of symbols in @var{modes}.  Like
+with @code{derived-mode-p}, @var{modes} can also be a single symbol,
+and this function also supports a deprecated calling convention where
+the @var{modes} were passed as separate symbol arguments.
+
+When examining the parent modes of @var{mode}, this function takes
+into consideration the parents of @var{mode} set by
+@code{define-derived-mode}, and also its additional parents set by
+@code{derived-mode-add-parents}, described below.
+@end defun
+
+The graph of a major mode's ancestry can be accessed and modified with
+the following lower-level functions:
 
 @defun derived-mode-set-parent mode parent
 This function declares that @var{mode} inherits from @code{parent}.
@@ -956,14 +979,19 @@ by reusing @code{parent}.
 This function makes it possible to register additional parents beside
 the one that was used when defining @var{mode}.  This can be used when
 the similarity between @var{mode} and the modes in @var{extra-parents}
-is such that it makes sense to treat it as a child of those
-modes for purposes like applying directory-local variables.
+is such that it makes sense to treat @var{mode} as a child of those
+modes for purposes like applying directory-local variables and other
+mode-specific settings.  The additional parent modes are specified as
+a list of symbols in @var{extra-parents}.  Those additional parent
+modes will be considered as one of the @var{mode}s parents by
+@code{derived-mode-p} and @code{provided-mode-derived-p}.
 @end defun
 
 @defun derived-mode-all-parents mode
 This function returns the list of all the modes in the ancestry of
 @var{mode}, ordered from the most specific to the least specific, and
-starting with @var{mode} itself.
+starting with @var{mode} itself.  This includes the additional parent
+modes, if any, added by calling @code{derived-mode-add-parents}.
 @end defun
 
 
