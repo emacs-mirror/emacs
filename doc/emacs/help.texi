@@ -363,14 +363,6 @@ completions to only include symbols with a given property by typing
 @xref{Narrow Completions}, and @ref{Symbol Properties,,,elisp,The
 Emacs Lisp Reference Manual}.
 
-@vindex completions-detailed
-  If the @code{completions-detailed} user option is non-@code{nil},
-some commands provide details about the possible values when
-displaying completions.  For instance, @kbd{C-h o TAB} will then
-include the first line of the doc string, and will also say whether
-each symbol is a function or a variable (and so on).  Which details
-are included varies depending on the command used.
-
 @node Apropos
 @section Apropos
 @cindex apropos

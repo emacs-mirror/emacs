@@ -3629,11 +3629,47 @@ same as `substitute-in-file-name'."
           (completion-table-with-context
            prefix table (substring string beg) nil action)))))))
 
+(defun completion-file-name-affixation (files)
+  "Return completion affixations for file list FILES."
+  (let ((max-file (seq-max (mapcar #'string-width files))))
+    (mapcar
+     (lambda (file)
+       (list
+        file
+        ""                              ; empty prefix
+        (if-let ((attrs
+                  (ignore-errors
+                    (file-attributes
+                     (substitute-in-file-name
+                      (concat minibuffer-completion-base file))
+                     'string))))
+            (propertize
+             (concat (propertize " " 'display
+                                 `(space :align-to ,(+ max-file 2)))
+                     (file-attribute-modes attrs)
+                     " "
+                     (format "%8s" (file-size-human-readable
+                                    (file-attribute-size attrs)))
+                     "   "
+                     (format-time-string
+                      "%Y-%m-%d %T" (file-attribute-modification-time attrs))
+                     "   "
+                     (file-attribute-user-id attrs)
+                     ":"
+                     (file-attribute-group-id attrs))
+             'face 'completions-annotations)
+          "")))
+     files)))
+
 (defun completion-file-name-table (string pred action)
   "Completion table for file names."
   (condition-case nil
       (cond
-       ((eq action 'metadata) '(metadata (category . file)))
+       ((eq action 'metadata)
+        `(metadata
+          (category . file)
+          ,@(when completions-detailed
+              '((affixation-function . completion-file-name-affixation)))))
        ((string-match-p "\\`~[^/\\]*\\'" string)
         (completion-table-with-context "~"
                                        (mapcar (lambda (u) (concat u "/"))

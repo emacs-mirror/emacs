@@ -996,6 +996,17 @@ face.  The default value of this variable is
 highlighting.  This feature uses the special text property
 @code{cursor-face}.
 
+@vindex completions-detailed
+If the @code{completions-detailed} user option is non-@code{nil}, some
+commands that provide completion display extra details as annotations
+next to completion candidates in the @file{*Completions*} buffer.
+Which details are included varies between different commands.  For
+instance, the completions list for @kbd{C-h o} (@pxref{Name Help})
+includes the first line of the doc string of each symbol, and says
+whether each symbol is a function or a variable (and so on).  For file
+name completion, the extra details annotations include file modes,
+sizes, modification times and ownership information.
+
 @node Minibuffer History
 @section Minibuffer History
 @cindex minibuffer history

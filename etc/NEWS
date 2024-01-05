@@ -837,6 +837,12 @@ which you can use to customize completion behavior via
 and you can now customize the face 'completions-heading' to control
 its appearance.
 
++++
+*** File name completions can now provide detailed candidate annotations.
+With non-nil user option 'completions-detailed', Emacs now displays
+extra details about file name completion candidates in the
+"*Completions*" buffer as completion annotations.
+
 ** Pcomplete
 
 ---
