@@ -417,7 +417,7 @@ been denied.  Click "
          :link '("here" android-display-storage-permission-popup)
          " to grant them.")
       (insert
-       "Permissions necessary to access external storage directories have been
+       "\nPermissions necessary to access external storage directories have been
 denied.  ")
       (insert-button "Click here to grant them."
                      'action #'android-display-storage-permission-popup
