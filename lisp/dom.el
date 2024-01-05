@@ -288,7 +288,7 @@ If XML, generate XML instead of HTML."
 	(insert ">")
         (dolist (child children)
 	  (if (stringp child)
-	      (insert child)
+	      (insert (url-insert-entities-in-string child))
 	    (setq non-text t)
 	    (when pretty
               (insert "\n" (make-string (+ column 2) ?\s)))
