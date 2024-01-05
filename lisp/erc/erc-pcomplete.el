@@ -58,7 +58,9 @@ add this string to nicks completed."
 
 ;;;###autoload(put 'Completion 'erc--module 'completion)
 ;;;###autoload(put 'pcomplete 'erc--module 'completion)
+;;;###autoload(put 'completion 'erc--feature 'erc-pcomplete)
 ;;;###autoload(autoload 'erc-completion-mode "erc-pcomplete" nil t)
+(put 'completion 'erc-group 'erc-pcomplete)
 (define-erc-module pcomplete Completion
   "In ERC Completion mode, the TAB key does completion whenever possible."
   ((add-hook 'erc-mode-hook #'pcomplete-erc-setup)

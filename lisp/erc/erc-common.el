@@ -333,6 +333,7 @@ instead of a `set' state, which precludes any actual saving."
     (read (current-buffer))))
 
 (defmacro erc--find-feature (name alias)
+  ;; Don't use this outside of the file that defines NAME.
   `(pcase (erc--find-group ',name ,(and alias (list 'quote alias)))
      ('erc (and-let* ((file (or (macroexp-file-name) buffer-file-name)))
              (intern (file-name-base file))))
@@ -350,8 +351,12 @@ See Info node `(elisp) Defining Minor Modes' for more.")
 (defmacro define-erc-module (name alias doc enable-body disable-body
                                   &optional local-p)
   "Define a new minor mode using ERC conventions.
-Symbol NAME is the name of the module.
-Symbol ALIAS is the alias to use, or nil.
+Expect NAME to be the module's name and ALIAS, when non-nil, to
+be a retired name used only for compatibility purposes.  In new
+code, assume NAME is the same symbol users should specify when
+customizing `erc-modules' (see info node `(erc) Module Loading'
+for more on naming).
+
 DOC is the documentation string to use for the minor mode.
 ENABLE-BODY is a list of expressions used to enable the mode.
 DISABLE-BODY is a list of expressions used to disable the mode.
@@ -382,7 +387,10 @@ Example:
   (let* ((sn (symbol-name name))
          (mode (intern (format "erc-%s-mode" (downcase sn))))
          (enable (intern (format "erc-%s-enable" (downcase sn))))
-         (disable (intern (format "erc-%s-disable" (downcase sn)))))
+         (disable (intern (format "erc-%s-disable" (downcase sn))))
+         (nmodule (erc--normalize-module-symbol name))
+         (amod (and alias (intern (format "erc-%s-mode"
+                                          (downcase (symbol-name alias)))))))
     `(progn
        (define-minor-mode
          ,mode
@@ -399,13 +407,9 @@ if ARG is omitted or nil.
            (if ,mode (,enable) (,disable))))
        ,(erc--assemble-toggle local-p name enable mode t enable-body)
        ,(erc--assemble-toggle local-p name disable mode nil disable-body)
-       ,@(and-let* ((alias)
-                    ((not (eq name alias)))
-                    (aname (intern (format "erc-%s-mode"
-                                           (downcase (symbol-name alias))))))
-           `((defalias ',aname #',mode)
-             (put ',aname 'erc-module ',(erc--normalize-module-symbol name))))
-       (put ',mode 'erc-module ',(erc--normalize-module-symbol name))
+       ,@(and amod `((defalias ',amod #',mode)
+                     (put ',amod 'erc-module ',nmodule)))
+       (put ',mode 'erc-module ',nmodule)
        ;; For find-function and find-variable.
        (put ',mode    'definition-name ',name)
        (put ',enable  'definition-name ',name)
@@ -462,10 +466,9 @@ If no server buffer exists, return nil."
              ,@body)))))
 
 (defmacro erc-with-all-buffers-of-server (process pred &rest forms)
-  "Execute FORMS in all buffers which have same process as this server.
-FORMS will be evaluated in all buffers having the process PROCESS and
-where PRED matches or in all buffers of the server process if PRED is
-nil."
+  "Evaluate FORMS in all buffers of PROCESS in which PRED returns non-nil.
+When PROCESS is nil, do so in all ERC buffers.  When PRED is nil,
+run FORMS unconditionally."
   (declare (indent 2) (debug (form form body)))
   (macroexp-let2 nil pred pred
     `(erc-buffer-filter (lambda ()

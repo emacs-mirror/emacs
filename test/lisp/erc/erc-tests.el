@@ -3186,6 +3186,7 @@
   (should (eq (erc--find-group 'autojoin) 'erc-autojoin))
   (should (eq (erc--find-group 'pcomplete 'Completion) 'erc-pcomplete))
   (should (eq (erc--find-group 'capab-identify) 'erc-capab))
+  (should (eq (erc--find-group 'completion) 'erc-pcomplete))
   ;; No group specified.
   (should (eq (erc--find-group 'smiley nil) 'erc))
   (should (eq (erc--find-group 'unmorse nil) 'erc)))

@@ -678,6 +678,14 @@ signals an error.  Users defining personal modules in an init file
 should @code{(provide 'erc-my-module)} somewhere to placate ERC.
 Dynamically generating modules on the fly is not supported.
 
+Some older built-in modules have a second name along with a second
+minor-mode toggle, which is just a function alias for its primary
+counterpart.  For practical reasons, ERC does not define a
+corresponding variable alias because contending with indirect
+variables complicates bookkeeping tasks, such as persisting module
+state across IRC sessions.  New modules should definitely avoid
+defining aliases without a good reason.
+
 Some packages have been known to autoload a module's definition
 instead of its minor-mode command, which severs the link between the
 library and the module.  This means that enabling the mode by invoking
