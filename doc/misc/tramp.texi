@@ -321,7 +321,7 @@ behind the scenes when you open a file with @value{tramp}.
 @cindex GNU ELPA
 @vindex tramp-version
 
-@value{tramp} is included as part of Emacs (since @w{Emacs 22.1}).
+@value{tramp} is included as part of Emacs.
 
 @value{tramp} is also freely packaged for download on the Internet at
 @uref{https://ftp.gnu.org/gnu/tramp/}.  The version number of
@@ -343,10 +343,12 @@ versions packaged with Emacs can be retrieved by
 @end lisp
 
 @value{tramp} is also available as @uref{https://elpa.gnu.org, GNU
-ELPA} package.  Besides the standalone releases, further minor versions
-of @value{tramp} will appear on GNU ELPA, until the next @value{tramp}
-release appears.  These minor versions have a four-number string, like
-``2.4.5.1''.
+ELPA} package.  Besides the standalone releases, further minor
+versions of @value{tramp} will appear on GNU ELPA, until the next
+@value{tramp} release appears.  These minor versions have a
+four-number string, like ``2.4.5.1''.  The manual of the latest
+@value{tramp} ELPA package is located at
+@uref{https://elpa.gnu.org/packages/doc/tramp.html}.
 
 @value{tramp} development versions are available on Git servers.
 Development versions contain new and incomplete features.  The
