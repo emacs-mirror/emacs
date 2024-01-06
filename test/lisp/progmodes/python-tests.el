@@ -474,6 +474,28 @@ def f(x: CustomInt) -> CustomInt:
      (136 . font-lock-operator-face) (137)
      (144 . font-lock-keyword-face) (150))))
 
+(ert-deftest python-font-lock-operator-1 ()
+  (python-tests-assert-faces
+   "1 << 2 ** 3 == +4%-5|~6&7^8%9"
+   '((1)
+     (3 . font-lock-operator-face) (5)
+     (8 . font-lock-operator-face) (10)
+     (13 . font-lock-operator-face) (15)
+     (16 . font-lock-operator-face) (17)
+     (18 . font-lock-operator-face) (20)
+     (21 . font-lock-operator-face) (23)
+     (24 . font-lock-operator-face) (25)
+     (26 . font-lock-operator-face) (27)
+     (28 . font-lock-operator-face) (29))))
+
+(ert-deftest python-font-lock-operator-2 ()
+  "Keyword operators are font-locked as keywords."
+  (python-tests-assert-faces
+   "is_ is None"
+   '((1)
+     (5 . font-lock-keyword-face) (7)
+     (8 . font-lock-constant-face))))
+
 (ert-deftest python-font-lock-escape-sequence-string-newline ()
   (python-tests-assert-faces
    "'\\n'
@@ -585,62 +607,58 @@ u\"\\n\""
      (845 . font-lock-string-face) (886))))
 
 (ert-deftest python-font-lock-escape-sequence-bytes-newline ()
-  :expected-result :failed
   (python-tests-assert-faces
    "b'\\n'
 b\"\\n\""
    '((1)
-     (2 . font-lock-doc-face)
+     (2 . font-lock-string-face)
      (3 . font-lock-constant-face)
-     (5 . font-lock-doc-face) (6)
-     (8 . font-lock-doc-face)
+     (5 . font-lock-string-face) (6)
+     (8 . font-lock-string-face)
      (9 . font-lock-constant-face)
-     (11 . font-lock-doc-face))))
+     (11 . font-lock-string-face))))
 
 (ert-deftest python-font-lock-escape-sequence-hex-octal ()
-  :expected-result :failed
   (python-tests-assert-faces
    "b'\\x12 \\777 \\1\\23'
 '\\x12 \\777 \\1\\23'"
    '((1)
-     (2 . font-lock-doc-face)
+     (2 . font-lock-string-face)
      (3 . font-lock-constant-face)
-     (7 . font-lock-doc-face)
+     (7 . font-lock-string-face)
      (8 . font-lock-constant-face)
-     (12 . font-lock-doc-face)
+     (12 . font-lock-string-face)
      (13 . font-lock-constant-face)
-     (18 . font-lock-doc-face) (19)
-     (20 . font-lock-doc-face)
+     (18 . font-lock-string-face) (19)
+     (20 . font-lock-string-face)
      (21 . font-lock-constant-face)
-     (25 . font-lock-doc-face)
+     (25 . font-lock-string-face)
      (26 . font-lock-constant-face)
-     (30 . font-lock-doc-face)
+     (30 . font-lock-string-face)
      (31 . font-lock-constant-face)
-     (36 . font-lock-doc-face))))
+     (36 . font-lock-string-face))))
 
 (ert-deftest python-font-lock-escape-sequence-unicode ()
-  :expected-result :failed
   (python-tests-assert-faces
    "b'\\u1234 \\U00010348 \\N{Plus-Minus Sign}'
 '\\u1234 \\U00010348 \\N{Plus-Minus Sign}'"
    '((1)
-     (2 . font-lock-doc-face) (41)
-     (42 . font-lock-doc-face)
+     (2 . font-lock-string-face) (41)
+     (42 . font-lock-string-face)
      (43 . font-lock-constant-face)
-     (49 . font-lock-doc-face)
+     (49 . font-lock-string-face)
      (50 . font-lock-constant-face)
-     (60 . font-lock-doc-face)
+     (60 . font-lock-string-face)
      (61 . font-lock-constant-face)
-     (80 . font-lock-doc-face))))
+     (80 . font-lock-string-face))))
 
 (ert-deftest python-font-lock-raw-escape-sequence ()
-  :expected-result :failed
   (python-tests-assert-faces
    "rb'\\x12 \123 \\n'
 r'\\x12 \123 \\n \\u1234 \\U00010348 \\N{Plus-Minus Sign}'"
    '((1)
-     (3 . font-lock-doc-face) (14)
-     (16 . font-lock-doc-face))))
+     (3 . font-lock-string-face) (14)
+     (16 . font-lock-string-face))))
 
 
 ;;; Indentation
@@ -6645,6 +6663,15 @@ class Class:
    (python-tests-look-at "Not a docstring")
    (should-not (python-info-docstring-p))
    (python-tests-look-at "Also not a docstring")
+   (should-not (python-info-docstring-p))))
+
+(ert-deftest python-info-docstring-p-8 ()
+  "Test string in the 2nd line of a buffer."
+  (python-tests-with-temp-buffer
+   "import sys
+'''Not a docstring.'''
+"
+   (python-tests-look-at "Not a docstring")
    (should-not (python-info-docstring-p))))
 
 (ert-deftest python-info-triple-quoted-string-p-1 ()
