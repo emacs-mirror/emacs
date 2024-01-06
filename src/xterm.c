@@ -1569,19 +1569,19 @@ typedef enum xm_byte_order
 #define SWAPCARD32(l)				\
   {						\
     struct { unsigned t : 32; } bit32;		\
-    char *tp = (char *) &bit32;			\
+    char n, *tp = (char *) &bit32;		\
     bit32.t = l;				\
-    swap (tp[0], tp[3]);			\
-    swap (tp[1], tp[2]);			\
+    n = tp[0]; tp[0] = tp[3]; tp[3] = n;	\
+    n = tp[1]; tp[1] = tp[2]; tp[2] = n;	\
     l = bit32.t;				\
   }
 
 #define SWAPCARD16(s)				\
   {						\
     struct { unsigned t : 16; } bit16;		\
-    char *tp = (char *) &bit16;			\
+    char n, *tp = (char *) &bit16;		\
     bit16.t = s;				\
-    swap (tp[0], tp[1]);			\
+    n = tp[0]; tp[0] = tp[1]; tp[1] = n;	\
     s = bit16.t;				\
   }
 

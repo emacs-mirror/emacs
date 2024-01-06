@@ -1357,7 +1357,12 @@ load_face_colors (struct frame *f, struct face *face,
 
   /* Swap colors if face is inverse-video.  */
   if (EQ (attrs[LFACE_INVERSE_INDEX], Qt))
-    swap (fg, bg);
+    {
+      Lisp_Object tmp;
+      tmp = fg;
+      fg = bg;
+      bg = tmp;
+    }
 
   /* Check for support for foreground, not for background because
      face_color_supported_p is smart enough to know that grays are

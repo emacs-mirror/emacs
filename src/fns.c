@@ -5674,7 +5674,11 @@ extract_data_from_object (Lisp_Object spec,
       b = !NILP (start) ? fix_position (start) : BEGV;
       e = !NILP (end) ? fix_position (end) : ZV;
       if (b > e)
-	swap (b, e);
+	{
+	  EMACS_INT temp = b;
+	  b = e;
+	  e = temp;
+	}
 
       if (!(BEGV <= b && e <= ZV))
 	args_out_of_range (start, end);

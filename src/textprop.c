@@ -142,7 +142,12 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin,
     return NULL;
 
   if (XFIXNUM (*begin) > XFIXNUM (*end))
-    swap (*begin, *end);
+    {
+      Lisp_Object n;
+      n = *begin;
+      *begin = *end;
+      *end = n;
+    }
 
   if (BUFFERP (object))
     {
@@ -2196,7 +2201,11 @@ verify_interval_modification (struct buffer *buf,
     return;
 
   if (start > end)
-    swap (start, end);
+    {
+      ptrdiff_t temp = start;
+      start = end;
+      end = temp;
+    }
 
   /* For an insert operation, check the two chars around the position.  */
   if (start == end)

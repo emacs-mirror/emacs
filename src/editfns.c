@@ -1739,7 +1739,7 @@ versa, strings are converted from unibyte to multibyte or vice versa
 using `string-make-multibyte' or `string-make-unibyte', which see.  */)
   (Lisp_Object buffer, Lisp_Object start, Lisp_Object end)
 {
-  register EMACS_INT b, e;
+  register EMACS_INT b, e, temp;
   register struct buffer *bp, *obuf;
   Lisp_Object buf;
 
@@ -1753,7 +1753,7 @@ using `string-make-multibyte' or `string-make-unibyte', which see.  */)
   b = !NILP (start) ? fix_position (start) : BUF_BEGV (bp);
   e = !NILP (end) ? fix_position (end) : BUF_ZV (bp);
   if (b > e)
-    swap (b, e);
+    temp = b, b = e, e = temp;
 
   if (!(BUF_BEGV (bp) <= b && e <= BUF_ZV (bp)))
     args_out_of_range (start, end);
@@ -1782,7 +1782,7 @@ The value of `case-fold-search' in the current buffer
 determines whether case is significant or ignored.  */)
   (Lisp_Object buffer1, Lisp_Object start1, Lisp_Object end1, Lisp_Object buffer2, Lisp_Object start2, Lisp_Object end2)
 {
-  register EMACS_INT begp1, endp1, begp2, endp2;
+  register EMACS_INT begp1, endp1, begp2, endp2, temp;
   register struct buffer *bp1, *bp2;
   register Lisp_Object trt
     = (!NILP (Vcase_fold_search)
@@ -1808,7 +1808,7 @@ determines whether case is significant or ignored.  */)
   begp1 = !NILP (start1) ? fix_position (start1) : BUF_BEGV (bp1);
   endp1 = !NILP (end1) ? fix_position (end1) : BUF_ZV (bp1);
   if (begp1 > endp1)
-    swap (begp1, endp1);
+    temp = begp1, begp1 = endp1, endp1 = temp;
 
   if (!(BUF_BEGV (bp1) <= begp1
 	&& begp1 <= endp1
@@ -1833,7 +1833,7 @@ determines whether case is significant or ignored.  */)
   begp2 = !NILP (start2) ? fix_position (start2) : BUF_BEGV (bp2);
   endp2 = !NILP (end2) ? fix_position (end2) : BUF_ZV (bp2);
   if (begp2 > endp2)
-    swap (begp2, endp2);
+    temp = begp2, begp2 = endp2, endp2 = temp;
 
   if (!(BUF_BEGV (bp2) <= begp2
 	&& begp2 <= endp2

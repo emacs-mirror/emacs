@@ -2794,9 +2794,12 @@ usage: (run-hook-with-args-until-failure HOOK &rest ARGS)  */)
 static Lisp_Object
 run_hook_wrapped_funcall (ptrdiff_t nargs, Lisp_Object *args)
 {
-  swap (args[0], args[1]);
-  Lisp_Object ret = Ffuncall (nargs, args);
-  swap (args[1], args[0]);
+  Lisp_Object tmp = args[0], ret;
+  args[0] = args[1];
+  args[1] = tmp;
+  ret = Ffuncall (nargs, args);
+  args[1] = args[0];
+  args[0] = tmp;
   return ret;
 }
 

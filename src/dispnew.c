@@ -649,7 +649,14 @@ reverse_rows (struct glyph_matrix *matrix, int start, int end)
   int i, j;
 
   for (i = start, j = end - 1; i < j; ++i, --j)
-    swap (matrix->rows[i], matrix->rows[j]);
+    {
+      /* Non-ISO HP/UX compiler doesn't like auto struct
+	 initialization.  */
+      struct glyph_row temp;
+      temp = matrix->rows[i];
+      matrix->rows[i] = matrix->rows[j];
+      matrix->rows[j] = temp;
+    }
 }
 
 
@@ -959,7 +966,9 @@ increment_row_positions (struct glyph_row *row,
 static void
 swap_glyphs_in_rows (struct glyph_row *a, struct glyph_row *b)
 {
-  for (int area = 0; area < LAST_AREA; ++area)
+  int area;
+
+  for (area = 0; area < LAST_AREA; ++area)
     {
       /* Number of glyphs to swap.  */
       int max_used = max (a->used[area], b->used[area]);
@@ -975,7 +984,12 @@ swap_glyphs_in_rows (struct glyph_row *a, struct glyph_row *b)
 
       while (glyph_a < glyph_a_end)
 	{
-	  swap (*glyph_a, *glyph_b);
+	  /* Non-ISO HP/UX compiler doesn't like auto struct
+             initialization.  */
+	  struct glyph temp;
+	  temp = *glyph_a;
+	  *glyph_a = *glyph_b;
+	  *glyph_b = temp;
 	  ++glyph_a;
 	  ++glyph_b;
 	}

@@ -67,10 +67,6 @@ INLINE_HEADER_BEGIN
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-/* Swap values of a and b.  */
-#define swap(a, b) \
-  do { typeof (a) __tmp; __tmp = (a); (a) = (b); (b) = __tmp; } while (0);
-
 /* Number of elements in an array.  */
 #define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
 
