@@ -1048,13 +1048,19 @@ acceptable.
 @section Authenticating via SASL
 @cindex SASL
 
-Regardless of the mechanism or the network, you'll likely have to be
-registered before first use.  Please refer to the network's own
+If you've used @acronym{SASL} elsewhere, you can probably skip to the
+examples below.  Otherwise, if you haven't already registered with
+your network, please do so now, referring to the network's own
 instructions for details.  If you're new to IRC and using a bouncer,
-know that you probably won't be needing SASL for the client-to-bouncer
-connection.  To get started, just add @code{sasl} to
-@code{erc-modules} like any other module.  But before that, please
-explore all custom options pertaining to your chosen mechanism.
+know that you probably won't be needing this for the client-to-bouncer
+connection.
+
+When you're ready to get started, add @code{sasl} to
+@code{erc-modules}, like you would any other module.  If unsure which
+@dfn{mechanism} to choose, stick with the default of @samp{PLAIN}.
+Then try @kbd{C-u M-x erc-tls @key{RET}}, and give your account name
+for the @samp{user} parameter and your account password for the
+@samp{server password}.
 
 @defopt erc-sasl-mechanism
 The name of an SASL subprotocol type as a @emph{lowercase} symbol.
