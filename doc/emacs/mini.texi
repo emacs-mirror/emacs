@@ -108,6 +108,12 @@ for information about the default directory.
   Alternative defaults for the file name you may want are available by
 typing @kbd{M-n}, see @ref{Minibuffer History}.
 
+  While typing a file name in the minibuffer, you can use completion to
+insert the name of an existing file that matches your current input.
+@xref{Completion}.  You can sort the completion candidates in different
+ways, including sorting by last modified time, by typing @kbd{C-x C-v}
+in the minibuffer.  @xref{Sort Completions}.
+
   You can specify a file in the parent directory with @file{..}:
 @file{/a/b/../foo.el} is equivalent to @file{/a/foo.el}.
 Alternatively, you can use @kbd{M-@key{DEL}} to kill directory names
@@ -135,7 +141,7 @@ second slash in the pair.  In the example above,
 the terminal allows it.  (To disable this dimming, turn off File Name
 Shadow mode with the command @w{@kbd{M-x file-name-shadow-mode}}.)
 
-  When completing remote file names (@pxref{Remote Files}), a double
+  When entering remote file names (@pxref{Remote Files}), a double
 slash behaves slightly differently: it causes Emacs to ignore only the
 file-name part, leaving the rest (method, host and username, etc.)
 intact.  Typing three slashes in a row ignores everything in remote
@@ -170,9 +176,6 @@ file names, change the variable @code{insert-default-directory} to
 @code{nil}.  In that case, the minibuffer starts out empty.
 Nonetheless, relative file name arguments are still interpreted based
 on the same default directory.
-
-  You can also enter remote file names in the minibuffer.
-@xref{Remote Files}.
 
 @node Minibuffer Edit
 @section Editing in the Minibuffer
@@ -455,7 +458,7 @@ minibuffer history, and no sorting at all.  Some commands that use
 minibuffer completion also provide additional sorting options that are
 specifically useful with their completion candidates.  For example,
 during file name completion, as in @kbd{C-x C-f} (@pxref{Visiting}),
-you can use @key{C-x C-v} to sort candidate file names chronologically
+you can use @kbd{C-x C-v} to sort candidate file names chronologically
 by their last modified time.
 
 @kindex C-x n n @r{(completion)}
