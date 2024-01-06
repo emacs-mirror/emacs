@@ -7826,7 +7826,11 @@ means no margin.
 
 Leave margins unchanged if WINDOW is not large enough to accommodate
 margins of the desired width.  Return t if any margin was actually
-changed and nil otherwise.  */)
+changed and nil otherwise.
+
+The margins specified by calling this function may be later overridden
+by invoking `set-window-buffer' for the same WINDOW, with its
+KEEP-MARGINS argument nil or omitted.  */)
   (Lisp_Object window, Lisp_Object left_width, Lisp_Object right_width)
 {
   struct window *w = set_window_margins (decode_live_window (window),

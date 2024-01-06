@@ -115,6 +115,9 @@ Display a list of commands whose names match @var{topics}
 Display all active key bindings; minor mode bindings first, then those
 of the major mode, then global bindings (@code{describe-bindings}).
 @xref{Misc Help}.
+@item C-h C-q
+Toggle display of a window showing popular commands and their key
+bindings.  @xref{Misc Help}.
 @item C-h c @var{key}
 Show the name of the command that the key sequence @var{key} is bound
 to (@code{describe-key-briefly}).  Here @kbd{c} stands for
@@ -709,6 +712,18 @@ finally the global bindings (@pxref{Key Bindings}).  @kbd{C-h s}
 displays the contents of the syntax table, with explanations of each
 character's syntax (@pxref{Syntax Tables,, Syntax Tables, elisp, The
 Emacs Lisp Reference Manual}).
+
+@kindex C-h C-q
+@findex help-quick-toggle
+@findex help-quick
+@cindex cheat sheet of popular Emacs commands
+  @kbd{C-h C-q} (@code{help-quick-toggle}) toggles on and off the
+display of a buffer showing the most popular Emacs commands and their
+respective key bindings (a.k.a.@: ``cheat sheet'').  The contents of
+that buffer are created by the command @code{help-quick}.  Each key
+binding shown in this buffer is a button: click on it with
+@kbd{mouse-1} or @kbd{mouse-2} to show the documentation of the
+command bound to that key sequence.
 
 @findex describe-prefix-bindings
   You can get a list of subcommands for a particular prefix key by

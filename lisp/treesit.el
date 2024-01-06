@@ -1393,7 +1393,7 @@ START and END mark the current to-be-propertized region."
     (if (and new-start (< new-start start))
         (progn
           (setq treesit--syntax-propertize-start nil)
-          (cons new-start end))
+          (cons (max new-start (point-min)) end))
       nil)))
 
 ;;; Indent
