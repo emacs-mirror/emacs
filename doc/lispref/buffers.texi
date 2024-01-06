@@ -959,7 +959,7 @@ infinite recursion.
 
 @defun buffer-match-p condition buffer-or-name &optional arg
 This function checks if a buffer designated by @code{buffer-or-name}
-satisfies the specified @code{condition}.  Optional third argument
+satisfies the specified @var{condition}.  Optional third argument
 @var{arg} is passed to the predicate function in @var{condition}.  A
 valid @var{condition} can be one of the following:
 @itemize @bullet{}
@@ -987,10 +987,15 @@ Satisfied if @emph{any} condition in @var{conds} satisfies
 Satisfied if @emph{all} the conditions in @var{conds} satisfy
 @code{buffer-match-p}, with the same buffer and @code{arg}.
 @item derived-mode
-Satisfied if the buffer's major mode derives from @var{expr}.
+Satisfied if the buffer's major mode derives from @var{expr}.  Note
+that this condition might fail to report a match if
+@code{buffer-match-p} is invoked before the major mode of the buffer
+has been established.
 @item major-mode
 Satisfied if the buffer's major mode is equal to @var{expr}.  Prefer
-using @code{derived-mode} instead, when both can work.
+using @code{derived-mode} instead, when both can work.  Note that this
+condition might fail to report a match if @code{buffer-match-p} is
+invoked before the major mode of the buffer has been established.
 @end table
 @item t
 Satisfied by any buffer.  A convenient alternative to @code{""} (empty
@@ -1000,7 +1005,7 @@ string) or @code{(and)} (empty conjunction).
 
 @defun match-buffers condition &optional buffer-list arg
 This function returns a list of all buffers that satisfy the
-@code{condition}.  If no buffers match, the function returns
+@var{condition}.  If no buffers match, the function returns
 @code{nil}.  The argument @var{condition} is as defined in
 @code{buffer-match-p} above.  By default, all the buffers are
 considered, but this can be restricted via the optional argument

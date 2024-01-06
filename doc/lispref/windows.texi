@@ -2629,11 +2629,15 @@ default value is an empty display action, i.e., @w{@code{(nil . nil)}}.
 
 @defopt display-buffer-alist
 The value of this option is an alist mapping conditions to display
-actions.  Each condition is passed to @code{buffer-match-p}, along
-with the buffer name and the @var{action} argument passed to
-@code{display-buffer}.  If it returns a non-@code{nil} value, then
-@code{display-buffer} uses the corresponding display action to display
-the buffer.
+actions.  Each condition is passed to @code{buffer-match-p}
+(@pxref{Buffer List}), along with the buffer name and the @var{action}
+argument passed to @code{display-buffer}.  If it returns a
+non-@code{nil} value, then @code{display-buffer} uses the
+corresponding display action to display the buffer.  Caveat: if you
+use @code{derived-mode} or @code{major-mode} as condition,
+@code{buffer-match-p} could fail to report a match if
+@code{display-buffer} is called before the major mode of the buffer is
+set.
 @end defopt
 
 @defopt display-buffer-base-action
