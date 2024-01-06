@@ -2325,16 +2325,17 @@ error description.
 
 Contrary to what happens with @code{condition-case}, @var{handler} is
 called in the dynamic context where the error happened.  This means it
-is executed unbinding any variable bindings or running any cleanups of
-@code{unwind-protect}, so that all those dynamic bindings are still in
-effect.  There is one exception: while running the @var{handler}
-function, all the error handlers between the code that signaled the
-error and the @code{handler-bind} are temporarily suspended, meaning
-that when an error is signaled, Emacs will only search the active
-@code{condition-case} and @code{handler-bind} forms that are inside
-the @var{handler} function or outside of the current
-@code{handler-bind}.  Note also that lexical variables are not
-affected, since they do not have dynamic extent.
+is executed without unbinding any variable bindings or running any
+cleanups of @code{unwind-protect}, so that all those dynamic bindings
+are still in effect.  There is one exception: while running the
+@var{handler} function, all the error handlers between the code that
+signaled the error and the @code{handler-bind} are temporarily
+suspended, meaning that when an error is signaled, Emacs will only
+search the active @code{condition-case} and @code{handler-bind} forms
+that are inside the @var{handler} function or outside of the current
+@code{handler-bind}.  Note also that lexically-bound variables
+(@pxref{Lexical Binding}) are not affected, since they do not have
+dynamic extent.
 
 Like any normal function, @var{handler} can exit non-locally,
 typically via @code{throw}, or it can return normally.
@@ -2391,10 +2392,10 @@ We can get almost the same result with @code{condition-case}:
 
 @noindent
 but with the difference that when we (re)signal the new error in
-@code{handler-bind} the dynamic environment from the original error is
-still active, which means for example that if we enter the
-debugger at this point, it will show us a complete backtrace including
-the point where we signaled the original error:
+@code{handler-bind}, the dynamic environment from the original error
+is still active, which means for example that if we enter the debugger
+at this point, it will show us a complete backtrace including the
+point where we signaled the original error:
 
 @example
 @group
