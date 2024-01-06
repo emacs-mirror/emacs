@@ -3123,10 +3123,10 @@ and overlay is highlighted between MK and END-MK."
   (remove-hook 'pre-command-hook
 	       #'compilation-goto-locus-delete-o))
 
-(defun safe-expand-file-name (directory filename)
-  "Expand the specified filename using expand-file-name.  If this fails,
-retry with file-truename (see bug #8035)
-Unlike expand-file-name, file-truename follows symlinks which we try to avoid if possible."
+(defun compilation--expand-fn (directory filename)
+  "Expand FILENAME or resolve its true name.
+Unlike `expand-file-name', `file-truename' follows symlinks, which
+we try to avoid if possible."
   (let* ((expandedname (expand-file-name filename directory)))
     (if (file-exists-p expandedname)
         expandedname
@@ -3152,7 +3152,8 @@ Unlike expand-file-name, file-truename follows symlinks which we try to avoid if
             fmts formats)
       ;; For each directory, try each format string.
       (while (and fmts (null buffer))
-        (setq name (safe-expand-file-name thisdir (format (car fmts) filename))
+        (setq name (compilation--expand-fn thisdir
+                                           (format (car fmts) filename))
               buffer (and (file-exists-p name)
                           (find-file-noselect name))
               fmts (cdr fmts)))
@@ -3174,7 +3175,8 @@ Unlike expand-file-name, file-truename follows symlinks which we try to avoid if
         (setq thisdir (car dirs)
               fmts formats)
         (while (and fmts (null buffer))
-          (setq name (safe-expand-file-name thisdir (format (car fmts) filename))
+          (setq name (compilation--expand-fn thisdir
+                                             (format (car fmts) filename))
                 buffer (and (file-exists-p name)
                             (find-file-noselect name))
                 fmts (cdr fmts)))
@@ -3234,7 +3236,7 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
               (ding) (sit-for 2))
              ((and (file-directory-p name)
                    (not (file-exists-p
-                         (setq name (safe-expand-file-name name filename)))))
+                         (setq name (compilation--expand-fn name filename)))))
               (message "No `%s' in directory %s" filename origname)
               (ding) (sit-for 2))
              (t
