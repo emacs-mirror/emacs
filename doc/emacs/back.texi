@@ -78,7 +78,7 @@ And much more!
 Emacs comes with an introductory online tutorial available in many
 languages, and this nineteenth edition of the manual picks up where
 that tutorial ends.  It explains the full range of the power of Emacs,
-now up to @strong[version 27.2,} and contains reference material
+now up to @strong{version 27.2,} and contains reference material
 useful to expert users.  It also includes appendices with specific
 material about X and GTK resources, and with details for users of
 macOS and Microsoft Windows.
