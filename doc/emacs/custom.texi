@@ -188,14 +188,15 @@ find with @kbd{M-x customize-browse}.
 the customization buffer:
 
 @smallexample
-[Hide] Kill Ring Max: 60
+[Hide] Kill Ring Max: Integer (positive or zero): 120
    [State]: STANDARD.
    Maximum length of kill ring before oldest elements are thrown away.
 @end smallexample
 
   The first line shows that the variable is named
 @code{kill-ring-max}, formatted as @samp{Kill Ring Max} for easier
-viewing.  Its value is @samp{120}.  The button labeled @samp{[Hide]},
+viewing, and also shows its expected type: a positive integer or zero.
+The default value is @samp{120}.  The button labeled @samp{[Hide]},
 if activated, hides the variable's value and state; this is useful to
 avoid cluttering up the customization buffer with very long values
 (for this reason, variables that have very long values may start out
