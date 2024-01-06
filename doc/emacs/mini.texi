@@ -445,9 +445,18 @@ complete again.
 of the completions list.  By default, Emacs sorts the list of possible
 completion candidates in the order that you specify in user option
 @code{completions-sort} (@pxref{Completion Options}).  This command
-lets you change the order of the current completions list interactively.
-You can invoke it with a negative prefix argument (@kbd{C-- C-x C-v}) to
-reverse the current order.
+lets you change the order of the current completions list
+interactively.  You can invoke it with a negative prefix argument
+(@kbd{C-- C-x C-v}) to reverse the current order.  The user option
+@code{minibuffer-completions-sort-orders} determines which orders this
+command suggests for sorting the completions list.  By default, this
+includes alphabetical sorting, sorting by candidate position in the
+minibuffer history, and no sorting at all.  Some commands that use
+minibuffer completion also provide additional sorting options that are
+specifically useful with their completion candidates.  For example,
+during file name completion, as in @kbd{C-x C-f} (@pxref{Visiting}),
+you can use @key{C-x C-v} to sort candidate file names chronologically
+by their last modified time.
 
 @kindex C-x n n @r{(completion)}
 @findex minibuffer-narrow-completions-to-current

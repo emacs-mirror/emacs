@@ -3937,6 +3937,30 @@ and `read-file-name-function'."
 ;; instead, but for now, let's keep this non-obsolete.
 ;;(make-obsolete-variable 'minibuffer-completing-file-name nil "future" 'get)
 
+(defun minibuffer--sort-file-names-by-last-modified-time (files)
+  "Sort file name completion candidates FILES by last modified time."
+  (let ((file-time-alist
+         (mapcar (lambda (file)
+                   (cons file
+                         (file-attribute-modification-time
+                          (ignore-errors
+                            (file-attributes
+                             (substitute-in-file-name
+                              (concat minibuffer-completion-base file)))))))
+                 files)))
+    (sort files (lambda (a b)
+                  (let ((atime (alist-get a file-time-alist
+                                          nil nil #'string=))
+                        (btime (alist-get b file-time-alist
+                                          nil nil #'string=)))
+                    (if atime
+                        (or (not btime)
+                            ;; Put more recently modified files first.
+                            (time-less-p btime atime)
+                            (and (time-equal-p atime btime)
+                                 (string-lessp a b)))
+                      (and (not btime) (string-lessp a b))))))))
+
 (defun read-file-name-default (prompt &optional dir default-filename mustmatch initial predicate)
   "Default method for reading file names.
 See `read-file-name' for the meaning of the arguments."
@@ -4003,6 +4027,12 @@ See `read-file-name' for the meaning of the arguments."
                                  (with-current-buffer
                                      (window-buffer (minibuffer-selected-window))
 				   (read-file-name--defaults dir initial))))
+                          (setq-local
+                           minibuffer-completions-sort-orders
+                           (cons '(?m "modified" "Sort by last modified time"
+                                      minibuffer--sort-file-names-by-last-modified-time
+                                      "latest modified first")
+                                 minibuffer-completions-sort-orders))
 			  (set-syntax-table minibuffer-local-filename-syntax))
                       (completing-read prompt 'read-file-name-internal
                                        pred mustmatch insdef
