@@ -1411,6 +1411,12 @@ values.
 * Lisp Changes in Emacs 30.1
 
 +++
+** 'define-advice' now sets the new advice's 'name' property to NAME
+Named advice defined with 'define-advice' can now be removed with
+'(advice-remove SYMBOL NAME)' in addition to '(advice-remove SYMBOL
+SYMBOL@NAME)'.
+
++++
 ** New function 'require-with-check' to detect new versions shadowing.
 This is like 'require', but it checks whether the argument 'feature'
 is already loaded, in which case it either signals an error or

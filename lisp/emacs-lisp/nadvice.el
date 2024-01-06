@@ -585,8 +585,8 @@ of the piece of advice."
 (defmacro define-advice (symbol args &rest body)
   "Define an advice and add it to function named SYMBOL.
 See `advice-add' and `add-function' for explanation on the
-arguments.  Note if NAME is nil the advice is anonymous;
-otherwise it is named `SYMBOL@NAME'.
+arguments.  If NAME is non-nil, the advice is named `SYMBOL@NAME'
+and installed with the name NAME; otherwise, the advice is anonymous.
 
 \(fn SYMBOL (HOW LAMBDA-LIST &optional NAME DEPTH) &rest BODY)"
   (declare (indent 2) (doc-string 3) (debug (sexp sexp def-body)))
@@ -597,7 +597,9 @@ otherwise it is named `SYMBOL@NAME'.
          (lambda-list   (nth 1 args))
          (name          (nth 2 args))
          (depth         (nth 3 args))
-         (props         (and depth `((depth . ,depth))))
+         (props         (append
+                         (and depth `((depth . ,depth)))
+                         (and name `((name . ,name)))))
          (advice (cond ((null name) `(lambda ,lambda-list ,@body))
                        ((or (stringp name) (symbolp name))
                         (intern (format "%s@%s" symbol name)))

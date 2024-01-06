@@ -2066,9 +2066,10 @@ code) obey the advice and other calls (from C code) do not.
 
 @defmac define-advice symbol (where lambda-list &optional name depth) &rest body
 This macro defines a piece of advice and adds it to the function named
-@var{symbol}.  The advice is an anonymous function if @var{name} is
-@code{nil} or a function named @code{symbol@@name}.  See
-@code{advice-add} for explanation of other arguments.
+@var{symbol}.  If @var{name} is non-nil, the advice is named
+@code{@var{symbol}@@@var{name}} and installed with the name @var{name}; otherwise,
+the advice is anonymous.  See @code{advice-add} for explanation of
+other arguments.
 @end defmac
 
 @defun advice-add symbol where function &optional props
