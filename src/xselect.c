@@ -19,6 +19,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Rewritten by jwz */
 
 #include <config.h>
+
+/* Work around GCC bug 102671.  */
+#if 10 <= __GNUC__
+# pragma GCC diagnostic ignored "-Wanalyzer-null-dereference"
+#endif
+
 #include <limits.h>
 
 #ifdef HAVE_SYS_TYPES_H
