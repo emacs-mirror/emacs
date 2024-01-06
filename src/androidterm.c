@@ -5849,7 +5849,6 @@ android_get_surrounding_text (void *data)
 {
   struct android_get_surrounding_text_context *request;
   struct frame *f;
-  ptrdiff_t temp;
 
   request = data;
 
@@ -5870,11 +5869,7 @@ android_get_surrounding_text (void *data)
      bad input methods.  */
 
   if (request->end < request->start)
-    {
-      temp = request->start;
-      request->start = request->end;
-      request->end = temp;
-    }
+    swap (request->start, request->end);
 
   /* Retrieve the conversion region.  */
 

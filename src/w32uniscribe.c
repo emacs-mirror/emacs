@@ -765,10 +765,10 @@ add_opentype_font_name_to_list (ENUMLOGFONTEX *logical_font,
 
 #define OTF_INT16_VAL(TABLE, OFFSET, PTR)		     \
   do {							     \
-    BYTE temp, data[2];					     \
+    BYTE data[2];					     \
     if (GetFontData (context, TABLE, OFFSET, data, 2) != 2)  \
       goto font_table_error;				     \
-    temp = data[0], data[0] = data[1], data[1] = temp;	     \
+    swap (data[0], data[1]);				     \
     memcpy (PTR, data, 2);				     \
   } while (0)
 

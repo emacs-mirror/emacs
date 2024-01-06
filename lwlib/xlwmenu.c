@@ -671,12 +671,7 @@ draw_shadow_rectangle (XlwMenuWidget mw, Window window, int x, int y,
     }
 
   if (!erase_p && down_p)
-    {
-      GC temp;
-      temp = top_gc;
-      top_gc = bottom_gc;
-      bottom_gc = temp;
-    }
+    swap (top_gc, bottom_gc);
 
   /* Do draw (or erase) shadows */
   points [0].x = x;
@@ -757,12 +752,7 @@ draw_shadow_rhombus (XlwMenuWidget mw, Window window, int x, int y,
     }
 
   if (!erase_p && down_p)
-    {
-      GC temp;
-      temp = top_gc;
-      top_gc = bottom_gc;
-      bottom_gc = temp;
-    }
+    swap (top_gc, bottom_gc);
 
   points [0].x = x;
   points [0].y = y + height / 2;

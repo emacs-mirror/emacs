@@ -3591,10 +3591,7 @@ for the rear of the overlay advance when text is inserted there
   CHECK_FIXNUM_COERCE_MARKER (end);
 
   if (XFIXNUM (beg) > XFIXNUM (end))
-    {
-      Lisp_Object temp;
-      temp = beg; beg = end; end = temp;
-    }
+    swap (beg, end);
 
   ptrdiff_t obeg = clip_to_bounds (BUF_BEG (b), XFIXNUM (beg), BUF_Z (b));
   ptrdiff_t oend = clip_to_bounds (obeg, XFIXNUM (end), BUF_Z (b));
@@ -3614,11 +3611,7 @@ static void
 modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 {
   if (start > end)
-    {
-      ptrdiff_t temp = start;
-      start = end;
-      end = temp;
-    }
+    swap (start, end);
 
   BUF_COMPUTE_UNCHANGED (buf, start, end);
 
@@ -3658,10 +3651,7 @@ buffer.  */)
   CHECK_FIXNUM_COERCE_MARKER (end);
 
   if (XFIXNUM (beg) > XFIXNUM (end))
-    {
-      Lisp_Object temp;
-      temp = beg; beg = end; end = temp;
-    }
+    swap (beg, end);
 
   specbind (Qinhibit_quit, Qt); /* FIXME: Why?  */
 

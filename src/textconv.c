@@ -176,7 +176,7 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 {
   specpdl_ref count;
   ptrdiff_t pos, pos_byte, end, end_byte, start;
-  ptrdiff_t temp, temp1, mark;
+  ptrdiff_t mark;
   char *buffer;
   struct window *w;
 
@@ -383,12 +383,8 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
   if (end < pos)
     {
       eassert (end_byte < pos_byte);
-      temp = pos_byte;
-      temp1 = pos;
-      pos_byte = end_byte;
-      pos = end;
-      end = temp1;
-      end_byte = temp;
+      swap (pos_byte, end_byte);
+      swap (pos, end);
     }
 
   /* Return the string first.  */
@@ -1905,15 +1901,9 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
 	  start = marker_position (BVAR (current_buffer, mark));
 	  end = PT;
 
-	  /* Sort start and end.  start_byte is used to hold a
-	     temporary value.  */
-
+	  /* Sort start and end.  */
 	  if (start > end)
-	    {
-	      start_byte = end;
-	      end = start;
-	      start = start_byte;
-	    }
+	    swap (start, end);
 	}
       else
 	goto finish;
@@ -1979,7 +1969,7 @@ get_surrounding_text (struct frame *f, ptrdiff_t left,
 		      ptrdiff_t *end_return)
 {
   specpdl_ref count;
-  ptrdiff_t start, end, start_byte, end_byte, mark, temp;
+  ptrdiff_t start, end, start_byte, end_byte, mark;
   char *buffer;
 
   if (!WINDOW_LIVE_P (f->old_selected_window))
@@ -2012,11 +2002,7 @@ get_surrounding_text (struct frame *f, ptrdiff_t left,
   /* Now sort start and end.  */
 
   if (end < start)
-    {
-      temp = start;
-      start = end;
-      end = temp;
-    }
+    swap (start, end)
 
   /* And subtract left and right.  */
 

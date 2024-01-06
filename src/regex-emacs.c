@@ -2839,7 +2839,7 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 
   while (true)
     {
-      re_char *newp1, *newp2, *tmp;
+      re_char *newp1, *newp2;
       re_char *p_orig = p;
       int offset;
 
@@ -2930,7 +2930,7 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 	    /* We have to check that both destinations are safe.
 	       Arrange for `newp1` to be the smaller of the two.  */
 	    if (newp1 > newp2)
-	      (tmp = newp1, newp1 = newp2, newp2 = tmp);
+	      swap (newp1, newp2);
 
 	    if (newp2 <= p_orig) /* Both destinations go backward!  */
 	      {
