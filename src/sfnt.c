@@ -6195,7 +6195,7 @@ sfnt_read_ttc_header (int fd)
   size = (SFNT_ENDOF (struct sfnt_ttc_header, ul_dsig_offset,
 		      uint32_t)
 	  - offsetof (struct sfnt_ttc_header, ul_dsig_tag));
-  rc = read (fd, &ttc->ul_dsig_offset, size);
+  rc = read (fd, &ttc->ul_dsig_tag, size);
   if (rc == -1 || rc < size)
     {
       xfree (ttc);
@@ -20631,8 +20631,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 44
-#define EASY_PPEM  44
+#define FANCY_PPEM 14
+#define EASY_PPEM  14
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
