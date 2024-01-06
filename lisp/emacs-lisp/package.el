@@ -2804,8 +2804,7 @@ Helper function for `describe-package'."
          (status (if desc (package-desc-status desc) "orphan"))
          (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc)))
-         (maintainers (or (cdr (assoc :maintainers extras))
-                          (list (cdr (assoc :maintainer extras)))))
+         (maintainers (cdr (assoc :maintainer extras)))
          (authors (cdr (assoc :authors extras)))
          (news (and-let* (pkg-dir
                           ((not built-in))
@@ -4699,18 +4698,23 @@ will be signaled in that case."
   (let* ((name (package-desc-name pkg-desc))
          (extras (package-desc-extras pkg-desc))
          (maint (alist-get :maintainer extras)))
+    (unless (listp (cdr maint))
+      (setq maint (list maint)))
     (cond
      ((and (null maint) (null no-error))
       (user-error "Package `%s' has no explicit maintainer" name))
      ((and (not (progn
                   (require 'ietf-drums)
-                  (ietf-drums-parse-address (cdr maint))))
+                  (ietf-drums-parse-address (cdar maint))))
            (null no-error))
       (user-error "Package `%s' has no maintainer address" name))
-     ((not (null maint))
+     (t
       (with-temp-buffer
-        (package--print-email-button maint)
-        (string-trim (substring-no-properties (buffer-string))))))))
+        (mapc #'package--print-email-button maint)
+        (replace-regexp-in-string
+         "\n" ", " (string-trim
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))))
 
 ;;;###autoload
 (defun package-report-bug (desc)
@@ -4720,17 +4724,19 @@ DESC must be a `package-desc' object."
                package-menu-mode)
   (let ((maint (package-maintainers desc))
         (name (symbol-name (package-desc-name desc)))
+        (pkgdir (package-desc-dir desc))
         vars)
-    (dolist-with-progress-reporter (group custom-current-group-alist)
-        "Scanning for modified user options..."
-      (when (and (car group)
-                 (file-in-directory-p (car group) (package-desc-dir desc)))
-        (dolist (ent (get (cdr group) 'custom-group))
-          (when (and (custom-variable-p (car ent))
-                     (boundp (car ent))
-                     (not (eq (custom--standard-value (car ent))
-                              (default-toplevel-value (car ent)))))
-            (push (car ent) vars)))))
+    (when pkgdir
+      (dolist-with-progress-reporter (group custom-current-group-alist)
+          "Scanning for modified user options..."
+        (when (and (car group)
+                   (file-in-directory-p (car group) pkgdir))
+          (dolist (ent (get (cdr group) 'custom-group))
+            (when (and (custom-variable-p (car ent))
+                       (boundp (car ent))
+                       (not (eq (custom--standard-value (car ent))
+                                (default-toplevel-value (car ent)))))
+              (push (car ent) vars))))))
     (dlet ((reporter-prompt-for-summary-p t))
       (reporter-submit-bug-report maint name vars))))
 
