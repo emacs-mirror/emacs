@@ -122,6 +122,28 @@
   :group 'lua-ts
   :version "30.1")
 
+(defcustom lua-ts-indent-continuation-lines t
+  "Controls how multi-line if/else statements are aligned.
+
+If t, then continuation lines are indented by `lua-ts-indent-offset':
+
+  if a
+      and b then
+      print(1)
+  end
+
+If nil, then continuation lines are aligned with the beginning of
+the statement:
+
+  if a
+  and b then
+      print(1)
+  end"
+  :type 'boolean
+  :safe 'booleanp
+  :group 'lua-ts
+  :version "30.1")
+
 (defvar lua-ts--builtins
   '("assert" "bit32" "collectgarbage" "coroutine" "debug" "dofile"
     "error" "getmetatable" "io" "ipairs" "load" "loadfile"
@@ -329,6 +351,17 @@ values of OVERRIDE."
      ((or (match "end" "function_definition")
           (node-is "end"))
       standalone-parent 0)
+     ((n-p-gp "expression_list" "assignment_statement" "variable_declaration")
+      lua-ts--variable-declaration-continuation-anchor
+      lua-ts-indent-offset)
+     ((and (parent-is "binary_expression")
+           lua-ts--variable-declaration-continuation)
+      lua-ts--variable-declaration-continuation-anchor
+      lua-ts-indent-offset)
+     ((and (lambda (&rest _) lua-ts-indent-continuation-lines)
+           (parent-is "binary_expression"))
+      standalone-parent lua-ts-indent-offset)
+     ((parent-is "binary_expression") standalone-parent 0)
      ((or (parent-is "function_declaration")
           (parent-is "function_definition")
           (parent-is "do_statement")
@@ -414,6 +447,22 @@ values of OVERRIDE."
   (let ((sparse-tree
          (treesit-induce-sparse-tree parent #'lua-ts--function-definition-p)))
     (= 1 (length (cadr sparse-tree)))))
+
+(defun lua-ts--variable-declaration-continuation (node &rest _)
+  "Matches if NODE is part of a multi-line variable declaration."
+  (treesit-parent-until node
+                        (lambda (p)
+                          (equal "variable_declaration"
+                                 (treesit-node-type p)))))
+
+(defun lua-ts--variable-declaration-continuation-anchor (node &rest _)
+  "Return the start position of the variable declaration for NODE."
+  (save-excursion
+    (goto-char (treesit-node-start
+                (lua-ts--variable-declaration-continuation node)))
+    (when (looking-back (rx bol (* whitespace))
+                        (line-beginning-position))
+      (point))))
 
 (defvar lua-ts--syntax-table
   (let ((table (make-syntax-table)))

@@ -529,6 +529,58 @@ local Other = {
 }
 =-=-=
 
+Name: Continuation Indent
+
+=-=
+local very_long_variable_name =
+"ok"..
+      "ok"
+local n = a +
+b *
+c /
+1
+local x = "A"..
+"B"
+.."C"
+if a
+     and b
+           and c then
+             if x
+                   and y then
+    local x = 1 +
+2 *
+         3
+     end
+elseif a
+     or b
+    or c then
+end
+=-=
+local very_long_variable_name =
+  "ok"..
+  "ok"
+local n = a +
+  b *
+  c /
+  1
+local x = "A"..
+  "B"
+  .."C"
+if a
+  and b
+  and c then
+  if x
+    and y then
+    local x = 1 +
+      2 *
+      3
+  end
+elseif a
+  or b
+  or c then
+end
+=-=-=
+
 Code:
   (lambda ()
     (setq indent-tabs-mode nil)
@@ -676,4 +728,58 @@ function e (n, t)
                     end end), ...
                 end)(i(...))
 end end end
+=-=-=
+
+Code:
+  (lambda ()
+    (setq indent-tabs-mode nil)
+    (setq lua-ts-indent-continuation-lines nil)
+    (setq lua-ts-indent-offset 2)
+    (lua-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Name: Unaligned Continuation Indent
+
+=-=
+local n = a +
+  b *
+  c /
+  1
+if a
+     and b
+and c then
+ if x
+  and y then
+      local x = 1 +
+       2 *
+             3
+   end
+elseif a
+       or b
+          or c then
+          if x
+              or y
+              end
+end
+=-=
+local n = a +
+  b *
+  c /
+  1
+if a
+and b
+and c then
+  if x
+  and y then
+    local x = 1 +
+      2 *
+      3
+  end
+elseif a
+or b
+or c then
+  if x
+  or y
+  end
+end
 =-=-=
