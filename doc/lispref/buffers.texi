@@ -959,8 +959,8 @@ infinite recursion.
 
 @defun buffer-match-p condition buffer-or-name &rest args
 This function checks if a buffer designated by @code{buffer-or-name}
-satisfies the specified @var{condition}.  Optional third argument
-@var{arg} is passed to the predicate function in @var{condition}.  A
+satisfies the specified @var{condition}.  Optional arguments
+@var{args} are passed to the predicate function in @var{condition}.  A
 valid @var{condition} can be one of the following:
 @itemize @bullet{}
 @item
