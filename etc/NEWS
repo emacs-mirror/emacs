@@ -745,10 +745,12 @@ will be first sorted alphabetically, and then re-sorted by their order
 in the minibuffer history, with more recent candidates appearing first.
 
 +++
-*** 'completion-category-overrides' supports 'display-sort-function'.
-You can now customize the sorting order for any category in
-'completion-category-overrides' that will override the sorting order
-defined in the metadata or in 'completions-sort'.
+*** 'completion-category-overrides' supports more metadata.
+The new supported completion properties are 'cycle-sort-function',
+'display-sort-function', 'annotation-function', 'affixation-function',
+'group-function'.  You can now customize them for any category in
+'completion-category-overrides' that will override the properties
+defined in completion metadata.
 
 ** Pcomplete
 

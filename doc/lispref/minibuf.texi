@@ -1879,17 +1879,30 @@ The value should be a value for @code{completion-cycle-threshold}
 (@pxref{Completion Options,,, emacs, The GNU Emacs Manual}) for this
 category.
 
+@item cycle-sort-function
+The function to sort entries when cycling.
+
 @item display-sort-function
+The function to sort entries in the @file{*Completions*} buffer.
 The possible values are: @code{nil}, which means to use either the
 sorting function from metadata or if that is @code{nil}, fall back to
 @code{completions-sort}; @code{identity}, which means not to sort at
 all, leaving the original order; or any other value out of those used
 in @code{completions-sort} (@pxref{Completion Options,,, emacs, The
 GNU Emacs Manual}).
+
+@item group-function
+The function to group completions.
+
+@item annotation-function
+The function to add annotations to completions.
+
+@item affixation-function
+The function to add prefixes and suffixes to completions.
 @end table
 
 @noindent
-Additional alist entries may be defined in the future.
+See @ref{Programmed Completion}, for a complete list of metadata entries.
 @end defopt
 
 @defvar completion-extra-properties
