@@ -553,6 +553,49 @@ If it's not initialized yet, initialize it."
         (should-not (boundp 'remote-shell-file-name))
         (should (string-equal (symbol-value 'remote-null-device) "null"))))
 
+    ;; `connection-local-value' and `connection-local-p' care about a
+    ;; local default directory.
+    (with-temp-buffer
+      (let ((enable-connection-local-variables t)
+	    (default-directory temporary-file-directory)
+	    (remote-null-device "null"))
+        (should-not connection-local-variables-alist)
+        (should-not (local-variable-p 'remote-shell-file-name))
+        (should-not (local-variable-p 'remote-null-device))
+        (should-not (boundp 'remote-shell-file-name))
+        (should (string-equal (symbol-value 'remote-null-device) "null"))
+
+        ;; The recent variable values are used.
+        (should-not (connection-local-p remote-shell-file-name))
+        ;; `remote-shell-file-name' is not defined, so we get an error.
+        (should-error
+         (connection-local-value remote-shell-file-name) :type 'void-variable)
+        (should-not (connection-local-p remote-null-device))
+        (should
+         (string-equal
+          (connection-local-value remote-null-device) remote-null-device))
+        (should-not (connection-local-p remote-lazy-var))
+
+        ;; Run with a different application.
+        (should-not
+         (connection-local-p
+          remote-shell-file-name (cadr files-x-test--application)))
+        ;; `remote-shell-file-name' is not defined, so we get an error.
+        (should-error
+         (connection-local-value
+          remote-shell-file-name (cadr files-x-test--application))
+         :type 'void-variable)
+        (should-not
+         (connection-local-p
+          remote-null-device (cadr files-x-test--application)))
+        (should
+         (string-equal
+          (connection-local-value
+           remote-null-device (cadr files-x-test--application))
+          remote-null-device))
+        (should-not
+         (connection-local-p remote-lazy-var (cadr files-x-test--application)))))
+
     ;; Cleanup.
     (custom-set-variables
      `(connection-local-profile-alist ',clpa now)
