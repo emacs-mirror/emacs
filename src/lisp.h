@@ -2405,10 +2405,32 @@ struct hash_table_test
 
 struct Lisp_Hash_Table
 {
-  /* Change pdumper.c if you change the fields here.  */
-
-  /* This is for Lisp; the hash table code does not refer to it.  */
   union vectorlike_header header;
+
+  /* Hash table internal structure:
+
+     Lisp key         index                  table
+         |            vector
+         | hash fn                  hash    key   value  next
+         v             +--+       +------+-------+------+----+
+     hash value        |-1|       | C351 |  cow  | moo  | -1 |<-
+         |             +--+       +------+-------+------+----+  |
+          ------------>| -------->| 07A8 |  cat  | meow | -1 |  |
+            range      +--+       +------+-------+------+----+  |
+          reduction    |-1|     ->| 91D2 |  dog  | woof |   ----
+                       +--+    |  +------+-------+------+----+
+                       | ------   |  ?   |unbound|  ?   | -1 |<-
+                       +--+       +------+-------+------+----+  |
+                       | -------->| F6B0 | duck  |quack | -1 |  |
+                       +--+       +------+-------+------+----+  |
+                       |-1|     ->|  ?   |unbound|  ?   |   ----
+                       +--+    |  +------+-------+------+----+
+                       :  :    |  :      :       :     :    :
+                               |
+                           next_free
+
+     The table is physically split into three vectors (hash, next,
+     key_and_value) which may or may not be beneficial.  */
 
   /* Nil if table is non-weak.  Otherwise a symbol describing the
      weakness of the table.  */
