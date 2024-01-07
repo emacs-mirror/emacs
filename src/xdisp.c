@@ -24648,7 +24648,7 @@ maybe_produce_line_number (struct it *it)
   /* Produce the glyphs for the line number.  */
   struct it tem_it;
   char lnum_buf[INT_STRLEN_BOUND (ptrdiff_t) + 1];
-  bool beyond_zv = IT_BYTEPOS (*it) >= ZV_BYTE ? true : false;
+  bool beyond_zv = IT_BYTEPOS (*it) >= ZV_BYTE;
   ptrdiff_t lnum_offset = -1; /* to produce 1-based line numbers */
   int lnum_face_id = merge_faces (it->w, Qline_number, 0, DEFAULT_FACE_ID);
   int current_lnum_face_id
