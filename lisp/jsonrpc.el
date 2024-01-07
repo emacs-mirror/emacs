@@ -1003,16 +1003,17 @@ of the API instead.")
                                            (or method "")
                                            (if id (format "[%s]" id) "")))))
                (msg
-                (cond ((eq format 'full)
-                       (format "%s%s\n" preamble (or json log-text)))
-                      ((eq format 'short)
-                       (format "%s%s\n" preamble (or log-text "")))
-                      (t
-                       (format "%s%s" preamble
-                               (or (and foreign-message
-                                        (concat "\n" (pp-to-string
-                                                      foreign-message)))
-                                   (concat log-text "\n")))))))
+                (pcase format
+                  ('full  (format "%s%s\n" preamble (or json log-text)))
+                  ('short (format "%s%s\n" preamble (or log-text "")))
+                  (_
+                   (format "%s%s" preamble
+                           (or (and foreign-message
+                                    (let ((lisp-indent-function ;bug#68072
+                                           #'lisp-indent-function))
+                                      (concat "\n" (pp-to-string
+                                                    foreign-message))))
+                               (concat log-text "\n")))))))
           (goto-char (point-max))
           ;; XXX: could use `run-at-time' to delay server logs
           ;; slightly to play nice with verbose servers' stderr.
