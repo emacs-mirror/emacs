@@ -165,6 +165,8 @@ color capability and based on the available image libraries."
             base-keymap)
       base-keymap)))
 
+;; This function should return binds even if images can not be
+;; displayed so the tool bar can still be displayed on terminals.
 (defun tool-bar-make-keymap-1 (&optional map)
   "Generate an actual keymap from `tool-bar-map', without caching.
 MAP is either a keymap to use as a source for menu items, or nil,
@@ -180,15 +182,14 @@ in which case the value of `tool-bar-map' is used instead."
 			 (consp image-exp)
 			 (not (eq (car image-exp) 'image))
 			 (fboundp (car image-exp)))
-		(if (not (display-images-p))
-		    (setq bind nil)
-		  (let ((image (eval image-exp)))
-		    (unless (and image (image-mask-p image))
-		      (setq image (append image '(:mask heuristic))))
-		    (setq bind (copy-sequence bind)
-			  plist (nthcdr (if (consp (nth 4 bind)) 5 4)
-					bind))
-		    (plist-put plist :image image))))
+		(let ((image (and (display-images-p)
+                                  (eval image-exp))))
+		  (unless (and image (image-mask-p image))
+		    (setq image (append image '(:mask heuristic))))
+		  (setq bind (copy-sequence bind)
+			plist (nthcdr (if (consp (nth 4 bind)) 5 4)
+				      bind))
+		  (plist-put plist :image image)))
 	      bind))
 	  (or map tool-bar-map)))
 
