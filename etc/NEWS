@@ -639,7 +639,7 @@ This allows to customize different switches for different remote machines.
 +++
 *** New mode of prompting for register names and showing preview.
 The new user option 'register-use-preview' can be customized to the
-value t to request a different user interface of prompting for
+value t or insist to request a different user interface of prompting for
 register names and previewing the registers: Emacs will require
 confirmation for overwriting the value of a register, and will show
 the preview of registers without delay.  You can also customize this

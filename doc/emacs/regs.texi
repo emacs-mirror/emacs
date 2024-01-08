@@ -71,6 +71,11 @@ by @code{insert-register} will only show registers whose values can be
 inserted into the buffer, omitting registers which hold window
 configurations, positions, and other un-insertable values.
 
+@item insist
+This value is like @code{t}, but in addition of pressing @key{RET} to
+exit with the choosen value, you can press the same key as the name of
+register.
+
 @item nil
 This value requests behavior similar to @code{traditional}, but the
 preview is shown without delay, and is filtered according to the
