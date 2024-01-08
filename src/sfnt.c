@@ -14269,7 +14269,7 @@ sfnt_read_fvar_table (int fd, struct sfnt_offset_subtable *subtable)
       || INT_ADD_WRAPV (min_bytes, temp, &min_bytes))
     goto bail;
 
-  pad = alignof (struct sfnt_variation_axis);
+  pad = alignof (struct sfnt_instance);
   pad -= min_bytes & (pad - 1);
 
   if (INT_ADD_WRAPV (min_bytes, pad, &min_bytes))
