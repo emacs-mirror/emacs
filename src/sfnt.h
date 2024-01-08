@@ -1759,6 +1759,10 @@ struct sfnt_interpreter_zone
 
   /* Pointer to the flags associated with this data.  */
   unsigned char *flags;
+
+  /* If this structure was produced from a simple glyph, pointer to
+     the simple glyph itself.  NULL otherwise.  */
+  struct sfnt_simple_glyph *simple;
 };
 
 enum
