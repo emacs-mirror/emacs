@@ -3652,20 +3652,20 @@ filled are described in `tramp-bundle-read-file-names'."
 
     (dolist
 	(elt
-	 (ignore-errors
+	 (with-current-buffer (tramp-get-connection-buffer vec)
 	   ;; We cannot use `tramp-send-command-and-read', because
 	   ;; this does not cooperate well with heredoc documents.
-	   (tramp-send-command
-	    vec
-	    (format
-	     "tramp_bundle_read_file_names <<'%s'\n%s\n%s\n"
-	     tramp-end-of-heredoc
-	     (mapconcat #'tramp-shell-quote-argument files "\n")
-	     tramp-end-of-heredoc))
-	   (with-current-buffer (tramp-get-connection-buffer vec)
-	     ;; Read the expression.
-	     (goto-char (point-min))
-	     (read (current-buffer)))))
+	   (unless (tramp-send-command-and-check
+		    vec
+		    (format
+		     "tramp_bundle_read_file_names <<'%s'\n%s\n%s\n"
+		     tramp-end-of-heredoc
+		     (mapconcat #'tramp-shell-quote-argument files "\n")
+		     tramp-end-of-heredoc))
+	     (tramp-error vec 'file-error "%s" (tramp-get-buffer-string)))
+	   ;; Read the expression.
+	   (goto-char (point-min))
+	   (read (current-buffer))))
 
       (tramp-set-file-property vec (car elt) "file-exists-p" (nth 1 elt))
       (tramp-set-file-property vec (car elt) "file-readable-p" (nth 2 elt))
