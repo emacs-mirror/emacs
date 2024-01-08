@@ -87,6 +87,9 @@
   "Separator regexp used for separating strings in `completing-read-multiple'.
 It should be a regexp that does not match the list of completion candidates.")
 
+(defvar crm-current-separator nil
+  "The value of `crm-separator' for the current minibuffer.")
+
 (defun crm-complete-and-exit ()
   "If all of the minibuffer elements are valid completions then exit.
 All elements in the minibuffer must match.  If there is a mismatch, move point
@@ -100,12 +103,12 @@ This function is modeled after `minibuffer-complete-and-exit'."
     (while
         (and doexit
              (let* ((beg (save-excursion
-                           (if (re-search-backward crm-separator bob t)
+                           (if (re-search-backward crm-current-separator bob t)
                                (match-end 0)
                              bob)))
                     (end (copy-marker
                           (save-excursion
-                            (if (re-search-forward crm-separator nil t)
+                            (if (re-search-forward crm-current-separator nil t)
                                 (match-beginning 0)
                               (point-max)))
                           t)))
@@ -115,9 +118,9 @@ This function is modeled after `minibuffer-complete-and-exit'."
                                              (lambda () (setq doexit t)))
                (goto-char end)
                (not (eobp)))
-             (looking-at crm-separator))
+             (looking-at crm-current-separator))
       (when doexit
-       (goto-char (match-end 0))))
+        (goto-char (match-end 0))))
     (if doexit (exit-minibuffer))))
 
 (defvar-local read-string-matching-regexp nil
@@ -163,17 +166,21 @@ old `crm-separator' in the current minibuffer contents with REP.
 Interactively, prompt for SEP.  With a prefix argument, prompt
 for REP as well."
   (interactive
-   (let ((sep (read-regexp (format-prompt "New separator" crm-separator)
-                           crm-separator)))
+   (let ((sep (read-regexp
+               (format-prompt "New separator" crm-current-separator)
+               crm-current-separator)))
      (list sep
            (when current-prefix-arg
              (read-string-matching sep "Replace existing separators with: "))))
    minibuffer-mode)
   (when rep
     (goto-char (minibuffer-prompt-end))
-    (while (re-search-forward crm-separator nil t)
+    (while (re-search-forward crm-current-separator nil t)
       (replace-match rep t t)))
-  (setq-local crm-separator sep))
+  (setq crm-current-separator sep)
+  (when (get-buffer-window "*Completions*" 0)
+    ;; Update *Completions* to avoid stale `completion-base-affixes'.
+    (minibuffer-completion-help)))
 
 (define-minor-mode completions-multi-mode
   "Minor mode for reading multiple strings in the minibuffer."
@@ -181,7 +188,7 @@ for REP as well."
             (propertize " Multi" 'help-echo
                         (concat
                          "Insert multiple inputs by separating them with \""
-                         (buffer-local-value 'crm-separator
+                         (buffer-local-value 'crm-current-separator
                                              completion-reference-buffer)
                          "\""))))
 
@@ -228,29 +235,33 @@ contents of the minibuffer are \"alice,bob,eve\" and point is between
 
 This function returns a list of the strings that were read,
 with empty strings removed."
-  (split-string
-   (minibuffer-with-setup-hook
-       #'completing-read-multiple-mode
-     (completing-read
-      prompt
-      (lambda (s p a)
-        (let ((beg 0))
-          (while (string-match crm-separator s beg)
-            (setq beg (match-end 0)))
-          (pcase a
-            (`(boundaries . ,suffix)
-             (let ((bounds (completion-boundaries
-                            (substring s beg) table p
-                            (substring suffix 0 (string-match crm-separator suffix)))))
-               `(boundaries ,(+ (car bounds) beg) . ,(cdr bounds))))
-            ('metadata (completion-metadata (substring s beg) table p))
-            ('nil (let ((comp (complete-with-action a table (substring s beg) p)))
-                    (if (stringp comp)
-                        (concat (substring s 0 beg) comp)
-                      comp)))
-            (_ (complete-with-action a table (substring s beg) p)))))
-      predicate require-match initial-input hist def inherit-input-method))
-   crm-separator t))
+  (let ((crm-current-separator crm-separator))
+    (split-string
+     (minibuffer-with-setup-hook
+         #'completing-read-multiple-mode
+       (completing-read
+        prompt
+        (lambda (s p a)
+          (let ((beg 0))
+            (while (string-match crm-current-separator s beg)
+              (setq beg (match-end 0)))
+            (pcase a
+              (`(boundaries . ,suffix)
+               (let ((bounds (completion-boundaries
+                              (substring s beg) table p
+                              (substring suffix 0
+                                         (string-match crm-current-separator
+                                                       suffix)))))
+                 `(boundaries ,(+ (car bounds) beg) . ,(cdr bounds))))
+              ('metadata (completion-metadata (substring s beg) table p))
+              ('nil (let ((comp (complete-with-action a table
+                                                      (substring s beg) p)))
+                      (if (stringp comp)
+                          (concat (substring s 0 beg) comp)
+                        comp)))
+              (_ (complete-with-action a table (substring s beg) p)))))
+        predicate require-match initial-input hist def inherit-input-method))
+     crm-current-separator t)))
 
 (provide 'crm)
 
