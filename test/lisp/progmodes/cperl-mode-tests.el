@@ -111,9 +111,8 @@ end of the statement."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (cperl--run-test-cases
    (ert-resource-file "cperl-indent-styles.pl")
-   (cperl-set-style "PBP")
-   (indent-region (point-min) (point-max)) ; here we go!
-   (cperl-set-style-back)))
+   (cperl-file-style "PBP")
+   (indent-region (point-min) (point-max)))) ; here we go!
 
 ;;; Fontification tests
 
@@ -1145,17 +1144,16 @@ Perl is not Lisp: An open paren in column 0 does not start a function."
 
 (ert-deftest cperl-test-bug-35925 ()
   "Check that indentation is correct after a terminating format declaration."
-  (cperl-set-style "PBP") ; Make cperl-mode use the same settings as perl-mode.
   (cperl--run-test-cases
    (ert-resource-file "cperl-bug-35925.pl")
+   (cperl-file-style "PBP") ; Make cperl-mode use the same settings as perl-mode.
    (let ((tab-function
           (if (equal cperl-test-mode 'perl-mode)
               #'indent-for-tab-command
             #'cperl-indent-command)))
      (goto-char (point-max))
      (forward-line -2)
-     (funcall tab-function)))
-  (cperl-set-style-back))
+     (funcall tab-function))))
 
 (ert-deftest cperl-test-bug-37127 ()
   "Verify that closing a paren in a regex goes without a message.
@@ -1363,12 +1361,13 @@ as a regex."
 
 (ert-deftest cperl-test-bug-64364 ()
   "Check that multi-line subroutine declarations indent correctly."
-  (cperl-set-style "PBP") ; make cperl-mode use the same settings as perl-mode
   (cperl--run-test-cases
    (ert-resource-file "cperl-bug-64364.pl")
+   (cperl-file-style "PBP") ; make cperl-mode use the same settings as perl-mode
    (indent-region (point-min) (point-max)))
   (cperl--run-test-cases
    (ert-resource-file "cperl-bug-64364.pl")
+   (cperl-file-style "PBP") ; make cperl-mode use the same settings as perl-mode
    (let ((tab-function
           (if (equal cperl-test-mode 'perl-mode)
               #'indent-for-tab-command
@@ -1376,8 +1375,7 @@ as a regex."
      (goto-char (point-min))
      (while (null (eobp))
        (funcall tab-function)
-       (forward-line 1))))
-  (cperl-set-style-back))
+       (forward-line 1)))))
 
 (ert-deftest cperl-test-bug-65834 ()
   "Verify that CPerl mode identifies a left-shift operator.
