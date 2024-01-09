@@ -6556,10 +6556,8 @@ and \"Whitesmith\"."
   (dolist (setting (cdr (assoc style cperl-style-alist)) style)
     (let ((option (car setting))
           (value (cdr setting)))
-      (make-variable-buffer-local option)
-      (set option value)))
-  (make-variable-buffer-local 'cperl-file-style)
-  (setq cperl-file-style style))
+      (set (make-local-variable option) value)))
+  (set (make-local-variable 'cperl-file-style) style))
 
 (declare-function Info-find-node "info"
 		  (filename nodename &optional no-going-back strict-case
