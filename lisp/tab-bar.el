@@ -1302,7 +1302,7 @@ tab bar might wrap to the second line when it shouldn't.")
       (ws . ,(window-state-get
               (frame-root-window (or frame (selected-frame))) 'writable))
       (wc . ,(current-window-configuration))
-      (wc-point . ,(point-marker))
+      (wc-point . ,(copy-marker (window-point) window-point-insertion-type))
       (wc-bl . ,bl)
       (wc-bbl . ,bbl)
       ,@(when tab-bar-history-mode
@@ -1455,13 +1455,7 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
             ;; set-window-configuration does not restore the value of
             ;; point in the current buffer, so restore it separately.
             (when (and (markerp wc-point)
-                       (marker-buffer wc-point)
-                       ;; FIXME: After dired-revert, marker relocates to 1.
-                       ;; window-configuration restores point to global point
-                       ;; in this dired buffer, not to its window point,
-                       ;; but this is slightly better than 1.
-                       ;; Maybe better to save dired-filename in each window?
-                       (not (eq 1 (marker-position wc-point))))
+                       (marker-buffer wc-point))
               (goto-char wc-point))
 
             (when wc-bl  (set-frame-parameter nil 'buffer-list wc-bl))
