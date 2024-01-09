@@ -803,7 +803,7 @@ count_combining_before (const unsigned char *string, ptrdiff_t length,
   while (!CHAR_HEAD_P (*p) && p < string + length)
     p++;
 
-  return (combining_bytes < p - string ? combining_bytes : p - string);
+  return min (combining_bytes, p - string);
 }
 
 /* See if the bytes after POS/POS_BYTE combine with bytes
@@ -865,7 +865,7 @@ count_combining_after (const unsigned char *string,
   bufp++, pos_byte++;
   while (!CHAR_HEAD_P (*bufp)) bufp++, pos_byte++;
 
-  return (bytes <= pos_byte - opos_byte ? bytes : pos_byte - opos_byte);
+  return min (bytes, pos_byte - opos_byte);
 }
 
 #endif
@@ -1568,9 +1568,8 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   /* Relocate point as if it were a marker.  */
   if (from < PT)
-    adjust_point ((from + inschars - (PT < to ? PT : to)),
-		  (from_byte + outgoing_insbytes
-		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)));
+    adjust_point ((from + inschars - min (PT, to)),
+		  (from_byte + outgoing_insbytes - min (PT_BYTE, to_byte)));
 
   check_markers ();
 
@@ -1919,8 +1918,8 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 
   /* Relocate point as if it were a marker.  */
   if (from < PT)
-    adjust_point (from - (PT < to ? PT : to),
-		  from_byte - (PT_BYTE < to_byte ? PT_BYTE : to_byte));
+    adjust_point (from - min (PT, to),
+		  from_byte - min (PT_BYTE, to_byte));
 
   offset_intervals (current_buffer, from, - nchars_del);
 

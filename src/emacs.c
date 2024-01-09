@@ -2900,7 +2900,7 @@ sort_args (int argc, char **argv)
 	    new[to++] = argv[best + i + 1];
 	}
 
-      incoming_used += 1 + (options[best] > 0 ? options[best] : 0);
+      incoming_used += 1 + max (options[best], 0);
 
       /* Clear out this option in ARGV.  */
       argv[best] = 0;

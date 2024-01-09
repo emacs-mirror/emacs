@@ -6646,7 +6646,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
   prop = Fget_text_property (position, propname, w->contents);
-  XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
+  XSETFASTINT (limit1, min (limit, endpos));
   end = Fnext_single_property_change (position, propname, w->contents, limit1);
   if (FIXNUMP (end))
     endpos = XFIXNUM (end);
@@ -6782,7 +6782,7 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
   prop = Fget_text_property (position, propname, w->contents);
-  XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
+  XSETFASTINT (limit1, min (limit, endpos));
   end = Fnext_single_property_change (position, propname, w->contents, limit1);
   if (FIXNUMP (end))
     endpos = XFIXNUM (end);

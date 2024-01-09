@@ -7658,8 +7658,7 @@ consume_chars (struct coding_system *coding, Lisp_Object translation_table,
 	  if (pos == stop_charset)
 	    buf = handle_charset_annotation (pos, end_pos, coding,
 					     buf, &stop_charset);
-	  stop = (stop_composition < stop_charset
-		  ? stop_composition : stop_charset);
+	  stop = min (stop_composition, stop_charset);
 	}
 
       if (! multibytep)

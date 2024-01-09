@@ -652,10 +652,7 @@ dos_memory_info (unsigned long *totalram, unsigned long *freeram,
     mem2 *= 4096;
   /* Surely, the available memory is at least what we have physically
      available, right?  */
-  if (mem1 >= mem2)
-    freemem = mem1;
-  else
-    freemem = mem2;
+  freemem = max (mem1, mem2);
   *freeram = freemem;
   *totalswap =
     ((long)info.max_pages_in_paging_file == -1L)

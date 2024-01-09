@@ -420,7 +420,7 @@ bidi_paired_bracket_type (int c)
 static void
 bidi_set_sos_type (struct bidi_it *bidi_it, int level_before, int level_after)
 {
-  int higher_level = (level_before > level_after ? level_before : level_after);
+  int higher_level = max (level_before, level_after);
 
   /* FIXME: should the default sos direction be user selectable?  */
   bidi_it->sos = ((higher_level & 1) != 0 ? R2L : L2R); /* X10 */

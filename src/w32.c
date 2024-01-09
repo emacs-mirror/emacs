@@ -9414,7 +9414,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
       errno = 0;
       while (count > 0)
 	{
-	  unsigned this_chunk = count < chunk ? count : chunk;
+	  unsigned this_chunk = min (count, chunk);
 	  int n = _write (fd, p, this_chunk);
 
 	  if (n > 0)
