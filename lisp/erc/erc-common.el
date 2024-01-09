@@ -52,7 +52,7 @@
   string insertp sendp)
 
 (cl-defstruct (erc--input-split (:include erc-input
-                                          (string :read-only)
+                                          (string "" :read-only t)
                                           (insertp erc-insert-this)
                                           (sendp (with-suppressed-warnings
                                                      ((obsolete erc-send-this))

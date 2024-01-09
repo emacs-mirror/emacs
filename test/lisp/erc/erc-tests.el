@@ -849,7 +849,7 @@
   ;; truncation ellipsis when run interactively.  Rather than have
   ;; hard-to-read "nondeterministic" comparisons against sets of
   ;; acceptable values, we use separate tests.
-  (when (display-graphic-p) (ert-pass))
+  (when (char-displayable-p ?…) (ert-pass))
 
   ;; Truncation cache populated and used.
   (let ((cache (erc--channel-mode-types-shortargs erc--channel-mode-types))
@@ -877,7 +877,7 @@
 (ert-deftest erc--channel-modes/graphic-p ()
   :tags `(:unstable ,@(and (getenv "ERC_TESTS_GRAPHICAL")
                            '(:erc--graphical)))
-  (unless (display-graphic-p) (ert-skip "See non-/graphic-p variant"))
+  (unless (char-displayable-p ?…) (ert-skip "See non-/graphic-p variant"))
 
   (erc-tests-common-init-server-proc "sleep" "1")
   (setq erc--isupport-params (make-hash-table)
