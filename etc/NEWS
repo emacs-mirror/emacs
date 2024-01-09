@@ -752,6 +752,11 @@ The new supported completion properties are 'cycle-sort-function',
 'completion-category-overrides' that will override the properties
 defined in completion metadata.
 
++++
+*** 'completion-extra-properties' supports more metadata.
+The new supported completion properties are 'group-function',
+'display-sort-function', 'cycle-sort-function'.
+
 ** Pcomplete
 
 ---

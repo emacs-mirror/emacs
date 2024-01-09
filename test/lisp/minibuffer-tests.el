@@ -505,11 +505,11 @@
 
 (ert-deftest completions-affixation-navigation-test ()
   (let ((completion-extra-properties
-         '(:affixation-function
-           (lambda (completions)
-             (mapcar (lambda (c)
-                       (list c "prefix " " suffix"))
-                     completions)))))
+         `(:affixation-function
+           ,(lambda (completions)
+              (mapcar (lambda (c)
+                        (list c "prefix " " suffix"))
+                      completions)))))
     (completing-read-with-minibuffer-setup
         '("aa" "ab" "ac")
       (insert "a")

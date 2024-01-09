@@ -151,15 +151,25 @@ The metadata of a completion table should be constant between two boundaries."
                        minibuffer-completion-predicate))
 
 (defun completion-metadata-get (metadata prop)
-  "Get PROP from completion METADATA.
+  "Get property PROP from completion METADATA.
 If the metadata specifies a completion category, the variables
 `completion-category-overrides' and
-`completion-category-defaults' take precedence."
+`completion-category-defaults' take precedence for
+category-specific overrides.  If the completion metadata does not
+specify the property, the `completion-extra-properties' plist is
+consulted.  Note that the keys of the
+`completion-extra-properties' plist are keyword symbols, not
+plain symbols."
   (if-let (((not (eq prop 'category)))
            (cat (alist-get 'category metadata))
            (over (completion--category-override cat prop)))
       (cdr over)
-    (alist-get prop metadata)))
+    (or (alist-get prop metadata)
+        (plist-get completion-extra-properties
+                   ;; Cache the keyword
+                   (or (get prop 'completion-extra-properties--keyword)
+                       (put prop 'completion-extra-properties--keyword
+                            (intern (concat ":" (symbol-name prop)))))))))
 
 (defun complete-with-action (action collection string predicate)
   "Perform completion according to ACTION.
@@ -2447,6 +2457,15 @@ These include:
    `:annotation-function' when both are provided, so only this
    function is used.
 
+`:group-function': Function for grouping the completion candidates.
+
+`:display-sort-function': Function to sort entries in *Completions*.
+
+`:cycle-sort-function': Function to sort entries when cycling.
+
+See more information about these functions above
+in `completion-metadata'.
+
 `:exit-function': Function to run after completion is performed.
 
    The function must accept two arguments, STRING and STATUS.
@@ -2569,12 +2588,8 @@ The candidate will still be chosen by `choose-completion' unless
                                            base-size md
                                            minibuffer-completion-table
                                            minibuffer-completion-predicate))
-             (ann-fun (or (completion-metadata-get all-md 'annotation-function)
-                          (plist-get completion-extra-properties
-                                     :annotation-function)))
-             (aff-fun (or (completion-metadata-get all-md 'affixation-function)
-                          (plist-get completion-extra-properties
-                                     :affixation-function)))
+             (ann-fun (completion-metadata-get all-md 'annotation-function))
+             (aff-fun (completion-metadata-get all-md 'affixation-function))
              (sort-fun (completion-metadata-get all-md 'display-sort-function))
              (group-fun (completion-metadata-get all-md 'group-function))
              (mainbuf (current-buffer))

@@ -1928,6 +1928,15 @@ element of the returned list must be a three-element list, the
 completion, a prefix string, and a suffix string.  This function takes
 priority over @code{:annotation-function}.
 
+@item :group-function
+The function to group completions.
+
+@item :display-sort-function
+The function to sort entries in the @file{*Completions*} buffer.
+
+@item :cycle-sort-function
+The function to sort entries when cycling.
+
 @item :exit-function
 The value should be a function to run after performing completion.
 The function should accept two arguments, @var{string} and
