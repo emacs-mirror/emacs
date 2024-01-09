@@ -216,15 +216,9 @@ Also see `mouse-wheel-tilt-scroll'."
   :type 'boolean
   :version "26.1")
 
-(defun mwheel-event-button (event)
-  (let ((x (event-basic-type event)))
-    ;; Map mouse-wheel events to appropriate buttons
-    (if (eq 'mouse-wheel x)
-        (let ((amount (car (cdr (cdr (cdr event))))))
-          (if (< amount 0)
-              mouse-wheel-up-event
-            mouse-wheel-down-event))
-      x)))
+;; This function used to handle the `mouse-wheel` event which was
+;; removed in 2003 by commit 9eb28007fb27, thus making it obsolete.
+(define-obsolete-function-alias 'mwheel-event-button #'event-basic-type "30.1")
 
 (defun mwheel-event-window (event)
   (posn-window (event-start event)))
@@ -347,7 +341,7 @@ value of ARG, and the command uses it in subsequent scrolls."
     (when (numberp amt) (setq amt (* amt (event-line-count event))))
     (condition-case nil
         (unwind-protect
-	    (let ((button (mwheel-event-button event)))
+	    (let ((button (event-basic-type event)))
               (cond ((and (eq amt 'hscroll) (memq button (list mouse-wheel-down-event
                                                                mouse-wheel-down-alternate-event)))
                      (when (and (natnump arg) (> arg 0))
@@ -434,7 +428,7 @@ See also `text-scale-adjust'."
   (interactive (list last-input-event))
   (let ((selected-window (selected-window))
         (scroll-window (mouse-wheel--get-scroll-window event))
-        (button (mwheel-event-button event)))
+        (button (event-basic-type event)))
     (select-window scroll-window 'mark-for-redisplay)
     (unwind-protect
         (cond ((memq button (list mouse-wheel-down-event
@@ -450,7 +444,7 @@ See also `text-scale-adjust'."
   "Increase or decrease the global font size according to the EVENT.
 This invokes `global-text-scale-adjust', which see."
   (interactive (list last-input-event))
-  (let ((button (mwheel-event-button event)))
+  (let ((button (event-basic-type event)))
     (cond ((memq button (list mouse-wheel-down-event
                               mouse-wheel-down-alternate-event))
            (global-text-scale-adjust 1))

@@ -720,17 +720,19 @@ This function assumes that the events can be stored in a string."
            (setf (aref seq i) (logand (aref seq i) 127)))
   seq)
 
-;; These are needed in a --without-x build.
-(defvar mouse-wheel-down-event)
-(defvar mouse-wheel-up-event)
-(defvar mouse-wheel-right-event)
-(defvar mouse-wheel-left-event)
-
 (defun edmacro-fix-menu-commands (macro &optional noerror)
   (if (vectorp macro)
       (let (result)
         ;; Not preloaded in a --without-x build.
         (require 'mwheel)
+        (defvar mouse-wheel-down-event)
+        (defvar mouse-wheel-up-event)
+        (defvar mouse-wheel-right-event)
+        (defvar mouse-wheel-left-event)
+        (defvar mouse-wheel-down-alternate-event)
+        (defvar mouse-wheel-up-alternate-event)
+        (defvar mouse-wheel-right-alternate-event)
+        (defvar mouse-wheel-left-alternate-event)
 	;; Make a list of the elements.
 	(setq macro (append macro nil))
 	(dolist (ev macro)
@@ -748,7 +750,11 @@ This function assumes that the events can be stored in a string."
 		     (memq (event-basic-type ev)
 			   (list mouse-wheel-down-event mouse-wheel-up-event
 				 mouse-wheel-right-event
-				 mouse-wheel-left-event)))
+				 mouse-wheel-left-event
+				 mouse-wheel-down-alternate-event
+				 mouse-wheel-up-alternate-event
+				 mouse-wheel-right-alternate-event
+				 mouse-wheel-left-alternate-event)))
 		 nil)
 		(noerror nil)
 		(t
