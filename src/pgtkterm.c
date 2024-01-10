@@ -3471,9 +3471,7 @@ pgtk_define_fringe_bitmap (int which, unsigned short *bits, int h, int wd)
       i = max_fringe_bmp;
       max_fringe_bmp = which + 20;
       fringe_bmp
-	= (cairo_pattern_t **) xrealloc (fringe_bmp,
-					 max_fringe_bmp *
-					 sizeof (cairo_pattern_t *));
+	= xrealloc (fringe_bmp, max_fringe_bmp * sizeof (cairo_pattern_t *));
       while (i < max_fringe_bmp)
 	fringe_bmp[i++] = 0;
     }

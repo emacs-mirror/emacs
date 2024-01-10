@@ -330,8 +330,7 @@ uniscribe_shape (Lisp_Object lgstring, Lisp_Object direction)
     {
       /* If that wasn't enough, keep trying with one more run.  */
       max_items++;
-      items = (SCRIPT_ITEM *) xrealloc (items,
-					sizeof (SCRIPT_ITEM) * max_items + 1);
+      items = xrealloc (items, sizeof (SCRIPT_ITEM) * max_items + 1);
     }
 
   if (FAILED (result))

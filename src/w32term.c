@@ -949,7 +949,7 @@ w32_define_fringe_bitmap (int which, unsigned short *bits, int h, int wd)
     {
       int i = max_fringe_bmp;
       max_fringe_bmp = which + 20;
-      fringe_bmp = (HBITMAP *) xrealloc (fringe_bmp, max_fringe_bmp * sizeof (HBITMAP));
+      fringe_bmp = xrealloc (fringe_bmp, max_fringe_bmp * sizeof (HBITMAP));
       while (i < max_fringe_bmp)
 	fringe_bmp[i++] = 0;
     }
