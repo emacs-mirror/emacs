@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+# If you don't want messages from GDB to interfere with ordinary editing
+# whenever it creates a subprocess, uncomment the following line.
+### set print inferior-events off
+
 # Force loading of symbols, enough to give us VALBITS etc.
 set $dummy = main + 8
 # With some compilers, we need this to give us struct Lisp_Symbol etc.:
