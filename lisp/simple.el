@@ -10256,7 +10256,16 @@ back on `completion-list-insert-choice-function' when nil."
                        (raise-frame (window-frame mini))))
                  (exit-minibuffer))))))))
 
-(define-derived-mode completion-list-mode nil "Completion List"
+(define-derived-mode completion-list-mode nil
+  `("Completions"
+    (completion-style
+     (:eval (concat "["
+                    (propertize (symbol-name completion-style)
+                                'mouse-face 'mode-line-highlight
+                                'help-echo
+                                (nth 3 (assoc completion-style
+                                              completion-styles-alist)))
+                    "]"))))
   "Major mode for buffers showing lists of possible completions.
 Type \\<completion-list-mode-map>\\[choose-completion] in the completion list\
  to select the completion near point.
@@ -10318,11 +10327,13 @@ Called from `temp-buffer-show-hook'."
     (with-current-buffer standard-output
       (let ((base-position completion-base-position)
             (base-affixes completion-base-affixes)
-            (insert-fun completion-list-insert-choice-function))
+            (insert-fun completion-list-insert-choice-function)
+            (style completion-style))
         (completion-list-mode)
         (setq-local completion-base-position base-position)
         (setq-local completion-base-affixes base-affixes)
         (setq-local completion-list-insert-choice-function insert-fun)
+        (setq-local completion-style style)
         (when narrow (completions-narrow-mode)))
       (setq-local completion-reference-buffer mainbuf)
       (if base-dir (setq default-directory base-dir))

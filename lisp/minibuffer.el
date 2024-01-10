@@ -1246,12 +1246,32 @@ overrides the default specified in `completion-category-defaults'."
   (or (assq tag (cdr (assq category completion-category-overrides)))
       (assq tag (cdr (assq category completion-category-defaults)))))
 
+(defvar completion-style nil
+  "The completion style that produced the current completions list.
+
+`minibuffer-completion-help' arranges for this variable to be set
+buffer-locally in the *Completions* buffer.")
+
+(defvar completion--matching-style nil
+  "Last completion style to match user input.")
+
+(defvar completion-local-styles nil
+  "List of completion styles local to the current minibuffer.
+
+You manipulate this variable with command \
+\\<minibuffer-local-completion-map>\\[minibuffer-set-completion-styles]
+in the minibuffer.  When it is non-nil, it takes precedence over
+the global `completion-styles' user option and the completion
+styles that the completion category may prescribe.")
+
 (defun completion--styles (metadata)
-  (let* ((cat (completion-metadata-get metadata 'category))
-         (over (completion--category-override cat 'styles)))
-    (if over
-        (delete-dups (append (cdr over) (copy-sequence completion-styles)))
-       completion-styles)))
+  "Return current list of completion styles, considering completion METADATA."
+  (or completion-local-styles
+      (let* ((cat (completion-metadata-get metadata 'category))
+             (over (completion--category-override cat 'styles)))
+        (if over
+            (delete-dups (append (cdr over) (copy-sequence completion-styles)))
+          completion-styles))))
 
 (defun completion--nth-completion (n string table pred point metadata)
   "Call the Nth method of completion styles."
@@ -1287,13 +1307,13 @@ overrides the default specified in `completion-category-defaults'."
          (result-and-style
           (seq-some
            (lambda (style)
-             (let ((probe (funcall
-                           (or (nth n (assq style completion-styles-alist))
-                               (error "Invalid completion style %s" style))
-                           string table pred point)))
-               (and probe (cons probe style))))
+             (when-let ((probe (funcall
+                                (nth n (assq style completion-styles-alist))
+                                string table pred point)))
+               (cons probe style)))
            (completion--styles md)))
          (adjust-fn (get (cdr result-and-style) 'completion--adjust-metadata)))
+    (setq completion--matching-style (cdr result-and-style))
     (when (and adjust-fn metadata)
       (setcdr metadata (cdr (funcall adjust-fn metadata))))
     (if requote
@@ -2677,6 +2697,82 @@ current order instead."
                nil nil minibuffer-read-sort-order-with-completion)))))
   (when completion-auto-help (minibuffer-completion-help)))
 
+(defun completion-styles-affixation (names)
+  "Return completion affixations for completion styles list NAMES."
+  (let ((max-name (seq-max (mapcar #'string-width names))))
+    (mapcar
+     (lambda (name)
+       (list name
+             ""
+             (if-let ((desc (nth 3 (assoc (intern name)
+                                          completion-styles-alist))))
+                 (concat (propertize " " 'display
+                                     `(space :align-to ,(+ max-name 4)))
+                         (propertize
+                          ;; Only use the first line.
+                          (substring desc 0 (string-search "\n" desc))
+                          'face 'completions-annotations))
+               "")))
+     names)))
+
+(defun completion-styles-table (string pred action)
+  "Completion table for completion styles.
+
+See Info node `(elisp)Programmed Completion' for the meaning of
+STRING, PRED and ACTION."
+  (if (eq action 'metadata)
+      '(metadata
+        (category . completion-style)
+        (affixation-function . completion-styles-affixation))
+    (complete-with-action action completion-styles-alist string pred)))
+
+(defun minibuffer-set-completion-styles (styles)
+  "Set the completion styles for the current minibuffer to STYLES.
+
+STYLES is a list of completion styles (symbols).  If STYLES is
+nil, this discards any completion styles changes that you have
+made with this commmand in the current minibuffer.
+
+Interactively, with no prefix argument, prompt for a list of
+completion styles, with completion.  With plain prefix
+\\[universal-argument], discard all changes that you made with
+this commmand in the current minibuffer.  Zero prefix argument
+(C-0 C-x /) says to disable the completion style that produced
+the current completions list.  Prefix argument one (C-1 C-x /)
+says to keep only the completion style that produced the current
+completions list."
+  (interactive
+   (list (let ((styles (completion--styles (completion--field-metadata
+                                            (minibuffer-prompt-end))))
+               (current (when-let ((buf (get-buffer "*Completions*")))
+                          (buffer-local-value 'completion-style buf))))
+           (pcase current-prefix-arg
+             (`(,_ . ,_) nil)           ; \\[universal-argument]
+             (0 (unless current
+                  (user-error "No current completion style"))
+                (or (remove current styles)
+                    (user-error "Cannot disable sole competion style")))
+             (1 (unless current
+                  (user-error "No current completion style"))
+                (list current))
+             (_ (mapcar
+                 #'intern
+                 (minibuffer-with-setup-hook
+                     (lambda ()
+                       (require 'crm)
+                       (setq-local crm-separator "[ \t]*,[ \t]*"))
+                   (completing-read-multiple
+                    "Set completion styles: "
+                    #'completion-styles-table nil t
+                    (concat (mapconcat #'symbol-name styles ",") ","))))))))
+   minibuffer-mode)
+  (setq-local completion-local-styles styles)
+  (when (get-buffer-window "*Completions*" 0)
+    (minibuffer-completion-help))
+  (message (format "Using completion style%s `%s'"
+                   (ngettext "" "s" (length styles))
+                   (mapconcat #'symbol-name styles "', `"))))
+
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
@@ -2720,6 +2816,7 @@ current order instead."
                        (or (search-forward "/" nil t) (point-max))))
                    (point-max))
                 ""))
+             (style completion--matching-style)
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))
                                            base-size md
@@ -2808,6 +2905,7 @@ current order instead."
                                       completions))))
 
                       (with-current-buffer standard-output
+                        (setq-local completion-style style)
                         (setq-local completion-base-position
                              (list (+ start base-size)
                                    ;; FIXME: We should pay attention to completion
@@ -3200,7 +3298,8 @@ The completion method is determined by `completion-at-point-functions'."
   "M-<down>"  #'minibuffer-next-completion
   "M-RET"     #'minibuffer-choose-completion
   "C-x C-v"   #'minibuffer-sort-completions
-  "C-x n"     'minibuffer-narrow-completions-map)
+  "C-x n"     'minibuffer-narrow-completions-map
+  "C-x /"     #'minibuffer-set-completion-styles)
 
 (defvar-keymap minibuffer-local-must-match-map
   :doc "Local keymap for minibuffer input with completion, for exact match."

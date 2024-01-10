@@ -353,6 +353,8 @@ arguments that often include spaces, such as file names.
 @item @key{RET}
 Submit the text in the minibuffer as the argument, possibly completing
 first (@code{minibuffer-complete-and-exit}).  @xref{Completion Exit}.
+@item ?
+Display a list of completions (@code{minibuffer-completion-help}).
 @item C-x C-v
 Change the order of the list of possible completions
 (@code{minibuffer-sort-completions}).
@@ -366,8 +368,9 @@ Narrow the list of possible completions in a command-specific manner
 @item C-x n w
 Remove restrictions on the list of possible completions
 (@code{minibuffer-widen-completions}).
-@item ?
-Display a list of completions (@code{minibuffer-completion-help}).
+@item C-x /
+Change or reorder completion styles for the current minibuffer
+(@code{minibuffer-set-completion-styles}).
 @end table
 
 @kindex TAB @r{(completion)}
@@ -428,6 +431,21 @@ is only one restriction, @kbd{C-x n w} removes it without prompting.
 If you invoke this command with a prefix argument (@kbd{C-u C-x n w}),
 it removes all restrictions without prompting, regardless of how many
 there are.
+
+@kindex C-x / @r{(completion)}
+@findex minibuffer-set-completion-styles
+  @kbd{C-x /} (minibuffer-set-completion-styles) lets you set the
+completion styles for the current minibuffer.  @xref{Completion
+Styles}.  This command prompts you for a list of completion styles,
+and sets that list as the effective completion styles for following
+completion operations in the current minibuffer.  With a plain prefix
+argument (@kbd{C-u C-x /}), it instead discards all changes that you
+made to the current completion styles.  With a zero numeric prefix
+argument (@kbd{C-0 C-x /}), it keeps all current completion styles
+except the style that produced that current completions list.
+Conversely, a numeric prefix argument of one (@kbd{C-1 C-x /}) says to
+keep only the completion style that produced the current completions
+list, disabling other completion styles for the current minibuffer.
 
 @kindex ? @r{(completion)}
 @cindex completion list
@@ -585,7 +603,12 @@ styles}---sets of criteria for matching minibuffer text to completion
 alternatives.  During completion, Emacs tries each completion style in
 turn.  If a style yields one or more matches, that is used as the list
 of completion alternatives.  If a style produces no matches, Emacs
-falls back on the next style.
+falls back on the next style.  The mode line of the
+@file{*Completions*} buffer indicates which completion style produced
+the listed completion candidates, by showing the name of that style.
+(For example, the mode line says @samp{Completions[basic]} when the
+@code{basic} completion style is in effect.)  You can hover over the
+mode line style indicator with the mouse to see its full description.
 
 @vindex completion-styles
   The list variable @code{completion-styles} specifies the completion
@@ -663,6 +686,23 @@ You can use different completion styles in different situations,
 by setting the variable @code{completion-category-overrides}.
 For example, the default setting says to use only @code{basic}
 and @code{substring} completion for buffer names.
+
+  You can also set the completion styles interactively for the current
+minibuffer invocation, temporarily overriding the completion styles
+that @code{completion-styles} and the completion category prescribe.
+To do that, type @kbd{C-x /} in the minibuffer---this invokes command
+@code{minibuffer-set-completion-styles}, which prompts you for a list
+of completion styles and sets that list as the effective completion
+styles for following completion operations in the current minibuffer.
+With a plain prefix argument (@kbd{C-u C-x /}), this command instead
+discards all changes that you made to the current completion styles.
+With a zero numeric prefix argument (@kbd{C-0 C-x /}), this command
+keeps all current completion styles except the style that produced
+that current completions list---use this if a completion style yields
+a @file{*Completions*} buffer that is not what you're looking for.
+Conversely, a numeric prefix argument of one (@kbd{C-1 C-x /}) says to
+keep only the completion style that produced the current completions
+list, disabling other completion styles for the current minibuffer.
 
 @node Narrow Completions
 @subsection Completions Narrowing

@@ -805,6 +805,13 @@ This command lets you change the separator that
 strings.  'completing-read-multiple' binds 'C-x ,' to
 'crm-change-separator' in the minibuffer.
 
++++
+*** New command 'minibuffer-set-completion-styles'.
+This command, bound to 'C-x /' in the minibuffer, lets you set the
+completion styles for the current minibuffer.  See Info node
+"(emacs)Completion Styles" for more information about this new
+command, and completion styles in general.
+
 ** Pcomplete
 
 ---

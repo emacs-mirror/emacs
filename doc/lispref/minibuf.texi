@@ -1408,6 +1408,12 @@ possible completions to only include candidates that match the current
 minibuffer input.
 @end deffn
 
+@deffn Command minibuffer-set-completion-styles
+This function changes the effective list of completion styles for the
+current minibuffer.  It works by setting the local value of
+@code{completion-local-styles}.  @xref{Completion Variables}.
+@end deffn
+
 @defun display-completion-list completions
 This function displays @var{completions} to the stream in
 @code{standard-output}, usually a buffer.  (@xref{Read and Print}, for more
@@ -1456,6 +1462,9 @@ keymap makes the following bindings:
 
 @item C-x n
 @code{minibuffer-narrow-completions-map}
+
+@item C-x /
+@code{minibuffer-set-completion-styles}
 @end table
 
 @noindent
@@ -2011,6 +2020,16 @@ The function to add prefixes and suffixes to completions.
 @noindent
 See @ref{Programmed Completion}, for a complete list of metadata entries.
 @end defopt
+
+@defvar completion-local-styles
+The value of this variable is a list of completion styles, just like
+@code{completion-styles}.  By default, this variable is set to
+@code{nil}, in which case it has no effect.  The command
+@code{minibuffer-set-completion-styles} sets the local value of this
+variable in the minibuffer---when it sets this variable to a
+non-@code{nil} list of completion styles, this variable takes
+precedence over @code{completion-styles} and the completion category.
+@end defvar
 
 @defvar completion-extra-properties
 This variable is used to specify extra properties of the current
