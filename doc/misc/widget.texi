@@ -1592,7 +1592,7 @@ Example:
 (widget-create 'variable-link
                :button-prefix ""
                :button-suffix ""
-               :tag "What setting controlls button-prefix?"
+               :tag "What setting controls button-prefix?"
                'widget-button-prefix)
 @end lisp
 
