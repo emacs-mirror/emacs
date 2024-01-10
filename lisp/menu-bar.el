@@ -2561,6 +2561,11 @@ It must accept a buffer as its only required argument.")
                 :key-sequence "\r"
 		:help "Complete input and exit minibuffer"))
   (bindings--define-key map
+      [menu-bar minibuf minibuffer-set-completion-styles]
+    '(menu-item "Set Completion Styles"
+                minibuffer-set-completion-styles
+		:help "Set completion styles for the current minibuffer"))
+  (bindings--define-key map
       [menu-bar minibuf minibuffer-widen-completions]
     '(menu-item "Remove Completions Restrictions"
                 minibuffer-widen-completions
