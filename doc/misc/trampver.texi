@@ -7,7 +7,7 @@
 
 @c In the  Tramp GIT, the version number and the bug report address
 @c are auto-frobbed from configure.ac.
-@set trampver 2.7.0
+@set trampver 2.7.1-pre
 @set trampurl https://www.gnu.org/software/tramp/
 @set tramp-bug-report-address tramp-devel@@gnu.org
 @set emacsver 27.1

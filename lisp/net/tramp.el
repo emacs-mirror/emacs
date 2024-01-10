@@ -1205,14 +1205,7 @@ The `ftp' syntax does not support methods.")
       ;; FIXME: This shouldn't be necessary.
       (rx bos "/" (? "[" (* (not "]"))) eos)
     (rx
-     bos
-     ;; `file-name-completion' uses absolute paths for matching.
-     ;; This means that on W32 systems, something like
-     ;; "/ssh:host:~/path" becomes "c:/ssh:host:~/path".  See also
-     ;; `tramp-drop-volume-letter'.
-     (? (regexp tramp-volume-letter-regexp))
-     ;; We cannot use `tramp-prefix-regexp', because it starts with `bol'.
-     (literal tramp-prefix-format)
+     (regexp tramp-prefix-regexp)
 
      ;; Optional multi-hops.
      (* (regexp tramp-remote-file-name-spec-regexp)
@@ -2666,7 +2659,7 @@ not in completion mode."
            (string-match-p (rx (regexp tramp-postfix-host-regexp) eos) dir))
       (concat dir filename))
      ((string-match-p
-       (rx bos (regexp tramp-prefix-regexp)
+       (rx (regexp tramp-prefix-regexp)
 	   (* (regexp tramp-remote-file-name-spec-regexp)
 	      (regexp tramp-postfix-hop-regexp))
 	   (? (regexp tramp-method-regexp) (regexp tramp-postfix-method-regexp)

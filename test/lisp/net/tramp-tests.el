@@ -4719,57 +4719,55 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Check `file-name-completion' and `file-name-all-completions'."
   (skip-unless (tramp--test-enabled))
 
-  ;; Method and host name in completion mode.  This kind of completion
-  ;; does not work on MS Windows.
-  (unless (memq system-type '(cygwin windows-nt))
-    (let ((tramp-fuse-remove-hidden-files t)
-	  (method (file-remote-p ert-remote-temporary-file-directory 'method))
-	  (host (file-remote-p ert-remote-temporary-file-directory 'host))
-          (orig-syntax tramp-syntax)
-          (minibuffer-completing-file-name t))
-      (when (and (stringp host) (string-match tramp-host-with-port-regexp host))
-	(setq host (match-string 1 host)))
+  ;; Method and host name in completion mode.
+  (let ((tramp-fuse-remove-hidden-files t)
+	(method (file-remote-p ert-remote-temporary-file-directory 'method))
+	(host (file-remote-p ert-remote-temporary-file-directory 'host))
+        (orig-syntax tramp-syntax)
+        (minibuffer-completing-file-name t))
+    (when (and (stringp host) (string-match tramp-host-with-port-regexp host))
+      (setq host (match-string 1 host)))
 
-      (unwind-protect
-          (dolist (syntax (if (tramp--test-expensive-test-p)
-		              (tramp-syntax-values) `(,orig-syntax)))
-            (tramp-change-syntax syntax)
-	    ;; This has cleaned up all connection data, which are used
-	    ;; for completion.  We must refill the cache.
-	    (tramp-set-connection-property tramp-test-vec "property" nil)
+    (unwind-protect
+        (dolist (syntax (if (tramp--test-expensive-test-p)
+		            (tramp-syntax-values) `(,orig-syntax)))
+          (tramp-change-syntax syntax)
+	  ;; This has cleaned up all connection data, which are used
+	  ;; for completion.  We must refill the cache.
+	  (tramp-set-connection-property tramp-test-vec "property" nil)
 
-            (let (;; This is needed for the `separate' syntax.
-                  (prefix-format (substring tramp-prefix-format 1))
-		  ;; This is needed for the IPv6 host name syntax.
-		  (ipv6-prefix
-		   (and (string-match-p tramp-ipv6-regexp host)
-		        tramp-prefix-ipv6-format))
-		  (ipv6-postfix
-		   (and (string-match-p tramp-ipv6-regexp host)
-		        tramp-postfix-ipv6-format)))
-              ;; Complete method name.
-	      (unless (or (tramp-string-empty-or-nil-p method)
-                          (string-empty-p tramp-method-regexp))
-	        (should
-	         (member
-		  (concat prefix-format method tramp-postfix-method-format)
-		  (file-name-all-completions
-                   (concat prefix-format (substring method 0 1)) "/"))))
-              ;; Complete host name.
-	      (unless (or (tramp-string-empty-or-nil-p method)
-                          (string-empty-p tramp-method-regexp)
-                          (tramp-string-empty-or-nil-p host))
-	        (should
-	         (member
-		  (concat
-                   prefix-format method tramp-postfix-method-format
-		   ipv6-prefix host ipv6-postfix tramp-postfix-host-format)
-		  (file-name-all-completions
-		   (concat prefix-format method tramp-postfix-method-format)
-                   "/"))))))
+          (let (;; This is needed for the `separate' syntax.
+                (prefix-format (substring tramp-prefix-format 1))
+		;; This is needed for the IPv6 host name syntax.
+		(ipv6-prefix
+		 (and (string-match-p tramp-ipv6-regexp host)
+		      tramp-prefix-ipv6-format))
+		(ipv6-postfix
+		 (and (string-match-p tramp-ipv6-regexp host)
+		      tramp-postfix-ipv6-format)))
+            ;; Complete method name.
+	    (unless (or (tramp-string-empty-or-nil-p method)
+                        (string-empty-p tramp-method-regexp))
+	      (should
+	       (member
+		(concat prefix-format method tramp-postfix-method-format)
+		(file-name-all-completions
+                 (concat prefix-format (substring method 0 1)) "/"))))
+            ;; Complete host name.
+	    (unless (or (tramp-string-empty-or-nil-p method)
+                        (string-empty-p tramp-method-regexp)
+                        (tramp-string-empty-or-nil-p host))
+	      (should
+	       (member
+		(concat
+                 prefix-format method tramp-postfix-method-format
+		 ipv6-prefix host ipv6-postfix tramp-postfix-host-format)
+		(file-name-all-completions
+		 (concat prefix-format method tramp-postfix-method-format)
+                 "/"))))))
 
-	;; Cleanup.
-        (tramp-change-syntax orig-syntax))))
+      ;; Cleanup.
+      (tramp-change-syntax orig-syntax)))
 
   (dolist (non-essential '(nil t))
     (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
@@ -4851,9 +4849,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; and Bug#60505.
 (ert-deftest tramp-test26-interactive-file-name-completion ()
   "Check interactive completion with different `completion-styles'."
-  ;; Method, user and host name in completion mode.  This kind of
-  ;; completion does not work on MS Windows.
-  (skip-unless (not (memq system-type '(cygwin windows-nt))))
+  ;; Method, user and host name in completion mode.
   (tramp-cleanup-connection tramp-test-vec nil 'keep-password)
 
   (let ((method (file-remote-p ert-remote-temporary-file-directory 'method))
