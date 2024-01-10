@@ -5474,8 +5474,6 @@ be as well.  */
       next = next->next;
       xfree (last);
     }
-
-#undef ONE_PIXEL
 }
 
 /* Apply winding rule to the coverage value VALUE.  Convert VALUE to a

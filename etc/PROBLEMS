@@ -3408,14 +3408,15 @@ this and many other problems do not exist on the regular X builds.
 
 TrueType fonts incorporate instruction code executed by the font
 scaler (the component responsible for transforming outlines into
-bitmap images capable of being displayed onscreen), in order that
-features of each glyph might be aligned to pixel boundaries
-intelligently, preventing faintness while maintaining the shape of its
-features.  The substandard instruction code provided by the monospace
-font distributed with Android misplaces features of such glyphs as "E"
-and "F" between point sizes of 16 and 24, resulting in noticeable
+bitmap images capable of being displayed onscreen) to align features
+of each glyph to pixel boundaries while maintaining their shape, in
+order to alleviate visual imperfections produced by scaling.  The
+substandard instruction code provided by the Android "Droid Sans Mono"
+font misplaces features of glyphs containing, as components, "E" and
+"F", between PPEM sizes of 16 and 24, resulting in noticeable
 whitespace inconsistencies with other glyphs.  Furthermore, the
-vertical stem in the glyph "T" is positioned too far to the left.
+vertical stem in the glyph "T" is positioned too far to the left at
+PPEM sizes of 12.
 
 The remedy for this is to replace the instruction code with
 automatically generated code from the FreeType project's "ttfautohint"
