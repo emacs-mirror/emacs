@@ -330,6 +330,16 @@ Also see `ignore'."
 ;;; TODO:
 ;;
 ;; * Starting with Emacs 27.1, there's no need to escape open
-;;   parentheses with a backslash in docstrings anymore.
+;;   parentheses with a backslash in docstrings anymore.  However,
+;;   `outline-minor-mode' has still problems with this.  Since there
+;;   are developers using `outline-minor-mode' in Lisp files, we still
+;;   keep this quoting.
+;;
+;; * Starting with Emacs 29.1, use `buffer-match-p'.
+;;
+;; * Starting with Emacs 30.1, there is `handler-bind'.  Use it
+;;   instead of `condition-case' when the origin of an error shall be
+;;   kept, for example when the HANDLER propagates the error with
+;;   `(signal (car err) (cdr err)'.
 
 ;;; tramp-compat.el ends here
