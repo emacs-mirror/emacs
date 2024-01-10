@@ -2388,8 +2388,8 @@ android_afs_opendir (struct android_vnode *vnode)
      and as such can be exactly one byte past directory_tree.  */
   if (dir->asset_limit > directory_tree + directory_tree_size)
     {
-      xfree (dir);
       xfree (dir->asset_file);
+      xfree (dir);
       errno = EACCES;
       return NULL;
     }
@@ -5547,8 +5547,8 @@ android_saf_tree_opendir (struct android_vnode *vnode)
 
   if (!cursor)
     {
-      xfree (dir);
       xfree (dir->name);
+      xfree (dir);
       return NULL;
     }
 
