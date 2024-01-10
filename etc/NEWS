@@ -754,8 +754,8 @@ defined in completion metadata.
 
 +++
 *** 'completion-extra-properties' supports more metadata.
-The new supported completion properties are 'group-function',
-'display-sort-function', 'cycle-sort-function'.
+The new supported completion properties are 'category',
+'group-function', 'display-sort-function', 'cycle-sort-function'.
 
 ** Pcomplete
 

@@ -150,6 +150,14 @@ The metadata of a completion table should be constant between two boundaries."
                        minibuffer-completion-table
                        minibuffer-completion-predicate))
 
+(defun completion--metadata-get-1 (metadata prop)
+  (or (alist-get prop metadata)
+      (plist-get completion-extra-properties
+                 ;; Cache the keyword
+                 (or (get prop 'completion-extra-properties--keyword)
+                     (put prop 'completion-extra-properties--keyword
+                          (intern (concat ":" (symbol-name prop))))))))
+
 (defun completion-metadata-get (metadata prop)
   "Get property PROP from completion METADATA.
 If the metadata specifies a completion category, the variables
@@ -161,15 +169,10 @@ consulted.  Note that the keys of the
 `completion-extra-properties' plist are keyword symbols, not
 plain symbols."
   (if-let (((not (eq prop 'category)))
-           (cat (alist-get 'category metadata))
+           (cat (completion--metadata-get-1 metadata 'category))
            (over (completion--category-override cat prop)))
       (cdr over)
-    (or (alist-get prop metadata)
-        (plist-get completion-extra-properties
-                   ;; Cache the keyword
-                   (or (get prop 'completion-extra-properties--keyword)
-                       (put prop 'completion-extra-properties--keyword
-                            (intern (concat ":" (symbol-name prop)))))))))
+    (completion--metadata-get-1 metadata prop)))
 
 (defun complete-with-action (action collection string predicate)
   "Perform completion according to ACTION.
@@ -2441,6 +2444,9 @@ candidates."
 (defvar completion-extra-properties nil
   "Property list of extra properties of the current completion job.
 These include:
+
+`:category': the kind of objects returned by `all-completions'.
+   Used by `completion-category-overrides'.
 
 `:annotation-function': Function to annotate the completions buffer.
    The function must accept one argument, a completion string,

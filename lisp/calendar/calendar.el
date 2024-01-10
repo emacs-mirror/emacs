@@ -2337,14 +2337,12 @@ returned is (month year)."
          (defmon (aref month-array (1- (calendar-extract-month default-date))))
          (completion-ignore-case t)
          (month (cdr (assoc-string
-                      (completing-read
-                       (format-prompt "Month name" defmon)
-                       (lambda (string pred action)
-	                 (if (eq action 'metadata)
-		             '(metadata (category . calendar-month))
-	                   (complete-with-action
-                            action (append month-array nil) string pred)))
-                       nil t nil nil defmon)
+                      (let ((completion-extra-properties
+                             '(:category calendar-month)))
+                        (completing-read
+                         (format-prompt "Month name" defmon)
+                         (append month-array nil)
+                         nil t nil nil defmon))
                       (calendar-make-alist month-array 1) t)))
          (defday (calendar-extract-day default-date))
          (last (calendar-last-day-of-month month year)))
