@@ -4736,8 +4736,11 @@ the variable `Info-file-list-for-emacs'."
           ((symbolp command)
            (Info-goto-emacs-command-node command))
 	  (t
-	   (message "%s invokes an anonymous command"
-                    (key-description key))))))
+	   (message
+            (substitute-command-keys
+             (format
+              "\\`%s' invokes an anonymous command defined with `lambda'"
+              (key-description key))))))))
 
 (defvar Info-link-keymap
   (let ((keymap (make-sparse-keymap)))
