@@ -2813,7 +2813,7 @@ button for.  Same for CURRENT-REVISION.  LIMIT means the usual."
 Leave point at WORKING-REVISION, if it is non-nil.
 If IS-START-REVISION is non-nil, start the log from WORKING-REVISION
 \(not all backends support this); i.e., show only WORKING-REVISION and
-earlier revisions.  Show up to LIMIT entries (non-nil means unlimited).
+earlier revisions.  Show up to LIMIT entries (nil means unlimited).
 LIMIT can also be a string, which means the revision before which to stop."
   ;; Don't switch to the output buffer before running the command,
   ;; so that any buffer-local settings in the vc-controlled
