@@ -720,7 +720,7 @@ of minibuffer completions is different from narrowing buffers
 (@pxref{Narrowing}), although the two are conceptually related since
 both allow you to focus on some part of a larger whole.
 
-  @kbd{C-x n n} (@code{minibuffer-narrow-completions-to-current}
+  @kbd{C-x n n} (@code{minibuffer-narrow-completions-to-current})
 restricts the list of possible completions to only include candidates
 that match the current minibuffer input.  This command clears the
 minibuffer so you can type another (partial) input and complete it
@@ -729,7 +729,7 @@ call this command with a negative prefix argument (@kbd{C-- C-x n n}),
 it instead excludes all matches for the current input from subsequent
 completions.
 
-  @kbd{C-x n m} (@code{minibuffer-narrow-completions} is similar to
+  @kbd{C-x n m} (@code{minibuffer-narrow-completions}) is similar to
 @kbd{C-x n n}, but more versatile.  This command restricts the list of
 possible completions in different ways, depending on what kind of
 completion candidates you're dealing with.  For example, commands that

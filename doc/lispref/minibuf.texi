@@ -1260,7 +1260,7 @@ multiple inputs at once, and returns them as a list of strings.  The
 user types (or completes) the inputs in the minibuffer, separating
 them with strings that match @code{crm-separator}.  When displaying
 the completions list for @code{completing-read-multiple}, the mode
-line of the @file{*Completions*} buffer includes the an indicator that
+line of the @file{*Completions*} buffer includes an indicator that
 says @samp{Multi}.  Hovering over that indicator with the mouse shows
 help about the current input separator.
 @end defun
