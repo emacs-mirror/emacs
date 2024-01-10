@@ -156,6 +156,8 @@ from.
 
 ** Make back_comment use syntax-ppss or equivalent
 
+* Make play-sound asynchronous and non-blocking
+
 ** Consider improving src/sysdep.c's search for a fqdn
 https://lists.gnu.org/r/emacs-devel/2007-04/msg00782.html
 
