@@ -3119,8 +3119,8 @@ escape sequences.  It is enabled by default.
 @cindex Fullscreen mode
 
 Run Emacs with the @samp{--maximized} command-line option or put the
-following form in your early init file (@pxref{Early Init File,,,
-emacs, The GNU Emacs Manual}).
+following form at the top of your early init file (@pxref{Early Init
+File,,, emacs, The GNU Emacs Manual}).
 
 @lisp
 (push '(fullscreen . maximized) default-frame-alist)
@@ -3128,9 +3128,9 @@ emacs, The GNU Emacs Manual}).
 
 Note that while some customizations of @code{default-frame-alist}
 could have undesirable effects when modified in the early init file,
-it is okay to do it in this particular case.  Adding it to the normal
-init file will also work, but leads to a visible resizing of the
-window that some find distracting.
+it is okay to do it in this particular case.  Adding it to the top of
+your normal init file will also work, but leads to a visible resizing
+of the window that some find distracting.
 
 @node Emacs in a Linux console
 @section How can I alleviate the limitations of the Linux console?
