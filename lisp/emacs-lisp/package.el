@@ -4003,8 +4003,8 @@ invocations."
 (defun package-menu--version-predicate (A B)
   "Predicate to sort \"*Packages*\" buffer by the version column.
 This is used for `tabulated-list-format' in `package-menu-mode'."
-  (let ((vA (or (version-to-list (aref (cadr A) 1)) '(0)))
-        (vB (or (version-to-list (aref (cadr B) 1)) '(0))))
+  (let ((vA (or (ignore-error error (version-to-list (aref (cadr A) 1))) '(0)))
+        (vB (or (ignore-error error (version-to-list (aref (cadr B) 1))) '(0))))
     (if (version-list-= vA vB)
         (package-menu--name-predicate A B)
       (version-list-< vA vB))))
