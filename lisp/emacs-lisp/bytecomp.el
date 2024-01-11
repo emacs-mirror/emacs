@@ -2605,9 +2605,10 @@ list that represents a doc string reference.
 `defvaralias', `autoload' and `custom-declare-variable' need that."
   ;; We need to examine byte-compile-dynamic-docstrings
   ;; in the input buffer (now current), not in the output buffer.
-  (let ((byte-compile-dynamic-docstrings byte-compile-dynamic-docstrings))
+  (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
     (with-current-buffer byte-compile--outbuffer
-      (let ((position (point))
+      (let ((byte-compile-dynamic-docstrings dynamic-docstrings)
+            (position (point))
             (print-continuous-numbering t)
             print-number-table
             ;; FIXME: The bindings below are only needed for when we're
