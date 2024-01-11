@@ -163,15 +163,21 @@ DESCRIPTION
 
 (ert-deftest man-tests-Man-translate-references ()
   (should (equal (Man-translate-references "basename")
-                 "basename"))
+                 (if (memq system-type '(ms-dos windows-nt))
+                     "\"basename\""
+                     "basename")))
   (should (equal (Man-translate-references "basename(3)")
                  "3 basename"))
   (should (equal (Man-translate-references "basename(3v)")
                  "3v basename"))
   (should (equal (Man-translate-references ";id")
-                 "\\;id"))
+                 (if (memq system-type '(ms-dos windows-nt))
+                     "\";id\""
+                   "\\;id")))
   (should (equal (Man-translate-references "-k basename")
-                 "-k basename")))
+                 (if (memq system-type '(ms-dos windows-nt))
+                     "\"-k\" \"basename\""
+                   "-k basename"))))
 
 (provide 'man-tests)
 
