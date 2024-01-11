@@ -43,7 +43,7 @@ integer is a character or not is determined only by how it is used.
 Emacs.
 
   A string is a fixed sequence of characters.  It is a type of
-sequence called an @dfn{array}, meaning that its length is fixed and
+sequence called a @dfn{array}, meaning that its length is fixed and
 cannot be altered once it is created (@pxref{Sequences Arrays
 Vectors}).  Unlike in C, Emacs Lisp strings are @emph{not} terminated
 by a distinguished character code.
