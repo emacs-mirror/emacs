@@ -442,18 +442,26 @@ machine c1 port c2 user c3 password c4\n"
     (cl-letf (((symbol-function 'call-process)
                (lambda (_program _infile _destination _display
                                  &rest args)
-                 ;; Arguments must be all strings
+                 ;; Arguments must be all strings.
                  (should (cl-every #'stringp args))
-                 ;; Argument number should be even
+                 ;; Argument number should be even.
                  (should (cl-evenp (length args)))
-                 (should (cond ((string= (car args) "find-internet-password")
-                                (let ((protocol (cl-member "-r" args :test #'string=)))
-                                  (if protocol
-                                      (= 4 (length (cadr protocol)))
-                                    t)))
-                               ((string= (car args) "find-generic-password")
-                                t))))))
-      (auth-source-search :user '("a" "b") :host '("example.org") :port '("irc" "ftp" "https")))))
+                 (should
+                  (cond
+                   ((string= (car args) "find-internet-password")
+                    (let ((protocol-r (cl-member "-r" args :test #'string=))
+                          (protocol-P (cl-member "-P" args :test #'string=)))
+                      (cond (protocol-r
+                             (= 4 (length (cadr protocol-r))))
+                            (protocol-P
+                             (string-match-p
+                              "\\`[[:digit:]]+\\'" (cadr protocol-P)))
+                            (t))))
+                   ((string= (car args) "find-generic-password")
+                    t))))))
+      (auth-source-search
+       :user '("a" "b") :host '("example.org")
+       :port '("irc" "ftp" "https" 123)))))
 
 (provide 'auth-source-tests)
 ;;; auth-source-tests.el ends here

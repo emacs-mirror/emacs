@@ -1946,18 +1946,20 @@ entries for git.gnus.org:
          (returned-keys (delete-dups (append
 				      '(:host :login :port :secret)
 				      search-keys)))
-         ;; Extract host and port from spec
+         ;; Extract host, port and user from spec
          (hosts (plist-get spec :host))
-         (hosts (if (and hosts (listp hosts)) hosts `(,hosts)))
+         (hosts (if (consp hosts) hosts `(,hosts)))
          (ports (plist-get spec :port))
-         (ports (if (and ports (listp ports)) ports `(,ports)))
+         (ports (if (consp ports) ports `(,ports)))
          (users (plist-get spec :user))
-         (users (if (and users (listp users)) users `(,users)))
+         (users (if (consp users) users `(,users)))
          ;; Loop through all combinations of host/port and pass each of these to
-         ;; auth-source-macos-keychain-search-items
+         ;; auth-source-macos-keychain-search-items.  Convert numeric port to
+         ;; string (bug#68376).
          (items (catch 'match
                   (dolist (host hosts)
                     (dolist (port ports)
+                      (when (numberp port) (setq port (number-to-string port)))
                       (dolist (user users)
                         (let ((items (apply
                                       #'auth-source-macos-keychain-search-items
@@ -2019,7 +2021,7 @@ entries for git.gnus.org:
     (when port
       (if keychain-generic
           (setq args (append args (list "-s" port)))
-        (setq args (append args (if (string-match "[0-9]+" port)
+        (setq args (append args (if (string-match-p "\\`[[:digit:]]+\\'" port)
                                     (list "-P" port)
                                   (list "-r" (substring
                                               (format "%-4s" port)
