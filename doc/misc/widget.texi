@@ -1498,6 +1498,7 @@ specified.
 Example:
 
 @lisp
+@group
 (widget-create 'url-link
                :button-prefix ""
                :button-suffix ""
@@ -1515,6 +1516,7 @@ Example:
                           ;; And then call the original function.
                           (widget-url-link-action widget))
                "https://www.gnu.org/software/emacs/manual/html_mono/widget.html")
+@end group
 @end lisp
 
 @node info-link
@@ -2138,6 +2140,7 @@ correspond to a @code{t} or @code{nil} value, respectively.
 Example:
 
 @lisp
+@group
 (widget-insert "Press the button to activate/deactivate the field: ")
 (widget-create 'toggle
                :notify (lambda (widget &rest _ignored)
@@ -2146,6 +2149,8 @@ Example:
                                             :activate
                                           :deactivate))))
 (widget-insert "\n")
+@end group
+@group
 (setq widget-example-field
       (widget-create 'editable-field
                      :deactivate (lambda (widget)
@@ -2154,6 +2159,7 @@ Example:
                                     (widget-field-start widget)
                                     (widget-get widget :to)))))
 (widget-apply widget-example-field :deactivate)))
+@end group
 @end lisp
 
 
@@ -3066,18 +3072,23 @@ The predefined functions @code{widget-types-convert-widget} and
 Example:
 
 @lisp
+@group
 (defvar widget-ranged-integer-map
   (let ((map (copy-keymap widget-keymap)))
     (define-key map [up] #'widget-ranged-integer-increase)
     (define-key map [down] #'widget-ranged-integer-decrease)
     map))
+@end group
 
+@group
 (define-widget 'ranged-integer 'integer
   "A ranged integer widget."
   :min-value most-negative-fixnum
   :max-value most-positive-fixnum
   :keymap widget-ranged-integer-map)
+@end group
 
+@group
 (defun widget-ranged-integer-change (widget how)
   "Change the value of the ranged-integer WIDGET, according to HOW."
   (let* ((value (widget-value widget))
@@ -3093,16 +3104,21 @@ Example:
                   (t (error "HOW has a bad value"))))
          (inhibit-read-only t))
     (widget-value-set widget newval)))
+@end group
 
+@group
 (defun widget-ranged-integer-increase (widget)
   "Increase the value of the ranged-integer WIDGET."
   (interactive (list (widget-at)))
   (widget-ranged-integer-change widget 'up))
+@end group
 
+@group
 (defun widget-ranged-integer-decrease (widget)
   "Decrease the value of the ranged-integer WIDGET."
   (interactive (list (widget-at)))
   (widget-ranged-integer-change widget 'down))
+@end group
 @end lisp
 
 @node Inspecting Widgets
