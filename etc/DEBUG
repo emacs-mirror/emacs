@@ -864,11 +864,6 @@ in your ~/.emacs file.  When the problem happens, exit the Emacs that
 you were running, kill it, and rename the two files.  Then you can start
 another Emacs without clobbering those files, and use it to examine them.
 
-An easy way to see if too much text is being redrawn on a terminal is to
-evaluate '(setq inverse-video t)' before you try the operation you think
-will cause too much redrawing.  This doesn't refresh the screen, so only
-newly drawn text is in inverse video.
-
 ** Debugging LessTif
 
 If you encounter bugs whereby Emacs built with LessTif grabs all mouse
