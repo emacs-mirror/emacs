@@ -60,44 +60,28 @@
   (if (or (featurep 'w32-win) (featurep 'ns-win)
           (featurep 'haiku-win) (featurep 'pgtk-win)
           (featurep 'android-win))
-      'wheel-up
+      (if (featurep 'xinput2)
+          nil
+        (unless (featurep 'x)
+         'mouse-4))
     'mouse-4)
-  "Event used for scrolling down."
+  "Event used for scrolling down, beside `wheel-down', if any."
   :group 'mouse
   :type 'symbol
-  :set 'mouse-wheel-change-button)
-
-(defcustom mouse-wheel-down-alternate-event
-  (if (featurep 'xinput2)
-      'wheel-up
-    (unless (featurep 'x)
-      'mouse-4))
-  "Alternative wheel down event to consider."
-  :group 'mouse
-  :type 'symbol
-  :version "29.1"
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-up-event
   (if (or (featurep 'w32-win) (featurep 'ns-win)
           (featurep 'haiku-win) (featurep 'pgtk-win)
           (featurep 'android-win))
-      'wheel-down
+      (if (featurep 'xinput2)
+          nil
+        (unless (featurep 'x)
+          'mouse-5))
     'mouse-5)
-  "Event used for scrolling up."
+  "Event used for scrolling up, beside `wheel-up', if any."
   :group 'mouse
   :type 'symbol
-  :set 'mouse-wheel-change-button)
-
-(defcustom mouse-wheel-up-alternate-event
-  (if (featurep 'xinput2)
-      'wheel-down
-    (unless (featurep 'x)
-      'mouse-5))
-  "Alternative wheel up event to consider."
-  :group 'mouse
-  :type 'symbol
-  :version "29.1"
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-click-event 'mouse-2
@@ -252,31 +236,23 @@ Also see `mouse-wheel-tilt-scroll'."
   (if (or (featurep 'w32-win) (featurep 'ns-win)
           (featurep 'haiku-win) (featurep 'pgtk-win)
           (featurep 'android-win))
-      'wheel-left
+      (if (featurep 'xinput2)
+          nil
+        (unless (featurep 'x)
+          'mouse-6))
     'mouse-6)
-  "Event used for scrolling left.")
-
-(defvar mouse-wheel-left-alternate-event
-  (if (featurep 'xinput2)
-      'wheel-left
-    (unless (featurep 'x)
-      'mouse-6))
-  "Alternative wheel left event to consider.")
+  "Event used for scrolling left, beside `wheel-left', if any.")
 
 (defvar mouse-wheel-right-event
   (if (or (featurep 'w32-win) (featurep 'ns-win)
           (featurep 'haiku-win) (featurep 'pgtk-win)
           (featurep 'android-win))
-      'wheel-right
+      (if (featurep 'xinput2)
+          nil
+        (unless (featurep 'x)
+          'mouse-7))
     'mouse-7)
-  "Event used for scrolling right.")
-
-(defvar mouse-wheel-right-alternate-event
-  (if (featurep 'xinput2)
-      'wheel-right
-    (unless (featurep 'x)
-      'mouse-7))
-  "Alternative wheel right event to consider.")
+  "Event used for scrolling right, beside `wheel-right', if any.")
 
 (defun mouse-wheel--get-scroll-window (event)
   "Return window for mouse wheel event EVENT.
@@ -308,13 +284,11 @@ active window."
 (defmacro mwheel--is-dir-p (dir button)
   (declare (debug (sexp form)))
   (let ((custom-var (intern (format "mouse-wheel-%s-event" dir)))
-        (custom-var-alt (intern (format "mouse-wheel-%s-alternate-event" dir)))
         (event (intern (format "wheel-%s" dir))))
     (macroexp-let2 nil butsym button
       `(or (eq ,butsym ',event)
-           (eq ,butsym ,custom-var)
            ;; We presume here `button' is never nil.
-           (eq ,butsym ,custom-var-alt)))))
+           (eq ,butsym ,custom-var)))))
 
 (defun mwheel-scroll (event &optional arg)
   "Scroll up or down according to the EVENT.
@@ -504,16 +478,12 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
      ;; Bindings for changing font size.
      ((and (consp binding) (eq (cdr binding) 'text-scale))
       (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
-                           mouse-wheel-down-alternate-event
-                           mouse-wheel-up-alternate-event
                            'wheel-down 'wheel-up))
         (when event
           (mouse-wheel--add-binding `[,(append (car binding) (list event))]
                                     'mouse-wheel-text-scale))))
      ((and (consp binding) (eq (cdr binding) 'global-text-scale))
       (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
-                           mouse-wheel-down-alternate-event
-                           mouse-wheel-up-alternate-event
                            'wheel-down 'wheel-up))
         (when event
           (mouse-wheel--add-binding `[,(append (car binding) (list event))]
@@ -522,10 +492,6 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
      (t
       (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
                            mouse-wheel-left-event mouse-wheel-right-event
-                           mouse-wheel-down-alternate-event
-                           mouse-wheel-up-alternate-event
-                           mouse-wheel-left-alternate-event
-                           mouse-wheel-right-alternate-event
                            'wheel-down 'wheel-up 'wheel-left 'wheel-right))
         (when event
           (dolist (key (mouse-wheel--create-scroll-keys binding event))

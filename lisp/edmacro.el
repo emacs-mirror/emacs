@@ -729,10 +729,6 @@ This function assumes that the events can be stored in a string."
         (defvar mouse-wheel-up-event)
         (defvar mouse-wheel-right-event)
         (defvar mouse-wheel-left-event)
-        (defvar mouse-wheel-down-alternate-event)
-        (defvar mouse-wheel-up-alternate-event)
-        (defvar mouse-wheel-right-alternate-event)
-        (defvar mouse-wheel-left-alternate-event)
 	;; Make a list of the elements.
 	(setq macro (append macro nil))
 	(dolist (ev macro)
@@ -749,12 +745,7 @@ This function assumes that the events can be stored in a string."
 		((or (mouse-event-p ev) (mouse-movement-p ev)
 		     (memq (event-basic-type ev)
 			   `( ,mouse-wheel-down-event ,mouse-wheel-up-event
-			      ,mouse-wheel-right-event
-			      ,mouse-wheel-left-event
-			      ,mouse-wheel-down-alternate-event
-			      ,mouse-wheel-up-alternate-event
-			      ,mouse-wheel-right-alternate-event
-			      ,mouse-wheel-left-alternate-event
+			      ,mouse-wheel-right-event ,mouse-wheel-left-event
 			      wheel-down wheel-up wheel-left wheel-right)))
 		 nil)
 		(noerror nil)
