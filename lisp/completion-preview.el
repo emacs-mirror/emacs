@@ -135,6 +135,8 @@ If this option is nil, these commands do not display any message."
   "<down-mouse-1>" #'completion-preview-insert
   "C-<down-mouse-1>" #'completion-at-point
   "<down-mouse-2>" #'completion-at-point
+  "<wheel-up>"     #'completion-preview-prev-candidate
+  "<wheel-down>"   #'completion-preview-next-candidate
   (key-description (vector mouse-wheel-up-event))
   #'completion-preview-prev-candidate
   (key-description (vector mouse-wheel-up-alternate-event))

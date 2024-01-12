@@ -2562,23 +2562,24 @@ non-@code{nil}.
 @vindex mouse-wheel-up-event
 @vindex mouse-wheel-down-event
 The @code{wheel-up} and @code{wheel-down} events are generated only on
-some kinds of systems.  On other systems, @code{mouse-4} and
-@code{mouse-5} are used instead.  For portable code, use the variables
-@code{mouse-wheel-up-event}, @code{mouse-wheel-up-alternate-event},
-@code{mouse-wheel-down-event} and
-@code{mouse-wheel-down-alternate-event} defined in @file{mwheel.el} to
-determine what event types to expect from the mouse wheel.
+some kinds of systems.  On other systems, other events like @code{mouse-4} and
+@code{mouse-5} are used instead.  Portable code should handle both
+@code{wheel-up} and @code{wheel-down} events as well as the events
+specified in the variables @code{mouse-wheel-up-event} and
+@code{mouse-wheel-down-event}, defined in @file{mwheel.el}.
 
 @vindex mouse-wheel-left-event
 @vindex mouse-wheel-right-event
-Similarly, some mice can generate @code{mouse-wheel-left-event} and
-@code{mouse-wheel-right-event} and can be used to scroll if
-@code{mouse-wheel-tilt-scroll} is non-@code{nil}.  However, some mice
-also generate other events at the same time as they're generating
-these scroll events which may get in the way.  The way to fix this is
-generally to unbind these events (for instance, @code{mouse-6} or
-@code{mouse-7}, but this is very hardware and operating system
-dependent).
+The same holds for the  horizontal wheel movements which are usually
+represented by @code{wheel-left} and @code{wheel-right} events, but
+for which portable code should also obey the variables
+@code{mouse-wheel-left-event} and @code{mouse-wheel-right-event},
+defined in @file{mwheel.el}.
+However, some mice also generate other events at the same time as
+they're generating these scroll events which may get in the way.
+The way to fix this is generally to unbind these events (for instance,
+@code{mouse-6} or @code{mouse-7}, but this is very hardware and
+operating system dependent).
 
 @cindex @code{pinch} event
 @item (pinch @var{position} @var{dx} @var{dy} @var{scale} @var{angle})

@@ -308,9 +308,11 @@ active window."
 (defmacro mwheel--is-dir-p (dir button)
   (declare (debug (sexp form)))
   (let ((custom-var (intern (format "mouse-wheel-%s-event" dir)))
-        (custom-var-alt (intern (format "mouse-wheel-%s-alternate-event" dir))))
+        (custom-var-alt (intern (format "mouse-wheel-%s-alternate-event" dir)))
+        (event (intern (format "wheel-%s" dir))))
     (macroexp-let2 nil butsym button
-      `(or (eq ,butsym ,custom-var)
+      `(or (eq ,butsym ',event)
+           (eq ,butsym ,custom-var)
            ;; We presume here `button' is never nil.
            (eq ,butsym ,custom-var-alt)))))
 
@@ -503,14 +505,16 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
      ((and (consp binding) (eq (cdr binding) 'text-scale))
       (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
                            mouse-wheel-down-alternate-event
-                           mouse-wheel-up-alternate-event))
+                           mouse-wheel-up-alternate-event
+                           'wheel-down 'wheel-up))
         (when event
           (mouse-wheel--add-binding `[,(append (car binding) (list event))]
                                     'mouse-wheel-text-scale))))
      ((and (consp binding) (eq (cdr binding) 'global-text-scale))
       (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
                            mouse-wheel-down-alternate-event
-                           mouse-wheel-up-alternate-event))
+                           mouse-wheel-up-alternate-event
+                           'wheel-down 'wheel-up))
         (when event
           (mouse-wheel--add-binding `[,(append (car binding) (list event))]
                                     'mouse-wheel-global-text-scale))))
@@ -521,7 +525,8 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
                            mouse-wheel-down-alternate-event
                            mouse-wheel-up-alternate-event
                            mouse-wheel-left-alternate-event
-                           mouse-wheel-right-alternate-event))
+                           mouse-wheel-right-alternate-event
+                           'wheel-down 'wheel-up 'wheel-left 'wheel-right))
         (when event
           (dolist (key (mouse-wheel--create-scroll-keys binding event))
             (mouse-wheel--add-binding key 'mwheel-scroll))))))))

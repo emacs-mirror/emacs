@@ -748,13 +748,14 @@ This function assumes that the events can be stored in a string."
 		;; info is recorded in macros to make this possible.
 		((or (mouse-event-p ev) (mouse-movement-p ev)
 		     (memq (event-basic-type ev)
-			   (list mouse-wheel-down-event mouse-wheel-up-event
-				 mouse-wheel-right-event
-				 mouse-wheel-left-event
-				 mouse-wheel-down-alternate-event
-				 mouse-wheel-up-alternate-event
-				 mouse-wheel-right-alternate-event
-				 mouse-wheel-left-alternate-event)))
+			   `( ,mouse-wheel-down-event ,mouse-wheel-up-event
+			      ,mouse-wheel-right-event
+			      ,mouse-wheel-left-event
+			      ,mouse-wheel-down-alternate-event
+			      ,mouse-wheel-up-alternate-event
+			      ,mouse-wheel-right-alternate-event
+			      ,mouse-wheel-left-alternate-event
+			      wheel-down wheel-up wheel-left wheel-right)))
 		 nil)
 		(noerror nil)
 		(t
