@@ -305,6 +305,15 @@ active window."
                frame nil t)))))
       (mwheel-event-window event)))
 
+(defmacro mwheel--is-dir-p (dir button)
+  (declare (debug (sexp form)))
+  (let ((custom-var (intern (format "mouse-wheel-%s-event" dir)))
+        (custom-var-alt (intern (format "mouse-wheel-%s-alternate-event" dir))))
+    (macroexp-let2 nil butsym button
+      `(or (eq ,butsym ,custom-var)
+           ;; We presume here `button' is never nil.
+           (eq ,butsym ,custom-var-alt)))))
+
 (defun mwheel-scroll (event &optional arg)
   "Scroll up or down according to the EVENT.
 This should be bound only to mouse buttons 4, 5, 6, and 7 on
@@ -342,16 +351,14 @@ value of ARG, and the command uses it in subsequent scrolls."
     (condition-case nil
         (unwind-protect
 	    (let ((button (event-basic-type event)))
-              (cond ((and (eq amt 'hscroll) (memq button (list mouse-wheel-down-event
-                                                               mouse-wheel-down-alternate-event)))
+              (cond ((and (eq amt 'hscroll) (mwheel--is-dir-p down button))
                      (when (and (natnump arg) (> arg 0))
                        (setq mouse-wheel-scroll-amount-horizontal arg))
                      (funcall (if mouse-wheel-flip-direction
                                   mwheel-scroll-left-function
                                 mwheel-scroll-right-function)
                               mouse-wheel-scroll-amount-horizontal))
-                    ((memq button (list mouse-wheel-down-event
-                                        mouse-wheel-down-alternate-event))
+                    ((mwheel--is-dir-p down button)
                      (condition-case nil (funcall mwheel-scroll-down-function amt)
                        ;; Make sure we do indeed scroll to the beginning of
                        ;; the buffer.
@@ -366,31 +373,29 @@ value of ARG, and the command uses it in subsequent scrolls."
                           ;; for a reason that escapes me.  This problem seems
                           ;; to only affect scroll-down.  --Stef
                           (set-window-start (selected-window) (point-min))))))
-                    ((and (eq amt 'hscroll) (memq button (list mouse-wheel-up-event
-                                                               mouse-wheel-up-alternate-event)))
+                    ((and (eq amt 'hscroll) (mwheel--is-dir-p up button))
                      (when (and (natnump arg) (> arg 0))
                        (setq mouse-wheel-scroll-amount-horizontal arg))
                      (funcall (if mouse-wheel-flip-direction
                                   mwheel-scroll-right-function
                                 mwheel-scroll-left-function)
                               mouse-wheel-scroll-amount-horizontal))
-                    ((memq button (list mouse-wheel-up-event
-                                        mouse-wheel-up-alternate-event))
+                    ((mwheel--is-dir-p up button)
                      (condition-case nil (funcall mwheel-scroll-up-function amt)
                        ;; Make sure we do indeed scroll to the end of the buffer.
                        (end-of-buffer (while t (funcall mwheel-scroll-up-function)))))
-                    ((memq button (list mouse-wheel-left-event
-                                        mouse-wheel-left-alternate-event)) ; for tilt scroll
+                    ((mwheel--is-dir-p left button) ; for tilt scroll
                      (when mouse-wheel-tilt-scroll
                        (funcall (if mouse-wheel-flip-direction
                                     mwheel-scroll-right-function
-                                  mwheel-scroll-left-function) amt)))
-                    ((memq button (list mouse-wheel-right-event
-                                        mouse-wheel-right-alternate-event)) ; for tilt scroll
+                                  mwheel-scroll-left-function)
+                                amt)))
+                    ((mwheel--is-dir-p right button) ; for tilt scroll
                      (when mouse-wheel-tilt-scroll
                        (funcall (if mouse-wheel-flip-direction
                                     mwheel-scroll-left-function
-                                  mwheel-scroll-right-function) amt)))
+                                  mwheel-scroll-right-function)
+                                amt)))
 		    (t (error "Bad binding in mwheel-scroll"))))
           (if (eq scroll-window selected-window)
               ;; If there is a temporarily active region, deactivate it if
@@ -431,11 +436,9 @@ See also `text-scale-adjust'."
         (button (event-basic-type event)))
     (select-window scroll-window 'mark-for-redisplay)
     (unwind-protect
-        (cond ((memq button (list mouse-wheel-down-event
-                                  mouse-wheel-down-alternate-event))
+        (cond ((mwheel--is-dir-p down button)
                (text-scale-increase 1))
-              ((memq button (list mouse-wheel-up-event
-                                  mouse-wheel-up-alternate-event))
+              ((mwheel--is-dir-p up button)
                (text-scale-decrease 1)))
       (select-window selected-window))))
 
@@ -445,11 +448,9 @@ See also `text-scale-adjust'."
 This invokes `global-text-scale-adjust', which see."
   (interactive (list last-input-event))
   (let ((button (event-basic-type event)))
-    (cond ((memq button (list mouse-wheel-down-event
-                              mouse-wheel-down-alternate-event))
+    (cond ((mwheel--is-dir-p down button)
            (global-text-scale-adjust 1))
-          ((memq button (list mouse-wheel-up-event
-                              mouse-wheel-up-alternate-event))
+          ((mwheel--is-dir-p up button)
            (global-text-scale-adjust -1)))))
 
 (defun mouse-wheel--add-binding (key fun)
