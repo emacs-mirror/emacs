@@ -189,3 +189,10 @@ bar () {
 
     fi
 }
+
+case $i {                       # Bug#55764
+    *pattern)
+        (cd .; echo hi);
+        do1 ;;
+    *pattern2) do2 ;;
+}
