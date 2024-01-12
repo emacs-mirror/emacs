@@ -52,6 +52,8 @@
 
 ;;; Code:
 
+(require 'mwheel)
+
 (defgroup completion-preview nil
   "In-buffer completion preview."
   :group 'completion)
@@ -128,19 +130,19 @@ If this option is nil, these commands do not display any message."
   ;; "M-p" #'completion-preview-prev-candidate
   )
 
-(defvar mouse-wheel-up-event)
-(defvar mouse-wheel-up-alternate-event)
-(defvar mouse-wheel-down-event)
-(defvar mouse-wheel-down-alternate-event)
 (defvar-keymap completion-preview--mouse-map
   :doc "Keymap for mouse clicks on the completion preview."
   "<down-mouse-1>" #'completion-preview-insert
   "C-<down-mouse-1>" #'completion-at-point
   "<down-mouse-2>" #'completion-at-point
-  (format "<%s>" mouse-wheel-up-event)             #'completion-preview-prev-candidate
-  (format "<%s>" mouse-wheel-up-alternate-event)   #'completion-preview-prev-candidate
-  (format "<%s>" mouse-wheel-down-event)           #'completion-preview-next-candidate
-  (format "<%s>" mouse-wheel-down-alternate-event) #'completion-preview-next-candidate)
+  (key-description (vector mouse-wheel-up-event))
+  #'completion-preview-prev-candidate
+  (key-description (vector mouse-wheel-up-alternate-event))
+  #'completion-preview-prev-candidate
+  (key-description (vector mouse-wheel-down-event))
+  #'completion-preview-next-candidate
+  (key-description (vector mouse-wheel-down-alternate-event))
+  #'completion-preview-next-candidate)
 
 (defvar-local completion-preview--overlay nil)
 
