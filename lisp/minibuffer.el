@@ -1172,6 +1172,7 @@ an association list that can specify properties such as:
 - `group-function': function for grouping the completion candidates.
 - `annotation-function': function to add annotations in *Completions*.
 - `affixation-function': function to prepend/append a prefix/suffix.
+- `narrow-completions-function': function to restrict the completions list.
 
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.
@@ -1193,6 +1194,7 @@ possible values are the same as in `completions-sort'.
 - `group-function': function for grouping the completion candidates.
 - `annotation-function': function to add annotations in *Completions*.
 - `affixation-function': function to prepend/append a prefix/suffix.
+- `narrow-completions-function': function for narrowing the completions list.
 See more description of metadata in `completion-metadata'.
 
 Categories are symbols such as `buffer' and `file', used when
@@ -1201,46 +1203,40 @@ completing buffer and file names, respectively.
 If a property in a category is specified by this variable, it
 overrides the default specified in `completion-category-defaults'."
   :version "25.1"
-  :type `(alist :key-type (choice :tag "Category"
-				  (const buffer)
-                                  (const file)
-                                  (const unicode-name)
-				  (const bookmark)
-                                  symbol)
-          :value-type
-          (set :tag "Properties to override"
-	   (cons :tag "Completion Styles"
-		 (const :tag "Select a style from the menu;" styles)
-		 ,completion--styles-type)
-           (cons :tag "Completion Cycling"
-		 (const :tag "Select one value from the menu." cycle)
-                 ,completion--cycling-threshold-type)
-           (cons :tag "Cycle Sorting"
-                 (const :tag "Select one value from the menu."
-                        cycle-sort-function)
-                 (choice (function :tag "Custom function")))
-           (cons :tag "Completion Sorting"
-                 (const :tag "Select one value from the menu."
-                        display-sort-function)
-                 (choice (const :tag "Use default" nil)
-                         (const :tag "No sorting" identity)
-                         (const :tag "Alphabetical sorting"
-                                minibuffer-sort-alphabetically)
-                         (const :tag "Historical sorting"
-                                minibuffer-sort-by-history)
-                         (function :tag "Custom function")))
-           (cons :tag "Completion Groups"
-                 (const :tag "Select one value from the menu."
-                        group-function)
-                 (choice (function :tag "Custom function")))
-           (cons :tag "Completion Annotation"
-                 (const :tag "Select one value from the menu."
-                        annotation-function)
-                 (choice (function :tag "Custom function")))
-           (cons :tag "Completion Affixation"
-                 (const :tag "Select one value from the menu."
-                        affixation-function)
-                 (choice (function :tag "Custom function"))))))
+  :type `(alist
+          :key-type (choice :tag "Category"
+			    (const buffer)
+                            (const file)
+                            (const unicode-name)
+			    (const bookmark)
+                            symbol)
+          :value-type (set :tag "Properties to override"
+	                   (cons :tag "Completion Styles"
+		                 (const styles) ,completion--styles-type)
+                           (cons :tag "Cycling threshold"
+		                 (const cycle)
+                                 ,completion--cycling-threshold-type)
+                           (cons :tag "Cycle order"
+                                 (const cycle-sort-function) function)
+                           (cons :tag "Sorting for display"
+                                 (const display-sort-function)
+                                 (choice
+                                  (const :tag "Default sorting" nil)
+                                  (const :tag "No sorting" identity)
+                                  (const :tag "Alphabetical"
+                                         minibuffer-sort-alphabetically)
+                                  (const :tag "Historical"
+                                         minibuffer-sort-by-history)
+                                  (function :tag "Custom function")))
+                           (cons :tag "Grouping"
+                                 (const group-function) function)
+                           (cons :tag "Annotation"
+                                 (const annotation-function) function)
+                           (cons :tag "Affixation"
+                                 (const affixation-function) function)
+                           (cons :tag "Restriction"
+                                 (const narrow-completions-function)
+                                 function))))
 
 (defun completion--category-override (category tag)
   (or (assq tag (cdr (assq category completion-category-overrides)))
@@ -2575,6 +2571,8 @@ These include:
 `:display-sort-function': Function to sort entries in *Completions*.
 
 `:cycle-sort-function': Function to sort entries when cycling.
+
+`:narrow-completions-function': function for narrowing the completions list.
 
 See more information about these functions above
 in `completion-metadata'.

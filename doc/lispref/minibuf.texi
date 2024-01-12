@@ -2015,6 +2015,9 @@ The function to add annotations to completions.
 
 @item affixation-function
 The function to add prefixes and suffixes to completions.
+
+@item narrow-completions-function
+Function that reads and returns a completions predicate.
 @end table
 
 @noindent
