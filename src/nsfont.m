@@ -1035,7 +1035,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
     font->underline_position = lrint (font_info->underpos);
     font->underline_thickness = lrint (font_info->underwidth);
 
-    font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
+    font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil, Qnil);
     font->props[FONT_FULLNAME_INDEX] = build_unibyte_string (font_info->name);
   }
   unblock_input ();
