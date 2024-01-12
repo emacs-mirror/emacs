@@ -5802,6 +5802,10 @@ ns_term_shutdown (int sig)
 			  selector: @selector(updateMonitors:)
 			      name: NSApplicationDidChangeScreenParametersNotification
 			    object: nil];
+  [notification_center addObserver: self
+			  selector: @selector(windowDidChangeScreen:)
+			      name: NSWindowDidChangeScreenNotification
+			    object: nil];
 #endif
 
   return self;
@@ -6032,6 +6036,11 @@ ns_term_shutdown (int sig)
   XSETTERMINAL (ie.arg, x_display_list->terminal);
 
   kbd_buffer_store_event (&ie);
+}
+
+- (void) windowDidChangeScreen: (NSNotification *) notification
+{
+  [[NSApp mainMenu] windowDidChangeScreen:notification];
 }
 #endif
 
