@@ -350,6 +350,7 @@ start_watching (const char *file, HANDLE hdir, BOOL subdirs, DWORD flags)
       xfree (dirwatch->io_info);
       xfree (dirwatch->watchee);
       xfree (dirwatch);
+      return NULL;
     }
   return dirwatch;
 }
@@ -412,10 +413,7 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
     return NULL;
 
   if ((dirwatch = start_watching (file, hdir, subdirs, flags)) == NULL)
-    {
-      CloseHandle (hdir);
-      dirwatch->dir = NULL;
-    }
+    CloseHandle (hdir);
 
   return dirwatch;
 }
