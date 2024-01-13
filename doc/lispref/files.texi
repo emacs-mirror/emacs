@@ -1522,6 +1522,18 @@ $ ls -l foo*
 @end example
 @end defun
 
+@defun file-name-completion-annotation filename
+This function returns an annotation string for @var{filename}, that is
+a string with details about @var{filename} that is formatted for
+display in the @file{*Completions*} buffer when @var{filename} appears
+as a completion candidate.  These details include the file modes, size
+and last modified time of @var{filename}.  If this information is not
+available, or if @var{filename} is a remote file name,
+@code{file-name-completion-annotation} returns @code{nil} instead.
+@code{read-file-name} calls this function to obtain annotation strings
+for file name completion candidates.  @xref{Reading File Names}.
+@end defun
+
 @node Extended Attributes
 @subsection Extended File Attributes
 @cindex extended file attributes
@@ -3404,7 +3416,7 @@ first, before handlers for jobs such as remote file access.
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-case-insensitive-p},
-@code{file-name-completion},
+@code{file-name-completion}, @code{file-name-completion-annotation},
 @code{file-name-directory},
 @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
@@ -3466,7 +3478,7 @@ first, before handlers for jobs such as remote file access.
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-case-insensitive-p},
-@code{file-name-completion},
+@code{file-name-completion}, @code{file-name-completion-annotation},
 @code{file-name-directory},
 @code{file-name-nondirec@discretionary{}{}{}tory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},

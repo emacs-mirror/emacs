@@ -1140,6 +1140,8 @@ percent characters need to be doubled.")
     (file-name-as-directory . tramp-handle-file-name-as-directory)
     (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p)
     (file-name-completion . tramp-handle-file-name-completion)
+    (file-name-completion-annotation
+     . tramp-sh-handle-file-name-completion-annotation)
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.
@@ -1902,6 +1904,13 @@ ID-FORMAT valid values are `string' and `integer'."
 		       (push
 			(buffer-substring (point) (line-end-position)) result)))
 		   result))))))))))
+
+(defun tramp-sh-handle-file-name-completion-annotation (filename)
+  "Like `file-name-completion-annotation' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (when (string-match-p
+           (rx bos (or "sudo" "su" "sg" "doas" "ksu") eos) method)
+      (file-name-attributes-completion-annotation filename))))
 
 ;; cp, mv and ln
 

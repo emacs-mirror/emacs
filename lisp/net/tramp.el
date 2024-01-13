@@ -2298,6 +2298,7 @@ Must be handled by the callers."
 	    '(add-name-to-file copy-directory copy-file
 	      file-equal-p file-in-directory-p
 	      file-name-all-completions file-name-completion
+              file-name-completion-annotation
 	      file-newer-than-file-p rename-file))
     (cond
      ((tramp-tramp-file-p (nth 0 args)) (nth 0 args))

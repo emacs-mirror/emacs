@@ -1863,6 +1863,13 @@ are aware of file name handlers, so they will return the remote UID or
 GID for remote files (or -1 if the connection has no associated user).
 
 +++
+** New function 'file-name-completion-annotation'.
+This function takes a file name and returns a string with details
+about that file, which 'read-file-name' uses as completion annotations
+for completion candidates.  File name handlers can modify the behavior
+of this function.
+
++++
 ** 'fset', 'defalias' and 'defvaralias' now signal an error for cyclic aliases.
 Previously, 'fset', 'defalias' and 'defvaralias' could be made to
 build circular function and variable indirection chains as in

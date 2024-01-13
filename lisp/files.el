@@ -5324,6 +5324,33 @@ to `default-directory', and the result will also be relative."
      (t
       parent))))
 
+(defun file-name-attributes-completion-annotation (filename)
+  "Format file attributes of FILENAME as a completion annotation."
+  (when-let ((attrs (ignore-errors (file-attributes filename 'string))))
+    (concat (file-attribute-modes attrs)
+            " "
+            (format "%8s" (file-size-human-readable
+                           (file-attribute-size attrs)))
+            "   "
+            (format-time-string
+             "%Y-%m-%d %T" (file-attribute-modification-time
+                            attrs))
+            "   "
+            (file-attribute-user-id attrs)
+            ":"
+            (file-attribute-group-id attrs))))
+
+(defun file-name-completion-annotation (filename)
+  "Return a completion annotation for FILENAME.
+
+`read-file-name' displays the completion annotation next to
+FILENAME in the *Completions* buffer when user option
+`completions-detailed' is non-nil."
+  (if-let ((handler (find-file-name-handler
+                     filename 'file-name-completion-annotation)))
+      (funcall handler 'file-name-completion-annotation filename)
+    (file-name-attributes-completion-annotation filename)))
+
 (defcustom make-backup-file-name-function
   #'make-backup-file-name--default-function
   "A function that `make-backup-file-name' uses to create backup file names.

@@ -100,6 +100,8 @@ See `tramp-actions-before-shell' for more info.")
     (file-name-as-directory . tramp-handle-file-name-as-directory)
     (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p)
     (file-name-completion . tramp-handle-file-name-completion)
+    (file-name-completion-annotation
+     . file-name-attributes-completion-annotation)
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.

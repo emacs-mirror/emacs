@@ -3634,31 +3634,16 @@ same as `substitute-in-file-name'."
   (let ((max-file (seq-max (mapcar #'string-width files))))
     (mapcar
      (lambda (file)
-       (list
-        file
-        ""                              ; empty prefix
-        (if-let ((attrs
-                  (ignore-errors
-                    (file-attributes
-                     (substitute-in-file-name
-                      (concat minibuffer-completion-base file))
-                     'string))))
-            (propertize
-             (concat (propertize " " 'display
-                                 `(space :align-to ,(+ max-file 2)))
-                     (file-attribute-modes attrs)
-                     " "
-                     (format "%8s" (file-size-human-readable
-                                    (file-attribute-size attrs)))
-                     "   "
-                     (format-time-string
-                      "%Y-%m-%d %T" (file-attribute-modification-time attrs))
-                     "   "
-                     (file-attribute-user-id attrs)
-                     ":"
-                     (file-attribute-group-id attrs))
-             'face 'completions-annotations)
-          "")))
+       (let ((full (substitute-in-file-name
+                    (concat minibuffer-completion-base file))))
+         (list file ""
+               (if-let ((ann (file-name-completion-annotation full)))
+                   (propertize
+                    (concat (propertize " " 'display
+                                        `(space :align-to ,(+ max-file 2)))
+                            ann)
+                    'face 'completions-annotations)
+                 ""))))
      files)))
 
 (defun completion-file-name-table (string pred action)
