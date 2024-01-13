@@ -274,6 +274,9 @@ you can control which one is used by customizing the variable
 @item M-$
 Check and correct spelling of the word at point (@code{ispell-word}).
 If the region is active, do it for all words in the region instead.
+@item C-u M-$
+If a previous spelling operation was interrupted, continue that
+operation (@code{ispell-continue}).
 @item M-x ispell
 Check and correct spelling of all words in the buffer.  If the region
 is active, do it for all words in the region instead.
@@ -305,12 +308,16 @@ Enable Flyspell mode for comments and strings only.
 
 @kindex M-$
 @findex ispell-word
+@findex ispell-continue
   To check the spelling of the word around or before point, and
 optionally correct it as well, type @kbd{M-$} (@code{ispell-word}).
 If a region is active, @kbd{M-$} checks the spelling of all words
 within the region.  @xref{Mark}.  (When Transient Mark mode is off,
 @kbd{M-$} always acts on the word around or before point, ignoring the
-region; @pxref{Disabled Transient Mark}.)
+region; @pxref{Disabled Transient Mark}.)  When invoked with a prefix
+argument, @kbd{C-u M-$}, this calls @code{ispell-continue}, which
+continues the spelling operation, if any, which was interrupted with
+@kbd{X} or @kbd{C-g}.
 
 @findex ispell
 @findex ispell-buffer
@@ -383,9 +390,9 @@ wildcard.
 
 @item C-g
 @itemx X
-Quit interactive spell-checking, leaving point at the word that was
-being checked.  You can restart checking again afterward with @w{@kbd{C-u
-M-$}}.
+Interrupt the interactive spell-checking, leaving point at the word
+that was being checked.  You can restart checking again afterward with
+@w{@kbd{C-u M-$}}.
 
 @item x
 Quit interactive spell-checking and move point back to where it was
@@ -393,6 +400,19 @@ when you started spell-checking.
 
 @item q
 Quit interactive spell-checking and kill the spell-checker subprocess.
+
+@item C-r
+Enter recursive-edit (@pxref{Recursive Edit}).  When you exit
+recursive-edit with @kbd{C-M-c}, the interactive spell-checking will
+resume.  This allows you to consult the buffer text without
+interrupting the spell-checking.  Do @emph{not} modify the buffer in
+the recursive editing, and especially don't modify the misspelled
+word, as the edits will be undone when you exit recursive-edit.  If
+you need to edit the misspelled word, use @kbd{r} or @kbd{R} instead,
+or use @kbd{X}, edit the buffer, then resume with @w{@kbd{C-u M-$}}.
+
+@item C-z
+Suspend Emacs or iconify the selected frame.
 
 @item ?
 Show the list of options.
