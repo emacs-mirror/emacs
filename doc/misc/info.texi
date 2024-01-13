@@ -1148,6 +1148,7 @@ move between menu items.
 @section @kbd{M-n} creates a new independent Info buffer in Emacs
 
 @kindex M-n @r{(Info mode)}
+@kindex C-x x n
 @findex clone-buffer
 @cindex multiple Info buffers
   If you are reading Info in Emacs, you can select a new independent

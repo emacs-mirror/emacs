@@ -262,12 +262,14 @@ non-@code{nil}.  If you change the option @code{view-read-only} to a
 non-@code{nil} value, making the buffer read-only with @kbd{C-x C-q}
 also enables View mode in the buffer (@pxref{View Mode}).
 
+@kindex C-x x r
 @findex rename-buffer
   @kbd{C-x x r} (@code{rename-buffer} changes the name of the current
 buffer.  You specify the new name as a minibuffer argument; there is
 no default.  If you specify a name that is in use for some other
 buffer, an error happens and no renaming is done.
 
+@kindex C-x x u
 @findex rename-uniquely
   @kbd{C-x x u} (@code{rename-uniquely}) renames the current buffer to
 a similar name with a numeric suffix added to make it both different
@@ -282,6 +284,7 @@ buffers with particular names.  (With some of these features, such as
 buffer before using the command again, otherwise it will reuse the
 current buffer despite the name change.)
 
+@kindex C-x x i
   The commands @kbd{M-x append-to-buffer} and @kbd{C-x x i}
 (@code{insert-buffer}) can also be used to copy text from one buffer
 to another.  @xref{Accumulating Text}.
