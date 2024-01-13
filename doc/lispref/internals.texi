@@ -1371,6 +1371,15 @@ objects between Emacs and the module (@pxref{Module Values}).  The
 provides facilities for conversion between basic C data types and the
 corresponding @code{emacs_value} objects.
 
+In the module function's body, do @emph{not} attempt to access
+elements of the @var{args} array beyond the index
+@code{@var{nargs}-1}: memory for the @var{args} array is allocated
+exactly to accommodate @var{nargs} values, and accessing beyond that
+will most probably crash your module.  In particular, if the value of
+@var{nargs} passed to the function at run time is zero, it must not
+access @var{args} at all, as no memory will have been allocated for it
+in that case.
+
 A module function always returns a value.  If the function returns
 normally, the Lisp code which called it will see the Lisp object
 corresponding to the @code{emacs_value} value the function returned.
