@@ -982,8 +982,8 @@ lists) and call them using @code{funcall} or @code{apply}.  Functions
 that accept function arguments are often called @dfn{functionals}.
 
   Sometimes, when you call a functional, it is useful to supply a no-op
-function as the argument.  Here are two different kinds of no-op
-function:
+function as the argument.  Here are three different kinds of no-op
+functions:
 
 @defun identity argument
 This function returns @var{argument} and has no side effects.

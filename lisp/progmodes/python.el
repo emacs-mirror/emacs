@@ -1117,7 +1117,7 @@ fontified."
 
 (defun python--treesit-fontify-union-types (node override start end &optional type-regex &rest _)
   "Fontify nested union types in the type hints.
-For examlpe, Lvl1 | Lvl2[Lvl3[Lvl4[Lvl5 | None]], Lvl2].  This
+For example, Lvl1 | Lvl2[Lvl3[Lvl4[Lvl5 | None]], Lvl2].  This
 structure is represented via nesting binary_operator and
 subscript nodes.  This function iterates over all levels and
 highlight identifier nodes. If TYPE-REGEX is not nil fontify type
@@ -1275,7 +1275,7 @@ fontified."
                       (subscript (identifier) @font-lock-type-face)
                       (subscript (attribute attribute: (identifier) @font-lock-type-face))]))
 
-     ;; Patern matching: case [str(), pack0.Type0()].  Take only the
+     ;; Pattern matching: case [str(), pack0.Type0()].  Take only the
      ;; last identifier.
      (class_pattern (dotted_name (identifier) @font-lock-type-face :anchor))
 

@@ -1384,6 +1384,15 @@ a specific way.  If present, @var{value} is used to initialize the
 @code{:value} property.  When created, it inserts the value as a
 string in the buffer.
 
+@noindent
+Example:
+
+@lisp
+(widget-create 'item :tag "Today is" :format "%t: %v\n"
+               (format-time-string "%d-%m-%Y"))
+@end lisp
+
+
 By default, it has the following properties:
 
 @table @code
@@ -1428,6 +1437,20 @@ The @var{value}, if present, is used to initialize the @code{:value}
 property.  The value should be a string, which will be inserted in the
 buffer.
 
+@noindent
+Example:
+
+@lisp
+(widget-create 'link
+               :button-prefix ""
+               :button-suffix ""
+               :tag "Mail yourself"
+               :action #'(lambda (widget &optional _event)
+                           (compose-mail-other-window (widget-value widget)))
+               user-mail-address)
+@end lisp
+
+
 By default, it has the following properties:
 
 @table @code
@@ -1471,6 +1494,31 @@ A widget to represent a link to a web page.  Its super is the
 It overrides the @code{:action} property to open up the @var{url}
 specified.
 
+@noindent
+Example:
+
+@lisp
+@group
+(widget-create 'url-link
+               :button-prefix ""
+               :button-suffix ""
+               ;; Return appropriate face.
+               :button-face-get (lambda (widget)
+                 (if (widget-get widget :visited)
+                     'link-visited
+                   'link))
+               :format "%[%t%]"
+               :tag "Browse this manual"
+               :action (lambda (widget &optional _event)
+                          (widget-put widget :visited t)
+                          ;; Takes care of redrawing the widget.
+                          (widget-value-set widget (widget-value widget))
+                          ;; And then call the original function.
+                          (widget-url-link-action widget))
+               "https://www.gnu.org/software/emacs/manual/html_mono/widget.html")
+@end group
+@end lisp
+
 @node info-link
 @subsection The @code{info-link} Widget
 @findex info-link@r{ widget}
@@ -1487,6 +1535,17 @@ A widget to represent a link to an info file.  Its super is the
 It overrides the @code{:action} property, to a function to start the
 built-in Info reader on @var{address}, when invoked.
 
+@noindent
+Example:
+
+@lisp
+(widget-create 'info-link
+               :button-prefix ""
+               :button-suffix ""
+               :tag "Browse this manual"
+               "(widget) info-link")))
+@end lisp
+
 @node function-link
 @subsection The @code{function-link} Widget
 @findex function-link@r{ widget}
@@ -1501,6 +1560,17 @@ A widget to represent a link to an Emacs function.  Its super is the
 
 It overrides the @code{:action} property, to a function to describe
 @var{function}.
+
+@noindent
+Example:
+
+@lisp
+(widget-create 'function-link
+               :button-prefix ""
+               :button-suffix ""
+               :tag "Describe the function that gets called"
+               #'widget-function-link-action)
+@end lisp
 
 @node variable-link
 @subsection The @code{variable-link} Widget
@@ -1517,6 +1587,17 @@ A widget to represent a link to an Emacs variable.  Its super is the
 It overrides the @code{:action} property, to a function to describe
 @var{var}.
 
+@noindent
+Example:
+
+@lisp
+(widget-create 'variable-link
+               :button-prefix ""
+               :button-suffix ""
+               :tag "What setting controls button-prefix?"
+               'widget-button-prefix)
+@end lisp
+
 @node face-link
 @subsection The @code{face-link} Widget
 @findex face-link@r{ widget}
@@ -1531,6 +1612,17 @@ A widget to represent a link to an Emacs face.  Its super is the
 
 It overrides the @code{:action} property, to a function to describe
 @var{face}.
+
+@noindent
+Example:
+
+@lisp
+(widget-create 'face-link
+               :button-prefix ""
+               :button-suffix ""
+               :tag "Which face is this one?"
+               'widget-button)
+@end lisp
 
 @node file-link
 @subsection The @code{file-link} Widget
@@ -1547,6 +1639,19 @@ A widget to represent a link to a file.  Its super is the
 It overrides the @code{:action} property, to a function to find the file
 @var{file}.
 
+@noindent
+Example:
+
+@lisp
+(let ((elisp-files (directory-files user-emacs-directory t ".el$")))
+  (dolist (file elisp-files)
+    (widget-create 'file-link
+                   :button-prefix ""
+                   :button-suffix ""
+                   file)
+    (widget-insert "\n")))
+@end lisp
+
 @node emacs-library-link
 @subsection The @code{emacs-library-link} Widget
 @findex emacs-library-link@r{ widget}
@@ -1562,6 +1667,17 @@ A widget to represent a link to an Emacs Lisp file.  Its super is the
 It overrides the @code{:action} property, to a function to find the file
 @var{file}.
 
+@noindent
+Example:
+
+@lisp
+(widget-create 'emacs-library-link
+               :button-prefix ""
+               :button-suffix ""
+               :tag "Show yourself, Widget Library!"
+               "wid-edit.el")
+@end lisp
+
 @node emacs-commentary-link
 @subsection The @code{emacs-commentary-link} Widget
 @findex emacs-commentary-link@r{ widget}
@@ -1576,6 +1692,17 @@ file.  Its super is the @code{link} widget.
 
 It overrides the @code{:action} property, to a function to find the file
 @var{file} and put point in the Comment section.
+
+@noindent
+Example:
+
+@lisp
+(widget-create 'emacs-commentary-link
+               :button-prefix ""
+               :button-suffix ""
+               :tag "Check our good friend Customize"
+               "cus-edit.el")
+@end lisp
 
 @node  push-button
 @subsection The @code{push-button} Widget
@@ -2009,6 +2136,33 @@ A widget that can toggle between two states.  Its super is the
 The widget has two possible states, @samp{on} and @samp{off}, which
 correspond to a @code{t} or @code{nil} value, respectively.
 
+@noindent
+Example:
+
+@lisp
+@group
+(widget-insert "Press the button to activate/deactivate the field: ")
+(widget-create 'toggle
+               :notify (lambda (widget &rest _ignored)
+                          (widget-apply widget-example-field
+                                        (if (widget-value widget)
+                                            :activate
+                                          :deactivate))))
+(widget-insert "\n")
+@end group
+@group
+(setq widget-example-field
+      (widget-create 'editable-field
+                     :deactivate (lambda (widget)
+                                   (widget-specify-inactive
+                                    widget
+                                    (widget-field-start widget)
+                                    (widget-get widget :to)))))
+(widget-apply widget-example-field :deactivate)))
+@end group
+@end lisp
+
+
 It either overrides or adds the following properties:
 
 @table @code
@@ -2147,6 +2301,21 @@ A widget to represent a multiplice choice.  Its super is the
 The @var{type} arguments represent each checklist item.  The widget's
 value will be a list containing the values of all checked @var{type}
 arguments.
+
+@noindent
+Example:
+
+@lisp
+(widget-create 'checklist
+               :notify (lambda (widget child &optional _event)
+                         (funcall
+                           (widget-value (widget-get-sibling child))
+                           'toggle))
+               :value (list 'tool-bar-mode 'menu-bar-mode)
+               '(item :tag "Tool-bar" tool-bar-mode)
+               '(item :tag "Menu-bar" menu-bar-mode))))
+@end lisp
+
 
 It either overrides or adds the following properties:
 
@@ -2898,6 +3067,59 @@ the widget type and all the widget's parent types, most derived first.
 The predefined functions @code{widget-types-convert-widget} and
 @code{widget-value-convert-widget} can be used here.
 @end table
+
+@noindent
+Example:
+
+@lisp
+@group
+(defvar widget-ranged-integer-map
+  (let ((map (copy-keymap widget-keymap)))
+    (define-key map [up] #'widget-ranged-integer-increase)
+    (define-key map [down] #'widget-ranged-integer-decrease)
+    map))
+@end group
+
+@group
+(define-widget 'ranged-integer 'integer
+  "A ranged integer widget."
+  :min-value most-negative-fixnum
+  :max-value most-positive-fixnum
+  :keymap widget-ranged-integer-map)
+@end group
+
+@group
+(defun widget-ranged-integer-change (widget how)
+  "Change the value of the ranged-integer WIDGET, according to HOW."
+  (let* ((value (widget-value widget))
+         (newval (cond
+                  ((eq how 'up)
+                   (if (< (1+ value) (widget-get widget :max-value))
+                       (1+ value)
+                     (widget-get widget :max-value)))
+                  ((eq how 'down)
+                   (if (> (1- value) (widget-get widget :min-value))
+                       (1- value)
+                     (widget-get widget :min-value)))
+                  (t (error "HOW has a bad value"))))
+         (inhibit-read-only t))
+    (widget-value-set widget newval)))
+@end group
+
+@group
+(defun widget-ranged-integer-increase (widget)
+  "Increase the value of the ranged-integer WIDGET."
+  (interactive (list (widget-at)))
+  (widget-ranged-integer-change widget 'up))
+@end group
+
+@group
+(defun widget-ranged-integer-decrease (widget)
+  "Decrease the value of the ranged-integer WIDGET."
+  (interactive (list (widget-at)))
+  (widget-ranged-integer-change widget 'down))
+@end group
+@end lisp
 
 @node Inspecting Widgets
 @chapter Inspecting Widgets

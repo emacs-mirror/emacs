@@ -675,7 +675,7 @@ name} (@pxref{Symbol Components}).
 
 It is useful to think of shorthands as @emph{abbreviating} the full
 names of intended symbols.  Despite this, do not confuse shorthands with the
-Abbrev system @pxref{Abbrevs}.
+Abbrev system (@pxref{Abbrevs}).
 
 @cindex namespace etiquette
 Shorthands make Emacs Lisp's @dfn{namespacing etiquette} easier to work
