@@ -1986,6 +1986,7 @@ the fringe indicates truncation at either end of the line.  On text
 terminals, this is indicated with @samp{$} signs in the rightmost
 and/or leftmost columns.
 
+@kindex C-x x t
 @vindex truncate-lines
 @findex toggle-truncate-lines
   Horizontal scrolling automatically causes line truncation
