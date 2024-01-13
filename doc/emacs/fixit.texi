@@ -402,7 +402,7 @@ when you started spell-checking.
 Quit interactive spell-checking and kill the spell-checker subprocess.
 
 @item C-r
-Enter recursive-edit (@pxref{Recursive Editing}).  When you exit
+Enter recursive-edit (@pxref{Recursive Edit}).  When you exit
 recursive-edit with @kbd{C-M-c}, the interactive spell-checking will
 resume.  This allows you to consult the buffer text without
 interrupting the spell-checking.  Do @emph{not} modify the buffer in
