@@ -436,19 +436,19 @@ headers of the messages."
     (unless (and rmail-summary-message-parents-vector
 		 (= (length rmail-summary-message-parents-vector)
 		    (1+ rmail-total-messages)))
-      (rmail-summary-fill-message-parents-and-descs-vectors))
-    (let ((enc-msgs (make-bool-vector (1+ rmail-total-messages) nil)))
-      (rmail-summary--walk-thread-message-recursively msgnum enc-msgs)
-      (rmail-new-summary (format "thread containing message %d" msgnum)
-			 (list 'rmail-summary-by-thread msgnum)
-			 (if (and rmail-summary-progressively-narrow
-				  (rmail-summary--exists-1))
-			     (lambda (msg _msgnum)
-			       (and (aref rmail-summary-currently-displayed-msgs msg)
-				    (aref enc-msgs msg)))
+      (rmail-summary-fill-message-parents-and-descs-vectors)))
+  (let ((enc-msgs (make-bool-vector (1+ rmail-total-messages) nil)))
+    (rmail-summary--walk-thread-message-recursively msgnum enc-msgs)
+    (rmail-new-summary (format "thread containing message %d" msgnum)
+		       (list 'rmail-summary-by-thread msgnum)
+		       (if (and rmail-summary-progressively-narrow
+				(rmail-summary--exists-1))
 			   (lambda (msg _msgnum)
-                             (aref enc-msgs msg)))
-			 msgnum))))
+			     (and (aref rmail-summary-currently-displayed-msgs msg)
+				  (aref enc-msgs msg)))
+			 (lambda (msg _msgnum)
+                           (aref enc-msgs msg)))
+		       msgnum)))
 
 ;;;###autoload
 (defun rmail-summary-by-labels (labels)

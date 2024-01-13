@@ -5,7 +5,6 @@
 ;; Author: Justin Talbott <justin@waymondo.com>
 ;; Keywords: convenience, tools, extensions
 ;; URL: https://github.com/waymondo/use-package-ensure-system-package
-;; Version: 0.2
 ;; Package-Requires: ((use-package "2.1") (system-packages "1.0.4"))
 ;; Filename: use-package-ensure-system-package.el
 
