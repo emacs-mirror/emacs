@@ -165,7 +165,7 @@ The line number is relative to the start of the page."
     (widen)
     (save-excursion
       (let ((count 1)
-            (adjust (if (or (bolp) (looking-back page-delimiter)) 1 0))
+            (adjust (if (or (bolp) (looking-back page-delimiter nil)) 1 0))
             (opoint (point)))
         (goto-char (point-min))
         (while (re-search-forward page-delimiter opoint t)
