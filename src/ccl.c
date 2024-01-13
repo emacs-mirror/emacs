@@ -873,7 +873,7 @@ static struct ccl_prog_stack ccl_prog_stack_struct[256];
 static inline Lisp_Object
 GET_TRANSLATION_TABLE (int id)
 {
-  return XCDR (XVECTOR (Vtranslation_table_vector)->contents[id]);
+  return XCDR (AREF (Vtranslation_table_vector, id));
 }
 
 void
