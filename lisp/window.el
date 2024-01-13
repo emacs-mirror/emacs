@@ -10813,7 +10813,8 @@ Used in `repeat-mode'."
   "^ f" #'tear-off-window
   "^ t" #'tab-window-detach
   "-" #'fit-window-to-buffer
-  "0" #'delete-windows-on)
+  "0" #'delete-windows-on
+  "q" #'quit-window)
 (define-key ctl-x-map "w" window-prefix-map)
 
 (provide 'window)
