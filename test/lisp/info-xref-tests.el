@@ -92,7 +92,15 @@ text.
 "
             )
     (write-region nil nil file nil 'silent))
-  (should (equal 0 (call-process "makeinfo" file))))
+  (if (and (eq system-type 'windows-nt)
+           (executable-find "sh"))
+      ;; If we are running from MSYS Bash, makeinfo.bat might find the
+      ;; wrong version of Perl, so make sure to run the shell script
+      ;; named just 'makeinfo' instead, because it names the correct
+      ;; Perl.
+      (should (equal 0 (call-process "sh" nil t nil
+                                     "-c" (format "makeinfo '%s'" file))))
+    (should (equal 0 (call-process "makeinfo" file)))))
 
 (ert-deftest info-xref-test-makeinfo ()
   "Test that info-xref can parse basic makeinfo output."

@@ -3769,7 +3769,7 @@ the first line of your Emacs Lisp file:
 ;;; -*- lexical-binding: t -*-
 @end example
 
-For more information about this, @pxref{Selecting Lisp Dialect, , ,
+For more information about this, @pxref{Variable Scoping, , ,
 elisp, The Emacs Lisp Reference Manual}.
 
 @menu
