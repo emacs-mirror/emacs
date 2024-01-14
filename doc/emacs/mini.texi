@@ -355,6 +355,13 @@ Submit the text in the minibuffer as the argument, possibly completing
 first (@code{minibuffer-complete-and-exit}).  @xref{Completion Exit}.
 @item ?
 Display a list of completions (@code{minibuffer-completion-help}).
+@item C-o
+Cycle minibuffer input among possible completion candidates
+(@code{minibuffer-cycle-completion}).
+@item C-l
+Restore the minibuffer input that Emacs used to compute the current
+set of completion candidates.
+(@code{minibuffer-restore-completion-input}).
 @item C-x C-v
 Change the order of the list of possible completions
 (@code{minibuffer-sort-completions}).
@@ -396,9 +403,46 @@ all the way to @samp{auto-fill-mode}.
 the minibuffer, or completes it and then submits it, depending on the
 ``strictness'' of the completion.  @xref{Completion Exit}.
 
+@cindex cycle completions
+@cindex completions cycling
+@kindex C-o @r{(completion)}
+@findex minibuffer-cycle-completion
+  @kbd{C-o} (@code{minibuffer-cycle-completion}) cycles among the list
+of possible completions.  The first time you hit @kbd{C-o}, it expands
+your partial input in the minibuffer to the first matching completion
+candidate.  Another @kbd{C-o} replaces the minibuffer contents with
+the next completion candidate, and repeating @kbd{C-o} lets you cycle
+among all completions for your initial input, wrapping around when you
+reach the end of the list.  While you're cycling, Emacs remembers the
+initial partial input you started with, and the corresponding set of
+completion candidates.  If you edit a completion candidate in the
+minibuffer after cycling to it, that tells Emacs to forget about your
+previous partial input and compute a new set of completion candidates
+based on your new input the next time you hit @kbd{C-o}.  You can
+invoke @kbd{C-o} with a numeric prefix argument @var{n} to cycle
+@var{n} candidates forward at once.  A negative @var{n} cycles
+backward instead.  A prefix argument of zero (@kbd{C-0 C-o}) switches
+the cycling direction, so the next @kbd{C-o} presses cycle backward.
+
+@kindex C-l @r{(completion)}
+@findex minibuffer-restore-completion-input
+  @kbd{C-l} (@code{minibuffer-restore-completion-input}) restores the
+minibuffer contents to the (partial) input that you last used for
+completion in the current minibuffer.  Commands that complete your
+input, such as @kbd{@key{TAB}} and @kbd{C-o}, record the partial input
+that you provide them for you to later retrieve it with @kbd{C-l}.
+For example, if you type @kbd{M-x bar} and start cycling with
+@kbd{C-o}, only to realize that you want a candidate that matches
+@samp{baz} and not @samp{bar}, then you can type @kbd{C-l} to restore
+the minibuffer input to @samp{bar}, change it to @samp{baz} and
+complete again.
+
+@anchor{Sort Completions}
+@cindex sort completions
+@cindex completions sort order
 @kindex C-x C-v @r{(completion)}
 @findex minibuffer-sort-completions
-  @key{C-x C-v} (@code{minibuffer-sort-completions}) changes the order
+  @kbd{C-x C-v} (@code{minibuffer-sort-completions}) changes the order
 of the completions list.  By default, Emacs sorts the list of possible
 completion candidates in the order that you specify in user option
 @code{completions-sort} (@pxref{Completion Options}).  This command
@@ -857,16 +901,18 @@ completions list buffer, and the second one will switch to it.
 
 @vindex completion-cycle-threshold
   If @code{completion-cycle-threshold} is non-@code{nil}, completion
-commands can cycle through completion alternatives.  Normally, if
-there is more than one completion alternative for the text in the
-minibuffer, a completion command completes up to the longest common
-substring.  If you change @code{completion-cycle-threshold} to
-@code{t}, the completion command instead completes to the first of
-those completion alternatives; each subsequent invocation of the
-completion command replaces that with the next completion alternative,
-in a cyclic manner.  If you give @code{completion-cycle-threshold} a
-numeric value @var{n}, completion commands switch to this cycling
-behavior only when there are @var{n} or fewer alternatives.
+commands such as @kbd{@key{TAB}} can cycle through completion
+alternatives.  Normally, if there is more than one completion
+alternative for the text in the minibuffer, a completion command
+completes up to the longest common substring.  If you change
+@code{completion-cycle-threshold} to @code{t}, the completion command
+instead behaves like @kbd{C-o} (@code{minibuffer-cycle-completion}):
+it completes to the first of those completion alternatives; each
+subsequent invocation of the completion command replaces that with the
+next completion alternative, in a cyclic manner.  If you give
+@code{completion-cycle-threshold} a numeric value @var{n}, completion
+commands switch to this cycling behavior only when there are @var{n}
+or fewer alternatives.
 
 @vindex completions-format
   When displaying completions, Emacs will normally pop up a new buffer

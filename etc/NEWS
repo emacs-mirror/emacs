@@ -794,9 +794,21 @@ minibuffer to change the sort order of the completions list.  If you
 invoke this command with a negative prefix argument ('C-- C-x C-v'),
 it reverses the current order.
 
-*** New minor mode 'completions-auto-update-mode'.
-This global minor mode automatically updates the *Completions* buffer
-as you type in the minibuffer.
++++
+*** New command 'minibuffer-cycle-completion'.
+This command, bound to 'C-o' in the minibuffer, expands the current
+minibuffer contents to the first matching completion, and cycles among
+all matching candidates if you call it repeatedly.  This is similar to
+'minibuffer-complete' ('TAB' in the minibuffer) with non-nil
+'completion-cycle-threshold', except that
+'minibuffer-cycle-completion' always cycles, regardless of the value
+of 'completion-cycle-threshold' and the number of completion
+candidates.
+
++++
+*** New command 'minibuffer-restore-completion-input.
+This command, bound to 'C-l' in the minibuffer, restores the (partial)
+input that you last used for completion in the current minibuffer.
 
 +++
 *** New command 'crm-change-separator'.

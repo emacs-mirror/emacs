@@ -356,6 +356,22 @@
        (let ((executing-kbd-macro t)) ; Force the real minibuffer
          (completing-read "Prompt: " ,collection)))))
 
+(ert-deftest restore-completion-input-test ()
+  (completing-read-with-minibuffer-setup
+      '("foo" "food" "bar" "baz")
+    (execute-kbd-macro (kbd "b TAB"))
+    (should (equal (minibuffer-contents) "ba"))
+    (execute-kbd-macro (kbd "C-l"))
+    (should (equal (minibuffer-contents) "b"))
+    (execute-kbd-macro (kbd "DEL f C-o C-o C-o"))
+    (should (equal (minibuffer-contents) "foo"))
+    (execute-kbd-macro (kbd "C-l"))
+    (should (equal (minibuffer-contents) "f"))
+    (execute-kbd-macro (kbd "M-<down> M-<down>"))
+    (should (equal (minibuffer-contents) "food"))
+    (execute-kbd-macro (kbd "C-l"))
+    (should (equal (minibuffer-contents) "f"))))
+
 (ert-deftest completion-auto-help-test ()
   (let (messages)
     (cl-letf* (((symbol-function 'minibuffer-message)

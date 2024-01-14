@@ -1470,6 +1470,7 @@ pair of a group title string and a list of group candidate strings."
 
 (defvar-local completion-all-sorted-completions nil)
 (defvar-local completion--all-sorted-completions-location nil)
+(defvar-local completion--input nil)
 (defvar completion-cycling nil)      ;Function that takes down the cycling map.
 (defvar completion-tab-width nil)
 
@@ -1599,6 +1600,11 @@ when the buffer's text is already an exact match."
                   ('always t))
                 (minibuffer-completion-help beg end))
                (t (minibuffer-hide-completions)
+                  (minibuffer--cache-completion-input
+                   string (car (completion-boundaries
+                                string
+                                minibuffer-completion-table
+                                minibuffer-completion-predicate "")))
                   (when exact
                     ;; If completion did not put point at end of field,
                     ;; it's a sign that completion is not finished.
@@ -1834,7 +1840,9 @@ include as `display-sort-function' in completion metadata."
                                            base-size md
                                            minibuffer-completion-table
                                            minibuffer-completion-predicate))
-             (sort-fun (completion-metadata-get all-md 'cycle-sort-function))
+             (sort-fun
+              (or minibuffer-completions-sort-function
+                  (completion-metadata-get all-md 'cycle-sort-function)))
              (group-fun (completion-metadata-get all-md 'group-function)))
         (when last
           (setcdr last nil)
@@ -1865,6 +1873,11 @@ include as `display-sort-function' in completion metadata."
                           (substring string 0 base-size))
                          all)))))
 
+          ;; Cache input for `minibuffer-restore-completion-input',
+          ;; unless STRING is an exact and sole completion.
+          (unless (and (not (consp (cdr all))) (equal (car all) string))
+            (minibuffer--cache-completion-input string base-size))
+
           ;; Cache the result.  This is not just for speed, but also so that
           ;; repeated calls to minibuffer-force-complete can cycle through
           ;; all possibilities.
@@ -1890,6 +1903,41 @@ include as `display-sort-function' in completion metadata."
          (completion--message "Incomplete")
        ;; If a match is not required, exit after all.
        (exit-minibuffer)))))
+
+(defun completion-switch-cycling-direction ()
+  "Switch completion cycling from forward to backward and vice versa."
+  (setq completion-all-sorted-completions
+        (let* ((all completion-all-sorted-completions)
+               (last (last all))
+               (base (cdr last)))
+          (when last (setcdr last nil))
+          (setq all (nreverse all))
+          (setq last (last all))
+          (when last (setcdr last (cons (car all) base)))
+          (cdr all))))
+
+(defun minibuffer-cycle-completion (arg)
+  "Cycle minibuffer input to the ARGth next completion.
+
+If ARG is negative, cycle back that many completion candidates.
+If ARG is 0, change cycling direction.
+
+Interactively, ARG is the prefix argument, and it defaults to 1."
+  (interactive "p" minibuffer-mode)
+  (let* ((times (abs arg)))
+    (when (< arg 1) (completion-switch-cycling-direction))
+    (if (< 0 times)
+        (dotimes (_ times) (minibuffer-force-complete))
+      (completion--message "Switched cycling direction"))
+    (when (< arg 0) (completion-switch-cycling-direction))))
+
+(defun minibuffer-restore-completion-input ()
+  "Restore minibuffer contents to last input used for completion."
+  (interactive "" minibuffer-mode)
+  (when completion--input
+    (completion--replace (+ (minibuffer-prompt-end) (cdr completion--input))
+                         (point-max)
+                         (car completion--input))))
 
 (defun minibuffer-force-complete (&optional start end dont-cycle)
   "Complete the minibuffer to an exact match.
@@ -1921,6 +1969,18 @@ DONT-CYCLE tells the function not to setup cycling."
       (setq this-command 'completion-at-point) ;For completion-in-region.
       ;; Set cycling after modifying the buffer since the flush hook resets it.
       (unless dont-cycle
+        ;; If *Completions* is visible, highlight the current candidate.
+        (when-let ((win (get-buffer-window "*Completions*" 0))
+                   (pm (with-current-buffer "*Completions*"
+                         (save-excursion
+                           (goto-char (point-min))
+                           (when-let ((pm (text-property-search-forward
+                                           'completion--string (car all) t)))
+                             (setq-local
+                              cursor-face-highlight-nonselected-window t)
+                             (goto-char (prop-match-beginning pm))
+                             (text-property-search-forward 'cursor-face))))))
+          (set-window-point win (prop-match-beginning pm)))
         ;; If completing file names, (car all) may be a directory, so we'd now
         ;; have a new set of possible completions and might want to reset
         ;; completion-all-sorted-completions to nil, but we prefer not to,
@@ -2771,6 +2831,10 @@ completions list."
                    (ngettext "" "s" (length styles))
                    (mapconcat #'symbol-name styles "', `"))))
 
+(defun minibuffer--cache-completion-input (string base-size)
+  "Record STRING and BASE-SIZE for `minibuffer-restore-completion-input'."
+  (setq completion--input (cons (substring string base-size) base-size)))
+
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
@@ -2784,7 +2848,10 @@ completions list."
                        minibuffer-completion-table
                        minibuffer-completion-predicate
                        (- (point) start)
-                       md)))
+                       md))
+         (last (last completions))
+         (base-size (or (cdr last) 0)))
+    (minibuffer--cache-completion-input string base-size)
     (message nil)
     (if (or (null completions)
             (and (not (consp (cdr completions)))
@@ -2798,9 +2865,7 @@ completions list."
               (completion--message "Sole completion")
             (completion--fail)))
 
-      (let* ((last (last completions))
-             (base-size (or (cdr last) 0))
-             (prefix (unless (zerop base-size) (substring string 0 base-size)))
+      (let* ((prefix (unless (zerop base-size) (substring string 0 base-size)))
              (minibuffer-completion-base (substring string 0 base-size))
              (base-prefix (buffer-substring (minibuffer--completion-prompt-end)
                                             (+ start base-size)))
@@ -3284,9 +3349,8 @@ The completion method is determined by `completion-at-point-functions'."
   :parent minibuffer-local-map
   "TAB"       #'minibuffer-complete
   "<backtab>" #'minibuffer-complete
-  ;; M-TAB is already abused for many other purposes, so we should find
-  ;; another binding for it.
-  ;; "M-TAB"  #'minibuffer-force-complete
+  "C-o"       #'minibuffer-cycle-completion
+  "C-l"       #'minibuffer-restore-completion-input
   "SPC"       #'minibuffer-complete-word
   "?"         #'minibuffer-completion-help
   "<prior>"   #'switch-to-completions
@@ -5615,9 +5679,11 @@ This applies to `completions-auto-update-mode', which see."
 (defun completions-auto-update ()
   "Update the *Completions* buffer, if it is visible."
   (when (get-buffer-window "*Completions*" 0)
-    (if completion-in-region-mode
-        (completion-help-at-point)
-      (minibuffer-completion-help)))
+    ;; Preserve current `completion--input'.
+    (let ((completion--input completion--input))
+      (if completion-in-region-mode
+          (completion-help-at-point)
+        (minibuffer-completion-help))))
   (setq completions-auto-update-timer nil))
 
 (defun completions-auto-update-start-timer ()

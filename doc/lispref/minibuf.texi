@@ -1337,6 +1337,17 @@ first character that is not a word constituent.  @xref{Syntax Tables}.
 This function completes the minibuffer contents as far as possible.
 @end deffn
 
+@deffn Command minibuffer-cycle-completion
+This function expands the current minibuffer contents to the first
+matching completion, and cycles among all matching candidates if you
+call it repeatedly.
+@end deffn
+
+@deffn Command minibuffer-restore-completion-input
+This function restores the last input that a completion command, such
+as @code{minibuffer-complete}, expanded in the current minibuffer.
+@end deffn
+
 @deffn Command minibuffer-complete-and-exit
 This function completes the minibuffer contents, and exits if
 confirmation is not required, i.e., if
@@ -1457,6 +1468,12 @@ keymap makes the following bindings:
 @item @key{TAB}
 @code{minibuffer-complete}
 
+@item C-o
+@code{minibuffer-cycle-completion}
+
+@item C-l
+@code{minibuffer-restore-completion-input}
+
 @item C-x C-v
 @code{minibuffer-sort-completions}
 
@@ -1477,7 +1494,7 @@ This keymap provides access to commands that deal with restricting the
 list of possible completions.  By default, this keymap makes the
 following bindings:
 
-@table @asis
+@table @kbd
 @item n
 @code{minibuffer-narrow-completions-to-current}
 
@@ -1496,8 +1513,8 @@ are bound to @code{exit-minibuffer}, the command that exits the
 minibuffer unconditionally.  By default, this keymap makes the following
 bindings:
 
-@table @asis
-@item @kbd{C-j}
+@table @kbd
+@item C-j
 @code{minibuffer-complete-and-exit}
 
 @item @key{RET}
