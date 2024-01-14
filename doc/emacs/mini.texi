@@ -184,8 +184,7 @@ usual Emacs commands are available for editing the argument text.
   Since @key{RET} in the minibuffer submits the argument, you can't
 use it to insert a newline.  You can do that with @kbd{C-q C-j}, which
 inserts a @kbd{C-j} control character, which is formally equivalent to
-a newline character (@pxref{Inserting Text}).  Alternatively, you can
-use the @kbd{C-o} (@code{open-line}) command (@pxref{Blank Lines}).
+a newline character (@pxref{Inserting Text}).
 
   Inside a minibuffer, the keys @key{TAB}, @key{SPC}, and @kbd{?} are
 often bound to @dfn{completion commands}, which allow you to easily
