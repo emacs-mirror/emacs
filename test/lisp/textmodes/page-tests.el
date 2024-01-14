@@ -110,7 +110,7 @@
     (should (equal (page--what-page) '(1 1)))
     (forward-page)
     (should (equal (page--what-page) '(2 1)))
-    (next-line)
+    (forward-line)
     (should (equal (page--what-page) '(2 2)))
     (forward-page)
     (should (equal (page--what-page) '(3 1)))))
