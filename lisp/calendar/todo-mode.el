@@ -1516,7 +1516,7 @@ the archive of the file moved to, creating it if it does not exist."
                 (prin1 todo-categories (current-buffer)))
 	      ;; If archive was just created, save it to avoid "File
 	      ;; <xyz> no longer exists!" message on invoking
-	      ;; `todo-view-archived-items'.
+	      ;; `todo-find-archive'.
 	      (unless (file-exists-p (buffer-file-name))
 		(save-buffer))
 	      (todo-category-number (or new cat))

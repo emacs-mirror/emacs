@@ -8528,7 +8528,7 @@ buffer.  ALIST is a buffer display action alist as compiled by
   canonical frame lines.  If it is the constant `full-height',
   prefer a full-height window.
 
-If ALIST contains a non-nil `inhibit-same--window' entry, do not
+If ALIST contains a non-nil `inhibit-same-window' entry, do not
 return the selected window."
   (let ((windows
          (window-list-1 nil 'nomini (cdr (assq 'lru-frames alist))))

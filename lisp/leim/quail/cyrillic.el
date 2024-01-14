@@ -1101,9 +1101,9 @@ as follows.
 ;; Ognyan Kulev <ogi@fmi.uni-sofia.bg> wrote:
 
 ;; I would suggest future `cyrillic-translit' to be with the
-;; modification of `cyrillic-translit-bulgarian' applied and the
+;; modification of `cyrillic-translit-bulgarian' (now deleted) applied and the
 ;; latter to disappear.  It could be used by people who write
-;; bulgarian e-mails with latin letters for kick start (phonetic input
+;; Bulgarian e-mails with latin letters for kick start (phonetic input
 ;; method is not so obvious as translit input method but each letter
 ;; is one keypress and a *lot* of people know it).
 

@@ -1592,7 +1592,7 @@ If optional MARKER, return a marker instead"
   (let ((vec (copy-sequence url-path-allowed-chars)))
     (aset vec ?: nil) ;; see github#639
     vec)
-  "Like `url-path-allows-chars' but more restrictive.")
+  "Like `url-path-allowed-chars' but more restrictive.")
 
 (defun eglot--path-to-uri (path)
   "URIfy PATH."

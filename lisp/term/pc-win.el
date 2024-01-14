@@ -47,7 +47,7 @@
 
 ;; This was copied from etc/rgb.txt, except that some values were changed
 ;; a bit to make them consistent with DOS console colors, and the RGB
-;; values were scaled up to 16 bits, as `tty-define-color' requires.
+;; values were scaled up to 16 bits, as `tty-color-define' requires.
 ;;;
 ;; The mapping between the 16 standard EGA/VGA colors and X color names
 ;; was done by running a Unix version of Emacs inside an X client and a

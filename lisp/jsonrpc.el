@@ -555,7 +555,7 @@ With optional CLEANUP, kill any associated buffers."
   "Called when new data STRING has arrived for PROC."
   (when jsonrpc--in-process-filter
     ;; Problematic recursive process filters may happen if
-    ;; `jsonrpc--connection-receive', called by us, eventually calls
+    ;; `jsonrpc-connection-receive', called by us, eventually calls
     ;; client code which calls `process-send-string' (which see) to,
     ;; say send a follow-up message.  If that happens to writes enough
     ;; bytes for pending output to be received, we will lose JSONRPC
