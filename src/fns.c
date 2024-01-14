@@ -5255,11 +5255,11 @@ static void
 collect_interval (INTERVAL interval, void *arg)
 {
   Lisp_Object *collector = arg;
-  *collector =
-    nconc2 (*collector,
-	    list1(list3 (make_fixnum (interval->position),
-			 make_fixnum (interval->position + LENGTH (interval)),
-			 interval->plist)));
+  *collector = Fcons (list3 (make_fixnum (interval->position),
+			     make_fixnum (interval->position
+					  + LENGTH (interval)),
+			     interval->plist),
+		      *collector);
 }
 
 
@@ -6312,7 +6312,6 @@ Altering this copy does not change the layout of the text properties
 in OBJECT.  */)
   (register Lisp_Object object)
 {
-  Lisp_Object collector = Qnil;
   INTERVAL intervals;
 
   if (STRINGP (object))
@@ -6325,8 +6324,9 @@ in OBJECT.  */)
   if (! intervals)
     return Qnil;
 
+  Lisp_Object collector = Qnil;
   traverse_intervals (intervals, 0, collect_interval, &collector);
-  return collector;
+  return Fnreverse (collector);
 }
 
 DEFUN ("line-number-at-pos", Fline_number_at_pos,
