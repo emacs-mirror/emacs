@@ -256,7 +256,7 @@ traverse_intervals_noorder (INTERVAL tree, void (*function) (INTERVAL, void *),
 
 void
 traverse_intervals (INTERVAL tree, ptrdiff_t position,
-		    void (*function) (INTERVAL, Lisp_Object), Lisp_Object arg)
+		    void (*function) (INTERVAL, void *), void *arg)
 {
   while (tree)
     {

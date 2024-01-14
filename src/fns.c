@@ -5241,12 +5241,14 @@ sxhash_obj (Lisp_Object obj, int depth)
 }
 
 static void
-collect_interval (INTERVAL interval, Lisp_Object collector)
+collect_interval (INTERVAL interval, void *arg)
 {
-  nconc2 (collector,
-	  list1(list3 (make_fixnum (interval->position),
-		       make_fixnum (interval->position + LENGTH (interval)),
-		       interval->plist)));
+  Lisp_Object *collector = arg;
+  *collector =
+    nconc2 (*collector,
+	    list1(list3 (make_fixnum (interval->position),
+			 make_fixnum (interval->position + LENGTH (interval)),
+			 interval->plist)));
 }
 
 
@@ -5309,13 +5311,13 @@ Hash codes are not guaranteed to be preserved across Emacs sessions.  */)
   if (STRINGP (obj))
     {
       /* FIXME: This is very wasteful.  We needn't cons at all.  */
-      Lisp_Object collector = Fcons (Qnil, Qnil);
+      Lisp_Object collector = Qnil;
       traverse_intervals (string_intervals (obj), 0, collect_interval,
-			  collector);
+			  &collector);
       return
 	make_ufixnum (
 	  SXHASH_REDUCE (sxhash_combine (sxhash (obj),
-					 sxhash (CDR (collector)))));
+					 sxhash (collector))));
     }
 
   return hash_hash_to_fixnum (hashfn_equal (obj, NULL));
@@ -6304,7 +6306,7 @@ Altering this copy does not change the layout of the text properties
 in OBJECT.  */)
   (register Lisp_Object object)
 {
-  Lisp_Object collector = Fcons (Qnil, Qnil);
+  Lisp_Object collector = Qnil;
   INTERVAL intervals;
 
   if (STRINGP (object))
@@ -6317,8 +6319,8 @@ in OBJECT.  */)
   if (! intervals)
     return Qnil;
 
-  traverse_intervals (intervals, 0, collect_interval, collector);
-  return CDR (collector);
+  traverse_intervals (intervals, 0, collect_interval, &collector);
+  return collector;
 }
 
 DEFUN ("line-number-at-pos", Fline_number_at_pos,

@@ -245,8 +245,8 @@ extern INTERVAL create_root_interval (Lisp_Object);
 extern void copy_properties (INTERVAL, INTERVAL);
 extern bool intervals_equal (INTERVAL, INTERVAL);
 extern void traverse_intervals (INTERVAL, ptrdiff_t,
-                                void (*) (INTERVAL, Lisp_Object),
-                                Lisp_Object);
+                                void (*) (INTERVAL, void *),
+                                void *);
 extern void traverse_intervals_noorder (INTERVAL,
 					void (*) (INTERVAL, void *), void *);
 extern INTERVAL split_interval_right (INTERVAL, ptrdiff_t)
