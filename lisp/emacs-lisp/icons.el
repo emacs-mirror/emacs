@@ -164,7 +164,7 @@ If OBJECT is an icon, return the icon properties."
 (defun icon-elements (name)
   "Return the elements of icon NAME.
 The elements are represented as a plist where the keys are
-`string', `face' and `display'.  The `image' element is only
+`string', `face' and `image'.  The `image' element is only
 present if the icon is represented by an image."
   (let ((string (icon-string name)))
     (list 'face (get-text-property 0 'face string)
