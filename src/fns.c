@@ -5241,6 +5241,17 @@ sxhash_obj (Lisp_Object obj, int depth)
 }
 
 static void
+hash_interval (INTERVAL interval, void *arg)
+{
+  EMACS_UINT *phash = arg;
+  EMACS_UINT hash = *phash;
+  hash = sxhash_combine (hash, interval->position);
+  hash = sxhash_combine (hash, LENGTH (interval));
+  hash = sxhash_combine (hash, sxhash_obj (interval->plist, 0));
+  *phash = hash;
+}
+
+static void
 collect_interval (INTERVAL interval, void *arg)
 {
   Lisp_Object *collector = arg;
@@ -5310,14 +5321,9 @@ Hash codes are not guaranteed to be preserved across Emacs sessions.  */)
 {
   if (STRINGP (obj))
     {
-      /* FIXME: This is very wasteful.  We needn't cons at all.  */
-      Lisp_Object collector = Qnil;
-      traverse_intervals (string_intervals (obj), 0, collect_interval,
-			  &collector);
-      return
-	make_ufixnum (
-	  SXHASH_REDUCE (sxhash_combine (sxhash (obj),
-					 sxhash (collector))));
+      EMACS_UINT hash = 0;
+      traverse_intervals (string_intervals (obj), 0, hash_interval, &hash);
+      return make_ufixnum (SXHASH_REDUCE (sxhash_combine (sxhash (obj), hash)));
     }
 
   return hash_hash_to_fixnum (hashfn_equal (obj, NULL));
