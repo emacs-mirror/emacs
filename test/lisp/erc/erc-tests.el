@@ -2707,7 +2707,7 @@
                    (list :server "irc.libera.chat"
                          :port 6697
                          :nick (user-login-name)
-                         '&interactive-env
+                         '--interactive-env--
                          '((erc-server-connect-function . erc-open-tls-stream)
                            (erc-join-buffer . window))))))
 
@@ -2717,7 +2717,7 @@
                    (list :server "irc.gnu.org"
                          :port 6697
                          :nick (user-login-name)
-                         '&interactive-env
+                         '--interactive-env--
                          '((erc-server-connect-function . erc-open-tls-stream)
                            (erc-join-buffer . window))))))
 
@@ -2728,7 +2728,7 @@
                      (list :server "irc.gnu.org"
                            :port 6697
                            :nick (user-login-name)
-                           '&interactive-env
+                           '--interactive-env--
                            '((erc-server-connect-function
                               . erc-open-tls-stream)
                              (erc--display-context

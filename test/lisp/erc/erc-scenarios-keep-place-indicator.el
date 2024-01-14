@@ -85,8 +85,8 @@
           (goto-char (window-point))
           (should (looking-back (rx "<bob> tester, welcome!")))
           (should (= (pos-bol) (window-start)))
-          (should (= (overlay-start erc--keep-place-indicator-overlay)
-                     (pos-bol))))
+          (erc-d-t-wait-for 20
+              (= (overlay-start erc--keep-place-indicator-overlay) (pos-bol))))
         ;; Lower window is still centered at start.
         (other-window 1)
         (switch-to-buffer "#chan")

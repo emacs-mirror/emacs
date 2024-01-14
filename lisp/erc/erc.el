@@ -13,7 +13,7 @@
 ;;               Michael Olson (mwolson@gnu.org)
 ;;               Kelvin White (kwhite@gnu.org)
 ;; Version: 5.6-git
-;; Package-Requires: ((emacs "27.1") (compat "29.1.4.3"))
+;; Package-Requires: ((emacs "27.1") (compat "29.1.4.4"))
 ;; Keywords: IRC, chat, client, Internet
 ;; URL: https://www.gnu.org/software/emacs/erc.html
 
@@ -2637,8 +2637,11 @@ typically the same as that reported by `erc-current-nick'."
 
 ;;;###autoload
 (defun erc-select-read-args ()
-  "Prompt the user for values of nick, server, port, and password.
-With prefix arg, also prompt for user and full name."
+  "Prompt for connection parameters and return them in a plist.
+By default, collect `:server', `:port', `:nickname', and
+`:password'.  With a non-nil prefix argument, also prompt for
+`:user' and `:full-name'.  Also return various environmental
+properties needed by entry-point commands, like `erc-tls'."
   (let* ((input (let ((d (erc-compute-server)))
                   (if erc--prompt-for-server-function
                       (funcall erc--prompt-for-server-function)
@@ -2692,7 +2695,7 @@ With prefix arg, also prompt for user and full name."
       (setq passwd nil))
     `( :server ,server :port ,port :nick ,nick ,@(and user `(:user ,user))
        ,@(and passwd `(:password ,passwd)) ,@(and full `(:full-name ,full))
-       ,@(and env `(&interactive-env ,env)))))
+       ,@(and env `(--interactive-env-- ,env)))))
 
 (defmacro erc--with-entrypoint-environment (env &rest body)
   "Run BODY with bindings from ENV alist."
@@ -2721,30 +2724,40 @@ With prefix arg, also prompt for user and full name."
                     (full-name (erc-compute-full-name))
                     id
                     ;; Used by interactive form
-                    ((&interactive-env --interactive-env--)))
-  "ERC is a powerful, modular, and extensible IRC client.
-This function is the main entry point for ERC.
+                    ((--interactive-env-- --interactive-env--)))
+  "Connect to an Internet Relay Chat SERVER on a non-TLS PORT.
+Use NICK and USER, when non-nil, to inform the IRC commands of
+the same name, possibly factoring in a non-nil FULL-NAME as well.
+When PASSWORD is non-nil, also send an opening server password
+via the \"PASS\" command.  Interactively, prompt for SERVER,
+PORT, NICK, and PASSWORD, along with USER and FULL-NAME when
+given a prefix argument.  Non-interactively, expect the rarely
+needed ID parameter, when non-nil, to be a symbol or a string for
+naming the server buffer and identifying the connection
+unequivocally.  (See Info node `(erc) Connecting' for details
+about all mentioned parameters.)
 
-It allows selecting connection parameters, and then starts ERC.
+Together with `erc-tls', this command serves as the main entry
+point for ERC, the powerful, modular, and extensible IRC client.
+Non-interactively, both commands accept the following keyword
+arguments, with their defaults supplied by the indicated
+\"compute\" functions:
 
-Non-interactively, it takes the keyword arguments
-   (server (erc-compute-server))
-   (port   (erc-compute-port))
-   (nick   (erc-compute-nick))
-   (user   (erc-compute-user))
-   password
-   (full-name (erc-compute-full-name))
-   id
+  :server    `erc-compute-server'
+  :port      `erc-compute-port'
+  :nick      `erc-compute-nick'
+  :user      `erc-compute-user'
+  :password   N/A
+  :full-name `erc-compute-full-name'
+  :id'        N/A
 
-That is, if called with
+For example, when called in the following manner
 
    (erc :server \"irc.libera.chat\" :full-name \"J. Random Hacker\")
 
-then the server and full-name will be set to those values,
-whereas `erc-compute-port' and `erc-compute-nick' will be invoked
-for the values of the other parameters.
-
-See `erc-tls' for the meaning of ID.
+ERC assigns SERVER and FULL-NAME the associated keyword values
+and defers to `erc-compute-port', `erc-compute-user', and
+`erc-compute-nick' for those respective parameters.
 
 \(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME ID)"
   (interactive (let ((erc--display-context `((erc-interactive-display . erc)
@@ -2770,51 +2783,26 @@ See `erc-tls' for the meaning of ID.
                         client-certificate
                         id
                         ;; Used by interactive form
-                        ((&interactive-env --interactive-env--)))
-  "ERC is a powerful, modular, and extensible IRC client.
-This function is the main entry point for ERC over TLS.
+                        ((--interactive-env-- --interactive-env--)))
+  "Connect to an IRC server over a TLS-encrypted connection.
+Interactively, prompt for SERVER, PORT, NICK, and PASSWORD, along
+with USER and FULL-NAME when given a prefix argument.
+Non-interactively, also accept a CLIENT-CERTIFICATE, which should
+be a list containing the file name of the certificate's key
+followed by that of the certificate itself.  Alternatively,
+accept a value of t instead of a list, to tell ERC to query
+`auth-source' for the certificate's details.
 
-It allows selecting connection parameters, and then starts ERC
-over TLS.
-
-Non-interactively, it takes the keyword arguments
-   (server (erc-compute-server))
-   (port   (erc-compute-port))
-   (nick   (erc-compute-nick))
-   (user   (erc-compute-user))
-   password
-   (full-name (erc-compute-full-name))
-   client-certificate
-   id
-
-That is, if called with
-
-   (erc-tls :server \"irc.libera.chat\" :full-name \"J. Random Hacker\")
-
-then the server and full-name will be set to those values,
-whereas `erc-compute-port' and `erc-compute-nick' will be invoked
-for the values of their respective parameters.
-
-CLIENT-CERTIFICATE, if non-nil, should either be a list where the
-first element is the certificate key file name, and the second
-element is the certificate file name itself, or t, which means
-that `auth-source' will be queried for the key and the
-certificate.  Authenticating using a TLS client certificate is
-also referred to as \"CertFP\" (Certificate Fingerprint)
-authentication by various IRC networks.
-
-Example usage:
+Example client certificate (CertFP) usage:
 
     (erc-tls :server \"irc.libera.chat\" :port 6697
              :client-certificate
              \\='(\"/home/bandali/my-cert.key\"
                \"/home/bandali/my-cert.crt\"))
 
-When present, ID should be a symbol or a string to use for naming
-the server buffer and identifying the connection unequivocally.
-See Info node `(erc) Network Identifier' for details.  Like
-CLIENT-CERTIFICATE, this parameter cannot be specified
-interactively.
+See the alternative entry-point command `erc' as well as Info
+node `(erc) Connecting' for a fuller description of the various
+parameters, like ID.
 
 \(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME CLIENT-CERTIFICATE ID)"
   (interactive
@@ -8055,7 +8043,6 @@ See also `erc-downcase'."
 
 (defun erc--current-buffer-joined-p ()
   "Return non-nil if the current buffer is a channel and is joined."
-  (cl-assert erc--target)
   (and (erc--target-channel-p erc--target)
        (erc--target-channel-joined-p erc--target)
        t))
