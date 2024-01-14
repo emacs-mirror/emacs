@@ -246,7 +246,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
 When setting a formula has some cell with changed references, this
 cell has to be rewritten to data area."
   (let ((ses-initial-size '(4 . 3))
-        ses-after-entry-functions beg)
+        (ses-after-entry-functions nil))
     (with-temp-buffer
       (ses-mode)
       (dolist (c '((0 1 1); B1
@@ -257,7 +257,7 @@ cell has to be rewritten to data area."
         (apply 'ses-calculate-cell (list (car c) (cadr c) nil)))
       (ses-cell-set-formula 2 1 '(+ B2 A3)); B3
       (ses-command-hook)
-      (ses-cell-set-formula 3 1 (+ B3 A4)); B4
+      (ses-cell-set-formula 3 1 '(+ B3 A4)); B4
       (ses-command-hook)
       (should (equal (ses-cell-references 1 1) '(B3)))
       (ses-mode)
