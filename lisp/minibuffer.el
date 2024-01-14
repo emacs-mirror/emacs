@@ -2803,7 +2803,8 @@ completions list."
    (list (let ((styles (completion--styles (completion--field-metadata
                                             (minibuffer-prompt-end))))
                (current (when-let ((buf (get-buffer "*Completions*")))
-                          (buffer-local-value 'completion-style buf))))
+                          (buffer-local-value 'completion-style buf)))
+               (enable-recursive-minibuffers t))
            (pcase current-prefix-arg
              (`(,_ . ,_) nil)           ; \\[universal-argument]
              (0 (unless current
