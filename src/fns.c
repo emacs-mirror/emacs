@@ -4665,11 +4665,12 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
   if (h->next_free < 0)
     {
       ptrdiff_t old_size = HASH_TABLE_SIZE (h);
-      ptrdiff_t base_size = min (max (old_size, 8), PTRDIFF_MAX / 2);
+      ptrdiff_t min_size = 8;
+      ptrdiff_t base_size = min (max (old_size, min_size), PTRDIFF_MAX / 2);
       /* Grow aggressively at small sizes, then just double.  */
       ptrdiff_t new_size =
 	old_size == 0
-	? 8
+	? min_size
 	: (base_size <= 64 ? base_size * 4 : base_size * 2);
 
       /* Allocate all the new vectors before updating *H, to
@@ -4754,30 +4755,39 @@ hash_table_thaw (Lisp_Object hash_table)
   h->test = hash_table_test_from_std (h->frozen_test);
   ptrdiff_t size = h->count;
   h->table_size = size;
-  ptrdiff_t index_size = hash_index_size (size);
-  h->index_size = index_size;
   h->next_free = -1;
 
-  h->hash = hash_table_alloc_bytes (size * sizeof *h->hash);
-
-  h->next = hash_table_alloc_bytes (size * sizeof *h->next);
-  for (ptrdiff_t i = 0; i < size; i++)
-    h->next[i] = -1;
-
-  h->index = hash_table_alloc_bytes (index_size * sizeof *h->index);
-  for (ptrdiff_t i = 0; i < index_size; i++)
-    h->index[i] = -1;
-
-  /* Recompute the actual hash codes for each entry in the table.
-     Order is still invalid.  */
-  for (ptrdiff_t i = 0; i < size; i++)
+  if (size == 0)
     {
-      Lisp_Object key = HASH_KEY (h, i);
-      hash_hash_t hash_code = hash_from_key (h, key);
-      ptrdiff_t start_of_bucket = hash_index_index (h, hash_code);
-      set_hash_hash_slot (h, i, hash_code);
-      set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
-      set_hash_index_slot (h, start_of_bucket, i);
+      h->key_and_value = NULL;
+      h->hash = NULL;
+      h->next = NULL;
+      h->index_size = 1;
+      h->index = (hash_idx_t *)empty_hash_index_vector;
+    }
+  else
+    {
+      ptrdiff_t index_size = hash_index_size (size);
+      h->index_size = index_size;
+
+      h->hash = hash_table_alloc_bytes (size * sizeof *h->hash);
+
+      h->next = hash_table_alloc_bytes (size * sizeof *h->next);
+
+      h->index = hash_table_alloc_bytes (index_size * sizeof *h->index);
+      for (ptrdiff_t i = 0; i < index_size; i++)
+	h->index[i] = -1;
+
+      /* Recompute the hash codes for each entry in the table.  */
+      for (ptrdiff_t i = 0; i < size; i++)
+	{
+	  Lisp_Object key = HASH_KEY (h, i);
+	  hash_hash_t hash_code = hash_from_key (h, key);
+	  ptrdiff_t start_of_bucket = hash_index_index (h, hash_code);
+	  set_hash_hash_slot (h, i, hash_code);
+	  set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
+	  set_hash_index_slot (h, start_of_bucket, i);
+	}
     }
 }
 
