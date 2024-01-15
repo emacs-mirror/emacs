@@ -108,7 +108,7 @@ folder. This is useful for folders that are easily regenerated."
             (window-config mh-previous-window-config))
         (mh-set-folder-modified-p t)    ; lock folder to kill it
         (mh-exec-cmd-daemon "rmf" 'mh-rmf-daemon folder)
-        (when (boundp 'mh-speed-folder-map)
+        (when (and (boundp 'speedbar-buffer) speedbar-buffer)
           (mh-speed-invalidate-map folder))
         (mh-remove-from-sub-folders-cache folder)
         (mh-set-folder-modified-p nil)  ; so kill-buffer doesn't complain
