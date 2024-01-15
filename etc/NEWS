@@ -1002,6 +1002,11 @@ which calls 'xref-find-definitions'.  If the previous one worked
 better for you, use 'define-key' in your init script to bind
 'js-find-symbol' to that combination again.
 
+** Json mode
+`js-json-mode` does not derive from `js-mode` any more so as not
+to confuse tools like Eglot or YASnippet into thinking that those
+buffers contain Javascript code.
+
 ** Python mode
 
 ---

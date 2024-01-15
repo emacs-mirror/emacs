@@ -3702,6 +3702,9 @@ Currently there are `js-mode' and `js-ts-mode'."
 (define-derived-mode js-mode js-base-mode "JavaScript"
   "Major mode for editing JavaScript."
   :group 'js
+  (js--mode-setup))
+
+(defun js--mode-setup ()
   ;; Ensure all CC Mode "lang variables" are set to valid values.
   (c-init-language-vars js-mode)
   (setq-local indent-line-function #'js-indent-line)
@@ -3924,7 +3927,9 @@ See `treesit-thing-settings' for more information.")
         (put-text-property (1- ne) ne 'syntax-table syntax)))))
 
 ;;;###autoload
-(define-derived-mode js-json-mode js-mode "JSON"
+(define-derived-mode js-json-mode prog-mode "JSON"
+  :syntax-table js-mode-syntax-table
+  (js--mode-setup) ;Reuse most of `js-mode', but not as parent (bug#67463).
   (setq-local js-enabled-frameworks nil)
   ;; Speed up `syntax-ppss': JSON files can be big but can't hold
   ;; regexp matchers nor #! thingies (and `js-enabled-frameworks' is nil).
