@@ -1600,11 +1600,17 @@ when the buffer's text is already an exact match."
                   ('always t))
                 (minibuffer-completion-help beg end))
                (t (minibuffer-hide-completions)
-                  (minibuffer--cache-completion-input
-                   string (car (completion-boundaries
-                                string
-                                minibuffer-completion-table
-                                minibuffer-completion-predicate "")))
+                  (when (minibufferp)
+                    (let ((base-size
+                           (car (completion-boundaries
+                                 string
+                                 minibuffer-completion-table
+                                 minibuffer-completion-predicate ""))))
+                      (minibuffer--cache-completion-input
+                       (substring string base-size)
+                       (buffer-substring-no-properties
+                        (minibuffer-prompt-end)
+                        (+ (minibuffer-prompt-end) base-size)))))
                   (when exact
                     ;; If completion did not put point at end of field,
                     ;; it's a sign that completion is not finished.
@@ -1875,8 +1881,14 @@ include as `display-sort-function' in completion metadata."
 
           ;; Cache input for `minibuffer-restore-completion-input',
           ;; unless STRING is an exact and sole completion.
-          (unless (and (not (consp (cdr all))) (equal (car all) string))
-            (minibuffer--cache-completion-input string base-size))
+          (and (minibufferp)
+               (or (consp (cdr all))               ; not sole
+                   (not (equal (car all) string))) ; not exact
+               (minibuffer--cache-completion-input
+                (substring string base-size)
+                (buffer-substring-no-properties (minibuffer-prompt-end)
+                                                (+ (minibuffer-prompt-end)
+                                                   base-size))))
 
           ;; Cache the result.  This is not just for speed, but also so that
           ;; repeated calls to minibuffer-force-complete can cycle through
@@ -1934,10 +1946,17 @@ Interactively, ARG is the prefix argument, and it defaults to 1."
 (defun minibuffer-restore-completion-input ()
   "Restore minibuffer contents to last input used for completion."
   (interactive "" minibuffer-mode)
-  (when completion--input
-    (completion--replace (+ (minibuffer-prompt-end) (cdr completion--input))
-                         (point-max)
-                         (car completion--input))))
+  (let* ((string (car completion--input))
+         (base (cdr completion--input))
+         (base-size (length base))
+         (prompt-end (minibuffer-prompt-end)))
+    (setq completion--input nil)
+    (if (and string (<= (+ prompt-end base-size (length string)) (point-max))
+             ;; Don't restore if the base has changed.
+             (equal base (buffer-substring-no-properties
+                          prompt-end (+ prompt-end base-size))))
+        (completion--replace (+ prompt-end base-size) (point-max) string)
+      (user-error "No partial completion input to restore"))))
 
 (defun minibuffer-force-complete (&optional start end dont-cycle)
   "Complete the minibuffer to an exact match.
@@ -2832,9 +2851,9 @@ completions list."
                    (ngettext "" "s" (length styles))
                    (mapconcat #'symbol-name styles "', `"))))
 
-(defun minibuffer--cache-completion-input (string base-size)
-  "Record STRING and BASE-SIZE for `minibuffer-restore-completion-input'."
-  (setq completion--input (cons (substring string base-size) base-size)))
+(defun minibuffer--cache-completion-input (string base)
+  "Record STRING and BASE for `minibuffer-restore-completion-input'."
+  (setq completion--input (cons string base)))
 
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
@@ -2852,7 +2871,6 @@ completions list."
                        md))
          (last (last completions))
          (base-size (or (cdr last) 0)))
-    (minibuffer--cache-completion-input string base-size)
     (message nil)
     (if (or (null completions)
             (and (not (consp (cdr completions)))
@@ -2896,6 +2914,8 @@ completions list."
              ;; minibuffer-hide-completions will know whether to
              ;; delete the window or not.
              (display-buffer-mark-dedicated 'soft))
+        (minibuffer--cache-completion-input (substring string base-size)
+                                            minibuffer-completion-base)
         (with-current-buffer-window
           "*Completions*"
           ;; This is a copy of `display-buffer-fallback-action'
