@@ -2688,7 +2688,7 @@ hash_table_freeze (struct Lisp_Hash_Table *h)
   h->hash = NULL;
   h->index = NULL;
   h->table_size = 0;
-  h->index_size = 0;
+  h->index_bits = 0;
   h->frozen_test = hash_table_std_test (h->test);
   h->test = NULL;
 }

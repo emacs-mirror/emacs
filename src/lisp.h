@@ -2475,14 +2475,14 @@ struct Lisp_Hash_Table
      The table is physically split into three vectors (hash, next,
      key_and_value) which may or may not be beneficial.  */
 
-  hash_idx_t index_size;   /* Size of the index vector.  */
+  int index_bits;	   /* log2 (size of the index vector).  */
   hash_idx_t table_size;   /* Size of the next and hash vectors.  */
 
   /* Bucket vector.  An entry of -1 indicates no item is present,
      and a nonnegative entry is the index of the first item in
      a collision chain.
-     This vector is index_size entries long.
-     If index_size is 1 (and table_size is 0), then this is the
+     This vector is 2**index_bits entries long.
+     If index_bits is 0 (and table_size is 0), then this is the
      constant read-only vector {-1}, shared between all instances.
      Otherwise it is heap-allocated.  */
   hash_idx_t *index;
@@ -2595,6 +2595,13 @@ INLINE ptrdiff_t
 HASH_TABLE_SIZE (const struct Lisp_Hash_Table *h)
 {
   return h->table_size;
+}
+
+/* Size of the index vector in hash table H.  */
+INLINE ptrdiff_t
+hash_table_index_size (const struct Lisp_Hash_Table *h)
+{
+  return (ptrdiff_t)1 << h->index_bits;
 }
 
 /* Hash value for KEY in hash table H.  */
