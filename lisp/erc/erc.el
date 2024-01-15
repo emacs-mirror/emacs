@@ -7973,9 +7973,18 @@ as outgoing chat messages and echoed slash commands."
     (when (fboundp cmd) cmd)))
 
 (defun erc-extract-command-from-line (line)
-  "Extract command and args from the input LINE.
-If no command was given, return nil.  If command matches, return a
-list of the form: (command args) where both elements are strings."
+  "Extract a \"slash command\" and its args from a prompt-input LINE.
+If LINE doesn't start with a slash command, return nil.  If it
+does, meaning the pattern `erc-command-regexp' matches, return a
+list of the form (COMMAND ARGS), where COMMAND is either a symbol
+for a known handler function or `erc-cmd-default' if unknown.
+When COMMAND has the symbol property `do-not-parse-args', return
+a string in place of ARGS: that is, either LINE itself, when LINE
+consists of only whitespace, or LINE stripped of any trailing
+whitespace, including a final newline.  When COMMAND lacks the
+symbol property `do-not-parse-args', return a possibly empty list
+of non-whitespace tokens.  Do not perform any shell-style parsing
+of quoted or escaped substrings."
   (when (string-match erc-command-regexp line)
     (let* ((cmd (erc-command-symbol (match-string 1 line)))
            ;; note: return is nil, we apply this simply for side effects

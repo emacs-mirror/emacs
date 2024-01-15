@@ -8,8 +8,7 @@
  (0 ":irc.example.org 002 tester :Your host is irc.example.org")
  (0 ":irc.example.org 003 tester :This server was created just now")
  (0 ":irc.example.org 004 tester irc.example.org BERios CEIRabehiklmnoqstv Iabehkloqv")
- (0 ":irc.example.org 005 tester MODES NETWORK=ExampleOrg NICKLEN=32 PREFIX=(qaohv)~&@%+"
-    " :are supported by this server")
+ (0 ":irc.example.org 005 tester MODES NETWORK=ExampleOrg NICKLEN=32 PREFIX=(qaohv)~&@%+ :are supported by this server")
  (0 ":irc.example.org 251 tester :There are 3 users and 0 invisible on 1 server(s)")
  (0 ":irc.example.org 252 tester 0 :IRC Operators online")
  (0 ":irc.example.org 253 tester 0 :unregistered connections")
@@ -25,7 +24,7 @@
 
 ((join 1.2 "JOIN #chan")
  (0 ":tester!~tester@localhost JOIN #chan")
- (0 ":irc.example.org 353 alice = #chan :+alice!~alice@example.com @%+bob!~bob@example.org")
+ (0 ":irc.example.org 353 alice = #chan :+alice @bob")
  (0 ":irc.example.org 366 alice #chan :End of NAMES list"))
 
 ((mode-chan 0.2 "MODE #chan")

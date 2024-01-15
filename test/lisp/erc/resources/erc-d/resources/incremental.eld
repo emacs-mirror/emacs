@@ -7,8 +7,7 @@
  (0.0 ":irc.foo.net 002 tester :Your host is irc.foo.net")
  (0.0 ":irc.foo.net 003 tester :This server was created just now")
  (0.0 ":irc.foo.net 004 tester irc.foo.net BERios CEIRabehiklmnoqstv Iabehkloqv")
- (0.0 ":irc.foo.net 005 tester MODES NETWORK=FooNet NICKLEN=32 PREFIX=(qaohv)~&@%+"
-              " :are supported by this server")
+ (0.0 ":irc.foo.net 005 tester MODES NETWORK=FooNet NICKLEN=32 PREFIX=(qaohv)~&@%+ :are supported by this server")
  (0.0 ":irc.foo.net 251 tester :There are 3 users and 0 invisible on 1 server(s)")
  (0.0 ":irc.foo.net 252 tester 0 :IRC Operators online")
  (0.0 ":irc.foo.net 253 tester 0 :unregistered connections")
@@ -24,7 +23,7 @@
 
 ((join 3 "JOIN #foo")
  (0 ":tester!~tester@localhost JOIN #foo")
- (0 ":irc.foo.net 353 alice = #foo :+alice!~alice@example.com @%+bob!~bob@example.org")
+ (0 ":irc.foo.net 353 alice = #foo :+alice @bob")
  (0 ":irc.foo.net 366 alice #foo :End of NAMES list"))
 
 ((mode 3 "MODE #foo")
