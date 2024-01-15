@@ -28828,7 +28828,10 @@ x_focus_frame (struct frame *f, bool noactivate)
      window.  (bug#65116)*/
 
   if (f == dpyinfo->x_focus_frame && !FRAME_HAS_MINIBUF_P (f))
-    return;
+    {
+      unblock_input ();
+      return;
+    }
 #endif /* HAVE_GTK3 */
 
   if (FRAME_X_EMBEDDED_P (f))
