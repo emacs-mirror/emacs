@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.23
+;; Version: 1.0.24
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -782,7 +782,7 @@ Return the full continuation (ID SUCCESS-FN ERROR-FN TIMER)"
     (if deferred-spec (remhash deferred-spec defs))
     (when-let ((ass (assq id conts)))
       (cl-destructuring-bind (_ _ _ _ timer) ass
-        (cancel-timer timer))
+        (when timer (cancel-timer timer)))
       (setf conts (delete ass conts))
       ass)))
 
