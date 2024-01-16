@@ -262,6 +262,12 @@ Anything following the symbol 'mode-line-format-right-align' in
 right-aligned to is controlled by the new user option
 'mode-line-right-align-edge'.
 
+** Windows
+
+*** New buffer display action alist entry 'post-command-select-window'.
+It specifies whether the window of the displayed buffer should be
+selected or deselected at the end of executing the current command.
+
 ** Tab Bars and Tab Lines
 
 *** New user option 'tab-bar-tab-name-format-functions'.

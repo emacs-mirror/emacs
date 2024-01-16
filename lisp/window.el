@@ -7798,6 +7798,14 @@ Action alist entries are:
     and `preserve-size' are applied.  The function is supposed
     to fill the window body with some contents that might depend
     on dimensions of the displayed window.
+ `post-command-select-window' -- A non-nil value means that after the
+    current command is executed and the hook `post-command-hook' is called,
+    the window displayed by this function will be selected.  A nil value
+    means that if functions like `pop-to-buffer' selected another window,
+    at the end of this command that window will be deselected, and the
+    window that was selected before calling this function will remain
+    selected regardless of which windows were selected afterwards within
+    this command.
 
 The entries `window-height', `window-width', `window-size' and
 `preserve-size' are applied only when the window used for
@@ -7853,6 +7861,17 @@ specified by the ACTION argument."
       (while (and functions (not window))
         (setq window (funcall (car functions) buffer alist)
               functions (cdr functions)))
+      (when-let ((select (assq 'post-command-select-window alist)))
+        (letrec ((old-selected-window (selected-window))
+                 (postfun
+                  (lambda ()
+                    (if (cdr select)
+                        (when (window-live-p window)
+                          (select-window window))
+                      (when (window-live-p old-selected-window)
+                        (select-window old-selected-window)))
+                    (remove-hook 'post-command-hook postfun))))
+          (add-hook 'post-command-hook postfun)))
       (and (windowp window) window))))
 
 (defun display-buffer-other-frame (buffer)

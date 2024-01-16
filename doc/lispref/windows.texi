@@ -3344,6 +3344,16 @@ It is called @emph{after} the buffer is displayed, and @emph{before}
 the entries @code{window-height}, @code{window-width} and
 @code{preserve-size} are applied that could resize the window to fit
 it to the inserted contents.
+
+@vindex post-command-select-window@r{, a buffer display action alist entry}
+@item post-command-select-window
+If the value is non-@code{nil}, the buffer displayed by @code{display-buffer}
+is selected after the current command is executed by running the hook
+@code{post-command-hook} (@pxref{Command Overview}).
+If the value is @code{nil}, the buffer selected by such functions as
+@code{pop-to-buffer} is deselected, and the window that was selected
+before calling this function will remain selected regardless of which
+windows were selected afterwards within this command.
 @end table
 
 By convention, the entries @code{window-height}, @code{window-width}
