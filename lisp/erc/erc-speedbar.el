@@ -545,6 +545,29 @@ The INDENT level is ignored."
       (speedbar-set-mode-line-format))))
 
 (defvar erc-speedbar--shutting-down-p nil)
+(defvar erc-speedbar--force-update-interval-secs 5 "Speedbar update period.")
+
+(defvar-local erc-speedbar--last-ran nil
+  "When non-nil, a lisp timestamp updated when the speedbar timer runs.")
+
+(defun erc-speedbar--run-timer-on-post-insert ()
+  "Refresh speedbar if idle for `erc-speedbar--force-update-interval-secs'."
+  (when speedbar-buffer
+    (with-current-buffer speedbar-buffer
+      (when-let
+          ((dframe-timer)
+           ((erc--check-msg-prop 'erc--cmd 'PRIVMSG))
+           (interval erc-speedbar--force-update-interval-secs)
+           ((or (null erc-speedbar--last-ran)
+                (time-less-p erc-speedbar--last-ran
+                             (time-subtract (current-time) interval)))))
+        (run-at-time 0 nil #'dframe-timer-fn)))))
+
+(defun erc-speedbar--reset-last-ran-on-timer ()
+  "Reset `erc-speedbar--last-ran'."
+  (when speedbar-buffer
+    (setf (buffer-local-value 'erc-speedbar--last-ran speedbar-buffer)
+          (current-time))))
 
 ;;;###autoload(autoload 'erc-nickbar-mode "erc-speedbar" nil t)
 (define-erc-module nickbar nil
@@ -559,6 +582,8 @@ raising of frames or the stealing of input focus.  If you witness
 such a thing and can reproduce it, please file a bug report with
 \\[erc-bug]."
   ((add-hook 'erc--setup-buffer-hook #'erc-speedbar--ensure)
+   (add-hook 'erc-insert-post-hook #'erc-speedbar--run-timer-on-post-insert)
+   (add-hook 'speedbar-timer-hook #'erc-speedbar--reset-last-ran-on-timer)
    (erc-speedbar--ensure)
    (unless (or erc--updating-modules-p
                (and-let* ((speedbar-buffer)
@@ -569,6 +594,8 @@ such a thing and can reproduce it, please file a bug report with
        (with-current-buffer buf
          (erc-speedbar--ensure 'force)))))
   ((remove-hook 'erc--setup-buffer-hook #'erc-speedbar--ensure)
+   (remove-hook 'erc-insert-post-hook #'erc-speedbar--run-timer-on-post-insert)
+   (remove-hook 'speedbar-timer-hook #'erc-speedbar--reset-last-ran-on-timer)
    (when erc-track-mode
      (setq erc-track--switch-fallback-blockers
            (remove '(derived-mode . speedbar-mode)
