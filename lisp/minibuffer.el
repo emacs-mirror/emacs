@@ -2828,8 +2828,9 @@ current order instead."
              ""
              (if-let ((desc (nth 3 (assoc (intern name)
                                           completion-styles-alist))))
-                 (concat (propertize " " 'display
-                                     `(space :align-to ,(+ max-name 4)))
+                 (concat (make-string (- (+ max-name 4)
+                                         (string-width name))
+                                      ?\s)
                          (propertize
                           ;; Only use the first line.
                           (substring desc 0 (string-search "\n" desc))
@@ -3638,11 +3639,10 @@ same as `substitute-in-file-name'."
                     (concat minibuffer-completion-base file))))
          (list file ""
                (if-let ((ann (file-name-completion-annotation full)))
-                   (propertize
-                    (concat (propertize " " 'display
-                                        `(space :align-to ,(+ max-file 2)))
-                            ann)
-                    'face 'completions-annotations)
+                   (concat (make-string (- (+ max-file 2)
+                                           (string-width file))
+                                        ?\s)
+                           (propertize ann 'face 'completions-annotations))
                  ""))))
      files)))
 
