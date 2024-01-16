@@ -1357,6 +1357,14 @@ characters, such as ½ (U+00BD VULGAR FRACTION ONE HALF), are also
 recognized as rational fractions.  They have been since 2004, but it
 looks like it was never mentioned in the NEWS, or even the manual.
 
+** IELM
+
+---
+*** IELM now remembers input history between sessions.
+The new user option 'ielm-history-file-name' is the name of the file
+where IELM input history will be saved.  Customize it to nil to revert
+to the old behavior of not remembering input history between sessions.
+
 
 * New Modes and Packages in Emacs 30.1
 
