@@ -264,7 +264,7 @@ right-aligned to is controlled by the new user option
 
 ** Windows
 
-*** New buffer display action alist entry 'post-command-select-window'.
+*** New action alist entry 'post-command-select-window' for display-buffer.
 It specifies whether the window of the displayed buffer should be
 selected or deselected at the end of executing the current command.
 
