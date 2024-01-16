@@ -741,18 +741,28 @@ the C sources, too."
 
 (defun help-fns--parent-mode (function)
   ;; If this is a derived mode, link to the parent.
-  (let ((parent-mode (and (symbolp function)
-                          ;; FIXME: Should we mention other parent modes?
-                          (get function
-                               'derived-mode-parent))))
+  (when (symbolp function)
+    (let ((parent-mode (get function 'derived-mode-parent))
+          (extra-parents (get function 'derived-mode-extra-parents)))
     (when parent-mode
       (insert (substitute-quotes "  Parent mode: `"))
       (let ((beg (point)))
-        (insert (format "%s" parent-mode))
+        (insert (format "%S" parent-mode))
         (make-text-button beg (point)
                           'type 'help-function
                           'help-args (list parent-mode)))
-      (insert (substitute-quotes "'.\n")))))
+      (insert (substitute-quotes "'.\n")))
+    (when extra-parents
+      (insert (format "  Extra parent mode%s:" (if (cdr extra-parents) "s" "")))
+      (dolist (parent extra-parents)
+        (insert (substitute-quotes " `"))
+        (let ((beg (point)))
+          (insert (format "%S" parent))
+          (make-text-button beg (point)
+                            'type 'help-function
+                            'help-args (list parent)))
+        (insert (substitute-quotes "'")))
+      (insert ".\n")))))
 
 (defun help-fns--obsolete (function)
   ;; Ignore lambda constructs, keyboard macros, etc.
