@@ -645,8 +645,14 @@
 	       (nil . "microsoft-cp1251")
 	       (nil . "koi8-r"))
 
-     (arabic ,(font-spec :registry "iso10646-1"
-			 :otf '(arab nil (init medi fina liga)))
+     (arabic ,(if (featurep 'android)
+                  ;; The Android font driver does not support the
+                  ;; detection of OTF tags but all fonts installed on
+                  ;; Android with Arabic characters provide shaping
+                  ;; information required for displaying Arabic text.
+                  (font-spec :registry "iso10646-1" :script 'arabic)
+                (font-spec :registry "iso10646-1"
+			   :otf '(arab nil (init medi fina liga))))
 	     (nil . "MuleArabic-0")
 	     (nil . "MuleArabic-1")
 	     (nil . "MuleArabic-2")
@@ -657,7 +663,9 @@
      (hebrew ,(font-spec :registry "iso10646-1" :script 'hebrew)
 	     (nil . "ISO8859-8"))
 
-     (khmer ,(font-spec :registry "iso10646-1" :otf '(khmr nil (pres))))
+     (khmer ,(if (featurep 'android)
+                 (font-spec :registry "iso10646-1" :script 'khmer)
+               (font-spec :registry "iso10646-1" :otf '(khmr nil (pres)))))
 
      (kana (nil . "JISX0208*")
 	   (nil . "GB2312.1980-0")
