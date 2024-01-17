@@ -9640,6 +9640,8 @@ sfnt_interpret_ip (struct sfnt_interpreter *interpreter)
   sfnt_f26dot6 new_distance;
   uint32_t p;
   sfnt_f26dot6 x, y, original_x, original_y;
+  struct sfnt_interpreter_zone *zone;
+  bool scale;
 
   /* First load both reference points.  */
   sfnt_address_zp0 (interpreter, interpreter->state.rp1,
@@ -9649,6 +9651,57 @@ sfnt_interpret_ip (struct sfnt_interpreter *interpreter)
 		    &rp2x, &rp2y, &rp2_original_x,
 		    &rp2_original_y);
 
+  /* If RP1, RP2, and all arguments all fall within the glyph zone and
+     a simple glyph is loaded, replace their original coordinates as
+     loaded here with coordinates from the unscaled glyph outline.  */
+
+  zone = interpreter->glyph_zone;
+  scale = false;
+
+  if (zone && zone->simple
+      && interpreter->state.zp0
+      && interpreter->state.zp1
+      && interpreter->state.zp2)
+    {
+      p = interpreter->state.rp1;
+
+      /* If P is a phantom point... */
+      if (p >= zone->simple->number_of_points)
+	{
+	  /* ...scale the phantom point to the size of the original
+	     outline.  */
+	  rp1_original_x = sfnt_div_fixed (rp1_original_x,
+					   interpreter->scale);
+	  rp1_original_y = sfnt_div_fixed (rp1_original_y,
+					   interpreter->scale);
+	}
+      else
+	{
+	  rp1_original_x = zone->simple->x_coordinates[p];
+	  rp1_original_y = zone->simple->y_coordinates[p];
+	}
+
+      p = interpreter->state.rp2;
+
+      /* If P is a phantom point... */
+      if (p >= zone->simple->number_of_points)
+	{
+	  /* ...scale the phantom point to the size of the original
+	     outline.  */
+	  rp2_original_x = sfnt_div_fixed (rp2_original_x,
+					   interpreter->scale);
+	  rp2_original_y = sfnt_div_fixed (rp2_original_y,
+					   interpreter->scale);
+	}
+      else
+	{
+	  rp2_original_x = zone->simple->x_coordinates[p];
+	  rp2_original_y = zone->simple->y_coordinates[p];
+	}
+
+      scale = true;
+    }
+
   /* Get the original distance between of RP1 and RP2 measured
      relative to the dual projection vector.  */
   range = sfnt_dual_project_vector (interpreter,
@@ -9656,6 +9709,9 @@ sfnt_interpret_ip (struct sfnt_interpreter *interpreter)
 					      rp1_original_x),
 				    sfnt_sub (rp2_original_y,
 					      rp1_original_y));
+
+  if (scale)
+    range = sfnt_mul_fixed_round (range, interpreter->scale);
 
   /* Get the new distance.  */
   new_range = sfnt_dual_project_vector (interpreter,
@@ -9670,6 +9726,25 @@ sfnt_interpret_ip (struct sfnt_interpreter *interpreter)
       sfnt_address_zp2 (interpreter, p, &x, &y, &original_x,
 			&original_y);
 
+      if (scale)
+	{
+	  /* If P is a phantom point... */
+	  if (p >= zone->simple->number_of_points)
+	    {
+	      /* ...scale the phantom point to the size of the original
+		 outline.  */
+	      original_x = sfnt_div_fixed (original_x,
+					   interpreter->scale);
+	      original_y = sfnt_div_fixed (original_y,
+					   interpreter->scale);
+	    }
+	  else
+	    {
+	      original_x = zone->simple->x_coordinates[p];
+	      original_y = zone->simple->y_coordinates[p];
+	    }
+	}
+
       /* Now compute the old distance from this point to rp1.  */
       org_distance
 	= sfnt_dual_project_vector (interpreter,
@@ -9677,6 +9752,10 @@ sfnt_interpret_ip (struct sfnt_interpreter *interpreter)
 					      rp1_original_x),
 				    sfnt_sub (original_y,
 					      rp1_original_y));
+
+      if (scale)
+	org_distance = sfnt_mul_fixed_round (org_distance,
+					     interpreter->scale);
 
       /* And the current distance from this point to rp1, so
          how much to move can be determined.  */
@@ -11447,7 +11526,8 @@ sfnt_interpret_mirp (struct sfnt_interpreter *interpreter,
    coordinate from the font designer's intentions, either exaggerating
    or neutralizing the slant of the stem to which it belongs.
 
-   This behavior applies only to MDRP, which see.  */
+   This behavior applies only to MDRP (which see), although a similar
+   strategy is also applied while interpreting IP instructions.  */
 
 static sfnt_f26dot6
 sfnt_project_zp1_zp0_org (struct sfnt_interpreter *interpreter,
@@ -20715,8 +20795,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 16
-#define EASY_PPEM  16
+#define FANCY_PPEM 14
+#define EASY_PPEM  14
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
