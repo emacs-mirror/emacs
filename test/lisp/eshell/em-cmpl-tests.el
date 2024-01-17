@@ -175,18 +175,18 @@ ACTUAL and EXPECTED should both be lists of strings."
    (ert-with-temp-directory default-directory
      (write-region nil nil (expand-file-name "file.txt"))
      (write-region nil nil (expand-file-name "file.el"))
+     ;; Complete the first time.  This should insert the common prefix
+     ;; of our completions.
      (should (equal (eshell-insert-and-complete "echo fi")
                     "echo file."))
+     ;; Make sure the completions buffer isn't displayed.
+     (should-not (get-buffer-window "*Completions*"))
      ;; Now try completing again.
      (let ((minibuffer-message-timeout 0)
            (inhibit-message t))
        (completion-at-point))
-     ;; FIXME: We can't use `current-message' here.
-     (with-current-buffer (messages-buffer)
-       (save-excursion
-         (goto-char (point-max))
-         (forward-line -1)
-         (should (looking-at "Complete, but not unique")))))))
+     ;; This time, we should display the completions buffer.
+     (should (get-buffer-window "*Completions*")))))
 
 (ert-deftest em-cmpl-test/file-completion/glob ()
   "Test completion of file names using a glob."
