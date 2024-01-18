@@ -1413,14 +1413,10 @@ between them by typing in the minibuffer with completion."
                    (car xrefs)
                  (let* ((collection (reverse xref-alist-with-line-info))
                         (ctable
-                         (lambda (string pred action)
-                           (cond
-                            ((eq action 'metadata)
-                             `(metadata
-                               . ((category . xref-location)
-                                  (group-function . ,#'xref--completing-read-group))))
-                            (t
-                             (complete-with-action action collection string pred)))))
+                         (completion-table-with-metadata
+                          collection
+                          '((category . xref-location)
+                            (group-function . ,#'xref--completing-read-group))))
                         (def (caar collection)))
                    (cdr (assoc (completing-read "Choose definition: "
                                                 ctable nil t

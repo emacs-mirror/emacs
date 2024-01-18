@@ -663,25 +663,22 @@ We prefer the earliest unique letter."
          (name
           (completing-read
            "Insert emoji: "
-           (lambda (string pred action)
-	     (if (eq action 'metadata)
-		 (list 'metadata
-		       (cons
-                        'affixation-function
-                        ;; Add the glyphs to the start of the displayed
-                        ;; strings when TAB-ing.
-                        (lambda (strings)
-                          (mapcar
-                           (lambda (name)
-                             (if emoji-alternate-names
-                                 (list name "" "")
-                               (list name
-                                     (concat
-                                      (or (gethash name emoji--all-bases) " ")
-                                      "\t")
-                                     "")))
-                           strings))))
-	       (complete-with-action action table string pred)))
+           (completion-table-with-metadata
+            table (list (cons
+                         'affixation-function
+                         ;; Add the glyphs to the start of the displayed
+                         ;; strings when TAB-ing.
+                         (lambda (strings)
+                           (mapcar
+                            (lambda (name)
+                              (if emoji-alternate-names
+                                  (list name "" "")
+                                (list name
+                                      (concat
+                                       (or (gethash name emoji--all-bases) " ")
+                                       "\t")
+                                      "")))
+                            strings)))))
            nil t)))
     (when (cl-plusp (length name))
       (let ((glyph (if emoji-alternate-names

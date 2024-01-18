@@ -618,6 +618,30 @@ for use at QPOS."
                                             unquoted-result base
                                             unquote requote))))))))))))
 
+(defun completion-table-with-metadata (table metadata)
+  "Return completion TABLE with additional METADATA.
+
+METADATA is a completion metatdata alist.  See
+`completion-metadata' for a description of its possible values.
+METADATA can also be a function that takes two arguments, STRING
+and PRED, and returns a metadata alist appropriate for completing
+STRING subject to predicate PRED.
+
+METADATA takes precedence over any metadata that TABLE provides."
+  (let ((md-fun (if (functionp metadata)
+                    metadata
+                  (lambda (&rest _) metadata))))
+    (lambda (string pred action)
+      (cond
+       ((eq action 'metadata)
+        (cons 'metadata
+              (append (funcall md-fun string pred)
+                      (cdr-safe (completion-metadata string table pred)))))
+       ((eq (car-safe action) 'boundaries)
+        (completion-boundaries string table pred (cdr action)))
+       (t
+        (complete-with-action action table string pred))))))
+
 (defun completion--twq-try (string ustring completion point
                                    unquote requote)
   ;; Basically two cases: either the new result is
@@ -2792,17 +2816,6 @@ current order instead."
                "")))
      names)))
 
-(defun completion-styles-table (string pred action)
-  "Completion table for completion styles.
-
-See Info node `(elisp)Programmed Completion' for the meaning of
-STRING, PRED and ACTION."
-  (if (eq action 'metadata)
-      '(metadata
-        (category . completion-style)
-        (affixation-function . completion-styles-affixation))
-    (complete-with-action action completion-styles-alist string pred)))
-
 (defun minibuffer-set-completion-styles (styles)
   "Set the completion styles for the current minibuffer to STYLES.
 
@@ -2841,7 +2854,11 @@ completions list."
                        (setq-local crm-separator "[ \t]*,[ \t]*"))
                    (completing-read-multiple
                     "Set completion styles: "
-                    #'completion-styles-table nil t
+                    (completion-table-with-metadata
+                     completion-styles-alist
+                     '((category . completion-style)
+                       (affixation-function . completion-styles-affixation)))
+                    nil t
                     (concat (mapconcat #'symbol-name styles ",") ","))))))))
    minibuffer-mode)
   (setq-local completion-local-styles styles)
@@ -5232,11 +5249,9 @@ instead of the default completion table."
            (lambda () (get-buffer-window "*Completions*" 0))))
       (completion-in-region
        (minibuffer--completion-prompt-end) (point-max)
-       (lambda (string pred action)
-         (if (eq action 'metadata)
-             '(metadata (display-sort-function . identity)
-                        (cycle-sort-function . identity))
-           (complete-with-action action completions string pred)))))))
+       (completion-table-with-metadata
+        completions '((display-sort-function . identity)
+                      (cycle-sort-function   . identity)))))))
 
 (defun minibuffer-complete-defaults ()
   "Complete minibuffer defaults as far as possible.
@@ -5252,11 +5267,9 @@ instead of the completion table."
          (lambda () (get-buffer-window "*Completions*" 0))))
     (completion-in-region
      (minibuffer--completion-prompt-end) (point-max)
-     (lambda (string pred action)
-       (if (eq action 'metadata)
-           '(metadata (display-sort-function . identity)
-                      (cycle-sort-function . identity))
-         (complete-with-action action completions string pred))))))
+     (completion-table-with-metadata
+      completions '((display-sort-function . identity)
+                    (cycle-sort-function   . identity))))))
 
 (define-key minibuffer-local-map [?\C-x up] 'minibuffer-complete-history)
 (define-key minibuffer-local-map [?\C-x down] 'minibuffer-complete-defaults)

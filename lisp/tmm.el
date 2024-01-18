@@ -115,10 +115,7 @@ specify nil for this variable."
   "Face used for inactive menu items.")
 
 (defun tmm--completion-table (items)
-  (lambda (string pred action)
-    (if (eq action 'metadata)
-	'(metadata (display-sort-function . identity))
-      (complete-with-action action items string pred))))
+  (completion-table-with-metadata items '((display-sort-function . identity))))
 
 (defvar tmm--history nil)
 

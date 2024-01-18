@@ -559,11 +559,8 @@ If DEFAULT is nil then return empty string for empty input."
     (let* ((completion-ignore-case bookmark-completion-ignore-case)
            (default (unless (equal "" default) default)))
       (completing-read (format-prompt prompt default)
-                       (lambda (string pred action)
-                         (if (eq action 'metadata)
-                             '(metadata (category . bookmark))
-                             (complete-with-action
-                              action bookmark-alist string pred)))
+                       (completion-table-with-metadata
+                        bookmark-alist '((category . bookmark)))
                        nil 0 nil 'bookmark-history default))))
 
 

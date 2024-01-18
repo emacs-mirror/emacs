@@ -3238,22 +3238,18 @@ single characters to be treated as standing for themselves."
   (let* ((enable-recursive-minibuffers t)
 	 (completion-ignore-case t)
 	 (completion-tab-width 4)
+         (sort-fun (when (eq read-char-by-name-sort 'code)
+		     #'mule--ucs-names-sort-by-code))
+         (group-fun (when completions-group #'mule--ucs-names-group))
 	 (input
 	  (completing-read
 	   prompt
-	   (lambda (string pred action)
-	     (if (eq action 'metadata)
-		 `(metadata
-		   (display-sort-function
-		    . ,(when (eq read-char-by-name-sort 'code)
-			 #'mule--ucs-names-sort-by-code))
-		   (affixation-function
-		    . ,#'mule--ucs-names-affixation)
-		   (group-function
-		    . ,(when completions-group
-			 #'mule--ucs-names-group))
-		   (category . unicode-name))
-	       (complete-with-action action (ucs-names) string pred)))))
+           (completion-table-with-metadata
+            (ucs-names)
+            `((display-sort-function . ,sort-fun)
+	      (affixation-function . ,#'mule--ucs-names-affixation)
+	      (group-function . ,group-fun)
+	      (category . unicode-name)))))
 	 (char
           (cond
            ((char-from-name input t))

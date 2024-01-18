@@ -1631,6 +1631,10 @@ styles to skip eager fontification of completion candidates, which
 improves performance.  Such a Lisp program can then use the
 'completion-lazy-hilit' function to fontify candidates just in time.
 
+---
+** New function 'completion-table-with-metadata'.
+This function returns a completion table with additional metadata.
+
 ** Functions and variables to transpose sexps
 
 +++

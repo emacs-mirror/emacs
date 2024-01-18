@@ -6450,11 +6450,8 @@ PROMPT is a string to prompt with."
              map)))
       (completing-read
        prompt
-       (lambda (string pred action)
-         (if (eq action 'metadata)
-             ;; Keep sorted by recency
-             '(metadata (display-sort-function . identity))
-           (complete-with-action action completions string pred)))
+       (completion-table-with-metadata
+        completions '((display-sort-function . identity)))
        nil nil nil
        (if history-pos
            (cons 'read-from-kill-ring-history

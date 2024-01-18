@@ -312,12 +312,7 @@ end it with `/'.  DIR must be either `project-root' or one of
    grep-find-ignored-files))
 
 (defun project--file-completion-table (all-files)
-  (lambda (string pred action)
-    (cond
-     ((eq action 'metadata)
-      '(metadata . ((category . project-file))))
-     (t
-      (complete-with-action action all-files string pred)))))
+  (completion-table-with-metadata all-files '((category . project-file))))
 
 (cl-defmethod project-root ((project (head transient)))
   (cdr project))
