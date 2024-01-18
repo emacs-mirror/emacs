@@ -28,7 +28,6 @@ If set to a non-nil value which isn't a function, resize the mini
 frame using the new function 'fit-mini-frame-to-buffer' which won't
 skip leading or trailing empty lines of the buffer.
 
-+++
 ** Update IRC-related references to point to Libera.Chat.
 In June 2021, the Free Software Foundation and the GNU Project moved
 their official IRC channels from the Freenode network to Libera.Chat
