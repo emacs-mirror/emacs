@@ -938,9 +938,9 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	   sure it is processed before any subsequent edits.  */
 	textconv_barrier (f, event->xkey.counter);
 
-      wchar_t copy_buffer[129];
+      wchar_t copy_buffer[512];
       wchar_t *copy_bufptr = copy_buffer;
-      int copy_bufsiz = 128 * sizeof (wchar_t);
+      int copy_bufsiz = 512;
 
       event->xkey.state
 	|= android_emacs_to_android_modifiers (dpyinfo,
