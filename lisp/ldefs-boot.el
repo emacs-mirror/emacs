@@ -6613,6 +6613,13 @@ There is some minimal font-lock support (see vars
 (setq debugger 'debug)
 (autoload 'debug "debug" "\
 Enter debugger.  \\<debugger-mode-map>`\\[debugger-continue]' returns from the debugger.
+
+In interactive sessions, this switches to a backtrace buffer and shows
+the Lisp backtrace of function calls there.  In batch mode (more accurately,
+when `noninteractive' is non-nil), it shows the Lisp backtrace on the
+standard error stream (unless `backtrace-on-error-noninteractive' is nil),
+and then kills Emacs, causing it to exit with a negative exit code.
+
 Arguments are mainly for use when this is called from the internals
 of the evaluator.
 
@@ -9201,14 +9208,14 @@ Edit a keyboard macro which has been given a name by `name-last-kbd-macro'.
 (fn &optional PREFIX)" t)
 (autoload 'read-kbd-macro "edmacro" "\
 Read the region as a keyboard macro definition.
-The region is interpreted as spelled-out keystrokes, e.g., \"M-x abc RET\".
-See documentation for `edmacro-mode' for details.
+The region between START and END is interpreted as spelled-out keystrokes,
+e.g., \"M-x abc RET\".  See documentation for `edmacro-mode' for details.
 Leading/trailing \"C-x (\" and \"C-x )\" in the text are allowed and ignored.
 The resulting macro is installed as the \"current\" keyboard macro.
 
 In Lisp, may also be called with a single STRING argument in which case
 the result is returned rather than being installed as the current macro.
-The result will be a string if possible, otherwise an event vector.
+The result is a vector of input events.
 Second argument NEED-VECTOR means to return an event vector always.
 
 (fn START &optional END)" t)
@@ -9824,7 +9831,7 @@ This command prompts for an emoji name, with completion, and
 inserts it.  It recognizes the Unicode Standard names of emoji,
 and also consults the `emoji-alternate-names' alist." t)
 (autoload 'emoji-list "emoji" "\
-List emojis and insert the one that's selected.
+List emojis and allow selecting and inserting one of them.
 Select the emoji by typing \\<emoji-list-mode-map>\\[emoji-list-select] on its picture.
 The glyph will be inserted into the buffer that was current
 when the command was invoked." t)
@@ -22498,7 +22505,7 @@ Coloring:
 
 ;;; Generated autoloads from org/org.el
 
-(push (purecopy '(org 9 6 10)) package--builtin-versions)
+(push (purecopy '(org 9 6 15)) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
 
@@ -32871,7 +32878,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from net/trampver.el
 
-(push (purecopy '(tramp 2 6 2 -1)) package--builtin-versions)
+(push (purecopy '(tramp 2 6 2 29 2)) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
@@ -34116,7 +34123,6 @@ Normalize arguments to delight.
 
 ;;; Generated autoloads from use-package/use-package-ensure-system-package.el
 
-(push (purecopy '(use-package 0 2)) package--builtin-versions)
 (autoload 'use-package-normalize/:ensure-system-package "use-package-ensure-system-package" "\
 Turn ARGS into a list of conses of the form (PACKAGE-NAME . INSTALL-COMMAND).
 
