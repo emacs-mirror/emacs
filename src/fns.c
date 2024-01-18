@@ -4525,9 +4525,14 @@ hash_index_size (ptrdiff_t size)
   ptrdiff_t upper_bound = min (MOST_POSITIVE_FIXNUM,
 			       min (TYPE_MAXIMUM (hash_idx_t),
 				    PTRDIFF_MAX / sizeof (ptrdiff_t)));
-  ptrdiff_t index_size = size + (size >> 2);  /* 1.25x larger */
+  /* Single-element index vectors are used iff size=0.  */
+  eassert (size > 0);
+  ptrdiff_t lower_bound = 2;
+  ptrdiff_t index_size = size + max (size >> 2, 1);  /* 1.25x larger */
   if (index_size < upper_bound)
-    index_size = next_almost_prime (index_size);
+    index_size = (index_size < lower_bound
+		  ? lower_bound
+		  : next_almost_prime (index_size));
   if (index_size > upper_bound)
     error ("Hash table too large");
   return index_size;
@@ -4565,15 +4570,13 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
   h->weakness = weak;
   h->count = 0;
   h->table_size = size;
-  int index_size = hash_index_size (size);
-  h->index_size = index_size;
 
   if (size == 0)
     {
       h->key_and_value = NULL;
       h->hash = NULL;
       h->next = NULL;
-      eassert (index_size == 1);
+      h->index_size = 1;
       h->index = (hash_idx_t *)empty_hash_index_vector;
       h->next_free = -1;
     }
@@ -4591,6 +4594,8 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
 	h->next[i] = i + 1;
       h->next[size - 1] = -1;
 
+      int index_size = hash_index_size (size);
+      h->index_size = index_size;
       h->index = hash_table_alloc_bytes (index_size * sizeof *h->index);
       for (ptrdiff_t i = 0; i < index_size; i++)
 	h->index[i] = -1;
