@@ -1,3 +1,1549 @@
+2024-01-18  Eli Zaretskii  <eliz@maintain0p.gnu.org>
+
+	* Version 29.2 released.
+
+2024-01-17  Dmitry Gutov  <dmitry@gutov.dev>
+
+	diff-mode: Support committing diff with file deletions
+
+	* lisp/vc/diff-mode.el (diff-vc-deduce-fileset):
+	Remove nil elements from the result (bug#68443).
+
+2024-01-16  Juri Linkov  <juri@linkov.net>
+
+	* lisp/net/eww.el (eww-retrieve): Fix args of eww-render for sync (bug#68336).
+
+	Suggested by Phil Sainty <psainty@orcon.net.nz>.
+
+2024-01-16  Mike Kupfer  <kupfer@rawbw.com>
+
+	Fix folder creation error (Bug#67361)
+
+	* lisp/mh-e/mh-funcs.el (mh-kill-folder)
+	* lisp/mh-e/mh-search.el (mh-index-new-folder)
+	* lisp/mh-e/mh-utils.el (mh-prompt-for-folder):
+	Check for existence of 'speedbar-buffer' rather than
+	'mh-speed-folder-map'.  The latter can exist if
+	'mh-speed' has only been loaded but not displayed.
+
+	(cherry picked from commit e6a2901b1be6b4aa01f8bf0d3c6e06344ce8d366)
+
+2024-01-15  Gregory Heytings  <gregory@heytings.org>
+
+	Simplify 'without-restriction'
+
+	This simplification is symmetrical to 01fb898420.
+
+	* src/editfns.c: (Finternal__labeled_widen): Add a call to
+	'Fwiden', and rename from 'internal--unlabel-restriction'.
+	(unwind_labeled_narrow_to_region): Use the renamed function, and
+	remove the call to 'Fwiden'.
+	(syms_of_editfns): Rename the symbol.
+
+	* lisp/subr.el (internal--without-restriction): Use the renamed
+	function.
+
+	(cherry picked from commit 9e9e11648d3d5514de85edfb69f0949a062f4716)
+
+2024-01-14  Gregory Heytings  <gregory@heytings.org>
+
+	Fix blunder in labeled_narrow_to_region
+
+	* src/editfns.c (labeled_narrow_to_region): Record point before,
+	instead of after, calling narrow-to-region; otherwise point may
+	already have been changed.  Fixes bug#66764.
+
+2024-01-14  Daniel Martín  <mardani29@yahoo.es>
+
+	Fix documentation of icon-elements
+
+	* lisp/emacs-lisp/icons.el (icon-elements): The plist key it returns
+	is `image', not `display'.  (Bug#68451)
+
+2024-01-14  Stefan Kangas  <stefankangas@gmail.com>
+
+	Improve two docstrings in ox-latex
+
+	* lisp/org/ox-latex.el (org-latex-src-block-backend)
+	(org-latex-engraved-theme): Improve docstring; mention that
+	engrave-faces is a GNU ELPA package.
+
+2024-01-14  Stefan Kangas  <stefankangas@gmail.com>
+
+	Doc fix in auth-source-read-char-choice
+
+	* lisp/auth-source.el (auth-source-read-char-choice): Don't
+	document 'dropdown-list', which was removed in 2011.
+
+2024-01-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix info-xref-tests
+
+	* doc/lispintro/emacs-lisp-intro.texi (How let Binds Variables):
+	Fix cross-reference.  (Bug#68428)
+
+	* test/lisp/info-xref-tests.el (info-xref-test-write-file): Fix
+	test on MS-Windows when run from MSYS Bash.
+
+2024-01-13  Juri Linkov  <juri@linkov.net>
+
+	Add @kindex in manuals for existing keybindings on 'C-x x/w' (bug#13167)
+
+	* doc/emacs/buffers.texi (Misc Buffer): Add @kindex for 'C-x x r',
+	'C-x x u', 'C-x x i'.
+
+	* doc/emacs/display.texi (Line Truncation): Add @kindex for 'C-x x t'.
+
+	* doc/emacs/files.texi (Reverting): Add @kindex for 'C-x x g'.
+
+	* doc/emacs/windows.texi (Change Window): Use new keybinding 'C-x w 0'
+	instead of 'M-x delete-windows-on'.
+
+	* doc/misc/info.texi (Create Info buffer): Add @kindex for 'C-x x n'.
+
+2024-01-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of 'emacs_function' in modules
+
+	* doc/lispref/internals.texi (Module Functions): Warn about
+	accessing the ARGS array in module functions.
+
+2024-01-12  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of Ispell commands
+
+	* doc/emacs/fixit.texi (Spelling): Document "C-u M-$" and warn
+	against modifications in recursive-edit.  (Bug#14192)
+
+2024-01-11  Stefan Kangas  <stefankangas@gmail.com>
+
+	Don't recommend inverse-video for debugging
+
+	* etc/DEBUG: Don't recommend 'inverse-video', which has been broken
+	for 20 years, give or take.  (Bug#11430)
+
+2024-01-11  Xiyue Deng  <manphiz@gmail.com>
+
+	Fix typo in lispref "Creating Strings" section
+
+	* doc/lispref/strings.texi (String Basics): Fix typo (bug#68375).
+
+2024-01-11  Xiyue Deng  <manphiz@gmail.com>  (tiny change)
+
+	Fix count of no-op functions (bug#68375)
+
+	It looks like there are actually three kinds of no-op functions.
+
+	* doc/lispref/functions.texi (Calling Functions): Fix count and
+	plural of no-op functions.
+
+2024-01-11  Xiyue Deng  <manphiz@gmail.com>  (tiny change)
+
+	Wrap @pxref of Abbrevs in parentheses (bug#68375)
+
+	* doc/lispref/symbols.texi (Shorthands): Wrap `@pxref{Abbrevs}' in
+	parentheses.
+
+2024-01-10  Mauro Aranda  <maurooaranda@gmail.com>
+
+	Add examples to the Widget manual
+
+	* doc/misc/widget.texi (Widget Gallery, Defining New Widgets): Add
+	examples.  (Bug#66229)
+
+2024-01-10  Mauro Aranda  <maurooaranda@gmail.com>
+
+	Implement missing functions for custom-icon widget
+
+	* lisp/cus-edit.el (custom-icon-reset-saved, custom-icon-mark-to-save)
+	(custom-icon-state-set-and-redraw, custom-icon-reset-standard)
+	(custom-icon-mark-to-reset-standard): New functions.
+	(custom-icon, custom-icon-extended-menu): Register and add them to the
+	menu.  (Bug#66947)
+
+2024-01-10  Stephen Berman  <stephen.berman@gmx.net>
+
+	Fix fontification of cgroup2 in fstab (bug#68367)
+
+	* lisp/generic-x.el (etc-fstab-generic-mode): Add cgroup2.
+
+2024-01-10  Philip Kaludercic  <philipk@posteo.net>
+
+	Handle package versions that are not version strings
+
+	* lisp/emacs-lisp/package.el (package-menu--version-predicate): Ignore
+	any errors raised by 'version-to-list', thus falling back to the
+	default version list.  (Bug#68317)
+
+	(cherry picked from commit eb913c7501489e1eae475cae843fccdf14cc24d8)
+
+2024-01-09  Jim Porter  <jporterbugs@gmail.com>
+
+	Introduce 'let' using lexical binding in the Lisp Introduction
+
+	* doc/lispintro/emacs-lisp-intro.texi (Prevent confusion): Rework the
+	explanation to discuss how things work under lexical binding.
+	(How let Binds Variables): Describe the differences between lexical
+	and dynamic binding (including how to configure it).
+	(defvar): Mention that 'defvar' declares variables as always
+	dynamically-bound (bug#66756).
+
+2024-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'rmail-summary-by-thread'
+
+	* lisp/mail/rmailsum.el (rmail-summary-by-thread): Call
+	'rmail-new-summary' from the original buffer, not from
+	'rmail-buffer' to avoid failing the logic in 'rmail-new-summary'
+	that decides whether to pop up a new window.  Reported by Andrea
+	Monaco <andrea.monaco@autistici.org>.
+
+2024-01-06  Jean-Christophe Helary  <jean.christophe.helary@traductaire-libre.org>
+
+	* doc/emacs/back.texi: Fix a typo.
+
+2024-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix icons.el when icon does not exist as a file
+
+	* lisp/emacs-lisp/icons.el (icons--create): Handle the case when
+	ICON is a file that doesn't exists or is unreadable.  Suggested by
+	David Ponce <da_vid@orange.fr>.  (Bug#66846)
+
+2024-01-05  Juri Linkov  <juri@linkov.net>
+
+	* lisp/isearch.el (isearch-search-and-update): Let-bind 'isearch-cmds'.
+
+	When 'isearch-wrap-pause' is 'no' or 'no-ding', let-bind 'isearch-cmds'
+	to avoid changing it by 'isearch-push-state' in 'isearch-repeat',
+	so that a later DEL (isearch-delete-char) doesn't stop at the
+	intermediate failing state (bug#68158).
+
+2024-01-04  Andrea Corallo  <acorallo@gnu.org>
+
+	* src/comp.c (Fcomp__compile_ctxt_to_file): Fix hash table Qunbound use.
+
+2024-01-04  Eli Zaretskii  <eliz@gnu.org>
+
+	Provide decent documentation for 'help-quick'
+
+	* lisp/help.el (help-quick, help-quick-toggle): Doc fix.
+
+	* doc/emacs/help.texi (Help Summary, Misc Help): Document
+	'help-quick-toggle'.
+
+2024-01-02  Dmitry Gutov  <dmitry@gutov.dev>
+
+	treesit--pre-syntax-ppss: Fix args-out-of-range in internal--syntax-propertize
+
+	* lisp/treesit.el (treesit--pre-syntax-ppss): Make sure the lower
+	bound is still within the current restriction (bug#67977).
+
+2024-01-01  Mike Kupfer  <kupfer@rawbw.com>
+
+	Fix mangled Subject header field when forwarding (Bug#67360)
+
+	* lisp/mh-e/mh-comp.el (mh-forward): Overwrite subject when
+	forwarding.
+
+2024-01-01  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.6.15
+
+2023-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* doc/emacs/custom.texi (Modifier Keys): Fix markup (bug#68164).
+
+	Suggested by Jens Quade <jq@qdevelop.de>.
+
+2023-12-30  Stefan Kangas  <stefankangas@gmail.com>
+
+	org-protocol: Minor copy-edits to Commentary
+
+	* lisp/org/org-protocol.el: Minor copy-edits to Commentary.
+
+2023-12-30  Denis Zubarev  <dvzubarev@yandex.ru>
+
+	Improve syntax highlighting for python-ts-mode
+
+	Fix fontification of strings inside of f-strings interpolation, e.g. for
+	f"beg {'nested'}" - 'nested' was not fontified as string.  Do not
+	override the face of builtin functions (all, bytes etc.) with the
+	function call face.  Add missing assignment expressions (:= *=).
+	Fontify built-ins (dict,list,etc.) as types when they are used in type
+	hints.  Highlight union types (type1|type2).  Highlight base class names
+	in the class definition.  Fontify class patterns in case statements.
+	Highlight the second argument as a type in isinstance/issubclass call.
+	Highlight dotted decorator names.
+
+	* lisp/progmodes/python.el (python--treesit-keywords): Add compound
+	keyword "is not".
+	(python--treesit-builtin-types): New variable that stores all python
+	built-in types.
+	(python--treesit-type-regex): New variable.  Regex matches if text is
+	either built-in type or text starts with capital letter.
+	(python--treesit-builtins): Extract built-in types to other variable.
+	(python--treesit-fontify-string): fix f-string interpolation.  Enable
+	interpolation highlighting only if string-interpolation is presented
+	on the enabled levels of treesit-font-lock-feature-list.
+	(python--treesit-fontify-string-interpolation): Remove function.
+	(python--treesit-fontify-union-types): Fontify nested union types.
+	(python--treesit-fontify-union-types-strict): Fontify nested union
+	types, only if type identifier matches against
+	python--treesit-type-regex.
+	(python--treesit-fontify-dotted-decorator): Fontify all parts of
+	dotted decorator name.
+	(python--treesit-settings): Change/add rules.  (Bug#67061)
+
+	* test/lisp/progmodes/python-tests.el
+	(python-ts-tests-with-temp-buffer): Function for setting up test
+	buffer.
+	(python-ts-mode-compound-keywords-face)
+	(python-ts-mode-named-assignement-face-1)
+	(python-ts-mode-assignement-face-2)
+	(python-ts-mode-nested-types-face-1)
+	(python-ts-mode-union-types-face-1)
+	(python-ts-mode-union-types-face-2)
+	(python-ts-mode-types-face-1)
+	(python-ts-mode-types-face-2)
+	(python-ts-mode-types-face-3)
+	(python-ts-mode-isinstance-type-face-1)
+	(python-ts-mode-isinstance-type-face-2)
+	(python-ts-mode-isinstance-type-face-3)
+	(python-ts-mode-superclass-type-face)
+	(python-ts-mode-class-patterns-face)
+	(python-ts-mode-dotted-decorator-face-1)
+	(python-ts-mode-dotted-decorator-face-2)
+	(python-ts-mode-builtin-call-face)
+	(python-ts-mode-interpolation-nested-string)
+	(python-ts-mode-disabled-string-interpolation)
+	(python-ts-mode-interpolation-doc-string): Add tests.
+
+2023-12-29  Yuan Fu  <casouri@gmail.com>
+
+	Revert "Fix treesit-node-field-name and friends (bug#66674)"
+
+	This reverts commit 9874561f39e62c1c9fada6c2e013f93d9ea65729.
+
+	See bug#67990.  Basically our original code is correct, the error is
+	in libtree-sitter, which only manifests in certain cases.
+
+	https://github.com/tree-sitter/tree-sitter/pull/2104
+
+2023-12-25  Stefan Kangas  <stefankangas@gmail.com>
+
+	Explain status "r" in `epa-list-keys`
+
+	* lisp/epa.el (epa-list-keys): Add revoked status to description.
+	Suggested by CHENG Gao <chenggao@icloud.com>.
+
+2023-12-25  Jared Finder  <jared@finder.org>
+
+	Fix mouse clicks on directory line in Dired
+
+	The option 'dired-kill-when-opening-new-dired-buffer' should be
+	also honored when clicking the mouse to kill prev buffer.
+	* lisp/dired.el (dired--make-directory-clickable): Call
+	'dired--find-possibly-alternative-file' instead of 'dired', in
+	the click callback.  (Bug#67856)
+
+2023-12-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'split-root-window-right' and 'split-root-window-below'
+
+	* lisp/window.el (split-root-window-right)
+	(split-root-window-below): Fix the 'interactive' spec to avoid
+	misbehaving when invoked with no prefix argument.  (Bug#67452)
+
+2023-12-24  Stefan Kangas  <stefankangas@gmail.com>
+
+	Mark icalendar.el as maintained by emacs-devel
+
+	* lisp/calendar/icalendar.el: Mark emacs-devel as the maintainer.
+	Ref: https://debbugs.gnu.org/34315#152
+
+2023-12-24  Xiyue Deng  <manphiz@gmail.com>
+
+	Fix usage of `setq-default' and offer more suggestions
+
+	cd61af0 changed from default-major-mode to major-mode in the first
+	code sample but didn't change the rest.  This patch fixes this and add
+	some explanations of why use `setq-default' instead of `setq'.  In
+	addition, it gives background on suggesting using text-mode as default
+	mode and suggest other alternatives.
+
+	* doc/lispintro/emacs-lisp-intro.texi (Text and Auto-fill): Fix usage
+	of `setq-default' and offer more suggestions.  (Bug#67848)
+
+2023-12-23  Yuan Fu  <casouri@gmail.com>
+
+	Fix python-ts-mode triple quote syntax (bug#67262)
+
+	* lisp/progmodes/python.el (python--treesit-syntax-propertize): New function.
+	(python-ts-mode): Activate python--treesit-syntax-propertize.
+
+2023-12-23  Yuan Fu  <casouri@gmail.com>
+
+	Increment parser timestamp when narrowing changes (bug#67977)
+
+	When narrowing changes, parse reparses, so the timestamp should
+	definitely increment, just like in ts_record_changes.
+
+	Failing to increment this timestamp, outdated nodes would think they
+	are still up-to-date, and try to print their type name.  Printing
+	their type name involves accessing the old parse tree, which is
+	already freed during the last reparse.
+
+	I also found that we don't increment timestamp when changing parser
+	ranges and fixed that as well.
+
+	* src/treesit.c (treesit_sync_visible_region):
+	(Ftreesit_parser_set_included_ranges): Increment timestamp.
+	* src/treesit.h (Lisp_TS_Parser): Add some comments.
+
+2023-12-23  Dmitry Gutov  <dmitry@gutov.dev>
+
+	ruby-ts-mode: Fix indentation for string_array closer
+
+	* lisp/progmodes/ruby-ts-mode.el (ruby-ts--indent-rules):
+	Fix indentation for string_array closer.
+
+2023-12-23  Dmitry Gutov  <dmitry@gutov.dev>
+
+	treesit-major-mode-setup: Use 'treesit--syntax-propertize-notifier'
+
+	* lisp/treesit.el (treesit-major-mode-setup): Make sure
+	'treesit--syntax-propertize-notifier' is used (bug#66732)
+
+2023-12-23  Dmitry Gutov  <dmitry@gutov.dev>
+
+	ruby-ts-mode: Fix an out-of-bounds error with heredoc at eob
+
+	* lisp/progmodes/ruby-ts-mode.el (ruby-ts--syntax-propertize):
+	Fix an out-of-bounds error with heredoc at eob.
+
+2023-12-23  Yuan Fu  <casouri@gmail.com>
+
+	Correctly refontify changed region in tree-sitter modes (bug#66732)
+
+	We already have treesit--font-lock-notifier that should mark changed
+	regions to be refontified, but it's called too late in the redsiplay &
+	fontification pipeline.  Here we add treesit--pre-redisplay that
+	forces reparse and calls notifier functions in
+	pre-redisplay-functions, which is early enough for the marking to take
+	effect.
+
+	Similarly, we force reparse in
+	syntax-propertize-extend-region-functions so syntax-ppss will have the
+	up-to-date syntax information when it scans the buffer text.  We also
+	record the lowest start position of the affected regions, and make
+	sure next syntex-propertize starts from that position.
+
+	* lisp/treesit.el (treesit--pre-redisplay-tick):
+	(treesit--syntax-propertize-start): New variable.
+	(treesit--syntax-propertize-notifier):
+	(treesit--pre-redisplay):
+	(treesit--pre-syntax-ppss): New functions.
+	(treesit-major-mode-setup): Add hooks.
+
+	* lisp/progmodes/ruby-ts-mode.el (ruby-ts-mode): Remove notifier.
+	(ruby-ts--parser-after-change): Remove notifier function.
+
+2023-12-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* doc/man/emacsclient.1: Fix --tramp option.
+
+2023-12-23  Peter Oliver  <git@mavit.org.uk>  (tiny change)
+
+	* doc/man/emacsclient.1: Add missing sections (bug#66598)
+
+2023-12-23  Xiyue Deng  <manphiz@gmail.com>
+
+	Add explanation for extra parentheses in ELisp Introduction
+
+	* doc/lispintro/emacs-lisp-intro.texi (fwd-para while): Add
+	a note to explain the extra parentheses.  (Bug#67820)
+
+2023-12-23  Xiyue Deng  <manphiz@gmail.com>
+
+	Add sample code to the "let*" section in "forward-paragraph"
+
+	* doc/lispintro/emacs-lisp-intro.texi (fwd-para let): Add code
+	sample.  (Bug#67817)
+
+2023-12-23  Denis Zubarev  <dvzubarev@yandex.ru>
+
+	Fix treesit test (bug#67117)
+
+	* test/src/treesit-tests.el (treesit-search-subtree-forward-1):
+	(treesit-search-subtree-backward-1): Replace treesit--thing-at with
+	treesit-query-capture (treesit--thing-at isn't available in Emacs 29).
+
+2023-12-23  Yuan Fu  <casouri@gmail.com>
+
+	Fix c++-ts-mode indentation (bug#67975)
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode--indent-styles): Make indent
+	rule match precise so it doesn't match declaration_list.
+
+2023-12-22  Stefan Kangas  <stefankangas@gmail.com>
+
+	Recommend customizing eglot for python-base-mode
+
+	* doc/misc/eglot.texi (Project-specific configuration): Recommend
+	setting directory local variables for 'python-base-mode' instead of
+	'python-mode'.  This makes any customizations effective also for
+	'python-ts-mode'.
+
+2023-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of new native-compilation commands
+
+	* lisp/progmodes/elisp-mode.el (emacs-lisp-mode-menu)
+	(emacs-lisp-native-compile, emacs-lisp-native-compile-and-load):
+	Doc fixes.
+
+	* doc/lispref/compile.texi (Native-Compilation Functions):
+	Document 'emacs-lisp-native-compile' and
+	'emacs-lisp-native-compile-and-load'.
+
+2023-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	doc/lispintro: Don't mention `set` (bug#67734)
+
+	* doc/lispintro/emacs-lisp-intro.texi (Using set): Delete.
+	(Using setq): Adjust accordingly.
+	(setq): Rename from "set & setq" and don't refer to `set` any more.
+	(Review): Don't mention `set` any more.
+
+2023-12-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix script for some characters
+
+	* lisp/international/characters.el (char-script-table): Fix script
+	for 2 characters.
+
+	* admin/unidata/blocks.awk: Fix script for Yijing Hexagram
+	Symbols.  (Bug#67924)
+
+2023-12-18  Denis Zubarev  <dvzubarev@yandex.ru>
+
+	Fix an issue when searching subtree backward (bug#67117)
+
+	* src/treesit.c (treesit_traverse_child_helper):
+	Do not call treesit_traverse_sibling_helper when the named node is
+	required and the last child is the named node.
+	Otherwise treesit_traverse_sibling_helper will move cursor to the
+	previous sibling and last node will be skipped.
+	* test/src/treesit-tests.el (treesit-search-subtree-forward-1):
+	(treesit-search-subtree-backward-1):
+	Add tests.
+
+2023-12-18  Christophe Deleuze  <christophe.deleuze@free.fr>  (tiny change)
+
+	Fix passive mode for tnftp client in ange-ftp.el.
+
+	* lisp/net/ange-ftp.el (ange-ftp-passive-mode): Fix passive mode
+	result string for tnftp client.  (Bug#67865)
+
+2023-12-16  Stefan Kangas  <stefankangas@gmail.com>
+
+	Fix using disabled command without a docstring
+
+	* lisp/novice.el (disabled-command-function): Fix error when the
+	disable command has no docstring.  (Bug#67835)
+
+2023-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of text properties handling when yanking
+
+	* doc/lispref/text.texi (Text Properties): Mention special
+	handling of text properties while yanking.
+
+2023-12-16  skykanin  <3789764+skykanin@users.noreply.github.com>  (tiny change)
+
+	Eglot: Add Uiua language server
+
+	* lisp/progmodes/eglot.el (eglot-server-programs): Add Uiua language
+	server.  (Bug#67850)
+
+2023-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix shaping of Sinhala text
+
+	* lisp/language/sinhala.el (composition-function-table): Allow
+	U+200D U+0DCA as well as U+0DCA U+200D between consonants.
+	Suggested by Richard Wordingham <richard.wordingham@ntlworld.com>.
+	(Bug#67828)
+
+2023-12-16  Jeremy Bryant  <jb@jeremybryant.net>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	Add use cases of (fn) documentation facility.
+
+	* doc/lispref/functions.texi (Function Documentation):  Add examples.
+	(Bug#67499)
+
+2023-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix pasting into terminal-mode on term.el
+
+	* lisp/term.el (term--xterm-paste): Read pasted text from the
+	input event.  Suggested by Jared Finder <jared@finder.org>.
+	(Bug#49253)
+
+2023-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix opening directory trees from Filesets menu
+
+	In bug#976, the code was fixed, but the cautious condition in
+	the original author's code, which catered to invoking
+	'filelists-open' from the menu-bar menu, was omitted, which made
+	that invocation, which did work before, broken.
+	* lisp/filesets.el (filesets-get-filelist): Fix opening directory
+	trees from the Filesets menu-bar menu.  (Bug#67658)
+
+2023-12-16  Niall Dooley  <dooleyn@gmail.com>  (tiny change)
+
+	Eglot: Add ruff-lsp as an alternative Python server
+
+	ruff-lsp [1] is an LSP server for Ruff [2], [3], a fast Python linter
+	and code formatter.
+
+	It supports surfacing Ruff diagnostics and providing Code Actions to
+	fix them, but is intended to be used alongside another Python LSP in
+	order to support features like navigation and autocompletion.
+
+	[1]: https://github.com/astral-sh/ruff-lsp
+	[2]: https://github.com/astral-sh/ruff
+	[3]: https://docs.astral.sh/ruff/
+
+	* lisp/progmodes/eglot.el (eglot-server-programs): Add ruff-lsp.
+
+2023-12-14  Adam Porter  <adam@alphapapa.net>
+
+	Fix symbol name in Multisession Variables examples
+
+	* doc/lispref/variables.texi (Multisession Variables): Fix symbol
+	name.  (Bug#67823)
+
+2023-12-12  Dmitry Gutov  <dmitry@gutov.dev>
+
+	js-ts-mode: Fix font-lock rules conflict
+
+	* lisp/progmodes/js.el (js--treesit-font-lock-settings): Move
+	'property' to after 'jsx'.  Stop using predicate (bug#67684).
+	(js--treesit-property-not-function-p): Delete.
+
+2023-12-11  Noah Peart  <noah.v.peart@gmail.com>
+
+	Add indentation rules for bracketless statements in js-ts-mode
+
+	* lisp/progmodes/js.el (js--treesit-indent-rules): Add indentation
+	rules to handle bracketless statements (bug#67758).
+	* test/lisp/progmodes/js-tests.el (js-ts-mode-test-indentation):
+	New test for js-ts-mode indentation.
+	* test/lisp/progmodes/js-resources/js-ts-indents.erts: New file
+	with indentation tests for js-ts-mode.
+
+2023-12-10  Yuan Fu  <casouri@gmail.com>
+
+	Fix c-ts-mode bracketless indentation for BSD style (bug#66152)
+
+	* lisp/progmodes/c-ts-mode.el:
+	(c-ts-mode--indent-styles): Make sure the BSD rules only apply to
+	opening bracket (compound_statement), then bracketless statements will
+	fallback to common rules.
+	* test/lisp/progmodes/c-ts-mode-resources/indent-bsd.erts: Copy the
+	bracketless test from indent.erts to here.
+
+2023-12-10  Augustin Chéneau  <btuin@mailo.com>
+
+	Add missing indent rules in c-ts-mode (bug#66152)
+
+	Example:
+
+	    static myttype *
+	    variable_name;
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode--indent-styles): Add rules.
+
+2023-12-10  Yuan Fu  <casouri@gmail.com>
+
+	Fix treesit-default-defun-skipper (bug#66711)
+
+	* lisp/treesit.el:
+	(treesit-default-defun-skipper): Add bol to the rx pattern.
+
+2023-12-10  Yuan Fu  <casouri@gmail.com>
+
+	Fix treesit-node-field-name and friends (bug#66674)
+
+	So turns out ts_node_field_name_for_child takes a named node index,
+	but we were passing it normal index that counts both named and
+	anonymous nodes.  That's what makes the field name all wrong in
+	treesit explorer.
+
+	* doc/lispref/parsing.texi:
+	(Accessing Node Information): Update docstring.
+	* lisp/treesit.el (treesit-node-index): Add some unrelated comment.
+	(treesit-node-field-name): Get named node index rather than all node
+	index.
+	* src/treesit.c (Ftreesit_node_field_name_for_child): Update
+	docstring, use ts_node_named_child_count.
+
+2023-12-10  Maciej Kalandyk  <m.kalandyk@outlook.com>
+
+	python-ts-mode: Highlight default parameters
+
+	* lisp/progmodes/python.el (python--treesit-settings):
+	Highlight default parameters (bug#67703).
+
+2023-12-10  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.6.13
+
+2023-12-10  Yuan Fu  <casouri@gmail.com>
+
+	Fix c-ts-mode indent heuristic (bug#67417)
+
+	This is a continuation of the first two patches for bug#67417.  The
+	c-ts-mode--prev-line-match heuristic we added is too broad, so for now
+	we are just adding a very specific heuristic for the else case.
+
+	* lisp/progmodes/c-ts-mode.el:
+	(c-ts-mode--prev-line-match): Remove function.
+	(c-ts-mode--else-heuristic): New function.
+	(c-ts-mode--indent-styles): Use c-ts-mode--else-heuristic.
+
+2023-12-10  nverno  <noah.v.peart@gmail.com>
+
+	Fix c-ts-mode indentation (bug#67357)
+
+	1. In a compund_statement, we indent the first sibling against the
+	parent, and the rest siblings against their previous sibling.  But
+	this strategy falls apart when the first sibling is not on its own
+	line.  We should regard the first sibling that is on its own line as
+	the "first sibling"", and indent it against the parent.
+
+	2. In linux style, in a do-while statement, if the do-body is
+	bracket-less, the "while" keyword is indented to the same level as the
+	do-body.  It should be indented to align with the "do" keyword
+	instead.
+
+	* lisp/progmodes/c-ts-mode.el:
+	(c-ts-mode--no-prev-standalone-sibling): New function.
+	(c-ts-mode--indent-styles): Use
+	c-ts-mode--no-prev-standalone-sibling. Add while keyword indent rule.
+	* test/lisp/progmodes/c-ts-mode-resources/indent.erts: New tests.
+
+2023-12-09  nverno  <noah.v.peart@gmail.com>
+
+	Add font-locking for hash-bang lines in typescript-ts-mode.
+
+	* lisp/progmodes/typescript-ts-mode.el
+	(typescript-ts-mode--font-lock-settings):
+	Add font-lock for hash bang line.
+
+2023-12-09  nverno  <noah.v.peart@gmail.com>
+
+	Add font-locking for hash-bang lines in js-ts-mode
+
+	* lisp/progmodes/js.el (js--treesit-font-lock-settings):
+	Add font-lock for hash bang line.
+
+2023-12-09  Dmitry Gutov  <dmitry@gutov.dev>
+
+	ruby-mode: Better detect regexp vs division (bug#67569)
+
+	* lisp/progmodes/ruby-mode.el (ruby-syntax-before-regexp-re):
+	Add grouping around methods from the whitelist.
+	(ruby-syntax-propertize): Also look for spaces around the slash.
+
+2023-12-09  Jared Finder  <jared@finder.org>
+
+	Fix dragging mode line on text terminals with a mouse (bug#67457)
+
+	* lisp/xt-mouse.el (xterm-mouse-translate-1): Fix the 'event-kind'
+	property of mouse-movement symbols emitted by xt-mouse.
+	* lisp/term/linux.el (terminal-init-linux): Call 'gpm-mouse-mode'
+	to set up the terminal for the mouse, if needed.
+
+2023-12-08  Christophe TROESTLER  <Christophe.TROESTLER@umons.ac.be>
+
+	(rust-ts-mode): Set electric-indent-chars
+
+	* lisp/progmodes/rust-ts-mode.el (rust-ts-mode):
+	Set electric-indent-chars (bug#67701).
+
+2023-12-07  Dmitry Gutov  <dmitry@gutov.dev>
+
+	js-ts-mode: Highlight function parameters inside destructuring
+
+	* lisp/progmodes/js.el (js--treesit-font-lock-settings):
+	Highlight function parameters declared using destructuring syntax.
+
+2023-12-07  Dmitry Gutov  <dmitry@gutov.dev>
+
+	js-ts-mode: Highlight property shorthands in assignments
+
+	* lisp/progmodes/js.el (js--treesit-lhs-identifier-query): Match
+	property shorthands (which turn into variable reference).
+	(js--treesit-fontify-assignment-lhs): Use the matches.
+
+2023-12-07  Dmitry Gutov  <dmitry@gutov.dev>
+
+	(js--treesit-font-lock-settings): Highlight parameters in function expression
+
+	* lisp/progmodes/js.el (js--treesit-font-lock-settings):
+	Highlight parameters in a function expression (the node type
+	'function').  Make the matcher for 'formal_parameters' independent
+	of the parent, that just created duplication.
+
+2023-12-07  Dmitry Gutov  <dmitry@gutov.dev>
+
+	(js--treesit-font-lock-settings): Remove some duplicates
+
+	* lisp/progmodes/js.el (js--treesit-font-lock-settings):
+	Remove queries from 'function' that duplicate entries in
+	'definition' (one of them with a typo).
+
+2023-12-04  Philipp Stephani  <p.stephani2@gmail.com>
+
+	Don't claim to signal an error when deleting a nonexisting file.
+
+	The behavior has changed in commit
+	1a65afb7ecc2a52127d6164bad19313440237f9d to no longer signal an error
+	on ENOENT.
+
+	* doc/lispref/files.texi (Changing Files): Fix documentation about
+	error reporting.
+
+2023-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/indent.el (indent-rigidly): Improve prompt (bug#67620).
+
+2023-12-03  Christophe Troestler  <Christophe.Troestler@umons.ac.be>
+
+	rust-ts-mode--comment-docstring: Handle block doc comments
+
+	* lisp/progmodes/rust-ts-mode.el
+	(rust-ts-mode--comment-docstring): Handle block doc comments.
+	Inhibit match-data modification.
+
+2023-12-02  Christophe TROESTLER  <Christophe.TROESTLER@umons.ac.be>
+
+	rust-ts-mode--comment-docstring: Fix/improve the previous change
+
+	* lisp/progmodes/rust-ts-mode.el
+	(rust-ts-mode--comment-docstring): Match also "inner" line docs.
+	Stop rebinding 'end' and use the argument's value in the
+	'treesit-fontify-with-override' call.
+
+2023-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'Info-goto-node-web' when NODE is given in various forms
+
+	* lisp/info.el (Info-goto-node-web): Support all forms of node
+	input, per 'Info-read-node-name's documentation, and extract
+	FILENAME from NODE if given there.  Default NODE to "Top" if not
+	provided by the user.  (Bug#67531)
+	(Info-url-for-node): Support browsing the "Top" node.
+
+2023-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix setting cursor when the window's op line has 'line-prefix'
+
+	* src/xdisp.c (set_cursor_from_row): Skip glyphs that come from a
+	string if their 'avoid_cursor_p' flag is set.  (Bug#67486)
+
+2023-12-02  Xiyue Deng  <manphiz@gmail.com>  (tiny change)
+
+	Drop extra parenthesis in example code in Emacs Lisp Introduction
+
+	* doc/lispintro/emacs-lisp-intro.texi (Small buffer case): Drop
+	trailing unmatched parenthesis.  (Bug#67576)
+
+2023-12-01  Christophe Troestler  <Christophe.Troestler@umons.ac.be>
+
+	rust-ts-mode: appropriately fontify doc strings
+
+	* lisp/progmodes/rust-ts-mode.el
+	(rust-ts-mode--comment-docstring): New function.
+	(rust-ts-mode--font-lock-settings): Use it
+	(https://lists.gnu.org/archive/html/emacs-devel/2023-12/msg00019.html).
+
+2023-12-01  Xiyue Deng  <manphiz@gmail.com>  (tiny change)
+
+	Fix example code in Emacs Lisp Introduction manual
+
+	* doc/lispintro/emacs-lisp-intro.texi (Optional Arguments): Fix
+	indentation in an example.  (Bug#67559)
+
+2023-12-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix example in Emacs Lisp Intro manual
+
+	* doc/lispintro/emacs-lisp-intro.texi (beginning-of-buffer opt
+	arg): Fix indentation in example.  Reported by Xiyue Deng
+	<manphiz@gmail.com>.  (Bug#67560)
+
+2023-12-01  Jeremy Bryant  <jb@jeremybryant.net>
+
+	Elisp manual: Mention 'write-region' for saving the buffer
+
+	* doc/emacs/files.texi (Save Commands):  Mention
+	'write-region'.  (Bug#67313)
+
+2023-11-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Document, that PROCESS of signal-process can be a string
+
+	* doc/lispref/processes.texi (Signals to Processes) [signal-process]:
+	* src/process.c (Fsignal_process): Document, that PROCESS can be a
+	string.
+
+2023-11-29  nverno  <noah.v.peart@gmail.com>
+
+	Fix typescript-ts-mode indentation for switch statements
+
+	* lisp/progmodes/typescript-ts-mode.el (typescript-ts-mode): Add
+	indentation rule for switch case and default keywords.  (Bug#67488)
+
+2023-11-29  Aymeric Agon-Rambosson  <aymeric.agon@yandex.com>  (tiny change)
+
+	Repair `tab-first-completion` (bug#67158)
+
+
+	* lisp/indent.el (indent-for-tab-command): Use `syntax-class` to fix
+	longstanding thinko introduced back in 2020 in commit 64c851166442.
+	Rework the check for `syn` because TAB always completed when
+	`tab-first-completion` had value `word-or-paren` or `word-or-paren-or-punct`.
+
+	(cherry picked from commit c20226a1ef5fbdfd3e71e2ef8654ee19994c0f2f)
+
+2023-11-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix behavior of 'split-root-window-*' with 'C-u'
+
+	* lisp/window.el (split-root-window-below)
+	(split-root-window-right): Fix the 'interactive' form to work with
+	raw 'C-u' as well.  (Bug#67459)
+	(split-window-below, split-window-right, split-root-window-below)
+	(split-root-window-right): Doc fix.
+
+2023-11-29  Xiyue Deng  <manphiz@gmail.com>  (tiny change)
+
+	Add more text to clarify the behavior of 'with-current-buffer'
+
+	* doc/lispintro/emacs-lisp-intro.texi (copy-to-buffer): Expand
+	description of 'with-current-buffer'.  (Bug#67521)
+
+2023-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix example in Emacs user manual
+
+	* doc/emacs/custom.texi (Init Rebinding): Fix syntax of example.
+	Reported by silarakta <silarakta@protonmail.com>.  (Bug#67474)
+
+2023-11-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	Mention Titankey in Tramp, which has passed the tests
+
+	* doc/misc/tramp.texi (Frequently Asked Questions):
+	* lisp/net/tramp.el (tramp-security-key-confirm-regexp):
+	Mention also Titankey.
+
+2023-11-26  Yuan Fu  <casouri@gmail.com>
+
+	Fix c-ts-mode indentation after if/else (bug#67417)
+
+	* lisp/progmodes/c-ts-mode.el:
+	(c-ts-mode--prev-line-match): New function.
+	(c-ts-mode--indent-styles): Add a rule for the empty line after
+	if/else/for/etc.
+
+2023-11-26  Yuan Fu  <casouri@gmail.com>
+
+	Fix indentation for else clause in c-ts-mode (bug#67417)
+
+	* lisp/progmodes/c-ts-mode.el:
+	(c-ts-mode--indent-styles): Add indentation for children of
+	else_clause.
+	* test/lisp/progmodes/c-ts-mode-resources/indent.erts:
+	(Name): Add test for else-break.  Also make the test such that it
+	needs to indent correctly from scratch (rather than maintaining the
+	already correct indentation.)
+
+2023-11-26  Joseph Turner  <joseph@breatheoutbreathe.in>
+
+	Ensure that directory is expanded in package-vc-checkout
+
+	* lisp/emacs-lisp/package-vc.el (package-vc-checkout): Expand
+	DIRECTORY.  (Bug#66115)
+
+2023-11-25  Ulrich Müller  <ulm@gentoo.org>
+
+	* etc/PROBLEMS: Add entry about pinentry with gpgsm.  (Bug#67012)
+
+2023-11-24  nverno  <noah.v.peart@gmail.com>
+
+	typescript-ts-mode: Add missing 'operator' to treesit-font-lock-features
+
+	* lisp/progmodes/typescript-ts-mode.el (typescript-ts-mode):
+	Add operator to treesit-font-lock-feature-list (bug#67433).
+
+2023-11-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	Extend D-Bus doc and test
+
+	* doc/misc/dbus.texi (Register Objects): Adapt doc of
+	dbus-unregister-service.
+
+	* test/lisp/net/dbus-tests.el (dbus--test-register-service):
+	Extend test.
+
+2023-11-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	Do not unregister a D-Bus service which is a unique name
+
+	* lisp/net/dbus.el (dbus-unregister-service): Check, whether
+	SERVICE is a known name.  (Bug#67386)
+
+2023-11-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix byte-compilation warnings about 'sqlite-rollback'
+
+	* lisp/sqlite.el (sqlite-transaction, sqlite-commit)
+	(sqlite-rollback): Declare.
+	* lisp/emacs-lisp/multisession.el (sqlite-commit)
+	(sqlite-transaction): Remove declaration.
+
+2023-11-23  Dmitry Gutov  <dmitry@gutov.dev>
+
+	Make python-ts-mode's syntax-highlighting more standardized
+
+	This was brought up in a Reddit discussion.
+
+	* lisp/progmodes/python.el (python--treesit-fontify-variable):
+	Use font-lock-variable-use-face (since it applies to references).
+	(python-ts-mode): Move 'property' from 3rd to 4th
+	treesit-font-lock-level.
+
+2023-11-23  George Kuzler  <gkuzler@gmail.com>  (tiny change)
+
+	Fix "Text is read-only" on backspacing initial Calc input
+
+	Immediately after `calc-mode' opens the minibuffer for input
+	(because you typed a digit, "e", etc), pressing backspace
+	should clear the minibuffer and return you to the *Calculator*
+	buffer.  Instead, it leaves the minibuffer as-is and prints the
+	message "Text is read-only"; this is because the function used,
+	`erase-buffer', tries to erase the read-only minibuffer prompt.
+	Using `delete-minibuffer-contents' fixes this, since it doesn't
+	attempt to delete the prompt.
+	* lisp/calc/calc.el (calcDigit-backspace): Use
+	`delete-minibuffer-contents' instead of `erase-buffer'.  (Bug#67395)
+
+2023-11-23  Jeremy Bryant  <jb@jeremybryant.net>
+
+	Add a doc string to simple.el (bug#67355)
+
+	* lisp/simple.el (kill-buffer--possibly-save): Add doc string.
+
+2023-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Mention "visual line" in user manual
+
+	* doc/emacs/display.texi (Visual Line Mode):
+	* doc/emacs/basic.texi (Continuation Lines, Moving Point): Mention
+	"visual line".  (Bug#67382)
+
+2023-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Allow listing Emoji from a read-only buffer
+
+	* lisp/international/emoji.el (emoji-list): Don't barf here if the
+	original buffer is read-inly...
+	(emoji-list-select): ...barf here instead.  (Bug#67400)
+	(emoji-list): Doc fix.
+
+2023-11-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix CRLF handling in Tramp (don't merge)
+
+	* lisp/net/tramp-sh.el (tramp-send-command-and-read): Use 'space'
+	instead of 'blank' in rx expression, in order to handle also CR
+	and alike.  Reported by Dominique Quatravaux
+	<dominique@quatravaux.org>.
+
+2023-11-21  Dmitry Gutov  <dmitry@gutov.dev>
+
+	Annotate java-ts-mode-test-movement with expected result
+
+	Do not merge to master.
+
+2023-11-21  Theodor Thornhill  <theo@thornhill.no>
+
+	Backport: Add more java indentation tests
+
+	* test/lisp/progmodes/java-ts-mode-resources/indent.erts: Use default
+	indent offset, and tweak the indentation examples.
+
+	(cherry picked from commit dbe7803aa1e8249bd70f67f25f19aedabeb9cc22)
+
+2023-11-21  Theodor Thornhill  <theo@thornhill.no>
+
+	Backport: Add test for java indentation (bug#61115)
+
+	* test/lisp/progmodes/java-ts-mode-resources/indent.erts: Add new test
+	case.
+
+	(cherry picked from commit 229d0772e235f51812ed8020a31f9a8de366c7ba)
+
+2023-11-21  Noah Peart  <noah.v.peart@gmail.com>
+
+	typescript-ts-mode: Support indentation for conditionals without braces
+
+	* lisp/progmodes/typescript-ts-mode.el
+	(typescript-ts-mode--indent-rules): Support indentation for
+	conditionals without braces (bug#67031).
+
+	* test/lisp/progmodes/typescript-ts-mode-resources/indent.erts
+	(Statement indentation without braces): New test.
+
+2023-11-21  Theodor Thornhill  <theo@thornhill.no>
+
+	Backport: Add some basic tests for java-ts-mode and typescript-ts-mode
+
+	* test/lisp/progmodes/java-ts-mode-resources/indent.erts: New file
+	with tests for indentation.
+	* test/lisp/progmodes/java-ts-mode-resources/movement.erts: New file
+	with tests for movement.
+	* test/lisp/progmodes/java-ts-mode-tests.el: New tests.
+	* test/lisp/progmodes/typescript-ts-mode-resources/indent.erts: New
+	file with tests for indentation.
+	* test/lisp/progmodes/typescript-ts-mode-tests.el: New tests.
+
+	(cherry picked from commit c8dd37b16c574beda900d4ee48ac7b4ab4a2ee56)
+
+2023-11-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'with-sqlite-transaction' when BODY fails
+
+	* lisp/sqlite.el (with-sqlite-transaction): Don't commit changes
+	if BODY errors out.  Roll back the transaction if committing
+	fails.  (Bug#67142)
+
+	* etc/NEWS:
+	* doc/lispref/text.texi (Database): Document the error handling in
+	'with-sqlite-transaction'.
+
+2023-11-19  Richard Stallman  <rms@gnu.org>
+
+	Fix wording in ELisp Intro manual
+
+	* doc/lispintro/emacs-lisp-intro.texi (Lisp macro): Improve
+	wording in description of 'unless'.  (Bug#67185)
+
+2023-11-18  Yuan Fu  <casouri@gmail.com>
+
+	Add missing python-ts-mode keyword (bug#67015)
+
+	* lisp/progmodes/python.el (python--treesit-keywords): Add "not in".
+
+2023-11-18  Dmitry Gutov  <dmitry@gutov.dev>
+
+	Fix string-pixel-width with global setting of display-line-numbers
+
+	* lisp/emacs-lisp/subr-x.el (string-pixel-width):
+	Instead of checking for display-line-numbers-mode, set the
+	display-line-numbers variable to nil (bug#67248).
+
+2023-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Document changes in 'edmacro-parse-keys'
+
+	* lisp/edmacro.el (edmacro-parse-keys): Add a comment for forcing
+	output to be a vector.
+	(read-kbd-macro): Adjust the doc string to changes in
+	'edmacro-parse-keys'.  (Bug#67182)
+
+2023-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Add 2 SQLite extensions to allow-list.
+
+	* src/sqlite.c (Fsqlite_load_extension): Add 2 Free Software
+	extensions to the allow-list.  For the details, see
+	https://lists.gnu.org/archive/html/emacs-devel/2023-11/msg00234.html.
+
+2023-11-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* test/lisp/net/tramp-tests.el (tramp--test-timeout-handler): Be more verbose.
+
+2023-11-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Make Tramp aware of completion-regexp-list (don't merge)
+
+	* lisp/net/tramp.el (tramp-skeleton-file-name-all-completions):
+	New defmacro.
+	(tramp-completion-handle-file-name-all-completions):
+	* lisp/net/tramp-adb.el (tramp-adb-handle-file-name-all-completions):
+	* lisp/net/tramp-crypt.el (tramp-crypt-handle-file-name-all-completions):
+	* lisp/net/tramp-fuse.el (tramp-fuse-handle-file-name-all-completions):
+	* lisp/net/tramp-gvfs.el (tramp-gvfs-handle-file-name-all-completions):
+	* lisp/net/tramp-sh.el (tramp-sh-handle-file-name-all-completions):
+	* lisp/net/tramp-smb.el (tramp-smb-handle-file-name-all-completions):
+	* lisp/net/tramp-sudoedit.el
+	(tramp-sudoedit-handle-file-name-all-completions): Use it.
+
+2023-11-17  Jeremy Bryant  <jb@jeremybryant.net>
+
+	Add 5 docstrings to abbrev.el (bug#67153)
+
+	* lisp/abbrev.el (prepare-abbrev-list-buffer, add-abbrev)
+	(inverse-add-abbrev, abbrev--describe)
+	(abbrev--possibly-save): Add doc strings.
+
+2023-11-15  Morgan Smith  <Morgan.J.Smith@outlook.com>
+
+	Fix CBZ file detection in doc-view-mode
+
+	* lisp/doc-view.el (doc-view-set-doc-type): Fix CBZ file
+	detection.  (Bug#67133)
+
+	This fix is almost identical to the previous fix for ODF file
+	detection in bug#54947 which resulted in commit
+	b3ff4905388834994ff26d9d033d6bc62b094c1c
+
+2023-11-15  João Távora  <joaotavora@gmail.com>
+
+	* lisp/progmodes/eglot.el (eglot-server-programs): Fix previous commit.
+
+	(cherry picked from commit 58d9e735e721ecf0187a5e15eefc7641112ace0b)
+
+2023-11-14  João Távora  <joaotavora@gmail.com>
+
+	Eglot: Send standard :language-id for typescript-language-server
+
+	bug#67150
+
+	* lisp/progmodes/eglot.el (eglot-server-programs): Update
+	language-id for languages handled by typescript-language-server.
+
+	(cherry picked from commit 1fe949888057b0275da041288709bd5690501974)
+
+2023-11-14  Zajcev Evgeny  <zevlg@yandex.ru>
+
+	Typofix in the doc/lispref/modes.texi
+
+2023-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix spell-checking email message with citations
+
+	This became broken 7 years ago, when the 'boundp condition was
+	removed, and with it an important unrelated part of the code.
+	* lisp/textmodes/ispell.el (ispell-message): Fix cite-regexp.
+
+2023-11-12  Xiaoyue Chen  <xchen@vvvu.org>  (tiny change)
+
+	Pass only the local parts of Eshell's $PATH to 'tramp-remote-path'
+
+	* lisp/eshell/esh-proc.el (eshell-gather-process-output): Get the
+	local part of the $PATH (bug#67126).
+
+	Do not merge to master.
+
+2023-11-12  Jeremy Bryant  <jb@jeremybryant.net>
+
+	Add two doc strings to cl-extra.el
+
+	* lisp/emacs-lisp/cl-extra.el (cl--random-time)
+	(cl-find-class): Add docstrings.  (Bug#66949)
+
+2023-11-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of read syntax and printed representation
+
+	* doc/lispref/objects.texi (Syntax for Strings): Describe in more
+	detail how to specify special characters in string literals.
+	(Printed Representation, Character Type, Nonprinting Characters):
+	Improve information and add cross-references about printed
+	representation and read syntax.  (Bug#67033)
+
+2023-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of signaling errors in batch mode
+
+	* doc/lispref/control.texi (Signaling Errors)
+	(Processing of Errors):
+	* doc/lispref/os.texi (Batch Mode):
+	* doc/lispref/debugging.texi (Invoking the Debugger):
+	* lisp/emacs-lisp/debug.el (debug):
+	* src/eval.c (Fsignal):
+	* lisp/subr.el (error): Document more prominently that signaling
+	an unhandled error in batch mode kills Emacs.  Better
+	documentation of backtrace in batch mode.
+
+2023-11-09  Yuan Fu  <casouri@gmail.com>
+
+	Fix treesit-simple-indent-presets docstring (bug#67007)
+
+	* lisp/treesit.el (treesit-simple-indent-presets): Fix docstring.
+	* doc/lispref/modes.texi (Parser-based Indentation): Fix example.
+
+2023-11-08  Stephen Berman  <stephen.berman@gmx.net>
+
+	Prevent an infinite loop in todo-mode (bug#66994)
+
+	* lisp/calendar/todo-mode.el (todo-item-start): Moving an item to
+	a todo file (with `C-u m') that had not yet been read into a
+	buffer puts point at the beginning of the file, from where it is
+	impossible to reach todo-item-start by this function, so don't try
+	in that case.
+
+2023-11-08  Randy Taylor  <dev@rjt.dev>
+
+	Fix cmake-ts-mode indentation (Bug#66845)
+
+	* lisp/progmodes/cmake-ts-mode.el (cmake-ts-mode--indent-rules):
+	Support versions v0.3.0 and v0.4.0 of the grammar.
+	(cmake-ts-mode--font-lock-compatibility-fe9b5e0): Fix docstring.
+
+2023-11-05  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.6.11
+
+2023-11-04  Mattias Engdegård  <mattiase@acm.org>
+
+	Suggest alternative reason for ERT test duplication error
+
+	* lisp/emacs-lisp/ert.el (ert-set-test): Amend error message;
+	maybe the redefinition was caused by a file loaded twice.
+	(Bug#66782)
+
+	Suggested by Xiyue Deng.
+
+	(cherry picked from commit 425d23fbeaede81ab4f50b4073949cc1c8a3fbd0)
+
+2023-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix description of 'Package-Requires' library header
+
+	* doc/lispref/tips.texi (Library Headers): Update the description
+	of the 'Package-Requires' header.  (Bug#66677)
+
+2023-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/emacs-lisp/cl-lib.el (cl--defalias): Improve&fix docstring
+
+2023-10-30  Jeremy Bryant  <jb@jeremybryant.net>
+
+	Add two docstrings in cl-lib.el
+
+	* lisp/emacs-lisp/cl-lib.el (cl--set-buffer-substring)
+	(cl--defalias): Add docstrings.  (Bug#66828)
+
+2023-10-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Tramp (don't merge)
+
+	* lisp/net/tramp.el (tramp-read-id-output): Identifiers can contain "-".
+
+2023-10-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* doc/misc/tramp.texi (Traces and Profiles): Fix indentation.  (don't merge)
+
+2023-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* doc/misc/tramp.texi (Traces and Profiles): Fix indentation.  (Don't merge)
+
+2023-10-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix guessing commands for zstandard archives in Dired
+
+	* lisp/dired-aux.el (dired-guess-shell-alist-default): Fix
+	zstdandard commands.  (Bug#66532)
+
+2023-10-25  Matthew Woodcraft  <matthew@woodcraft.me.uk>  (tiny change)
+
+	Fix eglot.texi (JSONRPC objects in Elisp) example
+
+	* doc/misc/eglot.texi (JSONRPC objects in Elisp): Correct the
+	example.  (Bug#66569)
+
+2023-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* doc/man/emacsclient.1: Fix --tramp option.
+
+2023-10-24  Stefan Kangas  <stefankangas@gmail.com>
+
+	Improve `nsm-protocol-check--3des-cipher` docstring
+
+	* lisp/net/nsm.el (nsm-protocol-check--3des-cipher): Update
+	docstring to reflect current NIST policy.
+
+2023-10-24  Lassi Kortela  <lassi@lassi.io>
+
+	Recognize backslash in `dns-mode` quoted values
+
+	* lisp/textmodes/dns-mode.el (dns-mode-syntax-table): Recognize
+	backslash as an escape character.  (Bug#66660)
+
+	(cherry picked from commit e6f05e189db73a0f0b29f987381ffef61a409232)
+
+2023-10-24  Stefan Kangas  <stefankangas@gmail.com>
+
+	Make `dns-mode` fontify quoted values correctly
+
+	* lisp/textmodes/dns-mode.el (dns-mode-syntax-table): Fontify
+	quoted values correctly.  (Bug#62214)
+	Suggested by Trent W. Buck <trentbuck@gmail.com>.
+
+	(cherry picked from commit c586d984f279aa61de4f5dfc4f6df660188dd0f6)
+
+2023-10-23  Stefan Kangas  <stefankangas@gmail.com>
+
+	Change news.gmane.org to news.gmane.io
+
+	* admin/notes/emba:
+	* doc/misc/gnus.texi (Group Parameters)
+	(Non-ASCII Group Names, Filling In Threads)
+	(Selection Groups, Spam Package Configuration Examples)
+	(Terminology):
+	* lisp/gnus/gnus-group.el (gnus-useful-groups):
+	* lisp/gnus/gnus-sum.el (gnus-fetch-old-headers):
+	* lisp/gnus/spam-report.el (spam-report-gmane-use-article-number)
+	(spam-report-gmane-internal):
+	* test/lisp/gnus/gnus-group-tests.el (gnus-short-group-name):
+	Change news.gmane.org to news.gmane.io.
+	Ref: https://news.gmane.io/
+
+2023-10-23  Mauro Aranda  <maurooaranda@gmail.com>
+
+	Fix minor defcustom issues in Gnus (Bug#66715)
+
+	* lisp/gnus/gnus-art.el (gnus-button-prefer-mid-or-mail): Allow
+	function and add :tag to const values.
+	* lisp/gnus/gnus-bookmark.el (gnus-bookmark-bookmark-inline-details):
+	Fix docstring.
+	* lisp/gnus/gnus-sum.el (gnus-simplify-subject-fuzzy-regexp): Allow a
+	single regexp as value.
+	* lisp/gnus/message.el (message-indent-citation-function): Allow a
+	single function as value.
+	(message-mail-alias-type): Allow for a list of options as value.
+	(message-dont-reply-to-names): Allow a function as value.
+	* lisp/gnus/spam-report.el (spam-report-url-ping-function): Fix
+	default value for the function widget.
+
+2023-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Minor connection-local variables fixes
+
+	* doc/emacs/custom.texi (Connection Variables): Warn about
+	specifying the same variable twice.
+
+	* lisp/files-x.el (connection-local-get-profiles): Normalize criteria.
+
+2023-10-23  Stefan Kangas  <stefankangas@gmail.com>
+
+	Make Dired honor `insert-directory-program´ with globs
+
+	Starting with commit 6f6639d6ed6c6314b2643f6c22498fc2e23d34c7
+	(Bug#27631), Dired stopped respecting the value of
+	'insert-directory-program' when using directory wildcards/globs.
+
+	* lisp/dired.el (dired-insert-directory): Honor the value of
+	'insert-directory-program' when using directory wildcards.
+
+2023-10-22  Morgan J. Smith  <Morgan.J.Smith@outlook.com>
+
+	Fix typo in url-privacy-level :type
+
+	* lisp/url/url-vars.el (url-privacy-level): Fix typo in
+	:type.  (Bug#66613)
+
+2023-10-22  Juri Linkov  <juri@linkov.net>
+
+	* lisp/vc/log-view.el (log-view-mode-menu): Quote derived modes (bug#66686).
+
+2023-10-22  Petteri Hintsanen  <petterih@iki.fi>
+
+	* lisp/tab-bar.el: Fix the close button with auto-width (bug#66678).
+
+	(tab-bar-auto-width): Take into account the length of tab-bar-close-button
+	more than one character: " x".
+	Don't merge to master.
+
+2023-10-22  Mauro Aranda  <maurooaranda@gmail.com>
+
+	Fix State button for customize-icon (Bug#66635)
+
+	* lisp/cus-edit.el (custom-icon-action): New function.
+	(custom-icon): Use it as the :action.  Otherwise, clicking the State
+	button is a noop.  Remove irrelevant stuff from the docstring and
+	comment out some copy-pasta.
+	(custom-icon-extended-menu): New variable, the menu to show upon
+	:action.
+	(custom-icon-set): Really redraw the widget with the new settings.
+	Comment out strange call to custom-variable-backup-value.
+	(custom-icon-save): New function.
+
+	* lisp/emacs-lisp/icons.el (icons--merge-spec): Fix call to plist-get
+	and avoid infloop.
+
+2023-10-22  Yuan Fu  <casouri@gmail.com>
+
+	Fix the use of adaptive-fill-regexp in treesit indent preset
+
+	* lisp/treesit.el (treesit-simple-indent-presets):
+	adaptive-fill-regexp don't have a capture group (the group in the
+	default value is supposed to be a non-capture group), so don't use the
+	group. Also, in the second diff hunk, replace looking-at with
+	looking-at-p so it doesn't override match data that we use later.
+
+2023-10-21  nverno  <noah.v.peart@gmail.com>
+
+	Fix treesit-install-language-grammar (bug#66673)
+
+	* lisp/treesit.el (treesit-install-language-grammar): Take out the
+	language symbol when storing the recipe.
+
+2023-10-21  Yuan Fu  <casouri@gmail.com>
+
+	Fix treesit-explore-mode (bug#66431)
+
+	* lisp/treesit.el (treesit-explore-mode): Reset
+	treesit--explorer-last-node before calling treesit--explorer-refresh,
+	so that in the rare case described in the bug report, the explorer
+	buffer don't show the outdated node.
+
+2023-10-21  Dmitry Gutov  <dmitry@gutov.dev>
+
+	tsx-ts-mode--font-lock-compatibility-bb1f97b: Re-fix the previous fix
+
+	* lisp/progmodes/typescript-ts-mode.el
+	(tsx-ts-mode--font-lock-compatibility-bb1f97b): Make sure the
+	tested query is actually valid in the new grammar (bug#66646).
+
+2023-10-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	Update Tramp version (don't merge with master)
+
+	* doc/misc/trampver.texi:
+	* lisp/net/trampver.el: Change version to "2.6.2.29.2".
+	(customize-package-emacs-version-alist):
+	Adapt Tramp version integrated in Emacs 29.2.
+
+2023-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Bump Emacs version
+
+	* README:
+	* configure.ac:
+	* msdos/sed2v2.inp:
+	* nt/README.W32: Bump Emacs version to 29.1.90.
+
 2023-10-16  Po Lu  <luangruo@yahoo.com>
 
 	Correctly register focus events concomitant with alpha changes
@@ -119361,7 +120907,7 @@
 
 This file records repository revisions from
 commit f2ae39829812098d8269eafbc0fcb98959ee5bb7 (exclusive) to
-commit d9e1605122b4ba70a55f7b168505b7d7f8d2bdd6 (inclusive).
+commit 92a7132bd6c76a43860fa01ca3363857d8dfc8f3 (inclusive).
 See ChangeLog.3 for earlier changes.
 
 ;; Local Variables:
