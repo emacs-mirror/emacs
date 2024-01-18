@@ -1311,7 +1311,8 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	   || RECORDP (obj)))				   \
    || (! NILP (Vprint_gensym)				   \
        && SYMBOLP (obj)					   \
-       && !SYMBOL_INTERNED_P (obj)))
+       && !SYMBOL_INTERNED_P (obj)			   \
+       && !hash_unused_entry_key_p (obj)))
 
 /* The print preprocess stack, used to traverse data structures.  */
 
