@@ -250,6 +250,8 @@ files.")
     ("Simen Heggestøyl" "simenheg@gmail\\.com")
     (nil "prime.wizard")
     ("Shun-ichi Goto" "Shun-ichi GOTO")
+    ;; The trailing dash is a kludge, so this contributor is not ignored.
+    ("skykanin-" "skykanin@users\\.noreply\\.github\\.com")
     ;; There are other Stefans.
 ;;;    ("Stefan Monnier" "Stefan")
     (nil "ssnnoo")
