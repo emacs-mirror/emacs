@@ -1122,31 +1122,17 @@ Returns nil if there is no such line before LIMIT, t otherwise."
 When enabled, it automatically turns on `font-lock-mode'."
   :lighter ""
   (when (derived-mode-p 'message-mode)
-    ;; FIXME: Use font-lock-add-keywords!
-    (let ((defaults (car font-lock-defaults))
-	  default) ;; keywords
-      (while defaults
-	(setq default (if (consp defaults)
-			  (pop defaults)
-			(prog1
-			    defaults
-			  (setq defaults nil))))
-	(if gnus-message-citation-mode
-	    ;; `gnus-message-citation-keywords' should be the last
-	    ;; elements of the keywords because the others are unlikely
-	    ;; to have the OVERRIDE flags -- XEmacs applies a keyword
-	    ;; having no OVERRIDE flag to matched text even if it has
-	    ;; already other faces, while Emacs doesn't.
-	    (set (make-local-variable default)
-		 (append (default-value default)
-			 gnus-message-citation-keywords))
-	  (kill-local-variable default))))
-    ;; Force `font-lock-set-defaults' to update `font-lock-keywords'.
-    (setq font-lock-set-defaults nil)
-    (font-lock-set-defaults)
-    (if font-lock-mode
-	(font-lock-flush)
-      (gnus-message-citation-mode (font-lock-mode 1)))))
+    (if (not font-lock-mode)
+        (gnus-message-citation-mode (font-lock-mode 1))
+      (if gnus-message-citation-mode
+	  ;; `gnus-message-citation-keywords' should be the last
+	  ;; elements of the keywords because the others are unlikely
+	  ;; to have the OVERRIDE flags -- XEmacs applies a keyword
+	  ;; having no OVERRIDE flag to matched text even if it has
+	  ;; already other faces, while Emacs doesn't.
+	  (font-lock-add-keywords nil gnus-message-citation-keywords t)
+        (font-lock-remove-keywords nil gnus-message-citation-keywords))
+      (font-lock-flush))))
 
 (defun turn-on-gnus-message-citation-mode ()
   "Turn on `gnus-message-citation-mode'."
