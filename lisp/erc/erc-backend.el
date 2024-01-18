@@ -2201,7 +2201,9 @@ primitive value."
 ;; While it's better to depend on interfaces than specific types,
 ;; using `cl-struct-slot-value' or similar to extract a known slot at
 ;; runtime would incur a small "ducktyping" tax, which should probably
-;; be avoided when running dozens of times per incoming message.
+;; be avoided when running hundreds of times per incoming message.
+;; Instead of separate keys per data type, we could increment a
+;; counter whenever a new 005 arrives.
 (defmacro erc--with-isupport-data (param var &rest body)
   "Return structured data stored in VAR for \"ISUPPORT\" PARAM.
 Expect VAR's value to be an instance of `erc--isupport-data'.  If

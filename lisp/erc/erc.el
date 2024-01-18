@@ -598,28 +598,52 @@ Removes all users in the current channel.  This is called by
              erc-channel-users)
     (clrhash erc-channel-users)))
 
-(defmacro erc--define-channel-user-status-compat-getter (name n)
+(defmacro erc--define-channel-user-status-compat-getter (name c d)
   "Define a gv getter for historical `erc-channel-user' status slot NAME.
-Expect NAME to be a string and N to be its associated power-of-2
-\"enumerated flag\" integer."
+Expect NAME to be a string, C to be its traditionally associated
+letter, and D to be its fallback power-of-2 integer for non-ERC
+buffers."
   `(defun ,(intern (concat "erc-channel-user-" name)) (u)
      ,(format "Get equivalent of pre-5.6 `%s' slot for `erc-channel-user'."
               name)
      (declare (gv-setter (lambda (v)
                            (macroexp-let2 nil v v
-                             (,'\`(let ((val (erc-channel-user-status ,',u)))
+                             (,'\`(let ((val (erc-channel-user-status ,',u))
+                                        (n (or (erc--get-prefix-flag ,c) ,d)))
                                     (setf (erc-channel-user-status ,',u)
                                           (if ,',v
-                                              (logior val ,n)
-                                            (logand val ,(lognot n))))
+                                              (logior val n)
+                                            (logand val (lognot n))))
                                     ,',v))))))
-     (= ,n (logand ,n (erc-channel-user-status u)))))
+     (let ((n (or (erc--get-prefix-flag ,c) ,d)))
+       (= n (logand n (erc-channel-user-status u))))))
 
-(erc--define-channel-user-status-compat-getter "voice"  1)
-(erc--define-channel-user-status-compat-getter "halfop" 2)
-(erc--define-channel-user-status-compat-getter "op"     4)
-(erc--define-channel-user-status-compat-getter "admin"  8)
-(erc--define-channel-user-status-compat-getter "owner" 16)
+(erc--define-channel-user-status-compat-getter "voice"  ?v 1)
+(erc--define-channel-user-status-compat-getter "halfop" ?h 2)
+(erc--define-channel-user-status-compat-getter "op"     ?o 4)
+(erc--define-channel-user-status-compat-getter "admin"  ?a 8)
+(erc--define-channel-user-status-compat-getter "owner"  ?q 16)
+
+;; This is a generalized version of the compat-oriented getters above.
+(defun erc--cusr-status-p (nick-or-cusr letter)
+  "Return non-nil if NICK-OR-CUSR has channel membership status LETTER."
+  (and-let* ((cusr (or (and (erc-channel-user-p nick-or-cusr) nick-or-cusr)
+                       (cdr (erc-get-channel-member nick-or-cusr))))
+             (n (erc--get-prefix-flag letter)))
+    (= n (logand n (erc-channel-user-status cusr)))))
+
+(defun erc--cusr-change-status (nick-or-cusr letter enablep &optional resetp)
+  "Add or remove membership status associated with LETTER for NICK-OR-CUSR.
+With RESETP, clear the user's status info completely.  If ENABLEP
+is non-nil, add the status value associated with LETTER."
+  (when-let ((cusr (or (and (erc-channel-user-p nick-or-cusr) nick-or-cusr)
+                       (cdr (erc-get-channel-member nick-or-cusr))))
+             (n (erc--get-prefix-flag letter)))
+    (cl-callf (lambda (v)
+                (if resetp
+                    (if enablep n 0)
+                  (if enablep (logior v n) (logand v (lognot n)))))
+        (erc-channel-user-status cusr))))
 
 (defun erc-channel-user-owner-p (nick)
   "Return non-nil if NICK is an owner of the current channel."
@@ -3900,6 +3924,10 @@ for other purposes.")
 
 (defun erc-send-input-line (target line &optional force)
   "Send LINE to TARGET."
+  (when-let ((target)
+             (cmem (erc-get-channel-member (erc-current-nick))))
+    (setf (erc-channel-user-last-message-time (cdr cmem))
+          (erc-compat--current-lisp-time)))
   (when (and (not erc--allow-empty-outgoing-lines-p) (string= line "\n"))
     (setq line " \n"))
   (erc-message "PRIVMSG" (concat target " " line) force))
@@ -6141,17 +6169,15 @@ return a possibly empty string."
         (catch 'done
           (pcase-dolist (`(,letter . ,pfx)
                          (erc--parsed-prefix-alist pfx-obj))
-            (pcase letter
-              ((and ?q (guard (erc-channel-user-owner nick-or-cusr)))
-               (throw 'done (propertize (string pfx) 'help-echo "owner")))
-              ((and ?a (guard (erc-channel-user-admin nick-or-cusr)))
-               (throw 'done (propertize (string pfx) 'help-echo "admin")))
-              ((and ?o (guard (erc-channel-user-op nick-or-cusr)))
-               (throw 'done (propertize (string pfx) 'help-echo "operator")))
-              ((and ?h (guard (erc-channel-user-halfop nick-or-cusr)))
-               (throw 'done (propertize (string pfx) 'help-echo "half-op")))
-              ((and ?v (guard (erc-channel-user-voice nick-or-cusr)))
-               (throw 'done (propertize (string pfx) 'help-echo "voice")))))
+            (when (erc--cusr-status-p nick-or-cusr letter)
+              (throw 'done
+                     (pcase letter
+                       (?q (propertize (string pfx) 'help-echo "owner"))
+                       (?a (propertize (string pfx) 'help-echo "admin"))
+                       (?o (propertize (string pfx) 'help-echo "operator"))
+                       (?h (propertize (string pfx) 'help-echo "half-op"))
+                       (?v (propertize (string pfx) 'help-echo "voice"))
+                       (_ (string pfx))))))
           "")))
      (t
       (cond ((erc-channel-user-owner nick-or-cusr)
@@ -6763,12 +6789,52 @@ parameter advertised by the current server, with the original
 ordering intact.  If no such parameter has yet arrived, return a
 stand-in from the fallback value \"(qaohv)~&@%+\"."
   (erc--with-isupport-data PREFIX erc--parsed-prefix
-    (let ((alist (nreverse (erc-parse-prefix))))
+    (let ((alist (erc-parse-prefix)))
       (make-erc--parsed-prefix
        :key key
        :letters (apply #'string (map-keys alist))
        :statuses (apply #'string (map-values alist))
-       :alist alist))))
+       :alist (nreverse alist)))))
+
+(defun erc--get-prefix-flag (char &optional parsed-prefix from-prefix-p)
+  "Return numeric rank for CHAR or nil if unknown.
+For example, given letters \"qaohv\" return 1 for ?v, 2 for ?h,
+and 4 for ?o, etc.  If given, expect PARSED-PREFIX to be a
+`erc--parse-prefix' object.  With FROM-PREFIX-P, expect CHAR to
+be a prefix instead."
+  (and-let* ((obj (or parsed-prefix (erc--parsed-prefix)))
+             (pos (erc--strpos char (if from-prefix-p
+                                        (erc--parsed-prefix-statuses obj)
+                                      (erc--parsed-prefix-letters obj)))))
+    (ash 1 pos)))
+
+(defun erc--init-cusr-fallback-status (voice halfop op admin owner)
+  "Return channel-membership based on traditional status semantics.
+Massage boolean switches VOICE, HALFOP, OP, ADMIN, and OWNER into
+an internal numeric value suitable for the `status' slot of a new
+`erc-channel-user' object."
+  (let ((pfx (erc--parsed-prefix)))
+    (+ (if voice  (if pfx (or (erc--get-prefix-flag ?v pfx) 0)  1) 0)
+       (if halfop (if pfx (or (erc--get-prefix-flag ?h pfx) 0)  2) 0)
+       (if op     (if pfx (or (erc--get-prefix-flag ?o pfx) 0)  4) 0)
+       (if admin  (if pfx (or (erc--get-prefix-flag ?a pfx) 0)  8) 0)
+       (if owner  (if pfx (or (erc--get-prefix-flag ?q pfx) 0) 16) 0))))
+
+(defun erc--compute-cusr-fallback-status (current v h o a q)
+  "Return current channel membership after toggling V H O A Q as requested.
+Assume `erc--parsed-prefix' is non-nil in the current buffer.
+Expect status switches V, H, O, A, Q, when non-nil, to be the
+symbol `on' or `off'.  Return an internal numeric value suitable
+for the `status' slot of an `erc-channel-user' object."
+  (let (on off)
+    (when v (push (or (erc--get-prefix-flag ?v) 0) (if (eq v 'on) on off)))
+    (when h (push (or (erc--get-prefix-flag ?h) 0) (if (eq h 'on) on off)))
+    (when o (push (or (erc--get-prefix-flag ?o) 0) (if (eq o 'on) on off)))
+    (when a (push (or (erc--get-prefix-flag ?a) 0) (if (eq a 'on) on off)))
+    (when q (push (or (erc--get-prefix-flag ?q) 0) (if (eq q 'on) on off)))
+    (when on (setq current (apply #'logior current on)))
+    (when off (setq current (apply #'logand current (mapcar #'lognot off)))))
+  current)
 
 (defcustom erc-channel-members-changed-hook nil
   "This hook is called every time the variable `channel-members' changes.
@@ -6776,48 +6842,40 @@ The buffer where the change happened is current while this hook is called."
   :group 'erc-hooks
   :type 'hook)
 
-(defun erc-channel-receive-names (names-string)
-  "This function is for internal use only.
+(defun erc--partition-prefixed-names (name)
+  "From NAME, return a list of (STATUS NICK LOGIN HOST).
+Expect NAME to be a prefixed name, like @bob."
+  (unless (string-empty-p name)
+    (let* ((status (erc--get-prefix-flag (aref name 0) nil 'from-prefix-p))
+           (nick (if status (substring name 1) name)))
+      (unless (string-empty-p nick)
+        (list status nick nil nil)))))
 
-Update `erc-channel-users' according to NAMES-STRING.
-NAMES-STRING is a string listing some of the names on the
-channel."
-  (let* ((prefix (erc--parsed-prefix-alist (erc--parsed-prefix)))
-         (voice-ch (cdr (assq ?v prefix)))
-         (op-ch (cdr (assq ?o prefix)))
-         (hop-ch (cdr (assq ?h prefix)))
-         (adm-ch (cdr (assq ?a prefix)))
-         (own-ch (cdr (assq ?q prefix)))
-         (names (delete "" (split-string names-string)))
-	 name op voice halfop admin owner)
-    (let ((erc-channel-members-changed-hook nil))
-      (dolist (item names)
-        (let ((updatep t)
-	      (ch (aref item 0)))
-          (setq name item op 'off voice 'off halfop 'off admin 'off owner 'off)
-          (if (rassq ch prefix)
-              (if (= (length item) 1)
-		  (setq updatep nil)
-		(setq name (substring item 1))
-		(setf (pcase ch
-			((pred (eq voice-ch)) voice)
-			((pred (eq hop-ch))   halfop)
-			((pred (eq op-ch))    op)
-			((pred (eq adm-ch))   admin)
-			((pred (eq own-ch))   owner)
-			(_ (message "Unknown prefix char `%S'" ch) voice))
-		      'on)))
-          (when updatep
+(defun erc-channel-receive-names (names-string)
+  "Update `erc-channel-members' from NAMES-STRING.
+Expect NAMES-STRING to resemble the trailing argument of a 353
+RPL_NAMREPLY.  Call internal handlers for parsing individual
+names, whose expected composition may differ depending on enabled
+extensions."
+  (let ((names (delete "" (split-string names-string)))
+        (erc-channel-members-changed-hook nil))
+    (dolist (name names)
+      (when-let ((args (erc--partition-prefixed-names name)))
+        (pcase-let* ((`(,status ,nick ,login ,host) args)
+                     (cmem (erc-get-channel-user nick)))
+          (progn
 	    ;; If we didn't issue the NAMES request (consider two clients
 	    ;; talking to an IRC proxy), `erc-channel-begin-receiving-names'
 	    ;; will not have been called, so we have to do it here.
 	    (unless erc-channel-new-member-names
 	      (erc-channel-begin-receiving-names))
-            (puthash (erc-downcase name) t
-                     erc-channel-new-member-names)
-            (erc-update-current-channel-member
-             name name t voice halfop op admin owner)))))
-    (run-hooks 'erc-channel-members-changed-hook)))
+            (puthash (erc-downcase nick) t erc-channel-new-member-names)
+            (if cmem
+                (erc--update-current-channel-member cmem status nil
+                                                    nick host login)
+              (erc--create-current-channel-member nick status nil
+                                                  nick host login)))))))
+  (run-hooks 'erc-channel-members-changed-hook))
 
 (defun erc-update-user-nick (nick &optional new-nick
                                   host login full-name info)
@@ -6869,17 +6927,85 @@ which USER is a member, and t is returned."
                   (run-hooks 'erc-channel-members-changed-hook))))))
     changed))
 
+(defun erc--create-current-channel-member
+    (nick status timep &optional new-nick host login full-name info)
+  "Add an `erc-channel-member' entry for NICK.
+Create a new `erc-server-users' entry if necessary, and ensure
+`erc-channel-members-changed-hook' runs exactly once, regardless.
+Pass STATUS to the `erc-channel-user' constructor.  With TIMEP,
+assume NICK has just spoken, and initialize `last-message-time'.
+Pass NEW-NICK, HOST, LOGIN, FULL-NAME, and INFO to
+`erc-update-user' if a server user exists and otherwise to the
+`erc-server-user' constructor."
+  (cl-assert (null (erc-get-channel-member nick)))
+  (let* ((user-changed-p nil)
+         (down (erc-downcase nick))
+         (user (gethash down (erc-with-server-buffer erc-server-users))))
+    (if user
+        (progn
+          (cl-pushnew (current-buffer) (erc-server-user-buffers user))
+          ;; Update *after* ^ so hook has chance to run.
+          (setf user-changed-p (erc-update-user user new-nick host login
+                                                full-name info)))
+      (erc-add-server-user nick
+                           (setq user (make-erc-server-user
+                                       :nickname (or new-nick nick)
+                                       :host host
+                                       :full-name full-name
+                                       :login login
+                                       :info nil
+                                       :buffers (list (current-buffer))))))
+    (let ((cusr (erc-channel-user--make
+                 :status (or status 0)
+                 :last-message-time (and timep
+                                         (erc-compat--current-lisp-time)))))
+      (puthash down (cons user cusr) erc-channel-users))
+    ;; An existing `cusr' was changed or a new one was added, and
+    ;; `user' was not updated, though possibly just created (since
+    ;; `erc-update-user' runs this same hook in all a user's buffers).
+    (unless user-changed-p
+      (run-hooks 'erc-channel-members-changed-hook))
+    t))
+
+(defun erc--update-current-channel-member (cmem status timep &rest user-args)
+  "Update existing `erc-channel-member' entry.
+Set the `status' slot of the entry's `erc-channel-user' side to
+STATUS and, with TIMEP, update its `last-message-time'.  When
+actual changes are made, run `erc-channel-members-changed-hook',
+and return non-nil."
+  (cl-assert cmem)
+  (let ((cusr (cdr cmem))
+        (user (car cmem))
+        cusr-changed-p user-changed-p)
+    (when (and status (/= status (erc-channel-user-status cusr)))
+      (setf (erc-channel-user-status cusr) status
+            cusr-changed-p t))
+    (when timep
+      (setf (erc-channel-user-last-message-time cusr)
+            (erc-compat--current-lisp-time)))
+    ;; Ensure `erc-channel-members-changed-hook' runs on change.
+    (cl-assert (memq (current-buffer) (erc-server-user-buffers user)))
+    (setq user-changed-p (apply #'erc-update-user user user-args))
+    ;; An existing `cusr' was changed or a new one was added, and
+    ;; `user' was not updated, though possibly just created (since
+    ;; `erc-update-user' runs this same hook in all a user's buffers).
+    (when (and cusr-changed-p (null user-changed-p))
+      (run-hooks 'erc-channel-members-changed-hook))
+    (erc-log (format "update-member: user = %S, cusr = %S" user cusr))
+    (or cusr-changed-p user-changed-p)))
+
 (defun erc-update-current-channel-member
-  (nick new-nick &optional addp voice halfop op admin owner host login full-name info
-        update-message-time)
+    (nick new-nick &optional addp voice halfop op admin owner host login
+          full-name info update-message-time)
   "Update or create entry for NICK in current `erc-channel-members' table.
-With ADDP, ensure an entry exists.  If one already does, call
-`erc-update-user' to handle updates to HOST, LOGIN, FULL-NAME,
-INFO, and NEW-NICK.  Expect any non-nil membership status
-switches among VOICE, HALFOP, OP, ADMIN, and OWNER to be the
-symbol `on' or `off' when needing to influence a new or existing
-`erc-channel-user' object's `status' slot.  Likewise, when
-UPDATE-MESSAGE-TIME is non-nil, update or initialize the
+With ADDP, ensure an entry exists.  When an entry does exist or
+when ADDP is non-nil and an `erc-server-users' entry already
+exists, call `erc-update-user' with NEW-NICK, HOST, LOGIN,
+FULL-NAME, and INFO.  Expect any non-nil membership
+status switches among VOICE, HALFOP, OP, ADMIN, and OWNER to be
+the symbol `on' or `off' when needing to influence a new or
+existing `erc-channel-user' object's `status' slot.  Likewise,
+when UPDATE-MESSAGE-TIME is non-nil, update or initialize the
 `last-message-time' slot to the current-time.  If changes occur,
 including creation, run `erc-channel-members-changed-hook'.
 Return non-nil when meaningful changes, including creation, have
@@ -6889,62 +7015,26 @@ Without ADDP, do nothing unless a `erc-channel-members' entry
 exists.  When it doesn't, assume the sender is a non-joined
 entity, like the server itself or a historical speaker, or assume
 the prior buffer for the channel was killed without parting."
-  (let* (cusr-changed-p
-         user-changed-p
-         (cmem (erc-get-channel-member nick))
-         (cusr (cdr cmem))
-         (down (erc-downcase nick))
-         (user (or (car cmem)
-                   (gethash down (erc-with-server-buffer erc-server-users)))))
-    (if cusr
-        (progn
-          (erc-log (format "update-member: user = %S, cusr = %S" user cusr))
-          (when-let (((or voice halfop op admin owner))
-                     (existing (erc-channel-user-status cusr)))
-            (when voice  (setf (erc-channel-user-voice  cusr) (eq voice  'on)))
-            (when halfop (setf (erc-channel-user-halfop cusr) (eq halfop 'on)))
-            (when op     (setf (erc-channel-user-op     cusr) (eq op     'on)))
-            (when admin  (setf (erc-channel-user-admin  cusr) (eq admin  'on)))
-            (when owner  (setf (erc-channel-user-owner  cusr) (eq owner  'on)))
-            (setq cusr-changed-p (= existing (erc-channel-user-status cusr))))
-          (when update-message-time
-            (setf (erc-channel-user-last-message-time cusr) (current-time)))
-          ;; Assume `user' exists and its `buffers' slot contains the
-          ;; current buffer so that `erc-channel-members-changed-hook'
-          ;; will run if changes are made.
-          (setq user-changed-p
-                (erc-update-user user new-nick
-                                 host login full-name info)))
-      (when addp
-        (if (null user)
-            (progn
-              (setq user (make-erc-server-user
-                          :nickname nick
-                          :host host
-                          :full-name full-name
-                          :login login
-                          :info info
-                          :buffers (list (current-buffer))))
-              (erc-add-server-user nick user))
-          (setf (erc-server-user-buffers user)
-                (cons (current-buffer)
-                      (erc-server-user-buffers user))))
-        (setq cusr (make-erc-channel-user
-                     :voice  (and voice  (eq voice  'on))
-                     :halfop (and halfop (eq halfop 'on))
-                     :op     (and op     (eq op     'on))
-                     :admin  (and admin  (eq admin  'on))
-                     :owner  (and owner  (eq owner  'on))
-                     :last-message-time (if update-message-time
-                                            (current-time))))
-        (puthash down (cons user cusr) erc-channel-users)
-        (setq cusr-changed-p t)))
-    ;; An existing `cusr' was changed or a new one was added, and
-    ;; `user' was not updated, though possibly just created (since
-    ;; `erc-update-user' runs this same hook in all a user's buffers).
-    (when (and cusr-changed-p (null user-changed-p))
-      (run-hooks 'erc-channel-members-changed-hook))
-    (or cusr-changed-p user-changed-p)))
+(let* ((cmem (erc-get-channel-member nick))
+       (status (and (or voice halfop op admin owner)
+                    (if cmem
+                        (erc--compute-cusr-fallback-status
+                         (erc-channel-user-status (cdr cmem))
+                         voice halfop op admin owner)
+                      (erc--init-cusr-fallback-status
+                       (and voice  (eq voice  'on))
+                       (and halfop (eq halfop 'on))
+                       (and op     (eq op     'on))
+                       (and admin  (eq admin  'on))
+                       (and owner  (eq owner  'on)))))))
+  (if cmem
+      (erc--update-current-channel-member cmem status update-message-time
+                                          new-nick host login
+                                          full-name info)
+    (when addp
+      (erc--create-current-channel-member nick status update-message-time
+                                          new-nick host login
+                                          full-name info)))))
 
 (defun erc-update-channel-member (channel nick new-nick
                                           &optional add voice halfop op admin owner host login
@@ -7134,16 +7224,6 @@ person who changed the modes."
           ;; nick modes - ignored at this point
           (t nil))))
 
-(defun erc--update-membership-prefix (nick letter state)
-  "Update status prefixes for NICK in current channel buffer.
-Expect LETTER to be a status char and STATE to be a boolean."
-  (erc-update-current-channel-member nick nil nil
-                                     (and (= letter ?v) state)
-                                     (and (= letter ?h) state)
-                                     (and (= letter ?o) state)
-                                     (and (= letter ?a) state)
-                                     (and (= letter ?q) state)))
-
 (defvar-local erc--channel-modes nil
   "When non-nil, a hash table of current channel modes.
 Keys are characters.  Values are either a string, for types A-C,
@@ -7189,7 +7269,7 @@ complement relevant letters in STRING."
       (cond ((= ?+ c) (setq +p t))
             ((= ?- c) (setq +p nil))
             ((and status-letters (string-search (string c) status-letters))
-             (erc--update-membership-prefix (pop args) c (if +p 'on 'off)))
+             (erc--cusr-change-status (pop args) c +p))
             ((and-let* ((group (or (aref table c) (and fallbackp ?d))))
                (erc--handle-channel-mode group c +p
                                          (and (/= group ?d)
@@ -7510,6 +7590,12 @@ See associated unit test for precise behavior."
     (list (match-string 1 string)
           (match-string 2 string)
           (match-string 3 string))))
+
+(defun erc--shuffle-nuh-nickward (nick login host)
+  "Interpret results of `erc--parse-nuh', promoting loners to nicks."
+  (cond (nick (cl-assert (null login)) (list nick login host))
+        ((and (null login) host) (list host nil nil))
+        ((and login (null host)) (list login nil nil))))
 
 (defun erc-extract-nick (string)
   "Return the nick corresponding to a user specification STRING.
