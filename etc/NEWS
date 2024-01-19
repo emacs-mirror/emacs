@@ -1437,6 +1437,12 @@ This allows the user to customize the key selection method, which can be
 either by using a pop-up buffer or from the minibuffer.  The pop-up
 buffer method is the default, which preserves previous behavior.
 
+** Xwidget Webkit
+
++++
+*** New user option 'xwidget-webkit-disable-javascript'.
+This allows disabling JavaScript in xwidget Webkit sessions.
+
 
 * New Modes and Packages in Emacs 30.1
 

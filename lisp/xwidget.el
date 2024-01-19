@@ -116,6 +116,13 @@ buffers for this setting to take effect after setting it to nil."
   :type '(choice (const :tag "Do not store cookies" nil) file)
   :version "29.1")
 
+(defcustom xwidget-webkit-disable-javascript nil
+  "If non-nil, disables the execution of JavaScript in xwidget webkit sessions.
+You must kill all xwidget-webkit buffers for this setting to take
+effect after changing it."
+  :type '(boolean)
+  :version "30.0")
+
 ;;;###autoload
 (defun xwidget-webkit-browse-url (url &optional new-session)
   "Ask xwidget-webkit to browse URL.
