@@ -575,7 +575,7 @@ It is nil if Eglot is not byte-complied.")
 
 (defvaralias 'eglot-{} 'eglot--{})
 
-(defconst eglot--{} (make-hash-table :size 1) "The empty JSON object.")
+(defconst eglot--{} (make-hash-table :size 0) "The empty JSON object.")
 
 (defun eglot--executable-find (command &optional remote)
   "Like Emacs 27's `executable-find', ignore REMOTE on Emacs 26."
