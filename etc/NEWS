@@ -1877,6 +1877,14 @@ The 'test' parameter is omitted if it is 'eql' (the default), as is
 'data' if empty.  'rehash-size', 'rehash-threshold' and 'size' are
 always omitted, and ignored if present when the object is read back in.
 
++++
+** 'treesit-install-language-grammar' can handle local directory instead of URL.
+It is now possible to pass a directory of a local repository as URL
+inside 'treesit-language-source-alist', so that calling
+'treesit-install-language-grammar' would avoid cloning the repository.
+It may be useful, for example, for the purposes of bisecting a
+treesitter grammar.
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 

@@ -3417,7 +3417,8 @@ The value should be an alist where each element has the form
     (LANG . (URL REVISION SOURCE-DIR CC C++))
 
 Only LANG and URL are mandatory.  LANG is the language symbol.
-URL is the Git repository URL for the grammar.
+URL is the URL of the grammar's Git repository or a directory
+where the repository has been cloned.
 
 REVISION is the Git tag or branch of the desired version,
 defaulting to the latest default branch.
@@ -3551,6 +3552,26 @@ content as signal data, and erase buffer afterwards."
                                  (buffer-string)))
     (erase-buffer)))
 
+(defun treesit--git-checkout-branch (repo-dir revision)
+  "Checkout REVISION in a repo located in REPO-DIR."
+  (treesit--call-process-signal
+   "git" nil t nil "-C" repo-dir "checkout" revision))
+
+(defun treesit--git-clone-repo (url revision workdir)
+  "Clone repo pointed by URL at commit REVISION to WORKDIR.
+
+REVISION may be nil, in which case the cloned repo will be at its
+default branch."
+  (message "Cloning repository")
+  ;; git clone xxx --depth 1 --quiet [-b yyy] workdir
+  (if revision
+      (treesit--call-process-signal
+       "git" nil t nil "clone" url "--depth" "1" "--quiet"
+       "-b" revision workdir)
+    (treesit--call-process-signal
+     "git" nil t nil "clone" url "--depth" "1" "--quiet"
+     workdir)))
+
 (defun treesit--install-language-grammar-1
     (out-dir lang url &optional revision source-dir cc c++)
   "Install and compile a tree-sitter language grammar library.
@@ -3564,8 +3585,12 @@ For LANG, URL, REVISION, SOURCE-DIR, GRAMMAR-DIR, CC, C++, see
 `treesit-language-source-alist'.  If anything goes wrong, this
 function signals an error."
   (let* ((lang (symbol-name lang))
+         (maybe-repo-dir (expand-file-name url))
+         (url-is-dir (file-accessible-directory-p maybe-repo-dir))
          (default-directory (make-temp-file "treesit-workdir" t))
-         (workdir (expand-file-name "repo"))
+         (workdir (if url-is-dir
+                      maybe-repo-dir
+                    (expand-file-name "repo")))
          (source-dir (expand-file-name (or source-dir "src") workdir))
          (cc (or cc (seq-find #'executable-find '("cc" "gcc" "c99"))
                  ;; If no C compiler found, just use cc and let
@@ -3580,15 +3605,10 @@ function signals an error."
          (lib-name (concat "libtree-sitter-" lang soext)))
     (unwind-protect
         (with-temp-buffer
-          (message "Cloning repository")
-          ;; git clone xxx --depth 1 --quiet [-b yyy] workdir
-          (if revision
-              (treesit--call-process-signal
-               "git" nil t nil "clone" url "--depth" "1" "--quiet"
-               "-b" revision workdir)
-            (treesit--call-process-signal
-             "git" nil t nil "clone" url "--depth" "1" "--quiet"
-             workdir))
+          (if url-is-dir
+              (when revision
+                (treesit--git-checkout-branch workdir revision))
+            (treesit--git-clone-repo url revision workdir))
           ;; We need to go into the source directory because some
           ;; header files use relative path (#include "../xxx").
           ;; cd "${sourcedir}"
@@ -3635,7 +3655,9 @@ function signals an error."
             ;; Ignore errors, in case the old version is still used.
             (ignore-errors (delete-file old-fname)))
           (message "Library installed to %s/%s" out-dir lib-name))
-      (when (file-exists-p workdir)
+      ;; Remove workdir if it's not a repo owned by user and we
+      ;; managed to create it in the first place.
+      (when (and (not url-is-dir) (file-exists-p workdir))
         (delete-directory workdir t)))))
 
 ;;; Etc
