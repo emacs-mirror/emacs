@@ -4330,11 +4330,10 @@ compile_function (Lisp_Object func)
   declare_block (Qentry);
   Lisp_Object blocks = CALL1I (comp-func-blocks, func);
   struct Lisp_Hash_Table *ht = XHASH_TABLE (blocks);
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (ht); i++)
+  DOHASH (ht, i)
     {
       Lisp_Object block_name = HASH_KEY (ht, i);
-      if (!EQ (block_name, Qentry)
-	  && !hash_unused_entry_key_p (block_name))
+      if (!EQ (block_name, Qentry))
 	declare_block (block_name);
     }
 
@@ -4344,24 +4343,21 @@ compile_function (Lisp_Object func)
 				gcc_jit_lvalue_as_rvalue (comp.func_relocs));
 
 
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (ht); i++)
+  DOHASH (ht, i)
     {
       Lisp_Object block_name = HASH_KEY (ht, i);
-      if (!hash_unused_entry_key_p (block_name))
-	{
-	  Lisp_Object block = HASH_VALUE (ht, i);
-	  Lisp_Object insns = CALL1I (comp-block-insns, block);
-	  if (NILP (block) || NILP (insns))
-	    xsignal1 (Qnative_ice,
-		      build_string ("basic block is missing or empty"));
+      Lisp_Object block = HASH_VALUE (ht, i);
+      Lisp_Object insns = CALL1I (comp-block-insns, block);
+      if (NILP (block) || NILP (insns))
+	xsignal1 (Qnative_ice,
+		  build_string ("basic block is missing or empty"));
 
-	  comp.block = retrive_block (block_name);
-	  while (CONSP (insns))
-	    {
-	      Lisp_Object insn = XCAR (insns);
-	      emit_limple_insn (insn);
-	      insns = XCDR (insns);
-	    }
+      comp.block = retrive_block (block_name);
+      while (CONSP (insns))
+	{
+	  Lisp_Object insn = XCAR (insns);
+	  emit_limple_insn (insn);
+	  insns = XCDR (insns);
 	}
     }
   const char *err =  gcc_jit_context_get_first_error (comp.ctxt);
@@ -4965,14 +4961,10 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   struct Lisp_Hash_Table *func_h =
     XHASH_TABLE (CALL1I (comp-ctxt-funcs-h, Vcomp_ctxt));
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
-    if (!hash_unused_entry_key_p (HASH_KEY (func_h, i)))
-      declare_function (HASH_VALUE (func_h, i));
+  DOHASH (func_h, i) declare_function (HASH_VALUE (func_h, i));
   /* Compile all functions. Can't be done before because the
      relocation structs has to be already defined.  */
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
-    if (!hash_unused_entry_key_p (HASH_KEY (func_h, i)))
-      compile_function (HASH_VALUE (func_h, i));
+  DOHASH (func_h, i) compile_function (HASH_VALUE (func_h, i));
 
   /* Work around bug#46495 (GCC PR99126). */
 #if defined (WIDE_EMACS_INT)						\

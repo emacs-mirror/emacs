@@ -1285,15 +1285,9 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	{ /* Remove unnecessary objects, which appear only once in OBJ;
 	     that is, whose status is Qt.  */
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (Vprint_number_table);
-	  ptrdiff_t i;
-
-	  for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
-            {
-              Lisp_Object key =  HASH_KEY (h, i);
-	      if (!hash_unused_entry_key_p (key)
-		  && EQ (HASH_VALUE (h, i), Qt))
-	        Fremhash (key, Vprint_number_table);
-            }
+	  DOHASH (h, i)
+	    if (EQ (HASH_VALUE (h, i), Qt))
+	      Fremhash (HASH_KEY (h, i), Vprint_number_table);
 	}
     }
 

@@ -687,17 +687,13 @@ composition_gstring_cache_clear_font (Lisp_Object font_object)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
 
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+  DOHASH (h, i)
     {
       Lisp_Object k = HASH_KEY (h, i);
+      Lisp_Object gstring = HASH_VALUE (h, i);
 
-      if (!hash_unused_entry_key_p (k))
-	{
-	  Lisp_Object gstring = HASH_VALUE (h, i);
-
-	  if (EQ (LGSTRING_FONT (gstring), font_object))
-	    hash_remove_from_table (h, k);
-	}
+      if (EQ (LGSTRING_FONT (gstring), font_object))
+	hash_remove_from_table (h, k);
     }
 }
 

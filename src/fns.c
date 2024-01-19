@@ -5655,14 +5655,7 @@ FUNCTION is called with two arguments, KEY and VALUE.
   (Lisp_Object function, Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
-    {
-      Lisp_Object k = HASH_KEY (h, i);
-      if (!hash_unused_entry_key_p (k))
-        call2 (function, k, HASH_VALUE (h, i));
-    }
-
+  DOHASH (h, i) call2 (function, HASH_KEY (h, i), HASH_VALUE (h, i));
   return Qnil;
 }
 
