@@ -19802,7 +19802,7 @@ locally stored articles.
 @chapter Scoring
 @cindex scoring
 
-Other people use @dfn{kill files} (@pxref{Kill Files}, but we here at
+Other people use @dfn{kill files} (@pxref{Kill Files}), but we here at
 Gnus Towers like scoring better than killing, so we'd rather switch
 than fight.  Scoring and score files processing are more powerful and
 faster than processing of kill files.  Scoring also does something
