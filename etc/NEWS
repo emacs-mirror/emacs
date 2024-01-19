@@ -412,6 +412,10 @@ respectively, in addition to the existing translations 'C-x 8 / e' and
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
+---
+** Trace
+In batch mode, tracing now sends the trace to stdout.
+
 +++
 ** New command 'lldb'.
 Run the LLDB debugger, analogous to the 'gud-gdb' command.
