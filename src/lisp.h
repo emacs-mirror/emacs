@@ -2515,8 +2515,13 @@ struct Lisp_Hash_Table
   struct Lisp_Hash_Table *next_weak;
 } GCALIGNED_STRUCT;
 
+/* A specific Lisp_Object that is not a valid Lisp value.
+   We need to be careful not to leak this value into machinery
+   where it may be treated as one; we'd get a segfault if lucky.  */
+#define INVALID_LISP_VALUE make_lisp_ptr (NULL, Lisp_Float)
+
 /* Key value that marks an unused hash table entry.  */
-#define HASH_UNUSED_ENTRY_KEY Qunbound
+#define HASH_UNUSED_ENTRY_KEY INVALID_LISP_VALUE
 
 /* KEY is a key of an unused hash table entry.  */
 INLINE bool

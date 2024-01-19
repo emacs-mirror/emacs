@@ -1305,8 +1305,7 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	   || RECORDP (obj)))				   \
    || (! NILP (Vprint_gensym)				   \
        && SYMBOLP (obj)					   \
-       && !SYMBOL_INTERNED_P (obj)			   \
-       && !hash_unused_entry_key_p (obj)))
+       && !SYMBOL_INTERNED_P (obj)))
 
 /* The print preprocess stack, used to traverse data structures.  */
 
@@ -1392,6 +1391,9 @@ static void
 print_preprocess (Lisp_Object obj)
 {
   eassert (!NILP (Vprint_circle));
+  /* The ppstack may contain HASH_UNUSED_ENTRY_KEY which is an invalid
+     Lisp value.  Make sure that our filter stops us from traversing it.  */
+  eassert (!PRINT_CIRCLE_CANDIDATE_P (HASH_UNUSED_ENTRY_KEY));
   ptrdiff_t base_sp = ppstack.sp;
 
   for (;;)
@@ -1450,6 +1452,8 @@ print_preprocess (Lisp_Object obj)
 		    if (HASH_TABLE_P (obj))
 		      {
 			struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
+			/* The values pushed here may include
+			   HASH_UNUSED_ENTRY_KEY; see top of this function.  */
 			pp_stack_push_values (h->key_and_value,
 					      2 * h->table_size);
 		      }
