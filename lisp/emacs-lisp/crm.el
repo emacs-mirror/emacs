@@ -183,9 +183,10 @@ old `crm-separator' in the current minibuffer contents with REP.
 Interactively, prompt for SEP.  With a prefix argument, prompt
 for REP as well."
   (interactive
-   (let ((sep (read-regexp
-               (format-prompt "New separator" crm-current-separator)
-               crm-current-separator)))
+   (let* ((enable-recursive-minibuffers t)
+          (sep (read-regexp
+                (format-prompt "New separator" crm-current-separator)
+                crm-current-separator)))
      (list sep
            (when current-prefix-arg
              (read-string-matching sep "Replace existing separators with: "))))
