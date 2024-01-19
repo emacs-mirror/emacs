@@ -206,6 +206,10 @@ This function calls @var{function} once for each of the associations in
 @var{table}.  The function @var{function} should accept two
 arguments---a @var{key} listed in @var{table}, and its associated
 @var{value}.  @code{maphash} returns @code{nil}.
+
+@var{function} is allowed to call @code{puthash} to set a new value
+for @var{key} and @code{remhash} to remove @var{key}, but should not
+add, remove or modify other associations in @var{table}.
 @end defun
 
 @node Defining Hash
