@@ -325,6 +325,15 @@ to enable the displaying of status prefixes on the speaker nicks of
 incoming chat messages.  Prefixes on your speaker nick for outgoing
 chat messages continue to always be present.
 
+** Updating user options requires cycling associated minor modes.
+During a live ERC session, you may need to disable and re-enable a
+module's minor mode via 'M-x erc-foo-mode RET' or similar before an
+option's updated value takes effect.  This primarily impacts new
+options introduced by this release and existing ones whose behavior
+has changed in some way.  At present, ERC does not perform this step
+automatically on your behalf, even if a change was made in a
+'Custom-mode' buffer or via 'setopt'.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, fool visibility has become togglable with the new
@@ -387,8 +396,10 @@ when present, at depths beginning at 20 and ending below 80.  Of most
 interest to module authors is the new relative positioning of the
 first three, which have been rotated leftward with respect to their
 previous places in recent ERC versions (fill, button, match ,stamp).
+A similar designated range from -80 to -20 also exists and is home to
+the function 'erc-controls-highlight'.
 
-ERC also provisionally reserves the same depth interval for
+ERC also provisionally reserves the same depth intervals for
 'erc-insert-pre-hook' and possibly other, similar hooks, but will
 continue to modify non-ERC hooks locally whenever possible, especially
 in new code.

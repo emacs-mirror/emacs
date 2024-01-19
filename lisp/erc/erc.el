@@ -1278,8 +1278,8 @@ of `erc-insert-this' is t.
 
 ERC runs this hook with the buffer narrowed to the bounds of the
 inserted message plus a trailing newline.  Built-in modules place
-their hook members at depths between 20 and 80, with those from
-the stamp module always running last.  Use the functions
+their hook members in two depth ranges: the first between -80 and
+-20 and the second between 20 and 80.  Use the functions
 `erc-find-parsed-property' and `erc-get-parsed-vector' to locate
 and extract the `erc-response' object for the inserted message."
   :group 'erc-hooks
