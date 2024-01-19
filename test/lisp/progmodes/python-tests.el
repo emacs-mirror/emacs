@@ -660,6 +660,18 @@ r'\\x12 \123 \\n \\u1234 \\U00010348 \\N{Plus-Minus Sign}'"
      (3 . font-lock-string-face) (14)
      (16 . font-lock-string-face))))
 
+(ert-deftest python-font-lock-string-literal-concatenation ()
+  "Test for bug#45897."
+  (python-tests-assert-faces
+   "x = \"hello\"\"\"
+y = \"confused\""
+   '((1 . font-lock-variable-name-face) (2)
+     (3 . font-lock-operator-face) (4)
+     (5 . font-lock-string-face) (14)
+     (15 . font-lock-variable-name-face) (16)
+     (17 . font-lock-operator-face) (18)
+     (19 . font-lock-string-face))))
+
 
 ;;; Indentation
 
