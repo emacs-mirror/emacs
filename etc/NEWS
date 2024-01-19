@@ -810,6 +810,10 @@ candidates.
 This command, bound to 'C-l' in the minibuffer, restores the (partial)
 input that you last used for completion in the current minibuffer.
 
+*** New minor mode 'completions-auto-update-mode'.
+This global minor mode automatically updates the *Completions* buffer
+as you type in the minibuffer.
+
 +++
 *** New command 'crm-change-separator'.
 This command lets you change the separator that
