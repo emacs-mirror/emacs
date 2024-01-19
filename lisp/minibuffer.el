@@ -5445,10 +5445,11 @@ remove all current restrictions without prompting."
          desc-pred-alist
        (mapcar (lambda (desc)
                  (assoc desc desc-pred-alist))
-               (completing-read-multiple
-                (format-prompt "Remove completions restriction,s"
-                               (caar desc-pred-alist))
-                desc-pred-alist nil t nil nil (caar desc-pred-alist))))))
+               (let ((enable-recursive-minibuffers t))
+                   (completing-read-multiple
+                    (format-prompt "Remove completions restrictions"
+                                   (caar desc-pred-alist))
+                    desc-pred-alist nil t nil nil (caar desc-pred-alist)))))))
   (when completion-auto-help (minibuffer-completion-help))
   (when-let ((completions-buffer (and (not (minibuffer-narrow-completions-p))
                                       (get-buffer "*Completions*"))))
