@@ -948,12 +948,40 @@ Reference Manual}).
 The variable @code{completions-header-format} is a format spec string
 to control the informative line shown before the completions list of
 candidates, called the @dfn{completions heading line}.  Emacs
-substitutes @samp{%s}, @samp{%t} and @samp{%r} constructs that occur
-in this string with the number of completion candidates, the current
-completions sort order, and a description of the current completions
-restriction, respectively.  @xref{Narrow Completions}.  To suppress
-the display of the heading line, customize this variable to
-@code{nil}.  The string that is the value of this variable can have
+substitutes the following @samp{%}-constructs that occur in this
+string with information about the current completions:
+
+@table @samp
+@item %s
+The total number of completion candidates.
+
+@item %c
+The completion category prefixed with @samp{ } (e.g. @samp{ command}),
+or the empty string if the completion table does not specify a
+category.
+
+@item %t
+The completions sort order prefixed with @samp{, }
+(e.g. @samp{, sorted alphabetically}), or the empty string if using
+the default sort order.
+
+@item %r
+A description of the current completion restrictions prefixed with
+@samp{, } (e.g. @samp{, with property disabled}), or the empty string
+if there are no restrictions.  @xref{Narrow Completions}.
+@end table
+
+@noindent
+This option defaults to @samp{%s possible%c completions%t%r:}, so a
+possible heading line may be, for example:
+
+@example
+629 possible command completions, sorted alphabetically, matching "-mode$":
+@end example
+
+@noindent
+To suppress the display of the heading line, customize this variable
+to @code{nil}.  The string that is the value of this variable can have
 text properties to change the visual appearance of the heading line;
 some useful properties are @code{face} or @code{cursor-intangible}
 (@pxref{Special Properties,,Properties with Special Meanings, elisp,

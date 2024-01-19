@@ -824,6 +824,15 @@ completion styles for the current minibuffer.  See Info node
 "(emacs)Completion Styles" for more information about this new
 command, and completion styles in general.
 
++++
+*** The completions heading line now displays more information.
+In particular, the heading line now mentions the completions category,
+which you can use to customize completion behavior via
+'completion-category-overrides'.  As is Emacs 29, user option
+'completions-header-format' controls the format of the heading line,
+and you can now customize the face 'completions-heading' to control
+its appearance.
+
 ** Pcomplete
 
 ---

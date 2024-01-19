@@ -2290,16 +2290,25 @@ completions."
   :type 'boolean
   :version "28.1")
 
-(defcustom completions-header-format
-  (propertize "%s possible completions%t%r:\n" 'face 'shadow)
+(defcustom completions-header-format "%s possible%c completions%t%r:\n"
   "If non-nil, the format string for completions heading line.
 The heading line is inserted before the completions, and is
 intended to summarize the completions.  The format string may
-contain the sequences \"%s\", \"%t\" and \"%r\", which are
-substituted with the total count of possible completions, the
-current completions sort order, and a description of the current
-completions restriction.  If this option is nil, no heading line
-is shown."
+contain the sequences \"%s\", \"%c\", \"%t\" and \"%r\", which
+are substituted as follows:
+
+- \"%s\": the total count of possible completions.
+- \"%c\": the current completion category prefixed with \" \"
+  (e.g. \" command\"), or the empty string when the completion
+  table does not specify a category.
+- \"%t\": the current completions sort order prefixed with
+  \", \" (e.g. \", sorted alphabetically\"), or the empty string
+  when using the default sort order.
+- \"%r\": a description of the current completions restriction
+  prefixed with \", \" (e.g. \", with property disabled\"), or
+  the empty string when there are no restrictions.
+
+If this option is nil, no heading line is shown."
   :type '(choice (const :tag "No heading line" nil)
                  (string :tag "Format string for heading line"))
   :version "30.1")
@@ -2585,6 +2594,12 @@ when you select this sort order."
                 (choice string
                         (const :tag "No description" nil)))))
 
+(defvar completion-category nil
+  "The current completion category.")
+
+(defface completions-heading '((t :inherit shadow))
+  "Face for the completions headling line.")
+
 (defun display-completion-list (completions &optional common-substring group-fun)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
 Each element may be just a symbol or string
@@ -2631,14 +2646,20 @@ candidates."
                 (when (advice-function-member-p
                        #'reverse minibuffer-completions-sort-function)
                   ", reversed"))
-             "")))
+             ""))
+          (cat (if completion-category (format " %s" completion-category) "")))
       (with-current-buffer standard-output
         (goto-char (point-max))
         (if completions-header-format
-            (insert (format-spec completions-header-format
-                                 (list (cons ?s (length completions))
-                                       (cons ?t sort-desc)
-                                       (cons ?r pred-desc))))
+            (let ((heading
+                   (format-spec completions-header-format
+                                (list (cons ?s (length completions))
+                                      (cons ?t sort-desc)
+                                      (cons ?r pred-desc)
+                                      (cons ?c cat)))))
+              (add-face-text-property
+               0 (length heading) 'completions-heading t heading)
+              (insert heading))
           (unless completion-show-help
             ;; Ensure beginning-of-buffer isn't a completion.
             (insert (propertize "\n" 'face '(:height 0)))))
@@ -2925,6 +2946,7 @@ completions list."
              (aff-fun (completion-metadata-get all-md 'affixation-function))
              (sort-fun (completion-metadata-get all-md 'display-sort-function))
              (group-fun (completion-metadata-get all-md 'group-function))
+             (completion-category (completion-metadata-get all-md 'category))
              (mainbuf (current-buffer))
              ;; If the *Completions* buffer is shown in a new
              ;; window, mark it as softly-dedicated, so bury-buffer in
