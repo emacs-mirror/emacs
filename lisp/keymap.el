@@ -577,9 +577,15 @@ should be a MENU form as accepted by `easy-menu-define'.
           (let ((def (pop definitions)))
             (if (eq key :menu)
                 (easy-menu-define nil keymap "" def)
-              (if (member key seen-keys)
-                  (error "Duplicate definition for key: %S %s" key keymap)
-                (push key seen-keys))
+              (when (member key seen-keys)
+                ;; Since the keys can be computed dynamically, it can
+                ;; very well happen that we get duplicate definitions
+                ;; due to some unfortunate configuration rather than
+                ;; due to an actual bug.  While such duplicates are
+                ;; not desirable, they shouldn't prevent the users
+                ;; from getting their job done.
+                (message "Duplicate definition for key: %S %s" key keymap))
+              (push key seen-keys)
               (keymap-set keymap key def)))))
       keymap)))
 
