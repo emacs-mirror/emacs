@@ -24,7 +24,8 @@
 (require 'treesit)
 
 (ert-deftest typescript-ts-mode-test-indentation ()
-  (skip-unless (treesit-ready-p 'typescript))
+  (skip-unless (and (treesit-ready-p 'typescript)
+                    (treesit-ready-p 'tsx)))
   (ert-test-erts-file (ert-resource-file "indent.erts")))
 
 (provide 'typescript-ts-mode-tests)
