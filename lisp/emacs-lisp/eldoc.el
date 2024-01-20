@@ -312,9 +312,11 @@ Otherwise, it displays the message like `message' would."
                      (not (and (listp mode-line-format)
                                (assq 'eldoc-mode-line-string mode-line-format))))
 	    (setq mode-line-format
-		  (list "" '(eldoc-mode-line-string
-			     (" " eldoc-mode-line-string " "))
-			mode-line-format)))
+                  (funcall
+                   (if (listp mode-line-format) #'append #'list)
+                   (list "" '(eldoc-mode-line-string
+			      (" " eldoc-mode-line-string " ")))
+                   mode-line-format)))
           (setq eldoc-mode-line-string
                 (when (stringp format-string)
                   (apply #'format-message format-string args)))
