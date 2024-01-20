@@ -1,4 +1,4 @@
-# dirent_h.m4 serial 20
+# dirent_h.m4 serial 22
 dnl Copyright (C) 2008-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -32,14 +32,13 @@ AC_DEFUN_ONCE([gl_DIRENT_H],
 dnl Determine whether <dirent.h> needs to override the DIR type.
 AC_DEFUN_ONCE([gl_DIRENT_DIR],
 [
-  dnl Set DIR_HAS_FD_MEMBER if dirfd() works, i.e. not always returns -1,
-  dnl or has the __KLIBC__ workaround as in lib/dirfd.c.
+  dnl Set DIR_HAS_FD_MEMBER if dirfd() works, i.e. not always returns -1.
   dnl We could use the findings from gl_FUNC_DIRFD and gl_PREREQ_DIRFD, but
   dnl it's simpler since we know the affected platforms.
   AC_REQUIRE([AC_CANONICAL_HOST])
   case "$host_os" in
-    mingw*) DIR_HAS_FD_MEMBER=0 ;;
-    *)      DIR_HAS_FD_MEMBER=1 ;;
+    mingw* | windows* | os2*) DIR_HAS_FD_MEMBER=0 ;;
+    *)                        DIR_HAS_FD_MEMBER=1 ;;
   esac
   AC_SUBST([DIR_HAS_FD_MEMBER])
 ])

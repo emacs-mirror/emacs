@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 87
+# gnulib-common.m4 serial 90
 dnl Copyright (C) 2007-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -114,10 +114,14 @@ AC_DEFUN([gl_COMMON_BODY], [
 # define _GL_ATTR_warn_unused_result _GL_GNUC_PREREQ (3, 4)
 #endif
 
-/* Disable GCC -Wpedantic if using __has_c_attribute and this is not C23+.  */
-#if (defined __has_c_attribute && _GL_GNUC_PREREQ (4, 6) \
-     && (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) <= 201710)
-# pragma GCC diagnostic ignored "-Wpedantic"
+/* Use __has_c_attribute if available.  However, do not use with
+   pre-C23 GCC, which can issue false positives if -Wpedantic.  */
+#if (defined __has_c_attribute \
+     && ! (_GL_GNUC_PREREQ (4, 6) \
+           && (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) <= 201710))
+# define _GL_HAVE___HAS_C_ATTRIBUTE 1
+#else
+# define _GL_HAVE___HAS_C_ATTRIBUTE 0
 #endif
 
 /* Define if, in a function declaration, the attributes in bracket syntax
@@ -242,7 +246,7 @@ AC_DEFUN([gl_COMMON_BODY], [
    in C++ also: namespace, class, template specialization.  */
 #ifndef _GL_ATTRIBUTE_DEPRECATED
 # ifndef _GL_BRACKET_BEFORE_ATTRIBUTE
-#  ifdef __has_c_attribute
+#  if _GL_HAVE___HAS_C_ATTRIBUTE
 #   if __has_c_attribute (__deprecated__)
 #    define _GL_ATTRIBUTE_DEPRECATED [[__deprecated__]]
 #   endif
@@ -291,7 +295,7 @@ AC_DEFUN([gl_COMMON_BODY], [
 /* Applies to: Empty statement (;), inside a 'switch' statement.  */
 /* Always expands to something.  */
 #ifndef _GL_ATTRIBUTE_FALLTHROUGH
-# ifdef __has_c_attribute
+# if _GL_HAVE___HAS_C_ATTRIBUTE
 #  if __has_c_attribute (__fallthrough__)
 #   define _GL_ATTRIBUTE_FALLTHROUGH [[__fallthrough__]]
 #  endif
@@ -380,7 +384,7 @@ AC_DEFUN([gl_COMMON_BODY], [
 #   if !defined __apple_build_version__ && __clang_major__ >= 10
 #    define _GL_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
 #   endif
-#  elif defined __has_c_attribute
+#  elif _GL_HAVE___HAS_C_ATTRIBUTE
 #   if __has_c_attribute (__maybe_unused__)
 #    define _GL_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
 #   endif
@@ -411,7 +415,7 @@ AC_DEFUN([gl_COMMON_BODY], [
 #   if __clang_major__ >= 1000
 #    define _GL_ATTRIBUTE_NODISCARD [[__nodiscard__]]
 #   endif
-#  elif defined __has_c_attribute
+#  elif _GL_HAVE___HAS_C_ATTRIBUTE
 #   if __has_c_attribute (__nodiscard__)
 #    define _GL_ATTRIBUTE_NODISCARD [[__nodiscard__]]
 #   endif
@@ -466,11 +470,25 @@ AC_DEFUN([gl_COMMON_BODY], [
 /* _GL_ATTRIBUTE_NOTHROW declares that the function does not throw exceptions.
  */
 /* Applies to: functions.  */
+/* After a function's parameter list, this attribute must come first, before
+   other attributes.  */
 #ifndef _GL_ATTRIBUTE_NOTHROW
-# if _GL_HAS_ATTRIBUTE (nothrow) && !defined __cplusplus
-#  define _GL_ATTRIBUTE_NOTHROW __attribute__ ((__nothrow__))
+# if defined __cplusplus
+#  if _GL_GNUC_PREREQ (2, 8) || __clang_major >= 4
+#   if __cplusplus >= 201103L
+#    define _GL_ATTRIBUTE_NOTHROW noexcept (true)
+#   else
+#    define _GL_ATTRIBUTE_NOTHROW throw ()
+#   endif
+#  else
+#   define _GL_ATTRIBUTE_NOTHROW
+#  endif
 # else
-#  define _GL_ATTRIBUTE_NOTHROW
+#  if _GL_HAS_ATTRIBUTE (nothrow)
+#   define _GL_ATTRIBUTE_NOTHROW __attribute__ ((__nothrow__))
+#  else
+#   define _GL_ATTRIBUTE_NOTHROW
+#  endif
 # endif
 #endif
 
@@ -1056,6 +1074,7 @@ AC_DEFUN([gl_CC_GNULIB_WARNINGS],
     dnl -Wno-pedantic                         >= 4.8          >= 3.9
     dnl -Wno-sign-compare                     >= 3            >= 3.9
     dnl -Wno-sign-conversion                  >= 4.3          >= 3.9
+    dnl -Wno-tautological-out-of-range-compare  -             >= 3.9
     dnl -Wno-type-limits                      >= 4.3          >= 3.9
     dnl -Wno-undef                            >= 3            >= 3.9
     dnl -Wno-unsuffixed-float-constants       >= 4.5
@@ -1080,6 +1099,9 @@ AC_DEFUN([gl_CC_GNULIB_WARNINGS],
       #endif
       #if __GNUC__ + (__GNUC_MINOR__ >= 8) > 4 || (__clang_major__ + (__clang_minor__ >= 9) > 3)
       -Wno-pedantic
+      #endif
+      #if 3 < __clang_major__ + (9 <= __clang_minor__)
+      -Wno-tautological-constant-out-of-range-compare
       #endif
       #if __GNUC__ + (__GNUC_MINOR__ >= 3) > 4 || (__clang_major__ + (__clang_minor__ >= 9) > 3)
       -Wno-sign-conversion
@@ -1144,12 +1166,12 @@ AC_DEFUN([gl_PREPARE_CHECK_FUNCS_MACOS],
          if test $gl_cv_compiler_clang = yes; then
            dnl Test whether the compiler supports the option
            dnl '-Werror=unguarded-availability-new'.
-           save_ac_compile="$ac_compile"
+           saved_ac_compile="$ac_compile"
            ac_compile="$ac_compile -Werror=unguarded-availability-new"
            AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[]])],
              [gl_cv_compiler_check_future_option='-Werror=unguarded-availability-new'],
              [gl_cv_compiler_check_future_option=none])
-           ac_compile="$save_ac_compile"
+           ac_compile="$saved_ac_compile"
          else
            gl_cv_compiler_check_future_option=none
          fi
@@ -1197,14 +1219,14 @@ AC_DEFUN([gl_CHECK_FUNCS_CASE_FOR_MACOS],
          darwin*)
            if test "x$gl_cv_compiler_check_future_option" != "xnone"; then
              dnl Use a compile test, not a link test.
-             save_ac_compile="$ac_compile"
+             saved_ac_compile="$ac_compile"
              ac_compile="$ac_compile $gl_cv_compiler_check_future_option"
-             save_ac_compile_for_check_decl="$ac_compile_for_check_decl"
+             saved_ac_compile_for_check_decl="$ac_compile_for_check_decl"
              ac_compile_for_check_decl="$ac_compile_for_check_decl $gl_cv_compiler_check_future_option"
              unset [ac_cv_have_decl_][$1]
              AC_CHECK_DECL([$1], , , [$2])
-             ac_compile="$save_ac_compile"
-             ac_compile_for_check_decl="$save_ac_compile_for_check_decl"
+             ac_compile="$saved_ac_compile"
+             ac_compile_for_check_decl="$saved_ac_compile_for_check_decl"
              [ac_cv_func_][$1]="$[ac_cv_have_decl_][$1]"
              if test $[ac_cv_func_][$1] = yes; then
                [gl_cv_onwards_func_][$1]=yes

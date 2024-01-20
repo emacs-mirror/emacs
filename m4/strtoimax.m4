@@ -1,6 +1,5 @@
-# strtoimax.m4 serial 16
-dnl Copyright (C) 2002-2004, 2006, 2009-2024 Free Software Foundation,
-dnl Inc.
+# strtoimax.m4 serial 17
+dnl Copyright (C) 2002-2004, 2006, 2009-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -62,12 +61,12 @@ int main ()
          [gl_cv_func_strtoimax=yes],
          [gl_cv_func_strtoimax=no],
          [case "$host_os" in
-                    # Guess no on AIX 5.
-            aix5*)  gl_cv_func_strtoimax="guessing no" ;;
-                    # Guess yes on native Windows.
-            mingw*) gl_cv_func_strtoimax="guessing yes" ;;
-                    # Guess yes otherwise.
-            *)      gl_cv_func_strtoimax="guessing yes" ;;
+                               # Guess no on AIX 5.
+            aix5*)             gl_cv_func_strtoimax="guessing no" ;;
+                               # Guess yes on native Windows.
+            mingw* | windows*) gl_cv_func_strtoimax="guessing yes" ;;
+                               # Guess yes otherwise.
+            *)                 gl_cv_func_strtoimax="guessing yes" ;;
           esac
          ])
       ])

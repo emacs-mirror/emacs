@@ -44,42 +44,6 @@ fdopendir (int fd)
   return dirp;
 }
 
-# elif defined __KLIBC__
-
-#  include <InnoTekLIBC/backend.h>
-
-DIR *
-fdopendir (int fd)
-{
-  char path[_MAX_PATH];
-  DIR *dirp;
-
-  /* Get a path from fd */
-  if (__libc_Back_ioFHToPath (fd, path, sizeof (path)))
-    return NULL;
-
-  dirp = opendir (path);
-  if (!dirp)
-    return NULL;
-
-  /* Unregister fd registered by opendir() */
-  _gl_unregister_dirp_fd (dirfd (dirp));
-
-  /* Register our fd */
-  if (_gl_register_dirp_fd (fd, dirp))
-    {
-      int saved_errno = errno;
-
-      closedir (dirp);
-
-      errno = saved_errno;
-
-      dirp = NULL;
-    }
-
-  return dirp;
-}
-
 # else
 /* We are not in control of the file descriptor of a DIR, and therefore have to
    play tricks with file descriptors before and after a call to opendir().  */

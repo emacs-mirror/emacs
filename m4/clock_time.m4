@@ -1,4 +1,4 @@
-# clock_time.m4 serial 13
+# clock_time.m4 serial 14
 dnl Copyright (C) 2002-2006, 2009-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -32,7 +32,7 @@ AC_DEFUN([gl_CLOCK_TIME],
   CLOCK_TIME_LIB=
   AC_SUBST([CLOCK_TIME_LIB])
   case "$host_os" in
-    mingw*)
+    mingw* | windows*)
       ac_cv_func_clock_getres=no
       ac_cv_func_clock_gettime=no
       ac_cv_func_clock_settime=no

@@ -1,7 +1,7 @@
 /* Declaration of functions and data types used for MD5 sum computing
    library functions.
-   Copyright (C) 1995-1997, 1999-2001, 2004-2006, 2008-2024 Free
-   Software Foundation, Inc.
+   Copyright (C) 1995-1997, 1999-2001, 2004-2006, 2008-2024 Free Software
+   Foundation, Inc.
    This file is part of the GNU C Library.
 
    This file is free software: you can redistribute it and/or modify
@@ -32,7 +32,21 @@
 #  ifndef OPENSSL_API_COMPAT
 #   define OPENSSL_API_COMPAT 0x10101000L /* FIXME: Use OpenSSL 1.1+ API.  */
 #  endif
-#  include <openssl/md5.h>
+/* If <openssl/macros.h> would give a compile-time error, don't use OpenSSL.  */
+#  include <openssl/opensslv.h>
+#  if OPENSSL_VERSION_MAJOR >= 3
+#   include <openssl/configuration.h>
+#   if (OPENSSL_CONFIGURED_API \
+        < (OPENSSL_API_COMPAT < 0x900000L ? OPENSSL_API_COMPAT : \
+           ((OPENSSL_API_COMPAT >> 28) & 0xF) * 10000 \
+           + ((OPENSSL_API_COMPAT >> 20) & 0xFF) * 100 \
+           + ((OPENSSL_API_COMPAT >> 12) & 0xFF)))
+#    undef HAVE_OPENSSL_MD5
+#   endif
+#  endif
+#  if HAVE_OPENSSL_MD5
+#   include <openssl/md5.h>
+#  endif
 # endif
 
 #define MD5_DIGEST_SIZE 16
@@ -49,7 +63,11 @@
 
 #ifndef __THROW
 # if defined __cplusplus && (__GNUC_PREREQ (2,8) || __clang_major__ >= 4)
-#  define __THROW       throw ()
+#  if __cplusplus >= 201103L
+#   define __THROW      noexcept (true)
+#  else
+#   define __THROW      throw ()
+#  endif
 # else
 #  define __THROW
 # endif

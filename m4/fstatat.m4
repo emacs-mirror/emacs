@@ -1,4 +1,4 @@
-# fstatat.m4 serial 4
+# fstatat.m4 serial 5
 dnl Copyright (C) 2004-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -50,7 +50,7 @@ AC_DEFUN([gl_FUNC_FSTATAT],
     esac
 
     case $host_os in
-      solaris*)
+      darwin* | solaris*)
         REPLACE_FSTATAT=1 ;;
     esac
 

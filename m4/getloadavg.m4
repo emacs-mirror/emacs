@@ -1,13 +1,13 @@
 # Check for getloadavg.
 
-# Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2024 Free
-# Software Foundation, Inc.
+# Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2024 Free Software
+# Foundation, Inc.
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-#serial 12
+#serial 13
 
 # Autoconf defines AC_FUNC_GETLOADAVG, but that is obsolescent.
 # New applications should use gl_GETLOADAVG instead.
@@ -20,7 +20,7 @@ AC_DEFUN([gl_GETLOADAVG],
 # Persuade glibc <stdlib.h> to declare getloadavg().
 AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
 
-gl_save_LIBS=$LIBS
+gl_saved_LIBS=$LIBS
 
 # getloadavg is present in libc on glibc >= 2.2, Mac OS X, FreeBSD >= 2.0,
 # NetBSD >= 0.9, OpenBSD >= 2.0, Solaris >= 7.
@@ -81,12 +81,12 @@ if test $ac_cv_func_getloadavg != yes; then
    fi
 fi
 
-if test "x$gl_save_LIBS" = x; then
+if test "x$gl_saved_LIBS" = x; then
   GETLOADAVG_LIBS=$LIBS
 else
-  GETLOADAVG_LIBS=`echo "$LIBS" | sed "s!$gl_save_LIBS!!"`
+  GETLOADAVG_LIBS=`echo "$LIBS" | sed "s!$gl_saved_LIBS!!"`
 fi
-LIBS=$gl_save_LIBS
+LIBS=$gl_saved_LIBS
 
 AC_SUBST([GETLOADAVG_LIBS])dnl
 

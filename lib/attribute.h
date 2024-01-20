@@ -182,6 +182,8 @@
 
 /* The function does not throw exceptions.  */
 /* Applies to: functions.  */
+/* After a function's parameter list, this attribute must come first, before
+   other attributes.  */
 #define ATTRIBUTE_NOTHROW _GL_ATTRIBUTE_NOTHROW
 
 /* Do not inline the function.  */

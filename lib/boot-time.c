@@ -203,7 +203,14 @@ get_boot_time_uncached (struct timespec *p_boot_time)
     }
 #  endif
 
-# else /* old FreeBSD, OpenBSD, native Windows */
+# else /* Adélie Linux, old FreeBSD, OpenBSD, native Windows */
+
+#  if defined __linux__ && !defined __ANDROID__
+  /* Workaround for Adélie Linux:  */
+  get_linux_boot_time_fallback (&found_boot_time);
+  if (found_boot_time.tv_sec == 0)
+    get_linux_boot_time_final_fallback (&found_boot_time);
+#  endif
 
 #  if defined __OpenBSD__
   /* Workaround for OpenBSD:  */

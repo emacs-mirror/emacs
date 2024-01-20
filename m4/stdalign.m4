@@ -13,10 +13,10 @@ AC_DEFUN([gl_ALIGNASOF],
 [
   AC_CACHE_CHECK([for alignas and alignof],
     [gl_cv_header_working_stdalign_h],
-    [gl_save_CFLAGS=$CFLAGS
+    [gl_saved_CFLAGS=$CFLAGS
      for gl_working in "yes, keywords" "yes, <stdalign.h> macros"; do
       AS_CASE([$gl_working],
-        [*stdalign.h*], [CFLAGS="$gl_save_CFLAGS -DINCLUDE_STDALIGN_H"])
+        [*stdalign.h*], [CFLAGS="$gl_saved_CFLAGS -DINCLUDE_STDALIGN_H"])
       AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
           [[#include <stdint.h>
@@ -56,7 +56,7 @@ AC_DEFUN([gl_ALIGNASOF],
        [gl_cv_header_working_stdalign_h=$gl_working],
        [gl_cv_header_working_stdalign_h=no])
 
-      CFLAGS=$gl_save_CFLAGS
+      CFLAGS=$gl_saved_CFLAGS
       test "$gl_cv_header_working_stdalign_h" != no && break
      done])
 
@@ -112,7 +112,11 @@ AC_DEFUN([gl_ALIGNASOF],
 #     define _Alignof(type) alignof (type)
 #    else
       template <class __t> struct __alignof_helper { char __a; __t __b; };
-#     define _Alignof(type) offsetof (__alignof_helper<type>, __b)
+#     if (defined __GNUC__ && 4 <= __GNUC__) || defined __clang__
+#      define _Alignof(type) __builtin_offsetof (__alignof_helper<type>, __b)
+#     else
+#      define _Alignof(type) offsetof (__alignof_helper<type>, __b)
+#     endif
 #     define _GL_STDALIGN_NEEDS_STDDEF 1
 #    endif
 #   else

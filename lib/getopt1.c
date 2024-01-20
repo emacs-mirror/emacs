@@ -21,7 +21,7 @@
 # include <config.h>
 #endif
 
-#include "getopt.h"
+#include <getopt.h>
 #include "getopt_int.h"
 
 int

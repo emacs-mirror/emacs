@@ -22,6 +22,7 @@
 #include "acl.h"
 
 #include "acl-internal.h"
+#include "minmax.h"
 
 #if USE_ACL
 # if ! defined HAVE_ACL_FROM_MODE && defined HAVE_ACL_FROM_TEXT /* FreeBSD, IRIX, Tru64, Cygwin >= 2.5 */

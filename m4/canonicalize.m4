@@ -1,4 +1,4 @@
-# canonicalize.m4 serial 38
+# canonicalize.m4 serial 39
 
 dnl Copyright (C) 2003-2007, 2009-2024 Free Software Foundation, Inc.
 
@@ -66,8 +66,8 @@ AC_DEFUN([gl_CANONICALIZE_LGPL_SEPARATE],
   dnl available through the linker option '-loldnames'.
   AC_REQUIRE([AC_CANONICAL_HOST])
   case "$host_os" in
-    mingw*) ;;
-    *)      AC_CHECK_FUNCS([getcwd]) ;;
+    mingw* | windows*) ;;
+    *) AC_CHECK_FUNCS([getcwd]) ;;
   esac
 
   AC_REQUIRE([gl_DOUBLE_SLASH_ROOT])
@@ -158,16 +158,16 @@ AC_DEFUN([gl_FUNC_REALPATH_WORKS],
       esac
      ],
      [case "$host_os" in
-                       # Guess yes on glibc systems.
-        *-gnu* | gnu*) gl_cv_func_realpath_works="guessing yes" ;;
-                       # Guess 'nearly' on musl systems.
-        *-musl*)       gl_cv_func_realpath_works="guessing nearly" ;;
-                       # Guess no on Cygwin.
-        cygwin*)       gl_cv_func_realpath_works="guessing no" ;;
-                       # Guess no on native Windows.
-        mingw*)        gl_cv_func_realpath_works="guessing no" ;;
-                       # If we don't know, obey --enable-cross-guesses.
-        *)             gl_cv_func_realpath_works="$gl_cross_guess_normal" ;;
+                           # Guess yes on glibc systems.
+        *-gnu* | gnu*)     gl_cv_func_realpath_works="guessing yes" ;;
+                           # Guess 'nearly' on musl systems.
+        *-musl*)           gl_cv_func_realpath_works="guessing nearly" ;;
+                           # Guess no on Cygwin.
+        cygwin*)           gl_cv_func_realpath_works="guessing no" ;;
+                           # Guess no on native Windows.
+        mingw* | windows*) gl_cv_func_realpath_works="guessing no" ;;
+                           # If we don't know, obey --enable-cross-guesses.
+        *)                 gl_cv_func_realpath_works="$gl_cross_guess_normal" ;;
       esac
      ])
     rm -rf conftest.a conftest.l conftest.d

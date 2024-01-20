@@ -306,6 +306,8 @@ typedef gl_uint_fast32_t gl_uint_fast16_t;
    uintptr_t to avoid conflicting declarations of system functions like
    _findclose in <io.h>.  */
 # if !((defined __KLIBC__ && defined _INTPTR_T_DECLARED) \
+       || (defined __INTPTR_WIDTH__ \
+           && __INTPTR_WIDTH__ != (defined _WIN64 ? LLONG_WIDTH : LONG_WIDTH)) \
        || defined __MINGW32__)
 #  undef intptr_t
 #  undef uintptr_t

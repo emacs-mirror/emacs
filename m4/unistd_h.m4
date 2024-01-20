@@ -1,4 +1,4 @@
-# unistd_h.m4 serial 94
+# unistd_h.m4 serial 95
 dnl Copyright (C) 2006-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -234,6 +234,7 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   REPLACE_EXECVP=0;                  AC_SUBST([REPLACE_EXECVP])
   REPLACE_EXECVPE=0;                 AC_SUBST([REPLACE_EXECVPE])
   REPLACE_FACCESSAT=0;               AC_SUBST([REPLACE_FACCESSAT])
+  REPLACE_FCHDIR=0;                  AC_SUBST([REPLACE_FCHDIR])
   REPLACE_FCHOWNAT=0;                AC_SUBST([REPLACE_FCHOWNAT])
   REPLACE_FDATASYNC=0;               AC_SUBST([REPLACE_FDATASYNC])
   REPLACE_FTRUNCATE=0;               AC_SUBST([REPLACE_FTRUNCATE])

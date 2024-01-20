@@ -45,7 +45,8 @@
 #define _@GUARD_PREFIX@_STRING_H
 
 /* This file uses _GL_ATTRIBUTE_DEALLOC, _GL_ATTRIBUTE_MALLOC,
-   _GL_ATTRIBUTE_PURE, GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+   _GL_ATTRIBUTE_NOTHROW, _GL_ATTRIBUTE_PURE, GNULIB_POSIXCHECK,
+   HAVE_RAW_DECL_*.  */
 #if !_GL_CONFIG_H_INCLUDED
  #error "Please include config.h first."
 #endif
@@ -110,6 +111,28 @@
 # endif
 #endif
 
+/* _GL_ATTRIBUTE_NOTHROW declares that the function does not throw exceptions.
+ */
+#ifndef _GL_ATTRIBUTE_NOTHROW
+# if defined __cplusplus
+#  if (__GNUC__ + (__GNUC_MINOR__ >= 8) > 2) || __clang_major >= 4
+#   if __cplusplus >= 201103L
+#    define _GL_ATTRIBUTE_NOTHROW noexcept (true)
+#   else
+#    define _GL_ATTRIBUTE_NOTHROW throw ()
+#   endif
+#  else
+#   define _GL_ATTRIBUTE_NOTHROW
+#  endif
+# else
+#  if (__GNUC__ + (__GNUC_MINOR__ >= 3) > 3) || defined __clang__
+#   define _GL_ATTRIBUTE_NOTHROW __attribute__ ((__nothrow__))
+#  else
+#   define _GL_ATTRIBUTE_NOTHROW
+#  endif
+# endif
+#endif
+
 /* The __attribute__ feature is available in gcc versions 2.5 and later.
    The attribute __pure__ was added in gcc 2.96.  */
 #ifndef _GL_ATTRIBUTE_PURE
@@ -133,7 +156,7 @@
       && !(defined __cplusplus && defined GNULIB_NAMESPACE))
 /* We can't do '#define free rpl_free' here.  */
 #  if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
-_GL_EXTERN_C void rpl_free (void *) throw ();
+_GL_EXTERN_C void rpl_free (void *) _GL_ATTRIBUTE_NOTHROW;
 #  else
 _GL_EXTERN_C void rpl_free (void *);
 #  endif
@@ -148,7 +171,7 @@ _GL_EXTERN_C
      void __cdecl free (void *);
 #  else
 #   if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
-_GL_EXTERN_C void free (void *) throw ();
+_GL_EXTERN_C void free (void *) _GL_ATTRIBUTE_NOTHROW;
 #   else
 _GL_EXTERN_C void free (void *);
 #   endif
@@ -163,7 +186,7 @@ _GL_EXTERN_C
      void __cdecl free (void *);
 # else
 #  if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
-_GL_EXTERN_C void free (void *) throw ();
+_GL_EXTERN_C void free (void *) _GL_ATTRIBUTE_NOTHROW;
 #  else
 _GL_EXTERN_C void free (void *);
 #  endif
@@ -266,9 +289,12 @@ _GL_CXXALIAS_SYS_CAST2 (memchr,
 # if ((__GLIBC__ == 2 && __GLIBC_MINOR__ >= 10) && !defined __UCLIBC__) \
      && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4) \
          || defined __clang__)
-_GL_CXXALIASWARN1 (memchr, void *, (void *__s, int __c, size_t __n) throw ());
+_GL_CXXALIASWARN1 (memchr, void *,
+                   (void *__s, int __c, size_t __n)
+                   _GL_ATTRIBUTE_NOTHROW);
 _GL_CXXALIASWARN1 (memchr, void const *,
-                   (void const *__s, int __c, size_t __n) throw ());
+                   (void const *__s, int __c, size_t __n)
+                   _GL_ATTRIBUTE_NOTHROW);
 # elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (memchr);
 # endif
@@ -368,8 +394,12 @@ _GL_CXXALIAS_SYS_CAST2 (memrchr,
 # if ((__GLIBC__ == 2 && __GLIBC_MINOR__ >= 10) && !defined __UCLIBC__) \
      && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4) \
          || defined __clang__)
-_GL_CXXALIASWARN1 (memrchr, void *, (void *, int, size_t) throw ());
-_GL_CXXALIASWARN1 (memrchr, void const *, (void const *, int, size_t) throw ());
+_GL_CXXALIASWARN1 (memrchr, void *,
+                   (void *, int, size_t)
+                   _GL_ATTRIBUTE_NOTHROW);
+_GL_CXXALIASWARN1 (memrchr, void const *,
+                   (void const *, int, size_t)
+                   _GL_ATTRIBUTE_NOTHROW);
 # elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (memrchr);
 # endif
@@ -416,9 +446,12 @@ _GL_CXXALIAS_SYS_CAST2 (rawmemchr,
 # if ((__GLIBC__ == 2 && __GLIBC_MINOR__ >= 10) && !defined __UCLIBC__) \
      && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4) \
          || defined __clang__)
-_GL_CXXALIASWARN1 (rawmemchr, void *, (void *__s, int __c_in) throw ());
+_GL_CXXALIASWARN1 (rawmemchr, void *,
+                   (void *__s, int __c_in)
+                   _GL_ATTRIBUTE_NOTHROW);
 _GL_CXXALIASWARN1 (rawmemchr, void const *,
-                   (void const *__s, int __c_in) throw ());
+                   (void const *__s, int __c_in)
+                   _GL_ATTRIBUTE_NOTHROW);
 # else
 _GL_CXXALIASWARN (rawmemchr);
 # endif
@@ -538,9 +571,12 @@ _GL_CXXALIAS_SYS_CAST2 (strchrnul,
 # if ((__GLIBC__ == 2 && __GLIBC_MINOR__ >= 10) && !defined __UCLIBC__) \
      && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4) \
          || defined __clang__)
-_GL_CXXALIASWARN1 (strchrnul, char *, (char *__s, int __c_in) throw ());
+_GL_CXXALIASWARN1 (strchrnul, char *,
+                   (char *__s, int __c_in)
+                   _GL_ATTRIBUTE_NOTHROW);
 _GL_CXXALIASWARN1 (strchrnul, char const *,
-                   (char const *__s, int __c_in) throw ());
+                   (char const *__s, int __c_in)
+                   _GL_ATTRIBUTE_NOTHROW);
 # elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (strchrnul);
 # endif
@@ -576,10 +612,18 @@ _GL_CXXALIAS_MDA (strdup, char *, (char const *__s));
 #   undef strdup
 #  endif
 #  if (!@HAVE_DECL_STRDUP@ || __GNUC__ >= 11) && !defined strdup
+#   if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+_GL_FUNCDECL_SYS (strdup, char *,
+                  (char const *__s)
+                  _GL_ATTRIBUTE_NOTHROW
+                  _GL_ARG_NONNULL ((1))
+                  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE);
+#   else
 _GL_FUNCDECL_SYS (strdup, char *,
                   (char const *__s)
                   _GL_ARG_NONNULL ((1))
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE);
+#   endif
 #  endif
 _GL_CXXALIAS_SYS (strdup, char *, (char const *__s));
 # endif
@@ -587,10 +631,18 @@ _GL_CXXALIASWARN (strdup);
 #else
 # if __GNUC__ >= 11 && !defined strdup
 /* For -Wmismatched-dealloc: Associate strdup with free or rpl_free.  */
+#  if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+_GL_FUNCDECL_SYS (strdup, char *,
+                  (char const *__s)
+                  _GL_ATTRIBUTE_NOTHROW
+                  _GL_ARG_NONNULL ((1))
+                  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE);
+#  else
 _GL_FUNCDECL_SYS (strdup, char *,
                   (char const *__s)
                   _GL_ARG_NONNULL ((1))
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE);
+#  endif
 # endif
 # if defined GNULIB_POSIXCHECK
 #  undef strdup
@@ -659,10 +711,18 @@ _GL_FUNCDECL_RPL (strndup, char *,
 _GL_CXXALIAS_RPL (strndup, char *, (char const *__s, size_t __n));
 # else
 #  if !@HAVE_DECL_STRNDUP@ || (__GNUC__ >= 11 && !defined strndup)
+#   if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+_GL_FUNCDECL_SYS (strndup, char *,
+                  (char const *__s, size_t __n)
+                  _GL_ATTRIBUTE_NOTHROW
+                  _GL_ARG_NONNULL ((1))
+                  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE);
+#   else
 _GL_FUNCDECL_SYS (strndup, char *,
                   (char const *__s, size_t __n)
                   _GL_ARG_NONNULL ((1))
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE);
+#   endif
 #  endif
 _GL_CXXALIAS_SYS (strndup, char *, (char const *__s, size_t __n));
 # endif
@@ -670,10 +730,18 @@ _GL_CXXALIASWARN (strndup);
 #else
 # if __GNUC__ >= 11 && !defined strndup
 /* For -Wmismatched-dealloc: Associate strndup with free or rpl_free.  */
+#  if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+_GL_FUNCDECL_SYS (strndup, char *,
+                  (char const *__s, size_t __n)
+                  _GL_ATTRIBUTE_NOTHROW
+                  _GL_ARG_NONNULL ((1))
+                  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE);
+#  else
 _GL_FUNCDECL_SYS (strndup, char *,
                   (char const *__s, size_t __n)
                   _GL_ARG_NONNULL ((1))
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE);
+#  endif
 # endif
 # if defined GNULIB_POSIXCHECK
 #  undef strndup
@@ -742,9 +810,12 @@ _GL_CXXALIAS_SYS_CAST2 (strpbrk,
 # if ((__GLIBC__ == 2 && __GLIBC_MINOR__ >= 10) && !defined __UCLIBC__) \
      && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4) \
          || defined __clang__)
-_GL_CXXALIASWARN1 (strpbrk, char *, (char *__s, char const *__accept) throw ());
+_GL_CXXALIASWARN1 (strpbrk, char *,
+                   (char *__s, char const *__accept)
+                   _GL_ATTRIBUTE_NOTHROW);
 _GL_CXXALIASWARN1 (strpbrk, char const *,
-                   (char const *__s, char const *__accept) throw ());
+                   (char const *__s, char const *__accept)
+                   _GL_ATTRIBUTE_NOTHROW);
 # elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (strpbrk);
 # endif
@@ -852,9 +923,11 @@ _GL_CXXALIAS_SYS_CAST2 (strstr,
      && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4) \
          || defined __clang__)
 _GL_CXXALIASWARN1 (strstr, char *,
-                   (char *haystack, const char *needle) throw ());
+                   (char *haystack, const char *needle)
+                   _GL_ATTRIBUTE_NOTHROW);
 _GL_CXXALIASWARN1 (strstr, const char *,
-                   (const char *haystack, const char *needle) throw ());
+                   (const char *haystack, const char *needle)
+                   _GL_ATTRIBUTE_NOTHROW);
 # elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (strstr);
 # endif
@@ -903,9 +976,11 @@ _GL_CXXALIAS_SYS_CAST2 (strcasestr,
      && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4) \
          || defined __clang__)
 _GL_CXXALIASWARN1 (strcasestr, char *,
-                   (char *haystack, const char *needle) throw ());
+                   (char *haystack, const char *needle)
+                   _GL_ATTRIBUTE_NOTHROW);
 _GL_CXXALIASWARN1 (strcasestr, const char *,
-                   (const char *haystack, const char *needle) throw ());
+                   (const char *haystack, const char *needle)
+                   _GL_ATTRIBUTE_NOTHROW);
 # elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (strcasestr);
 # endif
@@ -1344,12 +1419,22 @@ _GL_WARN_ON_USE (strsignal, "strsignal is unportable - "
 #endif
 
 #if @GNULIB_STRVERSCMP@
-# if !@HAVE_STRVERSCMP@
+# if @REPLACE_STRVERSCMP@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   define strverscmp rpl_strverscmp
+#  endif
+_GL_FUNCDECL_RPL (strverscmp, int, (const char *, const char *)
+                                   _GL_ATTRIBUTE_PURE
+                                   _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (strverscmp, int, (const char *, const char *));
+# else
+#  if !@HAVE_STRVERSCMP@
 _GL_FUNCDECL_SYS (strverscmp, int, (const char *, const char *)
                                    _GL_ATTRIBUTE_PURE
                                    _GL_ARG_NONNULL ((1, 2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (strverscmp, int, (const char *, const char *));
+# endif
 _GL_CXXALIASWARN (strverscmp);
 #elif defined GNULIB_POSIXCHECK
 # undef strverscmp

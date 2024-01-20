@@ -1,6 +1,5 @@
-# strtoll.m4 serial 11
-dnl Copyright (C) 2002, 2004, 2006, 2008-2024 Free Software Foundation,
-dnl Inc.
+# strtoll.m4 serial 12
+dnl Copyright (C) 2002, 2004, 2006, 2008-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -45,7 +44,7 @@ AC_DEFUN([gl_FUNC_STRTOLL],
          [gl_cv_func_strtoll_works=no],
          [case "$host_os" in
                                 # Guess no on native Windows.
-            mingw*)             gl_cv_func_strtoll_works="guessing no" ;;
+            mingw* | windows*)  gl_cv_func_strtoll_works="guessing no" ;;
                                 # Guess no on glibc systems.
             *-gnu* | gnu*)      gl_cv_func_strtoll_works="guessing no" ;;
                                 # Guess no on musl systems.

@@ -1,6 +1,6 @@
-# serial 38
-dnl Copyright (C) 2002-2003, 2005-2007, 2009-2024 Free Software
-dnl Foundation, Inc.
+# serial 39
+dnl Copyright (C) 2002-2003, 2005-2007, 2009-2024 Free Software Foundation,
+dnl Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -264,9 +264,9 @@ main ()
          [gl_cv_func_working_mktime=yes],
          [gl_cv_func_working_mktime=no],
          [case "$host_os" in
-                    # Guess no on native Windows.
-            mingw*) gl_cv_func_working_mktime="guessing no" ;;
-            *)      gl_cv_func_working_mktime="$gl_cross_guess_normal" ;;
+                               # Guess no on native Windows.
+            mingw* | windows*) gl_cv_func_working_mktime="guessing no" ;;
+            *)                 gl_cv_func_working_mktime="$gl_cross_guess_normal" ;;
           esac
          ])
      fi
@@ -287,7 +287,7 @@ AC_DEFUN([gl_FUNC_MKTIME],
        with the algorithmic workarounds.])
   fi
   case "$host_os" in
-    mingw*)
+    mingw* | windows*)
       REPLACE_MKTIME=1
       AC_DEFINE([NEED_MKTIME_WINDOWS], [1],
         [Define if the compilation of mktime.c should define 'mktime'

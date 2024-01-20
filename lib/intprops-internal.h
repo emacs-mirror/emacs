@@ -20,6 +20,11 @@
 
 #include <limits.h>
 
+/* Pacify GCC 13.2 in some calls to _GL_EXPR_SIGNED.  */
+#if defined __GNUC__ && 4 < __GNUC__ + (3 <= __GNUC_MINOR__)
+# pragma GCC diagnostic ignored "-Wtype-limits"
+#endif
+
 /* Return a value with the common real type of E and V and the value of V.
    Do not evaluate E.  */
 #define _GL_INT_CONVERT(e, v) ((1 ? 0 : (e)) + (v))

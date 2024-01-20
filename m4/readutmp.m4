@@ -1,4 +1,4 @@
-# readutmp.m4 serial 30
+# readutmp.m4 serial 31
 dnl Copyright (C) 2002-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -18,7 +18,7 @@ AC_DEFUN([gl_READUTMP],
     if test $ac_cv_header_systemd_sd_login_h = yes; then
       AC_CACHE_CHECK([for libsystemd version >= 254],
         [gl_cv_lib_readutmp_systemd],
-        [gl_save_LIBS="$LIBS"
+        [gl_saved_LIBS="$LIBS"
          LIBS="$LIBS -lsystemd"
          AC_LINK_IFELSE(
            [AC_LANG_PROGRAM([[
@@ -31,7 +31,7 @@ AC_DEFUN([gl_READUTMP],
            ],
            [gl_cv_lib_readutmp_systemd=yes],
            [gl_cv_lib_readutmp_systemd=no])
-         LIBS="$gl_save_LIBS"
+         LIBS="$gl_saved_LIBS"
         ])
       if test $gl_cv_lib_readutmp_systemd = yes; then
         AC_DEFINE([READUTMP_USE_SYSTEMD], [1],

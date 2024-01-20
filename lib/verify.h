@@ -188,9 +188,9 @@ template <int w>
     _gl_verify_type<(R) ? 1 : -1>
 #elif defined _GL_HAVE__STATIC_ASSERT
 # define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
-    struct {                                   \
-      _Static_assert (R, DIAGNOSTIC);          \
-      int _gl_dummy;                          \
+    struct { \
+      _Static_assert (R, DIAGNOSTIC); \
+      int _gl_dummy; \
     }
 #else
 # define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
@@ -212,8 +212,8 @@ template <int w>
 #elif defined _GL_HAVE__STATIC_ASSERT
 # define _GL_VERIFY(R, DIAGNOSTIC, ...) _Static_assert (R, DIAGNOSTIC)
 #else
-# define _GL_VERIFY(R, DIAGNOSTIC, ...)                                \
-    extern int (*_GL_GENSYM (_gl_verify_function) (void))	       \
+# define _GL_VERIFY(R, DIAGNOSTIC, ...) \
+    extern int (*_GL_GENSYM (_gl_verify_function) (void)) \
       [_GL_VERIFY_TRUE (R, DIAGNOSTIC)]
 # if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
 #  pragma GCC diagnostic ignored "-Wnested-externs"

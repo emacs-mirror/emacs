@@ -1,4 +1,4 @@
-# pthread_sigmask.m4 serial 22
+# pthread_sigmask.m4 serial 23
 dnl Copyright (C) 2011-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -47,7 +47,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
           if test -n "$LIBMULTITHREAD"; then
             AC_CACHE_CHECK([for pthread_sigmask in $LIBMULTITHREAD],
               [gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD],
-              [gl_save_LIBS="$LIBS"
+              [gl_saved_LIBS="$LIBS"
                LIBS="$LIBS $LIBMULTITHREAD"
                AC_LINK_IFELSE(
                  [AC_LANG_PROGRAM(
@@ -58,7 +58,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
                  ],
                  [gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=yes],
                  [gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=no])
-               LIBS="$gl_save_LIBS"
+               LIBS="$gl_saved_LIBS"
               ])
             if test $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD = yes; then
               dnl pthread_sigmask is available with -pthread or -lpthread.
@@ -164,7 +164,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
     AC_CACHE_CHECK([whether pthread_sigmask returns error numbers],
       [gl_cv_func_pthread_sigmask_return_works],
       [
-        gl_save_LIBS="$LIBS"
+        gl_saved_LIBS="$LIBS"
         LIBS="$LIBS $PTHREAD_SIGMASK_LIB"
         AC_RUN_IFELSE(
           [AC_LANG_SOURCE([[
@@ -188,7 +188,7 @@ int main ()
                gl_cv_func_pthread_sigmask_return_works="guessing yes";;
            esac
           ])
-        LIBS="$gl_save_LIBS"
+        LIBS="$gl_saved_LIBS"
       ])
     case "$gl_cv_func_pthread_sigmask_return_works" in
       *no)
@@ -214,7 +214,7 @@ int main ()
           [dnl Link against $LIBMULTITHREAD, not only $PTHREAD_SIGMASK_LIB.
            dnl Otherwise we get a false positive on those platforms where
            dnl $gl_cv_func_pthread_sigmask_in_libc_works is "no".
-           gl_save_LIBS=$LIBS
+           gl_saved_LIBS=$LIBS
            LIBS="$LIBS $LIBMULTITHREAD"])
         AC_RUN_IFELSE(
           [AC_LANG_SOURCE([[
@@ -258,7 +258,7 @@ int main ()
           [:],
           [gl_cv_func_pthread_sigmask_unblock_works=no],
           [:])
-        m4_ifdef([gl_][THREADLIB], [LIBS=$gl_save_LIBS])
+        m4_ifdef([gl_][THREADLIB], [LIBS=$gl_saved_LIBS])
       ])
     case "$gl_cv_func_pthread_sigmask_unblock_works" in
       *no)

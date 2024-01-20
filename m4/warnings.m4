@@ -1,4 +1,4 @@
-# warnings.m4 serial 19
+# warnings.m4 serial 20
 dnl Copyright (C) 2008-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -26,13 +26,13 @@ case $gl_positive in
 esac
 m4_pushdef([gl_Positive], [$gl_positive])])dnl
 AC_CACHE_CHECK([whether _AC_LANG compiler handles $1], [gl_Warn], [
-  gl_save_compiler_FLAGS="$gl_Flags"
+  gl_saved_compiler_FLAGS="$gl_Flags"
   AS_VAR_APPEND(m4_defn([gl_Flags]),
     [" $gl_unknown_warnings_are_errors ]m4_defn([gl_Positive])["])
   AC_LINK_IFELSE([m4_default([$4], [AC_LANG_PROGRAM([[]])])],
                  [AS_VAR_SET([gl_Warn], [yes])],
                  [AS_VAR_SET([gl_Warn], [no])])
-  gl_Flags="$gl_save_compiler_FLAGS"
+  gl_Flags="$gl_saved_compiler_FLAGS"
 ])
 AS_VAR_IF(gl_Warn, [yes], [$2], [$3])
 m4_popdef([gl_Positive])dnl

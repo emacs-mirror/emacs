@@ -58,7 +58,7 @@
 
 /* On AIX 7.2, with xlc in 64-bit mode, <stddef.h> defines max_align_t to a
    type with alignment 4, but 'long' has alignment 8.  */
-#  if defined _AIX && defined __LP64__
+#  if defined _AIX && defined __LP64__ && !@HAVE_MAX_ALIGN_T@
 #   if !GNULIB_defined_max_align_t
 #    ifdef _MAX_ALIGN_T
 /* /usr/include/stddef.h has already defined max_align_t.  Override it.  */
@@ -101,9 +101,31 @@ typedef long max_align_t;
 #  ifndef _@GUARD_PREFIX@_STDDEF_H
 #   define _@GUARD_PREFIX@_STDDEF_H
 
-/* This file uses _Noreturn.  */
+/* This file uses _Noreturn, _GL_ATTRIBUTE_NOTHROW.  */
 #if !_GL_CONFIG_H_INCLUDED
  #error "Please include config.h first."
+#endif
+
+/* _GL_ATTRIBUTE_NOTHROW declares that the function does not throw exceptions.
+ */
+#ifndef _GL_ATTRIBUTE_NOTHROW
+# if defined __cplusplus
+#  if (__GNUC__ + (__GNUC_MINOR__ >= 8) > 2) || __clang_major >= 4
+#   if __cplusplus >= 201103L
+#    define _GL_ATTRIBUTE_NOTHROW noexcept (true)
+#   else
+#    define _GL_ATTRIBUTE_NOTHROW throw ()
+#   endif
+#  else
+#   define _GL_ATTRIBUTE_NOTHROW
+#  endif
+# else
+#  if (__GNUC__ + (__GNUC_MINOR__ >= 3) > 3) || defined __clang__
+#   define _GL_ATTRIBUTE_NOTHROW __attribute__ ((__nothrow__))
+#  else
+#   define _GL_ATTRIBUTE_NOTHROW
+#  endif
+# endif
 #endif
 
 /* Some platforms lack wchar_t.  */
@@ -178,7 +200,7 @@ extern
 _Noreturn
 void abort (void)
 #  if defined __cplusplus && (__GLIBC__ >= 2)
-throw ()
+_GL_ATTRIBUTE_NOTHROW
 #  endif
 ;
 #  define unreachable() abort ()

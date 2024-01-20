@@ -55,9 +55,32 @@
 #ifndef _@GUARD_PREFIX@_SYS_STAT_H
 #define _@GUARD_PREFIX@_SYS_STAT_H
 
-/* This file uses GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+/* This file uses _GL_ATTRIBUTE_NOTHROW, GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
 #if !_GL_CONFIG_H_INCLUDED
  #error "Please include config.h first."
+#endif
+
+
+/* _GL_ATTRIBUTE_NOTHROW declares that the function does not throw exceptions.
+ */
+#ifndef _GL_ATTRIBUTE_NOTHROW
+# if defined __cplusplus
+#  if (__GNUC__ + (__GNUC_MINOR__ >= 8) > 2) || __clang_major >= 4
+#   if __cplusplus >= 201103L
+#    define _GL_ATTRIBUTE_NOTHROW noexcept (true)
+#   else
+#    define _GL_ATTRIBUTE_NOTHROW throw ()
+#   endif
+#  else
+#   define _GL_ATTRIBUTE_NOTHROW
+#  endif
+# else
+#  if (__GNUC__ + (__GNUC_MINOR__ >= 3) > 3) || defined __clang__
+#   define _GL_ATTRIBUTE_NOTHROW __attribute__ ((__nothrow__))
+#  else
+#   define _GL_ATTRIBUTE_NOTHROW
+#  endif
+# endif
 #endif
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
@@ -65,6 +88,7 @@
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
+
 
 /* Before doing "#define mknod rpl_mknod" below, we need to include all
    headers that may declare mknod().  OS/2 kLIBC declares mknod() in
@@ -575,7 +599,11 @@ _GL_WARN_ON_USE (futimens, "futimens is not portable - "
 
 #if @GNULIB_GETUMASK@
 # if !@HAVE_GETUMASK@
+#  if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+_GL_FUNCDECL_SYS (getumask, mode_t, (void) _GL_ATTRIBUTE_NOTHROW);
+#  else
 _GL_FUNCDECL_SYS (getumask, mode_t, (void));
+#  endif
 # endif
 _GL_CXXALIAS_SYS (getumask, mode_t, (void));
 # if @HAVE_GETUMASK@

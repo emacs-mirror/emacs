@@ -231,8 +231,8 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
 
          The same bug occurs in Solaris 11.1 (Apr 2013).
 
-         FIXME: Simplify this for Linux in 2016 and for Solaris in
-         2024, when file system bugs are no longer common.  */
+         FIXME: Simplify this in 2024, when these file system bugs are
+         no longer common on Gnulib target platforms.  */
       if (adjustment_needed == 2)
         {
           if (fd < 0 ? stat (file, &st) : fstat (fd, &st))

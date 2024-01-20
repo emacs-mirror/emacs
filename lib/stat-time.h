@@ -52,11 +52,13 @@ extern "C" {
 #if _GL_WINDOWS_STAT_TIMESPEC || defined HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
 # if _GL_WINDOWS_STAT_TIMESPEC || defined TYPEOF_STRUCT_STAT_ST_ATIM_IS_STRUCT_TIMESPEC
 #  define STAT_TIMESPEC(st, st_xtim) ((st)->st_xtim)
+#  define STAT_TIMESPEC_OFFSETOF(st_xtim) offsetof (struct stat, st_xtim)
 # else
 #  define STAT_TIMESPEC_NS(st, st_xtim) ((st)->st_xtim.tv_nsec)
 # endif
 #elif defined HAVE_STRUCT_STAT_ST_ATIMESPEC_TV_NSEC
 # define STAT_TIMESPEC(st, st_xtim) ((st)->st_xtim##espec)
+# define STAT_TIMESPEC_OFFSETOF(st_xtim) offsetof (struct stat, st_xtim##espec)
 #elif defined HAVE_STRUCT_STAT_ST_ATIMENSEC
 # define STAT_TIMESPEC_NS(st, st_xtim) ((st)->st_xtim##ensec)
 #elif defined HAVE_STRUCT_STAT_ST_ATIM_ST__TIM_TV_NSEC
@@ -194,20 +196,21 @@ get_stat_birthtime (_GL_UNUSED struct stat const *st)
 }
 
 /* If a stat-like function returned RESULT, normalize the timestamps
-   in *ST, in case this platform suffers from the Solaris 11 bug where
+   in *ST, if this platform suffers from a macOS and Solaris bug where
    tv_nsec might be negative.  Return the adjusted RESULT, setting
    errno to EOVERFLOW if normalization overflowed.  This function
    is intended to be private to this .h file.  */
 _GL_STAT_TIME_INLINE int
 stat_time_normalize (int result, _GL_UNUSED struct stat *st)
 {
-#if defined __sun && defined STAT_TIMESPEC
+#if (((defined __APPLE__ && defined __MACH__) || defined __sun) \
+     && defined STAT_TIMESPEC_OFFSETOF)
   if (result == 0)
     {
       long int timespec_hz = 1000000000;
-      short int const ts_off[] = { offsetof (struct stat, st_atim),
-                                   offsetof (struct stat, st_mtim),
-                                   offsetof (struct stat, st_ctim) };
+      short int const ts_off[] = { STAT_TIMESPEC_OFFSETOF (st_atim),
+                                   STAT_TIMESPEC_OFFSETOF (st_mtim),
+                                   STAT_TIMESPEC_OFFSETOF (st_ctim) };
       int i;
       for (i = 0; i < sizeof ts_off / sizeof *ts_off; i++)
         {

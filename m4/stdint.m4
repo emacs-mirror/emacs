@@ -1,4 +1,4 @@
-# stdint.m4 serial 62
+# stdint.m4 serial 63
 dnl Copyright (C) 2001-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -286,10 +286,10 @@ static const char *macro_values[] =
               [gl_cv_header_working_stdint_h=yes],
               [],
               [case "$host_os" in
-                         # Guess yes on native Windows.
-                 mingw*) gl_cv_header_working_stdint_h="guessing yes" ;;
-                         # In general, assume it works.
-                 *)      gl_cv_header_working_stdint_h="guessing yes" ;;
+                                    # Guess yes on native Windows.
+                 mingw* | windows*) gl_cv_header_working_stdint_h="guessing yes" ;;
+                                    # In general, assume it works.
+                 *)                 gl_cv_header_working_stdint_h="guessing yes" ;;
                esac
               ])
          ])
