@@ -689,6 +689,9 @@ With optional CLEANUP, kill any associated buffers."
         (when-let (p (slot-value connection '-autoport-inferior)) (delete-process p))
         (funcall (jsonrpc--on-shutdown connection) connection)))))
 
+(defvar jsonrpc--in-process-filter nil
+  "Non-nil if inside `jsonrpc--process-filter'.")
+
 (cl-defun jsonrpc--process-filter (proc string)
   "Called when new data STRING has arrived for PROC."
   (when jsonrpc--in-process-filter
