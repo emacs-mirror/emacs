@@ -386,6 +386,16 @@ If nil, only \"> \" will be shown."
           (const "PART")
           (const "QUIT")
           (const "MODE")
+          (const :tag "Away notices (RPL_AWAY 301)" "301")
+          (const :tag "Self back notice (REP_UNAWAY 305)" "305")
+          (const :tag "Self away notice (REP_NOWAWAY 306)" "306")
+          (const :tag "Channel modes on join (RPL_CHANNELMODEIS 324)" "324")
+          (const :tag "Channel creation time (RPL_CREATIONTIME 329)" "329")
+          (const :tag "Channel no-topic on join (RPL_NOTOPIC 331)" "331")
+          (const :tag "Channel topic on join (RPL_TOPIC 332)" "332")
+          (const :tag "Topic author and time on join (RPL_TOPICWHOTIME 333)" "333")
+          (const :tag "Invitation success notice (RPL_INVITING 341)" "341")
+          (const :tag "Channel member names (353 RPL_NAMEREPLY)" "353")
           (repeat :inline t :tag "Others" (string :tag "IRC Message Type"))))
 
 (defcustom erc-hide-list nil
