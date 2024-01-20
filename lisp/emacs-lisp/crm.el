@@ -85,10 +85,27 @@
 
 (defvar crm-separator "[ \t]*,[ \t]*"
   "Separator regexp used for separating strings in `completing-read-multiple'.
-It should be a regexp that does not match the list of completion candidates.")
+It should be a regexp that does not match the list of completion candidates.
+
+This can also be a cons cell (REGEXP . CANONICAL), where REGEXP
+is the separator regexp used for matching input separators, and
+CANONICAL is a canonical separator string that Emacs uses when it
+inserts a separator for you.  If CANONICAL does not match REGEXP,
+it is ignored.  See also `crm-complete-and-insert-separator'.")
+
+(defvar crm-common-separators '(",")
+  "List of strings often used to separate multiple minibuffer inputs.
+
+See also `crm-complete-and-insert-separator'.")
 
 (defvar crm-current-separator nil
   "The value of `crm-separator' for the current minibuffer.")
+
+(defvar crm-canonical-separator nil
+  "Canonical separator for `completing-read-multiple'.
+
+This can either a string that matches `crm-current-separator', or
+nil when there is no canonical separator.")
 
 (defun crm-complete-and-exit ()
   "If all of the minibuffer elements are valid completions then exit.
@@ -96,7 +113,7 @@ All elements in the minibuffer must match.  If there is a mismatch, move point
 to the location of mismatch and do not exit.
 
 This function is modeled after `minibuffer-complete-and-exit'."
-  (interactive)
+  (interactive "" minibuffer-mode)
   (let ((bob (minibuffer--completion-prompt-end))
         (doexit t))
     (goto-char bob)
@@ -177,20 +194,91 @@ for REP as well."
     (goto-char (minibuffer-prompt-end))
     (while (re-search-forward crm-current-separator nil t)
       (replace-match rep t t)))
-  (setq crm-current-separator sep)
+  (setq crm-current-separator sep crm-canonical-separator rep)
   (when (get-buffer-window "*Completions*" 0)
     ;; Update *Completions* to avoid stale `completion-base-affixes'.
     (minibuffer-completion-help)))
 
+(defun crm-complete-and-insert-separator ()
+  "Complete partial inputs and then insert a new input separator.
+
+If `crm-canonical-separator' is non-nil and matches the regular
+expression `crm-current-separator', then this command uses
+`crm-canonical-separator' as the separator.  Otherwise, this
+command tries to find an appropriate separator by matching
+`crm-current-separator' against your current input and against
+the list of common separators in `crm-common-separators', and if
+that fails this command prompts you for the separator to use."
+  (interactive "" minibuffer-mode)
+  (let ((bob (minibuffer--completion-prompt-end))
+        (all-complete t)
+        (enable-recursive-minibuffers t))
+    ;; Establish a canonical separator string, so we can insert it.
+    (setq crm-canonical-separator
+          (or
+           ;; If `crm-canonical-separator' matches, use it.
+           (and (stringp crm-canonical-separator)
+                (string-match-p crm-current-separator
+                                crm-canonical-separator)
+                crm-canonical-separator)
+           ;; If there's some separator already, use that.
+           (and (save-excursion
+                  (goto-char bob)
+                  (re-search-forward crm-current-separator nil t))
+                (buffer-substring-no-properties (match-beginning 0)
+                                                (match-end 0)))
+           ;; If any common separator matches, use it.
+           (seq-some (lambda (sep)
+                       (and (string-match-p crm-current-separator sep)
+                            sep))
+                     crm-common-separators)
+           ;; Ask the user for help.
+           (read-string-matching crm-current-separator
+                                 "Separate inputs with: ")))
+    (while
+        (and all-complete
+             (let* ((beg (save-excursion
+                           (if (re-search-backward crm-current-separator bob t)
+                               (match-end 0)
+                             bob)))
+                    (end (copy-marker
+                          (save-excursion
+                            (if (re-search-forward crm-current-separator nil t)
+                                (match-beginning 0)
+                              (point-max)))
+                          t)))
+               (goto-char end)
+               (setq all-complete nil)
+               (completion-complete-and-exit
+                beg end (lambda () (setq all-complete t)))
+               (goto-char end)
+               (not (eobp)))
+             (looking-at crm-current-separator))
+      (when all-complete
+        (goto-char (match-end 0))))
+    (when all-complete
+      (if (looking-back crm-current-separator bob)
+          ;; Separator already present, show completion candidates.
+          (minibuffer-completion-help)
+        (insert crm-canonical-separator)))))
+
 (define-minor-mode completions-multi-mode
   "Minor mode for reading multiple strings in the minibuffer."
   :lighter (:eval
-            (propertize " Multi" 'help-echo
-                        (concat
-                         "Insert multiple inputs by separating them with \""
-                         (buffer-local-value 'crm-current-separator
-                                             completion-reference-buffer)
-                         "\""))))
+            (let ((canonical
+                   (buffer-local-value 'crm-canonical-separator
+                                       completion-reference-buffer)))
+              (propertize
+               (concat
+                " Multi"
+                (when canonical (concat "[" crm-canonical-separator "]")))
+               'help-echo
+               (concat
+                "Insert multiple inputs by separating them with \""
+                (or canonical
+                    (buffer-local-value 'crm-current-separator
+                                        completion-reference-buffer))
+                "\"")))))
 
 (defun crm-completion-setup ()
   "Enable `completions-multi-mode' in *Completions* buffer."
@@ -205,7 +293,8 @@ for REP as well."
 (defvar-keymap completing-read-multiple-mode-map
   :doc "Keymap for `completing-read-multiple-mode'."
   "<remap> <minibuffer-complete-and-exit>" #'crm-complete-and-exit
-  "C-x ," #'crm-change-separator)
+  "C-x ," #'crm-change-separator
+  "C-," #'crm-complete-and-insert-separator)
 
 (define-minor-mode completing-read-multiple-mode
   "Minor mode for reading multiple strings in the minibuffer."
@@ -235,7 +324,11 @@ contents of the minibuffer are \"alice,bob,eve\" and point is between
 
 This function returns a list of the strings that were read,
 with empty strings removed."
-  (let ((crm-current-separator crm-separator))
+  (let ((crm-current-separator
+         (if (consp crm-separator)
+             (car crm-separator)
+           crm-separator))
+        (crm-canonical-separator (cdr-safe crm-separator)))
     (split-string
      (minibuffer-with-setup-hook
          #'completing-read-multiple-mode

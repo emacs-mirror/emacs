@@ -1270,19 +1270,13 @@ The value of this variable is a regular expression that matches
 @code{completing-read-multiple} input separators.  By default, this is
 set to @samp{[ \t]*,[ \t]*}, which means that a comma, possibly
 surrounded by spaces or tabs, separates
-@code{completing-read-multiple} inputs.
+@code{completing-read-multiple} inputs.  You can also set this
+variable to a cons cell @code{(@var{regexp} . @var{canonical})}, where
+@var{regexp} is the regular expression for matching separators, and
+@var{canonical} is a ``canonical'' separator string that Emacs uses
+when it inserts a separator in behalf of the user.  If @var{canonical}
+does not match @var{regexp}, @var{canonical} is ignored.
 @end defvar
-
-@deffn Command crm-change-separator
-This command, bound to @kbd{C-x ,} in the minibuffer during
-@code{completing-read-multiple}, changes the current input separator.
-It prompts for a new separator regular expression, and sets the local
-value of @code{crm-separator} to that regular expression.  With a
-prefix argument, this command also prompts for a replacement string
-(that should match the new separator) and replaces all of the existing
-separators in the minibuffer with that replacement string.
-@end deffn
-
 
 @node Completion Commands
 @subsection Minibuffer Commands that Do Completion

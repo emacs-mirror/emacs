@@ -295,6 +295,7 @@ Completion
 * Completion Exit::     Completion and minibuffer text submission.
 * Completion Styles::   How completion matches are chosen.
 * Narrow Completions::  Restricting completion candidates.
+* Completion Multi::    Providing multiple inputs at once.
 * Completion Options::  Options for completion.
 
 Help

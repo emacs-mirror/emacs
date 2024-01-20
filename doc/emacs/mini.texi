@@ -293,6 +293,7 @@ Completion}.
 * Completion Exit::          Completion and minibuffer text submission.
 * Completion Styles::        How completion matches are chosen.
 * Narrow Completions::       Restricting completion candidates.
+* Completion Multi::         Providing multiple inputs at once.
 * Completion Options::       Options for completion.
 @end menu
 
@@ -489,8 +490,8 @@ there are.
 
 @kindex C-x / @r{(completion)}
 @findex minibuffer-set-completion-styles
-  @kbd{C-x /} (minibuffer-set-completion-styles) lets you set the
-completion styles for the current minibuffer.  @xref{Completion
+  @kbd{C-x /} (@code{minibuffer-set-completion-styles}) lets you set
+the completion styles for the current minibuffer.  @xref{Completion
 Styles}.  This command prompts you for a list of completion styles,
 and sets that list as the effective completion styles for following
 completion operations in the current minibuffer.  With a plain prefix
@@ -821,6 +822,62 @@ restriction to begin with, @kbd{C-x n w} removes it without prompting.
 If you invoke this command with a prefix argument (@kbd{C-u C-x n w}),
 it removes all restrictions without prompting, regardless of how many
 there are.
+
+@node Completion Multi
+@subsection Read and Complete Multiple Inputs
+
+@cindex multiple inputs, with completion
+  Some commands read @emph{multiple inputs} from the minibuffer at
+once. For example, @kbd{M-x describe-face} prompts you for @emph{one
+or more} face names, and displays a help buffer describing all given
+faces.  @xref{Faces}.  This works just like reading a single inputs,
+except that you can type several inputs in the minibuffer, separating
+them with @dfn{input separators}.  You can use completion to fill in
+the individual inputs, as usual.
+
+@cindex input separators, for reading multiple inputs
+@cindex separator pattern, for reading multiple inputs
+  The input separator is typically a comma (@samp{,}), so if a command
+@kbd{M-x foo} reads multiple inputs, and you type @kbd{bar,baz,spam
+@key{RET}} in the minibuffer, then @code{foo} gets a list of three
+inputs: @samp{bar}, @samp{baz} and @samp{spam}.  More generally, Emacs
+treats a part of your minibuffer input as an input separator when it
+matches the current @dfn{separator pattern}---a regular expression
+that may change from command to command.  The default separator
+pattern, which most commands use, matches a comma along with any
+surrounding spaces or tabs.  When reading multiple inputs, the
+@file{*Completions*} buffer displays the @samp{Multi} indicator in the
+mode line.  You can hover over that indicator with the mouse to get
+help about the current input separator pattern.
+
+  The following commands are available in the minibuffer while reading
+multiple inputs:
+
+@kindex C-x ,
+@findex crm-change-separator
+  @kbd{C-x ,} (@code{crm-change-separator}) prompts you for a regular
+expression, and sets the current input separator pattern to that
+regular expression.  Use this command if the default separator pattern
+is inconvenient or mistakes a part of your input to be a separator.
+With a prefix argument, that is if you type @kbd{C-u C-x ,}, this
+command also replaces all current input separators in the minibuffer
+with a new separator that you provide.
+
+@kindex C-,
+@findex crm-complete-and-insert-separator
+  @kbd{C-,} (@code{crm-complete-and-insert-separator}) completes
+partial inputs in the minibuffer, and then inserts a new input
+separator at the end of the minibuffer and puts point after it, for
+you to type another input.  In order to insert a separator for you,
+this command must get a hold of a string that matches the current
+separator pattern.  Some commands that read multiple inputs specify a
+so-called @dfn{canonical separator}, in which case @kbd{C-,} uses the
+canonical separator.  Otherwise, this command tries to find an
+appropriate separator by looking at your current input, and applying
+some heuristics that work for common separator patterns.  In case
+@code{C-,} cannot figure out which separator to insert by itself, it
+prompts you for a separator and remembers your choice as the canonical
+separator for the current minibuffer.
 
 @node Completion Options
 @subsection Completion Options

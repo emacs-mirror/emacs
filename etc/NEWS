@@ -822,6 +822,13 @@ strings.  'completing-read-multiple' binds 'C-x ,' to
 'crm-change-separator' in the minibuffer.
 
 +++
+*** New command 'crm-complete-and-insert-separator'.
+This command, bound to 'C-,' in 'completing-read-multiple'
+minibuffers, completes partial inputs that are already in the
+minibuffer, and inserts a new separator at the end of the minibuffer
+for you to insert a another input.
+
++++
 *** New command 'minibuffer-set-completion-styles'.
 This command, bound to 'C-x /' in the minibuffer, lets you set the
 completion styles for the current minibuffer.  See Info node
