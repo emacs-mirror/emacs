@@ -218,17 +218,11 @@ Na przykład C-u 4 C-v przewija ekran o 4 linie.
 To powinno było przewinąć ekran do góry o 8 linii. Jeśli chciałbyś
 przewinąć ekran w dół, to powinieneś podać argument przed poleceniem M-v.
 
-Jeśli pracujesz w systemie z okienkowym trybem graficznym, jak X11
-lub MS-Windows, to prawdopodobnie po lewej stronie okna Emacsa znajduje
-się prostokątny obszar nazywany po angielsku "scrollbar", a po polsku
-suwakiem. Za jego pomocą możesz przewijać tekst, używając do tego myszy.
+W środowisku graficznym, takim jak X lub Microsoft Windows, po jednej
+stronie okna Emacs znajdzie się długi prostokątny obszar, nazywany
+prowadnicą przewijacza.  Można przewijać treść, stukając myszą w prowadnicę.
 
->> Spróbuj nacisnąć środkowy klawisz myszy u góry podświetlonego
-   obszaru na suwaku. To powinno przewinąć tekst do miejsca
-   określonego przez wysokość, na której nacisnąłeś klawisz myszy.
-
->> Przesuń mysz do miejsca oddalonego od górnego końca suwaka o mniej
-   więcej trzy linie i naciśnij lewy klawisz myszy kilka razy.
+Można również używać kółeczka myszy do przewijania, jeśli jest dostępne.
 
 
 * GDY EMACS JEST ZABLOKOWANY
