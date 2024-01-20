@@ -287,7 +287,7 @@ Delete all windows in the selected frame except the selected window
 Delete the selected window and kill the buffer that was showing in it
 (@code{kill-buffer-and-window}).  The last character in this key
 sequence is a zero.
-@item M-x delete-windows-on @key{RET} @var{buffer} @key{RET}
+@item C-x w 0 @key{RET} @var{buffer} @key{RET}
 Delete windows showing the specified @var{buffer}.
 @item C-x ^
 Make selected window taller (@code{enlarge-window}).

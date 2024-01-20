@@ -1665,7 +1665,7 @@ no-node
 
 comment-end
 
-    Matches if text after point matches `treesit-comment-end'.
+    Matches if text after point matches `comment-end-skip'.
 
 catch-all
 

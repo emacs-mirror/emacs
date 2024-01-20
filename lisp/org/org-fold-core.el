@@ -433,7 +433,7 @@ Return nil when there is no matching folding spec."
   (org-fold-core-get-folding-spec-from-alias spec-or-alias))
 
 (defsubst org-fold-core--check-spec (spec-or-alias)
-  "Throw an error if SPEC-OR-ALIAS is not in `org-fold-core--spec-priority-list'."
+  "Throw an error if SPEC-OR-ALIAS is not in `org-fold-core-folding-spec-list'."
   (unless (org-fold-core-folding-spec-p spec-or-alias)
     (error "%s is not a valid folding spec" spec-or-alias)))
 

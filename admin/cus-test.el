@@ -146,7 +146,7 @@ Names should be as they appear in loaddefs.el.")
 
 (defvar cus-test-errors nil
   "List of problematic variables found by `cus-test-apropos'.
-Each element is (VARIABLE . PROBLEM); see `cus-test--format-problem'.")
+Each element is (VARIABLE . PROBLEM); see `cus-test--format-errors'.")
 
 (defvar cus-test-tested-variables nil
   "List of options tested by last call of `cus-test-apropos'.")

@@ -1275,7 +1275,7 @@ which see."
   (setq font-lock-multiline nil))
 
 (defun abbrev--possibly-save (query &optional arg)
-  "Hook function for use by `save-some-buffer-functions'.
+  "Hook function for use by `save-some-buffers-functions'.
 
 Maybe save abbrevs, and record whether we either saved them or asked to."
   ;; Query mode.

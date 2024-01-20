@@ -1109,7 +1109,7 @@ variable `term-input-autoexpand', and addition is controlled by the
 variable `term-input-ignoredups'.
 
 Input to, and output from, the subprocess can cause the window to scroll to
-the end of the buffer.  See variables `term-scroll-to-bottom-on-input',
+the end of the buffer.  See variables `term-scroll-snap-to-bottom',
 and `term-scroll-to-bottom-on-output'.
 
 If you accidentally suspend your process, use \\[term-continue-subjob]

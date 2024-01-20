@@ -1797,6 +1797,55 @@ If optional MARKER, return a marker instead"
 
 
 ;;; More helpers
+(defconst eglot--uri-path-allowed-chars
+  (let ((vec (copy-sequence url-path-allowed-chars)))
+    (aset vec ?: nil) ;; see github#639
+    vec)
+  "Like `url-path-allowed-chars' but more restrictive.")
+
+(defun eglot--path-to-uri (path)
+  "URIfy PATH."
+  (let ((truepath (file-truename path)))
+    (if (and (url-type (url-generic-parse-url path))
+             ;; It might be MS Windows path which includes a drive
+             ;; letter that looks like a URL scheme (bug#59338)
+             (not (and (eq system-type 'windows-nt)
+                       (file-name-absolute-p truepath))))
+        ;; Path is already a URI, so forward it to the LSP server
+        ;; untouched.  The server should be able to handle it, since
+        ;; it provided this URI to clients in the first place.
+        path
+      (concat "file://"
+              ;; Add a leading "/" for local MS Windows-style paths.
+              (if (and (eq system-type 'windows-nt)
+                       (not (file-remote-p truepath)))
+                  "/")
+              (url-hexify-string
+               ;; Again watch out for trampy paths.
+               (directory-file-name (file-local-name truepath))
+               eglot--uri-path-allowed-chars)))))
+
+(declare-function w32-long-file-name "w32proc.c" (fn))
+(defun eglot--uri-to-path (uri)
+  "Convert URI to file path, helped by `eglot--current-server'."
+  (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
+  (let* ((server (eglot-current-server))
+         (remote-prefix (and server (eglot--trampish-p server)))
+         (url (url-generic-parse-url uri)))
+    ;; Only parse file:// URIs, leave other URI untouched as
+    ;; `file-name-handler-alist' should know how to handle them
+    ;; (bug#58790).
+    (if (string= "file" (url-type url))
+        (let* ((retval (url-unhex-string (url-filename url)))
+               ;; Remove the leading "/" for local MS Windows-style paths.
+               (normalized (if (and (not remote-prefix)
+                                    (eq system-type 'windows-nt)
+                                    (cl-plusp (length retval)))
+                               (w32-long-file-name (substring retval 1))
+                             retval)))
+          (concat remote-prefix normalized))
+      uri)))
+
 (defun eglot--snippet-expansion-fn ()
   "Compute a function to expand snippets.
 Doubles as an indicator of snippet support."

@@ -1061,6 +1061,7 @@ revert it automatically if it has changed---provided the buffer itself
 is not modified.  (If you have edited the text, it would be wrong to
 discard your changes.)
 
+@kindex C-x x g
 @vindex revert-buffer-quick-short-answers
 @findex revert-buffer-quick
   The @kbd{C-x x g} keystroke is bound to the
