@@ -1346,12 +1346,13 @@ files and save the changes.
 
 +++
 ** 'M-TAB' now invokes 'completion-at-point' also in Text mode.
-Text mode no longer binds 'M-TAB' to 'ispell-complete-word', and
-instead this mode arranges for 'completion-at-point', globally bound
-to 'M-TAB', to perform word completion as well.  If you want 'M-TAB'
-to invoke 'ispell-complete-word', as it did in previous Emacs
-versions, customize the new user option
-'text-mode-meta-tab-ispell-complete-word' to non-nil.
+By default, Text mode no longer binds 'M-TAB' to
+'ispell-complete-word'.  Instead this mode arranges for
+'completion-at-point', globally bound to 'M-TAB', to perform word
+completion as well.  You can have Text mode bind 'M-TAB' to
+'ispell-complete-word' as it did in previous Emacs versions, or
+disable Ispell word completion in Text mode altogether, by customizing
+the new user option 'text-mode-ispell-word-completion'.
 
 ** 'pp' and 'pp-to-string' now always include a terminating newline.
 In the past they included a terminating newline in most cases but not all.

@@ -75,8 +75,15 @@
 Many other modes, such as `mail-mode' and `outline-mode', inherit
 all the commands defined in this map.")
 
-(defcustom text-mode-meta-tab-ispell-complete-word nil
-  "Whether M-TAB invokes `ispell-complete-word' in Text mode.
+(defcustom text-mode-ispell-word-completion 'completion-at-point
+  "How Text mode provides Ispell word completion.
+
+By default, this option is set to `completion-at-point', which
+means that Text mode adds an Ispell word completion function to
+`completion-at-point-functions'.  Any other non-nil value says to
+bind M-TAB directly to `ispell-complete-word' instead.  If this
+is nil, Text mode neither binds M-TAB to `ispell-complete-word'
+nor does it extend `completion-at-point-functions'.
 
 This user option only takes effect when you customize it in
 Custom or with `setopt', not with `setq'."
@@ -84,8 +91,9 @@ Custom or with `setopt', not with `setq'."
   :type 'boolean
   :version "30.1"
   :set (lambda (sym val)
-         (if (set sym val)
-	     (keymap-set text-mode-map "C-M-i" #'ispell-complete-word)
+         (if (and (set sym val)
+                  (not (eq val 'completion-at-point)))
+             (keymap-set text-mode-map "C-M-i" #'ispell-complete-word)
            (keymap-unset text-mode-map "C-M-i" t))))
 
 (easy-menu-define text-mode-menu text-mode-map
@@ -144,7 +152,8 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
   ;; Enable text conversion in this buffer.
   (setq-local text-conversion-style t)
   (add-hook 'context-menu-functions 'text-mode-context-menu 10 t)
-  (add-hook 'completion-at-point-functions #'ispell-completion-at-point 10 t))
+  (when (eq text-mode-ispell-word-completion 'completion-at-point)
+    (add-hook 'completion-at-point-functions #'ispell-completion-at-point 10 t)))
 
 (define-derived-mode paragraph-indent-text-mode text-mode "Parindent"
   "Major mode for editing text, with leading spaces starting a paragraph.
