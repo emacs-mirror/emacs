@@ -829,6 +829,12 @@ minibuffer, and inserts a new separator at the end of the minibuffer
 for you to insert a another input.
 
 +++
+*** Highlight 'completing-read-multiple' separators in the minibuffer.
+Emacs now highlights input separators when you provide multiple inputs
+in the minibuffer for 'completing-read-multiple'.  This highlighting
+uses the new 'crm-separator' face.
+
++++
 *** New command 'minibuffer-set-completion-styles'.
 This command, bound to 'C-x /' in the minibuffer, lets you set the
 completion styles for the current minibuffer.  See Info node

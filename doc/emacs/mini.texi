@@ -845,8 +845,12 @@ treats a part of your minibuffer input as an input separator when it
 matches the current @dfn{separator pattern}---a regular expression
 that may change from command to command.  The default separator
 pattern, which most commands use, matches a comma along with any
-surrounding spaces or tabs.  When reading multiple inputs, the
-@file{*Completions*} buffer displays the @samp{Multi} indicator in the
+surrounding spaces or tabs.
+
+@noindent
+When reading multiple inputs, Emacs highlights input separators in the
+minibuffer with the @code{crm-separator} face, and the
+@file{*Completions*} buffer displays the indicator @samp{Multi} in the
 mode line.  You can hover over that indicator with the mouse to get
 help about the current input separator pattern.
 

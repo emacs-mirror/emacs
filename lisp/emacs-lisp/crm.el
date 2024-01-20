@@ -191,11 +191,13 @@ for REP as well."
            (when current-prefix-arg
              (read-string-matching sep "Replace existing separators with: "))))
    minibuffer-mode)
-  (when rep
-    (goto-char (minibuffer-prompt-end))
-    (while (re-search-forward crm-current-separator nil t)
-      (replace-match rep t t)))
+  (save-excursion
+    (when rep
+      (goto-char (minibuffer-prompt-end))
+      (while (re-search-forward crm-current-separator nil t)
+        (replace-match rep t t))))
   (setq crm-current-separator sep crm-canonical-separator rep)
+  (crm-highlight-separators (minibuffer-prompt-end) (point-max))
   (when (get-buffer-window "*Completions*" 0)
     ;; Update *Completions* to avoid stale `completion-base-affixes'.
     (minibuffer-completion-help)))
@@ -291,6 +293,34 @@ that fails this command prompts you for the separator to use."
 (define-obsolete-variable-alias 'crm-local-must-match-map
   'completing-read-multiple-mode-map "30.1")
 
+(defface crm-separator
+  '((t :inherit minibuffer-prompt))
+  "Face for highlighting input separators in multi-input minibuffers."
+  :version "30.1")
+
+(defun crm-highlight-separators (beg end &optional _)
+  "Highlight current minibuffer input separators between BEG and END."
+  (let* ((bob (minibuffer-prompt-end))
+         (beg (or (save-excursion
+                    (goto-char beg)
+                    (re-search-backward crm-current-separator bob t))
+                  bob))
+         (end (or (save-excursion
+                    (goto-char end)
+                    (re-search-forward crm-current-separator nil t))
+                  (point-max)))
+         (ovs (seq-filter (lambda (ov) (overlay-get ov 'crm-separator))
+                          (overlays-in beg end))))
+    (mapc #'delete-overlay ovs)
+    (save-excursion
+      (goto-char beg)
+      (save-match-data
+        (while (re-search-forward crm-current-separator nil t)
+          (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
+            (overlay-put ov 'face 'crm-separator)
+            (overlay-put ov 'crm-separator t)
+            (overlay-put ov 'evaporate t)))))))
+
 (defvar-keymap completing-read-multiple-mode-map
   :doc "Keymap for `completing-read-multiple-mode'."
   "<remap> <minibuffer-complete-and-exit>" #'crm-complete-and-exit
@@ -299,10 +329,17 @@ that fails this command prompts you for the separator to use."
 
 (define-minor-mode completing-read-multiple-mode
   "Minor mode for reading multiple strings in the minibuffer."
-  :lighter nil
+  :interactive nil
   (if completing-read-multiple-mode
-      (add-hook 'completion-setup-hook #'crm-completion-setup 10 t)
-    (remove-hook 'completion-setup-hook #'crm-completion-setup t)))
+      (progn
+        (add-hook 'completion-setup-hook #'crm-completion-setup 10 t)
+        (add-hook 'after-change-functions #'crm-highlight-separators nil t)
+        (crm-highlight-separators (minibuffer-prompt-end) (point-max)))
+    (remove-hook 'completion-setup-hook #'crm-completion-setup t)
+    (remove-hook 'after-change-functions #'crm-highlight-separators t)
+    (mapc #'delete-overlay
+          (seq-filter (lambda (ov) (overlay-get ov 'crm-separator))
+                      (overlays-in (minibuffer-prompt-end) (point-max))))))
 
 ;;;###autoload
 (defun completing-read-multiple
