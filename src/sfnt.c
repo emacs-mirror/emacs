@@ -3767,29 +3767,6 @@ sfnt_multiply_divide_2 (struct sfnt_large_integer *ab,
   return q;
 }
 
-#endif
-
-/* Calculate (A * B) / C with no rounding and return the result, using
-   a 64 bit integer if necessary.  */
-
-static unsigned int
-sfnt_multiply_divide (unsigned int a, unsigned int b, unsigned int c)
-{
-#ifndef INT64_MAX
-  struct sfnt_large_integer temp;
-
-  sfnt_multiply_divide_1 (a, b, &temp);
-  return sfnt_multiply_divide_2 (&temp, c);
-#else
-  uint64_t temp;
-
-  temp = (uint64_t) a * (uint64_t) b;
-  return temp / c;
-#endif
-}
-
-#ifndef INT64_MAX
-
 /* Add the specified unsigned 32-bit N to the large integer
    INTEGER.  */
 
@@ -3806,6 +3783,50 @@ sfnt_large_integer_add (struct sfnt_large_integer *integer,
   *integer = number;
 }
 
+#endif /* !INT64_MAX */
+
+/* Calculate (A * B) / C with no rounding and return the result, using
+   a 64 bit integer if necessary.  */
+
+static unsigned int
+sfnt_multiply_divide (unsigned int a, unsigned int b, unsigned int c)
+{
+#ifndef INT64_MAX
+  struct sfnt_large_integer temp;
+
+  sfnt_multiply_divide_1 (a, b, &temp);
+  return sfnt_multiply_divide_2 (&temp, c);
+#else /* INT64_MAX */
+  uint64_t temp;
+
+  temp = (uint64_t) a * (uint64_t) b;
+  return temp / c;
+#endif /* !INT64_MAX */
+}
+
+/* Calculate (A * B) / C with rounding and return the result, using a
+   64 bit integer if necessary.  */
+
+static unsigned int
+sfnt_multiply_divide_rounded (unsigned int a, unsigned int b,
+			      unsigned int c)
+{
+#ifndef INT64_MAX
+  struct sfnt_large_integer temp;
+
+  sfnt_multiply_divide_1 (a, b, &temp);
+  sfnt_large_integer_add (&temp, c / 2);
+  return sfnt_multiply_divide_2 (&temp, c);
+#else /* INT64_MAX */
+  uint64_t temp;
+
+  temp = (uint64_t) a * (uint64_t) b + c / 2;
+  return temp / c;
+#endif /* !INT64_MAX */
+}
+
+#ifndef INT64_MAX
+
 /* Calculate (A * B) / C, rounding the result with a threshold of N.
    Use a 64 bit temporary.  */
 
@@ -3820,9 +3841,9 @@ sfnt_multiply_divide_round (unsigned int a, unsigned int b,
   return sfnt_multiply_divide_2 (&temp, c);
 }
 
-#endif /* INT64_MAX */
+#endif /* !INT64_MAX */
 
-/* The same as sfnt_multiply_divide, but handle signed values
+/* The same as sfnt_multiply_divide_rounded, but handle signed values
    instead.  */
 
 MAYBE_UNUSED static int
@@ -3841,8 +3862,8 @@ sfnt_multiply_divide_signed (int a, int b, int c)
   if (c < 0)
     sign = -sign;
 
-  return (sfnt_multiply_divide (abs (a), abs (b), abs (c))
-	  * sign);
+  return (sfnt_multiply_divide_rounded (abs (a), abs (b),
+					abs (c)) * sign);
 }
 
 /* Multiply the two 16.16 fixed point numbers X and Y.  Return the
@@ -3858,7 +3879,7 @@ sfnt_mul_fixed (sfnt_fixed x, sfnt_fixed y)
 
   /* This can be done quickly with int64_t.  */
   return product / (int64_t) 65536;
-#else
+#else /* !INT64_MAX */
   int sign;
 
   sign = 1;
@@ -3871,7 +3892,7 @@ sfnt_mul_fixed (sfnt_fixed x, sfnt_fixed y)
 
   return sfnt_multiply_divide (abs (x), abs (y),
 			       65536) * sign;
-#endif
+#endif /* INT64_MAX */
 }
 
 /* Multiply the two 16.16 fixed point numbers X and Y, with rounding
@@ -3888,7 +3909,7 @@ sfnt_mul_fixed_round (sfnt_fixed x, sfnt_fixed y)
 
   /* This can be done quickly with int64_t.  */
   return (product + round) / (int64_t) 65536;
-#else
+#else /* !INT64_MAX */
   int sign;
 
   sign = 1;
@@ -3901,7 +3922,7 @@ sfnt_mul_fixed_round (sfnt_fixed x, sfnt_fixed y)
 
   return sfnt_multiply_divide_round (abs (x), abs (y),
 				     32768, 65536) * sign;
-#endif
+#endif /* INT64_MAX */
 }
 
 /* Set the pen size to the specified point and return.  POINT will be
@@ -6542,7 +6563,7 @@ sfnt_mul_f26dot6_fixed (sfnt_f26dot6 x, sfnt_fixed y)
     sign = -sign;
 
   sfnt_multiply_divide_1 (abs (x), abs (y), &temp);
-  sfnt_large_integer_add (&temp, 32676);
+  sfnt_large_integer_add (&temp, 32768);
   return sfnt_multiply_divide_2 (&temp, 65536) * sign;
 #endif
 }
@@ -11137,6 +11158,11 @@ sfnt_interpret_shp (struct sfnt_interpreter *interpreter,
    ? interpreter->glyph_zone->x_points[p]	\
    : interpreter->glyph_zone->y_points[p])
 
+#define load_unscaled(p)				\
+  (opcode == 0x31					\
+   ? interpreter->glyph_zone->simple->x_coordinates[p]	\
+   : interpreter->glyph_zone->simple->y_coordinates[p])
+
 #define IUP_SINGLE_PAIR()						\
   /* Now make touch_start the first point before, i.e. the first	\
      touched point in this pair.  */					\
@@ -11186,23 +11212,40 @@ sfnt_interpret_shp (struct sfnt_interpreter *interpreter,
       if (position >= original_min_pos					\
 	  && position <= original_max_pos)				\
 	{								\
+	  /* Compute the ratio between the two touched point positions  \
+	     and the original position of the point being touched with  \
+	     positions from the unscaled outline, if at all		\
+	     possible.  */						\
+									\
+	  if (interpreter->glyph_zone->simple)				\
+	    {								\
+	      org_max_pos = load_unscaled (point_max);			\
+	      org_min_pos = load_unscaled (point_min);			\
+	      position = load_unscaled (i);				\
+	    }								\
+	  else								\
+	    {								\
+	      org_max_pos = original_max_pos;				\
+	      org_min_pos = original_min_pos;				\
+	    }								\
+									\
 	  /* Handle the degenerate case where original_min_pos and	\
 	     original_max_pos have not changed by placing the point in	\
 	     the middle.  */						\
-	  if (original_min_pos == original_max_pos)			\
+	  if (org_min_pos == org_max_pos)				\
 	    ratio = 077777;						\
 	  else								\
 	    /* ... preserve the ratio of i between min_pos and		\
 	       max_pos...  */						\
 	    ratio = sfnt_div_fixed ((sfnt_sub (position,		\
-					       original_min_pos)	\
+					       org_min_pos)		\
 				     * 1024),				\
-				    (sfnt_sub (original_max_pos,	\
-					       original_min_pos)	\
+				    (sfnt_sub (org_max_pos,		\
+					       org_min_pos)		\
 				     * 1024));				\
 									\
 	  delta = sfnt_sub (max_pos, min_pos);				\
-	  delta = sfnt_mul_fixed (ratio, delta);			\
+	  delta = sfnt_mul_fixed_round (ratio, delta);			\
 	  store_point (i, sfnt_add (min_pos, delta));			\
 	}								\
       else								\
@@ -11237,8 +11280,8 @@ sfnt_interpret_iup_1 (struct sfnt_interpreter *interpreter,
   size_t first_point;
   size_t point_min, point_max, i;
   sfnt_f26dot6 position, min_pos, max_pos, delta, ratio;
-  sfnt_f26dot6 original_max_pos;
-  sfnt_f26dot6 original_min_pos;
+  sfnt_f26dot6 original_max_pos, org_max_pos;
+  sfnt_f26dot6 original_min_pos, org_min_pos;
 
   /* Find the first touched point.  If none is found, simply
      return.  */
@@ -11324,6 +11367,7 @@ sfnt_interpret_iup_1 (struct sfnt_interpreter *interpreter,
 #undef load_point
 #undef store_point
 #undef load_original
+#undef load_unscaled
 
 /* Interpret an IUP (``interpolate untouched points'') instruction.
    INTERPRETER is the interpreter, and OPCODE is the instruction
