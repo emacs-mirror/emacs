@@ -1548,3 +1548,4 @@ VERY VERY LONG STRIN | VERY VERY LONG STRIN
     (ert-info ("Joined by bouncer to #foo, pal persent")
     (ert-info ("Joined by bouncer to #chan@foonet, pal persent")
     (ert-info ("Joined by bouncer to #chan@barnet, pal persent")
+.UE .
