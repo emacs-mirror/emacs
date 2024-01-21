@@ -1145,7 +1145,7 @@ XSYMBOL_WITH_POS (Lisp_Object a)
 }
 
 INLINE struct Lisp_Symbol * ATTRIBUTE_NO_SANITIZE_UNDEFINED
-(XBARE_SYMBOL) (Lisp_Object a)
+XBARE_SYMBOL (Lisp_Object a)
 {
   eassert (BARE_SYMBOL_P (a));
   intptr_t i = (intptr_t) XUNTAG (a, Lisp_Symbol, struct Lisp_Symbol);
@@ -1154,7 +1154,7 @@ INLINE struct Lisp_Symbol * ATTRIBUTE_NO_SANITIZE_UNDEFINED
 }
 
 INLINE struct Lisp_Symbol * ATTRIBUTE_NO_SANITIZE_UNDEFINED
-(XSYMBOL) (Lisp_Object a)
+XSYMBOL (Lisp_Object a)
 {
   eassert (SYMBOLP ((a)));
   if (!symbols_with_pos_enabled || BARE_SYMBOL_P (a))
