@@ -358,6 +358,8 @@ possibly_non_vc_files="
   admin/charsets/jisx2131-filter
   src/config.in
   exec/configure exec/config.h.in
+  exec/config.sub exec/config.guess
+  exec/install-sh
   leim/small-ja-dic-option
 "$(
   find admin doc etc lisp \
