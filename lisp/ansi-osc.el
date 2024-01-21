@@ -121,7 +121,8 @@ and `shell-dirtrack-mode'."
   (let ((url (url-generic-parse-url text)))
     (when (and (string= (url-type url) "file")
                (or (null (url-host url))
-                   (string= (url-host url) (system-name))))
+                   ;; Use `downcase' to match `url-generic-parse-url' behavior
+                   (string= (url-host url) (downcase (system-name)))))
       (ignore-errors
         (cd-absolute (url-unhex-string (url-filename url)))))))
 
