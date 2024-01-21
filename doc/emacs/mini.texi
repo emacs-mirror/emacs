@@ -830,7 +830,7 @@ there are.
   Some commands read @emph{multiple inputs} from the minibuffer at
 once. For example, @kbd{M-x describe-face} prompts you for @emph{one
 or more} face names, and displays a help buffer describing all given
-faces.  @xref{Faces}.  This works just like reading a single inputs,
+faces.  @xref{Faces}.  This works just like reading a single input,
 except that you can type several inputs in the minibuffer, separating
 them with @dfn{input separators}.  You can use completion to fill in
 the individual inputs, as usual.
