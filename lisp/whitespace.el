@@ -1774,10 +1774,10 @@ cleaning up these problems."
               (when has-bogus
                 (goto-char (point-max))
                 (insert (substitute-command-keys
-                         " Type `\\[whitespace-cleanup]'")
+                         " Type \\[whitespace-cleanup]")
                         " to cleanup the buffer.\n\n"
                         (substitute-command-keys
-                         " Type `\\[whitespace-cleanup-region]'")
+                         " Type \\[whitespace-cleanup-region]")
                         " to cleanup a region.\n\n"))
               (whitespace-display-window (current-buffer))))))
       has-bogus)))

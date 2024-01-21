@@ -164,7 +164,7 @@ documentation for the function `tempo-complete-tag' for more info.
   "Indicates if the tag collection needs to be rebuilt.")
 
 (defvar-local tempo-marks nil
-  "A list of marks to jump to with `\\[tempo-forward-mark]' and `\\[tempo-backward-mark]'.")
+  "A list of marks to jump to with \\[tempo-forward-mark] and \\[tempo-backward-mark].")
 
 (defvar-local tempo-match-finder "\\b\\([[:word:]]+\\)\\="
   "The regexp or function used to find the string to match against tags.
@@ -582,7 +582,7 @@ TAG-LIST is a symbol whose variable value is a tag list created with
 `tempo-add-tag'.
 
 COMPLETION-FUNCTION is an obsolete option for specifying an optional
-function or string that is used by `\\[tempo-complete-tag]' to find a
+function or string that is used by \\[tempo-complete-tag] to find a
 string to match the tag against.  It has the same definition as the
 variable `tempo-match-finder'.  In this version, supplying a
 COMPLETION-FUNCTION just sets `tempo-match-finder' locally."

@@ -3062,17 +3062,17 @@ the summary mode hooks are run.")
   "Major mode for reading articles.
 \\<gnus-summary-mode-map>
 Each line in this buffer represents one article.  To read an
-article, you can, for instance, type `\\[gnus-summary-next-page]'.  To move forwards
-and backwards while displaying articles, type `\\[gnus-summary-next-unread-article]' and `\\[gnus-summary-prev-unread-article]',
+article, you can, for instance, type \\[gnus-summary-next-page].  To move forwards
+and backwards while displaying articles, type \\[gnus-summary-next-unread-article] and \\[gnus-summary-prev-unread-article],
 respectively.
 
 You can also post articles and send mail from this buffer.  To
-follow up an article, type `\\[gnus-summary-followup]'.  To mail a reply to the author
-of an article, type `\\[gnus-summary-reply]'.
+follow up an article, type \\[gnus-summary-followup].  To mail a reply to the author
+of an article, type \\[gnus-summary-reply].
 
 There are approximately one gazillion commands you can execute in
 this buffer; read the Info manual for more
-information (`\\[gnus-info-find-node]').
+information (\\[gnus-info-find-node]).
 
 The following commands are available:
 

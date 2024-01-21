@@ -589,7 +589,7 @@ See `world-clock'."
 (defun world-clock ()
   "Display a world clock buffer with times in various time zones.
 The variable `world-clock-list' specifies which time zones to use.
-To turn off the world time display, go to the window and type `\\[quit-window]'."
+To turn off the world time display, go to the window and type \\[quit-window]."
   (interactive)
   (if-let ((buffer (get-buffer world-clock-buffer-name)))
       (pop-to-buffer buffer)

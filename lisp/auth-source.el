@@ -233,8 +233,8 @@ EPA/EPG set up, the file will be encrypted and decrypted
 automatically.  See Info node `(epa)Encrypting/decrypting gpg files'
 for details.
 
-It's best to customize this with `\\[customize-variable]' because the choices
-can get pretty complex."
+It's best to customize this with \\[customize-variable] because
+the choices can get pretty complex."
   :version "26.1" ; neither new nor changed default
   :type `(repeat :tag "Authentication Sources"
                  (choice

@@ -677,7 +677,7 @@ current (i.e., last displayed) category.
 
 In Todo mode just the category's unfinished todo items are shown
 by default.  The done items are hidden, but typing
-`\\[todo-toggle-view-done-items]' displays them below the todo
+\\[todo-toggle-view-done-items] displays them below the todo
 items.  With non-nil user option `todo-show-with-done' both todo
 and done items are always shown on visiting a category."
   (interactive "P\np")
@@ -3570,12 +3570,12 @@ categories display according to priority."
 
 In the initial display the lines of the table are numbered,
 indicating the current order of the categories when sequentially
-navigating through the todo file with `\\[todo-forward-category]'
-and `\\[todo-backward-category]'.  You can reorder the lines, and
-hence the category sequence, by typing `\\[todo-raise-category]'
-or `\\[todo-lower-category]' to raise or lower the category at
-point, or by typing `\\[todo-set-category-number]' and entering a
-number at the prompt or by typing `\\[todo-set-category-number]'
+navigating through the todo file with \\[todo-forward-category]
+and \\[todo-backward-category].  You can reorder the lines, and
+hence the category sequence, by typing \\[todo-raise-category]
+or \\[todo-lower-category] to raise or lower the category at
+point, or by typing \\[todo-set-category-number] and entering a
+number at the prompt or by typing \\[todo-set-category-number]
 with a numeric prefix.  If you save the todo file after
 reordering the categories, the new order persists in subsequent
 Emacs sessions.
@@ -3584,8 +3584,8 @@ The labels above the category names and item counts are buttons,
 and clicking these changes the display: sorted by category name
 or by the respective item counts (alternately descending or
 ascending).  In these displays the categories are not numbered
-and `\\[todo-set-category-number]', `\\[todo-raise-category]' and
-`\\[todo-lower-category]' are disabled.  (Programmatically, the
+and \\[todo-set-category-number], \\[todo-raise-category] and
+\\[todo-lower-category] are disabled.  (Programmatically, the
 sorting is triggered by passing a non-nil SORTKEY argument.)
 
 In addition, the lines with the category names and item counts
@@ -4065,8 +4065,8 @@ face."
 (defcustom todo-top-priorities-overrides nil
   "List of rules specifying number of top priority items to show.
 These rules override `todo-top-priorities' on invocations of
-`\\[todo-filter-top-priorities]' and
-`\\[todo-filter-top-priorities-multifile]'.  Each rule is a list
+\\[todo-filter-top-priorities] and
+\\[todo-filter-top-priorities-multifile].  Each rule is a list
 of the form (FILE NUM ALIST), where FILE is a member of
 `todo-files', NUM is a number specifying the default number of
 top priority items for each category in that file, and ALIST,
@@ -4075,8 +4075,8 @@ number specifying the default number of top priority items in
 that category, which overrides NUM.
 
 This variable should be set interactively by
-`\\[todo-set-top-priorities-in-file]' or
-`\\[todo-set-top-priorities-in-category]'."
+\\[todo-set-top-priorities-in-file] or
+\\[todo-set-top-priorities-in-category]."
   :type 'sexp
   :group 'todo-filtered)
 

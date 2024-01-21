@@ -282,13 +282,13 @@ Value is nil, t, or a function.
 
 If nil, default to literal searches (note that `case-fold-search'
 and `isearch-lax-whitespace' may still be applied).\\<isearch-mode-map>
-If t, default to regexp searches (as if typing `\\[isearch-toggle-regexp]' during
+If t, default to regexp searches (as if typing \\[isearch-toggle-regexp] during
 isearch).
 
 If a function, use that function as an `isearch-regexp-function'.
 Example functions (and the keys to toggle them during isearch)
-are `word-search-regexp' \(`\\[isearch-toggle-word]'), `isearch-symbol-regexp'
-\(`\\[isearch-toggle-symbol]'), and `char-fold-to-regexp' \(`\\[isearch-toggle-char-fold]')."
+are `word-search-regexp' \(\\[isearch-toggle-word]), `isearch-symbol-regexp'
+\(\\[isearch-toggle-symbol]), and `char-fold-to-regexp' \(\\[isearch-toggle-char-fold])."
   ;; :type is set below by `isearch-define-mode-toggle'.
   :type '(choice (const :tag "Literal search" nil)
                  (const :tag "Regexp search" t)

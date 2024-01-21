@@ -1767,7 +1767,7 @@ If no fileset name is provided, prompt for NAME."
       (add-to-list 'filesets-data (list name '(:files)))
       (message
        (substitute-command-keys
-        "Fileset %s created.  Call `\\[filesets-save-config]' to save.")
+        "Fileset %s created.  Call \\[filesets-save-config] to save.")
        name)
       (car filesets-data))))))
     (if entry

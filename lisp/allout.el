@@ -6195,7 +6195,7 @@ for details on preparing Emacs for automatic allout activation."
       (allout-open-topic 2)
       (insert (substitute-command-keys
                (concat "Dummy outline topic header -- see"
-                       " `allout-mode' docstring: `\\[describe-mode]'.")))
+                       " `allout-mode' docstring: \\[describe-mode]")))
       (allout-adjust-file-variable
        "allout-layout" (or allout-layout '(-1 : 0))))))
 ;;;_   > allout-file-vars-section-data ()

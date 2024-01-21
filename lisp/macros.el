@@ -197,7 +197,7 @@ For example, in Usenet articles, sections of text quoted from another
 author are indented, or have each line start with `>'.  To quote a
 section of text, define a keyboard macro which inserts `>', put point
 and mark at opposite ends of the quoted section, and use
-`\\[apply-macro-to-region-lines]' to mark the entire section.
+\\[apply-macro-to-region-lines] to mark the entire section.
 
 Suppose you wanted to build a keyword table in C where each entry
 looked like this:
@@ -219,7 +219,7 @@ and write a macro to massage a word into a table entry:
     \\C-x )
 
 and then select the region of un-tablified names and use
-`\\[apply-macro-to-region-lines]' to build the table from the names."
+\\[apply-macro-to-region-lines] to build the table from the names."
   (interactive "r")
   (or macro
       (progn

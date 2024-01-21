@@ -3102,7 +3102,7 @@ instead."
 LIBRARY should be a relative file name of the library, a string.
 It can omit the suffix (a.k.a. file-name extension) if NOSUFFIX is
 nil (which is the default, see below).
-This command searches the directories in `load-path' like `\\[load-library]'
+This command searches the directories in `load-path' like \\[load-library]
 to find the file that `\\[load-library] RET LIBRARY RET' would load.
 Optional second arg NOSUFFIX non-nil means don't add suffixes `load-suffixes'
 to the specified name LIBRARY.

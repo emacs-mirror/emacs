@@ -124,9 +124,9 @@ from `kmacro-edit-lossage'."
 (defun edit-kbd-macro (keys &optional prefix finish-hook store-hook)
   "Edit a keyboard macro.
 At the prompt, type any key sequence which is bound to a keyboard macro.
-Or, type `\\[kmacro-end-and-call-macro]' or \\`RET' to edit the last
-keyboard macro, `\\[view-lossage]' to edit the last 300
-keystrokes as a keyboard macro, or `\\[execute-extended-command]'
+Or, type \\[kmacro-end-and-call-macro] or \\`RET' to edit the last
+keyboard macro, \\[view-lossage] to edit the last 300
+keystrokes as a keyboard macro, or \\[execute-extended-command]
 to edit a macro by its command name.
 With a prefix argument, format the macro in a more concise way."
   (interactive

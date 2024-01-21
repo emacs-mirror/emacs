@@ -413,8 +413,8 @@ being able to use 144 or 216 lines instead of the normal 72... (your
 mileage may vary).
 
 To split one large window into two side-by-side windows, the commands
-`\\[split-window-right]' or \
-`\\[follow-delete-other-windows-and-split]' can be used.
+\\[split-window-right] or \
+\\[follow-delete-other-windows-and-split] can be used.
 
 Only windows displayed in the same frame follow each other.
 

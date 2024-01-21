@@ -416,7 +416,7 @@ When called interactively prompt for MARK;  RET remove all marks."
 
 (defun Buffer-menu-delete (&optional arg)
   "Mark the buffer on this Buffer Menu buffer line for deletion.
-A subsequent \\<Buffer-menu-mode-map>`\\[Buffer-menu-execute]' command
+A subsequent \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command \
 will delete it.
 
 If prefix argument ARG is non-nil, it specifies the number of
@@ -437,16 +437,16 @@ buffers to delete; a negative ARG means to delete backwards."
 
 (defun Buffer-menu-delete-backwards (&optional arg)
   "Mark the buffer on this Buffer Menu line for deletion, and move up.
-A subsequent \\<Buffer-menu-mode-map>`\\[Buffer-menu-execute]'
-command will delete the marked buffer.  Prefix ARG means move
-that many lines."
+A subsequent \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command \
+will delete the marked buffer.  Prefix ARG
+ means move that many lines."
   (interactive "p" Buffer-menu-mode)
   (Buffer-menu-delete (- (or arg 1))))
 
 (defun Buffer-menu-save ()
   "Mark the buffer on this Buffer Menu line for saving.
-A subsequent \\<Buffer-menu-mode-map>`\\[Buffer-menu-execute]' command
-will save it."
+A subsequent \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] \
+command will save it."
   (interactive nil Buffer-menu-mode)
   (when (Buffer-menu-buffer)
     (tabulated-list-set-col 2 "S" t)
@@ -463,8 +463,8 @@ it as modified."
 
 (defun Buffer-menu-execute ()
   "Save and/or delete marked buffers in the Buffer Menu.
-Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-save]' are saved.
-Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-delete]' are deleted."
+Buffers marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-save] are saved.
+Buffers marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-delete] are deleted."
   (interactive nil Buffer-menu-mode)
   (save-excursion
     (Buffer-menu-beginning)
@@ -492,7 +492,7 @@ Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-delete]' are deleted
 
 (defun Buffer-menu-select ()
   "Select this line's buffer; also, display buffers marked with `>'.
-You can mark buffers with the \\<Buffer-menu-mode-map>`\\[Buffer-menu-mark]' command.
+You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] command.
 
 This command deletes and replaces all the previously existing windows
 in the selected frame, and will remove any marks."

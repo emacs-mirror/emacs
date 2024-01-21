@@ -75,7 +75,7 @@ The codes are given in the following order:
 Je/sli czytasz ten tekst, to albo przegl/adasz plik /xr/od/lowy
 biblioteki `ogonek.el', albo wywo/la/le/s polecenie `ogonek-jak'.
 W drugim przypadku mo/zesz usun/a/c tekst z ekranu, stosuj/ac
-polecenie `\\[kill-buffer]'.
+polecenie \\[kill-buffer].
 
 Niniejsza biblioteka dostarcza funkcji do zmiany kodowania polskich
 znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
@@ -174,7 +174,7 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
 
 If you read this text then you are either looking at the library's
 source text or you have called the `ogonek-how' command.  In the
-latter case you may remove this text using `\\[kill-buffer]'.
+latter case you may remove this text using \\[kill-buffer].
 
 The library provides functions for changing the encoding of Polish
 diacritic characters, the ones with an `ogonek' below or above them.

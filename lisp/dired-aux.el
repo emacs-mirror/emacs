@@ -1467,7 +1467,7 @@ With a prefix argument, kill that many lines starting with the current line.
 (defun dired-do-kill-lines (&optional arg fmt init-count)
   "Remove all marked lines, or the next ARG lines.
 The files or directories on those lines are _not_ deleted.  Only the
-Dired listing is affected.  To restore the removals, use `\\[revert-buffer]'.
+Dired listing is affected.  To restore the removals, use \\[revert-buffer].
 
 With a numeric prefix arg, remove that many lines going forward,
 starting with the current line.  (A negative prefix arg removes lines
@@ -2871,7 +2871,7 @@ similar to the \"-d\" option for the \"cp\" shell command.
 But if `dired-copy-dereference' is non-nil, the symbolic
 links are dereferenced and then copied, similar to the \"-L\"
 option for the \"cp\" shell command.  If ARG is a cons with
-element 4 (`\\[universal-argument]'), the inverted value of
+element 4 (\\[universal-argument]), the inverted value of
 `dired-copy-dereference' will be used.
 
 Also see `dired-do-revert-buffer'."

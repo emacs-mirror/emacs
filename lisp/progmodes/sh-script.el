@@ -2304,7 +2304,7 @@ Point should be before the newline."
 When used interactively, insert the proper starting #!-line,
 and make the visited file executable via `executable-set-magic',
 perhaps querying depending on the value of `executable-query'.
-(If given a prefix (i.e., `\\[universal-argument]') don't insert any starting #!
+(If given a prefix (i.e., \\[universal-argument]) don't insert any starting #!
 line.)
 
 When this function is called noninteractively, INSERT-FLAG (the third

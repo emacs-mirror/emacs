@@ -4637,7 +4637,7 @@ sensitive for VI-style look-and-feel."
 	(insert (substitute-command-keys "
 Please specify your level of familiarity with the venomous VI PERil
 \(and the VI Plan for Emacs Rescue).
-You can change it at any time by typing `\\[viper-set-expert-level]'
+You can change it at any time by typing \\[viper-set-expert-level]
 
  1 -- BEGINNER: Almost all Emacs features are suppressed.
        Feels almost like straight Vi.  File name completion and

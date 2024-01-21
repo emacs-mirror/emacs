@@ -481,7 +481,7 @@ The most useful commands are:
   "Checkpoint the current cipher alphabet.
 This records the current alphabet so you can return to it later.
 You may have any number of checkpoints.
-Type `\\[decipher-restore-checkpoint]' to restore a checkpoint."
+Type \\[decipher-restore-checkpoint] to restore a checkpoint."
   (interactive "sCheckpoint description: " decipher-mode)
   (or (stringp desc)
       (setq desc ""))
@@ -508,7 +508,7 @@ Type `\\[decipher-restore-checkpoint]' to restore a checkpoint."
 If point is not on a checkpoint line, moves to the first checkpoint line.
 If point is on a checkpoint, restores that checkpoint.
 
-Type `\\[decipher-make-checkpoint]' to make a checkpoint."
+Type \\[decipher-make-checkpoint] to make a checkpoint."
   (interactive nil decipher-mode)
   (beginning-of-line)
   (if (looking-at "%!\\([A-Z ]+\\)!")
@@ -524,7 +524,7 @@ Type `\\[decipher-make-checkpoint]' to make a checkpoint."
     ;; Move to the first checkpoint:
     (goto-char (point-min))
     (if (re-search-forward "^%![A-Z ]+!" nil t)
-        (message "Select the checkpoint to restore and type `%s'"
+        (message "Select the checkpoint to restore and type %s"
                  (substitute-command-keys "\\[decipher-restore-checkpoint]"))
       (error "No checkpoints in this buffer"))))
 

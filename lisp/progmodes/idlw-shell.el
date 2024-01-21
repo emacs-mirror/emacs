@@ -829,7 +829,7 @@ IDL has currently stepped.")
 
 3. Routine Info
    ------------
-   `\\[idlwave-routine-info]' displays information about an IDL routine near point,
+   \\[idlwave-routine-info] displays information about an IDL routine near point,
    just like in `idlwave-mode'.  The module used is the one at point or
    the one whose argument list is being edited.
    To update IDLWAVE's knowledge about compiled or edited modules, use

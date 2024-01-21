@@ -1148,7 +1148,7 @@ line and comments can also be enclosed in /* ... */.
 If an optional argument SYSTEM is non-nil, set up mode for the given system.
 
 To find out what version of Prolog mode you are running, enter
-`\\[prolog-mode-version]'.
+\\[prolog-mode-version].
 
 Commands:
 \\{prolog-mode-map}"
@@ -1268,7 +1268,7 @@ imitating normal Unix input editing.
 \\[comint-quit-subjob] sends quit signal, likewise.
 
 To find out what version of Prolog mode you are running, enter
-`\\[prolog-mode-version]'."
+\\[prolog-mode-version]."
   (require 'compile)
   (setq comint-input-filter 'prolog-input-filter)
   (setq mode-line-process '(": %s"))

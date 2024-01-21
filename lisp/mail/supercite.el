@@ -817,7 +817,7 @@ If there was no mail header with FIELD as its key, return the value of
 
 (defun sc-mail-field-query (arg)
   "View the value of a mail field.
-With `\\[universal-argument]', prompts for action on mail field.
+With \\[universal-argument], prompts for action on mail field.
 Action can be one of: View, Modify, Add, or Delete."
   (interactive "P")
   (let* ((alist '(("view" . ?v) ("modify" . ?m) ("add" . ?a) ("delete" . ?d)))
@@ -1710,7 +1710,7 @@ Numeric ARG indicates which header style from `sc-rewrite-header-list'
 to use when rewriting the header.  No supplied ARG indicates use of
 `sc-preferred-header-style'.
 
-With just `\\[universal-argument]', electric reference insert mode is
+With just \\[universal-argument], electric reference insert mode is
 entered, regardless of the value of `sc-electric-references-p'.  See
 `sc-electric-mode' for more information."
   (interactive "P")
@@ -1930,7 +1930,7 @@ With numeric ARG, inserts that many new lines."
 
 (defun sc-insert-citation (arg)
   "Insert citation string at beginning of current line if not already cited.
-With `\\[universal-argument]' insert citation even if line is already
+With \\[universal-argument] insert citation even if line is already
 cited."
   (interactive "P")
   (save-excursion

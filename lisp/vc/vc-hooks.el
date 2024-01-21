@@ -185,7 +185,7 @@ revision number and lock status."
   "Version Control minor mode.
 This minor mode is automatically activated whenever you visit a file under
 control of one of the revision control systems in `vc-handled-backends'.
-VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
+VC commands are globally reachable under the prefix \\[vc-prefix-map]:
 \\{vc-prefix-map}")
 
 (defmacro vc-error-occurred (&rest body)

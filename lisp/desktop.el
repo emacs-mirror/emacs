@@ -168,8 +168,8 @@ one session to another.  In particular, Emacs will save the desktop when
 it exits (this may prompt you; see the option `desktop-save').  The next
 time Emacs starts, if this mode is active it will restore the desktop.
 
-To manually save the desktop at any time, use the command `\\[desktop-save]'.
-To load it, use `\\[desktop-read]'.
+To manually save the desktop at any time, use the command \\[desktop-save].
+To load it, use \\[desktop-read].
 
 Once a desktop file exists, Emacs will auto-save it according to the
 option `desktop-auto-save-timeout'.
