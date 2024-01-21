@@ -41,3 +41,7 @@ RUN_EMACS = ${EMACS} -batch --no-site-file --no-site-lisp
 /^MKDIR_P *=/s,@MKDIR_P@,gmkdir -p,
 
 /^\${leimdir}\/quail \${leimdir}\/ja-dic: *$/s|\${leimdir}/|$(rel_leimdir)\\|
+
+# Should an option to enable this be provided by config.bat?
+/^SMALL_JA_DIC *=/s/@SMALL_JA_DIC@//
+/^small-ja-dic-option: /s|../config.status||
