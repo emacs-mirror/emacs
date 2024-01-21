@@ -1166,7 +1166,7 @@ make_lisp_symbol (struct Lisp_Symbol *sym)
      cast to char * rather than to intptr_t.  */
   char *symoffset = (char *) ((char *) sym - (char *) lispsym);
   Lisp_Object a = TAG_PTR (Lisp_Symbol, symoffset);
-  eassert (XSYMBOL (a) == sym);
+  eassert (XBARE_SYMBOL (a) == sym);
   return a;
 }
 
