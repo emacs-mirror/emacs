@@ -595,11 +595,11 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Non-nil if window W is leaf window (has a buffer).  */
 #define WINDOW_LEAF_P(W) \
-  (BUFFERP ((W)->contents))
+  BUFFERP ((W)->contents)
 
 /* Non-nil if window W is internal (is a parent window).  */
 #define WINDOW_INTERNAL_P(W) \
-  (WINDOWP ((W)->contents))
+  WINDOWP ((W)->contents)
 
 /* True if window W is a horizontal combination of windows.  */
 #define WINDOW_HORIZONTAL_COMBINATION_P(W) \
@@ -610,7 +610,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
   (WINDOW_INTERNAL_P (W) && !(W)->horizontal)
 
 /* Window W's XFRAME.  */
-#define WINDOW_XFRAME(W) (XFRAME (WINDOW_FRAME ((W))))
+#define WINDOW_XFRAME(W) XFRAME (WINDOW_FRAME (W))
 
 /* Whether window W is a pseudo window.  */
 #define WINDOW_PSEUDO_P(W) ((W)->pseudo_window_p)
@@ -630,11 +630,11 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Return the canonical column width of the frame of window W.  */
 #define WINDOW_FRAME_COLUMN_WIDTH(W) \
-  (FRAME_COLUMN_WIDTH (WINDOW_XFRAME ((W))))
+  FRAME_COLUMN_WIDTH (WINDOW_XFRAME (W))
 
 /* Return the canonical line height of the frame of window W.  */
 #define WINDOW_FRAME_LINE_HEIGHT(W) \
-  (FRAME_LINE_HEIGHT (WINDOW_XFRAME ((W))))
+  FRAME_LINE_HEIGHT (WINDOW_XFRAME (W))
 
 /* Return the pixel width of window W.  This includes dividers, scroll
    bars, fringes and margins, if any.  */
@@ -666,7 +666,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define MIN_SAFE_WINDOW_HEIGHT (1)
 
 #define MIN_SAFE_WINDOW_PIXEL_HEIGHT(W) \
-  (WINDOW_FRAME_LINE_HEIGHT (W))
+  WINDOW_FRAME_LINE_HEIGHT (W)
 
 /* True if window W has no other windows to its left on its frame.  */
 #define WINDOW_LEFTMOST_P(W)			\
@@ -1011,7 +1011,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 /* Height in pixels of the mode line.
    May be zero if W doesn't have a mode line.  */
 #define WINDOW_MODE_LINE_HEIGHT(W)	\
-  (window_wants_mode_line ((W))		\
+  (window_wants_mode_line (W)		\
    ? CURRENT_MODE_LINE_HEIGHT (W)	\
    : 0)
 
@@ -1049,7 +1049,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 /* Pixel height of window W without mode and header/tab line and bottom
    divider.  */
 #define WINDOW_BOX_TEXT_HEIGHT(W)	\
-  (WINDOW_PIXEL_HEIGHT ((W))		\
+  (WINDOW_PIXEL_HEIGHT (W)		\
    - WINDOW_BOTTOM_DIVIDER_WIDTH (W)	\
    - WINDOW_SCROLL_BAR_AREA_HEIGHT (W)	\
    - WINDOW_MODE_LINE_HEIGHT (W)	\
@@ -1065,7 +1065,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Convert window W relative pixel X to frame pixel coordinates.  */
 #define WINDOW_TO_FRAME_PIXEL_X(W, X)	\
-  ((X) + WINDOW_BOX_LEFT_EDGE_X ((W)))
+  ((X) + WINDOW_BOX_LEFT_EDGE_X (W))
 
 /* Convert window W relative pixel Y to frame pixel coordinates.  */
 #define WINDOW_TO_FRAME_PIXEL_Y(W, Y)		\
@@ -1073,7 +1073,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Convert frame relative pixel X to window relative pixel X.  */
 #define FRAME_TO_WINDOW_PIXEL_X(W, X)		\
-  ((X) - WINDOW_BOX_LEFT_EDGE_X ((W)))
+  ((X) - WINDOW_BOX_LEFT_EDGE_X (W))
 
 /* Convert frame relative pixel Y to window relative pixel Y.  */
 #define FRAME_TO_WINDOW_PIXEL_Y(W, Y)		\
@@ -1082,7 +1082,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 /* Convert a text area relative x-position in window W to frame X
    pixel coordinates.  */
 #define WINDOW_TEXT_TO_FRAME_PIXEL_X(W, X)	\
-  (window_box_left ((W), TEXT_AREA) + (X))
+  window_box_left (W, TEXT_AREA) + (X)
 
 /* This is the window in which the terminal's cursor should be left when
    nothing is being done with it.  This must always be a leaf window, and its

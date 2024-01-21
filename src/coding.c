@@ -314,9 +314,9 @@ static Lisp_Object Vbig5_coding_system;
 /* ISO2022 section */
 
 #define CODING_ISO_INITIAL(coding, reg)			\
-  (XFIXNUM (AREF (AREF (CODING_ID_ATTRS ((coding)->id),	\
-		     coding_attr_iso_initial),		\
-	       reg)))
+  XFIXNUM (AREF (AREF (CODING_ID_ATTRS ((coding)->id),	\
+		       coding_attr_iso_initial),	\
+		 reg))
 
 
 #define CODING_ISO_REQUEST(coding, charset_id)		\
@@ -466,7 +466,7 @@ enum iso_code_class_type
 #define CODING_CCL_ENCODER(coding)	\
   AREF (CODING_ID_ATTRS ((coding)->id), coding_attr_ccl_encoder)
 #define CODING_CCL_VALIDS(coding)					   \
-  (SDATA (AREF (CODING_ID_ATTRS ((coding)->id), coding_attr_ccl_valids)))
+  SDATA (AREF (CODING_ID_ATTRS ((coding)->id), coding_attr_ccl_valids))
 
 /* Index for each coding category in `coding_categories' */
 
@@ -4198,12 +4198,12 @@ decode_coding_iso_2022 (struct coding_system *coding)
 #define ENCODE_ISO_CHARACTER(charset, c)				   \
   do {									   \
     unsigned code;							   \
-    CODING_ENCODE_CHAR (coding, dst, dst_end, (charset), (c), code);	   \
+    CODING_ENCODE_CHAR (coding, dst, dst_end, charset, c, code);	   \
 									   \
     if (CHARSET_DIMENSION (charset) == 1)				   \
-      ENCODE_ISO_CHARACTER_DIMENSION1 ((charset), code);		   \
+      ENCODE_ISO_CHARACTER_DIMENSION1 (charset, code);		   \
     else								   \
-      ENCODE_ISO_CHARACTER_DIMENSION2 ((charset), code >> 8, code & 0xFF); \
+      ENCODE_ISO_CHARACTER_DIMENSION2 (charset, code >> 8, code & 0xFF); \
   } while (0)
 
 

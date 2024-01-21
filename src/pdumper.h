@@ -128,7 +128,7 @@ pdumper_do_now_and_after_late_load (pdumper_hook hook)
     if (dumped_with_pdumper_p ())                 \
       (variable) = (value);                       \
     else                                          \
-      eassert (EQ ((variable), (value)));         \
+      eassert (EQ (variable, value));		  \
   } while (0)
 
 /* Actually load a dump.  */

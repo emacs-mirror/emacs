@@ -117,10 +117,10 @@ static void xg_widget_style_updated (GtkWidget *, gpointer);
 
 #define gtk_box_new(ori, spacing)                                       \
   ((ori) == GTK_ORIENTATION_HORIZONTAL                                  \
-   ? gtk_hbox_new (FALSE, (spacing)) : gtk_vbox_new (FALSE, (spacing)))
+   ? gtk_hbox_new (FALSE, spacing) : gtk_vbox_new (FALSE, spacing))
 #define gtk_scrollbar_new(ori, spacing)                                 \
   ((ori) == GTK_ORIENTATION_HORIZONTAL                                  \
-   ? gtk_hscrollbar_new ((spacing)) : gtk_vscrollbar_new ((spacing)))
+   ? gtk_hscrollbar_new (spacing) : gtk_vscrollbar_new (spacing))
 #endif /* HAVE_GTK3 */
 
 #define XG_BIN_CHILD(x) gtk_bin_get_child (GTK_BIN (x))

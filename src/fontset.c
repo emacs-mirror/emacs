@@ -266,19 +266,19 @@ font_def_new (Lisp_Object font_spec, Lisp_Object encoding,
 
 #define RFONT_DEF_FACE(rfont_def) AREF (rfont_def, 0)
 #define RFONT_DEF_SET_FACE(rfont_def, face_id)	\
-  ASET ((rfont_def), 0, make_fixnum (face_id))
+  ASET (rfont_def, 0, make_fixnum (face_id))
 #define RFONT_DEF_FONT_DEF(rfont_def) AREF (rfont_def, 1)
 #define RFONT_DEF_SPEC(rfont_def) FONT_DEF_SPEC (AREF (rfont_def, 1))
 #define RFONT_DEF_OBJECT(rfont_def) AREF (rfont_def, 2)
 #define RFONT_DEF_SET_OBJECT(rfont_def, object)	\
-  ASET ((rfont_def), 2, (object))
+  ASET (rfont_def, 2, object)
 /* Score of RFONT_DEF is an integer value; the lowest 8 bits represent
    the order of listing by font backends, the higher bits represents
    the order given by charset priority list.  The smaller value is
    preferable.  */
 #define RFONT_DEF_SCORE(rfont_def) XFIXNUM (AREF (rfont_def, 3))
 #define RFONT_DEF_SET_SCORE(rfont_def, score) \
-  ASET ((rfont_def), 3, make_fixnum (score))
+  ASET (rfont_def, 3, make_fixnum (score))
 #define RFONT_DEF_NEW(rfont_def, font_def)		\
   do {							\
     (rfont_def) = make_nil_vector (4);			\
@@ -295,7 +295,7 @@ font_def_new (Lisp_Object font_spec, Lisp_Object encoding,
 #define FONTSET_REF(fontset, c)		\
   (EQ (fontset, Vdefault_fontset)	\
    ? CHAR_TABLE_REF (fontset, c)	\
-   : fontset_ref ((fontset), (c)))
+   : fontset_ref (fontset, c))
 
 static Lisp_Object
 fontset_ref (Lisp_Object fontset, int c)
@@ -315,7 +315,7 @@ fontset_ref (Lisp_Object fontset, int c)
    specifying a range.  */
 
 #define FONTSET_SET(fontset, range, elt)	\
-  Fset_char_table_range ((fontset), (range), (elt))
+  Fset_char_table_range (fontset, range, elt)
 
 
 /* Modify the elements of FONTSET for characters in RANGE by replacing
@@ -329,7 +329,7 @@ fontset_ref (Lisp_Object fontset, int c)
    ? (NILP (range)							\
       ? set_fontset_fallback (fontset, make_vector (1, elt))		\
       : (void) Fset_char_table_range (fontset, range, make_vector (1, elt))) \
-   : fontset_add ((fontset), (range), (elt), (add)))
+   : fontset_add (fontset, range, elt, add))
 
 static void
 fontset_add (Lisp_Object fontset, Lisp_Object range, Lisp_Object elt, Lisp_Object add)

@@ -166,28 +166,28 @@ enum coding_attr_index
 
 /* Return the name of a coding system specified by ID.  */
 #define CODING_ID_NAME(id) \
-  (HASH_KEY (XHASH_TABLE (Vcoding_system_hash_table), id))
+  HASH_KEY (XHASH_TABLE (Vcoding_system_hash_table), id)
 
 /* Return the attribute vector of a coding system specified by ID.  */
 
 #define CODING_ID_ATTRS(id)	\
-  (AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 0))
+  AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 0)
 
 /* Return the list of aliases of a coding system specified by ID.  */
 
 #define CODING_ID_ALIASES(id)	\
-  (AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 1))
+  AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 1)
 
 /* Return the eol-type of a coding system specified by ID.  */
 
 #define CODING_ID_EOL_TYPE(id)	\
-  (AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 2))
+  AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 2)
 
 
 /* Return the spec vector of CODING_SYSTEM_SYMBOL.  */
 
 #define CODING_SYSTEM_SPEC(coding_system_symbol)	\
-  (Fgethash (coding_system_symbol, Vcoding_system_hash_table, Qnil))
+  Fgethash (coding_system_symbol, Vcoding_system_hash_table, Qnil)
 
 
 /* Return the ID of CODING_SYSTEM_SYMBOL.  */
@@ -209,7 +209,7 @@ enum coding_attr_index
   do {							\
     if (CODING_SYSTEM_ID (x) < 0			\
 	&& NILP (Fcheck_coding_system (x)))		\
-      wrong_type_argument (Qcoding_system_p, (x));	\
+      wrong_type_argument (Qcoding_system_p, x);	\
   } while (false)
 
 
@@ -225,7 +225,7 @@ enum coding_attr_index
 	spec = CODING_SYSTEM_SPEC (x);			\
       }							\
     if (NILP (spec))					\
-      wrong_type_argument (Qcoding_system_p, (x));	\
+      wrong_type_argument (Qcoding_system_p, x);	\
   } while (false)
 
 
@@ -242,7 +242,7 @@ enum coding_attr_index
 	  id = CODING_SYSTEM_ID (x);				\
 	}							\
       if (id < 0)						\
-	wrong_type_argument (Qcoding_system_p, (x));	\
+	wrong_type_argument (Qcoding_system_p, x);		\
     } while (false)
 
 
@@ -745,10 +745,9 @@ extern Lisp_Object from_unicode_buffer (const wchar_t *wstr);
 
 #define decode_coding_c_string(coding, src, bytes, dst_object)		\
   do {									\
-    (coding)->source = (src);						\
-    (coding)->src_chars = (coding)->src_bytes = (bytes);		\
-    decode_coding_object ((coding), Qnil, 0, 0, (bytes), (bytes),	\
-			  (dst_object));				\
+    (coding)->source = src;						\
+    (coding)->src_chars = (coding)->src_bytes = bytes;			\
+    decode_coding_object (coding, Qnil, 0, 0, bytes, bytes, dst_object); \
   } while (false)
 
 

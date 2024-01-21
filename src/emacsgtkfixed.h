@@ -28,8 +28,8 @@ struct frame;
 G_BEGIN_DECLS
 
 #ifdef HAVE_PGTK
-#define EMACS_TYPE_FIXED        (emacs_fixed_get_type ())
-#define EMACS_IS_FIXED(obj)     (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EMACS_TYPE_FIXED))
+#define EMACS_TYPE_FIXED emacs_fixed_get_type ()
+#define EMACS_IS_FIXED(obj) G_TYPE_CHECK_INSTANCE_TYPE (obj, EMACS_TYPE_FIXED)
 #endif
 
 struct frame;

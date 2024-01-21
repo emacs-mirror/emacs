@@ -114,7 +114,7 @@ set_attribute (enum scmp_filter_attr attr, uint32_t value)
     {                                                                \
       const struct scmp_arg_cmp arg_array[] = {__VA_ARGS__};         \
       enum { arg_cnt = sizeof arg_array / sizeof *arg_array };       \
-      int status = seccomp_rule_add_array (ctx, (action), (syscall), \
+      int status = seccomp_rule_add_array (ctx, action, syscall,     \
                                            arg_cnt, arg_array);      \
       if (status < 0)                                                \
         fail (-status, "seccomp_rule_add_array (%s, %s, %d, {%s})",  \
@@ -143,7 +143,7 @@ export_filter (const char *file,
 }
 
 #define EXPORT_FILTER(file, function) \
-  export_filter ((file), (function), #function)
+  export_filter (file, function, #function)
 
 int
 main (int argc, char **argv)

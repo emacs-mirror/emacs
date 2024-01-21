@@ -191,16 +191,16 @@ enum font_property_index
 
 /* Return the numeric weight value of FONT.  */
 #define FONT_WEIGHT_NUMERIC(font)		\
-  (FIXNUMP (AREF ((font), FONT_WEIGHT_INDEX))	\
-   ? (XFIXNUM (AREF ((font), FONT_WEIGHT_INDEX)) >> 8) : -1)
+  (FIXNUMP (AREF (font, FONT_WEIGHT_INDEX))	\
+   ? (XFIXNUM (AREF (font, FONT_WEIGHT_INDEX)) >> 8) : -1)
 /* Return the numeric slant value of FONT.  */
 #define FONT_SLANT_NUMERIC(font)		\
-  (FIXNUMP (AREF ((font), FONT_SLANT_INDEX))	\
-   ? (XFIXNUM (AREF ((font), FONT_SLANT_INDEX)) >> 8) : -1)
+  (FIXNUMP (AREF (font, FONT_SLANT_INDEX))	\
+   ? (XFIXNUM (AREF (font, FONT_SLANT_INDEX)) >> 8) : -1)
 /* Return the numeric width value of FONT.  */
 #define FONT_WIDTH_NUMERIC(font)		\
-  (FIXNUMP (AREF ((font), FONT_WIDTH_INDEX))	\
-   ? (XFIXNUM (AREF ((font), FONT_WIDTH_INDEX)) >> 8) : -1)
+  (FIXNUMP (AREF (font, FONT_WIDTH_INDEX))	\
+   ? (XFIXNUM (AREF (font, FONT_WIDTH_INDEX)) >> 8) : -1)
 /* Return the symbolic weight value of FONT.  */
 #define FONT_WEIGHT_SYMBOLIC(font)	\
   font_style_symbolic (font, FONT_WEIGHT_INDEX, false)
@@ -222,19 +222,19 @@ enum font_property_index
 
 /* Return the numeric weight value corresponding to the symbol NAME.  */
 #define FONT_WEIGHT_NAME_NUMERIC(name)	\
-  (font_style_to_value (FONT_WEIGHT_INDEX, (name), false) >> 8)
+  (font_style_to_value (FONT_WEIGHT_INDEX, name, false) >> 8)
 /* Return the numeric slant value corresponding to the symbol NAME.  */
 #define FONT_SLANT_NAME_NUMERIC(name)	\
-  (font_style_to_value (FONT_SLANT_INDEX, (name), false) >> 8)
+  (font_style_to_value (FONT_SLANT_INDEX, name, false) >> 8)
 /* Return the numeric width value corresponding to the symbol NAME.  */
 #define FONT_WIDTH_NAME_NUMERIC(name)	\
-  (font_style_to_value (FONT_WIDTH_INDEX, (name), false) >> 8)
+  (font_style_to_value (FONT_WIDTH_INDEX, name, false) >> 8)
 
 /* Set the font property PROP of FONT to VAL.  PROP is one of
    style-related font property index (FONT_WEIGHT/SLANT/WIDTH_INDEX).
    VAL (integer or symbol) is the numeric or symbolic style value.  */
 #define FONT_SET_STYLE(font, prop, val)	\
-  ASET ((font), prop, make_fixnum (font_style_to_value (prop, val, true)))
+  ASET (font, prop, make_fixnum (font_style_to_value (prop, val, true)))
 
 #ifndef MSDOS
 #define FONT_WIDTH(f) ((f)->max_width)
@@ -549,7 +549,7 @@ GC_XFONT_OBJECT (Lisp_Object p)
   return XUNTAG (p, Lisp_Vectorlike, struct font);
 }
 
-#define XSETFONT(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FONT))
+#define XSETFONT(a, b) XSETPSEUDOVECTOR (a, b, PVEC_FONT)
 
 INLINE struct font *
 CHECK_FONT_GET_OBJECT (Lisp_Object x)
@@ -1004,13 +1004,13 @@ extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
 #define FONT_ADD_LOG(ACTION, ARG, RESULT)	\
   do {						\
     if (! EQ (Vfont_log, Qt))			\
-      font_add_log ((ACTION), (ARG), (RESULT));	\
+      font_add_log (ACTION, ARG, RESULT);	\
   } while (false)
 
 #define FONT_DEFERRED_LOG(ACTION, ARG, RESULT)		\
   do {							\
     if (! EQ (Vfont_log, Qt))				\
-      font_deferred_log ((ACTION), (ARG), (RESULT));	\
+      font_deferred_log (ACTION, ARG, RESULT);		\
   } while (false)
 
 /* FIXME: This is for use in functions that can be called while

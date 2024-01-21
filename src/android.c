@@ -6008,7 +6008,7 @@ android_build_jstring (const char *text)
    is created.  */
 
 #if __GNUC__ >= 3
-#define likely(cond)	__builtin_expect ((cond), 1)
+#define likely(cond)	__builtin_expect (cond, 1)
 #else /* __GNUC__ < 3 */
 #define likely(cond)	(cond)
 #endif /* __GNUC__ >= 3 */

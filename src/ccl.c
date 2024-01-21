@@ -51,7 +51,7 @@ static Lisp_Object Vccl_program_table;
 
 /* Return a hash table of id number ID.  */
 #define GET_HASH_TABLE(id) \
-  (XHASH_TABLE (XCDR (AREF (Vtranslation_hash_table_vector, (id)))))
+  XHASH_TABLE (XCDR (AREF (Vtranslation_hash_table_vector, id)))
 
 /* CCL (Code Conversion Language) is a simple language which has
    operations on one input buffer, one output buffer, and 7 registers.
@@ -627,7 +627,7 @@ do								\
   {								\
     struct ccl_program called_ccl;				\
     if (stack_idx >= 256					\
-	|| ! setup_ccl_program (&called_ccl, (symbol)))		\
+	|| ! setup_ccl_program (&called_ccl, symbol))		\
       {								\
 	if (stack_idx > 0)					\
 	  {							\
@@ -818,7 +818,7 @@ while (0)
 
 #define CCL_DECODE_CHAR(id, code)	\
   ((id) == 0 ? (code)			\
-   : (charset = CHARSET_FROM_ID ((id)), DECODE_CHAR (charset, (code))))
+   : (charset = CHARSET_FROM_ID (id), DECODE_CHAR (charset, code)))
 
 /* Encode character C by some of charsets in CHARSET_LIST.  Set ID to
    the id of the used charset, ENCODED to the result of encoding.
@@ -828,9 +828,9 @@ while (0)
   do {								\
     unsigned ncode;						\
 								\
-    charset = char_charset ((c), (charset_list), &ncode);	\
+    charset = char_charset (c, charset_list, &ncode);		\
     if (! charset && ! NILP (charset_list))			\
-      charset = char_charset ((c), Qnil, &ncode);	  	\
+      charset = char_charset (c, Qnil, &ncode);			\
     if (charset)						\
       {								\
 	(id) = CHARSET_ID (charset);				\

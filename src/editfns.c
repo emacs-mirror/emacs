@@ -1908,7 +1908,7 @@ determines whether case is significant or ignored.  */)
 #define USE_HEURISTIC
 
 #define XVECREF_YVECREF_EQUAL(ctx, xoff, yoff)  \
-  buffer_chars_equal ((ctx), (xoff), (yoff))
+  buffer_chars_equal (ctx, xoff, yoff)
 
 #define OFFSET ptrdiff_t
 

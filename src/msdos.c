@@ -2865,7 +2865,7 @@ IT_menu_calc_size (XMenu *menu, int *width, int *height)
   do							   \
     {							   \
       (GLYPH).type = CHAR_GLYPH;			   \
-      SET_CHAR_GLYPH ((GLYPH), CODE, FACE_ID, PADDING_P);  \
+      SET_CHAR_GLYPH (GLYPH, CODE, FACE_ID, PADDING_P);	   \
       (GLYPH).charpos = -1;				   \
     }							   \
   while (0)

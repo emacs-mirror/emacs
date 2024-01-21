@@ -9082,7 +9082,7 @@ process_tab_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void *
 }
 
 /* Access slot with index IDX of vector tab_bar_item_properties.  */
-#define PROP(IDX) AREF (tab_bar_item_properties, (IDX))
+#define PROP(IDX) AREF (tab_bar_item_properties, IDX)
 static void
 set_prop_tab_bar (ptrdiff_t idx, Lisp_Object val)
 {
@@ -9466,7 +9466,7 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
 }
 
 /* Access slot with index IDX of vector tool_bar_item_properties.  */
-#define PROP(IDX) AREF (tool_bar_item_properties, (IDX))
+#define PROP(IDX) AREF (tool_bar_item_properties, IDX)
 static void
 set_prop (ptrdiff_t idx, Lisp_Object val)
 {

@@ -1790,7 +1790,7 @@ encode_char (struct charset *charset, int c)
       return CHARSET_INVALID_CODE (charset);
     }
 
-  if (! CHARSET_FAST_MAP_REF ((c), charset->fast_map)
+  if (! CHARSET_FAST_MAP_REF (c, charset->fast_map)
       || c < CHARSET_MIN_CHAR (charset) || c > CHARSET_MAX_CHAR (charset))
     return CHARSET_INVALID_CODE (charset);
 

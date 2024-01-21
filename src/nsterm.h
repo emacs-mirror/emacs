@@ -278,9 +278,9 @@ char const * nstrace_fullscreen_type_name (int);
 
 
 #define NSTRACE_WHEN(cond, ...)                                         \
-  __attribute__((cleanup(nstrace_restore_global_trace_state)))          \
+  __attribute__ ((cleanup (nstrace_restore_global_trace_state)))        \
   int nstrace_saved_enabled_global = nstrace_enabled_global;            \
-  __attribute__((cleanup(nstrace_leave)))                               \
+  __attribute__ ((cleanup (nstrace_leave)))                             \
   int nstrace_enabled = nstrace_enabled_global && (cond);               \
   if (nstrace_enabled) { ++nstrace_depth; }                             \
   else { nstrace_enabled_global = 0; }                                  \
@@ -1290,7 +1290,7 @@ extern char gnustep_base_version[];  /* version tracking */
 /* Little utility macros */
 #define IN_BOUND(min, x, max) (((x) < (min)) \
                                 ? (min) : (((x)>(max)) ? (max) : (x)))
-#define SCREENMAXBOUND(x) (IN_BOUND (-SCREENMAX, x, SCREENMAX))
+#define SCREENMAXBOUND(x) IN_BOUND (-SCREENMAX, x, SCREENMAX)
 
 
 #ifdef NS_IMPL_COCOA

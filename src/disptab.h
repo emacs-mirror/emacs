@@ -39,13 +39,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 extern Lisp_Object disp_char_vector (struct Lisp_Char_Table *, int);
 
 #define DISP_CHAR_VECTOR(dp, c)				\
-  (ASCII_CHAR_P(c)					\
+  (ASCII_CHAR_P (c)					\
    ? (NILP ((dp)->ascii)				\
       ? (dp)->defalt					\
       : (SUB_CHAR_TABLE_P ((dp)->ascii)			\
 	 ? XSUB_CHAR_TABLE ((dp)->ascii)->contents[c]	\
 	 : (dp)->ascii))				\
-   : disp_char_vector ((dp), (c)))
+   : disp_char_vector (dp, c))
 
 /* Defined in window.c.  */
 extern struct Lisp_Char_Table *window_display_table (struct window *);
@@ -78,8 +78,8 @@ extern struct Lisp_Char_Table *buffer_display_table (void);
    LENGTH), and set G to the final glyph.  */
 #define GLYPH_FOLLOW_ALIASES(base, length, g)			\
   do {								\
-    while (GLYPH_ALIAS_P ((base), (length), (g)))		\
-      SET_GLYPH_CHAR ((g), XFIXNUM ((base)[GLYPH_CHAR (g)]));	\
+    while (GLYPH_ALIAS_P (base, length, g))			\
+      SET_GLYPH_CHAR (g, XFIXNUM ((base)[GLYPH_CHAR (g)]));	\
     if (!GLYPH_CHAR_VALID_P (g))				\
       SET_GLYPH_CHAR (g, ' ');					\
   } while (false)

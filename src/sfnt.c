@@ -6860,7 +6860,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
   (interpreter->SP - interpreter->stack)
 
 #define TRAP(why)				\
-  sfnt_interpret_trap (interpreter, (why))
+  sfnt_interpret_trap (interpreter, why)
 
 #define MOVE(a, b, n)				\
   memmove (a, b, (n) * sizeof (uint32_t))

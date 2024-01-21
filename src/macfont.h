@@ -75,7 +75,7 @@ enum {
 #define kCTVersionNumber10_9 0x00060000
 #endif
 #define MAC_FONT_CHARACTER_SET_STRING_ATTRIBUTE \
-  (CFSTR ("MAC_FONT_CHARACTER_SET_STRING_ATTRIBUTE"))
+  CFSTR ("MAC_FONT_CHARACTER_SET_STRING_ATTRIBUTE")
 
 typedef const struct _EmacsScreenFont *ScreenFontRef; /* opaque */
 
@@ -85,4 +85,4 @@ extern void macfont_update_antialias_threshold (void);
 
 /* This is an undocumented function. */
 extern void CGContextSetFontSmoothingStyle(CGContextRef, int)
-  __attribute__((weak_import));
+  __attribute__ ((weak_import));

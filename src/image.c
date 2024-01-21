@@ -4875,7 +4875,7 @@ xbm_read_bitmap_data (struct frame *f, char *contents, char *end,
   while (0)
 
 #define expect_ident(IDENT)					\
-     if (LA1 == XBM_TK_IDENT && strcmp (buffer, (IDENT)) == 0)	\
+     if (LA1 == XBM_TK_IDENT && strcmp (buffer, IDENT) == 0)	\
        match ();						\
      else							\
        goto failure
@@ -6154,7 +6154,7 @@ xpm_load_image (struct frame *f,
 
 #define expect_ident(IDENT)					\
      if (LA1 == XPM_TK_IDENT \
-         && strlen ((IDENT)) == len && memcmp ((IDENT), beg, len) == 0)	\
+         && strlen (IDENT) == len && memcmp (IDENT, beg, len) == 0)	\
        match ();						\
      else							\
        goto failure

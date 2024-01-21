@@ -3825,7 +3825,7 @@ C_entries (int c_ext,		/* extension of C */
 		    {
 		    case fstartlist:
 		      /* This prevents tagging fb in
-			 void (__attribute__((noreturn)) *fb) (void);
+			 void (__attribute__ ((noreturn)) *fb) (void);
 			 Fixing this is not easy and not very important. */
 		      fvdef = finlist;
 		      continue;
@@ -4380,14 +4380,14 @@ Yacc_entries (FILE *inf)
 
 #define LOOKING_AT(cp, kw)  /* kw is the keyword, a literal string */	\
   ((assert ("" kw), true)   /* syntax error if not a literal string */	\
-   && strneq ((cp), kw, sizeof (kw)-1)		/* cp points at kw */	\
+   && strneq (cp, kw, sizeof (kw) - 1)		/* cp points at kw */	\
    && notinname ((cp)[sizeof (kw)-1])		/* end of kw */		\
    && ((cp) = skip_spaces ((cp) + sizeof (kw) - 1), true)) /* skip spaces */
 
 /* Similar to LOOKING_AT but does not use notinname, does not skip */
 #define LOOKING_AT_NOCASE(cp, kw) /* the keyword is a literal string */	\
   ((assert ("" kw), true) /* syntax error if not a literal string */	\
-   && strncaseeq ((cp), kw, sizeof (kw)-1)	/* cp points at kw */	\
+   && strncaseeq (cp, kw, sizeof (kw) - 1)	/* cp points at kw */	\
    && ((cp) += sizeof (kw) - 1, true))		/* skip spaces */
 
 /*

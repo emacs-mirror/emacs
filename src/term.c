@@ -86,12 +86,12 @@ static AVOID vfatal (const char *, va_list) ATTRIBUTE_FORMAT_PRINTF (1, 0);
 #ifndef HAVE_ANDROID
 
 #define OUTPUT(tty, a)                                          \
-  emacs_tputs ((tty), a,                                        \
+  emacs_tputs (tty, a,                                        \
                FRAME_TOTAL_LINES (XFRAME (selected_frame)) - curY (tty),	\
                cmputc)
 
-#define OUTPUT1(tty, a) emacs_tputs ((tty), a, 1, cmputc)
-#define OUTPUTL(tty, a, lines) emacs_tputs ((tty), a, lines, cmputc)
+#define OUTPUT1(tty, a) emacs_tputs (tty, a, 1, cmputc)
+#define OUTPUTL(tty, a, lines) emacs_tputs (tty, a, lines, cmputc)
 
 #define OUTPUT_IF(tty, a)                                               \
   do {                                                                  \
@@ -99,7 +99,8 @@ static AVOID vfatal (const char *, va_list) ATTRIBUTE_FORMAT_PRINTF (1, 0);
       OUTPUT (tty, a);							\
   } while (0)
 
-#define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)
+#define OUTPUT1_IF(tty, a) \
+  do { if (a) emacs_tputs (tty, a, 1, cmputc); } while (0)
 
 #endif
 
@@ -1117,7 +1118,7 @@ per_line_cost (const char *str)
 
 int *char_ins_del_vector;
 
-#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_COLS ((f))])
+#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_COLS (f)])
 
 static void
 calculate_ins_del_char_costs (struct frame *f)

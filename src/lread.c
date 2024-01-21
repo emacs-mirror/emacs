@@ -124,7 +124,7 @@ static struct android_fd_or_asset invalid_file_stream =
 
 #define file_stream		struct android_fd_or_asset
 #define file_offset		off_t
-#define file_tell(n)		(android_asset_lseek ((n), 0, SEEK_CUR))
+#define file_tell(n)		android_asset_lseek (n, 0, SEEK_CUR)
 #define file_seek		android_asset_lseek
 #define file_stream_valid_p(p)	((p).asset || (p).fd >= 0)
 #define file_stream_close	android_close_asset

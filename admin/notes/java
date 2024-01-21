@@ -445,7 +445,7 @@ loaded by the special invocation:
 where ``static'' defines a section of code which will be run upon the
 object (containing class) being loaded.  This is like:
 
-  __attribute__((constructor))
+  __attribute__ ((constructor))
 
 on systems where shared object constructors are supported.
 

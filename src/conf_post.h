@@ -178,8 +178,8 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 /* Things that lib/reg* wants.  */
 
-#define mbrtowc(pwc, s, n, ps) mbtowc ((pwc), (s), (n))
-#define wcrtomb(s, wc, ps) wctomb ((s), (wc))
+#define mbrtowc(pwc, s, n, ps) mbtowc (pwc, s, n)
+#define wcrtomb(s, wc, ps) wctomb (s, wc)
 #define btowc(b) ((wchar_t) (b))
 #define towupper(chr) toupper (chr)
 #define towlower(chr) tolower (chr)
@@ -317,7 +317,7 @@ extern int emacs_setenv_TZ (char const *);
   type _GL_ATTRIBUTE_MAY_ALIAS *name = (type *) (addr)
 
 #if 3 <= __GNUC__
-# define ATTRIBUTE_SECTION(name) __attribute__((section (name)))
+# define ATTRIBUTE_SECTION(name) __attribute__ ((section (name)))
 #else
 # define ATTRIBUTE_SECTION(name)
 #endif

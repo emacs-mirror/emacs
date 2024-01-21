@@ -1466,9 +1466,9 @@ static INTERVAL interval_free_list;
   __asan_unpoison_memory_region ((b)->intervals, \
 				 sizeof ((b)->intervals))
 # define ASAN_POISON_INTERVAL(i) \
-  __asan_poison_memory_region ((i), sizeof (*(i)))
+  __asan_poison_memory_region (i, sizeof *(i))
 # define ASAN_UNPOISON_INTERVAL(i) \
-  __asan_unpoison_memory_region ((i), sizeof (*(i)))
+  __asan_unpoison_memory_region (i, sizeof *(i))
 #else
 # define ASAN_POISON_INTERVAL_BLOCK(b) ((void) 0)
 # define ASAN_UNPOISON_INTERVAL_BLOCK(b) ((void) 0)
@@ -1752,25 +1752,25 @@ init_strings (void)
  */
 # define ASAN_PREPARE_DEAD_SDATA(s, size)                          \
   do {                                                             \
-    __asan_poison_memory_region ((s), sdata_size ((size)));        \
-    __asan_unpoison_memory_region (&(((s))->string),                 \
+    __asan_poison_memory_region (s, sdata_size (size));		   \
+    __asan_unpoison_memory_region (&(s)->string,		   \
 				   sizeof (struct Lisp_String *)); \
-    __asan_unpoison_memory_region (&SDATA_NBYTES ((s)),            \
-				   sizeof (SDATA_NBYTES ((s))));   \
+    __asan_unpoison_memory_region (&SDATA_NBYTES (s),		   \
+				   sizeof SDATA_NBYTES (s));	   \
    } while (false)
 /* Prepare s for storing string data for NBYTES bytes.  */
 # define ASAN_PREPARE_LIVE_SDATA(s, nbytes) \
-  __asan_unpoison_memory_region ((s), sdata_size ((nbytes)))
+  __asan_unpoison_memory_region (s, sdata_size (nbytes))
 # define ASAN_POISON_SBLOCK_DATA(b, size) \
-  __asan_poison_memory_region ((b)->data, (size))
+  __asan_poison_memory_region ((b)->data, size)
 # define ASAN_POISON_STRING_BLOCK(b) \
   __asan_poison_memory_region ((b)->strings, STRING_BLOCK_SIZE)
 # define ASAN_UNPOISON_STRING_BLOCK(b) \
   __asan_unpoison_memory_region ((b)->strings, STRING_BLOCK_SIZE)
 # define ASAN_POISON_STRING(s) \
-  __asan_poison_memory_region ((s), sizeof (*(s)))
+  __asan_poison_memory_region (s, sizeof *(s))
 # define ASAN_UNPOISON_STRING(s) \
-  __asan_unpoison_memory_region ((s), sizeof (*(s)))
+  __asan_unpoison_memory_region (s, sizeof *(s))
 #else
 # define ASAN_PREPARE_DEAD_SDATA(s, size) ((void) 0)
 # define ASAN_PREPARE_LIVE_SDATA(s, nbytes) ((void) 0)
@@ -2691,13 +2691,13 @@ struct float_block
 };
 
 #define XFLOAT_MARKED_P(fptr) \
-  GETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
+  GETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX (fptr))
 
 #define XFLOAT_MARK(fptr) \
-  SETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
+  SETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX (fptr))
 
 #define XFLOAT_UNMARK(fptr) \
-  UNSETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
+  UNSETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX (fptr))
 
 #if GC_ASAN_POISON_OBJECTS
 # define ASAN_POISON_FLOAT_BLOCK(fblk)         \
@@ -2707,9 +2707,9 @@ struct float_block
   __asan_unpoison_memory_region ((fblk)->floats, \
 				 sizeof ((fblk)->floats))
 # define ASAN_POISON_FLOAT(p) \
-  __asan_poison_memory_region ((p), sizeof (struct Lisp_Float))
+  __asan_poison_memory_region (p, sizeof (struct Lisp_Float))
 # define ASAN_UNPOISON_FLOAT(p) \
-  __asan_unpoison_memory_region ((p), sizeof (struct Lisp_Float))
+  __asan_unpoison_memory_region (p, sizeof (struct Lisp_Float))
 #else
 # define ASAN_POISON_FLOAT_BLOCK(fblk) ((void) 0)
 # define ASAN_UNPOISON_FLOAT_BLOCK(fblk) ((void) 0)
@@ -2803,13 +2803,13 @@ struct cons_block
 };
 
 #define XCONS_MARKED_P(fptr) \
-  GETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX ((fptr)))
+  GETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX (fptr))
 
 #define XMARK_CONS(fptr) \
-  SETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX ((fptr)))
+  SETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX (fptr))
 
 #define XUNMARK_CONS(fptr) \
-  UNSETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX ((fptr)))
+  UNSETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX (fptr))
 
 /* Minimum number of bytes of consing since GC before next GC,
    when memory is full.  */
@@ -2832,9 +2832,9 @@ static struct Lisp_Cons *cons_free_list;
 # define ASAN_POISON_CONS_BLOCK(b) \
   __asan_poison_memory_region ((b)->conses, sizeof ((b)->conses))
 # define ASAN_POISON_CONS(p) \
-  __asan_poison_memory_region ((p), sizeof (struct Lisp_Cons))
+  __asan_poison_memory_region (p, sizeof (struct Lisp_Cons))
 # define ASAN_UNPOISON_CONS(p) \
-  __asan_unpoison_memory_region ((p), sizeof (struct Lisp_Cons))
+  __asan_unpoison_memory_region (p, sizeof (struct Lisp_Cons))
 #else
 # define ASAN_POISON_CONS_BLOCK(b) ((void) 0)
 # define ASAN_POISON_CONS(p) ((void) 0)
@@ -3152,11 +3152,11 @@ Lisp_Object zero_vector;
 
 #if GC_ASAN_POISON_OBJECTS
 # define ASAN_POISON_VECTOR_CONTENTS(v, bytes) \
-  __asan_poison_memory_region ((v)->contents, (bytes))
+  __asan_poison_memory_region ((v)->contents, bytes)
 # define ASAN_UNPOISON_VECTOR_CONTENTS(v, bytes) \
-  __asan_unpoison_memory_region ((v)->contents, (bytes))
+  __asan_unpoison_memory_region ((v)->contents, bytes)
 # define ASAN_UNPOISON_VECTOR_BLOCK(b) \
-  __asan_unpoison_memory_region ((b)->data, sizeof ((b)->data))
+  __asan_unpoison_memory_region ((b)->data, sizeof (b)->data)
 #else
 # define ASAN_POISON_VECTOR_CONTENTS(v, bytes) ((void) 0)
 # define ASAN_UNPOISON_VECTOR_CONTENTS(v, bytes) ((void) 0)
@@ -3886,9 +3886,9 @@ struct symbol_block
 # define ASAN_UNPOISON_SYMBOL_BLOCK(s) \
   __asan_unpoison_memory_region ((s)->symbols, sizeof ((s)->symbols))
 # define ASAN_POISON_SYMBOL(sym) \
-  __asan_poison_memory_region ((sym), sizeof (*(sym)))
+  __asan_poison_memory_region (sym, sizeof *(sym))
 # define ASAN_UNPOISON_SYMBOL(sym) \
-  __asan_unpoison_memory_region ((sym), sizeof (*(sym)))
+  __asan_unpoison_memory_region (sym, sizeof *(sym))
 
 #else
 # define ASAN_POISON_SYMBOL_BLOCK(s) ((void) 0)

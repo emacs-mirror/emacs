@@ -84,7 +84,7 @@ typedef GtkWidget *xt_or_gtk_widget;
 #undef XSync
 /* gdk_window_process_all_updates is deprecated in GDK 3.22.  */
 #if GTK_CHECK_VERSION (3, 22, 0)
-#define XSync(d, b) do { XSync ((d), (b)); } while (false)
+#define XSync(d, b) do { XSync (d, b); } while (false)
 #else
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
                          XSync (d, b);  } while (false)
@@ -1402,7 +1402,7 @@ extern void x_mark_frame_dirty (struct frame *f);
    code after any drawing command, but we can run code whenever
    someone asks for the handle necessary to draw.  */
 #define FRAME_X_DRAWABLE(f)                             \
-  (x_mark_frame_dirty ((f)), FRAME_X_RAW_DRAWABLE ((f)))
+  (x_mark_frame_dirty (f), FRAME_X_RAW_DRAWABLE (f))
 
 #ifdef HAVE_XDBE
 #define FRAME_X_DOUBLE_BUFFERED_P(f)            \
@@ -1447,7 +1447,7 @@ extern void x_mark_frame_dirty (struct frame *f);
          FRAME_X_WINDOW (f))
 
 #else /* !USE_GTK */
-#define FRAME_OUTER_WINDOW(f) (FRAME_X_WINDOW (f))
+#define FRAME_OUTER_WINDOW(f) FRAME_X_WINDOW (f)
 #endif /* !USE_GTK */
 #endif
 

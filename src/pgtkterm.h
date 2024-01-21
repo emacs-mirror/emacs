@@ -462,7 +462,7 @@ enum
 #define FRAME_X_WINDOW(f)          FRAME_GTK_OUTER_WIDGET (f)
 #define FRAME_NATIVE_WINDOW(f)     GTK_WINDOW (FRAME_X_WINDOW (f))
 #define FRAME_GDK_WINDOW(f)			\
-  (gtk_widget_get_window (FRAME_GTK_WIDGET (f)))
+  gtk_widget_get_window (FRAME_GTK_WIDGET (f))
 
 #define FRAME_X_DISPLAY(f)        (FRAME_DISPLAY_INFO (f)->gdpy)
 

@@ -601,7 +601,7 @@ static NSString
 {
     Lisp_Object script = assq_no_quit (XCAR (otf), Votf_script_alist);
     return CONSP (script)
-	? [NSString stringWithLispString: SYMBOL_NAME (XCDR ((script)))]
+	? [NSString stringWithLispString: SYMBOL_NAME (XCDR (script))]
 	: @"";
 }
 

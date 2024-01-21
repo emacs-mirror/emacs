@@ -315,7 +315,7 @@ struct text_pos
 /* Set marker MARKER from text position POS.  */
 
 #define SET_MARKER_FROM_TEXT_POS(MARKER, POS) \
-     set_marker_both ((MARKER), Qnil, CHARPOS ((POS)), BYTEPOS ((POS)))
+     set_marker_both (MARKER, Qnil, CHARPOS (POS), BYTEPOS (POS))
 
 /* Value is non-zero if character and byte positions of POS1 and POS2
    are equal.  */
@@ -399,7 +399,7 @@ GLYPH_CODE_FACE (Lisp_Object gc)
 	SET_GLYPH (glyph, XFIXNUM (XCAR (gc)), XFIXNUM (XCDR (gc)));		\
       else								\
 	SET_GLYPH (glyph, (XFIXNUM (gc) & ((1 << CHARACTERBITS)-1)),	\
-		   (XFIXNUM (gc) >> CHARACTERBITS));			\
+		   XFIXNUM (gc) >> CHARACTERBITS);			\
     }									\
   while (false)
 
@@ -676,9 +676,9 @@ struct glyph
    defined in lisp.h.  */
 
 #define SET_CHAR_GLYPH_FROM_GLYPH(GLYPH, FROM)			\
-     SET_CHAR_GLYPH ((GLYPH),					\
-	 	     GLYPH_CHAR ((FROM)),			\
-		     GLYPH_FACE ((FROM)),			\
+     SET_CHAR_GLYPH (GLYPH,					\
+		     GLYPH_CHAR (FROM),				\
+		     GLYPH_FACE (FROM),				\
 		     false)
 
 /* Construct a glyph code from a character glyph GLYPH.  If the
@@ -689,9 +689,9 @@ struct glyph
   do								\
     {								\
       if ((GLYPH).u.ch < 256)					\
-	SET_GLYPH ((G), (GLYPH).u.ch, ((GLYPH).face_id));	\
+	SET_GLYPH (G, (GLYPH).u.ch, (GLYPH).face_id);		\
       else							\
-	SET_GLYPH ((G), -1, 0);					\
+	SET_GLYPH (G, -1, 0);					\
     }								\
   while (false)
 
@@ -837,7 +837,7 @@ struct glyph_matrix
 
 #ifdef GLYPH_DEBUG
 void check_matrix_pointer_lossage (struct glyph_matrix *);
-#define CHECK_MATRIX(MATRIX) check_matrix_pointer_lossage ((MATRIX))
+#define CHECK_MATRIX(MATRIX) check_matrix_pointer_lossage (MATRIX)
 #else
 #define CHECK_MATRIX(MATRIX) ((void) 0)
 #endif
@@ -1130,7 +1130,7 @@ struct glyph_row
 
 #ifdef GLYPH_DEBUG
 struct glyph_row *matrix_row (struct glyph_matrix *, int);
-#define MATRIX_ROW(MATRIX, ROW)   matrix_row ((MATRIX), (ROW))
+#define MATRIX_ROW(MATRIX, ROW)   matrix_row (MATRIX, ROW)
 #else
 #define MATRIX_ROW(MATRIX, ROW)	  ((MATRIX)->rows + (ROW))
 #endif
@@ -1166,12 +1166,12 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
    MATRIX.  */
 
 #define MATRIX_ROW_GLYPH_START(MATRIX, ROW) \
-     (MATRIX_ROW ((MATRIX), (ROW))->glyphs[TEXT_AREA])
+     (MATRIX_ROW (MATRIX, ROW)->glyphs[TEXT_AREA])
 
 /* Return the number of used glyphs in the text area of a row.  */
 
 #define MATRIX_ROW_USED(MATRIX, ROW) \
-     (MATRIX_ROW ((MATRIX), (ROW))->used[TEXT_AREA])
+     (MATRIX_ROW (MATRIX, ROW)->used[TEXT_AREA])
 
 /* Return the character/ byte position at which the display of ROW
    starts.  BIDI Note: this is the smallest character/byte position
@@ -1201,7 +1201,7 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
 #define MATRIX_BOTTOM_TEXT_ROW(MATRIX, W)		\
      ((MATRIX)->rows					\
       + (MATRIX)->nrows					\
-      - (window_wants_mode_line ((W)) ? 1 : 0))
+      - (window_wants_mode_line (W) ? 1 : 0))
 
 /* Non-zero if the face of the last glyph in ROW's text area has
    to be drawn to the end of the text area.  */
@@ -1211,7 +1211,7 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
 /* Set and query the enabled_p flag of glyph row ROW in MATRIX.  */
 
 #define SET_MATRIX_ROW_ENABLED_P(MATRIX, ROW, VALUE) \
-     (MATRIX_ROW (MATRIX, ROW)->enabled_p = (VALUE))
+     (MATRIX_ROW (MATRIX, ROW)->enabled_p = VALUE)
 
 #define MATRIX_ROW_ENABLED_P(MATRIX, ROW) \
      (MATRIX_ROW (MATRIX, ROW)->enabled_p)
@@ -1232,28 +1232,28 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
 
 #define MR_PARTIALLY_VISIBLE_AT_BOTTOM(W, ROW)  \
   (((ROW)->y + (ROW)->height - (ROW)->extra_line_spacing) \
-   > WINDOW_BOX_HEIGHT_NO_MODE_LINE ((W)))
+   > WINDOW_BOX_HEIGHT_NO_MODE_LINE (W))
 
 /* Non-zero if ROW is not completely visible in window W.  */
 
 #define MATRIX_ROW_PARTIALLY_VISIBLE_P(W, ROW)		\
-  (MR_PARTIALLY_VISIBLE ((ROW))				\
-   && (MR_PARTIALLY_VISIBLE_AT_TOP ((W), (ROW))		\
-       || MR_PARTIALLY_VISIBLE_AT_BOTTOM ((W), (ROW))))
+  (MR_PARTIALLY_VISIBLE (ROW)				\
+   && (MR_PARTIALLY_VISIBLE_AT_TOP (W, ROW)		\
+       || MR_PARTIALLY_VISIBLE_AT_BOTTOM (W, ROW)))
 
 
 
 /* Non-zero if ROW is partially visible at the top of window W.  */
 
 #define MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P(W, ROW)		\
-  (MR_PARTIALLY_VISIBLE ((ROW))					\
-   && MR_PARTIALLY_VISIBLE_AT_TOP ((W), (ROW)))
+  (MR_PARTIALLY_VISIBLE (ROW)					\
+   && MR_PARTIALLY_VISIBLE_AT_TOP (W, ROW))
 
 /* Non-zero if ROW is partially visible at the bottom of window W.  */
 
 #define MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P(W, ROW)	\
-  (MR_PARTIALLY_VISIBLE ((ROW))					\
-   && MR_PARTIALLY_VISIBLE_AT_BOTTOM ((W), (ROW)))
+  (MR_PARTIALLY_VISIBLE (ROW)					\
+   && MR_PARTIALLY_VISIBLE_AT_BOTTOM (W, ROW))
 
 /* Return the bottom Y + 1 of ROW.   */
 
@@ -1263,7 +1263,7 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
    iterator structure pointed to by IT?.  */
 
 #define MATRIX_ROW_LAST_VISIBLE_P(ROW, IT) \
-     (MATRIX_ROW_BOTTOM_Y ((ROW)) >= (IT)->last_visible_y)
+     (MATRIX_ROW_BOTTOM_Y (ROW) >= (IT)->last_visible_y)
 
 /* Non-zero if ROW displays a continuation line.  */
 
@@ -1537,9 +1537,9 @@ struct glyph_string
 /* Return the desired face id for the mode line of window W.  */
 
 #define CURRENT_MODE_LINE_ACTIVE_FACE_ID(W)		\
-	(CURRENT_MODE_LINE_ACTIVE_FACE_ID_3((W),        \
+	 CURRENT_MODE_LINE_ACTIVE_FACE_ID_3(W, \
 					    XWINDOW (selected_window), \
-					    (W)))
+					    W)
 
 /* Return the current height of the mode line of window W.  If not known
    from W->mode_line_height, look at W's current glyph matrix, or return
@@ -1625,8 +1625,8 @@ struct glyph_string
 
 #define VCENTER_BASELINE_OFFSET(FONT, F)			\
   (FONT_DESCENT (FONT)						\
-   + (FRAME_LINE_HEIGHT ((F)) - FONT_HEIGHT ((FONT))		\
-      + (FRAME_LINE_HEIGHT ((F)) > FONT_HEIGHT ((FONT)))) / 2	\
+   + (FRAME_LINE_HEIGHT (F) - FONT_HEIGHT (FONT)		\
+      + (FRAME_LINE_HEIGHT (F) > FONT_HEIGHT (FONT))) / 2	\
    - (FONT_DESCENT (FRAME_FONT (F)) - FRAME_BASELINE_OFFSET (F)))
 
 /* A heuristic test for fonts that claim they need a preposterously
@@ -2858,12 +2858,12 @@ struct it
     if ((IT)->glyph_row != NULL && (IT)->bidi_p)	\
       (IT)->glyph_row->reversed_p = (IT)->bidi_it.paragraph_dir == R2L; \
     if (FRAME_RIF ((IT)->f) != NULL)                    \
-      FRAME_RIF ((IT)->f)->produce_glyphs ((IT));       \
+      FRAME_RIF ((IT)->f)->produce_glyphs (IT);		\
     else                                                \
-      produce_glyphs ((IT));                            \
+      produce_glyphs (IT);				\
     if ((IT)->glyph_row != NULL)                        \
       inhibit_free_realized_faces =true;		\
-    reset_box_start_end_flags ((IT));			\
+    reset_box_start_end_flags (IT);			\
   } while (false)
 
 /* Bit-flags indicating what operation move_it_to should perform.  */

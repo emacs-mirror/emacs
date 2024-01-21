@@ -267,18 +267,18 @@ extern int emacs_mule_charset[256];
 
 /* Return the attribute vector of charset whose symbol is SYMBOL.  */
 #define CHARSET_SYMBOL_ATTRIBUTES(symbol)	\
-  Fgethash ((symbol), Vcharset_hash_table, Qnil)
+  Fgethash (symbol, Vcharset_hash_table, Qnil)
 
-#define CHARSET_ATTR_ID(attrs)		AREF ((attrs), charset_id)
-#define CHARSET_ATTR_NAME(attrs)	AREF ((attrs), charset_name)
-#define CHARSET_ATTR_PLIST(attrs)	AREF ((attrs), charset_plist)
-#define CHARSET_ATTR_MAP(attrs)		AREF ((attrs), charset_map)
-#define CHARSET_ATTR_DECODER(attrs)	AREF ((attrs), charset_decoder)
-#define CHARSET_ATTR_ENCODER(attrs)	AREF ((attrs), charset_encoder)
-#define CHARSET_ATTR_SUBSET(attrs)	AREF ((attrs), charset_subset)
-#define CHARSET_ATTR_SUPERSET(attrs)	AREF ((attrs), charset_superset)
-#define CHARSET_ATTR_UNIFY_MAP(attrs)	AREF ((attrs), charset_unify_map)
-#define CHARSET_ATTR_DEUNIFIER(attrs)	AREF ((attrs), charset_deunifier)
+#define CHARSET_ATTR_ID(attrs)		AREF (attrs, charset_id)
+#define CHARSET_ATTR_NAME(attrs)	AREF (attrs, charset_name)
+#define CHARSET_ATTR_PLIST(attrs)	AREF (attrs, charset_plist)
+#define CHARSET_ATTR_MAP(attrs)		AREF (attrs, charset_map)
+#define CHARSET_ATTR_DECODER(attrs)	AREF (attrs, charset_decoder)
+#define CHARSET_ATTR_ENCODER(attrs)	AREF (attrs, charset_encoder)
+#define CHARSET_ATTR_SUBSET(attrs)	AREF (attrs, charset_subset)
+#define CHARSET_ATTR_SUPERSET(attrs)	AREF (attrs, charset_superset)
+#define CHARSET_ATTR_UNIFY_MAP(attrs)	AREF (attrs, charset_unify_map)
+#define CHARSET_ATTR_DEUNIFIER(attrs)	AREF (attrs, charset_deunifier)
 
 #define CHARSET_SYMBOL_ID(symbol)	\
   CHARSET_ATTR_ID (CHARSET_SYMBOL_ATTRIBUTES (symbol))
@@ -290,7 +290,7 @@ extern int emacs_mule_charset[256];
 
 /* Return the attribute vector of CHARSET.  */
 #define CHARSET_ATTRIBUTES(charset)	\
-  (HASH_VALUE (XHASH_TABLE (Vcharset_hash_table), (charset)->hash_index))
+  HASH_VALUE (XHASH_TABLE (Vcharset_hash_table), (charset)->hash_index)
 
 #define CHARSET_ID(charset)		((charset)->id)
 #define CHARSET_HASH_INDEX(charset)	((charset)->hash_index)
@@ -314,21 +314,21 @@ extern int emacs_mule_charset[256];
 #define CHARSET_UNIFIED_P(charset)	((charset)->unified_p)
 
 #define CHARSET_NAME(charset)		\
-  (CHARSET_ATTR_NAME (CHARSET_ATTRIBUTES (charset)))
+  CHARSET_ATTR_NAME (CHARSET_ATTRIBUTES (charset))
 #define CHARSET_MAP(charset)	\
-  (CHARSET_ATTR_MAP (CHARSET_ATTRIBUTES (charset)))
+  CHARSET_ATTR_MAP (CHARSET_ATTRIBUTES (charset))
 #define CHARSET_DECODER(charset)	\
-  (CHARSET_ATTR_DECODER (CHARSET_ATTRIBUTES (charset)))
+  CHARSET_ATTR_DECODER (CHARSET_ATTRIBUTES (charset))
 #define CHARSET_ENCODER(charset)	\
-  (CHARSET_ATTR_ENCODER (CHARSET_ATTRIBUTES (charset)))
+  CHARSET_ATTR_ENCODER (CHARSET_ATTRIBUTES (charset))
 #define CHARSET_SUBSET(charset)	\
-  (CHARSET_ATTR_SUBSET (CHARSET_ATTRIBUTES (charset)))
+  CHARSET_ATTR_SUBSET (CHARSET_ATTRIBUTES (charset))
 #define CHARSET_SUPERSET(charset)	\
-  (CHARSET_ATTR_SUPERSET (CHARSET_ATTRIBUTES (charset)))
+  CHARSET_ATTR_SUPERSET (CHARSET_ATTRIBUTES (charset))
 #define CHARSET_UNIFY_MAP(charset)	\
-  (CHARSET_ATTR_UNIFY_MAP (CHARSET_ATTRIBUTES (charset)))
+  CHARSET_ATTR_UNIFY_MAP (CHARSET_ATTRIBUTES (charset))
 #define CHARSET_DEUNIFIER(charset)	\
-  (CHARSET_ATTR_DEUNIFIER (CHARSET_ATTRIBUTES (charset)))
+  CHARSET_ATTR_DEUNIFIER (CHARSET_ATTRIBUTES (charset))
 
 INLINE void
 set_charset_attr (struct charset *charset, enum charset_attr_index idx,
@@ -345,7 +345,7 @@ set_charset_attr (struct charset *charset, enum charset_attr_index idx,
 #define CHECK_CHARSET(x)					\
   do {								\
     if (! SYMBOLP (x) || CHARSET_SYMBOL_HASH_INDEX (x) < 0)	\
-      wrong_type_argument (Qcharsetp, (x));			\
+      wrong_type_argument (Qcharsetp, x);			\
   } while (false)
 
 
@@ -356,7 +356,7 @@ set_charset_attr (struct charset *charset, enum charset_attr_index idx,
     ptrdiff_t idx;							\
 									\
     if (! SYMBOLP (x) || (idx = CHARSET_SYMBOL_HASH_INDEX (x)) < 0)	\
-      wrong_type_argument (Qcharsetp, (x));				\
+      wrong_type_argument (Qcharsetp, x);				\
     id = XFIXNUM (AREF (HASH_VALUE (XHASH_TABLE (Vcharset_hash_table), idx), \
 		     charset_id));					\
   } while (false)
@@ -367,7 +367,7 @@ set_charset_attr (struct charset *charset, enum charset_attr_index idx,
 #define CHECK_CHARSET_GET_ATTR(x, attr)				\
   do {									\
     if (!SYMBOLP (x) || NILP (attr = CHARSET_SYMBOL_ATTRIBUTES (x)))	\
-      wrong_type_argument (Qcharsetp, (x));				\
+      wrong_type_argument (Qcharsetp, x);				\
   } while (false)
 
 
@@ -383,7 +383,7 @@ set_charset_attr (struct charset *charset, enum charset_attr_index idx,
    contains the character C.  */
 #define CHAR_CHARSET(c)				\
   ((c) < 0x80 ? CHARSET_FROM_ID (charset_ascii)	\
-   : char_charset ((c), Qnil, NULL))
+   : char_charset (c, Qnil, NULL))
 
 #if false
 /* Char-table of charset-sets.  Each element is a bool vector indexed
@@ -410,18 +410,18 @@ extern Lisp_Object Vchar_charset_set;
    : ((code) < (charset)->min_code || (code) > (charset)->max_code)	\
    ? -1									\
    : (charset)->unified_p						\
-   ? decode_char ((charset), (code))					\
+   ? decode_char (charset, code)					\
    : (charset)->method == CHARSET_METHOD_OFFSET				\
    ? ((charset)->code_linear_p						\
       ? (int) ((code) - (charset)->min_code) + (charset)->code_offset	\
-      : decode_char ((charset), (code)))				\
+      : decode_char (charset, code))					\
    : (charset)->method == CHARSET_METHOD_MAP				\
    ? (((charset)->code_linear_p						\
        && VECTORP (CHARSET_DECODER (charset)))				\
       ? XFIXNUM (AREF (CHARSET_DECODER (charset),				\
 		    (code) - (charset)->min_code))			\
-      : decode_char ((charset), (code)))				\
-   : decode_char ((charset), (code)))
+      : decode_char (charset, code))					\
+   : decode_char (charset, code))
 
 extern Lisp_Object charset_work;
 
@@ -462,7 +462,7 @@ extern bool charset_map_loaded;
 /* Set CHARSET to the charset highest priority of C, CODE to the
    code-point of C in CHARSET.  */
 #define SPLIT_CHAR(c, charset, code)	\
-  ((charset) = char_charset ((c), Qnil, &(code)))
+  ((charset) = char_charset (c, Qnil, &(code)))
 
 
 #define ISO_MAX_DIMENSION 3
@@ -501,15 +501,15 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
    || ((CHARSET_UNIFIED_P (charset)					 \
 	|| (charset)->method == CHARSET_METHOD_SUBSET			 \
 	|| (charset)->method == CHARSET_METHOD_SUPERSET)		 \
-       ? encode_char ((charset), (c)) != (charset)->invalid_code	 \
-       : (CHARSET_FAST_MAP_REF ((c), (charset)->fast_map)		 \
+       ? encode_char (charset, c) != (charset)->invalid_code	 \
+       : (CHARSET_FAST_MAP_REF (c, (charset)->fast_map)		 \
 	  && ((charset)->method == CHARSET_METHOD_OFFSET		 \
 	      ? (c) >= (charset)->min_char && (c) <= (charset)->max_char \
 	      : ((charset)->method == CHARSET_METHOD_MAP		 \
 		 && (charset)->compact_codes_p				 \
 		 && CHAR_TABLE_P (CHARSET_ENCODER (charset)))		 \
-	      ? ! NILP (CHAR_TABLE_REF (CHARSET_ENCODER (charset), (c))) \
-	      : encode_char ((charset), (c)) != (charset)->invalid_code))))
+	      ? ! NILP (CHAR_TABLE_REF (CHARSET_ENCODER (charset), c))	 \
+	      : encode_char (charset, c) != (charset)->invalid_code))))
 
 
 /* Special macros for emacs-mule encoding.  */

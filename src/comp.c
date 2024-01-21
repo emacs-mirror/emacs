@@ -522,7 +522,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 #define DECL_BLOCK(name, func)				\
   gcc_jit_block *(name) =				\
-    gcc_jit_function_new_block ((func), STR (name))
+    gcc_jit_function_new_block (func, STR (name))
 
 #ifndef WINDOWSNT
 # ifdef HAVE__SETJMP

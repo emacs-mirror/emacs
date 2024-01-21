@@ -298,8 +298,8 @@ enum
    code after any drawing command, but code can be run whenever
    someone asks for the handle necessary to draw.  */
 #define FRAME_ANDROID_DRAWABLE(f)			\
-  (((f))->output_data.android->need_buffer_flip = true, \
-   FRAME_ANDROID_WINDOW ((f)))
+  ((f)->output_data.android->need_buffer_flip = true, \
+   FRAME_ANDROID_WINDOW (f))
 
 /* Return whether or not the frame F has been completely drawn.  Used
    while handling async input.  */

@@ -2265,14 +2265,14 @@ font_supported_scripts (FONTSIGNATURE * sig)
   /* Match a single subrange. SYM is set if bit N is set in subranges.  */
 #define SUBRANGE(n,sym) \
   if (subranges[(n) / 32] & (1U << ((n) % 32))) \
-    supported = Fcons ((sym), supported)
+    supported = Fcons (sym, supported)
 
   /* Match multiple subranges. SYM is set if any MASK bit is set in
      subranges[0 - 3].  */
 #define MASK_ANY(mask0,mask1,mask2,mask3,sym)      \
   if ((subranges[0] & (mask0)) || (subranges[1] & (mask1))     \
       || (subranges[2] & (mask2)) || (subranges[3] & (mask3))) \
-    supported = Fcons ((sym), supported)
+    supported = Fcons (sym, supported)
 
   /* 0: ASCII (a.k.a. "Basic Latin"),
      1: Latin-1 supplement, 2: Latin Extended A, 3: Latin Extended B,

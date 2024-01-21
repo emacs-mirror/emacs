@@ -309,7 +309,7 @@ extern struct timespec emacs_installation_time;
 
 #define ANDROID_DELETE_LOCAL_REF(ref)				\
   ((*android_java_env)->DeleteLocalRef (android_java_env,	\
-					(ref)))
+					ref))
 
 #define NATIVE_NAME(name) Java_org_gnu_emacs_EmacsNative_##name
 
