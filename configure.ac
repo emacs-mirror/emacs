@@ -7097,9 +7097,6 @@ AC_DEFINE_UNQUOTED([COPYRIGHT], ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST([copyright])
 
-# This is needed for gnulib's printf modules.
-CFLAGS="$CFLAGS -DHAVE_CONFIG_H"
-
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
 AC_SUBST([version])
