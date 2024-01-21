@@ -261,7 +261,15 @@ active window."
 (defmacro mwheel--is-dir-p (dir button)
   (declare (debug (sexp form)))
   (let ((custom-var (intern (format "mouse-wheel-%s-event" dir)))
-        (event (intern (format "wheel-%s" dir))))
+        ;; N.B. that the direction `down' in a wheel event refers to
+        ;; the movement of the section of the buffer the window is
+        ;; displaying, that is to say, the direction `scroll-up' moves
+        ;; it in.
+        (event (intern (format "wheel-%s" (cond ((eq dir 'up)
+                                                 'down)
+                                                ((eq dir 'down)
+                                                 'up)
+                                                (t dir))))))
     (macroexp-let2 nil butsym button
       `(or (eq ,butsym ',event)
            ;; We presume here `button' is never nil.
