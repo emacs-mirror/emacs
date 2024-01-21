@@ -376,7 +376,10 @@ _gdb_history
 
 # Files ignored in exec/.
 exec/aclocal.m4
+exec/config.guess
+exec/config.sub
 exec/config.status
+exec/install-sh
 exec/loader
 exec/test
 exec/exec1

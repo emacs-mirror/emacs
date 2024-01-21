@@ -107,9 +107,6 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
 # gnulib-tool has problems with a bare checkout (Bug#32452#65).
 test -f configure || ./autogen.sh || exit
 
-# Old caches can confuse autoconf when some Gnulib-related changes take effect.
-rm -fr autom4te.cache || exit
-
 avoided_flags=
 for module in $AVOIDED_MODULES; do
   avoided_flags="$avoided_flags --avoid=$module"
