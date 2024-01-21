@@ -443,7 +443,7 @@ of the channel.  However, don't bother creating an actual
 Instead, just spoof an `erc-server-user' and stash it during
 \"PRIVMSG\" handling via `erc--cmem-from-nick-function' and
 retrieve it during buttonizing via
-`erc-button--fallback-user-function'."
+`erc-button--fallback-cmem-function'."
   :interactive nil
   (if erc-button--phantom-users-mode
       (progn

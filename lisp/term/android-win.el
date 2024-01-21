@@ -406,7 +406,7 @@ to grant such permissions.
 
 FANCY-P non-nil means the notice will be displayed with faces, in
 the style appropriate for its incorporation within the fancy splash
-screen display; see `francy-splash-insert'."
+screen display; see `fancy-splash-insert'."
   (unless (android-external-storage-available-p)
     (if fancy-p
         (fancy-splash-insert

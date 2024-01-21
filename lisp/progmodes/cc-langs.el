@@ -817,7 +817,7 @@ there be copies of the opener contained in the multi-line string."
 
 (c-lang-defconst c-cpp-or-ml-match-offset
   ;; The offset to be added onto match numbers for a multi-line string in
-  ;; matches for `c-cpp-or-ml-string-opener-re'.
+  ;; matches for `c-ml-string-cpp-or-opener-re'.
   t (if (c-lang-const c-anchored-cpp-prefix)
 	(+ 2 (regexp-opt-depth (c-lang-const c-anchored-cpp-prefix)))
       2))

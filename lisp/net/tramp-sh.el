@@ -4112,7 +4112,7 @@ Only send the definition if it has not already been done."
     (unless (member name scripts)
       (with-tramp-progress-reporter
 	  vec 5 (format-message "Sending script `%s'" name)
-	;; In bash, leading TABs like in `tramp-vc-registered-read-file-names'
+	;; In bash, leading TABs like in `tramp-bundle-read-file-names'
 	;; could result in unwanted command expansion.  Avoid this.
 	(setq script (tramp-compat-string-replace
 		      (make-string 1 ?\t) (make-string 8 ? ) script))

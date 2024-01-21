@@ -438,7 +438,7 @@ ignored."
                        `(canceled ,cancel-on-input-retval))
                       (t (while t (accept-process-output nil 30)))))
             ;; In normal operation, continuations for error/success is
-            ;; handled by `jsonrpc-continue'.  Timeouts also remove
+            ;; handled by `jsonrpc--continue'.  Timeouts also remove
             ;; the continuation...
             (pcase-let* ((`(,id ,_) id-and-timer))
               ;; ...but we still have to guard against exist explicit

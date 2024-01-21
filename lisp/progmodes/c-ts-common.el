@@ -37,9 +37,8 @@
 ;;
 ;; For indenting statements:
 ;;
-;; - Set `c-ts-common-indent-offset',
-;;   `c-ts-common-indent-block-type-regexp', and
-;;   `c-ts-common-indent-bracketless-type-regexp', then use simple-indent
+;; - Set `c-ts-common-indent-offset', and
+;;   `c-ts-common-indent-type-regexp-alist', then use simple-indent
 ;;   offset `c-ts-common-statement-offset' in
 ;;   `treesit-simple-indent-rules'.
 
@@ -331,7 +330,7 @@ If NODE is nil, return nil."
 Assumes the anchor is (point-min), i.e., the 0th column.
 
 This function basically counts the number of block nodes (i.e.,
-brackets) (defined by `c-ts-common-indent-block-type-regexp')
+brackets) (see `c-ts-common-indent-type-regexp-alist')
 between NODE and the root node (not counting NODE itself), and
 multiply that by `c-ts-common-indent-offset'.
 

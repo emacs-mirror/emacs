@@ -11476,7 +11476,7 @@ This function might do hidden buffer changes."
 		 ;; an arglist it would be a meaningless expression because
 		 ;; the result isn't used.  We therefore choose to recognize
 		 ;; it as a declaration when there's "symmetrical WS" around
-		 ;; the "*" or the flag `c-assymetry-fontification-flag' is
+		 ;; the "*" or the flag `c-asymmetry-fontification-flag' is
 		 ;; not set.  We only allow a suffix (which makes the
 		 ;; construct look like a function call) when `at-decl-start'
 		 ;; provides additional evidence that we do have a

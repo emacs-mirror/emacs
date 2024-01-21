@@ -1112,7 +1112,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; 'c-decl-type-start (according to TYPES).  Stop at LIMIT.
   ;;
   ;; If TYPES is t, fontify all identifiers as types; if it is a number, a
-  ;; buffer position, additionally set the `c-deftype' text property on the
+  ;; buffer position, additionally set the `c-typedef' text property on the
   ;; keyword at that position; if it is nil fontify as either variables or
   ;; functions, otherwise TYPES is a face to use.  If NOT-TOP is non-nil, we
   ;; are not at the top-level ("top-level" includes being directly inside a

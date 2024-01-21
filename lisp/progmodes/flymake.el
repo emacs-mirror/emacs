@@ -715,7 +715,7 @@ associated `flymake-category' return DEFAULT."
     (delete-overlay ov)))
 
 (defun flymake--eol-overlay-summary (src-ovs)
-  "Helper function for `flymake--eol-overlay-update'."
+  "Helper function for `flymake--update-eol-overlays'."
   (cl-flet ((summarize (d)
               (propertize (flymake-diagnostic-oneliner d t) 'face
                           (flymake--lookup-type-property (flymake--diag-type d)

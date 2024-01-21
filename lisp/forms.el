@@ -343,7 +343,7 @@ suitable for forms processing.")
 
 (defvar forms-write-file-filter nil
   "The name of a function that is called before writing the data file.
-This can be used to undo the effects of `form-read-file-hook'.")
+This can be used to undo the effects of `form-read-file-filter'.")
 
 (defvar forms-new-record-filter nil
   "The name of a function that is called when a new record is created.")

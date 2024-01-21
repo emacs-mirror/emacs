@@ -924,7 +924,7 @@ and expected types.  This function should return a face or nil.")
 Expect RANKS to be a list of faces and both NORMALS and the car
 of NEW-FACES to be hash tables mapping faces to non-nil values.
 Assume the latter's makeup and that of RANKS to resemble
-`erc-track-face-normal-list' and `erc-track-faces-priority-list'.
+`erc-track-faces-normal-list' and `erc-track-faces-priority-list'.
 If NEW-FACES has a cdr, expect it to be its car's contents
 ordered from most recently seen (later in the buffer) to
 earliest.  In general, act like `erc-track-select-mode-line-face'

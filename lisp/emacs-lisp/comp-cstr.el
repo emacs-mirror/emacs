@@ -130,7 +130,7 @@ Integer values are handled in the `range' slot.")
   ;; TODO we should be able to just cons hash this.
   (common-supertype-mem (make-hash-table :test #'equal) :type hash-table
                         :documentation "Serve memoization for
-`comp-common-supertype'.")
+`comp-ctxt-common-supertype-mem'.")
   (subtype-p-mem (make-hash-table :test #'equal) :type hash-table
                  :documentation "Serve memoization for
 `comp-cstr-ctxt-subtype-p-mem'.")
