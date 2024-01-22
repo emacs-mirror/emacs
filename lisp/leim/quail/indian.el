@@ -476,7 +476,7 @@ Full key sequences are listed below:"
 (defgroup tamil-input nil
   "Translation rules for the Tamil input method."
   :prefix "tamil-"
-  :group 'leim)
+  :group 'quail)
 
 (defcustom tamil-translation-rules
   ;; Vowels.
