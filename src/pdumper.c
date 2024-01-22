@@ -1331,13 +1331,7 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
 static bool
 dump_object_needs_dumping_p (Lisp_Object object)
 {
-  /* Some objects, like symbols, are self-representing because they
-     have invariant bit patterns, but sometimes these objects have
-     associated data too, and these data-carrying objects need to be
-     included in the dump despite all references to them being
-     bitwise-invariant.  */
-  return (!dump_object_self_representing_p (object)
-	  || dump_object_emacs_ptr (object));
+  return !(FIXNUMP (object));
 }
 
 static void
@@ -2651,7 +2645,6 @@ dump_vectorlike_generic (struct dump_context *ctx,
 static Lisp_Object *
 hash_table_contents (struct Lisp_Hash_Table *h)
 {
-  ptrdiff_t old_size = HASH_TABLE_SIZE (h);
   ptrdiff_t size = h->count;
   Lisp_Object *key_and_value = hash_table_alloc_bytes (2 * size
 						       * sizeof *key_and_value);
@@ -2660,14 +2653,10 @@ hash_table_contents (struct Lisp_Hash_Table *h)
   /* Make sure key_and_value ends up in the same order; charset.c
      relies on it by expecting hash table indices to stay constant
      across the dump.  */
-  for (ptrdiff_t i = 0; i < old_size; i++)
+  DOHASH (h, i)
     {
-      Lisp_Object key = HASH_KEY (h, i);
-      if (!hash_unused_entry_key_p (key))
-	{
-	  key_and_value[n++] = key;
-	  key_and_value[n++] = HASH_VALUE (h, i);
-	}
+      key_and_value[n++] = HASH_KEY (h, i);
+      key_and_value[n++] = HASH_VALUE (h, i);
     }
 
   return key_and_value;
