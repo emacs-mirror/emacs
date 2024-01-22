@@ -10776,6 +10776,7 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
   sfnt_f26dot6 versor, k;
   sfnt_f2dot14 dot_product;
   size_t num;
+  unsigned char *flags_start;
 
   dot_product = interpreter->state.vector_dot_product;
 
@@ -10787,6 +10788,10 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
   /* Not actually 26.6, but the multiply-divisions below cancel each
      other out, so the result is 26.6.  */
   versor = interpreter->state.freedom_vector.x;
+
+  /* Save flags that it may be restored for the second Y axis
+     loop.  */
+  flags_start = flags;
 
   if (versor)
     {
@@ -10807,6 +10812,7 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
 	}
     }
 
+  flags = flags_start;
   versor = interpreter->state.freedom_vector.y;
 
   if (versor)
