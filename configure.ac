@@ -160,12 +160,6 @@ variable when you ran configure.])
     ;;
   esac
   AC_MSG_RESULT([$host_alias])
-
-  # Suppress the detection of utmpx.h on Android versions older than
-  # 34, for the header will be present yet define no functions,
-  # which Gnulib is not prepared to handle.
-  AS_IF([test "$ANDROID_SDK" -lt "34"],
-    [ac_cv_header_utmpx_h=no])
 fi
 
 AC_CANONICAL_HOST
