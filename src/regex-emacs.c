@@ -2923,8 +2923,18 @@ forall_firstchar_1 (re_char *p, re_char *pend,
                forward over a subsequent `jump`.  Recognize this pattern
                since that subsequent `jump` is the one that jumps to the
                loop-entry.  */
-	    newp2 = ((re_opcode_t) *newp2 == jump)
-	            ? extract_address (newp2 + 1) : newp2;
+	    if ((re_opcode_t) *newp2 == jump)
+	      {
+	        re_char *p3 = extract_address (newp2 + 1);
+	        /* Only recognize this pattern if one of the two destinations
+	           is going forward, otherwise we'll fall into the pessimistic
+	           "Both destinations go backward" below.
+	           This is important if the `jump` at newp2 is the end of an
+	           outer loop while the `on_failure_jump` is the end of an
+	           inner loop.  */
+	        if (p3 > p_orig || newp1 > p_orig)
+	          newp2 = p3;
+	      }
 
 	  do_twoway_jump:
 	    /* We have to check that both destinations are safe.
