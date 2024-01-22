@@ -1421,7 +1421,7 @@ Return a list of results."
          (if (= x 0.0)
              x
            (error "")))
-       '(or (member 0.0 -0.0) (integer 0 0)))
+       '(or (member -0.0 0.0) (integer 0 0)))
 
       ;; 72
       ((defun comp-tests-ret-type-spec-f (x)
