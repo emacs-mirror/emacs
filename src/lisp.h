@@ -1161,7 +1161,12 @@ XBARE_SYMBOL (Lisp_Object a)
 INLINE struct Lisp_Symbol * ATTRIBUTE_NO_SANITIZE_UNDEFINED
 XSYMBOL (Lisp_Object a)
 {
-  return XBARE_SYMBOL (BARE_SYMBOL_P (a) ? a : XSYMBOL_WITH_POS (a)->sym);
+  if (!BARE_SYMBOL_P (a))
+    {
+      eassert (symbols_with_pos_enabled);
+      a = XSYMBOL_WITH_POS (a)->sym;
+    }
+  return XBARE_SYMBOL (a);
 }
 
 INLINE Lisp_Object
