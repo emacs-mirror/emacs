@@ -409,6 +409,10 @@ typedef EMACS_INT Lisp_Word;
        & ((1 << INTTYPEBITS) - 1)))
 #define lisp_h_FLOATP(x) TAGGEDP (x, Lisp_Float)
 #define lisp_h_NILP(x)  BASE_EQ (x, Qnil)
+/* Equivalent to "make_lisp_symbol (&lispsym[INDEX])",
+   and typically faster when compiling without optimization.  */
+#define lisp_h_builtin_lisp_symbol(index) \
+  TAG_PTR (Lisp_Symbol, (index) * sizeof *lispsym)
 #define lisp_h_SET_SYMBOL_VAL(sym, v) \
    (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), \
     (sym)->u.s.val.value = (v))
@@ -475,6 +479,7 @@ typedef EMACS_INT Lisp_Word;
 # define FLOATP(x) lisp_h_FLOATP (x)
 # define FIXNUMP(x) lisp_h_FIXNUMP (x)
 # define NILP(x) lisp_h_NILP (x)
+# define builtin_lisp_symbol(index) lisp_h_builtin_lisp_symbol (index)
 # define SET_SYMBOL_VAL(sym, v) lisp_h_SET_SYMBOL_VAL (sym, v)
 # define SYMBOL_CONSTANT_P(sym) lisp_h_SYMBOL_CONSTANT_P (sym)
 # define SYMBOL_TRAPPED_WRITE_P(sym) lisp_h_SYMBOL_TRAPPED_WRITE_P (sym)
@@ -1171,9 +1176,9 @@ make_lisp_symbol (struct Lisp_Symbol *sym)
 }
 
 INLINE Lisp_Object
-builtin_lisp_symbol (int index)
+(builtin_lisp_symbol) (int index)
 {
-  return make_lisp_symbol (&lispsym[index]);
+  return lisp_h_builtin_lisp_symbol (index);
 }
 
 INLINE bool
