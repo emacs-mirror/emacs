@@ -2600,7 +2600,9 @@ hash_from_key (struct Lisp_Hash_Table *h, Lisp_Object key)
    mutate TABLE in any other way.  */
 #define DOHASH(TABLE, IDXVAR)						\
   for (ptrdiff_t IDXVAR = 0; IDXVAR < (TABLE)->table_size; IDXVAR++)	\
-    if (!hash_unused_entry_key_p (HASH_KEY (TABLE, IDXVAR)))
+    if (hash_unused_entry_key_p (HASH_KEY (TABLE, IDXVAR)))             \
+      ;                                                                 \
+    else
 
 void hash_table_thaw (Lisp_Object hash_table);
 
