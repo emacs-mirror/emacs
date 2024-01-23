@@ -334,6 +334,11 @@ has changed in some way.  At present, ERC does not perform this step
 automatically on your behalf, even if a change was made in a
 'Custom-mode' buffer or via 'setopt'.
 
+** New broadcast-oriented slash commands /AME, /GME, and /GMSG.
+Also available as the library functions 'erc-cmd-AME', 'erc-cmd-GME',
+and 'erc-cmd-GMSG', these new slash commands can prove handy in test
+environments.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, fool visibility has become togglable with the new
@@ -1375,7 +1380,7 @@ reconnection attempts that ERC will make per server.
 in seconds, that ERC will wait between successive reconnect attempts.
 
 *** erc-server-send-ping-timeout: Determines when to consider a connection
-stalled and restart it.  The default is	after 120 seconds.
+stalled and restart it.  The default is after 120 seconds.
 
 *** erc-system-name: Determines the system name to use when logging in.
 The default is to figure this out by calling `system-name'.
@@ -2336,7 +2341,7 @@ in XEmacs.
   Please use M-x customize-variable RET erc-modules RET to change the
   default if it does not suite your needs.
 
-** THe symbol used in `erc-nickserv-passwords' for debian.org IRC servers
+** The symbol used in `erc-nickserv-passwords' for debian.org IRC servers
   (formerly called OpenProjects, now FreeNode) has changed from
   openprojects to freenode.  You may need to update your configuration
   for a successful automatic nickserv identification.
