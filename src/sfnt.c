@@ -8563,8 +8563,12 @@ sfnt_address_zp2 (struct sfnt_interpreter *interpreter,
       if (number >= interpreter->twilight_zone_size)
 	TRAP ("address to ZP2 (twilight zone) out of bounds");
 
+      if (!x || !y)
+	goto next;
+
       *x = interpreter->twilight_x[number];
       *y = interpreter->twilight_y[number];
+    next:
 
       if (!x_org || !y_org)
 	return;
@@ -8614,8 +8618,12 @@ sfnt_address_zp1 (struct sfnt_interpreter *interpreter,
       if (number >= interpreter->twilight_zone_size)
 	TRAP ("address to ZP1 (twilight zone) out of bounds");
 
+      if (!x || !y)
+	goto next;
+
       *x = interpreter->twilight_x[number];
       *y = interpreter->twilight_y[number];
+    next:
 
       if (!x_org || !y_org)
 	return;
@@ -8665,8 +8673,12 @@ sfnt_address_zp0 (struct sfnt_interpreter *interpreter,
       if (number >= interpreter->twilight_zone_size)
 	TRAP ("address to ZP0 (twilight zone) out of bounds");
 
+      if (!x || !y)
+	goto next;
+
       *x = interpreter->twilight_x[number];
       *y = interpreter->twilight_y[number];
+    next:
 
       if (!x_org || !y_org)
 	return;
