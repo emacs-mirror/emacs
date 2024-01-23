@@ -424,7 +424,12 @@ in the Emacs source directory."
   (mapatoms
    ;; This code is mainly from `custom-load-symbol'.
    (lambda (symbol)
-     (let ((custom-load-recursion t))
+     (let ((custom-load-recursion t)
+           (load-path
+            (cons
+             (expand-file-name
+              "quail" (file-name-directory (locate-library leim-list-file-name)))
+             load-path)))
        (dolist (load (get symbol 'custom-loads))
 	 (cond
 	  ((symbolp load)
