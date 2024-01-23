@@ -6554,7 +6554,7 @@ sfnt_mul_f2dot14 (sfnt_f2dot14 a, int32_t b)
 static sfnt_f26dot6
 sfnt_mul_f26dot6_fixed (sfnt_f26dot6 x, sfnt_fixed y)
 {
-  return sfnt_mul_fixed (x, y);
+  return sfnt_mul_fixed_round (x, y);
 }
 
 /* Return the floor of the specified 26.6 fixed point value X.  */
