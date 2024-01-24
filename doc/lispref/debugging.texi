@@ -1093,10 +1093,19 @@ argument (@kbd{C-u @key{RET}}) to see the whole call tree below a
 function.  Pressing @kbd{@key{RET}} again will collapse back to the
 original state.
 
-Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function
-at point.  Press @kbd{d} to view a function's documentation.  You can
-save a profile to a file using @kbd{C-x C-w}.  You can compare two
-profiles using @kbd{=}.
+@findex profiler-report-find-entry
+@findex profiler-report-describe-entry
+@findex profiler-find-profile
+@findex profiler-find-profile-other-window
+@findex profiler-report-compare-profile
+Press @kbd{j} (@code{profiler-report-find-entry}) or @kbd{mouse-2} to
+jump to the definition of a function at point.  Press @kbd{d}
+(@code{profiler-report-describe-entry}) to view a function's
+documentation.  You can save a profile to a file using @kbd{C-x C-w}
+(@code{profiler-report-write-profile}) and read a saved profile with
+@w{@kbd{M-x profiler-find-profile}} or @w{@kbd{M-x
+profiler-find-profile-other-window}}.  You can compare two profiles
+using @kbd{=} (@code{profiler-report-compare-profile}).
 
 @c FIXME reversed calltree?
 
