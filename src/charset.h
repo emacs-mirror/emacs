@@ -150,8 +150,7 @@ struct charset
   /* Index to charset_table.  */
   int id;
 
-  /* Index to Vcharset_hash_table.  */
-  ptrdiff_t hash_index;
+  Lisp_Object attributes;
 
   /* Dimension of the charset: 1, 2, 3, or 4.  */
   int dimension;
@@ -289,11 +288,9 @@ extern int emacs_mule_charset[256];
   hash_lookup (XHASH_TABLE (Vcharset_hash_table), symbol)
 
 /* Return the attribute vector of CHARSET.  */
-#define CHARSET_ATTRIBUTES(charset)	\
-  HASH_VALUE (XHASH_TABLE (Vcharset_hash_table), (charset)->hash_index)
+#define CHARSET_ATTRIBUTES(charset) (charset)->attributes
 
 #define CHARSET_ID(charset)		((charset)->id)
-#define CHARSET_HASH_INDEX(charset)	((charset)->hash_index)
 #define CHARSET_DIMENSION(charset)	((charset)->dimension)
 #define CHARSET_CODE_SPACE(charset)	((charset)->code_space)
 #define CHARSET_CODE_LINEAR_P(charset)	((charset)->code_linear_p)

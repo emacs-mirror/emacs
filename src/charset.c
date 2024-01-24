@@ -1108,18 +1108,18 @@ usage: (define-charset-internal ...)  */)
   ASET (attrs, charset_plist, args[charset_arg_plist]);
 
   hash_hash_t hash_code;
-  charset.hash_index = hash_lookup_get_hash (hash_table, args[charset_arg_name],
-					     &hash_code);
-  if (charset.hash_index >= 0)
+  ptrdiff_t hash_index
+    = hash_lookup_get_hash (hash_table, args[charset_arg_name],
+			    &hash_code);
+  if (hash_index >= 0)
     {
-      new_definition_p = 0;
+      new_definition_p = false;
       id = XFIXNAT (CHARSET_SYMBOL_ID (args[charset_arg_name]));
-      set_hash_value_slot (hash_table, charset.hash_index, attrs);
+      set_hash_value_slot (hash_table, hash_index, attrs);
     }
   else
     {
-      charset.hash_index = hash_put (hash_table, args[charset_arg_name], attrs,
-				     hash_code);
+      hash_put (hash_table, args[charset_arg_name], attrs, hash_code);
       if (charset_table_used == charset_table_size)
 	{
 	  /* Ensure that charset IDs fit into 'int' as well as into the
@@ -1150,6 +1150,7 @@ usage: (define-charset-internal ...)  */)
 
   ASET (attrs, charset_id, make_fixnum (id));
   charset.id = id;
+  charset.attributes = attrs;
   charset_table[id] = charset;
 
   if (charset.method == CHARSET_METHOD_MAP)
@@ -2268,6 +2269,16 @@ See also `charset-priority-list' and `set-charset-priority'.  */)
   SAFE_FREE ();
   return charsets;
 }
+
+/* Not strictly necessary, because all charset attributes are also
+   reachable from `Vcharset_hash_table`.
+void
+mark_charset (void)
+{
+  for (int i = 0; i < charset_table_used; i++)
+    mark_object (charset_table[i].attributes);
+}
+*/
 
 
 void
