@@ -42,6 +42,14 @@
 ;; - ideally we'd want (pcase s ((re RE1) E1) ((re RE2) E2)) to be able to
 ;;   generate a lex-style DFA to decide whether to run E1 or E2.
 
+;; While the first version was written before I knew about Racket's `match'
+;; construct, the second version was significantly influenced by it,
+;; so a good presentation of the underlying ideas can be found at:
+;;
+;;   Extensible Pattern Matching in an Extensible Language
+;;   Sam Tobin-Hochstadt, 2010
+;;   https://arxiv.org/abs/1106.2578
+
 ;;; Code:
 
 (require 'macroexp)
