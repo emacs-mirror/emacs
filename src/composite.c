@@ -321,7 +321,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
   cmp = xmalloc (sizeof *cmp);
 
   cmp->method = method;
-  cmp->hash_index = hash_index;
+  cmp->key = key;
   cmp->glyph_len = glyph_len;
   cmp->offsets = xnmalloc (glyph_len, 2 * sizeof *cmp->offsets);
   cmp->font = NULL;
@@ -673,7 +673,7 @@ Lisp_Object
 composition_gstring_from_id (ptrdiff_t id)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
-
+  /* FIXME: The stability of this value depends on the hash table internals!  */
   return HASH_VALUE (h, id);
 }
 
@@ -2148,6 +2148,16 @@ of the way buffer text is examined for matching one of the rules.  */)
 }
 
 
+/* Not strictly necessary, because all those "keys" are also
+   reachable from `composition_hash_table`.  */
+void
+mark_composite (void)
+{
+  for (int i = 0; i < n_compositions; i++)
+    mark_object (composition_table[i]->key);
+}
+
+
 void
 syms_of_composite (void)
 {

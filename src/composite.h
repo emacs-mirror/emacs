@@ -84,8 +84,7 @@ composition_registered_p (Lisp_Object prop)
    ? XCDR (XCDR (XCDR (prop)))			\
    : CONSP (prop) ? XCDR (prop) : Qnil)
 
-#define COMPOSITION_KEY(cmp)						\
-  HASH_KEY (XHASH_TABLE (composition_hash_table), (cmp)->hash_index)
+#define COMPOSITION_KEY(cmp) (cmp)->key
 
 /* Return the Nth glyph of composition specified by CMP.  CMP is a
    pointer to `struct composition'.  */
@@ -163,8 +162,8 @@ struct composition {
   /* Method of the composition.  */
   enum composition_method method;
 
-  /* Index to the composition hash table.  */
-  ptrdiff_t hash_index;
+  /* The key under which it's found in the composition hash table.  */
+  Lisp_Object key;
 
   /* For which font we have calculated the remaining members.  The
      actual type is device dependent.  */
@@ -200,6 +199,7 @@ extern bool find_composition (ptrdiff_t, ptrdiff_t, ptrdiff_t *, ptrdiff_t *,
 extern void update_compositions (ptrdiff_t, ptrdiff_t, int);
 extern void make_composition_value_copy (Lisp_Object);
 extern void syms_of_composite (void);
+extern void mark_composite (void);
 extern void compose_text (ptrdiff_t, ptrdiff_t, Lisp_Object, Lisp_Object,
                           Lisp_Object);
 
