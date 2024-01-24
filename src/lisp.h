@@ -1173,7 +1173,12 @@ make_lisp_symbol_internal (struct Lisp_Symbol *sym)
      Do not use eassert here, so that builtin symbols like Qnil compile to
      constants; this is needed for some circa-2024 GCCs even with -O2.  */
   char *symoffset = (char *) ((char *) sym - (char *) lispsym);
-  return TAG_PTR (Lisp_Symbol, symoffset);
+  /* FIXME: We need this silly `a = ... return` η-redex because otherwise GCC
+     complains about:
+     lisp.h:615:28: error: expected expression before ‘{’ token
+       615 | # define LISP_INITIALLY(w) {w}   */
+  Lisp_Object a = TAG_PTR (Lisp_Symbol, symoffset);
+  return a;
 }
 
 INLINE Lisp_Object
