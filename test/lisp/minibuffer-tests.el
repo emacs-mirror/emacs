@@ -465,6 +465,20 @@
       (previous-line-completion 4)
       (should (equal "ac" (get-text-property (point) 'completion--string))))))
 
+(ert-deftest completion-next-line-multline-test ()
+  (let ((completion-auto-wrap t))
+    (completing-read-with-minibuffer-setup
+     '("a\na" "a\nb" "ac")
+     (insert "a")
+     (minibuffer-completion-help)
+     (switch-to-completions)
+     (goto-char (point-min))
+     (next-line-completion 5)
+     (should (equal "a\nb" (get-text-property (point) 'completion--string)))
+     (goto-char (point-min))
+     (previous-line-completion 5)
+     (should (equal "a\nb" (get-text-property (point) 'completion--string))))))
+
 (ert-deftest completions-header-format-test ()
   (let ((completion-show-help nil)
         (completions-header-format nil))
