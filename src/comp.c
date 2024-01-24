@@ -4330,12 +4330,9 @@ compile_function (Lisp_Object func)
   declare_block (Qentry);
   Lisp_Object blocks = CALL1I (comp-func-blocks, func);
   struct Lisp_Hash_Table *ht = XHASH_TABLE (blocks);
-  DOHASH (ht, i)
-    {
-      Lisp_Object block_name = HASH_KEY (ht, i);
-      if (!EQ (block_name, Qentry))
-	declare_block (block_name);
-    }
+  DOHASH (ht, block_name, block)
+    if (!EQ (block_name, Qentry))
+      declare_block (block_name);
 
   gcc_jit_block_add_assignment (retrive_block (Qentry),
 				NULL,
@@ -4343,10 +4340,8 @@ compile_function (Lisp_Object func)
 				gcc_jit_lvalue_as_rvalue (comp.func_relocs));
 
 
-  DOHASH (ht, i)
+  DOHASH (ht, block_name, block)
     {
-      Lisp_Object block_name = HASH_KEY (ht, i);
-      Lisp_Object block = HASH_VALUE (ht, i);
       Lisp_Object insns = CALL1I (comp-block-insns, block);
       if (NILP (block) || NILP (insns))
 	xsignal1 (Qnative_ice,
@@ -4961,10 +4956,12 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   struct Lisp_Hash_Table *func_h =
     XHASH_TABLE (CALL1I (comp-ctxt-funcs-h, Vcomp_ctxt));
-  DOHASH (func_h, i) declare_function (HASH_VALUE (func_h, i));
+  DOHASH (func_h, k, v)
+    declare_function (v);
   /* Compile all functions. Can't be done before because the
      relocation structs has to be already defined.  */
-  DOHASH (func_h, i) compile_function (HASH_VALUE (func_h, i));
+  DOHASH (func_h, k, v)
+    compile_function (v);
 
   /* Work around bug#46495 (GCC PR99126). */
 #if defined (WIDE_EMACS_INT)						\

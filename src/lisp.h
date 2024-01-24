@@ -2598,15 +2598,23 @@ hash_from_key (struct Lisp_Hash_Table *h, Lisp_Object key)
   return h->test->hashfn (key, h);
 }
 
-/* Hash table iteration construct (roughly an inlined maphash):
-   Iterate IDXVAR as index over valid entries of TABLE.
+/* Iterate K and V as key and value of valid entries in hash table H.
    The body may remove the current entry or alter its value slot, but not
    mutate TABLE in any other way.  */
-#define DOHASH(TABLE, IDXVAR)						\
-  for (ptrdiff_t IDXVAR = 0; IDXVAR < (TABLE)->table_size; IDXVAR++)	\
-    if (hash_unused_entry_key_p (HASH_KEY (TABLE, IDXVAR)))             \
-      ;                                                                 \
+#define DOHASH(h, k, v)							\
+  for (Lisp_Object *dohash_##k##_##v##_kv = (h)->key_and_value,		\
+                   *dohash_##k##_##v##_end = dohash_##k##_##v##_kv	\
+                                             + 2 * HASH_TABLE_SIZE (h),	\
+                   k, v;						\
+       dohash_##k##_##v##_kv < dohash_##k##_##v##_end			\
+       && (k = dohash_##k##_##v##_kv[0],				\
+           v = dohash_##k##_##v##_kv[1], /*maybe unsed*/ (void)v,       \
+           true);			                                \
+        dohash_##k##_##v##_kv += 2)					\
+    if (hash_unused_entry_key_p (k))					\
+      ;									\
     else
+
 
 void hash_table_thaw (Lisp_Object hash_table);
 

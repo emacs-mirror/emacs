@@ -410,8 +410,8 @@ module_global_reference_p (emacs_value v, ptrdiff_t *n)
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
   /* Note that we can't use `hash_lookup' because V might be a local
      reference that's identical to some global reference.  */
-  DOHASH (h, i)
-    if (&XMODULE_GLOBAL_REFERENCE (HASH_VALUE (h, i))->value == v)
+  DOHASH (h, k, val)
+    if (&XMODULE_GLOBAL_REFERENCE (val)->value == v)
       return true;
   /* Only used for debugging, so we don't care about overflow, just
      make sure the operation is defined.  */

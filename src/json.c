@@ -361,9 +361,8 @@ lisp_to_json_nonscalar_1 (Lisp_Object lisp,
       json = json_check (json_object ());
       count = SPECPDL_INDEX ();
       record_unwind_protect_ptr (json_release_object, json);
-      DOHASH (h, i)
+      DOHASH (h, key, v)
         {
-          Lisp_Object key = HASH_KEY (h, i);
 	  CHECK_STRING (key);
 	  Lisp_Object ekey = json_encode (key);
 	  /* We can't specify the length, so the string must be
@@ -376,7 +375,7 @@ lisp_to_json_nonscalar_1 (Lisp_Object lisp,
 	    wrong_type_argument (Qjson_value_p, lisp);
 	  int status
 	    = json_object_set_new (json, key_str,
-				   lisp_to_json (HASH_VALUE (h, i), conf));
+				   lisp_to_json (v, conf));
 	  if (status == -1)
 	    {
 	      /* A failure can be caused either by an invalid key or

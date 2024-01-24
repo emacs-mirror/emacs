@@ -643,10 +643,7 @@ static Lisp_Object gstring_hash_table;
 Lisp_Object
 composition_gstring_lookup_cache (Lisp_Object header)
 {
-  struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
-  ptrdiff_t i = hash_lookup (h, header);
-
-  return (i >= 0 ? HASH_VALUE (h, i) : Qnil);
+  return Fgethash (header, gstring_hash_table, Qnil);
 }
 
 Lisp_Object
@@ -687,14 +684,9 @@ composition_gstring_cache_clear_font (Lisp_Object font_object)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
 
-  DOHASH (h, i)
-    {
-      Lisp_Object k = HASH_KEY (h, i);
-      Lisp_Object gstring = HASH_VALUE (h, i);
-
-      if (EQ (LGSTRING_FONT (gstring), font_object))
-	hash_remove_from_table (h, k);
-    }
+  DOHASH (h, k, gstring)
+    if (EQ (LGSTRING_FONT (gstring), font_object))
+      hash_remove_from_table (h, k);
 }
 
 DEFUN ("clear-composition-cache", Fclear_composition_cache,

@@ -2059,8 +2059,7 @@ If COLLECTION is a function, it is called with three arguments:
 the values STRING, PREDICATE and `lambda'.  */)
   (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
-  Lisp_Object tail, tem = Qnil;
-  ptrdiff_t i = 0;
+  Lisp_Object tail, tem = Qnil, arg = Qnil;
 
   CHECK_STRING (string);
 
@@ -2079,7 +2078,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 		      SBYTES (string));
       if (completion_ignore_case && !SYMBOLP (tem))
 	{
-	  for (i = ASIZE (collection) - 1; i >= 0; i--)
+	  for (ptrdiff_t i = ASIZE (collection) - 1; i >= 0; i--)
 	    {
 	      tail = AREF (collection, i);
 	      if (SYMBOLP (tail))
@@ -2107,24 +2106,27 @@ the values STRING, PREDICATE and `lambda'.  */)
   else if (HASH_TABLE_P (collection))
     {
       struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
-      i = hash_lookup (h, string);
+      ptrdiff_t i = hash_lookup (h, string);
       if (i >= 0)
         {
           tem = HASH_KEY (h, i);
+          arg = HASH_VALUE (h, i);
           goto found_matching_key;
         }
       else
-	DOHASH (h, j)
+	DOHASH (h, k, v)
           {
-	    i = j;
-            tem = HASH_KEY (h, i);
+            tem = k;
             Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
             if (!STRINGP (strkey)) continue;
             if (BASE_EQ (Fcompare_strings (string, Qnil, Qnil,
 					   strkey, Qnil, Qnil,
 					   completion_ignore_case ? Qt : Qnil),
-                    Qt))
-              goto found_matching_key;
+			 Qt))
+	      {
+                arg = v;
+                goto found_matching_key;
+              }
           }
       return Qnil;
     found_matching_key: ;
@@ -2141,7 +2143,7 @@ the values STRING, PREDICATE and `lambda'.  */)
   if (!NILP (predicate))
     {
       return HASH_TABLE_P (collection)
-	? call2 (predicate, tem, HASH_VALUE (XHASH_TABLE (collection), i))
+	? call2 (predicate, tem, arg)
 	: call1 (predicate, tem);
     }
   else

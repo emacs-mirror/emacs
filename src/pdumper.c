@@ -2655,10 +2655,10 @@ hash_table_contents (struct Lisp_Hash_Table *h)
      indices to stay constant across the dump.
      FIXME: Remove such dependency on hash table internals (there might
      be another one in `composition_gstring_from_id`).  */
-  DOHASH (h, i)
+  DOHASH (h, k, v)
     {
-      key_and_value[n++] = HASH_KEY (h, i);
-      key_and_value[n++] = HASH_VALUE (h, i);
+      key_and_value[n++] = k;
+      key_and_value[n++] = v;
     }
 
   return key_and_value;
