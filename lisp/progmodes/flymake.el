@@ -1637,14 +1637,16 @@ correctly.")
 
 (defvar flymake--mode-line-counter-map
   (let ((map (make-sparse-keymap)))
+    ;; BEWARE: `mouse-wheel-UP-event' corresponds to `wheel-DOWN' events
+    ;; and vice versa!!
     (define-key map (vector 'mode-line mouse-wheel-down-event)
                 #'flymake--mode-line-counter-scroll-prev)
     (define-key map [mode-line wheel-down]
-                #'flymake--mode-line-counter-scroll-prev)
+                #'flymake--mode-line-counter-scroll-next)
     (define-key map (vector 'mode-line mouse-wheel-up-event)
                 #'flymake--mode-line-counter-scroll-next)
     (define-key map [mode-line wheel-up]
-                #'flymake--mode-line-counter-scroll-next)
+                #'flymake--mode-line-counter-scroll-prev)
     map))
 
 (defun flymake--mode-line-counter-1 (type)

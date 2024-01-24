@@ -2567,6 +2567,9 @@ some kinds of systems.  On other systems, other events like @code{mouse-4} and
 @code{wheel-up} and @code{wheel-down} events as well as the events
 specified in the variables @code{mouse-wheel-up-event} and
 @code{mouse-wheel-down-event}, defined in @file{mwheel.el}.
+Beware that for historical reasons the @code{mouse-wheel-@emph{up}-event}
+is the variable that holds an event that should be handled similarly to
+@code{wheel-@emph{down}} and vice versa.
 
 @vindex mouse-wheel-left-event
 @vindex mouse-wheel-right-event

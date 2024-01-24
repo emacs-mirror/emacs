@@ -135,12 +135,14 @@ If this option is nil, these commands do not display any message."
   "<down-mouse-1>" #'completion-preview-insert
   "C-<down-mouse-1>" #'completion-at-point
   "<down-mouse-2>" #'completion-at-point
+  ;; BEWARE: `mouse-wheel-UP-event' corresponds to `wheel-DOWN' events
+  ;; and vice versa!!
   "<wheel-up>"     #'completion-preview-prev-candidate
   "<wheel-down>"   #'completion-preview-next-candidate
   (key-description (vector mouse-wheel-up-event))
-  #'completion-preview-prev-candidate
+  #'completion-preview-next-candidate
   (key-description (vector mouse-wheel-down-event))
-  #'completion-preview-next-candidate)
+  #'completion-preview-prev-candidate)
 
 (defvar-local completion-preview--overlay nil)
 
