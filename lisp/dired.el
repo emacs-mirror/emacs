@@ -2817,7 +2817,9 @@ is controlled by `dired-movement-style'."
     (dired--trivial-next-line arg)))
 
 (defun dired--move-to-next-line (arg jumpfun)
-  (let ((old-position (progn
+  (let ((wrapped nil)
+        (old-arg arg)
+        (old-position (progn
                         ;; It's always true that we should move
                         ;; to the filename when possible.
                         (dired-move-to-filename)
@@ -2832,16 +2834,27 @@ is controlled by `dired-movement-style'."
       (when (= old-position (point))
         ;; Now point is at beginning/end of movable area,
         ;; but it still wants to move farther.
-        (if (eq dired-movement-style 'cycle)
-            ;; `cycle': go to the other end.
+        (cond
+         ;; `cycle': go to the other end.
+         ((eq dired-movement-style 'cycle)
+          ;; Argument not changing on the second wrap
+          ;; means infinite loop with no files found.
+          (if (and wrapped (eq old-arg arg))
+              (setq arg 0)
             (goto-char (if (cl-plusp moving-down)
                            (point-min)
-                         (point-max)))
-          ;; `bounded': go back to the last non-empty line.
-          (while (dired-between-files)
-            (funcall jumpfun (- moving-down)))
+                         (point-max))))
+          (setq wrapped t))
+         ;; `bounded': go back to the last non-empty line.
+         ((eq dired-movement-style 'bounded)
+          (while (and (dired-between-files) (not (zerop arg)))
+            (funcall jumpfun (- moving-down))
+            ;; Point not moving means infinite loop.
+            (if (= old-position (point))
+                (setq arg 0)
+              (setq old-position (point))))
           ;; Encountered a boundary, so let's stop movement.
-          (setq arg moving-down)))
+          (setq arg (if (dired-between-files) 0 moving-down)))))
       (unless (dired-between-files)
         ;; Has moved to a non-empty line.  This movement does
         ;; make sense.
