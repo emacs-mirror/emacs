@@ -5662,8 +5662,11 @@ set a new value for KEY, or `remhash' to remove KEY.
   (Lisp_Object function, Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  DOHASH (h, k, v)
-    call2 (function, k, v);
+  /* We can't use DOHASH here since FUNCTION may violate the rules and
+     we shouldn't crash as a result (although the effects are
+     unpredictable).  */
+  DOHASH_SAFE (h, i)
+    call2 (function, HASH_KEY (h, i), HASH_VALUE (h, i));
   return Qnil;
 }
 
