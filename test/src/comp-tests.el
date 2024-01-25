@@ -28,6 +28,7 @@
 (require 'ert)
 (require 'ert-x)
 (require 'cl-lib)
+(require 'cl-seq)
 (require 'comp)
 (require 'comp-cstr)
 
@@ -903,14 +904,26 @@ Return a list of results."
     (should (subr-native-elisp-p (symbol-function 'comp-tests-fw-prop-1-f)))
     (should (= (comp-tests-fw-prop-1-f) 6))))
 
+(defun comp-tests--types-equal (t1 t2)
+  "Whether the types T1 and T2 are equal."
+  (or (equal t1 t2)   ; optimisation for the common case
+      (and (consp t1) (consp t2)
+           (eq (car t1) (car t2))
+           (if (memq (car t1) '(and or member))
+	       (null (cl-set-exclusive-or (cdr t1) (cdr t2)
+                                          :test #'comp-tests--types-equal))
+             (and (= (length t1) (length t2))
+                  (cl-every #'comp-tests--types-equal (cdr t1) (cdr t2)))))))
+
 (defun comp-tests-check-ret-type-spec (func-form ret-type)
   (let ((lexical-binding t)
         (native-comp-speed 2)
         (f-name (cl-second func-form)))
     (eval func-form t)
     (native-compile f-name)
-    (should (equal (cl-third (subr-type (symbol-function f-name)))
-                   ret-type))))
+    (should (comp-tests--types-equal
+             (cl-third (subr-type (symbol-function f-name)))
+             ret-type))))
 
 (cl-eval-when (compile eval load)
   (cl-defstruct comp-foo a b)
