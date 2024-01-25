@@ -5331,7 +5331,17 @@ resize_mini_window_apply (struct window *w, int delta)
   w->pixel_top = r->pixel_top + r->pixel_height;
   w->top_line = r->top_line + r->total_lines;
 
-  /* Enforce full redisplay of the frame.  */
+  /* Enforce full redisplay of the frame.  If f->redisplay is already
+     set, which it generally is in the wake of a ConfigureNotify
+     (frame resize) event, merely setting f->redisplay is insufficient
+     for redisplay_internal to continue redisplaying the frame, as
+     redisplay_internal cannot distinguish between f->redisplay set
+     before it calls redisplay_window and that after, so garbage the
+     frame as well.  */
+
+  if (f->redisplay)
+    SET_FRAME_GARBAGED (f);
+
   /* FIXME: Shouldn't some of the caller do it?  */
   fset_redisplay (f);
   adjust_frame_glyphs (f);
