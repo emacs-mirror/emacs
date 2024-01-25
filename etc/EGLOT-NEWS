@@ -21,6 +21,19 @@ https://github.com/joaotavora/eglot/issues/1234.
 * Changes in upcoming Eglot
 
 
+* Changes in Eglot 1.17 (25/1/2024)
+
+** Fixes to completion (github#847, github#1349)
+
+** Fix code-action gathering for some servers (github#847)
+
+** Experimental support for Eglot-only subprojects
+
+Until project.el's support for subprojects improves, github#1337
+describes a reasonably sane way to configure nested sub-projects
+within a larger one just for Eglot purposes.
+
+
 * Changes in Eglot 1.16 (27/12/2023)
 
 ** Code actions can be previewed in diff format
