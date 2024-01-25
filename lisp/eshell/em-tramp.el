@@ -121,12 +121,11 @@ Uses the system sudo through Tramp's sudo method."
      :usage "[(-u | --user) USER] (-s | --shell) | COMMAND
 Execute a COMMAND as the superuser or another USER.")
    (let ((dir (eshell--method-wrap-directory default-directory "sudo" user)))
-     (if shell
-         (throw 'eshell-replace-command
-                (eshell-parse-command "cd" (list dir)))
-       (throw 'eshell-external
-              (let ((default-directory dir))
-                (eshell-named-command (car args) (cdr args))))))))
+     (throw 'eshell-replace-command
+            (if shell
+                (eshell-parse-command "cd" (list dir))
+              `(let ((default-directory ,dir))
+                 (eshell-named-command ',(car args) ',(cdr args))))))))
 
 (put 'eshell/sudo 'eshell-no-numeric-conversions t)
 
@@ -144,12 +143,11 @@ Uses the system doas through Tramp's doas method."
      :usage "[(-u | --user) USER] (-s | --shell) | COMMAND
 Execute a COMMAND as the superuser or another USER.")
    (let ((dir (eshell--method-wrap-directory default-directory "doas" user)))
-     (if shell
-         (throw 'eshell-replace-command
-                (eshell-parse-command "cd" (list dir)))
-       (throw 'eshell-external
-              (let ((default-directory dir))
-                (eshell-named-command (car args) (cdr args))))))))
+     (throw 'eshell-replace-command
+            (if shell
+                (eshell-parse-command "cd" (list dir))
+              `(let ((default-directory ,dir))
+                 (eshell-named-command ',(car args) ',(cdr args))))))))
 
 (put 'eshell/doas 'eshell-no-numeric-conversions t)
 

@@ -59,35 +59,31 @@
         "cd"
         (list ,(format "/su:root@%s:~/" tramp-default-host))))))
 
-(defun mock-eshell-named-command (&rest args)
-  "Dummy function to test Eshell `sudo' command rewriting."
-  (list default-directory args))
-
 (ert-deftest em-tramp-test/sudo-basic ()
   "Test Eshell `sudo' command with default user."
-  (cl-letf (((symbol-function 'eshell-named-command)
-             #'mock-eshell-named-command))
-    (should (equal
-             (catch 'eshell-external (eshell/sudo "echo" "hi"))
-             `(,(format "/sudo:root@%s:%s" tramp-default-host default-directory)
-               ("echo" ("hi")))))
-    (should (equal
-             (catch 'eshell-external (eshell/sudo "echo" "-u" "hi"))
-             `(,(format "/sudo:root@%s:%s" tramp-default-host default-directory)
-               ("echo" ("-u" "hi")))))))
+  (let ((sudo-directory (format "/sudo:root@%s:%s"
+                                tramp-default-host default-directory)))
+    (should (equal (catch 'eshell-replace-command
+                     (eshell/sudo "echo" "hi"))
+                   `(let ((default-directory ,sudo-directory))
+                      (eshell-named-command '"echo" '("hi")))))
+    (should (equal (catch 'eshell-replace-command
+                     (eshell/sudo "echo" "-u" "hi"))
+                   `(let ((default-directory ,sudo-directory))
+                      (eshell-named-command '"echo" '("-u" "hi")))))))
 
 (ert-deftest em-tramp-test/sudo-user ()
   "Test Eshell `sudo' command with specified user."
-  (cl-letf (((symbol-function 'eshell-named-command)
-             #'mock-eshell-named-command))
-    (should (equal
-             (catch 'eshell-external (eshell/sudo "-u" "USER" "echo" "hi"))
-             `(,(format "/sudo:USER@%s:%s" tramp-default-host default-directory)
-               ("echo" ("hi")))))
-    (should (equal
-             (catch 'eshell-external (eshell/sudo "-u" "USER" "echo" "-u" "hi"))
-             `(,(format "/sudo:USER@%s:%s" tramp-default-host default-directory)
-               ("echo" ("-u" "hi")))))))
+  (let ((sudo-directory (format "/sudo:USER@%s:%s"
+                                tramp-default-host default-directory)))
+    (should (equal (catch 'eshell-replace-command
+                     (eshell/sudo "-u" "USER" "echo" "hi"))
+                   `(let ((default-directory ,sudo-directory))
+                      (eshell-named-command '"echo" '("hi")))))
+    (should (equal (catch 'eshell-replace-command
+                     (eshell/sudo "-u" "USER" "echo" "-u" "hi"))
+                   `(let ((default-directory ,sudo-directory))
+                      (eshell-named-command '"echo" '("-u" "hi")))))))
 
 (ert-deftest em-tramp-test/sudo-shell ()
   "Test Eshell `sudo' command with -s/--shell option."
@@ -109,34 +105,29 @@
 
 (ert-deftest em-tramp-test/doas-basic ()
   "Test Eshell `doas' command with default user."
-  (cl-letf (((symbol-function 'eshell-named-command)
-             #'mock-eshell-named-command))
-    (should (equal
-             (catch 'eshell-external (eshell/doas "echo" "hi"))
-             `(,(format "/doas:root@%s:%s"
-                        tramp-default-host default-directory)
-               ("echo" ("hi")))))
-    (should (equal
-             (catch 'eshell-external (eshell/doas "echo" "-u" "hi"))
-             `(,(format "/doas:root@%s:%s"
-                        tramp-default-host default-directory)
-               ("echo" ("-u" "hi")))))))
+  (let ((doas-directory (format "/doas:root@%s:%s"
+                                tramp-default-host default-directory)))
+    (should (equal (catch 'eshell-replace-command
+                     (eshell/doas "echo" "hi"))
+                   `(let ((default-directory ,doas-directory))
+                      (eshell-named-command '"echo" '("hi")))))
+    (should (equal (catch 'eshell-replace-command
+                     (eshell/doas "echo" "-u" "hi"))
+                   `(let ((default-directory ,doas-directory))
+                      (eshell-named-command '"echo" '("-u" "hi")))))))
 
 (ert-deftest em-tramp-test/doas-user ()
   "Test Eshell `doas' command with specified user."
-  (cl-letf (((symbol-function 'eshell-named-command)
-             #'mock-eshell-named-command))
-    (should (equal
-             (catch 'eshell-external (eshell/doas "-u" "USER" "echo" "hi"))
-             `(,(format "/doas:USER@%s:%s"
-                        tramp-default-host default-directory)
-               ("echo" ("hi")))))
-    (should (equal
-             (catch 'eshell-external
-               (eshell/doas "-u" "USER" "echo" "-u" "hi"))
-             `(,(format "/doas:USER@%s:%s"
-                        tramp-default-host default-directory)
-               ("echo" ("-u" "hi")))))))
+  (let ((doas-directory (format "/doas:USER@%s:%s"
+                                tramp-default-host default-directory)))
+    (should (equal (catch 'eshell-replace-command
+                     (eshell/doas "-u" "USER" "echo" "hi"))
+                   `(let ((default-directory ,doas-directory))
+                      (eshell-named-command '"echo" '("hi")))))
+    (should (equal (catch 'eshell-replace-command
+                     (eshell/doas "-u" "USER" "echo" "-u" "hi"))
+                   `(let ((default-directory ,doas-directory))
+                      (eshell-named-command '"echo" '("-u" "hi")))))))
 
 (ert-deftest em-tramp-test/doas-shell ()
   "Test Eshell `doas' command with -s/--shell option."
