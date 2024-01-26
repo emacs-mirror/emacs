@@ -660,9 +660,10 @@ manual.
 *** New special reference type '#<marker POSITION BUFFER>'.
 This special reference type returns a marker at 'POSITION' in
 'BUFFER'.  You can insert it by typing or using the new interactive
-command 'eshell-insert-marker'.  You can also insert markers of any
-type with the new command 'eshell-insert-special-reference'.  See the
-"(eshell) Arguments" node in the Eshell manual for more details.
+command 'eshell-insert-marker'.  You can also insert special
+references of any type using the new interactive command
+'eshell-insert-special-reference'.  See the "(eshell) Arguments" node
+in the Eshell manual for more details.
 
 +++
 *** New splice operator for Eshell dollar expansions.
