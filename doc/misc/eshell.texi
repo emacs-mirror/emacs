@@ -624,9 +624,11 @@ each argument as a string, separated by a space.
 
 @item env
 @cmindex env
-Prints the current environment variables.  Unlike in Bash, this
-command does not yet support running commands with a modified
-environment.
+With no arguments, print the current environment variables.  If you
+pass arguments to this command, then @command{env} will execute the
+arguments as a command.  If you pass any initial arguments of the form
+@samp{@var{var}=@var{value}}, @command{env} will first set @var{var}
+to @var{value} before running the command.
 
 @item eshell-debug
 @cmindex eshell-debug

@@ -657,6 +657,13 @@ For more information, see the "(eshell) Built-ins" node in the Eshell
 manual.
 
 +++
+*** Eshell's 'env' command now supports running commands.
+Like in many other shells, Eshell's 'env' command now lets you run a
+command passed as arguments to 'env'.  If you pass any initial
+arguments of the form 'VAR=VALUE', 'env' will first set 'VAR' to
+'VALUE' before running the command.
+
++++
 *** New special reference type '#<marker POSITION BUFFER>'.
 This special reference type returns a marker at 'POSITION' in
 'BUFFER'.  You can insert it by typing or using the new interactive

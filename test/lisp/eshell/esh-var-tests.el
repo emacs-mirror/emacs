@@ -661,6 +661,13 @@ nil, use FUNCTION instead."
      (eshell-insert-command "VAR=hello cd ..")
      (should (equal default-directory parent-directory)))))
 
+(ert-deftest esh-var-test/local-variables/env ()
+  "Test that \"env VAR=value command\" temporarily sets variables."
+  (with-temp-eshell
+   (push "VAR=value" process-environment)
+   (eshell-match-command-output "env VAR=hello env" "VAR=hello\n")
+   (should (equal (getenv "VAR") "value"))))
+
 
 ;; Variable aliases
 

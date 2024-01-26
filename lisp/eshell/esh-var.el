@@ -304,27 +304,36 @@ This is set to t in `eshell-local-variable-bindings' (which see).")
     (add-hook 'pcomplete-try-first-hook
 	      #'eshell-complete-variable-assignment nil t)))
 
-(defun eshell-handle-local-variables ()
-  "Allow for the syntax `VAR=val <command> <args>'."
+(defun eshell-parse-local-variables (args)
+  "Parse a list of ARGS, looking for variable assignments.
+Variable assignments are of the form \"VAR=value\".  If ARGS
+begins with any such assignments, throw `eshell-replace-command'
+with a form that will temporarily set those variables.
+Otherwise, return nil."
   ;; Handle local variable settings by let-binding the entries in
   ;; `eshell-local-variable-bindings' and calling `eshell-set-variable'
   ;; for each variable before the command is invoked.
   (let ((setvar "\\`\\([A-Za-z_][A-Za-z0-9_]*\\)=\\(.*\\)\\'")
-        (command eshell-last-command-name)
-        (args eshell-last-arguments))
-    (when (and (stringp command) (string-match setvar command))
+        (head (car args))
+        (rest (cdr args)))
+    (when (and (stringp head) (string-match setvar head))
       (throw 'eshell-replace-command
              `(let ,eshell-local-variable-bindings
                 ,@(let (locals)
-                    (while (and (stringp command)
-                                (string-match setvar command))
+                    (while (and (stringp head)
+                                (string-match setvar head))
                       (push `(eshell-set-variable
-                              ,(match-string 1 command)
-                              ,(match-string 2 command))
+                              ,(match-string 1 head)
+                              ,(match-string 2 head))
                             locals)
-                      (setq command (pop args)))
+                      (setq head (pop rest)))
                     (nreverse locals))
-                 (eshell-named-command ,command ,(list 'quote args)))))))
+                 (eshell-named-command ,head ',rest))))))
+
+(defun eshell-handle-local-variables ()
+  "Allow for the syntax `VAR=val <command> <args>'."
+  (eshell-parse-local-variables (cons eshell-last-command-name
+                                      eshell-last-arguments)))
 
 (defun eshell-interpolate-variable ()
   "Parse a variable interpolation.
@@ -414,19 +423,22 @@ the values of nil for each."
 					       obarray #'boundp))
 	      (pcomplete-here))))
 
-;; FIXME the real "env" command does more than this, it runs a program
-;; in a modified environment.
 (defun eshell/env (&rest args)
   "Implementation of `env' in Lisp."
-  (eshell-init-print-buffer)
   (eshell-eval-using-options
    "env" args
-   '((?h "help" nil nil "show this usage screen")
+   '(;; FIXME: Support more "env" options, like "--unset".
+     (?h "help" nil nil "show this usage screen")
      :external "env"
-     :usage "<no arguments>")
-   (dolist (setting (sort (eshell-environment-variables) 'string-lessp))
-     (eshell-buffered-print setting "\n"))
-   (eshell-flush)))
+     :parse-leading-options-only
+     :usage "[NAME=VALUE]... [COMMAND [ARG]...]")
+   (if args
+       (or (eshell-parse-local-variables args)
+           (eshell-named-command (car args) (cdr args)))
+     (eshell-init-print-buffer)
+     (dolist (setting (sort (eshell-environment-variables) 'string-lessp))
+       (eshell-buffered-print setting "\n"))
+     (eshell-flush))))
 
 (defun eshell-insert-envvar (envvar-name)
   "Insert ENVVAR-NAME into the current buffer at point."
