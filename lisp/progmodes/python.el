@@ -1359,15 +1359,15 @@ For NODE, OVERRIDE, START, END, and ARGS, see
   (save-excursion
     (goto-char start)
     (while (re-search-forward (rx (or "\"\"\"" "'''")) end t)
-      (let ((node (treesit-node-at (point))))
-        ;; The triple quotes surround a non-empty string.
-        (when (equal (treesit-node-type node) "string_content")
-          (let ((start (treesit-node-start node))
-                (end (treesit-node-end node)))
-            (put-text-property (1- start) start
-                               'syntax-table (string-to-syntax "|"))
-            (put-text-property end (min (1+ end) (point-max))
-                               'syntax-table (string-to-syntax "|"))))))))
+      (let ((node (treesit-node-at (- (point) 3))))
+        ;; Handle triple-quoted strings.
+        (pcase (treesit-node-type node)
+          ("string_start"
+           (put-text-property (1- (point)) (point)
+                              'syntax-table (string-to-syntax "|")))
+          ("string_end"
+           (put-text-property (- (point) 3) (- (point) 2)
+                              'syntax-table (string-to-syntax "|"))))))))
 
 
 ;;; Indentation
