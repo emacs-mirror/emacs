@@ -1111,6 +1111,9 @@ edit the PE header of the Emacs executable file and reset the
 DYNAMIC_BASE (0x40) flag in the DllCharacteristics flags recorded by
 the PE header.
 
+On macOS, there's no official way for disabling ASLR, but there are
+various hacks that can be found by searching the Internet.
+
 ** How to recover buffer contents from an Emacs core dump file
 
 The file etc/emacs-buffer.gdb defines a set of GDB commands for
