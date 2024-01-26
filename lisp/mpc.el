@@ -1867,11 +1867,14 @@ A value of t means the main playlist.")
 (defvar mpc-volume nil) (put 'mpc-volume 'risky-local-variable t)
 
 (defun mpc-volume-refresh ()
-  ;; Maintain the volume.
-  (setq mpc-volume
-        (mpc-volume-widget
-         (string-to-number (cdr (assq 'volume mpc-status)))))
-  (let ((status-buf (mpc-proc-buffer (mpc-proc) 'status)))
+  "Maintain the volume."
+  (let ((status-buf (mpc-proc-buffer (mpc-proc) 'status))
+        (status-vol (cdr (assq 'volume mpc-status))))
+    ;; If MPD is paused or stopped the volume is nil.
+    (when status-vol
+      (setq mpc-volume
+            (mpc-volume-widget
+             (string-to-number status-vol))))
     (when (buffer-live-p status-buf)
       (with-current-buffer status-buf (force-mode-line-update)))))
 
