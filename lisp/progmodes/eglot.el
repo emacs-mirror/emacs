@@ -3061,9 +3061,10 @@ for which LSP on-type-formatting should be requested."
 
 (defun eglot--dumb-allc (pat table pred _point) (funcall table pat pred t))
 (defun eglot--dumb-tryc (pat table pred point)
-  (if-let ((probe (funcall table pat pred nil)))
-      (cons probe (length probe))
-    (cons pat point)))
+  (let ((probe (funcall table pat pred nil)))
+    (cond ((eq probe t) t)
+          (probe (cons probe (length probe)))
+          (t (cons pat point)))))
 
 (add-to-list 'completion-category-defaults '(eglot-capf (styles eglot--dumb-flex)))
 (add-to-list 'completion-styles-alist '(eglot--dumb-flex eglot--dumb-tryc eglot--dumb-allc))
