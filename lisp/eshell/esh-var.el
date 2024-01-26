@@ -287,6 +287,8 @@ This is set to t in `eshell-local-variable-bindings' (which see).")
   (setq-local eshell-subcommand-bindings
               (append eshell-local-variable-bindings
                       eshell-subcommand-bindings))
+  (setq-local eshell-complex-commands
+	      (append '("env") eshell-complex-commands))
 
   (setq-local eshell-special-chars-inside-quoting
        (append eshell-special-chars-inside-quoting '(?$)))

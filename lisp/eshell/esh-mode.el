@@ -619,14 +619,14 @@ If NO-NEWLINE is non-nil, the input is sent without an implied final
 newline."
   (interactive "P")
   ;; Note that the input string does not include its terminal newline.
-  (let ((proc-running-p (and (eshell-head-process)
-			     (not queue-p)))
-	(inhibit-modification-hooks t))
-    (unless (and proc-running-p
+  (let* ((proc-running-p (eshell-head-process))
+         (send-to-process-p (and proc-running-p (not queue-p)))
+         (inhibit-modification-hooks t))
+    (unless (and send-to-process-p
 		 (not (eq (process-status
 			   (eshell-head-process))
                           'run)))
-      (if (or proc-running-p
+      (if (or send-to-process-p
 	      (>= (point) eshell-last-output-end))
 	  (goto-char (point-max))
 	(let ((copy (eshell-get-old-input use-region)))
@@ -634,7 +634,7 @@ newline."
 	  (insert-and-inherit copy)))
       (unless (or no-newline
 		  (and eshell-send-direct-to-subprocesses
-		       proc-running-p))
+		       send-to-process-p))
 	(insert-before-markers-and-inherit ?\n))
       ;; Delete and reinsert input.  This seems like a no-op, except
       ;; for the resulting entries in the undo list: undoing this
@@ -644,7 +644,7 @@ newline."
             (inhibit-read-only t))
         (delete-region eshell-last-output-end (point))
         (insert text))
-      (if proc-running-p
+      (if send-to-process-p
 	  (progn
 	    (eshell-update-markers eshell-last-output-end)
 	    (if (or eshell-send-direct-to-subprocesses
@@ -673,7 +673,8 @@ newline."
 		      (run-hooks 'eshell-input-filter-functions)
 		      (and (catch 'eshell-terminal
 			     (ignore
-			      (if (eshell-invoke-directly cmd)
+			      (if (and (not proc-running-p)
+                                       (eshell-invoke-directly-p cmd))
 				  (eval cmd)
 				(eshell-eval-command cmd input))))
 			   (eshell-life-is-too-much)))))

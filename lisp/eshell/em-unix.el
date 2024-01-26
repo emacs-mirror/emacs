@@ -166,9 +166,9 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-host-reference nil t))
   (setq-local eshell-complex-commands
-	      (append '("grep" "egrep" "fgrep" "agrep" "rgrep"
-                        "glimpse" "locate" "cat" "time" "cp" "mv"
-                        "make" "du" "diff")
+	      (append '("compile" "grep" "egrep" "fgrep" "agrep"
+                        "rgrep" "glimpse" "locate" "cat" "time" "cp"
+                        "mv" "make" "du" "diff")
 		      eshell-complex-commands)))
 
 (defalias 'eshell/date     'current-time-string)

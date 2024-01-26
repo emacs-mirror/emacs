@@ -934,48 +934,52 @@ This yields the SUBCOMMANDs when found in forms like
   (dolist (elem haystack)
     (cond
      ((eq (car-safe elem) 'eshell-as-subcommand)
-      (iter-yield (cdr elem)))
+      (iter-yield (cadr elem)))
      ((listp elem)
       (iter-yield-from (eshell--find-subcommands elem))))))
 
-(defun eshell--invoke-command-directly (command)
+(defun eshell--invoke-command-directly-p (command)
   "Determine whether the given COMMAND can be invoked directly.
 COMMAND should be a non-top-level Eshell command in parsed form.
 
 A command can be invoked directly if all of the following are true:
 
 * The command is of the form
-  \"(eshell-trap-errors (eshell-named-command NAME ARGS))\",
-  where ARGS is optional.
+  (eshell-with-copied-handles
+   (eshell-trap-errors (eshell-named-command NAME [ARGS])) _).
 
 * NAME is a string referring to an alias function and isn't a
   complex command (see `eshell-complex-commands').
 
 * Any subcommands in ARGS can also be invoked directly."
-  (when (and (eq (car command) 'eshell-trap-errors)
-             (eq (car (cadr command)) 'eshell-named-command))
-    (let ((name (cadr (cadr command)))
-          (args (cdr-safe (nth 2 (cadr command)))))
-      (and name (stringp name)
-	   (not (member name eshell-complex-commands))
-	   (catch 'simple
-	     (dolist (pred eshell-complex-commands t)
-	       (when (and (functionp pred)
-		          (funcall pred name))
-	         (throw 'simple nil))))
-	   (eshell-find-alias-function name)
-           (catch 'indirect-subcommand
-             (iter-do (subcommand (eshell--find-subcommands args))
-               (unless (eshell--invoke-command-directly subcommand)
-                 (throw 'indirect-subcommand nil)))
-             t)))))
+  (pcase command
+    (`(eshell-with-copied-handles
+       (eshell-trap-errors (eshell-named-command ,name . ,args))
+       ,_)
+     (and name (stringp name)
+	  (not (member name eshell-complex-commands))
+	  (catch 'simple
+	    (dolist (pred eshell-complex-commands t)
+	      (when (and (functionp pred)
+		         (funcall pred name))
+	        (throw 'simple nil))))
+	  (eshell-find-alias-function name)
+          (catch 'indirect-subcommand
+            (iter-do (subcommand (eshell--find-subcommands (car args)))
+              (unless (eshell--invoke-command-directly-p subcommand)
+                (throw 'indirect-subcommand nil)))
+            t)))))
 
-(defun eshell-invoke-directly (command)
+(defun eshell-invoke-directly-p (command)
   "Determine whether the given COMMAND can be invoked directly.
 COMMAND should be a top-level Eshell command in parsed form, as
 produced by `eshell-parse-command'."
-  (let ((base (cadr (nth 2 (nth 2 (cadr command))))))
-    (eshell--invoke-command-directly base)))
+  (pcase command
+    (`(eshell-commands (progn ,_ (unwind-protect (progn ,base) . ,_)))
+     (eshell--invoke-command-directly-p base))))
+
+(define-obsolete-function-alias 'eshell-invoke-directly
+  'eshell-invoke-directly-p "30.1")
 
 (defun eshell-eval-argument (argument)
   "Evaluate a single Eshell ARGUMENT and return the result."
