@@ -255,6 +255,20 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
 (defvar-keymap eshell-var-mode-map
   "C-c M-v" #'eshell-insert-envvar)
 
+;;; Internal Variables:
+
+(defvar eshell-in-local-scope-p nil
+  "Non-nil if the current command has a local variable scope.
+This is set to t in `eshell-local-variable-bindings' (which see).")
+
+(defvar eshell-local-variable-bindings
+  '((eshell-in-local-scope-p t)
+    (process-environment (eshell-copy-environment))
+    (eshell-variable-aliases-list eshell-variable-aliases-list)
+    (eshell-path-env-list eshell-path-env-list)
+    (comint-pager comint-pager))
+  "A list of `let' bindings for local variable (and subcommand) environments.")
+
 ;;; Functions:
 
 (define-minor-mode eshell-var-mode
@@ -271,12 +285,8 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
     (setq-local process-environment (eshell-copy-environment)))
   (make-local-variable 'comint-pager)
   (setq-local eshell-subcommand-bindings
-              (append
-               '((process-environment (eshell-copy-environment))
-                 (eshell-variable-aliases-list eshell-variable-aliases-list)
-                 (eshell-path-env-list eshell-path-env-list)
-                 (comint-pager comint-pager))
-               eshell-subcommand-bindings))
+              (append eshell-local-variable-bindings
+                      eshell-subcommand-bindings))
 
   (setq-local eshell-special-chars-inside-quoting
        (append eshell-special-chars-inside-quoting '(?$)))
@@ -296,30 +306,25 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
 
 (defun eshell-handle-local-variables ()
   "Allow for the syntax `VAR=val <command> <args>'."
-  ;; Eshell handles local variable settings (e.g. 'CFLAGS=-O2 make')
-  ;; by making the whole command into a subcommand, and calling
-  ;; `eshell-set-variable' immediately before the command is invoked.
-  ;; This means that 'FOO=x cd bar' won't work exactly as expected,
-  ;; but that is by no means a typical use of local environment
-  ;; variables.
+  ;; Handle local variable settings by let-binding the entries in
+  ;; `eshell-local-variable-bindings' and calling `eshell-set-variable'
+  ;; for each variable before the command is invoked.
   (let ((setvar "\\`\\([A-Za-z_][A-Za-z0-9_]*\\)=\\(.*\\)\\'")
         (command eshell-last-command-name)
         (args eshell-last-arguments))
     (when (and (stringp command) (string-match setvar command))
       (throw 'eshell-replace-command
-             `(eshell-as-subcommand
-               (progn
-                 ,@(let (locals)
-                     (while (and (stringp command)
-                                 (string-match setvar command))
-                       (push `(eshell-set-variable
-                               ,(match-string 1 command)
-                               ,(match-string 2 command))
-                             locals)
-                       (setq command (pop args)))
-                     (nreverse locals))
-                 (eshell-named-command ,command ,(list 'quote args)))
-              )))))
+             `(let ,eshell-local-variable-bindings
+                ,@(let (locals)
+                    (while (and (stringp command)
+                                (string-match setvar command))
+                      (push `(eshell-set-variable
+                              ,(match-string 1 command)
+                              ,(match-string 2 command))
+                            locals)
+                      (setq command (pop args)))
+                    (nreverse locals))
+                 (eshell-named-command ,command ,(list 'quote args)))))))
 
 (defun eshell-interpolate-variable ()
   "Parse a variable interpolation.
@@ -709,7 +714,7 @@ to a Lisp variable)."
          ((functionp target)
           (funcall target nil value))
          ((null target)
-          (unless eshell-in-subcommand-p
+          (unless eshell-in-local-scope-p
             (error "Variable `%s' is not settable" (eshell-stringify name)))
           (push `(,name ,(lambda () value) t t)
                 eshell-variable-aliases-list)

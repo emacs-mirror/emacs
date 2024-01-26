@@ -653,6 +653,14 @@ nil, use FUNCTION instead."
                                 "VAR=hello\n")
    (should (equal (getenv "VAR") "value"))))
 
+(ert-deftest esh-var-test/local-variables/cd ()
+  "Test that \"VAR=value cd DIR\" properly changes the directory."
+  (let ((parent-directory (file-name-directory
+                           (directory-file-name default-directory))))
+    (with-temp-eshell
+     (eshell-insert-command "VAR=hello cd ..")
+     (should (equal default-directory parent-directory)))))
+
 
 ;; Variable aliases
 
