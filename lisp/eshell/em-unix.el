@@ -741,7 +741,7 @@ Fallback to standard make when called synchronously."
   (eshell-compile "make" args
                   ;; Use plain output unless we're executing in the
                   ;; background.
-                  (not eshell-current-subjob-p)))
+                  (unless eshell-current-subjob-p 'plain)))
 
 (put 'eshell/make 'eshell-no-numeric-conversions t)
 
