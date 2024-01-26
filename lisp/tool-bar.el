@@ -100,7 +100,9 @@ parameter is set to `top', and above the tool bar it is set to
 (defconst tool-bar-keymap-cache (make-hash-table :test #'equal))
 
 (defsubst tool-bar--cache-key ()
-  (cons (frame-terminal) (sxhash-eq tool-bar-map)))
+  (cons (frame-terminal)
+        (sxhash-eq (if tool-bar-always-show-default (default-value 'tool-bar-map)
+                     tool-bar-map))))
 
 (defsubst tool-bar--secondary-cache-key ()
   (cons (frame-terminal) (sxhash-eq secondary-tool-bar-map)))
@@ -191,7 +193,9 @@ in which case the value of `tool-bar-map' is used instead."
 				      bind))
 		  (plist-put plist :image image)))
 	      bind))
-	  (or map tool-bar-map)))
+	  (or map
+              (if tool-bar-always-show-default (default-value 'tool-bar-map)
+                tool-bar-map))))
 
 ;;;###autoload
 (defun tool-bar-add-item (icon def key &rest props)
@@ -377,6 +381,15 @@ the tool bar."
 	     (set-default sym val)
 	     (modify-all-frames-parameters
 	      (list (cons 'tool-bar-position val))))))
+
+(defcustom tool-bar-always-show-default nil
+  "If non-nil, `tool-bar-mode' only shows the default tool bar.
+This works well when also using `global-window-tool-bar-mode' to
+display buffer-specific tool bars."
+  :type 'boolean
+  :group 'frames
+  :group 'mouse
+  :version "30.1")
 
 
 
