@@ -472,7 +472,8 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
 ;; Direct invocation
 
 (defmacro esh-cmd-test--deftest-invoke-directly (name command expected)
-  "FIXME"
+  "Test `eshell-invoke-directly-p' returns EXPECTED for COMMAND.
+NAME is the name of the test case."
   (declare (indent 2))
   `(ert-deftest ,(intern (concat "esh-cmd-test/invoke-directly/"
                                  (symbol-name name)))
