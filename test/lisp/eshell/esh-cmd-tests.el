@@ -475,9 +475,10 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
   "FIXME"
   (declare (indent 2))
   `(ert-deftest ,(intern (concat "esh-cmd-test/invoke-directly/"
-                                 (symbol-name name))) ()
+                                 (symbol-name name)))
+       ()
      (with-temp-eshell
-      (should (equal (eshell-invoke-directly
+      (should (equal (eshell-invoke-directly-p
                       (eshell-parse-command ,command nil t))
                      ,expected)))))
 
