@@ -530,11 +530,10 @@ The solution is to use gawk (GNU awk).
 *** Saving a file encrypted with GnuPG via EasyPG hangs.
 
 This is known to happen with GnuPG v2.4.1.  The only known workaround
-is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
-future, upgrade to a newer version which solves the problem, when such
-a fixed version becomes available).  Note that GnuPG v2.2.42 and later
-also has this problem, so you should also avoid those later 2.2.4x
-versions; v2.2.41 is reported to work fine.
+is to downgrade to a version of GnuPG older than 2.4.1, or upgrade to
+version 2.4.4 and newer, which reportedly solves the problem.  Note
+that GnuPG v2.2.42 and later also has this problem, so you should also
+avoid those later 2.2.4x versions; v2.2.41 is reported to work fine.
 
 *** EasyPG loopback pinentry does not work with gpgsm.
 
