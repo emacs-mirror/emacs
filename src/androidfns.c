@@ -3164,6 +3164,24 @@ android_set_preeditarea (struct window *w, int x, int y)
 				     y + w->phys_cursor_height);
 }
 
+
+
+/* Debugging.  */
+
+DEFUN ("android-recreate-activity", Fandroid_recreate_activity,
+       Sandroid_recreate_activity, 0, 0, "",
+       doc: /* Recreate the activity attached to the current frame.
+This function exists for debugging purposes and is of no interest to
+users.  */)
+  (void)
+{
+  struct frame *f;
+
+  f = decode_window_system_frame (Qnil);
+  android_recreate_activity (FRAME_ANDROID_WINDOW (f));
+  return Qnil;
+}
+
 #endif /* !ANDROID_STUBIFY */
 
 
@@ -3550,6 +3568,7 @@ language to be US English if LANGUAGE is empty.  */);
   defsubr (&Sandroid_request_directory_access);
   defsubr (&Sandroid_external_storage_available_p);
   defsubr (&Sandroid_request_storage_access);
+  defsubr (&Sandroid_recreate_activity);
 
   tip_timer = Qnil;
   staticpro (&tip_timer);

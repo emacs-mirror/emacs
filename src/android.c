@@ -111,6 +111,7 @@ struct android_emacs_window
   jmethodID set_dont_focus_on_map;
   jmethodID define_cursor;
   jmethodID damage_rect;
+  jmethodID recreate_activity;
 };
 
 struct android_emacs_cursor
@@ -1802,12 +1803,12 @@ android_init_emacs_window (void)
   FIND_METHOD (set_dont_accept_focus, "setDontAcceptFocus", "(Z)V");
   FIND_METHOD (define_cursor, "defineCursor",
 	       "(Lorg/gnu/emacs/EmacsCursor;)V");
-
   /* In spite of the declaration of this function being located within
      EmacsDrawable, the ID of the `damage_rect' method is retrieved
      from EmacsWindow, which avoids virtual function dispatch within
      android_damage_window.  */
   FIND_METHOD (damage_rect, "damageRect", "(IIII)V");
+  FIND_METHOD (recreate_activity, "recreateActivity", "()V");
 #undef FIND_METHOD
 }
 
@@ -6634,6 +6635,24 @@ android_request_storage_access (void)
   (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
 						 emacs_service,
 						 service_class.class,
+						 method);
+  android_exception_check ();
+}
+
+/* Recreate the activity to which WINDOW is attached to debug graphics
+   code executed in response to window attachment.  */
+
+void
+android_recreate_activity (android_window window)
+{
+  jobject object;
+  jmethodID method;
+
+  object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+  method = window_class.recreate_activity;
+
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env, object,
+						 window_class.class,
 						 method);
   android_exception_check ();
 }

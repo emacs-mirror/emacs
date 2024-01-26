@@ -1784,4 +1784,32 @@ public final class EmacsWindow extends EmacsHandleObject
 
     return true;
   }
+
+
+
+  /* Miscellaneous functions for debugging graphics code.  */
+
+  /* Recreate the activity to which this window is attached, if any.
+     This is nonfunctional on Android 2.3.7 and earlier.  */
+
+  public void
+  recreateActivity ()
+  {
+    final EmacsWindowAttachmentManager.WindowConsumer attached;
+
+    attached = this.attached;
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB)
+      return;
+
+    view.post (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  if (attached instanceof EmacsActivity)
+	    ((EmacsActivity) attached).recreate ();
+	}
+      });
+  }
 };
