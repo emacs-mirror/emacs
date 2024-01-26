@@ -1707,7 +1707,10 @@ With some possible metadata (to be decided).")
                  (let ((name (car elem)))
                    (list (if (file-remote-p name) name
                            (abbreviate-file-name name)))))
-               (read (current-buffer))))))
+               (condition-case nil
+                   (read (current-buffer))
+                 (end-of-file
+                  (warn "Failed to read the projects list file due to unexpected EOF")))))))
     (unless (seq-every-p
              (lambda (elt) (stringp (car-safe elt)))
              project--list)
