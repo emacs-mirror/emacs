@@ -928,7 +928,10 @@ data that is modified only very rarely.)
 
 It is also useful to look at the corrupted object or data structure in
 a fresh Emacs session and compare its contents with a session that you
-are debugging.
+are debugging.  This might be somewhat harder on modern systems which
+randomize addresses of running executables (the so-called Address
+Space Layout Randomization, or ASLR, feature).  If you have this
+problem, see below under "How to disable ASLR".
 
 ** Debugging the TTY (non-windowed) version
 
@@ -1079,6 +1082,34 @@ suppresses some Valgrind false alarms during Emacs garbage collection:
 
 Unfortunately Valgrind suppression files tend to be system-dependent,
 so you will need to keep one around that matches your system.
+
+** How to disable ASLR
+
+Modern systems use the so-called Address Space Layout Randomization,
+(ASLR) feature, which randomizes the base address of running programs,
+making it harder for malicious software or hackers to find the address
+of some function or variable in a running program by looking at its
+executable file.  This causes the address of the same symbol to be
+different across rerunning of the same program.  Sometimes, it can be
+useful to disable ASLR, for example, if you want to compare objects in
+two different Emacs sessions.
+
+On GNU/Linux, you can disable ASLR temporarily with the following
+shell command:
+
+  echo 0 > /proc/sys/kernel/randomize_va_space
+
+or by running Emacs in an environment where ASLR is temporarily
+disabled:
+
+  setarch -R emacs [args...]
+
+To disable ASLR in Emacs on MS-Windows, you will have to rebuild Emacs
+while adding '-Wl,-disable-dynamicbase' to LD_SWITCH_SYSTEM_TEMACS
+variable defined in src/Makefile.  Alternatively, use some tool to
+edit the PE header of the Emacs executable file and reset the
+DYNAMIC_BASE (0x40) flag in the DllCharacteristics flags recorded by
+the PE header.
 
 ** How to recover buffer contents from an Emacs core dump file
 

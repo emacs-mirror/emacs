@@ -7463,6 +7463,8 @@ case "$opsys" in
 
   mingw32)
    ## Is it any better under MinGW64 to relocate emacs into higher addresses?
+   ## If the values of -image-base are modified, the corresponding
+   ## values of DEFAULT_IMAGE_BASE in w32fns.c should be kept in sync.
    case "$canonical" in
      x86_64-*-*) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x400000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
      *) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
