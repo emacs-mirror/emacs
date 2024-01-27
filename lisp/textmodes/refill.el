@@ -106,7 +106,7 @@ This is used to optimize refilling.")
     ;; FIXME: forward-paragraph seems to disregard `use-hard-newlines',
     ;; leading to excessive refilling and wrong choice of fill-prefix.
     ;; might be a bug in my paragraphs.el.
-    (fill-forward-paragraph)
+    (fill-forward-paragraph 1)
     (skip-syntax-backward "-")
     (let ((end (point))
 	  (beg (progn (fill-forward-paragraph -1) (point)))
