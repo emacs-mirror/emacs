@@ -383,7 +383,7 @@ matching tag will be marked in the Dired buffer."
                       (file-name-directory curr-file)))
         (setq curr-file (file-name-nondirectory curr-file))
         (goto-char (point-min))
-        (when (search-forward-regexp (format "\\s %s$" curr-file) nil t)
+        (when (search-forward-regexp (format "\\s %s[*@]?$" curr-file) nil t)
           (setq hits (+ hits 1))
           (dired-mark 1))))
     (message "%d files with matching tag marked" hits)))
