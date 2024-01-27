@@ -112,7 +112,7 @@ extra indent = 2
       ""))))
 
 (defun visual-wrap-fill-context-prefix (beg end)
-  "Compute visual wrap prefix from text between FROM and TO.
+  "Compute visual wrap prefix from text between BEG and END.
 This is like `fill-context-prefix', but with prefix length adjusted
 by `visual-wrap-extra-indent'."
   (let* ((fcp
