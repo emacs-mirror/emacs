@@ -51,6 +51,7 @@ Return the value of last form in BODY."
   "Check if `image-dired-tags-db-file' exists.
 If not, try to create it (including any parent directories).
 Signal error if there are problems creating it."
+  (require 'image-dired)                ; for `image-dired-dir'
   (or (file-exists-p image-dired-tags-db-file)
       (let (dir buf)
         (unless (file-directory-p (setq dir (file-name-directory

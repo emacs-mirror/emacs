@@ -995,7 +995,7 @@ less natural and is less compact.
 @cindex overrides, in output functions
 @cindex output variables, overriding
 
-The previous section (@pxref{Output Functions}) lists the numerous
+The previous section (@pxref{Output Variables}) lists the numerous
 variables that control how the Emacs Lisp printer formats data for
 outputs.  These are generally available for users to change, but
 sometimes you want to output data in the default format, or override

@@ -1,0 +1,1551 @@
+Bonus: Return a cons cell: (COMPILED . UPTODATE).
+Bonus: Return a cons cell: (COMPILED . UPTODATE)."
+(defun semantic-grammar-create-package (&optional force uptodate)
+If the Lisp code seems up to date, do nothing (if UPTODATE
+	  (if uptodate (setq output nil)))
+;; Updated by the RIPE Network Coordination Center.
+;; Thanks to jond@miter.org (Jonathan Doughty) for help with code for
+    \"VHDL Modeling Guidelines\".
+# PCRE LICENSE
+#   General Purpose Licence (GPL), or Lesser General Purpose Licence (LGPL),
+#   then the terms of that licence shall supersede any condition above with
+   Li, Luo et al. "The CRI-CAM02UCS colour rendering index." COLOR research
+   Luo et al. "Uniform colour spaces based on CIECAM02 colour appearance
+        "[o]utput/save MIME part; save [a]ll parts; \n"
+;;  Jari Aalto <jaalto@tre.tele.nokia.fi>
+;;  Alon Albert <alon@milcse.rtsg.mot.com>
+;;                  Jari Aalto <jaalto@tre.tele.nokia.fi>.
+  ("IRCnet: EU, AT, Linz" IRCnet "linz.irc.at" ((6666 6668)))
+		   ["Januar" "Februar" "März" "April" "Mai" "Juni" "Juli" "August"
+Both types of item should be moved en bloc to the new category,
+      return dum// -7-
+      struct Dum {
+      mutable a::b::Foo::Dum dumdum;
+    "Mot de Passe :" ; localized (Bug#29729)
+	(leapyear, ydhms_diff, guess_time_tm, __mktime_internal): Use it.
+	* config.bat: Build-in the first step towards X11 support with
+	* configure.ac (emacs_config_features): Don’t worry about GIR.
+	* configure.ac (WEBKIT, GIR, CAIRO): Use EMACS_CHECK_MODULES, not PKG_.
+	* configure.ac (emacs_config_features): Add XWIDGETS, WEBKIT, GIR.
+1995-04-20  Kevin Rodgers  <kevinr@ihs.com>
+(seq-mapn #'concat '("moskito" "bite") ["bee" "sting"])
+Steven E. Harris (seh at panix.com),
+Kevin Rodgers (kevin.rodgers at ihs.com),
+plot,x,alog(x+5*sin(x) + 2),
+be shown.  On positions 3,4, and 7, the @samp{alog} function will be
+As is my wont, I started hacking on it almost immediately. I first
+The latter criterion is the "je ne sais quoi" of the artistic aspect of
+order but are now listed consecutively en bloc.
+      "mot de passe" "Mot de passe")
+	Reported by Mor Zahavi <morzahavi@me.com>.  (Bug#51271)
+	* etc/refcards/fr-refcard.tex (section{Formater}): Remove mention
+	Reported by Ture Pålsson.
+	9261a219ec * doc/emacs/windows.texi (Window Convenience): Describe mor...
+	650a664ccd Let imenu to work on the menu bar when its list is a singl...
+             "\\(?:Currentl?y\\|Now\\) drawing from '\\(AC\\|Battery\\) Power'"
+	      ;; Move done items en bloc to top of done items section.
+	* erc-complete.el: * added docfixes (thanks ore)
+  (interactive "DDelete directory from file cache: ")
+   some Agian scripts.  */
+	Rename from "Gnus Maintainance Guide".
+	* gnus-coding.texi (Gnus Maintainance Guide): Update to mention Emacs
+	* gnus-coding.texi (Gnus Maintainance Guide): Fix title typo.
+	* gnus-coding.texi (Gnus Maintainance Guide): Update conventions for
+2005-10-23  Lars Hansen  <larsh@soem.dk>
+1998-07-17  Gordon Matzigkeit  <gord@fig.org>
+1998-04-26  James Troup  <J.J.Troup@scm.brad.ac.uk>
+2003-06-11  Daniel Néri  <done@mayonnaise.net>
+2001-07-26 10:00:00  Steven E. Harris  <seh@speakeasy.org>
+2001-01-15  Jack Twilley  <jmt@tbe.net>
+
+	matching LAMDA as a word.  Noted by Stefan Monnier.
+	completion variant for every "LAMDA" name (bug#30513).
+	                    "foto"
+	    ("foto" . 0.375)
+	Add configury for GMP library
+	Include w32inevt.h, basetyps.h and unknwn.h.
+	* make-docfile.c (write_c_args): Correctly handle prefixes of "defalt".
+	* hexl.c [DOSNT]: Include fcntl.h.
+	* make-docfile.c (write_c_args): Print an argument named "defalt"
+2003-03-07  Kevin Rodgers  <kevin.rodgers@ihs.com>  (tiny change)
+2003-03-06  Kevin Rodgers  <kevin.rodgers@ihs.com>  (tiny change)
+	"Speedwave", "Simili", "Synopsys Design Compiler", "Cadence NC",
+	with-parsed-tramp-file-name macro which is wont to produce such stuff.
+2004-12-29  Sanghyuk Suh  <han9kin@mac.com>
+2007-02-28  Lars Hansen  <larsh@soem.dk>
+2006-11-24  Lars Hansen  <larsh@soem.dk>
+2006-10-29  Lars Hansen  <larsh@soem.dk>
+2006-09-12  Lars Hansen  <larsh@soem.dk>
+2006-06-23  Lars Hansen  <larsh@soem.dk>
+2006-05-14  Lars Hansen  <larsh@soem.dk>
+2006-05-13  Lars Hansen  <larsh@soem.dk>
+2006-02-09  Lars Hansen  <larsh@soem.dk>
+2006-02-06  Lars Hansen  <larsh@soem.dk>
+2005-11-22  Lars Hansen  <larsh@soem.dk>
+2005-11-08  Lars Hansen  <larsh@soem.dk>
+2005-11-03  Lars Hansen  <larsh@soem.dk>
+2005-11-02  Lars Hansen  <larsh@soem.dk>
+2005-10-08  Lars Hansen  <larsh@soem.dk>
+2005-08-10  Lars Hansen  <larsh@soem.dk>
+2005-07-12  Lars Hansen  <larsh@soem.dk>
+2011-02-22  Seppo Sade  <sepposade1@gmail.com>  (tiny change)
+2012-09-21  Joel Bion  <jpbion@westvi.com>  (tiny change)
+	* rmail.el: Major changes from Bob Weiner <weiner@pts.mot.com>
+	* rmailsum.el: Big rewrite from weiner@pts.mot.com.
+1995-05-19  Kevin Rodgers  <kevinr@ihs.com>  (tiny change)
+1994-08-29  Tom Tromey  (tromey@creche.colorado.edu)
+1994-07-11  Kevin Rodgers  <kevinr@ihs.com>  (tiny change)
+1994-06-17  Kevin Rodgers  (kevinr@ihs.com)  (tiny change)
+1995-12-13  Kevin Rodgers  <kevinr@ihs.com>
+1995-11-10  Kevin Rodgers  <kevinr@ihs.com>
+1995-06-30  Kevin Rodgers  <kevinr@ihs.com>
+1998-07-07  Kevin Rodgers  <kevinr@ihs.com>  (tiny change)
+1998-06-03  Kevin Rodgers  <kevinr@ihs.com>  (tiny change)
+1997-12-22  Kevin Rodgers  <kevinr@ihs.com>  (tiny change)
+1997-11-02  Kevin Rodgers  <kevinr@ihs.com>
+1997-10-21  Brad Howes  <bhowes@cssun3.corp.mot.com>
+1997-06-22  Howard Melman  <melman@absolut.osf.org>
+1997-03-24  Kevin Rodgers  <kevinr@ihs.com>
+1996-11-04  Kevin Rodgers  <kevinr@ihs.com>
+1996-10-20  Kevin Rodgers  <kevinr@ihs.com>
+1996-09-12  Kevin Rodgers  <kevinr@ihs.com>
+1999-11-16  Reto Zimmermann  <reto@synopsys.com>
+1999-06-12  Reto Zimmermann  <reto@synopsys.com>
+1999-05-15  Reto Zimmermann  <reto@Synopsys.COM>
+1998-08-26  Kevin Rodgers  <kevinr@ihs.com>  (tiny change)
+	directories.  From Kevin Rodgers <kevinr@ihs.com>.
+   "du Radis"              "de la Ruche"           "du Gainier"
+	Iinclude string.h, stdlib.h unconditionally.
+2006-04-23  Lars Hansen  <larsh@soem.dk>
+2006-04-20  Lars Hansen  <larsh@soem.dk>
+2005-11-10  Lars Hansen  <larsh@soem.dk>
+	explicitly sets the defalt value.
+	Unexpect wait_object in case of x errors (memory leak).
+	(receive_incremental_selection): Don't unexpect wait_object when done
+	append "CCL: Quitted" when the CCL program is quitted.
+	the loop.  When quitted, show a proper error message.
+	(read_minibuf_noninteractive): If defalt is cons, set val to its car.
+	(read_minibuf): If defalt is cons, set histstring to its car.
+	(Fcompleting_read): If defalt is cons, set val to its car.
+	but it still has blocs in it, don't return it to the system,
+	any, in the DEFALT argument into the root of the Emacs build or
+	* fileio.c (Fexpand_file_name): Default DEFALT at beginning,
+1992-03-03  Wilson H. Tien  (wtien@urbana.mcd.mot.com)
+	* fileio.c (Fexpand_file_name): Pass DEFALT through
+	* ralloc.c (relocate_some_blocs): Handle BLOC == NIL_BLOC.
+	malloc heap, zero it out even if we don't have any blocs in the
+	(r_alloc_sbrk): Provide hysteresis in relocating the blocs.
+	(get_bloc): Return zero if we can't allocate the new bloc.
+	* ralloc.c (r_re_alloc): Instead of allocating a new bloc at the
+	original bloc, just expand the original block.  This saves a copy
+	If string quotes don't match up, don't take value from OFROM;
+	Globally replaced INTERRUPTABLE with INTERRUPTIBLE.
+	* fileio.c (Fread_file_name): If defalt is nil and user tries to use
+1995-03-23  Kevin Rodgers  <kevinr@ihs.com>  (tiny change)
+	* fileio.c (Fexpand_file_name): Look for a handler for defalt.
+1994-09-21  Tom Tromey  <tromey@creche.colorado.edu>
+	(r_alloc_sbrk): Refuse to move blocs, if frozen.
+1994-08-26  Kevin Rodgers  <kevinr@ihs.com>
+	(Fcall_process_region) [DOSNT]: Canonicalize slashes in filename.
+	* minibuf.c (read_minibuf): Do use DEFALT in place of empty input
+	* minibuf.c (read_minibuf): Return DEFALT here, if minibuffer is empty.
+	(read_minibuf): Now static.  New arg DEFALT.  Callers changed.
+	CHAR_TABLE_ORDINARY_SLOTS for top, defalt, parent, and purpose.
+	is moved before `contents' so that XCHAT_TABLE (val)->defalt can
+	for an ASCII font, not defalt slot.
+      /* And if the configury during frame creation has been
+   Bob Desinger <hpsemc!bd@hplabs.hp.com>
+/* Calculate the checksum of a SOM header record. */
+     to preserve.  Then we map these VAs to the section entries in the
+#include <unknwn.h>
+  /* weiner@footloose.sps.mot.com reports that this causes
+   (VARN+1 SLOTN+1))
+dum@dots{} Nice tune, that@dots{} la la la@dots{} What, you're back?
+C'est la vie.
+        ("gnus-warning" "duplicat\\(e\\|ion\\) of message" "duplicate")
+James Troup,
+@cindex @code{multline}, AMS-LaTeX environment
+@code{align}, @code{gather}, @code{multline}, @code{flalign},
+      \openin 1 #1.pdf \ifeof 1
+        \openin 1 #1.PDF \ifeof 1
+          \openin 1 #1.png \ifeof 1
+            \openin 1 #1.jpg \ifeof 1
+              \openin 1 #1.jpeg \ifeof 1
+                \openin 1 #1.JPG \ifeof 1
+  \def\adn#1{\addtokens{\toksC}{#1}\global\countA=1\let\next=\maketoks}
+  \openin 1 \jobname.\indexname s
+    % If the index file exists but is empty, then \openin leaves \ifeof
+\setbox\balancedcolumns=\vbox{shouldnt see this}%
+    \openin 1 \tocreadfilename\space
+  \openin 1 \jobname.aux
+\openin 1 = epsf.tex
+    \openin 1 txi-#1.tex
+  \openin 1 txi-#1.tex
+  @openin 1 texinfo.cnf
+                                             '("En" "To" "Tre"))
+=project.clj=, =build.boot= or =deps.edn=, falling back on
+    ("(.H)J" (1 :otf=beng=half+))
+-   (".H" :otf=beng=blwf,half,vatu+)
++   (".+H" :otf=beng=blwf,half,vatu+)
+    \quad \B{p}art: a)uthor (from), s)ubject, x)refs (cross-post), d)ate, l)ines,
+    message-i)d, t)references (parent), f)ollowup, b)ody, h)ead (all headers);\\*
+\key{show subtree in indirect buffer, ded.\ frame}{C-c C-x b}
+@tindex alog
+mode setting.  With the Inverse flag [@code{alog}], this command is
+@r{    a b@:    I B     @:             @:     2  @:alog@:(a,b)  b^a}
+@r{    a b@:    I f I   @:             @:     2  @:alog@:(a,b)  b^a}
+	Change comment about the iif hook to reflect the actual reason.
+     "I + E (ln), L (exp), B (alog: B^X); f E (lnp1), f L (expm1)"
+  (let (numer denom)
+    (setq numer (car (math-read-expr-list)))
+    (if (and (Math-num-integerp numer)
+        (list 'frac numer denom)
+      (list '/ numer denom))))
+       (calc-binary-op "alog" 'calcFunc-alog arg)
+	(let ((dum (math-lud-pivot-check sum)))
+	  (if (or (math-zerop big) (Math-lessp big dum))
+	      (setq big dum
+	  (calc-pop-push-record-list 0 "larg"
+  (interactive "NNumber of columns = ")
+   (calc-binary-op "cros" 'calcFunc-cross arg)))
+   (calc-binary-op "unio" 'calcFunc-vunion arg '(vec) 'calcFunc-rdup)))
+  (calc-tabular-command 'calcFunc-table "Index" "tabl"
+		     (ptd (file-truename pd)))
+		 (string-match (concat "^" (regexp-quote ptd)) ftn)))
+	(let ((aci (autoconf-parameters-for-macro "AC_INIT"))
+	   ((> (length aci) 1)
+	    (setq name (nth 0 aci)
+		  ver (nth 1 aci)
+		  bugrep (nth 2 aci)))
+	(princ "\nKnown members of ")
+	    (peom (save-excursion (c-end-of-macro) (point))))
+	     (when (> (point) peom)
+	  (let ((larg (car args))
+	    (if (stringp larg)
+		(setq larg (semantic-tag-new-variable
+			    larg nil nil)))
+	     (srecode-semantic-tag (semantic-tag-name larg)
+				   :prime larg)
+  (princ "\n--------------------------------------------\n\nNumber of tables: ")
+;;            avk@rtsg.mot.com (Andrew V. Klein)     for a dired tip.
+    (args docstring interactive orig &optional befores arounds afters)
+and BEFORES, AROUNDS and AFTERS are the lists of advices with which ORIG
+    (dolist (advice befores)
+      (let* ((nam (buffer-substring (match-beginning 2) (match-end 2)))
+	(setq nmlst (cons nam nmlst)
+  "If we are in an rmail summary buffer, then chart out the froms."
+	(let* ((nam (buffer-substring (match-beginning 1) (match-end 1)))
+	       (m (member nam nmlst)))
+	  (message "Scanned username %s" nam)
+	    (setq nmlst (cons nam nmlst)
+     ((memq word '(concat concating))
+         (crypted (cl-loop with str = (make-string (* 2 (length orig-name)) 0)
+         for c-sym = (concat prefix crypted "_" human-readable "_"
+      (concat prefix crypted "_" human-readable "_0"))))
+      (let* ((acces   (plist-get soptions :accessor))
+	(when acces
+          (push `(cl-defmethod (setf ,acces) (value (this ,name))
+          (push `(cl-defmethod ,acces ((this ,name))
+            (push `(cl-defmethod ,acces ((this (subclass ,name)))
+;;  => "(\\(c\\(atch\\|ond\\(ition-case\\)?\\)\\|if\\|let\\*?\\|prog[12n]\\|save-\\(current-buffer\\|excursion\\|match-data\\|restriction\\|window-excursion\\)\\|throw\\|un\\(less\\|wind-protect\\)\\|wh\\(en\\|ile\\)\\)\\>"
+G-C-g: Keyboard Quit              |Ex Ext Cmd|Fill Regio| REPLACE  |  UND W   |
+;; lisp example from Jari Aalto <jaalto@tre.tele.nokia.fi>
+;; perl example from Jari Aalto <jaalto@tre.tele.nokia.fi>
+;;    '(("\\<\\(uno\\|due\\|tre\\)\\>" . 'font-lock-keyword-face)
+  "define\\|e\\(?:l\\(?:if\\|se\\)\\|ndif\\|rror\\)\\|file\\|i\\(?:f\\(?:n?def\\)?\\|mport\\|nclude\\)\\|line\\|pragma\\|undef\\|warning"
+2003-06-11  Daniel Néri  <dne@mayonnaise.net>
+					  (lambda (valu symb)
+                    (let ((anumber (string-to-number
+                      (< anumber bnumber)))))
+    (curren      . 164)
+		 ;; Now we must merge the Dows with the Doms. To do that, we
+		       (dows dow-list)
+		   ;; second add all possible dows
+		   (while (setq day (pop dows))
+;; Added by gord@enci.ucalgary.ca (Gordon Matzigkeit).
+	didnt nnmaildir--file nnmaildir-article-file-name
+	     (setq didnt (cons (nnmaildir--art-num article) didnt)))
+		 (setq didnt (cons (nnmaildir--art-num article) didnt))
+      didnt)))
+      (insert "\nKnown Certificates:\n"))))
+;; We could use `symbol-file' but this is a wee bit more efficient.
+	(beng . bengali)
+	(maka . makasar)
+              ,(font-spec :registry "iso10646-1" :otf '(beng nil (rphf))))
+     (khmer ,(font-spec :registry "iso10646-1" :otf '(khmr nil (pres))))
+    ("wee" . "Latin-2") ; MS Windows Lower Sorbian
+                ;; Unicode uses the spelling "lamda" in character
+                           (string-match "\\<LAMDA\\>" new-name))
+  "WINDOWS-1258 (Viet Nam)"
+    "mot de passe"	; fr
+Je/sli czytasz ten tekst, to albo przegl/adasz plik /xr/od/lowy
+W drugim przypadku mo/zesz usun/a/c tekst z ekranu, stosuj/ac
+    przekodowuj/a zaznaczony fragment wzgl/ednie ca/ly buffor.
+    Poni/zsze przyk/lady powinny wyja/sni/c, jakich parametr/ow
+ Funkcje biblioteki odwo/luj/a si/e do pi/eciu zmiennych, kt/ore
+       ("capetown"        "Cape Town, South Africa")
+	      (progn (error msg "preced") 0)))
+	<larsh@soem.dk> 2005-08-10.
+    (dolist (slot '(answers authorities additionals))
+          queries answers authorities additionals)
+      (setq additionals (dns-read-bytes 2))
+                                      (additionals ,additionals))
+  [nil					; 1  ACI Item                        N
+    ("&curren;" . "(#)")
+;; Author: Alon Albert <alon@milcse.rtsg.mot.com>
+  "Mark region appropriately.  The next char REGION is d(efun),s(-exp),b(uffer),
+l(ines)."
+	(t (message "Mark: d(efun),s(-exp),b(uf),p(arag),P(age),f(unct),w(ord),e(os),l(ines)")
+  "Verify spelling for the objects specified by char UNIT : [b(uffer),
+	(t (message "Spell check: b(uffer), r(egion), s(tring), w(ord)")
+sWith: " )
+(defun org-babel-perl--var-to-perl (var &optional varn)
+  (if varn
+	(concat "my $" (symbol-name varn) "=" (when lvar "\n")
+	      (if org-agenda-entry-text-mode " ETxt"   "")
+     ("curren" "\\textcurrency{}" nil "&curren;" "curr." "¤" "¤")
+  (interactive "nNumber of clones to produce: ")
+N          is the number of WHATs to shift.
+multlinewidth The width of the multline environment.
+	       (list :tag "multlinewidth (width to use for the multline environment)"
+      "align"  "gather" "multline" "flalign"  "alignat"
+     ("ca" :default "Autor")
+     ("cs" :default "Autor")
+     ("de" :default "Autor")
+     ("es" :default "Autor")
+     ("et" :default "Autor")
+     ("pl" :default "Autor")
+     ("pt_BR" :default "Autor")
+     ("ro" :default "Autor")
+     ("sl" :default "Seznam tabel")
+     ("nl" :default "Zie tabel %s"
+      :html "Zie tabel&nbsp;%s" :latex "Zie tabel~%s")
+     ("et" :default "Tabel")
+     ("nl" :default "Tabel")
+     ("ro" :default "Tabel")
+     ("ro" :default "Tabele")
+     ("da" :default "Tabel %d")
+     ("et" :default "Tabel %d")
+     ("nl" :default "Tabel %d:" :html "Tabel&nbsp;%d:")
+     ("ro" :default "Tabel %d")
+     ("pl" :html "Spis tre&#x015b;ci")
+                        (thier their (their))
+                (whats up) (whats new) (what\'s up) (what\'s new)
+           refer refered referred refers
+    (c++-mode . "#\\(assert\\|cpu\\|define\\|endif\\|el\\(if\\|se\\)\\|i\\(dent\\|f\\(def\\|ndef\\)?\\|mport\\|nclude\\(_next\\)?\\)\\|line\\|machine\\|pragma\\|system\\|un\\(assert\\|def\\)\\|warning\\)\\>"))
+     "^\\(?:Error\\|Warnin\\(g\\)\\) \\(?:[FEW][0-9]+ \\)?\
+: \\(?:see declaration\\|\\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:\\)"
+     "^\\([^ \n]+\\)(\\([0-9]+\\)): \\(?:error\\|warnin\\(g\\)\\|remar\\(k\\)\\)"
+     "^\"\\(.*\\)\",\\([0-9]+\\)\\s-+\\(?:Error\\|Warnin\\(g\\)\\)\\[[0-9]+\\]:"
+ \\(?:warnin\\(g\\)\\|informationa\\(l\\)\\)?" 1 2 3 (4 . 5))
+     "^ *\\([0-9]+\\)\\.[ \t]+.*\n +\\(<-*>\n\\*\\*\\* \\(?:Error\\|Warnin\\(g\\)\\)\\)"
+     "^\\(?:Error\\|Warnin\\(g\\)\\):.*\n.* line \\([0-9]+\\) char\
+     ": \\(?:ERROR\\|WARNIN\\(G\\)\\|REMAR\\(K\\)\\) \\(?:[[:alnum:] ]+, \\)?\
+     (" --?o\\(?:utfile\\|utput\\)?[= ]\\(\\S +\\)" . 1)
+	   "^[ \t]*\\(format\\)[ \t]*\\([a-zA-Z0-9_]+\\)?[ \t]*=[ \t]*$" ;FRMAT
+    (insert "\n[U]nknown conditionals: ")
+  (struc info file tags-file &optional view where)
+STRUC is an `ebrowse-bs' structure (or a structure including that)
+FILE is not taken out of STRUC here because the filename in STRUC
+	   (ebrowse-bs-name struc)))
+	 (setf ebrowse-temp-position-to-view struc
+	 (ebrowse-find-pattern struc info))))
+                            "cexp" "log" "alog" "dlog" "clog" "log10"
+  '("ASCII" "addto" "also" "and" "angle" "atleast" "batchmode"
+        "bre~ak" "bti~tle" "c~hange" "cl~ear" "col~umn" "conn~ect"
+        "repf~ooter" "reph~eader" "r~un" "sav~e" "sho~w" "shutdown"
+                "copyc~ommit" "copytypecheck" "def~ine" "describe"
+That is, all code between \"// synopsys translate_off\" and
+\"// synopsys translate_on\" is highlighted using a different background color
+option to intermix between input/output/inouts.
+       :help		"Help on AUTOINOUT - adding inouts from cells"]
+  (eval-when-compile (verilog-regexp-words '("Outputs" "Inouts" "Inputs" "Interfaces" "Interfaced"))))
+           '("surefire" "0in" "auto" "leda" "rtl_synthesis" "synopsys"
+           (structres nil)
+                   (setq structres (verilog-in-struct-nested-p))
+                   (cond ((not structres) nil)
+                         ;;((and structres (equal (char-after) ?\})) (throw 'nesting 'struct-close))
+                         ((> structres 0) (throw 'nesting 'nested-struct))
+                         ((= structres 0) (throw 'nesting 'block))
+          (list 'block structres))
+// Created       : <credate>
+    (search-forward "<credate>") (replace-match "" t t)
+Return an array of [outputs inouts inputs wire reg assign const gparam intf]."
+	  (when (looking-at "[^\n]*\\(auto\\|synopsys\\)\\s +enum\\s +\\([a-zA-Z0-9_]+\\)")
+Return an array of [ outputs inouts inputs ] signals for modules that are
+		  (while (re-search-forward "\\s *(?\\s *// Inouts" end-inst-point t)
+	  (if (looking-at "[^\n]*\\(auto\\|synopsys\\)\\s +enum\\s +\\([a-zA-Z0-9_]+\\)")
+			      "// Inouts"
+  Inouts are not supported, as assignments must be unidirectional.
+            (verilog-auto-inst-port-list "// Inouts\n"
+  This ONLY detects inouts of AUTOINSTants (see `verilog-read-sub-decls').
+           // Beginning of automatic inouts
+              // Inouts
+from only extracting inouts starting with i:
+	(verilog-insert-indent "// Beginning of automatic inouts (from unused autoinst inouts)\n")
+           // Beginning of automatic in/out/inouts
+	    (verilog-insert-indent "// Beginning of automatic in/out/inouts (from specific module)\n")
+          // Beginning of automatic in/out/inouts (from modport)
+	    (verilog-insert-indent "// Beginning of automatic in/out/inouts (from modport)\n")
+finds all inputs and inouts in the module, and if that input is not otherwise
+First, parameters are built into an enumeration using the synopsys enum
+  \"synopsys enum\" may be used in place of \"auto enum\".
+                default:  state_ascii_r = \"%Erro\";
+    `verilog-auto-inout'        for AUTOINOUT making hierarchy inouts
+    `verilog-auto-unused'       for AUTOUNUSED unused inputs/inouts
+    ;; duluth: *E,430 (test.vhd,13): identifier (POSITIV) is not declared
+    ("GHDL" "ghdl" "-i --workdir=\\1 --ieee=synopsys -fexplicit " "make" "-f \\1"
+    ;; ERROR: test.vhd(14): Unknown identifier: positiv
+    ;; ProVHDL, Synopsys LEDA: provhdl -w work -f test.vhd
+    ;; Synopsys, VHDL Analyzer (sim): vhdlan -nc test.vhd
+    ("Synopsys" "vhdlan" "-nc -work \\1" "make" "-f \\1"
+     nil "mkdir \\1" "./" "work/" "Makefile" "synopsys"
+    ;; Synopsys, VHDL Analyzer (syn): vhdlan -nc -spc test.vhd
+    ("Synopsys Design Compiler" "vhdlan" "-nc -spc -work \\1" "make" "-f \\1"
+      ("Synopsys" "-vhdl87 \\2" "-f \\1 top_level" ((".*/datapath/.*" . "-optimize \\3") (".*_tb\\.vhd" . nil))))
+(defcustom vhdl-directive-keywords '("psl" "pragma" "synopsys")
+	    (eq (vhdl-decision-query nil "(d)eclaration or (b)ody?") ?b))
+		 (eq (vhdl-decision-query nil "(d)eclaration or (b)ody?") ?b)))
+;; Author: Alex Rezinsky <alexr@msil.sps.mot.com>
+;; Thanks to Gord Wait <Gord_Wait@spectrumsignal.com> for
+;; Thanks to Paul Furnanz <pfurnanz@synopsys.com> for XEmacs compatibility
+;; Thanks to Kevin Rodgers <kevinr@ihs.com> for handling control characters
+;;  * Check `ps-paper-type': Sudhakar Frederick <sfrederi@asc.corp.mot.com>
+;; Thanks to Kevin Rodgers <kevinr@ihs.com> for adding support for color and
+;; Thanks to Avishai Yacobi, avishaiy@mcil.comm.mot.com, for writing the
+;; Ralf Brown's Interrupt List. file INTERRUP.F, D-2138, Table 01400
+    ("portugues"                        ; Portuguese mode
+    ("portugues"     "pt_PT")
+;; of the document.  If WRAPP is true then wrap the search to the
+(defun reftex-isearch-switch-to-next-file (crt-buf &optional wrapp)
+      (if wrapp
+f / c      Toggle follow mode             / Toggle display of [c]ontext.
+ F t c      Toggle:  [F]ile borders, [t]able of contents,  [c]ontext
+\\`l' \\`i' \\`c' \\`F'    Toggle display of  [l]abels,  [i]ndex,  [c]ontext,  [F]ile borders.
+                      ;; OK, get the makro name
+      ("multline"     ?e nil nil t)
+   "nbsp" "iexcl" "cent" "pound" "curren" "yen" "brvbar" "sect"
+;; |ment\|
+;; horizontale disigatan fenestron, si-	 horizontally split window similar to
+;;	    ^jus anta^ue faris C-x C-f.	     file if you just did C-x C-f.
+;; per C-x u  kaj  plue  modifu  la  du	 continue   to  edit the two buffers.
+;; Programistoj eble ^satus la  eblecon  Programmers might like the ability
+;; iliajn finojn dum redaktado.		 won't see their end during editing.
+    "news:" "nfs://" "nntp://" "opaquelocktoken:" "pop://" "pres:"
+;; Bob Weiner <weiner@footloose.sps.mot.com>,
+	control whether we try to do keep-alives for our connections.
+	keep-alives to time out on cached documents with no known
+	  ;; seconds for the keep-alives to time out on some servers.
+	  msglen = ccl->quit_silently ? 0 : sprintf (msg, "\nCCL: Quitted.");
+				   Quitted" to the generated text when
+				   CCL program is quitted. */
+   followings.  */
+  /* Followings are target of code detection.  */
+  /* Followings are NOT target of code detection.  */
+    /* The followings are extra attributes for each type.  */
+    Aadd,
+	case Aadd : accum += next; break;
+	case Aadd   :       mpz_add (mpz[0], *accum, *next); break;
+	  case Aadd : overflow = INT_ADD_WRAPV (accum, next, &a); break;
+  return nargs == 1 ? a : arith_driver (Aadd, nargs, args, a);
+    /* The followings are used only for a font-entity and a font-object.  */
+    /* The followings are used only for a font-object.  */
+	  /* We have already tried this element and the followings
+/* According to RBIL (INTERRUP.A, V-1000), 160 is the maximum possible
+   hole between the first bloc and the end of malloc storage.  */
+  /* First bloc in this heap.  */
+  /* Last bloc in this heap.  */
+  struct heap *heap; 		/* Heap this bloc is in.  */
+/* Find the bloc referenced by the address in PTR.  Returns a pointer
+	 callers that always expect a bloc to be returned should abort
+/* Allocate a bloc of SIZE bytes and append it to the chain of blocs.
+   Returns a pointer to the new bloc, or zero if we couldn't allocate
+  /* Put this bloc on the doubly-linked list of blocs.  */
+/* Calculate new locations of blocs in the list beginning with BLOC,
+in the quitted window.
+	trough color and main window's background color.
+	means the truck and arrow colors, and "trough" means the
+  bg[ACTIVE] = "blue"@ @ @ @ # @r{Trough color.}
+also for the trough of a scroll bar, i.e., @code{bg[ACTIVE] = "red"}
+sets the scroll bar trough to red.  Buttons that have been armed
+    (while (search-forward "nam" nil t)
+    (search-forward "som")
+    (search-forward "Nam")
+ (0 ":rando!~u@bivkhq8yav938.irc PRIVMSG tester :[09:17:51] u thur?")
+ (0.01 ":alice/foonet PRIVMSG #chan/foonet :bob: Sir, his wife some two months since fled from his house: her pretence is a pilgrimage to Saint Jaques le Grand; which holy undertaking with most austere sanctimony she accomplished; and, there residing, the tenderness of her nature became as a prey to her grief; in fine, made a groan of her last breath, and now she sings in heaven.")
+     "sav"
+					    (if valu
+						(cons symb valu)))
+	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
+Tai Daeng (also known as Red Tai or Tai Rouge),
+	    ;; Ith character and the followings matches precomposable
+      sprintf (css, "scrollbar trough { background-color: #%06x; }",
+     OFROM[I] is position of the earliest comment-starter seen
+	    sprintf (css, "scrollbar trough { background-color: #%02x%02x%02x; }",
+  /* Note: "background" is the thumb color, and "trough" is the color behind
+	 (uptodate t))
+     (while (and files uptodate)
+	     (setq uptodate nil)))))
+     uptodate)))
+      ptrdiff_t acount = 0;   /* The # of consecutive times A won.  */
+	      acount = 0;
+	      ++acount;
+	      if (acount >= min_gallop)
+	acount = k;
+      } while (acount >= GALLOP_WIN_MIN || bcount >= GALLOP_WIN_MIN);
+    ptrdiff_t acount = 0;   /* The # of consecutive times A won.  */
+	  ++acount;
+	  if (acount >= min_gallop)
+	  acount = 0;
+      acount = k;
+    } while (acount >= GALLOP_WIN_MIN || bcount >= GALLOP_WIN_MIN);
+	154cd116be (origin/emacs-27) * admin/release-process: Adapt bug numbe...
+	a38da0d cc-mode.texi: Work around makeinfo alignment bug.  Fix proble...
+	fd35804971 (origin/emacs-26) * doc/lispref/strings.texi (Case Convers...
+	be in line with the raison d'être of compiling printer which is speed.
+mace <mace@kirjakaapeli.lib.hel.fi>
+at that position, the result is @samp{fro!b}, with point between the
+doesnt
+minimize(xfit(gaus(a,b,c,d,x), x, [a,b,c], data)_5, d, guess)
+where @code{gaus} represents the Gaussian model with background,
+* Score Decays::                It can be useful to let scores wither away.
+providers if they were to do this---their @emph{raison d'être} is to
+While this design may be internally consistent with the raison d'être of
+Finally, just to whet your appetite for what can be done with the
+Wedler, Alan Williams, Roland Winkler, Hans-Christoph Wirth, Eli
+                 "Some Place\nIn some City\nSome country.")
+@c andrewm@@optimation.co.nz
+Emacs Macht Alle Computer Schoen
+GLib-GObject-WARNING **: /build/buildd/glib2.0-2.14.5/gobject/gsignal.c:1741: instance `0x8206790' has no handler with id `1234' at t-compilation-perl-gtk.pl line 3.
+    \quad \B{A}ction: I)ncrease, L)ower;\\*
+	 (calc-unary-op "flor" 'calcFunc-ffloor arg)
+       (calc-unary-op "flor" 'calcFunc-floor arg)))))
+  ["de la Vertu" "du Génie" "du Travail" "de la Raison" "des Récompenses"
+   "de la Cuve"            "de la Pomme de terre"  "de l'Immortelle"
+   "de la Raison"          "des Récompenses"       "de la Révolution"]
+	(string-match "config\\(ure\\.\\(in\\|ac\\)\\|\\.status\\)?$" f)
+    ("\\.\\(dll\\|drv\\|386\\|vxd\\|fon\\|fnt\\|fot\\|ttf\\|grp\\)$" . t)
+      (insert (format "\nIn %s:\n" form)))
+			  (format "\nIn macro %s:" (cadr form)))
+			  (format "\nIn variable %s:" (cadr form)))
+    (insert "\nIn " package)
+	      "\nIn order to use version `%s' of gnus, you will need to set\n"
+znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
+ oraz ich warto/sci domy/slne s/a nast/epuj/ace:
+    (insert "\nIn " (emacs-version))
+        "[n]ew messages; [']ticked messages; [s]earch;\n"
+    (?/ "Limit to [c]c, ran[g]e, fro[m], [s]ubject, [t]o; [w]iden")
+  (dictionary-send-command "show strat")
+r(egion), s(tring), w(ord) ]."
+         "ncl" "nfd" "ngu" "nin" "nma" "nmu" "nod" "nop" "npp" "nsf"
+                        (theyre they\'re (they are))
+    (insert "\n[K]nown conditionals: ")
+		    "[T]rue Face" "[F]alse Face" "[W]rite"))
+				 "[ \t]*in\\(?:put\\|clude\\)[ \t]*{\\(.*%s\\)}")))
+  (let ((siz (cond ((numberp size)
+    (and (< siz 0)
+    siz))
+     "\tHow to report bugs and contribute improvements to Emacs\n"
+     "\tHow to obtain the latest version of Emacs\n"
+  (insert "\tHow to report bugs and contribute improvements to Emacs\n\n")
+  (insert "\tHow to get the latest version of GNU Emacs\n")
+    ("/mod\\(?:ules\\|probe\\)\\.conf" . "alias\\|in\\(?:clude\\|stall\\)\\|options\\|remove")
+    ("/dictionary\\.lst\\'" . "DICT\\|HYPH\\|THES")
+      ;;     use-mark sizeA dateA  sizeB dateB  filename
+;; nin, nil are placeholders. See ediff-make-new-meta-list-element in
+;;   Andrew McRae <andrewm@optimation.co.nz>
+	* xmenu.c (apply_systemfont_to_menu): *childs was incorrectly used.
+DEFUN ("catch", Fcatch, Scatch, 1, UNEVALLED, 0,
+  defsubr (&Scatch);
+DEFUN ("elt", Felt, Selt, 2, 2, 0,
+  defsubr (&Selt);
+  (should (equal (string-truncate-left "longstring" 8) "...tring")))
+ (0.06 ":joe!~u@6d9pasqcqwb2s.irc PRIVMSG #chan :mike: Lady, I will commend you to mine own heart.")
+    (perl "GLib-GObject-WARNING **: /build/buildd/glib2.0-2.14.5/gobject/gsignal.c:1741: instance `0x8206790' has no handler with id `1234' at t-compilation-perl-gtk.pl line 3."
+    (rxp "Error: Mismatched end tag: expected </geroup>, got </group>\nin unnamed entity at line 71 char 8 of file:///home/reto/test/group.xml"
+    (rxp "Warning: Start tag for undeclared element geroup\nin unnamed entity at line 4 char 8 of file:///home/reto/test/group.xml"
+   (string= (python-util-strip-string "\n str \nin \tg \n\r") "str \nin \tg"))
+    (insert "hel")
+			  (format "\nIn function %s:" (cadr form)))
+			 (t "\nIn top level expression:"))))
+	All suggested by Ned Ludd.
+;; 2002-07-27 Added DELETESCRIPT.  Suggested by Ned Ludd.
+;;            Ned Ludd.
+To: Ned Freed <ned@innosoft.com>
+@strong{Te Deum}
+ If the termcap entry does not define the "ti" or "te" string,
+ and the "te" string is used to set it back on exit.
+         (te (solar-time-equation date ut)))
+    (setq ut (- ut te))
+	(let ((te (semantic-tag-end aftertag)))
+	  (when (not te)
+	  (goto-char te)
+    ("te" . "Telugu")
+     ("\\.te?xt\\'" . text-mode)
+     ("\\.te?xi\\'" . texinfo-mode)
+  '(("\\.te?xt$\\|\\.doc$\\|read.*me\\|\\.c?$\\|\\.h$\\|\\.bat$\\|\\.asm$\\|makefile" "cat %s | sed 's/\r$//'")
+    ("\\.\\(te?xt\\|doc\\|c\\|h\\)$" "text/plain")
+                           (not (string-match "\\.te?xi\\'" name)) ;; not .texi
+	   (?\ተ "te")
+	   (?\ቴ "tE")
+	   (?\ጠ "Te")
+	   (?\ጤ "TE")
+	   (?\∃ "TE")
+	   (?\て "te")
+	   (?\テ "Te")
+    ("te" "Telugu" utf-8) ; Telugu
+    "సంకేతపదము"		; te
+	* org-clock.el (org-clocktable-steps): Allow ts and te to be day
+	 issue face m te ts dt ov)
+	      te nil ts nil)
+		  te (match-string 3)
+		  te (float-time (org-time-string-to-time te))
+		  dt (- te ts))))
+      (setq tlend (or te tlend) tlstart (or ts tlstart))
+	  ts te s h m remove)
+	  (setq te (org-insert-time-stamp (or at-time now) 'with-hm 'inactive))
+		    (org-time-string-to-time te)
+		   te (org-duration-from-minutes (+ (* 60 h) m)))
+		   (te (float-time
+		   (dt (- (if tend (min te tend) te)
+	   (te (plist-get params :tend))
+	      te (nth 1 cc)))
+	(unless (or block (and ts te))
+	 (te (plist-get params :tend))
+	    te (nth 1 cc)))
+    (when (integerp te) (setq te (calendar-gregorian-from-absolute te)))
+    (when (and te (listp te))
+      (setq te (format "%4d-%02d-%02d" (nth 2 te) (car te) (nth 1 te))))
+    (if te (setq te (org-matcher-time te)))
+      (org-clock-sum ts te
+	    ts te h m s neg)
+		te (match-string 3))
+		      (apply #'encode-time (org-parse-time-string te)))
+;; Emulate more complete preprocessor support for tbl (.TS/.TE)
+This applies to text between .TE and .TS directives.
+     ;; ((looking-at "[te]") (setq c nil))   ; reject t(roff) and e(ven page)
+              (set-marker to (woman-find-next-control-line "TE"))
+  tty->TS_end_termcap_modes = tgetstr ("te", address);
+  const char *TS_end_termcap_modes; /* "te" */
+ (0 ":joe!~u@286u8jcpis84e.irc PRIVMSG #chan :[09:19:19] mike: Chi non te vede, non te pretia.")
+ (0.1 ":mike!~u@wvys46tx8tpmk.irc PRIVMSG #chan :joe: Chi non te vede, non te pretia.")
+          "un moyen, et te trompant ainsi sur la route =C3=A0 suivre les voil=C3=A0 bi=\n"
+          "ent=C3=B4t qui te d=C3=A9gradent, car si leur musique est vulgaire ils te f=\n"
+          "abriquent pour te la vendre une =C3=A2me vulgaire."))
+          "un moyen, et te trompant ainsi sur la route à suivre les voilà bi"
+          "entôt qui te dégradent, car si leur musique est vulgaire ils te f"
+          "abriquent pour te la vendre une âme vulgaire."))
+    (".TS" . ".TE")
+    (define-key vhdl-template-map "te"	#'vhdl-template-terminal)
+    ("te" "telugu")
+                    (format "%s.TE\n"
+:NR:te=\\E[47l:ti=\\E[47h\
+  ;; don't define :te=\\E[2J\\E[?47l\\E8:ti=\\E7\\E[?47h\
+       nil nil nil nil "FA" "C." "dP" "TE" "~TE" "/0"
+(defalias 'woman2-TE #'woman2-fi)
+;;; Preliminary table support (.TS/.TE)
+  ;; ".TE -- End of table code for the tbl processor."
+	8804ac857b * src/buffer.c (syms_of_buffer) <ctl-arrow>: Doc fix.  (Bu...
+	da00a6f317 Fix Xaw widget text disappearing when built with cairo (bu...
+2020-11-10  Andrew G Cohen  <cohen@andy.bu.edu>
+2020-09-23  Andrew G Cohen  <cohen@andy.bu.edu>
+2020-09-11  Andrew G Cohen  <cohen@andy.bu.edu>
+2020-09-10  Andrew G Cohen  <cohen@andy.bu.edu>
+2020-09-09  Andrew G Cohen  <cohen@andy.bu.edu>
+2020-09-07  Andrew G Cohen  <cohen@andy.bu.edu>
+2020-09-05  Andrew G Cohen  <cohen@andy.bu.edu>
+2020-08-29  Andrew G Cohen  <cohen@andy.bu.edu>
+2020-08-27  Andrew G Cohen  <cohen@andy.bu.edu>
+	121be3e118 ; * etc/NEWS: Remove temporary note on documentation.  (Bu...
+	224e8d1464 Make call_process call signal_after_change.  This fixes bu...
+	891f7de8ed * test/lisp/simple-tests.el: Full path to Emacs binary (bu...
+	8b7c776 * lisp/simple.el (kill-do-not-save-duplicates): Doc fix.  (Bu...
+	beb4eac * doc/lispref/display.texi (Showing Images): Fix a typo.  (Bu...
+	60b5c10 Provide more details in doc-string of 'delete-windows-on' (Bu...
+	57bcdc7 Don't call XGetGeometry for frames without outer X window (Bu...
+	f64c277 (origin/emacs-26) Let bookmark-jump override window-point (Bu...
+	4bd43b0 Increase max-lisp-eval-depth adjustment while in debugger (bu...
+	55c9bb9f3c Fix comint-get-old-input-default for output field case (Bu...
+	e244fed Clarify that nil doesn't match itself as a cl-case clause (Bu...
+	e21f018 * doc/lispref/functions.texi (Inline Functions): Fix typo (Bu...
+	c59ecb005e New customization variable for python-mode indentation (Bu...
+	a36a090 * lisp/progmodes/verilog-mode.el (verilog-mode): Fix typo (Bu...
+	98ca7d5 Improve edit-kbd-macro prompting in case of remapped keys (Bu...
+	804b37ca63 Save and restore text-pixel height and width of frames (Bu...
+	9715317dfd * lisp/dired.el (dired-find-alternate-file): Doc fix.  (Bu...
+	234b1e3864 Flymake backends must check proc obsoleteness in source bu...
+	dc8812829b Remove resizable attribute on macOS undecorated frames (bu...
+	43fac3beae Make "unsafe directory" error message more informative (Bu...
+2017-04-25  Andrew G Cohen  <cohen@andy.bu.edu>
+2017-04-23  Andrew G Cohen  <cohen@andy.bu.edu>
+	dbb3410 python.el: Fix detection of native completion in Python 3 (bu...
+	4b2d77d * lisp/emacs-lisp/macroexp.el (macroexp--expand-all): Fix (bu...
+	d59bcbc Handle mouse leaving initial window in `mouse-set-region' (Bu...
+	586b213 * lisp/url/url.el (url-retrieve-synchronously): Doc fix.  (Bu...
+	f3653ec * configure.ac (HAVE_MODULES): Treat gnu like gnu-linux.  (Bu...
+2010-12-15  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-14  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-13  Andrew Cohen  <cohen@andy.bu.edu>
+;; Author: Joe Wells <jbw@bigbird.bu.edu>
+  (define-key calc-mode-map "bu" 'calc-unpack-bits)
+    (ruby-mode "*.r[bu]" "*.rake" "*.gemspec" "*.erb" "*.haml"
+2002-03-31  Andrew Cohen  <cohen@andy.bu.edu>  (tiny change)
+2013-05-04  Andrew Cohen  <cohen@bu.edu>
+2013-04-25  Andrew Cohen  <cohen@bu.edu>
+2013-04-24  Andrew Cohen  <cohen@bu.edu>
+2013-04-14  Andrew Cohen  <cohen@bu.edu>
+2013-04-10  Andrew Cohen  <cohen@bu.edu>
+2013-04-04  Andrew Cohen  <cohen@bu.edu>
+2013-04-01  Andrew Cohen  <cohen@bu.edu>
+2013-03-31  Andrew Cohen  <cohen@bu.edu>
+2013-03-30  Andrew Cohen  <cohen@bu.edu>
+2013-03-29  Andrew Cohen  <cohen@bu.edu>
+2013-03-27  Andrew Cohen  <cohen@bu.edu>
+2013-03-26  Andrew Cohen  <cohen@bu.edu>
+2012-07-22  Andrew Cohen  <cohen@bu.edu>
+2011-09-12  Andrew Cohen  <cohen@andy.bu.edu>
+2011-09-05  Andrew Cohen  <cohen@andy.bu.edu>
+2011-09-01  Andrew Cohen  <cohen@andy.bu.edu>
+2011-08-11  Andrew Cohen  <cohen@andy.bu.edu>
+2011-08-05  Andrew Cohen  <cohen@andy.bu.edu>
+2011-08-04  Andrew Cohen  <cohen@andy.bu.edu>
+2011-08-03  Andrew Cohen  <cohen@andy.bu.edu>
+2011-08-02  Andrew Cohen  <cohen@andy.bu.edu>
+2011-07-24  Andrew Cohen  <cohen@andy.bu.edu>
+2011-07-23  Andrew Cohen  <cohen@andy.bu.edu>
+2011-07-20  Andrew Cohen  <cohen@andy.bu.edu>
+2011-07-14  Andrew Cohen  <cohen@andy.bu.edu>
+2011-07-02  Andrew Cohen  <cohen@andy.bu.edu>
+2011-07-01  Andrew Cohen  <cohen@andy.bu.edu>
+2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
+2011-06-21  Andrew Cohen  <cohen@andy.bu.edu>
+2011-02-22  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-17  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-16  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-10  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-08  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-07  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-06  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-05  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-04  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-03  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-02  Andrew Cohen  <cohen@andy.bu.edu>
+2010-12-01  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-29  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-28  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-27  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-23  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-21  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-17  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-11  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-06  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-04  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-03  Andrew Cohen  <cohen@andy.bu.edu>
+2010-11-01  Andrew Cohen  <cohen@andy.bu.edu>
+2010-10-31  Andrew Cohen  <cohen@andy.bu.edu>
+2010-10-30  Andrew Cohen  <cohen@andy.bu.edu>
+2010-10-22  Andrew Cohen  <cohen@andy.bu.edu>
+2010-10-18  Andrew Cohen  <cohen@andy.bu.edu>
+2010-10-16  Andrew Cohen  <cohen@andy.bu.edu>
+2010-10-15  Andrew Cohen  <cohen@andy.bu.edu>
+2010-10-14  Andrew Cohen  <cohen@andy.bu.edu>
+2010-10-10  Andrew Cohen  <cohen@andy.bu.edu>
+2010-09-25  Andrew Cohen  <cohen@andy.bu.edu>  (tiny change)
+2010-09-23  Andrew Cohen  <cohen@andy.bu.edu>
+2004-02-26  Andrew Cohen  <cohen@andy.bu.edu>
+	<cohen@andy.bu.edu>.
+	syntax table here.  Reported by Andrew Cohen <cohen@andy.bu.edu>.
+	     ;; Fix by Mike Dugan <dugan@bucrf16.bu.edu>.
+;; Author: Andrew Cohen <cohen@andy.bu.edu>
+	   (?\ቡ "bu")
+	   (?\ぶ "bu")
+	   (?\ブ "Bu")
+;; Author: Joe Wells <jbw@cs.bu.edu>
+;; Tue Mar 23 21:23:18 1993  Joe Wells  (jbw at csd.bu.edu)
+;; Mon Mar 22 21:20:56 1993  Joe Wells  (jbw at bigbird.bu.edu)
+;; Mon Mar 22 20:16:57 1993  Joe Wells  (jbw at bigbird.bu.edu)
+;; Mon Mar 22 00:46:12 1993  Joe Wells  (jbw at bigbird.bu.edu)
+;; Sun Mar 21 21:41:06 1993  Joe Wells  (jbw at bigbird.bu.edu)
+;; Sun Mar 21 14:39:38 1993  Joe Wells  (jbw at bigbird.bu.edu)
+;; Mon Feb  1 22:23:31 1993  Joe Wells  (jbw at bigbird.bu.edu)
+;; Mon Apr  6 23:59:09 1992  Joe Wells  (jbw at bigbird.bu.edu)
+;; Sun Apr  5 19:39:08 1992  Joe Wells  (jbw at bigbird.bu.edu)
+;; Sun Feb  2 14:45:24 1992  Joe Wells  (jbw at bigbird.bu.edu)
+             " --------Unsent Message below:" ; from sendmail at BU
+;; Mostly rewritten by Andrew Cohen <cohen@bu.edu> from 2010
+			      ((string= "*" bullet) "\\(bu")
+  (gud-def gud-finish "bu\\t"      "\C-f" "Finish executing current function.")
+    ("bu" "*"   "\267" . t)		; bullet
+            '("+l" "#s" "#bu")))
+	da6234e2df Make sure pixel sizes are zero when setting window size fo...
+	d38fd9229c0 Narrow scope of modification hook renabling in org-src fo...
+is the last word in the buffer that starts with @samp{fo}.  A numeric
+after the first @samp{FO}; the @samp{F} in that @samp{FO} might not be
+expression @samp{fo}, which matches only the string @samp{fo}.  To do
+expression.  Thus, @samp{fo*} has a repeating @samp{o}, not a repeating
+@samp{fo}.  It matches @samp{f}, @samp{fo}, @samp{foo}, and so on.
+$ ls -li fo*
+(file-name-all-completions "fo" "")
+ nil t "fo")
+Complete a foo: fo@point{}
+and @samp{o} to get the regular expression @samp{fo}, which matches only
+the string @samp{fo}.  Still trivial.  To do something more powerful, you
+fo
+@samp{fo#.el} matches @file{f.el}, @file{fo.el}, @file{foo.el}, etc.
+@samp{fo#.el} matches @file{fo.el}, @file{foo.el}, @file{fooo.el},
+    <style:text-properties fo:background-color="#ff0000"/>
+    <style:paragraph-properties fo:break-before="page"/>
+  \futurelet\next\fo@t
+M-f	Fo	Alias (keep?)
+% |  fo     |
+        fo ;; List of final overloaded functions
+                           (if (get s 'constant-flag) fo ov))
+    (when fo
+      (mapc #'mode-local-print-binding fo))
+   :eval (string-match-p "^[fo]+" "foobar"))
+   :eval (and (string-match "^\\([fo]+\\)b" "foobar")
+    ("fo" . "Faroese")
+	   (?\ፎ "fo")
+    ("fo" . "Latin-1") ; Faroese
+       ("fo" "Faroe Islands")
+	M-f -> Fo	Alias (keep?)
+  ;; quotes (for example), we end up completing "fo" to "foobar and throwing
+  ;; completing "fo" to "foO" when completing against "FOO" (bug#4219).
+  <style:table-properties style:rel-width=\"%s%%\" fo:margin-top=\"0cm\" fo:margin-bottom=\"0.20cm\" table:align=\"center\"/>
+   <style:paragraph-properties fo:background-color=\"%s\" fo:padding=\"0.049cm\" fo:border=\"0.51pt solid #000000\" style:shadow=\"none\">
+   <style:text-properties fo:color=\"%s\"/>
+			(format " fo:min-width=\"%0.2fcm\"" (or width .2))))
+	   (concat (format " fo:min-height=\"%0.2fcm\"" (or height .2))
+  <style:text-properties fo:color=\"%s\"/>
+	   ;; Are we coalescing two tokens together, e.g. "fo o"
+                        ;; user from completing "fo" to "foo/" when she
+;; |        |        | fo     |        | fo     |        |        |
+page-height == bm + print-height + tm - fo - fh
+                             ("fo+bar" nil "2nd")
+                             ("fo*bar" nil "3rd")))
+  (should (equal (ert--abbreviate-string "foo" 2 nil) "fo"))
+  (should (equal (string-limit "foo" 2) "fo"))
+  (should (equal (string-limit "foó" 10 nil 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foó" 3 nil 'utf-8) "fo"))
+  (should (equal (string-limit "foó" 4 nil 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foóa" 4 nil 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foóá" 4 nil 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foóa" 4 nil 'iso-8859-1) "fo\363a"))
+  (should (equal (string-limit "foóá" 4 nil 'iso-8859-1) "fo\363\341"))
+  (should (equal (string-limit "foó" 10 t 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foó" 4 t 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foóa" 4 t 'iso-8859-1) "fo\363a"))
+  (should (equal (string-limit "foóá" 4 t 'iso-8859-1) "fo\363\341"))
+                 "   fo"))
+    (("foo" 2 nil nil "...") . "fo") ;; XEmacs failure?
+        (non-directories '("/abso-folder/fo" "rela-folder/fo"
+                           "/testdir/Mail/rela-folder/fo"
+                    (format "+%s/fo" mh-test-rel-folder) nil 'lambda)))))
+                    (format "+%s/fo" mh-test-abs-folder) nil 'lambda)))))
+	  (should (equal (file-name-completion "fo" tmp-name) "foo."))
+	    (sort (file-name-all-completions "fo" tmp-name) #'string-lessp)
+	      (should (equal (file-name-completion "fo" tmp-name) "foo"))
+	       (equal (file-name-all-completions "fo" tmp-name) '("foo")))
+		(should (equal (file-name-completion "fo" tmp-name) "foo"))
+  (should (equal (string-replace "fo" "bar" "lafofofozot")
+    (should (= (replace-regexp-in-region "fo+" "new" (point-min) (point-max))
+    (should (= (replace-regexp-in-region "fo+" "new" (point-min) 14)
+    (should-error (replace-regexp-in-region "fo+" "new" (point-min) 30)))
+    (should (= (replace-regexp-in-region "Fo+" "new" (point-min))
+  (should-not (yank-media--utf-16-p "fo"))
+  (should (equal (fns-tests--with-region base64-encode-region "fo") "Zm8="))
+  (should (equal (base64-encode-string "fo") "Zm8="))
+  (should (equal (fns-tests--with-region base64url-encode-region "fo") "Zm8="))
+  (should (equal (fns-tests--with-region base64url-encode-region "fo" t) "Zm8"))
+  (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "fo" 50) t)
+  (should (equal (base64url-encode-string "fo") "Zm8="))
+  (should (equal (base64url-encode-string "fo" t) "Zm8"))
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "fo" 50) t) (concat (fns-tests--string-repeat "Zm9mb2Zv" 16) "Zm9mbw")))
+  (should (equal (base64-decode-string "Zm8=") "fo"))
+  (should (equal (base64-decode-string "Zm8" t) "fo"))
+  (should (equal (base64-decode-string "Zm8=" t) "fo"))
+                 (fns-tests--string-repeat "fo" 50)))
+@samp{o} (oblique), @samp{ri} (reverse italic), or @samp{ot} (other).
+@deffn Method project-update-version :AFTER ot
+The @code{:version} of the project @var{OT} has been updated.
+@deffn Method project-remove-file :AFTER ot fnnd
+Remove the current buffer from project target @var{OT}.
+@deffn Method project-delete-target :AFTER ot
+Delete the current target @var{OT} from its parent project.
+@deffn Method project-edit-file-target :AFTER ot
+Edit the target @var{OT} associated with this file.
+@deffn Method project-add-file :AFTER ot file
+Add the current buffer into project target @var{OT}.
+-      (font (nil phetsarath\ ot unicode-bmp)))
+  "Remove the current buffer from project target OT.
+(cl-defmethod project-update-version ((ot ede-project))
+  "The :version of the project OT has been updated.
+  (error "project-update-version not supported by %s" (eieio-object-name ot)))
+  ;;  no  so  ea  we  ne  se  nw  sw  up  do  in  ot
+  ;; no  so  ea  we  ne  se  nw  sw  up  do  in  ot
+  (define-key vhdl-template-map "ot"	#'vhdl-template-others)
+  { 200, { "italic" ,"i", "ot" }},
+(cl-defmethod oclosure-interactive-form ((ot oclosure-test))
+  (let ((snd (oclosure-test--snd ot)))
+	(math-simplify-divisor): Only bind math-simplify-divisor-[nd]over
+     @result{} Nd
+   "s section[eg- emacs / p4-blame]:\nD source-dir: \nD output-dir: ")
+(define-key ctl-x-map "nd" 'narrow-to-defun)
+    (aref ["th" "st" "nd" "rd"] (% n 10))))
+  (let* ((nd date)
+        (setq nd (list (car date) (1+ (cadr date))
+        (setq nd (list (car date) (1- (cadr date))
+    (setq nd (calendar-gregorian-from-absolute ; date standardization
+              (calendar-absolute-from-gregorian nd)))
+    (list nd ut)))
+  (interactive "*P\nd")
+  (interactive "^p\nd")
+  (interactive "^p\nd\nd")
+                             (if (string= "" nd)
+                               (concat "\\`" (regexp-quote nd)))
+        (nd (file-name-nondirectory auto-save-list-file-prefix)))
+		((= digit 2) "nd")
+   \"s section[eg- emacs / p4-blame]:\\nD source-dir: \\nD output-dir: \")
+  (interactive "D source directory: \nD output directory: ")
+(defun mailcap-parse-mailcap-extras (st nd)
+      (narrow-to-region st nd)
+    ("New York" . "ny") ("North Carolina" . "nc") ("North Dakota" . "nd")
+  '(Lu Ll Lt Lm Lo Mn Mc Me Nd Nl No Pc Pd
+(xsdre-def-derived-category 'N '(union Nd Nl No))
+	  "cm=^p=%+ %+ :cr=^p^a:le=^p^b:nd=^p^f:"
+p(aragraph), P(age), f(unction in C/Pascal etc.), w(ord), e(nd of sentence),
+;;  - an ordinal suffix (st, nd, rd, th) for the year
+    - an ordinal suffix (st, nd, rd, th) for the year
+    '(", *\\(e\\(nd\\|rr\\)\\)\\> *\\(= *\\([0-9]+\\)\\)?"
+  "\\<\\(&&\\|and\\|b\\(egin\\|reak\\)\\|c\\(ase\\|o\\(mpile_opt\\|ntinue\\)\\)\\|do\\|e\\(lse\\|nd\\(case\\|else\\|for\\|if\\|rep\\|switch\\|while\\)?\\|q\\)\\|for\\(ward_function\\)?\\|g\\(oto\\|[et]\\)\\|i\\(f\\|nherits\\)\\|l[et]\\|mod\\|n\\(e\\|ot\\)\\|o\\(n_\\(error\\|ioerror\\)\\|[fr]\\)\\|re\\(peat\\|turn\\)\\|switch\\|then\\|until\\|while\\|xor\\|||\\)\\>")
+             "and\\|begin\\|case\\|do\\|e\\(lse\\|nd\\)\\|for\\|i[fn]\\|"
+  (interactive "P\nd")
+  (interactive "*p\nd")
+  Right (tty) = tgetstr ("nd", address);
+                       "c\nd\n")))
+    (insert "a\nb\nc\nd\ne\nf")
+    (insert "a\nb\nc\nd\ne")
+  (interactive "i\nd\nP")
+	* lisp/term.el (term-termcap-format): Fix a typo in the "ue="
+Urban Engberg (ue at cci.dk),
+	* quail/latin-post.el ("german-postfix"): Do not translate ue to
+  (define-key calc-mode-map "ue" 'calc-explain-units)
+  le ue pe)
+     (bindat--make :ue ,(bindat--toplevel 'unpack type)
+	Trivial patch from Urban Engberg <ue@ccieurope.com>.
+    ("ü" "ue")
+    ("Ü" "Ue")
+;; AE -> Ä   OE -> Ö   UE -> Ü
+;; ae -> ä   oe -> ö   ue -> ü   ss -> ß
+;; AEE -> AE   OEE -> OE   UEE -> UE
+;; aee -> ae   oee -> oe   uee -> ue   sss -> ss"
+;;  ("UE" ?Ü)
+;;  ("ue" ?ü)
+;;  ("UEE" "UE")
+;;  ("uee" "ue")
+     ("Uuml" "\\\"{U}" nil "&Uuml;" "Ue" "Ü" "Ü")
+     ("uuml" "\\\"{u}" nil "&uuml;" "ue" "ü" "ü")
+:so=\\E[7m:se=\\E[m:us=\\E[4m:ue=\\E[m:md=\\E[1m:mr=\\E[7m:me=\\E[m\
+             (("\"U" "\\\"U") . "Ue")              ; "U,\"U        -> Ue
+             (("\"u" "\\\"u") . "ue")              ; "u,\"u        -> ue
+/^#undef INTERNAL_TERMINAL *$/s,^.*$,#define INTERNAL_TERMINAL "pc|bios|IBM PC with color display::co#80:li#25:Co#16:pa#256:km:ms:cm=<CM>:cl=<CL>:ce=<CE>::se=</SO>:so=<SO>:us=<UL>:ue=</UL>:md=<BD>:mh=<DIM>:mb=<BL>:mr=<RV>:me=<NV>::AB=<BG %d>:AF=<FG %d>:op=<DefC>:",
+	* s/msdos.h (INTERNAL_TERMINAL): Add capabilities se, so, us, ue,
+  tty->TS_exit_underline_mode = tgetstr ("ue", address);
+:bl=^G:do=^J:le=^H:ta=^I:se=\\E[27m:ue=\\E[24m\
+  const char *TS_enter_underline_mode; /* "ue" -- end underlining.  */
+       ((equal (aref (car lines) 0) "fpr")
+  (let* ((fpr (epg-sub-key-fingerprint subkey))
+	 (candidates (epg-list-keys context fpr 'secret))
+      (error "Found %d secret keys with same fingerprint %s" candno fpr))
+	 (fpr (epg-sub-key-fingerprint primary)))
+		       (string-match-p (concat fingerprint "$") fpr)
+	     (dolist (fpr signer-fprs nil)
+				    fpr
+				  (substring fpr -16 nil)))
+		 (let ((fpr (if (eq protocol 'OpenPGP)
+		   (should (string-match-p (concat "-r " fpr) match))))
+	time.  The reverse is true in Ireland, where standard time "IST"
+(e.g., especially with l(ist) and k(ill)).
+;; <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.42.6421&rep=rep1&type=pdf>
+  ;; <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.42.6421&rep=rep1&type=pdf>.
+       ("ist"             "İstanbul, Turkey")
+	consistency (e.g., esp. with l(ist) and k(ill).
+    (?F "[l]ist; [v]isit folder;\n"
+        "[s]equences, [l]ist,\n"
+        "exec~ute" "exit" "get" "help" "ho~st" "[$]" "i~nput" "l~ist"
+        (calendar-standard-time-zone-name "IST")
+	       "1972-07-01 05:29:59.999 +0530 (IST)"))
+	  (let ((thi (if (math-lessp hi '(float -2 0))
+			 (math-float lo) (math-float thi) 'inf)
+		  lo thi)))
+Joakim Hove wrote @file{html2text.el}, a html to plain text converter.
+Hove, Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue,
+	* html2text.el: New file from Joakim Hove <hove@phys.ntnu.no>.
+;; Author: Joakim Hove <hove@phys.ntnu.no>
+Damon Anton Permezel wrote @file{hanoi.el}, an animated demonstration of
+Jeff Peck, Damon Anton Permezel, Tom Perrine, William M. Perry, Per
+;; Author: Damon Anton Permezel
+; Author (a) 1985, Damon Anton Permezel
+;; JAVE I preferred ecmascript-mode.
+;;JAVE break needs labels
+;JAVE this just instantiates a default empty ebrowse struct?
+JAVE: stub for needs-refresh, because, how do we know if BROWSE files
+;JAVE what it actually seems to do is split the original tree in "tables" associated with files
+    ;(semantic-fetch-tags) ;JAVE could this go here?
+JAVE this thing would need to be recursive to handle java and csharp"
+;  (re-search-forward (concat "/\\*" indicator "\\*/")); JAVE this isn't generic enough for different languages
+	     clen cidx)
+	  (setq clen (length lao-consonant))
+		    str (if (= clen 1)
+	* bidi.c (bidi_level_of_next_char): clen should be EMACS_NT, not int.
+	  if (ident_length == 6 && memcmp (ident_start, "defalt", 6) == 0)
+  if (! NILP (XCHAR_TABLE (table)->defalt))
+			   Fcopy_sequence (XCHAR_TABLE (table)->defalt));
+make_sub_char_table (int depth, int min_char, Lisp_Object defalt)
+    XSUB_CHAR_TABLE (table)->contents[i] = defalt;
+  set_char_table_defalt (copy, XCHAR_TABLE (table)->defalt);
+      val = tbl->defalt;
+		       Lisp_Object defalt, bool is_uniprop, bool is_subtable)
+					defalt, is_uniprop);
+    val = defalt;
+			      Lisp_Object defalt, bool is_uniprop)
+			     defalt, is_uniprop, true);
+				 defalt, is_uniprop, true);
+			     tbl->defalt, is_uniprop, false);
+				 tbl->defalt, is_uniprop, false);
+    val = XCHAR_TABLE (char_table)->defalt;
+	    this = XCHAR_TABLE (top)->defalt;
+      ? (dp)->defalt					\
+decode_env_path (const char *evarname, const char *defalt, bool empty)
+      path = ns_relocate (defalt);
+      path = defalt;
+     (name, defalt)
+      if (NILP (defalt))
+      CHECK_STRING (defalt);
+  if (CHAR_TABLE_P (vector) && ! NILP (XCHAR_TABLE (vector)->defalt))
+      (*elt_describer) (XCHAR_TABLE (vector)->defalt, args);
+       The size counts the defalt, parent, purpose, ascii,
+    Lisp_Object defalt;
+	val = tbl->defalt;
+       counts the ordinary slots and the top, defalt, parent, and purpose
+verify (offsetof (struct Lisp_Char_Table, defalt) == header_size);
+  XCHAR_TABLE (table)->defalt = val;
+   string, and DEFALT is a string, read from DEFALT instead of VAL.  */
+string_to_object (Lisp_Object val, Lisp_Object defalt)
+      if (STRINGP (defalt))
+      else if (CONSP (defalt) && STRINGP (XCAR (defalt)))
+			     Lisp_Object defalt)
+    val = string_to_object (val, CONSP (defalt) ? XCAR (defalt) : defalt);
+   DEFALT specifies the default value for the sake of history commands.
+	      Lisp_Object histvar, Lisp_Object histpos, Lisp_Object defalt,
+  specbind (Qminibuffer_default, defalt);
+      val = read_minibuf_noninteractive (prompt, expflag, defalt);
+  else if (STRINGP (defalt))
+  else if (CONSP (defalt) && STRINGP (XCAR (defalt)))
+    val = string_to_object (val, defalt);
+  Lisp_Object defalt = Fassq (prop, Vtext_property_default_nonsticky);
+  if (ignore_previous_character || (CONSP (defalt) && !NILP (XCDR (defalt))))
+    val = dp->defalt;
+     Lisp_Object name, defalt;
+	defalt = current_buffer->directory;
+      newdir = SDATA (defalt);
+	val = defalt;
+	val = XCAR (defalt);
+    histstring = defalt;
+    histstring = XCAR (defalt);
+	EIEIO: Promote the CLOS behavior over the EIEIO-specific behavior
+	Change the implementation of `:initform` to better match the CLOS semantics,
+	(CLOS compatibility, Wish List): Adjust to new featureset.
+@cindex CLOS
+(@acronym{CLOS}), this support is based on @dfn{generic functions}.
+The Emacs generic functions closely follow @acronym{CLOS}, including
+use of similar names, so if you have experience with @acronym{CLOS},
+	* eieio.texi (Accessing Slots, CLOS compatibility): Adjust wording
+	(Method Invocation, CLOS compatibility):
+	* eieio.texi (Class Values, CLOS compatibility):
+	EIEIO and CLOS from 'Building Classes' to here.
+	(Class Values, CLOS compatibility): Mention that
+	* eieio.texi (top): Make clear that EIEIO is not a full CLOS
+to Emacs Lisp programmers.  CLOS and Common Lisp streams are fine
+a subset of CLOS functionality.  @xref{Top, , Introduction, eieio, EIEIO}.)
+The Common Lisp Object System (CLOS) is not implemented,
+CLOS functionality.
+bugs in @ede{}.  A knowledge of Emacs Lisp, and some @eieio{}(CLOS) is
+@ede{} uses @eieio{}, the CLOS package for Emacs, to define two object
+concepts of the Common Lisp Object System (CLOS).  It provides a
+* CLOS compatibility::    What are the differences?
+Lisp Object System (CLOS) and also differs from it in several aspects,
+on the other hand you are already familiar with CLOS, you should be
+aware that @eieio{} does not implement the full CLOS specification and
+@pxref{CLOS compatibility}).
+and methods using inheritance similar to CLOS.
+Method definitions similar to CLOS.
+Public and private classifications for slots (extensions to CLOS)
+Customization support in a class (extension to CLOS)
+Due to restrictions in the Emacs Lisp language, CLOS cannot be
+setf.  Here are some important CLOS features that @eieio{} presently
+This CLOS method tag is non-functional.
+will use the list as a value.  This is incompatible with CLOS (which would
+This option is in the CLOS spec, but is not fully compliant in @eieio{}.
+This option is specific to Emacs, and is not in the CLOS spec.
+what CLOS does when a monotonic class structure is defined.
+Unsupported CLOS option.  Enables the use of a different base class other
+Unsupported CLOS option.  Specifies a list of initargs to be used when
+@xref{CLOS compatibility}, for more details on CLOS tags versus
+The following accessors are defined by CLOS to reference or modify
+This is not a CLOS function.  It is therefore
+of CLOS.
+objects.  In CLOS, this would be named @code{STANDARD-CLASS}, and that
+This function takes arguments in a different order than in CLOS.
+In @var{clos}, the argument list is (@var{class} @var{object} @var{slot-name}), but
+@node CLOS compatibility
+@chapter CLOS compatibility
+CLOS.
+CLOS supports the @code{describe} command, but @eieio{} provides
+@eieio{} is an incomplete implementation of CLOS@.  Finding ways to
+improve the compatibility would help make CLOS style programs run
+@c LocalWords: cb cdr charquote checkcache cindex CLOS
+System (CLOS).  It is used by the other CEDET packages.
+CLOS class and slot documentation.
+  "Convert a list of CLOS class slot PARTLIST to `variable' tags."
+C++ and CLOS can define methods that are not in the body of a class
+Some languages such as C++ and CLOS permit the declaration of member
+the class.  C++ and CLOS both permit methods of a class to be defined
+;; Standard CLOS name.
+This may prevent classes from CLOS applications from being used with EIEIO
+since EIEIO does not support all CLOS tags.")
+      ;; not by CLOS and is mildly inconsistent with the :initform thingy, so
+            ;; (but not CLOS) but is a bad idea (for one: it's slower).
+  "Abstractly modify a CLOS object."
+  "Instance of a CLOS class."
+;; CLOS, the Common Lisp Object System.  In addition, EIEIO also adds
+The following are extensions on CLOS:
+Options in CLOS not supported in EIEIO:
+       ;; test, so we can let typep have the CLOS documented behavior
+;;; Handy CLOS macros
+;; CLOS name, maybe?
+The CLOS function `class-direct-superclasses' is aliased to this function."
+The CLOS function `class-direct-subclasses' is aliased to this function."
+;; Official CLOS functions.
+;;; CLOS queries into classes and slots
+;; FIXME: CLOS uses "&rest INITARGS" instead.
+In CLOS, the argument list is (CLASS OBJECT SLOT-NAME), but
+;;; Unimplemented functions from CLOS
+                              ;; CLOS and EIEIO
+     ;; this works for SOS, STklos, SCOOPS, Meroon and Tiny CLOS.
+	     ;; EIEIO's :initform is not 100% compatible with CLOS in
+;; Also test behavior of `call-next-method'.  From clos.org:
+  ;; CLOS form of make-instance
+  (interactive "p\nd\nd")
+  (interactive "p\nd")
+    (let (st nd pt)
+			     (setq nd (match-beginning 0)
+				   pt nd)
+			 (setq nd (match-beginning 0)
+			     (setq nd (match-beginning 0))))
+		       (setq nd (match-beginning 0)))
+		     (or st nd))))
+	(narrow-to-region (or st (point-min)) (or nd (point-max)))
+	    (when nd
+	      (goto-char nd)
+  (fortran-blink-match "e\\(nd[ \t]*if\\|lse\\([ \t]*if\\)?\\)\\b"
+  ;; FIXME: `foo a!nd bar' should transpose into `bar and foo'.
+	  (make-directory nd t)
+	  (speedbar-goto-this-file nd)
+	(let ((nd (file-name-nondirectory file)))
+	       (concat "] \\(" (regexp-quote nd)
+:nd=\\E[C:up=\\E[A:ce=\\E[K:ho=\\E[H:pt\
+(defun url-http-content-length-after-change-function (_st nd _length)
+       (funcall byte-count-to-string-function (- nd url-http-end-of-headers))
+       (url-percentage (- nd url-http-end-of-headers)
+     (funcall byte-count-to-string-function (- nd url-http-end-of-headers))
+     (url-percentage (- nd url-http-end-of-headers)
+  (if (> (- nd url-http-end-of-headers) url-http-content-length)
+(defun url-http-chunked-encoding-after-change-function (st nd length)
+			  url-http-chunked-counter st nd length)
+	      (if (> nd (+ url-http-chunked-start url-http-chunked-length))
+				   nd))
+(defun url-http-wait-for-headers-change-function (_st nd _length)
+	  (setq nd (- nd (url-http-clean-headers)))))
+	  (when (> nd url-http-end-of-headers)
+	     (marker-position url-http-end-of-headers) nd
+	     (- nd url-http-end-of-headers))))
+	   ((> nd url-http-end-of-headers)
+	     nd
+	     (- nd url-http-end-of-headers)))
+  Lu, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe, Pi, Pf, Po,
+    const char *cm_right;	/* right (nd) */
+      (should (equal (ert-test-result-messages result) "a\nb\nc\nd\n")))))
+      (insert "a\nb\nc\nd\n")
+      (insert "a\nb\nc\nd\n")
+    (insert "a\nb\nc\nd\n")
+      (insert "a\nb\nc\nd\n")
+    (insert "a\nb\nc\nd\n")
+    (should (string= (buffer-string) "Abc\nd efg\n(h ijk)."))))
+	       (nd (read-directory-name "Create directory: "
+DESCRIPTION:In this meeting\\, we will cover topics from product and enginee
+@item @samp{.crate} ---
+@cindex @file{crate} file archive suffix
+@cindex file archive suffix @file{crate}
+;; * ".crate" - Cargo (Rust) packages
+    "crate" ;; Cargo (Rust) packages.  Not in libarchive testsuite.
+      ;; RFC5546 refers to uninvited attendees as "party crashers".
+That includes both spelling (e.g., "behavior", not "behaviour") and
+	* doc/lispref/control.texi (Signalling Errors)
+	* doc/lispref/control.texi (Signalling Errors)
+Re "behavior" vs "behaviour", etc.
++ [[https://protesilaos.com/codelog/2020-07-08-modus-themes-nuanced-colours/][Modus themes: major review of "nuanced" colours]] (2020-07-08)
++ [[https://protesilaos.com/codelog/2020-09-14-modus-themes-review-blues/][Modus themes: review of blue colours]] (2020-09-14)
++ [[https://protesilaos.com/codelog/2021-01-11-modus-themes-review-select-faint-colours/][Modus themes: review of select "faint" colours]] (2021-01-11)
++ [[https://protesilaos.com/codelog/2022-01-02-review-modus-themes-org-habit-colours/][Modus themes: review of the org-habit graph colours]] (2022-01-02)
++ [[https://protesilaos.com/codelog/2022-04-20-modus-themes-case-study-avy/][Modus themes: case study on Avy faces and colour combinations]] (2022-04-20)
++ [[https://protesilaos.com/codelog/2022-04-21-modus-themes-colour-theory/][Emacs: colour theory and techniques used in the Modus themes]] (2022-04-21)
+ *  :- initialise
+ *  :- finalise
+  "initialise", "finalise", "mutable", "module", "interface", "implementation",
+;;;			 ( A cancelled )  Ignore this cache entry;
+	(.DEFAULT): Use $(FLAVOUR) instead of $@ for clarity.
+1998-04-26  Justin Sheehy  <justin@linus.mitre.org>
+1997-10-25  David S. Goldberg  <dsg@linus.mitre.org>
+;; Updated by the RIPE Network Coordination Centre.
+;; Thanks to jond@mitre.org (Jonathan Doughty) for help with code for
+         (when (and ok tod (not (string-match "\\`DONE\\|CANCELLED" evt)))
+"all" "analyse" "analyze" "and" "array" "asc" "as" "asymmetric"
+    \"VHDL Modelling Guidelines\".
+  {WSAECANCELLED           , "Operation cancelled"},	    /* not sure */
+  {WSA_E_CANCELLED         , "Operation already cancelled"}, /* really not sure */
+	2013-09-26 dup2, dup3: work around another cygwin crasher
+	cc3ad9a ; * CONTRIBUTE: Clarify rules for committing to release branc...
+Paul Raines (raines at slack.stanford.edu),
+    \qquad date: b)efore, a)t, n)this,\\*
+place an (I)nstall flag on the available version and a (D)elete flag
+	Improved verbiage of prompt. Aliases are now inserted "[b]efore"
+	or "[a]fter" the existing alias instead of "[i]nsert" or
+                                       "[b]efore or [a]fter: ")
+    (let* ((max (read-char "Number of [e]ntries [t]odos [T]ags [E]ffort? "))
+	(mark_image): Move from allo.c.
+Forward propagate immediate involed in assignments." ; FIXME: Typo.  Involved or invoked?
+            (setq te (org-insert-time-stamp (or at-time now) 'with-hm 'inactive))
+	              (org-time-string-to-time te)
+		     (te (org-time-string-to-seconds se))
+		     (dt (- (if tend (min te tend) te)
+                te (match-string 3))
+          (setq s (- (org-time-string-to-seconds te)
+    ("te"  :babel-ini-only "telugu" :polyglossia "telugu" :lang-name "Telugu")
+2016-09-10  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
+	Reported by Toke Høiland-Jørgensen <toke@toke.dk>.
+2012-07-17  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
+2012-06-17  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
+(doctor-put-meaning toke 'toke)
+                      "\\|"			; per toke.c
+		const struct sockaddr *to, int tolen);
+2014-11-26  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
+          ptrdiff_t tolen = strlen (key_symbols[i].to);
+          eassert (tolen <= fromlen);
+          memcpy (match, key_symbols[i].to, tolen);
+          memmove (match + tolen, match + fromlen,
+          len -= fromlen - tolen;
+          p = match + tolen;
+			  const struct sockaddr * to, int tolen);
+	    const struct sockaddr * to, int tolen)
+      int rc = pfn_sendto (SOCK_HANDLE (s), buf, len, flags, to, tolen);
+Put dialogue in buffer."
+  "Function called by ], the ket.  View registers and call ]]."
+;;   Matches a char which is a constituent of a variable or number, or a ket
+(defun verilog-expand-vector-internal (bra ket)
+  "Given start brace BRA, and end brace KET, expand one line into many lines."
+		   (regexp-quote ket)
+			      (int-to-string (car vec)) ket sig-tail "\n"))
+  "Given start brace BRA, and end brace KET, expand one line into many lines."
+	    m | mo | mot | moti | motif )	val=motif ;;
+    i | in | ino | inot | inoti | inotif | inotify )	val=inotify ;;
+2001-04-23  Kahlil Hodgson  <kahlil@discus.anu.edu.au>
+        (funcall expect 20 "ingenuous")))))
+ (0.1 ":joe!~u@kd7gmjbnbkn8c.irc PRIVMSG #chan :mike: Mehercle! if their sons be ingenuous, they shall want no instruction; if their daughters be capable, I will put it to them. But, vir sapit qui pauca loquitur. A soul feminine saluteth us."))
+        (search-forward "return te")
+           "fn test() -> i32 { let test=3; return te; }"))))
+	      ts te h m s neg)
+                  te (match-string 3))
+            (setq s (- (org-time-string-to-seconds te)
+	Rename from whitespace-skipping-for-quotes-not-ouside.
+	(whitespace-skipping-for-quotes-not-ouside)
+Thread-Modell: posix
+Thread-Modell: posix
+(ert-deftest indent-sexp-cant-go ()
+(ert-deftest thunk-let-bound-vars-cant-be-set-test ()
+	       (mml-secure-cust-fpr-lookup context 'encrypt "sub@example.org")))
+       (let ((p-e-fprs (mml-secure-cust-fpr-lookup
+	     (p-s-fprs (mml-secure-cust-fpr-lookup
+       (let ((p-e-fprs (mml-secure-cust-fpr-lookup
+	     (p-s-fprs (mml-secure-cust-fpr-lookup
+       (let ((s-e-fprs (mml-secure-cust-fpr-lookup
+	     (s-s-fprs (mml-secure-cust-fpr-lookup
+(ert-deftest doesnt-time-out ()
+(ert-deftest json-el-cant-serialize-this ()
+    (should (equal (try-completion "B-hel" subvtable)
+    (should (equal (all-completions "B-hel" subvtable) '("-hello")))
+    (should (equal (completion-boundaries "B-hel" subvtable
+(ert-deftest ruby-regexp-doesnt-start-in-string ()
+	Rename from wisent-inaccessable-symbols, fixing a misspelling.
+ ("calc-math" calcFunc-alog calcFunc-arccos
+			      ( ?B 2 calcFunc-alog )
+	(change-log-function-face, change-log-acknowledgement-face):
+	(bs-appearance) <defgroup>: Renamed from bs-appearence.
+	typo `fortran-strip-sqeuence-nos'.
+	* progmodes/fortran.el (fortran-strip-sqeuence-nos): Doc fix.
+	(fortran-strip-sqeuence-nos): Make arg optional.  Fix regexp and
+1999-06-01  Jae-youn Chung  <jay@compiler.kaist.ac.kr>
+doc/emacs/docstyle.texi:14: fied ==> field
+(define-obsolete-variable-alias 'hfy-optimisations 'hfy-optimizations "25.1")
+(define-obsolete-function-alias 'hfy-colour-vals #'hfy-color-vals "27.1")
+(define-obsolete-function-alias 'hfy-colour #'hfy-color "27.1")
+(define-obsolete-variable-alias 'eglot-ignored-server-capabilities
+	setenv ("TZ", "IST-02IDT-03,M4.1.6/00:00,M9.5.6/01:00", 0);
+    "kana-TA", "kana-CHI", "kana-TSU", "kana-TE",
+	(internal--after-with-selected-window): Fix typo seleted->selected.
+	* subr.el (internal--before-with-seleted-window)
+	(internal--after-with-seleted-window): New functions.
+	* follow.el (follow-inactive-menu): Rename from follow-deactive-menu.
+	* emacs-lisp/cconv.el (cconv-analyse-form): Warn use of ((λ ...) ...).
+	(feedmail-sendmail-f-doesnt-sell-me-out)
+	(feedmail-sendmail-f-doesnt-sell-me-out)
+	Respect feedmail-sendmail-f-doesnt-sell-me-out.
+	* terminal.el (te-get-char, te-tic-sentinel):
+from server-external-socket-initialised, since it should be
+	* lisp/server.el: (server-external-socket-initialised): New
+	Rename from help-fns--analyse-function.
+	c-ambiguous-overloadable-or-identifier-prefices.  Caller changed.
+	* lisp/progmodes/cc-langs.el (c-ambiguous-overloadable-or-identifier-prefices)
+	Rename from nndiary-last-occurence.
+	Rename from nndiary-next-occurence.  All uses changed.
+	lisp/textmodes/flyspell.el (flyspell-ajust-cursor-point): Rename to
+	* test/file-organization.org: Rename from test/file-organisation.org.
+	character class (namely ‘fo’ leaving ‘o’ in the string), but since the
+	change-log-acknowledgement-face):
+	9daf1cf * etc/NEWS: Improve wording of vc-git-log-output-coding-syste...
+	a05fb21 * lisp/emacs-lisp/package.el (package-install-selected-packag...
+	5cc6919 Fix a caching bug, which led to inordinately slow c-beginnin...
+	(mml-secure-cust-usage-lookup, mml-secure-cust-fpr-lookup)
+	* test/file-organisation.org: New file.
+    ("test/file-organisation.org" . "file-organization.org")
+	`message-insert-formated-citation-line'.
+      info.addons = (\"hald-addon-acpi\")
+	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)
+	(org-detach-overlay): Rename from `org-detatch-overlay'.
+	(change-log-acknowledgement): Remove "-face" suffix from face names.
+	(appt-visible): Rename from appt-visable.
+	(pascal-seperator-keywords): Renamed to pascal-separator-keywords.
+	mouse-union-first-prefered.
+	* sc.el (sc-consistent-cite-p): Renamed from sc-consistant-cite-p.
+	bibtex-name-alignement.
+   "d-elete, u-ndelete, x-punge, f-ind, o-ther window, R-ename, C-opy, h-elp"))
+	(erc-coding-sytem-for-target): Removed.
+	(erc-coding-sytem-for-target): New.
+Paul Raines (raines at slac.stanford.edu),
+    "union" "unsafe" "use" "where" "while" (crate) (self) (super)
+	term-ansi-face-alredy-done.
+	(ebnf-syntactic): Change group name and tag from "ebnf-syntatic".
+	"ebnf-syntatic".
+	Rename from ucs-input-inactivate.
+	Rename from hangul-input-method-inactivate.
+	* terminal.el (te-create-terminfo): Use make-temp-file
+	(org-detatch-overlay, org-move-overlay, org-overlay-put):
+  'gnus-score-find-favourite-words
+  'nndiary-last-occurence
+  'nndiary-next-occurence
+(define-obsolete-function-alias 'org-truely-invisible-p
+(define-obsolete-variable-alias 'eglot-ignored-server-capabilites
+            ("`fo"  . "format"       )
+(define-obsolete-function-alias 'rtree-normalise-range
+	`org-attch-delete'.  Add a security query before deleting the
+	`org-toggel-region-headings'.
+   "3 Oktober 2000 16:30 multiline
+		    "September" "Oktober" "November" "Dezember"])
+   "de la Cognée"          "de l'Ellébore"         "du Brocoli"
+	1fe596d89f (origin/emacs-27) Fix another compilation problem in a bui...
+   "du Buis"               "du Lichen"             "de l'If"
+    if (c == BIG) {		/* caint get thar from here */
+	Christoph Groth <cwg@falma.de> and Liu Xin <x_liu@neusoft.com>.
+    "passord"		; nb
+  (should (equal (rfc6068-unhexify-string "caf%C3%A9") "café")))
+   (equal (rfc6068-parse-mailto-url "mailto:user@example.org?subject=caf%C3%A9&body=caf%C3%A9")
+;; Paul Lew <paullew@cisco.com> suggested implementing fixed width
+	(TUNG@WAIF.MIT.EDU <8704130324.AA10879@prep.ai.mit.edu>)
+    (ruby-ts-mode "*.r[bu]" "*.rake" "*.gemspec" "*.erb" "*.haml"
+(doctor-put-meaning cunt 'sexnoun)
+(doctor-put-meaning cunts 'sexnoun)
+(doctor-put-meaning skool 'school)
+	Add ".crate" to Tramp archive file suffixes.
+	* lisp/net/tramp-archive.el (tramp-archive-suffixes): Add ".crate".
+2021-11-10  Benj  <Benjamin.Schwerdtner@gmail.com>  (tiny change)
+	allow party crashers to respond to ical events
+	calling those respondents "party crashers".
+2019-12-17  Antoine Kalmbach  <ane@iki.fi>  (tiny change)
+2014-02-18  Matus Goljer  <dota.keys@gmail.com>
+2014-02-13  Matus Goljer  <dota.keys@gmail.com>
+2004-05-20  Magnus Henoch  <mange@freemail.hu>
+2004-11-14  Magnus Henoch  <mange@freemail.hu>
+2006-10-16  Magnus Henoch  <mange@freemail.hu>
+2006-11-01  Magnus Henoch  <mange@freemail.hu>
+2006-11-08  Magnus Henoch  <mange@freemail.hu>
+2006-11-15  Magnus Henoch  <mange@freemail.hu>
+2006-11-26  Magnus Henoch  <mange@freemail.hu>
+2006-12-08  Magnus Henoch  <mange@freemail.hu>
+2007-01-14  Magnus Henoch  <mange@freemail.hu>
+2007-10-28  Magnus Henoch  <mange@freemail.hu>
+2007-12-03  Magnus Henoch  <mange@freemail.hu>
+2008-02-04  Magnus Henoch  <mange@freemail.hu>
+2008-03-09  Magnus Henoch  <mange@freemail.hu>
+2008-09-30  Magnus Henoch  <mange@freemail.hu>
+		       (secnd (cdr (cadr dlist))))
+				     (car secnd))) ; fetch_date
+			 secnd (cdr secnd))
+				     (car secnd))) ; Keep_flag
+			 secnd (cdr secnd))
+				     (car secnd))) ; NOV_entry_position
+@c LocalWords: DesBrisay Dcc devel dir dired docstring filll forw
+Older versions of the themes provided options ~grayscale~ (or ~greyscale~)
+	> The requestor should delete [...] the property specified in the
+	We are not the requestor, so we should not be deleting this property
+	needs to remain available as the requestor will generally want to read
+               [t]ime [s]cheduled  [d]eadline  [c]reated  cloc[k]ing
+  (message "Sparse tree: [r]egexp [t]odo [T]odo-kwd [m]atch [p]roperty
+;;    -grey	Render in greyscale as 8bits/pixel.
+   -grey	Render in greyscale as 8bits/pixel.
+	  (if (looking-at "p\\(ublic\\|rotected\\|rivate\\)")
+	       "\\=p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\>[^_]" nil t)
+			   "\\(p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|more\\)\\>"
+	* sysdep.c (WRITABLE): Renamed from WRITEABLE.
+DEFUN ("cond", Fcond, Scond, 0, UNEVALLED, 0,
+  defsubr (&Scond);
+    /* XXX: who is wrong, the requestor or the implementation?  */
+  /* "Data" to send a requestor for a failed MULTIPLE subtarget.  */
+  /* This formula is from a paper titled `Colour metric' by Thiadmer Riemersma.
+ (0.1 ":mike!~u@286u8jcpis84e.irc PRIVMSG #chan :joe: Good gentleman, go your gait, and let poor volk pass. An chud ha' bin zwaggered out of my life, 'twould not ha' bin zo long as 'tis by a vortnight. Nay, come not near th' old man; keep out, che vor ye, or ise try whether your costard or my ballow be the harder. Chill be plain with you.")
+       db "create table if not exists test10 (col1 text, col2 blob, col3 numbre)")
+          (const :format "[%v] %t\n" :tag "Alias for `gray-background'" greyscale)
+2008-09-11  Magnus Henoch  <mange@freemail.hu>
+	<mange@freemail.hu>.
+2006-10-07  Magnus Henoch  <mange@freemail.hu>
+2006-09-07  Magnus Henoch  <mange@freemail.hu>
+	Reported by Magnus Henoch <mange@freemail.hu>.
+2005-09-24  Magnus Henoch  <mange@freemail.hu>
+2005-09-17  Magnus Henoch  <mange@freemail.hu>
+2005-09-10  Magnus Henoch  <mange@freemail.hu>
+2005-08-09  Magnus Henoch  <mange@freemail.hu>
+2008-10-16  Magnus Henoch  <mange@freemail.hu>
+2008-10-01  Magnus Henoch  <mange@freemail.hu>
+2008-07-02  Magnus Henoch  <mange@freemail.hu>
+2008-04-23  Magnus Henoch  <mange@freemail.hu>
+2008-03-28  Magnus Henoch  <mange@freemail.hu>
+	* bibtex.el (bibtex-entry): Add OPTkey/annote.  If OPTcrossref set
+;; :booktitle     :month          :annote      :abstract
+    (:annote       . "An annotation.  It is not used by the standard bibliography styles, but may be used by others that produce an annotated bibliography.")
+       :annote (or (cdr (assoc "annote" entry)) "[no annotation]")
+  '(("annote" "Personal annotation (ignored)"))
+      (r2b-put-field "annote" r2bv-annote)
+2006-10-29  Magnus Henoch  <mange@freemail.hu>
+2006-10-28  Magnus Henoch  <mange@freemail.hu>
+2006-10-27  Magnus Henoch  <mange@freemail.hu>
+2006-10-12  Magnus Henoch  <mange@freemail.hu>
+2006-10-11  Magnus Henoch  <mange@freemail.hu>
+2006-10-09  Magnus Henoch  <mange@freemail.hu>
+2008-10-16  Magnus Henoch  <mange@freemail.hu>
+2007-12-31  Magnus Henoch  <mange@freemail.hu>
+2007-12-05  Magnus Henoch  <mange@freemail.hu>
+	(ENUMABLE): Remove; no longer needed.
+	* lisp.h (ENUMABLE) [!_AIX]: Don't define to 0 merely because we're
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): New macros.
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): Delete macros.
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): New macros.
+2023-06-29  Andrew G Cohen  <cohen@andy.bu.edu>
+2023-05-07  Andrew G Cohen  <cohen@andy.bu.edu>
+	   C-x b fo
+	avoid failures due to MS-Windows "numeric tails" (mis)feature and
+2022-04-07  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-04-03  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-03-22  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-03-20  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-03-17  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-03-17  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-03-04  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-02-18  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-02-18  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-02-11  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-02-08  Andrew G Cohen  <cohen@andy.bu.edu>
+2022-02-03  Andrew G Cohen  <cohen@andy.bu.edu>
+2021-12-21  Andrew G Cohen  <cohen@andy.bu.edu>
+2021-12-18  Andrew G Cohen  <cohen@andy.bu.edu>
+	6d5886e780 * test/lisp/repeat-tests.el (repeat-tests-call-b): Test fo...
+	0771d8939a * etc/PROBLEMS: Mention problems with regexp matcher.  (Bu...
+	59df93e2dd * lisp/help.el (help--analyze-key): Add new arg BUFFER (bu...
+	3832b983cf In Fdelete_other_windows_internal fix new total window siz...
+	3a9d5f04fb Mention ffap-file-name-with-spaces in the ffap doc strin
+    Pyramid*:OSx*:*:* | MIS*:OSx*:*:* | MIS*:SMP_DC-OSx*:*:*)
+	# akee@wpdis03.wpafb.af.mil (Earle F. Ake) contributed MIS and NILE.
+@item Unform
+J. Otto Tennant,
+extern struct servent *hes_getservbyname (/* char *, char * */);
+  struct servent *servent;
+      servent = hes_getservbyname (service, "tcp");
+      if (servent)
+      servent = getservbyname (service, "tcp");
+      if (servent)
+	  struct servent *srv = getservbyname (service, protocol);
+2003-04-10  Sebastian Tennant  <seb@albert.vcisp.net>  (tiny change)
+	Reported by Sebastian Tennant <sebyte@smolny.plus.com>.
+	causing truncation of AUTOWIRE signals.  Reported by Bruce Tennant.
+	Tennant.
+1997-10-21  Jens Lautenbacher  <jens@metrix.de>
+  unform	Use unformatted display: add(a, mul(b,c)).
+			(memq calc-language '(nil flat unform))
+	   (memq calc-language '(nil flat unform)))
+                          '(flat big unform))))
+;; Sebastian Tennant <sebyte@smolny.plus.com>
+                    (message "Mark as unread: (n)one / (a)ll / all (d)ownloaded articles? (n) ")
+	   (wheight (window-height))
+	   (rest (- wheight pheight)))
+	(vai #xA500)
+	(vai\  . vai)
+	          ts te h m s neg)
+                      te (match-string 3))
+                (setq s (- (org-time-string-to-seconds te)
+(defun dun-listify-string (strin)
+    (while (setq end-pos (string-match "[ ,:;]" (substring strin pos)))
+					    (substring strin pos end-pos))))))
+(defun dun-listify-string2 (strin)
+    (while (setq end-pos (string-search " " (substring strin pos)))
+					    (substring strin pos end-pos))))))
+"any" "append" "as" "asc" "ascic" "async" "at_begin" "at_end" "audit"
+	   "attribute" "(d)eclaration or (s)pecification?" t) ?s)
+		 "quantity" "(f)ree, (b)ranch, or (s)ource quantity?" t)))
+  "Spacify table frame.
+    ("\\oint" . ?∮)
+struct servent * sys_getservbyname (const char * name, const char * proto);
+	Supplement, Latin Extended-A/B, Vai, Supplemental Punctuation, Tai
+	Remove the "mis;tak-+;;" line from the code; apparently this
+	it->dpvec_char_len if dpend reached.
+					3:000MSTRIN[0]STRIN[1]STRIN[2]
+					[2:000MSTRIN[0]STRIN[1]STRIN[2]]
+  Lisp_Object *dpvec, *dpend;
+	      struct servent *svc_info
+struct servent * (PASCAL *pfn_getservbyname) (const char * name, const char * proto);
+struct servent *
+  struct servent * serv;
+	  struct servent *srv = sys_getservbyname (service, protocol);
+      /* Reset bits 4 (Phonetic), 12 (Vai), 14 (Nko), 27 (Balinese).  */
+  DEFSYM (Qvai, "vai");
+      it->dpend = v->contents + v->header.size;
+      it->dpend = default_invis_vector + 3;
+		  it->dpend = v->contents + v->header.size;
+	      it->dpend = it->dpvec + ctl_len;
+      if (it->dpvec + it->current.dpvec_index >= it->dpend)
+  if (it->dpend - it->dpvec > 0	/* empty dpvec[] is invalid */
+      if (it->current.dpvec_index < it->dpend - it->dpvec - 1)
+	   && it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))
+	  && it->dpvec + it->current.dpvec_index != it->dpend);
+VERY VERY LONG STRIN | VERY VERY LONG STRIN
+    (ert-info ("Joined by bouncer to #foo, pal persent")
+    (ert-info ("Joined by bouncer to #chan@foonet, pal persent")
+    (ert-info ("Joined by bouncer to #chan@barnet, pal persent")
+.UE .

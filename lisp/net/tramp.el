@@ -3191,7 +3191,7 @@ Host is always \"localhost\"."
 	  (when (zerop (tramp-call-process nil "getent" nil t nil "passwd"))
 	    (goto-char (point-min))
 	    (cl-loop while (not (eobp)) collect
-		     (tramp-parse-etc-group-group))))
+		     (tramp-parse-passwd-group))))
       (tramp-parse-file filename #'tramp-parse-passwd-group))))
 
 (defun tramp-parse-passwd-group ()

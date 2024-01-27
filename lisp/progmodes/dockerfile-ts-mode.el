@@ -31,10 +31,8 @@
 (eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-type "treesit.c")
 
 (defvar dockerfile-ts-mode--syntax-table
@@ -118,38 +116,15 @@ continuation to the previous entry."
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings.")
 
-(defun dockerfile-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (stage-tree (treesit-induce-sparse-tree
-                      node "from_instruction"
-                      nil 1000))
-         (stage-index (dockerfile-ts-mode--imenu-1 stage-tree)))
-    (when stage-index `(("Stage" . ,stage-index)))))
-
-(defun dockerfile-ts-mode--imenu-1 (node)
-  "Helper for `dockerfile-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (children (cdr node))
-         (subtrees (mapcan #'dockerfile-ts-mode--imenu-1
-                           children))
-         (name (when ts-node
-                 (pcase (treesit-node-type ts-node)
-                   ("from_instruction"
-                    (treesit-node-text
-                     (or (treesit-node-child-by-field-name ts-node "as")
-                         (treesit-node-child ts-node 1)) t)))))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((or (null ts-node) (null name)) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
+(defun dockerfile-ts-mode--stage-name (node)
+  "Return the stage name of NODE.
+Return nil if there is no name or if NODE is not a stage node."
+  (pcase (treesit-node-type node)
+    ("from_instruction"
+     (treesit-node-text
+      (or (treesit-node-child-by-field-name node "as")
+          (treesit-node-child node 1))
+      t))))
 
 ;;;###autoload
 (define-derived-mode dockerfile-ts-mode prog-mode "Dockerfile"
@@ -166,8 +141,8 @@ the subtrees."
     (setq-local comment-start-skip (rx "#" (* (syntax whitespace))))
 
     ;; Imenu.
-    (setq-local imenu-create-index-function
-                #'dockerfile-ts-mode--imenu)
+    (setq-local treesit-simple-imenu-settings
+                `(("Stage" "\\`from_instruction\\'" nil dockerfile-ts-mode--stage-name)))
     (setq-local which-func-functions nil)
 
     ;; Indent.

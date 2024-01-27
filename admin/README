@@ -39,6 +39,11 @@ Build Emacs in various ways.
 
 Install emacs quickly ("incrementally").
 
+** run-codespell
+
+Run the codespell tool on the Emacs sources.  Requires codespell to be
+installed first.
+
 ** alloc-colors.c
 
 A utility program that allocates a given number of colors on X.  Can
@@ -57,15 +62,16 @@ Tests for custom types and load problems.
 Show files added/removed between two tar files.
 
 
-Brief description of sub-directories:
+* Brief description of sub-directories.
 
 charsets		scripts for generating charset map files
 			in ../etc/charsets
-coccinelle		patches to make coccinelle work with
-			the latest Emacs version.  Since they
-			apply a few minor changes in Emacs internals
-			in multiple places, they are trivial for
-			copyright purposes.
+coccinelle		semantic patches for use with the static code
+			analyzer coccinelle.  Since they apply a few
+			minor changes in Emacs internals in multiple
+			places, they are trivial for copyright
+			purposes.
+codespell		supporting files for the run-codespell script.
 grammars		wisent and bovine grammars, used to produce
 			files in lisp/cedet/.
 notes			miscellaneous notes related to administrative

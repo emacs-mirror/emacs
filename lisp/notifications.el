@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; This package provides an implementation of the Desktop Notifications
-;; <https://developer.gnome.org/notification-spec/>.
+;; <https://specifications.freedesktop.org/notification-spec/latest/>.
 
 ;; In order to activate this package, you must add the following code
 ;; into your .emacs:
