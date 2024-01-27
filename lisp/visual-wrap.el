@@ -171,7 +171,7 @@ extra indent = 2
 
 ;;;###autoload
 (define-minor-mode visual-wrap-prefix-mode
-  "Wrap the buffer text with visual filling."
+  "Display continuation lines with prefixes from surrounding context."
   :lighter ""
   :group 'visual-line
   (if visual-wrap-prefix-mode
