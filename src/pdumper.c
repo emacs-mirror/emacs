@@ -3216,7 +3216,9 @@ dump_charset (struct dump_context *ctx, int cs_i)
 #if CHECK_STRUCTS && !defined (HASH_charset_E31F4B5D96)
 # error "charset changed. See CHECK_STRUCTS comment in config.h."
 #endif
-  dump_align_output (ctx, alignof (struct charset));
+  /* We can't change the alignment here, because `offset` is what
+     will be used for the whole array.  */
+  eassert (ctx->offset % alignof (struct charset) == 0);
   const struct charset *cs = charset_table + cs_i;
   struct charset out;
   dump_object_start (ctx, &out, sizeof (out));
@@ -3257,7 +3259,7 @@ dump_charset_table (struct dump_context *ctx)
 {
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
-  dump_align_output (ctx, DUMP_ALIGNMENT);
+  dump_align_output (ctx, alignof (struct charset));
   dump_off offset = ctx->offset;
   if (dump_set_referrer (ctx))
     ctx->current_referrer = build_string ("charset_table");
