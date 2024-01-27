@@ -1,4 +1,4 @@
-;;; visual-wrap.el --- Smart line-wrapping with wrap-prefix
+;;; visual-wrap.el --- Smart line-wrapping with wrap-prefix -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2021, 2024 Free Software Foundation, Inc.
 
@@ -189,15 +189,6 @@ extra indent = 2
       (save-restriction
         (widen)
         (remove-text-properties (point-min) (point-max) '(wrap-prefix nil))))))
-
-;;;###autoload
-(define-key-after (lookup-key menu-bar-options-menu [line-wrapping])
-  [visual-wrap]
-  '(menu-item "Visual Wrap" visual-wrap-prefix-mode
-	      :visible (menu-bar-menu-frame-live-and-visible-p)
-	      :help "Display continuation lines with prefix derived from context"
-	      :button (:toggle . (bound-and-true-p visual-wrap-prefix-mode)))
-  word-wrap)
 
 (provide 'visual-wrap)
 ;;; visual-wrap.el ends here

@@ -1467,6 +1467,13 @@ mail status in mode line"))
                                   (not word-wrap)))
                   :visible (menu-bar-menu-frame-live-and-visible-p)
                   :enable (not (truncated-partial-width-window-p))))
+
+    (bindings--define-key menu [visual-wrap]
+      '(menu-item "Visual Wrap Prefix" visual-wrap-prefix-mode
+                  :help "Display continuation lines with contextual prefix"
+                  :visible (menu-bar-menu-frame-live-and-visible-p)
+                  :button (:toggle . (bound-and-true-p visual-wrap-prefix-mode))
+                  :enable t))
     menu))
 
 (defvar menu-bar-search-options-menu
