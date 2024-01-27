@@ -123,7 +123,7 @@ by `visual-wrap-extra-indent'."
           ;; actually modify the buffer, so this restriction doesn't
           ;; make much sense (and is positively harmful in
           ;; taskpaper-mode where paragraph-start matches everything).
-          (or (let ((paragraph-start "\\`\\'a"))
+          (or (let ((paragraph-start regexp-unmatchable))
                     (fill-context-prefix beg end))
                   ;; Note: fill-context-prefix may return nil; See:
                   ;; http://article.gmane.org/gmane.emacs.devel/156285
