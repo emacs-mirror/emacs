@@ -318,6 +318,18 @@ name detection.
 * Editing Changes in Emacs 30.1
 
 +++
+** New minor mode 'visual-wrap-prefix-mode'.
+
+When enabled, continuation lines displayed for a folded long line will
+receive a 'wrap-prefix' automatically computed from the line's
+surrounding context by the function 'fill-context-prefix', which
+generally indents continuation lines as if the line were filled with
+'M-q', or similar.
+
+This minor mode is the 'adaptive-wrap' ELPA package renamed and
+lightly edited for inclusion in Emacs.
+
++++
 ** New user option 'gud-highlight-current-line'.
 When enabled, Gud will visually emphasize the line being executed upon
 pauses in the debugee's execution, such as those occasioned by
