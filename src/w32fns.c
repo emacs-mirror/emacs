@@ -2376,7 +2376,7 @@ w32_init_class (HINSTANCE hinst)
 static void
 w32_applytheme (HWND hwnd)
 {
-  if (w32_darkmode)
+  if (w32_darkmode && w32_follow_system_dark_mode)
     {
       /* Set window theme to that of a built-in Windows app (Explorer),
 	 because it has dark scroll bars and other UI elements.  */
@@ -11392,6 +11392,14 @@ see `w32-ansi-code-page'.  */);
 This variable is used for debugging, and takes precedence over any
 value of the `inhibit-double-buffering' frame parameter.  */);
   w32_disable_double_buffering = false;
+
+  DEFVAR_BOOL ("w32-follow-system-dark-mode", w32_follow_system_dark_mode,
+	       doc: /* Whether to follow the system's Dark mode on MS-Windows.
+If this is nil, Emacs on MS-Windows will not follow the system's Dark
+mode as far as the appearance of title bars and scroll bars is
+concerned, it will always use the default Light mode instead.
+Changing the value takes effect only for frames created after the change.  */);
+  w32_follow_system_dark_mode = true;
 
   if (os_subtype == OS_SUBTYPE_NT)
     w32_unicode_gui = 1;

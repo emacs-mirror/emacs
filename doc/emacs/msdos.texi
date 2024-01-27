@@ -1182,12 +1182,23 @@ click-to-focus policy.
 @end ifnottex
 
   On Windows 10 (version 1809 and higher) and Windows 11, Emacs title
-bars and scroll bars will follow the system's Light or Dark mode,
-similar to other programs such as Explorer and Command Prompt.  To
-change the color mode, select @code{Personalization} from
-@w{@code{Windows Settings}}, then
-@w{@code{Colors->Choose your color}} (or @w{@code{Choose your default
-app mode}}); then restart Emacs.
+bars and scroll bars by default follow the system's Light or Dark
+mode, similar to other programs such as Explorer and Command Prompt.
+To change the color mode, select @code{Personalization} from
+@w{@code{Windows Settings}}, then @w{@code{Colors->Choose your color}}
+(or @w{@code{Choose your default app mode}} or @w{@code{Choose your
+mode}}); then restart Emacs.  On Windows 11, you can select separate
+default modes for Windows and for applications.
+
+@vindex w32-follow-system-dark-mode
+  If you don't want Emacs to follow the system's Dark mode setting,
+customize the variable @code{w32-follow-system-dark-mode} to a
+@code{nil} value; then Emacs will use the default Light mode
+regardless of system-wide settings.  Changing the value of this
+variable affects only the Emacs frames created after the change, so
+you should set its value in your init file (@pxref{Init File}), either
+directly or via @kbd{M-x customize-variable}, which lets you save the
+customized value, see @ref{Saving Customizations}.
 
 @ifnottex
 @include msdos-xtra.texi

@@ -1880,6 +1880,16 @@ always omitted, and ignored if present when the object is read back in.
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 
+** MS-Windows
+
++++
+*** You can now opt out of following the system's Dark mode.
+By default, Emacs on MS-Windows follows the system's Dark mode for its
+title bars' and scroll bars' appearance.  If the new user option
+'w32-follow-system-dark-mode' is customized to the nil value, Emacs
+will disregard the system's Dark mode and will always use the default
+Light mode.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

@@ -606,6 +606,8 @@ This should only be chosen under exceptional circumstances,
 since it could result in memory overflow and make Emacs crash."
 					      nil))
 			       "27.1")
+             ;; w32fns.c
+             (w32-follow-system-dark-mode display boolean "30.1")
 	     ;; window.c
 	     (temp-buffer-show-function windows (choice (const nil) function))
 	     (next-screen-context-lines windows integer)
