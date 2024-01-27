@@ -28,7 +28,7 @@
 ;; This package provides the `visual-wrap-prefix-mode' minor mode
 ;; which sets the wrap-prefix property on the fly so that
 ;; single-long-line paragraphs get word-wrapped in a way similar to
-;; what you'd get with M-q using visual-fill-mode, but without
+;; what you'd get with M-q using adaptive-fill-mode, but without
 ;; actually changing the buffer's text.
 
 ;;; Code:
@@ -165,7 +165,7 @@ by `visual-wrap-extra-indent'."
              ;; prefix but also the previous newline.  So it's not
              ;; just making the prefix more pretty and could interfere
              ;; or even defeat our efforts (e.g. it comes from
-             ;; `visual-fill-mode').
+             ;; `adaptive-fill-mode').
              (remove-text-properties
 	      0 (length pfx) '(display) pfx)))
 	 pfx))))
