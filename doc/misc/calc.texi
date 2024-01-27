@@ -10575,14 +10575,14 @@ form).  The numerator and denominator always use the same radix.
 Fractions may also be entered with @kbd{@U{2044}} (U+2044 FRACTION
 SLASH) in place of any @kbd{:}.  Precomposed fraction characters from
 @kbd{@U{00BD}} (U+00BD VULGAR FRACTION ONE HALF) through
-@kbd{@U{215E}} (U+215E VULGAR FRACTION SEVEN EIGHTHS) as supported as
-well.  Thus @samp{2:3}, @samp{2@U{2044}3}, and @samp{@U{2154}} are all
+@kbd{@U{215E}} (U+215E VULGAR FRACTION SEVEN EIGHTHS) are supported as
+well.  Thus, @samp{2:3}, @samp{2@U{2044}3}, and @samp{@U{2154}} are all
 equivalent.
 @end ifnottex
 @iftex
 Fractions may also be entered with U+2044 FRACTION SLASH in place of
 any @kbd{:}.  Precomposed fraction characters from U+00BD VULGAR
-FRACTION ONE HALF through U+215E VULGAR FRACTION SEVEN EIGHTHS as
+FRACTION ONE HALF through U+215E VULGAR FRACTION SEVEN EIGHTHS are
 supported as well.
 @end iftex
 
