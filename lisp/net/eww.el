@@ -437,7 +437,7 @@ For more information, see Info node `(eww) Top'."
    ((eq eww-retrieve-command 'sync)
     (let ((data-buffer (url-retrieve-synchronously url)))
       (with-current-buffer data-buffer
-        (apply #'eww-render nil url cbargs))))
+        (apply #'eww-render nil cbargs))))
    (t
     (let ((buffer (generate-new-buffer " *eww retrieve*"))
           (error-buffer (generate-new-buffer " *eww error*")))
