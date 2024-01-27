@@ -4226,22 +4226,19 @@ types.  */)
       dump_drain_deferred_symbols (ctx);
       dump_drain_normal_queue (ctx);
     }
-  while (!dump_queue_empty_p (&ctx->dump_queue)
-	 || !NILP (ctx->deferred_hash_tables)
-	 || !NILP (ctx->deferred_symbols));
+  while (!(dump_queue_empty_p (&ctx->dump_queue)
+	   && NILP (ctx->deferred_hash_tables)
+	   && NILP (ctx->deferred_symbols)));
 
   ctx->header.hash_list = ctx->offset;
   dump_hash_table_list (ctx);
 
-  do
-    {
-      dump_drain_deferred_hash_tables (ctx);
-      dump_drain_deferred_symbols (ctx);
-      dump_drain_normal_queue (ctx);
-    }
-  while (!dump_queue_empty_p (&ctx->dump_queue)
-	 || !NILP (ctx->deferred_hash_tables)
-	 || !NILP (ctx->deferred_symbols));
+  /* `dump_hash_table_list` just adds a new vector to the dump but all its
+     content should already have been in the dump, so it doesn't add anything
+     to any queue.  */
+  eassert (dump_queue_empty_p (&ctx->dump_queue)
+	   && NILP (ctx->deferred_hash_tables)
+	   && NILP (ctx->deferred_symbols));
 
   dump_sort_copied_objects (ctx);
 
