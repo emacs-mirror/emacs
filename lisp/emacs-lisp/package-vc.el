@@ -532,6 +532,7 @@ documentation and marking the package as installed."
                 (setq deps))))))
       (dolist (dep deps)
         (cl-callf version-to-list (cadr dep)))
+      (setf (package-desc-reqs pkg-desc) deps)
       (setf missing (package-vc-install-dependencies (delete-dups deps)))
       (setf missing (delq (assq (package-desc-name pkg-desc)
                                 missing)
