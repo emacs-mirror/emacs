@@ -630,7 +630,7 @@ before they get too long, by inserting newlines.  If you prefer, you
 can make Emacs insert a newline automatically when a line gets too
 long, by using Auto Fill mode.  @xref{Filling}.
 
-@cindex continuation lines, wrapping with prefix
+@cindex continuation lines, visual wrap prefix
 @findex visual-wrap-prefix-mode
   Normally, the first character of each continuation line is
 positioned at the beginning of the screen line where it is displayed.
@@ -639,7 +639,8 @@ continuation lines be prefixed by slightly adjusted versions of the
 fill prefixes (@pxref{Fill Prefix}) of their respective logical lines,
 so that indentation characters or the prefixes of source code comments
 are replicated across every continuation line, and the appearance of
-such comments or indentation is not broken.
+such comments or indentation is not broken.  These prefixes are only
+shown on display, and does not change the buffer text in any way.
 
   Sometimes, you may need to edit files containing many long logical
 lines, and it may not be practical to break them all up by adding

@@ -319,15 +319,15 @@ name detection.
 
 +++
 ** New minor mode 'visual-wrap-prefix-mode'.
+When enabled, continuation lines displayed for a wrapped long line
+will receive a 'wrap-prefix' automatically computed from the line's
+surrounding context, such that continuation lines are indented on
+display as if they were filled with 'M-q' or similar.  Unlike 'M-q',
+the indentation only happens on display, and doesn't change the buffer
+text in any way.
 
-When enabled, continuation lines displayed for a folded long line will
-receive a 'wrap-prefix' automatically computed from the line's
-surrounding context by the function 'fill-context-prefix', which
-generally indents continuation lines as if the line were filled with
-'M-q', or similar.
-
-This minor mode is the 'adaptive-wrap' ELPA package renamed and
-lightly edited for inclusion in Emacs.
+(This minor mode is the 'adaptive-wrap' ELPA package renamed and
+lightly edited for inclusion in Emacs.)
 
 +++
 ** New user option 'gud-highlight-current-line'.
