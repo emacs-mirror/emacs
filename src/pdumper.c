@@ -1858,11 +1858,10 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
 
 /* Set a pointer field on an output object during dump.
 
-   CTX is the dump context.  OFFSET is the offset at which the current
-   object starts.  OUT is a pointer to the dump output object.
-   IN_START is the start of the current Emacs object.  IN_FIELD is a
-   pointer to the field in that object.  TYPE is the type of pointer
-   to which IN_FIELD points.
+   CTX is the dump context.  OUT is a pointer to the dump output
+   object.  IN_START is the start of the current Emacs object.
+   IN_FIELD is a pointer to the field in that object.  TYPE is the
+   type of pointer to which IN_FIELD points.
  */
 static void
 dump_field_lv_rawptr (struct dump_context *ctx,
@@ -1877,8 +1876,7 @@ dump_field_lv_rawptr (struct dump_context *ctx,
 
 /* Set a Lisp_Object field on an output object during dump.
 
-   CTX is a dump context.  OFFSET is the offset at which the current
-   object starts.  OUT is a pointer to the dump output object.
+   CTX is a dump context.  OUT is a pointer to the dump output object.
    IN_START is the start of the current Emacs object.  IN_FIELD is a
    pointer to a Lisp_Object field in that object.
 
@@ -3214,7 +3212,7 @@ dump_charset (struct dump_context *ctx, int cs_i)
 #if CHECK_STRUCTS && !defined (HASH_charset_E31F4B5D96)
 # error "charset changed. See CHECK_STRUCTS comment in config.h."
 #endif
-  /* We can't change the alignment here, because `offset` is what
+  /* We can't change the alignment here, because ctx->offset is what
      will be used for the whole array.  */
   eassert (ctx->offset % alignof (struct charset) == 0);
   const struct charset *cs = charset_table + cs_i;
@@ -4233,9 +4231,9 @@ types.  */)
   ctx->header.hash_list = ctx->offset;
   dump_hash_table_list (ctx);
 
-  /* `dump_hash_table_list` just adds a new vector to the dump but all its
-     content should already have been in the dump, so it doesn't add anything
-     to any queue.  */
+  /* dump_hash_table_list just adds a new vector to the dump but all
+     its content should already have been in the dump, so it doesn't
+     add anything to any queue.  */
   eassert (dump_queue_empty_p (&ctx->dump_queue)
 	   && NILP (ctx->deferred_hash_tables)
 	   && NILP (ctx->deferred_symbols));
