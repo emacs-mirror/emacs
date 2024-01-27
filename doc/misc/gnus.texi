@@ -5832,7 +5832,7 @@ message to the mailing list, and include the original message
 @kindex S v @r{(Summary)}
 @findex gnus-summary-very-wide-reply
 Mail a very wide reply to the author of the current article
-(@code{gnus-summary-wide-reply}).  A @dfn{very wide reply} is a reply
+(@code{gnus-summary-very-wide-reply}).  A @dfn{very wide reply} is a reply
 that goes out to all people listed in the @code{To}, @code{From} (or
 @code{Reply-To}) and @code{Cc} headers in all the process/prefixed
 articles.  This command uses the process/prefix convention.
@@ -19806,7 +19806,7 @@ locally stored articles.
 @chapter Scoring
 @cindex scoring
 
-Other people use @dfn{kill files} (@pxref{Kill Files}, but we here at
+Other people use @dfn{kill files} (@pxref{Kill Files}), but we here at
 Gnus Towers like scoring better than killing, so we'd rather switch
 than fight.  Scoring and score files processing are more powerful and
 faster than processing of kill files.  Scoring also does something
