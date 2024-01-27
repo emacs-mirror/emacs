@@ -961,7 +961,7 @@ handle_readlinkat (USER_WORD callno, USER_REGS_STRUCT *regs,
     return 0;
 
   /* Copy over tracee->exec_file.  Truncate it to PATH_MAX, length, or
-     size, whichever is less.  */
+     size, whichever is smaller.  */
 
   length = strlen (tracee->exec_file);
   length = MIN (size, MIN (PATH_MAX, length));
@@ -976,6 +976,98 @@ handle_readlinkat (USER_WORD callno, USER_REGS_STRUCT *regs,
 
   *result = length;
   return 2;
+#endif /* REENTRANT */
+}
+
+/* Handle an `open' or `openat' system call.
+
+   CALLNO is the system call number, and REGS are the current user
+   registers of the TRACEE.
+
+   If the file name specified in such system call is `/proc/self/exe',
+   replace the file name with the executable loaded into the process
+   issuing this system call.
+
+   Value is 0 upon success and 1 upon failure.  */
+
+static int
+handle_openat (USER_WORD callno, USER_REGS_STRUCT *regs,
+	       struct exec_tracee *tracee, USER_WORD *result)
+{
+#ifdef REENTRANT
+  /* readlinkat cannot be handled specially when the library is built
+     to be reentrant, as the file name information cannot be
+     recorded.  */
+  return 0;
+#else /* !REENTRANT */
+  char buffer[PATH_MAX + 1];
+  USER_WORD address;
+  size_t length;
+  USER_REGS_STRUCT original;
+
+  /* Read the file name.  */
+
+#ifdef OPEN_SYSCALL
+  if (callno == OPEN_SYSCALL)
+    address = regs->SYSCALL_ARG_REG;
+  else
+#endif /* OPEN_SYSCALL */
+    address = regs->SYSCALL_ARG1_REG;
+
+  /* Read the file name into the buffer and verify that it is NULL
+     terminated.  */
+  read_memory (tracee, buffer, PATH_MAX, address);
+
+  if (!memchr (buffer, '\0', PATH_MAX))
+    {
+      errno = ENAMETOOLONG;
+      return 1;
+    }
+
+  /* Now check if the caller is looking for /proc/self/exe.
+
+     dirfd can be ignored, as for now only absolute file names are
+     handled.  FIXME.  */
+
+  if (strcmp (buffer, "/proc/self/exe") || !tracee->exec_file)
+    return 0;
+
+  /* Copy over tracee->exec_file.  This doesn't correctly handle the
+     scenario where tracee->exec_file is longer than PATH_MAX, but
+     that has yet to be encountered in practice.  */
+
+  original = *regs;
+  length   = strlen (tracee->exec_file);
+  address  = user_alloca (tracee, &original, regs, length + 1);
+
+  if (!address
+      || user_copy (tracee, (unsigned char *) tracee->exec_file,
+		    address, length))
+    goto fail;
+
+  /* Replace the file name buffer with ADDRESS.  */
+
+#ifdef OPEN_SYSCALL
+  if (callno == OPEN_SYSCALL)
+    regs->SYSCALL_ARG_REG = address;
+  else
+#endif /* OPEN_SYSCALL */
+    regs->SYSCALL_ARG1_REG = address;
+
+#ifdef __aarch64__
+  if (aarch64_set_regs (tracee->pid, regs, false))
+    goto fail;
+#else /* !__aarch64__ */
+  if (ptrace (PTRACE_SETREGS, tracee->pid, NULL, regs))
+    goto fail;
+#endif /* __aarch64__ */
+
+  /* Resume the system call.  */
+  return 0;
+
+ fail:
+  errno = EIO;
+  return 1;
 #endif /* REENTRANT */
 }
 
@@ -1056,9 +1148,50 @@ process_system_call (struct exec_tracee *tracee)
 	    goto emulate_syscall;
 	}
 
+      goto continue_syscall;
+
+#ifdef OPEN_SYSCALL
+    case OPEN_SYSCALL:
+#endif /* OPEN_SYSCALL */
+    case OPENAT_SYSCALL:
+
+      /* This system call is already in progress if
+	 TRACEE->waiting_for_syscall is true.  */
+
+      if (!tracee->waiting_for_syscall)
+	{
+	  /* Handle this open system call.  */
+	  rc = handle_openat (callno, &regs, tracee, &result);
+
+	  /* rc means the same as in `handle_exec', except that `open'
+	     is never emulated.  */
+
+	  if (rc == 1)
+	    goto report_syscall_error;
+
+	  /* The stack pointer must be restored after it was modified
+	     by `user_alloca'; record sp in TRACEE, which will be
+	     restored after this system call completes.  */
+	  tracee->sp = sp;
+	}
+      else
+	{
+	  /* Restore that stack pointer.  */
+	  regs.STACK_POINTER = tracee->sp;
+
+#ifdef __aarch64__
+	  if (aarch64_set_regs (tracee->pid, &regs, true))
+	    return;
+#else /* !__aarch64__ */
+	  if (ptrace (PTRACE_SETREGS, tracee->pid, NULL, &regs))
+	    return;
+#endif /* __aarch64__ */
+	}
+
       /* Fallthrough.  */
 
     default:
+    continue_syscall:
       /* Don't wait for the system call to finish; instead, the system
 	 will DTRT upon the next call to PTRACE_SYSCALL after the
 	 syscall-trap signal is delivered.  */

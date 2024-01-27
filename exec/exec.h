@@ -148,6 +148,10 @@ struct exec_tracee
   /* The next process being traced.  */
   struct exec_tracee *next;
 
+  /* Address of any stack pointer to restore after system call
+     completion.  */
+  USER_WORD sp;
+
   /* The thread ID of this process.  */
   pid_t pid;
 
