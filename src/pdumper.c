@@ -2659,13 +2659,11 @@ hash_table_contents (struct Lisp_Hash_Table *h)
   return key_and_value;
 }
 
-static dump_off
+static void
 dump_hash_table_list (struct dump_context *ctx)
 {
   if (!NILP (ctx->hash_tables))
-    return dump_object (ctx, CALLN (Fapply, Qvector, ctx->hash_tables));
-  else
-    return 0;
+    dump_object (ctx, CALLN (Fvconcat, ctx->hash_tables));
 }
 
 static hash_table_std_test_t
@@ -3222,30 +3220,33 @@ dump_charset (struct dump_context *ctx, int cs_i)
   const struct charset *cs = charset_table + cs_i;
   struct charset out;
   dump_object_start (ctx, &out, sizeof (out));
-  DUMP_FIELD_COPY (&out, cs, id);
-  dump_field_lv (ctx, &out, cs, &cs->attributes, WEIGHT_NORMAL);
-  DUMP_FIELD_COPY (&out, cs, dimension);
-  memcpy (out.code_space, &cs->code_space, sizeof (cs->code_space));
-  if (cs_i < charset_table_used && cs->code_space_mask)
-    dump_field_fixup_later (ctx, &out, cs, &cs->code_space_mask);
-  DUMP_FIELD_COPY (&out, cs, code_linear_p);
-  DUMP_FIELD_COPY (&out, cs, iso_chars_96);
-  DUMP_FIELD_COPY (&out, cs, ascii_compatible_p);
-  DUMP_FIELD_COPY (&out, cs, supplementary_p);
-  DUMP_FIELD_COPY (&out, cs, compact_codes_p);
-  DUMP_FIELD_COPY (&out, cs, unified_p);
-  DUMP_FIELD_COPY (&out, cs, iso_final);
-  DUMP_FIELD_COPY (&out, cs, iso_revision);
-  DUMP_FIELD_COPY (&out, cs, emacs_mule_id);
-  DUMP_FIELD_COPY (&out, cs, method);
-  DUMP_FIELD_COPY (&out, cs, min_code);
-  DUMP_FIELD_COPY (&out, cs, max_code);
-  DUMP_FIELD_COPY (&out, cs, char_index_offset);
-  DUMP_FIELD_COPY (&out, cs, min_char);
-  DUMP_FIELD_COPY (&out, cs, max_char);
-  DUMP_FIELD_COPY (&out, cs, invalid_code);
-  memcpy (out.fast_map, &cs->fast_map, sizeof (cs->fast_map));
-  DUMP_FIELD_COPY (&out, cs, code_offset);
+  if (cs_i < charset_table_used) /* Don't look at uninitialized data.  */
+    {
+      DUMP_FIELD_COPY (&out, cs, id);
+      dump_field_lv (ctx, &out, cs, &cs->attributes, WEIGHT_NORMAL);
+      DUMP_FIELD_COPY (&out, cs, dimension);
+      memcpy (out.code_space, &cs->code_space, sizeof (cs->code_space));
+      if (cs->code_space_mask)
+        dump_field_fixup_later (ctx, &out, cs, &cs->code_space_mask);
+      DUMP_FIELD_COPY (&out, cs, code_linear_p);
+      DUMP_FIELD_COPY (&out, cs, iso_chars_96);
+      DUMP_FIELD_COPY (&out, cs, ascii_compatible_p);
+      DUMP_FIELD_COPY (&out, cs, supplementary_p);
+      DUMP_FIELD_COPY (&out, cs, compact_codes_p);
+      DUMP_FIELD_COPY (&out, cs, unified_p);
+      DUMP_FIELD_COPY (&out, cs, iso_final);
+      DUMP_FIELD_COPY (&out, cs, iso_revision);
+      DUMP_FIELD_COPY (&out, cs, emacs_mule_id);
+      DUMP_FIELD_COPY (&out, cs, method);
+      DUMP_FIELD_COPY (&out, cs, min_code);
+      DUMP_FIELD_COPY (&out, cs, max_code);
+      DUMP_FIELD_COPY (&out, cs, char_index_offset);
+      DUMP_FIELD_COPY (&out, cs, min_char);
+      DUMP_FIELD_COPY (&out, cs, max_char);
+      DUMP_FIELD_COPY (&out, cs, invalid_code);
+      memcpy (out.fast_map, &cs->fast_map, sizeof (cs->fast_map));
+      DUMP_FIELD_COPY (&out, cs, code_offset);
+    }
   dump_off offset = dump_object_finish (ctx, &out, sizeof (out));
   if (cs_i < charset_table_used && cs->code_space_mask)
     dump_remember_cold_op (ctx, COLD_OP_CHARSET,
