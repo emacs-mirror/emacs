@@ -680,11 +680,12 @@ We prefer the earliest unique letter."
                            strings))))
 	       (complete-with-action action table string pred)))
            nil t)))
-    (when (cl-plusp (length name))
-      (let ((glyph (if emoji-alternate-names
-                       (cadr (split-string name "\t"))
-                     (gethash name emoji--all-bases))))
-        (cons glyph (gethash glyph emoji--derived))))))
+    (if (cl-plusp (length name))
+        (let ((glyph (if emoji-alternate-names
+                         (cadr (split-string name "\t"))
+                       (gethash name emoji--all-bases))))
+          (cons glyph (gethash glyph emoji--derived)))
+      (user-error "You didn't specify an emoji"))))
 
 (defun emoji--choose-emoji ()
   (pcase-let ((`(,glyph . ,derived) (emoji--read-emoji)))
