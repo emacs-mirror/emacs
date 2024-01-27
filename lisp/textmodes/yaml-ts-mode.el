@@ -30,6 +30,9 @@
 (require 'treesit)
 
 (declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-type "treesit.c")
 
 (defvar yaml-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
