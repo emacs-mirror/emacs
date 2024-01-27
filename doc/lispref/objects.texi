@@ -1180,13 +1180,14 @@ character), Emacs automatically assumes that it is multibyte.
 
   You can also use hexadecimal escape sequences (@samp{\x@var{n}}) and
 octal escape sequences (@samp{\@var{n}}) in string constants.
-@strong{But beware:} If a string constant contains hexadecimal or
-octal escape sequences, and these escape sequences all specify unibyte
-characters (i.e., less than 256), and there are no other literal
-non-@acronym{ASCII} characters or Unicode-style escape sequences in
-the string, then Emacs automatically assumes that it is a unibyte
-string.  That is to say, it assumes that all non-@acronym{ASCII}
-characters occurring in the string are 8-bit raw bytes.
+@strong{But beware:} If a string constant contains octal escape
+sequences or one- or two-digit hexadecimal escape sequences, and these
+escape sequences all specify unibyte characters (i.e., codepoints less
+than 256), and there are no other literal non-@acronym{ASCII}
+characters or Unicode-style escape sequences in the string, then Emacs
+automatically assumes that it is a unibyte string.  That is to say, it
+assumes that all non-@acronym{ASCII} characters occurring in the
+string are 8-bit raw bytes.
 
   In hexadecimal and octal escape sequences, the escaped character
 code may contain a variable number of digits, so the first subsequent
