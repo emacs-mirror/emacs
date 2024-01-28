@@ -1750,7 +1750,7 @@ and `+='...)."
                ;; Split REM-BODY @ __VA_ARGS__ into LEFT and right
                (setq part nil)
                (if (zerop va)
-                   (setq left nil ; __VA_ARGS__ trimed
+                   (setq left nil ; __VA_ARGS__ trimmed
                          rem-body (cdr rem-body))
                  (setq left rem-body
                        rem-body (cdr (nthcdr va rem-body))) ; _V_ removed

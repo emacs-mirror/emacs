@@ -1,3 +1,54 @@
+  say "And this happens inbetween";
+	 @ture)
+	($sig,$na,@ture)
+($sig,$na,@ture)
+@ture)
+((squery 10 "SQUERY alis :help list")
+ (0.01 ":Alis@hub.uk NOTICE tester :See also: HELP EXAMPLES"))
+ (0.04 ":Alis@hub.uk NOTICE tester :[...]")
+ (0.01 ":Alis@hub.uk NOTICE tester :/SQUERY Alis LIST mask [-options]")
+ (0.08 ":Alis@hub.uk NOTICE tester :Searches for a channel")
+        (erc-scenarios-common-say "/SQUERY alis help list")
+  (should (equal '((regexp . "(string-match-p \"^[fo]+\" \"foobar\")\n    => 0"))
+       (or "comm" "comma" "comman" "command" "commands"
+      (when (and (not (or skipp erc-timestamp-format))
+      (unless skipp
+           (skipp (or (and erc-stamp--skip-when-invisible invisible)
+;; if you type "foo", but typing just "fo" doesn't show the preview.
+ (Emacs main thre), pid 32619 (org.gnu.emacs)
+F DEBUG   : pid: 32619, tid: 32644, name: Emacs main thre  >>> org.gnu.emacs <<<
+	bnez	$t2, .filld		# start filling longs
+	j	.filld			# fill either doubleword or byte
+.filld:
+
+ (0.01 ":bob!~u@q2weir96jk3r2.irc PRIVMSG #chan :[06:08:40] alice: My sons would never so dishonour me.")
+           interger intger lits bool boolen constant filename
+                with typess = (sort (mapcar #'comp-supertypes
+                for types in typess
+;; FIXME: normalise `seq', both the construct and implicit sequences,
+;; `intersection', we may end up normalising subtrees multiple times
+;; One way to avoid this is to aggressively normalise the entire tree
+;; Such normalisation could normalise synonyms, eliminate `minimal-match'
+                  ;; Normalise the constructor to `or' and the args recursively.
+  "Intersection of the normalised FORMS, as an interval set."
+FORM must be normalised (from `rx--normalise-char-pattern')."
+  "Optimise `or' arguments.  Return a new rx form.
+Each element of ARGS should have been normalised using
+    (search-forward "retur")             ; leaves point before the "n"
+with typess = (sort (mapcar #'comp-supertypes
+               (font-spec :registry "iso10646-1" :otf '(khmr nil (pres)))))
+(0.01 ":bob!~u@q2weir96jk3r2.irc PRIVMSG #chan :[06:08:40] alice: My sons would never so dishonour me.")
+ (0.05 ":bob!~u@q2weir96jk3r2.irc PRIVMSG #chan :alice: Pawn me to this your honour, she is his."))
+        (funcall expect 1 "Entirely honour"))
+ (0 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #chan :You have paid the heavens your function, and the prisoner the very debt of your calling. I have laboured for the poor gentleman to the extremest shore of my modesty; but my brother justice have I found so severe, that he hath forced me to tell him he is indeed Justice.")
+ (0.00 ":irc.example.net 501 tester x :is not a recognised user mode.")
+ (0.00 ":irc.example.net 501 dummy` x :is not a recognised user mode.")
+ (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #utf-8 :alice: Entirely honour; I would not be delay'd."))
+           integer integer list bool boolean constant filename
+           "def" "defi" "defin" "define"
+           "doc" "docu" "docum" "docume" "documen" "document"
+	  case Aadd : overflow = ckd_add (&a, accum, next); break;
+   And this the second, again with the same distinction therefrom.
 Bonus: Return a cons cell: (COMPILED . UPTODATE).
 Bonus: Return a cons cell: (COMPILED . UPTODATE)."
 (defun semantic-grammar-create-package (&optional force uptodate)
@@ -57,7 +108,6 @@ order but are now listed consecutively en bloc.
 2003-06-11  Daniel Néri  <done@mayonnaise.net>
 2001-07-26 10:00:00  Steven E. Harris  <seh@speakeasy.org>
 2001-01-15  Jack Twilley  <jmt@tbe.net>
-
 	matching LAMDA as a word.  Noted by Stefan Monnier.
 	completion variant for every "LAMDA" name (bug#30513).
 	                    "foto"
@@ -195,7 +245,7 @@ mode setting.  With the Inverse flag [@code{alog}], this command is
 @r{    a b@:    I B     @:             @:     2  @:alog@:(a,b)  b^a}
 @r{    a b@:    I f I   @:             @:     2  @:alog@:(a,b)  b^a}
 	Change comment about the iif hook to reflect the actual reason.
-     "I + E (ln), L (exp), B (alog: B^X); f E (lnp1), f L (expm1)"
+     "\\`I' + \\`E' (ln), \\`L' (exp), \\`B' (alog: B^X); \\`f E' (lnp1), \\`f L' (expm1)"
   (let (numer denom)
     (setq numer (car (math-read-expr-list)))
     (if (and (Math-num-integerp numer)
@@ -1177,9 +1227,6 @@ In CLOS, the argument list is (CLASS OBJECT SLOT-NAME), but
     const char *cm_right;	/* right (nd) */
       (should (equal (ert-test-result-messages result) "a\nb\nc\nd\n")))))
       (insert "a\nb\nc\nd\n")
-      (insert "a\nb\nc\nd\n")
-    (insert "a\nb\nc\nd\n")
-      (insert "a\nb\nc\nd\n")
     (insert "a\nb\nc\nd\n")
     (should (string= (buffer-string) "Abc\nd efg\n(h ijk)."))))
 	       (nd (read-directory-name "Create directory: "
@@ -1191,7 +1238,6 @@ DESCRIPTION:In this meeting\\, we will cover topics from product and enginee
     "crate" ;; Cargo (Rust) packages.  Not in libarchive testsuite.
       ;; RFC5546 refers to uninvited attendees as "party crashers".
 That includes both spelling (e.g., "behavior", not "behaviour") and
-	* doc/lispref/control.texi (Signalling Errors)
 	* doc/lispref/control.texi (Signalling Errors)
 Re "behavior" vs "behaviour", etc.
 + [[https://protesilaos.com/codelog/2020-07-08-modus-themes-nuanced-colours/][Modus themes: major review of "nuanced" colours]] (2020-07-08)
@@ -1256,7 +1302,6 @@ Put dialogue in buffer."
   "Given start brace BRA, and end brace KET, expand one line into many lines."
 		   (regexp-quote ket)
 			      (int-to-string (car vec)) ket sig-tail "\n"))
-  "Given start brace BRA, and end brace KET, expand one line into many lines."
 	    m | mo | mot | moti | motif )	val=motif ;;
     i | in | ino | inot | inoti | inotif | inotify )	val=inotify ;;
 2001-04-23  Kahlil Hodgson  <kahlil@discus.anu.edu.au>
@@ -1270,12 +1315,9 @@ Put dialogue in buffer."
 	Rename from whitespace-skipping-for-quotes-not-ouside.
 	(whitespace-skipping-for-quotes-not-ouside)
 Thread-Modell: posix
-Thread-Modell: posix
 (ert-deftest indent-sexp-cant-go ()
 (ert-deftest thunk-let-bound-vars-cant-be-set-test ()
 	       (mml-secure-cust-fpr-lookup context 'encrypt "sub@example.org")))
-       (let ((p-e-fprs (mml-secure-cust-fpr-lookup
-	     (p-s-fprs (mml-secure-cust-fpr-lookup
        (let ((p-e-fprs (mml-secure-cust-fpr-lookup
 	     (p-s-fprs (mml-secure-cust-fpr-lookup
        (let ((s-e-fprs (mml-secure-cust-fpr-lookup
@@ -1307,7 +1349,6 @@ doc/emacs/docstyle.texi:14: fied ==> field
 	(internal--after-with-seleted-window): New functions.
 	* follow.el (follow-inactive-menu): Rename from follow-deactive-menu.
 	* emacs-lisp/cconv.el (cconv-analyse-form): Warn use of ((λ ...) ...).
-	(feedmail-sendmail-f-doesnt-sell-me-out)
 	(feedmail-sendmail-f-doesnt-sell-me-out)
 	Respect feedmail-sendmail-f-doesnt-sell-me-out.
 	* terminal.el (te-get-char, te-tic-sentinel):
@@ -1401,7 +1442,6 @@ Paul Raines (raines at slac.stanford.edu),
 				     (car secnd))) ; fetch_date
 			 secnd (cdr secnd))
 				     (car secnd))) ; Keep_flag
-			 secnd (cdr secnd))
 				     (car secnd))) ; NOV_entry_position
 @c LocalWords: DesBrisay Dcc devel dir dired docstring filll forw
 Older versions of the themes provided options ~grayscale~ (or ~greyscale~)
@@ -1450,14 +1490,12 @@ DEFUN ("cond", Fcond, Scond, 0, UNEVALLED, 0,
 2006-10-12  Magnus Henoch  <mange@freemail.hu>
 2006-10-11  Magnus Henoch  <mange@freemail.hu>
 2006-10-09  Magnus Henoch  <mange@freemail.hu>
-2008-10-16  Magnus Henoch  <mange@freemail.hu>
 2007-12-31  Magnus Henoch  <mange@freemail.hu>
 2007-12-05  Magnus Henoch  <mange@freemail.hu>
 	(ENUMABLE): Remove; no longer needed.
 	* lisp.h (ENUMABLE) [!_AIX]: Don't define to 0 merely because we're
 	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): New macros.
 	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): Delete macros.
-	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): New macros.
 2023-06-29  Andrew G Cohen  <cohen@andy.bu.edu>
 2023-05-07  Andrew G Cohen  <cohen@andy.bu.edu>
 	   C-x b fo
@@ -1467,9 +1505,7 @@ DEFUN ("cond", Fcond, Scond, 0, UNEVALLED, 0,
 2022-03-22  Andrew G Cohen  <cohen@andy.bu.edu>
 2022-03-20  Andrew G Cohen  <cohen@andy.bu.edu>
 2022-03-17  Andrew G Cohen  <cohen@andy.bu.edu>
-2022-03-17  Andrew G Cohen  <cohen@andy.bu.edu>
 2022-03-04  Andrew G Cohen  <cohen@andy.bu.edu>
-2022-02-18  Andrew G Cohen  <cohen@andy.bu.edu>
 2022-02-18  Andrew G Cohen  <cohen@andy.bu.edu>
 2022-02-11  Andrew G Cohen  <cohen@andy.bu.edu>
 2022-02-08  Andrew G Cohen  <cohen@andy.bu.edu>
@@ -1490,7 +1526,6 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
       servent = hes_getservbyname (service, "tcp");
       if (servent)
       servent = getservbyname (service, "tcp");
-      if (servent)
 	  struct servent *srv = getservbyname (service, protocol);
 2003-04-10  Sebastian Tennant  <seb@albert.vcisp.net>  (tiny change)
 	Reported by Sebastian Tennant <sebyte@smolny.plus.com>.
@@ -1515,7 +1550,6 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 					    (substring strin pos end-pos))))))
 (defun dun-listify-string2 (strin)
     (while (setq end-pos (string-search " " (substring strin pos)))
-					    (substring strin pos end-pos))))))
 "any" "append" "as" "asc" "ascic" "async" "at_begin" "at_end" "audit"
 	   "attribute" "(d)eclaration or (s)pecification?" t) ?s)
 		 "quantity" "(f)ree, (b)ranch, or (s)ource quantity?" t)))

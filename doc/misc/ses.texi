@@ -507,7 +507,7 @@ To list the local printers in a help buffer.
 Except for @code{ses-prin1}, the other standard printers are suitable
 only for cells, not columns or default, because they format the value
 using the column-printer (or default-printer if @code{nil}) and then
-post-proces the result, eg.@: center it:
+post-process the result, eg.@: center it:
 
 @ftable @code
 @item ses-center

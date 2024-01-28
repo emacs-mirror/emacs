@@ -206,7 +206,7 @@ For simplicity, assume string evaluates to itself."
 
 (defun erc-tests-common-snapshot-compare (name dir trans-fn buf-init-fn)
   "Compare `buffer-string' to snapshot NAME.eld in DIR, if present.
-When non-nil, run TRANS-FN to fiter the current buffer string,
+When non-nil, run TRANS-FN to filter the current buffer string,
 and expect a similar string in return.  Call BUF-INIT-FN, when
 non-nil, in the preview buffer after inserting the filtered
 string."

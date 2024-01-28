@@ -30956,7 +30956,7 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 
 #ifdef HAVE_RSVG
   /* Update SVG image glyphs with mouse face features.  FIXME: it
-     should be possible to have this behaviour with transparent
+     should be possible to have this behavior with transparent
      background PNG.  */
   if (hl == DRAW_MOUSE_FACE)
     {

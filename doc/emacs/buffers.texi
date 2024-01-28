@@ -764,7 +764,7 @@ you first type @kbd{C-M-i}.
   By default, when you press @kbd{C-M-i}, both Icomplete mode's
 in-buffer display of possible completions and the @file{*Completions*}
 buffer appear.  If you are using @code{icomplete-in-buffer}, then you
-may wish to suppress this apperance of the @file{*Completions*}
+may wish to suppress this appearance of the @file{*Completions*}
 buffer.  To do that, add the following to your initialization file
 (@pxref{Init File}):
 

@@ -906,7 +906,7 @@ Return a list of results."
 
 (defun comp-tests--types-equal (t1 t2)
   "Whether the types T1 and T2 are equal."
-  (or (equal t1 t2)   ; optimisation for the common case
+  (or (equal t1 t2)   ; optimization for the common case
       (and (consp t1) (consp t2)
            (eq (car t1) (car t2))
            (if (memq (car t1) '(and or member))

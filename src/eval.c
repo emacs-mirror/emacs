@@ -1377,7 +1377,7 @@ DEFUN ("handler-bind-1", Fhandler_bind_1, Shandler_bind_1, 1, MANY, 0,
        doc: /* Setup error handlers around execution of BODYFUN.
 BODYFUN be a function and it is called with no arguments.
 CONDITIONS should be a list of condition names (symbols).
-When an error is signaled during executon of BODYFUN, if that
+When an error is signaled during execution of BODYFUN, if that
 error matches one of CONDITIONS, then the associated HANDLER is
 called with the error as argument.
 HANDLER should either transfer the control via a non-local exit,
@@ -1392,7 +1392,7 @@ usage: (handler-bind BODYFUN [CONDITIONS HANDLER]...)  */)
   Lisp_Object bodyfun = args[0];
   int count = 0;
   if (nargs % 2 == 0)
-    error ("Trailing CONDITIONS withount HANDLER in `handler-bind`");
+    error ("Trailing CONDITIONS without HANDLER in `handler-bind`");
   for (ptrdiff_t i = nargs - 2; i > 0; i -= 2)
     {
       Lisp_Object conditions = args[i], handler = args[i + 1];
