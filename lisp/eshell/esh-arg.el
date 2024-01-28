@@ -440,6 +440,7 @@ Point is left at the end of the arguments."
 
 (defsubst eshell-looking-at-backslash-return (pos)
   "Test whether a backslash-return sequence occurs at POS."
+  (declare (obsolete nil "30.1"))
   (and (eq (char-after pos) ?\\)
        (or (= (1+ pos) (point-max))
 	   (and (eq (char-after (1+ pos)) ?\n)
@@ -464,8 +465,8 @@ backslash is ignored and the character after is returned.  If the
 backslash is in a quoted string, the backslash and the character
 after are both returned."
   (when (eq (char-after) ?\\)
-    (when (eshell-looking-at-backslash-return (point))
-        (throw 'eshell-incomplete "\\"))
+    (when (= (1+ (point)) (point-max))
+      (throw 'eshell-incomplete "\\"))
     (forward-char 2) ; Move one char past the backslash.
     (let ((special-chars (if eshell-current-quoted
                              eshell-special-chars-inside-quoting

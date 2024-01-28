@@ -60,12 +60,16 @@ chars."
                                 "he\\\\llo\n")))
 
 (ert-deftest esh-arg-test/escape/newline ()
-  "Test that an escaped newline is equivalent to the empty string.
-When newlines are *nonspecial*, an escaped newline should be
-treated as just a newline."
+  "Test that an escaped newline is equivalent to the empty string."
   (with-temp-eshell
    (eshell-match-command-output "echo hi\\\nthere"
                                 "hithere\n")))
+
+(ert-deftest esh-arg-test/escape/trailing-newline ()
+  "Test that an escaped newline is equivalent to the empty string."
+  (with-temp-eshell
+   (eshell-match-command-output "echo hi\\\n"
+                                "hi\n")))
 
 (ert-deftest esh-arg-test/escape/newline-conditional ()
   "Test invocation of an if/else statement using line continuations."
@@ -95,9 +99,7 @@ chars."
                                 "\\\"hi\\\\\n")))
 
 (ert-deftest esh-arg-test/escape-quoted/newline ()
-  "Test that an escaped newline is equivalent to the empty string.
-When newlines are *nonspecial*, an escaped newline should be
-treated literally, as a backslash and a newline."
+  "Test that an escaped newline is equivalent to the empty string."
   (with-temp-eshell
    (eshell-match-command-output "echo \"hi\\\nthere\""
                                 "hithere\n")))
