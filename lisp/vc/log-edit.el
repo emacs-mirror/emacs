@@ -575,8 +575,8 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
   "Insert FUNC-NAMES, following ChangeLog formatting."
   (if (not func-names)
       (insert ":")
-    ;; Insert a space unless this list of file names is being inserted
-    ;; at the start of a line or after a space character.
+    ;; Insert a space unless this list of defun names is being
+    ;; inserted at the start of a line or after a space character.
     (unless (or (memq (char-before) '(?\n ?\s))
                 (> (current-column) fill-column))
       (insert " "))
@@ -622,7 +622,7 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
                     (setq inside-paren-pair nil
                           ;; Iterate over this function name again.
                           func-names (cons name func-names)))
-                ;; Insert this file name with a separator attached.
+                ;; Insert this defun name with a separator attached.
                 (insert name ", "))
             ;; Otherwise, decide whether to start a list of defuns or
             ;; to insert `name' on its own line.
@@ -632,8 +632,9 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
                                            ; line after inserting
                                            ; `name'...
                    fill-column)
-                ;; ...would leave insufficient space for any subsequent
-                ;; file names, so insert it on its own line.
+                ;; ...would leave insufficient space for any
+                ;; subsequent defun names so insert it on its own
+                ;; line.
                 (insert (if func-names
                             (format "(%s)\n" name)
                           (format "(%s):" name)))
