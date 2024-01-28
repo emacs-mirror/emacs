@@ -619,7 +619,7 @@ android_decode_utf16 (unsigned short *utf16, size_t n)
   struct coding_system coding;
   ptrdiff_t size;
 
-  if (INT_MULTIPLY_WRAPV (n, sizeof *utf16, &size))
+  if (ckd_mul (&size, n, sizeof *utf16))
     return Qnil;
 
   /* Set up the coding system.  Decoding a UTF-16 string (with no BOM)
@@ -5010,7 +5010,7 @@ android_text_to_string (JNIEnv *env, char *buffer, ptrdiff_t n,
     {
       /* This buffer holds no multibyte characters.  */
 
-      if (INT_MULTIPLY_WRAPV (n, sizeof *utf16, &size))
+      if (ckd_mul (&size, n, sizeof *utf16))
 	return NULL;
 
       utf16 = malloc (size);
@@ -5033,7 +5033,7 @@ android_text_to_string (JNIEnv *env, char *buffer, ptrdiff_t n,
 
   /* Allocate enough to hold N characters.  */
 
-  if (INT_MULTIPLY_WRAPV (n, sizeof *utf16, &size))
+  if (ckd_mul (&size, n, sizeof *utf16))
     return NULL;
 
   utf16 = malloc (size);

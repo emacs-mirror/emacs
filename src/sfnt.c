@@ -663,14 +663,13 @@ sfnt_read_cmap_format_8 (int fd,
   min_size = SFNT_ENDOF (struct sfnt_cmap_format_8, num_groups,
 			 uint32_t);
 
-  if (INT_MULTIPLY_WRAPV (format8->num_groups, sizeof *format8->groups,
-			  &temp))
+  if (ckd_mul (&temp, format8->num_groups, sizeof *format8->groups))
     {
       xfree (format8);
       return NULL;
     }
 
-  if (INT_ADD_WRAPV (min_size, temp, &min_size))
+  if (ckd_add (&min_size, min_size, temp))
     {
       xfree (format8);
       return NULL;
@@ -755,14 +754,13 @@ sfnt_read_cmap_format_12 (int fd,
   min_size = SFNT_ENDOF (struct sfnt_cmap_format_12, num_groups,
 			 uint32_t);
 
-  if (INT_MULTIPLY_WRAPV (format12->num_groups, sizeof *format12->groups,
-			  &temp))
+  if (ckd_mul (&temp, format12->num_groups, sizeof *format12->groups))
     {
       xfree (format12);
       return NULL;
     }
 
-  if (INT_ADD_WRAPV (min_size, temp, &min_size))
+  if (ckd_add (&min_size, min_size, temp))
     {
       xfree (format12);
       return NULL;
@@ -841,9 +839,8 @@ sfnt_read_cmap_format_14 (int fd,
      14 cmap table.  */
 
   size = sizeof *format14;
-  if (INT_MULTIPLY_WRAPV (num_records, sizeof *format14->records,
-			  &temp)
-      || INT_ADD_WRAPV (size, temp, &size))
+  if (ckd_mul (&temp, num_records, sizeof *format14->records)
+      || ckd_add (&size, size, temp))
     return NULL;
 
   format14 = xmalloc (size);
@@ -901,7 +898,7 @@ sfnt_read_cmap_table_1 (int fd, uint32_t directory_offset,
   off_t offset;
   struct sfnt_cmap_encoding_subtable_data header;
 
-  if (INT_ADD_WRAPV (directory_offset, table_offset, &offset))
+  if (ckd_add (&offset, directory_offset, table_offset))
     return (struct sfnt_cmap_encoding_subtable_data *) -1;
 
   if (lseek (fd, offset, SEEK_SET) == (off_t) -1)
@@ -2632,24 +2629,21 @@ sfnt_expand_compound_glyph_context (struct sfnt_compound_glyph_context *context,
   size_t size_bytes;
 
   /* Add each field while checking for overflow.  */
-  if (INT_ADD_WRAPV (number_of_contours, context->num_end_points,
-		     &context->num_end_points))
+  if (ckd_add (&context->num_end_points, number_of_contours,
+	       context->num_end_points))
     return 1;
 
-  if (INT_ADD_WRAPV (number_of_points, context->num_points,
-		     &context->num_points))
+  if (ckd_add (&context->num_points, number_of_points, context->num_points))
     return 1;
 
   /* Reallocate each array to the new size if necessary.  */
   if (context->points_size < context->num_points)
     {
-      if (INT_MULTIPLY_WRAPV (context->num_points, 2,
-			      &context->points_size))
+      if (ckd_mul (&context->points_size, context->num_points, 2))
 	context->points_size = context->num_points;
 
-      if (INT_MULTIPLY_WRAPV (context->points_size,
-			      sizeof *context->x_coordinates,
-			      &size_bytes))
+      if (ckd_mul (&size_bytes, context->points_size,
+		   sizeof *context->x_coordinates))
 	return 1;
 
       context->x_coordinates = xrealloc (context->x_coordinates,
@@ -2673,13 +2667,11 @@ sfnt_expand_compound_glyph_context (struct sfnt_compound_glyph_context *context,
 
   if (context->end_points_size < context->num_end_points)
     {
-      if (INT_MULTIPLY_WRAPV (context->num_end_points, 2,
-			      &context->end_points_size))
+      if (ckd_mul (&context->end_points_size, context->num_end_points, 2))
 	context->end_points_size = context->num_end_points;
 
-      if (INT_MULTIPLY_WRAPV (context->end_points_size,
-			      sizeof *context->contour_end_points,
-			      &size_bytes))
+      if (ckd_mul (&size_bytes, context->end_points_size,
+		   sizeof *context->contour_end_points))
 	return 1;
 
       context->contour_end_points
@@ -5109,7 +5101,7 @@ sfnt_poly_edges_exact (struct sfnt_fedge *edges, size_t nedges,
   raster.scanlines = height;
   raster.chunks    = NULL;
 
-  if (!INT_MULTIPLY_OK (height, sizeof *raster.steps, &size))
+  if (ckd_mul (&size, height, sizeof *raster.steps))
     abort ();
 
   raster.steps = xzalloc (size);
@@ -6040,11 +6032,10 @@ sfnt_read_meta_table (int fd, struct sfnt_offset_subtable *subtable)
      so an unswapped copy of the whole meta contents must be
      retained.  */
 
-  if (INT_MULTIPLY_WRAPV (sizeof *meta->data_maps, meta->num_data_maps,
-			  &map_size)
+  if (ckd_mul (&map_size, sizeof *meta->data_maps, meta->num_data_maps)
       /* Do so while checking for overflow from bad sfnt files.  */
-      || INT_ADD_WRAPV (map_size, sizeof *meta, &data_size)
-      || INT_ADD_WRAPV (data_size, directory->length, &data_size))
+      || ckd_add (&data_size, map_size, sizeof *meta)
+      || ckd_add (&data_size, data_size, directory->length))
     {
       xfree (meta);
       return NULL;
@@ -6094,9 +6085,8 @@ sfnt_read_meta_table (int fd, struct sfnt_offset_subtable *subtable)
       /* Verify the data offsets.  Overflow checking is particularly
 	 important here.  */
 
-      if (INT_ADD_WRAPV (meta->data_maps[i].data_offset,
-			 meta->data_maps[i].data_length,
-			 &offset))
+      if (ckd_add (&offset, meta->data_maps[i].data_offset,
+		   meta->data_maps[i].data_length))
 	{
 	  xfree (meta);
 	  return NULL;
@@ -6182,9 +6172,7 @@ sfnt_read_ttc_header (int fd)
   /* Now, read the variable length data.  Make sure to check for
      overflow.  */
 
-  if (INT_MULTIPLY_WRAPV (ttc->num_fonts,
-			  sizeof *ttc->offset_table,
-			  &size))
+  if (ckd_mul (&size, ttc->num_fonts, sizeof *ttc->offset_table))
     {
       xfree (ttc);
       return NULL;
@@ -6303,7 +6291,7 @@ sfnt_read_cvt_table (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Figure out the minimum amount that has to be read.  */
-  if (INT_ADD_WRAPV (sizeof *cvt, directory->length, &required))
+  if (ckd_add (&required, directory->length, sizeof *cvt))
     return NULL;
 
   /* Allocate enough for that much data.  */
@@ -6354,7 +6342,7 @@ sfnt_read_fpgm_table (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Figure out the minimum amount that has to be read.  */
-  if (INT_ADD_WRAPV (sizeof *fpgm, directory->length, &required))
+  if (ckd_add (&required, directory->length, sizeof *fpgm))
     return NULL;
 
   /* Allocate enough for that much data.  */
@@ -6402,7 +6390,7 @@ sfnt_read_prep_table (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Figure out the minimum amount that has to be read.  */
-  if (INT_ADD_WRAPV (sizeof *prep, directory->length, &required))
+  if (ckd_add (&required, directory->length, sizeof *prep))
     return NULL;
 
   /* Allocate enough for that much data.  */
@@ -6654,59 +6642,51 @@ sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
   size = sizeof (*interpreter);
 
   /* Add program stack.  */
-  if (INT_ADD_WRAPV ((maxp->max_stack_elements
-		      * sizeof *interpreter->stack),
-		     size, &size))
+  if (ckd_add (&size, size, (maxp->max_stack_elements
+			     * sizeof *interpreter->stack)))
     return NULL;
 
   /* Add twilight zone.  */
 
-  if (INT_ADD_WRAPV ((maxp->max_twilight_points
-		      * sizeof *interpreter->twilight_x),
-		     size, &size))
+  if (ckd_add (&size, size, (maxp->max_twilight_points
+			     * sizeof *interpreter->twilight_x)))
     return NULL;
 
-  if (INT_ADD_WRAPV ((maxp->max_twilight_points
-		      * sizeof *interpreter->twilight_y),
-		     size, &size))
+  if (ckd_add (&size, size, (maxp->max_twilight_points
+			     * sizeof *interpreter->twilight_y)))
     return NULL;
 
-  if (INT_ADD_WRAPV ((maxp->max_twilight_points
-		      * sizeof *interpreter->twilight_y),
-		     size, &size))
+  if (ckd_add (&size, size, (maxp->max_twilight_points
+			     * sizeof *interpreter->twilight_y)))
     return NULL;
 
-  if (INT_ADD_WRAPV ((maxp->max_twilight_points
-		      * sizeof *interpreter->twilight_y),
-		     size, &size))
+  if (ckd_add (&size, size, (maxp->max_twilight_points
+			     * sizeof *interpreter->twilight_y)))
     return NULL;
 
   /* Add the storage area.  */
   storage_size = maxp->max_storage * sizeof *interpreter->storage;
-  if (INT_ADD_WRAPV (storage_size, size, &size))
+  if (ckd_add (&size, size, storage_size))
     return NULL;
 
   /* Add padding for the storage area.  */
   pad = alignof (struct sfnt_interpreter_definition);
   pad -= size & (pad - 1);
-  if (INT_ADD_WRAPV (pad, size, &size))
+  if (ckd_add (&size, size, pad))
     return NULL;
 
   /* Add function and instruction definitions.  */
-  if (INT_ADD_WRAPV ((((int) maxp->max_instruction_defs
-		       + maxp->max_function_defs)
-		      * sizeof *interpreter->function_defs),
-		     size, &size))
+  if (ckd_add (&size, size, (((int) maxp->max_instruction_defs
+			      + maxp->max_function_defs)
+			     * sizeof *interpreter->function_defs)))
     return NULL;
 
   /* Add control value table.  */
 
   if (cvt)
     {
-      if (INT_MULTIPLY_WRAPV (cvt->num_elements,
-			      sizeof *interpreter->cvt,
-			      &temp)
-	  || INT_ADD_WRAPV (temp, size, &size))
+      if (ckd_mul (&temp, cvt->num_elements, sizeof *interpreter->cvt)
+	  || ckd_add (&size, size, temp))
 	return NULL;
     }
 
@@ -12648,19 +12628,16 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
 
   /* Calculate the size of the zone structure.  */
 
-  if (INT_MULTIPLY_WRAPV (glyph->simple->number_of_points + 2,
-			  sizeof *zone->x_points * 4,
-			  &temp)
-      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
-      || INT_MULTIPLY_WRAPV (glyph->number_of_contours,
-			     sizeof *zone->contour_end_points,
-			     &temp)
-      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
-      || INT_MULTIPLY_WRAPV (glyph->simple->number_of_points + 2,
-			     sizeof *zone->flags,
-			     &temp)
-      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
-      || INT_ADD_WRAPV (sizeof *zone, zone_size, &zone_size))
+  if (ckd_mul (&temp, glyph->simple->number_of_points + 2,
+	       sizeof *zone->x_points * 4)
+      || ckd_add (&zone_size, zone_size, temp)
+      || ckd_mul (&temp, glyph->number_of_contours,
+		  sizeof *zone->contour_end_points)
+      || ckd_add (&zone_size, zone_size, temp)
+      || ckd_mul (&temp, glyph->simple->number_of_points + 2,
+		  sizeof *zone->flags)
+      || ckd_add (&zone_size, zone_size, temp)
+      || ckd_add (&zone_size, zone_size, sizeof *zone))
     return "Glyph exceeded maximum permissible size";
 
   /* Don't use malloc if possible.  */
@@ -12947,19 +12924,13 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
   zone_size = 0;
   zone_was_allocated = false;
 
-  if (INT_MULTIPLY_WRAPV (num_points + 2,
-			  sizeof *zone->x_points * 4,
-			  &temp)
-      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
-      || INT_MULTIPLY_WRAPV (num_contours,
-			     sizeof *zone->contour_end_points,
-			     &temp)
-      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
-      || INT_MULTIPLY_WRAPV (num_points + 2,
-			     sizeof *zone->flags,
-			     &temp)
-      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
-      || INT_ADD_WRAPV (sizeof *zone, zone_size, &zone_size))
+  if (ckd_mul (&temp, num_points + 2, sizeof *zone->x_points * 4)
+      || ckd_add (&zone_size, zone_size, temp)
+      || ckd_mul (&temp, num_contours, sizeof *zone->contour_end_points)
+      || ckd_add (&zone_size, zone_size, temp)
+      || ckd_mul (&temp, num_points + 2, sizeof *zone->flags)
+      || ckd_add (&zone_size, zone_size, temp)
+      || ckd_add (&zone_size, zone_size, sizeof *zone))
     return "Glyph exceeded maximum permissible size";
 
   /* Don't use malloc if possible.  */
@@ -13602,16 +13573,12 @@ sfnt_interpret_compound_glyph (struct sfnt_glyph *glyph,
   /* Copy the compound glyph data into an instructed outline.  */
   outline_size = sizeof (*outline);
 
-  if (INT_MULTIPLY_WRAPV (context.num_end_points,
-			  sizeof *outline->contour_end_points,
-			  &temp)
-      || INT_ADD_WRAPV (outline_size, temp, &outline_size)
-      || INT_MULTIPLY_WRAPV (context.num_points,
-			     sizeof *outline->x_points * 2,
-			     &temp)
-      || INT_ADD_WRAPV (outline_size, temp, &outline_size)
-      || INT_ADD_WRAPV (context.num_points, outline_size,
-			&outline_size))
+  if (ckd_mul (&temp, context.num_end_points,
+	       sizeof *outline->contour_end_points)
+      || ckd_add (&outline_size, outline_size, temp)
+      || ckd_mul (&temp, context.num_points, sizeof *outline->x_points * 2)
+      || ckd_add (&outline_size, outline_size, temp)
+      || ckd_add (&outline_size, outline_size, context.num_points))
     {
       xfree (context.x_coordinates);
       xfree (context.y_coordinates);
@@ -13734,9 +13701,8 @@ sfnt_read_default_uvs_table (int fd, off_t offset)
   /* Now, allocate enough to hold the UVS table.  */
 
   size = sizeof *uvs;
-  if (INT_MULTIPLY_WRAPV (sizeof *uvs->ranges, num_ranges,
-			  &temp)
-      || INT_ADD_WRAPV (temp, size, &size))
+  if (ckd_mul (&temp, num_ranges, sizeof *uvs->ranges)
+      || ckd_add (&size, size, temp))
     return NULL;
 
   uvs = xmalloc (size);
@@ -13805,9 +13771,8 @@ sfnt_read_nondefault_uvs_table (int fd, off_t offset)
   /* Now, allocate enough to hold the UVS table.  */
 
   size = sizeof *uvs;
-  if (INT_MULTIPLY_WRAPV (sizeof *uvs->mappings, num_mappings,
-			  &temp)
-      || INT_ADD_WRAPV (temp, size, &size))
+  if (ckd_mul (&temp, num_mappings, sizeof *uvs->mappings)
+      || ckd_add (&size, size, temp))
     return NULL;
 
   uvs = xmalloc (size);
@@ -13887,9 +13852,9 @@ sfnt_create_uvs_context (struct sfnt_cmap_format_14 *cmap, int fd)
   off_t offset;
   struct sfnt_uvs_context *context;
 
-  if (INT_MULTIPLY_WRAPV (cmap->num_var_selector_records,
-			  sizeof *table_offsets, &size)
-      || INT_MULTIPLY_WRAPV (size, 2, &size))
+  if (ckd_mul (&size, cmap->num_var_selector_records,
+	       sizeof *table_offsets)
+      || ckd_mul (&size, size, 2))
     return NULL;
 
   context = NULL;
@@ -13909,9 +13874,8 @@ sfnt_create_uvs_context (struct sfnt_cmap_format_14 *cmap, int fd)
 
       if (cmap->records[i].default_uvs_offset)
 	{
-	  if (INT_ADD_WRAPV (cmap->offset,
-			     cmap->records[i].default_uvs_offset,
-			     &table_offsets[j].offset))
+	  if (ckd_add (&table_offsets[j].offset, cmap->offset,
+		       cmap->records[i].default_uvs_offset))
 	    goto bail;
 
 	  table_offsets[j++].is_nondefault_table = false;
@@ -13919,9 +13883,8 @@ sfnt_create_uvs_context (struct sfnt_cmap_format_14 *cmap, int fd)
 
       if (cmap->records[i].nondefault_uvs_offset)
 	{
-	  if (INT_ADD_WRAPV (cmap->offset,
-			     cmap->records[i].nondefault_uvs_offset,
-			     &table_offsets[j].offset))
+	  if (ckd_add (&table_offsets[j].offset, cmap->offset,
+		       cmap->records[i].nondefault_uvs_offset))
 	    goto bail;
 
 	  table_offsets[j++].is_nondefault_table = true;
@@ -14359,14 +14322,12 @@ sfnt_read_fvar_table (int fd, struct sfnt_offset_subtable *subtable)
      name identifier, or 3 * sizeof (uint16_t) + axisCount * sizeof
      (sfnt_fixed), meaning there is.  */
 
-  if (INT_MULTIPLY_WRAPV (fvar->axis_count, sizeof (sfnt_fixed),
-			  &temp)
-      || INT_ADD_WRAPV (2 * sizeof (uint16_t), temp, &non_ps_size))
+  if (ckd_mul (&temp, fvar->axis_count, sizeof (sfnt_fixed))
+      || ckd_add (&non_ps_size, temp, 2 * sizeof (uint16_t)))
     goto bail;
 
-  if (INT_MULTIPLY_WRAPV (fvar->axis_count, sizeof (sfnt_fixed),
-			  &temp)
-      || INT_ADD_WRAPV (3 * sizeof (uint16_t), temp, &ps_size))
+  if (ckd_mul (&temp, fvar->axis_count, sizeof (sfnt_fixed))
+      || ckd_add (&ps_size, temp, 3 * sizeof (uint16_t)))
     goto bail;
 
   if (fvar->instance_size != non_ps_size
@@ -14376,8 +14337,7 @@ sfnt_read_fvar_table (int fd, struct sfnt_offset_subtable *subtable)
   /* Now compute the offset of the axis data from the start of the
      font file.  */
 
-  if (INT_ADD_WRAPV (fvar->offset_to_data, directory->offset,
-		     &offset))
+  if (ckd_add (&offset, fvar->offset_to_data, directory->offset))
     goto bail;
 
   /* Seek there.  */
@@ -14394,28 +14354,23 @@ sfnt_read_fvar_table (int fd, struct sfnt_offset_subtable *subtable)
      sfnt_instance) + sizeof (sfnt_fixed) * fvar->instance_count *
      fvar->axis_count.  */
 
-  if (INT_MULTIPLY_WRAPV (fvar->axis_count, sizeof *fvar->axis,
-			  &temp)
-      || INT_ADD_WRAPV (min_bytes, temp, &min_bytes))
+  if (ckd_mul (&temp, fvar->axis_count, sizeof *fvar->axis)
+      || ckd_add (&min_bytes, min_bytes, temp))
     goto bail;
 
   pad = alignof (struct sfnt_instance);
   pad -= min_bytes & (pad - 1);
 
-  if (INT_ADD_WRAPV (min_bytes, pad, &min_bytes))
+  if (ckd_add (&min_bytes, min_bytes, pad))
     goto bail;
 
-  if (INT_MULTIPLY_WRAPV (fvar->instance_count,
-			  sizeof *fvar->instance,
-			  &temp)
-      || INT_ADD_WRAPV (min_bytes, temp, &min_bytes))
+  if (ckd_mul (&temp, fvar->instance_count, sizeof *fvar->instance)
+      || ckd_add (&min_bytes, min_bytes, temp))
     goto bail;
 
-  if (INT_MULTIPLY_WRAPV (fvar->instance_count,
-			  sizeof *fvar->instance->coords,
-			  &temp)
-      || INT_MULTIPLY_WRAPV (temp, fvar->axis_count, &temp)
-      || INT_ADD_WRAPV (min_bytes, temp, &min_bytes))
+  if (ckd_mul (&temp, fvar->instance_count, sizeof *fvar->instance->coords)
+      || ckd_mul (&temp, temp, fvar->axis_count)
+      || ckd_add (&min_bytes, min_bytes, temp))
     goto bail;
 
   /* Reallocate fvar.  */
@@ -14597,9 +14552,9 @@ sfnt_read_gvar_table (int fd, struct sfnt_offset_subtable *subtable)
     goto bail;
 
   /* Figure out how big gvar needs to be.  */
-  if (INT_ADD_WRAPV (sizeof *gvar, coordinate_size, &min_bytes)
-      || INT_ADD_WRAPV (min_bytes, off_size, &min_bytes)
-      || INT_ADD_WRAPV (min_bytes, data_size, &min_bytes))
+  if (ckd_add (&min_bytes, coordinate_size, sizeof *gvar)
+      || ckd_add (&min_bytes, min_bytes, off_size)
+      || ckd_add (&min_bytes, min_bytes, data_size))
     goto bail;
 
   /* Now allocate enough for all of this extra data.  */
@@ -14635,8 +14590,7 @@ sfnt_read_gvar_table (int fd, struct sfnt_offset_subtable *subtable)
 
   if (gvar->shared_coord_count)
     {
-      if (INT_ADD_WRAPV (gvar->offset_to_coord, directory->offset,
-			 &offset))
+      if (ckd_add (&offset, gvar->offset_to_coord, directory->offset))
 	goto bail;
 
       if (lseek (fd, offset, SEEK_SET) != offset)
@@ -14660,8 +14614,7 @@ sfnt_read_gvar_table (int fd, struct sfnt_offset_subtable *subtable)
 
   if (gvar->data_size)
     {
-      if (INT_ADD_WRAPV (gvar->offset_to_data, directory->offset,
-			 &offset))
+      if (ckd_add (&offset, gvar->offset_to_data, directory->offset))
 	goto bail;
 
       if (lseek (fd, offset, SEEK_SET) != offset)
@@ -14757,10 +14710,10 @@ sfnt_read_avar_table (int fd, struct sfnt_offset_subtable *subtable)
 
       /* Now add one struct sfnt_short_frac_segment for each axis and
          each of its correspondences.  */
-      if (INT_ADD_WRAPV (sizeof (struct sfnt_short_frac_segment),
-			 min_size, &min_size)
-	  || INT_ADD_WRAPV (sizeof (struct sfnt_short_frac_correspondence)
-			    * buffer[k], min_size, &min_size))
+      if (ckd_add (&min_size, min_size, sizeof (struct sfnt_short_frac_segment))
+	  || ckd_add (&min_size, min_size,
+		      (sizeof (struct sfnt_short_frac_correspondence)
+		       * buffer[k])))
 	goto bail1;
 
       /* Verify that words from here to buffer[1 + buffer[k] * 2], the
@@ -15109,8 +15062,7 @@ sfnt_read_cvar_table (int fd, struct sfnt_offset_subtable *subtable,
 	    goto bail2;
 
 	  tuple += sizeof *coords * fvar->axis_count;
-	  if (INT_ADD_WRAPV (size, sizeof *coords * fvar->axis_count,
-			     &size))
+	  if (ckd_add (&size, size, sizeof *coords * fvar->axis_count))
 	    goto bail2;
 	}
       else
@@ -15122,20 +15074,20 @@ sfnt_read_cvar_table (int fd, struct sfnt_offset_subtable *subtable,
       if (index & 0x4000)
 	{
 	  tuple += fvar->axis_count * 4;
-	  if (INT_ADD_WRAPV (size, fvar->axis_count * 4, &size))
+	  if (ckd_add (&size, size, fvar->axis_count * 4))
 	    goto bail2;
 	}
 
       /* Add one point and one delta for each CVT element.  */
-      if (INT_ADD_WRAPV (size, cvt->num_elements * 4, &size))
+      if (ckd_add (&size, size, cvt->num_elements * 4))
 	goto bail2;
 
       /* Now add the size of the tuple.  */
-      if (INT_ADD_WRAPV (size, sizeof *cvar->variation, &size))
+      if (ckd_add (&size, size, sizeof *cvar->variation))
 	goto bail2;
     }
 
-  if (INT_ADD_WRAPV (sizeof *cvar, size, &size))
+  if (ckd_add (&size, size, sizeof *cvar))
     goto bail2;
 
   /* Reallocate cvar.  */

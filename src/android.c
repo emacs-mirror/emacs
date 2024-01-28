@@ -3963,10 +3963,10 @@ android_blit_copy (int src_x, int src_y, int width, int height,
 
 	  /* Turn both into offsets.  */
 
-	  if (INT_MULTIPLY_WRAPV (temp, pixel, &offset)
-	      || INT_MULTIPLY_WRAPV (i, mask_info->stride, &offset1)
-	      || INT_ADD_WRAPV (offset, offset1, &offset)
-	      || INT_ADD_WRAPV ((uintptr_t) mask, offset, &start))
+	  if (ckd_mul (&offset, temp, pixel)
+	      || ckd_mul (&offset1, i, mask_info->stride)
+	      || ckd_add (&offset, offset, offset1)
+	      || ckd_add (&start, (uintptr_t) mask, offset))
 	    return;
 
 	  if (height <= 0)
@@ -4271,10 +4271,10 @@ android_blit_xor (int src_x, int src_y, int width, int height,
 
 	  /* Turn both into offsets.  */
 
-	  if (INT_MULTIPLY_WRAPV (temp, pixel, &offset)
-	      || INT_MULTIPLY_WRAPV (i, mask_info->stride, &offset1)
-	      || INT_ADD_WRAPV (offset, offset1, &offset)
-	      || INT_ADD_WRAPV ((uintptr_t) mask, offset, &start))
+	  if (ckd_mul (&offset, temp, pixel)
+	      || ckd_mul (&offset1, i, mask_info->stride)
+	      || ckd_add (&offset, offset, offset1)
+	      || ckd_add (&start, (uintptr_t) mask, offset))
 	    return;
 
 	  mask = mask_current = (unsigned char *) start;
@@ -4899,9 +4899,9 @@ android_get_image (android_drawable handle,
 
   if (bitmap_info.format != ANDROID_BITMAP_FORMAT_A_8)
     {
-      if (INT_MULTIPLY_WRAPV ((size_t) bitmap_info.stride,
-			      (size_t) bitmap_info.height,
-			      &byte_size))
+      if (ckd_mul (&byte_size,
+		   (size_t) bitmap_info.stride,
+		   (size_t) bitmap_info.height))
 	{
 	  ANDROID_DELETE_LOCAL_REF (bitmap);
 	  memory_full (0);

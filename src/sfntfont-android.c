@@ -78,7 +78,7 @@ static size_t max_scanline_buffer_size;
     {								\
       size_t _size;						\
 								\
-      if (INT_MULTIPLY_WRAPV (height, stride, &_size))		\
+      if (ckd_mul (&_size, height, stride))			\
 	memory_full (SIZE_MAX);					\
 								\
       if (_size < MAX_ALLOCA)					\
@@ -112,7 +112,7 @@ static size_t max_scanline_buffer_size;
       size_t _size;						\
       void *_temp;						\
 								\
-      if (INT_MULTIPLY_WRAPV (height, stride, &_size))		\
+      if (ckd_mul (&_size, height, stride))			\
 	memory_full (SIZE_MAX);					\
 								\
       if (_size > scanline_buffer.buffer_size)			\

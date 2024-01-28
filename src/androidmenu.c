@@ -437,7 +437,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	      /* Compute the item ID.  This is the index of value.
 		 Make sure it doesn't overflow.  */
 
-	      if (!INT_ADD_OK (0, i + MENU_ITEMS_ITEM_VALUE, &item_id))
+	      if (ckd_add (&item_id, i + MENU_ITEMS_ITEM_VALUE, 0))
 		memory_full (i + MENU_ITEMS_ITEM_VALUE * sizeof (Lisp_Object));
 
 	      /* Add this menu item with the appropriate state.  */

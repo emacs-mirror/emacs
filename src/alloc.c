@@ -6291,8 +6291,7 @@ android_make_lisp_symbol (struct Lisp_Symbol *sym)
   intptr_t symoffset;
 
   symoffset = (intptr_t) sym;
-  INT_SUBTRACT_WRAPV (symoffset, (intptr_t) &lispsym,
-		      &symoffset);
+  ckd_sub (&symoffset, symoffset, (intptr_t) &lispsym);
 
   {
     Lisp_Object a = TAG_PTR_INITIALLY (Lisp_Symbol, symoffset);

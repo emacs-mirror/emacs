@@ -446,7 +446,7 @@ does not have any corresponding data.  In that case, use
     {
       rc = emacs_read_quit (fd, start, BUFSIZ);
 
-      if (!INT_ADD_OK (rc, length, &length)
+      if (ckd_add (&length, length, rc)
 	  || PTRDIFF_MAX - length < BUFSIZ)
 	memory_full (PTRDIFF_MAX);
 
@@ -588,7 +588,7 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
   if (NILP (replaces_id))
     {
       /* Generate a new identifier.  */
-      INT_ADD_WRAPV (counter, 1, &counter);
+      ckd_add (&counter, counter, 1);
       id = counter;
     }
   else
