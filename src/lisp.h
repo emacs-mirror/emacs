@@ -303,6 +303,9 @@ DEFINE_GDB_SYMBOL_END (VALMASK)
 
 #define LISP_WORDS_ARE_POINTERS (EMACS_INT_MAX == INTPTR_MAX)
 #if LISP_WORDS_ARE_POINTERS
+/* TAG_PTR casts to Lisp_Word and can be used in static initializers,
+   so this typedef assumes static initializers can contain casts to pointers.
+   All Emacs targets support this extension to the C standard.  */
 typedef struct Lisp_X *Lisp_Word;
 #else
 typedef EMACS_INT Lisp_Word;
@@ -931,12 +934,14 @@ typedef EMACS_UINT Lisp_Word_tag;
 #define LISP_WORD_TAG(tag) \
   ((Lisp_Word_tag) (tag) << (USE_LSB_TAG ? 0 : VALBITS))
 
-/* An initializer for a Lisp_Object that contains TAG along with PTR.  */
-#define TAG_PTR(tag, ptr) \
-  LISP_INITIALLY ((Lisp_Word) ((uintptr_t) (ptr) + LISP_WORD_TAG (tag)))
+/* An initializer for a Lisp_Object that contains TAG along with P.
+   P can be a pointer or an integer.  The result is usable in a static
+   initializer if TAG and P are both integer constant expressions.  */
+#define TAG_PTR(tag, p) \
+  LISP_INITIALLY ((Lisp_Word) ((uintptr_t) (p) + LISP_WORD_TAG (tag)))
 
 /* LISPSYM_INITIALLY (Qfoo) is equivalent to Qfoo except it is
-   designed for use as an initializer, even for a constant initializer.  */
+   designed for use as a (possibly static) initializer.  */
 #define LISPSYM_INITIALLY(name) \
   TAG_PTR (Lisp_Symbol, (intptr_t) ((i##name) * sizeof *lispsym))
 
