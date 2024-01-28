@@ -6295,7 +6295,7 @@ android_make_lisp_symbol (struct Lisp_Symbol *sym)
 		      &symoffset);
 
   {
-    Lisp_Object a = TAG_PTR (Lisp_Symbol, symoffset);
+    Lisp_Object a = TAG_PTR_INITIALLY (Lisp_Symbol, symoffset);
     return a;
   }
 }

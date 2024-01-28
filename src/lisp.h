@@ -303,7 +303,7 @@ DEFINE_GDB_SYMBOL_END (VALMASK)
 
 #define LISP_WORDS_ARE_POINTERS (EMACS_INT_MAX == INTPTR_MAX)
 #if LISP_WORDS_ARE_POINTERS
-/* TAG_PTR casts to Lisp_Word and can be used in static initializers,
+/* TAG_PTR_INITIALLY casts to Lisp_Word and can be used in static initializers
    so this typedef assumes static initializers can contain casts to pointers.
    All Emacs targets support this extension to the C standard.  */
 typedef struct Lisp_X *Lisp_Word;
@@ -937,13 +937,13 @@ typedef EMACS_UINT Lisp_Word_tag;
 /* An initializer for a Lisp_Object that contains TAG along with P.
    P can be a pointer or an integer.  The result is usable in a static
    initializer if TAG and P are both integer constant expressions.  */
-#define TAG_PTR(tag, p) \
+#define TAG_PTR_INITIALLY(tag, p) \
   LISP_INITIALLY ((Lisp_Word) ((uintptr_t) (p) + LISP_WORD_TAG (tag)))
 
 /* LISPSYM_INITIALLY (Qfoo) is equivalent to Qfoo except it is
    designed for use as a (possibly static) initializer.  */
 #define LISPSYM_INITIALLY(name) \
-  TAG_PTR (Lisp_Symbol, (intptr_t) ((i##name) * sizeof *lispsym))
+  TAG_PTR_INITIALLY (Lisp_Symbol, (intptr_t) ((i##name) * sizeof *lispsym))
 
 /* Declare extern constants for Lisp symbols.  These can be helpful
    when using a debugger like GDB, on older platforms where the debug
@@ -1178,11 +1178,7 @@ make_lisp_symbol_internal (struct Lisp_Symbol *sym)
      Do not use eassert here, so that builtin symbols like Qnil compile to
      constants; this is needed for some circa-2024 GCCs even with -O2.  */
   char *symoffset = (char *) ((char *) sym - (char *) lispsym);
-  /* FIXME: We need this silly `a = ... return` η-redex because otherwise GCC
-     complains about:
-     lisp.h:615:28: error: expected expression before ‘{’ token
-       615 | # define LISP_INITIALLY(w) {w}   */
-  Lisp_Object a = TAG_PTR (Lisp_Symbol, symoffset);
+  Lisp_Object a = TAG_PTR_INITIALLY (Lisp_Symbol, symoffset);
   return a;
 }
 
@@ -1383,7 +1379,7 @@ clip_to_bounds (intmax_t lower, intmax_t num, intmax_t upper)
 INLINE Lisp_Object
 make_lisp_ptr (void *ptr, enum Lisp_Type type)
 {
-  Lisp_Object a = TAG_PTR (type, ptr);
+  Lisp_Object a = TAG_PTR_INITIALLY (type, ptr);
   eassert (TAGGEDP (a, type) && XUNTAG (a, type, char) == ptr);
   return a;
 }
@@ -1456,7 +1452,7 @@ XFIXNUMPTR (Lisp_Object a)
 INLINE Lisp_Object
 make_pointer_integer_unsafe (void *p)
 {
-  Lisp_Object a = TAG_PTR (Lisp_Int0, p);
+  Lisp_Object a = TAG_PTR_INITIALLY (Lisp_Int0, p);
   return a;
 }
 
@@ -2749,7 +2745,7 @@ extern Lisp_Object make_misc_ptr (void *);
 INLINE Lisp_Object
 make_mint_ptr (void *a)
 {
-  Lisp_Object val = TAG_PTR (Lisp_Int0, a);
+  Lisp_Object val = TAG_PTR_INITIALLY (Lisp_Int0, a);
   return FIXNUMP (val) && XFIXNUMPTR (val) == a ? val : make_misc_ptr (a);
 }
 
