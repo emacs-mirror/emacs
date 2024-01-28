@@ -612,9 +612,9 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
                         ;; however, there are two separator characters
                         ;; that will be deleted, so the number of
                         ;; columns to add to this in the case of
-                        ;; `name' being final and in other cases are
-                        ;; -1 and -2 respectively.
-                        (if func-names -1 -2))
+                        ;; `name' being final and in other cases are 0
+                        ;; and 1 respectively.
+                        (if func-names 0 1))
                      fill-column)
                   (progn
                     (delete-char -2)
