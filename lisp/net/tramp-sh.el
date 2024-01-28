@@ -5340,7 +5340,7 @@ connection if a previous connection has died for some reason."
 			    "2>" (tramp-get-remote-null-device previous-hop))
 			?l (concat remote-shell " " extra-args " -i"))
 		       ;; A restricted shell does not allow "exec".
-		       (when r-shell '("&&" "exit" "||" "exit")))
+		       (when r-shell '("&&" "exit")) '("||" "exit"))
 		      " "))
 
 		    ;; Send the command.
