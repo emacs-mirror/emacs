@@ -705,6 +705,10 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
   /* Remember original console settings.  */
   keyboard_handle = GetStdHandle (STD_INPUT_HANDLE);
   GetConsoleMode (keyboard_handle, &prev_console_mode);
+  /* Make sure ENABLE_EXTENDED_FLAGS is set in console settings,
+     otherwise restoring the original setting of ENABLE_MOUSE_INPUT
+     will not work.  */
+  prev_console_mode |= ENABLE_EXTENDED_FLAGS;
 
   prev_screen = GetStdHandle (STD_OUTPUT_HANDLE);
 
