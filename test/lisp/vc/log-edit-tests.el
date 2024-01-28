@@ -134,4 +134,55 @@ lines."))))
 * a-very-long-directory-name/another-long-directory-name/and-a-long-file-name.ext
 \(a-really-long-function-name):"))))
 
+(ert-deftest log-edit-fill-entry-confinement ()
+  (let (string string1 string2 string3 string4)
+    (setq string
+          ;; This entry is precisely 65 columns in length;
+          ;; log-edit-fill-column should leave it unmodified.
+          "* file2.txt (fun4, fun5, fun6, fun7, fun8, fun9, fun10, fun1134):"
+          string1
+          ;; This entry is 66 columns in length, and must be filled.
+          "* file2.txt (fun4, fun5, fun6, fun7, fun8, fun9, fun10, fun11345):"
+          string2
+          ;; The first line of this entry totals 65 columns in length,
+          ;; and should be preserved intact.
+          "* file2.txt (fun4, fun5, fun6, fun7, fun8, fun9, fun10, fun11345)
+(fun11356):"
+          string3
+          ;; The first defun in this entry is a file name that brings
+          ;; the total to 40 columns in length and should be preserved
+          ;; intact.
+          "* file2.txt (abcdefghijklmnopqrstuvwxyz)
+(ABC):"
+          string4
+          ;; The first defun brings that total to 41, and should be
+          ;; placed on the next line.
+          "* file2.txt (abcdefghijklmnopqrstuvwxyz):")
+    (with-temp-buffer
+      (insert string)
+      (let ((fill-column 64)) (log-edit-fill-entry))
+      (should (equal (buffer-string) string))
+      (erase-buffer)
+      (insert string1)
+      (let ((fill-column 64)) (log-edit-fill-entry))
+      (should (equal (buffer-string)
+                     "* file2.txt (fun4, fun5, fun6, fun7, fun8, fun9, fun10)
+(fun11345):"))
+      (erase-buffer)
+      (insert string2)
+      (let ((fill-column 64)) (log-edit-fill-entry))
+      (should (equal (buffer-string) string2))
+      (erase-buffer)
+      (insert string3)
+      (let ((fill-column 39)) (log-edit-fill-entry))
+      (should (equal (buffer-string) string3))
+      (erase-buffer)
+      (insert string4)
+      (let ((fill-column 39)) (log-edit-fill-entry))
+      (should (equal (buffer-string)
+                     ;; There is whitespace after "file2.txt" which
+                     ;; should not be erased!
+                     "* file2.txt 
+(abcdefghijklmnopqrstuvwxyz):")))))
+
 ;;; log-edit-tests.el ends here
