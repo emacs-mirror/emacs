@@ -575,19 +575,79 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
   "Insert FUNC-NAMES, following ChangeLog formatting."
   (if (not func-names)
       (insert ":")
+    ;; Insert a space unless this list of file names is being inserted
+    ;; at the start of a line or after a space character.
     (unless (or (memq (char-before) '(?\n ?\s))
                 (> (current-column) fill-column))
       (insert " "))
-    (cl-loop for first-fun = t then nil
-             for def in func-names do
-             (when (> (+ (current-column) (string-width def)) fill-column)
-               (unless first-fun
-                 (insert ")"))
-               (insert "\n"))
-             (insert (if (memq (char-before) '(?\n ?\s))
-                         "(" ", ")
-                     def))
-    (insert "):")))
+    (let ((inside-paren-pair nil)
+          (first-line        t)
+          name)
+      ;; Now insert the functions names one by one, inserting newlines
+      ;; as appropriate.
+      (while func-names
+        (setq name (car func-names))
+        (setq func-names (cdr func-names))
+        ;; If inserting `name' in at the current column would overflow
+        ;; the fill column, place it on its own line.
+        (if (and first-line
+                 (> (+ (current-column)
+                       (string-width name)
+                       ;; If this be the last name, the column must be
+                       ;; followed by an extra colon character.
+                       (if func-names 1 2))
+                    fill-column))
+            (progn
+              (insert "\n")
+              ;; Iterate over this function name again.
+              (setq func-names (cons name func-names)))
+          (if inside-paren-pair
+              ;; If `name' is not the first item in a list of defuns
+              ;; and inserting it would overflow the fill column,
+              ;; start a new list of defuns on the next line.
+              (if (> (+ (current-column)
+                        (string-width name)
+                        ;; If this be the last name, the column must
+                        ;; be followed by an extra colon character;
+                        ;; however, there are two separator characters
+                        ;; that will be deleted, so the number of
+                        ;; columns to add to this in the case of
+                        ;; `name' being final and in other cases are
+                        ;; -1 and -2 respectively.
+                        (if func-names -1 -2))
+                     fill-column)
+                  (progn
+                    (delete-char -2)
+                    (insert ")\n")
+                    (setq inside-paren-pair nil
+                          ;; Iterate over this function name again.
+                          func-names (cons name func-names)))
+                ;; Insert this file name with a separator attached.
+                (insert name ", "))
+            ;; Otherwise, decide whether to start a list of defuns or
+            ;; to insert `name' on its own line.
+            (if (> (+ (current-column)
+                      (string-width name)
+                      (if func-names 1 2)) ; The column number of
+                                           ; line after inserting
+                                           ; `name'...
+                   fill-column)
+                ;; ...would leave insufficient space for any subsequent
+                ;; file names, so insert it on its own line.
+                (insert (if func-names
+                            (format "(%s)\n" name)
+                          (format "(%s):" name)))
+              ;; Insert a new defun list, unless `name' is the last
+              ;; function name.
+              (insert (if (not func-names)
+                          (format "(%s):" name)
+                        (setq inside-paren-pair t)
+                        (format "(%s, " name))))))
+        (setq first-line nil))
+      ;; Close any open list of defuns.
+      (when inside-paren-pair
+        (delete-char -2)
+        (insert "):")))))
 
 (defun log-edit-fill-entry (&optional justify)
   "Like \\[fill-paragraph], but for filling ChangeLog-formatted entries.
@@ -595,32 +655,41 @@ Consecutive function entries without prose (i.e., lines of the
 form \"(FUNCTION):\") will be combined into \"(FUNC1, FUNC2):\"
 according to `fill-column'."
   (save-excursion
-    (pcase-let ((`(,beg ,end) (log-edit-changelog-paragraph)))
+    (let* ((range (log-edit-changelog-paragraph))
+           (beg (car range))
+           (end (cadr range)))
       (if (= beg end)
           ;; Not a ChangeLog entry, fill as normal.
           nil
-        (cl-callf copy-marker end)
+        (setq end (copy-marker end))
         (goto-char beg)
-        (cl-loop
-         for defuns-beg =
-         (and (< beg end)
-              (re-search-forward
-               (concat "\\(?1:" change-log-unindented-file-names-re
-                       "\\)\\|^\\(?1:\\)[[:blank:]]*(")
-               end t)
-              (copy-marker (match-end 1)))
-         ;; Fill prose between log entries.
-         do (let ((fill-indent-according-to-mode t)
-                  (end (if defuns-beg (match-beginning 0) end))
-                  (beg (progn (goto-char beg) (line-beginning-position))))
-              (when (<= (line-end-position) end)
-                (fill-region beg end justify)))
-         while defuns-beg
-         for defuns = (progn (goto-char defuns-beg)
-                             (change-log-read-defuns end))
-         do (progn (delete-region defuns-beg (point))
-                   (log-edit--insert-filled-defuns defuns)
-                   (setq beg (point))))
+        (let* ((defuns-beg nil)
+               (defuns nil))
+          (while
+              (progn
+                (setq defuns-beg
+                      (and (< beg end)
+                           (re-search-forward
+                            (concat "\\(?1:"
+                                    change-log-unindented-file-names-re
+                                    "\\)\\|^\\(?1:\\)[[:blank:]]*(")
+                            end t)
+                           (copy-marker (match-end 1))))
+                (let ((fill-indent-according-to-mode t)
+                      (end (if defuns-beg
+                               (match-beginning 0) end))
+                      (beg (progn (goto-char beg)
+                                  (line-beginning-position))))
+                  (when (<= (line-end-position) end)
+                    (fill-region beg end justify)))
+                defuns-beg)
+            (goto-char defuns-beg)
+            (setq defuns (change-log-read-defuns end))
+            (progn
+              (delete-region defuns-beg (point))
+              (log-edit--insert-filled-defuns defuns)
+              (setq beg (point))))
+          nil)
         t))))
 
 (defun log-edit-hide-buf (&optional buf where)
