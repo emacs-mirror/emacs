@@ -938,7 +938,7 @@ typedef EMACS_UINT Lisp_Word_tag;
 /* LISPSYM_INITIALLY (Qfoo) is equivalent to Qfoo except it is
    designed for use as an initializer, even for a constant initializer.  */
 #define LISPSYM_INITIALLY(name) \
-  TAG_PTR (Lisp_Symbol, (char *) (intptr_t) ((i##name) * sizeof *lispsym))
+  TAG_PTR (Lisp_Symbol, (intptr_t) ((i##name) * sizeof *lispsym))
 
 /* Declare extern constants for Lisp symbols.  These can be helpful
    when using a debugger like GDB, on older platforms where the debug
