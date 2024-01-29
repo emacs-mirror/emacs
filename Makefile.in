@@ -859,7 +859,7 @@ install-etc:
 	rm -f $${tmp}
 	tmp=etc/emacsclient.tmpdesktop; rm -f $${tmp}; \
 	client_name=`echo emacsclient | sed '$(TRANSFORM)'`${EXEEXT}; \
-	sed -e "/^Exec=/ s|emacsclient|${bindir}/$${client_name}|" \
+	sed -e "/^Exec=/ s|emacsclient|${bindir}/$${client_name}|g" \
 	  -e "/^Icon=emacs/ s/emacs/${EMACS_NAME}/" \
 	  $(USE_STARTUP_NOTIFICATION_SED_CMD) \
 	  $(USE_WAYLAND_DISPLAY_SED_CMD) \
