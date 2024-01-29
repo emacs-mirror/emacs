@@ -3018,18 +3018,10 @@ otherwise, print without quoting."
 
 (defun byte-compile--reify-function (fun)
   "Return an expression which will evaluate to a function value FUN.
-FUN should be either a `lambda' value or a `closure' value."
-  (pcase-let* (((or (and `(lambda ,args . ,body) (let env nil))
-                    `(closure ,env ,args . ,body))
-                fun)
-               (preamble nil)
+FUN should be an interpreted closure."
+  (pcase-let* ((`(closure ,env ,args . ,body) fun)
+               (`(,preamble . ,body) (macroexp-parse-body body))
                (renv ()))
-    ;; Split docstring and `interactive' form from body.
-    (when (stringp (car body))
-      (push (pop body) preamble))
-    (when (eq (car-safe (car body)) 'interactive)
-      (push (pop body) preamble))
-    (setq preamble (nreverse preamble))
     ;; Turn the function's closed vars (if any) into local let bindings.
     (dolist (binding env)
       (cond
@@ -3051,41 +3043,39 @@ If FORM is a lambda or a macro, byte-compile it as a function."
            (fun (if (symbolp form)
 		    (symbol-function form)
 		  form))
-	   (macro (eq (car-safe fun) 'macro)))
-      (if macro
-	  (setq fun (cdr fun)))
-      (prog1
-          (cond
-           ;; Up until Emacs-24.1, byte-compile silently did nothing
-           ;; when asked to compile something invalid.  So let's tone
-           ;; down the complaint from an error to a simple message for
-           ;; the known case where signaling an error causes problems.
-           ((compiled-function-p fun)
-            (message "Function %s is already compiled"
-                     (if (symbolp form) form "provided"))
-            fun)
-           (t
-            (let (final-eval)
-              (when (or (symbolp form) (eq (car-safe fun) 'closure))
-                ;; `fun' is a function *value*, so try to recover its corresponding
-                ;; source code.
-                (setq lexical-binding (eq (car fun) 'closure))
-                (setq fun (byte-compile--reify-function fun))
-                (setq final-eval t))
-              ;; Expand macros.
-              (setq fun (byte-compile-preprocess fun))
-              (setq fun (byte-compile-top-level fun nil 'eval))
-              (if (symbolp form)
-                  ;; byte-compile-top-level returns an *expression* equivalent to the
-                  ;; `fun' expression, so we need to evaluate it, tho normally
-                  ;; this is not needed because the expression is just a constant
-                  ;; byte-code object, which is self-evaluating.
-                  (setq fun (eval fun t)))
-              (if final-eval
-                  (setq fun (eval fun t)))
-              (if macro (push 'macro fun))
-              (if (symbolp form) (fset form fun))
-              fun))))))))
+	   (macro (eq (car-safe fun) 'macro))
+           (need-a-value nil))
+      (when macro
+	(setq need-a-value t)
+	(setq fun (cdr fun)))
+      (cond
+       ;; Up until Emacs-24.1, byte-compile silently did nothing
+       ;; when asked to compile something invalid.  So let's tone
+       ;; down the complaint from an error to a simple message for
+       ;; the known case where signaling an error causes problems.
+       ((compiled-function-p fun)
+        (message "Function %s is already compiled"
+                 (if (symbolp form) form "provided"))
+        fun)
+       (t
+        (when (or (symbolp form) (eq (car-safe fun) 'closure))
+          ;; `fun' is a function *value*, so try to recover its
+          ;; corresponding source code.
+          (when (setq lexical-binding (eq (car-safe fun) 'closure))
+            (setq fun (byte-compile--reify-function fun)))
+          (setq need-a-value t))
+        ;; Expand macros.
+        (setq fun (byte-compile-preprocess fun))
+        (setq fun (byte-compile-top-level fun nil 'eval))
+        (when need-a-value
+          ;; `byte-compile-top-level' returns an *expression* equivalent to
+          ;; the `fun' expression, so we need to evaluate it, tho normally
+          ;; this is not needed because the expression is just a constant
+          ;; byte-code object, which is self-evaluating.
+          (setq fun (eval fun lexical-binding)))
+        (if macro (push 'macro fun))
+        (if (symbolp form) (fset form fun))
+        fun))))))
 
 (defun byte-compile-sexp (sexp)
   "Compile and return SEXP."
