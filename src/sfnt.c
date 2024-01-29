@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <intprops.h>
 #include <inttypes.h>
+#include <stdckdint.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20799,8 +20800,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 14
-#define EASY_PPEM  14
+#define FANCY_PPEM 12
+#define EASY_PPEM  12
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
