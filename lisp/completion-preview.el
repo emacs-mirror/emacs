@@ -139,9 +139,13 @@ If this option is nil, these commands do not display any message."
   ;; and vice versa!!
   "<wheel-up>"     #'completion-preview-prev-candidate
   "<wheel-down>"   #'completion-preview-next-candidate
-  (key-description (vector mouse-wheel-up-event))
+  (key-description (with-suppressed-warnings
+                       ((obsolete mouse-wheel-up-event))
+                     (vector mouse-wheel-up-event)))
   #'completion-preview-next-candidate
-  (key-description (vector mouse-wheel-down-event))
+  (key-description (with-suppressed-warnings
+                       ((obsolete mouse-wheel-down-event))
+                     (vector mouse-wheel-down-event)))
   #'completion-preview-prev-candidate)
 
 (defvar-local completion-preview--overlay nil)
