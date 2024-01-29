@@ -588,9 +588,11 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
       (while func-names
         (setq name (car func-names))
         (setq func-names (cdr func-names))
-        ;; If inserting `name' in at the current column would overflow
-        ;; the fill column, place it on its own line.
+        ;; If inserting `name' after preexisting text in the first
+        ;; line would overflow the fill column, place it on its own
+        ;; line.
         (if (and first-line
+                 (> (current-column) 0)
                  (> (+ (current-column)
                        (string-width name)
                        ;; If this be the last name, the column must be

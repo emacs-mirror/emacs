@@ -236,13 +236,11 @@ failures during
 test.
 (sfnt_table_names):
 Add prep.
-
 (sfnt_transform_coordinates):
 Allow applying
 offsets during
 coordinate
 transform.
-
 (sfnt_decompose_compound_glyph):
 Defer offset
 computation until
@@ -251,68 +249,54 @@ compound glyph is
 loaded, then apply
 it during the
 transform process.
-
 (sfnt_multiply_divide):
 Make available
 everywhere.
 Implement on 64 bit
 systems.
-
 (sfnt_multiply_divide_signed):
 New function.
 (sfnt_mul_fixed):
 Fix division
 overflow.
-
 (sfnt_curve_to_and_build_1)
 (sfnt_build_glyph_outline):
 Remove outdated
 comment.
-
 (sfnt_build_outline_edges):
 Fix coding style.
-
 (sfnt_lookup_glyph_metrics):
 Allow looking up
 metrics without
 scaling.
-
 (struct sfnt_cvt_table):
 Fix type of cvt
 values.
-
 (struct sfnt_prep_table):
 New structure.
-
 (sfnt_read_cvt_table):
 Read cvt values in
 terms of fwords, not
 longs (as Apple's
 doc seems to say).
-
 (sfnt_read_fpgm_table):
 Fix memory
 allocation for font
 program table.
-
 (sfnt_read_prep_table):
 New function.
-
 (struct sfnt_interpreter_zone):
 New structure.
-
 (struct sfnt_interpreter_graphics_state):
 New fields
 `project', `move',
 `vector_dot_product'.
 Rename to
 `sfnt_graphics_state'.
-
 (struct sfnt_interpreter)
 (sfnt_mul_f26dot6):
 Stop doing rounding
 division.
-
 (sfnt_init_graphics_state)
 (sfnt_make_interpreter)
 (MOVE, SSW, RAW, SDS)
@@ -330,6 +314,31 @@ division.
 (sfnt_round_to_grid)
 (sfnt_round_to_double_grid):
 ")
+    (with-temp-buffer
+      (insert string)
+      (let ((fill-column 20)) (log-edit-fill-entry))
+      (should (equal (buffer-string) wanted)))))
+
+(ert-deftest log-edit-fill-entry-initial-wrapping ()
+  ;; This test verifies that a newline is inserted before a defun
+  ;; itself longer than the fill column when such a defun is being
+  ;; inserted after a file name, and not otherwise.
+  (let (string wanted)
+    (setq string "
+* src/sfnt.c (long_entry_1): This entry should be placed on a
+new line.
+(but_this_entry_should_not): With the prose displaced to the
+next line instead."
+          wanted "
+* src/sfnt.c 
+(long_entry_1): This
+entry should be
+placed on a new
+line.
+(but_this_entry_should_not):
+With the prose
+displaced to the
+next line instead.")
     (with-temp-buffer
       (insert string)
       (let ((fill-column 20)) (log-edit-fill-entry))
