@@ -185,4 +185,153 @@ lines."))))
                      "* file2.txt 
 (abcdefghijklmnopqrstuvwxyz):")))))
 
+(ert-deftest log-edit-fill-entry-space-substitution ()
+  ;; This test verifies that filling the paragraph surrounding the
+  ;; last line of defuns does not break between defun lists with
+  ;; spaces in identifiers.
+  (setq string "
+* src/sfnt.c (xmalloc, xrealloc): Improve behavior upon allocation
+failures during test.
+(sfnt_table_names): Add prep.
+(sfnt_transform_coordinates): Allow applying offsets during
+coordinate transform.
+(sfnt_decompose_compound_glyph): Defer offset computation until
+any component compound glyph is loaded, then apply it during the
+transform process.
+(sfnt_multiply_divide): Make available everywhere.  Implement on
+64 bit systems.
+(sfnt_multiply_divide_signed): New function.
+(sfnt_mul_fixed): Fix division overflow.
+(sfnt_curve_to_and_build_1, sfnt_build_glyph_outline): Remove
+outdated comment.
+(sfnt_build_outline_edges): Fix coding style.
+(sfnt_lookup_glyph_metrics): Allow looking up metrics without
+scaling.
+(struct sfnt_cvt_table): Fix type of cvt values.
+(struct sfnt_prep_table): New structure.
+(sfnt_read_cvt_table): Read cvt values in terms of fwords, not
+longs (as Apple's doc seems to say).
+(sfnt_read_fpgm_table): Fix memory allocation for font program
+table.
+(sfnt_read_prep_table): New function.
+(struct sfnt_interpreter_zone): New structure.
+(struct sfnt_interpreter_graphics_state): New fields `project',
+`move', `vector_dot_product'.  Rename to `sfnt_graphics_state'.
+(struct sfnt_interpreter, sfnt_mul_f26dot6): Stop doing rounding
+division.
+(sfnt_init_graphics_state, sfnt_make_interpreter, MOVE, SSW, RAW)
+(SDS, ADD, SUB, ABS, NEG, WCVTF, _MIN, S45ROUND, SVTCAx)
+(sfnt_set_srounding_state, sfnt_skip_code)
+(sfnt_interpret_unimplemented, sfnt_interpret_fdef)
+(sfnt_interpret_idef, sfnt_interpret_if, sfnt_interpret_else)
+(sfnt_round_none, sfnt_round_to_grid, sfnt_round_to_double_grid)
+"
+        wanted "
+* src/sfnt.c 
+(xmalloc, xrealloc):
+Improve behavior
+upon allocation
+failures during
+test.
+(sfnt_table_names):
+Add prep.
+
+(sfnt_transform_coordinates):
+Allow applying
+offsets during
+coordinate
+transform.
+
+(sfnt_decompose_compound_glyph):
+Defer offset
+computation until
+any component
+compound glyph is
+loaded, then apply
+it during the
+transform process.
+
+(sfnt_multiply_divide):
+Make available
+everywhere.
+Implement on 64 bit
+systems.
+
+(sfnt_multiply_divide_signed):
+New function.
+(sfnt_mul_fixed):
+Fix division
+overflow.
+
+(sfnt_curve_to_and_build_1)
+(sfnt_build_glyph_outline):
+Remove outdated
+comment.
+
+(sfnt_build_outline_edges):
+Fix coding style.
+
+(sfnt_lookup_glyph_metrics):
+Allow looking up
+metrics without
+scaling.
+
+(struct sfnt_cvt_table):
+Fix type of cvt
+values.
+
+(struct sfnt_prep_table):
+New structure.
+
+(sfnt_read_cvt_table):
+Read cvt values in
+terms of fwords, not
+longs (as Apple's
+doc seems to say).
+
+(sfnt_read_fpgm_table):
+Fix memory
+allocation for font
+program table.
+
+(sfnt_read_prep_table):
+New function.
+
+(struct sfnt_interpreter_zone):
+New structure.
+
+(struct sfnt_interpreter_graphics_state):
+New fields
+`project', `move',
+`vector_dot_product'.
+Rename to
+`sfnt_graphics_state'.
+
+(struct sfnt_interpreter)
+(sfnt_mul_f26dot6):
+Stop doing rounding
+division.
+
+(sfnt_init_graphics_state)
+(sfnt_make_interpreter)
+(MOVE, SSW, RAW, SDS)
+(ADD, SUB, ABS, NEG)
+(WCVTF, _MIN)
+(S45ROUND, SVTCAx)
+(sfnt_set_srounding_state)
+(sfnt_skip_code)
+(sfnt_interpret_unimplemented)
+(sfnt_interpret_fdef)
+(sfnt_interpret_idef)
+(sfnt_interpret_if)
+(sfnt_interpret_else)
+(sfnt_round_none)
+(sfnt_round_to_grid)
+(sfnt_round_to_double_grid):
+")
+  (with-temp-buffer
+    (insert string)
+    (let ((fill-column 20)) (log-edit-fill-entry))
+    (should (equal (buffer-string) wanted))))
+
 ;;; log-edit-tests.el ends here

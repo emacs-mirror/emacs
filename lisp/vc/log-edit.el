@@ -668,6 +668,9 @@ according to `fill-column'."
                (defuns nil))
           (while
               (progn
+                ;; Match a regexp against the next ChangeLog entry.
+                ;; `defuns-beg' will be the end of the file name,
+                ;; which marks the beginning of the list of defuns.
                 (setq defuns-beg
                       (and (< beg end)
                            (re-search-forward
@@ -676,13 +679,39 @@ according to `fill-column'."
                                     "\\)\\|^\\(?1:\\)[[:blank:]]*(")
                             end t)
                            (copy-marker (match-end 1))))
+                ;; Fill the intervening prose between the end of the
+                ;; last match and the beginning of the current match.
                 (let ((fill-indent-according-to-mode t)
                       (end (if defuns-beg
                                (match-beginning 0) end))
                       (beg (progn (goto-char beg)
-                                  (line-beginning-position))))
+                                  (line-beginning-position)))
+                      space-beg space-end)
                   (when (<= (line-end-position) end)
-                    (fill-region beg end justify)))
+                    ;; Replace space characters within parentheses
+                    ;; that resemble ChangeLog defun names between BEG
+                    ;; and END with non-breaking spaces to prevent
+                    ;; them from being considered break points by
+                    ;; `fill-region'.
+                    (save-excursion
+                      (goto-char beg)
+                      (when (re-search-forward
+                             "^[[:blank:]]*(.*\\([[:space:]]\\).*):"
+                             end t)
+                        (replace-regexp-in-region "[[:space:]]" " "
+                                                  (setq space-beg
+                                                        (copy-marker
+                                                         (match-beginning 0)))
+                                                  (setq space-end
+                                                        (copy-marker
+                                                         (match-end 0))))))
+                    (fill-region beg end justify))
+                  ;; Restore the spaces replaced by NBSPs.
+                  (when space-beg
+                    (replace-string-in-region " " " "
+                                              space-beg space-end)
+                    (set-marker space-beg nil)
+                    (set-marker space-end nil)))
                 defuns-beg)
             (goto-char defuns-beg)
             (setq defuns (change-log-read-defuns end))
@@ -1358,3 +1387,7 @@ line of MSG."
 (provide 'log-edit)
 
 ;;; log-edit.el ends here
+
+;; Local Variables:
+;; coding: utf-8-unix
+;; End:
