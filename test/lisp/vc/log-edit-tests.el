@@ -189,7 +189,8 @@ lines."))))
   ;; This test verifies that filling the paragraph surrounding the
   ;; last line of defuns does not break between defun lists with
   ;; spaces in identifiers.
-  (setq string "
+  (let (string wanted)
+    (setq string "
 * src/sfnt.c (xmalloc, xrealloc): Improve behavior upon allocation
 failures during test.
 (sfnt_table_names): Add prep.
@@ -226,7 +227,7 @@ division.
 (sfnt_interpret_idef, sfnt_interpret_if, sfnt_interpret_else)
 (sfnt_round_none, sfnt_round_to_grid, sfnt_round_to_double_grid)
 "
-        wanted "
+          wanted "
 * src/sfnt.c 
 (xmalloc, xrealloc):
 Improve behavior
@@ -329,9 +330,9 @@ division.
 (sfnt_round_to_grid)
 (sfnt_round_to_double_grid):
 ")
-  (with-temp-buffer
-    (insert string)
-    (let ((fill-column 20)) (log-edit-fill-entry))
-    (should (equal (buffer-string) wanted))))
+    (with-temp-buffer
+      (insert string)
+      (let ((fill-column 20)) (log-edit-fill-entry))
+      (should (equal (buffer-string) wanted)))))
 
 ;;; log-edit-tests.el ends here
