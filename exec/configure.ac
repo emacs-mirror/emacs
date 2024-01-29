@@ -404,6 +404,8 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
    AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
    AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
+   AC_DEFINE([OPEN_SYSCALL], [__NR_open])
+   AC_DEFINE([OPENAT_SYSCALL], [__NR_openat])
    AC_CHECK_DECL([_MIPS_SIM], [exec_CHECK_MIPS_NABI],
      [AC_MSG_ERROR([_MIPS_SIM could not be determined]),
      [[
@@ -432,6 +434,8 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
    AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
    AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
+   AC_DEFINE([OPEN_SYSCALL], [__NR_open])
+   AC_DEFINE([OPENAT_SYSCALL], [__NR_openat])
    AC_CACHE_CHECK([whether as understands `daddi'],
      [exec_cv_as_daddi],
      [exec_cv_as_daddi=no
