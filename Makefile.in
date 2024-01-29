@@ -888,11 +888,9 @@ install-etc:
 	rm -f $${tmp}
 	umask 022; $(MKDIR_P) "$(DESTDIR)$(systemdunitdir)"
 	tmp=etc/emacs.tmpservice; rm -f $${tmp}; \
-	client_name=`echo emacsclient | sed '$(TRANSFORM)'`${EXEEXT}; \
 	sed -e '/^##/d' \
 	  -e "/^Documentation/ s/emacs(1)/${EMACS_NAME}(1)/" \
 	  -e "/^ExecStart/ s|emacs|${bindir}/${EMACS}|" \
-	  -e "/^ExecStop/ s|emacsclient|${bindir}/$${client_name}|" \
 	  ${srcdir}/etc/emacs.service > $${tmp}; \
 	$(INSTALL_DATA) $${tmp} "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"; \
 	rm -f $${tmp}
