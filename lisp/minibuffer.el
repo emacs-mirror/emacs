@@ -3149,15 +3149,14 @@ the mode hook of this mode."
     (setq-local minibuffer-completion-auto-choose nil)))
 
 (defcustom minibuffer-visible-completions nil
-  "When non-nil, visible completions can be navigated from the minibuffer.
-This means that when the *Completions* buffer is visible in a window,
-then you can use the arrow keys in the minibuffer to move the cursor
-in the *Completions* buffer.  Then you can type `RET',
-and the candidate highlighted in the *Completions* buffer
-will be accepted.
-But when the *Completions* buffer is not displayed on the screen,
-then the arrow keys move point in the minibuffer as usual, and
-`RET' accepts the input typed in the minibuffer."
+  "Whether candidates shown in *Completions* can be navigated from minibuffer.
+When non-nil, if the *Completions* buffer is displayed in a window,
+you can use the arrow keys in the minibuffer to move the cursor in
+the window showing the *Completions* buffer.  Typing `RET' selects
+the highlighted completion candidate.
+If the *Completions* buffer is not displayed on the screen, or this
+variable is nil, the arrow keys move point in the minibuffer as usual,
+and `RET' accepts the input typed into the minibuffer."
   :type 'boolean
   :version "30.1")
 
