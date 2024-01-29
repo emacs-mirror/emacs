@@ -1749,7 +1749,7 @@ If this is nil, no message will be displayed."
      "\n"))
   "A list of texts to show in the middle part of splash screens.
 Each element in the list should be a list of strings or pairs
-`:face FACE', like `fancy-splash-insert' accepts them.")
+`:KEYWORD VALUE', like what `fancy-splash-insert' accepts.")
 
 (defconst fancy-about-text
   `((:face (variable-pitch font-lock-comment-face)
@@ -1842,7 +1842,7 @@ Each element in the list should be a list of strings or pairs
      "\tDisplay the Emacs manual in Info mode"))
   "A list of texts to show in the middle part of the About screen.
 Each element in the list should be a list of strings or pairs
-`:face FACE', like `fancy-splash-insert' accepts them.")
+`:KEYWORD VALUE', like what `fancy-splash-insert' accepts.")
 
 
 (defgroup fancy-splash-screen ()
