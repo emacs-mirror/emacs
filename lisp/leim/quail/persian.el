@@ -500,7 +500,7 @@
  ;; RIGHT-TO-LEFT EMBEDDING (sets base dir to RTL but allows embedded text)
  ("&rle;" ?\u202B)   ;; (ucs-insert #x202B)   named: زیرمتنِ راست‌به‌چپ
  ;; POP DIRECTIONAL FORMATTING (used for RLE or LRE and RLO or LRO)
- ;; EMACS ANOMOLY --- Why does &pdf not show up in (describe-input-method 'farsi-transliterate-banan)
+ ;; EMACS ANOMALY --- Why does &pdf not show up in (describe-input-method 'farsi-transliterate-banan)
  ("&pdf;" ?\u202C)   ;; (ucs-insert #x202C)   named: پایانِ زیرمتن
  ("P" ?\u202C)
  ;; LEFT-TO-RIGHT OVERRIDE (overrides the bidirectional algorithm, display LTR)

@@ -408,7 +408,7 @@ functions in CJK locales.
 
 ---
 *** New input methods for the Urdu, Pashto, and Sindhi languages.
-These languages are spoken in Pakistan and Afganistan.
+These languages are spoken in Pakistan and Afghanistan.
 
 *** Additional 'C-x 8' key translations for "æ" and "Æ".
 These characters can now be input with 'C-x 8 a e' and 'C-x 8 A E',

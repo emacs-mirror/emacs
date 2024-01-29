@@ -84,7 +84,7 @@ int main()
 }
 =-=-=
 
-Name: Concecutive blocks (GNU Style) (bug#60873)
+Name: Consecutive blocks (GNU Style) (bug#60873)
 
 =-=
 int

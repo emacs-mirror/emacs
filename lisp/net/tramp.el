@@ -219,7 +219,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     set this to any value other than \"/bin/sh\": Tramp wants to
     use a shell which groks tilde expansion, but it can search
     for it.  Also note that \"/bin/sh\" exists on all Unixen
-    except Andtoid, this might not be true for the value that you
+    except Android, this might not be true for the value that you
     decide to use.  You Have Been Warned.
 
   * `tramp-remote-shell-login'
