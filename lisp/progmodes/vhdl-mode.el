@@ -14978,9 +14978,9 @@ otherwise use cached data."
   (vhdl-aput 'vhdl-directory-alist directory (list (list directory))))
 
 (defun vhdl-speedbar-insert-hierarchy ( ent-alist-arg conf-alist-arg
-                                        package-alist ent-inst-list depth)
-  "Insert hierarchy of ENT-ALIST-ARG, CONF-ALIST-ARG, and PACKAGE-ALIST."
-  (if (not (or ent-alist-arg conf-alist-arg package-alist))
+                                        pkg-alist ent-inst-list depth)
+  "Insert hierarchy of ENT-ALIST-ARG, CONF-ALIST-ARG, and PKG-ALIST."
+  (if (not (or ent-alist-arg conf-alist-arg pkg-alist))
       (vhdl-speedbar-make-title-line "No VHDL design units!" depth)
     (let ((ent-alist ent-alist-arg)
           (conf-alist conf-alist-arg)
@@ -15010,15 +15010,15 @@ otherwise use cached data."
 	 'vhdl-speedbar-configuration-face depth)
 	(setq conf-alist (cdr conf-alist)))
       ;; insert packages
-      (when package-alist (vhdl-speedbar-make-title-line "Packages:" depth))
-      (while package-alist
-	(setq pack-entry (car package-alist))
+      (when pkg-alist (vhdl-speedbar-make-title-line "Packages:" depth))
+      (while pkg-alist
+	(setq pack-entry (car pkg-alist))
 	(vhdl-speedbar-make-pack-line
 	 (nth 0 pack-entry) (nth 1 pack-entry)
 	 (cons (nth 2 pack-entry) (nth 3 pack-entry))
 	 (cons (nth 7 pack-entry) (nth 8 pack-entry))
 	 depth)
-	(setq package-alist (cdr package-alist))))))
+	(setq pkg-alist (cdr pkg-alist))))))
 
 (declare-function speedbar-line-directory "speedbar" (&optional depth))
 
