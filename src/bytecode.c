@@ -792,22 +792,19 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object original_fun = call_fun;
 	    if (SYMBOLP (call_fun))
 	      call_fun = XSYMBOL (call_fun)->u.s.function;
-	    Lisp_Object template;
-	    Lisp_Object bytecode;
-	    if (COMPILEDP (call_fun)
-		/* Lexical binding only.  */
-		&& (template = AREF (call_fun, COMPILED_ARGLIST),
-		    FIXNUMP (template))
-		/* No autoloads.  */
-		&& (bytecode = AREF (call_fun, COMPILED_BYTECODE),
-		    !CONSP (bytecode)))
+	    if (COMPILEDP (call_fun))
 	      {
-		fun = call_fun;
-		bytestr = bytecode;
-		args_template = XFIXNUM (template);
-		nargs = call_nargs;
-		args = call_args;
-		goto setup_frame;
+		Lisp_Object template = AREF (call_fun, COMPILED_ARGLIST);
+		if (FIXNUMP (template))
+		  {
+		    /* Fast path for lexbound functions.  */
+		    fun = call_fun;
+		    bytestr = AREF (call_fun, COMPILED_BYTECODE),
+		    args_template = XFIXNUM (template);
+		    nargs = call_nargs;
+		    args = call_args;
+		    goto setup_frame;
+		  }
 	      }
 
 	    Lisp_Object val;

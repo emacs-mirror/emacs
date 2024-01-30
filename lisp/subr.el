@@ -2023,6 +2023,8 @@ instead; it will indirectly limit the specpdl stack size as well.")
 
 (defvaralias 'native-comp-deferred-compilation 'native-comp-jit-compilation)
 
+(define-obsolete-function-alias 'fetch-bytecode #'ignore "30.1")
+
 
 ;;;; Alternate names for functions - these are not being phased out.
 

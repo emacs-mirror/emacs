@@ -231,17 +231,8 @@ This includes variable references and calls to functions such as `car'."
   :type 'boolean)
 
 (defvar byte-compile-dynamic nil
-  "If non-nil, compile function bodies so they load lazily.
-They are hidden in comments in the compiled file,
-and each one is brought into core when the
-function is called.
-
-To enable this option, make it a file-local variable
-in the source file you want it to apply to.
-For example, add  -*-byte-compile-dynamic: t;-*- on the first line.
-
-When this option is true, if you load the compiled file and then move it,
-the functions you loaded will not be able to run.")
+  "Formerly used to compile function bodies so they load lazily.
+This variable no longer has any effect.")
 (make-obsolete-variable 'byte-compile-dynamic "not worthwhile any more." "27.1")
 ;;;###autoload(put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 
@@ -1858,7 +1849,6 @@ It is too wide if it has any lines longer than the largest of
          ;;
          (byte-compile-verbose byte-compile-verbose)
          (byte-optimize byte-optimize)
-         (byte-compile-dynamic byte-compile-dynamic)
          (byte-compile-dynamic-docstrings
           byte-compile-dynamic-docstrings)
          (byte-compile-warnings byte-compile-warnings)
@@ -2428,8 +2418,7 @@ With argument ARG, insert value in current buffer after the form."
 (defun byte-compile-insert-header (_filename outbuffer)
   "Insert a header at the start of OUTBUFFER.
 Call from the source buffer."
-  (let ((dynamic byte-compile-dynamic)
-	(optimize byte-optimize))
+  (let ((optimize byte-optimize))
     (with-current-buffer outbuffer
       (goto-char (point-min))
       ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
@@ -2463,10 +2452,7 @@ Call from the source buffer."
 	((eq optimize 'byte) " byte-level optimization only")
 	(optimize " all optimizations")
 	(t "out optimization"))
-       ".\n"
-       (if dynamic ";;; Function definitions are lazy-loaded.\n"
-	 "")
-       "\n\n"))))
+       ".\n\n\n"))))
 
 (defun byte-compile-output-file-form (form)
   ;; Write the given form to the output buffer, being careful of docstrings
@@ -2487,7 +2473,7 @@ Call from the source buffer."
         (print-circle t))               ; Handle circular data structures.
     (if (memq (car-safe form) '(defvar defvaralias defconst
                                  autoload custom-declare-variable))
-        (byte-compile-output-docform nil nil nil '("\n(" ")") form nil 3 nil
+        (byte-compile-output-docform nil nil nil '("\n(" ")") form nil 3
                                      (memq (car form)
                                            '(defvaralias autoload
                                               custom-declare-variable)))
@@ -2498,15 +2484,11 @@ Call from the source buffer."
 (defvar byte-compile--for-effect)
 
 (defun byte-compile--output-docform-recurse
-    (info position form cvecindex docindex specindex quoted)
+    (info position form cvecindex docindex quoted)
   "Print a form with a doc string.  INFO is (prefix postfix).
 POSITION is where the next doc string is to be inserted.
 CVECINDEX is the index in the FORM of the constant vector, or nil.
 DOCINDEX is the index of the doc string (or nil) in the FORM.
-If SPECINDEX is non-nil, it is the index in FORM
-of the function bytecode string.  In that case,
-we output that argument and the following argument
-\(the constants vector) together, for lazy loading.
 QUOTED says that we have to put a quote before the
 list that represents a doc string reference.
 `defvaralias', `autoload' and `custom-declare-variable' need that.
@@ -2529,29 +2511,7 @@ Return the position after any inserted docstrings as comments."
     (while (setq form (cdr form))
       (setq index (1+ index))
       (insert " ")
-      (cond ((and (numberp specindex) (= index specindex)
-                  ;; Don't handle the definition dynamically
-                  ;; if it refers (or might refer)
-                  ;; to objects already output
-                  ;; (for instance, gensyms in the arg list).
-                  (let (non-nil)
-                    (when (hash-table-p print-number-table)
-                      (maphash (lambda (_k v) (if v (setq non-nil t)))
-                               print-number-table))
-                    (not non-nil)))
-             ;; Output the byte code and constants specially
-             ;; for lazy dynamic loading.
-             (goto-char position)
-             (let ((lazy-position (byte-compile-output-as-comment
-                                   (cons (car form) (nth 1 form))
-                                   t)))
-               (setq position (point))
-               (goto-char (point-max))
-               (princ (format "(#$ . %d) nil" lazy-position)
-                      byte-compile--outbuffer)
-               (setq form (cdr form))
-               (setq index (1+ index))))
-            ((eq index cvecindex)
+      (cond ((eq index cvecindex)
              (let* ((cvec (car form))
                     (len (length cvec))
                     (index2 0)
@@ -2564,7 +2524,7 @@ Return the position after any inserted docstrings as comments."
                            (byte-compile--output-docform-recurse
                             '("#[" "]") position
                             (append elt nil) ; Convert the vector to a list.
-                            2 4 specindex nil))
+                            2 4 nil))
                    (prin1 elt byte-compile--outbuffer))
                  (setq index2 (1+ index2))
                  (unless (eq index2 len)
@@ -2590,16 +2550,12 @@ Return the position after any inserted docstrings as comments."
 
 (defun byte-compile-output-docform (preface tailpiece name info form
                                             cvecindex docindex
-                                            specindex quoted)
+                                            quoted)
   "Print a form with a doc string.  INFO is (prefix postfix).
 If PREFACE, NAME, and TAILPIECE are non-nil, print them too,
 before/after INFO and the FORM but after the doc string itself.
 CVECINDEX is the index in the FORM of the constant vector, or nil.
 DOCINDEX is the index of the doc string (or nil) in the FORM.
-If SPECINDEX is non-nil, it is the index in FORM
-of the function bytecode string.  In that case,
-we output that argument and the following argument
-\(the constants vector) together, for lazy loading.
 QUOTED says that we have to put a quote before the
 list that represents a doc string reference.
 `defvaralias', `autoload' and `custom-declare-variable' need that."
@@ -2627,7 +2583,7 @@ list that represents a doc string reference.
           (insert preface)
           (prin1 name byte-compile--outbuffer))
         (byte-compile--output-docform-recurse
-         info position form cvecindex docindex specindex quoted)
+         info position form cvecindex docindex quoted)
         (when tailpiece
           (insert tailpiece))))))
 
@@ -2971,7 +2927,6 @@ not to take responsibility for the actual compilation of the code."
            (if macro '(" '(macro . #[" "])") '(" #[" "]"))
            (append code nil)          ; Turn byte-code-function-p into list.
            2 4
-           (and (atom code) byte-compile-dynamic 1)
            nil)
           t)))))
 
@@ -3810,7 +3765,6 @@ lambda-expression."
          (alen (length (cdr form)))
          (dynbinds ())
          lap)
-    (fetch-bytecode fun)
     (setq lap (byte-decompile-bytecode-1 (aref fun 1) (aref fun 2) t))
     ;; optimized switch bytecode makes it impossible to guess the correct
     ;; `byte-compile-depth', which can result in incorrect inlined code.

@@ -1846,6 +1846,13 @@ The declaration '(important-return-value t)' sets the
 'important-return-value' property which indicates that the function
 return value should probably not be thrown away implicitly.
 
+** Bytecode is now always loaded eagerly.
+Bytecode compiled with older Emacs versions for lazy loading using
+'byte-compile-dynamic' is now loaded all at once.
+As a consequence, 'fetch-bytecode' has no use, does nothing, and is
+now obsolete.  The variable 'byte-compile-dynamic' has no effect any
+more; compilation will always yield bytecode for eager loading.
+
 +++
 ** New functions 'file-user-uid' and 'file-group-gid'.
 These functions are like 'user-uid' and 'group-gid', respectively, but
