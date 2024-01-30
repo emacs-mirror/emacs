@@ -80,7 +80,9 @@
   (error "inline-const-p can only be used within define-inline"))
 
 (defmacro inline-const-val (_exp)
-  "Return the value of EXP."
+  "Return the value of EXP.
+During inlining, if the value of EXP is not yet known, this aborts the
+inlining and makes us revert to a non-inlined function call."
   (declare (debug t))
   (error "inline-const-val can only be used within define-inline"))
 
