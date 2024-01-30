@@ -858,54 +858,35 @@ external command."
 	    pcomplete-last-completion-raw t)
       (throw 'pcomplete-completions (pcomplete-read-host-names)))))
 
-(defvar block-size)
-(defvar by-bytes)
-(defvar dereference-links)
-(defvar grand-total)
-(defvar human-readable)
-(defvar max-depth)
-(defvar only-one-filesystem)
-(defvar show-all)
-
-(defsubst eshell-du-size-string (size)
-  (let* ((str (eshell-printable-size size human-readable block-size t))
-	 (len (length str)))
-    (concat str (if (< len 8)
-		    (make-string (- 8 len) ? )))))
-
-(defun eshell-du-sum-directory (path depth)
+(cl-defun eshell-du-sum-directory (path depth-remaining &rest args
+                                   &key print-function show-all
+                                   dereference-links only-one-filesystem)
   "Summarize PATH, and its member directories."
-  (let ((entries (eshell-directory-files-and-attributes path))
-	(size 0.0))
-    (while entries
-      (unless (string-match "\\`\\.\\.?\\'" (caar entries))
-	(let* ((entry (concat path "/"
-			      (caar entries)))
-	       (symlink (and (stringp (file-attribute-type (cdar entries)))
-			     (file-attribute-type (cdar entries)))))
+  (let ((size 0.0))
+    (dolist (entry (eshell-directory-files-and-attributes path))
+      (unless (string-match "\\`\\.\\.?\\'" (car entry))
+        (let* ((file-name (concat path "/" (car entry)))
+               (file-type (file-attribute-type (cdr entry)))
+               (symlink (and (stringp file-type) file-type)))
 	  (unless (or (and symlink (not dereference-links))
 		      (and only-one-filesystem
 			   (/= only-one-filesystem
-			       (file-attribute-device-number (cdar entries)))))
-	    (if symlink
-		(setq entry symlink))
+                               (file-attribute-device-number (cdr entry)))))
+            (when symlink
+              (setq file-name symlink))
 	    (setq size
 		  (+ size
-		     (if (eq t (car (cdar entries)))
-			 (eshell-du-sum-directory entry (1+ depth))
-		       (let ((file-size (file-attribute-size (cdar entries))))
-			 (prog1
-			     file-size
-			   (if show-all
-			       (eshell-print
-				(concat (eshell-du-size-string file-size)
-					entry "\n")))))))))))
-      (setq entries (cdr entries)))
-    (if (or (not max-depth)
-	    (= depth max-depth)
-	    (= depth 0))
-	(eshell-print (concat (eshell-du-size-string size)
-			      (directory-file-name path) "\n")))
+                     (if (eq file-type t) ; This is a directory.
+                         (apply #'eshell-du-sum-directory file-name
+                                (when depth-remaining (1- depth-remaining))
+                                args)
+		       (let ((file-size (file-attribute-size (cdr entry))))
+                         (when show-all
+                           (funcall print-function file-size file-name))
+                         file-size))))))))
+    (when (or (not depth-remaining)
+              (natnump depth-remaining))
+      (funcall print-function size (directory-file-name path)))
     size))
 
 (defun eshell/du (&rest args)
@@ -917,7 +898,7 @@ external command."
            "write counts for all files, not just directories")
        (nil "block-size" t block-size
             "use SIZE-byte blocks (i.e., --block-size SIZE)")
-       (?b "bytes" nil by-bytes
+       (?b "bytes" 1 block-size
            "print size in bytes")
        (?c "total" nil grand-total
            "produce a grand total")
@@ -948,8 +929,7 @@ Summarize disk usage of each FILE, recursively for directories.")
                         args)))
                  (ext-du (eshell-search-path "du")))
        (throw 'eshell-external (eshell-external-command ext-du original-args)))
-     (unless by-bytes
-       (setq block-size (or block-size 1024)))
+     (setq block-size (or block-size 1024))
      (when (stringp block-size)
        (setq block-size (string-to-number block-size)))
      (when (stringp max-depth)
@@ -957,17 +937,24 @@ Summarize disk usage of each FILE, recursively for directories.")
      ;; Filesystem support means nothing under MS-Windows.
      (when (eshell-under-windows-p)
        (setq only-one-filesystem nil))
-     (let ((size 0.0))
+     (let ((size 0.0)
+           (print-function
+            (lambda (size name)
+              (let ((size-str (eshell-printable-size size human-readable
+                                                     block-size t)))
+                (eshell-print (concat (string-pad size-str 8) name "\n"))))))
        (dolist (arg (or args '(".")))
          (when only-one-filesystem
            (setq only-one-filesystem
                  (file-attribute-device-number
                   (eshell-file-attributes (file-name-as-directory arg)))))
          (setq size (+ size (eshell-du-sum-directory
-                             (directory-file-name arg) 0))))
-       (if grand-total
-           (eshell-print (concat (eshell-du-size-string size)
-                                 "total\n")))))))
+                             (directory-file-name arg) max-depth
+                             :print-function print-function :show-all show-all
+                             :dereference-links dereference-links
+                             :only-one-filesystem only-one-filesystem))))
+       (when grand-total
+         (funcall print-function size "total"))))))
 
 (put 'eshell/du 'eshell-filename-arguments t)
 
