@@ -940,7 +940,7 @@ external command."
 	     "display data only this many levels of data")
 	 (?h "human-readable" 1024 human-readable
 	     "print sizes in human readable format")
-	 (?H "is" 1000 human-readable
+	 (?H "si" 1000 human-readable
 	     "likewise, but use powers of 1000 not 1024")
 	 (?k "kilobytes" 1024 block-size
 	     "like --block-size 1024")
