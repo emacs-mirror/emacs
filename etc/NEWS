@@ -1370,6 +1370,16 @@ files and save the changes.
 
 * Incompatible Lisp Changes in Emacs 30.1
 
+---
+** Old 'derived.el' functions removed.
+The following functions have been deleted because they were only used
+by code compiled with Emacs<21:
+'derived-mode-setup-function-name', 'derived-mode-init-mode-variables',
+'derived-mode-set-keymap', 'derived-mode-set-syntax-table',
+'derived-mode-set-abbrev-table', 'derived-mode-run-hooks',
+'derived-mode-merge-keymaps', 'derived-mode-merge-syntax-tables',
+'derived-mode-merge-abbrev-tables'.
+
 +++
 ** 'M-TAB' now invokes 'completion-at-point' also in Text mode.
 By default, Text mode no longer binds 'M-TAB' to
