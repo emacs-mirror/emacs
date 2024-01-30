@@ -825,8 +825,8 @@ for the last released version of the package."
   (interactive
    (let* ((name (package-vc--read-package-name "Fetch package source: ")))
      (list (cadr (assoc name package-archive-contents #'string=))
-           (read-file-name "Clone into new or empty directory: " nil nil t nil
-                           (lambda (dir) (or (not (file-exists-p dir))
+           (read-directory-name "Clone into new or empty directory: " nil nil
+                                (lambda (dir) (or (not (file-exists-p dir))
                                              (directory-empty-p dir))))
            (and current-prefix-arg :last-release))))
   (setf directory (expand-file-name directory))
