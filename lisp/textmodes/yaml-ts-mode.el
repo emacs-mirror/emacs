@@ -128,7 +128,7 @@ boundaries.  JUSTIFY is passed to `fill-paragraph'."
   (save-restriction
     (widen)
     (let ((node (treesit-node-at (point))))
-      (when (string= "block_scalar" (treesit-node-type node))
+      (if (member (treesit-node-type node) '("block_scalar" "comment"))
         (let* ((start (treesit-node-start node))
                (end (treesit-node-end node))
                (start-marker (point-marker))
@@ -138,7 +138,8 @@ boundaries.  JUSTIFY is passed to `fill-paragraph'."
             (forward-line)
             (move-marker start-marker (point))
             (narrow-to-region (point) end))
-          (fill-region start-marker end justify))))))
+          (fill-region start-marker end justify))
+        t))))
 
 ;;;###autoload
 (define-derived-mode yaml-ts-mode text-mode "YAML"
