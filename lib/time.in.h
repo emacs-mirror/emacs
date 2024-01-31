@@ -154,11 +154,21 @@ _GL_WARN_ON_USE (timespec_get, "timespec_get is unportable - "
 /* Set *TS to the current time resolution, and return BASE.
    Upon failure, return 0.  */
 # if @GNULIB_TIMESPEC_GETRES@
-#  if ! @HAVE_TIMESPEC_GETRES@
+#  if @REPLACE_TIMESPEC_GETRES@
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef timespec_getres
+#    define timespec_getres rpl_timespec_getres
+#   endif
+_GL_FUNCDECL_RPL (timespec_getres, int, (struct timespec *ts, int base)
+                                        _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (timespec_getres, int, (struct timespec *ts, int base));
+#  else
+#   if !@HAVE_TIMESPEC_GETRES@
 _GL_FUNCDECL_SYS (timespec_getres, int, (struct timespec *ts, int base)
                                         _GL_ARG_NONNULL ((1)));
-#  endif
+#   endif
 _GL_CXXALIAS_SYS (timespec_getres, int, (struct timespec *ts, int base));
+#  endif
 _GL_CXXALIASWARN (timespec_getres);
 # elif defined GNULIB_POSIXCHECK
 #  undef timespec_getres

@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 90
+# gnulib-common.m4 serial 91
 dnl Copyright (C) 2007-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -79,7 +79,7 @@ AC_DEFUN([gl_COMMON_BODY], [
 #if (defined __has_attribute \
      && (!defined __clang_minor__ \
          || (defined __apple_build_version__ \
-             ? 6000000 <= __apple_build_version__ \
+             ? 7000000 <= __apple_build_version__ \
              : 5 <= __clang_major__)))
 # define _GL_HAS_ATTRIBUTE(attr) __has_attribute (__##attr##__)
 #else
