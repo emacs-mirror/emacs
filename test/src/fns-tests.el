@@ -1097,6 +1097,16 @@
   (should (= (sxhash-equal (record 'a (make-string 10 ?a)))
 	     (sxhash-equal (record 'a (make-string 10 ?a))))))
 
+(ert-deftest fns--define-hash-table-test ()
+  ;; Check that we can have two differently-named tests using the
+  ;; same functions (bug#68668).
+  (define-hash-table-test 'fns-tests--1 'my-cmp 'my-hash)
+  (define-hash-table-test 'fns-tests--2 'my-cmp 'my-hash)
+  (let ((h1 (make-hash-table :test 'fns-tests--1))
+        (h2 (make-hash-table :test 'fns-tests--2)))
+    (should (eq (hash-table-test h1) 'fns-tests--1))
+    (should (eq (hash-table-test h2) 'fns-tests--2))))
+
 (ert-deftest test-secure-hash ()
   (should (equal (secure-hash 'md5    "foobar")
                  "3858f62230ac3c915f300c664312c63f"))

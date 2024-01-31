@@ -5374,6 +5374,8 @@ mark_fns (void)
     }
 }
 
+/* Find the hash_table_test object correponding to the (bare) symbol TEST,
+   creating one if none existed.  */
 static struct hash_table_test *
 get_hash_table_user_test (Lisp_Object test)
 {
@@ -5384,7 +5386,8 @@ get_hash_table_user_test (Lisp_Object test)
   Lisp_Object equal_fn = XCAR (prop);
   Lisp_Object hash_fn = XCAR (XCDR (prop));
   struct hash_table_user_test *ut = hash_table_user_tests;
-  while (ut && !(EQ (equal_fn, ut->test.user_cmp_function)
+  while (ut && !(BASE_EQ (test, ut->test.name)
+		 && EQ (equal_fn, ut->test.user_cmp_function)
 		 && EQ (hash_fn, ut->test.user_hash_function)))
     ut = ut->next;
   if (!ut)
