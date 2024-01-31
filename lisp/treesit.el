@@ -655,37 +655,47 @@ those inside are kept."
            if (<= start (car range) (cdr range) end)
            collect range))
 
-(defun treesit-local-parsers-at (&optional pos language)
+(defun treesit-local-parsers-at (&optional pos language with-host)
   "Return all the local parsers at POS.
 
 POS defaults to point.
 Local parsers are those which only parse a limited region marked
 by an overlay with non-nil `treesit-parser' property.
-If LANGUAGE is non-nil, only return parsers for LANGUAGE."
+If LANGUAGE is non-nil, only return parsers for LANGUAGE.
+
+If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
+instead.  HOST-PARSER is the host parser which created the local
+PARSER."
   (let ((res nil))
     (dolist (ov (overlays-at (or pos (point))))
-      (when-let ((parser (overlay-get ov 'treesit-parser)))
+      (when-let ((parser (overlay-get ov 'treesit-parser))
+                 (host-parser (overlay-get ov 'treesit-host-parser)))
         (when (or (null language)
                   (eq (treesit-parser-language parser)
                       language))
-          (push parser res))))
+          (push (if with-host (cons parser host-parser) parser) res))))
     (nreverse res)))
 
-(defun treesit-local-parsers-on (&optional beg end language)
+(defun treesit-local-parsers-on (&optional beg end language with-host)
   "Return all the local parsers between BEG END.
 
 BEG and END default to the beginning and end of the buffer's
 accessible portion.
 Local parsers are those which have an `embedded' tag, and only parse
 a limited region marked by an overlay with a non-nil `treesit-parser'
-property.  If LANGUAGE is non-nil, only return parsers for LANGUAGE."
+property.  If LANGUAGE is non-nil, only return parsers for LANGUAGE.
+
+If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
+instead.  HOST-PARSER is the host parser which created the local
+PARSER."
   (let ((res nil))
     (dolist (ov (overlays-in (or beg (point-min)) (or end (point-max))))
-      (when-let ((parser (overlay-get ov 'treesit-parser)))
+      (when-let ((parser (overlay-get ov 'treesit-parser))
+                 (host-parser (overlay-get ov 'treesit-host-parser)))
         (when (or (null language)
                   (eq (treesit-parser-language parser)
                       language))
-          (push parser res))))
+          (push (if with-host (cons parser host-parser) parser) res))))
     (nreverse res)))
 
 (defun treesit--update-ranges-local
@@ -701,7 +711,8 @@ parser for EMBEDDED-LANG."
         (treesit-parser-delete parser))))
   ;; Update range.
   (let* ((host-lang (treesit-query-language query))
-         (ranges (treesit-query-range host-lang query beg end)))
+         (host-parser (treesit-parser-create host-lang))
+         (ranges (treesit-query-range host-parser query beg end)))
     (pcase-dolist (`(,beg . ,end) ranges)
       (let ((has-parser nil))
         (dolist (ov (overlays-in beg end))
@@ -719,6 +730,7 @@ parser for EMBEDDED-LANG."
                                   embedded-lang nil t 'embedded))
                 (ov (make-overlay beg end nil nil t)))
             (overlay-put ov 'treesit-parser embedded-parser)
+            (overlay-put ov 'treesit-host-parser host-parser)
             (treesit-parser-set-included-ranges
              embedded-parser `((,beg . ,end)))))))))
 
@@ -1800,11 +1812,17 @@ Return (ANCHOR . OFFSET).  This function is used by
                 (forward-line 0)
                 (skip-chars-forward " \t")
                 (point)))
-         (local-parsers (treesit-local-parsers-at bol))
+         (local-parsers (treesit-local-parsers-at bol nil t))
          (smallest-node
-          (cond ((null (treesit-parser-list)) nil)
-                (local-parsers (treesit-node-at
-                                bol (car local-parsers)))
+          (cond ((car local-parsers)
+                 (let ((local-parser (caar local-parsers))
+                       (host-parser (cdar local-parsers)))
+                   (if (eq (treesit-node-start
+                            (treesit-parser-root-node local-parser))
+                           bol)
+                       (treesit-node-at bol host-parser)
+                     (treesit-node-at bol local-parser))))
+                ((null (treesit-parser-list)) nil)
                 ((eq 1 (length (treesit-parser-list nil nil t)))
                  (treesit-node-at bol))
                 ((treesit-language-at bol)
