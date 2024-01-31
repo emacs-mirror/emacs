@@ -2697,7 +2697,7 @@ if test "${HAVE_X11}" = "yes"; then
 
   if test "${opsys}" = "gnu-linux"; then
     AC_CACHE_CHECK([whether X on GNU/Linux needs -b to link], [emacs_cv_b_link],
-    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <X11/Xlib.h>]],
      [[XOpenDisplay ("foo");]])],
      [xgnu_linux_first_failure=no],
      [xgnu_linux_first_failure=yes])
@@ -2706,7 +2706,7 @@ if test "${HAVE_X11}" = "yes"; then
       OLD_LIBS="$LIBS"
       CPPFLAGS="$CPPFLAGS -b i486-linuxaout"
       LIBS="$LIBS -b i486-linuxaout"
-      AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <X11/Xlib.h>]],
        [[XOpenDisplay ("foo");]])],
        [xgnu_linux_second_failure=no],
        [xgnu_linux_second_failure=yes])
