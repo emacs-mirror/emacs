@@ -184,7 +184,7 @@ from entering them and instead jump over them."
    (add-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
    (add-hook 'erc--pre-clear-functions #'erc-stamp--reset-on-clear 40)
    (unless erc--updating-modules-p (erc-buffer-do #'erc-stamp--setup)))
-  ((remove-hook 'erc-mode-hook #'erc-munge-invisibility-spec)
+  ((remove-hook 'erc-mode-hook #'erc-stamp--setup)
    (remove-hook 'erc-insert-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-send-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
@@ -198,6 +198,7 @@ from entering them and instead jump over them."
   "Escape hatch for omitting stamps when first char is invisible.")
 
 (defun erc-stamp--recover-on-reconnect ()
+  "Attempt to restore \"last-inserted\" snapshots from prior session."
   (when-let ((priors (or erc--server-reconnecting erc--target-priors)))
     (dolist (var '(erc-timestamp-last-inserted
                    erc-timestamp-last-inserted-left
@@ -854,12 +855,20 @@ Return the empty string if FORMAT is nil."
 
 (defvar-local erc-stamp--csf-props-updated-p nil)
 
-;; This function is used to munge `buffer-invisibility-spec' to an
-;; appropriate value. Currently, it only handles timestamps, thus its
-;; location.  If you add other features which affect invisibility,
-;; please modify this function and move it to a more appropriate
-;; location.
-(defun erc-munge-invisibility-spec ()
+(define-obsolete-function-alias 'erc-munge-invisibility-spec
+  #'erc-stamp--manage-local-options-state "30.1"
+  "Perform setup and teardown of `stamp'-owned options.
+
+Note that this function's role in practice has long defied its
+stated mandate as claimed in a now deleted comment, which
+envisioned it as evolving into a central toggle for modifying
+`buffer-invisibility-spec' on behalf of options and features
+ERC-wide.")
+(defun erc-stamp--manage-local-options-state ()
+  "Perform local setup and teardown for `stamp'-owned options.
+For `erc-timestamp-intangible', toggle `cursor-intangible-mode'.
+For `erc-echo-timestamps', integrate with `cursor-sensor-mode'.
+For `erc-hide-timestamps, modify `buffer-invisibility-spec'."
   (if erc-timestamp-intangible
       (cursor-intangible-mode +1) ; idempotent
     (when (bound-and-true-p cursor-intangible-mode)
@@ -869,10 +878,12 @@ Return the empty string if FORMAT is nil."
         (unless erc-stamp--permanent-cursor-sensor-functions
           (dolist (hook '(erc-insert-post-hook erc-send-post-hook))
             (add-hook hook #'erc-stamp--add-csf-on-post-modify nil t))
-          (erc--restore-initialize-priors erc-stamp-mode
-            erc-stamp--csf-props-updated-p nil)
+          (setq erc-stamp--csf-props-updated-p
+                (alist-get 'erc-stamp--csf-props-updated-p
+                           (or erc--server-reconnecting erc--target-priors)))
           (unless erc-stamp--csf-props-updated-p
             (setq erc-stamp--csf-props-updated-p t)
+            ;; Spoof `erc--ts' as being non-nil.
             (let ((erc--msg-props (map-into '((erc--ts . t)) 'hash-table)))
               (with-silent-modifications
                 (erc--traverse-inserted
@@ -902,9 +913,9 @@ Return the empty string if FORMAT is nil."
 (defun erc-stamp--setup ()
   "Enable or disable buffer-local `erc-stamp-mode' modifications."
   (if erc-stamp-mode
-      (erc-munge-invisibility-spec)
+      (erc-stamp--manage-local-options-state)
     (let (erc-echo-timestamps erc-hide-timestamps erc-timestamp-intangible)
-      (erc-munge-invisibility-spec))
+      (erc-stamp--manage-local-options-state))
     ;; Undo local mods from `erc-insert-timestamp-left-and-right'.
     (erc-stamp--date-mode -1) ; kills `erc-timestamp-last-inserted-left'
     (kill-local-variable 'erc-stamp--last-stamp)
@@ -916,7 +927,7 @@ Return the empty string if FORMAT is nil."
   "Hide timestamp information from display."
   (interactive)
   (setq erc-hide-timestamps t)
-  (erc-munge-invisibility-spec))
+  (erc-stamp--manage-local-options-state))
 
 (defun erc-show-timestamps ()
   "Show timestamp information on display.
@@ -924,7 +935,7 @@ This function only works if `erc-timestamp-format' was previously
 set, and timestamping is already active."
   (interactive)
   (setq erc-hide-timestamps nil)
-  (erc-munge-invisibility-spec))
+  (erc-stamp--manage-local-options-state))
 
 (defun erc-toggle-timestamps ()
   "Hide or show timestamps in ERC buffers.
@@ -938,7 +949,7 @@ enabled when the message was inserted."
     (setq erc-hide-timestamps t))
   (mapc (lambda (buffer)
 	  (with-current-buffer buffer
-	    (erc-munge-invisibility-spec)))
+            (erc-stamp--manage-local-options-state)))
 	(erc-buffer-list)))
 
 (defvar-local erc-stamp--last-stamp nil)

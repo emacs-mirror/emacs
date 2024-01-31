@@ -302,6 +302,7 @@
                                (cl-incf counter))))
          erc-accidental-paste-threshold-seconds
          erc-insert-modify-hook
+         (erc-last-input-time 0)
          (erc-modules (remq 'stamp erc-modules))
          (erc-send-input-line-function #'ignore)
          (erc--input-review-functions erc--input-review-functions)
@@ -1189,12 +1190,16 @@
       (should (erc--valid-local-channel-p "&local")))))
 
 (ert-deftest erc--restore-initialize-priors ()
+  (unless (>= emacs-major-version 28)
+    (ert-skip "Lisp nesting exceeds `max-lisp-eval-depth'"))
   (should (pcase (macroexpand-1 '(erc--restore-initialize-priors erc-my-mode
                                    foo (ignore 1 2 3)
                                    bar #'spam
                                    baz nil))
             (`(let* ((,p (or erc--server-reconnecting erc--target-priors))
                      (,q (and ,p (alist-get 'erc-my-mode ,p))))
+                (unless (local-variable-if-set-p 'erc-my-mode)
+                  (error "Not a local minor mode var: %s" 'erc-my-mode))
                 (setq foo (if ,q (alist-get 'foo ,p) (ignore 1 2 3))
                       bar (if ,q (alist-get 'bar ,p) #'spam)
                       baz (if ,q (alist-get 'baz ,p) nil)))

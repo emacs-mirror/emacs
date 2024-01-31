@@ -1531,7 +1531,7 @@ Bound to local variables from an existing (logical) session's
 buffer during local-module setup and `erc-mode-hook' activation.")
 
 (defmacro erc--restore-initialize-priors (mode &rest vars)
-  "Restore local VARS for MODE from a previous session."
+  "Restore local VARS for local minor MODE from a previous session."
   (declare (indent 1))
   (let ((priors (make-symbol "priors"))
         (initp (make-symbol "initp"))
@@ -1541,6 +1541,8 @@ buffer during local-module setup and `erc-mode-hook' activation.")
       (push `(,k (if ,initp (alist-get ',k ,priors) ,(pop vars))) forms))
     `(let* ((,priors (or erc--server-reconnecting erc--target-priors))
             (,initp (and ,priors (alist-get ',mode ,priors))))
+       (unless (local-variable-if-set-p ',mode)
+         (error "Not a local minor mode var: %s" ',mode))
        (setq ,@(mapcan #'identity (nreverse forms))))))
 
 (defun erc--target-from-string (string)

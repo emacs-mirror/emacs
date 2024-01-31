@@ -151,6 +151,7 @@
       (erc-autojoin-channels-alist nil)
       (erc-server-auto-reconnect nil)
       (erc-after-connect nil)
+      (erc-last-input-time 0)
       (erc-d-linger-secs 10)
       ,@bindings)))
 

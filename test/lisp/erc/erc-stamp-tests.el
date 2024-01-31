@@ -46,7 +46,7 @@
 
     (with-current-buffer (get-buffer-create "*erc-stamp-tests--insert-right*")
       (erc-mode)
-      (erc-munge-invisibility-spec)
+      (erc-stamp--manage-local-options-state)
       (erc--initialize-markers (point) nil)
       (erc-tests-common-init-server-proc "sleep" "1")
 
@@ -235,7 +235,7 @@
     (with-current-buffer (get-buffer-create "*erc-timestamp-intangible*")
       (erc-mode)
       (erc--initialize-markers (point) nil)
-      (erc-munge-invisibility-spec)
+      (erc-stamp--manage-local-options-state)
       (erc-display-message nil 'notice (current-buffer) "Welcome")
       ;;
       ;; Pretend `fill' is active and that these lines are

@@ -435,9 +435,12 @@ contains unique closures and thus no longer proves effective for
 traversing inserted messages.  For now, ERC only provides an internal
 means of visiting messages, but a public interface is forthcoming.
 Also affecting the 'stamp' module is the deprecation of the function
-'erc-insert-aligned' and its removal from client code.  Additionally,
-the module now merges its 'invisible' property with existing ones and
-includes all white space around stamps when doing so.
+'erc-insert-aligned' and its removal from the default client's code.
+In the same library, the function 'erc-munge-invisibility-spec' has
+been renamed to 'erc-stamp--manage-local-options-state' to better
+reflect its purpose.  Additionally, the module now merges its
+'invisible' property with existing ones and includes all white space
+around stamps when doing so.
 
 This "propertizing" of surrounding white space extends to all
 'stamp'-applied properties, like 'field', in all intervening space
