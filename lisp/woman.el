@@ -2566,7 +2566,8 @@ If DELETE is non-nil then delete from point."
 		       ;; "\\(\\\\{\\)\\|\\(\n[.']\\)?[ \t]*\\\\}[ \t]*"
 		       ;; Interpret bogus `el \}' as `el \{',
 		       ;; especially for Tcl/Tk man pages:
-		       "\\(\\\\{\\|el[ \t]*\\\\}\\)\\|\\(\n[.']\\)?[ \t]*\\\\}[ \t]*")
+		       "\\(\\\\{\\|el[ \t]*\\\\}\\)\\|\\(\n[.']\\)?[ \t]*\\\\}[ \t]*"
+                       nil t)
 		      (match-beginning 1))
 	       (re-search-forward "\\\\}"))
 	     (delete-region (if delete from (match-beginning 0)) (point))
