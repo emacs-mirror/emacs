@@ -126,7 +126,7 @@
     (erc-d-t-wait-for 10 (get-buffer "foonet"))
 
     (ert-info ("Channel buffer #foo playback received")
-      (with-current-buffer (erc-d-t-wait-for 3 (get-buffer "#foo"))
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#foo"))
         (funcall expect 10 "Excellent workman")))
 
     (ert-info ("Global notices routed to server buffer")

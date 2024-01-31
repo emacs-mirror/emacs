@@ -1761,4 +1761,50 @@
       (should (equal (erc-ports-list (nth 4 srv))
                      '(6697 9999))))))
 
+(ert-deftest erc-networks--examine-targets ()
+  (with-current-buffer (erc-tests-common-make-server-buf "foonet")
+    (erc--open-target "#chan")
+    (erc--open-target "#spam"))
+
+  (with-current-buffer (erc-tests-common-make-server-buf "barnet")
+    (with-current-buffer (erc--open-target "*query")
+      (setq erc-networks--id nil))
+    (with-current-buffer (erc--open-target "#chan")
+      (let ((calls ())
+            (snap (lambda (parameter)
+                    (list parameter
+                          (erc-target)
+                          (erc-networks--id-symbol erc-networks--id)))))
+
+        ;; Search for "#chan" dupes among targets of all servers.
+        (should (equal
+                 (erc-networks--examine-targets erc-networks--id erc--target
+                   (lambda () (push (funcall snap 'ON-DUPE) calls))
+                   (lambda () (push (funcall snap 'ON-COLL) calls)))
+                 (list (get-buffer "#chan@foonet")
+                       (get-buffer "#chan@barnet"))))
+
+        (should (equal (pop calls) '(ON-DUPE "#chan" barnet)))
+        (should (equal (pop calls) '(ON-COLL "#chan" foonet)))
+        (should-not calls)
+        (should-not (get-buffer "#chan"))
+        (should (get-buffer "#chan@barnet"))
+        (should (get-buffer "#chan@foonet"))
+
+        ;; Search for "*query" dupes among targets of all servers.
+        (should (equal (erc-networks--examine-targets erc-networks--id
+                           (buffer-local-value 'erc--target
+                                               (get-buffer "*query"))
+                         (lambda () (push (funcall snap 'ON-DUPE) calls))
+                         (lambda () (push (funcall snap 'ON-COLL) calls)))
+                       (list (get-buffer "*query"))))
+
+        (should (equal (pop calls) '(ON-DUPE "*query" barnet)))
+        (should-not calls)))
+
+    (goto-char (point-min))
+    (should (search-forward "Missing network session" nil t)))
+
+  (erc-tests-common-kill-buffers))
+
 ;;; erc-networks-tests.el ends here

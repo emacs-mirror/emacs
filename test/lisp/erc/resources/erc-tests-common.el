@@ -122,7 +122,7 @@ Use NAME for the network and the session server as well."
           erc--isupport-params (make-hash-table)
           erc-session-port 6667
           erc-network (intern name)
-          erc-networks--id (erc-networks--id-create nil))
+          erc-networks--id (erc-networks--id-create name))
     (current-buffer)))
 
 (defun erc-tests-common-string-to-propertized-parts (string)

@@ -1123,10 +1123,27 @@ TARGET to be an `erc--target' object."
      (lambda ()
        (when (and erc--target (eq (erc--target-symbol erc--target)
                                   (erc--target-symbol target)))
-         (let ((oursp (if (erc--target-channel-local-p target)
-                          (equal announced erc-server-announced-name)
-                        (erc-networks--id-equal-p identity erc-networks--id))))
-           (funcall (if oursp on-dupe on-collision))))))))
+         ;; When a server sends administrative queries immediately
+         ;; after connection registration and before the session has a
+         ;; net-id, the buffer remains orphaned until reassociated
+         ;; here retroactively.
+         (unless erc-networks--id
+           (let ((id (erc-with-server-buffer erc-networks--id))
+                 (server-buffer (process-buffer erc-server-process)))
+             (apply #'erc-button--display-error-notice-with-keys
+                    server-buffer
+                    (concat "Missing network session (ID) for %S. "
+                            (if id "Using `%S' from %S." "Ignoring."))
+                    (current-buffer)
+                    (and id (list (erc-networks--id-symbol
+                                   (setq erc-networks--id id))
+                                  server-buffer)))))
+         (when erc-networks--id
+           (let ((oursp (if (erc--target-channel-local-p target)
+                            (equal announced erc-server-announced-name)
+                          (erc-networks--id-equal-p identity
+                                                    erc-networks--id))))
+             (funcall (if oursp on-dupe on-collision)))))))))
 
 (defconst erc-networks--qualified-sep "@"
   "Separator used for naming a target buffer.")
