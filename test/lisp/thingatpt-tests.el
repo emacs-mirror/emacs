@@ -92,6 +92,8 @@
     ("1@example.com" 1 email "1@example.com")
     ;; email addresses user portion containing dots
     ("foo.bar@example.com" 1 email "foo.bar@example.com")
+    ("foo.bar@example.com" 5 email "foo.bar@example.com")
+    ("  fo.ba@example.com" 6 email "fo.ba@example.com")
     (".foobar@example.com" 1 email nil)
     (".foobar@example.com" 2 email "foobar@example.com")
     ;; email addresses domain portion containing dots and dashes

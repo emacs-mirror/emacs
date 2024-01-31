@@ -619,36 +619,19 @@ point.
 
 Optional argument DISTANCE limits search for REGEXP forward and
 back from point."
-  (save-excursion
-    (let ((old-point (point))
-	  (forward-bound (and distance (+ (point) distance)))
-	  (backward-bound (and distance (- (point) distance)))
-	  match prev-pos new-pos)
-      (and (looking-at regexp)
-	   (>= (match-end 0) old-point)
-	   (setq match (point)))
-      ;; Search back repeatedly from end of next match.
-      ;; This may fail if next match ends before this match does.
-      (re-search-forward regexp forward-bound 'limit)
-      (setq prev-pos (point))
-      (while (and (setq new-pos (re-search-backward regexp backward-bound t))
-                  ;; Avoid inflooping with some regexps, such as "^",
-                  ;; matching which never moves point.
-                  (< new-pos prev-pos)
-		  (or (> (match-beginning 0) old-point)
-		      (and (looking-at regexp)	; Extend match-end past search start
-			   (>= (match-end 0) old-point)
-			   (setq match (point))))))
-      (if (not match) nil
-	(goto-char match)
-	;; Back up a char at a time in case search skipped
-	;; intermediate match straddling search start pos.
-	(while (and (not (bobp))
-		    (progn (backward-char 1) (looking-at regexp))
-		    (>= (match-end 0) old-point)
-		    (setq match (point))))
-	(goto-char match)
-	(looking-at regexp)))))
+  (let* ((old (point))
+         (beg (if distance (max (point-min) (- old distance)) (point-min)))
+         (end (and distance (min (point-max) (+ old distance))))
+         prev match)
+    (save-excursion
+      (goto-char beg)
+      (while (and (setq prev (point)
+                        match (re-search-forward regexp end t))
+                  (< (match-end 0) old))
+        ;; Avoid inflooping when `regexp' matches the empty string.
+        (unless (< prev (point)) (forward-char))))
+    (and match (<= (match-beginning 0) old (match-end 0)))))
+
 
 ;;   Email addresses
 (defvar thing-at-point-email-regexp
