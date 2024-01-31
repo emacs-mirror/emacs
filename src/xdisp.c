@@ -9733,6 +9733,13 @@ move_it_in_display_line_to (struct it *it,
   ptrdiff_t prev_pos = IT_CHARPOS (*it);
   bool saw_smaller_pos = prev_pos < to_charpos;
   bool line_number_pending = false;
+  int this_line_subject_to_line_prefix = 0;
+
+#ifdef GLYPH_DEBUG
+  /* atx_flag, atpos_flag and wrap_flag are assigned but never used;
+     these hold information useful while debugging.  */
+  int atx_flag, atpos_flag, wrap_flag;
+#endif /* GLYPH_DEBUG */
 
   /* Don't produce glyphs in produce_glyphs.  */
   saved_glyph_row = it->glyph_row;
@@ -9798,6 +9805,11 @@ move_it_in_display_line_to (struct it *it,
       /* If there's a line-/wrap-prefix, handle it, if we didn't already.  */
       if (it->area == TEXT_AREA && !it->string_from_prefix_prop_p)
 	handle_line_prefix (it);
+
+      /* Save whether this line has received a wrap prefix, as this
+	 affects whether Emacs attempts to move glyphs into
+	 continuation lines.  */
+      this_line_subject_to_line_prefix = it->string_from_prefix_prop_p;
     }
 
   if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
@@ -9841,10 +9853,15 @@ move_it_in_display_line_to (struct it *it,
 	      break;
 	    }
 	  else if (it->line_wrap == WORD_WRAP && atpos_it.sp < 0)
-	    /* If wrap_it is valid, the current position might be in a
-	       word that is wrapped.  So, save the iterator in
-	       atpos_it and continue to see if wrapping happens.  */
-	    SAVE_IT (atpos_it, *it, atpos_data);
+	    {
+	      /* If wrap_it is valid, the current position might be in
+		 a word that is wrapped.  So, save the iterator in
+		 atpos_it and continue to see if wrapping happens.  */
+	      SAVE_IT (atpos_it, *it, atpos_data);
+#ifdef GLYPH_DEBUG
+	      atpos_flag = this_line_subject_to_line_prefix;
+#endif /* GLYPH_DEBUG */
+	    }
 	}
 
       /* Stop when ZV reached.
@@ -9906,6 +9923,9 @@ move_it_in_display_line_to (struct it *it,
 		    }
 		  /* Otherwise, we can wrap here.  */
 		  SAVE_IT (wrap_it, *it, wrap_data);
+#ifdef GLYPH_DEBUG
+		  wrap_flag = this_line_subject_to_line_prefix;
+#endif /* GLYPH_DEBUG */
 		}
               /* Update may_wrap for the next iteration.  */
               may_wrap = next_may_wrap;
@@ -9984,6 +10004,9 @@ move_it_in_display_line_to (struct it *it,
 			{
 			  SAVE_IT (atpos_it, *it, atpos_data);
 			  IT_RESET_X_ASCENT_DESCENT (&atpos_it);
+#ifdef GLYPH_DEBUG
+			  atpos_flag = this_line_subject_to_line_prefix;
+#endif /* GLYPH_DEBUG */
 			}
 		    }
 		  else
@@ -9998,6 +10021,9 @@ move_it_in_display_line_to (struct it *it,
 			{
 			  SAVE_IT (atx_it, *it, atx_data);
 			  IT_RESET_X_ASCENT_DESCENT (&atx_it);
+#ifdef GLYPH_DEBUG
+			  atx_flag = this_line_subject_to_line_prefix;
+#endif /* GLYPH_DEBUG */
 			}
 		    }
 		}
@@ -10012,12 +10038,27 @@ move_it_in_display_line_to (struct it *it,
 			  && FRAME_WINDOW_P (it->f)
 			  && ((it->bidi_p && it->bidi_it.paragraph_dir == R2L)
 			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
-			      : WINDOW_RIGHT_FRINGE_WIDTH (it->w)))))
+			      : WINDOW_RIGHT_FRINGE_WIDTH (it->w))))
+		  /* There is no line prefix, next to which the
+		     iterator _must_ produce a minimum of one actual
+		     glyph.  */
+		  && (!this_line_subject_to_line_prefix
+		      /* Or this is the second glyph to be produced
+			 beyond the confines of the line.  */
+		      || (i != 0
+			  && (x > it->last_visible_x
+			      || (x == it->last_visible_x
+				  && FRAME_WINDOW_P (it->f)
+				  && ((it->bidi_p
+				       && it->bidi_it.paragraph_dir == R2L)
+				      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+				      : WINDOW_RIGHT_FRINGE_WIDTH (it->w)))))))
 		{
 		  bool moved_forward = false;
 
 		  if (/* IT->hpos == 0 means the very first glyph
-			 doesn't fit on the line, e.g. a wide image.  */
+			 doesn't fit on the line, e.g. a wide
+			 image.  */
 		      it->hpos == 0
 		      || (new_x == it->last_visible_x
 			  && FRAME_WINDOW_P (it->f)))
@@ -10078,6 +10119,9 @@ move_it_in_display_line_to (struct it *it,
 				  SAVE_IT (atpos_it, *it, atpos_data);
 				  atpos_it.current_x = x_before_this_char;
 				  atpos_it.hpos = hpos_before_this_char;
+#ifdef GLYPH_DEBUG
+				  atpos_flag = this_line_subject_to_line_prefix;
+#endif /* GLYPH_DEBUG */
 				}
 			    }
 
@@ -10175,6 +10219,9 @@ move_it_in_display_line_to (struct it *it,
 		  if (it->line_wrap == WORD_WRAP && atpos_it.sp < 0)
 		    {
 		      SAVE_IT (atpos_it, *it, atpos_data);
+#ifdef GLYPH_DEBUG
+		      atpos_flag = this_line_subject_to_line_prefix;
+#endif /* GLYPH_DEBUG */
 		      IT_RESET_X_ASCENT_DESCENT (&atpos_it);
 		    }
 		}
@@ -10273,24 +10320,24 @@ move_it_in_display_line_to (struct it *it,
       if (it->method == GET_FROM_BUFFER)
 	prev_pos = IT_CHARPOS (*it);
 
-      /* Detect overly-wide wrap-prefixes made of (space ...) display
-	 properties.  When such a wrap prefix reaches past the right
-	 margin of the window, we need to avoid the call to
-	 set_iterator_to_next below, so that it->line_wrap is left at
-	 its TRUNCATE value wisely set by handle_line_prefix.
-	 Otherwise, set_iterator_to_next will pop the iterator stack,
-	 restore it->line_wrap, and we might miss the opportunity to
-	 exit the loop and return.  */
-      bool overwide_wrap_prefix =
-	CONSP (it->object) && EQ (XCAR (it->object), Qspace)
-	&& it->sp > 0 && it->method == GET_FROM_STRETCH
-	&& it->current_x >= it->last_visible_x
-	&& it->continuation_lines_width > 0
-	&& it->line_wrap == TRUNCATE && it->stack[0].line_wrap != TRUNCATE;
-      /* The current display element has been consumed.  Advance
-	 to the next.  */
-      if (!overwide_wrap_prefix)
-	set_iterator_to_next (it, true);
+      /* The current display element has been consumed.  Advance to
+	 the next.  */
+      set_iterator_to_next (it, true);
+
+      /* If IT has just finished producing glyphs for the wrap prefix
+	 and is proceeding to the next method, there might not be
+	 sufficient space remaining in this line to accommodate its
+	 glyphs, and one real glyph must be produced to prevent an
+	 infinite loop.  Next, clear this flag if such a glyph has
+	 already been produced.  */
+
+      if (this_line_subject_to_line_prefix == 1
+	  && !it->string_from_prefix_prop_p)
+	this_line_subject_to_line_prefix = 2;
+      else if (this_line_subject_to_line_prefix == 2
+	       && !it->string_from_prefix_prop_p)
+	this_line_subject_to_line_prefix = 0;
+
       if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
 	SET_TEXT_POS (this_line_min_pos, IT_CHARPOS (*it), IT_BYTEPOS (*it));
       if (IT_CHARPOS (*it) < to_charpos)
@@ -10374,11 +10421,26 @@ move_it_in_display_line_to (struct it *it,
       && wrap_it.sp >= 0
       && ((atpos_it.sp >= 0 && wrap_it.current_x < atpos_it.current_x)
 	  || (atx_it.sp >= 0 && wrap_it.current_x < atx_it.current_x)))
-    RESTORE_IT (it, &wrap_it, wrap_data);
+    {
+#ifdef GLYPH_DEBUG
+      this_line_subject_to_line_prefix = wrap_flag;
+#endif /* GLYPH_DEBUG */
+      RESTORE_IT (it, &wrap_it, wrap_data);
+    }
   else if (atpos_it.sp >= 0)
-    RESTORE_IT (it, &atpos_it, atpos_data);
+    {
+#ifdef GLYPH_DEBUG
+      this_line_subject_to_line_prefix = atpos_flag;
+#endif /* GLYPH_DEBUG */
+      RESTORE_IT (it, &atpos_it, atpos_data);
+    }
   else if (atx_it.sp >= 0)
-    RESTORE_IT (it, &atx_it, atx_data);
+    {
+#ifdef GLYPH_DEBUG
+      this_line_subject_to_line_prefix = atx_flag;
+#endif /* GLYPH_DEBUG */
+      RESTORE_IT (it, &atx_it, atx_data);
+    }
 
  done:
 
@@ -10452,13 +10514,9 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
   int line_height, line_start_x = 0, reached = 0;
   int max_current_x = 0;
   void *backup_data = NULL;
-  ptrdiff_t orig_charpos = -1;
-  enum it_method orig_method = NUM_IT_METHODS;
 
   for (;;)
     {
-      orig_charpos = IT_CHARPOS (*it);
-      orig_method = it->method;
       if (op & MOVE_TO_VPOS)
 	{
 	  /* If no TO_CHARPOS and no TO_X specified, stop at the
@@ -10730,21 +10788,7 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 		}
 	    }
 	  else
-	    {
-	      /* Make sure we do advance, otherwise we might infloop.
-		 This could happen when the first display element is
-		 wider than the window, or if we have a wrap-prefix
-		 that doesn't leave enough space after it to display
-		 even a single character.  We only do this for moving
-		 through buffer text, as with display/overlay strings
-		 we'd need to also compare it->object's, and this is
-		 unlikely to happen in that case anyway.  */
-	      if (IT_CHARPOS (*it) == orig_charpos
-		  && it->method == orig_method
-		  && orig_method == GET_FROM_BUFFER)
-		set_iterator_to_next (it, false);
-	      it->continuation_lines_width += it->current_x;
-	    }
+	    it->continuation_lines_width += it->current_x;
 	  break;
 
 	default:
@@ -24943,6 +24987,7 @@ display_line (struct it *it, int cursor_vpos)
   int first_visible_x = it->first_visible_x;
   int last_visible_x = it->last_visible_x;
   int x_incr = 0;
+  int this_line_subject_to_line_prefix = 0;
 
   /* We always start displaying at hpos zero even if hscrolled.  */
   eassert (it->hpos == 0 && it->current_x == 0);
@@ -25048,6 +25093,7 @@ display_line (struct it *it, int cursor_vpos)
       /* We only do this when not calling move_it_in_display_line_to
 	 above, because that function calls itself handle_line_prefix.  */
       handle_line_prefix (it);
+      this_line_subject_to_line_prefix = it->string_from_prefix_prop_p;
     }
   else
     {
@@ -25214,12 +25260,15 @@ display_line (struct it *it, int cursor_vpos)
 	     process the prefix now.  */
 	  if (it->area == TEXT_AREA && pending_handle_line_prefix)
 	    {
-	      /* Line numbers should precede the line-prefix or wrap-prefix.  */
+	      /* Line numbers should precede the line-prefix or
+		 wrap-prefix.  */
 	      if (line_number_needed)
 		maybe_produce_line_number (it);
 
 	      pending_handle_line_prefix = false;
 	      handle_line_prefix (it);
+	      this_line_subject_to_line_prefix
+		= it->string_from_prefix_prop_p;
 	    }
 	  continue;
 	}
@@ -25240,7 +25289,16 @@ display_line (struct it *it, int cursor_vpos)
       if (/* Not a newline.  */
 	  nglyphs > 0
 	  /* Glyphs produced fit entirely in the line.  */
-	  && it->current_x < it->last_visible_x)
+	  && (it->current_x < it->last_visible_x
+	      /* Or a line or wrap prefix is in effect, and not
+		 truncating the glyph produced immediately after it
+		 would cause an infinite cycle.  */
+	      || (it->line_wrap != TRUNCATE
+		  /* This code is not valid if multiple glyphs were
+		     produced, as some of these glyphs might remain
+		     within this line.  */
+		  && nglyphs == 1
+		  && this_line_subject_to_line_prefix)))
 	{
 	  it->hpos += nglyphs;
 	  row->ascent = max (row->ascent, it->max_ascent);
@@ -25291,7 +25349,20 @@ display_line (struct it *it, int cursor_vpos)
 			  && FRAME_WINDOW_P (it->f)
 			  && (row->reversed_p
 			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
-			      : WINDOW_RIGHT_FRINGE_WIDTH (it->w)))))
+			      : WINDOW_RIGHT_FRINGE_WIDTH (it->w))))
+		  /* There is no line prefix, next to which the
+		     iterator _must_ produce a minimum of one actual
+		     glyph.  */
+		  && (!this_line_subject_to_line_prefix
+		      /* Or this is the second glyph to be produced
+			 beyond the confines of the line.  */
+		      || (i != 0
+			  && (x > it->last_visible_x
+			      || (x == it->last_visible_x
+				  && FRAME_WINDOW_P (it->f)
+				  && (row->reversed_p
+				      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+				      : WINDOW_RIGHT_FRINGE_WIDTH (it->w)))))))
 		{
 		  /* End of a continued line.  */
 
@@ -25588,24 +25659,23 @@ display_line (struct it *it, int cursor_vpos)
 	  break;
 	}
 
-      /* Detect overly-wide wrap-prefixes made of (space ...) display
-	 properties.  When such a wrap prefix reaches past the right
-	 margin of the window, we need to avoid the call to
-	 set_iterator_to_next below, so that it->line_wrap is left at
-	 its TRUNCATE value wisely set by handle_line_prefix.
-	 Otherwise, set_iterator_to_next will pop the iterator stack,
-	 restore it->line_wrap, and redisplay might infloop.  */
-      bool overwide_wrap_prefix =
-	CONSP (it->object) && EQ (XCAR (it->object), Qspace)
-	&& it->sp > 0 && it->method == GET_FROM_STRETCH
-	&& it->current_x >= it->last_visible_x
-	&& it->continuation_lines_width > 0
-	&& it->line_wrap == TRUNCATE && it->stack[0].line_wrap != TRUNCATE;
-
       /* Proceed with next display element.  Note that this skips
 	 over lines invisible because of selective display.  */
-      if (!overwide_wrap_prefix)
-	set_iterator_to_next (it, true);
+      set_iterator_to_next (it, true);
+
+      /* If IT has just finished producing glyphs for the wrap prefix
+	 and is proceeding to the next method, there might not be
+	 sufficient space remaining in this line to accommodate its
+	 glyphs, and one real glyph must be produced to prevent an
+	 infinite loop.  Next, clear this flag if such a glyph has
+	 already been produced.  */
+
+      if (this_line_subject_to_line_prefix == 1
+	  && !it->string_from_prefix_prop_p)
+	this_line_subject_to_line_prefix = 2;
+      else if (this_line_subject_to_line_prefix == 2
+	       && !it->string_from_prefix_prop_p)
+	this_line_subject_to_line_prefix = 0;
 
       /* If we truncate lines, we are done when the last displayed
 	 glyphs reach past the right margin of the window.  */
