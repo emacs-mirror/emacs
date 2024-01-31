@@ -569,10 +569,9 @@ In use by the back-end."
                finally return t)
     t))
 
-(defsubst comp--symbol-func-to-fun (symbol-funcion)
-  "Given a function called SYMBOL-FUNCION return its `comp-func'."
-  (gethash (gethash symbol-funcion (comp-ctxt-sym-to-c-name-h
-                                    comp-ctxt))
+(defsubst comp--symbol-func-to-fun (symbol-func)
+  "Given a function called SYMBOL-FUNC return its `comp-func'."
+  (gethash (gethash symbol-func (comp-ctxt-sym-to-c-name-h comp-ctxt))
            (comp-ctxt-funcs-h comp-ctxt)))
 
 (defun comp--function-pure-p (f)

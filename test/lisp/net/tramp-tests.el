@@ -5155,8 +5155,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(should-not (get-buffer-window (current-buffer) t))
 		(delete-file tmp-name)))
 
-	    ;; Check remote and local DESTNATION file.  This isn't
-	    ;; implemented yet ina all file name handler backends.
+	    ;; Check remote and local DESTINATION file.  This isn't
+	    ;; implemented yet in all file name handler backends.
 	    ;; (dolist (local '(nil t))
 	    ;;   (setq tmp-name (tramp--test-make-temp-name local quoted))
 	    ;;   (should
