@@ -1412,7 +1412,7 @@ print_preprocess (Lisp_Object obj)
 		  && SYMBOLP (obj)
 		  && !SYMBOL_INTERNED_P (obj)))
 	    { /* OBJ appears more than once.  Let's remember that.  */
-	      if (!FIXNUMP (num))
+	      if (SYMBOLP (num)) /* In practice, nil or t.  */
 		{
 		  print_number_index++;
 		  /* Negative number indicates it hasn't been printed yet.  */
@@ -2265,6 +2265,11 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	      goto next_obj;
 	    }
 	}
+      else if (STRINGP (num))
+	{
+	  strout (SDATA (num), SCHARS (num), SBYTES (num), printcharfun);
+	  goto next_obj;
+	}
     }
 
   print_depth++;
@@ -2554,11 +2559,6 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  goto next_obj;
 	case PVEC_SUB_CHAR_TABLE:
 	  {
-	    /* Make each lowest sub_char_table start a new line.
-	       Otherwise we'll make a line extremely long, which
-	       results in slow redisplay.  */
-	    if (XSUB_CHAR_TABLE (obj)->depth == 3)
-	      printchar ('\n', printcharfun);
 	    print_c_string ("#^^[", printcharfun);
 	    int n = sprintf (buf, "%d %d",
 			     XSUB_CHAR_TABLE (obj)->depth,
@@ -2664,7 +2664,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		    /* With the print-circle feature.  */
 		    Lisp_Object num = Fgethash (next, Vprint_number_table,
 						Qnil);
-		    if (FIXNUMP (num))
+		    if (!(NILP (num) || EQ (num, Qt)))
 		      {
 			print_c_string (" . ", printcharfun);
 			obj = next;
@@ -2928,7 +2928,10 @@ This variable should not be set with `setq'; bind it with a `let' instead.  */);
   DEFVAR_LISP ("print-number-table", Vprint_number_table,
 	       doc: /* A vector used internally to produce `#N=' labels and `#N#' references.
 The Lisp printer uses this vector to detect Lisp objects referenced more
-than once.
+than once.  If an entry contains a number, then the corresponding key is
+referenced more than once: a positive sign indicates that it's already been
+printed, and the absolute value indicates the number to use when printing.
+If an entry contains a string, that string is printed instead.
 
 When you bind `print-continuous-numbering' to t, you should probably
 also bind `print-number-table' to nil.  This ensures that the value of

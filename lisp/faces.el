@@ -651,11 +651,11 @@ Optional argument INHERIT is passed to `face-attribute'."
 If FACE is a face-alias, get the documentation for the target face."
   (let ((alias (get face 'face-alias)))
     (if alias
-        (let ((doc (get alias 'face-documentation)))
+        (let ((doc (documentation-property alias 'face-documentation)))
 	  (format "%s is an alias for the face `%s'.%s" face alias
                   (if doc (format "\n%s" doc)
                     "")))
-      (get face 'face-documentation))))
+      (documentation-property face 'face-documentation))))
 
 
 (defun set-face-documentation (face string)

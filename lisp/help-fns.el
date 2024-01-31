@@ -1799,9 +1799,8 @@ If FRAME is omitted or nil, use the selected frame."
                            alias)
                         ""))))
 		  (insert "\nDocumentation:\n"
-                          (substitute-command-keys
-                           (or (face-documentation face)
-                               "Not documented as a face."))
+                          (or (face-documentation face)
+                              "Not documented as a face.")
 			  "\n\n"))
 	        (with-current-buffer standard-output
 		  (save-excursion
