@@ -686,7 +686,7 @@ If POS is nil, use `point' instead."
 (defun outline-back-to-heading (&optional invisible-ok)
   "Move to previous heading line, or beg of this line if it's a heading.
 Only visible heading lines are considered, unless INVISIBLE-OK is non-nil."
-  (beginning-of-line)
+  (forward-line 0)
   (or (outline-on-heading-p invisible-ok)
       (let (found)
 	(save-excursion
@@ -705,7 +705,7 @@ Only visible heading lines are considered, unless INVISIBLE-OK is non-nil."
   "Return t if point is on a (visible) heading line.
 If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
   (save-excursion
-    (beginning-of-line)
+    (forward-line 0)
     (and (bolp) (or invisible-ok (not (outline-invisible-p)))
 	 (if outline-search-function
              (funcall outline-search-function nil nil nil t)
@@ -725,7 +725,7 @@ If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
 		(not (string-match (concat "\\`\\(?:" outline-regexp "\\)")
 				   (concat head " "))))
       (setq head (concat head " ")))
-    (unless (bolp) (end-of-line) (newline))
+    (unless (bolp) (goto-char (pos-eol)) (newline))
     (insert head)
     (unless (eolp)
       (save-excursion (newline-and-indent)))
@@ -941,9 +941,7 @@ With ARG, repeats or can move backward if negative.
 A heading line is one that starts with a `*' (or that
 `outline-regexp' matches)."
   (interactive "p")
-  (if (< arg 0)
-      (beginning-of-line)
-    (end-of-line))
+  (goto-char (if (< arg 0) (pos-bol) (pos-eol)))
   (let ((regexp (unless outline-search-function
                   (concat "^\\(?:" outline-regexp "\\)")))
         found-heading-p)
@@ -963,7 +961,7 @@ A heading line is one that starts with a `*' (or that
                           (re-search-forward regexp nil 'move)))
 		  (outline-invisible-p (match-beginning 0))))
       (setq arg (1- arg)))
-    (if found-heading-p (beginning-of-line))))
+    (if found-heading-p (forward-line 0))))
 
 (defun outline-previous-visible-heading (arg)
   "Move to the previous heading line.
@@ -980,7 +978,7 @@ This puts point at the start of the current subtree, and mark at the end."
   (let ((beg))
     (if (outline-on-heading-p)
 	;; we are already looking at a heading
-	(beginning-of-line)
+        (forward-line 0)
       ;; else go back to previous heading
       (outline-previous-visible-heading 1))
     (setq beg (point))
@@ -1183,7 +1181,7 @@ of the current heading, or to 1 if the current line is not a heading."
 		(cond
 		 (current-prefix-arg (prefix-numeric-value current-prefix-arg))
 		 ((save-excursion
-                    (beginning-of-line)
+                    (forward-line 0)
 		    (if outline-search-function
                         (funcall outline-search-function nil nil nil t)
                       (looking-at outline-regexp)))
@@ -1243,7 +1241,7 @@ This also unhides the top heading-less body, if any."
   (interactive)
   (save-excursion
     (outline-back-to-heading)
-    (if (not (outline-invisible-p (line-end-position)))
+    (if (not (outline-invisible-p (pos-eol)))
         (outline-hide-subtree)
       (outline-show-children)
       (outline-show-entry))))
@@ -1834,7 +1832,7 @@ With a prefix argument, show headings up to that LEVEL."
 (defun outline--insert-button (type)
   (with-silent-modifications
     (save-excursion
-      (beginning-of-line)
+      (forward-line 0)
       (let ((icon (nth (if (eq type 'close) 1 0) outline--button-icons))
             (o (seq-find (lambda (o) (overlay-get o 'outline-button))
                          (overlays-at (point)))))
@@ -1842,7 +1840,7 @@ With a prefix argument, show headings up to that LEVEL."
           (when (eq outline-minor-mode-use-buttons 'insert)
             (let ((inhibit-read-only t))
               (insert (apply #'propertize "  " (text-properties-at (point))))
-              (beginning-of-line)))
+              (forward-line 0)))
           (setq o (make-overlay (point) (1+ (point))))
           (overlay-put o 'outline-button t)
           (overlay-put o 'evaporate t))
@@ -1866,7 +1864,7 @@ With a prefix argument, show headings up to that LEVEL."
     (when from
       (save-excursion
         (goto-char from)
-        (setq from (line-beginning-position))))
+        (setq from (pos-bol))))
     (outline-map-region
      (lambda ()
        (let ((close-p (save-excursion
