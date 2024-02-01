@@ -216,7 +216,7 @@ chosen (interactively or automatically)."
                                  . ("haskell-language-server-wrapper" "--lsp"))
                                 (elm-mode . ("elm-language-server"))
                                 (mint-mode . ("mint" "ls"))
-                                (kotlin-mode . ("kotlin-language-server"))
+                                ((kotlin-mode kotlin-ts-mode) . ("kotlin-language-server"))
                                 ((go-mode go-dot-mod-mode go-dot-work-mode go-ts-mode go-mod-ts-mode)
                                  . ("gopls"))
                                 ((R-mode ess-r-mode) . ("R" "--slave" "-e"
