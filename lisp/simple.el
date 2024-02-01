@@ -6419,7 +6419,7 @@ PROMPT is a string to prompt with."
                      0 (length s)
                      '(
                        keymap local-map action mouse-action
-                       button category help-args)
+                       read-only button category help-args)
                      s)
                     s)
                   kill-ring))
