@@ -318,7 +318,9 @@ will receive a 'wrap-prefix' automatically computed from the line's
 surrounding context, such that continuation lines are indented on
 display as if they were filled with 'M-q' or similar.  Unlike 'M-q',
 the indentation only happens on display, and doesn't change the buffer
-text in any way.
+text in any way.  The global minor mode
+'global-visual-wrap-prefix-mode' enables this minor mode in all
+buffers.
 
 (This minor mode is the 'adaptive-wrap' ELPA package renamed and
 lightly edited for inclusion in Emacs.)
