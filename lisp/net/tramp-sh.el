@@ -2521,6 +2521,12 @@ The method used must be an out-of-band method."
 	    ;; cached password).
 	    (tramp-cleanup-connection v 'keep-debug 'keep-password))))
 
+      ;; The cached file properties might be wrong if NEWNAME didn't
+      ;; exist.  Flush them.
+      (when v2
+	(with-parsed-tramp-file-name newname v2
+	  (tramp-flush-file-properties v2 v2-localname)))
+
       ;; Handle KEEP-DATE argument.
       (when (and keep-date (not copy-keep-date))
 	(tramp-compat-set-file-times
