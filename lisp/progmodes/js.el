@@ -3427,6 +3427,26 @@ This function is intended for use in `after-change-functions'."
 
 ;;; Tree sitter integration
 
+(defun js--treesit-font-lock-compatibility-definition-feature ()
+  "Font lock helper, to handle different releases of tree-sitter-javascript.
+Check if a node type is available, then return the right font lock rules
+for \"definition\" feature."
+  (condition-case nil
+      (progn (treesit-query-capture 'javascript '((function_expression) @cap))
+             ;; starting from 0.20.2
+             '((function_expression
+                name: (identifier) @font-lock-function-name-face)
+               (variable_declarator
+                name: (identifier) @font-lock-function-name-face
+                value: [(function_expression) (arrow_function)])))
+    (error
+     ;; older version
+     '((function
+        name: (identifier) @font-lock-function-name-face)
+       (variable_declarator
+        name: (identifier) @font-lock-function-name-face
+        value: [(function) (arrow_function)])))))
+
 (defun js-jsx--treesit-indent-compatibility-bb1f97b ()
   "Indent rules helper, to handle different releases of tree-sitter-javascript.
 Check if a node type is available, then return the right indent rules."
@@ -3538,8 +3558,7 @@ Check if a node type is available, then return the right indent rules."
 
    :language 'javascript
    :feature 'definition
-   '((function
-      name: (identifier) @font-lock-function-name-face)
+   `(,@(js--treesit-font-lock-compatibility-definition-feature)
 
      (class_declaration
       name: (identifier) @font-lock-type-face)
@@ -3557,10 +3576,6 @@ Check if a node type is available, then return the right indent rules."
 
      (variable_declarator
       name: (identifier) @font-lock-variable-name-face)
-
-     (variable_declarator
-      name: (identifier) @font-lock-function-name-face
-      value: [(function) (arrow_function)])
 
      (variable_declarator
       name: [(array_pattern (identifier) @font-lock-variable-name-face)
