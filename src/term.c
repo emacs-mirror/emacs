@@ -1704,7 +1704,13 @@ produce_glyphs (struct it *it)
   /* Advance current_x by the pixel width as a convenience for
      the caller.  */
   if (it->area == TEXT_AREA)
-    it->current_x += it->pixel_width;
+    {
+      it->current_x += it->pixel_width;
+
+      if (it->continuation_lines_width
+	  && it->string_from_prefix_prop_p)
+	it->wrap_prefix_width = it->current_x;
+    }
   it->ascent = it->max_ascent = it->phys_ascent = it->max_phys_ascent = 0;
   it->descent = it->max_descent = it->phys_descent = it->max_phys_descent = 1;
 #endif

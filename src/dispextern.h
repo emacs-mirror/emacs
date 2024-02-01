@@ -2752,6 +2752,16 @@ struct it
      pixel_width with each call to produce_glyphs.  */
   int current_x;
 
+  /* Pixel position within a display line with a wrap prefix.  Updated
+     to reflect current_x in produce_glyphs when producing glyphs from
+     a prefix string and continuation_lines_width > 0, which is to
+     say, from a wrap prefix.
+
+     Such updates are unnecessary where it is impossible for a wrap
+     prefix to be active, e.g. when continuation lines are being
+     produced.  */
+  int wrap_prefix_width;
+
   /* Accumulated width of continuation lines.  If > 0, this means we
      are currently in a continuation line.  This is initially zero and
      incremented/reset by display_line, move_it_to etc.  */
