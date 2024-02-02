@@ -461,7 +461,7 @@ each element of @var{sequence}.  The @var{accessor} function is called
 with a single argument, an element of @var{sequence}.
 
 This function implements what is known as @dfn{decorate-sort-undecorate}
-paradigm, of the Schwartzian transform.  It basically trades CPU for
+paradigm, or the Schwartzian transform.  It basically trades CPU for
 memory, creating a temporary list with the computed sort keys, then
 mapping @code{car} over the result of sorting that temporary list.
 Unlike with @code{sort}, the return value is always a new list; the
