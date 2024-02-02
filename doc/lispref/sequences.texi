@@ -449,13 +449,14 @@ or vector element exactly once.
 @cindex decorate-sort-undecorate
 @cindex Schwartzian transform
 @defun sort-on sequence predicate accessor
-This function stably sorts the list or vector @var{sequence}, comparing
-the sort keys of the elements using @var{predicate}.  The comparison
-function @var{predicate} accepts two arguments, the sort keys to
-compare, and should return non-@code{nil} if the element corresponding
-to the first key should sort before the element corresponding to the
-second key.  The function computes a sort key of each element by calling
-the @var{accessor} function on that element; it does so exactly once for
+This function stably sorts @var{sequence}, which can be a list, a
+vector, a bool-vector, or a string.  It sorts by comparing the sort
+keys of the elements using @var{predicate}.  The comparison function
+@var{predicate} accepts two arguments, the sort keys to compare, and
+should return non-@code{nil} if the element corresponding to the first
+key should sort before the element corresponding to the second key.  The
+function computes a sort key of each element by calling the
+@var{accessor} function on that element; it does so exactly once for
 each element of @var{sequence}.  The @var{accessor} function is called
 with a single argument, an element of @var{sequence}.
 
