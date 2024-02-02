@@ -1530,6 +1530,11 @@ precedence over the variable when present.
 Mostly used internally to do a kind of topological sort of
 inheritance hierarchies.
 
+** New function 'sort-on'.
+This function implements the Schwartzian transform, and is appropriate
+for sorting lists when the computation of the sort key of a list
+element can be expensive.
+
 ** New API for 'derived-mode-p' and control of the graph of major modes.
 
 *** 'derived-mode-p' now takes the list of modes as a single argument.
