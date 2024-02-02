@@ -1170,6 +1170,11 @@ Previously, the '@' character, which normally has 'symbol' syntax,
 would combine with a following Lisp symbol and interfere with symbol
 searching.
 
+---
+*** 'emacs-lisp-docstring-fill-column' now defaults to 72.
+It was previously 65.  The new default formats documentation strings to
+fit on fewer lines without negatively impacting readability.
+
 ** CPerl mode
 
 ---

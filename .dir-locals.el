@@ -3,8 +3,8 @@
 
 ((nil . ((tab-width . 8)
          (sentence-end-double-space . t)
-         (fill-column . 70)
-	 (emacs-lisp-docstring-fill-column . 65)
+         (fill-column . 72)
+	 (emacs-lisp-docstring-fill-column . 72)
          (vc-git-annotate-switches . "-w")
          (bug-reference-url-format . "https://debbugs.gnu.org/%s")
 	 (diff-add-log-use-relative-names . t)
