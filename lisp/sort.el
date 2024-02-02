@@ -481,7 +481,7 @@ sRegexp specifying key within record: \nr")
 ;;;###autoload
 (defun sort-on (sequence predicate accessor)
   "Sort SEQUENCE by calling PREDICATE on sort keys produced by ACCESSOR.
-SEQUENCE should be the input list or vector to sort.
+SEQUENCE should be the input sequence to sort.
 Elements of SEQUENCE are sorted by keys which are obtained by
 calling ACCESSOR on each element.  ACCESSOR should be a function of
 one argument, an element of SEQUENCE, and should return the key
