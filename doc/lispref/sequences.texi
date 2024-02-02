@@ -446,6 +446,8 @@ element into a function of its own, you can use the following sorting
 function, which guarantees that the key will be computed for each list
 element exactly once.
 
+@cindex decorate-sort-undecorate
+@cindex Schwartzian transform
 @defun sort-on sequence predicate accessor
 This function stably sorts the list @var{sequence}, comparing the sort
 keys of the elements using @var{predicate}.  The comparison function
