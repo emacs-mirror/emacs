@@ -4685,7 +4685,7 @@ returns non-nil if any of them match."
                               (if (and (= char ?f) current-file)
                                   (concat "file://" current-file) uri))
                              "\\'")))))
-          (prog1 (memq char '(?y ?n ?! ?d ?\s ?f))
+          (prog1 (memq char '(?y ?! ?d ?\s ?f))
             (quit-window t)))))))
 
 (defun org-extract-log-state-settings (x)
