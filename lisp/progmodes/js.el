@@ -3433,14 +3433,14 @@ Check if a node type is available, then return the right font lock rules
 for \"definition\" feature."
   (condition-case nil
       (progn (treesit-query-capture 'javascript '((function_expression) @cap))
-             ;; starting from 0.20.2
+             ;; Starting from version 0.20.2 of the grammar.
              '((function_expression
                 name: (identifier) @font-lock-function-name-face)
                (variable_declarator
                 name: (identifier) @font-lock-function-name-face
                 value: [(function_expression) (arrow_function)])))
     (error
-     ;; older version
+     ;; An older version of the grammar.
      '((function
         name: (identifier) @font-lock-function-name-face)
        (variable_declarator
