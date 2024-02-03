@@ -85,6 +85,9 @@ don't know how to recognize (e.g. some macros)."
   (let (alist)
     (with-temp-buffer
       (insert-file-contents file)
+      ;; Ensure shorthands available, as we will be `read'ing Elisp
+      ;; (bug#67523)
+      (let (enable-local-variables) (hack-local-variables))
       ;; FIXME we could theoretically be inside a string.
       (while (re-search-forward "^[ \t]*\\((declare-function\\)[ \t\n]" nil t)
         (let ((pos (match-beginning 1)))
@@ -147,6 +150,7 @@ is a string giving details of the error."
           (insert-file-contents fnfile)
           (unless cflag
             ;; If in Elisp, ensure syntax and shorthands available
+            ;; (bug#67523)
             (set-syntax-table emacs-lisp-mode-syntax-table)
             (let (enable-local-variables) (hack-local-variables)))
           ;; defsubst's don't _have_ to be known at compile time.
