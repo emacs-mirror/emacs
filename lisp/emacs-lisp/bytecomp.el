@@ -5742,6 +5742,16 @@ and corresponding effects."
            (eval form)
          form)))
 
+;; Report comma operator used outside of backquote.
+;; Inside backquote, backquote will transform it before it gets here.
+
+(put '\,  'compiler-macro #'bytecomp--report-comma)
+(defun bytecomp--report-comma (form &rest _ignore)
+  (macroexp-warn-and-return
+   (format-message "`%s' called -- perhaps used not within backquote"
+                   (car form))
+   form (list 'suspicious (car form)) t))
+
 ;; Check for (in)comparable constant values in calls to `eq', `memq' etc.
 
 (defun bytecomp--dodgy-eq-arg-p (x number-ok)
