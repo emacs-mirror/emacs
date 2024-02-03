@@ -2267,7 +2267,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	}
       else if (STRINGP (num))
 	{
-	  strout (SDATA (num), SCHARS (num), SBYTES (num), printcharfun);
+	  strout (SSDATA (num), SCHARS (num), SBYTES (num), printcharfun);
 	  goto next_obj;
 	}
     }
