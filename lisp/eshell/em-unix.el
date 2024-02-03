@@ -590,7 +590,7 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
      :external "cp"
      :show-usage
      :usage "[OPTION]... SOURCE DEST
-   or:  cp [OPTION]... SOURCE... DIRECTORY
+   or: cp [OPTION]... SOURCE... DIRECTORY
 Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
    (if archive
        (setq preserve t no-dereference t em-recursive t))
@@ -619,7 +619,7 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
      :external "ln"
      :show-usage
      :usage "[OPTION]... TARGET [LINK_NAME]
-   or:  ln [OPTION]... TARGET... DIRECTORY
+   or: ln [OPTION]... TARGET... DIRECTORY
 Create a link to the specified TARGET with optional LINK_NAME.  If there is
 more than one TARGET, the last argument must be a directory;  create links
 in DIRECTORY to each TARGET.  Create hard links by default, symbolic links
