@@ -402,7 +402,7 @@ don't include."
           (when (re-search-forward "autoload-compute-prefixes: *" nil t)
             (setq compute-prefixes (read (current-buffer)))))
         (save-excursion
-          ;; since we're "open-coding" we have to repeat more
+          ;; Since we're "open-coding", we have to repeat more
           ;; complicated logic in `hack-local-variables'.
           (when-let ((beg
                       (re-search-forward "read-symbol-shorthands: *" nil t)))
