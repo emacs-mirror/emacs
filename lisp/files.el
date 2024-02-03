@@ -4193,7 +4193,7 @@ major-mode."
                                 (or (buffer-file-name thisbuf) ""))))))
                           ((eq var 'read-symbol-shorthands)
                            ;; Sort automatically by shorthand length
-                           ;; descending
+                           ;; in descending order.
                            (setq val (sort val
                                            (lambda (sh1 sh2) (> (length (car sh1))
                                                                 (length (car sh2))))))
