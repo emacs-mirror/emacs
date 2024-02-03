@@ -404,10 +404,13 @@ don't include."
         (save-excursion
           ;; since we're "open-coding" we have to repeat more
           ;; complicated logic in `hack-local-variables'.
-          (when (re-search-forward "read-symbol-shorthands: *" nil t)
-            (let* ((commentless (replace-regexp-in-string
+          (when-let ((beg
+                      (re-search-forward "read-symbol-shorthands: *" nil t)))
+            ;; `read-symbol-shorthands' alist ends with two parens.
+            (let* ((end (re-search-forward ")[;\n\s]*)"))
+                   (commentless (replace-regexp-in-string
                                  "\n\\s-*;+" ""
-                                 (buffer-substring (point) (point-max))))
+                                 (buffer-substring beg end)))
                    (unsorted-shorthands (car (read-from-string commentless))))
               (setq read-symbol-shorthands
                     (sort unsorted-shorthands
