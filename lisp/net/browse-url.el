@@ -688,8 +688,10 @@ websites are increasingly rare, but they do still exist."
 (defun browse-url-url-at-point ()
   (or (thing-at-point 'url t)
       ;; assume that the user is pointing at something like gnu.org/gnu
-      (let ((f (thing-at-point 'filename t)))
-        (and f (concat browse-url-default-scheme "://" f)))))
+      (when-let ((f (thing-at-point 'filename t)))
+	(if (string-match-p browse-url-button-regexp f)
+	    f
+	  (concat browse-url-default-scheme "://" f)))))
 
 ;; Having this as a separate function called by the browser-specific
 ;; functions allows them to be stand-alone commands, making it easier
