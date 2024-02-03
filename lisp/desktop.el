@@ -163,10 +163,19 @@ Used at desktop read to provide backward compatibility.")
 (define-minor-mode desktop-save-mode
   "Toggle desktop saving (Desktop Save mode).
 
-When Desktop Save mode is enabled, the state of Emacs is saved from
-one session to another.  In particular, Emacs will save the desktop when
-it exits (this may prompt you; see the option `desktop-save').  The next
-time Emacs starts, if this mode is active it will restore the desktop.
+When Desktop Save mode is enabled, the state of Emacs is saved from one
+session to another.  The saved Emacs \"desktop configuration\" includes the
+buffers, their file names, major modes, buffer positions, window and frame
+configuration, and some important global variables.
+
+To enable this feature for future sessions, customize `desktop-save-mode'
+to t, or add this line in your init file:
+
+    (desktop-save-mode 1)
+
+When this mode is enabled, Emacs will save the desktop when it exits
+(this may prompt you, see the option `desktop-save').  The next time
+Emacs starts, if this mode is active it will restore the desktop.
 
 To manually save the desktop at any time, use the command \\[desktop-save].
 To load it, use \\[desktop-read].
