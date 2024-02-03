@@ -2817,6 +2817,57 @@ and the position in MAX."
 (defvar-local diff--syntax-file-attributes nil)
 (put 'diff--syntax-file-attributes 'permanent-local t)
 
+(defvar diff--cached-revision-buffers nil
+  "List of ((FILE . REVISION) . BUFFER) in MRU order.")
+
+(defvar diff--cache-clean-timer nil)
+(defconst diff--cache-clean-interval 3600)  ; seconds
+
+(defun diff--cache-clean ()
+  "Discard the least recently used half of the cache."
+  (let ((n (/ (length diff--cached-revision-buffers) 2)))
+    (mapc #'kill-buffer (mapcar #'cdr (nthcdr n diff--cached-revision-buffers)))
+    (setq diff--cached-revision-buffers
+          (ntake n diff--cached-revision-buffers)))
+  (diff--cache-schedule-clean))
+
+(defun diff--cache-schedule-clean ()
+  (setq diff--cache-clean-timer
+        (and diff--cached-revision-buffers
+             (run-with-timer diff--cache-clean-interval nil
+                             #'diff--cache-clean))))
+
+(defun diff--get-revision-properties (file revision text line-nb)
+  "Get font-lock properties from FILE at REVISION for TEXT at LINE-NB."
+  (let* ((file-rev (cons file revision))
+         (entry (assoc file-rev diff--cached-revision-buffers))
+         (buffer (cdr entry)))
+    (if (buffer-live-p buffer)
+        (progn
+          ;; Don't re-initialize the buffer (which would throw
+          ;; away the previous fontification work).
+          (setq file nil)
+          (setq diff--cached-revision-buffers
+                (cons entry
+                      (delq entry diff--cached-revision-buffers))))
+      ;; Cache miss: create a new entry.
+      (setq buffer (get-buffer-create (format " *diff-syntax:%s.~%s~*"
+                                              file revision)))
+      (condition-case nil
+          (vc-find-revision-no-save file revision diff-vc-backend buffer)
+        (error
+         (kill-buffer buffer)
+         (setq buffer nil))
+        (:success
+         (push (cons file-rev buffer)
+               diff--cached-revision-buffers))))
+    (when diff--cache-clean-timer
+      (cancel-timer diff--cache-clean-timer))
+    (diff--cache-schedule-clean)
+    (and buffer
+         (with-current-buffer buffer
+           (diff-syntax-fontify-props file text line-nb)))))
+
 (defun diff-syntax-fontify-hunk (beg end old)
   "Highlight source language syntax in diff hunk between BEG and END.
 When OLD is non-nil, highlight the hunk from the old source."
@@ -2867,22 +2918,8 @@ When OLD is non-nil, highlight the hunk from the old source."
                                  (insert-file-contents file)
                                  (setq diff--syntax-file-attributes attrs)))
                              (diff-syntax-fontify-props file text line-nb)))))
-                   ;; Get properties from a cached revision
-                   (let* ((buffer-name (format " *diff-syntax:%s.~%s~*"
-                                               file revision))
-                          (buffer (get-buffer buffer-name)))
-                     (if buffer
-                         ;; Don't re-initialize the buffer (which would throw
-                         ;; away the previous fontification work).
-                         (setq file nil)
-                       (setq buffer (ignore-errors
-                                      (vc-find-revision-no-save
-                                       file revision
-                                       diff-vc-backend
-                                       (get-buffer-create buffer-name)))))
-                     (when buffer
-                       (with-current-buffer buffer
-                         (diff-syntax-fontify-props file text line-nb))))))))
+                   (diff--get-revision-properties file revision
+                                                  text line-nb)))))
            (let ((file (car (diff-hunk-file-names old))))
              (cond
               ((and file diff-default-directory
