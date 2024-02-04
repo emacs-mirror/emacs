@@ -1278,7 +1278,7 @@
     (setq erc-server-current-nick "tester")
     (setq-local erc-last-input-time 0)
     (should-not (local-variable-if-set-p 'erc-send-completed-hook))
-    (set (make-local-variable 'erc-send-completed-hook) nil) ; skip t (globals)
+    (setq-local 'erc-send-completed-hook nil) ; skip t (globals)
     ;; Just in case erc-ring-mode is already on
     (setq-local erc--input-review-functions erc--input-review-functions)
     (add-hook 'erc--input-review-functions #'erc-add-to-input-ring)
