@@ -135,6 +135,13 @@ concerning buffers."
   "Running scripts at startup and with /LOAD."
   :group 'erc)
 
+;; Add `custom-loads' features for group symbols missing from a
+;; supported Emacs version, possibly because they belong to a new ERC
+;; library.  These groups all share their library's feature name.
+;;;###autoload(dolist (symbol '( erc-sasl erc-spelling ; 29
+;;;###autoload                   erc-imenu erc-nicks)) ; 30
+;;;###autoload  (custom-add-load symbol symbol))
+
 (defvar erc-message-parsed) ; only known to this file
 
 (defvar erc--msg-props nil
