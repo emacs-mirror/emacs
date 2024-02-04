@@ -38,7 +38,6 @@
 (declare-function dired-compress-file "dired-aux")
 (declare-function dired-remove-file "dired-aux")
 (defvar dired-compress-file-suffixes)
-(defvar ls-lisp-use-insert-directory-program)
 ;; Added in Emacs 28.1.
 (defvar process-file-return-signal-string)
 (defvar vc-handled-backends)
@@ -2636,7 +2635,7 @@ The method used must be an out-of-band method."
 (defun tramp-sh-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
-  (if (and (featurep 'ls-lisp)
+  (if (and (boundp 'ls-lisp-use-insert-directory-program)
 	   (not ls-lisp-use-insert-directory-program))
       (tramp-handle-insert-directory
        filename switches wildcard full-directory-p)
