@@ -6557,7 +6557,7 @@ and \"Whitesmith\"."
     (let ((option (car setting))
           (value (cdr setting)))
       (set (make-local-variable option) value)))
-  (setq-local 'cperl-file-style style))
+  (setq-local cperl-file-style style))
 
 (declare-function Info-find-node "info"
 		  (filename nodename &optional no-going-back strict-case

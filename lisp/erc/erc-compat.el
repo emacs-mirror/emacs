@@ -102,7 +102,7 @@ See `erc-encoding-coding-alist'."
 
 (defun erc-set-write-file-functions (new-val)
   (declare (obsolete nil "28.1"))
-  (setq-local 'write-file-functions new-val))
+  (setq-local write-file-functions new-val))
 
 (defvar erc-emacs-build-time
   (if (or (stringp emacs-build-time) (not emacs-build-time))
