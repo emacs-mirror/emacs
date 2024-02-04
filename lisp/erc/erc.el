@@ -6815,7 +6815,7 @@ stand-in from the fallback value \"(qaohv)~&@%+\"."
   "Return numeric rank for CHAR or nil if unknown.
 For example, given letters \"qaohv\" return 1 for ?v, 2 for ?h,
 and 4 for ?o, etc.  If given, expect PARSED-PREFIX to be a
-`erc--parse-prefix' object.  With FROM-PREFIX-P, expect CHAR to
+`erc--parsed-prefix' object.  With FROM-PREFIX-P, expect CHAR to
 be a prefix instead."
   (and-let* ((obj (or parsed-prefix (erc--parsed-prefix)))
              (pos (erc--strpos char (if from-prefix-p

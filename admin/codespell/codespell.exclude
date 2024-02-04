@@ -1583,3 +1583,5 @@ VERY VERY LONG STRIN | VERY VERY LONG STRIN
     (ert-info ("Joined by bouncer to #chan@foonet, pal persent")
     (ert-info ("Joined by bouncer to #chan@barnet, pal persent")
 .UE .
+ (0.03 ":bob!~u@euegh6mj3y8r2.irc PRIVMSG #chan :alice: See, by good hap, yonder's my lord; I have sweat to see his honour.")
+ (0.05 ":bob!~u@euegh6mj3y8r2.irc PRIVMSG #chan :alice: But, in defence, by mercy, 'tis most just.")

@@ -5374,7 +5374,7 @@ mark_fns (void)
     }
 }
 
-/* Find the hash_table_test object correponding to the (bare) symbol TEST,
+/* Find the hash_table_test object corresponding to the (bare) symbol TEST,
    creating one if none existed.  */
 static struct hash_table_test *
 get_hash_table_user_test (Lisp_Object test)
