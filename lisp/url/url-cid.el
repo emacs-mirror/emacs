@@ -1,6 +1,6 @@
 ;;; url-cid.el --- Content-ID URL loader  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-1999, 2004-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -52,12 +52,7 @@
 
 ;;;###autoload
 (defun url-cid (url)
-  (cond
-   ((fboundp 'mm-get-content-id)
-    ;; Using Pterodactyl Gnus or later
-    (with-current-buffer (generate-new-buffer " *url-cid*")
-      (url-cid-gnus (url-filename url))))
-   (t
-    (message "Unable to handle CID URL: %s" url))))
+  (with-current-buffer (generate-new-buffer " *url-cid*")
+    (url-cid-gnus (url-filename url))))
 
 ;;; url-cid.el ends here
