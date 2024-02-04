@@ -2662,9 +2662,17 @@ function is called recursively."
             (setq parent (treesit-node-top-level parent thing t)
                   prev nil
                   next nil))
-          ;; If TACTIC is `restricted', the implementation is very simple.
+          ;; If TACTIC is `restricted', the implementation is simple.
+          ;; In principle we don't go to parent's beg/end for
+          ;; `restricted' tactic, but if the parent is a "leaf thing"
+          ;; (doesn't have any child "thing" inside it), then we can
+          ;; move to the beg/end of it (bug#68899).
           (if (eq tactic 'restricted)
-              (setq pos (funcall advance (if (> arg 0) next prev)))
+              (setq pos (funcall
+                         advance
+                         (cond ((and (null next) (null prev)) parent)
+                               ((> arg 0) next)
+                               (t prev))))
             ;; For `nested', it's a bit more work:
             ;; Move...
             (if (> arg 0)
