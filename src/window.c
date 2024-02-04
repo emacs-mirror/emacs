@@ -4151,6 +4151,8 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
 			     buffer);
       w->start_at_line_beg = false;
       w->force_start = false;
+      /* Flush the base_line cache since it applied to another buffer.  */
+      w->base_line_number = 0;
     }
 
   wset_redisplay (w);
