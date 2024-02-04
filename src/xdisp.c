@@ -5062,31 +5062,169 @@ handle_invisible_prop (struct it *it)
 {
   enum prop_handled handled = HANDLED_NORMALLY;
   int invis;
-  Lisp_Object prop;
+  ptrdiff_t curpos, endpos;
+  Lisp_Object prop, pos, overlay;
 
+  /* Get the value of the invisible text property at the current
+     position.  Value will be nil if there is no such property.  */
   if (STRINGP (it->string))
     {
-      Lisp_Object end_charpos, limit;
+      curpos = IT_STRING_CHARPOS (*it);
+      endpos = SCHARS (it->string);
+      pos = make_fixnum (curpos);
+      prop = Fget_text_property (pos, Qinvisible, it->string);
+    }
+  else	/* buffer */
+    {
+      curpos = IT_CHARPOS (*it);
+      endpos = ZV;
+      pos = make_fixnum (curpos);
+      prop = get_char_property_and_overlay (pos, Qinvisible, it->window,
+					    &overlay);
+    }
 
-      /* Get the value of the invisible text property at the
-	 current position.  Value will be nil if there is no such
-	 property.  */
-      end_charpos = make_fixnum (IT_STRING_CHARPOS (*it));
-      prop = Fget_text_property (end_charpos, Qinvisible, it->string);
-      invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+  /* Do we have anything to do here?  */
+  invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+  if (invis == 0 || curpos >= it->end_charpos)
+    return handled;
+
+  /* If not bidi, or the bidi iteration is at base paragraph level, we
+     can use a faster method; otherwise we need to check invisibility
+     of every character while bidi-iterating out of invisible text.  */
+  bool slow = it->bidi_p && !BIDI_AT_BASE_LEVEL (it->bidi_it);
+  /* Record whether we have to display an ellipsis for the
+     invisible text.  */
+  bool display_ellipsis_p = (invis == 2);
+
+  handled = HANDLED_RECOMPUTE_PROPS;
+
+  if (slow)
+    {
+      if (it->bidi_it.first_elt && it->bidi_it.charpos < endpos)
+	bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
+
+      if (STRINGP (it->string))
+	{
+	  bool done = false;
+	  /* Bidi-iterate out of the invisible part of the string.  */
+	  do
+	    {
+	      bidi_move_to_visually_next (&it->bidi_it);
+	      if (it->bidi_it.charpos < 0 || it->bidi_it.charpos >= endpos)
+		done = true;
+	      else
+		{
+		  pos = make_fixnum (it->bidi_it.charpos);
+		  prop = Fget_text_property (pos, Qinvisible, it->string);
+		  invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+		  /* If there are adjacent invisible texts, don't lose
+                     the second one's ellipsis.  */
+		  if (invis == 2)
+		    display_ellipsis_p = true;
+		}
+	    }
+	  while (!done && invis != 0);
+
+	  if (display_ellipsis_p)
+	    it->ellipsis_p = true;
+	  IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
+	  IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
+	  if (IT_STRING_BYTEPOS (*it) >= endpos)
+	    {
+	      /* The rest of the string is invisible.  If this is an
+		 overlay string, proceed with the next overlay string
+		 or whatever comes and return a character from there.  */
+	      if (it->current.overlay_string_index >= 0
+		  && !display_ellipsis_p)
+		{
+		  next_overlay_string (it);
+		  /* Don't check for overlay strings when we just
+		     finished processing them.  */
+		  handled = HANDLED_OVERLAY_STRING_CONSUMED;
+		}
+	    }
+	}
+      else
+	{
+	  bool done = false;
+	  /* Bidi-iterate out of the invisible text.  */
+	  do
+	    {
+	      bidi_move_to_visually_next (&it->bidi_it);
+	      if (it->bidi_it.charpos < BEGV || it->bidi_it.charpos >= endpos)
+		done = true;
+	      else
+		{
+		  pos = make_fixnum (it->bidi_it.charpos);
+		  prop = Fget_char_property (pos, Qinvisible, it->window);
+		  invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+		  /* If there are adjacent invisible texts, don't lose
+                     the second one's ellipsis.  */
+		  if (invis == 2)
+		    display_ellipsis_p = true;
+		}
+	    }
+	  while (!done && invis != 0);
+
+	  IT_CHARPOS (*it) = it->bidi_it.charpos;
+	  IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+	  if (display_ellipsis_p)
+            {
+              /* Make sure that the glyphs of the ellipsis will get
+                 correct `charpos' values.  See below for detailed
+                 explanation why this is needed.  */
+	      it->position.charpos = IT_CHARPOS (*it) - 1;
+	      it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
+	    }
+	  /* If there are before-strings at the start of invisible
+	     text, and the text is invisible because of a text
+	     property, arrange to show before-strings because 20.x did
+	     it that way.  (If the text is invisible because of an
+	     overlay property instead of a text property, this is
+	     already handled in the overlay code.)  */
+	  if (NILP (overlay)
+	      && get_overlay_strings (it, it->stop_charpos))
+	    {
+	      handled = HANDLED_RECOMPUTE_PROPS;
+	      if (it->sp > 0)
+		{
+		  it->stack[it->sp - 1].display_ellipsis_p = display_ellipsis_p;
+		  /* The call to get_overlay_strings above recomputes
+		     it->stop_charpos, but it only considers changes
+		     in properties and overlays beyond iterator's
+		     current position.  This causes us to miss changes
+		     that happen exactly where the invisible property
+		     ended.  So we play it safe here and force the
+		     iterator to check for potential stop positions
+		     immediately after the invisible text.  Note that
+		     if get_overlay_strings returns true, it
+		     normally also pushed the iterator stack, so we
+		     need to update the stop position in the slot
+		     below the current one.  */
+		  it->stack[it->sp - 1].stop_charpos
+		    = CHARPOS (it->stack[it->sp - 1].current.pos);
+		}
+	    }
+	  else if (display_ellipsis_p)
+            {
+	      it->ellipsis_p = true;
+	      /* Let the ellipsis display before
+		 considering any properties of the following char.
+		 Fixes jasonr@gnu.org 01 Oct 07 bug.  */
+	      handled = HANDLED_RETURN;
+            }
+	}
+    }
+  else if (STRINGP (it->string))
+    {
+      Lisp_Object end_charpos = pos, limit;
 
       if (invis != 0 && IT_STRING_CHARPOS (*it) < it->end_charpos)
 	{
-	  /* Record whether we have to display an ellipsis for the
-	     invisible text.  */
-	  bool display_ellipsis_p = (invis == 2);
-	  ptrdiff_t len, endpos;
-
-	  handled = HANDLED_RECOMPUTE_PROPS;
+	  ptrdiff_t len = endpos;
 
 	  /* Get the position at which the next visible text can be
 	     found in IT->string, if any.  */
-	  endpos = len = SCHARS (it->string);
 	  XSETINT (limit, len);
 	  do
 	    {
@@ -5137,7 +5275,7 @@ handle_invisible_prop (struct it *it)
 
 		  IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
 		  IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
-		  if (IT_CHARPOS (*it) >= endpos)
+		  if (IT_STRING_CHARPOS (*it) >= endpos)
 		    it->prev_stop = endpos;
 		}
 	      else
@@ -5167,27 +5305,14 @@ handle_invisible_prop (struct it *it)
 	    }
 	}
     }
-  else
+  else	/* we are iterating over buffer text at base paragraph level */
     {
-      ptrdiff_t newpos, next_stop, start_charpos, tem;
-      Lisp_Object pos, overlay;
-
-      /* First of all, is there invisible text at this position?  */
-      tem = start_charpos = IT_CHARPOS (*it);
-      pos = make_fixnum (tem);
-      prop = get_char_property_and_overlay (pos, Qinvisible, it->window,
-					    &overlay);
-      invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+      ptrdiff_t newpos, next_stop, tem = curpos;
+      Lisp_Object pos;
 
       /* If we are on invisible text, skip over it.  */
-      if (invis != 0 && start_charpos < it->end_charpos)
+      if (invis != 0 && curpos < it->end_charpos)
 	{
-	  /* Record whether we have to display an ellipsis for the
-	     invisible text.  */
-	  bool display_ellipsis_p = invis == 2;
-
-	  handled = HANDLED_RECOMPUTE_PROPS;
-
 	  /* Loop skipping over invisible text.  The loop is left at
 	     ZV or with IT on the first char being visible again.  */
 	  do
