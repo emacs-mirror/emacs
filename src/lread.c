@@ -2369,8 +2369,14 @@ build_load_history (Lisp_Object filename, bool entire)
      front of load-history, the most-recently-loaded position.  Also
      do this if we didn't find an existing member for the file.  */
   if (entire || !foundit)
-    Vload_history = Fcons (Fnreverse (Vcurrent_load_list),
-			   Vload_history);
+    {
+      Lisp_Object tem = Fnreverse (Vcurrent_load_list);
+      eassert (EQ (filename, Fcar (tem)));
+      Vload_history = Fcons (tem, Vload_history);
+      /* FIXME: There should be an unbind_to right after calling us which
+         should re-establish the previous value of Vcurrent_load_list.  */
+      Vcurrent_load_list = Qt;
+    }
 }
 
 static void
