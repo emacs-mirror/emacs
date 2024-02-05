@@ -76,7 +76,7 @@ see the variable 'url-request-extra-headers'.
 
 +++
 ** 'completion-auto-help' now affects 'icomplete-in-buffer'.
-Previously, completion-auto-help mostly affected only minibuffer
+Previously, 'completion-auto-help' mostly affected only minibuffer
 completion.  Now, if 'completion-auto-help' has the value 'lazy', then
 Icomplete's in-buffer display of possible completions will only appear
 after the 'completion-at-point' command has been invoked twice, and if
@@ -85,12 +85,12 @@ completely suppressed.  Thus, if you use 'icomplete-in-buffer', ensure
 'completion-auto-help' is not customized to 'lazy' or nil.
 
 +++
-** The *Completions* buffer now always accompanies 'icomplete-in-buffer'.
-Previously, it was not consistent when the *Completions* buffer would
-appear when using 'icomplete-in-buffer'.  Now the *Completions* buffer
+** The "*Completions*" buffer now always accompanies 'icomplete-in-buffer'.
+Previously, it was not consistent whether the "*Completions*" buffer would
+appear when using 'icomplete-in-buffer'.  Now the "*Completions*" buffer
 and Icomplete's in-buffer display of possible completions always
 appear together.  If you would prefer to see only Icomplete's
-in-buffer display, and not the *Completions* buffer, you can add this
+in-buffer display, and not the "*Completions*" buffer, you can add this
 to your init:
 
     (advice-add 'completion-at-point :after #'minibuffer-hide-completions)
@@ -258,7 +258,7 @@ right-aligned to is controlled by the new user option
 
 ** Windows
 
-*** New action alist entry 'post-command-select-window' for display-buffer.
+*** New action alist entry 'post-command-select-window' for 'display-buffer'.
 It specifies whether the window of the displayed buffer should be
 selected or deselected at the end of executing the current command.
 
@@ -305,8 +305,7 @@ between the auto save file and the current file.
 
 ---
 ** 'ffap-lax-url' now defaults to nil.
-Previously, it was set to 'ffap-lax-url' to t but this broke remote file
-name detection.
+Previously, it was set to t but this broke remote file name detection.
 
 
 * Editing Changes in Emacs 30.1
@@ -433,7 +432,7 @@ configurations such as X11 when the X server does not support at least
 version 2.1 of the X Input Extension, and 'xterm-mouse-mode'.
 
 ** 'xterm-mouse-mode'
-This mode now emits `wheel-up/down/right/left' events instead of
+This mode now emits 'wheel-up/down/right/left' events instead of
 'mouse-4/5/6/7' events for the mouse wheel.
 It uses the 'mouse-wheel-up/down/left/right-event'
 variables to decide which button maps to which wheel event (if any).
@@ -442,7 +441,7 @@ variables to decide which button maps to which wheel event (if any).
 
 ---
 *** New user option 'Info-url-alist'.
-This user option associates manual-names with URLs.  It affects the
+This user option associates manual names with URLs.  It affects the
 'Info-goto-node-web' command.  By default, associations for all
 Emacs-included manuals are set.  Further associations can be added for
 arbitrary Info manuals.
@@ -691,7 +690,7 @@ arguments of the form 'VAR=VALUE', 'env' will first set 'VAR' to
 Now, you can pass an argument like "u+w,o-r" to Eshell's 'umask'
 command, which will give write permission for owners of newly-created
 files and deny read permission for users who are not members of the
-file's group.  See the Info node '(coreutils)File permissions' for
+file's group.  See the Info node "(coreutils) File permissions" for
 more information on this notation.
 
 +++
@@ -810,14 +809,14 @@ in the minibuffer history, with more recent candidates appearing first.
 *** 'completion-category-overrides' supports more metadata.
 The new supported completion properties are 'cycle-sort-function',
 'display-sort-function', 'annotation-function', 'affixation-function',
-'group-function'.  You can now customize them for any category in
+and 'group-function'.  You can now customize them for any category in
 'completion-category-overrides' that will override the properties
 defined in completion metadata.
 
 +++
 *** 'completion-extra-properties' supports more metadata.
 The new supported completion properties are 'category',
-'group-function', 'display-sort-function', 'cycle-sort-function'.
+'group-function', 'display-sort-function', and 'cycle-sort-function'.
 
 ** Pcomplete
 
@@ -1059,8 +1058,8 @@ which calls 'xref-find-definitions'.  If the previous one worked
 better for you, use 'define-key' in your init script to bind
 'js-find-symbol' to that combination again.
 
-** Json mode
-`js-json-mode` does not derive from `js-mode` any more so as not
+** Json mode.
+'js-json-mode' does not derive from 'js-mode' any more so as not
 to confuse tools like Eglot or YASnippet into thinking that those
 buffers contain Javascript code.
 
@@ -1195,8 +1194,8 @@ comment, like Perl mode does.
 
 *** New command 'cperl-file-style'.
 This command sets the indentation style for the current buffer.  To
-change the default style, either use the option with the same name or
-use the command cperl-set-style.
+change the default style, either use the user option with the same name
+or use the command 'cperl-set-style'.
 
 *** Commands using the Perl info page are obsolete.
 The Perl documentation in info format is no longer distributed with
@@ -1309,16 +1308,19 @@ chat buffers use by default.
 +++
 *** New command 'customize-dirlocals'.
 This command pops up a buffer to edit the settings in ".dir-locals.el".
+
 ** Calc
+
 +++
-*** Calc parses fractions written using U+2044 FRACTION SLASH
-Fractions of the form 123⁄456 are handled as if written 123:456.  Note
-in particular the difference in behavior from U+2215 DIVISION SLASH
+*** Calc parses fractions written using U+2044 FRACTION SLASH.
+Fractions of the form "123⁄456" are handled as if written "123:456".
+Note in particular the difference in behavior from U+2215 DIVISION SLASH
 and U+002F SOLIDUS, which result in division rather than a rational
-fraction.  You may also be interested to know that precomposed
-fraction characters, such as ½ (U+00BD VULGAR FRACTION ONE HALF), are
-also recognized as rational fractions.  They have been since 2004, but
-it looks like it was never mentioned in the NEWS, or even the manual.
+fraction.  You may also be interested to know that precomposed fraction
+characters, such as ½ (U+00BD VULGAR FRACTION ONE HALF), are also
+recognized as rational fractions.  They have been since 2004, but it
+looks like it was never mentioned in the NEWS, or even the manual.
+
 
 * New Modes and Packages in Emacs 30.1
 
@@ -1378,19 +1380,19 @@ files and save the changes.
 * Incompatible Lisp Changes in Emacs 30.1
 
 ---
-** Old 'derived.el' functions removed.
+** Old derived.el functions removed.
 The following functions have been deleted because they were only used
 by code compiled with Emacs<21:
-'derived-mode-setup-function-name', 'derived-mode-init-mode-variables',
-'derived-mode-set-keymap', 'derived-mode-set-syntax-table',
-'derived-mode-set-abbrev-table', 'derived-mode-run-hooks',
+'derived-mode-init-mode-variables', 'derived-mode-merge-abbrev-tables',
 'derived-mode-merge-keymaps', 'derived-mode-merge-syntax-tables',
-'derived-mode-merge-abbrev-tables'.
+'derived-mode-run-hooks', 'derived-mode-set-abbrev-table',
+'derived-mode-set-keymap', 'derived-mode-set-syntax-table',
+'derived-mode-setup-function-name'.
 
 +++
 ** 'M-TAB' now invokes 'completion-at-point' also in Text mode.
 By default, Text mode no longer binds 'M-TAB' to
-'ispell-complete-word'.  Instead this mode arranges for
+'ispell-complete-word'.  Instead, this mode arranges for
 'completion-at-point', globally bound to 'M-TAB', to perform word
 completion as well.  You can have Text mode bind 'M-TAB' to
 'ispell-complete-word' as it did in previous Emacs versions, or
@@ -1498,8 +1500,8 @@ values.
 * Lisp Changes in Emacs 30.1
 
 +++
-** 'define-advice' now sets the new advice's 'name' property to NAME
-Named advice defined with 'define-advice' can now be removed with
+** 'define-advice' now sets the new advice's 'name' property to NAME.
+Named advices defined with 'define-advice' can now be removed with
 '(advice-remove SYMBOL NAME)' in addition to '(advice-remove SYMBOL
 SYMBOL@NAME)'.
 
@@ -1516,10 +1518,10 @@ It puts a limit to the amount by which Emacs can temporarily increase
 
 +++
 ** New special form 'handler-bind'.
-Provides a functionality similar to `condition-case` except it runs the
-handler code without unwinding the stack, such that we can record the
-backtrace and other dynamic state at the point of the error.
-See the Info node "(elisp) Handling Errors".
+It provides a functionality similar to 'condition-case' except it runs
+the handler code without unwinding the stack, such that we can record
+the backtrace and other dynamic state at the point of the error.  See
+the Info node "(elisp) Handling Errors".
 
 +++
 ** New 'pop-up-frames' action alist entry for 'display-buffer'.
