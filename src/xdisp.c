@@ -25060,7 +25060,7 @@ should_produce_line_number (struct it *it)
      because get-char-property always returns nil for ZV, except if
      the property is in 'default-text-properties'.  */
   if (NILP (val) && IT_CHARPOS (*it) >= ZV)
-    val = disable_line_numbers_overlay_at_eob ();
+    return !disable_line_numbers_overlay_at_eob ();
   return NILP (val) ? true : false;
 }
 

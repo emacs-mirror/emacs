@@ -3002,7 +3002,7 @@ the normal hook `change-major-mode-hook'.  */)
    But still return the total number of overlays.
 */
 
-ptrdiff_t
+static ptrdiff_t
 overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
 	     Lisp_Object **vec_ptr, ptrdiff_t *len_ptr,
 	     bool empty, bool trailing,
@@ -3125,56 +3125,38 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
 {
   ptrdiff_t start = OVERLAY_START (overlay);
   ptrdiff_t end = OVERLAY_END (overlay);
-  ptrdiff_t n, i, size;
-  Lisp_Object *v, tem;
-  Lisp_Object vbuf[10];
-  USE_SAFE_ALLOCA;
+  Lisp_Object tem;
+  struct itree_node *node;
 
-  size = ARRAYELTS (vbuf);
-  v = vbuf;
-  n = overlays_in (start, end, 0, &v, &size, true, false, NULL);
-  if (n > size)
+  ITREE_FOREACH (node, current_buffer->overlays,
+                 start, min (end, ZV) + 1,
+                 ASCENDING)
     {
-      SAFE_NALLOCA (v, 1, n);
-      overlays_in (start, end, 0, &v, &n, true, false, NULL);
+      if (node->begin < end && node->end > start
+          && node->begin < node->end
+          && !EQ (node->data, overlay)
+          && (tem = Foverlay_get (overlay, Qmouse_face),
+	      !NILP (tem)))
+	return true;
     }
-
-  for (i = 0; i < n; ++i)
-    if (!EQ (v[i], overlay)
-	&& (tem = Foverlay_get (overlay, Qmouse_face),
-	    !NILP (tem)))
-      break;
-
-  SAFE_FREE ();
-  return i < n;
+  return false;
 }
 
 /* Return the value of the 'display-line-numbers-disable' property at
    EOB, if there's an overlay at ZV with a non-nil value of that property.  */
-Lisp_Object
+bool
 disable_line_numbers_overlay_at_eob (void)
 {
-  ptrdiff_t n, i, size;
-  Lisp_Object *v, tem = Qnil;
-  Lisp_Object vbuf[10];
-  USE_SAFE_ALLOCA;
+  Lisp_Object tem = Qnil;
+  struct itree_node *node;
 
-  size = ARRAYELTS (vbuf);
-  v = vbuf;
-  n = overlays_in (ZV, ZV, 0, &v, &size, false, false, NULL);
-  if (n > size)
+  ITREE_FOREACH (node, current_buffer->overlays, ZV, ZV, ASCENDING)
     {
-      SAFE_NALLOCA (v, 1, n);
-      overlays_in (ZV, ZV, 0, &v, &n, false, false, NULL);
+      if ((tem = Foverlay_get (node->data, Qdisplay_line_numbers_disable),
+	   !NILP (tem)))
+	return true;
     }
-
-  for (i = 0; i < n; ++i)
-    if ((tem = Foverlay_get (v[i], Qdisplay_line_numbers_disable),
-	 !NILP (tem)))
-      break;
-
-  SAFE_FREE ();
-  return tem;
+  return false;
 }
 
 

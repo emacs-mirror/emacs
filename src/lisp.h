@@ -4802,7 +4802,7 @@ extern void syms_of_editfns (void);
 
 /* Defined in buffer.c.  */
 extern bool mouse_face_overlay_overlaps (Lisp_Object);
-extern Lisp_Object disable_line_numbers_overlay_at_eob (void);
+extern bool disable_line_numbers_overlay_at_eob (void);
 extern AVOID nsberror (Lisp_Object);
 extern void adjust_overlays_for_insert (ptrdiff_t, ptrdiff_t, bool);
 extern void adjust_overlays_for_delete (ptrdiff_t, ptrdiff_t);
