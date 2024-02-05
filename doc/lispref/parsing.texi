@@ -916,8 +916,10 @@ nodes.
 
 @defun treesit-parent-until node predicate &optional include-node
 This function repeatedly finds the parents of @var{node}, and returns
-the parent that satisfies @var{pred}, a function that takes a node as
-argument and returns a boolean that indicates a match.  If no parent
+the parent that satisfies @var{pred}.  @var{pred} can be either a
+function that takes a node as argument and returns @code{t} or
+@code{nil}, or a regexp matching node type names, or other valid
+predicates described in @var{treesit-thing-settings}.  If no parent
 satisfies @var{pred}, this function returns @code{nil}.
 
 Normally this function only looks at the parents of @var{node} but not
@@ -927,11 +929,12 @@ function returns @var{node} if @var{node} satisfies @var{pred}.
 
 @defun treesit-parent-while node pred
 This function goes up the tree starting from @var{node}, and keeps
-doing so as long as the nodes satisfy @var{pred}, a function that
-takes a node as argument.  That is, this function returns the highest
-parent of @var{node} that still satisfies @var{pred}.  Note that if
-@var{node} satisfies @var{pred} but its immediate parent doesn't,
-@var{node} itself is returned.
+doing so as long as the nodes satisfy @var{pred}.  That is, this
+function returns the highest parent of @var{node} that still satisfies
+@var{pred}.  Note that if @var{node} satisfies @var{pred} but its
+immediate parent doesn't, @var{node} itself is returned.
+
+@var{pred} is the same as in @code{treesit-parent-until} above.
 @end defun
 
 @defun treesit-node-top-level node &optional type

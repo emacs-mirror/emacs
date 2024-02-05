@@ -344,14 +344,13 @@ ancestor node which satisfies the predicate PRED; then it
 returns that ancestor node.  It returns nil if no ancestor
 node was found that satisfies PRED.
 
-PRED should be a function that takes one argument, the node to
-examine, and returns a boolean value indicating whether that
-node is a match.
+PRED can be a predicate function, a regexp matching node type,
+and more; see docstring of `treesit-thing-settings'.
 
 If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
   (let ((node (if include-node node
                 (treesit-node-parent node))))
-    (while (and node (not (funcall pred node)))
+    (while (and node (not (treesit-node-match-p node pred)))
       (setq node (treesit-node-parent node)))
     node))
 
@@ -364,9 +363,8 @@ no longer satisfies the predicate PRED; it returns the last
 examined node that satisfies PRED.  If no node satisfies PRED, it
 returns nil.
 
-PRED should be a function that takes one argument, the node to
-examine, and returns a boolean value indicating whether that
-node is a match."
+PRED can be a predicate function, a regexp matching node type,
+and more; see docstring of `treesit-thing-settings'."
   (let ((last nil))
     (while (and node (funcall pred node))
       (setq last node
