@@ -240,7 +240,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	  }
       }
 
-    EmacsActivity.invalidateFocus ();
+    EmacsActivity.invalidateFocus (4);
 
     if (!children.isEmpty ())
       throw new IllegalStateException ("Trying to destroy window with "
@@ -760,7 +760,7 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   onFocusChanged (boolean gainFocus)
   {
-    EmacsActivity.invalidateFocus ();
+    EmacsActivity.invalidateFocus (gainFocus ? 6 : 5);
   }
 
   /* Notice that the activity has been detached or destroyed.

@@ -97,7 +97,7 @@ public class EmacsActivity extends Activity
   }
 
   public static void
-  invalidateFocus ()
+  invalidateFocus (int whence)
   {
     EmacsWindow oldFocus;
 
@@ -144,7 +144,7 @@ public class EmacsActivity extends Activity
 	layout.removeView (window.view);
 	window = null;
 
-	invalidateFocus ();
+	invalidateFocus (0);
       }
   }
 
@@ -172,8 +172,17 @@ public class EmacsActivity extends Activity
     if (isPaused)
       window.noticeIconified ();
 
-    /* Invalidate the focus.  */
-    invalidateFocus ();
+    /* Invalidate the focus.  Since attachWindow may be called from
+       either the main or the UI thread, post this to the UI thread.  */
+
+    runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  invalidateFocus (1);
+	}
+      });
   }
 
   @Override
@@ -261,7 +270,7 @@ public class EmacsActivity extends Activity
     isMultitask = this instanceof EmacsMultitaskActivity;
     manager.removeWindowConsumer (this, isMultitask || isFinishing ());
     focusedActivities.remove (this);
-    invalidateFocus ();
+    invalidateFocus (2);
 
     /* Remove this activity from the static field, lest it leak.  */
     if (lastFocusedActivity == this)
@@ -274,9 +283,16 @@ public class EmacsActivity extends Activity
   public final void
   onWindowFocusChanged (boolean isFocused)
   {
-    if (isFocused && !focusedActivities.contains (this))
+    /* At times and on certain versions of Android ISFOCUSED does not
+       reflect whether the window actually holds focus, so replace it
+       with the value of `hasWindowFocus'.  */
+    isFocused = hasWindowFocus ();
+
+    if (isFocused)
       {
-	focusedActivities.add (this);
+	if (!focusedActivities.contains (this))
+	  focusedActivities.add (this);
+
 	lastFocusedActivity = this;
 
 	/* Update the window insets as the focus change may have
@@ -291,7 +307,7 @@ public class EmacsActivity extends Activity
     else
       focusedActivities.remove (this);
 
-    invalidateFocus ();
+    invalidateFocus (3);
   }
 
   @Override
