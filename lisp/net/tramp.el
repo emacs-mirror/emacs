@@ -557,7 +557,7 @@ host runs a restricted shell, it shall be added to this list, too."
       eos)
   "Host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
-  :version "30.1"
+  :version "29.3"
   :type '(choice (const :tag "Chrooted environment" nil)
 		 (regexp :tag "Host regexp")))
 

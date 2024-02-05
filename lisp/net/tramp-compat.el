@@ -309,7 +309,7 @@ Also see `ignore'."
 
 ;; Macro `connection-local-p' is new in Emacs 30.1.
 (if (macrop 'connection-local-p)
-    (defalias 'tramp-compat-connection-local-p #'connection-local-p)
+    (defalias 'tramp-compat-connection-local-p 'connection-local-p)
   (defmacro tramp-compat-connection-local-p (variable)
     "Non-nil if VARIABLE has a connection-local binding in `default-directory'."
     `(let (connection-local-variables-alist file-local-variables-alist)

@@ -389,7 +389,7 @@ arguments to pass to the OPERATION."
   "Add archive file name handler to `file-name-handler-alist'."
   (when (and tramp-archive-enabled
              (not
-              (rassq 'tramp-archive-file-name-handler file-name-handler-alist)))
+              (rassq #'tramp-archive-file-name-handler file-name-handler-alist)))
     (add-to-list 'file-name-handler-alist
 	         (cons (tramp-archive-autoload-file-name-regexp)
 		       #'tramp-archive-autoload-file-name-handler))
@@ -443,7 +443,7 @@ arguments to pass to the OPERATION."
   (and (tramp-archive-file-name-p name)
        (match-string 2 name)))
 
-(defvar tramp-archive-hash (make-hash-table :test 'equal)
+(defvar tramp-archive-hash (make-hash-table :test #'equal)
   "Hash table for archive local copies.
 The hash key is the archive name.  The value is a cons of the
 used `tramp-file-name' structure for tramp-gvfs, and the file
