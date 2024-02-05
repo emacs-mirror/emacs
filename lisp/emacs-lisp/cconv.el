@@ -621,12 +621,16 @@ places where they originally did not directly appear."
        (cconv-convert exp env extend))
 
       (`(,func . ,forms)
-       (if (symbolp func)
+       (if (or (symbolp func) (functionp func))
            ;; First element is function or whatever function-like forms are:
            ;; or, and, if, catch, progn, prog1, while, until
-           `(,func . ,(mapcar (lambda (form)
-                                (cconv-convert form env extend))
-                              forms))
+           (let ((args (mapcar (lambda (form) (cconv-convert form env extend))
+                               forms)))
+             (unless (symbolp func)
+               (byte-compile-warn-x
+                form
+                "Use `funcall' instead of `%s' in the function position" func))
+             `(,func . ,args))
          (byte-compile-warn-x form "Malformed function `%S'" func)
          nil))
 
