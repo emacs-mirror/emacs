@@ -2461,10 +2461,14 @@ Set up hooks, load the cache file -- if existing -- and build the menu."
 	    (setq filesets-menu-use-cached-flag t)))
     (filesets-build-menu)))
 
+;;; obsolete
+
 (defun filesets-error (_class &rest args)
   "`error' wrapper."
   (declare (obsolete error "28.1"))
   (error "%s" (mapconcat #'identity args " ")))
+
+(define-obsolete-function-alias 'filesets-quote #'shell-quote-argument "30.1")
 
 (provide 'filesets)
 
