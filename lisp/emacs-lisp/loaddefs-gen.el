@@ -489,10 +489,12 @@ don't include."
 
         (when (and autoload-compute-prefixes
                    compute-prefixes)
-          (when-let ((form (loaddefs-generate--compute-prefixes load-name)))
-            ;; This output needs to always go in the main loaddefs.el,
-            ;; regardless of `generated-autoload-file'.
-            (push (list main-outfile file form) defs)))))
+          (with-demoted-errors "%S"
+            (when-let
+                ((form (loaddefs-generate--compute-prefixes load-name)))
+              ;; This output needs to always go in the main loaddefs.el,
+              ;; regardless of `generated-autoload-file'.
+              (push (list main-outfile file form) defs))))))
     defs))
 
 (defun loaddefs-generate--compute-prefixes (load-name)
@@ -506,14 +508,15 @@ don't include."
                ;; Consider `read-symbol-shorthands'.
                (probe (let ((obarray (obarray-make)))
                         (car (read-from-string name)))))
-          (setq name (symbol-name probe))
-          (when (save-excursion
-                  (goto-char (match-beginning 0))
-                  (or (bobp)
-                      (progn
-                        (forward-line -1)
-                        (not (looking-at ";;;###autoload")))))
-            (push name prefs)))))
+          (when (symbolp name)
+            (setq name (symbol-name probe))
+            (when (save-excursion
+                    (goto-char (match-beginning 0))
+                    (or (bobp)
+                        (progn
+                          (forward-line -1)
+                          (not (looking-at ";;;###autoload")))))
+              (push name prefs))))))
     (loaddefs-generate--make-prefixes prefs load-name)))
 
 (defun loaddefs-generate--rubric (file &optional type feature compile)
