@@ -366,7 +366,7 @@ returns nil.
 PRED can be a predicate function, a regexp matching node type,
 and more; see docstring of `treesit-thing-settings'."
   (let ((last nil))
-    (while (and node (funcall pred node))
+    (while (and node (treesit-node-match-p node pred))
       (setq last node
             node (treesit-node-parent node)))
     last))
