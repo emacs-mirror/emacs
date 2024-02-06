@@ -1303,6 +1303,12 @@ will return the URL for that bug.
 This allows for rcirc logs to use a custom timestamp format, than the
 chat buffers use by default.
 
+---
+*** New command 'Buffer-menu-toggle-internal', locally bound to 'I'.
+This command toggles the display of internal buffers in Buffer Menu mode;
+that is, buffers not visiting a file and whose names start with a space.
+Previously, such buffers were never shown.
+
 ** Customize
 
 +++

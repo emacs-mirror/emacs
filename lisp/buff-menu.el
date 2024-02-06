@@ -100,6 +100,10 @@ as it is by default."
 This is set by the prefix argument to `buffer-menu' and related
 commands.")
 
+(defvar-local Buffer-menu-show-internal nil
+  "Non-nil if the current Buffer Menu lists internal buffers.
+Internal buffers are those whose names start with a space.")
+
 (defvar-local Buffer-menu-filter-predicate nil
   "Function to filter out buffers in the buffer list.
 Buffers that don't satisfy the predicate will be skipped.
@@ -140,6 +144,7 @@ then the buffer will be displayed in the buffer list.")
   "V"           #'Buffer-menu-view
   "O"           #'Buffer-menu-view-other-window
   "T"           #'Buffer-menu-toggle-files-only
+  "I"           #'Buffer-menu-toggle-internal
   "M-s a C-s"   #'Buffer-menu-isearch-buffers
   "M-s a C-M-s" #'Buffer-menu-isearch-buffers-regexp
   "M-s a C-o"   #'Buffer-menu-multi-occur
@@ -197,6 +202,10 @@ then the buffer will be displayed in the buffer list.")
      :help "Toggle whether the current buffer-menu displays only file buffers"
      :style toggle
      :selected Buffer-menu-files-only]
+    ["Show Internal Buffers" Buffer-menu-toggle-internal
+     :help "Toggle whether the current buffer-menu displays internal buffers"
+     :style toggle
+     :selected Buffer-menu-show-internal]
     "---"
     ["Refresh" revert-buffer
      :help "Refresh the *Buffer List* buffer contents"]
@@ -317,6 +326,11 @@ ARG, show only buffers that are visiting files."
   (interactive "P")
   (display-buffer (list-buffers-noselect arg)))
 
+(defun Buffer-menu--selection-message ()
+  (message (cond (Buffer-menu-files-only "Showing only file-visiting buffers.")
+                 (Buffer-menu-show-internal "Showing all buffers.")
+	         (t "Showing all non-internal buffers."))))
+
 (defun Buffer-menu-toggle-files-only (arg)
   "Toggle whether the current `buffer-menu' displays only file buffers.
 With a positive ARG, display only file buffers.  With zero or
@@ -325,9 +339,18 @@ negative ARG, display other buffers as well."
   (setq Buffer-menu-files-only
 	(cond ((not arg) (not Buffer-menu-files-only))
 	      ((> (prefix-numeric-value arg) 0) t)))
-  (message (if Buffer-menu-files-only
-	       "Showing only file-visiting buffers."
-	     "Showing all non-internal buffers."))
+  (Buffer-menu--selection-message)
+  (revert-buffer))
+
+(defun Buffer-menu-toggle-internal (arg)
+  "Toggle whether the current `buffer-menu' displays internal buffers.
+With a positive ARG, display non-internal buffers only.  With zero or
+negative ARG, display internal buffers as well."
+  (interactive "P" Buffer-menu-mode)
+  (setq Buffer-menu-show-internal
+	(cond ((not arg) (not Buffer-menu-show-internal))
+	      ((> (prefix-numeric-value arg) 0) t)))
+  (Buffer-menu--selection-message)
   (revert-buffer))
 
 (define-obsolete-function-alias 'Buffer-menu-sort 'tabulated-list-sort
@@ -667,6 +690,7 @@ See more at `Buffer-menu-filter-predicate'."
         (marked-buffers (Buffer-menu-marked-buffers))
         (buffer-menu-buffer (current-buffer))
 	(show-non-file (not Buffer-menu-files-only))
+        (show-internal Buffer-menu-show-internal)
 	(filter-predicate (and (functionp Buffer-menu-filter-predicate)
 			       Buffer-menu-filter-predicate))
 	entries name-width)
@@ -686,7 +710,8 @@ See more at `Buffer-menu-filter-predicate'."
 	       (file buffer-file-name))
 	  (when (and (buffer-live-p buffer)
 		     (or buffer-list
-			 (and (or (not (string= (substring name 0 1) " "))
+			 (and (or show-internal
+                                  (not (string= (substring name 0 1) " "))
                                   file)
 			      (not (eq buffer buffer-menu-buffer))
 			      (or file show-non-file)
