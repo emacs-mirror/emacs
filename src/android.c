@@ -40,6 +40,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/select.h>
 
 /* Old NDK versions lack MIN and MAX.  */
 #include <minmax.h>
@@ -151,6 +152,13 @@ static char *android_files_dir;
 
 /* The Java environment being used for the main thread.  */
 JNIEnv *android_java_env;
+
+#ifdef THREADS_ENABLED
+
+/* The Java VM new threads attach to.  */
+JavaVM *android_jvm;
+
+#endif /* THREADS_ENABLED */
 
 /* The EmacsGC class.  */
 static jclass emacs_gc_class;
@@ -496,6 +504,9 @@ android_handle_sigusr1 (int sig, siginfo_t *siginfo, void *arg)
    This should ideally be defined further down.  */
 static sem_t android_query_sem;
 
+/* ID of the Emacs thread.  */
+static pthread_t main_thread_id;
+
 /* Set up the global event queue by initializing the mutex and two
    condition variables, and the linked list of events.  This must be
    called before starting the Emacs thread.  Also, initialize the
@@ -530,6 +541,8 @@ android_init_events (void)
 
   event_queue.events.next = &event_queue.events;
   event_queue.events.last = &event_queue.events;
+
+  main_thread_id = pthread_self ();
 
 #if __ANDROID_API__ >= 16
 
@@ -578,10 +591,6 @@ android_pending (void)
 
   return i;
 }
-
-/* Forward declaration.  */
-
-static void android_check_query (void);
 
 /* Wait for events to become available synchronously.  Return once an
    event arrives.  Also, reply to the UI thread whenever it requires a
@@ -732,6 +741,12 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   static char byte;
 #endif
 
+#ifdef THREADS_ENABLED
+  if (!pthread_equal (pthread_self (), main_thread_id))
+    return pselect (nfds, readfds, writefds, exceptfds, timeout,
+		    NULL);
+#endif /* THREADS_ENABLED */
+
   /* Since Emacs is reading keyboard input again, signify that queries
      from input methods are no longer ``urgent''.  */
 
@@ -837,9 +852,11 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   if (nfds_return < 0)
     errno = EINTR;
 
+#ifndef THREADS_ENABLED
   /* Now check for and run anything the UI thread wants to run in the
      main thread.  */
   android_check_query ();
+#endif /* THREADS_ENABLED */
 
   return nfds_return;
 }
@@ -1315,12 +1332,17 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   const char *java_string;
   struct stat statb;
 
+#ifdef THREADS_ENABLED
+  /* Save the Java VM.  */
+  if ((*env)->GetJavaVM (env, &android_jvm))
+    emacs_abort ();
+#endif /* THREADS_ENABLED */
+
   /* Set the Android API level early, as it is used by
      `android_vfs_init'.  */
   android_api_level = api_level;
 
   /* This function should only be called from the main thread.  */
-
   android_pixel_density_x = pixel_density_x;
   android_pixel_density_y = pixel_density_y;
   android_scaled_pixel_density = scaled_density;
@@ -6717,7 +6739,7 @@ static void *android_query_context;
 /* Run any function that the UI thread has asked to run, and then
    signal its completion.  */
 
-static void
+void
 android_check_query (void)
 {
   void (*proc) (void *);

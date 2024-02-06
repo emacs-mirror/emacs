@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    a table of function pointers.  */
 
 #ifndef _ANDROID_H_
+#define _ANDROID_H_
+
 #ifndef ANDROID_STUBIFY
 #include <jni.h>
 #include <pwd.h>
@@ -226,6 +228,7 @@ extern void android_display_toast (const char *);
 
 /* Event loop functions.  */
 
+extern void android_check_query (void);
 extern void android_check_query_urgent (void);
 extern int android_run_in_emacs_thread (void (*) (void *), void *);
 extern void android_write_event (union android_event *);
@@ -298,6 +301,10 @@ struct android_emacs_service
 };
 
 extern JNIEnv *android_java_env;
+
+#ifdef THREADS_ENABLED
+extern JavaVM *android_jvm;
+#endif /* THREADS_ENABLED */
 
 /* The EmacsService object.  */
 extern jobject emacs_service;

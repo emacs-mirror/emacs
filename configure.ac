@@ -1231,6 +1231,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-mailutils=$with_mailutils"
   passthrough="$passthrough --with-pop=$with_pop"
   passthrough="$passthrough --with-harfbuzz=$with_harfbuzz"
+  passthrough="$passthrough --with-threads=$with_png"
 
   # Now pass through some checking options.
   emacs_val="--enable-check-lisp-object-type=$enable_check_lisp_object_type"
@@ -1321,6 +1322,7 @@ if test "$ANDROID" = "yes"; then
     with_pop=no
     with_harfbuzz=no
     with_native_compilation=no
+    with_threads=no
   fi
 
   with_rsvg=no
@@ -1331,7 +1333,6 @@ if test "$ANDROID" = "yes"; then
   with_gpm=no
   with_dbus=no
   with_gsettings=no
-  with_threads=no
   with_ns=no
 
   # zlib is available in android.

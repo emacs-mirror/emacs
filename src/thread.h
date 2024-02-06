@@ -30,6 +30,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <signal.h>		/* sigset_t */
 #endif
 
+#ifdef HAVE_ANDROID
+#ifndef ANDROID_STUBIFY
+#include "android.h"
+#endif /* ANDROID_STUBIFY */
+#endif /* HAVE_ANDROID */
+
 #include "sysselect.h"		/* FIXME */
 #include "systhread.h"
 
@@ -83,6 +89,11 @@ struct thread_state
      waiting on.  */
   Lisp_Object event_object;
   /* event_object must be the last Lisp field.  */
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Pointer to an object to call Java functions through.  */
+  JNIEnv *java_env;
+#endif /* HAVE_ANDROID && !ANDROID_STUBIFY */
 
   /* An address near the bottom of the stack.
      Tells GC how to save a copy of the stack.  */
