@@ -2475,9 +2475,6 @@ struct Lisp_Hash_Table
      The table is physically split into three vectors (hash, next,
      key_and_value) which may or may not be beneficial.  */
 
-  int index_bits;	   /* log2 (size of the index vector).  */
-  hash_idx_t table_size;   /* Size of the next and hash vectors.  */
-
   /* Bucket vector.  An entry of -1 indicates no item is present,
      and a nonnegative entry is the index of the first item in
      a collision chain.
@@ -2514,20 +2511,24 @@ struct Lisp_Hash_Table
   /* Index of first free entry in free list, or -1 if none.  */
   hash_idx_t next_free;
 
+  hash_idx_t table_size;   /* Size of the next and hash vectors.  */
+
+  unsigned char index_bits;	/* log2 (size of the index vector).  */
+
   /* Weakness of the table.  */
-  hash_table_weakness_t weakness : 8;
+  hash_table_weakness_t weakness : 3;
 
   /* Hash table test (only used when frozen in dump)  */
-  hash_table_std_test_t frozen_test : 8;
+  hash_table_std_test_t frozen_test : 2;
 
   /* True if the table can be purecopied.  The table cannot be
      changed afterwards.  */
-  bool purecopy;
+  bool_bf purecopy : 1;
 
   /* True if the table is mutable.  Ordinarily tables are mutable, but
      pure tables are not, and while a table is being mutated it is
      immutable for recursive attempts to mutate it.  */
-  bool mutable;
+  bool_bf mutable : 1;
 
   /* Next weak hash table if this is a weak hash table.  The head of
      the list is in weak_hash_tables.  Used only during garbage
