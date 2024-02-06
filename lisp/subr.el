@@ -3829,13 +3829,17 @@ confusing to some users.")
 
 (defvar from--tty-menu-p nil
   "Non-nil means the current command was invoked from a TTY menu.")
+
+(declare-function android-detect-keyboard "androidfns.c")
+
 (defun use-dialog-box-p ()
   "Return non-nil if the current command should prompt the user via a dialog box."
   (and last-input-event                 ; not during startup
        (or (consp last-nonmenu-event)   ; invoked by a mouse event
            (and (null last-nonmenu-event)
                 (consp last-input-event))
-           (featurep 'android)		; Prefer dialog boxes on Android.
+           (and (featurep 'android)	; Prefer dialog boxes on Android.
+                (not (android-detect-keyboard))) ; If no keyboard is connected.
            from--tty-menu-p)            ; invoked via TTY menu
        use-dialog-box))
 

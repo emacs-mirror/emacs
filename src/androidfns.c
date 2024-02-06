@@ -2476,6 +2476,25 @@ there is no mouse.  */)
 #endif
 }
 
+DEFUN ("android-detect-keyboard", Fandroid_detect_keyboard,
+       Sandroid_detect_keyboard, 0, 0, 0,
+       doc: /* Return whether a keyboard is connected.
+Return non-nil if a key is connected to this computer, or nil
+if there is no keyboard.  */)
+  (void)
+{
+#ifndef ANDROID_STUBIFY
+  /* If no display connection is present, just return nil.  */
+
+  if (!android_init_gui)
+    return Qnil;
+
+  return android_detect_keyboard () ? Qt : Qnil;
+#else /* ANDROID_STUBIFY */
+  return Qt;
+#endif /* ANDROID_STUBIFY */
+}
+
 DEFUN ("android-toggle-on-screen-keyboard",
        Fandroid_toggle_on_screen_keyboard,
        Sandroid_toggle_on_screen_keyboard, 2, 2, 0,
@@ -3560,6 +3579,7 @@ language to be US English if LANGUAGE is empty.  */);
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   defsubr (&Sandroid_detect_mouse);
+  defsubr (&Sandroid_detect_keyboard);
   defsubr (&Sandroid_toggle_on_screen_keyboard);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);

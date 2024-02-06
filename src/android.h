@@ -103,6 +103,7 @@ extern int android_get_screen_height (void);
 extern int android_get_mm_width (void);
 extern int android_get_mm_height (void);
 extern bool android_detect_mouse (void);
+extern bool android_detect_keyboard (void);
 
 extern void android_set_dont_focus_on_map (android_window, bool);
 extern void android_set_dont_accept_focus (android_window, bool);
@@ -265,6 +266,7 @@ struct android_emacs_service
   jmethodID get_screen_width;
   jmethodID get_screen_height;
   jmethodID detect_mouse;
+  jmethodID detect_keyboard;
   jmethodID name_keysym;
   jmethodID browse_url;
   jmethodID restart_emacs;

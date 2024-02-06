@@ -60,6 +60,7 @@ import android.content.UriPermission;
 import android.content.pm.PackageManager;
 
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 
 import android.hardware.input.InputManager;
 
@@ -579,6 +580,15 @@ public final class EmacsService extends Service
       }
 
     return false;
+  }
+
+  public boolean
+  detectKeyboard ()
+  {
+    Configuration configuration;
+
+    configuration = getResources ().getConfiguration ();
+    return configuration.keyboard != Configuration.KEYBOARD_NOKEYS;
   }
 
   public String
