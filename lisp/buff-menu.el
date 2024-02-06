@@ -329,7 +329,7 @@ ARG, show only buffers that are visiting files."
 (defun Buffer-menu--selection-message ()
   (message (cond (Buffer-menu-files-only "Showing only file-visiting buffers.")
                  (Buffer-menu-show-internal "Showing all buffers.")
-	         (t "Showing all non-internal buffers."))))
+	         (t "Hiding internal buffers."))))
 
 (defun Buffer-menu-toggle-files-only (arg)
   "Toggle whether the current `buffer-menu' displays only file buffers.
@@ -344,7 +344,7 @@ negative ARG, display other buffers as well."
 
 (defun Buffer-menu-toggle-internal (arg)
   "Toggle whether the current `buffer-menu' displays internal buffers.
-With a positive ARG, display non-internal buffers only.  With zero or
+With a positive ARG, don't show internal buffers.  With zero or
 negative ARG, display internal buffers as well."
   (interactive "P" Buffer-menu-mode)
   (setq Buffer-menu-show-internal
