@@ -499,16 +499,17 @@ don't include."
 
 (defun loaddefs-generate--compute-prefixes (load-name)
   (goto-char (point-min))
-  (let ((prefs nil))
+  (let ((prefs nil)
+        (temp-obarray (obarray-make)))
     ;; Avoid (defvar <foo>) by requiring a trailing space.
     (while (re-search-forward
             "^(\\(def[^ \t\n]+\\)[ \t\n]+['(]*\\([^' ()\"\n]+\\)[\n \t]" nil t)
       (unless (member (match-string 1) autoload-ignored-definitions)
         (let* ((name (match-string-no-properties 2))
                ;; Consider `read-symbol-shorthands'.
-               (probe (let ((obarray (obarray-make)))
+               (probe (let ((obarray temp-obarray))
                         (car (read-from-string name)))))
-          (when (symbolp name)
+          (when (symbolp probe)
             (setq name (symbol-name probe))
             (when (save-excursion
                     (goto-char (match-beginning 0))
