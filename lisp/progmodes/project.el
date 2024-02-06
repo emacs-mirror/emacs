@@ -1515,7 +1515,8 @@ ARG, show only buffers that are visiting files."
              (lambda (buffer)
                (let ((name (buffer-name buffer))
                      (file (buffer-file-name buffer)))
-                 (and (or (not (string= (substring name 0 1) " "))
+                 (and (or Buffer-menu-show-internal
+                          (not (string= (substring name 0 1) " "))
                           file)
                       (not (eq buffer (current-buffer)))
                       (or file (not Buffer-menu-files-only)))))
@@ -1525,6 +1526,7 @@ ARG, show only buffers that are visiting files."
          (let ((buf (list-buffers-noselect
                      arg (with-current-buffer
                              (get-buffer-create "*Buffer List*")
+                           (setq-local Buffer-menu-show-internal nil)
                            (let ((Buffer-menu-files-only arg))
                              (funcall buffer-list-function))))))
            (with-current-buffer buf
