@@ -309,12 +309,30 @@ be set in `.emacs' instead."
   :group 'gnus-start
   :type 'boolean)
 
+(defcustom gnus-mode-line-logo
+  '((:type svg :file "gnus-pointer.svg" :ascent center)
+     (:type xpm :file "gnus-pointer.xpm" :ascent center)
+     (:type xbm :file "gnus-pointer.xbm" :ascent center))
+  "Gnus logo displayed in mode-line.
+
+If non-nil, it should be a list of image specifications that will be
+given as first argument to `find-image', which see.  Then, in case of a
+graphical display, the specified Gnus logo will be displayed as part of
+the buffer-identification in the mode-line of Gnus-buffers.
+
+If nil, no logo will be displayed."
+  :group 'gnus-visual
+  :type '(choice
+           (repeat :tag "List of image specifications" (plist))
+           (const :tag "No logo" nil)))
+
 (defun gnus-mode-line-buffer-identification (line)
   (let* ((str (car-safe line))
          (str (if (stringp str)
                   (car (propertized-buffer-identification str))
                 str)))
-    (if (or (not (fboundp 'find-image))
+    (if (or (not gnus-mode-line-logo)
+            (not (fboundp 'find-image))
 	    (not (display-graphic-p))
 	    (not (stringp str))
 	    (not (string-match "^Gnus:" str)))
@@ -325,14 +343,7 @@ be set in `.emacs' instead."
 	(add-text-properties
 	 0 5
 	 (list 'display
-	       (find-image
-		'((:type svg :file "gnus-pointer.svg"
-                         :ascent center)
-                  (:type xpm :file "gnus-pointer.xpm"
-			 :ascent center)
-		  (:type xbm :file "gnus-pointer.xbm"
-			 :ascent center))
-		t)
+	       (find-image gnus-mode-line-logo t)
 	       'help-echo (if gnus-emacs-version
                               (format
 			       "This is %s, %s."
