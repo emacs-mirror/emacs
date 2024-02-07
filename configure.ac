@@ -2337,6 +2337,7 @@ fi
 AC_DEFUN([AC_TYPE_SIZE_T])
 # Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
 AC_DEFUN([AC_TYPE_UID_T])
+ac_cv_type_gid_t=yes # AC_TYPE_GETGROUPS needs this in Autoconf 2.72.
 
 # Check for all math.h functions that Emacs uses; on some platforms,
 # -lm is needed for some of these functions.
