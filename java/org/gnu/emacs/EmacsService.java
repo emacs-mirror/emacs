@@ -136,6 +136,10 @@ public final class EmacsService extends Service
      been created yet.  */
   private EmacsSafThread storageThread;
 
+  /* The Thread object representing the Android user interface
+     thread.  */
+  private Thread mainThread;
+
   static
   {
     servicingQuery = new AtomicInteger ();
@@ -236,6 +240,7 @@ public final class EmacsService extends Service
 			  / metrics.density)
 			 * pixelDensityX);
     resolver = getContentResolver ();
+    mainThread = Thread.currentThread ();
 
     /* If the density used to compute the text size is lesser than
        160, there's likely a bug with display density computation.
@@ -384,7 +389,13 @@ public final class EmacsService extends Service
   {
     if (DEBUG_THREADS)
       {
-	if (Thread.currentThread () instanceof EmacsThread)
+	/* When SERVICE is NULL, Emacs is being executed non-interactively.  */
+	if (SERVICE == null
+	    /* It was previously assumed that only instances of
+	       `EmacsThread' were valid for graphics calls, but this is
+	       no longer true now that Lisp threads can be attached to
+	       the JVM.  */
+	    || (Thread.currentThread () != SERVICE.mainThread))
 	  return;
 
 	throw new RuntimeException ("Emacs thread function"
