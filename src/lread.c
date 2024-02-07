@@ -5296,6 +5296,32 @@ OBARRAY defaults to the value of `obarray'.  */)
   return Qnil;
 }
 
+DEFUN ("internal--obarray-buckets",
+       Finternal__obarray_buckets, Sinternal__obarray_buckets, 1, 1, 0,
+       doc: /* Symbols in each bucket of OBARRAY.  Internal use only.  */)
+    (Lisp_Object obarray)
+{
+  obarray = check_obarray (obarray);
+  ptrdiff_t size = ASIZE (obarray);
+  Lisp_Object ret = Qnil;
+  for (ptrdiff_t i = 0; i < size; i++)
+    {
+      Lisp_Object bucket = Qnil;
+      Lisp_Object sym = AREF (obarray, i);
+      if (BARE_SYMBOL_P (sym))
+	while (1)
+	  {
+	    bucket = Fcons (sym, bucket);
+	    struct Lisp_Symbol *s = XBARE_SYMBOL(sym)->u.s.next;
+	    if (!s)
+	      break;
+	    sym = make_lisp_symbol (s);
+	  }
+      ret = Fcons (Fnreverse (bucket), ret);
+    }
+  return Fnreverse (ret);
+}
+
 #define OBARRAY_SIZE 15121
 
 void
@@ -5693,6 +5719,7 @@ syms_of_lread (void)
   defsubr (&Sget_file_char);
   defsubr (&Smapatoms);
   defsubr (&Slocate_file_internal);
+  defsubr (&Sinternal__obarray_buckets);
 
   DEFVAR_LISP ("obarray", Vobarray,
 	       doc: /* Symbol table for use by `intern' and `read'.
