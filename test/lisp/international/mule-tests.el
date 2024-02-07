@@ -96,10 +96,10 @@
 
 ;;; Testing `sgml-html-meta-auto-coding-function'.
 
-(defconst sgml-html-meta-pre "<!doctype html><html><head>"
+(defvar sgml-html-meta-pre "<!doctype html><html><head>"
   "The beginning of a minimal HTML document.")
 
-(defconst sgml-html-meta-post "</head></html>"
+(defvar sgml-html-meta-post "</head></html>"
   "The end of a minimal HTML document.")
 
 (defun sgml-html-meta-run (coding-system)
