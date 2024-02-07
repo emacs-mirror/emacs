@@ -362,6 +362,11 @@
    :language 'elixir
    :feature 'elixir-definition
    `((call target: (identifier) @target-identifier
+           (arguments
+            (call target: (identifier) @font-lock-function-name-face
+                  (arguments)))
+           (:match ,elixir-ts--definition-keywords-re @target-identifier))
+     (call target: (identifier) @target-identifier
            (arguments (identifier) @font-lock-function-name-face)
            (:match ,elixir-ts--definition-keywords-re @target-identifier))
      (call target: (identifier) @target-identifier
