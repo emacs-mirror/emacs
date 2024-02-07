@@ -201,6 +201,13 @@
                     'completions-first-difference)
            return pos))
 
+(ert-deftest completion-test--pcm-bug38458 ()
+  (should (equal (let ((completion-ignore-case t))
+                   (completion-pcm--merge-try '("tes" point "ing")
+                                              '("Testing" "testing")
+                                              "" ""))
+           '("testing" . 4))))
+
 (ert-deftest completion-pcm-test-1 ()
   ;; Point is at end, this does not match anything
   (should (null
