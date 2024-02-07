@@ -1011,24 +1011,24 @@ Subclasses to override slot attributes."))
          (B (clone A :b "bb"))
          (C (clone B :a "aa")))
 
-    (should (string= "aa" (oref C :a)))
-    (should (string= "bb" (oref C :b)))
+    (should (string= "aa" (oref C a)))
+    (should (string= "bb" (oref C b)))
 
-    (should (slot-boundp A :a))
-    (should-not (slot-boundp A :b))
-    (should-not (slot-boundp A :c))
+    (should (slot-boundp A 'a))
+    (should-not (slot-boundp A 'b))
+    (should-not (slot-boundp A 'c))
 
-    (should-not (slot-boundp B :a))
-    (should (slot-boundp B :b))
-    (should-not (slot-boundp A :c))
+    (should-not (slot-boundp B 'a))
+    (should (slot-boundp B 'b))
+    (should-not (slot-boundp A 'c))
 
-    (should (slot-boundp C :a))
-    (should-not (slot-boundp C :b))
-    (should-not (slot-boundp C :c))
+    (should (slot-boundp C 'a))
+    (should-not (slot-boundp C 'b))
+    (should-not (slot-boundp C 'c))
 
-    (should (eieio-instance-inheritor-slot-boundp C :a))
-    (should (eieio-instance-inheritor-slot-boundp C :b))
-    (should-not (eieio-instance-inheritor-slot-boundp C :c))))
+    (should (eieio-instance-inheritor-slot-boundp C 'a))
+    (should (eieio-instance-inheritor-slot-boundp C 'b))
+    (should-not (eieio-instance-inheritor-slot-boundp C 'c))))
 
 ;;;; Interaction with defstruct
 
