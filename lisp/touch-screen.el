@@ -87,7 +87,7 @@ is being called from `read-sequence' or some similar function.")
 (defgroup touch-screen nil
   "Interact with Emacs from touch screen devices."
   :group 'mouse
-  :version "30.0")
+  :version "30.1")
 
 (defcustom touch-screen-display-keyboard nil
   "If non-nil, always display the on screen keyboard.
