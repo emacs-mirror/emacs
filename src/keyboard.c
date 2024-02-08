@@ -592,7 +592,9 @@ echo_dash (void)
 
   if (echo_keystrokes_help)
     {
-      AUTO_STRING (help, " (\\`C-h' for help)");
+      Lisp_Object help;
+
+      help = build_string (" (\\`C-h' for help)");
       kset_echo_string (current_kboard,
 			concat2 (KVAR (current_kboard, echo_string),
 				 calln (Qsubstitute_command_keys, help)));
@@ -13232,13 +13234,15 @@ Emacs also does a garbage collection if that seems to be warranted.  */);
   XSETFASTINT (Vauto_save_timeout, 30);
 
   DEFVAR_LISP ("echo-keystrokes", Vecho_keystrokes,
-	       doc: /* Nonzero means echo unfinished commands after this many seconds of pause.
+    doc: /* Nonzero means echo unfinished commands after this many seconds of pause.
 The value may be integer or floating point.
 If the value is zero, don't echo at all.  */);
   Vecho_keystrokes = make_fixnum (1);
 
   DEFVAR_BOOL ("echo-keystrokes-help", echo_keystrokes_help,
-	       doc: /* Non-nil means append small help text to the unfinished commands' echo. */);
+    doc: /* Whether to append help text to echoed commands.
+When non-nil, a reference to `C-h' is printed after echoed
+keystrokes.  */);
   echo_keystrokes_help = true;
 
   DEFVAR_LISP ("polling-period", Vpolling_period,
