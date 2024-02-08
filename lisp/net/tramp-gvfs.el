@@ -888,7 +888,8 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
   "Invoke the GVFS related OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (unless tramp-gvfs-enabled
+  ;; `file-remote-p' must not return an error.  (Bug#68976)
+  (unless (or tramp-gvfs-enabled (eq operation 'file-remote-p))
     (tramp-user-error nil "Package `tramp-gvfs' not supported"))
   (if-let ((filename (apply #'tramp-file-name-for-operation operation args))
            (tramp-gvfs-dbus-event-vector
