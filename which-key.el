@@ -24,13 +24,13 @@
 
 ;;; Commentary:
 
-;; which-key provides the minor mode which-key-mode for Emacs. The mode displays
+;; which-key provides the minor mode which-key-mode for Emacs.  The mode displays
 ;; the key bindings following your currently entered incomplete command (a
-;; prefix) in a popup. For example, after enabling the minor mode if you enter
+;; prefix) in a popup.  For example, after enabling the minor mode if you enter
 ;; C-x and wait for the default of 1 second the minibuffer will expand with all
 ;; of the available key bindings that follow C-x (or as many as space allows
-;; given your settings). This includes prefixes like C-x 8 which are shown in a
-;; different face. Screenshots of what the popup will look like along with
+;; given your settings).  This includes prefixes like C-x 8 which are shown in a
+;; different face.  Screenshots of what the popup will look like along with
 ;; information about additional features can be found at
 ;; https://github.com/justbur/emacs-which-key.
 ;;
@@ -51,7 +51,7 @@
 ;;; Options
 
 (defgroup which-key nil
-  "Customization options for which-key-mode"
+  "Customization options for which-key-mode."
   :group 'help
   :prefix "which-key-")
 
@@ -81,7 +81,7 @@ this behavior."
                                        echo-keystrokes)
   "Value to use for `echo-keystrokes'.
 This only applies if `which-key-popup-type' is minibuffer or
-`which-key-show-prefix' is echo. It needs to be less than
+`which-key-show-prefix' is echo.  It needs to be less than
 `which-key-idle-delay' or else the keystroke echo will erase the
 which-key popup."
   :group 'which-key
@@ -264,7 +264,7 @@ and nil. Nil turns the feature off."
                 (const :tag "Hide" nil)))
 
 (defcustom which-key-popup-type 'side-window
-  "Supported types are minibuffer, side-window, frame, and custom"
+  "Supported types are minibuffer, side-window, frame, and custom."
   :group 'which-key
   :type '(radio (const :tag "Show in minibuffer" minibuffer)
                 (const :tag "Show in side window" side-window)
@@ -272,7 +272,7 @@ and nil. Nil turns the feature off."
                 (const :tag "Use your custom display functions" custom)))
 
 (defcustom which-key-min-display-lines 1
-  "Minimum number of horizontal lines to display in the which-key buffer"
+  "Minimum number of horizontal lines to display in the which-key buffer."
   :group 'which-key
   :type 'integer)
 
@@ -284,9 +284,9 @@ nil means don't impose a maximum."
 
 (defcustom which-key-side-window-location 'bottom
   "Location of which-key popup when `which-key-popup-type' is side-window.
-Should be one of top, bottom, left or right. You can also specify
-a list of two locations, like (right bottom). In this case, the
-first location is tried. If there is not enough room, the second
+Should be one of top, bottom, left or right.  You can also specify
+a list of two locations, like (right bottom).  In this case, the
+first location is tried.  If there is not enough room, the second
 location is tried."
   :group 'which-key
   :type '(radio (const right)
@@ -419,7 +419,7 @@ using C-h.
 \(setq `which-key-idle-secondary-delay' 0.05)
 
 Note that `which-key-idle-delay' should be set before turning on
-`which-key-mode'. "
+`which-key-mode'."
   :group 'which-key
   :type 'boolean)
 
@@ -523,7 +523,7 @@ The delay time is effectively added to the normal
 (defcustom which-key-allow-regexps nil
   "A list of regexp strings to use to filter key sequences.
 When non-nil, for a key sequence to trigger the which-key popup
-it must match one of the regexps in this list. The format of the
+it must match one of the regexps in this list.  The format of the
 key sequences is what is produced by `key-description'."
   :group 'which-key
   :type '(repeat regexp))
@@ -597,7 +597,7 @@ and it matches a string in `which-key-highlighted-command-list'."
 
 (defface which-key-group-description-face
   '((t . (:inherit font-lock-keyword-face)))
-  "Face for the key description when it is a group or prefix"
+  "Face for the key description when it is a group or prefix."
   :group 'which-key-faces)
 
 (defface which-key-special-key-face
@@ -607,7 +607,7 @@ and it matches a string in `which-key-highlighted-command-list'."
 
 (defface which-key-docstring-face
   '((t . (:inherit which-key-note-face)))
-  "Face for docstrings"
+  "Face for docstrings."
   :group 'which-key-faces)
 
 ;;;; Custom popup
@@ -802,7 +802,7 @@ problems at github.")
 (defun which-key-enable-god-mode-support (&optional disable)
   "Enable support for god-mode if non-nil.
 This is experimental, so you need to explicitly opt-in for
-now. Please report any problems at github. If DISABLE is non-nil
+now.  Please report any problems at github.  If DISABLE is non-nil
 disable support."
   (interactive "P")
   (setq which-key--god-mode-support-enabled (null disable))
@@ -921,7 +921,7 @@ if there is space and the bottom otherwise."
 ;;;###autoload
 (defun which-key-setup-minibuffer ()
   "Apply suggested settings for minibuffer.
-Do not use this setup if you use the paging commands. Instead use
+Do not use this setup if you use the paging commands.  Instead use
 `which-key-setup-side-window-bottom', which is nearly identical
 but more functional."
   (interactive)
@@ -956,7 +956,7 @@ for REPLACEMENT will eventually be removed."
                    (or (which-key--safe-lookup-key-description keymap key)
                        (make-sparse-keymap))))
             (t
-             (user-error "replacement is neither a cons cell or a string")))))
+             (user-error "Replacement is neither a cons cell or a string")))))
       (define-key keymap (kbd key) def))
     (setq key (pop more)
           replacement (pop more))))
@@ -1521,7 +1521,7 @@ local bindings coming first. Within these categories order using
 (defun which-key--maybe-replace (key-binding)
   "Use `which-key--replacement-alist' to maybe replace KEY-BINDING.
 KEY-BINDING is a cons cell of the form \(KEY . BINDING\) each of
-which are strings. KEY is of the form produced by `key-binding'."
+which are strings.  KEY is of the form produced by `key-binding'."
   (let* ((replacer (if which-key-allow-multiple-replacements
                        #'which-key--replace-in-repl-list-many
                      #'which-key--replace-in-repl-list-once)))
@@ -1709,7 +1709,7 @@ ORIGINAL-DESCRIPTION is the description given by
 (defun which-key--maybe-add-docstring (current original)
   "Maybe concat a docstring to CURRENT and return result.
 Specifically, do this if ORIGINAL is a command with a docstring
-and `which-key-show-docstrings' is non-nil. If
+and `which-key-show-docstrings' is non-nil.  If
 `which-key-show-docstrings' is the symbol docstring-only, just
 return the docstring."
   (let* ((orig-sym (intern original))
@@ -1847,7 +1847,7 @@ Requires `which-key-compute-remaps' to be non-nil"
     (keymap &optional start prefix filter all evil)
   "Retrieve top-level bindings from KEYMAP.
 PREFIX limits bindings to those starting with this key
-sequence. START is a list of existing bindings to add to.  If ALL
+sequence.  START is a list of existing bindings to add to.  If ALL
 is non-nil, recursively retrieve all bindings below PREFIX. If
 EVIL is non-nil, extract active evil bidings."
   (let ((bindings start)
@@ -2245,7 +2245,7 @@ enough space based on your settings and frame size." prefix-keys)
 (defun which-key-reload-key-sequence (&optional key-seq)
   "Simulate entering the key sequence KEY-SEQ.
 KEY-SEQ should be a list of events as produced by
-`listify-key-sequence'. If nil, KEY-SEQ defaults to
+`listify-key-sequence'.  If nil, KEY-SEQ defaults to
 `which-key--current-key-list'. Any prefix arguments that were
 used are reapplied to the new key sequence."
   (let* ((key-seq (or key-seq (which-key--current-key-list)))
