@@ -170,9 +170,9 @@ test 'out-of-tree' builds as well, i.e.:
 
 ** Commit messages
 
-Ordinarily, a change you commit should contain a log entry in its
-commit message and should not touch the repository's ChangeLog files.
-Here is an example commit message (indented):
+Ordinarily, a changeset you commit should contain a description of the
+changes in its commit message and should not touch the repository's
+ChangeLog files.  Here is an example commit message (indented):
 
 	Deactivate shifted region
 
