@@ -875,11 +875,11 @@ This is sensitive to `case-fold-search'."
 ;; GNU implements obarrays
 (defconst cmpl-obarray-length 511)
 
-(defvar cmpl-prefix-obarray (make-vector cmpl-obarray-length 0)
+(defvar cmpl-prefix-obarray (obarray-make cmpl-obarray-length)
   "An obarray used to store the downcased completion prefixes.
 Each symbol is bound to a list of completion entries.")
 
-(defvar cmpl-obarray (make-vector cmpl-obarray-length 0)
+(defvar cmpl-obarray (obarray-make cmpl-obarray-length)
   "An obarray used to store the downcased completions.
 Each symbol is bound to a single completion entry.")
 
@@ -962,8 +962,8 @@ Each symbol is bound to a single completion entry.")
 (defun clear-all-completions ()
   "Initialize the completion storage.  All existing completions are lost."
   (interactive)
-  (setq cmpl-prefix-obarray (make-vector cmpl-obarray-length 0))
-  (setq cmpl-obarray (make-vector cmpl-obarray-length 0)))
+  (setq cmpl-prefix-obarray (obarray-make cmpl-obarray-length))
+  (setq cmpl-obarray (obarray-make cmpl-obarray-length)))
 
 (defun list-all-completions ()
   "Return a list of all the known completion entries."

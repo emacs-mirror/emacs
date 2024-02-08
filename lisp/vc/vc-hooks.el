@@ -197,7 +197,7 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
 ;; during any subsequent VC operations, and forget them when
 ;; the buffer is killed.
 
-(defvar vc-file-prop-obarray (make-vector 17 0)
+(defvar vc-file-prop-obarray (obarray-make 17)
   "Obarray for per-file properties.")
 
 (defvar vc-touched-properties nil)

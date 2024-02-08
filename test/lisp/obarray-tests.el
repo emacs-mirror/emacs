@@ -32,7 +32,8 @@
   (should-not (obarrayp "aoeu"))
   (should-not (obarrayp '()))
   (should-not (obarrayp []))
-  (should (obarrayp (make-vector 7 0))))
+  (should (obarrayp (obarray-make 7)))
+  (should (obarrayp (make-vector 7 0)))) ; for compatibility?
 
 (ert-deftest obarrayp-unchecked-content-test ()
   "Should fail to check content of passed obarray."

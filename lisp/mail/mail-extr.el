@@ -1845,7 +1845,7 @@ place.  It affects how `mail-extract-address-components' works."
 ;; https://en.wikipedia.org/wiki/List_of_Internet_top-level_domains
 
 (defconst mail-extr-all-top-level-domains
-  (let ((ob (make-vector 739 0)))
+  (let ((ob (obarray-make 739)))
     (mapc
      (lambda (x)
        (put (intern (downcase (car x)) ob)
