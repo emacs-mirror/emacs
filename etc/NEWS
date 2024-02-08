@@ -307,7 +307,8 @@ between the auto save file and the current file.
 ** 'ffap-lax-url' now defaults to nil.
 Previously, it was set to t but this broke remote file name detection.
 
-** Unfinished commands' echo now ends with a suggestion to use Help.
++++
+** Multi-character key echo now ends with a suggestion to use Help.
 Customize 'echo-keystrokes-help' to nil to prevent that.
 
 

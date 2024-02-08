@@ -2210,6 +2210,13 @@ keys; its value is the number of seconds of pause required to cause echoing
 to start, or zero, meaning don't echo at all.  The value takes effect when
 there is something to echo.  @xref{Echo Area}.
 
+@vindex echo-keystrokes-help
+  If the variable @code{echo-keystrokes-help} is non-@code{nil} (the
+default), the multi-character key sequence echo shown according to
+@code{echo-keystrokes} will include a short help text about keys which
+will invoke @code{describe-prefix-bindings} (@pxref{Misc Help}) to show
+the list of commands for the prefix you already typed.
+
 @cindex mouse pointer
 @cindex hourglass pointer display
 @vindex display-hourglass
