@@ -597,7 +597,7 @@ echo_dash (void)
     {
       Lisp_Object help;
 
-      help = build_string (" (\\`C-h' for help)");
+      help = build_string (" (\\`C-h' or \\`<f1>' for help)");
       kset_echo_string (current_kboard,
 			concat2 (KVAR (current_kboard, echo_string),
 				 calln (Qsubstitute_command_keys, help)));
