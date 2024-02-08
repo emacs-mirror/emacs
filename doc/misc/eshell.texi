@@ -416,7 +416,7 @@ elisp, The Emacs Lisp Reference Manual}).
 @end table
 
 @node Built-ins
-@section Built-in commands
+@section Built-in Commands
 Eshell provides a number of built-in commands, many of them
 implementing common command-line utilities, but enhanced for Eshell.
 (These built-in commands are just ordinary Lisp functions whose names
@@ -477,7 +477,16 @@ default target for the commands @command{cp}, @command{mv}, and
 @command{ln} is the current directory.
 
 A few commands are wrappers for more niche Emacs features, and can be
-loaded as part of the eshell-xtra module.  @xref{Extension modules}.
+loaded as part of the @code{eshell-xtra} module.  @xref{Extra built-in
+commands}.
+
+@menu
+* List of Built-ins::
+* Defining New Built-ins::
+@end menu
+
+@node List of Built-ins
+@subsection List of Built-in Commands
 
 @table @code
 
@@ -1195,7 +1204,8 @@ connection-aware, so for remote directories, it will print the user
 associated with that connection.
 @end table
 
-@subsection Defining new built-in commands
+@node Defining New Built-ins
+@subsection Defining New Built-in Commands
 While Eshell can run Lisp functions directly as commands, it may be
 more convenient to provide a special built-in command for
 Eshell.  Built-in commands are just ordinary Lisp functions designed
