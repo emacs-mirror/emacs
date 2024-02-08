@@ -580,7 +580,10 @@ echo_dash (void)
       idx = make_fixnum (SCHARS (KVAR (current_kboard, echo_string)) - 1);
       last_char = Faref (KVAR (current_kboard, echo_string), idx);
 
-      if (XFIXNUM (last_char) == '-' && XFIXNUM (prev_char) != ' ')
+      if ((XFIXNUM (last_char) == '-' && XFIXNUM (prev_char) != ' ')
+	  /* Or a keystroke help message.  */
+	  || (echo_keystrokes_help
+	      && XFIXNUM (last_char) == ')' && XFIXNUM (prev_char) == 'p'))
 	return;
     }
 
