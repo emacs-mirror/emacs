@@ -3,7 +3,7 @@
 @setfilename ../../info/eshell.info
 @settitle Eshell: The Emacs Shell
 @include docstyle.texi
-@defindex cm
+@defcodeindex cm
 @syncodeindex vr fn
 @c %**end of header
 
@@ -529,6 +529,7 @@ symlink, then this command reverts to the system's definition of
 @command{cat}.
 
 @cmindex cd
+@cindex directories, changing
 @item cd
 @itemx cd @var{directory}
 @itemx cd -[@var{n}]
@@ -666,6 +667,7 @@ as using @samp{alias diff '*diff $@@*'}.
 Return the directory component of @var{filename}.
 
 @cmindex dirs
+@cindex directory stack, listing
 @item dirs
 Prints the directory stack.  Directories can be added or removed from
 the stack using the commands @command{pushd} and @command{popd},
@@ -835,11 +837,13 @@ uses Emacs's internal Info reader.  @xref{Misc Help, , , emacs, The
 GNU Emacs Manual}.
 
 @cmindex jobs
+@cindex processes, listing
 @item jobs
 List subprocesses of the Emacs process, if any, using the function
 @code{list-processes}.
 
 @cmindex kill
+@cindex processes, signaling
 @item kill [-@var{signal}] [@var{pid} | @var{process}]
 Kill processes.  Takes a PID or a process object and an optional
 @var{signal} specifier which can either be a number or a signal name.
@@ -1054,6 +1058,7 @@ Alias to Emacs's @code{occur}.
 @xref{Other Repeating Search, , , emacs, The GNU Emacs Manual}.
 
 @cmindex popd
+@cindex directory stack, removing from
 @item popd
 @item popd +@var{n}
 Pop a directory from the directory stack and switch to a another place
@@ -1076,6 +1081,7 @@ the @var{nth} directory in the stack (counting from zero).
 Print all the @var{arg}s separated by newlines.
 
 @cmindex pushd
+@cindex directory stack, adding to
 @item pushd
 @itemx pushd @var{directory}
 @itemx pushd +@var{n}
@@ -1189,6 +1195,7 @@ Unset one or more variables.  As with @command{set}, the value of
 or a string, referring to an environment variable.
 
 @cmindex wait
+@cindex processes, waiting for
 @item wait [@var{process}]@dots{}
 Wait until each specified @var{process} has exited.
 
@@ -1501,7 +1508,7 @@ create and switch to a directory called @samp{foo}.
 
 @node Remote Access
 @section Remote Access
-@cmindex remote access
+@cindex remote access
 
 Since Eshell uses Emacs facilities for most of its functionality, you
 can access remote hosts transparently.  To connect to a remote host,
