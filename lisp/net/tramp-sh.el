@@ -547,6 +547,7 @@ shell from reading its init file."
     (tramp-terminal-prompt-regexp tramp-action-terminal)
     (tramp-antispoof-regexp tramp-action-confirm-message)
     (tramp-security-key-confirm-regexp tramp-action-show-and-confirm-message)
+    (tramp-security-key-pin-regexp tramp-action-otp-password)
     (tramp-process-alive-regexp tramp-action-process-alive))
   "List of pattern/action pairs.
 Whenever a pattern matches, the corresponding action is performed.
@@ -566,6 +567,7 @@ corresponding PATTERN matches, the ACTION function is called.")
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (tramp-copy-failed-regexp tramp-action-permission-denied)
     (tramp-security-key-confirm-regexp tramp-action-show-and-confirm-message)
+    (tramp-security-key-pin-regexp tramp-action-otp-password)
     (tramp-process-alive-regexp tramp-action-out-of-band))
   "List of pattern/action pairs.
 This list is used for copying/renaming with out-of-band methods.

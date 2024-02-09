@@ -770,6 +770,13 @@ The regexp should match at end of buffer."
   :version "28.1"
   :type 'regexp)
 
+(defcustom tramp-security-key-pin-regexp
+  (rx bol (* "\r") (group "Enter PIN for " (* nonl)) (* (any "\r\n")))
+  "Regular expression matching security key PIN prompt.
+The regexp should match at end of buffer."
+  :version "29.3"
+  :type 'regexp)
+
 (defcustom tramp-operation-not-permitted-regexp
   (rx (| (: "preserving times" (* nonl)) "set mode") ":" (* blank)
       "Operation not permitted")
@@ -5435,7 +5442,7 @@ of."
 	  prompt)
       (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
-      (setq prompt (concat (match-string 1) " "))
+      (setq prompt (concat (string-trim (match-string 1)) " "))
       (tramp-message vec 3 "Sending %s" (match-string 1))
       ;; We don't call `tramp-send-string' in order to hide the
       ;; password from the debug buffer and the traces.
@@ -5511,14 +5518,16 @@ Wait, until the connection buffer changes."
 	(ignore set-message-function clear-message-function)
 	(tramp-message vec 6 "\n%s" (buffer-string))
 	(tramp-check-for-regexp proc tramp-process-action-regexp)
-	(with-temp-message
-	    (replace-regexp-in-string (rx (any "\r\n")) "" (match-string 0))
+	(with-temp-message (concat (string-trim (match-string 0)) " ")
 	  ;; Hide message in buffer.
 	  (narrow-to-region (point-max) (point-max))
 	  ;; Wait for new output.
 	  (while (not (ignore-error file-error
 			(tramp-wait-for-regexp
-			 proc 0.1 tramp-security-key-confirmed-regexp)))
+			 proc 0.1
+			 (rx (| (regexp tramp-security-key-confirmed-regexp)
+				(regexp tramp-security-key-pin-regexp)
+				(regexp tramp-security-key-timeout-regexp))))))
 	    (when (tramp-check-for-regexp proc tramp-security-key-timeout-regexp)
 	      (throw 'tramp-action 'timeout))
 	    (redisplay 'force))))))
@@ -6564,12 +6573,13 @@ Consults the auth-source package."
 		   (tramp-get-connection-property key "login-as")))
 	 (host (tramp-file-name-host-port vec))
 	 (pw-prompt
-	  (or prompt
-	      (with-current-buffer (process-buffer proc)
-		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
-		(if (string-match-p "passphrase" (match-string 1))
-		    (match-string 0)
-		  (format "%s for %s " (capitalize (match-string 1)) key)))))
+	  (string-trim-left
+	   (or prompt
+	       (with-current-buffer (process-buffer proc)
+		 (tramp-check-for-regexp proc tramp-password-prompt-regexp)
+		 (if (string-match-p "passphrase" (match-string 1))
+		     (match-string 0)
+		   (format "%s for %s " (capitalize (match-string 1)) key))))))
 	 (auth-source-creation-prompts `((secret . ,pw-prompt)))
 	 ;; Use connection-local value.
 	 (auth-sources (buffer-local-value 'auth-sources (process-buffer proc)))

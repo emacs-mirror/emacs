@@ -5238,9 +5238,14 @@ Does @value{tramp} support @acronym{SSH} security keys?
 Yes.  @command{OpenSSH} has added support for @acronym{FIDO} hardware
 devices via special key types @option{*-sk}.  @value{tramp} supports
 the additional handshaking messages for them.  This requires at least
-@command{OpenSSH} 8.2, and a @acronym{FIDO} @acronym{U2F} compatible
-security key, like yubikey, solokey, nitrokey, or titankey.
+@command{OpenSSH} 8.2, and a @acronym{FIDO} @acronym{U2F} or
+@acronym{FIDO2} compatible security key, like yubikey, solokey,
+nitrokey, or titankey.
+@c @uref{https://docs.fedoraproject.org/en-US/quick-docs/using-yubikeys/}
 
+@strong{Note} that there are reports on problems of handling yubikey
+residential keys by @command{ssh-agent}.  As workaround, you might
+disable @command{ssh-agent} for such keys.
 
 @item
 @value{tramp} does not connect to Samba or MS Windows hosts running
