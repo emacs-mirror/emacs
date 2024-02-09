@@ -543,6 +543,8 @@ via `erc-fill-wrap-mode-hook'."
      (if erc-fill-wrap-align-prompt
          (setq erc-stamp--skip-left-margin-prompt-p t)
        (setq erc--inhibit-prompt-display-property-p t)))
+   (add-hook 'erc-stamp--insert-date-hook
+             #'erc-fill--wrap-unmerge-on-date-stamp 20 t)
    (setq erc-fill--function #'erc-fill-wrap)
    (when erc-fill-wrap-merge
      (add-hook 'erc-button--prev-next-predicate-functions
@@ -558,9 +560,11 @@ via `erc-fill-wrap-mode-hook'."
    (kill-local-variable 'erc--inhibit-prompt-display-property-p)
    (kill-local-variable 'erc-fill--wrap-merge-indicator-pre)
    (remove-hook 'erc--refresh-prompt-hook
-                #'erc-fill--wrap-indent-prompt)
+                #'erc-fill--wrap-indent-prompt t)
    (remove-hook 'erc-button--prev-next-predicate-functions
-                #'erc-fill--wrap-merged-button-p t))
+                #'erc-fill--wrap-merged-button-p t)
+   (remove-hook 'erc-stamp--insert-date-hook
+                #'erc-fill--wrap-unmerge-on-date-stamp t))
   'local)
 
 (defvar-local erc-fill--wrap-length-function nil
@@ -654,6 +658,24 @@ Also cover region with text prop `erc-fill--wrap-merge' set to t."
       (cdr (setq erc-fill--wrap-merge-indicator-pre
                  (cons s (erc-fill--wrap-measure (point-min) (point))))))))
 
+(defvar erc-fill--wrap-continued-predicate #'erc-fill--wrap-continued-message-p
+  "Function called with no args to detect a continued speaker.")
+
+(defvar erc-fill--wrap-rejigger-last-message nil
+  "Temporary working instance of `erc-fill--wrap-last-msg'.")
+
+(defun erc-fill--wrap-unmerge-on-date-stamp ()
+  "Re-wrap message on date-stamp insertion."
+  (when (and erc-fill-wrap-merge (null erc-fill--wrap-rejigger-last-message))
+    (let ((next-beg (point-max)))
+      (save-restriction
+        (widen)
+        (when-let (((get-text-property next-beg 'erc-fill--wrap-merge))
+                   (end (erc--get-inserted-msg-bounds next-beg))
+                   (beg (pop end))
+                   (erc-fill--wrap-continued-predicate #'ignore))
+          (erc-fill--wrap-rejigger-region (1- beg) (1+ end) nil 'repairp))))))
+
 (defun erc-fill-wrap ()
   "Use text props to mimic the effect of `erc-fill-static'.
 See `erc-fill-wrap-mode' for details."
@@ -674,6 +696,8 @@ See `erc-fill-wrap-mode' for details."
                      (skip-syntax-forward "^-")
                      (forward-char)
                      (cond ((eq msg-prop 'datestamp)
+                            (when erc-fill--wrap-rejigger-last-message
+                              (set-marker erc-fill--wrap-last-msg (point-min)))
                             (save-excursion
                               (goto-char (point-max))
                               (skip-chars-backward "\n")
@@ -682,7 +706,7 @@ See `erc-fill-wrap-mode' for details."
                                 (prog1 (erc-fill--wrap-measure beg (point))
                                   (delete-region (1- (point)) (point))))))
                            ((and erc-fill-wrap-merge
-                                 (erc-fill--wrap-continued-message-p))
+                                 (funcall erc-fill--wrap-continued-predicate))
                             (add-text-properties
                              (point-min) (point)
                              '(display "" erc-fill--wrap-merge ""))
@@ -712,9 +736,6 @@ See `erc-fill-wrap-mode' for details."
     (put-text-property erc-insert-marker erc-input-marker
                        'line-prefix
                        `(space :width (- erc-fill--wrap-value ,len)))))
-
-(defvar erc-fill--wrap-rejigger-last-message nil
-  "Temporary working instance of `erc-fill--wrap-last-msg'.")
 
 (defun erc-fill--wrap-rejigger-region (start finish on-next repairp)
   "Recalculate `line-prefix' from START to FINISH.
@@ -770,6 +791,7 @@ With REPAIRP, destructively fill gaps and re-merge speakers."
             (goto-char next))
         (goto-char end)))))
 
+;; FIXME restore rough window position after finishing.
 (defun erc-fill-wrap-refill-buffer (repair)
   "Recalculate all `fill-wrap' prefixes in the current buffer.
 With REPAIR, attempt to refresh \"speaker merges\", which may be

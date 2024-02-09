@@ -1,0 +1,55 @@
+;; -*- mode: lisp-data; -*-
+((nick 10 "NICK tester"))
+((user 10 "USER tester 0 * :tester")
+ (0.00 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
+ (0.01 ":irc.foonet.org 002 tester :Your host is irc.foonet.org, running version ergo-v2.11.1")
+ (0.01 ":irc.foonet.org 003 tester :This server was created Sun, 26 May 2024 09:32:55 UTC")
+ (0.01 ":irc.foonet.org 004 tester irc.foonet.org ergo-v2.11.1 BERTZios CEIMRUabefhiklmnoqstuv Iabefhkloqv")
+ (0.00 ":irc.foonet.org 005 tester AWAYLEN=390 BOT=B CASEMAPPING=ascii CHANLIMIT=#:100 CHANMODES=Ibe,k,fl,CEMRUimnstu CHANNELLEN=64 CHANTYPES=# CHATHISTORY=25 ELIST=U EXCEPTS EXTBAN=,m FORWARD=f INVEX :are supported by this server")
+ (0.01 ":irc.foonet.org 005 tester KICKLEN=390 MAXLIST=beI:60 MAXTARGETS=4 MODES MONITOR=100 NETWORK=foonet NICKLEN=32 PREFIX=(qaohv)~&@%+ STATUSMSG=~&@%+ TARGMAX=NAMES:1,LIST:1,KICK:,WHOIS:1,USERHOST:10,PRIVMSG:4,TAGMSG:4,NOTICE:4,MONITOR:100 TOPICLEN=390 UTF8ONLY WHOX :are supported by this server")
+ (0.01 ":irc.foonet.org 005 tester draft/CHATHISTORY=25 :are supported by this server")
+ (0.02 ":irc.foonet.org 251 tester :There are 0 users and 4 invisible on 1 server(s)")
+ (0.00 ":irc.foonet.org 252 tester 0 :IRC Operators online")
+ (0.00 ":irc.foonet.org 253 tester 0 :unregistered connections")
+ (0.00 ":irc.foonet.org 254 tester 2 :channels formed")
+ (0.00 ":irc.foonet.org 255 tester :I have 4 clients and 0 servers")
+ (0.03 ":irc.foonet.org 265 tester 4 4 :Current local users 4, max 4")
+ (0.00 ":irc.foonet.org 266 tester 4 4 :Current global users 4, max 4")
+ (0.00 ":irc.foonet.org 422 tester :MOTD File is missing")
+ (0.00 ":irc.foonet.org 221 tester +Zi")
+ (0.00 ":irc.foonet.org NOTICE tester :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))
+
+((mode-user 10 "MODE tester +i")
+ (0.00 ":irc.foonet.org 221 tester +Zi"))
+
+((join 10 "JOIN #chan")
+ (0.02 ":tester!~u@psu3bp52z9f34.irc JOIN #chan")
+ (0.06 ":irc.foonet.org 353 tester = #chan :bob dummy tester @fsbot alice")
+ (0.01 ":irc.foonet.org 366 tester #chan :End of NAMES list"))
+
+((join 10 "JOIN #control")
+ (0.02 ":tester!~u@psu3bp52z9f34.irc JOIN #control")
+ (0.06 ":irc.foonet.org 353 tester = #control :@tester")
+ (0.01 ":irc.foonet.org 366 tester #control :End of NAMES list"))
+
+((mode-chan 10 "MODE #chan")
+ (0.02 ":irc.foonet.org 324 tester #chan +Cnt")
+ (0.01 ":irc.foonet.org 329 tester #chan 1716715981")
+ (0.00 ":alice!~u@zmmipd3xfii2w.irc PRIVMSG #chan :tester, welcome!")
+ (0.00 ":bob!~u@zmmipd3xfii2w.irc PRIVMSG #chan :tester, welcome!"))
+
+((mode-chan 10 "MODE #control")
+ (0.02 ":irc.foonet.org 324 tester #control +Cnt")
+ (0.01 ":irc.foonet.org 329 tester #control 1716715981")
+
+ (0.02 ":dummy!~u@psu3bp52z9f34.irc PRIVMSG tester :hi")
+ (0.03 ":dummy!~u@psu3bp52z9f34.irc PRIVMSG tester :there"))
+
+;; Date changes here.
+((privmsg-chan-a 10 "PRIVMSG #control :1")
+ (0.07 ":bob!~u@zmmipd3xfii2w.irc PRIVMSG #chan :one"))
+
+((privmsg-chan-a 10 "PRIVMSG #control :2")
+ (0.00 ":bob!~u@zmmipd3xfii2w.irc PRIVMSG #chan :two")
+ (0.02 ":dummy!~u@psu3bp52z9f34.irc PRIVMSG tester :again")
+ (0.04 ":alice!~u@zmmipd3xfii2w.irc PRIVMSG #chan :bob: He was famous, sir, in his profession, and it was his great right to be so: Gerard de Narbon."))
