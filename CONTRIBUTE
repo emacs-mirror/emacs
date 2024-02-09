@@ -115,9 +115,10 @@ mode after hiding the body of each entry.
 
 Doc-strings should be updated together with the code.
 
-New defcustom's should always have a ':version' tag stating the first
-Emacs version in which they will appear.  Likewise with defcustom's
-whose value is changed -- update their ':version' tag.
+New defcustom's and defface's should always have a ':version' tag
+stating the first Emacs version in which they will appear.  Likewise
+with defcustom's or defface's whose value is changed -- update their
+':version' tag.
 
 Think about whether your change requires updating the manuals.  If you
 know it does not, mark the NEWS entry with "---" before the entry.  If
