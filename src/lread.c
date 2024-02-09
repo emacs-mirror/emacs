@@ -2443,10 +2443,12 @@ readevalloop (Lisp_Object readcharfun,
   bool whole_buffer = 0;
   /* True on the first time around.  */
   bool first_sexp = 1;
-  Lisp_Object macroexpand = intern ("internal-macroexpand-for-load");
+  Lisp_Object macroexpand;
 
   if (!NILP (sourcename))
     CHECK_STRING (sourcename);
+
+  macroexpand = Qinternal_macroexpand_for_load;
 
   if (NILP (Ffboundp (macroexpand))
       || (STRINGP (sourcename) && suffix_p (sourcename, ".elc")))
@@ -6016,4 +6018,7 @@ See Info node `(elisp)Shorthands' for more details.  */);
         doc:   /* List of variables declared dynamic in the current scope.
 Only valid during macro-expansion.  Internal use only. */);
   Vmacroexp__dynvars = Qnil;
+
+  DEFSYM (Qinternal_macroexpand_for_load,
+	  "internal-macroexpand-for-load");
 }

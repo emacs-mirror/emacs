@@ -3211,7 +3211,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string. */)
 Lisp_Object
 do_yes_or_no_p (Lisp_Object prompt)
 {
-  return call1 (intern ("yes-or-no-p"), prompt);
+  return call1 (Qyes_or_no_p, prompt);
 }
 
 DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
@@ -3256,7 +3256,7 @@ by a mouse, or by some window-system gesture, or via a menu.  */)
     }
 
   if (use_short_answers)
-    return call1 (intern ("y-or-n-p"), prompt);
+    return call1 (Qy_or_n_p, prompt);
 
   {
     char *s = SSDATA (prompt);
@@ -6618,4 +6618,6 @@ For best results this should end in a space.  */);
 
   DEFSYM (Qreal_this_command, "real-this-command");
   DEFSYM (Qfrom__tty_menu_p, "from--tty-menu-p");
+  DEFSYM (Qyes_or_no_p, "yes-or-no-p");
+  DEFSYM (Qy_or_n_p, "y-or-n-p");
 }
