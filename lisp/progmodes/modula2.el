@@ -325,20 +325,20 @@ followed by the first character of the construct.
     ;;
     ;; Module definitions.
     ("\\<\\(INTERFACE\\|MODULE\\|PROCEDURE\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
+     (1 'font-lock-keyword-face) (2 'font-lock-function-name-face nil t))
     ;;
     ;; Import directives.
     ("\\<\\(EXPORTS\\|FROM\\|IMPORT\\)\\>"
-     (1 font-lock-keyword-face)
+     (1 'font-lock-keyword-face)
      (font-lock-match-c-style-declaration-item-and-skip-to-next
       nil (goto-char (match-end 0))
-      (1 font-lock-constant-face)))
+      (1 'font-lock-constant-face)))
     ;;
     ;; Pragmas as warnings.
     ;; Spencer Allain <sallain@teknowledge.com> says do them as comments...
     ;; ("<\\*.*\\*>" . font-lock-warning-face)
     ;; ... but instead we fontify the first word.
-    ("<\\*[ \t]*\\(\\sw+\\)" 1 font-lock-warning-face prepend)
+    ("<\\*[ \t]*\\(\\sw+\\)" 1 'font-lock-warning-face prepend)
     )
   "Subdued level highlighting for Modula-3 modes.")
 
@@ -366,26 +366,29 @@ followed by the first character of the construct.
 	       "LOOPHOLE" "MAX" "MIN" "NARROW" "NEW" "NUMBER" "ORD"
 	       "ROUND" "SUBARRAY" "TRUNC" "TYPECODE" "VAL")))
 	   )
-       (list
-	;;
-	;; Keywords except those fontified elsewhere.
-	(concat "\\<\\(" m3-keywords "\\)\\>")
-	;;
-	;; Builtins.
-	(cons (concat "\\<\\(" m3-builtins "\\)\\>") 'font-lock-builtin-face)
-	;;
-	;; Type names.
-	(cons (concat "\\<\\(" m3-types "\\)\\>") 'font-lock-type-face)
-	;;
-	;; Fontify tokens as function names.
-	'("\\<\\(END\\|EXCEPTION\\|RAISES?\\)\\>[ \t{]*"
-	  (1 font-lock-keyword-face)
+       `(
+	 ;;
+	 ;; Keywords except those fontified elsewhere.
+	 ,(concat "\\<\\(" m3-keywords "\\)\\>")
+	 ;;
+	 ;; Builtins.
+	 (,(concat "\\<\\(" m3-builtins "\\)\\>")
+	  (0 'font-lock-builtin-face))
+	 ;;
+	 ;; Type names.
+	 (,(concat "\\<\\(" m3-types "\\)\\>")
+	  (0 'font-lock-type-face))
+	 ;;
+	 ;; Fontify tokens as function names.
+	 ("\\<\\(END\\|EXCEPTION\\|RAISES?\\)\\>[ \t{]*"
+	  (1 'font-lock-keyword-face)
 	  (font-lock-match-c-style-declaration-item-and-skip-to-next
 	   nil (goto-char (match-end 0))
-	   (1 font-lock-function-name-face)))
-	;;
-	;; Fontify constants as references.
-	'("\\<\\(FALSE\\|NIL\\|NULL\\|TRUE\\)\\>" . font-lock-constant-face)
+	   (1 'font-lock-function-name-face)))
+	 ;;
+	 ;; Fontify constants as references.
+	 ("\\<\\(FALSE\\|NIL\\|NULL\\|TRUE\\)\\>"
+	  (0 'font-lock-constant-face))
 	))))
   "Gaudy level highlighting for Modula-3 modes.")
 
