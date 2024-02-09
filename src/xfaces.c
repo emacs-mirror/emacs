@@ -2245,20 +2245,20 @@ merge_face_heights (Lisp_Object from, Lisp_Object to, Lisp_Object invalid)
 
 /* Merge two Lisp face attribute vectors on frame F, FROM and TO, and
    store the resulting attributes in TO, which must be already be
-   completely specified and contain only absolute attributes.
-   Every specified attribute of FROM overrides the corresponding
-   attribute of TO; relative attributes in FROM are merged with the
-   absolute value in TO and replace it.  NAMED_MERGE_POINTS is used
-   internally to detect loops in face inheritance/remapping; it should
-   be 0 when called from other places.  If window W is non-NULL, use W
-   to interpret face specifications. */
+   completely specified and contain only absolute attributes.  Every
+   specified attribute of FROM overrides the corresponding attribute of
+   TO; merge relative attributes in FROM with the absolute value in TO,
+   which attributes also replace it.  Use NAMED_MERGE_POINTS internally
+   to detect loops in face inheritance/remapping; it should be 0 when
+   called from other places.  If window W is non-NULL, use W to
+   interpret face specifications. */
 static void
 merge_face_vectors (struct window *w,
 		    struct frame *f, const Lisp_Object *from, Lisp_Object *to,
                     struct named_merge_point *named_merge_points)
 {
   int i;
-  Lisp_Object font = Qnil;
+  Lisp_Object font = Qnil, tospec, adstyle;
 
   /* If FROM inherits from some other faces, merge their attributes into
      TO before merging FROM's direct attributes.  Note that an :inherit
@@ -2318,6 +2318,25 @@ merge_face_vectors (struct window *w,
 	to[LFACE_SLANT_INDEX] = FONT_SLANT_FOR_FACE (font);
       if (! NILP (AREF (font, FONT_WIDTH_INDEX)))
 	to[LFACE_SWIDTH_INDEX] = FONT_WIDTH_FOR_FACE (font);
+
+      if (!NILP (AREF (font, FONT_ADSTYLE_INDEX)))
+	{
+	  /* If an adstyle is specified in FROM's font spec, create a
+	     font spec for TO if none exists, and transfer the adstyle
+	     there.  */
+
+	  tospec = to[LFACE_FONT_INDEX];
+	  adstyle = AREF (font, FONT_ADSTYLE_INDEX);
+
+	  if (!NILP (tospec))
+	    tospec = copy_font_spec (tospec);
+	  else
+	    tospec = Ffont_spec (0, NULL);
+
+	  to[LFACE_FONT_INDEX] = tospec;
+	  ASET (tospec, FONT_ADSTYLE_INDEX, adstyle);
+	}
+
       ASET (font, FONT_SIZE_INDEX, Qnil);
     }
 
