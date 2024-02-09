@@ -5019,7 +5019,7 @@ read-only, and scans it for function and variable names to make them into
 clickable cross-references.
 
 See the related form `with-temp-buffer-window'."
-  (declare (debug t))
+  (declare (debug t) (indent 1))
   (let ((old-dir (make-symbol "old-dir"))
         (buf (make-symbol "buf")))
     `(let* ((,old-dir default-directory)
