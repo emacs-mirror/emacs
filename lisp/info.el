@@ -231,8 +231,9 @@ Each element of this list has the form (MANUALs . URL-SPEC).
 MANUALs represents the name of one or more manuals.  It can
 either be a string or a list of strings.  URL-SPEC can be a
 string in which the substring \"%m\" will be expanded to the
-manual-name, \"%n\" to the node-name, and \"%e\" to the
-URL-encoded node-name (without a `.html' suffix).  (The
+manual-name and \"%n\" to the node-name.  \"%e\" will expand to
+the URL-encoded node-name, including the `.html' extension; in
+case of the Top node, it will expand to the empty string.  (The
 URL-encoding of the node-name mimics GNU Texinfo, as documented
 at Info node `(texinfo)HTML Xref Node Name Expansion'.)
 Alternatively, URL-SPEC can be a function which is given
@@ -1928,18 +1929,20 @@ NODE should be a string of the form \"(manual)Node\"."
                ;; (info "(texinfo) HTML Xref Node Name Expansion")
                (if (equal node "Top")
                  ""
-                 (url-hexify-string
-                   (string-replace " " "-"
-                     (mapconcat
-                       (lambda (ch)
-                         (if (or (< ch 32)      ; ^@^A-^Z^[^\^]^^^-
-                               (<= 33 ch 47)    ; !"#$%&'()*+,-./
-                               (<= 58 ch 64)    ; :;<=>?@
-                               (<= 91 ch 96)    ; [\]_`
-                               (<= 123 ch 127)) ; {|}~ DEL
-                           (format "_00%x" ch)
-                           (char-to-string ch)))
-                       node ""))))))
+                 (concat
+                   (url-hexify-string
+                     (string-replace " " "-"
+                       (mapconcat
+                         (lambda (ch)
+                           (if (or (< ch 32)      ; ^@^A-^Z^[^\^]^^^-
+                                 (<= 33 ch 47)    ; !"#$%&'()*+,-./
+                                 (<= 58 ch 64)    ; :;<=>?@
+                                 (<= 91 ch 96)    ; [\]_`
+                                 (<= 123 ch 127)) ; {|}~ DEL
+                             (format "_00%x" ch)
+                             (char-to-string ch)))
+                         node "")))
+                   ".html"))))
     (cond
       ((stringp url-spec)
         (format-spec url-spec
