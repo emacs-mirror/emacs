@@ -20,13 +20,13 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+(require 'erc-ring)
 
 (require 'ert-x)
 (eval-and-compile
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-tests-common)))
 
-(require 'erc-ring)
 
 (ert-deftest erc--read-time-period ()
   (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "")))

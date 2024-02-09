@@ -20,13 +20,12 @@
 ;;; Commentary:
 
 ;;; Code:
+(require 'erc-button)
 
 (require 'ert-x) ; cl-lib
 (eval-and-compile
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-tests-common)))
-
-(require 'erc-button)
 
 (ert-deftest erc-button-alist--url ()
   (erc-tests-common-init-server-proc "sleep" "1")

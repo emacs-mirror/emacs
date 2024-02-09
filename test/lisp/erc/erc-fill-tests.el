@@ -23,12 +23,12 @@
 ;; scenarios.
 
 ;;; Code:
+(require 'erc-fill)
+
 (require 'ert-x)
 (eval-and-compile
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-tests-common)))
-
-(require 'erc-fill)
 
 (defvar erc-fill-tests--buffers nil)
 (defvar erc-fill-tests--current-time-value nil)

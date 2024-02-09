@@ -566,8 +566,9 @@ The INDENT level is ignored."
 (defun erc-speedbar--reset-last-ran-on-timer ()
   "Reset `erc-speedbar--last-ran'."
   (when speedbar-buffer
-    (setf (buffer-local-value 'erc-speedbar--last-ran speedbar-buffer)
-          (current-time))))
+    (with-suppressed-warnings ((obsolete buffer-local-value)) ; <=29
+      (setf (buffer-local-value 'erc-speedbar--last-ran speedbar-buffer)
+            (current-time)))))
 
 ;;;###autoload(autoload 'erc-nickbar-mode "erc-speedbar" nil t)
 (define-erc-module nickbar nil

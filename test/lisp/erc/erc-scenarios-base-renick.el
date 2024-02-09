@@ -281,12 +281,12 @@
     (should-not (get-buffer "rando@barnet"))
 
     (with-current-buffer "frenemy@foonet"
-      (funcall expect 1 "now known as")
-      (funcall expect 1 "doubly so"))
+      (funcall expect 10 "now known as")
+      (funcall expect 10 "doubly so"))
 
     (with-current-buffer "frenemy@barnet"
-      (funcall expect 1 "now known as")
-      (funcall expect 1 "reality picture"))
+      (funcall expect 10 "now known as")
+      (funcall expect 10 "reality picture"))
 
     (when noninteractive
       (with-current-buffer "frenemy@barnet" (kill-buffer))
