@@ -3726,10 +3726,10 @@ There is no need to explicitly add `help-char' to CHARS;
          (this-command this-command)
          (result (minibuffer-with-setup-hook
 		     (lambda ()
+		       (setq-local post-self-insert-hook nil)
 		       (add-hook 'post-command-hook
 				 (lambda ()
-				   ;; FIXME: Should we use `<='?
-				   (if (= (1+ (minibuffer-prompt-end))
+				   (if (<= (1+ (minibuffer-prompt-end))
 					  (point-max))
                                        (exit-minibuffer)))
 				 nil 'local))
