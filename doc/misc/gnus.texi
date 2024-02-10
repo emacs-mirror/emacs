@@ -5832,10 +5832,11 @@ message to the mailing list, and include the original message
 @kindex S v @r{(Summary)}
 @findex gnus-summary-very-wide-reply
 Mail a very wide reply to the author of the current article
-(@code{gnus-summary-very-wide-reply}).  A @dfn{very wide reply} is a reply
-that goes out to all people listed in the @code{To}, @code{From} (or
-@code{Reply-To}) and @code{Cc} headers in all the process/prefixed
-articles.  This command uses the process/prefix convention.
+(@code{gnus-summary-very-wide-reply}).  A @dfn{very wide reply} is a
+reply that goes out to all people listed in the @code{To}, @code{From}
+(or @code{Reply-To}) and @code{Cc} headers in all the process/prefixed
+articles. This command uses the process/prefix convention.  If given a
+prefix argument, the body of the current article will also be yanked.
 
 @item S V
 @kindex S V @r{(Summary)}

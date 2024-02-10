@@ -1189,12 +1189,12 @@ Uses the process/prefix convention.
 The reply will include all From/Cc headers from the original
 messages as the To/Cc headers.
 
-If prefix argument YANK is non-nil, the original article(s) will
+If prefix argument YANK is non-nil, the original article will
 be yanked automatically."
   (interactive (list (and current-prefix-arg
 			  (gnus-summary-work-articles 1)))
 	       gnus-summary-mode)
-  (gnus-summary-reply yank t (gnus-summary-work-articles yank)))
+  (gnus-summary-reply yank t (gnus-summary-work-articles current-prefix-arg)))
 
 (defun gnus-summary-very-wide-reply-with-original (n)
   "Start composing a very wide reply mail a set of messages.
