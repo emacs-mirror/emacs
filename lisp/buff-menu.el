@@ -592,13 +592,17 @@ If UNMARK is non-nil, unmark them."
 (defun Buffer-menu-other-window ()
   "Select this line's buffer in other window, leaving buffer menu visible."
   (interactive nil Buffer-menu-mode)
-  (switch-to-buffer-other-window (Buffer-menu-buffer t)))
+  (let ((display-buffer-overriding-action
+         '(nil (inhibit-same-window . t))))
+    (switch-to-buffer-other-window (Buffer-menu-buffer t))))
 
 (defun Buffer-menu-switch-other-window ()
   "Make the other window select this line's buffer.
 The current window remains selected."
   (interactive nil Buffer-menu-mode)
-  (display-buffer (Buffer-menu-buffer t) t))
+  (let ((display-buffer-overriding-action
+         '(nil (inhibit-same-window . t))))
+    (display-buffer (Buffer-menu-buffer t) t)))
 
 (defun Buffer-menu-2-window ()
   "Select this line's buffer, with previous buffer in second window."
