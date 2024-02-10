@@ -1687,8 +1687,14 @@ set to."
   (files-tests--check-shebang "#!/usr/bin/env python" 'python-base-mode)
   (files-tests--check-shebang "#!/usr/bin/env python3" 'python-base-mode)
   ;; Invocation through env, with supplementary arguments.
+  (files-tests--check-shebang "#!/usr/bin/env --split-string=bash -eux" 'sh-base-mode 'bash)
+  (files-tests--check-shebang "#!/usr/bin/env --split-string=-iv --default-signal bash -eux" 'sh-base-mode 'bash)
   (files-tests--check-shebang "#!/usr/bin/env -S awk -v FS=\"\\t\" -v OFS=\"\\t\" -f" 'awk-mode)
-  (files-tests--check-shebang "#!/usr/bin/env -S make -f" 'makefile-mode))
+  (files-tests--check-shebang "#!/usr/bin/env -S make -f" 'makefile-mode)
+  (files-tests--check-shebang "#!/usr/bin/env -S-vi bash -eux" 'sh-base-mode 'bash)
+  (files-tests--check-shebang "#!/usr/bin/env -ivS --default-signal=INT bash -eux" 'sh-base-mode 'bash)
+  (files-tests--check-shebang "#!/usr/bin/env -ivS --default-signal bash -eux" 'sh-base-mode 'bash)
+  (files-tests--check-shebang "#!/usr/bin/env -vS -uFOOBAR bash -eux" 'sh-base-mode 'bash))
 
 (ert-deftest files-test-dir-locals-auto-mode-alist ()
   "Test an `auto-mode-alist' entry in `.dir-locals.el'"
