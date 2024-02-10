@@ -4450,16 +4450,6 @@ cmpfn_user_defined (Lisp_Object key1, Lisp_Object key2,
   return hash_table_user_defined_call (ARRAYELTS (args), args, h);
 }
 
-/* Reduce an EMACS_UINT hash value to hash_hash_t.  */
-static inline hash_hash_t
-reduce_emacs_uint_to_hash_hash (EMACS_UINT x)
-{
-  verify (sizeof x <= 2 * sizeof (hash_hash_t));
-  return (sizeof x == sizeof (hash_hash_t)
-	  ? x
-	  : x ^ (x >> (8 * (sizeof x - sizeof (hash_hash_t)))));
-}
-
 static EMACS_INT
 sxhash_eq (Lisp_Object key)
 {
@@ -4645,16 +4635,11 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
   return make_lisp_hash_table (h2);
 }
 
-
 /* Compute index into the index vector from a hash value.  */
 static inline ptrdiff_t
 hash_index_index (struct Lisp_Hash_Table *h, hash_hash_t hash)
 {
-  /* Knuth multiplicative hashing, tailored for 32-bit indices
-     (avoiding a 64-bit multiply).  */
-  uint32_t alpha = 2654435769;	/* 2**32/phi */
-  /* Note the cast to uint64_t, to make it work for index_bits=0.  */
-  return (uint64_t)((uint32_t)hash * alpha) >> (32 - h->index_bits);
+  return knuth_hash (hash, h->index_bits);
 }
 
 /* Resize hash table H if it's too full.  If H cannot be resized

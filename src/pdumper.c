@@ -2749,6 +2749,51 @@ dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 }
 
 static dump_off
+dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
+{
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+  dump_off start_offset = ctx->offset;
+  ptrdiff_t n = obarray_size (o);
+
+  struct dump_flags old_flags = ctx->flags;
+  ctx->flags.pack_objects = true;
+
+  for (ptrdiff_t i = 0; i < n; i++)
+    {
+      Lisp_Object out;
+      const Lisp_Object *slot = &o->buckets[i];
+      dump_object_start (ctx, &out, sizeof out);
+      dump_field_lv (ctx, &out, slot, slot, WEIGHT_STRONG);
+      dump_object_finish (ctx, &out, sizeof out);
+    }
+
+  ctx->flags = old_flags;
+  return start_offset;
+}
+
+static dump_off
+dump_obarray (struct dump_context *ctx, Lisp_Object object)
+{
+#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_XXXXXXXXXX
+# error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
+#endif
+  const struct Lisp_Obarray *in_oa = XOBARRAY (object);
+  struct Lisp_Obarray munged_oa = *in_oa;
+  struct Lisp_Obarray *oa = &munged_oa;
+  START_DUMP_PVEC (ctx, &oa->header, struct Lisp_Obarray, out);
+  dump_pseudovector_lisp_fields (ctx, &out->header, &oa->header);
+  DUMP_FIELD_COPY (out, oa, count);
+  DUMP_FIELD_COPY (out, oa, size_bits);
+  dump_field_fixup_later (ctx, out, oa, &oa->buckets);
+  dump_off offset = finish_dump_pvec (ctx, &out->header);
+  dump_remember_fixup_ptr_raw
+    (ctx,
+     offset + dump_offsetof (struct Lisp_Obarray, buckets),
+     dump_obarray_buckets (ctx, oa));
+  return offset;
+}
+
+static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
 #if CHECK_STRUCTS && !defined HASH_buffer_EBBA38AEFA
@@ -3031,6 +3076,8 @@ dump_vectorlike (struct dump_context *ctx,
       return dump_bool_vector(ctx, v);
     case PVEC_HASH_TABLE:
       return dump_hash_table (ctx, lv);
+    case PVEC_OBARRAY:
+      return dump_obarray (ctx, lv);
     case PVEC_BUFFER:
       return dump_buffer (ctx, XBUFFER (lv));
     case PVEC_SUBR:

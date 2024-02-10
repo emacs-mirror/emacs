@@ -27,24 +27,12 @@
 
 ;;; Code:
 
-(defconst obarray-default-size 59
-  "The value 59 is an arbitrary prime number that gives a good hash.")
+(defconst obarray-default-size 4)
+(make-obsolete-variable 'obarray-default-size
+                        "obarrays now grow automatically" "30.1")
 
-(defun obarray-make (&optional size)
-  "Return a new obarray of size SIZE or `obarray-default-size'."
-  (let ((size (or size obarray-default-size)))
-    (if (< 0 size)
-        (make-vector size 0)
-      (signal 'wrong-type-argument '(size 0)))))
-
-(defun obarray-size (ob)
-  "Return the number of slots of obarray OB."
-  (length ob))
-
-(defun obarrayp (object)
-  "Return t if OBJECT is an obarray."
-  (and (vectorp object)
-       (< 0 (length object))))
+(defun obarray-size (_ob) obarray-default-size)
+(make-obsolete 'obarray-size "obarrays now grow automatically" "30.1")
 
 ;; Don’t use obarray as a variable name to avoid shadowing.
 (defun obarray-get (ob name)
@@ -65,11 +53,6 @@ Return t on success, nil otherwise."
 (defun obarray-map (fn ob)
   "Call function FN on every symbol in obarray OB and return nil."
   (mapatoms fn ob))
-
-(defun obarray-clear (ob)
-  "Remove all symbols from obarray OB."
-  ;; FIXME: This doesn't change the symbols to uninterned status.
-  (fillarray ob 0))
 
 (provide 'obarray)
 ;;; obarray.el ends here

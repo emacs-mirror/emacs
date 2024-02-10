@@ -3488,6 +3488,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  (natnum	. natnump)
                  (number	. numberp)
                  (null		. null)
+                 (obarray	. obarrayp)
                  (overlay	. overlayp)
                  (process	. processp)
                  (real		. numberp)

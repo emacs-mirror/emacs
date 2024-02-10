@@ -57,12 +57,10 @@
 (ert-deftest abbrev-make-abbrev-table-test ()
   ;; Table without properties:
   (let ((table (make-abbrev-table)))
-    (should (abbrev-table-p table))
-    (should (= (length table) obarray-default-size)))
+    (should (abbrev-table-p table)))
   ;; Table with one property 'foo with value 'bar:
   (let ((table (make-abbrev-table '(foo bar))))
     (should (abbrev-table-p table))
-    (should (= (length table) obarray-default-size))
     (should (eq (abbrev-table-get table 'foo) 'bar))))
 
 (ert-deftest abbrev--table-symbols-test ()

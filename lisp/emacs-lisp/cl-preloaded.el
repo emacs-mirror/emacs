@@ -73,7 +73,7 @@
     (module-function function atom)
     (buffer atom) (char-table array sequence atom)
     (bool-vector array sequence atom)
-    (frame atom) (hash-table atom) (terminal atom)
+    (frame atom) (hash-table atom) (terminal atom) (obarray atom)
     (thread atom) (mutex atom) (condvar atom)
     (font-spec atom) (font-entity atom) (font-object atom)
     (vector array sequence atom)

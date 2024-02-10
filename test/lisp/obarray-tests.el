@@ -32,28 +32,18 @@
   (should-not (obarrayp "aoeu"))
   (should-not (obarrayp '()))
   (should-not (obarrayp []))
-  (should (obarrayp (obarray-make 7)))
-  (should (obarrayp (make-vector 7 0)))) ; for compatibility?
-
-(ert-deftest obarrayp-unchecked-content-test ()
-  "Should fail to check content of passed obarray."
-  :expected-result :failed
   (should-not (obarrayp ["a" "b" "c"]))
-  (should-not (obarrayp [1 2 3])))
-
-(ert-deftest obarray-make-default-test ()
-  (let ((table (obarray-make)))
-    (should (obarrayp table))
-    (should (eq (obarray-size table) obarray-default-size))))
+  (should-not (obarrayp [1 2 3]))
+  (should-not (obarrayp (make-vector 7 0)))
+  (should-not (obarrayp (vector (obarray-make))))
+  (should (obarrayp (obarray-make)))
+  (should (obarrayp (obarray-make 7))))
 
 (ert-deftest obarray-make-with-size-test ()
   ;; FIXME: Actually, `wrong-type-argument' is not the right error to signal,
   ;; so we shouldn't enforce this misbehavior in tests!
   (should-error (obarray-make -1) :type 'wrong-type-argument)
-  (should-error (obarray-make 0) :type 'wrong-type-argument)
-  (let ((table (obarray-make 1)))
-    (should (obarrayp table))
-    (should (eq (obarray-size table) 1))))
+  (should-error (obarray-make 'a) :type 'wrong-type-argument))
 
 (ert-deftest obarray-get-test ()
   (let ((table (obarray-make 3)))

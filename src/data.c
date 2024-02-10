@@ -231,6 +231,7 @@ for example, (type-of 1) returns `integer'.  */)
         case PVEC_BOOL_VECTOR: return Qbool_vector;
         case PVEC_FRAME: return Qframe;
         case PVEC_HASH_TABLE: return Qhash_table;
+        case PVEC_OBARRAY: return Qobarray;
         case PVEC_FONT:
           if (FONT_SPEC_P (object))
 	    return Qfont_spec;
@@ -4229,6 +4230,7 @@ syms_of_data (void)
   DEFSYM (Qtreesit_parser, "treesit-parser");
   DEFSYM (Qtreesit_node, "treesit-node");
   DEFSYM (Qtreesit_compiled_query, "treesit-compiled-query");
+  DEFSYM (Qobarray, "obarray");
 
   DEFSYM (Qdefun, "defun");
 

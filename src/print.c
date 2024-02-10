@@ -2078,6 +2078,16 @@ print_vectorlike_unreadable (Lisp_Object obj, Lisp_Object printcharfun,
       }
       return;
 
+    case PVEC_OBARRAY:
+      {
+	struct Lisp_Obarray *o = XOBARRAY (obj);
+	/* FIXME: Would it make sense to print the actual symbols (up to
+	   a limit)?  */
+	int i = sprintf (buf, "#<obarray n=%u>", o->count);
+	strout (buf, i, i, printcharfun);
+	return;
+      }
+
     /* Types handled earlier.  */
     case PVEC_NORMAL_VECTOR:
     case PVEC_RECORD:

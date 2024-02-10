@@ -1032,6 +1032,7 @@ enum pvec_type
   PVEC_BOOL_VECTOR,
   PVEC_BUFFER,
   PVEC_HASH_TABLE,
+  PVEC_OBARRAY,
   PVEC_TERMINAL,
   PVEC_WINDOW_CONFIGURATION,
   PVEC_SUBR,
@@ -2386,6 +2387,118 @@ INLINE int
    definition is done by lread.c's define_symbol.  */
 #define DEFSYM(sym, name) /* empty */
 
+
+struct Lisp_Obarray
+{
+  union vectorlike_header header;
+
+  /* Array of 2**size_bits values, each being either a (bare) symbol or
+     the fixnum 0.  The symbols for each bucket are chained via
+     their s.next field.  */
+  Lisp_Object *buckets;
+
+  unsigned size_bits;  /* log2(size of buckets vector) */
+  unsigned count;      /* number of symbols in obarray */
+};
+
+INLINE bool
+OBARRAYP (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_OBARRAY);
+}
+
+INLINE struct Lisp_Obarray *
+XOBARRAY (Lisp_Object a)
+{
+  eassert (OBARRAYP (a));
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Obarray);
+}
+
+INLINE void
+CHECK_OBARRAY (Lisp_Object x)
+{
+  CHECK_TYPE (OBARRAYP (x), Qobarrayp, x);
+}
+
+INLINE Lisp_Object
+make_lisp_obarray (struct Lisp_Obarray *o)
+{
+  eassert (PSEUDOVECTOR_TYPEP (&o->header, PVEC_OBARRAY));
+  return make_lisp_ptr (o, Lisp_Vectorlike);
+}
+
+INLINE ptrdiff_t
+obarray_size (const struct Lisp_Obarray *o)
+{
+  return (ptrdiff_t)1 << o->size_bits;
+}
+
+Lisp_Object check_obarray_slow (Lisp_Object);
+
+/* Return an obarray object from OBARRAY or signal an error.  */
+INLINE Lisp_Object
+check_obarray (Lisp_Object obarray)
+{
+  return OBARRAYP (obarray) ? obarray : check_obarray_slow (obarray);
+}
+
+/* Obarray iterator state.  Don't access these members directly.
+   The iterator functions must be called in the order followed by DOOBARRAY.  */
+typedef struct {
+  struct Lisp_Obarray *o;
+  ptrdiff_t idx;		/* Current bucket index.  */
+  struct Lisp_Symbol *symbol;	/* Current symbol, or NULL if at end
+				   of current bucket.  */
+} obarray_iter_t;
+
+INLINE obarray_iter_t
+make_obarray_iter (struct Lisp_Obarray *oa)
+{
+  return (obarray_iter_t){.o = oa, .idx = -1, .symbol = NULL};
+}
+
+/* Whether IT has reached the end and there are no more symbols.
+   If true, IT is dead and cannot be used any more.  */
+INLINE bool
+obarray_iter_at_end (obarray_iter_t *it)
+{
+  if (it->symbol)
+    return false;
+  ptrdiff_t size = obarray_size (it->o);
+  while (++it->idx < size)
+    {
+      Lisp_Object obj = it->o->buckets[it->idx];
+      if (!BASE_EQ (obj, make_fixnum (0)))
+	{
+	  it->symbol = XBARE_SYMBOL (obj);
+	  return false;
+	}
+    }
+  return true;
+}
+
+/* Advance IT to the next symbol if any.  */
+INLINE void
+obarray_iter_step (obarray_iter_t *it)
+{
+  it->symbol = it->symbol->u.s.next;
+}
+
+/* The Lisp symbol at IT, if obarray_iter_at_end returned false.  */
+INLINE Lisp_Object
+obarray_iter_symbol (obarray_iter_t *it)
+{
+  return make_lisp_symbol (it->symbol);
+}
+
+/* Iterate IT over the symbols of the obarray OA.
+   The body shouldn't add or remove symbols in OA, but disobeying that rule
+   only risks symbols to be iterated more than once or not at all,
+   not crashes or data corruption.  */
+#define DOOBARRAY(oa, it)					\
+  for (obarray_iter_t it = make_obarray_iter (oa);		\
+       !obarray_iter_at_end (&it); obarray_iter_step (&it))
+
 
 /***********************************************************************
 			     Hash Tables
@@ -2665,6 +2778,28 @@ SXHASH_REDUCE (EMACS_UINT x)
 {
   return (x ^ x >> (EMACS_INT_WIDTH - FIXNUM_BITS)) & INTMASK;
 }
+
+/* Reduce an EMACS_UINT hash value to hash_hash_t.  */
+INLINE hash_hash_t
+reduce_emacs_uint_to_hash_hash (EMACS_UINT x)
+{
+  verify (sizeof x <= 2 * sizeof (hash_hash_t));
+  return (sizeof x == sizeof (hash_hash_t)
+	  ? x
+	  : x ^ (x >> (8 * (sizeof x - sizeof (hash_hash_t)))));
+}
+
+/* Reduce HASH to a value BITS wide.  */
+INLINE ptrdiff_t
+knuth_hash (hash_hash_t hash, unsigned bits)
+{
+  /* Knuth multiplicative hashing, tailored for 32-bit indices
+     (avoiding a 64-bit multiply).  */
+  uint32_t alpha = 2654435769;	/* 2**32/phi */
+  /* Note the cast to uint64_t, to make it work for bits=0.  */
+  return (uint64_t)((uint32_t)hash * alpha) >> (32 - bits);
+}
+
 
 struct Lisp_Marker
 {
@@ -4585,7 +4720,6 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char *, ptrdiff_t,
   ATTRIBUTE_FORMAT_PRINTF (5, 0);
 
 /* Defined in lread.c.  */
-extern Lisp_Object check_obarray (Lisp_Object);
 extern Lisp_Object intern_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_c_string_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_driver (Lisp_Object, Lisp_Object, Lisp_Object);
