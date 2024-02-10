@@ -254,7 +254,7 @@
         (should (eq nil (treesit-node-text
                          (treesit-search-subtree
                           subarray "\\["))))
-        ;; If ALL=nil, searching for number should still find the
+        ;; If ALL=t, searching for number should still find the
         ;; numbers.
         (should (equal "1" (treesit-node-text
                             (treesit-search-subtree

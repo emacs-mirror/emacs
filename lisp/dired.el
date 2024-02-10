@@ -4321,6 +4321,11 @@ this subdir."
        (prefix-numeric-value arg)
        (lambda ()
          (when (or (not (looking-at-p dired-re-dot))
+                   ;; Don't skip symlinks to ".", "..", etc.
+                   (save-excursion
+                     (re-search-forward
+                      dired-permission-flags-regexp nil t)
+                     (eq (char-after (match-beginning 1)) ?l))
                    (not (equal dired-marker-char dired-del-marker)))
            (delete-char 1)
            (insert dired-marker-char))))))))

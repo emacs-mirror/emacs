@@ -115,9 +115,10 @@ mode after hiding the body of each entry.
 
 Doc-strings should be updated together with the code.
 
-New defcustom's should always have a ':version' tag stating the first
-Emacs version in which they will appear.  Likewise with defcustom's
-whose value is changed -- update their ':version' tag.
+New defcustom's and defface's should always have a ':version' tag
+stating the first Emacs version in which they will appear.  Likewise
+with defcustom's or defface's whose value is changed -- update their
+':version' tag.
 
 Think about whether your change requires updating the manuals.  If you
 know it does not, mark the NEWS entry with "---" before the entry.  If
@@ -170,9 +171,9 @@ test 'out-of-tree' builds as well, i.e.:
 
 ** Commit messages
 
-Ordinarily, a change you commit should contain a log entry in its
-commit message and should not touch the repository's ChangeLog files.
-Here is an example commit message (indented):
+Ordinarily, a changeset you commit should contain a description of the
+changes in its commit message and should not touch the repository's
+ChangeLog files.  Here is an example commit message (indented):
 
 	Deactivate shifted region
 
@@ -184,8 +185,9 @@ Here is an example commit message (indented):
 	Deactivate the mark.
 
 Occasionally, commit messages are collected and prepended to a
-ChangeLog file, where they can be corrected.  It saves time to get
-them right the first time, so here are guidelines for formatting them:
+generated ChangeLog file, where they can be corrected.  It saves time
+to get them right the first time, so here are guidelines for
+formatting them:
 
 - Start with a single unindented summary line explaining the change;
   do not end this line with a period.  If possible, try to keep the
@@ -194,9 +196,10 @@ them right the first time, so here are guidelines for formatting them:
   contexts.
 
   If the summary line starts with a semicolon and a space "; ", the
-  commit message will be ignored when generating the ChangeLog file.
-  Use this for minor commits that do not need separate ChangeLog
-  entries, such as changes in etc/NEWS.
+  commit message will be skipped and not added to the generated
+  ChangeLog file.  Use this for minor commits that do not need to be
+  mentioned in the ChangeLog file, such as changes in etc/NEWS, typo
+  fixes, etc.
 
 - After the summary line, there should be an empty line.
 
@@ -211,8 +214,9 @@ them right the first time, so here are guidelines for formatting them:
   enforced by a commit hook.
 
 - If only a single file is changed, the summary line can be the normal
-  file first line (starting with the asterisk).  Then there is no
-  individual files section.
+  first line of a ChangeLog entry (starting with the asterisk).  Then
+  there will be no individual ChangeLog entries beyond the one in the
+  summary line.
 
 - If the commit has more than one author, the commit message should
   contain separate lines to mention the other authors, like the
@@ -243,12 +247,12 @@ them right the first time, so here are guidelines for formatting them:
 - Explaining the rationale for a design choice is best done in comments
   in the source code.  However, sometimes it is useful to describe just
   the rationale for a change; that can be done in the commit message
-  between the summary line and the file entries.
+  between the summary line and the following ChangeLog entries.
 
-- Emacs generally follows the GNU coding standards for ChangeLogs: see
-  https://www.gnu.org/prep/standards/html_node/Change-Logs.html
-  or run 'info "(standards)Change Logs"'.  One exception is that
-  commits still sometimes quote `like-this' (as the standards used to
+- Emacs follows the GNU coding standards for ChangeLog entries: see
+  https://www.gnu.org/prep/standards/html_node/Change-Logs.html or run
+  'info "(standards)Change Logs"'.  One exception is that commits
+  still sometimes quote `like-this' (as the standards used to
   recommend) rather than 'like-this' or ‘like this’ (as they do now),
   as `...' is so widely used elsewhere in Emacs.
 
@@ -261,9 +265,9 @@ them right the first time, so here are guidelines for formatting them:
   in Emacs; that includes spelling and leaving 2 blanks between
   sentences.
 
-  They are preserved indefinitely, and have a reasonable chance of
-  being read in the future, so it's better that they have good
-  presentation.
+  The ChangeLog entries are preserved indefinitely, and have a
+  reasonable chance of being read in the future, so it's better that
+  they have good presentation.
 
 - Use the present tense; describe "what the change does", not "what
   the change did".

@@ -476,6 +476,29 @@ You are probably using a shell that doesn't support job control, even
 though the system itself is capable of it.  Either use a different shell,
 or set the variable 'cannot-suspend' to a non-nil value.
 
+*** Emacs running on WSL receives stray characters as input.
+
+For example, you could see Emacs inserting 'z' characters even though
+nothing is typed on the keyboard, and even if you unplug the keyboard.
+
+The reason is a bug in the WSL X server's handling of key-press and
+key-repeat events.  A workaround is to use the Cygwin or native
+MS-Windows build of Emacs instead.
+
+*** On MS-Windows, the Windows key gets "stuck".
+When this problem happens, Windows behaves as if the Windows key were
+permanently pressed down.  This could be a side effect of Emacs on
+MS-Windows hooking keyboard input on a low level, in order to support
+registering the Windows keys as hot keys.  If that hook takes too much
+time for some reason, Windows can decide to remove the hook, which
+then has this effect.
+
+This is arguably a bug in Emacs, for which we don't yet have a
+solution.  To work around, set the 'LowLevelHooksTimeout' value in the
+registry key "HKEY_CURRENT_USER\Control Panel\Desktop" to a number
+higher than 200 msec; the maximum allowed value is 1000 msec (create
+the value if it doesn't exist under that key).
+
 ** Mailers and other helper programs
 
 *** movemail compiled with POP support can't connect to the POP server.
@@ -544,15 +567,6 @@ EasyPG relies on the machine-parseable interface that is provided by
 As a workaround, input the passphrase with a GUI-capable pinentry
 program like 'pinentry-gnome' or 'pinentry-qt5'.  Alternatively, you
 can use the 'pinentry' package from Emacs 25.
-
-*** Emacs running on WSL receives stray characters as input.
-
-For example, you could see Emacs inserting 'z' characters even though
-nothing is typed on the keyboard, and even if you unplug the keyboard.
-
-The reason is a bug in the WSL X server's handling of key-press and
-key-repeat events.  A workaround is to use the Cygwin or native
-MS-Windows build of Emacs instead.
 
 ** Problems with hostname resolution
 

@@ -1746,7 +1746,7 @@ public final class EmacsWindow extends EmacsHandleObject
 
 	    /* Attempt to acquire permissions for this URI;
 	       failing which, insert it as text instead.  */
-		    
+
 	    if (uri != null
 		&& uri.getScheme () != null
 		&& uri.getScheme ().equals ("content")
