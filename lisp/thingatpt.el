@@ -621,13 +621,14 @@ Optional argument DISTANCE limits search for REGEXP forward and
 back from point."
   (let* ((old (point))
          (beg (if distance (max (point-min) (- old distance)) (point-min)))
-         (end (and distance (min (point-max) (+ old distance))))
+         (end (if distance (min (point-max) (+ old distance))))
          prev match)
     (save-excursion
       (goto-char beg)
       (while (and (setq prev (point)
                         match (re-search-forward regexp end t))
                   (< (match-end 0) old))
+        (goto-char (match-beginning 0))
         ;; Avoid inflooping when `regexp' matches the empty string.
         (unless (< prev (point)) (forward-char))))
     (and match (<= (match-beginning 0) old (match-end 0)))))

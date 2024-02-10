@@ -182,6 +182,13 @@ position to retrieve THING.")
       (should (thing-at-point-looking-at "2abcd"))
       (should (equal (match-data) m2)))))
 
+(ert-deftest thing-at-point-looking-at-overlapping-matches ()
+  (with-temp-buffer
+    (insert "foo.bar.baz")
+    (goto-char (point-max))
+    (should (thing-at-point-looking-at "[a-z]+\\.[a-z]+"))
+    (should (string= "bar.baz" (match-string 0)))))
+
 (ert-deftest test-symbol-thing-1 ()
   (with-temp-buffer
     (insert "foo bar zot")
