@@ -2747,6 +2747,10 @@ Fifth arg NOMODES non-nil means don't alter the file's modes.
 Finishes by calling the functions in `find-file-hook'
 unless NOMODES is non-nil."
   (setq buffer-read-only (not (file-writable-p buffer-file-name)))
+  ;; The above is sufficiently like turning on read-only-mode, so run
+  ;; the mode hook here by hand.
+  (if buffer-read-only
+      (run-hooks 'read-only-mode-hook))
   (if noninteractive
       nil
     (let* (not-serious
