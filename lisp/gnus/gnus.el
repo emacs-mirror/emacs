@@ -313,18 +313,19 @@ be set in `.emacs' instead."
   '((:type svg :file "gnus-pointer.svg" :ascent center)
      (:type xpm :file "gnus-pointer.xpm" :ascent center)
      (:type xbm :file "gnus-pointer.xbm" :ascent center))
-  "Gnus logo displayed in mode-line.
+  "Image spec for the Gnus logo to be displayed in mode-line.
 
-If non-nil, it should be a list of image specifications that will be
-given as first argument to `find-image', which see.  Then, in case of a
-graphical display, the specified Gnus logo will be displayed as part of
+If non-nil, it should be a list of image specifications to be passed
+as the first argument to `find-image', which see.  Then, if the display
+is capable of showing images, the Gnus logo will be displayed as part of
 the buffer-identification in the mode-line of Gnus-buffers.
 
-If nil, no logo will be displayed."
+If nil, there will be no Gnus logo in the mode-line."
   :group 'gnus-visual
   :type '(choice
-           (repeat :tag "List of image specifications" (plist))
-           (const :tag "No logo" nil)))
+           (repeat :tag "List of Gnus logo image specifications" (plist))
+           (const :tag "Don't display Gnus logo" nil))
+  :version "30.1")
 
 (defun gnus-mode-line-buffer-identification (line)
   (let* ((str (car-safe line))
