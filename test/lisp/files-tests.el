@@ -1694,7 +1694,9 @@ set to."
   (files-tests--check-shebang "#!/usr/bin/env -S-vi bash -eux" 'sh-base-mode 'bash)
   (files-tests--check-shebang "#!/usr/bin/env -ivS --default-signal=INT bash -eux" 'sh-base-mode 'bash)
   (files-tests--check-shebang "#!/usr/bin/env -ivS --default-signal bash -eux" 'sh-base-mode 'bash)
-  (files-tests--check-shebang "#!/usr/bin/env -vS -uFOOBAR bash -eux" 'sh-base-mode 'bash))
+  (files-tests--check-shebang "#!/usr/bin/env -vS -uFOOBAR bash -eux" 'sh-base-mode 'bash)
+  ;; Invocation through env, with modified environment.
+  (files-tests--check-shebang "#!/usr/bin/env -S PYTHONPATH=/...:${PYTHONPATH} python" 'python-base-mode))
 
 (ert-deftest files-test-dir-locals-auto-mode-alist ()
   "Test an `auto-mode-alist' entry in `.dir-locals.el'"
