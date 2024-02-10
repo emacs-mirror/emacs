@@ -450,6 +450,9 @@ This user option associates manual names with URLs.  It affects the
 Emacs-included manuals are set.  Further associations can be added for
 arbitrary Info manuals.
 
+*** Emacs can now display Info manuals compressed with 'lzip'.
+This requires the 'lzip' program to be installed on your system.
+
 +++
 ** New command 'lldb'.
 Run the LLDB debugger, analogous to the 'gud-gdb' command.
