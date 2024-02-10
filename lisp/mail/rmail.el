@@ -4097,7 +4097,7 @@ typically for purposes of moderating a list."
 		  (let ((end (point-marker))
 			(local-abbrev-table mail-abbrevs)
 			(old-syntax-table (syntax-table)))
-		    (if (and (not (vectorp mail-abbrevs))
+		    (if (and (not (obarrayp mail-abbrevs))
 			     (file-exists-p mail-personal-alias-file))
 			(build-mail-abbrevs))
 		    (unless mail-abbrev-syntax-table

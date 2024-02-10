@@ -321,7 +321,7 @@ the form (concat S2 S)."
            ;; Predicates are called differently depending on the nature of
            ;; the completion table :-(
            (cond
-            ((vectorp table)            ;Obarray.
+            ((obarrayp table)
              (lambda (sym) (funcall pred (concat prefix (symbol-name sym)))))
             ((hash-table-p table)
              (lambda (s _v) (funcall pred (concat prefix s))))

@@ -171,7 +171,7 @@ no aliases, which is represented by this being a table with no entries.)")
 ;;;###autoload
 (defun mail-abbrevs-setup ()
   "Initialize use of the `mailabbrev' package."
-  (if (and (not (vectorp mail-abbrevs))
+  (if (and (not (obarrayp mail-abbrevs))
 	   (file-exists-p mail-personal-alias-file))
       (progn
 	(setq mail-abbrev-modtime
@@ -196,7 +196,7 @@ no aliases, which is represented by this being a table with no entries.)")
   "Read mail aliases from personal mail alias file and set `mail-abbrevs'.
 By default this is the file specified by `mail-personal-alias-file'."
   (setq file (expand-file-name (or file mail-personal-alias-file)))
-  (if (vectorp mail-abbrevs)
+  (if (obarrayp mail-abbrevs)
       nil
     (setq mail-abbrevs nil)
     (define-abbrev-table 'mail-abbrevs '()))
@@ -278,7 +278,7 @@ double-quotes."
   ;; true, and we do some evil space->comma hacking like /bin/mail does.
   (interactive "sDefine mail alias: \nsDefine %s as mail alias for: ")
   ;; Read the defaults first, if we have not done so.
-  (unless (vectorp mail-abbrevs) (build-mail-abbrevs))
+  (unless (obarrayp mail-abbrevs) (build-mail-abbrevs))
   ;; strip garbage from front and end
   (if (string-match "\\`[ \t\n,]+" definition)
       (setq definition (substring definition (match-end 0))))
@@ -355,7 +355,7 @@ double-quotes."
   (if mail-abbrev-aliases-need-to-be-resolved
       (progn
 ;;	(message "Resolving mail aliases...")
-	(if (vectorp mail-abbrevs)
+	(if (obarrayp mail-abbrevs)
 	    (mapatoms (function mail-resolve-all-aliases-1) mail-abbrevs))
 	(setq mail-abbrev-aliases-need-to-be-resolved nil)
 ;;	(message "Resolving mail aliases... done.")
@@ -555,9 +555,9 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 (defun mail-abbrev-insert-alias (&optional alias)
   "Prompt for and insert a mail alias."
   (interactive (progn
-		(if (not (vectorp mail-abbrevs)) (mail-abbrevs-setup))
+		(if (not (obarrayp mail-abbrevs)) (mail-abbrevs-setup))
 		(list (completing-read "Expand alias: " mail-abbrevs nil t))))
-  (if (not (vectorp mail-abbrevs)) (mail-abbrevs-setup))
+  (if (not (obarrayp mail-abbrevs)) (mail-abbrevs-setup))
   (insert (or (and alias (symbol-value (intern-soft alias mail-abbrevs))) ""))
   (mail-abbrev-expand-hook))
 
