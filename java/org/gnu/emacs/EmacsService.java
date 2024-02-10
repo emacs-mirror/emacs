@@ -449,21 +449,6 @@ public final class EmacsService extends Service
     EmacsDrawPoint.perform (drawable, gc, x, y);
   }
 
-  public void
-  clearWindow (EmacsWindow window)
-  {
-    checkEmacsThread ();
-    window.clearWindow ();
-  }
-
-  public void
-  clearArea (EmacsWindow window, int x, int y, int width,
-	     int height)
-  {
-    checkEmacsThread ();
-    window.clearArea (x, y, width, height);
-  }
-
   @SuppressWarnings ("deprecation")
   public void
   ringBell (int duration)
@@ -926,48 +911,6 @@ public final class EmacsService extends Service
 
   /* Content provider functions.  */
 
-  /* Return a ContentResolver capable of accessing as many files as
-     possible, namely the content resolver of the last selected
-     activity if available: only they posses the rights to access drag
-     and drop files.  */
-
-  public ContentResolver
-  getUsefulContentResolver ()
-  {
-    EmacsActivity activity;
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
-      /* Since the system predates drag and drop, return this resolver
-	 to avoid any unforeseen difficulties.  */
-      return resolver;
-
-    activity = EmacsActivity.lastFocusedActivity;
-    if (activity == null)
-      return resolver;
-
-    return activity.getContentResolver ();
-  }
-
-  /* Return a context whose ContentResolver is granted access to most
-     files, as in `getUsefulContentResolver'.  */
-
-  public Context
-  getContentResolverContext ()
-  {
-    EmacsActivity activity;
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
-      /* Since the system predates drag and drop, return this resolver
-	 to avoid any unforeseen difficulties.  */
-      return this;
-
-    activity = EmacsActivity.lastFocusedActivity;
-    if (activity == null)
-      return this;
-
-    return activity;
-  }
-
   /* Open a content URI described by the bytes BYTES, a non-terminated
      string; make it writable if WRITABLE, and readable if READABLE.
      Truncate the file if TRUNCATE.
@@ -981,9 +924,6 @@ public final class EmacsService extends Service
     String name, mode;
     ParcelFileDescriptor fd;
     int i;
-    ContentResolver resolver;
-
-    resolver = getUsefulContentResolver ();
 
     /* Figure out the file access mode.  */
 
@@ -1045,11 +985,7 @@ public final class EmacsService extends Service
     ParcelFileDescriptor fd;
     Uri uri;
     int rc, flags;
-    Context context;
-    ContentResolver resolver;
     ParcelFileDescriptor descriptor;
-
-    context = getContentResolverContext ();
 
     uri = Uri.parse (name);
     flags = 0;
@@ -1060,7 +996,7 @@ public final class EmacsService extends Service
     if (writable)
       flags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 
-    rc = context.checkCallingUriPermission (uri, flags);
+    rc = checkCallingUriPermission (uri, flags);
 
     if (rc == PackageManager.PERMISSION_GRANTED)
       return true;
@@ -1074,7 +1010,6 @@ public final class EmacsService extends Service
 
     try
       {
-	resolver = context.getContentResolver ();
         descriptor = resolver.openFileDescriptor (uri, "r");
 	return true;
       }

@@ -247,6 +247,10 @@ public class EmacsActivity extends Activity
       }
 
     super.onCreate (savedInstanceState);
+
+    /* Call `onWindowFocusChanged' to read the focus state, which fails
+       to be called after an activity is recreated.  */
+    onWindowFocusChanged (false);
   }
 
   @Override
