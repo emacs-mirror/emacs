@@ -163,8 +163,12 @@ Emacs Lisp manual for more information and examples."
         ;; (puthash (car cases) `(,exp ,cases ,@expansion) pcase--memoize-2)
         expansion))))
 
-(declare-function help-fns--signature "help-fns"
-                  (function doc real-def real-function buffer))
+(defconst pcase--find-macro-def-regexp "(pcase-defmacro[\s\t\n]+%s[\s\t\n]*(")
+
+(with-eval-after-load 'find-func
+  (defvar find-function-regexp-alist)
+  (add-to-list 'find-function-regexp-alist
+               `(pcase-macro . pcase--find-macro-def-regexp)))
 
 ;; FIXME: Obviously, this will collide with nadvice's use of
 ;; function-documentation if we happen to advise `pcase'.
@@ -174,9 +178,10 @@ Emacs Lisp manual for more information and examples."
 (defun pcase--make-docstring ()
   (let* ((main (documentation (symbol-function 'pcase) 'raw))
          (ud (help-split-fundoc main 'pcase)))
-    ;; So that eg emacs -Q -l cl-lib --eval "(documentation 'pcase)" works,
-    ;; where cl-lib is anything using pcase-defmacro.
     (require 'help-fns)
+    (declare-function help-fns-short-filename "help-fns" (filename))
+    (declare-function help-fns--signature "help-fns"
+                      (function doc real-def real-function buffer))
     (with-temp-buffer
       (insert (or (cdr ud) main))
       ;; Presentation Note: For conceptual continuity, we guarantee
@@ -197,11 +202,20 @@ Emacs Lisp manual for more information and examples."
           (let* ((pair (pop more))
                  (symbol (car pair))
                  (me (cdr pair))
-                 (doc (documentation me 'raw)))
+                 (doc (documentation me 'raw))
+                 (filename (find-lisp-object-file-name me 'defun)))
             (insert "\n\n-- ")
             (setq doc (help-fns--signature symbol doc me
                                            (indirect-function me)
                                            nil))
+            (when filename
+              (save-excursion
+                (forward-char -1)
+                (insert (format-message "  in `"))
+                (help-insert-xref-button (help-fns-short-filename filename)
+                                         'help-function-def symbol filename
+                                         'pcase-macro)
+                (insert (format-message "'."))))
             (insert "\n" (or doc "Not documented.")))))
       (let ((combined-doc (buffer-string)))
         (if ud (help-add-fundoc-usage combined-doc (car ud)) combined-doc)))))
