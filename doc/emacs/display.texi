@@ -2215,7 +2215,8 @@ there is something to echo.  @xref{Echo Area}.
 default), the multi-character key sequence echo shown according to
 @code{echo-keystrokes} will include a short help text about keys which
 will invoke @code{describe-prefix-bindings} (@pxref{Misc Help}) to show
-the list of commands for the prefix you already typed.
+the list of commands for the prefix you already typed.  For a related
+help facility, see @ref{which-key}.
 
 @cindex mouse pointer
 @cindex hourglass pointer display
