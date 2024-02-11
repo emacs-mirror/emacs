@@ -203,6 +203,8 @@ Return them as multiple value."
                t)
               ((and (not (symbolp x)) (symbolp y))
                nil)
+              ((or (consp x) (consp y)
+                   nil))
               (t
                (< (sxhash-equal x)
                   (sxhash-equal y)))))))
