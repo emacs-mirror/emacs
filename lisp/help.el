@@ -2253,6 +2253,27 @@ The `temp-buffer-window-setup-hook' hook is called."
 	(with-output-to-temp-buffer " *Char Help*"
 	  (princ msg)))))
 
+(defun help--append-keystrokes-help (str)
+  (let* ((keys (this-single-command-keys))
+         (bindings (delete nil
+                           (mapcar (lambda (map) (lookup-key map keys t))
+                                   (current-active-maps t)))))
+    (catch 'res
+      (dolist (val help-event-list)
+        (let ((key (vector (if (eql val 'help)
+                               help-char
+                             val))))
+          (unless (seq-find (lambda (map) (and (keymapp map) (lookup-key map key)))
+                            bindings)
+            (throw 'res
+                   (concat
+                    str
+                    (substitute-command-keys
+                     (format
+                      " (\\`%s' for help)"
+                      (key-description key))))))))
+      str)))
+
 
 (defun help--docstring-quote (string)
   "Return a doc string that represents STRING.
