@@ -5825,8 +5825,8 @@ note_mouse_movement (struct frame *frame,
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
   r = &dpyinfo->last_mouse_glyph;
   if (frame != dpyinfo->last_mouse_glyph_frame
-      || event->x < r->x || event->x >= r->x + r->width
-      || event->y < r->y || event->y >= r->y + r->height)
+      || event->x < r->x || event->x >= r->x + (int) r->width
+      || event->y < r->y || event->y >= r->y + (int) r->height)
     {
       frame->mouse_moved = true;
       dpyinfo->last_mouse_scroll_bar = NULL;

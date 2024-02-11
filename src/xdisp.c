@@ -2508,7 +2508,7 @@ get_glyph_string_clip_rects (struct glyph_string *s, NativeRectangle *rects, int
 	r.x = s->clip_head->x;
       }
   if (s->clip_tail)
-    if (r.x + r.width > s->clip_tail->x + s->clip_tail->background_width)
+    if (r.x + (int) r.width > s->clip_tail->x + s->clip_tail->background_width)
       {
 	if (s->clip_tail->x + s->clip_tail->background_width >= r.x)
 	  r.width = s->clip_tail->x + s->clip_tail->background_width - r.x;
@@ -2588,7 +2588,7 @@ get_glyph_string_clip_rects (struct glyph_string *s, NativeRectangle *rects, int
 	  height = max (FRAME_LINE_HEIGHT (s->f), glyph->ascent + glyph->descent);
 	  if (height < r.height)
 	    {
-	      max_y = r.y + r.height;
+	      max_y = r.y + (int) r.height;
 	      r.y = min (max_y, max (r.y, s->ybase + glyph->descent - height));
 	      r.height = min (max_y - r.y, height);
 	    }
@@ -2629,7 +2629,7 @@ get_glyph_string_clip_rects (struct glyph_string *s, NativeRectangle *rects, int
       if (s->for_overlaps & OVERLAPS_PRED)
 	{
 	  rs[i] = r;
-	  if (r.y + r.height > row_y)
+	  if (r.y + (int) r.height > row_y)
 	    {
 	      if (r.y < row_y)
 		rs[i].height = row_y - r.y;
@@ -2643,10 +2643,10 @@ get_glyph_string_clip_rects (struct glyph_string *s, NativeRectangle *rects, int
 	  rs[i] = r;
 	  if (r.y < row_y + s->row->visible_height)
 	    {
-	      if (r.y + r.height > row_y + s->row->visible_height)
+	      if (r.y + (int) r.height > row_y + s->row->visible_height)
 		{
 		  rs[i].y = row_y + s->row->visible_height;
-		  rs[i].height = r.y + r.height - rs[i].y;
+		  rs[i].height = r.y + (int) r.height - rs[i].y;
 		}
 	      else
 		rs[i].height = 0;
@@ -2831,7 +2831,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
     text_glyph:
       gr = 0; gy = 0;
       for (; r <= end_row && r->enabled_p; ++r)
-	if (r->y + r->height > y)
+	if (r->y + (int) r->height > y)
 	  {
 	    gr = r; gy = r->y;
 	    break;
@@ -2931,7 +2931,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
     row_glyph:
       gr = 0, gy = 0;
       for (; r <= end_row && r->enabled_p; ++r)
-	if (r->y + r->height > y)
+	if (r->y + (int) r->height > y)
 	  {
 	    gr = r; gy = r->y;
 	    break;
@@ -36464,7 +36464,7 @@ expose_area (struct window *w, struct glyph_row *row, const Emacs_Rectangle *r,
       /* Use a signed int intermediate value to avoid catastrophic
 	 failures due to comparison between signed and unsigned, when
 	 x is negative (can happen for wide images that are hscrolled).  */
-      int r_end = r->x + r->width;
+      int r_end = r->x + (int) r->width;
       while (last < end && x < r_end)
 	{
 	  x += last->pixel_width;
@@ -36763,7 +36763,7 @@ expose_window (struct window *w, const Emacs_Rectangle *fr)
       /* Use a signed int intermediate value to avoid catastrophic
 	 failures due to comparison between signed and unsigned, when
 	 y0 or y1 is negative (can happen for tall images).  */
-      int r_bottom = r.y + r.height;
+      int r_bottom = r.y + (int) r.height;
 
       /* We must temporarily switch to the window's buffer, in case
 	 the fringe face has been remapped in that buffer's
@@ -36810,7 +36810,7 @@ expose_window (struct window *w, const Emacs_Rectangle *fr)
 	      /* We must redraw a row overlapping the exposed area.  */
 	      if (y0 < r.y
 		  ? y0 + row->phys_height > r.y
-		  : y0 + row->ascent - row->phys_ascent < r.y +r.height)
+		  : y0 + row->ascent - row->phys_ascent < r.y + (int) r.height)
 		{
 		  if (first_overlapping_row == NULL)
 		    first_overlapping_row = row;
@@ -36989,7 +36989,7 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
   const Emacs_Rectangle *upper, *lower;
   bool intersection_p = false;
 
-  /* Rearrange so that R1 is the left-most rectangle.  */
+  /* Rearrange so that left is the left-most rectangle.  */
   if (r1->x < r2->x)
     left = r1, right = r2;
   else
@@ -36997,13 +36997,14 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
 
   /* X0 of the intersection is right.x0, if this is inside R1,
      otherwise there is no intersection.  */
-  if (right->x <= left->x + left->width)
+  if (right->x <= left->x + (int) left->width)
     {
       result->x = right->x;
 
       /* The right end of the intersection is the minimum of
 	 the right ends of left and right.  */
-      result->width = (min (left->x + left->width, right->x + right->width)
+      result->width = (min (left->x + (int) left->width,
+			    right->x + (int) right->width)
 		       - result->x);
 
       /* Same game for Y.  */
@@ -37014,14 +37015,14 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
 
       /* The upper end of the intersection is lower.y0, if this is inside
 	 of upper.  Otherwise, there is no intersection.  */
-      if (lower->y <= upper->y + upper->height)
+      if (lower->y <= upper->y + (int) upper->height)
 	{
 	  result->y = lower->y;
 
 	  /* The lower end of the intersection is the minimum of the lower
 	     ends of upper and lower.  */
-	  result->height = (min (lower->y + lower->height,
-				 upper->y + upper->height)
+	  result->height = (min (lower->y + (int) lower->height,
+				 upper->y + (int) upper->height)
 			    - result->y);
 	  intersection_p = true;
 	}
