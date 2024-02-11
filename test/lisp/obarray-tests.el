@@ -89,5 +89,15 @@
     (obarray-map collect-names table)
     (should (equal (sort syms #'string<) '("a" "b" "c")))))
 
+(ert-deftest obarray-clear ()
+  (let ((o (obarray-make)))
+    (intern "a" o)
+    (intern "b" o)
+    (intern "c" o)
+    (obarray-clear o)
+    (let ((n 0))
+      (mapatoms (lambda (_) (setq n (1+ n))) o)
+      (should (equal n 0)))))
+
 (provide 'obarray-tests)
 ;;; obarray-tests.el ends here

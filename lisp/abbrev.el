@@ -602,8 +602,7 @@ It is nil if the abbrev has already been unexpanded.")
   "Undefine all abbrevs in abbrev table TABLE, leaving TABLE empty."
   (setq abbrevs-changed t)
   (let* ((sym (obarray-get table "")))
-    (dotimes (i (length table))
-      (aset table i 0))
+    (obarray-clear table)
     ;; Preserve the table's properties.
     (cl-assert sym)
     (let ((newsym (obarray-put table "")))

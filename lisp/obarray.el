@@ -66,5 +66,10 @@ Return t on success, nil otherwise."
   "Call function FN on every symbol in obarray OB and return nil."
   (mapatoms fn ob))
 
+(defun obarray-clear (ob)
+  "Remove all symbols from obarray OB."
+  ;; FIXME: This doesn't change the symbols to uninterned status.
+  (fillarray ob 0))
+
 (provide 'obarray)
 ;;; obarray.el ends here
