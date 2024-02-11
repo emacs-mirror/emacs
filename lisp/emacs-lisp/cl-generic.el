@@ -1145,7 +1145,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
   (declare-function help-fns-short-filename "help-fns" (filename))
   (let ((generic (if (symbolp function) (cl--generic function))))
     (when generic
-      (require 'help-mode)              ;Needed for `help-function-def' button!
+      (require 'help-mode)       ;Needed for `help-function-def' button!
       (save-excursion
         ;; Ensure that we have two blank lines (but not more).
         (unless (looking-back "\n\n" (- (point) 2))
@@ -1157,8 +1157,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
           (pcase-let*
               ((`(,qualifiers ,args ,doc) (cl--generic-method-info method)))
             ;; FIXME: Add hyperlinks for the types as well.
-            (let ((print-quoted nil)
-                  (quals (if (length> qualifiers 0)
+            (let ((quals (if (length> qualifiers 0)
                              (concat (substring qualifiers
                                                 0 (string-match " *\\'"
                                                                 qualifiers))
