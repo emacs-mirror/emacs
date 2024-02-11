@@ -5612,9 +5612,6 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
   if (!NILP (it->min_width_property)
       && !EQ (width_spec, it->min_width_property))
     {
-      if (!it->glyph_row)
-	return;
-
       /* When called from display_string (i.e., the mode line),
 	 we're being called with a string as the object, and we
 	 may be called with many sub-strings belonging to the same
