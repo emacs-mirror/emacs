@@ -3639,7 +3639,6 @@ marked revisions, use those."
                 (read-string "Subject: " "[PATCH] " nil nil t))
            revs)))
   (save-current-buffer
-    (vc-ensure-vc-buffer)
     (let ((patches (mapcar (lambda (rev)
                              (vc-call-backend
                               (vc-responsible-backend default-directory)
