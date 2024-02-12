@@ -131,6 +131,8 @@ FUN in `pred' and `app' can take one of the forms:
      call it with one argument
   (F ARG1 .. ARGn)
      call F with ARG1..ARGn and EXPVAL as n+1'th argument
+  (F ARG1 .. _ .. ARGn)
+     call F, passing EXPVAL at the _ position.
 
 FUN, BOOLEXP, and subsequent PAT can refer to variables
 bound earlier in the pattern by a SYMBOL pattern.
@@ -814,10 +816,10 @@ A and B can be one of:
                     #'compiled-function-p))))
         (pcase--mutually-exclusive-p (cadr upat) otherpred))
       '(:pcase--fail . nil))
-     ;; Since we turn (or 'a 'b 'c) into (pred (pcase--flip (memq '(a b c))))
+     ;; Since we turn (or 'a 'b 'c) into (pred (memq _ '(a b c)))
      ;; try and preserve the info we get from that memq test.
-     ((and (eq 'pcase--flip (car-safe (cadr upat)))
-           (memq (cadr (cadr upat)) '(memq member memql))
+     ((and (memq (car-safe (cadr upat)) '(memq member memql))
+           (eq (cadr (cadr upat)) '_)
            (eq 'quote (car-safe (nth 2 (cadr upat))))
            (eq 'quote (car-safe pat)))
       (let ((set (cadr (nth 2 (cadr upat)))))
@@ -865,7 +867,7 @@ A and B can be one of:
 
 (defmacro pcase--flip (fun arg1 arg2)
   "Helper function, used internally to avoid (funcall (lambda ...) ...)."
-  (declare (debug (sexp body)))
+  (declare (debug (sexp body)) (obsolete _ "30.1"))
   `(,fun ,arg2 ,arg1))
 
 (defun pcase--funcall (fun arg vars)
@@ -886,9 +888,13 @@ A and B can be one of:
                      (let ((newsym (gensym "x")))
                        (push (list newsym arg) env)
                        (setq arg newsym)))
-                   (if (or (functionp fun) (not (consp fun)))
-                       `(funcall #',fun ,arg)
-                     `(,@fun ,arg)))))
+                   (cond
+                    ((or (functionp fun) (not (consp fun)))
+                     `(funcall #',fun ,arg))
+                    ((memq '_ fun)
+                     (mapcar (lambda (x) (if (eq '_ x) arg x)) fun))
+                    (t
+                     `(,@fun ,arg))))))
       (if (null env)
           call
         ;; Let's not replace `vars' in `fun' since it's
@@ -949,7 +955,7 @@ Otherwise, it defers to REST which is a list of branches of the form
        ;; Yes, we can use `memql' (or `member')!
        ((> (length simples) 1)
         (pcase--u1 (cons `(match ,var
-                                 . (pred (pcase--flip ,mem-fun ',simples)))
+                                 . (pred (,mem-fun _ ',simples)))
                          (cdr matches))
                    code vars
                    (if (null others) rest
@@ -1096,12 +1102,13 @@ The predicate is the logical-AND of:
   (declare (debug (pcase-QPAT)))
   (cond
    ((eq (car-safe qpat) '\,) (cadr qpat))
+   ((eq (car-safe qpat) '\,@) (error "Unsupported QPAT: %S" qpat))
    ((vectorp qpat)
     `(and (pred vectorp)
           (app length ,(length qpat))
           ,@(let ((upats nil))
               (dotimes (i (length qpat))
-                (push `(app (pcase--flip aref ,i) ,(list '\` (aref qpat i)))
+                (push `(app (aref _ ,i) ,(list '\` (aref qpat i)))
                       upats))
               (nreverse upats))))
    ((consp qpat)

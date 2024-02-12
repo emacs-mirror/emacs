@@ -1527,6 +1527,10 @@ values.
 * Lisp Changes in Emacs 30.1
 
 +++
+** Pcase's functions (in 'pred' and 'app') can specify the argument position.
+For example, instead of (pred (< 5)) you can write (pred (> _ 5)).
+
++++
 ** 'define-advice' now sets the new advice's 'name' property to NAME.
 Named advices defined with 'define-advice' can now be removed with
 '(advice-remove SYMBOL NAME)' in addition to '(advice-remove SYMBOL
