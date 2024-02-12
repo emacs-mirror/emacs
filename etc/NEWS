@@ -1336,6 +1336,10 @@ in Buffer menu mode.
 *** New command 'customize-dirlocals'.
 This command pops up a buffer to edit the settings in ".dir-locals.el".
 
+---
+** New command 'customize-toggle-option'.
+This command can toggle boolean options for the duration of a session.
+
 ** Calc
 
 +++

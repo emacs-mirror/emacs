@@ -1228,6 +1228,41 @@ If OTHER-WINDOW is non-nil, display in another window."
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
 ;;;###autoload
+(defun customize-toggle-option (symbol)
+  "Toggle the value of boolean option SYMBOL for this session."
+  (interactive (let ((prompt "Toggle boolean option: ") opts)
+                 (mapatoms
+                  (lambda (sym)
+                    (when (eq (get sym 'custom-type) 'boolean)
+                      (push sym opts))))
+                 (list (intern (completing-read prompt opts nil nil nil nil
+                                                (symbol-at-point))))))
+  (let* ((setter (or (get symbol 'custom-set) #'set-default))
+         (getter (or (get symbol 'custom-get) #'symbol-value))
+         (value (condition-case nil
+                    (funcall getter symbol)
+                  (void-variable (error "`%s' is not bound" symbol))))
+         (type (get symbol 'custom-type)))
+    (cond
+     ((eq type 'boolean))
+     ((and (null type)
+           (yes-or-no-p
+            (format "`%s' doesn't have a type, and has the value %S.  \
+Proceed to toggle?" symbol value))))
+     ((yes-or-no-p
+       (format "`%s' is of type %s, and has the value %S.  \
+Proceed to toggle?"
+               symbol type value)))
+     ((error "Abort toggling of option `%s'" symbol)))
+    (message "%s user options `%s'."
+             (if (funcall setter symbol (not value))
+                 "Enabled" "Disabled")
+             symbol)))
+
+;;;###autoload
+(defalias 'toggle-option #'customize-toggle-option)
+
+;;;###autoload
 (defalias 'customize-variable-other-window 'customize-option-other-window)
 
 ;;;###autoload
