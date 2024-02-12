@@ -1054,7 +1054,8 @@
 
 (ert-deftest erc--get-isupport-entry ()
   (let ((erc--isupport-params (make-hash-table))
-        (erc-server-parameters '(("FOO" . "1") ("BAR") ("BAZ" . "A,B,C")))
+        (erc-server-parameters '(("FOO" . "1") ("BAR") ("BAZ" . "A,B,C")
+                                 ("SPAM" . "")))
         (items (lambda ()
                  (cl-loop for k being the hash-keys of erc--isupport-params
                           using (hash-values v) collect (cons k v)))))
@@ -1075,7 +1076,9 @@
     (should (equal (erc--get-isupport-entry 'FOO) '(FOO "1")))
 
     (should (equal (funcall items)
-                   '((BAR . --empty--) (BAZ "A" "B" "C") (FOO "1"))))))
+                   '((BAR . --empty--) (BAZ "A" "B" "C") (FOO "1"))))
+    (should (equal (erc--get-isupport-entry 'SPAM) '(SPAM)))
+    (should-not (erc--get-isupport-entry 'SPAM 'single))))
 
 (ert-deftest erc-server-005 ()
   (let* ((hooked 0)
@@ -1093,34 +1096,41 @@
                (lambda (_ _ _ line) (push line calls))))
 
       (ert-info ("Baseline")
-        (setq args '("tester" "BOT=B" "EXCEPTS" "PREFIX=(ov)@+" "are supp...")
+        (setq args '("tester" "BOT=B" "CHANTYPES=" "EXCEPTS" "PREFIX=(ov)@+"
+                     "are supp...")
               parsed (make-erc-response :command-args args :command "005"))
 
         (setq verify
               (lambda ()
                 (should (equal erc-server-parameters
                                '(("PREFIX" . "(ov)@+") ("EXCEPTS")
+                                 ;; Should be ("CHANTYPES") but
+                                 ;; retained for compatibility.
+                                 ("CHANTYPES" . "")
                                  ("BOT" . "B"))))
                 (should (zerop (hash-table-count erc--isupport-params)))
                 (should (equal "(ov)@+" (erc--get-isupport-entry 'PREFIX t)))
                 (should (equal '(EXCEPTS) (erc--get-isupport-entry 'EXCEPTS)))
                 (should (equal "B" (erc--get-isupport-entry 'BOT t)))
-                (should (string= (pop calls)
-                                 "BOT=B EXCEPTS PREFIX=(ov)@+ are supp..."))
+                (should (string=
+                         (pop calls)
+                         "BOT=B CHANTYPES= EXCEPTS PREFIX=(ov)@+ are supp..."))
                 (should (equal args (erc-response.command-args parsed)))))
 
         (erc-call-hooks nil parsed))
 
       (ert-info ("Negated, updated")
-        (setq args '("tester" "-EXCEPTS" "-FAKE" "PREFIX=(ohv)@%+" "are su...")
+        (setq args '("tester" "-EXCEPTS" "-CHANTYPES" "-FAKE" "PREFIX=(ohv)@%+"
+                     "are su...")
               parsed (make-erc-response :command-args args :command "005"))
 
         (setq verify
               (lambda ()
                 (should (equal erc-server-parameters
                                '(("PREFIX" . "(ohv)@%+") ("BOT" . "B"))))
-                (should (string= (pop calls)
-                                 "-EXCEPTS -FAKE PREFIX=(ohv)@%+ are su..."))
+                (should (string-prefix-p
+                         "-EXCEPTS -CHANTYPES -FAKE PREFIX=(ohv)@%+ "
+                         (pop calls)))
                 (should (equal "(ohv)@%+" (erc--get-isupport-entry 'PREFIX t)))
                 (should (equal "B" (erc--get-isupport-entry 'BOT t)))
                 (should-not (erc--get-isupport-entry 'EXCEPTS))
