@@ -1167,25 +1167,37 @@
       (should (equal (erc-downcase "\\O/") "|o/" )))))
 
 (ert-deftest erc-channel-p ()
-  (let ((erc--isupport-params (make-hash-table))
-        erc-server-parameters)
+  (erc-tests-common-make-server-buf)
 
-    (should (erc-channel-p "#chan"))
-    (should (erc-channel-p "##chan"))
-    (should (erc-channel-p "&chan"))
-    (should (erc-channel-p "+chan"))
-    (should (erc-channel-p "!chan"))
-    (should-not (erc-channel-p "@chan"))
+  (should (erc-channel-p "#chan"))
+  (should (erc-channel-p "##chan"))
+  (should (erc-channel-p "&chan"))
+  (should-not (erc-channel-p "+chan"))
+  (should-not (erc-channel-p "!chan"))
+  (should-not (erc-channel-p "@chan"))
 
-    (push '("CHANTYPES" . "#&@+!") erc-server-parameters)
+  ;; Server sends "CHANTYPES=#&+!"
+  (should-not erc-server-parameters)
+  (setq erc-server-parameters '(("CHANTYPES" . "#&+!")))
+  (should (erc-channel-p "#chan"))
+  (should (erc-channel-p "&chan"))
+  (should (erc-channel-p "+chan"))
+  (should (erc-channel-p "!chan"))
 
-    (should (erc-channel-p "!chan"))
-    (should (erc-channel-p "#chan"))
+  (with-current-buffer (erc--open-target "#chan")
+    (should (erc-channel-p (current-buffer))))
+  (with-current-buffer (erc--open-target "+chan")
+    (should (erc-channel-p (current-buffer))))
+  (should (erc-channel-p (get-buffer "#chan")))
+  (should (erc-channel-p (get-buffer "+chan")))
 
-    (with-current-buffer (get-buffer-create "#chan")
-      (setq erc--target (erc--target-from-string "#chan")))
-    (should (erc-channel-p (get-buffer "#chan"))))
-  (kill-buffer "#chan"))
+  ;; Server sends "CHANTYPES=" because it's query only.
+  (puthash 'CHANTYPES '("CHANTYPES") erc--isupport-params)
+  (should-not (erc-channel-p "#spam"))
+  (should-not (erc-channel-p "&spam"))
+  (should-not (erc-channel-p (save-excursion (erc--open-target "#spam"))))
+
+  (erc-tests-common-kill-buffers))
 
 (ert-deftest erc--valid-local-channel-p ()
   (ert-info ("Local channels not supported")

@@ -158,7 +158,6 @@
 (declare-function erc-parse-user "erc" (string))
 (declare-function erc-process-away "erc" (proc away-p))
 (declare-function erc-process-ctcp-query "erc" (proc parsed nick login host))
-(declare-function erc-query-buffer-p "erc" (&optional buffer))
 (declare-function erc-remove-channel-member "erc" (channel nick))
 (declare-function erc-remove-channel-users "erc" nil)
 (declare-function erc-remove-user "erc" (nick))

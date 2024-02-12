@@ -1663,11 +1663,7 @@ If BUFFER is nil, the current buffer is used."
 (defun erc-query-buffer-p (&optional buffer)
   "Return non-nil if BUFFER is an ERC query buffer.
 If BUFFER is nil, the current buffer is used."
-  (with-current-buffer (or buffer (current-buffer))
-    (let ((target (erc-target)))
-      (and (eq major-mode 'erc-mode)
-           target
-           (not (memq (aref target 0) '(?# ?& ?+ ?!)))))))
+  (not (erc-channel-p (or buffer (current-buffer)))))
 
 (defun erc-ison-p (nick)
   "Return non-nil if NICK is online."
@@ -1882,18 +1878,20 @@ buries those."
   :group 'erc-buffers
   :type 'boolean)
 
-(defun erc-channel-p (channel)
-  "Return non-nil if CHANNEL seems to be an IRC channel name."
-  (cond ((stringp channel)
-         (memq (aref channel 0)
-               (if-let ((types (erc--get-isupport-entry 'CHANTYPES 'single)))
-                   (append types nil)
-                 '(?# ?& ?+ ?!))))
-        ((and-let* (((bufferp channel))
-                    ((buffer-live-p channel))
-                    (target (buffer-local-value 'erc--target channel)))
-           (erc-channel-p (erc--target-string target))))
-        (t nil)))
+(defvar erc--fallback-channel-prefixes "#&"
+  "Prefix chars for distinguishing channel targets when CHANTYPES is unknown.")
+
+(defun erc-channel-p (target)
+  "Return non-nil if TARGET is a valid channel name or a channel buffer."
+  (cond ((stringp target)
+         (and-let*
+             (((not (string-empty-p target)))
+              (value (let ((entry (erc--get-isupport-entry 'CHANTYPES)))
+                       (if entry (cadr entry) erc--fallback-channel-prefixes)))
+              ((erc--strpos (aref target 0) value)))))
+        ((and-let* (((buffer-live-p target))
+                    (target (buffer-local-value 'erc--target target))
+                    ((erc--target-channel-p target)))))))
 
 ;; For the sake of compatibility, a historical quirk concerning this
 ;; option, when nil, has been preserved: all buffers are suffixed with
