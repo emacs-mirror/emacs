@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'ert-x)
+(require 'vc)
 (require 'vc-git)
 
 (ert-deftest vc-git-test-program-version-general ()
@@ -80,5 +82,43 @@
                (vc-git-annotate-time)))
     (should-not (vc-git-annotate-time))
     (should-not (vc-git-annotate-time))))
+
+(defmacro vc-git-test--with-repo (name &rest body)
+  "Initialize a repository in a temporary directory and evaluate BODY.
+
+The current directory will be set to the top of that repository; NAME
+will be bound to that directory's file name.  Once BODY exits, the
+directory will be deleted."
+  (declare (indent 1))
+  `(ert-with-temp-directory ,name
+     (let ((default-directory ,name))
+       (vc-create-repo 'Git)
+       ,@body)))
+
+(defun vc-git-test--run (&rest args)
+  "Run git ARGS…, check for non-zero status, and return output."
+  (with-temp-buffer
+    (apply 'vc-git-command t 0 nil args)
+    (buffer-string)))
+
+(ert-deftest vc-git-test-dir-track-local-branch ()
+  "Test that `vc-dir' works when tracking local branches.  Bug#68183."
+  (skip-unless (executable-find vc-git-program))
+  (vc-git-test--with-repo repo
+    ;; Create an initial commit to get a branch started.
+    (write-region "hello" nil "README")
+    (vc-git-test--run "add" "README")
+    (vc-git-test--run "commit" "-mFirst")
+    ;; Get current branch name lazily, to remain agnostic of
+    ;; init.defaultbranch.
+    (let ((upstream-branch
+           (string-trim (vc-git-test--run "branch" "--show-current"))))
+      (vc-git-test--run "checkout" "--track" "-b" "hack" upstream-branch)
+      (vc-dir default-directory)
+      (pcase-dolist (`(,header ,value)
+                     `(("Branch" "hack")
+                       ("Tracking" ,upstream-branch)))
+        (goto-char (point-min))
+        (re-search-forward (format "^%s *: %s$" header value))))))
 
 ;;; vc-git-tests.el ends here
