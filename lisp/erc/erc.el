@@ -2486,29 +2486,22 @@ nil."
     (cl-assert (= (point) (point-max)))))
 
 (defun erc-open (&optional server port nick full-name
-                           connect passwd tgt-list channel process
+                           connect passwd _tgt-list channel process
                            client-certificate user id)
-  "Connect to SERVER on PORT as NICK with USER and FULL-NAME.
+  "Return a new or reinitialized server or target buffer.
+If CONNECT is non-nil, connect to SERVER and return its new or
+reassociated buffer.  Otherwise, assume PROCESS is non-nil and belongs
+to an active session, and return a new or refurbished target buffer for
+CHANNEL, which may also be a query target (the parameter name remains
+for historical reasons).  Pass SERVER, PORT, NICK, USER, FULL-NAME, and
+PASSWD to `erc-determine-parameters' for preserving as session-local
+variables.  Do something similar for CLIENT-CERTIFICATE and ID, which
+should be as described by `erc-tls'.
 
-If CONNECT is non-nil, connect to the server.  Otherwise assume
-already connected and just create a separate buffer for the new
-target given by CHANNEL, meaning these parameters are mutually
-exclusive.  Note that CHANNEL may also be a query; its name has
-been retained for historical reasons.
-
-Use PASSWD as user password on the server.  If TGT-LIST is
-non-nil, use it to initialize `erc-default-recipients'.
-
-CLIENT-CERTIFICATE, if non-nil, should either be a list where the
-first element is the file name of the private key corresponding
-to a client certificate and the second element is the file name
-of the client certificate itself to use when connecting over TLS,
-or t, which means that `auth-source' will be queried for the
-private key and the certificate.
-
-When non-nil, ID should be a symbol for identifying the connection.
-
-Returns the buffer for the given server or channel."
+Note that ERC ignores TGT-LIST and initializes `erc-default-recipients'
+with CHANNEL as its only member.  Note also that this function has the
+side effect of setting the current buffer to the one it returns.  Use
+`with-current-buffer' or `save-excursion' to nullify this effect."
   (let* ((target (and channel (erc--target-from-string channel)))
          (buffer (erc-get-buffer-create server port nil target id))
          (old-buffer (current-buffer))
@@ -2545,7 +2538,7 @@ Returns the buffer for the given server or channel."
     ;; connection parameters
     (setq erc-server-process process)
     ;; stack of default recipients
-    (setq erc-default-recipients tgt-list)
+    (when channel (setq erc-default-recipients (list channel)))
     (when target
       (setq erc--target target
             erc-network (erc-network)))

@@ -502,6 +502,16 @@ encouraged to keep a module's name aligned with its group's as well as
 the provided feature of its containing library, if only for the usual
 reasons of namespace hygiene and discoverability.
 
+*** The function 'erc-open' no longer uses the 'TGT-LIST' parameter.
+ERC has always used the parameter to initialize the local variable
+'erc-default-recipients', which stores a list of routing targets with
+the topmost considered "active."  However, since at least ERC 5.1, a
+buffer and its active target effectively mate for life, making
+'TGT-LIST', in practice, a read-only list of a single target.  And
+because that target must also appear as the 'CHANNEL' parameter,
+'TGT-LIST' mainly serves to reinforce 'erc-open's reputation of being
+unruly.
+
 *** ERC supports arbitrary CHANTYPES.
 Specifically, channels can be prefixed with any predesignated
 character, mainly to afford more flexibility to specialty services,
