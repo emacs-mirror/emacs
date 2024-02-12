@@ -183,7 +183,9 @@ expression, in which case we want to handle forms differently."
         (loaddefs-generate--shorten-autoload
          `(autoload ,(nth 1 form) ,file ,doc ,interactive ,type))))
 
-     ((and expansion (memq car '(progn prog1)))
+     ;; Look inside `progn', and `eval-and-compile', since these
+     ;; are often used in the expansion of things like `pcase-defmacro'.
+     ((and expansion (memq car '(progn prog1 eval-and-compile)))
       (let ((end (memq :autoload-end form)))
 	(when end             ;Cut-off anything after the :autoload-end marker.
           (setq form (copy-sequence form))
