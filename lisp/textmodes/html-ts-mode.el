@@ -121,6 +121,17 @@ Return nil if there is no name or if NODE is not a defun node."
   ;; Imenu.
   (setq-local treesit-simple-imenu-settings
               '(("Element" "\\`tag_name\\'" nil nil)))
+
+  ;; Outline minor mode.
+  (setq-local treesit-outline-predicate "\\`element\\'")
+  ;; `html-ts-mode' inherits from `html-mode' that sets
+  ;; regexp-based outline variables.  So need to restore
+  ;; the default values of outline variables to be able
+  ;; to use `treesit-outline-predicate' above.
+  (kill-local-variable 'outline-regexp)
+  (kill-local-variable 'outline-heading-end-regexp)
+  (kill-local-variable 'outline-level)
+
   (treesit-major-mode-setup))
 
 (if (treesit-ready-p 'html)

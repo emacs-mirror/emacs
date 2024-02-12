@@ -774,7 +774,7 @@ Calls REPORT-FN directly."
                                       "vararg_expression"))))
                    (text "comment"))))
 
-    ;; Imenu.
+    ;; Imenu/Outline.
     (setq-local treesit-simple-imenu-settings
                 `(("Requires"
                    "\\`function_call\\'"
@@ -788,16 +788,6 @@ Calls REPORT-FN directly."
 
     ;; Which-function.
     (setq-local which-func-functions (treesit-defun-at-point))
-
-    ;; Outline.
-    (setq-local outline-regexp
-                (rx (seq (0+ space)
-                         (or (seq "--[[" (0+ space) eol)
-                             (seq symbol-start
-                                  (or "do" "for" "if" "repeat" "while"
-                                      (seq (? (seq "local" (1+ space)))
-                                           "function"))
-                                  symbol-end)))))
 
     ;; Align.
     (setq-local align-indent-before-aligning t)

@@ -883,6 +883,7 @@ Major and Minor Modes
 * Minor Modes::        Defining minor modes.
 * Mode Line Format::   Customizing the text that appears in the mode line.
 * Imenu::              Providing a menu of definitions made in a buffer.
+* Outline Minor Mode:: Outline mode to use with other major modes.
 * Font Lock Mode::     How modes can highlight text according to syntax.
 * Auto-Indentation::   How to teach Emacs to indent for a major mode.
 * Desktop Save Mode::  How modes can have buffer state saved between

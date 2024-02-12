@@ -1897,6 +1897,10 @@ add-log functions used by @code{add-log-current-defun}.
 @item
 If @code{treesit-simple-imenu-settings} (@pxref{Imenu}) is
 non-@code{nil}, it sets up Imenu.
+
+@item
+If @code{treesit-outline-predicate} (@pxref{Outline Minor Mode}) is
+non-@code{nil}, it sets up Outline minor mode.
 @end itemize
 
 @c TODO: Add treesit-thing-settings stuff once we finalize it.

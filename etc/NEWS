@@ -130,6 +130,13 @@ the signature) the automatically inferred function type as well.
 This user option controls outline visibility in the output buffer of
 'describe-bindings' when 'describe-bindings-outline' is non-nil.
 
+** Outline Mode
+
++++
+*** 'outline-minor-mode' is supported in tree-sitter major modes.
+It can be used in all tree-sitter major modes that set either the
+variable 'treesit-simple-imenu-settings' or 'treesit-outline-predicate'.
+
 ** X selection requests are now handled much faster and asynchronously.
 This means it should be less necessary to disable the likes of
 'select-active-regions' when Emacs is running over a slow network

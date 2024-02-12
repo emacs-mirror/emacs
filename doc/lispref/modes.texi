@@ -25,6 +25,7 @@ user.  For related topics such as keymaps and syntax tables, see
 * Minor Modes::       Defining minor modes.
 * Mode Line Format::  Customizing the text that appears in the mode line.
 * Imenu::             Providing a menu of definitions made in a buffer.
+* Outline Minor Mode::  Outline mode to use with other major modes.
 * Font Lock Mode::    How modes can highlight text according to syntax.
 * Auto-Indentation::  How to teach Emacs to indent for a major mode.
 * Desktop Save Mode:: How modes can have buffer state saved between
@@ -506,6 +507,12 @@ variable @code{imenu-generic-expression}, for the two variables
 @code{imenu-prev-index-position-function} and
 @code{imenu-extract-index-name-function}, or for the variable
 @code{imenu-create-index-function} (@pxref{Imenu}).
+
+@item
+The mode should specify how Outline minor mode should find the
+heading lines, by setting up a buffer-local value for the variables
+@code{outline-regexp} or @code{outline-search-function}, and also
+for the variable @code{outline-level} (@pxref{Outline Minor Mode}).
 
 @item
 The mode can tell ElDoc mode how to retrieve different types of
@@ -2992,6 +2999,61 @@ instead.
 
 @code{treesit-major-mode-setup} (@pxref{Tree-sitter Major Modes})
 automatically sets up Imenu if this variable is non-@code{nil}.
+@end defvar
+
+@node Outline Minor Mode
+@section Outline Minor Mode
+
+@cindex Outline minor mode
+  @dfn{Outline minor mode} is a buffer-local minor mode that hides
+parts of the buffer and leaves only heading lines visible.
+This minor mode can be used in conjunction with other major modes
+(@pxref{Outline Minor Mode,, Outline Minor Mode, emacs, the Emacs Manual}).
+
+  There are two ways to define which lines are headings: with the
+variable @code{outline-regexp} or @code{outline-search-function}.
+
+@defvar outline-regexp
+This variable is a regular expression.
+Any line whose beginning has a match for this regexp is considered a
+heading line.  Matches that start within a line (not at the left
+margin) do not count.
+@end defvar
+
+@defvar outline-search-function
+Alternatively, when it's impossible to create a regexp that
+matches heading lines, you can define a function that helps
+Outline minor mode to find heading lines.
+
+The variable @code{outline-search-function} specifies the function with
+four arguments: @var{bound}, @var{move}, @var{backward}, and
+@var{looking-at}.  The function completes two tasks: to match the
+current heading line, and to find the next or the previous heading line.
+If the argument @var{looking-at} is non-@code{nil}, it should return
+non-@code{nil} when point is at the beginning of the outline header line.
+If the argument @var{looking-at} is @code{nil}, the first three arguments
+are used.  The argument @var{bound} is a buffer position that bounds
+the search.  The match found must not end after that position.  A
+value of nil means search to the end of the accessible portion of
+the buffer.  If the argument @var{move} is non-@code{nil}, the
+failed search should move to the limit of search and return nil.
+If the argument @var{backward} is non-@code{nil}, this function
+should search for the previous heading backward.
+@end defvar
+
+@defvar outline-level
+This variable is a function that takes no arguments
+and should return the level of the current heading.
+It's required in both cases: whether you define
+@code{outline-regexp} or @code{outline-search-function}.
+@end defvar
+
+If built with tree-sitter, Emacs can automatically use
+Outline minor mode if the major mode sets the following variable.
+
+@defvar treesit-outline-predicate
+This variable instructs Emacs how to find lines with outline headings.
+It should be a predicate that matches the node on the heading line.
 @end defvar
 
 @node Font Lock Mode
