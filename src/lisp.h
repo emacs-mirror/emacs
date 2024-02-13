@@ -330,7 +330,8 @@ typedef EMACS_INT Lisp_Word;
    without worrying about the implementations diverging, since
    lisp_h_OP defines the actual implementation.  The lisp_h_OP macros
    are intended to be private to this include file, and should not be
-   used elsewhere.
+   used elsewhere.  They should evaluate each argument exactly once,
+   so that they behave like their functional counterparts.
 
    FIXME: Remove the lisp_h_OP macros, and define just the inline OP
    functions, once "gcc -Og" (new to GCC 4.8) or equivalent works well
@@ -385,14 +386,9 @@ typedef EMACS_INT Lisp_Word;
        & ((1 << INTTYPEBITS) - 1)))
 #define lisp_h_FLOATP(x) TAGGEDP (x, Lisp_Float)
 #define lisp_h_NILP(x)  BASE_EQ (x, Qnil)
-#define lisp_h_SET_SYMBOL_VAL(sym, v) \
-   (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), \
-    (sym)->u.s.val.value = (v))
 #define lisp_h_SYMBOL_CONSTANT_P(sym) \
    (XSYMBOL (sym)->u.s.trapped_write == SYMBOL_NOWRITE)
 #define lisp_h_SYMBOL_TRAPPED_WRITE_P(sym) (XSYMBOL (sym)->u.s.trapped_write)
-#define lisp_h_SYMBOL_VAL(sym) \
-   (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), (sym)->u.s.val.value)
 #define lisp_h_SYMBOL_WITH_POS_P(x) PSEUDOVECTORP (x, PVEC_SYMBOL_WITH_POS)
 #define lisp_h_BARE_SYMBOL_P(x) TAGGEDP (x, Lisp_Symbol)
 #define lisp_h_TAGGEDP(a, tag) \
@@ -402,8 +398,6 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_VECTORLIKEP(x) TAGGEDP (x, Lisp_Vectorlike)
 #define lisp_h_XCAR(c) XCONS (c)->u.s.car
 #define lisp_h_XCDR(c) XCONS (c)->u.s.u.cdr
-#define lisp_h_XCONS(a) \
-   (eassert (CONSP (a)), XUNTAG (a, Lisp_Cons, struct Lisp_Cons))
 #define lisp_h_XHASH(a) XUFIXNUM_RAW (a)
 #if USE_LSB_TAG
 # define lisp_h_make_fixnum_wrap(n) \
@@ -448,15 +442,12 @@ typedef EMACS_INT Lisp_Word;
 # define FLOATP(x) lisp_h_FLOATP (x)
 # define FIXNUMP(x) lisp_h_FIXNUMP (x)
 # define NILP(x) lisp_h_NILP (x)
-# define SET_SYMBOL_VAL(sym, v) lisp_h_SET_SYMBOL_VAL (sym, v)
 # define SYMBOL_CONSTANT_P(sym) lisp_h_SYMBOL_CONSTANT_P (sym)
 # define SYMBOL_TRAPPED_WRITE_P(sym) lisp_h_SYMBOL_TRAPPED_WRITE_P (sym)
-# define SYMBOL_VAL(sym) lisp_h_SYMBOL_VAL (sym)
 # define TAGGEDP(a, tag) lisp_h_TAGGEDP (a, tag)
 # define VECTORLIKEP(x) lisp_h_VECTORLIKEP (x)
 # define XCAR(c) lisp_h_XCAR (c)
 # define XCDR(c) lisp_h_XCDR (c)
-# define XCONS(a) lisp_h_XCONS (a)
 # define XHASH(a) lisp_h_XHASH (a)
 # if USE_LSB_TAG
 #  define make_fixnum(n) lisp_h_make_fixnum (n)
@@ -1478,9 +1469,10 @@ CHECK_CONS (Lisp_Object x)
 }
 
 INLINE struct Lisp_Cons *
-(XCONS) (Lisp_Object a)
+XCONS (Lisp_Object a)
 {
-  return lisp_h_XCONS (a);
+  eassert (CONSP (a));
+  return XUNTAG (a, Lisp_Cons, struct Lisp_Cons);
 }
 
 /* Take the car or cdr of something known to be a cons cell.  */
@@ -2265,9 +2257,10 @@ typedef jmp_buf sys_jmp_buf;
 /* Value is name of symbol.  */
 
 INLINE Lisp_Object
-(SYMBOL_VAL) (struct Lisp_Symbol *sym)
+SYMBOL_VAL (struct Lisp_Symbol *sym)
 {
-  return lisp_h_SYMBOL_VAL (sym);
+  eassert (sym->u.s.redirect == SYMBOL_PLAINVAL);
+  return sym->u.s.val.value;
 }
 
 INLINE struct Lisp_Symbol *
@@ -2290,9 +2283,10 @@ SYMBOL_FWD (struct Lisp_Symbol *sym)
 }
 
 INLINE void
-(SET_SYMBOL_VAL) (struct Lisp_Symbol *sym, Lisp_Object v)
+SET_SYMBOL_VAL (struct Lisp_Symbol *sym, Lisp_Object v)
 {
-  lisp_h_SET_SYMBOL_VAL (sym, v);
+  eassert (sym->u.s.redirect == SYMBOL_PLAINVAL);
+  sym->u.s.val.value = v;
 }
 
 INLINE void
