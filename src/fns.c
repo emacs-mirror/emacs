@@ -5069,24 +5069,49 @@ hash_string (char const *ptr, ptrdiff_t len)
   EMACS_UINT hash = len;
   /* At most 8 steps.  We could reuse SXHASH_MAX_LEN, of course,
    * but dividing by 8 is cheaper.  */
-  ptrdiff_t step = sizeof hash + ((end - p) >> 3);
+  ptrdiff_t step = max (sizeof hash, ((end - p) >> 3));
 
-  while (p + sizeof hash <= end)
+  if (p + sizeof hash <= end)
     {
+      do
+	{
+	  EMACS_UINT c;
+	  /* We presume that the compiler will replace this `memcpy` with
+	     a single load/move instruction when applicable.  */
+	  memcpy (&c, p, sizeof hash);
+	  p += step;
+	  hash = sxhash_combine (hash, c);
+	}
+      while (p + sizeof hash <= end);
+      /* Hash the last wordful of bytes in the string, because that is
+         is often the part where strings differ.  This may cause some
+         bytes to be hashed twice but we assume that's not a big problem.  */
       EMACS_UINT c;
-      /* We presume that the compiler will replace this `memcpy` with
-         a single load/move instruction when applicable.  */
-      memcpy (&c, p, sizeof hash);
-      p += step;
+      memcpy (&c, end - sizeof c, sizeof c);
       hash = sxhash_combine (hash, c);
     }
-  /* A few last bytes may remain (smaller than an EMACS_UINT).  */
-  /* FIXME: We could do this without a loop, but it'd require
-     endian-dependent code :-(  */
-  while (p < end)
+  else
     {
-      unsigned char c = *p++;
-      hash = sxhash_combine (hash, c);
+      /* String is shorter than an EMACS_UINT.  Use smaller loads.  */
+      eassume (p <= end && end - p < sizeof (EMACS_UINT));
+      EMACS_UINT tail = 0;
+      if (end - p >= 4)
+	{
+	  uint32_t c;
+	  memcpy (&c, p, sizeof c);
+	  tail = (tail << (8 * sizeof c)) + c;
+	  p += sizeof c;
+	}
+      if (end - p >= 2)
+	{
+	  uint16_t c;
+	  memcpy (&c, p, sizeof c);
+	  tail = (tail << (8 * sizeof c)) + c;
+	  p += sizeof c;
+	}
+      if (p < end)
+	tail = (tail << 8) + (unsigned char)*p;
+      hash = sxhash_combine (hash, tail);
     }
 
   return hash;
