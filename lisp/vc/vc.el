@@ -3623,7 +3623,15 @@ revisions.
 When invoked interactively in a Log View buffer with
 marked revisions, use those."
   (interactive
-   (let ((revs (vc-prepare-patch-prompt-revisions)) to)
+   (let* ((revs (vc-prepare-patch-prompt-revisions))
+          (subject
+           (and (length= revs 1)
+                (plist-get
+                 (vc-call-backend
+                  (vc-responsible-backend default-directory)
+                  'prepare-patch (car revs))
+                 :subject)))
+          to)
      (require 'message)
      (while (null (setq to (completing-read-multiple
                             (format-prompt
@@ -3636,7 +3644,7 @@ marked revisions, use those."
        (sit-for blink-matching-delay))
      (list (string-join to ", ")
            (and (not vc-prepare-patches-separately)
-                (read-string "Subject: " "[PATCH] " nil nil t))
+                (read-string "Subject: " (or subject "[PATCH] ") nil nil t))
            revs)))
   (save-current-buffer
     (let ((patches (mapcar (lambda (rev)
