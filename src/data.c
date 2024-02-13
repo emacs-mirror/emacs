@@ -821,15 +821,8 @@ POS, the position, is either a fixnum or a symbol with position from which
 the position will be taken.  */)
      (register Lisp_Object sym, register Lisp_Object pos)
 {
-  Lisp_Object bare;
+  Lisp_Object bare = Fbare_symbol (sym);
   Lisp_Object position;
-
-  if (BARE_SYMBOL_P (sym))
-    bare = sym;
-  else if (SYMBOL_WITH_POS_P (sym))
-    bare = XSYMBOL_WITH_POS_SYM (sym);
-  else
-    wrong_type_argument (Qsymbolp, sym);
 
   if (FIXNUMP (pos))
     position = pos;
