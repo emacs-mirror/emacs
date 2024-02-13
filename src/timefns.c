@@ -1765,10 +1765,8 @@ but new code should not rely on it.  */)
      well, since we accept it as input?  */
   struct lisp_time t;
   enum timeform input_form = decode_lisp_time (time, false, &t, 0);
-  if (NILP (form))
-    form = current_time_list ? Qlist : Qt;
-  if (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (form))
-    form = SYMBOL_WITH_POS_SYM (form);
+  form = (!NILP (form) ? maybe_remove_pos_from_symbol (form)
+	  : current_time_list ? Qlist : Qt);
   if (BASE_EQ (form, Qlist))
     return ticks_hz_list4 (t.ticks, t.hz);
   if (BASE_EQ (form, Qinteger))

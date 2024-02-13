@@ -5063,8 +5063,7 @@ it defaults to the value of `obarray'.  */)
     {
       /* If already a symbol, we don't do shorthand-longhand translation,
 	 as promised in the docstring.  */
-      Lisp_Object sym = (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (name)
-			 ? XSYMBOL_WITH_POS (name)->sym : name);
+      Lisp_Object sym = maybe_remove_pos_from_symbol (name);
       string = XSYMBOL (name)->u.s.name;
       tem
 	= oblookup (obarray, SSDATA (string), SCHARS (string), SBYTES (string));

@@ -1113,6 +1113,27 @@ XSYMBOL_WITH_POS (Lisp_Object a)
     return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
 }
 
+INLINE Lisp_Object
+XSYMBOL_WITH_POS_SYM (Lisp_Object a)
+{
+  Lisp_Object sym = XSYMBOL_WITH_POS (a)->sym;
+  eassert (BARE_SYMBOL_P (sym));
+  return sym;
+}
+
+INLINE Lisp_Object
+XSYMBOL_WITH_POS_POS (Lisp_Object a)
+{
+  return XSYMBOL_WITH_POS (a)->pos;
+}
+
+INLINE Lisp_Object
+maybe_remove_pos_from_symbol (Lisp_Object x)
+{
+  return (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)
+	  ? XSYMBOL_WITH_POS_SYM (x) : x);
+}
+
 INLINE struct Lisp_Symbol * ATTRIBUTE_NO_SANITIZE_UNDEFINED
 XBARE_SYMBOL (Lisp_Object a)
 {
@@ -1128,7 +1149,7 @@ XSYMBOL (Lisp_Object a)
   if (!BARE_SYMBOL_P (a))
     {
       eassert (symbols_with_pos_enabled);
-      a = XSYMBOL_WITH_POS (a)->sym;
+      a = XSYMBOL_WITH_POS_SYM (a);
     }
   return XBARE_SYMBOL (a);
 }
@@ -1322,9 +1343,9 @@ INLINE bool
 EQ (Lisp_Object x, Lisp_Object y)
 {
   return BASE_EQ ((symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)
-		   ? XSYMBOL_WITH_POS (x)->sym : x),
+		   ? XSYMBOL_WITH_POS_SYM (x) : x),
 		  (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (y)
-		   ? XSYMBOL_WITH_POS (y)->sym : y));
+		   ? XSYMBOL_WITH_POS_SYM (y) : y));
 }
 
 INLINE intmax_t
@@ -2807,22 +2828,6 @@ XOVERLAY (Lisp_Object a)
 {
   eassert (OVERLAYP (a));
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Overlay);
-}
-
-INLINE Lisp_Object
-SYMBOL_WITH_POS_SYM (Lisp_Object a)
-{
-  if (!SYMBOL_WITH_POS_P (a))
-    wrong_type_argument (Qsymbol_with_pos_p, a);
-  return XSYMBOL_WITH_POS (a)->sym;
-}
-
-INLINE Lisp_Object
-SYMBOL_WITH_POS_POS (Lisp_Object a)
-{
-  if (!SYMBOL_WITH_POS_P (a))
-    wrong_type_argument (Qsymbol_with_pos_p, a);
-  return XSYMBOL_WITH_POS (a)->pos;
 }
 
 INLINE bool
