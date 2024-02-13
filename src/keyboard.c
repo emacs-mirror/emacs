@@ -1076,8 +1076,9 @@ Default value of `command-error-function'.  */)
 	     write to stderr and quit.  In daemon mode, there are
 	     many other potential errors that do not prevent frames
 	     from being created, so continuing as normal is better in
-	     that case.  */
-	  || (!IS_DAEMON && FRAME_INITIAL_P (sf))
+	     that case, as long as the daemon has actually finished
+	     initialization. */
+	  || (!(IS_DAEMON && !DAEMON_RUNNING) && FRAME_INITIAL_P (sf))
 	  || noninteractive))
     {
       print_error_message (data, Qexternal_debugging_output,
