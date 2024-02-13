@@ -5316,7 +5316,7 @@ DEFUN ("internal--obarray-buckets",
 	while (1)
 	  {
 	    bucket = Fcons (sym, bucket);
-	    struct Lisp_Symbol *s = XBARE_SYMBOL(sym)->u.s.next;
+	    struct Lisp_Symbol *s = XBARE_SYMBOL (sym)->u.s.next;
 	    if (!s)
 	      break;
 	    sym = make_lisp_symbol (s);
