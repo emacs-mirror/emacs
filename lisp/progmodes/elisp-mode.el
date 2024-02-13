@@ -221,7 +221,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
   (load (byte-compile-dest-file buffer-file-name)))
 
 (declare-function native-compile "comp")
-(declare-function comp-write-bytecode-file "comp")
+(declare-function comp--write-bytecode-file "comp")
 
 (defun emacs-lisp-native-compile ()
   "Native-compile the current buffer's file (if it has changed).
@@ -233,7 +233,7 @@ visited by the current buffer."
          (byte-to-native-output-buffer-file nil)
          (eln (native-compile buffer-file-name)))
     (when eln
-      (comp-write-bytecode-file eln))))
+      (comp-write--bytecode-file eln))))
 
 (defun emacs-lisp-native-compile-and-load ()
   "Native-compile the current buffer's file (if it has changed), then load it.
