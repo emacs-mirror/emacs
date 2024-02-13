@@ -384,27 +384,19 @@ typedef EMACS_INT Lisp_Word;
    ((ok) ? (void) 0 : wrong_type_argument (predicate, x))
 #define lisp_h_CONSP(x) TAGGEDP (x, Lisp_Cons)
 #define lisp_h_BASE_EQ(x, y) (XLI (x) == XLI (y))
-#define lisp_h_BASE2_EQ(x, y)				    \
-  (BASE_EQ (x, y)					    \
-   || (symbols_with_pos_enabled				    \
-       && SYMBOL_WITH_POS_P (x)				    \
-       && BASE_EQ (XSYMBOL_WITH_POS (x)->sym, y)))
+#define lisp_h_BASE2_EQ(x, y) \
+  (symbols_with_pos_enabled \
+   ? BASE_EQ (SYMBOL_WITH_POS_P (x) ? XSYMBOL_WITH_POS (x)->sym : (x), y) \
+   : BASE_EQ (x, y))
 
 /* FIXME: Do we really need to inline the whole thing?
  * What about keeping the part after `symbols_with_pos_enabled` in
  * a separate function?  */
-#define lisp_h_EQ(x, y)                                     \
-  (XLI (x) == XLI (y)					    \
-   || (symbols_with_pos_enabled                             \
-       && (SYMBOL_WITH_POS_P (x)			    \
-           ? (BARE_SYMBOL_P (y)				    \
-              ? XLI (XSYMBOL_WITH_POS (x)->sym) == XLI (y)  \
-              : (SYMBOL_WITH_POS_P (y)			    \
-		 && (XLI (XSYMBOL_WITH_POS (x)->sym)	    \
-		     == XLI (XSYMBOL_WITH_POS (y)->sym))))  \
-           : (SYMBOL_WITH_POS_P (y)			    \
-              && BARE_SYMBOL_P (x)			    \
-              && (XLI (x) == XLI (XSYMBOL_WITH_POS (y)->sym))))))
+#define lisp_h_EQ(x, y) \
+  (symbols_with_pos_enabled \
+   ? BASE_EQ (SYMBOL_WITH_POS_P (x) ? XSYMBOL_WITH_POS (x)->sym : (x), \
+	      SYMBOL_WITH_POS_P (y) ? XSYMBOL_WITH_POS (y)->sym : (y)) \
+   : BASE_EQ (x, y))
 
 #define lisp_h_FIXNUMP(x) \
    (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS)) \
