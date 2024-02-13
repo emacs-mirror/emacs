@@ -2918,8 +2918,8 @@ See the descriptions of arguments in `outline-search-function'."
 
 (defun treesit-outline-level ()
   "Return the depth of the current outline heading."
-  (let* ((node (treesit-node-at (point)))
-         (level (if (treesit-node-match-p node treesit-outline-predicate t)
+  (let* ((node (treesit-node-at (point) nil t))
+         (level (if (treesit-node-match-p node treesit-outline-predicate)
                     1 0)))
     (while (setq node (treesit-parent-until node treesit-outline-predicate))
       (setq level (1+ level)))
