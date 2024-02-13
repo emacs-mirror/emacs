@@ -14,7 +14,8 @@
             ("/[ \t]*DEFVAR_[A-Z_ \t(]+\"\\([^\"]+\\)\"/\\1/"
              "/[ \t]*DEFVAR_[A-Z_ \t(]+\"[^\"]+\",[ \t]\\([A-Za-z0-9_]+\\)/\\1/"))))
          (etags-regen-ignores . ("test/manual/etags/"))
-         (vc-prepare-patches-separately . nil)))
+         (vc-prepare-patches-separately . nil)
+         (vc-default-patch-addressee . "bug-gnu-emacs@gnu.org")))
  (c-mode . ((c-file-style . "GNU")
             (c-noise-macro-names . ("INLINE" "NO_INLINE" "ATTRIBUTE_NO_SANITIZE_UNDEFINED"
                                     "UNINIT" "CALLBACK" "ALIGN_STACK" "ATTRIBUTE_MALLOC"
