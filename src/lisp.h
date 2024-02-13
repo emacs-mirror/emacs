@@ -1117,7 +1117,7 @@ INLINE Lisp_Object
 XSYMBOL_WITH_POS_SYM (Lisp_Object a)
 {
   Lisp_Object sym = XSYMBOL_WITH_POS (a)->sym;
-  eassert (BARE_SYMBOL_P (sym));
+  eassume (BARE_SYMBOL_P (sym));
   return sym;
 }
 
@@ -1148,7 +1148,7 @@ XSYMBOL (Lisp_Object a)
 {
   if (!BARE_SYMBOL_P (a))
     {
-      eassert (symbols_with_pos_enabled);
+      eassume (symbols_with_pos_enabled);
       a = XSYMBOL_WITH_POS_SYM (a);
     }
   return XBARE_SYMBOL (a);
