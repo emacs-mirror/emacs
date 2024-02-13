@@ -372,23 +372,12 @@ typedef EMACS_INT Lisp_Word;
 # define lisp_h_Qnil {0}
 #endif
 
-#define lisp_h_PSEUDOVECTORP(a,code)                            	\
-  (lisp_h_VECTORLIKEP (a)						\
-   && ((XUNTAG (a, Lisp_Vectorlike, union vectorlike_header)->size	\
-	& (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))				\
-       == (PSEUDOVECTOR_FLAG | ((code) << PSEUDOVECTOR_AREA_BITS))))
-
 #define lisp_h_CHECK_FIXNUM(x) CHECK_TYPE (FIXNUMP (x), Qfixnump, x)
 #define lisp_h_CHECK_SYMBOL(x) CHECK_TYPE (SYMBOLP (x), Qsymbolp, x)
 #define lisp_h_CHECK_TYPE(ok, predicate, x) \
    ((ok) ? (void) 0 : wrong_type_argument (predicate, x))
 #define lisp_h_CONSP(x) TAGGEDP (x, Lisp_Cons)
 #define lisp_h_BASE_EQ(x, y) (XLI (x) == XLI (y))
-#define lisp_h_EQ(x, y) \
-  BASE_EQ ((symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x) \
-	    ? XSYMBOL_WITH_POS (x)->sym : (x)), \
-	   (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (y) \
-	    ? XSYMBOL_WITH_POS (y)->sym : (y)))
 
 #define lisp_h_FIXNUMP(x) \
    (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS)) \
@@ -406,8 +395,6 @@ typedef EMACS_INT Lisp_Word;
    (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), (sym)->u.s.val.value)
 #define lisp_h_SYMBOL_WITH_POS_P(x) PSEUDOVECTORP (x, PVEC_SYMBOL_WITH_POS)
 #define lisp_h_BARE_SYMBOL_P(x) TAGGEDP (x, Lisp_Symbol)
-#define lisp_h_SYMBOLP(x) \
-   (BARE_SYMBOL_P (x) || (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)))
 #define lisp_h_TAGGEDP(a, tag) \
    (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
 	- (unsigned) (tag)) \
@@ -465,7 +452,6 @@ typedef EMACS_INT Lisp_Word;
 # define SYMBOL_CONSTANT_P(sym) lisp_h_SYMBOL_CONSTANT_P (sym)
 # define SYMBOL_TRAPPED_WRITE_P(sym) lisp_h_SYMBOL_TRAPPED_WRITE_P (sym)
 # define SYMBOL_VAL(sym) lisp_h_SYMBOL_VAL (sym)
-/* # define SYMBOLP(x) lisp_h_SYMBOLP (x) */ /* X is accessed more than once. */
 # define TAGGEDP(a, tag) lisp_h_TAGGEDP (a, tag)
 # define VECTORLIKEP(x) lisp_h_VECTORLIKEP (x)
 # define XCAR(c) lisp_h_XCAR (c)
@@ -1104,7 +1090,10 @@ enum More_Lisp_Bits
 INLINE bool
 PSEUDOVECTORP (Lisp_Object a, int code)
 {
-  return lisp_h_PSEUDOVECTORP (a, code);
+  return (lisp_h_VECTORLIKEP (a)
+	  && ((XUNTAG (a, Lisp_Vectorlike, union vectorlike_header)->size
+	       & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))
+	      == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_AREA_BITS))));
 }
 
 INLINE bool
@@ -1120,9 +1109,10 @@ INLINE bool
 }
 
 INLINE bool
-(SYMBOLP) (Lisp_Object x)
+SYMBOLP (Lisp_Object x)
 {
-  return lisp_h_SYMBOLP (x);
+  return (BARE_SYMBOL_P (x)
+	  || (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)));
 }
 
 INLINE struct Lisp_Symbol_With_Pos *
@@ -1338,9 +1328,12 @@ INLINE bool
 /* Return true if X and Y are the same object, reckoning a symbol with
    position as being the same as the bare symbol.  */
 INLINE bool
-(EQ) (Lisp_Object x, Lisp_Object y)
+EQ (Lisp_Object x, Lisp_Object y)
 {
-  return lisp_h_EQ (x, y);
+  return BASE_EQ ((symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)
+		   ? XSYMBOL_WITH_POS (x)->sym : x),
+		  (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (y)
+		   ? XSYMBOL_WITH_POS (y)->sym : y));
 }
 
 INLINE intmax_t
