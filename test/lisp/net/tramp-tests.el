@@ -3815,15 +3815,24 @@ This tests also `access-file', `file-readable-p',
 	(ignore-errors (delete-file tmp-name1))
 	(ignore-errors (delete-file tmp-name2))))))
 
+(defun tramp--test-set-ert-test-documentation (test command)
+  "Set the documentation string for a derived test.
+The test is derived from TEST and COMMAND."
+  (let ((test-doc
+	 (string-split (ert-test-documentation (get test 'ert--test)) "\n")))
+    ;; The first line must be extended.
+    (setcar
+     test-doc (format "%s  Use the \"%s\" command." (car test-doc) command))
+    (setf (ert-test-documentation
+	   (get (intern (format "%s-with-%s" test command)) 'ert--test))
+	  (string-join test-doc "\n"))))
+
 (defmacro tramp--test-deftest-with-stat (test)
   "Define ert `TEST-with-stat'."
   (declare (indent 1))
   `(ert-deftest ,(intern (concat (symbol-name test) "-with-stat")) ()
-     ;; This is the docstring.  However, it must be expanded to a
-     ;; string inside the macro.  No idea.
-     ;; (concat (ert-test-documentation (get ',test 'ert--test))
-     ;;  	     "\nUse the \"stat\" command.")
      :tags '(:expensive-test)
+     (tramp--test-set-ert-test-documentation ',test "stat")
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-stat tramp-test-vec))
@@ -3842,11 +3851,8 @@ This tests also `access-file', `file-readable-p',
   "Define ert `TEST-with-perl'."
   (declare (indent 1))
   `(ert-deftest ,(intern (concat (symbol-name test) "-with-perl")) ()
-     ;; This is the docstring.  However, it must be expanded to a
-     ;; string inside the macro.  No idea.
-     ;; (concat (ert-test-documentation (get ',test 'ert--test))
-     ;;  	     "\nUse the \"perl\" command.")
      :tags '(:expensive-test)
+     (tramp--test-set-ert-test-documentation ',test "perl")
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-perl tramp-test-vec))
@@ -3870,11 +3876,8 @@ This tests also `access-file', `file-readable-p',
   "Define ert `TEST-with-ls'."
   (declare (indent 1))
   `(ert-deftest ,(intern (concat (symbol-name test) "-with-ls")) ()
-     ;; This is the docstring.  However, it must be expanded to a
-     ;; string inside the macro.  No idea.
-     ;; (concat (ert-test-documentation (get ',test 'ert--test))
-     ;;  	     "\nUse the \"ls\" command.")
      :tags '(:expensive-test)
+     (tramp--test-set-ert-test-documentation ',test "ls")
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (if-let ((default-directory ert-remote-temporary-file-directory)
