@@ -5075,8 +5075,8 @@ the additional handshaking messages for them.  This requires at least
 nitrokey, or titankey.
 @c @uref{https://docs.fedoraproject.org/en-US/quick-docs/using-yubikeys/}
 
-@strong{Note} that there are reports on problems of handling yubikey
-residential keys by @command{ssh-agent}.  As workaround, you might
+@strong{Note} that there are reports on problems of handling FIDO2
+(residential) keys by @command{ssh-agent}.  As workaround, you might
 disable @command{ssh-agent} for such keys.
 
 @item
