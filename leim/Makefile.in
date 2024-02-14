@@ -101,11 +101,11 @@ ${leimdir}/quail ${leimdir}/ja-dic:
 ## All of TIT_GB and TIT_BIG5.
 ${leimdir}/quail/%.el: ${srcdir}/CXTERM-DIC/%.tit
 	$(AM_V_GEN)${RUN_EMACS} -l titdic-cnv \
-	  -f batch-titdic-convert -dir ${leimdir}/quail $<
+	  -f batch-tit-dic-convert -dir ${leimdir}/quail $<
 
 
 misc_convert = $(AM_V_GEN)${RUN_EMACS} \
-  -l titdic-cnv -f batch-miscdic-convert -dir ${leimdir}/quail
+  -l titdic-cnv -f batch-tit-miscdic-convert -dir ${leimdir}/quail
 
 ## CTLau.el, CTLau-b5.el.
 ${leimdir}/quail/CT%.el: ${srcdir}/MISC-DIC/CT%.html
@@ -148,7 +148,7 @@ ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L small-ja-dic-option
 	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" $(JA_DIC_NO_REDUCTION_OPTION) "$<"
 
 ${srcdir}/../lisp/language/pinyin.el: ${srcdir}/MISC-DIC/pinyin.map
-	$(AM_V_GEN)${RUN_EMACS} -l titdic-cnv -f pinyin-convert $< $@
+	$(AM_V_GEN)${RUN_EMACS} -l titdic-cnv -f tit-pinyin-convert $< $@
 
 
 .PHONY: bootstrap-clean distclean maintainer-clean gen-clean
