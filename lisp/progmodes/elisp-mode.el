@@ -233,7 +233,7 @@ visited by the current buffer."
          (byte-to-native-output-buffer-file nil)
          (eln (native-compile buffer-file-name)))
     (when eln
-      (comp-write--bytecode-file eln))))
+      (comp--write-bytecode-file eln))))
 
 (defun emacs-lisp-native-compile-and-load ()
   "Native-compile the current buffer's file (if it has changed), then load it.
