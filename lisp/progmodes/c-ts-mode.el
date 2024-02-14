@@ -926,12 +926,12 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
 (defun c-ts-mode--outline-predicate (node)
   "Match outlines on lines with function names."
-  (and (treesit-node-match-p
-        node "\\`function_declarator\\'" t)
-       (when-let ((parent (treesit-node-parent node)))
-         (treesit-node-match-p
-          parent
-          "\\`function_definition\\'" t))))
+  (or (and (equal (treesit-node-type node) "function_declarator")
+           (equal (treesit-node-type (treesit-node-parent node))
+                  "function_definition"))
+      ;; DEFUNs in Emacs sources.
+      (and c-ts-mode-emacs-sources-support
+           (c-ts-mode--emacs-defun-p node))))
 
 ;;; Defun navigation
 
