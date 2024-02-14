@@ -1639,7 +1639,9 @@ Consider using a subdirectory instead, e.g.: %s"
   (let ((dn (daemonp)))
     (when dn
       (when (stringp dn) (setq server-name dn))
-      (server-start)
+      (condition-case err
+          (server-start)
+        (error (error "Unable to start daemon: %s; exiting" (error-message-string err))))
       (if server-process
 	  (daemon-initialized)
 	(if (stringp dn)
