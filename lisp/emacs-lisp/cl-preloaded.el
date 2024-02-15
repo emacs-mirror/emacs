@@ -50,43 +50,74 @@
         (apply #'error string (append sargs args))
       (signal 'cl-assertion-failed `(,form ,@sargs)))))
 
-(defconst cl--typeof-types
-  ;; Hand made from the source code of `type-of'.
-  '((integer number integer-or-marker number-or-marker atom)
-    (symbol-with-pos symbol atom) (symbol atom) (string array sequence atom)
-    (cons list sequence)
-    ;; Markers aren't `numberp', yet they are accepted wherever integers are
-    ;; accepted, pretty much.
-    (marker integer-or-marker number-or-marker atom)
-    (overlay atom) (float number number-or-marker atom)
-    (window-configuration atom) (process atom) (window atom)
-    ;; FIXME: We'd want to put `function' here, but that's only true
-    ;; for those `subr's which aren't special forms!
-    (subr atom)
-    ;; FIXME: We should probably reverse the order between
-    ;; `compiled-function' and `byte-code-function' since arguably
-    ;; `subr' is also "compiled functions" but not "byte code functions",
-    ;; but it would require changing the value returned by `type-of' for
-    ;; byte code objects, which risks breaking existing code, which doesn't
-    ;; seem worth the trouble.
-    (compiled-function byte-code-function function atom)
-    (module-function function atom)
-    (buffer atom) (char-table array sequence atom)
-    (bool-vector array sequence atom)
-    (frame atom) (hash-table atom) (terminal atom)
-    (thread atom) (mutex atom) (condvar atom)
-    (font-spec atom) (font-entity atom) (font-object atom)
-    (vector array sequence atom)
-    (user-ptr atom)
-    (tree-sitter-parser atom)
-    (tree-sitter-node atom)
-    (tree-sitter-compiled-query atom)
-    ;; Plus, really hand made:
-    (null symbol list sequence atom))
+
+(defconst cl--type-hierarchy
+  ;; Please run `sycdoc-update-type-hierarchy' in
+  ;; etc/syncdoc-type-hierarchy.el each time this is updated to
+  ;; reflect in the documentation.
+  '((t sequence atom)
+    (sequence list array)
+    (atom
+     class structure tree-sitter-compiled-query tree-sitter-node
+     tree-sitter-parser user-ptr font-object font-entity font-spec
+     condvar mutex thread terminal hash-table frame buffer function
+     window process window-configuration overlay integer-or-marker
+     number-or-marker symbol array)
+    (number float integer)
+    (number-or-marker marker number)
+    (integer bignum fixum)
+    (symbol keyword boolean symbol-with-pos)
+    (array vector bool-vector char-table string)
+    (list null cons)
+    (integer-or-marker integer marker)
+    (compiled-function byte-code-function)
+    (function subr module-function compiled-function)
+    (boolean null)
+    (subr subr-native-elisp subr-primitive)
+    (symbol-with-pos keyword))
+  "List of lists describing all the edges of the builtin type
+hierarchy.
+Each sublist is in the form (TYPE . DIRECT_SUBTYPES)"
+  ;; Given type hierarchy is a DAG (but mostly a tree) I believe this
+  ;; is the most compact way to express it.
+  )
+
+(defconst cl--direct-supertypes-of-type
+  (make-hash-table :test #'eq)
+  "Hash table TYPE -> SUPERTYPES.")
+
+(defconst cl--direct-subtypes-of-type
+  (make-hash-table :test #'eq)
+  "Hash table TYPE -> SUBTYPES.")
+
+(cl-loop for (parent . children) in cl--type-hierarchy
+         do (cl-loop
+             for child in children
+             do (cl-pushnew parent (gethash child cl--direct-supertypes-of-type))
+             do (cl-pushnew child (gethash parent cl--direct-subtypes-of-type))))
+
+(defconst cl--typeof-types nil
   "Alist of supertypes.
 Each element has the form (TYPE . SUPERTYPES) where TYPE is one of
 the symbols returned by `type-of', and SUPERTYPES is the list of its
 supertypes from the most specific to least specific.")
+
+(defun cl--supertypes-for-typeof-types (type)
+  (cl-loop with res = ()
+           with agenda = (list type)
+           while agenda
+           for element = (car agenda)
+           unless (or (eq element t) ;; no t in `cl--typeof-types'.
+                      (memq element res))
+             append (list element) into res
+           do (cl-loop for c in (gethash element cl--direct-supertypes-of-type)
+                       do (setq agenda (append agenda (list c))))
+           do (setq agenda (cdr agenda))
+           finally (cl-return res)))
+
+(maphash (lambda (type _)
+           (push (cl--supertypes-for-typeof-types type) cl--typeof-types))
+         cl--direct-supertypes-of-type)
 
 (defconst cl--all-builtin-types
   (delete-dups (copy-sequence (apply #'append cl--typeof-types))))
