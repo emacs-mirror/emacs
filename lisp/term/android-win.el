@@ -480,5 +480,49 @@ the UTF-8 coding system."
     (concat locale-base locale-modifier)))
 
 
+;; Miscellaneous functions.
+
+(declare-function android-browse-url-internal "androidselect.c")
+
+(defun android-browse-url (url &optional send)
+  "Open URL in an external application.
+
+URL should be a URL-encoded URL with a scheme specified unless
+SEND is non-nil.  Signal an error upon failure.
+
+If SEND is nil, start a program that is able to display the URL,
+such as a web browser.  Otherwise, try to share URL using
+programs such as email clients.
+
+If URL is a file URI, convert it into a `content' address
+accessible to other programs."
+  (when-let* ((uri (url-generic-parse-url url))
+              (filename (url-filename uri))
+              ;; If `uri' is a file URI and the file resides in /content
+              ;; or /assets, copy it to a temporary file before
+              ;; providing it to other programs.
+              (replacement-url (and (string-match-p
+                                     "/\\(content\\|assets\\)[/$]"
+                                     filename)
+                                    (prog1 t
+                                      (copy-file
+                                       filename
+                                       (setq filename
+                                             (make-temp-file
+                                              "local"
+                                              nil
+                                              (let ((extension
+                                                     (file-name-extension
+                                                      filename)))
+                                                (if extension
+                                                    (concat "."
+                                                            extension)
+                                                  nil))))
+                                       t))
+                                    (concat "file://" filename))))
+    (setq url replacement-url))
+  (android-browse-url-internal url send))
+
+
 (provide 'android-win)
 ;; android-win.el ends here.

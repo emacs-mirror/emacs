@@ -1324,7 +1324,7 @@ and instant messengers instead of opening it in a web browser."
   :type 'boolean
   :version "30.1")
 
-(declare-function android-browse-url "androidselect.c")
+(declare-function android-browse-url "../term/android-win")
 
 ;;;###autoload
 (defun browse-url-default-android-browser (url &optional _new-window)
