@@ -3495,6 +3495,7 @@ last directory in `native-comp-eln-load-path')."
              else
              collect (byte-compile-file file))))
 
+;; In use by elisp-mode.el
 (defun comp--write-bytecode-file (eln-file)
   "After native compilation write the bytecode file for ELN-FILE.
 Make sure that eln file is younger than byte-compiled one and
