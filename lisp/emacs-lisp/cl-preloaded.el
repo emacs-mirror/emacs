@@ -86,15 +86,11 @@ Each sublist is in the form (TYPE . DIRECT_SUBTYPES)"
   (make-hash-table :test #'eq)
   "Hash table TYPE -> SUPERTYPES.")
 
-(defconst cl--direct-subtypes-of-type
-  (make-hash-table :test #'eq)
-  "Hash table TYPE -> SUBTYPES.")
-
-(cl-loop for (parent . children) in cl--type-hierarchy
-         do (cl-loop
-             for child in children
-             do (cl-pushnew parent (gethash child cl--direct-supertypes-of-type))
-             do (cl-pushnew child (gethash parent cl--direct-subtypes-of-type))))
+(cl-loop
+ for (parent . children) in cl--type-hierarchy
+ do (cl-loop
+     for child in children
+     do (cl-pushnew parent (gethash child cl--direct-supertypes-of-type))))
 
 (defconst cl--typeof-types nil
   "Alist of supertypes.
