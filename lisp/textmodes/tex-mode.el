@@ -514,14 +514,19 @@ An alternative value is \" . \", if you use a font with a narrow period."
            (inbraces-re (lambda (re)
                           (concat "\\(?:[^{}\\]\\|\\\\.\\|" re "\\)")))
 	   (arg (concat "{\\(" (funcall inbraces-re "{[^}]*}") "+\\)")))
-      `( ;; Highlight $$math$$ and $math$.
+      `(;; Verbatim-like args.
+        ;; Do it first, because we don't want to highlight them
+        ;; in comments (bug#68827), but we do want to highlight them
+        ;; in $math$.
+        (,(concat slash verbish opt arg) 3 'tex-verbatim keep)
+        ;; Highlight $$math$$ and $math$.
         ;; This is done at the very beginning so as to interact with the other
         ;; keywords in the same way as comments and strings.
         (,(concat "\\$\\$?\\(?:[^$\\{}]\\|\\\\.\\|{"
                   (funcall inbraces-re
                            (concat "{" (funcall inbraces-re "{[^}]*}") "*}"))
                   "*}\\)+\\$?\\$")
-         (0 'tex-math))
+         (0 'tex-math keep))
         ;; Heading args.
         (,(concat slash headings "\\*?" opt arg)
          ;; If ARG ends up matching too much (if the {} don't match, e.g.)
@@ -543,8 +548,6 @@ An alternative value is \" . \", if you use a font with a narrow period."
         (,(concat slash variables " *" arg) 2 font-lock-variable-name-face)
         ;; Include args.
         (,(concat slash includes opt arg) 3 font-lock-builtin-face)
-        ;; Verbatim-like args.
-        (,(concat slash verbish opt arg) 3 'tex-verbatim t)
         ;; Definitions.  I think.
         ("^[ \t]*\\\\def *\\\\\\(\\(\\w\\|@\\)+\\)"
 	 1 font-lock-function-name-face))))
