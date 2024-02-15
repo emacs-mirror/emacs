@@ -1566,6 +1566,8 @@ AC_DEFUN([gt_TYPE_WINT_T],
 AC_DEFUN_ONCE([gl_STDLIB_H],
   [AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
    gl_NEXT_HEADERS([stdlib.h])])
+AC_DEFINE([REQUIRE_GNUISH_STRFTIME_AM_PM], [false],
+  [Emacs does not need glibc strftime behavior for AM and PM indicators.])
 
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
