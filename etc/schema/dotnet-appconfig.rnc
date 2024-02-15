@@ -1,0 +1,411 @@
+default namespace = ""
+namespace ns1 = "http://schemas.microsoft.com/.NetConfiguration/v2.0"
+namespace ns2 = "urn:schemas-microsoft-com:asm.v1"
+namespace xdt = "http://schemas.microsoft.com/XML-Document-Transform"
+
+start =
+  element configuration {
+    element configSections { (section | sectionGroup)* }?,
+    element system.web.webPages.razor {
+      element host {
+        attribute factoryType { text }
+      },
+      pages
+    }?,
+    (system.web
+     | system.webServer
+     | element location {
+         attribute inheritInChildApplications { xsd:boolean }?,
+         attribute path { text }?,
+         system.web?,
+         system.webServer?
+       }
+     | element runtime {
+         element loadFromRemoteSources {
+           attribute enabled { xsd:boolean }
+         }?,
+         element ns2:assemblyBinding {
+           attribute appliesTo { xsd:NCName }?,
+           element ns2:dependentAssembly {
+             element ns2:Paket { xsd:NCName }?,
+             element ns2:assemblyIdentity {
+               attribute culture { xsd:NCName }?,
+               attribute name { xsd:NCName },
+               attribute publicKeyToken { xsd:NMTOKEN }
+             },
+             element ns2:bindingRedirect {
+               attribute newVersion { xsd:NMTOKEN },
+               attribute oldVersion { xsd:NMTOKEN }
+             }
+           }+
+         }+
+       }
+     | element startup {
+         attribute useLegacyV2RuntimeActivationPolicy { xsd:boolean }?,
+         element supportedRuntime {
+           attribute sku { text },
+           attribute version { xsd:NCName }
+         }
+       }
+     | element system.codedom {
+         element compilers {
+           element compiler {
+             attribute compilerOptions { text }?,
+             attribute extension { xsd:NMTOKEN },
+             attribute language { text },
+             attribute type { text },
+             attribute warningLevel { xsd:integer },
+             element providerOption {
+               attribute name { xsd:NCName },
+               attribute value { xsd:NCName }
+             }*
+           }+
+         }
+       }
+     | element system.diagnostics {
+         element sources {
+           element source {
+             attribute name { xsd:NCName },
+             element listeners { add }?
+           }+
+         }?,
+         (element switches { empty },
+          element sharedListeners { empty },
+          element trace {
+            attribute autoflush { xsd:boolean }
+          })?
+       }
+     | element system.serviceModel {
+         element diagnostics {
+           element messageLogging {
+             attribute logEntireMessage { xsd:boolean },
+             attribute logMalformedMessages { xsd:boolean },
+             attribute logMessagesAtServiceLevel { xsd:boolean },
+             attribute logMessagesAtTransportLevel { xsd:boolean },
+             attribute maxMessagesToLog { xsd:integer },
+             attribute maxSizeOfMessageToLog { xsd:integer }
+           }
+         }?,
+         (element behaviors {
+            element serviceBehaviors {
+              element behavior {
+                attribute name { text }?,
+                element serviceMetadata {
+                  attribute httpGetEnabled { xsd:boolean },
+                  attribute httpsGetEnabled { xsd:boolean }?
+                },
+                element serviceDebug {
+                  attribute httpHelpPageEnabled { xsd:boolean }?,
+                  attribute includeExceptionDetailInFaults {
+                    xsd:boolean
+                  }
+                },
+                element dataContractSerializer {
+                  attribute maxItemsInObjectGraph { xsd:integer }
+                }?,
+                (element serviceTelemetry { empty }
+                 | element serviceThrottling {
+                     attribute maxConcurrentCalls { xsd:integer },
+                     attribute maxConcurrentInstances { xsd:integer },
+                     attribute maxConcurrentSessions { xsd:integer }
+                   })?
+              }
+            }
+          }
+          | element bindings {
+              element basicHttpBinding {
+                element binding {
+                  attribute closeTimeout { xsd:time }?,
+                  attribute maxBufferSize { xsd:integer }?,
+                  attribute maxReceivedMessageSize { xsd:integer }?,
+                  attribute name { xsd:NCName }?,
+                  attribute openTimeout { xsd:time }?,
+                  attribute receiveTimeout { xsd:time }?,
+                  attribute sendTimeout { xsd:time }?,
+                  element readerQuotas {
+                    attribute maxArrayLength { xsd:integer },
+                    attribute maxBytesPerRead { xsd:integer }?,
+                    attribute maxDepth { xsd:integer }?,
+                    attribute maxNameTableCharCount { xsd:integer }?,
+                    attribute maxStringContentLength { xsd:integer }
+                  }?,
+                  security?
+                }+
+              }?
+            }
+          | element client { empty }
+          | element extensions {
+              element behaviorExtensions { add+ },
+              (element bindingElementExtensions { add+ },
+               element bindingExtensions { add+ })?
+            }
+          | element protocolMapping { add+ }
+          | element serviceHostingEnvironment {
+              attribute aspNetCompatibilityEnabled { xsd:boolean }?,
+              attribute multipleSiteBindingsEnabled { xsd:boolean }?
+            })*,
+         element services {
+           element service {
+             attribute behaviorConfiguration { xsd:NCName }?,
+             attribute name { text },
+             element endpoint {
+               attribute address { xsd:NCName }?,
+               attribute binding { xsd:NCName },
+               attribute bindingConfiguration { xsd:NCName }?,
+               attribute contract { xsd:NCName }
+             }+
+           }+
+         }?
+       })*
+  }
+  | element ns1:configuration {
+      element ns1:configSections {
+        element ns1:section {
+          attribute name { xsd:NCName },
+          attribute requirePermission { xsd:boolean },
+          attribute type { text }
+        }
+      },
+      element ns1:appSettings { empty },
+      element ns1:connectionStrings { empty },
+      element ns1:system.web {
+        element ns1:compilation {
+          attribute debug { xsd:boolean },
+          attribute defaultLanguage { text },
+          attribute targetFramework { xsd:decimal }
+        },
+        element ns1:authentication {
+          attribute mode { xsd:NCName }
+        },
+        element ns1:httpModules { ns1.add },
+        element ns1:pages {
+          attribute clientIDMode { xsd:NCName },
+          attribute controlRenderingCompatibilityVersion { xsd:decimal }
+        }
+      },
+      element ns1:system.webServer {
+        element ns1:modules {
+          attribute runAllManagedModulesForAllRequests { xsd:boolean },
+          ns1.add
+        }
+      },
+      element ns1:rewriter {
+        element ns1:rewrite {
+          attribute to { text },
+          attribute url { text }
+        }+
+      }
+    }
+section =
+  element section {
+    attribute allowExeDefinition { xsd:NCName }?,
+    attribute name { xsd:NCName },
+    attribute requirePermission { xsd:boolean }?,
+    attribute restartOnExternalChanges { xsd:boolean }?,
+    attribute type { text }
+  }
+sectionGroup =
+  element sectionGroup {
+    attribute name { xsd:NCName },
+    attribute type { text }?,
+    (section | sectionGroup)+
+  }
+pages =
+  element pages {
+    attribute clientIDMode { xsd:NCName }?,
+    attribute controlRenderingCompatibilityVersion { xsd:decimal }?,
+    attribute enableEventValidation { xsd:boolean }?,
+    attribute pageBaseType { xsd:NCName }?,
+    attribute theme { text }?,
+    attribute validateRequest { xsd:boolean }?,
+    attribute viewStateEncryptionMode { xsd:NCName }?,
+    element namespaces { add+ }?
+  }
+add =
+  element add {
+    attribute assembly { text }?,
+    attribute binding { xsd:NCName }?,
+    attribute bindingConfiguration { text }?,
+    attribute connectionString { xsd:anyURI }?,
+    attribute initializationPage { text }?,
+    attribute initializeData { text }?,
+    attribute input { text }?,
+    attribute key { xsd:anyURI }?,
+    attribute matchType { xsd:NCName }?,
+    attribute modules { xsd:NCName }?,
+    attribute name { xsd:NCName }?,
+    attribute namespace { xsd:NCName }?,
+    attribute negate { xsd:boolean }?,
+    attribute path { text }?,
+    attribute preCondition { text }?,
+    attribute providerName { xsd:NCName }?,
+    attribute resourceType { xsd:NCName }?,
+    attribute responseBufferLimit { xsd:integer }?,
+    attribute scheme { xsd:NCName }?,
+    attribute scriptProcessor { text }?,
+    attribute type { text }?,
+    attribute validate { xsd:boolean }?,
+    attribute value { text }?,
+    attribute verb { text }?,
+    attribute xdt:Locator { text }?,
+    attribute xdt:Transform { xsd:NCName }?
+  }
+security =
+  element security {
+    attribute mode { xsd:NCName }?,
+    attribute xdt:Transform { xsd:NCName }?,
+    (element requestFiltering {
+       attribute removeServerHeader { xsd:boolean },
+       element requestLimits {
+         attribute maxAllowedContentLength { xsd:integer }
+       }?
+     }
+     | element transport {
+         attribute clientCredentialType { xsd:NCName }
+       })?
+  }
+system.webServer =
+  element system.webServer {
+    (element httpErrors {
+       attribute errorMode { xsd:NCName }?,
+       attribute existingResponse { xsd:NCName },
+       (remove+,
+        element error {
+          attribute path { text },
+          attribute prefixLanguageFilePath { text },
+          attribute responseMode { xsd:NCName },
+          attribute statusCode { xsd:integer }
+        }+)?
+     }
+     | element staticContent {
+         element mimeMap {
+           attribute fileExtension { xsd:NMTOKEN },
+           attribute mimeType { text }
+         }+
+       })?,
+    (element applicationInitialization {
+       attribute xdt:Transform { xsd:NCName },
+       add
+     }
+     | element rewrite {
+         element rules {
+           clear
+           | element rule {
+               attribute name { text },
+               attribute stopProcessing { xsd:boolean },
+               element match {
+                 attribute url { text }
+               },
+               element conditions {
+                 attribute logicalGrouping { xsd:NCName },
+                 add+
+               }?,
+               element action {
+                 attribute redirectType { xsd:NCName }?,
+                 attribute type { xsd:NCName },
+                 attribute url { text }
+               }
+             }
+         }
+       })?,
+    (security
+     | element aspNetCore {
+         attribute arguments { text }?,
+         attribute hostingModel { xsd:NCName }?,
+         attribute processPath { text }?,
+         attribute requestTimeout { xsd:time }?,
+         attribute stdoutLogEnabled { xsd:boolean }?,
+         attribute stdoutLogFile { text }?,
+         attribute xdt:Transform { text }?
+       }
+     | element handlers { (add | remove)+ }
+     | element httpProtocol {
+         attribute xdt:Transform { xsd:NCName }?,
+         element customHeaders { clear?, remove+ }
+       }
+     | element modules {
+         attribute runAllManagedModulesForAllRequests { xsd:boolean }?,
+         (add | remove)*
+       }
+     | element validation {
+         attribute validateIntegratedModeConfiguration { xsd:boolean }
+       })*,
+    element directoryBrowse {
+      attribute enabled { xsd:boolean }
+    }?
+  }
+system.web =
+  element system.web {
+    element authorization {
+      element allow {
+        attribute users { text }
+      }
+    }
+    | (pages
+       | element authentication {
+           attribute mode { xsd:NCName }
+         }
+       | element compilation {
+           attribute debug { xsd:boolean }?,
+           attribute targetFramework { xsd:NMTOKEN }?,
+           attribute tempDirectory { text }?,
+           attribute xdt:Transform { text }?,
+           element assemblies { add+ }?
+         }
+       | element customErrors {
+           attribute defaultRedirect { text }?,
+           attribute mode { xsd:NCName },
+           attribute redirectMode { xsd:NCName }?
+         }
+       | element globalization {
+           attribute requestEncoding { xsd:NCName },
+           attribute responseEncoding { xsd:NCName }
+         }
+       | element httpHandlers { add+ }
+       | element httpModules { add* }
+       | element httpRuntime {
+           attribute appRequestQueueLimit { xsd:integer }?,
+           attribute enableVersionHeader { xsd:boolean }?,
+           attribute executionTimeout { xsd:integer }?,
+           attribute maxRequestLength { xsd:integer }?,
+           attribute minFreeThreads { xsd:integer }?,
+           attribute minLocalRequestFreeThreads { xsd:integer }?,
+           attribute requestPathInvalidCharacters { text }?,
+           attribute requestValidationMode { xsd:decimal }?,
+           attribute targetFramework { xsd:NMTOKEN }?,
+           attribute useFullyQualifiedRedirectUrl { xsd:boolean }?
+         }
+       | element identity {
+           attribute impersonate { xsd:boolean }
+         }
+       | element machineKey {
+           attribute validation { xsd:NCName }
+         }
+       | element sessionState {
+           attribute cookieSameSite { xsd:NCName }?,
+           attribute cookieless { xsd:boolean },
+           attribute mode { xsd:NCName },
+           attribute stateConnectionString { text }?,
+           attribute timeout { xsd:integer }
+         }
+       | element xhtmlConformance {
+           attribute mode { xsd:NCName }
+         })*
+  }
+Globalization =
+  element Globalization {
+    element ResourceProviders { empty }
+    | add+
+  }
+ns1.add =
+  element ns1:add {
+    attribute name { xsd:NCName },
+    attribute type { text }
+  }
+remove =
+  element remove {
+    attribute name { xsd:NCName }?,
+    attribute statusCode { xsd:integer }?,
+    attribute subStatusCode { xsd:integer }?
+  }
+clear = element clear { empty }

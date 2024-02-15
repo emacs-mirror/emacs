@@ -1,0 +1,11 @@
+default namespace = ""
+
+start =
+  element packages {
+    element package {
+      attribute id { xsd:NCName },
+      attribute targetFramework { xsd:NCName }?,
+      attribute allowedVersions { xsd:NCName }?,
+      attribute version { xsd:NMTOKEN }
+    }+
+  }
