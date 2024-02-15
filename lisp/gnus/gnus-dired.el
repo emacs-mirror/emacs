@@ -111,6 +111,12 @@ See `mail-user-agent' for more information."
 
 (autoload 'gnus-completing-read "gnus-util")
 
+(defcustom gnus-dired-attach-at-end t
+  "Non-nil means that files should be attached at the end of a buffer."
+  :group 'mail ;; dired?
+  :version "30.1"
+  :type 'boolean)
+
 ;; Method to attach files to a mail composition.
 (defun gnus-dired-attach (files-to-attach)
   "Attach dired's marked files to a gnus message composition.
@@ -161,7 +167,8 @@ filenames."
 
       ;; set buffer to destination buffer, and attach files
       (set-buffer destination)
-      (goto-char (point-max))		;attach at end of buffer
+      (when gnus-dired-attach-at-end
+        (goto-char (point-max)))		;attach at end of buffer
       (while files-to-attach
 	(mml-attach-file (car files-to-attach)
 			 (or (mm-default-file-type (car files-to-attach))

@@ -26695,9 +26695,12 @@ buffers.  It is enabled with
 @table @kbd
 @item C-c C-m C-a
 @findex gnus-dired-attach
+@vindex gnus-dired-attach-at-end
 @cindex attachments, selection via dired
 Send dired's marked files as an attachment (@code{gnus-dired-attach}).
-You will be prompted for a message buffer.
+You will be prompted for a message buffer.  By default it will attach
+files to the end of the message buffer, but you can modify that
+behaviour by customising @code{gnus-dired-attach-at-end}.
 
 @item C-c C-m C-l
 @findex gnus-dired-find-file-mailcap
