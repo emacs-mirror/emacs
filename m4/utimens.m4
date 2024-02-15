@@ -3,7 +3,7 @@ dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
-dnl serial 15
+dnl serial 16
 
 AC_DEFUN([gl_UTIMENS],
 [
@@ -36,12 +36,13 @@ AC_DEFUN([gl_UTIMENS],
         [gl_cv_func_futimesat_works=yes],
         [gl_cv_func_futimesat_works=no],
         [case "$host_os" in
-                            # Guess yes on Linux systems.
-           linux-* | linux) gl_cv_func_futimesat_works="guessing yes" ;;
-                            # Guess yes on glibc systems.
-           *-gnu*)          gl_cv_func_futimesat_works="guessing yes" ;;
-                            # If we don't know, obey --enable-cross-guesses.
-           *)               gl_cv_func_futimesat_works="$gl_cross_guess_normal" ;;
+                              # Guess yes on Linux systems
+                              # and on systems that emulate the Linux system calls.
+           linux* | midipix*) gl_cv_func_futimesat_works="guessing yes" ;;
+                              # Guess yes on glibc systems.
+           *-gnu*)            gl_cv_func_futimesat_works="guessing yes" ;;
+                              # If we don't know, obey --enable-cross-guesses.
+           *)                 gl_cv_func_futimesat_works="$gl_cross_guess_normal" ;;
          esac
         ])
       rm -f conftest.file])

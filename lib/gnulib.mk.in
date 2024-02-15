@@ -47,6 +47,7 @@
 #  --avoid=iswdigit \
 #  --avoid=iswxdigit \
 #  --avoid=langinfo \
+#  --avoid=localename \
 #  --avoid=lock \
 #  --avoid=mbrtowc \
 #  --avoid=mbsinit \
@@ -2745,7 +2746,9 @@ ifeq (,$(OMIT_GNULIB_MODULE_nstrftime))
 
 libgnu_a_SOURCES += nstrftime.c
 
-EXTRA_DIST += strftime.h
+EXTRA_DIST += strftime.c strftime.h
+
+EXTRA_libgnu_a_SOURCES += strftime.c
 
 endif
 ## end   gnulib module nstrftime

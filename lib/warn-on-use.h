@@ -32,6 +32,10 @@
    _GL_WARN_ON_USE_ATTRIBUTE is for functions with 'static' or 'inline'
    linkage.
 
+   _GL_WARN_ON_USE should not be used more than once for a given function
+   in a given compilation unit (because this may generate a warning even
+   if the function is never called).
+
    However, one of the reasons that a function is a portability trap is
    if it has the wrong signature.  Declaring FUNCTION with a different
    signature in C is a compilation error, so this macro must use the
