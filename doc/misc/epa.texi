@@ -289,6 +289,13 @@ also ask you whether or not to sign the text before encryption and if
 you answered yes, it will let you select the signing keys.
 @end deffn
 
+You can change the default method that is used to select keys with the
+variable @code{epa-file-select-keys}.
+
+@defvar epa-keys-select-method
+Method used to select keys in @code{epa-select-keys}.
+@end defvar
+
 @node Cryptographic operations on files
 @section Cryptographic Operations on Files
 @cindex cryptographic operations on files
