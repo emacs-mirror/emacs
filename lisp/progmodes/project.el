@@ -992,9 +992,7 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
 
 ;;;###autoload
 (defun project-or-external-find-regexp (regexp)
-  "Find all matches for REGEXP in the project roots or external roots.
-With \\[universal-argument] prefix, you can specify the file name
-pattern to search for."
+  "Find all matches for REGEXP in the project roots or external roots."
   (interactive (list (project--read-regexp)))
   (require 'xref)
   (let* ((pr (project-current t))
