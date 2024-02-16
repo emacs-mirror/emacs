@@ -1569,13 +1569,19 @@ correctly.")
     ,flymake-mode-line-lighter
     mouse-face mode-line-highlight
     help-echo
-    ,(lambda (&rest _)
-       (concat
-        (format "%s known backends\n" (hash-table-count flymake--state))
-        (format "%s running\n" (length (flymake-running-backends)))
-        (format "%s disabled\n" (length (flymake-disabled-backends)))
-        "mouse-1: Display minor mode menu\n"
-        "mouse-2: Show help for minor mode"))
+    ,(lambda (w &rest _)
+       (with-current-buffer (window-buffer w)
+         ;; Mouse can activate tool-tip without window being active.
+         ;; `flymake--state' is buffer local and is null when line
+         ;; lighter appears in *Help* `describe-mode'.
+         (concat
+          (unless (null flymake--state)
+            (concat
+             (format "%s known backends\n"  (hash-table-count flymake--state))
+             (format "%s running\n" (length (flymake-running-backends)))
+             (format "%s disabled\n" (length (flymake-disabled-backends)))))
+          "mouse-1: Display minor mode menu\n"
+          "mouse-2: Show help for minor mode")))
     keymap
     ,(let ((map (make-sparse-keymap)))
        (define-key map [mode-line down-mouse-1]
