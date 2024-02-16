@@ -290,7 +290,7 @@ non-interactive sessions, such as when using `eshell-command'.")
   "C-e" #'eshell-show-maximum-output
   "C-f" #'eshell-forward-argument
   "C-m" #'eshell-copy-old-input
-  "C-o" #'eshell-kill-output
+  "C-o" #'eshell-delete-output
   "C-r" #'eshell-show-output
   "C-t" #'eshell-truncate-buffer
   "C-u" #'eshell-kill-input
@@ -832,14 +832,22 @@ This function should be in the list `eshell-output-filter-functions'."
       eshell-last-output-start
     eshell-last-output-end))
 
-(defun eshell-kill-output ()
-  "Kill all output from interpreter since last input.
-Does not delete the prompt."
-  (interactive)
+(defun eshell-delete-output (&optional kill)
+  "Delete all output from interpreter since last input.
+If KILL is non-nil (interactively, the prefix), save the killed text in
+the kill ring.
+
+This command does not delete the prompt."
+  (interactive "P")
   (save-excursion
     (goto-char (eshell-beginning-of-output))
     (insert "*** output flushed ***\n")
+    (when kill
+      (copy-region-as-kill (point) (eshell-end-of-output)))
     (delete-region (point) (eshell-end-of-output))))
+
+(define-obsolete-function-alias 'eshell-kill-output
+  #'eshell-delete-output "30.1")
 
 (defun eshell-show-output (&optional arg)
   "Display start of this batch of interpreter output at top of window.
