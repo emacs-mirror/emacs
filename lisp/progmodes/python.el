@@ -3521,6 +3521,16 @@ eventually provide a shell."
   :version "25.1"
   :type 'hook)
 
+(defconst python-shell-setup-code
+  "\
+try:
+    import tty
+except ImportError:
+    pass
+else:
+    tty.setraw(0)"
+  "Code used to setup the inferior Python processes.")
+
 (defconst python-shell-eval-setup-code
   "\
 def __PYTHON_EL_eval(source, filename):
@@ -3586,6 +3596,7 @@ The coding cookie regexp is specified in PEP 263.")
                       (format "exec(%s)\n" (python-shell--encode-string string))))))
           ;; Bootstrap: the normal definition of `python-shell-send-string'
           ;; depends on the Python code sent here.
+          (python-shell-send-string-no-output python-shell-setup-code)
           (python-shell-send-string-no-output python-shell-eval-setup-code)
           (python-shell-send-string-no-output python-shell-eval-file-setup-code))
         (with-current-buffer (current-buffer)

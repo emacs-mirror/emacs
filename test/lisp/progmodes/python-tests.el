@@ -5037,11 +5037,6 @@ import abc
 
 (ert-deftest python-ffap-module-path-1 ()
   (skip-unless (executable-find python-tests-shell-interpreter))
-  ;; Skip the test on macOS, since the standard Python installation uses
-  ;; libedit rather than readline which confuses the running of an inferior
-  ;; interpreter in this case (see bug#59477 and bug#25753).
-  (skip-when (eq system-type 'darwin))
-  (trace-function 'python-shell-output-filter)
   (python-tests-with-temp-buffer-with-shell
    "
 import abc
