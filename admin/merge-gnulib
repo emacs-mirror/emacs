@@ -53,7 +53,7 @@ GNULIB_MODULES='
 
 AVOIDED_MODULES='
   access btowc chmod close crypto/af_alg dup fchdir fstat
-  iswblank iswctype iswdigit iswxdigit langinfo localename lock
+  iswblank iswctype iswdigit iswxdigit langinfo localename-unsafe-limited lock
   mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
   save-cwd select setenv sigprocmask stat stdarg
