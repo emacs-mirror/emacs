@@ -31,51 +31,11 @@
 
 ;;; Code:
 
-(require 'compat nil 'noerror)
+(require 'compat)
 (eval-when-compile (require 'cl-lib))
 
-;; Except for the "erc-" namespacing, these two definitions should be
-;; continuously updated to match the latest upstream ones verbatim.
-;; Although they're pretty simple, it's likely not worth checking for
-;; and possibly deferring to the non-prefixed versions.
-;;
-;; BEGIN Compat macros
-
-;;;; Macros for extended compatibility function calls
-
-(defmacro erc-compat-function (fun)
-  "Return compatibility function symbol for FUN.
-
-If the Emacs version provides a sufficiently recent version of
-FUN, the symbol FUN is returned itself.  Otherwise the macro
-returns the symbol of a compatibility function which supports the
-behavior and calling convention of the current stable Emacs
-version.  For example Compat 29.1 will provide compatibility
-functions which implement the behavior and calling convention of
-Emacs 29.1.
-
-See also `compat-call' to directly call compatibility functions."
-  (let ((compat (intern (format "compat--%s" fun))))
-    `#',(if (fboundp compat) compat fun)))
-
-(defmacro erc-compat-call (fun &rest args)
-  "Call compatibility function or macro FUN with ARGS.
-
-A good example function is `plist-get' which was extended with an
-additional predicate argument in Emacs 29.1.  The compatibility
-function, which supports this additional argument, can be
-obtained via (compat-function plist-get) and called
-via (compat-call plist-get plist prop predicate).  It is not
-possible to directly call (plist-get plist prop predicate) on
-Emacs older than 29.1, since the original `plist-get' function
-does not yet support the predicate argument.  Note that the
-Compat library never overrides existing functions.
-
-See also `compat-function' to lookup compatibility functions."
-  (let ((compat (intern (format "compat--%s" fun))))
-    `(,(if (fboundp compat) compat fun) ,@args)))
-
-;; END Compat macros
+(define-obsolete-function-alias 'erc-compat-function #'compat-function "30.1")
+(define-obsolete-function-alias 'erc-compat-call #'compat-call "30.1")
 
 ;;;###autoload(autoload 'erc-define-minor-mode "erc-compat")
 (define-obsolete-function-alias 'erc-define-minor-mode

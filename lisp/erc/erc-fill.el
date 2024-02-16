@@ -832,7 +832,7 @@ decorations applied by third-party modules."
          (line (count-screen-lines (window-start) (window-point))))
     (when (zerop arg)
       (setq arg 1))
-    (erc-compat-call
+    (compat-call
      set-transient-map
      (let ((map (make-sparse-keymap)))
        (dolist (key '(?= ?- ?0))
