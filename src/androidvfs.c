@@ -1018,8 +1018,8 @@ android_extract_long (char *pointer)
 static const char *
 android_scan_directory_tree (char *file, size_t *limit_return)
 {
-  char *token, *saveptr, *copy, *copy1, *start, *max, *limit;
-  size_t token_length, ntokens, i;
+  char *token, *saveptr, *copy, *start, *max, *limit;
+  size_t token_length, ntokens, i, len;
   char *tokens[10];
 
   USE_SAFE_ALLOCA;
@@ -1031,11 +1031,14 @@ android_scan_directory_tree (char *file, size_t *limit_return)
   limit = (char *) directory_tree + directory_tree_size;
 
   /* Now, split `file' into tokens, with the delimiter being the file
-     name separator.  Look for the file and seek past it.  */
+     name separator.  Look for the file and seek past it.  Create a copy
+     of FILE for the enjoyment of `strtok_r'.  */
 
   ntokens = 0;
   saveptr = NULL;
-  copy = copy1 = xstrdup (file);
+  len = strlen (file) + 1;
+  copy = SAFE_ALLOCA (len);
+  memcpy (copy, file, len);
   memset (tokens, 0, sizeof tokens);
 
   while ((token = strtok_r (copy, "/", &saveptr)))
@@ -1044,18 +1047,13 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 
       /* Make sure ntokens is within bounds.  */
       if (ntokens == ARRAYELTS (tokens))
-	{
-	  xfree (copy1);
-	  goto fail;
-	}
+	goto fail;
 
-      tokens[ntokens] = SAFE_ALLOCA (strlen (token) + 1);
-      memcpy (tokens[ntokens], token, strlen (token) + 1);
+      len = strlen (token) + 1;
+      tokens[ntokens] = SAFE_ALLOCA (len);
+      memcpy (tokens[ntokens], token, len);
       ntokens++;
     }
-
-  /* Free the copy created for strtok_r.  */
-  xfree (copy1);
 
   /* If there are no tokens, just return the start of the directory
      tree.  */
