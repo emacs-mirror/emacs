@@ -2580,6 +2580,8 @@ Affects only hooks run in the current buffer."
           (list binding binding))
          ((null (cdr binding))
           (list (make-symbol "s") (car binding)))
+         ((eq '_ (car binding))
+          (list (make-symbol "s") (cadr binding)))
          (t binding)))
   (when (> (length binding) 2)
     (signal 'error
