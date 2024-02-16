@@ -635,6 +635,8 @@ directory got moved.  This is set to be a pair in the form of:
           (unwind-protect
               (let ((tmp-dump-mode dump-mode)
                     (dump-mode nil)
+                    ;; Set `lexical-binding' to nil by default
+                    ;; in the dumped Emacs.
                     (lexical-binding nil))
                 (if (member tmp-dump-mode '("pdump" "pbootstrap"))
                     (dump-emacs-portable (expand-file-name output invocation-directory))
