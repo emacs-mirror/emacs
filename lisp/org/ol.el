@@ -291,7 +291,10 @@ or emacs-wiki packages to Org syntax.
 The function must accept two parameters, a TYPE containing the link
 protocol name like \"rmail\" or \"gnus\" as a string, and the linked path,
 which is everything after the link protocol.  It should return a cons
-with possibly modified values of type and path."
+with possibly modified values of type and path.
+Org contains a function for this, so if you set this variable to
+`org-translate-link-from-planner', you should be able follow many
+links created by planner."
   :group 'org-link-follow
   :type '(choice (const nil) (function))
   :safe #'null)

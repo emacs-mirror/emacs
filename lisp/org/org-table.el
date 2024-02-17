@@ -1922,8 +1922,8 @@ However, when N is 0, do not increment the field at all."
       (let ((org-table-may-need-update nil)) (org-table-next-row))
       (org-table-blank-field))
     ;; Insert the new field.  NEW-FIELD may be nil if
-    ;; `org-table-copy-increment' is nil, or N = 0.  In that case,
-    ;; copy FIELD.
+    ;; `org-table-increment' is nil, or N = 0.  In that case, copy
+    ;; FIELD.
     (insert (or next-field field))
     (org-table-maybe-recalculate-line)
     (org-table-align)))
@@ -4084,8 +4084,8 @@ already hidden."
   "Read column selection select as a list of numbers.
 
 SELECT is a string containing column ranges, separated by white
-space characters, see `org-table-toggle-column-width' for details.
-MAX is the maximum column number.
+space characters, see `org-table-hide-column' for details.  MAX
+is the maximum column number.
 
 Return value is a sorted list of numbers.  Ignore any number
 outside of the [1;MAX] range."

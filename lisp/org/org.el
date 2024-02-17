@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.6.19
+;; Version: 9.6.15
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -4685,7 +4685,7 @@ returns non-nil if any of them match."
                               (if (and (= char ?f) current-file)
                                   (concat "file://" current-file) uri))
                              "\\'")))))
-          (prog1 (memq char '(?y ?! ?d ?\s ?f))
+          (prog1 (memq char '(?y ?n ?! ?d ?\s ?f))
             (quit-window t)))))))
 
 (defun org-extract-log-state-settings (x)
@@ -5524,9 +5524,7 @@ by a #."
 
 (defun org-fontify-extend-region (beg end _old-len)
   (let ((end (if (progn (goto-char end) (looking-at-p "^[*#]"))
-                 (min (point-max) (1+ end))
-               ;; See `font-lock-extend-jit-lock-region-after-change' and bug#68849.
-               (min (point-max) (1+ end))))
+                 (1+ end) end))
         (begin-re "\\(\\\\\\[\\|\\(#\\+begin_\\|\\\\begin{\\)\\S-+\\)")
 	(end-re "\\(\\\\\\]\\|\\(#\\+end_\\|\\\\end{\\)\\S-+\\)")
 	(extend
@@ -9337,7 +9335,7 @@ When called through ELisp, arg is also interpreted in the following way:
               (unless (org-invisible-p (line-beginning-position))
                 (org-fold-region (line-beginning-position)
                                  (line-end-position)
-                                 nil 'outline)))
+                                 nil)))
 	    (cond ((and org-state (equal this org-state))
 		   (message "TODO state was already %s" (org-trim next)))
 		  ((not (pos-visible-in-window-p hl-pos))

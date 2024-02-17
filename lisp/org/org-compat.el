@@ -664,7 +664,7 @@ You could use brackets to delimit on what part the link will be.
 
 %t is the title.
 %a is the author.
-%d is the date."
+%d is the date formatted using `org-publish-sitemap-date-format'."
   :group 'org-export-publish
   :type 'string)
 (make-obsolete-variable
