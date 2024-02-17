@@ -24774,7 +24774,7 @@ maybe_produce_line_number (struct it *it)
 	  /* NOTE: We use `base_line_number` without checking
 	     BASE_LINE_NUMBER_VALID_P because we assume that `redisplay_window`
 	     has already flushed this cache for us when needed.
-	     NOTE²: Checking BASE_LINE_NUMBER_VALID_P here would be
+	     NOTE2: Checking BASE_LINE_NUMBER_VALID_P here would be
 	     overly pessimistic because it might say that the cache
 	     was invalid before entering `redisplay_window` yet the
 	     value has just been refreshed.  */
