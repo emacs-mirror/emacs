@@ -1113,7 +1113,7 @@ sure of changing the value of `foo'."
     (setq gnus-info-buffer (current-buffer))
     (gnus-configure-windows 'info)))
 
-(defalias gnus-not-ignore #'always)
+(defalias 'gnus-not-ignore #'always)
 
 (defvar gnus-directory-sep-char-regexp "/"
   "The regexp of directory separator character.
