@@ -39,13 +39,27 @@
   :group 'org-link
   :type '(choice (const man) (const woman)))
 
+(declare-function Man-translate-references "man" (ref))
 (defun org-man-open (path _)
   "Visit the manpage on PATH.
 PATH should be a topic that can be thrown at the man command.
 If PATH contains extra ::STRING which will use `occur' to search
 matched strings in man buffer."
+  (require 'man) ; For `Man-translate-references'
   (string-match "\\(.*?\\)\\(?:::\\(.*\\)\\)?$" path)
   (let* ((command (match-string 1 path))
+         ;; FIXME: Remove after we drop Emacs 29 support.
+         ;; Working around security bug #66390.
+         (command (if (not (equal (Man-translate-references ";id") ";id"))
+                      ;; We are on Emacs that escapes man command args
+                      ;; (see Emacs commit 820f0793f0b).
+                      command
+                    ;; Older Emacs without the fix - escape the
+                    ;; arguments ourselves.
+                    (mapconcat 'identity
+                               (mapcar #'shell-quote-argument
+                                       (split-string command "\\s-+"))
+                               " ")))
          (search (match-string 2 path))
          (buffer (funcall org-man-command command)))
     (when search

@@ -29,13 +29,13 @@
 ;; are provided that create and retrieve such identifiers, and that find
 ;; entries based on the identifier.
 
-;; Identifiers consist of a prefix (default "Org" given by the variable
+;; Identifiers consist of a prefix (given by the variable
 ;; `org-id-prefix') and a unique part that can be created by a number
-;; of different methods, see the variable `org-id-method'.
-;; Org has a builtin method that uses a compact encoding of the creation
-;; time of the ID, with microsecond accuracy.  This virtually
-;; guarantees globally unique identifiers, even if several people are
-;; creating IDs at the same time in files that will eventually be used
+;; of different methods, see the variable `org-id-method'.  Org has a
+;; builtin method that uses a compact encoding of the creation time of
+;; the ID, with microsecond accuracy.  This virtually guarantees
+;; globally unique identifiers, even if several people are creating
+;; IDs at the same time in files that will eventually be used
 ;; together.
 ;;
 ;; By default Org uses UUIDs as global unique identifiers.

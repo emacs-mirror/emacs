@@ -24,7 +24,7 @@
 ;;; Commentary:
 ;;
 ;; Org Tempo reimplements completions of structure template before
-;; point like `org-try-structure-completion' in Org v9.1 and earlier.
+;; point in Org v9.1 and earlier.
 ;; For example, strings like "<e" at the beginning of the line will be
 ;; expanded to an example block.
 ;;

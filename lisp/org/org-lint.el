@@ -1209,8 +1209,11 @@ Use \"export %s\" instead"
                   (`(,(and (pred symbolp) name)
                      ,(pred string-or-null-p)
                      ,(pred string-or-null-p))
-                   (unless (org-cite-get-processor name)
-                     (list source "Unknown cite export processor %S" name)))
+                   (unless (or (org-cite-get-processor name)
+                               (progn
+                                 (org-cite-try-load-processor name)
+                                 (org-cite-get-processor name)))
+                     (list source (format "Unknown cite export processor %S" name))))
                   (_
                    (list source "Invalid cite export processor declaration")))
               (error

@@ -600,8 +600,9 @@ which is replaced with the subtitle."
 
 (defcustom org-latex-toc-command "\\tableofcontents\n\n"
   "LaTeX command to set the table of contents, list of figures, etc.
-This command only applies to the table of contents generated with
-the toc:nil option, not to those generated with #+TOC keyword."
+This command only applies to the table of contents generated with the
+toc:t, toc:1, toc:2, toc:3, ... options, not to those generated with
+the #+TOC keyword."
   :group 'org-export-latex
   :type 'string)
 

@@ -3254,8 +3254,9 @@ Return a cons of (TABLE-CELL-STYLE-NAME . PARAGRAPH-STYLE-NAME).
 
 When STYLE-SPEC is nil, style the table cell the conventional way
 - choose cell borders based on row and column groupings and
-choose paragraph alignment based on `org-col-cookies' text
-property.  See also `org-odt-table-style-spec'.
+choose paragraph alignment based on table alignment cookies (see info
+node `(org)Column Width and Alignment').  See also
+`org-odt-table-style-spec'.
 
 When STYLE-SPEC is non-nil, ignore the above cookie and return
 styles congruent with the ODF-1.2 specification."

@@ -1626,11 +1626,10 @@ BLOB is the element or object considered."
 ;; `org-export--collect-tree-properties'.
 ;;
 ;; Dedicated functions focus on computing the value of specific tree
-;; properties during initialization.  Thus,
-;; `org-export--populate-ignore-list' lists elements and objects that
-;; should be skipped during export, `org-export--get-min-level' gets
-;; the minimal exportable level, used as a basis to compute relative
-;; level for headlines.  Eventually
+;; properties during initialization.  Thus, `org-export--prune-tree'
+;; lists elements and objects that should be skipped during export,
+;; `org-export--get-min-level' gets the minimal exportable level, used
+;; as a basis to compute relative level for headlines.  Eventually
 ;; `org-export--collect-headline-numbering' builds an alist between
 ;; headlines and their numbering.
 

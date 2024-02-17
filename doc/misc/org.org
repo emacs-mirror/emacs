@@ -16712,6 +16712,7 @@ to HTML, the following links all point to a dedicated anchor in
 :END:
 #+cindex: sitemap, of published pages
 
+#+vindex: org-publish-project-alist
 The following properties may be used to control publishing of
 a map of files for a given project.
 
@@ -16728,6 +16729,12 @@ a map of files for a given project.
 - ~:sitemap-title~ ::
 
   Title of sitemap page.  Defaults to name of file.
+
+- ~:sitemap-style~ ::
+
+    Can be ~list~ (site-map is just an itemized list of the titles of
+    the files involved) or ~tree~ (the directory structure of the
+    source files is reflected in the site-map).  Defaults to ~tree~.
 
 - ~:sitemap-format-entry~ ::
 
@@ -16773,21 +16780,6 @@ a map of files for a given project.
 - ~:sitemap-ignore-case~ ::
 
   Should sorting be case-sensitive?  Default ~nil~.
-
-- ~:sitemap-file-entry-format~ ::
-
-  With this option one can tell how a sitemap's entry is formatted in
-  the sitemap.  This is a format string with some escape sequences:
-  ~%t~ stands for the title of the file, ~%a~ stands for the author of
-  the file and ~%d~ stands for the date of the file.  The date is
-  retrieved with the ~org-publish-find-date~ function and formatted
-  with ~org-publish-sitemap-date-format~.  Default ~%t~.
-
-- ~:sitemap-date-format~ ::
-
-  Format string for the ~format-time-string~ function that tells how
-  a sitemap entry's date is to be formatted.  This property bypasses
-  ~org-publish-sitemap-date-format~ which defaults to ~%Y-%m-%d~.
 
 *** Generating an index
 :PROPERTIES:
