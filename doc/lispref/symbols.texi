@@ -177,34 +177,16 @@ know how Lisp reads them.  Lisp must ensure that it finds the same
 symbol every time it reads the same sequence of characters in the same
 context.  Failure to do so would cause complete confusion.
 
-@cindex symbol name hashing
-@cindex hashing
 @cindex obarray
-@cindex bucket (in obarray)
   When the Lisp reader encounters a name that references a symbol in
-the source code, it reads all the characters of that name.  Then it
-looks up that name in a table called an @dfn{obarray} to find the
-symbol that the programmer meant.  The technique used in this lookup
-is called ``hashing'', an efficient method of looking something up by
-converting a sequence of characters to a number, known as a ``hash
-code''.  For example, instead of searching a telephone book cover to
-cover when looking up Jan Jones, you start with the J's and go from
-there.  That is a simple version of hashing.  Each element of the
-obarray is a @dfn{bucket} which holds all the symbols with a given
-hash code; to look for a given name, it is sufficient to look through
-all the symbols in the bucket for that name's hash code.  (The same
-idea is used for general Emacs hash tables, but they are a different
-data type; see @ref{Hash Tables}.)
+the source code, it looks up that name in a table called an @dfn{obarray}
+to find the symbol that the programmer meant.  An obarray is an unordered
+container of symbols, indexed by name.
 
-When looking up names, the Lisp reader also considers ``shorthands''.
+The Lisp reader also considers ``shorthands''.
 If the programmer supplied them, this allows the reader to find a
 symbol even if its name isn't present in its full form in the source
-code.  Of course, the reader needs to be aware of some pre-established
-context about such shorthands, much as one needs context to be to able
-to refer uniquely to Jan Jones by just the name ``Jan'': it's probably
-fine when amongst the Joneses, or when Jan has been mentioned
-recently, but very ambiguous in any other situation.
-@xref{Shorthands}.
+code.  @xref{Shorthands}.
 
 @cindex interning
   If a symbol with the desired name is found, the reader uses that
@@ -236,23 +218,6 @@ to gain access to it is by finding it in some other object or as the
 value of a variable.  Uninterned symbols are sometimes useful in
 generating Lisp code, see below.
 
-  In Emacs Lisp, an obarray is actually a vector.  Each element of the
-vector is a bucket; its value is either an interned symbol whose name
-hashes to that bucket, or 0 if the bucket is empty.  Each interned
-symbol has an internal link (invisible to the user) to the next symbol
-in the bucket.  Because these links are invisible, there is no way to
-find all the symbols in an obarray except using @code{mapatoms} (below).
-The order of symbols in a bucket is not significant.
-
-  In an empty obarray, every element is 0, so you can create an obarray
-with @code{(make-vector @var{length} 0)}.  @strong{This is the only
-valid way to create an obarray.}  Prime numbers as lengths tend
-to result in good hashing; lengths one less than a power of two are also
-good.
-
-  @strong{Do not try to put symbols in an obarray yourself.}  This does
-not work---only @code{intern} can enter a symbol in an obarray properly.
-
 @cindex CL note---symbol in obarrays
 @quotation
 @b{Common Lisp note:} Unlike Common Lisp, Emacs Lisp does not provide
@@ -262,9 +227,21 @@ Emacs Lisp provides a different namespacing system called
 ``shorthands'' (@pxref{Shorthands}).
 @end quotation
 
+@defun obarray-make &optional size
+This function creates and returns a new obarray.
+The optional @var{size} may be used to specify the number of symbols
+that it is expected to hold, but since obarrays grow automatically
+as needed, this rarely provide any benefit.
+@end defun
+
+@defun obarrayp object
+This function returns @code{t} if @var{object} is an obarray,
+@code{nil} otherwise.
+@end defun
+
   Most of the functions below take a name and sometimes an obarray as
 arguments.  A @code{wrong-type-argument} error is signaled if the name
-is not a string, or if the obarray is not a vector.
+is not a string, or if the obarray is not an obarray object.
 
 @defun symbol-name symbol
 This function returns the string that is @var{symbol}'s name.  For example:
@@ -414,6 +391,10 @@ the obarray which has that name.  If there is no such symbol,
 
 If @code{unintern} does delete a symbol, it returns @code{t}.  Otherwise
 it returns @code{nil}.
+@end defun
+
+@defun obarray-clear obarray
+This function removes all symbols from @var{obarray}.
 @end defun
 
 @node Symbol Properties

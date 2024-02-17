@@ -2121,6 +2121,9 @@ with references to further information.
 @item numberp
 @xref{Predicates on Numbers, numberp}.
 
+@item obarrayp
+@xref{Creating Symbols, obarrayp}.
+
 @item overlayp
 @xref{Overlays, overlayp}.
 
@@ -2181,7 +2184,7 @@ This function returns a symbol naming the primitive type of
 @code{condition-variable}, @code{cons}, @code{finalizer},
 @code{float}, @code{font-entity}, @code{font-object},
 @code{font-spec}, @code{frame}, @code{hash-table}, @code{integer},
-@code{marker}, @code{mutex}, @code{overlay}, @code{process},
+@code{marker}, @code{mutex}, @code{obarray}, @code{overlay}, @code{process},
 @code{string}, @code{subr}, @code{symbol}, @code{thread},
 @code{vector}, @code{window}, or @code{window-configuration}.
 However, if @var{object} is a record, the type specified by its first

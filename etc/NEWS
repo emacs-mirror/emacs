@@ -1993,6 +1993,26 @@ The 'test' parameter is omitted if it is 'eql' (the default), as is
 'data' if empty.  'rehash-size', 'rehash-threshold' and 'size' are
 always omitted, and ignored if present when the object is read back in.
 
+** Obarrays
+
++++
+*** New obarray type.
+Obarrays are now represented by an opaque type instead of using vectors.
+They are created by 'obarray-make' and manage their internal storage
+automatically, which means that the size parameter to 'obarray-make' can
+safely be omitted.  That is, they do not become slower as they fill up.
+
+The old vector representation is still accepted by functions operating
+on obarrays, but 'obarrayp' only returns 't' for obarray objects.
+'type-of' now returns 'obarray' for obarray objects.
+
++++
+*** New function 'obarray-clear' removes all symbols from an obarray.
+
+---
+*** 'obarray-size' and 'obarray-default-size' are now obsolete.
+They pertained to the internal storage size which is now irrelevant.
+
 +++
 ** 'treesit-install-language-grammar' can handle local directory instead of URL.
 It is now possible to pass a directory of a local repository as URL
