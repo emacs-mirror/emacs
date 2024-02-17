@@ -47,7 +47,7 @@
 #  --avoid=iswdigit \
 #  --avoid=iswxdigit \
 #  --avoid=langinfo \
-#  --avoid=localename \
+#  --avoid=localename-unsafe-limited \
 #  --avoid=lock \
 #  --avoid=mbrtowc \
 #  --avoid=mbsinit \

@@ -401,7 +401,7 @@ should_remove_ampm (void)
      lt lv mg mhr mi mk mn ms mt nb nds nhn nl nn nr nso oc os pap pl pt ro
      ru rw sah sc se sgs sk sl sm sr ss st su sv szl tg tk tn ts tt ug uk unm
      uz ve wae wo xh zu  */
-  const char *loc = gl_locale_name (LC_TIME, "LC_TIME");
+  const char *loc = gl_locale_name_unsafe (LC_TIME, "LC_TIME");
   bool remove_ampm = false;
   switch (loc[0])
     {
