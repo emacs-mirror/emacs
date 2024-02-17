@@ -525,7 +525,7 @@ is used as the group to change to.  The default host name is the same.
 @cindex @option{doas} method
 
 If the @option{su}, @option{sudo} or @option{doas} option should be
-performed on another host, it can be comnbined with a leading
+performed on another host, it can be combined with a leading
 @option{ssh} or @option{plink} option.  That means that @value{tramp}
 connects first to the other host with non-administrative credentials,
 and changes to administrative credentials on that host afterwards.  In
@@ -5243,8 +5243,8 @@ the additional handshaking messages for them.  This requires at least
 nitrokey, or titankey.
 @c @uref{https://docs.fedoraproject.org/en-US/quick-docs/using-yubikeys/}
 
-@strong{Note} that there are reports on problems of handling yubikey
-residential keys by @command{ssh-agent}.  As workaround, you might
+@strong{Note} that there are reports on problems of handling FIDO2
+(residential) keys by @command{ssh-agent}.  As workaround, you might
 disable @command{ssh-agent} for such keys.
 
 @item

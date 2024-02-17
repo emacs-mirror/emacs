@@ -318,8 +318,8 @@ Using the value `insert' is not recommended in editable
 buffers because it modifies them.
 When the value is `in-margins', then clickable buttons are
 displayed in the margins before the headings.
-When the value is `t', clickable buttons are displayed
-in the buffer before the headings.  The values `t' and
+When the value is t, clickable buttons are displayed
+in the buffer before the headings.  The values t and
 `in-margins' can be used in editing buffers because they
 don't modify the buffer."
   ;; The value `insert' is not intended to be customizable.

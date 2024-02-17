@@ -745,9 +745,8 @@ The regexp should match at end of buffer."
 
 ;; A security key requires the user physically to touch the device
 ;; with their finger.  We must tell it to the user.
-;; Added in OpenSSH 8.2.  I've tested it with yubikey.  Nitrokey and
-;; Titankey, which have also passed the tests, do not show such a
-;; message.
+;; Added in OpenSSH 8.2.  I've tested it with Nitrokey, Titankey, and
+;; Yubikey.
 (defcustom tramp-security-key-confirm-regexp
   (rx bol (* "\r") "Confirm user presence for key " (* nonl) (* (any "\r\n")))
   "Regular expression matching security key confirmation message.
@@ -770,6 +769,7 @@ The regexp should match at end of buffer."
   :version "28.1"
   :type 'regexp)
 
+;; Needed only for FIDO2 (residential) keys.  Tested with Nitrokey and Yubikey.
 (defcustom tramp-security-key-pin-regexp
   (rx bol (* "\r") (group "Enter PIN for " (* nonl)) (* (any "\r\n")))
   "Regular expression matching security key PIN prompt.
