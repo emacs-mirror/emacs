@@ -74,7 +74,12 @@
      ((parent-is "program") column-0 0)
      ((match "}" "element_value_array_initializer")
       parent-bol 0)
-     ((node-is "}") column-0 c-ts-common-statement-offset)
+     ((node-is
+       ,(format "\\`%s\\'"
+                (regexp-opt '("constructor_body" "class_body" "interface_body"
+                              "block" "switch_block" "array_initializer"))))
+      parent-bol 0)
+     ((node-is "}") standalone-parent 0)
      ((node-is ")") parent-bol 0)
      ((node-is "else") parent-bol 0)
      ((node-is "]") parent-bol 0)
@@ -86,10 +91,10 @@
      ((parent-is "array_initializer") parent-bol java-ts-mode-indent-offset)
      ((parent-is "annotation_type_body") column-0 c-ts-common-statement-offset)
      ((parent-is "interface_body") column-0 c-ts-common-statement-offset)
-     ((parent-is "constructor_body") column-0 c-ts-common-statement-offset)
+     ((parent-is "constructor_body") standalone-parent java-ts-mode-indent-offset)
      ((parent-is "enum_body_declarations") parent-bol 0)
      ((parent-is "enum_body") column-0 c-ts-common-statement-offset)
-     ((parent-is "switch_block") column-0 c-ts-common-statement-offset)
+     ((parent-is "switch_block") standalone-parent java-ts-mode-indent-offset)
      ((parent-is "record_declaration_body") column-0 c-ts-common-statement-offset)
      ((query "(method_declaration (block _ @indent))") parent-bol java-ts-mode-indent-offset)
      ((query "(method_declaration (block (_) @indent))") parent-bol java-ts-mode-indent-offset)
@@ -125,7 +130,7 @@
      ((parent-is "case_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "labeled_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "do_statement") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "block") column-0 c-ts-common-statement-offset)))
+     ((parent-is "block") standalone-parent java-ts-mode-indent-offset)))
   "Tree-sitter indent rules.")
 
 (defvar java-ts-mode--keywords

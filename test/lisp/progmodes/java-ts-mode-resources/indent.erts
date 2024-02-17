@@ -110,3 +110,34 @@ public class Java {
     }
 }
 =-=-=
+
+Name: Opening bracket on separate line (bug#67556)
+
+=-=
+public class Java {
+    void foo(
+        String foo)
+    {
+        for (var f : rs)
+            return new String[]
+            {
+                "foo",
+                "bar"
+            };
+        if (a == 0)
+        {
+            return 0;
+        } else if (a == 1)
+        {
+            return 1;
+        }
+
+        switch(expr)
+        {
+            case x:
+                // code block
+                break;
+        }
+    }
+}
+=-=-=
