@@ -104,13 +104,14 @@ if [ -z "$devices" ]; then
     exit 1
 fi
 
-if [ -z $device ]; then
-    device=$devices
+if [ `wc -w <<< "$devices"` -gt 1 ] && [ -z $device ]; then
+    echo "Multiple devices are available.  Please specify one with"
+    echo "the option --device and try again."
+    exit 1
 fi
 
-if [ `wc -w <<< "$devices"` -gt 1 ] && [ -z device ]; then
-    echo "Multiple devices are available.  Please pick one using"
-    echo "--device and try again."
+if [ -z $device ]; then
+    device=$devices
 fi
 
 echo "Looking for $package on device $device"
@@ -188,6 +189,8 @@ if [ "$attach_existing" != "yes" ]; then
     # Next, remove lines matching "ps" itself.
     package_pids=`awk -f tmp.awk <<< $package_pids`
 fi
+
+rm tmp.awk
 
 pid=$package_pids
 num_pids=`wc -w <<< "$package_pids"`
