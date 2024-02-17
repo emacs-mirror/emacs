@@ -77,7 +77,8 @@ The command `epa-mail-encrypt' uses this."
   "Method used to select keys in `epa-select-keys'.
 If the value is \\='buffer, the default, keys are selected via a
 pop-up buffer.  If the value is \\='minibuffer, keys are selected
-via the minibuffer instead, using `completing-read-multiple'."
+via the minibuffer instead, using `completing-read-multiple'.
+Any other value is treated as \\='buffer."
   :type '(choice (const :tag "Read keys from a pop-up buffer" buffer)
 		 (const :tag "Read keys from minibuffer" minibuffer))
   :group 'epa
