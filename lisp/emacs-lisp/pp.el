@@ -458,6 +458,8 @@ the bounds of a region containing Lisp code to pretty-print."
     (string
      (let ((print-escape-newlines t))
        (prin1 sexp (current-buffer))))
+    (symbol
+     (prin1 sexp (current-buffer)))
     (otherwise (princ sexp (current-buffer)))))
 
 (defun pp--format-vector (sexp)
