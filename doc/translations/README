@@ -3,14 +3,14 @@
 ** Copyright assignment
 
 People who contribute translated documents should provide a copyright
-assignment to the Free Software Foundation.  See the 'Copyright
-Assignment' section in the Emacs manual.
+assignment to the Free Software Foundation.  See the "Copyright
+Assignment" section in the Emacs manual.
 
 
 ** Translated documents license
 
 The translated documents are distributed under the same license as the
-original documents: the GNU Free Documentation License, VersionÂ 1.3 or
+original documents: the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation.
 
 See https://www.gnu.org/licenses/fdl-1.3.html for more information.
@@ -27,7 +27,7 @@ The source files of the translated manuals are located in the doc/
 directory, under the directory whose name corresponds to the translated
 language.
 
-  E.g. French manuals sources are found under doc/fr.
+  E.g., French manuals sources are found under doc/fr.
 
 The structure of the language folders should match the structure of the
 English manuals (i.e. include misc, man, lispref, lispintro, emacs).
@@ -73,14 +73,14 @@ docstyle.Texi.
 
 - Add a @documentlanguage directive that includes your language.
 
-  E.g. @documentlanguage zh
+  E.g., @documentlanguage zh
 
 This directive has currently little effect but will be useful in the
 future.
 
 - The @author directive can be used for the translator's name.
 
-  E.g. @author traduit en franÃ§ais par Achile Talon
+  E.g., @author traduit en français par Achile Talon
 
 
 ** Fixing the original document
@@ -99,7 +99,7 @@ emacs-devel@gnu.org for review.
 
 Always send contributions in the format of the original document.  Most
 of the contents in the Emacs manuals are in Texinfo format, so do not
-send contributions that are in derivative formats (e.g. info, html,
+send contributions that are in derivative formats (e.g., info, html,
 docbook, plain text, etc.)
 
 Before sending files for review, ensure that they have been properly
@@ -202,3 +202,10 @@ Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice
 and this notice are preserved.  This file is offered as-is, without any
 warranty.
+
+
+Local Variables:
+mode: outline
+paragraph-separate: "[  ]*$"
+coding: utf-8
+End:
