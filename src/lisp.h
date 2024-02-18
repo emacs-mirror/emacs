@@ -5525,7 +5525,7 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109577
    which causes GCC to mistakenly complain about the
    memory allocation in SAFE_ALLOCA_LISP_EXTRA.  */
-#if GNUC_PREREQ (13, 0, 0)
+#if GNUC_PREREQ (13, 0, 0) && !GNUC_PREREQ (14, 0, 0)
 # pragma GCC diagnostic ignored "-Wanalyzer-allocation-size"
 #endif
 
