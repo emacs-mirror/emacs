@@ -5593,10 +5593,7 @@ pdumper_load (const char *dump_filename, char *argv0)
 
   struct dump_header header_buf = { 0 };
   struct dump_header *header = &header_buf;
-  struct dump_memory_map sections[NUMBER_DUMP_SECTIONS];
-
-  /* Use memset instead of "= { 0 }" to work around GCC bug 105961.  */
-  memset (sections, 0, sizeof sections);
+  struct dump_memory_map sections[NUMBER_DUMP_SECTIONS] = { 0 };
 
   const struct timespec start_time = current_timespec ();
   char *dump_filename_copy;
