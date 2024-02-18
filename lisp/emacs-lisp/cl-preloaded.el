@@ -65,7 +65,7 @@
      number-or-marker symbol array)
     (number float integer)
     (number-or-marker marker number)
-    (integer bignum fixum)
+    (integer bignum fixnum)
     (symbol keyword boolean symbol-with-pos)
     (array vector bool-vector char-table string)
     (list null cons)
