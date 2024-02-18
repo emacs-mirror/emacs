@@ -1018,6 +1018,19 @@ When invoked with the prefix argument ('C-u'),
 This is useful for continuing reading the URL in the current buffer
 when the new URL is fetched.
 
+---
+*** History navigation in EWW now works like other browsers.
+Previously, when navigating back and forward through page history, EWW
+would add a duplicate entry to the end of the history list each time.
+This made it impossible to navigate to the "end" of the history list.
+Now, navigating through history in EWW simply changes your position in
+the history list, allowing you to reach the end as expected.  In
+addition, when browsing to a new page from a "historical" one (i.e. a
+page loaded by navigating back through history), EWW deletes the history
+entries newer than the current page.  To change the behavior when
+browsing from "historical" pages, you can customize
+'eww-before-browse-history-function'.
+
 ** go-ts-mode
 
 +++

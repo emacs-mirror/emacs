@@ -182,6 +182,33 @@ the tab bar is enabled."
                  (const :tag "Open new tab when tab bar is enabled" tab-bar)
                  (const :tag "Never open URL in new tab" nil)))
 
+(defcustom eww-before-browse-history-function #'eww-delete-future-history
+  "A function to call to update history before browsing to a new page.
+EWW provides the following values for this option:
+
+* `eww-delete-future-history': Delete any history entries after the
+  currently-shown one.  This is the default behavior, and works the same
+  as in most other web browsers.
+
+* `eww-clone-previous-history': Clone and prepend any history entries up
+  to the currently-shown one.  This is like `eww-delete-future-history',
+  except that it preserves the previous contents of the history list at
+  the end.
+
+* `ignore': Preserve the current history unchanged.  This will result in
+  the new page simply being prepended to the existing history list.
+
+You can also set this to any other function you wish."
+  :version "30.1"
+  :group 'eww
+  :type '(choice (function-item :tag "Delete future history"
+                                eww-delete-future-history)
+                 (function-item :tag "Clone previous history"
+                                eww-clone-previous-history)
+                 (function-item :tag "Preserve history"
+                                ignore)
+                 (function :tag "Custom function")))
+
 (defcustom eww-after-render-hook nil
   "A hook called after eww has finished rendering the buffer."
   :version "25.1"
@@ -312,7 +339,10 @@ parameter, and should return the (possibly) transformed URL."
 
 (defvar eww-data nil)
 (defvar eww-history nil)
-(defvar eww-history-position 0)
+(defvar eww-history-position 0
+  "The 1-indexed position in `eww-history'.
+If zero, EWW is at the newest page, which isn't yet present in
+`eww-history'.")
 (defvar eww-prompt-history nil)
 
 (defvar eww-local-regex "localhost"
@@ -402,6 +432,7 @@ For more information, see Info node `(eww) Top'."
     (t
      (get-buffer-create "*eww*"))))
   (eww-setup-buffer)
+  (eww--before-browse)
   ;; Check whether the domain only uses "Highly Restricted" Unicode
   ;; IDNA characters.  If not, transform to punycode to indicate that
   ;; there may be funny business going on.
@@ -654,7 +685,6 @@ The renaming scheme is performed in accordance with
 	    (with-current-buffer buffer
 	      (plist-put eww-data :url url)
 	      (eww--after-page-change)
-	      (setq eww-history-position 0)
 	      (and last-coding-system-used
 		   (set-buffer-file-coding-system last-coding-system-used))
               (unless shr-fill-text
@@ -905,6 +935,11 @@ The renaming scheme is performed in accordance with
 		 `((?u . ,(or url ""))
 		   (?t . ,title))))))))
 
+(defun eww--before-browse ()
+  (funcall eww-before-browse-history-function)
+  (setq eww-history-position 0
+        eww-data (list :title "")))
+
 (defun eww--after-page-change ()
   (eww-update-header-line-format)
   (eww--rename-buffer))
@@ -1037,6 +1072,7 @@ the like."
          (base (plist-get eww-data :url)))
     (eww-score-readability dom)
     (eww-save-history)
+    (eww--before-browse)
     (eww-display-html nil nil
                       (list 'base (list (cons 'href base))
                             (eww-highest-readability dom))
@@ -1129,9 +1165,9 @@ the like."
           ["Reload" eww-reload t]
           ["Follow URL in new buffer" eww-open-in-new-buffer]
           ["Back to previous page" eww-back-url
-           :active (not (zerop (length eww-history)))]
+           :active (< eww-history-position (length eww-history))]
           ["Forward to next page" eww-forward-url
-           :active (not (zerop eww-history-position))]
+           :active (> eww-history-position 1)]
           ["Browse with external browser" eww-browse-with-external-browser t]
           ["Download" eww-download t]
           ["View page source" eww-view-source]
@@ -1155,9 +1191,9 @@ the like."
     (easy-menu-define nil easy-menu nil
       '("Eww"
         ["Back to previous page" eww-back-url
-	 :visible (not (zerop (length eww-history)))]
+	 :active (< eww-history-position (length eww-history))]
 	["Forward to next page" eww-forward-url
-	 :visible (not (zerop eww-history-position))]
+	 :active (> eww-history-position 1)]
 	["Reload" eww-reload t]))
     (dolist (item (reverse (lookup-key easy-menu [menu-bar eww])))
       (when (consp item)
@@ -1280,16 +1316,20 @@ instead of `browse-url-new-window-flag'."
   (interactive nil eww-mode)
   (when (>= eww-history-position (length eww-history))
     (user-error "No previous page"))
-  (eww-save-history)
-  (setq eww-history-position (+ eww-history-position 2))
+  (if (eww-save-history)
+      ;; We were at the latest page (which was just added to the
+      ;; history), so go back two entries.
+      (setq eww-history-position 2)
+    (setq eww-history-position (1+ eww-history-position)))
   (eww-restore-history (elt eww-history (1- eww-history-position))))
 
 (defun eww-forward-url ()
   "Go to the next displayed page."
   (interactive nil eww-mode)
-  (when (zerop eww-history-position)
+  (when (<= eww-history-position 1)
     (user-error "No next page"))
   (eww-save-history)
+  (setq eww-history-position (1- eww-history-position))
   (eww-restore-history (elt eww-history (1- eww-history-position))))
 
 (defun eww-restore-history (elem)
@@ -1959,6 +1999,7 @@ If EXTERNAL is double prefix, browse in new buffer."
 	   (eww-same-page-p url (plist-get eww-data :url)))
       (let ((point (point)))
 	(eww-save-history)
+        (eww--before-browse)
 	(plist-put eww-data :url url)
         (goto-char (point-min))
         (if-let ((match (text-property-search-forward 'shr-target-id target #'member)))
@@ -2289,11 +2330,69 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 ;;; History code
 
 (defun eww-save-history ()
+  "Save the current page's data to the history.
+If the current page is a historial one loaded from
+`eww-history' (e.g. by calling `eww-back-url'), this will update the
+page's entry in `eww-history' and return nil.  Otherwise, add a new
+entry to `eww-history' and return t."
   (plist-put eww-data :point (point))
   (plist-put eww-data :text (buffer-string))
-  (let ((history-delete-duplicates nil))
-    (add-to-history 'eww-history eww-data eww-history-limit t))
-  (setq eww-data (list :title "")))
+  (if (zerop eww-history-position)
+      (let ((history-delete-duplicates nil))
+        (add-to-history 'eww-history eww-data eww-history-limit t)
+        (setq eww-history-position 1)
+        t)
+    (setf (elt eww-history (1- eww-history-position)) eww-data)
+    nil))
+
+(defun eww-delete-future-history ()
+  "Remove any entries in `eww-history' after the currently-shown one.
+This is useful for `eww-before-browse-history-function' to make EWW's
+navigation to a new page from a historical one work like other web
+browsers: it will delete any \"future\" history elements before adding
+the new page to the end of the history.
+
+For example, if `eww-history' looks like this (going from newest to
+oldest, with \"*\" marking the current page):
+
+  E D C* B A
+
+then calling this function updates `eww-history' to:
+
+  C* B A"
+  (when (> eww-history-position 1)
+    (setq eww-history (nthcdr (1- eww-history-position) eww-history)
+          ;; We don't really need to set this since `eww--before-browse'
+          ;; sets it too, but this ensures that other callers can use
+          ;; this function and get the expected results.
+          eww-history-position 1)))
+
+(defun eww-clone-previous-history ()
+  "Clone and prepend entries in `eww-history' up to the currently-shown one.
+These cloned entries get added to the beginning of `eww-history' so that
+it's possible to navigate back to the very first page for this EWW
+without deleting any history entries.
+
+For example, if `eww-history' looks like this (going from newest to
+oldest, with \"*\" marking the current page):
+
+  E D C* B A
+
+then calling this function updates `eww-history' to:
+
+  C* B A E D C B A
+
+This is useful for setting `eww-before-browse-history-function' (which
+see)."
+  (when (> eww-history-position 1)
+    (setq eww-history (take eww-history-limit
+                            (append (nthcdr (1- eww-history-position)
+                                            eww-history)
+                                    eww-history))
+          ;; As with `eww-delete-future-history', we don't really need
+          ;; to set this since `eww--before-browse' sets it too, but
+          ;; let's be thorough.
+          eww-history-position 1)))
 
 (defvar eww-current-buffer)
 
