@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import android.app.Activity;
+
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Context;
@@ -362,6 +364,9 @@ public final class EmacsWindow extends EmacsHandleObject
     requestViewLayout ();
   }
 
+  /* Return WM layout parameters for an override redirect window with
+     the geometry provided here.  */
+
   private WindowManager.LayoutParams
   getWindowLayoutParams ()
   {
@@ -384,15 +389,15 @@ public final class EmacsWindow extends EmacsHandleObject
     return params;
   }
 
-  private Context
+  private Activity
   findSuitableActivityContext ()
   {
     /* Find a recently focused activity.  */
     if (!EmacsActivity.focusedActivities.isEmpty ())
       return EmacsActivity.focusedActivities.get (0);
 
-    /* Return the service context, which probably won't work.  */
-    return EmacsService.SERVICE;
+    /* Resort to the last activity to be focused.  */
+    return EmacsActivity.lastFocusedActivity;
   }
 
   public synchronized void
@@ -416,7 +421,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	    {
 	      EmacsWindowAttachmentManager manager;
 	      WindowManager windowManager;
-	      Context ctx;
+	      Activity ctx;
 	      Object tem;
 	      WindowManager.LayoutParams params;
 
@@ -447,11 +452,23 @@ public final class EmacsWindow extends EmacsHandleObject
                        activity using the system window manager.  */
 
 		  ctx = findSuitableActivityContext ();
+
+		  if (ctx == null)
+		    {
+		      Log.w (TAG, "failed to attach override-redirect window"
+			     + " for want of activity");
+		      return;
+		    }
+
 		  tem = ctx.getSystemService (Context.WINDOW_SERVICE);
 		  windowManager = (WindowManager) tem;
 
-		  /* Calculate layout parameters.  */
+		  /* Calculate layout parameters and propagate the
+		     activity's token into it.  */
+
 		  params = getWindowLayoutParams ();
+		  params.token = (ctx.findViewById (android.R.id.content)
+				  .getWindowToken ());
 		  view.setLayoutParams (params);
 
 		  /* Attach the view.  */

@@ -2287,6 +2287,57 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
 	  goto start_timer;
 	}
+      else if (tooltip_reuse_hidden_frame && BASE_EQ (frame, tip_last_frame))
+	{
+	  bool delete = false;
+	  Lisp_Object tail, elt, parm, last;
+
+	  /* Check if every parameter in PARMS has the same value in
+	     tip_last_parms.  This may destruct tip_last_parms which,
+	     however, will be recreated below.  */
+	  for (tail = parms; CONSP (tail); tail = XCDR (tail))
+	    {
+	      elt = XCAR (tail);
+	      parm = CAR (elt);
+	      /* The left, top, right and bottom parameters are handled
+		 by compute_tip_xy so they can be ignored here.  */
+	      if (!EQ (parm, Qleft) && !EQ (parm, Qtop)
+		  && !EQ (parm, Qright) && !EQ (parm, Qbottom))
+		{
+		  last = Fassq (parm, tip_last_parms);
+		  if (NILP (Fequal (CDR (elt), CDR (last))))
+		    {
+		      /* We lost, delete the old tooltip.  */
+		      delete = true;
+		      break;
+		    }
+		  else
+		    tip_last_parms
+		      = call2 (Qassq_delete_all, parm, tip_last_parms);
+		}
+	      else
+		tip_last_parms
+		  = call2 (Qassq_delete_all, parm, tip_last_parms);
+	    }
+
+	  /* Now check if every parameter in what is left of
+	     tip_last_parms with a non-nil value has an association in
+	     PARMS.  */
+	  for (tail = tip_last_parms; CONSP (tail); tail = XCDR (tail))
+	    {
+	      elt = XCAR (tail);
+	      parm = CAR (elt);
+	      if (!EQ (parm, Qleft) && !EQ (parm, Qtop) && !EQ (parm, Qright)
+		  && !EQ (parm, Qbottom) && !NILP (CDR (elt)))
+		{
+		  /* We lost, delete the old tooltip.  */
+		  delete = true;
+		  break;
+		}
+	    }
+
+	  android_hide_tip (delete);
+	}
       else
 	android_hide_tip (true);
     }
@@ -2453,7 +2504,7 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 #endif /* 0 */
   return Qnil;
 #else /* !ANDROID_STUBIFY */
-  return android_hide_tip (true);
+  return android_hide_tip (!tooltip_reuse_hidden_frame);
 #endif /* ANDROID_STUBIFY */
 }
 
