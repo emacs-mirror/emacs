@@ -37,11 +37,10 @@
 (require 'cl-lib)
 (require 'org-table)
 
-(eval-and-compile
-  (defconst syncdoc-lispref-dir (concat (file-name-directory
-                                         (or load-file-name
-                                             buffer-file-name))
-                                        "../doc/lispref/")))
+(defconst syncdoc-lispref-dir (concat (file-name-directory
+                                       (or load-file-name
+                                           buffer-file-name))
+                                      "../doc/lispref/"))
 
 (defun syncdoc-insert-dot-content (rankdir)
   (maphash (lambda (child parents)
