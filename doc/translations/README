@@ -26,31 +26,32 @@ See https://www.gnu.org/contact/ for more information.
 *** Texinfo source files
 
 The source files of the translated manuals are located in the
-doc/translations directory, under the translated language sub-directory.
+doc/translations directory, under the sub-directory corresponding to the
+translated language.
 
   E.g., French manual sources are found under doc/translations/fr.
 
-The structure of each language folder should match that of the English
+The structure of each language's folder should match that of the English
 manuals (i.e. include misc, man, lispref, lispintro, emacs).
 
-*** built files
+*** Built files
 
-Translated deliverables in info format are built at release time and are
+Translated deliverables in Info format are built at release time and are
 made available for local installation.
 
 
 ** Source files format
 
 The manuals and their translations are written in the Texinfo format
-(with the exception of the org-mode manual, which is written in
-org-mode, and illustrations for the Introduction to Emacs Lisp
-Programming, which are written in eps).
+(with the exception of the org-mode manual, which is written in Org, and
+illustrations for the Introduction to Emacs Lisp Programming, which are
+EPS files).
 
 See https://www.gnu.org/software/Texinfo/ for more information.
 
-You must install the Texinfo utilities in order to verify the translated
+You must install the Texinfo package in order to verify the translated
 files, and refer to the Texinfo manual for information on the various
-Texinfo declarations.
+Texinfo features.
 
 Emacs has a Texinfo mode that highlights the parts of the Texinfo code
 to be translated for easy reference.
@@ -67,7 +68,7 @@ few rules to follow:
 - Translate the @node content but leave the @anchor in English.
 
 - Most Emacs manuals are set to include the docstyle.Texi file.  This
-  file adds the @documentencoding UTF-8 directive to the targeted
+  file adds the "@documentencoding UTF-8" directive to the targeted
   manual. There is no need to add this directive in a manual that
   includes docstyle.texi.
 
@@ -111,7 +112,7 @@ Please also make sure that the Texinfo files build properly on your
 system.
 
 Send your contributions as patches (git diff -p --stat), and prefer the
-git format-patch form, since the format allows for easier review and
+git format-patch form, since that format allows for easier review and
 easier installation of the changes by the persons with write access to
 the repository.
 
@@ -123,7 +124,7 @@ sure that the contributions comply with the various conventions.
 ** Discussing translation issues
 
 Translation-related discussions are welcome on the emacs development
-list. Discussions specific to your language do not have to be in
+list.  Discussions specific to your language do not have to be in
 English.
 
 
@@ -175,9 +176,9 @@ eps) for review and installation.
 
 *** Free tools that you can use in your processes
 
-A number of free software tools are available outside the Emacs
-ecosystem, to help translators (both amateur and professional) in the
-translation process.
+A number of free software tools are available outside the Emacs project,
+to help translators (both amateur and professional) in the translation
+process.
 
 If they have any features that you think Emacs should implement, you are
 welcome to provide patches to the Emacs project.
