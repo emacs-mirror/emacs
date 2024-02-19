@@ -35,6 +35,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'org-table)
 
 (eval-and-compile
   (defconst syncdoc-lispref-dir (concat (file-name-directory
@@ -55,6 +56,23 @@
   (goto-char (point-max))
   (insert "}\n"))
 
+(defun syncdoc-make-type-table (file)
+  (with-temp-file file
+    (insert "|Type| Derived Types|\n|-\n")
+    (cl-loop for (type . children) in cl--type-hierarchy
+             do (insert "|" (symbol-name type) " |")
+             do (cl-loop with x = 0
+                         for child in children
+                         for child-len = (length (symbol-name child))
+                         when (> (+ x child-len 2) 60)
+                         do (progn
+                              (insert "|\n||")
+                              (setq x 0))
+                         do (insert (symbol-name child) " ")
+                         do (cl-incf x (1+ child-len)) )
+             do (insert "\n"))
+    (org-table-align)))
+
 (defun syncdoc-update-type-hierarchy ()
   "Update the type hierarchy representation used by the elisp manual."
   (interactive)
@@ -63,10 +81,7 @@
     (call-process-region nil nil "dot" t (current-buffer) nil "-Tjpg" "-o"
                          (expand-file-name "type_hierarchy.jpg"
                                            syncdoc-lispref-dir)))
-  (with-temp-buffer
-    (syncdoc-insert-dot-content "TB")
-    (call-process-region nil nil "graph-easy" t (current-buffer) nil "--output"
-                         (expand-file-name "type_hierarchy.txt"
-                                           syncdoc-lispref-dir))))
+  (syncdoc-make-type-table (expand-file-name "type_hierarchy.txt"
+                                             syncdoc-lispref-dir)))
 
 ;;; syncdoc-type-hierarchy.el ends here
