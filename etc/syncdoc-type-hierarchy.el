@@ -30,7 +30,7 @@
 ;; documentation is regenerated.
 
 ;; We do not call this directly from make docs in order not to add a
-;; dependency on the tools "dot" and "graph-easy".
+;; dependency on the tool "dot".
 
 ;;; Code:
 
