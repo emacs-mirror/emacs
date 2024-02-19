@@ -51,6 +51,17 @@
   "Face used for a section.")
 
 ;;;###autoload
+(defun shortdoc--check (group functions)
+  (let ((keywords '( :no-manual :args :eval :no-eval :no-value :no-eval*
+                     :result :result-string :eg-result :eg-result-string :doc)))
+    (dolist (f functions)
+      (when (consp f)
+        (dolist (x f)
+          (when (and (keywordp x) (not (memq x keywords)))
+            (error "Shortdoc %s function `%s': bad keyword `%s'"
+                   group (car f) x)))))))
+
+;;;###autoload
 (progn
   (defvar shortdoc--groups nil)
 
@@ -118,6 +129,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
 `:no-eval*', `:result', `:result-string', `:eg-result' and
 `:eg-result-string' properties."
     (declare (indent defun))
+    (shortdoc--check group functions)
     `(progn
        (setq shortdoc--groups (delq (assq ',group shortdoc--groups)
                                     shortdoc--groups))
@@ -715,7 +727,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (plist-get '(a 1 b 2 c 3) 'b))
   (plist-put
    :no-eval (setq plist (plist-put plist 'd 4))
-   :eq-result (a 1 b 2 c 3 d 4))
+   :eg-result (a 1 b 2 c 3 d 4))
   (plist-member
    :eval (plist-member '(a 1 b 2 c 3) 'b))
   "Data About Lists"
