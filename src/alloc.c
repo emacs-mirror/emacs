@@ -6034,8 +6034,7 @@ purecopy (Lisp_Object obj)
           return obj; /* Don't hash cons it.  */
         }
 
-      struct Lisp_Hash_Table *h = purecopy_hash_table (table);
-      XSET_HASH_TABLE (obj, h);
+      obj = make_lisp_hash_table (purecopy_hash_table (table));
     }
   else if (COMPILEDP (obj) || VECTORP (obj) || RECORDP (obj))
     {

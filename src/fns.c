@@ -4608,13 +4608,7 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
   h->next_weak = NULL;
   h->purecopy = purecopy;
   h->mutable = true;
-
-  Lisp_Object table;
-  XSET_HASH_TABLE (table, h);
-  eassert (HASH_TABLE_P (table));
-  eassert (XHASH_TABLE (table) == h);
-
-  return table;
+  return make_lisp_hash_table (h);
 }
 
 
@@ -4624,7 +4618,6 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
 static Lisp_Object
 copy_hash_table (struct Lisp_Hash_Table *h1)
 {
-  Lisp_Object table;
   struct Lisp_Hash_Table *h2;
 
   h2 = allocate_hash_table ();
@@ -4649,9 +4642,7 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
       h2->index = hash_table_alloc_bytes (index_bytes);
       memcpy (h2->index, h1->index, index_bytes);
     }
-  XSET_HASH_TABLE (table, h2);
-
-  return table;
+  return make_lisp_hash_table (h2);
 }
 
 

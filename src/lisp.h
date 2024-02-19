@@ -2547,8 +2547,12 @@ XHASH_TABLE (Lisp_Object a)
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Hash_Table);
 }
 
-#define XSET_HASH_TABLE(VAR, PTR) \
-  XSETPSEUDOVECTOR (VAR, PTR, PVEC_HASH_TABLE)
+INLINE Lisp_Object
+make_lisp_hash_table (struct Lisp_Hash_Table *h)
+{
+  eassert (PSEUDOVECTOR_TYPEP (&h->header, PVEC_HASH_TABLE));
+  return make_lisp_ptr (h, Lisp_Vectorlike);
+}
 
 /* Value is the key part of entry IDX in hash table H.  */
 INLINE Lisp_Object
