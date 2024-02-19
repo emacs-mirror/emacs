@@ -1382,7 +1382,15 @@ as comment due to incomplete parse tree."
     ;; `treesit-update-ranges' will force the host language's parser to
     ;; reparse and set correct ranges for embedded parsers.  Then
     ;; `treesit-parser-root-node' will force those parsers to reparse.
-    (treesit-update-ranges)
+    (let ((len (+ (* (window-body-height) (window-body-width)) 800)))
+      ;; FIXME: As a temporary fix, this prevents Emacs from updating
+      ;; every single local parsers in the buffer every time there's an
+      ;; edit.  Moving forward, we need some way to properly track the
+      ;; regions which need update on parser ranges, like what jit-lock
+      ;; and syntax-ppss does.
+      (treesit-update-ranges
+       (max (point-min) (- (point) len))
+       (min (point-max) (+ (point) len))))
     ;; Force repase on _all_ the parsers might not be necessary, but
     ;; this is probably the most robust way.
     (dolist (parser (treesit-parser-list))
