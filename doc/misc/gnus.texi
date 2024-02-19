@@ -26698,9 +26698,9 @@ buffers.  It is enabled with
 @vindex gnus-dired-attach-at-end
 @cindex attachments, selection via dired
 Send dired's marked files as an attachment (@code{gnus-dired-attach}).
-You will be prompted for a message buffer.  By default it will attach
-files to the end of the message buffer, but you can modify that
-behaviour by customising @code{gnus-dired-attach-at-end}.
+The function prompts for a message buffer, and by default attaches files
+to the end of that buffer; customize @code{gnus-dired-attach-at-end} to
+place the attachments at point instead.
 
 @item C-c C-m C-l
 @findex gnus-dired-find-file-mailcap
