@@ -4576,12 +4576,16 @@ from file or URL, and return nil.
 If NOCACHE is non-nil, do a fresh fetch of FILE even if cached version
 is available.  This option applies only if FILE is a URL."
   (let* ((is-url (org-url-p file))
+         (is-remote (condition-case nil
+                        (file-remote-p file)
+                      ;; In case of error, be safe.
+                      (t t)))
          (cache (and is-url
                      (not nocache)
                      (gethash file org--file-cache))))
     (cond
      (cache)
-     (is-url
+     ((or is-url is-remote)
       (if (org--should-fetch-remote-resource-p file)
           (condition-case error
               (with-current-buffer (url-retrieve-synchronously file)
