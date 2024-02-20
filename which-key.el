@@ -133,7 +133,9 @@ of the which-key popup."
   :version "1.0")
 
 (defcustom which-key-dont-use-unicode nil
-  "If non-nil, don't use any unicode characters in default setup."
+  "If non-nil, don't use any unicode characters in default setup.
+For affected settings, see `which-key-replacement-alist', `which-key-ellipsis'
+'which-key-separator'."
   :group 'which-key
   :type 'boolean
   :version "1.0")
