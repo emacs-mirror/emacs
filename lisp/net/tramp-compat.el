@@ -337,6 +337,8 @@ Also see `ignore'."
 ;;
 ;; * Starting with Emacs 29.1, use `buffer-match-p'.
 ;;
+;; * Starting with Emacs 29.1, use `string-split'.
+;;
 ;; * Starting with Emacs 30.1, there is `handler-bind'.  Use it
 ;;   instead of `condition-case' when the origin of an error shall be
 ;;   kept, for example when the HANDLER propagates the error with
