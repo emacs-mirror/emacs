@@ -2605,7 +2605,7 @@ KEYMAP is selected interactively by mode in
     (keymap-name keymap &optional prior-args all no-paging filter)
   (when prior-args (push prior-args which-key--prior-show-keymap-args))
   (let ((bindings (which-key--get-bindings nil keymap filter all)))
-    (if (= (length bindings) 0)
+    (if (null bindings)
         (message "which-key: No bindings found in %s" keymap-name)
       (cond ((listp which-key-side-window-location)
              (setq which-key--last-try-2-loc
