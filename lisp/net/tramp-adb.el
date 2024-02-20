@@ -1230,7 +1230,7 @@ connection if a previous connection has died for some reason."
 	    (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?
 		   (process-connection-type tramp-process-connection-type)
 		   (args (tramp-expand-args
-			  vec 'tramp-login-args ?d (or device "")))
+			  vec 'tramp-login-args nil ?d (or device "")))
 		   (p (let ((default-directory
 			     tramp-compat-temporary-file-directory))
 			(apply

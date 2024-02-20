@@ -2294,8 +2294,8 @@ connection if a previous connection has died for some reason."
 	  ;; indicated by the "mounted" signal, i.e. the
 	  ;; "fuse-mountpoint" file property.
 	  (with-timeout
-	      ((or (tramp-get-method-parameter vec 'tramp-connection-timeout)
-		   tramp-connection-timeout)
+	      ((tramp-get-method-parameter
+		vec 'tramp-connection-timeout tramp-connection-timeout)
 	       (if (tramp-string-empty-or-nil-p (tramp-file-name-user vec))
 		   (tramp-error
 		    vec 'file-error

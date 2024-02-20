@@ -1059,6 +1059,20 @@ session.
 
 These methods support the @samp{-P} argument.
 
+@item @option{dockercp}
+@item @option{podmancp}
+@cindex method @option{dockercp}
+@cindex @option{dockercp} method
+@cindex method @option{podmancp}
+@cindex @option{podmancp} method
+
+These methods are similar to @option{docker} or @option{podman}, but
+they use the command @command{docker cp} or @command{podman cp} for
+transferring large files.
+
+These copy commands do not support file globs, and they ignore a user
+name.
+
 @item @option{fcp}
 @cindex method @option{fcp}
 @cindex @option{fcp} method

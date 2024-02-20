@@ -301,6 +301,15 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     This specifies the list of parameters to pass to the above mentioned
     program, the hints for `tramp-login-args' also apply here.
 
+  * `tramp-copy-file-name'
+    The remote source or destination file name for out-of-band methods.
+    You can use \"%u\" and \"%h\" like in `tramp-login-args'.
+    Additionally, \"%f\" denotes the local file name part.  This list
+    will be expanded to a string without spaces between the elements of
+    the list.
+
+    The default value is `tramp-default-copy-file-name'.
+
   * `tramp-copy-env'
      A list of environment variables and their values, which will
      be set when calling `tramp-copy-program'.
@@ -1545,21 +1554,23 @@ LOCALNAME and HOP do not count."
        (equal (tramp-file-name-unify vec1)
 	      (tramp-file-name-unify vec2))))
 
-(defun tramp-get-method-parameter (vec param)
+(defun tramp-get-method-parameter (vec param &optional default)
   "Return the method parameter PARAM.
 If VEC is a vector, check first in connection properties.
 Afterwards, check in `tramp-methods'.  If the `tramp-methods'
-entry does not exist, return nil."
+entry does not exist, return DEFAULT."
   (let ((hash-entry
 	 (replace-regexp-in-string (rx bos "tramp-") "" (symbol-name param))))
     (if (tramp-connection-property-p vec hash-entry)
 	;; We use the cached property.
 	(tramp-get-connection-property vec hash-entry)
       ;; Use the static value from `tramp-methods'.
-      (when-let ((methods-entry
+      (if-let ((methods-entry
 		  (assoc
 		   param (assoc (tramp-file-name-method vec) tramp-methods))))
-	(cadr methods-entry)))))
+	  (cadr methods-entry)
+	;; Return the default value.
+	default))))
 
 ;; The localname can be quoted with "/:".  Extract this.
 (defun tramp-file-name-unquote-localname (vec)
@@ -3943,6 +3954,9 @@ Let-bind it when necessary.")
      (tramp-get-method-parameter v 'tramp-case-insensitive)
 
      ;; There isn't.  So we must check, in case there's a connection already.
+     ;; Note: We cannot use it as DEFAULT value of
+     ;; `tramp-get-method-parameter', because it would be evalled
+     ;; during the call.
      (and (let ((non-essential t)) (tramp-connectable-p v))
           (with-tramp-connection-property v "case-insensitive"
 	    (ignore-errors
@@ -4752,15 +4766,15 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 (defvar tramp-extra-expand-args nil
   "Method specific arguments.")
 
-(defun tramp-expand-args (vec parameter &rest spec-list)
+(defun tramp-expand-args (vec parameter default &rest spec-list)
   "Expand login arguments as given by PARAMETER in `tramp-methods'.
 PARAMETER is a symbol like `tramp-login-args', denoting a list of
 list of strings from `tramp-methods', containing %-sequences for
-substitution.
+substitution.  DEFAULT is used when PARAMETER is not specified.
 SPEC-LIST is a list of char/value pairs used for
 `format-spec-make'.  It is appended by `tramp-extra-expand-args',
 a connection-local variable."
-  (let ((args (tramp-get-method-parameter vec parameter))
+  (let ((args (tramp-get-method-parameter vec parameter default))
 	(extra-spec-list
 	 (mapcar
 	  #'eval
@@ -4939,7 +4953,7 @@ a connection-local variable."
 	     (mapcar
 	      (lambda (x) (split-string x " "))
 	      (tramp-expand-args
-	       v 'tramp-login-args
+	       v 'tramp-login-args nil
 	       ?h (or host "") ?u (or user "") ?p (or port "")
 	       ?c (format-spec (or options "") (format-spec-make ?t tmpfile))
 	       ?d (or device "") ?a (or pta "") ?l ""))))
@@ -6326,9 +6340,8 @@ This handles also chrooted environments, which are not regarded as local."
 (defun tramp-get-remote-tmpdir (vec)
   "Return directory for temporary files on the remote host identified by VEC."
   (with-tramp-connection-property (tramp-get-process vec) "remote-tmpdir"
-    (let ((dir
-	   (tramp-make-tramp-file-name
-	    vec (or (tramp-get-method-parameter vec 'tramp-tmpdir) "/tmp"))))
+    (let ((dir (tramp-make-tramp-file-name
+		vec (tramp-get-method-parameter vec 'tramp-tmpdir "/tmp"))))
       (or (and (file-directory-p dir) (file-writable-p dir)
 	       (tramp-file-local-name dir))
 	  (tramp-error vec 'file-error "Directory %s not accessible" dir))

@@ -31,14 +31,19 @@
 ;; Open a file on a running Docker container:
 ;;
 ;;     C-x C-f /docker:USER@CONTAINER:/path/to/file
+;;     C-x C-f /dockercp:USER@CONTAINER:/path/to/file
 ;;
 ;; or Podman:
 ;;
 ;;     C-x C-f /podman:USER@CONTAINER:/path/to/file
+;;     C-x C-f /podmancp:USER@CONTAINER:/path/to/file
 ;;
 ;; Where:
 ;;     USER          is the user on the container to connect as (optional).
 ;;     CONTAINER     is the container to connect to.
+;;
+;; "docker" and "podman" are inline methods, "dockercp" and "podmancp"
+;; are out-of-band methods.
 ;;
 ;;
 ;;
@@ -142,8 +147,18 @@ If it is nil, the default context will be used."
   "Tramp method name to use to connect to Docker containers.")
 
 ;;;###tramp-autoload
+(defconst tramp-dockercp-method "dockercp"
+  "Tramp method name to use to connect to Docker containers.
+This is for out-of-band connections.")
+
+;;;###tramp-autoload
 (defconst tramp-podman-method "podman"
   "Tramp method name to use to connect to Podman containers.")
+
+;;;###tramp-autoload
+(defconst tramp-podmancp-method "podmancp"
+  "Tramp method name to use to connect to Podman containers.
+This is for out-of-band connections.")
 
 ;;;###tramp-autoload
 (defconst tramp-kubernetes-method "kubernetes"
@@ -183,7 +198,8 @@ BODY is the backend specific code."
 (defun tramp-container--completion-function (method)
   "List running containers available for connection.
 METHOD is the Tramp method to be used for \"ps\", either
-`tramp-docker-method' or `tramp-podman-method'.
+`tramp-docker-method', `tramp-dockercp-method', `tramp-podman-method',
+or `tramp-podmancp-method'.
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
@@ -376,6 +392,23 @@ see its function help for a description of the format."
                 (tramp-remote-shell-args ("-i" "-c"))))
 
  (add-to-list 'tramp-methods
+              `(,tramp-dockercp-method
+                (tramp-login-program ,tramp-docker-program)
+                (tramp-login-args (("exec")
+                                   ("-it")
+                                   ("-u" "%u")
+                                   ("%h")
+			           ("%l")))
+		(tramp-direct-async (,tramp-default-remote-shell "-c"))
+                (tramp-remote-shell ,tramp-default-remote-shell)
+                (tramp-remote-shell-login ("-l"))
+                (tramp-remote-shell-args ("-i" "-c"))
+		(tramp-copy-program ,tramp-docker-program)
+		(tramp-copy-args (("cp")))
+		(tramp-copy-file-name (("%h" ":") ("%f")))
+                (tramp-copy-recursive t)))
+
+ (add-to-list 'tramp-methods
               `(,tramp-podman-method
                 (tramp-login-program ,tramp-podman-program)
                 (tramp-login-args (("exec")
@@ -387,6 +420,23 @@ see its function help for a description of the format."
                 (tramp-remote-shell ,tramp-default-remote-shell)
                 (tramp-remote-shell-login ("-l"))
                 (tramp-remote-shell-args ("-i" "-c"))))
+
+ (add-to-list 'tramp-methods
+              `(,tramp-podmancp-method
+                (tramp-login-program ,tramp-podman-program)
+                (tramp-login-args (("exec")
+                                   ("-it")
+                                   ("-u" "%u")
+                                   ("%h")
+			           ("%l")))
+		(tramp-direct-async (,tramp-default-remote-shell "-c"))
+                (tramp-remote-shell ,tramp-default-remote-shell)
+                (tramp-remote-shell-login ("-l"))
+                (tramp-remote-shell-args ("-i" "-c"))
+		(tramp-copy-program ,tramp-podman-program)
+		(tramp-copy-args (("cp")))
+		(tramp-copy-file-name (("%h" ":") ("%f")))
+                (tramp-copy-recursive t)))
 
  (add-to-list 'tramp-methods
               `(,tramp-kubernetes-method
@@ -432,8 +482,16 @@ see its function help for a description of the format."
   `((tramp-container--completion-function ,tramp-docker-method)))
 
  (tramp-set-completion-function
+  tramp-dockercp-method
+  `((tramp-container--completion-function ,tramp-dockercp-method)))
+
+ (tramp-set-completion-function
   tramp-podman-method
   `((tramp-container--completion-function ,tramp-podman-method)))
+
+ (tramp-set-completion-function
+  tramp-podmancp-method
+  `((tramp-container--completion-function ,tramp-podmancp-method)))
 
  (tramp-set-completion-function
   tramp-kubernetes-method
