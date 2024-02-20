@@ -328,9 +328,14 @@ Returns non-nil if any false statements are found."
   (setq root (directory-file-name (file-relative-name root)))
   (or (file-directory-p root)
       (error "Directory `%s' not found" root))
-  (let ((files (directory-files-recursively root "\\.el\\'")))
-    (when files
-      (apply #'check-declare-files files))))
+  (when-let* ((files (directory-files-recursively root "\\.el\\'"))
+              (files (mapcan (lambda (file)
+                               ;; Filter out lock files.
+                               (and (not (string-prefix-p
+                                          ".#" (file-name-nondirectory file)))
+                                    (list file)))
+                               files)))
+    (apply #'check-declare-files files)))
 
 (provide 'check-declare)
 
