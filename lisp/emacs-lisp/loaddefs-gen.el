@@ -201,8 +201,7 @@ expression, in which case we want to handle forms differently."
                        define-globalized-minor-mode defun defmacro
 		       easy-mmode-define-minor-mode define-minor-mode
                        define-inline cl-defun cl-defmacro cl-defgeneric
-                       cl-defstruct pcase-defmacro iter-defun cl-iter-defun
-                       transient-define-prefix))
+                       cl-defstruct pcase-defmacro iter-defun cl-iter-defun))
            (macrop car)
 	   (setq expand (let ((load-true-file-name file)
                               (load-file-name file))
@@ -218,13 +217,17 @@ expression, in which case we want to handle forms differently."
 		   define-globalized-minor-mode
 		   easy-mmode-define-minor-mode define-minor-mode
 		   cl-defun defun* cl-defmacro defmacro*
-                   define-overloadable-function))
+                   define-overloadable-function
+                   transient-define-prefix transient-define-suffix
+                   transient-define-infix transient-define-argument))
       (let* ((macrop (memq car '(defmacro cl-defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (pcase car
                      ((or 'defun 'defmacro
                           'defun* 'defmacro* 'cl-defun 'cl-defmacro
-                          'define-overloadable-function)
+                          'define-overloadable-function
+                          'transient-define-prefix 'transient-define-suffix
+                          'transient-define-infix 'transient-define-argument)
                       (nth 2 form))
                      ('define-skeleton '(&optional str arg))
                      ((or 'define-generic-mode 'define-derived-mode
@@ -246,7 +249,11 @@ expression, in which case we want to handle forms differently."
                                    define-global-minor-mode
                                    define-globalized-minor-mode
                                    easy-mmode-define-minor-mode
-                                   define-minor-mode))
+                                   define-minor-mode
+                                   transient-define-prefix
+                                   transient-define-suffix
+                                   transient-define-infix
+                                   transient-define-argument))
                       t)
                  (and (eq (car-safe (car body)) 'interactive)
                       ;; List of modes or just t.
