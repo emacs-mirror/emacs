@@ -261,7 +261,7 @@ As with `pcase-let', BINDINGS are of the form (PATTERN EXP), but the
 EXP in each binding in BINDINGS can use the results of the destructuring
 bindings that precede it in BINDINGS' order.
 
-Each EXP should match (i.e. be of compatible structure) to its
+Each EXP should match (i.e. be of compatible structure) its
 respective PATTERN; a mismatch may signal an error or may go
 undetected, binding variables to arbitrary values, such as nil."
   (declare (indent 1)
@@ -283,7 +283,7 @@ All EXPs are evaluated first, and then used to perform destructuring
 bindings by matching each EXP against its respective PATTERN.  Then
 BODY is evaluated with those bindings in effect.
 
-Each EXP should match (i.e. be of compatible structure) to its
+Each EXP should match (i.e. be of compatible structure) its
 respective PATTERN; a mismatch may signal an error or may go
 undetected, binding variables to arbitrary values, such as nil."
   (declare (indent 1) (debug pcase-let*))
