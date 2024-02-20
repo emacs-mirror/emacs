@@ -81,6 +81,7 @@
     (tree-sitter-parser atom)
     (tree-sitter-node atom)
     (tree-sitter-compiled-query atom)
+    (native-comp-unit atom)
     ;; Plus, really hand made:
     (null symbol list sequence atom))
   "Alist of supertypes.
