@@ -3033,7 +3033,7 @@ Set it into the `type' slot."
       (setf (comp-cstr-imm (comp-func-type func)) type))))
 
 (defun comp--compute-function-types (_)
-  ""
+  "Compute and store the type specifier for all functions."
   (maphash #'comp--compute-function-type (comp-ctxt-funcs-h comp-ctxt)))
 
 
