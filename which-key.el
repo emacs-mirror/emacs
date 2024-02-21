@@ -715,26 +715,24 @@ Used in functions like `which-key-show-keymap'.")
 ;;; Internal Vars
 
 (defvar which-key--buffer nil
-  "Internal: Holds reference to which-key buffer.")
+  "Holds reference to which-key buffer.")
 (defvar which-key--timer nil
-  "Internal: Holds reference to open window timer.")
+  "Holds reference to open window timer.")
 (defvar which-key--secondary-timer-active nil
-  "Internal: Non-nil if the secondary timer is active.")
+  "Non-nil if the secondary timer is active.")
 (defvar which-key--paging-timer nil
-  "Internal: Holds reference to timer for paging.")
+  "Holds reference to timer for paging.")
 (defvar which-key--frame nil
-  "Internal: Holds reference to which-key frame.
+  "Holds reference to which-key frame.
 Used when `which-key-popup-type' is frame.")
 (defvar which-key--echo-keystrokes-backup nil
-  "Internal: Backup the initial value of `echo-keystrokes'.")
+  "Backup the initial value of `echo-keystrokes'.")
 (defvar which-key--prefix-help-cmd-backup nil
-  "Internal: Backup the value of `prefix-help-command'.")
+  "Backup the value of `prefix-help-command'.")
 (defvar which-key--last-try-2-loc nil
-  "Internal: Last location of side-window when two locations
-used.")
+  "Last location of side-window when two locations used.")
 (defvar which-key--automatic-display nil
-  "Internal: Non-nil if popup was triggered with automatic
-update.")
+  "Non-nil if popup was triggered with automatic update.")
 (defvar which-key--debug-buffer-name nil
   "If non-nil, use this buffer for debug messages.")
 (defvar which-key--multiple-locations nil)
