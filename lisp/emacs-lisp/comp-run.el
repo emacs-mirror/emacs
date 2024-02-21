@@ -256,6 +256,7 @@ display a message."
                                              load-path
                                              backtrace-line-length
                                              byte-compile-warnings
+                                             comp-sanitizer-emit
                                              ;; package-load-list
                                              ;; package-user-dir
                                              ;; package-directory-list
