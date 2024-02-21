@@ -26,8 +26,8 @@
 ;; This package provides `lua-ts-mode' which is a major mode for Lua
 ;; files that uses Tree Sitter to parse the language.
 ;;
-;; This package is compatible with and tested against the grammar
-;; for Lua found at https://github.com/MunifTanjim/tree-sitter-lua
+;; This package is compatible with and tested against the grammar for
+;; Lua found at https://github.com/tree-sitter-grammars/tree-sitter-lua
 
 ;;; Code:
 
