@@ -478,6 +478,16 @@ typedef EMACS_INT Lisp_Word;
 #endif
 
 
+/* Lisp_Object tagging scheme:
+        Tag location
+   Upper bits  Lower bits  Type        Payload
+   000.......  .......000  symbol      offset from lispsym to struct Lisp_Symbol
+   001.......  .......001  unused
+   01........  ........10  fixnum      signed integer of FIXNUM_BITS
+   110.......  .......011  cons        pointer to struct Lisp_Cons
+   100.......  .......100  string      pointer to struct Lisp_String
+   101.......  .......101  vectorlike  pointer to union vectorlike_header
+   111.......  .......111  float       pointer to struct Lisp_Float  */
 enum Lisp_Type
   {
     /* Symbol.  XSYMBOL (object) points to a struct Lisp_Symbol.  */
