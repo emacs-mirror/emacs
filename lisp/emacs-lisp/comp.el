@@ -165,6 +165,7 @@ Can be one of: `d-default', `d-impure' or `d-ephemeral'.  See `comp-ctxt'.")
                         comp--tco
                         comp--fwprop
                         comp--remove-type-hints
+                        comp--compute-function-types
                         comp--final)
   "Passes to be executed in order.")
 
@@ -2994,32 +2995,7 @@ These are substituted with a normal `set' op."
            (comp-ctxt-funcs-h comp-ctxt)))
 
 
-;;; Final pass specific code.
-
-(defun comp--args-to-lambda-list (args)
-  "Return a lambda list for ARGS."
-  (cl-loop
-   with res
-   repeat (comp-args-base-min args)
-   do (push t res)
-   finally
-   (if (comp-args-p args)
-       (cl-loop
-        with n = (- (comp-args-max args) (comp-args-min args))
-        initially (unless (zerop n)
-                    (push '&optional res))
-        repeat n
-        do (push t res))
-     (cl-loop
-      with n = (- (comp-nargs-nonrest args) (comp-nargs-min args))
-      initially (unless (zerop n)
-                  (push '&optional res))
-      repeat n
-      do (push t res)
-      finally (when (comp-nargs-rest args)
-                (push '&rest res)
-                (push 't res))))
-   (cl-return (reverse res))))
+;;; Function types pass specific code.
 
 (defun comp--compute-function-type (_ func)
   "Compute type specifier for `comp-func' FUNC.
@@ -3046,6 +3022,38 @@ Set it into the `type' slot."
       (comp--add-const-to-relocs type)
       ;; Fix it up.
       (setf (comp-cstr-imm (comp-func-type func)) type))))
+
+(defun comp--compute-function-types (_)
+  ""
+  (maphash #'comp--compute-function-type (comp-ctxt-funcs-h comp-ctxt)))
+
+
+;;; Final pass specific code.
+
+(defun comp--args-to-lambda-list (args)
+  "Return a lambda list for ARGS."
+  (cl-loop
+   with res
+   repeat (comp-args-base-min args)
+   do (push t res)
+   finally
+   (if (comp-args-p args)
+       (cl-loop
+        with n = (- (comp-args-max args) (comp-args-min args))
+        initially (unless (zerop n)
+                    (push '&optional res))
+        repeat n
+        do (push t res))
+     (cl-loop
+      with n = (- (comp-nargs-nonrest args) (comp-nargs-min args))
+      initially (unless (zerop n)
+                  (push '&optional res))
+      repeat n
+      do (push t res)
+      finally (when (comp-nargs-rest args)
+                (push '&rest res)
+                (push 't res))))
+   (cl-return (reverse res))))
 
 (defun comp--finalize-container (cont)
   "Finalize data container CONT."
@@ -3149,7 +3157,6 @@ Prepare every function for final compilation and drive the C back-end."
 
 (defun comp--final (_)
   "Final pass driving the C back-end for code emission."
-  (maphash #'comp--compute-function-type (comp-ctxt-funcs-h comp-ctxt))
   (unless comp-dry-run
     ;; Always run the C side of the compilation as a sub-process
     ;; unless during bootstrap or async compilation (bug#45056).  GCC
