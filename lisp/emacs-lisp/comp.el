@@ -68,7 +68,7 @@
   :safe #'integerp
   :version "28.1")
 
-(defcustom native-comp-debug  0
+(defcustom native-comp-debug 0
   "Debug level for native compilation, a number between 0 and 3.
 This is intended for debugging the compiler itself.
   0 no debug output.
