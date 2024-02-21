@@ -188,6 +188,9 @@ Useful to hook into pass checkers.")
    finally return h)
   "Hash table function -> `comp-constraint'.")
 
+;; Keep it in sync with the `cl-deftype-satisfies' property set in
+;; cl-macs.el. We can't use `cl-deftype-satisfies' directly as the
+;; relation type <-> predicate is not bijective (bug#45576).
 (defconst comp-known-predicates
   '((arrayp              . array)
     (atom		 . atom)
