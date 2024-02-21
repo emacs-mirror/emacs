@@ -1124,7 +1124,7 @@ column is sorted in the descending order.
 This buffer-local variable specifies the format of the Tabulated List
 data.  Its value should be a vector.  Each element of the vector
 represents a data column, and should be a list @code{(@var{name}
-@var{width} @var{sort})}, where
+@var{width} @var{sort} . @var{props})}, where
 
 @itemize
 @item
@@ -1141,6 +1141,13 @@ sorted by comparing string values.  Otherwise, this should be a
 predicate function for @code{sort} (@pxref{Rearrangement}), which
 accepts two arguments with the same form as the elements of
 @code{tabulated-list-entries} (see below).
+
+@item
+@var{props} is a plist (@pxref{Property Lists}) of additional column
+properties.  If the value of the property @code{:right-align} is
+non-@code{nil} then the column should be right-aligned.  And the
+property @code{:pad-right} specifies the number of additional padding
+spaces to the right of the column (by default 1 if omitted).
 @end itemize
 @end defvar
 
