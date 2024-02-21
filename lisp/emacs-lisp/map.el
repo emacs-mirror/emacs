@@ -608,19 +608,30 @@ This allows using default values for `map-elt', which can't be
 done using `pcase--flip'.
 
 KEY is the key sought in the map.  DEFAULT is the default value."
+  ;; It's obsolete in Emacs>29, but `map.el' is distributed via GNU ELPA
+  ;; for earlier Emacsen.
   (declare (obsolete _ "30.1"))
   `(map-elt ,map ,key ,default))
 
 (defun map--make-pcase-bindings (args)
   "Return a list of pcase bindings from ARGS to the elements of a map."
-  (mapcar (lambda (elt)
-            (cond ((consp elt)
-                   `(app (map-elt _ ,(car elt) ,(caddr elt))
-                         ,(cadr elt)))
-                  ((keywordp elt)
-                   (let ((var (intern (substring (symbol-name elt) 1))))
-                     `(app (map-elt _ ,elt) ,var)))
-                  (t `(app (map-elt _ ',elt) ,elt))))
+  (mapcar (if (< emacs-major-version 30)
+              (lambda (elt)
+                (cond ((consp elt)
+                       `(app (map--pcase-map-elt ,(car elt) ,(caddr elt))
+                             ,(cadr elt)))
+                      ((keywordp elt)
+                       (let ((var (intern (substring (symbol-name elt) 1))))
+                         `(app (pcase--flip map-elt ,elt) ,var)))
+                      (t `(app (pcase--flip map-elt ',elt) ,elt))))
+            (lambda (elt)
+              (cond ((consp elt)
+                     `(app (map-elt _ ,(car elt) ,(caddr elt))
+                           ,(cadr elt)))
+                    ((keywordp elt)
+                     (let ((var (intern (substring (symbol-name elt) 1))))
+                       `(app (map-elt _ ,elt) ,var)))
+                    (t `(app (map-elt _ ',elt) ,elt)))))
           args))
 
 (defun map--make-pcase-patterns (args)
