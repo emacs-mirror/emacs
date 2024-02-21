@@ -44,7 +44,7 @@
   ;; TODO can we just add t in `cl--typeof-types'?
   "Like `cl--typeof-types' but with t as common supertype.")
 
-(cl-defstruct (comp-cstr (:constructor comp-type-to-cstr
+(cl-defstruct (comp-cstr (:constructor comp--type-to-cstr
                                        (type &aux
 					     (null (eq type 'null))
                                              (integer (eq type 'integer))
@@ -55,7 +55,7 @@
 						       '(nil)))
                                              (range (when integer
                                                       '((- . +))))))
-                         (:constructor comp-value-to-cstr
+                         (:constructor comp--value-to-cstr
                                        (value &aux
                                               (integer (integerp value))
                                               (valset (unless integer
@@ -63,7 +63,7 @@
                                               (range (when integer
                                                        `((,value . ,value))))
                                               (typeset ())))
-                         (:constructor comp-irange-to-cstr
+                         (:constructor comp--irange-to-cstr
                                        (irange &aux
                                                (range (list irange))
                                                (typeset ())))
@@ -229,10 +229,10 @@ Return them as multiple value."
 ;; builds.
 (defvar comp-ctxt nil)
 
-(defvar comp-cstr-one (comp-value-to-cstr 1)
+(defvar comp-cstr-one (comp--value-to-cstr 1)
   "Represent the integer immediate one.")
 
-(defvar comp-cstr-t (comp-type-to-cstr t)
+(defvar comp-cstr-t (comp--type-to-cstr t)
   "Represent the superclass t.")
 
 
@@ -1212,14 +1212,14 @@ FN non-nil indicates we are parsing a function lambda list."
     ('nil
      (make-comp-cstr :typeset ()))
     ('fixnum
-     (comp-irange-to-cstr `(,most-negative-fixnum . ,most-positive-fixnum)))
+     (comp--irange-to-cstr `(,most-negative-fixnum . ,most-positive-fixnum)))
     ('boolean
      (comp-type-spec-to-cstr '(member t nil)))
     ('integer
-     (comp-irange-to-cstr '(- . +)))
-    ('null (comp-value-to-cstr nil))
+     (comp--irange-to-cstr '(- . +)))
+    ('null (comp--value-to-cstr nil))
     ((pred atom)
-     (comp-type-to-cstr type-spec))
+     (comp--type-to-cstr type-spec))
     (`(or . ,rest)
      (apply #'comp-cstr-union-make
             (mapcar #'comp-type-spec-to-cstr rest)))
@@ -1229,16 +1229,16 @@ FN non-nil indicates we are parsing a function lambda list."
     (`(not  ,cstr)
      (comp-cstr-negation-make (comp-type-spec-to-cstr cstr)))
     (`(integer ,(and (pred integerp) l) ,(and (pred integerp) h))
-     (comp-irange-to-cstr `(,l . ,h)))
+     (comp--irange-to-cstr `(,l . ,h)))
     (`(integer * ,(and (pred integerp) h))
-     (comp-irange-to-cstr `(- . ,h)))
+     (comp--irange-to-cstr `(- . ,h)))
     (`(integer ,(and (pred integerp) l) *)
-     (comp-irange-to-cstr `(,l . +)))
+     (comp--irange-to-cstr `(,l . +)))
     (`(float ,(pred comp-star-or-num-p) ,(pred comp-star-or-num-p))
      ;; No float range support :/
-     (comp-type-to-cstr 'float))
+     (comp--type-to-cstr 'float))
     (`(member . ,rest)
-     (apply #'comp-cstr-union-make (mapcar #'comp-value-to-cstr rest)))
+     (apply #'comp-cstr-union-make (mapcar #'comp--value-to-cstr rest)))
     (`(function ,args ,ret)
      (make-comp-cstr-f
       :args (mapcar (lambda (x)
