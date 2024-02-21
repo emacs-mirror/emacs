@@ -361,8 +361,24 @@ public final class EmacsContextMenu
 	public Boolean
 	call ()
 	{
+	  boolean rc;
+
 	  lastMenuEventSerial = serial;
-	  return display1 (window, xPosition, yPosition);
+	  rc = display1 (window, xPosition, yPosition);
+
+	  /* Android 3.0 to Android 7.0 perform duplicate calls to
+	     onContextMenuClosed after a context menu is dismissed for
+	     the second or third time.  Since the second call after such
+	     a dismissal is otherwise liable to prematurely cancel any
+	     context menu displayed immediately afterwards, ignore calls
+	     received within 300 milliseconds of this menu's being
+	     displayed.  */
+
+	  if (rc && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
+	      && Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+	    wasSubmenuSelected = System.currentTimeMillis ();
+
+	  return rc;
 	}
       });
 
