@@ -694,8 +694,6 @@ by toggling a provided compatibility switch.  See source code around
 the function 'erc-send-action' for details.
 
 *** Miscellaneous changes
-Two helper macros from GNU ELPA's Compat library are now available to
-third-party modules as 'erc-compat-call' and 'erc-compat-function'.
 In 'erc-button-alist', 'Info-goto-node' has been supplanted by plain
 old 'info', and the "<URL:...>" entry has been removed because it was
 more or less redundant.  In all ERC buffers, the "<TAB>" key is now

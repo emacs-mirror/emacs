@@ -2772,8 +2772,9 @@ PORT, NICK, and PASSWORD, along with USER and FULL-NAME when
 given a prefix argument.  Non-interactively, expect the rarely
 needed ID parameter, when non-nil, to be a symbol or a string for
 naming the server buffer and identifying the connection
-unequivocally.  (See Info node `(erc) Connecting' for details
-about all mentioned parameters.)
+unequivocally.  Once connected, return the server buffer.  (See
+Info node `(erc) Connecting' for details about all mentioned
+parameters.)
 
 Together with `erc-tls', this command serves as the main entry
 point for ERC, the powerful, modular, and extensible IRC client.

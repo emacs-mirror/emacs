@@ -1479,10 +1479,12 @@ for decoding."
   (let ((args (erc-response.command-args parsed-response))
         (decode-target nil)
         (decoded-args ()))
+    ;; FIXME this should stop after the first match.
     (dolist (arg args nil)
       (when (string-match "^[#&].*" arg)
         (setq decode-target arg)))
     (when (stringp decode-target)
+      ;; FIXME `decode-target' should be passed as TARGET.
       (setq decode-target (erc-decode-string-from-target decode-target nil)))
     (setf (erc-response.unparsed parsed-response)
           (erc-decode-string-from-target
