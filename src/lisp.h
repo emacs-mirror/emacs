@@ -2190,6 +2190,7 @@ struct Lisp_Subr
       Lisp_Object native;
     } intspec;
     Lisp_Object command_modes;
+    const char *declared_type;
     EMACS_INT doc;
 #ifdef HAVE_NATIVE_COMP
     Lisp_Object native_comp_u;
@@ -3294,17 +3295,18 @@ CHECK_SUBR (Lisp_Object x)
     If it's a string that doesn't start with `(', the value should follow
     the one of the doc string for `interactive'.
     A null string means call interactively with no arguments.
- `doc' is documentation for the user.  */
+ `doc' is documentation for the user.
+ `type' is the optional argument for the declared type of the function.  */
 
 /* This version of DEFUN declares a function prototype with the right
    arguments, so we can catch errors with maxargs at compile-time.  */
-#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc) \
-  SUBR_SECTION_ATTRIBUTE                                            \
-  static union Aligned_Lisp_Subr sname =                            \
-     {{{ PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },			    \
-       { .a ## maxargs = fnname },				    \
-       minargs, maxargs, lname, {intspec}, lisp_h_Qnil}};	    \
-   Lisp_Object fnname
+#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc, ...)       \
+  SUBR_SECTION_ATTRIBUTE						       \
+  static union Aligned_Lisp_Subr sname =				       \
+    {{{ PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				       \
+      { .a ## maxargs = fnname },					       \
+      minargs, maxargs, lname, {intspec}, lisp_h_Qnil, #__VA_ARGS__ }};	       \
+  Lisp_Object fnname
 
 /* defsubr (Sname);
    is how we define the symbol for function `name' at start-up time.  */

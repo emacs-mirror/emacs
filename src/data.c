@@ -1036,6 +1036,14 @@ DEFUN ("subr-type", Fsubr_type,
   (Lisp_Object subr)
 {
   CHECK_SUBR (subr);
+
+  const char *declared_type = XSUBR (subr)->declared_type;
+  if (declared_type && strcmp (declared_type, ""))
+    {
+      AUTO_STRING (str, declared_type);
+      return Fread (str);
+    }
+
 #ifdef HAVE_NATIVE_COMP
   return SUBR_TYPE (subr);
 #else
