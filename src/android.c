@@ -2519,6 +2519,8 @@ JNIEXPORT jboolean JNICALL
 NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
 					      jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   /* Yes, android_pass_multimedia_buttons_to_system is being
      read from the UI thread.  */
   return !android_pass_multimedia_buttons_to_system;
@@ -2527,6 +2529,8 @@ NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
 JNIEXPORT jboolean JNICALL
 NATIVE_NAME (shouldForwardCtrlSpace) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   return !android_intercept_control_space;
 }
 
@@ -2630,6 +2634,8 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (notifyPixelsChanged) (JNIEnv *env, jobject object,
 				   jobject bitmap)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   void *data;
 
   /* Lock and unlock the bitmap.  This calls
@@ -2683,6 +2689,8 @@ NATIVE_NAME (answerQuerySpin) (JNIEnv *env, jobject object)
 JNIEXPORT void JNICALL
 NATIVE_NAME (setupSystemThread) (void)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   sigset_t sigset;
 
   /* Block everything except for SIGSEGV and SIGBUS; those two are

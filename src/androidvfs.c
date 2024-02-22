@@ -6317,6 +6317,8 @@ static sem_t saf_completion_sem;
 JNIEXPORT jint JNICALL
 NATIVE_NAME (safSyncAndReadInput) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   while (sem_wait (&saf_completion_sem) < 0)
     {
       if (input_blocked_p ())
@@ -6338,6 +6340,8 @@ NATIVE_NAME (safSyncAndReadInput) (JNIEnv *env, jobject object)
 JNIEXPORT void JNICALL
 NATIVE_NAME (safSync) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   while (sem_wait (&saf_completion_sem) < 0)
     process_pending_signals ();
 }
@@ -6345,12 +6349,16 @@ NATIVE_NAME (safSync) (JNIEnv *env, jobject object)
 JNIEXPORT void JNICALL
 NATIVE_NAME (safPostRequest) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   sem_post (&saf_completion_sem);
 }
 
 JNIEXPORT jboolean JNICALL
 NATIVE_NAME (ftruncate) (JNIEnv *env, jobject object, jint fd)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   if (ftruncate (fd, 0) < 0)
     return false;
 
