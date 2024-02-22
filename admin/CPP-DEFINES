@@ -42,8 +42,8 @@ HAVE_X_WINDOWS	Compile support for X Window system.  Equivalent to HAVE_X11.
 HAVE_ANDROID    Compiling the Android GUI interface.  Enough of this
 		code is compiled for the build machine cross-compiling
 		the Android port to produce an Emacs binary that can
-		Lisp code in batch mode, for the purpose of compiling
-		Lisp code for packaging.
+		run Lisp code in batch mode, for the purpose of running
+		the byte-compiler.
 ANDROID_STUBIFY The Android GUI interface is being compiled for the build
 		machine, as above.
 
