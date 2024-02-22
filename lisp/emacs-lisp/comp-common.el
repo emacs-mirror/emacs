@@ -309,7 +309,7 @@ Used to modify the compiler environment."
     (numberp (function (t) boolean))
     (one-window-p (function (&optional t t) boolean))
     (overlayp (function (t) boolean))
-    (parse-colon-path (function (string) cons))
+    (parse-colon-path (function (string) list))
     (plist-get (function (list t &optional t) t))
     (plist-member (function (list t &optional t) list))
     (point (function () integer))
