@@ -4536,18 +4536,11 @@ With argument MSG show activation/deactivation message."
        ((python-shell-completion-native-setup)
         (when msg
           (message "Shell native completion is enabled.")))
-       (t (lwarn
-           '(python python-shell-completion-native-turn-on-maybe)
-           :warning
-           (concat
-            "Your `python-shell-interpreter' doesn't seem to "
-            "support readline, yet `python-shell-completion-native-enable' "
-            (format "was t and %S is not part of the "
-                    (file-name-nondirectory python-shell-interpreter))
-            "`python-shell-completion-native-disabled-interpreters' "
-            "list.  Native completions have been disabled locally. "
-            "Consider installing the python package \"readline\". "))
-          (python-shell-completion-native-turn-off msg))))))
+       (t
+        (when msg
+          (message (concat "Python does not use GNU readline;"
+                           " no completion in multi-line commands.")))
+        (python-shell-completion-native-turn-off nil))))))
 
 (defun python-shell-completion-native-turn-on-maybe-with-msg ()
   "Like `python-shell-completion-native-turn-on-maybe' but force messages."
