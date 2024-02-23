@@ -202,21 +202,25 @@ Account for `native-comp-eln-load-path' and `comp-native-version-dir'."
   "Return the type specifier of FUNCTION.
 
 This function returns a cons cell whose car is the function
-specifier, and cdr is a symbol, either `inferred' or `know'.
+specifier, and cdr is a symbol, either `inferred' or `declared'.
 If the symbol is `inferred', the type specifier is automatically
 inferred from the code itself by the native compiler; if it is
 `know', the type specifier comes from `comp-primitive-type-specifiers'."
-  (let ((kind 'know)
-        type-spec )
+  (let ((kind 'declared)
+        type-spec)
     (when-let ((res (assoc function comp-primitive-type-specifiers)))
+      ;; Declared primitive
       (setf type-spec (cadr res)))
     (let ((f (and (symbolp function)
                   (symbol-function function))))
-      (when (and f
-                 (null type-spec)
-                 (subr-native-elisp-p f))
-        (setf kind 'inferred
-              type-spec (subr-type f))))
+      (when (and f (null type-spec))
+        (if-let ((delc-type (function-get function 'declared-type)))
+            ;; Declared Lisp function
+            (setf type-spec (cons 'function delc-type))
+          (when (subr-native-elisp-p f)
+            ;; Native compiled inferred
+            (setf kind 'inferred
+                  type-spec (subr-type f))))))
     (when type-spec
         (cons type-spec kind))))
 

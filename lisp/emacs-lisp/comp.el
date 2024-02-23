@@ -178,7 +178,7 @@ For internal use by the test suite only.")
 Each function in FUNCTIONS is run after PASS.
 Useful to hook into pass checkers.")
 
-(defconst comp-known-func-cstr-h
+(defconst comp-primitive-func-cstr-h
   (cl-loop
    with comp-ctxt = (make-comp-cstr-ctxt)
    with h = (make-hash-table :test #'eq)
@@ -187,6 +187,15 @@ Useful to hook into pass checkers.")
    do (puthash f cstr h)
    finally return h)
   "Hash table function -> `comp-constraint'.")
+
+(defun comp--get-function-cstr (function)
+  "Given FUNCTION return the corresponding `comp-constraint'."
+  (when (symbolp function)
+    (let ((f (symbol-function function)))
+      (if (subr-primitive-p f)
+          (gethash f comp-primitive-func-cstr-h)
+        (when-let ((delc-type (function-get function 'declared-type)))
+          (comp-type-spec-to-cstr (cons 'function delc-type)))))))
 
 ;; Keep it in sync with the `cl-deftype-satisfies' property set in
 ;; cl-macs.el. We can't use `cl-deftype-satisfies' directly as the
@@ -2099,10 +2108,10 @@ TARGET-BB-SYM is the symbol name of the target block."
      (when-let ((match
                  (pcase insn
                    (`(set ,lhs (,(pred comp--call-op-p) ,f . ,args))
-                    (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
+                    (when-let ((cstr-f (comp--get-function-cstr f)))
                       (cl-values f cstr-f lhs args)))
                    (`(,(pred comp--call-op-p) ,f . ,args)
-                    (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
+                    (when-let ((cstr-f (comp--get-function-cstr f)))
                       (cl-values f cstr-f nil args))))))
        (cl-multiple-value-bind (f cstr-f lhs args) match
          (cl-loop
@@ -2630,7 +2639,7 @@ Fold the call in case."
                (comp-cstr-imm-vld-p (car args)))
       (setf f (comp-cstr-imm (car args))
             args (cdr args)))
-    (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
+    (when-let ((cstr-f (comp--get-function-cstr f)))
       (let ((cstr (comp-cstr-f-ret cstr-f)))
         (when (comp-cstr-empty-p cstr)
           ;; Store it to be rewritten as non local exit.
