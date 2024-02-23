@@ -153,7 +153,7 @@ insert the queued one at the next prompt, and finally run it."
   "Test flushing of previous output"
   (with-temp-eshell
    (eshell-insert-command "echo alpha")
-   (eshell-kill-output)
+   (eshell-delete-output)
    (should (eshell-match-output
             (concat "^" (regexp-quote "*** output flushed ***\n") "$")))))
 
