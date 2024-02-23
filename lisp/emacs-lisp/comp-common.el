@@ -68,17 +68,6 @@ Used to modify the compiler environment."
   :risky t
   :version "28.1")
 
-(defconst comp-primitive-type-specifiers
-  (let (res)
-    (mapatoms (lambda (atom)
-                (when-let ((f (symbol-function atom))
-                           (primitive (subr-primitive-p f))
-                           (type (subr-type f)))
-                  (push `(,atom ,type) res))))
-    res)
-  "Alist used for type propagation.")
-
-
 (defconst comp-limple-calls '(call
                               callref
                               direct-call

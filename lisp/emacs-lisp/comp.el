@@ -179,14 +179,15 @@ Each function in FUNCTIONS is run after PASS.
 Useful to hook into pass checkers.")
 
 (defconst comp-primitive-func-cstr-h
-  (cl-loop
-   with comp-ctxt = (make-comp-cstr-ctxt)
-   with h = (make-hash-table :test #'eq)
-   for (f type-spec) in comp-primitive-type-specifiers
-   for cstr = (comp-type-spec-to-cstr type-spec)
-   do (puthash f cstr h)
-   finally return h)
-  "Hash table function -> `comp-constraint'.")
+  (let ((comp-ctxt (make-comp-cstr-ctxt))
+        (h (make-hash-table :test #'eq)))
+    (mapatoms (lambda (atom)
+                (when-let ((f (symbol-function atom))
+                           (primitive (subr-primitive-p f))
+                           (type (subr-type f)))
+                  (puthash f (comp-type-spec-to-cstr type) h))))
+    h)
+  "Hash table primtive -> `comp-constraint'.")
 
 (defun comp--get-function-cstr (function)
   "Given FUNCTION return the corresponding `comp-constraint'."
