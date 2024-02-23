@@ -805,8 +805,8 @@ that knows the exact ordering of the \\( \\) subexpressions.")
 			"\\(" cite-chars "[ \t]*\\)\\)+\\)"
 			"\\(.*\\)")
 	       (beginning-of-line) (end-of-line)
-	       (1 font-lock-comment-delimiter-face nil t)
-	       (5 font-lock-comment-face nil t)))
+	       (1 'font-lock-comment-delimiter-face nil t)
+	       (5 'font-lock-comment-face nil t)))
 	    '("^\\(X-[a-z0-9-]+\\|In-Reply-To\\|Date\\):.*\\(\n[ \t]+.*\\)*$"
 	      . 'rmail-header-name))))
   "Additional expressions to highlight in Rmail mode.")
