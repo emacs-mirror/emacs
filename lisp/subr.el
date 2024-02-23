@@ -442,7 +442,8 @@ This function accepts any number of arguments in ARGUMENTS.
 Also see `always'."
   ;; Not declared `side-effect-free' because we don't want calls to it
   ;; elided; see `byte-compile-ignore'.
-  (declare (pure t) (completion ignore))
+  (declare (function (&rest t) null)
+           (pure t) (completion ignore))
   (interactive)
   nil)
 
@@ -471,7 +472,8 @@ for the sake of consistency.
 
 To alter the look of the displayed error messages, you can use
 the `command-error-function' variable."
-  (declare (advertised-calling-convention (string &rest args) "23.1"))
+  (declare (function (string &rest t) nil)
+           (advertised-calling-convention (string &rest args) "23.1"))
   (signal 'error (list (apply #'format-message args))))
 
 (defun user-error (format &rest args)
@@ -536,19 +538,22 @@ was called."
   "Return t if NUMBER is zero."
   ;; Used to be in C, but it's pointless since (= 0 n) is faster anyway because
   ;; = has a byte-code.
-  (declare (pure t) (side-effect-free t)
+  (declare (function (number) boolean)
+           (pure t) (side-effect-free t)
            (compiler-macro (lambda (_) `(= 0 ,number))))
   (= 0 number))
 
 (defun fixnump (object)
   "Return t if OBJECT is a fixnum."
-  (declare (side-effect-free error-free))
+  (declare (function (t) boolean)
+           (side-effect-free error-free))
   (and (integerp object)
        (<= most-negative-fixnum object most-positive-fixnum)))
 
 (defun bignump (object)
   "Return t if OBJECT is a bignum."
-  (declare (side-effect-free error-free))
+  (declare (function (t) boolean)
+           (side-effect-free error-free))
   (and (integerp object) (not (fixnump object))))
 
 (defun lsh (value count)
@@ -561,7 +566,8 @@ Most uses of this function turn out to be mistakes.  We recommend
 to use `ash' instead, unless COUNT could ever be negative, and
 if, when COUNT is negative, your program really needs the special
 treatment of negative COUNT provided by this function."
-  (declare (compiler-macro
+  (declare (function (integer integer) integer)
+           (compiler-macro
             (lambda (form)
               (macroexp-warn-and-return
                (format-message "avoid `lsh'; use `ash' instead")
@@ -739,7 +745,8 @@ treatment of negative COUNT provided by this function."
 If LIST is nil, return nil.
 If N is non-nil, return the Nth-to-last link of LIST.
 If N is bigger than the length of LIST, return LIST."
-  (declare (pure t) (side-effect-free t))    ; pure up to mutation
+  (declare (function (list &optional integer) list)
+           (pure t) (side-effect-free t))    ; pure up to mutation
   (if n
       (and (>= n 0)
            (let ((m (safe-length list)))
@@ -1576,7 +1583,8 @@ See also `current-global-map'.")
 
 (defun eventp (object)
   "Return non-nil if OBJECT is an input event or event object."
-  (declare (pure t) (side-effect-free error-free))
+  (declare (function (t) boolean)
+           (pure t) (side-effect-free error-free))
   (or (integerp object)
       (and (if (consp object)
                (setq object (car object))
@@ -1643,7 +1651,8 @@ in the current Emacs session, then this function may return nil."
 
 (defsubst mouse-movement-p (object)
   "Return non-nil if OBJECT is a mouse movement event."
-  (declare (side-effect-free error-free))
+  (declare (function (t) boolean)
+           (side-effect-free error-free))
   (eq (car-safe object) 'mouse-movement))
 
 (defun mouse-event-p (object)
@@ -1952,7 +1961,8 @@ be a list of the form returned by `event-start' and `event-end'."
 
 (defun log10 (x)
   "Return (log X 10), the log base 10 of X."
-  (declare (side-effect-free t) (obsolete log "24.4"))
+  (declare (function (number) float)
+           (side-effect-free t) (obsolete log "24.4"))
   (log x 10))
 
 (set-advertised-calling-convention
@@ -3232,7 +3242,8 @@ It can be retrieved with `(process-get PROCESS PROPNAME)'."
 
 (defun memory-limit ()
   "Return an estimate of Emacs virtual memory usage, divided by 1024."
-  (declare (side-effect-free error-free))
+  (declare (function () integer)
+           (side-effect-free error-free))
   (let ((default-directory temporary-file-directory))
     (or (cdr (assq 'vsize (process-attributes (emacs-pid)))) 0)))
 
@@ -6524,7 +6535,8 @@ To test whether a function can be called interactively, use
 `commandp'."
   ;; Kept around for now.  See discussion at:
   ;; https://lists.gnu.org/r/emacs-devel/2020-08/msg00564.html
-  (declare (obsolete called-interactively-p "23.2")
+  (declare (function () boolean)
+           (obsolete called-interactively-p "23.2")
            (side-effect-free error-free))
   (called-interactively-p 'interactive))
 

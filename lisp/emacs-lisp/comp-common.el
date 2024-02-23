@@ -73,44 +73,13 @@ Used to modify the compiler environment."
   ;; to expose the same type.  The vast majority of these are
   ;; either pure or primitive; the original list is the union of
   ;; pure + side-effect-free-fns + side-effect-and-error-free-fns:
-  `((bignump (function (t) boolean))
-    (buffer-end (function ((or number marker)) integer))
-    (count-lines
-     (function ((or integer marker) (or integer marker) &optional t) integer))
-    (custom-variable-p (function (symbol) t))
-    (degrees-to-radians (function (number) float))
-    (eventp (function (t) boolean))
-    (fixnump (function (t) boolean))
-    (get-largest-window (function (&optional t t t) (or window null)))
-    (get-lru-window (function (&optional t t t) (or window null)))
-    (getenv (function (string &optional frame) (or null string)))
-    (ignore (function (&rest t) null))
-    (interactive-p (function () boolean))
-    (last (function (list &optional integer) list))
-    (lax-plist-get (function (list t) t))
-    (log10 (function (number) float))
-    ;; (lsh (function ((integer ,most-negative-fixnum *) integer) integer)) ?
-    (lsh (function (integer integer) integer))
-    (mark (function (&optional t) (or integer null)))
-    (memory-limit (function () integer))
-    (mouse-movement-p (function (t) boolean))
-    (one-window-p (function (&optional t t) boolean))
-    (radians-to-degrees (function (number) float))
-    (regexp-opt (function (list) string))
-    (zerop (function (number) boolean))
-    ;; Type hints
-    (comp-hint-fixnum (function (t) fixnum))
-    (comp-hint-cons (function (t) cons))
-    ;; Non returning functions
-    (error (function (string &rest t) nil))
-    ;; Primitives
-    ,@(let (res)
-        (mapatoms (lambda (atom)
-                    (when-let ((f (symbol-function atom))
-                               (primitive (subr-primitive-p f))
-                               (type (subr-type f)))
-                      (push `(,atom ,type) res))))
-        res))
+  (let (res)
+    (mapatoms (lambda (atom)
+                (when-let ((f (symbol-function atom))
+                           (primitive (subr-primitive-p f))
+                           (type (subr-type f)))
+                  (push `(,atom ,type) res))))
+    res)
   "Alist used for type propagation.")
 
 
