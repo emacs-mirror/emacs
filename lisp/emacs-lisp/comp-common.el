@@ -197,32 +197,33 @@ Account for `native-comp-eln-load-path' and `comp-native-version-dir'."
                                (expand-file-name dir invocation-directory))))
           native-comp-eln-load-path))
 
+;; FIXME now that is possible we should move this to help-fns.el
 ;;;###autoload
 (defun comp-function-type-spec (function)
   "Return the type specifier of FUNCTION.
 
-This function returns a cons cell whose car is the function
-specifier, and cdr is a symbol, either `inferred' or `declared'.
-If the symbol is `inferred', the type specifier is automatically
-inferred from the code itself by the native compiler; if it is
-`know', the type specifier comes from `comp-primitive-type-specifiers'."
+This function returns a cons cell whose car is the function specifier,
+and cdr is a symbol, either `inferred' or `declared'.  If the symbol is
+`inferred', the type specifier is automatically inferred from the code
+itself by the native compiler; if it is `declared', the type specifier
+comes from the function declaration."
   (let ((kind 'declared)
         type-spec)
-    (when-let ((res (assoc function comp-primitive-type-specifiers)))
-      ;; Declared primitive
-      (setf type-spec (cadr res)))
-    (let ((f (and (symbolp function)
-                  (symbol-function function))))
-      (when (and f (null type-spec))
+    (when-let ((symp (symbolp function))
+               (f (symbol-function function)))
+      (if-let ((primitive (subr-primitive-p f))
+               (type (subr-type f)))
+          ;; Declared primitive
+          (setf type-spec type)
         (if-let ((delc-type (function-get function 'declared-type)))
             ;; Declared Lisp function
             (setf type-spec (cons 'function delc-type))
           (when (subr-native-elisp-p f)
             ;; Native compiled inferred
             (setf kind 'inferred
-                  type-spec (subr-type f))))))
-    (when type-spec
-        (cons type-spec kind))))
+                  type-spec (subr-type f)))))
+      (when type-spec
+        (cons type-spec kind)))))
 
 (provide 'comp-common)
 
