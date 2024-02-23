@@ -517,8 +517,8 @@ use the face `diff-removed' for removed lines, and the face
     ("^Only in .*\n" . 'diff-nonexistent)
     ("^Binary files .* differ\n" . 'diff-file-header)
     ("^\\(#\\)\\(.*\\)"
-     (1 font-lock-comment-delimiter-face)
-     (2 font-lock-comment-face))
+     (1 'font-lock-comment-delimiter-face)
+     (2 'font-lock-comment-face))
     ("^diff: .*" (0 'diff-error))
     ("^[^-=+*!<>#].*\n" (0 'diff-context))
     (,#'diff--font-lock-syntax)
@@ -944,7 +944,8 @@ like \(diff-merge-strings \"b/foo\" \"b/bar\" \"/a/c/foo\")."
     (when (and (string-match (concat
 			      "\\`\\(.*?\\)\\(.*\\)\\(.*\\)\n"
 			      "\\1\\(.*\\)\\3\n"
-			      "\\(.*\\(\\2\\).*\\)\\'") str)
+			      "\\(.*\\(\\2\\).*\\)\\'")
+			     str)
 	       (equal to (match-string 5 str)))
       (concat (substring str (match-beginning 5) (match-beginning 6))
 	      (match-string 4 str)
@@ -1999,7 +2000,7 @@ With a prefix argument, REVERSE the hunk."
                (diff-find-source-location nil reverse)))
     (cond
      ((null line-offset)
-      (error "Can't find the text to patch"))
+      (user-error "Can't find the text to patch"))
      ((with-current-buffer buf
         (and buffer-file-name
              (backup-file-name-p buffer-file-name)
@@ -2008,7 +2009,7 @@ With a prefix argument, REVERSE the hunk."
                               (yes-or-no-p (format "Really apply this hunk to %s? "
                                                    (file-name-nondirectory
                                                     buffer-file-name)))))))
-      (error "%s"
+      (user-error "%s"
 	     (substitute-command-keys
               (format "Use %s\\[diff-apply-hunk] to apply it to the other file"
                       (if (not reverse) "\\[universal-argument] ")))))
@@ -2275,6 +2276,18 @@ Return new point, if it was moved."
             (end (progn (diff-end-of-hunk) (point))))
         (diff--refine-hunk beg end)))))
 
+(defun diff--refine-propertize (beg end face)
+  (let ((ol (make-overlay beg end)))
+    (overlay-put ol 'diff-mode 'fine)
+    (overlay-put ol 'evaporate t)
+    (overlay-put ol 'face face)))
+
+(defcustom diff-refine-nonmodified nil
+  "If non-nil also highlight as \"refined\" the added/removed lines.
+This is currently only implemented for `unified' diffs."
+  :version "30.1"
+  :type 'boolean)
+
 (defun diff--refine-hunk (start end)
   (require 'smerge-mode)
   (goto-char start)
@@ -2289,18 +2302,28 @@ Return new point, if it was moved."
     (goto-char beg)
     (pcase style
       ('unified
-       (while (re-search-forward "^-" end t)
+       (while (re-search-forward "^[-+]" end t)
          (let ((beg-del (progn (beginning-of-line) (point)))
                beg-add end-add)
-           (when (and (diff--forward-while-leading-char ?- end)
-                      ;; Allow for "\ No newline at end of file".
-                      (progn (diff--forward-while-leading-char ?\\ end)
-                             (setq beg-add (point)))
-                      (diff--forward-while-leading-char ?+ end)
-                      (progn (diff--forward-while-leading-char ?\\ end)
-                             (setq end-add (point))))
+           (cond
+            ((eq (char-after) ?+)
+             (diff--forward-while-leading-char ?+ end)
+             (when diff-refine-nonmodified
+               (diff--refine-propertize beg-del (point) 'diff-refine-added)))
+            ((and (diff--forward-while-leading-char ?- end)
+                  ;; Allow for "\ No newline at end of file".
+                  (progn (diff--forward-while-leading-char ?\\ end)
+                         (setq beg-add (point)))
+                  (diff--forward-while-leading-char ?+ end)
+                  (progn (diff--forward-while-leading-char ?\\ end)
+                         (setq end-add (point))))
              (smerge-refine-regions beg-del beg-add beg-add end-add
-                                    nil #'diff-refine-preproc props-r props-a)))))
+                                    nil #'diff-refine-preproc props-r props-a))
+            (t ;; If we're here, it's because
+             ;; (diff--forward-while-leading-char ?+ end) failed.
+             (when diff-refine-nonmodified
+              (diff--refine-propertize beg-del (point)
+                                       'diff-refine-removed)))))))
       ('context
        (let* ((middle (save-excursion (re-search-forward "^---" end t)))
               (other middle))
