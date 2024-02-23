@@ -4095,20 +4095,18 @@ typically for purposes of moderating a list."
 	    (save-excursion
 	      (if (featurep 'mailabbrev)
 		  (let ((end (point-marker))
-			(local-abbrev-table mail-abbrevs)
-			(old-syntax-table (syntax-table)))
+			(local-abbrev-table mail-abbrevs))
 		    (if (and (not (obarrayp mail-abbrevs))
 			     (file-exists-p mail-personal-alias-file))
 			(build-mail-abbrevs))
 		    (unless mail-abbrev-syntax-table
 		      (mail-abbrev-make-syntax-table))
-		    (set-syntax-table mail-abbrev-syntax-table)
-		    (goto-char before)
-		    (while (and (< (point) end)
-				(progn (forward-word-strictly 1)
-				       (<= (point) end)))
-		      (expand-abbrev))
-		    (set-syntax-table old-syntax-table))
+		    (with-syntax-table mail-abbrev-syntax-table
+		      (goto-char before)
+		      (while (and (< (point) end)
+				  (progn (forward-word-strictly 1)
+				         (<= (point) end)))
+			(expand-abbrev))))
 		(expand-mail-aliases before (point)))))
 	  ;;>> Set up comment, if any.
 	  (if (and (sequencep comment) (not (zerop (length comment))))
