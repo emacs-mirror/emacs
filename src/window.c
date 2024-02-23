@@ -5380,7 +5380,14 @@ grow_mini_window (struct window *w, int delta)
       grow = call3 (Qwindow__resize_root_window_vertically,
 		    root, make_fixnum (- delta), Qt);
 
-      if (FIXNUMP (grow) && window_resize_check (r, false))
+      if (FIXNUMP (grow)
+	  /* It might be impossible to resize the window, in which case
+	     calling resize_mini_window_apply will set off an infinite
+	     loop where the redisplay cycle so forced returns to
+	     resize_mini_window, making endless attempts to expand the
+	     minibuffer window to this impossible size.  (bug#69140) */
+	  && XFIXNUM (grow) != 0
+	  && window_resize_check (r, false))
 	resize_mini_window_apply (w, -XFIXNUM (grow));
     }
 }
