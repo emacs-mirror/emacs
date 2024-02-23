@@ -68,11 +68,7 @@ Used to modify the compiler environment."
   :risky t
   :version "28.1")
 
-(defconst comp-known-type-specifiers
-  ;; Functions we can trust not to be redefined, or, if redefined,
-  ;; to expose the same type.  The vast majority of these are
-  ;; either pure or primitive; the original list is the union of
-  ;; pure + side-effect-free-fns + side-effect-and-error-free-fns:
+(defconst comp-primitive-type-specifiers
   (let (res)
     (mapatoms (lambda (atom)
                 (when-let ((f (symbol-function atom))
@@ -209,10 +205,10 @@ This function returns a cons cell whose car is the function
 specifier, and cdr is a symbol, either `inferred' or `know'.
 If the symbol is `inferred', the type specifier is automatically
 inferred from the code itself by the native compiler; if it is
-`know', the type specifier comes from `comp-known-type-specifiers'."
+`know', the type specifier comes from `comp-primitive-type-specifiers'."
   (let ((kind 'know)
         type-spec )
-    (when-let ((res (assoc function comp-known-type-specifiers)))
+    (when-let ((res (assoc function comp-primitive-type-specifiers)))
       (setf type-spec (cadr res)))
     (let ((f (and (symbolp function)
                   (symbol-function function))))

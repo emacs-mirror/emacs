@@ -182,7 +182,7 @@ Useful to hook into pass checkers.")
   (cl-loop
    with comp-ctxt = (make-comp-cstr-ctxt)
    with h = (make-hash-table :test #'eq)
-   for (f type-spec) in comp-known-type-specifiers
+   for (f type-spec) in comp-primitive-type-specifiers
    for cstr = (comp-type-spec-to-cstr type-spec)
    do (puthash f cstr h)
    finally return h)
