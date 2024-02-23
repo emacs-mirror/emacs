@@ -938,7 +938,8 @@ DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
 This is the horizontal position of the character following any initial
 whitespace.
 Text that has an invisible property is considered as having width 0, unless
-`buffer-invisibility-spec' specifies that it is replaced by an ellipsis.  */)
+`buffer-invisibility-spec' specifies that it is replaced by an ellipsis.  */,
+(function () integer))
   (void)
 {
   ptrdiff_t posbyte;

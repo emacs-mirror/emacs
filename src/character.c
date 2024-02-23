@@ -172,7 +172,8 @@ In Emacs Lisp, characters are represented by character codes, which
 are non-negative integers.  The function `max-char' returns the
 maximum character code.
 usage: (characterp OBJECT)  */
-       attributes: const)
+       attributes: const,
+(function (t &optional t) boolean))
   (Lisp_Object object, Lisp_Object ignore)
 {
   return (CHARACTERP (object) ? Qt : Qnil);
@@ -182,7 +183,8 @@ DEFUN ("max-char", Fmax_char, Smax_char, 0, 1, 0,
        doc: /* Return the maximum character code.
 If UNICODE is non-nil, return the maximum character code defined
 by the Unicode Standard.  */
-       attributes: const)
+       attributes: const,
+(function (&optional t) fixnum))
   (Lisp_Object unicode)
 {
   return (!NILP (unicode)
@@ -192,7 +194,8 @@ by the Unicode Standard.  */
 
 DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
        Sunibyte_char_to_multibyte, 1, 1, 0,
-       doc: /* Convert the byte CH to multibyte character.  */)
+       doc: /* Convert the byte CH to multibyte character.  */,
+(function (fixnum) fixnum))
   (Lisp_Object ch)
 {
   int c;
@@ -207,7 +210,8 @@ DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
 DEFUN ("multibyte-char-to-unibyte", Fmultibyte_char_to_unibyte,
        Smultibyte_char_to_unibyte, 1, 1, 0,
        doc: /* Convert the multibyte character CH to a byte.
-If the multibyte character does not represent a byte, return -1.  */)
+If the multibyte character does not represent a byte, return -1.  */,
+(function (fixnum) fixnum))
   (Lisp_Object ch)
 {
   int cm;
@@ -267,7 +271,8 @@ metrics of the character's glyph as determined by its font.
 If the display table in effect replaces CHAR on display with
 something else, the function returns the width of the replacement.
 Tab is taken to occupy `tab-width' columns.
-usage: (char-width CHAR)  */)
+usage: (char-width CHAR)  */,
+(function (fixnum) fixnum))
   (Lisp_Object ch)
 {
   int c;
@@ -843,7 +848,8 @@ string_escape_byte8 (Lisp_Object string)
 DEFUN ("string", Fstring, Sstring, 0, MANY, 0,
        doc: /*
 Concatenate all the argument characters and make the result a string.
-usage: (string &rest CHARACTERS)  */)
+usage: (string &rest CHARACTERS)  */,
+(function (&rest fixnum) string))
   (ptrdiff_t n, Lisp_Object *args)
 {
   ptrdiff_t nbytes = 0;

@@ -968,7 +968,8 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 
 DEFUN ("syntax-table-p", Fsyntax_table_p, Ssyntax_table_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a syntax table.
-Currently, any char-table counts as a syntax table.  */)
+Currently, any char-table counts as a syntax table.  */,
+(function (t) boolean))
   (Lisp_Object object)
 {
   if (CHAR_TABLE_P (object)
@@ -986,7 +987,8 @@ check_syntax_table (Lisp_Object obj)
 
 DEFUN ("syntax-table", Fsyntax_table, Ssyntax_table, 0, 0, 0,
        doc: /* Return the current syntax table.
-This is the one specified by the current buffer.  */)
+This is the one specified by the current buffer.  */,
+(function () char-table))
   (void)
 {
   return BVAR (current_buffer, syntax_table);
@@ -995,7 +997,8 @@ This is the one specified by the current buffer.  */)
 DEFUN ("standard-syntax-table", Fstandard_syntax_table,
    Sstandard_syntax_table, 0, 0, 0,
        doc: /* Return the standard syntax table.
-This is the one used for new buffers.  */)
+This is the one used for new buffers.  */,
+(function () char-table))
   (void)
 {
   return Vstandard_syntax_table;
@@ -1138,7 +1141,8 @@ DEFUN ("string-to-syntax", Fstring_to_syntax, Sstring_to_syntax, 1, 1, 0,
 STRING should be a string of the form allowed as argument of
 `modify-syntax-entry'.  The return value is a raw syntax descriptor: a
 cons cell (CODE . MATCHING-CHAR) which can be used, for example, as
-the value of a `syntax-table' text property.  */)
+the value of a `syntax-table' text property.  */,
+(function (string) (or cons null)))
   (Lisp_Object string)
 {
   const unsigned char *p;

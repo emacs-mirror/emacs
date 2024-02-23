@@ -2774,7 +2774,8 @@ FINAL-STRING-INDEX is an integer giving the position of the next
 remaining character in STRING.  START and END optionally delimit
 a substring of STRING from which to read;  they default to 0 and
 \(length STRING) respectively.  Negative values are counted from
-the end of STRING.  */)
+the end of STRING.  */,
+(function (string &optional integer integer) cons))
   (Lisp_Object string, Lisp_Object start, Lisp_Object end)
 {
   Lisp_Object ret;
@@ -5035,7 +5036,8 @@ DEFUN ("intern-soft", Fintern_soft, Sintern_soft, 1, 2, 0,
 NAME may be a string or a symbol.  If it is a symbol, that exact
 symbol is searched for.
 A second optional argument specifies the obarray to use;
-it defaults to the value of `obarray'.  */)
+it defaults to the value of `obarray'.  */,
+(function ((or string symbol) &optional vector) symbol))
   (Lisp_Object name, Lisp_Object obarray)
 {
   register Lisp_Object tem, string;

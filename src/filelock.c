@@ -730,7 +730,8 @@ unlock_buffer (struct buffer *buffer)
 DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 1, 1, 0,
        doc: /* Return a value indicating whether FILENAME is locked.
 The value is nil if the FILENAME is not locked,
-t if it is locked by you, else a string saying which user has locked it.  */)
+t if it is locked by you, else a string saying which user has locked it.  */,
+(function (string) (or boolean string)))
   (Lisp_Object filename)
 {
 #ifdef MSDOS

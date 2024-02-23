@@ -374,7 +374,8 @@ OBJECT can be either a string or a reference if it's kept externally.  */)
 DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
        doc: /* Return the documentation string of FUNCTION.
 Unless a non-nil second argument RAW is given, the
-string is passed through `substitute-command-keys'.  */)
+string is passed through `substitute-command-keys'.  */,
+(function ((or function symbol subr) &optional t) (or null string)))
   (Lisp_Object function, Lisp_Object raw)
 {
   Lisp_Object doc;

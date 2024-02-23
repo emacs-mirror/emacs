@@ -418,7 +418,8 @@ DEFUN ("buffer-list", Fbuffer_list, Sbuffer_list, 0, 1, 0,
        doc: /* Return a list of all live buffers.
 If the optional arg FRAME is a frame, return the buffer list in the
 proper order for that frame: the buffers shown in FRAME come first,
-followed by the rest of the buffers.  */)
+followed by the rest of the buffers.  */,
+(function (&optional frame) list))
   (Lisp_Object frame)
 {
   Lisp_Object general;
@@ -473,7 +474,8 @@ DEFUN ("get-buffer", Fget_buffer, Sget_buffer, 1, 1, 0,
        doc: /* Return the buffer named BUFFER-OR-NAME.
 BUFFER-OR-NAME must be either a string or a buffer.  If BUFFER-OR-NAME
 is a string and there is no buffer with that name, return nil.  If
-BUFFER-OR-NAME is a buffer, return it as given.  */)
+BUFFER-OR-NAME is a buffer, return it as given.  */,
+(function ((or buffer string)) (or buffer null)))
   (register Lisp_Object buffer_or_name)
 {
   if (BUFFERP (buffer_or_name))
@@ -487,7 +489,8 @@ DEFUN ("get-file-buffer", Fget_file_buffer, Sget_file_buffer, 1, 1, 0,
        doc: /* Return the buffer visiting file FILENAME (a string).
 The buffer's `buffer-file-name' must match exactly the expansion of FILENAME.
 If there is no such live buffer, return nil.
-See also `find-buffer-visiting'.  */)
+See also `find-buffer-visiting'.  */,
+(function (string) (or null buffer)))
   (register Lisp_Object filename)
 {
   register Lisp_Object tail, buf, handler;
@@ -1278,7 +1281,8 @@ Return nil if BUFFER has been killed.  */)
 
 DEFUN ("buffer-file-name", Fbuffer_file_name, Sbuffer_file_name, 0, 1, 0,
        doc: /* Return name of file BUFFER is visiting, or nil if none.
-No argument or nil as argument means use the current buffer.  */)
+No argument or nil as argument means use the current buffer.  */,
+(function (&optional buffer) (or string null)))
   (register Lisp_Object buffer)
 {
   return BVAR (decode_buffer (buffer), filename);
@@ -1433,7 +1437,8 @@ DEFUN ("buffer-local-variables", Fbuffer_local_variables,
 Most elements look like (SYMBOL . VALUE), describing one variable.
 For a symbol that is locally unbound, just the symbol appears in the value.
 Note that storing new VALUEs in these elements doesn't change the variables.
-No argument or nil as argument means use current buffer as BUFFER.  */)
+No argument or nil as argument means use current buffer as BUFFER.  */,
+(function (&optional buffer) list))
   (Lisp_Object buffer)
 {
   struct buffer *buf = decode_buffer (buffer);
@@ -1466,7 +1471,8 @@ DEFUN ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
 No argument or nil as argument means use current buffer as BUFFER.
 
 If BUFFER was autosaved since it was last modified, this function
-returns the symbol `autosaved'.  */)
+returns the symbol `autosaved'.  */,
+(function (&optional buffer) (or boolean (member autosaved))))
   (Lisp_Object buffer)
 {
   struct buffer *buf = decode_buffer (buffer);
@@ -2245,7 +2251,8 @@ the current buffer's major mode.  */)
 }
 
 DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
-       doc: /* Return the current buffer as a Lisp object.  */)
+       doc: /* Return the current buffer as a Lisp object.  */,
+(function () buffer))
   (void)
 {
   register Lisp_Object buf;
@@ -3533,7 +3540,8 @@ adjust_overlays_for_delete (ptrdiff_t pos, ptrdiff_t length)
 
 
 DEFUN ("overlayp", Foverlayp, Soverlayp, 1, 1, 0,
-       doc: /* Return t if OBJECT is an overlay.  */)
+       doc: /* Return t if OBJECT is an overlay.  */,
+(function (t) boolean))
   (Lisp_Object object)
 {
   return (OVERLAYP (object) ? Qt : Qnil);

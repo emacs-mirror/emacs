@@ -374,7 +374,8 @@ The argument object is not altered--the value is a copy.  If argument
 is a character, characters which map to multiple code points when
 cased, e.g. ﬁ, are returned unchanged.
 
-See also `capitalize', `downcase' and `upcase-initials'.  */)
+See also `capitalize', `downcase' and `upcase-initials'.  */,
+(function ((or fixnum string)) (or fixnum string)))
   (Lisp_Object obj)
 {
   return casify_object (CASE_UP, obj);
@@ -391,7 +392,8 @@ argument, and downcasing it would turn it into a multibyte string
 \"C\" rules instead.  To accurately downcase according to the current
 locale, the string must be converted into multibyte first.
 
-The argument object is not altered--the value is a copy.  */)
+The argument object is not altered--the value is a copy.  */,
+(function ((or fixnum string)) (or fixnum string)))
   (Lisp_Object obj)
 {
   return casify_object (CASE_DOWN, obj);
@@ -407,7 +409,8 @@ type.  (See `downcase' for further details about the type.)
 
 The argument object is not altered--the value is a copy.  If argument
 is a character, characters which map to multiple code points when
-cased, e.g. ﬁ, are returned unchanged.  */)
+cased, e.g. ﬁ, are returned unchanged.  */,
+(function (or integer string) (or integer string)))
   (Lisp_Object obj)
 {
   return casify_object (CASE_CAPITALIZE, obj);

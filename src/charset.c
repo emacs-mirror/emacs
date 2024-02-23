@@ -648,7 +648,8 @@ load_charset (struct charset *charset, int control_flag)
 
 
 DEFUN ("charsetp", Fcharsetp, Scharsetp, 1, 1, 0,
-       doc: /* Return non-nil if and only if OBJECT is a charset.*/)
+       doc: /* Return non-nil if and only if OBJECT is a charset.*/,
+(function (t) boolean))
   (Lisp_Object object)
 {
   return (CHARSETP (object) ? Qt : Qnil);
@@ -1837,7 +1838,8 @@ DEFUN ("decode-char", Fdecode_char, Sdecode_char, 2, 2, 0,
 Return nil if CODE-POINT is not valid in CHARSET.
 
 CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE),
-although this usage is obsolescent.  */)
+although this usage is obsolescent.  */,
+(function (cons t) (or fixnum null)))
   (Lisp_Object charset, Lisp_Object code_point)
 {
   int c, id;
@@ -1855,7 +1857,8 @@ although this usage is obsolescent.  */)
 DEFUN ("encode-char", Fencode_char, Sencode_char, 2, 2, 0,
        doc: /* Encode the character CH into a code-point of CHARSET.
 Return the encoded code-point as an integer,
-or nil if CHARSET doesn't support CH.  */)
+or nil if CHARSET doesn't support CH.  */,
+(function (fixnum symbol) (or fixnum null)))
   (Lisp_Object ch, Lisp_Object charset)
 {
   int c, id;

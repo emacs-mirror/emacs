@@ -999,7 +999,8 @@ free_dns_request (Lisp_Object proc)
 
 
 DEFUN ("processp", Fprocessp, Sprocessp, 1, 1, 0,
-       doc: /* Return t if OBJECT is a process.  */)
+       doc: /* Return t if OBJECT is a process.  */,
+(function (t) boolean))
   (Lisp_Object object)
 {
   return PROCESSP (object) ? Qt : Qnil;

@@ -660,7 +660,8 @@ init_cmdargs (int argc, char **argv, int skip_args, char const *original_pwd)
 
 DEFUN ("invocation-name", Finvocation_name, Sinvocation_name, 0, 0, 0,
        doc: /* Return the program name that was used to run Emacs.
-Any directory names are omitted.  */)
+Any directory names are omitted.  */,
+(function () string))
   (void)
 {
   return Fcopy_sequence (Vinvocation_name);
@@ -668,7 +669,8 @@ Any directory names are omitted.  */)
 
 DEFUN ("invocation-directory", Finvocation_directory, Sinvocation_directory,
        0, 0, 0,
-       doc: /* Return the directory name in which the Emacs executable was located.  */)
+       doc: /* Return the directory name in which the Emacs executable was located.  */,
+(function () string))
   (void)
 {
   return Fcopy_sequence (Vinvocation_directory);

@@ -229,7 +229,8 @@ Value is:
  `pgtk' for an Emacs frame running on pure GTK.
  `haiku' for an Emacs frame running in Haiku.
  `android' for an Emacs frame running in Android.
-See also `frame-live-p'.  */)
+See also `frame-live-p'.  */,
+(function (t) symbol))
   (Lisp_Object object)
 {
   if (!FRAMEP (object))
@@ -1656,7 +1657,8 @@ necessarily represent user-visible input focus.  */)
 }
 
 DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
-       doc: /* Return the frame that is now selected.  */)
+       doc: /* Return the frame that is now selected.  */,
+(function () frame))
   (void)
 {
   return selected_frame;
@@ -2970,7 +2972,8 @@ usually not displayed at all, even in a window system's \"taskbar\".
 
 If FRAME is a text terminal frame, this always returns t.
 Such frames are always considered visible, whether or not they are
-currently being displayed on the terminal.  */)
+currently being displayed on the terminal.  */,
+(function (frame) (or boolean (member icon))))
   (Lisp_Object frame)
 {
   CHECK_LIVE_FRAME (frame);
@@ -2984,7 +2987,8 @@ currently being displayed on the terminal.  */)
 
 DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
        0, 0, 0,
-       doc: /* Return a list of all frames now \"visible\" (being updated).  */)
+       doc: /* Return a list of all frames now \"visible\" (being updated).  */,
+(function () list))
   (void)
 {
   Lisp_Object tail, frame, value = Qnil;

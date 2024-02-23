@@ -2964,7 +2964,8 @@ DEFUN ("file-name-absolute-p", Ffile_name_absolute_p, Sfile_name_absolute_p,
        doc: /* Return t if FILENAME is an absolute file name.
 On Unix, absolute file names start with `/'.  In Emacs, an absolute
 file name can also start with an initial `~' or `~USER' component,
-where USER is a valid login name.  */)
+where USER is a valid login name.  */,
+(function (string) boolean))
   (Lisp_Object filename)
 {
   CHECK_STRING (filename);
@@ -3008,7 +3009,8 @@ Return nil if FILENAME does not exist, or if there was trouble
 determining whether the file exists.
 See also `file-readable-p' and `file-attributes'.
 This returns nil for a symlink to a nonexistent file.
-Use `file-symlink-p' to test for such links.  */)
+Use `file-symlink-p' to test for such links.  */,
+(function (string) boolean))
   (Lisp_Object filename)
 {
   return check_file_access (filename, Qfile_exists_p, F_OK);
@@ -3026,14 +3028,16 @@ purpose, though.)  */)
 
 DEFUN ("file-readable-p", Ffile_readable_p, Sfile_readable_p, 1, 1, 0,
        doc: /* Return t if file FILENAME exists and you can read it.
-See also `file-exists-p' and `file-attributes'.  */)
+See also `file-exists-p' and `file-attributes'.  */,
+(function (string) boolean))
   (Lisp_Object filename)
 {
   return check_file_access (filename, Qfile_readable_p, R_OK);
 }
 
 DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
-       doc: /* Return t if file FILENAME can be written or created by you.  */)
+       doc: /* Return t if file FILENAME can be written or created by you.  */,
+(function (string) boolean))
   (Lisp_Object filename)
 {
   Lisp_Object absname, dir, encoded;
@@ -3160,7 +3164,8 @@ The value is the link target, as a string.
 Return nil if FILENAME does not exist or is not a symbolic link,
 of there was trouble determining whether the file is a symbolic link.
 
-This function does not check whether the link target exists.  */)
+This function does not check whether the link target exists.  */,
+(function (string) (or boolean string)))
   (Lisp_Object filename)
 {
   Lisp_Object handler;
@@ -3187,7 +3192,8 @@ empty string (\"\").  This quirk is due to Emacs interpreting the
 empty string (in some cases) as the current directory.
 
 Symbolic links to directories count as directories.
-See `file-symlink-p' to distinguish symlinks.  */)
+See `file-symlink-p' to distinguish symlinks.  */,
+(function (string) boolean))
   (Lisp_Object filename)
 {
   Lisp_Object absname = expand_and_dir_to_file (filename);
@@ -3788,7 +3794,8 @@ DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
 DEFUN ("file-newer-than-file-p", Ffile_newer_than_file_p, Sfile_newer_than_file_p, 2, 2, 0,
        doc: /* Return t if file FILE1 is newer than file FILE2.
 If FILE1 does not exist, the answer is nil;
-otherwise, if FILE2 does not exist, the answer is t.  */)
+otherwise, if FILE2 does not exist, the answer is t.  */,
+(function (string string) boolean))
   (Lisp_Object file1, Lisp_Object file2)
 {
   struct stat st1, st2;
@@ -5735,7 +5742,8 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 }
 
 DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
-       doc: /* Return t if (car A) is numerically less than (car B).  */)
+       doc: /* Return t if (car A) is numerically less than (car B).  */,
+(function (list list) boolean))
   (Lisp_Object a, Lisp_Object b)
 {
   Lisp_Object ca = Fcar (a), cb = Fcar (b);

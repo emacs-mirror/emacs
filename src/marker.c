@@ -434,7 +434,8 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 
 DEFUN ("marker-buffer", Fmarker_buffer, Smarker_buffer, 1, 1, 0,
        doc: /* Return the buffer that MARKER points into, or nil if none.
-Returns nil if MARKER points into a dead buffer.  */)
+Returns nil if MARKER points into a dead buffer.  */,
+(function (marker) (or buffer null)))
   (register Lisp_Object marker)
 {
   register Lisp_Object buf;
@@ -752,7 +753,8 @@ If argument is a number, makes a new marker pointing
 at that position in the current buffer.
 If MARKER is not specified, the new marker does not point anywhere.
 The optional argument TYPE specifies the insertion type of the new marker;
-see `marker-insertion-type'.  */)
+see `marker-insertion-type'.  */,
+(function (&optional (or integer marker) boolean) marker))
   (register Lisp_Object marker, Lisp_Object type)
 {
   register Lisp_Object new;

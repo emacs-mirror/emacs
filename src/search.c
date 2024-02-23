@@ -3185,7 +3185,8 @@ record_unwind_save_match_data (void)
 /* Quote a string to deactivate reg-expr chars */
 
 DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
-       doc: /* Return a regexp string which matches exactly STRING and nothing else.  */)
+       doc: /* Return a regexp string which matches exactly STRING and nothing else.  */,
+(function (string) string))
   (Lisp_Object string)
 {
   char *in, *out, *end;

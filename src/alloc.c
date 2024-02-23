@@ -2333,7 +2333,8 @@ DEFUN ("make-string", Fmake_string, Smake_string, 2, 3, 0,
 LENGTH must be an integer.
 INIT must be an integer that represents a character.
 If optional argument MULTIBYTE is non-nil, the result will be
-a multibyte string even if INIT is an ASCII character.  */)
+a multibyte string even if INIT is an ASCII character.  */,
+(function (integer fixnum &optional t) string))
   (Lisp_Object length, Lisp_Object init, Lisp_Object multibyte)
 {
   Lisp_Object val;
@@ -2855,7 +2856,8 @@ free_cons (struct Lisp_Cons *ptr)
 }
 
 DEFUN ("cons", Fcons, Scons, 2, 2, 0,
-       doc: /* Create a new cons, give it CAR and CDR as components, and return it.  */)
+       doc: /* Create a new cons, give it CAR and CDR as components, and return it.  */,
+(function (t t) cons))
   (Lisp_Object car, Lisp_Object cdr)
 {
   register Lisp_Object val;
@@ -2973,7 +2975,8 @@ pure_listn (ptrdiff_t count, Lisp_Object arg1, ...)
 DEFUN ("list", Flist, Slist, 0, MANY, 0,
        doc: /* Return a newly created list with specified arguments as elements.
 Allows any number of arguments, including zero.
-usage: (list &rest OBJECTS)  */)
+usage: (list &rest OBJECTS)  */,
+(function (&rest t) list))
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   register Lisp_Object val;
@@ -2989,7 +2992,8 @@ usage: (list &rest OBJECTS)  */)
 
 
 DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
-       doc: /* Return a newly created list of length LENGTH, with each element being INIT.  */)
+       doc: /* Return a newly created list of length LENGTH, with each element being INIT.  */,
+(function (integer t) list))
   (Lisp_Object length, Lisp_Object init)
 {
   Lisp_Object val = Qnil;
@@ -3777,7 +3781,8 @@ make_vector (ptrdiff_t length, Lisp_Object init)
 DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
        doc: /* Return a newly created vector with specified arguments as elements.
 Allows any number of arguments, including zero.
-usage: (vector &rest OBJECTS)  */)
+usage: (vector &rest OBJECTS)  */,
+(function (&rest t) vector))
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object val = make_uninit_vector (nargs);
@@ -3801,7 +3806,10 @@ of arguments (ignoring &rest) and the R bit specifies whether there is a &rest
 argument to catch the left-over arguments.  If such an integer is used, the
 arguments will not be dynamically bound but will be instead pushed on the
 stack before executing the byte-code.
-usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
+usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */,
+(function ((or fixnum list) string vector integer &optional string t
+                               &rest t)
+                              vector))
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   if (! ((FIXNUMP (args[COMPILED_ARGLIST])
@@ -3939,7 +3947,8 @@ init_symbol (Lisp_Object val, Lisp_Object name)
 
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
        doc: /* Return a newly allocated uninterned symbol whose name is NAME.
-Its value is void, and its function definition and property list are nil.  */)
+Its value is void, and its function definition and property list are nil.  */,
+(function (string) symbol))
   (Lisp_Object name)
 {
   Lisp_Object val;
@@ -4023,7 +4032,8 @@ build_overlay (bool front_advance, bool rear_advance,
 }
 
 DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
-       doc: /* Return a newly allocated marker which does not point at any place.  */)
+       doc: /* Return a newly allocated marker which does not point at any place.  */,
+(function () marker))
   (void)
 {
   struct Lisp_Marker *p = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Marker,

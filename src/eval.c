@@ -1289,7 +1289,8 @@ unwind_to_catch (struct handler *catch, enum nonlocal_exit type,
 DEFUN ("throw", Fthrow, Sthrow, 2, 2, 0,
        doc: /* Throw to the catch for TAG and return VALUE from it.
 Both TAG and VALUE are evalled.  */
-       attributes: noreturn)
+       attributes: noreturn,
+(function (t t) nil))
   (register Lisp_Object tag, Lisp_Object value)
 {
   struct handler *c;
@@ -1737,7 +1738,8 @@ See Info anchor `(elisp)Definition of signal' for some details on how this
 error message is constructed.
 If the signal is handled, DATA is made available to the handler.
 See also the function `condition-case'.  */
-       attributes: noreturn)
+       attributes: noreturn,
+(function (symbol t) nil))
   (Lisp_Object error_symbol, Lisp_Object data)
 {
   /* If they call us with nonsensical arguments, produce "peculiar error".  */
@@ -2130,7 +2132,8 @@ fourth argument, and some of the built-in functions of Lisp.
 Also, a symbol satisfies `commandp' if its function definition does so.
 
 If the optional argument FOR-CALL-INTERACTIVELY is non-nil,
-then strings and vectors are not accepted.  */)
+then strings and vectors are not accepted.  */,
+(function (t &optional t) boolean))
   (Lisp_Object function, Lisp_Object for_call_interactively)
 {
   register Lisp_Object fun;

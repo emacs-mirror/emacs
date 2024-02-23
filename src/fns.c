@@ -50,7 +50,8 @@ static EMACS_UINT sxhash_obj (Lisp_Object, int);
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
        doc: /* Return the ARGUMENT unchanged.  */
-       attributes: const)
+       attributes: const,
+(function (t) t))
   (Lisp_Object argument)
 {
   return argument;
@@ -134,7 +135,8 @@ To get the number of bytes, use `string-bytes'.
 
 If the length of a list is being computed to compare to a (small)
 number, the `length<', `length>' and `length=' functions may be more
-efficient.  */)
+efficient.  */,
+(function (t) (integer 0 *)))
   (Lisp_Object sequence)
 {
   EMACS_INT val;
@@ -163,7 +165,8 @@ DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
        doc: /* Return the length of a list, but avoid error or infinite loop.
 This function never gets an error.  If LIST is not really a list,
 it returns 0.  If LIST is circular, it returns an integer that is at
-least the number of distinct elements.  */)
+least the number of distinct elements.  */,
+(function (t) integer))
   (Lisp_Object list)
 {
   intptr_t len = 0;
@@ -196,7 +199,8 @@ EMACS_INT length_internal (Lisp_Object sequence, int len)
 DEFUN ("length<", Flength_less, Slength_less, 2, 2, 0,
        doc: /* Return non-nil if SEQUENCE is shorter than LENGTH.
 See `length' for allowed values of SEQUENCE and how elements are
-counted.  */)
+counted.  */,
+(function (sequence fixnum) boolean))
   (Lisp_Object sequence, Lisp_Object length)
 {
   CHECK_FIXNUM (length);
@@ -211,7 +215,8 @@ counted.  */)
 DEFUN ("length>", Flength_greater, Slength_greater, 2, 2, 0,
        doc: /* Return non-nil if SEQUENCE is longer than LENGTH.
 See `length' for allowed values of SEQUENCE and how elements are
-counted.  */)
+counted.  */,
+(function (sequence fixnum) boolean))
   (Lisp_Object sequence, Lisp_Object length)
 {
   CHECK_FIXNUM (length);
@@ -226,7 +231,8 @@ counted.  */)
 DEFUN ("length=", Flength_equal, Slength_equal, 2, 2, 0,
        doc: /* Return non-nil if SEQUENCE has length equal to LENGTH.
 See `length' for allowed values of SEQUENCE and how elements are
-counted.  */)
+counted.  */,
+(function (sequence fixnum) boolean))
   (Lisp_Object sequence, Lisp_Object length)
 {
   CHECK_FIXNUM (length);
@@ -244,7 +250,8 @@ counted.  */)
 DEFUN ("proper-list-p", Fproper_list_p, Sproper_list_p, 1, 1, 0,
        doc: /* Return OBJECT's length if it is a proper list, nil otherwise.
 A proper list is neither circular nor dotted (i.e., its last cdr is nil).  */
-       attributes: const)
+       attributes: const,
+(function (t) (or fixnum null)))
   (Lisp_Object object)
 {
   intptr_t len = 0;
@@ -341,7 +348,9 @@ DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
 Case is significant, but text properties are ignored.
 Symbols are also allowed; their print names are used instead.
 
-See also `string-equal-ignore-case'.  */)
+See also `string-equal-ignore-case'.  */,
+(function ((or string symbol) (or string symbol)) boolean),
+(function ((or string symbol) (or string symbol)) boolean))
   (register Lisp_Object s1, Lisp_Object s2)
 {
   if (SYMBOLP (s1))
@@ -378,7 +387,11 @@ The value is t if the strings (or specified portions) match.
 If string STR1 is less, the value is a negative number N;
   - 1 - N is the number of characters that match at the beginning.
 If string STR1 is greater, the value is a positive number N;
-  N - 1 is the number of characters that match at the beginning.  */)
+  N - 1 is the number of characters that match at the beginning.  */,
+(function (string (or integer marker null) (or integer marker null) string
+                       (or integer marker null) (or integer marker null)
+                       &optional t)
+               (or (member t) fixnum)))
   (Lisp_Object str1, Lisp_Object start1, Lisp_Object end1, Lisp_Object str2,
    Lisp_Object start2, Lisp_Object end2, Lisp_Object ignore_case)
 {
@@ -469,7 +482,9 @@ load_unaligned_size_t (const void *p)
 DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
        doc: /* Return non-nil if STRING1 is less than STRING2 in lexicographic order.
 Case is significant.
-Symbols are also allowed; their print names are used instead.  */)
+Symbols are also allowed; their print names are used instead.  */,
+(function ((or string symbol) (or string symbol)) boolean),
+(function ((or string symbol) (or string symbol)) boolean))
   (Lisp_Object string1, Lisp_Object string2)
 {
   if (SYMBOLP (string1))
@@ -711,7 +726,8 @@ Each argument may be a list, vector or string.
 All arguments except the last argument are copied.  The last argument
 is just used as the tail of the new list.
 
-usage: (append &rest SEQUENCES)  */)
+usage: (append &rest SEQUENCES)  */,
+(function (&rest t) t))
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   if (nargs == 0)
@@ -726,7 +742,8 @@ Each argument may be a string or a list or vector of characters (integers).
 
 Values of the `composition' property of the result are not guaranteed
 to be `eq'.
-usage: (concat &rest SEQUENCES)  */)
+usage: (concat &rest SEQUENCES)  */,
+(function (&rest sequence) string))
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   return concat_to_string (nargs, args);
@@ -736,7 +753,8 @@ DEFUN ("vconcat", Fvconcat, Svconcat, 0, MANY, 0,
        doc: /* Concatenate all the arguments and make the result a vector.
 The result is a vector whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
-usage: (vconcat &rest SEQUENCES)   */)
+usage: (vconcat &rest SEQUENCES)   */,
+(function (&rest sequence) vector))
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   return concat_to_vector (nargs, args);
@@ -749,7 +767,8 @@ The elements of a list, vector or record are not copied; they are
 shared with the original.  See Info node `(elisp) Sequence Functions'
 for more details about this sharing and its effects.
 If the original sequence is empty, this function may return
-the same empty object instead of its copy.  */)
+the same empty object instead of its copy.  */,
+(function (sequence) sequence))
   (Lisp_Object arg)
 {
   if (NILP (arg)) return arg;
@@ -1363,7 +1382,8 @@ newly created string with no text properties.  If STRING is multibyte
 or entirely ASCII, it is returned unchanged.  In particular, when
 STRING is unibyte and entirely ASCII, the returned string is unibyte.
 \(When the characters are all ASCII, Emacs primitives will treat the
-string the same way whether it is unibyte or multibyte.)  */)
+string the same way whether it is unibyte or multibyte.)  */,
+(function (string) string))
   (Lisp_Object string)
 {
   CHECK_STRING (string);
@@ -1385,7 +1405,8 @@ DEFUN ("string-make-unibyte", Fstring_make_unibyte, Sstring_make_unibyte,
        1, 1, 0,
        doc: /* Return the unibyte equivalent of STRING.
 Multibyte character codes above 255 are converted to unibyte
-by taking just the low 8 bits of each character's code.  */)
+by taking just the low 8 bits of each character's code.  */,
+(function (string) string))
   (Lisp_Object string)
 {
   CHECK_STRING (string);
@@ -1399,7 +1420,8 @@ DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
 If STRING is unibyte, the result is STRING itself.
 Otherwise it is a newly created string, with no text properties.
 If STRING is multibyte and contains a character of charset
-`eight-bit', it is converted to the corresponding single byte.  */)
+`eight-bit', it is converted to the corresponding single byte.  */,
+(function (string) string))
   (Lisp_Object string)
 {
   CHECK_STRING (string);
@@ -1429,7 +1451,8 @@ See also `string-to-multibyte'.
 Beware, this often doesn't really do what you think it does.
 It is similar to (decode-coding-string STRING \\='utf-8-emacs).
 If you're not sure, whether to use `string-as-multibyte' or
-`string-to-multibyte', use `string-to-multibyte'.  */)
+`string-to-multibyte', use `string-to-multibyte'.  */,
+(function (string) string))
   (Lisp_Object string)
 {
   CHECK_STRING (string);
@@ -1464,7 +1487,8 @@ the corresponding multibyte character of charset `eight-bit'.
 
 This differs from `string-as-multibyte' by converting each byte of a correct
 utf-8 sequence to an eight-bit character, not just bytes that don't form a
-correct sequence.  */)
+correct sequence.  */,
+(function (string) string))
   (Lisp_Object string)
 {
   CHECK_STRING (string);
@@ -1510,7 +1534,8 @@ This is an alist which represents the same mapping from objects to objects,
 but does not share the alist structure with ALIST.
 The objects mapped (cars and cdrs of elements of the alist)
 are shared, however.
-Elements of ALIST that are not conses are also shared.  */)
+Elements of ALIST that are not conses are also shared.  */,
+(function (list) list))
   (Lisp_Object alist)
 {
   CHECK_LIST (alist);
@@ -1579,7 +1604,8 @@ The STRING argument may also be a vector.  In that case, the return
 value is a new vector that contains the elements between index FROM
 \(inclusive) and index TO (exclusive) of that vector argument.
 
-With one argument, just copy STRING (with properties, if any).  */)
+With one argument, just copy STRING (with properties, if any).  */,
+(function ((or string vector) &optional integer integer) (or string vector)))
   (Lisp_Object string, Lisp_Object from, Lisp_Object to)
 {
   Lisp_Object res;
@@ -1738,7 +1764,8 @@ Otherwise, return LIST after truncating it.  */)
 }
 
 DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
-       doc: /* Take cdr N times on LIST, return the result.  */)
+       doc: /* Take cdr N times on LIST, return the result.  */,
+(function (integer t) t))
   (Lisp_Object n, Lisp_Object list)
 {
   Lisp_Object tail = list;
@@ -1832,14 +1859,16 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
 
 DEFUN ("nth", Fnth, Snth, 2, 2, 0,
        doc: /* Return the Nth element of LIST.
-N counts from zero.  If LIST is not that long, nil is returned.  */)
+N counts from zero.  If LIST is not that long, nil is returned.  */,
+(function (integer list) t))
   (Lisp_Object n, Lisp_Object list)
 {
   return Fcar (Fnthcdr (n, list));
 }
 
 DEFUN ("elt", Felt, Selt, 2, 2, 0,
-       doc: /* Return element of SEQUENCE at index N.  */)
+       doc: /* Return element of SEQUENCE at index N.  */,
+(function (sequence integer) t))
   (Lisp_Object sequence, Lisp_Object n)
 {
   if (CONSP (sequence) || NILP (sequence))
@@ -1883,7 +1912,8 @@ eq_comparable_value (Lisp_Object x)
 
 DEFUN ("member", Fmember, Smember, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
-The value is actually the tail of LIST whose car is ELT.  */)
+The value is actually the tail of LIST whose car is ELT.  */,
+(function (t list) list))
   (Lisp_Object elt, Lisp_Object list)
 {
   if (eq_comparable_value (elt))
@@ -1898,7 +1928,8 @@ The value is actually the tail of LIST whose car is ELT.  */)
 
 DEFUN ("memq", Fmemq, Smemq, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
-The value is actually the tail of LIST whose car is ELT.  */)
+The value is actually the tail of LIST whose car is ELT.  */,
+(function (t list) list))
   (Lisp_Object elt, Lisp_Object list)
 {
   Lisp_Object tail = list;
@@ -1911,7 +1942,8 @@ The value is actually the tail of LIST whose car is ELT.  */)
 
 DEFUN ("memql", Fmemql, Smemql, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
-The value is actually the tail of LIST whose car is ELT.  */)
+The value is actually the tail of LIST whose car is ELT.  */,
+(function (t list) list))
   (Lisp_Object elt, Lisp_Object list)
 {
   Lisp_Object tail = list;
@@ -1945,7 +1977,8 @@ The value is actually the tail of LIST whose car is ELT.  */)
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the car of an element of ALIST.
 The value is actually the first element of ALIST whose car is KEY.
-Elements of ALIST that are not conses are ignored.  */)
+Elements of ALIST that are not conses are ignored.  */,
+(function (t list) list))
   (Lisp_Object key, Lisp_Object alist)
 {
   Lisp_Object tail = alist;
@@ -2026,7 +2059,8 @@ assoc_no_quit (Lisp_Object key, Lisp_Object alist)
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the cdr of an element of ALIST.
-The value is actually the first element of ALIST whose cdr is KEY.  */)
+The value is actually the first element of ALIST whose cdr is KEY.  */,
+(function (t list) list))
   (Lisp_Object key, Lisp_Object alist)
 {
   Lisp_Object tail = alist;
@@ -2039,7 +2073,8 @@ The value is actually the first element of ALIST whose cdr is KEY.  */)
 
 DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the cdr of an element of ALIST.
-The value is actually the first element of ALIST whose cdr equals KEY.  */)
+The value is actually the first element of ALIST whose cdr equals KEY.  */,
+(function (t list) list))
   (Lisp_Object key, Lisp_Object alist)
 {
   if (eq_comparable_value (key))
@@ -2274,7 +2309,8 @@ This function may destructively modify SEQ to produce the value.  */)
 
 DEFUN ("reverse", Freverse, Sreverse, 1, 1, 0,
        doc: /* Return the reversed copy of list, vector, or string SEQ.
-See also the function `nreverse', which is used more often.  */)
+See also the function `nreverse', which is used more often.  */,
+(function (sequence) sequence))
   (Lisp_Object seq)
 {
   Lisp_Object new;
@@ -2508,7 +2544,8 @@ This function returns the value corresponding to the given PROP, or
 nil if PROP is not one of the properties on the list.  The comparison
 with PROP is done using PREDICATE, which defaults to `eq'.
 
-This function doesn't signal an error if PLIST is invalid.  */)
+This function doesn't signal an error if PLIST is invalid.  */,
+(function (list t &optional t) t))
   (Lisp_Object plist, Lisp_Object prop, Lisp_Object predicate)
 {
   if (NILP (predicate))
@@ -2545,7 +2582,8 @@ plist_get (Lisp_Object plist, Lisp_Object prop)
 
 DEFUN ("get", Fget, Sget, 2, 2, 0,
        doc: /* Return the value of SYMBOL's PROPNAME property.
-This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
+This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */,
+(function (symbol symbol) t))
   (Lisp_Object symbol, Lisp_Object propname)
 {
   CHECK_SYMBOL (symbol);
@@ -2645,7 +2683,8 @@ The comparison with PROP is done using PREDICATE, which defaults to
 
 Unlike `plist-get', this allows you to distinguish between a missing
 property and a property with the value nil.
-The value is actually the tail of PLIST whose car is PROP.  */)
+The value is actually the tail of PLIST whose car is PROP.  */,
+(function (list t &optional t) list))
   (Lisp_Object plist, Lisp_Object prop, Lisp_Object predicate)
 {
   if (NILP (predicate))
@@ -2685,7 +2724,8 @@ DEFUN ("eql", Feql, Seql, 2, 2, 0,
 Integers with the same value are `eql'.
 Floating-point values with the same sign, exponent and fraction are `eql'.
 This differs from numeric comparison: (eql 0.0 -0.0) returns nil and
-\(eql 0.0e+NaN 0.0e+NaN) returns t, whereas `=' does the opposite.  */)
+\(eql 0.0e+NaN 0.0e+NaN) returns t, whereas `=' does the opposite.  */,
+(function (t t) boolean))
   (Lisp_Object obj1, Lisp_Object obj2)
 {
   if (FLOATP (obj1))
@@ -2705,7 +2745,8 @@ Conses are compared by comparing the cars and the cdrs.
 Vectors and strings are compared element by element.
 Numbers are compared via `eql', so integers do not equal floats.
 \(Use `=' if you want integers and floats to be able to be equal.)
-Symbols must match exactly.  */)
+Symbols must match exactly.  */,
+(function (t t) boolean))
   (Lisp_Object o1, Lisp_Object o2)
 {
   return internal_equal (o1, o2, EQUAL_PLAIN, 0, Qnil) ? Qt : Qnil;
@@ -3330,7 +3371,8 @@ Use this to conditionalize execution of lisp code based on the
 presence or absence of Emacs or environment extensions.
 Use `provide' to declare that a feature is available.  This function
 looks at the value of the variable `features'.  The optional argument
-SUBFEATURE can be used to check a specific subfeature of FEATURE.  */)
+SUBFEATURE can be used to check a specific subfeature of FEATURE.  */,
+(function (symbol &optional symbol) boolean))
   (Lisp_Object feature, Lisp_Object subfeature)
 {
   register Lisp_Object tem;
@@ -3571,7 +3613,8 @@ If the system can't provide such information through a call to
 
 See also Info node `(libc)Locales'.
 
-The data read from the system are decoded using `locale-coding-system'.  */)
+The data read from the system are decoded using `locale-coding-system'.  */,
+(function ((member codeset days months paper)) (or null string)))
   (Lisp_Object item)
 {
   char *str = NULL;
@@ -5321,7 +5364,8 @@ DEFUN ("sxhash-eq", Fsxhash_eq, Ssxhash_eq, 1, 1, 0,
        doc: /* Return an integer hash code for OBJ suitable for `eq'.
 If (eq A B), then (= (sxhash-eq A) (sxhash-eq B)).
 
-Hash codes are not guaranteed to be preserved across Emacs sessions.  */)
+Hash codes are not guaranteed to be preserved across Emacs sessions.  */,
+(function (t) integer))
   (Lisp_Object obj)
 {
   return reduce_emacs_uint_to_fixnum (sxhash_eq (obj));
@@ -5332,7 +5376,8 @@ DEFUN ("sxhash-eql", Fsxhash_eql, Ssxhash_eql, 1, 1, 0,
 If (eql A B), then (= (sxhash-eql A) (sxhash-eql B)), but the opposite
 isn't necessarily true.
 
-Hash codes are not guaranteed to be preserved across Emacs sessions.  */)
+Hash codes are not guaranteed to be preserved across Emacs sessions.  */,
+(function (t) integer))
   (Lisp_Object obj)
 {
   return reduce_emacs_uint_to_fixnum (sxhash_eql (obj));
@@ -5343,7 +5388,9 @@ DEFUN ("sxhash-equal", Fsxhash_equal, Ssxhash_equal, 1, 1, 0,
 If (equal A B), then (= (sxhash-equal A) (sxhash-equal B)), but the
 opposite isn't necessarily true.
 
-Hash codes are not guaranteed to be preserved across Emacs sessions.  */)
+Hash codes are not guaranteed to be preserved across Emacs sessions.  */,
+(function (t) integer),
+(function (t) integer))
   (Lisp_Object obj)
 {
   return reduce_emacs_uint_to_fixnum (sxhash (obj));
@@ -5530,7 +5577,8 @@ DEFUN ("copy-hash-table", Fcopy_hash_table, Scopy_hash_table, 1, 1, 0,
 
 
 DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
-       doc: /* Return the number of elements in TABLE.  */)
+       doc: /* Return the number of elements in TABLE.  */,
+(function (hash-table) integer))
   (Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
@@ -5609,7 +5657,8 @@ DEFUN ("hash-table-weakness", Fhash_table_weakness, Shash_table_weakness,
 
 
 DEFUN ("hash-table-p", Fhash_table_p, Shash_table_p, 1, 1, 0,
-       doc: /* Return t if OBJ is a Lisp hash table object.  */)
+       doc: /* Return t if OBJ is a Lisp hash table object.  */,
+(function (t) boolean))
   (Lisp_Object obj)
 {
   return HASH_TABLE_P (obj) ? Qt : Qnil;
@@ -5630,7 +5679,8 @@ DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
 
 DEFUN ("gethash", Fgethash, Sgethash, 2, 3, 0,
        doc: /* Look up KEY in TABLE and return its associated value.
-If KEY is not found, return DFLT which defaults to nil.  */)
+If KEY is not found, return DFLT which defaults to nil.  */,
+(function (t hash-table &optional t) t))
   (Lisp_Object key, Lisp_Object table, Lisp_Object dflt)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
@@ -6262,7 +6312,8 @@ The optional START-POS argument says where to start searching in
 HAYSTACK and defaults to zero (start at the beginning).
 It must be between zero and the length of HAYSTACK, inclusive.
 
-Case is always significant and text properties are ignored. */)
+Case is always significant and text properties are ignored. */,
+(function (string string &optional integer) (or integer null)))
   (register Lisp_Object needle, Lisp_Object haystack, Lisp_Object start_pos)
 {
   ptrdiff_t start_byte = 0, haybytes;

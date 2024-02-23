@@ -148,7 +148,8 @@ init_editfns (void)
 
 DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
        doc: /* Convert arg CHAR to a string containing that character.
-usage: (char-to-string CHAR)  */)
+usage: (char-to-string CHAR)  */,
+(function (fixnum) string))
   (Lisp_Object character)
 {
   int c, len;
@@ -174,7 +175,8 @@ DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
-       doc: /* Return the first character in STRING.  */)
+       doc: /* Return the first character in STRING.  */,
+(function (string) fixnum))
   (Lisp_Object string)
 {
   CHECK_STRING (string);
@@ -187,7 +189,8 @@ DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
 
 DEFUN ("point", Fpoint, Spoint, 0, 0, 0,
        doc: /* Return value of point, as an integer.
-Beginning of buffer is position (point-min).  */)
+Beginning of buffer is position (point-min).  */,
+(function () integer))
   (void)
 {
   Lisp_Object temp;
@@ -196,7 +199,8 @@ Beginning of buffer is position (point-min).  */)
 }
 
 DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
-       doc: /* Return value of point, as a marker object.  */)
+       doc: /* Return value of point, as a marker object.  */,
+(function () marker))
   (void)
 {
   return build_marker (current_buffer, PT, PT_BYTE);
@@ -249,14 +253,16 @@ region_limit (bool beginningp)
 }
 
 DEFUN ("region-beginning", Fregion_beginning, Sregion_beginning, 0, 0, 0,
-       doc: /* Return the integer value of point or mark, whichever is smaller.  */)
+       doc: /* Return the integer value of point or mark, whichever is smaller.  */,
+(function () integer))
   (void)
 {
   return region_limit (1);
 }
 
 DEFUN ("region-end", Fregion_end, Sregion_end, 0, 0, 0,
-       doc: /* Return the integer value of point or mark, whichever is larger.  */)
+       doc: /* Return the integer value of point or mark, whichever is larger.  */,
+(function () integer))
   (void)
 {
   return region_limit (0);
@@ -265,7 +271,8 @@ DEFUN ("region-end", Fregion_end, Sregion_end, 0, 0, 0,
 DEFUN ("mark-marker", Fmark_marker, Smark_marker, 0, 0, 0,
        doc: /* Return this buffer's mark, as a marker object.
 Watch out!  Moving this marker changes the mark position.
-If you set the marker not to point anywhere, the buffer will have no mark.  */)
+If you set the marker not to point anywhere, the buffer will have no mark.  */,
+(function () marker))
   (void)
 {
   return BVAR (current_buffer, mark);
@@ -706,7 +713,8 @@ unconstrained result.  If N is nil or 1, and a front-sticky field
 starts at point, the scan stops as soon as it starts.  To ignore field
 boundaries, bind `inhibit-field-text-motion' to t.
 
-This function does not move point.  */)
+This function does not move point.  */,
+(function (&optional integer) integer))
   (Lisp_Object n)
 {
   ptrdiff_t count, charpos = bol (n, &count);
@@ -762,7 +770,8 @@ unconstrained result.  If N is nil or 1, and a rear-sticky field ends
 at point, the scan stops as soon as it starts.  To ignore field
 boundaries bind `inhibit-field-text-motion' to t.
 
-This function does not move point.  */)
+This function does not move point.  */,
+(function (&optional integer) integer))
   (Lisp_Object n)
 {
   /* Return END_POS constrained to the current input field.  */
@@ -858,7 +867,8 @@ This does not take narrowing into account; to count the number of
 characters in the accessible portion of the current buffer, use
 `(- (point-max) (point-min))', and to count the number of characters
 in the accessible portion of some other BUFFER, use
-`(with-current-buffer BUFFER (- (point-max) (point-min)))'.  */)
+`(with-current-buffer BUFFER (- (point-max) (point-min)))'.  */,
+(function (&optional buffer) integer))
   (Lisp_Object buffer)
 {
   if (NILP (buffer))
@@ -873,7 +883,8 @@ in the accessible portion of some other BUFFER, use
 
 DEFUN ("point-min", Fpoint_min, Spoint_min, 0, 0, 0,
        doc: /* Return the minimum permissible value of point in the current buffer.
-This is 1, unless narrowing (a buffer restriction) is in effect.  */)
+This is 1, unless narrowing (a buffer restriction) is in effect.  */,
+(function () integer))
   (void)
 {
   Lisp_Object temp;
@@ -892,7 +903,8 @@ This is the beginning, unless narrowing (a buffer restriction) is in effect.  */
 DEFUN ("point-max", Fpoint_max, Spoint_max, 0, 0, 0,
        doc: /* Return the maximum permissible value of point in the current buffer.
 This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
-is in effect, in which case it is less.  */)
+is in effect, in which case it is less.  */,
+(function () integer))
   (void)
 {
   Lisp_Object temp;
@@ -963,7 +975,8 @@ If BYTEPOS is out of range, the value is nil.  */)
 
 DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
        doc: /* Return the character following point, as a number.
-At the end of the buffer or accessible region, return 0.  */)
+At the end of the buffer or accessible region, return 0.  */,
+(function () fixnum))
   (void)
 {
   Lisp_Object temp;
@@ -976,7 +989,8 @@ At the end of the buffer or accessible region, return 0.  */)
 
 DEFUN ("preceding-char", Fprevious_char, Sprevious_char, 0, 0, 0,
        doc: /* Return the character preceding point, as a number.
-At the beginning of the buffer or accessible region, return 0.  */)
+At the beginning of the buffer or accessible region, return 0.  */,
+(function () fixnum))
   (void)
 {
   Lisp_Object temp;
@@ -995,7 +1009,8 @@ At the beginning of the buffer or accessible region, return 0.  */)
 
 DEFUN ("bobp", Fbobp, Sbobp, 0, 0, 0,
        doc: /* Return t if point is at the beginning of the buffer.
-If the buffer is narrowed, this means the beginning of the narrowed part.  */)
+If the buffer is narrowed, this means the beginning of the narrowed part.  */,
+(function () boolean))
   (void)
 {
   if (PT == BEGV)
@@ -1005,7 +1020,8 @@ If the buffer is narrowed, this means the beginning of the narrowed part.  */)
 
 DEFUN ("eobp", Feobp, Seobp, 0, 0, 0,
        doc: /* Return t if point is at the end of the buffer.
-If the buffer is narrowed, this means the end of the narrowed part.  */)
+If the buffer is narrowed, this means the end of the narrowed part.  */,
+(function () boolean))
   (void)
 {
   if (PT == ZV)
@@ -1014,7 +1030,8 @@ If the buffer is narrowed, this means the end of the narrowed part.  */)
 }
 
 DEFUN ("bolp", Fbolp, Sbolp, 0, 0, 0,
-       doc: /* Return t if point is at the beginning of a line.  */)
+       doc: /* Return t if point is at the beginning of a line.  */,
+(function () boolean))
   (void)
 {
   if (PT == BEGV || FETCH_BYTE (PT_BYTE - 1) == '\n')
@@ -1024,7 +1041,8 @@ DEFUN ("bolp", Fbolp, Sbolp, 0, 0, 0,
 
 DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
        doc: /* Return t if point is at the end of a line.
-`End of a line' includes point being at the end of the buffer.  */)
+`End of a line' includes point being at the end of the buffer.  */,
+(function () boolean))
   (void)
 {
   if (PT == ZV || FETCH_BYTE (PT_BYTE) == '\n')
@@ -1035,7 +1053,8 @@ DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
 DEFUN ("char-after", Fchar_after, Schar_after, 0, 1, 0,
        doc: /* Return character in current buffer at position POS.
 POS is an integer or a marker and defaults to point.
-If POS is out of range, the value is nil.  */)
+If POS is out of range, the value is nil.  */,
+(function (&optional (or marker integer)) (or fixnum null)))
   (Lisp_Object pos)
 {
   register ptrdiff_t pos_byte;
@@ -1067,7 +1086,8 @@ If POS is out of range, the value is nil.  */)
 DEFUN ("char-before", Fchar_before, Schar_before, 0, 1, 0,
        doc: /* Return character in current buffer preceding position POS.
 POS is an integer or a marker and defaults to point.
-If POS is out of range, the value is nil.  */)
+If POS is out of range, the value is nil.  */,
+(function (&optional (or marker integer)) (or fixnum null)))
   (Lisp_Object pos)
 {
   register Lisp_Object val;
@@ -1116,7 +1136,9 @@ Also, if the environment variables LOGNAME or USER are set,
 that determines the value of this function.
 
 If optional argument UID is an integer, return the login name
-of the user with that uid, or nil if there is no such user.  */)
+of the user with that uid, or nil if there is no such user.  */,
+(function (&optional integer) (or string null)),
+(function (&optional integer) (or string null)))
   (Lisp_Object uid)
 {
   struct passwd *pw;
@@ -1142,7 +1164,8 @@ DEFUN ("user-real-login-name", Fuser_real_login_name, Suser_real_login_name,
        0, 0, 0,
        doc: /* Return the name of the user's real uid, as a string.
 This ignores the environment variables LOGNAME and USER, so it differs from
-`user-login-name' when running under `su'.  */)
+`user-login-name' when running under `su'.  */,
+(function () string))
   (void)
 {
   /* Set up the user name info if we didn't do it before.
@@ -1154,7 +1177,8 @@ This ignores the environment variables LOGNAME and USER, so it differs from
 }
 
 DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
-       doc: /* Return the effective uid of Emacs, as an integer.  */)
+       doc: /* Return the effective uid of Emacs, as an integer.  */,
+(function () integer))
   (void)
 {
   uid_t euid = geteuid ();
@@ -1162,7 +1186,8 @@ DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
 }
 
 DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
-       doc: /* Return the real uid of Emacs, as an integer.  */)
+       doc: /* Return the real uid of Emacs, as an integer.  */,
+(function () integer))
   (void)
 {
   uid_t uid = getuid ();
@@ -1215,7 +1240,8 @@ name, or nil if there is no such user.
 
 If the full name includes commas, remove everything starting with
 the first comma, because the \\='gecos\\=' field of the \\='/etc/passwd\\=' file
-is in general a comma-separated list.  */)
+is in general a comma-separated list.  */,
+(function (&optional integer) (or string null)))
   (Lisp_Object uid)
 {
   struct passwd *pw;
@@ -1652,7 +1678,8 @@ The string returned is multibyte if the buffer is multibyte.
 
 This function copies the text properties of that part of the buffer
 into the result string; if you don't want the text properties,
-use `buffer-substring-no-properties' instead.  */)
+use `buffer-substring-no-properties' instead.  */,
+(function ((or integer marker) (or integer marker)) string))
   (Lisp_Object start, Lisp_Object end)
 {
   register ptrdiff_t b, e;
@@ -1687,7 +1714,8 @@ of the buffer.
 
 This function copies the text properties of that part of the buffer
 into the result string; if you don’t want the text properties,
-use `buffer-substring-no-properties' instead.  */)
+use `buffer-substring-no-properties' instead.  */,
+(function () string))
   (void)
 {
   return make_buffer_string_both (BEGV, BEGV_BYTE, ZV, ZV_BYTE, 1);
@@ -3251,7 +3279,8 @@ Remaining arguments form a sequence of PROPERTY VALUE pairs for text
 properties to add to the result.
 
 See Info node `(elisp) Text Properties' for more information.
-usage: (propertize STRING &rest PROPERTIES)  */)
+usage: (propertize STRING &rest PROPERTIES)  */,
+(function (string &rest t) string))
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object properties, string;
@@ -3363,7 +3392,8 @@ given width.
 Text properties, if any, are copied from the format-string to the
 produced text.
 
-usage: (format STRING &rest OBJECTS)  */)
+usage: (format STRING &rest OBJECTS)  */,
+(function (string &rest t) string))
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   return styled_format (nargs, args, false);
@@ -4326,7 +4356,8 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 DEFUN ("char-equal", Fchar_equal, Schar_equal, 2, 2, 0,
        doc: /* Return t if two characters match, optionally ignoring case.
 Both arguments must be characters (i.e. integers).
-Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
+Case is ignored if `case-fold-search' is non-nil in the current buffer.  */,
+(function (integer integer) boolean))
   (register Lisp_Object c1, Lisp_Object c2)
 {
   int i1, i2;

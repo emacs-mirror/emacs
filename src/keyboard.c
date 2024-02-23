@@ -11666,7 +11666,8 @@ The saved keystrokes are shown by `view-lossage'.  */)
 DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 1, 0,
        doc: /* Return vector of last few events, not counting those from keyboard macros.
 If INCLUDE-CMDS is non-nil, include the commands that were run,
-represented as pseudo-events of the form (nil . COMMAND).  */)
+represented as pseudo-events of the form (nil . COMMAND).  */,
+(function (&optional (or cons null)) vector))
   (Lisp_Object include_cmds)
 {
   bool cmds = !NILP (include_cmds);
@@ -11700,7 +11701,8 @@ However, if the command has called `read-key-sequence', it returns
 the last key sequence that has been read.
 The value is a string or a vector.
 
-See also `this-command-keys-vector'.  */)
+See also `this-command-keys-vector'.  */,
+(function () string))
   (void)
 {
   return make_event_array (this_command_key_count,
@@ -11745,7 +11747,8 @@ DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys
 However, if the command has called `read-key-sequence', it returns
 the last key sequence that has been read.
 
-See also `this-command-keys'.  */)
+See also `this-command-keys'.  */,
+(function () vector))
   (void)
 {
   return Fvector (this_command_key_count,
@@ -11757,7 +11760,8 @@ DEFUN ("this-single-command-keys", Fthis_single_command_keys,
        doc: /* Return the key sequence that invoked this command.
 More generally, it returns the last key sequence read, either by
 the command loop or by `read-key-sequence'.
-The value is always a vector.  */)
+The value is always a vector.  */,
+(function () vector))
   (void)
 {
   ptrdiff_t nkeys = this_command_key_count - this_single_command_key_start;
@@ -11773,7 +11777,8 @@ More generally, it returns the last key sequence read, either by
 the command loop or by `read-key-sequence'.
 Unlike `this-single-command-keys', this function's value
 shows the events before all translations (except for input methods).
-The value is always a vector.  */)
+The value is always a vector.  */,
+(function () vector))
   (void)
 {
   return Fvector (raw_keybuf_count, XVECTOR (raw_keybuf)->contents);
@@ -11801,7 +11806,8 @@ KEEP-RECORD is non-nil.  */)
 }
 
 DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
-       doc: /* Return the current depth in recursive edits.  */)
+       doc: /* Return the current depth in recursive edits.  */,
+(function () integer))
   (void)
 {
   EMACS_INT sum;

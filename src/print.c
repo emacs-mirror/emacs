@@ -794,7 +794,8 @@ a list, a buffer, a window, a frame, etc.
 
 See `prin1' for the meaning of OVERRIDES.
 
-A printed representation of an object is text which describes that object.  */)
+A printed representation of an object is text which describes that object.  */,
+(function (t &optional t t) string))
   (Lisp_Object object, Lisp_Object noescape, Lisp_Object overrides)
 {
   specpdl_ref count = SPECPDL_INDEX ();
@@ -1020,7 +1021,8 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
        1, 1, 0,
        doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.
 See Info anchor `(elisp)Definition of signal' for some details on how this
-error message is constructed.  */)
+error message is constructed.  */,
+(function (list) string))
   (Lisp_Object obj)
 {
   struct buffer *old = current_buffer;

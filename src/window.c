@@ -311,7 +311,8 @@ wset_old_buffer (struct window *w, Lisp_Object val)
 }
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
-       doc: /* Return t if OBJECT is a window and nil otherwise.  */)
+       doc: /* Return t if OBJECT is a window and nil otherwise.  */,
+(function (t) boolean))
   (Lisp_Object object)
 {
   return WINDOWP (object) ? Qt : Qnil;
@@ -320,7 +321,8 @@ DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
 DEFUN ("window-valid-p", Fwindow_valid_p, Swindow_valid_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a valid window and nil otherwise.
 A valid window is either a window that displays a buffer or an internal
-window.  Windows that have been deleted are not valid.  */)
+window.  Windows that have been deleted are not valid.  */,
+(function (t) boolean))
   (Lisp_Object object)
 {
   return WINDOW_VALID_P (object) ? Qt : Qnil;
@@ -329,7 +331,8 @@ window.  Windows that have been deleted are not valid.  */)
 DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a live window and nil otherwise.
 A live window is a window that displays a buffer.
-Internal windows and deleted windows are not live.  */)
+Internal windows and deleted windows are not live.  */,
+(function (t) boolean))
   (Lisp_Object object)
 {
   return WINDOW_LIVE_P (object) ? Qt : Qnil;
@@ -348,7 +351,8 @@ DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
        doc: /* Return the root window of FRAME-OR-WINDOW.
 If omitted, FRAME-OR-WINDOW defaults to the currently selected frame.
 With a frame argument, return that frame's root window.
-With a window argument, return the root window of that window's frame.  */)
+With a window argument, return the root window of that window's frame.  */,
+(function (&optional (or frame window)) window))
   (Lisp_Object frame_or_window)
 {
   Lisp_Object window;
@@ -368,7 +372,8 @@ With a window argument, return the root window of that window's frame.  */)
 
 DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 1, 0,
        doc: /* Return the minibuffer window for frame FRAME.
-If FRAME is omitted or nil, it defaults to the selected frame.  */)
+If FRAME is omitted or nil, it defaults to the selected frame.  */,
+(function (&optional frame) window))
   (Lisp_Object frame)
 {
   return FRAME_MINIBUF_WINDOW (decode_live_frame (frame));
@@ -389,7 +394,8 @@ DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
 If omitted, FRAME-OR-WINDOW defaults to the currently selected frame.
 Else if FRAME-OR-WINDOW denotes a valid window, return the first window
 of that window's frame.  If FRAME-OR-WINDOW denotes a live frame, return
-the first window of that frame.  */)
+the first window of that frame.  */,
+(function ((or frame window)) window))
   (Lisp_Object frame_or_window)
 {
   Lisp_Object window;
@@ -416,7 +422,8 @@ DEFUN ("frame-selected-window", Fframe_selected_window,
 If omitted, FRAME-OR-WINDOW defaults to the currently selected frame.
 Else if FRAME-OR-WINDOW denotes a valid window, return the selected
 window of that window's frame.  If FRAME-OR-WINDOW denotes a live frame,
-return the selected window of that frame.  */)
+return the selected window of that frame.  */,
+(function (&optional (or frame window)) window))
   (Lisp_Object frame_or_window)
 {
   Lisp_Object window;
@@ -484,7 +491,8 @@ DEFUN ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
 The selected window is the window in which the standard cursor for
 selected windows appears and to which many commands apply.
 
-Also see `old-selected-window' and `minibuffer-selected-window'.  */)
+Also see `old-selected-window' and `minibuffer-selected-window'.  */,
+(function () window))
   (void)
 {
   return selected_window;
@@ -1553,7 +1561,12 @@ If they are in the right fringe of WINDOW, `right-fringe' is returned.
 If they are on the border between WINDOW and its right sibling,
   `vertical-line' is returned.
 If they are in the windows's left or right marginal areas, `left-margin'\n\
-  or `right-margin' is returned.  */)
+  or `right-margin' is returned.  */,
+(function (cons window)
+                                       (or cons null
+                                           (member bottom-divider right-divider mode-line header-line
+                                                   tab-line left-fringe right-fringe vertical-line
+                                                   left-margin right-margin))))
   (register Lisp_Object coordinates, Lisp_Object window)
 {
   struct window *w;
@@ -2922,7 +2935,8 @@ others.
 If you use consistent values for MINIBUF and ALL-FRAMES, you can use
 `next-window' to iterate through the entire cycle of acceptable
 windows, eventually ending up back at the window you started with.
-`previous-window' traverses the same cycle, in the reverse order.  */)
+`previous-window' traverses the same cycle, in the reverse order.  */,
+(function (&optional window t t) window))
   (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   return next_window (window, minibuf, all_frames, true);
@@ -2962,7 +2976,8 @@ If you use consistent values for MINIBUF and ALL-FRAMES, you can
 use `previous-window' to iterate through the entire cycle of
 acceptable windows, eventually ending up back at the window you
 started with.  `next-window' traverses the same cycle, in the
-reverse order.  */)
+reverse order.  */,
+(function (&optional window t t) window))
   (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   return next_window (window, minibuf, all_frames, false);
@@ -3243,7 +3258,9 @@ The optional argument ALL-FRAMES specifies the frames to consider:
 - A frame means consider all windows on that frame only.
 
 Any other value of ALL-FRAMES means consider all windows on the
-selected frame and no others.  */)
+selected frame and no others.  */,
+(function (&optional (or buffer string) (or symbol (integer 0 0)))
+               (or null window)))
      (Lisp_Object buffer_or_name, Lisp_Object all_frames)
 {
   Lisp_Object buffer;
@@ -6596,7 +6613,8 @@ by this function.  This happens in an interactive call.  */)
 
 DEFUN ("minibuffer-selected-window", Fminibuffer_selected_window, Sminibuffer_selected_window, 0, 0, 0,
        doc: /* Return window selected just before minibuffer window was selected.
-Return nil if the selected window is not a minibuffer window.  */)
+Return nil if the selected window is not a minibuffer window.  */,
+(function () (or window null)))
   (void)
 {
   if (minibuf_level > 0
@@ -7070,7 +7088,8 @@ struct saved_window
   ((struct saved_window *) (XVECTOR ((swv)->contents[(n)])))
 
 DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_p, 1, 1, 0,
-       doc: /* Return t if OBJECT is a window-configuration object.  */)
+       doc: /* Return t if OBJECT is a window-configuration object.  */,
+(function (t) boolean))
   (Lisp_Object object)
 {
   return WINDOW_CONFIGURATIONP (object) ? Qt : Qnil;

@@ -83,7 +83,8 @@ extract_float (Lisp_Object num)
 /* Trig functions.  */
 
 DEFUN ("acos", Facos, Sacos, 1, 1, 0,
-       doc: /* Return the inverse cosine of ARG.  */)
+       doc: /* Return the inverse cosine of ARG.  */,
+(function (number) float))
   (Lisp_Object arg)
 {
   double d = extract_float (arg);
@@ -92,7 +93,8 @@ DEFUN ("acos", Facos, Sacos, 1, 1, 0,
 }
 
 DEFUN ("asin", Fasin, Sasin, 1, 1, 0,
-       doc: /* Return the inverse sine of ARG.  */)
+       doc: /* Return the inverse sine of ARG.  */,
+(function (number) float))
   (Lisp_Object arg)
 {
   double d = extract_float (arg);
@@ -105,7 +107,8 @@ DEFUN ("atan", Fatan, Satan, 1, 2, 0,
 If only one argument Y is given, return the inverse tangent of Y.
 If two arguments Y and X are given, return the inverse tangent of Y
 divided by X, i.e. the angle in radians between the vector (X, Y)
-and the x-axis.  */)
+and the x-axis.  */,
+(function (number &optional number) float))
   (Lisp_Object y, Lisp_Object x)
 {
   double d = extract_float (y);
@@ -121,7 +124,8 @@ and the x-axis.  */)
 }
 
 DEFUN ("cos", Fcos, Scos, 1, 1, 0,
-       doc: /* Return the cosine of ARG.  */)
+       doc: /* Return the cosine of ARG.  */,
+(function (number) float))
   (Lisp_Object arg)
 {
   double d = extract_float (arg);
@@ -130,7 +134,8 @@ DEFUN ("cos", Fcos, Scos, 1, 1, 0,
 }
 
 DEFUN ("sin", Fsin, Ssin, 1, 1, 0,
-       doc: /* Return the sine of ARG.  */)
+       doc: /* Return the sine of ARG.  */,
+(function (number) float))
   (Lisp_Object arg)
 {
   double d = extract_float (arg);
@@ -139,7 +144,8 @@ DEFUN ("sin", Fsin, Ssin, 1, 1, 0,
 }
 
 DEFUN ("tan", Ftan, Stan, 1, 1, 0,
-       doc: /* Return the tangent of ARG.  */)
+       doc: /* Return the tangent of ARG.  */,
+(function (number) float))
   (Lisp_Object arg)
 {
   double d = extract_float (arg);
@@ -148,7 +154,8 @@ DEFUN ("tan", Ftan, Stan, 1, 1, 0,
 }
 
 DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
-       doc: /* Return non-nil if argument X is a NaN.  */)
+       doc: /* Return non-nil if argument X is a NaN.  */,
+(function (float) boolean))
   (Lisp_Object x)
 {
   CHECK_FLOAT (x);
@@ -163,7 +170,8 @@ DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
 
 DEFUN ("copysign", Fcopysign, Scopysign, 2, 2, 0,
        doc: /* Copy sign of X2 to value of X1, and return the result.
-Cause an error if X1 or X2 is not a float.  */)
+Cause an error if X1 or X2 is not a float.  */,
+(function (float float) float))
   (Lisp_Object x1, Lisp_Object x2)
 {
   double f1, f2;
@@ -199,7 +207,8 @@ If X is zero, both parts (SGNFCAND and EXP) are zero.  */)
 
 DEFUN ("ldexp", Fldexp, Sldexp, 2, 2, 0,
        doc: /* Return SGNFCAND * 2**EXPONENT, as a floating point number.
-EXPONENT must be an integer.   */)
+EXPONENT must be an integer.   */,
+(function (number integer) float))
   (Lisp_Object sgnfcand, Lisp_Object exponent)
 {
   CHECK_FIXNUM (exponent);
@@ -208,7 +217,8 @@ EXPONENT must be an integer.   */)
 }
 
 DEFUN ("exp", Fexp, Sexp, 1, 1, 0,
-       doc: /* Return the exponential base e of ARG.  */)
+       doc: /* Return the exponential base e of ARG.  */,
+(function (number) float))
   (Lisp_Object arg)
 {
   double d = extract_float (arg);
@@ -217,7 +227,8 @@ DEFUN ("exp", Fexp, Sexp, 1, 1, 0,
 }
 
 DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
-       doc: /* Return the exponential ARG1 ** ARG2.  */)
+       doc: /* Return the exponential ARG1 ** ARG2.  */,
+(function (number number) number))
   (Lisp_Object arg1, Lisp_Object arg2)
 {
   CHECK_NUMBER (arg1);
@@ -233,7 +244,8 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 
 DEFUN ("log", Flog, Slog, 1, 2, 0,
        doc: /* Return the natural logarithm of ARG.
-If the optional argument BASE is given, return log ARG using that base.  */)
+If the optional argument BASE is given, return log ARG using that base.  */,
+(function (number number) float))
   (Lisp_Object arg, Lisp_Object base)
 {
   double d = extract_float (arg);
@@ -257,7 +269,8 @@ If the optional argument BASE is given, return log ARG using that base.  */)
 }
 
 DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
-       doc: /* Return the square root of ARG.  */)
+       doc: /* Return the square root of ARG.  */,
+(function (number) float))
   (Lisp_Object arg)
 {
   double d = extract_float (arg);
@@ -266,7 +279,8 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
 }
 
 DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
-       doc: /* Return the absolute value of ARG.  */)
+       doc: /* Return the absolute value of ARG.  */,
+(function (number) number))
   (Lisp_Object arg)
 {
   CHECK_NUMBER (arg);
@@ -294,7 +308,8 @@ DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
 }
 
 DEFUN ("float", Ffloat, Sfloat, 1, 1, 0,
-       doc: /* Return the floating point number equal to ARG.  */)
+       doc: /* Return the floating point number equal to ARG.  */,
+(function (number) float))
   (register Lisp_Object arg)
 {
   CHECK_NUMBER (arg);
@@ -304,7 +319,8 @@ DEFUN ("float", Ffloat, Sfloat, 1, 1, 0,
 
 DEFUN ("logb", Flogb, Slogb, 1, 1, 0,
        doc: /* Returns largest integer <= the base 2 log of the magnitude of ARG.
-This is the same as the exponent of a float.  */)
+This is the same as the exponent of a float.  */,
+(function (number) integer))
   (Lisp_Object arg)
 {
   EMACS_INT value;
@@ -521,7 +537,8 @@ trunc (double d)
 DEFUN ("ceiling", Fceiling, Sceiling, 1, 2, 0,
        doc: /* Return the smallest integer no less than ARG.
 This rounds the value towards +inf.
-With optional DIVISOR, return the smallest integer no less than ARG/DIVISOR.  */)
+With optional DIVISOR, return the smallest integer no less than ARG/DIVISOR.  */,
+(function (number &optional number) integer))
   (Lisp_Object arg, Lisp_Object divisor)
 {
   return rounding_driver (arg, divisor, ceil, mpz_cdiv_q, ceiling2);
@@ -530,7 +547,8 @@ With optional DIVISOR, return the smallest integer no less than ARG/DIVISOR.  */
 DEFUN ("floor", Ffloor, Sfloor, 1, 2, 0,
        doc: /* Return the largest integer no greater than ARG.
 This rounds the value towards -inf.
-With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.  */)
+With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.  */,
+(function (number &optional number) integer))
   (Lisp_Object arg, Lisp_Object divisor)
 {
   return rounding_driver (arg, divisor, floor, mpz_fdiv_q, floor2);
@@ -543,7 +561,8 @@ With optional DIVISOR, return the nearest integer to ARG/DIVISOR.
 Rounding a value equidistant between two integers may choose the
 integer closer to zero, or it may prefer an even integer, depending on
 your machine.  For example, (round 2.5) can return 3 on some
-systems, but 2 on others.  */)
+systems, but 2 on others.  */,
+(function (number &optional number) integer))
   (Lisp_Object arg, Lisp_Object divisor)
 {
   return rounding_driver (arg, divisor, emacs_rint, rounddiv_q, round2);
@@ -559,7 +578,8 @@ identity (double x)
 DEFUN ("truncate", Ftruncate, Struncate, 1, 2, 0,
        doc: /* Truncate a floating point number to an int.
 Rounds ARG toward zero.
-With optional DIVISOR, truncate ARG/DIVISOR.  */)
+With optional DIVISOR, truncate ARG/DIVISOR.  */,
+(function (number &optional number) integer))
   (Lisp_Object arg, Lisp_Object divisor)
 {
   return rounding_driver (arg, divisor, identity, mpz_tdiv_q, truncate2);
@@ -583,7 +603,8 @@ fmod_float (Lisp_Object x, Lisp_Object y)
 
 DEFUN ("fceiling", Ffceiling, Sfceiling, 1, 1, 0,
        doc: /* Return the smallest integer no less than ARG, as a float.
-\(Round toward +inf.)  */)
+\(Round toward +inf.)  */,
+(function (float) float))
   (Lisp_Object arg)
 {
   CHECK_FLOAT (arg);
@@ -594,7 +615,8 @@ DEFUN ("fceiling", Ffceiling, Sfceiling, 1, 1, 0,
 
 DEFUN ("ffloor", Fffloor, Sffloor, 1, 1, 0,
        doc: /* Return the largest integer no greater than ARG, as a float.
-\(Round toward -inf.)  */)
+\(Round toward -inf.)  */,
+(function (float) float))
   (Lisp_Object arg)
 {
   CHECK_FLOAT (arg);
@@ -604,7 +626,8 @@ DEFUN ("ffloor", Fffloor, Sffloor, 1, 1, 0,
 }
 
 DEFUN ("fround", Ffround, Sfround, 1, 1, 0,
-       doc: /* Return the nearest integer to ARG, as a float.  */)
+       doc: /* Return the nearest integer to ARG, as a float.  */,
+(function (float) float))
   (Lisp_Object arg)
 {
   CHECK_FLOAT (arg);
@@ -615,7 +638,8 @@ DEFUN ("fround", Ffround, Sfround, 1, 1, 0,
 
 DEFUN ("ftruncate", Fftruncate, Sftruncate, 1, 1, 0,
        doc: /* Truncate a floating point number to an integral float value.
-\(Round toward zero.)  */)
+\(Round toward zero.)  */,
+(function (float) float))
   (Lisp_Object arg)
 {
   CHECK_FLOAT (arg);

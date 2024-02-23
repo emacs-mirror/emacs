@@ -1282,7 +1282,8 @@ forms of a time value.
 
 WARNING: Since the result is floating point, it may not be exact.
 If precise time stamps are required, use either `time-convert',
-or (if you need time as a string) `format-time-string'.  */)
+or (if you need time as a string) `format-time-string'.  */,
+(function (&optional (or number list)) float))
   (Lisp_Object specified_time)
 {
   return (FLOATP (specified_time) ? specified_time
@@ -1462,7 +1463,10 @@ The modifiers are:
 
 For example, to produce full ISO 8601 format, use "%FT%T%z".
 
-usage: (format-time-string FORMAT-STRING &optional TIME ZONE)  */)
+usage: (format-time-string FORMAT-STRING &optional TIME ZONE)  */,
+(function (string &optional (or number list)
+                                          (or symbol string cons integer))
+                                  string))
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object zone)
 {
   struct timespec t = lisp_time_argument (timeval);
@@ -1511,7 +1515,11 @@ seconds, i.e., the number of seconds east of Greenwich.  (Note that
 Common Lisp has different meanings for DOW and UTCOFF, and its
 SEC is always an integer between 0 and 59.)
 
-usage: (decode-time &optional TIME ZONE FORM)  */)
+usage: (decode-time &optional TIME ZONE FORM)  */,
+(function (&optional (or number list)
+                                      (or symbol string cons integer)
+                                      symbol)
+                           cons))
   (Lisp_Object specified_time, Lisp_Object zone, Lisp_Object form)
 {
   /* Compute broken-down local time LOCAL_TM from SPECIFIED_TIME and ZONE.  */
@@ -1646,7 +1654,8 @@ Out-of-range values for SECOND through MONTH are brought into range
 via date arithmetic.  This can be tricky especially when combined with
 DST; see Info node `(elisp)Time Conversion' for details and caveats.
 
-usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
+usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */,
+(function (cons &rest t) cons))
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   struct tm tm;
@@ -1758,7 +1767,9 @@ significant 16 bits, and USEC and PSEC are the microsecond and
 picosecond counts.
 
 If FORM is nil, the behavior depends on `current-time-list',
-but new code should not rely on it.  */)
+but new code should not rely on it.  */,
+(function ((or number list) &optional (or symbol integer))
+                            (or cons number)))
      (Lisp_Object time, Lisp_Object form)
 {
   /* FIXME: Any reason why we don't offer a `float` output format option as
@@ -1789,7 +1800,8 @@ significant bits of the seconds, LOW has the least significant 16
 bits, and USEC and PSEC are the microsecond and picosecond counts.
 
 You can use `time-convert' to get a particular timestamp form
-regardless of the value of `current-time-list'.  */)
+regardless of the value of `current-time-list'.  */,
+(function () cons))
   (void)
 {
   return make_lisp_time (current_timespec ());
@@ -1825,7 +1837,10 @@ The optional ZONE is omitted or nil for Emacs local time, t for
 Universal Time, `wall' for system wall clock time, or a string as in
 the TZ environment variable.  It can also be a list (as from
 `current-time-zone') or an integer (as from `decode-time') applied
-without consideration for daylight saving time.  */)
+without consideration for daylight saving time.  */,
+(function (&optional (or number list)
+                                              (or symbol string cons integer))
+                                   string))
   (Lisp_Object specified_time, Lisp_Object zone)
 {
   time_t value = lisp_seconds_argument (specified_time);
@@ -1876,7 +1891,10 @@ without consideration for daylight saving time.
 
 Some operating systems cannot provide all this information to Emacs;
 in this case, `current-time-zone' returns a list containing nil for
-the data it can't find.  */)
+the data it can't find.  */,
+(function (&optional (or number list)
+                                            (or symbol string cons integer))
+                                 cons))
   (Lisp_Object specified_time, Lisp_Object zone)
 {
   struct timespec value;

@@ -34,7 +34,8 @@ static void shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt);
 
 DEFUN ("case-table-p", Fcase_table_p, Scase_table_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a case table.
-See `set-case-table' for more information on these data structures.  */)
+See `set-case-table' for more information on these data structures.  */,
+(function (t) boolean))
   (Lisp_Object object)
 {
   Lisp_Object up, canon, eqv;
@@ -71,7 +72,8 @@ DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
 
 DEFUN ("standard-case-table", Fstandard_case_table, Sstandard_case_table, 0, 0, 0,
        doc: /* Return the standard case table.
-This is the one used for new buffers.  */)
+This is the one used for new buffers.  */,
+(function () char-table))
   (void)
 {
   return Vascii_downcase_table;

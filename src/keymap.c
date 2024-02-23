@@ -142,7 +142,8 @@ A keymap is a list (keymap . ALIST),
 or a symbol whose function definition is itself a keymap.
 ALIST elements look like (CHAR . DEFN) or (SYMBOL . DEFN);
 a vector of densely packed bindings for small character codes
-is also allowed as an element.  */)
+is also allowed as an element.  */,
+(function (t) boolean))
   (Lisp_Object object)
 {
   return (KEYMAPP (object) ? Qt : Qnil);
@@ -255,7 +256,8 @@ keymap_parent (Lisp_Object keymap, bool autoload)
 
 DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
        doc: /* Return the parent keymap of KEYMAP.
-If KEYMAP has no parent, return nil.  */)
+If KEYMAP has no parent, return nil.  */,
+(function (cons) (or cons null)))
   (Lisp_Object keymap)
 {
   return keymap_parent (keymap, 1);
@@ -1906,21 +1908,24 @@ If KEYMAP is nil, that means no local keymap.  */)
 
 DEFUN ("current-local-map", Fcurrent_local_map, Scurrent_local_map, 0, 0, 0,
        doc: /* Return current buffer's local keymap, or nil if it has none.
-Normally the local keymap is set by the major mode with `use-local-map'.  */)
+Normally the local keymap is set by the major mode with `use-local-map'.  */,
+(function () (or cons null)))
   (void)
 {
   return BVAR (current_buffer, keymap);
 }
 
 DEFUN ("current-global-map", Fcurrent_global_map, Scurrent_global_map, 0, 0, 0,
-       doc: /* Return the current global keymap.  */)
+       doc: /* Return the current global keymap.  */,
+(function () cons))
   (void)
 {
   return current_global_map;
 }
 
 DEFUN ("current-minor-mode-maps", Fcurrent_minor_mode_maps, Scurrent_minor_mode_maps, 0, 0, 0,
-       doc: /* Return a list of keymaps for the minor modes of the current buffer.  */)
+       doc: /* Return a list of keymaps for the minor modes of the current buffer.  */,
+(function () (or cons null)))
   (void)
 {
   Lisp_Object *maps;
