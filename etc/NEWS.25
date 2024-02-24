@@ -1161,7 +1161,7 @@ few or no entries have changed.
 ** New preloaded package 'obarray'
 
 Provides obarray operations under the 'obarray-' prefix, such as
-'obarray-make' and 'obarray-map'.
+'obarray-make', 'obarrayp', and 'obarray-map'.
 
 ** pinentry.el allows GnuPG passphrase to be prompted through the
 minibuffer instead of a graphical dialog, depending on whether the gpg
