@@ -2333,26 +2333,43 @@ by `diff-refine-hunk'."
       ('context
        (let* ((middle (save-excursion (re-search-forward "^---" end t)))
               (other middle))
-         (while (and middle
-		     (re-search-forward "^\\(?:!.*\n\\)+" middle t))
-           (smerge-refine-regions (match-beginning 0) (match-end 0)
-                                  (save-excursion
-                                    (goto-char other)
-                                    (re-search-forward "^\\(?:!.*\n\\)+" end)
-                                    (setq other (match-end 0))
-                                    (match-beginning 0))
-                                  other
-                                  (if diff-use-changed-face props-c)
-                                  #'diff-refine-preproc
-                                  (unless diff-use-changed-face props-r)
-                                  (unless diff-use-changed-face props-a)))))
+         (when middle
+           (while (re-search-forward "^\\(?:!.*\n\\)+" middle t)
+             (smerge-refine-regions (match-beginning 0) (match-end 0)
+                                    (save-excursion
+                                      (goto-char other)
+                                      (re-search-forward "^\\(?:!.*\n\\)+" end)
+                                      (setq other (match-end 0))
+                                      (match-beginning 0))
+                                    other
+                                    (if diff-use-changed-face props-c)
+                                    #'diff-refine-preproc
+                                    (unless diff-use-changed-face props-r)
+                                    (unless diff-use-changed-face props-a)))
+           (when diff-refine-nonmodified
+             (goto-char beg)
+             (while (re-search-forward "^\\(?:-.*\n\\)+" middle t)
+               (diff--refine-propertize (match-beginning 0)
+                                        (match-end 0)
+                                        'diff-refine-removed))
+             (goto-char middle)
+             (while (re-search-forward "^\\(?:+.*\n\\)+" end t)
+               (diff--refine-propertize (match-beginning 0)
+                                        (match-end 0)
+                                        'diff-refine-added))))))
       (_ ;; Normal diffs.
        (let ((beg1 (1+ (point))))
-         (when (re-search-forward "^---.*\n" end t)
+         (cond
+          ((re-search-forward "^---.*\n" end t)
            ;; It's a combined add&remove, so there's something to do.
            (smerge-refine-regions beg1 (match-beginning 0)
                                   (match-end 0) end
-                                  nil #'diff-refine-preproc props-r props-a)))))))
+                                  nil #'diff-refine-preproc props-r props-a))
+          (diff-refine-nonmodified
+           (diff--refine-propertize
+            beg1 end
+            (if (eq (char-after beg1) ?<)
+                'diff-refine-removed 'diff-refine-added)))))))))
 
 (defun diff--iterate-hunks (max fun)
   "Iterate over all hunks between point and MAX.
