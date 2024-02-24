@@ -301,8 +301,8 @@ at POSITION.  */)
       struct buffer *obuf = current_buffer;
       struct itree_node *node;
       struct sortvec items[2];
-      struct sortvec *result = NULL;
       struct buffer *b = XBUFFER (object);
+      struct sortvec *result = NULL;
       Lisp_Object res = Qnil;
 
       set_buffer_temp (b);
@@ -326,7 +326,10 @@ at POSITION.  */)
           if (NILP (res)
               || (make_sortvec_item (this, node->data),
                   compare_overlays (result, this) < 0))
-            res = tem;
+            {
+              result = this;
+              res = tem;
+            }
 	}
       set_buffer_temp (obuf);
 
