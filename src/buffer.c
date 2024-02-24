@@ -1334,7 +1334,7 @@ buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
     case SYMBOL_LOCALIZED:
       { /* Look in local_var_alist.  */
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
-	XSETSYMBOL (variable, sym); /* Update In case of aliasing.  */
+	variable = make_lisp_symbol (sym); /* Update In case of aliasing.  */
 	result = assq_no_quit (variable, BVAR (buf, local_var_alist));
 	if (!NILP (result))
 	  {
@@ -4971,7 +4971,7 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
   sym->u.s.declared_special = true;
   sym->u.s.redirect = SYMBOL_FORWARDED;
   SET_SYMBOL_FWD (sym, bo_fwd);
-  XSETSYMBOL (PER_BUFFER_SYMBOL (offset), sym);
+  PER_BUFFER_SYMBOL (offset) = make_lisp_symbol (sym);
 
   if (PER_BUFFER_IDX (offset) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding

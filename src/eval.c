@@ -3475,7 +3475,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
   switch (sym->u.s.redirect)
     {
     case SYMBOL_VARALIAS:
-      sym = SYMBOL_ALIAS (sym); XSETSYMBOL (symbol, sym); goto start;
+      sym = SYMBOL_ALIAS (sym); symbol = make_lisp_symbol (sym); goto start;
     case SYMBOL_PLAINVAL:
       /* The most common case is that of a non-constant symbol with a
 	 trivial value.  Make that as fast as we can.  */
