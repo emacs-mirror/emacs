@@ -391,7 +391,11 @@ p = (1 + 2)
   (python-tests-assert-faces
    "b: Tuple[Optional[int], Union[Sequence[str], str]] = (None, 'foo')"
    '((1 . font-lock-variable-name-face) (2)
+     (4 . font-lock-type-face) (9)
+     (10 . font-lock-type-face) (18)
      (19 . font-lock-builtin-face) (22)
+     (25 . font-lock-type-face) (30)
+     (31 . font-lock-type-face) (39)
      (40 . font-lock-builtin-face) (43)
      (46 . font-lock-builtin-face) (49)
      (52 . font-lock-operator-face) (53)
@@ -402,12 +406,14 @@ p = (1 + 2)
   (python-tests-assert-faces
    "c: Collection = {1, 2, 3}"
    '((1 . font-lock-variable-name-face) (2)
+     (4 . font-lock-type-face) (14)
      (15 . font-lock-operator-face) (16))))
 
 (ert-deftest python-font-lock-assignment-statement-13 ()
   (python-tests-assert-faces
    "d: Mapping[int, str] = {1: 'bar', 2: 'baz'}"
    '((1 . font-lock-variable-name-face) (2)
+     (4 . font-lock-type-face) (11)
      (12 . font-lock-builtin-face) (15)
      (17 . font-lock-builtin-face) (20)
      (22 . font-lock-operator-face) (23)
@@ -472,13 +478,27 @@ def f(x: CustomInt) -> CustomInt:
      (58 . font-lock-operator-face) (59)
      (62 . font-lock-operator-face) (63)
      (70 . font-lock-variable-name-face) (72)
+     (74 . font-lock-type-face) (82)
+     (83 . font-lock-type-face) (92)
      (94 . font-lock-operator-face) (95)
      (102 . font-lock-operator-face) (103)
      (111 . font-lock-variable-name-face) (114)
+     (116 . font-lock-type-face) (125)
      (126 . font-lock-operator-face) (127)
      (128 . font-lock-builtin-face) (131)
      (136 . font-lock-operator-face) (137)
      (144 . font-lock-keyword-face) (150))))
+
+(ert-deftest python-font-lock-assignment-statement-19 ()
+  (python-tests-assert-faces
+   "a: List[List[CustomInt], List[CustomInt]] = []"
+   '((1 . font-lock-variable-name-face) (2)
+     (4 . font-lock-type-face) (8)
+     (9 . font-lock-type-face) (13)
+     (14 . font-lock-type-face) (23)
+     (26 . font-lock-type-face) (30)
+     (31 . font-lock-type-face) (40)
+     (43 . font-lock-operator-face) (44))))
 
 (ert-deftest python-font-lock-operator-1 ()
   (python-tests-assert-faces

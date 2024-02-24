@@ -794,6 +794,25 @@ sign in chained assignment."
            )
           symbol-end)
      . font-lock-type-face)
+    ;; single assignment with/without type hints, e.g.
+    ;;   a: int = 5
+    ;;   b: Tuple[Optional[int], Union[Sequence[str], str]] = (None, 'foo')
+    ;;   c: Collection = {1, 2, 3}
+    ;;   d: Mapping[int, str] = {1: 'bar', 2: 'baz'}
+    (,(python-font-lock-assignment-matcher
+       (python-rx (or line-start ?\;) (* space)
+                  grouped-assignment-target (* space)
+                  (? ?: (* space) (group (+ not-simple-operator)) (* space))
+                  (group assignment-operator)))
+     (1 font-lock-variable-name-face)
+     (3 'font-lock-operator-face)
+     (,(python-rx symbol-name)
+      (progn
+        (when-let ((type-start (match-beginning 2)))
+          (goto-char type-start))
+        (match-end 0))
+      nil
+      (0 font-lock-type-face)))
     ;; multiple assignment
     ;; (note that type hints are not allowed for multiple assignments)
     ;;   a, b, c = 1, 2, 3
@@ -826,18 +845,6 @@ sign in chained assignment."
         (match-beginning 2))            ; limit the search until the assignment
       nil
       (1 font-lock-variable-name-face)))
-    ;; single assignment with type hints, e.g.
-    ;;   a: int = 5
-    ;;   b: Tuple[Optional[int], Union[Sequence[str], str]] = (None, 'foo')
-    ;;   c: Collection = {1, 2, 3}
-    ;;   d: Mapping[int, str] = {1: 'bar', 2: 'baz'}
-    (,(python-font-lock-assignment-matcher
-       (python-rx (or line-start ?\;) (* space)
-                  grouped-assignment-target (* space)
-                  (? ?: (* space) (+ not-simple-operator) (* space))
-                  (group assignment-operator)))
-     (1 font-lock-variable-name-face)
-     (2 'font-lock-operator-face))
     ;; special cases
     ;;   (a) = 5
     ;;   [a] = 5,
