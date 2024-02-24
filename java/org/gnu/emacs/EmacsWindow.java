@@ -661,7 +661,7 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   onKeyDown (int keyCode, KeyEvent event)
   {
-    int state, state_1, num_lock_flag;
+    int state, state_1, extra_ignored;
     long serial;
     String characters;
 
@@ -682,23 +682,37 @@ public final class EmacsWindow extends EmacsHandleObject
 
     state = eventModifiers (event);
 
-    /* Num Lock and Scroll Lock aren't supported by systems older than
-       Android 3.0. */
+    /* Num Lock, Scroll Lock and Meta aren't supported by systems older
+       than Android 3.0. */
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-      num_lock_flag = (KeyEvent.META_NUM_LOCK_ON
-		       | KeyEvent.META_SCROLL_LOCK_ON);
+      extra_ignored = (KeyEvent.META_NUM_LOCK_ON
+		       | KeyEvent.META_SCROLL_LOCK_ON
+		       | KeyEvent.META_META_MASK);
     else
-      num_lock_flag = 0;
+      extra_ignored = 0;
 
     /* Ignore meta-state understood by Emacs for now, or key presses
-       such as Ctrl+C and Meta+C will not be recognized as an ASCII
-       key press event.  */
+       such as Ctrl+C and Meta+C will not be recognized as ASCII key
+       press events.  */
 
     state_1
       = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK
-		  | KeyEvent.META_SYM_ON | KeyEvent.META_META_MASK
-		  | num_lock_flag);
+		  | KeyEvent.META_SYM_ON | extra_ignored);
+
+    /* There's no distinction between Right Alt and Alt Gr on Android,
+       so restore META_ALT_RIGHT_ON if set in state to enable composing
+       characters.  (bug#69321) */
+
+    if ((state & KeyEvent.META_ALT_RIGHT_ON) != 0)
+      {
+	state_1 |= KeyEvent.META_ALT_ON | KeyEvent.META_ALT_RIGHT_ON;
+
+	/* If Alt is also not depressed, remove its bit from the mask
+	   reported to Emacs.  */
+	if ((state & KeyEvent.META_ALT_LEFT_ON) == 0)
+	  state &= ~KeyEvent.META_ALT_MASK;
+      }
 
     synchronized (eventStrings)
       {
@@ -719,29 +733,43 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   onKeyUp (int keyCode, KeyEvent event)
   {
-    int state, state_1, unicode_char, num_lock_flag;
+    int state, state_1, unicode_char, extra_ignored;
     long time;
 
     /* Compute the event's modifier mask.  */
     state = eventModifiers (event);
 
-    /* Num Lock and Scroll Lock aren't supported by systems older than
-       Android 3.0. */
+    /* Num Lock, Scroll Lock and Meta aren't supported by systems older
+       than Android 3.0. */
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-      num_lock_flag = (KeyEvent.META_NUM_LOCK_ON
-		       | KeyEvent.META_SCROLL_LOCK_ON);
+      extra_ignored = (KeyEvent.META_NUM_LOCK_ON
+		       | KeyEvent.META_SCROLL_LOCK_ON
+		       | KeyEvent.META_META_MASK);
     else
-      num_lock_flag = 0;
+      extra_ignored = 0;
 
     /* Ignore meta-state understood by Emacs for now, or key presses
-       such as Ctrl+C and Meta+C will not be recognized as an ASCII
-       key press event.  */
+       such as Ctrl+C and Meta+C will not be recognized as ASCII key
+       press events.  */
 
     state_1
       = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK
-		  | KeyEvent.META_SYM_ON | KeyEvent.META_META_MASK
-		  | num_lock_flag);
+		  | KeyEvent.META_SYM_ON | extra_ignored);
+
+    /* There's no distinction between Right Alt and Alt Gr on Android,
+       so restore META_ALT_RIGHT_ON if set in state to enable composing
+       characters.  */
+
+    if ((state & KeyEvent.META_ALT_RIGHT_ON) != 0)
+      {
+	state_1 |= KeyEvent.META_ALT_ON | KeyEvent.META_ALT_RIGHT_ON;
+
+	/* If Alt is also not depressed, remove its bit from the mask
+	   reported to Emacs.  */
+	if ((state & KeyEvent.META_ALT_LEFT_ON) == 0)
+	  state &= ~KeyEvent.META_ALT_MASK;
+      }
 
     unicode_char = getEventUnicodeChar (event, state_1);
 
