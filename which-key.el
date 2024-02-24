@@ -756,10 +756,9 @@ Used when `which-key-popup-type' is frame.")
     (regexp-opt '("mouse-" "wheel-" "remap" "drag-" "scroll-bar"
                   "select-window" "switch-frame" "which-key"))))
 (defvar which-key--ignore-keys-regexp
-  (eval-when-compile
-    (regexp-opt '("mouse-" "wheel-" "remap" "drag-" "scroll-bar"
-                  "select-window" "switch-frame" "-state"
-                  "which-key"))))
+  (regexp-opt '("mouse-" "wheel-" "remap" "drag-" "scroll-bar"
+                "select-window" "switch-frame" "-state"
+                "which-key")))
 
 (defvar which-key--pages-obj nil)
 (cl-defstruct which-key--pages
