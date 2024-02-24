@@ -2025,9 +2025,10 @@ The old vector representation is still accepted by functions operating
 on obarrays, but 'obarrayp' only returns 't' for obarray objects.
 'type-of' now returns 'obarray' for obarray objects.
 
-Old code which incorrectly created "obarrays" as Lisp vectors filled
+Old code which (incorrectly) created "obarrays" as Lisp vectors filled
 with something other than 0, as in '(make-vector N nil)', will no longer
-work at all and should be rewritten to use 'obarray-make'.
+work, and should be rewritten to use 'obarray-make'.  Alternatively, you
+can fill the vector with 0.
 
 +++
 *** New function 'obarray-clear' removes all symbols from an obarray.
