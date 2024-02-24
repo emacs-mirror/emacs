@@ -432,7 +432,7 @@ than the corresponding .el file.
 Alternatively, if you set the option 'load-prefer-newer' non-nil,
 Emacs will load whichever version of a file is the newest.
 
-*** Watch out for the EMACSLOADPATH environment variable
+*** Watch out for the EMACSLOADPATH environment variable.
 
 EMACSLOADPATH overrides which directories the function "load" will search.
 
@@ -441,7 +441,7 @@ environment.
 
 ** Keyboard problems
 
-*** PGTK build of Emacs running on Wayland doesn't recognize Hyper modifier
+*** PGTK build of Emacs running on Wayland doesn't recognize Hyper modifier.
 
 If you arrange for the Wayland compositor to send the Hyper key
 modifier (e.g., via XKB customizations), the Hyper modifier will still
@@ -451,6 +451,17 @@ The reason is that GDK 3.x doesn't recognize the Hyper key modifier.
 Since GDK 3.x is no longer developed, this bug in GDK will probably
 never be solved.  And the Emacs PGTK build cannot yet support GTK4,
 where this problem is reportedly solved.
+
+*** Emacs built with GTK lags in its response to keyboard input.
+This can happen when input methods are used.  It happens because Emacs
+behaves in an unconventional way with respect to GTK input methods: it
+registers to receive keyboard input as unprocessed key events with
+metadata (as opposed to receiving them as text strings).  Most GTK
+programs use the latter approach, so some modern input methods have
+bugs and misbehave when faced with the way Emacs does it.
+
+A workaround is to set GTK_IM_MODULE=none in the environment, or maybe
+find a different input method without these problems.
 
 *** Unable to enter the M-| key on some German keyboards.
 Some users have reported that M-| suffers from "keyboard ghosting".

@@ -324,8 +324,8 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     chosen port for the remote listener.
 
   * `tramp-copy-keep-date'
-    This specifies whether the copying program when the preserves the
-    timestamp of the original file.
+    This specifies whether the copying program preserves the timestamp
+    of the original file.
 
   * `tramp-copy-keep-tmpfile'
     This specifies whether a temporary local file shall be kept

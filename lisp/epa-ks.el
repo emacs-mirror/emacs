@@ -47,11 +47,8 @@ This is used by `epa-search-keys', for looking up public keys."
                  (repeat :tag "Random pool"
                          (string :tag "Keyserver address"))
                  (const "keyring.debian.org")
-                 (const "keys.gnupg.net")
                  (const "keyserver.ubuntu.com")
                  (const "pgp.mit.edu")
-                 (const "pool.sks-keyservers.net")
-                 (const "zimmermann.mayfirst.org")
                  (string :tag "Custom keyserver"))
   :version "28.1")
 
