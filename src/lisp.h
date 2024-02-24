@@ -5153,7 +5153,7 @@ extern bool build_details;
 /* 0 not a daemon, 1 foreground daemon, 2 background daemon.  */
 extern int daemon_type;
 #define IS_DAEMON (daemon_type != 0)
-/* True means daemon-initialized has not yet been called. */
+/* Non-zero means daemon-initialized has not yet been called.  */
 #define DAEMON_RUNNING (daemon_type >= 0)
 #else  /* WINDOWSNT */
 extern void *w32_daemon_event;
