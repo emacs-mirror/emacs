@@ -525,15 +525,16 @@ This string is fed into `substitute-command-keys'")
     map)
   "Keymap for C-h commands.")
 
-(defvar which-key--paging-functions '(which-key-C-h-dispatch
-                                      which-key-manual-update
-                                      which-key-turn-page
-                                      which-key-show-next-page-cycle
-                                      which-key-show-next-page-no-cycle
-                                      which-key-show-previous-page-cycle
-                                      which-key-show-previous-page-no-cycle
-                                      which-key-undo-key
-                                      which-key-undo))
+(defvar which-key--paging-functions
+  (list #'which-key-C-h-dispatch
+	#'which-key-manual-update
+	#'which-key-turn-page
+	#'which-key-show-next-page-cycle
+	#'which-key-show-next-page-no-cycle
+	#'which-key-show-previous-page-cycle
+	#'which-key-show-previous-page-no-cycle
+	#'which-key-undo-key
+	#'which-key-undo))
 
 (defvar which-key-persistent-popup nil
   "Whether or not to disable `which-key--hide-popup'.")
