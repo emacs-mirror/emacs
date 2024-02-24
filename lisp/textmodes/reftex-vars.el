@@ -235,11 +235,10 @@ distribution.  Mixed-case symbols are convenience aliases.")
      "ConTeXt bib module"
      ((?\C-m . "\\cite[%l]")
       (?s    . "\\cite[][%l]")
-      (?n    . "\\nocite[%l]")))
-    )
+      (?n    . "\\nocite[%l]"))))
   "Builtin versions of the citation format.
 The following conventions are valid for all alist entries:
-`?\C-m' should always point to a straight \\cite{%l} macro.
+`?\\C-m' should always point to a straight \\cite{%l} macro.
 `?t'    should point to a textual citation (citation as a noun).
 `?p'    should point to a parenthetical citation.")
 
