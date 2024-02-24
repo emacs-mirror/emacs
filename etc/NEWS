@@ -2025,6 +2025,14 @@ The old vector representation is still accepted by functions operating
 on obarrays, but 'obarrayp' only returns 't' for obarray objects.
 'type-of' now returns 'obarray' for obarray objects.
 
+If you have code which creates obarrays as a simple Lisp vector:
+
+   (make-vector N nil)
+
+and then calls 'intern' using such an obarray as second argument, this
+will now signal a wrong-type-argument error; replace nil with zero to
+make it work again.
+
 +++
 *** New function 'obarray-clear' removes all symbols from an obarray.
 
