@@ -151,7 +151,7 @@ buffer.")
     ("Mark & Kill"
      (set-mark-command . "mark")
      (kill-line . "kill line")
-     (kill-ring-save . "kill region")
+     (kill-region . "kill region")
      (yank . "yank")
      (exchange-point-and-mark . "swap"))
     ("Projects"
@@ -165,7 +165,15 @@ buffer.")
      (isearch-forward . "search")
      (isearch-backward . "reverse search")
      (query-replace . "search & replace")
-     (fill-paragraph . "reformat"))))
+     (fill-paragraph . "reformat")))
+  "Data structure for `help-quick'.
+Value should be a list of elements, each element should of the form
+
+  (GROUP-NAME (COMMAND . DESCRIPTION) (COMMAND . DESCRIPTION)...)
+
+where GROUP-NAME is the name of the group of the commands,
+COMMAND is the symbol of a command and DESCRIPTION is its short
+description, 10 to 15 char5acters at most.")
 
 (declare-function prop-match-value "text-property-search" (match))
 
