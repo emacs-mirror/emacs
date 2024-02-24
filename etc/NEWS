@@ -598,8 +598,11 @@ It allows tweaking the thresholds for rename and copy detection.
 
 ---
 *** New user option 'diff-refine-nonmodified'.
-Makes 'diff-refine' highlight added and removed whole lines with the
-same faces as the words added and removed within modified lines.
+When this is non-nil, 'diff-refine' will highlight lines that were added
+or removed in their entirety (as opposed to modified lines, where some
+parts of the line were modified), using the same faces as for
+highlighting the words added and removed within modified lines.  The
+default value is nil.
 
 +++
 *** 'diff-ignore-whitespace-hunk' can now be applied to all hunks.

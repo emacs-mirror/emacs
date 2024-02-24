@@ -2283,8 +2283,14 @@ Return new point, if it was moved."
     (overlay-put ol 'face face)))
 
 (defcustom diff-refine-nonmodified nil
-  "If non-nil also highlight as \"refined\" the added/removed lines.
-This is currently only implemented for `unified' diffs."
+  "If non-nil, also highlight the added/removed lines as \"refined\".
+The lines highlighted when this is non-nil are those that were
+added or removed in their entirety, as opposed to lines some
+parts of which were modified.  The added lines are highlighted
+using the `diff-refine-added' face, while the removed lines are
+highlighted using the `diff-refine-removed' face.
+This is currently implemented only for diff formats supported
+by `diff-refine-hunk'."
   :version "30.1"
   :type 'boolean)
 
