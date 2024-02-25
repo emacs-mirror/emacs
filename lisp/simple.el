@@ -10866,7 +10866,7 @@ and setting it to nil."
 (defvar read-passwd--mode-line-icon nil
   "Propertized mode line icon for showing/hiding passwords.")
 
-(defun read-passwd--toggle-visibility ()
+(defun read-passwd-toggle-visibility ()
   "Toggle minibuffer contents visibility.
 Adapt also mode line."
   (interactive)
@@ -10883,7 +10883,7 @@ Adapt also mode line."
             mouse-face mode-line-highlight
             local-map
             (keymap
-             (mode-line keymap (mouse-1 . read-passwd--toggle-visibility)))))
+             (mode-line keymap (mouse-1 . read-passwd-toggle-visibility)))))
     (force-mode-line-update))
   (read-passwd--hide-password))
 
@@ -10902,7 +10902,7 @@ Adapt also mode line."
   (define-icon read-passwd--show-password-icon nil
     '((image "reveal.svg" "reveal.pbm" :height (0.8 . em))
       (symbol "👁")
-      (text "o"))
+      (text "<o>"))
     "Mode line icon to show a hidden password."
     :group mode-line-faces
     :version "30.1"
@@ -10910,7 +10910,7 @@ Adapt also mode line."
   (define-icon read-passwd--hide-password-icon nil
     '((image "conceal.svg" "conceal.pbm" :height (0.8 . em))
       (symbol "⦵")
-      (text "x"))
+      (text "<\\>"))
     "Mode line icon to hide a visible password."
     :group mode-line-faces
     :version "30.1"
@@ -10937,7 +10937,7 @@ Adapt also mode line."
         (setq mode-line-format (cdr mode-line-format)))))
 
   (when read-passwd-mode
-    (read-passwd--toggle-visibility)))
+    (read-passwd-toggle-visibility)))
 
 
 (defvar messages-buffer-mode-map

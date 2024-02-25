@@ -3378,7 +3378,7 @@ with Emacs.  Do not call it directly in your own packages."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
     (define-key map "\C-u" #'delete-minibuffer-contents) ;bug#12570
-    (define-key map "\t" #'read-passwd--toggle-visibility)
+    (define-key map "\t" #'read-passwd-toggle-visibility)
     map)
   "Keymap used while reading passwords.")
 
