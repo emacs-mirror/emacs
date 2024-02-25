@@ -4238,10 +4238,8 @@ already the major mode."
   (pcase var
     ('mode
      (let ((mode (intern (concat (downcase (symbol-name val))
-                                 "-mode"))))
-       (unless (eq (indirect-function mode)
-                   (indirect-function major-mode))
-         (funcall mode))))
+                          "-mode"))))
+       (set-auto-mode-0 mode t)))
     ('eval
      (pcase val
        (`(add-hook ',hook . ,_) (hack-one-local-variable--obsolete hook)))
