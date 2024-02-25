@@ -3832,16 +3832,22 @@ confusing to some users.")
 
 (declare-function android-detect-keyboard "androidfns.c")
 
+(defvar use-dialog-box-override nil
+  "Whether `use-dialog-box-p' should always return t.")
+
 (defun use-dialog-box-p ()
   "Return non-nil if the current command should prompt the user via a dialog box."
-  (and last-input-event                 ; not during startup
-       (or (consp last-nonmenu-event)   ; invoked by a mouse event
-           (and (null last-nonmenu-event)
-                (consp last-input-event))
-           (and (featurep 'android)	; Prefer dialog boxes on Android.
-                (not (android-detect-keyboard))) ; If no keyboard is connected.
-           from--tty-menu-p)            ; invoked via TTY menu
-       use-dialog-box))
+  (or use-dialog-box-override
+      (and last-input-event                 ; not during startup
+           (or (consp last-nonmenu-event)   ; invoked by a mouse event
+               (and (null last-nonmenu-event)
+                    (consp last-input-event))
+               (and (featurep 'android)	; Prefer dialog boxes on
+                                        ; Android.
+                    (not (android-detect-keyboard))) ; If no keyboard is
+                                                     ; connected.
+               from--tty-menu-p)            ; invoked via TTY menu
+           use-dialog-box)))
 
 ;; Actually in textconv.c.
 (defvar overriding-text-conversion-style)
