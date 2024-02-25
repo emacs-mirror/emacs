@@ -186,7 +186,8 @@ revision number and lock status."
 This minor mode is automatically activated whenever you visit a file under
 control of one of the revision control systems in `vc-handled-backends'.
 VC commands are globally reachable under the prefix \\[vc-prefix-map]:
-\\{vc-prefix-map}")
+\\{vc-prefix-map}"
+  nil)
 
 (defmacro vc-error-occurred (&rest body)
   `(condition-case nil (progn ,@body nil) (error t)))
