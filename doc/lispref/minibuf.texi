@@ -2562,6 +2562,14 @@ times match.
 The optional argument @var{default} specifies the default password to
 return if the user enters empty input.  If @var{default} is @code{nil},
 then @code{read-passwd} returns the null string in that case.
+
+This function uses @code{read-passwd-mode}, a minor mode.  It binds two
+keys in the minbuffer: @kbd{C-u} (@code{delete-minibuffer-contents})
+deletes the password, and @kbd{TAB}
+(@code{read-passwd--toggle-visibility}) toggles the visibility of the
+password.  There is also an additional icon in the mode-line.  Clicking
+on this icon with @key{mouse-1} toggles the visibility of the password
+as well.
 @end defun
 
 @node Minibuffer Commands

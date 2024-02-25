@@ -322,6 +322,12 @@ Previously, it was set to t but this broke remote file name detection.
 ** Multi-character key echo now ends with a suggestion to use Help.
 Customize 'echo-keystrokes-help' to nil to prevent that.
 
++++
+** 'read-passwd' can toggle the visibility of passwords.
+Use 'TAB' in the minibuffer to show or hide the password.  Likewise,
+there is an icon on the mode-line, which toggles the visibility of the
+password when clicking with 'mouse-1'.
+
 
 * Editing Changes in Emacs 30.1
 
@@ -1939,7 +1945,8 @@ Example:
       "Uses c:\remote\dir\files and the key \C-x."
       ...)
 
-where the doc string contains four control characters CR, DEL, FF and ^X.
+where the docstring contains four control characters 'CR', 'DEL', 'FF'
+and 'C-x'.
 
 The warning name is 'docstrings-control-chars'.
 
@@ -2025,7 +2032,7 @@ automatically, which means that the size parameter to 'obarray-make' can
 safely be omitted.  That is, they do not become slower as they fill up.
 
 The old vector representation is still accepted by functions operating
-on obarrays, but 'obarrayp' only returns 't' for obarray objects.
+on obarrays, but 'obarrayp' only returns t for obarray objects.
 'type-of' now returns 'obarray' for obarray objects.
 
 Old code which (incorrectly) created "obarrays" as Lisp vectors filled
