@@ -4549,6 +4549,9 @@ def __PYTHON_EL_native_completion_setup():
             readline.parse_and_bind('tab: complete')
             # Require just one tab to send output.
             readline.parse_and_bind('set show-all-if-ambiguous on')
+            # Avoid ANSI escape characters in the output
+            readline.parse_and_bind('set colored-completion-prefix off')
+            readline.parse_and_bind('set colored-stats off')
             # Avoid replacing common prefix with ellipsis.
             readline.parse_and_bind('set completion-prefix-display-length 0')
 
