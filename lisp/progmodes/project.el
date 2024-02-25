@@ -1866,12 +1866,12 @@ Otherwise, `default-directory' is temporarily set to the current
 project's root.
 
 If OVERRIDING-MAP is non-nil, it will be used as
-`overriding-local-map' to provide shorter bindings from that map
-which will take priority over the global ones."
+`overriding-terminal-local-map' to provide shorter bindings
+from that map which will take priority over the global ones."
   (interactive)
   (let* ((pr (project-current t))
          (prompt-format (or prompt-format "[execute in %s]:"))
-         (command (let ((overriding-local-map overriding-map))
+         (command (let ((overriding-terminal-local-map overriding-map))
                     (key-binding (read-key-sequence
                                   (format prompt-format (project-root pr)))
                                  t)))
