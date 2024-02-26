@@ -4345,10 +4345,7 @@ compute_stop_pos (struct it *it)
 	}
     }
 
-  if (it->cmp_it.id < 0
-      && (STRINGP (it->string)
-	  || ((!it->bidi_p || it->bidi_it.scan_dir >= 0)
-	      && it->cmp_it.stop_pos <= IT_CHARPOS (*it))))
+  if (it->cmp_it.id < 0)
     {
       ptrdiff_t stoppos = it->end_charpos;
 
@@ -4357,7 +4354,9 @@ compute_stop_pos (struct it *it)
          characters to that position.  */
       if (it->bidi_p && it->bidi_it.scan_dir < 0)
 	stoppos = -1;
-      else if (cmp_limit_pos > 0)
+      else if (!STRINGP (it->string)
+	       && it->cmp_it.stop_pos <= IT_CHARPOS (*it)
+	       && cmp_limit_pos > 0)
 	stoppos = cmp_limit_pos;
       /* Force composition_compute_stop_pos avoid the costly search
          for static compositions, since those were already found by
