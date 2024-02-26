@@ -511,9 +511,14 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   ;; This would allow highlighting \newcommand\CMD but requires
 	   ;; adapting subgroup numbers below.
 	   ;; (arg "\\(?:{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)\\|\\\\[a-z*]+\\)"))
-           (inbraces-re (lambda (re)
-                          (concat "\\(?:[^{}\\]\\|\\\\.\\|" re "\\)")))
-	   (arg (concat "{\\(" (funcall inbraces-re "{[^}]*}") "+\\)")))
+           (inbraces-re
+            (lambda (n) ;; Level of nesting of braces we should support.
+              (let ((re "[^}]"))
+                (dotimes (_ n)
+                  (setq re
+                        (concat "\\(?:[^{}\\]\\|\\\\.\\|{" re "*}\\)")))
+                re)))
+	   (arg (concat "{\\(" (funcall inbraces-re 2) "+\\)")))
       `(;; Verbatim-like args.
         ;; Do it first, because we don't want to highlight them
         ;; in comments (bug#68827), but we do want to highlight them
@@ -523,8 +528,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
         ;; This is done at the very beginning so as to interact with the other
         ;; keywords in the same way as comments and strings.
         (,(concat "\\$\\$?\\(?:[^$\\{}]\\|\\\\.\\|{"
-                  (funcall inbraces-re
-                           (concat "{" (funcall inbraces-re "{[^}]*}") "*}"))
+                  (funcall inbraces-re 6)
                   "*}\\)+\\$?\\$")
          (0 'tex-math keep))
         ;; Heading args.
@@ -605,14 +609,14 @@ An alternative value is \" . \", if you use a font with a narrow period."
         (list (concat (regexp-opt '("``" "\"<" "\"`" "<<" "«") t)
                       "\\(\\(.\\|\n\\)+?\\)"
                       (regexp-opt `("''" "\">" "\"'" ">>" "»") t))
-              '(1 font-lock-keyword-face)
-              '(2 font-lock-string-face)
-              '(4 font-lock-keyword-face))
+              '(1 'font-lock-keyword-face)
+              '(2 'font-lock-string-face)
+              '(4 'font-lock-keyword-face))
 	;;
 	;; Command names, special and general.
 	(cons (concat slash specials-1) 'font-lock-warning-face)
 	(list (concat "\\(" slash specials-2 "\\)\\([^a-zA-Z@]\\|\\'\\)")
-	      1 'font-lock-warning-face)
+	      '(1 'font-lock-warning-face))
 	(concat slash general)
 	;;
 	;; Font environments.  It seems a bit dubious to use `bold' etc. faces
@@ -680,7 +684,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (eval-when-compile
   (defconst tex-syntax-propertize-rules
     (syntax-propertize-precompile-rules
-    ("\\\\verb\\**\\([^a-z@*]\\)"
+     ("\\\\verb\\**\\([^a-z@*]\\)"
       (1 (prog1 "\""
            (tex-font-lock-verb
             (match-beginning 0) (char-after (match-beginning 1))))))))
@@ -764,7 +768,7 @@ automatically inserts its partner."
                            (regexp-quote (buffer-substring arg-start arg-end)))
                       (text-clone-create arg-start arg-end))))))))
       (scan-error nil)
-      (error (message "Error in latex-env-before-change: %s" err)))))
+      (error (message "Error in latex-env-before-change: %S" err)))))
 
 (defun tex-font-lock-unfontify-region (beg end)
   (font-lock-default-unfontify-region beg end)
@@ -852,7 +856,7 @@ START is the position of the \\ and DELIM is the delimiter char."
   (let ((char (nth 3 state)))
     (cond
      ((not char)
-      (if (eq 2 (nth 7 state)) 'tex-verbatim font-lock-comment-face))
+      (if (eq 2 (nth 7 state)) 'tex-verbatim 'font-lock-comment-face))
      ((eq char ?$) 'tex-math)
      ;; A \verb element.
      (t 'tex-verbatim))))
@@ -1265,8 +1269,8 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq-local facemenu-end-add-face "}")
   (setq-local facemenu-remove-face-function t)
   (setq-local font-lock-defaults
-	      '((tex-font-lock-keywords tex-font-lock-keywords-1
-                                        tex-font-lock-keywords-2 tex-font-lock-keywords-3)
+	      '(( tex-font-lock-keywords tex-font-lock-keywords-1
+                  tex-font-lock-keywords-2 tex-font-lock-keywords-3)
 		nil nil nil nil
 		;; Who ever uses that anyway ???
 		(font-lock-mark-block-function . mark-paragraph)
