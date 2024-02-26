@@ -158,7 +158,7 @@ multibyte mode and waits for the shell prompt to appear."
 
 		;; Mark it as connected.
 		(tramp-set-connection-property p "connected" t))))
-        
+
 	;; Cleanup, and propagate the signal.
 	((error quit)
 	 (tramp-cleanup-connection vec t)
