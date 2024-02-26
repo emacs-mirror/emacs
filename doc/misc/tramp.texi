@@ -523,6 +523,8 @@ is used as the group to change to.  The default host name is the same.
 @cindex @option{sudo} method
 @cindex method @option{doas}
 @cindex @option{doas} method
+@cindex method @option{androidsu}
+@cindex @option{androidsu} method
 
 If the @option{su}, @option{sudo} or @option{doas} option should be
 performed on another host, it can be combined with a leading
@@ -533,6 +535,11 @@ a simple case, the syntax looks like
 @file{@trampfn{ssh@value{postfixhop}user@@host|sudo,,/path/to/file}}.
 @xref{Ad-hoc multi-hops}.
 
+The @option{su} method and other shell-based methods conflict with
+non-standard @command{su} implementations popular among Android users
+and the restricted command-line utilities distributed with that system.
+The @option{androidsu} method enables accessing files through
+@command{su} on such systems, but multi-hops are not supported.
 
 @anchor{Quick Start Guide sudoedit method}
 @section Using @command{sudoedit}

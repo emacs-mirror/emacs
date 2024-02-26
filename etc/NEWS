@@ -903,6 +903,12 @@ mode line.  'header' will display in the header line;
 ** Tramp
 
 +++
+*** New connection method "androidsu".
+This provides access to system files with elevated privileges granted by
+the idiosyncratic 'su' implementations and system utilities customary on
+Android.
+
++++
 *** New connection methods "dockercp" and "podmancp".
 These are the external methods counterparts of "docker" and "podman".
 

@@ -263,9 +263,10 @@ arguments to pass to the OPERATION."
     (tramp-convert-file-attributes v localname id-format
       (and
        (tramp-adb-send-command-and-check
-	v (format "%s -d -l %s | cat"
+	v (format "(%s -d -l %s; echo tramp_exit_status $?) | cat"
 		  (tramp-adb-get-ls-command v)
-		  (tramp-shell-quote-argument localname)))
+		  (tramp-shell-quote-argument localname))
+        nil t)
        (with-current-buffer (tramp-get-buffer v)
 	 (tramp-adb-sh-fix-ls-output)
 	 (cdar (tramp-do-parse-file-attributes-with-ls v)))))))
@@ -316,9 +317,10 @@ arguments to pass to the OPERATION."
       directory full match nosort id-format count
     (with-current-buffer (tramp-get-buffer v)
       (when (tramp-adb-send-command-and-check
-	     v (format "%s -a -l %s | cat"
+	     v (format "(%s -a -l %s; echo tramp_exit_status $?) | cat"
 		       (tramp-adb-get-ls-command v)
-		       (tramp-shell-quote-argument localname)))
+		       (tramp-shell-quote-argument localname))
+             nil t)
 	;; We insert also filename/. and filename/.., because "ls"
 	;; doesn't on some file systems, like "sdcard".
 	(unless (search-backward-regexp (rx "." eol) nil t)
@@ -440,10 +442,12 @@ Emacs dired can't find files."
      filename
      (with-parsed-tramp-file-name (expand-file-name directory) nil
        (with-tramp-file-property v localname "file-name-all-completions"
-	 (tramp-adb-send-command
-	  v (format "%s -a %s | cat"
-		    (tramp-adb-get-ls-command v)
-		    (tramp-shell-quote-argument localname)))
+	 (unless (tramp-adb-send-command-and-check
+		  v (format "(%s -a %s; echo tramp_exit_status $?) | cat"
+			    (tramp-adb-get-ls-command v)
+			    (tramp-shell-quote-argument localname))
+                  nil t)
+	   (erase-buffer))
 	 (mapcar
 	  (lambda (f)
 	    (if (file-directory-p (expand-file-name f directory))
@@ -637,10 +641,23 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		  ;; because `file-attributes' reads the values from
 		  ;; there.
 		  (tramp-flush-file-properties v localname)
-		  (unless (tramp-adb-execute-adb-command
-			   v "push"
-			   (file-name-unquote filename)
-			   (file-name-unquote localname))
+		  (unless (if (tramp-adb-file-name-p v)
+			      (tramp-adb-execute-adb-command
+			       v "push"
+			       (file-name-unquote filename)
+			       (file-name-unquote localname))
+			    ;; Otherwise, this operation was initiated
+			    ;; by the androidsu backend, so both files
+			    ;; must be present on the local machine and
+			    ;; transferable with a simple local copy.
+			    (tramp-adb-send-command-and-check
+			     v
+			     (format
+			      "cp -f %s %s"
+			      (tramp-shell-quote-argument
+			       (file-name-unquote filename))
+			      (tramp-shell-quote-argument
+			       (file-name-unquote localname)))))
 		    (tramp-error
 		     v 'file-error
 		     "Cannot copy `%s' `%s'" filename newname)))))))))
@@ -1110,7 +1127,9 @@ error and non-nil on success."
 
 (defun tramp-adb-send-command (vec command &optional neveropen nooutput)
   "Send the COMMAND to connection VEC."
-  (if (string-match-p (rx multibyte) command)
+  (if (and (equal (tramp-file-name-method vec)
+                  tramp-androidsu-method)
+           (string-match-p (rx multibyte) command))
       ;; Multibyte codepoints with four bytes are not supported at
       ;; least by toybox.
 
@@ -1142,17 +1161,22 @@ error and non-nil on success."
 	  (while (search-forward-regexp (rx (+ "\r") eol) nil t)
 	    (replace-match "" nil nil)))))))
 
-(defun tramp-adb-send-command-and-check (vec command &optional exit-status)
+(defun tramp-adb-send-command-and-check (vec command &optional exit-status
+                                             command-augmented-p)
   "Run COMMAND and check its exit status.
 Sends `echo $?' along with the COMMAND for checking the exit
 status.  If COMMAND is nil, just sends `echo $?'.  Returns nil if
 the exit status is not equal 0, and t otherwise.
 
+If COMMAND-AUGMENTED-P, COMMAND is already configured to print exit
+status upon completion and need not be modified.
+
 Optional argument EXIT-STATUS, if non-nil, triggers the return of
 the exit status."
   (tramp-adb-send-command
    vec (if command
-	   (format "%s; echo tramp_exit_status $?" command)
+	   (if command-augmented-p command
+             (format "%s; echo tramp_exit_status $?" command))
 	 "echo tramp_exit_status $?"))
   (with-current-buffer (tramp-get-connection-buffer vec)
     (unless (tramp-search-regexp (rx "tramp_exit_status " (+ digit)))
