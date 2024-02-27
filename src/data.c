@@ -211,7 +211,7 @@ for example, (type-of 1) returns `integer'.  */)
       return Qcons;
 
     case Lisp_Vectorlike:
-      /* WARNING!!  Keep 'cl--typeof-types' in sync with this code!!  */
+      /* WARNING!!  Keep 'cl--type-hierarchy' in sync with this code!!  */
       switch (PSEUDOVECTOR_TYPE (XVECTOR (object)))
         {
         case PVEC_NORMAL_VECTOR: return Qvector;
