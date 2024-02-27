@@ -8398,6 +8398,44 @@ buffer."
      (message "Updating sensitivity lists...done")))
   (when noninteractive (save-buffer)))
 
+(defun vhdl--re2-region (beg-re end-re)
+  "Return a function searching for a region delimited by a pair of regexps.
+BEG-RE and END-RE are the regexps delimiting the region to search for."
+  (lambda (proc-end)
+     (when (vhdl-re-search-forward beg-re proc-end t)
+       (save-excursion
+	 (vhdl-re-search-forward end-re proc-end t)))))
+
+(defconst vhdl--signal-regions-functions
+  (list
+   ;; right-hand side of signal/variable assignment
+   ;; (special case: "<=" is relational operator in a condition)
+   (vhdl--re2-region "[<:]="
+                     ";\\|\\<\\(then\\|loop\\|report\\|severity\\|is\\)\\>")
+   ;; if condition
+   (vhdl--re2-region "^\\s-*if\\>" "\\<then\\>")
+   ;; elsif condition
+   (vhdl--re2-region "\\<elsif\\>" "\\<then\\>")
+   ;; while loop condition
+   (vhdl--re2-region "^\\s-*while\\>" "\\<loop\\>")
+   ;; exit/next condition
+   (vhdl--re2-region "\\<\\(exit\\|next\\)\\s-+\\w+\\s-+when\\>" ";")
+   ;; assert condition
+   (vhdl--re2-region "\\<assert\\>" "\\(\\<report\\>\\|\\<severity\\>\\|;\\)")
+   ;; case expression
+   (vhdl--re2-region "^\\s-*case\\>" "\\<is\\>")
+   ;; parameter list of procedure call, array index
+   (lambda (proc-end)
+     (when (re-search-forward "^\\s-*\\(\\w\\|\\.\\)+[ \t\n\r\f]*(" proc-end t)
+       (forward-char -1)
+       (save-excursion
+	 (forward-sexp)
+	 (while (looking-at "(") (forward-sexp)) (point)))))
+  "Define syntactic regions where signals are read.
+Each function is called with one arg (a limit for the (forward) search) and
+should return either nil or the end position of the region (in which case
+point will be set to its beginning).")
+
 (defun vhdl-update-sensitivity-list ()
   "Update sensitivity list."
     (let ((proc-beg (point))
@@ -8418,35 +8456,6 @@ buffer."
 	(let
 	    ;; scan for visible signals
 	    ((visible-list (vhdl-get-visible-signals))
-	     ;; define syntactic regions where signals are read
-	     (scan-regions-list
-	      `(;; right-hand side of signal/variable assignment
-		;; (special case: "<=" is relational operator in a condition)
-		((vhdl-re-search-forward "[<:]=" ,proc-end t)
-		 (vhdl-re-search-forward ";\\|\\<\\(then\\|loop\\|report\\|severity\\|is\\)\\>" ,proc-end t))
-		;; if condition
-		((vhdl-re-search-forward "^\\s-*if\\>" ,proc-end t)
-		 (vhdl-re-search-forward "\\<then\\>" ,proc-end t))
-		;; elsif condition
-		((vhdl-re-search-forward "\\<elsif\\>" ,proc-end t)
-		 (vhdl-re-search-forward "\\<then\\>" ,proc-end t))
-		;; while loop condition
-		((vhdl-re-search-forward "^\\s-*while\\>" ,proc-end t)
-		 (vhdl-re-search-forward "\\<loop\\>" ,proc-end t))
-		;; exit/next condition
-		((vhdl-re-search-forward "\\<\\(exit\\|next\\)\\s-+\\w+\\s-+when\\>" ,proc-end t)
-		 (vhdl-re-search-forward ";" ,proc-end t))
-		;; assert condition
-		((vhdl-re-search-forward "\\<assert\\>" ,proc-end t)
-		 (vhdl-re-search-forward "\\(\\<report\\>\\|\\<severity\\>\\|;\\)" ,proc-end t))
-		;; case expression
-		((vhdl-re-search-forward "^\\s-*case\\>" ,proc-end t)
-		 (vhdl-re-search-forward "\\<is\\>" ,proc-end t))
-		;; parameter list of procedure call, array index
-		((and (re-search-forward "^\\s-*\\(\\w\\|\\.\\)+[ \t\n\r\f]*(" ,proc-end t)
-		      (1- (point)))
-		 (progn (backward-char) (forward-sexp)
-			(while (looking-at "(") (forward-sexp)) (point)))))
 	     name field read-list sens-list signal-list tmp-list
 	     sens-beg sens-end beg end margin)
 	  ;; scan for signals in old sensitivity list
@@ -8475,11 +8484,9 @@ buffer."
 	      (push (cons end (point)) seq-region-list)
 	      (beginning-of-line)))
 	  ;; scan for signals read in process
-	  (while scan-regions-list
+	  (dolist (scan-fun vhdl--signal-regions-functions)
 	    (goto-char proc-mid)
-	    (while (and (setq beg (eval (nth 0 (car scan-regions-list))))
-			(setq end (eval (nth 1 (car scan-regions-list)))))
-	      (goto-char beg)
+	    (while (setq end (funcall scan-fun proc-end))
 	      (unless (or (vhdl-in-literal)
 			  (and seq-region-list
 			       (let ((tmp-list seq-region-list))
@@ -8518,8 +8525,7 @@ buffer."
 					    (car tmp-list))
 			  (setq read-list (delete (car tmp-list) read-list)))
 			(setq tmp-list (cdr tmp-list)))))
-		  (goto-char (match-end 1)))))
-	    (setq scan-regions-list (cdr scan-regions-list)))
+		  (goto-char (match-end 1))))))
 	  ;; update sensitivity list
 	  (goto-char sens-beg)
 	  (if sens-end
