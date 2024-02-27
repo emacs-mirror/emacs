@@ -1964,8 +1964,8 @@ Example:
       "Uses c:\remote\dir\files and the key \C-x."
       ...)
 
-where the docstring contains four control characters 'CR', 'DEL', 'FF'
-and 'C-x'.
+where the docstring contains the four control characters 'CR', 'DEL',
+'FF' and 'C-x'.
 
 The warning name is 'docstrings-control-chars'.
 
