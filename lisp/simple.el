@@ -10298,6 +10298,8 @@ Called from `temp-buffer-show-hook'."
   :version "22.1"
   :group 'completion)
 
+(defvar minibuffer-visible-completions--always-bind)
+
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
 (defun completion-setup-function ()
@@ -10338,15 +10340,16 @@ Called from `temp-buffer-show-hook'."
         (if minibuffer-visible-completions
             (let ((helps
                    (with-current-buffer (window-buffer (active-minibuffer-window))
-                     (list
-                      (substitute-command-keys
-	               (if (display-mouse-p)
-	                   "Click or type \\[minibuffer-choose-completion-or-exit] on a completion to select it.\n"
-                         "Type \\[minibuffer-choose-completion-or-exit] on a completion to select it.\n"))
-                      (substitute-command-keys
-		       "Type \\[minibuffer-next-completion], \\[minibuffer-previous-completion], \
+                     (let ((minibuffer-visible-completions--always-bind t))
+                       (list
+                        (substitute-command-keys
+	                 (if (display-mouse-p)
+	                     "Click or type \\[minibuffer-choose-completion-or-exit] on a completion to select it.\n"
+                           "Type \\[minibuffer-choose-completion-or-exit] on a completion to select it.\n"))
+                        (substitute-command-keys
+		         "Type \\[minibuffer-next-completion], \\[minibuffer-previous-completion], \
 \\[minibuffer-next-line-completion], \\[minibuffer-previous-line-completion] \
-to move point between completions.\n\n")))))
+to move point between completions.\n\n"))))))
               (dolist (help helps)
                 (insert help)))
           (insert (substitute-command-keys
