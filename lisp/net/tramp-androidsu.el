@@ -55,6 +55,8 @@
  (add-to-list 'tramp-default-host-alist
               `(,tramp-androidsu-method nil "localhost")))
 
+(defvar android-use-exec-loader) ; androidfns.c.
+
 (defun tramp-androidsu-maybe-open-connection (vec)
   "Open a connection VEC if not already open.
 Mostly identical to `tramp-adb-maybe-open-connection', but also disables
@@ -84,14 +86,17 @@ multibyte mode and waits for the shell prompt to appear."
 			  (tramp-file-name-method vec)))
               (let* ((coding-system-for-read 'utf-8-unix)
                      (process-connection-type tramp-process-connection-type)
-		     (p (apply
-			 #'start-process
-			 (tramp-get-connection-name vec)
-			 (tramp-get-connection-buffer vec)
-			 (append
-			  `(,tramp-encoding-shell)
-			  (and tramp-encoding-command-interactive
-			       `(,tramp-encoding-command-interactive)))))
+                     ;; The executable loader cannot execute setuid
+                     ;; binaries, such as su.
+                     (android-use-exec-loader nil)
+		     (p (start-process (tramp-get-connection-name vec)
+			               (tramp-get-connection-buffer vec)
+                                       ;; Disregard
+                                       ;; tramp-encoding-shell, as
+                                       ;; there's no guarantee that it's
+                                       ;; possible to execute with
+                                       ;; `android-use-exec-loader' off.
+			               "/system/bin/sh" "-i"))
 		     (user (tramp-file-name-user vec))
                      command)
                 ;; Set sentinel.  Initialize variables.
