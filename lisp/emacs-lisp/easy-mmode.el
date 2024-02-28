@@ -132,7 +132,7 @@ it is disabled.")
                         (string-replace "'" "\\='" (format "%S" getter)))))
           (let ((start (point)))
             (insert argdoc)
-            (when (fboundp 'fill-region)
+            (when (fboundp 'fill-region) ;Don't break bootstrap!
               (fill-region start (point) 'left t))))
         ;; Finally, insert the keymap.
         (when (and (boundp keymap-sym)

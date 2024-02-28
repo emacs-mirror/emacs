@@ -759,21 +759,25 @@ BUFFER nil or omitted means use the current buffer."
 
 ;;;###autoload
 (defun find-image (specs &optional cache)
-  "Find an image, choosing one of a list of image specifications.
+  "Find an image that satisfies one of a list of image specifications.
 
 SPECS is a list of image specifications.
 
-Each image specification in SPECS is a property list.  The contents of
-a specification are image type dependent.  All specifications must at
-least contain either the property `:file FILE' or `:data DATA',
-where FILE is the file to load the image from, and DATA is a string
-containing the actual image data.  If the property `:type TYPE' is
-omitted or nil, try to determine the image type from its first few
+Each image specification in SPECS is a property list.  The
+contents of a specification are image type dependent; see the
+info node `(elisp)Image Descriptors' for details.  All specifications
+must at least contain either the property `:file FILE' or `:data DATA',
+where FILE is the file from which to load the image, and DATA is a
+string containing the actual image data.  If the property `:type TYPE'
+is omitted or nil, try to determine the image type from its first few
 bytes of image data.  If that doesn't work, and the property `:file
-FILE' provide a file name, use its file extension as image type.
-If `:type TYPE' is provided, it must match the actual type
-determined for FILE or DATA by `create-image'.  Return nil if no
-specification is satisfied.
+FILE' provide a file name, use its file extension as idication of the
+image type. If `:type TYPE' is provided, it must match the actual type
+determined for FILE or DATA by `create-image'.
+
+The function returns the image specification for the first specification
+in the list whose TYPE is supported and FILE, if specified, exists.  It
+returns nil if no specification in the list can be satisfied.
 
 If CACHE is non-nil, results are cached and returned on subsequent calls.
 

@@ -580,7 +580,10 @@ echo_dash (void)
       idx = make_fixnum (SCHARS (KVAR (current_kboard, echo_string)) - 1);
       last_char = Faref (KVAR (current_kboard, echo_string), idx);
 
-      if (XFIXNUM (last_char) == '-' && XFIXNUM (prev_char) != ' ')
+      if ((XFIXNUM (last_char) == '-' && XFIXNUM (prev_char) != ' ')
+	  /* Or a keystroke help message.  */
+	  || (echo_keystrokes_help
+	      && XFIXNUM (last_char) == ')' && XFIXNUM (prev_char) == 'p'))
 	return;
     }
 
@@ -589,6 +592,12 @@ echo_dash (void)
   AUTO_STRING (dash, "-");
   kset_echo_string (current_kboard,
 		    concat2 (KVAR (current_kboard, echo_string), dash));
+
+  if (echo_keystrokes_help)
+    kset_echo_string (current_kboard,
+		      calln (Qhelp__append_keystrokes_help,
+			     KVAR (current_kboard, echo_string)));
+
   echo_now ();
 }
 
@@ -1067,8 +1076,9 @@ Default value of `command-error-function'.  */)
 	     write to stderr and quit.  In daemon mode, there are
 	     many other potential errors that do not prevent frames
 	     from being created, so continuing as normal is better in
-	     that case.  */
-	  || (!IS_DAEMON && FRAME_INITIAL_P (sf))
+	     that case, as long as the daemon has actually finished
+	     initialization. */
+	  || (!(IS_DAEMON && !DAEMON_RUNNING) && FRAME_INITIAL_P (sf))
 	  || noninteractive))
     {
       print_error_message (data, Qexternal_debugging_output,
@@ -12948,6 +12958,8 @@ syms_of_keyboard (void)
 
   DEFSYM (Qhelp_key_binding, "help-key-binding");
 
+  DEFSYM (Qhelp__append_keystrokes_help, "help--append-keystrokes-help");
+
   DEFSYM (Qecho_keystrokes, "echo-keystrokes");
 
   Fset (Qinput_method_exit_on_first_char, Qnil);
@@ -13223,10 +13235,16 @@ Emacs also does a garbage collection if that seems to be warranted.  */);
   XSETFASTINT (Vauto_save_timeout, 30);
 
   DEFVAR_LISP ("echo-keystrokes", Vecho_keystrokes,
-	       doc: /* Nonzero means echo unfinished commands after this many seconds of pause.
+    doc: /* Nonzero means echo unfinished commands after this many seconds of pause.
 The value may be integer or floating point.
 If the value is zero, don't echo at all.  */);
   Vecho_keystrokes = make_fixnum (1);
+
+  DEFVAR_BOOL ("echo-keystrokes-help", echo_keystrokes_help,
+    doc: /* Whether to append help text to echoed commands.
+When non-nil, a reference to `C-h' is printed after echoed
+keystrokes.  */);
+  echo_keystrokes_help = true;
 
   DEFVAR_LISP ("polling-period", Vpolling_period,
 	      doc: /* Interval between polling for input during Lisp execution.

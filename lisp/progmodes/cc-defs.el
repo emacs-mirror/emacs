@@ -2425,7 +2425,7 @@ system."
     (error "Unknown base mode `%s'" base-mode))
   (put mode 'c-fallback-mode base-mode))
 
-(defvar c-lang-constants (make-vector 151 0))
+(defvar c-lang-constants (obarray-make 151))
 ;;   Obarray used as a cache to keep track of the language constants.
 ;; The constants stored are those defined by `c-lang-defconst' and the values
 ;; computed by `c-lang-const'.  It's mostly used at compile time but it's not
@@ -2579,7 +2579,8 @@ constant.  A file is identified by its base name."
 	;; dependencies on the `c-lang-const's in VAL.)
 	(setq val (c--macroexpand-all val))
 
-	(setq bindings `(cons (cons ',assigned-mode (lambda () ,val)) ,bindings)
+	(setq bindings `(cons (cons ',assigned-mode (lambda () nil ,val))
+			      ,bindings)
 	      args (cdr args))))
 
     ;; Compile in the other files that have provided source
@@ -2630,7 +2631,7 @@ constant.  A file is identified by its base name."
 
     ;; Clear the evaluated values that depend on this source.
     (let ((agenda (get sym 'dependents))
-	  (visited (make-vector 101 0))
+	  (visited (obarray-make 101))
 	  ptr)
       (while agenda
 	(setq sym (car agenda)

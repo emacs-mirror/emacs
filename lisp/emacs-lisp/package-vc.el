@@ -501,8 +501,10 @@ This includes downloading missing dependencies, generating
 autoloads, generating a package description file (used to
 identify a package as a VC package later on), building
 documentation and marking the package as installed."
-  (let ((pkg-spec (package-vc--desc->spec pkg-desc))
-        missing)
+  (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
+         (lisp-dir (plist-get pkg-spec :lisp-dir))
+         (lisp-path (file-name-concat pkg-dir lisp-dir))
+         missing)
 
     ;; In case the package was installed directly from source, the
     ;; dependency list wasn't know beforehand, and they might have
@@ -519,7 +521,7 @@ documentation and marking the package as installed."
                 "\\|")
              regexp-unmatchable))
           (deps '()))
-      (dolist (file (directory-files pkg-dir t "\\.el\\'" t))
+      (dolist (file (directory-files lisp-path t "\\.el\\'" t))
         (unless (string-match-p ignored-files file)
           (with-temp-buffer
             (insert-file-contents file)
@@ -532,6 +534,7 @@ documentation and marking the package as installed."
                 (setq deps))))))
       (dolist (dep deps)
         (cl-callf version-to-list (cadr dep)))
+      (setf (package-desc-reqs pkg-desc) deps)
       (setf missing (package-vc-install-dependencies (delete-dups deps)))
       (setf missing (delq (assq (package-desc-name pkg-desc)
                                 missing)
@@ -541,10 +544,8 @@ documentation and marking the package as installed."
           (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
       ;; Generate autoloads
       (let* ((name (package-desc-name pkg-desc))
-             (auto-name (format "%s-autoloads.el" name))
-             (lisp-dir (plist-get pkg-spec :lisp-dir)))
-        (package-generate-autoloads
-         name (file-name-concat pkg-dir lisp-dir))
+             (auto-name (format "%s-autoloads.el" name)))
+        (package-generate-autoloads name lisp-path)
         (when lisp-dir
           (write-region
            (with-temp-buffer
@@ -938,8 +939,8 @@ for the last released version of the package."
   (interactive
    (let* ((name (package-vc--read-package-name "Fetch package source: ")))
      (list (cadr (assoc name package-archive-contents #'string=))
-           (read-file-name "Clone into new or empty directory: " nil nil t nil
-                           (lambda (dir) (or (not (file-exists-p dir))
+           (read-directory-name "Clone into new or empty directory: " nil nil
+                                (lambda (dir) (or (not (file-exists-p dir))
                                              (directory-empty-p dir))))
            (and current-prefix-arg :last-release))))
   (package-vc--archives-initialize)

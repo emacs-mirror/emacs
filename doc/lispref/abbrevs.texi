@@ -65,7 +65,7 @@ expanded in the buffer.  For the user-level commands for abbrevs, see
 
 @defun make-abbrev-table &optional props
 This function creates and returns a new, empty abbrev table---an
-obarray containing no symbols.  It is a vector filled with zeros.
+obarray containing no symbols.
 @var{props} is a property list that is applied to the new table
 (@pxref{Abbrev Table Properties}).
 @end defun

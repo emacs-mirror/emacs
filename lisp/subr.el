@@ -1,7 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2024 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -2023,6 +2022,8 @@ instead; it will indirectly limit the specpdl stack size as well.")
 
 (defvaralias 'native-comp-deferred-compilation 'native-comp-jit-compilation)
 
+(define-obsolete-function-alias 'fetch-bytecode #'ignore "30.1")
+
 
 ;;;; Alternate names for functions - these are not being phased out.
 
@@ -2579,6 +2580,8 @@ Affects only hooks run in the current buffer."
           (list binding binding))
          ((null (cdr binding))
           (list (make-symbol "s") (car binding)))
+         ((eq '_ (car binding))
+          (list (make-symbol "s") (cadr binding)))
          (t binding)))
   (when (> (length binding) 2)
     (signal 'error
@@ -2619,7 +2622,7 @@ This is like `when-let' but doesn't handle a VARLIST of the form
 (defmacro and-let* (varlist &rest body)
   "Bind variables according to VARLIST and conditionally evaluate BODY.
 Like `when-let*', except if BODY is empty and all the bindings
-are non-nil, then the result is non-nil."
+are non-nil, then the result is the value of the last binding."
   (declare (indent 1) (debug if-let*))
   (let (res)
     (if varlist
@@ -2632,7 +2635,8 @@ are non-nil, then the result is non-nil."
   "Bind variables according to SPEC and evaluate THEN or ELSE.
 Evaluate each binding in turn, as in `let*', stopping if a
 binding value is nil.  If all are non-nil return the value of
-THEN, otherwise the last form in ELSE.
+THEN, otherwise the value of the last form in ELSE, or nil if
+there are none.
 
 Each element of SPEC is a list (SYMBOL VALUEFORM) that binds
 SYMBOL to the value of VALUEFORM.  An element can additionally be
@@ -3374,14 +3378,23 @@ with Emacs.  Do not call it directly in your own packages."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
     (define-key map "\C-u" #'delete-minibuffer-contents) ;bug#12570
+    (define-key map "\t" #'read-passwd-toggle-visibility)
     map)
   "Keymap used while reading passwords.")
 
-(defun read-password--hide-password ()
+(defvar read-passwd--hide-password t)
+
+(defun read-passwd--hide-password ()
+  "Make password in minibuffer hidden or visible."
   (let ((beg (minibuffer-prompt-end)))
     (dotimes (i (1+ (- (buffer-size) beg)))
-      (put-text-property (+ i beg) (+ 1 i beg)
-                         'display (string (or read-hide-char ?*))))))
+      (if read-passwd--hide-password
+          (put-text-property
+           (+ i beg) (+ 1 i beg) 'display (string (or read-hide-char ?*)))
+        (remove-list-of-text-properties (+ i beg) (+ 1 i beg) '(display)))
+      (put-text-property
+       (+ i beg) (+ 1 i beg)
+       'help-echo "C-u: Clear password\nTAB: Toggle password visibility"))))
 
 (defun read-passwd (prompt &optional confirm default)
   "Read a password, prompting with PROMPT, and return it.
@@ -3419,18 +3432,20 @@ by doing (clear-string STRING)."
             (setq-local inhibit-modification-hooks nil) ;bug#15501.
 	    (setq-local show-paren-mode nil)		;bug#16091.
             (setq-local inhibit--record-char t)
-            (add-hook 'post-command-hook #'read-password--hide-password nil t))
+            (read-passwd-mode 1)
+            (add-hook 'post-command-hook #'read-passwd--hide-password nil t))
         (unwind-protect
             (let ((enable-recursive-minibuffers t)
 		  (read-hide-char (or read-hide-char ?*)))
               (read-string prompt nil t default)) ; t = "no history"
           (when (buffer-live-p minibuf)
             (with-current-buffer minibuf
+              (read-passwd-mode -1)
               ;; Not sure why but it seems that there might be cases where the
               ;; minibuffer is not always properly reset later on, so undo
               ;; whatever we've done here (bug#11392).
               (remove-hook 'after-change-functions
-                           #'read-password--hide-password 'local)
+                           #'read-passwd--hide-password 'local)
               (kill-local-variable 'post-self-insert-hook)
               ;; And of course, don't keep the sensitive data around.
               (erase-buffer))))))))
@@ -3725,10 +3740,10 @@ There is no need to explicitly add `help-char' to CHARS;
          (this-command this-command)
          (result (minibuffer-with-setup-hook
 		     (lambda ()
+		       (setq-local post-self-insert-hook nil)
 		       (add-hook 'post-command-hook
 				 (lambda ()
-				   ;; FIXME: Should we use `<='?
-				   (if (= (1+ (minibuffer-prompt-end))
+				   (if (<= (1+ (minibuffer-prompt-end))
 					  (point-max))
                                        (exit-minibuffer)))
 				 nil 'local))
@@ -3828,15 +3843,25 @@ confusing to some users.")
 
 (defvar from--tty-menu-p nil
   "Non-nil means the current command was invoked from a TTY menu.")
+
+(declare-function android-detect-keyboard "androidfns.c")
+
+(defvar use-dialog-box-override nil
+  "Whether `use-dialog-box-p' should always return t.")
+
 (defun use-dialog-box-p ()
   "Return non-nil if the current command should prompt the user via a dialog box."
-  (and last-input-event                 ; not during startup
-       (or (consp last-nonmenu-event)   ; invoked by a mouse event
-           (and (null last-nonmenu-event)
-                (consp last-input-event))
-           (featurep 'android)		; Prefer dialog boxes on Android.
-           from--tty-menu-p)            ; invoked via TTY menu
-       use-dialog-box))
+  (or use-dialog-box-override
+      (and last-input-event                 ; not during startup
+           (or (consp last-nonmenu-event)   ; invoked by a mouse event
+               (and (null last-nonmenu-event)
+                    (consp last-input-event))
+               (and (featurep 'android)	; Prefer dialog boxes on
+                                        ; Android.
+                    (not (android-detect-keyboard))) ; If no keyboard is
+                                                     ; connected.
+               from--tty-menu-p)            ; invoked via TTY menu
+           use-dialog-box)))
 
 ;; Actually in textconv.c.
 (defvar overriding-text-conversion-style)
@@ -5014,7 +5039,7 @@ read-only, and scans it for function and variable names to make them into
 clickable cross-references.
 
 See the related form `with-temp-buffer-window'."
-  (declare (debug t))
+  (declare (debug t) (indent 1))
   (let ((old-dir (make-symbol "old-dir"))
         (buf (make-symbol "buf")))
     `(let* ((,old-dir default-directory)
@@ -6733,6 +6758,8 @@ effectively rounded up."
     ;; Force a call to `message' now.
     (progress-reporter-update reporter (or current-value min-value))
     reporter))
+
+(defalias 'progress-reporter-make #'make-progress-reporter)
 
 (defun progress-reporter-force-update (reporter &optional value new-message suffix)
   "Report progress of an operation in the echo area unconditionally.

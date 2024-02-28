@@ -55,21 +55,27 @@ BODY is code to be executed within the temp buffer.  Point is
 always located at the beginning of buffer.  Native completion is
 turned off.  Shell buffer will be killed on exit."
   (declare (indent 1) (debug t))
-  `(with-temp-buffer
-     (let ((python-indent-guess-indent-offset nil)
-           (python-shell-completion-native-enable nil))
-       (python-mode)
-       (unwind-protect
-           (progn
-             (run-python nil t)
-             (insert ,contents)
-             (goto-char (point-min))
-             (python-tests-shell-wait-for-prompt)
-             ,@body)
-         (when (python-shell-get-buffer)
-           (python-shell-with-shell-buffer
-             (let (kill-buffer-hook kill-buffer-query-functions)
-               (kill-buffer))))))))
+  (let ((dir (make-symbol "dir")))
+    `(with-temp-buffer
+       (let ((python-indent-guess-indent-offset nil)
+             (python-shell-completion-native-enable nil))
+         (python-mode)
+         (unwind-protect
+             ;; Prevent test failures when Jedi is used as a completion
+             ;; backend, either directly or indirectly (e.g., via
+             ;; IPython).  Jedi needs to store cache, but the
+             ;; "/nonexistent" HOME directory is not writable.
+             (ert-with-temp-directory ,dir
+               (with-environment-variables (("XDG_CACHE_HOME" ,dir))
+                 (run-python nil t)
+                 (insert ,contents)
+                 (goto-char (point-min))
+                 (python-tests-shell-wait-for-prompt)
+                 ,@body))
+           (when (python-shell-get-buffer)
+             (python-shell-with-shell-buffer
+               (let (kill-buffer-hook kill-buffer-query-functions)
+                 (kill-buffer)))))))))
 
 (defmacro python-tests-with-temp-file (contents &rest body)
   "Create a `python-mode' enabled file with CONTENTS.
@@ -4799,6 +4805,111 @@ def foo():
      (end-of-line 0)
      (should-not (nth 2 (python-shell-completion-at-point))))))
 
+(defun python-tests--completion-module ()
+  "Check if modules can be completed in Python shell."
+  (insert "import datet")
+  (completion-at-point)
+  (beginning-of-line)
+  (should (looking-at-p "import datetime"))
+  (kill-line)
+  (insert "from datet")
+  (completion-at-point)
+  (beginning-of-line)
+  (should (looking-at-p "from datetime"))
+  (end-of-line)
+  (insert " import timed")
+  (completion-at-point)
+  (beginning-of-line)
+  (should (looking-at-p "from datetime import timedelta"))
+  (kill-line))
+
+(defun python-tests--completion-parameters ()
+  "Check if parameters can be completed in Python shell."
+  (insert "import re")
+  (comint-send-input)
+  (python-tests-shell-wait-for-prompt)
+  (insert "re.split('b', 'abc', maxs")
+  (completion-at-point)
+  (should (string= "re.split('b', 'abc', maxsplit="
+                   (buffer-substring (line-beginning-position) (point))))
+  (insert "0, ")
+  (should (python-shell-completion-at-point))
+  ;; Test if cache is used.
+  (cl-letf (((symbol-function 'python-shell-completion-get-completions)
+             'ignore)
+            ((symbol-function 'python-shell-completion-native-get-completions)
+             'ignore))
+    (insert "fla")
+    (completion-at-point)
+    (should (string= "re.split('b', 'abc', maxsplit=0, flags="
+                     (buffer-substring (line-beginning-position) (point)))))
+  (beginning-of-line)
+  (kill-line))
+
+(defun python-tests--completion-extra-context ()
+  "Check if extra context is used for completion."
+  (insert "re.split('b', 'abc',")
+  (comint-send-input)
+  (python-tests-shell-wait-for-prompt)
+  (insert "maxs")
+  (completion-at-point)
+  (should (string= "maxsplit="
+                   (buffer-substring (line-beginning-position) (point))))
+  (insert "0)")
+  (comint-send-input)
+  (python-tests-shell-wait-for-prompt)
+  (insert "from re import (")
+  (comint-send-input)
+  (python-tests-shell-wait-for-prompt)
+  (insert "IGN")
+  (completion-at-point)
+  (should (string= "IGNORECASE"
+                   (buffer-substring (line-beginning-position) (point)))))
+
+(defun python-tests--pythonstartup-file ()
+  "Return Jedi readline setup file if PYTHONSTARTUP is not set."
+  (or (getenv "PYTHONSTARTUP")
+      (with-temp-buffer
+        (if (eql 0 (call-process python-tests-shell-interpreter
+                                 nil t nil "-m" "jedi" "repl"))
+            (string-trim (buffer-string))
+          ""))))
+
+(ert-deftest python-shell-completion-at-point-jedi-completer ()
+  "Check if Python shell completion works when Jedi completer is used."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (with-environment-variables
+      (("PYTHONSTARTUP" (python-tests--pythonstartup-file)))
+    (python-tests-with-temp-buffer-with-shell
+     ""
+     (python-shell-with-shell-buffer
+      (python-shell-completion-native-turn-on)
+      (skip-unless (string= python-shell-readline-completer-delims ""))
+      (python-tests--completion-module)
+      (python-tests--completion-parameters)
+      (python-tests--completion-extra-context)))))
+
+(ert-deftest python-shell-completion-at-point-ipython ()
+  "Check if Python shell completion works for IPython."
+  (let ((python-shell-interpreter "ipython")
+        (python-shell-interpreter-args "-i --simple-prompt"))
+    (skip-unless
+     (and
+      (executable-find python-shell-interpreter)
+      (eql (call-process python-shell-interpreter nil nil nil "--version") 0)))
+    (with-environment-variables
+        (("PYTHONSTARTUP" (python-tests--pythonstartup-file)))
+      (python-tests-with-temp-buffer-with-shell
+       ""
+       (python-shell-with-shell-buffer
+         (python-shell-completion-native-turn-off)
+         (python-tests--completion-module)
+         (python-tests--completion-parameters)
+         (python-shell-completion-native-turn-on)
+         (skip-unless (string= python-shell-readline-completer-delims ""))
+         (python-tests--completion-module)
+         (python-tests--completion-parameters)
+         (python-tests--completion-extra-context))))))
 
 
 ;;; PDB Track integration
@@ -4945,11 +5056,6 @@ import abc
 
 (ert-deftest python-ffap-module-path-1 ()
   (skip-unless (executable-find python-tests-shell-interpreter))
-  ;; Skip the test on macOS, since the standard Python installation uses
-  ;; libedit rather than readline which confuses the running of an inferior
-  ;; interpreter in this case (see bug#59477 and bug#25753).
-  (skip-when (eq system-type 'darwin))
-  (trace-function 'python-shell-output-filter)
   (python-tests-with-temp-buffer-with-shell
    "
 import abc

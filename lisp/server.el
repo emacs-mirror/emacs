@@ -1439,7 +1439,11 @@ invocations of \"emacs\".")
   ;; including code that needs to wait.
   (with-local-quit
     (condition-case err
-        (let ((buffers (server-visit-files files proc nowait)))
+        (let ((buffers (server-visit-files files proc nowait))
+              ;; On Android, the Emacs server generally can't provide
+              ;; feedback to the user except by means of dialog boxes,
+              ;; which are displayed in the GUI emacsclient wrapper.
+              (use-dialog-box-override (featurep 'android)))
           (mapc 'funcall (nreverse commands))
           (let ((server-eval-args-left (nreverse evalexprs)))
             (while server-eval-args-left

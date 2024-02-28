@@ -2261,7 +2261,7 @@ If LOG is a string and there are more args, it is formatted with
 those ARGS.  Usually the LOG string ends with a \\n.
 End each bunch of errors with (proced-log t signal):
 this inserts the current time, buffer and signal at the start of the page,
-and \f (formfeed) at the end."
+and \\f (formfeed) at the end."
   (let ((obuf (current-buffer)))
     (with-current-buffer (get-buffer-create proced-log-buffer)
       (goto-char (point-max))

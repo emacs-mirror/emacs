@@ -2910,13 +2910,9 @@ The following commands are available:
 	(car func)
       (gnus-byte-compile `(lambda () ,func)))))
 
-(defun gnus-agent-true ()
-  "Return t."
-  t)
+(defalias 'gnus-agent-true #'always)
 
-(defun gnus-agent-false ()
-  "Return nil."
-  nil)
+(defalias 'gnus-agent-false #'ignore)
 
 (defun gnus-category-make-function-1 (predicate)
   "Make a function from PREDICATE."

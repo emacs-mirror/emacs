@@ -281,7 +281,7 @@ nested routine.")
 
 (eval-when-compile
   (pcase-defmacro opascal--in (set)
-    `(pred (pcase--flip memq ,set))))
+    `(pred (memq _ ,set))))
 
 (defun opascal-string-of (start end)
   ;; Returns the buffer string from start to end.

@@ -169,12 +169,12 @@ See \\[compile]."
     ;; compilation-parse-errors will find referenced files by Tramp.
     (with-current-buffer next-error-last-buffer
       (when (fboundp 'tramp-make-tramp-file-name)
-	(set (make-local-variable 'comint-file-name-prefix)
-	     (funcall
-              #'tramp-make-tramp-file-name
-	      nil ;; method.
-	      remote-compile-user
-	      remote-compile-host
-	      ""))))))
+        (setq-local comint-file-name-prefix
+                    (funcall
+                     #'tramp-make-tramp-file-name
+                     nil ;; method.
+                     remote-compile-user
+                     remote-compile-host
+                     ""))))))
 
 ;;; rcompile.el ends here

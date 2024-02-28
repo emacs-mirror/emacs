@@ -19,12 +19,12 @@
 
 ;;; Commentary:
 ;;; Code:
+(require 'erc-goodies)
+
 (require 'ert-x)
 (eval-and-compile
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-tests-common)))
-
-(require 'erc-goodies)
 
 (defun erc-goodies-tests--assert-face (beg end-str present &optional absent)
   (setq beg (+ beg (point-min)))

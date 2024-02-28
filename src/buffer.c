@@ -1334,7 +1334,7 @@ buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
     case SYMBOL_LOCALIZED:
       { /* Look in local_var_alist.  */
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
-	XSETSYMBOL (variable, sym); /* Update In case of aliasing.  */
+	variable = make_lisp_symbol (sym); /* Update In case of aliasing.  */
 	result = assq_no_quit (variable, BVAR (buf, local_var_alist));
 	if (!NILP (result))
 	  {
@@ -3002,7 +3002,7 @@ the normal hook `change-major-mode-hook'.  */)
    But still return the total number of overlays.
 */
 
-ptrdiff_t
+static ptrdiff_t
 overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
 	     Lisp_Object **vec_ptr, ptrdiff_t *len_ptr,
 	     bool empty, bool trailing,
@@ -3125,56 +3125,38 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
 {
   ptrdiff_t start = OVERLAY_START (overlay);
   ptrdiff_t end = OVERLAY_END (overlay);
-  ptrdiff_t n, i, size;
-  Lisp_Object *v, tem;
-  Lisp_Object vbuf[10];
-  USE_SAFE_ALLOCA;
+  Lisp_Object tem;
+  struct itree_node *node;
 
-  size = ARRAYELTS (vbuf);
-  v = vbuf;
-  n = overlays_in (start, end, 0, &v, &size, true, false, NULL);
-  if (n > size)
+  ITREE_FOREACH (node, current_buffer->overlays,
+                 start, min (end, ZV) + 1,
+                 ASCENDING)
     {
-      SAFE_NALLOCA (v, 1, n);
-      overlays_in (start, end, 0, &v, &n, true, false, NULL);
+      if (node->begin < end && node->end > start
+          && node->begin < node->end
+          && !EQ (node->data, overlay)
+          && (tem = Foverlay_get (overlay, Qmouse_face),
+	      !NILP (tem)))
+	return true;
     }
-
-  for (i = 0; i < n; ++i)
-    if (!EQ (v[i], overlay)
-	&& (tem = Foverlay_get (overlay, Qmouse_face),
-	    !NILP (tem)))
-      break;
-
-  SAFE_FREE ();
-  return i < n;
+  return false;
 }
 
 /* Return the value of the 'display-line-numbers-disable' property at
    EOB, if there's an overlay at ZV with a non-nil value of that property.  */
-Lisp_Object
+bool
 disable_line_numbers_overlay_at_eob (void)
 {
-  ptrdiff_t n, i, size;
-  Lisp_Object *v, tem = Qnil;
-  Lisp_Object vbuf[10];
-  USE_SAFE_ALLOCA;
+  Lisp_Object tem = Qnil;
+  struct itree_node *node;
 
-  size = ARRAYELTS (vbuf);
-  v = vbuf;
-  n = overlays_in (ZV, ZV, 0, &v, &size, false, false, NULL);
-  if (n > size)
+  ITREE_FOREACH (node, current_buffer->overlays, ZV, ZV, ASCENDING)
     {
-      SAFE_NALLOCA (v, 1, n);
-      overlays_in (ZV, ZV, 0, &v, &n, false, false, NULL);
+      if ((tem = Foverlay_get (node->data, Qdisplay_line_numbers_disable),
+	   !NILP (tem)))
+	return true;
     }
-
-  for (i = 0; i < n; ++i)
-    if ((tem = Foverlay_get (v[i], Qdisplay_line_numbers_disable),
-	 !NILP (tem)))
-      break;
-
-  SAFE_FREE ();
-  return tem;
+  return false;
 }
 
 
@@ -4989,7 +4971,7 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
   sym->u.s.declared_special = true;
   sym->u.s.redirect = SYMBOL_FORWARDED;
   SET_SYMBOL_FWD (sym, bo_fwd);
-  XSETSYMBOL (PER_BUFFER_SYMBOL (offset), sym);
+  PER_BUFFER_SYMBOL (offset) = make_lisp_symbol (sym);
 
   if (PER_BUFFER_IDX (offset) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding

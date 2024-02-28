@@ -4859,8 +4859,8 @@ add_compiler_options (void)
 #endif
 }
 
-DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
-       Scomp__compile_ctxt_to_file,
+DEFUN ("comp--compile-ctxt-to-file0", Fcomp__compile_ctxt_to_file0,
+       Scomp__compile_ctxt_to_file0,
        1, 1, 0,
        doc: /* Compile the current context as native code to file FILENAME.  */)
   (Lisp_Object filename)
@@ -5789,7 +5789,7 @@ natively-compiled one.  */);
   defsubr (&Scomp__install_trampoline);
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
-  defsubr (&Scomp__compile_ctxt_to_file);
+  defsubr (&Scomp__compile_ctxt_to_file0);
   defsubr (&Scomp_libgccjit_version);
   defsubr (&Scomp__register_lambda);
   defsubr (&Scomp__register_subr);

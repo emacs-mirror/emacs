@@ -904,16 +904,23 @@ Return a list of results."
     (should (subr-native-elisp-p (symbol-function 'comp-tests-fw-prop-1-f)))
     (should (= (comp-tests-fw-prop-1-f) 6))))
 
+(defun comp-tests--type-lists-equal (l1 l2)
+  (and (= (length l1) (length l2))
+       (cl-every #'comp-tests--types-equal l1 l2)))
+
 (defun comp-tests--types-equal (t1 t2)
-  "Whether the types T1 and T2 are equal."
-  (or (equal t1 t2)   ; optimization for the common case
-      (and (consp t1) (consp t2)
-           (eq (car t1) (car t2))
-           (if (memq (car t1) '(and or member))
-	       (null (cl-set-exclusive-or (cdr t1) (cdr t2)
-                                          :test #'comp-tests--types-equal))
-             (and (= (length t1) (length t2))
-                  (cl-every #'comp-tests--types-equal (cdr t1) (cdr t2)))))))
+ "Whether the types T1 and T2 are equal."
+ (or (equal t1 t2)   ; for atoms, and optimization for the common case
+     (and (consp t1) (consp t2)
+          (eq (car t1) (car t2))
+          (cond ((memq (car t1) '(and or member))
+                 ;; Order or duplicates don't matter.
+                 (null (cl-set-exclusive-or (cdr t1) (cdr t2)
+                                            :test #'comp-tests--types-equal)))
+                ((eq (car t1) 'function)
+                 (and (comp-tests--type-lists-equal (nth 1 t1) (nth 1 t2))
+                      (comp-tests--types-equal (nth 2 t1) (nth 2 t2))))
+                (t (comp-tests--type-lists-equal (cdr t1) (cdr t2)))))))
 
 (defun comp-tests-check-ret-type-spec (func-form ret-type)
   (let ((lexical-binding t)

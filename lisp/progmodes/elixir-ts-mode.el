@@ -360,13 +360,19 @@
 (defvar elixir-ts--font-lock-settings
   (treesit-font-lock-rules
    :language 'elixir
-   :feature 'elixir-function-name
+   :feature 'elixir-definition
    `((call target: (identifier) @target-identifier
+           (arguments
+            (call target: (identifier) @font-lock-function-name-face
+                  (arguments)))
+           (:match ,elixir-ts--definition-keywords-re @target-identifier))
+     (call target: (identifier) @target-identifier
            (arguments (identifier) @font-lock-function-name-face)
            (:match ,elixir-ts--definition-keywords-re @target-identifier))
      (call target: (identifier) @target-identifier
            (arguments
-            (call target: (identifier) @font-lock-function-name-face))
+            (call target: (identifier) @font-lock-function-name-face
+                  (arguments ((identifier)) @font-lock-variable-name-face)))
            (:match ,elixir-ts--definition-keywords-re @target-identifier))
      (call target: (identifier) @target-identifier
            (arguments
@@ -379,13 +385,15 @@
            (:match ,elixir-ts--definition-keywords-re @target-identifier))
      (call target: (identifier) @target-identifier
            (arguments
-            (call target: (identifier) @font-lock-function-name-face))
+            (call target: (identifier) @font-lock-function-name-face
+                  (arguments ((identifier)) @font-lock-variable-name-face)))
            (do_block)
            (:match ,elixir-ts--definition-keywords-re @target-identifier))
      (call target: (identifier) @target-identifier
            (arguments
             (binary_operator
-             left: (call target: (identifier) @font-lock-function-name-face)))
+             left: (call target: (identifier) @font-lock-function-name-face
+                         (arguments ((identifier)) @font-lock-variable-name-face))))
            (do_block)
            (:match ,elixir-ts--definition-keywords-re @target-identifier))
      (unary_operator
@@ -521,8 +529,8 @@
                                operator: "/" right: (integer)))
      (call
       target: (dot right: (identifier) @font-lock-function-call-face))
-     (unary_operator operator: "&" @font-lock-variable-name-face
-                     operand: (integer) @font-lock-variable-name-face)
+     (unary_operator operator: "&" @font-lock-variable-use-face
+                     operand: (integer) @font-lock-variable-use-face)
      (unary_operator operator: "&" @font-lock-operator-face
                      operand: (list)))
 
@@ -537,16 +545,18 @@
 
    :language 'elixir
    :feature 'elixir-variable
-   '((binary_operator left: (identifier) @font-lock-variable-name-face)
-     (binary_operator right: (identifier) @font-lock-variable-name-face)
-     (arguments ( (identifier) @font-lock-variable-name-face))
-     (tuple (identifier) @font-lock-variable-name-face)
-     (list (identifier) @font-lock-variable-name-face)
-     (pair value: (identifier) @font-lock-variable-name-face)
-     (body (identifier) @font-lock-variable-name-face)
-     (unary_operator operand: (identifier) @font-lock-variable-name-face)
-     (interpolation (identifier) @font-lock-variable-name-face)
-     (do_block (identifier) @font-lock-variable-name-face))
+   '((binary_operator left: (identifier) @font-lock-variable-use-face)
+     (binary_operator right: (identifier) @font-lock-variable-use-face)
+     (arguments ( (identifier) @font-lock-variable-use-face))
+     (tuple (identifier) @font-lock-variable-use-face)
+     (list (identifier) @font-lock-variable-use-face)
+     (pair value: (identifier) @font-lock-variable-use-face)
+     (body (identifier) @font-lock-variable-use-face)
+     (unary_operator operand: (identifier) @font-lock-variable-use-face)
+     (interpolation (identifier) @font-lock-variable-use-face)
+     (do_block (identifier) @font-lock-variable-use-face)
+     (access_call target: (identifier) @font-lock-variable-use-face)
+     (access_call "[" key: (identifier) @font-lock-variable-use-face "]"))
 
    :language 'elixir
    :feature 'elixir-builtin
@@ -697,11 +707,10 @@ Return nil if NODE is not a defun node or doesn't have a name."
     ;; Font-lock.
     (setq-local treesit-font-lock-settings elixir-ts--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '(( elixir-comment elixir-doc elixir-function-name)
+                '(( elixir-comment elixir-doc elixir-definition)
                   ( elixir-string elixir-keyword elixir-data-type)
-                  ( elixir-sigil elixir-variable elixir-builtin
-                    elixir-string-escape)
-                  ( elixir-function-call elixir-operator elixir-number )))
+                  ( elixir-sigil elixir-builtin elixir-string-escape)
+                  ( elixir-function-call elixir-variable elixir-operator elixir-number )))
 
 
     ;; Imenu.
@@ -734,13 +743,12 @@ Return nil if NODE is not a defun node or doesn't have a name."
                           heex-ts--indent-rules))
 
       (setq-local treesit-font-lock-feature-list
-                  '(( elixir-comment elixir-doc elixir-function-name
+                  '(( elixir-comment elixir-doc elixir-definition
                       heex-comment heex-keyword heex-doctype )
                     ( elixir-string elixir-keyword elixir-data-type
                       heex-component heex-tag heex-attribute heex-string )
-                    ( elixir-sigil elixir-variable elixir-builtin
-                      elixir-string-escape)
-                    ( elixir-function-call elixir-operator elixir-number ))))
+                    ( elixir-sigil elixir-builtin elixir-string-escape)
+                    ( elixir-function-call elixir-variable elixir-operator elixir-number ))))
 
     (treesit-major-mode-setup)
     (setq-local syntax-propertize-function #'elixir-ts--syntax-propertize)))

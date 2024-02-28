@@ -181,4 +181,19 @@ instead."
       (completion-preview--post-command))
     (completion-preview-tests--check-preview "barbaz" 'exact)))
 
+(ert-deftest completion-preview-mid-symbol-cycle ()
+  "Test cycling the completion preview with point at the middle of a symbol."
+  (with-temp-buffer
+    (setq-local completion-at-point-functions
+                (list
+                 (completion-preview-tests--capf
+                  '("foobar" "foobaz"))))
+    (insert "fooba")
+    (forward-char -2)
+    (let ((this-command 'self-insert-command))
+      (completion-preview--post-command))
+    (completion-preview-tests--check-preview "r")
+    (completion-preview-next-candidate 1)
+    (completion-preview-tests--check-preview "z")))
+
 ;;; completion-preview-tests.el ends here

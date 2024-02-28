@@ -1,0 +1,56 @@
+;; -*- mode: lisp-data; -*-
+((nick 10 "NICK tester"))
+((user 10 "USER user 0 * :unknown")
+ (0 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
+ (0 ":irc.foonet.org 002 tester :Your host is irc.foonet.org, running version oragono-2.6.0-7481bf0385b95b16")
+ (0 ":irc.foonet.org 003 tester :This server was created Tue, 04 May 2021 05:06:18 UTC")
+ (0 ":irc.foonet.org 004 tester irc.foonet.org oragono-2.6.0-7481bf0385b95b16 BERTZios CEIMRUabefhiklmnoqstuv Iabefhkloqv")
+ (0 ":irc.foonet.org 005 tester AWAYLEN=390 BOT=B CASEMAPPING=ascii CHANLIMIT=#:100 CHANMODES=Ibe,k,fl,CEMRUimnstu CHANNELLEN=64 CHANTYPES=# ELIST=U EXCEPTS EXTBAN=,m FORWARD=f INVEX KICKLEN=390 :are supported by this server")
+ (0 ":irc.foonet.org 005 tester MAXLIST=beI:60 MAXTARGETS=4 MODES MONITOR=100 NETWORK=foonet NICKLEN=32 PREFIX=(qaohv)~&@%+ STATUSMSG=~&@%+ TARGMAX=NAMES:1,LIST:1,KICK:1,WHOIS:1,USERHOST:10,PRIVMSG:4,TAGMSG:4,NOTICE:4,MONITOR:100 TOPICLEN=390 UTF8MAPPING=rfc8265 UTF8ONLY WHOX :are supported by this server")
+ (0 ":irc.foonet.org 005 tester draft/CHATHISTORY=100 :are supported by this server")
+ (0 ":irc.foonet.org 251 tester :There are 0 users and 3 invisible on 1 server(s)")
+ (0 ":irc.foonet.org 252 tester 0 :IRC Operators online")
+ (0 ":irc.foonet.org 253 tester 0 :unregistered connections")
+ (0 ":irc.foonet.org 254 tester 1 :channels formed")
+ (0 ":irc.foonet.org 255 tester :I have 3 clients and 0 servers")
+ (0 ":irc.foonet.org 265 tester 3 3 :Current local users 3, max 3")
+ (0 ":irc.foonet.org 266 tester 3 3 :Current global users 3, max 3")
+ (0 ":irc.foonet.org 422 tester :MOTD File is missing"))
+
+((mode-user 10 "MODE tester +i")
+ (0 ":irc.foonet.org 221 tester +i")
+ (0 ":irc.foonet.org NOTICE tester :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))
+
+((join 10 "JOIN #foo")
+ (0 ":tester!~u@9g6b728983yd2.irc JOIN #foo")
+ (0 ":irc.foonet.org 353 tester = #foo :alice tester @bob")
+ (0 ":irc.foonet.org 366 tester #foo :End of NAMES list"))
+
+((mode-foo 10 "MODE #foo")
+ (0 ":irc.foonet.org 324 tester #foo +nt")
+ (0 ":irc.foonet.org 329 tester #foo 1620104779")
+ (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #foo :tester, welcome!")
+ (0.1 ":alice!~u@rz2v467q4rwhy.irc PRIVMSG #foo :tester, welcome!")
+ (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #foo :alice: But, as it seems, did violence on herself.")
+ (0.1 ":alice!~u@rz2v467q4rwhy.irc PRIVMSG #foo :bob: Well, this is the forest of Arden."))
+
+((privmsg-1 10 "PRIVMSG #foo :1 foonet only")
+ (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #foo :alice: Signior Iachimo will not from it. Pray, let us follow 'em.")
+ (0.1 ":alice!~u@rz2v467q4rwhy.irc PRIVMSG #foo :bob: Our queen and all her elves come here anon."))
+
+((privmsg-3 10 "PRIVMSG #foo :\1ACTION 3 foonet only\1")
+ (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #foo :alice: The ground is bloody; search about the churchyard.")
+ (0.1 ":alice!~u@rz2v467q4rwhy.irc PRIVMSG #foo :bob: You have discharged this honestly: keep it to yourself. Many likelihoods informed me of this before, which hung so tottering in the balance that I could neither believe nor misdoubt. Pray you, leave me: stall this in your bosom; and I thank you for your honest care. I will speak with you further anon."))
+
+((privmsg-5 10 "PRIVMSG #foo :5 all nets"))
+
+((privmsg-6 10 "PRIVMSG #foo :\1ACTION 6 all nets\1")
+ (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #foo :alice: Give me that mattock, and the wrenching iron.")
+ (0.1 ":alice!~u@rz2v467q4rwhy.irc PRIVMSG #foo :bob: Stand you! You have land enough of your own; but he added to your having, gave you some ground."))
+
+((privmsg-6 10 "PRIVMSG #foo :7 all live nets")
+ (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #foo :alice: Excellent workman! Thou canst not paint a man so bad as is thyself."))
+
+((privmsg-6 10 "PRIVMSG #foo :\1ACTION 8 all live nets\1")
+ (0.1 ":alice!~u@rz2v467q4rwhy.irc PRIVMSG #foo :bob: And will you, being a man of your breeding, be married under a bush, like a beggar ? Get you to church, and have a good priest that can tell you what marriage is: this fellow will but join you together as they join wainscot; then one of you will prove a shrunk panel, and like green timber, warp, warp.")
+ (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #foo :alice: Live, and be prosperous; and farewell, good fellow."))

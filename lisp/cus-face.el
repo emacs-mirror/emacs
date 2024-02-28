@@ -32,7 +32,7 @@
 (defun custom-declare-face (face spec doc &rest args)
   "Like `defface', but with FACE evaluated as a normal argument."
   (when (and doc
-             (not (stringp doc)))
+             (not (documentation-stringp doc)))
     (error "Invalid (or missing) doc string %S" doc))
   (unless (get face 'face-defface-spec)
     (face-spec-set face (purecopy spec) 'face-defface-spec)

@@ -2798,12 +2798,6 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 	  if (component->flags & 04000) /* SCALED_COMPONENT_OFFSET */
 	    sfnt_transform_coordinates (component, &x, &y, 1,
 					0, 0);
-
-	  if (component->flags & 04) /* ROUND_XY_TO_GRID */
-	    {
-	      x = sfnt_round_fixed (x);
-	      y = sfnt_round_fixed (y);
-	    }
 	}
       else
 	{
@@ -20800,8 +20794,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 12
-#define EASY_PPEM  12
+#define FANCY_PPEM 18
+#define EASY_PPEM  18
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);

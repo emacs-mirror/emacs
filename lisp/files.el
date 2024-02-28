@@ -2747,6 +2747,10 @@ Fifth arg NOMODES non-nil means don't alter the file's modes.
 Finishes by calling the functions in `find-file-hook'
 unless NOMODES is non-nil."
   (setq buffer-read-only (not (file-writable-p buffer-file-name)))
+  ;; The above is sufficiently like turning on read-only-mode, so run
+  ;; the mode hook here by hand.
+  (if buffer-read-only
+      (run-hooks 'read-only-mode-hook))
   (if noninteractive
       nil
     (let* (not-serious
@@ -3270,7 +3274,16 @@ and `inhibit-local-variables-suffixes'.  If
     ;; Optional group 1: env(1) invocation.
     "\\("
     "[^ \t\n]*/bin/env[ \t]*"
-    "\\(?:-S[ \t]*\\|--split-string\\(?:=\\|[ \t]*\\)\\)?"
+    ;; Within group 1: possible -S/--split-string and environment
+    ;; adjustments.
+    "\\(?:"
+    ;; -S/--split-string
+    "\\(?:-[0a-z]*S[ \t]*\\|--split-string=\\)"
+    ;; More env arguments.
+    "\\(?:-[^ \t\n]+[ \t]+\\)*"
+    ;; Interpreter environment modifications.
+    "\\(?:[^ \t\n]+=[^ \t\n]*[ \t]+\\)*"
+    "\\)?"
     "\\)?"
     ;; Group 2: interpreter.
     "\\([^ \t\n]+\\)"))
@@ -3754,7 +3767,8 @@ function is allowed to change the contents of this alist.
 This hook is called only if there is at least one file-local
 variable to set.")
 
-(defvar permanently-enabled-local-variables '(lexical-binding)
+(defvar permanently-enabled-local-variables
+  '(lexical-binding read-symbol-shorthands)
   "A list of file-local variables that are always enabled.
 This overrides any `enable-local-variables' setting.")
 
@@ -4190,6 +4204,13 @@ major-mode."
                                 ;; to use 'thisbuf's name in the
                                 ;; warning message.
                                 (or (buffer-file-name thisbuf) ""))))))
+                          ((eq var 'read-symbol-shorthands)
+                           ;; Sort automatically by shorthand length
+                           ;; in descending order.
+                           (setq val (sort val
+                                           (lambda (sh1 sh2) (> (length (car sh1))
+                                                                (length (car sh2))))))
+                           (push (cons 'read-symbol-shorthands val) result))
                           ((and (eq var 'mode) handle-mode))
 			  (t
 			   (ignore-errors

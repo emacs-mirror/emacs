@@ -52,38 +52,26 @@
   :version "28.1"
   :group 'font-lock-faces)
 
-(defun shorthands--mismatch-from-end (str1 str2)
-  "Tell index of first mismatch in STR1 and STR2, from end.
-The index is a valid 0-based index on STR1.  Returns nil if STR1
-equals STR2.  Return 0 if STR1 is a suffix of STR2."
-  (cl-loop with l1 = (length str1) with l2 = (length str2)
-           for i from 1
-           for i1 = (- l1 i) for i2 = (- l2 i)
-           while (eq (aref str1 i1) (aref str2 i2))
-           if (zerop i2) return (if (zerop i1) nil i1)
-           if (zerop i1) return 0
-           finally (return i1)))
-
 (defun shorthands-font-lock-shorthands (limit)
+  "Font lock until LIMIT considering `read-symbol-shorthands'."
   (when read-symbol-shorthands
     (while (re-search-forward
             (concat "\\_<\\(" (rx lisp-mode-symbol) "\\)\\_>")
             limit t)
       (let* ((existing (get-text-property (match-beginning 1) 'face))
+             (print-name (match-string 1))
              (probe (and (not (memq existing '(font-lock-comment-face
                                                font-lock-string-face)))
-                         (intern-soft (match-string 1))))
-             (sname (and probe (symbol-name probe)))
-             (mismatch (and sname (shorthands--mismatch-from-end
-                                   (match-string 1) sname)))
-             (guess (and mismatch (1+ mismatch))))
-        (when guess
-          (when (and (< guess (1- (length (match-string 1))))
-                     ;; In bug#67390 we allow other separators
-                     (eq (char-syntax (aref (match-string 1) guess)) ?_))
-            (setq guess (1+ guess)))
+                         (intern-soft print-name)))
+             (symbol-name (and probe (symbol-name probe)))
+             (prefix (and symbol-name
+                          (not (string-equal print-name symbol-name))
+                          (car (assoc print-name
+                                      read-symbol-shorthands
+                                      #'string-prefix-p)))))
+        (when prefix
           (add-face-text-property (match-beginning 1)
-                                  (+ (match-beginning 1) guess)
+                                  (+ (match-beginning 1) (length prefix))
                                   'elisp-shorthand-font-lock-face))))))
 
 (font-lock-add-keywords 'emacs-lisp-mode '((shorthands-font-lock-shorthands)) t)

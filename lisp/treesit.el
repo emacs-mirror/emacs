@@ -344,14 +344,13 @@ ancestor node which satisfies the predicate PRED; then it
 returns that ancestor node.  It returns nil if no ancestor
 node was found that satisfies PRED.
 
-PRED should be a function that takes one argument, the node to
-examine, and returns a boolean value indicating whether that
-node is a match.
+PRED can be a predicate function, a regexp matching node type,
+and more; see docstring of `treesit-thing-settings'.
 
 If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
   (let ((node (if include-node node
                 (treesit-node-parent node))))
-    (while (and node (not (funcall pred node)))
+    (while (and node (not (treesit-node-match-p node pred)))
       (setq node (treesit-node-parent node)))
     node))
 
@@ -364,11 +363,10 @@ no longer satisfies the predicate PRED; it returns the last
 examined node that satisfies PRED.  If no node satisfies PRED, it
 returns nil.
 
-PRED should be a function that takes one argument, the node to
-examine, and returns a boolean value indicating whether that
-node is a match."
+PRED can be a predicate function, a regexp matching node type,
+and more; see docstring of `treesit-thing-settings'."
   (let ((last nil))
-    (while (and node (funcall pred node))
+    (while (and node (treesit-node-match-p node pred))
       (setq last node
             node (treesit-node-parent node)))
     last))
@@ -655,37 +653,47 @@ those inside are kept."
            if (<= start (car range) (cdr range) end)
            collect range))
 
-(defun treesit-local-parsers-at (&optional pos language)
+(defun treesit-local-parsers-at (&optional pos language with-host)
   "Return all the local parsers at POS.
 
 POS defaults to point.
 Local parsers are those which only parse a limited region marked
 by an overlay with non-nil `treesit-parser' property.
-If LANGUAGE is non-nil, only return parsers for LANGUAGE."
+If LANGUAGE is non-nil, only return parsers for LANGUAGE.
+
+If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
+instead.  HOST-PARSER is the host parser which created the local
+PARSER."
   (let ((res nil))
     (dolist (ov (overlays-at (or pos (point))))
-      (when-let ((parser (overlay-get ov 'treesit-parser)))
+      (when-let ((parser (overlay-get ov 'treesit-parser))
+                 (host-parser (overlay-get ov 'treesit-host-parser)))
         (when (or (null language)
                   (eq (treesit-parser-language parser)
                       language))
-          (push parser res))))
+          (push (if with-host (cons parser host-parser) parser) res))))
     (nreverse res)))
 
-(defun treesit-local-parsers-on (&optional beg end language)
+(defun treesit-local-parsers-on (&optional beg end language with-host)
   "Return all the local parsers between BEG END.
 
 BEG and END default to the beginning and end of the buffer's
 accessible portion.
 Local parsers are those which have an `embedded' tag, and only parse
 a limited region marked by an overlay with a non-nil `treesit-parser'
-property.  If LANGUAGE is non-nil, only return parsers for LANGUAGE."
+property.  If LANGUAGE is non-nil, only return parsers for LANGUAGE.
+
+If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
+instead.  HOST-PARSER is the host parser which created the local
+PARSER."
   (let ((res nil))
     (dolist (ov (overlays-in (or beg (point-min)) (or end (point-max))))
-      (when-let ((parser (overlay-get ov 'treesit-parser)))
+      (when-let ((parser (overlay-get ov 'treesit-parser))
+                 (host-parser (overlay-get ov 'treesit-host-parser)))
         (when (or (null language)
                   (eq (treesit-parser-language parser)
                       language))
-          (push parser res))))
+          (push (if with-host (cons parser host-parser) parser) res))))
     (nreverse res)))
 
 (defun treesit--update-ranges-local
@@ -701,7 +709,8 @@ parser for EMBEDDED-LANG."
         (treesit-parser-delete parser))))
   ;; Update range.
   (let* ((host-lang (treesit-query-language query))
-         (ranges (treesit-query-range host-lang query beg end)))
+         (host-parser (treesit-parser-create host-lang))
+         (ranges (treesit-query-range host-parser query beg end)))
     (pcase-dolist (`(,beg . ,end) ranges)
       (let ((has-parser nil))
         (dolist (ov (overlays-in beg end))
@@ -719,6 +728,7 @@ parser for EMBEDDED-LANG."
                                   embedded-lang nil t 'embedded))
                 (ov (make-overlay beg end nil nil t)))
             (overlay-put ov 'treesit-parser embedded-parser)
+            (overlay-put ov 'treesit-host-parser host-parser)
             (treesit-parser-set-included-ranges
              embedded-parser `((,beg . ,end)))))))))
 
@@ -1372,7 +1382,15 @@ as comment due to incomplete parse tree."
     ;; `treesit-update-ranges' will force the host language's parser to
     ;; reparse and set correct ranges for embedded parsers.  Then
     ;; `treesit-parser-root-node' will force those parsers to reparse.
-    (treesit-update-ranges)
+    (let ((len (+ (* (window-body-height) (window-body-width)) 800)))
+      ;; FIXME: As a temporary fix, this prevents Emacs from updating
+      ;; every single local parsers in the buffer every time there's an
+      ;; edit.  Moving forward, we need some way to properly track the
+      ;; regions which need update on parser ranges, like what jit-lock
+      ;; and syntax-ppss does.
+      (treesit-update-ranges
+       (max (point-min) (- (point) len))
+       (min (point-max) (+ (point) len))))
     ;; Force repase on _all_ the parsers might not be necessary, but
     ;; this is probably the most robust way.
     (dolist (parser (treesit-parser-list))
@@ -1800,11 +1818,17 @@ Return (ANCHOR . OFFSET).  This function is used by
                 (forward-line 0)
                 (skip-chars-forward " \t")
                 (point)))
-         (local-parsers (treesit-local-parsers-at bol))
+         (local-parsers (treesit-local-parsers-at bol nil t))
          (smallest-node
-          (cond ((null (treesit-parser-list)) nil)
-                (local-parsers (treesit-node-at
-                                bol (car local-parsers)))
+          (cond ((car local-parsers)
+                 (let ((local-parser (caar local-parsers))
+                       (host-parser (cdar local-parsers)))
+                   (if (eq (treesit-node-start
+                            (treesit-parser-root-node local-parser))
+                           bol)
+                       (treesit-node-at bol host-parser)
+                     (treesit-node-at bol local-parser))))
+                ((null (treesit-parser-list)) nil)
                 ((eq 1 (length (treesit-parser-list nil nil t)))
                  (treesit-node-at bol))
                 ((treesit-language-at bol)
@@ -2644,9 +2668,17 @@ function is called recursively."
             (setq parent (treesit-node-top-level parent thing t)
                   prev nil
                   next nil))
-          ;; If TACTIC is `restricted', the implementation is very simple.
+          ;; If TACTIC is `restricted', the implementation is simple.
+          ;; In principle we don't go to parent's beg/end for
+          ;; `restricted' tactic, but if the parent is a "leaf thing"
+          ;; (doesn't have any child "thing" inside it), then we can
+          ;; move to the beg/end of it (bug#68899).
           (if (eq tactic 'restricted)
-              (setq pos (funcall advance (if (> arg 0) next prev)))
+              (setq pos (funcall
+                         advance
+                         (cond ((and (null next) (null prev)) parent)
+                               ((> arg 0) next)
+                               (t prev))))
             ;; For `nested', it's a bit more work:
             ;; Move...
             (if (> arg 0)
@@ -2836,6 +2868,71 @@ ENTRY.  MARKER marks the start of each tree-sitter node."
                     index))))
             treesit-simple-imenu-settings)))
 
+;;; Outline minor mode
+
+(defvar-local treesit-outline-predicate nil
+  "Predicate used to find outline headings in the syntax tree.
+The predicate can be a function, a regexp matching node type,
+and more; see docstring of `treesit-thing-settings'.
+It matches the nodes located on lines with outline headings.
+Intended to be set by a major mode.  When nil, the predicate
+is constructed from the value of `treesit-simple-imenu-settings'
+when a major mode sets it.")
+
+(defun treesit-outline-predicate--from-imenu (node)
+  ;; Return an outline searching predicate created from Imenu.
+  ;; Return the value suitable to set `treesit-outline-predicate'.
+  ;; Create this predicate from the value `treesit-simple-imenu-settings'
+  ;; that major modes set to find Imenu entries.  The assumption here
+  ;; is that the positions of Imenu entries most of the time coincide
+  ;; with the lines of outline headings.  When this assumption fails,
+  ;; you can directly set a proper value to `treesit-outline-predicate'.
+  (seq-some
+   (lambda (setting)
+     (and (string-match-p (nth 1 setting) (treesit-node-type node))
+          (or (null (nth 2 setting))
+              (funcall (nth 2 setting) node))))
+   treesit-simple-imenu-settings))
+
+(defun treesit-outline-search (&optional bound move backward looking-at)
+  "Search for the next outline heading in the syntax tree.
+See the descriptions of arguments in `outline-search-function'."
+  (if looking-at
+      (when-let* ((node (or (treesit--thing-at (pos-eol) treesit-outline-predicate)
+                            (treesit--thing-at (pos-bol) treesit-outline-predicate)))
+                  (start (treesit-node-start node)))
+        (eq (pos-bol) (save-excursion (goto-char start) (pos-bol))))
+
+    (let* ((pos
+            ;; When function wants to find the current outline, point
+            ;; is at the beginning of the current line.  When it wants
+            ;; to find the next outline, point is at the second column.
+            (if (eq (point) (pos-bol))
+                (if (bobp) (point) (1- (point)))
+              (pos-eol)))
+           (found (treesit--navigate-thing pos (if backward -1 1) 'beg
+                                           treesit-outline-predicate)))
+      (if found
+          (if (or (not bound) (if backward (>= found bound) (<= found bound)))
+              (progn
+                (goto-char found)
+                (goto-char (pos-bol))
+                (set-match-data (list (point) (pos-eol)))
+                t)
+            (when move (goto-char bound))
+            nil)
+        (when move (goto-char (or bound (if backward (point-min) (point-max)))))
+        nil))))
+
+(defun treesit-outline-level ()
+  "Return the depth of the current outline heading."
+  (let* ((node (treesit-node-at (point) nil t))
+         (level (if (treesit-node-match-p node treesit-outline-predicate)
+                    1 0)))
+    (while (setq node (treesit-parent-until node treesit-outline-predicate))
+      (setq level (1+ level)))
+    (if (zerop level) 1 level)))
+
 ;;; Activating tree-sitter
 
 (defun treesit-ready-p (language &optional quiet)
@@ -2965,6 +3062,17 @@ before calling this function."
   (when treesit-simple-imenu-settings
     (setq-local imenu-create-index-function
                 #'treesit-simple-imenu))
+
+  ;; Outline minor mode.
+  (when (and (or treesit-outline-predicate treesit-simple-imenu-settings)
+             (not (seq-some #'local-variable-p
+                            '(outline-search-function
+                              outline-regexp outline-level))))
+    (unless treesit-outline-predicate
+      (setq treesit-outline-predicate
+            #'treesit-outline-predicate--from-imenu))
+    (setq-local outline-search-function #'treesit-outline-search
+                outline-level #'treesit-outline-level))
 
   ;; Remove existing local parsers.
   (dolist (ov (overlays-in (point-min) (point-max)))

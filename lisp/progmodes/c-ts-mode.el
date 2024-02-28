@@ -922,6 +922,17 @@ Return nil if NODE is not a defun node or doesn't have a name."
         name)))
    t))
 
+;;; Outline minor mode
+
+(defun c-ts-mode--outline-predicate (node)
+  "Match outlines on lines with function names."
+  (or (and (equal (treesit-node-type node) "function_declarator")
+           (equal (treesit-node-type (treesit-node-parent node))
+                  "function_definition"))
+      ;; DEFUNs in Emacs sources.
+      (and c-ts-mode-emacs-sources-support
+           (c-ts-mode--emacs-defun-p node))))
+
 ;;; Defun navigation
 
 (defun c-ts-mode--defun-valid-p (node)
@@ -1258,6 +1269,10 @@ BEG and END are described in `treesit-range-rules'."
                                         "function_definition")
                                 eos)
                    c-ts-mode--defun-for-class-in-imenu-p nil))))
+
+  ;; Outline minor mode
+  (setq-local treesit-outline-predicate
+              #'c-ts-mode--outline-predicate)
 
   (setq-local treesit-font-lock-feature-list
               c-ts-mode--feature-list))

@@ -144,7 +144,6 @@ If KEY is `tramp-cache-undefined', don't create anything, and return nil."
 (defun tramp-get-file-property (key file property &optional default)
   "Get the PROPERTY of FILE from the cache context of KEY.
 Return DEFAULT if not set."
-  ;; Unify localname.  Remove hop from `tramp-file-name' structure.
   (setq key (tramp-file-name-unify key file))
   (if (eq key tramp-cache-undefined) default
     (let* ((hash (tramp-get-hash-table key))
@@ -191,7 +190,6 @@ Return DEFAULT if not set."
 (defun tramp-set-file-property (key file property value)
   "Set the PROPERTY of FILE to VALUE, in the cache context of KEY.
 Return VALUE."
-  ;; Unify localname.  Remove hop from `tramp-file-name' structure.
   (setq key (tramp-file-name-unify key file))
   (if (eq key tramp-cache-undefined) value
     (let ((hash (tramp-get-hash-table key)))
@@ -224,7 +222,6 @@ Return VALUE."
 ;;;###tramp-autoload
 (defun tramp-flush-file-property (key file property)
   "Remove PROPERTY of FILE in the cache context of KEY."
-  ;; Unify localname.  Remove hop from `tramp-file-name' structure.
   (setq key (tramp-file-name-unify key file))
   (unless (eq key tramp-cache-undefined)
     (remhash property (tramp-get-hash-table key))
@@ -239,7 +236,6 @@ Return VALUE."
     ;; `file-name-directory' can return nil, for example for "~".
     (when-let ((file (file-name-directory file))
 	       (file (directory-file-name file)))
-      ;; Unify localname.  Remove hop from `tramp-file-name' structure.
       (setq key (tramp-file-name-unify key file))
       (unless (eq key tramp-cache-undefined)
 	(dolist (property (hash-table-keys (tramp-get-hash-table key)))
@@ -254,7 +250,6 @@ Return VALUE."
 (defun tramp-flush-file-properties (key file)
   "Remove all properties of FILE in the cache context of KEY."
   (let ((truename (tramp-get-file-property key file "file-truename")))
-    ;; Unify localname.  Remove hop from `tramp-file-name' structure.
     (setq key (tramp-file-name-unify key file))
     (unless (eq key tramp-cache-undefined)
       (tramp-message key 8 "%s" (tramp-file-name-localname key))
@@ -338,17 +333,15 @@ FILE must be a local file name on a connection identified via KEY."
   "Save PROPERTY, run BODY, reset PROPERTY.
 Preserve timestamps."
   (declare (indent 3) (debug t))
-  `(progn
-     ;; Unify localname.  Remove hop from `tramp-file-name' structure.
-     (setf ,key (tramp-file-name-unify ,key ,file))
-     (let* ((hash (tramp-get-hash-table ,key))
-	    (cached (and (hash-table-p hash) (gethash ,property hash))))
-       (unwind-protect (progn ,@body)
-	 ;; Reset PROPERTY.  Recompute hash, it could have been flushed.
-         (setq hash (tramp-get-hash-table ,key))
-	 (if (consp cached)
-	     (puthash ,property cached hash)
-	   (remhash ,property hash))))))
+  `(let* ((key (tramp-file-name-unify ,key ,file))
+	  (hash (tramp-get-hash-table key))
+	  (cached (and (hash-table-p hash) (gethash ,property hash))))
+     (unwind-protect (progn ,@body)
+       ;; Reset PROPERTY.  Recompute hash, it could have been flushed.
+       (setq hash (tramp-get-hash-table key))
+       (if (consp cached)
+	   (puthash ,property cached hash)
+	 (remhash ,property hash)))))
 
 ;;;###tramp-autoload
 (defmacro with-tramp-saved-file-properties (key file properties &rest body)
@@ -356,22 +349,20 @@ Preserve timestamps."
 PROPERTIES is a list of file properties (strings).
 Preserve timestamps."
   (declare (indent 3) (debug t))
-  `(progn
-     ;; Unify localname.  Remove hop from `tramp-file-name' structure.
-     (setf ,key (tramp-file-name-unify ,key ,file))
-     (let* ((hash (tramp-get-hash-table ,key))
-	    (values
-	     (and (hash-table-p hash)
-		  (mapcar
-		   (lambda (property) (cons property (gethash property hash)))
-		   ,properties))))
-       (unwind-protect (progn ,@body)
-	 ;; Reset PROPERTIES.  Recompute hash, it could have been flushed.
-         (setq hash (tramp-get-hash-table ,key))
-	 (dolist (value values)
-	   (if (consp (cdr value))
-	       (puthash (car value) (cdr value) hash)
-	     (remhash (car value) hash)))))))
+  `(let* ((key (tramp-file-name-unify ,key ,file))
+	  (hash (tramp-get-hash-table key))
+	  (values
+	   (and (hash-table-p hash)
+		(mapcar
+		 (lambda (property) (cons property (gethash property hash)))
+		 ,properties))))
+     (unwind-protect (progn ,@body)
+       ;; Reset PROPERTIES.  Recompute hash, it could have been flushed.
+       (setq hash (tramp-get-hash-table key))
+       (dolist (value values)
+	 (if (consp (cdr value))
+	     (puthash (car value) (cdr value) hash)
+	   (remhash (car value) hash))))))
 
 ;;; -- Properties --
 
@@ -473,38 +464,36 @@ used to cache connection properties of the local machine."
 (defmacro with-tramp-saved-connection-property (key property &rest body)
   "Save PROPERTY, run BODY, reset PROPERTY."
   (declare (indent 2) (debug t))
-  `(progn
-     (setf ,key (tramp-file-name-unify ,key))
-     (let* ((hash (tramp-get-hash-table ,key))
-	    (cached (and (hash-table-p hash)
-			 (gethash ,property hash tramp-cache-undefined))))
-       (unwind-protect (progn ,@body)
-	 ;; Reset PROPERTY.  Recompute hash, it could have been flushed.
-         (setq hash (tramp-get-hash-table ,key))
-	 (if (not (eq cached tramp-cache-undefined))
-	     (puthash ,property cached hash)
-	   (remhash ,property hash))))))
+  `(let* ((key (tramp-file-name-unify ,key))
+	  (hash (tramp-get-hash-table key))
+	  (cached (and (hash-table-p hash)
+		       (gethash ,property hash tramp-cache-undefined))))
+     (unwind-protect (progn ,@body)
+       ;; Reset PROPERTY.  Recompute hash, it could have been flushed.
+       (setq hash (tramp-get-hash-table key))
+       (if (not (eq cached tramp-cache-undefined))
+	   (puthash ,property cached hash)
+	 (remhash ,property hash)))))
 
 ;;;###tramp-autoload
 (defmacro with-tramp-saved-connection-properties (key properties &rest body)
   "Save PROPERTIES, run BODY, reset PROPERTIES.
 PROPERTIES is a list of file properties (strings)."
   (declare (indent 2) (debug t))
-  `(progn
-     (setf ,key (tramp-file-name-unify ,key))
-     (let* ((hash (tramp-get-hash-table ,key))
-	    (values
-	     (mapcar
-	      (lambda (property)
-		(cons property (gethash property hash tramp-cache-undefined)))
-	      ,properties)))
-       (unwind-protect (progn ,@body)
-	 ;; Reset PROPERTIES.  Recompute hash, it could have been flushed.
-	 (setq hash (tramp-get-hash-table ,key))
-	 (dolist (value values)
-	   (if (not (eq (cdr value) tramp-cache-undefined))
-	       (puthash (car value) (cdr value) hash)
-	     (remhash (car value) hash)))))))
+  `(let* ((key (tramp-file-name-unify ,key))
+	  (hash (tramp-get-hash-table key))
+	  (values
+	   (mapcar
+	    (lambda (property)
+	      (cons property (gethash property hash tramp-cache-undefined)))
+	    ,properties)))
+     (unwind-protect (progn ,@body)
+       ;; Reset PROPERTIES.  Recompute hash, it could have been flushed.
+       (setq hash (tramp-get-hash-table key))
+       (dolist (value values)
+	 (if (not (eq (cdr value) tramp-cache-undefined))
+	     (puthash (car value) (cdr value) hash)
+	   (remhash (car value) hash))))))
 
 ;;;###tramp-autoload
 (defun tramp-cache-print (table)

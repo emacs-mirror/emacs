@@ -893,9 +893,14 @@ If optional argument `EXTRA' is non-nil, it's a non-standard overview header."
 				 (t "permanent"))
 			   header
 			   (if (< score 0) "lower" "raise"))
-		   (if (numberp match)
-		       (int-to-string match)
-		     match))))
+                   (cond ((numberp match) (int-to-string match))
+                         ((string= header "date")
+                          (int-to-string
+                           (-
+                            (/ (car (time-convert (current-time) 1)) 86400)
+                            (/ (car (time-convert (gnus-date-get-time match) 1))
+                               86400))))
+                         (t match)))))
 
     ;; If this is an integer comparison, we transform from string to int.
     (if (eq (nth 2 (assoc header gnus-header-index)) 'gnus-score-integer)

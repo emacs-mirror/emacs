@@ -282,26 +282,39 @@ expressions works for identifiers starting with period."
   (should-error (defvaralias 'eval-tests--my-c 'eval-tests--my-d)
                 :type 'cyclic-variable-indirection))
 
-(defvar eval-tests/global-var 'value)
-(defvar-local eval-tests/buffer-local-var 'value)
+(defvar eval-tests/global-var 'global-value)
+(defvar-local eval-tests/buffer-local-var 'default-value)
 (ert-deftest eval-tests/default-value ()
   ;; `let' overrides the default value for global variables.
   (should (default-boundp 'eval-tests/global-var))
-  (should (eq 'value (default-value 'eval-tests/global-var)))
-  (should (eq 'value eval-tests/global-var))
-  (let ((eval-tests/global-var 'bar))
-    (should (eq 'bar (default-value 'eval-tests/global-var)))
-    (should (eq 'bar eval-tests/global-var)))
+  (should (eq 'global-value (default-value 'eval-tests/global-var)))
+  (should (eq 'global-value eval-tests/global-var))
+  (let ((eval-tests/global-var 'let-value))
+    (should (eq 'let-value (default-value 'eval-tests/global-var)))
+    (should (eq 'let-value eval-tests/global-var)))
   ;; `let' overrides the default value everywhere, but leaves
   ;; buffer-local values unchanged in current buffer and in the
   ;; buffers where there is no explicitly set buffer-local value.
   (should (default-boundp 'eval-tests/buffer-local-var))
-  (should (eq 'value (default-value 'eval-tests/buffer-local-var)))
-  (should (eq 'value eval-tests/buffer-local-var))
+  (should (eq 'default-value (default-value 'eval-tests/buffer-local-var)))
+  (should (eq 'default-value eval-tests/buffer-local-var))
   (with-temp-buffer
-    (let ((eval-tests/buffer-local-var 'bar))
-      (should (eq 'bar (default-value 'eval-tests/buffer-local-var)))
-      (should (eq 'bar eval-tests/buffer-local-var)))))
+    (let ((eval-tests/buffer-local-var 'let-value))
+      (should (eq 'let-value (default-value 'eval-tests/buffer-local-var)))
+      (should (eq 'let-value eval-tests/buffer-local-var))))
+  ;; When current buffer has explicit buffer-local binding, `let' does
+  ;; not alter the default binding.
+  (with-temp-buffer
+    (setq-local eval-tests/buffer-local-var 'local-value)
+    (let ((eval-tests/buffer-local-var 'let-value))
+      ;; Let in a buffer with local binding does not change the
+      ;; default value for variable.
+      (should (eq 'default-value (default-value 'eval-tests/buffer-local-var)))
+      (should (eq 'let-value eval-tests/buffer-local-var))
+      (with-temp-buffer
+        ;; We are in a new buffer - `eval-tests/buffer-local-var' has its global default value.
+        (should (eq 'default-value (default-value 'eval-tests/buffer-local-var)))
+        (should (eq 'default-value eval-tests/buffer-local-var))))))
 
 (ert-deftest eval-tests--handler-bind ()
   ;; A `handler-bind' has no effect if no error is signaled.

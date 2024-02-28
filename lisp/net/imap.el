@@ -1057,7 +1057,7 @@ necessary.  If nil, the buffer name is generated."
 		(setq imap-capability nil)
 		(setq streams nil))))))
       (when (imap-opened buffer)
-	(setq imap-mailbox-data (make-vector imap-mailbox-prime 0)))
+	(setq imap-mailbox-data (obarray-make imap-mailbox-prime)))
       ;; (debug "opened+state+auth+buffer" (imap-opened buffer) imap-state imap-auth buffer)
       (when imap-stream
 	buffer))))
@@ -1280,7 +1280,7 @@ If EXAMINE is non-nil, do a read-only select."
 		    (concat (if examine "EXAMINE" "SELECT") " \""
 			    mailbox "\"")))
 	(progn
-	  (setq imap-message-data (make-vector imap-message-prime 0)
+	  (setq imap-message-data (obarray-make imap-message-prime)
 		imap-state (if examine 'examine 'selected))
 	  imap-current-mailbox)
       ;; Failed SELECT/EXAMINE unselects current mailbox
@@ -1722,7 +1722,7 @@ See `imap-enable-exchange-bug-workaround'."
 	    (string-to-number (nth 2 (imap-mailbox-get-1 'copyuid mailbox))))
     (let ((old-mailbox imap-current-mailbox)
 	  (state imap-state)
-	  (imap-message-data (make-vector 2 0)))
+	  (imap-message-data (obarray-make 2)))
       (when (imap-mailbox-examine-1 mailbox)
 	(prog1
 	    (and (imap-fetch-safe '("*" . "*:*") "UID")
@@ -1768,7 +1768,7 @@ first element.  The rest of list contains the saved articles' UIDs."
       (imap-mailbox-get-1 'appenduid mailbox)
     (let ((old-mailbox imap-current-mailbox)
 	  (state imap-state)
-	  (imap-message-data (make-vector 2 0)))
+	  (imap-message-data (obarray-make 2)))
       (when (imap-mailbox-examine-1 mailbox)
 	(prog1
 	    (and (imap-fetch-safe '("*" . "*:*") "UID")

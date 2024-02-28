@@ -265,8 +265,8 @@ is greater than 10.
   `(let* ((tramp-verbose (max (or ,verbose 0) (or tramp-verbose 0)))
 	  (debug-ignored-errors
 	   (append
-	    '("^make-symbolic-link not supported$"
-	      "^error with add-name-to-file")
+	    '("\\`make-symbolic-link not supported\\'"
+	      "\\`error with add-name-to-file")
 	    debug-ignored-errors))
 	  inhibit-message)
      (unwind-protect
@@ -379,7 +379,7 @@ is greater than 10.
 	  (let (tramp-mode)
 	    (should-not (tramp-tramp-file-p "/method:user@host:")))
 	  ;; `tramp-ignored-file-name-regexp' suppresses Tramp.
-	  (let ((tramp-ignored-file-name-regexp "^/method:user@host:"))
+	  (let ((tramp-ignored-file-name-regexp "\\`/method:user@host:"))
 	    (should-not (tramp-tramp-file-p "/method:user@host:")))
 	  ;; Methods shall be at least two characters, except the
 	  ;; default method.
@@ -3493,6 +3493,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
   (skip-unless (not (tramp--test-rsync-p)))
   ;; Wildcards are not supported in tramp-crypt.el.
   (skip-unless (not (tramp--test-crypt-p)))
+  ;; Wildcards are not supported with "docker cp ..." or "podman cp ...".
+  (skip-unless (not (tramp--test-container-oob-p)))
 
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let* ((tmp-name1
@@ -3815,15 +3817,24 @@ This tests also `access-file', `file-readable-p',
 	(ignore-errors (delete-file tmp-name1))
 	(ignore-errors (delete-file tmp-name2))))))
 
+(defun tramp--test-set-ert-test-documentation (test command)
+  "Set the documentation string for a derived test.
+The test is derived from TEST and COMMAND."
+  (let ((test-doc
+	 (split-string (ert-test-documentation (get test 'ert--test)) "\n")))
+    ;; The first line must be extended.
+    (setcar
+     test-doc (format "%s  Use the \"%s\" command." (car test-doc) command))
+    (setf (ert-test-documentation
+	   (get (intern (format "%s-with-%s" test command)) 'ert--test))
+	  (string-join test-doc "\n"))))
+
 (defmacro tramp--test-deftest-with-stat (test)
   "Define ert `TEST-with-stat'."
   (declare (indent 1))
   `(ert-deftest ,(intern (concat (symbol-name test) "-with-stat")) ()
-     ;; This is the docstring.  However, it must be expanded to a
-     ;; string inside the macro.  No idea.
-     ;; (concat (ert-test-documentation (get ',test 'ert--test))
-     ;;  	     "\nUse the \"stat\" command.")
      :tags '(:expensive-test)
+     (tramp--test-set-ert-test-documentation ',test "stat")
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-stat tramp-test-vec))
@@ -3842,11 +3853,8 @@ This tests also `access-file', `file-readable-p',
   "Define ert `TEST-with-perl'."
   (declare (indent 1))
   `(ert-deftest ,(intern (concat (symbol-name test) "-with-perl")) ()
-     ;; This is the docstring.  However, it must be expanded to a
-     ;; string inside the macro.  No idea.
-     ;; (concat (ert-test-documentation (get ',test 'ert--test))
-     ;;  	     "\nUse the \"perl\" command.")
      :tags '(:expensive-test)
+     (tramp--test-set-ert-test-documentation ',test "perl")
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-perl tramp-test-vec))
@@ -3870,11 +3878,8 @@ This tests also `access-file', `file-readable-p',
   "Define ert `TEST-with-ls'."
   (declare (indent 1))
   `(ert-deftest ,(intern (concat (symbol-name test) "-with-ls")) ()
-     ;; This is the docstring.  However, it must be expanded to a
-     ;; string inside the macro.  No idea.
-     ;; (concat (ert-test-documentation (get ',test 'ert--test))
-     ;;  	     "\nUse the \"ls\" command.")
      :tags '(:expensive-test)
+     (tramp--test-set-ert-test-documentation ',test "ls")
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (if-let ((default-directory ert-remote-temporary-file-directory)
@@ -5155,8 +5160,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(should-not (get-buffer-window (current-buffer) t))
 		(delete-file tmp-name)))
 
-	    ;; Check remote and local DESTNATION file.  This isn't
-	    ;; implemented yet ina all file name handler backends.
+	    ;; Check remote and local DESTINATION file.  This isn't
+	    ;; implemented yet in all file name handler backends.
 	    ;; (dolist (local '(nil t))
 	    ;;   (setq tmp-name (tramp--test-make-temp-name local quoted))
 	    ;;   (should
@@ -6376,33 +6381,35 @@ INPUT, if non-nil, is a string sent to the process."
           (setq tramp-remote-path orig-tramp-remote-path)
 
           ;; We make a super long `tramp-remote-path'.
-          (make-directory tmp-name)
-          (should (file-directory-p tmp-name))
-          (while (tramp-compat-length< (string-join orig-exec-path ":") 5000)
-            (let ((dir (make-temp-file (file-name-as-directory tmp-name) 'dir)))
-              (should (file-directory-p dir))
-              (setq tramp-remote-path
-                    (append
-		     tramp-remote-path `(,(file-remote-p dir 'localname)))
-                    orig-exec-path
-                    (append
-		     (butlast orig-exec-path)
-		     `(,(file-remote-p dir 'localname))
-		     (last orig-exec-path)))))
-          (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
-          (should (equal (exec-path) orig-exec-path))
-          ;; Ignore trailing newline.
-	  (setq path (substring (shell-command-to-string "echo $PATH") nil -1))
-	  ;; The shell doesn't handle such long strings.
-	  (unless (tramp-compat-length>
-		   path
-		   (tramp-get-connection-property
-		    tramp-test-vec "pipe-buf" 4096))
-	    ;; The last element of `exec-path' is `exec-directory'.
-            (should
-	     (string-equal path (string-join (butlast orig-exec-path) ":"))))
-	  ;; The shell "sh" shall always exist.
-	  (should (executable-find "sh" 'remote)))
+	  (unless (tramp--test-container-oob-p)
+            (make-directory tmp-name)
+            (should (file-directory-p tmp-name))
+            (while (tramp-compat-length< (string-join orig-exec-path ":") 5000)
+              (let ((dir (make-temp-file
+			  (file-name-as-directory tmp-name) 'dir)))
+		(should (file-directory-p dir))
+		(setq tramp-remote-path
+                      (append
+		       tramp-remote-path `(,(file-remote-p dir 'localname)))
+                      orig-exec-path
+                      (append
+		       (butlast orig-exec-path)
+		       `(,(file-remote-p dir 'localname))
+		       (last orig-exec-path)))))
+            (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
+            (should (equal (exec-path) orig-exec-path))
+	    ;; Ignore trailing newline.
+	    (setq path (substring (shell-command-to-string "echo $PATH") nil -1))
+	    ;; The shell doesn't handle such long strings.
+	    (unless (tramp-compat-length>
+		     path
+		     (tramp-get-connection-property
+		      tramp-test-vec "pipe-buf" 4096))
+	      ;; The last element of `exec-path' is `exec-directory'.
+              (should
+	       (string-equal path (string-join (butlast orig-exec-path) ":"))))
+	    ;; The shell "sh" shall always exist.
+	    (should (executable-find "sh" 'remote))))
 
       ;; Cleanup.
       (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
@@ -7053,16 +7060,23 @@ This is used in tests which we don't want to tag
    (not (and (tramp--test-adb-p)
 	     (string-match-p (rx multibyte) default-directory)))))
 
-(defun tramp--test-crypt-p ()
-  "Check, whether the remote directory is encrypted."
-  (tramp-crypt-file-name-p ert-remote-temporary-file-directory))
-
 (defun tramp--test-container-p ()
   "Check, whether a container method is used.
 This does not support some special file names."
   (string-match-p
-   (rx bol (| "docker" "podman") eol)
+   (rx bol (| "docker" "podman"))
    (file-remote-p ert-remote-temporary-file-directory 'method)))
+
+(defun tramp--test-container-oob-p ()
+  "Check, whether the dockercp or podmancp method is used.
+They does not support wildcard copy."
+  (string-match-p
+   (rx bol (| "dockercp" "podmancp") eol)
+   (file-remote-p ert-remote-temporary-file-directory 'method)))
+
+(defun tramp--test-crypt-p ()
+  "Check, whether the remote directory is encrypted."
+  (tramp-crypt-file-name-p ert-remote-temporary-file-directory))
 
 (defun tramp--test-expensive-test-p ()
   "Whether expensive tests are run.
@@ -7480,7 +7494,8 @@ This requires restrictions of file name syntax."
 		      (tramp--test-gvfs-p)
 		      (tramp--test-windows-nt-or-smb-p))
 	    "?foo?bar?baz?")
-	  (unless (or (tramp--test-ftp-p)
+	  (unless (or (tramp--test-container-oob-p)
+		      (tramp--test-ftp-p)
 		      (tramp--test-gvfs-p)
 		      (tramp--test-windows-nt-or-smb-p))
 	    "*foo+bar*baz+")
@@ -7500,7 +7515,10 @@ This requires restrictions of file name syntax."
 	  (unless (or (tramp--test-gvfs-p) (tramp--test-windows-nt-or-smb-p))
 	    "<foo>bar<baz>")
 	  "(foo)bar(baz)"
-	  (unless (or (tramp--test-ftp-p) (tramp--test-gvfs-p)) "[foo]bar[baz]")
+	  (unless (or (tramp--test-container-oob-p)
+		      (tramp--test-ftp-p)
+		      (tramp--test-gvfs-p))
+	    "[foo]bar[baz]")
 	  "{foo}bar{baz}")))
     ;; Simplify test in order to speed up.
     (apply #'tramp--test-check-files

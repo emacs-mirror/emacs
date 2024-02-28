@@ -92,6 +92,8 @@
     ("1@example.com" 1 email "1@example.com")
     ;; email addresses user portion containing dots
     ("foo.bar@example.com" 1 email "foo.bar@example.com")
+    ("foo.bar@example.com" 5 email "foo.bar@example.com")
+    ("  fo.ba@example.com" 6 email "fo.ba@example.com")
     (".foobar@example.com" 1 email nil)
     (".foobar@example.com" 2 email "foobar@example.com")
     ;; email addresses domain portion containing dots and dashes
@@ -179,6 +181,13 @@ position to retrieve THING.")
       (search-forward "2ab")
       (should (thing-at-point-looking-at "2abcd"))
       (should (equal (match-data) m2)))))
+
+(ert-deftest thing-at-point-looking-at-overlapping-matches ()
+  (with-temp-buffer
+    (insert "foo.bar.baz")
+    (goto-char (point-max))
+    (should (thing-at-point-looking-at "[a-z]+\\.[a-z]+"))
+    (should (string= "bar.baz" (match-string 0)))))
 
 (ert-deftest test-symbol-thing-1 ()
   (with-temp-buffer

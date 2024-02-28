@@ -1631,8 +1631,19 @@ produce_glyphs (struct it *it)
     it->pixel_width = it->nglyphs = 0;
   else if (it->char_to_display == '\t')
     {
+      /* wrap-prefix strings are prepended to continuation lines, so
+	 the width of tab characters inside should be computed from
+	 the start of this screen line rather than as a product of the
+	 total width of the physical line being wrapped.  */
       int absolute_x = (it->current_x
-			+ it->continuation_lines_width);
+			+ (it->string_from_prefix_prop_p
+			   /* Subtract the width of the
+			      prefix from it->current_x if
+			      it exists.  */
+			   ? 0 : (it->continuation_lines_width
+				  ? (it->continuation_lines_width
+				     - it->wrap_prefix_width)
+				  : 0)));
       int x0 = absolute_x;
       /* Adjust for line numbers.  */
       if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)
@@ -1704,7 +1715,13 @@ produce_glyphs (struct it *it)
   /* Advance current_x by the pixel width as a convenience for
      the caller.  */
   if (it->area == TEXT_AREA)
-    it->current_x += it->pixel_width;
+    {
+      it->current_x += it->pixel_width;
+
+      if (it->continuation_lines_width
+	  && it->string_from_prefix_prop_p)
+	it->wrap_prefix_width = it->current_x;
+    }
   it->ascent = it->max_ascent = it->phys_ascent = it->max_phys_ascent = 0;
   it->descent = it->max_descent = it->phys_descent = it->max_phys_descent = 1;
 #endif

@@ -434,11 +434,43 @@ but their relative order is also preserved:
          (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")]
 @end group
 @end example
-
-@xref{Sorting}, for more functions that perform sorting.
-See @code{documentation} in @ref{Accessing Documentation}, for a
-useful example of @code{sort}.
 @end defun
+
+Sometimes, computation of sort keys of list or vector elements is
+expensive, and therefore it is important to perform it the minimum
+number of times.  By contrast, computing the sort keys of elements
+inside the @var{predicate} function passed to @code{sort} will generally
+perform this computation each time @var{predicate} is called with some
+element.  If you can separate the computation of the sort key of an
+element into a function of its own, you can use the following sorting
+function, which guarantees that the key will be computed for each list
+or vector element exactly once.
+
+@cindex decorate-sort-undecorate
+@cindex Schwartzian transform
+@defun sort-on sequence predicate accessor
+This function stably sorts @var{sequence}, which can be a list, a
+vector, a bool-vector, or a string.  It sorts by comparing the sort
+keys of the elements using @var{predicate}.  The comparison function
+@var{predicate} accepts two arguments, the sort keys to compare, and
+should return non-@code{nil} if the element corresponding to the first
+key should sort before the element corresponding to the second key.  The
+function computes a sort key of each element by calling the
+@var{accessor} function on that element; it does so exactly once for
+each element of @var{sequence}.  The @var{accessor} function is called
+with a single argument, an element of @var{sequence}.
+
+This function implements what is known as @dfn{decorate-sort-undecorate}
+paradigm, or the Schwartzian transform.  It basically trades CPU for
+memory, creating a temporary list with the computed sort keys, then
+mapping @code{car} over the result of sorting that temporary list.
+Unlike with @code{sort}, the return value is always a new list; the
+original @var{sequence} is left intact.
+@end defun
+
+@xref{Sorting}, for more functions that perform sorting.  See
+@code{documentation} in @ref{Accessing Documentation}, for a useful
+example of @code{sort}.
 
 @cindex sequence functions in seq
 @cindex seq library

@@ -62,7 +62,7 @@
      tree-sitter-parser user-ptr font-object font-entity font-spec
      condvar mutex thread terminal hash-table frame buffer function
      window process window-configuration overlay integer-or-marker
-     number-or-marker symbol array)
+     number-or-marker symbol array obarray)
     (number float integer)
     (number-or-marker marker number)
     (integer bignum fixnum)

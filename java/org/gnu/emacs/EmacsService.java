@@ -60,6 +60,7 @@ import android.content.UriPermission;
 import android.content.pm.PackageManager;
 
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 
 import android.hardware.input.InputManager;
 
@@ -134,6 +135,10 @@ public final class EmacsService extends Service
   /* Thread used to query document providers, or null if it hasn't
      been created yet.  */
   private EmacsSafThread storageThread;
+
+  /* The Thread object representing the Android user interface
+     thread.  */
+  private Thread mainThread;
 
   static
   {
@@ -235,6 +240,7 @@ public final class EmacsService extends Service
 			  / metrics.density)
 			 * pixelDensityX);
     resolver = getContentResolver ();
+    mainThread = Thread.currentThread ();
 
     /* If the density used to compute the text size is lesser than
        160, there's likely a bug with display density computation.
@@ -383,7 +389,13 @@ public final class EmacsService extends Service
   {
     if (DEBUG_THREADS)
       {
-	if (Thread.currentThread () instanceof EmacsThread)
+	/* When SERVICE is NULL, Emacs is being executed non-interactively.  */
+	if (SERVICE == null
+	    /* It was previously assumed that only instances of
+	       `EmacsThread' were valid for graphics calls, but this is
+	       no longer true now that Lisp threads can be attached to
+	       the JVM.  */
+	    || (Thread.currentThread () != SERVICE.mainThread))
 	  return;
 
 	throw new RuntimeException ("Emacs thread function"
@@ -435,21 +447,6 @@ public final class EmacsService extends Service
   {
     checkEmacsThread ();
     EmacsDrawPoint.perform (drawable, gc, x, y);
-  }
-
-  public void
-  clearWindow (EmacsWindow window)
-  {
-    checkEmacsThread ();
-    window.clearWindow ();
-  }
-
-  public void
-  clearArea (EmacsWindow window, int x, int y, int width,
-	     int height)
-  {
-    checkEmacsThread ();
-    window.clearArea (x, y, width, height);
   }
 
   @SuppressWarnings ("deprecation")
@@ -579,6 +576,15 @@ public final class EmacsService extends Service
       }
 
     return false;
+  }
+
+  public boolean
+  detectKeyboard ()
+  {
+    Configuration configuration;
+
+    configuration = getResources ().getConfiguration ();
+    return configuration.keyboard != Configuration.KEYBOARD_NOKEYS;
   }
 
   public String
@@ -905,48 +911,6 @@ public final class EmacsService extends Service
 
   /* Content provider functions.  */
 
-  /* Return a ContentResolver capable of accessing as many files as
-     possible, namely the content resolver of the last selected
-     activity if available: only they posses the rights to access drag
-     and drop files.  */
-
-  public ContentResolver
-  getUsefulContentResolver ()
-  {
-    EmacsActivity activity;
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
-      /* Since the system predates drag and drop, return this resolver
-	 to avoid any unforeseen difficulties.  */
-      return resolver;
-
-    activity = EmacsActivity.lastFocusedActivity;
-    if (activity == null)
-      return resolver;
-
-    return activity.getContentResolver ();
-  }
-
-  /* Return a context whose ContentResolver is granted access to most
-     files, as in `getUsefulContentResolver'.  */
-
-  public Context
-  getContentResolverContext ()
-  {
-    EmacsActivity activity;
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
-      /* Since the system predates drag and drop, return this resolver
-	 to avoid any unforeseen difficulties.  */
-      return this;
-
-    activity = EmacsActivity.lastFocusedActivity;
-    if (activity == null)
-      return this;
-
-    return activity;
-  }
-
   /* Open a content URI described by the bytes BYTES, a non-terminated
      string; make it writable if WRITABLE, and readable if READABLE.
      Truncate the file if TRUNCATE.
@@ -960,9 +924,6 @@ public final class EmacsService extends Service
     String name, mode;
     ParcelFileDescriptor fd;
     int i;
-    ContentResolver resolver;
-
-    resolver = getUsefulContentResolver ();
 
     /* Figure out the file access mode.  */
 
@@ -1024,11 +985,7 @@ public final class EmacsService extends Service
     ParcelFileDescriptor fd;
     Uri uri;
     int rc, flags;
-    Context context;
-    ContentResolver resolver;
     ParcelFileDescriptor descriptor;
-
-    context = getContentResolverContext ();
 
     uri = Uri.parse (name);
     flags = 0;
@@ -1039,7 +996,7 @@ public final class EmacsService extends Service
     if (writable)
       flags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 
-    rc = context.checkCallingUriPermission (uri, flags);
+    rc = checkCallingUriPermission (uri, flags);
 
     if (rc == PackageManager.PERMISSION_GRANTED)
       return true;
@@ -1053,7 +1010,6 @@ public final class EmacsService extends Service
 
     try
       {
-	resolver = context.getContentResolver ();
         descriptor = resolver.openFileDescriptor (uri, "r");
 	return true;
       }

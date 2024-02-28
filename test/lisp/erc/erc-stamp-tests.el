@@ -20,13 +20,13 @@
 ;;; Commentary:
 
 ;;; Code:
+(require 'erc-stamp)
+(require 'erc-goodies) ; for `erc-make-read-only'
+
 (require 'ert-x)
 (eval-and-compile
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-tests-common)))
-
-(require 'erc-stamp)
-(require 'erc-goodies) ; for `erc-make-read-only'
 
 ;; These display-oriented tests are brittle because many factors
 ;; influence how text properties are applied.  We should just
@@ -46,7 +46,7 @@
 
     (with-current-buffer (get-buffer-create "*erc-stamp-tests--insert-right*")
       (erc-mode)
-      (erc-munge-invisibility-spec)
+      (erc-stamp--manage-local-options-state)
       (erc--initialize-markers (point) nil)
       (erc-tests-common-init-server-proc "sleep" "1")
 
@@ -235,7 +235,7 @@
     (with-current-buffer (get-buffer-create "*erc-timestamp-intangible*")
       (erc-mode)
       (erc--initialize-markers (point) nil)
-      (erc-munge-invisibility-spec)
+      (erc-stamp--manage-local-options-state)
       (erc-display-message nil 'notice (current-buffer) "Welcome")
       ;;
       ;; Pretend `fill' is active and that these lines are

@@ -248,7 +248,7 @@ enum sfnt_macintosh_platform_specific_id
     SFNT_MACINTOSH_GREEK	       = 6,
     SFNT_MACINTOSH_RUSSIAN	       = 7,
     SFNT_MACINTOSH_RSYMBOL	       = 8,
-    SFNT_MACINTOSH_DEVANGARI	       = 9,
+    SFNT_MACINTOSH_DEVANAGARI	       = 9,
     SFNT_MACINTOSH_GURMUKHI	       = 10,
     SFNT_MACINTOSH_GUJARATI	       = 11,
     SFNT_MACINTOSH_ORIYA	       = 12,

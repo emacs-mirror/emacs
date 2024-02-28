@@ -353,6 +353,7 @@ applicable)."
 If VEC-OR-PROC is nil, the buffer *debug tramp* is used.  FORCE
 forces the backtrace even if `tramp-verbose' is less than 10.
 This function is meant for debugging purposes."
+  (declare (tramp-suppress-trace t))
   (let ((tramp-verbose (if force 10 tramp-verbose)))
     (when (>= tramp-verbose 10)
       (tramp-message
@@ -364,6 +365,7 @@ VEC-OR-PROC identifies the connection to use, SIGNAL is the
 signal identifier to be raised, remaining arguments passed to
 `tramp-message'.  Finally, signal SIGNAL is raised with
 FMT-STRING and ARGUMENTS."
+  (declare (tramp-suppress-trace t))
   (let (signal-hook-function)
     (tramp-backtrace vec-or-proc)
     (unless arguments
@@ -391,6 +393,7 @@ tramp-tests.el.")
   "Emit an error, and show BUF.
 If BUF is nil, show the connection buf.  Wait for 30\", or until
 an input event arrives.  The other arguments are passed to `tramp-error'."
+  (declare (tramp-suppress-trace t))
   (save-window-excursion
     (let* ((buf (or (and (bufferp buf) buf)
 		    (and (processp vec-or-proc) (process-buffer vec-or-proc))
@@ -424,6 +427,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 
 (defsubst tramp-user-error (vec-or-proc fmt-string &rest arguments)
   "Signal a user error (or \"pilot error\")."
+  (declare (tramp-suppress-trace t))
   (unwind-protect
       (apply #'tramp-error vec-or-proc 'user-error fmt-string arguments)
     ;; Save exit.

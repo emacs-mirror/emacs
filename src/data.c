@@ -231,6 +231,7 @@ for example, (type-of 1) returns `integer'.  */)
         case PVEC_BOOL_VECTOR: return Qbool_vector;
         case PVEC_FRAME: return Qframe;
         case PVEC_HASH_TABLE: return Qhash_table;
+        case PVEC_OBARRAY: return Qobarray;
         case PVEC_FONT:
           if (FONT_SPEC_P (object))
 	    return Qfont_spec;
@@ -791,18 +792,16 @@ DEFUN ("bare-symbol", Fbare_symbol, Sbare_symbol, 1, 1, 0,
        doc: /* Extract, if need be, the bare symbol from SYM, a symbol.  */)
   (register Lisp_Object sym)
 {
-  if (BARE_SYMBOL_P (sym))
-    return sym;
-  /* Type checking is done in the following macro. */
-  return SYMBOL_WITH_POS_SYM (sym);
+  CHECK_SYMBOL (sym);
+  return BARE_SYMBOL_P (sym) ? sym : XSYMBOL_WITH_POS_SYM (sym);
 }
 
 DEFUN ("symbol-with-pos-pos", Fsymbol_with_pos_pos, Ssymbol_with_pos_pos, 1, 1, 0,
        doc: /* Extract the position from a symbol with position.  */)
   (register Lisp_Object ls)
 {
-  /* Type checking is done in the following macro. */
-  return SYMBOL_WITH_POS_POS (ls);
+  CHECK_TYPE (SYMBOL_WITH_POS_P (ls), Qsymbol_with_pos_p, ls);
+  return XSYMBOL_WITH_POS_POS (ls);
 }
 
 DEFUN ("remove-pos-from-symbol", Fremove_pos_from_symbol,
@@ -812,7 +811,7 @@ Otherwise, return ARG unchanged.  Compare with `bare-symbol'.  */)
   (register Lisp_Object arg)
 {
   if (SYMBOL_WITH_POS_P (arg))
-    return (SYMBOL_WITH_POS_SYM (arg));
+    return XSYMBOL_WITH_POS_SYM (arg);
   return arg;
 }
 
@@ -823,20 +822,13 @@ POS, the position, is either a fixnum or a symbol with position from which
 the position will be taken.  */)
      (register Lisp_Object sym, register Lisp_Object pos)
 {
-  Lisp_Object bare;
+  Lisp_Object bare = Fbare_symbol (sym);
   Lisp_Object position;
-
-  if (BARE_SYMBOL_P (sym))
-    bare = sym;
-  else if (SYMBOL_WITH_POS_P (sym))
-    bare = XSYMBOL_WITH_POS (sym)->sym;
-  else
-    wrong_type_argument (Qsymbolp, sym);
 
   if (FIXNUMP (pos))
     position = pos;
   else if (SYMBOL_WITH_POS_P (pos))
-    position = XSYMBOL_WITH_POS (pos)->pos;
+    position = XSYMBOL_WITH_POS_POS (pos);
   else
     wrong_type_argument (Qfixnum_or_symbol_with_pos_p, pos);
 
@@ -1264,7 +1256,7 @@ If OBJECT is not a symbol, just return it.  */)
       struct Lisp_Symbol *sym = XSYMBOL (object);
       while (sym->u.s.redirect == SYMBOL_VARALIAS)
 	sym = SYMBOL_ALIAS (sym);
-      XSETSYMBOL (object, sym);
+      object = make_lisp_symbol (sym);
     }
   return object;
 }
@@ -1514,12 +1506,9 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
       if (blv->fwd.fwdptr)
 	set_blv_value (blv, do_symval_forwarding (blv->fwd));
       /* Choose the new binding.  */
-      {
-	Lisp_Object var;
-	XSETSYMBOL (var, symbol);
-	tem1 = assq_no_quit (var, BVAR (current_buffer, local_var_alist));
-	set_blv_where (blv, Fcurrent_buffer ());
-      }
+      tem1 = assq_no_quit (make_lisp_symbol (symbol),
+			   BVAR (current_buffer, local_var_alist));
+      set_blv_where (blv, Fcurrent_buffer ());
       if (!(blv->found = !NILP (tem1)))
 	tem1 = blv->defcell;
 
@@ -1663,7 +1652,8 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	      set_blv_value (blv, do_symval_forwarding (blv->fwd));
 
 	    /* Find the new binding.  */
-	    XSETSYMBOL (symbol, sym); /* May have changed via aliasing.  */
+	    /* May have changed via aliasing.  */
+	    symbol = make_lisp_symbol (sym);
 	    Lisp_Object tem1
 	      = assq_no_quit (symbol,
 			      BVAR (XBUFFER (where), local_var_alist));
@@ -2067,13 +2057,10 @@ make_blv (struct Lisp_Symbol *sym, bool forwarded,
 	  union Lisp_Val_Fwd valcontents)
 {
   struct Lisp_Buffer_Local_Value *blv = xmalloc (sizeof *blv);
-  Lisp_Object symbol;
-  Lisp_Object tem;
-
- XSETSYMBOL (symbol, sym);
- tem = Fcons (symbol, (forwarded
-                       ? do_symval_forwarding (valcontents.fwd)
-                       : valcontents.value));
+  Lisp_Object tem = Fcons (make_lisp_symbol (sym),
+			   forwarded
+			   ? do_symval_forwarding (valcontents.fwd)
+			   : valcontents.value);
 
   /* Buffer_Local_Values cannot have as realval a buffer-local
      or keyboard-local forwarding.  */
@@ -2229,7 +2216,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
     }
 
   /* Make sure this buffer has its own value of symbol.  */
-  XSETSYMBOL (variable, sym);	/* Update in case of aliasing.  */
+  variable = make_lisp_symbol (sym);	/* Update in case of aliasing.  */
   tem = assq_no_quit (variable, BVAR (current_buffer, local_var_alist));
   if (NILP (tem))
     {
@@ -2309,7 +2296,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
     notify_variable_watchers (variable, Qnil, Qmakunbound, Fcurrent_buffer ());
 
   /* Get rid of this buffer's alist element, if any.  */
-  XSETSYMBOL (variable, sym);	/* Propagate variable indirection.  */
+  variable = make_lisp_symbol (sym);	/* Propagate variable indirection.  */
   tem = assq_no_quit (variable, BVAR (current_buffer, local_var_alist));
   if (!NILP (tem))
     bset_local_var_alist
@@ -2354,7 +2341,7 @@ Also see `buffer-local-boundp'.*/)
 	Lisp_Object tmp;
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	XSETBUFFER (tmp, buf);
-	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
+	variable = make_lisp_symbol (sym); /* Update in case of aliasing.  */
 
 	if (EQ (blv->where, tmp)) /* The binding is already loaded.  */
 	  return blv_found (blv) ? Qt : Qnil;
@@ -2404,7 +2391,7 @@ value in BUFFER, or if VARIABLE is automatically buffer-local (see
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	if (blv->local_if_set)
 	  return Qt;
-	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
+	variable = make_lisp_symbol (sym); /* Update in case of aliasing.  */
 	return Flocal_variable_p (variable, buffer);
       }
     case SYMBOL_FORWARDED:
@@ -4238,6 +4225,7 @@ syms_of_data (void)
   DEFSYM (Qtreesit_parser, "treesit-parser");
   DEFSYM (Qtreesit_node, "treesit-node");
   DEFSYM (Qtreesit_compiled_query, "treesit-compiled-query");
+  DEFSYM (Qobarray, "obarray");
 
   DEFSYM (Qdefun, "defun");
 

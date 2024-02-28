@@ -125,7 +125,7 @@ For more information see the adwaita-icon-theme repository at:
 
     https://gitlab.gnome.org/GNOME/adwaita-icon-theme
 
-Emacs images and their source in the Adwaita/scalable directory:
+Emacs images and their source in the Adwaita/symbolic directory:
 
   checked.svg               ui/checkbox-checked-symbolic.svg
   unchecked.svg             ui/checkbox-symbolic.svg
@@ -137,3 +137,8 @@ Emacs images and their source in the Adwaita/scalable directory:
   left.svg                  ui/pan-start-symbolic.svg
   right.svg                 ui/pan-end-symbolic.svg
   up.svg                    ui/pan-up-symbolic.svg
+  conceal.svg               actions/view-conceal-symbolic.svg
+  reveal.svg                actions/view-reveal-symbolic.svg
+
+conceal.pbm and reveal.pbm are generated from the respective *.svg
+files, using the ImageMagick converter tool.

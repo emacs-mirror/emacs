@@ -211,7 +211,7 @@ non-nil.")
   (when which-function-mode
     (unless (local-variable-p 'which-func-mode)
       (setq which-func-mode (or (eq which-func-modes t)
-                                (member major-mode which-func-modes)))
+                                (derived-mode-p which-func-modes)))
       (setq which-func--use-mode-line
             (member which-func-display '(mode mode-and-header)))
       (setq which-func--use-header-line
@@ -239,7 +239,7 @@ It creates the Imenu index for the buffer, if necessary."
 
   (condition-case err
       (if (and which-func-mode
-	       (not (member major-mode which-func-non-auto-modes))
+               (not (derived-mode-p which-func-non-auto-modes))
 	       (or (null which-func-maxout)
 		   (< buffer-saved-size which-func-maxout)
 		   (= which-func-maxout 0)))

@@ -1231,6 +1231,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-mailutils=$with_mailutils"
   passthrough="$passthrough --with-pop=$with_pop"
   passthrough="$passthrough --with-harfbuzz=$with_harfbuzz"
+  passthrough="$passthrough --with-threads=$with_threads"
 
   # Now pass through some checking options.
   emacs_val="--enable-check-lisp-object-type=$enable_check_lisp_object_type"
@@ -1321,6 +1322,7 @@ if test "$ANDROID" = "yes"; then
     with_pop=no
     with_harfbuzz=no
     with_native_compilation=no
+    with_threads=no
   fi
 
   with_rsvg=no
@@ -1331,7 +1333,6 @@ if test "$ANDROID" = "yes"; then
   with_gpm=no
   with_dbus=no
   with_gsettings=no
-  with_threads=no
   with_ns=no
 
   # zlib is available in android.
@@ -2336,6 +2337,7 @@ fi
 AC_DEFUN([AC_TYPE_SIZE_T])
 # Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
 AC_DEFUN([AC_TYPE_UID_T])
+ac_cv_type_gid_t=yes # AC_TYPE_GETGROUPS needs this in Autoconf 2.72.
 
 # Check for all math.h functions that Emacs uses; on some platforms,
 # -lm is needed for some of these functions.
@@ -4086,16 +4088,16 @@ case $with_file_notification,$opsys in
     fi ;;
 esac
 
-dnl inotify is available only on GNU/Linux.
+dnl inotify is available only on Linux-kernel based systems.
 case $with_file_notification,$NOTIFY_OBJ in
   inotify, | yes,)
     AC_CHECK_HEADER([sys/inotify.h])
     if test "$ac_cv_header_sys_inotify_h" = yes ; then
-	AC_CHECK_FUNC([inotify_init1])
-	if test "$ac_cv_func_inotify_init1" = yes; then
+	AC_CHECK_FUNCS([inotify_init inotify_init1])
+	if test "$ac_cv_func_inotify_init" = yes; then
 	  AC_DEFINE([HAVE_INOTIFY], [1], [Define to 1 to use inotify.])
 	  NOTIFY_OBJ=inotify.o
-	  NOTIFY_SUMMARY="yes -lglibc (inotify)"
+	  NOTIFY_SUMMARY="yes (inotify)"
        fi
     fi ;;
 esac
@@ -5905,12 +5907,14 @@ pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getifaddrs freeifaddrs \
 gai_strerror sync \
 endpwent getgrent endgrent \
-renameat2 \
 cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np \
 pthread_set_name_np])
 
 # getpwent is not present in older versions of Android.  (bug#65319)
 gl_CHECK_FUNCS_ANDROID([getpwent], [[#include <pwd.h>]])
+
+# renameat2 is not present in older versions of Android.
+gl_CHECK_FUNCS_ANDROID([renameat2], [[#include <stdio.h>]])
 
 if test "$ac_cv_func_cfmakeraw" != "yes"; then
   # On some systems (Android), cfmakeraw is inline, so AC_CHECK_FUNCS

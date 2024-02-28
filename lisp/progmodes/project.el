@@ -992,9 +992,7 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
 
 ;;;###autoload
 (defun project-or-external-find-regexp (regexp)
-  "Find all matches for REGEXP in the project roots or external roots.
-With \\[universal-argument] prefix, you can specify the file name
-pattern to search for."
+  "Find all matches for REGEXP in the project roots or external roots."
   (interactive (list (project--read-regexp)))
   (require 'xref)
   (let* ((pr (project-current t))
@@ -1515,7 +1513,8 @@ ARG, show only buffers that are visiting files."
              (lambda (buffer)
                (let ((name (buffer-name buffer))
                      (file (buffer-file-name buffer)))
-                 (and (or (not (string= (substring name 0 1) " "))
+                 (and (or Buffer-menu-show-internal
+                          (not (string= (substring name 0 1) " "))
                           file)
                       (not (eq buffer (current-buffer)))
                       (or file (not Buffer-menu-files-only)))))
@@ -1525,6 +1524,7 @@ ARG, show only buffers that are visiting files."
          (let ((buf (list-buffers-noselect
                      arg (with-current-buffer
                              (get-buffer-create "*Buffer List*")
+                           (setq-local Buffer-menu-show-internal nil)
                            (let ((Buffer-menu-files-only arg))
                              (funcall buffer-list-function))))))
            (with-current-buffer buf
@@ -1866,12 +1866,12 @@ Otherwise, `default-directory' is temporarily set to the current
 project's root.
 
 If OVERRIDING-MAP is non-nil, it will be used as
-`overriding-local-map' to provide shorter bindings from that map
-which will take priority over the global ones."
+`overriding-terminal-local-map' to provide shorter bindings
+from that map which will take priority over the global ones."
   (interactive)
   (let* ((pr (project-current t))
          (prompt-format (or prompt-format "[execute in %s]:"))
-         (command (let ((overriding-local-map overriding-map))
+         (command (let ((overriding-terminal-local-map overriding-map))
                     (key-binding (read-key-sequence
                                   (format prompt-format (project-root pr)))
                                  t)))

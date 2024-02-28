@@ -1,4 +1,4 @@
-# serial 46
+# serial 47
 
 dnl From Jim Meyering.
 dnl Check for the nanosleep function.
@@ -119,6 +119,10 @@ AC_DEFUN([gl_FUNC_NANOSLEEP],
             # Guess it halfway works when the kernel is Linux.
           linux*)
             gl_cv_func_nanosleep='guessing no (mishandles large arguments)' ;;
+            # Midipix generally emulates the Linux system calls,
+            # but here it handles large arguments correctly.
+          midipix*)
+            gl_cv_func_nanosleep='guessing yes' ;;
             # Guess no on native Windows.
           mingw* | windows*)
             gl_cv_func_nanosleep='guessing no' ;;

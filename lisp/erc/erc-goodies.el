@@ -83,7 +83,7 @@ be experimental.  It currently only works with Emacs 28+."
    (when (and erc-scrolltobottom-all (< emacs-major-version 28))
      (erc-button--display-error-notice-with-keys
       "Option `erc-scrolltobottom-all' requires Emacs 28+. Disabling.")
-     (setopt erc-scrolltobottom-all nil))
+     (setq erc-scrolltobottom-all nil))
    (unless erc--updating-modules-p (erc-buffer-do #'erc--scrolltobottom-setup))
    (if erc-scrolltobottom-all
        (progn

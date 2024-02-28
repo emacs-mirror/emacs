@@ -53,38 +53,39 @@ have_working_info = $(filter notintermediate,$(value .FEATURES))
 # The workaround is done only for AM_V_ELC and AM_V_ELN,
 # since the bug is not annoying elsewhere.
 
-AM_V_AR      = @$(info $   AR       $@)
+. :=
+AM_V_AR      = @$(info $.  AR       $@)
 AM_V_at = @
-AM_V_CC      = @$(info $   CC       $@)
-AM_V_CXX     = @$(info $   CXX      $@)
-AM_V_CCLD    = @$(info $   CCLD     $@)
-AM_V_CXXLD   = @$(info $   CXXLD    $@)
+AM_V_CC      = @$(info $.  CC       $@)
+AM_V_CXX     = @$(info $.  CXX      $@)
+AM_V_CCLD    = @$(info $.  CCLD     $@)
+AM_V_CXXLD   = @$(info $.  CXXLD    $@)
 
 ifeq ($(HAVE_NATIVE_COMP)-$(NATIVE_DISABLED)-$(ANCIENT),yes--)
 ifneq (,$(have_working_info))
-AM_V_ELC     = @$(info $   ELC+ELN  $@)
-AM_V_ELN     = @$(info $   ELN      $@)
+AM_V_ELC     = @$(info $.  ELC+ELN  $@)
+AM_V_ELN     = @$(info $.  ELN      $@)
 else
 AM_V_ELC     = @echo "  ELC+ELN " $@;
 AM_V_ELN     = @echo "  ELN     " $@;
 endif
 else
 ifneq (,$(have_working_info))
-AM_V_ELC     = @$(info $   ELC      $@)
+AM_V_ELC     = @$(info $.  ELC      $@)
 else
 AM_V_ELC     = @echo "  ELC     " $@;
 endif
 AM_V_ELN =
 endif
 
-AM_V_GEN     = @$(info $   GEN      $@)
-AM_V_GLOBALS = @$(info $   GEN      globals.h)
+AM_V_GEN     = @$(info $.  GEN      $@)
+AM_V_GLOBALS = @$(info $.  GEN      globals.h)
 AM_V_NO_PD = --no-print-directory
-AM_V_RC      = @$(info $   RC       $@)
+AM_V_RC      = @$(info $.  RC       $@)
 
 # These are used for the Android port.
-AM_V_JAVAC	= @$(info $   JAVAC    $@)
-AM_V_D8		= @$(info $   D8       $@)
-AM_V_AAPT	= @$(info $   AAPT     $@)
+AM_V_JAVAC	= @$(info $.  JAVAC    $@)
+AM_V_D8		= @$(info $.  D8       $@)
+AM_V_AAPT	= @$(info $.  AAPT     $@)
 AM_V_SILENT	= @
 endif

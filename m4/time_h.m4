@@ -2,7 +2,7 @@
 
 # Copyright (C) 2000-2001, 2003-2007, 2009-2024 Free Software Foundation, Inc.
 
-# serial 24
+# serial 25
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -175,5 +175,6 @@ AC_DEFUN([gl_TIME_H_DEFAULTS],
   REPLACE_TIME=0;                        AC_SUBST([REPLACE_TIME])
   REPLACE_TIMEGM=0;                      AC_SUBST([REPLACE_TIMEGM])
   REPLACE_TIMESPEC_GET=0;                AC_SUBST([REPLACE_TIMESPEC_GET])
+  REPLACE_TIMESPEC_GETRES=0;             AC_SUBST([REPLACE_TIMESPEC_GETRES])
   REPLACE_TZSET=0;                       AC_SUBST([REPLACE_TZSET])
 ])

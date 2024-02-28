@@ -43,7 +43,7 @@ case "${lang}" in
         org="phoenixframework"
         ;;
     "lua")
-        org="MunifTanjim"
+        org="tree-sitter-grammars"
         ;;
     "typescript")
         sourcedir="tree-sitter-typescript/typescript/src"

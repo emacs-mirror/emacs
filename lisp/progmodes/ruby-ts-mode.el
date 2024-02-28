@@ -1133,6 +1133,7 @@ leading double colon is not added."
                                 "singleton_class"
                                 "module"
                                 "method"
+                                "singleton_method"
                                 "array"
                                 "hash"
                                 "parenthesized_statements"
@@ -1177,6 +1178,19 @@ leading double colon is not added."
 
   ;; Imenu.
   (setq-local imenu-create-index-function #'ruby-ts--imenu)
+
+  ;; Outline minor mode.
+  (setq-local treesit-outline-predicate
+              (rx bos (or "singleton_method"
+                          "method"
+                          "alias"
+                          "class"
+                          "module")
+                  eos))
+  ;; Restore default values of outline variables
+  ;; to use `treesit-outline-predicate'.
+  (kill-local-variable 'outline-regexp)
+  (kill-local-variable 'outline-level)
 
   (setq-local treesit-simple-indent-rules (ruby-ts--indent-rules))
 

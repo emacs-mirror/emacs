@@ -253,10 +253,10 @@ An external command simply means external to Emacs."
   "Add a set of paths to PATH."
   (eshell-eval-using-options
    "addpath" args
-   '((?b "begin" nil prepend "add path element at beginning")
+   '((?b "begin" nil prepend "add to beginning of $PATH")
      (?h "help" nil nil  "display this usage message")
-     :usage "[-b] PATH
-Adds the given PATH to $PATH.")
+     :usage "[-b] DIR...
+Adds the given DIR to $PATH.")
    (let ((path (eshell-get-path t)))
      (if args
          (progn

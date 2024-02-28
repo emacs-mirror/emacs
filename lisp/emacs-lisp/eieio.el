@@ -387,9 +387,9 @@ contents of field NAME is matched against PAT, or they can be of
         ,@(mapcar (lambda (field)
                     (pcase-exhaustive field
                       (`(,name ,pat)
-                       `(app (pcase--flip eieio-oref ',name) ,pat))
+                       `(app (eieio-oref _ ',name) ,pat))
                       ((pred symbolp)
-                       `(app (pcase--flip eieio-oref ',field) ,field))))
+                       `(app (eieio-oref _ ',field) ,field))))
                   fields)))
 
 ;;; Simple generators, and query functions.  None of these would do

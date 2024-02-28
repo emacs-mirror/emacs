@@ -166,6 +166,16 @@ With ARG, do it many times.  Negative ARG means move backward."
                   ("Slot" "\\`slot\\'" nil nil)
                   ("Tag" "\\`tag\\'" nil nil)))
 
+    ;; Outline minor mode
+    ;; `heex-ts-mode' inherits from `html-mode' that sets
+    ;; regexp-based outline variables.  So need to restore
+    ;; the default values of outline variables to be able
+    ;; to use `treesit-outline-predicate' derived
+    ;; from `treesit-simple-imenu-settings' above.
+    (kill-local-variable 'outline-heading-end-regexp)
+    (kill-local-variable 'outline-regexp)
+    (kill-local-variable 'outline-level)
+
     (setq-local treesit-font-lock-settings heex-ts--font-lock-settings)
 
     (setq-local treesit-simple-indent-rules heex-ts--indent-rules)

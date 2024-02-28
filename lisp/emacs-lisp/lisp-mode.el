@@ -1347,7 +1347,6 @@ Lisp function does not specify a special indentation."
 (put 'condition-case 'lisp-indent-function 2)
 (put 'handler-case 'lisp-indent-function 1) ;CL
 (put 'unwind-protect 'lisp-indent-function 1)
-(put 'with-output-to-temp-buffer 'lisp-indent-function 1)
 (put 'closure 'lisp-indent-function 2)
 
 (defun indent-sexp (&optional endpos)
@@ -1420,14 +1419,15 @@ A prefix argument specifies pretty-printing."
 
 ;;;; Lisp paragraph filling commands.
 
-(defcustom emacs-lisp-docstring-fill-column 65
+(defcustom emacs-lisp-docstring-fill-column 72
   "Value of `fill-column' to use when filling a docstring.
 Any non-integer value means do not use a different value of
 `fill-column' when filling docstrings."
   :type '(choice (integer)
                  (const :tag "Use the current `fill-column'" t))
   :safe (lambda (x) (or (eq x t) (integerp x)))
-  :group 'lisp)
+  :group 'lisp
+  :version "30.1")
 
 (defun lisp-fill-paragraph (&optional justify)
   "Like \\[fill-paragraph], but handle Emacs Lisp comments and docstrings.

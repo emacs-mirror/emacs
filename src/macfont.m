@@ -855,21 +855,42 @@ macfont_store_descriptor_attributes (CTFontDescriptorRef desc,
       struct {
         enum font_property_index index;
         CFStringRef trait;
-        CGPoint points[6];
-	CGFloat (*adjust_func) (CTFontDescriptorRef, CGFloat);
-      } numeric_traits[] =
-          {{FONT_WEIGHT_INDEX, kCTFontWeightTrait,
-            {{-0.4, 50},	/* light */
-             {-0.24, 87.5},	/* (semi-light + normal) / 2 */
-             {0, 80},		/* normal */
-             {0.24, 140},	/* (semi-bold + normal) / 2 */
-             {0.4, 200},	/* bold */
-             {CGFLOAT_MAX, CGFLOAT_MAX}},
-	    mac_font_descriptor_get_adjusted_weight},
-           {FONT_SLANT_INDEX, kCTFontSlantTrait,
-            {{0, 100}, {0.1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}, NULL},
-           {FONT_WIDTH_INDEX, kCTFontWidthTrait,
-            {{0, 100}, {1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}, NULL}};
+        CGPoint points[12];
+        CGFloat (*adjust_func) (CTFontDescriptorRef, CGFloat);
+      } numeric_traits[] = {
+        { FONT_WEIGHT_INDEX,
+          kCTFontWeightTrait,
+          { { -0.6, 0 },    /* thin */
+            { -0.4, 40 },   /* ultra-light, ultralight, extra-light, extralight  */
+            { -0.23, 50 },  /* light */
+            { -0.115, 55 }, /* semi-light, semilight, demilight */
+            { 0, 80 },      /* regular, normal, unspecified, book */
+            { 0.2, 100 },   /* medium */
+            { 0.3, 180 },   /* semi-bold, semibold, demibold, demi-bold, demi */
+            { 0.4, 200 },   /* bold */
+            { 0.6, 205 },   /* extra-bold, extrabold, ultra-bold, ultrabold */
+            { 0.8, 210 },   /* black, heavy */
+            { 1, 250 },     /* ultra-heavy, ultraheavy */
+            { CGFLOAT_MAX, CGFLOAT_MAX } },
+          mac_font_descriptor_get_adjusted_weight },
+        { FONT_SLANT_INDEX,
+          kCTFontSlantTrait,
+          { { 0, 100 }, { 0.1, 200 }, { CGFLOAT_MAX, CGFLOAT_MAX } },
+          NULL },
+        { FONT_WIDTH_INDEX,
+          kCTFontWidthTrait,
+          { { -0.4, 50 }, /* ultra-condensed, ultracondensed */
+            { -0.3, 63 }, /* extra-condensed, extracondensed */
+            { -0.2, 75 }, /* condensed, compressed, narrow */
+            { -0.1, 87 }, /* semi-condensed, semicondensed, demicondensed */
+            { 0, 100 },   /* normal, medium, regular, unspecified */
+            { 0.1, 113 }, /* semi-expanded, semiexpanded, demiexpanded */
+            { 0.2, 125 }, /* expanded */
+            { 0.3, 150 }, /* extra-expanded, extraexpanded */
+            { 0.4, 200 }, /* ultra-expanded, ultraexpanded, wide */
+            { CGFLOAT_MAX, CGFLOAT_MAX } },
+          NULL }
+      };
       int i;
 
       for (i = 0; i < ARRAYELTS (numeric_traits); i++)
@@ -1941,19 +1962,38 @@ macfont_create_attributes_with_spec (Lisp_Object spec)
   struct {
     enum font_property_index index;
     CFStringRef trait;
-    CGPoint points[6];
-  } numeric_traits[] =
-      {{FONT_WEIGHT_INDEX, kCTFontWeightTrait,
-        {{-0.4, 50},		/* light */
-         {-0.24, 87.5},		/* (semi-light + normal) / 2 */
-         {0, 100},		/* normal */
-         {0.24, 140},		/* (semi-bold + normal) / 2 */
-         {0.4, 200},		/* bold */
-         {CGFLOAT_MAX, CGFLOAT_MAX}}},
-       {FONT_SLANT_INDEX, kCTFontSlantTrait,
-        {{0, 100}, {0.1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}},
-       {FONT_WIDTH_INDEX, kCTFontWidthTrait,
-        {{0, 100}, {1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}}};
+    CGPoint points[12];
+  } numeric_traits[] = {
+    { FONT_WEIGHT_INDEX,
+      kCTFontWeightTrait,
+      { { -0.6, 0 },    /* thin */
+        { -0.4, 40 },   /* ultra-light, ultralight, extra-light, extralight  */
+        { -0.23, 50 },  /* light */
+        { -0.115, 55 }, /* semi-light, semilight, demilight */
+        { 0, 80 },      /* regular, normal, unspecified, book */
+        { 0.2, 100 },   /* medium */
+        { 0.3, 180 },   /* semi-bold, semibold, demibold, demi-bold, demi */
+        { 0.4, 200 },   /* bold */
+        { 0.6, 205 },   /* extra-bold, extrabold, ultra-bold, ultrabold */
+        { 0.8, 210 },   /* black, heavy */
+        { 1, 250 },     /* ultra-heavy, ultraheavy */
+        { CGFLOAT_MAX, CGFLOAT_MAX } } },
+    { FONT_SLANT_INDEX,
+      kCTFontSlantTrait,
+      { { 0, 100 }, { 0.1, 200 }, { CGFLOAT_MAX, CGFLOAT_MAX } } },
+    { FONT_WIDTH_INDEX,
+      kCTFontWidthTrait,
+      { { -0.4, 50 }, /* ultra-condensed, ultracondensed */
+        { -0.3, 63 }, /* extra-condensed, extracondensed */
+        { -0.2, 75 }, /* condensed, compressed, narrow */
+        { -0.1, 87 }, /* semi-condensed, semicondensed, demicondensed */
+        { 0, 100 },   /* normal, medium, regular, unspecified */
+        { 0.1, 113 }, /* semi-expanded, semiexpanded, demiexpanded */
+        { 0.2, 125 }, /* expanded */
+        { 0.3, 150 }, /* extra-expanded, extraexpanded */
+        { 0.4, 200 }, /* ultra-expanded, ultraexpanded, wide */
+        { CGFLOAT_MAX, CGFLOAT_MAX } } }
+  };
 
   registry = AREF (spec, FONT_REGISTRY_INDEX);
   if (NILP (registry)

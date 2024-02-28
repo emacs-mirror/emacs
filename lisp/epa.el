@@ -73,6 +73,17 @@ The command `epa-mail-encrypt' uses this."
   :group 'epa
   :version "24.4")
 
+(defcustom epa-keys-select-method 'buffer
+  "Method used to select keys in `epa-select-keys'.
+If the value is \\='buffer, the default, keys are selected via a
+pop-up buffer.  If the value is \\='minibuffer, keys are selected
+via the minibuffer instead, using `completing-read-multiple'.
+Any other value is treated as \\='buffer."
+  :type '(choice (const :tag "Read keys from a pop-up buffer" buffer)
+		 (const :tag "Read keys from minibuffer" minibuffer))
+  :group 'epa
+  :version "30.1")
+
 ;;; Faces
 
 (defgroup epa-faces nil
@@ -450,6 +461,25 @@ q  trust status questionable.  -  trust status unspecified.
 	    (epa--marked-keys))
         (kill-buffer epa-keys-buffer)))))
 
+(defun epa--select-keys-in-minibuffer (prompt keys)
+  (let* ((prompt (pcase-let ((`(,first ,second ,third)
+                              (string-split prompt "\\."))
+                             (hint "(separated by comma)"))
+                   (if third
+                       (format "%s %s. %s: " first hint second)
+                     (format "%s %s: " first hint))))
+         (keys-alist
+          (seq-map
+           (lambda (key)
+             (cons (substring-no-properties
+                    (epa--button-key-text key))
+                   key))
+           keys))
+         (selected-keys (completing-read-multiple prompt keys-alist)))
+    (seq-map
+     (lambda (key) (cdr (assoc key keys-alist)))
+     selected-keys)))
+
 ;;;###autoload
 (defun epa-select-keys (context prompt &optional names secret)
   "Display a user's keyring and ask him to select keys.
@@ -459,7 +489,9 @@ NAMES is a list of strings to be matched with keys.  If it is nil, all
 the keys are listed.
 If SECRET is non-nil, list secret keys instead of public keys."
   (let ((keys (epg-list-keys context names secret)))
-    (epa--select-keys prompt keys)))
+    (pcase epa-keys-select-method
+      ('minibuffer (epa--select-keys-in-minibuffer prompt keys))
+      (_ (epa--select-keys prompt keys)))))
 
 ;;;; Key Details
 

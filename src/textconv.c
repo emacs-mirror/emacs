@@ -1705,11 +1705,8 @@ set_composing_region (struct frame *f, ptrdiff_t start,
 {
   struct text_conversion_action *action, **last;
 
-  if (start > MOST_POSITIVE_FIXNUM)
-    start = MOST_POSITIVE_FIXNUM;
-
-  if (end > MOST_POSITIVE_FIXNUM)
-    end = MOST_POSITIVE_FIXNUM;
+  start = min (start, MOST_POSITIVE_FIXNUM);
+  end = min (end, MOST_POSITIVE_FIXNUM);
 
   action = xmalloc (sizeof *action);
   action->operation = TEXTCONV_SET_COMPOSING_REGION;
@@ -1734,8 +1731,7 @@ textconv_set_point_and_mark (struct frame *f, ptrdiff_t point,
 {
   struct text_conversion_action *action, **last;
 
-  if (point > MOST_POSITIVE_FIXNUM)
-    point = MOST_POSITIVE_FIXNUM;
+  point = min (point, MOST_POSITIVE_FIXNUM);
 
   action = xmalloc (sizeof *action);
   action->operation = TEXTCONV_SET_POINT_AND_MARK;

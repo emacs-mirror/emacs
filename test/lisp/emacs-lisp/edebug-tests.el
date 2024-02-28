@@ -860,8 +860,7 @@ test and possibly others should be updated."
    (let ((inhibit-read-only t))
      (delete-region (point-min) (point-max))
      (insert  "`1"))
-   (with-suppressed-warnings ((obsolete edebug-eval-defun))
-     (edebug-eval-defun nil))
+   (eval-defun nil)
    ;; `eval-defun' outputs its message to the echo area in a rather
    ;; funny way, so the "1" and the " (#o1, #x1, ?\C-a)" end up placed
    ;; there in separate pieces (via `print' rather than via `message').
@@ -871,18 +870,21 @@ test and possibly others should be updated."
 
    (setq edebug-initial-mode 'go)
    ;; In Bug#23651 Edebug would hang reading `1.
-   (with-suppressed-warnings ((obsolete edebug-eval-defun))
-     (edebug-eval-defun t))))
+   (eval-defun t)
+   (should (string-match-p (regexp-quote " (#o1, #x1, ?\\C-a)")
+                           edebug-tests-messages))))
 
 (ert-deftest edebug-tests-trivial-comma ()
   "Edebug can read a trivial comma expression (Bug#23651)."
   (edebug-tests-with-normal-env
-   (read-only-mode -1)
-   (delete-region (point-min) (point-max))
-   (insert  ",1")
-   (read-only-mode)
-   (with-suppressed-warnings ((obsolete edebug-eval-defun))
-     (should-error (edebug-eval-defun t)))))
+   (let ((inhibit-read-only t))
+     (delete-region (point-min) (point-max))
+     (insert  ",1"))
+   ;; FIXME: This currently signals a "Source has changed" error, which is
+   ;; itself a bug (the source hasn't changed).  All we're testing here
+   ;; is that the Edebug gets past the step of reading the sexp.
+   (should-error (let ((eval-expression-debug-on-error nil))
+                   (eval-defun t)))))
 
 (ert-deftest edebug-tests-circular-read-syntax ()
   "Edebug can instrument code using circular read object syntax (Bug#23660)."

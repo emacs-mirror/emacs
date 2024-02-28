@@ -151,7 +151,7 @@ buffer.")
     ("Mark & Kill"
      (set-mark-command . "mark")
      (kill-line . "kill line")
-     (kill-ring-save . "kill region")
+     (kill-region . "kill region")
      (yank . "yank")
      (exchange-point-and-mark . "swap"))
     ("Projects"
@@ -165,7 +165,15 @@ buffer.")
      (isearch-forward . "search")
      (isearch-backward . "reverse search")
      (query-replace . "search & replace")
-     (fill-paragraph . "reformat"))))
+     (fill-paragraph . "reformat")))
+  "Data structure for `help-quick'.
+Value should be a list of elements, each element should of the form
+
+  (GROUP-NAME (COMMAND . DESCRIPTION) (COMMAND . DESCRIPTION)...)
+
+where GROUP-NAME is the name of the group of the commands,
+COMMAND is the symbol of a command and DESCRIPTION is its short
+description, 10 to 15 char5acters at most.")
 
 (declare-function prop-match-value "text-property-search" (match))
 
@@ -2252,6 +2260,27 @@ The `temp-buffer-window-setup-hook' hook is called."
     (if (stringp msg)
 	(with-output-to-temp-buffer " *Char Help*"
 	  (princ msg)))))
+
+(defun help--append-keystrokes-help (str)
+  (let* ((keys (this-single-command-keys))
+         (bindings (delete nil
+                           (mapcar (lambda (map) (lookup-key map keys t))
+                                   (current-active-maps t)))))
+    (catch 'res
+      (dolist (val help-event-list)
+        (let ((key (vector (if (eql val 'help)
+                               help-char
+                             val))))
+          (unless (seq-find (lambda (map) (and (keymapp map) (lookup-key map key)))
+                            bindings)
+            (throw 'res
+                   (concat
+                    str
+                    (substitute-command-keys
+                     (format
+                      " (\\`%s' for help)"
+                      (key-description key))))))))
+      str)))
 
 
 (defun help--docstring-quote (string)

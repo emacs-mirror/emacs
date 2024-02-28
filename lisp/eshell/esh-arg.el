@@ -285,7 +285,7 @@ QUOTED is passed to `eshell-concat' (which see) and, if non-nil,
 allows values to be converted to numbers where appropriate.
 
 ARGS should be a list of lists of arguments, such as that
-produced by `eshell-prepare-slice'.  \"Adjacent\" values of
+produced by `eshell-prepare-splice'.  \"Adjacent\" values of
 consecutive arguments will be passed to `eshell-concat'.  For
 example, if ARGS is
 

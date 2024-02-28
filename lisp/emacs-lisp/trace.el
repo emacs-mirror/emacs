@@ -193,7 +193,7 @@ LEVEL is the trace level, VALUE value returned by FUNCTION."
                ;; Do this so we'll see strings:
                (cl-prin1-to-string value)
                ctx)))))
-    
+
 (defvar trace--timer nil)
 
 (defun trace--display-buffer (buf)

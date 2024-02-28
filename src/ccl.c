@@ -35,11 +35,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "keyboard.h"
 
-/* Avoid GCC 12 bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105784>.  */
-#if GNUC_PREREQ (12, 0, 0)
-# pragma GCC diagnostic ignored "-Wanalyzer-use-of-uninitialized-value"
-#endif
-
 /* Table of registered CCL programs.  Each element is a vector of
    NAME, CCL_PROG, RESOLVEDP, and UPDATEDP, where NAME (symbol) is the
    name of the program, CCL_PROG (vector) is the compiled code of the
@@ -609,7 +604,7 @@ while (0)
    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109579
    which causes GCC to mistakenly complain about
    popping the mapping stack.  */
-#if GNUC_PREREQ (13, 0, 0)
+#if __GNUC__ == 13
 # pragma GCC diagnostic ignored "-Wanalyzer-out-of-bounds"
 #endif
 

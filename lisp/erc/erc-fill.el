@@ -44,11 +44,7 @@
 (define-erc-module fill nil
   "Manage filling in ERC buffers.
 ERC fill mode is a global minor mode.  When enabled, messages in
-the channel buffers are filled."
-  ;; FIXME ensure a consistent ordering relative to hook members from
-  ;; other modules.  Ideally, this module's processing should happen
-  ;; after "morphological" modifications to a message's text but
-  ;; before superficial decorations.
+channel buffers are filled.  See also `erc-fill-wrap-mode'."
   ((add-hook 'erc-insert-modify-hook #'erc-fill 60)
    (add-hook 'erc-send-modify-hook #'erc-fill 60))
   ((remove-hook 'erc-insert-modify-hook #'erc-fill)
@@ -425,7 +421,10 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
   "<remap> <erc-bol>" #'erc-fill--wrap-beginning-of-line)
 
 (defvar erc-button-mode)
+(defvar erc-scrolltobottom-mode)
 (defvar erc-legacy-invisible-bounds-p)
+
+(defvar erc--fill-wrap-scrolltobottom-exempt-p nil)
 
 (defun erc-fill--wrap-ensure-dependencies ()
   (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
@@ -439,6 +438,10 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
     (unless erc-fill-mode
       (push 'fill missing-deps)
       (erc-fill-mode +1))
+    (unless (or erc-scrolltobottom-mode erc--fill-wrap-scrolltobottom-exempt-p
+                (memq 'scrolltobottom erc-modules))
+      (push 'scrolltobottom missing-deps)
+      (erc-scrolltobottom-mode +1))
     (when erc-fill-wrap-merge
       (require 'erc-button)
       (unless erc-button-mode
@@ -459,27 +462,25 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
 ;;;###autoload(put 'fill-wrap 'erc--feature 'erc-fill)
 (define-erc-module fill-wrap nil
   "Fill style leveraging `visual-line-mode'.
-This module displays nicks overhanging leftward to a common
-offset, as determined by the option `erc-fill-static-center'.
-And it \"wraps\" messages at a common margin width, as determined
-by the option `erc-fill-wrap-margin-width'.  To use it, either
-include `fill-wrap' in `erc-modules' or set `erc-fill-function'
-to `erc-fill-wrap'.  Most users will want to enable the
-`scrolltobottom' module as well.
 
-During sessions in which this module is active, use
-\\[erc-fill-wrap-nudge] to adjust the width of the indent and the
-stamp margin, and use \\[erc-fill-wrap-toggle-truncate-lines] for
-cycling between logical- and screen-line oriented command
-movement.  Similarly, use \\[erc-fill-wrap-refill-buffer] to fix
-alignment problems after running certain commands, like
-`text-scale-adjust'.  Also see related stylistic options
-`erc-fill-wrap-merge', and `erc-fill-wrap-merge-indicator'.
-\(Hint: in narrow windows, where is space tight, try setting
-`erc-fill-static-center' to 1.  And if you also use the option
-`erc-fill-wrap-merge-indicator', set that to value-menu item
-\"Leading MIDDLE DOT sans gap\" or one of the various
-\"trailing\" items.)
+This module displays nicks overhanging leftward to a common
+offset, as determined by the option `erc-fill-static-center'.  It
+also \"wraps\" messages at a common width, as determined by the
+option `erc-fill-wrap-margin-width'.  To use it, either include
+`fill-wrap' in `erc-modules' or set `erc-fill-function' to
+`erc-fill-wrap'.
+
+Once enabled, use \\[erc-fill-wrap-nudge] to adjust the width of
+the indent and the stamp margin.  And For cycling between
+logical- and screen-line oriented command movement, see
+\\[erc-fill-wrap-toggle-truncate-lines].  Similarly, use
+\\[erc-fill-wrap-refill-buffer] to fix alignment problems after
+running certain commands, like `text-scale-adjust'.  Also see
+related stylistic options `erc-fill-wrap-merge', and
+`erc-fill-wrap-merge-indicator'.  (Hint: in narrow windows, try
+setting `erc-fill-static-center' to 1, and if you use
+`erc-fill-wrap-merge-indicator', choose \"Leading MIDDLE DOT sans
+gap\" or one of the \"trailing\" items from the Customize menu.)
 
 This module imposes various restrictions on the appearance of
 timestamps.  Most notably, it insists on displaying them in the
@@ -497,11 +498,12 @@ a workaround provided by `erc-stamp-prefix-log-filter', which
 strips trailing stamps from logged messages and instead prepends
 them to every line.
 
-As a so-called \"local\" module, `fill-wrap' depends on the
-global modules `fill', `stamp', and `button'; it activates them
-as needed when initializing.  Please note that enabling and
-disabling this module by invoking one of its minor-mode toggles
-is not recommended."
+A so-called \"local\" module, `fill-wrap' depends on the global
+modules `fill', `stamp', `button', and `scrolltobottom'.  It
+activates them as needed when initializing and leaves them
+enabled when shutting down.  To opt out of `scrolltobottom'
+specifically, disable its minor mode, `erc-scrolltobottom-mode',
+via `erc-fill-wrap-mode-hook'."
   ((erc-fill--wrap-ensure-dependencies)
    (erc--restore-initialize-priors erc-fill-wrap-mode
      erc-fill--wrap-visual-keys erc-fill-wrap-visual-keys
@@ -832,7 +834,7 @@ decorations applied by third-party modules."
          (line (count-screen-lines (window-start) (window-point))))
     (when (zerop arg)
       (setq arg 1))
-    (erc-compat-call
+    (compat-call
      set-transient-map
      (let ((map (make-sparse-keymap)))
        (dolist (key '(?= ?- ?0))

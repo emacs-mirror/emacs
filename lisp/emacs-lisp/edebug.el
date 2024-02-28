@@ -481,7 +481,7 @@ just FUNCTION is printed."
     (edebug--eval-defun #'eval-defun edebug-it)))
 
 ;;;###autoload
-(defalias 'edebug-defun 'edebug-eval-top-level-form)
+(defalias 'edebug-defun #'edebug-eval-top-level-form)
 
 ;;;###autoload
 (defun edebug-eval-top-level-form ()
@@ -1729,7 +1729,7 @@ contains a circular object."
 (defun edebug-match-form (cursor)
   (list (edebug-form cursor)))
 
-(defalias 'edebug-match-place 'edebug-match-form)
+(defalias 'edebug-match-place #'edebug-match-form)
   ;; Currently identical to edebug-match-form.
   ;; This is for common lisp setf-style place arguments.
 
@@ -2277,12 +2277,7 @@ only be active while Edebug is.  It checks `debug-on-error' to see
 whether it should call the debugger.  When execution is resumed, the
 error is signaled again."
   (if (and (listp debug-on-error) (memq signal-name debug-on-error))
-      (edebug 'error (cons signal-name signal-data)))
-  ;; If we reach here without another non-local exit, then send signal again.
-  ;; i.e. the signal is not continuable, yet.
-  ;; Avoid infinite recursion.
-  (let ((signal-hook-function nil))
-    (signal signal-name signal-data)))
+      (edebug 'error (cons signal-name signal-data))))
 
 ;;; Entering Edebug
 
@@ -2326,6 +2321,12 @@ and run its entry function, and set up `edebug-before' and
               (debug-on-error (or debug-on-error edebug-on-error))
               (debug-on-quit edebug-on-quit))
           (unwind-protect
+              ;; FIXME: We could replace this `signal-hook-function' with
+              ;; a cleaner `handler-bind' but then we wouldn't be able to
+              ;; install it here (i.e. once and for all when entering
+              ;; an Edebugged function), but instead it would have to
+              ;; be installed into a modified `edebug-after' which wraps
+              ;; the `handler-bind' around its argument(s). :-(
               (let ((signal-hook-function #'edebug-signal))
                 (setq edebug-execution-mode (or edebug-next-execution-mode
                                                 edebug-initial-mode
@@ -3348,7 +3349,7 @@ With prefix argument, make it a temporary breakpoint."
     (message "%s" msg)))
 
 
-(defalias 'edebug-step-through-mode 'edebug-step-mode)
+(defalias 'edebug-step-through-mode #'edebug-step-mode)
 
 (defun edebug-step-mode ()
   "Proceed to next stop point."
@@ -3836,12 +3837,12 @@ be installed in `emacs-lisp-mode-map'.")
 
 ;; Global GUD bindings for all emacs-lisp-mode buffers.
 (unless edebug-inhibit-emacs-lisp-mode-bindings
-  (define-key emacs-lisp-mode-map "\C-x\C-a\C-s" 'edebug-step-mode)
-  (define-key emacs-lisp-mode-map "\C-x\C-a\C-n" 'edebug-next-mode)
-  (define-key emacs-lisp-mode-map "\C-x\C-a\C-c" 'edebug-go-mode)
-  (define-key emacs-lisp-mode-map "\C-x\C-a\C-l" 'edebug-where)
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-s" #'edebug-step-mode)
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-n" #'edebug-next-mode)
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-c" #'edebug-go-mode)
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-l" #'edebug-where)
   ;; The following isn't a GUD binding.
-  (define-key emacs-lisp-mode-map "\C-x\C-a\C-m" 'edebug-set-initial-mode))
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-m" #'edebug-set-initial-mode))
 
 (defvar-keymap edebug-mode-map
   :parent emacs-lisp-mode-map

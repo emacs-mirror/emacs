@@ -330,7 +330,8 @@ typedef EMACS_INT Lisp_Word;
    without worrying about the implementations diverging, since
    lisp_h_OP defines the actual implementation.  The lisp_h_OP macros
    are intended to be private to this include file, and should not be
-   used elsewhere.
+   used elsewhere.  They should evaluate each argument exactly once,
+   so that they behave like their functional counterparts.
 
    FIXME: Remove the lisp_h_OP macros, and define just the inline OP
    functions, once "gcc -Og" (new to GCC 4.8) or equivalent works well
@@ -372,39 +373,12 @@ typedef EMACS_INT Lisp_Word;
 # define lisp_h_Qnil {0}
 #endif
 
-#define lisp_h_PSEUDOVECTORP(a,code)                            	\
-  (lisp_h_VECTORLIKEP (a)						\
-   && ((XUNTAG (a, Lisp_Vectorlike, union vectorlike_header)->size	\
-	& (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))				\
-       == (PSEUDOVECTOR_FLAG | ((code) << PSEUDOVECTOR_AREA_BITS))))
-
 #define lisp_h_CHECK_FIXNUM(x) CHECK_TYPE (FIXNUMP (x), Qfixnump, x)
 #define lisp_h_CHECK_SYMBOL(x) CHECK_TYPE (SYMBOLP (x), Qsymbolp, x)
 #define lisp_h_CHECK_TYPE(ok, predicate, x) \
    ((ok) ? (void) 0 : wrong_type_argument (predicate, x))
 #define lisp_h_CONSP(x) TAGGEDP (x, Lisp_Cons)
 #define lisp_h_BASE_EQ(x, y) (XLI (x) == XLI (y))
-#define lisp_h_BASE2_EQ(x, y)				    \
-  (BASE_EQ (x, y)					    \
-   || (symbols_with_pos_enabled				    \
-       && SYMBOL_WITH_POS_P (x)				    \
-       && BASE_EQ (XSYMBOL_WITH_POS (x)->sym, y)))
-
-/* FIXME: Do we really need to inline the whole thing?
- * What about keeping the part after `symbols_with_pos_enabled` in
- * a separate function?  */
-#define lisp_h_EQ(x, y)                                     \
-  (XLI (x) == XLI (y)					    \
-   || (symbols_with_pos_enabled                             \
-       && (SYMBOL_WITH_POS_P (x)			    \
-           ? (BARE_SYMBOL_P (y)				    \
-              ? XLI (XSYMBOL_WITH_POS (x)->sym) == XLI (y)  \
-              : (SYMBOL_WITH_POS_P (y)			    \
-		 && (XLI (XSYMBOL_WITH_POS (x)->sym)	    \
-		     == XLI (XSYMBOL_WITH_POS (y)->sym))))  \
-           : (SYMBOL_WITH_POS_P (y)			    \
-              && BARE_SYMBOL_P (x)			    \
-              && (XLI (x) == XLI (XSYMBOL_WITH_POS (y)->sym))))))
 
 #define lisp_h_FIXNUMP(x) \
    (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS)) \
@@ -412,18 +386,11 @@ typedef EMACS_INT Lisp_Word;
        & ((1 << INTTYPEBITS) - 1)))
 #define lisp_h_FLOATP(x) TAGGEDP (x, Lisp_Float)
 #define lisp_h_NILP(x)  BASE_EQ (x, Qnil)
-#define lisp_h_SET_SYMBOL_VAL(sym, v) \
-   (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), \
-    (sym)->u.s.val.value = (v))
 #define lisp_h_SYMBOL_CONSTANT_P(sym) \
    (XSYMBOL (sym)->u.s.trapped_write == SYMBOL_NOWRITE)
 #define lisp_h_SYMBOL_TRAPPED_WRITE_P(sym) (XSYMBOL (sym)->u.s.trapped_write)
-#define lisp_h_SYMBOL_VAL(sym) \
-   (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), (sym)->u.s.val.value)
 #define lisp_h_SYMBOL_WITH_POS_P(x) PSEUDOVECTORP (x, PVEC_SYMBOL_WITH_POS)
 #define lisp_h_BARE_SYMBOL_P(x) TAGGEDP (x, Lisp_Symbol)
-#define lisp_h_SYMBOLP(x) \
-   (BARE_SYMBOL_P (x) || (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)))
 #define lisp_h_TAGGEDP(a, tag) \
    (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
 	- (unsigned) (tag)) \
@@ -431,8 +398,6 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_VECTORLIKEP(x) TAGGEDP (x, Lisp_Vectorlike)
 #define lisp_h_XCAR(c) XCONS (c)->u.s.car
 #define lisp_h_XCDR(c) XCONS (c)->u.s.u.cdr
-#define lisp_h_XCONS(a) \
-   (eassert (CONSP (a)), XUNTAG (a, Lisp_Cons, struct Lisp_Cons))
 #define lisp_h_XHASH(a) XUFIXNUM_RAW (a)
 #if USE_LSB_TAG
 # define lisp_h_make_fixnum_wrap(n) \
@@ -474,20 +439,15 @@ typedef EMACS_INT Lisp_Word;
 # define CHECK_TYPE(ok, predicate, x) lisp_h_CHECK_TYPE (ok, predicate, x)
 # define CONSP(x) lisp_h_CONSP (x)
 # define BASE_EQ(x, y) lisp_h_BASE_EQ (x, y)
-# define BASE2_EQ(x, y) lisp_h_BASE2_EQ (x, y)
 # define FLOATP(x) lisp_h_FLOATP (x)
 # define FIXNUMP(x) lisp_h_FIXNUMP (x)
 # define NILP(x) lisp_h_NILP (x)
-# define SET_SYMBOL_VAL(sym, v) lisp_h_SET_SYMBOL_VAL (sym, v)
 # define SYMBOL_CONSTANT_P(sym) lisp_h_SYMBOL_CONSTANT_P (sym)
 # define SYMBOL_TRAPPED_WRITE_P(sym) lisp_h_SYMBOL_TRAPPED_WRITE_P (sym)
-# define SYMBOL_VAL(sym) lisp_h_SYMBOL_VAL (sym)
-/* # define SYMBOLP(x) lisp_h_SYMBOLP (x) */ /* X is accessed more than once. */
 # define TAGGEDP(a, tag) lisp_h_TAGGEDP (a, tag)
 # define VECTORLIKEP(x) lisp_h_VECTORLIKEP (x)
 # define XCAR(c) lisp_h_XCAR (c)
 # define XCDR(c) lisp_h_XCDR (c)
-# define XCONS(a) lisp_h_XCONS (a)
 # define XHASH(a) lisp_h_XHASH (a)
 # if USE_LSB_TAG
 #  define make_fixnum(n) lisp_h_make_fixnum (n)
@@ -518,6 +478,16 @@ typedef EMACS_INT Lisp_Word;
 #endif
 
 
+/* Lisp_Object tagging scheme:
+        Tag location
+   Upper bits  Lower bits  Type        Payload
+   000.......  .......000  symbol      offset from lispsym to struct Lisp_Symbol
+   001.......  .......001  unused
+   01........  ........10  fixnum      signed integer of FIXNUM_BITS
+   110.......  .......011  cons        pointer to struct Lisp_Cons
+   100.......  .......100  string      pointer to struct Lisp_String
+   101.......  .......101  vectorlike  pointer to union vectorlike_header
+   111.......  .......111  float       pointer to struct Lisp_Float  */
 enum Lisp_Type
   {
     /* Symbol.  XSYMBOL (object) points to a struct Lisp_Symbol.  */
@@ -1062,6 +1032,7 @@ enum pvec_type
   PVEC_BOOL_VECTOR,
   PVEC_BUFFER,
   PVEC_HASH_TABLE,
+  PVEC_OBARRAY,
   PVEC_TERMINAL,
   PVEC_WINDOW_CONFIGURATION,
   PVEC_SUBR,
@@ -1121,7 +1092,10 @@ enum More_Lisp_Bits
 INLINE bool
 PSEUDOVECTORP (Lisp_Object a, int code)
 {
-  return lisp_h_PSEUDOVECTORP (a, code);
+  return (lisp_h_VECTORLIKEP (a)
+	  && ((XUNTAG (a, Lisp_Vectorlike, union vectorlike_header)->size
+	       & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))
+	      == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_AREA_BITS))));
 }
 
 INLINE bool
@@ -1137,9 +1111,10 @@ INLINE bool
 }
 
 INLINE bool
-(SYMBOLP) (Lisp_Object x)
+SYMBOLP (Lisp_Object x)
 {
-  return lisp_h_SYMBOLP (x);
+  return (BARE_SYMBOL_P (x)
+	  || (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)));
 }
 
 INLINE struct Lisp_Symbol_With_Pos *
@@ -1147,6 +1122,27 @@ XSYMBOL_WITH_POS (Lisp_Object a)
 {
     eassert (SYMBOL_WITH_POS_P (a));
     return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
+}
+
+INLINE Lisp_Object
+XSYMBOL_WITH_POS_SYM (Lisp_Object a)
+{
+  Lisp_Object sym = XSYMBOL_WITH_POS (a)->sym;
+  eassume (BARE_SYMBOL_P (sym));
+  return sym;
+}
+
+INLINE Lisp_Object
+XSYMBOL_WITH_POS_POS (Lisp_Object a)
+{
+  return XSYMBOL_WITH_POS (a)->pos;
+}
+
+INLINE Lisp_Object
+maybe_remove_pos_from_symbol (Lisp_Object x)
+{
+  return (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)
+	  ? XSYMBOL_WITH_POS_SYM (x) : x);
 }
 
 INLINE struct Lisp_Symbol * ATTRIBUTE_NO_SANITIZE_UNDEFINED
@@ -1163,8 +1159,8 @@ XSYMBOL (Lisp_Object a)
 {
   if (!BARE_SYMBOL_P (a))
     {
-      eassert (symbols_with_pos_enabled);
-      a = XSYMBOL_WITH_POS (a)->sym;
+      eassume (symbols_with_pos_enabled);
+      a = XSYMBOL_WITH_POS_SYM (a);
     }
   return XBARE_SYMBOL (a);
 }
@@ -1352,20 +1348,15 @@ INLINE bool
   return lisp_h_BASE_EQ (x, y);
 }
 
-/* Return true if X and Y are the same object, reckoning X to be the
-   same as a bare symbol Y if X is Y with position.  */
-INLINE bool
-(BASE2_EQ) (Lisp_Object x, Lisp_Object y)
-{
-  return lisp_h_BASE2_EQ (x, y);
-}
-
 /* Return true if X and Y are the same object, reckoning a symbol with
    position as being the same as the bare symbol.  */
 INLINE bool
-(EQ) (Lisp_Object x, Lisp_Object y)
+EQ (Lisp_Object x, Lisp_Object y)
 {
-  return lisp_h_EQ (x, y);
+  return BASE_EQ ((symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)
+		   ? XSYMBOL_WITH_POS_SYM (x) : x),
+		  (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (y)
+		   ? XSYMBOL_WITH_POS_SYM (y) : y));
 }
 
 INLINE intmax_t
@@ -1389,7 +1380,6 @@ make_lisp_ptr (void *ptr, enum Lisp_Type type)
 #define XSETCONS(a, b) ((a) = make_lisp_ptr (b, Lisp_Cons))
 #define XSETVECTOR(a, b) ((a) = make_lisp_ptr (b, Lisp_Vectorlike))
 #define XSETSTRING(a, b) ((a) = make_lisp_ptr (b, Lisp_String))
-#define XSETSYMBOL(a, b) ((a) = make_lisp_symbol (b))
 #define XSETFLOAT(a, b) ((a) = make_lisp_ptr (b, Lisp_Float))
 
 /* Return a Lisp_Object value that does not correspond to any object.
@@ -1510,9 +1500,10 @@ CHECK_CONS (Lisp_Object x)
 }
 
 INLINE struct Lisp_Cons *
-(XCONS) (Lisp_Object a)
+XCONS (Lisp_Object a)
 {
-  return lisp_h_XCONS (a);
+  eassert (CONSP (a));
+  return XUNTAG (a, Lisp_Cons, struct Lisp_Cons);
 }
 
 /* Take the car or cdr of something known to be a cons cell.  */
@@ -2297,9 +2288,10 @@ typedef jmp_buf sys_jmp_buf;
 /* Value is name of symbol.  */
 
 INLINE Lisp_Object
-(SYMBOL_VAL) (struct Lisp_Symbol *sym)
+SYMBOL_VAL (struct Lisp_Symbol *sym)
 {
-  return lisp_h_SYMBOL_VAL (sym);
+  eassert (sym->u.s.redirect == SYMBOL_PLAINVAL);
+  return sym->u.s.val.value;
 }
 
 INLINE struct Lisp_Symbol *
@@ -2322,9 +2314,10 @@ SYMBOL_FWD (struct Lisp_Symbol *sym)
 }
 
 INLINE void
-(SET_SYMBOL_VAL) (struct Lisp_Symbol *sym, Lisp_Object v)
+SET_SYMBOL_VAL (struct Lisp_Symbol *sym, Lisp_Object v)
 {
-  lisp_h_SET_SYMBOL_VAL (sym, v);
+  eassert (sym->u.s.redirect == SYMBOL_PLAINVAL);
+  sym->u.s.val.value = v;
 }
 
 INLINE void
@@ -2392,6 +2385,118 @@ INLINE int
 /* Placeholder for make-docfile to process.  The actual symbol
    definition is done by lread.c's define_symbol.  */
 #define DEFSYM(sym, name) /* empty */
+
+
+struct Lisp_Obarray
+{
+  union vectorlike_header header;
+
+  /* Array of 2**size_bits values, each being either a (bare) symbol or
+     the fixnum 0.  The symbols for each bucket are chained via
+     their s.next field.  */
+  Lisp_Object *buckets;
+
+  unsigned size_bits;  /* log2(size of buckets vector) */
+  unsigned count;      /* number of symbols in obarray */
+};
+
+INLINE bool
+OBARRAYP (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_OBARRAY);
+}
+
+INLINE struct Lisp_Obarray *
+XOBARRAY (Lisp_Object a)
+{
+  eassert (OBARRAYP (a));
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Obarray);
+}
+
+INLINE void
+CHECK_OBARRAY (Lisp_Object x)
+{
+  CHECK_TYPE (OBARRAYP (x), Qobarrayp, x);
+}
+
+INLINE Lisp_Object
+make_lisp_obarray (struct Lisp_Obarray *o)
+{
+  eassert (PSEUDOVECTOR_TYPEP (&o->header, PVEC_OBARRAY));
+  return make_lisp_ptr (o, Lisp_Vectorlike);
+}
+
+INLINE ptrdiff_t
+obarray_size (const struct Lisp_Obarray *o)
+{
+  return (ptrdiff_t)1 << o->size_bits;
+}
+
+Lisp_Object check_obarray_slow (Lisp_Object);
+
+/* Return an obarray object from OBARRAY or signal an error.  */
+INLINE Lisp_Object
+check_obarray (Lisp_Object obarray)
+{
+  return OBARRAYP (obarray) ? obarray : check_obarray_slow (obarray);
+}
+
+/* Obarray iterator state.  Don't access these members directly.
+   The iterator functions must be called in the order followed by DOOBARRAY.  */
+typedef struct {
+  struct Lisp_Obarray *o;
+  ptrdiff_t idx;		/* Current bucket index.  */
+  struct Lisp_Symbol *symbol;	/* Current symbol, or NULL if at end
+				   of current bucket.  */
+} obarray_iter_t;
+
+INLINE obarray_iter_t
+make_obarray_iter (struct Lisp_Obarray *oa)
+{
+  return (obarray_iter_t){.o = oa, .idx = -1, .symbol = NULL};
+}
+
+/* Whether IT has reached the end and there are no more symbols.
+   If true, IT is dead and cannot be used any more.  */
+INLINE bool
+obarray_iter_at_end (obarray_iter_t *it)
+{
+  if (it->symbol)
+    return false;
+  ptrdiff_t size = obarray_size (it->o);
+  while (++it->idx < size)
+    {
+      Lisp_Object obj = it->o->buckets[it->idx];
+      if (!BASE_EQ (obj, make_fixnum (0)))
+	{
+	  it->symbol = XBARE_SYMBOL (obj);
+	  return false;
+	}
+    }
+  return true;
+}
+
+/* Advance IT to the next symbol if any.  */
+INLINE void
+obarray_iter_step (obarray_iter_t *it)
+{
+  it->symbol = it->symbol->u.s.next;
+}
+
+/* The Lisp symbol at IT, if obarray_iter_at_end returned false.  */
+INLINE Lisp_Object
+obarray_iter_symbol (obarray_iter_t *it)
+{
+  return make_lisp_symbol (it->symbol);
+}
+
+/* Iterate IT over the symbols of the obarray OA.
+   The body shouldn't add or remove symbols in OA, but disobeying that rule
+   only risks symbols to be iterated more than once or not at all,
+   not crashes or data corruption.  */
+#define DOOBARRAY(oa, it)					\
+  for (obarray_iter_t it = make_obarray_iter (oa);		\
+       !obarray_iter_at_end (&it); obarray_iter_step (&it))
 
 
 /***********************************************************************
@@ -2475,14 +2580,11 @@ struct Lisp_Hash_Table
      The table is physically split into three vectors (hash, next,
      key_and_value) which may or may not be beneficial.  */
 
-  hash_idx_t index_size;   /* Size of the index vector.  */
-  hash_idx_t table_size;   /* Size of the next and hash vectors.  */
-
   /* Bucket vector.  An entry of -1 indicates no item is present,
      and a nonnegative entry is the index of the first item in
      a collision chain.
-     This vector is index_size entries long.
-     If index_size is 1 (and table_size is 0), then this is the
+     This vector is 2**index_bits entries long.
+     If index_bits is 0 (and table_size is 0), then this is the
      constant read-only vector {-1}, shared between all instances.
      Otherwise it is heap-allocated.  */
   hash_idx_t *index;
@@ -2514,20 +2616,24 @@ struct Lisp_Hash_Table
   /* Index of first free entry in free list, or -1 if none.  */
   hash_idx_t next_free;
 
+  hash_idx_t table_size;   /* Size of the next and hash vectors.  */
+
+  unsigned char index_bits;	/* log2 (size of the index vector).  */
+
   /* Weakness of the table.  */
-  hash_table_weakness_t weakness : 8;
+  hash_table_weakness_t weakness : 3;
 
   /* Hash table test (only used when frozen in dump)  */
-  hash_table_std_test_t frozen_test : 8;
+  hash_table_std_test_t frozen_test : 2;
 
   /* True if the table can be purecopied.  The table cannot be
      changed afterwards.  */
-  bool purecopy;
+  bool_bf purecopy : 1;
 
   /* True if the table is mutable.  Ordinarily tables are mutable, but
      pure tables are not, and while a table is being mutated it is
      immutable for recursive attempts to mutate it.  */
-  bool mutable;
+  bool_bf mutable : 1;
 
   /* Next weak hash table if this is a weak hash table.  The head of
      the list is in weak_hash_tables.  Used only during garbage
@@ -2563,8 +2669,12 @@ XHASH_TABLE (Lisp_Object a)
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Hash_Table);
 }
 
-#define XSET_HASH_TABLE(VAR, PTR) \
-  XSETPSEUDOVECTOR (VAR, PTR, PVEC_HASH_TABLE)
+INLINE Lisp_Object
+make_lisp_hash_table (struct Lisp_Hash_Table *h)
+{
+  eassert (PSEUDOVECTOR_TYPEP (&h->header, PVEC_HASH_TABLE));
+  return make_lisp_ptr (h, Lisp_Vectorlike);
+}
 
 /* Value is the key part of entry IDX in hash table H.  */
 INLINE Lisp_Object
@@ -2595,6 +2705,13 @@ INLINE ptrdiff_t
 HASH_TABLE_SIZE (const struct Lisp_Hash_Table *h)
 {
   return h->table_size;
+}
+
+/* Size of the index vector in hash table H.  */
+INLINE ptrdiff_t
+hash_table_index_size (const struct Lisp_Hash_Table *h)
+{
+  return (ptrdiff_t)1 << h->index_bits;
 }
 
 /* Hash value for KEY in hash table H.  */
@@ -2660,6 +2777,28 @@ SXHASH_REDUCE (EMACS_UINT x)
 {
   return (x ^ x >> (EMACS_INT_WIDTH - FIXNUM_BITS)) & INTMASK;
 }
+
+/* Reduce an EMACS_UINT hash value to hash_hash_t.  */
+INLINE hash_hash_t
+reduce_emacs_uint_to_hash_hash (EMACS_UINT x)
+{
+  verify (sizeof x <= 2 * sizeof (hash_hash_t));
+  return (sizeof x == sizeof (hash_hash_t)
+	  ? x
+	  : x ^ (x >> (8 * (sizeof x - sizeof (hash_hash_t)))));
+}
+
+/* Reduce HASH to a value BITS wide.  */
+INLINE ptrdiff_t
+knuth_hash (hash_hash_t hash, unsigned bits)
+{
+  /* Knuth multiplicative hashing, tailored for 32-bit indices
+     (avoiding a 64-bit multiply).  */
+  uint32_t alpha = 2654435769;	/* 2**32/phi */
+  /* Note the cast to uint64_t, to make it work for bits=0.  */
+  return (uint64_t)((uint32_t)hash * alpha) >> (32 - bits);
+}
+
 
 struct Lisp_Marker
 {
@@ -2837,22 +2976,6 @@ XOVERLAY (Lisp_Object a)
 {
   eassert (OVERLAYP (a));
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Overlay);
-}
-
-INLINE Lisp_Object
-SYMBOL_WITH_POS_SYM (Lisp_Object a)
-{
-  if (!SYMBOL_WITH_POS_P (a))
-    wrong_type_argument (Qsymbol_with_pos_p, a);
-  return XSYMBOL_WITH_POS (a)->sym;
-}
-
-INLINE Lisp_Object
-SYMBOL_WITH_POS_POS (Lisp_Object a)
-{
-  if (!SYMBOL_WITH_POS_P (a))
-    wrong_type_argument (Qsymbol_with_pos_p, a);
-  return XSYMBOL_WITH_POS (a)->pos;
 }
 
 INLINE bool
@@ -4596,7 +4719,6 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char *, ptrdiff_t,
   ATTRIBUTE_FORMAT_PRINTF (5, 0);
 
 /* Defined in lread.c.  */
-extern Lisp_Object check_obarray (Lisp_Object);
 extern Lisp_Object intern_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_c_string_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_driver (Lisp_Object, Lisp_Object, Lisp_Object);
@@ -4802,7 +4924,7 @@ extern void syms_of_editfns (void);
 
 /* Defined in buffer.c.  */
 extern bool mouse_face_overlay_overlaps (Lisp_Object);
-extern Lisp_Object disable_line_numbers_overlay_at_eob (void);
+extern bool disable_line_numbers_overlay_at_eob (void);
 extern AVOID nsberror (Lisp_Object);
 extern void adjust_overlays_for_insert (ptrdiff_t, ptrdiff_t, bool);
 extern void adjust_overlays_for_delete (ptrdiff_t, ptrdiff_t);
@@ -5030,6 +5152,7 @@ extern bool build_details;
 /* 0 not a daemon, 1 foreground daemon, 2 background daemon.  */
 extern int daemon_type;
 #define IS_DAEMON (daemon_type != 0)
+/* Non-zero means daemon-initialized has not yet been called.  */
 #define DAEMON_RUNNING (daemon_type >= 0)
 #else  /* WINDOWSNT */
 extern void *w32_daemon_event;
@@ -5550,7 +5673,7 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109577
    which causes GCC to mistakenly complain about the
    memory allocation in SAFE_ALLOCA_LISP_EXTRA.  */
-#if GNUC_PREREQ (13, 0, 0)
+#if GNUC_PREREQ (13, 0, 0) && !GNUC_PREREQ (14, 0, 0)
 # pragma GCC diagnostic ignored "-Wanalyzer-allocation-size"
 #endif
 

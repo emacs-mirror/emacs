@@ -94,7 +94,8 @@
 (require 'erc)
 
 (eval-when-compile (require 'erc-join)
-                   (require 'erc-services))
+                   (require 'erc-services)
+                   (require 'erc-fill))
 
 (declare-function erc-network "erc-networks")
 (defvar erc-network)
@@ -148,9 +149,11 @@
       (timer-list (copy-sequence timer-list))
       (timer-idle-list (copy-sequence timer-idle-list))
       (erc-auth-source-parameters-join-function nil)
+      (erc--fill-wrap-scrolltobottom-exempt-p t)
       (erc-autojoin-channels-alist nil)
       (erc-server-auto-reconnect nil)
       (erc-after-connect nil)
+      (erc-last-input-time 0)
       (erc-d-linger-secs 10)
       ,@bindings)))
 

@@ -2287,6 +2287,57 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
 	  goto start_timer;
 	}
+      else if (tooltip_reuse_hidden_frame && BASE_EQ (frame, tip_last_frame))
+	{
+	  bool delete = false;
+	  Lisp_Object tail, elt, parm, last;
+
+	  /* Check if every parameter in PARMS has the same value in
+	     tip_last_parms.  This may destruct tip_last_parms which,
+	     however, will be recreated below.  */
+	  for (tail = parms; CONSP (tail); tail = XCDR (tail))
+	    {
+	      elt = XCAR (tail);
+	      parm = CAR (elt);
+	      /* The left, top, right and bottom parameters are handled
+		 by compute_tip_xy so they can be ignored here.  */
+	      if (!EQ (parm, Qleft) && !EQ (parm, Qtop)
+		  && !EQ (parm, Qright) && !EQ (parm, Qbottom))
+		{
+		  last = Fassq (parm, tip_last_parms);
+		  if (NILP (Fequal (CDR (elt), CDR (last))))
+		    {
+		      /* We lost, delete the old tooltip.  */
+		      delete = true;
+		      break;
+		    }
+		  else
+		    tip_last_parms
+		      = call2 (Qassq_delete_all, parm, tip_last_parms);
+		}
+	      else
+		tip_last_parms
+		  = call2 (Qassq_delete_all, parm, tip_last_parms);
+	    }
+
+	  /* Now check if every parameter in what is left of
+	     tip_last_parms with a non-nil value has an association in
+	     PARMS.  */
+	  for (tail = tip_last_parms; CONSP (tail); tail = XCDR (tail))
+	    {
+	      elt = XCAR (tail);
+	      parm = CAR (elt);
+	      if (!EQ (parm, Qleft) && !EQ (parm, Qtop) && !EQ (parm, Qright)
+		  && !EQ (parm, Qbottom) && !NILP (CDR (elt)))
+		{
+		  /* We lost, delete the old tooltip.  */
+		  delete = true;
+		  break;
+		}
+	    }
+
+	  android_hide_tip (delete);
+	}
       else
 	android_hide_tip (true);
     }
@@ -2453,7 +2504,7 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 #endif /* 0 */
   return Qnil;
 #else /* !ANDROID_STUBIFY */
-  return android_hide_tip (true);
+  return android_hide_tip (!tooltip_reuse_hidden_frame);
 #endif /* ANDROID_STUBIFY */
 }
 
@@ -2474,6 +2525,25 @@ there is no mouse.  */)
 #else
   return Qnil;
 #endif
+}
+
+DEFUN ("android-detect-keyboard", Fandroid_detect_keyboard,
+       Sandroid_detect_keyboard, 0, 0, 0,
+       doc: /* Return whether a keyboard is connected.
+Return non-nil if a key is connected to this computer, or nil
+if there is no keyboard.  */)
+  (void)
+{
+#ifndef ANDROID_STUBIFY
+  /* If no display connection is present, just return nil.  */
+
+  if (!android_init_gui)
+    return Qnil;
+
+  return android_detect_keyboard () ? Qt : Qnil;
+#else /* ANDROID_STUBIFY */
+  return Qt;
+#endif /* ANDROID_STUBIFY */
 }
 
 DEFUN ("android-toggle-on-screen-keyboard",
@@ -3197,6 +3267,10 @@ syms_of_androidfns_for_pdumper (void)
   jstring string;
   Lisp_Object language, country, script, variant;
   const char *data;
+  FILE *fd;
+  char *line;
+  size_t size;
+  long pid;
 
   /* Find the Locale class.  */
 
@@ -3367,6 +3441,35 @@ syms_of_androidfns_for_pdumper (void)
 
   /* Set Vandroid_os_language.  */
   Vandroid_os_language = list4 (language, country, script, variant);
+
+  /* Detect whether Emacs is running under libloader.so or another
+     process tracing mechanism, and disable `android_use_exec_loader' if
+     so, leaving subprocesses started by Emacs to the care of that
+     loader instance.  */
+
+  if (android_get_current_api_level () >= 29) /* Q */
+    {
+      fd = fopen ("/proc/self/status", "r");
+      if (!fd)
+	return;
+
+      line = NULL;
+      while (getline (&line, &size, fd) != -1)
+	{
+	  if (strncmp (line, "TracerPid:", sizeof "TracerPid:" - 1))
+	    continue;
+
+	  pid = atol (line + sizeof "TracerPid:" - 1);
+
+	  if (pid)
+	    android_use_exec_loader = false;
+
+	  break;
+	}
+
+      free (line);
+      fclose (fd);
+    }
 }
 
 #endif /* ANDROID_STUBIFY */
@@ -3560,6 +3663,7 @@ language to be US English if LANGUAGE is empty.  */);
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   defsubr (&Sandroid_detect_mouse);
+  defsubr (&Sandroid_detect_keyboard);
   defsubr (&Sandroid_toggle_on_screen_keyboard);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);

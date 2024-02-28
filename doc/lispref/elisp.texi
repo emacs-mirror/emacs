@@ -653,7 +653,6 @@ Byte Compilation
 * Speed of Byte-Code::      An example of speedup from byte compilation.
 * Compilation Functions::   Byte compilation functions.
 * Docs and Compilation::    Dynamic loading of documentation strings.
-* Dynamic Loading::         Dynamic loading of individual functions.
 * Eval During Compile::     Code to be evaluated when you compile.
 * Compiler Errors::         Handling compiler error messages.
 * Byte-Code Objects::       The data type used for byte-compiled functions.
@@ -884,6 +883,7 @@ Major and Minor Modes
 * Minor Modes::        Defining minor modes.
 * Mode Line Format::   Customizing the text that appears in the mode line.
 * Imenu::              Providing a menu of definitions made in a buffer.
+* Outline Minor Mode:: Outline mode to use with other major modes.
 * Font Lock Mode::     How modes can highlight text according to syntax.
 * Auto-Indentation::   How to teach Emacs to indent for a major mode.
 * Desktop Save Mode::  How modes can have buffer state saved between

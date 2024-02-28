@@ -237,15 +237,21 @@ DEFUN ("android-clipboard-exists-p", Fandroid_clipboard_exists_p,
   return rc ? Qt : Qnil;
 }
 
-DEFUN ("android-browse-url", Fandroid_browse_url,
-       Sandroid_browse_url, 1, 2, 0,
-       doc: /* Open URL in an external application.  URL should be a
-URL-encoded URL with a scheme specified unless SEND is non-nil.
-Signal an error upon failure.
+DEFUN ("android-browse-url-internal", Fandroid_browse_url_internal,
+       Sandroid_browse_url_internal, 1, 2, 0,
+       doc: /* Open URL in an external application.
+
+URL should be a URL-encoded URL with a scheme specified unless SEND is
+non-nil.  Signal an error upon failure.
 
 If SEND is nil, start a program that is able to display the URL, such
 as a web browser.  Otherwise, try to share URL using programs such as
-email clients.  */)
+email clients.
+
+If URL is a file URI, convert it into a `content' address accessible to
+other programs.  Files inside the /content or /assets directories cannot
+be opened through such addresses, which this function does not provide
+for.  Use `android-browse-url' instead.  */)
   (Lisp_Object url, Lisp_Object send)
 {
   Lisp_Object value;
@@ -803,7 +809,7 @@ syms_of_androidselect (void)
   defsubr (&Sandroid_set_clipboard);
   defsubr (&Sandroid_get_clipboard);
   defsubr (&Sandroid_clipboard_exists_p);
-  defsubr (&Sandroid_browse_url);
+  defsubr (&Sandroid_browse_url_internal);
   defsubr (&Sandroid_get_clipboard_targets);
   defsubr (&Sandroid_get_clipboard_data);
 

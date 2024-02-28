@@ -25,7 +25,7 @@
 
 ;; While the main native compiler is implemented in comp.el, when
 ;; commonly used as a jit compiler it is only loaded by Emacs sub
-;; processes performing async compilation.  This files contains all
+;; processes performing async compilation.  This file contains all
 ;; the code needed to drive async compilations and any Lisp code
 ;; needed at runtime to run native code.
 

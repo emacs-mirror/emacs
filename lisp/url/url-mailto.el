@@ -1,6 +1,6 @@
 ;;; url-mailto.el --- Mail Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2004-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -28,12 +28,7 @@
 (require 'url-util)
 
 ;;;###autoload
-(defun url-mail (&rest args)
-  (interactive "P")
-  (if (fboundp 'message-mail)
-      (apply 'message-mail args)
-    (or (apply 'mail args)
-	(error "Mail aborted"))))
+(defalias 'url-mail #'message-mail)
 
 (defun url-mail-goto-field (field)
   (if (not field)
@@ -56,8 +51,6 @@
 	(insert (capitalize field) ": ")
 	(save-excursion
 	  (insert "\n"))))))
-
-(declare-function mail-send-and-exit "sendmail")
 
 ;;;###autoload
 (defun url-mailto (url)
@@ -111,8 +104,6 @@
 	;; (setq func (intern-soft (concat "mail-" (caar args))))
 	(insert (mapconcat 'identity (cdar args) ", ")))
       (setq args (cdr args)))
-    ;; (url-mail-goto-field "User-Agent")
-;;     (insert url-package-name "/" url-package-version " URL/" url-version)
     (if (not url-request-data)
 	(progn
 	  (set-buffer-modified-p nil)
@@ -128,8 +119,8 @@
       (goto-char (point-max))
       (insert url-request-data)
       ;; It seems Microsoft-ish to send without warning.
-      ;; Fixme: presumably this should depend on a privacy setting.
-      (if (y-or-n-p "Send this auto-generated mail? ")
+      ;; FIXME: presumably this should depend on a privacy setting.
+      (if (y-or-n-p "Send this auto-generated mail?")
 	  (let ((buffer (current-buffer)))
 	    (cond ((eq url-mail-command 'compose-mail)
 		   (funcall (get mail-user-agent 'sendfunc) nil))

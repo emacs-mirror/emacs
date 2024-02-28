@@ -40,6 +40,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/select.h>
 
 /* Old NDK versions lack MIN and MAX.  */
 #include <minmax.h>
@@ -112,6 +113,8 @@ struct android_emacs_window
   jmethodID define_cursor;
   jmethodID damage_rect;
   jmethodID recreate_activity;
+  jmethodID clear_window;
+  jmethodID clear_area;
 };
 
 struct android_emacs_cursor
@@ -151,6 +154,13 @@ static char *android_files_dir;
 
 /* The Java environment being used for the main thread.  */
 JNIEnv *android_java_env;
+
+#ifdef THREADS_ENABLED
+
+/* The Java VM new threads attach to.  */
+JavaVM *android_jvm;
+
+#endif /* THREADS_ENABLED */
 
 /* The EmacsGC class.  */
 static jclass emacs_gc_class;
@@ -496,6 +506,9 @@ android_handle_sigusr1 (int sig, siginfo_t *siginfo, void *arg)
    This should ideally be defined further down.  */
 static sem_t android_query_sem;
 
+/* ID of the Emacs thread.  */
+static pthread_t main_thread_id;
+
 /* Set up the global event queue by initializing the mutex and two
    condition variables, and the linked list of events.  This must be
    called before starting the Emacs thread.  Also, initialize the
@@ -530,6 +543,8 @@ android_init_events (void)
 
   event_queue.events.next = &event_queue.events;
   event_queue.events.last = &event_queue.events;
+
+  main_thread_id = pthread_self ();
 
 #if __ANDROID_API__ >= 16
 
@@ -578,10 +593,6 @@ android_pending (void)
 
   return i;
 }
-
-/* Forward declaration.  */
-
-static void android_check_query (void);
 
 /* Wait for events to become available synchronously.  Return once an
    event arrives.  Also, reply to the UI thread whenever it requires a
@@ -732,6 +743,12 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   static char byte;
 #endif
 
+#ifdef THREADS_ENABLED
+  if (!pthread_equal (pthread_self (), main_thread_id))
+    return pselect (nfds, readfds, writefds, exceptfds, timeout,
+		    NULL);
+#endif /* THREADS_ENABLED */
+
   /* Since Emacs is reading keyboard input again, signify that queries
      from input methods are no longer ``urgent''.  */
 
@@ -837,9 +854,11 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   if (nfds_return < 0)
     errno = EINTR;
 
+#ifndef THREADS_ENABLED
   /* Now check for and run anything the UI thread wants to run in the
      main thread.  */
   android_check_query ();
+#endif /* THREADS_ENABLED */
 
   return nfds_return;
 }
@@ -1315,12 +1334,17 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   const char *java_string;
   struct stat statb;
 
+#ifdef THREADS_ENABLED
+  /* Save the Java VM.  */
+  if ((*env)->GetJavaVM (env, &android_jvm))
+    emacs_abort ();
+#endif /* THREADS_ENABLED */
+
   /* Set the Android API level early, as it is used by
      `android_vfs_init'.  */
   android_api_level = api_level;
 
   /* This function should only be called from the main thread.  */
-
   android_pixel_density_x = pixel_density_x;
   android_pixel_density_y = pixel_density_y;
   android_scaled_pixel_density = scaled_density;
@@ -1583,16 +1607,13 @@ android_init_emacs_service (void)
   FIND_METHOD (draw_point, "drawPoint",
 	       "(Lorg/gnu/emacs/EmacsDrawable;"
 	       "Lorg/gnu/emacs/EmacsGC;II)V");
-  FIND_METHOD (clear_window, "clearWindow",
-	       "(Lorg/gnu/emacs/EmacsWindow;)V");
-  FIND_METHOD (clear_area, "clearArea",
-	       "(Lorg/gnu/emacs/EmacsWindow;IIII)V");
   FIND_METHOD (ring_bell, "ringBell", "(I)V");
   FIND_METHOD (query_tree, "queryTree",
 	       "(Lorg/gnu/emacs/EmacsWindow;)[S");
   FIND_METHOD (get_screen_width, "getScreenWidth", "(Z)I");
   FIND_METHOD (get_screen_height, "getScreenHeight", "(Z)I");
   FIND_METHOD (detect_mouse, "detectMouse", "()Z");
+  FIND_METHOD (detect_keyboard, "detectKeyboard", "()Z");
   FIND_METHOD (name_keysym, "nameKeysym", "(I)Ljava/lang/String;");
   FIND_METHOD (browse_url, "browseUrl", "(Ljava/lang/String;Z)"
 	       "Ljava/lang/String;");
@@ -1809,6 +1830,8 @@ android_init_emacs_window (void)
      android_damage_window.  */
   FIND_METHOD (damage_rect, "damageRect", "(IIII)V");
   FIND_METHOD (recreate_activity, "recreateActivity", "()V");
+  FIND_METHOD (clear_window, "clearWindow", "()V");
+  FIND_METHOD (clear_area, "clearArea", "(IIII)V");
 #undef FIND_METHOD
 }
 
@@ -2496,6 +2519,8 @@ JNIEXPORT jboolean JNICALL
 NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
 					      jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   /* Yes, android_pass_multimedia_buttons_to_system is being
      read from the UI thread.  */
   return !android_pass_multimedia_buttons_to_system;
@@ -2504,6 +2529,8 @@ NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
 JNIEXPORT jboolean JNICALL
 NATIVE_NAME (shouldForwardCtrlSpace) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   return !android_intercept_control_space;
 }
 
@@ -2607,6 +2634,8 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (notifyPixelsChanged) (JNIEnv *env, jobject object,
 				   jobject bitmap)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   void *data;
 
   /* Lock and unlock the bitmap.  This calls
@@ -2660,6 +2689,8 @@ NATIVE_NAME (answerQuerySpin) (JNIEnv *env, jobject object)
 JNIEXPORT void JNICALL
 NATIVE_NAME (setupSystemThread) (void)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   sigset_t sigset;
 
   /* Block everything except for SIGSEGV and SIGBUS; those two are
@@ -3408,10 +3439,9 @@ android_clear_window (android_window handle)
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
   (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
-						 emacs_service,
-						 service_class.class,
-						 service_class.clear_window,
-						 window);
+						 window,
+						 window_class.class,
+						 window_class.clear_window);
   android_exception_check ();
 }
 
@@ -4722,10 +4752,10 @@ android_clear_area (android_window handle, int x, int y,
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
   (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
-						 emacs_service,
-						 service_class.class,
-						 service_class.clear_area,
-						 window, (jint) x, (jint) y,
+						 window,
+						 window_class.class,
+						 window_class.clear_area,
+						 (jint) x, (jint) y,
 						 (jint) width, (jint) height);
 }
 
@@ -5618,6 +5648,21 @@ android_detect_mouse (void)
   jmethodID method;
 
   method = service_class.detect_mouse;
+  rc = (*android_java_env)->CallNonvirtualBooleanMethod (android_java_env,
+							 emacs_service,
+							 service_class.class,
+							 method);
+  android_exception_check ();
+  return rc;
+}
+
+bool
+android_detect_keyboard (void)
+{
+  bool rc;
+  jmethodID method;
+
+  method = service_class.detect_keyboard;
   rc = (*android_java_env)->CallNonvirtualBooleanMethod (android_java_env,
 							 emacs_service,
 							 service_class.class,
@@ -6701,7 +6746,7 @@ static void *android_query_context;
 /* Run any function that the UI thread has asked to run, and then
    signal its completion.  */
 
-static void
+void
 android_check_query (void)
 {
   void (*proc) (void *);

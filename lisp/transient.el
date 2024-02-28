@@ -855,7 +855,6 @@ elements themselves.")
 
 ;;; Define
 
-;;;###autoload
 (defmacro transient-define-prefix (name arglist &rest args)
   "Define NAME as a transient prefix command.
 

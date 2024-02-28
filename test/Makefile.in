@@ -92,6 +92,10 @@ export TEST_LOAD_EL ?= \
 # Additional settings for ert.
 ert_opts =
 
+# Supply a path to local tree-sitter installations, as we run tests
+# without a valid HOME.
+ert_opts += --eval "(setq treesit-extra-load-path '(\"$(HOME)/.emacs.d/tree-sitter\"))"
+
 # Maximum length of lines in ert backtraces; nil for no limit.
 # (if empty, use the default ert-batch-backtrace-right-margin).
 TEST_BACKTRACE_LINE_LENGTH =

@@ -254,7 +254,7 @@ This variable is buffer-local."
 See also `comint-read-input-ring' and `comint-write-input-ring'.
 `comint-mode' makes this a buffer-local variable.  You probably want
 to set this in a mode hook, rather than customize the default value."
-  :type '(choice (const :tag "nil" nil)
+  :type '(choice (const :tag "Disable input history" nil)
 		 file)
   :group 'comint)
 

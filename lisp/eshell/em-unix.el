@@ -590,7 +590,7 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
      :external "cp"
      :show-usage
      :usage "[OPTION]... SOURCE DEST
-   or:  cp [OPTION]... SOURCE... DIRECTORY
+   or: cp [OPTION]... SOURCE... DIRECTORY
 Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
    (if archive
        (setq preserve t no-dereference t em-recursive t))
@@ -618,11 +618,11 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
      :preserve-args
      :external "ln"
      :show-usage
-     :usage "[OPTION]... TARGET [LINK_NAME]
-   or:  ln [OPTION]... TARGET... DIRECTORY
-Create a link to the specified TARGET with optional LINK_NAME.  If there is
-more than one TARGET, the last argument must be a directory;  create links
-in DIRECTORY to each TARGET.  Create hard links by default, symbolic links
+     :usage "[OPTION]... TARGET LINK_NAME
+   or: ln [OPTION]... TARGET... DIRECTORY
+Create a link to the specified TARGET with LINK_NAME.  If there is more
+than one TARGET, the last argument must be a directory;  create links in
+DIRECTORY to each TARGET.  Create hard links by default, symbolic links
 with `--symbolic'.  When creating hard links, each TARGET must exist.")
    (let ((no-dereference t))
      (eshell-mvcpln-template "ln" "linking"
@@ -940,7 +940,7 @@ external command."
 	     "display data only this many levels of data")
 	 (?h "human-readable" 1024 human-readable
 	     "print sizes in human readable format")
-	 (?H "is" 1000 human-readable
+	 (?H "si" 1000 human-readable
 	     "likewise, but use powers of 1000 not 1024")
 	 (?k "kilobytes" 1024 block-size
 	     "like --block-size 1024")

@@ -193,13 +193,13 @@ Check if a node type is available, then return the right font lock rules."
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `cmake-ts-mode'.")
 
-(defun cmake-ts-mode--function-name (node)
-  "Return the function name of NODE.
-Return nil if there is no name or if NODE is not a function node."
+(defun cmake-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
   (pcase (treesit-node-type node)
-    ("function_command"
+    ((or "function_def" "macro_def")
      (treesit-node-text
-      (treesit-search-subtree node "^argument$" nil nil 2)
+      (treesit-search-subtree node "^argument$" nil nil 3)
       t))))
 
 ;;;###autoload
@@ -216,9 +216,15 @@ Return nil if there is no name or if NODE is not a function node."
     (setq-local comment-end "")
     (setq-local comment-start-skip (rx "#" (* (syntax whitespace))))
 
+    ;; Defuns.
+    (setq-local treesit-defun-type-regexp (rx (or "function" "macro")
+                                              "_def"))
+    (setq-local treesit-defun-name-function #'cmake-ts-mode--defun-name)
+
     ;; Imenu.
     (setq-local treesit-simple-imenu-settings
-                `(("Function" "\\`function_command\\'" nil cmake-ts-mode--function-name)))
+                `(("Function" "^function_def$")
+                  ("Macro" "^macro_def$")))
     (setq-local which-func-functions nil)
 
     ;; Indent.

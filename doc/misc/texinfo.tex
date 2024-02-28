@@ -3,9 +3,9 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2023-09-19.19}
+\def\texinfoversion{2024-02-10.22}
 %
-% Copyright 1985, 1986, 1988, 1990-2023 Free Software Foundation, Inc.
+% Copyright 1985, 1986, 1988, 1990-2024 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -5238,14 +5238,14 @@ $$%
 % the current value of \escapechar.
 \def\escapeisbackslash{\escapechar=`\\}
 
-% Use \ in index files by default.  texi2dvi didn't support @ as the escape
-% character (as it checked for "\entry" in the files, and not "@entry").  When
-% the new version of texi2dvi has had a chance to become more prevalent, then
-% the escape character can change back to @ again.  This should be an easy
-% change to make now because both @ and \ are only used as escape characters in
-% index files, never standing for themselves.
+% Uncomment to use \ in index files by default.  Old texi2dvi (before 2019)
+% didn't support @ as the escape character (as it checked for "\entry" in
+% the files, and not "@entry").
+%   In the future we can remove this flag and simplify the code for
+% index files and backslashes, once the support is no longer likely to be
+% useful.
 %
-\set txiindexescapeisbackslash
+% \set txiindexescapeisbackslash
 
 % Write the entry in \indextext to the index file.
 %
@@ -6137,8 +6137,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % normally unnmhead0 calls unnumberedzzz:
 \outer\parseargdef\unnumbered{\unnmhead0{#1}}
 \def\unnumberedzzz#1{%
-  \global\secno=0 \global\subsecno=0 \global\subsubsecno=0
-    \global\advance\unnumberedno by 1
+  \global\advance\unnumberedno by 1
   %
   % Since an unnumbered has no number, no prefix for figures.
   \global\let\chaplevelprefix = \empty
@@ -6194,8 +6193,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % normally calls unnumberedseczzz:
 \outer\parseargdef\unnumberedsec{\unnmhead1{#1}}
 \def\unnumberedseczzz#1{%
-  \global\subsecno=0 \global\subsubsecno=0  \global\advance\secno by 1
-  \sectionheading{#1}{sec}{Ynothing}{\the\unnumberedno.\the\secno}%
+  \global\advance\unnumberedno by 1
+  \sectionheading{#1}{sec}{Ynothing}{\the\unnumberedno}%
 }
 
 % Subsections.
@@ -6218,9 +6217,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % normally calls unnumberedsubseczzz:
 \outer\parseargdef\unnumberedsubsec{\unnmhead2{#1}}
 \def\unnumberedsubseczzz#1{%
-  \global\subsubsecno=0  \global\advance\subsecno by 1
-  \sectionheading{#1}{subsec}{Ynothing}%
-                 {\the\unnumberedno.\the\secno.\the\subsecno}%
+  \global\advance\unnumberedno by 1
+  \sectionheading{#1}{subsec}{Ynothing}{\the\unnumberedno}%
 }
 
 % Subsubsections.
@@ -6244,9 +6242,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % normally unnumberedsubsubseczzz:
 \outer\parseargdef\unnumberedsubsubsec{\unnmhead3{#1}}
 \def\unnumberedsubsubseczzz#1{%
-  \global\advance\subsubsecno by 1
-  \sectionheading{#1}{subsubsec}{Ynothing}%
-                 {\the\unnumberedno.\the\secno.\the\subsecno.\the\subsubsecno}%
+  \global\advance\unnumberedno by 1
+  \sectionheading{#1}{subsubsec}{Ynothing}{\the\unnumberedno}%
 }
 
 % These macros control what the section commands do, according
@@ -8205,8 +8202,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       \let\commondummyword\unmacrodo
       \xdef\macrolist{\macrolist}%
     \endgroup
-  \else
-    \errmessage{Macro #1 not defined}%
   \fi
 }
 

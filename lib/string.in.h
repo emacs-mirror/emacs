@@ -414,11 +414,21 @@ _GL_WARN_ON_USE (memrchr, "memrchr is unportable - "
 /* Overwrite a block of memory.  The compiler will not optimize
    effects away, even if the block is dead after the call.  */
 #if @GNULIB_MEMSET_EXPLICIT@
-# if ! @HAVE_MEMSET_EXPLICIT@
+# if @REPLACE_MEMSET_EXPLICIT@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef memset_explicit
+#   define memset_explicit rpl_memset_explicit
+#  endif
+_GL_FUNCDECL_RPL (memset_explicit, void *,
+                  (void *__dest, int __c, size_t __n) _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (memset_explicit, void *, (void *__dest, int __c, size_t __n));
+# else
+#  if !@HAVE_MEMSET_EXPLICIT@
 _GL_FUNCDECL_SYS (memset_explicit, void *,
                   (void *__dest, int __c, size_t __n) _GL_ARG_NONNULL ((1)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (memset_explicit, void *, (void *__dest, int __c, size_t __n));
+# endif
 _GL_CXXALIASWARN (memset_explicit);
 #elif defined GNULIB_POSIXCHECK
 # undef memset_explicit

@@ -130,7 +130,7 @@
 #  define BOOL_WIDTH 1
 #  define BOOL_MAX 1
 # elif ! defined BOOL_MAX
-#  define BOOL_MAX ((((1U << (BOOL_WIDTH - 1)) - 1) << 1) + 1)
+#  define BOOL_MAX 1
 # endif
 #endif
 

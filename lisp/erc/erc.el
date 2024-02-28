@@ -135,6 +135,13 @@ concerning buffers."
   "Running scripts at startup and with /LOAD."
   :group 'erc)
 
+;; Add `custom-loads' features for group symbols missing from a
+;; supported Emacs version, possibly because they belong to a new ERC
+;; library.  These groups all share their library's feature name.
+;;;###autoload(dolist (symbol '( erc-sasl erc-spelling ; 29
+;;;###autoload                   erc-imenu erc-nicks)) ; 30
+;;;###autoload  (custom-add-load symbol symbol))
+
 (defvar erc-message-parsed) ; only known to this file
 
 (defvar erc--msg-props nil
@@ -1531,7 +1538,7 @@ Bound to local variables from an existing (logical) session's
 buffer during local-module setup and `erc-mode-hook' activation.")
 
 (defmacro erc--restore-initialize-priors (mode &rest vars)
-  "Restore local VARS for MODE from a previous session."
+  "Restore local VARS for local minor MODE from a previous session."
   (declare (indent 1))
   (let ((priors (make-symbol "priors"))
         (initp (make-symbol "initp"))
@@ -1541,6 +1548,8 @@ buffer during local-module setup and `erc-mode-hook' activation.")
       (push `(,k (if ,initp (alist-get ',k ,priors) ,(pop vars))) forms))
     `(let* ((,priors (or erc--server-reconnecting erc--target-priors))
             (,initp (and ,priors (alist-get ',mode ,priors))))
+       (unless (local-variable-if-set-p ',mode)
+         (error "Not a local minor mode var: %s" ',mode))
        (setq ,@(mapcan #'identity (nreverse forms))))))
 
 (defun erc--target-from-string (string)
@@ -1654,11 +1663,7 @@ If BUFFER is nil, the current buffer is used."
 (defun erc-query-buffer-p (&optional buffer)
   "Return non-nil if BUFFER is an ERC query buffer.
 If BUFFER is nil, the current buffer is used."
-  (with-current-buffer (or buffer (current-buffer))
-    (let ((target (erc-target)))
-      (and (eq major-mode 'erc-mode)
-           target
-           (not (memq (aref target 0) '(?# ?& ?+ ?!)))))))
+  (not (erc-channel-p (or buffer (current-buffer)))))
 
 (defun erc-ison-p (nick)
   "Return non-nil if NICK is online."
@@ -1873,18 +1878,20 @@ buries those."
   :group 'erc-buffers
   :type 'boolean)
 
-(defun erc-channel-p (channel)
-  "Return non-nil if CHANNEL seems to be an IRC channel name."
-  (cond ((stringp channel)
-         (memq (aref channel 0)
-               (if-let ((types (erc--get-isupport-entry 'CHANTYPES 'single)))
-                   (append types nil)
-                 '(?# ?& ?+ ?!))))
-        ((and-let* (((bufferp channel))
-                    ((buffer-live-p channel))
-                    (target (buffer-local-value 'erc--target channel)))
-           (erc-channel-p (erc--target-string target))))
-        (t nil)))
+(defvar erc--fallback-channel-prefixes "#&"
+  "Prefix chars for distinguishing channel targets when CHANTYPES is unknown.")
+
+(defun erc-channel-p (target)
+  "Return non-nil if TARGET is a valid channel name or a channel buffer."
+  (cond ((stringp target)
+         (and-let*
+             (((not (string-empty-p target)))
+              (value (let ((entry (erc--get-isupport-entry 'CHANTYPES)))
+                       (if entry (cadr entry) erc--fallback-channel-prefixes)))
+              ((erc--strpos (aref target 0) value)))))
+        ((and-let* (((buffer-live-p target))
+                    (target (buffer-local-value 'erc--target target))
+                    ((erc--target-channel-p target)))))))
 
 ;; For the sake of compatibility, a historical quirk concerning this
 ;; option, when nil, has been preserved: all buffers are suffixed with
@@ -2183,13 +2190,17 @@ buffer rather than a server buffer.")
       (cl-pushnew mod (if (get mod 'erc--module) built-in third-party)))
     `(,@(sort built-in #'string-lessp) ,@(nreverse third-party))))
 
+;;;###autoload(custom-autoload 'erc-modules "erc")
+
 (defcustom erc-modules '( autojoin button completion fill imenu irccontrols
                           list match menu move-to-prompt netsplit
                           networks readonly ring stamp track)
-  "A list of modules which ERC should enable.
-If you set the value of this without using `customize' remember to call
-\(erc-update-modules) after you change it.  When using `customize', modules
-removed from the list will be disabled."
+  "Modules to enable while connecting.
+When modifying this option in lisp code, use a Custom-friendly
+facilitator, like `setopt', or call `erc-update-modules'
+afterward.  This ensures a consistent ordering and disables
+removed modules.  It also gives packages access to the hook
+`erc-before-connect'."
   :get (lambda (sym)
          ;; replace outdated names with their newer equivalents
          (erc-migrate-modules (symbol-value sym)))
@@ -2473,29 +2484,22 @@ nil."
     (cl-assert (= (point) (point-max)))))
 
 (defun erc-open (&optional server port nick full-name
-                           connect passwd tgt-list channel process
+                           connect passwd _tgt-list channel process
                            client-certificate user id)
-  "Connect to SERVER on PORT as NICK with USER and FULL-NAME.
+  "Return a new or reinitialized server or target buffer.
+If CONNECT is non-nil, connect to SERVER and return its new or
+reassociated buffer.  Otherwise, assume PROCESS is non-nil and belongs
+to an active session, and return a new or refurbished target buffer for
+CHANNEL, which may also be a query target (the parameter name remains
+for historical reasons).  Pass SERVER, PORT, NICK, USER, FULL-NAME, and
+PASSWD to `erc-determine-parameters' for preserving as session-local
+variables.  Do something similar for CLIENT-CERTIFICATE and ID, which
+should be as described by `erc-tls'.
 
-If CONNECT is non-nil, connect to the server.  Otherwise assume
-already connected and just create a separate buffer for the new
-target given by CHANNEL, meaning these parameters are mutually
-exclusive.  Note that CHANNEL may also be a query; its name has
-been retained for historical reasons.
-
-Use PASSWD as user password on the server.  If TGT-LIST is
-non-nil, use it to initialize `erc-default-recipients'.
-
-CLIENT-CERTIFICATE, if non-nil, should either be a list where the
-first element is the file name of the private key corresponding
-to a client certificate and the second element is the file name
-of the client certificate itself to use when connecting over TLS,
-or t, which means that `auth-source' will be queried for the
-private key and the certificate.
-
-When non-nil, ID should be a symbol for identifying the connection.
-
-Returns the buffer for the given server or channel."
+Note that ERC ignores TGT-LIST and initializes `erc-default-recipients'
+with CHANNEL as its only member.  Note also that this function has the
+side effect of setting the current buffer to the one it returns.  Use
+`with-current-buffer' or `save-excursion' to nullify this effect."
   (let* ((target (and channel (erc--target-from-string channel)))
          (buffer (erc-get-buffer-create server port nil target id))
          (old-buffer (current-buffer))
@@ -2532,7 +2536,7 @@ Returns the buffer for the given server or channel."
     ;; connection parameters
     (setq erc-server-process process)
     ;; stack of default recipients
-    (setq erc-default-recipients tgt-list)
+    (when channel (setq erc-default-recipients (list channel)))
     (when target
       (setq erc--target target
             erc-network (erc-network)))
@@ -2768,8 +2772,9 @@ PORT, NICK, and PASSWORD, along with USER and FULL-NAME when
 given a prefix argument.  Non-interactively, expect the rarely
 needed ID parameter, when non-nil, to be a symbol or a string for
 naming the server buffer and identifying the connection
-unequivocally.  (See Info node `(erc) Connecting' for details
-about all mentioned parameters.)
+unequivocally.  Once connected, return the server buffer.  (See
+Info node `(erc) Connecting' for details about all mentioned
+parameters.)
 
 Together with `erc-tls', this command serves as the main entry
 point for ERC, the powerful, modular, and extensible IRC client.
@@ -3828,14 +3833,14 @@ TYPE, when non-nil, to be a symbol handled by
 string MSG).  Expect BUFFER to be among the sort accepted by the
 function `erc-display-line'.
 
-Expect BUFFER to be a live `erc-mode' buffer, a list of such
-buffers, or the symbols `all' or `active'.  If `all', insert
-STRING in all buffers for the current session.  If `active',
-defer to the function `erc-active-buffer', which may return the
-session's server buffer if the previously active buffer has been
-killed.  If BUFFER is nil or a network process, pretend it's set
-to the appropriate server buffer.  Otherwise, use the current
-buffer.
+When non-nil, expect BUFFER to be a live `erc-mode' buffer, a
+list of such buffers, or the symbols `all' or `active'.  If
+`all', insert STRING in all buffers for the current session.  If
+`active', defer to the function `erc-active-buffer', which may
+return the session's server buffer if the previously active
+buffer has been killed.  If BUFFER is nil or a network process,
+pretend it's set to the appropriate server buffer.  Otherwise,
+use the current buffer.
 
 When TYPE is a list of symbols, call handlers from left to right
 without influencing how they behave when encountering existing
@@ -3848,11 +3853,10 @@ being (erc-error-face erc-notice-face) throughout MSG when
 `erc-notice-highlight-type' is left at its default, `all'.
 
 As of ERC 5.6, assume third-party code will use this function
-instead of lower-level ones, like `erc-insert-line', when needing
-ERC to process arbitrary informative messages as if they'd been
-sent from a server.  That is, guarantee \"local\" messages, for
-which PARSED is typically nil, will be subject to buttonizing,
-filling, and other effects."
+instead of lower-level ones, like `erc-insert-line', to insert
+arbitrary informative messages as if sent by the server.  That
+is, tell modules to treat a \"local\" message for which PARSED is
+nil like any other server-sent message."
   (let* ((erc--msg-props
           (or erc--msg-props
               (let ((table (make-hash-table))
@@ -4042,15 +4046,41 @@ this function from interpreting the line as a command."
 ;;                    Input commands handlers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun erc-cmd-AMSG (line)
-  "Send LINE to all channels of the current server that you are on."
-  (interactive "sSend to all channels you're on: ")
-  (setq line (erc-trim-string line))
+(defun erc--connected-and-joined-p ()
+  (and (erc--current-buffer-joined-p)
+       erc-server-connected))
+
+(defun erc-cmd-GMSG (line)
+  "Send LINE to all channels on all networks you are on."
+  (setq line (string-remove-prefix " " line))
   (erc-with-all-buffers-of-server nil
-    (lambda ()
-      (erc-channel-p (erc-default-target)))
+      #'erc--connected-and-joined-p
+    (erc-send-message line)))
+(put 'erc-cmd-GMSG 'do-not-parse-args t)
+
+(defun erc-cmd-AMSG (line)
+  "Send LINE to all channels of the current network.
+Interactively, prompt for the line of text to send."
+  (interactive "sSend to all channels on this network: ")
+  (setq line (string-remove-prefix " " line))
+  (erc-with-all-buffers-of-server erc-server-process
+      #'erc--connected-and-joined-p
     (erc-send-message line)))
 (put 'erc-cmd-AMSG 'do-not-parse-args t)
+
+(defun erc-cmd-GME (line)
+  "Send LINE as an action to all channels on all networks you are on."
+  (erc-with-all-buffers-of-server nil
+      #'erc--connected-and-joined-p
+    (erc-cmd-ME line)))
+(put 'erc-cmd-GME 'do-not-parse-args t)
+
+(defun erc-cmd-AME (line)
+  "Send LINE as an action to all channels on the current network."
+  (erc-with-all-buffers-of-server erc-server-process
+      #'erc--connected-and-joined-p
+    (erc-cmd-ME line)))
+(put 'erc-cmd-AME 'do-not-parse-args t)
 
 (defun erc-cmd-SAY (line)
   "Send LINE to the current query or channel as a message, not a command.
@@ -6810,7 +6840,7 @@ stand-in from the fallback value \"(qaohv)~&@%+\"."
   "Return numeric rank for CHAR or nil if unknown.
 For example, given letters \"qaohv\" return 1 for ?v, 2 for ?h,
 and 4 for ?o, etc.  If given, expect PARSED-PREFIX to be a
-`erc--parse-prefix' object.  With FROM-PREFIX-P, expect CHAR to
+`erc--parsed-prefix' object.  With FROM-PREFIX-P, expect CHAR to
 be a prefix instead."
   (and-let* ((obj (or parsed-prefix (erc--parsed-prefix)))
              (pos (erc--strpos char (if from-prefix-p
@@ -9487,6 +9517,7 @@ guarantee that the input method functions properly for the
 purpose of typing within the ERC prompt."
   (when (and (eq major-mode 'erc-mode)
              (fboundp 'set-text-conversion-style))
+    (defvar text-conversion-style) ; avoid free variable warning on <=29
     (if (>= (point) (erc-beg-of-input-line))
         (unless (eq text-conversion-style 'action)
           (set-text-conversion-style 'action))

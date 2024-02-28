@@ -1140,12 +1140,8 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
 
 (add-hook 'help-fns-describe-function-functions #'cl--generic-describe)
 (defun cl--generic-describe (function)
-  ;; Supposedly this is called from help-fns, so help-fns should be loaded at
-  ;; this point.
-  (declare-function help-fns-short-filename "help-fns" (filename))
   (let ((generic (if (symbolp function) (cl--generic function))))
     (when generic
-      (require 'help-mode)              ;Needed for `help-function-def' button!
       (save-excursion
         ;; Ensure that we have two blank lines (but not more).
         (unless (looking-back "\n\n" (- (point) 2))
@@ -1153,33 +1149,49 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
         (insert "This is a generic function.\n\n")
         (insert (propertize "Implementations:\n\n" 'face 'bold))
         ;; Loop over fanciful generics
-        (dolist (method (cl--generic-method-table generic))
-          (pcase-let*
-              ((`(,qualifiers ,args ,doc) (cl--generic-method-info method)))
-            ;; FIXME: Add hyperlinks for the types as well.
-            (let ((print-quoted nil)
-                  (quals (if (length> qualifiers 0)
-                             (concat (substring qualifiers
-                                                0 (string-match " *\\'"
-                                                                qualifiers))
-                                     "\n")
-                           "")))
-              (insert (format "%s%S"
-                              quals
-                              (cons function
-                                    (cl--generic-upcase-formal-args args)))))
-            (let* ((met-name (cl--generic-load-hist-format
-                              function
-                              (cl--generic-method-qualifiers method)
-                              (cl--generic-method-specializers method)))
-                   (file (find-lisp-object-file-name met-name 'cl-defmethod)))
-              (when file
-                (insert (substitute-command-keys " in `"))
-                (help-insert-xref-button (help-fns-short-filename file)
-                                         'help-function-def met-name file
-                                         'cl-defmethod)
-                (insert (substitute-command-keys "'.\n"))))
-            (insert "\n" (or doc "Undocumented") "\n\n")))))))
+        (cl--map-methods-documentation
+         function
+         (lambda (quals signature file doc)
+           (insert (format "%s%S%s\n\n%s\n\n"
+                           quals signature
+                           (if file (format-message " in `%s'." file) "")
+                           (or doc "Undocumented")))))))))
+
+(defun cl--map-methods-documentation (funname metname-printer)
+  "Iterate on FUNNAME's methods documentation at point."
+  ;; Supposedly this is called from help-fns, so help-fns should be loaded at
+  ;; this point.
+  (require 'help-fns)
+  (declare-function help-fns-short-filename "help-fns" (filename))
+  (let ((generic (if (symbolp funname) (cl--generic funname))))
+    (when generic
+      (require 'help-mode)              ;Needed for `help-function-def' button!
+      ;; Loop over fanciful generics
+      (dolist (method (cl--generic-method-table generic))
+        (pcase-let*
+            ((`(,qualifiers ,args ,doc) (cl--generic-method-info method))
+             ;; FIXME: Add hyperlinks for the types as well.
+             (quals (if (length> qualifiers 0)
+                        (concat (substring qualifiers
+                                           0 (string-match " *\\'"
+                                                           qualifiers))
+                                "\n")
+                      ""))
+             (met-name (cl--generic-load-hist-format
+                        funname
+                        (cl--generic-method-qualifiers method)
+                        (cl--generic-method-specializers method)))
+             (file (find-lisp-object-file-name met-name 'cl-defmethod)))
+          (funcall metname-printer
+                   quals
+                   (cons funname
+                         (cl--generic-upcase-formal-args args))
+                   (when file
+                     (make-text-button (help-fns-short-filename file) nil
+                                       'type 'help-function-def
+                                       'help-args
+                                       (list met-name file 'cl-defmethod)))
+                   doc))))))
 
 (defun cl--generic-specializers-apply-to-type-p (specializers type)
   "Return non-nil if a method with SPECIALIZERS applies to TYPE."

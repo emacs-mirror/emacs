@@ -123,4 +123,94 @@
         (should (string= (erc-server-user-host (erc-get-server-user "tester"))
                          "some.host.test.cc"))))))
 
+;; This tests four related slash commands, /AMSG, /GMSG, /AME, /GME,
+;; the latter three introduced by bug#68401.  It mainly asserts
+;; correct routing behavior, especially not sending or inserting
+;; messages in buffers belonging to disconnected sessions.  Left
+;; unaddressed are interactions with the `command-indicator' module
+;; (`erc-noncommands-list') and whatever future `echo-message'
+;; implementation manifests out of bug#49860.
+(ert-deftest erc-scenarios-misc-commands--AMSG-GMSG-AME-GME ()
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "commands")
+       (erc-server-flood-penalty 0.1)
+       (dumb-server-foonet (erc-d-run "localhost" t "srv-foonet" 'amsg-foonet))
+       (dumb-server-barnet (erc-d-run "localhost" t "srv-barnet" 'amsg-barnet))
+       (expect (erc-d-t-make-expecter)))
+
+    (ert-info ("Connect to foonet and join #foo")
+      (with-current-buffer
+          (erc :server "127.0.0.1"
+               :port (process-contact dumb-server-foonet :service)
+               :nick "tester")
+        (funcall expect 10 "debug mode")
+        (erc-cmd-JOIN "#foo")))
+
+    (ert-info ("Connect to barnet and join #bar")
+      (with-current-buffer
+          (erc :server "127.0.0.1"
+               :port (process-contact dumb-server-barnet :service)
+               :nick "tester")
+        (funcall expect 10 "debug mode")
+        (erc-cmd-JOIN "#bar")))
+
+    (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#foo"))
+      (funcall expect 10 "welcome"))
+    (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#bar"))
+      (funcall expect 10 "welcome"))
+
+    (ert-info ("/AMSG only sent to issuing context's server")
+      (with-current-buffer "foonet"
+        (erc-scenarios-common-say "/amsg 1 foonet only"))
+      (with-current-buffer "barnet"
+        (erc-scenarios-common-say "/amsg 2 barnet only"))
+      (with-current-buffer "#foo"
+        (funcall expect 10 "<tester> 1 foonet only")
+        (funcall expect 10 "<alice> bob: Our queen and all"))
+      (with-current-buffer "#bar"
+        (funcall expect 10 "<tester> 2 barnet only")
+        (funcall expect 10 "<joe> mike: And secretly to greet")))
+
+    (ert-info ("/AME only sent to issuing context's server")
+      (with-current-buffer "foonet"
+        (erc-scenarios-common-say "/ame 3 foonet only"))
+      (with-current-buffer "barnet"
+        (erc-scenarios-common-say "/ame 4 barnet only"))
+      (with-current-buffer "#foo"
+        (funcall expect 10 "* tester 3 foonet only")
+        (funcall expect 10 "<alice> bob: You have discharged this"))
+      (with-current-buffer "#bar"
+        (funcall expect 10 "* tester 4 barnet only")
+        (funcall expect 10 "<joe> mike: That same Berowne")))
+
+    (ert-info ("/GMSG and /GME sent to all servers")
+      (with-current-buffer "foonet"
+        (erc-scenarios-common-say "/gmsg 5 all nets")
+        (erc-scenarios-common-say "/gme 6 all nets"))
+      (with-current-buffer "#bar"
+        (funcall expect 10 "<tester> 5 all nets")
+        (funcall expect 10 "* tester 6 all nets")
+        (funcall expect 10 "<joe> mike: Mehercle! if their sons")))
+
+    (ert-info ("/GMSG and /GME only sent to connected servers")
+      (with-current-buffer "barnet"
+        (erc-cmd-QUIT "")
+        (funcall expect 10 "ERC finished"))
+      (with-current-buffer "#foo"
+        (funcall expect 10 "<tester> 5 all nets")
+        (funcall expect 10 "* tester 6 all nets")
+        (funcall expect 10 "<alice> bob: Stand you!"))
+      (with-current-buffer "foonet"
+        (erc-scenarios-common-say "/gmsg 7 all live nets")
+        (erc-scenarios-common-say "/gme 8 all live nets"))
+      ;; Message *not* inserted in disconnected buffer.
+      (with-current-buffer "#bar"
+        (funcall expect -0.1 "<tester> 7 all live nets")
+        (funcall expect -0.1 "* tester 8 all live nets")))
+
+    (with-current-buffer "#foo"
+      (funcall expect 10 "<tester> 7 all live nets")
+      (funcall expect 10 "* tester 8 all live nets")
+      (funcall expect 10 "<bob> alice: Live, and be prosperous;"))))
+
 ;;; erc-scenarios-misc-commands.el ends here

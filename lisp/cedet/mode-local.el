@@ -1,6 +1,6 @@
 ;;; mode-local.el --- Support for mode local facilities  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2004-2005, 2007-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 27 Apr 2004
@@ -84,7 +84,7 @@ MODES can be a symbol or a list of symbols.
 FUNCTION does not have arguments."
   (setq modes (ensure-list modes))
   (mode-local-map-file-buffers
-   function (lambda () (apply #'derived-mode-p modes))))
+   function (lambda () (derived-mode-p modes))))
 
 ;;; Hook machinery
 ;;

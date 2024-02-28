@@ -76,7 +76,7 @@ see the variable 'url-request-extra-headers'.
 
 +++
 ** 'completion-auto-help' now affects 'icomplete-in-buffer'.
-Previously, completion-auto-help mostly affected only minibuffer
+Previously, 'completion-auto-help' mostly affected only minibuffer
 completion.  Now, if 'completion-auto-help' has the value 'lazy', then
 Icomplete's in-buffer display of possible completions will only appear
 after the 'completion-at-point' command has been invoked twice, and if
@@ -85,12 +85,12 @@ completely suppressed.  Thus, if you use 'icomplete-in-buffer', ensure
 'completion-auto-help' is not customized to 'lazy' or nil.
 
 +++
-** The *Completions* buffer now always accompanies 'icomplete-in-buffer'.
-Previously, it was not consistent when the *Completions* buffer would
-appear when using 'icomplete-in-buffer'.  Now the *Completions* buffer
+** The "*Completions*" buffer now always accompanies 'icomplete-in-buffer'.
+Previously, it was not consistent whether the "*Completions*" buffer would
+appear when using 'icomplete-in-buffer'.  Now the "*Completions*" buffer
 and Icomplete's in-buffer display of possible completions always
 appear together.  If you would prefer to see only Icomplete's
-in-buffer display, and not the *Completions* buffer, you can add this
+in-buffer display, and not the "*Completions*" buffer, you can add this
 to your init:
 
     (advice-add 'completion-at-point :after #'minibuffer-hide-completions)
@@ -129,6 +129,17 @@ the signature) the automatically inferred function type as well.
 *** New user option 'describe-bindings-outline-rules'.
 This user option controls outline visibility in the output buffer of
 'describe-bindings' when 'describe-bindings-outline' is non-nil.
+
+---
+*** 'C-h m' ('describe-mode') uses outlining by default.
+Set 'describe-mode-outline' to nil to get back the old behavior.
+
+** Outline Mode
+
++++
+*** 'outline-minor-mode' is supported in tree-sitter major modes.
+It can be used in all tree-sitter major modes that set either the
+variable 'treesit-simple-imenu-settings' or 'treesit-outline-predicate'.
 
 ** X selection requests are now handled much faster and asynchronously.
 This means it should be less necessary to disable the likes of
@@ -258,7 +269,7 @@ right-aligned to is controlled by the new user option
 
 ** Windows
 
-*** New action alist entry 'post-command-select-window' for display-buffer.
+*** New action alist entry 'post-command-select-window' for 'display-buffer'.
 It specifies whether the window of the displayed buffer should be
 selected or deselected at the end of executing the current command.
 
@@ -305,8 +316,17 @@ between the auto save file and the current file.
 
 ---
 ** 'ffap-lax-url' now defaults to nil.
-Previously, it was set to 'ffap-lax-url' to t but this broke remote file
-name detection.
+Previously, it was set to t but this broke remote file name detection.
+
++++
+** Multi-character key echo now ends with a suggestion to use Help.
+Customize 'echo-keystrokes-help' to nil to prevent that.
+
++++
+** 'read-passwd' can toggle the visibility of passwords.
+Use 'TAB' in the minibuffer to show or hide the password.  Likewise,
+there is an icon on the mode-line, which toggles the visibility of the
+password when clicking with 'mouse-1'.
 
 
 * Editing Changes in Emacs 30.1
@@ -318,7 +338,9 @@ will receive a 'wrap-prefix' automatically computed from the line's
 surrounding context, such that continuation lines are indented on
 display as if they were filled with 'M-q' or similar.  Unlike 'M-q',
 the indentation only happens on display, and doesn't change the buffer
-text in any way.
+text in any way.  The global minor mode
+'global-visual-wrap-prefix-mode' enables this minor mode in all
+buffers.
 
 (This minor mode is the 'adaptive-wrap' ELPA package renamed and
 lightly edited for inclusion in Emacs.)
@@ -419,6 +441,11 @@ respectively, in addition to the existing translations 'C-x 8 / e' and
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
 ---
+** Titdic-cnv
+Most of the variables and functions in the file have been renamed to
+make sure they all use a 'tit-' namespace prefix.
+
+---
 ** Trace
 In batch mode, tracing now sends the trace to stdout.
 
@@ -431,7 +458,7 @@ configurations such as X11 when the X server does not support at least
 version 2.1 of the X Input Extension, and 'xterm-mouse-mode'.
 
 ** 'xterm-mouse-mode'
-This mode now emits `wheel-up/down/right/left' events instead of
+This mode now emits 'wheel-up/down/right/left' events instead of
 'mouse-4/5/6/7' events for the mouse wheel.
 It uses the 'mouse-wheel-up/down/left/right-event'
 variables to decide which button maps to which wheel event (if any).
@@ -440,10 +467,13 @@ variables to decide which button maps to which wheel event (if any).
 
 ---
 *** New user option 'Info-url-alist'.
-This user option associates manual-names with URLs.  It affects the
+This user option associates manual names with URLs.  It affects the
 'Info-goto-node-web' command.  By default, associations for all
 Emacs-included manuals are set.  Further associations can be added for
 arbitrary Info manuals.
+
+*** Emacs can now display Info manuals compressed with 'lzip'.
+This requires the 'lzip' program to be installed on your system.
 
 +++
 ** New command 'lldb'.
@@ -572,6 +602,14 @@ It allows tweaking the thresholds for rename and copy detection.
 
 ** Diff mode
 
+---
+*** New user option 'diff-refine-nonmodified'.
+When this is non-nil, 'diff-refine' will highlight lines that were added
+or removed in their entirety (as opposed to modified lines, where some
+parts of the line were modified), using the same faces as for
+highlighting the words added and removed within modified lines.  The
+default value is nil.
+
 +++
 *** 'diff-ignore-whitespace-hunk' can now be applied to all hunks.
 When called with a non-nil prefix argument,
@@ -689,7 +727,7 @@ arguments of the form 'VAR=VALUE', 'env' will first set 'VAR' to
 Now, you can pass an argument like "u+w,o-r" to Eshell's 'umask'
 command, which will give write permission for owners of newly-created
 files and deny read permission for users who are not members of the
-file's group.  See the Info node '(coreutils)File permissions' for
+file's group.  See the Info node "(coreutils) File permissions" for
 more information on this notation.
 
 +++
@@ -808,14 +846,14 @@ in the minibuffer history, with more recent candidates appearing first.
 *** 'completion-category-overrides' supports more metadata.
 The new supported completion properties are 'cycle-sort-function',
 'display-sort-function', 'annotation-function', 'affixation-function',
-'group-function'.  You can now customize them for any category in
+and 'group-function'.  You can now customize them for any category in
 'completion-category-overrides' that will override the properties
 defined in completion metadata.
 
 +++
 *** 'completion-extra-properties' supports more metadata.
 The new supported completion properties are 'category',
-'group-function', 'display-sort-function', 'cycle-sort-function'.
+'group-function', 'display-sort-function', and 'cycle-sort-function'.
 
 ** Pcomplete
 
@@ -863,6 +901,16 @@ mode line.  'header' will display in the header line;
 'mode-and-header' displays in both the header line and mode line.
 
 ** Tramp
+
++++
+*** New connection method "androidsu".
+This provides access to system files with elevated privileges granted by
+the idiosyncratic 'su' implementations and system utilities customary on
+Android.
+
++++
+*** New connection methods "dockercp" and "podmancp".
+These are the external methods counterparts of "docker" and "podman".
 
 +++
 *** New connection methods "toolbox" and "flatpak".
@@ -1057,8 +1105,8 @@ which calls 'xref-find-definitions'.  If the previous one worked
 better for you, use 'define-key' in your init script to bind
 'js-find-symbol' to that combination again.
 
-** Json mode
-`js-json-mode` does not derive from `js-mode` any more so as not
+** Json mode.
+'js-json-mode' does not derive from 'js-mode' any more so as not
 to confuse tools like Eglot or YASnippet into thinking that those
 buffers contain Javascript code.
 
@@ -1096,6 +1144,12 @@ This keyword enables the user to install packages using 'package-vc'.
 The gmane.org website is, sadly, down since a number of years with no
 prospect of it coming back.  Therefore, it is no longer valid to set
 the user option 'nnweb-type' to 'gmane'.
+
+---
+*** New user option 'gnus-mode-line-logo'.
+This allows the user to either disable the display of any logo or
+specify which logo will be displayed as part of the
+buffer-identification in the mode-line of Gnus buffers.
 
 ** Rmail
 
@@ -1168,6 +1222,11 @@ Previously, the '@' character, which normally has 'symbol' syntax,
 would combine with a following Lisp symbol and interfere with symbol
 searching.
 
+---
+*** 'emacs-lisp-docstring-fill-column' now defaults to 72.
+It was previously 65.  The new default formats documentation strings to
+fit on fewer lines without negatively impacting readability.
+
 ** CPerl mode
 
 ---
@@ -1188,8 +1247,8 @@ comment, like Perl mode does.
 
 *** New command 'cperl-file-style'.
 This command sets the indentation style for the current buffer.  To
-change the default style, either use the option with the same name or
-use the command cperl-set-style.
+change the default style, either use the user option with the same name
+or use the command 'cperl-set-style'.
 
 *** Commands using the Perl info page are obsolete.
 The Perl documentation in info format is no longer distributed with
@@ -1297,21 +1356,51 @@ will return the URL for that bug.
 This allows for rcirc logs to use a custom timestamp format, than the
 chat buffers use by default.
 
+---
+*** New command 'Buffer-menu-toggle-internal'.
+This command toggles the display of internal buffers in Buffer Menu mode;
+that is, buffers not visiting a file and whose names start with a space.
+Previously, such buffers were never shown.  This command is bound to 'I'
+in Buffer Menu mode.
+
 ** Customize
 
 +++
 *** New command 'customize-dirlocals'.
 This command pops up a buffer to edit the settings in ".dir-locals.el".
+
+---
+** New command 'customize-toggle-option'.
+This command can toggle boolean options for the duration of a session.
+
 ** Calc
+
 +++
-*** Calc parses fractions written using U+2044 FRACTION SLASH
-Fractions of the form 123⁄456 are handled as if written 123:456.  Note
-in particular the difference in behavior from U+2215 DIVISION SLASH
+*** Calc parses fractions written using U+2044 FRACTION SLASH.
+Fractions of the form "123⁄456" are handled as if written "123:456".
+Note in particular the difference in behavior from U+2215 DIVISION SLASH
 and U+002F SOLIDUS, which result in division rather than a rational
-fraction.  You may also be interested to know that precomposed
-fraction characters, such as ½ (U+00BD VULGAR FRACTION ONE HALF), are
-also recognized as rational fractions.  They have been since 2004, but
-it looks like it was never mentioned in the NEWS, or even the manual.
+fraction.  You may also be interested to know that precomposed fraction
+characters, such as ½ (U+00BD VULGAR FRACTION ONE HALF), are also
+recognized as rational fractions.  They have been since 2004, but it
+looks like it was never mentioned in the NEWS, or even the manual.
+
+** IELM
+
+---
+*** IELM now remembers input history between sessions.
+The new user option 'ielm-history-file-name' is the name of the file
+where IELM input history will be saved.  Customize it to nil to revert
+to the old behavior of not remembering input history between sessions.
+
+** EasyPG
+
++++
+*** New user option 'epa-keys-select-method'.
+This allows the user to customize the key selection method, which can be
+either by using a pop-up buffer or from the minibuffer.  The pop-up
+buffer method is the default, which preserves previous behavior.
+
 
 * New Modes and Packages in Emacs 30.1
 
@@ -1367,13 +1456,30 @@ This minor mode generates the tags table automatically based on the
 current project configuration, and later updates it as you edit the
 files and save the changes.
 
++++
+** New package Compat.
+Emacs now comes with a stub implementation of the
+forwards-compatibility Compat package from GNU ELPA.  This allows
+built-in packages to use the library more effectively, and helps
+preventing the installation of Compat if unnecessary.
+
 
 * Incompatible Lisp Changes in Emacs 30.1
+
+---
+** Old derived.el functions removed.
+The following functions have been deleted because they were only used
+by code compiled with Emacs<21:
+'derived-mode-init-mode-variables', 'derived-mode-merge-abbrev-tables',
+'derived-mode-merge-keymaps', 'derived-mode-merge-syntax-tables',
+'derived-mode-run-hooks', 'derived-mode-set-abbrev-table',
+'derived-mode-set-keymap', 'derived-mode-set-syntax-table',
+'derived-mode-setup-function-name'.
 
 +++
 ** 'M-TAB' now invokes 'completion-at-point' also in Text mode.
 By default, Text mode no longer binds 'M-TAB' to
-'ispell-complete-word'.  Instead this mode arranges for
+'ispell-complete-word'.  Instead, this mode arranges for
 'completion-at-point', globally bound to 'M-TAB', to perform word
 completion as well.  You can have Text mode bind 'M-TAB' to
 'ispell-complete-word' as it did in previous Emacs versions, or
@@ -1481,8 +1587,12 @@ values.
 * Lisp Changes in Emacs 30.1
 
 +++
-** 'define-advice' now sets the new advice's 'name' property to NAME
-Named advice defined with 'define-advice' can now be removed with
+** Pcase's functions (in 'pred' and 'app') can specify the argument position.
+For example, instead of '(pred (< 5))' you can write '(pred (> _ 5))'.
+
++++
+** 'define-advice' now sets the new advice's 'name' property to NAME.
+Named advices defined with 'define-advice' can now be removed with
 '(advice-remove SYMBOL NAME)' in addition to '(advice-remove SYMBOL
 SYMBOL@NAME)'.
 
@@ -1499,10 +1609,10 @@ It puts a limit to the amount by which Emacs can temporarily increase
 
 +++
 ** New special form 'handler-bind'.
-Provides a functionality similar to `condition-case` except it runs the
-handler code without unwinding the stack, such that we can record the
-backtrace and other dynamic state at the point of the error.
-See the Info node "(elisp) Handling Errors".
+It provides a functionality similar to 'condition-case' except it runs
+the handler code without unwinding the stack, such that we can record
+the backtrace and other dynamic state at the point of the error.  See
+the Info node "(elisp) Handling Errors".
 
 +++
 ** New 'pop-up-frames' action alist entry for 'display-buffer'.
@@ -1512,6 +1622,11 @@ precedence over the variable when present.
 ** New function 'merge-ordered-lists'.
 Mostly used internally to do a kind of topological sort of
 inheritance hierarchies.
+
+** New function 'sort-on'.
+This function implements the Schwartzian transform, and is appropriate
+for sorting lists when the computation of the sort key of a list
+element can be expensive.
 
 ** New API for 'derived-mode-p' and control of the graph of major modes.
 
@@ -1827,6 +1942,21 @@ The warning will only be issued for calls to functions declared
 'important-return-value' or 'side-effect-free' (but not 'error-free').
 
 ---
+*** Warn about docstrings that contain control characters.
+The compiler now warns about docstrings with control characters other
+than newline and tab.  This is often a result of improper escaping.
+Example:
+
+    (defun my-fun ()
+      "Uses c:\remote\dir\files and the key \C-x."
+      ...)
+
+where the docstring contains four control characters 'CR', 'DEL', 'FF'
+and 'C-x'.
+
+The warning name is 'docstrings-control-chars'.
+
+---
 *** The warning about wide docstrings can now be disabled separately.
 Its warning name is 'docstrings-wide'.
 
@@ -1835,6 +1965,13 @@ Its warning name is 'docstrings-wide'.
 The declaration '(important-return-value t)' sets the
 'important-return-value' property which indicates that the function
 return value should probably not be thrown away implicitly.
+
+** Bytecode is now always loaded eagerly.
+Bytecode compiled with older Emacs versions for lazy loading using
+'byte-compile-dynamic' is now loaded all at once.
+As a consequence, 'fetch-bytecode' has no use, does nothing, and is
+now obsolete.  The variable 'byte-compile-dynamic' has no effect any
+more; compilation will always yield bytecode for eager loading.
 
 +++
 ** New functions 'file-user-uid' and 'file-group-gid'.
@@ -1890,6 +2027,31 @@ remain for compatibility but now always return the old default values.
 The 'test' parameter is omitted if it is 'eql' (the default), as is
 'data' if empty.  'rehash-size', 'rehash-threshold' and 'size' are
 always omitted, and ignored if present when the object is read back in.
+
+** Obarrays
+
++++
+*** New obarray type.
+Obarrays are now represented by an opaque type instead of using vectors.
+They are created by 'obarray-make' and manage their internal storage
+automatically, which means that the size parameter to 'obarray-make' can
+safely be omitted.  That is, they do not become slower as they fill up.
+
+The old vector representation is still accepted by functions operating
+on obarrays, but 'obarrayp' only returns t for obarray objects.
+'type-of' now returns 'obarray' for obarray objects.
+
+Old code which (incorrectly) created "obarrays" as Lisp vectors filled
+with something other than 0, as in '(make-vector N nil)', will no longer
+work, and should be rewritten to use 'obarray-make'.  Alternatively, you
+can fill the vector with 0.
+
++++
+*** New function 'obarray-clear' removes all symbols from an obarray.
+
+---
+*** 'obarray-size' and 'obarray-default-size' are now obsolete.
+They pertained to the internal storage size which is now irrelevant.
 
 +++
 ** 'treesit-install-language-grammar' can handle local directory instead of URL.

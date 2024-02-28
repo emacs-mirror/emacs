@@ -694,7 +694,7 @@ used as possible file names."
 
 (defcustom gnus-page-delimiter "^\^L"
   "Regexp describing what to use as article page delimiters.
-The default value is \"^\^L\", which is a form linefeed at the
+The default value is \"^\\^L\", which is a form linefeed at the
 beginning of a line."
   :type 'regexp
   :group 'gnus-article-various)

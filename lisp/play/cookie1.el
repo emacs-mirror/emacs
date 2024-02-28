@@ -65,7 +65,7 @@
 (defconst cookie-delimiter "\n%%\n\\|\n%\n\\|\0"
   "Delimiter used to separate cookie file entries.")
 
-(defvar cookie-cache (make-vector 511 0)
+(defvar cookie-cache (obarray-make 511)
   "Cache of cookie files that have already been snarfed.")
 
 (defun cookie-check-file (file)

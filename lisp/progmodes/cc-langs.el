@@ -3511,7 +3511,7 @@ Note that Java specific rules are currently applied to tell this from
 
   (let* ((alist (c-lang-const c-keyword-member-alist))
 	 kwd lang-const-list
-	 (obarray (make-vector (* (length alist) 2) 0)))
+	 (obarray (obarray-make (* (length alist) 2))))
     (while alist
       (setq kwd (caar alist)
 	    lang-const-list (cdar alist)

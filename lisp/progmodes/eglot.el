@@ -243,7 +243,7 @@ automatically)."
                                   (typescript-mode :language-id "typescript"))
                                  . ("typescript-language-server" "--stdio"))
                                 ((bash-ts-mode sh-mode) . ("bash-language-server" "start"))
-                                ((php-mode phps-mode)
+                                ((php-mode phps-mode php-ts-mode)
                                  . ,(eglot-alternatives
                                      '(("phpactor" "language-server")
                                        ("php" "vendor/felixfbecker/language-server/bin/php-language-server.php"))))
@@ -259,7 +259,7 @@ automatically)."
                                  . ("haskell-language-server-wrapper" "--lsp"))
                                 (elm-mode . ("elm-language-server"))
                                 (mint-mode . ("mint" "ls"))
-                                (kotlin-mode . ("kotlin-language-server"))
+                                ((kotlin-mode kotlin-ts-mode) . ("kotlin-language-server"))
                                 ((go-mode go-dot-mod-mode go-dot-work-mode go-ts-mode go-mod-ts-mode)
                                  . ("gopls"))
                                 ((R-mode ess-r-mode) . ("R" "--slave" "-e"
@@ -284,6 +284,7 @@ automatically)."
                                 ((yaml-ts-mode yaml-mode) . ("yaml-language-server" "--stdio"))
                                 (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp" "nixd")))
                                 (nickel-mode . ("nls"))
+                                ((nushell-mode nushell-ts-mode) . ("nu" "--lsp"))
                                 (gdscript-mode . ("localhost" 6008))
                                 ((fortran-mode f90-mode) . ("fortls"))
                                 (futhark-mode . ("futhark" "lsp"))
@@ -309,7 +310,10 @@ automatically)."
                                        ("vscode-markdown-language-server" "--stdio"))))
                                 (graphviz-dot-mode . ("dot-language-server" "--stdio"))
                                 (terraform-mode . ("terraform-ls" "serve"))
-                                ((uiua-ts-mode uiua-mode) . ("uiua" "lsp")))
+                                ((uiua-ts-mode uiua-mode) . ("uiua" "lsp"))
+                                (sml-mode
+                                 . ,(lambda (_interactive project)
+                                      (list "millet-ls" (project-root project)))))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 identifies the buffers that are to be managed by a specific
@@ -590,7 +594,7 @@ It is nil if Eglot is not byte-complied.")
   (let ((vec (copy-sequence url-path-allowed-chars)))
     (aset vec ?: nil) ;; see github#639
     vec)
-  "Like `url-path-allows-chars' but more restrictive.")
+  "Like `url-path-allowed-chars' but more restrictive.")
 
 
 ;;; Message verification helpers

@@ -38,7 +38,6 @@
 (declare-function dired-compress-file "dired-aux")
 (declare-function dired-remove-file "dired-aux")
 (defvar dired-compress-file-suffixes)
-(defvar ls-lisp-use-insert-directory-program)
 ;; Added in Emacs 28.1.
 (defvar process-file-return-signal-string)
 (defvar vc-handled-backends)
@@ -283,6 +282,7 @@ The string is used in `tramp-methods'.")
                 (tramp-copy-program         "nc")
                 ;; We use "-v" for better error tracking.
                 (tramp-copy-args            (("-w" "1") ("-v") ("%h") ("%r")))
+                (tramp-copy-file-name       (("%f")))
                 (tramp-remote-copy-program  "nc")
                 ;; We use "-p" as required for newer busyboxes.  For older
                 ;; busybox/nc versions, the value must be (("-l") ("%r")).  This
@@ -429,6 +429,9 @@ The string is used in `tramp-methods'.")
 		     eos)
 	        nil ,(user-login-name))))
 
+(defconst tramp-default-copy-file-name '(("%u" "@") ("%h" ":") ("%f"))
+  "Default `tramp-copy-file-name' entry for out-of-band methods.")
+
 ;;;###tramp-autoload
 (defconst tramp-completion-function-alist-rsh
   '((tramp-parse-rhosts "/etc/hosts.equiv")
@@ -548,6 +551,7 @@ shell from reading its init file."
     (tramp-terminal-prompt-regexp tramp-action-terminal)
     (tramp-antispoof-regexp tramp-action-confirm-message)
     (tramp-security-key-confirm-regexp tramp-action-show-and-confirm-message)
+    (tramp-security-key-pin-regexp tramp-action-otp-password)
     (tramp-process-alive-regexp tramp-action-process-alive))
   "List of pattern/action pairs.
 Whenever a pattern matches, the corresponding action is performed.
@@ -567,6 +571,7 @@ corresponding PATTERN matches, the ACTION function is called.")
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (tramp-copy-failed-regexp tramp-action-permission-denied)
     (tramp-security-key-confirm-regexp tramp-action-show-and-confirm-message)
+    (tramp-security-key-pin-regexp tramp-action-otp-password)
     (tramp-process-alive-regexp tramp-action-out-of-band))
   "List of pattern/action pairs.
 This list is used for copying/renaming with out-of-band methods.
@@ -2010,7 +2015,7 @@ ID-FORMAT valid values are `string' and `integer'."
 	     #'copy-directory
 	     (list dirname newname keep-date parents copy-contents))))
 
-	;; When newname did exist, we have wrong cached values.
+	;; NEWNAME has wrong cached values.
 	(when t2
 	  (with-parsed-tramp-file-name (expand-file-name newname) nil
 	    (tramp-flush-file-properties v localname)))))))
@@ -2149,6 +2154,16 @@ file names."
 	      ;; One of them must be a Tramp file.
 	      (error "Tramp implementation says this cannot happen")))
 
+	    ;; In case of `rename', we must flush the cache of the source file.
+	    (when (and t1 (eq op 'rename))
+	      (with-parsed-tramp-file-name filename v1
+		(tramp-flush-file-properties v1 v1-localname)))
+
+	    ;; NEWNAME has wrong cached values.
+	    (when t2
+	      (with-parsed-tramp-file-name newname v2
+		(tramp-flush-file-properties v2 v2-localname)))
+
 	    ;; Handle `preserve-extended-attributes'.  We ignore
 	    ;; possible errors, because ACL strings could be
 	    ;; incompatible.
@@ -2156,16 +2171,6 @@ file names."
 					(file-extended-attributes filename))))
 	      (ignore-errors
 		(set-file-extended-attributes newname attributes)))
-
-	    ;; In case of `rename', we must flush the cache of the source file.
-	    (when (and t1 (eq op 'rename))
-	      (with-parsed-tramp-file-name filename v1
-		(tramp-flush-file-properties v1 v1-localname)))
-
-	    ;; When newname did exist, we have wrong cached values.
-	    (when t2
-	      (with-parsed-tramp-file-name newname v2
-		(tramp-flush-file-properties v2 v2-localname)))
 
             ;; KEEP-DATE handling.
             (when (and keep-date (not copy-keep-date))
@@ -2398,10 +2403,10 @@ The method used must be an out-of-band method."
 			#'file-name-as-directory
 		      #'identity)
 		    (if v1
-			(tramp-make-copy-program-file-name v1)
+			(tramp-make-copy-file-name v1)
 		      (file-name-unquote filename)))
 	    target (if v2
-		       (tramp-make-copy-program-file-name v2)
+		       (tramp-make-copy-file-name v2)
 		     (file-name-unquote newname)))
 
       ;; Check for listener port.
@@ -2438,9 +2443,9 @@ The method used must be an out-of-band method."
 	    copy-program (tramp-get-method-parameter v 'tramp-copy-program)
 	    copy-args
 	    ;; " " has either been a replacement of "%k" (when
-	    ;; keep-date argument is non-nil), or a replacement for
+	    ;; KEEP-DATE argument is non-nil), or a replacement for
 	    ;; the whole keep-date sublist.
-	    (delete " " (apply #'tramp-expand-args v 'tramp-copy-args spec))
+	    (delete " " (apply #'tramp-expand-args v 'tramp-copy-args nil spec))
 	    ;; `tramp-ssh-controlmaster-options' is a string instead
 	    ;; of a list.  Unflatten it.
 	    copy-args
@@ -2449,11 +2454,11 @@ The method used must be an out-of-band method."
 	      (lambda (x) (if (tramp-compat-string-search " " x)
                               (split-string x) x))
 	      copy-args))
-	    copy-env (apply #'tramp-expand-args v 'tramp-copy-env spec)
+	    copy-env (apply #'tramp-expand-args v 'tramp-copy-env nil spec)
 	    remote-copy-program
 	    (tramp-get-method-parameter v 'tramp-remote-copy-program)
 	    remote-copy-args
-	    (apply #'tramp-expand-args v 'tramp-remote-copy-args spec))
+	    (apply #'tramp-expand-args v 'tramp-remote-copy-args nil spec))
 
       ;; Check for local copy program.
       (unless (executable-find copy-program)
@@ -2636,7 +2641,7 @@ The method used must be an out-of-band method."
 (defun tramp-sh-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
-  (if (and (featurep 'ls-lisp)
+  (if (and (boundp 'ls-lisp-use-insert-directory-program)
 	   (not ls-lisp-use-insert-directory-program))
       (tramp-handle-insert-directory
        filename switches wildcard full-directory-p)
@@ -5289,7 +5294,8 @@ connection if a previous connection has died for some reason."
 			     (tramp-get-method-parameter hop 'tramp-async-args)))
 			   (connection-timeout
 			    (tramp-get-method-parameter
-			     hop 'tramp-connection-timeout))
+			     hop 'tramp-connection-timeout
+			     tramp-connection-timeout))
 			   (command
 			    (tramp-get-method-parameter
 			     hop 'tramp-login-program))
@@ -5347,14 +5353,14 @@ connection if a previous connection has died for some reason."
 			 ;; Add arguments for asynchronous processes.
 			 (when process-name async-args)
 			 (tramp-expand-args
-			  hop 'tramp-login-args
+			  hop 'tramp-login-args nil
 			  ?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
 			  ?c (format-spec options (format-spec-make ?t tmpfile))
 			  ?n (concat
 			      "2>" (tramp-get-remote-null-device previous-hop))
 			  ?l (concat remote-shell " " extra-args " -i"))
 			 ;; A restricted shell does not allow "exec".
-		         (when r-shell '("&&" "exit")) '("||" "exit"))
+			 (when r-shell '("&&" "exit")) '("||" "exit"))
 			" "))
 
 		      ;; Send the command.
@@ -5364,8 +5370,7 @@ connection if a previous connection has died for some reason."
 		       p vec
 		       (min
 			pos (with-current-buffer (process-buffer p) (point-max)))
-		       tramp-actions-before-shell
-		       (or connection-timeout tramp-connection-timeout))
+		       tramp-actions-before-shell connection-timeout)
 		      (tramp-message
 		       vec 3 "Found remote shell prompt on `%s'" l-host)
 
@@ -5558,8 +5563,8 @@ raises an error."
    string
    ""))
 
-(defun tramp-make-copy-program-file-name (vec)
-  "Create a file name suitable for `scp', `pscp', or `nc' and workalikes."
+(defun tramp-make-copy-file-name (vec)
+  "Create a file name suitable for out-of-band methods."
   (let ((method (tramp-file-name-method vec))
 	(user (tramp-file-name-user vec))
 	(host (tramp-file-name-host vec))
@@ -5570,13 +5575,13 @@ raises an error."
     ;; This does not work for MS Windows scp, if there are characters
     ;; to be quoted.  OpenSSH 8 supports disabling of strict file name
     ;; checking in scp, we use it when available.
-    (unless (string-match-p (rx "ftp" eos) method)
+    (unless (string-match-p (rx (| "dockercp" "podmancp" "ftp") eos) method)
       (setq localname (tramp-unquote-shell-quote-argument localname)))
-    (cond
-     ((tramp-get-method-parameter vec 'tramp-remote-copy-program)
-      localname)
-     ((tramp-string-empty-or-nil-p user) (format "%s:%s" host localname))
-     (t (format "%s@%s:%s" user host localname)))))
+    (string-join
+     (apply #'tramp-expand-args vec
+	    'tramp-copy-file-name tramp-default-copy-file-name
+	    (list ?h (or host "") ?u (or user "") ?f localname))
+     "")))
 
 (defun tramp-method-out-of-band-p (vec size)
   "Return t if this is an out-of-band method, nil otherwise."

@@ -60,6 +60,7 @@
 ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
 foo\\|\\(?:[^icfgv]\\|g[^r]\\)\\(\\w\\|\\s_\\)+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
 cl-\\(?:defun\\|defmethod\\|defgeneric\\)\\|\
+transient-define-\\(?:prefix\\|suffix\\|infix\\|argument\\)\\|\
 menu-bar-make-toggle\\|menu-bar-make-toggle-command\\)"
    find-function-space-re
    "\\('\\|(quote \\)?%s\\(\\s-\\|$\\|[()]\\)")

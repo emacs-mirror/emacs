@@ -56,6 +56,7 @@ class Lisp_Object:
         "PVEC_BOOL_VECTOR": "struct Lisp_Bool_Vector",
         "PVEC_BUFFER": "struct buffer",
         "PVEC_HASH_TABLE": "struct Lisp_Hash_Table",
+        "PVEC_OBARRAY": "struct Lisp_Obarray",
         "PVEC_TERMINAL": "struct terminal",
         "PVEC_WINDOW_CONFIGURATION": "struct save_window_data",
         "PVEC_SUBR": "struct Lisp_Subr",

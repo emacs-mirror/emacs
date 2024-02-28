@@ -322,7 +322,7 @@ arguments to pass to the OPERATION."
 	   v (tramp-get-method-parameter v 'tramp-login-program)
 	   nil outbuf display
 	   (tramp-expand-args
-	    v 'tramp-login-args
+	    v 'tramp-login-args nil
 	    ?h (or (tramp-file-name-host v) "")
 	    ?u (or (tramp-file-name-user v) "")
 	    ?p (or (tramp-file-name-port v) "")
@@ -424,7 +424,7 @@ connection if a previous connection has died for some reason."
 		(tramp-fuse-mount-spec vec)
 		(tramp-fuse-mount-point vec)
 		(tramp-expand-args
-		 vec 'tramp-mount-args
+		 vec 'tramp-mount-args nil
 		 ?p (or (tramp-file-name-port vec) ""))))))
       (tramp-error
        vec 'file-error "Error mounting %s" (tramp-fuse-mount-spec vec)))

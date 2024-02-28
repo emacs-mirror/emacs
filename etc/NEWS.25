@@ -1158,6 +1158,11 @@ few or no entries have changed.
 
 * New Modes and Packages in Emacs 25.1
 
+** New preloaded package 'obarray'
+
+Provides obarray operations under the 'obarray-' prefix, such as
+'obarray-make', 'obarrayp', and 'obarray-map'.
+
 ** pinentry.el allows GnuPG passphrase to be prompted through the
 minibuffer instead of a graphical dialog, depending on whether the gpg
 command is called from Emacs (i.e., INSIDE_EMACS environment variable

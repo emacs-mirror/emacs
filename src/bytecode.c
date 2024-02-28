@@ -625,9 +625,10 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	varref:
 	  {
 	    Lisp_Object v1 = vectorp[op], v2;
-	    if (!SYMBOLP (v1)
-		|| XSYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
-		|| (v2 = SYMBOL_VAL (XSYMBOL (v1)), BASE_EQ (v2, Qunbound)))
+	    if (!BARE_SYMBOL_P (v1)
+		|| XBARE_SYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
+		|| (v2 = XBARE_SYMBOL (v1)->u.s.val.value,
+		    BASE_EQ (v2, Qunbound)))
 	      v2 = Fsymbol_value (v1);
 	    PUSH (v2);
 	    NEXT;
@@ -699,11 +700,11 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object val = POP;
 
 	    /* Inline the most common case.  */
-	    if (SYMBOLP (sym)
+	    if (BARE_SYMBOL_P (sym)
 		&& !BASE_EQ (val, Qunbound)
-		&& XSYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL
-		&& !SYMBOL_TRAPPED_WRITE_P (sym))
-	      SET_SYMBOL_VAL (XSYMBOL (sym), val);
+		&& XBARE_SYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL
+		&& !XBARE_SYMBOL (sym)->u.s.trapped_write)
+	      SET_SYMBOL_VAL (XBARE_SYMBOL (sym), val);
 	    else
               set_internal (sym, val, Qnil, SET_INTERNAL_SET);
 	  }
@@ -790,24 +791,22 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	      do_debug_on_call (Qlambda, count1);
 
 	    Lisp_Object original_fun = call_fun;
-	    if (SYMBOLP (call_fun))
-	      call_fun = XSYMBOL (call_fun)->u.s.function;
-	    Lisp_Object template;
-	    Lisp_Object bytecode;
-	    if (COMPILEDP (call_fun)
-		/* Lexical binding only.  */
-		&& (template = AREF (call_fun, COMPILED_ARGLIST),
-		    FIXNUMP (template))
-		/* No autoloads.  */
-		&& (bytecode = AREF (call_fun, COMPILED_BYTECODE),
-		    !CONSP (bytecode)))
+	    /* Calls to symbols-with-pos don't need to be on the fast path.  */
+	    if (BARE_SYMBOL_P (call_fun))
+	      call_fun = XBARE_SYMBOL (call_fun)->u.s.function;
+	    if (COMPILEDP (call_fun))
 	      {
-		fun = call_fun;
-		bytestr = bytecode;
-		args_template = XFIXNUM (template);
-		nargs = call_nargs;
-		args = call_args;
-		goto setup_frame;
+		Lisp_Object template = AREF (call_fun, COMPILED_ARGLIST);
+		if (FIXNUMP (template))
+		  {
+		    /* Fast path for lexbound functions.  */
+		    fun = call_fun;
+		    bytestr = AREF (call_fun, COMPILED_BYTECODE),
+		    args_template = XFIXNUM (template);
+		    nargs = call_nargs;
+		    args = call_args;
+		    goto setup_frame;
+		  }
 	      }
 
 	    Lisp_Object val;
@@ -1738,28 +1737,29 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (BYTE_CODE_SAFE && !HASH_TABLE_P (jmp_table))
               emacs_abort ();
             Lisp_Object v1 = POP;
-            ptrdiff_t i;
             struct Lisp_Hash_Table *h = XHASH_TABLE (jmp_table);
-
-            /* h->count is a faster approximation for HASH_TABLE_SIZE (h)
-               here. */
-            if (h->count <= 5 && !h->test->cmpfn)
-              { /* Do a linear search if there are not many cases
-                   FIXME: 5 is arbitrarily chosen.  */
-		for (i = h->count; 0 <= --i; )
-		  if (EQ (v1, HASH_KEY (h, i)))
-		    break;
+	    /* Do a linear search if there are few cases and the test is `eq'.
+	       (The table is assumed to be sized exactly; all entries are
+	       consecutive at the beginning.)
+	       FIXME: 5 is arbitrarily chosen.  */
+            if (h->count <= 5 && !h->test->cmpfn && !symbols_with_pos_enabled)
+              {
+		eassume (h->count >= 2);
+		for (ptrdiff_t i = h->count - 1; i >= 0; i--)
+		  if (BASE_EQ (v1, HASH_KEY (h, i)))
+		    {
+		      op = XFIXNUM (HASH_VALUE (h, i));
+		      goto op_branch;
+		    }
               }
             else
-              i = hash_lookup (h, v1);
-
-	    if (i >= 0)
 	      {
-		Lisp_Object val = HASH_VALUE (h, i);
-		if (BYTE_CODE_SAFE && !FIXNUMP (val))
-		  emacs_abort ();
-		op = XFIXNUM (val);
-		goto op_branch;
+		ptrdiff_t i = hash_lookup (h, v1);
+		if (i >= 0)
+		  {
+		    op = XFIXNUM (HASH_VALUE (h, i));
+		    goto op_branch;
+		  }
 	      }
           }
           NEXT;
