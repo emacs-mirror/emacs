@@ -88,7 +88,7 @@ nor does it extend `completion-at-point-functions'.
 This user option only takes effect when you customize it in
 Custom or with `setopt', not with `setq'."
   :group 'text
-  :type 'boolean
+  :type '(choice (const completion-at-point) boolean)
   :version "30.1"
   :set (lambda (sym val)
          (if (and (set sym val)
