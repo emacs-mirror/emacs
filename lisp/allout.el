@@ -161,9 +161,9 @@ respective `allout-mode' keybinding variables, `allout-command-prefix',
 (defcustom allout-command-prefix "\C-c "
   "Key sequence to be used as prefix for outline mode command key bindings.
 
-Default is `\C-c<space>'; just `\C-c' is more short-and-sweet, if you're
-willing to let allout use a bunch of \C-c keybindings."
-  :type 'string
+Default is \\`C-c SPC'; just \\`C-c' is more short-and-sweet, if you're
+willing to let allout use a bunch of \\`C-c' keybindings."
+  :type 'key-sequence
   :group 'allout-keybindings
   :set #'allout-compose-and-institute-keymap)
 ;;;_   = allout-keybindings-binding

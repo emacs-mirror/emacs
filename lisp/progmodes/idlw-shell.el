@@ -96,8 +96,8 @@
 
 (defcustom idlwave-shell-prompt-pattern "^\r? ?IDL> "
   "Regexp to match IDL prompt at beginning of a line.
-For example, \"^\r?IDL> \" or \"^\r?WAVE> \".
-The \"^\r?\" is needed, to indicate the beginning of the line, with
+For example, \"^\\r?IDL> \" or \"^\\r?WAVE> \".
+The \"^\\r?\" is needed, to indicate the beginning of the line, with
 optional return character (which IDL seems to output randomly).
 This variable is used to initialize `comint-prompt-regexp' in the
 process buffer."

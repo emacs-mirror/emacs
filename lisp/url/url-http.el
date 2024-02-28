@@ -427,7 +427,7 @@ Use `url-http-referer' as the Referer-header (subject to `url-privacy-level')."
 
 ;; Parsing routines
 (defun url-http-clean-headers ()
-  "Remove trailing \r from header lines.
+  "Remove trailing \\r from header lines.
 This allows us to use `mail-fetch-field', etc.
 Return the number of characters removed."
   (let ((end (marker-position url-http-end-of-headers)))
