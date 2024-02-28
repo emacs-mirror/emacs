@@ -1114,9 +1114,7 @@ error and non-nil on success."
 
 (defun tramp-adb-send-command (vec command &optional neveropen nooutput)
   "Send the COMMAND to connection VEC."
-  (if (and (equal (tramp-file-name-method vec)
-                  tramp-androidsu-method)
-           (string-match-p (rx multibyte) command))
+  (if (string-match-p (rx multibyte) command)
       ;; Multibyte codepoints with four bytes are not supported at
       ;; least by toybox.
 
@@ -1148,8 +1146,8 @@ error and non-nil on success."
 	  (while (search-forward-regexp (rx (+ "\r") eol) nil t)
 	    (replace-match "" nil nil)))))))
 
-(defun tramp-adb-send-command-and-check (vec command &optional exit-status
-                                             command-augmented-p)
+(defun tramp-adb-send-command-and-check
+    (vec command &optional exit-status command-augmented-p)
   "Run COMMAND and check its exit status.
 Sends `echo $?' along with the COMMAND for checking the exit
 status.  If COMMAND is nil, just sends `echo $?'.  Returns nil if
@@ -1162,7 +1160,8 @@ Optional argument EXIT-STATUS, if non-nil, triggers the return of
 the exit status."
   (tramp-adb-send-command
    vec (if command
-	   (if command-augmented-p command
+	   (if command-augmented-p
+               command
              (format "%s; echo tramp_exit_status $?" command))
 	 "echo tramp_exit_status $?"))
   (with-current-buffer (tramp-get-connection-buffer vec)
