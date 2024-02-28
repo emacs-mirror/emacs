@@ -3496,6 +3496,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  (subr		. subrp)
                  (string	. stringp)
                  (symbol	. symbolp)
+                 (symbol-with-pos . symbol-with-pos-p)
                  (vector	. vectorp)
                  (window	. windowp)
                  ;; FIXME: Do we really want to consider these types?
