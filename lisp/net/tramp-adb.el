@@ -641,23 +641,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		  ;; because `file-attributes' reads the values from
 		  ;; there.
 		  (tramp-flush-file-properties v localname)
-		  (unless (if (tramp-adb-file-name-p v)
-			      (tramp-adb-execute-adb-command
-			       v "push"
-			       (file-name-unquote filename)
-			       (file-name-unquote localname))
-			    ;; Otherwise, this operation was initiated
-			    ;; by the androidsu backend, so both files
-			    ;; must be present on the local machine and
-			    ;; transferable with a simple local copy.
-			    (tramp-adb-send-command-and-check
-			     v
-			     (format
-			      "cp -f %s %s"
-			      (tramp-shell-quote-argument
-			       (file-name-unquote filename))
-			      (tramp-shell-quote-argument
-			       (file-name-unquote localname)))))
+		  (unless (tramp-adb-execute-adb-command
+			   v "push"
+			   (file-name-unquote filename)
+			   (file-name-unquote localname))
 		    (tramp-error
 		     v 'file-error
 		     "Cannot copy `%s' `%s'" filename newname)))))))))

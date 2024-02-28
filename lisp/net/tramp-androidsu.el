@@ -41,6 +41,22 @@
   "When this method name is used, forward all calls to su.")
 
 ;;;###tramp-autoload
+(defcustom tramp-androidsu-mount-global-namespace t
+  "When non-nil, browse files from within the global mount namespace.
+On systems that assign each application a unique view of the filesystem
+by executing them within individual mount namespaces and thus conceal
+each application's data directories from others, invoke `su' with the
+option `-mm' in order for the shell launched to run within the global
+mount namespace, so that TRAMP may edit files belonging to any and all
+applications."
+  :group 'tramp
+  :version "30.1"
+  :type 'boolean)
+
+(defvar tramp-androidsu-su-mm-supported 'unknown
+  "Whether `su -mm' is supported on this system.")
+
+;;;###tramp-autoload
 (tramp--with-startup
  (add-to-list 'tramp-methods
 	      `(,tramp-androidsu-method
@@ -94,7 +110,7 @@ multibyte mode and waits for the shell prompt to appear."
                                        ;; Disregard
                                        ;; tramp-encoding-shell, as
                                        ;; there's no guarantee that it's
-                                       ;; possible to execute with
+                                       ;; possible to execute it with
                                        ;; `android-use-exec-loader' off.
 			               "/system/bin/sh" "-i"))
 		     (user (tramp-file-name-user vec))
@@ -103,13 +119,32 @@ multibyte mode and waits for the shell prompt to appear."
 	        (set-process-sentinel p #'tramp-process-sentinel)
 	        (tramp-post-process-creation p vec)
 
-		;; Replace `login-args' place holders.
+                ;; Replace `login-args' place holders.
 		(setq command (format "exec su - %s || exit"
 				      (or user "root")))
-		;; Send the command.
+
+                ;; Attempt to execute the shell inside the global mount
+                ;; namespace if requested.
+                (when tramp-androidsu-mount-global-namespace
+                  (progn
+                    (when (eq tramp-androidsu-su-mm-supported 'unknown)
+                      ;; Change the prompt in advance so that
+                      ;; tramp-adb-send-command-and-check can call
+                      ;; tramp-search-regexp.
+	              (tramp-adb-send-command
+		       vec (format "PS1=%s"
+			           (tramp-shell-quote-argument
+                                    tramp-end-of-output)))
+                      (setq tramp-androidsu-su-mm-supported
+                            ;; Detect support for `su -mm'.
+                            (tramp-adb-send-command-and-check
+                             vec "su -mm -c 'exit 24'" 24)))
+                    (when tramp-androidsu-su-mm-supported
+		      (setq command (format "exec su -mm - %s || exit"
+				            (or user "root"))))))
+	        ;; Send the command.
 		(tramp-message vec 3 "Sending command `%s'" command)
 		(tramp-adb-send-command vec command t t)
-
 		;; Android su binaries contact a background service to
 		;; obtain authentication; during this process, input
 		;; received is discarded, so input cannot be
@@ -204,8 +239,8 @@ FUNCTION."
 (defalias 'tramp-androidsu-handle-copy-directory
   (tramp-androidsu-generate-wrapper #'tramp-handle-copy-directory))
 
-(defalias 'tramp-androidsu-adb-handle-copy-file
-  (tramp-androidsu-generate-wrapper #'tramp-adb-handle-copy-file))
+(defalias 'tramp-androidsu-sh-handle-copy-file
+  (tramp-androidsu-generate-wrapper #'tramp-sh-handle-copy-file))
 
 (defalias 'tramp-androidsu-adb-handle-delete-directory
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-delete-directory))
@@ -367,8 +402,8 @@ FUNCTION."
 (defalias 'tramp-androidsu-adb-handle-process-file
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-process-file))
 
-(defalias 'tramp-androidsu-adb-handle-rename-file
-  (tramp-androidsu-generate-wrapper #'tramp-adb-handle-rename-file))
+(defalias 'tramp-androidsu-sh-handle-rename-file
+  (tramp-androidsu-generate-wrapper #'tramp-sh-handle-rename-file))
 
 (defalias 'tramp-androidsu-adb-handle-set-file-modes
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-set-file-modes))
@@ -416,7 +451,7 @@ FUNCTION."
     (add-name-to-file . tramp-androidsu-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-androidsu-handle-copy-directory)
-    (copy-file . tramp-androidsu-adb-handle-copy-file)
+    (copy-file . tramp-androidsu-sh-handle-copy-file)
     (delete-directory . tramp-androidsu-adb-handle-delete-directory)
     (delete-file . tramp-androidsu-adb-handle-delete-file)
     ;; `diff-latest-backup-file' performed by default handler.
@@ -478,7 +513,7 @@ FUNCTION."
     (memory-info . tramp-androidsu-handle-memory-info)
     (process-attributes . tramp-androidsu-handle-process-attributes)
     (process-file . tramp-androidsu-adb-handle-process-file)
-    (rename-file . tramp-androidsu-adb-handle-rename-file)
+    (rename-file . tramp-androidsu-sh-handle-rename-file)
     (set-file-acl . ignore)
     (set-file-modes . tramp-androidsu-adb-handle-set-file-modes)
     (set-file-selinux-context . ignore)
