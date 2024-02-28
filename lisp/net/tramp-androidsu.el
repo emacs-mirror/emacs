@@ -441,8 +441,8 @@ FUNCTION."
 (defalias 'tramp-androidsu-handle-verify-visited-file-modtime
   (tramp-androidsu-generate-wrapper #'tramp-handle-verify-visited-file-modtime))
 
-(defalias 'tramp-androidsu-handle-write-region
-  (tramp-androidsu-generate-wrapper #'tramp-handle-write-region))
+(defalias 'tramp-androidsu-sh-handle-write-region
+  (tramp-androidsu-generate-wrapper #'tramp-sh-handle-write-region))
 
 ;;;###tramp-autoload
 (defconst tramp-androidsu-file-name-handler-alist
@@ -532,7 +532,7 @@ FUNCTION."
     (unlock-file . tramp-androidsu-handle-unlock-file)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-androidsu-handle-verify-visited-file-modtime)
-    (write-region . tramp-androidsu-handle-write-region))
+    (write-region . tramp-androidsu-sh-handle-write-region))
   "Alist of TRAMP handler functions for superuser sessions on Android.")
 
 ;; It must be a `defsubst' in order to push the whole code into
