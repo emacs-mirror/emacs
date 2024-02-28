@@ -2774,8 +2774,8 @@ dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
 static dump_off
 dump_obarray (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_XXXXXXXXXX
-# error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
+#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_D2757E61AD
+# error "Lisp_Obarray changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Obarray *in_oa = XOBARRAY (object);
   struct Lisp_Obarray munged_oa = *in_oa;
@@ -3049,7 +3049,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_D8A254BC70
+#if CHECK_STRUCTS && !defined HASH_pvec_type_2D583AC566
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
