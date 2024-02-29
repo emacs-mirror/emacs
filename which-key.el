@@ -1129,6 +1129,7 @@ replacements are added to `which-key-replacement-alist'."
 The difference is that MODE specifies the `major-mode' that must
 be active for KEY-SEQUENCE and REPLACEMENT (MORE contains
 addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
+  (declare (indent defun))
   ;; TODO: Make interactive
   (when (not (symbolp mode))
     (error "MODE should be a symbol corresponding to a value of major-mode"))
@@ -1155,8 +1156,6 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
     (if (assq mode which-key--prefix-title-alist)
         (setcdr (assq mode which-key--prefix-title-alist) title-mode-alist)
       (push (cons mode title-mode-alist) which-key--prefix-title-alist))))
-(put 'which-key-add-major-mode-key-based-replacements
-     'lisp-indent-function 'defun)
 
 (defun which-key-define-key-recursively (map key def &optional at-root)
   "Recursively bind KEY in MAP to DEF on every level of MAP except the first.
