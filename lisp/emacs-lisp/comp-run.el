@@ -77,6 +77,19 @@ buffer."
           (const :tag "Report but do not display warnings/errors" silent))
   :version "28.1")
 
+(defcustom native-comp-async-report-warnings-errors-kind 'importants
+  "Select which kind of warnings and errors to report.
+
+Set this variable to `importants' to have only important warnings and
+all errors to be reported.
+
+Set this variable to `all' to have all warnings and errors to be
+reported."
+  :type '(choice
+          (const :tag "Report all warnings/errors" all)
+          (const :tag "Report only important warnings and errors" importants))
+  :version "30.1")
+
 (defcustom native-comp-always-compile nil
   "Non-nil means unconditionally (re-)compile all files."
   :type 'boolean
@@ -184,13 +197,21 @@ processes from `comp-async-compilations'"
       (let ((warning-suppress-types
              (if (eq native-comp-async-report-warnings-errors 'silent)
                  (cons '(comp) warning-suppress-types)
-               warning-suppress-types)))
+               warning-suppress-types))
+            (regexp (if (eq native-comp-async-report-warnings-errors-kind 'all)
+                        "^.*?\\(?:Error\\|Warning\\): .*$"
+                      (rx bol
+                          (*? nonl)
+                          (or
+                           (seq "Error: " (*? nonl))
+                           (seq "Warning: the function ‘" (1+ (not "’"))
+                                "’ is not known to be defined."))
+                          eol))))
         (with-current-buffer (process-buffer process)
           (save-excursion
             (accept-process-output process)
             (goto-char (or comp-last-scanned-async-output (point-min)))
-            (while (re-search-forward "^.*?\\(?:Error\\|Warning\\): .*$"
-                                      nil t)
+            (while (re-search-forward regexp nil t)
               (display-warning 'comp (match-string 0)))
             (setq comp-last-scanned-async-output (point-max)))))
     (accept-process-output process)))
