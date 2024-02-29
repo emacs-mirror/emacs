@@ -1632,7 +1632,7 @@ explicitly been loaded.  Then it is added to the rest of
 package's options.
 
 The optional argument to Babel or the mandatory argument to
-`\babelprovide' command may be \"AUTO\" which is then replaced
+`\\babelprovide' command may be \"AUTO\" which is then replaced
 with the language of the document or
 `org-export-default-language' unless language in question is
 already loaded.

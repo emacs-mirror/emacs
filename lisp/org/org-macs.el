@@ -982,7 +982,7 @@ Otherwise, return nil."
   "Splits STRING into substrings at SEPARATORS.
 
 SEPARATORS is a regular expression.  When nil, it defaults to
-\"[ \f\t\n\r\v]+\".
+\"[ \\f\\t\\n\\r\\v]+\".
 
 Unlike `split-string', matching SEPARATORS at the beginning and
 end of string are ignored."
