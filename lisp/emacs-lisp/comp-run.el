@@ -77,17 +77,16 @@ buffer."
           (const :tag "Report but do not display warnings/errors" silent))
   :version "28.1")
 
-(defcustom native-comp-async-report-warnings-errors-kind 'importants
-  "Select which kind of warnings and errors to report.
+(defcustom native-comp-async-warnings-errors-kind 'important
+  "Which kind of warnings and errors to report from async native compilation.
 
-Set this variable to `importants' to have only important warnings and
-all errors to be reported.
-
-Set this variable to `all' to have all warnings and errors to be
-reported."
+Setting this variable to `important' (the default) will report
+only important warnings and all errors.
+Setting this variable to `all' will report all warnings and
+errors."
   :type '(choice
           (const :tag "Report all warnings/errors" all)
-          (const :tag "Report only important warnings and errors" importants))
+          (const :tag "Report important warnings and all errors" important))
   :version "30.1")
 
 (defcustom native-comp-always-compile nil
@@ -198,7 +197,7 @@ processes from `comp-async-compilations'"
              (if (eq native-comp-async-report-warnings-errors 'silent)
                  (cons '(comp) warning-suppress-types)
                warning-suppress-types))
-            (regexp (if (eq native-comp-async-report-warnings-errors-kind 'all)
+            (regexp (if (eq native-comp-async-warnings-errors-kind 'all)
                         "^.*?\\(?:Error\\|Warning\\): .*$"
                       (rx bol
                           (*? nonl)

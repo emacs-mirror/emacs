@@ -1960,6 +1960,12 @@ The warning name is 'docstrings-control-chars'.
 *** The warning about wide docstrings can now be disabled separately.
 Its warning name is 'docstrings-wide'.
 
+---
+** New user option 'native-comp-async-warnings-errors-kind'.
+It allows control of what kinds of warnings and errors from asynchronous
+native compilation are reported to the parent Emacs process.  The
+default is to report all errors and only important warnings.
+
 +++
 ** New function declaration and property 'important-return-value'.
 The declaration '(important-return-value t)' sets the
