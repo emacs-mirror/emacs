@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 
   test_main();
 
-  printf("%s: Conculsion, failed to find any defects.\n", argv[0]);
+  printf("%s: Conclusion, failed to find any defects.\n", argv[0]);
 
   return 0;
 }

@@ -64,7 +64,7 @@ static void test(void *stack_pointer)
   die(mps_alloc(&a, pool, (size_t) 64), "alloc");
  }
 /* shouldn't be possible to set the commit limit to less than the amount
-   currently commited */
+   currently committed */
 
  report_res("com_less",
   mps_arena_commit_limit_set(arena, mps_arena_committed(arena)-1));

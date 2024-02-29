@@ -108,7 +108,7 @@ if write accesses to the range are to be forbidden, and contains the
 ``AccessREAD`` bit if read accesses to the range are to be forbidden.
 
 _`.if.set.read`: If the request is to forbid read accesses (that is,
-``AccessREAD`` is set) then the implemntation may also forbid write
+``AccessREAD`` is set) then the implementation may also forbid write
 accesses, but read accesses must not be forbidden unless
 ``AccessREAD`` is set.
 
