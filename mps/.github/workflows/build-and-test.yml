@@ -44,7 +44,7 @@ jobs:
 
     # See design.mps.tests.ci.run.posix.
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: CC=${{ matrix.compiler }} ./configure
     - run: make
     - run: make test
@@ -59,7 +59,7 @@ jobs:
     # <https://github.com/actions/runner-images/blob/e6fcf60b8e6c0f80a065327eaefe836881c28b68/images/win/Windows2022-Readme.md?plain=1#L215>.
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: |
          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
          cd code
