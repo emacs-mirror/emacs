@@ -89,7 +89,7 @@ Bool ShieldCheck(Shield shield)
      remember to sync it before we return to the mutator. */
   CHECKL(shield->limit + shield->queuePending >= shield->unsynced);
 
-  /* The mutator is suspeneded if there are any holds. */
+  /* The mutator is suspended if there are any holds. */
   CHECKL(shield->holds == 0 || shield->suspended);
 
   /* This is too expensive to check all the time since we have an

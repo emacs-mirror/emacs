@@ -267,7 +267,7 @@ Debit *total*, credit *free*. (But see `.account.total.negated`_.)
 _`.accounting.op.free`: Free a segment. First, ensure that the
 contents of the segment are accounted as free, by artificially ageing
 any memory accounted as *new* or *newDeferred* (see
-`.accounting.op.age`_) and then artifically reclaiming any memory
+`.accounting.op.age`_) and then artificially reclaiming any memory
 accounted as *old* or *oldDeferred* (see `.accounting.op.reclaim`_).
 Finally, debit *free*, credit *total*. (But see
 `.account.total.negated`_.)

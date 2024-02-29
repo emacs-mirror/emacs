@@ -116,7 +116,7 @@ it is merged with adjacent ranges so as to maintain
 
 _`.impl.rule.break`: The use of ``freelistEND`` to mark the end of the
 list violates the rule that exceptional values should not be used to
-distinguish exeptional situations. This infraction allows the
+distinguish exceptional situations. This infraction allows the
 implementation to meet `.req.zero-overhead`_. (There are other ways to
 do this, such as using another tag to indicate the last block in the
 list, but these would be more complicated.)

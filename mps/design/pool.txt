@@ -45,7 +45,7 @@ _`.struct.outer`: The *outer structure* of a pool belonging to the ABC
 pool class is a C object of type ``ABCPoolStruct``, which is a typedef
 for ``struct PoolABCStruct``.
 
-_`.stuct.outer.sig`: See `design.mps.sig.field.end.outer`_.
+_`.struct.outer.sig`: See `design.mps.sig.field.end.outer`_.
 
 .. _design.mps.sig.field.end.outer: sig.txt#field-end-outer
 

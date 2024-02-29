@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = regresion test for request.dylan.170461
+ summary = regression test for request.dylan.170461
  language = c
  link = testlib.o awlfmt.o
 END_HEADER

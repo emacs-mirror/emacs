@@ -219,7 +219,7 @@ white sets, each trace needs its own set of tables.
 
 _`.colour.check`: The grey-and-non-white state is illegal, and free
 objects must be white as explained in
-analysis.non-moving-colour.contraint.reclaim.
+analysis.non-moving-colour.constraint.reclaim.
 
 
 Iteration

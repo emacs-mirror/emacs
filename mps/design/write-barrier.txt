@@ -15,7 +15,7 @@ Write barrier
 Introduction
 ------------
 
-_`.intro`: This document explains the design of the write barrer of the
+_`.intro`: This document explains the design of the write barrier of the
 Memory Pool System (MPS).
 
 _`.readership`: This document is intended for developers of the MPS.
@@ -94,7 +94,7 @@ _`.deferral.reset`: The count is reset after three events:
 
   3. a barrier hit (``WB_DEFER_HIT``)
 
-_`.deferral.dabble`: The set of objects condemend by the garbage
+_`.deferral.dabble`: The set of objects condemned by the garbage
 collector changes, and so does what is interesting or boring.  For
 example, a collection of a nursery space in zone 3 might be followed
 by a collection of a top generation in zone 7.  This will upset
@@ -107,7 +107,7 @@ Improvements
 
 _`.improv.by-os`: The overheads hardware barriers varies widely between
 operating systems.  On Windows it is very cheap to change memory
-protection and to handle protecion faults.  On macOS it is very
+protection and to handle protection faults.  On macOS it is very
 expensive.  The balance between barriers and scanning work is
 different.  We should measure the relative costs and tune the deferral
 for each separately.

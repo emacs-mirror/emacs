@@ -717,7 +717,7 @@ static Compare SplaySplay(SplayTree splay, TreeKey key,
 #endif
 
   /* Short-circuit common cases.  Splay trees often bring recently
-     acccessed nodes to the root. */
+     accessed nodes to the root. */
   if (SplayTreeIsEmpty(splay) ||
       compare(SplayTreeRoot(splay), key) == CompareEQUAL)
     return CompareEQUAL;
@@ -1337,7 +1337,7 @@ Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
  * node affected by the change in properties at the given node (which has
  * the given key) in an appropriate order.
  *
- * The function fullfils its job by first splaying at the given node, and
+ * The function fulfils its job by first splaying at the given node, and
  * updating the single node.  In the MPS it is used by the CBS during
  * coalescing, when the node is likely to be at (or adjacent to) the top
  * of the tree anyway.

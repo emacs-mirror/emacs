@@ -114,7 +114,7 @@ is that if an object is finalized multiple times, then multiple
 guardians are created in the final pool, and so multiple messages will
 be posted to the message queue when the object is determined to be
 finalizable. But this behaviour is not guaranteed by the
-documentation, leaving us free to change the iplementation.
+documentation, leaving us free to change the implementation.
 
 _`.int.finalize.write`: Writes a reference to the object into the
 guardian object.

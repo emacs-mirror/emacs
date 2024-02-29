@@ -43,7 +43,7 @@ static void test(void *stack_pointer)
      to the free land.
 
      2. We are freeing every other object, and so each object is an
-     isolated continguous free range and so requires an additional CBS
+     isolated contiguous free range and so requires an additional CBS
      block.
 
      3. Eventually the free land's block pool runs out of memory and

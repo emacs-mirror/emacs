@@ -36,7 +36,7 @@ Allocations through the cache (using :c:func:`mps_sac_alloc` or
 :c:macro:`MPS_SAC_ALLOC_FAST`) are serviced from the cache if possible,
 otherwise from the pool. Similarly, deallocations through the cache
 (using :c:func:`mps_sac_free` or :c:macro:`MPS_SAC_FREE_FAST`) return
-the block to the appopriate free list for its size. For example::
+the block to the appropriate free list for its size. For example::
 
     Foo *foo;
     mps_addr_t p;
