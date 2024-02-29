@@ -95,6 +95,25 @@ as it is by default."
   :group 'Buffer-menu
   :version "22.1")
 
+(defcustom Buffer-menu-group-by nil
+  "If non-nil, buffers are grouped by function.
+This function takes one argument: a list of entries in the same format
+as in `tabulated-list-entries', and should return a list in the format
+suitable for `tabulated-list-groups'.  Also when this variable is non-nil,
+then `outline-minor-mode' is enabled in the Buffer Menu.  Then with the
+default value of `outline-regexp' you can use Outline minor mode commands
+to show/hide groups of buffers.
+The default options can group by a mode, and by a root directory of
+a project or just `default-directory'."
+  :type '(choice (const :tag "No grouping" nil)
+                 (function-item :tag "Group by mode"
+                                Buffer-menu-group-by-mode)
+                 (function-item :tag "Group by project root or directory"
+                                Buffer-menu-group-by-root)
+                 (function :tag "Custom function"))
+  :group 'Buffer-menu
+  :version "30.1")
+
 (defvar-local Buffer-menu-files-only nil
   "Non-nil if the current Buffer Menu lists only file buffers.
 This is set by the prefix argument to `buffer-menu' and related
@@ -408,14 +427,12 @@ When called interactively prompt for MARK;  RET remove all marks."
   (interactive "cRemove marks (RET means all):" Buffer-menu-mode)
   (save-excursion
     (goto-char (point-min))
-    (when (tabulated-list-header-overlay-p)
-      (forward-line))
     (while (not (eobp))
-      (let ((xmarks (list (aref (tabulated-list-get-entry) 0)
-                          (aref (tabulated-list-get-entry) 2))))
-        (when (or (char-equal mark ?\r)
-                  (member (char-to-string mark) xmarks))
-          (Buffer-menu--unmark)))
+      (when-let ((entry (tabulated-list-get-entry)))
+        (let ((xmarks (list (aref entry 0) (aref entry 2))))
+          (when (or (char-equal mark ?\r)
+                    (member (char-to-string mark) xmarks))
+            (Buffer-menu--unmark))))
       (forward-line))))
 
 (defun Buffer-menu-unmark-all ()
@@ -674,7 +691,12 @@ See more at `Buffer-menu-filter-predicate'."
       (setq Buffer-menu-buffer-list buffer-list)
       (setq Buffer-menu-filter-predicate filter-predicate)
       (list-buffers--refresh buffer-list old-buffer)
-      (tabulated-list-print))
+      (tabulated-list-print)
+      (when tabulated-list-groups
+        (setq-local outline-minor-mode-cycle t
+                    outline-minor-mode-highlight t
+                    outline-minor-mode-use-buttons 'in-margins)
+        (outline-minor-mode 1)))
     buffer))
 
 (defun Buffer-menu-mouse-select (event)
@@ -750,7 +772,11 @@ See more at `Buffer-menu-filter-predicate'."
 		  `("Mode" ,Buffer-menu-mode-width t)
 		  '("File" 1 t)))
     (setq tabulated-list-use-header-line Buffer-menu-use-header-line)
-    (setq tabulated-list-entries (nreverse entries)))
+    (setq tabulated-list-entries (nreverse entries))
+    (when Buffer-menu-group-by
+      (setq tabulated-list-groups
+            (seq-group-by Buffer-menu-group-by
+                          tabulated-list-entries))))
   (tabulated-list-init-header))
 
 (defun tabulated-list-entry-size-> (entry1 entry2)
@@ -768,5 +794,15 @@ See more at `Buffer-menu-filter-predicate'."
 	((bound-and-true-p list-buffers-directory)
          (abbreviate-file-name list-buffers-directory))
 	(t "")))
+
+(defun Buffer-menu-group-by-mode (entry)
+  (concat "* " (aref (cadr entry) 5)))
+
+(declare-function project-root "project" (project))
+(defun Buffer-menu-group-by-root (entry)
+  (concat "* " (with-current-buffer (car entry)
+                 (if-let ((project (project-current)))
+                     (project-root project)
+                   default-directory))))
 
 ;;; buff-menu.el ends here

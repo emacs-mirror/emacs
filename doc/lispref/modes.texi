@@ -1246,6 +1246,41 @@ Otherwise, the value should be a function which returns a list of the
 above form when called with no arguments.
 @end defvar
 
+@defvar tabulated-list-groups
+This buffer-local variable specifies the groups of entries displayed in
+the Tabulated List buffer.  Its value should be either a list, or a
+function.
+
+If the value is a list, each list element corresponds to one group, and
+should have the form @w{@code{(@var{group-name} @var{entries})}}, where
+@var{group-name} is a string inserted before all group entries, and
+@var{entries} have the same format as @code{tabulated-list-entries}
+(see above).
+
+Otherwise, the value should be a function which returns a list of the
+above form when called with no arguments.
+
+You can use @code{seq-group-by} to create @code{tabulated-list-groups}
+from @code{tabulated-list-entries}.  For example:
+
+@smallexample
+@group
+  (setq tabulated-list-groups
+        (seq-group-by 'Buffer-menu-group-by-mode
+                      tabulated-list-entries))
+@end group
+@end smallexample
+
+where you can define @code{Buffer-menu-group-by-mode} like this:
+
+@smallexample
+@group
+(defun Buffer-menu-group-by-mode (entry)
+  (concat "* " (aref (cadr entry) 5)))
+@end group
+@end smallexample
+@end defvar
+
 @defvar tabulated-list-revert-hook
 This normal hook is run prior to reverting a Tabulated List buffer.  A
 derived mode can add a function to this hook to recompute

@@ -1357,6 +1357,11 @@ This allows for rcirc logs to use a custom timestamp format, than the
 chat buffers use by default.
 
 ---
+*** New user option 'Buffer-menu-group-by'.
+It splits buffers by groups that are displayed with headings
+in Outline minor mode.
+
+---
 *** New command 'Buffer-menu-toggle-internal'.
 This command toggles the display of internal buffers in Buffer Menu mode;
 that is, buffers not visiting a file and whose names start with a space.
@@ -2069,6 +2074,10 @@ inside 'treesit-language-source-alist', so that calling
 'treesit-install-language-grammar' would avoid cloning the repository.
 It may be useful, for example, for the purposes of bisecting a
 treesitter grammar.
+
++++
+** New buffer-local variable 'tabulated-list-groups'.
+It prints and sorts the groups of entries separately.
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems

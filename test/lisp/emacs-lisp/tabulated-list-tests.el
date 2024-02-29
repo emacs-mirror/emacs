@@ -130,4 +130,45 @@
    (should-error (tabulated-list-sort) :type 'user-error)
    (should-error (tabulated-list-sort 4) :type 'user-error)))
 
+(ert-deftest tabulated-list-groups ()
+  (with-temp-buffer
+    (tabulated-list-mode)
+    (setq tabulated-list-groups
+          (reverse
+           (seq-group-by (lambda (b) (concat "* " (aref (cadr b) 3)))
+                         tabulated-list--test-entries)))
+    (setq tabulated-list-format tabulated-list--test-format)
+    (setq tabulated-list-padding 7)
+    (tabulated-list-init-header)
+    (tabulated-list-print)
+    ;; Basic printing.
+    (should (string-equal
+             (buffer-substring-no-properties (point-min) (point-max))
+             "\
+* installed
+       zzzz-game  zzzz-game  2113      installed   play zzzz in Emacs
+       mode       mode       1128      installed   A simple mode for editing Actionscript 3 files
+* available
+       abc-mode   abc-mode   944       available   Major mode for editing abc music files
+* obsolete
+       4clojure   4clojure   1507      obsolete    Open and evaluate 4clojure.com questions
+"))
+    ;; Sort and preserve position.
+    (forward-line 2)
+    (let ((pos (thing-at-point 'line)))
+      (tabulated-list-next-column 2)
+      (tabulated-list-sort)
+      (should (equal (thing-at-point 'line) pos))
+      (should (string-equal
+               (buffer-substring-no-properties (point-min) (point-max))
+               "\
+* installed
+       mode       mode       1128      installed   A simple mode for editing Actionscript 3 files
+       zzzz-game  zzzz-game  2113      installed   play zzzz in Emacs
+* available
+       abc-mode   abc-mode   944       available   Major mode for editing abc music files
+* obsolete
+       4clojure   4clojure   1507      obsolete    Open and evaluate 4clojure.com questions
+")))))
+
 ;;; tabulated-list-tests.el ends here
