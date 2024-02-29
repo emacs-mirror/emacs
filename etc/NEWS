@@ -1358,8 +1358,8 @@ chat buffers use by default.
 
 ---
 *** New user option 'Buffer-menu-group-by'.
-It splits buffers by groups that are displayed with headings
-in Outline minor mode.
+It controls how buffers are divided into groups that are displayed with
+headings using Outline minor mode.
 
 ---
 *** New command 'Buffer-menu-toggle-internal'.
@@ -2077,7 +2077,7 @@ treesitter grammar.
 
 +++
 ** New buffer-local variable 'tabulated-list-groups'.
-It prints and sorts the groups of entries separately.
+It controls display and separate sorting of groups of entries.
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems

@@ -1248,7 +1248,7 @@ above form when called with no arguments.
 
 @defvar tabulated-list-groups
 This buffer-local variable specifies the groups of entries displayed in
-the Tabulated List buffer.  Its value should be either a list, or a
+the Tabulated List buffer.  Its value should be either a list or a
 function.
 
 If the value is a list, each list element corresponds to one group, and
@@ -1271,6 +1271,7 @@ from @code{tabulated-list-entries}.  For example:
 @end group
 @end smallexample
 
+@noindent
 where you can define @code{Buffer-menu-group-by-mode} like this:
 
 @smallexample

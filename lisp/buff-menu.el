@@ -96,15 +96,16 @@ as it is by default."
   :version "22.1")
 
 (defcustom Buffer-menu-group-by nil
-  "If non-nil, buffers are grouped by function.
-This function takes one argument: a list of entries in the same format
-as in `tabulated-list-entries', and should return a list in the format
-suitable for `tabulated-list-groups'.  Also when this variable is non-nil,
-then `outline-minor-mode' is enabled in the Buffer Menu.  Then with the
-default value of `outline-regexp' you can use Outline minor mode commands
-to show/hide groups of buffers.
+  "If non-nil, a function to call to divide buffer-menu buffers into groups.
+This function is called with one argument: a list of entries in the same
+format as in `tabulated-list-entries', and should return a list in the
+format suitable for `tabulated-list-groups'.  Also, when this variable
+is non-nil, `outline-minor-mode' is enabled in the Buffer Menu and you
+can use Outline minor mode commands to show/hide groups of buffers,
+according to the value of `outline-regexp'.
 The default options can group by a mode, and by a root directory of
-a project or just `default-directory'."
+a project or just `default-directory'.
+If this is nil, buffers are not divided into groups."
   :type '(choice (const :tag "No grouping" nil)
                  (function-item :tag "Group by mode"
                                 Buffer-menu-group-by-mode)
