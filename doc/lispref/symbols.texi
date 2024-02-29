@@ -231,7 +231,7 @@ Emacs Lisp provides a different namespacing system called
 This function creates and returns a new obarray.
 The optional @var{size} may be used to specify the number of symbols
 that it is expected to hold, but since obarrays grow automatically
-as needed, this rarely provide any benefit.
+as needed, this rarely provides any benefit.
 @end defun
 
 @defun obarrayp object
