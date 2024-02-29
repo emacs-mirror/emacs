@@ -1964,7 +1964,10 @@ Its warning name is 'docstrings-wide'.
 ** New user option 'native-comp-async-warnings-errors-kind'.
 It allows control of what kinds of warnings and errors from asynchronous
 native compilation are reported to the parent Emacs process.  The
-default is to report all errors and only important warnings.
+default is to report all errors and only important warnings.  If you
+were used to customizing 'native-comp-async-report-warnings-errors' to
+nil or 'silent', we suggest that you now leave it at its default value,
+and see if you get only warnings that matter.
 
 +++
 ** New function declaration and property 'important-return-value'.
