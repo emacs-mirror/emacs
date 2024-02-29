@@ -29,10 +29,11 @@
 
 (defconst obarray-default-size 4)
 (make-obsolete-variable 'obarray-default-size
-                        "obarrays now grow automatically" "30.1")
+                        "obarrays now grow automatically." "30.1")
 
-(defun obarray-size (_ob) obarray-default-size)
-(make-obsolete 'obarray-size "obarrays now grow automatically" "30.1")
+(defun obarray-size (_ob)
+  (declare (obsolete "obarrays now grow automatically." "30.1"))
+  obarray-default-size)
 
 ;; Don’t use obarray as a variable name to avoid shadowing.
 (defun obarray-get (ob name)
@@ -42,7 +43,7 @@ Return nil otherwise."
 
 (defun obarray-put (ob name)
   "Return symbol named NAME from obarray OB.
-Creates and adds the symbol if doesn't exist."
+Creates and adds the symbol if it doesn't exist."
   (intern name ob))
 
 (defun obarray-remove (ob name)
