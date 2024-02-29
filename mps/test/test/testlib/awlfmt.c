@@ -1,6 +1,6 @@
 /* $Id$
 awlfmt.c
-   A format simlar to newfmt, but for the awl pool
+   A format similar to newfmt, but for the awl pool
 */
 
 #include "awlfmt.h"

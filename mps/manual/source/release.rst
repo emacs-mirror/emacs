@@ -846,7 +846,7 @@ New features
 
 #. The new pool class :ref:`pool-mvt` provides manually managed
    allocation of variable-size objects using a *temporal fit*
-   allocation policy (that is, objects that are allocated togther are
+   allocation policy (that is, objects that are allocated together are
    expected to be freed together).
 
 

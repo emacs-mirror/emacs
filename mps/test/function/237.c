@@ -59,7 +59,7 @@ static void test(void *stack_pointer)
  * hit (if it fails to halt the thread once, it assumes the thread is
  * no longer alive and will no longer try to halt it again). As such,
  * we terminate the thread when we have found a page that will trigger
- * the hit. Then, we can call SetLastError() with som error code, read
+ * the hit. Then, we can call SetLastError() with some error code, read
  * from the memory with a barrier. This triggers the exception
  * handler, which will realize that it needs to scan the particular
  * page, and thus need to stop threads. In this case, we know that the
@@ -67,7 +67,7 @@ static void test(void *stack_pointer)
  * GetLastError(). Then we can verify that the main thread does not
  * observe this change. This serves as a good (and hopefully,
  * reliable) illustration of what could happen, even if it is
- * tecnically a bad thing to have a terminated thread registered with
+ * technically a bad thing to have a terminated thread registered with
  * the MPS.
  */
 

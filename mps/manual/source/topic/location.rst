@@ -321,7 +321,7 @@ Location dependency interface
 
     Otherwise, :c:func:`mps_ld_isstale` may return either true or
     false. (The function strives to return true in the case where
-    ``addr`` was added to the location dependency and subsquently
+    ``addr`` was added to the location dependency and subsequently
     moved, and false otherwise, but cannot ensure this.)
 
     .. note::
@@ -356,7 +356,7 @@ Location dependency interface
 
     Otherwise, :c:func:`mps_ld_isstale_any` may return either true or
     false. (The function strives to return true in the case where a
-    block was added to the location dependency and subsquently moved,
+    block was added to the location dependency and subsequently moved,
     and false otherwise, but cannot ensure this.)
 
     .. note::

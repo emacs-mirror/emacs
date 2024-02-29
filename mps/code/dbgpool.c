@@ -333,7 +333,7 @@ static Bool patternCheck(ReadonlyAddr pattern, Size size, Addr base, Addr limit)
 
 /* debugPoolSegIterate -- iterate over a range of segments in an arena
  *
- * Expects to be called on a range corresponding to objects withing a
+ * Expects to be called on a range corresponding to objects within a
  * single pool.
  *
  * NOTE: This relies on pools consistently using segments

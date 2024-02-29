@@ -4,7 +4,7 @@
 # Copyright (c) 2018-2020 Ravenbrook Limited. See end of file for license.
 #
 # Read a telemetry stream from a program using the MPS, construct a
-# model of the MPS data structures in the progam, and display selected
+# model of the MPS data structures in the program, and display selected
 # time series from the model in a graphical user interface.
 #
 # Requirements: Python 3.6, Matplotlib, PyQt5.
@@ -1245,7 +1245,7 @@ class ErrorReporter(ContextDecorator):
 # help documentation.
 #
 # Otherwise the members of `iterable` are presentation names of key
-# presses. After convertion via the event_key function, they are matched
+# presses. After conversion via the event_key function, they are matched
 # against `event.key` for MPL key press events. So `iterable` may be a
 # single character, or a short string (whose individual characters are
 # the keys), or an iterable of strings.

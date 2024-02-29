@@ -225,7 +225,7 @@ void asserts(int expr, const char *format, ...)
 /* routines for easy use of the MPS */
 
 
-/* my own assertion handler, insalled by run_test */
+/* my own assertion handler, installed by run_test */
 
 static void mmqa_assert_handler(const char *cond, const char *id,
                               const char *file, unsigned line)

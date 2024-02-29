@@ -179,7 +179,7 @@ Res TransformAddOldNew(Transform transform,
 
     /* .old-white: Old refs must be in managed memory, because
        transformFix is only reached when a reference is to something
-       in the condemned set.  Other referenes are eliminated by
+       in the condemned set.  Other references are eliminated by
        TraceFix, and we can't (currently) transformation of them. */
     {
       Seg seg;

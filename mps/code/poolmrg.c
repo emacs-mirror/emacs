@@ -679,7 +679,7 @@ static void MRGFinish(Inst inst)
   /* We call RingRemove on the master node for the rings, thereby */
   /* effectively emptying them, but leaving the rest of the ring */
   /* "dangling".  This is okay as we are about to destroy all the */
-  /* segments so the contents of the rings will dissappear soon. */
+  /* segments so the contents of the rings will disappear soon. */
 
   /* .finish.no-final: Note that this relies on the fact that no */
   /* Guardians are in the FINAL state and hence on the Arena Message */

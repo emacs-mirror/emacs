@@ -83,7 +83,7 @@ enum {
 /* amcSegStruct -- AMC-specific fields appended to GCSegStruct
  *
  * .seg.accounted-as-buffered: The "accountedAsBuffered" flag is TRUE
- * if the segment has an atached buffer and is accounted against the
+ * if the segment has an attached buffer and is accounted against the
  * pool generation's bufferedSize. But note that if this is FALSE, the
  * segment might still have an attached buffer -- this happens if the
  * segment was condemned while the buffer was attached.
