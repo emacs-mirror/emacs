@@ -1592,7 +1592,7 @@ Within these categories order using `which-key-key-order'."
   (if (stringp maybe-string) (string-width maybe-string) 0))
 
 (defsubst which-key--butlast-string (str)
-  (mapconcat #'identity (butlast (split-string str)) " "))
+  (string-join (butlast (split-string str)) " "))
 
 (defun which-key--match-replacement (key-binding replacement)
   ;; these are mode specific ones to ignore. The mode specific case is
