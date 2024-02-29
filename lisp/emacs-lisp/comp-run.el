@@ -72,9 +72,9 @@ Set this variable to nil to suppress warnings altogether, or to
 the symbol `silent' to log warnings but not pop up the *Warnings*
 buffer."
   :type '(choice
-          (const :tag "Do not report warnings" nil)
-          (const :tag "Report and display warnings" t)
-          (const :tag "Report but do not display warnings" silent))
+          (const :tag "Do not report warnings/errors" nil)
+          (const :tag "Report and display warnings/errors" t)
+          (const :tag "Report but do not display warnings/errors" silent))
   :version "28.1")
 
 (defcustom native-comp-always-compile nil
