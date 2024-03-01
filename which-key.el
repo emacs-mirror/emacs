@@ -1448,7 +1448,7 @@ characters respectively."
       which-key-side-window-max-height))
    ;; width
    (max 0
-        (- (if (member which-key-side-window-location '(left right))
+        (- (if (memq which-key-side-window-location '(left right))
                (which-key--total-width-to-text
                 (which-key--width-or-percentage-to-width
                  which-key-side-window-max-width))
