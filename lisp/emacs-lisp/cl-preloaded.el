@@ -92,7 +92,7 @@ Each sublist is in the form (TYPE . DIRECT_SUBTYPES)"
      for child in children
      do (cl-pushnew parent (gethash child cl--direct-supertypes-of-type))))
 
-(defconst cl--typeof-types nil
+(defvar cl--typeof-types nil
   "Alist of supertypes.
 Each element has the form (TYPE . SUPERTYPES) where TYPE is one of
 the symbols returned by `type-of', and SUPERTYPES is the list of its
