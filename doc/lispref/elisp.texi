@@ -300,6 +300,7 @@ Lisp Data Types
 * Type Predicates::         Tests related to types.
 * Equality Predicates::     Tests of equality between any two objects.
 * Mutability::              Some objects should not be modified.
+* Type Hierarchy::          Type Hierarchy of Emacs Lisp objects.
 
 Programming Types
 
