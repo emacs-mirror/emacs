@@ -774,14 +774,20 @@ DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer,
 BASE-BUFFER should be a live buffer, or the name of an existing buffer.
 
 NAME should be a string which is not the name of an existing buffer.
+
+Interactively, prompt for BASE-BUFFER (offering the current buffer as
+the default), and for NAME (offering as default the name of a recently
+used buffer).
+
 Optional argument CLONE non-nil means preserve BASE-BUFFER's state,
 such as major and minor modes, in the indirect buffer.
-
 CLONE nil means the indirect buffer's state is reset to default values.
 
 If optional argument INHIBIT-BUFFER-HOOKS is non-nil, the new buffer
 does not run the hooks `kill-buffer-hook',
-`kill-buffer-query-functions', and `buffer-list-update-hook'.  */)
+`kill-buffer-query-functions', and `buffer-list-update-hook'.
+
+Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
   (Lisp_Object base_buffer, Lisp_Object name, Lisp_Object clone,
    Lisp_Object inhibit_buffer_hooks)
 {
