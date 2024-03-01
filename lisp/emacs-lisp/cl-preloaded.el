@@ -99,8 +99,7 @@ the symbols returned by `type-of', and SUPERTYPES is the list of its
 supertypes from the most specific to least specific.")
 
 (defun cl--supertypes-for-typeof-types (type)
-  (cl-loop with res = ()
-           with agenda = (list type)
+  (cl-loop with agenda = (list type)
            while agenda
            for element = (car agenda)
            unless (or (eq element t) ;; no t in `cl--typeof-types'.
