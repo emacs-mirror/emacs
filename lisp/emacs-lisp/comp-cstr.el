@@ -272,18 +272,19 @@ Return them as multiple value."
                 (symbol-name y)))
 
 (defun comp--direct-supertypes (type)
-  "Return the direct supertypes of TYPE."
-  (let ((supers (comp-supertypes type)))
-    (cl-assert (eq type (car supers)))
-    (cl-loop
-     with notdirect = nil
-     with direct = nil
-     for parent in (cdr supers)
-     unless (memq parent notdirect)
-     do (progn
-          (push parent direct)
-          (setq notdirect (append notdirect (comp-supertypes parent))))
-     finally return direct)))
+  (or
+   (gethash type cl--direct-supertypes-of-type)
+   (let ((supers (comp-supertypes type)))
+     (cl-assert (eq type (car supers)))
+     (cl-loop
+      with notdirect = nil
+      with direct = nil
+      for parent in (cdr supers)
+      unless (memq parent notdirect)
+        do (progn
+             (push parent direct)
+             (setq notdirect (append notdirect (comp-supertypes parent))))
+      finally return direct))))
 
 (defsubst comp-subtype-p (type1 type2)
   "Return t if TYPE1 is a subtype of TYPE2 or nil otherwise."

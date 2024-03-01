@@ -60,6 +60,7 @@ to use these types can be found in later chapters.
 * Type Predicates::             Tests related to types.
 * Equality Predicates::         Tests of equality between any two objects.
 * Mutability::                  Some objects should not be modified.
+* Type Hierarchy::              Type Hierarchy.
 @end menu
 
 @node Printed Representation
@@ -2496,3 +2497,23 @@ their components.  For example, @code{(eq "abc" "abc")} returns
 literal @code{"abc"}, and returns @code{nil} if it creates two
 instances.  Lisp programs should be written so that they work
 regardless of whether this optimization is in use.
+
+@node Type Hierarchy
+
+Lisp types are organized in a hierarchy, this means that types can
+derive from other types.  Objects of a type B (which derives from type
+A) inherite all the charateristics of type A.  This also means that
+every objects of type B is at the same time of type A.
+
+Every type derives from type @code{t}.
+
+New types can be defined by the user through @code{defclass} or
+@code{cl-defstruct}.
+
+The Lisp Type Hierarchy for primitive types can be represented as
+follow:
+
+@image{type_hierarchy,,,,png}
+
+For example type @code{list} derives from (is a special kind of) type
+@code{sequence} which on itself derives from @code{t}.
