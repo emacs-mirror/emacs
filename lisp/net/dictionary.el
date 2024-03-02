@@ -787,7 +787,7 @@ FUNCTION is the callback which is called for each search result."
 Optional argument NOMATCHING controls whether to suppress the display
 of matching words."
 
-  (message "Searching for %s in %s" word dictionary)
+  (insert (format-message "Searching for `%s' in `%s'\n" word dictionary))
   (dictionary-send-command (concat "define "
 				   (dictionary-encode-charset dictionary "")
 				   " \""
@@ -799,13 +799,13 @@ of matching words."
     (if (dictionary-check-reply reply 552)
 	(progn
 	  (unless nomatching
-	    (insert "Word not found")
+	    (insert (format-message "Word `%s' not found\n" word))
 	    (dictionary-do-matching
              word
 	     dictionary
 	     "."
 	     (lambda (reply)
-               (insert ", maybe you are looking for one of these words\n\n")
+               (insert "Maybe you are looking for one of these words\n")
                (dictionary-display-only-match-result reply)))
 	    (dictionary-post-buffer)))
       (if (dictionary-check-reply reply 550)
@@ -1128,8 +1128,8 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defun dictionary-do-matching (word dictionary strategy function)
   "Search for WORD with STRATEGY in DICTIONARY and display them with FUNCTION."
-  (message "Lookup matching words for %s in %s using %s"
-	   word dictionary strategy)
+  (insert (format-message "Lookup matching words for `%s' in `%s' using `%s'\n"
+                          word dictionary strategy))
   (dictionary-send-command
    (concat "match " (dictionary-encode-charset dictionary "") " "
 	   (dictionary-encode-charset strategy "") " \""
@@ -1141,10 +1141,13 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
     (if (dictionary-check-reply reply 551)
 	(error "Strategy \"%s\" is invalid" strategy))
     (if (dictionary-check-reply reply 552)
-	(error (concat
-		"No match for \"%s\" with strategy \"%s\" in "
-		"dictionary \"%s\".")
-	       word strategy dictionary))
+	(let ((errmsg (format-message
+                       (concat
+		        "No match for `%s' with strategy `%s' in "
+		        "dictionary `%s'.")
+	               word strategy dictionary)))
+          (insert errmsg "\n")
+          (user-error errmsg)))
     (unless (dictionary-check-reply reply 152)
       (error "Unknown server answer: %s" (dictionary-reply reply)))
     (funcall function reply)))
@@ -1271,7 +1274,7 @@ prompt for DICTIONARY."
   (interactive)
   (let ((word (current-word)))
     (unless word
-      (error "No word at point"))
+      (user-error "No word at point"))
     (dictionary-new-search (cons word dictionary-default-dictionary))))
 
 (defun dictionary-previous ()
@@ -1311,7 +1314,8 @@ prompt for DICTIONARY."
 (defun dictionary-popup-matching-words (&optional word)
   "Display entries matching WORD or the current word if not given."
   (interactive)
-  (dictionary-do-matching (or word (current-word) (error "Nothing to search for"))
+  (dictionary-do-matching (or word (current-word)
+                              (user-error "Nothing to search for"))
 			  dictionary-default-dictionary
 			  dictionary-default-popup-strategy
 			  'dictionary-process-popup-replies))
