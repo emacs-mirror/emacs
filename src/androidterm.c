@@ -811,6 +811,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
   int keysym;
   ptrdiff_t nchars, i;
   struct window *w;
+  static struct android_compose_status compose_status;
 
   /* It is okay for this to not resemble handle_one_xevent so much.
      Differences in event handling code are much less nasty than
@@ -947,6 +948,14 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 					       extra_keyboard_modifiers);
       modifiers = event->xkey.state;
 
+      /* In case Meta is ComposeCharacter, clear its status.  According
+	 to Markus Ehrnsperger
+	 Markus.Ehrnsperger@lehrstuhl-bross.physik.uni-muenchen.de this
+	 enables ComposeCharacter to work whether or not it is combined
+	 with Meta.  */
+      if (modifiers & ANDROID_ALT_MASK)
+	memset (&compose_status, 0, sizeof (compose_status));
+
       /* Common for all keysym input events.  */
       XSETFRAME (inev.ie.frame_or_window, any);
       inev.ie.modifiers
@@ -960,7 +969,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
 	nchars = android_wc_lookup_string (&event->xkey, copy_bufptr,
 					   copy_bufsiz, &keysym,
-					   &status_return);
+					   &status_return,
+					   &compose_status);
 
 	/* android_lookup_string can't be called twice, so there's no
 	   way to recover from buffer overflow.  */
@@ -999,6 +1009,13 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	    goto done_keysym;
 	  }
       }
+
+      /* If a compose sequence is in progress, we break here.
+	 Otherwise, chars_matched is always 0.  */
+      if (compose_status.chars_matched > 0 && nchars == 0)
+	break;
+
+      memset (&compose_status, 0, sizeof (compose_status));
 
       if (nchars == 1 && copy_bufptr[0] >= 32)
 	{

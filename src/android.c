@@ -123,6 +123,12 @@ struct android_emacs_cursor
   jmethodID constructor;
 };
 
+struct android_key_character_map
+{
+  jclass class;
+  jmethodID get_dead_char;
+};
+
 /* The API level of the current device.  */
 static int android_api_level;
 
@@ -202,6 +208,9 @@ static struct android_emacs_window window_class;
 
 /* Various methods associated with the EmacsCursor class.  */
 static struct android_emacs_cursor cursor_class;
+
+/* Various methods associated with the KeyCharacterMap class.  */
+static struct android_key_character_map key_character_map_class;
 
 /* The time at which Emacs was installed, which also supplies the
    mtime of asset files.  */
@@ -1865,6 +1874,32 @@ android_init_emacs_cursor (void)
 #undef FIND_METHOD
 }
 
+static void
+android_init_key_character_map (void)
+{
+  jclass old;
+
+  key_character_map_class.class
+    = (*android_java_env)->FindClass (android_java_env,
+				      "android/view/KeyCharacterMap");
+  eassert (key_character_map_class.class);
+
+  old = key_character_map_class.class;
+  key_character_map_class.class
+    = (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
+						  (jobject) old);
+  ANDROID_DELETE_LOCAL_REF (old);
+
+  if (!key_character_map_class.class)
+    emacs_abort ();
+
+  key_character_map_class.get_dead_char
+    = (*android_java_env)->GetStaticMethodID (android_java_env,
+					      key_character_map_class.class,
+					      "getDeadChar", "(II)I");
+  eassert (key_character_map_class.get_dead_char);
+}
+
 JNIEXPORT void JNICALL
 NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
 			 jobject dump_file_object)
@@ -1913,6 +1948,7 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
   android_init_emacs_drawable ();
   android_init_emacs_window ();
   android_init_emacs_cursor ();
+  android_init_key_character_map ();
 
   /* Set HOME to the app data directory.  */
   setenv ("HOME", android_files_dir, 1);
@@ -5376,11 +5412,51 @@ android_translate_coordinates (android_window src, int x,
   ANDROID_DELETE_LOCAL_REF (coordinates);
 }
 
+/* Return the character produced by combining the diacritic character
+   DCHAR with the key-producing character C in *VALUE.  Value is 1 if
+   there is no character for this combination, 0 otherwise.  */
+
+static int
+android_get_dead_char (unsigned int dchar, unsigned int c,
+		       unsigned int *value)
+{
+  jmethodID method;
+  jclass class;
+  jint result;
+
+  /* Call getDeadChar.  */
+  class = key_character_map_class.class;
+  method = key_character_map_class.get_dead_char;
+  result = (*android_java_env)->CallStaticIntMethod (android_java_env,
+						     class, method,
+						     (jint) dchar,
+						     (jint) c);
+
+  if (result)
+    {
+      *value = result;
+      return 0;
+    }
+
+  return 1;
+}
+
+/* Return a Unicode string in BUFFER_RETURN, a buffer of size
+   WCHARS_BUFFER, from the key press event EVENT, much like
+   XmbLookupString.  If EVENT represents a key press without a
+   corresponding Unicode character, return its keysym in *KEYSYM_RETURN.
+   Return the action taken in *STATUS_RETURN.
+
+   COMPOSE_STATUS, if non-NULL, should point to a structure for
+   temporary information to be stored in during dead key
+   composition.  */
+
 int
 android_wc_lookup_string (android_key_pressed_event *event,
 			  wchar_t *buffer_return, int wchars_buffer,
 			  int *keysym_return,
-			  enum android_lookup_status *status_return)
+			  enum android_lookup_status *status_return,
+			  struct android_compose_status *compose_status)
 {
   enum android_lookup_status status;
   int rc;
@@ -5389,6 +5465,7 @@ android_wc_lookup_string (android_key_pressed_event *event,
   jsize size;
   size_t i;
   JNIEnv *env;
+  unsigned int unicode_char;
 
   env = android_java_env;
   status = ANDROID_LOOKUP_NONE;
@@ -5402,6 +5479,13 @@ android_wc_lookup_string (android_key_pressed_event *event,
     {
       if (event->unicode_char)
 	{
+	  /* KeyCharacterMap.COMBINING_ACCENT.  */
+	  if ((event->unicode_char & 0x80000000) && compose_status)
+	    goto dead_key;
+
+	  /* Remove combining accent bits.  */
+	  unicode_char = event->unicode_char & ~0x80000000;
+
 	  if (wchars_buffer < 1)
 	    {
 	      *status_return = ANDROID_BUFFER_OVERFLOW;
@@ -5409,7 +5493,31 @@ android_wc_lookup_string (android_key_pressed_event *event,
 	    }
 	  else
 	    {
-	      buffer_return[0] = event->unicode_char;
+	      /* If COMPOSE_STATUS holds a diacritic mark unicode_char
+		 ought to be combined with, and this combination is
+		 valid, return the result alone with no keysym.  */
+
+	      if (compose_status
+		  && compose_status->chars_matched
+		  && !android_get_dead_char (compose_status->accent,
+					     unicode_char,
+					     &unicode_char))
+		{
+		  buffer_return[0] = unicode_char;
+		  *status_return = ANDROID_LOOKUP_CHARS;
+		  compose_status->chars_matched = 0;
+		  return 1;
+		}
+	      else if (compose_status && compose_status->chars_matched)
+		{
+		  /* If the combination is valid the compose status must
+		     be reset and no character returned.  */
+		  compose_status->chars_matched = 0;
+		  status = ANDROID_LOOKUP_NONE;
+		  return 0;
+		}
+
+	      buffer_return[0] = unicode_char;
 	      status = ANDROID_LOOKUP_CHARS;
 	      rc = 1;
 	    }
@@ -5426,7 +5534,6 @@ android_wc_lookup_string (android_key_pressed_event *event,
 	}
 
       *status_return = status;
-
       return rc;
     }
 
@@ -5482,6 +5589,15 @@ android_wc_lookup_string (android_key_pressed_event *event,
 
   *status_return = status;
   return rc;
+
+ dead_key:
+  /* event->unicode_char is a dead key, which are diacritic marks that
+     should not be directly inserted but instead be combined with a
+     subsequent character before insertion.  */
+  *status_return = ANDROID_LOOKUP_NONE;
+  compose_status->chars_matched = 1;
+  compose_status->accent = event->unicode_char & ~0x80000000;
+  return 0;
 }
 
 
