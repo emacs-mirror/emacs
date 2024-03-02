@@ -78,12 +78,14 @@
 
 ;;; Variables
 
-(defvar-local org-macro-templates nil
+(defvar-local org-macro-templates t
   "Alist containing all macro templates in current buffer.
 Associations are in the shape of (NAME . TEMPLATE) where NAME
 stands for macro's name and template for its replacement value,
-both as strings.  This is an internal variable.  Do not set it
-directly, use instead:
+both as strings.
+`t' means that it has not yet been initialized.
+
+This is an internal variable.  Do not set it directly, use instead:
 
   #+MACRO: name template")
 
