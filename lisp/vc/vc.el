@@ -3801,11 +3801,16 @@ to provide the `find-revision' operation instead."
   (vc-call-backend (vc-backend buffer-file-name) 'check-headers))
 
 (defun vc-clone (remote &optional backend directory rev)
-  "Use BACKEND to clone REMOTE into DIRECTORY.
-If successful, returns the string with the directory of the
-checkout.  If BACKEND is nil, iterate through every known backend
-in `vc-handled-backends' until one succeeds.  If REV is non-nil,
-it indicates a specific revision to check out."
+  "Clone repository REMOTE using version-control BACKEND, into DIRECTORY.
+If successful, return the string with the directory of the checkout;
+otherwise return nil.
+REMOTE should be a string, the URL of the remote repository or the name
+of a directory (if the repository is local).
+If DIRECTORY is nil or omitted, it defaults to `default-directory'.
+If BACKEND is nil or omitted, the function iterates through every known
+backend in `vc-handled-backends' until one succeeds to clone REMOTE.
+If REV is non-nil, it indicates a specific revision to check out after
+cloning; the syntax of REV depends on what BACKEND accepts."
   (setq directory (expand-file-name (or directory default-directory)))
   (if backend
       (progn
