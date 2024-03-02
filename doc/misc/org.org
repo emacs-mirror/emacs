@@ -15322,11 +15322,18 @@ the general options (see [[*Export Settings]]).
 
   #+cindex: @samp{TEXINFO_DIR_TITLE}, keyword
   The directory title of the document.
+  This is the short name under which the ~m~ command will find your
+  manual in the main Info directory.  It defaults to the base name of
+  the Texinfo file.
+
+  If you need more control, it can also be the full entry using the
+  syntax ~* TITLE: (FILENAME).~.
 
 - =TEXINFO_DIR_DESC= ::
 
   #+cindex: @samp{TEXINFO_DIR_DESC}, keyword
   The directory description of the document.
+  Defaults to the title of the document.
 
 - =TEXINFO_PRINTED_TITLE= ::
 
@@ -15422,7 +15429,7 @@ Here is an example that writes to the Info directory file:
 
 #+begin_example
 ,#+TEXINFO_DIR_CATEGORY: Emacs
-,#+TEXINFO_DIR_TITLE: Org Mode: (org)
+,#+TEXINFO_DIR_TITLE: Org Mode
 ,#+TEXINFO_DIR_DESC: Outline-based notes management and organizer
 #+end_example
 
@@ -15830,7 +15837,7 @@ Texinfo code.
 ,#+TEXINFO_HEADER: @syncodeindex pg cp
 
 ,#+TEXINFO_DIR_CATEGORY: Texinfo documentation system
-,#+TEXINFO_DIR_TITLE: sample: (sample)
+,#+TEXINFO_DIR_TITLE: sample
 ,#+TEXINFO_DIR_DESC: Invoking sample
 
 ,#+TEXINFO_PRINTED_TITLE: GNU Sample
