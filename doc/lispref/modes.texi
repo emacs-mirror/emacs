@@ -1265,9 +1265,9 @@ from @code{tabulated-list-entries}.  For example:
 
 @smallexample
 @group
-  (setq tabulated-list-groups
-        (seq-group-by 'Buffer-menu-group-by-mode
-                      tabulated-list-entries))
+(setq tabulated-list-groups
+      (seq-group-by 'Buffer-menu-group-by-mode
+                    tabulated-list-entries))
 @end group
 @end smallexample
 
