@@ -556,15 +556,16 @@ in the selected frame, and will remove any marks."
 (defun Buffer-menu-marked-buffers (&optional unmark)
   "Return the list of buffers marked with `Buffer-menu-mark'.
 If UNMARK is non-nil, unmark them."
-  (let (buffers)
-    (Buffer-menu-beginning)
-    (while (re-search-forward "^>" nil t)
-      (let ((buffer (Buffer-menu-buffer)))
-	(if (and buffer unmark)
-	    (tabulated-list-set-col 0 " " t))
-	(if (buffer-live-p buffer)
-	    (push buffer buffers))))
-    (nreverse buffers)))
+  (save-excursion
+    (let (buffers)
+      (Buffer-menu-beginning)
+      (while (re-search-forward "^>" nil t)
+        (let ((buffer (Buffer-menu-buffer)))
+	  (if (and buffer unmark)
+	      (tabulated-list-set-col 0 " " t))
+	  (if (buffer-live-p buffer)
+	      (push buffer buffers))))
+      (nreverse buffers))))
 
 (defun Buffer-menu-isearch-buffers ()
   "Search for a string through all marked buffers using Isearch."
