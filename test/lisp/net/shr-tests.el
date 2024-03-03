@@ -29,30 +29,62 @@
 
 (declare-function libxml-parse-html-region "xml.c")
 
-(defun shr-test (name)
-  (with-temp-buffer
-    (insert-file-contents (format (concat (ert-resource-directory) "/%s.html") name))
-    (let ((dom (libxml-parse-html-region (point-min) (point-max)))
-          (shr-width 80)
-          (shr-use-fonts nil))
-      (erase-buffer)
-      (shr-insert-document dom)
-      (cons (buffer-substring-no-properties (point-min) (point-max))
-            (with-temp-buffer
-              (insert-file-contents
-               (format (concat (ert-resource-directory) "/%s.txt") name))
-              (while (re-search-forward "%\\([0-9A-F][0-9A-F]\\)" nil t)
-                (replace-match (string (string-to-number (match-string 1) 16))
-                               t t))
-              (buffer-string))))))
+(defun shr-test--rendering-check (name &optional context)
+  "Render NAME.html and compare it to NAME.txt.
+Raise a test failure if the rendered buffer does not match NAME.txt.
+Append CONTEXT to the failure data, if non-nil."
+  (let ((text-file (file-name-concat (ert-resource-directory) (concat name ".txt")))
+        (html-file (file-name-concat (ert-resource-directory) (concat name ".html")))
+        (description (if context (format "%s (%s)" name context) name)))
+    (with-temp-buffer
+      (insert-file-contents html-file)
+      (let ((dom (libxml-parse-html-region (point-min) (point-max)))
+            (shr-width 80)
+            (shr-use-fonts nil))
+        (erase-buffer)
+        (shr-insert-document dom)
+        (let ((result (buffer-substring-no-properties (point-min) (point-max)))
+              (expected
+               (with-temp-buffer
+                 (insert-file-contents text-file)
+                 (while (re-search-forward "%\\([0-9A-F][0-9A-F]\\)" nil t)
+                   (replace-match (string (string-to-number (match-string 1) 16))
+                                  t t))
+                 (buffer-string))))
+          (unless (equal result expected)
+            (ert-fail (list description result expected))))))))
+
+(defconst shr-test--rendering-extra-configs
+  '(("blockquote"
+     ;; Make sure blockquotes remain indented even when filling is
+     ;; disabled (bug#69555).
+     . ((shr-fill-text . nil))))
+  "Extra customizations which can impact rendering.
+This is a list of (NAME . SETTINGS) pairs.  NAME is the basename of a
+set of txt/html files under shr-resources/, as passed to `shr-test'.
+SETTINGS is a list of (OPTION . VALUE) pairs that are interesting to
+validate for the NAME testcase.
+
+The `rendering' testcase will test NAME once without altering any
+settings, then once more for each (OPTION . VALUE) pair.")
 
 (ert-deftest rendering ()
   (skip-unless (fboundp 'libxml-parse-html-region))
   (dolist (file (directory-files (ert-resource-directory) nil "\\.html\\'"))
-    (let* ((name (replace-regexp-in-string "\\.html\\'" "" file))
-           (result (shr-test name)))
-      (unless (equal (car result) (cdr result))
-        (should (not (list name (car result) (cdr result))))))))
+    (let* ((name (string-remove-suffix ".html" file))
+           (extra-options (alist-get name shr-test--rendering-extra-configs
+                                     nil nil 'string=)))
+      ;; Test once with default settings.
+      (shr-test--rendering-check name)
+      ;; Test once more for every extra option for this specific NAME.
+      (pcase-dolist (`(,option-sym ,option-val)
+                     extra-options)
+        (let ((option-old (symbol-value option-sym)))
+          (set option-sym option-val)
+          (unwind-protect
+              (shr-test--rendering-check
+               name (format "with %s %s" option-sym option-val))
+            (set option-sym option-old)))))))
 
 (ert-deftest use-cookies ()
   (let ((shr-cookie-policy 'same-origin))
