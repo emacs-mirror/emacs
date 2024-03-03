@@ -98,17 +98,24 @@ Each element has the form (TYPE . SUPERTYPES) where TYPE is one of
 the symbols returned by `type-of', and SUPERTYPES is the list of its
 supertypes from the most specific to least specific.")
 
+(defvar cl--supertypes-lane nil)
+(defvar cl--supertypes-lanes-res nil)
+
+(defun cl--supertypes-for-typeof-types-rec (type)
+  ;; Walk recursively the DAG upwards, when the top is reached collect
+  ;; the current lane in `cl--supertypes-lanes-res'.
+  (push type cl--supertypes-lane)
+  (if-let ((parents (gethash type cl--direct-supertypes-of-type)))
+      (dolist (parent parents)
+        (cl--supertypes-for-typeof-types-rec parent))
+    (push (reverse (cdr cl--supertypes-lane)) ;; Don't include `t'.
+          cl--supertypes-lanes-res ))
+  (pop cl--supertypes-lane))
+
 (defun cl--supertypes-for-typeof-types (type)
-  (cl-loop with agenda = (list type)
-           while agenda
-           for element = (car agenda)
-           unless (or (eq element t) ;; no t in `cl--typeof-types'.
-                      (memq element res))
-             append (list element) into res
-           do (cl-loop for c in (gethash element cl--direct-supertypes-of-type)
-                       do (setq agenda (append agenda (list c))))
-           do (setq agenda (cdr agenda))
-           finally (cl-return res)))
+  (let (cl--supertypes-lane cl--supertypes-lanes-res)
+    (cl--supertypes-for-typeof-types-rec type)
+    (merge-ordered-lists cl--supertypes-lanes-res)))
 
 (maphash (lambda (type _)
            (push (cl--supertypes-for-typeof-types type) cl--typeof-types))
