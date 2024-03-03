@@ -50,76 +50,67 @@
         (apply #'error string (append sargs args))
       (signal 'cl-assertion-failed `(,form ,@sargs)))))
 
-
-(defconst cl--type-hierarchy
-  ;; Please run `sycdoc-update-type-hierarchy' in
-  ;; etc/syncdoc-type-hierarchy.el each time this is updated to
-  ;; reflect in the documentation.
-  '((t sequence atom)
-    (sequence list array)
-    (atom
-     class structure tree-sitter-compiled-query tree-sitter-node
-     tree-sitter-parser user-ptr font-object font-entity font-spec
-     condvar mutex thread terminal hash-table frame buffer function
-     window process window-configuration overlay integer-or-marker
-     number-or-marker symbol array obarray)
-    (number float integer)
-    (number-or-marker marker number)
-    (integer bignum fixnum)
-    (symbol keyword boolean symbol-with-pos)
-    (array vector bool-vector char-table string)
-    (list null cons)
-    (integer-or-marker integer marker)
-    (compiled-function byte-code-function)
-    (function subr module-function compiled-function)
-    (boolean null)
-    (subr subr-native-elisp subr-primitive)
-    (symbol-with-pos keyword))
-  "List of lists describing all the edges of the builtin type
-hierarchy.
-Each sublist is in the form (TYPE . DIRECT_SUBTYPES)"
-  ;; Given type hierarchy is a DAG (but mostly a tree) I believe this
-  ;; is the most compact way to express it.
-  )
-
 (defconst cl--direct-supertypes-of-type
-  (make-hash-table :test #'eq)
+  (let ((table (make-hash-table :test #'eq)))
+    (dolist (x '((sequence t)
+                 (atom t)
+                 (list sequence)
+                 (array sequence atom)
+                 (float number)
+                 (integer number integer-or-marker)
+                 (marker integer-or-marker number-or-marker)
+                 (integer-or-marker number-or-marker)
+                 (number number-or-marker)
+                 (bignum integer)
+                 (fixnum integer)
+                 (keyword symbol)
+                 (boolean symbol)
+                 (symbol-with-pos symbol)
+                 (vector array)
+                 (bool-vector array)
+                 (char-table array)
+                 (string array)
+                 ;; FIXME: This results in `atom' coming before `list' :-(
+                 (null boolean list)
+                 (cons list)
+                 (byte-code-function compiled-function)
+                 (subr compiled-function)
+                 (module-function function atom)
+                 (compiled-function function atom)
+                 (subr-native-elisp subr)
+                 (subr-primitive subr)))
+      (puthash (car x) (cdr x) table))
+    ;; And here's the flat part of the hierarchy.
+    (dolist (atom '( tree-sitter-compiled-query tree-sitter-node
+                     tree-sitter-parser user-ptr
+                     font-object font-entity font-spec
+                     condvar mutex thread terminal hash-table frame
+                     ;; function ;; FIXME: can be a list as well.
+                     buffer window process window-configuration
+                     overlay number-or-marker
+                     symbol obarray native-comp-unit))
+      (cl-assert (null (gethash atom table)))
+      (puthash atom '(atom) table))
+    table)
   "Hash table TYPE -> SUPERTYPES.")
 
-(cl-loop
- for (parent . children) in cl--type-hierarchy
- do (cl-loop
-     for child in children
-     do (cl-pushnew parent (gethash child cl--direct-supertypes-of-type))))
-
-(defvar cl--typeof-types nil
+(defconst cl--typeof-types
+  (letrec ((alist nil)
+           (allparents
+            (lambda (type)
+              ;; FIXME: copy&pasted from `cl--class-allparents'.
+              (let ((parents (gethash type cl--direct-supertypes-of-type)))
+                (cons type
+                      (merge-ordered-lists
+                       (mapcar allparents (remq t parents))))))))
+    (maphash (lambda (type _)
+              (push (funcall allparents type) alist))
+             cl--direct-supertypes-of-type)
+    alist)
   "Alist of supertypes.
 Each element has the form (TYPE . SUPERTYPES) where TYPE is one of
 the symbols returned by `type-of', and SUPERTYPES is the list of its
 supertypes from the most specific to least specific.")
-
-(defvar cl--supertypes-lane nil)
-(defvar cl--supertypes-lanes-res nil)
-
-(defun cl--supertypes-for-typeof-types-rec (type)
-  ;; Walk recursively the DAG upwards, when the top is reached collect
-  ;; the current lane in `cl--supertypes-lanes-res'.
-  (push type cl--supertypes-lane)
-  (if-let ((parents (gethash type cl--direct-supertypes-of-type)))
-      (dolist (parent parents)
-        (cl--supertypes-for-typeof-types-rec parent))
-    (push (reverse (cdr cl--supertypes-lane)) ;; Don't include `t'.
-          cl--supertypes-lanes-res ))
-  (pop cl--supertypes-lane))
-
-(defun cl--supertypes-for-typeof-types (type)
-  (let (cl--supertypes-lane cl--supertypes-lanes-res)
-    (cl--supertypes-for-typeof-types-rec type)
-    (merge-ordered-lists cl--supertypes-lanes-res)))
-
-(maphash (lambda (type _)
-           (push (cl--supertypes-for-typeof-types type) cl--typeof-types))
-         cl--direct-supertypes-of-type)
 
 (defconst cl--all-builtin-types
   (delete-dups (copy-sequence (apply #'append cl--typeof-types))))
