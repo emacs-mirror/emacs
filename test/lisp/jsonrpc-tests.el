@@ -76,6 +76,7 @@
           (setq endpoint
                 (make-instance
                  'jsonrpc--test-client
+                 :name
                  "Emacs RPC client"
                  :process
                  (open-network-stream "JSONRPC test tcp endpoint"

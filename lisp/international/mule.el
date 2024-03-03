@@ -318,7 +318,7 @@ Return t if file exists."
       (and (null noerror)
 	   (signal 'file-error (list "Cannot open load file" file)))
     ;; Read file with code conversion, and then eval.
-    (let ((buffer (generate-new-buffer " *load*"))
+    (let ((buffer (generate-new-buffer (file-name-nondirectory file)))
           (load-in-progress t)
           (source (string-suffix-p ".el" fullname)))
       (unless nomessage
@@ -334,6 +334,7 @@ Return t if file exists."
 		(inhibit-file-name-operation nil)
                 shorthands)
 	    (with-current-buffer buffer
+              (setq buffer-undo-list t)
               ;; So that we don't get completely screwed if the
               ;; file is encoded in some complicated character set,
               ;; read it with real decoding, as a multibyte buffer.

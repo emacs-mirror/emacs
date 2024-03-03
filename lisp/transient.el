@@ -856,7 +856,7 @@ to the setup function:
   (transient-setup \\='NAME nil nil :scope SCOPE)
 
 \(fn NAME ARGLIST [DOCSTRING] [KEYWORD VALUE]... GROUP... [BODY...])"
-  (declare (defining-symbol 1)
+  (declare (defining-symbol name)
            (debug ( &define name lambda-list
                     [&optional lambda-doc]
                     [&rest keywordp sexp]
@@ -898,7 +898,7 @@ ARGLIST.  The infix arguments are usually accessed by using
 `transient-args' inside `interactive'.
 
 \(fn NAME ARGLIST [DOCSTRING] [KEYWORD VALUE]... BODY...)"
-  (declare (defining-symbol 1)
+  (declare (defining-symbol name)
            (debug ( &define name lambda-list
                     [&optional lambda-doc]
                     [&rest keywordp sexp]
@@ -950,7 +950,7 @@ the infix command and use t as the value of the `:transient'
 keyword.
 
 \(fn NAME ARGLIST [DOCSTRING] [KEYWORD VALUE]...)"
-  (declare (defining-symbol 1)
+  (declare (defining-symbol name)
            (debug ( &define name lambda-list
                     [&optional lambda-doc]
                     [&rest keywordp sexp]))

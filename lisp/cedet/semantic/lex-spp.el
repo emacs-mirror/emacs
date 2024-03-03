@@ -1163,7 +1163,7 @@ of type `spp-macro-def' is to be created.
 VALFORM are forms that return the value to be saved for this macro, or nil.
 When implementing a macro, you can use `semantic-lex-spp-stream-for-macro'
 to convert text into a lexical stream for storage in the macro."
-  (declare (defining-symbol 1)
+  (declare (defining-symbol name doc)
            (debug (&define name stringp stringp form def-body))
            (indent 1))
   (let ((start (make-symbol "start"))
@@ -1199,7 +1199,7 @@ REGEXP is a regular expression for the analyzer to match.
 See `define-lex-regex-analyzer' for more on regexp.
 TOKIDX is an index into REGEXP for which a new lexical token
 of type `spp-macro-undef' is to be created."
-  (declare (defining-symbol 1)
+  (declare (defining-symbol name doc) ; Is this valid?  2024-01-20  NO!  2024-02-08 YES!
            (debug (&define name stringp stringp form))
            (indent 1))
   (let ((start (make-symbol "start"))
@@ -1262,7 +1262,7 @@ type of include.  The return value should be of the form:
   (NAME . TYPE)
 where NAME is the name of the include, and TYPE is the type of the include,
 where a valid symbol is `system', or nil."
-  (declare (defining-symbol 1)
+  (declare (defining-symbol name doc)
            (debug (&define name stringp stringp form def-body))
            (indent 1))
   (let ((start (make-symbol "start"))

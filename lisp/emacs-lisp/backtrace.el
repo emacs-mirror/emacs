@@ -902,7 +902,8 @@ function calls currently active."
       (backtrace-mode)
       (setq backtrace-view '(:show-flags t)
             backtrace-frames frames
-            backtrace-print-function #'cl-prin1)
+            backtrace-print-function #'prin1;; #'cl-prin1 STOUGH, 2024-02-12
+            )
       (backtrace-print)
       (filter-buffer-substring (point-min) (point-max)))))
 

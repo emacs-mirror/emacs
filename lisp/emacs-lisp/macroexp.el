@@ -114,12 +114,14 @@ Unless `macroexp-inhibit-compiler-macros' is non-nil, in which
 case return FORM unchanged."
   (if macroexp-inhibit-compiler-macros
       form
-    (condition-case-unless-debug err
+    ;; (condition-case-unless-debug err
         (apply handler form (cdr form))
-      (error
-       (message "Warning: Optimization failure for %S: Handler: %S\n%S"
-                (car form) handler err)
-       form))))
+      ;; (error
+      ;;  (message "Warning: Optimization failure for %S: Handler: %S\n%S"
+      ;;           (car form) handler err)
+      ;;  form)
+      ;; )
+  ))
 
 (defun macroexp--funcall-if-compiled (_form)
   "Pseudo function used internally by macroexp to delay warnings.
@@ -209,58 +211,46 @@ It should normally be a symbol with position and it defaults to FORM."
 
 (defun macroexpand-1 (form &optional environment)
   "Perform (at most) one step of macroexpansion."
-  (cond
-   ((consp form)
-    (let* ((head (car form))
-           (env-expander (assq head environment)))
-      ;; Special handling for `lambda', preserving any symbol position
-      ;; in it, and amending/creating its doc string for position
-      ;; information.
-      (if (eq head 'lambda)
-          (let* ((ds (and (stringp (nth 2 form))
-                          ;; (nthcdr 3 form)
-                                        ; Ensure we don't have
-                                        ; (lambda () "str").
-                          (nth 2 form)))
-                 (new-ds (byte-run-posify-doc-string ds head))
-                 new-link)
-            (setq form
-                  (cond
-                   ;; Overwrite the existing doc string with the new one
-                   (;;ds ;; (setcar (nthcdr 2 form) new-ds)
-                    (and (stringp (nth 2 form))
-                         (nthcdr 3 form))
-                    (nconc (list (car form) (cadr form) new-ds)
-                           (nthcdr 3 form))
-                    )
-                   ((and (consp (nth 2 form))
-                         (eq (car (nth 2 form)) ':documentation))
-                    form
-                    ;; How should we deal with a dynamic doc string?
-                    )
-                   ;; Insert the new doc string into the structure.
-                   (t (setq new-link (cons new-ds (nthcdr 2 form)))
-                      ;; (setcdr (cdr form) new-link)
-                      (nconc (list (car form) (cadr form)) new-link)
-                      )))
-            (list 'function form))
-      (if env-expander
-          (if (cdr env-expander)
-              (apply (cdr env-expander) (cdr form))
+  (let ((symbols-with-pos-enabled t))
+    (if (consp form)
+        (let* ((head (car form))
+               (env-expander (assq head environment))
+               (cur-evalled-macro-form form))
+          (cond
+           ;; Deal with `(defalias 'foo ...)' in the source code.
+           ;; Make sure `foo' gets regarded as the function name.
+           ((and (null defining-symbol)
+                 (symbol-with-pos-p head)
+                 (eq (bare-symbol head) 'defalias)
+                 (consp (car-safe (cdr form)))
+                 (consp (cdr (cadr form)))
+                 (symbolp (cadr (cadr form))))
+            (setq defining-symbol (cadr (cadr form)))
             form)
-        (if (not (and (symbolp head) (fboundp head)))
-            form
-          (let ((def (autoload-do-load (symbol-function head) head 'macro)))
-            (cond
-             ;; Follow alias, but only for macros, otherwise we may end up
-             ;; skipping an important compiler-macro (e.g. cl--block-wrapper).
-             ((and (symbolp def) (macrop def)) (cons def (cdr form)))
-             ((not (consp def)) form)
-             (t
-              (if (eq 'macro (car def))
-                  (apply (cdr def) (cdr form))
-                form)))))))))
-   (t form)))
+           ;; Special handling for `lambda', wrapping it in (function
+           ;; ...), and preserving any symbol position in it.
+           ((and (or (symbolp head) (symbol-with-pos-p head))
+                 (eq (bare-symbol head) 'lambda))
+            (setq form (list 'function form)))
+           (env-expander
+            (if (cdr env-expander)
+                (apply (cdr env-expander) (cdr form))
+              form))
+           ((and (symbolp head)
+                 (fboundp head))
+            (let ((def
+                   (autoload-do-load (symbol-function head) head 'macro)))
+              (cond
+               ;; Follow alias, but only for macros, otherwise we may end up
+               ;; skipping an important compiler-macro (e.g. cl--block-wrapper).
+               ((and (symbolp def) (macrop def))
+                (cons def (cdr form)))
+               ((not (consp def)) form)
+               ((eq 'macro (car def))
+                (apply (cdr def) (cdr form)))
+               (t form))))
+           (t form)))
+      form)))
 
 (defun macroexp-macroexpand (form env)
   "Like `macroexpand' but checking obsolescence."
@@ -385,7 +375,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                                (t t))
                      ;; This is unquestionably a default clause.
                      (setq default-tail (cdr rest))
-                     (setq clauses (take (1+ n) clauses))  ; trim the tail
+                     (setq clauses (take (1+ n) clauses)) ; trim the tail
                      (setq rest nil)))
                  (setq n (1+ n))
                  (setq rest (cdr rest)))
@@ -414,13 +404,21 @@ Assumes the caller has bound `macroexpand-all-environment'."
             (`(,(or 'defvar 'defconst) ,(and name (pred symbolp)) . ,_)
              (push name macroexp--dynvars)
              (macroexp--all-forms form 2))
-            (`(function ,(and f `(lambda . ,_)))
-             (let ((macroexp--dynvars macroexp--dynvars))
-               (macroexp--cons fn
-                               (macroexp--cons (macroexp--all-forms f 2)
-                                               nil
-                                               (cdr form))
-                               form)))
+            (`(function ,(and f `(lambda ,_ . ,_)))
+             (progn
+               (let ((macroexp--dynvars macroexp--dynvars))
+                 (setq f (macroexp--all-forms f 2))
+                 (setq f (byte-run-posify-lambda-form
+                          f (and (symbol-with-pos-p (car f))
+                                 (symbol-with-pos-pos (car f)))))
+                 (if (null byte-compile-in-progress)
+                     ;; Strip any position from lambda.  This can be
+                     ;; needed for source in loaddefs.el.
+                     (setq f (cons 'lambda (cdr f))))
+                 (macroexp--cons fn
+                                 (macroexp--cons f nil (cdr form))
+                                 form))))
+
             (`(,(or 'function 'quote) . ,_) form)
             (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body)
                                                  pcase--dontcare))
@@ -467,7 +465,10 @@ Assumes the caller has bound `macroexpand-all-environment'."
                     nil 'compile-only fn)
                  (let ((assignments nil))
                    (while (consp (cdr-safe args))
-                     (let* ((var (car args))
+                     (let* ((var (if (and (not byte-compile-in-progress)
+                                          (symbol-with-pos-p (car args)))
+                                     (bare-symbol (car args))
+                                   (car args)))
                             (expr (cadr args))
                             (new-expr (macroexp--expand-all expr))
                             (assignment
@@ -539,6 +540,9 @@ Assumes the caller has bound `macroexpand-all-environment'."
                              newform
                            (macroexp--expand-all form)))
                      (macroexp--expand-all newform))))))
+            ((guard (and (not byte-compile-in-progress)
+                         (symbol-with-pos-p form)))
+             (bare-symbol form))
             (_ form))))
     (pop byte-compile-form-stack)))
 
@@ -548,7 +552,8 @@ Assumes the caller has bound `macroexpand-all-environment'."
 If no macros are expanded, FORM is returned unchanged.
 The second optional arg ENVIRONMENT specifies an environment of macro
 definitions to shadow the loaded ones for use in file byte-compilation."
-  (let ((macroexpand-all-environment environment)
+  (let ((symbols-with-pos-enabled t)
+        (macroexpand-all-environment environment)
         (macroexp--dynvars macroexp--dynvars))
     (macroexp--expand-all form)))
 
@@ -556,7 +561,8 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 ;; forms.  It does not dynbind `macroexp--dynvars' because we want
 ;; top-level `defvar' declarations to be recorded in that variable.
 (defun macroexpand--all-toplevel (form &optional environment)
-  (let ((macroexpand-all-environment environment))
+  (let ((macroexpand-all-environment environment)
+        (symbols-with-pos-enabled t))
     (macroexp--expand-all form)))
 
 ;;; Handy functions to use in macros.
@@ -851,18 +857,20 @@ test of free variables in the following ways:
       (push 'skip macroexp--pending-eager-loads)
       form))
    (t
-    (condition-case err
-        (let ((macroexp--pending-eager-loads
-               (cons load-file-name macroexp--pending-eager-loads)))
-          (if full-p
-              (macroexpand--all-toplevel form)
-            (macroexpand form)))
-      ((debug error)
-       ;; Hopefully this shouldn't happen thanks to the cycle detection,
-       ;; but in case it does happen, let's catch the error and give the
-       ;; code a chance to macro-expand later.
-       (error "Eager macro-expansion failure: %S" err)
-       form)))))
+    ;; (condition-case err
+    (let ((macroexp--pending-eager-loads
+           (cons load-file-name macroexp--pending-eager-loads)))
+      (if full-p
+          (macroexpand--all-toplevel form)
+        (macroexpand form)))
+      ;; ((debug error)
+      ;;  ;; Hopefully this shouldn't happen thanks to the cycle detection,
+      ;;  ;; but in case it does happen, let's catch the error and give the
+      ;;  ;; code a chance to macro-expand later.
+      ;;  (error "Eager macro-expansion failure: %S" err)
+      ;;  form)
+      ;; )
+   )))
 
 ;; ¡¡¡ Big Ugly Hack !!!
 ;; src/bootstrap-emacs is mostly used to compile .el files, so it needs

@@ -1630,7 +1630,12 @@ Would expand to:
   See also `erc-server-311'.\"))
 
 \(fn (NAME &rest ALIASES) &optional EXTRA-FN-DOC EXTRA-VAR-DOC &rest FN-BODY)"
-  (declare (debug (&define [&name "erc-response-handler@"
+  (declare
+;;;; NEW STOUGH, 2023-12-24
+   ;; (defining-symbol name) ; Not too sure about this.  (ACM,
+   ;; 2023-12-24) Commented out, 2024-01-20, because it didn't work.
+;;;; END OF NEW STOUGH
+           (debug (&define [&name "erc-response-handler@"
                                   ;; No `def-edebug-elem-spec' in 27.
                                   ([&or integerp symbolp]
                                    &rest [&or integerp symbolp])]

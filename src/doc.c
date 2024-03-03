@@ -413,7 +413,8 @@ string is passed through `substitute-command-keys'.  */)
       doc = call1 (Qsubstitute_command_keys, doc);
     }
   else
-    doc = call1 (Qhelp_strip_pos_info, doc);
+    if (!(EQ (raw, Qalso_pos)))
+      doc = call1 (Qhelp_strip_pos_info, doc);
   return doc;
 }
 
@@ -748,7 +749,7 @@ syms_of_doc (void)
   DEFSYM (Qgrave, "grave");
   DEFSYM (Qstraight, "straight");
   DEFSYM (Qcurve, "curve");
-
+  DEFSYM (Qalso_pos, "also-pos");
   DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
   Vdoc_file_name = Qnil;

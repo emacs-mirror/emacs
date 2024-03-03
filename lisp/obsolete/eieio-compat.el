@@ -106,7 +106,6 @@ Summary:
      body)"
   (declare (doc-string 3) (obsolete cl-defmethod "25.1")
            (indent defun)
-           (defining-symbol 1)
            (debug
             (&define                    ; this means we are defining something
              [&name sexp]   ;Allow (setf ...) additionally to symbols.

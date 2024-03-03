@@ -51,6 +51,7 @@
 ;; successfully loading charprop.el, which defines the Unicode tables
 ;; bidi.c needs for its job.
 (setq redisplay--inhibit-bidi t)
+(setq text-quoting-style 'grave)
 
 (message "Dump mode: %s" dump-mode)
 
@@ -123,8 +124,16 @@
 (set-buffer "*scratch*")
 (setq buffer-undo-list t)
 
+(defvar real-defvar (symbol-function 'defvar))
+(setq symbols-with-pos-enabled t)
+(fset 'defvar (symbol-function 'defvar-bootstrap))
 (load "emacs-lisp/debug-early")
 (load "emacs-lisp/byte-run")
+(byte-run-posify-existing-defaliases)
+(byte-run-posify-existing-lambdas)
+;; (makunbound 'early-lambda-lists)
+(setq early-lambda-lists nil) ; We don't want its symbols with
+                              ; position in the dumped image.
 (load "emacs-lisp/backquote")
 (load "subr")
 (load "keymap")
@@ -163,6 +172,75 @@
   ;; Re-load macroexp so as to eagerly macro-expand its uses of pcase.
   (let ((max-lisp-eval-depth (* 2 max-lisp-eval-depth)))
     (load "emacs-lisp/macroexp")))
+(setq base-loaded t)
+
+(load "emacs-lisp/debug-early")
+(load "emacs-lisp/byte-run")
+(message "loadup.el, just after second load of byte-run.el.")
+(message "loadup.el.  base-loaded %S bound."
+         (if (boundp 'base-loaded) "is" "isn't"))
+(message "loadup.el.  base-loaded %S a SWP.  symbols-with-pos-enabled is %S"
+         (symbol-with-pos-p 'base-loaded) symbols-with-pos-enabled)
+(message "loadup.el, just after setting base-loaded to t")
+(unintern 'base-loaded nil) ; So that it can't be messed with from Lisp.
+(load "emacs-lisp/backquote")
+;; Second loading of these files to clear out symbols with positions from
+;; lambda symbols.  This absolutely requires macroexp.el.
+;; In the second loading, we make `internal-macroexpand-for-load' unbound so
+;; as to inhibit eager macro expansion in early loaded files that aren't ready
+;; for it.
+(load "subr")
+(load "keymap")
+
+;; Do it after subr, since both after-load-functions and add-hook are
+;; implemented in subr.el.
+(add-hook 'after-load-functions (lambda (_) (garbage-collect)))
+
+(load "version")
+
+(load "widget")
+(load "custom")
+(load "emacs-lisp/map-ynp")
+(load "international/mule")
+(load "international/mule-conf")
+(load "env")
+(load "format")
+(load "bindings")
+(load "window")  ; Needed here for `replace-buffer-in-windows'.
+;; We are now capable of resizing the mini-windows, so give the
+;; variable its advertised default value (it starts as nil, see
+;; xdisp.c).
+(setq resize-mini-windows 'grow-only)
+(setq load-source-file-function #'load-with-code-conversion)
+(load "files")
+
+;; Load-time macro-expansion can only take effect after setting
+;; load-source-file-function because of where it is called in lread.c.
+(load "emacs-lisp/macroexp")
+(if (compiled-function-p (symbol-function 'macroexpand-all))
+    nil
+  ;; Since loaddefs is not yet loaded, macroexp's uses of pcase will simply
+  ;; fail until pcase is explicitly loaded.  This also means that we have to
+  ;; disable eager macro-expansion while loading pcase.
+  (let ((macroexp--pending-eager-loads '(skip))) (load "emacs-lisp/pcase"))
+  ;; Re-load macroexp so as to eagerly macro-expand its uses of pcase.
+  (let ((max-lisp-eval-depth (* 2 max-lisp-eval-depth)))
+    (load "emacs-lisp/macroexp")))
+;; Clear out all the function-history from the functions we've loaded
+;; twice, since otherwise the stored old versions would contain
+;; symbols with properties which would thwart the portable dumper.
+(mapatoms (lambda (elt)
+            (let* ((plist (symbol-plist elt))
+                   (tail (memq 'function-history plist)))
+              (if tail
+                  (progn
+                    (setq plist (delq (car (cdr tail)) plist))
+                    (setq plist (delq 'function-history plist))
+                    (setplist elt plist))))))
+(fset 'defvar real-defvar)
+(message "Just after (fset defvar real-defvar)")
+(setq symbols-with-pos-enabled nil)
+(message "Just after setting symbols-with-pos-enabled back to nil")
 
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
@@ -604,6 +682,20 @@ directory got moved.  This is set to be a pair in the form of:
                   ;; Continue with loadup.
                   nil)
               (error nil))))))
+;;;; TEMP STOUGH, 2024-01-06
+  (message "\nRemaining buffers: %S\n" (buffer-list))
+  (message "\nScanning obarray for SWPs")
+  (message "byte-compile-in-progress: %S" byte-compile-in-progress)
+  (mapatoms (lambda (elt)
+              (if (symbol-with-pos-p elt)
+                  (message "%S is a symbol with position" elt))
+              (if (boundp elt)
+                  (byte-run-report-symbol-positions elt (symbol-value elt)))
+              (if (fboundp elt)
+                    (byte-run-report-symbol-positions elt (symbol-function elt)))
+              (if (symbol-plist elt)
+                  (byte-run-report-symbol-positions elt (symbol-plist elt)))))
+;;;; END OF TEMP STOUGH
   (if dump-mode
       (let ((output (cond ((equal dump-mode "pdump") "emacs.pdmp")
                           ((equal dump-mode "dump") "emacs")

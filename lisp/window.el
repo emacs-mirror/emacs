@@ -8061,13 +8061,13 @@ indirectly called by the latter."
           (when (and mode?
                      (not (and inhibit-same-window-p
                                (eq window curwin))))
-            (push window (if (eq curframe (window-frame window))
+            (if (eq curframe (window-frame window))
                              (if (eq mode? 'same)
-                                 same-mode-same-frame
-                               derived-mode-same-frame)
+                                 (push window same-mode-same-frame)
+                               (push window derived-mode-same-frame))
                            (if (eq mode? 'same)
-                               same-mode-other-frame
-                             derived-mode-other-frame))))))
+                               (push window same-mode-other-frame)
+                             (push window derived-mode-other-frame))))))
       (let ((window (car (nconc same-mode-same-frame
                                 same-mode-other-frame
                                 derived-mode-same-frame
@@ -9185,7 +9185,8 @@ to deactivate this overriding action."
     (when echofun
       (add-hook 'prefix-command-echo-keystrokes-functions echofun))
     (setq switch-to-buffer-obey-display-actions t)
-    (push action (car display-buffer-overriding-action))
+    (setcar display-buffer-overriding-action
+            (cons action display-buffer-overriding-action))
     exitfun))
 
 
@@ -10738,7 +10739,7 @@ displaying that processes's buffer."
                             ;; Add this window to the list of windows
                             ;; displaying process.
                             (if procwin
-                                (push window (cdr procwin))
+                                (setcdr procwin (cons window (cdr procwin)))
                               (push (list process window) process-windows))
                             ;; We found our process for this window, so
                             ;; stop iterating over the process list.

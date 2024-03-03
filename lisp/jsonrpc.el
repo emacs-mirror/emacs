@@ -77,6 +77,7 @@
     :documentation "A buffer pretty-printing the JSONRPC events")
    (-events-buffer-scrollback-size
     :initarg :events-buffer-scrollback-size
+    :initform nil
     :accessor jsonrpc--events-buffer-scrollback-size
     :documentation "Max size of events buffer.  0 disables, nil means infinite.")
    (-deferred-actions

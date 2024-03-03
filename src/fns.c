@@ -5488,6 +5488,9 @@ If KEY is not found, return DFLT which defaults to nil.  */)
   (Lisp_Object key, Lisp_Object table, Lisp_Object dflt)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
+  if (symbols_with_pos_enabled
+      && Fsymbol_with_pos_p (key))
+    key = Fbare_symbol (key);
   ptrdiff_t i = hash_lookup (h, key, NULL);
   return i >= 0 ? HASH_VALUE (h, i) : dflt;
 }
@@ -5502,6 +5505,9 @@ VALUE.  In any case, return VALUE.  */)
   struct Lisp_Hash_Table *h = check_hash_table (table);
   check_mutable_hash_table (table, h);
 
+  if (symbols_with_pos_enabled
+      && Fsymbol_with_pos_p (key))
+    key = Fbare_symbol (key);
   Lisp_Object hash;
   ptrdiff_t i = hash_lookup (h, key, &hash);
   if (i >= 0)

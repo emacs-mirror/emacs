@@ -549,7 +549,12 @@ already is one.)"
 
 (defun edebug-install-read-eval-functions ()
   (interactive)
-  (add-function :around load-read-function #'edebug--read)
+  ;; `load-read-function' might be dynamically bound by `load'.  We
+  ;; need to advise its default binding, not the current let binding
+  ;; in `load'.
+  (let ((load-read-function (default-toplevel-value 'load-read-function)))
+    (add-function :around (var load-read-function) #'edebug--read)
+    (set-default-toplevel-value 'load-read-function load-read-function))
   (advice-add 'eval-defun :around #'edebug--eval-defun))
 
 (defun edebug-uninstall-read-eval-functions ()
@@ -1149,35 +1154,35 @@ purpose by adding an entry to this alist, and setting
             ;; entering Edebug during the actual function's definition:
             ;; we only want to enter Edebug later when the thing is called.
             (defining-form-p
-              (if (or edebug-all-defs edebug-all-forms)
-                  ;; If it is a defining form and we are edebugging defs,
-                  ;; then let edebug-list-form start it.
-                  (let ((cursor (edebug-new-cursor
-                                 (list (edebug-read-storing-offsets (current-buffer)))
-                                 (list edebug-offsets))))
-                    (car
-                     (edebug-make-form-wrapper
-                      cursor
-                      (edebug-before-offset cursor)
-                      (1- (edebug-after-offset cursor))
-                      (list (cons (symbol-name def-kind) (cdr spec))))))
+             (if (or edebug-all-defs edebug-all-forms)
+                 ;; If it is a defining form and we are edebugging defs,
+                 ;; then let edebug-list-form start it.
+                 (let ((cursor (edebug-new-cursor
+                                (list (edebug-read-storing-offsets (current-buffer)))
+                                (list edebug-offsets))))
+                   (car
+                    (edebug-make-form-wrapper
+                     cursor
+                     (edebug-before-offset cursor)
+                     (1- (edebug-after-offset cursor))
+                     (list (cons (symbol-name def-kind) (cdr spec))))))
 
-                ;; Not edebugging this form, so reset the symbol's edebug
-                ;; property to be just a marker at the definition's source code.
-                ;; This only works for defs with simple names.
+               ;; Not edebugging this form, so reset the symbol's edebug
+               ;; property to be just a marker at the definition's source code.
+               ;; This only works for defs with simple names.
 
-                ;; Preserve the `edebug' property in case there's
-                ;; debugging still under way.
-                (let ((ghost (get def-name 'edebug)))
-                  (if (consp ghost)
-                      (put def-name 'ghost-edebug ghost)))
-                (put def-name 'edebug (point-marker))
-                ;; Also nil out dependent defs.
-                '(mapcar (function
-                          (lambda (def)
-                            (put def-name 'edebug nil)))
-                         (get def-name 'edebug-dependents))
-                (edebug-read-sexp)))
+               ;; Preserve the `edebug' property in case there's
+               ;; debugging still under way.
+               (let ((ghost (get def-name 'edebug)))
+                 (if (consp ghost)
+                     (put def-name 'ghost-edebug ghost)))
+               (put def-name 'edebug (point-marker))
+               ;; Also nil out dependent defs.
+               '(mapcar (function
+                         (lambda (def)
+                           (put def-name 'edebug nil)))
+                        (get def-name 'edebug-dependents))
+               (edebug-read-sexp)))
 
             ;; If all forms are being edebugged, explicitly wrap it.
             (edebug-all-forms

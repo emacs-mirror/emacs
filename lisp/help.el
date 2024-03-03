@@ -1323,7 +1323,7 @@ no characters other than the POS info, return nil instead."
   (when string
     (let (start index)
       (while
-          (and (setq index (string-match ";POS.\000\000\000 " string start))
+          (and (setq index (string-match ";POS.\001\001\001 " string start))
                (string-match "\n" string index))
         (setq start (match-end 0)))
       (cond
@@ -2322,7 +2322,7 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
     (concat docstring
             (cond
              ((progn (string-match
-                      "\\(?:;POS.\000\000\000 \\[[^]]+]\n\\)?\\(\n*\\)\\'"
+                      "\\(?:;POS.\001\001\001 \\[[^]]+]\n\\)?\\(\n*\\)\\'"
                       docstring)
                      (zerop (- (match-end 1) (match-beginning 1))))
               "\n\n")

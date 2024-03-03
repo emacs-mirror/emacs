@@ -3734,6 +3734,9 @@ each initialized to INIT.  */)
   CHECK_FIXNAT (slots);
   EMACS_INT size = XFIXNAT (slots) + 1;
   struct Lisp_Vector *p = allocate_record (size);
+  if (symbols_with_pos_enabled
+      && !NILP (Fsymbol_with_pos_p (type)))
+    type = Fbare_symbol (type);
   p->contents[0] = type;
   for (ptrdiff_t i = 1; i < size; i++)
     p->contents[i] = init;

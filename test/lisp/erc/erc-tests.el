@@ -134,13 +134,25 @@
     (advice-remove 'buffer-local-value 'erc-with-server-buffer)))
 
 (ert-deftest erc--with-dependent-type-match ()
-  (should (equal (macroexpand-1
-                  '(erc--with-dependent-type-match (repeat face) erc-match))
-                 '(backquote-list*
-                   'repeat :match (lambda (w v)
-                                    (require 'erc-match)
-                                    (widget-editable-list-match w v))
-                   '(face)))))
+;;  '(backquote-list*
+;;    'repeat :match (lambda (w v)
+;;                    ";POS\36\1\1\1 [nil nil nil 21249]\n"
+;;                    (require 'erc-match)
+;;                    (widget-editable-list-match w v))
+;;     '(face))
+  (let ((res (macroexpand-1
+               '(erc--with-dependent-type-match (repeat face) erc-match))))
+    (should (eq (car res) 'backquote-list*))
+    (should (equal (cadr res) ''repeat))
+    (should (eq (nth 2 res) ':match))
+    (let ((form (nth 3 res)))
+      (should (eq (car form) 'lambda))
+      (should (equal (cadr form) '(w v)))
+      (should (string-match ";POS\36\1\1\1 \\[nil nil nil [0-9]+]\n"
+                            (nth 2 form)))
+      (should (equal (nth 3 form) '(require 'erc-match)))
+      (should (equal (nth 4 form) '(widget-editable-list-match w v))))
+    (should (equal (nth 4 res) ''(face)))))
 
 (defun erc-tests--send-prep ()
   ;; Caller should probably shadow `erc-insert-modify-hook' or

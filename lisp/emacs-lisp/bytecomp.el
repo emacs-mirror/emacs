@@ -487,6 +487,10 @@ Filled in `cconv-analyze-form' but initialized and consulted here.")
 
 (defvar byte-compiler-error-flag)
 
+;; This variable is declared in src/lread.c for convenience in reading
+;; symbols.
+(defvar byte-compile-in-progress)
+
 (defun byte-compile-recurse-toplevel (form non-toplevel-case)
   "Implement `eval-when-compile' and `eval-and-compile'.
 Return the compile-time value of FORM."
@@ -1892,20 +1896,22 @@ It is too wide if it has any lines longer than the largest of
 	   (setq tem (byte-compile-log-file))
 	   (unless warning-series-started
 	     (setq warning-series (or tem 'byte-compile-warning-series)))
-	   (if byte-compile-debug
+	   ;; (if byte-compile-debug STOUGH, 2024-02-13
 	       (funcall --displaying-byte-compile-warnings-fn)
-	     (condition-case error-info
-		 (funcall --displaying-byte-compile-warnings-fn)
-	       (error (byte-compile-report-error error-info)))))
+	     ;; (condition-case error-info STOUGH, 2024-02-13
+	     ;;     (funcall --displaying-byte-compile-warnings-fn)
+	     ;;   (error (byte-compile-report-error error-info))))
+              )
        ;; warning-series does not come from compilation, so bind it.
        (let ((warning-series
 	      ;; Log the file name.  Record position of that text.
 	      (or (byte-compile-log-file) 'byte-compile-warning-series)))
-	 (if byte-compile-debug
+	 ;; (if byte-compile-debug STOUGH, 2024-02-13
 	     (funcall --displaying-byte-compile-warnings-fn)
-	   (condition-case error-info
-	       (funcall --displaying-byte-compile-warnings-fn)
-	     (error (byte-compile-report-error error-info))))))))
+	   ;; (condition-case error-info STOUGH, 2024-02-13
+	   ;;     (funcall --displaying-byte-compile-warnings-fn)
+	   ;;   (error (byte-compile-report-error error-info))))
+       ))))
 
 ;;;###autoload
 (defun byte-force-recompile (directory)
@@ -2166,10 +2172,9 @@ See also `emacs-lisp-byte-compile-and-load'."
 	;; It would be cleaner to use a temp buffer, but if there was
 	;; an error, we leave this buffer around for diagnostics.
 	;; Its name is documented in the lispref.
-	(setq input-buffer (get-buffer-create
-			    (concat " *Compiler Input*"
-				    (if (zerop byte-compile-level) ""
-				      (format "-%s" byte-compile-level)))))
+	(setq input-buffer (generate-new-buffer
+                            (file-name-nondirectory filename)))
+      (setq buffer-undo-list t)
       (erase-buffer)
       (setq buffer-file-coding-system nil)
       ;; Always compile an Emacs Lisp file as multibyte
@@ -2309,7 +2314,8 @@ With argument ARG, insert value in current buffer after the form."
   (save-excursion
     (end-of-defun)
     (beginning-of-defun)
-    (let* ((print-symbols-bare t)       ; For the final `message'.
+    (let* ((byte-compile-in-progress t)
+           (print-symbols-bare t)       ; For the final `message'.
            (byte-compile-current-file (current-buffer))
 	   (byte-compile-current-buffer (current-buffer))
 	   (start-read-position (point))
@@ -2332,7 +2338,8 @@ With argument ARG, insert value in current buffer after the form."
 	    ((message "%s" (prin1-to-string value)))))))
 
 (defun byte-compile-from-buffer (inbuffer)
-  (let ((byte-compile-current-buffer inbuffer)
+  (let ((byte-compile-in-progress t)
+        (byte-compile-current-buffer inbuffer)
 	;; Prevent truncation of flonums and lists as we read and print them
 	(float-output-format nil)
 	(case-fold-search nil)

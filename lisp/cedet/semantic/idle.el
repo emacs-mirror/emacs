@@ -566,7 +566,7 @@ DOC will be a documentation string describing FORMS.
 FORMS will be called during idle time after the current buffer's
 semantic tag information has been updated.
 This routine creates the following functions and variables:"
-  (declare (indent 1) (defining-symbol 1)
+  (declare (indent 1) (defining-symbol name doc)
            (debug (&define name stringp def-body)))
   (let ((global (intern (concat "global-" (symbol-name name) "-mode")))
 	(mode	(intern (concat (symbol-name name) "-mode")))

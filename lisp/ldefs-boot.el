@@ -6629,7 +6629,9 @@ There is some minimal font-lock support (see vars
 
 ;;; Generated autoloads from emacs-lisp/debug.el
 
-(setq debugger 'debug)
+(if (null noninteractive)
+    (setq debugger 'debug))
+
 (autoload 'debug "debug" "\
 Enter debugger.  \\<debugger-mode-map>`\\[debugger-continue]' returns from the debugger.
 Arguments are mainly for use when this is called from the internals

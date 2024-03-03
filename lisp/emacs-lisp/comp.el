@@ -3356,7 +3356,7 @@ the deferred compilation mechanism."
         (comp-log "\n\n" 1)
         (unwind-protect
             (progn
-              (condition-case-unless-debug err
+              ;; (condition-case-unless-debug err
                   (cl-loop
                    with report = nil
                    for t0 = (current-time)
@@ -3377,25 +3377,25 @@ the deferred compilation mechanism."
                               do (comp-log (format "Pass %s took: %fs."
                                                    pass time)
                                            0))))
-                (native-compiler-skip)
-                (t
-                 (let ((err-val (cdr err)))
-                   ;; If we are doing an async native compilation print the
-                   ;; error in the correct format so is parsable and abort.
-                   (if (and comp-async-compilation
-                            (not (eq (car err) 'native-compiler-error)))
-                       (progn
-                         (message (if err-val
-                                      "%s: Error: %s %s"
-                                    "%s: Error %s")
-                                  function-or-file
-                                  (get (car err) 'error-message)
-                                  (car-safe err-val))
-                         (kill-emacs -1))
-                     ;; Otherwise re-signal it adding the compilation input.
-	             (signal (car err) (if (consp err-val)
-			                   (cons function-or-file err-val)
-			                 (list function-or-file err-val)))))))
+                ;; (native-compiler-skip)
+                ;; (t
+                ;;  (let ((err-val (cdr err)))
+                ;;    ;; If we are doing an async native compilation print the
+                ;;    ;; error in the correct format so is parsable and abort.
+                ;;    (if (and comp-async-compilation
+                ;;             (not (eq (car err) 'native-compiler-error)))
+                ;;        (progn
+                ;;          (message (if err-val
+                ;;                       "%s: Error: %s %s"
+                ;;                     "%s: Error %s")
+                ;;                   function-or-file
+                ;;                   (get (car err) 'error-message)
+                ;;                   (car-safe err-val))
+                ;;          (kill-emacs -1))
+                ;;      ;; Otherwise re-signal it adding the compilation input.
+	        ;;      (signal (car err) (if (consp err-val)
+		;; 	                   (cons function-or-file err-val)
+		;; 	                 (list function-or-file err-val)))))))
               (if (stringp function-or-file)
                   data
                 ;; So we return the compiled function.

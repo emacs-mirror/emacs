@@ -33,6 +33,33 @@
 
 ;;; Code:
 
+;; The following function is a separate function so that the early
+;; bootstrap mechanism for stripping lambda symbols of their positions
+;; can work.
+
+(defvar prin1 nil
+  "Variable to hold the current `prin1' like function for debug-early.")
+
+(defalias 'debug-early-frame
+  #'(lambda (evald func args _flags)
+      "Print one frame of the currently active backtrace.
+For details, see `debug-early-backtrace'."
+      (let ((args args))
+	(if evald
+	    (progn
+	      (princ "  ")
+	      (funcall prin1 func)
+	      (princ "("))
+	  (progn
+	    (princ "  (")
+	    (setq args (cons func args))))
+	(if args
+	    (while (progn
+	             (funcall prin1 (car args))
+	             (setq args (cdr args)))
+	      (princ " ")))
+	(princ ")\n"))))
+
 (defalias 'debug-early-backtrace
   #'(lambda ()
       "Print a trace of Lisp function calls currently active.
@@ -45,30 +72,21 @@ of the build process."
       (let ((print-escape-newlines t)
             (print-escape-control-characters t)
             (print-escape-nonascii t)
-            (prin1 (if (and (fboundp 'cl-prin1)
-                            (fboundp 'cl-defmethod) ;Used by `cl-print'.
-                            (condition-case nil
-                                (require 'cl-print)
-                              (error nil)))
-                       #'cl-prin1
-                     #'prin1)))
+            (prin1
+;;;; TEMP OLD STOUGH, 2024-01-15
+                   ;; (if (and (fboundp 'cl-prin1)
+                   ;;          (fboundp 'cl-defmethod) ;Used by `cl-print'.
+                   ;;          (condition-case nil
+                   ;;              (require 'cl-print)
+                   ;;            (error nil)))
+                   ;;     #'cl-prin1
+                   ;;   #'prin1)
+;;;; TEMP NEW STOUGH, 2024-01-15
+             #'prin1
+;;;; END OF TEMP STOUGH
+                   ))
         (mapbacktrace
-         #'(lambda (evald func args _flags)
-             (let ((args args))
-	       (if evald
-	           (progn
-	             (princ "  ")
-	             (funcall prin1 func)
-	             (princ "("))
-	         (progn
-	           (princ "  (")
-	           (setq args (cons func args))))
-	       (if args
-	           (while (progn
-	                    (funcall prin1 (car args))
-	                    (setq args (cdr args)))
-	             (princ " ")))
-	       (princ ")\n")))))))
+         #'debug-early-frame))))
 
 (defalias 'debug-early
   #'(lambda (&rest args)

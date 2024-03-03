@@ -970,6 +970,11 @@ The return value is undefined.  */)
 
   maybe_defer_native_compilation (symbol, definition);
 
+  /* For the first few symbols from early-debug.el and byte-run.el, note the
+     symbol for later creation of position information in the doc string.  */
+  if (NILP (Ffboundp (Qdefun)))
+    Fput (symbol, Qbyte_run__early_defalias, symbol);
+
   if (!NILP (docstring))
     Fput (symbol, Qfunction_documentation, docstring);
   /* We used to return `definition', but now that `defun' and `defmacro' expand
@@ -4240,6 +4245,7 @@ syms_of_data (void)
   DEFSYM (Qtreesit_compiled_query, "treesit-compiled-query");
 
   DEFSYM (Qdefun, "defun");
+  DEFSYM (Qbyte_run__early_defalias, "byte-run--early-defalias");
 
   DEFSYM (Qinteractive_form, "interactive-form");
   DEFSYM (Qdefalias_fset_function, "defalias-fset-function");

@@ -3783,12 +3783,6 @@ set_symbol_function (Lisp_Object sym, Lisp_Object function)
 }
 
 INLINE void
-set_symbol_plist (Lisp_Object sym, Lisp_Object plist)
-{
-  XSYMBOL (sym)->u.s.plist = plist;
-}
-
-INLINE void
 set_symbol_next (Lisp_Object sym, struct Lisp_Symbol *next)
 {
   XSYMBOL (sym)->u.s.next = next;
@@ -4534,6 +4528,12 @@ INLINE Lisp_Object
 intern (const char *str)
 {
   return intern_1 (str, strlen (str));
+}
+
+INLINE void
+set_symbol_plist (Lisp_Object sym, Lisp_Object plist)
+{
+  XSYMBOL (sym)->u.s.plist = plist;
 }
 
 INLINE Lisp_Object

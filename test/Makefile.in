@@ -80,7 +80,7 @@ TEST_INTERACTIVE ?= no
 ifeq ($(TEST_INTERACTIVE),yes)
 TEST_RUN_ERT = --eval '(ert (quote ${SELECTOR_ACTUAL}))'
 else
-TEST_RUN_ERT = --batch --eval '(ert-run-tests-batch-and-exit (quote ${SELECTOR_ACTUAL}))' ${WRITE_LOG}
+TEST_RUN_ERT = --batch --eval "(setq backtrace-print-function 'prin1)" --eval '(ert-run-tests-batch-and-exit (quote ${SELECTOR_ACTUAL}))' ${WRITE_LOG}
 endif
 
 # Whether to run tests from .el files in preference to .elc, we do

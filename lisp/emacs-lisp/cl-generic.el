@@ -244,11 +244,9 @@ DEFAULT-BODY, if present, is used as the body of a default method.
   (declare (indent 2) (doc-string 3)
            (defining-symbol
             (if (eq (car-safe name) 'setf)
-                (progn
-                  (require 'gv)
-                  (declare-function gv-setter "gv" (name))
-                  (gv-setter (cadr name)))
-              name))
+                (car (cdr name))
+              name)
+            t)
            (debug
             (&define
              &interpose
@@ -296,7 +294,10 @@ DEFAULT-BODY, if present, is used as the body of a default method.
         (_ (push (pop options-and-methods) options))))
     (when options-and-methods
       ;; Anything remaining is assumed to be a default method body.
-      (push `(,args ,@options-and-methods) methods))
+      ;; A kludge to avoid a single string which is the return value
+      ;; of the method getting later sucked into the doc string.
+      (let ((default-doc (byte-run-posify-doc-string nil)))
+        (push `(,args ,default-doc ,@options-and-methods) methods)))
     (when (eq 'setf (car-safe name))
       (require 'gv)
       (declare-function gv-setter "gv" (name))
@@ -355,7 +356,7 @@ This macro can only be used within the lexical scope of a cl-generic method."
   "Define a special kind of context named NAME.
 Whenever a context specializer of the form (NAME . ARGS) appears,
 the specializer used will be the one returned by BODY."
-  (declare (defining-symbol 1)
+  (declare (defining-symbol name)
            (debug (&define name lambda-list def-body)) (indent defun))
   `(eval-and-compile
      (put ',name 'cl-generic--context-rewriter
@@ -528,7 +529,7 @@ of specific types of arguments.
 
 ARGS is a list of dispatch arguments (see `cl-defun'), but where
 each variable element is either just a single variable name VAR,
-or a list on the form (VAR TYPE).
+or a list of the form (VAR TYPE).
 
 For instance:
 
@@ -564,13 +565,9 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
 
 \(fn NAME [EXTRA] [QUALIFIER] ARGS &rest [DOCSTRING] BODY)"
   (declare (doc-string cl--defmethod-doc-pos) (indent defun)
-           (defining-symbol
-            (if (eq (car-safe name) 'setf)
-                (progn
-                  (require 'gv)
-                  (declare-function gv-setter "gv" (name))
-                  (gv-setter (cadr name)))
-              name))
+           ;; Because there are a variable number of parameters preceding
+           ;; any doc string, it is currently not possible to code a
+           ;; defining-symbol clause.  ACM, 2024-03-02.
            (debug
             (&define                    ; this means we are defining something
              [&name [sexp   ;Allow (setf ...) additionally to symbols.

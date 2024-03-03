@@ -46,7 +46,7 @@
   "The same as `defun', only register FUNC."
   (declare (indent 2)
            (doc-string 3)
-           (defining-symbol 1)
+           (defining-symbol func)
            (debug (&define name lambda-list def-body)))
   `(prog1
        (defun ,func ,args ,@forms)

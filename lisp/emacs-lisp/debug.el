@@ -154,7 +154,9 @@ where CAUSE can be:
   (goto-char (debugger--buffer-state-pos state)))
 
 ;;;###autoload
-(setq debugger 'debug)
+(if (null noninteractive)
+    (setq debugger 'debug))
+
 ;;;###autoload
 (defun debug (&rest args)
   "Enter debugger.  \\<debugger-mode-map>`\\[debugger-continue]' returns from the debugger.

@@ -3623,7 +3623,8 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	  format = num_end;
 
 	  if (format == end)
-	    error ("Format string ends in middle of format specifier");
+	    signal_error ("Format string ends in middle of format specifier",
+			  args[0]);
 
 	  char conversion = *format++;
 	  memset (&discarded[format0 - format_start], 1,

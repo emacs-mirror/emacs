@@ -417,7 +417,7 @@ Return the value of the last VAL."
   "Define MODE local variable SYM with value VAL.
 DOCSTRING is optional."
   (declare (indent defun)
-           (defining-symbol 2)
+           (defining-symbol sym docstring)
            (debug (&define symbolp name def-form [ &optional stringp ] )))
   `(progn
      (setq-mode-local ,mode ,sym ,val)
@@ -549,7 +549,7 @@ OVERARGS is a list of arguments passed to the override and
 `NAME-default' function, in place of those deduced from ARGS."
   (declare (doc-string 3)
            (indent defun)
-           (defining-symbol 1)
+           (defining-symbol name docstring)
            (debug (&define name lambda-list stringp def-body)))
   `(eval-and-compile
      (defun ,name ,args
@@ -579,7 +579,7 @@ BODY is the implementation of this function."
   ;; FIXME: Make this obsolete and use cl-defmethod with &context instead.
   (declare (doc-string 4)
            (indent defun)
-           (defining-symbol 1)
+           (defining-symbol name docstring)
            (debug (&define name symbolp lambda-list stringp def-body)))
   (let ((newname (intern (format "%s-%s" name mode))))
     `(progn

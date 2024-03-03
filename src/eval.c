@@ -551,7 +551,7 @@ usage: (function ARG)  */)
 	  cdr = Fcons (XCAR (cdr), Fcons (docstring, XCDR (XCDR (cdr))));
 	}
       if (NILP (Vinternal_make_interpreted_closure_function))
-        return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, cdr));
+	return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, cdr));
       else
         return call2 (Vinternal_make_interpreted_closure_function,
                       Fcons (Qlambda, cdr),
@@ -761,7 +761,8 @@ value.  */)
 }
 
 static Lisp_Object
-defvar (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring, bool eval)
+defvar (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring,
+	bool eval, bool forced_init)
 {
   Lisp_Object tem;
 
@@ -778,11 +779,15 @@ defvar (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring, bool eval
     { /* Check if there is really a global binding rather than just a let
 	     binding that shadows the global unboundness of the var.  */
       union specbinding *binding = default_toplevel_binding (sym);
+      Lisp_Object val;
+
+      if ((binding && BASE_EQ (specpdl_old_value (binding), Qunbound))
+	  || forced_init)
+	val = eval ? eval_sub (initvalue) : initvalue;
+      if (forced_init)
+	Fset_default (sym, val);
       if (binding && BASE_EQ (specpdl_old_value (binding), Qunbound))
-	{
-	  set_specpdl_old_value (binding,
-	                         eval ? eval_sub (initvalue) : initvalue);
-	}
+	  set_specpdl_old_value (binding, val);
     }
   return sym;
 }
@@ -828,7 +833,50 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 	error ("Too many arguments");
       Lisp_Object exp = XCAR (tail);
       tail = XCDR (tail);
-      return defvar (sym, exp, CAR (tail), true);
+      return defvar (sym, exp, CAR (tail), true, false);
+    }
+  else if (!NILP (Vinternal_interpreter_environment)
+	   && (SYMBOLP (sym) && !XSYMBOL (sym)->u.s.declared_special))
+    /* A simple (defvar foo) with lexical scoping does "nothing" except
+       declare that var to be dynamically scoped *locally* (i.e. within
+       the current file or let-block).  */
+    Vinternal_interpreter_environment
+      = Fcons (sym, Vinternal_interpreter_environment);
+  else
+    {
+      /* Simple (defvar <var>) should not count as a definition at all.
+	 It could get in the way of other definitions, and unloading this
+	 package could try to make the variable unbound.  */
+    }
+
+  return sym;
+}
+
+DEFUN ("defvar-bootstrap", Fdefvar_bootstrap, Sdefvar_bootstrap, 1, UNEVALLED, 0,
+       doc: /* Define SYMBOL as a variable, and return SYMBOL.
+This is like `defvar', except that if an INITVALUE is supplied, the
+variable is always initialized to it, regardless of whether or not
+it already has a value.
+
+This is only for use during bootstrapping.
+
+usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
+  (Lisp_Object args)
+{
+  Lisp_Object sym, tail;
+
+  sym = XCAR (args);
+  tail = XCDR (args);
+
+  CHECK_SYMBOL (sym);
+
+  if (!NILP (tail))
+    {
+      if (!NILP (XCDR (tail)) && !NILP (XCDR (XCDR (tail))))
+	error ("Too many arguments");
+      Lisp_Object exp = XCAR (tail);
+      tail = XCDR (tail);
+      return defvar (sym, exp, CAR (tail), true, true);
     }
   else if (!NILP (Vinternal_interpreter_environment)
 	   && (SYMBOLP (sym) && !XSYMBOL (sym)->u.s.declared_special))
@@ -852,7 +900,7 @@ DEFUN ("defvar-1", Fdefvar_1, Sdefvar_1, 2, 3, 0,
 More specifically behaves like (defvar SYM 'INITVALUE DOCSTRING).  */)
   (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring)
 {
-  return defvar (sym, initvalue, docstring, false);
+  return defvar (sym, initvalue, docstring, false, false);
 }
 
 DEFUN ("defconst", Fdefconst, Sdefconst, 2, UNEVALLED, 0,
@@ -1115,6 +1163,10 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 {
   /* With cleanups from Hallvard Furuseth.  */
   register Lisp_Object expander, sym, def, tem;
+  specpdl_ref count = SPECPDL_INDEX ();
+
+  specbind (Qcur_evalled_macro_form, Qnil);
+  specbind (Qsymbols_with_pos_enabled, Qt);
 
   while (1)
     {
@@ -1168,6 +1220,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	    break;
 	}
       {
+	Vcur_evalled_macro_form = form;
 	Lisp_Object newform = apply1 (expander, XCDR (form));
 	if (EQ (form, newform))
 	  break;
@@ -1175,7 +1228,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  form = newform;
       }
     }
-  return form;
+  return unbind_to (count, form);
 }
 
 DEFUN ("catch", Fcatch, Scatch, 1, UNEVALLED, 0,
@@ -2594,6 +2647,7 @@ eval_sub (Lisp_Object form)
 	     interpreted using lexical-binding or not.  */
 	  specbind (Qlexical_binding,
 		    NILP (Vinternal_interpreter_environment) ? Qnil : Qt);
+	  specbind (Qsymbols_with_pos_enabled, Qt);
 
 	  /* Make the macro aware of any defvar declarations in scope. */
 	  Lisp_Object dynvars = Vmacroexp__dynvars;
@@ -2607,7 +2661,11 @@ eval_sub (Lisp_Object form)
 	  if (!EQ (dynvars, Vmacroexp__dynvars))
 	    specbind (Qmacroexp__dynvars, dynvars);
 
+	  specbind (Qcur_evalled_macro_form, form);
+
 	  exp = apply1 (Fcdr (fun), original_args);
+	  if (base_loaded)
+	    exp = call2 (Qmacroexpand_all, exp, Qnil);
 	  exp = unbind_to (count1, exp);
 	  val = eval_sub (exp);
 	}
@@ -4274,6 +4332,7 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qautoload, "autoload");
   DEFSYM (Qinhibit_debugger, "inhibit-debugger");
   DEFSYM (Qmacro, "macro");
+  DEFSYM (Qmacroexpand_all, "macroexpand-all");
 
   /* Note that the process handling also uses Qexit, but we don't want
      to staticpro it twice, so we just do it here.  */
@@ -4410,6 +4469,11 @@ alist of active lexical bindings.  */);
 	       doc: /* Function to filter the env when constructing a closure.  */);
   Vinternal_make_interpreted_closure_function = Qnil;
 
+  DEFSYM (Qcur_evalled_macro_form, "cur-evalled-macro-form");
+  DEFVAR_LISP ("cur-evalled-macro-form", Vcur_evalled_macro_form,
+	       doc: /* The macro form currerntly being evaluated.  */);
+  Vcur_evalled_macro_form = Qnil;
+
   Vrun_hooks = intern_c_string ("run-hooks");
   staticpro (&Vrun_hooks);
 
@@ -4440,6 +4504,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sdefault_toplevel_value);
   defsubr (&Sset_default_toplevel_value);
   defsubr (&Sdefvar);
+  defsubr (&Sdefvar_bootstrap);
   defsubr (&Sdefvar_1);
   defsubr (&Sdefvaralias);
   DEFSYM (Qdefvaralias, "defvaralias");

@@ -57,17 +57,22 @@
      (t form))))
 
 (defmacro expand-minimally (form)
+  (declare (debug (sexp)))
   `(let ((use-package-verbose 'errors)
          (use-package-expand-minimally t))
      (macroexpand-1 ',form)))
 
 (defmacro expand-maximally (form)
+  (declare (debug (sexp)))
   `(let ((use-package-verbose 'debug)
          (use-package-expand-minimally nil))
      (macroexpand-1 ',form)))
 
 (defmacro match-expansion (form &rest value)
-  `(should (pcase (expand-minimally ,form)
+  ;; (declare (debug (sexp form)))
+  `(should (pcase
+               (byte-run-strip-lambda-doc
+                  (expand-minimally ,form))
              ,@(mapcar #'(lambda (x) (list x t)) value))))
 
 (defun fix-expansion ()

@@ -251,7 +251,7 @@ which can do arbitrary things, whereas the other arguments are all guaranteed
 to be pure and copyable.  Example use:
   (gv-define-setter aref (v a i) \\=`(aset ,a ,i ,v))"
   (declare (indent 2)
-           (defining-symbol 1)
+           (defining-symbol name)
            (debug (&define [&name symbolp "@gv-setter"] sexp def-body)))
   `(gv-define-expander ,name
      (lambda (do &rest args)

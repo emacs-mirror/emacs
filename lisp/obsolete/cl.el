@@ -512,7 +512,7 @@ a temporary-variables list, a value-forms list, a store-variables list
 
 See `gv-define-expander', and `gv-define-setter' for better and
 simpler ways to define setf-methods."
-  (declare (defining-symbol 1)
+  (declare (defining-symbol name)
            (debug
             (&define name cl-lambda-list cl-declarations-or-string def-body))
            (indent defun))
@@ -552,8 +552,7 @@ For example:
 You can replace this form with `gv-define-setter'.
 
 \(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
-  (declare (defining-symbol 1)
-           (debug
+  (declare (debug
             (&define name
                      [&or [symbolp &optional stringp]
                           [cl-lambda-list (symbolp)]]
@@ -617,8 +616,7 @@ arguments from ARGLIST using FUNC.  For example:
   (define-modify-macro incf (&optional (n 1)) +)
 
 You can replace this macro with `gv-letplace'."
-  (declare (defining-symbol 1)
-           (debug
+  (declare (debug
             (&define name cl-lambda-list ;; should exclude &key
                      symbolp &optional stringp))
            (indent defun))

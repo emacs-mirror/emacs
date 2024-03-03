@@ -172,6 +172,30 @@ LEVEL is only used internally and indicates the nesting level:
       (backquote-delay-process s (1- level))))
    ((eq (car s) backquote-backquote-symbol)
       (backquote-delay-process s (1+ level)))
+   ;; Process a (lambda ...) form specially, since otherwise the
+   ;; lambda symbol would get separated from its introductory (,
+   ;; preventing this processing from being done elsewhere in macro
+   ;; expansion.
+   ((and (eq (car s) 'lambda)
+         (symbol-with-pos-p (car s))
+         (listp (car-safe (cdr s))))
+    (let ((kdr (backquote-process (cdr s) level))
+          (lambda-pos (symbol-with-pos-pos (car s)))
+          )
+      (if (null byte-compile-in-progress)
+          (setcar s 'lambda))           ; Strip the position.
+      (cond
+       ((= (car kdr) 0)
+        (cons (car kdr)
+              (list 'quote
+                    (byte-run-posify-lambda-form
+                     (cons (car s) (car (cdr (cdr kdr)))) ; Two cdr's to strip 'quote.
+                     lambda-pos))))
+       (t
+        (cons 1
+              (list 'byte-run-posify-lambda-form
+                    (list 'cons (list 'quote (car s)) (cdr kdr))
+                    lambda-pos))))))
    (t
     (let ((rest s)
 	  item firstlist list lists expression)

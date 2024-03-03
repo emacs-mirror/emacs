@@ -3731,7 +3731,7 @@ There is no need to explicitly add `help-char' to CHARS;
               ;; We have a string (with one character), so return the first one.
               (elt result 0)
             ;; The default value is RET.
-            (when history (push "\r" (symbol-value history)))
+            (when history (set history (cons "\r" (symbol-value history))))
             ?\r)))
     ;; Display the question with the answer.
     (message "%s%s" prompt (char-to-string char))
@@ -6516,9 +6516,9 @@ To test whether a function can be called interactively, use
     (unless (memq keymap map)
       (unless (memq 'add-keymap-witness (symbol-value symbol))
         (setq map (make-composed-keymap nil (symbol-value symbol)))
-        (push 'add-keymap-witness (cdr map))
+        (setcdr map (cons 'add-keymap-witness (cdr map)))
         (set symbol map))
-      (push keymap (cdr map)))))
+      (setcdr map (cons keymap (cdr map))))))
 
 (defun internal-pop-keymap (keymap symbol)
   (let ((map (symbol-value symbol)))

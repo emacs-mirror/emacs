@@ -1086,6 +1086,7 @@ The predicate is the logical-AND of:
     `(and (pred consp)
           (app car-safe ,(list '\` (car qpat)))
           (app cdr-safe ,(list '\` (cdr qpat)))))
+   ((symbol-with-pos-p qpat) `',(bare-symbol qpat))
    ((or (stringp qpat) (numberp qpat) (symbolp qpat)) `',qpat)
    ;; In all other cases just raise an error so we can't break
    ;; backward compatibility when adding \` support for other

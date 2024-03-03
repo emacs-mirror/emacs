@@ -2667,8 +2667,20 @@ instead of native code for the function.
 This is valid for macros only.  Macros with this declaration are
 highlighted by font-lock (@pxref{Font Lock Mode}) as normal functions,
 not specially as macros.
-@end table
 
+@c NEW STOUGH, 2024-02-29
+@item (defining-symbol @var{val})
+This is valid for macros only.  It denotes a macro is a @dfn{defining
+macro}, that is, a macro which itself creates functions or macros.  As
+an example, @code{defun} is annotated with @code{defining-symbol}.
+This declaration causes the generation of code for certain boilerplate
+functions to be attached to the macro.  @var{val} contains
+specifications of where to find the name and doc string in the macro's
+arglist.  For details of @var{val}, see the doc string of
+@code{byte-run--posify-defining-form} in
+@file{lisp/emacs-lisp/byte-run.el}.
+@c END OF NEW STOUGH
+@end table
 @end defmac
 
 @node Declaring Functions

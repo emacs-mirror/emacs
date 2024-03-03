@@ -497,7 +497,13 @@ places where they originally did not directly appear."
          ('nil (setq bf nil))
          (`#',f
           (pcase-let ((`((,f1 . (,_ . ,f2)) . ,f3) bf))
-            (setq bf `((,f1 . (,(if wrapped (nth 2 f) cif) . ,f2)) . ,f3)))
+            (setq bf `((,f1 . (,(if wrapped
+                                    (if (stringp (nth 2 f))
+                                        (nth 3 f)
+                                      (nth 2 f))
+                                  cif)
+                               . ,f2))
+                       . ,f3)))
           (setq cif nil))
          ;; The interactive form needs special treatment, so the form
          ;; inside the `interactive' won't be used any further.
@@ -914,7 +920,11 @@ for the lexical bindings."
             ;; should keep their whole context untrimmed (bug#59213).
             (and (eq :closure-dont-trim-context (nth 2 fun))
                  ;; Check the function doesn't just return the magic keyword.
-                 (nthcdr 3 fun)))
+                 (nthcdr 3 fun))
+            (and (stringp (nth 2 fun))
+                 (eq :closure-dont-trim-context (nth 3 fun))
+                 ;; Ditto with a doc string.
+                 (nthcdr 4 fun)))
         ;; The lexical environment is empty, or needs to be preserved,
         ;; so there's no need to look for free variables.
         ;; Attempting to replace ,(cdr fun) by a macroexpanded version
