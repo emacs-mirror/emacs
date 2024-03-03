@@ -2353,7 +2353,7 @@ by `diff-refine-hunk'."
                                         (match-end 0)
                                         'diff-refine-removed))
              (goto-char middle)
-             (while (re-search-forward "^\\(?:+.*\n\\)+" end t)
+             (while (re-search-forward "^\\(?:\\+.*\n\\)+" end t)
                (diff--refine-propertize (match-beginning 0)
                                         (match-end 0)
                                         'diff-refine-added))))))
