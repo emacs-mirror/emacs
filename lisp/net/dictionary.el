@@ -1118,6 +1118,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
   "Run a new matching search on WORD."
   (dictionary-ensure-buffer)
   (dictionary-store-positions)
+  (dictionary-pre-buffer)
   (dictionary-do-matching word dictionary-default-dictionary
 			  dictionary-default-strategy
 			  'dictionary-display-match-result)
