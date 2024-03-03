@@ -1176,8 +1176,6 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defun dictionary-display-match-result (reply)
   "Display the results in REPLY from a match operation."
-  (dictionary-pre-buffer)
-
   (let ((number (nth 1 (dictionary-reply-list reply)))
 	(list (dictionary-simple-split-string (dictionary-read-answer) "\n+")))
     (insert number " matching word" (if (equal number "1") "" "s")
