@@ -463,6 +463,18 @@ DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
   return Qnil;
 }
 
+DEFUN ("marker-last-position", Fmarker_last_position, Smarker_last_position, 1, 1, 0,
+       doc: /* Return last position of MARKER in its buffer.
+This is like `marker-position' with one exception:  If the buffer of
+MARKER is dead, it returns the last position of MARKER in that buffer
+before it was killed.  */)
+  (Lisp_Object marker)
+{
+  CHECK_MARKER (marker);
+
+  return make_fixnum (XMARKER (marker)->charpos);
+}
+
 /* Change M so it points to B at CHARPOS and BYTEPOS.  */
 
 static void
@@ -830,6 +842,7 @@ void
 syms_of_marker (void)
 {
   defsubr (&Smarker_position);
+  defsubr (&Smarker_last_position);
   defsubr (&Smarker_buffer);
   defsubr (&Sset_marker);
   defsubr (&Scopy_marker);

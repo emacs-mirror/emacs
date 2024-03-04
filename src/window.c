@@ -7109,6 +7109,24 @@ current at the start of the function.  If DONT-SET-MINIWINDOW is non-nil,
 the mini-window of the frame doesn't get set to the corresponding element
 of CONFIGURATION.
 
+Normally, this function will try to delete any dead window in
+CONFIGURATION whose buffer has been deleted since CONFIGURATION was
+made.  However, if the abnormal hook `window-kept-windows-functions' is
+non-nil, it will preserve such a window in the restored layout and show
+another buffer in it.
+
+After restoring the frame layout, this function runs the abnormal hook
+`window-kept-windows-functions' with two arguments - the frame whose
+layout it has restored and a list of entries for each window whose
+buffer has been found dead when it tried to restore CONFIGURATION: Each
+entry is a list of four elements <window, buffer, start, point> where
+`window' denotes the window whose buffer was found dead, `buffer'
+denotes the dead buffer, and `start' and `point' denote the last known
+positions of `window-start' and `window-point' of the buffer in that
+window.  Any function run by this hook should check such a window for
+liveness because another function run by this hook may have deleted it
+in the meantime."
+
 If CONFIGURATION was made from a frame that is now deleted,
 only frame-independent values can be restored.  In this case,
 the return value is nil.  Otherwise the value is t.  */)
@@ -7119,6 +7137,7 @@ the return value is nil.  Otherwise the value is t.  */)
   struct Lisp_Vector *saved_windows;
   Lisp_Object new_current_buffer;
   Lisp_Object frame;
+  Lisp_Object kept_windows = Qnil;
   Lisp_Object old_frame = selected_frame;
   struct frame *f;
   ptrdiff_t old_point = -1;
@@ -7359,6 +7378,11 @@ the return value is nil.  Otherwise the value is t.  */)
 		   BUF_PT (XBUFFER (w->contents)),
 		   BUF_PT_BYTE (XBUFFER (w->contents)));
 	      w->start_at_line_beg = true;
+	      if (!NILP (Vwindow_kept_windows_functions))
+		kept_windows = Fcons (list4 (window, p->buffer,
+					     Fmarker_last_position (p->start),
+					     Fmarker_last_position (p->pointm)),
+				      kept_windows);
 	    }
 	  else if (!NILP (w->start))
 	    /* Leaf window has no live buffer, get one.  */
@@ -7379,6 +7403,11 @@ the return value is nil.  Otherwise the value is t.  */)
 		dead_windows = Fcons (window, dead_windows);
 	      /* Make sure window is no more dedicated.  */
 	      wset_dedicated (w, Qnil);
+	      if (!NILP (Vwindow_kept_windows_functions))
+		kept_windows = Fcons (list4 (window, p->buffer,
+					     Fmarker_last_position (p->start),
+					     Fmarker_last_position (p->pointm)),
+				      kept_windows);
 	    }
 	}
 
@@ -7430,12 +7459,13 @@ the return value is nil.  Otherwise the value is t.  */)
       unblock_input ();
 
       /* Scan dead buffer windows.  */
-      for (; CONSP (dead_windows); dead_windows = XCDR (dead_windows))
-	{
-	  window = XCAR (dead_windows);
-	  if (WINDOW_LIVE_P (window) && !EQ (window, FRAME_ROOT_WINDOW (f)))
-	    delete_deletable_window (window);
-	}
+      if (!NILP (Vwindow_kept_windows_functions))
+	for (; CONSP (dead_windows); dead_windows = XCDR (dead_windows))
+	  {
+	    window = XCAR (dead_windows);
+	    if (WINDOW_LIVE_P (window) && !EQ (window, FRAME_ROOT_WINDOW (f)))
+	      delete_deletable_window (window);
+	  }
 
       /* Record the selected window's buffer here.  The window should
 	 already be the selected one from the call above.  */
@@ -7482,6 +7512,11 @@ the return value is nil.  Otherwise the value is t.  */)
   minibuf_selected_window = data->minibuf_selected_window;
 
   SAFE_FREE ();
+
+  if (!NILP (Vrun_hooks) && !NILP (Vwindow_kept_windows_functions))
+    run_hook_with_args_2 (Qwindow_kept_windows_functions, frame,
+			  kept_windows);
+
   return FRAME_LIVE_P (f) ? Qt : Qnil;
 }
 
@@ -8479,6 +8514,8 @@ syms_of_window (void)
   DEFSYM (Qheader_line_format, "header-line-format");
   DEFSYM (Qtab_line_format, "tab-line-format");
   DEFSYM (Qno_other_window, "no-other-window");
+  DEFSYM (Qwindow_kept_windows_functions,
+	  "window-kept-windows-functions");
 
   DEFVAR_LISP ("temp-buffer-show-function", Vtemp_buffer_show_function,
 	       doc: /* Non-nil means call as function to display a help buffer.
@@ -8635,6 +8672,28 @@ at least one window on that frame has been added, deleted or changed
 its buffer or its total or body size since the last redisplay.  Each
 call is performed with the frame temporarily selected.  */);
   Vwindow_configuration_change_hook = Qnil;
+
+  DEFVAR_LISP ("window-kept-windows-functions",
+	       Vwindow_kept_windows_functions,
+	       doc: /* Functions run after restoring a window configuration or state.
+These functions are called by `set-window-configuration' and
+`window-state-put'.  When the value of this variable is non-nil, these
+functions restore any window whose buffer has been deleted since the
+corresponding configuration or state was saved.  Rather than deleting
+such a window, `set-window-configuration' and `window-state-put' show
+some live buffer in it.
+
+The value should be a list of functions that take two arguments.  The
+first argument specifies the frame whose configuration has been
+restored.  The second argument, if non-nil, specifies a list of entries
+for each window whose buffer has been found dead at the time
+'set-window-configuration' or `window-state-put' tried to restore it in
+that window.  Each entry is a list of four values - the window whose
+buffer was found dead, the dead buffer, and the positions of start and
+point of the buffer in that window.  Note that the window may be already
+dead since another function on this list may have deleted it in the
+meantime.  */);
+  Vwindow_kept_windows_functions = Qnil;
 
   DEFVAR_LISP ("recenter-redisplay", Vrecenter_redisplay,
 	       doc: /* Non-nil means `recenter' redraws entire frame.
