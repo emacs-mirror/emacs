@@ -602,7 +602,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
         (goto-char (point-min))
         ;; Kind of a hack to distinguish a submodule from
         ;; other cases of .git files pointing elsewhere.
-        (looking-at "gitdir: [./]+/\\.git/modules/"))
+        (looking-at "gitdir: .+/\\.git/\\(worktrees/.*\\)?modules/"))
       t)
      (t nil))))
 
