@@ -1719,7 +1719,10 @@ Ignore all `substitute-command-keys' substitutions, except for
 the `\\\\=[command]' ones that are assumed to be of a fixed length.
 Also ignore URLs."
   (let ((string-len (length docstring))
-        (start 0)
+        (start
+         (if (string-match "\\`;POS\36\01\01\01 [^\n]+\n" docstring)
+             (match-end 0)
+               0))
         (too-wide nil))
     (while (< start string-len)
       (let ((eol (or (string-search "\n" docstring start)

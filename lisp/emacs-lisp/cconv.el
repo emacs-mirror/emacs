@@ -487,7 +487,7 @@ places where they originally did not directly appear."
                                           branch))
                                 cond-forms)))
 
-      (`(function (lambda ,args . ,body) . ,rest)
+      (`(function (,(and 'lambda lambda-token) ,args . ,body) . ,rest)
        (let* ((docstring (if (eq :documentation (car-safe (car body)))
                              (cconv-convert (cadr (pop body)) env extend)))
               (bf (if (stringp (car body)) (cdr body) body))
@@ -526,7 +526,8 @@ places where they originally did not directly appear."
            ;; it with the new one.
            (let ((entry (pop cconv-freevars-alist)))
              (push (cons body (cdr entry)) cconv-freevars-alist)))
-         (setq cf (cconv--convert-function args body env form docstring))
+         (setq cf (cconv--convert-function args body env form
+                                           lambda-token docstring))
          (if (not cif)
              ;; Normal case, the interactive form needs no special treatment.
              cf
