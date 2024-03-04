@@ -196,7 +196,7 @@ The arg is an alist of: type specifier -> expected type specifier."
   ;; 74
   ((and boolean (or number marker)) . nil)
   ;; 75
-  ((and atom (or number marker)) . (or integer-or-marker number-or-marker))
+  ((and atom (or number marker)) . number-or-marker)
   ;; 76
   ((and symbol (or number marker)) . nil)
   ;; 77
