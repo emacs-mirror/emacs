@@ -510,7 +510,6 @@ default host name.  Therefore, it is convenient to open a file as
 The method @option{sg} stands for ``switch group''; here the user name
 is used as the group to change to.  The default host name is the same.
 
-
 @anchor{Quick Start Guide Combining ssh, plink, su, sudo and doas methods}
 @section Combining @option{ssh} or @option{plink} with @option{su}, @option{sudo} or @option{doas}
 @cindex method @option{ssh}
@@ -523,8 +522,6 @@ is used as the group to change to.  The default host name is the same.
 @cindex @option{sudo} method
 @cindex method @option{doas}
 @cindex @option{doas} method
-@cindex method @option{androidsu}
-@cindex @option{androidsu} method
 
 If the @option{su}, @option{sudo} or @option{doas} option should be
 performed on another host, it can be combined with a leading
@@ -534,12 +531,6 @@ and changes to administrative credentials on that host afterwards.  In
 a simple case, the syntax looks like
 @file{@trampfn{ssh@value{postfixhop}user@@host|sudo,,/path/to/file}}.
 @xref{Ad-hoc multi-hops}.
-
-The @option{su} method and other shell-based methods conflict with
-non-standard @command{su} implementations popular among Android users
-and the restricted command-line utilities distributed with that system.
-The @option{androidsu} method enables accessing files through
-@command{su} on such systems, but multi-hops are not supported.
 
 @anchor{Quick Start Guide sudoedit method}
 @section Using @command{sudoedit}
@@ -825,6 +816,16 @@ Instead of connecting to a remote host, @command{su} program allows
 editing as another user.  The host can be either @samp{localhost} or
 the host returned by the function @command{(system-name)}.  See
 @ref{Multi-hops} for an exception to this behavior.
+
+@cindex method @option{androidsu}
+@cindex @option{androidsu} method
+Because the default implementation of the @option{su} method and other
+shell-based methods conflict with non-standard @command{su}
+implementations popular among Android users and the restricted
+command-line utilities distributed with that system, a largely
+equivalent @option{androidsu} method is provided for that system with
+workarounds for its many idiosyncrasies, with the exception that
+multi-hops are unsupported.
 
 @item @option{sudo}
 @cindex method @option{sudo}
