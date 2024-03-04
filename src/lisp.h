@@ -1380,6 +1380,7 @@ make_lisp_ptr (void *ptr, enum Lisp_Type type)
 #define XSETCONS(a, b) ((a) = make_lisp_ptr (b, Lisp_Cons))
 #define XSETVECTOR(a, b) ((a) = make_lisp_ptr (b, Lisp_Vectorlike))
 #define XSETSTRING(a, b) ((a) = make_lisp_ptr (b, Lisp_String))
+#define XSETSYMBOL(a, b) ((a) = make_lisp_symbol (b))
 #define XSETFLOAT(a, b) ((a) = make_lisp_ptr (b, Lisp_Float))
 
 /* Return a Lisp_Object value that does not correspond to any object.
