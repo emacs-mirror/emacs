@@ -1448,7 +1448,8 @@ See Info node `(elisp) Integer Basics'."
 
 (defun byte-optimize-apply (form)
   (let ((len (length form)))
-    (if (>= len 2)
+    ;; Single-arg `apply' is an abomination that we don't bother optimizing.
+    (if (> len 2)
         (let ((fn (nth 1 form))
 	      (last (nth (1- len) form)))
           (cond

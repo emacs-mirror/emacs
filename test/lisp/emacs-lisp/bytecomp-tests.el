@@ -800,6 +800,9 @@ inner loops respectively."
     ;; Aristotelian identity optimization
     (let ((x (bytecomp-test-identity 1)))
       (list (eq x x) (eql x x) (equal x x)))
+
+    ;; Legacy single-arg `apply' call
+    (apply '(* 2 3))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
