@@ -1438,7 +1438,7 @@ should be used.
 This function attempts to use file contents to determine whether
 the code is C or C++ and based on that chooses whether to enable
 `c-ts-mode' or `c++-ts-mode'."
-  (declare (obsolete c-or-c++-mode "30.1"))?
+  (declare (obsolete c-or-c++-mode "30.1"))
   (interactive)
   (let ((mode
          (if (save-excursion
@@ -1447,8 +1447,8 @@ the code is C or C++ and based on that chooses whether to enable
                    (widen)
                    (goto-char (point-min))
                    (re-search-forward c-ts-mode--c-or-c++-regexp nil t))))
-             'c++-ts-mode)
-         'c-ts-mode))
+             'c++-ts-mode
+           'c-ts-mode)))
     (funcall (major-mode-remap mode))))
 
 ;; The entries for C++ must come first to prevent *.c files be taken

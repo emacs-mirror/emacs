@@ -2910,8 +2910,8 @@ the code is C or C++ and based on that chooses whether to enable
 		   (goto-char (point-min))
 		   (re-search-forward c-or-c++-mode--regexp
 				      (+ (point) c-guess-region-max) t))))
-	     'c++-mode)
-	 'c-mode))
+	     'c++-mode
+	   'c-mode)))
     (funcall (if (fboundp 'major-mode-remap)
 		 (major-mode-remap mode)
 	       mode))))
