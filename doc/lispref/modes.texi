@@ -791,6 +791,39 @@ init file.)
 @end smallexample
 @end defvar
 
+@defvar major-mode-remap-defaults
+This variable contains an association list indicating which function
+to call to activate a given major mode.  This is used for file formats
+that can be supported by various major modes, where this variable can be
+used to indicate which alternative should be used by default.
+
+For example, a third-party package providing a much improved Pascal
+major mode, can use the following to tell @code{normal-mode} to use
+@code{spiffy-pascal-mode} for all the files that would normally use @code{pascal-mode}:
+
+@smallexample
+@group
+(add-to-list 'major-mode-remap-defaults '(pascal-mode . spiffy-pascal-mode))
+@end group
+@end smallexample
+
+This variable has the same format as @code{major-mode-remap-alist}.
+If both lists match a major mode, the entry in
+@code{major-mode-remap-alist} takes precedence.
+@end defvar
+
+@defun major-mode-remap mode
+This function returns the major mode to use instead of @var{mode}
+according to @code{major-mode-remap-alist} and
+@code{major-mode-remap-defaults}.  It returns @var{mode} if the mode
+is not remapped by those variables.
+
+When a package wants to activate a major mode for a particular file
+format, it should use this function, passing as @code{mode} argument the
+canonical major mode for that file format, to find which specific major
+mode to activate, so as to take into account the user's preferences.
+@end defun
+
 @node Mode Help
 @subsection Getting Help about a Major Mode
 @cindex mode help

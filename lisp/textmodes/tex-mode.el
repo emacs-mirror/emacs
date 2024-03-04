@@ -1036,14 +1036,20 @@ says which mode to use."
                  ;; `tex--guess-mode' really tries to guess the *type* of file,
                  ;; so we still need to consult `major-mode-remap-alist'
                  ;; to see which mode to use for that type.
-                 (alist-get mode major-mode-remap-alist mode))))))
+                 (major-mode-remap mode))))))
 
-;; The following three autoloaded aliases appear to conflict with
-;; AUCTeX.  We keep those confusing aliases for those users who may
-;; have files annotated with -*- LaTeX -*- (e.g. because they received
+;; Support files annotated with -*- LaTeX -*- (e.g. because they received
 ;; them from someone using AUCTeX).
-;; FIXME: Turn them into autoloads so that AUCTeX can override them
-;; with its own autoloads?  Or maybe rely on `major-mode-remap-alist'?
+;;;###autoload (add-to-list 'major-mode-remap-defaults '(TeX-mode . tex-mode))
+;;;###autoload (add-to-list 'major-mode-remap-defaults '(plain-TeX-mode . plain-tex-mode))
+;;;###autoload (add-to-list 'major-mode-remap-defaults '(LaTeX-mode . latex-mode))
+
+;; FIXME: These aliases conflict with AUCTeX, but we still need them
+;; because of packages out there which call these functions directly.
+;; They should be patched to use `major-mode-remap'.
+;; It would be nice to mark them obsolete somehow to encourage using
+;; something else, but the obsolete declaration would become invalid
+;; and confusing when AUCTeX *is* installed.
 ;;;###autoload (defalias 'TeX-mode #'tex-mode)
 ;;;###autoload (defalias 'plain-TeX-mode #'plain-tex-mode)
 ;;;###autoload (defalias 'LaTeX-mode #'latex-mode)

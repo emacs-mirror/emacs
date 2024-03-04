@@ -3413,7 +3413,7 @@ checks if it uses an interpreter listed in `interpreter-mode-alist',
 matches the buffer beginning against `magic-mode-alist',
 compares the file name against the entries in `auto-mode-alist',
 then matches the buffer beginning against `magic-fallback-mode-alist'.
-It also obeys `major-mode-remap-alist'.
+It also obeys `major-mode-remap-alist' and `major-mode-remap-defaults'.
 
 If `enable-local-variables' is nil, or if the file name matches
 `inhibit-local-variables-regexps', this function does not check
@@ -3559,8 +3559,21 @@ we don't actually set it to the same mode the buffer already has."
 Every entry is of the form (MODE . FUNCTION) which means that in order
 to activate the major mode MODE (specified via something like
 `auto-mode-alist', file-local variables, ...) we should actually call
-FUNCTION instead."
+FUNCTION instead.
+FUNCTION can be nil to hide other entries (either in this var or in
+`major-mode-remap-defaults') and means that we should call MODE."
   :type '(alist (symbol) (function)))
+
+(defvar major-mode-remap-defaults nil
+  "Alist mapping file-specified mode to actual mode.
+This works like `major-mode-remap-alist' except it has lower priority
+and it is meant to be modified by packages rather than users.")
+
+(defun major-mode-remap (mode)
+  "Return the function to use to enable MODE."
+  (or (cdr (or (assq mode major-mode-remap-alist)
+               (assq mode major-mode-remap-defaults)))
+      mode))
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
@@ -3578,7 +3591,7 @@ same, do nothing and return nil."
 		        (eq mode (car set-auto-mode--last))
 		        (eq major-mode (cdr set-auto-mode--last)))))
     (when mode
-      (funcall (alist-get mode major-mode-remap-alist mode))
+      (funcall (major-mode-remap mode))
       (unless (eq mode major-mode)
         (setq set-auto-mode--last (cons mode major-mode)))
       mode)))

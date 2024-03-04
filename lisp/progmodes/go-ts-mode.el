@@ -262,6 +262,8 @@
     (treesit-major-mode-setup)))
 
 (if (treesit-ready-p 'go)
+    ;; FIXME: Should we instead put `go-mode' in `auto-mode-alist'
+    ;; and then use `major-mode-remap-defaults' to map it to `go-ts-mode'?
     (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode)))
 
 (defun go-ts-mode--defun-name (node &optional skip-prefix)
