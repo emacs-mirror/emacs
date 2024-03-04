@@ -1971,8 +1971,16 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       Lisp_Object tail, other;
 
       FOR_EACH_LIVE_BUFFER (tail, other)
-	if (XBUFFER (other)->base_buffer == b)
-	  Fkill_buffer (other);
+	{
+	  struct buffer *obuf = XBUFFER (other);
+	  if (obuf->base_buffer == b)
+	    {
+	      Fkill_buffer (other);
+	      if (BUFFER_LIVE_P (obuf))
+		error ("Unable to kill buffer whose indirect buffer `%s' cannot be killed",
+		       SDATA (BVAR (obuf, name)));
+	    }
+	}
 
       /* Exit if we now have killed the base buffer (Bug#11665).  */
       if (!BUFFER_LIVE_P (b))
