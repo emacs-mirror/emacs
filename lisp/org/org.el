@@ -716,9 +716,8 @@ defined in org-duration.el.")
   "Load all extensions listed in `org-modules'."
   (when (or force (not org-modules-loaded))
     (dolist (ext org-modules)
-      (condition-case err (require ext)
-	(error (message "Problems while trying to load feature `%s':\n%S"
-	                ext err))))
+      (condition-case nil (require ext)
+	(error (message "Problems while trying to load feature `%s'" ext))))
     (setq org-modules-loaded t)))
 
 (defun org-set-modules (var value)
@@ -856,7 +855,7 @@ depends on, if any."
   :group 'org-export
   :version "26.1"
   :package-version '(Org . "9.0")
-  :initialize #'custom-initialize-set
+  :initialize 'custom-initialize-set
   :set (lambda (var val)
 	 (if (not (featurep 'ox)) (set-default-toplevel-value var val)
 	   ;; Any back-end not required anymore (not present in VAL and not
@@ -906,9 +905,9 @@ depends on, if any."
 
 (eval-after-load 'ox
   '(dolist (backend org-export-backends)
-     (condition-case err (require (intern (format "ox-%s" backend)))
-       (error (message "Problems while trying to load export back-end `%s':\n%S"
-		       backend err)))))
+     (condition-case nil (require (intern (format "ox-%s" backend)))
+       (error (message "Problems while trying to load export back-end `%s'"
+		       backend)))))
 
 (defcustom org-support-shift-select nil
   "Non-nil means make shift-cursor commands select text when possible.
@@ -4773,7 +4772,7 @@ This is for getting out of special buffers like capture.")
 (require 'org-pcomplete)
 (require 'org-src)
 (require 'org-footnote)
-;; (require 'org-macro)
+(require 'org-macro)
 
 ;; babel
 (require 'ob)
@@ -4853,6 +4852,8 @@ The following commands are available:
   (when (and org-element-cache-persistent
              org-element-use-cache)
     (org-persist-load 'org-element--cache (current-buffer) t))
+  ;; Initialize macros templates.
+  (org-macro-initialize-templates)
   ;; Initialize radio targets.
   (org-update-radio-target-regexp)
   ;; Indentation.
@@ -10458,7 +10459,7 @@ EXTRA is additional text that will be inserted into the notes buffer."
         org-log-note-this-command this-command
         org-log-note-recursion-depth (recursion-depth)
         org-log-setup t)
-  (add-hook 'post-command-hook #'org-add-log-note 'append))
+  (add-hook 'post-command-hook 'org-add-log-note 'append))
 
 (defun org-skip-over-state-notes ()
   "Skip past the list of State notes in an entry."
@@ -10487,7 +10488,7 @@ EXTRA is additional text that will be inserted into the notes buffer."
   "Pop up a window for taking a note, and add this note later."
   (when (and (equal org-log-note-this-command this-command)
              (= org-log-note-recursion-depth (recursion-depth)))
-    (remove-hook 'post-command-hook #'org-add-log-note)
+    (remove-hook 'post-command-hook 'org-add-log-note)
     (setq org-log-setup nil)
     (setq org-log-note-window-configuration (current-window-configuration))
     (delete-other-windows)

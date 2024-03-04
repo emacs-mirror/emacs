@@ -132,8 +132,6 @@ Version mismatch is commonly encountered in the following situations:
 
 ;; Use `with-silent-modifications' to ignore cosmetic changes and
 ;; `org-unmodified' to ignore real text modifications.
-;; FIXME: Won't "real text modifications" break the undo data if
-;; `buffer-undo-list' is let-bound to t?
 (defmacro org-unmodified (&rest body)
   "Run BODY while preserving the buffer's `buffer-modified-p' state."
   (declare (debug (body)))
@@ -143,7 +141,7 @@ Version mismatch is commonly encountered in the following situations:
            (let ((buffer-undo-list t)
 		 (inhibit-modification-hooks t))
 	     ,@body)
-	 (restore-buffer-modified-p ,was-modified)))))
+	 (set-buffer-modified-p ,was-modified)))))
 
 (defmacro org-with-base-buffer (buffer &rest body)
   "Run BODY in base buffer for BUFFER.
