@@ -413,8 +413,16 @@ drain_message_queue (void)
 
   while (PeekMessage (&msg, NULL, 0, 0, PM_REMOVE))
     {
-      if (msg.message == WM_EMACS_FILENOTIFY)
-	retval = 1;
+      switch (msg.message)
+	{
+	case WM_WTSSESSION_CHANGE:
+	  if (msg.wParam == WTS_SESSION_LOCK)
+	    reset_w32_kbdhook_state ();
+	  break;
+	case WM_EMACS_FILENOTIFY:
+	  retval = 1;
+	  break;
+	}
       TranslateMessage (&msg);
       DispatchMessage (&msg);
     }
