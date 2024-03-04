@@ -110,10 +110,6 @@
     (:subtitle "SUBTITLE" nil nil parse)
     (:subauthor "SUBAUTHOR" nil nil newline)
     (:texinfo-dircat "TEXINFO_DIR_CATEGORY" nil nil t)
-    ;; FIXME: The naming of these options is unsatisfactory:
-    ;; TEXINFO_DIR_DESC corresponds (and defaults) to the document's
-    ;; title, whereas TEXINFO_DIR_TITLE corresponds (and defaults) to
-    ;; its filename.
     (:texinfo-dirtitle "TEXINFO_DIR_TITLE" nil nil t)
     (:texinfo-dirdesc "TEXINFO_DIR_DESC" nil nil t)
     (:texinfo-printed-title "TEXINFO_PRINTED_TITLE" nil nil t)
@@ -151,10 +147,12 @@
   "Default document encoding for Texinfo output.
 
 If nil it will default to `buffer-file-coding-system'."
+  :group 'org-export-texinfo
   :type 'coding-system)
 
 (defcustom org-texinfo-default-class "info"
   "The default Texinfo class."
+  :group 'org-export-texinfo
   :type '(string :tag "Texinfo class"))
 
 (defcustom org-texinfo-classes
@@ -207,6 +205,7 @@ The sectioning structure of the class is given by the elements
 following the header string.  For each sectioning level, a number
 of strings is specified.  A %s formatter is mandatory in each
 section string and will be replaced by the title of the section."
+  :group 'org-export-texinfo
   :version "27.1"
   :package-version '(Org . "9.2")
   :type '(repeat
@@ -234,6 +233,7 @@ TEXT      the main headline text (string).
 TAGS      the tags as a list of strings (list of strings or nil).
 
 The function result will be used in the section format string."
+  :group 'org-export-texinfo
   :type 'function
   :version "26.1"
   :package-version '(Org . "8.3"))
@@ -244,32 +244,38 @@ The function result will be used in the section format string."
   "Column at which to start the description in the node listings.
 If a node title is greater than this length, the description will
 be placed after the end of the title."
+  :group 'org-export-texinfo
   :type 'integer)
 
 ;;;; Timestamps
 
 (defcustom org-texinfo-active-timestamp-format "@emph{%s}"
   "A printf format string to be applied to active timestamps."
+  :group 'org-export-texinfo
   :type 'string)
 
 (defcustom org-texinfo-inactive-timestamp-format "@emph{%s}"
   "A printf format string to be applied to inactive timestamps."
+  :group 'org-export-texinfo
   :type 'string)
 
 (defcustom org-texinfo-diary-timestamp-format "@emph{%s}"
   "A printf format string to be applied to diary timestamps."
+  :group 'org-export-texinfo
   :type 'string)
 
 ;;;; Links
 
 (defcustom org-texinfo-link-with-unknown-path-format "@indicateurl{%s}"
   "Format string for links with unknown path type."
+  :group 'org-export-texinfo
   :type 'string)
 
 ;;;; Tables
 
 (defcustom org-texinfo-tables-verbatim nil
   "When non-nil, tables are exported verbatim."
+  :group 'org-export-texinfo
   :type 'boolean)
 
 (defcustom org-texinfo-table-scientific-notation nil
@@ -279,6 +285,7 @@ The format should have \"%s\" twice, for mantissa and exponent
 \(i.e. \"%s\\\\times10^{%s}\").
 
 When nil, no transformation is made."
+  :group 'org-export-texinfo
   :type '(choice
 	  (string :tag "Format string")
 	  (const :tag "No formatting" nil)))
@@ -290,6 +297,7 @@ This should an indicating command, e.g., \"@code\", \"@kbd\" or
 \"@samp\".
 
 It can be overridden locally using the \":indic\" attribute."
+  :group 'org-export-texinfo
   :type 'string
   :version "26.1"
   :package-version '(Org . "9.1")
@@ -315,6 +323,7 @@ to typeset and protects special characters.
 
 When no association is found for a given markup, text is returned
 as-is."
+  :group 'org-export-texinfo
   :version "26.1"
   :package-version '(Org . "9.1")
   :type 'alist
@@ -332,6 +341,7 @@ The function must accept two parameters:
 The function should return the string to be exported.
 
 The default function simply returns the value of CONTENTS."
+  :group 'org-export-texinfo
   :version "24.4"
   :package-version '(Org . "8.2")
   :type 'function)
@@ -351,6 +361,7 @@ The function must accept six parameters:
   CONTENTS  the contents of the inlinetask, as a string.
 
 The function should return the string to be exported."
+  :group 'org-export-texinfo
   :type 'function)
 
 ;;;; LaTeX
@@ -363,6 +374,7 @@ fragments as Texinfo \"@displaymath\" and \"@math\" commands
 respectively.  Alternatively, when set to `detect', the exporter
 does so only if the installed version of Texinfo supports the
 necessary commands."
+  :group 'org-export-texinfo
   :package-version '(Org . "9.6")
   :type '(choice
           (const :tag "Detect" detect)
@@ -379,6 +391,7 @@ body but is followed by another item, then the second item is
 transcoded to `@itemx'.  See info node `(org)Plain lists in
 Texinfo export' for how to enable this for individual lists."
   :package-version '(Org . "9.6")
+  :group 'org-export-texinfo
   :type 'boolean
   :safe t)
 
@@ -393,6 +406,7 @@ relative file name, %F by the absolute file name, %b by the file
 base name (i.e. without directory and extension parts), %o by the
 base directory of the file and %O by the absolute file name of
 the output file."
+  :group 'org-export-texinfo
   :version "26.1"
   :package-version '(Org . "9.1")
   :type '(repeat :tag "Shell command sequence"
@@ -402,8 +416,8 @@ the output file."
   '("aux" "toc" "cp" "fn" "ky" "pg" "tp" "vr")
   "The list of file extensions to consider as Texinfo logfiles.
 The logfiles will be remove if `org-texinfo-remove-logfiles' is
-
 non-nil."
+  :group 'org-export-texinfo
   :type '(repeat (string :tag "Extension")))
 
 (defcustom org-texinfo-remove-logfiles t
@@ -801,31 +815,19 @@ holding export options."
 	  (format "@copying\n%s@end copying\n\n"
 		  (org-element-normalize-string
 		   (org-export-data copying info))))
-     ;; Info directory information.  Only supply if category is provided.
-     ;; FIXME: A Texinfo doc without a direntry is significantly less useful
-     ;; since it won't appear in the main Info-directory, so maybe we should
-     ;; use a default category like "misc"?
-     (let* ((dircat (plist-get info :texinfo-dircat))
-	    (dt (plist-get info :texinfo-dirtitle))
-	    (file (file-name-sans-extension
-		   (or (org-strip-quotes (plist-get info :texinfo-filename))
-		       (plist-get info :output-file))))
-	    (dirtitle
-             (cond
-              ((and dt
-                    (or (string-match "\\`\\* \\(.*?\\)\\(\\.\\)?\\'" dt)
-                        (string-match "\\`\\(.*(.*)\\)\\(\\.\\)?\\'" dt)))
-               ;; `dt' is already "complete".
-               (format "* %s." (match-string 1 dt)))
-              ((and dt (not (equal dt file)))
-               (format "* %s: (%s)." dt file))
-              (t (format "* %s." file)))))
-       (when dircat
+     ;; Info directory information.  Only supply if both title and
+     ;; category are provided.
+     (let ((dircat (plist-get info :texinfo-dircat))
+	   (dirtitle
+	    (let ((title (plist-get info :texinfo-dirtitle)))
+	      (and title
+		   (string-match "^\\(?:\\* \\)?\\(.*?\\)\\(\\.\\)?$" title)
+		   (format "* %s." (match-string 1 title))))))
+       (when (and dircat dirtitle)
 	 (concat "@dircategory " dircat "\n"
 		 "@direntry\n"
 		 (let ((dirdesc
-			(let ((desc (or (plist-get info :texinfo-dirdesc)
-			                title)))
+			(let ((desc (plist-get info :texinfo-dirdesc)))
 			  (cond ((not desc) nil)
 				((string-suffix-p "." desc) desc)
 				(t (concat desc "."))))))
@@ -1588,7 +1590,7 @@ information."
   (concat
    "@noindent"
    (mapconcat
-    #'identity
+    'identity
     (delq nil
 	  (list
 	   (let ((closed (org-element-property :closed planning)))
