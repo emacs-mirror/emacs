@@ -1,6 +1,6 @@
 ;;; sasl-ntlm.el --- NTLM (NT Lan Manager) module for the SASL client framework  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Keywords: SASL, NTLM

@@ -1,6 +1,6 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
    Windows-specific parts of the HarfBuzz font backend.
-   Copyright (C) 2008-2023 Free Software Foundation, Inc.
+   Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -330,8 +330,7 @@ uniscribe_shape (Lisp_Object lgstring, Lisp_Object direction)
     {
       /* If that wasn't enough, keep trying with one more run.  */
       max_items++;
-      items = (SCRIPT_ITEM *) xrealloc (items,
-					sizeof (SCRIPT_ITEM) * max_items + 1);
+      items = xrealloc (items, sizeof (SCRIPT_ITEM) * max_items + 1);
     }
 
   if (FAILED (result))

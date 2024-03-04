@@ -1,6 +1,6 @@
 ;;; nnml.el --- mail spool access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2024 Free Software Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@didierverna.net> (adding compaction)
 ;;	Simon Josefsson <simon@josefsson.org>
@@ -830,7 +830,7 @@ article number.  This function is called narrowed to an article."
 (defun nnml-generate-nov-databases (&optional server)
   "Generate NOV databases in all nnml directories."
   (interactive (list (or (nnoo-current-server 'nnml) "")))
-  ;; Read the active file to make sure we don't re-use articles
+  ;; Read the active file to make sure we don't reuse articles
   ;; numbers in empty groups.
   (nnmail-activate 'nnml)
   (unless (nnml-server-opened server)

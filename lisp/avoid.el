@@ -1,6 +1,6 @@
 ;;; avoid.el --- make mouse pointer stay out of the way of editing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: mouse

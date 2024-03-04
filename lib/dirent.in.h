@@ -1,5 +1,5 @@
 /* A GNU-like <dirent.h>.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -237,12 +237,6 @@ _GL_WARN_ON_USE (rewinddir, "rewinddir is not portable - "
 _GL_FUNCDECL_RPL (dirfd, int, (DIR *) _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (dirfd, int, (DIR *));
 
-#  ifdef __KLIBC__
-/* Gnulib internal hooks needed to maintain the dirfd metadata.  */
-_GL_EXTERN_C int _gl_register_dirp_fd (int fd, DIR *dirp)
-     _GL_ARG_NONNULL ((2));
-_GL_EXTERN_C void _gl_unregister_dirp_fd (int fd);
-#  endif
 # else
 #  if defined __cplusplus && defined GNULIB_NAMESPACE && defined dirfd
     /* dirfd is defined as a macro and not as a function.

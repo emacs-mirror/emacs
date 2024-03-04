@@ -1,6 +1,6 @@
 ;;; ses.el --- Simple Emacs Spreadsheet  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Vincent Belaïche <vincentb1@users.sourceforge.net>
@@ -69,6 +69,8 @@
 (require 'macroexp)
 (eval-when-compile (require 'cl-lib))
 
+;; Autoloaded, but we have not loaded cl-loaddefs yet.
+(declare-function cl-member "cl-seq" (cl-item cl-list &rest cl-keys))
 
 ;;----------------------------------------------------------------------------
 ;; User-customizable variables
@@ -556,13 +558,15 @@ the corresponding cell with name PROPERTY-NAME."
 
 (defun ses-is-cell-sym-p (sym)
   "Check whether SYM point at a cell of this spread sheet."
-  (let ((rowcol (get sym 'ses-cell)))
-    (and rowcol
-	 (if (eq rowcol :ses-named)
-	     (and ses--named-cell-hashmap (gethash sym ses--named-cell-hashmap))
-	   (and (< (car rowcol) ses--numrows)
-		(< (cdr rowcol) ses--numcols)
-		(eq (ses-cell-symbol (car rowcol) (cdr rowcol)) sym))))))
+  (and (symbolp sym)
+       (local-variable-p sym)
+       (let ((rowcol (get sym 'ses-cell)))
+         (and rowcol
+	      (if (eq rowcol :ses-named)
+	          (and ses--named-cell-hashmap (gethash sym ses--named-cell-hashmap))
+	        (and (< (car rowcol) ses--numrows)
+		     (< (cdr rowcol) ses--numcols)
+		     (eq (ses-cell-symbol (car rowcol) (cdr rowcol)) sym)))))))
 
 (defun ses--cell (sym value formula printer references)
   "Load a cell SYM from the spreadsheet file.
@@ -735,10 +739,8 @@ checking that it is a valid printer function."
 (defun ses-formula-record (formula)
   "If FORMULA is of the form \\='SYMBOL, add it to the list of symbolic formulas
 for this spreadsheet."
-  (when (and (eq (car-safe formula) 'quote)
-	     (symbolp (cadr formula)))
-    (add-to-list 'ses--symbolic-formulas
-		 (list (symbol-name (cadr formula))))))
+  (and (ses-is-cell-sym-p formula)
+    (cl-pushnew (symbol-name formula) ses--symbolic-formulas :test #'string=)))
 
 (defun ses-column-letter (col)
   "Return the alphabetic name of column number COL.
@@ -884,33 +886,36 @@ means Emacs will crash if FORMULA contains a circular list."
 	  (newref (ses-formula-references formula))
 	  (inhibit-quit t)
           not-a-cell-ref-list
-	  x xrow xcol)
+	  x xref xrow xcol)
       (cl-pushnew sym ses--deferred-recalc)
       ;;Delete old references from this cell.  Skip the ones that are also
       ;;in the new list.
       (dolist (ref oldref)
 	(unless (memq ref newref)
-          ;; because we do not cancel edit when the user provides a
+          ;; Because we do not cancel edit when the user provides a
           ;; false reference in it, then we need to check that ref
           ;; points to a cell that is within the spreadsheet.
-	  (setq x    (ses-sym-rowcol ref))
-          (and x
-               (< (setq xrow (car x)) ses--numrows)
-               (< (setq xcol (cdr x)) ses--numcols)
-               (ses-set-cell xrow xcol 'references
-                            (delq sym (ses-cell-references xrow xcol))))))
+	  (when
+              (and (setq x (ses-sym-rowcol ref))
+                   (< (setq xrow (car x)) ses--numrows)
+                   (< (setq xcol (cdr x)) ses--numcols))
+            ;; Cell reference has to be re-written to data area as its
+            ;; reference list is changed.
+            (cl-pushnew x  ses--deferred-write  :test #'equal)
+            (ses-set-cell xrow xcol 'references
+                          (delq sym (ses-cell-references xrow xcol))))))
       ;;Add new ones.  Skip ones left over from old list
       (dolist (ref newref)
-	(setq x    (ses-sym-rowcol ref))
         ;;Do not trust the user, the reference may be outside the spreadsheet
         (if (and
-             x
+             (setq x    (ses-sym-rowcol ref))
              (<  (setq xrow (car x)) ses--numrows)
              (<  (setq xcol (cdr x)) ses--numcols))
-          (progn
-            (setq x (ses-cell-references xrow xcol))
-            (or (memq sym x)
-                (ses-set-cell xrow xcol 'references (cons sym x))))
+            (unless (memq sym (setq xref (ses-cell-references xrow xcol)))
+              ;; Cell reference has to be re-written to data area as
+              ;; its reference list is changed.
+              (cl-pushnew x  ses--deferred-write  :test #'equal)
+              (ses-set-cell xrow xcol 'references (cons sym xref)))
           (cl-pushnew ref not-a-cell-ref-list)))
       (ses-formula-record formula)
       (ses-set-cell row col 'formula formula)
@@ -2245,7 +2250,7 @@ Based on the current set of columns and `window-hscroll' position."
 ;; Redisplay and recalculation
 ;;----------------------------------------------------------------------------
 (defun ses-jump-prefix (prefix-int)
-  "Convert an integer (unversal prefix) into a (ROW . COL).
+  "Convert an integer (universal prefix) into a (ROW . COL).
 Does it by numbering cells starting from 0 from top left to bottom right,
 going row by row."
   (and (>= prefix-int 0)
@@ -2762,6 +2767,18 @@ See `ses-read-cell-printer' for input forms."
 ;;----------------------------------------------------------------------------
 ;; Spreadsheet size adjustments
 ;;----------------------------------------------------------------------------
+(defun ses--blank-line-needs-printing-p ()
+  "Returns `t' when blank new line print-out needs to be initialized
+by calling the printers on it, `nil' otherwise."
+  (let (ret
+        printer
+        (printers (append ses--col-printers (list ses--default-printer))))
+    (while printers
+      (if (and (setq printer (pop printers))
+               (null (string= "" (ses-call-printer printer))))
+          (setq ret t
+                printers nil)))
+    ret))
 
 (defun ses-insert-row (count)
   "Insert a new row before the current one.
@@ -2794,15 +2811,13 @@ With prefix, insert COUNT rows before current one."
     (ses-goto-data row 0)
     (insert (make-string (* (1+ ses--numcols) count) ?\n))
     (ses-relocate-all row 0 count 0)
-    ;;If any cell printers insert constant text, insert that text
-    ;;into the line.
-    (let ((cols   (mapconcat #'ses-call-printer ses--col-printers nil))
-	  (global (ses-call-printer ses--default-printer)))
-      (if (or (> (length cols) 0) (> (length global) 0))
-	  (dotimes (x count)
-	    (dotimes (col ses--numcols)
-	      ;;These cells are always nil, only constant formatting printed
-	      (1value (ses-print-cell (+ x row) col))))))
+    ;;If any cell printers insert constant text, insert that text into
+    ;;the line.
+    (if (ses--blank-line-needs-printing-p)
+	(dotimes (x count)
+	  (dotimes (col ses--numcols)
+	    ;;These cells are always nil, only constant formatting printed
+	    (1value (ses-print-cell (+ x row) col)))))
     (when (> ses--header-row row)
       ;;Inserting before header
       (ses-set-parameter 'ses--header-row (+ ses--header-row count))
@@ -3667,9 +3682,8 @@ highlighted range in the spreadsheet."
   "Rename current cell."
   (interactive "*SEnter new name: ")
   (or
-   (and  (local-variable-p new-name)
-	 (ses-is-cell-sym-p new-name)
-	 (error "Already a cell name"))
+   (and (ses-is-cell-sym-p new-name)
+	(error "Already a cell name"))
    (and (boundp new-name)
 	(null (yes-or-no-p
 	       (format-message

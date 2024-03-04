@@ -1,6 +1,6 @@
 ;;; erc-services.el --- Identify to NickServ  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2004, 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; URL: https://www.emacswiki.org/emacs/ErcNickserv
@@ -169,7 +169,7 @@ You can also use \\[erc-nickserv-identify-mode] to change modes."
   :type 'boolean)
 
 (defcustom erc-use-auth-source-for-nickserv-password nil
-  "Query auth-source for a password when identifiying to NickServ.
+  "Query auth-source for a password when identifying to NickServ.
 Passwords from `erc-nickserv-passwords' take precedence.  See
 function `erc-nickserv-get-password'."
   :version "28.1"

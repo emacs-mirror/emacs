@@ -1,6 +1,6 @@
 /* Program execution for Emacs.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -147,6 +147,10 @@ struct exec_tracee
 {
   /* The next process being traced.  */
   struct exec_tracee *next;
+
+  /* Address of any stack pointer to restore after system call
+     completion.  */
+  USER_WORD sp;
 
   /* The thread ID of this process.  */
   pid_t pid;

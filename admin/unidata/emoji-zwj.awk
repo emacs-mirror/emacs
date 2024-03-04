@@ -1,6 +1,6 @@
 #!/usr/bin/awk -f
 
-## Copyright (C) 2020, 2022-2023 Free Software Foundation, Inc.
+## Copyright (C) 2020, 2022-2024 Free Software Foundation, Inc.
 
 ## Author: Robert Pluim <rpluim@gmail.com>
 

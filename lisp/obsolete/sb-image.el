@@ -1,6 +1,6 @@
 ;;; sb-image.el --- Image management for speedbar  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2003, 2005-2019, 2021-2023 Free Software
+;; Copyright (C) 1999-2003, 2005-2019, 2021-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

@@ -1,6 +1,6 @@
 ;;; rect.el --- rectangle functions for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1999-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: Didier Verna <didier@didierverna.net>
 ;; Keywords: internal
@@ -212,7 +212,10 @@ The returned value has the form of (WIDTH . HEIGHT)."
       (cons width height))))
 
 (defun delete-rectangle-line (startcol endcol fill)
-  (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
+  ;; We use >= here, not =, for characters that use more than one
+  ;; column on display, when STARTCOL is in the middle of such a
+  ;; character.
+  (when (>= (move-to-column startcol (if fill t 'coerce)) startcol)
     (delete-region (point)
 		   (progn (move-to-column endcol 'coerce)
 			  (point)))))
@@ -279,7 +282,8 @@ When called from a program the rectangle's corners are START and END.
 With a prefix (or a FILL) argument, also fill lines where nothing has
 to be deleted."
   (interactive "*r\nP")
-  (apply-on-rectangle 'delete-rectangle-line start end fill))
+  (let (indent-tabs-mode)
+    (apply-on-rectangle 'delete-rectangle-line start end fill)))
 
 ;;;###autoload
 (defun delete-extract-rectangle (start end &optional fill)
@@ -334,7 +338,8 @@ you can use this command to copy text from a read-only buffer.
 even beep.)"
   (interactive "r\nP")
   (condition-case nil
-      (setq killed-rectangle (delete-extract-rectangle start end fill))
+      (let (indent-tabs-mode)
+        (setq killed-rectangle (delete-extract-rectangle start end fill)))
     ((buffer-read-only text-read-only)
      (setq deactivate-mark t)
      (setq killed-rectangle (extract-rectangle start end))

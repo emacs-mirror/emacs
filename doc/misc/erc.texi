@@ -12,7 +12,7 @@
 @copying
 This manual is for ERC @value{ERCVER} @value{ERCDIST}.
 
-Copyright @copyright{} 2005--2023 Free Software Foundation, Inc.
+Copyright @copyright{} 2005--2024 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -678,6 +678,14 @@ signals an error.  Users defining personal modules in an init file
 should @code{(provide 'erc-my-module)} somewhere to placate ERC.
 Dynamically generating modules on the fly is not supported.
 
+Some older built-in modules have a second name along with a second
+minor-mode toggle, which is just a function alias for its primary
+counterpart.  For practical reasons, ERC does not define a
+corresponding variable alias because contending with indirect
+variables complicates bookkeeping tasks, such as persisting module
+state across IRC sessions.  New modules should definitely avoid
+defining aliases without a good reason.
+
 Some packages have been known to autoload a module's definition
 instead of its minor-mode command, which severs the link between the
 library and the module.  This means that enabling the mode by invoking
@@ -918,15 +926,10 @@ In the latter case, if the first nick in the list is already in use,
 other nicks are tried in the list order.
 @end defopt
 
-@defopt erc-format-nick-function
-A function to format a nickname for message display
-
-You can set this to @code{erc-format-@@nick} to display user mode prefix
+@defopt erc-show-speaker-membership-status
+A boolean for including a channel member's @dfn{status prefix} in
+their display name when they speak.
 @end defopt
-
-@example
-(setq erc-format-nick-function 'erc-format-@@nick)
-@end example
 
 @defopt erc-nick-uniquifier
 The string to append to the nick if it is already in use.
@@ -1053,13 +1056,19 @@ acceptable.
 @section Authenticating via SASL
 @cindex SASL
 
-Regardless of the mechanism or the network, you'll likely have to be
-registered before first use.  Please refer to the network's own
+If you've used @acronym{SASL} elsewhere, you can probably skip to the
+examples below.  Otherwise, if you haven't already registered with
+your network, please do so now, referring to the network's own
 instructions for details.  If you're new to IRC and using a bouncer,
-know that you probably won't be needing SASL for the client-to-bouncer
-connection.  To get started, just add @code{sasl} to
-@code{erc-modules} like any other module.  But before that, please
-explore all custom options pertaining to your chosen mechanism.
+know that you probably won't be needing this for the client-to-bouncer
+connection.
+
+When you're ready to get started, add @code{sasl} to
+@code{erc-modules}, like you would any other module.  If unsure which
+@dfn{mechanism} to choose, stick with the default of @samp{PLAIN}.
+Then try @kbd{C-u M-x erc-tls @key{RET}}, and give your account name
+for the @samp{user} parameter and your account password for the
+@samp{server password}.
 
 @defopt erc-sasl-mechanism
 The name of an SASL subprotocol type as a @emph{lowercase} symbol.
@@ -1307,10 +1316,10 @@ settings (@pxref{Sample configuration via Customize}).
 
 (use-package erc
   :config
-  ;; Prefer SASL to NickServ, colorize nicknames, interpret mIRC colors,
-  ;; and list buffers and channel members in separate side panels.
+  ;; Prefer SASL to NickServ, colorize nicknames, and show side panels
+  ;; with joined channels and members
   (setopt erc-modules
-          (seq-union '(sasl nicks irccontrols bufbar nickbar scrolltobottom)
+          (seq-union '(sasl nicks bufbar nickbar scrolltobottom)
                      erc-modules))
 
   :custom
@@ -1318,6 +1327,8 @@ settings (@pxref{Sample configuration via Customize}).
   (erc-inhibit-multiline-input t)
   (erc-send-whitespace-lines t)
   (erc-ask-about-multiline-input t)
+  ;; Scroll all windows to prompt when submitting input.
+  (erc-scrolltobottom-all t)
 
   ;; Reconnect automatically using a fancy strategy.
   (erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
@@ -1401,13 +1412,13 @@ As mentioned, Customize users can accomplish nearly all of the above
 via the Customize interface.  Start by running @kbd{M-x
 customize-group @key{RET} erc @key{RET}}, and search for ``Modules''
 with @kbd{C-s modules @key{RET}}.  Toggle open the flyout menu to
-reveal the full ``widget'' panel, a web-form-like interface for ``Erc
-Modules''.  Tick the boxes for @samp{bufbar}, @samp{irccontrols},
-@samp{nickbar}, @samp{nicks}, @samp{sasl}, and @samp{scrolltobottom}.
+reveal the full @dfn{widget} panel, a web-form-like interface for
+``Erc Modules''.  Tick the boxes for @samp{bufbar}, @samp{nickbar},
+@samp{nicks}, @samp{sasl}, and @samp{scrolltobottom}.
 
 Next, search for the phrases ``Erc Ask About Multiline Input'', ``Erc
-Inhibit Mulitline Input'', and ``Erc Send Whitespace Lines''.  These
-are the print names of three Boolean options that control how ERC
+Inhibit Multiline Input'', and ``Erc Send Whitespace Lines''.  These
+are the print names of three boolean options that control how ERC
 treats prompt input containing line breaks.  When visiting each
 option's section, twirl open its triangle icon to reveal its widget
 UI, and click its @samp{[Toggle]} button to set its value to @code{t}.
@@ -1453,11 +1464,18 @@ To make sure you've got this, try quickly customizing the option
 @code{erc-interactive-display}, which lives in the @samp{Erc Buffers}
 group (@kbd{M-x customize-group @key{RET} erc-buffers @key{RET}}).  As
 its doc string explains, the option controls where new buffers show up
-when you do @kbd{M-x erc-tls @key{RET}} or issue certain ``slash''
-commands, like @kbd{/JOIN #emacs-beginners @key{RET}}, at ERC's
+when you do @kbd{M-x erc-tls @key{RET}} or issue certain @dfn{slash
+commands}, like @kbd{/JOIN #emacs-beginners @key{RET}}, at ERC's
 prompt.  Change its value to the symbol @code{buffer} by choosing
 @samp{Use current window} (item @kbd{5}) from the option's
 @samp{[Value Menu]}.  Don't forget to save.
+
+If you need more practice, try enabling the boolean option
+@code{erc-scrolltobottom-all}, which lives in the @samp{Erc Display}
+group (@kbd{M-x customize-group @key{RET} erc-display @key{RET}}).
+When enabled, this option tells the @samp{scrolltobottom} module to
+adjust all ERC windows instead of just the one you're currently typing
+in.
 
 Now it's time to set some key bindings for @code{erc-mode-map}, a
 major-mode keymap active in all ERC buffers.  In general, it's best to
@@ -1535,8 +1553,8 @@ and save your changes.  Next, customize the related option
 @code{erc-track-priority-faces-only} to the @samp{[Value Menu]} choice
 @samp{all}.  Once again, save your changes.
 
-Let's say you'd like to enable a ``local module'' (ERC's version of a
-local minor mode) in a specific channel.  One way to do that is by
+Let's say you'd like to enable a @dfn{local module} (ERC's version of
+a local minor mode) in a specific channel.  One way to do that is by
 running some code to activate the module if the channel's name
 matches.  Try that now by customizing the option @code{erc-join-hook}.
 Add the following in the value field before saving your changes:
@@ -1548,7 +1566,7 @@ Add the following in the value field before saving your changes:
     (erc-keep-place-indicator-mode +1)))
 @end lisp
 
-Lastly, if you really want the two ``slash'' commands defined at the
+Lastly, if you really want the two @dfn{slash commands} defined at the
 end of the previous section, you can put them in any file listed in
 @code{erc-startup-file-list}, such as @file{~/.emacs.d/.ercrc.el}.
 Make sure to put @code{(require 'erc-track)} near the top of the file.
@@ -1670,6 +1688,7 @@ with the default backend, netrc, put a line like the following in your
 machine irc.example.net login mynick password sEcReT
 @end example
 
+@anchor{auth-source Server Password}
 @subsubheading Server Passwords
 When retrieving passwords to accompany the IRC @samp{PASS} command
 (@pxref{password parameter}), ERC asks auth-source to match the
@@ -1719,10 +1738,7 @@ auth-source experience.  (@xref{SASL}.)
 @subsubheading Default query behavior
 When preparing entries for your backend, it may help to get a feel for
 how ERC and its modules conduct searches, especially when exploring a
-new context, such as channel keys.  (Hint: in such situations, try
-temporarily setting the variable @code{auth-source-debug} to @code{t}
-and checking @file{*Messages*} periodically for insights into how
-auth-source is operating.)  Overall, though, ERC tries to be
+new context, such as channel keys.  Overall, though, ERC tries to be
 consistent in performing queries across various authentication
 contexts.  Here's what to expect with respect to the @samp{host}
 field, which, by default, most heavily influences the fate of a query:
@@ -1805,6 +1821,33 @@ required by certain channels you join.  When modifying a traditional
 @code{auth-source} entry for this purpose, put the channel name in the
 @samp{user} field (for example, @samp{login "#fsf"}, in netrc's case).
 The actual key goes in the @samp{password} (or @samp{secret}) field.
+
+@anchor{auth-source Troubleshooting}
+@subheading Troubleshooting
+By default, ERC queries @code{auth-source} for channel keys and server
+passwords (@pxref{auth-source Server Password}), as well as other,
+module-specific credentials.  In general, if you're having trouble
+calling @code{auth-source-search} in a custom query function, like
+@code{erc-auth-source-server-function}, try temporarily setting the
+variable @code{auth-source-debug} to @code{t} and checking
+@file{*Messages*} periodically for insights into how
+@code{auth-source} is operating.
+
+If you're using a @acronym{GPG}-encrypted file and find that
+customizing one of the function-valued query options doesn't solve
+your problem, explore options @code{epg-pinentry-mode} and
+@code{epg-debug} in the @code{epg} Custom group (@pxref{GnuPG
+Pinentry,,, epa, EasyPG Assistant}).  Additionally, keep an eye out
+for an @file{*Error*} buffer, which may contain more specific clues
+about your situation.  If you use the libsecrets integration
+(@pxref{Secret Service API,,, auth, Emacs auth-source}) with something
+like GNOME Keyring, you may need to check the ``remember'' box in the
+passphrase popup dialog to avoid being prompted for confirmation every
+time you run ERC.  If it doesn't work at first, try logging out.  And
+when in doubt, try using the Emacs command @code{secrets-show-secrets}
+to browse the @samp{Login} keyring.  There should be a
+@samp{GnuPG/stored-by} entry with a value of @samp{GnuPG Pinentry} or
+similar.
 
 @node display-buffer
 @subsection display-buffer

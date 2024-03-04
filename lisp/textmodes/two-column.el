@@ -1,10 +1,10 @@
 ;;; two-column.el --- minor mode for editing of two-column text  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-1995, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1995, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Adapted-By: ESR, Daniel Pfeiffer
-;; Keywords: wp
+;; Keywords: text
 
 ;; This file is part of GNU Emacs.
 

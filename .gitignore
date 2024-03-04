@@ -1,6 +1,6 @@
 # Files that Git should ignore in the Emacs source directory.
 
-# Copyright 2009-2023 Free Software Foundation, Inc.
+# Copyright 2009-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -376,7 +376,10 @@ _gdb_history
 
 # Files ignored in exec/.
 exec/aclocal.m4
+exec/config.guess
+exec/config.sub
 exec/config.status
+exec/install-sh
 exec/loader
 exec/test
 exec/exec1

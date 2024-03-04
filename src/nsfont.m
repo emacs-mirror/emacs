@@ -1,6 +1,6 @@
 /* Font back-end driver for the GNUstep window system.
    See font.h
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -601,7 +601,7 @@ static NSString
 {
     Lisp_Object script = assq_no_quit (XCAR (otf), Votf_script_alist);
     return CONSP (script)
-	? [NSString stringWithLispString: SYMBOL_NAME (XCDR ((script)))]
+	? [NSString stringWithLispString: SYMBOL_NAME (XCDR (script))]
 	: @"";
 }
 
@@ -1035,7 +1035,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
     font->underline_position = lrint (font_info->underpos);
     font->underline_thickness = lrint (font_info->underwidth);
 
-    font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
+    font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil, Qnil);
     font->props[FONT_FULLNAME_INDEX] = build_unibyte_string (font_info->name);
   }
   unblock_input ();

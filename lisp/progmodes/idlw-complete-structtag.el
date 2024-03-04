@@ -1,6 +1,6 @@
 ;;; idlw-complete-structtag.el --- Completion of structure tags.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; soap-client.el --- Access SOAP web services       -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
@@ -1956,7 +1956,7 @@ This is a specialization of `soap-decode-type' for
                                   (xml-get-children node (intern e-name)))
                               ;; e-name is nil so a) we don't know which
                               ;; children to operate on, and b) we want to
-                              ;; re-use soap-decode-xs-complex-type, which
+                              ;; reuse soap-decode-xs-complex-type, which
                               ;; expects a node argument with a complex
                               ;; type; therefore we need to operate on the
                               ;; entire node.  We wrap node in a list so

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files
@@ -1061,6 +1061,7 @@ revert it automatically if it has changed---provided the buffer itself
 is not modified.  (If you have edited the text, it would be wrong to
 discard your changes.)
 
+@kindex C-x x g
 @vindex revert-buffer-quick-short-answers
 @findex revert-buffer-quick
   The @kbd{C-x x g} keystroke is bound to the
@@ -1328,6 +1329,10 @@ C-x C-s
 directory listing describing the specified file and the auto-save file,
 so you can compare their sizes and dates.  If the auto-save file
 is older, @kbd{M-x recover-file} does not offer to read it.
+
+When @kbd{M-x recover-file} asks for confirmation, if you answer with
+@kbd{diff} or @kbd{=}, it shows the diffs between @var{file} and its
+auto-save file @file{#@var{file}#} and reprompts you for confirmation.
 
 @findex recover-session
   If Emacs or the computer crashes, you can recover all the files you

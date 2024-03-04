@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 1998--2023 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1994, 1998--2024 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Keymaps
 @chapter Keymaps
@@ -491,7 +491,7 @@ useful if there is a command which doesn't exist in the map being
 defined, but which should have the @code{repeat-map} property.
 
 If the @code{:exit} list is empty then no commands in the map exit
-@code{repeat-mode}.  Specifying one ore more commands in this list is
+@code{repeat-mode}.  Specifying one or more commands in this list is
 useful if the keymap being defined contains a command that should not
 have the @code{repeat-map} property.
 @end table

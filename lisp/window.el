@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -5737,7 +5737,8 @@ The current window configuration is retained in the top window,
 the lower window takes up the whole width of the frame.  SIZE is
 handled as in `split-window-below', and interactively is the
 prefix numeric argument."
-  (interactive "p")
+  (interactive `(,(when current-prefix-arg
+                    (prefix-numeric-value current-prefix-arg))))
   (split-window-below size (frame-root-window)))
 
 (defun split-window-right (&optional size window-to-split)
@@ -5777,7 +5778,8 @@ The current window configuration is retained within the left
 window, and a new window is created on the right, taking up the
 whole height of the frame.  SIZE is treated as by
 `split-window-right' and interactively, is the prefix numeric argument."
-  (interactive "p")
+  (interactive `(,(when current-prefix-arg
+                    (prefix-numeric-value current-prefix-arg))))
   (split-window-right size (frame-root-window)))
 
 ;;; Balancing windows.
@@ -6862,6 +6864,7 @@ BUFFER in a window of the selected frame.
 If ARGS is a list whose car is a symbol, use (car ARGS) as a
 function to do the work.  Pass it BUFFER as first argument, and
 pass the elements of (cdr ARGS) as the remaining arguments."
+  (declare (obsolete display-buffer-pop-up-frame "30.1"))
   (if (and args (symbolp (car args)))
       (apply (car args) buffer (cdr args))
     (let ((window (get-buffer-window buffer 0)))
@@ -6881,9 +6884,8 @@ pass the elements of (cdr ARGS) as the remaining arguments."
        ;; Stay on the same frame if requested.
        (when (or (cdr (assq 'same-frame args)) (cdr (assq 'same-window args)))
 	 (let* ((pop-up-windows t)
-		pop-up-frames
 		special-display-buffer-names special-display-regexps)
-	   (display-buffer buffer)))
+	   (display-buffer buffer '((pop-up-frames . nil)))))
        ;; If no window yet, make one in a new frame.
        (let* ((frame
 	       (with-current-buffer buffer
@@ -6995,6 +6997,13 @@ Emacs Lisp manual for an example."
 	  (const :tag "On graphic displays only" graphic-only)
 	  (const :tag "Always" t))
   :group 'windows)
+
+(defun window--pop-up-frames (alist)
+ (let* ((override (assq 'pop-up-frames alist))
+        (pop-up (if override (cdr override) pop-up-frames)))
+   (if (eq pop-up 'graphic-only)
+       (display-graphic-p)
+     pop-up)))
 
 (defcustom display-buffer-reuse-frames nil
   "Non-nil means `display-buffer' should reuse frames.
@@ -7742,6 +7751,8 @@ Action alist entries are:
     Possible values are nil (the selected frame), t (any live
     frame), visible (any visible frame), 0 (any visible or
     iconified frame) or an existing live frame.
+ `pop-up-frames' -- Same effect as the eponymous variable.
+    Takes precedence over the variable.
  `pop-up-frame-parameters' -- The value specifies an alist of
     frame parameters to give a new frame, if one is created.
  `window-height' -- The value specifies the desired height of the
@@ -7787,6 +7798,14 @@ Action alist entries are:
     and `preserve-size' are applied.  The function is supposed
     to fill the window body with some contents that might depend
     on dimensions of the displayed window.
+ `post-command-select-window' -- A non-nil value means that after the
+    current command is executed and the hook `post-command-hook' is called,
+    the window displayed by this function will be selected.  A nil value
+    means that if functions like `pop-to-buffer' selected another window,
+    at the end of this command that window will be deselected, and the
+    window that was selected before calling this function will remain
+    selected regardless of which windows were selected afterwards within
+    this command.
 
 The entries `window-height', `window-width', `window-size' and
 `preserve-size' are applied only when the window used for
@@ -7830,18 +7849,29 @@ specified by the ACTION argument."
                           user-action special-action action extra-action
                           display-buffer-base-action
                           display-buffer-fallback-action))
-           (functions (apply 'append
+           (functions (apply #'append
                              (mapcar (lambda (x)
                                        (setq x (car x))
                                        (if (functionp x) (list x) x))
                                      actions)))
-           (alist (apply 'append (mapcar 'cdr actions)))
+           (alist (apply #'append (mapcar #'cdr actions)))
            window)
       (unless (buffer-live-p buffer)
         (error "Invalid buffer"))
       (while (and functions (not window))
         (setq window (funcall (car functions) buffer alist)
               functions (cdr functions)))
+      (when-let ((select (assq 'post-command-select-window alist)))
+        (letrec ((old-selected-window (selected-window))
+                 (postfun
+                  (lambda ()
+                    (if (cdr select)
+                        (when (window-live-p window)
+                          (select-window window))
+                      (when (window-live-p old-selected-window)
+                        (select-window old-selected-window)))
+                    (remove-hook 'post-command-hook postfun))))
+          (add-hook 'post-command-hook postfun)))
       (and (windowp window) window))))
 
 (defun display-buffer-other-frame (buffer)
@@ -7978,9 +8008,7 @@ called only by `display-buffer' or a function directly or
 indirectly called by the latter."
   (let* ((alist-entry (assq 'reusable-frames alist))
 	 (frames (cond (alist-entry (cdr alist-entry))
-		       ((if (eq pop-up-frames 'graphic-only)
-			    (display-graphic-p)
-			  pop-up-frames)
+		       ((window--pop-up-frames alist)
 			0)
 		       (display-buffer-reuse-frames 0)
 		       (t (last-nonminibuffer-frame))))
@@ -8034,9 +8062,7 @@ indirectly called by the latter."
   (let* ((alist-entry (assq 'reusable-frames alist))
          (alist-mode-entry (assq 'mode alist))
 	 (frames (cond (alist-entry (cdr alist-entry))
-		       ((if (eq pop-up-frames 'graphic-only)
-			    (display-graphic-p)
-			  pop-up-frames)
+		       ((window--pop-up-frames alist)
 			0)
 		       (display-buffer-reuse-frames 0)
 		       (t (last-nonminibuffer-frame))))
@@ -8182,9 +8208,7 @@ text-only terminal), try with `display-buffer-pop-up-frame'.
 ALIST is an association list of action symbols and values.  See
 Info node `(elisp) Buffer Display Action Alists' for details of
 such alists."
-  (and (if (eq pop-up-frames 'graphic-only)
-	   (display-graphic-p)
-	 pop-up-frames)
+  (and (window--pop-up-frames alist)
        (display-buffer-pop-up-frame buffer alist)))
 
 (defun display-buffer--maybe-pop-up-window (buffer alist)
@@ -8548,9 +8572,7 @@ indirectly called by the latter."
 	  (cdr (assq 'inhibit-same-window alist)))
 	 (frames (cond
 		  (alist-entry (cdr alist-entry))
-		  ((if (eq pop-up-frames 'graphic-only)
-		       (display-graphic-p)
-		     pop-up-frames)
+		  ((window--pop-up-frames alist)
 		   0)
 		  (display-buffer-reuse-frames 0)
 		  (t (last-nonminibuffer-frame))))
@@ -8603,7 +8625,7 @@ buffer.  ALIST is a buffer display action alist as compiled by
   canonical frame lines.  If it is the constant `full-height',
   prefer a full-height window.
 
-If ALIST contains a non-nil `inhibit-same--window' entry, do not
+If ALIST contains a non-nil `inhibit-same-window' entry, do not
 return the selected window."
   (let ((windows
          (window-list-1 nil 'nomini (cdr (assq 'lru-frames alist))))
@@ -10811,7 +10833,8 @@ Used in `repeat-mode'."
   "^ f" #'tear-off-window
   "^ t" #'tab-window-detach
   "-" #'fit-window-to-buffer
-  "0" #'delete-windows-on)
+  "0" #'delete-windows-on
+  "q" #'quit-window)
 (define-key ctl-x-map "w" window-prefix-map)
 
 (provide 'window)

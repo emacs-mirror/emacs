@@ -1,6 +1,6 @@
 ;;; tempo-tests.el --- Test suite for tempo.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2024 Free Software Foundation, Inc.
 
 ;; Author: Federico Tedin <federicotedin@gmail.com>
 ;; Keywords: abbrev

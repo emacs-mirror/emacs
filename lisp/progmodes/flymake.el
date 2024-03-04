@@ -1,6 +1,6 @@
 ;;; flymake.el --- A universal on-the-fly syntax checker  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
@@ -715,7 +715,7 @@ associated `flymake-category' return DEFAULT."
     (delete-overlay ov)))
 
 (defun flymake--eol-overlay-summary (src-ovs)
-  "Helper function for `flymake--eol-overlay-update'."
+  "Helper function for `flymake--update-eol-overlays'."
   (cl-flet ((summarize (d)
               (propertize (flymake-diagnostic-oneliner d t) 'face
                           (flymake--lookup-type-property (flymake--diag-type d)
@@ -1637,14 +1637,16 @@ correctly.")
 
 (defvar flymake--mode-line-counter-map
   (let ((map (make-sparse-keymap)))
+    ;; BEWARE: `mouse-wheel-UP-event' corresponds to `wheel-DOWN' events
+    ;; and vice versa!!
     (define-key map (vector 'mode-line mouse-wheel-down-event)
                 #'flymake--mode-line-counter-scroll-prev)
     (define-key map [mode-line wheel-down]
-                #'flymake--mode-line-counter-scroll-prev)
+                #'flymake--mode-line-counter-scroll-next)
     (define-key map (vector 'mode-line mouse-wheel-up-event)
                 #'flymake--mode-line-counter-scroll-next)
     (define-key map [mode-line wheel-up]
-                #'flymake--mode-line-counter-scroll-next)
+                #'flymake--mode-line-counter-scroll-prev)
     map))
 
 (defun flymake--mode-line-counter-1 (type)

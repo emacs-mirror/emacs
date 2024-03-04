@@ -1,6 +1,6 @@
 ;;; info-tests.el --- Tests for info.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,11 +29,17 @@
 
 (ert-deftest test-info-urls ()
   (should (equal (Info-url-for-node "(emacs)Minibuffer")
-                 "https://www.gnu.org/software/emacs/manual/html_node/emacs/Minibuffer.html"))
+                 "https://www.gnu.org/software/emacs/manual/html_node/emacs/Minibuffer"))
   (should (equal (Info-url-for-node "(emacs)Minibuffer File")
-                 "https://www.gnu.org/software/emacs/manual/html_node/emacs/Minibuffer-File.html"))
+                 "https://www.gnu.org/software/emacs/manual/html_node/emacs/Minibuffer-File"))
   (should (equal (Info-url-for-node "(elisp)Backups and Auto-Saving")
-                 "https://www.gnu.org/software/emacs/manual/html_node/elisp/Backups-and-Auto_002dSaving.html"))
-  (should-error (Info-url-for-node "(gnus)Minibuffer File")))
+                 "https://www.gnu.org/software/emacs/manual/html_node/elisp/Backups-and-Auto_002dSaving"))
+  (should (equal (Info-url-for-node "(eintr)car & cdr")
+                 "https://www.gnu.org/software/emacs/manual/html_node/eintr/car-_0026-cdr"))
+  (should (equal (Info-url-for-node "(emacs-mime)\tIndex")
+                 "https://www.gnu.org/software/emacs/manual/html_node/emacs-mime/Index"))
+  (should (equal (Info-url-for-node  "(gnus) Don't Panic")
+                 "https://www.gnu.org/software/emacs/manual/html_node/gnus/Don_0027t-Panic"))
+  (should-error (Info-url-for-node "(nonexistent)Example")))
 
 ;;; info-tests.el ends here

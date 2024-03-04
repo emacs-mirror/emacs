@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich <ilyaz@cpan.org>
 ;;	Bob Olson
@@ -104,7 +104,10 @@
   :version "20.3")
 
 (defgroup cperl-indentation-details nil
-  "Indentation."
+  "Indentation.
+The option `cperl-file-style' (which see) can be used to set
+several indentation options in one go, following popular
+indentation styles."
   :prefix "cperl-"
   :group 'cperl)
 
@@ -156,6 +159,29 @@ instead of:
 for constructs with multiline if/unless/while/until/for/foreach condition."
   :type 'boolean
   :group 'cperl-autoinsert-details)
+
+(defcustom cperl-file-style nil
+  "Indentation style to use in cperl-mode.
+Setting this option will override options as given in
+`cperl-style-alist' for the keyword provided here.  If nil, then
+the individual options as customized are used.
+\"PBP\" is the style recommended in the Book \"Perl Best
+Practices\" by Damian Conway.  \"CPerl\" is the traditional style
+of cperl-mode, and \"PerlStyle\" follows the Perl documentation
+in perlstyle.  The other styles have been developed for other
+programming languages, mostly C."
+  :type '(choice (const "PBP")
+                 (const "CPerl")
+                 (const "PerlStyle")
+                 (const "GNU")
+                 (const "C++")
+                 (const "K&R")
+                 (const "BSD")
+                 (const "Whitesmith")
+                 (const :tag "Default" nil))
+  :group 'cperl-indentation-details
+  :version "29.1")
+;;;###autoload(put 'cperl-file-style 'safe-local-variable 'stringp)
 
 (defcustom cperl-indent-level 2
   "Indentation of CPerl statements with respect to containing block."
@@ -536,20 +562,6 @@ when syntaxifying a chunk of buffer."
 This way enabling/disabling of menu items is more correct."
   :type 'boolean
   :group 'cperl-speed)
-
-(defcustom cperl-file-style nil
-  "Indentation style to use in cperl-mode."
-  :type '(choice (const "CPerl")
-                 (const "PBP")
-                 (const "PerlStyle")
-                 (const "GNU")
-                 (const "C++")
-                 (const "K&R")
-                 (const "BSD")
-                 (const "Whitesmith")
-                 (const :tag "Default" nil))
-  :version "29.1")
-;;;###autoload(put 'cperl-file-style 'safe-local-variable 'stringp)
 
 (defcustom cperl-fontify-trailer
   'perl-code
@@ -1121,7 +1133,7 @@ Unless KEEP, removes the old indentation."
      ["Fix whitespace on indent" cperl-toggle-construct-fix t]
      ["Auto-help on Perl constructs" cperl-toggle-autohelp t]
      ["Auto fill" auto-fill-mode t])
-    ("Indent styles..."
+    ("Default indent styles..."
      ["CPerl" (cperl-set-style "CPerl") t]
      ["PBP" (cperl-set-style  "PBP") t]
      ["PerlStyle" (cperl-set-style "PerlStyle") t]
@@ -1132,6 +1144,15 @@ Unless KEEP, removes the old indentation."
      ["Whitesmith" (cperl-set-style "Whitesmith") t]
      ["Memorize Current" (cperl-set-style "Current") t]
      ["Memorized" (cperl-set-style-back) cperl-old-style])
+    ("Indent styles for current buffer..."
+     ["CPerl" (cperl-set-style "CPerl") t]
+     ["PBP" (cperl-file-style  "PBP") t]
+     ["PerlStyle" (cperl-file-style "PerlStyle") t]
+     ["GNU" (cperl-file-style "GNU") t]
+     ["C++" (cperl-file-style "C++") t]
+     ["K&R" (cperl-file-style "K&R") t]
+     ["BSD" (cperl-file-style "BSD") t]
+     ["Whitesmith" (cperl-file-style "Whitesmith") t])
     ("Micro-docs"
      ["Tips" (describe-variable 'cperl-tips) t]
      ["Problems" (describe-variable 'cperl-problems) t]
@@ -1463,7 +1484,7 @@ function tests that property."
 
 (defun cperl-block-declaration-p ()
   "Test whether the following ?\\{ opens a declaration block.
-Returns the column where the declarating keyword is found, or nil
+Returns the column where the declaring keyword is found, or nil
 if this isn't a declaration block.  Declaration blocks are named
 subroutines, packages and the like.  They start with a keyword
 and a name, to be followed by various descriptive items which are
@@ -1696,19 +1717,18 @@ into
 
 \\{cperl-mode-map}
 
-Setting the variable `cperl-font-lock' to t switches on `font-lock-mode'
-\(even with older Emacsen), `cperl-electric-lbrace-space' to t switches
-on electric space between $ and {, `cperl-electric-parens-string' is
-the string that contains parentheses that should be electric in CPerl
-\(see also `cperl-electric-parens-mark' and `cperl-electric-parens'),
-setting `cperl-electric-keywords' enables electric expansion of
-control structures in CPerl.  `cperl-electric-linefeed' governs which
-one of two linefeed behavior is preferable.  You can enable all these
-options simultaneously (recommended mode of use) by setting
-`cperl-hairy' to t.  In this case you can switch separate options off
-by setting them to `null'.  Note that one may undo the extra
-whitespace inserted by semis and braces in `auto-newline'-mode by
-consequent \\[cperl-electric-backspace].
+Setting the variable `cperl-font-lock' to t switches on `font-lock-mode',
+`cperl-electric-lbrace-space' to t switches on electric space between $
+and {, `cperl-electric-parens-string' is the string that contains
+parentheses that should be electric in CPerl (see also
+`cperl-electric-parens-mark' and `cperl-electric-parens'), setting
+`cperl-electric-keywords' enables electric expansion of control
+structures in CPerl.  `cperl-electric-linefeed' governs which one of two
+linefeed behavior is preferable.  You can enable all these options
+simultaneously by setting `cperl-hairy' to t.  In this case you can
+switch separate options off by setting them to `null'.  Note that one may
+undo the extra whitespace inserted by semis and braces in
+`auto-newline'-mode by consequent \\[cperl-electric-backspace].
 
 Short one-liner-style help is available on \\[cperl-get-help],
 and one can run perldoc or man via menu.
@@ -1916,7 +1936,8 @@ or as help on variables `cperl-tips', `cperl-problems',
 
 (defun cperl--set-file-style ()
   (when cperl-file-style
-    (cperl-set-style cperl-file-style)))
+    (cperl-file-style cperl-file-style)))
+
 
 ;; Fix for perldb - make default reasonable
 (defun cperl-db ()
@@ -4206,7 +4227,7 @@ recursive calls in starting lines of here-documents."
 		    (setq tmpend tb))
 		(put-text-property b (point) 'syntax-type 'format))
 	       ;; quotelike operator or regexp: capture groups 10 or 11
-               ;; matches some false postives, to be eliminated here
+               ;; matches some false positives, to be eliminated here
 	       ((or (match-beginning 10) (match-beginning 11))
 		(setq b1 (if (match-beginning 10) 10 11)
 		      argument (buffer-substring
@@ -5877,7 +5898,7 @@ functions (which they are not).  Inherits from `default'.")
                                              (eval cperl--ws*-rx))
                                    ;; ... or the start of a "sloppy" signature
                                    (sequence (eval cperl--sloppy-signature-rx)
-                                             ;; arbtrarily continue "a few lines"
+                                             ;; arbitrarily continue "a few lines"
                                              (repeat 0 200 (not (in "{"))))
                                    ;; make sure we have a reasonably
                                    ;; short match for an incomplete sub
@@ -6488,6 +6509,10 @@ See examples in `cperl-style-examples'.")
 
 (defun cperl-set-style (style)
   "Set CPerl mode variables to use one of several different indentation styles.
+This command sets the default values for the variables.  It does
+not affect buffers visiting files where the style has been set as
+a file or directory variable.  To change the indentation style of
+a buffer, use the command `cperl-file-style' instead.
 The arguments are a string representing the desired style.
 The list of styles is in `cperl-style-alist', available styles
 are \"CPerl\", \"PBP\", \"PerlStyle\", \"GNU\", \"K&R\", \"BSD\", \"C++\"
@@ -6508,7 +6533,8 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
   (let ((style (cdr (assoc style cperl-style-alist))) setting)
     (while style
       (setq setting (car style) style (cdr style))
-      (set (car setting) (cdr setting)))))
+      (set-default-toplevel-value (car setting) (cdr setting))))
+  (set-default-toplevel-value 'cperl-file-style style))
 
 (defun cperl-set-style-back ()
   "Restore a style memorized by `cperl-set-style'."
@@ -6518,7 +6544,20 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
     (while cperl-old-style
       (setq setting (car cperl-old-style)
 	    cperl-old-style (cdr cperl-old-style))
-      (set (car setting) (cdr setting)))))
+      (set-default-toplevel-value (car setting) (cdr setting)))))
+
+(defun cperl-file-style (style)
+  "Set the indentation style for the current buffer to STYLE.
+The list of styles is in `cperl-style-alist', available styles
+are \"CPerl\", \"PBP\", \"PerlStyle\", \"GNU\", \"K&R\", \"BSD\", \"C++\"
+and \"Whitesmith\"."
+  (interactive
+   (list (completing-read "Enter style: " cperl-style-alist nil 'insist)))
+  (dolist (setting (cdr (assoc style cperl-style-alist)) style)
+    (let ((option (car setting))
+          (value (cdr setting)))
+      (set (make-local-variable option) value)))
+  (set (make-local-variable 'cperl-file-style) style))
 
 (declare-function Info-find-node "info"
 		  (filename nodename &optional no-going-back strict-case
@@ -6573,14 +6612,13 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
 	     read))))
 
   (let ((cmd-desc (concat "^" (regexp-quote command) "[^a-zA-Z_0-9]")) ; "tr///"
-	pos isvar height iniheight frheight buf win fr1 fr2 iniwin not-loner
+	pos isvar height iniheight frheight buf win iniwin not-loner
 	max-height char-height buf-list)
     (if (string-match "^-[a-zA-Z]$" command)
 	(setq cmd-desc "^-X[ \t\n]"))
     (setq isvar (string-match "^[$@%]" command)
 	  buf (cperl-info-buffer isvar)
-	  iniwin (selected-window)
-	  fr1 (window-frame iniwin))
+	  iniwin (selected-window))
     (set-buffer buf)
     (goto-char (point-min))
     (or isvar
@@ -6601,11 +6639,7 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
 	  (or (not win)
 	      (eq (window-buffer win) buf)
 	      (set-window-buffer win buf))
-	  (and win (setq fr2 (window-frame win)))
-	  (if (or (not fr2) (eq fr1 fr2))
-	      (pop-to-buffer buf)
-	    (special-display-popup-frame buf) ; Make it visible
-	    (select-window win))
+	  (pop-to-buffer buf)
 	  (goto-char pos)		; Needed (?!).
 	  ;; Resize
 	  (setq iniheight (window-height)
@@ -8824,6 +8858,7 @@ Delay of auto-help controlled by `cperl-lazy-help-time'."
 ;;; Plug for wrong font-lock:
 
 (defun cperl-font-lock-unfontify-region-function (beg end)
+  (declare (obsolete nil "30.1"))
   (with-silent-modifications
     (remove-text-properties beg end '(face nil))))
 

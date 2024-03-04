@@ -1,6 +1,6 @@
 ;;; cham.el --- Quail package for inputting Cham characters  -*- coding: utf-8; lexical-binding:t -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 ;; Keywords: i18n

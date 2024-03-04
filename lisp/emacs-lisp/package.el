@@ -1,6 +1,6 @@
 ;;; package.el --- Simple package system for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;         Daniel Hackney <dan@haxney.org>
@@ -1149,27 +1149,8 @@ Signal an error if the entire string was not used."
                (error "Can't read whole string"))
       (end-of-file expr))))
 
-(defun package--prepare-dependencies (deps)
-  "Turn DEPS into an acceptable list of dependencies.
-
-Any parts missing a version string get a default version string
-of \"0\" (meaning any version) and an appropriate level of lists
-is wrapped around any parts requiring it."
-  (cond
-   ((not (listp deps))
-    (error "Invalid requirement specifier: %S" deps))
-   (t (mapcar (lambda (dep)
-                (cond
-                 ((symbolp dep) `(,dep "0"))
-                 ((stringp dep)
-                  (error "Invalid requirement specifier: %S" dep))
-                 ((and (listp dep) (null (cdr dep)))
-                  (list (car dep) "0"))
-                 (t dep)))
-              deps))))
-
 (declare-function lm-header "lisp-mnt" (header))
-(declare-function lm-header-multiline "lisp-mnt" (header))
+(declare-function lm-package-requires "lisp-mnt" (&optional file))
 (declare-function lm-website "lisp-mnt" (&optional file))
 (declare-function lm-keywords-list "lisp-mnt" (&optional file))
 (declare-function lm-maintainers "lisp-mnt" (&optional file))
@@ -1192,8 +1173,14 @@ boundaries."
     ;; requirement for a "footer line" without unduly impacting users
     ;; on earlier Emacs versions.  See Bug#26490 for more details.
     (unless (search-forward (concat ";;; " file-name ".el ends here") nil 'move)
-      (lwarn '(package package-format) :warning
-             "Package lacks a terminating comment"))
+      ;; Starting in Emacs 30.1, avoid warning if the minimum Emacs
+      ;; version is specified as 30.1 or later.
+      (let ((min-emacs (cadar (seq-filter (lambda (x) (eq (car x) 'emacs))
+                                          (lm-package-requires)))))
+        (when (or (null min-emacs)
+                  (version< min-emacs "30.1"))
+          (lwarn '(package package-format) :warning
+                 "Package lacks a terminating comment"))))
     ;; Try to include a trailing newline.
     (forward-line)
     (narrow-to-region start (point))
@@ -1212,9 +1199,7 @@ boundaries."
            (error "Package lacks a \"Version\" or \"Package-Version\" header")))
       (package-desc-from-define
        file-name pkg-version desc
-       (and-let* ((require-lines (lm-header-multiline "package-requires")))
-         (package--prepare-dependencies
-          (package-read-from-string (mapconcat #'identity require-lines " "))))
+       (lm-package-requires)
        :kind 'single
        :url website
        :keywords keywords
@@ -1720,18 +1705,26 @@ The variable `package-load-list' controls which packages to load."
                    package-quickstart-file))))
     ;; The quickstart file presumes that it has a blank slate,
     ;; so don't use it if we already activated some packages.
-    (if (and qs (not (bound-and-true-p package-activated-list)))
-        ;; Skip load-source-file-function which would slow us down by a factor
-        ;; 2 when loading the .el file (this assumes we were careful to
-        ;; save this file so it doesn't need any decoding).
-        (let ((load-source-file-function nil))
-          (unless (boundp 'package-activated-list)
-            (setq package-activated-list nil))
-          (load qs nil 'nomessage))
-      (require 'package)
-      (package--activate-all)))))
+    (or (and qs (not (bound-and-true-p package-activated-list))
+             ;; Skip `load-source-file-function' which would slow us down by
+             ;; a factor 2 when loading the .el file (this assumes we were
+             ;; careful to save this file so it doesn't need any decoding).
+             (with-demoted-errors "Error during quickstart: %S"
+               (let ((load-source-file-function nil))
+                 (unless (boundp 'package-activated-list)
+                   (setq package-activated-list nil))
+                 (load qs nil 'nomessage)
+                 t)))
+        (progn
+          (require 'package)
+          ;; Silence the "unknown function" warning when this is compiled
+          ;; inside `loaddefs.el'.
+          ;; FIXME: We use `with-no-warnings' because the effect of
+          ;; `declare-function' is currently not scoped, so if we use
+          ;; it here, we end up with a redefinition warning instead :-)
+          (with-no-warnings
+            (package--activate-all)))))))
 
-;;;###autoload
 (defun package--activate-all ()
   (dolist (elt (package--alist))
     (condition-case err
@@ -2811,8 +2804,7 @@ Helper function for `describe-package'."
          (status (if desc (package-desc-status desc) "orphan"))
          (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc)))
-         (maintainers (or (cdr (assoc :maintainers extras))
-                          (list (cdr (assoc :maintainer extras)))))
+         (maintainers (cdr (assoc :maintainer extras)))
          (authors (cdr (assoc :authors extras)))
          (news (and-let* (pkg-dir
                           ((not built-in))
@@ -4077,8 +4069,8 @@ invocations."
 (defun package-menu--version-predicate (A B)
   "Predicate to sort \"*Packages*\" buffer by the version column.
 This is used for `tabulated-list-format' in `package-menu-mode'."
-  (let ((vA (or (version-to-list (aref (cadr A) 1)) '(0)))
-        (vB (or (version-to-list (aref (cadr B) 1)) '(0))))
+  (let ((vA (or (ignore-error error (version-to-list (aref (cadr A) 1))) '(0)))
+        (vB (or (ignore-error error (version-to-list (aref (cadr B) 1))) '(0))))
     (if (version-list-= vA vB)
         (package-menu--name-predicate A B)
       (version-list-< vA vB))))
@@ -4706,18 +4698,23 @@ will be signaled in that case."
   (let* ((name (package-desc-name pkg-desc))
          (extras (package-desc-extras pkg-desc))
          (maint (alist-get :maintainer extras)))
+    (unless (listp (cdr maint))
+      (setq maint (list maint)))
     (cond
      ((and (null maint) (null no-error))
       (user-error "Package `%s' has no explicit maintainer" name))
      ((and (not (progn
                   (require 'ietf-drums)
-                  (ietf-drums-parse-address (cdr maint))))
+                  (ietf-drums-parse-address (cdar maint))))
            (null no-error))
       (user-error "Package `%s' has no maintainer address" name))
-     ((not (null maint))
+     (t
       (with-temp-buffer
-        (package--print-email-button maint)
-        (string-trim (substring-no-properties (buffer-string))))))))
+        (mapc #'package--print-email-button maint)
+        (replace-regexp-in-string
+         "\n" ", " (string-trim
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))))
 
 ;;;###autoload
 (defun package-report-bug (desc)
@@ -4727,17 +4724,19 @@ DESC must be a `package-desc' object."
                package-menu-mode)
   (let ((maint (package-maintainers desc))
         (name (symbol-name (package-desc-name desc)))
+        (pkgdir (package-desc-dir desc))
         vars)
-    (dolist-with-progress-reporter (group custom-current-group-alist)
-        "Scanning for modified user options..."
-      (when (and (car group)
-                 (file-in-directory-p (car group) (package-desc-dir desc)))
-        (dolist (ent (get (cdr group) 'custom-group))
-          (when (and (custom-variable-p (car ent))
-                     (boundp (car ent))
-                     (not (eq (custom--standard-value (car ent))
-                              (default-toplevel-value (car ent)))))
-            (push (car ent) vars)))))
+    (when pkgdir
+      (dolist-with-progress-reporter (group custom-current-group-alist)
+          "Scanning for modified user options..."
+        (when (and (car group)
+                   (file-in-directory-p (car group) pkgdir))
+          (dolist (ent (get (cdr group) 'custom-group))
+            (when (and (custom-variable-p (car ent))
+                       (boundp (car ent))
+                       (not (eq (custom--standard-value (car ent))
+                                (default-toplevel-value (car ent)))))
+              (push (car ent) vars))))))
     (dlet ((reporter-prompt-for-summary-p t))
       (reporter-submit-bug-report maint name vars))))
 

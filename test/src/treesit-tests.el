@@ -1,6 +1,6 @@
 ;;; treesit-tests.el --- tests for src/treesit.c         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1166,6 +1166,42 @@ This tests bug#60355."
    treesit--ert-defun-navigation-python-program
    treesit--ert-defun-navigation-top-level-master
    'top-level))
+
+(ert-deftest treesit-search-subtree-forward-1 ()
+  "Test search subtree forward."
+  (skip-unless (treesit-language-available-p 'python))
+  (require 'python)
+  (python-ts-mode)
+  (insert "Temp(1, 2)")
+  (goto-char (point-min))
+  (pcase-let* ((`((,_ . ,call-node))
+                (treesit-query-capture (treesit-buffer-root-node)
+                                       '((call) @c)))
+               (node (treesit-search-subtree
+                      call-node
+                      (lambda (n) (equal (treesit-node-type n) "integer")))))
+
+    (should node)
+    (should (equal (treesit-node-text node) "1"))))
+
+(ert-deftest treesit-search-subtree-backward-1 ()
+  "Test search subtree with backward=t."
+  (skip-unless (treesit-language-available-p 'python))
+  (require 'python)
+  (python-ts-mode)
+  (insert "Temp(1, 2)")
+  (goto-char (point-min))
+  (pcase-let* ((`((,_ . ,call-node))
+                (treesit-query-capture (treesit-buffer-root-node)
+                                       '((call) @c)))
+               (node (treesit-search-subtree
+                      call-node
+                      (lambda (n) (equal (treesit-node-type n) "integer"))
+                      t)))
+
+    (should node)
+    (should (equal (treesit-node-text node) "2"))))
+
 
 ;; TODO
 ;; - Functions in treesit.el

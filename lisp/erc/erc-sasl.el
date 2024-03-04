@@ -1,6 +1,6 @@
 ;;; erc-sasl.el --- SASL for ERC -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -305,9 +305,8 @@ If necessary, pass PROMPT to `read-passwd'."
                        (| eot ",")))
                   (downcase offered)))
 
-(erc-define-catalog
- 'english
- '((s902 . "ERR_NICKLOCKED nick %n unavailable: %s")
+(erc--define-catalog english
+  ((s902 . "ERR_NICKLOCKED nick %n unavailable: %s")
    (s904 . "ERR_SASLFAIL (authentication failed) %s")
    (s905 . "ERR SASLTOOLONG (credentials too long) %s")
    (s906 . "ERR_SASLABORTED (authentication aborted) %s")
@@ -333,8 +332,8 @@ This doesn't solicit or validate a suite of supported mechanisms."
             (client (erc-sasl--create-client mech)))
        (unless client
          (erc-display-error-notice
-          nil (format "Unknown or unsupported SASL mechanism: %s" mech))
-         (erc-error "Unknown or unsupported SASL mechanism: %s" mech))
+          nil (format "Unknown or unsupported SASL mechanism: `%s'" mech))
+         (error "Unknown or unsupported SASL mechanism: `%s'" mech))
        (setf (erc-sasl--state-client erc-sasl--state) client))))
   ((kill-local-variable 'erc-sasl--state)
    (kill-local-variable 'erc-sasl--options))
@@ -371,9 +370,10 @@ This doesn't solicit or validate a suite of supported mechanisms."
           (setq data (concat (substring data end) (and (= end 400) "+"))))))))
 
 (defun erc-sasl--destroy (proc)
-  (run-hook-with-args 'erc-quit-hook proc)
+  "Destroy process PROC and warn user that their settings are likely faulty."
   (delete-process proc)
-  (erc-error "Disconnected from %s; please review SASL settings" proc))
+  (erc--lwarn 'erc-sasl :error
+              "Disconnected from %s; please review SASL settings" proc))
 
 (define-erc-response-handler (902)
   "Handle an ERR_NICKLOCKED response." nil

@@ -1,6 +1,6 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1998, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1998, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author:          1993-1998 Barry A. Warsaw
 ;; Maintainer: emacs-devel@gnu.org

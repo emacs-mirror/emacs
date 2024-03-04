@@ -1,6 +1,6 @@
 /* Generic frame functions.
 
-Copyright (C) 1993-1995, 1997, 1999-2023 Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 1997, 1999-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1040,8 +1040,7 @@ make_frame (bool mini_p)
   rw->pixel_height = rw->total_lines * FRAME_LINE_HEIGHT (f);
 
   fset_face_hash_table
-    (f, make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE, DEFAULT_REHASH_SIZE,
-                         DEFAULT_REHASH_THRESHOLD, Qnil, false));
+    (f, make_hash_table (&hashtest_eq, DEFAULT_HASH_SIZE, Weak_None, false));
 
   if (mini_p)
     {
@@ -2149,7 +2148,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       x_clipboard_manager_save_frame (frame);
 #endif
 
-      safe_call2 (Qrun_hook_with_args, Qdelete_frame_functions, frame);
+      safe_calln (Qrun_hook_with_args, Qdelete_frame_functions, frame);
     }
 
   /* delete_frame_functions may have deleted any frame, including this
@@ -2461,7 +2460,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       = Fcons (list3 (Qrun_hook_with_args, Qafter_delete_frame_functions, frame),
 	       pending_funcalls);
   else
-    safe_call2 (Qrun_hook_with_args, Qafter_delete_frame_functions, frame);
+    safe_calln (Qrun_hook_with_args, Qafter_delete_frame_functions, frame);
 
   if (!NILP (minibuffer_child_frame))
     /* If minibuffer_child_frame is non-nil, it was FRAME's minibuffer

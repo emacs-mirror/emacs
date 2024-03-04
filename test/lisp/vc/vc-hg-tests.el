@@ -1,6 +1,6 @@
 ;;; vc-hg-tests.el --- tests for vc/vc-hg.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 ;; Maintainer: emacs-devel@gnu.org
@@ -53,6 +53,8 @@
 (ert-deftest vc-hg-annotate-time ()
   (with-temp-buffer
     (save-excursion (insert "philringnalda 218075 2014-11-28 CLOBBER:"))
-    (should (floatp (vc-hg-annotate-time)))))
+    (should (equal (vc-hg-annotate-time)
+                   (vc-annotate-convert-time
+                    (encode-time 0 0 0 28 11 2014))))))
 
 ;;; vc-hg-tests.el ends here

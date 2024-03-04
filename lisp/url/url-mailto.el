@@ -1,6 +1,6 @@
 ;;; url-mailto.el --- Mail Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2024 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 

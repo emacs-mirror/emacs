@@ -1,9 +1,9 @@
 ;;; rng-uri.el --- URI parsing and manipulation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: James Clark
-;; Keywords: wp, hypermedia, languages, XML
+;; Keywords: text, hypermedia, languages, XML
 
 ;; This file is part of GNU Emacs.
 

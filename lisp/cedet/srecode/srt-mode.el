@@ -1,6 +1,6 @@
 ;;; srecode/srt-mode.el --- Major mode for writing screcode macros  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -420,7 +420,7 @@ Moves to the end of one named section."
 	      (when (string= (car (car subdicts)) name)
 		(setq res (cdr (car subdicts))))
 	      (setq subdicts (cdr subdicts)))
-	    ;; Pre-pend our global vars.
+	    ;; Prepend our global vars.
 	    (append global res))
 	;; If we aren't in a subsection, just do the global variables
 	global

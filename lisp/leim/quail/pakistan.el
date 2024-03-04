@@ -1,6 +1,6 @@
 ;;; pakistan.el --- Input methods for some languages from Pakistan -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Author: Rahguzar <rahguzar@zohomail.eu>
 ;; Keywords: convenience, multilingual, input method, Urdu, Balochi, Pashto, Sindhi, Hindko, Brahui

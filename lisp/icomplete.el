@@ -1,6 +1,6 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Mar 1993 Ken Manheimer, klm@nist.gov - first release to usenet
@@ -789,10 +789,8 @@ and SUFFIX, if non-nil, are obtained from `affixation-function' or
 `group-function'.  Consecutive `equal' sections are avoided.
 COMP is the element in PROSPECTS or a transformation also given
 by `group-function''s second \"transformation\" protocol."
-  (let* ((aff-fun (or (completion-metadata-get md 'affixation-function)
-                      (plist-get completion-extra-properties :affixation-function)))
-         (ann-fun (or (completion-metadata-get md 'annotation-function)
-                      (plist-get completion-extra-properties :annotation-function)))
+  (let* ((aff-fun (completion-metadata-get md 'affixation-function))
+         (ann-fun (completion-metadata-get md 'annotation-function))
          (grp-fun (and completions-group
                        (completion-metadata-get md 'group-function)))
          (annotated

@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -61,6 +61,7 @@
 ;; avoid them in cases we know what we do.
 (defmacro tramp-compat-funcall (function &rest arguments)
   "Call FUNCTION with ARGUMENTS if it exists.  Do not raise compiler warnings."
+  (declare (indent 1) (debug t))
   `(when (functionp ,function)
      (with-no-warnings (funcall ,function ,@arguments))))
 
@@ -306,6 +307,16 @@ Also see `ignore'."
       ?\N{KHMER SIGN CAMNUC PII KUUH})
     "List of characters equivalent to trailing colon in \"password\" prompts."))
 
+;; Macro `connection-local-p' is new in Emacs 30.1.
+(if (macrop 'connection-local-p)
+    (defalias 'tramp-compat-connection-local-p #'connection-local-p)
+  (defmacro tramp-compat-connection-local-p (variable)
+    "Non-nil if VARIABLE has a connection-local binding in `default-directory'."
+    `(let (connection-local-variables-alist file-local-variables-alist)
+       (hack-connection-local-variables
+	(connection-local-criteria-for-default-directory))
+       (and (assq ',variable connection-local-variables-alist) t))))
+
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (function-put (intern elt) 'tramp-suppress-trace t))
 
@@ -319,6 +330,16 @@ Also see `ignore'."
 ;;; TODO:
 ;;
 ;; * Starting with Emacs 27.1, there's no need to escape open
-;;   parentheses with a backslash in docstrings anymore.
+;;   parentheses with a backslash in docstrings anymore.  However,
+;;   `outline-minor-mode' has still problems with this.  Since there
+;;   are developers using `outline-minor-mode' in Lisp files, we still
+;;   keep this quoting.
+;;
+;; * Starting with Emacs 29.1, use `buffer-match-p'.
+;;
+;; * Starting with Emacs 30.1, there is `handler-bind'.  Use it
+;;   instead of `condition-case' when the origin of an error shall be
+;;   kept, for example when the HANDLER propagates the error with
+;;   `(signal (car err) (cdr err)'.
 
 ;;; tramp-compat.el ends here

@@ -1,6 +1,6 @@
 ;;; edmacro.el --- keyboard macro editor  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev
@@ -124,9 +124,9 @@ from `kmacro-edit-lossage'."
 (defun edit-kbd-macro (keys &optional prefix finish-hook store-hook)
   "Edit a keyboard macro.
 At the prompt, type any key sequence which is bound to a keyboard macro.
-Or, type `\\[kmacro-end-and-call-macro]' or \\`RET' to edit the last
-keyboard macro, `\\[view-lossage]' to edit the last 300
-keystrokes as a keyboard macro, or `\\[execute-extended-command]'
+Or, type \\[kmacro-end-and-call-macro] or \\`RET' to edit the last
+keyboard macro, \\[view-lossage] to edit the last 300
+keystrokes as a keyboard macro, or \\[execute-extended-command]
 to edit a macro by its command name.
 With a prefix argument, format the macro in a more concise way."
   (interactive
@@ -720,17 +720,15 @@ This function assumes that the events can be stored in a string."
            (setf (aref seq i) (logand (aref seq i) 127)))
   seq)
 
-;; These are needed in a --without-x build.
-(defvar mouse-wheel-down-event)
-(defvar mouse-wheel-up-event)
-(defvar mouse-wheel-right-event)
-(defvar mouse-wheel-left-event)
-
 (defun edmacro-fix-menu-commands (macro &optional noerror)
   (if (vectorp macro)
       (let (result)
         ;; Not preloaded in a --without-x build.
         (require 'mwheel)
+        (defvar mouse-wheel-down-event)
+        (defvar mouse-wheel-up-event)
+        (defvar mouse-wheel-right-event)
+        (defvar mouse-wheel-left-event)
 	;; Make a list of the elements.
 	(setq macro (append macro nil))
 	(dolist (ev macro)
@@ -746,9 +744,9 @@ This function assumes that the events can be stored in a string."
 		;; info is recorded in macros to make this possible.
 		((or (mouse-event-p ev) (mouse-movement-p ev)
 		     (memq (event-basic-type ev)
-			   (list mouse-wheel-down-event mouse-wheel-up-event
-				 mouse-wheel-right-event
-				 mouse-wheel-left-event)))
+			   `( ,mouse-wheel-down-event ,mouse-wheel-up-event
+			      ,mouse-wheel-right-event ,mouse-wheel-left-event
+			      wheel-down wheel-up wheel-left wheel-right)))
 		 nil)
 		(noerror nil)
 		(t

@@ -1,6 +1,6 @@
 ;;; files-tests.el --- tests for files.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -2100,6 +2100,10 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
       (should (documentation 'foo))
       (should (documentation 'bar))
       (should (documentation 'zot)))))
+
+(ert-deftest files-tests--expand-wildcards ()
+  (should (file-expand-wildcards
+           (concat (directory-file-name default-directory) "*/"))))
 
 (provide 'files-tests)
 ;;; files-tests.el ends here

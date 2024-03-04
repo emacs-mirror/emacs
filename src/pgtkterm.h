@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with pure Gtk+3.
-   Copyright (C) 1989, 1993, 2005, 2008-2023 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2024 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -462,7 +462,7 @@ enum
 #define FRAME_X_WINDOW(f)          FRAME_GTK_OUTER_WIDGET (f)
 #define FRAME_NATIVE_WINDOW(f)     GTK_WINDOW (FRAME_X_WINDOW (f))
 #define FRAME_GDK_WINDOW(f)			\
-  (gtk_widget_get_window (FRAME_GTK_WIDGET (f)))
+  gtk_widget_get_window (FRAME_GTK_WIDGET (f))
 
 #define FRAME_X_DISPLAY(f)        (FRAME_DISPLAY_INFO (f)->gdpy)
 

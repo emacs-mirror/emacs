@@ -1,9 +1,9 @@
 ;;; org-table.el --- The Table Editor for Org        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
@@ -4894,7 +4894,7 @@ This function sets up the following dynamically scoped variables:
 			(push (cons field v) org-table-local-parameters)
 			(push (list field line col)
 			      org-table-named-field-locations))))))))))
-      ;; Re-use existing markers when possible.
+      ;; Reuse existing markers when possible.
       (if (markerp org-table-current-begin-pos)
 	  (move-marker org-table-current-begin-pos (point))
 	(setq org-table-current-begin-pos (point-marker)))

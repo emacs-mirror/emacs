@@ -1,6 +1,6 @@
 /* Emulate the X Resource Manager through the registry.
 
-Copyright (C) 1990, 1993-1994, 2001-2023 Free Software Foundation, Inc.
+Copyright (C) 1990, 1993-1994, 2001-2024 Free Software Foundation, Inc.
 
 Author: Kevin Gallo
 

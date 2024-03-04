@@ -1,6 +1,6 @@
 /* intprops-internal.h -- properties of integer types not visible to users
 
-   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -19,6 +19,11 @@
 #define _GL_INTPROPS_INTERNAL_H
 
 #include <limits.h>
+
+/* Pacify GCC 13.2 in some calls to _GL_EXPR_SIGNED.  */
+#if defined __GNUC__ && 4 < __GNUC__ + (3 <= __GNUC_MINOR__)
+# pragma GCC diagnostic ignored "-Wtype-limits"
+#endif
 
 /* Return a value with the common real type of E and V and the value of V.
    Do not evaluate E.  */

@@ -1,6 +1,6 @@
 ;;; char-fold.el --- match unicode to similar ASCII -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: matching
@@ -214,7 +214,7 @@
          equiv))
       equiv)))
 
-(defconst char-fold-table
+(defvar char-fold-table
   (eval-when-compile
     (char-fold--make-table))
   "Used for folding characters of the same group during search.

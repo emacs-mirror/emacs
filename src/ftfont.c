@@ -1,5 +1,5 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2024 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -1572,6 +1572,12 @@ ftfont_glyph_metrics (FT_Face ft_face, int c, int *advance, int *lbearing,
   if (FT_Load_Glyph (ft_face, c, FT_LOAD_DEFAULT) == 0)
     {
       FT_Glyph_Metrics *m = &ft_face->glyph->metrics;
+
+      /* At first glance this might appear to truncate the glyph's
+	 horizontal advance, but FreeType internally rounds the
+	 advance width to a pixel boundary prior to returning these
+	 metrics.  */
+
       *advance = m->horiAdvance >> 6;
       *lbearing = m->horiBearingX >> 6;
       *rbearing = (m->horiBearingX + m->width) >> 6;

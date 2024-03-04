@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -636,7 +636,7 @@ public final class EmacsOpenActivity extends Activity
 		  {
 		    /* This means Emacs lacks the rights to open this
 		       file.  Display the error message and exit.  */
-		    displayFailureDialog ("Error openining file",
+		    displayFailureDialog ("Error opening file",
 					  exception.toString ());
 		    return;
 		  }

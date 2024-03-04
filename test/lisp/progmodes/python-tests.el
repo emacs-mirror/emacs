@@ -1,6 +1,6 @@
 ;;; python-tests.el --- Test suite for python.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -474,6 +474,28 @@ def f(x: CustomInt) -> CustomInt:
      (136 . font-lock-operator-face) (137)
      (144 . font-lock-keyword-face) (150))))
 
+(ert-deftest python-font-lock-operator-1 ()
+  (python-tests-assert-faces
+   "1 << 2 ** 3 == +4%-5|~6&7^8%9"
+   '((1)
+     (3 . font-lock-operator-face) (5)
+     (8 . font-lock-operator-face) (10)
+     (13 . font-lock-operator-face) (15)
+     (16 . font-lock-operator-face) (17)
+     (18 . font-lock-operator-face) (20)
+     (21 . font-lock-operator-face) (23)
+     (24 . font-lock-operator-face) (25)
+     (26 . font-lock-operator-face) (27)
+     (28 . font-lock-operator-face) (29))))
+
+(ert-deftest python-font-lock-operator-2 ()
+  "Keyword operators are font-locked as keywords."
+  (python-tests-assert-faces
+   "is_ is None"
+   '((1)
+     (5 . font-lock-keyword-face) (7)
+     (8 . font-lock-constant-face))))
+
 (ert-deftest python-font-lock-escape-sequence-string-newline ()
   (python-tests-assert-faces
    "'\\n'
@@ -585,62 +607,70 @@ u\"\\n\""
      (845 . font-lock-string-face) (886))))
 
 (ert-deftest python-font-lock-escape-sequence-bytes-newline ()
-  :expected-result :failed
   (python-tests-assert-faces
    "b'\\n'
 b\"\\n\""
    '((1)
-     (2 . font-lock-doc-face)
+     (2 . font-lock-string-face)
      (3 . font-lock-constant-face)
-     (5 . font-lock-doc-face) (6)
-     (8 . font-lock-doc-face)
+     (5 . font-lock-string-face) (6)
+     (8 . font-lock-string-face)
      (9 . font-lock-constant-face)
-     (11 . font-lock-doc-face))))
+     (11 . font-lock-string-face))))
 
 (ert-deftest python-font-lock-escape-sequence-hex-octal ()
-  :expected-result :failed
   (python-tests-assert-faces
    "b'\\x12 \\777 \\1\\23'
 '\\x12 \\777 \\1\\23'"
    '((1)
-     (2 . font-lock-doc-face)
+     (2 . font-lock-string-face)
      (3 . font-lock-constant-face)
-     (7 . font-lock-doc-face)
+     (7 . font-lock-string-face)
      (8 . font-lock-constant-face)
-     (12 . font-lock-doc-face)
+     (12 . font-lock-string-face)
      (13 . font-lock-constant-face)
-     (18 . font-lock-doc-face) (19)
-     (20 . font-lock-doc-face)
+     (18 . font-lock-string-face) (19)
+     (20 . font-lock-string-face)
      (21 . font-lock-constant-face)
-     (25 . font-lock-doc-face)
+     (25 . font-lock-string-face)
      (26 . font-lock-constant-face)
-     (30 . font-lock-doc-face)
+     (30 . font-lock-string-face)
      (31 . font-lock-constant-face)
-     (36 . font-lock-doc-face))))
+     (36 . font-lock-string-face))))
 
 (ert-deftest python-font-lock-escape-sequence-unicode ()
-  :expected-result :failed
   (python-tests-assert-faces
    "b'\\u1234 \\U00010348 \\N{Plus-Minus Sign}'
 '\\u1234 \\U00010348 \\N{Plus-Minus Sign}'"
    '((1)
-     (2 . font-lock-doc-face) (41)
-     (42 . font-lock-doc-face)
+     (2 . font-lock-string-face) (41)
+     (42 . font-lock-string-face)
      (43 . font-lock-constant-face)
-     (49 . font-lock-doc-face)
+     (49 . font-lock-string-face)
      (50 . font-lock-constant-face)
-     (60 . font-lock-doc-face)
+     (60 . font-lock-string-face)
      (61 . font-lock-constant-face)
-     (80 . font-lock-doc-face))))
+     (80 . font-lock-string-face))))
 
 (ert-deftest python-font-lock-raw-escape-sequence ()
-  :expected-result :failed
   (python-tests-assert-faces
    "rb'\\x12 \123 \\n'
 r'\\x12 \123 \\n \\u1234 \\U00010348 \\N{Plus-Minus Sign}'"
    '((1)
-     (3 . font-lock-doc-face) (14)
-     (16 . font-lock-doc-face))))
+     (3 . font-lock-string-face) (14)
+     (16 . font-lock-string-face))))
+
+(ert-deftest python-font-lock-string-literal-concatenation ()
+  "Test for bug#45897."
+  (python-tests-assert-faces
+   "x = \"hello\"\"\"
+y = \"confused\""
+   '((1 . font-lock-variable-name-face) (2)
+     (3 . font-lock-operator-face) (4)
+     (5 . font-lock-string-face) (14)
+     (15 . font-lock-variable-name-face) (16)
+     (17 . font-lock-operator-face) (18)
+     (19 . font-lock-string-face))))
 
 
 ;;; Indentation
@@ -6647,6 +6677,15 @@ class Class:
    (python-tests-look-at "Also not a docstring")
    (should-not (python-info-docstring-p))))
 
+(ert-deftest python-info-docstring-p-8 ()
+  "Test string in the 2nd line of a buffer."
+  (python-tests-with-temp-buffer
+   "import sys
+'''Not a docstring.'''
+"
+   (python-tests-look-at "Not a docstring")
+   (should-not (python-info-docstring-p))))
+
 (ert-deftest python-info-triple-quoted-string-p-1 ()
   "Test triple quoted string."
   (python-tests-with-temp-buffer
@@ -7298,6 +7337,308 @@ buffer with overlapping strings."
                      (if type
                          "Unused import a.b.c (unused-import)"
                        "W0611: Unused import a.b.c (unused-import)"))))))
+
+;;; python-ts-mode font-lock tests
+
+(defmacro python-ts-tests-with-temp-buffer (contents &rest body)
+  "Create a `python-ts-mode' enabled temp buffer with CONTENTS.
+BODY is code to be executed within the temp buffer.  Point is
+always located at the beginning of buffer."
+  (declare (indent 1) (debug t))
+  `(with-temp-buffer
+     (skip-unless (treesit-ready-p 'python))
+     (require 'python)
+     (let ((python-indent-guess-indent-offset nil))
+       (python-ts-mode)
+       (setopt treesit-font-lock-level 3)
+       (insert ,contents)
+       (font-lock-ensure)
+       (goto-char (point-min))
+       ,@body)))
+
+(ert-deftest python-ts-mode-compound-keywords-face ()
+  (dolist (test '("is not" "not in"))
+    (python-ts-tests-with-temp-buffer
+     (concat "t " test " t")
+     (forward-to-word 1)
+     (should (eq (face-at-point) font-lock-keyword-face))
+     (forward-to-word 1)
+     (should (eq (face-at-point) font-lock-keyword-face)))))
+
+(ert-deftest python-ts-mode-named-assignement-face-1 ()
+  (python-ts-tests-with-temp-buffer
+   "var := 3"
+   (should (eq (face-at-point) font-lock-variable-name-face))))
+
+(ert-deftest python-ts-mode-assignement-face-2 ()
+  (python-ts-tests-with-temp-buffer
+   "var, *rest = call()"
+   (dolist (test '("var" "rest"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-variable-name-face))))
+
+  (python-ts-tests-with-temp-buffer
+   "def func(*args):"
+   (dolist (test '("args"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (not (eq (face-at-point) font-lock-variable-name-face))))))
+
+(ert-deftest python-ts-mode-nested-types-face-1 ()
+  (python-ts-tests-with-temp-buffer
+   "def func(v:dict[ list[ tuple[str] ], int | None] | None):"
+   (dolist (test '("dict" "list" "tuple" "str" "int" "None" "None"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))))
+
+(ert-deftest python-ts-mode-union-types-face-1 ()
+  (python-ts-tests-with-temp-buffer
+   "def f(val: tuple[tuple, list[Lvl1 | Lvl2[Lvl3[Lvl4[Lvl5 | None]], Lvl2]]]):"
+   (dolist (test '("tuple" "tuple" "list" "Lvl1" "Lvl2" "Lvl3" "Lvl4" "Lvl5" "None" "Lvl2"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))))
+
+(ert-deftest python-ts-mode-union-types-face-2 ()
+  (python-ts-tests-with-temp-buffer
+   "def f(val: Type0 | Type1[Type2, pack0.Type3] | pack1.pack2.Type4 | None):"
+   (dolist (test '("Type0" "Type1" "Type2" "Type3" "Type4" "None"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))
+
+   (goto-char (point-min))
+   (dolist (test '("pack0" "pack1" "pack2"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (not (eq (face-at-point) font-lock-type-face))))))
+
+(ert-deftest python-ts-mode-types-face-1 ()
+  (python-ts-tests-with-temp-buffer
+   "def f(val: Callable[[Type0], (Type1, Type2)]):"
+   (dolist (test '("Callable" "Type0" "Type1" "Type2"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))))
+
+(ert-deftest python-ts-mode-types-face-2 ()
+  (python-ts-tests-with-temp-buffer
+   "def annot3(val:pack0.Type0)->pack1.pack2.pack3.Type1:"
+   (dolist (test '("Type0" "Type1"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))
+   (goto-char (point-min))
+   (dolist (test '("pack0" "pack1" "pack2" "pack3"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (not (eq (face-at-point) font-lock-type-face))))))
+
+(ert-deftest python-ts-mode-types-face-3 ()
+  (python-ts-tests-with-temp-buffer
+   "def annot3(val:collections.abc.Iterator[Type0]):"
+   (dolist (test '("Iterator" "Type0"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))
+   (goto-char (point-min))
+   (dolist (test '("collections" "abc"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (not (eq (face-at-point) font-lock-type-face))))))
+
+(ert-deftest python-ts-mode-isinstance-type-face-1 ()
+  (python-ts-tests-with-temp-buffer
+   "isinstance(var1, pkg.Type0)
+    isinstance(var2, (str, dict, Type1, type(None)))
+    isinstance(var3, my_type())"
+
+   (dolist (test '("var1" "pkg" "var2" "type" "None" "var3" "my_type"))
+     (let ((case-fold-search nil))
+       (search-forward test))
+     (goto-char (match-beginning 0))
+     (should (not (eq (face-at-point) font-lock-type-face))))
+
+   (goto-char (point-min))
+   (dolist (test '("Type0" "str" "dict" "Type1"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))))
+
+(ert-deftest python-ts-mode-isinstance-type-face-2 ()
+  (python-ts-tests-with-temp-buffer
+   "issubclass(mytype, int|list|collections.abc.Iterable)"
+   (dolist (test '("int" "list" "Iterable"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))))
+
+(ert-deftest python-ts-mode-isinstance-type-face-3 ()
+  (python-ts-tests-with-temp-buffer
+   "issubclass(mytype, typevar1)
+    isinstance(mytype, (Type1, typevar2, tuple, abc.Coll))
+    isinstance(mytype, pkg0.Type2|self.typevar3|typevar4)"
+
+   (dolist (test '("typevar1" "typevar2" "pkg0" "self" "typevar3" "typevar4"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (not (eq (face-at-point) font-lock-type-face))))
+
+   (goto-char (point-min))
+   (dolist (test '("Type1" "tuple" "Coll" "Type2"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))))
+
+(ert-deftest python-ts-mode-superclass-type-face ()
+  (python-ts-tests-with-temp-buffer
+   "class Temp(Base1, pack0.Base2,  Sequence[T1, T2]):"
+
+   (dolist (test '("Base1" "Base2" "Sequence" "T1" "T2"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))
+
+   (goto-char (point-min))
+   (dolist (test '("pack0"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (not (eq (face-at-point) font-lock-type-face))))))
+
+(ert-deftest python-ts-mode-class-patterns-face ()
+  (python-ts-tests-with-temp-buffer
+   "match tt:
+        case str():
+            pass
+        case [Type0() | bytes(b) | pack0.pack1.Type1()]:
+            pass
+        case {'i': int(i), 'f': float() as f}:
+            pass"
+
+   (dolist (test '("str" "Type0" "bytes" "Type1" "int" "float"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))
+
+   (goto-char (point-min))
+   (dolist (test '("pack0" "pack1"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (not (eq (face-at-point) font-lock-type-face))))))
+
+(ert-deftest python-ts-mode-dotted-decorator-face-1 ()
+  (python-ts-tests-with-temp-buffer
+   "@pytest.mark.skip
+    @pytest.mark.skip(reason='msg')
+    def test():"
+
+   (dolist (test '("pytest" "mark" "skip" "pytest" "mark" "skip"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))))
+
+(ert-deftest python-ts-mode-dotted-decorator-face-2 ()
+  (python-ts-tests-with-temp-buffer
+   "@pytest.mark.skip(reason='msg')
+    def test():"
+
+   (setopt treesit-font-lock-level 4)
+   (dolist (test '("pytest" "mark" "skip"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-type-face)))))
+
+(ert-deftest python-ts-mode-builtin-call-face ()
+  (python-ts-tests-with-temp-buffer
+   "all()"
+   ;; enable 'function' feature from 4th level
+   (setopt treesit-font-lock-level 4)
+   (should (eq (face-at-point) font-lock-builtin-face))))
+
+(ert-deftest python-ts-mode-interpolation-nested-string ()
+  (python-ts-tests-with-temp-buffer
+   "t = f\"beg {True + 'string'}\""
+
+   (search-forward "True")
+   (goto-char (match-beginning 0))
+   (should (eq (face-at-point) font-lock-constant-face))
+
+   (goto-char (point-min))
+   (dolist (test '("f" "{" "+" "}"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (not (eq (face-at-point) font-lock-string-face))))
+
+
+   (goto-char (point-min))
+   (dolist (test '("beg" "'string'" "\""))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-string-face)))))
+
+(ert-deftest python-ts-mode-level-fontification-wo-interpolation ()
+  (python-ts-tests-with-temp-buffer
+   "t = f\"beg {True + var}\""
+
+   (setopt treesit-font-lock-level 2)
+   (search-forward "f")
+   (goto-char (match-beginning 0))
+   (should (not (eq (face-at-point) font-lock-string-face)))
+
+   (dolist (test '("\"" "beg" "{" "True" "var" "}" "\""))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-string-face)))))
+
+(ert-deftest python-ts-mode-disabled-string-interpolation ()
+  (python-ts-tests-with-temp-buffer
+   "t = f\"beg {True + var}\""
+
+   (unwind-protect
+       (progn
+         (setf (nth 2 treesit-font-lock-feature-list)
+               (remq 'string-interpolation (nth 2 treesit-font-lock-feature-list)))
+         (setopt treesit-font-lock-level 3)
+
+         (search-forward "f")
+         (goto-char (match-beginning 0))
+         (should (not (eq (face-at-point) font-lock-string-face)))
+
+         (dolist (test '("\"" "beg" "{" "True" "var" "}" "\""))
+           (search-forward test)
+           (goto-char (match-beginning 0))
+           (should (eq (face-at-point) font-lock-string-face))))
+
+    (setf (nth 2 treesit-font-lock-feature-list)
+          (append (nth 2 treesit-font-lock-feature-list) '(string-interpolation))))))
+
+(ert-deftest python-ts-mode-interpolation-doc-string ()
+  (python-ts-tests-with-temp-buffer
+   "f\"\"\"beg {'s1' + True + 's2'} end\"\"\""
+
+   (search-forward "True")
+   (goto-char (match-beginning 0))
+   (should (eq (face-at-point) font-lock-constant-face))
+
+   (goto-char (point-min))
+   (dolist (test '("f" "{" "+" "}"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (not (eq (face-at-point) font-lock-string-face))))
+
+   (goto-char (point-min))
+   (dolist (test '("\"\"\"" "beg" "end" "\"\"\""))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-doc-face)))
+
+   (goto-char (point-min))
+   (dolist (test '("'s1'" "'s2'"))
+     (search-forward test)
+     (goto-char (match-beginning 0))
+     (should (eq (face-at-point) font-lock-string-face)))))
 
 (provide 'python-tests)
 

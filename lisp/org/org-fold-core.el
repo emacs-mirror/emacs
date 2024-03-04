@@ -1,6 +1,6 @@
 ;;; org-fold-core.el --- Folding buffer text -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Ihor Radchenko <yantar92 at gmail dot com>
 ;; Keywords: folding, invisible text
@@ -433,7 +433,7 @@ Return nil when there is no matching folding spec."
   (org-fold-core-get-folding-spec-from-alias spec-or-alias))
 
 (defsubst org-fold-core--check-spec (spec-or-alias)
-  "Throw an error if SPEC-OR-ALIAS is not in `org-fold-core--spec-priority-list'."
+  "Throw an error if SPEC-OR-ALIAS is not in `org-fold-core-folding-spec-list'."
   (unless (org-fold-core-folding-spec-p spec-or-alias)
     (error "%s is not a valid folding spec" spec-or-alias)))
 

@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@ralph-schleicher.de>
 ;; Maintainer: emacs-devel@gnu.org

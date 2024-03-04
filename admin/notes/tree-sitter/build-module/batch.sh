@@ -18,6 +18,7 @@ languages=(
     'json'
     'lua'
     'python'
+    'ruby'
     'rust'
     'toml'
     'tsx'

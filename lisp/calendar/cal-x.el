@@ -1,6 +1,6 @@
 ;;; cal-x.el --- calendar windows in dedicated frames  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1995, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>

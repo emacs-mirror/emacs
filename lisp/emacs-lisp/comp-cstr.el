@@ -1,6 +1,6 @@
 ;;; comp-cstr.el --- native compiler constraint library -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <acorallo@gnu.org>
 ;; Keywords: lisp
@@ -130,7 +130,7 @@ Integer values are handled in the `range' slot.")
   ;; TODO we should be able to just cons hash this.
   (common-supertype-mem (make-hash-table :test #'equal) :type hash-table
                         :documentation "Serve memoization for
-`comp-common-supertype'.")
+`comp-ctxt-common-supertype-mem'.")
   (subtype-p-mem (make-hash-table :test #'equal) :type hash-table
                  :documentation "Serve memoization for
 `comp-cstr-ctxt-subtype-p-mem'.")
@@ -797,7 +797,7 @@ DST is returned."
             (cl-loop
              for val in (valset src)
              ;; If (member value) is subtypep of all other sources then
-             ;; is good to be colleted.
+             ;; is good to be collected.
              when (cl-every (lambda (s)
                               (or (memql val (valset s))
                                   (cl-some (lambda (type)

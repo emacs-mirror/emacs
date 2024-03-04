@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-2023 Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -203,7 +203,7 @@ check_vfs_filename (Lisp_Object encoded, const char *reason)
 #ifdef HAVE_LIBSELINUX
 
 /* Return whether SELinux is enabled and pertinent to FILE.  Provide
-   for cases where FILE is or is a constitutent of a special
+   for cases where FILE is or is a constituent of a special
    directory, such as /assets or /content on Android.  */
 
 static bool

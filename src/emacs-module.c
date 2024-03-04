@@ -1,6 +1,6 @@
 /* emacs-module.c - Module loading and runtime implementation
 
-Copyright (C) 2015-2023 Free Software Foundation, Inc.
+Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -410,12 +410,9 @@ module_global_reference_p (emacs_value v, ptrdiff_t *n)
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
   /* Note that we can't use `hash_lookup' because V might be a local
      reference that's identical to some global reference.  */
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
-    {
-      if (!BASE_EQ (HASH_KEY (h, i), Qunbound)
-          && &XMODULE_GLOBAL_REFERENCE (HASH_VALUE (h, i))->value == v)
-        return true;
-    }
+  DOHASH (h, k, val)
+    if (&XMODULE_GLOBAL_REFERENCE (val)->value == v)
+      return true;
   /* Only used for debugging, so we don't care about overflow, just
      make sure the operation is defined.  */
   ckd_add (n, *n, h->count);
@@ -427,8 +424,9 @@ module_make_global_ref (emacs_env *env, emacs_value value)
 {
   MODULE_FUNCTION_BEGIN (NULL);
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
-  Lisp_Object new_obj = value_to_lisp (value), hashcode;
-  ptrdiff_t i = hash_lookup (h, new_obj, &hashcode);
+  Lisp_Object new_obj = value_to_lisp (value);
+  hash_hash_t hashcode;
+  ptrdiff_t i = hash_lookup_get_hash (h, new_obj, &hashcode);
 
   /* Note: This approach requires the garbage collector to never move
      objects.  */
@@ -467,7 +465,7 @@ module_free_global_ref (emacs_env *env, emacs_value global_value)
   MODULE_FUNCTION_BEGIN ();
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
   Lisp_Object obj = value_to_lisp (global_value);
-  ptrdiff_t i = hash_lookup (h, obj, NULL);
+  ptrdiff_t i = hash_lookup (h, obj);
 
   if (module_assertions)
     {
@@ -1697,9 +1695,7 @@ syms_of_module (void)
 {
   staticpro (&Vmodule_refs_hash);
   Vmodule_refs_hash
-    = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE,
-		       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
-		       Qnil, false);
+    = make_hash_table (&hashtest_eq, DEFAULT_HASH_SIZE, Weak_None, false);
 
   DEFSYM (Qmodule_load_failed, "module-load-failed");
   Fput (Qmodule_load_failed, Qerror_conditions,

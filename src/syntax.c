@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2023 Free
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2024 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -468,7 +468,7 @@ parse_sexp_propertize (ptrdiff_t charpos)
       && syntax_propertize__done < zv)
     {
       modiff_count modiffs = CHARS_MODIFF;
-      safe_call1 (Qinternal__syntax_propertize,
+      safe_calln (Qinternal__syntax_propertize,
 		  make_fixnum (min (zv, 1 + charpos)));
       if (modiffs != CHARS_MODIFF)
 	error ("internal--syntax-propertize modified the buffer!");

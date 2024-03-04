@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node System Interface
@@ -2945,7 +2945,7 @@ interpreted as icon name.
 
 @item :category @var{category}
 The type of notification this is, a string.  See the
-@uref{https://developer.gnome.org/notification-spec/#categories,
+@url{https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html#categories,
 Desktop Notifications Specification} for a list of standard
 categories.
 

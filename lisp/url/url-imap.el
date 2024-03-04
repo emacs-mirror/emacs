@@ -1,6 +1,6 @@
 ;;; url-imap.el --- IMAP retrieval routines  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999, 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2024 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: comm, data, processes

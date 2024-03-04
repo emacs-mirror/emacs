@@ -1,6 +1,6 @@
 ;;; c-ts-common.el --- Utilities for C like Languages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Maintainer : 付禹安 (Yuan Fu) <casouri@gmail.com>
 ;; Package    : emacs
@@ -37,9 +37,8 @@
 ;;
 ;; For indenting statements:
 ;;
-;; - Set `c-ts-common-indent-offset',
-;;   `c-ts-common-indent-block-type-regexp', and
-;;   `c-ts-common-indent-bracketless-type-regexp', then use simple-indent
+;; - Set `c-ts-common-indent-offset', and
+;;   `c-ts-common-indent-type-regexp-alist', then use simple-indent
 ;;   offset `c-ts-common-statement-offset' in
 ;;   `treesit-simple-indent-rules'.
 
@@ -116,7 +115,7 @@ non-whitespace characters of the current line."
   "Regexp pattern that matches a comment in C-like languages.")
 
 (defun c-ts-common--fill-paragraph (&optional arg)
-  "Fillling function for `c-ts-common'.
+  "Filling function for `c-ts-common'.
 ARG is passed to `fill-paragraph'."
   (interactive "*P")
   (save-restriction
@@ -134,7 +133,7 @@ ARG is passed to `fill-paragraph'."
       t)))
 
 (defun c-ts-common--fill-block-comment (&optional arg)
-  "Fillling function for block comments.
+  "Filling function for block comments.
 ARG is passed to `fill-paragraph'.  Assume point is in a block
 comment."
   (let* ((node (treesit-node-at (point)))
@@ -331,7 +330,7 @@ If NODE is nil, return nil."
 Assumes the anchor is (point-min), i.e., the 0th column.
 
 This function basically counts the number of block nodes (i.e.,
-brackets) (defined by `c-ts-common-indent-block-type-regexp')
+brackets) (see `c-ts-common-indent-type-regexp-alist')
 between NODE and the root node (not counting NODE itself), and
 multiply that by `c-ts-common-indent-offset'.
 

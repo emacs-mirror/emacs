@@ -1,7 +1,7 @@
 # Enable large files on systems where this is not the default.
 # Enable support for files on Linux file systems with 64-bit inode numbers.
 
-# Copyright 1992-1996, 1998-2023 Free Software Foundation, Inc.
+# Copyright 1992-1996, 1998-2024 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -247,7 +247,7 @@ AC_DEFUN([_AC_SYS_LARGEFILE_PROBE],
     AC_REQUIRE([AC_CANONICAL_HOST])
     if test $ac_opt_found != yes; then
       AS_CASE([$host_os],
-        [mingw*],
+        [mingw* | windows*],
           [ac_cv_sys_largefile_opts="supported through gnulib"
            ac_opt_found=yes]
       )
@@ -305,7 +305,7 @@ AC_DEFUN([gl_LARGEFILE],
 [
   AC_REQUIRE([AC_CANONICAL_HOST])
   case "$host_os" in
-    mingw*)
+    mingw* | windows*)
       dnl Native Windows.
       dnl mingw64 defines off_t to a 64-bit type already, if
       dnl _FILE_OFFSET_BITS=64, which is ensured by AC_SYS_LARGEFILE.

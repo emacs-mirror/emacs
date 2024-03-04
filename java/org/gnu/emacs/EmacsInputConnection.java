@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -60,7 +60,7 @@ public final class EmacsInputConnection implements InputConnection
 
      This helps with on screen keyboard programs found in some vendor
      versions of Android, which rely on immediate updates to the point
-     position after text is commited in order to place the cursor
+     position after text is committed in order to place the cursor
      within that text.  */
 
   private static boolean syncAfterCommit;

@@ -1,6 +1,6 @@
 ;;; notifications.el --- Client interface to desktop notifications.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: comm desktop notifications
@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; This package provides an implementation of the Desktop Notifications
-;; <https://developer.gnome.org/notification-spec/>.
+;; <https://specifications.freedesktop.org/notification-spec/latest/>.
 
 ;; In order to activate this package, you must add the following code
 ;; into your .emacs:

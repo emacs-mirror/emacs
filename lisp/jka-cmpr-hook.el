@@ -1,6 +1,6 @@
 ;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2023 Free Software
+;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Jay K. Adams <jka@ece.cmu.edu>

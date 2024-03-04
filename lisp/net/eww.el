@@ -1,6 +1,6 @@
 ;;; eww.el --- Emacs Web Wowser  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -437,7 +437,7 @@ For more information, see Info node `(eww) Top'."
    ((eq eww-retrieve-command 'sync)
     (let ((data-buffer (url-retrieve-synchronously url)))
       (with-current-buffer data-buffer
-        (apply #'eww-render nil url cbargs))))
+        (apply #'eww-render nil cbargs))))
    (t
     (let ((buffer (generate-new-buffer " *eww retrieve*"))
           (error-buffer (generate-new-buffer " *eww error*")))
@@ -2064,9 +2064,10 @@ If CHARSET is nil then use UTF-8."
   "Prompt for an EWW buffer to display in the selected window."
   (interactive nil eww-mode)
   (let ((completion-extra-properties
-         '(:annotation-function (lambda (buf)
-                                  (with-current-buffer buf
-                                    (format " %s" (eww-current-url))))))
+         `(:annotation-function
+           ,(lambda (buf)
+              (with-current-buffer buf
+                (format " %s" (eww-current-url))))))
         (curbuf (current-buffer)))
     (pop-to-buffer-same-window
      (read-buffer "Switch to EWW buffer: "

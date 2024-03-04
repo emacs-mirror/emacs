@@ -1,6 +1,6 @@
 /* Record indices of function doc strings stored in a file. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2023 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2024 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -357,6 +357,20 @@ reread_doc_file (Lisp_Object file)
   return 1;
 }
 
+DEFUN ("documentation-stringp", Fdocumentation_stringp, Sdocumentation_stringp,
+       1, 1, 0,
+       doc: /* Return non-nil if OBJECT is a well-formed docstring object.
+OBJECT can be either a string or a reference if it's kept externally.  */)
+  (Lisp_Object object)
+{
+  return (STRINGP (object)
+          || FIXNUMP (object)   /* Reference to DOC.  */
+          || (CONSP (object)    /* Reference to .elc.  */
+              && STRINGP (XCAR (object))
+              && FIXNUMP (XCDR (object)))
+          ? Qt : Qnil);
+}
+
 DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
        doc: /* Return the documentation string of FUNCTION.
 Unless a non-nil second argument RAW is given, the
@@ -508,46 +522,13 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
   /* If it's a lisp form, stick it in the form.  */
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);
-  if (CONSP (fun))
-    {
-      Lisp_Object tem = XCAR (fun);
-      if (EQ (tem, Qlambda) || EQ (tem, Qautoload)
-	  || (EQ (tem, Qclosure) && (fun = XCDR (fun), 1)))
-	{
-	  tem = Fcdr (Fcdr (fun));
-	  if (CONSP (tem) && FIXNUMP (XCAR (tem)))
-	    /* FIXME: This modifies typically pure hash-cons'd data, so its
-	       correctness is quite delicate.  */
-	    XSETCAR (tem, make_fixnum (offset));
-	}
-    }
   /* Lisp_Subrs have a slot for it.  */
-  else if (SUBRP (fun) && !SUBR_NATIVE_COMPILEDP (fun))
+  if (SUBRP (fun) && !SUBR_NATIVE_COMPILEDP (fun))
+    XSUBR (fun)->doc = offset;
+  else
     {
-      XSUBR (fun)->doc = offset;
-    }
-
-  /* Bytecode objects sometimes have slots for it.  */
-  else if (COMPILEDP (fun))
-    {
-      /* This bytecode object must have a slot for the
-	 docstring, since we've found a docstring for it.  */
-      if (PVSIZE (fun) > COMPILED_DOC_STRING
-	  /* Don't overwrite a non-docstring value placed there,
-           * such as the symbols used for Oclosures.  */
-	  && VALID_DOCSTRING_P (AREF (fun, COMPILED_DOC_STRING)))
-	ASET (fun, COMPILED_DOC_STRING, make_fixnum (offset));
-      else
-	{
-	  AUTO_STRING (format,
-	               (PVSIZE (fun) > COMPILED_DOC_STRING
-	                ? "Docstring slot busy for %s"
-	                : "No docstring slot for %s"));
-	  CALLN (Fmessage, format,
-		 (SYMBOLP (obj)
-		  ? SYMBOL_NAME (obj)
-		  : build_string ("<anonymous>")));
-	}
+      AUTO_STRING (format, "Ignoring DOC string on non-subr: %S");
+      CALLN (Fmessage, format, obj);
     }
 }
 
@@ -783,6 +764,7 @@ compute the correct value for the current terminal in the nil case.  */);
 	       doc: /* If nil, a nil `text-quoting-style' is treated as `grave'.  */);
   /* Initialized by ‘main’.  */
 
+  defsubr (&Sdocumentation_stringp);
   defsubr (&Sdocumentation);
   defsubr (&Ssubr_documentation);
   defsubr (&Sdocumentation_property);

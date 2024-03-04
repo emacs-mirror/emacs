@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer and completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -150,8 +150,29 @@ The metadata of a completion table should be constant between two boundaries."
                        minibuffer-completion-table
                        minibuffer-completion-predicate))
 
+(defun completion--metadata-get-1 (metadata prop)
+  (or (alist-get prop metadata)
+      (plist-get completion-extra-properties
+                 ;; Cache the keyword
+                 (or (get prop 'completion-extra-properties--keyword)
+                     (put prop 'completion-extra-properties--keyword
+                          (intern (concat ":" (symbol-name prop))))))))
+
 (defun completion-metadata-get (metadata prop)
-  (cdr (assq prop metadata)))
+  "Get property PROP from completion METADATA.
+If the metadata specifies a completion category, the variables
+`completion-category-overrides' and
+`completion-category-defaults' take precedence for
+category-specific overrides.  If the completion metadata does not
+specify the property, the `completion-extra-properties' plist is
+consulted.  Note that the keys of the
+`completion-extra-properties' plist are keyword symbols, not
+plain symbols."
+  (if-let (((not (eq prop 'category)))
+           (cat (completion--metadata-get-1 metadata 'category))
+           (over (completion--category-override cat prop)))
+      (cdr over)
+    (completion--metadata-get-1 metadata prop)))
 
 (defun complete-with-action (action collection string predicate)
   "Perform completion according to ACTION.
@@ -961,6 +982,8 @@ is at its default value `grow-only'."
                (reverse multi-message-list)
                multi-message-separator)))
 
+(defvar touch-screen-current-tool)
+
 (defun clear-minibuffer-message ()
   "Clear message temporarily shown in the minibuffer.
 Intended to be called via `clear-message-function'."
@@ -975,7 +998,7 @@ Intended to be called via `clear-message-function'."
   ;; progress, because a preview message might currently be displayed
   ;; in the echo area.  FIXME: find some way to place this in
   ;; touch-screen.el.
-  (if (and touch-screen-preview-select
+  (if (and (bound-and-true-p touch-screen-preview-select)
            (eq (nth 3 touch-screen-current-tool) 'drag))
       'dont-clear-message
     ;; Return nil telling the caller that the message
@@ -1133,23 +1156,42 @@ styles for specific categories, such as files, buffers, etc."
     (project-file (styles . (substring)))
     (xref-location (styles . (substring)))
     (info-menu (styles . (basic substring)))
-    (symbol-help (styles . (basic shorthand substring))))
+    (symbol-help (styles . (basic shorthand substring)))
+    (calendar-month (display-sort-function . identity)))
   "Default settings for specific completion categories.
+
 Each entry has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category.
+- `cycle-sort-function': function to sort entries when cycling.
+- `display-sort-function': function to sort entries in *Completions*.
+- `group-function': function for grouping the completion candidates.
+- `annotation-function': function to add annotations in *Completions*.
+- `affixation-function': function to prepend/append a prefix/suffix.
+
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.
 
 Also see `completion-category-overrides'.")
 
 (defcustom completion-category-overrides nil
-  "List of category-specific user overrides for completion styles.
+  "List of category-specific user overrides for completion metadata.
+
 Each override has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category.
+- `cycle-sort-function': function to sort entries when cycling.
+- `display-sort-function': nil means to use either the sorting
+function from metadata, or if that is nil, fall back to `completions-sort';
+`identity' disables sorting and keeps the original order; and other
+possible values are the same as in `completions-sort'.
+- `group-function': function for grouping the completion candidates.
+- `annotation-function': function to add annotations in *Completions*.
+- `affixation-function': function to prepend/append a prefix/suffix.
+See more description of metadata in `completion-metadata'.
+
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.
 
@@ -1169,7 +1211,33 @@ overrides the default specified in `completion-category-defaults'."
 		 ,completion--styles-type)
            (cons :tag "Completion Cycling"
 		 (const :tag "Select one value from the menu." cycle)
-                 ,completion--cycling-threshold-type))))
+                 ,completion--cycling-threshold-type)
+           (cons :tag "Cycle Sorting"
+                 (const :tag "Select one value from the menu."
+                        cycle-sort-function)
+                 (choice (function :tag "Custom function")))
+           (cons :tag "Completion Sorting"
+                 (const :tag "Select one value from the menu."
+                        display-sort-function)
+                 (choice (const :tag "Use default" nil)
+                         (const :tag "No sorting" identity)
+                         (const :tag "Alphabetical sorting"
+                                minibuffer-sort-alphabetically)
+                         (const :tag "Historical sorting"
+                                minibuffer-sort-by-history)
+                         (function :tag "Custom function")))
+           (cons :tag "Completion Groups"
+                 (const :tag "Select one value from the menu."
+                        group-function)
+                 (choice (function :tag "Custom function")))
+           (cons :tag "Completion Annotation"
+                 (const :tag "Select one value from the menu."
+                        annotation-function)
+                 (choice (function :tag "Custom function")))
+           (cons :tag "Completion Affixation"
+                 (const :tag "Select one value from the menu."
+                        affixation-function)
+                 (choice (function :tag "Custom function"))))))
 
 (defun completion--category-override (category tag)
   (or (assq tag (cdr (assq category completion-category-overrides)))
@@ -1321,7 +1389,9 @@ If it's nil, sorting is disabled.
 If it's the symbol `alphabetical', candidates are sorted by
 `minibuffer-sort-alphabetically'.
 If it's the symbol `historical', candidates are sorted by
-`minibuffer-sort-by-history'.
+`minibuffer-sort-by-history', which first sorts alphabetically,
+and then rearranges the order according to the order of the
+candidates in the minibuffer history.
 If it's a function, the function is called to sort the candidates.
 The sorting function takes a list of completion candidate
 strings, which it may modify; it should return a sorted list,
@@ -1681,7 +1751,7 @@ names, where this is the directory component of the file name.")
   "Sort COMPLETIONS by their position in `minibuffer-history-variable'.
 
 COMPLETIONS are sorted first by `minibuffer-sort-alphbetically',
-then any elements occuring in the minibuffer history list are
+then any elements occurring in the minibuffer history list are
 moved to the front based on the chronological order they occur in
 the history.  If a history variable hasn't been specified for
 this call of `completing-read', COMPLETIONS are sorted only by
@@ -1900,10 +1970,13 @@ appear to be a match."
    ;; Allow user to specify null string
    ((= beg end) (funcall exit-function))
    ;; The CONFIRM argument is a predicate.
-   ((and (functionp minibuffer-completion-confirm)
-         (funcall minibuffer-completion-confirm
-                  (buffer-substring beg end)))
-    (funcall exit-function))
+   ((functionp minibuffer-completion-confirm)
+    (if (funcall minibuffer-completion-confirm
+                 (buffer-substring beg end))
+        (funcall exit-function)
+      (unless completion-fail-discreetly
+	(ding)
+	(completion--message "No match"))))
    ;; See if we have a completion from the table.
    ((test-completion (buffer-substring beg end)
                      minibuffer-completion-table
@@ -2375,6 +2448,9 @@ candidates."
   "Property list of extra properties of the current completion job.
 These include:
 
+`:category': the kind of objects returned by `all-completions'.
+   Used by `completion-category-overrides'.
+
 `:annotation-function': Function to annotate the completions buffer.
    The function must accept one argument, a completion string,
    and return either nil or a string which is to be displayed
@@ -2389,6 +2465,15 @@ These include:
    prefix and suffix.  This function takes priority over
    `:annotation-function' when both are provided, so only this
    function is used.
+
+`:group-function': Function for grouping the completion candidates.
+
+`:display-sort-function': Function to sort entries in *Completions*.
+
+`:cycle-sort-function': Function to sort entries when cycling.
+
+See more information about these functions above
+in `completion-metadata'.
 
 `:exit-function': Function to run after completion is performed.
 
@@ -2433,12 +2518,15 @@ These include:
     (fit-window-to-buffer win completions-max-height)))
 
 (defcustom completion-auto-deselect t
-  "If non-nil, deselect the selected completion candidate when you type.
+  "If non-nil, deselect current completion candidate when you type in minibuffer.
 
-A non-nil value means that after typing, point in *Completions*
-will be moved off any completion candidates.  This means
-`minibuffer-choose-completion-or-exit' will exit with the
-minibuffer's current contents, instead of a completion candidate."
+A non-nil value means that after typing at the minibuffer prompt,
+any completion candidate highlighted in *Completions* window (to
+indicate that it is the selected candidate) will be un-highlighted,
+and point in the *Completions* window will be moved off such a candidate.
+This means that `RET' (`minibuffer-choose-completion-or-exit') will exit
+the minubuffer with the minibuffer's current contents, instead of the
+selected completion candidate."
   :type '(choice (const :tag "Candidates in *Completions* stay selected as you type" nil)
                  (const :tag "Typing deselects any completion candidate in *Completions*" t))
   :version "30.1")
@@ -2509,12 +2597,8 @@ The candidate will still be chosen by `choose-completion' unless
                                            base-size md
                                            minibuffer-completion-table
                                            minibuffer-completion-predicate))
-             (ann-fun (or (completion-metadata-get all-md 'annotation-function)
-                          (plist-get completion-extra-properties
-                                     :annotation-function)))
-             (aff-fun (or (completion-metadata-get all-md 'affixation-function)
-                          (plist-get completion-extra-properties
-                                     :affixation-function)))
+             (ann-fun (completion-metadata-get all-md 'annotation-function))
+             (aff-fun (completion-metadata-get all-md 'affixation-function))
              (sort-fun (completion-metadata-get all-md 'display-sort-function))
              (group-fun (completion-metadata-get all-md 'group-function))
              (mainbuf (current-buffer))
@@ -2544,7 +2628,7 @@ The candidate will still be chosen by `choose-completion' unless
              . ,#'(lambda (_window)
                     (with-current-buffer mainbuf
                       (when completion-auto-deselect
-                        (add-hook 'after-change-functions #'completions--after-change t))
+                        (add-hook 'after-change-functions #'completions--after-change nil t))
                       ;; Remove the base-size tail because `sort' requires a properly
                       ;; nil-terminated list.
                       (when last (setcdr last nil))
@@ -3068,15 +3152,14 @@ the mode hook of this mode."
     (setq-local minibuffer-completion-auto-choose nil)))
 
 (defcustom minibuffer-visible-completions nil
-  "When non-nil, visible completions can be navigated from the minibuffer.
-This means that when the *Completions* buffer is visible in a window,
-then you can use the arrow keys in the minibuffer to move the cursor
-in the *Completions* buffer.  Then you can type `RET',
-and the candidate highlighted in the *Completions* buffer
-will be accepted.
-But when the *Completions* buffer is not displayed on the screen,
-then the arrow keys move point in the minibuffer as usual, and
-`RET' accepts the input typed in the minibuffer."
+  "Whether candidates shown in *Completions* can be navigated from minibuffer.
+When non-nil, if the *Completions* buffer is displayed in a window,
+you can use the arrow keys in the minibuffer to move the cursor in
+the window showing the *Completions* buffer.  Typing `RET' selects
+the highlighted completion candidate.
+If the *Completions* buffer is not displayed on the screen, or this
+variable is nil, the arrow keys move point in the minibuffer as usual,
+and `RET' accepts the input typed into the minibuffer."
   :type 'boolean
   :version "30.1")
 
@@ -3101,7 +3184,6 @@ displaying the *Completions* buffer exists."
   "<down>"  (minibuffer-visible-completions-bind #'minibuffer-next-line-completion)
   "RET"     (minibuffer-visible-completions-bind #'minibuffer-choose-completion-or-exit)
   "C-g"     (minibuffer-visible-completions-bind #'minibuffer-hide-completions))
-
 
 ;;; Completion tables.
 
@@ -4053,15 +4135,16 @@ LEN is the length of the completion string."
 (defun completion--flex-score (str re &optional dont-error)
   "Compute flex score of completion STR based on RE.
 If DONT-ERROR, just return nil if RE doesn't match STR."
-  (cond ((string-match re str)
-         (let* ((match-end (match-end 0))
-                (md (cddr
-                     (setq
-                      completion--flex-score-last-md
-                      (match-data t completion--flex-score-last-md)))))
-           (completion--flex-score-1 md match-end (length str))))
-        ((not dont-error)
-         (error "Internal error: %s does not match %s" re str))))
+  (let ((case-fold-search completion-ignore-case))
+    (cond ((string-match re str)
+           (let* ((match-end (match-end 0))
+                  (md (cddr
+                       (setq
+                        completion--flex-score-last-md
+                        (match-data t completion--flex-score-last-md)))))
+             (completion--flex-score-1 md match-end (length str))))
+          ((not dont-error)
+           (error "Internal error: %s does not match %s" re str)))))
 
 (defvar completion-pcm--regexp nil
   "Regexp from PCM pattern in `completion-pcm--hilit-commonality'.")
@@ -4936,7 +5019,7 @@ This is run upon minibuffer setup."
 (defun minibuffer-exit-on-screen-keyboard ()
   "Hide the on-screen keyboard if it was displayed.
 Hide the on-screen keyboard in a timer set to run in 0.1 seconds.
-It will be cancelled if the minibuffer is displayed again within
+It will be canceled if the minibuffer is displayed again within
 that timeframe.
 
 Do not hide the on screen keyboard inside a recursive edit.

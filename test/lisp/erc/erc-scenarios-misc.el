@@ -1,6 +1,6 @@
 ;;; erc-scenarios-misc.el --- Misc scenarios for ERC -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -126,7 +126,7 @@
     (erc-d-t-wait-for 10 (get-buffer "foonet"))
 
     (ert-info ("Channel buffer #foo playback received")
-      (with-current-buffer (erc-d-t-wait-for 3 (get-buffer "#foo"))
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#foo"))
         (funcall expect 10 "Excellent workman")))
 
     (ert-info ("Global notices routed to server buffer")

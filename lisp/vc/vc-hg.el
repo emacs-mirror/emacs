@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2024 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Maintainer: emacs-devel@gnu.org
@@ -77,6 +77,7 @@
 ;; - make-version-backups-p (file)             ??
 ;; - previous-revision (file rev)              OK
 ;; - next-revision (file rev)                  OK
+;; - file-name-changes (rev)                   OK
 ;; - check-headers ()                          ??
 ;; - delete-file (file)                        TEST IT
 ;; - rename-file (old new)                     OK
@@ -583,8 +584,8 @@ Optional arg REVISION is a revision to annotate from."
     (vc-annotate-convert-time
      (let ((str (match-string-no-properties 2)))
        (encode-time 0 0 0
-                    (string-to-number (substring str 6 8))
-                    (string-to-number (substring str 4 6))
+                    (string-to-number (substring str 8 10))
+                    (string-to-number (substring str 5 7))
                     (string-to-number (substring str 0 4)))))))
 
 (defun vc-hg-annotate-extract-revision-at-line ()
@@ -1202,6 +1203,22 @@ REV is ignored."
     (if rev
         (vc-hg-command buffer 0 file "cat" "-r" rev)
       (vc-hg-command buffer 0 file "cat"))))
+
+(defun vc-hg-file-name-changes (rev)
+  (unless (member "--follow" vc-hg-log-switches)
+    (with-temp-buffer
+      (let ((root (vc-hg-root default-directory)))
+        (vc-hg-command (current-buffer) t nil
+                       "log" "-g" "-p" "-r" rev)
+        (let (res)
+          (goto-char (point-min))
+          (while (re-search-forward "^diff --git a/\\([^ \n]+\\) b/\\([^ \n]+\\)" nil t)
+            (when (not (equal (match-string 1) (match-string 2)))
+              (push (cons
+                     (expand-file-name (match-string 1) root)
+                     (expand-file-name (match-string 2) root))
+                    res)))
+          (nreverse res))))))
 
 (defun vc-hg-find-ignore-file (file)
   "Return the root directory of the repository of FILE."

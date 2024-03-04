@@ -1,6 +1,6 @@
 /* -*- objc -*- */
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2023 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2024 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -278,9 +278,9 @@ char const * nstrace_fullscreen_type_name (int);
 
 
 #define NSTRACE_WHEN(cond, ...)                                         \
-  __attribute__((cleanup(nstrace_restore_global_trace_state)))          \
+  __attribute__ ((cleanup (nstrace_restore_global_trace_state)))        \
   int nstrace_saved_enabled_global = nstrace_enabled_global;            \
-  __attribute__((cleanup(nstrace_leave)))                               \
+  __attribute__ ((cleanup (nstrace_leave)))                             \
   int nstrace_enabled = nstrace_enabled_global && (cond);               \
   if (nstrace_enabled) { ++nstrace_depth; }                             \
   else { nstrace_enabled_global = 0; }                                  \
@@ -1180,6 +1180,7 @@ extern void  ns_retain_object (void *obj);
 extern void *ns_alloc_autorelease_pool (void);
 extern void ns_release_autorelease_pool (void *);
 extern const char *ns_get_defaults_value (const char *key);
+extern void ns_init_pool (void);
 extern void ns_init_locale (void);
 
 /* in nsmenu */
@@ -1289,7 +1290,7 @@ extern char gnustep_base_version[];  /* version tracking */
 /* Little utility macros */
 #define IN_BOUND(min, x, max) (((x) < (min)) \
                                 ? (min) : (((x)>(max)) ? (max) : (x)))
-#define SCREENMAXBOUND(x) (IN_BOUND (-SCREENMAX, x, SCREENMAX))
+#define SCREENMAXBOUND(x) IN_BOUND (-SCREENMAX, x, SCREENMAX)
 
 
 #ifdef NS_IMPL_COCOA

@@ -1,10 +1,10 @@
 #! /bin/sh
 # Attempt to guess a canonical system name.
-#   Copyright 1992-2023 Free Software Foundation, Inc.
+#   Copyright 1992-2024 Free Software Foundation, Inc.
 
 # shellcheck disable=SC2006,SC2268 # see below for rationale
 
-timestamp='2023-07-20'
+timestamp='2024-01-01'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ version="\
 GNU config.guess ($timestamp)
 
 Originally written by Per Bothner.
-Copyright 1992-2023 Free Software Foundation, Inc.
+Copyright 1992-2024 Free Software Foundation, Inc.
 
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
@@ -155,6 +155,9 @@ Linux|GNU|GNU/*)
 
 	set_cc_for_build
 	cat <<-EOF > "$dummy.c"
+	#if defined(__ANDROID__)
+	LIBC=android
+	#else
 	#include <features.h>
 	#if defined(__UCLIBC__)
 	LIBC=uclibc
@@ -162,11 +165,14 @@ Linux|GNU|GNU/*)
 	LIBC=dietlibc
 	#elif defined(__GLIBC__)
 	LIBC=gnu
+	#elif defined(__LLVM_LIBC__)
+	LIBC=llvm
 	#else
 	#include <stdarg.h>
 	/* First heuristic to detect musl libc.  */
 	#ifdef __DEFINED_va_list
 	LIBC=musl
+	#endif
 	#endif
 	#endif
 	EOF
@@ -904,7 +910,7 @@ EOF
 	fi
 	;;
     *:FreeBSD:*:*)
-	UNAME_PROCESSOR=`/usr/bin/uname -p`
+	UNAME_PROCESSOR=`uname -p`
 	case $UNAME_PROCESSOR in
 	    amd64)
 		UNAME_PROCESSOR=x86_64 ;;
@@ -1588,6 +1594,9 @@ EOF
 	;;
     *:Unleashed:*:*)
 	GUESS=$UNAME_MACHINE-unknown-unleashed$UNAME_RELEASE
+	;;
+    *:Ironclad:*:*)
+	GUESS=$UNAME_MACHINE-unknown-ironclad
 	;;
 esac
 

@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,6 +21,9 @@ package org.gnu.emacs;
 
 import java.util.List;
 import java.util.ArrayList;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 import android.app.AlertDialog;
 
@@ -388,26 +391,18 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
   public boolean
   display ()
   {
-    Runnable runnable;
-    final EmacsHolder<Boolean> rc;
+    FutureTask<Boolean> task;
 
-    rc = new EmacsHolder<Boolean> ();
-    rc.thing = false;
-    runnable = new Runnable () {
+    task = new FutureTask<Boolean> (new Callable<Boolean> () {
 	@Override
-	public void
-	run ()
+	public Boolean
+	call ()
 	{
-	  synchronized (this)
-	    {
-	      rc.thing = display1 ();
-	      notify ();
-	    }
+	  return display1 ();
 	}
-      };
+      });
 
-    EmacsService.syncRunnable (runnable);
-    return rc.thing;
+    return EmacsService.<Boolean>syncRunnable (task);
   }
 
 

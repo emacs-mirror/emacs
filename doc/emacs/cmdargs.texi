@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation
@@ -639,6 +639,11 @@ environment, Emacs sets it based on the system-wide default.  You can
 set this in the ``Regional Settings'' Control Panel on some versions
 of MS-Windows, and in the ``Language and Region'' System Preference on
 macOS.
+
+When running a GUI session on Android, @env{LANG} is set to a fixed
+value, but the language and locale environment is derived from the
+system's ``Languages & Input'' preferences.  @xref{Android
+Environment}.
 
 The value of the @env{LC_CTYPE} category is
 matched against entries in @code{locale-language-names},

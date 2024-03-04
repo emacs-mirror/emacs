@@ -1,6 +1,6 @@
 ;;; erc-truncate.el --- Functions for truncating ERC buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2004, 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2024 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -102,7 +102,7 @@ present in `erc-modules'."
           ;; Truncate at message boundary (formerly line boundary
           ;; before 5.6).
 	  (goto-char end)
-          (goto-char (or (erc--get-inserted-msg-bounds 'beg)
+          (goto-char (or (erc--get-inserted-msg-beg end)
                          (pos-bol)))
 	  (setq end (point))
 	  ;; try to save the current buffer using

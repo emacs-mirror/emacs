@@ -1,10 +1,10 @@
 ;;; ox-md.el --- Markdown Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
-;; Keywords: org, wp, markdown
+;; Keywords: org, text, markdown
 
 ;; This file is part of GNU Emacs.
 
@@ -305,7 +305,7 @@ INFO is a plist used as a communication channel."
          (section-title (org-html--translate "Footnotes" info)))
     (when fn-alist
       (format (plist-get info :md-footnotes-section)
-              (org-md--headline-title headline-style 1 section-title)
+              (org-md--headline-title headline-style (plist-get info :md-toplevel-hlevel) section-title)
               (mapconcat (lambda (fn) (org-md--footnote-formatted fn info))
                          fn-alist
                          "\n")))))

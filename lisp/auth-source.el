@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -233,8 +233,8 @@ EPA/EPG set up, the file will be encrypted and decrypted
 automatically.  See Info node `(epa)Encrypting/decrypting gpg files'
 for details.
 
-It's best to customize this with `\\[customize-variable]' because the choices
-can get pretty complex."
+It's best to customize this with \\[customize-variable] because
+the choices can get pretty complex."
   :version "26.1" ; neither new nor changed default
   :type `(repeat :tag "Authentication Sources"
                  (choice
@@ -330,7 +330,6 @@ If the value is not a list, symmetric encryption will be used."
 
 (defun auth-source-read-char-choice (prompt choices)
   "Read one of CHOICES by `read-char-choice', or `read-char'.
-`dropdown-list' support is disabled because it doesn't work reliably.
 Only one of CHOICES will be returned.  The PROMPT is augmented
 with \"[a/b/c] \" if CHOICES is \(?a ?b ?c)."
   (when choices
@@ -1946,18 +1945,20 @@ entries for git.gnus.org:
          (returned-keys (delete-dups (append
 				      '(:host :login :port :secret)
 				      search-keys)))
-         ;; Extract host and port from spec
+         ;; Extract host, port and user from spec
          (hosts (plist-get spec :host))
-         (hosts (if (and hosts (listp hosts)) hosts `(,hosts)))
+         (hosts (if (consp hosts) hosts `(,hosts)))
          (ports (plist-get spec :port))
-         (ports (if (and ports (listp ports)) ports `(,ports)))
+         (ports (if (consp ports) ports `(,ports)))
          (users (plist-get spec :user))
-         (users (if (and users (listp users)) users `(,users)))
+         (users (if (consp users) users `(,users)))
          ;; Loop through all combinations of host/port and pass each of these to
-         ;; auth-source-macos-keychain-search-items
+         ;; auth-source-macos-keychain-search-items.  Convert numeric port to
+         ;; string (bug#68376).
          (items (catch 'match
                   (dolist (host hosts)
                     (dolist (port ports)
+                      (when (numberp port) (setq port (number-to-string port)))
                       (dolist (user users)
                         (let ((items (apply
                                       #'auth-source-macos-keychain-search-items
@@ -2019,7 +2020,7 @@ entries for git.gnus.org:
     (when port
       (if keychain-generic
           (setq args (append args (list "-s" port)))
-        (setq args (append args (if (string-match "[0-9]+" port)
+        (setq args (append args (if (string-match-p "\\`[[:digit:]]+\\'" port)
                                     (list "-P" port)
                                   (list "-r" (substring
                                               (format "%-4s" port)

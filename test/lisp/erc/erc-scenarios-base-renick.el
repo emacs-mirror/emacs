@@ -1,6 +1,6 @@
 ;;; erc-scenarios-base-renick.el --- Re-nicking scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -267,7 +267,7 @@
 
     (ert-info ("Sync convo for rando@foonet")
       (with-current-buffer "rando@foonet"
-        (funcall expect 1 "u are dumb")
+        (funcall expect 10 "u are dumb")
         (erc-scenarios-common-say "not so")))
 
     (ert-info ("Sync convo for rando@barnet")

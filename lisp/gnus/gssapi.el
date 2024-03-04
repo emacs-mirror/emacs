@@ -1,6 +1,6 @@
 ;;; gssapi.el --- GSSAPI/Kerberos 5 interface for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;         Lars Magne Ingebrigtsen <larsi@gnus.org>

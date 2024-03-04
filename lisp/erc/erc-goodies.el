@@ -1,6 +1,6 @@
 ;;; erc-goodies.el --- Collection of ERC modules  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -83,7 +83,7 @@ be experimental.  It currently only works with Emacs 28+."
    (when (and erc-scrolltobottom-all (< emacs-major-version 28))
      (erc-button--display-error-notice-with-keys
       "Option `erc-scrolltobottom-all' requires Emacs 28+. Disabling.")
-     (setopt erc-scrolltobottom-all nil))
+     (setq erc-scrolltobottom-all nil))
    (unless erc--updating-modules-p (erc-buffer-do #'erc--scrolltobottom-setup))
    (if erc-scrolltobottom-all
        (progn
@@ -300,7 +300,10 @@ A value of t means \"all\" ERC buffers."
 
 (defcustom erc-keep-place-indicator-follow nil
   "Whether to sync visual kept place to window's top when reading.
-For use with `erc-keep-place-indicator-mode'."
+For use with `erc-keep-place-indicator-mode'.  When enabled, the
+indicator updates when the last window displaying the same buffer
+switches away, but only if the indicator resides earlier in the
+buffer than the window's start."
   :group 'erc
   :package-version '(ERC . "5.6")
   :type 'boolean)
@@ -328,42 +331,30 @@ For use with `erc-keep-place-indicator-mode'."
 (defvar-local erc--keep-place-indicator-overlay nil
   "Overlay for `erc-keep-place-indicator-mode'.")
 
-(defun erc--keep-place-indicator-on-window-configuration-change ()
+(defun erc--keep-place-indicator-on-window-buffer-change (_)
   "Maybe sync `erc--keep-place-indicator-overlay'.
-Specifically, do so unless switching to or from another window in
-the active frame."
-  (when erc-keep-place-indicator-follow
-    (unless (or (minibuffer-window-active-p (minibuffer-window))
-                (eq (window-old-buffer) (current-buffer)))
-      (when (< (overlay-end erc--keep-place-indicator-overlay)
-               (window-start)
-               erc-insert-marker)
-        (erc-keep-place-move (window-start))))))
-
-(defun erc--keep-place-indicator-setup ()
-  "Initialize buffer for maintaining `erc--keep-place-indicator-overlay'."
-  (require 'fringe)
-  (erc--restore-initialize-priors erc-keep-place-indicator-mode
-    erc--keep-place-indicator-overlay (make-overlay 0 0))
-  (add-hook 'erc-keep-place-mode-hook
-            #'erc--keep-place-indicator-on-global-module nil t)
-  (add-hook 'window-configuration-change-hook
-            #'erc--keep-place-indicator-on-window-configuration-change nil t)
-  (when-let* (((memq erc-keep-place-indicator-style '(t arrow)))
-              (ov-property (if (zerop (fringe-columns 'left))
-                               'after-string
-                             'before-string))
-              (display (if (zerop (fringe-columns 'left))
-                           `((margin left-margin) ,overlay-arrow-string)
-                         '(left-fringe right-triangle
-                                       erc-keep-place-indicator-arrow)))
-              (bef (propertize " " 'display display)))
-    (overlay-put erc--keep-place-indicator-overlay ov-property bef))
-  (when (memq erc-keep-place-indicator-style '(t face))
-    (overlay-put erc--keep-place-indicator-overlay 'face
-                 'erc-keep-place-indicator-line)))
+Do so only when switching to a new buffer in the same window if
+the replaced buffer is no longer visible in another window and
+its `window-start' at the time of switching is strictly greater
+than the indicator's position."
+  (when-let ((erc-keep-place-indicator-follow)
+             (window (selected-window))
+             ((not (eq window (active-minibuffer-window))))
+             (old-buffer (window-old-buffer window))
+             ((buffer-live-p old-buffer))
+             ((not (eq old-buffer (current-buffer))))
+             (ov (buffer-local-value 'erc--keep-place-indicator-overlay
+                                     old-buffer))
+             ((not (get-buffer-window old-buffer 'visible)))
+             (prev (assq old-buffer (window-prev-buffers window)))
+             (old-start (nth 1 prev))
+             (old-inmkr (buffer-local-value 'erc-insert-marker old-buffer))
+             ((< (overlay-end ov) old-start old-inmkr)))
+    (with-current-buffer old-buffer
+      (erc-keep-place-move old-start))))
 
 ;;;###autoload(put 'keep-place-indicator 'erc--feature 'erc-goodies)
+;;;###autoload(autoload 'erc-keep-place-indicator-mode "erc-goodies" nil t)
 (define-erc-module keep-place-indicator nil
   "Buffer-local `keep-place' with fringe arrow and/or highlighted face.
 Play nice with global module `keep-place' but don't depend on it.
@@ -374,29 +365,58 @@ and `keep-place-indicator' in different buffers."
           (erc-keep-place-mode +1))
          ;; Enable a local version of `keep-place-mode'.
          (t (add-hook 'erc-insert-pre-hook  #'erc-keep-place 65 t)))
+   (require 'fringe)
+   (add-hook 'window-buffer-change-functions
+             #'erc--keep-place-indicator-on-window-buffer-change 40)
+   (add-hook 'erc-keep-place-mode-hook
+             #'erc--keep-place-indicator-on-global-module 40)
    (if (pcase erc-keep-place-indicator-buffer-type
          ('target erc--target)
          ('server (not erc--target))
          ('t t))
-       (erc--keep-place-indicator-setup)
+       (progn
+         (erc--restore-initialize-priors erc-keep-place-indicator-mode
+           erc--keep-place-indicator-overlay (make-overlay 0 0))
+         (when-let (((memq erc-keep-place-indicator-style '(t arrow)))
+                    (ov-property (if (zerop (fringe-columns 'left))
+                                     'after-string
+                                   'before-string))
+                    (display (if (zerop (fringe-columns 'left))
+                                 `((margin left-margin) ,overlay-arrow-string)
+                               '(left-fringe right-triangle
+                                             erc-keep-place-indicator-arrow)))
+                    (bef (propertize " " 'display display)))
+           (overlay-put erc--keep-place-indicator-overlay ov-property bef))
+         (when (memq erc-keep-place-indicator-style '(t face))
+           (overlay-put erc--keep-place-indicator-overlay 'face
+                        'erc-keep-place-indicator-line)))
      (erc-keep-place-indicator-mode -1)))
   ((when erc--keep-place-indicator-overlay
      (delete-overlay erc--keep-place-indicator-overlay))
-   (remove-hook 'window-configuration-change-hook
-                #'erc--keep-place-indicator-on-window-configuration-change t)
+   (let ((buffer (current-buffer)))
+     ;; Remove global hooks unless others exist with mode enabled.
+     (unless (erc-buffer-filter (lambda ()
+                                  (and (not (eq buffer (current-buffer)))
+                                       erc-keep-place-indicator-mode)))
+       (remove-hook 'erc-keep-place-mode-hook
+                    #'erc--keep-place-indicator-on-global-module)
+       (remove-hook 'window-buffer-change-functions
+                    #'erc--keep-place-indicator-on-window-buffer-change)))
+   (when (local-variable-p 'erc-insert-pre-hook)
+     (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t))
    (remove-hook 'erc-keep-place-mode-hook
                 #'erc--keep-place-indicator-on-global-module t)
-   (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t)
    (kill-local-variable 'erc--keep-place-indicator-overlay))
   'local)
 
 (defun erc--keep-place-indicator-on-global-module ()
-  "Ensure `keep-place-indicator' can cope with `erc-keep-place-mode'.
-That is, ensure the local module can survive a user toggling the
-global one."
-  (if erc-keep-place-mode
-      (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t)
-    (add-hook 'erc-insert-pre-hook  #'erc-keep-place 65 t)))
+  "Ensure `keep-place-indicator' survives toggling `erc-keep-place-mode'.
+Do this by simulating `keep-place' in all buffers where
+`keep-place-indicator' is enabled."
+  (erc-with-all-buffers-of-server nil (lambda () erc-keep-place-indicator-mode)
+    (if erc-keep-place-mode
+        (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t)
+      (add-hook 'erc-insert-pre-hook  #'erc-keep-place 65 t))))
 
 (defun erc-keep-place-move (pos)
   "Move keep-place indicator to current line or POS.
@@ -450,8 +470,7 @@ For use with `keep-place-indicator' module."
     (forward-line -1)
     (when erc-keep-place-indicator-mode
       (unless (or (minibuffer-window-active-p (selected-window))
-                  (and (frame-visible-p (selected-frame))
-                       (get-buffer-window (current-buffer) (selected-frame))))
+                  (get-buffer-window nil 'visible))
         (erc-keep-place-move nil)))
     ;; if `switch-to-buffer-preserve-window-point' is set,
     ;; we cannot rely on point being saved, and must commit
@@ -564,21 +583,24 @@ Do nothing if the variable `erc-command-indicator' is nil."
   "Insert `erc-input' STATE's message if it's an echoed command."
   (cl-assert erc-command-indicator-mode)
   (when (erc--input-split-cmdp state)
-    (setf (erc--input-split-insertp state) #'erc--command-indicator-display)
+    (setf (erc--input-split-insertp state) t
+          (erc--input-split-substxt state) #'erc--command-indicator-display)
     (erc-send-distinguish-noncommands state)))
 
 ;; This function used to be called `erc-display-command'.  It was
 ;; neutered in ERC 5.3.x (Emacs 24.5), commented out in 5.4, removed
 ;; in 5.5, and restored in 5.6.
-(defun erc--command-indicator-display (line)
+(defun erc--command-indicator-display (line &rest rest)
   "Insert command LINE as echoed input resembling that of REPLs and shells."
   (when erc-insert-this
+    (when rest
+      (setq line (string-join (cons line rest) "\n")))
     (save-excursion
       (erc--assert-input-bounds)
       (let ((insert-position (marker-position (goto-char erc-insert-marker)))
             (erc--msg-props (or erc--msg-props
                                 (let ((ovs erc--msg-prop-overrides))
-                                  (map-into `((erc-msg . slash-cmd)
+                                  (map-into `((erc--msg . slash-cmd)
                                               ,@(reverse ovs))
                                             'hash-table)))))
         (when-let ((string (erc-command-indicator))
@@ -803,7 +825,7 @@ The value `erc-interpret-controls-p' must also be t for this to work."
 ;;;###autoload(autoload 'erc-irccontrols-mode "erc-goodies" nil t)
 (define-erc-module irccontrols nil
   "This mode enables the interpretation of IRC control chars."
-  ((add-hook 'erc-insert-modify-hook #'erc-controls-highlight)
+  ((add-hook 'erc-insert-modify-hook #'erc-controls-highlight -50)
    (add-hook 'erc-send-modify-hook #'erc-controls-highlight)
    (erc--modify-local-map t "C-c C-c" #'erc-toggle-interpret-controls))
   ((remove-hook 'erc-insert-modify-hook #'erc-controls-highlight)

@@ -1,6 +1,6 @@
 ;;; indian.el --- Quail packages for inputting Indian  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: KAWABATA, Taichi <kawabata@m17n.org>
 
@@ -476,7 +476,7 @@ Full key sequences are listed below:"
 (defgroup tamil-input nil
   "Translation rules for the Tamil input method."
   :prefix "tamil-"
-  :group 'leim)
+  :group 'quail)
 
 (defcustom tamil-translation-rules
   ;; Vowels.

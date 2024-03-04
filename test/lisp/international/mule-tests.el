@@ -1,6 +1,6 @@
 ;;; mule-tests.el --- unit tests for mule.el         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -49,7 +49,7 @@
                        (kbd "C-x RET c u t f - 8 RET C-u C-u c a b RET")
                      (read-string "prompt:"))))))
 
-;;Bug#65997, ensure that old-names haven't overriden new names.
+;;Bug#65997, ensure that old-names haven't overridden new names.
 (ert-deftest mule-cmds-tests--ucs-names-old-name-override ()
   (let (code-points)
     (dotimes (u (1+ (max-char 'ucs)))

@@ -1,6 +1,6 @@
 ;;; regex-emacs-tests.el --- tests for regex-emacs.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -912,7 +912,7 @@ This evaluates the TESTS test cases from glibc."
     ))
 
 (ert-deftest regexp-tests-zero-width-assertion-repetition ()
-  ;; Check compatibility behaviour with repetition operators after
+  ;; Check compatibility behavior with repetition operators after
   ;; certain zero-width assertions (bug#64128).
 
   ;; This function is just to hide ugly regexps from relint so that it

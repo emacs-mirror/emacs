@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02
@@ -3745,7 +3745,7 @@ macro that returns its `&whole' argument."
 (mapc (lambda (x) (function-put x 'important-return-value t))
        '(
          ;; Functions that are side-effect-free except for the
-         ;; behaviour of functions passed as argument.
+         ;; behavior of functions passed as argument.
          cl-mapcar cl-mapcan cl-maplist cl-map cl-mapcon
          cl-reduce
          cl-assoc cl-assoc-if cl-assoc-if-not

@@ -1,4 +1,4 @@
-# Copyright (C) 1992-1998, 2000-2023 Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2000-2024 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -14,6 +14,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+# If you don't want messages from GDB to interfere with ordinary editing
+# whenever it creates a subprocess, uncomment the following line.
+### set print inferior-events off
 
 # Force loading of symbols, enough to give us VALBITS etc.
 set $dummy = main + 8

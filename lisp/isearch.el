@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1997, 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1997, 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -282,13 +282,13 @@ Value is nil, t, or a function.
 
 If nil, default to literal searches (note that `case-fold-search'
 and `isearch-lax-whitespace' may still be applied).\\<isearch-mode-map>
-If t, default to regexp searches (as if typing `\\[isearch-toggle-regexp]' during
+If t, default to regexp searches (as if typing \\[isearch-toggle-regexp] during
 isearch).
 
 If a function, use that function as an `isearch-regexp-function'.
 Example functions (and the keys to toggle them during isearch)
-are `word-search-regexp' \(`\\[isearch-toggle-word]'), `isearch-symbol-regexp'
-\(`\\[isearch-toggle-symbol]'), and `char-fold-to-regexp' \(`\\[isearch-toggle-char-fold]')."
+are `word-search-regexp' \(\\[isearch-toggle-word]), `isearch-symbol-regexp'
+\(\\[isearch-toggle-symbol]), and `char-fold-to-regexp' \(\\[isearch-toggle-char-fold])."
   ;; :type is set below by `isearch-define-mode-toggle'.
   :type '(choice (const :tag "Literal search" nil)
                  (const :tag "Regexp search" t)
@@ -2875,7 +2875,8 @@ The command accepts Unicode names like \"smiling face\" or
       (isearch-search)
       (when (and (memq isearch-wrap-pause '(no no-ding))
                  (not isearch-success))
-        (isearch-repeat (if isearch-forward 'forward 'backward)))))
+        (let ((isearch-cmds isearch-cmds))
+          (isearch-repeat (if isearch-forward 'forward 'backward))))))
   (isearch-push-state)
   (if isearch-op-fun (funcall isearch-op-fun))
   (isearch-update))

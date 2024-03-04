@@ -1,5 +1,5 @@
 /* Android window system support.
-   Copyright (C) 2023 Free Software Foundation, Inc.
+   Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -708,6 +708,7 @@ extern void android_translate_coordinates (android_window, int,
 extern int android_wc_lookup_string (android_key_pressed_event *,
 				     wchar_t *, int, int *,
 				     enum android_lookup_status *);
+extern void android_recreate_activity (android_window);
 extern void android_update_ic (android_window, ptrdiff_t, ptrdiff_t,
 			       ptrdiff_t, ptrdiff_t);
 extern void android_reset_ic (android_window, enum android_ic_mode);

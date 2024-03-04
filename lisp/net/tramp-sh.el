@@ -1,6 +1,6 @@
 ;;; tramp-sh.el --- Tramp access functions for (s)sh-like connections  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -521,8 +521,8 @@ The string is used in `tramp-methods'.")
  (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh))
 
 (defcustom tramp-sh-extra-args
-  `((,(rx "/bash" eos) . "-noediting -norc -noprofile")
-    (,(rx "/zsh" eos) . "-f +Z -V"))
+  `((,(rx (| bos "/") "bash" eos) . "-noediting -norc -noprofile")
+    (,(rx (| bos "/") "zsh" eos) . "-f +Z -V"))
   "Alist specifying extra arguments to pass to the remote shell.
 Entries are (REGEXP . ARGS) where REGEXP is a regular expression
 matching the shell file name and ARGS is a string specifying the
@@ -533,7 +533,7 @@ This variable is only used when Tramp needs to start up another shell
 for tilde expansion.  The extra arguments should typically prevent the
 shell from reading its init file."
   :group 'tramp
-  :version "27.1"
+  :version "30.1"
   :type '(alist :key-type regexp :value-type string))
 
 (defconst tramp-actions-before-shell
@@ -1239,7 +1239,7 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
       (with-current-buffer (tramp-get-connection-buffer v)
 	(goto-char (point-min))
 	(tramp-set-file-property v localname "file-symlink-marker" (read (current-buffer)))
-	;; We cannote call `read', the file name isn't quoted.
+	;; We cannot call `read', the file name isn't quoted.
 	(forward-line)
 	(buffer-substring (point) (line-end-position))))
 
@@ -2523,7 +2523,7 @@ The method used must be an out-of-band method."
 		      (tramp-get-connection-name v)
 		      (tramp-get-connection-buffer v)
 		      copy-program copy-args)))
-		;; This is neded for ssh or PuTTY based processes, and
+		;; This is needed for ssh or PuTTY based processes, and
 		;; only if the respective options are set.  Perhaps,
 		;; the setting could be more fine-grained.
 		;; (process-put p 'tramp-shared-socket t)
@@ -2877,7 +2877,16 @@ the result will be a local, non-Tramp, file name."
 		(tramp-run-real-handler
 		 #'expand-file-name (list localname))))))))))
 
-;;; Remote commands:
+;;; Remote processes:
+
+(defcustom tramp-pipe-stty-settings "-icanon min 1 time 0"
+  "How to prevent blocking read in pipeline processes.
+This is used in `make-process' with `connection-type' `pipe'."
+  :group 'tramp
+  :version "29.3"
+  :type '(choice (const :tag "Use size limit" "-icanon min 1 time 0")
+		 (const :tag "Use timeout" "-icanon min 0 time 1")
+		 string))
 
 ;; We use BUFFER also as connection buffer during setup.  Because of
 ;; this, its original contents must be saved, and restored once
@@ -3089,12 +3098,21 @@ implementation will be used."
 			      ;; otherwise strings larger than 4096
 			      ;; bytes, sent by the process, could
 			      ;; block, see termios(3) and Bug#61341.
+			      ;; In order to prevent blocking read
+			      ;; from pipe processes, "stty -icanon"
+			      ;; is used.  By default, it expects at
+			      ;; least one character to read.  When a
+			      ;; process does not read from stdin,
+			      ;; like magit, it should set a timeout
+			      ;; instead. See`tramp-pipe-stty-settings'.
+			      ;; (Bug#62093)
 			      ;; FIXME: Shall we rather use "stty raw"?
-			      (if (tramp-check-remote-uname v "Darwin")
-				  (tramp-send-command
-				   v "stty -icanon min 1 time 0")
-				(tramp-send-command
-				 v "stty -icrnl -icanon min 1 time 0")))
+			      (tramp-send-command
+			       v (format
+				  "stty %s %s"
+				  (if (tramp-check-remote-uname v "Darwin")
+				      "" "-icrnl")
+				  tramp-pipe-stty-settings)))
 			    ;; `tramp-maybe-open-connection' and
 			    ;; `tramp-send-command-and-read' could
 			    ;; have trashed the connection buffer.
@@ -3634,20 +3652,20 @@ filled are described in `tramp-bundle-read-file-names'."
 
     (dolist
 	(elt
-	 (ignore-errors
+	 (with-current-buffer (tramp-get-connection-buffer vec)
 	   ;; We cannot use `tramp-send-command-and-read', because
 	   ;; this does not cooperate well with heredoc documents.
-	   (tramp-send-command
-	    vec
-	    (format
-	     "tramp_bundle_read_file_names <<'%s'\n%s\n%s\n"
-	     tramp-end-of-heredoc
-	     (mapconcat #'tramp-shell-quote-argument files "\n")
-	     tramp-end-of-heredoc))
-	   (with-current-buffer (tramp-get-connection-buffer vec)
-	     ;; Read the expression.
-	     (goto-char (point-min))
-	     (read (current-buffer)))))
+	   (unless (tramp-send-command-and-check
+		    vec
+		    (format
+		     "tramp_bundle_read_file_names <<'%s'\n%s\n%s\n"
+		     tramp-end-of-heredoc
+		     (mapconcat #'tramp-shell-quote-argument files "\n")
+		     tramp-end-of-heredoc))
+	     (tramp-error vec 'file-error "%s" (tramp-get-buffer-string)))
+	   ;; Read the expression.
+	   (goto-char (point-min))
+	   (read (current-buffer))))
 
       (tramp-set-file-property vec (car elt) "file-exists-p" (nth 1 elt))
       (tramp-set-file-property vec (car elt) "file-readable-p" (nth 2 elt))
@@ -3847,7 +3865,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   v 'file-notify-error
 	   "`%s' failed to start on remote host"
 	   (string-join sequence " "))
-	;; This is neded for ssh or PuTTY based processes, and only if
+	;; This is needed for ssh or PuTTY based processes, and only if
 	;; the respective options are set.  Perhaps, the setting could
 	;; be more fine-grained.
 	;; (process-put p 'tramp-shared-socket t)
@@ -4094,7 +4112,7 @@ Only send the definition if it has not already been done."
     (unless (member name scripts)
       (with-tramp-progress-reporter
 	  vec 5 (format-message "Sending script `%s'" name)
-	;; In bash, leading TABs like in `tramp-vc-registered-read-file-names'
+	;; In bash, leading TABs like in `tramp-bundle-read-file-names'
 	;; could result in unwanted command expansion.  Avoid this.
 	(setq script (tramp-compat-string-replace
 		      (make-string 1 ?\t) (make-string 8 ? ) script))
@@ -4175,18 +4193,6 @@ This function expects to be in the right *tramp* buffer."
 ;; On hydra.nixos.org, the $PATH environment variable is too long to
 ;; send it.  This is likely not due to PATH_MAX, but PIPE_BUF.  We
 ;; check it, and use a temporary file in case of.  See Bug#33781.
-
-;; The PIPE_BUF in POSIX [1] can be as low as 512 [2]. Here are the values
-;; on various platforms:
-;;   - 512 on macOS, FreeBSD, NetBSD, OpenBSD, MirBSD, native Windows.
-;;   - 4 KiB on Linux, OSF/1, Cygwin, Haiku.
-;;   - 5 KiB on Solaris.
-;;   - 8 KiB on HP-UX, Plan9.
-;;   - 10 KiB on IRIX.
-;;   - 32 KiB on AIX, Minix.
-;; [1] https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html
-;; [2] https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html
-;; See Bug#65324.
 (defun tramp-set-remote-path (vec)
   "Set the remote environment PATH to existing directories.
 I.e., for each directory in `tramp-remote-path', it is tested
@@ -4196,13 +4202,7 @@ variable PATH."
 	 (format
 	  "PATH=%s && export PATH"
 	  (string-join (tramp-get-remote-path vec) ":")))
-	(pipe-buf
-	 (with-tramp-connection-property vec "pipe-buf"
-	   (tramp-send-command-and-read
-	    vec
-            (format "getconf PIPE_BUF / 2>%s || echo 4096"
-                    (tramp-get-remote-null-device vec))
-            'noerror)))
+	(pipe-buf (tramp-get-remote-pipe-buf vec))
 	tmpfile chunk chunksize)
     (tramp-message vec 5 "Setting $PATH environment variable")
     (if (tramp-compat-length< command pipe-buf)
@@ -5255,7 +5255,7 @@ connection if a previous connection has died for some reason."
 			      (and tramp-encoding-command-interactive
 				   `(,tramp-encoding-command-interactive)))))))
 
-		  ;; This is neded for ssh or PuTTY based processes,
+		  ;; This is needed for ssh or PuTTY based processes,
 		  ;; and only if the respective options are set.
 		  ;; Perhaps, the setting could be more fine-grained.
 		  ;; (process-put p 'tramp-shared-socket t)
@@ -5354,7 +5354,7 @@ connection if a previous connection has died for some reason."
 			      "2>" (tramp-get-remote-null-device previous-hop))
 			  ?l (concat remote-shell " " extra-args " -i"))
 			 ;; A restricted shell does not allow "exec".
-			 (when r-shell '("&&" "exit" "||" "exit")))
+		         (when r-shell '("&&" "exit")) '("||" "exit"))
 			" "))
 
 		      ;; Send the command.
@@ -5597,6 +5597,7 @@ raises an error."
   "Check whether REGEXP matches the connection property \"uname\"."
   (string-match-p regexp (tramp-get-connection-property vec "uname" "")))
 
+;;;###tramp-autoload
 (defun tramp-get-remote-path (vec)
   "Compile list of remote directories for PATH.
 Nonexistent directories are removed from spec."
@@ -5679,6 +5680,27 @@ Nonexistent directories are removed from spec."
 	  (cl-remove-if
 	   (lambda (x) (not (tramp-get-file-property vec x "file-directory-p")))
 	   remote-path))))))
+
+;; The PIPE_BUF in POSIX [1] can be as low as 512 [2]. Here are the values
+;; on various platforms:
+;;   - 512 on macOS, FreeBSD, NetBSD, OpenBSD, MirBSD, native Windows.
+;;   - 4 KiB on Linux, OSF/1, Cygwin, Haiku.
+;;   - 5 KiB on Solaris.
+;;   - 8 KiB on HP-UX, Plan9.
+;;   - 10 KiB on IRIX.
+;;   - 32 KiB on AIX, Minix.
+;; [1] https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html
+;; [2] https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html
+;; See Bug#65324.
+;;;###tramp-autoload
+(defun tramp-get-remote-pipe-buf (vec)
+  "Return PIPE_BUF config from the remote side."
+  (with-tramp-connection-property vec "pipe-buf"
+    (tramp-send-command-and-read
+     vec
+     (format "getconf PIPE_BUF / 2>%s || echo 4096"
+             (tramp-get-remote-null-device vec))
+     'noerror)))
 
 (defun tramp-get-remote-locale (vec)
   "Determine remote locale, supporting UTF8 if possible."

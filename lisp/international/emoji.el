@@ -1,6 +1,6 @@
 ;;; emoji.el --- Inserting emojis  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: fun
@@ -683,11 +683,12 @@ We prefer the earliest unique letter."
                            strings))))
 	       (complete-with-action action table string pred)))
            nil t)))
-    (when (cl-plusp (length name))
-      (let ((glyph (if emoji-alternate-names
-                       (cadr (split-string name "\t"))
-                     (gethash name emoji--all-bases))))
-        (cons glyph (gethash glyph emoji--derived))))))
+    (if (cl-plusp (length name))
+        (let ((glyph (if emoji-alternate-names
+                         (cadr (split-string name "\t"))
+                       (gethash name emoji--all-bases))))
+          (cons glyph (gethash glyph emoji--derived)))
+      (user-error "You didn't specify an emoji"))))
 
 (defvar-keymap emoji-zoom-map
   "+" #'emoji-zoom-increase

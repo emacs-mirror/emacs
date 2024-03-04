@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-Copyright (C) 1993-1994, 1998-2023 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -293,15 +293,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* True if face attribute ATTR is unspecified.  */
 
-#define UNSPECIFIEDP(ATTR) EQ ((ATTR), Qunspecified)
+#define UNSPECIFIEDP(ATTR) EQ (ATTR, Qunspecified)
 
 /* True if face attribute ATTR is `ignore-defface'.  */
 
-#define IGNORE_DEFFACE_P(ATTR) EQ ((ATTR), QCignore_defface)
+#define IGNORE_DEFFACE_P(ATTR) EQ (ATTR, QCignore_defface)
 
 /* True if face attribute ATTR is `reset'.  */
 
-#define RESET_P(ATTR) EQ ((ATTR), Qreset)
+#define RESET_P(ATTR) EQ (ATTR, Qreset)
 
 /* Size of hash table of realized faces in face caches (should be a
    prime number).  */
@@ -1756,26 +1756,26 @@ the WIDTH times as wide as FACE on FRAME.  */)
 
 /* Access face attributes of face LFACE, a Lisp vector.  */
 
-#define LFACE_FAMILY(LFACE)	    AREF ((LFACE), LFACE_FAMILY_INDEX)
-#define LFACE_FOUNDRY(LFACE)	    AREF ((LFACE), LFACE_FOUNDRY_INDEX)
-#define LFACE_HEIGHT(LFACE)	    AREF ((LFACE), LFACE_HEIGHT_INDEX)
-#define LFACE_WEIGHT(LFACE)	    AREF ((LFACE), LFACE_WEIGHT_INDEX)
-#define LFACE_SLANT(LFACE)	    AREF ((LFACE), LFACE_SLANT_INDEX)
-#define LFACE_UNDERLINE(LFACE)      AREF ((LFACE), LFACE_UNDERLINE_INDEX)
-#define LFACE_INVERSE(LFACE)	    AREF ((LFACE), LFACE_INVERSE_INDEX)
-#define LFACE_FOREGROUND(LFACE)     AREF ((LFACE), LFACE_FOREGROUND_INDEX)
-#define LFACE_BACKGROUND(LFACE)     AREF ((LFACE), LFACE_BACKGROUND_INDEX)
-#define LFACE_STIPPLE(LFACE)	    AREF ((LFACE), LFACE_STIPPLE_INDEX)
-#define LFACE_SWIDTH(LFACE)	    AREF ((LFACE), LFACE_SWIDTH_INDEX)
-#define LFACE_OVERLINE(LFACE)	    AREF ((LFACE), LFACE_OVERLINE_INDEX)
-#define LFACE_STRIKE_THROUGH(LFACE) AREF ((LFACE), LFACE_STRIKE_THROUGH_INDEX)
-#define LFACE_BOX(LFACE)	    AREF ((LFACE), LFACE_BOX_INDEX)
-#define LFACE_FONT(LFACE)	    AREF ((LFACE), LFACE_FONT_INDEX)
-#define LFACE_INHERIT(LFACE)	    AREF ((LFACE), LFACE_INHERIT_INDEX)
-#define LFACE_FONTSET(LFACE)	    AREF ((LFACE), LFACE_FONTSET_INDEX)
-#define LFACE_EXTEND(LFACE)	    AREF ((LFACE), LFACE_EXTEND_INDEX)
+#define LFACE_FAMILY(LFACE)	    AREF (LFACE, LFACE_FAMILY_INDEX)
+#define LFACE_FOUNDRY(LFACE)	    AREF (LFACE, LFACE_FOUNDRY_INDEX)
+#define LFACE_HEIGHT(LFACE)	    AREF (LFACE, LFACE_HEIGHT_INDEX)
+#define LFACE_WEIGHT(LFACE)	    AREF (LFACE, LFACE_WEIGHT_INDEX)
+#define LFACE_SLANT(LFACE)	    AREF (LFACE, LFACE_SLANT_INDEX)
+#define LFACE_UNDERLINE(LFACE)      AREF (LFACE, LFACE_UNDERLINE_INDEX)
+#define LFACE_INVERSE(LFACE)	    AREF (LFACE, LFACE_INVERSE_INDEX)
+#define LFACE_FOREGROUND(LFACE)     AREF (LFACE, LFACE_FOREGROUND_INDEX)
+#define LFACE_BACKGROUND(LFACE)     AREF (LFACE, LFACE_BACKGROUND_INDEX)
+#define LFACE_STIPPLE(LFACE)	    AREF (LFACE, LFACE_STIPPLE_INDEX)
+#define LFACE_SWIDTH(LFACE)	    AREF (LFACE, LFACE_SWIDTH_INDEX)
+#define LFACE_OVERLINE(LFACE)	    AREF (LFACE, LFACE_OVERLINE_INDEX)
+#define LFACE_STRIKE_THROUGH(LFACE) AREF (LFACE, LFACE_STRIKE_THROUGH_INDEX)
+#define LFACE_BOX(LFACE)	    AREF (LFACE, LFACE_BOX_INDEX)
+#define LFACE_FONT(LFACE)	    AREF (LFACE, LFACE_FONT_INDEX)
+#define LFACE_INHERIT(LFACE)	    AREF (LFACE, LFACE_INHERIT_INDEX)
+#define LFACE_FONTSET(LFACE)	    AREF (LFACE, LFACE_FONTSET_INDEX)
+#define LFACE_EXTEND(LFACE)	    AREF (LFACE, LFACE_EXTEND_INDEX)
 #define LFACE_DISTANT_FOREGROUND(LFACE) \
-  AREF ((LFACE), LFACE_DISTANT_FOREGROUND_INDEX)
+  AREF (LFACE, LFACE_DISTANT_FOREGROUND_INDEX)
 
 /* True if LFACE is a Lisp face.  A Lisp face is a vector of size
    LFACE_VECTOR_SIZE which has the symbol `face' in slot 0.  */
@@ -2232,7 +2232,7 @@ merge_face_heights (Lisp_Object from, Lisp_Object to, Lisp_Object invalid)
     {
       /* Call function with current height as argument.
 	 From is the new height.  */
-      result = safe_call1 (from, to);
+      result = safe_calln (from, to);
 
       /* Ensure that if TO was absolute, so is the result.  */
       if (FIXNUMP (to) && !FIXNUMP (result))
@@ -6646,7 +6646,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
   prop = Fget_text_property (position, propname, w->contents);
-  XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
+  XSETFASTINT (limit1, min (limit, endpos));
   end = Fnext_single_property_change (position, propname, w->contents, limit1);
   if (FIXNUMP (end))
     endpos = XFIXNUM (end);
@@ -6782,7 +6782,7 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
   prop = Fget_text_property (position, propname, w->contents);
-  XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
+  XSETFASTINT (limit1, min (limit, endpos));
   end = Fnext_single_property_change (position, propname, w->contents, limit1);
   if (FIXNUMP (end))
     endpos = XFIXNUM (end);
@@ -7333,8 +7333,7 @@ only for this purpose.  */);
     doc: /* Hash table of global face definitions (for internal use only.)  */);
   Vface_new_frame_defaults =
     /* 33 entries is enough to fit all basic faces */
-    make_hash_table (hashtest_eq, 33, DEFAULT_REHASH_SIZE,
-                     DEFAULT_REHASH_THRESHOLD, Qnil, false);
+    make_hash_table (&hashtest_eq, 33, Weak_None, false);
 
   DEFVAR_LISP ("face-default-stipple", Vface_default_stipple,
     doc: /* Default stipple pattern used on monochrome displays.

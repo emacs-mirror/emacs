@@ -1,6 +1,6 @@
 ;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1996, 1998, 2000-2023 Free Software Foundation,
+;; Copyright (C) 1992-1996, 1998, 2000-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
@@ -243,7 +243,7 @@ Check it when `gud-running' is t")
      :visible (eq gud-minor-mode 'gdbmi)]
     ["Print Expression" gud-print
      :enable (not gud-running)]
-    ["Dump object-Derefenrece" gud-pstar
+    ["Dump object-Dereference" gud-pstar
      :label (if (eq gud-minor-mode 'jdb)
 	        "Dump object"
               "Print Dereference")
@@ -3974,11 +3974,11 @@ def gud_complete(s, max):
         print(f'\"{string_list.GetStringAtIndex(i)}\" ')
     print(')##')
 "
-  "Python code sent to LLDB for gud-specific initialisation.")
+  "Python code sent to LLDB for gud-specific initialization.")
 
 (defun gud-lldb-fetch-completions (context command)
   "Return the data to complete the LLDB command before point.
-This is what the Python function we installed at initialzation
+This is what the Python function we installed at initialization
 time returns, as a Lisp list.
 Maximum number of completions requested from LLDB is controlled
 by `gud-lldb-max-completions', which see."
@@ -4057,7 +4057,7 @@ Please note that completion framework that complete while you
 type, like Corfu, do not work well with this mode.  You should
 consider to turn them off in this mode.
 
-This command runs functions from `lldb-mode-hook'. "
+This command runs functions from `lldb-mode-hook'."
   (interactive (list (gud-query-cmdline 'lldb)))
 
   (when (and gud-comint-buffer

@@ -570,8 +570,9 @@ should fail as this function will crash."
 
 (defun hierarchy-examples-delayed--childrenfn (hier-elem)
   "Return the children of HIER-ELEM.
-Basially, feed the number, minus 1, to `hierarchy-examples-delayed--find-number'
-and then create a list of the number plus 0.0–0.9."
+Basically, feed the number, minus 1, to
+`hierarchy-examples-delayed--find-number' and then create a list of the
+number plus 0.0–0.9."
 
   (when (> hier-elem 1)
     (let ((next (hierarchy-examples-delayed--find-number (1- hier-elem))))

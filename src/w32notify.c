@@ -1,6 +1,6 @@
 /* Filesystem notifications support for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 2012-2023 Free Software Foundation, Inc.
+Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 Author: Eli Zaretskii <eliz@gnu.org>
 
@@ -350,6 +350,7 @@ start_watching (const char *file, HANDLE hdir, BOOL subdirs, DWORD flags)
       xfree (dirwatch->io_info);
       xfree (dirwatch->watchee);
       xfree (dirwatch);
+      return NULL;
     }
   return dirwatch;
 }
@@ -412,10 +413,7 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
     return NULL;
 
   if ((dirwatch = start_watching (file, hdir, subdirs, flags)) == NULL)
-    {
-      CloseHandle (hdir);
-      dirwatch->dir = NULL;
-    }
+    CloseHandle (hdir);
 
   return dirwatch;
 }

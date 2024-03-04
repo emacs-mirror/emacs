@@ -1,13 +1,13 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1995-1996, 1998, 2001-2023 Free Software
+;; Copyright (C) 1992, 1995-1996, 1998, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
 ;;             F.Potorti@cnuce.cnr.it
-;; Keywords: wp, hypermedia, comm, languages
+;; Keywords: text, hypermedia, comm, languages
 
 ;; This file is part of GNU Emacs.
 

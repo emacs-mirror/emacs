@@ -1,6 +1,6 @@
 ;;; check-declare.el --- Check declare-function statements  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -40,7 +40,7 @@
 
 ;;; Code:
 
-(defconst check-declare-warning-buffer "*Check Declarations Warnings*"
+(defvar check-declare-warning-buffer "*Check Declarations Warnings*"
   "Name of buffer used to display any `check-declare' warnings.")
 
 (defun check-declare-locate (file basefile)

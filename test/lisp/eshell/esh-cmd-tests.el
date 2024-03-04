@@ -1,6 +1,6 @@
 ;;; esh-cmd-tests.el --- esh-cmd test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -467,6 +467,28 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                "yes")
   (eshell-command-result-equal "unless {[ foo = bar ]} {echo no} {echo yes}"
                                "no"))
+
+
+;; Direct invocation
+
+(defmacro esh-cmd-test--deftest-invoke-directly (name command expected)
+  "Test `eshell-invoke-directly-p' returns EXPECTED for COMMAND.
+NAME is the name of the test case."
+  (declare (indent 2))
+  `(ert-deftest ,(intern (concat "esh-cmd-test/invoke-directly/"
+                                 (symbol-name name)))
+       ()
+     (with-temp-eshell
+      (should (equal (eshell-invoke-directly-p
+                      (eshell-parse-command ,command nil t))
+                     ,expected)))))
+
+(esh-cmd-test--deftest-invoke-directly no-args "echo" t)
+(esh-cmd-test--deftest-invoke-directly with-args "echo hi" t)
+(esh-cmd-test--deftest-invoke-directly multiple-cmds "echo hi; echo bye" nil)
+(esh-cmd-test--deftest-invoke-directly subcmd "echo ${echo hi}" t)
+(esh-cmd-test--deftest-invoke-directly complex "ls ." nil)
+(esh-cmd-test--deftest-invoke-directly complex-subcmd "echo {ls .}" nil)
 
 
 ;; Error handling

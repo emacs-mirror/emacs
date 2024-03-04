@@ -1,6 +1,6 @@
 ;;; format.el --- read and save files in multiple formats  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1995, 1997, 1999, 2001-2023 Free Software
+;; Copyright (C) 1994-1995, 1997, 1999, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>

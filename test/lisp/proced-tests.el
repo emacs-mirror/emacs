@@ -1,6 +1,6 @@
 ;;; proced-tests.el --- Test suite for proced.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -46,7 +46,7 @@
   (move-to-column (string-match attribute proced-header-line)))
 
 (defun proced--assert-process-valid-pid-refinement (pid)
-  "Fail unless the process at point could be present after a refinment using PID."
+  "Fail unless the process at point could be present after a refinement using PID."
   (proced--move-to-column "PID")
   (let ((pid-equal (string= pid (word-at-point))))
     (should

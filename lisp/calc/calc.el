@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Keywords: convenience, extensions
@@ -1284,6 +1284,8 @@ the trail buffer."
                       (kill-buffer calc-trail-buffer)))))
           (setq calc-trail-buffer nil)
           t))))
+
+(defvar touch-screen-display-keyboard)
 
 (defun calc-mode ()
   "Calculator major mode.

@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -193,7 +193,7 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
   char *XXXXXX;
   unsigned int count;
   int fd = -1;
-  int save_errno = errno;
+  int saved_errno = errno;
 
   /* A lower bound on the number of temporary files to attempt to
      generate.  The maximum total number of temporary file names that
@@ -258,7 +258,7 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
       fd = tryfunc (tmpl, args);
       if (fd >= 0)
         {
-          __set_errno (save_errno);
+          __set_errno (saved_errno);
           return fd;
         }
       else if (errno != EEXIST)

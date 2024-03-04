@@ -1,4 +1,4 @@
-dnl Copyright (C) 2023 Free Software Foundation, Inc.
+dnl Copyright (C) 2023-2024 Free Software Foundation, Inc.
 dnl This file is part of GNU Emacs.
 
 dnl GNU Emacs is free software: you can redistribute it and/or modify

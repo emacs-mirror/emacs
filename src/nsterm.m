@@ -1,6 +1,6 @@
 /* NeXT/Open/GNUstep / macOS communication module.      -*- coding: utf-8 -*-
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2023 Free Software
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2024 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -546,6 +546,15 @@ ns_relocate (const char *epath)
 #endif
 
   return epath;
+}
+
+
+void
+ns_init_pool (void)
+/* Initialize the 'outerpool' autorelease pool.  This should be called
+   from main before any Objective C code is run.  */
+{
+  outerpool = [[NSAutoreleasePool alloc] init];
 }
 
 
@@ -7058,13 +7067,9 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 static Lisp_Object
 ns_in_echo_area_1 (void *ptr)
 {
-  Lisp_Object in_echo_area;
-  specpdl_ref count;
-
-  count = SPECPDL_INDEX ();
+  const specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qinhibit_quit, Qt);
-  in_echo_area = safe_call (1, Qns_in_echo_area);
-
+  const Lisp_Object in_echo_area = safe_calln (Qns_in_echo_area);
   return unbind_to (count, in_echo_area);
 }
 
@@ -8829,8 +8834,8 @@ ns_in_echo_area (void)
      so call this function instead.  */
   XSETFRAME (frame, emacsframe);
 
-  safe_call (4, Vns_drag_motion_function, frame,
-	     make_fixnum (x), make_fixnum (y));
+  safe_calln (Vns_drag_motion_function, frame,
+	      make_fixnum (x), make_fixnum (y));
 
   redisplay ();
 #endif

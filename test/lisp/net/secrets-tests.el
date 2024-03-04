@@ -1,6 +1,6 @@
 ;;; secrets-tests.el --- Tests of Secret Service API -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 

@@ -1,6 +1,6 @@
 ;;; icons.el --- Handling icons  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: icons buttons
@@ -164,7 +164,7 @@ If OBJECT is an icon, return the icon properties."
 (defun icon-elements (name)
   "Return the elements of icon NAME.
 The elements are represented as a plist where the keys are
-`string', `face' and `display'.  The `image' element is only
+`string', `face' and `image'.  The `image' element is only
 present if the icon is represented by an image."
   (let ((string (icon-string name)))
     (list 'face (get-text-property 0 'face string)
@@ -187,11 +187,13 @@ present if the icon is represented by an image."
   merged)
 
 (cl-defmethod icons--create ((_type (eql 'image)) icon keywords)
-  (let ((file (if (file-name-absolute-p icon)
-                  icon
-                (and (fboundp 'image-search-load-path)
-                     (image-search-load-path icon)))))
-    (and (display-images-p)
+  (let* ((file (if (file-name-absolute-p icon)
+                   icon
+                 (and (fboundp 'image-search-load-path)
+                      (image-search-load-path icon))))
+         (file-exists (and (stringp file) (file-readable-p file))))
+    (and file-exists
+         (display-images-p)
          (fboundp 'image-supported-file-p)
          (image-supported-file-p file)
          (propertize

@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-2023 Free Software Foundation, Inc.
+Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -216,7 +216,7 @@ extern ptrdiff_t advance_to_char_boundary (ptrdiff_t byte_pos);
 /* Return the byte at byte position N.
    Do not check that the position is in range.  */
 
-#define FETCH_BYTE(n) *(BYTE_POS_ADDR ((n)))
+#define FETCH_BYTE(n) (*BYTE_POS_ADDR (n))
 
 /* Define the actual buffer data structures.  */
 
@@ -379,7 +379,6 @@ struct buffer
   /* Values of several buffer-local variables.  */
   /* tab-width is buffer-local so that redisplay can find it
      in buffers that are not current.  */
-  Lisp_Object case_fold_search_;
   Lisp_Object tab_width_;
   Lisp_Object fill_column_;
   Lisp_Object left_margin_;

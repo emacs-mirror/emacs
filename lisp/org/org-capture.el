@@ -1,9 +1,9 @@
 ;;; org-capture.el --- Fast note taking in Org       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
@@ -1312,7 +1312,7 @@ may have been stored before."
 		(while (< (point) end)
 		  (indent-to i)
 		  (forward-line)))
-	      ;; Pre-pending an item could change the type of the list
+	      ;; Prepending an item could change the type of the list
 	      ;; if there is a mismatch.  In this situation,
 	      ;; prioritize the existing list.
 	      (when prepend?

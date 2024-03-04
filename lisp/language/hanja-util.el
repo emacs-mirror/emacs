@@ -1,6 +1,6 @@
 ;;; hanja-util.el --- Korean Hanja util module  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hanja
@@ -6437,7 +6437,7 @@ character.  This variable is initialized by `hanja-init-load'.")
     (message "")))
 
 ;; List of current conversion status.
-;; The first element is the strating position of shown list.
+;; The first element is the starting position of shown list.
 ;; It is a group number each split by `hanja-list-width'.
 ;; The second element is the position of selected element.
 ;; The third element is a list of suitable Hanja candidate.

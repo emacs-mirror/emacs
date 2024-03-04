@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2023 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1992, 1994-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -729,7 +729,9 @@ the `server-process' variable."
         (concat "Unable to start the Emacs server.\n"
                 (cadr err)
                 (substitute-command-keys
-                 "\nTo start the server in this Emacs process, stop the existing server or call `\\[server-force-delete]' to forcibly disconnect it."))
+                 (concat "\nTo start the server in this Emacs process, stop "
+                         "the existing server or call \\[server-force-delete] "
+                         "to forcibly disconnect it.")))
         :warning)
        (setq leave-dead t)))
       ;; Now any previous server is properly stopped.

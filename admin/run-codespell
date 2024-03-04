@@ -1,0 +1,68 @@
+#!/bin/bash
+### run-codespell - run codespell on Emacs
+
+## Copyright (C) 2023-2024 Free Software Foundation, Inc.
+
+## Author: Stefan Kangas <stefankangas@gmail.com>
+
+## This file is part of GNU Emacs.
+
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+### Commentary:
+
+## Run codespell on the Emacs source tree.
+##
+## codespell 2.2.2 or later is recommended.  Earlier versions had a
+## bug where the line count was incorrect for files containing "^L"
+## characters.
+
+source "${0%/*}/emacs-shell-lib"
+
+CODESPELL_DIR="${PD}/codespell"
+
+CODESPELL_RC="${CODESPELL_DIR}/codespell.rc"
+CODESPELL_EXCLUDE="${CODESPELL_DIR}/codespell.exclude"
+CODESPELL_IGNORE="${CODESPELL_DIR}/codespell.ignore"
+CODESPELL_DICTIONARY="${CODESPELL_DIR}/codespell.dictionary"
+
+emacs_run_codespell ()
+{
+    git ls-files |\
+        grep -v -E -e '^(lib|m4)/.*' |\
+        grep -v -E -e '^admin/(charsets|codespell|unidata)/.*' |\
+        grep -v -E -e '^doc/misc/texinfo.tex$' |\
+        grep -v -E -e '^etc/(AUTHORS|HELLO|publicsuffix.txt)$' |\
+        grep -v -E -e '^etc/refcards/(cs|de|fr|pl|pt|sk)-.+.tex$' |\
+        grep -v -E -e '^etc/tutorials/TUTORIAL\..+' |\
+        grep -v -E -e '^leim/(MISC|SKK)-DIC/.*' |\
+        grep -v -E -e '^lisp/language/ethio-util.el' |\
+        grep -v -E -e '^lisp/ldefs-boot.el' |\
+        grep -v -E -e '^lisp/leim/.*' |\
+        grep -v -E -e '^test/lisp/net/puny-resources/IdnaTestV2.txt' |\
+        grep -v -E -e '^test/manual/(etags|indent)/.*' |\
+        grep -v -E -e '^test/src/regex-resources/.*' |\
+        xargs codespell \
+              --config "$CODESPELL_RC" \
+              --exclude-file "$CODESPELL_EXCLUDE" \
+              --ignore-words "$CODESPELL_IGNORE" \
+              --disable-colors \
+              --write-changes \
+              $@
+}
+
+emacs_run_codespell
+emacs_run_codespell --dictionary "$CODESPELL_DICTIONARY"
+
+exit 0

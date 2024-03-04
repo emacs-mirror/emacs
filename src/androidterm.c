@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -619,7 +619,7 @@ android_decode_utf16 (unsigned short *utf16, size_t n)
   struct coding_system coding;
   ptrdiff_t size;
 
-  if (INT_MULTIPLY_WRAPV (n, sizeof *utf16, &size))
+  if (ckd_mul (&size, n, sizeof *utf16))
     return Qnil;
 
   /* Set up the coding system.  Decoding a UTF-16 string (with no BOM)
@@ -938,9 +938,9 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	   sure it is processed before any subsequent edits.  */
 	textconv_barrier (f, event->xkey.counter);
 
-      wchar_t copy_buffer[129];
+      wchar_t copy_buffer[512];
       wchar_t *copy_bufptr = copy_buffer;
-      int copy_bufsiz = 128 * sizeof (wchar_t);
+      int copy_bufsiz = 512;
 
       event->xkey.state
 	|= android_emacs_to_android_modifiers (dpyinfo,
@@ -5010,7 +5010,7 @@ android_text_to_string (JNIEnv *env, char *buffer, ptrdiff_t n,
     {
       /* This buffer holds no multibyte characters.  */
 
-      if (INT_MULTIPLY_WRAPV (n, sizeof *utf16, &size))
+      if (ckd_mul (&size, n, sizeof *utf16))
 	return NULL;
 
       utf16 = malloc (size);
@@ -5033,7 +5033,7 @@ android_text_to_string (JNIEnv *env, char *buffer, ptrdiff_t n,
 
   /* Allocate enough to hold N characters.  */
 
-  if (INT_MULTIPLY_WRAPV (n, sizeof *utf16, &size))
+  if (ckd_mul (&size, n, sizeof *utf16))
     return NULL;
 
   utf16 = malloc (size);
@@ -6101,7 +6101,7 @@ android_update_selection (struct frame *f, struct window *w)
   else
     start = -1, end = -1;
 
-  /* Now constrain START and END to the maximium size of a Java
+  /* Now constrain START and END to the maximum size of a Java
      integer.  */
   start = min (start, TYPE_MAXIMUM (jint));
   end = min (end, TYPE_MAXIMUM (jint));
@@ -6238,7 +6238,7 @@ android_reset_conversion (struct frame *f)
 
   android_reset_ic (FRAME_ANDROID_WINDOW (f), mode);
 
-  /* Clear extracted text flags.  Since the IM has been reinitialised,
+  /* Clear extracted text flags.  Since the IM has been reinitialized,
      it should no longer be displaying extracted text.  */
   FRAME_ANDROID_OUTPUT (f)->extracted_text_flags = 0;
 

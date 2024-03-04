@@ -1,6 +1,6 @@
 ;;; which-func-tests.el --- tests for which-func     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Author: Spencer Baugh <sbaugh@catern.com>
 

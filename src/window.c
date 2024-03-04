@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985-1987, 1993-1998, 2000-2023 Free Software
+   Copyright (C) 1985-1987, 1993-1998, 2000-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -526,7 +526,7 @@ select_window (Lisp_Object window, Lisp_Object norecord,
     /* Do not select a tooltip window (Bug#47207).  */
     error ("Cannot select a tooltip window");
 
-  /* We deinitely want to select WINDOW, not the mini-window.  */
+  /* We definitely want to select WINDOW, not the mini-window.  */
   f->select_mini_window_flag = false;
 
   /* Make the selected window's buffer current.  */
@@ -3829,7 +3829,7 @@ run_window_change_functions_1 (Lisp_Object symbol, Lisp_Object buffer,
 	     frame.  Make sure to record changes for each live frame
 	     in window_change_record later.  */
 	  window_change_record_frames = true;
-	  safe_call1 (XCAR (funs), window_or_frame);
+	  safe_calln (XCAR (funs), window_or_frame);
 	}
 
       funs = XCDR (funs);
@@ -5331,7 +5331,17 @@ resize_mini_window_apply (struct window *w, int delta)
   w->pixel_top = r->pixel_top + r->pixel_height;
   w->top_line = r->top_line + r->total_lines;
 
-  /* Enforce full redisplay of the frame.  */
+  /* Enforce full redisplay of the frame.  If f->redisplay is already
+     set, which it generally is in the wake of a ConfigureNotify
+     (frame resize) event, merely setting f->redisplay is insufficient
+     for redisplay_internal to continue redisplaying the frame, as
+     redisplay_internal cannot distinguish between f->redisplay set
+     before it calls redisplay_window and that after, so garbage the
+     frame as well.  */
+
+  if (f->redisplay)
+    SET_FRAME_GARBAGED (f);
+
   /* FIXME: Shouldn't some of the caller do it?  */
   fset_redisplay (f);
   adjust_frame_glyphs (f);
@@ -7826,7 +7836,11 @@ means no margin.
 
 Leave margins unchanged if WINDOW is not large enough to accommodate
 margins of the desired width.  Return t if any margin was actually
-changed and nil otherwise.  */)
+changed and nil otherwise.
+
+The margins specified by calling this function may be later overridden
+by invoking `set-window-buffer' for the same WINDOW, with its
+KEEP-MARGINS argument nil or omitted.  */)
   (Lisp_Object window, Lisp_Object left_width, Lisp_Object right_width)
 {
   struct window *w = set_window_margins (decode_live_window (window),

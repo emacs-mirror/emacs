@@ -7702,7 +7702,7 @@
 
 	* finder.el: Load finder-inf using `require'.
 	(finder-list-matches): Sorting by status is now the default.
-	(finder-compile-keywords): Simpify printing.
+	(finder-compile-keywords): Simplify printing.
 
 2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -22802,7 +22802,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2009-2023 Free Software Foundation, Inc.
+  Copyright (C) 2009-2024 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2024 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -818,7 +818,7 @@ there be copies of the opener contained in the multi-line string."
 
 (c-lang-defconst c-cpp-or-ml-match-offset
   ;; The offset to be added onto match numbers for a multi-line string in
-  ;; matches for `c-cpp-or-ml-string-opener-re'.
+  ;; matches for `c-ml-string-cpp-or-opener-re'.
   t (if (c-lang-const c-anchored-cpp-prefix)
 	(+ 2 (regexp-opt-depth (c-lang-const c-anchored-cpp-prefix)))
       2))

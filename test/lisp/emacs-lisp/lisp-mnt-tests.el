@@ -1,6 +1,6 @@
 ;;; lisp-mnt-tests.el --- Tests for lisp-mnt  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -29,6 +29,26 @@
                   "Bob Weiner <rsw@gnu.org>, Mats Lidell <matsl@gnu.org>")
                  '(("Bob Weiner" . "rsw@gnu.org")
                    ("Mats Lidell" . "matsl@gnu.org")))))
+
+(ert-deftest lm--tests-lm-package-requires ()
+  (with-temp-buffer
+    (insert ";; Package-Requires: ((emacs 29.1))")
+    (should (equal (lm-package-requires) '((emacs 29.1)))))
+  (with-temp-buffer
+    (insert ";; Package-Requires: ((emacs \"26.3\") (jsonrpc \"1.0.16\") (flymake \"1.2.1\") (project \"0.9.8\") (xref \"1.6.2\") (eldoc \"1.14.0\") (seq \"2.23\") (external-completion \"0.1\"))")
+    (should (equal (lm-package-requires)
+                   '((emacs "26.3") (jsonrpc "1.0.16") (flymake "1.2.1")
+                     (project "0.9.8") (xref "1.6.2") (eldoc "1.14.0")
+                     (seq "2.23") (external-completion "0.1")))))
+  (with-temp-buffer
+    (insert ";; Package-Requires: ((emacs \"26.3\") (jsonrpc \"1.0.16\") (flymake \"1.2.1\")\n"
+            ";;                    (project \"0.9.8\") (xref \"1.6.2\") (eldoc \"1.14.0\")\n"
+            ";;                    (seq \"2.23\") (external-completion \"0.1\"))")
+    (should (equal (lm-package-requires)
+                   '((emacs "26.3") (jsonrpc "1.0.16") (flymake "1.2.1")
+                     (project "0.9.8") (xref "1.6.2") (eldoc "1.14.0")
+                     (seq "2.23") (external-completion "0.1"))))))
+
 
 (ert-deftest lm--tests-lm-website ()
   (with-temp-buffer

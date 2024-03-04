@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -3014,7 +3014,7 @@ hunk text is not found in the source file."
       (goto-char (point-min))
       (while (progn (diff-file-next) (not (eobp)))
         (push (diff-find-file-name nil t) files)))
-    (list backend (nreverse files) nil nil 'patch)))
+    (list backend (delete nil (nreverse files)) nil nil 'patch)))
 
 (defun diff--filter-substring (str)
   (when diff-font-lock-prettify

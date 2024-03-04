@@ -1,6 +1,6 @@
 ;;; erc-sound.el --- CTCP SOUND support for ERC  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2003, 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2006-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; URL: https://www.emacswiki.org/emacs/ErcSound
@@ -63,7 +63,8 @@ and play sound files as requested."
   ((remove-hook 'erc-ctcp-query-SOUND-hook #'erc-ctcp-query-SOUND)
    (define-key erc-mode-map "\C-c\C-s" #'undefined)))
 
-(erc-define-catalog-entry 'english 'CTCP-SOUND "%n (%u@%h) plays %s:%m")
+(defvar erc-message-english-CTCP-SOUND "%n (%u@%h) plays %s:%m"
+  "English template for a CTCP SOUND message.")
 
 (defcustom erc-play-sound t
   "Play sounds when you receive CTCP SOUND requests."

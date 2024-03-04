@@ -1,6 +1,6 @@
 ;;; erc-nicks-tests.el --- Tests for erc-nicks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -409,7 +409,7 @@
              (push-button)
              (should (search-forward-regexp
                       (rx "Foreground: #" (group (+ xdigit)) eol)))
-             (forward-button 1)
+             (forward-button 2) ; skip Inherit:...
              (push-button))
 
            (ert-info ("First entry's sample is rendered correctly")

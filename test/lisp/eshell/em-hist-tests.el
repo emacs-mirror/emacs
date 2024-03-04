@@ -1,6 +1,6 @@
 ;;; em-hist-tests.el --- em-hist test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -35,7 +35,7 @@
 (cl-defun em-hist-test/check-history-file (file-name expected &optional
                                                      (expected-ring t))
   "Check that the contents of FILE-NAME match the EXPECTED history entries.
-Additonally, check that after loading the file, the history ring
+Additionally, check that after loading the file, the history ring
 matches too.  If EXPECTED-RING is a list, compare the ring
 elements against that; if t (the default), check against EXPECTED."
   (when (eq expected-ring t) (setq expected-ring expected))

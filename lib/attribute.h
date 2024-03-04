@@ -1,6 +1,6 @@
 /* ATTRIBUTE_* macros for using attributes in GCC and similar compilers
 
-   Copyright 2020-2023 Free Software Foundation, Inc.
+   Copyright 2020-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -182,6 +182,8 @@
 
 /* The function does not throw exceptions.  */
 /* Applies to: functions.  */
+/* After a function's parameter list, this attribute must come first, before
+   other attributes.  */
 #define ATTRIBUTE_NOTHROW _GL_ATTRIBUTE_NOTHROW
 
 /* Do not inline the function.  */

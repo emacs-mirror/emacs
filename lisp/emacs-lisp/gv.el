@@ -1,6 +1,6 @@
 ;;; gv.el --- generalized variables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -639,7 +639,7 @@ REF must have been previously obtained with `gv-ref'."
 
 ;;; Generalized variables.
 
-;; You'd think noone would write `(setf (error ...) ..)' but it
+;; You'd think no one would write `(setf (error ...) ..)' but it
 ;; appears naturally as the result of macroexpansion of things like
 ;; (setf (pcase-exhaustive ...)).
 ;; We could generalize this to `throw' and `signal', but it seems

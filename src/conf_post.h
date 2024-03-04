@@ -1,6 +1,6 @@
 /* conf_post.h --- configure.ac includes this via AH_BOTTOM
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2023 Free Software
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2024 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -96,7 +96,7 @@ typedef bool bool_bf;
 #ifdef emacs
 /* We include stdlib.h here, because Gnulib's stdlib.h might redirect
    'free' to its replacement, and we want to avoid that in unexec
-   builds.  Inclduing it here will render its inclusion after config.h
+   builds.  Including it here will render its inclusion after config.h
    a no-op.  */
 # if (defined DARWIN_OS && defined HAVE_UNEXEC) || defined HYBRID_MALLOC
 #  include <stdlib.h>
@@ -178,8 +178,8 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 /* Things that lib/reg* wants.  */
 
-#define mbrtowc(pwc, s, n, ps) mbtowc ((pwc), (s), (n))
-#define wcrtomb(s, wc, ps) wctomb ((s), (wc))
+#define mbrtowc(pwc, s, n, ps) mbtowc (pwc, s, n)
+#define wcrtomb(s, wc, ps) wctomb (s, wc)
 #define btowc(b) ((wchar_t) (b))
 #define towupper(chr) toupper (chr)
 #define towlower(chr) tolower (chr)
@@ -317,7 +317,7 @@ extern int emacs_setenv_TZ (char const *);
   type _GL_ATTRIBUTE_MAY_ALIAS *name = (type *) (addr)
 
 #if 3 <= __GNUC__
-# define ATTRIBUTE_SECTION(name) __attribute__((section (name)))
+# define ATTRIBUTE_SECTION(name) __attribute__ ((section (name)))
 #else
 # define ATTRIBUTE_SECTION(name)
 #endif

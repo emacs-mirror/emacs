@@ -1,5 +1,5 @@
 # assert-h.m4
-dnl Copyright (C) 2011-2023 Free Software Foundation, Inc.
+dnl Copyright (C) 2011-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -9,10 +9,10 @@ dnl From Paul Eggert.
 AC_DEFUN([gl_ASSERT_H],
 [
   AC_CACHE_CHECK([for static_assert], [gl_cv_static_assert],
-    [gl_save_CFLAGS=$CFLAGS
+    [gl_saved_CFLAGS=$CFLAGS
      for gl_working in "yes, a keyword" "yes, an <assert.h> macro"; do
       AS_CASE([$gl_working],
-        [*assert.h*], [CFLAGS="$gl_save_CFLAGS -DINCLUDE_ASSERT_H"])
+        [*assert.h*], [CFLAGS="$gl_saved_CFLAGS -DINCLUDE_ASSERT_H"])
 
       AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
@@ -32,7 +32,7 @@ AC_DEFUN([gl_ASSERT_H],
           ]])],
        [gl_cv_static_assert=$gl_working],
        [gl_cv_static_assert=no])
-      CFLAGS=$gl_save_CFLAGS
+      CFLAGS=$gl_saved_CFLAGS
       test "$gl_cv_static_assert" != no && break
      done])
 

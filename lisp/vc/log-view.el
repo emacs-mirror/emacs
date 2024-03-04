@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -516,7 +516,8 @@ If called interactively, visit the version at point."
     (switch-to-buffer (vc-find-revision (if log-view-per-file-logs
 					    (log-view-current-file)
 					  (car log-view-vc-fileset))
-					(log-view-current-tag)))))
+					(log-view-current-tag)
+                                        log-view-vc-backend))))
 
 
 (defun log-view-extract-comment ()
@@ -562,7 +563,8 @@ If called interactively, annotate the version at point."
     (vc-annotate (if log-view-per-file-logs
 		     (log-view-current-file)
 		   (car log-view-vc-fileset))
-		 (log-view-current-tag))))
+		 (log-view-current-tag)
+                 nil nil nil log-view-vc-backend)))
 
 ;;
 ;; diff

@@ -1,6 +1,6 @@
-;;; ses-tests.el --- Tests for ses.el              -*- lexical-binding: t; -*-
+;;; SES-tests.el --- Tests for ses.el              -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Vincent Belaïche <vincentb1@users.sourceforge.net>
 
@@ -240,6 +240,28 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (ses-jump 'ses--toto)
       (ses-command-hook)
       (should (eq (ses--cell-at-pos (point)) 'ses--toto)))))
+
+(ert-deftest ses-set-formula-write-cells-with-changed-references ()
+  "Test fix of bug#5852.
+When setting a formula has some cell with changed references, this
+cell has to be rewritten to data area."
+  (let ((ses-initial-size '(4 . 3))
+        (ses-after-entry-functions nil))
+    (with-temp-buffer
+      (ses-mode)
+      (dolist (c '((0 1 1); B1
+                   (1 0 2) (1 1 (+ B1 A2)); A2 B2
+                   (2 0 4); A3
+                   (3 0 3) (3 1 (+ B2 A4))));A4 B4
+        (apply 'ses-cell-set-formula c)
+        (apply 'ses-calculate-cell (list (car c) (cadr c) nil)))
+      (ses-cell-set-formula 2 1 '(+ B2 A3)); B3
+      (ses-command-hook)
+      (ses-cell-set-formula 3 1 '(+ B3 A4)); B4
+      (ses-command-hook)
+      (should (equal (ses-cell-references 1 1) '(B3)))
+      (ses-mode)
+      (should (equal (ses-cell-references 1 1) '(B3))))))
 
 (provide 'ses-tests)
 

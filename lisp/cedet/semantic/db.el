@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -393,9 +393,7 @@ If a database for DIRECTORY has already been created, return it.
 If DIRECTORY doesn't exist, create a new one."
   (let ((db (semanticdb-directory-loaded-p directory)))
     (unless db
-      (setq db (semanticdb-project-database
-		(file-name-nondirectory directory)
-		:tables nil))
+      (setq db (semanticdb-project-database :tables nil))
       ;; Set this up here.   We can't put it in the constructor because it
       ;; would be saved, and we want DB files to be portable.
       (setf (slot-value db 'reference-directory) (file-truename directory)))

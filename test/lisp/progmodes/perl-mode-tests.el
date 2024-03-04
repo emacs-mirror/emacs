@@ -1,6 +1,6 @@
 ;;; perl-mode-tests.el --- Test for perl-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -45,7 +45,7 @@
     (skip-chars-forward " \t")
     (should (equal (current-column) perl-indent-level))))
 
-;;;; Re-use cperl-mode tests
+;;;; Reuse cperl-mode tests
 
 (defvar cperl-test-mode)
 (setq cperl-test-mode #'perl-mode)

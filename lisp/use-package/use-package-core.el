@@ -1,6 +1,6 @@
 ;;; use-package-core.el --- A configuration macro for simplifying your .emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
@@ -1619,7 +1619,7 @@ ARG is the normalized input to the `:vc' keyword, as returned by
 the `use-package-normalize/:vc' function.
 
 REST is a plist of other (following) keywords and their
-arguments, each having already been normalised by the respective
+arguments, each having already been normalized by the respective
 function.
 
 STATE is a plist of any state that keywords processed before
@@ -1690,7 +1690,7 @@ node `(use-package) Creating an extension'."
       (`(,(pred symbolp) . ,(or (pred plistp)    ; plist/version string + name
                                 (pred stringp)))
        (use-package-normalize--vc-arg arg))
-      (_ (use-package-error "Unrecognised argument to :vc.\
+      (_ (use-package-error "Unrecognized argument to :vc.\
  The keyword wants an argument of nil, t, a name of a package,\
  or a cons-cell as accepted by `package-vc-selected-packages', where \
  the accepted plist is augmented by a `:rev' keyword.")))))

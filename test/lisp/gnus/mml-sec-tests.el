@@ -1,6 +1,6 @@
 ;;; mml-sec-tests.el --- Tests mml-sec.el, see README-mml-secure.txt.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015, 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Jens Lechtenbörger <jens.lechtenboerger@fsfe.org>
 

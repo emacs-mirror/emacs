@@ -1,6 +1,6 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 ;; Version: 0.10.0
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
@@ -1110,10 +1110,9 @@ This has the effect of sharing more history between projects."
 
 (defun project--transplant-file-name (filename project)
   (when-let ((old-root (get-text-property 0 'project filename)))
-    (abbreviate-file-name
-     (expand-file-name
-      (file-relative-name filename old-root)
-      (project-root project)))))
+    (expand-file-name
+     (file-relative-name filename old-root)
+     (project-root project))))
 
 (defun project--read-file-cpd-relative (prompt
                                         all-files &optional predicate
@@ -1146,15 +1145,17 @@ by the user at will."
          (_ (when included-cpd
               (setq substrings (cons "./" substrings))))
          (new-collection (project--file-completion-table substrings))
-         (abbr-cpd (abbreviate-file-name common-parent-directory))
-         (abbr-cpd-length (length abbr-cpd))
-         (relname (cl-letf (((symbol-value hist)
-                             (mapcan
-                              (lambda (s)
-                                (and (string-prefix-p abbr-cpd s)
-                                     (not (eq abbr-cpd-length (length s)))
-                                     (list (substring s abbr-cpd-length))))
-                              (symbol-value hist))))
+         (abs-cpd (expand-file-name common-parent-directory))
+         (abs-cpd-length (length abs-cpd))
+         (relname (cl-letf* ((non-essential t) ;Avoid new Tramp connections.
+                             ((symbol-value hist)
+                              (mapcan
+                               (lambda (s)
+                                 (setq s (expand-file-name s))
+                                 (and (string-prefix-p abs-cpd s)
+                                      (not (eq abs-cpd-length (length s)))
+                                      (list (substring s abs-cpd-length))))
+                               (symbol-value hist))))
                     (project--completing-read-strict prompt
                                                      new-collection
                                                      predicate
@@ -1362,6 +1363,7 @@ If you exit the `query-replace', you can later continue the
 
 (defvar compilation-read-command)
 (declare-function compilation-read-command "compile")
+(declare-function recompile "compile")
 
 (defun project-prefixed-buffer-name (mode)
   (concat "*"
@@ -1394,6 +1396,18 @@ If non-nil, it overrides `compilation-buffer-name-function' for
          (or project-compilation-buffer-name-function
              compilation-buffer-name-function)))
     (call-interactively #'compile)))
+
+(defun project-recompile (&optional edit-command)
+  "Run `recompile' with appropriate buffer."
+  (declare (interactive-only recompile))
+  (interactive "P")
+  (let ((compilation-buffer-name-function
+         (or project-compilation-buffer-name-function
+             ;; Should we error instead?  When there's no
+             ;; project-specific naming, there is no point in using
+             ;; this command.
+             compilation-buffer-name-function)))
+    (recompile edit-command)))
 
 (defcustom project-ignore-buffer-conditions nil
   "List of conditions to filter the buffers to be switched to.
@@ -1693,7 +1707,10 @@ With some possible metadata (to be decided).")
                  (let ((name (car elem)))
                    (list (if (file-remote-p name) name
                            (abbreviate-file-name name)))))
-               (read (current-buffer))))))
+               (condition-case nil
+                   (read (current-buffer))
+                 (end-of-file
+                  (warn "Failed to read the projects list file due to unexpected EOF")))))))
     (unless (seq-every-p
              (lambda (elt) (stringp (car-safe elt)))
              project--list)
@@ -1841,10 +1858,12 @@ It's also possible to enter an arbitrary directory not in the list."
 ;;;###autoload
 (defun project-any-command (&optional overriding-map prompt-format)
   "Run the next command in the current project.
-If the command is in `project-prefix-map', it gets passed that
-info with `project-current-directory-override'.  Otherwise,
-`default-directory' is temporarily set to the current project's
-root.
+
+If the command name starts with `project-', or its symbol has
+property `project-aware', it gets passed the project to use
+with the variable `project-current-directory-override'.
+Otherwise, `default-directory' is temporarily set to the current
+project's root.
 
 If OVERRIDING-MAP is non-nil, it will be used as
 `overriding-local-map' to provide shorter bindings from that map
@@ -1856,15 +1875,11 @@ which will take priority over the global ones."
                     (key-binding (read-key-sequence
                                   (format prompt-format (project-root pr)))
                                  t)))
-         (root (project-root pr))
-         found)
+         (root (project-root pr)))
     (when command
-      ;; We could also check the command name against "\\`project-",
-      ;; and/or (get command 'project-command).
-      (map-keymap
-       (lambda (_evt cmd) (if (eq cmd command) (setq found t)))
-       project-prefix-map)
-      (if found
+      (if (when (symbolp command)
+            (or (string-prefix-p "project-" (symbol-name command))
+                (get command 'project-aware)))
           (let ((project-current-directory-override root))
             (call-interactively command))
         (let ((default-directory root))

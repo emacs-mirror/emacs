@@ -1,6 +1,6 @@
 ;;; bytecomp-tests.el --- Tests for bytecomp.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Shigeru Fukaya <shigeru.fukaya@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -717,7 +717,7 @@ inner loops respectively."
       (set (make-local-variable 'bytecomp-tests--xx) 2)
       bytecomp-tests--xx)
 
-    ;; Check for-effect optimisation of `condition-case' body form.
+    ;; Check for-effect optimization of `condition-case' body form.
     ;; With `condition-case' in for-effect context:
     (let ((x (bytecomp-test-identity ?A))
           (r nil))
@@ -797,7 +797,7 @@ inner loops respectively."
     (let ((x 0))
       (list (= (setq x 1))
             x))
-    ;; Aristotelian identity optimisation
+    ;; Aristotelian identity optimization
     (let ((x (bytecomp-test-identity 1)))
       (list (eq x x) (eql x x) (equal x x)))
     )
@@ -2087,18 +2087,12 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
 
 (defun bytecomp-tests--error-frame (fun args)
   "Call FUN with ARGS.  Return result or (ERROR . BACKTRACE-FRAME)."
-  (let* ((debugger
-          (lambda (&rest args)
-            ;; Make sure Emacs doesn't think our debugger is buggy.
-            (cl-incf num-nonmacro-input-events)
-            (throw 'bytecomp-tests--backtrace
-                   (cons args (cadr (backtrace-get-frames debugger))))))
-         (debug-on-error t)
-         (backtrace-on-error-noninteractive nil)
-         (debug-on-quit t)
-         (debug-ignored-errors nil))
+  (letrec ((handler (lambda (e)
+                      (throw 'bytecomp-tests--backtrace
+                             (cons e (cadr (backtrace-get-frames handler)))))))
     (catch 'bytecomp-tests--backtrace
-      (apply fun args))))
+      (handler-bind ((error handler))
+        (apply fun args)))))
 
 (defconst bytecomp-tests--byte-op-error-cases
   '(((car a) (wrong-type-argument listp a))
@@ -2120,7 +2114,7 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
     ))
 
 (ert-deftest bytecomp--byte-op-error-backtrace ()
-  "Check that signalling byte ops show up in the backtrace."
+  "Check that signaling byte ops show up in the backtrace."
   (dolist (case bytecomp-tests--byte-op-error-cases)
     (ert-info ((prin1-to-string case) :prefix "case: ")
       (let* ((call (nth 0 case))
@@ -2143,7 +2137,7 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
                               `(lambda ,formals (,fun-sym ,@formals)))))))
                    (error-frame (bytecomp-tests--error-frame fun actuals)))
               (should (consp error-frame))
-              (should (equal (car error-frame) (list 'error expected-error)))
+              (should (equal (car error-frame) expected-error))
               (let ((frame (cdr error-frame)))
                 (should (equal (type-of frame) 'backtrace-frame))
                 (should (equal (cons (backtrace-frame-fun frame)
@@ -2151,7 +2145,7 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
                                call))))))))))
 
 (ert-deftest bytecomp--eq-symbols-with-pos-enabled ()
-  ;; Verify that we don't optimise away a binding of
+  ;; Verify that we don't optimize away a binding of
   ;; `symbols-with-pos-enabled' around an application of `eq' (bug#65017).
   (let* ((sym-with-pos1 (read-positioning-symbols "sym"))
          (sym-with-pos2 (read-positioning-symbols " sym"))  ; <- space!

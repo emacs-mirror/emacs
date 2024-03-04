@@ -1,6 +1,6 @@
 ;;; ob-plantuml.el --- Babel Functions for Plantuml  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Zhang Weize
 ;; Keywords: literate programming, reproducible research
@@ -57,7 +57,7 @@ The JAR can be configured via `org-plantuml-jar-path'.
 
 `plantuml' means to use the PlantUML executable.
 The executable can be configured via `org-plantuml-executable-path'.
-You can also configure extra arguments via `org-plantuml-executable-args'."
+You can also configure extra arguments via `org-plantuml-args'."
   :group 'org-babel
   :package-version '(Org . "9.4")
   :type 'symbol

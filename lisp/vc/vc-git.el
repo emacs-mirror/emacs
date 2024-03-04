@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2024 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -89,6 +89,7 @@
 ;; - make-version-backups-p (file)                 NOT NEEDED
 ;; - previous-revision (file rev)                  OK
 ;; - next-revision (file rev)                      OK
+;; - file-name-changes (rev)                       OK
 ;; - check-headers ()                              COULD BE SUPPORTED
 ;; - delete-file (file)                            OK
 ;; - rename-file (old new)                         OK
@@ -147,6 +148,18 @@ comparing changes.  See Man page `git-blame' for more."
 
 (defcustom vc-git-shortlog-switches nil
   "String or list of strings giving Git log switches for shortlogs."
+  :type '(choice (const :tag "None" nil)
+                 (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string))
+  :version "30.1")
+
+(defcustom vc-git-file-name-changes-switches '("-M" "-C")
+  "String or list of string to pass to Git when finding previous names.
+
+This option should usually at least contain '-M'.  You can adjust
+the flags to change the similarity thresholds (default 50%).  Or
+add `--find-copies-harder' (slower in large projects, since it
+uses a full scan)."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
@@ -1416,7 +1429,16 @@ This prompts for a branch to merge from."
 ;; Long explanation here:
 ;; https://stackoverflow.com/questions/46487476/git-log-follow-graph-skips-commits
 (defcustom vc-git-print-log-follow nil
-  "If true, follow renames in Git logs for a single file."
+  "If non-nil, use the flag `--follow' when producing single file logs.
+
+A non-nil value will make the printed log automatically follow
+the file renames.  The downsides is that the log produced this
+way may omit certain (merge) commits, and that `log-view-diff'
+fails on commits that used the previous name, in that log buffer.
+
+When this variable is nil, and the log ends with a rename, we
+show a button below that which allows to show the log for the
+file name before the rename."
   :type 'boolean
   :version "26.1")
 
@@ -1835,8 +1857,11 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (defun vc-git--rev-parse (rev)
   (with-temp-buffer
     (and
-     (vc-git--out-ok "rev-parse" rev)
-     (buffer-substring-no-properties (point-min) (+ (point-min) 40)))))
+     (apply #'vc-git--out-ok "rev-parse"
+            (append (when vc-use-short-revision '("--short"))
+                    (list rev)))
+     (goto-char (point-min))
+     (buffer-substring-no-properties (point) (pos-eol)))))
 
 (defun vc-git-next-revision (file rev)
   "Git-specific version of `vc-next-revision'."
@@ -1865,6 +1890,31 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                    (point)
                    (progn (forward-line 1) (1- (point)))))))))
     (or (vc-git-symbolic-commit next-rev) next-rev)))
+
+(defun vc-git-file-name-changes (rev)
+  (with-temp-buffer
+    (let ((root (vc-git-root default-directory)))
+      (unless vc-git-print-log-follow
+        (apply #'vc-git-command (current-buffer) t nil
+               "diff"
+               "--name-status"
+               "--diff-filter=ADCR"
+               (concat rev "^") rev
+               (vc-switches 'git 'file-name-changes)))
+      (let (res)
+        (goto-char (point-min))
+        (while (re-search-forward "^\\([ADCR]\\)[0-9]*\t\\([^\n\t]+\\)\\(?:\t\\([^\n\t]+\\)\\)?" nil t)
+          (pcase (match-string 1)
+            ("A" (push (cons nil (match-string 2)) res))
+            ("D" (push (cons (match-string 2) nil) res))
+            ((or "C" "R") (push (cons (match-string 2) (match-string 3)) res))
+            ;; ("M" (push (cons (match-string 1) (match-string 1)) res))
+            ))
+        (mapc (lambda (c)
+                (if (car c) (setcar c (expand-file-name (car c) root)))
+                (if (cdr c) (setcdr c (expand-file-name (cdr c) root))))
+              res)
+        (nreverse res)))))
 
 (defun vc-git-delete-file (file)
   (vc-git-command nil 0 file "rm" "-f" "--"))
@@ -1932,6 +1982,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (defvar compilation-environment)
 
 ;; Derived from `lgrep'.
+;;;###autoload
 (defun vc-git-grep (regexp &optional files dir)
   "Run git grep, searching for REGEXP in FILES in directory DIR.
 The search is limited to file names matching shell pattern FILES.

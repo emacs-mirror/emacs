@@ -1,6 +1,6 @@
 ;;; erc-scenarios-base-reconnect.el --- Base-reconnect scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -171,7 +171,7 @@
           (funcall expect 2 "Canceled")
           (funcall expect 3 "Opening connection")
           (funcall expect 2 "Password incorrect")
-          (funcall expect 2 "Connection failed!")
+          (funcall expect 10 "Connection failed!")
           (funcall expect 2 "Re-establishing connection"))
         (ert-info ("Explicitly cancel timer")
           (erc-cmd-RECONNECT "cancel")

@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2023 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2024 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -306,7 +306,7 @@ AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
 
 dnl OPTION_DEFAULT_IFAVAILABLE(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to 'ifavailable',
-dnl unless it is overriden by $with_features being equal to 'no'.
+dnl unless it is overridden by $with_features being equal to 'no'.
 dnl NAME is the base name of the option.  The shell variable with_NAME
 dnl   will be set to either the user's value (if the option is
 dnl   specified; 'yes' for a plain --with-NAME) or to 'ifavailable' (if the
@@ -5149,6 +5149,11 @@ source on this site:
 
   with_native_compilation=no])
 
+if test "$with_features" = "no" \
+   && test "${with_native_compilation}" = "default"; then
+  with_native_compilation=no
+fi
+
 if test "${with_native_compilation}" = "default"; then
     # Check if libgccjit is available.
     AC_CHECK_LIB([gccjit], [gcc_jit_context_acquire],
@@ -7087,13 +7092,10 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2023 Free Software Foundation, Inc."
+copyright="Copyright (C) 2024 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED([COPYRIGHT], ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST([copyright])
-
-# This is needed for gnulib's printf modules.
-CFLAGS="$CFLAGS -DHAVE_CONFIG_H"
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
@@ -7461,6 +7463,8 @@ case "$opsys" in
 
   mingw32)
    ## Is it any better under MinGW64 to relocate emacs into higher addresses?
+   ## If the values of -image-base are modified, the corresponding
+   ## values of DEFAULT_IMAGE_BASE in w32fns.c should be kept in sync.
    case "$canonical" in
      x86_64-*-*) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x400000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
      *) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;

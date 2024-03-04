@@ -1,6 +1,6 @@
 ;;; ert-x.el --- Staging area for experimental extensions to ERT  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008, 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;;         Christian Ohler <ohler@gnu.org>
@@ -540,10 +540,10 @@ The same keyword arguments are supported as in
 (when (and (featurep 'tramp) (getenv "EMACS_HYDRA_CI"))
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
-;; If this defconst is used in a test file, `tramp' shall be loaded
+;; If this defvar is used in a test file, `tramp' shall be loaded
 ;; prior `ert-x'.  There is no default value on w32 systems, which
 ;; could work out of the box.
-(defconst ert-remote-temporary-file-directory
+(defvar ert-remote-temporary-file-directory
   (when (featurep 'tramp)
     (cond
      ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))

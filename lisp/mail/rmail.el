@@ -1,6 +1,7 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1988, 1993-1998, 2000-2024 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
@@ -2711,7 +2712,9 @@ N defaults to the current message."
 	  (and (string-match text-regexp content-type-header) t)))))
 
 (defcustom rmail-show-message-verbose-min 200000
-  "Message size at which to show progress messages for displaying it."
+  "Message size at which to show progress messages for displaying it.
+Messages longer than this (in characters) will produce echo-area
+messages when Rmail processes such a message for display."
   :type 'integer
   :group 'rmail
   :version "23.1")
@@ -4610,6 +4613,16 @@ Argument MIME is non-nil if this is a mime message."
     ;; Decode any base64-encoded material in what we just decrypted.
     (rmail-epa-decode armor-start after-end)
 
+    ;; If this is in a MIME part, convert CRLF into just LF (newline)
+    (when mime
+      (save-restriction
+        (narrow-to-region armor-start  (- (point-max) after-end))
+        (goto-char (point-min))
+        (let ((inhibit-read-only t))
+          (while (search-forward "\r\n" nil t)
+            (delete-region (- (point) 2) (- (point) 1)))))
+      )
+
     (list armor-start (- (point-max) after-end) mime
           armor-end-regexp
           (buffer-substring armor-start (- (point-max) after-end)))))
@@ -4653,7 +4666,33 @@ Argument MIME is non-nil if this is a mime message."
 	      (push (rmail-epa-decrypt-1 mime) decrypts))))
 
       (when (and decrypts (rmail-buffers-swapped-p))
-	(when (y-or-n-p "Replace the original message? ")
+	(if (not (y-or-n-p "Replace the original message? "))
+            ;; User wants to decrypt only temporarily.
+	    ;; Find, in the view buffer, the armors
+	    ;; that we made decrypts for, and replace each one
+            ;; with its decrypt.  In a mime part, replace CRLF with NL.
+            (dolist (d decrypts)
+	      (if (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
+		  (let (armor-start armor-end armor-end-regexp)
+		    (setq armor-start (match-beginning 0)
+			  armor-end-regexp (nth 3 d)
+			  armor-end (re-search-forward
+				     armor-end-regexp
+				     nil t))
+
+		    ;; Found as expected -- now replace it with the decrypt.
+		    (when armor-end
+                      (if (null (nth 2 d))
+                          nil
+                        ;; In a mime part --
+                        ;; replace CRLF with NL in it.
+                        (save-restriction
+                          (narrow-to-region armor-start armor-end)
+                          (goto-char (point-min))
+                          (while (search-forward "\r\n" nil t)
+                            (delete-region (- (point) 2) (- (point) 1))))))
+		      )))
+          ;; User wants to decrypt the message permanently.
           (when (eq major-mode 'rmail-mode)
             (rmail-add-label "decrypt"))
 	  (setq decrypts (nreverse decrypts))

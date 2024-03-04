@@ -1,6 +1,6 @@
 ;;; persian.el --- Quail package for inputting Persian/Farsi keyboard	-*- coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
 ;; Author: Mohsen BANAN <emacs@mohsen.1.banan.byname.net>
 ;; URL: http://mohsen.1.banan.byname.net/contact
@@ -500,7 +500,7 @@
  ;; RIGHT-TO-LEFT EMBEDDING (sets base dir to RTL but allows embedded text)
  ("&rle;" ?\u202B)   ;; (ucs-insert #x202B)   named: زیرمتنِ راست‌به‌چپ
  ;; POP DIRECTIONAL FORMATTING (used for RLE or LRE and RLO or LRO)
- ;; EMACS ANOMOLY --- Why does &pdf not show up in (describe-input-method 'farsi-transliterate-banan)
+ ;; EMACS ANOMALY --- Why does &pdf not show up in (describe-input-method 'farsi-transliterate-banan)
  ("&pdf;" ?\u202C)   ;; (ucs-insert #x202C)   named: پایانِ زیرمتن
  ("P" ?\u202C)
  ;; LEFT-TO-RIGHT OVERRIDE (overrides the bidirectional algorithm, display LTR)

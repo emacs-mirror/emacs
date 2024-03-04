@@ -1,5 +1,5 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2023 Free Software
+   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -86,12 +86,12 @@ static AVOID vfatal (const char *, va_list) ATTRIBUTE_FORMAT_PRINTF (1, 0);
 #ifndef HAVE_ANDROID
 
 #define OUTPUT(tty, a)                                          \
-  emacs_tputs ((tty), a,                                        \
+  emacs_tputs (tty, a,                                        \
                FRAME_TOTAL_LINES (XFRAME (selected_frame)) - curY (tty),	\
                cmputc)
 
-#define OUTPUT1(tty, a) emacs_tputs ((tty), a, 1, cmputc)
-#define OUTPUTL(tty, a, lines) emacs_tputs ((tty), a, lines, cmputc)
+#define OUTPUT1(tty, a) emacs_tputs (tty, a, 1, cmputc)
+#define OUTPUTL(tty, a, lines) emacs_tputs (tty, a, lines, cmputc)
 
 #define OUTPUT_IF(tty, a)                                               \
   do {                                                                  \
@@ -99,7 +99,8 @@ static AVOID vfatal (const char *, va_list) ATTRIBUTE_FORMAT_PRINTF (1, 0);
       OUTPUT (tty, a);							\
   } while (0)
 
-#define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)
+#define OUTPUT1_IF(tty, a) \
+  do { if (a) emacs_tputs (tty, a, 1, cmputc); } while (0)
 
 #endif
 
@@ -1117,7 +1118,7 @@ per_line_cost (const char *str)
 
 int *char_ins_del_vector;
 
-#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_COLS ((f))])
+#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_COLS (f)])
 
 static void
 calculate_ins_del_char_costs (struct frame *f)
@@ -1630,8 +1631,19 @@ produce_glyphs (struct it *it)
     it->pixel_width = it->nglyphs = 0;
   else if (it->char_to_display == '\t')
     {
+      /* wrap-prefix strings are prepended to continuation lines, so
+	 the width of tab characters inside should be computed from
+	 the start of this screen line rather than as a product of the
+	 total width of the physical line being wrapped.  */
       int absolute_x = (it->current_x
-			+ it->continuation_lines_width);
+			+ (it->string_from_prefix_prop_p
+			   /* Subtract the width of the
+			      prefix from it->current_x if
+			      it exists.  */
+			   ? 0 : (it->continuation_lines_width
+				  ? (it->continuation_lines_width
+				     - it->wrap_prefix_width)
+				  : 0)));
       int x0 = absolute_x;
       /* Adjust for line numbers.  */
       if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)
@@ -1703,7 +1715,13 @@ produce_glyphs (struct it *it)
   /* Advance current_x by the pixel width as a convenience for
      the caller.  */
   if (it->area == TEXT_AREA)
-    it->current_x += it->pixel_width;
+    {
+      it->current_x += it->pixel_width;
+
+      if (it->continuation_lines_width
+	  && it->string_from_prefix_prop_p)
+	it->wrap_prefix_width = it->current_x;
+    }
   it->ascent = it->max_ascent = it->phys_ascent = it->max_phys_ascent = 0;
   it->descent = it->max_descent = it->phys_descent = it->max_phys_descent = 1;
 #endif
@@ -2235,7 +2253,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
       tty->previous_color_mode = mode;
       tty_setup_colors (tty , mode);
       /*  This recomputes all the faces given the new color definitions.  */
-      safe_call (1, intern ("tty-set-up-initial-frame-faces"));
+      safe_calln (intern ("tty-set-up-initial-frame-faces"));
     }
 }
 

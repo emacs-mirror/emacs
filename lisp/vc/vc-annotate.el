@@ -1,6 +1,6 @@
 ;;; vc-annotate.el --- VC Annotate Support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Martin Lorentzson <emwson@emw.ericsson.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -160,6 +160,11 @@ Default color is used if nil."
   "Menu elements for the mode-specific menu of VC-Annotate mode.
 List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   :type '(repeat number)
+  :group 'vc)
+
+(defcustom vc-annotate-use-short-revision t
+  "If non-nil, \\[vc-annotate] will use short revisions in its buffer name."
+  :type 'boolean
   :group 'vc)
 
 (defvar-keymap vc-annotate-mode-map
@@ -397,7 +402,10 @@ should be applied to the background or to the foreground."
    (save-current-buffer
      (vc-ensure-vc-buffer)
      (list buffer-file-name
-	   (let ((def (vc-working-revision buffer-file-name)))
+	   (let ((def (funcall (if vc-annotate-use-short-revision
+                                   #'vc-short-revision
+                                 #'vc-working-revision)
+                               buffer-file-name)))
 	     (if (null current-prefix-arg) def
 	       (vc-read-revision
 		(format-prompt "Annotate from revision" def)

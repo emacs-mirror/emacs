@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Minibuffers
@@ -1564,7 +1564,7 @@ Interactively, or when @var{display} is non-@code{nil}, the return
 value is also displayed in the echo area.
 
 The optional arguments @var{foreground} and @var{face} control the
-appearence of the completion candidates in the @file{*Completions*}
+appearance of the completion candidates in the @file{*Completions*}
 buffer.  The candidates are displayed in the specified @var{face} but
 with different colors: if @var{foreground} is non-@code{nil}, the
 foreground color is changed to be the color of the candidate,
@@ -1878,10 +1878,31 @@ The value should be a list of completion styles (symbols).
 The value should be a value for @code{completion-cycle-threshold}
 (@pxref{Completion Options,,, emacs, The GNU Emacs Manual}) for this
 category.
+
+@item cycle-sort-function
+The function to sort entries when cycling.
+
+@item display-sort-function
+The function to sort entries in the @file{*Completions*} buffer.
+The possible values are: @code{nil}, which means to use either the
+sorting function from metadata or if that is @code{nil}, fall back to
+@code{completions-sort}; @code{identity}, which means not to sort at
+all, leaving the original order; or any other value out of those used
+in @code{completions-sort} (@pxref{Completion Options,,, emacs, The
+GNU Emacs Manual}).
+
+@item group-function
+The function to group completions.
+
+@item annotation-function
+The function to add annotations to completions.
+
+@item affixation-function
+The function to add prefixes and suffixes to completions.
 @end table
 
 @noindent
-Additional alist entries may be defined in the future.
+See @ref{Programmed Completion}, for a complete list of metadata entries.
 @end defopt
 
 @defvar completion-extra-properties
@@ -1891,6 +1912,12 @@ completion commands.  Its value should be a list of property and value
 pairs.  The following properties are supported:
 
 @table @code
+@item :category
+The value should be a symbol describing what kind of text the
+completion function is trying to complete.  If the symbol matches one
+of the keys in @code{completion-category-overrides}, the usual
+completion behavior is overridden.  @xref{Completion Variables}.
+
 @item :annotation-function
 The value should be a function to add annotations in the completions
 buffer.  This function must accept one argument, a completion, and
@@ -1906,6 +1933,15 @@ completions, and should return a list of annotated completions.  Each
 element of the returned list must be a three-element list, the
 completion, a prefix string, and a suffix string.  This function takes
 priority over @code{:annotation-function}.
+
+@item :group-function
+The function to group completions.
+
+@item :display-sort-function
+The function to sort entries in the @file{*Completions*} buffer.
+
+@item :cycle-sort-function
+The function to sort entries when cycling.
 
 @item :exit-function
 The value should be a function to run after performing completion.

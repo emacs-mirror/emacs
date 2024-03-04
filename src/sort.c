@@ -1,6 +1,6 @@
 /* Timsort for sequences.
 
-Copyright (C) 2022-2023 Free Software Foundation, Inc.
+Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -946,8 +946,7 @@ tim_sort (Lisp_Object predicate, Lisp_Object *seq, const ptrdiff_t length)
     /* If the run is short, extend it to min(minrun, nremaining).  */
     if (n < minrun)
       {
-	const ptrdiff_t force = nremaining <= minrun ?
-	  nremaining : minrun;
+	const ptrdiff_t force = min (nremaining, minrun);
 	binarysort (&ms, lo, lo + force, lo + n);
 	n = force;
       }

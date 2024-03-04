@@ -1,13 +1,13 @@
 ;;; longlines.el --- automatically wrap long lines   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2001, 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2024 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>
 ;;             Chong Yidong <cyd@stupidchicken.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Obsolete-since: 24.4
-;; Keywords: convenience, wp
+;; Keywords: convenience, text
 
 ;; This file is part of GNU Emacs.
 

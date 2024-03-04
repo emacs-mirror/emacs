@@ -1,6 +1,6 @@
 /* Lock files for editing.
 
-Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2023 Free Software
+Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2024 Free Software
 Foundation, Inc.
 
 Author: Richard King
@@ -563,7 +563,7 @@ lock_file (Lisp_Object fn)
 
   /* See if this file is visited and has changed on disk since it was
      visited.  */
-  Lisp_Object subject_buf = get_truename_buffer (fn);
+  Lisp_Object subject_buf = Fget_truename_buffer (fn);
   if (!NILP (subject_buf)
       && NILP (Fverify_visited_file_modtime (subject_buf))
       && !NILP (Ffile_exists_p (fn))

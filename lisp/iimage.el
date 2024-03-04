@@ -1,6 +1,6 @@
 ;;; iimage.el --- Inline image minor mode.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 
 ;; Author: KOSEKI Yoshinori <kose@meadowy.org>
 ;; Maintainer: emacs-devel@gnu.org

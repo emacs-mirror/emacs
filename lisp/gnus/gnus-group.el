@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1064,11 +1064,11 @@ When FORCE, rebuild the tool bar."
 All normal editing commands are switched off.
 \\<gnus-group-mode-map>
 The group buffer lists (some of) the groups available.  For instance,
-`\\[gnus-group-list-groups]' will list all subscribed groups with unread articles, while `\\[gnus-group-list-zombies]'
+\\[gnus-group-list-groups] will list all subscribed groups with unread articles, while \\[gnus-group-list-zombies]
 lists all zombie groups.
 
-Groups that are displayed can be entered with `\\[gnus-group-read-group]'.  To subscribe
-to a group not displayed, type `\\[gnus-group-toggle-subscription]'.
+Groups that are displayed can be entered with \\[gnus-group-read-group].  To subscribe
+to a group not displayed, type \\[gnus-group-toggle-subscription].
 
 For more in-depth information on this mode, read the manual (`\\[gnus-info-find-node]').
 

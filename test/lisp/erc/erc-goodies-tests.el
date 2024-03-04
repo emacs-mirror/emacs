@@ -1,6 +1,6 @@
 ;;; erc-goodies-tests.el --- Tests for erc-goodies  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -20,6 +20,10 @@
 ;;; Commentary:
 ;;; Code:
 (require 'ert-x)
+(eval-and-compile
+  (let ((load-path (cons (ert-resource-directory) load-path)))
+    (require 'erc-tests-common)))
+
 (require 'erc-goodies)
 
 (defun erc-goodies-tests--assert-face (beg end-str present &optional absent)
@@ -247,15 +251,16 @@
 
 (defun erc-goodies-tests--assert-kp-indicator-on ()
   (should erc--keep-place-indicator-overlay)
-  (should (local-variable-p 'window-configuration-change-hook))
-  (should window-configuration-change-hook)
+  (should (memq 'erc--keep-place-indicator-on-window-buffer-change
+                window-buffer-change-functions))
   (should (memq 'erc-keep-place erc-insert-pre-hook))
   (should (eq erc-keep-place-mode
               (not (local-variable-p 'erc-insert-pre-hook)))))
 
 (defun erc-goodies-tests--assert-kp-indicator-off ()
   (should-not (local-variable-p 'erc-insert-pre-hook))
-  (should-not (local-variable-p 'window-configuration-change-hook))
+  (should-not (memq 'erc--keep-place-indicator-on-window-buffer-change
+                    window-buffer-change-functions))
   (should-not erc--keep-place-indicator-overlay))
 
 (defun erc-goodies-tests--kp-indicator-populate ()
@@ -268,12 +273,9 @@
   (goto-char erc-input-marker))
 
 (defun erc-goodies-tests--keep-place-indicator (test)
-  (with-current-buffer (get-buffer-create "*erc-keep-place-indicator-mode*")
-    (erc-mode)
-    (erc--initialize-markers (point) nil)
-    (setq erc-server-process
-          (start-process "sleep" (current-buffer) "sleep" "1"))
-    (set-process-query-on-exit-flag erc-server-process nil)
+  (erc-keep-place-mode -1)
+  (with-current-buffer (erc-tests-common-make-server-buf
+                        "*erc-keep-place-indicator-mode*")
     (let (erc-connect-pre-hook
           erc-modules)
 
@@ -290,7 +292,7 @@
       (should-not (member 'erc-keep-place
                           (default-value 'erc-insert-pre-hook)))
       (should-not (local-variable-p 'erc-insert-pre-hook))
-      (kill-buffer))))
+      (erc-tests-common-kill-buffers))))
 
 (ert-deftest erc-keep-place-indicator-mode--no-global ()
   (erc-goodies-tests--keep-place-indicator
@@ -419,5 +421,22 @@
        (should (= (point) erc-input-marker))
        (goto-char (overlay-start erc--keep-place-indicator-overlay))
        (should (looking-at (rx "*** This buffer is for text")))))))
+
+(ert-deftest erc--get-inserted-msg-beg/readonly ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-tests-common-assert-get-inserted-msg/basic
+   (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
+
+(ert-deftest erc--get-inserted-msg-end/readonly ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-tests-common-assert-get-inserted-msg/basic
+   (lambda (arg) (should (= 11 (erc--get-inserted-msg-end arg))))))
+
+(ert-deftest erc--get-inserted-msg-bounds/readonly ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-tests-common-assert-get-inserted-msg/basic
+   (lambda (arg)
+     (should (equal '(3 . 11) (erc--get-inserted-msg-bounds arg))))))
+
 
 ;;; erc-goodies-tests.el ends here

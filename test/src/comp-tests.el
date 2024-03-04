@@ -1,6 +1,6 @@
 ;;; comp-tests.el --- unit tests for src/comp.c      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2024 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <acorallo@gnu.org>
 
@@ -28,6 +28,7 @@
 (require 'ert)
 (require 'ert-x)
 (require 'cl-lib)
+(require 'cl-seq)
 (require 'comp)
 (require 'comp-cstr)
 
@@ -582,6 +583,10 @@ dedicated byte-op code."
       (advice-remove #'delete-region f)
       (should (equal comp-test-primitive-redefine-args '(1 2))))))
 
+(comp-deftest 67239-1 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-11/msg00925.html>"
+  (should-not (comp-test-67239-1-f)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;
@@ -899,14 +904,33 @@ Return a list of results."
     (should (subr-native-elisp-p (symbol-function 'comp-tests-fw-prop-1-f)))
     (should (= (comp-tests-fw-prop-1-f) 6))))
 
+(defun comp-tests--type-lists-equal (l1 l2)
+  (and (= (length l1) (length l2))
+       (cl-every #'comp-tests--types-equal l1 l2)))
+
+(defun comp-tests--types-equal (t1 t2)
+ "Whether the types T1 and T2 are equal."
+ (or (equal t1 t2)   ; for atoms, and optimization for the common case
+     (and (consp t1) (consp t2)
+          (eq (car t1) (car t2))
+          (cond ((memq (car t1) '(and or member))
+                 ;; Order or duplicates don't matter.
+                 (null (cl-set-exclusive-or (cdr t1) (cdr t2)
+                                            :test #'comp-tests--types-equal)))
+                ((eq (car t1) 'function)
+                 (and (comp-tests--type-lists-equal (nth 1 t1) (nth 1 t2))
+                      (comp-tests--types-equal (nth 2 t1) (nth 2 t2))))
+                (t (comp-tests--type-lists-equal (cdr t1) (cdr t2)))))))
+
 (defun comp-tests-check-ret-type-spec (func-form ret-type)
   (let ((lexical-binding t)
         (native-comp-speed 2)
         (f-name (cl-second func-form)))
     (eval func-form t)
     (native-compile f-name)
-    (should (equal (cl-third (subr-type (symbol-function f-name)))
-                   ret-type))))
+    (should (comp-tests--types-equal
+             (cl-third (subr-type (symbol-function f-name)))
+             ret-type))))
 
 (cl-eval-when (compile eval load)
   (cl-defstruct comp-foo a b)

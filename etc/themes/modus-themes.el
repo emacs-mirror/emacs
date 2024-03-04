@@ -1,6 +1,6 @@
 ;;; modus-themes.el --- Elegant, highly legible and customizable themes -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2023  Free Software Foundation, Inc.
+;; Copyright (C) 2019-2024 Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
@@ -1535,7 +1535,7 @@ color that is combined with FG-FOR-BG."
           :foreground fg
           :weight
           ;; If we have `bold' specifically, we inherit the face of
-          ;; the same name.  This allows the user to customise that
+          ;; the same name.  This allows the user to customize that
           ;; face, such as to change its font family.
           (if (and weight (not (eq weight 'bold)))
               weight

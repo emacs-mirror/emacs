@@ -1,6 +1,6 @@
 ;;; semantic/complete.el --- Routines for performing tag completion  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2005, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -1046,7 +1046,7 @@ Output must be in semanticdb Find result format."
 		     (and last-prefix (string-prefix-p last-prefix prefix t)))
 		 ;; We have the same prefix, or last-prefix is a
 		 ;; substring of the of new prefix, in which case we are
-		 ;; refining our symbol so just re-use cache.
+		 ;; refining our symbol so just reuse cache.
 		 (oref obj last-all-completions))
 		((and last-prefix
 		      (> (length prefix) 1)

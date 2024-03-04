@@ -1,6 +1,6 @@
 ;;; lua-ts-mode-tests.el --- Tests for lua-ts-mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,16 +20,22 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-font-lock)
 (require 'ert-x)
 (require 'treesit)
 
-(ert-deftest lua-ts-mode-test-indentation ()
+(ert-deftest lua-ts-test-indentation ()
   (skip-unless (treesit-ready-p 'lua))
   (ert-test-erts-file (ert-resource-file "indent.erts")))
 
-(ert-deftest lua-ts-mode-test-movement ()
+(ert-deftest lua-ts-test-movement ()
   (skip-unless (treesit-ready-p 'lua))
   (ert-test-erts-file (ert-resource-file "movement.erts")))
+
+(ert-deftest lua-ts-test-font-lock ()
+  (skip-unless (treesit-ready-p 'lua))
+  (let ((treesit-font-lock-level 4))
+    (ert-font-lock-test-file (ert-resource-file "font-lock.lua") 'lua-ts-mode)))
 
 (provide 'lua-ts-mode-tests)
 

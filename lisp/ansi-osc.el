@@ -1,6 +1,6 @@
 ;;; ansi-osc.el --- Support for OSC escape sequences      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Augusto Stoffel <arstoffel@gmail.com>
 ;;         Matthias Meulien <orontee@gmail.com>
@@ -121,7 +121,8 @@ and `shell-dirtrack-mode'."
   (let ((url (url-generic-parse-url text)))
     (when (and (string= (url-type url) "file")
                (or (null (url-host url))
-                   (string= (url-host url) (system-name))))
+                   ;; Use `downcase' to match `url-generic-parse-url' behavior
+                   (string= (url-host url) (downcase (system-name)))))
       (ignore-errors
         (cd-absolute (url-unhex-string (url-filename url)))))))
 

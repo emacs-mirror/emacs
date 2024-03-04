@@ -1,6 +1,6 @@
 ;;; erc-scenarios-scrolltobottom-relaxed.el --- erc-scrolltobottom-all relaxed -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,7 +30,8 @@
 (require 'erc-goodies)
 
 (ert-deftest erc-scenarios-scrolltobottom--relaxed ()
-  :tags '(:expensive-test)
+  :tags `(:expensive-test
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (when (version< emacs-version "29") (ert-skip "Times out"))
 
   (should-not erc-scrolltobottom-all)

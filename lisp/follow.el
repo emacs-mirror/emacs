@@ -1,6 +1,6 @@
 ;;; follow.el --- synchronize windows showing the same buffer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 1999, 2001-2023 Free Software Foundation,
+;; Copyright (C) 1995-1997, 1999, 2001-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Anders Lindgren
@@ -413,8 +413,8 @@ being able to use 144 or 216 lines instead of the normal 72... (your
 mileage may vary).
 
 To split one large window into two side-by-side windows, the commands
-`\\[split-window-right]' or \
-`\\[follow-delete-other-windows-and-split]' can be used.
+\\[split-window-right] or \
+\\[follow-delete-other-windows-and-split] can be used.
 
 Only windows displayed in the same frame follow each other.
 

@@ -1,6 +1,6 @@
 ;;; tab-line.el --- window-local tabs with window buffers -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2024 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 ;; Keywords: windows tabs
@@ -957,6 +957,8 @@ sight of the tab line."
 
 
 ;;; Touch screen support.
+
+(defvar touch-screen-delay)
 
 (defun tab-line-track-tap (event &optional function)
   "Track a tap starting from EVENT.

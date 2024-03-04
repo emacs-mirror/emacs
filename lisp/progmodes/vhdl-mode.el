@@ -1,6 +1,6 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
@@ -457,7 +457,7 @@ If no file name at all is printed out, set both \"File Message\" entries to 0
 \(a default file name message will be printed out instead, does not work in
 XEmacs).
 
-A compiler is selected for syntax analysis (`\\[vhdl-compile]') by
+A compiler is selected for syntax analysis (\\[vhdl-compile]) by
 assigning its name to option `vhdl-compiler'.
 
 Please send any missing or erroneous compiler properties to the maintainer for
@@ -1106,14 +1106,14 @@ For more information on format strings, see the documentation for the
 (defcustom vhdl-modify-date-prefix-string "-- Last update: "
   "Prefix string of modification date in VHDL file header.
 If actualization of the modification date is called (menu,
-`\\[vhdl-template-modify]'), this string is searched and the rest
+\\[vhdl-template-modify]), this string is searched and the rest
 of the line replaced by the current date."
   :type 'string
   :group 'vhdl-header)
 
 (defcustom vhdl-modify-date-on-saving t
   "Non-nil means update the modification date when the buffer is saved.
-Calls function `\\[vhdl-template-modify]').
+Calls function \\[vhdl-template-modify]).
 
 NOTE: Activate the new setting in a VHDL buffer by using the menu entry
       \"Activate Options\"."
@@ -4469,7 +4469,7 @@ Usage:
     according to option `vhdl-argument-list-indent'.
 
       If option `vhdl-indent-tabs-mode' is nil, spaces are used instead of
-    tabs.  `\\[tabify]' and `\\[untabify]' allow the conversion of spaces to
+    tabs.  \\[tabify] and \\[untabify] allow the conversion of spaces to
     tabs and vice versa.
 
       Syntax-based indentation can be very slow in large files.  Option
@@ -4780,7 +4780,7 @@ Usage:
     `vhdl-highlight-translate-off' is non-nil.
 
       For documentation and customization of the used colors see
-    customization group `vhdl-highlight-faces' (`\\[customize-group]').  For
+    customization group `vhdl-highlight-faces' (\\[customize-group]).  For
     highlighting of matching parenthesis, see customization group
     `paren-showing'.  Automatic buffer highlighting is turned on/off by
     option `global-font-lock-mode' (`font-lock-auto-fontify' in XEmacs).
@@ -4840,14 +4840,14 @@ Usage:
     sessions using the \"Save Options\" menu entry.
 
       Options and their detailed descriptions can also be accessed by using
-    the \"Customize\" menu entry or the command `\\[customize-option]'
-    (`\\[customize-group]' for groups).  Some customizations only take effect
+    the \"Customize\" menu entry or the command \\[customize-option]
+    (\\[customize-group] for groups).  Some customizations only take effect
     after some action (read the NOTE in the option documentation).
     Customization can also be done globally (i.e. site-wide, read the
     INSTALL file).
 
       Not all options are described in this documentation, so go and see
-    what other useful user options there are (`\\[vhdl-customize]' or menu)!
+    what other useful user options there are (\\[vhdl-customize] or menu)!
 
 
   FILE EXTENSIONS:
@@ -4876,7 +4876,7 @@ Usage:
 Maintenance:
 ------------
 
-To submit a bug report, enter `\\[vhdl-submit-bug-report]' within VHDL Mode.
+To submit a bug report, enter \\[vhdl-submit-bug-report] within VHDL Mode.
 Add a description of the problem and include a reproducible test case.
 
 Questions and enhancement requests can be sent to <reto@gnu.org>.
@@ -14978,9 +14978,9 @@ otherwise use cached data."
   (vhdl-aput 'vhdl-directory-alist directory (list (list directory))))
 
 (defun vhdl-speedbar-insert-hierarchy ( ent-alist-arg conf-alist-arg
-                                        package-alist ent-inst-list depth)
-  "Insert hierarchy of ENT-ALIST-ARG, CONF-ALIST-ARG, and PACKAGE-ALIST."
-  (if (not (or ent-alist-arg conf-alist-arg package-alist))
+                                        pkg-alist ent-inst-list depth)
+  "Insert hierarchy of ENT-ALIST-ARG, CONF-ALIST-ARG, and PKG-ALIST."
+  (if (not (or ent-alist-arg conf-alist-arg pkg-alist))
       (vhdl-speedbar-make-title-line "No VHDL design units!" depth)
     (let ((ent-alist ent-alist-arg)
           (conf-alist conf-alist-arg)
@@ -15010,15 +15010,15 @@ otherwise use cached data."
 	 'vhdl-speedbar-configuration-face depth)
 	(setq conf-alist (cdr conf-alist)))
       ;; insert packages
-      (when package-alist (vhdl-speedbar-make-title-line "Packages:" depth))
-      (while package-alist
-	(setq pack-entry (car package-alist))
+      (when pkg-alist (vhdl-speedbar-make-title-line "Packages:" depth))
+      (while pkg-alist
+	(setq pack-entry (car pkg-alist))
 	(vhdl-speedbar-make-pack-line
 	 (nth 0 pack-entry) (nth 1 pack-entry)
 	 (cons (nth 2 pack-entry) (nth 3 pack-entry))
 	 (cons (nth 7 pack-entry) (nth 8 pack-entry))
 	 depth)
-	(setq package-alist (cdr package-alist))))))
+	(setq pkg-alist (cdr pkg-alist))))))
 
 (declare-function speedbar-line-directory "speedbar" (&optional depth))
 

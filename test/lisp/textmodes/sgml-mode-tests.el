@@ -1,6 +1,6 @@
 ;;; sgml-mode-tests.el --- Tests for sgml-mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Przemysław Wojnowski <esperanto@cumego.com>
 ;; Keywords: tests

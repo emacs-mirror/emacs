@@ -21,7 +21,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2023 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2024 Free Software
 Foundation, Inc.
 
 @quotation
@@ -1230,8 +1230,6 @@ the @file{*URL-DEBUG*} buffer.
 @code{t} means log all messages.
 A number means log all messages and show them with @code{message}.
 It may also be a list of the types of messages to be logged.
-@end defopt
-@defopt url-personal-mail-address
 @end defopt
 @defopt url-privacy-level
 @end defopt

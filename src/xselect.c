@@ -1,5 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993-1997, 2000-2023 Free Software Foundation, Inc.
+   Copyright (C) 1993-1997, 2000-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,6 +19,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Rewritten by jwz */
 
 #include <config.h>
+
+/* Work around GCC bug 102671.  */
+#if 10 <= __GNUC__
+# pragma GCC diagnostic ignored "-Wanalyzer-null-dereference"
+#endif
+
 #include <limits.h>
 
 #ifdef HAVE_SYS_TYPES_H
@@ -897,7 +903,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
 
       /* Find a valid (non-zero) serial for the selection transfer.
 	 Any asynchronously trapped errors will then cause the
-	 selection transfer to be cancelled.  */
+	 selection transfer to be canceled.  */
       transfer->serial = (++selection_serial
 			  ? selection_serial
 			  : ++selection_serial);

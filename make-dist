@@ -1,7 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2023 Free Software Foundation,
+## Copyright (C) 1995, 1997-1998, 2000-2024 Free Software Foundation,
 ## Inc.
 
 ## This file is part of GNU Emacs.
@@ -358,6 +358,8 @@ possibly_non_vc_files="
   admin/charsets/jisx2131-filter
   src/config.in
   exec/configure exec/config.h.in
+  exec/config.sub exec/config.guess
+  exec/install-sh
   leim/small-ja-dic-option
 "$(
   find admin doc etc lisp \

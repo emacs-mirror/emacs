@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -200,7 +200,7 @@ inline if it occupies less than this fraction of window width.
 
 HEIGHT can be also be an integer or a floating point number.  If it is an
 integer and the pixel height of an image exceeds it, the image image is
-displyed on a separate line.  If it is a float number , the limit is
+displayed on a separate line.  If it is a float number , the limit is
 interpreted as a multiple of the height of default font."
   :version "30.1"
   :type '(choice (const nil) (cons number number)))
@@ -1137,7 +1137,9 @@ element is the data blob and the second element is the content-type."
         (when image
           ;; The trailing space can confuse shr-insert into not
           ;; putting any space after inline images.
-	  (setq alt (string-trim alt))
+          ;; ALT may be nil when visiting image URLs in eww
+          ;; (bug#67764).
+	  (setq alt (if alt (string-trim alt) "*"))
 	  ;; When inserting big-ish pictures, put them at the
 	  ;; beginning of the line.
 	  (let ((inline (shr--inline-image-p image)))
@@ -1146,8 +1148,8 @@ element is the data blob and the second element is the content-type."
 		(insert "\n"))
 	    (let ((image-pos (point)))
 	      (if (eq size 'original)
-		  (insert-sliced-image image (or alt "*") nil 20 1)
-		(insert-image image (or alt "*")))
+		  (insert-sliced-image image alt nil 20 1)
+		(insert-image image alt))
 	      (put-text-property start (point) 'image-size size)
 	      (when (and (not inline) shr-max-inline-image-size)
 		(insert "\n"))
@@ -1435,13 +1437,85 @@ ones, in case fg and bg are nil."
 	(shr-dom-print elem)))))
   (insert (format "</%s>" (dom-tag dom))))
 
+(defconst shr-correct-attribute-case
+  '((attributename . attributeName)
+    (attributetype . attributeType)
+    (basefrequency . baseFrequency)
+    (baseprofile . baseProfile)
+    (calcmode . calcMode)
+    (clippathunits . clipPathUnits)
+    (diffuseconstant . diffuseConstant)
+    (edgemode . edgeMode)
+    (filterunits . filterUnits)
+    (glyphref . glyphRef)
+    (gradienttransform . gradientTransform)
+    (gradientunits . gradientUnits)
+    (kernelmatrix . kernelMatrix)
+    (kernelunitlength . kernelUnitLength)
+    (keypoints . keyPoints)
+    (keysplines . keySplines)
+    (keytimes . keyTimes)
+    (lengthadjust . lengthAdjust)
+    (limitingconeangle . limitingConeAngle)
+    (markerheight . markerHeight)
+    (markerunits . markerUnits)
+    (markerwidth . markerWidth)
+    (maskcontentunits . maskContentUnits)
+    (maskunits . maskUnits)
+    (numoctaves . numOctaves)
+    (pathlength . pathLength)
+    (patterncontentunits . patternContentUnits)
+    (patterntransform . patternTransform)
+    (patternunits . patternUnits)
+    (pointsatx . pointsAtX)
+    (pointsaty . pointsAtY)
+    (pointsatz . pointsAtZ)
+    (preservealpha . preserveAlpha)
+    (preserveaspectratio . preserveAspectRatio)
+    (primitiveunits . primitiveUnits)
+    (refx . refX)
+    (refy . refY)
+    (repeatcount . repeatCount)
+    (repeatdur . repeatDur)
+    (requiredextensions . requiredExtensions)
+    (requiredfeatures . requiredFeatures)
+    (specularconstant . specularConstant)
+    (specularexponent . specularExponent)
+    (spreadmethod . spreadMethod)
+    (startoffset . startOffset)
+    (stddeviation . stdDeviation)
+    (stitchtiles . stitchTiles)
+    (surfacescale . surfaceScale)
+    (systemlanguage . systemLanguage)
+    (tablevalues . tableValues)
+    (targetx . targetX)
+    (targety . targetY)
+    (textlength . textLength)
+    (viewbox . viewBox)
+    (viewtarget . viewTarget)
+    (xchannelselector . xChannelSelector)
+    (ychannelselector . yChannelSelector)
+    (zoomandpan . zoomAndPan))
+  "Attributes for correcting the case in SVG and MathML.
+Based on https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inforeign .")
+
+(defun shr-correct-dom-case (dom)
+  "Correct the case for SVG segments."
+  (dolist (attr (dom-attributes dom))
+    (when-let ((rep (assoc-default (car attr) shr-correct-attribute-case)))
+      (setcar attr rep)))
+  (dolist (child (dom-children dom))
+    (shr-correct-dom-case child))
+  dom)
+
 (defun shr-tag-svg (dom)
   (when (and (image-type-available-p 'svg)
 	     (not shr-inhibit-images)
              (dom-attr dom 'width)
              (dom-attr dom 'height))
-    (funcall shr-put-image-function (list (shr-dom-to-xml dom 'utf-8)
-                                          'image/svg+xml)
+    (funcall shr-put-image-function
+	     (list (shr-dom-to-xml (shr-correct-dom-case dom) 'utf-8)
+                   'image/svg+xml)
 	     "SVG Image")))
 
 (defun shr-tag-sup (dom)

@@ -1,6 +1,6 @@
 /* Test GNU Emacs modules.
 
-Copyright 2015-2023 Free Software Foundation, Inc.
+Copyright 2015-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -33,9 +33,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 /* Cannot include <process.h> because of the local header by the same
    name, sigh.  */
-uintptr_t _beginthread (void (__cdecl *)(void *), unsigned, void *);
+uintptr_t _beginthread (void (__cdecl *) (void *), unsigned, void *);
 # if !defined __x86_64__
-#  define ALIGN_STACK __attribute__((force_align_arg_pointer))
+#  define ALIGN_STACK __attribute__ ((force_align_arg_pointer))
 # endif
 # include <windows.h>	/* for Sleep */
 #else  /* !WINDOWSNT */

@@ -1,6 +1,6 @@
 ;;; rust-ts-mode.el --- tree-sitter support for Rust  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author     : Randy Taylor <dev@rjt.dev>
 ;; Maintainer : Randy Taylor <dev@rjt.dev>
@@ -296,13 +296,14 @@
 (defun rust-ts-mode--comment-docstring (node override start end &rest _args)
   "Use the comment or documentation face appropriately for comments."
   (let* ((beg (treesit-node-start node))
-         (end (treesit-node-end node))
          (face (save-excursion
                  (goto-char beg)
-                 (if (looking-at "///")
+                 (if (looking-at-p
+                      "/\\(?:/\\(?:/[^/]\\|!\\)\\|\\*\\(?:\\*[^*/]\\|!\\)\\)")
                      'font-lock-doc-face
                    'font-lock-comment-face))))
-    (treesit-fontify-with-override beg end face override start end)))
+    (treesit-fontify-with-override beg (treesit-node-end node)
+                                   face override start end)))
 
 (defun rust-ts-mode--fontify-scope (node override start end &optional tail-p)
   (let* ((case-fold-search nil)
@@ -458,6 +459,10 @@ See `prettify-symbols-compose-predicate'."
     ;; Indent.
     (setq-local indent-tabs-mode nil
                 treesit-simple-indent-rules rust-ts-mode--indent-rules)
+
+    ;; Electric
+    (setq-local electric-indent-chars
+                (append "{}():;,#" electric-indent-chars))
 
     ;; Navigation.
     (setq-local treesit-defun-type-regexp

@@ -1,11 +1,11 @@
 ;;; org-src.el --- Source code examples in Org       -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;;	   Bastien Guerry <bzg@gnu.org>
 ;;         Dan Davison <davison at stats dot ox dot ac dot uk>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
@@ -658,7 +658,9 @@ as `org-src-fontify-natively' is non-nil."
                     (when new-prop
                       (if (not (eq prop 'invisible))
 		          (put-text-property
-		           (+ start (1- pos)) (1- (+ start next)) prop new-prop
+		           (+ start (- pos (point-min)))
+		           (+ start (- next (point-min)))
+		           prop new-prop
 		           org-buffer)
                         ;; Special case.  `invisible' text property may
                         ;; clash with Org folding.  Do not assign
@@ -690,7 +692,8 @@ as `org-src-fontify-natively' is non-nil."
                             (when invisibility-spec
                               (add-to-invisibility-spec invisibility-spec))
                             (put-text-property
-		             (+ start (1- pos)) (1- (+ start next))
+		             (+ start (- pos (point-min)))
+		             (+ start (- next (point-min)))
                              'org-src-invisible new-prop
 		             org-buffer)))))))
 	        (setq pos next)))

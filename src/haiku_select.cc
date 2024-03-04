@@ -1,5 +1,5 @@
 /* Haiku window system selection support. Hey Emacs, this is -*- C++ -*-
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,6 +18,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <intprops.h>
+#include <stdckdint.h>
 
 #include <Application.h>
 #include <Bitmap.h>
@@ -619,8 +620,7 @@ be_display_notification (const char *title, const char *body,
       /* SUPERSEDES hasn't been provided, so allocate a new
 	 notification ID.  */
 
-      INT_ADD_WRAPV (last_notification_id, 1,
-		     &last_notification_id);
+      ckd_add (&last_notification_id, last_notification_id, 1);
       id = last_notification_id;
     }
   else

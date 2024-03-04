@@ -1,6 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2024 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
@@ -613,7 +613,8 @@ you can relist single subdirs using \\[dired-do-redisplay]."
       (insert "  "
 	      (directory-file-name (file-name-directory default-directory))
 	      ":\n"))
-  (dired-mode dirname (or switches dired-listing-switches))
+  (dired-mode
+   dirname (or switches (connection-local-value dired-listing-switches)))
   (setq mode-name "Virtual Dired"
         revert-buffer-function 'dired-virtual-revert
         dired-subdir-alist nil)

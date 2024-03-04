@@ -1,7 +1,7 @@
 define(`CC', `
 dnl')
 
-CC Copyright (C) 2023 Free Software Foundation, Inc.
+CC Copyright (C) 2023-2024 Free Software Foundation, Inc.
 CC
 CC This file is part of GNU Emacs.
 CC

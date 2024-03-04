@@ -22,7 +22,7 @@
  (0. ":irc.barnet.org 221 tester +Zi")
  (0. ":irc.barnet.org 306 tester :You have been marked as being away")
  (0 ":tester!~u@awyxgybtkx7uq.irc JOIN #chan")
- (0 ":irc.barnet.org 353 joe = #chan :+joe!~joe@example.com @%+mike!~mike@example.org")
+ (0 ":irc.barnet.org 353 joe = #chan :+joe @mike")
  (0 ":irc.barnet.org 366 joe #chan :End of NAMES list"))
 
 ((mode 3 "MODE #chan")

@@ -1,6 +1,6 @@
 ;;; semantic/imenu.el --- Use Semantic as an imenu tag generator  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2005, 2007-2008, 2010-2023 Free Software
+;; Copyright (C) 2000-2005, 2007-2008, 2010-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

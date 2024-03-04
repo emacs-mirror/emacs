@@ -1,5 +1,5 @@
 /* Terminal hooks for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1992, 1999, 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1999, 2001-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -705,6 +705,10 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
   /* Remember original console settings.  */
   keyboard_handle = GetStdHandle (STD_INPUT_HANDLE);
   GetConsoleMode (keyboard_handle, &prev_console_mode);
+  /* Make sure ENABLE_EXTENDED_FLAGS is set in console settings,
+     otherwise restoring the original setting of ENABLE_MOUSE_INPUT
+     will not work.  */
+  prev_console_mode |= ENABLE_EXTENDED_FLAGS;
 
   prev_screen = GetStdHandle (STD_OUTPUT_HANDLE);
 

@@ -1,6 +1,6 @@
 /* Program execution for Emacs.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -53,7 +53,7 @@ main (int argc, char **argv)
 
       tracing_execve (argv[2], argv + 2, environ);
 
-      /* An error occured.  Exit with failure.  */
+      /* An error occurred.  Exit with failure.  */
       exit (127);
     }
   else

@@ -1,6 +1,6 @@
 ;;; scroll-lock.el --- Scroll lock scrolling.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
 
 ;; Author: Ralf Angeli <angeli@iwi.uni-sb.de>
 ;; Maintainer: emacs-devel@gnu.org

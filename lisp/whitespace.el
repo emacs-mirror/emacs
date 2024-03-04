@@ -1,9 +1,9 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Keywords: data, wp
+;; Keywords: data, text
 ;; Version: 13.2.2
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
@@ -1774,10 +1774,10 @@ cleaning up these problems."
               (when has-bogus
                 (goto-char (point-max))
                 (insert (substitute-command-keys
-                         " Type `\\[whitespace-cleanup]'")
+                         " Type \\[whitespace-cleanup]")
                         " to cleanup the buffer.\n\n"
                         (substitute-command-keys
-                         " Type `\\[whitespace-cleanup-region]'")
+                         " Type \\[whitespace-cleanup-region]")
                         " to cleanup a region.\n\n"))
               (whitespace-display-window (current-buffer))))))
       has-bogus)))

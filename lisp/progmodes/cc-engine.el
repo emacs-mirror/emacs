@@ -1,6 +1,6 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode -*- lexical-binding:t; coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2024 Free Software Foundation, Inc.
 
 ;; Authors:    2001- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -7554,7 +7554,7 @@ multi-line strings (but not C++, for example)."
 (defun c-ml-string-opener-intersects-region (&optional start finish)
   ;; If any part of the region [START FINISH] is inside an ml-string opener,
   ;; return a dotted list of the start, end and double-quote position of the
-  ;; first such opener.  That list wlll not include any "context characters"
+  ;; first such opener.  That list will not include any "context characters"
   ;; before or after the opener.  If an opener is found, the match-data will
   ;; indicate it, with (match-string 1) being the entire delimiter, and
   ;; (match-string 2) the "main" double-quote.  Otherwise, the match-data is
@@ -9891,7 +9891,7 @@ point unchanged and return nil."
   ;; Note that this function is incomplete, handling only those cases expected
   ;; to be common in a C++20 requires clause.
   ;;
-  ;; Note also that (...) is not recognised as a primary expression if the
+  ;; Note also that (...) is not recognized as a primary expression if the
   ;; next token is an open brace.
   (let ((here (point))
 	(c-restricted-<>-arglists t)
@@ -11476,7 +11476,7 @@ This function might do hidden buffer changes."
 		 ;; an arglist it would be a meaningless expression because
 		 ;; the result isn't used.  We therefore choose to recognize
 		 ;; it as a declaration when there's "symmetrical WS" around
-		 ;; the "*" or the flag `c-assymetry-fontification-flag' is
+		 ;; the "*" or the flag `c-asymmetry-fontification-flag' is
 		 ;; not set.  We only allow a suffix (which makes the
 		 ;; construct look like a function call) when `at-decl-start'
 		 ;; provides additional evidence that we do have a
@@ -13021,7 +13021,7 @@ comment at the start of cc-engine.el for more info."
 
 (defun c-laomib-get-cache (containing-sexp start)
   ;; Get an element from `c-laomib-cache' matching CONTAINING-SEXP, and which
-  ;; is suitable for start postiion START.
+  ;; is suitable for start position START.
   ;; Return that element or nil if one wasn't found.
   (let ((ptr c-laomib-cache)
 	elt)

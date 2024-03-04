@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: FSF (see below for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -517,6 +517,13 @@
 ;;   Return the revision number that precedes REV for FILE, or nil if no such
 ;;   revision exists.
 ;;
+;; - file-name-changes (rev)
+;;
+;;   Return the list of pairs with changes in file names in REV.  When
+;;   a file was added, it should be a cons with nil car.  When
+;;   deleted, a cons with nil cdr.  When copied or renamed, a cons
+;;   with the source name as car and destination name as cdr.
+;;
 ;; - next-revision (file rev)
 ;;
 ;;   Return the revision number that follows REV for FILE, or nil if no such
@@ -668,7 +675,7 @@
 ;;;; New Primitives:
 ;;
 ;; - uncommit: undo last checkin, leave changes in place in the workfile,
-;;   stash the commit comment for re-use.
+;;   stash the commit comment for reuse.
 ;;
 ;; - deal with push operations.
 ;;
@@ -1067,6 +1074,7 @@ Within directories, only files already under version control are noticed."
 
 (defvar vc-dir-backend)
 (defvar log-view-vc-backend)
+(defvar log-view-vc-fileset)
 (defvar log-edit-vc-backend)
 (defvar diff-vc-backend)
 (defvar diff-vc-revisions)
@@ -1148,6 +1156,11 @@ BEWARE: this function may change the current buffer."
 	      (vc-state buffer-file-name)
 	      (vc-checkout-model backend buffer-file-name))
 	(list backend (list buffer-file-name))))
+     ((derived-mode-p 'log-view-mode)
+      ;; 'log-view-mode' stashes the backend and the fileset in the
+      ;; two special variables, so we use them to avoid any possible
+      ;; mistakes from a decision made here ad-hoc.
+      (list log-view-vc-backend log-view-vc-fileset))
      ((and (buffer-live-p vc-parent-buffer)
            ;; FIXME: Why this test?  --Stef
            (or (buffer-file-name vc-parent-buffer)
@@ -2682,22 +2695,55 @@ Not all VC backends support short logs!")
 
 (defvar log-view-vc-fileset)
 (defvar log-view-message-re)
+;; XXX: File might have been renamed multiple times, so to support
+;; multiple jumps back, this probably should be a stack of entries.
+(defvar log-view-vc-prev-revision nil)
+(defvar log-view-vc-prev-fileset nil)
 
 (defun vc-print-log-setup-buttons (working-revision is-start-revision limit pl-return)
   "Insert at the end of the current buffer buttons to show more log entries.
 In the new log, leave point at WORKING-REVISION (if non-nil).
-LIMIT is the number of entries currently shown.
-Does nothing if IS-START-REVISION is non-nil, or if LIMIT is nil,
+LIMIT is the current maximum number of entries shown, or the
+revision (string) before which to stop.  Does nothing if
+IS-START-REVISION is non-nil and LIMIT is 1, or if LIMIT is nil,
 or if PL-RETURN is `limit-unsupported'."
+  ;; LIMIT=1 is set by vc-annotate-show-log-revision-at-line
+  ;; or by vc-print-root-log with current-prefix-arg=1.
+  ;; In either case only one revision is wanted, no buttons.
   (when (and limit (not (eq 'limit-unsupported pl-return))
-	     (not is-start-revision))
+             (not (and is-start-revision
+                       (eql limit 1))))
     (let ((entries 0))
       (goto-char (point-min))
       (while (re-search-forward log-view-message-re nil t)
         (cl-incf entries))
-      ;; If we got fewer entries than we asked for, then displaying
-      ;; the "more" buttons isn't useful.
-      (when (>= entries limit)
+      (if (or (stringp limit)
+              (< entries limit))
+          ;; The log has been printed in full.  Perhaps it started
+          ;; with a copy or rename?
+          ;; FIXME: We'd probably still want this button even when
+          ;; vc-log-show-limit is customized to 0 (should be rare).
+          (let* ((last-revision (log-view-current-tag (point-max)))
+                 ;; XXX: Could skip this when vc-git-print-log-follow = t.
+                 (name-changes
+                  (condition-case nil
+                      (vc-call-backend log-view-vc-backend
+                                       'file-name-changes last-revision)
+                    (vc-not-supported nil)))
+                 (matching-changes
+                  (cl-delete-if-not (lambda (f) (member f log-view-vc-fileset))
+                                    name-changes :key #'cdr))
+                 (old-names (delq nil (mapcar #'car matching-changes))))
+            (when old-names
+              (goto-char (point-max))
+              (unless (looking-back "\n\n" (- (point) 2))
+                (insert "\n"))
+              (vc-print-log-renamed-add-button old-names log-view-vc-backend
+                                               log-view-vc-fileset
+                                               working-revision
+                                               last-revision
+                                               limit)))
+        ;; Perhaps there are more entries in the log.
         (goto-char (point-max))
         (insert "\n")
         (insert-text-button
@@ -2718,16 +2764,57 @@ or if PL-RETURN is `limit-unsupported'."
          'help-echo "Show the log again, including all entries")
         (insert "\n")))))
 
+(defun vc-print-log-renamed-add-button ( renamed-files backend
+                                         current-fileset
+                                         current-revision
+                                         revision limit)
+  "Print the button for jump to the log for a different fileset.
+RENAMED-FILES is the fileset to use.  BACKEND is the VC backend.
+REVISION is the revision from which to start the new log.
+CURRENT-FILESET, if non-nil, is the fileset to use in the \"back\"
+button for.  Same for CURRENT-REVISION.  LIMIT means the usual."
+  (let ((relatives (mapcar #'file-relative-name renamed-files))
+        (from-to (if current-fileset "from" "to"))
+        (before-after (if current-fileset "before" "after")))
+    (insert
+     (format
+      "Renamed %s %s"
+      from-to
+      (mapconcat (lambda (s)
+                   (propertize s 'font-lock-face
+                               'log-view-file))
+                 relatives
+                 ", "))
+     " ")
+    (insert-text-button
+     "View log"
+     'action (lambda (&rest _ignore)
+               ;; To set up parent buffer in the new viewer.
+               (with-current-buffer vc-parent-buffer
+                 (let ((log-view-vc-prev-fileset current-fileset)
+                       (log-view-vc-prev-revision current-revision))
+                   (vc-print-log-internal backend renamed-files
+                                          revision t limit))))
+     ;; XXX: Showing the full history for OLD-NAMES (with
+     ;; IS-START-REVISION=nil) can be better sometimes
+     ;; (e.g. when some edits still occurred after a rename
+     ;; -- multiple branches scenario), but it also can hurt
+     ;; in others because of Git's automatic history
+     ;; simplification: as a result, the logs for some
+     ;; use-package's files before merge could not be found.
+     'help-echo
+     (format
+      "Show the log for the file name(s) %s the rename"
+      before-after))))
+
 (defun vc-print-log-internal (backend files working-revision
                                       &optional is-start-revision limit type)
   "For specified BACKEND and FILES, show the VC log.
 Leave point at WORKING-REVISION, if it is non-nil.
 If IS-START-REVISION is non-nil, start the log from WORKING-REVISION
 \(not all backends support this); i.e., show only WORKING-REVISION and
-earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
-  ;; As of 2013/04 the only thing that passes IS-START-REVISION non-nil
-  ;; is vc-annotate-show-log-revision-at-line, which sets LIMIT = 1.
-
+earlier revisions.  Show up to LIMIT entries (nil means unlimited).
+LIMIT can also be a string, which means the revision before which to stop."
   ;; Don't switch to the output buffer before running the command,
   ;; so that any buffer-local settings in the vc-controlled
   ;; buffer can be accessed by the command.
@@ -2739,8 +2826,22 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
       (vc-log-internal-common
        backend buffer-name files type
        (lambda (bk buf _type-arg files-arg)
-	 (vc-call-backend bk 'print-log files-arg buf shortlog
-                          (when is-start-revision working-revision) limit))
+         (vc-call-backend bk 'print-log files-arg buf shortlog
+                          (when is-start-revision working-revision) limit)
+         (when log-view-vc-prev-fileset
+           (with-current-buffer buf
+             (let ((inhibit-read-only t)
+                   (pmark (process-mark (get-buffer-process buf))))
+               (goto-char (point-min))
+               (vc-print-log-renamed-add-button log-view-vc-prev-fileset
+                                                backend
+                                                nil
+                                                nil
+                                                log-view-vc-prev-revision
+                                                limit)
+               (insert "\n\n")
+               (when (< pmark (point))
+                 (set-marker pmark (point)))))))
        (lambda (_bk _files-arg ret)
          (save-excursion
            (vc-print-log-setup-buttons working-revision

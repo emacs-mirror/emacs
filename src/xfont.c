@@ -1,5 +1,5 @@
 /* xfont.c -- X core font driver.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2024 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -238,7 +238,7 @@ xfont_chars_supported (Lisp_Object chars, XFontStruct *xfont,
 
 static Lisp_Object xfont_scripts_cache;
 
-/* Re-usable vector to store characteristic font properties.   */
+/* Reusable vector to store characteristic font properties.   */
 static Lisp_Object xfont_scratch_props;
 
 /* Return a list of scripts supported by the font of FONTNAME whose

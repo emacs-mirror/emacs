@@ -1,6 +1,6 @@
 ;;; esh-proc.el --- process management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -193,7 +193,7 @@ This is like `process-live-p', but additionally checks whether
 
 (defalias 'eshell/wait #'eshell-wait-for-process)
 
-(defun eshell/jobs (&rest _args)
+(defun eshell/jobs ()
   "List processes, if there are any."
   (and (fboundp 'process-list)
        (process-list)

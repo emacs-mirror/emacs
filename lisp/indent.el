@@ -1,6 +1,6 @@
 ;;; indent.el --- indentation commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1995, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -265,7 +265,7 @@ indentation by specifying a large negative ARG."
   (interactive "r\nP\np")
   (if (and (not arg) interactive)
       (set-transient-map indent-rigidly-map t #'deactivate-mark
-                         "Indent region with %k")
+                         "Type %k to indent region interactively")
     (save-excursion
       (goto-char end)
       (setq end (point-marker))

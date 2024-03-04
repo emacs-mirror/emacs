@@ -1,6 +1,6 @@
 /* Tree-sitter integration for GNU Emacs.
 
-Copyright (C) 2021-2023 Free Software Foundation, Inc.
+Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 Maintainer: Yuan Fu <casouri@gmail.com>
 
@@ -600,8 +600,6 @@ treesit_load_language (Lisp_Object language_symbol,
   /* First push just the filenames to the candidate list, which will
      make dynlib_open look under standard system load paths.  */
   treesit_load_language_push_for_each_suffix (lib_base_name, &path_candidates);
-  /* This is used for reporting errors (i.e., just filenames).  */
-  Lisp_Object base_candidates = path_candidates;
   /* Then push ~/.emacs.d/tree-sitter paths.  */
   Lisp_Object lib_name
     = Fexpand_file_name (concat2 (build_string ("tree-sitter/"), lib_base_name),
@@ -624,6 +622,7 @@ treesit_load_language (Lisp_Object language_symbol,
      fail.  */
   dynlib_handle_ptr handle;
   const char *error;
+  Lisp_Object error_list = Qnil;
 
   tail = path_candidates;
   error = NULL;
@@ -637,13 +636,17 @@ treesit_load_language (Lisp_Object language_symbol,
       error = dynlib_error ();
       if (error == NULL)
 	break;
+      else
+	error_list = Fcons (build_string (error), error_list);
     }
 
   if (error != NULL)
     {
+      /* Yes, the error message list gets a bit verbose, but those
+         messages will be helpful for certain errors like libc version
+         mismatch.  */
       *signal_symbol = Qtreesit_load_language_error;
-      *signal_data = list3 (Qnot_found, base_candidates,
-			    build_string ("No such file or directory"));
+      *signal_data = Fcons (Qnot_found, Fnreverse (error_list));
       return NULL;
     }
 
@@ -945,7 +948,10 @@ treesit_sync_visible_region (Lisp_Object parser)
      this function is called), we need to reparse.  */
   if (visible_beg != BUF_BEGV_BYTE (buffer)
       || visible_end != BUF_ZV_BYTE (buffer))
-    XTS_PARSER (parser)->need_reparse = true;
+    {
+      XTS_PARSER (parser)->need_reparse = true;
+      XTS_PARSER (parser)->timestamp++;
+    }
 
   /* Before we parse or set ranges, catch up with the narrowing
      situation.  We change visible_beg and visible_end to match
@@ -1040,7 +1046,7 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
      for each of them.  */
   Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
   FOR_EACH_TAIL (functions)
-    safe_call2 (XCAR (functions), lisp_ranges, parser);
+    safe_calln (XCAR (functions), lisp_ranges, parser);
 
   unbind_to (count, Qnil);
 }
@@ -1719,6 +1725,7 @@ buffer.  */)
 	      ranges);
 
   XTS_PARSER (parser)->need_reparse = true;
+  XTS_PARSER (parser)->timestamp++;
   return Qnil;
 }
 
@@ -3247,9 +3254,9 @@ treesit_traverse_child_helper (TSTreeCursor *cursor,
       /* First go to the last child.  */
       while (ts_tree_cursor_goto_next_sibling (cursor));
 
-      if (!named)
+      if (!named || (named && ts_node_is_named (ts_tree_cursor_current_node(cursor))))
 	return true;
-      /* Else named... */
+      /* Else named is required and last child is not named node.  */
       if (treesit_traverse_sibling_helper(cursor, false, true))
 	return true;
       else
@@ -3286,7 +3293,7 @@ treesit_traverse_get_predicate (Lisp_Object thing, Lisp_Object language)
    there's an error, set SIGNAL_DATA to (ERR . DATA), where ERR is an
    error symbol, and DATA is something signal accepts, and return
    false, otherwise return true.  This function also check for
-   recusion levels: we place a arbitrary 100 level limit on recursive
+   recursion levels: we place a arbitrary 100 level limit on recursive
    predicates.  RECURSION_LEVEL is the current recursion level (that
    starts at 0), if it goes over 99, return false and set SIGNAL_DATA.
    LANGUAGE is a LANGUAGE symbol.  */
@@ -3335,7 +3342,7 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
 	  if (!CONSP (cdr))
 	    {
 	      *signal_data = list3 (Qtreesit_invalid_predicate,
-				    build_string ("Invalide `not' "
+				    build_string ("Invalid `not' "
 						  "predicate"),
 				    pred);
 	      return false;

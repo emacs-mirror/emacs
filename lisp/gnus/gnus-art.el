@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -2871,12 +2871,15 @@ Return file name relative to the parent of DIRECTORY."
 			      cid handle directory))
 	      (throw 'found file)))
 	   ((equal (concat "<" cid ">") (mm-handle-id handle))
-	    (setq file (or (mm-handle-filename handle)
-			   (concat
-			    (make-temp-name "cid")
-			    (car (rassoc (car (mm-handle-type handle))
-					 mailcap-mime-extensions))))
-		  afile (expand-file-name file directory))
+            ;; Randomize filenames: declared filenames may not be unique.
+            (setq file (format "cid-%d-%s"
+			       (random 99)
+			       (or (mm-handle-filename handle)
+				   (concat
+				    (make-temp-name "cid")
+				    (car (rassoc (car (mm-handle-type handle))
+						 mailcap-mime-extensions)))))
+                  afile (expand-file-name file directory))
 	    (mm-save-part-to-file handle afile)
 	    (throw 'found (concat (file-name-nondirectory
 				   (directory-file-name directory))

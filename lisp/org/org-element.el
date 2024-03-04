@@ -1,9 +1,9 @@
 ;;; org-element.el --- Parser for Org Syntax         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 
 ;; This file is part of GNU Emacs.
 
@@ -5484,7 +5484,7 @@ This variable is used to determine when re-parsing buffer is not going
 to slow down the command.
 
 If the commands end up modifying the cache, the worst case scenario is
-performance drop.  So, advicing these commands is safe.  Yet, it is
+performance drop.  So, advising these commands is safe.  Yet, it is
 better to remove the commands advised in such a way from this list.")
 
 (defmacro org-element--request-key (request)
@@ -5906,7 +5906,7 @@ If this warning appears regularly, please report the warning text to Org mode ma
        (org-element-property :begin element)
        (org-element-property :org-element--cache-sync-key element))
       (org-element-cache-reset)
-      (throw 'quit nil))
+      (throw 'org-element--cache-quit nil))
     (or (avl-tree-delete org-element--cache element)
         (progn
           ;; This should not happen, but if it is, would be better to know
@@ -5919,7 +5919,7 @@ If this warning appears regularly, please report the warning text to Org mode ma
            (org-element-property :begin element)
            (org-element-property :org-element--cache-sync-key element))
           (org-element-cache-reset)
-          (throw 'quit nil)))))
+          (throw 'org-element--cache-quit nil)))))
 
 ;;;; Synchronization
 
@@ -6382,6 +6382,10 @@ completing the request."
                          ;; We altered the tree structure.  The tree
                          ;; traversal needs to be restarted.
                          (setf (org-element--request-key request) key)
+                         ;; Make sure that we restart tree traversal
+                         ;; past already shifted elements (before the
+                         ;; removed DATA).
+                         (setq start key)
                          (setf (org-element--request-parent request) parent)
                          ;; Restart tree traversal.
                          (setq node (org-element--cache-root)
@@ -6552,7 +6556,7 @@ the expected result."
                    (error "org-element: Parsing aborted by user.  Cache has been cleared.
 If you observe Emacs hangs frequently, please report this to Org mode mailing list (M-x org-submit-bug-report)."))
                  (message (substitute-command-keys
-                           "`org-element--parse-buffer': Suppressed `\\[keyboard-quit]'.  Press `\\[keyboard-quit]' %d more times to force interruption.")
+                           "`org-element--parse-to': Suppressed `\\[keyboard-quit]'.  Press `\\[keyboard-quit]' %d more times to force interruption.")
                           (- org-element--cache-interrupt-C-g-max-count
                              org-element--cache-interrupt-C-g-count)))
 	       (unless element

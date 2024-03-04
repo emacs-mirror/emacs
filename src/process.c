@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2023 Free Software
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2024 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -7520,7 +7520,7 @@ handle_child_signal (int sig)
 
 		   emacs_unlink is not async signal safe because
 		   deleting files from content providers must proceed
-		   through Java code.  Consequentially, if XCDR (head)
+		   through Java code.  Consequently, if XCDR (head)
 		   lies on a content provider it will not be removed,
 		   which is a bug.  */
 		unlink (SSDATA (XCDR (head)));

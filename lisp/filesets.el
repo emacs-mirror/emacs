@@ -1,6 +1,6 @@
 ;;; filesets.el --- handle group of files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -286,7 +286,7 @@ See `easy-menu-add-item' for documentation."
   )
 
 (defcustom filesets-menu-in-menu nil
-  "Use that instead of `current-menubar' as the menu to change.
+  "Use that instead of `current-global-map' as the menu to change.
 See `easy-menu-add-item' for documentation."
   :set #'filesets-set-default
   :type 'sexp)
@@ -1648,7 +1648,17 @@ Assume MODE (see `filesets-entry-mode'), if provided."
 				(filesets-entry-get-master entry)))))
 		  (cons entry (filesets-ingroup-cache-get entry))))
 	       (:tree
-                (let* ((dirpatt (filesets-entry-get-tree entry))
+                ;; Warning: ENTRY here could be of at least two
+                ;; differente forms, either
+                ;;    (NAME (:tree DIRECTORY PATTERN))
+                ;; or
+                ;;    (DIRECTORY PATTERN)
+                ;; The latter happens when opening a tree fileset
+                ;; from the Filesets menu.  We need to support both
+                ;; of these forms!
+                (let* ((dirpatt (if (consp (nth 1 entry))
+                                    (filesets-entry-get-tree entry)
+                                  entry))
                        (dir (nth 0 dirpatt))
                        (patt (nth 1 dirpatt))
                        (depth (or (filesets-entry-get-tree-max-level entry)
@@ -1757,7 +1767,7 @@ If no fileset name is provided, prompt for NAME."
       (add-to-list 'filesets-data (list name '(:files)))
       (message
        (substitute-command-keys
-        "Fileset %s created.  Call `\\[filesets-save-config]' to save.")
+        "Fileset %s created.  Call \\[filesets-save-config] to save.")
        name)
       (car filesets-data))))))
     (if entry

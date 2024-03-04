@@ -1,6 +1,6 @@
 ;;; cmacexp.el --- expand C macros in a region  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potortì <pot@gnu.org>
 ;; Adapted-By: ESR

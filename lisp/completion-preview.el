@@ -1,6 +1,6 @@
 ;;; completion-preview.el --- Preview completion with inline overlay  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Author: Eshel Yaron <me@eshelyaron.com>
 ;; Maintainer: Eshel Yaron <me@eshelyaron.com>
@@ -51,6 +51,8 @@
 ;; if you type "foo", but typing just "fo" doesn't show the preview.
 
 ;;; Code:
+
+(require 'mwheel)
 
 (defgroup completion-preview nil
   "In-buffer completion preview."
@@ -133,10 +135,14 @@ If this option is nil, these commands do not display any message."
   "<down-mouse-1>" #'completion-preview-insert
   "C-<down-mouse-1>" #'completion-at-point
   "<down-mouse-2>" #'completion-at-point
-  (format "<%s>" mouse-wheel-up-event)             #'completion-preview-prev-candidate
-  (format "<%s>" mouse-wheel-up-alternate-event)   #'completion-preview-prev-candidate
-  (format "<%s>" mouse-wheel-down-event)           #'completion-preview-next-candidate
-  (format "<%s>" mouse-wheel-down-alternate-event) #'completion-preview-next-candidate)
+  ;; BEWARE: `mouse-wheel-UP-event' corresponds to `wheel-DOWN' events
+  ;; and vice versa!!
+  "<wheel-up>"     #'completion-preview-prev-candidate
+  "<wheel-down>"   #'completion-preview-next-candidate
+  (key-description (vector mouse-wheel-up-event))
+  #'completion-preview-next-candidate
+  (key-description (vector mouse-wheel-down-event))
+  #'completion-preview-prev-candidate)
 
 (defvar-local completion-preview--overlay nil)
 
@@ -189,10 +195,24 @@ Completion Preview mode avoids updating the preview after these commands.")
   "Return property PROP of the completion preview overlay."
   (overlay-get completion-preview--overlay prop))
 
+(defun completion-preview--window-selection-change (window)
+  "Hide completion preview in WINDOW after switching to another window.
+Completion Preview mode adds this function to
+`window-selection-change-functions', which see."
+  (unless (or (eq window (selected-window))
+              (eq window (minibuffer-selected-window)))
+    (with-current-buffer (window-buffer window)
+      (completion-preview-active-mode -1))))
+
 (define-minor-mode completion-preview-active-mode
   "Mode for when the completion preview is shown."
   :interactive nil
-  (unless completion-preview-active-mode (completion-preview-hide)))
+  (if completion-preview-active-mode
+      (add-hook 'window-selection-change-functions
+                #'completion-preview--window-selection-change nil t)
+    (remove-hook 'window-selection-change-functions
+                 #'completion-preview--window-selection-change t)
+    (completion-preview-hide)))
 
 (defun completion-preview--try-table (table beg end props)
   "Check TABLE for a completion matching the text between BEG and END.

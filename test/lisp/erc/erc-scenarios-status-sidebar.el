@@ -1,6 +1,6 @@
 ;;; erc-scenarios-status-sidebar.el --- erc-sidebar/speedbar tests -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -64,8 +64,7 @@
         (let ((obuf (window-buffer))) ; *scratch*
           (set-window-buffer (selected-window) "#foo")
           (erc-d-t-wait-for 5
-              (when noninteractive
-                (erc-status-sidebar-refresh))
+              (erc-status-sidebar-refresh)
             (with-current-buffer "*ERC Status*"
               (and (marker-position erc-status-sidebar--active-marker)
                    (goto-char erc-status-sidebar--active-marker)
@@ -100,7 +99,8 @@
 (defvar speedbar-buffer)
 
 (ert-deftest erc-scenarios-status-sidebar--nickbar ()
-  :tags '(:unstable :expensive-test)
+  :tags `(:expensive-test :unstable ,@(and (getenv "ERC_TESTS_GRAPHICAL")
+                                           '(:erc--graphical)))
   (when noninteractive (ert-skip "Interactive only"))
 
   (erc-scenarios-common-with-cleanup

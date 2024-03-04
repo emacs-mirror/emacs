@@ -1,5 +1,5 @@
 Installation instructions for Android
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -15,7 +15,7 @@ Java is required because the entire Android runtime is based around
 Java, and there is no way to write an Android program which runs
 without Java.
 
-This text exists to prime other Emacs developers, already familar with
+This text exists to prime other Emacs developers, already familiar with
 C, on the basic architecture of the Android port, and to teach them
 how to read and write the Java code found in this directory.
 
@@ -445,7 +445,7 @@ loaded by the special invocation:
 where ``static'' defines a section of code which will be run upon the
 object (containing class) being loaded.  This is like:
 
-  __attribute__((constructor))
+  __attribute__ ((constructor))
 
 on systems where shared object constructors are supported.
 
@@ -570,7 +570,7 @@ Let us go back and review the definition of ``startEmacsService'':
 	  context.startService (new Intent (context,
 					    EmacsService.class));
 	else
-	  /* Display the permanant notification and start Emacs as a
+	  /* Display the permanent notification and start Emacs as a
 	     foreground service.  */
 	  context.startForegroundService (new Intent (context,
 						      EmacsService.class));
@@ -796,7 +796,7 @@ Next, `max_handle' is saved, and a new handle is allocated for
   if (!window)
     error ("Out of window handles!");
 
-An error is signalled if Emacs runs out of available handles.
+An error is signaled if Emacs runs out of available handles.
 
   if (!class)
     {

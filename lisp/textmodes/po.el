@@ -1,6 +1,6 @@
 ;;; po.el --- basic support of PO translation files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1998, 2000-2024 Free Software Foundation, Inc.
 
 ;; Authors: François Pinard <pinard@iro.umontreal.ca>,
 ;;          Greg McGary <gkm@magilla.cichlid.com>,

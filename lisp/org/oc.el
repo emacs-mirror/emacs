@@ -1,6 +1,6 @@
 ;;; oc.el --- Org Cite library                  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 
@@ -52,7 +52,7 @@
 ;; through the "cite_export" keyword.
 
 ;; Eventually, this library provides some tools, mainly targeted at
-;; processor implementors.  Most are export-specific and are located
+;; processor implementers.  Most are export-specific and are located
 ;; in the "Tools only available during export" and "Tools generating
 ;; or operating on parsed data" sections.
 

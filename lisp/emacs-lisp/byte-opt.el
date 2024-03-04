@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -440,7 +440,7 @@ There can be multiple entries for the same NAME if it has several aliases.")
 
       (`(unwind-protect ,protected-expr :fun-body ,unwind-fun)
        ;; FIXME: The return value of UNWIND-FUN is never used so we
-       ;; could potentially optimise it for-effect, but we don't do
+       ;; could potentially optimize it for-effect, but we don't do
        ;; that right no.
        `(,fn ,(byte-optimize-form protected-expr for-effect)
              :fun-body ,(byte-optimize-form unwind-fun)))
@@ -812,8 +812,29 @@ There can be multiple entries for the same NAME if it has several aliases.")
   (or (not form)   ; assume (quote nil) always being normalized to nil
       (and (consp form)
            (let ((head (car form)))
-             ;; FIXME: There are many other expressions that are statically nil.
-             (cond ((memq head '(while ignore)) t)
+             (cond ((memq head
+                          ;; Some forms that are statically nil.
+                          ;; FIXME: Replace with a function property?
+                          '( while ignore
+                             insert insert-and-inherit insert-before-markers
+                             insert-before-markers-and-inherit
+                             insert-char insert-byte insert-buffer-substring
+                             delete-region delete-char
+                             widen narrow-to-region transpose-regions
+                             forward-char backward-char
+                             beginning-of-line end-of-line
+                             erase-buffer buffer-swap-text
+                             delete-overlay delete-all-overlays
+                             remhash
+                             maphash
+                             map-charset-chars map-char-table
+                             mapbacktrace
+                             mapatoms
+                             ding beep sleep-for
+                             json-insert
+                             set-match-data
+                             ))
+                    t)
                    ((eq head 'if)
                     (and (byte-compile-nilconstp (nth 2 form))
                          (byte-compile-nilconstp (car (last (cdddr form))))))
@@ -975,7 +996,7 @@ There can be multiple entries for the same NAME if it has several aliases.")
     (list (car form) (nth 2 form) (nth 1 form)))))
 
 (defun byte-opt--nary-comparison (form)
-  "Optimise n-ary comparisons such as `=', `<' etc."
+  "Optimize n-ary comparisons such as `=', `<' etc."
   (let ((nargs (length (cdr form))))
     (cond
      ((= nargs 1)
@@ -990,7 +1011,7 @@ There can be multiple entries for the same NAME if it has several aliases.")
         (if (memq nil (mapcar #'macroexp-copyable-p (cddr form)))
             ;; At least one arg beyond the first is non-constant non-variable:
             ;; create temporaries for all args to guard against side-effects.
-            ;; The optimiser will eliminate trivial bindings later.
+            ;; The optimizer will eliminate trivial bindings later.
             (let ((i 1))
               (dolist (arg (cdr form))
                 (let ((var (make-symbol (format "arg%d" i))))
@@ -1460,7 +1481,7 @@ See Info node `(elisp) Integer Basics'."
 (put 'let* 'byte-optimizer #'byte-optimize-letX)
 (defun byte-optimize-letX (form)
   (pcase form
-    ;; No bindings.
+    ;; Bindings list is empty.
     (`(,_ () . ,body)
      `(progn . ,body))
 
@@ -1470,7 +1491,7 @@ See Info node `(elisp) Integer Basics'."
          `(progn ,@(mapcar #'cadr bindings) ,const)
        `(,head ,(butlast bindings) ,(cadar (last bindings)) ,const)))
 
-    ;; Body is last variable.
+    ;; Body does nothing but return the last variable in bindings.
     (`(,head ,(and bindings
                    (let last-var (caar (last bindings))))
              ,(and last-var             ; non-linear pattern

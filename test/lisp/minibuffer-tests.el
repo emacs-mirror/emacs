@@ -1,6 +1,6 @@
 ;;; minibuffer-tests.el --- Tests for completion functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -465,6 +465,20 @@
       (previous-line-completion 4)
       (should (equal "ac" (get-text-property (point) 'completion--string))))))
 
+(ert-deftest completion-next-line-multline-test ()
+  (let ((completion-auto-wrap t))
+    (completing-read-with-minibuffer-setup
+     '("a\na" "a\nb" "ac")
+     (insert "a")
+     (minibuffer-completion-help)
+     (switch-to-completions)
+     (goto-char (point-min))
+     (next-line-completion 5)
+     (should (equal "a\nb" (get-text-property (point) 'completion--string)))
+     (goto-char (point-min))
+     (previous-line-completion 5)
+     (should (equal "a\nb" (get-text-property (point) 'completion--string))))))
+
 (ert-deftest completions-header-format-test ()
   (let ((completion-show-help nil)
         (completions-header-format nil))
@@ -505,11 +519,11 @@
 
 (ert-deftest completions-affixation-navigation-test ()
   (let ((completion-extra-properties
-         '(:affixation-function
-           (lambda (completions)
-             (mapcar (lambda (c)
-                       (list c "prefix " " suffix"))
-                     completions)))))
+         `(:affixation-function
+           ,(lambda (completions)
+              (mapcar (lambda (c)
+                        (list c "prefix " " suffix"))
+                      completions)))))
     (completing-read-with-minibuffer-setup
         '("aa" "ab" "ac")
       (insert "a")
@@ -551,35 +565,63 @@
                     (if transform
                         name
                       (pcase name
-                        (`"aa" "Group 1")
-                        (`"ab" "Group 2")
-                        (`"ac" "Group 3")))))
+                        (`"aa1" "Group 1")
+                        (`"aa2" "Group 1")
+                        (`"aa3" "Group 1")
+                        (`"aa4" "Group 1")
+                        (`"ab1" "Group 2")
+                        (`"ac1" "Group 3")
+                        (`"ac2" "Group 3")))))
 	      (category . unicode-name))
-	  (complete-with-action action '("aa" "ab" "ac") string pred)))
+	  (complete-with-action action '("aa1" "aa2" "aa3" "aa4" "ab1" "ac1" "ac2")
+                                string pred)))
     (insert "a")
     (minibuffer-completion-help)
     (switch-to-completions)
-    (should (equal "aa" (get-text-property (point) 'completion--string)))
+    (should (equal "aa1" (get-text-property (point) 'completion--string)))
     (let ((completion-auto-wrap t))
-      (next-completion 3))
-    (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (next-completion 7))
+    (should (equal "aa1" (get-text-property (point) 'completion--string)))
     (let ((completion-auto-wrap nil))
-      (next-completion 3))
-    (should (equal "ac" (get-text-property (point) 'completion--string)))
+      (next-completion 7))
+    (should (equal "ac2" (get-text-property (point) 'completion--string)))
 
-    (first-completion)
     (let ((completion-auto-wrap t))
+      ;; First column
+      (first-completion)
       (next-line-completion 1)
-      (should (equal "ab" (get-text-property (point) 'completion--string)))
-      (next-line-completion 2)
-      (should (equal "aa" (get-text-property (point) 'completion--string)))
-      (previous-line-completion 2)
-      (should (equal "ab" (get-text-property (point) 'completion--string))))
-    (let ((completion-auto-wrap nil))
+      (should (equal "aa4" (get-text-property (point) 'completion--string)))
       (next-line-completion 3)
-      (should (equal "ac" (get-text-property (point) 'completion--string)))
-      (previous-line-completion 3)
-      (should (equal "aa" (get-text-property (point) 'completion--string))))))
+      (should (equal "aa1" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 2)
+      (should (equal "ab1" (get-text-property (point) 'completion--string)))
+
+      ;; Second column
+      (first-completion)
+      (next-completion 1)
+      (should (equal "aa2" (get-text-property (point) 'completion--string)))
+      (next-line-completion 1)
+      (should (equal "ac2" (get-text-property (point) 'completion--string)))
+      (next-line-completion 1)
+      (should (equal "aa2" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 1)
+      (should (equal "ac2" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 1)
+      (should (equal "aa2" (get-text-property (point) 'completion--string)))
+
+      ;; Third column
+      (first-completion)
+      (next-completion 2)
+      (should (equal "aa3" (get-text-property (point) 'completion--string)))
+      (next-line-completion 1)
+      (should (equal "aa3" (get-text-property (point) 'completion--string))))
+
+    (let ((completion-auto-wrap nil))
+      (first-completion)
+      (next-line-completion 7)
+      (should (equal "ac2" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 7)
+      (should (equal "aa1" (get-text-property (point) 'completion--string))))))
 
 (provide 'minibuffer-tests)
 ;;; minibuffer-tests.el ends here

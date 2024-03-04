@@ -1,6 +1,6 @@
 ;;; lisp.el --- Lisp editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2000-2023 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2000-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -93,7 +93,7 @@ report errors as appropriate for this kind of usage."
 
 (defun mark-sexp (&optional arg allow-extend)
   "Set mark ARG sexps from point or move mark one sexp.
-When called from Lisp with ALLOW-EXTEND ommitted or nil, mark is
+When called from Lisp with ALLOW-EXTEND omitted or nil, mark is
 set ARG sexps from point.
 With ARG and ALLOW-EXTEND both non-nil (interactively, with prefix
 argument), the place to which mark goes is the same place \\[forward-sexp]

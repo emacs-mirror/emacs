@@ -1,6 +1,6 @@
 ;;; quail.el --- provides simple input method for multilingual text  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1324,9 +1324,11 @@ If STR has `advice' text property, append the following special event:
                ;; binding in `universal-argument-map' just return
                ;; (list KEY), otherwise act as if there was no
                ;; overriding map.
-               (or (not (eq (cadr overriding-terminal-local-map)
-                            universal-argument-map))
-                   (lookup-key overriding-terminal-local-map (vector key))))
+               ;; We used to do that only for `universal-argument-map',
+               ;; but according to bug#68338 this should also apply to
+               ;; other transient maps.  Let's hope it's OK to apply it
+               ;; to all `overriding-terminal-local-map's.
+               (lookup-key overriding-terminal-local-map (vector key)))
 	  overriding-local-map)
       (list key)
     (quail-setup-overlays (quail-conversion-keymap))

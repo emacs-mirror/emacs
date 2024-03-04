@@ -1,6 +1,6 @@
 ;;; erc-page.el --- CTCP PAGE support for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002, 2004, 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 
@@ -42,7 +42,8 @@
   "Process CTCP PAGE requests from IRC."
   nil nil)
 
-(erc-define-catalog-entry 'english 'CTCP-PAGE "Page from %n (%u@%h): %m")
+(defvar erc-message-english-CTCP-PAGE "Page from %n (%u@%h): %m"
+  "English template for a CTCP PAGE message.")
 
 (defcustom erc-page-function nil
   "A function to process a \"page\" request.

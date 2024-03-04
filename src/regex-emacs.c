@@ -1,6 +1,6 @@
 /* Emacs regular expression matching and search
 
-   Copyright (C) 1993-2023 Free Software Foundation, Inc.
+   Copyright (C) 1993-2024 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@
 #define IS_REAL_ASCII(c) ((c) < 0200)
 
 /* 1 if C is a unibyte character.  */
-#define ISUNIBYTE(c) (SINGLE_BYTE_CHAR_P ((c)))
+#define ISUNIBYTE(c) SINGLE_BYTE_CHAR_P (c)
 
 /* The Emacs definitions should not be directly affected by locales.  */
 
@@ -1345,7 +1345,7 @@ struct range_table_work_area
 /* Set a range (RANGE_START, RANGE_END) to WORK_AREA.  */
 #define SET_RANGE_TABLE_WORK_AREA(work_area, range_start, range_end)	\
   do {									\
-    EXTEND_RANGE_TABLE ((work_area), 2);				\
+    EXTEND_RANGE_TABLE (work_area, 2);					\
     (work_area).table[(work_area).used++] = (range_start);		\
     (work_area).table[(work_area).used++] = (range_end);		\
   } while (false)
@@ -1380,7 +1380,7 @@ struct range_table_work_area
 
 
 /* Set the bit for character C in a list.  */
-#define SET_LIST_BIT(c) (b[((c)) / BYTEWIDTH] |= 1 << ((c) % BYTEWIDTH))
+#define SET_LIST_BIT(c) (b[(c) / BYTEWIDTH] |= 1 << ((c) % BYTEWIDTH))
 
 
 /* Store characters in the range FROM to TO in the bitmap at B (for
@@ -1403,7 +1403,7 @@ struct range_table_work_area
 	C1 = TRANSLATE (C0);					\
 	if (! ASCII_CHAR_P (C1))				\
 	  {							\
-	    SET_RANGE_TABLE_WORK_AREA ((work_area), C1, C1);	\
+	    SET_RANGE_TABLE_WORK_AREA (work_area, C1, C1);	\
 	    if ((C1 = RE_CHAR_TO_UNIBYTE (C1)) < 0)		\
 	      C1 = C0;						\
 	  }							\
@@ -1446,7 +1446,7 @@ struct range_table_work_area
 		  }							       \
 	      }								       \
 	    if (I < USED)						       \
-	      SET_RANGE_TABLE_WORK_AREA ((work_area), C2, C2);		       \
+	      SET_RANGE_TABLE_WORK_AREA (work_area, C2, C2);		       \
 	  }								       \
       }									       \
   } while (false)
@@ -1458,7 +1458,7 @@ struct range_table_work_area
   do {									   \
     int C0, C1, C2, I, USED = RANGE_TABLE_WORK_USED (work_area);	   \
 									   \
-    SET_RANGE_TABLE_WORK_AREA ((work_area), (FROM), (TO));		   \
+    SET_RANGE_TABLE_WORK_AREA (work_area, FROM, TO);			   \
     for (C0 = (FROM); C0 <= (TO); C0++)					   \
       {									   \
 	C1 = TRANSLATE (C0);						   \
@@ -1482,7 +1482,7 @@ struct range_table_work_area
 	      }								   \
 	  }								   \
 	if (I < USED)							   \
-	  SET_RANGE_TABLE_WORK_AREA ((work_area), C1, C1);		   \
+	  SET_RANGE_TABLE_WORK_AREA (work_area, C1, C1);		   \
       }									   \
   } while (false)
 
@@ -2824,7 +2824,7 @@ group_in_compile_stack (compile_stack_type compile_stack, regnum_t regnum)
 
 /* Iterate through all the char-matching operations directly reachable from P.
    This is the inner loop of `forall_firstchar`, which see.
-   LOOP_BEG..LOOP_END delimit the currentl "block" of code (we assume
+   LOOP_BEG..LOOP_END delimit the currently "block" of code (we assume
    the code is made of syntactically nested loops).
    LOOP_END is blindly assumed to be "safe".
    To guarantee termination, at each iteration, either LOOP_BEG should
@@ -2923,8 +2923,18 @@ forall_firstchar_1 (re_char *p, re_char *pend,
                forward over a subsequent `jump`.  Recognize this pattern
                since that subsequent `jump` is the one that jumps to the
                loop-entry.  */
-	    newp2 = ((re_opcode_t) *newp2 == jump)
-	            ? extract_address (newp2 + 1) : newp2;
+	    if ((re_opcode_t) *newp2 == jump)
+	      {
+	        re_char *p3 = extract_address (newp2 + 1);
+	        /* Only recognize this pattern if one of the two destinations
+	           is going forward, otherwise we'll fall into the pessimistic
+	           "Both destinations go backward" below.
+	           This is important if the `jump` at newp2 is the end of an
+	           outer loop while the `on_failure_jump` is the end of an
+	           inner loop.  */
+	        if (p3 > p_orig || newp1 > p_orig)
+	          newp2 = p3;
+	      }
 
 	  do_twoway_jump:
 	    /* We have to check that both destinations are safe.
@@ -3755,7 +3765,7 @@ execute_charset (re_char **pp, int c, int corig, bool unibyte,
       int count;
       rtp = CHARSET_RANGE_TABLE (p);
       EXTRACT_NUMBER_AND_INCR (count, rtp);
-      *pp = CHARSET_RANGE_TABLE_END ((rtp), (count));
+      *pp = CHARSET_RANGE_TABLE_END (rtp, count);
     }
   else
     *pp += 2 + CHARSET_BITMAP_SIZE (p);

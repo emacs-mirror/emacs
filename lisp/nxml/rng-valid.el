@@ -1,9 +1,9 @@
 ;;; rng-valid.el --- real-time validation of XML using RELAX NG  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: James Clark
-;; Keywords: wp, hypermedia, languages, XML, RelaxNG
+;; Keywords: text, hypermedia, languages, XML, RelaxNG
 
 ;; This file is part of GNU Emacs.
 

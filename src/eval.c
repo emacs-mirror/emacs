@@ -1,6 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1999-2023 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1999-2024 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -56,12 +56,6 @@ Lisp_Object Vrun_hooks;
    Fsignal.  */
 /* FIXME: We should probably get rid of this!  */
 Lisp_Object Vsignaling_function;
-
-/* The handler structure which will catch errors in Lisp hooks called
-   from redisplay.  We do not use it for this; we compare it with the
-   handler which is about to be used in signal_or_quit, and if it
-   matches, cause a backtrace to be generated.  */
-static struct handler *redisplay_deep_handler;
 
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
@@ -212,7 +206,6 @@ void
 init_eval_once (void)
 {
   /* Don't forget to update docs (lispref node "Eval").  */
-  max_lisp_eval_depth = 1600;
   Vrun_hooks = Qnil;
   pdumper_do_now_and_after_load (init_eval_once_for_pdumper);
 }
@@ -245,25 +238,31 @@ init_eval (void)
   lisp_eval_depth = 0;
   /* This is less than the initial value of num_nonmacro_input_events.  */
   when_entered_debugger = -1;
-  redisplay_deep_handler = NULL;
 }
-
-/* Ensure that *M is at least A + B if possible, or is its maximum
-   value otherwise.  */
-
-static void
-max_ensure_room (intmax_t *m, intmax_t a, intmax_t b)
-{
-  intmax_t sum = ckd_add (&sum, a, b) ? INTMAX_MAX : sum;
-  *m = max (*m, sum);
-}
-
-/* Unwind-protect function used by call_debugger.  */
 
 static void
 restore_stack_limits (Lisp_Object data)
 {
-  integer_to_intmax (data, &max_lisp_eval_depth);
+  intmax_t old_depth;
+  integer_to_intmax (data, &old_depth);
+  lisp_eval_depth_reserve += max_lisp_eval_depth - old_depth;
+  max_lisp_eval_depth = old_depth;
+}
+
+/* Try and ensure that we have at least B dpeth available.  */
+
+static void
+max_ensure_room (intmax_t b)
+{
+  intmax_t sum = ckd_add (&sum, lisp_eval_depth, b) ? INTMAX_MAX : sum;
+  intmax_t diff = min (sum - max_lisp_eval_depth, lisp_eval_depth_reserve);
+  if (diff <= 0)
+    return;
+  intmax_t old_depth = max_lisp_eval_depth;
+  max_lisp_eval_depth += diff;
+  lisp_eval_depth_reserve -= diff;
+  /* Restore limits after leaving the debugger.  */
+  record_unwind_protect (restore_stack_limits, make_int (old_depth));
 }
 
 /* Call the Lisp debugger, giving it argument ARG.  */
@@ -274,16 +273,12 @@ call_debugger (Lisp_Object arg)
   bool debug_while_redisplaying;
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object val;
-  intmax_t old_depth = max_lisp_eval_depth;
 
   /* The previous value of 40 is too small now that the debugger
      prints using cl-prin1 instead of prin1.  Printing lists nested 8
      deep (which is the value of print-level used in the debugger)
      currently requires 77 additional frames.  See bug#31919.  */
-  max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
-
-  /* Restore limits after leaving the debugger.  */
-  record_unwind_protect (restore_stack_limits, make_int (old_depth));
+  max_ensure_room (100);
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -317,6 +312,7 @@ call_debugger (Lisp_Object arg)
   /* Interrupting redisplay and resuming it later is not safe under
      all circumstances.  So, when the debugger returns, abort the
      interrupted redisplay by going back to the top-level.  */
+  /* FIXME: Move this to the redisplay code?  */
   if (debug_while_redisplaying
       && !EQ (Vdebugger, Qdebug_early))
     Ftop_level ();
@@ -797,14 +793,20 @@ DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
 You are not required to define a variable in order to use it, but
 defining it lets you supply an initial value and documentation, which
 can be referred to by the Emacs help facilities and other programming
-tools.  The `defvar' form also declares the variable as \"special\",
-so that it is always dynamically bound even if `lexical-binding' is t.
+tools.
 
 If SYMBOL's value is void and the optional argument INITVALUE is
 provided, INITVALUE is evaluated and the result used to set SYMBOL's
 value.  If SYMBOL is buffer-local, its default value is what is set;
 buffer-local values are not affected.  If INITVALUE is missing,
 SYMBOL's value is not set.
+
+If INITVALUE is provided, the `defvar' form also declares the variable
+as \"special\", so that it is always dynamically bound even if
+`lexical-binding' is t.  If INITVALUE is missing, the form marks the
+variable \"special\" locally (i.e., within the current
+lexical scope, or the current file, if the form is at top-level),
+and does nothing if `lexical-binding' is nil.
 
 If SYMBOL is let-bound, then this form does not affect the local let
 binding but the toplevel default binding instead, like
@@ -1252,6 +1254,12 @@ usage: (catch TAG BODY...)  */)
 
 #define clobbered_eassert(E) verify (sizeof (E) != 0)
 
+void
+pop_handler (void)
+{
+  handlerlist = handlerlist->next;
+}
+
 /* Set up a catch, then call C function FUNC on argument ARG.
    FUNC should return a Lisp_Object.
    This is how catches are done from within C code.  */
@@ -1413,6 +1421,49 @@ usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
   Lisp_Object handlers = XCDR (XCDR (args));
 
   return internal_lisp_condition_case (var, bodyform, handlers);
+}
+
+void
+push_handler_bind (Lisp_Object conditions, Lisp_Object handler, int skip)
+{
+  if (!CONSP (conditions))
+    conditions = Fcons (conditions, Qnil);
+  struct handler *c = push_handler (conditions, HANDLER_BIND);
+  c->val = handler;
+  c->bytecode_dest = skip;
+}
+
+DEFUN ("handler-bind-1", Fhandler_bind_1, Shandler_bind_1, 1, MANY, 0,
+       doc: /* Setup error handlers around execution of BODYFUN.
+BODYFUN be a function and it is called with no arguments.
+CONDITIONS should be a list of condition names (symbols).
+When an error is signaled during execution of BODYFUN, if that
+error matches one of CONDITIONS, then the associated HANDLER is
+called with the error as argument.
+HANDLER should either transfer the control via a non-local exit,
+or return normally.
+If it returns normally, the search for an error handler continues
+from where it left off.
+
+usage: (handler-bind BODYFUN [CONDITIONS HANDLER]...)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
+{
+  eassert (nargs >= 1);
+  Lisp_Object bodyfun = args[0];
+  int count = 0;
+  if (nargs % 2 == 0)
+    error ("Trailing CONDITIONS without HANDLER in `handler-bind`");
+  for (ptrdiff_t i = nargs - 2; i > 0; i -= 2)
+    {
+      Lisp_Object conditions = args[i], handler = args[i + 1];
+      if (NILP (conditions))
+        continue;
+      push_handler_bind (conditions, handler, count++);
+    }
+  Lisp_Object ret = call0 (bodyfun);
+  for (; count > 0; count--)
+    pop_handler ();
+  return ret;
 }
 
 /* Like Fcondition_case, but the args are separate
@@ -1613,16 +1664,12 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 						ptrdiff_t nargs,
 						Lisp_Object *args))
 {
-  struct handler *old_deep = redisplay_deep_handler;
   struct handler *c = push_handler (handlers, CONDITION_CASE);
-  if (redisplaying_p)
-    redisplay_deep_handler = c;
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
       clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
-      redisplay_deep_handler = old_deep;
       return hfun (val, nargs, args);
     }
   else
@@ -1630,7 +1677,6 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
       Lisp_Object val = bfun (nargs, args);
       eassert (handlerlist == c);
       handlerlist = c->next;
-      redisplay_deep_handler = old_deep;
       return val;
     }
 }
@@ -1708,8 +1754,7 @@ push_handler_nosignal (Lisp_Object tag_ch_val, enum handlertype handlertype)
 
 static Lisp_Object signal_or_quit (Lisp_Object, Lisp_Object, bool);
 static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object);
-static bool maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
-				 Lisp_Object data);
+static bool maybe_call_debugger (Lisp_Object conditions, Lisp_Object error);
 
 static void
 process_quit_flag (void)
@@ -1769,28 +1814,29 @@ quit (void)
   return signal_or_quit (Qquit, Qnil, true);
 }
 
-/* Has an error in redisplay giving rise to a backtrace occurred as
-   yet in the current command?  This gets reset in the command
-   loop.  */
-bool backtrace_yet = false;
-
 /* Signal an error, or quit.  ERROR_SYMBOL and DATA are as with Fsignal.
-   If KEYBOARD_QUIT, this is a quit; ERROR_SYMBOL should be
-   Qquit and DATA should be Qnil, and this function may return.
+   If CONTINUABLE, the caller allows this function to return
+   (presumably after calling the debugger);
    Otherwise this function is like Fsignal and does not return.  */
 
 static Lisp_Object
-signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
+signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 {
   /* When memory is full, ERROR-SYMBOL is nil,
      and DATA is (REAL-ERROR-SYMBOL . REAL-DATA).
      That is a special case--don't do this in other situations.  */
+  bool oom = NILP (error_symbol);
+  Lisp_Object error             /* The error object.  */
+    = oom ? data
+      : (!SYMBOLP (error_symbol) && NILP (data)) ? error_symbol
+      : Fcons (error_symbol, data);
   Lisp_Object conditions;
   Lisp_Object string;
   Lisp_Object real_error_symbol
-    = (NILP (error_symbol) ? Fcar (data) : error_symbol);
+    = CONSP (error) ? XCAR (error) : error_symbol;
   Lisp_Object clause = Qnil;
   struct handler *h;
+  int skip;
 
   if (gc_in_progress || waiting_for_input)
     emacs_abort ();
@@ -1805,15 +1851,15 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function)
-      && ! NILP (error_symbol)
-      /* Don't try to call a lisp function if we've already overflowed
-         the specpdl stack.  */
-      && specpdl_ptr < specpdl_end)
+      && !oom)
     {
-      /* Edebug takes care of restoring these variables when it exits.  */
-      max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 20);
-
+      specpdl_ref count = SPECPDL_INDEX ();
+      max_ensure_room (20);
+      /* FIXME: 'handler-bind' makes `signal-hook-function' obsolete?  */
+      /* FIXME: Here we still "split" the error object
+         into its error-symbol and its error-data?  */
       call2 (Vsignal_hook_function, error_symbol, data);
+      unbind_to (count, Qnil);
     }
 
   conditions = Fget (real_error_symbol, Qerror_conditions);
@@ -1823,7 +1869,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
      too.  Don't do this when ERROR_SYMBOL is nil, because that
      is a memory-full error.  */
   Vsignaling_function = Qnil;
-  if (!NILP (error_symbol))
+  if (!oom)
     {
       union specbinding *pdl = backtrace_next (backtrace_top ());
       if (backtrace_p (pdl) && EQ (backtrace_function (pdl), Qerror))
@@ -1832,16 +1878,42 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	Vsignaling_function = backtrace_function (pdl);
     }
 
-  for (h = handlerlist; h; h = h->next)
+  for (skip = 0, h = handlerlist; h; skip++, h = h->next)
     {
-      if (h->type == CATCHER_ALL)
+      switch (h->type)
         {
+        case CATCHER_ALL:
           clause = Qt;
           break;
-        }
-      if (h->type != CONDITION_CASE)
-	continue;
-      clause = find_handler_clause (h->tag_or_ch, conditions);
+	case CATCHER:
+	  continue;
+        case CONDITION_CASE:
+          clause = find_handler_clause (h->tag_or_ch, conditions);
+	  break;
+	case HANDLER_BIND:
+	  {
+	    if (!NILP (find_handler_clause (h->tag_or_ch, conditions)))
+	      {
+	        specpdl_ref count = SPECPDL_INDEX ();
+	        max_ensure_room (20);
+	        push_handler (make_fixnum (skip + h->bytecode_dest),
+	                      SKIP_CONDITIONS);
+	        call1 (h->val, error);
+	        unbind_to (count, Qnil);
+	        pop_handler ();
+	      }
+	    continue;
+	  }
+	case SKIP_CONDITIONS:
+	  {
+	    int toskip = XFIXNUM (h->tag_or_ch);
+	    while (toskip-- >= 0)
+	      h = h->next;
+	    continue;
+	  }
+	default:
+	  abort ();
+	}
       if (!NILP (clause))
 	break;
     }
@@ -1849,7 +1921,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
   bool debugger_called = false;
   if (/* Don't run the debugger for a memory-full error.
 	 (There is no room in memory to do that!)  */
-      !NILP (error_symbol)
+      !oom
       && (!NILP (Vdebug_on_signal)
 	  /* If no handler is present now, try to run the debugger.  */
 	  || NILP (clause)
@@ -1858,85 +1930,25 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	  || (CONSP (clause) && !NILP (Fmemq (Qdebug, clause)))
 	  /* Special handler that means "print a message and run debugger
 	     if requested".  */
-	  || EQ (h->tag_or_ch, Qerror)))
+	  || EQ (clause, Qerror)))
     {
       debugger_called
-	= maybe_call_debugger (conditions, error_symbol, data);
+	= maybe_call_debugger (conditions, error);
       /* We can't return values to code which signaled an error, but we
 	 can continue code which has signaled a quit.  */
-      if (keyboard_quit && debugger_called && EQ (real_error_symbol, Qquit))
+      if (continuable && debugger_called)
 	return Qnil;
     }
 
-  /* If we're in batch mode, print a backtrace unconditionally to help
-     with debugging.  Make sure to use `debug-early' unconditionally
-     to not interfere with ERT or other packages that install custom
-     debuggers.  */
-  if (!debugger_called && !NILP (error_symbol)
-      && (NILP (clause) || EQ (h->tag_or_ch, Qerror))
-      && noninteractive && backtrace_on_error_noninteractive
-      && NILP (Vinhibit_debugger)
-      && !NILP (Ffboundp (Qdebug_early)))
-    {
-      max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
-      specpdl_ref count = SPECPDL_INDEX ();
-      specbind (Qdebugger, Qdebug_early);
-      call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
-      unbind_to (count, Qnil);
-    }
-
-  /* If an error is signaled during a Lisp hook in redisplay, write a
-     backtrace into the buffer *Redisplay-trace*.  */
-  if (!debugger_called && !NILP (error_symbol)
-      && backtrace_on_redisplay_error
-      && (NILP (clause) || h == redisplay_deep_handler)
-      && NILP (Vinhibit_debugger)
-      && !NILP (Ffboundp (Qdebug_early)))
-    {
-      max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
-      specpdl_ref count = SPECPDL_INDEX ();
-      AUTO_STRING (redisplay_trace, "*Redisplay_trace*");
-      Lisp_Object redisplay_trace_buffer;
-      AUTO_STRING (gap, "\n\n\n\n"); /* Separates things in *Redisplay-trace* */
-      Lisp_Object delayed_warning;
-      redisplay_trace_buffer = Fget_buffer_create (redisplay_trace, Qnil);
-      current_buffer = XBUFFER (redisplay_trace_buffer);
-      if (!backtrace_yet) /* Are we on the first backtrace of the command?  */
-	Ferase_buffer ();
-      else
-	Finsert (1, &gap);
-      backtrace_yet = true;
-      specbind (Qstandard_output, redisplay_trace_buffer);
-      specbind (Qdebugger, Qdebug_early);
-      call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
-      unbind_to (count, Qnil);
-      delayed_warning = make_string
-	("Error in a redisplay Lisp hook.  See buffer *Redisplay_trace*", 61);
-
-      Vdelayed_warnings_list = Fcons (list2 (Qerror, delayed_warning),
-				      Vdelayed_warnings_list);
-    }
-
   if (!NILP (clause))
-    {
-      Lisp_Object unwind_data
-	= (NILP (error_symbol) ? data : Fcons (error_symbol, data));
+    unwind_to_catch (h, NONLOCAL_EXIT_SIGNAL, error);
+  else if (handlerlist != handlerlist_sentinel)
+    /* FIXME: This will come right back here if there's no `top-level'
+       catcher.  A better solution would be to abort here, and instead
+       add a catch-all condition handler so we never come here.  */
+    Fthrow (Qtop_level, Qt);
 
-      unwind_to_catch (h, NONLOCAL_EXIT_SIGNAL, unwind_data);
-    }
-  else
-    {
-      if (handlerlist != handlerlist_sentinel)
-	/* FIXME: This will come right back here if there's no `top-level'
-	   catcher.  A better solution would be to abort here, and instead
-	   add a catch-all condition handler so we never come here.  */
-	Fthrow (Qtop_level, Qt);
-    }
-
-  if (! NILP (error_symbol))
-    data = Fcons (error_symbol, data);
-
-  string = Ferror_message_string (data);
+  string = Ferror_message_string (error);
   fatal ("%s", SDATA (string));
 }
 
@@ -2061,14 +2073,15 @@ skip_debugger (Lisp_Object conditions, Lisp_Object data)
   return 0;
 }
 
-/* Say whether SIGNAL is a `quit' symbol (or inherits from it).  */
+/* Say whether SIGNAL is a `quit' error (or inherits from it).  */
 bool
-signal_quit_p (Lisp_Object signal)
+signal_quit_p (Lisp_Object error)
 {
+  Lisp_Object signal = CONSP (error) ? XCAR (error) : Qnil;
   Lisp_Object list;
 
   return EQ (signal, Qquit)
-    || (!NILP (Fsymbolp (signal))
+    || (SYMBOLP (signal)
 	&& CONSP (list = Fget (signal, Qerror_conditions))
 	&& !NILP (Fmemq (Qquit, list)));
 }
@@ -2079,27 +2092,23 @@ signal_quit_p (Lisp_Object signal)
     = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
       This is for memory-full errors only.  */
 static bool
-maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
+maybe_call_debugger (Lisp_Object conditions, Lisp_Object error)
 {
-  Lisp_Object combined_data;
-
-  combined_data = Fcons (sig, data);
-
   if (
       /* Don't try to run the debugger with interrupts blocked.
 	 The editing loop would return anyway.  */
       ! input_blocked_p ()
       && NILP (Vinhibit_debugger)
       /* Does user want to enter debugger for this kind of error?  */
-      && (signal_quit_p (sig)
+      && (signal_quit_p (error)
 	  ? debug_on_quit
 	  : wants_debugger (Vdebug_on_error, conditions))
-      && ! skip_debugger (conditions, combined_data)
+      && ! skip_debugger (conditions, error)
       /* See commentary on definition of
          `internal-when-entered-debugger'.  */
       && when_entered_debugger < num_nonmacro_input_events)
     {
-      call_debugger (list2 (Qerror, combined_data));
+      call_debugger (list2 (Qerror, error));
       return 1;
     }
 
@@ -2112,13 +2121,10 @@ find_handler_clause (Lisp_Object handlers, Lisp_Object conditions)
   register Lisp_Object h;
 
   /* t is used by handlers for all conditions, set up by C code.  */
-  if (EQ (handlers, Qt))
-    return Qt;
-
   /* error is used similarly, but means print an error message
      and run the debugger if that is enabled.  */
-  if (EQ (handlers, Qerror))
-    return Qt;
+  if (!CONSP (handlers))
+    return handlers;
 
   for (h = handlers; CONSP (h); h = XCDR (h))
     {
@@ -3088,6 +3094,35 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 }
 
 
+static Lisp_Object
+safe_eval_handler (Lisp_Object arg, ptrdiff_t nargs, Lisp_Object *args)
+{
+  add_to_log ("Error muted by safe_call: %S signaled %S",
+	      Flist (nargs, args), arg);
+  return Qnil;
+}
+
+Lisp_Object
+safe_funcall (ptrdiff_t nargs, Lisp_Object *args)
+{
+  specpdl_ref count = SPECPDL_INDEX ();
+  /* FIXME: This function started its life in 'xdisp.c' for use internally
+     by the redisplay.  So it was important to inhibit redisplay.
+     Not clear if we still need this 'specbind' now that 'xdisp.c' has its
+     own version of this code.  */
+  specbind (Qinhibit_redisplay, Qt);
+  /* Use Qt to ensure debugger does not run.  */
+  Lisp_Object val = internal_condition_case_n (Ffuncall, nargs, args, Qt,
+				               safe_eval_handler);
+  return unbind_to (count, val);
+}
+
+Lisp_Object
+safe_eval (Lisp_Object sexp)
+{
+  return safe_calln (Qeval, sexp, Qt);
+}
+
 /* Apply a C subroutine SUBR to the NUMARGS evaluated arguments in ARG_VECTOR
    and return the result of evaluation.  */
 
@@ -3098,21 +3133,21 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
   if (numargs >= subr->min_args)
     {
       /* Conforming call to finite-arity subr.  */
-      if (numargs <= subr->max_args
-	  && subr->max_args <= 8)
+      ptrdiff_t maxargs = subr->max_args;
+      if (numargs <= maxargs && maxargs <= 8)
 	{
 	  Lisp_Object argbuf[8];
 	  Lisp_Object *a;
-	  if (numargs < subr->max_args)
+	  if (numargs < maxargs)
 	    {
-	      eassume (subr->max_args <= ARRAYELTS (argbuf));
+	      eassume (maxargs <= ARRAYELTS (argbuf));
 	      a = argbuf;
 	      memcpy (a, args, numargs * word_size);
-	      memclear (a + numargs, (subr->max_args - numargs) * word_size);
+	      memclear (a + numargs, (maxargs - numargs) * word_size);
 	    }
 	  else
 	    a = args;
-	  switch (subr->max_args)
+	  switch (maxargs)
 	    {
 	    case 0:
 	      return subr->function.a0 ();
@@ -3134,14 +3169,12 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
 	    case 8:
 	      return subr->function.a8 (a[0], a[1], a[2], a[3], a[4], a[5],
 					a[6], a[7]);
-	    default:
-	      emacs_abort (); 	/* Can't happen. */
 	    }
+	  eassume (false);	/* In case the compiler is too stupid.  */
 	}
 
       /* Call to n-adic subr.  */
-      if (subr->max_args == MANY
-	  || subr->max_args > 8)
+      if (maxargs == MANY || maxargs > 8)
 	return subr->function.aMANY (numargs, args);
     }
 
@@ -3152,19 +3185,6 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
     xsignal1 (Qinvalid_function, fun);
   else
     xsignal2 (Qwrong_number_of_arguments, fun, make_fixnum (numargs));
-}
-
-/* Call the compiled Lisp function FUN.  If we have not yet read FUN's
-   bytecode string and constants vector, fetch them from the file first.  */
-
-static Lisp_Object
-fetch_and_exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
-			  ptrdiff_t nargs, Lisp_Object *args)
-{
-  if (CONSP (AREF (fun, COMPILED_BYTECODE)))
-    Ffetch_bytecode (fun);
-
-  return exec_byte_code (fun, args_template, nargs, args);
 }
 
 static Lisp_Object
@@ -3236,8 +3256,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	 ARGLIST slot value: pass the arguments to the byte-code
 	 engine directly.  */
       if (FIXNUMP (syms_left))
-	return fetch_and_exec_byte_code (fun, XFIXNUM (syms_left),
-					 nargs, arg_vector);
+	return exec_byte_code (fun, XFIXNUM (syms_left), nargs, arg_vector);
       /* Otherwise the bytecode object uses dynamic binding and the
 	 ARGLIST slot contains a standard formal argument list whose
 	 variables are bound dynamically below.  */
@@ -3325,7 +3344,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
       val = XSUBR (fun)->function.a0 ();
     }
   else
-    val = fetch_and_exec_byte_code (fun, 0, 0, NULL);
+    val = exec_byte_code (fun, 0, 0, NULL);
 
   return unbind_to (count, val);
 }
@@ -3443,46 +3462,6 @@ lambda_arity (Lisp_Object fun)
   return Fcons (make_fixnum (minargs), make_fixnum (maxargs));
 }
 
-DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
-       1, 1, 0,
-       doc: /* If byte-compiled OBJECT is lazy-loaded, fetch it now.  */)
-  (Lisp_Object object)
-{
-  Lisp_Object tem;
-
-  if (COMPILEDP (object))
-    {
-      if (CONSP (AREF (object, COMPILED_BYTECODE)))
-	{
-	  tem = read_doc_string (AREF (object, COMPILED_BYTECODE));
-	  if (! (CONSP (tem) && STRINGP (XCAR (tem))
-		 && VECTORP (XCDR (tem))))
-	    {
-	      tem = AREF (object, COMPILED_BYTECODE);
-	      if (CONSP (tem) && STRINGP (XCAR (tem)))
-		error ("Invalid byte code in %s", SDATA (XCAR (tem)));
-	      else
-		error ("Invalid byte code");
-	    }
-
-	  Lisp_Object bytecode = XCAR (tem);
-	  if (STRING_MULTIBYTE (bytecode))
-	    {
-	      /* BYTECODE must have been produced by Emacs 20.2 or earlier
-		 because it produced a raw 8-bit string for byte-code and now
-		 such a byte-code string is loaded as multibyte with raw 8-bit
-		 characters converted to multibyte form.  Convert them back to
-		 the original unibyte form.  */
-	      bytecode = Fstring_as_unibyte (bytecode);
-	    }
-
-	  pin_string (bytecode);
-	  ASET (object, COMPILED_BYTECODE, bytecode);
-	  ASET (object, COMPILED_CONSTANTS, XCDR (tem));
-	}
-    }
-  return object;
-}
 
 /* Return true if SYMBOL's default currently has a let-binding
    which was made in the buffer that is now current.  */
@@ -3871,9 +3850,17 @@ get_backtrace_starting_at (Lisp_Object base)
 
   if (!NILP (base))
     { /* Skip up to `base'.  */
+      int offset = 0;
+      if (CONSP (base) && FIXNUMP (XCAR (base)))
+        {
+          offset = XFIXNUM (XCAR (base));
+          base = XCDR (base);
+        }
       base = Findirect_function (base, Qt);
       while (backtrace_p (pdl)
              && !EQ (base, Findirect_function (backtrace_function (pdl), Qt)))
+        pdl = backtrace_next (pdl);
+      while (backtrace_p (pdl) && offset-- > 0)
         pdl = backtrace_next (pdl);
     }
 
@@ -3914,13 +3901,14 @@ backtrace_frame_apply (Lisp_Object function, union specbinding *pdl)
     }
 }
 
-DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 2, 0,
+DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 3, 0,
        doc: /* Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
+LEVEL and BASE specify the activation frame to use, as in `backtrace-frame'.
 The debugger is entered when that frame exits, if the flag is non-nil.  */)
-  (Lisp_Object level, Lisp_Object flag)
+  (Lisp_Object level, Lisp_Object flag, Lisp_Object base)
 {
   CHECK_FIXNUM (level);
-  union specbinding *pdl = get_backtrace_frame(level, Qnil);
+  union specbinding *pdl = get_backtrace_frame (level, base);
 
   if (backtrace_p (pdl))
     set_backtrace_debug_on_exit (pdl, !NILP (flag));
@@ -4273,23 +4261,18 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
     }
 }
 
+/* Fill ARRAY of size SIZE with backtrace entries, most recent call first.
+   Truncate the backtrace if longer than SIZE; pad with nil if shorter.  */
 void
-get_backtrace (Lisp_Object array)
+get_backtrace (Lisp_Object *array, ptrdiff_t size)
 {
-  union specbinding *pdl = backtrace_top ();
-  ptrdiff_t i = 0, asize = ASIZE (array);
-
   /* Copy the backtrace contents into working memory.  */
-  for (; i < asize; i++)
-    {
-      if (backtrace_p (pdl))
-	{
-	  ASET (array, i, backtrace_function (pdl));
-	  pdl = backtrace_next (pdl);
-	}
-      else
-	ASET (array, i, Qnil);
-    }
+  union specbinding *pdl = backtrace_top ();
+  ptrdiff_t i = 0;
+  for (; i < size && backtrace_p (pdl); i++, pdl = backtrace_next (pdl))
+    array[i] = backtrace_function (pdl);
+  for (; i < size; i++)
+    array[i] = Qnil;
 }
 
 Lisp_Object backtrace_top_function (void)
@@ -4309,6 +4292,13 @@ actual stack overflow in C, which would be fatal for Emacs.
 You can safely make it considerably larger than its default value,
 if that proves inconveniently small.  However, if you increase it too far,
 Emacs could overflow the real C stack, and crash.  */);
+  max_lisp_eval_depth = 1600;
+
+  DEFVAR_INT ("lisp-eval-depth-reserve", lisp_eval_depth_reserve,
+	      doc: /* Extra depth that can be allocated to handle errors.
+This is the max depth that the system will add to `max-lisp-eval-depth'
+when calling debuggers or `handler-bind' handlers.  */);
+  lisp_eval_depth_reserve = 200;
 
   DEFVAR_LISP ("quit-flag", Vquit_flag,
 	       doc: /* Non-nil causes `eval' to abort, unless `inhibit-quit' is non-nil.
@@ -4346,6 +4336,7 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (QCdocumentation, ":documentation");
   DEFSYM (Qdebug, "debug");
   DEFSYM (Qdebug_early, "debug-early");
+  DEFSYM (Qdebug_early__handler, "debug-early--handler");
 
   DEFVAR_LISP ("inhibit-debugger", Vinhibit_debugger,
 	       doc: /* Non-nil means never enter the debugger.
@@ -4404,11 +4395,14 @@ might not be safe to continue.  */);
   DEFSYM (Qdebugger, "debugger");
   DEFVAR_LISP ("debugger", Vdebugger,
 	       doc: /* Function to call to invoke debugger.
-If due to frame exit, args are `exit' and the value being returned;
+If due to frame exit, arguments are `exit' and the value being returned;
  this function's value will be returned instead of that.
-If due to error, args are `error' and a list of the args to `signal'.
-If due to `apply' or `funcall' entry, one arg, `lambda'.
-If due to `eval' entry, one arg, t.  */);
+If due to error, arguments are `error' and a list of arguments to `signal'.
+If due to `apply' or `funcall' entry, one argument, `lambda'.
+If due to `eval' entry, one argument, t.
+IF the desired entry point of the debugger is higher in the call stack,
+it can be specified with the keyword argument `:backtrace-base', whose
+format should be the same as the BASE argument of `backtrace-frame'.  */);
   Vdebugger = Qdebug_early;
 
   DEFVAR_LISP ("signal-hook-function", Vsignal_hook_function,
@@ -4521,6 +4515,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sthrow);
   defsubr (&Sunwind_protect);
   defsubr (&Scondition_case);
+  defsubr (&Shandler_bind_1);
   DEFSYM (QCsuccess, ":success");
   defsubr (&Ssignal);
   defsubr (&Scommandp);
@@ -4535,7 +4530,6 @@ alist of active lexical bindings.  */);
   defsubr (&Srun_hook_with_args_until_success);
   defsubr (&Srun_hook_with_args_until_failure);
   defsubr (&Srun_hook_wrapped);
-  defsubr (&Sfetch_bytecode);
   defsubr (&Sbacktrace_debug);
   DEFSYM (QCdebug_on_exit, ":debug-on-exit");
   defsubr (&Smapbacktrace);

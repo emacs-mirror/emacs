@@ -1,6 +1,6 @@
 ;;; eval-tests.el --- unit tests for src/eval.c      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -281,5 +281,73 @@ expressions works for identifiers starting with period."
   (defvaralias 'eval-tests--my-d 'eval-tests--my-a)
   (should-error (defvaralias 'eval-tests--my-c 'eval-tests--my-d)
                 :type 'cyclic-variable-indirection))
+
+(defvar eval-tests/global-var 'value)
+(defvar-local eval-tests/buffer-local-var 'value)
+(ert-deftest eval-tests/default-value ()
+  ;; `let' overrides the default value for global variables.
+  (should (default-boundp 'eval-tests/global-var))
+  (should (eq 'value (default-value 'eval-tests/global-var)))
+  (should (eq 'value eval-tests/global-var))
+  (let ((eval-tests/global-var 'bar))
+    (should (eq 'bar (default-value 'eval-tests/global-var)))
+    (should (eq 'bar eval-tests/global-var)))
+  ;; `let' overrides the default value everywhere, but leaves
+  ;; buffer-local values unchanged in current buffer and in the
+  ;; buffers where there is no explicitly set buffer-local value.
+  (should (default-boundp 'eval-tests/buffer-local-var))
+  (should (eq 'value (default-value 'eval-tests/buffer-local-var)))
+  (should (eq 'value eval-tests/buffer-local-var))
+  (with-temp-buffer
+    (let ((eval-tests/buffer-local-var 'bar))
+      (should (eq 'bar (default-value 'eval-tests/buffer-local-var)))
+      (should (eq 'bar eval-tests/buffer-local-var)))))
+
+(ert-deftest eval-tests--handler-bind ()
+  ;; A `handler-bind' has no effect if no error is signaled.
+  (should (equal (catch 'tag
+                   (handler-bind ((error (lambda (_err) (throw 'tag 'wow))))
+                     'noerror))
+                 'noerror))
+  ;; The handler is called from within the dynamic extent where the
+  ;; error is signaled, unlike `condition-case'.
+  (should (equal (catch 'tag
+                   (handler-bind ((error (lambda (_err) (throw 'tag 'err))))
+                     (list 'inner-catch
+                           (catch 'tag
+                             (user-error "hello")))))
+                 '(inner-catch err)))
+  ;; But inner condition handlers are temporarily muted.
+  (should (equal (condition-case nil
+                     (handler-bind
+                         ((error (lambda (_err)
+                                   (signal 'wrong-type-argument nil))))
+                       (list 'result
+                             (condition-case nil
+                                 (user-error "hello")
+                               (wrong-type-argument 'inner-handler))))
+                   (wrong-type-argument 'wrong-type-argument))
+                 'wrong-type-argument))
+  ;; Handlers do not apply to the code run within the handlers.
+  (should (equal (condition-case nil
+                     (handler-bind
+                         ((error (lambda (_err)
+                                   (signal 'wrong-type-argument nil)))
+                          (wrong-type-argument
+                           (lambda (_err) (user-error "wrong-type-argument"))))
+                       (user-error "hello"))
+                   (wrong-type-argument 'wrong-type-argument)
+                   (error 'plain-error))
+                 'wrong-type-argument)))
+
+(ert-deftest eval-tests--error-id ()
+  (let* (inner-error
+         (outer-error
+          (condition-case err
+              (handler-bind ((error (lambda (err) (setq inner-error err))))
+                (car 1))
+            (error err))))
+    (should (eq inner-error outer-error))))
+
 
 ;;; eval-tests.el ends here

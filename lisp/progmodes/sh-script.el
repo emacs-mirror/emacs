@@ -1,6 +1,7 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 1999, 2001-2024 Free Software Foundation,
+;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Old-Version: 2.0f
@@ -1053,7 +1054,8 @@ subshells can nest."
                     ;; a normal command rather than the real `in' keyword.
                     ;; I.e. we should look back to try and find the
                     ;; corresponding `case'.
-                    (and (looking-at ";\\(?:;&?\\|[&|]\\)\\|\\_<in")
+                    ;; Also recognize OpenBSD's case X { ... } (bug#55764).
+                    (and (looking-at ";\\(?:;&?\\|[&|]\\)\\|\\_<in\\|.{")
                          ;; ";; esac )" is a case that looks
                          ;; like a case-pattern but it's really just a close
                          ;; paren after a case statement.  I.e. if we skipped
@@ -2056,9 +2058,9 @@ May return nil if the line should not be treated as continued."
                              (sh-var-value 'sh-indent-for-case-label)))
     (`(:before . ,(or "(" "{" "[" "while" "if" "for" "case"))
      (cond
-      ((and (equal token "{") (smie-rule-parent-p "for"))
+      ((and (equal token "{") (smie-rule-parent-p "for" "case"))
        (let ((data (smie-backward-sexp "in")))
-         (when (equal (nth 2 data) "for")
+         (when (member (nth 2 data) '("for" "case"))
            `(column . ,(smie-indent-virtual)))))
       ((not (smie-rule-prev-p "&&" "||" "|"))
        (when (smie-rule-hanging-p)
@@ -2302,7 +2304,7 @@ Point should be before the newline."
 When used interactively, insert the proper starting #!-line,
 and make the visited file executable via `executable-set-magic',
 perhaps querying depending on the value of `executable-query'.
-(If given a prefix (i.e., `\\[universal-argument]') don't insert any starting #!
+(If given a prefix (i.e., \\[universal-argument]) don't insert any starting #!
 line.)
 
 When this function is called noninteractively, INSERT-FLAG (the third

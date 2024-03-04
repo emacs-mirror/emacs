@@ -1,6 +1,6 @@
 ;;; semantic/db-javascript.el --- Semantic database extensions for javascript  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
 ;; Author: Joakim Verona
 

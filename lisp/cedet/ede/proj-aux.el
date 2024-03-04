@@ -1,6 +1,6 @@
 ;;; ede/proj-aux.el --- EDE Generic Project auxiliary file support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2000, 2007, 2009-2023 Free Software Foundation,
+;; Copyright (C) 1998-2000, 2007, 2009-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999, 2001, 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2024 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -358,10 +358,6 @@ Use `url-http-referer' as the Referer-header (subject to `url-privacy-level')."
                   (url-port url-http-target-url))
                (format "Host: %s\r\n"
                        (url-http--encode-string (puny-encode-domain host))))
-             ;; Who its from
-             (if url-personal-mail-address
-                 (concat
-                  "From: " url-personal-mail-address "\r\n"))
              ;; Encodings we understand
              (if (or url-mime-encoding-string
 		     ;; MS-Windows loads zlib dynamically, so recheck

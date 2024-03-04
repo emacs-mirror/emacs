@@ -1,6 +1,6 @@
 ;;; calc-tests.el --- tests for calc                 -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
 
 ;; Author: Leo Liu <sdl.web@gmail.com>
 ;; Keywords: maint
@@ -734,6 +734,31 @@ An existing calc stack is reused, otherwise a new one is created."
                             (var c var-c))))))
     (calc-set-language nil)))
 
+(ert-deftest calc-frac-input ()
+  ;; precomposed fraction
+  (should (equal (math-read-expr "½")
+                 '(frac 1 2)))
+  ;; ascii solidus
+  (should (equal (math-read-expr "123/456")
+                 '(/ 123 456)))
+  (should (equal (math-read-expr "a/b")
+                 '(/ (var a var-a) (var b var-b))))
+  ;; fraction slash
+  (should (equal (math-read-expr "123⁄456")
+                 '(frac 41 152)))
+  (should (equal (math-read-expr "a⁄b")
+                 '(error 1 "Syntax error")))
+  ;; division slash
+  (should (equal (math-read-expr "123∕456")
+                 '(/ 123 456)))
+  (should (equal (math-read-expr "a∕b")
+                 '(/ (var a var-a) (var b var-b))))
+  ;; division sign
+  (should (equal (math-read-expr "123÷456")
+                 '(frac 41 152)))
+  (should (equal (math-read-expr "a÷b") ; I think this one is wrong
+                 '(error 1 "Syntax error"))))
+
 (defvar var-g)
 
 ;; Test `let'.
@@ -815,6 +840,44 @@ An existing calc stack is reused, otherwise a new one is created."
   (let* ((calc-display-working-message nil)
          (x (calc-tests--calc-to-number (math-pow 8 '(frac 1 6)))))
     (should (< (abs (- x (sqrt 2.0))) 1.0e-10))))
+
+(require 'calc-aent)
+
+(ert-deftest calc-math-read-preprocess-string ()
+  "Test replacement of allowed special Unicode symbols."
+  ;; ... doesn't change an empty string
+  (should (string= "" (math-read-preprocess-string "")))
+  ;; ... doesn't change a string without characters from
+  ;; ‘math-read-replacement-list’
+  (let ((str "don't replace here"))
+    (should (string= str (math-read-preprocess-string str))))
+  ;; ... replaces irrespective of position in input string
+  (should (string= "^(1)" (math-read-preprocess-string "¹")))
+  (should (string= "some^(1)" (math-read-preprocess-string "some¹")))
+  (should (string= "^(1)time" (math-read-preprocess-string "¹time")))
+  (should (string= "some^(1)else" (math-read-preprocess-string "some¹else")))
+  ;; ... replaces every element of ‘math-read-replacement-list’ correctly,
+  ;; in particular combining consecutive super-/subscripts into one
+  ;; exponent/subscript
+  (should (string= (concat "+/-*:-/*inf<=>=<=>=μ(1:4)(1:2)(3:4)(1:3)(2:3)"
+                           "(1:5)(2:5)(3:5)(4:5)(1:6)(5:6)"
+                           "(1:8)(3:8)(5:8)(7:8)1::^(0123456789+-()ni)"
+                           "_(0123456789+-())")
+                   (math-read-preprocess-string
+                    (mapconcat #'car math-read-replacement-list))))
+  ;; ... replaces strings of more than a single character correctly
+  (let ((math-read-replacement-list (append
+                                     math-read-replacement-list
+                                     '(("𝚤𝚥" "ij"))
+                                     '(("¼½" "(1:4)(1:2)")))))
+    (should (string= "(1:4)(1:2)ij"
+                     (math-read-preprocess-string "¼½𝚤𝚥"))))
+  ;; ... handles an empty replacement list gracefully
+  (let ((math-read-replacement-list '()))
+    (should (string= "¼" (math-read-preprocess-string "¼"))))
+  ;; ... signals an error if the argument is not a string
+  (should-error (math-read-preprocess-string nil))
+  (should-error (math-read-preprocess-string 42)))
 
 (provide 'calc-tests)
 ;;; calc-tests.el ends here

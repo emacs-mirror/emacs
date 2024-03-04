@@ -1,6 +1,6 @@
 /* Low-level bidirectional buffer/string-scanning functions for GNU Emacs.
 
-Copyright (C) 2000-2001, 2004-2005, 2009-2023 Free Software Foundation,
+Copyright (C) 2000-2001, 2004-2005, 2009-2024 Free Software Foundation,
 Inc.
 
 Author: Eli Zaretskii <eliz@gnu.org>
@@ -420,7 +420,7 @@ bidi_paired_bracket_type (int c)
 static void
 bidi_set_sos_type (struct bidi_it *bidi_it, int level_before, int level_after)
 {
-  int higher_level = (level_before > level_after ? level_before : level_after);
+  int higher_level = max (level_before, level_after);
 
   /* FIXME: should the default sos direction be user selectable?  */
   bidi_it->sos = ((higher_level & 1) != 0 ? R2L : L2R); /* X10 */

@@ -1,6 +1,6 @@
 ;;; pcmpl-git.el --- Completions for Git -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -88,7 +88,7 @@ Files listed by `git ls-files ARGS' satisfy the predicate."
                  (pcomplete-entries
                   nil (pcmpl-git--tracked-file-predicate "-m"))))
                ;; Complete all tracked files
-               ((or "mv" "rm" "grep" "status")
+               ((or "mv" "rm" "grep" "status" "blame")
                 (pcomplete-here
                  (pcomplete-entries nil (pcmpl-git--tracked-file-predicate))))
                ;; Complete revisions

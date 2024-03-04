@@ -1,6 +1,6 @@
 ;;; ob-processing.el --- Babel functions for processing -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Jarmo Hurri (adapted from ob-asymptote.el written by Eric Schulte)
 ;; Maintainer: Jarmo Hurri <jarmo.hurri@iki.fi>

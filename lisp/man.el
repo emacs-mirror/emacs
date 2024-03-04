@@ -1,6 +1,6 @@
 ;;; man.el --- browse UNIX manual pages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2001-2023 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
@@ -579,7 +579,7 @@ Otherwise, the value is whatever the function
 (defun Man-shell-file-name ()
   "Return a proper shell file name, respecting remote directories."
   (or ; This works also in the local case.
-      (with-connection-local-variables shell-file-name)
+      (connection-local-value shell-file-name)
       "/bin/sh"))
 
 (defun Man-header-file-path ()
@@ -761,7 +761,11 @@ and the `Man-section-translations-alist' variables)."
       (setq name (match-string 2 ref)
 	    section (match-string 1 ref))))
     (if (string= name "")
-	ref				; Return the reference as is
+        ;; see Bug#66390
+	(mapconcat 'identity
+                   (mapcar #'shell-quote-argument
+                           (split-string ref "\\s-+"))
+                   " ")                 ; Return the reference as is
       (if Man-downcase-section-letters-flag
 	  (setq section (downcase section)))
       (while slist

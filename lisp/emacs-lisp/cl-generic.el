@@ -1,6 +1,6 @@
 ;;; cl-generic.el --- CLOS-style generic functions for Elisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.0
@@ -684,7 +684,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
   ;; compiled.  Otherwise the byte-compiler and all the code on
   ;; which it depends needs to be usable before cl-generic is loaded,
   ;; which imposes a significant burden on the bootstrap.
-  (if (consp (lambda (x) (+ x 1)))
+  (if (not (compiled-function-p (lambda (x) (+ x 1))))
       (lambda (exp) (eval exp t))
     ;; But do byte-compile the dispatchers once bootstrap is passed:
     ;; the performance difference is substantial (like a 5x speedup on

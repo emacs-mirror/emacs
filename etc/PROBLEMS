@@ -1,6 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2023 Free Software Foundation,
+Copyright (C) 1987-1989, 1993-1999, 2001-2024 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -530,9 +530,10 @@ The solution is to use gawk (GNU awk).
 *** Saving a file encrypted with GnuPG via EasyPG hangs.
 
 This is known to happen with GnuPG v2.4.1.  The only known workaround
-is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
-future, upgrade to a newer version which solves the problem, when such
-a fixed version becomes available).
+is to downgrade to a version of GnuPG older than 2.4.1, or upgrade to
+version 2.4.4 and newer, which reportedly solves the problem.  Note
+that GnuPG v2.2.42 and later also has this problem, so you should also
+avoid those later 2.2.4x versions; v2.2.41 is reported to work fine.
 
 *** EasyPG loopback pinentry does not work with gpgsm.
 
@@ -2014,7 +2015,7 @@ remote X server, try this:
 
 *** Dropping text on xterm doesn't work.
 
-Emacs sends sythetic button events to legacy clients such as xterm
+Emacs sends synthetic button events to legacy clients such as xterm
 that do not support either the XDND or Motif drag-and-drop protocols
 in order to "paste" the text that was dropped.  Unfortunately, xterm
 is configured to ignore these events by default.  Add the following to
@@ -3404,26 +3405,22 @@ this and many other problems do not exist on the regular X builds.
 
 ** Text displayed in the default monospace font looks horrible.
 
-Droid Sans Mono (the default Monospace font which comes with Android)
-incorporates instruction code designed for Microsoft's proprietary
-TrueType font scaler.  When this code is executed by Emacs to instruct
-a glyph containing more than one component, it tries to address
-"reference points" which are set to the values of two extra "phantom
-points" in the glyph, that are a proprietary extension of the MS font
-scaler.
+TrueType fonts incorporate instruction code executed by the font
+scaler (the component responsible for transforming outlines into
+bitmap images capable of being displayed onscreen) to align features
+of each glyph to pixel boundaries while maintaining their shape, in
+order to alleviate visual imperfections produced by scaling.  The
+substandard instruction code provided by the Android "Droid Sans Mono"
+font misplaces features of glyphs containing, as components, "E" and
+"F", between PPEM sizes of 16 and 24, resulting in noticeable
+whitespace inconsistencies with other glyphs.  Furthermore, the
+vertical stem in the glyph "T" is positioned too far to the left at
+PPEM sizes of 12.
 
-Emacs does not support these extensions, and as a result characters
-such as
-
-  ĥ
-
-display incorrectly, with the right most edge of the `h' component
-stretched very far out to the right, on some low density displays.
-
-The solution is to replace the MS-specific hinting code in Droid Sans
-Mono with automatically generated code from the FreeType project's
-"ttfautohint" program.  First, extract
-'/system/fonts/DroidSansMono.ttf' from your device:
+The remedy for this is to replace the instruction code with
+automatically generated code from the FreeType project's "ttfautohint"
+program.  First, extract '/system/fonts/DroidSansMono.ttf' from your
+device:
 
   $ adb pull /system/fonts/DroidSansMono.ttf
   /system/fonts/DroidSansMono.ttf: 1 file pulled, 0 skipped.
@@ -3446,85 +3443,18 @@ allowed by free versions of Android, such as Replicant):
 
 or to the user fonts directory described in the "Android Fonts" node
 of the Emacs manual.  You may want to perform this procedure even if
-you are not seeing problems with character display, as the
-automatically generated instructions result in superior display
-results that are easier to read.
-
-We have been told that the default Sans font under Android 2.3.7,
-named "Droid Sans", also exhibits this problem.  The procedure for
-repairing the font is identical to the procedure outlined above,
-albeit with "DroidSansMono" replaced by simply "DroidSans".
-
-** The "Anonymous Pro" font displays incorrectly.
-
-Glyph instruction code within the Anonymous Pro font relies on
-undocumented features of the Microsoft TrueType font scaler, namely
-that the scaler always resets the "projection" and "freedom" vector
-interpreter control registers after the execution of the font
-pre-program, which sets them to a value that is perpendicular to the
-horizontal plane of movement.
-
-Since Emacs does not provide this "feature", various points inside
-glyphs are moved vertically rather than horizontally when a glyph
-program later executes an instruction such as "MIRP" (Move Indirect
-Relative Point) that moves and measures points along the axis
-specified by those registers.
-
-This can be remedied in two ways; the first (and the easiest) is to
-replace its instruction code with that supplied by "ttfautohint", as
-depicted above.  The second is to patch the instruction code inside
-the font itself, using the "ttx" utility:
-
-  https://fonttools.readthedocs.io/en/latest/ttx.html
-
-First, convert the font to its XML representation:
-
-  $ ttx Anonymous_Pro.ttf
-
-then, find the end of the section labeled 'prep':
-
-  <prep>
-    <assembly>
-      [...]
-      ROUND[01]	/* Round */
-      RTG[ ]	/* RoundToGrid */
-      WCVTP[ ]	/* WriteCVTInPixels */
-    </assembly>
-  </prep>
-
-and insert the following instruction immediately before the closing
-'/assembly' tag, so as to reset the interpreter control registers back
-to their default values prior to the completion of the pre-program:
-
-     SVTCA[1]  /* Set Vector registers to Control Axis X */
-
-Then, reassemble the font from the modified XML:
-
-  $ ttx Anonymous_Pro.ttx
-
-which should produce a modified font by the name of
-Anonymous_Pro#1.ttf.
-
-** The "IBM Plex Mono" font displays incorrectly.
-
-This problem is precipitated by an attempt to exploit the undocumented
-feature of the MS font scaler explicated within the previous heading.
-
-Its remedy is also unsurprisingly alike the fix described there: both
-patching the preprogram to reset the point movement vectors and
-replacing the instruction code with code generated by "ttfautohint"
-will adequately resolve the problem.
+you are not experiencing problems with character display, as the
+automatically generated instructions result in more legible text.
 
 ** Glyphs are missing within the "Arial" font or it does not load.
 
-On account of its origins at Microsoft, instruction code included
-within this font is awash with references to behavior specific to the
-MS scaler.  It is incorrigibly broken, to a degree that even
-"ttfautohint" cannot repair; your only recourse is to select some
-other font.
-
-This issue may extend beyond Arial to encompass a larger selection of
-fonts designed by Microsoft.
+Old versions of this font included instruction code that assumed a
+degree of latitude from the Microsoft font scaler, which grants fonts
+leave to address nonexistent points without aborting the scaling
+process, among other invalid TrueType operations.  This issue may
+extend beyond Arial to encompass a larger selection of old fonts
+designed by Microsoft or Monotype; most of the time, installing newer
+versions of such fonts will suffice.
 
 ** Some TrueType test fonts don't work.
 
@@ -3539,7 +3469,7 @@ The Microsoft scaler and FreeType promptly disregard such points.
 
 Nothing in the TrueType specifications implies that points "hidden" in
 this fashion should be afforded any special treatment, and thus Emacs
-eschews doing so.  Consequentially, black streaks are displayed as
+eschews doing so.  Consequently, black streaks are displayed as
 Emacs interpolates glyph edges between points within the glyph and
 points the test font attempts to hide.
 
@@ -3552,9 +3482,9 @@ Executing instruction code is not a strict requirement for producing
 correct display results from most current fonts.  If a font's
 instruction code produces results that are merely unpleasing, but not
 incorrect, then the font was presumably not designed for Emacs's
-scaler.  If its uninstructed glyphs are satisfactory (such as if your
-screen resolution is high to the extent that scaling artifacts prove
-invisible), disable instruction code execution by appending its family
+scaler.  If its uninstructed glyphs are satisfactory (such as when
+your screen resolution is high enough to ameliorate scaling
+artifacts), disable instruction code execution by appending its family
 name to the variable 'sfnt-uninstructable-font-regexp', then
 restarting Emacs.
 

@@ -1,6 +1,6 @@
 /* Android initialization for GNU Emacs.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -309,7 +309,7 @@ extern struct timespec emacs_installation_time;
 
 #define ANDROID_DELETE_LOCAL_REF(ref)				\
   ((*android_java_env)->DeleteLocalRef (android_java_env,	\
-					(ref)))
+					ref))
 
 #define NATIVE_NAME(name) Java_org_gnu_emacs_EmacsNative_##name
 

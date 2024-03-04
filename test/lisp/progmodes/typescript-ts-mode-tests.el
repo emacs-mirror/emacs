@@ -1,6 +1,6 @@
 ;;; typescript-ts-mode-tests.el --- Tests for Tree-sitter-based TypeScript mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,7 +24,8 @@
 (require 'treesit)
 
 (ert-deftest typescript-ts-mode-test-indentation ()
-  (skip-unless (treesit-ready-p 'typescript))
+  (skip-unless (and (treesit-ready-p 'typescript)
+                    (treesit-ready-p 'tsx)))
   (ert-test-erts-file (ert-resource-file "indent.erts")))
 
 (provide 'typescript-ts-mode-tests)

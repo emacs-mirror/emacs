@@ -1,6 +1,6 @@
 /* Lisp object printing and output streams.
 
-Copyright (C) 1985-2023 Free Software Foundation, Inc.
+Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -87,7 +87,7 @@ static struct print_buffer print_buffer;
    print_number_index holds the largest N already used.
    N has to be strictly larger than 0 since we need to distinguish -N.  */
 static ptrdiff_t print_number_index;
-static void print_interval (INTERVAL interval, Lisp_Object printcharfun);
+static void print_interval (INTERVAL interval, void *pprintcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
 bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
@@ -1094,7 +1094,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 	  /* `substitute-command-keys' may bug out, which would lead
 	     to infinite recursion when we're called from
 	     skip_debugger, so ignore errors.  */
-	  Lisp_Object subs = safe_call1 (Qsubstitute_command_keys, errmsg);
+	  Lisp_Object subs = safe_calln (Qsubstitute_command_keys, errmsg);
 	  if (!NILP (subs))
 	    errmsg = subs;
 	}
@@ -1285,15 +1285,9 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	{ /* Remove unnecessary objects, which appear only once in OBJ;
 	     that is, whose status is Qt.  */
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (Vprint_number_table);
-	  ptrdiff_t i;
-
-	  for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
-            {
-              Lisp_Object key =  HASH_KEY (h, i);
-	      if (!BASE_EQ (key, Qunbound)
-		  && EQ (HASH_VALUE (h, i), Qt))
-	        Fremhash (key, Vprint_number_table);
-            }
+	  DOHASH (h, k, v)
+	    if (EQ (v, Qt))
+	      Fremhash (k, Vprint_number_table);
 	}
     }
 
@@ -1397,6 +1391,9 @@ static void
 print_preprocess (Lisp_Object obj)
 {
   eassert (!NILP (Vprint_circle));
+  /* The ppstack may contain HASH_UNUSED_ENTRY_KEY which is an invalid
+     Lisp value.  Make sure that our filter stops us from traversing it.  */
+  eassert (!PRINT_CIRCLE_CANDIDATE_P (HASH_UNUSED_ENTRY_KEY));
   ptrdiff_t base_sp = ppstack.sp;
 
   for (;;)
@@ -1415,7 +1412,7 @@ print_preprocess (Lisp_Object obj)
 		  && SYMBOLP (obj)
 		  && !SYMBOL_INTERNED_P (obj)))
 	    { /* OBJ appears more than once.  Let's remember that.  */
-	      if (!FIXNUMP (num))
+	      if (SYMBOLP (num)) /* In practice, nil or t.  */
 		{
 		  print_number_index++;
 		  /* Negative number indicates it hasn't been printed yet.  */
@@ -1455,8 +1452,10 @@ print_preprocess (Lisp_Object obj)
 		    if (HASH_TABLE_P (obj))
 		      {
 			struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
-			obj = h->key_and_value;
-			continue;
+			/* The values pushed here may include
+			   HASH_UNUSED_ENTRY_KEY; see top of this function.  */
+			pp_stack_push_values (h->key_and_value,
+					      2 * h->table_size);
 		      }
 		    break;
 		  }
@@ -1493,8 +1492,6 @@ print_preprocess_string (INTERVAL interval, void *arg)
   print_preprocess (interval->plist);
 }
 
-static void print_check_string_charset_prop (INTERVAL interval, Lisp_Object string);
-
 #define PRINT_STRING_NON_CHARSET_FOUND 1
 #define PRINT_STRING_UNSAFE_CHARSET_FOUND 2
 
@@ -1502,7 +1499,7 @@ static void print_check_string_charset_prop (INTERVAL interval, Lisp_Object stri
 static int print_check_string_result;
 
 static void
-print_check_string_charset_prop (INTERVAL interval, Lisp_Object string)
+print_check_string_charset_prop (INTERVAL interval, void *pstring)
 {
   Lisp_Object val;
 
@@ -1526,6 +1523,7 @@ print_check_string_charset_prop (INTERVAL interval, Lisp_Object string)
   if (! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
     {
       ptrdiff_t charpos = interval->position;
+      Lisp_Object string = *(Lisp_Object *)pstring;
       ptrdiff_t bytepos = string_char_to_byte (string, charpos);
       Lisp_Object charset = XCAR (XCDR (val));
 
@@ -1550,7 +1548,7 @@ print_prune_string_charset (Lisp_Object string)
 {
   print_check_string_result = 0;
   traverse_intervals (string_intervals (string), 0,
-		      print_check_string_charset_prop, string);
+		      print_check_string_charset_prop, &string);
   if (NILP (Vprint_charset_text_property)
       || ! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
     {
@@ -1618,7 +1616,7 @@ print_bool_vector (Lisp_Object obj, Lisp_Object printcharfun)
   ptrdiff_t real_size_in_bytes = size_in_bytes;
   unsigned char *data = bool_vector_uchar_data (obj);
 
-  char buf[sizeof "#&" + INT_STRLEN_BOUND (ptrdiff_t)];
+  char buf[sizeof "#&\"" + INT_STRLEN_BOUND (ptrdiff_t)];
   int len = sprintf (buf, "#&%"pI"d\"", size);
   strout (buf, len, len, printcharfun);
 
@@ -2267,6 +2265,11 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	      goto next_obj;
 	    }
 	}
+      else if (STRINGP (num))
+	{
+	  strout (SSDATA (num), SCHARS (num), SBYTES (num), printcharfun);
+	  goto next_obj;
+	}
     }
 
   print_depth++;
@@ -2401,8 +2404,9 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
 	  if (string_intervals (obj))
 	    {
+	      Lisp_Object pcf = printcharfun;
 	      traverse_intervals (string_intervals (obj),
-				  0, print_interval, printcharfun);
+				  0, print_interval, &pcf);
 	      printchar (')', printcharfun);
 	    }
 	}
@@ -2555,11 +2559,6 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  goto next_obj;
 	case PVEC_SUB_CHAR_TABLE:
 	  {
-	    /* Make each lowest sub_char_table start a new line.
-	       Otherwise we'll make a line extremely long, which
-	       results in slow redisplay.  */
-	    if (XSUB_CHAR_TABLE (obj)->depth == 3)
-	      printchar ('\n', printcharfun);
 	    print_c_string ("#^^[", printcharfun);
 	    int n = sprintf (buf, "%d %d",
 			     XSUB_CHAR_TABLE (obj)->depth,
@@ -2574,50 +2573,49 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  {
 	    struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
 	    /* Implement a readable output, e.g.:
-	       #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
-	    /* Always print the size.  */
-	    int len = sprintf (buf, "#s(hash-table size %"pD"d",
-			       HASH_TABLE_SIZE (h));
-	    strout (buf, len, len, printcharfun);
+	       #s(hash-table test equal data (k1 v1 k2 v2)) */
+	    print_c_string ("#s(hash-table", printcharfun);
 
-	    if (!NILP (h->test.name))
+	    if (!BASE_EQ (h->test->name, Qeql))
 	      {
 		print_c_string (" test ", printcharfun);
-		print_object (h->test.name, printcharfun, escapeflag);
+		print_object (h->test->name, printcharfun, escapeflag);
 	      }
 
-	    if (!NILP (h->weak))
+	    if (h->weakness != Weak_None)
 	      {
 		print_c_string (" weakness ", printcharfun);
-		print_object (h->weak, printcharfun, escapeflag);
+		print_object (hash_table_weakness_symbol (h->weakness),
+			      printcharfun, escapeflag);
 	      }
-
-	    print_c_string (" rehash-size ", printcharfun);
-	    print_object (Fhash_table_rehash_size (obj),
-			  printcharfun, escapeflag);
-
-	    print_c_string (" rehash-threshold ", printcharfun);
-	    print_object (Fhash_table_rehash_threshold (obj),
-			  printcharfun, escapeflag);
 
 	    if (h->purecopy)
 	      print_c_string (" purecopy t", printcharfun);
 
-	    print_c_string (" data (", printcharfun);
-
 	    ptrdiff_t size = h->count;
-	    /* Don't print more elements than the specified maximum.  */
-	    if (FIXNATP (Vprint_length) && XFIXNAT (Vprint_length) < size)
-	      size = XFIXNAT (Vprint_length);
+	    if (size > 0)
+	      {
+		print_c_string (" data (", printcharfun);
 
-	    print_stack_push ((struct print_stack_entry){
-		.type = PE_hash,
-		.u.hash.obj = obj,
-		.u.hash.nobjs = size * 2,
-		.u.hash.idx = 0,
-		.u.hash.printed = 0,
-		.u.hash.truncated = (size < h->count),
-	      });
+		/* Don't print more elements than the specified maximum.  */
+		if (FIXNATP (Vprint_length) && XFIXNAT (Vprint_length) < size)
+		  size = XFIXNAT (Vprint_length);
+
+		print_stack_push ((struct print_stack_entry){
+		    .type = PE_hash,
+		    .u.hash.obj = obj,
+		    .u.hash.nobjs = size * 2,
+		    .u.hash.idx = 0,
+		    .u.hash.printed = 0,
+		    .u.hash.truncated = (size < h->count),
+		  });
+	      }
+	    else
+	      {
+		/* Empty table: we can omit the data entirely.  */
+		printchar (')', printcharfun);
+		--print_depth;   /* Done with this.  */
+	      }
 	    goto next_obj;
 	  }
 
@@ -2666,7 +2664,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		    /* With the print-circle feature.  */
 		    Lisp_Object num = Fgethash (next, Vprint_number_table,
 						Qnil);
-		    if (FIXNUMP (num))
+		    if (!(NILP (num) || EQ (num, Qt)))
 		      {
 			print_c_string (" . ", printcharfun);
 			obj = next;
@@ -2770,7 +2768,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	    {
 	      Lisp_Object key;
 	      ptrdiff_t idx = e->u.hash.idx;
-	      while (BASE_EQ ((key = HASH_KEY (h, idx)), Qunbound))
+	      while (hash_unused_entry_key_p ((key = HASH_KEY (h, idx))))
 		idx++;
 	      e->u.hash.idx = idx;
 	      obj = key;
@@ -2793,10 +2791,11 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
    This is part of printing a string that has text properties.  */
 
 static void
-print_interval (INTERVAL interval, Lisp_Object printcharfun)
+print_interval (INTERVAL interval, void *pprintcharfun)
 {
   if (NILP (interval->plist))
     return;
+  Lisp_Object printcharfun = *(Lisp_Object *)pprintcharfun;
   printchar (' ', printcharfun);
   print_object (make_fixnum (interval->position), printcharfun, 1);
   printchar (' ', printcharfun);
@@ -2929,7 +2928,10 @@ This variable should not be set with `setq'; bind it with a `let' instead.  */);
   DEFVAR_LISP ("print-number-table", Vprint_number_table,
 	       doc: /* A vector used internally to produce `#N=' labels and `#N#' references.
 The Lisp printer uses this vector to detect Lisp objects referenced more
-than once.
+than once.  If an entry contains a number, then the corresponding key is
+referenced more than once: a positive sign indicates that it's already been
+printed, and the absolute value indicates the number to use when printing.
+If an entry contains a string, that string is printed instead.
 
 When you bind `print-continuous-numbering' to t, you should probably
 also bind `print-number-table' to nil.  This ensures that the value of

@@ -1,6 +1,6 @@
 ;;; spam-wash.el --- wash spam before analysis  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Andrew Cohen <cohen@andy.bu.edu>
 ;; Keywords: mail

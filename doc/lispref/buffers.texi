@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Buffers
@@ -959,7 +959,7 @@ infinite recursion.
 
 @defun buffer-match-p condition buffer-or-name &rest args
 This function checks if a buffer designated by @code{buffer-or-name}
-satisfies the specified @code{condition}.  Optional arguments
+satisfies the specified @var{condition}.  Optional arguments
 @var{args} are passed to the predicate function in @var{condition}.  A
 valid @var{condition} can be one of the following:
 @itemize @bullet{}
@@ -985,10 +985,15 @@ Satisfied if @emph{any} condition in @var{conds} satisfies
 Satisfied if @emph{all} the conditions in @var{conds} satisfy
 @code{buffer-match-p}, with the same buffer and @code{args}.
 @item derived-mode
-Satisfied if the buffer's major mode derives from @var{expr}.
+Satisfied if the buffer's major mode derives from @var{expr}.  Note
+that this condition might fail to report a match if
+@code{buffer-match-p} is invoked before the major mode of the buffer
+has been established.
 @item major-mode
 Satisfied if the buffer's major mode is equal to @var{expr}.  Prefer
-using @code{derived-mode} instead, when both can work.
+using @code{derived-mode} instead, when both can work.  Note that this
+condition might fail to report a match if @code{buffer-match-p} is
+invoked before the major mode of the buffer has been established.
 @end table
 @item t
 Satisfied by any buffer.  A convenient alternative to @code{""} (empty
@@ -998,7 +1003,7 @@ string) or @code{(and)} (empty conjunction).
 
 @defun match-buffers condition &optional buffer-list &rest args
 This function returns a list of all buffers that satisfy the
-@code{condition}.  If no buffers match, the function returns
+@var{condition}.  If no buffers match, the function returns
 @code{nil}.  The argument @var{condition} is as defined in
 @code{buffer-match-p} above.  By default, all the buffers are
 considered, but this can be restricted via the optional argument

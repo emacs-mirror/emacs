@@ -1,6 +1,6 @@
 ;;; erc-scenarios-match.el --- Misc `erc-match' scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -191,7 +191,7 @@
            (should (= (next-single-property-change msg-end 'invisible) end)))))
 
      (lambda ()
-       (let ((end (erc--get-inserted-msg-bounds 'end)))
+       (let ((end (erc--get-inserted-msg-end (point))))
          ;; This message has a time stamp like all the others.
          (should (eq (field-at-pos (1- end)) 'erc-timestamp))
 
@@ -304,9 +304,9 @@
                (should (= mend (field-end right-stamp)))
                (should (eq (field-at-pos (1- mend)) 'erc-timestamp))))
 
-           ;; The `erc-ts' property is present in prop stack.
-           (should (get-text-property (pos-bol) 'erc-ts))
-           (should-not (next-single-property-change (1+ (pos-bol)) 'erc-ts))
+           ;; The `erc--ts' property is present in prop stack.
+           (should (get-text-property (pos-bol) 'erc--ts))
+           (should-not (next-single-property-change (1+ (pos-bol)) 'erc--ts))
 
            ;; Line ending has the `invisible' property `match-fools'.
            (should (eq (get-text-property mbeg 'invisible) 'match-fools))
@@ -413,7 +413,7 @@
         (should-not (equal "" (get-text-property (pos-bol) 'display)))
 
         ;; No remaining meta-data positions, no more timestamps.
-        (should-not (next-single-property-change (1+ (pos-bol)) 'erc-ts))
+        (should-not (next-single-property-change (1+ (pos-bol)) 'erc--ts))
         ;; No remaining invisible messages.
         (should-not (text-property-not-all (pos-bol) erc-insert-marker
                                            'invisible nil))
@@ -456,10 +456,10 @@
              (should (eq (field-at-pos (field-end mbeg)) 'erc-timestamp))
              (should (eq (field-at-pos (1- mend)) 'erc-timestamp)))
 
-           ;; The `erc-ts' property is present in the message's
+           ;; The `erc--ts' property is present in the message's
            ;; width 1 prop collection at its first char.
-           (should (get-text-property (pos-bol) 'erc-ts))
-           (should-not (next-single-property-change (1+ (pos-bol)) 'erc-ts))
+           (should (get-text-property (pos-bol) 'erc--ts))
+           (should-not (next-single-property-change (1+ (pos-bol)) 'erc--ts))
 
            ;; Line ending has the `invisible' property `match-fools'.
            (should (= (char-after mend) ?\n))

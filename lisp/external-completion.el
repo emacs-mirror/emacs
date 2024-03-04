@@ -1,6 +1,6 @@
 ;;; external-completion.el --- Let external tools control completion style  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 ;; Version: 0.1
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>

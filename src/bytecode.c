@@ -1,5 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985-1988, 1993, 2000-2023 Free Software Foundation,
+   Copyright (C) 1985-1988, 1993, 2000-2024 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -625,9 +625,10 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	varref:
 	  {
 	    Lisp_Object v1 = vectorp[op], v2;
-	    if (!SYMBOLP (v1)
-		|| XSYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
-		|| (v2 = SYMBOL_VAL (XSYMBOL (v1)), BASE_EQ (v2, Qunbound)))
+	    if (!BARE_SYMBOL_P (v1)
+		|| XBARE_SYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
+		|| (v2 = XBARE_SYMBOL (v1)->u.s.val.value,
+		    BASE_EQ (v2, Qunbound)))
 	      v2 = Fsymbol_value (v1);
 	    PUSH (v2);
 	    NEXT;
@@ -699,11 +700,11 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object val = POP;
 
 	    /* Inline the most common case.  */
-	    if (SYMBOLP (sym)
+	    if (BARE_SYMBOL_P (sym)
 		&& !BASE_EQ (val, Qunbound)
-		&& XSYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL
-		&& !SYMBOL_TRAPPED_WRITE_P (sym))
-	      SET_SYMBOL_VAL (XSYMBOL (sym), val);
+		&& XBARE_SYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL
+		&& !XBARE_SYMBOL (sym)->u.s.trapped_write)
+	      SET_SYMBOL_VAL (XBARE_SYMBOL (sym), val);
 	    else
               set_internal (sym, val, Qnil, SET_INTERNAL_SET);
 	  }
@@ -790,24 +791,22 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	      do_debug_on_call (Qlambda, count1);
 
 	    Lisp_Object original_fun = call_fun;
-	    if (SYMBOLP (call_fun))
-	      call_fun = XSYMBOL (call_fun)->u.s.function;
-	    Lisp_Object template;
-	    Lisp_Object bytecode;
-	    if (COMPILEDP (call_fun)
-		/* Lexical binding only.  */
-		&& (template = AREF (call_fun, COMPILED_ARGLIST),
-		    FIXNUMP (template))
-		/* No autoloads.  */
-		&& (bytecode = AREF (call_fun, COMPILED_BYTECODE),
-		    !CONSP (bytecode)))
+	    /* Calls to symbols-with-pos don't need to be on the fast path.  */
+	    if (BARE_SYMBOL_P (call_fun))
+	      call_fun = XBARE_SYMBOL (call_fun)->u.s.function;
+	    if (COMPILEDP (call_fun))
 	      {
-		fun = call_fun;
-		bytestr = bytecode;
-		args_template = XFIXNUM (template);
-		nargs = call_nargs;
-		args = call_args;
-		goto setup_frame;
+		Lisp_Object template = AREF (call_fun, COMPILED_ARGLIST);
+		if (FIXNUMP (template))
+		  {
+		    /* Fast path for lexbound functions.  */
+		    fun = call_fun;
+		    bytestr = AREF (call_fun, COMPILED_BYTECODE),
+		    args_template = XFIXNUM (template);
+		    nargs = call_nargs;
+		    args = call_args;
+		    goto setup_frame;
+		  }
 	      }
 
 	    Lisp_Object val;
@@ -1743,7 +1742,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 
             /* h->count is a faster approximation for HASH_TABLE_SIZE (h)
                here. */
-            if (h->count <= 5 && !h->test.cmpfn)
+            if (h->count <= 5 && !h->test->cmpfn)
               { /* Do a linear search if there are not many cases
                    FIXME: 5 is arbitrarily chosen.  */
 		for (i = h->count; 0 <= --i; )
@@ -1751,7 +1750,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		    break;
               }
             else
-              i = hash_lookup (h, v1, NULL);
+              i = hash_lookup (h, v1);
 
 	    if (i >= 0)
 	      {

@@ -1,6 +1,6 @@
 ;;; em-dirs-tests.el --- em-dirs test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -33,6 +33,9 @@
                            (file-name-directory (or load-file-name
                                                     default-directory))))
 ;;; Tests:
+
+
+;; Variables
 
 (ert-deftest em-dirs-test/pwd-var ()
   "Test using the $PWD variable."
@@ -98,6 +101,25 @@
                                   "some\n")
      (eshell-match-command-output "echo $-[1][/ 1 3]"
                                   "(\"some\" \"here\")\n"))))
+
+
+;; Argument expansion
+
+(ert-deftest em-dirs-test/expand-user-reference/local ()
+  "Test expansion of \"~USER\" references."
+  (eshell-command-result-equal "echo ~" (expand-file-name "~"))
+  (eshell-command-result-equal
+   (format "echo ~%s" user-login-name)
+   (expand-file-name (format "~%s" user-login-name))))
+
+(ert-deftest em-dirs-test/expand-user-reference/quoted ()
+  "Test that a quoted \"~\" isn't expanded."
+  (eshell-command-result-equal "echo \\~" "~")
+  (eshell-command-result-equal "echo \"~\"" "~")
+  (eshell-command-result-equal "echo '~'" "~"))
+
+
+;; `cd'
 
 (ert-deftest em-dirs-test/cd ()
   "Test that changing directories with `cd' works."

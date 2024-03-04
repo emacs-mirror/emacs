@@ -1,6 +1,6 @@
 ;;; emacs-module-tests.el --- Test GNU Emacs modules.  -*- lexical-binding: t; -*-
 
-;; Copyright 2015-2023 Free Software Foundation, Inc.
+;; Copyright 2015-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -114,15 +114,14 @@ changes."
 
 (ert-deftest mod-test-non-local-exit-signal-test ()
   (should-error (mod-test-signal))
-  (let (debugger-args backtrace)
+  (let (handler-err backtrace)
     (should-error
-     (let ((debugger (lambda (&rest args)
-                       (setq debugger-args args
-                             backtrace (with-output-to-string (backtrace)))
-                       (cl-incf num-nonmacro-input-events)))
-           (debug-on-signal t))
+     (handler-bind
+         ((error (lambda (err)
+                   (setq handler-err err
+                         backtrace (with-output-to-string (backtrace))))))
        (mod-test-signal)))
-    (should (equal debugger-args '(error (error . 56))))
+    (should (equal handler-err '(error . 56)))
     (should (string-match-p
              (rx bol "  mod-test-signal()" eol)
              backtrace))))

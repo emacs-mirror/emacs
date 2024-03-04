@@ -1,6 +1,6 @@
 ;;; remember.el --- a mode for quickly jotting down things to remember  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2001, 2003-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2003-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -185,7 +185,7 @@
 (defcustom remember-mode-hook nil
   "Functions run upon entering `remember-mode'."
   :type 'hook
-  :options '(flyspell-mode turn-on-auto-fill org-remember-apply-template))
+  :options '(flyspell-mode turn-on-auto-fill))
 
 (defcustom remember-in-new-frame nil
   "Non-nil means use a separate frame for capturing remember data."
@@ -210,8 +210,7 @@ recorded somewhere by that function."
   :options '(remember-store-in-mailbox
              remember-append-to-file
              remember-store-in-files
-             remember-diary-extract-entries
-             org-remember-handler))
+             remember-diary-extract-entries))
 
 (defcustom remember-all-handler-functions nil
   "If non-nil every function in `remember-handler-functions' is called."
@@ -235,7 +234,7 @@ recorded somewhere by that function."
 (defcustom remember-annotation-functions '(buffer-file-name)
   "Hook that returns an annotation to be inserted into the remember buffer."
   :type 'hook
-  :options '(org-remember-annotation buffer-file-name))
+  :options '(buffer-file-name))
 
 (defvar remember-annotation nil
   "Current annotation.")

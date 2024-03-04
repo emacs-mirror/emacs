@@ -1,6 +1,6 @@
 /* sfnt format font support for GNU Emacs.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -123,6 +123,7 @@ typedef int16_t sfnt_fword;
 typedef uint16_t sfnt_ufword;
 
 #define sfnt_coerce_fixed(fixed) ((sfnt_fixed) (fixed) / 65535.0)
+#define sfnt_fixed_float(fixed)  ((sfnt_fixed) (fixed) / 65535.0f)
 
 typedef unsigned int sfnt_glyph;
 typedef unsigned int sfnt_char;
@@ -247,7 +248,7 @@ enum sfnt_macintosh_platform_specific_id
     SFNT_MACINTOSH_GREEK	       = 6,
     SFNT_MACINTOSH_RUSSIAN	       = 7,
     SFNT_MACINTOSH_RSYMBOL	       = 8,
-    SFNT_MACINTOSH_DEVANGARI	       = 9,
+    SFNT_MACINTOSH_DEVANAGARI	       = 9,
     SFNT_MACINTOSH_GURMUKHI	       = 10,
     SFNT_MACINTOSH_GUJARATI	       = 11,
     SFNT_MACINTOSH_ORIYA	       = 12,
@@ -778,7 +779,7 @@ struct sfnt_edge
   /* X position, top and bottom of edges.  */
   sfnt_fixed x, top, bottom;
 
-  /* Amount to move X by upon each change of Y.  */
+  /* Amount to move X by upon each change of Y, and vice versa.  */
   sfnt_fixed step_x;
 };
 
@@ -1283,7 +1284,7 @@ struct sfnt_gvar_table
   unsigned char *glyph_variation_data;
 };
 
-/* Structure repesenting a set of axis coordinates and their
+/* Structure representing a set of axis coordinates and their
    normalized equivalents.
 
    To use this structure, call
@@ -1454,6 +1455,7 @@ struct sfnt_post_table
 
 
 #define SFNT_CEIL_FIXED(fixed)	(((fixed) + 0177777) & 037777600000)
+#define SFNT_ROUND_FIXED(fixed) (((fixed) + 0100000) & 037777600000)
 #define SFNT_FLOOR_FIXED(fixed) ((fixed) & 037777600000)
 
 
@@ -1511,6 +1513,7 @@ extern void sfnt_prepare_raster (struct sfnt_raster *,
 
 #define PROTOTYPE struct sfnt_glyph_outline *
 extern struct sfnt_raster *sfnt_raster_glyph_outline (PROTOTYPE);
+extern struct sfnt_raster *sfnt_raster_glyph_outline_exact (PROTOTYPE);
 #undef PROTOTYPE
 
 #define PROTOTYPE			\
@@ -1521,11 +1524,10 @@ extern struct sfnt_raster *sfnt_raster_glyph_outline (PROTOTYPE);
 extern struct sfnt_hmtx_table *sfnt_read_hmtx_table (PROTOTYPE);
 #undef PROTOTYPE
 
-extern int sfnt_lookup_glyph_metrics (sfnt_glyph, int,
+extern int sfnt_lookup_glyph_metrics (sfnt_glyph,
 				      struct sfnt_glyph_metrics *,
 				      struct sfnt_hmtx_table *,
 				      struct sfnt_hhea_table *,
-				      struct sfnt_head_table *,
 				      struct sfnt_maxp_table *);
 
 extern void sfnt_scale_metrics (struct sfnt_glyph_metrics *,
@@ -1757,6 +1759,10 @@ struct sfnt_interpreter_zone
 
   /* Pointer to the flags associated with this data.  */
   unsigned char *flags;
+
+  /* If this structure was produced from a simple glyph, pointer to
+     the simple glyph itself.  NULL otherwise.  */
+  struct sfnt_simple_glyph *simple;
 };
 
 enum
@@ -2100,7 +2106,7 @@ extern const char *sfnt_interpret_control_value_program (PROTOTYPE);
 
 #undef PROTOTYPE
 
-#define PROTOTYPE struct sfnt_instructed_outline *
+#define PROTOTYPE struct sfnt_instructed_outline *, sfnt_fixed *
 
 extern struct sfnt_glyph_outline *sfnt_build_instructed_outline (PROTOTYPE);
 

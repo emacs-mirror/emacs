@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1696,6 +1696,9 @@ Setup `char-width-table' appropriate for non-CJK language environment."
 ;; Fix some exceptions that blocks.awk/Blocks.txt couldn't get right.
 (set-char-table-range char-script-table '(#x2ea . #x2eb) 'bopomofo)
 (set-char-table-range char-script-table #xab65 'greek)
+(set-char-table-range char-script-table #x16fe0 'tangut)
+(set-char-table-range char-script-table #x16fe1 'nushu)
+
 
 
 ;;; Setting unicode-category-table.

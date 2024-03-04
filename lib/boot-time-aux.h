@@ -1,5 +1,5 @@
 /* Auxiliary functions for determining the time when the machine last booted.
-   Copyright (C) 2023 Free Software Foundation, Inc.
+   Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -86,15 +86,21 @@ get_linux_uptime (struct timespec *p_uptime)
 static int
 get_linux_boot_time_fallback (struct timespec *p_boot_time)
 {
-  /* On Alpine Linux, UTMP_FILE is not filled.  It is always empty.
-     So, get the time stamp of a file that gets touched only during the
-     boot process.  */
+  /* On Devuan with the 'runit' init system and on Artix with the 's6' init
+     system, UTMP_FILE contains USER_PROCESS and other entries, but no
+     BOOT_TIME entry.
+     On Alpine Linux, UTMP_FILE is not filled.  It is always empty.
+     So, in both cases, get the time stamp of a file that gets touched only
+     during the boot process.  */
 
   const char * const boot_touched_files[] =
     {
       "/var/lib/systemd/random-seed", /* seen on distros with systemd */
-      "/var/run/utmp",                /* seen on distros with OpenRC */
-      "/var/lib/random-seed"          /* seen on older distros */
+      "/var/lib/urandom/random-seed", /* seen on Devuan with runit */
+      "/var/lib/random-seed",         /* seen on Artix with s6 */
+      /* This must come last, since on several distros /var/run/utmp is
+         modified when a user logs in, i.e. long after boot.  */
+      "/var/run/utmp"                 /* seen on Alpine Linux with OpenRC */
     };
   for (idx_t i = 0; i < SIZEOF (boot_touched_files); i++)
     {

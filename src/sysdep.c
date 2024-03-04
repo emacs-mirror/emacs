@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2023 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1999-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -36,7 +36,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <utimens.h>
 
 #include "lisp.h"
-#include "sheap.h"
 #include "sysselect.h"
 #include "blockinput.h"
 

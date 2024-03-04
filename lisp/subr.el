@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2023 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -2023,6 +2023,8 @@ instead; it will indirectly limit the specpdl stack size as well.")
 
 (defvaralias 'native-comp-deferred-compilation 'native-comp-jit-compilation)
 
+(define-obsolete-function-alias 'fetch-bytecode #'ignore "30.1")
+
 
 ;;;; Alternate names for functions - these are not being phased out.
 
@@ -2737,6 +2739,8 @@ By default we choose the head of the first list."
 
 (defun derived-mode-all-parents (mode &optional known-children)
   "Return all the parents of MODE, starting with MODE.
+This includes the parents set by `define-derived-mode' and additional
+ones set by `derived-mode-add-parents'.
 The returned list is not fresh, don't modify it.
 \n(fn MODE)"               ;`known-children' is for internal use only.
   ;; Can't use `with-memoization' :-(
@@ -2785,7 +2789,9 @@ The returned list is not fresh, don't modify it.
 (defun provided-mode-derived-p (mode &optional modes &rest old-modes)
   "Non-nil if MODE is derived from a mode that is a member of the list MODES.
 MODES can also be a single mode instead of a list.
-If you just want to check `major-mode', use `derived-mode-p'.
+This examines the parent modes set by `define-derived-mode' and also
+additional ones set by `derived-mode-add-parents'.
+If you just want to check the current `major-mode', use `derived-mode-p'.
 We also still support the deprecated calling convention:
 \(provided-mode-derived-p MODE &rest MODES)."
   (declare (side-effect-free t)
@@ -2799,12 +2805,18 @@ We also still support the deprecated calling convention:
     (car modes)))
 
 (defun derived-mode-p (&optional modes &rest old-modes)
- "Non-nil if the current major mode is derived from one of MODES.
+ "Return non-nil if the current major mode is derived from one of MODES.
 MODES should be a list of symbols or a single mode symbol instead of a list.
+This examines the parent modes set by `define-derived-mode' and also
+additional ones set by `derived-mode-add-parents'.
 We also still support the deprecated calling convention:
 \(derived-mode-p &rest MODES)."
  (declare (side-effect-free t)
-          (advertised-calling-convention (modes) "30.1"))
+          ;; FIXME: It's cumbersome for external packages to write code which
+          ;; accommodates both the old and the new calling conventions *and*
+          ;; doesn't cause spurious warnings.  So let's be more lenient
+          ;; for now and maybe remove `deprecated-args' for Emacs-31.
+          (advertised-calling-convention (modes &rest deprecated-args) "30.1"))
  (provided-mode-derived-p major-mode (if old-modes (cons modes old-modes)
                                        modes)))
 
@@ -2816,7 +2828,8 @@ We also still support the deprecated calling convention:
 (defun derived-mode-add-parents (mode extra-parents)
   "Add EXTRA-PARENTS to the parents of MODE.
 Declares the parents of MODE to be its main parent (as defined
-in `define-derived-mode') plus EXTRA-PARENTS."
+in `define-derived-mode') plus EXTRA-PARENTS, which should be a list
+of symbols."
   (put mode 'derived-mode-extra-parents extra-parents)
   (derived-mode--flush mode))
 
@@ -3091,7 +3104,7 @@ instead."
 LIBRARY should be a relative file name of the library, a string.
 It can omit the suffix (a.k.a. file-name extension) if NOSUFFIX is
 nil (which is the default, see below).
-This command searches the directories in `load-path' like `\\[load-library]'
+This command searches the directories in `load-path' like \\[load-library]
 to find the file that `\\[load-library] RET LIBRARY RET' would load.
 Optional second arg NOSUFFIX non-nil means don't add suffixes `load-suffixes'
 to the specified name LIBRARY.
@@ -6380,13 +6393,14 @@ If non-nil, BASE should be a function, and frames before its
 nearest activation frame are discarded."
   (let ((frames nil))
     (mapbacktrace (lambda (&rest frame) (push frame frames))
-                  (or base 'backtrace-frames))
+                  (or base #'backtrace-frames))
     (nreverse frames)))
 
 (defun backtrace-frame (nframes &optional base)
   "Return the function and arguments NFRAMES up from current execution point.
 If non-nil, BASE should be a function, and NFRAMES counts from its
-nearest activation frame.
+nearest activation frame.  BASE can also be of the form (OFFSET . FUNCTION)
+in which case OFFSET will be added to NFRAMES.
 If the frame has not evaluated the arguments yet (or is a special form),
 the value is (nil FUNCTION ARG-FORMS...).
 If the frame has evaluated its arguments and called its function already,
@@ -6397,7 +6411,7 @@ or a lambda expression for macro calls.
 If NFRAMES is more than the number of frames, the value is nil."
   (backtrace-frame--internal
    (lambda (evald func args _) `(,evald ,func ,@args))
-   nframes (or base 'backtrace-frame)))
+   nframes (or base #'backtrace-frame)))
 
 
 (defvar called-interactively-p-functions nil
@@ -7491,6 +7505,28 @@ predicate conditions in CONDITION."
       (when (apply #'buffer-match-p condition (get-buffer buf) args)
         (push buf bufs)))
     bufs))
+
+(defmacro handler-bind (handlers &rest body)
+  "Setup error HANDLERS around execution of BODY.
+HANDLERS is a list of (CONDITIONS HANDLER) where
+CONDITIONS should be a list of condition names (symbols) or
+a single condition name, and HANDLER is a form whose evaluation
+returns a function.
+When an error is signaled during execution of BODY, if that
+error matches CONDITIONS, then the associated HANDLER
+function is called with the error object as argument.
+HANDLERs can either transfer the control via a non-local exit,
+or return normally.  If a handler returns normally, the search for an
+error handler continues from where it left off."
+  ;; FIXME: Completion support as in `condition-case'?
+  (declare (indent 1) (debug ((&rest (sexp form)) body)))
+  (let ((args '()))
+    (dolist (cond+handler handlers)
+      (let ((handler (car (cdr cond+handler)))
+            (conds (car cond+handler)))
+        (push `',(ensure-list conds) args)
+        (push handler args)))
+    `(handler-bind-1 (lambda () ,@body) ,@(nreverse args))))
 
 (defmacro with-memoization (place &rest code)
   "Return the value of CODE and stash it in PLACE.

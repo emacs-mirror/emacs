@@ -1,6 +1,6 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2023 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>

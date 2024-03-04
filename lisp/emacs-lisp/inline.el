@@ -1,6 +1,6 @@
 ;;; inline.el --- Define functions by their inliner  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -80,7 +80,9 @@
   (error "inline-const-p can only be used within define-inline"))
 
 (defmacro inline-const-val (_exp)
-  "Return the value of EXP."
+  "Return the value of EXP.
+During inlining, if the value of EXP is not yet known, this aborts the
+inlining and makes us revert to a non-inlined function call."
   (declare (debug t))
   (error "inline-const-val can only be used within define-inline"))
 

@@ -4,7 +4,7 @@
 #
 #	admin/merge-gnulib
 
-# Copyright 2012-2023 Free Software Foundation, Inc.
+# Copyright 2012-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -52,7 +52,7 @@ GNULIB_MODULES='
 '
 
 AVOIDED_MODULES='
-  btowc chmod close crypto/af_alg dup fchdir fstat
+  access btowc chmod close crypto/af_alg dup fchdir fstat
   iswblank iswctype iswdigit iswxdigit langinfo lock
   mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
@@ -106,9 +106,6 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
 
 # gnulib-tool has problems with a bare checkout (Bug#32452#65).
 test -f configure || ./autogen.sh || exit
-
-# Old caches can confuse autoconf when some Gnulib-related changes take effect.
-rm -fr autom4te.cache || exit
 
 avoided_flags=
 for module in $AVOIDED_MODULES; do

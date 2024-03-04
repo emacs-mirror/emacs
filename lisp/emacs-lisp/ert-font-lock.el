@@ -1,6 +1,6 @@
 ;;; ert-font-lock.el --- ERT Font Lock   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Author: Vladimir Kazanov
 ;; Keywords: lisp, tools
@@ -28,7 +28,7 @@
 ;;
 ;; ert-font-lock entry points are functions
 ;; `ert-font-lock-test-string' and `ert-font-lock-test-file' and
-;; covenience macros: `ert-font-lock-deftest' and
+;; convenience macros: `ert-font-lock-deftest' and
 ;; `ert-font-lock-deftest-file'.
 ;;
 ;; See unit tests in ert-font-lock-tests.el for usage examples.

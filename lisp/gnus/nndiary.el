@@ -1,6 +1,6 @@
 ;;; nndiary.el --- A diary back end for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@didierverna.net>
 ;; Created:       Fri Jul 16 18:55:42 1999
@@ -1030,7 +1030,7 @@ all.  This may very well take some time.")
 (defun nndiary-generate-nov-databases (&optional server)
   "Generate NOV databases in all nndiary directories."
   (interactive (list (or (nnoo-current-server 'nndiary) "")))
-  ;; Read the active file to make sure we don't re-use articles
+  ;; Read the active file to make sure we don't reuse articles
   ;; numbers in empty groups.
   (nnmail-activate 'nndiary)
   (unless (nndiary-server-opened server)

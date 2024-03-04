@@ -1,6 +1,6 @@
 ;;; cyrillic.el --- Quail package for inputting Cyrillic characters  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1101,9 +1101,9 @@ as follows.
 ;; Ognyan Kulev <ogi@fmi.uni-sofia.bg> wrote:
 
 ;; I would suggest future `cyrillic-translit' to be with the
-;; modification of `cyrillic-translit-bulgarian' applied and the
+;; modification of `cyrillic-translit-bulgarian' (now deleted) applied and the
 ;; latter to disappear.  It could be used by people who write
-;; bulgarian e-mails with latin letters for kick start (phonetic input
+;; Bulgarian e-mails with latin letters for kick start (phonetic input
 ;; method is not so obvious as translit input method but each letter
 ;; is one keypress and a *lot* of people know it).
 

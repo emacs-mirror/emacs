@@ -91,3 +91,37 @@ main (int   argc,
   }
 }
 =-=-=
+
+Name: Bracketless Simple Statement (bug#66152)
+
+=-=
+for (int i = 0; i < 5; i++)
+continue;
+
+while (true)
+return 1;
+
+do
+i++;
+while (true)
+
+if (true)
+break;
+else
+break;
+=-=
+for (int i = 0; i < 5; i++)
+  continue;
+
+while (true)
+  return 1;
+
+do
+  i++;
+while (true)
+
+if (true)
+  break;
+else
+  break;
+=-=-=

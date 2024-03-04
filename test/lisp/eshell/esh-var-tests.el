@@ -1,6 +1,6 @@
 ;;; esh-var-tests.el --- esh-var test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -651,6 +651,21 @@ nil, use FUNCTION instead."
    (push "VAR=value" process-environment)
    (eshell-match-command-output "VAR=hello $eshell-test-value env"
                                 "VAR=hello\n")
+   (should (equal (getenv "VAR") "value"))))
+
+(ert-deftest esh-var-test/local-variables/cd ()
+  "Test that \"VAR=value cd DIR\" properly changes the directory."
+  (let ((parent-directory (file-name-directory
+                           (directory-file-name default-directory))))
+    (with-temp-eshell
+     (eshell-insert-command "VAR=hello cd ..")
+     (should (equal default-directory parent-directory)))))
+
+(ert-deftest esh-var-test/local-variables/env ()
+  "Test that \"env VAR=value command\" temporarily sets variables."
+  (with-temp-eshell
+   (push "VAR=value" process-environment)
+   (eshell-match-command-output "env VAR=hello env" "VAR=hello\n")
    (should (equal (getenv "VAR") "value"))))
 
 

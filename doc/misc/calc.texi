@@ -95,7 +95,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990--1991, 2001--2023 Free Software Foundation,
+Copyright @copyright{} 1990--1991, 2001--2024 Free Software Foundation,
 Inc.
 
 @quotation
@@ -10571,6 +10571,22 @@ Non-decimal fractions are entered and displayed as
 @samp{@var{radix}#@var{num}:@var{denom}} (or in the analogous three-part
 form).  The numerator and denominator always use the same radix.
 
+@ifnottex
+Fractions may also be entered with @kbd{@U{2044}} (U+2044 FRACTION
+SLASH) in place of any @kbd{:}.  Precomposed fraction characters from
+@kbd{@U{00BD}} (U+00BD VULGAR FRACTION ONE HALF) through
+@kbd{@U{215E}} (U+215E VULGAR FRACTION SEVEN EIGHTHS) are supported as
+well.  Thus, @samp{2:3}, @samp{2@U{2044}3}, and @samp{@U{2154}} are all
+equivalent.
+@end ifnottex
+@iftex
+Fractions may also be entered with U+2044 FRACTION SLASH in place of
+any @kbd{:}.  Precomposed fraction characters from U+00BD VULGAR
+FRACTION ONE HALF through U+215E VULGAR FRACTION SEVEN EIGHTHS are
+supported as well.
+@end iftex
+
+
 @node Floats
 @section Floats
 
@@ -11954,7 +11970,7 @@ trail pointer in various ways.
 @cindex Retrieving previous results
 The @kbd{t y} (@code{calc-trail-yank}) command reads the selected value in
 the trail and pushes it onto the Calculator stack.  It allows you to
-re-use any previously computed value without retyping.  With a numeric
+reuse any previously computed value without retyping.  With a numeric
 prefix argument @var{n}, it yanks the value @var{n} lines above the current
 trail pointer.
 
