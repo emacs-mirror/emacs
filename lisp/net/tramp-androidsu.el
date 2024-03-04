@@ -232,19 +232,19 @@ FUNCTION."
             ;; tramp-adb-wait-for-output addresses problems introduced
             ;; by the adb utility itself, not Android utilities, so
             ;; replace it with the regular TRAMP function.
-            (fset 'tramp-adb-wait-for-output #'tramp-wait-for-output)
+            (fset #'tramp-adb-wait-for-output #'tramp-wait-for-output)
             ;; Likewise, except some special treatment is necessary on
             ;; account of flaws in Android's su implementation.
-            (fset 'tramp-adb-maybe-open-connection
+            (fset #'tramp-adb-maybe-open-connection
                   #'tramp-androidsu-maybe-open-connection)
             (apply function args))
         ;; Restore the original definitions of the functions overridden
         ;; above.
-        (fset 'tramp-adb-wait-for-output tramp-adb-wait-for-output)
-        (fset 'tramp-adb-maybe-open-connection tramp-adb-maybe-open-connection)))))
+        (fset #'tramp-adb-wait-for-output tramp-adb-wait-for-output)
+        (fset #'tramp-adb-maybe-open-connection
+              tramp-adb-maybe-open-connection)))))
 
-(defalias 'tramp-androidsu-handle-copy-file
-  (tramp-androidsu-generate-wrapper #'tramp-sh-handle-copy-file))
+(defalias 'tramp-androidsu-handle-copy-file #'tramp-sh-handle-copy-file)
 
 (defalias 'tramp-androidsu-handle-delete-directory
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-delete-directory))
@@ -253,7 +253,8 @@ FUNCTION."
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-delete-file))
 
 (defalias 'tramp-androidsu-handle-directory-files-and-attributes
-  (tramp-androidsu-generate-wrapper #'tramp-adb-handle-directory-files-and-attributes))
+  (tramp-androidsu-generate-wrapper
+   #'tramp-adb-handle-directory-files-and-attributes))
 
 (defalias 'tramp-androidsu-handle-exec-path
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-exec-path))
@@ -268,10 +269,11 @@ FUNCTION."
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-file-exists-p))
 
 (defalias 'tramp-androidsu-handle-file-local-copy
-  (tramp-androidsu-generate-wrapper #'tramp-sh-handle-file-local-copy))
+  #'tramp-sh-handle-file-local-copy)
 
 (defalias 'tramp-androidsu-handle-file-name-all-completions
-  (tramp-androidsu-generate-wrapper #'tramp-adb-handle-file-name-all-completions))
+  (tramp-androidsu-generate-wrapper
+   #'tramp-adb-handle-file-name-all-completions))
 
 (defalias 'tramp-androidsu-handle-file-readable-p
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-file-readable-p))
@@ -400,14 +402,12 @@ FUNCTION."
 	  p)))))
 
 (defalias 'tramp-androidsu-handle-make-symbolic-link
-  (tramp-androidsu-generate-wrapper
-   #'tramp-sh-handle-make-symbolic-link))
+  #'tramp-sh-handle-make-symbolic-link)
 
 (defalias 'tramp-androidsu-handle-process-file
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-process-file))
 
-(defalias 'tramp-androidsu-handle-rename-file
-  (tramp-androidsu-generate-wrapper #'tramp-sh-handle-rename-file))
+(defalias 'tramp-androidsu-handle-rename-file #'tramp-sh-handle-rename-file)
 
 (defalias 'tramp-androidsu-handle-set-file-modes
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-set-file-modes))
@@ -424,8 +424,7 @@ FUNCTION."
 (defalias 'tramp-androidsu-handle-get-remote-uid
   (tramp-androidsu-generate-wrapper #'tramp-adb-handle-get-remote-uid))
 
-(defalias 'tramp-androidsu-handle-write-region
-  (tramp-androidsu-generate-wrapper #'tramp-sh-handle-write-region))
+(defalias 'tramp-androidsu-handle-write-region #'tramp-sh-handle-write-region)
 
 ;;;###tramp-autoload
 (defconst tramp-androidsu-file-name-handler-alist
@@ -458,7 +457,8 @@ FUNCTION."
     (file-local-copy . tramp-androidsu-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
     (file-modes . tramp-handle-file-modes)
-    (file-name-all-completions . tramp-androidsu-handle-file-name-all-completions)
+    (file-name-all-completions
+     . tramp-androidsu-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
     (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p)
     (file-name-completion . tramp-handle-file-name-completion)
@@ -541,10 +541,6 @@ arguments to pass to the OPERATION."
 (tramp--with-startup
  (tramp-register-foreign-file-name-handler
   #'tramp-androidsu-file-name-p #'tramp-androidsu-file-name-handler))
-
-(connection-local-set-profile-variables
- 'tramp-adb-connection-local-default-ps-profile
- tramp-adb-connection-local-default-ps-variables)
 
 (with-eval-after-load 'shell
   (connection-local-set-profiles
