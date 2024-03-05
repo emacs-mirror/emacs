@@ -1116,16 +1116,21 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defun dictionary-new-matching (word)
   "Run a new matching search on WORD."
-  (dictionary-ensure-buffer)
   (dictionary-store-positions)
-  (dictionary-pre-buffer)
-  (dictionary-do-matching word dictionary-default-dictionary
-			  dictionary-default-strategy
-			  'dictionary-display-match-result)
-  (dictionary-store-state 'dictionary-do-matching
+  (dictionary-ensure-buffer)
+  (dictionary-new-matching-internal word dictionary-default-dictionary
+                                    dictionary-default-strategy
+                                    'dictionary-display-match-result)
+  (dictionary-store-state 'dictionary-new-matching-internal
 			  (list word dictionary-default-dictionary
 				dictionary-default-strategy
 				'dictionary-display-match-result)))
+
+(defun dictionary-new-matching-internal (word dictionary strategy function)
+  "Start a new matching for WORD in DICTIONARY after preparing the buffer.
+FUNCTION is the callback which is called for each search result."
+  (dictionary-pre-buffer)
+  (dictionary-do-matching word dictionary strategy function))
 
 (defun dictionary-do-matching (word dictionary strategy function)
   "Search for WORD with STRATEGY in DICTIONARY and display them with FUNCTION."
