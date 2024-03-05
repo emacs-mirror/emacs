@@ -144,7 +144,15 @@ ps: $(PS_TARGETS)
 ${buildinfodir}:
 	${MKDIR_P} $@
 
-$(buildinfodir)/elisp.info: $(srcs) | ${buildinfodir}
+auxfiles: $(buildinfodir)/type_hierarchy.txt $(buildinfodir)/type_hierarchy.jpg
+
+$(buildinfodir)/type_hierarchy.txt: $(srcdir)/type_hierarchy.txt | ${buildinfodir}
+	cp $< $@
+
+$(buildinfodir)/type_hierarchy.jpg: $(srcdir)/type_hierarchy.jpg | ${buildinfodir}
+	cp $< $@
+
+$(buildinfodir)/elisp.info: $(srcs) auxfiles | ${buildinfodir}
 	$(AM_V_GEN)$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $<
 
 elisp.dvi: $(srcs)
