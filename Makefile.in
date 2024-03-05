@@ -955,6 +955,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	        ext=.gz; else ext=; fi; \
 	     rm -f $$elt$$ext $$elt-[1-9]$$ext $$elt-[1-9][0-9]$$ext; \
 	   done; \
+	   rm -f type_hierarchy.jpg type_hierarchy.txt; \
 	 fi)
 	(if [ -n "${GZIP_PROG}" ]; then \
 	    ext=.gz; else ext=; fi; \
