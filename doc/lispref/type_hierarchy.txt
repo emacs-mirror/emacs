@@ -1,22 +1,27 @@
-| Type              | Derived Types                                            |
-|-------------------+----------------------------------------------------------|
-| t                 | sequence atom                                            |
-| sequence          | list array                                               |
-| atom              | class structure tree-sitter-compiled-query               |
-|                   | tree-sitter-node tree-sitter-parser user-ptr font-object |
-|                   | font-entity font-spec condvar mutex thread terminal      |
-|                   | hash-table frame buffer function window process          |
-|                   | window-configuration overlay integer-or-marker           |
-|                   | number-or-marker symbol array obarray                    |
-| number            | float integer                                            |
-| number-or-marker  | marker number                                            |
-| integer           | bignum fixnum                                            |
-| symbol            | keyword boolean symbol-with-pos                          |
-| array             | vector bool-vector char-table string                     |
-| list              | null cons                                                |
-| integer-or-marker | integer marker                                           |
-| compiled-function | byte-code-function                                       |
-| function          | subr module-function compiled-function                   |
-| boolean           | null                                                     |
-| subr              | subr-native-elisp subr-primitive                         |
-| symbol-with-pos   | keyword                                                  |
+| Type                     | Derived Types                                              |
+|--------------------------+------------------------------------------------------------|
+| t                        | sequence atom                                              |
+| sequence                 | list array                                                 |
+| atom                     | array function tree-sitter-compiled-query tree-sitter-node |
+|                          | tree-sitter-parser user-ptr font-object font-entity        |
+|                          | font-spec condvar mutex thread terminal hash-table frame   |
+|                          | buffer window process window-configuration overlay         |
+|                          | number-or-marker symbol obarray native-comp-unit           |
+|                          | cl-structure-object eieio-default-superclass               |
+| number                   | float integer                                              |
+| integer-or-marker        | integer marker                                             |
+| number-or-marker         | integer-or-marker number                                   |
+| integer                  | bignum fixnum                                              |
+| symbol                   | keyword boolean symbol-with-pos                            |
+| array                    | vector bool-vector char-table string                       |
+| boolean                  | null                                                       |
+| list                     | null cons                                                  |
+| compiled-function        | byte-code-function subr                                    |
+| function                 | module-function compiled-function oclosure                 |
+| subr                     | subr-native-elisp subr-primitive                           |
+| oclosure                 | advice kmacro                                              |
+| cl--class                | oclosure--class cl-structure-class eieio--class            |
+| cl-structure-object      | cl--class xref-elisp-location frameset-register            |
+| eieio-default-superclass | eieio-named transient-child                                |
+| transient-suffix         | transient-infix                                            |
+| transient-child          | transient-suffix                                           |

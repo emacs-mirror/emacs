@@ -51,14 +51,25 @@
       (signal 'cl-assertion-failed `(,form ,@sargs)))))
 
 (defconst cl--direct-supertypes-of-type
+  ;; Please run `sycdoc-update-type-hierarchy' in
+  ;; `admin/syncdoc-type-hierarchy.el' each time this is modified to
+  ;; reflect the change in the documentation.
   (let ((table (make-hash-table :test #'eq)))
+    ;; FIXME: Our type DAG has various quirks:
+    ;; - `subr' says it's a `compiled-function' but that's not true
+    ;;   for those subrs that are special forms!
+    ;; - Some `keyword's are also `symbol-with-pos' but that's not reflected
+    ;;   in the DAG.
+    ;; - An OClosure can be an interpreted function or a `byte-code-function',
+    ;;   so the DAG of OClosure types is "orthogonal" to the distinction
+    ;;   between interpreted and compiled functions.
     (dolist (x '((sequence t)
                  (atom t)
                  (list sequence)
                  (array sequence atom)
                  (float number)
                  (integer number integer-or-marker)
-                 (marker integer-or-marker number-or-marker)
+                 (marker integer-or-marker)
                  (integer-or-marker number-or-marker)
                  (number number-or-marker)
                  (bignum integer)
@@ -73,10 +84,11 @@
                  ;; FIXME: This results in `atom' coming before `list' :-(
                  (null boolean list)
                  (cons list)
+                 (function atom)
                  (byte-code-function compiled-function)
                  (subr compiled-function)
-                 (module-function function atom)
-                 (compiled-function function atom)
+                 (module-function function)
+                 (compiled-function function)
                  (subr-native-elisp subr)
                  (subr-primitive subr)))
       (puthash (car x) (cdr x) table))
@@ -100,8 +112,11 @@
             (lambda (type)
               ;; FIXME: copy&pasted from `cl--class-allparents'.
               (let ((parents (gethash type cl--direct-supertypes-of-type)))
+                (unless parents
+                  (message "Warning: Type without parent: %S!" type))
                 (cons type
                       (merge-ordered-lists
+                       ;; FIXME: Can't remember why `t' is excluded.
                        (mapcar allparents (remq t parents))))))))
     (maphash (lambda (type _)
               (push (funcall allparents type) alist))

@@ -69,7 +69,7 @@
                                  (not (eq type 'eieio-default-superclass)))
                             '(eieio-default-superclass))
                            ;; OClosures can still be lists :-(
-                           ((eq 'oclosure type) '(t))
+                           ((eq 'oclosure type) '(function))
                            (t '(atom)))
                      ht)))))
     ht))
