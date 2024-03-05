@@ -504,7 +504,7 @@ This string is fed into `substitute-command-keys'")
 These translations are not relevant most of the times since a lot
 of terminals issue META modifier for the Alt key.
 
-See http://www.gnu.org/software/emacs/manual/html_node/emacs/Modifier-Keys.html"
+See Info node `(emacs)Modifier Keys'."
   :type 'boolean
   :version "1.0")
 
