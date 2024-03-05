@@ -2092,8 +2092,10 @@ treesitter grammar.
 It controls display and separate sorting of groups of entries.
 
 ---
-** New property 'context-menu-functions'.
-Like the variable with the same name it adds a list of context menus.
+** New text property 'context-menu-functions'.
+Like the variable with the same name, it adds menus from the list that
+is the value of the property to context menus shown when clicking on the
+text which as this property.
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
