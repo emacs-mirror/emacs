@@ -812,6 +812,7 @@ install-info: info
 	      done; \
 	     (cd "$${thisdir}"; \
 	      ${INSTALL_INFO} --info-dir="$(DESTDIR)${infodir}" "$(DESTDIR)${infodir}/$$elt"); \
+	      cp type_hierarchy* $(DESTDIR)${infodir}/; \ # Used by elisp.info.
 	   done; \
 	fi
 
