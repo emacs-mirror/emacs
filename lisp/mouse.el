@@ -414,13 +414,17 @@ Each function receives the menu and the mouse click event
 and returns the same menu after adding own menu items to the composite menu.
 When there is a text property `context-menu-function' at CLICK,
 it overrides all functions from `context-menu-functions'.
+Whereas the property `context-menu-functions' doesn't override
+the variable `context-menu-functions', but adds menus from the
+list in the property after adding menus from the variable.
 At the end, it's possible to modify the final menu by specifying
 the function `context-menu-filter-function'."
   (let* ((menu (make-sparse-keymap (propertize "Context Menu" 'hide t)))
          (click (or click last-input-event))
-         (window (posn-window (event-start click)))
-         (fun (mouse-posn-property (event-start click)
-                                   'context-menu-function)))
+         (start (event-start click))
+         (window (posn-window start))
+         (fun (mouse-posn-property start 'context-menu-function))
+         (funs (mouse-posn-property start 'context-menu-functions)))
 
     (unless (eq (selected-window) window)
       (select-window window))
@@ -430,7 +434,9 @@ the function `context-menu-filter-function'."
       (run-hook-wrapped 'context-menu-functions
                         (lambda (fun)
                           (setq menu (funcall fun menu click))
-                          nil)))
+                          nil))
+      (dolist (fun funs)
+        (setq menu (funcall fun menu click))))
 
     ;; Remove duplicate separators as well as ones at the beginning or
     ;; end of the menu.

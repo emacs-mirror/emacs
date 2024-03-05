@@ -134,6 +134,7 @@ Examples of image filename patterns to match:
                                     :max-width (- (nth 2 edges) (nth 0 edges))
 				    :max-height (- (nth 3 edges) (nth 1 edges)))
                      keymap ,image-map
+                     context-menu-functions (image-context-menu)
                      modification-hooks
                      (iimage-modification-hook)))
                 (remove-list-of-text-properties

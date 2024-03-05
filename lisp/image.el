@@ -193,6 +193,29 @@ or \"ffmpeg\") is installed."
         "h" #'image-flip-horizontally
         "v" #'image-flip-vertically))
 
+(defun image-context-menu (menu click)
+  "Populate MENU with image-related commands at CLICK."
+  (when (mouse-posn-property (event-start click) 'display)
+    (define-key menu [image-separator] menu-bar-separator)
+    (let ((easy-menu (make-sparse-keymap "Image")))
+      (easy-menu-define nil easy-menu nil
+        '("Image"
+          ["Zoom In" image-increase-size
+           :help "Enlarge the image"]
+          ["Zoom Out" image-decrease-size
+           :help "Shrink the image"]
+          ["Rotate Clockwise" image-rotate
+           :help "Rotate the image"]
+          ["Flip horizontally" image-flip-horizontally
+           :help "Flip horizontally"]
+          ["Flip vertically" image-flip-vertically
+           :help "Flip vertically"]))
+      (dolist (item (reverse (lookup-key easy-menu [menu-bar image])))
+        (when (consp item)
+          (define-key menu (vector (car item)) (cdr item))))))
+
+  menu)
+
 (defun image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
 
@@ -620,6 +643,7 @@ means display it in the right marginal area."
       (overlay-put overlay 'put-image t)
       (overlay-put overlay 'before-string string)
       (overlay-put overlay 'keymap image-map)
+      (overlay-put overlay 'context-menu-functions '(image-context-menu))
       overlay)))
 
 
@@ -672,8 +696,9 @@ is non-nil, this is inhibited."
 				   inhibit-isearch ,inhibit-isearch
                                    keymap ,(if slice
                                                image-slice-map
-                                             image-map)))))
-
+                                             image-map)
+                                   context-menu-functions
+                                   (image-context-menu)))))
 
 ;;;###autoload
 (defun insert-sliced-image (image &optional string area rows cols)
@@ -709,7 +734,9 @@ The image is automatically split into ROWS x COLS slices."
 	  (add-text-properties start (point)
 			       `(display ,(list (list 'slice x y dx dy) image)
 					 rear-nonsticky (display keymap)
-                                         keymap ,image-slice-map))
+                                         keymap ,image-slice-map
+                                         context-menu-functions
+                                         (image-context-menu)))
 	  (setq x (+ x dx))))
       (setq x 0.0
 	    y (+ y dy))
