@@ -488,27 +488,32 @@ an @command{ssh} server:
 @file{@trampfn{plink,user@@host,/path/to/file}}.
 
 
-@anchor{Quick Start Guide su, sudo, doas and sg methods}
-@section Using @option{su}, @option{sudo}, @option{doas} and @option{sg}
+@anchor{Quick Start Guide su, sudo, doas, androidsu and sg methods}
+@section Using @option{su}, @option{sudo}, @option{doas}, @option{androidsu} and @option{sg}
 @cindex method @option{su}
 @cindex @option{su} method
 @cindex method @option{sudo}
 @cindex @option{sudo} method
 @cindex method @option{doas}
 @cindex @option{doas} method
+@cindex method @option{androidsu}
+@cindex @option{androidsu} method
 @cindex method @option{sg}
 @cindex @option{sg} method
 
 Sometimes, it is necessary to work on your local host under different
 permissions.  For this, you can use the @option{su} or @option{sudo}
 connection method.  On OpenBSD systems, the @option{doas} connection
-method offers the same functionality.  These methods use @samp{root}
-as default user name and the return value of @code{(system-name)} as
-default host name.  Therefore, it is convenient to open a file as
-@file{@trampfn{sudo,,/path/to/file}}.
+method offers the same functionality.  If your local system is
+Android, use the method @option{androidsu} instead of @option{su}.
+
+These methods use @samp{root} as default user name and the return
+value of @code{(system-name)} as default host name.  Therefore, it is
+convenient to open a file as @file{@trampfn{sudo,,/path/to/file}}.
 
 The method @option{sg} stands for ``switch group''; here the user name
 is used as the group to change to.  The default host name is the same.
+
 
 @anchor{Quick Start Guide Combining ssh, plink, su, sudo and doas methods}
 @section Combining @option{ssh} or @option{plink} with @option{su}, @option{sudo} or @option{doas}
@@ -531,6 +536,7 @@ and changes to administrative credentials on that host afterwards.  In
 a simple case, the syntax looks like
 @file{@trampfn{ssh@value{postfixhop}user@@host|sudo,,/path/to/file}}.
 @xref{Ad-hoc multi-hops}.
+
 
 @anchor{Quick Start Guide sudoedit method}
 @section Using @command{sudoedit}
@@ -817,6 +823,7 @@ editing as another user.  The host can be either @samp{localhost} or
 the host returned by the function @command{(system-name)}.  See
 @ref{Multi-hops} for an exception to this behavior.
 
+@item @option{androidsu}
 @cindex method @option{androidsu}
 @cindex @option{androidsu} method
 Because the default implementation of the @option{su} method and other
@@ -2058,7 +2065,7 @@ machine @var{host} port sudo login @var{user} password secret
 
 @var{user} and @var{host} are the strings returned by
 @code{(user-login-name)} and @code{(system-name)}.  If one of these
-methods is connected via a multi hop (@pxref{Multi-hops}), the
+methods is connected via a multi-hop (@pxref{Multi-hops}), the
 credentials of the previous hop are used.
 
 @vindex auth-source-save-behavior
