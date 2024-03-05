@@ -398,7 +398,7 @@ directory /content/storage.
                 (inhibit-read-only t))
             (fill-region (point-min) (point-max))))))))
 
-(defun android-after-splash-screen (fancy-p)
+(defun android-before-splash-screen (fancy-p)
   "Insert a brief notice on the absence of storage permissions.
 If storage permissions are as yet denied to Emacs, insert a short
 notice to that effect, followed by a button that enables the user
@@ -412,14 +412,14 @@ screen display; see `fancy-splash-insert'."
         (fancy-splash-insert
          :face '(variable-pitch
                  font-lock-function-call-face)
-         "\nPermissions necessary to access external storage directories have
-been denied.  Click "
+         "Permissions necessary to access external storage directories have"
+         "\nbeen denied.  Click "
          :link '("here" android-display-storage-permission-popup)
-         " to grant them.")
+         " to grant them.\n")
       (insert
-       "\nPermissions necessary to access external storage directories have been
-denied.  ")
-      (insert-button "Click here to grant them."
+       "Permissions necessary to access external storage directories"
+       "\nhave been denied.  ")
+      (insert-button "Click here to grant them.\n"
                      'action #'android-display-storage-permission-popup
                      'follow-link t)
       (newline))))

@@ -5533,6 +5533,10 @@ android_wc_lookup_string (android_key_pressed_event *event,
 	  rc = 0;
 	}
 
+      /* Terminate any ongoing character composition after a key is
+	 registered.  */
+      if (compose_status)
+	compose_status->chars_matched = 0;
       *status_return = status;
       return rc;
     }

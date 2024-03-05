@@ -2040,10 +2040,6 @@ a face or button specification."
 					   (call-interactively
 					    'recover-session)))
 				" to recover the files you were editing."))))
-  ;; Insert the permissions notice if the user has yet to grant Emacs
-  ;; storage permissions.
-  (when (fboundp 'android-after-splash-screen)
-    (funcall 'android-after-splash-screen t))
   (when concise
     (fancy-splash-insert
      :face 'variable-pitch "\n"
@@ -2096,6 +2092,10 @@ splash screen in another window."
 	(make-local-variable 'startup-screen-inhibit-startup-screen)
 	(if pure-space-overflow
 	    (insert pure-space-overflow-message))
+        ;; Insert the permissions notice if the user has yet to grant Emacs
+        ;; storage permissions.
+        (when (fboundp 'android-before-splash-screen)
+          (funcall 'android-before-splash-screen t))
 	(unless concise
 	  (fancy-splash-head))
 	(dolist (text fancy-startup-text)
@@ -2202,7 +2202,10 @@ splash screen in another window."
 
       (if pure-space-overflow
 	  (insert pure-space-overflow-message))
-
+      ;; Insert the permissions notice if the user has yet to grant
+      ;; Emacs storage permissions.
+      (when (fboundp 'android-before-splash-screen)
+        (funcall 'android-before-splash-screen nil))
       ;; The convention for this piece of code is that
       ;; each piece of output starts with one or two newlines
       ;; and does not end with any newlines.
@@ -2244,12 +2247,6 @@ splash screen in another window."
 	   (insert "\n\nIf an Emacs session crashed recently, "
 		   "type M-x recover-session RET\nto recover"
 		   " the files you were editing.\n"))
-
-      ;; Insert the permissions notice if the user has yet to grant
-      ;; Emacs storage permissions.
-      (when (fboundp 'android-after-splash-screen)
-        (funcall 'android-after-splash-screen nil))
-
       (use-local-map splash-screen-keymap)
 
       ;; Display the input that we set up in the buffer.
