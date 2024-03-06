@@ -232,16 +232,16 @@ FUNCTION."
             ;; tramp-adb-wait-for-output addresses problems introduced
             ;; by the adb utility itself, not Android utilities, so
             ;; replace it with the regular TRAMP function.
-            (fset #'tramp-adb-wait-for-output #'tramp-wait-for-output)
+            (fset 'tramp-adb-wait-for-output #'tramp-wait-for-output)
             ;; Likewise, except some special treatment is necessary on
             ;; account of flaws in Android's su implementation.
-            (fset #'tramp-adb-maybe-open-connection
+            (fset 'tramp-adb-maybe-open-connection
                   #'tramp-androidsu-maybe-open-connection)
             (apply function args))
         ;; Restore the original definitions of the functions overridden
         ;; above.
-        (fset #'tramp-adb-wait-for-output tramp-adb-wait-for-output)
-        (fset #'tramp-adb-maybe-open-connection
+        (fset 'tramp-adb-wait-for-output tramp-adb-wait-for-output)
+        (fset 'tramp-adb-maybe-open-connection
               tramp-adb-maybe-open-connection)))))
 
 (defalias 'tramp-androidsu-handle-copy-file #'tramp-sh-handle-copy-file)
