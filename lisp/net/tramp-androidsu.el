@@ -88,8 +88,6 @@ may edit files belonging to any and all applications."
                 (tramp-tmpdir              ,tramp-androidsu-local-tmp-directory)
                 (tramp-connection-timeout  10)
                 (tramp-shell-name	   ,tramp-androidsu-local-shell-name)))
- (add-to-list 'tramp-default-host-alist
-              `(,tramp-androidsu-method nil "localhost"))
  (add-to-list 'tramp-default-user-alist
               `(,tramp-androidsu-method nil ,tramp-root-id-string)))
 
@@ -130,7 +128,7 @@ multibyte mode and waits for the shell prompt to appear."
 		     (p (start-process (tramp-get-connection-name vec)
 			               (tramp-get-connection-buffer vec)
                                        ;; Disregard
-                                       ;; tramp-encoding-shell, as
+                                       ;; `tramp-encoding-shell', as
                                        ;; there's no guarantee that it's
                                        ;; possible to execute it with
                                        ;; `android-use-exec-loader' off.
@@ -142,17 +140,16 @@ multibyte mode and waits for the shell prompt to appear."
 	        (tramp-post-process-creation p vec)
                 ;; Replace `login-args' place holders.
 		(setq command (format "exec su - %s || exit" user))
-                (tramp-set-connection-property vec "remote-namespace" nil)
                 ;; Attempt to execute the shell inside the global mount
                 ;; namespace if requested.
                 (when tramp-androidsu-mount-global-namespace
                   (progn
                     (when (eq tramp-androidsu-su-mm-supported 'unknown)
                       ;; Change the prompt in advance so that
-                      ;; tramp-adb-send-command-and-check can call
-                      ;; tramp-search-regexp.
+                      ;; `tramp-adb-send-command-and-check' can call
+                      ;; `tramp-search-regexp'.
 	              (tramp-adb-send-command
-		       vec (format "PS1=%s"
+		       vec (format "PS1=%s PS2=''"
 			           (tramp-shell-quote-argument
                                     tramp-end-of-output)))
                       (setq tramp-androidsu-su-mm-supported
@@ -179,17 +176,17 @@ multibyte mode and waits for the shell prompt to appear."
 	        (tramp-set-connection-local-variables vec)
 	        ;; Change prompt.
 	        (tramp-adb-send-command
-		 vec (format "PS1=%s"
+		 vec (format "PS1=%s PS2=''"
 			     (tramp-shell-quote-argument tramp-end-of-output)))
 	        ;; Disable line editing.
 	        (tramp-adb-send-command
 	         vec "set +o vi +o vi-esccomplete +o vi-tabcomplete +o emacs")
-	        ;; Dump option settings in the traces.
-	        (when (>= tramp-verbose 9)
-		  (tramp-adb-send-command vec "set -o"))
                 ;; Disable Unicode, for otherwise Unicode filenames will
                 ;; not be decoded correctly.
                 (tramp-adb-send-command vec "set +U")
+	        ;; Dump option settings in the traces.
+	        (when (>= tramp-verbose 9)
+		  (tramp-adb-send-command vec "set -o"))
 		;; Disable echo expansion.
 		(tramp-adb-send-command
 		 vec "stty -inlcr -onlcr -echo kill '^U' erase '^H'" t)
@@ -204,12 +201,8 @@ multibyte mode and waits for the shell prompt to appear."
 		    (tramp-message vec 5 "Remote echo still on. Ok.")
 		    ;; Make sure backspaces and their echo are enabled
 		    ;; and no line width magic interferes with them.
-		    (tramp-adb-send-command vec
-					    "stty icanon erase ^H cols 32767"
-					    t)))
-		;; Set the remote PATH to a suitable value.
-		(tramp-set-connection-property vec "remote-path"
-					       tramp-androidsu-remote-path)
+		    (tramp-adb-send-command
+		     vec "stty icanon erase ^H cols 32767" t)))
 		;; Mark it as connected.
 		(tramp-set-connection-property p "connected" t))))
 	;; Cleanup, and propagate the signal.
@@ -229,9 +222,9 @@ FUNCTION."
            (symbol-function #'tramp-adb-maybe-open-connection)))
       (unwind-protect
           (progn
-            ;; tramp-adb-wait-for-output addresses problems introduced
+            ;; `tramp-adb-wait-for-output' addresses problems introduced
             ;; by the adb utility itself, not Android utilities, so
-            ;; replace it with the regular TRAMP function.
+            ;; replace it with the regular Tramp function.
             (fset 'tramp-adb-wait-for-output #'tramp-wait-for-output)
             ;; Likewise, except some special treatment is necessary on
             ;; account of flaws in Android's su implementation.
@@ -376,10 +369,8 @@ FUNCTION."
 	   p (make-process
 	      :name name :buffer buffer
 	      :command (if (tramp-get-connection-property v "remote-namespace")
-                           (append (list "su" "-mm" "-" (or user "root") "-c")
-                                   command)
-                         (append (list "su" "-" (or user "root") "-c")
-                                 command))
+                           (append (list "su" "-mm" "-" user "-c") command)
+                         (append (list "su" "-" user "-c") command))
 	      :coding coding :noquery noquery :connection-type connection-type
 	      :sentinel sentinel :stderr stderr))
 	  ;; Set filter.  Prior Emacs 29.1, it doesn't work reliably
@@ -516,7 +507,7 @@ FUNCTION."
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
     (write-region . tramp-androidsu-handle-write-region))
-  "Alist of TRAMP handler functions for superuser sessions on Android.")
+  "Alist of Tramp handler functions for superuser sessions on Android.")
 
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
@@ -541,6 +532,20 @@ arguments to pass to the OPERATION."
 (tramp--with-startup
  (tramp-register-foreign-file-name-handler
   #'tramp-androidsu-file-name-p #'tramp-androidsu-file-name-handler))
+
+;;; Default connection-local variables for Tramp.
+
+(defconst tramp-androidsu-connection-local-default-variables
+  `((tramp-remote-path . ,tramp-androidsu-remote-path))
+  "Default connection-local variables for remote androidsu connections.")
+
+(connection-local-set-profile-variables
+ 'tramp-androidsu-connection-local-default-profile
+ tramp-androidsu-connection-local-default-variables)
+
+(connection-local-set-profiles
+ `(:application tramp :protocol ,tramp-androidsu-method)
+ 'tramp-androidsu-connection-local-default-profile)
 
 (with-eval-after-load 'shell
   (connection-local-set-profiles

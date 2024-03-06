@@ -1266,7 +1266,7 @@ connection if a previous connection has died for some reason."
 	      (tramp-set-connection-property
 	       p "prompt" (rx "///" (literal prompt) "#$"))
 	      (tramp-adb-send-command
-	       vec (format "PS1=\"///\"\"%s\"\"#$\"" prompt))
+	       vec (format "PS1=\"///\"\"%s\"\"#$\" PS2=''" prompt))
 
 	      ;; Disable line editing.
 	      (tramp-adb-send-command
