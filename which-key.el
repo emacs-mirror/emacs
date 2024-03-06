@@ -707,9 +707,8 @@ Used when `which-key-popup-type' is frame.")
 (defvar which-key--evil-keys-regexp (eval-when-compile
                                       (regexp-opt '("-state"))))
 (defvar which-key--ignore-non-evil-keys-regexp
-  (eval-when-compile
-    (regexp-opt '("mouse-" "wheel-" "remap" "drag-" "scroll-bar"
-                  "select-window" "switch-frame" "which-key"))))
+  (regexp-opt '("mouse-" "wheel-" "remap" "drag-" "scroll-bar"
+                "select-window" "switch-frame" "which-key")))
 (defvar which-key--ignore-keys-regexp
   (regexp-opt '("mouse-" "wheel-" "remap" "drag-" "scroll-bar"
                 "select-window" "switch-frame" "-state"
