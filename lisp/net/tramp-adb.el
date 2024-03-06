@@ -508,12 +508,11 @@ Emacs dired can't find files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
-	  ;; Examine `file-attributes' cache to see if request can be
-	  ;; satisfied without remote operation.
-	  (if (tramp-file-property-p v localname "file-attributes")
-	      (tramp-check-cached-permissions v ?w)
-	    (tramp-adb-send-command-and-check
-	     v (format "test -w %s" (tramp-shell-quote-argument localname))))
+          ;; The file-attributes cache is unreliable since its
+          ;; information does not take partition writability into
+          ;; account, so a call to test must never be skipped.
+	  (tramp-adb-send-command-and-check
+	   v (format "test -w %s" (tramp-shell-quote-argument localname)))
 	;; If file doesn't exist, check if directory is writable.
 	(and
 	 (file-directory-p (file-name-directory filename))
