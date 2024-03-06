@@ -1818,6 +1818,22 @@ Tree-sitter conditionally sets 'forward-sexp-function' for major modes
 that have defined 'sexp' in 'treesit-thing-settings' to enable
 sexp-related motion commands.
 
++++
+** Returned strings are never docstrings.
+Functions and macros whose bodies consist of a single string literal now
+only return that string; it is not used as a docstring.  Example:
+
+    (defun sing-a-song ()
+      "Sing a song.")
+
+The above function returns the string '"Sing a song."' but has no
+docstring.  Previously, that string was used as both a docstring and
+return value, which was never what the programmer wanted.  If you want
+the string to be a docstring, add an explicit return value.
+
+This change applies to 'defun', 'defsubst', 'defmacro' and 'lambda'
+forms; other defining forms such as 'cl-defun' already worked this way.
+
 ** New or changed byte-compilation warnings
 
 ---
