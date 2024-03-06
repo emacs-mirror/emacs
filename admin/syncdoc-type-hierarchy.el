@@ -114,9 +114,9 @@
     (syncdoc-insert-dot-content "LR")
     (with-demoted-errors "%S"           ;In case "dot" is not found!
       (call-process-region nil nil "dot" t (current-buffer) nil "-Tjpg" "-o"
-                           (expand-file-name "type_hierarchy.jpg"
+                           (expand-file-name "elisp_type_hierarchy.jpg"
                                              syncdoc-lispref-dir))))
-  (syncdoc-make-type-table (expand-file-name "type_hierarchy.txt"
+  (syncdoc-make-type-table (expand-file-name "elisp_type_hierarchy.txt"
                                              syncdoc-lispref-dir)))
 
 (defun syncdoc-update-type-hierarchy ()

@@ -144,12 +144,12 @@ ps: $(PS_TARGETS)
 ${buildinfodir}:
 	${MKDIR_P} $@
 
-auxfiles: $(buildinfodir)/type_hierarchy.txt $(buildinfodir)/type_hierarchy.jpg
+auxfiles: $(buildinfodir)/elisp_type_hierarchy.txt $(buildinfodir)/elisp_type_hierarchy.jpg
 
-$(buildinfodir)/type_hierarchy.txt: $(srcdir)/type_hierarchy.txt | ${buildinfodir}
+$(buildinfodir)/elisp_type_hierarchy.txt: $(srcdir)/elisp_type_hierarchy.txt | ${buildinfodir}
 	cp $< $@
 
-$(buildinfodir)/type_hierarchy.jpg: $(srcdir)/type_hierarchy.jpg | ${buildinfodir}
+$(buildinfodir)/elisp_type_hierarchy.jpg: $(srcdir)/elisp_type_hierarchy.jpg | ${buildinfodir}
 	cp $< $@
 
 $(buildinfodir)/elisp.info: $(srcs) auxfiles | ${buildinfodir}

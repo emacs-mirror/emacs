@@ -2516,7 +2516,7 @@ The Lisp Type Hierarchy for primitive types can be represented as
 follows:
 
 @noindent
-@image{type_hierarchy,,,,.jpg}
+@image{elisp_type_hierarchy,,,,.jpg}
 
 For example type @code{list} derives from (is a special kind of) type
 @code{sequence} which itself derives from @code{t}.
