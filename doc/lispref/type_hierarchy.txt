@@ -1,27 +1,29 @@
-| Type                     | Derived Types                                              |
-|--------------------------+------------------------------------------------------------|
-| t                        | sequence atom                                              |
-| sequence                 | list array                                                 |
-| atom                     | array function tree-sitter-compiled-query tree-sitter-node |
-|                          | tree-sitter-parser user-ptr font-object font-entity        |
-|                          | font-spec condvar mutex thread terminal hash-table frame   |
-|                          | buffer window process window-configuration overlay         |
-|                          | number-or-marker symbol obarray native-comp-unit           |
-|                          | cl-structure-object eieio-default-superclass               |
-| number                   | float integer                                              |
-| integer-or-marker        | integer marker                                             |
-| number-or-marker         | integer-or-marker number                                   |
-| integer                  | bignum fixnum                                              |
-| symbol                   | keyword boolean symbol-with-pos                            |
-| array                    | vector bool-vector char-table string                       |
-| boolean                  | null                                                       |
-| list                     | null cons                                                  |
-| compiled-function        | byte-code-function subr                                    |
-| function                 | module-function compiled-function oclosure                 |
-| subr                     | subr-native-elisp subr-primitive                           |
-| oclosure                 | advice kmacro                                              |
-| cl--class                | oclosure--class cl-structure-class eieio--class            |
-| cl-structure-object      | cl--class xref-elisp-location frameset-register            |
-| eieio-default-superclass | eieio-named transient-child                                |
-| transient-suffix         | transient-infix                                            |
-| transient-child          | transient-suffix                                           |
+| Type                | Derived Types                                              |
+|---------------------+------------------------------------------------------------|
+| cl-structure-object | xref-elisp-location org-cite-processor cl--generic-method  |
+|                     | cl--random-state register-preview-info cl--generic         |
+|                     | cl--class cl-slot-descriptor uniquify-item registerv       |
+|                     | isearch--state cl--generic-generalizer lisp-indent-state   |
+| accessor            | oclosure-accessor                                          |
+| oclosure            | advice cconv--interactive-helper advice--forward accessor  |
+|                     | save-some-buffers-function cl--generic-nnm                 |
+| atom                | ppss decoded-time oclosure cl-structure-object timer       |
+|                     | native-comp-unit obarray symbol number-or-marker overlay   |
+|                     | window-configuration process window buffer frame           |
+|                     | hash-table terminal thread mutex condvar font-spec         |
+|                     | font-entity font-object user-ptr tree-sitter-parser        |
+|                     | tree-sitter-node tree-sitter-compiled-query function array |
+| cl--class           | cl-structure-class oclosure--class                         |
+| subr                | subr-primitive subr-native-elisp                           |
+| function            | compiled-function module-function                          |
+| compiled-function   | subr byte-code-function                                    |
+| list                | cons null                                                  |
+| boolean             | null                                                       |
+| array               | string char-table bool-vector vector                       |
+| symbol              | symbol-with-pos boolean keyword                            |
+| integer             | fixnum bignum                                              |
+| number-or-marker    | number integer-or-marker                                   |
+| integer-or-marker   | marker integer                                             |
+| number              | integer float                                              |
+| sequence            | array list                                                 |
+| t                   | atom sequence                                              |
