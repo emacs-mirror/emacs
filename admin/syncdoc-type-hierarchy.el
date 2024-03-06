@@ -37,42 +37,40 @@
 (require 'cl-lib)
 (require 'org-table)
 
+(defconst syncdoc-file (or (macroexp-file-name) buffer-file-name))
+
+(defconst syncdoc-emacs-repo-dir
+  (expand-file-name "../" (file-name-directory syncdoc-file)))
+
 (defconst syncdoc-lispref-dir
-  (expand-file-name "../doc/lispref/"
-                    (file-name-directory
-                     (or (macroexp-file-name)
-                         buffer-file-name))))
+  (expand-file-name "doc/lispref/" syncdoc-emacs-repo-dir))
+
+(defconst syncdoc-all-types
+  (let (res)
+    (maphash (lambda (type _)
+               (push type res))
+             cl--direct-supertypes-of-type)
+
+    (mapatoms (lambda (type)
+                (when (cl-find-class type)
+                  (push type res)))
+              obarray)
+    res)
+  "List of all types.")
+
+(declare-function 'comp--direct-supertypes "comp-cstr.el")
 
 (defconst syncdoc-hierarchy
-  (let ((ht (copy-hash-table cl--direct-supertypes-of-type)))
-    ;; Include info about "representative" other structure types,
-    ;; to illustrate how they fit.
-    (mapc #'require '(kmacro eieio-base elisp-mode frameset transient))
-    (let ((extra-types '(advice kmacro cl-structure-object cl-structure-class
-                         eieio-default-superclass eieio-named transient-infix
-                         xref-elisp-location frameset-register))
-          (seen ()))
-      (while extra-types
-        (let* ((type (pop extra-types))
-               (class (get type 'cl--class))
-               (parents (cl--class-parents class)))
-          (unless (member type seen)
-            (push type seen)
-            (push (type-of class) extra-types)
-            (puthash type (cond
-                           (parents
-                            (let ((ps (mapcar #'cl--class-name parents)))
-                              (setq extra-types (append ps extra-types))
-                              ps))
-                           ;; EIEIO's parents don't mention the default.
-                           ((and (eq (type-of class) 'eieio--class)
-                                 (not (eq type 'eieio-default-superclass)))
-                            '(eieio-default-superclass))
-                           ;; OClosures can still be lists :-(
-                           ((eq 'oclosure type) '(function))
-                           (t '(atom)))
-                     ht)))))
-    ht))
+  (progn
+    ;; Require it here so we don't load it before `syncdoc-all-types' is
+    ;; computed.
+    (require 'comp-cstr)
+    (cl-loop
+     with comp-ctxt = (make-comp-cstr-ctxt)
+     with h = (make-hash-table :test #'eq)
+     for type in syncdoc-all-types
+     do (puthash type (comp--direct-supertypes type) h)
+     finally return h)))
 
 (defun syncdoc-insert-dot-content (rankdir)
   (maphash (lambda (child parents)
@@ -110,9 +108,8 @@
                do (insert "\n")))
     (org-table-align)))
 
-(defun syncdoc-update-type-hierarchy ()
+(defun syncdoc-update-type-hierarchy0 ()
   "Update the type hierarchy representation used by the elisp manual."
-  (interactive)
   (with-temp-buffer
     (syncdoc-insert-dot-content "LR")
     (with-demoted-errors "%S"           ;In case "dot" is not found!
@@ -121,5 +118,12 @@
                                              syncdoc-lispref-dir))))
   (syncdoc-make-type-table (expand-file-name "type_hierarchy.txt"
                                              syncdoc-lispref-dir)))
+
+(defun syncdoc-update-type-hierarchy ()
+  "Update the type hierarchy representation used by the elisp manual."
+  (interactive)
+  (call-process (expand-file-name "src/emacs" syncdoc-emacs-repo-dir)
+		nil t t "-Q" "--batch" "-l" syncdoc-file
+                "-f" "syncdoc-update-type-hierarchy0"))
 
 ;;; syncdoc-type-hierarchy.el ends here
