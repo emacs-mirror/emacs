@@ -1612,6 +1612,11 @@ values.
 
 * Lisp Changes in Emacs 30.1
 
+** Built-in types have now corresponding classes.
+At the Lisp level, this means that things like (cl-find-class 'integer)
+will now return a class object, and at the UI level it means that
+things like 'C-h o integer RET' will show some information about that type.
+
 ** New var 'major-mode-remap-defaults' and function 'major-mode-remap'.
 The first is like Emacs-29's 'major-mode-remap-alist' but to be set by
 packages (instead of users).  The second looks up those two variables.
