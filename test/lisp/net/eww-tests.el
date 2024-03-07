@@ -26,7 +26,8 @@
 
 (defvar eww-test--response-function (lambda (url) (concat "\n" url))
   "A function for returning a mock response for URL.
-The default just returns an empty list of headers URL as the body.")
+The default just returns an empty list of headers and the URL as the
+body.")
 
 (defmacro eww-test--with-mock-retrieve (&rest body)
   "Evaluate BODY with a mock implementation of `eww-retrieve'.
