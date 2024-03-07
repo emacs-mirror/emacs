@@ -494,9 +494,13 @@ use its file extension as image type.
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
 
 Optional PROPS are additional image attributes to assign to the image,
-like, e.g. `:mask MASK'.  If the property `:scale' is not given and the
-display has a high resolution (more exactly, when the average width of a
-character in the default font is more than 10 pixels), the image is
+like, e.g. `:mask MASK'.  See Info node `(elisp)Image Descriptors' for
+the list of supported properties; see the nodes following that node
+for properties specific to certain image types.
+
+If the property `:scale' is not given and the display has a high
+resolution (more exactly, when the average width of a character
+in the default font is more than 10 pixels), the image is
 automatically scaled up in proportion to the default font.
 
 Value is the image created, or nil if images of type TYPE are not supported.
@@ -571,7 +575,11 @@ Internal use only."
 Properties can be set with
 
   (setf (image-property IMAGE PROPERTY) VALUE)
-If VALUE is nil, PROPERTY is removed from IMAGE."
+If VALUE is nil, PROPERTY is removed from IMAGE.
+
+See Info node `(elisp)Image Descriptors' for the list of
+supported properties; see the nodes following that node for
+properties specific to certain image types."
   (declare (gv-setter image--set-property))
   (plist-get (cdr image) property))
 
