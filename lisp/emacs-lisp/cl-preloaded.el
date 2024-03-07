@@ -112,7 +112,7 @@
 (defun cl--struct-register-child (parent tag)
   ;; Can't use (cl-typep parent 'cl-structure-class) at this stage
   ;; because `cl-structure-class' is defined later.
-  (while (recordp parent)
+  (while (cl--struct-class-p parent)
     (add-to-list (cl--struct-class-children-sym parent) tag)
     ;; Only register ourselves as a child of the leftmost parent since structs
     ;; can only have one parent.
@@ -127,9 +127,14 @@
     (with-suppressed-warnings ((obsolete cl-old-struct-compat-mode))
       (message "cl-old-struct-compat-mode is obsolete!")
       (cl-old-struct-compat-mode 1)))
-  (if (eq type 'record)
-      ;; Defstruct using record objects.
-      (setq type nil))
+  (when (eq type 'record)
+    ;; Defstruct using record objects.
+    (setq type nil)
+    ;; `cl-structure-class' and `cl-structure-object' are allowed to be
+    ;; defined without specifying the parent, because their parent
+    ;; doesn't exist yet when they're defined.
+    (cl-assert (or parent (memq name '(cl-structure-class
+                                       cl-structure-object)))))
   (cl-assert (or type (not named)))
   (if (boundp children-sym)
       (add-to-list children-sym tag)
@@ -137,7 +142,9 @@
   (and (null type) (eq (caar slots) 'cl-tag-slot)
        ;; Hide the tag slot from "standard" (i.e. non-`type'd) structs.
        (setq slots (cdr slots)))
-  (let* ((parent-class (when parent (cl--struct-get-class parent)))
+  (let* ((parent-class (if parent (cl--struct-get-class parent)
+                         (cl--find-class (if (eq type 'list) 'cons
+                                           (or type 'record)))))
          (n (length slots))
          (index-table (make-hash-table :test 'eq :size n))
          (vslots (let ((v (make-vector n nil))
@@ -160,7 +167,9 @@
                  name docstring
                  (unless (symbolp parent-class) (list parent-class))
                  type named vslots index-table children-sym tag print)))
-    (unless (symbolp parent-class)
+    (cl-assert (or (not (symbolp parent-class))
+                   (memq name '(cl-structure-class cl-structure-object))))
+    (when (cl--struct-class-p parent-class)
       (let ((pslots (cl--struct-class-slots parent-class)))
         (or (>= n (length pslots))
             (let ((ok t))
@@ -417,6 +426,13 @@ For this build of Emacs it's %dbit."
 (cl--define-built-in-type subr-primitive (subr)
   "Type of functions hand written in C.")
 
+(unless (cl--class-parents (cl--find-class 'cl-structure-object))
+  ;; When `cl-structure-object' is created, built-in classes didn't exist
+  ;; yet, so we couldn't put `record' as the parent.
+  ;; Fix it now to close the recursion.
+  (setf (cl--class-parents (cl--find-class 'cl-structure-object))
+      (list (cl--find-class 'record))))
+
 (defconst cl--direct-supertypes-of-type
   ;; Please run `sycdoc-update-type-hierarchy' in
   ;; `admin/syncdoc-type-hierarchy.el' each time this is modified to
@@ -446,9 +462,6 @@ supertypes from the most specific to least specific.")
 
 (defconst cl--all-builtin-types
   (delete-dups (copy-sequence (apply #'append cl--typeof-types))))
-
-(eval-and-compile
-  (cl-assert (null (cl--class-parents (cl--find-class 'cl-structure-object)))))
 
 ;; Make sure functions defined with cl-defsubst can be inlined even in
 ;; packages which do not require CL.  We don't put an autoload cookie
