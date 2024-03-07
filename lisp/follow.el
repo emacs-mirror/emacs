@@ -874,6 +874,7 @@ from the bottom."
         (when (< dest win-s)
           (setq follow-internal-force-redisplay t))))))
 
+(put 'follow-recenter 'isearch-scroll t)
 
 (defun follow-redraw ()
   "Arrange windows displaying the same buffer in successor order.
