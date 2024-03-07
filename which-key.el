@@ -350,7 +350,7 @@ and https://github.com/justbur/emacs-which-key/issues/225."
                 (const :tag "No" nil))
   :version "1.0")
 
-(defcustom which-key-sort-order 'which-key-key-order
+(defcustom which-key-sort-order #'which-key-key-order
   "Order in which the key bindings are sorted.
 If nil, do not resort the output from `describe-buffer-bindings'
 which groups by mode. Ordering options
