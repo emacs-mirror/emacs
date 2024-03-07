@@ -2579,8 +2579,7 @@ constant.  A file is identified by its base name."
 	;; dependencies on the `c-lang-const's in VAL.)
 	(setq val (c--macroexpand-all val))
 
-	(setq bindings `(cons (cons ',assigned-mode (lambda () nil ,val))
-			      ,bindings)
+	(setq bindings `(cons (cons ',assigned-mode (lambda () ,val)) ,bindings)
 	      args (cdr args))))
 
     ;; Compile in the other files that have provided source
