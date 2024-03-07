@@ -293,8 +293,7 @@ See `defclass' for more information."
                    ;; reloading the file that does the `defclass', we don't
                    ;; want to create a new class object.
                    (eieio--class-make cname)))
-	 (groups nil) ;; list of groups id'd from slots
-	 (clearparent nil))
+	 (groups nil)) ;; list of groups id'd from slots
 
     ;; If this class already existed, and we are updating its structure,
     ;; make sure we keep the old child list.  This can cause bugs, but
@@ -317,6 +316,9 @@ See `defclass' for more information."
           (setf (eieio--class-children newc) children)
 	  (remhash cname eieio-defclass-autoload-map))))
 
+    (unless (or superclasses (eq cname 'eieio-default-superclass))
+      (setq superclasses '(eieio-default-superclass)))
+
     (if superclasses
 	(progn
 	  (dolist (p superclasses)
@@ -336,16 +338,13 @@ See `defclass' for more information."
                   (push c (eieio--class-parents newc))))))
 	  ;; Reverse the list of our parents so that they are prioritized in
 	  ;; the same order as specified in the code.
-	  (cl-callf nreverse (eieio--class-parents newc)))
-      ;; If there is nothing to loop over, then inherit from the
-      ;; default superclass.
-      (unless (eq cname 'eieio-default-superclass)
-	;; adopt the default parent here, but clear it later...
-	(setq clearparent t)
-        ;; save new child in parent
-        (cl-pushnew cname (eieio--class-children eieio-default-superclass))
-        ;; save parent in child
-        (setf (eieio--class-parents newc) (list eieio-default-superclass))))
+	  (cl-callf nreverse (eieio--class-parents newc))
+	  ;; Before adding new slots, let's add all the methods and classes
+	  ;; in from the parent class.
+	  (eieio-copy-parents-into-subclass newc))
+
+      (cl-assert (eq cname 'eieio-default-superclass))
+      (setf (eieio--class-parents newc) (list (cl--find-class 'record))))
 
     ;; turn this into a usable self-pointing symbol;  FIXME: Why?
     (when eieio-backward-compatibility
@@ -375,10 +374,6 @@ See `defclass' for more information."
                              "use (cl-typep ... '(list-of %s)) instead"
                              cname)
                        "25.1")))
-
-    ;; Before adding new slots, let's add all the methods and classes
-    ;; in from the parent class.
-    (eieio-copy-parents-into-subclass newc)
 
     ;; Store the new class vector definition into the symbol.  We need to
     ;; do this first so that we can call defmethod for the accessor.
@@ -511,10 +506,6 @@ See `defclass' for more information."
 
     ;; Set up the options we have collected.
     (setf (eieio--class-options newc) options)
-
-    ;; if this is a superclass, clear out parent (which was set to the
-    ;; default superclass eieio-default-superclass)
-    (if clearparent (setf (eieio--class-parents newc) nil))
 
     ;; Create the cached default object.
     (let ((cache (make-record newc

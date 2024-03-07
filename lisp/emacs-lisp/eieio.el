@@ -449,7 +449,12 @@ If EXTRA, include that in the string returned to represent the symbol."
 (defun eieio-class-parents (class)
   ;; FIXME: What does "(overload of variable)" mean here?
   "Return parent classes to CLASS.  (overload of variable)."
-  (eieio--class-parents (eieio--full-class-object class)))
+  ;; (declare (obsolete cl--class-parents "30.1"))
+  (let ((parents (eieio--class-parents (eieio--full-class-object class))))
+    (if (and (null (cdr parents))
+             (eq (car parents) (cl--find-class 'eieio-default-superclass)))
+        nil
+      parents)))
 
 (define-obsolete-function-alias 'class-parents #'eieio-class-parents "24.4")
 
@@ -497,7 +502,7 @@ If EXTRA, include that in the string returned to represent the symbol."
         (setq class (eieio--class-object class))
         (cl-check-type class eieio--class)
         (while (and child (not (eq child class)))
-          (setq p (append p (eieio--class-parents child))
+          (setq p (append p (cl--class-parents child))
                 child (pop p)))
         (if child t))))
 
@@ -680,8 +685,7 @@ If SLOT is unbound, do nothing."
 (defclass eieio-default-superclass nil
   nil
   "Default parent class for classes with no specified parent class.
-Its slots are automatically adopted by classes with no specified parents.
-This class is not stored in the `parent' slot of a class vector."
+Its slots are automatically adopted by classes with no specified parents."
   :abstract t)
 
 (setq eieio-default-superclass (cl--find-class 'eieio-default-superclass))
