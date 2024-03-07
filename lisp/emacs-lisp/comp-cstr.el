@@ -89,12 +89,15 @@ Integer values are handled in the `range' slot.")
 
 (defun comp--cl-class-hierarchy (x)
   "Given a class name `x' return its hierarchy."
-  `(,@(cl--class-allparents (cl--struct-get-class x))
-    ;; FIXME: AFAICT, `comp--all-classes' will also find those struct types
-    ;; which use :type and can thus be either `vector' or `cons' (the latter
-    ;; isn't `atom').
-    atom
-    t))
+  (let ((parents (cl--class-allparents (cl--struct-get-class x))))
+    (if (memq t parents)
+        parents
+      `(,@parents
+        ;; FIXME: AFAICT, `comp--all-classes' will also find those struct types
+        ;; which use :type and can thus be either `vector' or `cons' (the latter
+        ;; isn't `atom').
+        atom
+        t))))
 
 (defun comp--all-classes ()
   "Return all non built-in type names currently defined."
@@ -114,7 +117,7 @@ Integer values are handled in the `range' slot.")
 	   for class-name in (comp--all-classes)
            for pred = (get class-name 'cl-deftype-satisfies)
            when pred
-             do (puthash pred class-name h)
+           do (puthash pred (comp--type-to-cstr class-name) h)
 	   finally return h))
 
 (cl-defstruct comp-cstr-ctxt
