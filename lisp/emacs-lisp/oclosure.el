@@ -139,12 +139,15 @@
                (:include cl--class)
                (:copier nil))
   "Metaclass for OClosure classes."
+  ;; The `allparents' slot is used for the predicate that checks if a given
+  ;; object is an OClosure of a particular type.
   (allparents nil :read-only t :type (list-of symbol)))
 
 (setf (cl--find-class 'oclosure)
       (oclosure--class-make 'oclosure
-                            "The root parent of all OClosure classes"
-                            nil nil '(oclosure)))
+                            "The root parent of all OClosure types"
+                            nil (list (cl--find-class 'function))
+                            '(oclosure)))
 (defun oclosure--p (oclosure)
   (not (not (oclosure-type oclosure))))
 
