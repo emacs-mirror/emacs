@@ -4014,7 +4014,10 @@ recursive calls in starting lines of here-documents."
 		;; 1+6+2+1+1+6+1+1+1=20 extra () before this:
 		"\\|"
                 ;; -------- backslash-escaped stuff, don't interpret it
-		"\\\\\\(['`\"($]\\)")	; BACKWACKED something-hairy
+		"\\\\\\(['`\"($]\\)"	; BACKWACKED something-hairy
+                "\\|"
+                ;; -------- $\ is a variable in code, but not in a string
+                "\\(\\$\\\\\\)")
 	     "")))
          warning-message)
     (unwind-protect
@@ -4068,7 +4071,12 @@ recursive calls in starting lines of here-documents."
 		  (cperl-modify-syntax-type bb cperl-st-punct)))
 	       ;; No processing in strings/comments beyond this point:
 	       ((or (nth 3 state) (nth 4 state))
-		t)			; Do nothing in comment/string
+                ;; Edge case: In a double-quoted string, $\ is not the
+                ;; punctuation variable, $ must not quote \ here.  We
+                ;; generally make $ a punctuation character in strings
+                ;; and comments (Bug#69604).
+                (when (match-beginning 22)
+                  (cperl-modify-syntax-type (match-beginning 22) cperl-st-punct)))
 	       ((match-beginning 1)	; POD section
 		;;  "\\(\\`\n?\\|^\n\\)="
 		(setq b (match-beginning 0)

@@ -1431,6 +1431,25 @@ cperl-mode fontifies text after the delimiter as Perl code."
     (should (equal (get-text-property (point) 'face)
                    font-lock-comment-face))))
 
+(ert-deftest cperl-test-bug-69604 ()
+  "Verify that $\" in a double-quoted string does not end the string.
+Both `perl-mode' and `cperl-mode' treat ?$ as a quoting/escaping char to
+avoid issues with punctuation variables.  In a string, however, this is
+not appropriate."
+  (let ((strings
+         '("\"$\\\"      in string ---\"; # \"" ; $ must not quote \
+           "$\"     . \" in string ---\"; # \"" ; $ must quote \
+           "\"\\$\" . \" in string ---\"; # \""))) ; \$ must not quote
+    (dolist (string strings)
+      (with-temp-buffer
+        (insert string)
+        (funcall cperl-test-mode)
+        (font-lock-ensure)
+        (goto-char (point-min))
+        (search-forward "in string")
+        (should (equal (get-text-property (point) 'face)
+                       font-lock-string-face))))))
+
 (ert-deftest test-indentation ()
   (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))
 
