@@ -119,7 +119,7 @@ Used to modify the compiler environment."
      (function ((or integer marker) (or integer marker)) string))
     (bufferp (function (t) boolean))
     (byte-code-function-p (function (t) boolean))
-    (capitalize (function (or integer string) (or integer string)))
+    (capitalize (function ((or integer string)) (or integer string)))
     (car (function (list) t))
     (car-less-than-car (function (list list) boolean))
     (car-safe (function (t) t))
