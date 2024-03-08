@@ -1368,6 +1368,18 @@ without specifying a file, like this:
     (notifications-notify
       :title "I am playing music" :app-icon 'multimedia-player)
 
+** Image
+
++++
+*** Image :map property is now recomputed when image is transformed.
+Now images with clickable maps work as expected after you run commands
+such as `image-increase-size', `image-decrease-size', `image-rotate',
+`image-flip-horizontally', and `image-flip-vertically'.
+
++++
+*** New user option 'image-recompute-map-p'
+Set this option to nil to prevent Emacs from recomputing image maps.
+
 ** Image Dired
 
 *** New user option 'image-dired-thumb-naming'.
