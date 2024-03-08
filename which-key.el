@@ -1023,6 +1023,7 @@ prefix. An example is
 For backwards compatibility, REPLACEMENT can also be a string,
 but the above format is preferred, and the option to use a string
 for REPLACEMENT will eventually be removed."
+  (declare (indent defun))
   (while key
     (let ((def
            (cond
@@ -1036,7 +1037,6 @@ for REPLACEMENT will eventually be removed."
       (define-key keymap (kbd key) def))
     (setq key (pop more)
           replacement (pop more))))
-(put 'which-key-add-keymap-based-replacements 'lisp-indent-function 'defun)
 
 ;;;###autoload
 (defun which-key-add-key-based-replacements
