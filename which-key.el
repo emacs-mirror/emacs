@@ -1588,7 +1588,7 @@ Within these categories order using `which-key-key-order'."
   (let (found)
     (dolist (repl repls)
       (when (which-key--match-replacement key-binding repl)
-        (setq found 't)
+        (setq found t)
         (setq key-binding (which-key--replace-in-binding key-binding repl))))
     (when found `(replaced . ,key-binding))))
 
