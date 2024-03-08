@@ -960,7 +960,7 @@ need be... May remove that later...)"
 
 (defun eieio--class-precedence-c3 (class)
   "Return all parents of CLASS in c3 order."
-  (let ((parents (eieio--class-parents class)))
+  (let ((parents (cl--class-parents class)))
     (cons class
           (merge-ordered-lists
            (append
@@ -974,7 +974,7 @@ need be... May remove that later...)"
 
 (defun eieio--class-precedence-dfs (class)
   "Return all parents of CLASS in depth-first order."
-  (let* ((parents (eieio--class-parents class))
+  (let* ((parents (cl--class-parents class))
 	 (classes (copy-sequence
 		   (apply #'append
 			  (list class)
@@ -995,12 +995,12 @@ need be... May remove that later...)"
 (defun eieio--class-precedence-bfs (class)
   "Return all parents of CLASS in breadth-first order."
   (let* ((result)
-         (queue (eieio--class-parents class)))
+         (queue (cl--class-parents class)))
     (while queue
       (let ((head (pop queue)))
 	(unless (member head result)
 	  (push head result)
-	  (setq queue (append queue (eieio--class-parents head))))))
+	  (setq queue (append queue (cl--class-parents head))))))
     (cons class (nreverse result)))
   )
 
