@@ -528,7 +528,8 @@ that `erc-button-add-button' adds, except for the face."
    '(erc-callback nil
                   erc-data nil
                   mouse-face nil
-                  keymap nil)))
+                  keymap nil))
+  (erc--restore-important-text-props '(mouse-face)))
 
 (defun erc-button-add-button (from to fun nick-p &optional data regexp)
   "Create a button between FROM and TO with callback FUN and data DATA.

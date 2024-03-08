@@ -2232,6 +2232,58 @@
     (when noninteractive
       (kill-buffer))))
 
+(ert-deftest erc--restore-important-text-props ()
+  (erc-mode)
+  (let ((erc--msg-props (map-into '((erc--important-prop-names a))
+                                  'hash-table)))
+    (insert (propertize "foo" 'a 'A 'b 'B 'erc--important-props '(a A))
+            " "
+            (propertize "bar" 'c 'C 'a 'A 'b 'B
+                        'erc--important-props '(a A c C)))
+
+    ;; Attempt to restore a and c when only a is registered.
+    (remove-list-of-text-properties (point-min) (point-max) '(a c))
+    (erc--restore-important-text-props '(a c))
+    (should (erc-tests-common-equal-with-props
+             (buffer-string)
+             #("foo bar"
+               0 3 (a A b B erc--important-props (a A))
+               4 7 (a A b B erc--important-props (a A c C)))))
+
+    ;; Add d between 3 and 6.
+    (erc--reserve-important-text-props 3 6 '(d D))
+    (put-text-property 3 6 'd 'D)
+    (should (erc-tests-common-equal-with-props
+             (buffer-string)
+             #("foo bar" ; #1
+               0 2 (a A b B erc--important-props (a A))
+               2 3 (d D a A b B erc--important-props (d D a A))
+               3 4 (d D erc--important-props (d D))
+               4 5 (d D a A b B erc--important-props (d D a A c C))
+               5 7 (a A b B erc--important-props (a A c C)))))
+    ;; Remove a and d, and attempt to restore d.
+    (remove-list-of-text-properties (point-min) (point-max) '(a d))
+    (erc--restore-important-text-props '(d))
+    (should (erc-tests-common-equal-with-props
+             (buffer-string)
+             #("foo bar"
+               0 2 (b B erc--important-props (a A))
+               2 3 (d D b B erc--important-props (d D a A))
+               3 4 (d D erc--important-props (d D))
+               4 5 (d D b B erc--important-props (d D a A c C))
+               5 7 (b B erc--important-props (a A c C)))))
+
+    ;; Restore a only.
+    (erc--restore-important-text-props '(a))
+    (should (erc-tests-common-equal-with-props
+             (buffer-string)
+             #("foo bar" ; same as #1 above
+               0 2 (a A b B erc--important-props (a A))
+               2 3 (d D a A b B erc--important-props (d D a A))
+               3 4 (d D erc--important-props (d D))
+               4 5 (d D a A b B erc--important-props (d D a A c C))
+               5 7 (a A b B erc--important-props (a A c C)))))))
+
 (ert-deftest erc--split-string-shell-cmd ()
 
   ;; Leading and trailing space
