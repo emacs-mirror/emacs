@@ -187,7 +187,8 @@ History}.
 If the variable @code{minibuffer-allow-text-properties} is
 non-@code{nil}, then the string that is returned includes whatever text
 properties were present in the minibuffer.  Otherwise all the text
-properties are stripped when the value is returned.
+properties are stripped when the value is returned.  (By default this
+variable is @code{nil}.)
 
 @vindex minibuffer-prompt-properties
 The text properties in @code{minibuffer-prompt-properties} are applied
@@ -350,14 +351,15 @@ See @code{read-regexp} above for details of how these values are used.
 @end defopt
 
 @defvar minibuffer-allow-text-properties
-If this variable is @code{nil}, then @code{read-from-minibuffer}
-and @code{read-string} strip all text properties from the minibuffer
-input before returning it.  However,
+If this variable is @code{nil}, the default, then
+@code{read-from-minibuffer} and @code{read-string} strip all text
+properties from the minibuffer input before returning it.  However,
 @code{read-no-blanks-input} (see below), as well as
 @code{read-minibuffer} and related functions (@pxref{Object from
 Minibuffer,, Reading Lisp Objects With the Minibuffer}), and all
-functions that do minibuffer input with completion, remove the @code{face}
-property unconditionally, regardless of the value of this variable.
+functions that do minibuffer input with completion, remove the
+@code{face} property unconditionally, regardless of the value of this
+variable.
 
 If this variable is non-@code{nil}, most text properties on strings
 from the completion table are preserved---but only on the part of the
