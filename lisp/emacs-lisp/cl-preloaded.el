@@ -433,36 +433,6 @@ For this build of Emacs it's %dbit."
   (setf (cl--class-parents (cl--find-class 'cl-structure-object))
       (list (cl--find-class 'record))))
 
-(defconst cl--direct-supertypes-of-type
-  ;; Please run `sycdoc-update-type-hierarchy' in
-  ;; `admin/syncdoc-type-hierarchy.el' each time this is modified to
-  ;; reflect the change in the documentation.
-  (let ((table (make-hash-table :test #'eq)))
-    (mapatoms
-     (lambda (type)
-       (let ((class (get type 'cl--class)))
-        (when (built-in-class-p class)
-          (puthash type (mapcar #'cl--class-name (cl--class-parents class))
-           table)))))
-    table)
-  "Hash table TYPE -> SUPERTYPES.")
-
-(defconst cl--typeof-types
-  (letrec ((alist nil))
-    (maphash (lambda (type _)
-               (let ((class (get type 'cl--class)))
-                 ;; FIXME: Can't remember why `t' is excluded.
-                 (push (remq t (cl--class-allparents class)) alist)))
-             cl--direct-supertypes-of-type)
-    alist)
-  "Alist of supertypes.
-Each element has the form (TYPE . SUPERTYPES) where TYPE is one of
-the symbols returned by `type-of', and SUPERTYPES is the list of its
-supertypes from the most specific to least specific.")
-
-(defconst cl--all-builtin-types
-  (delete-dups (copy-sequence (apply #'append cl--typeof-types))))
-
 ;; Make sure functions defined with cl-defsubst can be inlined even in
 ;; packages which do not require CL.  We don't put an autoload cookie
 ;; directly on that function, since those cookies only go to cl-loaddefs.

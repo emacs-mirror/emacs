@@ -1330,68 +1330,39 @@ These match if the argument is `eql' to VAL."
 (cl--generic-prefill-dispatchers (terminal-parameter nil 'xterm--set-selection)
                                  (eql nil))
 
-;;; Support for cl-defstructs specializers.
+;;; Dispatch on "normal types".
 
-(defun cl--generic-struct-tag (name &rest _)
-  ;; Use exactly the same code as for `typeof'.
-  `(if ,name (type-of ,name) 'null))
-
-(defun cl--generic-struct-specializers (tag &rest _)
+(defun cl--generic-type-specializers (tag &rest _)
   (and (symbolp tag)
-       (let ((class (get tag 'cl--class)))
-         (when (cl-typep class 'cl-structure-class)
+       (let ((class (cl--find-class tag)))
+         (when class
            (cl--class-allparents class)))))
-
-(cl-generic-define-generalizer cl--generic-struct-generalizer
-  50 #'cl--generic-struct-tag
-  #'cl--generic-struct-specializers)
-
-(cl-defmethod cl-generic-generalizers :extra "cl-struct" (type)
-  "Support for dispatch on types defined by `cl-defstruct'."
-  (or
-   (when (symbolp type)
-     ;; Use the "cl--struct-class*" (inlinable) functions/macros rather than
-     ;; the "cl-struct-*" variants which aren't inlined, so that dispatch can
-     ;; take place without requiring cl-lib.
-     (let ((class (cl--find-class type)))
-       (and (cl-typep class 'cl-structure-class)
-            (or (null (cl--struct-class-type class))
-		(error "Can't dispatch on cl-struct %S: type is %S"
-                     type (cl--struct-class-type class)))
-            (progn (cl-assert (null (cl--struct-class-named class))) t)
-            (list cl--generic-struct-generalizer))))
-   (cl-call-next-method)))
-
-(cl--generic-prefill-dispatchers 0 cl--generic-generalizer)
-
-;;; Dispatch on "system types".
 
 (cl-generic-define-generalizer cl--generic-typeof-generalizer
   ;; FIXME: We could also change `type-of' to return `null' for nil.
   10 (lambda (name &rest _) `(if ,name (type-of ,name) 'null))
-  (lambda (tag &rest _)
-    (and (symbolp tag) (assq tag cl--typeof-types))))
+  #'cl--generic-type-specializers)
 
 (cl-defmethod cl-generic-generalizers :extra "typeof" (type)
-  "Support for dispatch on builtin types.
-See the full list and their hierarchy in `cl--typeof-types'."
+  "Support for dispatch on types.
+This currently works for built-in types and types built on top of records."
   ;; FIXME: Add support for other types accepted by `cl-typep' such
   ;; as `character', `face', `function', ...
   (or
-   (and (memq type cl--all-builtin-types)
-        (progn
-          ;; FIXME: While this wrinkle in the semantics can be occasionally
-          ;; problematic, this warning is more often annoying than helpful.
-          ;;(if (memq type '(vector array sequence))
-          ;;    (message "`%S' also matches CL structs and EIEIO classes"
-          ;;             type))
-          (list cl--generic-typeof-generalizer)))
+   (and (symbolp type)
+        (not (eq type t)) ;; Handled by the `t-generalizer'.
+        (let ((class (cl--find-class type)))
+          (memq (type-of class)
+                '(built-in-class cl-structure-class eieio--class)))
+        (list cl--generic-typeof-generalizer))
    (cl-call-next-method)))
 
 (cl--generic-prefill-dispatchers 0 integer)
 (cl--generic-prefill-dispatchers 1 integer)
 (cl--generic-prefill-dispatchers 0 cl--generic-generalizer integer)
 (cl--generic-prefill-dispatchers 0 (eql 'x) integer)
+
+(cl--generic-prefill-dispatchers 0 cl--generic-generalizer)
 
 ;;; Dispatch on major mode.
 
@@ -1430,19 +1401,13 @@ Used internally for the (major-mode MODE) context specializers."
 (defun cl--generic-oclosure-tag (name &rest _)
   `(oclosure-type ,name))
 
-(defun cl-generic--oclosure-specializers (tag &rest _)
-  (and (symbolp tag)
-       (let ((class (cl--find-class tag)))
-         (when (cl-typep class 'oclosure--class)
-           (oclosure--class-allparents class)))))
-
 (cl-generic-define-generalizer cl--generic-oclosure-generalizer
   ;; Give slightly higher priority than the struct specializer, so that
   ;; for a generic function with methods dispatching structs and on OClosures,
   ;; we first try `oclosure-type' before `type-of' since `type-of' will return
   ;; non-nil for an OClosure as well.
   51 #'cl--generic-oclosure-tag
-  #'cl-generic--oclosure-specializers)
+  #'cl--generic-type-specializers)
 
 (cl-defmethod cl-generic-generalizers :extra "oclosure-struct" (type)
   "Support for dispatch on types defined by `oclosure-define'."

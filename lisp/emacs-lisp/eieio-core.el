@@ -191,7 +191,7 @@ Abstract classes cannot be instantiated."
 
 ;; We autoload this because it's used in `make-autoload'.
 ;;;###autoload
-(defun eieio-defclass-autoload (cname _superclasses filename doc)
+(defun eieio-defclass-autoload (cname superclasses filename doc)
   "Create autoload symbols for the EIEIO class CNAME.
 SUPERCLASSES are the superclasses that CNAME inherits from.
 DOC is the docstring for CNAME.
@@ -199,15 +199,9 @@ This function creates a mock-class for CNAME and adds it into
 SUPERCLASSES as children.
 It creates an autoload function for CNAME's constructor."
   ;; Assume we've already debugged inputs.
-
-  ;; We used to store the list of superclasses in the `parent' slot (as a list
-  ;; of class names).  But now this slot holds a list of class objects, and
-  ;; those parents may not exist yet, so the corresponding class objects may
-  ;; simply not exist yet.  So instead we just don't store the list of parents
-  ;; here in eieio-defclass-autoload at all, since it seems that they're just
-  ;; not needed before the class is actually loaded.
   (let* ((oldc (cl--find-class cname))
-	 (newc (eieio--class-make cname)))
+	 (newc (eieio--class-make cname))
+	 (parents (mapcar #'cl-find-class superclasses)))
     (if (eieio--class-p oldc)
 	nil ;; Do nothing if we already have this class.
 
@@ -218,6 +212,12 @@ It creates an autoload function for CNAME's constructor."
 use '%s or turn off `eieio-backward-compatibility' instead" cname)
                                 "25.1"))
 
+      (when (memq nil parents)
+        ;; If some parents aren't yet fully defined, just ignore them for now.
+        (setq parents (delq nil parents)))
+      (unless parents
+       (setq parents (list (cl--find-class 'eieio-default-superclass))))
+      (setf (cl--class-parents newc) parents)
       (setf (cl--find-class cname) newc)
 
       ;; Create an autoload on top of our constructor function.
@@ -958,19 +958,13 @@ need be... May remove that later...)"
 	(cdr tuple)
       nil)))
 
-(defsubst eieio--class/struct-parents (class)
-  (or (eieio--class-parents class)
-      `(,eieio-default-superclass)))
-
 (defun eieio--class-precedence-c3 (class)
   "Return all parents of CLASS in c3 order."
   (let ((parents (eieio--class-parents class)))
     (cons class
           (merge-ordered-lists
            (append
-            (or
-             (mapcar #'eieio--class-precedence-c3 parents)
-             `((,eieio-default-superclass)))
+            (mapcar #'eieio--class-precedence-c3 parents)
             (list parents))
            (lambda (remaining-inputs)
             (signal 'inconsistent-class-hierarchy
@@ -984,13 +978,11 @@ need be... May remove that later...)"
 	 (classes (copy-sequence
 		   (apply #'append
 			  (list class)
-			  (or
-			   (mapcar
-			    (lambda (parent)
-			      (cons parent
-				    (eieio--class-precedence-dfs parent)))
-			    parents)
-			   `((,eieio-default-superclass))))))
+			  (mapcar
+			   (lambda (parent)
+			     (cons parent
+				   (eieio--class-precedence-dfs parent)))
+			   parents))))
 	 (tail classes))
     ;; Remove duplicates.
     (while tail
@@ -1003,13 +995,12 @@ need be... May remove that later...)"
 (defun eieio--class-precedence-bfs (class)
   "Return all parents of CLASS in breadth-first order."
   (let* ((result)
-         (queue (eieio--class/struct-parents class)))
+         (queue (eieio--class-parents class)))
     (while queue
       (let ((head (pop queue)))
 	(unless (member head result)
 	  (push head result)
-	  (unless (eq head eieio-default-superclass)
-	    (setq queue (append queue (eieio--class/struct-parents head)))))))
+	  (setq queue (append queue (eieio--class-parents head))))))
     (cons class (nreverse result)))
   )
 
@@ -1048,6 +1039,14 @@ method invocation orders of the involved classes."
 (require 'cl-generic)
 
 ;;;; General support to dispatch based on the type of the argument.
+
+;; FIXME: We could almost use the typeof-generalizer (i.e. the same as
+;; used for cl-structs), except that that generalizer doesn't support
+;; `:method-invocation-order' :-(
+
+(defun cl--generic-struct-tag (name &rest _)
+  ;; Use exactly the same code as for `typeof'.
+  `(if ,name (type-of ,name) 'null))
 
 (cl-generic-define-generalizer eieio--generic-generalizer
   ;; Use the exact same tagcode as for cl-struct, so that methods

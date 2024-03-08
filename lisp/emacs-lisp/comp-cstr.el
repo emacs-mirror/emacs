@@ -38,12 +38,6 @@
 (require 'cl-lib)
 (require 'cl-extra) ;HACK: For `cl-find-class' when `cl-loaddefs' is missing.
 
-(defconst comp--typeof-builtin-types (mapcar (lambda (x)
-                                               (append x '(t)))
-                                             cl--typeof-types)
-  ;; TODO can we just add t in `cl--typeof-types'?
-  "Like `cl--typeof-types' but with t as common supertype.")
-
 (cl-defstruct (comp-cstr (:constructor comp--type-to-cstr
                                        (type &aux
 					     (null (eq type 'null))
@@ -89,15 +83,7 @@ Integer values are handled in the `range' slot.")
 
 (defun comp--cl-class-hierarchy (x)
   "Given a class name `x' return its hierarchy."
-  (let ((parents (cl--class-allparents (cl--struct-get-class x))))
-    (if (memq t parents)
-        parents
-      `(,@parents
-        ;; FIXME: AFAICT, `comp--all-classes' will also find those struct types
-        ;; which use :type and can thus be either `vector' or `cons' (the latter
-        ;; isn't `atom').
-        atom
-        t))))
+  (cl--class-allparents (cl--find-class x)))
 
 (defun comp--all-classes ()
   "Return all non built-in type names currently defined."
@@ -109,8 +95,7 @@ Integer values are handled in the `range' slot.")
     res))
 
 (defun comp--compute-typeof-types ()
-  (append comp--typeof-builtin-types
-          (mapcar #'comp--cl-class-hierarchy (comp--all-classes))))
+  (mapcar #'comp--cl-class-hierarchy (comp--all-classes)))
 
 (defun comp--compute--pred-type-h ()
   (cl-loop with h = (make-hash-table :test #'eq)
@@ -275,19 +260,10 @@ Return them as multiple value."
                 (symbol-name y)))
 
 (defun comp--direct-supertypes (type)
-  (or
-   (gethash type cl--direct-supertypes-of-type)
-   (let ((supers (comp-supertypes type)))
-     (cl-assert (eq type (car supers)))
-     (cl-loop
-      with notdirect = nil
-      with direct = nil
-      for parent in (cdr supers)
-      unless (memq parent notdirect)
-        do (progn
-             (push parent direct)
-             (setq notdirect (append notdirect (comp-supertypes parent))))
-      finally return direct))))
+  (when (symbolp type) ;; FIXME: Can this test ever fail?
+    (let* ((class (cl--find-class type))
+           (parents (if class (cl--class-parents class))))
+      (mapcar #'cl--class-name parents))))
 
 (defsubst comp-subtype-p (type1 type2)
   "Return t if TYPE1 is a subtype of TYPE2 or nil otherwise."
@@ -359,23 +335,8 @@ Return them as multiple value."
 
 (defun comp-supertypes (type)
   "Return the ordered list of supertypes of TYPE."
-  ;; FIXME: We should probably keep the results in
-  ;; `comp-cstr-ctxt-typeof-types' (or maybe even precompute them
-  ;; and maybe turn `comp-cstr-ctxt-typeof-types' into a hash-table).
-  ;; Or maybe we shouldn't keep structs and defclasses in it,
-  ;; and just use `cl--class-allparents' when needed (and refuse to
-  ;; compute their direct subtypes since we can't know them).
-  (cl-loop
-   named loop
-   with above
-   for lane in (comp-cstr-ctxt-typeof-types comp-ctxt)
-   do (let ((x (memq type lane)))
-        (cond
-         ((null x) nil)
-         ((eq x lane) (cl-return-from loop x)) ;A base type: easy case.
-         (t (setq above
-                  (if above (comp--intersection x above) x)))))
-   finally return above))
+  (or (assq type (comp-cstr-ctxt-typeof-types comp-ctxt))
+      (error "Type %S missing from typeof-types!" type)))
 
 (defun comp-union-typesets (&rest typesets)
   "Union types present into TYPESETS."
