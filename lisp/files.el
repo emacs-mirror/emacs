@@ -4446,6 +4446,12 @@ to see whether it should be considered."
                   (funcall predicate key)
                 (or (not key)
                     (derived-mode-p key)))
+              ;; If KEY is an extra parent it may remain not loaded
+              ;; (hence with some of its mode-specific vars missing their
+              ;; `safe-local-variable' property), leading to spurious
+              ;; prompts about unsafe vars (bug#68246).
+              (if (and (symbolp key) (autoloadp (indirect-function key)))
+                  (ignore-errors (autoload-do-load (indirect-function key))))
               (let* ((alist (cdr entry))
                      (subdirs (assq 'subdirs alist)))
                 (if (or (not subdirs)
