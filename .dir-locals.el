@@ -32,9 +32,7 @@
                (electric-quote-comment . nil)
                (electric-quote-string . nil)
 	       (mode . bug-reference-prog)))
- (c-ts-mode . ((c-ts-mode-indent-style . gnu)
-               (indent-tabs-mode . t)
-               (mode . bug-reference-prog)))
+ (c-ts-mode . ((c-ts-mode-indent-style . gnu))) ;Inherits `c-mode' settings.
  (log-edit-mode . ((log-edit-font-lock-gnu-style . t)
                    (log-edit-setup-add-author . t)
 		   (vc-git-log-edit-summary-target-len . 50)

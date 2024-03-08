@@ -388,7 +388,6 @@ widget."
     idl-mode
 
     perl-mode
-    cperl-mode
     javascript-mode
     tcl-mode
     python-mode
