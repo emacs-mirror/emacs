@@ -5535,7 +5535,10 @@ android_wc_lookup_string (android_key_pressed_event *event,
 
       /* Terminate any ongoing character composition after a key is
 	 registered.  */
-      if (compose_status)
+      if (compose_status
+	  /* Provided that a modifier key is not the key being
+	     depressed.  */
+	  && !ANDROID_IS_MODIFIER_KEY (event->keycode))
 	compose_status->chars_matched = 0;
       *status_return = status;
       return rc;
