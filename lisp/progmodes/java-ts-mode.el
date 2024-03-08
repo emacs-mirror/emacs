@@ -406,6 +406,8 @@ Return nil if there is no name or if NODE is not a defun node."
                 ("Method" "\\`method_declaration\\'" nil nil)))
   (treesit-major-mode-setup))
 
+(derived-mode-add-parents 'java-ts-mode '(java-mode))
+
 (if (treesit-ready-p 'java)
     (add-to-list 'auto-mode-alist '("\\.java\\'" . java-ts-mode)))
 

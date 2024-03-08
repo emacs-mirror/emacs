@@ -153,6 +153,8 @@ Return nil if there is no name or if NODE is not a defun node."
 
     (treesit-major-mode-setup)))
 
+(derived-mode-add-parents 'toml-ts-mode '(toml-mode))
+
 (if (treesit-ready-p 'toml)
     (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode)))
 

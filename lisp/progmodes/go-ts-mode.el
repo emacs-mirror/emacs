@@ -261,6 +261,8 @@
 
     (treesit-major-mode-setup)))
 
+(derived-mode-add-parents 'go-ts-mode '(go-mode))
+
 (if (treesit-ready-p 'go)
     ;; FIXME: Should we instead put `go-mode' in `auto-mode-alist'
     ;; and then use `major-mode-remap-defaults' to map it to `go-ts-mode'?
@@ -438,6 +440,8 @@ what the parent of the node would be if it were a node."
                   (bracket error operator)))
 
     (treesit-major-mode-setup)))
+
+(derived-mode-add-parents 'go-mod-ts-mode '(go-mod-mode))
 
 (if (treesit-ready-p 'gomod)
     (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode)))

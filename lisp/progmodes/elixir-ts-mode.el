@@ -753,6 +753,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (treesit-major-mode-setup)
     (setq-local syntax-propertize-function #'elixir-ts--syntax-propertize)))
 
+(derived-mode-add-parents 'elixir-ts-mode '(elixir-mode))
+
 (if (treesit-ready-p 'elixir)
     (progn
       (add-to-list 'auto-mode-alist '("\\.elixir\\'" . elixir-ts-mode))

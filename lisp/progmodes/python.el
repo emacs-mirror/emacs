@@ -7128,6 +7128,8 @@ implementations: `python-mode' and `python-ts-mode'."
     (add-to-list 'auto-mode-alist '("\\.py[iw]?\\'" . python-ts-mode))
     (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode))))
 
+(derived-mode-add-parents 'python-ts-mode '(python-mode))
+
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code.
 (dolist (sym '(python-add-import

@@ -187,6 +187,8 @@ With ARG, do it many times.  Negative ARG means move backward."
 
     (treesit-major-mode-setup)))
 
+(derived-mode-add-parents 'heex-ts-mode '(heex-mode))
+
 (if (treesit-ready-p 'heex)
     ;; Both .heex and the deprecated .leex files should work
     ;; with the tree-sitter-heex grammar.

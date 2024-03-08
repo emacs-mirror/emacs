@@ -1210,6 +1210,8 @@ leading double colon is not added."
 
   (setq-local syntax-propertize-function #'ruby-ts--syntax-propertize))
 
+(derived-mode-add-parents 'ruby-ts-mode '(ruby-mode))
+
 (if (treesit-ready-p 'ruby)
     (add-to-list 'major-mode-remap-defaults
                  '(ruby-mode . ruby-ts-mode)))

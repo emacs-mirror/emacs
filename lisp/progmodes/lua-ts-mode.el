@@ -798,6 +798,8 @@ Calls REPORT-FN directly."
 
   (add-hook 'flymake-diagnostic-functions #'lua-ts-flymake-luacheck nil 'local))
 
+(derived-mode-add-parents 'lua-ts-mode '(lua-mode))
+
 (when (treesit-ready-p 'lua)
   (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode)))
 
