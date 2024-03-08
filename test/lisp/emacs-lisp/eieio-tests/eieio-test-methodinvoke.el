@@ -259,7 +259,7 @@
 	(ans '(
 	       (:PRIMARY D)
 	       (:PRIMARY D-base1)
-	       ;; (:PRIMARY D-base2)
+	       (:PRIMARY D-base2)
 	       (:PRIMARY D-base0)
 	       )))
     (eitest-F (D nil))
