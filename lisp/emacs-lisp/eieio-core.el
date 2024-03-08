@@ -1079,6 +1079,8 @@ method invocation orders of the involved classes."
 
 (defun eieio--generic-subclass-specializers (tag &rest _)
   (when (cl--class-p tag)
+    (when (eieio--class-p tag)
+      (setq tag (eieio--full-class-object tag))) ;Autoload, if applicable.
     (mapcar (lambda (class) `(subclass ,class))
             (cl--class-allparents tag))))
 
