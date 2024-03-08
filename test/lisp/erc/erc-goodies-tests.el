@@ -29,19 +29,23 @@
 (defun erc-goodies-tests--assert-face (beg end-str present &optional absent)
   (setq beg (+ beg (point-min)))
   (let ((end (+ beg (1- (length end-str)))))
-    (while (and beg (< beg end))
-      (let* ((val (get-text-property beg 'font-lock-face))
-             (ft (flatten-tree (ensure-list val))))
-        (dolist (p (ensure-list present))
-          (if (consp p)
-              (should (member p val))
-            (should (memq p ft))))
-        (dolist (a (ensure-list absent))
-          (if (consp a)
-              (should-not (member a val))
-            (should-not (memq a ft))))
-        (setq beg (text-property-not-all beg (point-max)
-                                         'font-lock-face val))))))
+    (ert-info ((format "beg: %S, end-str: %S" beg end-str))
+      (while (and beg (< beg end))
+        (let* ((val (get-text-property beg 'font-lock-face))
+               (ft (flatten-tree (ensure-list val))))
+          (ert-info ((format "looking-at: %S, val: %S"
+                             (buffer-substring-no-properties beg end)
+                             val))
+            (dolist (p (ensure-list present))
+              (if (consp p)
+                  (should (member p val))
+                (should (memq p ft))))
+            (dolist (a (ensure-list absent))
+              (if (consp a)
+                  (should-not (member a val))
+                (should-not (memq a ft)))))
+          (setq beg (text-property-not-all beg (point-max)
+                                           'font-lock-face val)))))))
 
 ;; These are from the "Examples" section of
 ;; https://modern.ircdocs.horse/formatting.html
@@ -129,39 +133,100 @@
 ;; Hovering over the redacted area should reveal its underlying text
 ;; in a high-contrast face.
 
+(ert-deftest erc-controls-highlight--spoilers ()
+  (should (eq t erc-interpret-controls-p))
+  (erc-tests-common-make-server-buf)
+  (with-current-buffer (erc--open-target "#chan")
+    (setq-local erc-interpret-mirc-color t)
+    (let* ((raw (concat "BEGIN "
+                        "\C-c0,0 WhiteOnWhite "
+                        "\C-c1,1 BlackOnBlack "
+                        "\C-c99,99 Default "
+                        "\C-o END"))
+           (msg (erc-format-privmessage "bob" raw nil t)))
+      (erc-display-message nil nil (current-buffer) msg))
+    (forward-line -1)
+    (should (search-forward "<bob> " nil t))
+    (save-restriction
+      ;; Narrow to EOL or start of right-side stamp.
+      (narrow-to-region (point) (line-end-position))
+      (save-excursion
+        (search-forward "WhiteOn")
+        (should (eq (get-text-property (point) 'mouse-face)
+                    'erc-spoiler-face))
+        (search-forward "BlackOn")
+        (should (eq (get-text-property (point) 'mouse-face)
+                    'erc-spoiler-face)))
+      ;; Start wtih ERC default face.
+      (erc-goodies-tests--assert-face
+       0 "BEGIN " 'erc-default-face
+       '(fg:erc-color-face0 bg:erc-color-face0))
+      ;; Masked in all white.
+      (erc-goodies-tests--assert-face
+       6 "WhiteOnWhite" '(fg:erc-color-face0 bg:erc-color-face0)
+       '(fg:erc-color-face1 bg:erc-color-face1))
+      ;; Masked in all black.
+      (erc-goodies-tests--assert-face
+       20 "BlackOnBlack" '(fg:erc-color-face1 bg:erc-color-face1)
+       '(erc-control-default-fg erc-control-default-bg))
+      ;; Explicit "default" code ignoerd.
+      (erc-goodies-tests--assert-face
+       34 "Default" '(erc-control-default-fg erc-control-default-bg)
+       '(fg:erc-color-face1 bg:erc-color-face1))
+      (erc-goodies-tests--assert-face
+       43 "END" 'erc-default-face
+       '(erc-control-default-bg erc-control-default-fg))))
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
+
 (ert-deftest erc-controls-highlight--inverse ()
   (should (eq t erc-interpret-controls-p))
-  (let ((erc-insert-modify-hook '(erc-controls-highlight))
-        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
-    (with-current-buffer (get-buffer-create "#chan")
-      (erc-mode)
-      (setq-local erc-interpret-mirc-color t)
-      (erc--initialize-markers (point) nil)
-
-      (let* ((m "Spoiler: \C-c0,0Hello\C-c1,1World!")
-             (msg (erc-format-privmessage "bob" m nil t)))
-        (erc-display-message nil nil (current-buffer) msg))
-      (forward-line -1)
-      (should (search-forward "<bob> " nil t))
-      (save-restriction
-        (narrow-to-region (point) (pos-eol))
-        (should (eq (get-text-property (+ 9 (point)) 'mouse-face)
-                    'erc-inverse-face))
-        (should (eq (get-text-property (1- (pos-eol)) 'mouse-face)
-                    'erc-inverse-face))
-        (erc-goodies-tests--assert-face
-         0 "Spoiler: " 'erc-default-face
-         '(fg:erc-color-face0 bg:erc-color-face0))
-        (erc-goodies-tests--assert-face
-         9 "Hello" '(erc-spoiler-face)
-         '( fg:erc-color-face0 bg:erc-color-face0
-            fg:erc-color-face1 bg:erc-color-face1))
-        (erc-goodies-tests--assert-face
-         18 " World" '(erc-spoiler-face)
-         '( fg:erc-color-face0 bg:erc-color-face0
-            fg:erc-color-face1 bg:erc-color-face1 )))
-      (when noninteractive
-        (kill-buffer)))))
+  (erc-tests-common-make-server-buf)
+  (with-current-buffer (erc--open-target "#chan")
+    (setq-local erc-interpret-mirc-color t)
+    (defvar erc-fill-column)
+    (let* ((erc-fill-column 90)
+           (raw (concat "BEGIN "
+                        "\C-c3,13 GreenOnPink "
+                        "\C-v PinkOnGreen "
+                        "\C-c99,99 ReversedDefault "
+                        "\C-v NormalDefault "
+                        "\C-o END"))
+           (msg (erc-format-privmessage "bob" raw nil t)))
+      (erc-display-message nil nil (current-buffer) msg))
+    (forward-line -1)
+    (should (search-forward "<bob> " nil t))
+    (save-restriction
+      ;; Narrow to EOL or start of right-side stamp.
+      (narrow-to-region (point) (line-end-position))
+      ;; Baseline.
+      (erc-goodies-tests--assert-face
+       0 "BEGIN " 'erc-default-face
+       '(fg:erc-color-face0 bg:erc-color-face0))
+      ;; Normal fg/bg combo.
+      (erc-goodies-tests--assert-face
+       6 "GreenOnPink" '(fg:erc-color-face3 bg:erc-color-face13)
+       '(erc-inverse-face))
+      ;; Reverse of previous, so former-bg on former-fg.
+      (erc-goodies-tests--assert-face
+       19 "PinkOnGreen"
+       '(erc-inverse-face fg:erc-color-face3 bg:erc-color-face13)
+       nil)
+      ;; The inverse of `default' because reverse still in effect.
+      (erc-goodies-tests--assert-face
+       32 "ReversedDefault" '(erc-inverse-face erc-control-default-fg
+                                               erc-control-default-bg)
+       '(fg:erc-color-face3 bg:erc-color-face13))
+      (erc-goodies-tests--assert-face
+       49 "NormalDefault" '(erc-control-default-fg
+                            erc-control-default-bg)
+       '(erc-inverse-face fg:erc-color-face1 bg:erc-color-face1))
+      (erc-goodies-tests--assert-face
+       64 "END" 'erc-default-face
+       '( erc-control-default-fg erc-control-default-bg
+          fg:erc-color-face0 bg:erc-color-face0))))
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
 
 (defvar erc-goodies-tests--motd
   ;; This is from ergo's MOTD
