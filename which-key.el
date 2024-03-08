@@ -487,7 +487,6 @@ This string is fed into `substitute-command-keys'")
 
 (defvar which-key--paging-functions
   (list #'which-key-C-h-dispatch
-        #'which-key-manual-update
         #'which-key-turn-page
         #'which-key-show-next-page-cycle
         #'which-key-show-next-page-no-cycle
