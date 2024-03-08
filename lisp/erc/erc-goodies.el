@@ -665,9 +665,7 @@ The value `erc-interpret-controls-p' must also be t for this to work."
   "ERC inverse face."
   :group 'erc-faces)
 
-(defface erc-spoiler-face
-  '((((background light)) :foreground "DimGray" :background "DimGray")
-    (((background dark)) :foreground "LightGray" :background "LightGray"))
+(defface erc-spoiler-face '((t :inherit default))
   "ERC spoiler face."
   :group 'erc-faces)
 
@@ -978,13 +976,16 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
   "Prepend properties from IRC control characters between FROM and TO.
 If optional argument STR is provided, apply to STR, otherwise prepend properties
 to a region in the current buffer."
-  (if (and fg bg (equal fg bg))
-      (progn
-        (setq fg 'erc-spoiler-face
-              bg nil)
-        (put-text-property from to 'mouse-face 'erc-inverse-face str))
-    (when fg (setq fg (erc-get-fg-color-face fg)))
-    (when bg (setq bg (erc-get-bg-color-face bg))))
+  (when (and fg bg (equal fg bg) (not (equal fg "99")))
+    (add-text-properties from to '( mouse-face erc-spoiler-face
+                                    cursor-face erc-spoiler-face)
+                         str)
+    (erc--reserve-important-text-props from to
+                                       '( mouse-face erc-spoiler-face
+                                          cursor-face erc-spoiler-face)
+                                       str))
+  (when fg (setq fg (erc-get-fg-color-face fg)))
+  (when bg (setq bg (erc-get-bg-color-face bg)))
   (font-lock-prepend-text-property
    from
    to
