@@ -47,10 +47,6 @@
 
 (defconst syncdoc-all-types
   (let (res)
-    (maphash (lambda (type _)
-               (push type res))
-             cl--direct-supertypes-of-type)
-
     (mapatoms (lambda (type)
                 (when (cl-find-class type)
                   (push type res)))
