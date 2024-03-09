@@ -2373,7 +2373,7 @@ multiply the size by the factor of @w{@code{1 + @var{n} / 10}}, so
 @findex image-decrease-size
 @kindex i - (Image mode)
 @item i -
-Decrease the image size (@code{image-increase-size}) by 20%.  Prefix
+Decrease the image size (@code{image-decrease-size}) by 20%.  Prefix
 numeric argument controls the decrement; the value of @var{n} means to
 multiply the size by the factor of @w{@code{1 - @var{n} / 10}}, so
 @w{@kbd{C-u 3 i -}} means to decrease the size by 30%.
