@@ -1065,6 +1065,9 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
     ;; (La)TeX: don't allow braces
     (latex-mode "--:\\\\$+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
     (tex-mode "--:\\\\$+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
+    ;; XML: don't allow angle brackets
+    (xml-mode "--:\\\\${}+@-Z_[:alpha:]~*?#" "{<@" "@>;.,!:}")
+    (nxml-mode "--:\\\\${}+@-Z_[:alpha:]~*?#" "{<@" "@>;.,!:}")
     )
   "Alist of (MODE CHARS BEG END), where MODE is a symbol.
 This is possibly a major-mode name, or one of the symbols
