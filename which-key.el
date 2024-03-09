@@ -1701,20 +1701,20 @@ If KEY contains any \"special keys\" defined in
 (defsubst which-key--truncate-description (desc avl-width)
   "Truncate DESC description to `which-key-max-description-length'."
   (let* ((max which-key-max-description-length)
-	 (max (cl-etypecase max
-		(null nil)
-		(integer max)
-		(float (truncate (* max avl-width)))
-		(function (let ((val (funcall max avl-width)))
-			    (if (floatp val) (truncate val) val))))))
+         (max (cl-etypecase max
+                (null nil)
+                (integer max)
+                (float (truncate (* max avl-width)))
+                (function (let ((val (funcall max avl-width)))
+                            (if (floatp val) (truncate val) val))))))
     (if (and max (> (length desc) max))
         (let ((dots (and (not (equal which-key-ellipsis ""))
-			 (which-key--propertize
-			  which-key-ellipsis 'face
-			  (get-text-property (1- (length desc)) 'face desc)))))
-	  (if dots
+                         (which-key--propertize
+                          which-key-ellipsis 'face
+                          (get-text-property (1- (length desc)) 'face desc)))))
+          (if dots
               (concat (substring desc 0 (- max (length dots))) dots)
-	    (substring desc 0 max)))
+            (substring desc 0 max)))
       desc)))
 
 (defun which-key--highlight-face (description)
