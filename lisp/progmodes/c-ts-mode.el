@@ -1328,6 +1328,8 @@ in your configuration."
                   (lambda (_pos) 'c))
       (treesit-font-lock-recompute-features '(emacs-devel)))))
 
+(derived-mode-add-parents 'c-ts-mode '(c-mode))
+
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-base-mode "C++"
   "Major mode for editing C++, powered by tree-sitter.
@@ -1370,6 +1372,8 @@ recommended to enable `electric-pair-mode' with this mode."
     (when c-ts-mode-emacs-sources-support
       (setq-local add-log-current-defun-function
                   #'c-ts-mode--emacs-current-defun-name))))
+
+(derived-mode-add-parents 'c++-ts-mode '(c++-mode))
 
 (easy-menu-define c-ts-mode-menu (list c-ts-mode-map c++-ts-mode-map)
   "Menu for `c-ts-mode' and `c++-ts-mode'."

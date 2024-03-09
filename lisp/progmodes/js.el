@@ -3916,6 +3916,8 @@ See `treesit-thing-settings' for more information.")
     (add-to-list 'auto-mode-alist
                  '("\\(\\.js[mx]\\|\\.har\\)\\'" . js-ts-mode))))
 
+(derived-mode-add-parents 'js-ts-mode '(js-mode))
+
 (defvar js-ts--s-p-query
   (when (treesit-available-p)
     (treesit-query-compile 'javascript

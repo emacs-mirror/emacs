@@ -165,6 +165,8 @@ Return nil if there is no name or if NODE is not a stage node."
 
     (treesit-major-mode-setup)))
 
+(derived-mode-add-parents 'dockerfile-ts-mode '(dockerfile-mode))
+
 (if (treesit-ready-p 'dockerfile)
     (add-to-list 'auto-mode-alist
                  ;; NOTE: We can't use `rx' here, as it breaks bootstrap.

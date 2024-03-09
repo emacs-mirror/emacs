@@ -998,6 +998,8 @@ Key bindings:
 
   (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-ts-mode)))
 
+(derived-mode-add-parents 'csharp-ts-mode '(csharp-mode))
+
 (provide 'csharp-mode)
 
 ;;; csharp-mode.el ends here

@@ -1639,6 +1639,8 @@ not written in Bash or sh."
     (setq-local treesit-defun-type-regexp "function_definition")
     (treesit-major-mode-setup)))
 
+(derived-mode-add-parents 'bash-ts-mode '(sh-mode))
+
 (advice-add 'bash-ts-mode :around #'sh--redirect-bash-ts-mode
             ;; Give it lower precedence than normal advice, so other
             ;; advices take precedence over it.

@@ -226,94 +226,105 @@ automatically)."
                       when probe return (cons probe args)
                       finally (funcall err)))))))
 
-(defvar eglot-server-programs `(((rust-ts-mode rust-mode) . ("rust-analyzer"))
-                                ((cmake-mode cmake-ts-mode) . ("cmake-language-server"))
-                                (vimrc-mode . ("vim-language-server" "--stdio"))
-                                ((python-mode python-ts-mode)
-                                 . ,(eglot-alternatives
-                                     '("pylsp" "pyls" ("pyright-langserver" "--stdio") "jedi-language-server" "ruff-lsp")))
-                                ((js-json-mode json-mode json-ts-mode)
-                                 . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
-                                                          ("vscode-json-languageserver" "--stdio")
-                                                          ("json-languageserver" "--stdio"))))
-                                (((js-mode :language-id "javascript")
-                                  (js-ts-mode :language-id "javascript")
-                                  (tsx-ts-mode :language-id "typescriptreact")
-                                  (typescript-ts-mode :language-id "typescript")
-                                  (typescript-mode :language-id "typescript"))
-                                 . ("typescript-language-server" "--stdio"))
-                                ((bash-ts-mode sh-mode) . ("bash-language-server" "start"))
-                                ((php-mode phps-mode php-ts-mode)
-                                 . ,(eglot-alternatives
-                                     '(("phpactor" "language-server")
-                                       ("php" "vendor/felixfbecker/language-server/bin/php-language-server.php"))))
-                                ((c-mode c-ts-mode c++-mode c++-ts-mode objc-mode)
-                                 . ,(eglot-alternatives
-                                     '("clangd" "ccls")))
-                                (((caml-mode :language-id "ocaml")
-                                  (tuareg-mode :language-id "ocaml") reason-mode)
-                                 . ("ocamllsp"))
-                                ((ruby-mode ruby-ts-mode)
-                                 . ("solargraph" "socket" "--port" :autoport))
-                                (haskell-mode
-                                 . ("haskell-language-server-wrapper" "--lsp"))
-                                (elm-mode . ("elm-language-server"))
-                                (mint-mode . ("mint" "ls"))
-                                ((kotlin-mode kotlin-ts-mode) . ("kotlin-language-server"))
-                                ((go-mode go-dot-mod-mode go-dot-work-mode go-ts-mode go-mod-ts-mode)
-                                 . ("gopls"))
-                                ((R-mode ess-r-mode) . ("R" "--slave" "-e"
-                                                        "languageserver::run()"))
-                                ((java-mode java-ts-mode) . ("jdtls"))
-                                ((dart-mode dart-ts-mode)
-                                 . ("dart" "language-server"
-                                    "--client-id" "emacs.eglot-dart"))
-                                ((elixir-mode elixir-ts-mode heex-ts-mode)
-                                 . ,(if (and (fboundp 'w32-shell-dos-semantics)
-                                             (w32-shell-dos-semantics))
-                                        '("language_server.bat")
-                                      (eglot-alternatives
-                                       '("language_server.sh" "start_lexical.sh"))))
-                                (ada-mode . ("ada_language_server"))
-                                (scala-mode . ,(eglot-alternatives
-                                                '("metals" "metals-emacs")))
-                                (racket-mode . ("racket" "-l" "racket-langserver"))
-                                ((tex-mode context-mode texinfo-mode bibtex-mode)
-                                 . ,(eglot-alternatives '("digestif" "texlab")))
-                                (erlang-mode . ("erlang_ls" "--transport" "stdio"))
-                                ((yaml-ts-mode yaml-mode) . ("yaml-language-server" "--stdio"))
-                                (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp" "nixd")))
-                                (nickel-mode . ("nls"))
-                                ((nushell-mode nushell-ts-mode) . ("nu" "--lsp"))
-                                (gdscript-mode . ("localhost" 6008))
-                                ((fortran-mode f90-mode) . ("fortls"))
-                                (futhark-mode . ("futhark" "lsp"))
-                                ((lua-mode lua-ts-mode) . ,(eglot-alternatives
-                                                            '("lua-language-server" "lua-lsp")))
-                                (zig-mode . ("zls"))
-                                ((css-mode css-ts-mode)
-                                 . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio")
-                                                          ("css-languageserver" "--stdio"))))
-                                (html-mode . ,(eglot-alternatives '(("vscode-html-language-server" "--stdio") ("html-languageserver" "--stdio"))))
-                                ((dockerfile-mode dockerfile-ts-mode) . ("docker-langserver" "--stdio"))
-                                ((clojure-mode clojurescript-mode clojurec-mode clojure-ts-mode)
-                                 . ("clojure-lsp"))
-                                ((csharp-mode csharp-ts-mode)
-                                 . ,(eglot-alternatives
-                                     '(("omnisharp" "-lsp")
-                                       ("csharp-ls"))))
-                                (purescript-mode . ("purescript-language-server" "--stdio"))
-                                ((perl-mode cperl-mode) . ("perl" "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run"))
-                                (markdown-mode
-                                 . ,(eglot-alternatives
-                                     '(("marksman" "server")
-                                       ("vscode-markdown-language-server" "--stdio"))))
-                                (graphviz-dot-mode . ("dot-language-server" "--stdio"))
-                                (terraform-mode . ("terraform-ls" "serve"))
-                                ((uiua-ts-mode uiua-mode) . ("uiua" "lsp"))
-                                (sml-mode
-                                 . ,(lambda (_interactive project)
-                                      (list "millet-ls" (project-root project)))))
+(defvar eglot-server-programs
+  ;; FIXME: Maybe this info should be distributed into the major modes
+  ;; themselves where they could set a buffer-local `eglot-server-program'
+  ;; instead of keeping this database centralized.
+  ;; FIXME: With `derived-mode-add-parents' in Emacs≥30, some of
+  ;; those entries can be simplified, but we keep them for when
+  ;; `eglot.el' is installed via GNU ELPA in an older Emacs.
+  `(((rust-ts-mode rust-mode) . ("rust-analyzer"))
+    ((cmake-mode cmake-ts-mode) . ("cmake-language-server"))
+    (vimrc-mode . ("vim-language-server" "--stdio"))
+    ((python-mode python-ts-mode)
+     . ,(eglot-alternatives
+         '("pylsp" "pyls" ("pyright-langserver" "--stdio")
+           "jedi-language-server" "ruff-lsp")))
+    ((js-json-mode json-mode json-ts-mode)
+     . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
+                              ("vscode-json-languageserver" "--stdio")
+                              ("json-languageserver" "--stdio"))))
+    (((js-mode :language-id "javascript")
+      (js-ts-mode :language-id "javascript")
+      (tsx-ts-mode :language-id "typescriptreact")
+      (typescript-ts-mode :language-id "typescript")
+      (typescript-mode :language-id "typescript"))
+     . ("typescript-language-server" "--stdio"))
+    ((bash-ts-mode sh-mode) . ("bash-language-server" "start"))
+    ((php-mode phps-mode php-ts-mode)
+     . ,(eglot-alternatives
+         '(("phpactor" "language-server")
+           ("php" "vendor/felixfbecker/language-server/bin/php-language-server.php"))))
+    ((c-mode c-ts-mode c++-mode c++-ts-mode objc-mode)
+     . ,(eglot-alternatives
+         '("clangd" "ccls")))
+    (((caml-mode :language-id "ocaml")
+      (tuareg-mode :language-id "ocaml") reason-mode)
+     . ("ocamllsp"))
+    ((ruby-mode ruby-ts-mode)
+     . ("solargraph" "socket" "--port" :autoport))
+    (haskell-mode
+     . ("haskell-language-server-wrapper" "--lsp"))
+    (elm-mode . ("elm-language-server"))
+    (mint-mode . ("mint" "ls"))
+    ((kotlin-mode kotlin-ts-mode) . ("kotlin-language-server"))
+    ((go-mode go-dot-mod-mode go-dot-work-mode go-ts-mode go-mod-ts-mode)
+     . ("gopls"))
+    ((R-mode ess-r-mode) . ("R" "--slave" "-e"
+                            "languageserver::run()"))
+    ((java-mode java-ts-mode) . ("jdtls"))
+    ((dart-mode dart-ts-mode)
+     . ("dart" "language-server"
+        "--client-id" "emacs.eglot-dart"))
+    ((elixir-mode elixir-ts-mode heex-ts-mode)
+     . ,(if (and (fboundp 'w32-shell-dos-semantics)
+                 (w32-shell-dos-semantics))
+            '("language_server.bat")
+          (eglot-alternatives
+           '("language_server.sh" "start_lexical.sh"))))
+    (ada-mode . ("ada_language_server"))
+    (scala-mode . ,(eglot-alternatives
+                    '("metals" "metals-emacs")))
+    (racket-mode . ("racket" "-l" "racket-langserver"))
+    ((tex-mode context-mode texinfo-mode bibtex-mode)
+     . ,(eglot-alternatives '("digestif" "texlab")))
+    (erlang-mode . ("erlang_ls" "--transport" "stdio"))
+    ((yaml-ts-mode yaml-mode) . ("yaml-language-server" "--stdio"))
+    (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp" "nixd")))
+    (nickel-mode . ("nls"))
+    ((nushell-mode nushell-ts-mode) . ("nu" "--lsp"))
+    (gdscript-mode . ("localhost" 6008))
+    ((fortran-mode f90-mode) . ("fortls"))
+    (futhark-mode . ("futhark" "lsp"))
+    ((lua-mode lua-ts-mode) . ,(eglot-alternatives
+                                '("lua-language-server" "lua-lsp")))
+    (zig-mode . ("zls"))
+    ((css-mode css-ts-mode)
+     . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio")
+                              ("css-languageserver" "--stdio"))))
+    (html-mode . ,(eglot-alternatives
+                   '(("vscode-html-language-server" "--stdio")
+                     ("html-languageserver" "--stdio"))))
+    ((dockerfile-mode dockerfile-ts-mode) . ("docker-langserver" "--stdio"))
+    ((clojure-mode clojurescript-mode clojurec-mode clojure-ts-mode)
+     . ("clojure-lsp"))
+    ((csharp-mode csharp-ts-mode)
+     . ,(eglot-alternatives
+         '(("omnisharp" "-lsp")
+           ("csharp-ls"))))
+    (purescript-mode . ("purescript-language-server" "--stdio"))
+    ((perl-mode cperl-mode)
+     . ("perl" "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run"))
+    (markdown-mode
+     . ,(eglot-alternatives
+         '(("marksman" "server")
+           ("vscode-markdown-language-server" "--stdio"))))
+    (graphviz-dot-mode . ("dot-language-server" "--stdio"))
+    (terraform-mode . ("terraform-ls" "serve"))
+    ((uiua-ts-mode uiua-mode) . ("uiua" "lsp"))
+    (sml-mode
+     . ,(lambda (_interactive project)
+          (list "millet-ls" (project-root project)))))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 identifies the buffers that are to be managed by a specific

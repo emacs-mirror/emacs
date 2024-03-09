@@ -586,6 +586,7 @@ If a window system is unavailable, calls `hfy-fallback-color-values'."
 (defvar hfy-cperl-mode-kludged-p nil)
 
 (defun hfy-kludge-cperl-mode ()
+  ;; FIXME: Still?
   "CPerl mode does its damnedest not to do some of its fontification when not
 in a windowing system - try to trick it..."
   (declare (obsolete nil "28.1"))

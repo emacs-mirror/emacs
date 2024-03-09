@@ -985,9 +985,8 @@ Return nil if there is nothing appropriate in the buffer near point."
                                  finally return "(python)Index")))))
 
 (info-lookup-maybe-add-help
- :mode 'cperl-mode
- :regexp "[$@%][^a-zA-Z]\\|\\$\\^[A-Z]\\|[$@%]?[a-zA-Z][_a-zA-Z0-9]*"
- :other-modes '(perl-mode))
+ :mode 'perl-mode
+ :regexp "[$@%][^a-zA-Z]\\|\\$\\^[A-Z]\\|[$@%]?[a-zA-Z][_a-zA-Z0-9]*")
 
 (info-lookup-maybe-add-help
  :mode 'latex-mode

@@ -134,6 +134,8 @@ Return nil if there is no name or if NODE is not a defun node."
 
   (treesit-major-mode-setup))
 
+(derived-mode-add-parents 'html-ts-mode '(html-mode))
+
 (if (treesit-ready-p 'html)
     (add-to-list 'auto-mode-alist '("\\.html\\'" . html-ts-mode)))
 
