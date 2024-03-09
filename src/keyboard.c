@@ -10442,9 +10442,6 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
   Lisp_Object original_uppercase UNINIT;
   int original_uppercase_position = -1;
 
-  /* Gets around Microsoft compiler limitations.  */
-  bool dummyflag = false;
-
 #ifdef HAVE_TEXT_CONVERSION
   bool disabled_conversion;
 
@@ -10693,10 +10690,7 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 	  && !requeued_events_pending_p ())
 	{
 	  t = 0;
-	  /* The Microsoft C compiler can't handle the goto that
-	     would go here.  */
-	  dummyflag = true;
-	  break;
+	  goto done;
 	}
       /* Otherwise, we should actually read a character.  */
       else
@@ -11291,10 +11285,7 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 	  && help_char_p (EVENT_HEAD (key)) && t > 1)
 	    {
 	      read_key_sequence_cmd = Vprefix_help_command;
-	      /* The Microsoft C compiler can't handle the goto that
-		 would go here.  */
-	      dummyflag = true;
-	      break;
+	      goto done;
 	    }
 
       /* If KEY is not defined in any of the keymaps,
@@ -11343,8 +11334,9 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 	    }
 	}
     }
-  if (!dummyflag)
-    read_key_sequence_cmd = current_binding;
+  read_key_sequence_cmd = current_binding;
+
+  done:
   read_key_sequence_remapped
     /* Remap command through active keymaps.
        Do the remapping here, before the unbind_to so it uses the keymaps
