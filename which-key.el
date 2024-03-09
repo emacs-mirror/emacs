@@ -1886,7 +1886,7 @@ Requires `which-key-compute-remaps' to be non-nil."
                   (or all
                       ;; event 27 is escape, so this will pick up meta
                       ;; bindings and hopefully not too much more
-                      (and (numberp ev) (= ev 27))))
+                      (eql ev 27)))
              (setq bindings
                    (which-key--get-keymap-bindings-1
                     keymap bindings key nil all ignore-commands)))
