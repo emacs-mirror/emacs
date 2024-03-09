@@ -4739,12 +4739,15 @@ ns_select_1 (int nfds, fd_set *readfds, fd_set *writefds,
   check_native_fs ();
 #endif
 
-  if (hold_event_q.nr > 0 && !run_loop_only)
+  /* If there are input events pending, store them so that Emacs can
+     recognize C-g.  (And we must make sure [NSApp run] is called in
+     this function, so that C-g has a chance to land in
+     hold_event_q.)  */
+  if (hold_event_q.nr > 0)
     {
-      /* We already have events pending.  */
-      raise (SIGIO);
-      errno = EINTR;
-      return -1;
+      for (int i = 0; i < hold_event_q.nr; ++i)
+        kbd_buffer_store_event_hold (&hold_event_q.q[i], NULL);
+      hold_event_q.nr = 0;
     }
 
   eassert (nfds <= FD_SETSIZE);
@@ -4757,8 +4760,8 @@ ns_select_1 (int nfds, fd_set *readfds, fd_set *writefds,
   if (NSApp == nil
       || ![NSThread isMainThread]
       || (timeout && timeout->tv_sec == 0 && timeout->tv_nsec == 0))
-    return thread_select (pselect, nfds, readfds, writefds,
-			  exceptfds, timeout, sigmask);
+    thread_select (pselect, nfds, readfds, writefds,
+		   exceptfds, timeout, sigmask);
   else
     {
       struct timespec t = {0, 0};
