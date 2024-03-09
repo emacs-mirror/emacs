@@ -1853,11 +1853,7 @@ init_sigbus (void)
 
 #endif
 
-/* This does not work on Android and interferes with the system
-   tombstone generation.  */
-
-#if defined HAVE_STACK_OVERFLOW_HANDLING && !defined WINDOWSNT	\
-  && (!defined HAVE_ANDROID || defined ANDROID_STUBIFY)
+#if defined HAVE_STACK_OVERFLOW_HANDLING && !defined WINDOWSNT
 
 /* Alternate stack used by SIGSEGV handler below.  */
 
@@ -1921,6 +1917,8 @@ stack_overflow (siginfo_t *siginfo)
     return 0 <= top - addr && top - addr < (bot - top) >> LG_STACK_HEURISTIC;
 }
 
+/* Signal handler for SIGSEGV before our new handler was installed.  */
+static struct sigaction old_sigsegv_handler;
 
 /* Attempt to recover from SIGSEGV caused by C stack overflow.  */
 
@@ -1938,6 +1936,15 @@ handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
 
   if (!fatal && stack_overflow (siginfo))
     siglongjmp (return_to_command_loop, 1);
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Tombstones (crash reports with stack traces) won't be generated on
+     Android unless the original SIGSEGV handler is installed and the
+     signal is resent, such as by returning from the first signal
+     handler called.  */
+  sigaction (SIGSEGV, &old_sigsegv_handler, NULL);
+  return;
+#endif /* HAVE_ANDROID && ANDROID_STUBIFY */
 
   /* Otherwise we can't do anything with this.  */
   deliver_fatal_thread_signal (sig);
@@ -1961,7 +1968,7 @@ init_sigsegv (void)
   sigfillset (&sa.sa_mask);
   sa.sa_sigaction = handle_sigsegv;
   sa.sa_flags = SA_SIGINFO | SA_ONSTACK | emacs_sigaction_flags ();
-  if (sigaction (SIGSEGV, &sa, NULL) < 0)
+  if (sigaction (SIGSEGV, &sa, &old_sigsegv_handler) < 0)
     return 0;
 
   return 1;
@@ -1969,15 +1976,11 @@ init_sigsegv (void)
 
 #else /* not HAVE_STACK_OVERFLOW_HANDLING or WINDOWSNT */
 
-#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
-
 static bool
 init_sigsegv (void)
 {
   return 0;
 }
-
-#endif
 
 #endif /* HAVE_STACK_OVERFLOW_HANDLING && !WINDOWSNT */
 
@@ -2125,10 +2128,8 @@ init_signals (void)
 #endif
     sigaction (SIGBUS, &thread_fatal_action, 0);
 #endif
-#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
   if (!init_sigsegv ())
     sigaction (SIGSEGV, &thread_fatal_action, 0);
-#endif
 #ifdef SIGSYS
   sigaction (SIGSYS, &thread_fatal_action, 0);
 #endif
