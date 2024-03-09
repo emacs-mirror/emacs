@@ -784,7 +784,7 @@ clashes."
                    (make-comp-func-d :lambda-list (aref byte-func 0)))))
       (setf (comp-func-name func) name
             (comp-func-byte-func func) byte-func
-            (comp-func-doc func) (documentation byte-func t)
+            (comp-func-doc func) (documentation byte-func 'also-pos)
             (comp-func-int-spec func) (interactive-form byte-func)
             (comp-func-command-modes func) (command-modes byte-func)
             (comp-func-c-name func) c-name

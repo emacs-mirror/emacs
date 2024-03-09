@@ -746,6 +746,12 @@ value.  */)
 	      symbol);
 
   XSYMBOL (symbol)->u.s.declared_special = true;
+  /* The original symbol with position of `symbol' will be in
+     `defining-symbol'.  */
+  if (Ffboundp (Qbyte_run_posify_doc_string))
+    doc = call2 (Qbyte_run_posify_doc_string, doc, Qnil);
+  else
+    Fput (symbol, Qbyte_run__early_defvar_const, Vdefining_symbol);
   if (!NILP (doc))
     {
       if (!NILP (Vpurify_flag))
@@ -1153,6 +1159,24 @@ is not displayed.  */)
   return unbind_to (count, result);
 }
 
+/* We must strip the positions from `defvar' and `defconst'
+   here, if any.  */
+static Lisp_Object handle_defvar_defconst_positions (Lisp_Object form)
+{
+  Lisp_Object sym = (XCAR (form));
+
+  if (!byte_compile_in_progress
+      && (EQ (sym, Qdefvar) || EQ (sym, Qdefconst))
+      && Fsymbol_with_pos_p (Fcar_safe (Fcdr_safe (form))))
+    {
+      if (NILP (Vdefining_symbol))
+	Vdefining_symbol = XCAR (XCDR (form));
+      form = Fcons (sym, Fcons (Fbare_symbol (XCAR (XCDR (form))),
+				XCDR (XCDR (form))));
+    }
+  return form;
+}
+
 DEFUN ("macroexpand", Fmacroexpand, Smacroexpand, 1, 2, 0,
        doc: /* Return result of expanding macros at top level of FORM.
 If FORM is not a macro call, it is returned unchanged.
@@ -1206,6 +1230,10 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	      form = list2 (Qfunction, form);
 	      break;
 	    }
+	  else
+	  /* We must strip the positions from `defvar' and `defconst'
+	     here, if any.  */
+	    form = handle_defvar_defconst_positions (form);
 	  /* Look at its function definition.  */
 	  def = Fautoload_do_load (def, sym, Qmacro);
 	  if (!CONSP (def))
@@ -2495,6 +2523,8 @@ eval_sub (Lisp_Object form)
       if (lisp_eval_depth > max_lisp_eval_depth)
 	xsignal1 (Qexcessive_lisp_nesting, make_fixnum (lisp_eval_depth));
     }
+
+  form = handle_defvar_defconst_positions (form);
 
   Lisp_Object original_fun = XCAR (form);
   Lisp_Object original_args = XCDR (form);
@@ -4337,6 +4367,8 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qdebug, "debug");
   DEFSYM (Qdebug_early, "debug-early");
   DEFSYM (Qdebug_early__handler, "debug-early--handler");
+  DEFSYM (Qbyte_run_posify_doc_string, "byte-run-posify-doc-string");
+  DEFSYM (Qbyte_run__early_defvar_const, "byte-run--early-defvar-const");
 
   DEFVAR_LISP ("inhibit-debugger", Vinhibit_debugger,
 	       doc: /* Non-nil means never enter the debugger.
@@ -4498,6 +4530,10 @@ alist of active lexical bindings.  */);
   defsubr (&Sdefault_toplevel_value);
   defsubr (&Sset_default_toplevel_value);
   defsubr (&Sdefvar);
+  DEFSYM (Qdefvar, "defvar");
+  Fput (Qdefvar, Qbyte_run_defined_form, make_fixnum (1));
+  DEFSYM (Qdefconst, "defconst");
+  Fput (Qdefconst, Qbyte_run_defined_form, make_fixnum (1));
   defsubr (&Sdefvar_bootstrap);
   defsubr (&Sdefvar_1);
   defsubr (&Sdefvaralias);

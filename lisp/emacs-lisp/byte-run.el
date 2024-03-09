@@ -188,7 +188,7 @@ This is done by destructively modifying ARG.  Return ARG."
                (puthash a t byte-run--ssp-seen)
                (cond
                 ((symbol-with-pos-p (car a))
-                 (message "SWP in %S,  %S" name (car a)))
+                 (message "SWP(1) in %S,  %S" name (car a)))
                 ((consp (car a))
                  (byte-run--report-list name (car a)))
                 ((or (vectorp (car a)) (recordp (car a)))
@@ -199,7 +199,7 @@ This is done by destructively modifying ARG.  Return ARG."
           (setq a (cdr a)))
         (cond
          ((symbol-with-pos-p (cdr a))
-          (message "SWP in %S,  %S" name (cdr a)))
+          (message "SWP(2) in %S,  %S" name (cdr a)))
          ;; ((or (vectorp (cdr a)) (recordp (cdr a)))
          ;;  (byte-run--strip-vector/record (cdr a)))
          )
@@ -214,7 +214,7 @@ record, containing symbols with position."
       (setq byte-run--ssp-seen (make-hash-table :test 'eq))
       (cond
        ((symbol-with-pos-p arg)
-        (message "SWP in %S,  %S" name arg))
+        (message "SWP(3) in %S,  %S" name arg))
        ((consp arg)
         (byte-run--report-list name arg))
        ((or (vectorp arg) (recordp arg))
@@ -521,6 +521,15 @@ unchanged."
             ; sometime (2024-02-26).
           doc-string
           ))))))
+
+(defalias 'byte-run-position-vec
+  #'(lambda (doc-string)
+      "Extract the position information, if any, from DOC-STRING.
+This will be returned as a four element vector, or nil if there is
+no position information in DOC-STRING."
+      (and (stringp doc-string)
+           (string-match "\\`;POS\036\001\001\001 \\[" doc-string)
+           (read (substring doc-string (1- (match-end 0)))))))
 
 (defalias 'byte-run-posify-lambda-form
   #'(lambda (form position)
@@ -1130,7 +1139,7 @@ and MAC is `macro' if additionally FUN is a macro, else nil.
 
 If it's something else, return nil."
   (if (consp fun)
-      (let ((mac (and (eq (car-safe fun) 'macro) 'macro)))
+      (let ((mac (and (eq (car fun) 'macro) 'macro)))
         (if (eq mac 'macro)
             (setq fun (cdr fun)))
         (if (consp fun)
@@ -1160,13 +1169,16 @@ Create and return a new form rather than altering the old one."
   (if (cdr doc-pos/m)
       (setq fun (cdr fun)))
   (let* ((doc-pos (car doc-pos/m))
-         (insert (null (stringp (nth doc-pos fun)))))
-    (nconc (take doc-pos fun)
-         (list doc-string)
-         (nthcdr (if insert doc-pos (1+ doc-pos)) fun))))
+         (insert (null (stringp (nth doc-pos fun))))
+         (form (append (take doc-pos fun)
+                       (list doc-string)
+                       (nthcdr (if insert doc-pos (1+ doc-pos)) fun))))
+    (if (cdr doc-pos/m)
+        (cons 'macro form)
+      form)))
 
 (defun byte-run--fun-get-lambda-pos (fun doc-pos/m)
-  "Get the position (if any) of the lambda symbol from FUN.
+  "Get the position (if any) from the lambda symbol in FUN.
 FUN is a function form, DOC-POS/M is a cons of FUN's DOC-POS and
 whether it's a macro.
 
@@ -1207,17 +1219,48 @@ no characters other than the POS info, return nil instead."
                    (old-doc-string (byte-run--fun-get-string fun doc-pos/m))
                    (bare-doc-string (byte-run-strip-pos-info old-doc-string))
                    (new-doc-string (byte-run-posify-doc-string bare-doc-string
-                                                               lambda-pos)))
-                (byte-run--fun-put-new-string fun new-doc-string doc-pos/m)))))))
+                                                               lambda-pos))
+                   (new-fun (byte-run--fun-put-new-string fun new-doc-string
+                                                          doc-pos/m)))
+                (fset sym new-fun)))))))
 
 (defun byte-run-posify-existing-defaliases ()
   "Create the position structure in the doc strings of existing functions.
-At the same time, strip the positions from the defining symbol and the
-lambda."
+Do not strip the positions from the defining symbol or the lambda."
   ;; This function should be run with `symbols-with-pos-enabled'
   ;; non-nil.  We can't use a lambda form here, since it would have a
   ;; position on the lambda symbol.
   (mapatoms #'byte-run-posify-existing-defaliases-1))
+
+(defun byte-run-posify-existing-defvars/consts-1 (sym)
+  "Sub function of `byte-run-posify-existing-defvars/consts'."
+  (if (get sym 'byte-run--early-defvar-const)
+      (let* ((defining-symbol (get sym 'byte-run--early))
+             (doc-string (get sym 'variable-documentation))
+             (plist (symbol-plist sym))
+             (ptr plist)
+             ;; (tail (memq 'byte-run--early-defvar-const plist))
+             )
+        (if (or (stringp doc-string) (null doc-string))
+            (progn
+              (setq doc-string (byte-run-posify-doc-string doc-string))
+              (put sym 'variable-documentation doc-string)))
+        ;; Remove the property from the property list so that the symbol
+        ;; with pos doesn't later hinder the dumping process.
+        (if (eq (car plist) 'byte-run--early-defvar-const)
+            (progn
+              (setplist sym (cdr (cdr plist))))
+          (while (and ptr
+                      (null (eq (car (cdr (cdr ptr)))
+                                'byte-run--early-defvar-const)))
+            (setq ptr (cdr (cdr ptr))))
+          (if ptr
+              (setcdr (cdr ptr) (cdr (cdr (cdr (cdr ptr))))))))))
+
+(defun byte-run-posify-existing-defvars/consts ()
+  "Create the position structure in the doc strings of existing defvars.
+Also defconsts.  Do not strip the positions from the symbols."
+  (mapatoms #'byte-run-posify-existing-defvars/consts-1))
 
 (defun byte-run-posify-existing-lambdas ()
   "Create the position structure in the doc strings of existing lambdas.

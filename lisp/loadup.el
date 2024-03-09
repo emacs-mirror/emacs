@@ -112,6 +112,8 @@
 
 (message "Using load-path %s" load-path)
 
+(setq symbols-with-pos-enabled t)
+
 (if dump-mode
     (progn
       ;; To reduce the size of dumped Emacs, we avoid making huge char-tables.
@@ -125,12 +127,12 @@
 (setq buffer-undo-list t)
 
 (defvar real-defvar (symbol-function 'defvar))
-(setq symbols-with-pos-enabled t)
 (fset 'defvar (symbol-function 'defvar-bootstrap))
 (load "emacs-lisp/debug-early")
 (load "emacs-lisp/byte-run")
 (byte-run-posify-existing-defaliases)
 (byte-run-posify-existing-lambdas)
+(byte-run-posify-existing-defvars/consts)
 ;; (makunbound 'early-lambda-lists)
 (setq early-lambda-lists nil) ; We don't want its symbols with
                               ; position in the dumped image.
@@ -177,10 +179,6 @@
 (load "emacs-lisp/debug-early")
 (load "emacs-lisp/byte-run")
 (message "loadup.el, just after second load of byte-run.el.")
-(message "loadup.el.  base-loaded %S bound."
-         (if (boundp 'base-loaded) "is" "isn't"))
-(message "loadup.el.  base-loaded %S a SWP.  symbols-with-pos-enabled is %S"
-         (symbol-with-pos-p 'base-loaded) symbols-with-pos-enabled)
 (message "loadup.el, just after setting base-loaded to t")
 (unintern 'base-loaded nil) ; So that it can't be messed with from Lisp.
 (load "emacs-lisp/backquote")
@@ -238,7 +236,7 @@
                     (setq plist (delq 'function-history plist))
                     (setplist elt plist))))))
 (fset 'defvar real-defvar)
-(message "Just after (fset defvar real-defvar)")
+(message "Just after (fset 'defvar real-defvar)")
 (setq symbols-with-pos-enabled nil)
 (message "Just after setting symbols-with-pos-enabled back to nil")
 

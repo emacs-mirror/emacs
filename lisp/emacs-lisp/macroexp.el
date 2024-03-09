@@ -406,9 +406,13 @@ Assumes the caller has bound `macroexpand-all-environment'."
                  (macroexp-warn-and-return
                   (format-message "`condition-case' without handlers")
                   exp-body (list 'suspicious 'condition-case) t form))))
-            (`(,(or 'defvar 'defconst) ,(and name (pred symbolp)) . ,_)
-             (push name macroexp--dynvars)
-             (macroexp--all-forms form 2))
+            (`(,(and sf (or 'defvar 'defconst))
+               ,(and name (pred symbolp)) . ,rest)
+             (push (bare-symbol name) macroexp--dynvars)
+             (if (and (null defining-symbol)
+                      (symbol-with-pos-p name))
+                 (setq defining-symbol name))
+             (macroexp--all-forms (cons sf (cons (bare-symbol name) rest)) 2))
             (`(function ,(and f `(lambda ,_ . ,_)))
              (progn
                (let ((macroexp--dynvars macroexp--dynvars))

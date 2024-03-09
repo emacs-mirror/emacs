@@ -4311,6 +4311,7 @@ syms_of_data (void)
   defsubr (&Sfboundp);
   defsubr (&Sfset);
   defsubr (&Sdefalias);
+  Fput (Qdefalias, Qbyte_run_defined_form, make_fixnum (1));
   defsubr (&Ssetplist);
   defsubr (&Ssymbol_value);
   defsubr (&Sset);

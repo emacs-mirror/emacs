@@ -1769,37 +1769,6 @@ It is too wide if it has any lines longer than the largest of
            (prefix (lambda ()
                      (format "%s%s"
                              kind
-;;;; Merge STOUGH, 2024-03-03
-;; <<<<<<< HEAD
-;;                              (if name (format-message " `%s' " name) "")))))
-;;       (pcase (car form)
-;;         ((or 'autoload 'custom-declare-variable 'defalias
-;;              'defconst 'define-abbrev-table
-;;              'defvar 'defvaralias
-;;              'custom-declare-face)
-;;          (setq kind (nth 0 form))
-;;          (setq name (nth 1 form))
-;;          (when (and (consp name) (eq (car name) 'quote))
-;;            (setq name (cadr name)))
-;;          (setq docs (nth 3 form)))
-;;         ('lambda
-;;           (setq kind "")          ; can't be "function", unfortunately
-;;           (setq docs (nth 2 form))))
-;;       (when (and kind docs (stringp docs)
-;;                  (setq docs (help-strip-pos-info docs)))
-;;         (let ((col (max byte-compile-docstring-max-column fill-column)))
-;;           (when (and (byte-compile-warning-enabled-p 'docstrings-wide)
-;;                      (byte-compile--wide-docstring-p docs col))
-;;             (byte-compile-warn-x
-;;              name
-;;              "%sdocstring wider than %s characters" (funcall prefix) col)))
-;;         ;; There's a "naked" ' character before a symbol/list, so it
-;;         ;; should probably be quoted with \=.
-;;         (when (string-match-p (rx (| (in " \t") bol)
-;;                                   (? (in "\"#"))
-;;                                   "'"
-;;                                   (in "A-Za-z" "("))
-;; =======
                              (if name (format-message " `%S' " name) "")))))
       (let ((col (max byte-compile-docstring-max-column fill-column)))
         (when (and (byte-compile-warning-enabled-p 'docstrings-wide)
@@ -1824,7 +1793,6 @@ It is too wide if it has any lines longer than the largest of
       (when (byte-compile-warning-enabled-p 'docstrings-non-ascii-quotes)
         (when (string-match-p (rx (| " \"" (in " \t") bol)
                                   (in "‘’"))
-;; >>>>>>> master
                               docs)
           (byte-compile-warn-x
            name
@@ -2665,31 +2633,7 @@ Call from the source buffer."
   (push sym byte-compile--seen-defvars))
 
 (defun byte-compile-file-form-defvar (form)
-;;;; MERGED AWAY STOUGH, 2024-03-03
-;; <<<<<<< HEAD
-;;   (let* ((sym (nth 1 form))
-;;          (defining-symbol sym))
-;;     (byte-compile--declare-var sym)
-;;     (if (eq (car form) 'defconst)
-;;         (push sym byte-compile-const-variables))
-;;     (if (and (null (cddr form))		;No `value' provided.
-;;            (eq (car form) 'defvar))     ;Just a declaration.
-;;       nil
-;;     (byte-compile-docstring-style-warn form)
-;;     (setq form (copy-sequence form))
-;;     (when (consp (nth 2 form))
-;;       (setcar (cdr (cdr form))
-;;               (byte-compile-top-level (nth 2 form) nil 'file)))
-;;     (let ((posified-doc-string
-;;            (byte-run-posify-doc-string
-;;             (and (nth 3 form) (stringp (nth 3 form)) (nth 3 form)))))
-;;       (if (nthcdr 3 form)
-;;           (setcar (nthcdr 3 form) posified-doc-string)
-;;         (nconc form (list posified-doc-string))))
-;;     form)))
-;; =======
   (byte-compile-defvar form 'toplevel))
-;; >>>>>>> master
 
 (put 'define-abbrev-table 'byte-hunk-handler
      'byte-compile-file-form-defvar-function)
@@ -2896,24 +2840,9 @@ not to take responsibility for the actual compilation of the code."
                (make-byte-to-native-func-def :name name
                                              :byte-func code))
              byte-to-native-top-level-forms))
-;;;; OLD STOUGH, 2024-03-03
-;; <<<<<<< HEAD
-;;           ;; Output the form by hand, that's much simpler than having
-;;           ;; b-c-output-file-form analyze the defalias.
-;;           (byte-compile-output-docform
-;;            "\n(defalias '" ")"
-;;            bare-name
-;;            (if macro '(" '(macro . #[" "])") '(" #[" "]"))
-;;            (append code nil)    ; Turn byte-code-function-p into list.
-;;            2 4
-;;            (and (atom code) byte-compile-dynamic 1)
-;;            nil)
-;;           t)))))
-;;=======
           (let ((byte-native-compiling nil))
            (byte-compile-output-file-form newform)))
         t))))
-;; >>>>>>> master
 
 (defun byte-compile-output-as-comment (exp quoted)
   "Print Lisp object EXP in the output file at point, inside a comment.
@@ -2983,44 +2912,6 @@ If FORM is a lambda or a macro, byte-compile it as a function."
            (fun (if (symbolp form)
 		    (symbol-function form)
 		  form))
-;;;; MERGE STOUGH, 2024-03-03
-;; <<<<<<< HEAD
-;; 	   (macro (eq (car-safe fun) 'macro)))
-;;       (if macro
-;; 	  (setq fun (cdr fun)))
-;;       (prog1
-;;           (cond
-;;            ;; Up until Emacs-24.1, byte-compile silently did nothing
-;;            ;; when asked to compile something invalid.  So let's tone
-;;            ;; down the complaint from an error to a simple message for
-;;            ;; the known case where signaling an error causes problems.
-;;            ((compiled-function-p fun)
-;;             (message "Function %s is already compiled"
-;;                      (if (symbolp form) form "provided"))
-;;             fun)
-;;            (t
-;;             (let (final-eval defining-symbol)
-;;               (when (or (symbolp form) (eq (car-safe fun) 'closure))
-;;                 ;; `fun' is a function *value*, so try to recover its corresponding
-;;                 ;; source code.
-;;                 (setq lexical-binding (eq (car fun) 'closure))
-;;                 (setq fun (byte-compile--reify-function fun))
-;;                 (setq final-eval t))
-;;               ;; Expand macros.
-;;               (setq fun (byte-compile-preprocess fun))
-;;               (setq fun (byte-compile-top-level fun nil 'eval))
-;;               (if (symbolp form)
-;;                   ;; byte-compile-top-level returns an *expression* equivalent to the
-;;                   ;; `fun' expression, so we need to evaluate it, tho normally
-;;                   ;; this is not needed because the expression is just a constant
-;;                   ;; byte-code object, which is self-evaluating.
-;;                   (setq fun (eval fun t)))
-;;               (if final-eval
-;;                   (setq fun (eval fun t)))
-;;               (if macro (push 'macro fun))
-;;               (if (symbolp form) (fset form fun))
-;;               fun))))))))
-;; =======
 	   (macro (eq (car-safe fun) 'macro))
            (need-a-value nil))
       (when macro
@@ -3054,7 +2945,6 @@ If FORM is a lambda or a macro, byte-compile it as a function."
         (if macro (push 'macro fun))
         (if (symbolp form) (fset form fun))
         fun))))))
-;; >>>>>>> master
 
 (defun byte-compile-sexp (sexp)
   "Compile and return SEXP."
@@ -5135,9 +5025,7 @@ binding slots have been popped."
        string
        "third arg to `%s %s' is not a string: %s"
        fun var string)))
-;;;; NEW STOUGH FROM MERGE, 2024-02-24
     (setq string (byte-run-posify-doc-string (and (stringp string) string)))
-;;;; END OF NEW STOUGH
     (if toplevel
         ;; At top-level we emit calls to defvar/defconst.
         (if (and (null (cddr form))       ;No `value' provided.
@@ -5206,8 +5094,11 @@ binding slots have been popped."
        (pcase-let*
            ;; `macro' is non-nil if it defines a macro.
            ;; `fun' is the function part of `arg' (defaults to `arg').
-           (((or (and (or `(cons 'macro ,fun) `'(macro . ,fun)) (let macro t))
-                 (and (let fun arg) (let macro nil)))
+           (((or (and (or `(cons 'macro ,fun)
+                          `'(macro . ,fun))
+                      (let macro t))
+                 (and (let fun arg)
+                      (let macro nil)))
              arg)
             ;; `lam' is the lambda expression in `fun' (or nil if not
             ;; recognized).

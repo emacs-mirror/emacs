@@ -66,6 +66,15 @@ Print the contents hidden by the ellipsis to STREAM."
   (error "Missing cl-print-object-contents method"))
 
 (cl-defmethod cl-print-object ((object cons) stream)
+  (when (memq (car object) '(lambda closure))
+    (let* ((doc-string (documentation object 'also-pos))
+           (pos-info (byte-run-position-vec doc-string))
+           (defsym (and (vectorp pos-info)
+                        (aref pos-info 0))))
+      (when defsym
+        (princ "{" stream)
+        (prin1 defsym stream)
+        (princ "} " stream))))
   (if (and cl-print--depth (natnump print-level)
            (> cl-print--depth print-level))
       (cl-print-insert-ellipsis object nil stream)
@@ -183,11 +192,19 @@ into a button whose action shows the function's disassembly.")
 (cl-defmethod cl-print-object ((object compiled-function) stream)
   (unless stream (setq stream standard-output))
   ;; We use "#f(...)" rather than "#<...>" so that pp.el gives better results.
-  (princ "#f(compiled-function " stream)
-  (let ((args (help-function-arglist object 'preserve-names)))
+  (let* ((args (help-function-arglist object 'preserve-names))
+         (doc-string (documentation object 'also-pos))
+         (pos-info (byte-run-position-vec doc-string))
+         (defsym (and (vectorp pos-info)
+                      (aref pos-info 0))))
+    (when defsym
+      (princ "{" stream)
+      (prin1 defsym stream)
+      (princ "} " stream))
+    (princ "#f(compiled-function " stream)
     (if args
         (prin1 args stream)
-      (princ "()" stream)))
+      (princ "()" stream))
   (if (eq cl-print-compiled 'raw)
       (let ((button-start
              (and cl-print-compiled-button
@@ -200,7 +217,7 @@ into a button whose action shows the function's disassembly.")
             (make-text-button button-start (point)
                               :type 'help-byte-code
                               'byte-code-function object))))
-    (pcase (help-split-fundoc (documentation object 'raw) object)
+    (pcase (help-split-fundoc doc-string object)
       ;; Drop args which `help-function-arglist' already printed.
       (`(,_usage . ,(and doc (guard (stringp doc))))
        (princ " " stream)
@@ -214,7 +231,7 @@ into a button whose action shows the function's disassembly.")
                                             (nth 2 (cadr inter))
                                             (nth 3 (cadr inter))))
            inter)
-         stream)))
+         stream))))
     (if (eq cl-print-compiled 'disassemble)
         (princ
          (with-temp-buffer

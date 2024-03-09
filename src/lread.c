@@ -6262,8 +6262,8 @@ For internal use only.  */);
   DEFVAR_LISP ("early-lambda-lists", Vearly_lambda_lists,
 	       doc: /* List of details about early lambda forms.
 Each element is a triple, (FORM, LAMBDA, DEFINING-SYMBOL) where the latter two
-are (usually) symbols with position, with which the lambda a FORM will be
-later positioned.  */);
+are (usually) symbols with position, with which the lambda FORM will be later
+positioned.  */);
   Vearly_lambda_lists = Qnil;
 
   DEFSYM (Qdefalias, "defalias");

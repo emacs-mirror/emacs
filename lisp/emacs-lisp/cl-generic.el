@@ -565,9 +565,10 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
 
 \(fn NAME [EXTRA] [QUALIFIER] ARGS &rest [DOCSTRING] BODY)"
   (declare (doc-string cl--defmethod-doc-pos) (indent defun)
-           ;; Because there are a variable number of parameters preceding
-           ;; any doc string, it is currently not possible to code a
-           ;; defining-symbol clause.  ACM, 2024-03-02.
+           ;; Because there are a variable number of parameters
+           ;; preceding any doc string, it is not practiable to code a
+           ;; defining-symbol clause.  Instead we code the procedure
+           ;; explicitly in this function.  ACM, 2023-03-09.
            (debug
             (&define                    ; this means we are defining something
              [&name [sexp   ;Allow (setf ...) additionally to symbols.
@@ -584,6 +585,25 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       (require 'gv)
       (declare-function gv-setter "gv" (name))
       (setq name (gv-setter (cadr name))))
+
+    (setq defining-symbol name)
+    (let* ((old-ds
+            (or (and (stringp (car body)) (car body))
+                (and (eq (car-safe (car body)) ':documentation)
+                     (car body))))
+           (new-ds (byte-run-posify-doc-string old-ds)))
+      (setq body
+            (cond
+             ;; Doc string supplied and non-null (cdr body).
+             ((and old-ds (cdr body))
+              (cons new-ds (cdr body)))
+             ;; Doc string supplied but no further body.
+             (old-ds (list new-ds old-ds))
+             ;; Neither doc string nor body.
+             ((null body) (list new-ds 'nil))
+             ;; No doc string but body.
+             (t (cons new-ds body)))))
+
     (pcase-let* ((`(,call-con . ,fun) (cl--generic-lambda args body)))
       `(progn
          ;; You could argue that `defmethod' modifies rather than defines the
@@ -596,6 +616,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
          ;; obsolescence warning when applicable.
          (cl-generic-define-method #',name ',(nreverse qualifiers) ',args
                                    ',call-con ,fun)))))
+(put 'cl-defmethod 'byte-run-defined-form 1)
 
 (defun cl--generic-member-method (specializers qualifiers methods)
   (while

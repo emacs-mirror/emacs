@@ -565,6 +565,11 @@ On Android, Emacs uses this variable internally at startup.")
 It sets `command-line-processed', processes the command-line,
 reads the initialization files, etc.
 It is the default value of the variable `top-level'."
+  ;; Set the debugger to `debug' only for interactive sessions, otherwise
+  ;; leave it with `debug-early'.
+  (if (null noninteractive)
+      (setq debugger #'debug))
+
   ;; Initialize the Android font driver late.
   ;; This is done here because it needs the `mac-roman' coding system
   ;; to be loaded.
