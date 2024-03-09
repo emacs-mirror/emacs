@@ -1660,7 +1660,7 @@ no title exists."
            (alternate (when (and binding (symbolp binding))
                         (symbol-name binding))))
       (cond (title-res title-res)
-            ((not (string-equal repl-res "")) repl-res)
+            ((not (string-empty-p repl-res)) repl-res)
             ((and (eq which-key-show-prefix 'echo) alternate)
              alternate)
             ((and (member which-key-show-prefix '(bottom top mode-line))
