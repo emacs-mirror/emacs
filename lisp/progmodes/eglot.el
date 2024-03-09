@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.24") (flymake "1.2.1") (project "0.9.8") (xref "1.6.2") (eldoc "1.14.0") (seq "2.23") (external-completion "0.1"))
+;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.24") (flymake "1.2.1") (project "0.9.8") (xref "1.6.2") (eldoc "1.14.0") (seq "2.23") (external-completion "0.1") (compat "27.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -111,6 +111,7 @@
 (require 'diff-mode)
 (require 'diff)
 (require 'track-changes nil t)
+(require 'compat)
 
 ;; These dependencies are also GNU ELPA core packages.  Because of
 ;; bug#62576, since there is a risk that M-x package-install, despite
@@ -190,8 +191,8 @@ path of the PROGRAM that was chosen (interactively or
 automatically)."
   (lambda (&optional interactive _project)
     ;; JT@2021-06-13: This function is way more complicated than it
-    ;; could be because it accounts for the fact that
-    ;; `eglot--executable-find' may take much longer to execute on
+    ;; could be because it accounts for the fact that Compat's
+    ;; `executable-find' may take much longer to execute on
     ;; remote files.
     (let* ((listified (cl-loop for a in alternatives
                                collect (if (listp a) a (list a))))
@@ -203,7 +204,7 @@ automatically)."
              nil)
             (interactive
              (let* ((augmented (mapcar (lambda (a)
-                                         (let ((found (eglot--executable-find
+                                         (let ((found (compat-call executable-find
                                                        (car a) t)))
                                            (and found
                                                 (cons (car a) (cons found (cdr a))))))
@@ -223,7 +224,7 @@ automatically)."
                       nil))))
             (t
              (cl-loop for (p . args) in listified
-                      for probe = (eglot--executable-find p t)
+                      for probe = (compat-call executable-find p t)
                       when probe return (cons probe args)
                       finally (funcall err)))))))
 
@@ -599,11 +600,6 @@ It is nil if Eglot is not byte-complied.")
 (defvaralias 'eglot-{} 'eglot--{})
 
 (defconst eglot--{} (make-hash-table :size 0) "The empty JSON object.")
-
-(defun eglot--executable-find (command &optional remote)
-  "Like Emacs 27's `executable-find', ignore REMOTE on Emacs 26."
-  (if (>= emacs-major-version 27) (executable-find command remote)
-    (executable-find command)))
 
 (defun eglot--accepted-formats ()
   (if (and (not eglot-prefer-plaintext) (fboundp 'gfm-view-mode))
@@ -1324,7 +1320,7 @@ be guessed."
                               main-mode base-prompt))
                      ((and program
                            (not (file-name-absolute-p program))
-                           (not (eglot--executable-find program t)))
+                           (not (compat-call executable-find program t)))
                       (if full-program-invocation
                           (concat (format "[eglot] I guess you want to run `%s'"
                                           full-program-invocation)
@@ -1881,10 +1877,9 @@ Doubles as an indicator of snippet support."
         (font-lock-ensure)
         (goto-char (point-min))
         (let ((inhibit-read-only t))
-          (when (fboundp 'text-property-search-forward) ;; FIXME: use compat
-            (while (setq match (text-property-search-forward 'invisible))
-              (delete-region (prop-match-beginning match)
-                             (prop-match-end match)))))
+          (while (setq match (text-property-search-forward 'invisible))
+            (delete-region (prop-match-beginning match)
+                           (prop-match-end match))))
         (string-trim (buffer-string))))))
 
 (defun eglot--read-server (prompt &optional dont-if-just-the-one)
