@@ -283,8 +283,16 @@ If it can't be found, return nil and don't move point."
       (goto-char (prop-match-beginning match))
     (end-of-line)))
 
-(defun vtable-update-object (table object old-object)
-  "Replace OLD-OBJECT in TABLE with OBJECT."
+(defun vtable-update-object (table object &optional old-object)
+  "Update OBJECT's representation in TABLE.
+If OLD-OBJECT is non-nil, replace OLD-OBJECT with OBJECT and display it.
+In either case, if the existing object is not found in the table (being
+compared with `equal'), signal an error.  Note a limitation: if TABLE's
+buffer is not in a visible window, or if its window has changed width
+since it was updated, updating the TABLE is not possible, and an error
+is signaled."
+  (unless old-object
+    (setq old-object object))
   (let* ((objects (vtable-objects table))
          (inhibit-read-only t))
     ;; First replace the object in the object storage.
@@ -300,6 +308,9 @@ If it can't be found, return nil and don't move point."
         (error "Can't find the old object"))
       (setcar (cdr objects) object))
     ;; Then update the cache...
+    ;; FIXME: If the table's buffer has no visible window, or if its
+    ;; width has changed since the table was updated, the cache key will
+    ;; not match and the object can't be updated.  (Bug #69837).
     (if-let ((line-number (seq-position (car (vtable--cache table)) old-object
                                         (lambda (a b)
                                           (equal (car a) b))))

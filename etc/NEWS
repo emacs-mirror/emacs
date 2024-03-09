@@ -2197,6 +2197,15 @@ aforementioned functions:
     (and (arrayp executing-kbd-macro)
          (>= executing-kbd-macro-index (length executing-kbd-macro))))
 
++++
+** 'vtable-update-object' updates an existing object with just two arguments.
+It is now possible to update the representation of an object in a vtable
+by calling 'vtable-update-object' with just the vtable and the object as
+arguments.  (Previously the 'old-object' argument was required which, in
+this case, would mean repeating the object in the argument list.)  When
+replacing an object with a different one, passing both the new and old
+objects is still necessary.
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 
