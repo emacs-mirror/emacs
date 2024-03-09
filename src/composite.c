@@ -1147,12 +1147,12 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
     }
   else if (charpos > endpos)
     {
-      /* Search backward for a pattern that may be composed and the
-	 position of (possibly) the last character of the match is
+      /* Search backward for a pattern that may be composed such that
+	 the position of (possibly) the last character of the match is
 	 closest to (but not after) START.  The reason for the last
-	 character is that set_iterator_to_next works in reverse order,
-	 and thus we must stop at the last character for composition
-	 check.  */
+	 character is that set_iterator_to_next works in reverse
+	 order, and thus we must stop at the last character for
+	 composition check.  */
       unsigned char *p;
       int len;
       /* Limit byte position used in fast_looking_at.  This is the
@@ -1165,6 +1165,22 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
 	p = SDATA (string) + bytepos;
       c = string_char_and_length (p, &len);
       limit = bytepos + len;
+      /* The algorithmic idea behind the loop below is somewhat tricky
+         and subtle.  Keep in mind that any arbitrarily long sequence
+         of composable characters can potentially be composed to end
+         at or before START.  So the fact that we find a character C
+         before START that can be composed with several following
+         characters does not mean we can exit the loop, because some
+         character before C could also be composed, yielding a longer
+         composed sequence which ends closer to START.  And since a
+         composition can be arbitrarily long, it is very important to
+         know where to stop the search back, because the default --
+         BEGV -- could be VERY far away.  Since searching back is only
+         needed when delivering bidirectional text reordered for
+         display, and since no character composition can ever cross
+         into another embedding level, the search could end when it
+         gets to the end of the current embedding level, but this
+         limit should be imposed by the caller.   */
       while (char_composable_p (c))
 	{
 	  val = CHAR_TABLE_REF (Vcomposition_function_table, c);
