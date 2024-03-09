@@ -2065,7 +2065,8 @@ for \\[find-tag] (which see)."
       (user-error "%s"
                   (substitute-command-keys
                    "No tags table loaded; try \\[visit-tags-table]")))
-  (let ((comp-data (tags-completion-at-point-function)))
+  (let ((comp-data (tags-completion-at-point-function))
+        (completion-ignore-case (find-tag--completion-ignore-case)))
     (if (null comp-data)
 	(user-error "Nothing to complete")
       (completion-in-region (car comp-data) (cadr comp-data)
