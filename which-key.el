@@ -2101,7 +2101,7 @@ is the width of the live window."
          (avl-width (if prefix (- max-width prefix) max-width))
          (vertical (or (and (eq which-key-popup-type 'side-window)
                             (member which-key-side-window-location '(left right)))
-		       (eq which-key-max-display-columns 1)))
+                       (eq which-key-max-display-columns 1)))
          result)
     (setq result
           (which-key--create-pages-1
@@ -2114,7 +2114,7 @@ is the width of the live window."
                 (which-key--maybe-get-prefix-title
                  (key-description prefix-keys))))
       (when prefix-top-bottom
-	;; Add back the line earlier reserved for the page information.
+        ;; Add back the line earlier reserved for the page information.
         (setf (which-key--pages-height result) max-lines))
       (when (and (= (which-key--pages-num-pages result) 1)
                  (> which-key-min-display-lines
