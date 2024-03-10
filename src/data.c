@@ -792,7 +792,8 @@ DEFUN ("bare-symbol", Fbare_symbol, Sbare_symbol, 1, 1, 0,
        doc: /* Extract, if need be, the bare symbol from SYM, a symbol.  */)
   (register Lisp_Object sym)
 {
-  CHECK_SYMBOL (sym);
+  if (!SYMBOL_WITH_POS_P (sym))
+    CHECK_SYMBOL (sym);
   return BARE_SYMBOL_P (sym) ? sym : XSYMBOL_WITH_POS_SYM (sym);
 }
 

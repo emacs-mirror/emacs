@@ -167,10 +167,11 @@ Emacs Lisp manual for more information and examples."
 
 (defconst pcase--find-macro-def-regexp "(pcase-defmacro[\s\t\n]+%s[\s\t\n]*(")
 
-(with-eval-after-load 'find-func
-  (defvar find-function-regexp-alist)
-  (add-to-list 'find-function-regexp-alist
-               `(pcase-macro . pcase--find-macro-def-regexp)))
+(unless (boundp 'base-loaded)           ; Too early in bootstrap.
+  (with-eval-after-load 'find-func
+    (defvar find-function-regexp-alist)
+    (add-to-list 'find-function-regexp-alist
+                 `(pcase-macro . pcase--find-macro-def-regexp))))
 
 ;; FIXME: Obviously, this will collide with nadvice's use of
 ;; function-documentation if we happen to advise `pcase'.

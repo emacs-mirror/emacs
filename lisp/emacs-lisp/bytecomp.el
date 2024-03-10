@@ -1781,7 +1781,9 @@ It is too wide if it has any lines longer than the largest of
            "%sdocstring wider than %s characters" (funcall prefix) col)))
 
       (when (byte-compile-warning-enabled-p 'docstrings-control-chars)
-        (let ((start 0)
+        (let ((start (if (string-match "\\`;POS\36\1\1\1 [^\n]+\n" docs)
+                         (match-end 0)
+                       0))
               (len (length docs)))
           (while (and (< start len)
                       (string-match (rx (intersection (in (0 . 31) 127)
