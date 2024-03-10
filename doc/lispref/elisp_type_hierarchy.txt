@@ -1,33 +1,33 @@
-| Type                | Derived Types                                              |
-|---------------------+------------------------------------------------------------|
-| atom                | mutex record font-spec frame number-or-marker              |
-|                     | tree-sitter-compiled-query tree-sitter-node font-entity    |
-|                     | tree-sitter-parser hash-table window-configuration         |
-|                     | function user-ptr overlay array process font-object symbol |
-|                     | obarray condvar buffer terminal thread window              |
-|                     | native-comp-unit                                           |
-| cl-structure-object | xref-elisp-location org-cite-processor cl--generic-method  |
-|                     | cl--random-state register-preview-info cl--generic         |
-|                     | cl--class cl-slot-descriptor uniquify-item registerv       |
-|                     | isearch--state cl--generic-generalizer lisp-indent-state   |
-| t                   | sequence atom                                              |
-| compiled-function   | subr byte-code-function                                    |
-| integer             | fixnum bignum                                              |
-| symbol              | symbol-with-pos keyword boolean                            |
-| accessor            | oclosure-accessor                                          |
-| oclosure            | advice cconv--interactive-helper advice--forward accessor  |
-|                     | save-some-buffers-function cl--generic-nnm                 |
-| cons                | ppss decoded-time                                          |
-| cl--class           | cl-structure-class oclosure--class built-in-class          |
-| subr                | subr-primitive subr-native-elisp                           |
-| array               | string vector bool-vector char-table                       |
-| number              | float integer                                              |
-| number-or-marker    | integer-or-marker number                                   |
-| function            | oclosure compiled-function interpreted-function            |
-|                     | module-function                                            |
-| sequence            | list array                                                 |
-| integer-or-marker   | integer marker                                             |
-| boolean             | null                                                       |
-| list                | null cons                                                  |
-| record              | cl-structure-object                                        |
-| vector              | timer                                                      |
+| Type                | Derived Types                                             |
+|---------------------+-----------------------------------------------------------|
+| t                   | sequence atom                                             |
+| atom                | number-or-marker array record symbol function             |
+|                     | window-configuration font-object font-entity mutex        |
+|                     | tree-sitter-node buffer overlay tree-sitter-parser thread |
+|                     | font-spec native-comp-unit tree-sitter-compiled-query     |
+|                     | terminal window frame hash-table user-ptr obarray condvar |
+|                     | process                                                   |
+| sequence            | array list                                                |
+| list                | null cons                                                 |
+| function            | oclosure compiled-function module-function                |
+|                     | interpreted-function                                      |
+| symbol              | boolean symbol-with-pos keyword                           |
+| compiled-function   | subr byte-code-function                                   |
+| oclosure            | accessor advice--forward cconv--interactive-helper        |
+|                     | cl--generic-nnm advice save-some-buffers-function         |
+| record              | cl-structure-object                                       |
+| cl-structure-object | cl--class lisp-indent-state cl--random-state registerv    |
+|                     | xref-elisp-location isearch--state cl-slot-descriptor     |
+|                     | cl--generic-generalizer uniquify-item cl--generic-method  |
+|                     | register-preview-info cl--generic                         |
+| cons                | ppss decoded-time                                         |
+| array               | vector string char-table bool-vector                      |
+| number-or-marker    | number integer-or-marker                                  |
+| integer-or-marker   | integer marker                                            |
+| number              | integer float                                             |
+| cl--class           | built-in-class cl-structure-class oclosure--class         |
+| subr                | subr-native-elisp subr-primitive                          |
+| accessor            | oclosure-accessor                                         |
+| vector              | timer                                                     |
+| boolean             | null                                                      |
+| integer             | fixnum bignum                                             |

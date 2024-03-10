@@ -35,7 +35,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'org-table)
 
 (defconst syncdoc-file (or (macroexp-file-name) buffer-file-name))
 
@@ -51,21 +50,24 @@
                 (when (cl-find-class type)
                   (push type res)))
               obarray)
-    res)
+    (nreverse
+     (merge-ordered-lists
+      (sort
+       (mapcar (lambda (type) (cl--class-allparents (cl-find-class type)))
+               res)
+       (lambda (ts1 ts2) (> (length ts1) (length ts2)))))))
   "List of all types.")
-
-(declare-function 'comp--direct-supertypes "comp-cstr.el")
 
 (defconst syncdoc-hierarchy
   (progn
     ;; Require it here so we don't load it before `syncdoc-all-types' is
     ;; computed.
-    (require 'comp-cstr)
     (cl-loop
-     with comp-ctxt = (make-comp-cstr-ctxt)
      with h = (make-hash-table :test #'eq)
      for type in syncdoc-all-types
-     do (puthash type (comp--direct-supertypes type) h)
+     do (puthash type (mapcar #'cl--class-name
+                       (cl--class-parents (cl-find-class type)))
+         h)
      finally return h)))
 
 (defun syncdoc-insert-dot-content (rankdir)
@@ -90,10 +92,14 @@
                  (dolist (parent parents)
                    (push type (alist-get parent subtypes))))
                syncdoc-hierarchy)
-      (cl-loop for (type . children) in (reverse subtypes)
+      (sort subtypes
+            (lambda (x1 x2)
+              (< (length (memq (car x2) syncdoc-all-types))
+                 (length (memq (car x1) syncdoc-all-types)))))
+      (cl-loop for (type . children) in subtypes
                do (insert "|" (symbol-name type) " |")
                do (cl-loop with x = 0
-                           for child in (reverse children)
+                           for child in children
                            for child-len = (length (symbol-name child))
                            when (> (+ x child-len 2) 60)
                            do (progn
@@ -102,6 +108,8 @@
                            do (insert (symbol-name child) " ")
                            do (cl-incf x (1+ child-len)) )
                do (insert "\n")))
+    (require 'org-table)
+    (declare-function 'org-table-align "org")
     (org-table-align)))
 
 (defun syncdoc-update-type-hierarchy0 ()
