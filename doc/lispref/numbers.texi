@@ -476,6 +476,7 @@ This function tests whether its arguments are numerically equal, and
 returns @code{t} if they are not, and @code{nil} if they are.
 @end defun
 
+@anchor{definition of <}
 @defun <  number-or-marker &rest number-or-markers
 This function tests whether each argument is strictly less than the
 following argument.  It returns @code{t} if so, @code{nil} otherwise.

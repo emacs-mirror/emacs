@@ -612,6 +612,7 @@ that collation implements.
 @end defun
 
 @cindex lexical comparison of strings
+@anchor{definition of string<}
 @defun string< string1 string2
 @c (findex string< causes problems for permuted index!!)
 This function compares two strings a character at a time.  It

@@ -3835,30 +3835,6 @@ count_trailing_zero_bits (bits_word val)
     }
 }
 
-static bits_word
-bits_word_to_host_endian (bits_word val)
-{
-#ifndef WORDS_BIGENDIAN
-  return val;
-#else
-  if (BITS_WORD_MAX >> 31 == 1)
-    return bswap_32 (val);
-  if (BITS_WORD_MAX >> 31 >> 31 >> 1 == 1)
-    return bswap_64 (val);
-  {
-    int i;
-    bits_word r = 0;
-    for (i = 0; i < sizeof val; i++)
-      {
-	r = ((r << 1 << (CHAR_BIT - 1))
-	     | (val & ((1u << 1 << (CHAR_BIT - 1)) - 1)));
-	val = val >> 1 >> (CHAR_BIT - 1);
-      }
-    return r;
-  }
-#endif
-}
-
 DEFUN ("bool-vector-exclusive-or", Fbool_vector_exclusive_or,
        Sbool_vector_exclusive_or, 2, 3, 0,
        doc: /* Return A ^ B, bitwise exclusive or.
@@ -4072,6 +4048,7 @@ syms_of_data (void)
   DEFSYM (Qminibuffer_quit, "minibuffer-quit");
   DEFSYM (Qwrong_length_argument, "wrong-length-argument");
   DEFSYM (Qwrong_type_argument, "wrong-type-argument");
+  DEFSYM (Qtype_mismatch, "type-mismatch")
   DEFSYM (Qargs_out_of_range, "args-out-of-range");
   DEFSYM (Qvoid_function, "void-function");
   DEFSYM (Qcyclic_function_indirection, "cyclic-function-indirection");
@@ -4163,6 +4140,7 @@ syms_of_data (void)
   PUT_ERROR (Quser_error, error_tail, "");
   PUT_ERROR (Qwrong_length_argument, error_tail, "Wrong length argument");
   PUT_ERROR (Qwrong_type_argument, error_tail, "Wrong type argument");
+  PUT_ERROR (Qtype_mismatch, error_tail, "Types do not match");
   PUT_ERROR (Qargs_out_of_range, error_tail, "Args out of range");
   PUT_ERROR (Qvoid_function, error_tail,
 	     "Symbol's function definition is void");

@@ -1760,6 +1760,16 @@ precedence over the variable when present.
 Mostly used internally to do a kind of topological sort of
 inheritance hierarchies.
 
++++
+** New polymorphic comparison function 'value<'.
+This function returns non-nil if the first argument is less than the
+second.  It works for any two values of the same type with reasonable
+ordering for numbers, strings, symbols, bool-vectors, markers, buffers
+and processes.  Conses, lists, vectors and records are ordered
+lexicographically.
+It is intended as a convenient ordering predicate for sorting, and is
+likely to be faster than hand-written Lisp functions.
+
 ** New function 'sort-on'.
 This function implements the Schwartzian transform, and is appropriate
 for sorting lists when the computation of the sort key of a list

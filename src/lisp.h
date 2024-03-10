@@ -1882,6 +1882,30 @@ bool_vector_bytes (EMACS_INT size)
   return (size + BOOL_VECTOR_BITS_PER_CHAR - 1) / BOOL_VECTOR_BITS_PER_CHAR;
 }
 
+INLINE bits_word
+bits_word_to_host_endian (bits_word val)
+{
+#ifndef WORDS_BIGENDIAN
+  return val;
+#else
+  if (BITS_WORD_MAX >> 31 == 1)
+    return bswap_32 (val);
+  if (BITS_WORD_MAX >> 31 >> 31 >> 1 == 1)
+    return bswap_64 (val);
+  {
+    int i;
+    bits_word r = 0;
+    for (i = 0; i < sizeof val; i++)
+      {
+	r = ((r << 1 << (CHAR_BIT - 1))
+	     | (val & ((1u << 1 << (CHAR_BIT - 1)) - 1)));
+	val = val >> 1 >> (CHAR_BIT - 1);
+      }
+    return r;
+  }
+#endif
+}
+
 INLINE bool
 BOOL_VECTOR_P (Lisp_Object a)
 {

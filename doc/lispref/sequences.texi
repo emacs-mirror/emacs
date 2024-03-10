@@ -436,6 +436,41 @@ but their relative order is also preserved:
 @end example
 @end defun
 
+@cindex comparing values
+@cindex standard sorting order
+@defun value< a b
+This function returns non-@code{nil} if @var{a} comes before @var{b} in
+the standard sorting order; this means that it returns @code{nil} when
+@var{b} comes before @var{a}, or if they are equal or unordered.
+
+@var{a} and @var{b} must have the same type.  Specifically:
+
+@itemize @bullet
+@item
+Numbers are compared using @code{<} (@pxref{definition of <}).
+@item
+Strings and symbols are compared using @code{string<}
+(@pxref{definition of string<}).
+@item
+Conses, lists, vectors and records are compared lexicographically.
+@item
+Markers are compared first by buffer, then by position.
+@item
+Buffers and processes are compared by name.
+@item
+Other types are considered unordered and the return value will be @code{nil}.
+@end itemize
+
+Examples:
+@example
+(value< -4 3.5) @result{} t
+(value< "dog" "cat") @result{} nil
+(value< 'yip 'yip) @result{} nil
+(value< '(3 2) '(3 2 0)) @result{} t
+(value< [3 2 1] [3 2 0]) @result{} nil
+@end example
+@end defun
+
 Sometimes, computation of sort keys of list or vector elements is
 expensive, and therefore it is important to perform it the minimum
 number of times.  By contrast, computing the sort keys of elements

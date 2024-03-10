@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <vla.h>
 #include <errno.h>
 #include <ctype.h>
+#include <math.h>
 
 #include "lisp.h"
 #include "bignum.h"
@@ -466,21 +467,10 @@ load_unaligned_size_t (const void *p)
   return x;
 }
 
-DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
-       doc: /* Return non-nil if STRING1 is less than STRING2 in lexicographic order.
-Case is significant.
-Symbols are also allowed; their print names are used instead.  */)
-  (Lisp_Object string1, Lisp_Object string2)
+/* Return -1/0/1 to indicate the relation </=/> between string1 and string2.  */
+static int
+string_cmp (Lisp_Object string1, Lisp_Object string2)
 {
-  if (SYMBOLP (string1))
-    string1 = SYMBOL_NAME (string1);
-  else
-    CHECK_STRING (string1);
-  if (SYMBOLP (string2))
-    string2 = SYMBOL_NAME (string2);
-  else
-    CHECK_STRING (string2);
-
   ptrdiff_t n = min (SCHARS (string1), SCHARS (string2));
 
   if ((!STRING_MULTIBYTE (string1) || SCHARS (string1) == SBYTES (string1))
@@ -489,7 +479,9 @@ Symbols are also allowed; their print names are used instead.  */)
       /* Each argument is either unibyte or all-ASCII multibyte:
 	 we can compare bytewise.  */
       int d = memcmp (SSDATA (string1), SSDATA (string2), n);
-      return d < 0 || (d == 0 && n < SCHARS (string2)) ? Qt : Qnil;
+      if (d)
+	return d;
+      return n < SCHARS (string2) ? -1 : n > SCHARS (string2);
     }
   else if (STRING_MULTIBYTE (string1) && STRING_MULTIBYTE (string2))
     {
@@ -523,7 +515,7 @@ Symbols are also allowed; their print names are used instead.  */)
 
       if (b >= nb)
 	/* One string is a prefix of the other.  */
-	return b < nb2 ? Qt : Qnil;
+	return b < nb2 ? -1 : b > nb2;
 
       /* Now back up to the start of the differing characters:
 	 it's the last byte not having the bit pattern 10xxxxxx.  */
@@ -535,7 +527,7 @@ Symbols are also allowed; their print names are used instead.  */)
       ptrdiff_t i1_byte = b, i2_byte = b;
       int c1 = fetch_string_char_advance_no_check (string1, &i1, &i1_byte);
       int c2 = fetch_string_char_advance_no_check (string2, &i2, &i2_byte);
-      return c1 < c2 ? Qt : Qnil;
+      return c1 < c2 ? -1 : c1 > c2;
     }
   else if (STRING_MULTIBYTE (string1))
     {
@@ -546,9 +538,9 @@ Symbols are also allowed; their print names are used instead.  */)
 	  int c1 = fetch_string_char_advance_no_check (string1, &i1, &i1_byte);
 	  int c2 = SREF (string2, i2++);
 	  if (c1 != c2)
-	    return c1 < c2 ? Qt : Qnil;
+	    return c1 < c2 ? -1 : 1;
 	}
-      return i1 < SCHARS (string2) ? Qt : Qnil;
+      return i1 < SCHARS (string2) ? -1 : i1 > SCHARS (string2);
     }
   else
     {
@@ -559,10 +551,28 @@ Symbols are also allowed; their print names are used instead.  */)
 	  int c1 = SREF (string1, i1++);
 	  int c2 = fetch_string_char_advance_no_check (string2, &i2, &i2_byte);
 	  if (c1 != c2)
-	    return c1 < c2 ? Qt : Qnil;
+	    return c1 < c2 ? -1 : 1;
 	}
-      return i1 < SCHARS (string2) ? Qt : Qnil;
+      return i1 < SCHARS (string2) ? -1 : i1 > SCHARS (string2);
     }
+}
+
+DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
+       doc: /* Return non-nil if STRING1 is less than STRING2 in lexicographic order.
+Case is significant.
+Symbols are also allowed; their print names are used instead.  */)
+  (Lisp_Object string1, Lisp_Object string2)
+{
+  if (SYMBOLP (string1))
+    string1 = SYMBOL_NAME (string1);
+  else
+    CHECK_STRING (string1);
+  if (SYMBOLP (string2))
+    string2 = SYMBOL_NAME (string2);
+  else
+    CHECK_STRING (string2);
+
+  return string_cmp (string1, string2) < 0 ? Qt : Qnil;
 }
 
 DEFUN ("string-version-lessp", Fstring_version_lessp,
@@ -2908,6 +2918,233 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 
   return false;
 }
+
+/* Return -1/0/1 for the </=/> lexicographic relation between bool-vectors.  */
+static int
+bool_vector_cmp (Lisp_Object a, Lisp_Object b)
+{
+  ptrdiff_t na = bool_vector_size (a);
+  ptrdiff_t nb = bool_vector_size (b);
+  /* Skip equal words.  */
+  ptrdiff_t words_min = min (na, nb) / BITS_PER_BITS_WORD;
+  bits_word *ad = bool_vector_data (a);
+  bits_word *bd = bool_vector_data (b);
+  ptrdiff_t i = 0;
+  while (i < words_min && ad[i] == bd[i])
+    i++;
+  na -= i * BITS_PER_BITS_WORD;
+  nb -= i * BITS_PER_BITS_WORD;
+  eassume (na >= 0 && nb >= 0);
+  if (nb == 0)
+    return na != 0;
+  if (na == 0)
+    return -1;
+
+  bits_word aw = bits_word_to_host_endian (ad[i]);
+  bits_word bw = bits_word_to_host_endian (bd[i]);
+  bits_word xw = aw ^ bw;
+  if (xw == 0)
+    return na < nb ? -1 : na > nb;
+
+  bits_word d = xw & -xw;	/* Isolate first difference.  */
+  eassume (d != 0);
+  return (d & aw) ? 1 : -1;
+}
+
+/* Return -1, 0 or 1 to indicate whether a<b, a=b or a>b in the sense of value<.
+   In particular 0 does not mean equality in the sense of Fequal, only
+   that the arguments cannot be ordered yet they can be compared (same
+   type).  */
+static int
+value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
+{
+  if (maxdepth < 0)
+    error ("Maximum depth exceeded in comparison");
+
+ tail_recurse:
+  /* Shortcut for a common case.  */
+  if (BASE_EQ (a, b))
+    return 0;
+
+  switch (XTYPE (a))
+    {
+    case_Lisp_Int:
+      {
+	EMACS_INT ia = XFIXNUM (a);
+	if (FIXNUMP (b))
+	  return ia < XFIXNUM (b) ? -1 : 1;   /* we know that a≠b */
+	if (FLOATP (b))
+	  return ia < XFLOAT_DATA (b) ? -1 : ia > XFLOAT_DATA (b);
+	if (BIGNUMP (b))
+	  return -mpz_sgn (*xbignum_val (b));
+      }
+      goto type_mismatch;
+
+    case Lisp_Symbol:
+      if (BARE_SYMBOL_P (b))
+	return string_cmp (XBARE_SYMBOL (a)->u.s.name,
+			   XBARE_SYMBOL (b)->u.s.name);
+      if (CONSP (b) && NILP (a))
+	return -1;
+      if (SYMBOLP (b))
+	/* Slow-path branch when B is a symbol-with-pos.  */
+	return string_cmp (XBARE_SYMBOL (a)->u.s.name, XSYMBOL (b)->u.s.name);
+      goto type_mismatch;
+
+    case Lisp_String:
+      if (STRINGP (b))
+	return string_cmp (a, b);
+      goto type_mismatch;
+
+    case Lisp_Cons:
+      /* FIXME: Optimise for difference in the first element? */
+      FOR_EACH_TAIL (b)
+	{
+	  int cmp = value_cmp (XCAR (a), XCAR (b), maxdepth - 1);
+	  if (cmp != 0)
+	    return cmp;
+	  a = XCDR (a);
+	  if (!CONSP (a))
+	    {
+	      b = XCDR (b);
+	      goto tail_recurse;
+	    }
+	}
+      if (NILP (b))
+	return 1;
+      else
+	goto type_mismatch;
+      goto tail_recurse;
+
+    case Lisp_Vectorlike:
+      if (VECTORLIKEP (b))
+	{
+	  enum pvec_type ta = PSEUDOVECTOR_TYPE (XVECTOR (a));
+	  enum pvec_type tb = PSEUDOVECTOR_TYPE (XVECTOR (b));
+	  if (ta == tb)
+	    switch (ta)
+	      {
+	      case PVEC_NORMAL_VECTOR:
+	      case PVEC_RECORD:
+		{
+		  ptrdiff_t len_a = ASIZE (a);
+		  ptrdiff_t len_b = ASIZE (b);
+		  if (ta == PVEC_RECORD)
+		    {
+		      len_a &= PSEUDOVECTOR_SIZE_MASK;
+		      len_b &= PSEUDOVECTOR_SIZE_MASK;
+		    }
+		  ptrdiff_t len_min = min (len_a, len_b);
+		  for (ptrdiff_t i = 0; i < len_min; i++)
+		    {
+		      int cmp = value_cmp (AREF (a, i), AREF (b, i),
+					   maxdepth - 1);
+		      if (cmp != 0)
+			return cmp;
+		    }
+		  return len_a < len_b ? -1 : len_a > len_b;
+		}
+
+	      case PVEC_BOOL_VECTOR:
+		return bool_vector_cmp (a, b);
+
+	      case PVEC_MARKER:
+		{
+		  Lisp_Object buf_a = Fmarker_buffer (a);
+		  Lisp_Object buf_b = Fmarker_buffer (b);
+		  if (NILP (buf_a))
+		    return NILP (buf_b) ? 0 : -1;
+		  if (NILP (buf_b))
+		    return 1;
+		  int cmp = value_cmp (buf_a, buf_b, maxdepth - 1);
+		  if (cmp != 0)
+		    return cmp;
+		  ptrdiff_t pa = XMARKER (a)->charpos;
+		  ptrdiff_t pb = XMARKER (b)->charpos;
+		  return pa < pb ? -1 : pa > pb;
+		}
+
+	      case PVEC_PROCESS:
+		a = Fprocess_name (a);
+		b = Fprocess_name (b);
+		goto tail_recurse;
+
+	      case PVEC_BUFFER:
+		{
+		  /* Killed buffers lack names and sort before those alive.  */
+		  Lisp_Object na = Fbuffer_name (a);
+		  Lisp_Object nb = Fbuffer_name (b);
+		  if (NILP (na))
+		    return NILP (nb) ? 0 : -1;
+		  if (NILP (nb))
+		    return 1;
+		  a = na;
+		  b = nb;
+		  goto tail_recurse;
+		}
+
+	      case PVEC_BIGNUM:
+		return mpz_cmp (*xbignum_val (a), *xbignum_val (b));
+
+	      case PVEC_SYMBOL_WITH_POS:
+		/* Compare by name, enabled or not.  */
+		a = XSYMBOL_WITH_POS_SYM (a);
+		b = XSYMBOL_WITH_POS_SYM (b);
+		goto tail_recurse;
+
+	      default:
+		/* Treat other types as unordered.  */
+		return 0;
+	      }
+	}
+      else if (BIGNUMP (a))
+	return -value_cmp (b, a, maxdepth);
+      else if (SYMBOL_WITH_POS_P (a) && symbols_with_pos_enabled)
+	{
+	  a = XSYMBOL_WITH_POS_SYM (a);
+	  goto tail_recurse;
+	}
+
+      goto type_mismatch;
+
+    case Lisp_Float:
+      {
+	double fa = XFLOAT_DATA (a);
+	if (FLOATP (b))
+	  return fa < XFLOAT_DATA (b) ? -1 : fa > XFLOAT_DATA (b);
+	if (FIXNUMP (b))
+	  return fa < XFIXNUM (b) ? -1 : fa > XFIXNUM (b);
+	if (BIGNUMP (b))
+	  {
+	    if (isnan (fa))
+	      return 0;
+	    return -mpz_cmp_d (*xbignum_val (b), fa);
+	  }
+      }
+      goto type_mismatch;
+
+    default:
+      eassume (0);
+    }
+ type_mismatch:
+  xsignal2 (Qtype_mismatch, a, b);
+}
+
+DEFUN ("value<", Fvaluelt, Svaluelt, 2, 2, 0,
+       doc: /* Return non-nil if A precedes B in standard value order.
+A and B must have the same basic type.
+Numbers are compared with `<'.
+Strings and symbols are compared with `string-lessp'.
+Lists, vectors, bool-vectors and records are compared lexicographically.
+Markers are compared lexicographically by buffer and position.
+Buffers and processes are compared by name.
+Other types are considered unordered and the return value will be `nil'.  */)
+  (Lisp_Object a, Lisp_Object b)
+{
+  int maxdepth = 20;		  /* FIXME: arbitrary value */
+  return value_cmp (a, b, maxdepth) < 0 ? Qt : Qnil;
+}
+
 
 
 DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
@@ -6589,6 +6826,7 @@ For best results this should end in a space.  */);
   defsubr (&Seql);
   defsubr (&Sequal);
   defsubr (&Sequal_including_properties);
+  defsubr (&Svaluelt);
   defsubr (&Sfillarray);
   defsubr (&Sclear_string);
   defsubr (&Snconc);
