@@ -193,6 +193,29 @@ or \"ffmpeg\") is installed."
         "h" #'image-flip-horizontally
         "v" #'image-flip-vertically))
 
+(defun image-context-menu (menu click)
+  "Populate MENU with image-related commands at CLICK."
+  (when (mouse-posn-property (event-start click) 'display)
+    (define-key menu [image-separator] menu-bar-separator)
+    (let ((easy-menu (make-sparse-keymap "Image")))
+      (easy-menu-define nil easy-menu nil
+        '("Image"
+          ["Zoom In" image-increase-size
+           :help "Enlarge the image"]
+          ["Zoom Out" image-decrease-size
+           :help "Shrink the image"]
+          ["Rotate Clockwise" image-rotate
+           :help "Rotate the image"]
+          ["Flip horizontally" image-flip-horizontally
+           :help "Flip horizontally"]
+          ["Flip vertically" image-flip-vertically
+           :help "Flip vertically"]))
+      (dolist (item (reverse (lookup-key easy-menu [menu-bar image])))
+        (when (consp item)
+          (define-key menu (vector (car item)) (cdr item))))))
+
+  menu)
+
 (defun image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
 
@@ -494,9 +517,13 @@ use its file extension as image type.
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
 
 Optional PROPS are additional image attributes to assign to the image,
-like, e.g. `:mask MASK'.  If the property `:scale' is not given and the
-display has a high resolution (more exactly, when the average width of a
-character in the default font is more than 10 pixels), the image is
+like, e.g. `:mask MASK'.  See Info node `(elisp)Image Descriptors' for
+the list of supported properties; see the nodes following that node
+for properties specific to certain image types.
+
+If the property `:scale' is not given and the display has a high
+resolution (more exactly, when the average width of a character
+in the default font is more than 10 pixels), the image is
 automatically scaled up in proportion to the default font.
 
 Value is the image created, or nil if images of type TYPE are not supported.
@@ -571,7 +598,11 @@ Internal use only."
 Properties can be set with
 
   (setf (image-property IMAGE PROPERTY) VALUE)
-If VALUE is nil, PROPERTY is removed from IMAGE."
+If VALUE is nil, PROPERTY is removed from IMAGE.
+
+See Info node `(elisp)Image Descriptors' for the list of
+supported properties; see the nodes following that node for
+properties specific to certain image types."
   (declare (gv-setter image--set-property))
   (plist-get (cdr image) property))
 
@@ -620,6 +651,7 @@ means display it in the right marginal area."
       (overlay-put overlay 'put-image t)
       (overlay-put overlay 'before-string string)
       (overlay-put overlay 'keymap image-map)
+      (overlay-put overlay 'context-menu-functions '(image-context-menu))
       overlay)))
 
 
@@ -672,8 +704,9 @@ is non-nil, this is inhibited."
 				   inhibit-isearch ,inhibit-isearch
                                    keymap ,(if slice
                                                image-slice-map
-                                             image-map)))))
-
+                                             image-map)
+                                   context-menu-functions
+                                   (image-context-menu)))))
 
 ;;;###autoload
 (defun insert-sliced-image (image &optional string area rows cols)
@@ -709,7 +742,9 @@ The image is automatically split into ROWS x COLS slices."
 	  (add-text-properties start (point)
 			       `(display ,(list (list 'slice x y dx dy) image)
 					 rear-nonsticky (display keymap)
-                                         keymap ,image-slice-map))
+                                         keymap ,image-slice-map
+                                         context-menu-functions
+                                         (image-context-menu)))
 	  (setq x (+ x dx))))
       (setq x 0.0
 	    y (+ y dy))
@@ -759,21 +794,25 @@ BUFFER nil or omitted means use the current buffer."
 
 ;;;###autoload
 (defun find-image (specs &optional cache)
-  "Find an image, choosing one of a list of image specifications.
+  "Find an image that satisfies one of a list of image specifications.
 
 SPECS is a list of image specifications.
 
-Each image specification in SPECS is a property list.  The contents of
-a specification are image type dependent.  All specifications must at
-least contain either the property `:file FILE' or `:data DATA',
-where FILE is the file to load the image from, and DATA is a string
-containing the actual image data.  If the property `:type TYPE' is
-omitted or nil, try to determine the image type from its first few
+Each image specification in SPECS is a property list.  The
+contents of a specification are image type dependent; see the
+info node `(elisp)Image Descriptors' for details.  All specifications
+must at least contain either the property `:file FILE' or `:data DATA',
+where FILE is the file from which to load the image, and DATA is a
+string containing the actual image data.  If the property `:type TYPE'
+is omitted or nil, try to determine the image type from its first few
 bytes of image data.  If that doesn't work, and the property `:file
-FILE' provide a file name, use its file extension as image type.
-If `:type TYPE' is provided, it must match the actual type
-determined for FILE or DATA by `create-image'.  Return nil if no
-specification is satisfied.
+FILE' provide a file name, use its file extension as idication of the
+image type. If `:type TYPE' is provided, it must match the actual type
+determined for FILE or DATA by `create-image'.
+
+The function returns the image specification for the first specification
+in the list whose TYPE is supported and FILE, if specified, exists.  It
+returns nil if no specification in the list can be satisfied.
 
 If CACHE is non-nil, results are cached and returned on subsequent calls.
 

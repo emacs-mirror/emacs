@@ -1133,6 +1133,7 @@ leading double colon is not added."
                                 "singleton_class"
                                 "module"
                                 "method"
+                                "singleton_method"
                                 "array"
                                 "hash"
                                 "parenthesized_statements"
@@ -1178,6 +1179,19 @@ leading double colon is not added."
   ;; Imenu.
   (setq-local imenu-create-index-function #'ruby-ts--imenu)
 
+  ;; Outline minor mode.
+  (setq-local treesit-outline-predicate
+              (rx bos (or "singleton_method"
+                          "method"
+                          "alias"
+                          "class"
+                          "module")
+                  eos))
+  ;; Restore default values of outline variables
+  ;; to use `treesit-outline-predicate'.
+  (kill-local-variable 'outline-regexp)
+  (kill-local-variable 'outline-level)
+
   (setq-local treesit-simple-indent-rules (ruby-ts--indent-rules))
 
   ;; Font-lock.
@@ -1196,19 +1210,11 @@ leading double colon is not added."
 
   (setq-local syntax-propertize-function #'ruby-ts--syntax-propertize))
 
+(derived-mode-add-parents 'ruby-ts-mode '(ruby-mode))
+
 (if (treesit-ready-p 'ruby)
-    ;; Copied from ruby-mode.el.
-    (add-to-list 'auto-mode-alist
-                 (cons (concat "\\(?:\\.\\(?:"
-                               "rbw?\\|ru\\|rake\\|thor"
-                               "\\|jbuilder\\|rabl\\|gemspec\\|podspec"
-                               "\\)"
-                               "\\|/"
-                               "\\(?:Gem\\|Rake\\|Cap\\|Thor"
-                               "\\|Puppet\\|Berks\\|Brew"
-                               "\\|Vagrant\\|Guard\\|Pod\\)file"
-                               "\\)\\'")
-                       'ruby-ts-mode)))
+    (add-to-list 'major-mode-remap-defaults
+                 '(ruby-mode . ruby-ts-mode)))
 
 (provide 'ruby-ts-mode)
 

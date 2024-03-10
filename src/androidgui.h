@@ -612,6 +612,15 @@ struct android_window_changes
   enum android_stack_mode stack_mode;
 };
 
+struct android_compose_status
+{
+  /* Accent character to be combined with another.  */
+  unsigned int accent;
+
+  /* Number of characters matched.  */
+  int chars_matched;
+};
+
 extern int android_pending (void);
 extern void android_next_event (union android_event *);
 extern bool android_check_if_event (union android_event *,
@@ -707,7 +716,8 @@ extern void android_translate_coordinates (android_window, int,
 					   int, int *, int *);
 extern int android_wc_lookup_string (android_key_pressed_event *,
 				     wchar_t *, int, int *,
-				     enum android_lookup_status *);
+				     enum android_lookup_status *,
+				     struct android_compose_status *);
 extern void android_recreate_activity (android_window);
 extern void android_update_ic (android_window, ptrdiff_t, ptrdiff_t,
 			       ptrdiff_t, ptrdiff_t);

@@ -40,6 +40,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/select.h>
 
 /* Old NDK versions lack MIN and MAX.  */
 #include <minmax.h>
@@ -112,12 +113,20 @@ struct android_emacs_window
   jmethodID define_cursor;
   jmethodID damage_rect;
   jmethodID recreate_activity;
+  jmethodID clear_window;
+  jmethodID clear_area;
 };
 
 struct android_emacs_cursor
 {
   jclass class;
   jmethodID constructor;
+};
+
+struct android_key_character_map
+{
+  jclass class;
+  jmethodID get_dead_char;
 };
 
 /* The API level of the current device.  */
@@ -151,6 +160,13 @@ static char *android_files_dir;
 
 /* The Java environment being used for the main thread.  */
 JNIEnv *android_java_env;
+
+#ifdef THREADS_ENABLED
+
+/* The Java VM new threads attach to.  */
+JavaVM *android_jvm;
+
+#endif /* THREADS_ENABLED */
 
 /* The EmacsGC class.  */
 static jclass emacs_gc_class;
@@ -192,6 +208,9 @@ static struct android_emacs_window window_class;
 
 /* Various methods associated with the EmacsCursor class.  */
 static struct android_emacs_cursor cursor_class;
+
+/* Various methods associated with the KeyCharacterMap class.  */
+static struct android_key_character_map key_character_map_class;
 
 /* The time at which Emacs was installed, which also supplies the
    mtime of asset files.  */
@@ -496,6 +515,9 @@ android_handle_sigusr1 (int sig, siginfo_t *siginfo, void *arg)
    This should ideally be defined further down.  */
 static sem_t android_query_sem;
 
+/* ID of the Emacs thread.  */
+static pthread_t main_thread_id;
+
 /* Set up the global event queue by initializing the mutex and two
    condition variables, and the linked list of events.  This must be
    called before starting the Emacs thread.  Also, initialize the
@@ -530,6 +552,8 @@ android_init_events (void)
 
   event_queue.events.next = &event_queue.events;
   event_queue.events.last = &event_queue.events;
+
+  main_thread_id = pthread_self ();
 
 #if __ANDROID_API__ >= 16
 
@@ -578,10 +602,6 @@ android_pending (void)
 
   return i;
 }
-
-/* Forward declaration.  */
-
-static void android_check_query (void);
 
 /* Wait for events to become available synchronously.  Return once an
    event arrives.  Also, reply to the UI thread whenever it requires a
@@ -732,6 +752,12 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   static char byte;
 #endif
 
+#ifdef THREADS_ENABLED
+  if (!pthread_equal (pthread_self (), main_thread_id))
+    return pselect (nfds, readfds, writefds, exceptfds, timeout,
+		    NULL);
+#endif /* THREADS_ENABLED */
+
   /* Since Emacs is reading keyboard input again, signify that queries
      from input methods are no longer ``urgent''.  */
 
@@ -837,9 +863,11 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   if (nfds_return < 0)
     errno = EINTR;
 
+#ifndef THREADS_ENABLED
   /* Now check for and run anything the UI thread wants to run in the
      main thread.  */
   android_check_query ();
+#endif /* THREADS_ENABLED */
 
   return nfds_return;
 }
@@ -1315,12 +1343,17 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   const char *java_string;
   struct stat statb;
 
+#ifdef THREADS_ENABLED
+  /* Save the Java VM.  */
+  if ((*env)->GetJavaVM (env, &android_jvm))
+    emacs_abort ();
+#endif /* THREADS_ENABLED */
+
   /* Set the Android API level early, as it is used by
      `android_vfs_init'.  */
   android_api_level = api_level;
 
   /* This function should only be called from the main thread.  */
-
   android_pixel_density_x = pixel_density_x;
   android_pixel_density_y = pixel_density_y;
   android_scaled_pixel_density = scaled_density;
@@ -1583,16 +1616,13 @@ android_init_emacs_service (void)
   FIND_METHOD (draw_point, "drawPoint",
 	       "(Lorg/gnu/emacs/EmacsDrawable;"
 	       "Lorg/gnu/emacs/EmacsGC;II)V");
-  FIND_METHOD (clear_window, "clearWindow",
-	       "(Lorg/gnu/emacs/EmacsWindow;)V");
-  FIND_METHOD (clear_area, "clearArea",
-	       "(Lorg/gnu/emacs/EmacsWindow;IIII)V");
   FIND_METHOD (ring_bell, "ringBell", "(I)V");
   FIND_METHOD (query_tree, "queryTree",
 	       "(Lorg/gnu/emacs/EmacsWindow;)[S");
   FIND_METHOD (get_screen_width, "getScreenWidth", "(Z)I");
   FIND_METHOD (get_screen_height, "getScreenHeight", "(Z)I");
   FIND_METHOD (detect_mouse, "detectMouse", "()Z");
+  FIND_METHOD (detect_keyboard, "detectKeyboard", "()Z");
   FIND_METHOD (name_keysym, "nameKeysym", "(I)Ljava/lang/String;");
   FIND_METHOD (browse_url, "browseUrl", "(Ljava/lang/String;Z)"
 	       "Ljava/lang/String;");
@@ -1809,6 +1839,8 @@ android_init_emacs_window (void)
      android_damage_window.  */
   FIND_METHOD (damage_rect, "damageRect", "(IIII)V");
   FIND_METHOD (recreate_activity, "recreateActivity", "()V");
+  FIND_METHOD (clear_window, "clearWindow", "()V");
+  FIND_METHOD (clear_area, "clearArea", "(IIII)V");
 #undef FIND_METHOD
 }
 
@@ -1840,6 +1872,32 @@ android_init_emacs_cursor (void)
 
   FIND_METHOD (constructor, "<init>", "(SI)V");
 #undef FIND_METHOD
+}
+
+static void
+android_init_key_character_map (void)
+{
+  jclass old;
+
+  key_character_map_class.class
+    = (*android_java_env)->FindClass (android_java_env,
+				      "android/view/KeyCharacterMap");
+  eassert (key_character_map_class.class);
+
+  old = key_character_map_class.class;
+  key_character_map_class.class
+    = (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
+						  (jobject) old);
+  ANDROID_DELETE_LOCAL_REF (old);
+
+  if (!key_character_map_class.class)
+    emacs_abort ();
+
+  key_character_map_class.get_dead_char
+    = (*android_java_env)->GetStaticMethodID (android_java_env,
+					      key_character_map_class.class,
+					      "getDeadChar", "(II)I");
+  eassert (key_character_map_class.get_dead_char);
 }
 
 JNIEXPORT void JNICALL
@@ -1890,6 +1948,7 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
   android_init_emacs_drawable ();
   android_init_emacs_window ();
   android_init_emacs_cursor ();
+  android_init_key_character_map ();
 
   /* Set HOME to the app data directory.  */
   setenv ("HOME", android_files_dir, 1);
@@ -2496,6 +2555,8 @@ JNIEXPORT jboolean JNICALL
 NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
 					      jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   /* Yes, android_pass_multimedia_buttons_to_system is being
      read from the UI thread.  */
   return !android_pass_multimedia_buttons_to_system;
@@ -2504,6 +2565,8 @@ NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
 JNIEXPORT jboolean JNICALL
 NATIVE_NAME (shouldForwardCtrlSpace) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   return !android_intercept_control_space;
 }
 
@@ -2607,6 +2670,8 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (notifyPixelsChanged) (JNIEnv *env, jobject object,
 				   jobject bitmap)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   void *data;
 
   /* Lock and unlock the bitmap.  This calls
@@ -2660,6 +2725,8 @@ NATIVE_NAME (answerQuerySpin) (JNIEnv *env, jobject object)
 JNIEXPORT void JNICALL
 NATIVE_NAME (setupSystemThread) (void)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   sigset_t sigset;
 
   /* Block everything except for SIGSEGV and SIGBUS; those two are
@@ -3408,10 +3475,9 @@ android_clear_window (android_window handle)
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
   (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
-						 emacs_service,
-						 service_class.class,
-						 service_class.clear_window,
-						 window);
+						 window,
+						 window_class.class,
+						 window_class.clear_window);
   android_exception_check ();
 }
 
@@ -4722,10 +4788,10 @@ android_clear_area (android_window handle, int x, int y,
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
   (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
-						 emacs_service,
-						 service_class.class,
-						 service_class.clear_area,
-						 window, (jint) x, (jint) y,
+						 window,
+						 window_class.class,
+						 window_class.clear_area,
+						 (jint) x, (jint) y,
 						 (jint) width, (jint) height);
 }
 
@@ -5346,11 +5412,51 @@ android_translate_coordinates (android_window src, int x,
   ANDROID_DELETE_LOCAL_REF (coordinates);
 }
 
+/* Return the character produced by combining the diacritic character
+   DCHAR with the key-producing character C in *VALUE.  Value is 1 if
+   there is no character for this combination, 0 otherwise.  */
+
+static int
+android_get_dead_char (unsigned int dchar, unsigned int c,
+		       unsigned int *value)
+{
+  jmethodID method;
+  jclass class;
+  jint result;
+
+  /* Call getDeadChar.  */
+  class = key_character_map_class.class;
+  method = key_character_map_class.get_dead_char;
+  result = (*android_java_env)->CallStaticIntMethod (android_java_env,
+						     class, method,
+						     (jint) dchar,
+						     (jint) c);
+
+  if (result)
+    {
+      *value = result;
+      return 0;
+    }
+
+  return 1;
+}
+
+/* Return a Unicode string in BUFFER_RETURN, a buffer of size
+   WCHARS_BUFFER, from the key press event EVENT, much like
+   XmbLookupString.  If EVENT represents a key press without a
+   corresponding Unicode character, return its keysym in *KEYSYM_RETURN.
+   Return the action taken in *STATUS_RETURN.
+
+   COMPOSE_STATUS, if non-NULL, should point to a structure for
+   temporary information to be stored in during dead key
+   composition.  */
+
 int
 android_wc_lookup_string (android_key_pressed_event *event,
 			  wchar_t *buffer_return, int wchars_buffer,
 			  int *keysym_return,
-			  enum android_lookup_status *status_return)
+			  enum android_lookup_status *status_return,
+			  struct android_compose_status *compose_status)
 {
   enum android_lookup_status status;
   int rc;
@@ -5359,6 +5465,7 @@ android_wc_lookup_string (android_key_pressed_event *event,
   jsize size;
   size_t i;
   JNIEnv *env;
+  unsigned int unicode_char;
 
   env = android_java_env;
   status = ANDROID_LOOKUP_NONE;
@@ -5372,6 +5479,13 @@ android_wc_lookup_string (android_key_pressed_event *event,
     {
       if (event->unicode_char)
 	{
+	  /* KeyCharacterMap.COMBINING_ACCENT.  */
+	  if ((event->unicode_char & 0x80000000) && compose_status)
+	    goto dead_key;
+
+	  /* Remove combining accent bits.  */
+	  unicode_char = event->unicode_char & ~0x80000000;
+
 	  if (wchars_buffer < 1)
 	    {
 	      *status_return = ANDROID_BUFFER_OVERFLOW;
@@ -5379,7 +5493,31 @@ android_wc_lookup_string (android_key_pressed_event *event,
 	    }
 	  else
 	    {
-	      buffer_return[0] = event->unicode_char;
+	      /* If COMPOSE_STATUS holds a diacritic mark unicode_char
+		 ought to be combined with, and this combination is
+		 valid, return the result alone with no keysym.  */
+
+	      if (compose_status
+		  && compose_status->chars_matched
+		  && !android_get_dead_char (compose_status->accent,
+					     unicode_char,
+					     &unicode_char))
+		{
+		  buffer_return[0] = unicode_char;
+		  *status_return = ANDROID_LOOKUP_CHARS;
+		  compose_status->chars_matched = 0;
+		  return 1;
+		}
+	      else if (compose_status && compose_status->chars_matched)
+		{
+		  /* If the combination is valid the compose status must
+		     be reset and no character returned.  */
+		  compose_status->chars_matched = 0;
+		  status = ANDROID_LOOKUP_NONE;
+		  return 0;
+		}
+
+	      buffer_return[0] = unicode_char;
 	      status = ANDROID_LOOKUP_CHARS;
 	      rc = 1;
 	    }
@@ -5395,8 +5533,14 @@ android_wc_lookup_string (android_key_pressed_event *event,
 	  rc = 0;
 	}
 
+      /* Terminate any ongoing character composition after a key is
+	 registered.  */
+      if (compose_status
+	  /* Provided that a modifier key is not the key being
+	     depressed.  */
+	  && !ANDROID_IS_MODIFIER_KEY (event->keycode))
+	compose_status->chars_matched = 0;
       *status_return = status;
-
       return rc;
     }
 
@@ -5452,6 +5596,15 @@ android_wc_lookup_string (android_key_pressed_event *event,
 
   *status_return = status;
   return rc;
+
+ dead_key:
+  /* event->unicode_char is a dead key, which are diacritic marks that
+     should not be directly inserted but instead be combined with a
+     subsequent character before insertion.  */
+  *status_return = ANDROID_LOOKUP_NONE;
+  compose_status->chars_matched = 1;
+  compose_status->accent = event->unicode_char & ~0x80000000;
+  return 0;
 }
 
 
@@ -5618,6 +5771,21 @@ android_detect_mouse (void)
   jmethodID method;
 
   method = service_class.detect_mouse;
+  rc = (*android_java_env)->CallNonvirtualBooleanMethod (android_java_env,
+							 emacs_service,
+							 service_class.class,
+							 method);
+  android_exception_check ();
+  return rc;
+}
+
+bool
+android_detect_keyboard (void)
+{
+  bool rc;
+  jmethodID method;
+
+  method = service_class.detect_keyboard;
   rc = (*android_java_env)->CallNonvirtualBooleanMethod (android_java_env,
 							 emacs_service,
 							 service_class.class,
@@ -6701,7 +6869,7 @@ static void *android_query_context;
 /* Run any function that the UI thread has asked to run, and then
    signal its completion.  */
 
-static void
+void
 android_check_query (void)
 {
   void (*proc) (void *);

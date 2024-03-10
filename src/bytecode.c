@@ -1737,28 +1737,29 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (BYTE_CODE_SAFE && !HASH_TABLE_P (jmp_table))
               emacs_abort ();
             Lisp_Object v1 = POP;
-            ptrdiff_t i;
             struct Lisp_Hash_Table *h = XHASH_TABLE (jmp_table);
-
-            /* h->count is a faster approximation for HASH_TABLE_SIZE (h)
-               here. */
-            if (h->count <= 5 && !h->test->cmpfn)
-              { /* Do a linear search if there are not many cases
-                   FIXME: 5 is arbitrarily chosen.  */
-		for (i = h->count; 0 <= --i; )
-		  if (EQ (v1, HASH_KEY (h, i)))
-		    break;
+	    /* Do a linear search if there are few cases and the test is `eq'.
+	       (The table is assumed to be sized exactly; all entries are
+	       consecutive at the beginning.)
+	       FIXME: 5 is arbitrarily chosen.  */
+            if (h->count <= 5 && !h->test->cmpfn && !symbols_with_pos_enabled)
+              {
+		eassume (h->count >= 2);
+		for (ptrdiff_t i = h->count - 1; i >= 0; i--)
+		  if (BASE_EQ (v1, HASH_KEY (h, i)))
+		    {
+		      op = XFIXNUM (HASH_VALUE (h, i));
+		      goto op_branch;
+		    }
               }
             else
-              i = hash_lookup (h, v1);
-
-	    if (i >= 0)
 	      {
-		Lisp_Object val = HASH_VALUE (h, i);
-		if (BYTE_CODE_SAFE && !FIXNUMP (val))
-		  emacs_abort ();
-		op = XFIXNUM (val);
-		goto op_branch;
+		ptrdiff_t i = hash_lookup (h, v1);
+		if (i >= 0)
+		  {
+		    op = XFIXNUM (HASH_VALUE (h, i));
+		    goto op_branch;
+		  }
 	      }
           }
           NEXT;

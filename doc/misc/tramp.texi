@@ -488,24 +488,28 @@ an @command{ssh} server:
 @file{@trampfn{plink,user@@host,/path/to/file}}.
 
 
-@anchor{Quick Start Guide su, sudo, doas and sg methods}
-@section Using @option{su}, @option{sudo}, @option{doas} and @option{sg}
+@anchor{Quick Start Guide su, sudo, doas, androidsu and sg methods}
+@section Using @option{su}, @option{sudo}, @option{doas}, @option{androidsu} and @option{sg}
 @cindex method @option{su}
 @cindex @option{su} method
 @cindex method @option{sudo}
 @cindex @option{sudo} method
 @cindex method @option{doas}
 @cindex @option{doas} method
+@cindex method @option{androidsu}
+@cindex @option{androidsu} method
 @cindex method @option{sg}
 @cindex @option{sg} method
 
 Sometimes, it is necessary to work on your local host under different
 permissions.  For this, you can use the @option{su} or @option{sudo}
 connection method.  On OpenBSD systems, the @option{doas} connection
-method offers the same functionality.  These methods use @samp{root}
-as default user name and the return value of @code{(system-name)} as
-default host name.  Therefore, it is convenient to open a file as
-@file{@trampfn{sudo,,/path/to/file}}.
+method offers the same functionality.  If your local system is
+Android, use the method @option{androidsu} instead of @option{su}.
+
+These methods use @samp{root} as default user name and the return
+value of @code{(system-name)} as default host name.  Therefore, it is
+convenient to open a file as @file{@trampfn{sudo,,/path/to/file}}.
 
 The method @option{sg} stands for ``switch group''; here the user name
 is used as the group to change to.  The default host name is the same.
@@ -525,7 +529,7 @@ is used as the group to change to.  The default host name is the same.
 @cindex @option{doas} method
 
 If the @option{su}, @option{sudo} or @option{doas} option should be
-performed on another host, it can be comnbined with a leading
+performed on another host, it can be combined with a leading
 @option{ssh} or @option{plink} option.  That means that @value{tramp}
 connects first to the other host with non-administrative credentials,
 and changes to administrative credentials on that host afterwards.  In
@@ -819,6 +823,17 @@ editing as another user.  The host can be either @samp{localhost} or
 the host returned by the function @command{(system-name)}.  See
 @ref{Multi-hops} for an exception to this behavior.
 
+@item @option{androidsu}
+@cindex method @option{androidsu}
+@cindex @option{androidsu} method
+Because the default implementation of the @option{su} method and other
+shell-based methods conflict with non-standard @command{su}
+implementations popular among Android users and the restricted
+command-line utilities distributed with that system, a largely
+equivalent @option{androidsu} method is provided for that system with
+workarounds for its many idiosyncrasies, with the exception that
+multi-hops are unsupported.
+
 @item @option{sudo}
 @cindex method @option{sudo}
 @cindex @option{sudo} method
@@ -1058,6 +1073,20 @@ Check the @samp{Share SSH connections if possible} control for that
 session.
 
 These methods support the @samp{-P} argument.
+
+@item @option{dockercp}
+@item @option{podmancp}
+@cindex method @option{dockercp}
+@cindex @option{dockercp} method
+@cindex method @option{podmancp}
+@cindex @option{podmancp} method
+
+These methods are similar to @option{docker} or @option{podman}, but
+they use the command @command{docker cp} or @command{podman cp} for
+transferring large files.
+
+These copy commands do not support file globs, and they ignore a user
+name.
 
 @item @option{fcp}
 @cindex method @option{fcp}
@@ -2036,7 +2065,7 @@ machine @var{host} port sudo login @var{user} password secret
 
 @var{user} and @var{host} are the strings returned by
 @code{(user-login-name)} and @code{(system-name)}.  If one of these
-methods is connected via a multi hop (@pxref{Multi-hops}), the
+methods is connected via a multi-hop (@pxref{Multi-hops}), the
 credentials of the previous hop are used.
 
 @vindex auth-source-save-behavior
@@ -5238,9 +5267,14 @@ Does @value{tramp} support @acronym{SSH} security keys?
 Yes.  @command{OpenSSH} has added support for @acronym{FIDO} hardware
 devices via special key types @option{*-sk}.  @value{tramp} supports
 the additional handshaking messages for them.  This requires at least
-@command{OpenSSH} 8.2, and a @acronym{FIDO} @acronym{U2F} compatible
-security key, like yubikey, solokey, nitrokey, or titankey.
+@command{OpenSSH} 8.2, and a @acronym{FIDO} @acronym{U2F} or
+@acronym{FIDO2} compatible security key, like yubikey, solokey,
+nitrokey, or titankey.
+@c @uref{https://docs.fedoraproject.org/en-US/quick-docs/using-yubikeys/}
 
+@strong{Note} that there are reports on problems of handling FIDO2
+(residential) keys by @command{ssh-agent}.  As workaround, you might
+disable @command{ssh-agent} for such keys.
 
 @item
 @value{tramp} does not connect to Samba or MS Windows hosts running

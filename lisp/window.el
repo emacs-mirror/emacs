@@ -6174,6 +6174,12 @@ value can be also stored on disk and read back in a new session."
 (defvar window-state-put-stale-windows nil
   "Helper variable for `window-state-put'.")
 
+(defvar window-state-put-kept-windows nil
+  "Helper variable for `window-state-put'.")
+
+(defvar window-state-put-selected-window nil
+  "Helper variable for `window-state-put'.")
+
 (defun window--state-put-1 (state &optional window ignore totals pixelwise)
   "Helper function for `window-state-put'."
   (let ((type (car state)))
@@ -6278,9 +6284,10 @@ value can be also stored on disk and read back in a new session."
 	  (set-window-parameter window (car parameter) (cdr parameter))))
       ;; Process buffer related state.
       (when state
-	(let ((buffer (get-buffer (car state)))
-	      (state (cdr state)))
-	  (if buffer
+	(let* ((old-buffer-or-name (car state))
+	       (buffer (get-buffer old-buffer-or-name))
+	       (state (cdr state)))
+	  (if (buffer-live-p buffer)
 	      (with-current-buffer buffer
 		(set-window-buffer window buffer)
 		(set-window-hscroll window (cdr (assq 'hscroll state)))
@@ -6348,7 +6355,18 @@ value can be also stored on disk and read back in a new session."
 		  (set-window-point window (cdr (assq 'point state))))
 		;; Select window if it's the selected one.
 		(when (cdr (assq 'selected state))
-		  (select-window window))
+		  ;; This used to call 'select-window' which, however,
+		  ;; can be partially undone because the current buffer
+		  ;; may subsequently change twice: When leaving the
+		  ;; present 'with-current-buffer' and when leaving the
+		  ;; containing 'with-temp-buffer' form (Bug#69093).
+		  ;; 'window-state-put-selected-window' should now work
+		  ;; around that bug but we leave this 'select-window'
+		  ;; in since some code run before the part that fixed
+		  ;; it might still refer to this window as the selected
+		  ;; one.
+		  (select-window window)
+		  (setq window-state-put-selected-window window))
                 (set-window-next-buffers
                  window
                  (delq nil (mapcar (lambda (buffer)
@@ -6375,7 +6393,20 @@ value can be also stored on disk and read back in a new session."
 	    ;; save the window with the intention of deleting it later
 	    ;; if possible.
 	    (switch-to-prev-buffer window)
-	    (push window window-state-put-stale-windows)))))))
+	    (if window-kept-windows-functions
+		(let* ((start (cdr (assq 'start state)))
+		       ;; Handle both - marker positions from writable
+		       ;; states and markers from non-writable states.
+		       (start-pos (if (markerp start)
+				      (marker-last-position start)
+				    start))
+		       (point (cdr (assq 'point state)))
+		       (point-pos (if (markerp point)
+				      (marker-last-position point)
+				    point)))
+		  (push (list window old-buffer-or-name start-pos point-pos)
+			window-state-put-kept-windows))
+	      (push window window-state-put-stale-windows))))))))
 
 (defun window-state-put (state &optional window ignore)
   "Put window state STATE into WINDOW.
@@ -6388,8 +6419,20 @@ If WINDOW is nil, create a new window before putting STATE into it.
 Optional argument IGNORE non-nil means ignore minimum window
 sizes and fixed size restrictions.  IGNORE equal `safe' means
 windows can get as small as `window-safe-min-height' and
-`window-safe-min-width'."
+`window-safe-min-width'.
+
+If the abnormal hook `window-kept-windows-functions' is non-nil,
+do not delete any windows saved by STATE whose buffers were
+deleted since STATE was saved.  Rather, show some live buffer in
+them and call the functions in `window-kept-windows-functions'
+with a list of two arguments: the frame where STATE was put and a
+list of entries for each such window.  Each entry contains four
+elements - the window, its old buffer and the last positions of
+`window-start' and `window-point' for the buffer in that window.
+Always check the window for liveness because another function run
+by this hook may have deleted it."
   (setq window-state-put-stale-windows nil)
+  (setq window-state-put-kept-windows nil)
 
   ;; When WINDOW is internal or nil, reduce it to a live one,
   ;; then create a new window on the same frame to put STATE into.
@@ -6482,6 +6525,7 @@ windows can get as small as `window-safe-min-height' and
 	(error "Window %s too small to accommodate state" window)
       (setq state (cdr state))
       (setq window-state-put-list nil)
+      (setq window-state-put-selected-window nil)
       ;; Work on the windows of a temporary buffer to make sure that
       ;; splitting proceeds regardless of any buffer local values of
       ;; `window-size-fixed'.  Release that buffer after the buffers of
@@ -6490,14 +6534,21 @@ windows can get as small as `window-safe-min-height' and
 	(set-window-buffer window (current-buffer))
 	(window--state-put-1 state window nil totals pixelwise)
 	(window--state-put-2 ignore pixelwise))
+      (when (window-live-p window-state-put-selected-window)
+	(select-window window-state-put-selected-window))
       (while window-state-put-stale-windows
 	(let ((window (pop window-state-put-stale-windows)))
-          ;; Avoid that 'window-deletable-p' throws an error if window
+	  ;; Avoid that 'window-deletable-p' throws an error if window
           ;; was already deleted when exiting 'with-temp-buffer' above
           ;; (Bug#54028).
 	  (when (and (window-valid-p window)
                      (eq (window-deletable-p window) t))
 	    (delete-window window))))
+      (when window-kept-windows-functions
+	(run-hook-with-args
+	 'window-kept-windows-functions
+	 frame window-state-put-kept-windows)
+	(setq window-state-put-kept-windows nil))
       (window--check frame))))
 
 (defun window-state-buffers (state)

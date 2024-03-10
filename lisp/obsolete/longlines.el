@@ -116,17 +116,14 @@ newlines are indicated with a symbol."
       ;; Turn on longlines mode
       (progn
         (use-hard-newlines 1 'never)
-        (set (make-local-variable 'require-final-newline) nil)
+        (setq-local require-final-newline nil)
         (add-to-list 'buffer-file-format 'longlines)
         (add-hook 'change-major-mode-hook #'longlines-mode-off nil t)
 	(add-hook 'before-revert-hook #'longlines-before-revert-hook nil t)
         (make-local-variable 'longlines-auto-wrap)
-	(set (make-local-variable 'isearch-search-fun-function)
-	     #'longlines-search-function)
-	(set (make-local-variable 'replace-search-function)
-	     #'longlines-search-forward)
-	(set (make-local-variable 'replace-re-search-function)
-	     #'longlines-re-search-forward)
+        (setq-local isearch-search-fun-function #'longlines-search-function)
+        (setq-local replace-search-function #'longlines-search-forward)
+        (setq-local replace-re-search-function #'longlines-re-search-forward)
         (add-function :filter-return (local 'filter-buffer-substring-function)
                       #'longlines-encode-string)
         (when longlines-wrap-follows-window-size
@@ -136,8 +133,7 @@ newlines are indicated with a symbol."
 				(window-width)))
 			longlines-wrap-follows-window-size
 		      2)))
-	    (set (make-local-variable 'fill-column)
-		 (- (window-width) dw)))
+            (setq-local fill-column (- (window-width) dw)))
           (add-hook 'window-configuration-change-hook
                     #'longlines-window-change-function nil t))
         (let ((buffer-undo-list t)

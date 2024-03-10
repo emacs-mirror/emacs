@@ -25,7 +25,7 @@
   (if (macroexp--dynamic-variable-p var) ''dyn ''lex))
 
 (defvar vk-a 1)
-(defconst vk-b 2)
+(defvar vk-b 2)
 (defvar vk-c)
 
 (defun vk-f1 (x)

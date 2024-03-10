@@ -2910,13 +2910,9 @@ The following commands are available:
 	(car func)
       (gnus-byte-compile `(lambda () ,func)))))
 
-(defun gnus-agent-true ()
-  "Return t."
-  t)
+(defalias 'gnus-agent-true #'always)
 
-(defun gnus-agent-false ()
-  "Return nil."
-  nil)
+(defalias 'gnus-agent-false #'ignore)
 
 (defun gnus-category-make-function-1 (predicate)
   "Make a function from PREDICATE."
@@ -2924,8 +2920,9 @@ The following commands are available:
    ;; Functions are just returned as is.
    ((or (symbolp predicate)
 	(functionp predicate))
-    `(,(or (cdr (assq predicate gnus-category-predicate-alist))
-	   predicate)))
+    (let ((fun (or (cdr (assq predicate gnus-category-predicate-alist))
+	           predicate)))
+      (if (symbolp fun) `(,fun) `(funcall ',fun))))
    ;; More complex predicate.
    ((consp predicate)
     `(,(cond

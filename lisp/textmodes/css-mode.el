@@ -1830,6 +1830,8 @@ can also be used to fill comments.
 
     (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))))
 
+(derived-mode-add-parents 'css-ts-mode '(css-mode))
+
 ;;;###autoload
 (define-derived-mode css-mode css-base-mode "CSS"
   "Major mode to edit Cascading Style Sheets (CSS).

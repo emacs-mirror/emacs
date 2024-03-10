@@ -158,7 +158,6 @@
 (declare-function erc-parse-user "erc" (string))
 (declare-function erc-process-away "erc" (proc away-p))
 (declare-function erc-process-ctcp-query "erc" (proc parsed nick login host))
-(declare-function erc-query-buffer-p "erc" (&optional buffer))
 (declare-function erc-remove-channel-member "erc" (channel nick))
 (declare-function erc-remove-channel-users "erc" nil)
 (declare-function erc-remove-user "erc" (nick))
@@ -254,6 +253,11 @@ Entries are of the form:
 or
   (PARAMETER) if no value is provided.
 
+where PARAMETER is a string and VALUE is a string or nil.  For
+compatibility, a raw parameter of the form \"FOO=\" becomes
+(\"FOO\" . \"\") even though it's equivalent to the preferred
+canonical form \"FOO\" and its lisp representation (\"FOO\").
+
 Some examples of possible parameters sent by servers:
 CHANMODES=b,k,l,imnpst - list of supported channel modes
 CHANNELLEN=50 - maximum length of channel names
@@ -273,7 +277,8 @@ WALLCHOPS - supports sending messages to all operators in a channel")
 (defvar-local erc--isupport-params nil
   "Hash map of \"ISUPPORT\" params.
 Keys are symbols.  Values are lists of zero or more strings with hex
-escapes removed.")
+escapes removed.  ERC normalizes incoming parameters of the form
+\"FOO=\" to (FOO).")
 
 ;;; Server and connection state
 
@@ -1474,10 +1479,12 @@ for decoding."
   (let ((args (erc-response.command-args parsed-response))
         (decode-target nil)
         (decoded-args ()))
+    ;; FIXME this should stop after the first match.
     (dolist (arg args nil)
       (when (string-match "^[#&].*" arg)
         (setq decode-target arg)))
     (when (stringp decode-target)
+      ;; FIXME `decode-target' should be passed as TARGET.
       (setq decode-target (erc-decode-string-from-target decode-target nil)))
     (setf (erc-response.unparsed parsed-response)
           (erc-decode-string-from-target
@@ -2155,10 +2162,6 @@ Then display the welcome message."
   ;;
   ;; > The server SHOULD send "X", not "X="; this is the normalized form.
   ;;
-  ;; Note: for now, assume the server will only send non-empty values,
-  ;; possibly with printable ASCII escapes.  Though in practice, the
-  ;; only two escapes we're likely to see are backslash and space,
-  ;; meaning the pattern is too liberal.
   (let (case-fold-search)
     (mapcar
      (lambda (v)
@@ -2169,7 +2172,9 @@ Then display the welcome message."
                      (string-match "[\\]x[0-9A-F][0-9A-F]" v start))
            (setq m (substring v (+ 2 (match-beginning 0)) (match-end 0))
                  c (string-to-number m 16))
-           (if (<= ?\  c ?~)
+           ;; In practice, this range is too liberal.  The only
+           ;; escapes we're likely to see are ?\\, ?=, and ?\s.
+           (if (<= ?\s c ?~)
                (setq v (concat (substring v 0 (match-beginning 0))
                                (string c)
                                (substring v (match-end 0)))
@@ -2194,8 +2199,9 @@ primitive value."
                                           (or erc-server-parameters
                                               (erc-with-server-buffer
                                                 erc-server-parameters)))))
-                       (if (cdr v)
-                           (erc--parse-isupport-value (cdr v))
+                       (if-let ((val (cdr v))
+                                ((not (string-empty-p val))))
+                           (erc--parse-isupport-value val)
                          '--empty--)))))
       (pcase value
         ('--empty-- (unless single (list key)))

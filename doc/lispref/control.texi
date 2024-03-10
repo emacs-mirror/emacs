@@ -638,6 +638,16 @@ with @var{n} arguments (the other elements) and an additional
 Example: @code{(= 42)}@*
 In this example, the function is @code{=}, @var{n} is one, and
 the actual function call becomes: @w{@code{(= 42 @var{expval})}}.
+
+@item function call with an @code{_} arg
+Call the function (the first element of the function call)
+with the specified arguments (the other elements) and replacing
+@code{_} with @var{expval}.
+
+Example: @code{(gethash _ memo-table)}
+In this example, the function is @code{gethash}, and
+the actual function call becomes: @w{@code{(gethash @var{expval}
+memo-table)}}.
 @end table
 
 @item (app @var{function} @var{pattern})

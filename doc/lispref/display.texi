@@ -6048,6 +6048,7 @@ event is composed by combining the @var{id} of the hot-spot with the
 mouse event; for instance, @code{[area4 mouse-1]} if the hot-spot's
 @var{id} is @code{area4}.
 
+@findex image-compute-scaling-factor
 Note that the map's coordinates should reflect the displayed image
 after all transforms have been done (rotation, scaling and so on), and
 also note that Emacs (by default) performs auto-scaling of images, so
@@ -6766,10 +6767,14 @@ from the file's name.
 The remaining arguments, @var{props}, specify additional image
 properties---for example,
 
-@c ':heuristic-mask' is not documented?
 @example
-(create-image "foo.xpm" 'xpm nil :heuristic-mask t)
+(create-image "foo.xpm" 'xpm nil :mask 'heuristic)
 @end example
+
+@noindent
+@xref{Image Descriptors}, for the list of supported properties.  Some
+properties are specific to certain image types, and are described in
+subsections specific to those types.
 
 The function returns @code{nil} if images of this type are not
 supported.  Otherwise it returns an image descriptor.

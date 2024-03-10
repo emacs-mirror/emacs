@@ -26,6 +26,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 
 #include <errno.h>
+#include <fcntl.h>
+
 #include <sys/inotify.h>
 #include <sys/ioctl.h>
 
@@ -434,7 +436,15 @@ IN_ONESHOT  */)
 
   if (inotifyfd < 0)
     {
+#ifdef HAVE_INOTIFY_INIT1
       inotifyfd = inotify_init1 (IN_NONBLOCK | IN_CLOEXEC);
+#else /* !HAVE_INOTIFY_INIT1 */
+      /* This is prey to race conditions with other threads calling
+	 exec.  */
+      inotifyfd = inotify_init ();
+      fcntl (inotifyfd, F_SETFL, O_NONBLOCK);
+      fcntl (inotifyfd, F_SETFD, O_CLOEXEC);
+#endif /* HAVE_INOTIFY_INIT1 */
       if (inotifyfd < 0)
 	report_file_notify_error ("File watching is not available", Qnil);
       watch_list = Qnil;

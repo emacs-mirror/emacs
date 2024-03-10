@@ -3116,10 +3116,6 @@ shut_down_emacs (int sig, Lisp_Object stuff)
       check_message_stack ();
     }
 
-#ifdef HAVE_NATIVE_COMP
-  eln_load_path_final_clean_up ();
-#endif
-
 #ifdef MSDOS
   dos_cleanup ();
 #endif

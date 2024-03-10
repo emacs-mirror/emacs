@@ -3671,8 +3671,7 @@ Treats actions as defuns."
 	(remove-hook 'after-save-hook #'gdb-create-define-alist t))))
 
 (defcustom gud-tooltip-modes '( gud-mode c-mode c++-mode fortran-mode
-				python-mode c-ts-mode c++-ts-mode
-                                python-ts-mode)
+				python-mode)
   "List of modes for which to enable GUD tooltips."
   :type '(repeat (symbol :tag "Major mode"))
   :group 'tooltip)
@@ -3708,10 +3707,9 @@ only tooltips in the buffer containing the overlay arrow."
 	       #'gud-tooltip-activate-mouse-motions-if-enabled)
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
-      (if (and gud-tooltip-mode
-	       (memq major-mode gud-tooltip-modes))
-	  (gud-tooltip-activate-mouse-motions t)
-	(gud-tooltip-activate-mouse-motions nil)))))
+     (gud-tooltip-activate-mouse-motions
+      (and gud-tooltip-mode
+	       (derived-mode-p gud-tooltip-modes))))))
 
 (defvar gud-tooltip-mouse-motions-active nil
   "Locally t in a buffer if tooltip processing of mouse motion is enabled.")

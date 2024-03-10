@@ -559,7 +559,7 @@ do not work in subdirectories.
 
 (defun locate-tags ()
   "Visit a tags table in `*Locate*' mode."
-  (interactive)
+  (interactive nil locate-mode)
   (if (locate-main-listing-line-p)
       (let ((tags-table (locate-get-filename)))
 	(and (y-or-n-p (format "Visit tags table %s? " tags-table))
@@ -589,7 +589,7 @@ locate database using the shell command in `locate-update-command'."
 
 (defun locate-find-directory ()
   "Visit the directory of the file mentioned on this line."
-  (interactive)
+  (interactive nil locate-mode)
   (if (locate-main-listing-line-p)
       (let ((directory-name (locate-get-dirname)))
 	(if (file-directory-p directory-name)
@@ -601,7 +601,7 @@ locate database using the shell command in `locate-update-command'."
 
 (defun locate-find-directory-other-window ()
   "Visit the directory of the file named on this line in other window."
-  (interactive)
+  (interactive nil locate-mode)
   (if (locate-main-listing-line-p)
       (find-file-other-window (locate-get-dirname))
     (message "This command only works inside main listing.")))

@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    a table of function pointers.  */
 
 #ifndef _ANDROID_H_
+#define _ANDROID_H_
+
 #ifndef ANDROID_STUBIFY
 #include <jni.h>
 #include <pwd.h>
@@ -103,6 +105,7 @@ extern int android_get_screen_height (void);
 extern int android_get_mm_width (void);
 extern int android_get_mm_height (void);
 extern bool android_detect_mouse (void);
+extern bool android_detect_keyboard (void);
 
 extern void android_set_dont_focus_on_map (android_window, bool);
 extern void android_set_dont_accept_focus (android_window, bool);
@@ -225,6 +228,7 @@ extern void android_display_toast (const char *);
 
 /* Event loop functions.  */
 
+extern void android_check_query (void);
 extern void android_check_query_urgent (void);
 extern int android_run_in_emacs_thread (void (*) (void *), void *);
 extern void android_write_event (union android_event *);
@@ -265,6 +269,7 @@ struct android_emacs_service
   jmethodID get_screen_width;
   jmethodID get_screen_height;
   jmethodID detect_mouse;
+  jmethodID detect_keyboard;
   jmethodID name_keysym;
   jmethodID browse_url;
   jmethodID restart_emacs;
@@ -296,6 +301,10 @@ struct android_emacs_service
 };
 
 extern JNIEnv *android_java_env;
+
+#ifdef THREADS_ENABLED
+extern JavaVM *android_jvm;
+#endif /* THREADS_ENABLED */
 
 /* The EmacsService object.  */
 extern jobject emacs_service;

@@ -171,7 +171,7 @@ Derived from the advertised \"PREFIX\" ISUPPORT parameter."
 
 ;; After dropping 28, we can use prefixed "erc-autoload" cookies.
 (defun erc--normalize-module-symbol (symbol)
-  "Return preferred SYMBOL for `erc--modules'."
+  "Return preferred SYMBOL for `erc--module'."
   (while-let ((canonical (get symbol 'erc--module))
               ((not (eq canonical symbol))))
     (setq symbol canonical))

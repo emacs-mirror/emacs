@@ -309,7 +309,7 @@ Also see `ignore'."
 
 ;; Macro `connection-local-p' is new in Emacs 30.1.
 (if (macrop 'connection-local-p)
-    (defalias 'tramp-compat-connection-local-p #'connection-local-p)
+    (defalias 'tramp-compat-connection-local-p 'connection-local-p)
   (defmacro tramp-compat-connection-local-p (variable)
     "Non-nil if VARIABLE has a connection-local binding in `default-directory'."
     `(let (connection-local-variables-alist file-local-variables-alist)
@@ -336,6 +336,8 @@ Also see `ignore'."
 ;;   keep this quoting.
 ;;
 ;; * Starting with Emacs 29.1, use `buffer-match-p'.
+;;
+;; * Starting with Emacs 29.1, use `string-split'.
 ;;
 ;; * Starting with Emacs 30.1, there is `handler-bind'.  Use it
 ;;   instead of `condition-case' when the origin of an error shall be

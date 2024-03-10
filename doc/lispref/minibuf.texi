@@ -187,7 +187,8 @@ History}.
 If the variable @code{minibuffer-allow-text-properties} is
 non-@code{nil}, then the string that is returned includes whatever text
 properties were present in the minibuffer.  Otherwise all the text
-properties are stripped when the value is returned.
+properties are stripped when the value is returned.  (By default this
+variable is @code{nil}.)
 
 @vindex minibuffer-prompt-properties
 The text properties in @code{minibuffer-prompt-properties} are applied
@@ -350,14 +351,15 @@ See @code{read-regexp} above for details of how these values are used.
 @end defopt
 
 @defvar minibuffer-allow-text-properties
-If this variable is @code{nil}, then @code{read-from-minibuffer}
-and @code{read-string} strip all text properties from the minibuffer
-input before returning it.  However,
+If this variable is @code{nil}, the default, then
+@code{read-from-minibuffer} and @code{read-string} strip all text
+properties from the minibuffer input before returning it.  However,
 @code{read-no-blanks-input} (see below), as well as
 @code{read-minibuffer} and related functions (@pxref{Object from
 Minibuffer,, Reading Lisp Objects With the Minibuffer}), and all
-functions that do minibuffer input with completion, remove the @code{face}
-property unconditionally, regardless of the value of this variable.
+functions that do minibuffer input with completion, remove the
+@code{face} property unconditionally, regardless of the value of this
+variable.
 
 If this variable is non-@code{nil}, most text properties on strings
 from the completion table are preserved---but only on the part of the
@@ -2562,6 +2564,14 @@ times match.
 The optional argument @var{default} specifies the default password to
 return if the user enters empty input.  If @var{default} is @code{nil},
 then @code{read-passwd} returns the null string in that case.
+
+This function uses @code{read-passwd-mode}, a minor mode.  It binds two
+keys in the minbuffer: @kbd{C-u} (@code{delete-minibuffer-contents})
+deletes the password, and @kbd{TAB}
+(@code{read-passwd--toggle-visibility}) toggles the visibility of the
+password.  There is also an additional icon in the mode-line.  Clicking
+on this icon with @key{mouse-1} toggles the visibility of the password
+as well.
 @end defun
 
 @node Minibuffer Commands

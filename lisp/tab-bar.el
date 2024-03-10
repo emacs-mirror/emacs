@@ -1385,6 +1385,14 @@ inherits the current tab's `explicit-name' parameter."
                              tabs))))
 
 
+(defcustom tab-bar-tab-post-select-functions nil
+  "List of functions to call after selecting a tab.
+Two arguments are supplied: the previous tab that was selected before,
+and the newly selected tab."
+  :type '(repeat function)
+  :group 'tab-bar
+  :version "30.1")
+
 (defvar tab-bar-minibuffer-restore-tab nil
   "Tab number for `tab-bar-minibuffer-restore-tab'.")
 
@@ -1499,7 +1507,10 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
               (tab-bar--current-tab-make (nth to-index tabs)))
 
         (unless tab-bar-mode
-          (message "Selected tab '%s'" (alist-get 'name to-tab))))
+          (message "Selected tab '%s'" (alist-get 'name to-tab)))
+
+        (run-hook-with-args 'tab-bar-tab-post-select-functions
+                            from-tab to-tab))
 
       (force-mode-line-update))))
 

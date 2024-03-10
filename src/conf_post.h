@@ -471,3 +471,7 @@ extern int emacs_setenv_TZ (char const *);
 #undef MB_CUR_MAX
 #define MB_CUR_MAX REPLACEMENT_MB_CUR_MAX
 #endif /* REPLACEMENT_MB_CUR_MAX */
+
+/* Emacs does not need glibc strftime behavior for AM and PM
+   indicators.  */
+#define REQUIRE_GNUISH_STRFTIME_AM_PM false

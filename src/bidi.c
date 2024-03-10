@@ -2908,7 +2908,6 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
     }
   else if (bidi_it->bracket_pairing_pos != eob)
     {
-      eassert (bidi_it->resolved_level == -1);
       /* If the cached state shows an increase of embedding level due
 	 to an isolate initiator, we need to update the 1st cached
 	 state of the next run of the current isolating sequence with
@@ -2917,6 +2916,7 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
       if (bidi_it->level_stack[bidi_it->stack_idx].level > prev_level
 	  && ISOLATE_STATUS (bidi_it, bidi_it->stack_idx))
 	{
+	  eassert (bidi_it->resolved_level == -1);
 	  bidi_record_type_for_neutral (&prev_for_neutral, prev_level, 0);
 	  bidi_record_type_for_neutral (&next_for_neutral, prev_level, 1);
 	}
@@ -2931,6 +2931,7 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
 	    }
 	  else if (bidi_it->bracket_pairing_pos == -1)
 	    {
+	      eassert (bidi_it->resolved_level == -1);
 	      /* Higher levels were not BPA-resolved yet, even if
 		 cached by bidi_find_bracket_pairs.  Force application
 		 of BPA to the new level now.  */

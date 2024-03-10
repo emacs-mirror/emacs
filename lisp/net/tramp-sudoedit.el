@@ -771,7 +771,7 @@ in case of error, t otherwise."
 		     (tramp-get-connection-name vec) (current-buffer)
 		     (append
 		      (tramp-expand-args
-		       vec 'tramp-sudo-login
+		       vec 'tramp-sudo-login nil
 		       ?h (or (tramp-file-name-host vec) "")
 		       ?u (or (tramp-file-name-user vec) ""))
 		      (flatten-tree args))))

@@ -6608,7 +6608,7 @@ use it to set a major mode there, e.g.,
     (interactive)
     (org-export-to-buffer \\='latex \"*Org LATEX Export*\"
       async subtreep visible-only body-only ext-plist
-      #\\='LaTeX-mode))
+      (major-mode-remap \\='latex-mode)))
 
 When expressed as an anonymous function, using `lambda',
 POST-PROCESS needs to be quoted.

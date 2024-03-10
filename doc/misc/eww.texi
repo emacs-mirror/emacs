@@ -192,6 +192,15 @@ history press @kbd{H} (@code{eww-list-histories}) to open the history
 buffer @file{*eww history*}.  The history is lost when EWW is quit.
 If you want to remember websites you can use bookmarks.
 
+@vindex eww-before-browse-history-function
+  By default, when browsing to a new page from a ``historical'' one
+(i.e.@: a page loaded by navigating back via @code{eww-back-url}), EWW
+will first delete any history entries newer than the current page.  This
+is the same behavior as most other web browsers.  You can change this by
+customizing @code{eww-before-browse-history-function} to another value.
+For example, setting it to @code{ignore} will preserve the existing
+history entries and simply prepend the new page to the history list.
+
 @vindex eww-history-limit
   Along with the URLs visited, EWW also remembers both the rendered
 page (as it appears in the buffer) and its source.  This can take a

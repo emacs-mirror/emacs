@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 91
+# gnulib-common.m4 serial 92
 dnl Copyright (C) 2007-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -76,42 +76,48 @@ AC_DEFUN([gl_COMMON_BODY], [
 #endif])
   AH_VERBATIM([attribute],
 [/* Attributes.  */
-#if (defined __has_attribute \
-     && (!defined __clang_minor__ \
-         || (defined __apple_build_version__ \
-             ? 7000000 <= __apple_build_version__ \
-             : 5 <= __clang_major__)))
-# define _GL_HAS_ATTRIBUTE(attr) __has_attribute (__##attr##__)
-#else
-# define _GL_HAS_ATTRIBUTE(attr) _GL_ATTR_##attr
-# define _GL_ATTR_alloc_size _GL_GNUC_PREREQ (4, 3)
-# define _GL_ATTR_always_inline _GL_GNUC_PREREQ (3, 2)
-# define _GL_ATTR_artificial _GL_GNUC_PREREQ (4, 3)
-# define _GL_ATTR_cold _GL_GNUC_PREREQ (4, 3)
-# define _GL_ATTR_const _GL_GNUC_PREREQ (2, 95)
-# define _GL_ATTR_deprecated _GL_GNUC_PREREQ (3, 1)
-# define _GL_ATTR_diagnose_if 0
-# define _GL_ATTR_error _GL_GNUC_PREREQ (4, 3)
-# define _GL_ATTR_externally_visible _GL_GNUC_PREREQ (4, 1)
-# define _GL_ATTR_fallthrough _GL_GNUC_PREREQ (7, 0)
-# define _GL_ATTR_format _GL_GNUC_PREREQ (2, 7)
-# define _GL_ATTR_leaf _GL_GNUC_PREREQ (4, 6)
-# define _GL_ATTR_malloc _GL_GNUC_PREREQ (3, 0)
-# ifdef _ICC
-#  define _GL_ATTR_may_alias 0
+/* Define _GL_HAS_ATTRIBUTE only once, because on FreeBSD, with gcc < 5, if
+   <config.h> gets included once again after <sys/cdefs.h>, __has_attribute(x)
+   expands to 0 always, and redefining _GL_HAS_ATTRIBUTE would turn off all
+   attributes.  */
+#ifndef _GL_HAS_ATTRIBUTE
+# if (defined __has_attribute \
+      && (!defined __clang_minor__ \
+          || (defined __apple_build_version__ \
+              ? 7000000 <= __apple_build_version__ \
+              : 5 <= __clang_major__)))
+#  define _GL_HAS_ATTRIBUTE(attr) __has_attribute (__##attr##__)
 # else
-#  define _GL_ATTR_may_alias _GL_GNUC_PREREQ (3, 3)
+#  define _GL_HAS_ATTRIBUTE(attr) _GL_ATTR_##attr
+#  define _GL_ATTR_alloc_size _GL_GNUC_PREREQ (4, 3)
+#  define _GL_ATTR_always_inline _GL_GNUC_PREREQ (3, 2)
+#  define _GL_ATTR_artificial _GL_GNUC_PREREQ (4, 3)
+#  define _GL_ATTR_cold _GL_GNUC_PREREQ (4, 3)
+#  define _GL_ATTR_const _GL_GNUC_PREREQ (2, 95)
+#  define _GL_ATTR_deprecated _GL_GNUC_PREREQ (3, 1)
+#  define _GL_ATTR_diagnose_if 0
+#  define _GL_ATTR_error _GL_GNUC_PREREQ (4, 3)
+#  define _GL_ATTR_externally_visible _GL_GNUC_PREREQ (4, 1)
+#  define _GL_ATTR_fallthrough _GL_GNUC_PREREQ (7, 0)
+#  define _GL_ATTR_format _GL_GNUC_PREREQ (2, 7)
+#  define _GL_ATTR_leaf _GL_GNUC_PREREQ (4, 6)
+#  define _GL_ATTR_malloc _GL_GNUC_PREREQ (3, 0)
+#  ifdef _ICC
+#   define _GL_ATTR_may_alias 0
+#  else
+#   define _GL_ATTR_may_alias _GL_GNUC_PREREQ (3, 3)
+#  endif
+#  define _GL_ATTR_noinline _GL_GNUC_PREREQ (3, 1)
+#  define _GL_ATTR_nonnull _GL_GNUC_PREREQ (3, 3)
+#  define _GL_ATTR_nonstring _GL_GNUC_PREREQ (8, 0)
+#  define _GL_ATTR_nothrow _GL_GNUC_PREREQ (3, 3)
+#  define _GL_ATTR_packed _GL_GNUC_PREREQ (2, 7)
+#  define _GL_ATTR_pure _GL_GNUC_PREREQ (2, 96)
+#  define _GL_ATTR_returns_nonnull _GL_GNUC_PREREQ (4, 9)
+#  define _GL_ATTR_sentinel _GL_GNUC_PREREQ (4, 0)
+#  define _GL_ATTR_unused _GL_GNUC_PREREQ (2, 7)
+#  define _GL_ATTR_warn_unused_result _GL_GNUC_PREREQ (3, 4)
 # endif
-# define _GL_ATTR_noinline _GL_GNUC_PREREQ (3, 1)
-# define _GL_ATTR_nonnull _GL_GNUC_PREREQ (3, 3)
-# define _GL_ATTR_nonstring _GL_GNUC_PREREQ (8, 0)
-# define _GL_ATTR_nothrow _GL_GNUC_PREREQ (3, 3)
-# define _GL_ATTR_packed _GL_GNUC_PREREQ (2, 7)
-# define _GL_ATTR_pure _GL_GNUC_PREREQ (2, 96)
-# define _GL_ATTR_returns_nonnull _GL_GNUC_PREREQ (4, 9)
-# define _GL_ATTR_sentinel _GL_GNUC_PREREQ (4, 0)
-# define _GL_ATTR_unused _GL_GNUC_PREREQ (2, 7)
-# define _GL_ATTR_warn_unused_result _GL_GNUC_PREREQ (3, 4)
 #endif
 
 /* Use __has_c_attribute if available.  However, do not use with

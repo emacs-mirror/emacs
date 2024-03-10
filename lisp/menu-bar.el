@@ -1353,6 +1353,15 @@ mail status in mode line"))
                                   (frame-visible-p
                                    (symbol-value 'speedbar-frame))))))
 
+    (bindings--define-key menu [showhide-outline-minor-mode]
+      '(menu-item "Outlines" outline-minor-mode
+                  :help "Turn outline-minor-mode on/off"
+                  :visible (seq-some #'local-variable-p
+                                     '(outline-search-function
+                                       outline-regexp outline-level))
+                  :button (:toggle . (and (boundp 'outline-minor-mode)
+                                          outline-minor-mode))))
+
     (bindings--define-key menu [showhide-tab-line-mode]
       '(menu-item "Window Tab Line" global-tab-line-mode
                   :help "Turn window-local tab-lines on/off"

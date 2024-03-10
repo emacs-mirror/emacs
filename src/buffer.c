@@ -796,14 +796,20 @@ DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer,
 BASE-BUFFER should be a live buffer, or the name of an existing buffer.
 
 NAME should be a string which is not the name of an existing buffer.
+
+Interactively, prompt for BASE-BUFFER (offering the current buffer as
+the default), and for NAME (offering as default the name of a recently
+used buffer).
+
 Optional argument CLONE non-nil means preserve BASE-BUFFER's state,
 such as major and minor modes, in the indirect buffer.
-
 CLONE nil means the indirect buffer's state is reset to default values.
 
 If optional argument INHIBIT-BUFFER-HOOKS is non-nil, the new buffer
 does not run the hooks `kill-buffer-hook',
-`kill-buffer-query-functions', and `buffer-list-update-hook'.  */)
+`kill-buffer-query-functions', and `buffer-list-update-hook'.
+
+Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
   (Lisp_Object base_buffer, Lisp_Object name, Lisp_Object clone,
    Lisp_Object inhibit_buffer_hooks)
 {
@@ -1965,8 +1971,16 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       Lisp_Object tail, other;
 
       FOR_EACH_LIVE_BUFFER (tail, other)
-	if (XBUFFER (other)->base_buffer == b)
-	  Fkill_buffer (other);
+	{
+	  struct buffer *obuf = XBUFFER (other);
+	  if (obuf->base_buffer == b)
+	    {
+	      Fkill_buffer (other);
+	      if (BUFFER_LIVE_P (obuf))
+		error ("Unable to kill buffer whose indirect buffer `%s' cannot be killed",
+		       SDATA (BVAR (obuf, name)));
+	    }
+	}
 
       /* Exit if we now have killed the base buffer (Bug#11665).  */
       if (!BUFFER_LIVE_P (b))
@@ -3002,7 +3016,7 @@ the normal hook `change-major-mode-hook'.  */)
    But still return the total number of overlays.
 */
 
-ptrdiff_t
+static ptrdiff_t
 overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
 	     Lisp_Object **vec_ptr, ptrdiff_t *len_ptr,
 	     bool empty, bool trailing,
@@ -3125,56 +3139,38 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
 {
   ptrdiff_t start = OVERLAY_START (overlay);
   ptrdiff_t end = OVERLAY_END (overlay);
-  ptrdiff_t n, i, size;
-  Lisp_Object *v, tem;
-  Lisp_Object vbuf[10];
-  USE_SAFE_ALLOCA;
+  Lisp_Object tem;
+  struct itree_node *node;
 
-  size = ARRAYELTS (vbuf);
-  v = vbuf;
-  n = overlays_in (start, end, 0, &v, &size, true, false, NULL);
-  if (n > size)
+  ITREE_FOREACH (node, current_buffer->overlays,
+                 start, min (end, ZV) + 1,
+                 ASCENDING)
     {
-      SAFE_NALLOCA (v, 1, n);
-      overlays_in (start, end, 0, &v, &n, true, false, NULL);
+      if (node->begin < end && node->end > start
+          && node->begin < node->end
+          && !EQ (node->data, overlay)
+          && (tem = Foverlay_get (overlay, Qmouse_face),
+	      !NILP (tem)))
+	return true;
     }
-
-  for (i = 0; i < n; ++i)
-    if (!EQ (v[i], overlay)
-	&& (tem = Foverlay_get (overlay, Qmouse_face),
-	    !NILP (tem)))
-      break;
-
-  SAFE_FREE ();
-  return i < n;
+  return false;
 }
 
 /* Return the value of the 'display-line-numbers-disable' property at
    EOB, if there's an overlay at ZV with a non-nil value of that property.  */
-Lisp_Object
+bool
 disable_line_numbers_overlay_at_eob (void)
 {
-  ptrdiff_t n, i, size;
-  Lisp_Object *v, tem = Qnil;
-  Lisp_Object vbuf[10];
-  USE_SAFE_ALLOCA;
+  Lisp_Object tem = Qnil;
+  struct itree_node *node;
 
-  size = ARRAYELTS (vbuf);
-  v = vbuf;
-  n = overlays_in (ZV, ZV, 0, &v, &size, false, false, NULL);
-  if (n > size)
+  ITREE_FOREACH (node, current_buffer->overlays, ZV, ZV, ASCENDING)
     {
-      SAFE_NALLOCA (v, 1, n);
-      overlays_in (ZV, ZV, 0, &v, &n, false, false, NULL);
+      if ((tem = Foverlay_get (node->data, Qdisplay_line_numbers_disable),
+	   !NILP (tem)))
+	return true;
     }
-
-  for (i = 0; i < n; ++i)
-    if ((tem = Foverlay_get (v[i], Qdisplay_line_numbers_disable),
-	 !NILP (tem)))
-      break;
-
-  SAFE_FREE ();
-  return tem;
+  return false;
 }
 
 

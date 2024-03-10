@@ -787,7 +787,7 @@ FUNCTION is the callback which is called for each search result."
 Optional argument NOMATCHING controls whether to suppress the display
 of matching words."
 
-  (message "Searching for %s in %s" word dictionary)
+  (insert (format-message "Searching for `%s' in `%s'\n" word dictionary))
   (dictionary-send-command (concat "define "
 				   (dictionary-encode-charset dictionary "")
 				   " \""
@@ -799,13 +799,13 @@ of matching words."
     (if (dictionary-check-reply reply 552)
 	(progn
 	  (unless nomatching
-	    (insert "Word not found")
+	    (insert (format-message "Word `%s' not found\n" word))
 	    (dictionary-do-matching
              word
 	     dictionary
 	     "."
 	     (lambda (reply)
-               (insert ", maybe you are looking for one of these words\n\n")
+               (insert "Maybe you are looking for one of these words\n")
                (dictionary-display-only-match-result reply)))
 	    (dictionary-post-buffer)))
       (if (dictionary-check-reply reply 550)
@@ -1116,20 +1116,26 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defun dictionary-new-matching (word)
   "Run a new matching search on WORD."
-  (dictionary-ensure-buffer)
   (dictionary-store-positions)
-  (dictionary-do-matching word dictionary-default-dictionary
-			  dictionary-default-strategy
-			  'dictionary-display-match-result)
-  (dictionary-store-state 'dictionary-do-matching
+  (dictionary-ensure-buffer)
+  (dictionary-new-matching-internal word dictionary-default-dictionary
+                                    dictionary-default-strategy
+                                    'dictionary-display-match-result)
+  (dictionary-store-state 'dictionary-new-matching-internal
 			  (list word dictionary-default-dictionary
 				dictionary-default-strategy
 				'dictionary-display-match-result)))
 
+(defun dictionary-new-matching-internal (word dictionary strategy function)
+  "Start a new matching for WORD in DICTIONARY after preparing the buffer.
+FUNCTION is the callback which is called for each search result."
+  (dictionary-pre-buffer)
+  (dictionary-do-matching word dictionary strategy function))
+
 (defun dictionary-do-matching (word dictionary strategy function)
   "Search for WORD with STRATEGY in DICTIONARY and display them with FUNCTION."
-  (message "Lookup matching words for %s in %s using %s"
-	   word dictionary strategy)
+  (insert (format-message "Lookup matching words for `%s' in `%s' using `%s'\n"
+                          word dictionary strategy))
   (dictionary-send-command
    (concat "match " (dictionary-encode-charset dictionary "") " "
 	   (dictionary-encode-charset strategy "") " \""
@@ -1141,10 +1147,13 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
     (if (dictionary-check-reply reply 551)
 	(error "Strategy \"%s\" is invalid" strategy))
     (if (dictionary-check-reply reply 552)
-	(error (concat
-		"No match for \"%s\" with strategy \"%s\" in "
-		"dictionary \"%s\".")
-	       word strategy dictionary))
+	(let ((errmsg (format-message
+                       (concat
+		        "No match for `%s' with strategy `%s' in "
+		        "dictionary `%s'.")
+	               word strategy dictionary)))
+          (insert errmsg "\n")
+          (user-error errmsg)))
     (unless (dictionary-check-reply reply 152)
       (error "Unknown server answer: %s" (dictionary-reply reply)))
     (funcall function reply)))
@@ -1172,8 +1181,6 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defun dictionary-display-match-result (reply)
   "Display the results in REPLY from a match operation."
-  (dictionary-pre-buffer)
-
   (let ((number (nth 1 (dictionary-reply-list reply)))
 	(list (dictionary-simple-split-string (dictionary-read-answer) "\n+")))
     (insert number " matching word" (if (equal number "1") "" "s")
@@ -1271,7 +1278,7 @@ prompt for DICTIONARY."
   (interactive)
   (let ((word (current-word)))
     (unless word
-      (error "No word at point"))
+      (user-error "No word at point"))
     (dictionary-new-search (cons word dictionary-default-dictionary))))
 
 (defun dictionary-previous ()
@@ -1311,7 +1318,8 @@ prompt for DICTIONARY."
 (defun dictionary-popup-matching-words (&optional word)
   "Display entries matching WORD or the current word if not given."
   (interactive)
-  (dictionary-do-matching (or word (current-word) (error "Nothing to search for"))
+  (dictionary-do-matching (or word (current-word)
+                              (user-error "Nothing to search for"))
 			  dictionary-default-dictionary
 			  dictionary-default-popup-strategy
 			  'dictionary-process-popup-replies))

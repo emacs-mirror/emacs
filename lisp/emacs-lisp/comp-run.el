@@ -25,7 +25,7 @@
 
 ;; While the main native compiler is implemented in comp.el, when
 ;; commonly used as a jit compiler it is only loaded by Emacs sub
-;; processes performing async compilation.  This files contains all
+;; processes performing async compilation.  This file contains all
 ;; the code needed to drive async compilations and any Lisp code
 ;; needed at runtime to run native code.
 
@@ -72,10 +72,22 @@ Set this variable to nil to suppress warnings altogether, or to
 the symbol `silent' to log warnings but not pop up the *Warnings*
 buffer."
   :type '(choice
-          (const :tag "Do not report warnings" nil)
-          (const :tag "Report and display warnings" t)
-          (const :tag "Report but do not display warnings" silent))
+          (const :tag "Do not report warnings/errors" nil)
+          (const :tag "Report and display warnings/errors" t)
+          (const :tag "Report but do not display warnings/errors" silent))
   :version "28.1")
+
+(defcustom native-comp-async-warnings-errors-kind 'important
+  "Which kind of warnings and errors to report from async native compilation.
+
+Setting this variable to `important' (the default) will report
+only important warnings and all errors.
+Setting this variable to `all' will report all warnings and
+errors."
+  :type '(choice
+          (const :tag "Report all warnings/errors" all)
+          (const :tag "Report important warnings and all errors" important))
+  :version "30.1")
 
 (defcustom native-comp-always-compile nil
   "Non-nil means unconditionally (re-)compile all files."
@@ -184,13 +196,21 @@ processes from `comp-async-compilations'"
       (let ((warning-suppress-types
              (if (eq native-comp-async-report-warnings-errors 'silent)
                  (cons '(comp) warning-suppress-types)
-               warning-suppress-types)))
+               warning-suppress-types))
+            (regexp (if (eq native-comp-async-warnings-errors-kind 'all)
+                        "^.*?\\(?:Error\\|Warning\\): .*$"
+                      (rx bol
+                          (*? nonl)
+                          (or
+                           (seq "Error: " (*? nonl))
+                           (seq "Warning: the function ‘" (1+ (not "’"))
+                                "’ is not known to be defined."))
+                          eol))))
         (with-current-buffer (process-buffer process)
           (save-excursion
             (accept-process-output process)
             (goto-char (or comp-last-scanned-async-output (point-min)))
-            (while (re-search-forward "^.*?\\(?:Error\\|Warning\\): .*$"
-                                      nil t)
+            (while (re-search-forward regexp nil t)
               (display-warning 'comp (match-string 0)))
             (setq comp-last-scanned-async-output (point-max)))))
     (accept-process-output process)))

@@ -935,7 +935,7 @@ is sensitive to blank lines."
 (defun vc-clear-context ()
   "Clear all cached file properties."
   (interactive)
-  (fillarray vc-file-prop-obarray 0))
+  (obarray-clear vc-file-prop-obarray))
 
 (defmacro with-vc-properties (files form settings)
   "Execute FORM, then maybe set per-file properties for FILES.
@@ -3623,7 +3623,15 @@ revisions.
 When invoked interactively in a Log View buffer with
 marked revisions, use those."
   (interactive
-   (let ((revs (vc-prepare-patch-prompt-revisions)) to)
+   (let* ((revs (vc-prepare-patch-prompt-revisions))
+          (subject
+           (and (length= revs 1)
+                (plist-get
+                 (vc-call-backend
+                  (vc-responsible-backend default-directory)
+                  'prepare-patch (car revs))
+                 :subject)))
+          to)
      (require 'message)
      (while (null (setq to (completing-read-multiple
                             (format-prompt
@@ -3636,10 +3644,9 @@ marked revisions, use those."
        (sit-for blink-matching-delay))
      (list (string-join to ", ")
            (and (not vc-prepare-patches-separately)
-                (read-string "Subject: " "[PATCH] " nil nil t))
+                (read-string "Subject: " (or subject "[PATCH] ") nil nil t))
            revs)))
   (save-current-buffer
-    (vc-ensure-vc-buffer)
     (let ((patches (mapcar (lambda (rev)
                              (vc-call-backend
                               (vc-responsible-backend default-directory)
@@ -3794,11 +3801,16 @@ to provide the `find-revision' operation instead."
   (vc-call-backend (vc-backend buffer-file-name) 'check-headers))
 
 (defun vc-clone (remote &optional backend directory rev)
-  "Use BACKEND to clone REMOTE into DIRECTORY.
-If successful, returns the string with the directory of the
-checkout.  If BACKEND is nil, iterate through every known backend
-in `vc-handled-backends' until one succeeds.  If REV is non-nil,
-it indicates a specific revision to check out."
+  "Clone repository REMOTE using version-control BACKEND, into DIRECTORY.
+If successful, return the string with the directory of the checkout;
+otherwise return nil.
+REMOTE should be a string, the URL of the remote repository or the name
+of a directory (if the repository is local).
+If DIRECTORY is nil or omitted, it defaults to `default-directory'.
+If BACKEND is nil or omitted, the function iterates through every known
+backend in `vc-handled-backends' until one succeeds to clone REMOTE.
+If REV is non-nil, it indicates a specific revision to check out after
+cloning; the syntax of REV depends on what BACKEND accepts."
   (setq directory (expand-file-name (or directory default-directory)))
   (if backend
       (progn

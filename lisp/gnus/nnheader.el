@@ -1016,7 +1016,7 @@ See `find-file-noselect' for the arguments."
   (nnheader-skeleton-replace from to t))
 
 (defun nnheader-strip-cr ()
-  "Strip all \r's from the current buffer."
+  "Strip all \\r's from the current buffer."
   (nnheader-skeleton-replace "\r"))
 
 (define-obsolete-function-alias 'nnheader-cancel-timer 'cancel-timer "27.1")

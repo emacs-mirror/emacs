@@ -155,6 +155,7 @@ add keys to that keymap."
 (add-to-list 'emulation-mode-map-alists
              `((override-global-mode . ,override-global-map)))
 
+;;;###autoload
 (defvar personal-keybindings nil
   "List of bindings performed by `bind-key'.
 

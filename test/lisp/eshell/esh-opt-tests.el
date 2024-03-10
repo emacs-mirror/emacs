@@ -29,13 +29,15 @@
           (eshell--process-args
            "sudo" '("-a")
            '((?a "all" nil show-all
-                 "do not ignore entries starting with .")))))
+                 "do not ignore entries starting with ."))
+           '(show-all))))
   (should
    (equal '("root" "world")
           (eshell--process-args
            "sudo" '("-u" "root" "world")
            '((?u "user" t user
-                 "execute a command as another USER"))))))
+                 "execute a command as another USER"))
+           '(user)))))
 
 (ert-deftest esh-opt-test/process-args-parse-leading-options-only ()
   "Test behavior of :parse-leading-options-only in `eshell--process-args'."
@@ -45,20 +47,23 @@
            "sudo" '("emerge" "-uDN" "world")
            '((?u "user" t user
                  "execute a command as another USER")
-             :parse-leading-options-only))))
+             :parse-leading-options-only)
+           '(user))))
   (should
    (equal '("root" "emerge" "-uDN" "world")
           (eshell--process-args
            "sudo" '("-u" "root" "emerge" "-uDN" "world")
            '((?u "user" t user
                  "execute a command as another USER")
-             :parse-leading-options-only))))
+             :parse-leading-options-only)
+           '(user))))
   (should
    (equal '("DN" "emerge" "world")
           (eshell--process-args
            "sudo" '("-u" "root" "emerge" "-uDN" "world")
            '((?u "user" t user
-                 "execute a command as another USER"))))))
+                 "execute a command as another USER"))
+           '(user)))))
 
 (ert-deftest esh-opt-test/process-args-external ()
   "Test behavior of :external in `eshell--process-args'."
@@ -69,7 +74,8 @@
              "ls" '("/some/path")
              '((?a "all" nil show-all
                    "do not ignore entries starting with .")
-               :external "ls")))))
+               :external "ls")
+             '(show-all)))))
   (cl-letf (((symbol-function 'eshell-search-path) #'identity))
     (should
      (equal '(no-catch eshell-ext-command "ls")
@@ -78,7 +84,8 @@
               "ls" '("-u" "/some/path")
               '((?a "all" nil show-all
                     "do not ignore entries starting with .")
-                :external "ls"))
+                :external "ls")
+              '(show-all))
              :type 'no-catch))))
   (cl-letf (((symbol-function 'eshell-search-path) #'ignore))
     (should-error
@@ -86,7 +93,8 @@
       "ls" '("-u" "/some/path")
       '((?a "all" nil show-all
             "do not ignore entries starting with .")
-        :external "ls"))
+        :external "ls")
+      '(show-all))
      :type 'error)))
 
 (ert-deftest esh-opt-test/eval-using-options-short ()

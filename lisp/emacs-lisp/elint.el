@@ -266,6 +266,7 @@ This environment can be passed to `macroexpand'."
       (insert-file-contents file)
       (let ((buffer-file-name file)
 	    (max-lisp-eval-depth (max 1000 max-lisp-eval-depth)))
+        (hack-local-variables)
 	(with-syntax-table emacs-lisp-mode-syntax-table
 	  (mapc 'elint-top-form (elint-update-env)))))
     (elint-set-mode-line)

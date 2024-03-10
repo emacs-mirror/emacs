@@ -46,6 +46,7 @@ OMIT_GNULIB_MODULE_allocator = true
 OMIT_GNULIB_MODULE_at-internal = true
 OMIT_GNULIB_MODULE_canonicalize-lgpl = true
 OMIT_GNULIB_MODULE_careadlinkat = true
+OMIT_GNULIB_MODULE_copy-file-range = true
 OMIT_GNULIB_MODULE_dirent = true
 OMIT_GNULIB_MODULE_dirfd = true
 OMIT_GNULIB_MODULE_fchmodat = true

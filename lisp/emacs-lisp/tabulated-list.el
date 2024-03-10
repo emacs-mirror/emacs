@@ -139,6 +139,21 @@ If `tabulated-list-entries' is a function, it is called with no
 arguments and must return a list of the above form.")
 (put 'tabulated-list-entries 'permanent-local t)
 
+(defvar-local tabulated-list-groups nil
+  "Groups displayed in the current Tabulated List buffer.
+This should be either a function, or a list.
+If a list, each element has the form (GROUP-NAME ENTRIES),
+where:
+
+ - GROUP-NAME is a group name as a string, which is displayed
+   at the top line of each group.
+
+ - ENTRIES is a list described in `tabulated-list-entries'.
+
+If `tabulated-list-groups' is a function, it is called with no
+arguments and must return a list of the above form.")
+(put 'tabulated-list-groups 'permanent-local t)
+
 (defvar-local tabulated-list-padding 0
   "Number of characters preceding each Tabulated List mode entry.
 By default, lines are padded with spaces, but you can use the
@@ -362,15 +377,17 @@ Do nothing if `tabulated-list--header-string' is nil."
       (if tabulated-list--header-overlay
           (move-overlay tabulated-list--header-overlay (point-min) (point))
         (setq-local tabulated-list--header-overlay
-                    (make-overlay (point-min) (point))))
-      (overlay-put tabulated-list--header-overlay
-                   'face 'tabulated-list-fake-header))))
+                    (make-overlay (point-min) (point)))
+        (overlay-put tabulated-list--header-overlay 'fake-header t)
+        (overlay-put tabulated-list--header-overlay
+                     'face 'tabulated-list-fake-header)))))
 
 (defsubst tabulated-list-header-overlay-p (&optional pos)
   "Return non-nil if there is a fake header.
 Optional arg POS is a buffer position where to look for a fake header;
 defaults to `point-min'."
-  (overlays-at (or pos (point-min))))
+  (seq-find (lambda (o) (overlay-get o 'fake-header))
+            (overlays-at (or pos (point-min)))))
 
 (defun tabulated-list-revert (&rest _ignored)
   "The `revert-buffer-function' for `tabulated-list-mode'.
@@ -427,6 +444,9 @@ This sorts the `tabulated-list-entries' list if sorting is
 specified by `tabulated-list-sort-key'.  It then erases the
 buffer and inserts the entries with `tabulated-list-printer'.
 
+If `tabulated-list-groups' is non-nil, each group of entries
+is printed and sorted separately.
+
 Optional argument REMEMBER-POS, if non-nil, means to move point
 to the entry with the same ID element as the current line.
 
@@ -437,6 +457,9 @@ be removed from entries that haven't changed (see
 `tabulated-list-put-tag').  Don't use this immediately after
 changing `tabulated-list-sort-key'."
   (let ((inhibit-read-only t)
+        (groups (if (functionp tabulated-list-groups)
+		    (funcall tabulated-list-groups)
+		  tabulated-list-groups))
 	(entries (if (functionp tabulated-list-entries)
 		     (funcall tabulated-list-entries)
 		   tabulated-list-entries))
@@ -447,7 +470,14 @@ changing `tabulated-list-sort-key'."
 	 (setq saved-col (current-column)))
     ;; Sort the entries, if necessary.
     (when sorter
-      (setq entries (sort entries sorter)))
+      (if groups
+          (setq groups
+                (mapcar (lambda (group)
+                          (cons (car group) (sort (cdr group) sorter)))
+                        groups))
+        (setq entries (sort entries sorter))))
+    (unless (functionp tabulated-list-groups)
+      (setq tabulated-list-groups groups))
     (unless (functionp tabulated-list-entries)
       (setq tabulated-list-entries entries))
     ;; Without a sorter, we have no way to just update.
@@ -459,6 +489,25 @@ changing `tabulated-list-sort-key'."
       (unless tabulated-list-use-header-line
         (tabulated-list-print-fake-header)))
     ;; Finally, print the resulting list.
+    (if groups
+        (dolist (group groups)
+          (insert (car group) ?\n)
+          (when-let ((saved-pt-new (tabulated-list-print-entries
+                                    (cdr group) sorter update entry-id)))
+            (setq saved-pt saved-pt-new)))
+      (setq saved-pt (tabulated-list-print-entries
+                      entries sorter update entry-id)))
+    (when update
+      (delete-region (point) (point-max)))
+    (set-buffer-modified-p nil)
+    ;; If REMEMBER-POS was specified, move to the "old" location.
+    (if saved-pt
+	(progn (goto-char saved-pt)
+	       (move-to-column saved-col))
+      (goto-char (point-min)))))
+
+(defun tabulated-list-print-entries (entries sorter update entry-id)
+  (let (saved-pt)
     (while entries
       (let* ((elt (car entries))
              (tabulated-list--near-rows
@@ -495,14 +544,7 @@ changing `tabulated-list-sort-key'."
               (forward-line 1)
               (delete-region old (point))))))
       (setq entries (cdr entries)))
-    (when update
-      (delete-region (point) (point-max)))
-    (set-buffer-modified-p nil)
-    ;; If REMEMBER-POS was specified, move to the "old" location.
-    (if saved-pt
-	(progn (goto-char saved-pt)
-	       (move-to-column saved-col))
-      (goto-char (point-min)))))
+    saved-pt))
 
 (defun tabulated-list-print-entry (id cols)
   "Insert a Tabulated List entry at point.

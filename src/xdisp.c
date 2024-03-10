@@ -2508,7 +2508,7 @@ get_glyph_string_clip_rects (struct glyph_string *s, NativeRectangle *rects, int
 	r.x = s->clip_head->x;
       }
   if (s->clip_tail)
-    if (r.x + r.width > s->clip_tail->x + s->clip_tail->background_width)
+    if (r.x + (int) r.width > s->clip_tail->x + s->clip_tail->background_width)
       {
 	if (s->clip_tail->x + s->clip_tail->background_width >= r.x)
 	  r.width = s->clip_tail->x + s->clip_tail->background_width - r.x;
@@ -2588,7 +2588,7 @@ get_glyph_string_clip_rects (struct glyph_string *s, NativeRectangle *rects, int
 	  height = max (FRAME_LINE_HEIGHT (s->f), glyph->ascent + glyph->descent);
 	  if (height < r.height)
 	    {
-	      max_y = r.y + r.height;
+	      max_y = r.y + (int) r.height;
 	      r.y = min (max_y, max (r.y, s->ybase + glyph->descent - height));
 	      r.height = min (max_y - r.y, height);
 	    }
@@ -2629,7 +2629,7 @@ get_glyph_string_clip_rects (struct glyph_string *s, NativeRectangle *rects, int
       if (s->for_overlaps & OVERLAPS_PRED)
 	{
 	  rs[i] = r;
-	  if (r.y + r.height > row_y)
+	  if (r.y + (int) r.height > row_y)
 	    {
 	      if (r.y < row_y)
 		rs[i].height = row_y - r.y;
@@ -2643,10 +2643,10 @@ get_glyph_string_clip_rects (struct glyph_string *s, NativeRectangle *rects, int
 	  rs[i] = r;
 	  if (r.y < row_y + s->row->visible_height)
 	    {
-	      if (r.y + r.height > row_y + s->row->visible_height)
+	      if (r.y + (int) r.height > row_y + s->row->visible_height)
 		{
 		  rs[i].y = row_y + s->row->visible_height;
-		  rs[i].height = r.y + r.height - rs[i].y;
+		  rs[i].height = r.y + (int) r.height - rs[i].y;
 		}
 	      else
 		rs[i].height = 0;
@@ -2831,7 +2831,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
     text_glyph:
       gr = 0; gy = 0;
       for (; r <= end_row && r->enabled_p; ++r)
-	if (r->y + r->height > y)
+	if (r->y + (int) r->height > y)
 	  {
 	    gr = r; gy = r->y;
 	    break;
@@ -2931,7 +2931,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
     row_glyph:
       gr = 0, gy = 0;
       for (; r <= end_row && r->enabled_p; ++r)
-	if (r->y + r->height > y)
+	if (r->y + (int) r->height > y)
 	  {
 	    gr = r; gy = r->y;
 	    break;
@@ -4345,10 +4345,7 @@ compute_stop_pos (struct it *it)
 	}
     }
 
-  if (it->cmp_it.id < 0
-      && (STRINGP (it->string)
-	  || ((!it->bidi_p || it->bidi_it.scan_dir >= 0)
-	      && it->cmp_it.stop_pos <= IT_CHARPOS (*it))))
+  if (it->cmp_it.id < 0)
     {
       ptrdiff_t stoppos = it->end_charpos;
 
@@ -4357,7 +4354,9 @@ compute_stop_pos (struct it *it)
          characters to that position.  */
       if (it->bidi_p && it->bidi_it.scan_dir < 0)
 	stoppos = -1;
-      else if (cmp_limit_pos > 0)
+      else if (!STRINGP (it->string)
+	       && it->cmp_it.stop_pos <= IT_CHARPOS (*it)
+	       && cmp_limit_pos > 0)
 	stoppos = cmp_limit_pos;
       /* Force composition_compute_stop_pos avoid the costly search
          for static compositions, since those were already found by
@@ -5062,31 +5061,169 @@ handle_invisible_prop (struct it *it)
 {
   enum prop_handled handled = HANDLED_NORMALLY;
   int invis;
-  Lisp_Object prop;
+  ptrdiff_t curpos, endpos;
+  Lisp_Object prop, pos, overlay;
 
+  /* Get the value of the invisible text property at the current
+     position.  Value will be nil if there is no such property.  */
   if (STRINGP (it->string))
     {
-      Lisp_Object end_charpos, limit;
+      curpos = IT_STRING_CHARPOS (*it);
+      endpos = SCHARS (it->string);
+      pos = make_fixnum (curpos);
+      prop = Fget_text_property (pos, Qinvisible, it->string);
+    }
+  else	/* buffer */
+    {
+      curpos = IT_CHARPOS (*it);
+      endpos = ZV;
+      pos = make_fixnum (curpos);
+      prop = get_char_property_and_overlay (pos, Qinvisible, it->window,
+					    &overlay);
+    }
 
-      /* Get the value of the invisible text property at the
-	 current position.  Value will be nil if there is no such
-	 property.  */
-      end_charpos = make_fixnum (IT_STRING_CHARPOS (*it));
-      prop = Fget_text_property (end_charpos, Qinvisible, it->string);
-      invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+  /* Do we have anything to do here?  */
+  invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+  if (invis == 0 || curpos >= it->end_charpos)
+    return handled;
+
+  /* If not bidi, or the bidi iteration is at base paragraph level, we
+     can use a faster method; otherwise we need to check invisibility
+     of every character while bidi-iterating out of invisible text.  */
+  bool slow = it->bidi_p && !BIDI_AT_BASE_LEVEL (it->bidi_it);
+  /* Record whether we have to display an ellipsis for the
+     invisible text.  */
+  bool display_ellipsis_p = (invis == 2);
+
+  handled = HANDLED_RECOMPUTE_PROPS;
+
+  if (slow)
+    {
+      if (it->bidi_it.first_elt && it->bidi_it.charpos < endpos)
+	bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
+
+      if (STRINGP (it->string))
+	{
+	  bool done = false;
+	  /* Bidi-iterate out of the invisible part of the string.  */
+	  do
+	    {
+	      bidi_move_to_visually_next (&it->bidi_it);
+	      if (it->bidi_it.charpos < 0 || it->bidi_it.charpos >= endpos)
+		done = true;
+	      else
+		{
+		  pos = make_fixnum (it->bidi_it.charpos);
+		  prop = Fget_text_property (pos, Qinvisible, it->string);
+		  invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+		  /* If there are adjacent invisible texts, don't lose
+                     the second one's ellipsis.  */
+		  if (invis == 2)
+		    display_ellipsis_p = true;
+		}
+	    }
+	  while (!done && invis != 0);
+
+	  if (display_ellipsis_p)
+	    it->ellipsis_p = true;
+	  IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
+	  IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
+	  if (IT_STRING_BYTEPOS (*it) >= endpos)
+	    {
+	      /* The rest of the string is invisible.  If this is an
+		 overlay string, proceed with the next overlay string
+		 or whatever comes and return a character from there.  */
+	      if (it->current.overlay_string_index >= 0
+		  && !display_ellipsis_p)
+		{
+		  next_overlay_string (it);
+		  /* Don't check for overlay strings when we just
+		     finished processing them.  */
+		  handled = HANDLED_OVERLAY_STRING_CONSUMED;
+		}
+	    }
+	}
+      else
+	{
+	  bool done = false;
+	  /* Bidi-iterate out of the invisible text.  */
+	  do
+	    {
+	      bidi_move_to_visually_next (&it->bidi_it);
+	      if (it->bidi_it.charpos < BEGV || it->bidi_it.charpos >= endpos)
+		done = true;
+	      else
+		{
+		  pos = make_fixnum (it->bidi_it.charpos);
+		  prop = Fget_char_property (pos, Qinvisible, it->window);
+		  invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+		  /* If there are adjacent invisible texts, don't lose
+                     the second one's ellipsis.  */
+		  if (invis == 2)
+		    display_ellipsis_p = true;
+		}
+	    }
+	  while (!done && invis != 0);
+
+	  IT_CHARPOS (*it) = it->bidi_it.charpos;
+	  IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+	  if (display_ellipsis_p)
+            {
+              /* Make sure that the glyphs of the ellipsis will get
+                 correct `charpos' values.  See below for detailed
+                 explanation why this is needed.  */
+	      it->position.charpos = IT_CHARPOS (*it) - 1;
+	      it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
+	    }
+	  /* If there are before-strings at the start of invisible
+	     text, and the text is invisible because of a text
+	     property, arrange to show before-strings because 20.x did
+	     it that way.  (If the text is invisible because of an
+	     overlay property instead of a text property, this is
+	     already handled in the overlay code.)  */
+	  if (NILP (overlay)
+	      && get_overlay_strings (it, it->stop_charpos))
+	    {
+	      handled = HANDLED_RECOMPUTE_PROPS;
+	      if (it->sp > 0)
+		{
+		  it->stack[it->sp - 1].display_ellipsis_p = display_ellipsis_p;
+		  /* The call to get_overlay_strings above recomputes
+		     it->stop_charpos, but it only considers changes
+		     in properties and overlays beyond iterator's
+		     current position.  This causes us to miss changes
+		     that happen exactly where the invisible property
+		     ended.  So we play it safe here and force the
+		     iterator to check for potential stop positions
+		     immediately after the invisible text.  Note that
+		     if get_overlay_strings returns true, it
+		     normally also pushed the iterator stack, so we
+		     need to update the stop position in the slot
+		     below the current one.  */
+		  it->stack[it->sp - 1].stop_charpos
+		    = CHARPOS (it->stack[it->sp - 1].current.pos);
+		}
+	    }
+	  else if (display_ellipsis_p)
+            {
+	      it->ellipsis_p = true;
+	      /* Let the ellipsis display before
+		 considering any properties of the following char.
+		 Fixes jasonr@gnu.org 01 Oct 07 bug.  */
+	      handled = HANDLED_RETURN;
+            }
+	}
+    }
+  else if (STRINGP (it->string))
+    {
+      Lisp_Object end_charpos = pos, limit;
 
       if (invis != 0 && IT_STRING_CHARPOS (*it) < it->end_charpos)
 	{
-	  /* Record whether we have to display an ellipsis for the
-	     invisible text.  */
-	  bool display_ellipsis_p = (invis == 2);
-	  ptrdiff_t len, endpos;
-
-	  handled = HANDLED_RECOMPUTE_PROPS;
+	  ptrdiff_t len = endpos;
 
 	  /* Get the position at which the next visible text can be
 	     found in IT->string, if any.  */
-	  endpos = len = SCHARS (it->string);
 	  XSETINT (limit, len);
 	  do
 	    {
@@ -5137,7 +5274,7 @@ handle_invisible_prop (struct it *it)
 
 		  IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
 		  IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
-		  if (IT_CHARPOS (*it) >= endpos)
+		  if (IT_STRING_CHARPOS (*it) >= endpos)
 		    it->prev_stop = endpos;
 		}
 	      else
@@ -5167,27 +5304,14 @@ handle_invisible_prop (struct it *it)
 	    }
 	}
     }
-  else
+  else	/* we are iterating over buffer text at base paragraph level */
     {
-      ptrdiff_t newpos, next_stop, start_charpos, tem;
-      Lisp_Object pos, overlay;
-
-      /* First of all, is there invisible text at this position?  */
-      tem = start_charpos = IT_CHARPOS (*it);
-      pos = make_fixnum (tem);
-      prop = get_char_property_and_overlay (pos, Qinvisible, it->window,
-					    &overlay);
-      invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+      ptrdiff_t newpos, next_stop, tem = curpos;
+      Lisp_Object pos;
 
       /* If we are on invisible text, skip over it.  */
-      if (invis != 0 && start_charpos < it->end_charpos)
+      if (invis != 0 && curpos < it->end_charpos)
 	{
-	  /* Record whether we have to display an ellipsis for the
-	     invisible text.  */
-	  bool display_ellipsis_p = invis == 2;
-
-	  handled = HANDLED_RECOMPUTE_PROPS;
-
 	  /* Loop skipping over invisible text.  The loop is left at
 	     ZV or with IT on the first char being visible again.  */
 	  do
@@ -5487,9 +5611,6 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
   if (!NILP (it->min_width_property)
       && !EQ (width_spec, it->min_width_property))
     {
-      if (!it->glyph_row)
-	return;
-
       /* When called from display_string (i.e., the mode line),
 	 we're being called with a string as the object, and we
 	 may be called with many sub-strings belonging to the same
@@ -18736,6 +18857,14 @@ enum
    `scroll-conservatively' and the Emacs manual.  */
 #define SCROLL_LIMIT 100
 
+/* The freshness of the w->base_line_number cache is only ensured at every
+   redisplay cycle, so the cache can be used only if there's been
+   no relevant changes to the buffer since the last redisplay.  */
+#define BASE_LINE_NUMBER_VALID_P(w)                      \
+   (eassert (current_buffer == XBUFFER ((w)->contents)), \
+    !current_buffer->clip_changed                        \
+    && BEG_UNCHANGED >= (w)->base_line_pos)
+
 static int
 try_scrolling (Lisp_Object window, bool just_this_one_p,
 	       intmax_t arg_scroll_conservatively, intmax_t scroll_step,
@@ -19036,9 +19165,10 @@ try_scrolling (Lisp_Object window, bool just_this_one_p,
   else
     {
       /* Maybe forget recorded base line for line number display.  */
-      if (!just_this_one_p
-	  || current_buffer->clip_changed
-	  || BEG_UNCHANGED < CHARPOS (startp))
+      /* FIXME: Why do we need this?  `try_scrolling` can only be called from
+         `redisplay_window` which should have flushed this cache already when
+         eeded.  */
+      if (!BASE_LINE_NUMBER_VALID_P (w))
 	w->base_line_number = 0;
 
       /* If cursor ends up on a partially visible line,
@@ -19808,9 +19938,6 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   /* Record it now because it's overwritten.  */
   bool current_matrix_up_to_date_p = false;
   bool used_current_matrix_p = false;
-  /* This is less strict than current_matrix_up_to_date_p.
-     It indicates that the buffer contents and narrowing are unchanged.  */
-  bool buffer_unchanged_p = false;
   bool temp_scroll_step = false;
   specpdl_ref count = SPECPDL_INDEX ();
   int rc;
@@ -19915,11 +20042,6 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   SET_TEXT_POS (opoint, PT, PT_BYTE);
 
   specbind (Qinhibit_point_motion_hooks, Qt);
-
-  buffer_unchanged_p
-    = (w->window_end_valid
-       && !current_buffer->clip_changed
-       && !window_outdated (w));
 
   /* When windows_or_buffers_changed is non-zero, we can't rely
      on the window end being valid, so set it to zero there.  */
@@ -20060,6 +20182,10 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	}
     }
 
+  if (!BASE_LINE_NUMBER_VALID_P (w))
+    /* Forget any recorded base line for line number display.  */
+    w->base_line_number = 0;
+
  force_start:
 
   /* Handle case where place to start displaying has been specified,
@@ -20079,10 +20205,6 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
       w->preserve_vscroll_p = false;
       w->window_end_valid = false;
-
-      /* Forget any recorded base line for line number display.  */
-      if (!buffer_unchanged_p)
-	w->base_line_number = 0;
 
       /* Redisplay the mode line.  Select the buffer properly for that.
 	 Also, run the hook window-scroll-functions
@@ -20412,12 +20534,6 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
       if (w->cursor.vpos >= 0)
 	{
-	  if (!just_this_one_p
-	      || current_buffer->clip_changed
-	      || BEG_UNCHANGED < CHARPOS (startp))
-	    /* Forget any recorded base line for line number display.  */
-	    w->base_line_number = 0;
-
 	  if (!cursor_row_fully_visible_p (w, true, false, false))
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
@@ -20487,10 +20603,6 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 #ifdef GLYPH_DEBUG
   debug_method_add (w, "recenter");
 #endif
-
-  /* Forget any previously recorded base line for line number display.  */
-  if (!buffer_unchanged_p)
-    w->base_line_number = 0;
 
   /* Determine the window start relative to point.  */
   init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
@@ -24658,6 +24770,13 @@ maybe_produce_line_number (struct it *it)
       if (!last_line)
 	{
 	  /* If possible, reuse data cached by line-number-mode.  */
+	  /* NOTE: We use `base_line_number` without checking
+	     BASE_LINE_NUMBER_VALID_P because we assume that `redisplay_window`
+	     has already flushed this cache for us when needed.
+	     NOTE2: Checking BASE_LINE_NUMBER_VALID_P here would be
+	     overly pessimistic because it might say that the cache
+	     was invalid before entering `redisplay_window` yet the
+	     value has just been refreshed.  */
 	  if (it->w->base_line_number > 0
 	      && it->w->base_line_pos > 0
 	      && it->w->base_line_pos <= IT_CHARPOS (*it)
@@ -24937,7 +25056,7 @@ should_produce_line_number (struct it *it)
      because get-char-property always returns nil for ZV, except if
      the property is in 'default-text-properties'.  */
   if (NILP (val) && IT_CHARPOS (*it) >= ZV)
-    val = disable_line_numbers_overlay_at_eob ();
+    return !disable_line_numbers_overlay_at_eob ();
   return NILP (val) ? true : false;
 }
 
@@ -28050,6 +28169,11 @@ are the selected window and the WINDOW's buffer).  */)
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
 
+  /* Make sure `base_line_number` is fresh in case we encounter a `%l`.  */
+  if (current_buffer == XBUFFER ((w)->contents)
+      && !BASE_LINE_NUMBER_VALID_P (w))
+    w->base_line_number = 0;
+
   if (no_props)
     {
       mode_line_target = MODE_LINE_NOPROP;
@@ -28502,30 +28626,29 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	   when the buffer's restriction was changed, but the window
 	   wasn't yet redisplayed after that.  If that happens, we
 	   need to determine a new base line.  */
-	if (!(BUF_BEGV_BYTE (b) <= startpos_byte
+	if (current_buffer != XBUFFER (w->contents)
+	    || !(BUF_BEGV_BYTE (b) <= startpos_byte
 	      && startpos_byte <= BUF_ZV_BYTE (b)))
 	  {
 	    startpos = BUF_BEGV (b);
 	    startpos_byte = BUF_BEGV_BYTE (b);
-	    w->base_line_pos = 0;
-	    w->base_line_number = 0;
 	  }
 
 	/* If we decided that this buffer isn't suitable for line numbers,
-	   don't forget that too fast.  */
+	   don't forget that too fast.
+	   FIXME: What if `current_buffer != w->contents`?  */
 	if (w->base_line_pos == -1)
 	  goto no_value;
 
 	/* If the buffer is very big, don't waste time.  */
 	if (FIXNUMP (Vline_number_display_limit)
 	    && BUF_ZV (b) - BUF_BEGV (b) > XFIXNUM (Vline_number_display_limit))
-	  {
-	    w->base_line_pos = 0;
-	    w->base_line_number = 0;
-	    goto no_value;
-	  }
+	  goto no_value;
 
-	if (w->base_line_number > 0
+	/* Callers of `display_mode_element` are in charge of flushing
+	   any stale `base_line_number` cache.  */
+	if (current_buffer == XBUFFER ((w)->contents)
+	    && w->base_line_number > 0
 	    && w->base_line_pos > 0
 	    && w->base_line_pos <= startpos)
 	  {
@@ -28551,7 +28674,9 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	   or too far away, or if we did not have one.
 	   "Too close" means it's plausible a scroll-down would
 	   go back past it.  */
-	if (startpos == BUF_BEGV (b))
+	if (current_buffer != XBUFFER (w->contents))
+	  ; /* The base line is for another buffer, don't touch it!  */
+	else if (startpos == BUF_BEGV (b))
 	  {
 	    w->base_line_number = topline;
 	    w->base_line_pos = BUF_BEGV (b);
@@ -28588,6 +28713,12 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 		goto no_value;
 	      }
 
+	    /* NOTE: if `clip_changed` is set or if `BEG_UNCHANGED` is
+               before `position`, this new cached value may get flushed
+               soon needlessly, because we can't reset `BEG_UNCHANGED` or
+               `clip_changed` from here (since they reflect the changes
+               since the last redisplay so they can only be reset from
+               `mark_window_display_accurate_1`).  :-(  */
 	    w->base_line_number = topline - nlines;
 	    w->base_line_pos = BYTE_TO_CHAR (position);
 	  }
@@ -36329,7 +36460,7 @@ expose_area (struct window *w, struct glyph_row *row, const Emacs_Rectangle *r,
       /* Use a signed int intermediate value to avoid catastrophic
 	 failures due to comparison between signed and unsigned, when
 	 x is negative (can happen for wide images that are hscrolled).  */
-      int r_end = r->x + r->width;
+      int r_end = r->x + (int) r->width;
       while (last < end && x < r_end)
 	{
 	  x += last->pixel_width;
@@ -36628,7 +36759,7 @@ expose_window (struct window *w, const Emacs_Rectangle *fr)
       /* Use a signed int intermediate value to avoid catastrophic
 	 failures due to comparison between signed and unsigned, when
 	 y0 or y1 is negative (can happen for tall images).  */
-      int r_bottom = r.y + r.height;
+      int r_bottom = r.y + (int) r.height;
 
       /* We must temporarily switch to the window's buffer, in case
 	 the fringe face has been remapped in that buffer's
@@ -36675,7 +36806,7 @@ expose_window (struct window *w, const Emacs_Rectangle *fr)
 	      /* We must redraw a row overlapping the exposed area.  */
 	      if (y0 < r.y
 		  ? y0 + row->phys_height > r.y
-		  : y0 + row->ascent - row->phys_ascent < r.y +r.height)
+		  : y0 + row->ascent - row->phys_ascent < r.y + (int) r.height)
 		{
 		  if (first_overlapping_row == NULL)
 		    first_overlapping_row = row;
@@ -36854,7 +36985,7 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
   const Emacs_Rectangle *upper, *lower;
   bool intersection_p = false;
 
-  /* Rearrange so that R1 is the left-most rectangle.  */
+  /* Rearrange so that left is the left-most rectangle.  */
   if (r1->x < r2->x)
     left = r1, right = r2;
   else
@@ -36862,13 +36993,14 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
 
   /* X0 of the intersection is right.x0, if this is inside R1,
      otherwise there is no intersection.  */
-  if (right->x <= left->x + left->width)
+  if (right->x <= left->x + (int) left->width)
     {
       result->x = right->x;
 
       /* The right end of the intersection is the minimum of
 	 the right ends of left and right.  */
-      result->width = (min (left->x + left->width, right->x + right->width)
+      result->width = (min (left->x + (int) left->width,
+			    right->x + (int) right->width)
 		       - result->x);
 
       /* Same game for Y.  */
@@ -36879,14 +37011,14 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
 
       /* The upper end of the intersection is lower.y0, if this is inside
 	 of upper.  Otherwise, there is no intersection.  */
-      if (lower->y <= upper->y + upper->height)
+      if (lower->y <= upper->y + (int) upper->height)
 	{
 	  result->y = lower->y;
 
 	  /* The lower end of the intersection is the minimum of the lower
 	     ends of upper and lower.  */
-	  result->height = (min (lower->y + lower->height,
-				 upper->y + upper->height)
+	  result->height = (min (lower->y + (int) lower->height,
+				 upper->y + (int) upper->height)
 			    - result->y);
 	  intersection_p = true;
 	}

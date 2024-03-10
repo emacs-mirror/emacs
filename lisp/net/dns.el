@@ -359,7 +359,7 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
     result))
 
 ;;; Interface functions.
-(defvar dns-cache (make-vector 4096 0))
+(defvar dns-cache (obarray-make 4096))
 
 (defun dns-query-cached (name &optional type fullp reversep)
   (let* ((key (format "%s:%s:%s:%s" name type fullp reversep))

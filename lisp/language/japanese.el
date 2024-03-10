@@ -79,7 +79,7 @@
 	 (#x00A2 . #xFFE0)	; CENT SIGN		FULLWIDTH CENT SIGN
 	 (#x00A3 . #xFFE1)	; POUND SIGN		FULLWIDTH POUND SIGN
 	 (#x00AC . #xFFE2)	; NOT SIGN		FULLWIDTH NOT SIGN
-	 (#x00A6 . #xFFE4)	; BROKEN LINE		FULLWIDTH BROKEN LINE
+	 (#x00A6 . #xFFE4)	; BROKEN BAR		FULLWIDTH BROKEN BAR
 	 )))
   (define-translation-table 'japanese-ucs-jis-to-cp932-map map)
   (setq map (mapcar (lambda (x) (cons (cdr x) (car x))) map))

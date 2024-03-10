@@ -67,11 +67,6 @@
 (declare-function file-notify-rm-watch "filenotify")
 (declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
-(defvar ls-lisp-dirs-first)
-(defvar ls-lisp-emulation)
-(defvar ls-lisp-ignore-case)
-(defvar ls-lisp-use-insert-directory-program)
-(defvar ls-lisp-verbosity)
 (defvar tramp-prefix-format)
 (defvar tramp-prefix-regexp)
 (defvar tramp-method-regexp)
@@ -306,6 +301,15 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     This specifies the list of parameters to pass to the above mentioned
     program, the hints for `tramp-login-args' also apply here.
 
+  * `tramp-copy-file-name'
+    The remote source or destination file name for out-of-band methods.
+    You can use \"%u\" and \"%h\" like in `tramp-login-args'.
+    Additionally, \"%f\" denotes the local file name part.  This list
+    will be expanded to a string without spaces between the elements of
+    the list.
+
+    The default value is `tramp-default-copy-file-name'.
+
   * `tramp-copy-env'
      A list of environment variables and their values, which will
      be set when calling `tramp-copy-program'.
@@ -320,8 +324,8 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     chosen port for the remote listener.
 
   * `tramp-copy-keep-date'
-    This specifies whether the copying program when the preserves the
-    timestamp of the original file.
+    This specifies whether the copying program preserves the timestamp
+    of the original file.
 
   * `tramp-copy-keep-tmpfile'
     This specifies whether a temporary local file shall be kept
@@ -562,7 +566,7 @@ host runs a restricted shell, it shall be added to this list, too."
       eos)
   "Host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
-  :version "30.1"
+  :version "29.3"
   :type '(choice (const :tag "Chrooted environment" nil)
 		 (regexp :tag "Host regexp")))
 
@@ -750,9 +754,8 @@ The regexp should match at end of buffer."
 
 ;; A security key requires the user physically to touch the device
 ;; with their finger.  We must tell it to the user.
-;; Added in OpenSSH 8.2.  I've tested it with yubikey.  Nitrokey and
-;; Titankey, which have also passed the tests, do not show such a
-;; message.
+;; Added in OpenSSH 8.2.  I've tested it with Nitrokey, Titankey, and
+;; Yubikey.
 (defcustom tramp-security-key-confirm-regexp
   (rx bol (* "\r") "Confirm user presence for key " (* nonl) (* (any "\r\n")))
   "Regular expression matching security key confirmation message.
@@ -773,6 +776,14 @@ The regexp should match at end of buffer."
   "Regular expression matching security key timeout message.
 The regexp should match at end of buffer."
   :version "28.1"
+  :type 'regexp)
+
+;; Needed only for FIDO2 (residential) keys.  Tested with Nitrokey and Yubikey.
+(defcustom tramp-security-key-pin-regexp
+  (rx bol (* "\r") (group "Enter PIN for " (* nonl)) (* (any "\r\n")))
+  "Regular expression matching security key PIN prompt.
+The regexp should match at end of buffer."
+  :version "29.3"
   :type 'regexp)
 
 (defcustom tramp-operation-not-permitted-regexp
@@ -1543,21 +1554,23 @@ LOCALNAME and HOP do not count."
        (equal (tramp-file-name-unify vec1)
 	      (tramp-file-name-unify vec2))))
 
-(defun tramp-get-method-parameter (vec param)
+(defun tramp-get-method-parameter (vec param &optional default)
   "Return the method parameter PARAM.
 If VEC is a vector, check first in connection properties.
 Afterwards, check in `tramp-methods'.  If the `tramp-methods'
-entry does not exist, return nil."
+entry does not exist, return DEFAULT."
   (let ((hash-entry
 	 (replace-regexp-in-string (rx bos "tramp-") "" (symbol-name param))))
     (if (tramp-connection-property-p vec hash-entry)
 	;; We use the cached property.
 	(tramp-get-connection-property vec hash-entry)
       ;; Use the static value from `tramp-methods'.
-      (when-let ((methods-entry
+      (if-let ((methods-entry
 		  (assoc
 		   param (assoc (tramp-file-name-method vec) tramp-methods))))
-	(cadr methods-entry)))))
+	  (cadr methods-entry)
+	;; Return the default value.
+	default))))
 
 ;; The localname can be quoted with "/:".  Extract this.
 (defun tramp-file-name-unquote-localname (vec)
@@ -3941,6 +3954,9 @@ Let-bind it when necessary.")
      (tramp-get-method-parameter v 'tramp-case-insensitive)
 
      ;; There isn't.  So we must check, in case there's a connection already.
+     ;; Note: We cannot use it as DEFAULT value of
+     ;; `tramp-get-method-parameter', because it would be evalled
+     ;; during the call.
      (and (let ((non-essential t)) (tramp-connectable-p v))
           (with-tramp-connection-property v "case-insensitive"
 	    (ignore-errors
@@ -4189,6 +4205,11 @@ Let-bind it when necessary.")
     (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
   (require 'ls-lisp)
+  (defvar ls-lisp-dirs-first)
+  (defvar ls-lisp-emulation)
+  (defvar ls-lisp-ignore-case)
+  (defvar ls-lisp-use-insert-directory-program)
+  (defvar ls-lisp-verbosity)
   (unless switches (setq switches ""))
   ;; Mark trailing "/".
   (when (and (directory-name-p filename)
@@ -4745,15 +4766,15 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 (defvar tramp-extra-expand-args nil
   "Method specific arguments.")
 
-(defun tramp-expand-args (vec parameter &rest spec-list)
+(defun tramp-expand-args (vec parameter default &rest spec-list)
   "Expand login arguments as given by PARAMETER in `tramp-methods'.
 PARAMETER is a symbol like `tramp-login-args', denoting a list of
 list of strings from `tramp-methods', containing %-sequences for
-substitution.
+substitution.  DEFAULT is used when PARAMETER is not specified.
 SPEC-LIST is a list of char/value pairs used for
 `format-spec-make'.  It is appended by `tramp-extra-expand-args',
 a connection-local variable."
-  (let ((args (tramp-get-method-parameter vec parameter))
+  (let ((args (tramp-get-method-parameter vec parameter default))
 	(extra-spec-list
 	 (mapcar
 	  #'eval
@@ -4932,7 +4953,7 @@ a connection-local variable."
 	     (mapcar
 	      (lambda (x) (split-string x " "))
 	      (tramp-expand-args
-	       v 'tramp-login-args
+	       v 'tramp-login-args nil
 	       ?h (or host "") ?u (or user "") ?p (or port "")
 	       ?c (format-spec (or options "") (format-spec-make ?t tmpfile))
 	       ?d (or device "") ?a (or pta "") ?l ""))))
@@ -5435,7 +5456,7 @@ of."
 	  prompt)
       (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
-      (setq prompt (concat (match-string 1) " "))
+      (setq prompt (concat (string-trim (match-string 1)) " "))
       (tramp-message vec 3 "Sending %s" (match-string 1))
       ;; We don't call `tramp-send-string' in order to hide the
       ;; password from the debug buffer and the traces.
@@ -5511,14 +5532,16 @@ Wait, until the connection buffer changes."
 	(ignore set-message-function clear-message-function)
 	(tramp-message vec 6 "\n%s" (buffer-string))
 	(tramp-check-for-regexp proc tramp-process-action-regexp)
-	(with-temp-message
-	    (replace-regexp-in-string (rx (any "\r\n")) "" (match-string 0))
+	(with-temp-message (concat (string-trim (match-string 0)) " ")
 	  ;; Hide message in buffer.
 	  (narrow-to-region (point-max) (point-max))
 	  ;; Wait for new output.
 	  (while (not (ignore-error file-error
 			(tramp-wait-for-regexp
-			 proc 0.1 tramp-security-key-confirmed-regexp)))
+			 proc 0.1
+			 (rx (| (regexp tramp-security-key-confirmed-regexp)
+				(regexp tramp-security-key-pin-regexp)
+				(regexp tramp-security-key-timeout-regexp))))))
 	    (when (tramp-check-for-regexp proc tramp-security-key-timeout-regexp)
 	      (throw 'tramp-action 'timeout))
 	    (redisplay 'force))))))
@@ -6317,9 +6340,8 @@ This handles also chrooted environments, which are not regarded as local."
 (defun tramp-get-remote-tmpdir (vec)
   "Return directory for temporary files on the remote host identified by VEC."
   (with-tramp-connection-property (tramp-get-process vec) "remote-tmpdir"
-    (let ((dir
-	   (tramp-make-tramp-file-name
-	    vec (or (tramp-get-method-parameter vec 'tramp-tmpdir) "/tmp"))))
+    (let ((dir (tramp-make-tramp-file-name
+		vec (tramp-get-method-parameter vec 'tramp-tmpdir "/tmp"))))
       (or (and (file-directory-p dir) (file-writable-p dir)
 	       (tramp-file-local-name dir))
 	  (tramp-error vec 'file-error "Directory %s not accessible" dir))
@@ -6564,12 +6586,13 @@ Consults the auth-source package."
 		   (tramp-get-connection-property key "login-as")))
 	 (host (tramp-file-name-host-port vec))
 	 (pw-prompt
-	  (or prompt
-	      (with-current-buffer (process-buffer proc)
-		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
-		(if (string-match-p "passphrase" (match-string 1))
-		    (match-string 0)
-		  (format "%s for %s " (capitalize (match-string 1)) key)))))
+	  (string-trim-left
+	   (or prompt
+	       (with-current-buffer (process-buffer proc)
+		 (tramp-check-for-regexp proc tramp-password-prompt-regexp)
+		 (if (string-match-p "passphrase" (match-string 1))
+		     (match-string 0)
+		   (format "%s for %s " (capitalize (match-string 1)) key))))))
 	 (auth-source-creation-prompts `((secret . ,pw-prompt)))
 	 ;; Use connection-local value.
 	 (auth-sources (buffer-local-value 'auth-sources (process-buffer proc)))

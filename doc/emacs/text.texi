@@ -1097,6 +1097,12 @@ so that Outline mode will know that sections are contained in
 chapters.  This works as long as no other command starts with
 @samp{@@chap}.
 
+@vindex outline-search-function
+  Instead of setting the variable @code{outline-regexp}, you can set
+the variable @code{outline-search-function} to a function that
+matches the current heading and searches for the next one
+(@pxref{Outline Minor Mode,,,elisp, the Emacs Lisp Reference Manual}).
+
 @vindex outline-level
   You can explicitly specify a rule for calculating the level of a
 heading line by setting the variable @code{outline-level}.  The value

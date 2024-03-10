@@ -260,6 +260,11 @@ by these buttons, Emacs provides the @code{button-describe} and
 @code{widget-describe} commands, that should be run with point over
 the button.
 
+@anchor{which-key}
+@kbd{M-x which-key} is a global minor mode which helps in discovering
+ keymaps.  It displays keybindings following your currently entered
+ incomplete command (prefix), in a popup.
+
 @node Name Help
 @section Help by Command or Variable Name
 

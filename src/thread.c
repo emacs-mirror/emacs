@@ -106,6 +106,12 @@ post_acquire_global_lock (struct thread_state *self)
 {
   struct thread_state *prev_thread = current_thread;
 
+  /* Switch the JNI interface pointer to the environment assigned to the
+     current thread.  */
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  android_java_env = self->java_env;
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
   /* Do this early on, so that code below could signal errors (e.g.,
      unbind_for_thread_switch might) correctly, because we are already
      running in the context of the thread pointed by SELF.  */
@@ -125,6 +131,12 @@ post_acquire_global_lock (struct thread_state *self)
 	  because of thread-local bindings.  */
       set_buffer_internal_2 (current_buffer);
     }
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* This step is performed in android_select when built without
+     threads.  */
+  android_check_query ();
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
 
    /* We could have been signaled while waiting to grab the global lock
       for the first time since this thread was created, in which case
@@ -756,6 +768,11 @@ run_thread (void *state)
 
   struct thread_state *self = state;
   struct thread_state **iter;
+#ifdef THREADS_ENABLED
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  jint rc;
+#endif /* #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+#endif /* THREADS_ENABLED */
 
 #ifdef HAVE_NS
   /* Allocate an autorelease pool in case this thread calls any
@@ -765,6 +782,16 @@ run_thread (void *state)
      regularly instead of just at the end.  */
   void *pool = ns_alloc_autorelease_pool ();
 #endif
+
+#ifdef THREADS_ENABLED
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  rc
+    = (*android_jvm)->AttachCurrentThread (android_jvm, &self->java_env,
+					   NULL);
+  if (rc != JNI_OK)
+    emacs_abort ();
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+#endif /* THREADS_ENABLED */
 
   self->m_stack_bottom = self->stack_top = &stack_pos.c;
   self->thread_id = sys_thread_self ();
@@ -811,6 +838,14 @@ run_thread (void *state)
 #ifdef HAVE_NS
   ns_release_autorelease_pool (pool);
 #endif
+
+#ifdef THREADS_ENABLED
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  rc = (*android_jvm)->DetachCurrentThread (android_jvm);
+  if (rc != JNI_OK)
+    emacs_abort ();
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+#endif /* THREADS_ENABLED */
 
   /* Unlink this thread from the list of all threads.  Note that we
      have to do this very late, after broadcasting our death.
@@ -1131,6 +1166,10 @@ init_threads (void)
   sys_mutex_init (&global_lock);
   sys_mutex_lock (&global_lock);
   current_thread = &main_thread.s;
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  current_thread->java_env = android_java_env;
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
   main_thread.s.thread_id = sys_thread_self ();
   init_bc_thread (&main_thread.s.bc);
 }

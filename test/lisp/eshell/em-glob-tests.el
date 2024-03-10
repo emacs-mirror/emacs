@@ -61,6 +61,9 @@ component ending in \"symlink\" is treated as a symbolic link."
 
 ;;; Tests:
 
+
+;; Glob expansion
+
 (ert-deftest em-glob-test/expand/splice-results ()
   "Test that globs are spliced into the argument list when
 `eshell-glob-splice-results' is non-nil."
@@ -114,6 +117,33 @@ value of `eshell-glob-splice-results'."
                                        '(("c.txt")))
           (eshell-command-result-equal "list ${listify *.no}"
                                        '(("*.no"))))))))
+
+
+;; Glob conversion
+
+(ert-deftest em-glob-test/convert/current-start-directory ()
+  "Test converting a glob starting in the current directory."
+  (should (equal (eshell-glob-convert "*.el")
+                 '("./" (("\\`.*\\.el\\'" . "\\`\\.")) nil))))
+
+(ert-deftest em-glob-test/convert/relative-start-directory ()
+  "Test converting a glob starting in a relative directory."
+  (should (equal (eshell-glob-convert "some/where/*.el")
+                 '("./some/where/" (("\\`.*\\.el\\'" . "\\`\\.")) nil))))
+
+(ert-deftest em-glob-test/convert/absolute-start-directory ()
+  "Test converting a glob starting in an absolute directory."
+  (should (equal (eshell-glob-convert "/some/where/*.el")
+                 '("/some/where/" (("\\`.*\\.el\\'" . "\\`\\.")) nil))))
+
+(ert-deftest em-glob-test/convert/remote-start-directory ()
+  "Test converting a glob starting in a remote directory."
+  (should (equal (eshell-glob-convert "/ssh:nowhere.invalid:some/where/*.el")
+                 '("/ssh:nowhere.invalid:/some/where/"
+                   (("\\`.*\\.el\\'" . "\\`\\.")) nil))))
+
+
+;; Glob matching
 
 (ert-deftest em-glob-test/match-any-string ()
   "Test that \"*\" pattern matches any string."

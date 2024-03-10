@@ -178,7 +178,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
       (setq winner-last-frames nil)
       (setq winner-last-command this-command))
     (dolist (frame winner-modified-list)
-      (winner-insert-if-new frame))
+      (if (frame-live-p frame)
+          (winner-insert-if-new frame)))
     (setq winner-modified-list nil)
     (winner-remember)))
 

@@ -5628,7 +5628,15 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
          changed to a call to `stat'.  */
 
       if (emacs_fstatat (AT_FDCWD, fn, &st1, 0) == 0
-	  && st.st_dev == st1.st_dev && st.st_ino == st1.st_ino)
+	  && st.st_dev == st1.st_dev
+	  && (st.st_ino == st1.st_ino
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+	      /* `st1.st_ino' == 0 indicates that the inode number
+		 cannot be extracted from this document file, despite
+		 `st' potentially being backed by a real file.  */
+	      || st1.st_ino == 0
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+	      ))
 	{
 	  /* Use the heuristic if it appears to be valid.  With neither
 	     O_EXCL nor O_TRUNC, if Emacs happened to write nothing to the

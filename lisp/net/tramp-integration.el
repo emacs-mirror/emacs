@@ -69,7 +69,7 @@ special handling of `substitute-in-file-name'."
   (when minibuffer-completing-file-name
     (setq tramp-rfn-eshadow-overlay
 	  (make-overlay (minibuffer-prompt-end) (minibuffer-prompt-end)))
-    ;; Copy rfn-eshadow-overlay properties.
+    ;; Copy `rfn-eshadow-overlay' properties.
     (let ((props (overlay-properties rfn-eshadow-overlay)))
       (while props
         ;; The `field' property prevents correct minibuffer

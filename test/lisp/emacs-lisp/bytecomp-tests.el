@@ -800,6 +800,9 @@ inner loops respectively."
     ;; Aristotelian identity optimization
     (let ((x (bytecomp-test-identity 1)))
       (list (eq x x) (eql x x) (equal x x)))
+
+    ;; Legacy single-arg `apply' call
+    (apply '(* 2 3))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
@@ -847,6 +850,22 @@ byte-compiled.  Run with dynamic binding."
       (ert-info ((prin1-to-string form) :prefix "form: ")
         (should (equal (bytecomp-tests--eval-interpreted form)
                        (bytecomp-tests--eval-compiled form)))))))
+
+(ert-deftest bytecomp--fun-value-as-head ()
+  ;; Check that (FUN-VALUE ...) is a valid call, for compatibility (bug#68931).
+  ;; (There is also a warning but this test does not check that.)
+  (dolist (lb '(nil t))
+    (ert-info ((prin1-to-string lb) :prefix "lexical-binding: ")
+      (let* ((lexical-binding lb)
+             (s-int '(lambda (x) (1+ x)))
+             (s-comp (byte-compile s-int))
+             (v-int (lambda (x) (1+ x)))
+             (v-comp (byte-compile v-int))
+             (comp (lambda (f) (funcall (byte-compile `(lambda () (,f 3)))))))
+        (should (equal (funcall comp s-int) 4))
+        (should (equal (funcall comp s-comp) 4))
+        (should (equal (funcall comp v-int) 4))
+        (should (equal (funcall comp v-comp) 4))))))
 
 (defmacro bytecomp-tests--with-fresh-warnings (&rest body)
   `(let ((macroexp--warned            ; oh dear

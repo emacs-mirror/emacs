@@ -2916,7 +2916,7 @@ characters."
 
     ;; If last typed key in previous call of multi-buffer perform-replace
     ;; was `automatic-all', don't ask more questions in next files
-    (when (eq (lookup-key map (vector last-input-event)) 'automatic-all)
+    (when (eq (lookup-key map (vector last-input-event) t) 'automatic-all)
       (setq query-flag nil multi-buffer t))
 
     (cond
@@ -3100,7 +3100,7 @@ characters."
 		  ;; read-event that clobbers the match data.
 		  (set-match-data real-match-data)
 		  (setq key (vector key))
-		  (setq def (lookup-key map key))
+		  (setq def (lookup-key map key t))
 		  ;; Restore the match data while we process the command.
 		  (cond ((eq def 'help)
 			 (let ((display-buffer-overriding-action

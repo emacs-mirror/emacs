@@ -474,6 +474,8 @@ See `prettify-symbols-compose-predicate'."
 
     (treesit-major-mode-setup)))
 
+(derived-mode-add-parents 'rust-ts-mode '(rust-mode))
+
 (if (treesit-ready-p 'rust)
     (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode)))
 

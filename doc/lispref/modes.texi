@@ -25,6 +25,7 @@ user.  For related topics such as keymaps and syntax tables, see
 * Minor Modes::       Defining minor modes.
 * Mode Line Format::  Customizing the text that appears in the mode line.
 * Imenu::             Providing a menu of definitions made in a buffer.
+* Outline Minor Mode::  Outline mode to use with other major modes.
 * Font Lock Mode::    How modes can highlight text according to syntax.
 * Auto-Indentation::  How to teach Emacs to indent for a major mode.
 * Desktop Save Mode:: How modes can have buffer state saved between
@@ -508,6 +509,12 @@ variable @code{imenu-generic-expression}, for the two variables
 @code{imenu-create-index-function} (@pxref{Imenu}).
 
 @item
+The mode should specify how Outline minor mode should find the
+heading lines, by setting up a buffer-local value for the variables
+@code{outline-regexp} or @code{outline-search-function}, and also
+for the variable @code{outline-level} (@pxref{Outline Minor Mode}).
+
+@item
 The mode can tell ElDoc mode how to retrieve different types of
 documentation for whatever is at point, by adding one or more
 buffer-local entries to the special hook
@@ -783,6 +790,39 @@ init file.)
 @end group
 @end smallexample
 @end defvar
+
+@defvar major-mode-remap-defaults
+This variable contains an association list indicating which function
+to call to activate a given major mode.  This is used for file formats
+that can be supported by various major modes, where this variable can be
+used to indicate which alternative should be used by default.
+
+For example, a third-party package providing a much improved Pascal
+major mode, can use the following to tell @code{normal-mode} to use
+@code{spiffy-pascal-mode} for all the files that would normally use @code{pascal-mode}:
+
+@smallexample
+@group
+(add-to-list 'major-mode-remap-defaults '(pascal-mode . spiffy-pascal-mode))
+@end group
+@end smallexample
+
+This variable has the same format as @code{major-mode-remap-alist}.
+If both lists match a major mode, the entry in
+@code{major-mode-remap-alist} takes precedence.
+@end defvar
+
+@defun major-mode-remap mode
+This function returns the major mode to use instead of @var{mode}
+according to @code{major-mode-remap-alist} and
+@code{major-mode-remap-defaults}.  It returns @var{mode} if the mode
+is not remapped by those variables.
+
+When a package wants to activate a major mode for a particular file
+format, it should use this function, passing as @code{mode} argument the
+canonical major mode for that file format, to find which specific major
+mode to activate, so as to take into account the user's preferences.
+@end defun
 
 @node Mode Help
 @subsection Getting Help about a Major Mode
@@ -1182,7 +1222,7 @@ column is sorted in the descending order.
 This buffer-local variable specifies the format of the Tabulated List
 data.  Its value should be a vector.  Each element of the vector
 represents a data column, and should be a list @code{(@var{name}
-@var{width} @var{sort})}, where
+@var{width} @var{sort} . @var{props})}, where
 
 @itemize
 @item
@@ -1199,6 +1239,13 @@ sorted by comparing string values.  Otherwise, this should be a
 predicate function for @code{sort} (@pxref{Rearrangement}), which
 accepts two arguments with the same form as the elements of
 @code{tabulated-list-entries} (see below).
+
+@item
+@var{props} is a plist (@pxref{Property Lists}) of additional column
+properties.  If the value of the property @code{:right-align} is
+non-@code{nil} then the column should be right-aligned.  And the
+property @code{:pad-right} specifies the number of additional padding
+spaces to the right of the column (by default 1 if omitted).
 @end itemize
 @end defvar
 
@@ -1230,6 +1277,42 @@ There should be no newlines in any of these strings.
 
 Otherwise, the value should be a function which returns a list of the
 above form when called with no arguments.
+@end defvar
+
+@defvar tabulated-list-groups
+This buffer-local variable specifies the groups of entries displayed in
+the Tabulated List buffer.  Its value should be either a list or a
+function.
+
+If the value is a list, each list element corresponds to one group, and
+should have the form @w{@code{(@var{group-name} @var{entries})}}, where
+@var{group-name} is a string inserted before all group entries, and
+@var{entries} have the same format as @code{tabulated-list-entries}
+(see above).
+
+Otherwise, the value should be a function which returns a list of the
+above form when called with no arguments.
+
+You can use @code{seq-group-by} to create @code{tabulated-list-groups}
+from @code{tabulated-list-entries}.  For example:
+
+@smallexample
+@group
+(setq tabulated-list-groups
+      (seq-group-by 'Buffer-menu-group-by-mode
+                    tabulated-list-entries))
+@end group
+@end smallexample
+
+@noindent
+where you can define @code{Buffer-menu-group-by-mode} like this:
+
+@smallexample
+@group
+(defun Buffer-menu-group-by-mode (entry)
+  (concat "* " (aref (cadr entry) 5)))
+@end group
+@end smallexample
 @end defvar
 
 @defvar tabulated-list-revert-hook
@@ -2992,6 +3075,61 @@ instead.
 
 @code{treesit-major-mode-setup} (@pxref{Tree-sitter Major Modes})
 automatically sets up Imenu if this variable is non-@code{nil}.
+@end defvar
+
+@node Outline Minor Mode
+@section Outline Minor Mode
+
+@cindex Outline minor mode
+  @dfn{Outline minor mode} is a buffer-local minor mode that hides
+parts of the buffer and leaves only heading lines visible.
+This minor mode can be used in conjunction with other major modes
+(@pxref{Outline Minor Mode,, Outline Minor Mode, emacs, the Emacs Manual}).
+
+  There are two ways to define which lines are headings: with the
+variable @code{outline-regexp} or @code{outline-search-function}.
+
+@defvar outline-regexp
+This variable is a regular expression.
+Any line whose beginning has a match for this regexp is considered a
+heading line.  Matches that start within a line (not at the left
+margin) do not count.
+@end defvar
+
+@defvar outline-search-function
+Alternatively, when it's impossible to create a regexp that
+matches heading lines, you can define a function that helps
+Outline minor mode to find heading lines.
+
+The variable @code{outline-search-function} specifies the function with
+four arguments: @var{bound}, @var{move}, @var{backward}, and
+@var{looking-at}.  The function completes two tasks: to match the
+current heading line, and to find the next or the previous heading line.
+If the argument @var{looking-at} is non-@code{nil}, it should return
+non-@code{nil} when point is at the beginning of the outline header line.
+If the argument @var{looking-at} is @code{nil}, the first three arguments
+are used.  The argument @var{bound} is a buffer position that bounds
+the search.  The match found must not end after that position.  A
+value of nil means search to the end of the accessible portion of
+the buffer.  If the argument @var{move} is non-@code{nil}, the
+failed search should move to the limit of search and return nil.
+If the argument @var{backward} is non-@code{nil}, this function
+should search for the previous heading backward.
+@end defvar
+
+@defvar outline-level
+This variable is a function that takes no arguments
+and should return the level of the current heading.
+It's required in both cases: whether you define
+@code{outline-regexp} or @code{outline-search-function}.
+@end defvar
+
+If built with tree-sitter, Emacs can automatically use
+Outline minor mode if the major mode sets the following variable.
+
+@defvar treesit-outline-predicate
+This variable instructs Emacs how to find lines with outline headings.
+It should be a predicate that matches the node on the heading line.
 @end defvar
 
 @node Font Lock Mode

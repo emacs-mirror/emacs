@@ -911,7 +911,9 @@ non-nil."
   (let (org-koma-letter-special-contents)
     (org-export-to-buffer 'koma-letter "*Org KOMA-LETTER Export*"
       async subtreep visible-only body-only ext-plist
-      (lambda () (LaTeX-mode)))))
+      (if (fboundp 'major-mode-remap)
+          (major-mode-remap 'latex-mode)
+        #'LaTeX-mode))))
 
 ;;;###autoload
 (defun org-koma-letter-export-to-latex

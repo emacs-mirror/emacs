@@ -1632,7 +1632,7 @@ explicitly been loaded.  Then it is added to the rest of
 package's options.
 
 The optional argument to Babel or the mandatory argument to
-`\babelprovide' command may be \"AUTO\" which is then replaced
+`\\babelprovide' command may be \"AUTO\" which is then replaced
 with the language of the document or
 `org-export-default-language' unless language in question is
 already loaded.
@@ -4160,7 +4160,10 @@ will be displayed when `org-export-show-temporary-export-buffer'
 is non-nil."
   (interactive)
   (org-export-to-buffer 'latex "*Org LATEX Export*"
-    async subtreep visible-only body-only ext-plist (lambda () (LaTeX-mode))))
+    async subtreep visible-only body-only ext-plist
+    (if (fboundp 'major-mode-remap)
+        (major-mode-remap 'latex-mode)
+      #'LaTeX-mode)))
 
 ;;;###autoload
 (defun org-latex-convert-region-to-latex ()

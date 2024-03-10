@@ -1994,7 +1994,7 @@ from the comment."
           (defun-depth (ppss-depth (syntax-ppss)))
 	  (lst nil)
 	  (ret nil)
-	  (oo (make-vector 3 0)))	;substitute obarray for `read'
+	  (oo (obarray-make 3)))	;substitute obarray for `read'
       (forward-char 1)
       (forward-sexp 1)
       (skip-chars-forward " \n\t")

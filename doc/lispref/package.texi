@@ -28,6 +28,7 @@ these archives).
 * Multi-file Packages::     How to package multiple files.
 * Package Archives::        Maintaining package archives.
 * Archive Web Server::      Interfacing to an archive web server.
+* Forwards-Compatibility::  Supporting older versions of Emacs.
 @end menu
 
 @node Packaging Basics
@@ -399,3 +400,50 @@ Return the file. This will be the tarball for a multi-file
 package, or the single file for a simple package.
 
 @end table
+
+@node Forwards-Compatibility
+@section Supporting older versions of Emacs
+@cindex compatibility compat
+
+Packages that wish to support older releases of Emacs, without giving
+up on newer functionality from recent Emacs releases, one can make use
+of the Compat package on GNU ELPA.  By depending on the package, Emacs
+can provide compatibility definitions for missing functionality.
+
+The versioning of Compat follows that of Emacs, so next to the oldest
+version that a package relies on (via the @code{emacs}-package), one
+can also indicate what the newest version of Emacs is, that a package
+wishes to use definitions from:
+
+@example
+;; Package-Requires: ((emacs "27.2") (compat "29.1"))
+@end example
+
+Note that Compat provides replacement functions with extended
+functionality for functions that are already defined (@code{sort},
+@code{assoc}, @dots{}).  These functions may have changed their
+calling convention (additional optional arguments) or may have changed
+their behavior.  These functions must be looked up explicitly with
+@code{compat-function} or called explicitly with @code{compat-call}.
+We call them @dfn{Extended Definitions}.  In contrast, newly @dfn{Added
+Definitions} can be called as usual.
+
+@defmac compat-call fun &rest args
+This macro calls the compatibility function @var{fun} with @var{args}.
+Many functions provided by Compat can be called directly without this
+macro.  However in the case where Compat provides an alternative
+version of an existing function, the function call has to go through
+@code{compat-call}.
+@end defmac
+
+@defmac compat-function fun
+This macro returns the compatibility function symbol for @var{fun}.
+See @code{compat-call} for a more convenient macro to directly call
+compatibility functions.
+@end defmac
+
+For further details on how to make use of the package, see
+@ref{Usage,, Usage, compat, "Compat" Manual}.  In case you don't have
+the manual installed, you can also read the
+@url{https://elpa.gnu.org/packages/doc/compat.html#Usage, Online
+Compat manual}.

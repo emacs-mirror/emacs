@@ -2902,15 +2902,19 @@ This function attempts to use file contents to determine whether
 the code is C or C++ and based on that chooses whether to enable
 `c-mode' or `c++-mode'."
   (interactive)
-  (if (save-excursion
-        (save-restriction
-          (save-match-data
-            (widen)
-            (goto-char (point-min))
-            (re-search-forward c-or-c++-mode--regexp
-                               (+ (point) c-guess-region-max) t))))
-      (c++-mode)
-    (c-mode)))
+  (let ((mode
+	 (if (save-excursion
+	       (save-restriction
+		 (save-match-data
+		   (widen)
+		   (goto-char (point-min))
+		   (re-search-forward c-or-c++-mode--regexp
+				      (+ (point) c-guess-region-max) t))))
+	     'c++-mode
+	   'c-mode)))
+    (funcall (if (fboundp 'major-mode-remap)
+		 (major-mode-remap mode)
+	       mode))))
 
 
 ;; Support for C++

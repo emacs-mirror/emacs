@@ -1098,12 +1098,12 @@ Suppose the cursor is somewhere that might be near end of file,
 the guessing would position point before punctuation (like comma)
 after the file extension:
 
-  C:\temp\file.log, which contain ....
+  C:\\temp\\file.log, which contain ....
   =============================== (before)
   ---------------- (after)
 
 
-  C:\temp\file.log on Windows or /tmp/file.log on Unix
+  C:\\temp\\file.log on Windows or /tmp/file.log on Unix
   =============================== (before)
   ---------------- (after)
 

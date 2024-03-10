@@ -38,13 +38,7 @@
 (require 'cl-lib)
 (require 'cl-extra) ;HACK: For `cl-find-class' when `cl-loaddefs' is missing.
 
-(defconst comp--typeof-builtin-types (mapcar (lambda (x)
-                                               (append x '(t)))
-                                             cl--typeof-types)
-  ;; TODO can we just add t in `cl--typeof-types'?
-  "Like `cl--typeof-types' but with t as common supertype.")
-
-(cl-defstruct (comp-cstr (:constructor comp-type-to-cstr
+(cl-defstruct (comp-cstr (:constructor comp--type-to-cstr
                                        (type &aux
 					     (null (eq type 'null))
                                              (integer (eq type 'integer))
@@ -55,7 +49,7 @@
 						       '(nil)))
                                              (range (when integer
                                                       '((- . +))))))
-                         (:constructor comp-value-to-cstr
+                         (:constructor comp--value-to-cstr
                                        (value &aux
                                               (integer (integerp value))
                                               (valset (unless integer
@@ -63,7 +57,7 @@
                                               (range (when integer
                                                        `((,value . ,value))))
                                               (typeset ())))
-                         (:constructor comp-irange-to-cstr
+                         (:constructor comp--irange-to-cstr
                                        (irange &aux
                                                (range (list irange))
                                                (typeset ())))
@@ -89,12 +83,7 @@ Integer values are handled in the `range' slot.")
 
 (defun comp--cl-class-hierarchy (x)
   "Given a class name `x' return its hierarchy."
-  `(,@(cl--class-allparents (cl--struct-get-class x))
-    ;; FIXME: AFAICT, `comp--all-classes' will also find those struct types
-    ;; which use :type and can thus be either `vector' or `cons' (the latter
-    ;; isn't `atom').
-    atom
-    t))
+  (cl--class-allparents (cl--find-class x)))
 
 (defun comp--all-classes ()
   "Return all non built-in type names currently defined."
@@ -106,15 +95,14 @@ Integer values are handled in the `range' slot.")
     res))
 
 (defun comp--compute-typeof-types ()
-  (append comp--typeof-builtin-types
-          (mapcar #'comp--cl-class-hierarchy (comp--all-classes))))
+  (mapcar #'comp--cl-class-hierarchy (comp--all-classes)))
 
 (defun comp--compute--pred-type-h ()
   (cl-loop with h = (make-hash-table :test #'eq)
 	   for class-name in (comp--all-classes)
            for pred = (get class-name 'cl-deftype-satisfies)
            when pred
-             do (puthash pred class-name h)
+           do (puthash pred (comp--type-to-cstr class-name) h)
 	   finally return h))
 
 (cl-defstruct comp-cstr-ctxt
@@ -229,10 +217,10 @@ Return them as multiple value."
 ;; builds.
 (defvar comp-ctxt nil)
 
-(defvar comp-cstr-one (comp-value-to-cstr 1)
+(defvar comp-cstr-one (comp--value-to-cstr 1)
   "Represent the integer immediate one.")
 
-(defvar comp-cstr-t (comp-type-to-cstr t)
+(defvar comp-cstr-t (comp--type-to-cstr t)
   "Represent the superclass t.")
 
 
@@ -249,6 +237,8 @@ Return them as multiple value."
                t)
               ((and (not (symbolp x)) (symbolp y))
                nil)
+              ((or (consp x) (consp y)
+                   nil))
               (t
                (< (sxhash-equal x)
                   (sxhash-equal y)))))))
@@ -270,18 +260,10 @@ Return them as multiple value."
                 (symbol-name y)))
 
 (defun comp--direct-supertypes (type)
-  "Return the direct supertypes of TYPE."
-  (let ((supers (comp-supertypes type)))
-    (cl-assert (eq type (car supers)))
-    (cl-loop
-     with notdirect = nil
-     with direct = nil
-     for parent in (cdr supers)
-     unless (memq parent notdirect)
-     do (progn
-          (push parent direct)
-          (setq notdirect (append notdirect (comp-supertypes parent))))
-     finally return direct)))
+  (when (symbolp type) ;; FIXME: Can this test ever fail?
+    (let* ((class (cl--find-class type))
+           (parents (if class (cl--class-parents class))))
+      (mapcar #'cl--class-name parents))))
 
 (defsubst comp-subtype-p (type1 type2)
   "Return t if TYPE1 is a subtype of TYPE2 or nil otherwise."
@@ -353,23 +335,8 @@ Return them as multiple value."
 
 (defun comp-supertypes (type)
   "Return the ordered list of supertypes of TYPE."
-  ;; FIXME: We should probably keep the results in
-  ;; `comp-cstr-ctxt-typeof-types' (or maybe even precompute them
-  ;; and maybe turn `comp-cstr-ctxt-typeof-types' into a hash-table).
-  ;; Or maybe we shouldn't keep structs and defclasses in it,
-  ;; and just use `cl--class-allparents' when needed (and refuse to
-  ;; compute their direct subtypes since we can't know them).
-  (cl-loop
-   named loop
-   with above
-   for lane in (comp-cstr-ctxt-typeof-types comp-ctxt)
-   do (let ((x (memq type lane)))
-        (cond
-         ((null x) nil)
-         ((eq x lane) (cl-return-from loop x)) ;A base type: easy case.
-         (t (setq above
-                  (if above (comp--intersection x above) x)))))
-   finally return above))
+  (or (assq type (comp-cstr-ctxt-typeof-types comp-ctxt))
+      (error "Type %S missing from typeof-types!" type)))
 
 (defun comp-union-typesets (&rest typesets)
   "Union types present into TYPESETS."
@@ -1210,14 +1177,14 @@ FN non-nil indicates we are parsing a function lambda list."
     ('nil
      (make-comp-cstr :typeset ()))
     ('fixnum
-     (comp-irange-to-cstr `(,most-negative-fixnum . ,most-positive-fixnum)))
+     (comp--irange-to-cstr `(,most-negative-fixnum . ,most-positive-fixnum)))
     ('boolean
      (comp-type-spec-to-cstr '(member t nil)))
     ('integer
-     (comp-irange-to-cstr '(- . +)))
-    ('null (comp-value-to-cstr nil))
+     (comp--irange-to-cstr '(- . +)))
+    ('null (comp--value-to-cstr nil))
     ((pred atom)
-     (comp-type-to-cstr type-spec))
+     (comp--type-to-cstr type-spec))
     (`(or . ,rest)
      (apply #'comp-cstr-union-make
             (mapcar #'comp-type-spec-to-cstr rest)))
@@ -1227,16 +1194,16 @@ FN non-nil indicates we are parsing a function lambda list."
     (`(not  ,cstr)
      (comp-cstr-negation-make (comp-type-spec-to-cstr cstr)))
     (`(integer ,(and (pred integerp) l) ,(and (pred integerp) h))
-     (comp-irange-to-cstr `(,l . ,h)))
+     (comp--irange-to-cstr `(,l . ,h)))
     (`(integer * ,(and (pred integerp) h))
-     (comp-irange-to-cstr `(- . ,h)))
+     (comp--irange-to-cstr `(- . ,h)))
     (`(integer ,(and (pred integerp) l) *)
-     (comp-irange-to-cstr `(,l . +)))
+     (comp--irange-to-cstr `(,l . +)))
     (`(float ,(pred comp-star-or-num-p) ,(pred comp-star-or-num-p))
      ;; No float range support :/
-     (comp-type-to-cstr 'float))
+     (comp--type-to-cstr 'float))
     (`(member . ,rest)
-     (apply #'comp-cstr-union-make (mapcar #'comp-value-to-cstr rest)))
+     (apply #'comp-cstr-union-make (mapcar #'comp--value-to-cstr rest)))
     (`(function ,args ,ret)
      (make-comp-cstr-f
       :args (mapcar (lambda (x)

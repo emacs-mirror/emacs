@@ -205,7 +205,7 @@ Here is an example of a buffer list:
 
 @smallexample
 CRM Buffer                Size  Mode              File
-. * .emacs                3294  Emacs-Lisp        ~/.emacs
+. * .emacs                3294  ELisp/l           ~/.emacs
  %  *Help*                 101  Help
     search.c             86055  C                 ~/cvs/emacs/src/search.c
  %  src                  20959  Dired by name     ~/cvs/emacs/src/

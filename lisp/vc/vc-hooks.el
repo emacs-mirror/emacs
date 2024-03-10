@@ -186,7 +186,8 @@ revision number and lock status."
 This minor mode is automatically activated whenever you visit a file under
 control of one of the revision control systems in `vc-handled-backends'.
 VC commands are globally reachable under the prefix \\[vc-prefix-map]:
-\\{vc-prefix-map}")
+\\{vc-prefix-map}"
+  nil)
 
 (defmacro vc-error-occurred (&rest body)
   `(condition-case nil (progn ,@body nil) (error t)))
@@ -197,7 +198,7 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
 ;; during any subsequent VC operations, and forget them when
 ;; the buffer is killed.
 
-(defvar vc-file-prop-obarray (make-vector 17 0)
+(defvar vc-file-prop-obarray (obarray-make 17)
   "Obarray for per-file properties.")
 
 (defvar vc-touched-properties nil)

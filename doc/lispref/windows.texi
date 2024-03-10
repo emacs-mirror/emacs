@@ -6266,9 +6266,13 @@ this function does is to restore the value of the variable
 
 If the buffer of a window of @var{configuration} has been killed since
 @var{configuration} was made, that window is, as a rule, removed from
-the restored configuration.  However, if that window is the last
-window remaining in the restored configuration, another live buffer is
-shown in it.
+the restored configuration.  However, if that window is the last window
+remaining in the restored configuration, another live buffer is shown in
+it.  Also, if the variable @var{window-kept-windows-functions} is
+non-@code{nil}, any window whose buffer is now dead is not deleted.
+Rather, this function will show another live buffer in that window and
+include an entry for that window when calling any function in
+@var{window-kept-windows-functions} (@pxref{Window Hooks}).
 
 Here is a way of using this function to get the same effect as
 @code{save-window-excursion}:
@@ -6356,6 +6360,15 @@ internal window (@pxref{Windows and Frames}).  If @var{window} is not
 a live window, it is replaced by a new live window created on the same
 frame before putting @var{state} into it.  If @var{window} is @code{nil},
 it puts the window state into a new window.
+
+If the buffer of any window recorded in @var{state} has been killed
+since @var{state} was made, that window is, as a rule, not restored.
+However, if that window is the only window in @var{state}, another live
+buffer will be shown in it.  Also, if the variable
+@var{window-kept-windows-functions} is non-@code{nil}, any window whose
+buffer is now dead is restored.  This function will show another live
+buffer in it and include an entry for that window when calling a
+function in @var{window-kept-windows-functions} (@pxref{Window Hooks}).
 
 If the optional argument @var{ignore} is non-@code{nil}, it means to ignore
 minimum window sizes and fixed-size restrictions.  If @var{ignore}
@@ -6622,6 +6635,27 @@ In addition, you can use @code{jit-lock-register} to register a Font
 Lock fontification function, which will be called whenever parts of a
 buffer are (re)fontified because a window was scrolled or its size
 changed.  @xref{Other Font Lock Variables}.
+
+@cindex window kept windows functions
+@defvar window-kept-windows-functions
+   This variable holds a list of functions that Emacs will call after
+restoring a window configuration via @code{set-window-configuration} or
+state via @code{window-state-put} (@pxref{Window Configurations}).  When
+the value of this variable is non-@code{nil}, these functions will not
+delete any window whose buffer has been killed since the corresponding
+configuration or state was saved, but show some live buffer in it.
+
+The value should be a list of functions that take two arguments.  The
+first argument specifies the frame whose windows have been restored.
+The second argument specifies a list of entries for each window whose
+buffer has been found dead at the time @code{set-window-configuration}
+or @code{window-state-put} tried to restore it.  Each entry is a list of
+four values - the window whose buffer was found dead, the dead buffer,
+and the last known positions of start and point of the buffer in that
+window.  Any function run by this hook should check that the window is
+live since another function run by this hook may have deleted it in the
+meantime.
+@end defvar
 
 @cindex window change functions
    The remainder of this section covers six hooks that are called

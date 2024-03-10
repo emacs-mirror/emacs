@@ -153,13 +153,13 @@ The search priority is:
   "Return the dynamic macro map for the current buffer."
   (or semantic-lex-spp-dynamic-macro-symbol-obarray
       (setq semantic-lex-spp-dynamic-macro-symbol-obarray
-	    (make-vector 13 0))))
+	    (obarray-make 13))))
 
 (defsubst semantic-lex-spp-dynamic-map-stack ()
   "Return the dynamic macro map for the current buffer."
   (or semantic-lex-spp-dynamic-macro-symbol-obarray-stack
       (setq semantic-lex-spp-dynamic-macro-symbol-obarray-stack
-	    (make-vector 13 0))))
+	    (obarray-make 13))))
 
 (defun semantic-lex-spp-value-valid-p (value)
   "Return non-nil if VALUE is valid."
@@ -260,7 +260,7 @@ NAME is the name of the spp macro symbol to define.
 REPLACEMENT a string that would be substituted in for NAME."
 
   ;; Create the symbol hash table
-  (let ((semantic-lex-spp-macro-symbol-obarray (make-vector 13 0))
+  (let ((semantic-lex-spp-macro-symbol-obarray (obarray-make 13))
         spec)
     ;; fill it with stuff
     (while specs

@@ -1,4 +1,4 @@
-# serial 11
+# serial 12
 # See if we need to provide utimensat replacement.
 
 dnl Copyright (C) 2009-2024 Free Software Foundation, Inc.
@@ -82,6 +82,9 @@ AC_DEFUN([gl_FUNC_UTIMENSAT],
          [case "$host_os" in
             # Guess yes on Linux or glibc systems.
             linux-* | linux | *-gnu* | gnu*)
+              gl_cv_func_utimensat_works="guessing yes" ;;
+            # Guess yes on systems that emulate the Linux system calls.
+            midipix*)
               gl_cv_func_utimensat_works="guessing yes" ;;
             # Guess 'nearly' on AIX.
             aix*)

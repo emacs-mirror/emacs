@@ -3275,11 +3275,11 @@ treesit_traverse_child_helper (TSTreeCursor *cursor,
 static Lisp_Object
 treesit_traverse_get_predicate (Lisp_Object thing, Lisp_Object language)
 {
-  Lisp_Object cons = assq_no_quit (language, Vtreesit_thing_settings);
+  Lisp_Object cons = assq_no_signal (language, Vtreesit_thing_settings);
   if (NILP (cons))
     return Qnil;
   Lisp_Object definitions = XCDR (cons);
-  Lisp_Object entry = assq_no_quit (thing, definitions);
+  Lisp_Object entry = assq_no_signal (thing, definitions);
   if (NILP (entry))
     return Qnil;
   /* ENTRY looks like (THING PRED).  */

@@ -77,7 +77,7 @@ A resource file is in the resource directory as per
 `ert-resource-directory'."
       `(expand-file-name ,file (ert-resource-directory)))))
 
-(defconst tramp-archive-test-file-archive (ert-resource-file "foo.tar.gz")
+(defvar tramp-archive-test-file-archive (ert-resource-file "foo.tar.gz")
   "The test file archive.")
 
 (defun tramp-archive-test-file-archive-hexlified ()
@@ -86,7 +86,7 @@ Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
   (let* ((url-unreserved-chars (cons ?/ url-unreserved-chars)))
     (url-hexify-string tramp-archive-test-file-archive)))
 
-(defconst tramp-archive-test-archive
+(defvar tramp-archive-test-archive
   (file-name-as-directory tramp-archive-test-file-archive)
   "The test archive.")
 

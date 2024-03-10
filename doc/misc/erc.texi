@@ -1230,25 +1230,30 @@ machine Example.Net login aph-bot password sesame
 
 (defun my-erc-up (network)
   (interactive "Snetwork: ")
-
-  (pcase network
-    ('libera
-     (let ((erc-sasl-mechanism 'external))
-       (erc-tls :server "irc.libera.chat" :port 6697
-                :client-certificate t)))
-    ('example
-     (let ((erc-sasl-auth-source-function
-            #'erc-sasl-auth-source-password-as-host))
-       (erc-tls :server "irc.example.net" :port 6697
-                :user "alyssa"
-                :password "Example.Net")))))
+  (require 'erc-sasl)
+  (or (let ((erc-modules (cons 'sasl erc-modules)))
+        (pcase network
+          ('libera
+           (let ((erc-sasl-mechanism 'external))
+             (erc-tls :server "irc.libera.chat"
+                      :client-certificate t)))
+          ('example
+           (let ((erc-sasl-auth-source-function
+                  #'erc-sasl-auth-source-password-as-host))
+             (erc-tls :server "irc.example.net"
+                      :user "alyssa"
+                      :password "Example.Net")))))
+      ;; Non-SASL
+      (call-interactively #'erc-tls)))
 @end lisp
 
 You've started storing your credentials with auth-source and have
 decided to try SASL on another network as well.  But there's a catch:
 this network doesn't support @samp{EXTERNAL}.  You use
-@code{let}-binding to get around this and successfully authenticate to
-both networks.
+@code{let}-binding to work around this and successfully authenticate
+to both networks.  (Note that this example assumes you've removed
+@code{sasl} from @code{erc-modules} globally and have instead opted to
+add it locally when connecting to preconfigured networks.)
 
 @end itemize
 

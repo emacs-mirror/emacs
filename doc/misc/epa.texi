@@ -289,6 +289,15 @@ also ask you whether or not to sign the text before encryption and if
 you answered yes, it will let you select the signing keys.
 @end deffn
 
+@defvar epa-keys-select-method
+This variable controls the method used for key selection in
+@code{epa-select-keys}.  The default value @code{buffer} pops up a
+special buffer where you can select the keys.  If the value is
+@code{minibuffer}, @code{epa-select-keys} will instead prompt for the
+keys in the minibuffer, where you should type the keys separated by
+commas.
+@end defvar
+
 @node Cryptographic operations on files
 @section Cryptographic Operations on Files
 @cindex cryptographic operations on files

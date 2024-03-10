@@ -2747,6 +2747,10 @@ Fifth arg NOMODES non-nil means don't alter the file's modes.
 Finishes by calling the functions in `find-file-hook'
 unless NOMODES is non-nil."
   (setq buffer-read-only (not (file-writable-p buffer-file-name)))
+  ;; The above is sufficiently like turning on read-only-mode, so run
+  ;; the mode hook here by hand.
+  (if buffer-read-only
+      (run-hooks 'read-only-mode-hook))
   (if noninteractive
       nil
     (let* (not-serious
@@ -3270,7 +3274,16 @@ and `inhibit-local-variables-suffixes'.  If
     ;; Optional group 1: env(1) invocation.
     "\\("
     "[^ \t\n]*/bin/env[ \t]*"
-    "\\(?:-S[ \t]*\\|--split-string\\(?:=\\|[ \t]*\\)\\)?"
+    ;; Within group 1: possible -S/--split-string and environment
+    ;; adjustments.
+    "\\(?:"
+    ;; -S/--split-string
+    "\\(?:-[0a-z]*S[ \t]*\\|--split-string=\\)"
+    ;; More env arguments.
+    "\\(?:-[^ \t\n]+[ \t]+\\)*"
+    ;; Interpreter environment modifications.
+    "\\(?:[^ \t\n]+=[^ \t\n]*[ \t]+\\)*"
+    "\\)?"
     "\\)?"
     ;; Group 2: interpreter.
     "\\([^ \t\n]+\\)"))
@@ -3400,7 +3413,7 @@ checks if it uses an interpreter listed in `interpreter-mode-alist',
 matches the buffer beginning against `magic-mode-alist',
 compares the file name against the entries in `auto-mode-alist',
 then matches the buffer beginning against `magic-fallback-mode-alist'.
-It also obeys `major-mode-remap-alist'.
+It also obeys `major-mode-remap-alist' and `major-mode-remap-defaults'.
 
 If `enable-local-variables' is nil, or if the file name matches
 `inhibit-local-variables-regexps', this function does not check
@@ -3546,8 +3559,21 @@ we don't actually set it to the same mode the buffer already has."
 Every entry is of the form (MODE . FUNCTION) which means that in order
 to activate the major mode MODE (specified via something like
 `auto-mode-alist', file-local variables, ...) we should actually call
-FUNCTION instead."
+FUNCTION instead.
+FUNCTION can be nil to hide other entries (either in this var or in
+`major-mode-remap-defaults') and means that we should call MODE."
   :type '(alist (symbol) (function)))
+
+(defvar major-mode-remap-defaults nil
+  "Alist mapping file-specified mode to actual mode.
+This works like `major-mode-remap-alist' except it has lower priority
+and it is meant to be modified by packages rather than users.")
+
+(defun major-mode-remap (mode)
+  "Return the function to use to enable MODE."
+  (or (cdr (or (assq mode major-mode-remap-alist)
+               (assq mode major-mode-remap-defaults)))
+      mode))
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
@@ -3565,7 +3591,7 @@ same, do nothing and return nil."
 		        (eq mode (car set-auto-mode--last))
 		        (eq major-mode (cdr set-auto-mode--last)))))
     (when mode
-      (funcall (alist-get mode major-mode-remap-alist mode))
+      (funcall (major-mode-remap mode))
       (unless (eq mode major-mode)
         (setq set-auto-mode--last (cons mode major-mode)))
       mode)))
@@ -3754,7 +3780,8 @@ function is allowed to change the contents of this alist.
 This hook is called only if there is at least one file-local
 variable to set.")
 
-(defvar permanently-enabled-local-variables '(lexical-binding)
+(defvar permanently-enabled-local-variables
+  '(lexical-binding read-symbol-shorthands)
   "A list of file-local variables that are always enabled.
 This overrides any `enable-local-variables' setting.")
 
@@ -4190,6 +4217,13 @@ major-mode."
                                 ;; to use 'thisbuf's name in the
                                 ;; warning message.
                                 (or (buffer-file-name thisbuf) ""))))))
+                          ((eq var 'read-symbol-shorthands)
+                           ;; Sort automatically by shorthand length
+                           ;; in descending order.
+                           (setq val (sort val
+                                           (lambda (sh1 sh2) (> (length (car sh1))
+                                                                (length (car sh2))))))
+                           (push (cons 'read-symbol-shorthands val) result))
                           ((and (eq var 'mode) handle-mode))
 			  (t
 			   (ignore-errors
@@ -4331,10 +4365,8 @@ already the major mode."
   (pcase var
     ('mode
      (let ((mode (intern (concat (downcase (symbol-name val))
-                                 "-mode"))))
-       (unless (eq (indirect-function mode)
-                   (indirect-function major-mode))
-         (funcall mode))))
+                          "-mode"))))
+       (set-auto-mode-0 mode t)))
     ('eval
      (pcase val
        (`(add-hook ',hook . ,_) (hack-one-local-variable--obsolete hook)))
@@ -4414,6 +4446,12 @@ to see whether it should be considered."
                   (funcall predicate key)
                 (or (not key)
                     (derived-mode-p key)))
+              ;; If KEY is an extra parent it may remain not loaded
+              ;; (hence with some of its mode-specific vars missing their
+              ;; `safe-local-variable' property), leading to spurious
+              ;; prompts about unsafe vars (bug#68246).
+              (if (and (symbolp key) (autoloadp (indirect-function key)))
+                  (ignore-errors (autoload-do-load (indirect-function key))))
               (let* ((alist (cdr entry))
                      (subdirs (assq 'subdirs alist)))
                 (if (or (not subdirs)

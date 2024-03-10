@@ -27,6 +27,8 @@
 # newly-built Makefile.  If the source tree is already configured,
 # this file defers to the existing Makefile.
 
+. :=
+
 # If you want non-default build options, or if you want to build in an
 # out-of-source tree, you should run 'configure' before running 'make'.
 # But run 'autogen.sh' first, if the source was checked out directly
@@ -36,30 +38,30 @@
 
 ifeq (help,$(filter help,$(MAKECMDGOALS)))
 help:
-	$(info $ NOTE:  This is a brief summary of some common make targets.)
-	$(info $ For more detailed information, please read the files INSTALL,)
-	$(info $ INSTALL.REPO, Makefile or visit this URL:)
-	$(info $ https://www.gnu.org/prep/standards/html_node/Standard-Targets.html)
-	$(info $ )
-	$(info $ make all              -- compile and build Emacs)
-	$(info $ make install          -- install Emacs)
-	$(info $ make TAGS             -- update tags tables)
-	$(info $ make clean            -- delete built files but preserve configuration)
-	$(info $ make mostlyclean      -- like 'make clean', but leave those files that)
-	$(info $                          usually do not need to be recompiled)
-	$(info $ make distclean        -- delete all build and configuration files,)
-	$(info $                          leave only files included in source distribution)
-	$(info $ make maintainer-clean -- delete almost everything that can be regenerated)
-	$(info $ make extraclean       -- like maintainer-clean, and also delete)
-	$(info $                          backup and autosave files)
-	$(info $ make bootstrap        -- delete all compiled files to force a new bootstrap)
-	$(info $                          from a clean slate, then build in the normal way)
-	$(info $ make uninstall        -- remove files installed by 'make install')
-	$(info $ make check            -- run the Emacs test suite)
-	$(info $ make docs             -- generate Emacs documentation in info format)
-	$(info $ make html             -- generate documentation in html format)
-	$(info $ make ps               -- generate documentation in ps format)
-	$(info $ make pdf              -- generate documentation in pdf format )
+	$(info $.NOTE:  This is a brief summary of some common make targets.)
+	$(info $.For more detailed information, please read the files INSTALL,)
+	$(info $.INSTALL.REPO, Makefile or visit this URL:)
+	$(info $.https://www.gnu.org/prep/standards/html_node/Standard-Targets.html)
+	$(info $.)
+	$(info $.make all              -- compile and build Emacs)
+	$(info $.make install          -- install Emacs)
+	$(info $.make TAGS             -- update tags tables)
+	$(info $.make clean            -- delete built files but preserve configuration)
+	$(info $.make mostlyclean      -- like 'make clean', but leave those files that)
+	$(info $.                         usually do not need to be recompiled)
+	$(info $.make distclean        -- delete all build and configuration files,)
+	$(info $.                         leave only files included in source distribution)
+	$(info $.make maintainer-clean -- delete almost everything that can be regenerated)
+	$(info $.make extraclean       -- like maintainer-clean, and also delete)
+	$(info $.                         backup and autosave files)
+	$(info $.make bootstrap        -- delete all compiled files to force a new bootstrap)
+	$(info $.                         from a clean slate, then build in the normal way)
+	$(info $.make uninstall        -- remove files installed by 'make install')
+	$(info $.make check            -- run the Emacs test suite)
+	$(info $.make docs             -- generate Emacs documentation in info format)
+	$(info $.make html             -- generate documentation in html format)
+	$(info $.make ps               -- generate documentation in ps format)
+	$(info $.make pdf              -- generate documentation in pdf format )
 	@:
 
 .PHONY: help

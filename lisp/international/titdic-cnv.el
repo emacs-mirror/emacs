@@ -31,12 +31,12 @@
 ;; Convert cxterm dictionary (of TIT format) to quail-package.
 ;;
 ;; Usage (within Emacs):
-;;	M-x titdic-convert<CR>CXTERM-DICTIONARY-NAME<CR>
+;;	M-x tit-dic-convert<CR>CXTERM-DICTIONARY-NAME<CR>
 ;; Usage (from shell):
-;;	% emacs -batch -l titdic-cnv -f batch-titdic-convert\
+;;	% emacs -batch -l titdic-cnv -f batch-tit-dic-convert\
 ;;		[-dir DIR] [DIR | FILE] ...
 ;;
-;; When you run titdic-convert within Emacs, you have a chance to
+;; When you run `tit-dic-convert' within Emacs, you have a chance to
 ;; modify arguments of `quail-define-package' before saving the
 ;; converted file.  For instance, you are likely to modify TITLE,
 ;; DOCSTRING, and KEY-BINDINGS.
@@ -90,7 +90,8 @@
 ;; \<quail-translation-docstring> is replaced by a description about
 ;; how to select a translation from a list of candidates.
 
-(defvar quail-cxterm-package-ext-info
+(define-obsolete-variable-alias 'quail-cxterm-package-ext-info 'tit-quail-cxterm-package-ext-info "30.1")
+(defvar tit-quail-cxterm-package-ext-info
   '(("chinese-4corner" "四角")
     ("chinese-array30" "３０")
     ("chinese-ccdospy" "缩拼"
@@ -277,7 +278,7 @@ SPC, 6, 3, 4, or 7 specifying a tone (SPC:陰平, 6:陽平, 3:上聲, 4:去聲,
 	(tit-moveleft ",<")
 	(tit-keyprompt nil))
 
-    (generate-lisp-file-heading filename 'titdic-convert :code nil)
+    (generate-lisp-file-heading filename 'tit-dic-convert :code nil)
     (princ ";; Quail package `")
     (princ package)
     (princ "\n")
@@ -354,7 +355,7 @@ SPC, 6, 3, 4, or 7 specifying a tone (SPC:陰平, 6:陽平, 3:上聲, 4:去聲,
 
     (princ "(quail-define-package ")
     ;; Args NAME, LANGUAGE, TITLE
-    (let ((title (nth 1 (assoc package quail-cxterm-package-ext-info))))
+    (let ((title (nth 1 (assoc package tit-quail-cxterm-package-ext-info))))
       (princ "\"")
       (princ package)
       (princ "\" \"")
@@ -383,7 +384,7 @@ SPC, 6, 3, 4, or 7 specifying a tone (SPC:陰平, 6:陽平, 3:上聲, 4:去聲,
     (let ((doc (concat tit-prompt "\n"))
 	  (comments (if tit-comments
 			(mapconcat #'identity (nreverse tit-comments) "\n")))
-	  (doc-ext (nth 2 (assoc package quail-cxterm-package-ext-info))))
+	  (doc-ext (nth 2 (assoc package tit-quail-cxterm-package-ext-info))))
       (if comments
 	  (setq doc (concat doc "\n" comments "\n")))
       (if doc-ext
@@ -476,6 +477,9 @@ SPC, 6, 3, 4, or 7 specifying a tone (SPC:陰平, 6:陽平, 3:上聲, 4:去聲,
 
 ;;;###autoload
 (defun titdic-convert (filename &optional dirname)
+  (declare (obsolete tit-dic-convert "30.1"))
+  (tit-dic-convert filename dirname))
+(defun tit-dic-convert (filename &optional dirname)
   "Convert a TIT dictionary of FILENAME into a Quail package.
 Optional argument DIRNAME if specified is the directory name under which
 the generated Quail package is saved."
@@ -531,21 +535,24 @@ the generated Quail package is saved."
 
 ;;;###autoload
 (defun batch-titdic-convert (&optional force)
-  "Run `titdic-convert' on the files remaining on the command line.
+  (declare (obsolete batch-tit-dic-convert "30.1"))
+  (batch-tit-dic-convert force))
+(defun batch-tit-dic-convert (&optional force)
+  "Run `tit-dic-convert' on the files remaining on the command line.
 Use this from the command line, with `-batch';
 it won't work in an interactive Emacs.
-For example, invoke \"emacs -batch -f batch-titdic-convert XXX.tit\" to
+For example, invoke \"emacs -batch -f batch-tit-dic-convert XXX.tit\" to
  generate Quail package file \"xxx.el\" from TIT dictionary file \"XXX.tit\".
-To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
+To get complete usage, invoke \"emacs -batch -f batch-tit-dic-convert -h\"."
   (defvar command-line-args-left)	; Avoid compiler warning.
   (if (not noninteractive)
-      (error "`batch-titdic-convert' should be used only with -batch"))
+      (error "`batch-tit-dic-convert' should be used only with -batch"))
   (if (string= (car command-line-args-left) "-h")
       (progn
 	(message "To convert XXX.tit and YYY.tit into xxx.el and yyy.el:")
-	(message "  %% emacs -batch -l titdic-cnv -f batch-titdic-convert XXX.tit YYY.tit")
+	(message "  %% emacs -batch -l titdic-cnv -f batch-tit-dic-convert XXX.tit YYY.tit")
 	(message "To convert XXX.tit into DIR/xxx.el:")
-	(message "  %% emacs -batch -l titdic-cnv -f batch-titdic-convert -dir DIR XXX.tit"))
+	(message "  %% emacs -batch -l titdic-cnv -f batch-tit-dic-convert -dir DIR XXX.tit"))
     (let (targetdir filename files file)
       (if (string= (car command-line-args-left) "-dir")
 	  (progn
@@ -564,7 +571,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 	  (when (or force
 		    (file-newer-than-file-p
 		     file (tit-make-quail-package-file-name file targetdir)))
-	    (titdic-convert file targetdir))
+	    (tit-dic-convert file targetdir))
 	  (setq files (cdr files)))
 	(setq command-line-args-left (cdr command-line-args-left)))))
   (kill-emacs 0))
@@ -583,10 +590,11 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;;    COPYRIGHT-NOTICE		;; Copyright notice of the source dictionary.
 ;;    )
 
-(defvar quail-misc-package-ext-info
+(define-obsolete-variable-alias 'quail-misc-package-ext-info 'tit-quail-misc-package-ext-info "30.1")
+(defvar tit-quail-misc-package-ext-info
   '(("chinese-b5-tsangchi" "倉B"
      "cangjie-table.b5" big5 "tsang-b5.el"
-     tsang-b5-converter
+     tit--tsang-b5-converter
      "\
 ;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
 ;; #
@@ -596,7 +604,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 
     ("chinese-b5-quick" "簡B"
      "cangjie-table.b5" big5 "quick-b5.el"
-     quick-b5-converter
+     tit--quick-b5-converter
      "\
 ;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
 ;; #
@@ -606,7 +614,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 
     ("chinese-cns-tsangchi" "倉C"
      "cangjie-table.cns" iso-2022-cn-ext "tsang-cns.el"
-     tsang-cns-converter
+     tit--tsang-cns-converter
      "\
 ;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
 ;; #
@@ -616,7 +624,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 
     ("chinese-cns-quick" "簡C"
      "cangjie-table.cns" iso-2022-cn-ext "quick-cns.el"
-     quick-cns-converter
+     tit--quick-cns-converter
      "\
 ;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
 ;; #
@@ -626,7 +634,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 
     ("chinese-py" "拼G"
      "pinyin.map" cn-gb-2312 "PY.el"
-     py-converter
+     tit--py-converter
      "\
 ;; \"pinyin.map\" is included in a free package called CCE.  It is
 ;; available at: [link needs updating  -- SK 2021-09-27]
@@ -654,7 +662,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 
     ("chinese-ziranma" "自然"
      "ziranma.cin" cn-gb-2312 "ZIRANMA.el"
-     ziranma-converter
+     tit--ziranma-converter
      "\
 ;; \"ziranma.cin\" is included in a free package called CCE.  It is
 ;; available at: [link needs updating  -- SK 2021-09-27]
@@ -682,7 +690,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 
     ("chinese-ctlau" "刘粤"
      "CTLau.html" cn-gb-2312 "CTLau.el"
-     ctlau-gb-converter
+     tit--ctlau-gb-converter
      "\
 ;; \"CTLau.html\" is available at:
 ;;
@@ -707,7 +715,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 
     ("chinese-ctlaub" "劉粵"
      "CTLau-b5.html" big5 "CTLau-b5.el"
-     ctlau-b5-converter
+     tit--ctlau-b5-converter
      "\
 ;; \"CTLau-b5.html\" is available at:
 ;;
@@ -740,7 +748,8 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; input method is for inputting Big5 characters.  Otherwise the input
 ;; method is for inputting CNS characters.
 
-(defun tsang-quick-converter (dicbuf tsang-p big5-p)
+(define-obsolete-function-alias 'tsang-quick-converter #'tit--tsang-quick-converter "30.1")
+(defun tit--tsang-quick-converter (dicbuf tsang-p big5-p)
   (let ((fulltitle (if tsang-p "倉頡" "簡易"))
 	dic)
     (goto-char (point-max))
@@ -822,23 +831,28 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 		      (if big5-p (nth 1 elt) (nth 2 elt))))))
     (insert ")\n")))
 
-(defun tsang-b5-converter (dicbuf)
-  (tsang-quick-converter dicbuf t t))
+(define-obsolete-function-alias 'tsang-b5-converter #'tit--tsang-b5-converter "30.1")
+(defun tit--tsang-b5-converter (dicbuf)
+  (tit--tsang-quick-converter dicbuf t t))
 
-(defun quick-b5-converter (dicbuf)
-  (tsang-quick-converter dicbuf nil t))
+(define-obsolete-function-alias 'quick-b5-converter #'tit--quick-b5-converter "30.1")
+(defun tit--quick-b5-converter (dicbuf)
+  (tit--tsang-quick-converter dicbuf nil t))
 
-(defun tsang-cns-converter (dicbuf)
-  (tsang-quick-converter dicbuf t nil))
+(define-obsolete-function-alias 'tsang-cns-converter #'tit--tsang-cns-converter "30.1")
+(defun tit--tsang-cns-converter (dicbuf)
+  (tit--tsang-quick-converter dicbuf t nil))
 
-(defun quick-cns-converter (dicbuf)
-  (tsang-quick-converter dicbuf nil nil))
+(define-obsolete-function-alias 'quick-cns-converter #'tit--quick-cns-converter "30.1")
+(defun tit--quick-cns-converter (dicbuf)
+  (tit--tsang-quick-converter dicbuf nil nil))
 
 ;; Generate a code of a Quail package in the current buffer from
 ;; Pinyin dictionary in the buffer DICBUF.  The input method name of
 ;; the Quail package is NAME, and the title string is TITLE.
 
-(defun py-converter (dicbuf)
+(define-obsolete-function-alias 'py-converter #'tit--py-converter "30.1")
+(defun tit--py-converter (dicbuf)
   (goto-char (point-max))
   (insert (format "%S\n" "汉字输入∷拼音∷
 
@@ -913,7 +927,8 @@ method `chinese-tonepy' with which you must specify tones by digits
 ;; Ziranma dictionary in the buffer DICBUF.  The input method name of
 ;; the Quail package is NAME, and the title string is TITLE.
 
-(defun ziranma-converter (dicbuf)
+(define-obsolete-function-alias 'ziranma-converter #'tit--ziranma-converter "30.1")
+(defun tit--ziranma-converter (dicbuf)
   (let (dic)
     (with-current-buffer dicbuf
       (goto-char (point-min))
@@ -1022,7 +1037,8 @@ To input symbols and punctuation, type `/' followed by one of `a' to
 ;; method name of the Quail package is NAME, and the title string is
 ;; TITLE.  DESCRIPTION is the string shown by describe-input-method.
 
-(defun ctlau-converter (dicbuf description)
+(define-obsolete-function-alias 'ctlau-converter #'tit--ctlau-converter "30.1")
+(defun tit--ctlau-converter (dicbuf description)
   (goto-char (point-max))
   (insert (format "%S\n" description))
   (insert "  '((\"\C-?\" . quail-delete-last-char)
@@ -1071,8 +1087,9 @@ To input symbols and punctuation, type `/' followed by one of `a' to
       (forward-line 1)))
   (insert ")\n"))
 
-(defun ctlau-gb-converter (dicbuf)
-  (ctlau-converter dicbuf
+(define-obsolete-function-alias 'ctlau-gb-converter #'tit--ctlau-gb-converter "30.1")
+(defun tit--ctlau-gb-converter (dicbuf)
+  (tit--ctlau-converter dicbuf
 "汉字输入∷刘锡祥式粤音∷
 
  刘锡祥式粤语注音方案
@@ -1085,8 +1102,9 @@ To input symbols and punctuation, type `/' followed by one of `a' to
  Some infrequent GB characters are accessed by typing \\, followed by
  the Cantonese romanization of the respective radical (部首)."))
 
-(defun ctlau-b5-converter (dicbuf)
-  (ctlau-converter dicbuf
+(define-obsolete-function-alias 'ctlau-b5-converter #'tit--ctlau-b5-converter "30.1")
+(defun tit--ctlau-b5-converter (dicbuf)
+  (tit--ctlau-converter dicbuf
 "漢字輸入：劉錫祥式粵音：
 
  劉錫祥式粵語注音方案
@@ -1101,14 +1119,15 @@ To input symbols and punctuation, type `/' followed by one of `a' to
 
 (declare-function dos-8+3-filename "dos-fns.el" (filename))
 
-(defun miscdic-convert (filename &optional dirname)
+(define-obsolete-function-alias 'miscdic-convert #'tit-miscdic-convert "30.1")
+(defun tit-miscdic-convert (filename &optional dirname)
   "Convert a dictionary file FILENAME into a Quail package.
 Optional argument DIRNAME if specified is the directory name under which
 the generated Quail package is saved."
   (interactive "FInput method dictionary file: ")
   (or (file-readable-p filename)
       (error "%s does not exist" filename))
-  (let ((tail quail-misc-package-ext-info)
+  (let ((tail tit-quail-misc-package-ext-info)
 	coding-system-for-write
 	slot
 	name title dicfile coding quailfile converter copyright)
@@ -1137,7 +1156,7 @@ the generated Quail package is saved."
 	;; Explicitly set eol format to `unix'.
 	(setq coding-system-for-write 'utf-8-unix)
 	(with-temp-file (expand-file-name quailfile dirname)
-          (generate-lisp-file-heading quailfile 'miscdic-convert)
+          (generate-lisp-file-heading quailfile 'tit-miscdic-convert)
 	  (insert (format-message ";; Quail package `%s'\n" name))
 	  (insert ";;   Source dictionary file: " dicfile "\n")
 	  (insert ";;   Copyright notice of the source file\n")
@@ -1164,15 +1183,17 @@ the generated Quail package is saved."
            quailfile :inhibit-provide t :compile t :coding nil)))
       (setq tail (cdr tail)))))
 
-(defun batch-miscdic-convert ()
-  "Run `miscdic-convert' on the files remaining on the command line.
+;; Used in `Makefile.in'.
+(define-obsolete-function-alias 'batch-miscdic-convert #'batch-tit-miscdic-convert "30.1")
+(defun batch-tit-miscdic-convert ()
+  "Run `tit-miscdic-convert' on the files remaining on the command line.
 Use this from the command line, with `-batch';
 it won't work in an interactive Emacs.
 If there's an argument \"-dir\", the next argument specifies a directory
 to store generated Quail packages."
   (defvar command-line-args-left)	; Avoid compiler warning.
   (if (not noninteractive)
-      (error "`batch-miscdic-convert' should be used only with -batch"))
+      (error "`batch-tit-miscdic-convert' should be used only with -batch"))
   (let ((dir default-directory)
 	filename)
     (while command-line-args-left
@@ -1186,11 +1207,13 @@ to store generated Quail packages."
       (if (file-directory-p filename)
 	  (dolist (file (directory-files filename t nil t))
 	    (or (file-directory-p file)
-		(miscdic-convert file dir)))
-	(miscdic-convert filename dir))))
+		(tit-miscdic-convert file dir)))
+	(tit-miscdic-convert filename dir))))
   (kill-emacs 0))
 
-(defun pinyin-convert ()
+;; Used in `Makefile.in'.
+(define-obsolete-function-alias 'pinyin-convert #'tit-pinyin-convert "30.1")
+(defun tit-pinyin-convert ()
   "Convert text file pinyin.map into an elisp library.
 The library is named pinyin.el, and contains the constant
 `pinyin-character-map'."

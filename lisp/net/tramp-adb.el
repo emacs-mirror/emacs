@@ -263,9 +263,10 @@ arguments to pass to the OPERATION."
     (tramp-convert-file-attributes v localname id-format
       (and
        (tramp-adb-send-command-and-check
-	v (format "%s -d -l %s | cat"
+	v (format "(%s -d -l %s; echo tramp_exit_status $?) | cat"
 		  (tramp-adb-get-ls-command v)
-		  (tramp-shell-quote-argument localname)))
+		  (tramp-shell-quote-argument localname))
+        nil t)
        (with-current-buffer (tramp-get-buffer v)
 	 (tramp-adb-sh-fix-ls-output)
 	 (cdar (tramp-do-parse-file-attributes-with-ls v)))))))
@@ -316,9 +317,10 @@ arguments to pass to the OPERATION."
       directory full match nosort id-format count
     (with-current-buffer (tramp-get-buffer v)
       (when (tramp-adb-send-command-and-check
-	     v (format "%s -a -l %s | cat"
+	     v (format "(%s -a -l %s; echo tramp_exit_status $?) | cat"
 		       (tramp-adb-get-ls-command v)
-		       (tramp-shell-quote-argument localname)))
+		       (tramp-shell-quote-argument localname))
+             nil t)
 	;; We insert also filename/. and filename/.., because "ls"
 	;; doesn't on some file systems, like "sdcard".
 	(unless (search-backward-regexp (rx "." eol) nil t)
@@ -440,10 +442,12 @@ Emacs dired can't find files."
      filename
      (with-parsed-tramp-file-name (expand-file-name directory) nil
        (with-tramp-file-property v localname "file-name-all-completions"
-	 (tramp-adb-send-command
-	  v (format "%s -a %s | cat"
-		    (tramp-adb-get-ls-command v)
-		    (tramp-shell-quote-argument localname)))
+	 (unless (tramp-adb-send-command-and-check
+		  v (format "(%s -a %s; echo tramp_exit_status $?) | cat"
+			    (tramp-adb-get-ls-command v)
+			    (tramp-shell-quote-argument localname))
+                  nil t)
+	   (erase-buffer))
 	 (mapcar
 	  (lambda (f)
 	    (if (file-directory-p (expand-file-name f directory))
@@ -504,12 +508,11 @@ Emacs dired can't find files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
-	  ;; Examine `file-attributes' cache to see if request can be
-	  ;; satisfied without remote operation.
-	  (if (tramp-file-property-p v localname "file-attributes")
-	      (tramp-check-cached-permissions v ?w)
-	    (tramp-adb-send-command-and-check
-	     v (format "test -w %s" (tramp-shell-quote-argument localname))))
+          ;; The file-attributes cache is unreliable since its
+          ;; information does not take partition writability into
+          ;; account, so a call to test must never be skipped.
+	  (tramp-adb-send-command-and-check
+	   v (format "test -w %s" (tramp-shell-quote-argument localname)))
 	;; If file doesn't exist, check if directory is writable.
 	(and
 	 (file-directory-p (file-name-directory filename))
@@ -1142,17 +1145,23 @@ error and non-nil on success."
 	  (while (search-forward-regexp (rx (+ "\r") eol) nil t)
 	    (replace-match "" nil nil)))))))
 
-(defun tramp-adb-send-command-and-check (vec command &optional exit-status)
+(defun tramp-adb-send-command-and-check
+    (vec command &optional exit-status command-augmented-p)
   "Run COMMAND and check its exit status.
 Sends `echo $?' along with the COMMAND for checking the exit
 status.  If COMMAND is nil, just sends `echo $?'.  Returns nil if
 the exit status is not equal 0, and t otherwise.
 
+If COMMAND-AUGMENTED-P, COMMAND is already configured to print exit
+status upon completion and need not be modified.
+
 Optional argument EXIT-STATUS, if non-nil, triggers the return of
 the exit status."
   (tramp-adb-send-command
    vec (if command
-	   (format "%s; echo tramp_exit_status $?" command)
+	   (if command-augmented-p
+               command
+             (format "%s; echo tramp_exit_status $?" command))
 	 "echo tramp_exit_status $?"))
   (with-current-buffer (tramp-get-connection-buffer vec)
     (unless (tramp-search-regexp (rx "tramp_exit_status " (+ digit)))
@@ -1230,7 +1239,7 @@ connection if a previous connection has died for some reason."
 	    (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?
 		   (process-connection-type tramp-process-connection-type)
 		   (args (tramp-expand-args
-			  vec 'tramp-login-args ?d (or device "")))
+			  vec 'tramp-login-args nil ?d (or device "")))
 		   (p (let ((default-directory
 			     tramp-compat-temporary-file-directory))
 			(apply
@@ -1257,7 +1266,7 @@ connection if a previous connection has died for some reason."
 	      (tramp-set-connection-property
 	       p "prompt" (rx "///" (literal prompt) "#$"))
 	      (tramp-adb-send-command
-	       vec (format "PS1=\"///\"\"%s\"\"#$\"" prompt))
+	       vec (format "PS1=\"///\"\"%s\"\"#$\" PS2=''" prompt))
 
 	      ;; Disable line editing.
 	      (tramp-adb-send-command

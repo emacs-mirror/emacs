@@ -18,6 +18,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+(require 'erc-compat)
 
 (require 'ert-x) ; cl-lib
 (eval-and-compile

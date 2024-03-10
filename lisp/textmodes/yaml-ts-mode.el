@@ -169,6 +169,8 @@ boundaries.  JUSTIFY is passed to `fill-paragraph'."
 
     (treesit-major-mode-setup)))
 
+(derived-mode-add-parents 'yaml-ts-mode '(yaml-mode))
+
 (if (treesit-ready-p 'yaml)
     (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode)))
 

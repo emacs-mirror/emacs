@@ -3488,7 +3488,7 @@ functions to do caching and flushing if appropriate."
 
     nil
 
-(eval-when-compile (condition-case nil (require 'imenu) (error nil)))
+(eval-when-compile (require 'imenu))
 (declare-function imenu--make-index-alist "imenu" (&optional no-error))
 
 (defun speedbar-fetch-dynamic-imenu (file)

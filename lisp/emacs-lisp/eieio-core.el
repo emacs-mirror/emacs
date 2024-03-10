@@ -191,7 +191,7 @@ Abstract classes cannot be instantiated."
 
 ;; We autoload this because it's used in `make-autoload'.
 ;;;###autoload
-(defun eieio-defclass-autoload (cname _superclasses filename doc)
+(defun eieio-defclass-autoload (cname superclasses filename doc)
   "Create autoload symbols for the EIEIO class CNAME.
 SUPERCLASSES are the superclasses that CNAME inherits from.
 DOC is the docstring for CNAME.
@@ -199,15 +199,9 @@ This function creates a mock-class for CNAME and adds it into
 SUPERCLASSES as children.
 It creates an autoload function for CNAME's constructor."
   ;; Assume we've already debugged inputs.
-
-  ;; We used to store the list of superclasses in the `parent' slot (as a list
-  ;; of class names).  But now this slot holds a list of class objects, and
-  ;; those parents may not exist yet, so the corresponding class objects may
-  ;; simply not exist yet.  So instead we just don't store the list of parents
-  ;; here in eieio-defclass-autoload at all, since it seems that they're just
-  ;; not needed before the class is actually loaded.
   (let* ((oldc (cl--find-class cname))
-	 (newc (eieio--class-make cname)))
+	 (newc (eieio--class-make cname))
+	 (parents (mapcar #'cl-find-class superclasses)))
     (if (eieio--class-p oldc)
 	nil ;; Do nothing if we already have this class.
 
@@ -218,6 +212,12 @@ It creates an autoload function for CNAME's constructor."
 use '%s or turn off `eieio-backward-compatibility' instead" cname)
                                 "25.1"))
 
+      (when (memq nil parents)
+        ;; If some parents aren't yet fully defined, just ignore them for now.
+        (setq parents (delq nil parents)))
+      (unless parents
+       (setq parents (list (cl--find-class 'eieio-default-superclass))))
+      (setf (cl--class-parents newc) parents)
       (setf (cl--find-class cname) newc)
 
       ;; Create an autoload on top of our constructor function.
@@ -293,8 +293,7 @@ See `defclass' for more information."
                    ;; reloading the file that does the `defclass', we don't
                    ;; want to create a new class object.
                    (eieio--class-make cname)))
-	 (groups nil) ;; list of groups id'd from slots
-	 (clearparent nil))
+	 (groups nil)) ;; list of groups id'd from slots
 
     ;; If this class already existed, and we are updating its structure,
     ;; make sure we keep the old child list.  This can cause bugs, but
@@ -317,6 +316,9 @@ See `defclass' for more information."
           (setf (eieio--class-children newc) children)
 	  (remhash cname eieio-defclass-autoload-map))))
 
+    (unless (or superclasses (eq cname 'eieio-default-superclass))
+      (setq superclasses '(eieio-default-superclass)))
+
     (if superclasses
 	(progn
 	  (dolist (p superclasses)
@@ -336,16 +338,13 @@ See `defclass' for more information."
                   (push c (eieio--class-parents newc))))))
 	  ;; Reverse the list of our parents so that they are prioritized in
 	  ;; the same order as specified in the code.
-	  (cl-callf nreverse (eieio--class-parents newc)))
-      ;; If there is nothing to loop over, then inherit from the
-      ;; default superclass.
-      (unless (eq cname 'eieio-default-superclass)
-	;; adopt the default parent here, but clear it later...
-	(setq clearparent t)
-        ;; save new child in parent
-        (cl-pushnew cname (eieio--class-children eieio-default-superclass))
-        ;; save parent in child
-        (setf (eieio--class-parents newc) (list eieio-default-superclass))))
+	  (cl-callf nreverse (eieio--class-parents newc))
+	  ;; Before adding new slots, let's add all the methods and classes
+	  ;; in from the parent class.
+	  (eieio-copy-parents-into-subclass newc))
+
+      (cl-assert (eq cname 'eieio-default-superclass))
+      (setf (eieio--class-parents newc) (list (cl--find-class 'record))))
 
     ;; turn this into a usable self-pointing symbol;  FIXME: Why?
     (when eieio-backward-compatibility
@@ -375,10 +374,6 @@ See `defclass' for more information."
                              "use (cl-typep ... '(list-of %s)) instead"
                              cname)
                        "25.1")))
-
-    ;; Before adding new slots, let's add all the methods and classes
-    ;; in from the parent class.
-    (eieio-copy-parents-into-subclass newc)
 
     ;; Store the new class vector definition into the symbol.  We need to
     ;; do this first so that we can call defmethod for the accessor.
@@ -511,10 +506,6 @@ See `defclass' for more information."
 
     ;; Set up the options we have collected.
     (setf (eieio--class-options newc) options)
-
-    ;; if this is a superclass, clear out parent (which was set to the
-    ;; default superclass eieio-default-superclass)
-    (if clearparent (setf (eieio--class-parents newc) nil))
 
     ;; Create the cached default object.
     (let ((cache (make-record newc
@@ -967,19 +958,13 @@ need be... May remove that later...)"
 	(cdr tuple)
       nil)))
 
-(defsubst eieio--class/struct-parents (class)
-  (or (eieio--class-parents class)
-      `(,eieio-default-superclass)))
-
 (defun eieio--class-precedence-c3 (class)
   "Return all parents of CLASS in c3 order."
-  (let ((parents (eieio--class-parents class)))
+  (let ((parents (cl--class-parents class)))
     (cons class
           (merge-ordered-lists
            (append
-            (or
-             (mapcar #'eieio--class-precedence-c3 parents)
-             `((,eieio-default-superclass)))
+            (mapcar #'eieio--class-precedence-c3 parents)
             (list parents))
            (lambda (remaining-inputs)
             (signal 'inconsistent-class-hierarchy
@@ -989,17 +974,15 @@ need be... May remove that later...)"
 
 (defun eieio--class-precedence-dfs (class)
   "Return all parents of CLASS in depth-first order."
-  (let* ((parents (eieio--class-parents class))
+  (let* ((parents (cl--class-parents class))
 	 (classes (copy-sequence
 		   (apply #'append
 			  (list class)
-			  (or
-			   (mapcar
-			    (lambda (parent)
-			      (cons parent
-				    (eieio--class-precedence-dfs parent)))
-			    parents)
-			   `((,eieio-default-superclass))))))
+			  (mapcar
+			   (lambda (parent)
+			     (cons parent
+				   (eieio--class-precedence-dfs parent)))
+			   parents))))
 	 (tail classes))
     ;; Remove duplicates.
     (while tail
@@ -1012,13 +995,12 @@ need be... May remove that later...)"
 (defun eieio--class-precedence-bfs (class)
   "Return all parents of CLASS in breadth-first order."
   (let* ((result)
-         (queue (eieio--class/struct-parents class)))
+         (queue (cl--class-parents class)))
     (while queue
       (let ((head (pop queue)))
 	(unless (member head result)
 	  (push head result)
-	  (unless (eq head eieio-default-superclass)
-	    (setq queue (append queue (eieio--class/struct-parents head)))))))
+	  (setq queue (append queue (cl--class-parents head))))))
     (cons class (nreverse result)))
   )
 
@@ -1058,6 +1040,14 @@ method invocation orders of the involved classes."
 
 ;;;; General support to dispatch based on the type of the argument.
 
+;; FIXME: We could almost use the typeof-generalizer (i.e. the same as
+;; used for cl-structs), except that that generalizer doesn't support
+;; `:method-invocation-order' :-(
+
+(defun cl--generic-struct-tag (name &rest _)
+  ;; Use exactly the same code as for `typeof'.
+  `(if ,name (type-of ,name) 'null))
+
 (cl-generic-define-generalizer eieio--generic-generalizer
   ;; Use the exact same tagcode as for cl-struct, so that methods
   ;; that dispatch on both kinds of objects get to share this
@@ -1066,8 +1056,7 @@ method invocation orders of the involved classes."
   (lambda (tag &rest _)
     (let ((class (cl--find-class tag)))
       (and (eieio--class-p class)
-           (mapcar #'eieio--class-name
-                   (eieio--class-precedence-list class))))))
+           (cl--class-allparents class)))))
 
 (cl-defmethod cl-generic-generalizers :extra "class" (specializer)
   "Support for dispatch on types defined by EIEIO's `defclass'."
@@ -1089,10 +1078,11 @@ method invocation orders of the involved classes."
 ;; Instead, we add a new "subclass" specializer.
 
 (defun eieio--generic-subclass-specializers (tag &rest _)
-  (when (eieio--class-p tag)
-    (mapcar (lambda (class)
-              `(subclass ,(eieio--class-name class)))
-            (eieio--class-precedence-list tag))))
+  (when (cl--class-p tag)
+    (when (eieio--class-p tag)
+      (setq tag (eieio--full-class-object tag))) ;Autoload, if applicable.
+    (mapcar (lambda (class) `(subclass ,class))
+            (cl--class-allparents tag))))
 
 (cl-generic-define-generalizer eieio--generic-subclass-generalizer
   60 (lambda (name &rest _) `(and (symbolp ,name) (cl--find-class ,name)))

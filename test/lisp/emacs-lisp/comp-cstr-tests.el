@@ -169,7 +169,7 @@ The arg is an alist of: type specifier -> expected type specifier."
   ((and symbol (not symbol)) . nil)
   ;; 61
   ((and atom (not symbol)) . atom)
-  ;; 62
+  ;; 62 Conservative FIXME
   ((and atom (not string)) . (or array sequence atom))
   ;; 63 Conservative
   ((and symbol (not (member foo))) . symbol)

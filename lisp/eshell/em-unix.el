@@ -618,11 +618,11 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
      :preserve-args
      :external "ln"
      :show-usage
-     :usage "[OPTION]... TARGET [LINK_NAME]
+     :usage "[OPTION]... TARGET LINK_NAME
    or: ln [OPTION]... TARGET... DIRECTORY
-Create a link to the specified TARGET with optional LINK_NAME.  If there is
-more than one TARGET, the last argument must be a directory;  create links
-in DIRECTORY to each TARGET.  Create hard links by default, symbolic links
+Create a link to the specified TARGET with LINK_NAME.  If there is more
+than one TARGET, the last argument must be a directory;  create links in
+DIRECTORY to each TARGET.  Create hard links by default, symbolic links
 with `--symbolic'.  When creating hard links, each TARGET must exist.")
    (let ((no-dereference t))
      (eshell-mvcpln-template "ln" "linking"

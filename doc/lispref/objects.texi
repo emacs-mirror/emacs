@@ -60,6 +60,7 @@ to use these types can be found in later chapters.
 * Type Predicates::             Tests related to types.
 * Equality Predicates::         Tests of equality between any two objects.
 * Mutability::                  Some objects should not be modified.
+* Type Hierarchy::              Type Hierarchy of Emacs Lisp objects.
 @end menu
 
 @node Printed Representation
@@ -2121,6 +2122,9 @@ with references to further information.
 @item numberp
 @xref{Predicates on Numbers, numberp}.
 
+@item obarrayp
+@xref{Creating Symbols, obarrayp}.
+
 @item overlayp
 @xref{Overlays, overlayp}.
 
@@ -2181,7 +2185,7 @@ This function returns a symbol naming the primitive type of
 @code{condition-variable}, @code{cons}, @code{finalizer},
 @code{float}, @code{font-entity}, @code{font-object},
 @code{font-spec}, @code{frame}, @code{hash-table}, @code{integer},
-@code{marker}, @code{mutex}, @code{overlay}, @code{process},
+@code{marker}, @code{mutex}, @code{obarray}, @code{overlay}, @code{process},
 @code{string}, @code{subr}, @code{symbol}, @code{thread},
 @code{vector}, @code{window}, or @code{window-configuration}.
 However, if @var{object} is a record, the type specified by its first
@@ -2493,3 +2497,26 @@ their components.  For example, @code{(eq "abc" "abc")} returns
 literal @code{"abc"}, and returns @code{nil} if it creates two
 instances.  Lisp programs should be written so that they work
 regardless of whether this optimization is in use.
+
+@node Type Hierarchy
+@section Type Hierarchy of Emacs Lisp Objects
+
+Lisp object types are organized in a hierarchy, which means that types
+can derive from other types.  Objects of type B (which derives from type
+A) inherit all the characteristics of type A@.  This also means that
+every object of type B is at the same time an object of type A from
+which it derives.
+
+Every type derives from type @code{t}.
+
+New types can be defined by the user through @code{defclass} or
+@code{cl-defstruct}.
+
+The Lisp Type Hierarchy for primitive types can be represented as
+follows:
+
+@noindent
+@image{elisp_type_hierarchy,,,,.jpg}
+
+For example type @code{list} derives from (is a special kind of) type
+@code{sequence} which itself derives from @code{t}.

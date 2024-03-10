@@ -1411,9 +1411,16 @@ This prompts for a branch to merge from."
     (vc-message-unresolved-conflicts buffer-file-name)))
 
 (defun vc-git-clone (remote directory rev)
-  (if rev
-      (vc-git--out-ok "clone" "--branch" rev remote directory)
+  "Attempt to clone REMOTE repository into DIRECTORY at revision REV."
+  (cond
+   ((null rev)
     (vc-git--out-ok "clone" remote directory))
+   ((ignore-errors
+      (vc-git--out-ok "clone" "--branch" rev remote directory)))
+   ((vc-git--out-ok "clone" remote directory)
+    (let ((default-directory directory))
+      (vc-git--out-ok "checkout" rev)))
+   ((error "Failed to check out %s at %s" remote rev)))
   directory)
 
 ;;; HISTORY FUNCTIONS

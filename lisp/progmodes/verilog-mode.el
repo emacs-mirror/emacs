@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2023.06.06.141322628
+;; Version: 2024.03.01.121933719
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2023-06-06-86c6984-vpo-GNU"
+(defconst verilog-mode-version "2024-03-01-7448f97-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -2556,11 +2556,13 @@ find the errors."
 (defconst verilog-assignment-operation-re-2
   (concat "\\(.*?\\)" verilog-assignment-operator-re))
 
+;; Loosely related to IEEE 1800's concurrent_assertion_statement
+(defconst verilog-concurrent-assertion-statement-re
+  "\\(\\<\\(assert\\|assume\\|cover\\|restrict\\)\\>\\s-+\\<\\(property\\|sequence\\)\\>\\)\\|\\(\\<assert\\>\\)")
+
 (defconst verilog-label-re (concat verilog-identifier-sym-re "\\s-*:\\s-*"))
 (defconst verilog-property-re
-  (concat "\\(" verilog-label-re "\\)?"
-          ;; "\\(assert\\|assume\\|cover\\)\\s-+property\\>"
-	  "\\(\\(assert\\|assume\\|cover\\)\\>\\s-+\\<property\\>\\)\\|\\(assert\\)"))
+  (concat "\\(" verilog-label-re "\\)?" verilog-concurrent-assertion-statement-re))
 
 (defconst verilog-no-indent-begin-re
   (eval-when-compile
@@ -2715,7 +2717,6 @@ find the errors."
    "\\(\\<fork\\>\\)\\|"			 ; 7
    "\\(\\<if\\>\\)\\|"
    verilog-property-re "\\|"
-   "\\(\\(" verilog-label-re "\\)?\\<assert\\>\\)\\|"
    "\\(\\<clocking\\>\\)\\|"
    "\\(\\<task\\>\\)\\|"
    "\\(\\<function\\>\\)\\|"
@@ -4843,7 +4844,7 @@ Uses `verilog-scan' cache."
 	      (not (or (looking-at "\\<") (forward-word-strictly -1)))
 	      ;; stop if we see an assertion (perhaps labeled)
 	      (and
-	       (looking-at "\\(\\w+\\W*:\\W*\\)?\\(\\<\\(assert\\|assume\\|cover\\)\\>\\s-+\\<property\\>\\)\\|\\(\\<assert\\>\\)")
+	       (looking-at (concat "\\(\\w+\\W*:\\W*\\)?" verilog-concurrent-assertion-statement-re))
 	       (progn
 		 (setq h (point))
 		 (save-excursion
@@ -4970,7 +4971,7 @@ More specifically, point @ in the line foo : @ begin"
 	    (while t
 	      (verilog-re-search-backward
               (concat "\\(\\<module\\>\\)\\|\\(\\<connectmodule\\>\\)\\|\\(\\<randcase\\>\\|\\<case[xz]?\\>[^:]\\)\\|"
-		       "\\(\\<endcase\\>\\)\\>")
+		       "\\(\\<endcase\\>\\)")
 	       nil 'move)
 	      (cond
               ((match-end 4)
@@ -5010,7 +5011,7 @@ More specifically, after a generate and before an endgenerate."
 	(while (and
 		(/= nest 0)
 		(verilog-re-search-backward
-                 "\\<\\(module\\)\\|\\(connectmodule\\)\\|\\(endmodule\\)\\|\\(generate\\)\\|\\(endgenerate\\)\\|\\(if\\)\\|\\(case\\)\\|\\(for\\)\\>" nil 'move)
+                 "\\<\\(?:\\(module\\)\\|\\(connectmodule\\)\\|\\(endmodule\\)\\|\\(generate\\)\\|\\(endgenerate\\)\\|\\(if\\)\\|\\(case\\)\\|\\(for\\)\\)\\>" nil 'move)
 		(cond
 		 ((match-end 1) ; module - we have crawled out
 		  (throw 'done 1))
@@ -5038,7 +5039,7 @@ More specifically, after a generate and before an endgenerate."
     (save-excursion
       (while (and
 	      (/= nest 0)
-	      (verilog-re-search-backward "\\<\\(fork\\)\\|\\(join\\(_any\\|_none\\)?\\)\\>" lim 'move)
+	      (verilog-re-search-backward "\\<\\(?:\\(fork\\)\\|\\(join\\(_any\\|_none\\)?\\)\\)\\>" lim 'move)
 	      (cond
 	       ((match-end 1) ; fork
 		(setq nest (1- nest)))
@@ -5335,7 +5336,7 @@ primitive or interface named NAME."
                                 (match-end 3)
                                 (goto-char there)
                                 (let ((nest 0)
-                                      (reg "\\(\\<begin\\>\\)\\|\\(\\<end\\>\\)\\|\\(\\<if\\>\\)\\|\\(assert\\)"))
+                                      (reg "\\(\\<begin\\>\\)\\|\\(\\<end\\>\\)\\|\\(\\<if\\>\\)\\|\\(\\<assert\\>\\)"))
                                   (catch 'skip
                                     (while (verilog-re-search-backward reg nil 'move)
                                       (cond
@@ -6244,7 +6245,7 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
                   (match-end 22))
               (throw 'continue 'foo))
 
-             ((looking-at "\\<class\\|struct\\|function\\|task\\>")
+             ((looking-at "\\<\\(?:class\\|struct\\|function\\|task\\)\\>")
               ;; *sigh* These words have an optional prefix:
               ;; extern {virtual|protected}? function a();
               ;; and we don't want to confuse this with
@@ -6268,12 +6269,16 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
                 (throw 'nesting 'defun))))
 
              ;;
-             ((looking-at "\\<property\\>")
+             ((looking-at "\\<\\(property\\|sequence\\)\\>")
               ;; *sigh*
-              ;;    {assert|assume|cover} property (); are complete
-              ;;   and could also be labeled: - foo: assert property
-              ;; but
-              ;;    property ID () ... needs endproperty
+              ;;    - {assert|assume|cover|restrict} property (); are complete
+              ;;    - cover sequence (); is complete
+              ;; and could also be labeled:
+              ;;    - foo: assert property
+              ;;    - bar: cover sequence
+              ;; but:
+              ;;    - property ID () ... needs endproperty
+              ;;    - sequence ID () ... needs endsequence
               (verilog-beg-of-statement)
               (if (looking-at verilog-property-re)
                   (throw 'continue 'statement) ; We don't need an endproperty for these
@@ -6940,7 +6945,7 @@ Also move point to constraint."
         (let ( (pt (point)) (pass 0))
           (verilog-backward-ws&directives)
           (verilog-backward-token)
-          (if (looking-at (concat "\\<constraint\\|coverpoint\\|cross\\|with\\>\\|" verilog-in-constraint-re))
+          (if (looking-at (concat "\\<\\(?:constraint\\|coverpoint\\|cross\\|with\\)\\>\\|" verilog-in-constraint-re))
               (progn (setq pass 1)
                      (if (looking-at "\\<with\\>")
                          (progn (verilog-backward-ws&directives)
@@ -6981,7 +6986,7 @@ Also move point to constraint."
   (save-excursion
     (if (and (equal (char-after) ?\{)
              (verilog-backward-token))
-        (looking-at "\\<struct\\|union\\|packed\\|\\(un\\)?signed\\>")
+        (looking-at "\\<\\(?:struct\\|union\\|packed\\|\\(un\\)?signed\\)\\>")
       nil)))
 
 (defun verilog-at-struct-mv-p ()
@@ -6989,7 +6994,7 @@ Also move point to constraint."
   (let ((pt (point)))
     (if (and (equal (char-after) ?\{)
              (verilog-backward-token))
-        (if (looking-at "\\<struct\\|union\\|packed\\|\\(un\\)?signed\\>")
+        (if (looking-at "\\<\\(?:struct\\|union\\|packed\\|\\(un\\)?signed\\)\\>")
             (progn (verilog-beg-of-statement) (point))
           (progn (goto-char pt) nil))
       (progn (goto-char pt) nil))))
@@ -9675,7 +9680,7 @@ Return an array of [outputs inouts inputs wire reg assign const gparam intf]."
   (cond
    ;; {..., a, b} requires us to recurse on a,b
    ;; To support {#{},{#{a,b}} we'll just split everything on [{},]
-   ((string-match "^\\s-*{\\(.*\\)}\\s-*$" expr)
+   ((string-match "^\\s-*'?{\\(.*\\)}\\s-*$" expr)
     (let ((mlst (split-string (match-string 1 expr) "[{},]"))
           mstr)
       (while (setq mstr (pop mlst))
@@ -9755,7 +9760,10 @@ Inserts the list of signals found, using submodi to look up each port."
 	;; We intentionally ignore (non-escaped) signals with .s in them
 	;; this prevents AUTOWIRE etc from noticing hierarchical sigs.
 	(when port
-          (cond ((looking-at "[^\n]*AUTONOHOOKUP"))
+          (cond ((and verilog-auto-ignore-concat
+                      (looking-at "[({]"))
+                 nil) ; {...} or (...) historically ignored with auto-ignore-concat
+                ((looking-at "[^\n]*AUTONOHOOKUP"))
                 ((looking-at "\\([a-zA-Z_][a-zA-Z_0-9]*\\)\\s-*)")
 		 (verilog-read-sub-decls-sig
                   submoddecls par-values comment port
@@ -11436,7 +11444,7 @@ This repairs those mis-inserted by an AUTOARG."
           (while (string-match
                   (concat "\\([[({:*/<>+-]\\)"  ; - must be last
                           "(\\<\\([0-9A-Za-z_]+\\))"
-                          "\\([])}:*/<>+-]\\)")
+                          "\\([])}:*/<>.+-]\\)")
                   out)
             (setq out (replace-match "\\1\\2\\3" nil nil out)))
           (while (string-match
@@ -11531,7 +11539,8 @@ This repairs those mis-inserted by an AUTOARG."
 ;;(verilog-simplify-range-expression "[(TEST[1])-1:0]")
 ;;(verilog-simplify-range-expression "[1<<2:8>>2]")  ; [4:2]
 ;;(verilog-simplify-range-expression "[2*4/(4-2) +2+4 <<4 >>2]")
-;;(verilog-simplify-range-expression "[WIDTH*2/8-1:0]")
+;;(verilog-simplify-range-expression "[WIDTH*2/8-1:0]")  ; "[WIDTH*2/8-1:0]"
+;;(verilog-simplify-range-expression "[(FOO).size:0]")  ; "[FOO.size:0]"
 
 (defun verilog-clog2 (value)
   "Compute $clog2 - ceiling log2 of VALUE."
@@ -12247,18 +12256,12 @@ If PAR-VALUES replace final strings with these parameter values."
 	 (vl-memory (verilog-sig-memory port-st))
 	 (vl-mbits (if (verilog-sig-multidim port-st)
                        (verilog-sig-multidim-string port-st) ""))
-         (vl-bits (if (or (eq verilog-auto-inst-vector t)
-                          (and (eq verilog-auto-inst-vector `unsigned)
-                               (not (verilog-sig-signed port-st)))
-			  (not (assoc port (verilog-decls-get-signals moddecls)))
-			  (not (equal (verilog-sig-bits port-st)
-				      (verilog-sig-bits
-				       (assoc port (verilog-decls-get-signals moddecls))))))
-		      (or (verilog-sig-bits port-st) "")
-		    ""))
+         (vl-bits (or (verilog-sig-bits port-st) ""))
 	 (case-fold-search nil)
 	 (check-values par-values)
-	 tpl-net dflt-bits)
+         auto-inst-vector
+         auto-inst-vector-tpl
+         tpl-net dflt-bits)
     ;; Replace parameters in bit-width
     (when (and check-values
 	       (not (equal vl-bits "")))
@@ -12281,6 +12284,16 @@ If PAR-VALUES replace final strings with these parameter values."
 	    vl-mbits (verilog-simplify-range-expression vl-mbits)
 	    vl-memory (when vl-memory (verilog-simplify-range-expression vl-memory))
 	    vl-width (verilog-make-width-expression vl-bits))) ; Not in the loop for speed
+    (setq auto-inst-vector
+          (if (or (eq verilog-auto-inst-vector t)
+                  (and (eq verilog-auto-inst-vector `unsigned)
+                       (not (verilog-sig-signed port-st)))
+                  (not (assoc port (verilog-decls-get-signals moddecls)))
+                  (not (equal (verilog-sig-bits port-st)
+                              (verilog-sig-bits
+                               (assoc port (verilog-decls-get-signals moddecls))))))
+              vl-bits
+            ""))
     ;; Default net value if not found
     (setq dflt-bits (if (or (and (verilog-sig-bits port-st)
                                  (verilog-sig-multidim port-st))
@@ -12290,7 +12303,7 @@ If PAR-VALUES replace final strings with these parameter values."
                                 (if vl-memory "." "")
                                 (if vl-memory vl-memory "")
                                 "*/")
-		      (concat vl-bits))
+                      (concat auto-inst-vector))
 	  tpl-net (concat port
 			  (if (and vl-modport
 				   ;; .modport cannot be added if attachment is
@@ -12329,10 +12342,21 @@ If PAR-VALUES replace final strings with these parameter values."
 		     (if (numberp value) (setq value (number-to-string value)))
 		     value))
 		 (substring tpl-net (match-end 0))))))
+      ;; Get range based off template net
+      (setq auto-inst-vector-tpl
+            (if (or (eq verilog-auto-inst-vector t)
+                    (and (eq verilog-auto-inst-vector `unsigned)
+                         (not (verilog-sig-signed port-st)))
+                    (not (assoc tpl-net (verilog-decls-get-signals moddecls)))
+                    (not (equal (verilog-sig-bits port-st)
+                                (verilog-sig-bits
+                                 (assoc tpl-net (verilog-decls-get-signals moddecls))))))
+                vl-bits
+              ""))
       ;; Replace @ and [] magic variables in final output
       (setq tpl-net (verilog-string-replace-matches "@" tpl-num nil nil tpl-net))
       (setq tpl-net (verilog-string-replace-matches "\\[\\]\\[\\]" dflt-bits nil nil tpl-net))
-      (setq tpl-net (verilog-string-replace-matches "\\[\\]" vl-bits nil nil tpl-net)))
+      (setq tpl-net (verilog-string-replace-matches "\\[\\]" auto-inst-vector-tpl nil nil tpl-net)))
     ;; Insert it
     (when (or tpl-ass (not verilog-auto-inst-template-required))
       (verilog--auto-inst-first indent-pt section)
@@ -12502,7 +12526,7 @@ Typing \\[verilog-auto] will make this into:
         endmodule
 
 Where the list of inputs and outputs came from the inst module.
-
+
 Exceptions:
 
   Unless you are instantiating a module multiple times, or the module is
@@ -12527,7 +12551,7 @@ Exceptions:
            // Outputs
            .o           (o[31:0]));
 
-
+
 Templates:
 
   For multiple instantiations based upon a single template, create a
@@ -12598,7 +12622,7 @@ Templates:
             .ptl_bus            (ptl_busnew[3:0]),
             ....
 
-
+
 Multiple Module Templates:
 
   The same template lines can be applied to multiple modules with
@@ -12613,7 +12637,7 @@ Multiple Module Templates:
         */
 
   Note there is only one AUTO_TEMPLATE opening parenthesis.
-
+
 @ Templates:
 
   It is common to instantiate a cell multiple times, so templates make it
@@ -12678,7 +12702,7 @@ Multiple Module Templates:
             .ptl_mapvalidx              (BAR_ptl_mapvalid),
             .ptl_mapvalidp1x            (ptl_mapvalid_BAR));
 
-
+
 Regexp Templates:
 
   A template entry of the form
@@ -12702,7 +12726,7 @@ Regexp Templates:
   subscript:
 
             .\\(.*\\)_l         (\\1_[]),
-
+
 Lisp Templates:
 
   First any regular expression template is expanded.
@@ -12747,7 +12771,7 @@ Lisp Templates:
   After the evaluation is completed, @ substitution and [] substitution
   occur.
 
-
+
 Ignoring Hookup:
 
   AUTOWIRE and related AUTOs will read the signals created by a template.
@@ -12756,7 +12780,7 @@ Ignoring Hookup:
 
             .pci_req_l  (pci_req_not_to_wire),  //AUTONOHOOKUP
 
-
+
 For more information see the \\[verilog-faq] and forums at URL
 `https://www.veripool.org'."
   (save-excursion
@@ -12910,7 +12934,7 @@ Typing \\[verilog-auto] will make this into:
         endmodule
 
 Where the list of parameter connections come from the inst module.
-
+
 Templates:
 
   You can customize the parameter connections using AUTO_TEMPLATEs,

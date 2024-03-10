@@ -1024,7 +1024,7 @@ AC_DEFUN([gl_INIT],
   if test $ac_use_included_regex = yes; then
     func_gl_gnulib_m4code_fd38c7e463b54744b77b98aeafb4fa7c
   fi
-  if { test $HAVE_DECL_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; } && test $ac_cv_type_long_long_int = yes; then
+  if test $HAVE_DECL_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
     func_gl_gnulib_m4code_strtoll
   fi
   if test $HAVE_TIMEGM = 0 || test $REPLACE_TIMEGM = 1; then
@@ -1422,6 +1422,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdlib.in.h
   lib/stpcpy.c
   lib/str-two-way.h
+  lib/strftime.c
   lib/strftime.h
   lib/string.in.h
   lib/strnlen.c

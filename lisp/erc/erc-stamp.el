@@ -828,6 +828,7 @@ left-sided stamps and date stamps inserted by this function."
 ;; perform day alignments via this function only when needed.
 (defun erc-stamp--time-as-day (current-time)
   "Discard hour, minute, and second info from timestamp CURRENT-TIME."
+  (defvar current-time-list) ; <=28
   (let* ((current-time-list) ; flag
          (decoded (decode-time current-time erc-stamp--tz)))
     (setf (decoded-time-second decoded) 0

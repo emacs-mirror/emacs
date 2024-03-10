@@ -29,8 +29,8 @@
 
 ;;;###autoload
 (defun setup-japanese-environment-internal ()
-  (prefer-coding-system (if (memq system-type '(windows-nt ms-dos cygwin))
-			    'japanese-shift-jis
+  (prefer-coding-system (if (memq system-type '(windows-nt ms-dos))
+			    'japanese-cp932
 			  'utf-8))
   (use-cjk-char-width-table 'ja_JP))
 

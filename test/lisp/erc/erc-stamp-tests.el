@@ -20,13 +20,13 @@
 ;;; Commentary:
 
 ;;; Code:
+(require 'erc-stamp)
+(require 'erc-goodies) ; for `erc-make-read-only'
+
 (require 'ert-x)
 (eval-and-compile
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-tests-common)))
-
-(require 'erc-stamp)
-(require 'erc-goodies) ; for `erc-make-read-only'
 
 ;; These display-oriented tests are brittle because many factors
 ;; influence how text properties are applied.  We should just

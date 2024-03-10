@@ -225,7 +225,7 @@ tzlookup (Lisp_Object zone, bool settz)
 
   if (NILP (zone))
     return local_tz;
-  else if (BASE_EQ (zone, make_fixnum (0)) || BASE2_EQ (zone, Qt))
+  else if (BASE_EQ (zone, make_fixnum (0)) || EQ (zone, Qt))
     {
       zone_string = "UTC0";
       new_tz = utc_tz;
@@ -234,7 +234,7 @@ tzlookup (Lisp_Object zone, bool settz)
     {
       bool plain_integer = FIXNUMP (zone);
 
-      if (BASE2_EQ (zone, Qwall))
+      if (EQ (zone, Qwall))
 	zone_string = 0;
       else if (STRINGP (zone))
 	zone_string = SSDATA (ENCODE_SYSTEM (zone));
@@ -1548,7 +1548,7 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
 
   /* Compute SEC from LOCAL_TM.tm_sec and HZ.  */
   Lisp_Object hz = lt.hz, sec;
-  if (BASE_EQ (hz, make_fixnum (1)) || !BASE2_EQ (form, Qt))
+  if (BASE_EQ (hz, make_fixnum (1)) || !EQ (form, Qt))
     sec = make_fixnum (local_tm.tm_sec);
   else
     {
@@ -1765,10 +1765,8 @@ but new code should not rely on it.  */)
      well, since we accept it as input?  */
   struct lisp_time t;
   enum timeform input_form = decode_lisp_time (time, false, &t, 0);
-  if (NILP (form))
-    form = current_time_list ? Qlist : Qt;
-  if (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (form))
-    form = SYMBOL_WITH_POS_SYM (form);
+  form = (!NILP (form) ? maybe_remove_pos_from_symbol (form)
+	  : current_time_list ? Qlist : Qt);
   if (BASE_EQ (form, Qlist))
     return ticks_hz_list4 (t.ticks, t.hz);
   if (BASE_EQ (form, Qinteger))

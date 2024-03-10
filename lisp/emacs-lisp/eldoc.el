@@ -155,7 +155,7 @@ Remember to keep it a prime number to improve hash performance.")
 
 (defvar eldoc-message-commands
   ;; Don't define as `defconst' since it would then go to (read-only) purespace.
-  (make-vector eldoc-message-commands-table-size 0)
+  (obarray-make eldoc-message-commands-table-size)
   "Commands after which it is appropriate to print in the echo area.
 ElDoc does not try to print function arglists, etc., after just any command,
 because some commands print their own messages in the echo area and these
@@ -191,7 +191,7 @@ It should receive the same arguments as `message'.")
 
 When `eldoc-print-after-edit' is non-nil, ElDoc messages are only
 printed after commands contained in this obarray."
-  (let ((cmds (make-vector 31 0))
+  (let ((cmds (obarray-make 31))
 	(re (regexp-opt '("delete" "insert" "edit" "electric" "newline"))))
     (mapatoms (lambda (s)
 		(and (commandp s)

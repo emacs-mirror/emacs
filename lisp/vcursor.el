@@ -433,7 +433,7 @@ Default is nil."
 (defcustom vcursor-interpret-input nil
   "If non-nil, input from the vcursor is treated as interactive input.
 This will cause text insertion to be much slower.  Note that no special
-interpretation of strings is done: \"\C-x\" is a string of four
+interpretation of strings is done: \"\\C-x\" is a string of four
 characters.  The default is simply to copy strings."
   :type 'boolean
   :version "20.3")

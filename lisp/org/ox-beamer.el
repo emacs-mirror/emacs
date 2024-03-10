@@ -1008,7 +1008,10 @@ will be displayed when `org-export-show-temporary-export-buffer'
 is non-nil."
   (interactive)
   (org-export-to-buffer 'beamer "*Org BEAMER Export*"
-    async subtreep visible-only body-only ext-plist (lambda () (LaTeX-mode))))
+    async subtreep visible-only body-only ext-plist
+    (if (fboundp 'major-mode-remap)
+        (major-mode-remap 'latex-mode)
+      #'LaTeX-mode)))
 
 ;;;###autoload
 (defun org-beamer-export-to-latex

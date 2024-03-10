@@ -2688,7 +2688,7 @@ hash_table_freeze (struct Lisp_Hash_Table *h)
   h->hash = NULL;
   h->index = NULL;
   h->table_size = 0;
-  h->index_size = 0;
+  h->index_bits = 0;
   h->frozen_test = hash_table_std_test (h->test);
   h->test = NULL;
 }
@@ -2719,7 +2719,7 @@ dump_hash_table_contents (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 static dump_off
 dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_313A489F0A
+#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_0360833954
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
@@ -2745,6 +2745,51 @@ dump_hash_table (struct dump_context *ctx, Lisp_Object object)
       (ctx,
        offset + dump_offsetof (struct Lisp_Hash_Table, key_and_value),
        dump_hash_table_contents (ctx, hash));
+  return offset;
+}
+
+static dump_off
+dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
+{
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+  dump_off start_offset = ctx->offset;
+  ptrdiff_t n = obarray_size (o);
+
+  struct dump_flags old_flags = ctx->flags;
+  ctx->flags.pack_objects = true;
+
+  for (ptrdiff_t i = 0; i < n; i++)
+    {
+      Lisp_Object out;
+      const Lisp_Object *slot = &o->buckets[i];
+      dump_object_start (ctx, &out, sizeof out);
+      dump_field_lv (ctx, &out, slot, slot, WEIGHT_STRONG);
+      dump_object_finish (ctx, &out, sizeof out);
+    }
+
+  ctx->flags = old_flags;
+  return start_offset;
+}
+
+static dump_off
+dump_obarray (struct dump_context *ctx, Lisp_Object object)
+{
+#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_D2757E61AD
+# error "Lisp_Obarray changed. See CHECK_STRUCTS comment in config.h."
+#endif
+  const struct Lisp_Obarray *in_oa = XOBARRAY (object);
+  struct Lisp_Obarray munged_oa = *in_oa;
+  struct Lisp_Obarray *oa = &munged_oa;
+  START_DUMP_PVEC (ctx, &oa->header, struct Lisp_Obarray, out);
+  dump_pseudovector_lisp_fields (ctx, &out->header, &oa->header);
+  DUMP_FIELD_COPY (out, oa, count);
+  DUMP_FIELD_COPY (out, oa, size_bits);
+  dump_field_fixup_later (ctx, out, oa, &oa->buckets);
+  dump_off offset = finish_dump_pvec (ctx, &out->header);
+  dump_remember_fixup_ptr_raw
+    (ctx,
+     offset + dump_offsetof (struct Lisp_Obarray, buckets),
+     dump_obarray_buckets (ctx, oa));
   return offset;
 }
 
@@ -2912,17 +2957,17 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, subr, header.size);
 #ifdef HAVE_NATIVE_COMP
-  bool native_comp = !NILP (subr->native_comp_u);
+  bool non_primitive = !NILP (subr->native_comp_u);
 #else
-  bool native_comp = false;
+  bool non_primitive = false;
 #endif
-  if (native_comp)
+  if (non_primitive)
     out.function.a0 = NULL;
   else
     dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
   DUMP_FIELD_COPY (&out, subr, min_args);
   DUMP_FIELD_COPY (&out, subr, max_args);
-  if (native_comp)
+  if (non_primitive)
     {
       dump_field_fixup_later (ctx, &out, subr, &subr->symbol_name);
       dump_remember_cold_op (ctx,
@@ -2947,7 +2992,7 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   dump_field_lv (ctx, &out, subr, &subr->type, WEIGHT_NORMAL);
 #endif
   dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
-  if (native_comp && ctx->flags.dump_object_contents)
+  if (non_primitive && ctx->flags.dump_object_contents)
     /* We'll do the final addr relocation during VERY_LATE_RELOCS time
        after the compilation units has been loaded. */
     dump_push (&ctx->dump_relocs[VERY_LATE_RELOCS],
@@ -3004,7 +3049,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_D8A254BC70
+#if CHECK_STRUCTS && !defined HASH_pvec_type_2D583AC566
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
@@ -3031,6 +3076,8 @@ dump_vectorlike (struct dump_context *ctx,
       return dump_bool_vector(ctx, v);
     case PVEC_HASH_TABLE:
       return dump_hash_table (ctx, lv);
+    case PVEC_OBARRAY:
+      return dump_obarray (ctx, lv);
     case PVEC_BUFFER:
       return dump_buffer (ctx, XBUFFER (lv));
     case PVEC_SUBR:
@@ -5593,10 +5640,7 @@ pdumper_load (const char *dump_filename, char *argv0)
 
   struct dump_header header_buf = { 0 };
   struct dump_header *header = &header_buf;
-  struct dump_memory_map sections[NUMBER_DUMP_SECTIONS];
-
-  /* Use memset instead of "= { 0 }" to work around GCC bug 105961.  */
-  memset (sections, 0, sizeof sections);
+  struct dump_memory_map sections[NUMBER_DUMP_SECTIONS] = { 0 };
 
   const struct timespec start_time = current_timespec ();
   char *dump_filename_copy;

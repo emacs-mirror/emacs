@@ -3308,7 +3308,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   ASET (font_object, FONT_TYPE_INDEX, sfnt_vendor_name);
   ASET (font_object, FONT_FOUNDRY_INDEX, desc->designer);
   ASET (font_object, FONT_FAMILY_INDEX, Fintern (desc->family, Qnil));
-  ASET (font_object, FONT_ADSTYLE_INDEX, Qnil);
+  ASET (font_object, FONT_ADSTYLE_INDEX, desc->adstyle);
   ASET (font_object, FONT_REGISTRY_INDEX,
 	sfntfont_registry_for_desc (desc));
 
@@ -3325,8 +3325,6 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 		  make_fixnum (desc->weight));
   FONT_SET_STYLE (font_object, FONT_SLANT_INDEX,
 		  make_fixnum (desc->slant));
-
-  ASET (font_object, FONT_ADSTYLE_INDEX, Qnil);
 
   /* Clear various offsets.  */
   font_info->font.baseline_offset = 0;
@@ -3412,7 +3410,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 			  AREF (tem, 3));
 	  FONT_SET_STYLE (font_object, FONT_SLANT_INDEX,
 			  AREF (tem, 4));
-	  ASET (font_object, FONT_ADSTYLE_INDEX, Qnil);
+	  ASET (font_object, FONT_ADSTYLE_INDEX, AREF (tem, 1));
 	}
     }
 
