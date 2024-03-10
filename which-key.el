@@ -1996,17 +1996,17 @@ that width."
   (let* ((col-key-width  (+ which-key-add-column-padding
                             (which-key--max-len col-keys 0)))
          (col-sep-width  (which-key--max-len col-keys 1))
-	 (avl-width      (- avl-width col-key-width col-sep-width))
+         (avl-width      (- avl-width col-key-width col-sep-width))
          (col-desc-width (min avl-width
-			      (which-key--max-len
+                              (which-key--max-len
                                col-keys 2
-			       which-key-min-column-description-width)))
+                               which-key-min-column-description-width)))
          (col-width      (+ col-key-width col-sep-width col-desc-width))
-	 (col-format     (concat "%" (int-to-string col-key-width)
+         (col-format     (concat "%" (int-to-string col-key-width)
                                  "s%s%-" (int-to-string col-desc-width) "s")))
     (cons col-width
           (mapcar (lambda (k) (apply #'format col-format k))
-		  col-keys))))
+                  col-keys))))
 
 (defun which-key--partition-list (n list)
   "Partition LIST into N-sized sublists."
