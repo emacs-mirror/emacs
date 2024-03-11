@@ -204,6 +204,9 @@
    ('str (bindat--unpack-str len))
    ('strz (bindat--unpack-strz len))
    ('vec
+    (when (> len (length bindat-raw))
+      (error "Vector length %d is greater than raw data length %d."
+             len (length bindat-raw)))
     (let ((v (make-vector len 0)) (vlen 1))
       (if (consp vectype)
 	  (setq vlen (nth 1 vectype)
