@@ -24,8 +24,11 @@ import android.app.NotificationManager;
 import android.app.NotificationChannel;
 import android.app.PendingIntent;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import android.net.Uri;
 
 import android.os.Build;
 
@@ -44,6 +47,16 @@ import android.widget.RemoteViews;
 
 public final class EmacsDesktopNotification
 {
+  /* Intent tag for notification action data.  */
+  public static final String NOTIFICATION_ACTION = "emacs:notification_action";
+
+  /* Intent tag for notification IDs.  */
+  public static final String NOTIFICATION_TAG = "emacs:notification_tag";
+
+  /* Action ID assigned to the broadcast receiver which should be
+     notified of any notification's being dismissed.  */
+  public static final String NOTIFICATION_DISMISSED = "org.gnu.emacs.DISMISSED";
+
   /* The content of this desktop notification.  */
   public final String content;
 
@@ -66,10 +79,15 @@ public final class EmacsDesktopNotification
   /* The importance of this notification's group.  */
   public final int importance;
 
+  /* Array of actions and their user-facing text to be offered by this
+     notification.  */
+  public final String[] actions, titles;
+
   public
   EmacsDesktopNotification (String title, String content,
 			    String group, String tag, int icon,
-			    int importance)
+			    int importance,
+			    String[] actions, String[] titles)
   {
     this.content    = content;
     this.title	    = title;
@@ -77,11 +95,67 @@ public final class EmacsDesktopNotification
     this.tag        = tag;
     this.icon       = icon;
     this.importance = importance;
+    this.actions    = actions;
+    this.titles     = titles;
   }
 
 
 
   /* Functions for displaying desktop notifications.  */
+
+  /* Insert each action in actions and titles into the notification
+     builder BUILDER, with pending intents created with CONTEXT holding
+     suitable metadata.  */
+
+  @SuppressWarnings ("deprecation")
+  private void
+  insertActions (Context context, Notification.Builder builder)
+  {
+    int i;
+    PendingIntent pending;
+    Intent intent;
+    Notification.Action.Builder action;
+
+    if (actions == null)
+      return;
+
+    for (i = 0; i < actions.length; ++i)
+      {
+	/* Actions named default should not be displayed.  */
+	if (actions[i].equals ("default"))
+	  continue;
+
+	intent = new Intent (context, EmacsActivity.class);
+	intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
+
+	/* Pending intents are specific to combinations of class, action
+	   and data, but not information provided as extras.  In order
+	   that its target may be invoked with the action and tag set
+	   below, generate a URL from those two elements and specify it
+	   as the intent data, which ensures that the intent allocated
+	   fully reflects the duo.  */
+
+	intent.setData (new Uri.Builder ().scheme ("action")
+			.appendPath (tag).appendPath (actions[i])
+			.build ());
+	intent.putExtra (NOTIFICATION_ACTION, actions[i]);
+	intent.putExtra (NOTIFICATION_TAG, tag);
+
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+	  pending = PendingIntent.getActivity (context, 0, intent,
+					       PendingIntent.FLAG_IMMUTABLE);
+	else
+	  pending = PendingIntent.getActivity (context, 0, intent, 0);
+
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+	  {
+	    action = new Notification.Action.Builder (0, titles[i], pending);
+	    builder.addAction (action.build ());
+	  }
+	else
+	  builder.addAction (0, titles[i], pending);
+      }
+  }
 
   /* Internal helper for `display' executed on the main thread.  */
 
@@ -97,6 +171,7 @@ public final class EmacsDesktopNotification
     Intent intent;
     PendingIntent pending;
     int priority;
+    Notification.Builder builder;
 
     tem = context.getSystemService (Context.NOTIFICATION_SERVICE);
     manager = (NotificationManager) tem;
@@ -108,13 +183,16 @@ public final class EmacsDesktopNotification
 	   (such as its importance) will be overridden.  */
         channel = new NotificationChannel (group, group, importance);
 	manager.createNotificationChannel (channel);
+	builder = new Notification.Builder (context, group);
 
-	/* Create a notification object and display it.  */
-	notification = (new Notification.Builder (context, group)
-			.setContentTitle (title)
-			.setContentText (content)
-			.setSmallIcon (icon)
-			.build ());
+	/* Create and configure a notification object and display
+	   it.  */
+
+	builder.setContentTitle (title);
+	builder.setContentText (content);
+	builder.setSmallIcon (icon);
+	insertActions (context, builder);
+	notification = builder.build ();
       }
     else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
       {
@@ -138,12 +216,16 @@ public final class EmacsDesktopNotification
 	    break;
 	  }
 
-	notification = (new Notification.Builder (context)
-			.setContentTitle (title)
-			.setContentText (content)
-			.setSmallIcon (icon)
-			.setPriority (priority)
-			.build ());
+	builder = new Notification.Builder (context);
+	builder.setContentTitle (title);
+	builder.setContentText (content);
+	builder.setSmallIcon (icon);
+	builder.setPriority (priority);
+
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+	  insertActions (context, builder);
+
+	notification = builder.build ();
 
 	if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN)
 	  notification.priority = priority;
@@ -170,6 +252,12 @@ public final class EmacsDesktopNotification
 
     intent = new Intent (context, EmacsActivity.class);
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
+    intent.setData (new Uri.Builder ()
+		    .scheme ("action")
+		    .appendPath (tag)
+		    .build ());
+    intent.putExtra (NOTIFICATION_ACTION, "default");
+    intent.putExtra (NOTIFICATION_TAG, tag);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
       pending = PendingIntent.getActivity (context, 0, intent,
@@ -179,6 +267,27 @@ public final class EmacsDesktopNotification
 
     notification.contentIntent = pending;
 
+    /* Provide a cancellation intent to respond to notification
+       dismissals.  */
+
+    intent = new Intent (context, CancellationReceiver.class);
+    intent.setAction (NOTIFICATION_DISMISSED);
+    intent.setPackage ("org.gnu.emacs");
+    intent.setData (new Uri.Builder ()
+		    .scheme ("action")
+		    .appendPath (tag)
+		    .build ());
+    intent.putExtra (NOTIFICATION_TAG, tag);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+      pending = PendingIntent.getBroadcast (context, 0, intent,
+					    (PendingIntent.FLAG_IMMUTABLE
+					     | PendingIntent.FLAG_ONE_SHOT));
+    else
+      pending = PendingIntent.getBroadcast (context, 0, intent,
+					    PendingIntent.FLAG_ONE_SHOT);
+
+    notification.deleteIntent = pending;
     manager.notify (tag, 2, notification);
   }
 
@@ -199,4 +308,31 @@ public final class EmacsDesktopNotification
 	}
       });
   }
+
+
+
+  /* Broadcast receiver.  This is something of a system-wide callback
+     arranged to be invoked whenever a notification posted by Emacs is
+     dismissed, in order to relay news of its dismissal to
+     androidselect.c and run or remove callbacks as appropriate.  */
+
+  public static class CancellationReceiver extends BroadcastReceiver
+  {
+    @Override
+    public void
+    onReceive (Context context, Intent intent)
+    {
+      String tag, action;
+
+      if (intent == null || EmacsService.SERVICE == null)
+	return;
+
+      tag = intent.getStringExtra (NOTIFICATION_TAG);
+
+      if (tag == null)
+	return;
+
+      EmacsNative.sendNotificationDeleted (tag);
+    }
+  };
 };

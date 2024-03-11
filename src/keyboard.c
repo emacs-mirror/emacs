@@ -4187,6 +4187,16 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  break;
 	}
 
+#ifdef HAVE_ANDROID
+      case NOTIFICATION_EVENT:
+        {
+	  kbd_fetch_ptr = next_kbd_event (event);
+	  input_pending = readable_events (0);
+	  CALLN (Fapply, XCAR (event->ie.arg), XCDR (event->ie.arg));
+	  break;
+	}
+#endif /* HAVE_ANDROID */
+
 #ifdef HAVE_EXT_MENU_BAR
       case MENU_BAR_ACTIVATE_EVENT:
 	{

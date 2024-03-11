@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "dispextern.h"
 #include "font.h"
+#include "termhooks.h"
 
 struct android_bitmap_record
 {
@@ -463,6 +464,11 @@ extern void syms_of_sfntfont_android (void);
 /* Defined in androidselect.c  */
 
 #ifndef ANDROID_STUBIFY
+
+extern void android_notification_deleted (struct android_notification_event *,
+					  struct input_event *);
+extern void android_notification_action (struct android_notification_event *,
+					 struct input_event *, Lisp_Object);
 
 extern void init_androidselect (void);
 extern void syms_of_androidselect (void);

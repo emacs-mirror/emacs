@@ -251,6 +251,8 @@ enum android_event_type
     ANDROID_DND_DRAG_EVENT,
     ANDROID_DND_URI_EVENT,
     ANDROID_DND_TEXT_EVENT,
+    ANDROID_NOTIFICATION_DELETED,
+    ANDROID_NOTIFICATION_ACTION,
   };
 
 struct android_any_event
@@ -535,6 +537,29 @@ struct android_dnd_event
   size_t length;
 };
 
+struct android_notification_event
+{
+  /* Type of the event.  */
+  enum android_event_type type;
+
+  /* The event serial.  */
+  unsigned long serial;
+
+  /* The window that gave rise to the event (None).  */
+  android_window window;
+
+  /* The identifier of the notification whose status changed.
+     Must be deallocated with `free'.  */
+  char *tag;
+
+  /* The action that was activated, if any.  Must be deallocated with
+     `free'.  */
+  unsigned short *action;
+
+  /* Length of that data.  */
+  size_t length;
+};
+
 union android_event
 {
   enum android_event_type type;
@@ -571,6 +596,10 @@ union android_event
      protocol, whereas there exist several competing X protocols
      implemented in terms of X client messages.  */
   struct android_dnd_event dnd;
+
+  /* X provides no equivalent interface for displaying
+     notifications.  */
+  struct android_notification_event notification;
 };
 
 enum
