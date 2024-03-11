@@ -833,4 +833,9 @@ comparing the subr with a much slower Lisp implementation."
   (should-error (defalias 'data-tests--da-c 'data-tests--da-d)
                 :type 'cyclic-function-indirection))
 
+(ert-deftest data-tests-bare-symbol ()
+  (dolist (symbols-with-pos-enabled '(nil t))
+    (dolist (sym (list nil t 'xyzzy (make-symbol "")))
+      (should (eq sym (bare-symbol (position-symbol sym 0)))))))
+
 ;;; data-tests.el ends here

@@ -2399,10 +2399,10 @@ The @code{equal} function recursively compares the contents of objects
 if they are integers, strings, markers, vectors, bool-vectors,
 byte-code function objects, char-tables, records, or font objects.
 
-If @var{object1} or @var{object2} is a symbol with position,
-@code{equal} regards it as its bare symbol when
+If @var{object1} or @var{object2} contains symbols with position,
+@code{equal} treats them as if they were their bare symbols when
 @code{symbols-with-pos-enabled} is non-@code{nil}.  Otherwise
-@code{equal} compares two symbols with position by recursively
+@code{equal} compares two symbols with position by
 comparing their components.  @xref{Symbols with Position}.
 
 Other objects are considered @code{equal} only if they are @code{eq}.

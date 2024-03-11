@@ -780,13 +780,16 @@ Symbol forms whose names start with @samp{#_} are not transformed.
 @cindex symbol with position
 
 @cindex bare symbol
-A @dfn{symbol with position} is a symbol, the @dfn{bare symbol},
-together with an unsigned integer called the @dfn{position}.  Symbols
-with position don't themselves have entries in the obarray (though
-their bare symbols do; @pxref{Creating Symbols}).
+A @dfn{symbol with position} is a symbol, called the @dfn{bare symbol},
+together with a nonnegative fixnum called the @dfn{position}.
+Even though a symbol with position often acts like its bare symbol,
+it is not a symbol: instead, it is an object that has both a bare symbol
+and a position.  Because symbols with position are not symbols,
+they don't have entries in the obarray, though their bare symbols
+typically do (@pxref{Creating Symbols}).
 
-Symbols with position are for the use of the byte compiler, which
-records in them the position of each symbol occurrence and uses those
+The byte compiler uses symbols with position,
+records in them the position of each symbol occurrence, and uses those
 positions in warning and error messages.  They shouldn't normally be
 used otherwise.  Doing so can cause unexpected results with basic
 Emacs functions such as @code{eq} and @code{equal}.
@@ -799,22 +802,19 @@ just the bare symbol to be printed by binding the variable
 operation.  The byte compiler does this before writing its output to
 the compiled Lisp file.
 
-For most purposes, when the flag variable
-@code{symbols-with-pos-enabled} is non-@code{nil}, symbols with
-positions behave just as their bare symbols would.  For example,
-@samp{(eq #<symbol foo at 12345> foo)} has a value @code{t} when the
-variable is set; likewise, @code{equal} will treat a symbol with
-position argument as its bare symbol.
+When the flag variable @code{symbols-with-pos-enabled} is non-@code{nil},
+a symbol with position ordinarily behaves like its bare symbol.
+For example, @samp{(eq (position-symbol 'foo 12345) 'foo)} yields @code{t},
+and @code{equal} likewise treats a symbol with position as its bare symbol.
 
-When @code{symbols-with-pos-enabled} is @code{nil}, any symbols with
-position continue to exist, but do not behave as symbols, or have the
-other useful properties outlined in the previous paragraph.  @code{eq}
-returns @code{t} when given identical arguments, and @code{equal}
-returns @code{t} when given arguments with @code{equal} components.
+When @code{symbols-with-pos-enabled} is @code{nil}, symbols with
+position behave as themselves, not as symbols.  For example, @samp{(eq
+(position-symbol 'foo 12345) 'foo)} yields @code{nil}, and @code{equal}
+likewise treats a symbol with position as not equal to its bare symbol.
 
 Most of the time in Emacs @code{symbols-with-pos-enabled} is
 @code{nil}, but the byte compiler and the native compiler bind it to
-@code{t} when they run.
+@code{t} when they run and Emacs runs a little more slowly in this case.
 
 Typically, symbols with position are created by the byte compiler
 calling the reader function @code{read-positioning-symbols}
@@ -822,36 +822,44 @@ calling the reader function @code{read-positioning-symbols}
 @code{position-symbol}.
 
 @defvar symbols-with-pos-enabled
-When this variable is non-@code{nil}, a symbol with position behaves
-like the contained bare symbol.  Emacs runs a little more slowly in
-this case.
+This variable affects the behavior of symbols with position when they
+are not being printed and are not arguments to one of the functions
+defined later in this section.  When this variable is non-@code{nil},
+such a symbol with position behaves like its bare symbol; otherwise it
+behaves as itself, not as a symbol.
 @end defvar
 
 @defvar print-symbols-bare
 When bound to non-@code{nil}, the Lisp printer prints only the bare
 symbol of a symbol with position, ignoring the position.
+Otherwise a symbol with position prints as itself, not as a symbol.
 @end defvar
 
-@defun symbol-with-pos-p symbol
-This function returns @code{t} if @var{symbol} is a symbol with
+@defun symbol-with-pos-p object
+This function returns @code{t} if @var{object} is a symbol with
 position, @code{nil} otherwise.
+Unlike @code{symbolp}, this function ignores @code{symbols-with-pos-enabled}.
 @end defun
 
-@defun bare-symbol symbol
-This function returns the bare symbol contained in @var{symbol}, or
-@var{symbol} itself if it is already a bare symbol.  For any other
-type of object, it signals an error.
+@defun bare-symbol sym
+This function returns the bare symbol of the symbol with
+position @var{sym}, or @var{sym} itself if it is already a symbol.
+For any other type of object, it signals an error.
+This function ignores @code{symbols-with-pos-enabled}.
 @end defun
 
-@defun symbol-with-pos-pos symbol
-This function returns the position, a number, from a symbol with
-position.  For any other type of object, it signals an error.
+@defun symbol-with-pos-pos sympos
+This function returns the position, a nonnegative fixnum, from the symbol with
+position @var{sympos}.  For any other type of object, it signals an error.
+This function ignores @code{symbols-with-pos-enabled}.
 @end defun
 
 @defun position-symbol sym pos
-Make a new symbol with position.  @var{sym} is either a bare symbol or
-a symbol with position, and supplies the symbol part of the new
-object.  @var{pos} is either an integer which becomes the number part
-of the new object, or a symbol with position whose position is used.
+Make a new symbol with position.  The new object's bare symbol is taken
+from @var{sym}, which is either a symbol, or a symbol with position
+whose bare symbol is used.  The new object's position is taken from
+@var{pos}, which is either a nonnegative fixnum, or a symbol with
+position whose position is used.
 Emacs signals an error if either argument is invalid.
+This function ignores @code{symbols-with-pos-enabled}.
 @end defun
