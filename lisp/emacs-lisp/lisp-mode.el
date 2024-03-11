@@ -1347,7 +1347,6 @@ Lisp function does not specify a special indentation."
 (put 'condition-case 'lisp-indent-function 2)
 (put 'handler-case 'lisp-indent-function 1) ;CL
 (put 'unwind-protect 'lisp-indent-function 1)
-(put 'closure 'lisp-indent-function 2)
 
 (defun indent-sexp (&optional endpos)
   "Indent each line of the list starting just after point.

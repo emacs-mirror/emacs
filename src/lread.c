@@ -3523,25 +3523,32 @@ bytecode_from_rev_list (Lisp_Object elems, Lisp_Object readcharfun)
         }
     }
 
-  if (!(size >= CLOSURE_STACK_DEPTH + 1 && size <= CLOSURE_INTERACTIVE + 1
+  if (!(size >= CLOSURE_STACK_DEPTH && size <= CLOSURE_INTERACTIVE + 1
 	&& (FIXNUMP (vec[CLOSURE_ARGLIST])
 	    || CONSP (vec[CLOSURE_ARGLIST])
 	    || NILP (vec[CLOSURE_ARGLIST]))
-	&& STRINGP (vec[CLOSURE_CODE])
-	&& VECTORP (vec[CLOSURE_CONSTANTS])
-	&& FIXNATP (vec[CLOSURE_STACK_DEPTH])))
+	&& ((STRINGP (vec[CLOSURE_CODE]) /* Byte-code function.  */
+	     && VECTORP (vec[CLOSURE_CONSTANTS])
+	     && size > CLOSURE_STACK_DEPTH
+	     && (FIXNATP (vec[CLOSURE_STACK_DEPTH])))
+	    || (CONSP (vec[CLOSURE_CODE]) /* Interpreted function.  */
+	        && (CONSP (vec[CLOSURE_CONSTANTS])
+	            || NILP (vec[CLOSURE_CONSTANTS]))))))
     invalid_syntax ("Invalid byte-code object", readcharfun);
 
-  if (STRING_MULTIBYTE (vec[CLOSURE_CODE]))
-    /* BYTESTR must have been produced by Emacs 20.2 or earlier
-       because it produced a raw 8-bit string for byte-code and
-       now such a byte-code string is loaded as multibyte with
-       raw 8-bit characters converted to multibyte form.
-       Convert them back to the original unibyte form.  */
-    vec[CLOSURE_CODE] = Fstring_as_unibyte (vec[CLOSURE_CODE]);
+  if (STRINGP (vec[CLOSURE_CODE]))
+    {
+      if (STRING_MULTIBYTE (vec[CLOSURE_CODE]))
+        /* BYTESTR must have been produced by Emacs 20.2 or earlier
+           because it produced a raw 8-bit string for byte-code and
+           now such a byte-code string is loaded as multibyte with
+           raw 8-bit characters converted to multibyte form.
+           Convert them back to the original unibyte form.  */
+        vec[CLOSURE_CODE] = Fstring_as_unibyte (vec[CLOSURE_CODE]);
 
-  /* Bytecode must be immovable.  */
-  pin_string (vec[CLOSURE_CODE]);
+      /* Bytecode must be immovable.  */
+      pin_string (vec[CLOSURE_CODE]);
+    }
 
   XSETPVECTYPE (XVECTOR (obj), PVEC_CLOSURE);
   return obj;

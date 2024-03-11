@@ -2412,7 +2412,7 @@ point where we signaled the original error:
 @group
 Debugger entered--Lisp error: (error "Oops")
   signal(error ("Oops"))
-  (closure (t) (err) (signal 'error (cdr err)))((user-error "Oops"))
+  #f(lambda (err) [t] (signal 'error (cdr err)))((user-error "Oops"))
   user-error("Oops")
   @dots{}
   eval((handler-bind ((user-error (lambda (err) @dots{}

@@ -248,7 +248,9 @@ a fixed set of types.  */)
           return XSUBR (object)->max_args == UNEVALLED ? Qspecial_form
                  : SUBR_NATIVE_COMPILEDP (object) ? Qsubr_native_elisp
                  : Qprimitive_function;
-        case PVEC_CLOSURE: return Qcompiled_function;
+        case PVEC_CLOSURE:
+          return CONSP (AREF (object, CLOSURE_CODE))
+                 ? Qinterpreted_function : Qbyte_code_function;
         case PVEC_BUFFER: return Qbuffer;
         case PVEC_CHAR_TABLE: return Qchar_table;
         case PVEC_BOOL_VECTOR: return Qbool_vector;
@@ -518,12 +520,32 @@ DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0,
   return Qnil;
 }
 
+DEFUN ("closurep", Fclosurep, Sclosurep,
+       1, 1, 0,
+       doc: /* Return t if OBJECT is a function of type `closure'.  */)
+  (Lisp_Object object)
+{
+  if (CLOSUREP (object))
+    return Qt;
+  return Qnil;
+}
+
 DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
        1, 1, 0,
        doc: /* Return t if OBJECT is a byte-compiled function object.  */)
   (Lisp_Object object)
 {
-  if (CLOSUREP (object))
+  if (CLOSUREP (object) && STRINGP (AREF (object, CLOSURE_CODE)))
+    return Qt;
+  return Qnil;
+}
+
+DEFUN ("interpreted-function-p", Finterpreted_function_p,
+       Sinterpreted_function_p, 1, 1, 0,
+       doc: /* Return t if OBJECT is a function of type `interpreted-function'.  */)
+  (Lisp_Object object)
+{
+  if (CLOSUREP (object) && CONSP (AREF (object, CLOSURE_CODE)))
     return Qt;
   return Qnil;
 }
@@ -1174,17 +1196,11 @@ Value, if non-nil, is a list (interactive SPEC).  */)
   else if (CONSP (fun))
     {
       Lisp_Object funcar = XCAR (fun);
-      if (EQ (funcar, Qclosure)
-	  || EQ (funcar, Qlambda))
+      if (EQ (funcar, Qlambda))
 	{
 	  Lisp_Object form = Fcdr (XCDR (fun));
-	  if (EQ (funcar, Qclosure))
-	    form = Fcdr (form);
 	  Lisp_Object spec = Fassq (Qinteractive, form);
-	  if (NILP (spec) && VALID_DOCSTRING_P (CAR_SAFE (form)))
-            /* A "docstring" is a sign that we may have an OClosure.  */
-	    genfun = true;
-	  else if (NILP (Fcdr (Fcdr (spec))))
+	  if (NILP (Fcdr (Fcdr (spec))))
 	    return spec;
 	  else
 	    return list2 (Qinteractive, Fcar (Fcdr (spec)));
@@ -1257,12 +1273,9 @@ The value, if non-nil, is a list of mode name symbols.  */)
   else if (CONSP (fun))
     {
       Lisp_Object funcar = XCAR (fun);
-      if (EQ (funcar, Qclosure)
-	  || EQ (funcar, Qlambda))
+      if (EQ (funcar, Qlambda))
 	{
 	  Lisp_Object form = Fcdr (XCDR (fun));
-	  if (EQ (funcar, Qclosure))
-	    form = Fcdr (form);
 	  return Fcdr (Fcdr (Fassq (Qinteractive, form)));
 	}
     }
@@ -4224,7 +4237,8 @@ syms_of_data (void)
   DEFSYM (Qspecial_form, "special-form");
   DEFSYM (Qprimitive_function, "primitive-function");
   DEFSYM (Qsubr_native_elisp, "subr-native-elisp");
-  DEFSYM (Qcompiled_function, "compiled-function");
+  DEFSYM (Qbyte_code_function, "byte-code-function");
+  DEFSYM (Qinterpreted_function, "interpreted-function");
   DEFSYM (Qbuffer, "buffer");
   DEFSYM (Qframe, "frame");
   DEFSYM (Qvector, "vector");
@@ -4289,6 +4303,8 @@ syms_of_data (void)
   defsubr (&Smarkerp);
   defsubr (&Ssubrp);
   defsubr (&Sbyte_code_function_p);
+  defsubr (&Sinterpreted_function_p);
+  defsubr (&Sclosurep);
   defsubr (&Smodule_function_p);
   defsubr (&Schar_or_string_p);
   defsubr (&Sthreadp);

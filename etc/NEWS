@@ -1768,6 +1768,23 @@ documentation and examples.
 * Incompatible Lisp Changes in Emacs 30.1
 
 +++
+** Evaluating a 'lambda' returns an object of type 'interpreted-function'.
+Instead of representing interpreted functions as lists that start with
+either 'lambda' or 'closure', Emacs now represents them as objects
+of their own 'interpreted-function' type, which is very similar
+to 'byte-code-function' objects (the argument list, docstring, and
+interactive forms are placed in the same slots).
+Lists that start with 'lambda' are now used only for non-evaluated
+functions (in other words, for source code), but for backward compatibility
+reasons, 'functionp' still recognizes them as functions and you can
+still call them as before.
+Thus code that attempts to "dig" into the internal structure of an
+interpreted function's object with the likes of 'car' or 'cdr' will
+no longer work and will need to use 'aref' instead to extract its
+various subparts (when 'interactive-form', 'documentation', and
+'help-function-arglist' aren't adequate).
+
++++
 ** 'define-globalized-minor-mode' requires that modes use 'run-mode-hooks'.
 Minor modes defined with 'define-globalized-minor-mode', such as
 'global-font-lock-mode', will not be enabled any more in those buffers
@@ -1905,6 +1922,14 @@ unibyte string.
 
 
 * Lisp Changes in Emacs 30.1
+
+** New types 'closure' and 'interpreted-function'.
+'interpreted-function' is the new type used for interpreted functions,
+and 'closure' is the common parent type of 'interpreted-function'
+and 'byte-code-function'.
+Those new types come with the associated new predicates
+'closurep' and `interpreted-function-p' as well as a new constructor
+'make-interpreted-closure'.
 
 ** New function 'help-fns-function-name'.
 For named functions, it just returns the name and otherwise

@@ -319,10 +319,10 @@ invoke it (via an `interactive' spec that contains, for instance, an
     {
       Lisp_Object funval = Findirect_function (function, Qt);
       uintmax_t events = num_input_events;
+      Lisp_Object env = CLOSUREP (funval) && CONSP (AREF (funval, CLOSURE_CODE))
+		        ? AREF (funval, CLOSURE_CONSTANTS) : Qnil;
       /* Compute the arg values using the user's expression.  */
-      specs = Feval (specs,
- 		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
-		     ? CAR_SAFE (XCDR (funval)) : Qnil);
+      specs = Feval (specs, env);
       if (events != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.

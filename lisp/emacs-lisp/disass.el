@@ -129,7 +129,7 @@ redefine OBJECT if it is a symbol."
 	   (setq args (help-function-arglist obj))	;save arg list
 	   (setq obj (cdr obj))		;throw lambda away
 	   (setq obj (cdr obj)))
-	  ((byte-code-function-p obj)
+	  ((closurep obj)
 	   (setq args (help-function-arglist obj)))
           (t (error "Compilation failed")))
     (if (zerop indent) ; not a nested function
@@ -178,7 +178,9 @@ redefine OBJECT if it is a symbol."
 	  (t
 	   (insert "Uncompiled body:  ")
 	   (let ((print-escape-newlines t))
-	     (prin1 (macroexp-progn obj)
+	     (prin1 (macroexp-progn (if (interpreted-function-p obj)
+		                        (aref obj 1)
+		                      obj))
 		    (current-buffer))))))
   (if interactive-p
       (message "")))

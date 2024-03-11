@@ -130,7 +130,7 @@ it also encloses an environment of lexical variable bindings.
 
 @item byte-code function
 A function that has been compiled by the byte compiler.
-@xref{Byte-Code Type}.
+@xref{Closure Type}.
 
 @item autoload object
 @cindex autoload object
@@ -225,6 +225,16 @@ machine code or byte code instead.  More specifically it returns
 @pxref{What Is a Function}), or byte-compiled (@pxref{Byte
 Compilation}), or natively-compiled (@pxref{Native Compilation}), or
 a function loaded from a dynamic module (@pxref{Dynamic Modules}).
+@end defun
+
+@defun interpreted-function-p object
+This function returns @code{t} if @var{object} is an interpreted function.
+@end defun
+
+@defun closurep object
+This function returns @code{t} if @var{object} is a closure, which is
+a particular kind of function object.  Currently closures are used
+for all byte-code functions and all interpreted functions.
 @end defun
 
 @defun subr-arity subr
@@ -1136,8 +1146,7 @@ Functions}).  @xref{describe-symbols example}, for a realistic example
 of this.
 
   When defining a lambda expression that is to be used as an anonymous
-function, you can in principle use any method to construct the list.
-But typically you should use the @code{lambda} macro, or the
+function, you should use the @code{lambda} macro, or the
 @code{function} special form, or the @code{#'} read syntax:
 
 @defmac lambda args [doc] [interactive] body@dots{}
@@ -1145,17 +1154,18 @@ This macro returns an anonymous function with argument list
 @var{args}, documentation string @var{doc} (if any), interactive spec
 @var{interactive} (if any), and body forms given by @var{body}.
 
-Under dynamic binding, this macro effectively makes @code{lambda}
-forms self-quoting: evaluating a form whose @sc{car} is @code{lambda}
-yields the form itself:
+For example, this macro makes @code{lambda} forms almost self-quoting:
+evaluating a form whose @sc{car} is @code{lambda} yields a value that is
+almost like the form itself:
 
 @example
 (lambda (x) (* x x))
-     @result{} (lambda (x) (* x x))
+     @result{} #f(lambda (x) :dynbind (* x x))
 @end example
 
-Note that when evaluating under lexical binding the result is a
-closure object (@pxref{Closures}).
+When evaluating under lexical binding the result is a similar
+closure object, where the @code{:dynbind} marker is replaced by the
+captured variables (@pxref{Closures}).
 
 The @code{lambda} form has one other effect: it tells the Emacs
 evaluator and byte-compiler that its argument is a function, by using
@@ -1164,8 +1174,8 @@ evaluator and byte-compiler that its argument is a function, by using
 
 @defspec function function-object
 @cindex function quoting
-This special form returns @var{function-object} without evaluating it.
-In this, it is similar to @code{quote} (@pxref{Quoting}).  But unlike
+This special form returns the function value of the @var{function-object}.
+In many ways, it is similar to @code{quote} (@pxref{Quoting}).  But unlike
 @code{quote}, it also serves as a note to the Emacs evaluator and
 byte-compiler that @var{function-object} is intended to be used as a
 function.  Assuming @var{function-object} is a valid lambda
@@ -1495,7 +1505,7 @@ distinguish between a function cell that is void and one set to
 @group
 (defun bar (n) (+ n 2))
 (symbol-function 'bar)
-     @result{} (lambda (n) (+ n 2))
+     @result{} #f(lambda (n) [t] (+ n 2))
 @end group
 @group
 (fset 'baz 'bar)
@@ -1608,7 +1618,7 @@ argument list and body forms as the remaining elements:
 @example
 ;; @r{lexical binding is enabled.}
 (lambda (x) (* x x))
-     @result{} (closure (t) (x) (* x x))
+     @result{} #f(lambda (x) [t] (* x x))
 @end example
 
 @noindent

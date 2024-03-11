@@ -170,9 +170,7 @@ trace_hash (Lisp_Object *trace, int depth)
     {
       Lisp_Object f = trace[i];
       EMACS_UINT hash1
-	= (CLOSUREP (f) ? XHASH (AREF (f, CLOSURE_CODE))
-	   : (CONSP (f) && CONSP (XCDR (f)) && BASE_EQ (Qclosure, XCAR (f)))
-	   ? XHASH (XCDR (XCDR (f))) : XHASH (f));
+	= (CLOSUREP (f) ? XHASH (AREF (f, CLOSURE_CODE)) : XHASH (f));
       hash = sxhash_combine (hash, hash1);
     }
   return hash;
@@ -677,10 +675,6 @@ the same lambda expression, or are really unrelated function.  */)
     res = true;
   else if (CLOSUREP (f1) && CLOSUREP (f2))
     res = EQ (AREF (f1, CLOSURE_CODE), AREF (f2, CLOSURE_CODE));
-  else if (CONSP (f1) && CONSP (f2) && CONSP (XCDR (f1)) && CONSP (XCDR (f2))
-	   && EQ (Qclosure, XCAR (f1))
-	   && EQ (Qclosure, XCAR (f2)))
-    res = EQ (XCDR (XCDR (f1)), XCDR (XCDR (f2)));
   else
     res = false;
   return res ? Qt : Qnil;

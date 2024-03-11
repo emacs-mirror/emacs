@@ -1249,7 +1249,7 @@ this is not guaranteed to happen):
 
 @group
 (symbol-function 'add-foo)
-     @result{} (lambda (x) (nconc '(foo) x))
+     @result{} #f(lambda (x) [t] (nconc '(foo) x))
 @end group
 
 @group
@@ -1267,7 +1267,7 @@ this is not guaranteed to happen):
 
 @group
 (symbol-function 'add-foo)
-     @result{} (lambda (x) (nconc '(foo 1 2 3 4) x))
+     @result{} #f(lambda (x) [t] (nconc '(foo 1 2 3 4) x))
 @end group
 @end smallexample
 @end defun
