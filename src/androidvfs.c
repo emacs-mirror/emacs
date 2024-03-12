@@ -292,7 +292,7 @@ struct android_parcel_file_descriptor_class
 };
 
 /* The java.lang.String class.  */
-static jclass java_string_class;
+jclass java_string_class;
 
 /* Fields and methods associated with the Cursor class.  */
 static struct android_cursor_class cursor_class;

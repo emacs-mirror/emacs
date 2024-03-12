@@ -3241,11 +3241,16 @@ of parameters analogous to its namesake in
 @item :title @var{title}
 @item :body @var{body}
 @item :replaces-id @var{replaces-id}
+@item :on-action @var{on-action}
+@item :on-cancel @var{on-close}
+@item :actions @var{actions}
+@item :resident @var{resident}
 These have the same meaning as they do when used in calls to
-@code{notifications-notify}.
+@code{notifications-notify}, except that no more than three non-default
+actions will be displayed.
 
 @item :urgency @var{urgency}
-The set of values for @var{urgency} is the same as with
+The set of accepted values for @var{urgency} is the same as with
 @code{notifications-notify}, but the urgency applies to all
 notifications displayed with the defined @var{group}, except under
 Android 7.1 and earlier.

@@ -316,6 +316,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
       </intent-filter>
     </provider>
 
+    <receiver android:name=".EmacsDesktopNotification$CancellationReceiver"
+	      android:exported="false">
+      <intent-filter>
+        <action android:name="org.gnu.emacs.DISMISSED" />
+      </intent-filter>
+    </receiver>
+
     <service android:name="org.gnu.emacs.EmacsService"
 	     android:directBootAware="false"
 	     android:enabled="true"

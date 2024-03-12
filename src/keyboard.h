@@ -483,6 +483,7 @@ extern void set_poll_suppress_count (int);
 extern int gobble_input (void);
 extern bool input_polling_used (void);
 extern void clear_input_pending (void);
+extern bool requeued_command_events_pending_p (void);
 extern bool requeued_events_pending_p (void);
 extern void bind_polling_period (int);
 extern int make_ctrl_char (int) ATTRIBUTE_CONST;

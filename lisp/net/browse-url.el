@@ -704,8 +704,10 @@ it defaults to the current region, else to the URL at or before
 point.  If invoked with a mouse button, it moves point to the
 position clicked before acting.
 
-This function returns a list (URL NEW-WINDOW-FLAG)
-for use in `interactive'."
+This function returns a list (URL NEW-WINDOW-FLAG) for use in
+`interactive'.  NEW-WINDOW-FLAG is the prefix arg; if
+`browse-url-new-window-flag' is non-nil, invert the prefix arg
+instead."
   (let ((event (elt (this-command-keys) 0)))
     (mouse-set-point event))
   (list (read-string prompt (or (and transient-mark-mode mark-active
@@ -715,8 +717,7 @@ for use in `interactive'."
 				      (buffer-substring-no-properties
 				       (region-beginning) (region-end))))
 				(browse-url-url-at-point)))
-	(not (eq (null browse-url-new-window-flag)
-		 (null current-prefix-arg)))))
+	(xor browse-url-new-window-flag current-prefix-arg)))
 
 ;; called-interactive-p needs to be called at a function's top-level, hence
 ;; this macro.  We use that rather than interactive-p because
@@ -879,8 +880,8 @@ The variables `browse-url-browser-function',
 `browse-url-handlers', and `browse-url-default-handlers'
 determine which browser function to use.
 
-This command prompts for a URL, defaulting to the URL at or
-before point.
+Interactively, this command prompts for a URL, defaulting to the
+URL at or before point.
 
 The additional ARGS are passed to the browser function.  See the
 doc strings of the actual functions, starting with
@@ -888,7 +889,9 @@ doc strings of the actual functions, starting with
 significance of ARGS (most of the functions ignore it).
 
 If ARGS are omitted, the default is to pass
-`browse-url-new-window-flag' as ARGS."
+`browse-url-new-window-flag' as ARGS.  Interactively, pass the
+prefix arg as ARGS; if `browse-url-new-window-flag' is non-nil,
+invert the prefix arg instead."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))

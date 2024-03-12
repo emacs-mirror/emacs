@@ -453,6 +453,27 @@ public class EmacsActivity extends Activity
     syncFullscreenWith (window);
   }
 
+  @Override
+  public final void
+  onNewIntent (Intent intent)
+  {
+    String tag, action;
+
+    /* This function is called when EmacsActivity is relaunched from a
+       notification.  */
+
+    if (intent == null || EmacsService.SERVICE == null)
+      return;
+
+    tag = intent.getStringExtra (EmacsDesktopNotification.NOTIFICATION_TAG);
+    action
+      = intent.getStringExtra (EmacsDesktopNotification.NOTIFICATION_ACTION);
+
+    if (tag == null || action == null)
+      return;
+
+    EmacsNative.sendNotificationAction (tag, action);
+  }
 
 
   @Override

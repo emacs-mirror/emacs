@@ -3398,9 +3398,9 @@ syms_of_androidfns_for_pdumper (void)
 							  string, data);
 	    }
 	}
-    }
 
-  ANDROID_DELETE_LOCAL_REF (string);
+      ANDROID_DELETE_LOCAL_REF (string);
+    }
 
   /* And variant.  */
 

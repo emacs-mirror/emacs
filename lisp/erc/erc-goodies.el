@@ -661,13 +661,11 @@ The value `erc-interpret-controls-p' must also be t for this to work."
   :group 'erc-faces)
 
 (defface erc-inverse-face
-  '((t :foreground "White" :background "Black"))
+  '((t :inverse-video t))
   "ERC inverse face."
   :group 'erc-faces)
 
-(defface erc-spoiler-face
-  '((((background light)) :foreground "DimGray" :background "DimGray")
-    (((background dark)) :foreground "LightGray" :background "LightGray"))
+(defface erc-spoiler-face '((t :inherit default))
   "ERC spoiler face."
   :group 'erc-faces)
 
@@ -675,6 +673,16 @@ The value `erc-interpret-controls-p' must also be t for this to work."
   "ERC underline face."
   :group 'erc-faces)
 
+(defface erc-control-default-fg '((t :inherit default))
+  "ERC foreground face for the \"default\" color code."
+  :group 'erc-faces)
+
+(defface erc-control-default-bg '((t :inherit default))
+  "ERC background face for the \"default\" color code."
+  :group 'erc-faces)
+
+;; FIXME rename these to something like `erc-control-color-N-fg',
+;; and deprecate the old names via `define-obsolete-face-alias'.
 (defface fg:erc-color-face0 '((t :foreground "White"))
   "ERC face."
   :group 'erc-faces)
@@ -804,7 +812,7 @@ The value `erc-interpret-controls-p' must also be t for this to work."
       (intern (concat "bg:erc-color-face" (number-to-string n))))
      ((< 15 n 99)
       (list :background (aref erc--controls-additional-colors (- n 16))))
-     (t (erc-log (format "   Wrong color: %s" n)) '(default)))))
+     (t (erc-log (format "   Wrong color: %s" n)) 'erc-control-default-fg))))
 
 (defun erc-get-fg-color-face (n)
   "Fetches the right face for foreground color N (0-15)."
@@ -820,7 +828,7 @@ The value `erc-interpret-controls-p' must also be t for this to work."
       (intern (concat "fg:erc-color-face" (number-to-string n))))
      ((< 15 n 99)
       (list :foreground (aref erc--controls-additional-colors (- n 16))))
-     (t (erc-log (format "   Wrong color: %s" n)) '(default)))))
+     (t (erc-log (format "   Wrong color: %s" n)) 'erc-control-default-bg))))
 
 ;;;###autoload(autoload 'erc-irccontrols-mode "erc-goodies" nil t)
 (define-erc-module irccontrols nil
@@ -968,13 +976,16 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
   "Prepend properties from IRC control characters between FROM and TO.
 If optional argument STR is provided, apply to STR, otherwise prepend properties
 to a region in the current buffer."
-  (if (and fg bg (equal fg bg))
-      (progn
-        (setq fg 'erc-spoiler-face
-              bg nil)
-        (put-text-property from to 'mouse-face 'erc-inverse-face str))
-    (when fg (setq fg (erc-get-fg-color-face fg)))
-    (when bg (setq bg (erc-get-bg-color-face bg))))
+  (when (and fg bg (equal fg bg) (not (equal fg "99")))
+    (add-text-properties from to '( mouse-face erc-spoiler-face
+                                    cursor-face erc-spoiler-face)
+                         str)
+    (erc--reserve-important-text-props from to
+                                       '( mouse-face erc-spoiler-face
+                                          cursor-face erc-spoiler-face)
+                                       str))
+  (when fg (setq fg (erc-get-fg-color-face fg)))
+  (when bg (setq bg (erc-get-bg-color-face bg)))
   (font-lock-prepend-text-property
    from
    to

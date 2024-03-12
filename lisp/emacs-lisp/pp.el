@@ -430,23 +430,33 @@ the bounds of a region containing Lisp code to pretty-print."
           (replace-match ""))
         (insert-into-buffer obuf)))))
 
+(defvar pp--quoting-syntaxes
+  `((quote    . "'")
+    (function . "#'")
+    (,backquote-backquote-symbol . "`")
+    (,backquote-unquote-symbol   . ",")
+    (,backquote-splice-symbol    . ",@")))
+
+(defun pp--quoted-or-unquoted-form-p (cons)
+  ;; Return non-nil when CONS has one of the forms 'X, `X, ,X or ,@X
+  (let ((head (car cons)))
+    (and (symbolp head)
+         (assq head pp--quoting-syntaxes)
+         (let ((rest (cdr cons)))
+           (and (consp rest) (null (cdr rest)))))))
+
 (defun pp--insert-lisp (sexp)
   (cl-case (type-of sexp)
     (vector (pp--format-vector sexp))
     (cons (cond
            ((consp (cdr sexp))
-            (if (and (length= sexp 2)
-                     (memq (car sexp) '(quote function)))
-                (cond
-                 ((symbolp (cadr sexp))
-                  (let ((print-quoted t))
-                    (prin1 sexp (current-buffer))))
-                 ((consp (cadr sexp))
-                  (insert (if (eq (car sexp) 'quote)
-                              "'" "#'"))
-                  (pp--format-list (cadr sexp)
-                                   (set-marker (make-marker) (1- (point))))))
-              (pp--format-list sexp)))
+            (let ((head (car sexp)))
+              (if-let (((null (cddr sexp)))
+                       (syntax-entry (assq head pp--quoting-syntaxes)))
+                  (progn
+                    (insert (cdr syntax-entry))
+                    (pp--insert-lisp (cadr sexp)))
+                (pp--format-list sexp))))
            (t
             (prin1 sexp (current-buffer)))))
     ;; Print some of the smaller integers as characters, perhaps?
@@ -458,6 +468,8 @@ the bounds of a region containing Lisp code to pretty-print."
     (string
      (let ((print-escape-newlines t))
        (prin1 sexp (current-buffer))))
+    (symbol
+     (prin1 sexp (current-buffer)))
     (otherwise (princ sexp (current-buffer)))))
 
 (defun pp--format-vector (sexp)
@@ -468,15 +480,29 @@ the bounds of a region containing Lisp code to pretty-print."
   (insert "]"))
 
 (defun pp--format-list (sexp &optional start)
-  (if (and (symbolp (car sexp))
-           (not pp--inhibit-function-formatting)
-           (not (keywordp (car sexp))))
+  (if (not (let ((head (car sexp)))
+             (or pp--inhibit-function-formatting
+                 (not (symbolp head))
+                 (keywordp head)
+                 (let ((l sexp))
+                   (catch 'not-funcall
+                     (while l
+                       (when (or
+                              (atom l) ; SEXP is a dotted list
+                              ;; Does SEXP have a form like (ELT... . ,X) ?
+                              (pp--quoted-or-unquoted-form-p l))
+                         (throw 'not-funcall t))
+                       (setq l (cdr l)))
+                     nil)))))
       (pp--format-function sexp)
     (insert "(")
     (pp--insert start (pop sexp))
     (while sexp
       (if (consp sexp)
-          (pp--insert " " (pop sexp))
+          (if (not (pp--quoted-or-unquoted-form-p sexp))
+              (pp--insert " " (pop sexp))
+            (pp--insert " . " sexp)
+            (setq sexp nil))
         (pp--insert " . " sexp)
         (setq sexp nil)))
     (insert ")")))

@@ -118,6 +118,10 @@ extern void android_exception_check_1 (jobject);
 extern void android_exception_check_2 (jobject, jobject);
 extern void android_exception_check_3 (jobject, jobject, jobject);
 extern void android_exception_check_4 (jobject, jobject, jobject, jobject);
+extern void android_exception_check_5 (jobject, jobject, jobject, jobject,
+				       jobject);
+extern void android_exception_check_6 (jobject, jobject, jobject, jobject,
+				       jobject, jobject);
 extern void android_exception_check_nonnull (void *, jobject);
 extern void android_exception_check_nonnull_1 (void *, jobject, jobject);
 
@@ -298,6 +302,7 @@ struct android_emacs_service
   jmethodID valid_authority;
   jmethodID external_storage_available;
   jmethodID request_storage_access;
+  jmethodID cancel_notification;
 };
 
 extern JNIEnv *android_java_env;
@@ -305,6 +310,9 @@ extern JNIEnv *android_java_env;
 #ifdef THREADS_ENABLED
 extern JavaVM *android_jvm;
 #endif /* THREADS_ENABLED */
+
+/* The Java String class.  */
+extern jclass java_string_class;
 
 /* The EmacsService object.  */
 extern jobject emacs_service;

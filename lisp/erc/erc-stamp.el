@@ -723,9 +723,6 @@ inserted is a date stamp."
                                          'hash-table))
                (erc-timestamp-last-inserted-left rendered)
                erc-timestamp-format erc-away-timestamp-format)
-          ;; FIXME delete once convinced adjustment correct.
-          (cl-assert (string= rendered
-                              (erc-stamp--format-date-stamp aligned)))
           (erc-add-timestamp))
         (setq erc-timestamp-last-inserted-left rendered)))))
 
@@ -833,7 +830,11 @@ left-sided stamps and date stamps inserted by this function."
          (decoded (decode-time current-time erc-stamp--tz)))
     (setf (decoded-time-second decoded) 0
           (decoded-time-minute decoded) 0
-          (decoded-time-hour decoded) 0)
+          (decoded-time-hour decoded) 0
+          (decoded-time-dst decoded) -1
+          (decoded-time-weekday decoded) nil
+          (decoded-time-zone decoded)
+          (and erc-stamp--tz (car (current-time-zone nil erc-stamp--tz))))
     (encode-time decoded))) ; may return an integer
 
 (defun erc-format-timestamp (time format)

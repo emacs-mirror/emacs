@@ -1688,6 +1688,8 @@ android_init_emacs_service (void)
 	       "externalStorageAvailable", "()Z");
   FIND_METHOD (request_storage_access,
 	       "requestStorageAccess", "()V");
+  FIND_METHOD (cancel_notification,
+	       "cancelNotification", "(Ljava/lang/String;)V");
 #undef FIND_METHOD
 }
 
@@ -2457,7 +2459,7 @@ NATIVE_NAME (sendExpose) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-JNIEXPORT jboolean JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendDndDrag) (JNIEnv *env, jobject object,
 			   jshort window, jint x, jint y)
 {
@@ -2477,7 +2479,7 @@ NATIVE_NAME (sendDndDrag) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-JNIEXPORT jboolean JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendDndUri) (JNIEnv *env, jobject object,
 			  jshort window, jint x, jint y,
 			  jstring string)
@@ -2514,7 +2516,7 @@ NATIVE_NAME (sendDndUri) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-JNIEXPORT jboolean JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendDndText) (JNIEnv *env, jobject object,
 			   jshort window, jint x, jint y,
 			   jstring string)
@@ -2546,6 +2548,85 @@ NATIVE_NAME (sendDndText) (JNIEnv *env, jobject object,
 
   event.dnd.uri_or_string = buffer;
   event.dnd.length = length;
+
+  android_write_event (&event);
+  return event_serial;
+}
+
+JNIEXPORT jlong JNICALL
+NATIVE_NAME (sendNotificationDeleted) (JNIEnv *env, jobject object,
+				       jstring tag)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+  const char *characters;
+
+  event.notification.type = ANDROID_NOTIFICATION_DELETED;
+  event.notification.serial = ++event_serial;
+  event.notification.window = ANDROID_NONE;
+
+  /* TAG is guaranteed to be an ASCII string, of which the JNI character
+     encoding is a superset.  */
+  characters = (*env)->GetStringUTFChars (env, tag, NULL);
+  if (!characters)
+    return 0;
+
+  event.notification.tag = strdup (characters);
+  (*env)->ReleaseStringUTFChars (env, tag, characters);
+  if (!event.notification.tag)
+    return 0;
+
+  event.notification.action = NULL;
+  event.notification.length = 0;
+
+  android_write_event (&event);
+  return event_serial;
+}
+
+JNIEXPORT jlong JNICALL
+NATIVE_NAME (sendNotificationAction) (JNIEnv *env, jobject object,
+				      jstring tag, jstring action)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+  const void *characters;
+  jsize length;
+  uint16_t *buffer;
+
+  event.notification.type = ANDROID_NOTIFICATION_ACTION;
+  event.notification.serial = ++event_serial;
+  event.notification.window = ANDROID_NONE;
+
+  /* TAG is guaranteed to be an ASCII string, of which the JNI character
+     encoding is a superset.  */
+  characters = (*env)->GetStringUTFChars (env, tag, NULL);
+  if (!characters)
+    return 0;
+
+  event.notification.tag = strdup (characters);
+  (*env)->ReleaseStringUTFChars (env, tag, characters);
+  if (!event.notification.tag)
+    return 0;
+
+  length = (*env)->GetStringLength (env, action);
+  buffer = malloc (length * sizeof *buffer);
+  characters = (*env)->GetStringChars (env, action, NULL);
+
+  if (!characters)
+    {
+      /* The JVM has run out of memory; return and let the out of memory
+	 error take its course.  */
+      xfree (event.notification.tag);
+      return 0;
+    }
+
+  memcpy (buffer, characters, length * sizeof *buffer);
+  (*env)->ReleaseStringChars (env, action, characters);
+
+  event.notification.action = buffer;
+  event.notification.length = length;
 
   android_write_event (&event);
   return event_serial;
@@ -6306,6 +6387,82 @@ android_exception_check_4 (jobject object, jobject object1,
 
   if (object3)
     ANDROID_DELETE_LOCAL_REF (object3);
+
+  memory_full (0);
+}
+
+/* Like android_exception_check_4, except it takes more than four local
+   reference arguments.  */
+
+void
+android_exception_check_5 (jobject object, jobject object1,
+			   jobject object2, jobject object3,
+			   jobject object4)
+{
+  if (likely (!(*android_java_env)->ExceptionCheck (android_java_env)))
+    return;
+
+  __android_log_print (ANDROID_LOG_WARN, __func__,
+		       "Possible out of memory error. "
+		       " The Java exception follows:  ");
+  /* Describe exactly what went wrong.  */
+  (*android_java_env)->ExceptionDescribe (android_java_env);
+  (*android_java_env)->ExceptionClear (android_java_env);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object);
+
+  if (object1)
+    ANDROID_DELETE_LOCAL_REF (object1);
+
+  if (object2)
+    ANDROID_DELETE_LOCAL_REF (object2);
+
+  if (object3)
+    ANDROID_DELETE_LOCAL_REF (object3);
+
+  if (object4)
+    ANDROID_DELETE_LOCAL_REF (object4);
+
+  memory_full (0);
+}
+
+
+/* Like android_exception_check_5, except it takes more than five local
+   reference arguments.  */
+
+void
+android_exception_check_6 (jobject object, jobject object1,
+			   jobject object2, jobject object3,
+			   jobject object4, jobject object5)
+{
+  if (likely (!(*android_java_env)->ExceptionCheck (android_java_env)))
+    return;
+
+  __android_log_print (ANDROID_LOG_WARN, __func__,
+		       "Possible out of memory error. "
+		       " The Java exception follows:  ");
+  /* Describe exactly what went wrong.  */
+  (*android_java_env)->ExceptionDescribe (android_java_env);
+  (*android_java_env)->ExceptionClear (android_java_env);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object);
+
+  if (object1)
+    ANDROID_DELETE_LOCAL_REF (object1);
+
+  if (object2)
+    ANDROID_DELETE_LOCAL_REF (object2);
+
+  if (object3)
+    ANDROID_DELETE_LOCAL_REF (object3);
+
+  if (object4)
+    ANDROID_DELETE_LOCAL_REF (object4);
+
+  if (object5)
+    ANDROID_DELETE_LOCAL_REF (object5);
 
   memory_full (0);
 }

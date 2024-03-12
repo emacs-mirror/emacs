@@ -1967,4 +1967,29 @@ public final class EmacsService extends Service
     else
       requestStorageAccess30 ();
   }
+
+
+
+  /* Notification miscellany.  */
+
+  /* Cancel any notification displayed with the tag TAG.  */
+
+  public void
+  cancelNotification (final String string)
+  {
+    Object tem;
+    final NotificationManager manager;
+
+    tem = getSystemService (Context.NOTIFICATION_SERVICE);
+    manager = (NotificationManager) tem;
+
+    runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  manager.cancel (string, 2);
+	}
+      });
+  }
 };

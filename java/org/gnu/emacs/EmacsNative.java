@@ -196,6 +196,12 @@ public final class EmacsNative
   public static native long sendDndText (short window, int x, int y,
 					 String text);
 
+  /* Send an ANDROID_NOTIFICATION_CANCELED event.  */
+  public static native void sendNotificationDeleted (String tag);
+
+  /* Send an ANDROID_NOTIFICATION_ACTION event.  */
+  public static native void sendNotificationAction (String tag, String action);
+
   /* Return the file name associated with the specified file
      descriptor, or NULL if there is none.  */
   public static native byte[] getProcName (int fd);

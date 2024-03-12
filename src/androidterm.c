@@ -1761,6 +1761,26 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       free (event->dnd.uri_or_string);
       goto OTHER;
 
+    case ANDROID_NOTIFICATION_DELETED:
+    case ANDROID_NOTIFICATION_ACTION:
+
+      if (event->notification.type == ANDROID_NOTIFICATION_DELETED)
+	android_notification_deleted (&event->notification, &inev.ie);
+      else
+	{
+	  Lisp_Object action;
+
+	  action = android_decode_utf16 (event->notification.action,
+					 event->notification.length);
+	  android_notification_action (&event->notification, &inev.ie,
+				       action);
+	}
+
+      /* Free dynamically allocated data.  */
+      free (event->notification.tag);
+      free (event->notification.action);
+      goto OTHER;
+
     default:
       goto OTHER;
     }
@@ -4740,7 +4760,7 @@ android_sync_edit (void)
 
 /* Return a copy of the specified Java string and its length in
    *LENGTH.  Use the JNI environment ENV.  Value is NULL if copying
-   *the string fails.  */
+   the string fails.  */
 
 static unsigned short *
 android_copy_java_string (JNIEnv *env, jstring string, size_t *length)

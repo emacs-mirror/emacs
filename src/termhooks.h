@@ -343,6 +343,10 @@ enum event_kind
      the notification that was clicked.  */
   , NOTIFICATION_CLICKED_EVENT
 #endif /* HAVE_HAIKU */
+#ifdef HAVE_ANDROID
+  /* In a NOTIFICATION_EVENT, .arg is a lambda to evaluate.  */
+  , NOTIFICATION_EVENT
+#endif /* HAVE_ANDROID */
 };
 
 /* Bit width of an enum event_kind tag at the start of structs and unions.  */

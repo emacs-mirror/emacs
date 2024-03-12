@@ -314,6 +314,48 @@ buffer before the macro is executed.  */)
 		      Vreal_this_command));
   record_unwind_protect (pop_kbd_macro, tem);
 
+  /* The following loop starts the execution of possibly multiple
+     iterations of the macro.
+
+     The state variables that control the execution of a single
+     iteration are Vexecuting_kbd_macro and executing_kbd_macro_index,
+     which can be accessed from lisp. The purpose of the variables
+     executing_kbd_macro and executing_kbd_macro_iteration is to
+     remember the most recently started macro and its iteration count.
+     This makes it possible to produce a meaningful message in case of
+     errors during the execution of the macro.
+
+     In a single iteration, individual characters from the macro are
+     read by read_char, which takes care of incrementing
+     executing_kbd_macro_index after each character.
+
+     The end of a macro iteration is handled as follows:
+      - read_key_sequence asks at_end_of_macro_p whether the end of the
+        iteration has been reached.  If so, it returns the magic value 0
+        to command_loop_1.
+      - command_loop_1 returns Qnil to command_loop_2.
+      - command_loop_2 returns Qnil to this function
+        (but only the returning is relevant, not the actual value).
+
+     Macro executions form a stack.  After the last iteration of the
+     execution of one stack item, or in case of an error during one of
+     the iterations, pop_kbd_macro (invoked via unwind-protect) will
+     restore Vexecuting_kbd_macro and executing_kbd_macro_index, and
+     run 'kbd-macro-termination-hook'.
+
+     If read_char happens to be called at the end of a macro interation,
+     but before read_key_sequence could handle the end (e.g., when lisp
+     code calls 'read-event', 'read-char', or 'read-char-exclusive'),
+     read_char will simply continue reading other available input
+     (Bug#68272).  Vexecuting_kbd_macro and executing_kbd_macro remain
+     untouched until the end of the iteration is handled.
+
+     This is similar (in observable behavior) to a posibly simpler
+     implementation of keyboard macros in which this function pushed all
+     characters of the macro into the incoming event queue and returned
+     immediately.  Maybe this is the implementation that we ideally
+     would like to have, but switching to it will require a larger code
+     change.  */
   do
     {
       Vexecuting_kbd_macro = final;
@@ -351,6 +393,18 @@ init_macros (void)
 {
   Vexecuting_kbd_macro = Qnil;
   executing_kbd_macro = Qnil;
+}
+
+/* Whether the execution of a macro has reached its end.
+   This should be called only while executing a macro.  */
+
+bool
+at_end_of_macro_p (void)
+{
+  eassume (!NILP (Vexecuting_kbd_macro));
+  /* Some things replace the macro with t to force an early exit.  */
+  return EQ (Vexecuting_kbd_macro, Qt)
+    || executing_kbd_macro_index >= XFIXNAT (Flength (Vexecuting_kbd_macro));
 }
 
 void
