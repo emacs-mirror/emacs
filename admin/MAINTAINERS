@@ -360,6 +360,9 @@ Po Lu
 	X11 and GTK xwidget support in src/xwidget.c
 	Precision pixel scrolling in lisp/pixel-scroll.el
 
+Daniel Pettersson
+	lisp/jsonrpc.el
+
 ==============================================================================
 3. Externally maintained packages.
 ==============================================================================
