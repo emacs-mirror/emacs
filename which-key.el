@@ -326,12 +326,12 @@ a percentage out of the frame's height."
 
 (defcustom which-key-frame-max-width 60
   "Maximum width of which-key popup when type is frame."
-  :type 'integer
+  :type 'natnum
   :version "1.0")
 
 (defcustom which-key-frame-max-height 20
   "Maximum height of which-key popup when type is frame."
-  :type 'integer
+  :type 'natnum
   :version "1.0")
 
 (defcustom which-key-allow-imprecise-window-fit (not (display-graphic-p))
