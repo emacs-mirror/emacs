@@ -447,7 +447,7 @@ The key bindings for `quickurl-list-mode' are:
 
 (defun quickurl-list-populate-buffer ()
   "Populate the `quickurl-list' buffer."
-  (with-current-buffer (get-buffer quickurl-list-buffer-name)
+  (with-current-buffer quickurl-list-buffer-name
     (let* ((sizes (or (cl-loop for url in quickurl-urls
                                collect (length (quickurl-url-description url)))
                       (list 20)))

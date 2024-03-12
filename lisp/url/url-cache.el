@@ -70,7 +70,7 @@ FILE can be created or overwritten."
 ;;;###autoload
 (defun url-store-in-cache (&optional buff)
   "Store buffer BUFF in the cache."
-    (with-current-buffer (get-buffer (or buff (current-buffer)))
+    (with-current-buffer (or buff (current-buffer))
       (let ((fname (url-cache-create-filename (url-view-url t))))
         (if (url-cache-prepare fname)
             (let ((coding-system-for-write 'binary))

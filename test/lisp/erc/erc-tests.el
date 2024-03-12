@@ -382,7 +382,7 @@
           (should-not (search-forward (rx (or "9" "10") ">") nil t)))))
 
     (ert-info ("Query buffer")
-      (with-current-buffer (get-buffer "bob")
+      (with-current-buffer "bob"
         (goto-char erc-insert-marker)
         (should (looking-at-p "bob@ServNet 14>"))
         (goto-char erc-input-marker)

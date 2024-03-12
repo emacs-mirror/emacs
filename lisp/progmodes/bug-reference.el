@@ -493,7 +493,7 @@ and set it if applicable."
         ;; the values of the From, To, and Cc headers.
         (let (header-values)
           (with-current-buffer
-              (get-buffer gnus-original-article-buffer)
+              gnus-original-article-buffer
             (save-excursion
               (goto-char (point-min))
               ;; The Newsgroup is omitted because we already matched

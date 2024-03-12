@@ -186,7 +186,7 @@
         (funcall expect 10 "Last login from")
         (funcall expect 10 "Your new nickname is tester")))
 
-    (with-current-buffer (get-buffer "#test")
+    (with-current-buffer "#test"
       (funcall expect 10 "tester ")
       (funcall expect 10 "was created on"))))
 

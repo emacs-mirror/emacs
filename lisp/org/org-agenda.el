@@ -3883,7 +3883,7 @@ generating a new one."
    ;; buffer found
    (get-buffer org-agenda-buffer-name)
    ;; C-u parameter is same as last call
-   (with-current-buffer (get-buffer org-agenda-buffer-name)
+   (with-current-buffer org-agenda-buffer-name
      (and
       (equal current-prefix-arg
 	     org-agenda-last-prefix-arg)

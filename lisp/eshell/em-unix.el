@@ -789,7 +789,7 @@ available..."
 		    (ignore-errors
 		      (occur (car args))))
 		  (if (get-buffer "*Occur*")
-		      (with-current-buffer (get-buffer "*Occur*")
+		      (with-current-buffer "*Occur*"
 			(setq string (buffer-string))
 			(kill-buffer (current-buffer)))))
 		(if string (insert string))

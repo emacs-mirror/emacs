@@ -281,7 +281,7 @@ non-nil."
   ;; Remove all buffers with a remote default-directory which fit the hook.
   (dolist (name (tramp-list-remote-buffers))
     (and (buffer-live-p (get-buffer name))
-	 (with-current-buffer (get-buffer name)
+	 (with-current-buffer name
 	   (run-hook-with-args-until-success 'tramp-cleanup-some-buffers-hook))
 	 (kill-buffer name))))
 

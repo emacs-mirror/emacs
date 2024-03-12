@@ -5803,7 +5803,7 @@ FILENAME to find directory to run in, or defaults to `buffer-file-name'."
 	 (dir (file-name-directory (or filename buffer-file-name)))
 	 (cmd (concat "cd " dir "; " command)))
     (with-output-to-temp-buffer "*Verilog-Preprocessed*"
-      (with-current-buffer (get-buffer "*Verilog-Preprocessed*")
+      (with-current-buffer "*Verilog-Preprocessed*"
 	(insert (concat "// " cmd "\n"))
 	(call-process shell-file-name nil t nil shell-command-switch cmd)
 	(verilog-mode)

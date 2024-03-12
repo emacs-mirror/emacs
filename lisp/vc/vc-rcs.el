@@ -1177,7 +1177,7 @@ variable `vc-rcs-release' is set to the returned value."
   (or vc-rcs-release
       (setq vc-rcs-release
 	    (or (and (zerop (vc-do-command "*vc*" nil "rcs" nil "-V"))
-		     (with-current-buffer (get-buffer "*vc*")
+		     (with-current-buffer "*vc*"
 		       (vc-parse-buffer "^RCS version \\([0-9.]+ *.*\\)" 1)))
 		'unknown))))
 

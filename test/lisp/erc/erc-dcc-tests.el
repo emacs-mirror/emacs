@@ -243,7 +243,7 @@
      (delete-region (point) (point-max))
      (insert "/dcc get -")
      (call-interactively #'completion-at-point)
-     (with-current-buffer (get-buffer "*Completions*")
+     (with-current-buffer "*Completions*"
        (goto-char (point-min))
        (search-forward "-s")
        (search-forward "-t"))
@@ -264,7 +264,7 @@
      (delete-region (point) (point-max))
      (insert "/dcc get -")
      (call-interactively #'completion-at-point)
-     (with-current-buffer (get-buffer "*Completions*")
+     (with-current-buffer "*Completions*"
        (goto-char (point-min))
        (search-forward "-s")
        (search-forward "-t"))
@@ -289,7 +289,7 @@
      (delete-region (point) (point-max))
      (insert "/dcc get -")
      (call-interactively #'completion-at-point)
-     (with-current-buffer (get-buffer "*Completions*")
+     (with-current-buffer "*Completions*"
        (goto-char (point-min))
        (search-forward "-s")
        (search-forward "-t"))

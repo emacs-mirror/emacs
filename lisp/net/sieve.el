@@ -354,7 +354,7 @@ Used to bracket operations which move point in the sieve-buffer."
     (let ((script (buffer-string))
           (script-name (file-name-sans-extension (buffer-name)))
           err)
-      (with-current-buffer (get-buffer sieve-buffer)
+      (with-current-buffer sieve-buffer
 	(setq err (sieve-manage-putscript
                    (or name sieve-buffer-script-name script-name)
                    script sieve-manage-buffer))

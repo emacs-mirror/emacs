@@ -2267,7 +2267,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
       (setq first t)
       (eww-read-bookmarks t)
       (eww-bookmark-prepare))
-    (with-current-buffer (get-buffer "*eww bookmarks*")
+    (with-current-buffer "*eww bookmarks*"
       (when (and (not first)
 		 (not (eobp)))
 	(forward-line 1))
@@ -2286,7 +2286,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
       (setq first t)
       (eww-read-bookmarks t)
       (eww-bookmark-prepare))
-    (with-current-buffer (get-buffer "*eww bookmarks*")
+    (with-current-buffer "*eww bookmarks*"
       (if first
 	  (goto-char (point-max))
 	(beginning-of-line))

@@ -1931,7 +1931,7 @@ See also `multi-occur'."
                    (lambda (boo)
                      (buffer-name (if (overlayp boo) (overlay-buffer boo) boo)))
                    active-bufs))
-      (with-current-buffer (get-buffer buf-name)
+      (with-current-buffer buf-name
 	(rename-uniquely)))
 
     ;; Now find or create the output buffer.

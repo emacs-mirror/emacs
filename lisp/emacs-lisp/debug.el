@@ -200,7 +200,7 @@ the debugger will not be entered."
       (let (debugger-value
 	    (debugger-previous-state
              (if (get-buffer "*Backtrace*")
-                 (with-current-buffer (get-buffer "*Backtrace*")
+                 (with-current-buffer "*Backtrace*"
                    (debugger--save-buffer-state))))
             (debugger-args args)
 	    (debugger-buffer (get-buffer-create "*Backtrace*"))
@@ -651,7 +651,7 @@ Complete list of commands:
     (princ (debugger-eval-expression exp))
     (terpri))
 
-  (with-current-buffer (get-buffer debugger-record-buffer)
+  (with-current-buffer debugger-record-buffer
     (message "%s"
 	     (buffer-substring (line-beginning-position 0)
 			       (line-end-position 0)))))

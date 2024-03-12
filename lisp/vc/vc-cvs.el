@@ -476,7 +476,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
                  (concat "-j" first-revision)
                  (concat "-j" second-revision))
   (vc-file-setprop file 'vc-state 'edited)
-  (with-current-buffer (get-buffer "*vc*")
+  (with-current-buffer "*vc*"
     (goto-char (point-min))
     (if (re-search-forward "conflicts during merge" nil t)
 	(progn
@@ -495,7 +495,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
   (vc-cvs-command nil nil file "update")
   ;; Analyze the merge result reported by CVS, and set
   ;; file properties accordingly.
-  (with-current-buffer (get-buffer "*vc*")
+  (with-current-buffer "*vc*"
     (goto-char (point-min))
     ;; get new working revision
     (if (re-search-forward

@@ -50,7 +50,7 @@ variable `eieio-default-superclass'."
   (if (not root-class) (setq root-class 'eieio-default-superclass))
   (cl-check-type root-class class)
   (display-buffer (get-buffer-create "*EIEIO OBJECT BROWSE*") t)
-  (with-current-buffer (get-buffer "*EIEIO OBJECT BROWSE*")
+  (with-current-buffer "*EIEIO OBJECT BROWSE*"
     (erase-buffer)
     (goto-char 0)
     (eieio-browse-tree root-class "" "")

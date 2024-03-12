@@ -68,7 +68,7 @@
     (with-temp-buffer
       (insert diary-string)
       (icalendar-export-region (point-min) (point-max) file))
-    (with-current-buffer (get-buffer "*icalendar-errors*")
+    (with-current-buffer "*icalendar-errors*"
       (buffer-string))))
 
 ;; ======================================================================

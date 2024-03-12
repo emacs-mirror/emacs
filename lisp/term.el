@@ -4342,7 +4342,7 @@ Typing SPC flushes the help buffer."
       (display-completion-list (sort completions 'string-lessp)))
     (message "Hit space to flush")
     (let (key first)
-      (if (with-current-buffer (get-buffer "*Completions*")
+      (if (with-current-buffer "*Completions*"
 	    (setq key (read-key-sequence nil)
 		  first (aref key 0))
 	    (and (consp first)

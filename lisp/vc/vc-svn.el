@@ -436,7 +436,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 			(concat first-version ":" second-version)
 		      first-version))
   (vc-file-setprop file 'vc-state 'edited)
-  (with-current-buffer (get-buffer "*vc*")
+  (with-current-buffer "*vc*"
     (goto-char (point-min))
     (if (looking-at "C  ")
         1				; signal conflict
@@ -450,7 +450,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   (vc-svn-command nil 0 file "update")
   ;; Analyze the merge result reported by SVN, and set
   ;; file properties accordingly.
-  (with-current-buffer (get-buffer "*vc*")
+  (with-current-buffer "*vc*"
     (goto-char (point-min))
     ;; get new working revision
     (if (re-search-forward
