@@ -4494,8 +4494,7 @@ Otherwise, return nil."
 (defun special-form-p (object)
   "Non-nil if and only if OBJECT is a special form."
   (declare (side-effect-free error-free))
-  (if (and (symbolp object) (fboundp object))
-      (setq object (indirect-function object)))
+  (if (symbolp object) (setq object (indirect-function object)))
   (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
 
 (defun plistp (object)
@@ -4517,7 +4516,8 @@ Otherwise, return nil."
 Does not distinguish between functions implemented in machine code
 or byte-code."
   (declare (side-effect-free error-free))
-  (or (subrp object) (byte-code-function-p object)))
+  (or (and (subrp object) (not (eq 'unevalled (cdr (subr-arity object)))))
+      (byte-code-function-p object)))
 
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."

@@ -437,7 +437,7 @@ This has 2 uses:
 - For compiled code, this is used as a marker which cconv uses to check that
   immutable fields are indeed not mutated."
   (if (byte-code-function-p oclosure)
-      ;; Actually, this should never happen since the `cconv.el' should have
+      ;; Actually, this should never happen since `cconv.el' should have
       ;; optimized away the call to this function.
       oclosure
     ;; For byte-coded functions, we store the type as a symbol in the docstring

@@ -3463,45 +3463,12 @@ Of course, we really can't know that for sure, so it's just a heuristic."
 ;; Please keep it in sync with `comp-known-predicates'.
 (pcase-dolist (`(,type . ,pred)
                ;; Mostly kept in alphabetical order.
-               '((array		. arrayp)
-                 (atom		. atom)
-                 (base-char	. characterp)
-                 (bignum	. bignump)
-                 (boolean	. booleanp)
-                 (bool-vector	. bool-vector-p)
-                 (buffer	. bufferp)
-                 (byte-code-function . byte-code-function-p)
-                 (character	. natnump)
-                 (char-table	. char-table-p)
-                 (command	. commandp)
-                 (compiled-function . compiled-function-p)
-                 (hash-table	. hash-table-p)
-                 (cons		. consp)
-                 (fixnum	. fixnump)
-                 (float		. floatp)
-                 (frame		. framep)
-                 (function	. functionp)
-                 (integer	. integerp)
-                 (keyword	. keywordp)
-                 (list		. listp)
-                 (marker	. markerp)
-                 (natnum	. natnump)
-                 (number	. numberp)
-                 (null		. null)
-                 (obarray	. obarrayp)
-                 (overlay	. overlayp)
-                 (process	. processp)
-                 (real		. numberp)
-                 (sequence	. sequencep)
-                 (subr		. subrp)
-                 (string	. stringp)
-                 (symbol	. symbolp)
-                 (symbol-with-pos . symbol-with-pos-p)
-                 (vector	. vectorp)
-                 (window	. windowp)
-                 ;; FIXME: Do we really want to consider these types?
-                 (number-or-marker . number-or-marker-p)
-                 (integer-or-marker . integer-or-marker-p)
+               ;; These aren't defined via `cl--define-built-in-type'.
+               '((base-char	. characterp) ;Could be subtype of `fixnum'.
+                 (character	. natnump)    ;Could be subtype of `fixnum'.
+                 (command	. commandp)   ;Subtype of closure & subr.
+                 (natnum	. natnump)    ;Subtype of fixnum & bignum.
+                 (real		. numberp)    ;Not clear where it would fit.
                  ))
   (put type 'cl-deftype-satisfies pred))
 
