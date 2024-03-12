@@ -1046,7 +1046,7 @@ method invocation orders of the involved classes."
 
 (defun cl--generic-struct-tag (name &rest _)
   ;; Use exactly the same code as for `typeof'.
-  `(if ,name (type-of ,name) 'null))
+  `(cl-type-of ,name))
 
 (cl-generic-define-generalizer eieio--generic-generalizer
   ;; Use the exact same tagcode as for cl-struct, so that methods

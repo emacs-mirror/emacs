@@ -2207,6 +2207,27 @@ slot is returned; @ref{Records}.
 @end example
 @end defun
 
+@defun cl-type-of object
+This function returns a symbol naming @emph{the} type of
+@var{object}.  It usually behaves like @code{type-of}, except
+that it guarantees to return the most precise type possible, which also
+implies that the specific type it returns may change depending on the
+Emacs version.  For this reason, as a rule you should never compare its
+return value against some fixed set of types.
+
+@example
+(cl-type-of 1)
+     @result{} fixnum
+@group
+(cl-type-of 'nil)
+     @result{} null
+(cl-type-of (record 'foo))
+     @result{} foo
+@end group
+@end example
+@end defun
+
+
 @node Equality Predicates
 @section Equality Predicates
 @cindex equality

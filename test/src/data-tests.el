@@ -838,4 +838,41 @@ comparing the subr with a much slower Lisp implementation."
     (dolist (sym (list nil t 'xyzzy (make-symbol "")))
       (should (eq sym (bare-symbol (position-symbol sym 0)))))))
 
+(require 'cl-extra)                     ;For `cl--class-children'.
+
+(ert-deftest data-tests--cl-type-of ()
+  ;; Make sure that `cl-type-of' returns the most precise type.
+  ;; Note: This doesn't work for list/vector structs since those types
+  ;; are too difficult/unreliable to detect (so `cl-type-of' only says
+  ;; it's a `cons' or a `vector').
+  (dolist (val (list -2 10 (expt 2 128) nil t 'car
+                     (symbol-function 'car)
+                     (symbol-function 'progn)
+                     (position-symbol 'car 7)))
+    (let* ((type (cl-type-of val))
+           (class (cl-find-class type))
+           (alltypes (cl--class-allparents class))
+           ;; FIXME: Our type DAG is affected by `symbols-with-pos-enabled'.
+           ;; (e.g. `symbolp' returns nil on a sympos if that var is nil).
+           (symbols-with-pos-enabled t))
+      (dolist (parent alltypes)
+        (should (cl-typep val parent))
+        (dolist (subtype (cl--class-children (cl-find-class parent)))
+          (unless (memq subtype alltypes)
+            (unless (memq subtype
+                          ;; FIXME: Some types don't have any associated
+                          ;; predicate,
+                          '( font-spec font-entity font-object
+                             finalizer condvar terminal
+                             native-comp-unit interpreted-function
+                             tree-sitter-compiled-query
+                             tree-sitter-node tree-sitter-parser
+                             ;; `functionp' also matches things of type
+                             ;; `symbol' and `cons'.
+                             ;; FIXME: `subr-primitive-p' also matches
+                             ;; special-forms.
+                             function subr-primitive))
+              (should-not (cl-typep val subtype)))))))))
+
+
 ;;; data-tests.el ends here

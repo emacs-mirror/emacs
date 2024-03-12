@@ -339,8 +339,6 @@
                                           ',parents))))))
 
 ;; FIXME: Our type DAG has various quirks:
-;; - `subr' says it's a `compiled-function' but that's not true
-;;   for those subrs that are special forms!
 ;; - Some `keyword's are also `symbol-with-pos' but that's not reflected
 ;;   in the DAG.
 ;; - An OClosure can be an interpreted function or a `byte-code-function',
@@ -428,15 +426,17 @@ For this build of Emacs it's %dbit."
   "Abstract type of functions that have been compiled.")
 (cl--define-built-in-type byte-code-function (compiled-function)
   "Type of functions that have been byte-compiled.")
-(cl--define-built-in-type subr (compiled-function)
+(cl--define-built-in-type subr (atom)
   "Abstract type of functions compiled to machine code.")
 (cl--define-built-in-type module-function (function)
   "Type of functions provided via the module API.")
 (cl--define-built-in-type interpreted-function (function)
   "Type of functions that have not been compiled.")
-(cl--define-built-in-type subr-native-elisp (subr)
-  "Type of function that have been compiled by the native compiler.")
-(cl--define-built-in-type subr-primitive (subr)
+(cl--define-built-in-type special-form (subr)
+  "Type of the core syntactic elements of the Emacs Lisp language.")
+(cl--define-built-in-type subr-native-elisp (subr compiled-function)
+  "Type of functions that have been compiled by the native compiler.")
+(cl--define-built-in-type subr-primitive (subr compiled-function)
   "Type of functions hand written in C.")
 
 (unless (cl--class-parents (cl--find-class 'cl-structure-object))
