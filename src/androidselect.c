@@ -908,7 +908,7 @@ android_notification_deleted (struct android_notification_event *event,
       && sscanf (event->tag, "%*d.%*ld.%jd", &id) > 0)
     {
       ie->kind = NOTIFICATION_EVENT;
-      ie->arg  = list3 (XCDR (item), make_int (id),
+      ie->arg  = list3 (XCAR (XCDR (item)), make_int (id),
 			Qundefined);
     }
 }
