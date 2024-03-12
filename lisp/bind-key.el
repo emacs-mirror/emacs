@@ -453,31 +453,27 @@ other modes.  See `override-global-mode'."
   (macroexp-progn (bind-keys-form args 'override-global-map)))
 
 (defun bind-key--get-binding-description (elem)
-  (cond
-   ((listp elem)
+  (let (doc)
     (cond
-     ((memq (car elem) '(lambda function))
-      (if (and bind-key-describe-special-forms
-               (stringp (nth 2 elem)))
-          (nth 2 elem)
-        "#<lambda>"))
-     ((eq 'closure (car elem))
-      (if (and bind-key-describe-special-forms
-               (stringp (nth 3 elem)))
-          (nth 3 elem)
-        "#<closure>"))
-     ((eq 'keymap (car elem))
-      "#<keymap>")
+     ((symbolp elem)
+      (cond
+       ((and bind-key-describe-special-forms (keymapp elem)
+             ;; FIXME: Is this really ever better than the symbol-name?
+             ;; FIXME: `variable-documentation' describe what's in
+             ;; elem's `symbol-value', whereas `elem' here stands for
+             ;; its `symbol-function'.
+             (stringp (setq doc (get elem 'variable-documentation))))
+        doc)
+       (t elem)))
+     ((and bind-key-describe-special-forms (functionp elem)
+           (stringp (setq doc (documentation elem))))
+      doc) ;;FIXME: Keep only the first line?
+     ((consp elem)
+      (if (symbolp (car elem))
+          (format "#<%s>" (car elem))
+        elem))
      (t
-      elem)))
-   ;; must be a symbol, non-symbol keymap case covered above
-   ((and bind-key-describe-special-forms (keymapp elem))
-    (let ((doc (get elem 'variable-documentation)))
-      (if (stringp doc) doc elem)))
-   ((symbolp elem)
-    elem)
-   (t
-    "#<byte-compiled lambda>")))
+      (format "#<%s>" (type-of elem))))))
 
 (defun bind-key--compare-keybindings (l r)
   (let* ((regex bind-key-segregation-regexp)

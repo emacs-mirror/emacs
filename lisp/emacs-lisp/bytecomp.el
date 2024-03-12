@@ -5536,23 +5536,14 @@ invoked interactively."
 		 (if (null f)
 		     " <top level>";; shouldn't insert nil then, actually -sk
 		   " <not defined>"))
-		((subrp (setq f (symbol-function f)))
-		 " <subr>")
-		((symbolp f)
+		((symbolp (setq f (symbol-function f))) ;; An alias.
 		 (format " ==> %s" f))
-		((byte-code-function-p f)
-		 "<compiled function>")
 		((not (consp f))
-		 "<malformed function>")
+		 (format " <%s>" (type-of f)))
 		((eq 'macro (car f))
-		 (if (or (compiled-function-p (cdr f))
-			 ;; FIXME: Can this still happen?
-			 (assq 'byte-code (cdr (cdr (cdr f)))))
+		 (if (compiled-function-p (cdr f))
 		     " <compiled macro>"
 		   " <macro>"))
-		((assq 'byte-code (cdr (cdr f)))
-		 ;; FIXME: Can this still happen?
-		 "<compiled lambda>")
 		((eq 'lambda (car f))
 		 "<function>")
 		(t "???"))
