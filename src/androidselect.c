@@ -567,15 +567,15 @@ android_locate_icon (const char *name)
 }
 
 /* Display a desktop notification with the provided TITLE, BODY,
-   REPLACES_ID, GROUP, ICON, URGENCY, ACTIONS, ACTION_CB and CANCEL_CB.
-   Return an identifier for the resulting notification.  */
+   REPLACES_ID, GROUP, ICON, URGENCY, ACTIONS, RESIDENT, ACTION_CB and
+   CANCEL_CB.  Return an identifier for the resulting notification.  */
 
 static intmax_t
 android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
 				Lisp_Object replaces_id,
 				Lisp_Object group, Lisp_Object icon,
 				Lisp_Object urgency, Lisp_Object actions,
-				Lisp_Object action_cb,
+				Lisp_Object resident, Lisp_Object action_cb,
 				Lisp_Object cancel_cb)
 {
   static intmax_t counter;
@@ -740,8 +740,9 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
 
   /* If callbacks are provided, save them into notification_table. */
 
-  if (!NILP (action_cb) || !NILP (cancel_cb))
-    Fputhash (build_string (identifier), Fcons (action_cb, cancel_cb),
+  if (!NILP (action_cb) || !NILP (cancel_cb) || !NILP (resident))
+    Fputhash (build_string (identifier), list3 (action_cb, cancel_cb,
+						resident),
 	      notification_table);
 
   /* Return the ID.  */
@@ -755,12 +756,12 @@ ARGS must contain keywords followed by values.  Each of the following
 keywords is understood:
 
   :title	The notification title.
-  :body	The notification body.
+  :body		The notification body.
   :replaces-id	The ID of a previous notification to supersede.
   :group	The notification group, or nil.
   :urgency	One of the symbols `low', `normal' or `critical',
 		defining the importance of the notification group.
-  :icon	The name of a drawable resource to display as the
+  :icon		The name of a drawable resource to display as the
 		notification's icon.
   :actions	A list of actions of the form:
 		  (KEY TITLE KEY TITLE ...)
@@ -770,6 +771,8 @@ keywords is understood:
 		its existence is implied, and its TITLE is ignored.
 		No more than three actions can be defined, not
 		counting any action with "default" as its key.
+  :resident     When set the notification will not be automatically
+		dismissed when it or an action is selected.
   :on-action	Function to call when an action is invoked.
 		The notification id and the key of the action are
 		provided as arguments to the function.
@@ -811,7 +814,7 @@ this function.
 usage: (android-notifications-notify &rest ARGS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object title, body, replaces_id, group, urgency;
+  Lisp_Object title, body, replaces_id, group, urgency, resident;
   Lisp_Object icon;
   Lisp_Object key, value, actions, action_cb, cancel_cb;
   ptrdiff_t i;
@@ -821,7 +824,7 @@ usage: (android-notifications-notify &rest ARGS) */)
 
   /* Clear each variable above.  */
   title = body = replaces_id = group = icon = urgency = actions = Qnil;
-  action_cb = cancel_cb = Qnil;
+  resident = action_cb = cancel_cb = Qnil;
 
   /* If NARGS is odd, error.  */
 
@@ -849,6 +852,8 @@ usage: (android-notifications-notify &rest ARGS) */)
 	icon = value;
       else if (EQ (key, QCactions))
 	actions = value;
+      else if (EQ (key, QCresident))
+	resident = value;
       else if (EQ (key, QCon_action))
 	action_cb = value;
       else if (EQ (key, QCon_cancel))
@@ -878,8 +883,8 @@ usage: (android-notifications-notify &rest ARGS) */)
 
   return make_int (android_notifications_notify_1 (title, body, replaces_id,
 						   group, icon, urgency,
-						   actions, action_cb,
-						   cancel_cb));
+						   actions, resident,
+						   action_cb, cancel_cb));
 }
 
 /* Run callbacks in response to a notification being deleted.
@@ -899,7 +904,7 @@ android_notification_deleted (struct android_notification_event *event,
   if (!NILP (item))
     Fremhash (tag, notification_table);
 
-  if (CONSP (item) && FUNCTIONP (XCDR (item))
+  if (CONSP (item) && FUNCTIONP (XCAR (XCDR (item)))
       && sscanf (event->tag, "%*d.%*ld.%jd", &id) > 0)
     {
       ie->kind = NOTIFICATION_EVENT;
@@ -919,6 +924,8 @@ android_notification_action (struct android_notification_event *event,
 {
   Lisp_Object item, tag;
   intmax_t id;
+  jstring tag_object;
+  jmethodID method;
 
   tag  = build_string (event->tag);
   item = Fgethash (tag, notification_table, Qnil);
@@ -928,6 +935,29 @@ android_notification_action (struct android_notification_event *event,
     {
       ie->kind = NOTIFICATION_EVENT;
       ie->arg  = list3 (XCAR (item), make_int (id), action);
+    }
+
+  /* Test whether ITEM is resident.  Non-resident notifications must be
+     removed when activated.  */
+
+  if (!CONSP (item) || NILP (XCAR (XCDR (XCDR (item)))))
+    {
+      method = service_class.cancel_notification;
+      tag_object
+	= (*android_java_env)->NewStringUTF (android_java_env,
+					     event->tag);
+      android_exception_check ();
+
+      (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						     emacs_service,
+						     service_class.class,
+						     method, tag_object);
+      android_exception_check_1 (tag_object);
+      ANDROID_DELETE_LOCAL_REF (tag_object);
+
+      /* Remove the notification from the callback table.  */
+      if (!NILP (item))
+	Fremhash (tag, notification_table);
     }
 }
 
@@ -971,6 +1001,7 @@ syms_of_androidselect (void)
   DEFSYM (QCurgency, ":urgency");
   DEFSYM (QCicon, ":icon");
   DEFSYM (QCactions, ":actions");
+  DEFSYM (QCresident, ":resident");
   DEFSYM (QCon_action, ":on-action");
   DEFSYM (QCon_cancel, ":on-cancel");
 

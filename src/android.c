@@ -1688,6 +1688,8 @@ android_init_emacs_service (void)
 	       "externalStorageAvailable", "()Z");
   FIND_METHOD (request_storage_access,
 	       "requestStorageAccess", "()V");
+  FIND_METHOD (cancel_notification,
+	       "cancelNotification", "(Ljava/lang/String;)V");
 #undef FIND_METHOD
 }
 
