@@ -281,11 +281,9 @@ public final class EmacsDesktopNotification
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
       pending = PendingIntent.getBroadcast (context, 0, intent,
-					    (PendingIntent.FLAG_IMMUTABLE
-					     | PendingIntent.FLAG_ONE_SHOT));
+					    PendingIntent.FLAG_IMMUTABLE);
     else
-      pending = PendingIntent.getBroadcast (context, 0, intent,
-					    PendingIntent.FLAG_ONE_SHOT);
+      pending = PendingIntent.getBroadcast (context, 0, intent, 0);
 
     notification.deleteIntent = pending;
     manager.notify (tag, 2, notification);
