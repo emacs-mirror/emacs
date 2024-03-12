@@ -202,7 +202,7 @@ Useful to hook into pass checkers.")
     (consp               . cons)
     (floatp              . float)
     (framep              . frame)
-    (functionp           . (or function symbol))
+    (functionp           . (or function symbol cons))
     (hash-table-p	 . hash-table)
     (integer-or-marker-p . integer-or-marker)
     (integerp            . integer)
@@ -244,6 +244,7 @@ Useful to hook into pass checkers.")
 
 (defun comp--pred-to-cstr (predicate)
   "Given PREDICATE, return the corresponding constraint."
+  ;; FIXME: Unify those two hash tables?
   (or (gethash predicate comp-known-predicates-h)
       (gethash predicate (comp-cstr-ctxt-pred-type-h comp-ctxt))))
 
