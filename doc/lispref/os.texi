@@ -3242,7 +3242,7 @@ of parameters analogous to its namesake in
 @item :body @var{body}
 @item :replaces-id @var{replaces-id}
 @item :on-action @var{on-action}
-@item :on-cancel @var{on-cancel}
+@item :on-cancel @var{on-close}
 @item :actions @var{actions}
 @item :resident @var{resident}
 These have the same meaning as they do when used in calls to

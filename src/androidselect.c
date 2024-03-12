@@ -568,7 +568,7 @@ android_locate_icon (const char *name)
 
 /* Display a desktop notification with the provided TITLE, BODY,
    REPLACES_ID, GROUP, ICON, URGENCY, ACTIONS, RESIDENT, ACTION_CB and
-   CANCEL_CB.  Return an identifier for the resulting notification.  */
+   CLOSE_CB.  Return an identifier for the resulting notification.  */
 
 static intmax_t
 android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
@@ -576,7 +576,7 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
 				Lisp_Object group, Lisp_Object icon,
 				Lisp_Object urgency, Lisp_Object actions,
 				Lisp_Object resident, Lisp_Object action_cb,
-				Lisp_Object cancel_cb)
+				Lisp_Object close_cb)
 {
   static intmax_t counter;
   intmax_t id;
@@ -740,8 +740,8 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
 
   /* If callbacks are provided, save them into notification_table. */
 
-  if (!NILP (action_cb) || !NILP (cancel_cb) || !NILP (resident))
-    Fputhash (build_string (identifier), list3 (action_cb, cancel_cb,
+  if (!NILP (action_cb) || !NILP (close_cb) || !NILP (resident))
+    Fputhash (build_string (identifier), list3 (action_cb, close_cb,
 						resident),
 	      notification_table);
 
@@ -776,7 +776,7 @@ keywords is understood:
   :on-action	Function to call when an action is invoked.
 		The notification id and the key of the action are
 		provided as arguments to the function.
-  :on-cancel	Function to call if the notification is dismissed,
+  :on-close	Function to call if the notification is dismissed,
 		with the notification id and the symbol `undefined'
 		for arguments.
 
@@ -816,7 +816,7 @@ usage: (android-notifications-notify &rest ARGS) */)
 {
   Lisp_Object title, body, replaces_id, group, urgency, resident;
   Lisp_Object icon;
-  Lisp_Object key, value, actions, action_cb, cancel_cb;
+  Lisp_Object key, value, actions, action_cb, close_cb;
   ptrdiff_t i;
 
   if (!android_init_gui)
@@ -824,7 +824,7 @@ usage: (android-notifications-notify &rest ARGS) */)
 
   /* Clear each variable above.  */
   title = body = replaces_id = group = icon = urgency = actions = Qnil;
-  resident = action_cb = cancel_cb = Qnil;
+  resident = action_cb = close_cb = Qnil;
 
   /* If NARGS is odd, error.  */
 
@@ -856,8 +856,8 @@ usage: (android-notifications-notify &rest ARGS) */)
 	resident = value;
       else if (EQ (key, QCon_action))
 	action_cb = value;
-      else if (EQ (key, QCon_cancel))
-	cancel_cb = value;
+      else if (EQ (key, QCon_close))
+	close_cb = value;
     }
 
   /* Demand at least TITLE and BODY be present.  */
@@ -884,7 +884,7 @@ usage: (android-notifications-notify &rest ARGS) */)
   return make_int (android_notifications_notify_1 (title, body, replaces_id,
 						   group, icon, urgency,
 						   actions, resident,
-						   action_cb, cancel_cb));
+						   action_cb, close_cb));
 }
 
 /* Run callbacks in response to a notification being deleted.
@@ -1003,7 +1003,7 @@ syms_of_androidselect (void)
   DEFSYM (QCactions, ":actions");
   DEFSYM (QCresident, ":resident");
   DEFSYM (QCon_action, ":on-action");
-  DEFSYM (QCon_cancel, ":on-cancel");
+  DEFSYM (QCon_close, ":on-close");
 
   DEFSYM (Qlow, "low");
   DEFSYM (Qnormal, "normal");
