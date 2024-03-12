@@ -322,7 +322,7 @@ described below.
 
 @defmac if-let spec then-form else-forms...
 Evaluate each binding in @var{spec} in turn, like in @code{let*}
-(@pxref{Local Variables}, stopping if a binding value is @code{nil}.
+(@pxref{Local Variables}), stopping if a binding value is @code{nil}.
 If all are non-@code{nil}, return the value of @var{then-form},
 otherwise the last form in @var{else-forms}.
 @end defmac
