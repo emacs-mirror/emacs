@@ -228,10 +228,12 @@ public final class EmacsDesktopNotification
 	builder.setContentTitle (title);
 	builder.setContentText (content);
 	builder.setSmallIcon (icon);
-	builder.setPriority (priority);
 
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-	  insertActions (context, builder);
+	  {
+	    builder.setPriority (priority);
+	    insertActions (context, builder);
+	  }
 
 	notification = builder.build ();
 
