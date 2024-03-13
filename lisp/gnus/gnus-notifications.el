@@ -88,7 +88,7 @@ not get notifications."
   ;; an action of theirs) are selected
   (assoc-delete-all id gnus-notifications-id-to-msg))
 
-(defun gnus-notification-close (id reason)
+(defun gnus-notifications-close (id _reason)
   "Remove ID from the alist of notification identifiers to messages.
 REASON is ignored."
   (assoc-delete-all id gnus-notifications-id-to-msg))
