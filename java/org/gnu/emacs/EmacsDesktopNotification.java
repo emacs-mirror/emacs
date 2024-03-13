@@ -83,11 +83,16 @@ public final class EmacsDesktopNotification
      notification.  */
   public final String[] actions, titles;
 
+  /* Delay in miliseconds after which this notification should be
+     automatically dismissed.  */
+  public final long delay;
+
   public
   EmacsDesktopNotification (String title, String content,
 			    String group, String tag, int icon,
 			    int importance,
-			    String[] actions, String[] titles)
+			    String[] actions, String[] titles,
+			    long delay)
   {
     this.content    = content;
     this.title	    = title;
@@ -97,6 +102,7 @@ public final class EmacsDesktopNotification
     this.importance = importance;
     this.actions    = actions;
     this.titles     = titles;
+    this.delay      = delay;
   }
 
 
@@ -191,6 +197,8 @@ public final class EmacsDesktopNotification
 	builder.setContentTitle (title);
 	builder.setContentText (content);
 	builder.setSmallIcon (icon);
+	builder.setTimeoutAfter (delay);
+
 	insertActions (context, builder);
 	notification = builder.build ();
       }

@@ -3244,6 +3244,7 @@ of parameters analogous to its namesake in
 @item :on-action @var{on-action}
 @item :on-cancel @var{on-close}
 @item :actions @var{actions}
+@item :timeout @var{timeout}
 @item :resident @var{resident}
 These have the same meaning as they do when used in calls to
 @code{notifications-notify}, except that no more than three non-default

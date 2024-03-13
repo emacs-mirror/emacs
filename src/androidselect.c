@@ -526,7 +526,7 @@ android_init_emacs_desktop_notification (void)
   FIND_METHOD (init, "<init>", "(Ljava/lang/String;"
 	       "Ljava/lang/String;Ljava/lang/String;"
 	       "Ljava/lang/String;II[Ljava/lang/String;"
-	       "[Ljava/lang/String;)V");
+	       "[Ljava/lang/String;J)V");
   FIND_METHOD (display, "display", "()V");
 #undef FIND_METHOD
 }
@@ -567,16 +567,17 @@ android_locate_icon (const char *name)
 }
 
 /* Display a desktop notification with the provided TITLE, BODY,
-   REPLACES_ID, GROUP, ICON, URGENCY, ACTIONS, RESIDENT, ACTION_CB and
-   CLOSE_CB.  Return an identifier for the resulting notification.  */
+   REPLACES_ID, GROUP, ICON, URGENCY, ACTIONS, TIMEOUT, RESIDENT,
+   ACTION_CB and CLOSE_CB.  Return an identifier for the resulting
+   notification.  */
 
 static intmax_t
 android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
 				Lisp_Object replaces_id,
 				Lisp_Object group, Lisp_Object icon,
 				Lisp_Object urgency, Lisp_Object actions,
-				Lisp_Object resident, Lisp_Object action_cb,
-				Lisp_Object close_cb)
+				Lisp_Object timeout, Lisp_Object resident,
+				Lisp_Object action_cb, Lisp_Object close_cb)
 {
   static intmax_t counter;
   intmax_t id;
@@ -593,6 +594,7 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
   jint nitems, i;
   jstring item;
   Lisp_Object length;
+  jlong timeout_val;
 
   if (EQ (urgency, Qlow))
     type = 2; /* IMPORTANCE_LOW */
@@ -602,6 +604,23 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
     type = 4; /* IMPORTANCE_HIGH */
   else
     signal_error ("Invalid notification importance given", urgency);
+
+  /* Decode the timeout.  */
+
+  timeout_val = 0;
+
+  if (!NILP (timeout))
+    {
+      CHECK_INTEGER (timeout);
+
+      if (!integer_to_intmax (timeout, &id)
+	  || id > TYPE_MAXIMUM (jlong)
+	  || id < TYPE_MINIMUM (jlong))
+	signal_error ("Invalid timeout", timeout);
+
+      if (id > 0)
+	timeout_val = id;
+    }
 
   nitems = 0;
 
@@ -714,7 +733,8 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
 				      notification_class.init,
 				      title1, body1, group1,
 				      identifier1, icon1, type,
-				      action_keys, action_titles);
+				      action_keys, action_titles,
+				      timeout_val);
   android_exception_check_6 (title1, body1, group1, identifier1,
 			     action_titles, action_keys);
 
@@ -723,12 +743,8 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
   ANDROID_DELETE_LOCAL_REF (body1);
   ANDROID_DELETE_LOCAL_REF (group1);
   ANDROID_DELETE_LOCAL_REF (identifier1);
-
-  if (action_keys)
-    ANDROID_DELETE_LOCAL_REF (action_keys);
-
-  if (action_titles)
-    ANDROID_DELETE_LOCAL_REF (action_titles);
+  ANDROID_DELETE_LOCAL_REF (action_keys);
+  ANDROID_DELETE_LOCAL_REF (action_titles);
 
   /* Display the notification.  */
   (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
@@ -769,8 +785,14 @@ keywords is understood:
 		The action for which CALLBACK is called when the
 		notification itself is selected is named "default",
 		its existence is implied, and its TITLE is ignored.
-		No more than three actions can be defined, not
-		counting any action with "default" as its key.
+		No more than three actions defined here will be
+		displayed, not counting any with "default" as its
+		key.
+  :timeout	Number of miliseconds from the display of the
+		notification at which it will be automatically
+		dismissed, or a value of zero or smaller if it
+		is to remain until user action is taken to dismiss
+		it.
   :resident     When set the notification will not be automatically
 		dismissed when it or an action is selected.
   :on-action	Function to call when an action is invoked.
@@ -780,12 +802,15 @@ keywords is understood:
 		with the notification id and the symbol `undefined'
 		for arguments.
 
-The notification group is ignored on Android 7.1 and earlier versions
-of Android.  Outside such older systems, it identifies a category that
-will be displayed in the system Settings menu, and the urgency
-provided always extends to affect all notifications displayed within
-that category.  If the group is not provided, it defaults to the
-string "Desktop Notifications".
+The notification group and timeout are ignored on Android 7.1 and
+earlier versions of Android.  On more recent versions, the urgency
+identifies a category that will be displayed in the system Settings
+menu, and the urgency provided always extends to affect all
+notifications displayed within that category, though it may be ignored
+if higher than any previously-specified urgency or if the user have
+already configured a different urgency for this category from Settings.
+If the group is not provided, it defaults to the string "Desktop
+Notifications" with the urgency suffixed.
 
 Each caller should strive to provide one unchanging combination of
 notification group and urgency for each kind of notification it sends,
@@ -795,8 +820,8 @@ first notification sent to its notification group.
 
 The provided icon should be the name of a "drawable resource" present
 within the "android.R.drawable" class designating an icon with a
-transparent background.  If no icon is provided (or the icon is absent
-from this system), it defaults to "ic_dialog_alert".
+transparent background.  Should no icon be provided (or the icon is
+absent from this system), it defaults to "ic_dialog_alert".
 
 Actions specified with :actions cannot be displayed on Android 4.0 and
 earlier versions of the system.
@@ -814,17 +839,18 @@ this function.
 usage: (android-notifications-notify &rest ARGS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object title, body, replaces_id, group, urgency, resident;
+  Lisp_Object title, body, replaces_id, group, urgency, timeout, resident;
   Lisp_Object icon;
   Lisp_Object key, value, actions, action_cb, close_cb;
   ptrdiff_t i;
+  AUTO_STRING (default_icon, "ic_dialog_alert");
 
   if (!android_init_gui)
     error ("No Android display connection!");
 
   /* Clear each variable above.  */
   title = body = replaces_id = group = icon = urgency = actions = Qnil;
-  resident = action_cb = close_cb = Qnil;
+  timeout = resident = action_cb = close_cb = Qnil;
 
   /* If NARGS is odd, error.  */
 
@@ -852,6 +878,8 @@ usage: (android-notifications-notify &rest ARGS) */)
 	icon = value;
       else if (EQ (key, QCactions))
 	actions = value;
+      else if (EQ (key, QCtimeout))
+	timeout = value;
       else if (EQ (key, QCresident))
 	resident = value;
       else if (EQ (key, QCon_action))
@@ -874,16 +902,19 @@ usage: (android-notifications-notify &rest ARGS) */)
     urgency = Qlow;
 
   if (NILP (group))
-    group = build_string ("Desktop Notifications");
+    {
+      AUTO_STRING (format, "Desktop Notifications (%s importance)");
+      group = CALLN (Fformat, format, urgency);
+    }
 
   if (NILP (icon))
-    icon = build_string ("ic_dialog_alert");
+    icon = default_icon;
   else
     CHECK_STRING (icon);
 
   return make_int (android_notifications_notify_1 (title, body, replaces_id,
 						   group, icon, urgency,
-						   actions, resident,
+						   actions, timeout, resident,
 						   action_cb, close_cb));
 }
 
@@ -1001,6 +1032,7 @@ syms_of_androidselect (void)
   DEFSYM (QCurgency, ":urgency");
   DEFSYM (QCicon, ":icon");
   DEFSYM (QCactions, ":actions");
+  DEFSYM (QCtimeout, ":timeout");
   DEFSYM (QCresident, ":resident");
   DEFSYM (QCon_action, ":on-action");
   DEFSYM (QCon_close, ":on-close");
