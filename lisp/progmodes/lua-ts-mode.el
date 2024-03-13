@@ -35,7 +35,6 @@
 (require 'treesit)
 
 (eval-when-compile
-  (require 'cl-lib)
   (require 'rx))
 
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -544,32 +543,32 @@ Calls REPORT-FN directly."
                            (eq proc lua-ts--flymake-process))
                          (with-current-buffer (process-buffer proc)
                            (goto-char (point-min))
-                           (cl-loop
-                            while (search-forward-regexp
-                                   (rx (seq bol
-                                            (0+ alnum) ":"
-                                            (group (1+ digit)) ":"
-                                            (group (1+ digit)) "-"
-                                            (group (1+ digit)) ": "
-                                            (group (0+ nonl))
-                                            eol))
-                                   nil t)
-                            for (beg . end) = (flymake-diag-region
-                                               source
-                                               (string-to-number (match-string 1))
-                                               (string-to-number (match-string 2)))
-                            for msg = (match-string 4)
-                            for type = (if (string-match "^(W" msg)
-                                           :warning
-                                         :error)
-                            when (and beg end)
-                            collect (flymake-make-diagnostic source
-                                                             beg
-                                                             end
-                                                             type
-                                                             msg)
-                            into diags
-                            finally (funcall report-fn diags)))
+                           (let (diags)
+                             (while (search-forward-regexp
+                                     (rx bol (0+ alnum) ":"
+                                         (group (1+ digit)) ":"
+                                         (group (1+ digit)) "-"
+                                         (group (1+ digit)) ": "
+                                         (group (0+ nonl)) eol)
+                                     nil t)
+                               (let* ((beg
+                                       (car (flymake-diag-region
+                                             source
+                                             (string-to-number (match-string 1))
+                                             (string-to-number (match-string 2)))))
+                                      (end
+                                       (cdr (flymake-diag-region
+                                             source
+                                             (string-to-number (match-string 1))
+                                             (string-to-number (match-string 3)))))
+                                      (msg (match-string 4))
+                                      (type (if (string-prefix-p "(W" msg)
+                                                :warning
+                                              :error)))
+                                 (push (flymake-make-diagnostic
+                                        source beg end type msg)
+                                       diags)))
+                             (funcall report-fn diags)))
                        (flymake-log :warning "Canceling obsolete check %s" proc))
                    (kill-buffer (process-buffer proc)))))))
       (process-send-region lua-ts--flymake-process (point-min) (point-max))
