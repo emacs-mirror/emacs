@@ -443,23 +443,9 @@ Returns the list of articles removed."
       (and (not unread) (not ticked) (not dormant) (memq 'read class))))
 
 (defun gnus-cache-file-name (group article)
-  (expand-file-name
-   (if (stringp article) article (int-to-string article))
-   (file-name-as-directory
-    (expand-file-name
-     (nnheader-translate-file-chars
-      (if (gnus-use-long-file-name 'not-cache)
-	  group
-	(let ((group (nnheader-replace-duplicate-chars-in-string
-		      (nnheader-replace-chars-in-string group ?/ ?_)
-		      ?. ?_)))
-	  ;; Translate the first colon into a slash.
-	  (when (string-match ":" group)
-		  (setq group (concat (substring group 0 (match-beginning 0))
-				      "/" (substring group (match-end 0)))))
-	  (nnheader-replace-chars-in-string group ?. ?/)))
-      t)
-     gnus-cache-directory))))
+  (nnmail-group-pathname
+   group gnus-cache-directory
+   (if (stringp article) article (int-to-string article))))
 
 (defun gnus-cache-update-article (group article)
   "If ARTICLE is in the cache, remove it and re-enter it."
@@ -699,9 +685,10 @@ If LOW, update the lower bound instead."
 			  (file-name-as-directory
 			   (expand-file-name gnus-cache-directory))))
 	     (directory-file-name directory))
-	    (nnheader-replace-chars-in-string
-	     (substring (directory-file-name directory) (match-end 0))
-	     ?/ ?.)))
+	    (url-unhex-string
+             (nnheader-replace-chars-in-string
+	      (substring (directory-file-name directory) (match-end 0))
+	      ?/ ?.))))
 	 nums alphs)
     (when top
       (gnus-message 5 "Generating the cache active file...")
