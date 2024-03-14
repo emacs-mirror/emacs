@@ -22,6 +22,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <windows.h>
 #include <windowsx.h>
+/* Override API version to get the required functionality.  */
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+/* mingw.org's MinGW headers mistakenly omit this enumeration: */
+# ifndef MINGW_W64
+typedef enum _WTS_VIRTUAL_CLASS {
+  WTSVirtualClientData,
+  WTSVirtualFileHandle
+} WTS_VIRTUAL_CLASS;
+# endif
+#include <wtsapi32.h>	/* for WM_WTSSESSION_CHANGE, WTS_SESSION_LOCK */
 
 #include "lisp.h"
 #include "frame.h"

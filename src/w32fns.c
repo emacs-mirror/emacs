@@ -47,6 +47,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32inevt.h"
 
 #ifdef WINDOWSNT
+/* mingw.org's MinGW headers mistakenly omit this enumeration: */
+# ifndef MINGW_W64
+typedef enum _WTS_VIRTUAL_CLASS {
+  WTSVirtualClientData,
+  WTSVirtualFileHandle
+} WTS_VIRTUAL_CLASS;
+# endif
 #include <mbstring.h>
 #include <mbctype.h>	/* for _getmbcp */
 #include <wtsapi32.h>	/* for WTS(Un)RegisterSessionNotification */
