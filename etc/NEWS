@@ -1129,6 +1129,11 @@ distracting and easily confused with actual code, or a significant
 early aid that relieves you from moving the buffer or reaching for the
 mouse to consult an error message.
 
+** Flyspell
+
+*** New user option 'flyspell-check-changes'.
+It checks only edited text.
+
 ** JS mode.
 The binding 'M-.' has been removed from the major mode keymaps in
 'js-mode' and 'js-ts-mode', having it default to the global binding
