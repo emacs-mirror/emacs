@@ -295,6 +295,7 @@ automatically)."
     ((nushell-mode nushell-ts-mode) . ("nu" "--lsp"))
     (gdscript-mode . ("localhost" 6008))
     (fennel-mode . ("fennel-ls"))
+    (move-mode . ("move-analyzer"))
     ((fortran-mode f90-mode) . ("fortls"))
     (futhark-mode . ("futhark" "lsp"))
     ((lua-mode lua-ts-mode) . ,(eglot-alternatives
