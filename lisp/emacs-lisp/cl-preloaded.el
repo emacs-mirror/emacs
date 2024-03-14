@@ -365,6 +365,7 @@
 (cl--define-built-in-type buffer atom)
 (cl--define-built-in-type window atom)
 (cl--define-built-in-type process atom)
+(cl--define-built-in-type finalizer atom)
 (cl--define-built-in-type window-configuration atom)
 (cl--define-built-in-type overlay atom)
 (cl--define-built-in-type number-or-marker atom

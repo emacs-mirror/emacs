@@ -1485,8 +1485,8 @@ types that are not built into Emacs.
 @subsection Type Descriptors
 
   A @dfn{type descriptor} is a @code{record} which holds information
-about a type.  Slot 1 in the record must be a symbol naming the type, and
-@code{type-of} relies on this to return the type of @code{record}
+about a type.  The first slot in the record must be a symbol naming the type,
+and @code{type-of} relies on this to return the type of @code{record}
 objects.  No other type descriptor slot is used by Emacs; they are
 free for use by Lisp extensions.
 
@@ -2175,7 +2175,7 @@ with references to further information.
 function @code{type-of}.  Recall that each object belongs to one and
 only one primitive type; @code{type-of} tells you which one (@pxref{Lisp
 Data Types}).  But @code{type-of} knows nothing about non-primitive
-types.  In most cases, it is more convenient to use type predicates than
+types.  In most cases, it is preferable to use type predicates than
 @code{type-of}.
 
 @defun type-of object
