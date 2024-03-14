@@ -233,9 +233,10 @@ public final class EmacsDesktopNotification
 	  {
 	    builder.setPriority (priority);
 	    insertActions (context, builder);
+	    notification = builder.build ();
 	  }
-
-	notification = builder.build ();
+	else
+	  notification = builder.getNotification ();
 
 	if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN)
 	  notification.priority = priority;
