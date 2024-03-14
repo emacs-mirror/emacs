@@ -895,6 +895,36 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
   return 3;
 }
 
+
+
+/* Define replacements for required string functions.  */
+
+#if !defined HAVE_STPCPY || !defined HAVE_DECL_STPCPY
+
+/* Copy SRC to DEST, returning the address of the terminating '\0' in
+   DEST.  */
+
+static char *
+rpl_stpcpy (char *dest, const char *src)
+{
+  register char *d;
+  register const char *s;
+
+  d = dest;
+  s = src;
+
+  do
+    *d++ = *s;
+  while (*s++ != '\0');
+
+  return d - 1;
+}
+
+#define stpcpy rpl_stpcpy
+#endif /* !defined HAVE_STPCPY || !defined HAVE_DECL_STPCPY */
+
+
+
 /* Modify BUFFER, of size SIZE, so that it holds the absolute name of
    the file identified by BUFFER, relative to the current working
    directory of TRACEE if FD be AT_FDCWD, or the file referenced by FD
