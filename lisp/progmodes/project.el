@@ -2140,12 +2140,10 @@ is part of the default mode line beginning with Emacs 30."
   :group 'project
   :version "30.1")
 
-(defvar project-menu-entry
-  `(menu-item "Project" ,(bound-and-true-p menu-bar-project-menu)))
-
 (defvar project-mode-line-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line down-mouse-1] project-menu-entry)
+    (define-key map [mode-line down-mouse-1]
+                (bound-and-true-p menu-bar-project-item))
     map))
 
 (defvar project-mode-line-face nil
