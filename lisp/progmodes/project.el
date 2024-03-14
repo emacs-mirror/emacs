@@ -808,8 +808,9 @@ DIRS must contain directory names."
   (with-temp-buffer
     (setq default-directory dir)
     (let ((enable-local-variables :all))
-      (hack-dir-local-variables-non-file-buffer))
-    (symbol-value var)))
+      (hack-dir-local-variables))
+    ;; Don't use `hack-local-variables-apply' to avoid setting modes.
+    (alist-get var file-local-variables-alist)))
 
 (cl-defmethod project-buffers ((project (head vc)))
   (let* ((root (expand-file-name (file-name-as-directory (project-root project))))
