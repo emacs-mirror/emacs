@@ -846,6 +846,8 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
 	     (font-use-system-font font-selection boolean "23.2")
+             ;; xwidget.c
+             (xwidget-webkit-disable-javascript xwidget boolean "30.1")
              ;; haikuterm.c
              (haiku-debug-on-fatal-error debug boolean "29.1")
              ;; haikufns.c
@@ -906,6 +908,8 @@ since it could result in memory overflow and make Emacs crash."
 			      (symbol-name symbol))
 		       ;; Any function from fontset.c will do.
 		       (fboundp 'new-fontset))
+                      ((string-match "xwidget-" (symbol-name symbol))
+                       (boundp 'xwidget-internal))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
