@@ -803,7 +803,7 @@ keywords is understood:
 		for arguments.
 
 The notification group and timeout are ignored on Android 7.1 and
-earlier versions of Android.  On more recent versions, the urgency
+earlier versions of Android.  On more recent versions, the group
 identifies a category that will be displayed in the system Settings
 menu, and the urgency provided always extends to affect all
 notifications displayed within that category, though it may be ignored
