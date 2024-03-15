@@ -364,13 +364,15 @@ Return the trampoline if found or nil otherwise."
   (when (memq subr-name comp-warn-primitives)
     (warn "Redefining `%s' might break native compilation of trampolines."
           subr-name))
-  (unless (or (null native-comp-enable-subr-trampolines)
-              (memq subr-name native-comp-never-optimize-functions)
-              (gethash subr-name comp-installed-trampolines-h))
-    (cl-assert (subr-primitive-p (symbol-function subr-name)))
-    (when-let ((trampoline (or (comp-trampoline-search subr-name)
-                               (comp-trampoline-compile subr-name))))
-      (comp--install-trampoline subr-name trampoline))))
+  (let ((subr (symbol-function subr-name)))
+    (unless (or (not (string= subr-name (subr-name subr))) ;; (bug#69573)
+                (null native-comp-enable-subr-trampolines)
+                (memq subr-name native-comp-never-optimize-functions)
+                (gethash subr-name comp-installed-trampolines-h))
+      (cl-assert (subr-primitive-p subr))
+      (when-let ((trampoline (or (comp-trampoline-search subr-name)
+                                 (comp-trampoline-compile subr-name))))
+        (comp--install-trampoline subr-name trampoline)))))
 
 ;;;###autoload
 (defun native--compile-async (files &optional recursively load selector)
