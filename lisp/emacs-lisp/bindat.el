@@ -944,9 +944,13 @@ a bindat type expression."
 (bindat-defmacro sint (bitlen le)
   "Signed integer of size BITLEN.
 Big-endian if LE is nil and little-endian if not."
+  (unless lexical-binding
+    (error "The `sint' type requires 'lexical-binding'"))
   (let ((bl (make-symbol "bitlen"))
         (max (make-symbol "max"))
         (wrap (make-symbol "wrap")))
+    ;; FIXME: This `let*' around the `struct' results in code which the
+    ;; byte-compiler does not handle efficiently. 🙁
     `(let* ((,bl ,bitlen)
             (,max (ash 1 (1- ,bl)))
             (,wrap (+ ,max ,max)))
