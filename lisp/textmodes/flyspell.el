@@ -289,8 +289,11 @@ If this variable is nil, all regions are treated as small."
   :type 'key-sequence)
 
 (defcustom flyspell-check-changes nil
-  "Check only on moving point from the edited word.
-Unlike the default behavior, don't check when moving point without editing."
+  "If non-nil, spell-check only words that were edited.
+By default, this is nil, and Flyspell checks every word across which
+you move point, even if you haven't edited the word.  Customizing this
+option to a non-nil value will not flag mis-spelled words across which
+you move point without editing them."
   :type 'boolean
   :version "30.1")
 
@@ -1000,9 +1003,10 @@ Mostly we check word delimiters."
         (setq flyspell-previous-command command)))))
 
 (defun flyspell-check-changes ()
-  "The `post-command-hook' used by flyspell to check only edits.
-It checks only on moving point from the edited word,
-not when moving point without editing."
+  "Function to spell-check only edited words when point moves off the word.
+This is installed by flyspell as `post-command-hook' when the user
+option `flyspell-check-changes' is non-nil.  It spell-checks a word
+on moving point from the word only if the word was edited before the move."
   (when flyspell-mode
     (with-local-quit
       (when (consp flyspell-changes)

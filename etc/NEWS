@@ -1132,7 +1132,8 @@ mouse to consult an error message.
 ** Flyspell
 
 *** New user option 'flyspell-check-changes'.
-It checks only edited text.
+When non-nil, Flyspell mode spell-checks only words that you edited; it
+does not check unedited words just because you move point across them.
 
 ** JS mode.
 The binding 'M-.' has been removed from the major mode keymaps in
