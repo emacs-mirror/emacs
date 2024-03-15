@@ -362,9 +362,13 @@ of `proced-grammar-alist'."
   :type 'integer)
 
 (defcustom proced-auto-update-flag nil
-  "Non-nil for auto update of a Proced buffer.
-Can be changed interactively via `proced-toggle-auto-update'."
-  :type 'boolean)
+  "Non-nil means auto update proced buffers.
+Special value `visible' means only update proced buffers that are currently
+displayed in a window.  Can be changed interactively via
+`proced-toggle-auto-update'."
+  :type '(radio (const :tag "Don't auto update" nil)
+                (const :tag "Only update visible proced buffers" visible)
+                (const :tag "Update all proced buffers" t)))
 (make-variable-buffer-local 'proced-auto-update-flag)
 
 (defcustom proced-tree-flag nil
@@ -951,28 +955,40 @@ Proced buffers."
   "Auto-update Proced buffers using `run-at-time'.
 
 If there are no proced buffers, cancel the timer."
-  (unless (seq-filter (lambda (buf)
-                        (with-current-buffer buf
-                          (when (eq major-mode 'proced-mode)
-                            (if proced-auto-update-flag
-                                (proced-update t t))
-                            t)))
-                      (buffer-list))
+  (if-let (buffers (match-buffers '(derived-mode . proced-mode)))
+      (dolist (buf buffers)
+        (when-let ((flag (buffer-local-value 'proced-auto-update-flag buf))
+                   ((or (not (eq flag 'visible))
+                        (get-buffer-window buf 'visible))))
+          (with-current-buffer buf
+            (proced-update t t))))
     (cancel-timer proced-auto-update-timer)
     (setq proced-auto-update-timer nil)))
 
 (defun proced-toggle-auto-update (arg)
   "Change whether this Proced buffer is updated automatically.
 With prefix ARG, update this buffer automatically if ARG is positive,
-otherwise do not update.  Sets the variable `proced-auto-update-flag'.
-The time interval for updates is specified via `proced-auto-update-interval'."
+update the buffer only when the buffer is displayed in a window if ARG is 0,
+otherwise do not update.  Sets the variable `proced-auto-update-flag' by
+cycling between nil, `visible' and t.  The time interval for updates is
+specified via `proced-auto-update-interval'."
   (interactive (list (or current-prefix-arg 'toggle)) proced-mode)
   (setq proced-auto-update-flag
-        (cond ((eq arg 'toggle) (not proced-auto-update-flag))
-              (arg (> (prefix-numeric-value arg) 0))
+        (cond ((eq arg 'toggle)
+               (cond ((not proced-auto-update-flag) 'visible)
+                     ((eq proced-auto-update-flag 'visible) t)
+                     (t nil)))
+              (arg
+               (setq arg (prefix-numeric-value arg))
+               (message "%s" arg)
+               (cond ((> arg 0) t)
+                     ((eq arg 0) 'visible)
+                     (t nil)))
               (t (not proced-auto-update-flag))))
   (message "Proced auto update %s"
-           (if proced-auto-update-flag "enabled" "disabled")))
+           (cond ((eq proced-auto-update-flag 'visible) "enabled (only when buffer is visible)")
+                 (proced-auto-update-flag "enabled (unconditionally)")
+                 (t "disabled"))))
 
 ;;; Mark
 
