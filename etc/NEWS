@@ -283,6 +283,12 @@ right-aligned to is controlled by the new user option
 It specifies whether the window of the displayed buffer should be
 selected or deselected at the end of executing the current command.
 
++++
+*** New variable 'window-restore-killed-buffer-windows'.
+It specifies how 'set-window-configuration' and 'window-state-put'
+should proceed with windows whose buffer was killed after the
+corresponding configuration or state was made.
+
 ** Tab Bars and Tab Lines
 
 ---

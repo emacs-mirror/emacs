@@ -309,6 +309,9 @@ struct buffer
   /* The name of this buffer.  */
   Lisp_Object name_;
 
+  /* The last name of this buffer before it was renamed or killed.  */
+  Lisp_Object last_name_;
+
   /* The name of the file visited in this buffer, or nil.  */
   Lisp_Object filename_;
 
