@@ -1159,14 +1159,15 @@ argument or if the current major mode has no known group, prompt
 for the MODE to customize."
   (interactive
    (list
-    (let ((completion-regexp-list '("-mode\\'"))
-	  (group (custom-group-of-mode major-mode)))
+    (let ((group (custom-group-of-mode major-mode)))
       (if (and group (not current-prefix-arg))
 	  major-mode
 	(intern
 	 (completing-read (format-prompt "Mode" (and group major-mode))
 			  obarray
-			  'custom-group-of-mode
+			  (lambda (s)
+			    (and (string-match "-mode\\'" (symbol-name s))
+			         (custom-group-of-mode s)))
 			  t nil nil (if group (symbol-name major-mode))))))))
   (customize-group (custom-group-of-mode mode)))
 
