@@ -759,7 +759,7 @@ Elements in COMPONENTS must be a string or nil.
 DIRECTORY or the non-final elements in COMPONENTS may or may not end
 with a slash -- if they don't end with a slash, a slash will be
 inserted before concatenating.
-usage: (record DIRECTORY &rest COMPONENTS) */)
+usage: (file-name-concat DIRECTORY &rest COMPONENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t chars = 0, bytes = 0, multibytes = 0, eargs = 0;
