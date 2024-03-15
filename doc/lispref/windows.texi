@@ -6376,8 +6376,8 @@ fine-tune that behavior.
 @defvar window-restore-killed-buffer-windows
 This variable specifies how @code{set-window-configuration} and
 @code{window-state-put} shall handle a window whose buffer has been
-killed since the corresponding configuration or state was made.  Any
-such window may be live - in which case it shows some other buffer - or
+killed since the corresponding configuration or state was recorded.  Any
+such window may be live---in which case it shows some other buffer---or
 dead at the time one of these functions is called.  Usually,
 @code{set-window-configuration} leaves the window alone if it is live
 while @code{window-state-put} deletes it.
@@ -6399,14 +6399,15 @@ This means to try to delete the window if and only if it is dedicated to
 its buffer.
 
 @item @code{nil}
-This is the default and means that @code{set-window-configuration} will
-try to delete the window if and only if it is dedicated to its buffer
-and @code{window-state-put} will unconditionally try to delete it.
+This is the default, and it means that @code{set-window-configuration}
+will try to delete the window if and only if it is dedicated to its
+buffer, and @code{window-state-put} will unconditionally try to delete
+it.
 
 @item a function
-This means to restore the window, show some other buffer in it and add
-an entry for that window to a list that will be later passed as argument
-to that function.
+This means to restore the window and show some other buffer in it, like
+if the value is @code{t}, and also add an entry for that window to a
+list that will be later passed as the second argument to that function.
 @end table
 
 If a window cannot be deleted (typically, because it is the last window
@@ -6417,21 +6418,23 @@ If the value of this variable is a function, that function should take
 three arguments.  The first argument specifies the frame whose windows
 have been restored.  The third argument is either the constant
 @code{configuration} if the windows are restored by
-@code{set-window-configuration} or the constant @code{state} if the
+@code{set-window-configuration}, or the constant @code{state} if the
 windows are restored by @code{window-state-put}.
 
-The second argument specifies a list of entries for @emph{any} window
-whose previous buffer has been encountered dead at the time
+The second argument specifies a list of entries for @emph{all} windows
+whose previous buffers have been found dead at the time
 @code{set-window-configuration} or @code{window-state-put} tried to
 restore it in that window (minibuffer windows are excluded).  This means
-that the function specified by this variable may also delete windows
-encountered live by @code{set-window-configuration}.
+that the function may also delete windows which were found live by
+@code{set-window-configuration}.
 
-Each entry is a list of six values - the window whose buffer was found
-dead, the dead buffer or its name, the positions of start and point of
-the buffer in that window, the dedicated status of the window as
+Each entry in the list that is passed as the second argument to the
+function is itself a list of six values: the window whose buffer was
+found dead, the dead buffer or its name, the positions of window-start
+(@pxref{Window Start and End}) and window-point (@pxref{Window Point})
+of the buffer in that window, the dedicated state of the window as
 previously reported by @code{window-dedicated-p} and a flag that is
-@code{t} if the window has been encountered live by
+@code{t} if the window has been found to be alive by
 @code{set-window-configuration} and @code{nil} otherwise.
 @end defvar
 

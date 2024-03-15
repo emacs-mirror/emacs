@@ -8675,30 +8675,32 @@ call is performed with the frame temporarily selected.  */);
 	       doc: /* Control restoring windows whose buffer was killed.
 This variable specifies how the functions `set-window-configuration' and
 `window-state-put' shall handle a window whose buffer has been killed
-since the corresponding configuration or state was made.  Any such
-window may be live - in which case it shows some other buffer - or dead
-at the time one of these functions is called.
+since the corresponding configuration or state was recorded.  Any such
+window may be live -- in which case it shows some other buffer -- or
+dead at the time one of these functions is called.
 
-As a rule, `set-window-configuration' leaves the window alone if it is
-live while `window-state-put' deletes it.  The following values can be
+By default, `set-window-configuration' leaves the window alone if it is
+live, while `window-state-put' deletes it.  The following values can be
 used to override the default behavior for dead windows in the case of
 `set-window-configuration' and for dead and live windows in the case of
 `window-state-put'.
 
-- t means to restore the window and show some other buffer in it.
+ - t means to restore the window and show some other buffer in it.
 
-- `delete' means to try to delete the window.
+ - `delete' means to try to delete the window.
 
-- `dedicated' means to try to delete the window if and only if it is
-  dedicated to its buffer.
+ - `dedicated' means to try to delete the window if and only if it is
+   dedicated to its buffer.
 
-- nil, the default, means that `set-window-configuration' will try to
-  delete the window if and only if it is dedicated to its buffer while
-  `window-state-put' will unconditionally try to delete it.
+ - nil, the default, which means that `set-window-configuration' will
+   try to delete the window if and only if it is dedicated to its
+   buffer while `window-state-put' will unconditionally try to delete
+   it.
 
-- a function means to restore the window, show some other buffer in it
-  and add an entry for that window to a list that will be later passed
-  as argument to that function.
+ - a function means to restore the window and show some other buffer in
+   it, like if the value were t, but also to add an entry for that
+   window to a list that will be later passed as argument to that
+   function.
 
 If a window cannot be deleted (typically, because it is the last window
 on its frame), show another buffer in it.
@@ -8709,19 +8711,19 @@ third argument is the constant `configuration' if the windows are
 restored by `set-window-configuration' and the constant `state' if the
 windows are restored by `window-state-put'.
 
-The second argument specifies a list of entries for @emph{any} window
-whose previous buffer has been encountered dead at the time
+The second argument specifies a list of entries for all windows
+whose previous buffers have been found dead at the time
 `set-window-configuration' or `window-state-put' tried to restore it in
 that window (minibuffer windows are excluded).  This means that the
-function specified by this variable may also delete windows encountered
-live by `set-window-configuration'.
+function specified by this variable may also delete windows which were
+found to be alive by `set-window-configuration'.
 
-Each entry is a list of six values - the window whose buffer was found
-dead, the dead buffer or its name, the positions of start and point of
-the buffer in that window, the dedicated status of the window as
-reported by `window-dedicated-p' and a boolean - t if the window was
-live when `set-window-configuration' tried to restore it and nil
-otherwise.  */);
+Each entry is a list of six values: the window whose buffer was found
+dead, the dead buffer or its name, the positions of window-start and
+window-point of the buffer in that window, the dedicated state of the
+window as reported by `window-dedicated-p', and a boolean -- t if the
+window was live when `set-window-configuration' tried to restore it,
+and nil otherwise.  */);
   window_restore_killed_buffer_windows = Qnil;
 
   DEFVAR_LISP ("recenter-redisplay", Vrecenter_redisplay,
