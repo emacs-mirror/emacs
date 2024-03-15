@@ -3974,9 +3974,10 @@ syms_of_xwidget (void)
   Vxwidget_view_list = Qnil;
 
   DEFVAR_BOOL ("xwidget-webkit-disable-javascript", xwidget_webkit_disable_javascript,
-    doc: /* If non-nil, disable execution of JavaScript in WebKit widgets.
+    doc: /* If non-nil, disable execution of JavaScript in xwidget WebKit widgets.
 Modifications to this setting do not take effect in existing WebKit
-widgets.  */);
+widgets; kill all xwidget-webkit buffers for changes in this setting
+to take effect.  */);
   xwidget_webkit_disable_javascript = false;
 
   Fprovide (intern ("xwidget-internal"), Qnil);
