@@ -376,11 +376,11 @@ android_android_to_emacs_modifiers (struct android_display_info *dpyinfo,
   tem = Fget (Vx_super_keysym, Qmodifier_value);
   if (FIXNUMP (tem)) mod_super = XFIXNUM (tem) & INT_MAX;
 
-  return (((state & ANDROID_CONTROL_MASK) ? mod_ctrl  : 0)
-	  | ((state & ANDROID_SHIFT_MASK) ? mod_shift : 0)
-	  | ((state & ANDROID_ALT_MASK)   ? mod_meta  : 0)
-	  | ((state & ANDROID_SUPER_MASK) ? mod_super : 0)
-	  | ((state & ANDROID_META_MASK)  ? mod_alt   : 0));
+  return (((state & ANDROID_CONTROL_MASK) ? mod_ctrl		: 0)
+	  | ((state & ANDROID_SHIFT_MASK) ? shift_modifier	: 0)
+	  | ((state & ANDROID_ALT_MASK)   ? mod_meta		: 0)
+	  | ((state & ANDROID_SUPER_MASK) ? mod_super		: 0)
+	  | ((state & ANDROID_META_MASK)  ? mod_alt		: 0));
 }
 
 static int
@@ -402,11 +402,11 @@ android_emacs_to_android_modifiers (struct android_display_info *dpyinfo,
   tem = Fget (Vx_super_keysym, Qmodifier_value);
   if (FIXNUMP (tem)) mod_super = XFIXNUM (tem);
 
-  return (((state & mod_ctrl)    ? ANDROID_CONTROL_MASK : 0)
-	  | ((state & mod_shift) ? ANDROID_SHIFT_MASK   : 0)
-	  | ((state & mod_meta)  ? ANDROID_ALT_MASK     : 0)
-	  | ((state & mod_super) ? ANDROID_SUPER_MASK   : 0)
-	  | ((state & mod_alt)   ? ANDROID_META_MASK    : 0));
+  return (((state & mod_ctrl)		? ANDROID_CONTROL_MASK : 0)
+	  | ((state & shift_modifier)	? ANDROID_SHIFT_MASK   : 0)
+	  | ((state & mod_meta)		? ANDROID_ALT_MASK     : 0)
+	  | ((state & mod_super)	? ANDROID_SUPER_MASK   : 0)
+	  | ((state & mod_alt)		? ANDROID_META_MASK    : 0));
 }
 
 static void android_frame_rehighlight (struct android_display_info *);

@@ -75,10 +75,11 @@ not get notifications."
     (when group-article
       (let ((group (cadr group-article))
             (article (nth 2 group-article)))
-        (cond ((string= key "read")
+        (cond ((or (equal key "read")
+                   (equal key "default"))
                (gnus-fetch-group group (list article))
                (select-frame-set-input-focus (selected-frame)))
-              ((string= key "mark-read")
+              ((equal key "mark-read")
                (gnus-update-read-articles
                 group
                 (delq article (gnus-list-of-unread-articles group)))
