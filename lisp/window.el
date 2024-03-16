@@ -8668,11 +8668,11 @@ buffer.  ALIST is a buffer display action alist as compiled by
   use time is higher than this.
 
 - `window-min-width' specifies a preferred minimum width in
-  canonical frame columns.  If it is the constant `full-width',
+  canonical frame columns.  If it is the symbol `full-width',
   prefer a full-width window.
 
 - `window-min-height' specifies a preferred minimum height in
-  canonical frame lines.  If it is the constant `full-height',
+  canonical frame lines.  If it is the symbol `full-height',
   prefer a full-height window.
 
 If ALIST contains a non-nil `inhibit-same-window' entry, do not
@@ -8799,11 +8799,11 @@ Distinctive features are:
     call.
 
   `window-min-width' specifies a preferred minimum width in
-    canonical frame columns.  If it is the constant `full-width',
+    canonical frame columns.  If it is the symbol `full-width',
     prefer a full-width window.
 
   `window-min-height' specifies a preferred minimum height in
-    canonical frame lines.  If it is the constant `full-height',
+    canonical frame lines.  If it is the symbol `full-height',
     prefer a full-height window.
 
 - If the preceding steps fail, try to pop up a new window on the

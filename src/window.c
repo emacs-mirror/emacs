@@ -8707,8 +8707,8 @@ on its frame), show another buffer in it.
 
 If the value is a function, it should take three arguments.  The first
 argument specifies the frame whose windows have been restored.  The
-third argument is the constant `configuration' if the windows are
-restored by `set-window-configuration' and the constant `state' if the
+third argument is the symbol `configuration' if the windows are
+restored by `set-window-configuration' and the symbol `state' if the
 windows are restored by `window-state-put'.
 
 The second argument specifies a list of entries for all windows

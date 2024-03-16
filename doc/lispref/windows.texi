@@ -6416,9 +6416,9 @@ on its frame), @code{set-window-configuration} and
 
 If the value of this variable is a function, that function should take
 three arguments.  The first argument specifies the frame whose windows
-have been restored.  The third argument is either the constant
+have been restored.  The third argument is either the symbol
 @code{configuration} if the windows are restored by
-@code{set-window-configuration}, or the constant @code{state} if the
+@code{set-window-configuration}, or the symbol @code{state} if the
 windows are restored by @code{window-state-put}.
 
 The second argument specifies a list of entries for @emph{all} windows
