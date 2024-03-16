@@ -193,11 +193,15 @@ Use this with caution since it is not debugged."
 
 
 (defcustom edebug-print-length 50
-  "If non-nil, default value of `print-length' for printing results in Edebug."
-  :type '(choice integer (const nil)))
+  "Maximum length of list to print before abbreviating, when in Edebug.
+If this is nil, use the value of `print-length' instead."
+  :type '(choice (integer :tag "A number")
+                 (const :tag "Use `print-length'" nil)))
 (defcustom edebug-print-level 50
-  "If non-nil, default value of `print-level' for printing results in Edebug."
-  :type '(choice integer (const nil)))
+  "Maximum depth of list nesting to print before abbreviating, when in Edebug.
+If nil, use the value of `print-level' instead."
+  :type '(choice (integer :tag "A number")
+                 (const :tag "Use `print-level'" nil)))
 (defcustom edebug-print-circle t
   "If non-nil, default value of `print-circle' for printing results in Edebug."
   :type 'boolean)
