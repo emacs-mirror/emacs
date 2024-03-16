@@ -1817,8 +1817,9 @@ It returns the name of a buffer before the last time it was renamed or
 killed.
 
 ** New primitive 'marker-last-position'.
-It returns the last position of MARKER in its buffer even if that buffer
-has been killed.
+It returns the last position of a marker in its buffer even if that
+buffer has been killed.  ('marker-position' would return nil in that
+case.)
 
 
 ** Functions and variables to transpose sexps
