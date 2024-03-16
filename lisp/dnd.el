@@ -453,7 +453,10 @@ on FRAME itself.
 
 This function might return immediately if no mouse buttons are
 currently being held down.  It should only be called upon a
-`down-mouse-1' (or similar) event."
+`down-mouse-1' (or similar) event.
+
+This function is only supported on X Windows, macOS/GNUstep, and Haiku;
+on all other platforms it will signal an error."
   (unless (fboundp 'x-begin-drag)
     (error "Dragging text from Emacs is not supported by this window system"))
   (gui-set-selection 'XdndSelection text)
@@ -513,7 +516,10 @@ nil, any drops on FRAME itself will be ignored.
 
 This function might return immediately if no mouse buttons are
 currently being held down.  It should only be called upon a
-`down-mouse-1' (or similar) event."
+`down-mouse-1' (or similar) event.
+
+This function is only supported on X Windows, macOS/GNUstep, and Haiku;
+on all other platforms it will signal an error."
   (unless (fboundp 'x-begin-drag)
     (error "Dragging files from Emacs is not supported by this window system"))
   (dnd-remove-last-dragged-remote-file)
@@ -580,7 +586,10 @@ FRAME, ACTION and ALLOW-SAME-FRAME mean the same as in
 
 FILES is a list of files that will be dragged.  If the drop
 target doesn't support dropping multiple files, the first file in
-FILES will be dragged."
+FILES will be dragged.
+
+This function is only supported on X Windows, macOS/GNUstep, and Haiku;
+on all other platforms it will signal an error."
   (unless (fboundp 'x-begin-drag)
     (error "Dragging files from Emacs is not supported by this window system"))
   (dnd-remove-last-dragged-remote-file)
