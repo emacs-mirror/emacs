@@ -1012,7 +1012,7 @@ if `bibtex-BibTeX-entry-alist' does not define a comment for FIELD."
     ("volumes" "Total number of volumes of a multi-volume work")
     ("year" "Year of publication"))
     "Alist of biblatex fields.
-It has the same format as `bibtex-BibTeX-entry-alist'."
+It has the same format as `bibtex-BibTeX-field-alist'."
   :group 'bibtex
   :version "28.1"
   :type 'bibtex-field-alist)

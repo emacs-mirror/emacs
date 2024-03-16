@@ -237,6 +237,8 @@ formatting them:
   particular, gnu.org and fsf.org URLs should start with "https:".
 
 - Commit messages should contain only printable UTF-8 characters.
+  However, we ask that non-ASCII characters be used only if strictly
+  necessary, not just for aesthetic purposes.
 
 - Commit messages should not contain the "Signed-off-by:" lines that
   are used in some other projects.
