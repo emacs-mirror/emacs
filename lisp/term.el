@@ -658,7 +658,8 @@ executed once, when the buffer is created."
         ["Forward Output Group" term-next-prompt t]
         ["Kill Current Output Group" term-kill-output t]))
     map)
-  "Keymap for Term mode.")
+  "Keymap for \"line mode\" in Term mode.  For custom keybindings purposes
+please note there is also `term-raw-map'")
 
 (defvar term-escape-char nil
   "Escape character for char sub-mode of term mode.
@@ -958,7 +959,9 @@ underlying shell."
       (dotimes (key 21)
         (keymap-set map (format "<f%d>" key) #'term-send-function-key)))
     map)
-  "Keyboard map for sending characters directly to the inferior process.")
+  "Keyboard map for sending characters directly to the inferior process.
+For custom keybindings purposes please note there is also
+`term-mode-map'")
 
 (easy-menu-define term-terminal-menu
   (list term-mode-map term-raw-map term-pager-break-map)
@@ -1121,6 +1124,10 @@ particular subprocesses.  This can be done by setting the hooks
 `term-input-sender' and `term-get-old-input' to appropriate functions,
 and the variable `term-prompt-regexp' to the appropriate regular
 expression.
+
+If you define custom keybindings, make sure to assign them to the
+correct keymap (or to both): use `term-raw-map' in raw mode and
+`term-mode-map' in line mode.
 
 Commands in raw mode:
 
