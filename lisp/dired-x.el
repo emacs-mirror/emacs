@@ -77,12 +77,17 @@ files not writable by you are visited read-only."
 		 (other :tag "non-writable only" if-file-read-only))
   :group 'dired-x)
 
-(defcustom dired-omit-size-limit 100000
-  "Maximum size for the \"omitting\" feature.
+(defcustom dired-omit-size-limit 300000
+  "Maximum buffer size for `dired-omit-mode'.
+
+Omitting will be disabled if the directory listing exceeds this size in
+bytes.  This variable is ignored when `dired-omit-mode' is called
+interactively.
+
 If nil, there is no maximum size."
   :type '(choice (const :tag "no maximum" nil) integer)
   :group 'dired-x
-  :version "29.1")
+  :version "30.1")
 
 (defcustom dired-omit-case-fold 'filesystem
   "Determine whether \"omitting\" patterns are case-sensitive.
@@ -506,14 +511,23 @@ status message."
                                       (re-search-forward dired-re-mark nil t))))
         count)))
 
+(defvar dired-omit--extension-regexp-cache
+  nil
+  "A cache of `regexp-opt' applied to `dired-omit-extensions'.
+
+This is a cons whose car is a list of strings and whose cdr is a
+regexp produced by `regexp-opt'.")
+
 (defun dired-omit-regexp ()
+  (unless (equal dired-omit-extensions (car dired-omit--extension-regexp-cache))
+    (setq dired-omit--extension-regexp-cache
+          (cons dired-omit-extensions (regexp-opt dired-omit-extensions))))
   (concat (if dired-omit-files (concat "\\(" dired-omit-files "\\)") "")
           (if (and dired-omit-files dired-omit-extensions) "\\|" "")
           (if dired-omit-extensions
               (concat ".";; a non-extension part should exist
-                      "\\("
-                      (mapconcat 'regexp-quote dired-omit-extensions "\\|")
-                      "\\)$")
+                      (cdr dired-omit--extension-regexp-cache)
+                      "$")
             "")))
 
 ;; Returns t if any work was done, nil otherwise.
