@@ -8711,12 +8711,12 @@ third argument is the symbol `configuration' if the windows are
 restored by `set-window-configuration' and the symbol `state' if the
 windows are restored by `window-state-put'.
 
-The second argument specifies a list of entries for all windows
-whose previous buffers have been found dead at the time
-`set-window-configuration' or `window-state-put' tried to restore it in
-that window (minibuffer windows are excluded).  This means that the
-function specified by this variable may also delete windows which were
-found to be alive by `set-window-configuration'.
+The second argument specifies a list of entries for all windows whose
+previous buffers have been found dead at the time
+`set-window-configuration' or `window-state-put' tried to restore them
+(minibuffer windows are excluded).  This means that the function
+specified by this variable may also delete windows which were found to
+be alive by `set-window-configuration'.
 
 Each entry is a list of six values: the window whose buffer was found
 dead, the dead buffer or its name, the positions of window-start and

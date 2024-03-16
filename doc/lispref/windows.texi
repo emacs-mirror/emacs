@@ -6424,8 +6424,8 @@ windows are restored by @code{window-state-put}.
 The second argument specifies a list of entries for @emph{all} windows
 whose previous buffers have been found dead at the time
 @code{set-window-configuration} or @code{window-state-put} tried to
-restore it in that window (minibuffer windows are excluded).  This means
-that the function may also delete windows which were found live by
+restore them (minibuffer windows are excluded).  This means that the
+function may also delete windows which were found live by
 @code{set-window-configuration}.
 
 Each entry in the list that is passed as the second argument to the
