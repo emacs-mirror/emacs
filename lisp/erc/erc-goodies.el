@@ -673,14 +673,6 @@ The value `erc-interpret-controls-p' must also be t for this to work."
   "ERC underline face."
   :group 'erc-faces)
 
-(defface erc-control-default-fg '((t :inherit default))
-  "ERC foreground face for the \"default\" color code."
-  :group 'erc-faces)
-
-(defface erc-control-default-bg '((t :inherit default))
-  "ERC background face for the \"default\" color code."
-  :group 'erc-faces)
-
 ;; FIXME rename these to something like `erc-control-color-N-fg',
 ;; and deprecate the old names via `define-obsolete-face-alias'.
 (defface fg:erc-color-face0 '((t :foreground "White"))
@@ -812,7 +804,7 @@ The value `erc-interpret-controls-p' must also be t for this to work."
       (intern (concat "bg:erc-color-face" (number-to-string n))))
      ((< 15 n 99)
       (list :background (aref erc--controls-additional-colors (- n 16))))
-     (t (erc-log (format "   Wrong color: %s" n)) 'erc-control-default-fg))))
+     (t (erc-log (format "   Wrong color: %s" n)) nil))))
 
 (defun erc-get-fg-color-face (n)
   "Fetches the right face for foreground color N (0-15)."
@@ -828,7 +820,7 @@ The value `erc-interpret-controls-p' must also be t for this to work."
       (intern (concat "fg:erc-color-face" (number-to-string n))))
      ((< 15 n 99)
       (list :foreground (aref erc--controls-additional-colors (- n 16))))
-     (t (erc-log (format "   Wrong color: %s" n)) 'erc-control-default-bg))))
+     (t (erc-log (format "   Wrong color: %s" n)) nil))))
 
 ;;;###autoload(autoload 'erc-irccontrols-mode "erc-goodies" nil t)
 (define-erc-module irccontrols nil
@@ -883,7 +875,7 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
                     (setq s (replace-match "" nil nil s 1))
                     (cond ((and erc-interpret-mirc-color (or fg-color bg-color))
                            (setq fg fg-color)
-                           (setq bg bg-color))
+                           (when bg-color (setq bg bg-color)))
                           ((string= control "\C-b")
                            (setq boldp (not boldp)))
                           ((string= control "\C-]")
@@ -944,7 +936,7 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
                (replace-match "" nil nil nil 1)
                (cond ((and erc-interpret-mirc-color (or fg-color bg-color))
                       (setq fg fg-color)
-                      (setq bg bg-color))
+                      (when bg-color (setq bg bg-color)))
                      ((string= control "\C-b")
                       (setq boldp (not boldp)))
                      ((string= control "\C-]")
