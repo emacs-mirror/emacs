@@ -869,9 +869,7 @@ comparing the subr with a much slower Lisp implementation."
                              tree-sitter-node tree-sitter-parser
                              ;; `functionp' also matches things of type
                              ;; `symbol' and `cons'.
-                             ;; FIXME: `subr-primitive-p' also matches
-                             ;; special-forms.
-                             function subr-primitive))
+                             function))
               (should-not (cl-typep val subtype)))))))))
 
 

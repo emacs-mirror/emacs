@@ -248,7 +248,7 @@ a fixed set of types.  */)
         case PVEC_SUBR:
           return XSUBR (object)->max_args == UNEVALLED ? Qspecial_form
                  : SUBR_NATIVE_COMPILEDP (object) ? Qsubr_native_elisp
-                 : Qsubr_primitive;
+                 : Qprimitive_function;
         case PVEC_COMPILED: return Qcompiled_function;
         case PVEC_BUFFER: return Qbuffer;
         case PVEC_CHAR_TABLE: return Qchar_table;
@@ -4245,7 +4245,7 @@ syms_of_data (void)
   DEFSYM (Qwindow, "window");
   DEFSYM (Qsubr, "subr");
   DEFSYM (Qspecial_form, "special-form");
-  DEFSYM (Qsubr_primitive, "subr-primitive");
+  DEFSYM (Qprimitive_function, "primitive-function");
   DEFSYM (Qsubr_native_elisp, "subr-native-elisp");
   DEFSYM (Qcompiled_function, "compiled-function");
   DEFSYM (Qbuffer, "buffer");

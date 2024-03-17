@@ -436,7 +436,7 @@ For this build of Emacs it's %dbit."
   "Type of the core syntactic elements of the Emacs Lisp language.")
 (cl--define-built-in-type subr-native-elisp (subr compiled-function)
   "Type of functions that have been compiled by the native compiler.")
-(cl--define-built-in-type subr-primitive (subr compiled-function)
+(cl--define-built-in-type primitive-function (subr compiled-function)
   "Type of functions hand written in C.")
 
 (unless (cl--class-parents (cl--find-class 'cl-structure-object))

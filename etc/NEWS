@@ -1652,6 +1652,10 @@ This function is like 'type-of' except that it sometimes returns
 a more precise type.  For example, for nil and t it returns 'null'
 and 'boolean' respectively, instead of just 'symbol'.
 
+** New function `primitive-function-p`.
+This is like `subr-primitive-p` except that it returns t only if the
+argument is a function rather than a special-form.
+
 ** Built-in types have now corresponding classes.
 At the Lisp level, this means that things like (cl-find-class 'integer)
 will now return a class object, and at the UI level it means that
