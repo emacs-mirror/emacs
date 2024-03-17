@@ -171,7 +171,6 @@ AS_IF([test "$XCONFIGURE" = "android"],[
   # Make sure to pass through the CFLAGS, as older versions of the
   # NDK require them to be able to find system includes.
   with_ndk_path="$android_ndk_path"
-  with_ndk_cxx_shared="$android_ndk_cxx_shared"
   with_ndk_cxx="$android_ndk_cxx"
   ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build],
            [$ANDROID_CFLAGS])
@@ -1233,7 +1232,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-harfbuzz=$with_harfbuzz"
   passthrough="$passthrough --with-threads=$with_threads"
 
-  # Now pass through some checking options.
+  # Now pass through some checking-related options.
   emacs_val="--enable-check-lisp-object-type=$enable_check_lisp_object_type"
   passthrough="$passthrough $emacs_val"
 
@@ -1243,7 +1242,6 @@ package will likely install on older systems but crash on startup.])
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC"		\
          ANDROID_SDK="$android_sdk" android_abi=$android_abi	\
 	 android_ndk_path="$with_ndk_path"		     	\
-	 android_ndk_cxx_shared="$with_ndk_cxx_shared"	     	\
 	 android_ndk_cxx="$android_ndk_cxx"			\
 	 $CONFIG_SHELL $0 $passthrough], [],
     [AC_MSG_ERROR([Failed to cross-configure Emacs for android.])])
@@ -1570,7 +1568,13 @@ AC_DEFUN_ONCE([gl_STDLIB_H],
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
 gl_EARLY
-ndk_LATE
+
+# ndk_LATE must be enclosed in this conditional to prevent the
+# AC_PROG_CXX it indirectly requires from being expanded at top level.
+if test "$ndk_INITIALIZED" = "yes"; then
+  ndk_LATE_EARLY
+  ndk_LATE
+fi
 
 if test "$ac_test_CFLAGS" != set; then
   # It's helpful to have C macros available to GDB, so prefer -g3 to -g

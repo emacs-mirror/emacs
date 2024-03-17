@@ -94,7 +94,7 @@ endef
 # dependencies can be ignored while building a shared library, as they
 # will be linked in to the resulting shared object file later.
 
-SYSTEM_LIBRARIES = z libz libc c libdl dl stdc++ libstdc++ log liblog android libandroid
+SYSTEM_LIBRARIES = z libz libc c libdl dl stdc++ libstdc++ stlport libstlport gnustl libgnustl c++ libc++ log liblog android libandroid
 
 $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES)),$(eval $(call add-so-name,$(module))))
 $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES) $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_STATIC_LIBRARIES)),$(eval $(call add-includes,$(module))))

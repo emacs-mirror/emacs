@@ -24,15 +24,17 @@
               srcdir = @srcdir@
 
 # This is a list of Android.mk files which provide targets.
-NDK_BUILD_ANDROID_MK = @NDK_BUILD_ANDROID_MK@
-      NDK_BUILD_ARCH = @NDK_BUILD_ARCH@
-       NDK_BUILD_ABI = @NDK_BUILD_ABI@
-       NDK_BUILD_SDK = @NDK_BUILD_SDK@
-        NDK_BUILD_CC = @NDK_BUILD_CC@
-       NDK_BUILD_CXX = @NDK_BUILD_CXX@
-        NDK_BUILD_AR = @NDK_BUILD_AR@
-      NDK_BUILD_NASM = @NDK_BUILD_NASM@
-    NDK_BUILD_CFLAGS = @NDK_BUILD_CFLAGS@
+ NDK_BUILD_ANDROID_MK = @NDK_BUILD_ANDROID_MK@
+       NDK_BUILD_ARCH = @NDK_BUILD_ARCH@
+	NDK_BUILD_ABI = @NDK_BUILD_ABI@
+	NDK_BUILD_SDK = @NDK_BUILD_SDK@
+	 NDK_BUILD_CC = @NDK_BUILD_CC@
+	NDK_BUILD_CXX = @NDK_BUILD_CXX@
+    NDK_BUILD_CXX_STL = @NDK_BUILD_CXX_STL@
+NDK_BUILD_CXX_LDFLAGS = @NDK_BUILD_CXX_LDFLAGS@
+	 NDK_BUILD_AR = @NDK_BUILD_AR@
+       NDK_BUILD_NASM = @NDK_BUILD_NASM@
+     NDK_BUILD_CFLAGS = @NDK_BUILD_CFLAGS@
 
 # This is a list of targets to build.
    NDK_BUILD_MODULES = @NDK_BUILD_MODULES@
@@ -58,8 +60,10 @@ NDK_BUILD_ANDROID_MK := $(call uniqify,$(NDK_BUILD_ANDROID_MK))
 NDK_BUILD_MODULES := $(call uniqify,$(NDK_BUILD_MODULES))
 
 # Define CFLAGS for compiling C++ code; this involves removing all
-# -std=NNN options.
-NDK_BUILD_CFLAGS_CXX := $(filter-out -std=%,$(NDK_BUILD_CFLAGS))
+# -std=NNN options and inserting compilation options for the C++
+# library.
+NDK_BUILD_CFLAGS_CXX := $(filter-out -std=%,$(NDK_BUILD_CFLAGS)) \
+  $(NDK_BUILD_CXX_STL)
 
 define subr-1
 

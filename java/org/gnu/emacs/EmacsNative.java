@@ -323,7 +323,9 @@ public final class EmacsNative
        Every time you add a new shared library dependency to Emacs,
        please add it here as well.  */
 
-    libraryDeps = new String[] { "png_emacs", "selinux_emacs",
+    libraryDeps = new String[] { "c++_shared", "gnustl_shared",
+				 "stlport_shared", "gabi++_shared",
+				 "png_emacs", "selinux_emacs",
 				 "crypto_emacs", "pcre_emacs",
 				 "packagelistparser_emacs",
 				 "gnutls_emacs", "gmp_emacs",
@@ -331,7 +333,7 @@ public final class EmacsNative
 				 "tasn1_emacs", "hogweed_emacs",
 				 "jansson_emacs", "jpeg_emacs",
 				 "tiff_emacs", "xml2_emacs",
-				 "icuuc_emacs",
+				 "icuuc_emacs", "harfbuzz_emacs",
 				 "tree-sitter_emacs", };
 
     for (String dependency : libraryDeps)
