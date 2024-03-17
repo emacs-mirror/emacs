@@ -153,6 +153,12 @@ where CAUSE can be:
     (insert (debugger--buffer-state-content state)))
   (goto-char (debugger--buffer-state-pos state)))
 
+(defvar debugger--last-error nil)
+
+(defun debugger--duplicate-p (args)
+  (pcase args
+    (`(error ,err . ,_) (and (consp err) (eq err debugger--last-error)))))
+
 ;;;###autoload
 (setq debugger 'debug)
 ;;;###autoload
@@ -175,9 +181,14 @@ first will be printed into the backtrace buffer.
 If `inhibit-redisplay' is non-nil when this function is called,
 the debugger will not be entered."
   (interactive)
-  (if inhibit-redisplay
-      ;; Don't really try to enter debugger within an eval from redisplay.
+  (if (or inhibit-redisplay
+          (debugger--duplicate-p args))
+      ;; Don't really try to enter debugger within an eval from redisplay
+      ;; or if we already popper into the debugger for this error,
+      ;; which can happen when we have several nested `handler-bind's that
+      ;; want to invoke the debugger.
       debugger-value
+    (setq debugger--last-error nil)
     (let ((non-interactive-frame
            (or noninteractive           ;FIXME: Presumably redundant.
                ;; If we're in the initial-frame (where `message' just
@@ -318,6 +329,12 @@ the debugger will not be entered."
                   (backtrace-mode))))
 	    (with-timeout-unsuspend debugger-with-timeout-suspend)
 	    (set-match-data debugger-outer-match-data)))
+	(when (eq 'error (car-safe debugger-args))
+	  ;; Remember the error we just debugged, to avoid re-entering
+          ;; the debugger if some higher-up `handler-bind' invokes us
+          ;; again, oblivious that the error was already debugged from
+          ;; a more deeply nested `handler-bind'.
+	  (setq debugger--last-error (nth 1 debugger-args)))
         (setq debug-on-next-call debugger-step-after-exit)
         debugger-value))))
 
