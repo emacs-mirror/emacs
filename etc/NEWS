@@ -292,6 +292,13 @@ corresponding configuration or state was recorded.
 ** Tab Bars and Tab Lines
 
 ---
+*** New user option 'tab-bar-select-restore-windows'.
+It defines what to do with windows whose buffer was killed
+since the tab was last selected.  By default it displays
+a placeholder buffer that provides information about the name
+of the killed buffer that was displayed in that window.
+
+---
 *** New user option 'tab-bar-tab-name-format-functions'.
 It can be used to add, remove and reorder functions that change
 the appearance of every tab on the tab bar.
