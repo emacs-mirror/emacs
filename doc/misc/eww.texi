@@ -146,6 +146,11 @@ a new tab is created on the frame tab bar.
 which part of the document contains the ``readable'' text, and will
 only display this part.  This usually gets rid of menus and the like.
 
+  When called interactively, this command toggles the display of the
+readable parts.  With a positive prefix argument, this command always
+displays the readable parts, and with a zero or negative prefix, it
+always displays the full page.
+
 @findex eww-toggle-fonts
 @vindex shr-use-fonts
 @kindex F

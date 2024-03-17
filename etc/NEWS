@@ -1066,6 +1066,18 @@ entries newer than the current page.  To change the behavior when
 browsing from "historical" pages, you can customize
 'eww-before-browse-history-function'.
 
++++
+*** 'eww-readable' now toggles display of the readable parts of a web page.
+When called interactively, 'eww-readable' toggles whether to display
+only the readable parts of a page or the full page.  With a positive
+prefix argument, it always displays the readable parts, and with a zero
+or negative prefix, it always displays the full page.
+
+---
+*** New option 'eww-readable-adds-to-history'.
+When non-nil (the default), calling 'eww-readable' adds a new entry to
+the EWW page history.
+
 ** go-ts-mode
 
 +++
