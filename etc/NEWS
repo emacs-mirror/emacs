@@ -1218,6 +1218,11 @@ instead of:
 This allows the user to specify command line arguments to the non
 interactive Python interpreter specified by 'python-interpreter'.
 
+** Scheme mode
+
+Scheme mode now handles regular expression literal #/regexp/ that is
+available in some Scheme implementations.
+
 ** use-package
 
 +++

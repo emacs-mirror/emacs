@@ -410,10 +410,19 @@ See `run-hooks'."
 (defun scheme-syntax-propertize (beg end)
   (goto-char beg)
   (scheme-syntax-propertize-sexp-comment (point) end)
+  (scheme-syntax-propertize-regexp end)
   (funcall
    (syntax-propertize-rules
     ("\\(#\\);" (1 (prog1 "< cn"
-                     (scheme-syntax-propertize-sexp-comment (point) end)))))
+                     (scheme-syntax-propertize-sexp-comment (point) end))))
+    ("\\(#\\)/" (1 (when (null (nth 8 (save-excursion
+                                        (syntax-ppss (match-beginning 0)))))
+                     (put-text-property
+                      (match-beginning 1)
+                      (match-end 1)
+                      'syntax-table (string-to-syntax "|"))
+                     (scheme-syntax-propertize-regexp end)
+                     nil))))
    (point) end))
 
 (defun scheme-syntax-propertize-sexp-comment (_ end)
@@ -429,6 +438,22 @@ See `run-hooks'."
             (put-text-property (1- (point)) (point)
                                'syntax-table (string-to-syntax "> cn")))
         (scan-error (goto-char end))))))
+
+(defun scheme-syntax-propertize-regexp (end)
+  (let* ((state (syntax-ppss))
+         (within-str (nth 3 state))
+         (start-delim-pos (nth 8 state)))
+    (when (and within-str
+               (char-equal ?# (char-after start-delim-pos)))
+      (while (and (re-search-forward "/" end 'move)
+                  (eq -1
+                      (% (save-excursion
+                           (backward-char)
+                           (skip-chars-backward "\\\\"))
+                         2))))
+      (when (< (point) end)
+       (put-text-property (match-beginning 0) (match-end 0)
+                          'syntax-table (string-to-syntax "|"))))))
 
 ;;;###autoload
 (define-derived-mode dsssl-mode scheme-mode "DSSSL"
