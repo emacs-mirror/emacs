@@ -2442,7 +2442,7 @@ emit_limple_insn (Lisp_Object insn)
     {
       Lisp_Object arg1 = arg[1];
 
-      if (EQ (Ftype_of (arg1), Qcomp_mvar))
+      if (EQ (Fcl_type_of (arg1), Qcomp_mvar))
 	res = emit_mvar_rval (arg1);
       else if (EQ (FIRST (arg1), Qcall))
 	res = emit_limple_call (XCDR (arg1));
