@@ -2692,7 +2692,7 @@ Finally, show the buffer."
         (formatted-keys (which-key--get-bindings
                          prefix-keys from-keymap filter))
         (prefix-desc (key-description prefix-keys)))
-    (cond ((= (length formatted-keys) 0)
+    (cond ((null formatted-keys)
            (message "%s-  which-key: There are no keys to show" prefix-desc))
           ((listp which-key-side-window-location)
            (setq which-key--last-try-2-loc
