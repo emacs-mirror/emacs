@@ -328,7 +328,9 @@
           (:predicate (setq predicate val))
           (_ (error "Unknown keyword arg: %S" kw)))))
     `(progn
-       ,(if predicate `(put ',name 'cl-deftype-satisfies #',predicate))
+       ,(if predicate `(put ',name 'cl-deftype-satisfies #',predicate)
+          ;; (message "Missing predicate for: %S" name)
+          nil)
        (put ',name 'cl--class
             (built-in-class--make ',name ,docstring
                                   (mapcar (lambda (type)
@@ -352,7 +354,8 @@
 (cl--define-built-in-type tree-sitter-compiled-query atom)
 (cl--define-built-in-type tree-sitter-node atom)
 (cl--define-built-in-type tree-sitter-parser atom)
-(cl--define-built-in-type user-ptr atom)
+(cl--define-built-in-type user-ptr atom
+  nil :predicate user-ptrp) ;; FIXME: Shouldn't it be called `user-ptr-p'?
 (cl--define-built-in-type font-object atom)
 (cl--define-built-in-type font-entity atom)
 (cl--define-built-in-type font-spec atom)
