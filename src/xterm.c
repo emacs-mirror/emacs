@@ -7292,6 +7292,11 @@ x_sync_init_fences (struct frame *f)
 	  && dpyinfo->xsync_minor < 1))
     return;
 
+  /* Suppress errors around XSyncCreateFence requests, since its
+     implementations on certain X servers erroneously reject valid
+     drawables, such as the frame's inner window.  (bug#69762) */
+
+  x_catch_errors (dpyinfo->display);
   output->sync_fences[0]
     = XSyncCreateFence (FRAME_X_DISPLAY (f),
 			/* The drawable given below is only used to
@@ -7303,6 +7308,9 @@ x_sync_init_fences (struct frame *f)
     = XSyncCreateFence (FRAME_X_DISPLAY (f),
 			FRAME_X_WINDOW (f),
 			False);
+  if (x_had_errors_p (dpyinfo->display))
+    output->sync_fences[1] = output->sync_fences[0] = None;
+  x_uncatch_errors_after_check ();
 
   XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		   dpyinfo->Xatom_net_wm_sync_fences, XA_CARDINAL,
