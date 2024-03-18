@@ -2353,7 +2353,7 @@ See also the function `nreverse', which is used more often.  */)
    is destructively reused to hold the sorted result.  */
 
 static Lisp_Object
-sort_list (Lisp_Object list, Lisp_Object predicate)
+sort_list (Lisp_Object list, Lisp_Object predicate, Lisp_Object keyfunc)
 {
   ptrdiff_t length = list_length (list);
   if (length < 2)
@@ -2369,7 +2369,7 @@ sort_list (Lisp_Object list, Lisp_Object predicate)
 	  result[i] = Fcar (tail);
 	  tail = XCDR (tail);
 	}
-      tim_sort (predicate, result, length);
+      tim_sort (predicate, keyfunc, result, length);
 
       ptrdiff_t i = 0;
       tail = list;
@@ -2388,13 +2388,13 @@ sort_list (Lisp_Object list, Lisp_Object predicate)
    algorithm.  */
 
 static void
-sort_vector (Lisp_Object vector, Lisp_Object predicate)
+sort_vector (Lisp_Object vector, Lisp_Object predicate, Lisp_Object keyfunc)
 {
   ptrdiff_t length = ASIZE (vector);
   if (length < 2)
     return;
 
-  tim_sort (predicate, XVECTOR (vector)->contents, length);
+  tim_sort (predicate, keyfunc, XVECTOR (vector)->contents, length);
 }
 
 DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
@@ -2406,9 +2406,9 @@ the second.  */)
   (Lisp_Object seq, Lisp_Object predicate)
 {
   if (CONSP (seq))
-    seq = sort_list (seq, predicate);
+    seq = sort_list (seq, predicate, Qnil);
   else if (VECTORP (seq))
-    sort_vector (seq, predicate);
+    sort_vector (seq, predicate, Qnil);
   else if (!NILP (seq))
     wrong_type_argument (Qlist_or_vector_p, seq);
   return seq;
