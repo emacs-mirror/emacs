@@ -2240,7 +2240,7 @@ Return whether the process exited with status zero."
   (zerop (apply #'vc-git--call '(t nil) command args)))
 
 (defun vc-git--out-str (command &rest args)
-  "Run `git COMMAND ARGS...' and return standard output.
+  "Run `git COMMAND ARGS...' and return standard output as a string.
 The exit status is ignored."
   (with-output-to-string
     (with-current-buffer standard-output
