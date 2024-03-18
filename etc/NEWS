@@ -1073,6 +1073,12 @@ only the readable parts of a page or the full page.  With a positive
 prefix argument, it always displays the readable parts, and with a zero
 or negative prefix, it always displays the full page.
 
++++
+*** New option 'eww-readable-urls'.
+This is a list of regular expressions matching the URLs where EWW should
+display only the readable parts by default.  For more details, see
+"(eww) Basics" in the EWW manual.
+
 ---
 *** New option 'eww-readable-adds-to-history'.
 When non-nil (the default), calling 'eww-readable' adds a new entry to

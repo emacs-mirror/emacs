@@ -231,5 +231,17 @@ This sets `eww-before-browse-history-function' to
                "This is an uninteresting sentence."
                (buffer-substring-no-properties (point-min) (point-max)))))))
 
+(ert-deftest eww-test/readable/default-readable ()
+  "Test that EWW displays readable parts of pages by default when applicable."
+    (eww-test--with-mock-retrieve
+    (let* ((eww-test--response-function
+            (lambda (_url)
+              (concat "Content-Type: text/html\n\n"
+                      "<html><body>Hello there</body></html>")))
+           (eww-readable-urls '("://example\\.invalid/")))
+      (eww "example.invalid")
+      ;; Make sure EWW uses "readable" mode.
+      (should (plist-get eww-data :readable)))))
+
 (provide 'eww-tests)
 ;; eww-tests.el ends here

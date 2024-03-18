@@ -275,6 +275,22 @@ parameter, and should return the (possibly) transformed URL."
   :type '(repeat function)
   :version "29.1")
 
+(defcustom eww-readable-urls nil
+  "A list of regexps matching URLs to display in readable mode by default.
+EWW will display matching URLs using `eww-readable' (which see).
+
+Each element can be one of the following forms: a regular expression in
+string form or a cons cell of the form (REGEXP . READABILITY).  If
+READABILITY is non-nil, this behaves the same as the string form;
+otherwise, URLs matching REGEXP will never be displayed in readable mode
+by default."
+  :type '(repeat (choice (string :tag "Readable URL")
+                         (cons :tag "URL and Readability"
+                               (string :tag "URL")
+                               (radio (const :tag "Readable" t)
+                                      (const :tag "Non-readable" nil)))))
+  :version "30.1")
+
 (defcustom eww-readable-adds-to-history t
   "If non-nil, calling `eww-readable' adds a new entry to the history."
   :type 'boolean
@@ -809,11 +825,15 @@ This replaces the region with the preprocessed HTML."
   (let ((source (buffer-substring (point) (point-max))))
     (with-current-buffer buffer
       (plist-put eww-data :source source)))
-  (eww-display-document
-   (or document
-       (eww-document-base
-        url (eww--parse-html-region (point) (point-max) charset)))
-   point buffer))
+  (unless document
+    (let ((dom (eww--parse-html-region (point) (point-max) charset)))
+      (when (eww-default-readable-p url)
+        (eww-score-readability dom)
+        (setq dom (eww-highest-readability dom))
+        (with-current-buffer buffer
+          (plist-put eww-data :readable t)))
+      (setq document (eww-document-base url dom))))
+  (eww-display-document document point buffer))
 
 (defun eww-handle-link (dom)
   (let* ((rel (dom-attr dom 'rel))
@@ -1158,6 +1178,19 @@ adds a new entry to `eww-history'."
         (when (> (length (split-string (dom-texts highest))) 100)
 	  (setq result highest))))
     result))
+
+(defun eww-default-readable-p (url)
+  "Return non-nil if URL should be displayed in readable mode by default.
+This consults the entries in `eww-readable-urls' (which see)."
+  (catch 'found
+    (let (result)
+      (dolist (regexp eww-readable-urls)
+        (if (consp regexp)
+            (setq result (cdr regexp)
+                  regexp (car regexp))
+          (setq result t))
+        (when (string-match regexp url)
+          (throw 'found result))))))
 
 (defvar-keymap eww-mode-map
   "g" #'eww-reload             ;FIXME: revert-buffer-function instead!
