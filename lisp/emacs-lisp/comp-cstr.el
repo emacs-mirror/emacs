@@ -575,7 +575,7 @@ All SRCS constraints must be homogeneously negated or non-negated."
           ;; We propagate only values those types are not already
           ;; into typeset.
           when (cl-notany (lambda (x)
-                            (comp-subtype-p (type-of v) x))
+                            (comp-subtype-p (cl-type-of v) x))
                           (comp-cstr-typeset dst))
           collect v)))
 
@@ -664,7 +664,7 @@ DST is returned."
 
             ;; Verify disjoint condition between positive types and
             ;; negative types coming from values, in case give-up.
-            (let ((neg-value-types (nconc (mapcar #'type-of (valset neg))
+            (let ((neg-value-types (nconc (mapcar #'cl-type-of (valset neg))
                                           (when (range neg)
                                             '(integer)))))
               (when (cl-some (lambda (x)
@@ -685,7 +685,7 @@ DST is returned."
              ((cl-some (lambda (x)
                          (cl-some (lambda (y)
                                     (comp-subtype-p y x))
-                                  (mapcar #'type-of (valset pos))))
+                                  (mapcar #'cl-type-of (valset pos))))
                        (typeset neg))
               (give-up))
              (t
@@ -1108,7 +1108,7 @@ DST is returned."
         (cl-loop for v in (valset dst)
                  unless (symbolp v)
                    do (push v strip-values)
-                      (push (type-of v) strip-types))
+                      (push (cl-type-of v) strip-types))
         (when strip-values
           (setf (typeset dst) (comp-union-typesets (typeset dst) strip-types)
                 (valset dst) (cl-set-difference (valset dst) strip-values)))
