@@ -281,7 +281,7 @@ public final class EmacsNative
   public static native int[] getSelection (short window);
 
 
-  /* Graphics functions used as a replacement for potentially buggy
+  /* Graphics functions used as replacements for potentially buggy
      Android APIs.  */
 
   public static native void blitRect (Bitmap src, Bitmap dest, int x1,
@@ -289,7 +289,6 @@ public final class EmacsNative
 
   /* Increment the generation ID of the specified BITMAP, forcing its
      texture to be re-uploaded to the GPU.  */
-
   public static native void notifyPixelsChanged (Bitmap bitmap);
 
 
@@ -312,6 +311,13 @@ public final class EmacsNative
   /* Detect and return FD is writable.  FD may be truncated to 0 bytes
      in the process.  */
   public static native boolean ftruncate (int fd);
+
+
+  /* Functions that assist in generating content file names.  */
+
+  /* Calculate an 8 digit checksum for the byte array DISPLAYNAME
+     suitable for inclusion in a content file name.  */
+  public static native String displayNameHash (byte[] displayName);
 
   static
   {

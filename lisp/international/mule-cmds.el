@@ -350,9 +350,10 @@ This also sets the following values:
       if CODING-SYSTEM is ASCII-compatible"
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
-
-  (if (eq system-type 'darwin)
-      ;; The file-name coding system on Darwin systems is always utf-8.
+  (if (or (eq system-type 'darwin)
+          (eq system-type 'android))
+      ;; The file-name coding system on Darwin and Android systems is
+      ;; always UTF-8.
       (setq default-file-name-coding-system 'utf-8-unix)
     (if (and (or (not coding-system)
 		 (coding-system-get coding-system 'ascii-compatible-p)))

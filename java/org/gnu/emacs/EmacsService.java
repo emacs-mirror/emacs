@@ -79,6 +79,7 @@ import android.os.VibrationEffect;
 
 import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
+import android.provider.OpenableColumns;
 import android.provider.Settings;
 
 import android.util.Log;
@@ -1033,22 +1034,87 @@ public final class EmacsService extends Service
     return false;
   }
 
+  /* Return a 8 character checksum for the string STRING, after encoding
+     as UTF-8 data.  */
+
+  public static String
+  getDisplayNameHash (String string)
+  {
+    byte[] encoded;
+
+    try
+      {
+	encoded = string.getBytes ("UTF-8");
+	return EmacsNative.displayNameHash (encoded);
+      }
+    catch (UnsupportedEncodingException exception)
+      {
+	/* This should be impossible.  */
+	return "error";
+      }
+  }
+
   /* Build a content file name for URI.
 
      Return a file name within the /contents/by-authority
      pseudo-directory that `android_get_content_name' can then
      transform back into an encoded URI.
 
+     If a display name can be requested from URI (using the resolver
+     RESOLVER), append it to this file name.
+
      A content name consists of any number of unencoded path segments
      separated by `/' characters, possibly followed by a question mark
      and an encoded query string.  */
 
   public static String
-  buildContentName (Uri uri)
+  buildContentName (Uri uri, ContentResolver resolver)
   {
     StringBuilder builder;
+    String displayName;
+    String[] projection;
+    Cursor cursor;
+    int column;
 
-    builder = new StringBuilder ("/content/by-authority/");
+    displayName = null;
+    cursor      = null;
+
+    try
+      {
+	projection = new String[] { OpenableColumns.DISPLAY_NAME, };
+	cursor = resolver.query (uri, projection, null, null, null);
+
+	if (cursor != null)
+	  {
+	    cursor.moveToFirst ();
+	    column
+	      = cursor.getColumnIndexOrThrow (OpenableColumns.DISPLAY_NAME);
+	    displayName
+	      = cursor.getString (column);
+
+	    /* Verify that the display name is valid, i.e. it
+	       contains no characters unsuitable for a file name and
+	       is nonempty.  */
+	    if (displayName.isEmpty () || displayName.contains ("/"))
+	      displayName = null;
+	  }
+      }
+    catch (Exception e)
+      {
+	/* Ignored.  */
+      }
+    finally
+      {
+	if (cursor != null)
+	  cursor.close ();
+      }
+
+    /* If a display name is available, at this point it should be the
+       value of displayName.  */
+
+    builder = new StringBuilder (displayName != null
+				 ? "/content/by-authority-named/"
+				 : "/content/by-authority/");
     builder.append (uri.getAuthority ());
 
     /* First, append each path segment.  */
@@ -1064,6 +1130,16 @@ public final class EmacsService extends Service
 
     if (uri.getEncodedQuery () != null)
       builder.append ('?').append (uri.getEncodedQuery ());
+
+    /* Append the display name.  */
+
+    if (displayName != null)
+      {
+	builder.append ('/');
+	builder.append (getDisplayNameHash (displayName));
+	builder.append ('/');
+	builder.append (displayName);
+      }
 
     return builder.toString ();
   }

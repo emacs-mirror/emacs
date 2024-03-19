@@ -252,7 +252,7 @@ public final class EmacsOpenActivity extends Activity
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
       {
-	content = EmacsService.buildContentName (uri);
+	content = EmacsService.buildContentName (uri, getContentResolver ());
 	return content;
       }
 
@@ -423,6 +423,7 @@ public final class EmacsOpenActivity extends Activity
     /* Obtain the intent that started Emacs.  */
     intent = getIntent ();
     action = intent.getAction ();
+    resolver = getContentResolver ();
 
     if (action == null)
       {
@@ -536,7 +537,7 @@ public final class EmacsOpenActivity extends Activity
 		if ((scheme = uri.getScheme ()) != null
 		    && scheme.equals ("content"))
 		  {
-		    tem1 = EmacsService.buildContentName (uri);
+		    tem1 = EmacsService.buildContentName (uri, resolver);
 		    attachmentString = ("'(\"" + (tem1.replace ("\\", "\\\\")
 						  .replace ("\"", "\\\"")
 						  .replace ("$", "\\$"))
@@ -568,7 +569,8 @@ public final class EmacsOpenActivity extends Activity
 			    && (scheme = uri.getScheme ()) != null
 			    && scheme.equals ("content"))
 			  {
-			    tem1 = EmacsService.buildContentName (uri);
+			    tem1
+			      = EmacsService.buildContentName (uri, resolver);
 			    builder.append ("\"");
 			    builder.append (tem1.replace ("\\", "\\\\")
 					    .replace ("\"", "\\\"")
@@ -609,7 +611,6 @@ public final class EmacsOpenActivity extends Activity
 		   underlying file, but it cannot be found without
 		   opening the file and doing readlink on its file
 		   descriptor in /proc/self/fd.  */
-		resolver = getContentResolver ();
 		fd = null;
 
 		try
