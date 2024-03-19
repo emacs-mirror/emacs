@@ -232,9 +232,8 @@ The arg is an alist of: type specifier -> expected type specifier."
   ;; 92
   ((or string char-table bool-vector vector cons symbol number) .
    (or number sequence symbol))
-  ;; 93?
-  ;; FIXME: I get `cons' rather than `list'?
-  ;;((or null cons) . list)
+  ;; 93
+  ((or list (not null)) . t)
   ))
 
 ;;; comp-cstr-tests.el ends here
