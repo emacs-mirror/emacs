@@ -305,10 +305,12 @@ static unsigned int sound_type = 0xFFFFFFFF;
 /* Special virtual key code for indicating "any" key.  */
 #define VK_ANY 0xFF
 
-#ifndef WM_WTSSESSION_CHANGE
+#ifdef WINDOWSNT
+# ifndef WM_WTSSESSION_CHANGE
 /* 32-bit MinGW does not define these constants.  */
-# define WM_WTSSESSION_CHANGE  0x02B1
-# define WTS_SESSION_LOCK      0x7
+#  define WM_WTSSESSION_CHANGE  0x02B1
+#  define WTS_SESSION_LOCK      0x7
+# endif
 #endif
 
 #ifndef WS_EX_NOACTIVATE
