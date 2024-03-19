@@ -2353,7 +2353,8 @@ See also the function `nreverse', which is used more often.  */)
    is destructively reused to hold the sorted result.  */
 
 static Lisp_Object
-sort_list (Lisp_Object list, Lisp_Object predicate, Lisp_Object keyfunc)
+sort_list (Lisp_Object list, Lisp_Object predicate, Lisp_Object keyfunc,
+	   bool reverse)
 {
   ptrdiff_t length = list_length (list);
   if (length < 2)
@@ -2369,7 +2370,7 @@ sort_list (Lisp_Object list, Lisp_Object predicate, Lisp_Object keyfunc)
 	  result[i] = Fcar (tail);
 	  tail = XCDR (tail);
 	}
-      tim_sort (predicate, keyfunc, result, length);
+      tim_sort (predicate, keyfunc, result, length, reverse);
 
       ptrdiff_t i = 0;
       tail = list;
@@ -2388,27 +2389,86 @@ sort_list (Lisp_Object list, Lisp_Object predicate, Lisp_Object keyfunc)
    algorithm.  */
 
 static void
-sort_vector (Lisp_Object vector, Lisp_Object predicate, Lisp_Object keyfunc)
+sort_vector (Lisp_Object vector, Lisp_Object predicate, Lisp_Object keyfunc,
+	     bool reverse)
 {
   ptrdiff_t length = ASIZE (vector);
   if (length < 2)
     return;
 
-  tim_sort (predicate, keyfunc, XVECTOR (vector)->contents, length);
+  tim_sort (predicate, keyfunc, XVECTOR (vector)->contents, length, reverse);
 }
 
-DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
-       doc: /* Sort SEQ, stably, comparing elements using PREDICATE.
-Returns the sorted sequence.  SEQ should be a list or vector.  SEQ is
-modified by side effects.  PREDICATE is called with two elements of
-SEQ, and should return non-nil if the first element should sort before
-the second.  */)
-  (Lisp_Object seq, Lisp_Object predicate)
+DEFUN ("sort", Fsort, Ssort, 1, MANY, 0,
+       doc: /* Sort SEQ, stably, and return the sorted sequence.
+SEQ should be a list or vector.
+Optional arguments are specified as keyword/argument pairs.  The following
+arguments are defined:
+
+:key FUNC -- FUNC is a function that takes a single element from SEQ and
+  returns the key value to be used in comparison.  If absent or nil,
+  `identity' is used.
+
+:lessp FUNC -- FUNC is a function that takes two arguments and returns
+  non-nil if the first element should come before the second.
+  If absent or nil, `value<' is used.
+
+:reverse BOOL -- if BOOL is non-nil, the sorting order implied by FUNC is
+  reversed.  This does not affect stability: equal elements still retain
+  their order in the input sequence.
+
+:in-place BOOL -- if BOOL is non-nil, SEQ is sorted in-place and returned.
+  Otherwise, a sorted copy of SEQ is returned and SEQ remains unmodified;
+  this is the default.
+
+For compatibility, the calling convention (sort SEQ LESSP) can also be used;
+in this case, sorting is always done in-place.
+
+usage: (sort SEQ &key KEY LESSP REVERSE IN-PLACE)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
+  Lisp_Object seq = args[0];
+  Lisp_Object key = Qnil;
+  Lisp_Object lessp = Qnil;
+  bool inplace = false;
+  bool reverse = false;
+  if (nargs == 2)
+    {
+      /* old-style invocation without keywords */
+      lessp = args[1];
+      inplace = true;
+    }
+  else if ((nargs & 1) == 0)
+    error ("Invalid argument list");
+  else
+    for (ptrdiff_t i = 1; i < nargs - 1; i += 2)
+      {
+	if (EQ (args[i], QCkey))
+	  key = args[i + 1];
+	else if (EQ (args[i], QClessp))
+	  lessp = args[i + 1];
+	else if (EQ (args[i], QCin_place))
+	  inplace = !NILP (args[i + 1]);
+	else if (EQ (args[i], QCreverse))
+	  reverse = !NILP (args[i + 1]);
+	else
+	  signal_error ("Invalid keyword argument", args[i]);
+      }
+
+  if (NILP (lessp))
+    /* FIXME: normalise it as Qnil instead, and special-case it in tim_sort?
+       That would remove the funcall overhead for the common case.  */
+    lessp = Qvaluelt;
+
+  /* FIXME: for lists it may be slightly faster to make the copy after
+     sorting? Measure.  */
+  if (!inplace)
+    seq = Fcopy_sequence (seq);
+
   if (CONSP (seq))
-    seq = sort_list (seq, predicate, Qnil);
+    seq = sort_list (seq, lessp, key, reverse);
   else if (VECTORP (seq))
-    sort_vector (seq, predicate, Qnil);
+    sort_vector (seq, lessp, key, reverse);
   else if (!NILP (seq))
     wrong_type_argument (Qlist_or_vector_p, seq);
   return seq;
@@ -6860,4 +6920,10 @@ For best results this should end in a space.  */);
   DEFSYM (Qfrom__tty_menu_p, "from--tty-menu-p");
   DEFSYM (Qyes_or_no_p, "yes-or-no-p");
   DEFSYM (Qy_or_n_p, "y-or-n-p");
+
+  DEFSYM (QCkey, ":key");
+  DEFSYM (QClessp, ":lessp");
+  DEFSYM (QCin_place, ":in-place");
+  DEFSYM (QCreverse, ":reverse");
+  DEFSYM (Qvaluelt, "value<");
 }

@@ -375,6 +375,49 @@
   (should (equal (should-error (sort "cba" #'<) :type 'wrong-type-argument)
                  '(wrong-type-argument list-or-vector-p "cba"))))
 
+(defun fns-tests--shuffle-vector (vect)
+  "Shuffle VECT in place."
+  (let ((n (length vect)))
+    (dotimes (i (1- n))
+      (let* ((j (+ i (random (- n i))))
+             (vi (aref vect i)))
+        (aset vect i (aref vect j))
+        (aset vect j vi)))))
+
+(ert-deftest fns-tests-sort-kw ()
+  ;; Test the `sort' keyword calling convention by comparing with
+  ;; the results from using the old (positional) style tested above.
+  (random "my seed")
+  (dolist (size '(0 1 2 3 10 100 1000))
+    ;; Use a vector with both positive and negative numbers (asymmetric).
+    (let ((numbers (vconcat
+                    (number-sequence (- (/ size 3)) (- size 1 (/ size 3))))))
+      (fns-tests--shuffle-vector numbers)
+      ;; Test both list and vector input.
+      (dolist (input (list (append numbers nil) numbers))
+        (dolist (in-place '(nil t))
+          (dolist (reverse '(nil t))
+            (dolist (key '(nil abs))
+              (dolist (lessp '(nil >))
+                (let* ((seq (copy-sequence input))
+                       (res (sort seq :key key :lessp lessp
+                                  :in-place in-place :reverse reverse))
+                       (pred (or lessp #'value<))
+                       (exp-in (copy-sequence input))
+                       (exp-out
+                        (sort (if reverse (reverse exp-in) exp-in)
+                              (if key
+                                  (lambda (a b)
+                                    (funcall pred
+                                             (funcall key a) (funcall key b)))
+                                pred)))
+                       (expected (if reverse (reverse exp-out) exp-out)))
+                  (should (equal res expected))
+                  (if in-place
+                      (should (eq res seq))
+                    (should-not (and (> size 0) (eq res seq)))
+                    (should (equal seq input))))))))))))
+
 (defvar w32-collate-ignore-punctuation)
 
 (ert-deftest fns-tests-collate-sort ()

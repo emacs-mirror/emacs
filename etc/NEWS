@@ -1770,6 +1770,31 @@ lexicographically.
 It is intended as a convenient ordering predicate for sorting, and is
 likely to be faster than hand-written Lisp functions.
 
++++
+** New 'sort' arguments and features.
+The 'sort' function can now be called using the signature
+
+    (sort SEQ &rest KEYWORD-ARGUMENTS)
+
+where arguments after the first are keyword/value pairs, all optional:
+':key' specifies a function that produces the sorting key from an element,
+':lessp' specifies the ordering predicate, defaulting to 'value<',
+':reverse' is used to reverse the sorting order,
+':in-place is used for in-place sorting, as the default is now to
+sort a copy of the input.
+
+The new signature is less error-prone and reduces the need to write
+ordering predicates by hand.  We recommend that you use the ':key'
+argument instead of ':lessp' unless a suitable ordering predicate is
+already available.  This can also be used for multi-key sorting:
+
+    (sort seq :key (lambda (x) (list (age x) (size x) (cost x))))
+
+sorts by the return value of 'age', then by 'size', then by 'cost'.
+
+The old signature, '(sort SEQ PREDICATE)', can still be used and sorts
+its input in-place as before.
+
 ** New function 'sort-on'.
 This function implements the Schwartzian transform, and is appropriate
 for sorting lists when the computation of the sort key of a list

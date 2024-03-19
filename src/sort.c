@@ -1072,11 +1072,11 @@ resolve_fun (Lisp_Object fun)
 }
 
 /* Sort the array SEQ with LENGTH elements in the order determined by
-   PREDICATE.  */
-
+   PREDICATE (where Qnil means value<) and KEYFUNC (where Qnil means identity),
+   optionally reversed.  */
 void
 tim_sort (Lisp_Object predicate, Lisp_Object keyfunc,
-	  Lisp_Object *seq, const ptrdiff_t length)
+	  Lisp_Object *seq, const ptrdiff_t length, bool reverse)
 {
   /* FIXME: optimise for the predicate being value<; at the very
      least we'd go without the Lisp funcall overhead.  */
@@ -1091,9 +1091,8 @@ tim_sort (Lisp_Object predicate, Lisp_Object keyfunc,
   if (EQ (keyfunc, Qidentity))
     keyfunc = Qnil;
 
-  /* FIXME: consider a built-in reverse sorting flag: we would reverse
-     the input in-place here and reverse it back just before
-     returning.  */
+  if (reverse)
+    reverse_slice (seq, seq + length);    /* preserve stability */
 
   if (NILP (keyfunc))
     {
@@ -1158,6 +1157,9 @@ tim_sort (Lisp_Object predicate, Lisp_Object keyfunc,
   eassume (ms.n == 1);
   eassume (ms.pending[0].len == length);
   lo = ms.pending[0].base;
+
+  if (reverse)
+    reverse_slice (seq, seq + length);
 
   if (ms.a.keys != ms.temparray || allocated_keys != NULL)
     unbind_to (ms.count, Qnil);

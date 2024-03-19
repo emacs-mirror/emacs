@@ -3368,7 +3368,7 @@ dump_sort_copied_objects (struct dump_context *ctx)
      file and the copy into Emacs in-order, where prefetch will be
      most effective.  */
   ctx->copied_queue =
-    Fsort (Fnreverse (ctx->copied_queue),
+    CALLN (Fsort, Fnreverse (ctx->copied_queue),
            Qdump_emacs_portable__sort_predicate_copied);
 }
 
@@ -3935,7 +3935,7 @@ drain_reloc_list (struct dump_context *ctx,
 {
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
-  Lisp_Object relocs = Fsort (Fnreverse (*reloc_list),
+  Lisp_Object relocs = CALLN (Fsort, Fnreverse (*reloc_list),
                               Qdump_emacs_portable__sort_predicate);
   *reloc_list = Qnil;
   dump_align_output (ctx, max (alignof (struct dump_reloc),
@@ -4057,7 +4057,7 @@ static void
 dump_do_fixups (struct dump_context *ctx)
 {
   dump_off saved_offset = ctx->offset;
-  Lisp_Object fixups = Fsort (Fnreverse (ctx->fixups),
+  Lisp_Object fixups = CALLN (Fsort, Fnreverse (ctx->fixups),
                               Qdump_emacs_portable__sort_predicate);
   Lisp_Object prev_fixup = Qnil;
   ctx->fixups = Qnil;

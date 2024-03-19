@@ -351,7 +351,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   specpdl_ptr = specpdl_ref_to_ptr (count);
 
   if (NILP (nosort))
-    list = Fsort (Fnreverse (list),
+    list = CALLN (Fsort, Fnreverse (list),
 		  attrs ? Qfile_attributes_lessp : Qstring_lessp);
 
   (void) directory_volatile;
