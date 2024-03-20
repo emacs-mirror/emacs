@@ -31,6 +31,7 @@ import android.app.Activity;
 
 import android.content.ClipData;
 import android.content.ClipDescription;
+import android.content.ContentResolver;
 import android.content.Context;
 
 import android.graphics.Rect;
@@ -1699,10 +1700,11 @@ public final class EmacsWindow extends EmacsHandleObject
     ClipData data;
     ClipDescription description;
     int i, j, x, y, itemCount;
-    String type;
+    String type, uriString;
     Uri uri;
     EmacsActivity activity;
     StringBuilder builder;
+    ContentResolver resolver;
 
     x = (int) event.getX ();
     y = (int) event.getY ();
@@ -1799,6 +1801,20 @@ public final class EmacsWindow extends EmacsHandleObject
 	      {
 		if ((activity.requestDragAndDropPermissions (event) == null))
 		  uri = null;
+		else
+		  {
+		    resolver = activity.getContentResolver ();
+
+		    /* Substitute a content file name for the URI, if
+		       possible.  */
+		    uriString = EmacsService.buildContentName (uri, resolver);
+
+		    if (uriString != null)
+		      {
+			builder.append (uriString).append ("\n");
+			continue;
+		      }
+		  }
 	      }
 
 	    if (uri != null)

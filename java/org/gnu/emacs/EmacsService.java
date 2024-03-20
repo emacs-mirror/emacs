@@ -1072,7 +1072,6 @@ public final class EmacsService extends Service
   {
     StringBuilder builder;
     String displayName;
-    String[] projection;
     Cursor cursor;
     int column;
 
@@ -1081,8 +1080,7 @@ public final class EmacsService extends Service
 
     try
       {
-	projection = new String[] { OpenableColumns.DISPLAY_NAME, };
-	cursor = resolver.query (uri, projection, null, null, null);
+	cursor = resolver.query (uri, null, null, null, null);
 
 	if (cursor != null)
 	  {

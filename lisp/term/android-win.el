@@ -282,11 +282,12 @@ If it reflects the motion of an item above a frame, call
 `dnd-handle-movement' to move the cursor or scroll the window
 under the item pursuant to the pertinent user options.
 
-If it reflects dropped text, insert such text within window at
-the location of the drop.
+If it holds dropped text, insert such text within window at the
+location of the drop.
 
-If it reflects a list of URIs, then open each URI, converting
-content:// URIs into the special file names which represent them."
+If it holds a list of URIs, or file names, then open each URI or
+file name, converting content:// URIs into the special file
+names which represent them."
   (interactive "e")
   (let ((message (caddr event))
         (posn (event-start event)))
@@ -304,18 +305,22 @@ content:// URIs into the special file names which represent them."
                  (new-uri-list nil)
                  (dnd-unescape-file-uris t))
              (dolist (uri uri-list)
-               (ignore-errors
-                 (let ((url (url-generic-parse-url uri)))
-                   (when (equal (url-type url) "content")
-                     ;; Replace URI with a matching /content file
-                     ;; name.
-                     (setq uri (format "file:/content/by-authority/%s%s"
-                                       (url-host url)
-                                       (url-filename url))
-                           ;; And guarantee that this file URI is not
-                           ;; subject to URI decoding, for it must be
-                           ;; transformed back into a content URI.
-                           dnd-unescape-file-uris nil))))
+               ;; If the URI is a preprepared file name, insert it directly.
+               (if (string-match-p "^/content/by-authority\\(-named\\)?/" uri)
+                   (setq uri (concat "file:" uri)
+                         dnd-unescape-file-uris nil)
+                 (ignore-errors
+                   (let ((url (url-generic-parse-url uri)))
+                     (when (equal (url-type url) "content")
+                       ;; Replace URI with a matching /content file
+                       ;; name.
+                       (setq uri (format "file:/content/by-authority/%s%s"
+                                         (url-host url)
+                                         (url-filename url))
+                             ;; And guarantee that this file URI is not
+                             ;; subject to URI decoding, for it must be
+                             ;; transformed back into a content URI.
+                             dnd-unescape-file-uris nil)))))
                (push uri new-uri-list))
              (dnd-handle-multiple-urls (posn-window posn)
                                        new-uri-list
