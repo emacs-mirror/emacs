@@ -167,15 +167,13 @@
        '(fg:erc-color-face1 bg:erc-color-face1))
       ;; Masked in all black.
       (erc-goodies-tests--assert-face
-       20 "BlackOnBlack" '(fg:erc-color-face1 bg:erc-color-face1)
-       '(erc-control-default-fg erc-control-default-bg))
+       20 "BlackOnBlack" '(fg:erc-color-face1 bg:erc-color-face1) nil)
       ;; Explicit "default" code ignoerd.
       (erc-goodies-tests--assert-face
-       34 "Default" '(erc-control-default-fg erc-control-default-bg)
+       34 "Default" '(erc-default-face)
        '(fg:erc-color-face1 bg:erc-color-face1))
       (erc-goodies-tests--assert-face
-       43 "END" 'erc-default-face
-       '(erc-control-default-bg erc-control-default-fg))))
+       43 "END" 'erc-default-face nil)))
   (when noninteractive
     (erc-tests-common-kill-buffers)))
 
@@ -214,17 +212,124 @@
        nil)
       ;; The inverse of `default' because reverse still in effect.
       (erc-goodies-tests--assert-face
-       32 "ReversedDefault" '(erc-inverse-face erc-control-default-fg
-                                               erc-control-default-bg)
+       32 "ReversedDefault" '(erc-inverse-face erc-default-face)
        '(fg:erc-color-face3 bg:erc-color-face13))
       (erc-goodies-tests--assert-face
-       49 "NormalDefault" '(erc-control-default-fg
-                            erc-control-default-bg)
+       49 "NormalDefault" '(erc-default-face)
        '(erc-inverse-face fg:erc-color-face1 bg:erc-color-face1))
       (erc-goodies-tests--assert-face
        64 "END" 'erc-default-face
-       '( erc-control-default-fg erc-control-default-bg
-          fg:erc-color-face0 bg:erc-color-face0))))
+       '(fg:erc-color-face0 bg:erc-color-face0))))
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
+
+;; This is meant to assert two behavioral properties:
+;;
+;; 1) The background is preserved when only a new foreground is
+;;    defined, in accordance with this bit from the spec: "If only the
+;;    foreground color is set, the background color stays the same."
+;;    https://modern.ircdocs.horse/formatting#color
+;;
+;; 2) The same holds true for a new, lone foreground of 99.  Rather
+;;    than prepend `erc-default-face', this causes the removal of an
+;;    existing foreground face and likewise doesn't clobber the
+;;    existing background.
+(ert-deftest erc-controls-highlight/default-foreground ()
+  (should (eq t erc-interpret-controls-p))
+  (erc-tests-common-make-server-buf)
+  (with-current-buffer (erc--open-target "#chan")
+    (setq-local erc-interpret-mirc-color t)
+    (defvar erc-fill-column)
+    (let ((erc-fill-column 90))
+      (erc-display-message nil nil (current-buffer)
+                           (erc-format-privmessage
+                            "bob" (concat "BEGIN "
+                                          "\C-c03,08 GreenOnYellow "
+                                          "\C-c99 BlackOnYellow "
+                                          "\C-o END")
+                            nil t)))
+    (forward-line -1)
+    (should (search-forward "<bob> " nil t))
+    (should (erc-tests-common-equal-with-props
+             (erc--remove-text-properties
+              (buffer-substring (point) (line-end-position)))
+             #("BEGIN  GreenOnYellow  BlackOnYellow  END"
+               0 6 (font-lock-face erc-default-face)
+               6 21 (font-lock-face (fg:erc-color-face3
+                                     bg:erc-color-face8
+                                     erc-default-face))
+               21 36 (font-lock-face (bg:erc-color-face8
+                                      erc-default-face))
+               36 40 (font-lock-face (erc-default-face)))))
+    (should (search-forward "BlackOnYellow"))
+    (let ((faces (get-text-property (point) 'font-lock-face)))
+      (should (equal (face-background (car faces) nil (cdr faces))
+                     "yellow")))
+
+    ;; Redefine background color alongside default foreground.
+    (let ((erc-fill-column 90))
+      (erc-display-message nil nil (current-buffer)
+                           (erc-format-privmessage
+                            "bob" (concat "BEGIN "
+                                          "\C-c03,08 GreenOnYellow "
+                                          "\C-c99,07 BlackOnOrange "
+                                          "\C-o END")
+                            nil t)))
+    (should (search-forward "<bob> " nil t))
+    (should (erc-tests-common-equal-with-props
+             (erc--remove-text-properties
+              (buffer-substring (point) (line-end-position)))
+             #("BEGIN  GreenOnYellow  BlackOnOrange  END"
+               0 6 (font-lock-face erc-default-face)
+               6 21 (font-lock-face (fg:erc-color-face3
+                                     bg:erc-color-face8
+                                     erc-default-face))
+               21 36 (font-lock-face (bg:erc-color-face7
+                                      erc-default-face))
+               36 40 (font-lock-face (erc-default-face)))))
+    (should (search-forward "BlackOnOrange"))
+    (let ((faces (get-text-property (point) 'font-lock-face)))
+      (should (equal (face-background (car faces) nil (cdr faces))
+                     "orange")))) ; as opposed to white or black
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
+
+;; This merely asserts our current interpretation of "default faces":
+;; that they reflect the foreground and background exhibited by normal
+;; chat messages before any control-code formatting is applied (rather
+;; than, e.g., some sort of negation or no-op).
+(ert-deftest erc-controls-highlight/default-background ()
+  (should (eq t erc-interpret-controls-p))
+  (erc-tests-common-make-server-buf)
+  (with-current-buffer (erc--open-target "#chan")
+    (setq-local erc-interpret-mirc-color t)
+    (defvar erc-fill-column)
+    (let ((erc-fill-column 90))
+      (erc-display-message nil nil (current-buffer)
+                           (erc-format-privmessage
+                            "bob" (concat "BEGIN "
+                                          "\C-c03,08 GreenOnYellow "
+                                          "\C-c05,99 BrownOnWhite "
+                                          "\C-o END")
+                            nil t)))
+    (forward-line -1)
+    (should (search-forward "<bob> " nil t))
+    (should (erc-tests-common-equal-with-props
+             (erc--remove-text-properties
+              (buffer-substring (point) (line-end-position)))
+             #("BEGIN  GreenOnYellow  BrownOnWhite  END"
+               0 6 (font-lock-face erc-default-face)
+               6 21 (font-lock-face (fg:erc-color-face3
+                                     bg:erc-color-face8
+                                     erc-default-face))
+               21 35 (font-lock-face (fg:erc-color-face5
+                                      erc-default-face))
+               35 39 (font-lock-face (erc-default-face)))))
+    ;; Ensure the background is white or black, rather than yellow.
+    (should (search-forward "BrownOnWhite"))
+    (let ((faces (get-text-property (point) 'font-lock-face)))
+      (should (equal (face-background (car faces) nil `(,@(cdr faces) default))
+                     (face-background 'default)))))
   (when noninteractive
     (erc-tests-common-kill-buffers)))
 
