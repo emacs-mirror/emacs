@@ -3010,24 +3010,25 @@ These are substituted with a normal `set' op."
 
 ;;; Sanitizer pass specific code.
 
-;; This pass aims to verify compile time value type predictions during
-;; execution.
+;; This pass aims to verify compile-time value-type predictions during
+;; execution of the code.
 ;; The sanitizer pass injects a call to 'helper_sanitizer_assert' before
-;; each conditional branch. 'helper_sanitizer_assert' will verify that
+;; each conditional branch.  'helper_sanitizer_assert' will verify that
 ;; the variable tested by the conditional branch is of the predicted
-;; value type and signal an error otherwise.
+;; value type, or signal an error otherwise.
 
 ;;; Example:
-;; Assuming we want to compile 'test.el' and test function `foo' defined
-;; into it.
 
-;; Native compile 'test.el' instrumenting it for sanitizer usage.
-;; (let ((comp-sanitizer-emit t))
-;;   (load (native-compile "test.el")))
+;; Assume we want to compile 'test.el' and test the function `foo'
+;; defined in it.  Then:
 
-;; Run `foo' with the sanitizer active.
-;; (let ((comp-sanitizer-active t))
-;;   (foo))
+;;  - Native-compile 'test.el' instrumenting it for sanitizer usage:
+;;      (let ((comp-sanitizer-emit t))
+;;        (load (native-compile "test.el")))
+
+;;  - Run `foo' with the sanitizer active:
+;;      (let ((comp-sanitizer-active t))
+;;        (foo))
 
 (defvar comp-sanitizer-emit nil
   "Gates the sanitizer pass.
