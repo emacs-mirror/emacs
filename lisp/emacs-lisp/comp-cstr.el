@@ -288,13 +288,10 @@ Return them as multiple value."
                             (apply #'append
                                    (mapcar #'comp--direct-supertypes typeset)))
                 for subs = (comp--direct-subtypes sup)
-                when (and (length> subs 1) ;;FIXME: Why?
-                          ;; Every subtype of `sup` is a subtype of
-                          ;; some element of `typeset`?
-                          ;; It's tempting to just check (member x typeset),
-                          ;; but think of the typeset (marker number),
-                          ;; where `sup' is `integer-or-marker' and `sub'
-                          ;; is `integer'.
+                when (and (length> subs 1) ;; If there's only one sub do
+                                           ;; nothing as we want to
+                                           ;; return the most specific
+                                           ;; type.
                           (cl-every (lambda (sub)
                                       (cl-some (lambda (type)
                                                  (comp-subtype-p sub type))
