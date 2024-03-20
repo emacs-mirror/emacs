@@ -628,7 +628,7 @@ Calls REPORT-FN directly."
                 nil t)))
   (select-window (display-buffer lua-ts-inferior-buffer
                                  '((display-buffer-reuse-window
-                                    display-buffer-pop-up-frame)
+                                    display-buffer-pop-up-window)
                                    (reusable-frames . t))))
   (get-buffer-process (current-buffer)))
 
