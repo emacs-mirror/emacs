@@ -3019,7 +3019,8 @@ These are substituted with a normal `set' op."
 
 (defvar comp-sanitizer-emit nil
   "Gates the sanitizer pass.
-In use for native compiler development and verification only.")
+This is intended to be used only for development and verification of
+the native compiler.")
 
 (defun comp--sanitizer (_)
   (when comp-sanitizer-emit

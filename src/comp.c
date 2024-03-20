@@ -5931,10 +5931,11 @@ For internal use.  */);
   Vcomp_subr_arities_h = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   DEFVAR_BOOL ("comp-sanitizer-active", comp_sanitizer_active,
-    doc: /* When non-nil enable sanitizer runtime execution.
-To be effective Lisp Code must have been compiled with
-`comp-sanitizer-emit' non-nil.
-In use for native compiler development and verification only.  */);
+    doc: /* If non-nil, enable runtime execution of native-compiler sanitizer.
+For this to be effective, Lisp code must be compiled
+with `comp-sanitizer-emit' non-nil.
+This is intended to be used only for development and
+verification of the native compiler.  */);
   comp_sanitizer_active = false;
 
   Fprovide (intern_c_string ("native-compile"), Qnil);
