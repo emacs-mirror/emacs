@@ -1973,7 +1973,7 @@ Gregorian date Sunday, December 31, 1 BC.  This function does not
 handle dates in years BC."
   ;; For an explanation, see the footnote on page 384 of "Calendrical
   ;; Calculations, Part II: Three Historical Calendars" by
-  ;; E. M. Reingold, N. Dershowitz, and S. M.  Clamen,
+  ;; E. M. Reingold, N. Dershowitz, and S. M. Clamen,
   ;; Software--Practice and Experience, Volume 23, Number 4 (April,
   ;; 1993), pages 383-404 <https://doi.org/10.1002/spe.4380230404>
   ;; <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.42.6421&rep=rep1&type=pdf>.
