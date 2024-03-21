@@ -32547,7 +32547,8 @@ Android does not support scroll bars at all.  */);
     doc: /* Which modifer value Emacs reports when Ctrl is depressed.
 This should be one of the symbols `ctrl', `alt', `hyper', `meta', or
 `super', representing a modifier to be reported for key events with the
-Ctrl modifier (i.e. the keysym Ctrl_L or Ctrl_R) depressed.  */);
+Ctrl modifier (i.e. the keysym Ctrl_L or Ctrl_R) depressed, with nil or
+any other value equivalent to `ctrl'.  */);
   Vx_ctrl_keysym = Qnil;
 
   DEFVAR_LISP ("x-alt-keysym", Vx_alt_keysym,
@@ -32555,14 +32556,16 @@ Ctrl modifier (i.e. the keysym Ctrl_L or Ctrl_R) depressed.  */);
 This should be one of the symbols `ctrl', `alt', `hyper', `meta', or
 `super', representing a modifier to be reported for key events with the
 Alt modifier (e.g. the keysym Alt_L or Alt_R, if the keyboard features a
-dedicated key for Meta) depressed.  */);
+dedicated key for Meta) depressed, with nil or any other value
+equivalent to `alt'.  */);
   Vx_alt_keysym = Qnil;
 
   DEFVAR_LISP ("x-hyper-keysym", Vx_hyper_keysym,
     doc: /* Which modifer value Emacs reports when Hyper is depressed.
 This should be one of the symbols `ctrl', `alt', `hyper', `meta', or
 `super', representing a modifier to be reported for key events with the
-Hyper modifier (i.e. the keysym Hyper_L or Hyper_R) depressed.  */);
+Hyper modifier (i.e. the keysym Hyper_L or Hyper_R) depressed, with nil
+or any other value equivalent to `hyper'.  */);
   Vx_hyper_keysym = Qnil;
 
   DEFVAR_LISP ("x-meta-keysym", Vx_meta_keysym,
@@ -32570,14 +32573,16 @@ Hyper modifier (i.e. the keysym Hyper_L or Hyper_R) depressed.  */);
 This should be one of the symbols `ctrl', `alt', `hyper', `meta', or
 `super', representing a modifier to be reported for key events with the
 Meta modifier (e.g. the keysym Alt_L or Alt_R, when the keyboard does
-not feature a dedicated key for Meta) depressed.  */);
+not feature a dedicated key for Meta) depressed, with nil or any other
+value equivalent to `meta'.  */);
   Vx_meta_keysym = Qnil;
 
   DEFVAR_LISP ("x-super-keysym", Vx_super_keysym,
     doc: /* Which modifer value Emacs reports when Super is depressed.
 This should be one of the symbols `ctrl', `alt', `hyper', `meta', or
 `super', representing a modifier to be reported for key events with the
-Super modifier (i.e. the keysym Super_L or Super_R) depressed.  */);
+Super modifier (i.e. the keysym Super_L or Super_R) depressed, with nil
+or any other value equivalent to `super'.  */);
   Vx_super_keysym = Qnil;
 
   DEFVAR_LISP ("x-wait-for-event-timeout", Vx_wait_for_event_timeout,
