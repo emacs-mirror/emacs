@@ -864,6 +864,12 @@ behalf of a specific frame, Emacs deletes the frame displayed within
 that window.
 @end itemize
 
+  When the system predates Android 5.0, the window manager will not
+accept more than one user-created Emacs window.  If frame creation gives
+rise to windows in excess of this limit, the window manager will
+arbitrarily select one of their number to display, with the rest
+remaining invisible until that window is destroyed with its frame.
+
 @cindex windowing limitations, android
 @cindex frame parameters, android
 Emacs only supports a limited subset of GUI features on Android; the

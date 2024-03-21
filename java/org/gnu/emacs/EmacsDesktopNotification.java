@@ -208,22 +208,6 @@ public final class EmacsDesktopNotification
 	   distinct categories, but permit an importance to be
 	   assigned to each individual notification.  */
 
-	switch (importance)
-	  {
-	  case 2: /* IMPORTANCE_LOW */
-	  default:
-	    priority = Notification.PRIORITY_LOW;
-	    break;
-
-	  case 3: /* IMPORTANCE_DEFAULT */
-	    priority = Notification.PRIORITY_DEFAULT;
-	    break;
-
-	  case 4: /* IMPORTANCE_HIGH */
-	    priority = Notification.PRIORITY_HIGH;
-	    break;
-	  }
-
 	builder = new Notification.Builder (context);
 	builder.setContentTitle (title);
 	builder.setContentText (content);
@@ -231,15 +215,28 @@ public final class EmacsDesktopNotification
 
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
 	  {
+	    switch (importance)
+	      {
+	      case 2: /* IMPORTANCE_LOW */
+	      default:
+		priority = Notification.PRIORITY_LOW;
+		break;
+
+	      case 3: /* IMPORTANCE_DEFAULT */
+		priority = Notification.PRIORITY_DEFAULT;
+		break;
+
+	      case 4: /* IMPORTANCE_HIGH */
+		priority = Notification.PRIORITY_HIGH;
+		break;
+	      }
+
 	    builder.setPriority (priority);
 	    insertActions (context, builder);
 	    notification = builder.build ();
 	  }
 	else
 	  notification = builder.getNotification ();
-
-	if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN)
-	  notification.priority = priority;
       }
     else
       {

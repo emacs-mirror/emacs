@@ -535,9 +535,19 @@ public final class EmacsOpenActivity extends Activity
 		  uri = intent.getParcelableExtra (Intent.EXTRA_STREAM);
 
 		if ((scheme = uri.getScheme ()) != null
-		    && scheme.equals ("content"))
+		    && scheme.equals ("content")
+		    && (Build.VERSION.SDK_INT
+			>= Build.VERSION_CODES.KITKAT))
 		  {
 		    tem1 = EmacsService.buildContentName (uri, resolver);
+		    attachmentString = ("'(\"" + (tem1.replace ("\\", "\\\\")
+						  .replace ("\"", "\\\"")
+						  .replace ("$", "\\$"))
+					+ "\")");
+		  }
+		else if (scheme != null && scheme.equals ("file"))
+		  {
+		    tem1 = uri.getPath ();
 		    attachmentString = ("'(\"" + (tem1.replace ("\\", "\\\\")
 						  .replace ("\"", "\\\"")
 						  .replace ("$", "\\$"))
@@ -567,10 +577,22 @@ public final class EmacsOpenActivity extends Activity
 
 			if (uri != null
 			    && (scheme = uri.getScheme ()) != null
-			    && scheme.equals ("content"))
+			    && scheme.equals ("content")
+			    && (Build.VERSION.SDK_INT
+				>= Build.VERSION_CODES.KITKAT))
 			  {
 			    tem1
 			      = EmacsService.buildContentName (uri, resolver);
+			    builder.append ("\"");
+			    builder.append (tem1.replace ("\\", "\\\\")
+					    .replace ("\"", "\\\"")
+					    .replace ("$", "\\$"));
+			    builder.append ("\"");
+			  }
+			else if (scheme != null
+				 && scheme.equals ("file"))
+			  {
+			    tem1 = uri.getPath ();
 			    builder.append ("\"");
 			    builder.append (tem1.replace ("\\", "\\\\")
 					    .replace ("\"", "\\\"")
@@ -604,7 +626,13 @@ public final class EmacsOpenActivity extends Activity
 	  {
 	    fileName = null;
 
-	    if (scheme.equals ("content"))
+	    if (scheme.equals ("content")
+		/* Retrieving the native file descriptor of a
+		   ParcelFileDescriptor requires Honeycomb, and
+		   proceeding without this capability is pointless on
+		   systems before KitKat, since Emacs doesn't support
+		   opening content files on those.  */
+		&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 	      {
 		/* This is one of the annoying Android ``content''
 		   URIs.  Most of the time, there is actually an
