@@ -2448,6 +2448,74 @@ one of them returns non-nil."
     (setq buffer-undo-list nil)
     (texinfo-mode)))
 
+(defconst help-fns--function-numbers
+  (make-hash-table :test 'equal :weakness 'value))
+(defconst help-fns--function-names (make-hash-table :weakness 'key))
+
+(defun help-fns--display-function (function)
+  (cond
+   ((subr-primitive-p function)
+    (describe-function function))
+   ((and (compiled-function-p function)
+         (not (and (fboundp 'kmacro-p) (kmacro-p function))))
+    (disassemble function))
+   (t
+    ;; FIXME: Use cl-print!
+    (pp-display-expression function "*Help Source*" (consp function)))))
+
+;;;###autoload
+(defun help-fns-function-name (function)
+  "Return a short string representing FUNCTION."
+  ;; FIXME: For kmacros, should we print the key-sequence?
+  (cond
+   ((symbolp function)
+    (let ((name (if (eq (intern-soft (symbol-name function)) function)
+                    (symbol-name function)
+                  (concat "#:" (symbol-name function)))))
+      (if (not (fboundp function))
+          name
+        (make-text-button name nil
+                          'type 'help-function
+                          'help-args (list function)))))
+   ((gethash function help-fns--function-names))
+   ((subrp function)
+    (let ((name (subr-name function)))
+      ;; FIXME: For native-elisp-functions, should we use `help-function'
+      ;; or `disassemble'?
+      (format "#<%s %s>"
+              (cl-type-of function)
+              (make-text-button name nil
+                                'type 'help-function
+                                ;; Let's hope the subr hasn't been redefined!
+                                'help-args (list (intern name))))))
+   (t
+    (let ((type (or (oclosure-type function)
+                    (if (consp function)
+                        (car function) (cl-type-of function))))
+          (hash (sxhash-eq function))
+          ;; Use 3 digits minimum.
+          (mask #xfff)
+          name)
+      (while
+          (let* ((hex (format (concat "%0"
+                                      (number-to-string (1+ (/ (logb mask) 4)))
+                                      "X")
+                              (logand mask hash)))
+                 ;; FIXME: For kmacros, we don't want to `disassemble'!
+                 (button (buttonize
+                          hex #'help-fns--display-function function
+                          ;; FIXME: Shouldn't `buttonize' add
+                          ;; the "mouse-2, RET:" prefix?
+                          "mouse-2, RET: Display the function's body")))
+            (setq name (format "#<%s %s>" type button))
+            (and (< mask (abs hash))    ; We can add more digits.
+                 (gethash name help-fns--function-numbers)))
+        ;; Add a digit.
+        (setq mask (+ (ash mask 4) #x0f)))
+      (puthash name function help-fns--function-numbers)
+      (puthash function name help-fns--function-names)
+      name))))
+
 (provide 'help-fns)
 
 ;;; help-fns.el ends here

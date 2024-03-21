@@ -1249,7 +1249,7 @@ symbol property.")
 (when (and (boundp 'read-extended-command-predicate) ; since Emacs 28.1
            (not read-extended-command-predicate))
   (setq read-extended-command-predicate
-        'transient-command-completion-not-suffix-only-p))
+        #'transient-command-completion-not-suffix-only-p))
 
 (defun transient-parse-suffix (prefix suffix)
   "Parse SUFFIX, to be added to PREFIX.
@@ -1258,7 +1258,7 @@ SUFFIX is a suffix command or a group specification (of
   the same forms as expected by `transient-define-prefix').
 Intended for use in a group's `:setup-children' function."
   (cl-assert (and prefix (symbolp prefix)))
-  (eval (car (transient--parse-child prefix suffix))))
+  (eval (car (transient--parse-child prefix suffix)) t))
 
 (defun transient-parse-suffixes (prefix suffixes)
   "Parse SUFFIXES, to be added to PREFIX.
@@ -1278,7 +1278,7 @@ Intended for use in a group's `:setup-children' function."
                 (string suffix)))
          (mem (transient--layout-member loc prefix))
          (elt (car mem)))
-    (setq suf (eval suf))
+    (setq suf (eval suf t))
     (cond
      ((not mem)
       (message "Cannot insert %S into %s; %s not found"
@@ -1736,7 +1736,8 @@ to `transient-predicate-map'.  Also see `transient-base-map'."
                            "Hide common commands"
                          "Show common permanently")))
                (list "C-x l" "Show/hide suffixes" #'transient-set-level)
-               (list "C-x a" #'transient-toggle-level-limit))))))))
+               (list "C-x a" #'transient-toggle-level-limit)))))
+       t)))
 
 (defvar-keymap transient-popup-navigation-map
   :doc "One of the keymaps used when popup navigation is enabled.
@@ -2574,10 +2575,11 @@ value.  Otherwise return CHILDREN as is."
       (if (symbolp arg)
           (message "-- %-22s (cmd: %s, event: %S, exit: %s%s)"
                    arg
-                   (or (and (symbolp this-command) this-command)
-                       (if (byte-code-function-p this-command)
-                           "#[...]"
-                         this-command))
+                   (if (fboundp 'help-fns-function-name)
+                       (help-fns-function-name this-command)
+                     (if (byte-code-function-p this-command)
+                         "#[...]"
+                       this-command))
                    (key-description (this-command-keys-vector))
                    transient--exitp
                    (cond ((keywordp (car args))
@@ -2982,7 +2984,7 @@ transient is active."
   (interactive)
   (transient-set-value (transient-prefix-object)))
 
-(defalias 'transient-set-and-exit 'transient-set
+(defalias 'transient-set-and-exit #'transient-set
   "Set active transient's value for this Emacs session and exit.")
 
 (defun transient-save ()
@@ -2990,7 +2992,7 @@ transient is active."
   (interactive)
   (transient-save-value (transient-prefix-object)))
 
-(defalias 'transient-save-and-exit 'transient-save
+(defalias 'transient-save-and-exit #'transient-save
   "Save active transient's value for this and future Emacs sessions and exit.")
 
 (defun transient-reset ()

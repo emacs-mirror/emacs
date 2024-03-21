@@ -38,8 +38,7 @@
 
 (defcustom profiler-sampling-interval 1000000
   "Default sampling interval in nanoseconds."
-  :type 'natnum
-  :group 'profiler)
+  :type 'natnum)
 
 
 ;;; Utilities
@@ -68,7 +67,7 @@
 	       collect c into s
 	       do (cl-decf i)
 	       finally return
-	       (apply 'string (if (eq (car s) ?,) (cdr s) s)))
+	       (apply #'string (if (eq (car s) ?,) (cdr s) s)))
     (profiler-ensure-string number)))
 
 (defun profiler-format (fmt &rest args)
@@ -76,7 +75,7 @@
 	   for arg in args
 	   for str = (cond
 		      ((consp subfmt)
-		       (apply 'profiler-format subfmt arg))
+		       (apply #'profiler-format subfmt arg))
 		      ((stringp subfmt)
 		       (format subfmt arg))
 		      ((and (symbolp subfmt)
@@ -91,7 +90,8 @@
 	   if (< width len)
            collect (progn (put-text-property (max 0 (- width 2)) len
                                              'invisible 'profiler str)
-                          str) into frags
+                          str)
+           into frags
 	   else
 	   collect
            (let ((padding (make-string (max 0 (- width len)) ?\s)))
@@ -100,32 +100,11 @@
 	       (right (concat padding str))))
 	   into frags
 	   finally return (apply #'concat frags)))
-
-
-;;; Entries
-
-(defun profiler-format-entry (entry)
-  "Format ENTRY in human readable string.
-ENTRY would be a function name of a function itself."
-  (cond ((memq (car-safe entry) '(closure lambda))
-	 (format "#<lambda %#x>" (sxhash entry)))
-	((byte-code-function-p entry)
-	 (format "#<compiled %#x>" (sxhash entry)))
-	((or (subrp entry) (symbolp entry) (stringp entry))
-	 (format "%s" entry))
-	(t
-	 (format "#<unknown %#x>" (sxhash entry)))))
-
-(defun profiler-fixup-entry (entry)
-  (if (symbolp entry)
-      entry
-    (profiler-format-entry entry)))
-
 
 ;;; Backtraces
 
 (defun profiler-fixup-backtrace (backtrace)
-  (apply 'vector (mapcar 'profiler-fixup-entry backtrace)))
+  (apply #'vector (mapcar #'help-fns-function-name backtrace)))
 
 
 ;;; Logs
@@ -434,18 +413,15 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
 
 (defcustom profiler-report-closed-mark "+"
   "An indicator of closed calltrees."
-  :type 'string
-  :group 'profiler)
+  :type 'string)
 
 (defcustom profiler-report-open-mark "-"
   "An indicator of open calltrees."
-  :type 'string
-  :group 'profiler)
+  :type 'string)
 
 (defcustom profiler-report-leaf-mark " "
   "An indicator of calltree leaves."
-  :type 'string
-  :group 'profiler)
+  :type 'string)
 
 (defvar profiler-report-cpu-line-format
   '((17 right ((12 right)
@@ -474,17 +450,18 @@ Do not touch this variable directly.")
   (let ((string (cond
 		 ((eq entry t)
 		  "Others")
-		 ((and (symbolp entry)
-		       (fboundp entry))
-		  (propertize (symbol-name entry)
-			      'face 'link
-                              'follow-link "\r"
-			      'mouse-face 'highlight
-			      'help-echo "\
+		 (t (propertize (help-fns-function-name entry)
+		                ;; Override the `button-map' which
+		                ;; otherwise adds RET, mouse-1, and TAB
+		                ;; bindings we don't want.  :-(
+		                'keymap '(make-sparse-keymap)
+		                'follow-link "\r"
+		                ;; FIXME: The help-echo code gets confused
+		                ;; by the `follow-link' property and rewrites
+		                ;; `mouse-2' to `mouse-1' :-(
+		                'help-echo "\
 mouse-2: jump to definition\n\
-RET: expand or collapse"))
-		 (t
-		  (profiler-format-entry entry)))))
+RET: expand or collapse")))))
     (propertize string 'profiler-entry entry)))
 
 (defun profiler-report-make-name-part (tree)
@@ -719,10 +696,13 @@ point."
         (current-buffer))
     (and event (setq event (event-end event))
          (posn-set-point event))
-    (let ((tree (profiler-report-calltree-at-point)))
-      (when tree
-        (let ((entry (profiler-calltree-entry tree)))
-          (find-function entry))))))
+    (save-excursion
+      (forward-line 0)
+      (let ((eol (pos-eol)))
+        (forward-button 1)
+        (if (> (point) eol)
+            (error "No entry found")
+          (push-button))))))
 
 (defun profiler-report-describe-entry ()
   "Describe entry at point."

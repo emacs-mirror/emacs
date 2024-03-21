@@ -1647,6 +1647,12 @@ values.
 
 * Lisp Changes in Emacs 30.1
 
+** New function 'help-fns-function-name'.
+For named functions, it just returns the name and otherwise
+it returns a short "unique" string that identifies the function.
+In either case, the string is propertized so clicking on it gives
+further details.
+
 ** New function 'cl-type-of'.
 This function is like 'type-of' except that it sometimes returns
 a more precise type.  For example, for nil and t it returns 'null'

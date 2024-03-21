@@ -468,6 +468,7 @@ other modes.  See `override-global-mode'."
      ((and bind-key-describe-special-forms (functionp elem)
            (stringp (setq doc (documentation elem))))
       doc) ;;FIXME: Keep only the first line?
+     ;; FIXME: Use `help-fns-function-name'?
      ((consp elem)
       (if (symbolp (car elem))
           (format "#<%s>" (car elem))
