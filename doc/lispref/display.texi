@@ -5788,8 +5788,11 @@ either an integer, which represents the dimension in pixels, or a pair
 length in @dfn{ems}@footnote{In typography an em is a distance
 equivalent to the height of the type.  For example when using 12 point
 type 1 em is equal to 12 points.  Its use ensures distances and type
-remain proportional.}.  One em is equivalent to the height of the font
-and @var{value} may be an integer or a float.
+remain proportional.}.  One em is equivalent to the size of the font
+and @var{value} may be an integer or a float.  Also, dimension can be
+specified in @code{(@var{value} . ch)} and @code{(@var{value} . cw)}
+forms, where @code{ch} means height of the canonical character and
+@code{cw} means width of the canonical character.
 
   The following is a list of properties that are meaningful for all
 image types (there are also properties which are meaningful only for

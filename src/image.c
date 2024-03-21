@@ -2558,9 +2558,20 @@ image_get_dimension (struct image *img, Lisp_Object symbol)
 
   if (FIXNATP (value))
     return min (XFIXNAT (value), INT_MAX);
-  if (CONSP (value) && NUMBERP (CAR (value)) && EQ (Qem, CDR (value)))
-    return scale_image_size (img->face_font_size, 1, XFLOATINT (CAR (value)));
+  if (CONSP (value) && NUMBERP (CAR (value)))
+    {
+      Lisp_Object dim = CDR (value);
 
+      if (EQ (Qem, dim))
+        return scale_image_size (img->face_font_size,
+                                 1, XFLOATINT (CAR (value)));
+      if (EQ (Qch, dim))
+        return scale_image_size (img->face_font_height,
+                                 1, XFLOATINT (CAR (value)));
+      if (EQ (Qcw, dim))
+        return scale_image_size (img->face_font_width,
+                                 1, XFLOATINT (CAR (value)));
+    }
   return -1;
 }
 
@@ -3384,6 +3395,8 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
       img->face_foreground = foreground;
       img->face_background = background;
       img->face_font_size = font_size;
+      img->face_font_height = face->font->height;
+      img->face_font_width = face->font->average_width;
       img->face_font_family = xmalloc (strlen (font_family) + 1);
       strcpy (img->face_font_family, font_family);
       img->load_failed_p = ! img->type->load_img (f, img);
@@ -12794,6 +12807,8 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (QCmax_height, ":max-height");
 
   DEFSYM (Qem, "em");
+  DEFSYM (Qch, "ch");
+  DEFSYM (Qcw, "cw");
 
 #ifdef HAVE_NATIVE_TRANSFORMS
   DEFSYM (Qscale, "scale");

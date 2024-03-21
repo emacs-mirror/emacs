@@ -3186,6 +3186,11 @@ struct image
   int face_font_size;
   char *face_font_family;
 
+  /* Details of the font used to calculate image size relative to the
+     canonical character size, with `ch' and `cw' specifiers.  */
+  int face_font_height;
+  int face_font_width;
+
   /* True if this image has a `transparent' background -- that is, is
      uses an image mask.  The accessor macro for this is
      `IMAGE_BACKGROUND_TRANSPARENT'.  */
