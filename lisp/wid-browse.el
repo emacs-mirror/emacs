@@ -141,7 +141,7 @@ The following commands are available:
       (setq key (nth 0 items)
 	    value (nth 1 items)
 	    printer (or (get key 'widget-keyword-printer)
-			'widget-browse-sexp)
+			#'widget-browse-sexp)
 	    items (cdr (cdr items)))
       (widget-insert "\n" (symbol-name key) "\n\t")
       (funcall printer widget key value)
@@ -204,24 +204,10 @@ VALUE is assumed to be a list of widgets."
 (defun widget-browse-sexp (_widget _key value)
   "Insert description of WIDGET's KEY VALUE.
 Nothing is assumed about value."
-  (let ((pp (condition-case signal
-		(pp-to-string value)
-	      (error (prin1-to-string signal)))))
-    (when (string-match "\n\\'" pp)
-      (setq pp (substring pp 0 (1- (length pp)))))
-    (if (cond ((string-search "\n" pp)
-	       nil)
-	      ((> (length pp) (- (window-width) (current-column)))
-	       nil)
-	      (t t))
-	(widget-insert pp)
-      (widget-create 'push-button
-		     :tag "show"
-		     :action (lambda (widget &optional _event)
-			       (with-output-to-temp-buffer
-				   "*Pp Eval Output*"
-				 (princ (widget-get widget :value))))
-		     pp))))
+  (require 'pp)
+  (declare-function pp-insert-short-sexp "pp" (sexp &optional width))
+  (widget--allow-insertion
+   (pp-insert-short-sexp value)))
 
 (defun widget-browse-sexps (widget key value)
   "Insert description of WIDGET's KEY VALUE.
@@ -235,11 +221,11 @@ VALUE is assumed to be a list of widgets."
 
 ;;; Keyword Printers.
 
-(put :parent 'widget-keyword-printer 'widget-browse-widget)
-(put :children 'widget-keyword-printer 'widget-browse-widgets)
-(put :buttons 'widget-keyword-printer 'widget-browse-widgets)
-(put :button 'widget-keyword-printer 'widget-browse-widget)
-(put :args 'widget-keyword-printer 'widget-browse-sexps)
+(put :parent 'widget-keyword-printer #'widget-browse-widget)
+(put :children 'widget-keyword-printer #'widget-browse-widgets)
+(put :buttons 'widget-keyword-printer #'widget-browse-widgets)
+(put :button 'widget-keyword-printer #'widget-browse-widget)
+(put :args 'widget-keyword-printer #'widget-browse-sexps)
 
 ;;; Widget Minor Mode.
 

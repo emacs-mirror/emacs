@@ -42,26 +42,6 @@
   (insert-text-button
    "(widget)Top" 'type 'help-info 'help-args '("(widget)Top")))
 
-(defun describe-text-sexp (sexp)
-  "Insert a short description of SEXP in the current buffer."
-  (let ((pp (condition-case signal
-		(pp-to-string sexp)
-	      (error (prin1-to-string signal)))))
-    (when (string-match-p "\n\\'" pp)
-      (setq pp (substring pp 0 (1- (length pp)))))
-
-    (if (and (not (string-search "\n" pp))
-    	     (<= (length pp) (- (window-width) (current-column))))
-	(insert pp)
-      (insert-text-button
-       "[Show]"
-       'follow-link t
-       'action (lambda (&rest _ignore)
-                 (with-output-to-temp-buffer
-                     "*Pp Eval Output*"
-                   (princ pp)))
-       'help-echo "mouse-2, RET: pretty print value in another buffer"))))
-
 (defun describe-property-list (properties)
   "Insert a description of PROPERTIES in the current buffer.
 PROPERTIES should be a list of overlay or text properties.
@@ -92,7 +72,9 @@ into help buttons that call `describe-text-category' or
 	      (format "%S" value)
 	      'type 'help-face 'help-args (list value)))
 	    (t
-	     (describe-text-sexp value))))
+	     (require 'pp)
+	     (declare-function pp-insert-short-sexp "pp" (sexp &optional width))
+	     (pp-insert-short-sexp value))))
     (insert "\n")))
 
 ;;; Describe-Text Commands.
@@ -522,24 +504,24 @@ The character information includes:
                         (setcar composition
                                 (concat
                                  " with the surrounding characters \""
-                                 (mapconcat 'describe-char-padded-string
-                                            (buffer-substring from pos) "")
+                                 (mapconcat #'describe-char-padded-string
+                                            (buffer-substring from pos))
                                  "\" and \""
-                                 (mapconcat 'describe-char-padded-string
-                                            (buffer-substring (1+ pos) to) "")
+                                 (mapconcat #'describe-char-padded-string
+                                            (buffer-substring (1+ pos) to))
                                  "\""))
                       (setcar composition
                               (concat
                                " with the preceding character(s) \""
-                               (mapconcat 'describe-char-padded-string
-                                          (buffer-substring from pos) "")
+                               (mapconcat #'describe-char-padded-string
+                                          (buffer-substring from pos))
                                "\"")))
                   (if (< (1+ pos) to)
                       (setcar composition
                               (concat
                                " with the following character(s) \""
-                               (mapconcat 'describe-char-padded-string
-                                          (buffer-substring (1+ pos) to) "")
+                               (mapconcat #'describe-char-padded-string
+                                          (buffer-substring (1+ pos) to))
                                "\""))
                     (setcar composition nil)))
                 (setcar (cdr composition)
@@ -568,7 +550,7 @@ The character information includes:
               ("character"
                ,(format "%s (displayed as %s) (codepoint %d, #o%o, #x%x)"
 			char-description
-                        (apply 'propertize char-description
+                        (apply #'propertize char-description
                                (text-properties-at pos))
                         char char char))
               ("charset"
@@ -620,7 +602,7 @@ The character information includes:
                        (if (consp key-list)
                            (list "type"
                                  (concat "\""
-                                         (mapconcat 'identity
+                                         (mapconcat #'identity
                                                     key-list "\" or \"")
                                          "\"")
                                  "with"
@@ -721,7 +703,7 @@ The character information includes:
                     (let ((unicodedata (describe-char-unicode-data char)))
                       (if unicodedata
                           (cons (list "Unicode data" "") unicodedata))))))
-      (setq max-width (apply 'max (mapcar (lambda (x)
+      (setq max-width (apply #'max (mapcar (lambda (x)
                                             (if (cadr x) (length (car x)) 0))
                                           item-list)))
       (set-buffer src-buf)
@@ -736,7 +718,7 @@ The character information includes:
                 (dolist (clm (cdr elt))
 		  (cond ((eq (car-safe clm) 'insert-text-button)
 			 (insert " ")
-			 (eval clm))
+			 (eval clm t))
 			((not (zerop (length clm)))
 			 (insert " " clm))))
                 (insert "\n"))))
@@ -855,7 +837,7 @@ The character information includes:
             (insert "\n")
             (dolist (elt
                      (cond ((eq describe-char-unidata-list t)
-                            (nreverse (mapcar 'car char-code-property-alist)))
+                            (nreverse (mapcar #'car char-code-property-alist)))
                            ((< char 32)
                             ;; Temporary fix (2016-05-22): The
                             ;; decomposition item for \n corrupts the
@@ -898,7 +880,7 @@ characters."
             (setq width (- width (length (car last)) 1)))
           (let ((ellipsis (and (cdr last) "...")))
             (setcdr last nil)
-            (concat (mapconcat 'identity words " ") ellipsis)))
+            (concat (mapconcat #'identity words " ") ellipsis)))
       "")))
 
 (defun describe-char-eldoc--format (ch &optional width)

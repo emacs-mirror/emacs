@@ -346,6 +346,23 @@ after OUT-BUFFER-NAME."
 	(setq buffer-read-only nil)
         (setq-local font-lock-verbose nil)))))
 
+(defun pp-insert-short-sexp (sexp &optional width)
+  "Insert a short description of SEXP in the current buffer.
+WIDTH is the maximum width to use for it and it defaults to the
+space available between point and the window margin."
+  (let ((printed (format "%S" sexp)))
+    (if (and (not (string-search "\n" printed))
+	     (<= (string-width printed)
+	         (or width (- (window-width) (current-column)))))
+	(insert printed)
+      (insert-text-button
+       "[Show]"
+       'follow-link t
+       'action (lambda (&rest _ignore)
+                 ;; FIXME: Why "eval output"?
+                 (pp-display-expression sexp "*Pp Eval Output*"))
+       'help-echo "mouse-2, RET: pretty print value in another buffer"))))
+
 ;;;###autoload
 (defun pp-eval-expression (expression)
   "Evaluate EXPRESSION and pretty-print its value.
