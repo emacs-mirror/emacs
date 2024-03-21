@@ -510,14 +510,20 @@ With CHECK-AFTER non-nil, considers also the content after point, if needed."
              ;; indented it.
              (not (eq (following-char) ?\s))))))
 
-(defmacro widget-specify-insert (&rest form)
-  "Execute FORM without inheriting any text properties."
-   (declare (debug (body)))
+(defmacro widget--allow-insertion (&rest forms)
+  "Run FORMS such that they can insert widgets in the current buffer."
+  (declare (debug t))
+  `(let ((inhibit-read-only t)
+	 (inhibit-modification-hooks t)) ;; FIXME: Why?  This is risky!
+     ,@forms))
+
+(defmacro widget-specify-insert (&rest forms)
+  "Execute FORMS without inheriting any text properties."
+  (declare (debug t))
   `(save-restriction
-    (let ((inhibit-read-only t)
-	  (inhibit-modification-hooks t))
+     (widget--allow-insertion
       (narrow-to-region (point) (point))
-      (prog1 (progn ,@form)
+      (prog1 (progn ,@forms)
 	(goto-char (point-max))))))
 
 (defface widget-inactive
@@ -954,9 +960,8 @@ The optional ARGS are additional keyword arguments."
 ;;;###autoload
 (defun widget-insert (&rest args)
   "Call `insert' with ARGS even if surrounding text is read only."
-  (let ((inhibit-read-only t)
-	(inhibit-modification-hooks t))
-    (apply 'insert args)))
+  (widget--allow-insertion
+    (apply #'insert args)))
 
 (defun widget-convert-text (type from to
 				 &optional button-from button-to
@@ -1376,19 +1381,18 @@ When not inside a field, signal an error."
 ;;;###autoload
 (defun widget-setup ()
   "Setup current buffer so editing string widgets works."
-  (let ((inhibit-read-only t)
-	(inhibit-modification-hooks t)
-	field)
-    (while widget-field-new
-      (setq field (car widget-field-new)
-	    widget-field-new (cdr widget-field-new)
-	    widget-field-list (cons field widget-field-list))
-      (let ((from (car (widget-get field :field-overlay)))
-	    (to (cdr (widget-get field :field-overlay))))
-	(widget-specify-field field
-			      (marker-position from) (marker-position to))
-	(set-marker from nil)
-	(set-marker to nil))))
+  (widget--allow-insertion
+   (let (field)
+     (while widget-field-new
+       (setq field (car widget-field-new)
+	     widget-field-new (cdr widget-field-new)
+	     widget-field-list (cons field widget-field-list))
+       (let ((from (car (widget-get field :field-overlay)))
+	     (to (cdr (widget-get field :field-overlay))))
+	 (widget-specify-field field
+			       (marker-position from) (marker-position to))
+	 (set-marker from nil)
+	 (set-marker to nil)))))
   (widget-clear-undo)
   (widget-add-change))
 
@@ -1773,24 +1777,23 @@ The value of the :type attribute should be an unconverted widget type."
 	(inactive-overlay (widget-get widget :inactive))
 	(button-overlay (widget-get widget :button-overlay))
 	(sample-overlay (widget-get widget :sample-overlay))
-	(doc-overlay (widget-get widget :doc-overlay))
-	(inhibit-modification-hooks t)
-	(inhibit-read-only t))
-    (widget-apply widget :value-delete)
-    (widget-children-value-delete widget)
-    (when inactive-overlay
-      (delete-overlay inactive-overlay))
-    (when button-overlay
-      (delete-overlay button-overlay))
-    (when sample-overlay
-      (delete-overlay sample-overlay))
-    (when doc-overlay
-      (delete-overlay doc-overlay))
-    (when (< from to)
-      ;; Kludge: this doesn't need to be true for empty formats.
-      (delete-region from to))
-    (set-marker from nil)
-    (set-marker to nil))
+	(doc-overlay (widget-get widget :doc-overlay)))
+    (widget--allow-insertion
+     (widget-apply widget :value-delete)
+     (widget-children-value-delete widget)
+     (when inactive-overlay
+       (delete-overlay inactive-overlay))
+     (when button-overlay
+       (delete-overlay button-overlay))
+     (when sample-overlay
+       (delete-overlay sample-overlay))
+     (when doc-overlay
+       (delete-overlay doc-overlay))
+     (when (< from to)
+       ;; Kludge: this doesn't need to be true for empty formats.
+       (delete-region from to))
+     (set-marker from nil)
+     (set-marker to nil)))
   (widget-clear-undo))
 
 (defun widget-default-value-set (widget value)
@@ -2885,27 +2888,26 @@ The new widget gets inserted at the position of the BEFORE child."
           (last-deleted (when-let ((lst (widget-get widget :last-deleted)))
                           (prog1
                               (pop lst)
-                            (widget-put widget :last-deleted lst))))
-	  (inhibit-read-only t)
-	  (inhibit-modification-hooks t))
-      (cond (before
-	     (goto-char (widget-get before :entry-from)))
-	    (t
-	     (goto-char (widget-get widget :value-pos))))
-      (let ((child (widget-editable-list-entry-create
-                    widget (and last-deleted
-                                (widget-apply last-deleted
-                                              :value-to-external
-                                              (widget-get last-deleted :value)))
-                    last-deleted)))
-	(when (< (widget-get child :entry-from) (widget-get widget :from))
-	  (set-marker (widget-get widget :from)
-		      (widget-get child :entry-from)))
-	(if (eq (car children) before)
-	    (widget-put widget :children (cons child children))
-	  (while (not (eq (car (cdr children)) before))
-	    (setq children (cdr children)))
-	  (setcdr children (cons child (cdr children)))))))
+                            (widget-put widget :last-deleted lst)))))
+      (widget--allow-insertion
+       (cond (before
+	      (goto-char (widget-get before :entry-from)))
+	     (t
+	      (goto-char (widget-get widget :value-pos))))
+       (let ((child (widget-editable-list-entry-create
+                     widget (and last-deleted
+                                 (widget-apply last-deleted
+                                               :value-to-external
+                                               (widget-get last-deleted :value)))
+                     last-deleted)))
+	 (when (< (widget-get child :entry-from) (widget-get widget :from))
+	   (set-marker (widget-get widget :from)
+		       (widget-get child :entry-from)))
+	 (if (eq (car children) before)
+	     (widget-put widget :children (cons child children))
+	   (while (not (eq (car (cdr children)) before))
+	     (setq children (cdr children)))
+	   (setcdr children (cons child (cdr children))))))))
   (widget-setup)
   (widget-apply widget :notify widget))
 
@@ -2922,24 +2924,22 @@ Save CHILD into the :last-deleted list, so it can be inserted later."
   ;; Delete child from list of children.
   (save-excursion
     (let ((buttons (copy-sequence (widget-get widget :buttons)))
-	  button
-	  (inhibit-read-only t)
-	  (inhibit-modification-hooks t))
-      (while buttons
-	(setq button (car buttons)
-	      buttons (cdr buttons))
-	(when (eq (widget-get button :widget) child)
-	  (widget-put widget
-		      :buttons (delq button (widget-get widget :buttons)))
-	  (widget-delete button))))
+	  button)
+      (widget--allow-insertion
+       (while buttons
+	 (setq button (car buttons)
+	       buttons (cdr buttons))
+	 (when (eq (widget-get button :widget) child)
+	   (widget-put widget
+		       :buttons (delq button (widget-get widget :buttons)))
+	   (widget-delete button)))))
     (let ((entry-from (widget-get child :entry-from))
-	  (entry-to (widget-get child :entry-to))
-	  (inhibit-read-only t)
-	  (inhibit-modification-hooks t))
-      (widget-delete child)
-      (delete-region entry-from entry-to)
-      (set-marker entry-from nil)
-      (set-marker entry-to nil))
+	  (entry-to (widget-get child :entry-to)))
+      (widget--allow-insertion
+       (widget-delete child)
+       (delete-region entry-from entry-to)
+       (set-marker entry-from nil)
+       (set-marker entry-to nil)))
     (widget-put widget :children (delq child (widget-get widget :children))))
   (widget-setup)
   (widget-apply widget :notify widget))
