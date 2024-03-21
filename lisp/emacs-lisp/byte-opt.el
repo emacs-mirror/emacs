@@ -3116,7 +3116,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 ;;
 (eval-when-compile
  (or (compiled-function-p (symbol-function 'byte-optimize-form))
-     (assq 'byte-code (symbol-function 'byte-optimize-form))
      (let ((byte-optimize nil)
 	   (byte-compile-warnings nil))
        (mapc (lambda (x)
