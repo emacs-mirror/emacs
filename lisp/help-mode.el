@@ -545,6 +545,9 @@ it does not already exist."
         (or (and (boundp symbol) (not (keywordp symbol)))
             (get symbol 'variable-documentation)))
      ,#'describe-variable)
+    ;; FIXME: We could go crazy and add another entry so describe-symbol can be
+    ;; used with the slot names of CL structs (and/or EIEIO objects).
+    ("type" ,#'cl-find-class ,#'cl-describe-type)
     ("face" ,#'facep ,(lambda (s _b _f) (describe-face s))))
   "List of providers of information about symbols.
 Each element has the form (NAME TESTFUN DESCFUN) where:

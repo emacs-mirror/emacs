@@ -711,13 +711,6 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 (eval-when-compile (require 'cl-macs))  ;Explicitly, for cl--find-class.
 (require 'help-mode)
 
-;; FIXME: We could go crazy and add another entry so describe-symbol can be
-;; used with the slot names of CL structs (and/or EIEIO objects).
-(add-to-list 'describe-symbol-backends
-             `(nil ,#'cl-find-class ,#'cl-describe-type)
-             ;; Document the `cons` function before the `cons` type.
-             t)
-
 (defconst cl--typedef-regexp
   (concat "(" (regexp-opt '("defclass" "defstruct" "cl-defstruct"
                             "cl-deftype" "deftype"))
