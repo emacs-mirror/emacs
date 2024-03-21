@@ -743,7 +743,7 @@ If NEXT, do the next column."
     (seq-do-indexed
      (lambda (elem index)
        (when (and (vtable-column--numerical (elt columns index))
-                  (not (numberp elem)))
+                  (not (numberp (car elem))))
          (setq recompute t)))
      line)
     (when recompute
