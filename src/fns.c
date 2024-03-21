@@ -2455,11 +2455,6 @@ usage: (sort SEQ &key KEY LESSP REVERSE IN-PLACE)  */)
 	  signal_error ("Invalid keyword argument", args[i]);
       }
 
-  if (NILP (lessp))
-    /* FIXME: normalise it as Qnil instead, and special-case it in tim_sort?
-       That would remove the funcall overhead for the common case.  */
-    lessp = Qvaluelt;
-
   /* FIXME: for lists it may be slightly faster to make the copy after
      sorting? Measure.  */
   if (!inplace)

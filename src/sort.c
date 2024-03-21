@@ -152,7 +152,7 @@ struct reloc
 };
 
 
-typedef struct
+typedef struct merge_state
 {
   Lisp_Object *basekeys;
   Lisp_Object *allocated_keys;	/* heap-alloc'ed key array or NULL */
@@ -187,20 +187,32 @@ typedef struct
 
   struct reloc reloc;
 
-  /* PREDICATE is the lisp comparison predicate for the sort.  */
+  /* The C ordering (less-than) predicate.  */
+  bool (*pred_fun) (struct merge_state *ms, Lisp_Object a, Lisp_Object b);
 
+  /* The Lisp ordering predicate; Qnil means value<.  */
   Lisp_Object predicate;
 } merge_state;
 
 
-/* Return true iff (PREDICATE A B) is non-nil.  */
-
-static inline bool
-inorder (const Lisp_Object predicate, const Lisp_Object a, const Lisp_Object b)
+static bool
+order_pred_lisp (merge_state *ms, Lisp_Object a, Lisp_Object b)
 {
-  return !NILP (call2 (predicate, a, b));
+  return !NILP (call2 (ms->predicate, a, b));
 }
 
+static bool
+order_pred_valuelt (merge_state *ms, Lisp_Object a, Lisp_Object b)
+{
+  return !NILP (Fvaluelt (a, b));
+}
+
+/* Return true iff A < B according to the order predicate.  */
+static inline bool
+inorder (merge_state *ms, Lisp_Object a, Lisp_Object b)
+{
+  return ms->pred_fun (ms, a, b);
+}
 
 /* Sort the list starting at LO and ending at HI using a stable binary
    insertion sort algorithm. On entry the sublist [LO, START) (with
@@ -212,8 +224,6 @@ static void
 binarysort (merge_state *ms, sortslice lo, const Lisp_Object *hi,
 	    Lisp_Object *start)
 {
-  Lisp_Object pred = ms->predicate;
-
   eassume (lo.keys <= start && start <= hi);
   if (lo.keys == start)
     ++start;
@@ -226,7 +236,7 @@ binarysort (merge_state *ms, sortslice lo, const Lisp_Object *hi,
       eassume (l < r);
       do {
 	Lisp_Object *p = l + ((r - l) >> 1);
-	if (inorder (pred, pivot, *p))
+	if (inorder (ms, pivot, *p))
 	  r = p;
 	else
 	  l = p + 1;
@@ -263,8 +273,6 @@ static ptrdiff_t
 count_run (merge_state *ms, Lisp_Object *lo, const Lisp_Object *hi,
 	   bool *descending)
 {
-  Lisp_Object pred = ms->predicate;
-
   eassume (lo < hi);
   *descending = 0;
   ++lo;
@@ -273,12 +281,12 @@ count_run (merge_state *ms, Lisp_Object *lo, const Lisp_Object *hi,
     return n;
 
   n = 2;
-  if (inorder (pred, lo[0], lo[-1]))
+  if (inorder (ms, lo[0], lo[-1]))
     {
       *descending = 1;
       for (lo = lo + 1; lo < hi; ++lo, ++n)
 	{
-	  if (!inorder (pred, lo[0], lo[-1]))
+	  if (!inorder (ms, lo[0], lo[-1]))
 	    break;
 	}
     }
@@ -286,7 +294,7 @@ count_run (merge_state *ms, Lisp_Object *lo, const Lisp_Object *hi,
     {
       for (lo = lo + 1; lo < hi; ++lo, ++n)
 	{
-	  if (inorder (pred, lo[0], lo[-1]))
+	  if (inorder (ms, lo[0], lo[-1]))
 	    break;
 	}
     }
@@ -319,21 +327,19 @@ static ptrdiff_t
 gallop_left (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
 	     const ptrdiff_t n, const ptrdiff_t hint)
 {
-  Lisp_Object pred = ms->predicate;
-
   eassume (a && n > 0 && hint >= 0 && hint < n);
 
   a += hint;
   ptrdiff_t lastofs = 0;
   ptrdiff_t ofs = 1;
-  if (inorder (pred, *a, key))
+  if (inorder (ms, *a, key))
     {
       /* When a[hint] < key, gallop right until
 	 a[hint + lastofs] < key <= a[hint + ofs].  */
       const ptrdiff_t maxofs = n - hint; /* This is one after the end of a.  */
       while (ofs < maxofs)
 	{
-	  if (inorder (pred, a[ofs], key))
+	  if (inorder (ms, a[ofs], key))
 	    {
 	      lastofs = ofs;
 	      eassume (ofs <= (PTRDIFF_MAX - 1) / 2);
@@ -355,7 +361,7 @@ gallop_left (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
       const ptrdiff_t maxofs = hint + 1;        /* Here &a[0] is lowest.  */
       while (ofs < maxofs)
 	{
-	  if (inorder (pred, a[-ofs], key))
+	  if (inorder (ms, a[-ofs], key))
 	    break;
 	  /* Here key <= a[hint - ofs].  */
 	  lastofs = ofs;
@@ -380,7 +386,7 @@ gallop_left (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
     {
       ptrdiff_t m = lastofs + ((ofs - lastofs) >> 1);
 
-      if (inorder (pred, a[m], key))
+      if (inorder (ms, a[m], key))
 	lastofs = m + 1;            /* Here a[m] < key.  */
       else
 	ofs = m;                    /* Here key <= a[m].  */
@@ -403,21 +409,19 @@ static ptrdiff_t
 gallop_right (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
 	      const ptrdiff_t n, const ptrdiff_t hint)
 {
-  Lisp_Object pred = ms->predicate;
-
   eassume (a && n > 0 && hint >= 0 && hint < n);
 
   a += hint;
   ptrdiff_t lastofs = 0;
   ptrdiff_t ofs = 1;
-  if (inorder (pred, key, *a))
+  if (inorder (ms, key, *a))
     {
       /* When key < a[hint], gallop left until
 	 a[hint - ofs] <= key < a[hint - lastofs].  */
       const ptrdiff_t maxofs = hint + 1;        /* Here &a[0] is lowest.  */
       while (ofs < maxofs)
 	{
-	  if (inorder (pred, key, a[-ofs]))
+	  if (inorder (ms, key, a[-ofs]))
 	    {
 	      lastofs = ofs;
 	      eassume (ofs <= (PTRDIFF_MAX - 1) / 2);
@@ -440,7 +444,7 @@ gallop_right (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
       const ptrdiff_t maxofs = n - hint;        /* Here &a[n-1] is highest.  */
       while (ofs < maxofs)
 	{
-	  if (inorder (pred, key, a[ofs]))
+	  if (inorder (ms, key, a[ofs]))
 	    break;
 	  /* Here a[hint + ofs] <= key.  */
 	  lastofs = ofs;
@@ -464,7 +468,7 @@ gallop_right (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
     {
       ptrdiff_t m = lastofs + ((ofs - lastofs) >> 1);
 
-      if (inorder (pred, key, a[m]))
+      if (inorder (ms, key, a[m]))
 	ofs = m;                    /* Here key < a[m].  */
       else
 	lastofs = m + 1;            /* Here a[m] <= key.  */
@@ -509,6 +513,7 @@ merge_init (merge_state *ms, const ptrdiff_t list_size,
   ms->listlen = list_size;
   ms->basekeys = lo->keys;
   ms->allocated_keys = allocated_keys;
+  ms->pred_fun = NILP (predicate) ? order_pred_valuelt : order_pred_lisp;
   ms->predicate = predicate;
   ms->reloc = (struct reloc){NULL, NULL, NULL, 0};
   ms->count = make_invalid_specpdl_ref ();
@@ -637,8 +642,6 @@ static void
 merge_lo (merge_state *ms, sortslice ssa, ptrdiff_t na,
 	  sortslice ssb, ptrdiff_t nb)
 {
-  Lisp_Object pred = ms->predicate;
-
   eassume (ms && ssa.keys && ssb.keys && na > 0 && nb > 0);
   eassume (ssa.keys + na == ssb.keys);
   needmem (ms, na);
@@ -665,7 +668,7 @@ merge_lo (merge_state *ms, sortslice ssa, ptrdiff_t na,
       for (;;)
 	{
 	  eassume (na > 1 && nb > 0);
-	  if (inorder (pred, ssb.keys[0], ssa.keys[0]))
+	  if (inorder (ms, ssb.keys[0], ssa.keys[0]))
 	    {
 	      sortslice_copy_incr (&dest, &ssb);
 	      ++bcount;
@@ -762,8 +765,6 @@ static void
 merge_hi (merge_state *ms, sortslice ssa, ptrdiff_t na,
 	  sortslice ssb, ptrdiff_t nb)
 {
-  Lisp_Object pred = ms->predicate;
-
   eassume (ms && ssa.keys && ssb.keys && na > 0 && nb > 0);
   eassume (ssa.keys + na == ssb.keys);
   needmem (ms, nb);
@@ -793,7 +794,7 @@ merge_hi (merge_state *ms, sortslice ssa, ptrdiff_t na,
 
     for (;;) {
       eassume (na > 0 && nb > 1);
-      if (inorder (pred, ssb.keys[0], ssa.keys[0]))
+      if (inorder (ms, ssb.keys[0], ssa.keys[0]))
 	{
 	  sortslice_copy_decr (&dest, &ssa);
 	  ++acount;
@@ -1078,18 +1079,18 @@ void
 tim_sort (Lisp_Object predicate, Lisp_Object keyfunc,
 	  Lisp_Object *seq, const ptrdiff_t length, bool reverse)
 {
-  /* FIXME: optimise for the predicate being value<; at the very
-     least we'd go without the Lisp funcall overhead.  */
-  predicate = resolve_fun (predicate);
+  /* FIXME: hoist this to the caller? */
+  if (EQ (predicate, Qvaluelt))
+    predicate = Qnil;
+  if (!NILP (predicate))
+    predicate = resolve_fun (predicate);
+  if (EQ (keyfunc, Qidentity))
+    keyfunc = Qnil;
 
   sortslice lo;
   Lisp_Object *keys;
   Lisp_Object *allocated_keys = NULL;
   merge_state ms;
-
-  /* FIXME: hoist this to the caller? */
-  if (EQ (keyfunc, Qidentity))
-    keyfunc = Qnil;
 
   if (reverse)
     reverse_slice (seq, seq + length);    /* preserve stability */
