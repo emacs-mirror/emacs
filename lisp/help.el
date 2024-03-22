@@ -926,7 +926,9 @@ in the selected window."
      (let ((key-desc (help-key-description key untranslated)))
        (if (help--binding-undefined-p defn)
            (format "%s%s is undefined" key-desc mouse-msg)
-         (format "%s%s runs the command %S" key-desc mouse-msg defn)))
+         (format "%s%s runs the command %s" key-desc mouse-msg
+                 (if (symbolp defn) (prin1-to-string defn)
+                   (help-fns-function-name defn)))))
      defn event mouse-msg)))
 
 (defun help--filter-info-list (info-list i)
