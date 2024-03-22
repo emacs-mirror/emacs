@@ -198,7 +198,10 @@ it inserts and pretty-prints that arg at point."
                       ;; reduce the indentation depth.
                       ;; Similarly, we prefer to cut before a "." than after
                       ;; it because it reduces the indentation depth.
-                      (skip-chars-backward " \t({[',.")
+                      (while (not (zerop (skip-chars-backward " \t({[',.")))
+                        (and (memq (char-before) '(?# ?s ?f))
+                             (looking-back "#[sf]?" (- (point) 2))
+                             (goto-char (match-beginning 0))))
                       (if (bolp)
                           ;; The sexp already starts on its own line.
                           (progn (goto-char beg) nil)
