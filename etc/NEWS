@@ -1795,11 +1795,6 @@ sorts by the return value of 'age', then by 'size', then by 'cost'.
 The old signature, '(sort SEQ PREDICATE)', can still be used and sorts
 its input in-place as before.
 
-** New function 'sort-on'.
-This function implements the Schwartzian transform, and is appropriate
-for sorting lists when the computation of the sort key of a list
-element can be expensive.
-
 ** New API for 'derived-mode-p' and control of the graph of major modes.
 
 *** 'derived-mode-p' now takes the list of modes as a single argument.
