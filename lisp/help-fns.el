@@ -2465,7 +2465,14 @@ one of them returns non-nil."
 
 ;;;###autoload
 (defun help-fns-function-name (function)
-  "Return a short string representing FUNCTION."
+  "Return a short buttonized string representing FUNCTION.
+The string is propertized with a button; clicking on that
+provides further details about FUNCTION.
+FUNCTION can be a function, a built-in, a keyboard macro,
+or a compile function.
+This function is intended to be used to display various
+callable symbols in buffers in a way that allows the user
+to find out more details about the symbols."
   ;; FIXME: For kmacros, should we print the key-sequence?
   (cond
    ((symbolp function)
