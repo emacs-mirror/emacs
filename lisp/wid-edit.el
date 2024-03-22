@@ -1377,14 +1377,17 @@ When not inside a field, signal an error."
 (defun widget-setup ()
   "Setup current buffer so editing string widgets works."
   (widget--allow-insertion
-   (dolist (field widget-field-new)
-     (push field widget-field-list)
-     (let ((from (car (widget-get field :field-overlay)))
-	   (to (cdr (widget-get field :field-overlay))))
-       (widget-specify-field field
-			     (marker-position from) (marker-position to))
-       (set-marker from nil)
-       (set-marker to nil))))
+   (let (field)
+     (while widget-field-new
+       (setq field (car widget-field-new)
+	     widget-field-new (cdr widget-field-new)
+	     widget-field-list (cons field widget-field-list))
+       (let ((from (car (widget-get field :field-overlay)))
+	     (to (cdr (widget-get field :field-overlay))))
+	 (widget-specify-field field
+			       (marker-position from) (marker-position to))
+	 (set-marker from nil)
+	 (set-marker to nil)))))
   (widget-clear-undo)
   (widget-add-change))
 
