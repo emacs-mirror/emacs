@@ -108,6 +108,12 @@ to your init:
 
 * Changes in Emacs 30.1
 
+** 'describe-function' now shows the type of the function object.
+The text used to say things like "car is is a built-in function"
+whereas it now says "car is a primitive-function" where "primitive-function"
+is the symbol returned by `cl-type-of` and you can click on it to get
+information about that type.
+
 ** 'advice-remove' is now an interactive command.
 When called interactively, 'advice-remove' now prompts for an advised
 function to the advice to remove.
