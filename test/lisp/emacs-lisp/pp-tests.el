@@ -36,4 +36,34 @@
 (ert-deftest test-indentation ()
   (ert-test-erts-file (ert-resource-file "code-formats.erts")))
 
+(defun pp-tests--dimensions ()
+  (save-excursion
+    (let ((width 0)
+          (height 0))
+      (goto-char (point-min))
+      (while (not (eobp))
+        (end-of-line)
+        (setq height (1+ height))
+        (setq width (max width (current-column)))
+        (forward-char 1))
+      (cons width height))))
+
+(ert-deftest pp-tests--cut-before ()
+  (with-temp-buffer
+    (lisp-data-mode)
+    (pp '(1 (quite-a-long-package-name
+             . [(0 10 0) ((avy (0 5 0))) "Quickly switch windows." tar
+                ((:url . "https://github.com/abo-abo/ace-window")
+                 (:maintainer "Oleh Krehel" . "ohwoeowho@gmail.com")
+                 (:authors ("Oleh Krehel" . "ohwoeowho@gmail.com"))
+                 (:keywords "window" "location"))]))
+        (current-buffer))
+    ;; (message "Filled:\n%s" (buffer-string))
+    (let ((dimensions (pp-tests--dimensions)))
+      (should (< (car dimensions) 80))
+      (should (< (cdr dimensions) 8)))
+    (goto-char (point-min))
+    (while (search-forward "." nil t)
+      (should (not (eolp))))))
+
 ;;; pp-tests.el ends here.

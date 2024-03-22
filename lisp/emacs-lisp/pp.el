@@ -193,11 +193,15 @@ it inserts and pretty-prints that arg at point."
                    (and
                     (save-excursion
                       (goto-char beg)
-                      (if (save-excursion (skip-chars-backward " \t({[',")
-                                          (bolp))
-                          ;; The sexp was already on its own line.
-                          nil
-                        (skip-chars-backward " \t")
+                      ;; We skip backward over open parens because cutting
+                      ;; the line right after an open paren does not help
+                      ;; reduce the indentation depth.
+                      ;; Similarly, we prefer to cut before a "." than after
+                      ;; it because it reduces the indentation depth.
+                      (skip-chars-backward " \t({[',.")
+                      (if (bolp)
+                          ;; The sexp already starts on its own line.
+                          (progn (goto-char beg) nil)
                         (setq beg (copy-marker beg t))
                         (if paired (setq paired (copy-marker paired t)))
                         ;; We could try to undo this insertion if it
