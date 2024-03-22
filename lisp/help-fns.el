@@ -1061,10 +1061,10 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                         (concat
                          "an autoloaded " (if (commandp def)
                                               "interactive "))
-                      (if (commandp def) "an interactive " "a "))))
-
-    ;; Print what kind of function-like object FUNCTION is.
-    (princ (cond ((or (stringp def) (vectorp def))
+                      (if (commandp def) "an interactive " "a ")))
+               ;; Print what kind of function-like object FUNCTION is.
+               (description
+		(cond ((or (stringp def) (vectorp def))
 		  "a keyboard macro")
 		 ((and (symbolp function)
                        (get function 'reader-construct))
@@ -1073,12 +1073,6 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		 ;; aliases before functions.
 		 (aliased
 		  (format-message "an alias for `%s'" real-def))
-                 ((subr-native-elisp-p def)
-                  (concat beg "native-compiled Lisp function"))
-		 ((subrp def)
-		  (concat beg (if (eq 'unevalled (cdr (subr-arity def)))
-		                  "special form"
-                                "built-in function")))
 		 ((autoloadp def)
 		  (format "an autoloaded %s"
                           (cond
@@ -1092,12 +1086,13 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		      ;; need to check macros before functions.
 		      (macrop function))
 		  (concat beg "Lisp macro"))
-		 ((byte-code-function-p def)
-		  (concat beg "byte-compiled Lisp function"))
-                 ((module-function-p def)
-                  (concat beg "module function"))
-		 ((memq (car-safe def) '(lambda closure))
-		  (concat beg "Lisp function"))
+		 ((atom def)
+		  (let ((type (or (oclosure-type def) (cl-type-of def))))
+		    (concat beg (format "%s"
+		                        (make-text-button
+		                         (symbol-name type) nil
+		                         'type 'help-type
+		                         'help-args (list type))))))
 		 ((keymapp def)
 		  (let ((is-full nil)
 			(elts (cdr-safe def)))
@@ -1107,7 +1102,9 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 				elts nil))
 		      (setq elts (cdr-safe elts)))
 		    (concat beg (if is-full "keymap" "sparse keymap"))))
-		 (t "")))
+		 (t ""))))
+    (with-current-buffer standard-output
+      (insert description))
 
     (if (and aliased (not (fboundp real-def)))
 	(princ ",\nwhich is not defined.")
