@@ -2347,18 +2347,17 @@ See also the function `nreverse', which is used more often.  */)
 }
 
 
-/* Stably sort LIST ordered by PREDICATE using the TIMSORT
-   algorithm.  This converts the list to a vector, sorts the vector,
-   and returns the result converted back to a list.  The input list
-   is destructively reused to hold the sorted result.  */
-
+/* Stably sort LIST ordered by PREDICATE and KEYFUNC, optionally reversed.
+   This converts the list to a vector, sorts the vector, and returns the
+   result converted back to a list.  If INPLACE, the input list is
+   reused to hold the sorted result; otherwise a new list is returned.  */
 static Lisp_Object
 sort_list (Lisp_Object list, Lisp_Object predicate, Lisp_Object keyfunc,
-	   bool reverse)
+	   bool reverse, bool inplace)
 {
   ptrdiff_t length = list_length (list);
   if (length < 2)
-    return list;
+    return inplace ? list : list1 (XCAR (list));
   else
     {
       Lisp_Object *result;
@@ -2372,31 +2371,40 @@ sort_list (Lisp_Object list, Lisp_Object predicate, Lisp_Object keyfunc,
 	}
       tim_sort (predicate, keyfunc, result, length, reverse);
 
-      ptrdiff_t i = 0;
-      tail = list;
-      while (CONSP (tail))
+      if (inplace)
 	{
-	  XSETCAR (tail, result[i]);
-	  tail = XCDR (tail);
-	  i++;
+	  /* Copy sorted vector contents back onto the original list.  */
+	  ptrdiff_t i = 0;
+	  tail = list;
+	  while (CONSP (tail))
+	    {
+	      XSETCAR (tail, result[i]);
+	      tail = XCDR (tail);
+	      i++;
+	    }
+	}
+      else
+	{
+	  /* Create a new list for the sorted vector contents.  */
+	  list = Qnil;
+	  for (ptrdiff_t i = length - 1; i >= 0; i--)
+	    list = Fcons (result[i], list);
 	}
       SAFE_FREE ();
       return list;
     }
 }
 
-/* Stably sort VECTOR ordered by PREDICATE using the TIMSORT
-   algorithm.  */
-
-static void
+/* Stably sort VECTOR in-place ordered by PREDICATE and KEYFUNC,
+   optionally reversed.  */
+static Lisp_Object
 sort_vector (Lisp_Object vector, Lisp_Object predicate, Lisp_Object keyfunc,
 	     bool reverse)
 {
   ptrdiff_t length = ASIZE (vector);
-  if (length < 2)
-    return;
-
-  tim_sort (predicate, keyfunc, XVECTOR (vector)->contents, length, reverse);
+  if (length >= 2)
+    tim_sort (predicate, keyfunc, XVECTOR (vector)->contents, length, reverse);
+  return vector;
 }
 
 DEFUN ("sort", Fsort, Ssort, 1, MANY, 0,
@@ -2455,18 +2463,15 @@ usage: (sort SEQ &key KEY LESSP REVERSE IN-PLACE)  */)
 	  signal_error ("Invalid keyword argument", args[i]);
       }
 
-  /* FIXME: for lists it may be slightly faster to make the copy after
-     sorting? Measure.  */
-  if (!inplace)
-    seq = Fcopy_sequence (seq);
-
   if (CONSP (seq))
-    seq = sort_list (seq, lessp, key, reverse);
+    return sort_list (seq, lessp, key, reverse, inplace);
+  else if (NILP (seq))
+    return seq;
   else if (VECTORP (seq))
-    sort_vector (seq, lessp, key, reverse);
-  else if (!NILP (seq))
+    return sort_vector (inplace ? seq : Fcopy_sequence (seq),
+			lessp, key, reverse);
+  else
     wrong_type_argument (Qlist_or_vector_p, seq);
-  return seq;
 }
 
 Lisp_Object
