@@ -5553,7 +5553,6 @@ android_saf_tree_readdir (struct android_vdir *vdir)
 					      chars);
 
   /* Resize dirent to accommodate the decoded text.  */
-  length = strlen (chars) + 1;
   size   = offsetof (struct dirent, d_name) + 1 + coding.produced;
   dirent = xrealloc (dirent, size);
 
@@ -6573,15 +6572,11 @@ static struct android_special_vnode special_vnodes[] =
 static Lisp_Object
 android_vfs_convert_name (const char *name, Lisp_Object coding)
 {
-  Lisp_Object src_coding, name1;
+  Lisp_Object name1;
 
-  src_coding = Qutf_8_emacs;
-
-  /* Convert the contents of the buffer after BUFFER_END
-     from the file name coding system to
-     special->special_coding_system.  */
-  AUTO_STRING (file_name, name);
-  name1 = code_convert_string_norecord (file_name, src_coding, false);
+  /* Convert the contents of the buffer after BUFFER_END from the file
+     name coding system to special->special_coding_system.  */
+  name1 = build_string (name);
   name1 = code_convert_string (name1, coding, Qt, true, true, true);
   return name1;
 }
@@ -6632,7 +6627,7 @@ android_root_name (struct android_vnode *vnode, char *name,
 
 	      /* Allocate a buffer and copy file_name into the same.  */
 	      length = SBYTES (file_name) + 1;
-	      name = SAFE_ALLOCA (length + 1);
+	      name = SAFE_ALLOCA (length);
 
 	      /* Copy the trailing NULL byte also.  */
 	      memcpy (name, SDATA (file_name), length);
@@ -6662,7 +6657,7 @@ android_root_name (struct android_vnode *vnode, char *name,
 
 	      /* Allocate a buffer and copy file_name into the same.  */
 	      length = SBYTES (file_name) + 1;
-	      name = SAFE_ALLOCA (length + 1);
+	      name = SAFE_ALLOCA (length);
 
 	      /* Copy the trailing NULL byte also.  */
 	      memcpy (name, SDATA (file_name), length);
