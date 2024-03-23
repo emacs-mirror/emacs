@@ -911,7 +911,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
        t))
      ((or "struct_specifier" "enum_specifier"
           "union_specifier" "class_specifier"
-          "namespace_definition")
+          "namespace_definition"
+          "preproc_def" "preproc_function_def")
       (treesit-node-child-by-field-name node "name"))
      ;; DEFUNs in Emacs sources.
      ("expression_statement"
@@ -1205,7 +1206,9 @@ BEG and END are described in `treesit-range-rules'."
                                    "enum_specifier"
                                    "union_specifier"
                                    "class_specifier"
-                                   "namespace_definition")
+                                   "namespace_definition"
+                                   "preproc_def"
+                                   "preproc_function_def")
                                  (and c-ts-mode-emacs-sources-support
                                       '(;; DEFUN.
                                         "expression_statement"
