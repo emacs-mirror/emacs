@@ -354,6 +354,7 @@ this avoids having to wait before seeing the directory.  This variable
 is ignored when @code{dired-omit-mode} is called interactively, such as
 by @kbd{C-x M-o}, so you can still enable omitting in the directory
 after the initial display.
+@end defvar
 
 @cindex omitting additional files
 @defvar dired-omit-marker-char
