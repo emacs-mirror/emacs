@@ -1455,24 +1455,23 @@ When :rotation is not a multiple of 90, return copy of :original-map."
 If IMAGE lacks :map property, return nil.
 When :rotation is not a multiple of 90, return copy of :map."
   (when (image-property image :map)
-    (let* ((image-copy (copy-tree image t))
-           (map (image-property image-copy :map))
-           (scale (or (image-property image-copy :scale) 1))
-           (rotation (or (image-property image-copy :rotation) 0))
-           (flip (image-property image-copy :flip))
-           (size (image-size image-copy t)))
+    (let* ((original-map (copy-tree (image-property image :map) t))
+           (scale (or (image-property image :scale) 1))
+           (rotation (or (image-property image :rotation) 0))
+           (flip (image-property image :flip))
+           (size (image-size image t)))
       (when (and ; Handle only 90-degree rotations
              (zerop (mod rotation 1))
              (zerop (% (truncate rotation) 90)))
         ;; In rendered images, rotation is always applied before flip.
-        ;; To undo the transformation, flip before rotating.
-        ;; SIZE fits MAP before it is transformed back to ORIGINAL-MAP.
-        ;; Therefore, scale MAP after flip and rotate operations, since
-        ;; both need MAP to fit SIZE.
-        (image--flip-map map flip size)
-        (image--rotate-map map (- rotation) size)
-        (image--scale-map map (/ 1.0 scale)))
-      map)))
+        ;; To undo the transformation, flip before rotating.  SIZE fits
+        ;; ORIGINAL-MAP before transformations are applied.  Therefore,
+        ;; scale ORIGINAL-MAP after flip and rotate operations, since
+        ;; both need ORIGINAL-MAP to fit SIZE.
+        (image--flip-map original-map flip size)
+        (image--rotate-map original-map (- rotation) size)
+        (image--scale-map original-map (/ 1.0 scale)))
+      original-map)))
 
 (defun image--scale-map (map scale)
   "Scale MAP according to SCALE.
