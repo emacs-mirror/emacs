@@ -60,66 +60,56 @@
   :options '(flymake-mode
              hs-minor-mode
              outline-minor-mode)
-  :group 'lua-ts
   :version "30.1")
 
 (defcustom lua-ts-indent-offset 4
   "Number of spaces for each indentation step in `lua-ts-mode'."
   :type 'natnum
   :safe 'natnump
-  :group 'lua-ts
   :version "30.1")
 
 (defcustom lua-ts-luacheck-program "luacheck"
   "Location of the Luacheck program."
   :type '(choice (const :tag "None" nil) string)
-  :group 'lua-ts
   :version "30.1")
 
 (defcustom lua-ts-inferior-buffer "*Lua*"
   "Name of the inferior Lua buffer."
   :type 'string
   :safe 'stringp
-  :group 'lua-ts
   :version "30.1")
 
 (defcustom lua-ts-inferior-program "lua"
   "Program to run in the inferior Lua process."
   :type '(choice (const :tag "None" nil) string)
-  :group 'lua-ts
   :version "30.1")
 
 (defcustom lua-ts-inferior-options '("-i")
   "Command line options for the inferior Lua process."
   :type '(repeat string)
-  :group 'lua-ts
   :version "30.1")
 
 (defcustom lua-ts-inferior-startfile nil
   "File to load into the inferior Lua process at startup."
   :type '(choice (const :tag "None" nil) (file :must-match t))
-  :group 'lua-ts
   :version "30.1")
 
 (defcustom lua-ts-inferior-prompt ">"
   "Prompt used by the inferior Lua process."
   :type 'string
   :safe 'stringp
-  :group 'lua-ts
   :version "30.1")
 
 (defcustom lua-ts-inferior-prompt-continue ">>"
   "Continuation prompt used by the inferior Lua process."
   :type 'string
   :safe 'stringp
-  :group 'lua-ts
   :version "30.1")
 
 (defcustom lua-ts-inferior-history nil
   "File used to save command history of the inferior Lua process."
   :type '(choice (const :tag "None" nil) file)
   :safe 'string-or-null-p
-  :group 'lua-ts
   :version "30.1")
 
 (defcustom lua-ts-indent-continuation-lines t
@@ -141,7 +131,6 @@ the statement:
   end"
   :type 'boolean
   :safe 'booleanp
-  :group 'lua-ts
   :version "30.1")
 
 (defvar lua-ts--builtins
@@ -628,7 +617,7 @@ Calls REPORT-FN directly."
                 nil t)))
   (select-window (display-buffer lua-ts-inferior-buffer
                                  '((display-buffer-reuse-window
-                                    display-buffer-pop-up-frame)
+                                    display-buffer-pop-up-window)
                                    (reusable-frames . t))))
   (get-buffer-process (current-buffer)))
 
