@@ -7186,8 +7186,8 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 	}
       else
 	{
-	  if (!EQ (coding->src_object, coding->dst_object)
-	      && !NILP (coding->src_object))
+	  if (!(EQ (coding->src_object, coding->dst_object)
+		&& !NILP (coding->src_object)))
 	    {
 	      ptrdiff_t require = coding->src_bytes - coding->dst_bytes;
 
