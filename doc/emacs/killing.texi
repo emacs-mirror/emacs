@@ -91,9 +91,11 @@ Delete the next character (@code{delete-char}).
 
 @item M-\
 Delete spaces and tabs around point (@code{delete-horizontal-space}).
+@item M-x just-one-space
+Delete spaces and tabs around point, leaving one space.
 @item M-@key{SPC}
-Delete spaces and tabs around point, leaving one space
-(@code{just-one-space}).
+Delete spaces and tabs around point in flexible ways
+(@code{cycle-spacing}).
 @item C-x C-o
 Delete blank lines around the current line (@code{delete-blank-lines}).
 @item M-^
@@ -118,12 +120,13 @@ characters before and after point.  With a prefix argument, this only
 deletes spaces and tab characters before point.
 
 @findex just-one-space
-@code{just-one-space} does likewise but leaves a single space before
-point, regardless of the number of spaces that existed previously
-(even if there were none before).  With a numeric argument @var{n}, it
-leaves @var{n} spaces before point if @var{n} is positive; if @var{n}
-is negative, it deletes newlines in addition to spaces and tabs,
-leaving @minus{}@var{n} spaces before point.
+@kbd{M-x just-one-space} deletes tabs and spaces around point, but
+leaves a single space before point, regardless of the number of spaces
+that existed previously (even if there were none before).  With a
+numeric argument @var{n}, it leaves @var{n} spaces before point if
+@var{n} is positive; if @var{n} is negative, it deletes newlines in
+addition to spaces and tabs, leaving @minus{}@var{n} spaces before
+point.
 
 @kindex M-SPC
 @findex cycle-spacing
@@ -131,7 +134,14 @@ leaving @minus{}@var{n} spaces before point.
 The command @code{cycle-spacing} (@kbd{M-@key{SPC}}) acts like a more
 flexible version of @code{just-one-space}.  It performs different
 space cleanup actions defined by @code{cycle-spacing-actions}, in a
-cyclic manner, if you call it repeatedly in succession.
+cyclic manner, if you call it repeatedly in succession.  By default,
+the first invocation does the same as @code{just-one-space}, the
+second deletes all whitespace characters around point like
+@code{delete-horizontal-space}, and the third restores the original
+whitespace characters; then it cycles.  If invoked with a prefix
+argument, each action is given that value of the argument.  The user
+option @code{cycle-spacing-actions} can include other members; see the
+doc string of that option for the details.
 
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all

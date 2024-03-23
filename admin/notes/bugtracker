@@ -430,8 +430,8 @@ reassign 123 spam
 *** To change the title of a bug:
 retitle 123 Some New Title
 
-*** To change the submitter address:
-submitter 123 none@example.com
+*** To change the submitter name and address:
+submitter 123 J. Hacker <none@example.com>
 
 Note that it does not seem to work to specify "Submitter:" in the
 pseudo-header when first reporting a bug.

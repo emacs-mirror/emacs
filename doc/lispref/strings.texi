@@ -1369,7 +1369,7 @@ given width and precision, if specified.
 
 @item >
 This flag causes the substitution to be truncated on the right to the
-given width, if specified.
+given width and precision, if specified.
 
 @item ^
 This flag converts the substituted text to upper case (@pxref{Case

@@ -875,7 +875,10 @@ already composing, or to alter a message you have sent.
   If you set the variable @code{rmail-mail-new-frame} to a
 non-@code{nil} value, then all the Rmail commands to start sending a
 message create a new frame to edit it in.  This frame is deleted when
-you send the message.
+you send the message (but not if it is the only visible frame on the
+current display, or if it's a text-mode frame).  If this frame cannot
+be deleted when you send the message, Emacs will try to reuse it for
+composing subsequent messages.
 @ignore
 @c FIXME does not work with Message -> Kill Message
 , or when you use the @samp{Cancel} item in the @samp{Mail} menu.
