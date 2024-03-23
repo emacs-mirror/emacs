@@ -2237,7 +2237,7 @@ for invalid node.
 This is used by `treesit-beginning-of-defun' and friends.")
 
 (defvar-local treesit-defun-tactic 'nested
-  "Determines how does Emacs treat nested defuns.
+  "Determines how Emacs treats nested defuns.
 If the value is `top-level', Emacs only moves across top-level
 defuns, if the value is `nested', Emacs recognizes nested defuns.")
 
@@ -2253,9 +2253,8 @@ If the value is nil, no skipping is performed.")
 (defvar-local treesit-defun-name-function nil
   "A function that is called with a node and returns its defun name or nil.
 If the node is a defun node, return the defun name, e.g., the
-function name of a function.  If the node is not a defun node, or
-the defun node doesn't have a name, or the node is nil, return
-nil.")
+name of a function.  If the node is not a defun node, or the
+defun node doesn't have a name, or the node is nil, return nil.")
 
 (defvar-local treesit-add-log-defun-delimiter "."
   "The delimiter used to connect several defun names.
@@ -2728,12 +2727,12 @@ function is called recursively."
 
 ;; TODO: In corporate into thing-at-point.
 (defun treesit-thing-at-point (thing tactic)
-  "Return the THING at point or nil if none is found.
+  "Return the THING at point, or nil if none is found.
 
-THING can be a symbol, regexp, a predicate function, and more,
+THING can be a symbol, a regexp, a predicate function, and more;
 see `treesit-thing-settings' for details.
 
-Return the top-level THING if TACTIC is `top-level', return the
+Return the top-level THING if TACTIC is `top-level'; return the
 smallest enclosing THING as POS if TACTIC is `nested'."
 
   (let ((node (treesit--thing-at (point) thing)))
@@ -2742,11 +2741,11 @@ smallest enclosing THING as POS if TACTIC is `nested'."
       node)))
 
 (defun treesit-defun-at-point ()
-  "Return the defun node at point or nil if none is found.
+  "Return the defun node at point, or nil if none is found.
 
-Respects `treesit-defun-tactic': return the top-level defun if it
-is `top-level', return the immediate parent defun if it is
-`nested'.
+Respects `treesit-defun-tactic': returns the top-level defun if it
+is `top-level', otherwise return the immediate parent defun if it
+is `nested'.
 
 Return nil if `treesit-defun-type-regexp' isn't set and `defun'
 isn't defined in `treesit-thing-settings'."
