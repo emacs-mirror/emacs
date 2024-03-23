@@ -461,7 +461,7 @@ extern void sfntfont_android_shrink_scanline_buffer (void);
 extern void init_sfntfont_android (void);
 extern void syms_of_sfntfont_android (void);
 
-/* Defined in androidselect.c  */
+/* Defined in androidselect.c.  */
 
 #ifndef ANDROID_STUBIFY
 
@@ -472,6 +472,9 @@ extern void android_notification_action (struct android_notification_event *,
 
 extern void init_androidselect (void);
 extern void syms_of_androidselect (void);
+
+/* Defined in androidvfs.c.  */
+extern void syms_of_androidvfs (void);
 
 #endif
 

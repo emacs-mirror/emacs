@@ -529,5 +529,94 @@ accessible to other programs."
   (android-browse-url-internal url send))
 
 
+;; Coding systems used by androidvfs.c.
+
+(define-ccl-program android-encode-jni
+  `(2 ((loop
+	(read r0)
+	(if (r0 < #x1) ; 0x0 is encoded specially in JNI environments.
+	    ((write #xc0)
+	     (write #x80))
+	  ((if (r0 < #x80) ; ASCII
+	       ((write r0))
+	     (if (r0 < #x800) ; \u0080 - \u07ff
+		 ((write ((r0 >> 6) | #xC0))
+		  (write ((r0 & #x3F) | #x80)))
+	       ;; \u0800 - \uFFFF
+	       (if (r0 < #x10000)
+		   ((write ((r0 >> 12) | #xE0))
+		    (write (((r0 >> 6) & #x3F) | #x80))
+		    (write ((r0 & #x3F) | #x80)))
+		 ;; Supplementary characters must be converted into
+		 ;; surrogate pairs before encoding.
+		 (;; High surrogate
+		  (r1 = ((((r0 - #x10000) >> 10) & #x3ff) + #xD800))
+		  ;; Low surrogate.
+		  (r2 = (((r0 - #x10000) & #x3ff) + #xDC00))
+		  ;; Write both surrogate characters.
+		  (write ((r1 >> 12) | #xE0))
+		  (write (((r1 >> 6) & #x3F) | #x80))
+		  (write ((r1 & #x3F) | #x80))
+		  (write ((r2 >> 12) | #xE0))
+		  (write (((r2 >> 6) & #x3F) | #x80))
+		  (write ((r2 & #x3F) | #x80))))))))
+	(repeat))))
+  "Encode characters from the input buffer for Java virtual machines.")
+
+(define-ccl-program android-decode-jni
+  `(1 ((loop
+        ((read-if (r0 >= #x80) ; More than a one-byte sequence?
+		  ((if (r0 < #xe0)
+		       ;; Two-byte sequence; potentially a NULL
+		       ;; character.
+		       ((read r4)
+			(r4 &= #x3f)
+			(r0 = (((r0 & #x1f) << 6) | r4)))
+		     (if (r0 < ?\xF0)
+			 ;; Three-byte sequence, after which surrogate
+			 ;; pairs should be processed.
+			 ((read r4 r6)
+			  (r4 = ((r4 & #x3f) << 6))
+			  (r6 &= #x3f)
+			  (r0 = ((((r0 & #xf) << 12) | r4) | r6)))
+		       ;; Four-byte sequences are not valid under the
+		       ;; JVM specification, but Android produces them
+		       ;; when encoding Emoji characters for being
+		       ;; supposedly less of a surprise to applications.
+		       ;; This is obviously not true of programs written
+		       ;; to the letter of the documentation, but 50
+		       ;; million Frenchmen make a right (and this
+		       ;; deviation from the norm is predictably absent
+		       ;; from Android's documentation on the subject).
+		       ((read r1 r4 r6)
+			(r1 = ((r1 & #x3f) << 12))
+			(r4 = ((r4 & #x3f) << 6))
+			(r6 &= #x3F)
+			(r0 = (((((r0 & #x07) << 18) | r1) | r4) | r6))))))))
+	(if ((r0 & #xf800) == #xd800)
+	    ;; High surrogate.
+	    ((read-if (r2 >= #xe0)
+		      ((r0 = ((r0 & #x3ff) << 10))
+		       (read r4 r6)
+		       (r4 = ((r4 & #x3f) << 6))
+		       (r6 &= #x3f)
+		       (r1 = ((((r2 & #xf) << 12) | r4) | r6))
+		       (r0 = (((r1 & #x3ff) | r0) + #xffff))))))
+	(write r0)
+	(repeat))))
+  "Decode JVM-encoded characters in the input buffer.")
+
+(define-coding-system 'android-jni
+  "CESU-8 based encoding for communication with the Android runtime."
+  :mnemonic ?J
+  :coding-type 'ccl
+  :eol-type 'unix
+  :ascii-compatible-p nil ; for \0 is encoded as a two-byte sequence.
+  :default-char ?\0
+  :charset-list '(unicode)
+  :ccl-decoder 'android-decode-jni
+  :ccl-encoder 'android-encode-jni)
+
+
 (provide 'android-win)
 ;; android-win.el ends here.

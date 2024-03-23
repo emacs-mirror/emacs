@@ -38,8 +38,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <linux/ashmem.h>
 
 #include "android.h"
+#include "androidterm.h"
 #include "systime.h"
 #include "blockinput.h"
+#include "coding.h"
 
 #if __ANDROID_API__ >= 9
 #include <android/asset_manager.h>
@@ -248,7 +250,13 @@ struct android_special_vnode
   /* Function called to create the initial vnode from the rest of the
      component.  */
   struct android_vnode *(*initial) (char *, size_t);
+
+  /* If non-nil, an encoding system into which file name buffers are to
+     be re-encoded before being handed to VFS functions.  */
+  Lisp_Object special_coding_system;
 };
+
+verify (NIL_IS_ZERO); /* special_coding_system above.  */
 
 enum android_vnode_type
   {
@@ -3867,7 +3875,8 @@ android_saf_root_readdir (struct android_vdir *vdir)
 						  NULL);
   android_exception_check_nonnull ((void *) chars, string);
 
-  /* Figure out how large it is, and then resize dirent to fit.  */
+  /* Figure out how large it is, and then resize dirent to fit--this
+     string is always ASCII.  */
   length = strlen (chars) + 1;
   size   = offsetof (struct dirent, d_name) + length;
   dirent = xrealloc (dirent, size);
@@ -5479,6 +5488,7 @@ android_saf_tree_readdir (struct android_vdir *vdir)
   jmethodID method;
   size_t length, size;
   const char *chars;
+  struct coding_system coding;
 
   dir = (struct android_saf_tree_vdir *) vdir;
 
@@ -5526,9 +5536,25 @@ android_saf_tree_readdir (struct android_vdir *vdir)
 						  NULL);
   android_exception_check_nonnull ((void *) chars, d_name);
 
-  /* Figure out how large it is, and then resize dirent to fit.  */
+  /* Decode this JNI string into utf-8-emacs; see
+     android_vfs_convert_name for considerations regarding coding
+     systems.  */
+  length = strlen (chars);
+  setup_coding_system (Qandroid_jni, &coding);
+  coding.mode |= CODING_MODE_LAST_BLOCK;
+  coding.source = (const unsigned char *) chars;
+  coding.dst_bytes = 0;
+  coding.destination = NULL;
+  decode_coding_object (&coding, Qnil, 0, 0, length, length, Qnil);
+
+  /* Release the string data and the local reference to STRING.  */
+  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+					      (jstring) d_name,
+					      chars);
+
+  /* Resize dirent to accommodate the decoded text.  */
   length = strlen (chars) + 1;
-  size   = offsetof (struct dirent, d_name) + length;
+  size   = offsetof (struct dirent, d_name) + 1 + coding.produced;
   dirent = xrealloc (dirent, size);
 
   /* Clear dirent.  */
@@ -5540,12 +5566,12 @@ android_saf_tree_readdir (struct android_vdir *vdir)
   dirent->d_off = 0;
   dirent->d_reclen = size;
   dirent->d_type = d_type ? DT_DIR : DT_UNKNOWN;
-  strcpy (dirent->d_name, chars);
+  memcpy (dirent->d_name, coding.destination, coding.produced);
+  dirent->d_name[coding.produced] = '\0';
 
-  /* Release the string data and the local reference to STRING.  */
-  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
-					      (jstring) d_name,
-					      chars);
+  /* Free the coding system destination buffer.  */
+  xfree (coding.destination);
+
   ANDROID_DELETE_LOCAL_REF (d_name);
   return dirent;
 }
@@ -6531,8 +6557,34 @@ static struct android_vops root_vfs_ops =
 static struct android_special_vnode special_vnodes[] =
   {
     { "assets",  6, android_afs_initial,	},
-    { "content", 7, android_content_initial,	},
+    { "content", 7, android_content_initial,
+      LISPSYM_INITIALLY (Qandroid_jni),		},
   };
+
+/* Convert the file name NAME from Emacs's internal character encoding
+   to CODING, and return a Lisp string with the data so produced.
+
+   Calling this function creates an implicit assumption that
+   file-name-coding-system is compatible with utf-8-emacs, which is not
+   unacceptable as users with cause to modify file-name-coding-system
+   should be aware and prepared for consequences towards files stored on
+   different filesystems, including virtual ones.  */
+
+static Lisp_Object
+android_vfs_convert_name (const char *name, Lisp_Object coding)
+{
+  Lisp_Object src_coding, name1;
+
+  src_coding = Qutf_8_emacs;
+
+  /* Convert the contents of the buffer after BUFFER_END
+     from the file name coding system to
+     special->special_coding_system.  */
+  AUTO_STRING (file_name, name);
+  name1 = code_convert_string_norecord (file_name, src_coding, false);
+  name1 = code_convert_string (name1, coding, Qt, true, true, true);
+  return name1;
+}
 
 static struct android_vnode *
 android_root_name (struct android_vnode *vnode, char *name,
@@ -6541,6 +6593,8 @@ android_root_name (struct android_vnode *vnode, char *name,
   char *component_end;
   struct android_special_vnode *special;
   size_t i;
+  Lisp_Object file_name;
+  struct android_vnode *vp;
 
   /* Skip any leading separator in NAME.  */
 
@@ -6567,8 +6621,29 @@ android_root_name (struct android_vnode *vnode, char *name,
 
       if (component_end - name == special->length
 	  && !memcmp (special->name, name, special->length))
-	return (*special->initial) (component_end,
-				    length - special->length);
+	{
+	  if (!NILP (special->special_coding_system))
+	    {
+	      USE_SAFE_ALLOCA;
+
+	      file_name
+		= android_vfs_convert_name (component_end,
+					    special->special_coding_system);
+
+	      /* Allocate a buffer and copy file_name into the same.  */
+	      length = SBYTES (file_name) + 1;
+	      name = SAFE_ALLOCA (length + 1);
+
+	      /* Copy the trailing NULL byte also.  */
+	      memcpy (name, SDATA (file_name), length);
+	      vp = (*special->initial) (name, length - 1);
+	      SAFE_FREE ();
+	      return vp;
+	    }
+
+	  return (*special->initial) (component_end,
+				      length - special->length);
+	}
 
       /* Detect the case where a special is named with a trailing
 	 directory separator.  */
@@ -6576,9 +6651,30 @@ android_root_name (struct android_vnode *vnode, char *name,
       if (component_end - name == special->length + 1
 	  && !memcmp (special->name, name, special->length)
 	  && name[special->length] == '/')
-	/* Make sure to include the directory separator.  */
-	return (*special->initial) (component_end - 1,
-				    length - special->length);
+	{
+	  if (!NILP (special->special_coding_system))
+	    {
+	      USE_SAFE_ALLOCA;
+
+	      file_name
+		= android_vfs_convert_name (component_end - 1,
+					    special->special_coding_system);
+
+	      /* Allocate a buffer and copy file_name into the same.  */
+	      length = SBYTES (file_name) + 1;
+	      name = SAFE_ALLOCA (length + 1);
+
+	      /* Copy the trailing NULL byte also.  */
+	      memcpy (name, SDATA (file_name), length);
+	      vp = (*special->initial) (name, length - 1);
+	      SAFE_FREE ();
+	      return vp;
+	    }
+
+	  /* Make sure to include the directory separator.  */
+	  return (*special->initial) (component_end - 1,
+				      length - special->length);
+	}
     }
 
   /* Otherwise, continue searching for a vnode normally.  */
@@ -6589,8 +6685,9 @@ android_root_name (struct android_vnode *vnode, char *name,
 
 /* File system lookup.  */
 
-/* Look up the vnode that designates NAME, a file name that is at
-   least N bytes.
+/* Look up the vnode that designates NAME, a file name that is at least
+   N bytes, converting between different file name coding systems as
+   necessary.
 
    NAME may be either an absolute file name or a name relative to the
    current working directory.  It must not be longer than EMACS_PATH_MAX
@@ -7604,4 +7701,12 @@ void
 android_closedir (struct android_vdir *dirp)
 {
   return (*dirp->closedir) (dirp);
+}
+
+
+
+void
+syms_of_androidvfs (void)
+{
+  DEFSYM (Qandroid_jni, "android-jni");
 }
