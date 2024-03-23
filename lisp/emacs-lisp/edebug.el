@@ -1229,10 +1229,12 @@ purpose by adding an entry to this alist, and setting
 	   ;; But the list will just be reversed.
 	   ,@(nreverse edebug-def-args))
        'nil)
-    ;; Make sure `forms' is not nil so we don't accidentally return
-    ;; the magic keyword.  Mark the closure so we don't throw away
-    ;; unused vars (bug#59213).
-    #'(lambda () :closure-dont-trim-context ,@(or forms '(nil)))))
+    #'(lambda ()
+        ;; Mark the closure so we don't throw away unused vars (bug#59213).
+        :closure-dont-trim-context
+        ;; Make sure `forms' is not nil so we don't accidentally return
+        ;; the magic keyword.
+        ,@(or forms '(nil)))))
 
 
 (defvar edebug-form-begin-marker) ; the mark for def being instrumented
@@ -1270,55 +1272,48 @@ Does not unwrap inside vectors, records, structures, or hash tables."
   (pcase sexp
     (`(edebug-after ,_before-form ,_after-index ,form)
      form)
-    (`(lambda ,args (edebug-enter ',_sym ,_arglist
-				   (function (lambda nil . ,body))))
-     `(lambda ,args ,@body))
-    (`(closure ,env ,args (edebug-enter ',_sym ,_arglist
-					 (function (lambda nil . ,body))))
-     `(closure ,env ,args ,@body))
-    (`(edebug-enter ',_sym ,_args (function (lambda nil . ,body)))
+    (`(edebug-enter ',_sym ,_args
+                    #'(lambda nil :closure-dont-trim-context . ,body))
      (macroexp-progn body))
     (_ sexp)))
 
+(defconst edebug--unwrap-cache
+  (make-hash-table :test 'eq :weakness 'key)
+  "Hash-table containing the results of unwrapping cons cells.
+These results are reused to avoid redundant work but also to avoid
+infinite loops when the code/environment contains a circular object.")
+
 (defun edebug-unwrap* (sexp)
   "Return the SEXP recursively unwrapped."
-  (let ((ht (make-hash-table :test 'eq)))
-    (edebug--unwrap1 sexp ht)))
-
-(defun edebug--unwrap1 (sexp hash-table)
-  "Unwrap SEXP using HASH-TABLE of things already unwrapped.
-HASH-TABLE contains the results of unwrapping cons cells within
-SEXP, which are reused to avoid infinite loops when SEXP is or
-contains a circular object."
-  (let ((new-sexp (edebug-unwrap sexp)))
-    (while (not (eq sexp new-sexp))
-      (setq sexp new-sexp
-	    new-sexp (edebug-unwrap sexp)))
-    (if (consp new-sexp)
-	(let ((result (gethash new-sexp hash-table nil)))
-	  (unless result
-	    (let ((remainder new-sexp)
-		  current)
-	      (setq result (cons nil nil)
-		    current result)
-	      (while
-		  (progn
-		    (puthash remainder current hash-table)
-		    (setf (car current)
-			  (edebug--unwrap1 (car remainder) hash-table))
-		    (setq remainder (cdr remainder))
-		    (cond
-		     ((atom remainder)
-		      (setf (cdr current)
-			    (edebug--unwrap1 remainder hash-table))
-		      nil)
-		     ((gethash remainder hash-table nil)
-		      (setf (cdr current) (gethash remainder hash-table nil))
-		      nil)
-		     (t (setq current
-			      (setf (cdr current) (cons nil nil)))))))))
-	  result)
-      new-sexp)))
+  (while (not (eq sexp (setq sexp (edebug-unwrap sexp)))))
+  (cond
+   ((consp sexp)
+    (or (gethash sexp edebug--unwrap-cache nil)
+	(let ((remainder sexp)
+	      (current (cons nil nil)))
+	  (prog1 current
+	    (while
+		(progn
+		  (puthash remainder current edebug--unwrap-cache)
+		  (setf (car current)
+		        (edebug-unwrap* (car remainder)))
+		  (setq remainder (cdr remainder))
+		  (cond
+		   ((atom remainder)
+		    (setf (cdr current)
+			  (edebug-unwrap* remainder))
+		    nil)
+		   ((gethash remainder edebug--unwrap-cache nil)
+		    (setf (cdr current) (gethash remainder edebug--unwrap-cache nil))
+		    nil)
+		   (t (setq current
+			    (setf (cdr current) (cons nil nil)))))))))))
+   ((byte-code-function-p sexp)
+    (apply #'make-byte-code
+           (aref sexp 0) (aref sexp 1)
+           (vconcat (mapcar #'edebug-unwrap* (aref sexp 2)))
+           (nthcdr 3 (append sexp ()))))
+   (t sexp)))
 
 
 (defun edebug-defining-form (cursor form-begin form-end speclist)
@@ -4239,13 +4234,13 @@ Remove frames for Edebug's functions and the lambdas in
 and after-index fields in both FRAMES and the returned list
 of deinstrumented frames, for those frames where the source
 code location is known."
-  (let (skip-next-lambda def-name before-index after-index results
-        (index (length frames)))
+  (let ((index (length frames))
+        skip-next-lambda def-name before-index after-index results)
     (dolist (frame (reverse frames))
       (let ((new-frame (copy-edebug--frame frame))
             (fun (edebug--frame-fun frame))
             (args (edebug--frame-args frame)))
-        (cl-decf index)
+        (cl-decf index) ;; FIXME: Not used?
         (pcase fun
           ('edebug-enter
 	   (setq skip-next-lambda t
@@ -4255,38 +4250,46 @@ code location is known."
                                   (nth 1 (nth 0 args))
                                 (nth 0 args))
                  after-index (nth 1 args)))
-          ((pred edebug--symbol-not-prefixed-p)
-           (edebug--unwrap-frame new-frame)
-           (edebug--add-source-info new-frame def-name before-index after-index)
-           (edebug--add-source-info frame def-name before-index after-index)
-           (push new-frame results)
-           (setq before-index nil
-                 after-index nil))
-          (`(,(or 'lambda 'closure) . ,_)
+          ;; Just skip all our own frames.
+          ((pred edebug--symbol-prefixed-p) nil)
+          (_
+           (when (and skip-next-lambda
+                      (not (memq (car-safe fun) '(closure lambda))))
+             (warn "Edebug--strip-instrumentation expected an interpreted function:\n%S" fun))
 	   (unless skip-next-lambda
              (edebug--unwrap-frame new-frame)
-             (edebug--add-source-info frame def-name before-index after-index)
              (edebug--add-source-info new-frame def-name before-index after-index)
+             (edebug--add-source-info frame def-name before-index after-index)
              (push new-frame results))
-	   (setq before-index nil
+           (setq before-index nil
                  after-index nil
                  skip-next-lambda nil)))))
     results))
 
-(defun edebug--symbol-not-prefixed-p (sym)
-  "Return non-nil if SYM is a symbol not prefixed by \"edebug-\"."
+(defun edebug--symbol-prefixed-p (sym)
+  "Return non-nil if SYM is a symbol prefixed by \"edebug-\"."
   (and (symbolp sym)
-       (not (string-prefix-p "edebug-" (symbol-name sym)))))
+       (string-prefix-p "edebug-" (symbol-name sym))))
 
 (defun edebug--unwrap-frame (frame)
   "Remove Edebug's instrumentation from FRAME.
 Strip it from the function and any unevaluated arguments."
-  (setf (edebug--frame-fun frame) (edebug-unwrap* (edebug--frame-fun frame)))
-  (unless (edebug--frame-evald frame)
-    (let (results)
-      (dolist (arg (edebug--frame-args frame))
-        (push (edebug-unwrap* arg) results))
-      (setf (edebug--frame-args frame) (nreverse results)))))
+  (cl-callf edebug-unwrap* (edebug--frame-fun frame))
+  ;; We used to try to be careful to apply `edebug-unwrap' only to source
+  ;; expressions and not to values, so we did not apply unwrap to the arguments
+  ;; of the frame if they had already been evaluated.
+  ;; But this was not careful enough since `edebug-unwrap*' gleefully traverses
+  ;; its argument without paying attention to its syntactic structure so it
+  ;; also "mistakenly" descends into the values contained within the "source
+  ;; code".  In practice this *very* rarely leads to undesired results.
+  ;; On the contrary, it's often useful to descend into values because they
+  ;; may contain interpreted closures and hence source code where we *do*
+  ;; want to apply `edebug-unwrap'.
+  ;; So based on this experience, we now also apply `edebug-unwrap*' to
+  ;; the already evaluated arguments.
+  ;;(unless (edebug--frame-evald frame)
+  (cl-callf (lambda (xs) (mapcar #'edebug-unwrap* xs))
+      (edebug--frame-args frame)))
 
 (defun edebug--add-source-info (frame def-name before-index after-index)
   "Update FRAME with the additional info needed by an edebug--frame.
