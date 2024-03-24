@@ -1796,6 +1796,7 @@ Return t if the file exists and loads successfully.  */)
   specbind (Qload_file_name, hist_file_name);
   specbind (Qload_true_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
+  specbind (Qbyte_compile_in_progress, Qnil);
   specbind (Qload_in_progress, Qt);
 
   if (is_module)
@@ -2448,6 +2449,7 @@ static Lisp_Object
 readevalloop_early_eval (Lisp_Object val)
 {
   Lisp_Object quote_foo, def_sym, function_form, lambda_form, lambda_pointer;
+  Lisp_Object lambda_pos;
   bool macro = false;
 
   /* Have we got a (defalias 'foo ...) form? */
@@ -2483,29 +2485,27 @@ readevalloop_early_eval (Lisp_Object val)
 	      && CONSP (lambda_form = Fcar (Fcdr (function_form))) /* (lambda ...) */
 	      && EQ (Fcar (lambda_form), Qlambda))
 	    {
+	      lambda_pos = Fsymbol_with_pos_p (Fcar (lambda_form))
+		? Fsymbol_with_pos_pos (Fcar (lambda_form)) : Qnil;
 	      if (!NILP (Ffboundp (Qbyte_run_posify_lambda_form)))
-		{
-		  lambda_form = call2 (Qbyte_run_posify_lambda_form,
-				       lambda_form,
-				       byte_compile_in_progress ? Qt : Qnil);
-
-		  if (macro)
-		    val = CALLN (Fnconc, Ftake (make_fixnum (2), val),
-				 Fcons (list2 (Qcons, list2 (Qquote, Qmacro)),
-					list1 (list2 (Fcar (function_form),
-							      lambda_form))));
-		  else
-		    val = CALLN (Fnconc, Ftake (make_fixnum (2), val),
-				 list1 (list2 (Fcar (function_form), lambda_form)));
-		}
+		lambda_form = call2 (Qbyte_run_posify_lambda_form,
+				     lambda_form, lambda_pos);
 	      else
-		{
-		  Vearly_lambda_lists
-		    = Fcons (list3 (lambda_pointer, Fcar (lambda_form),
-				    Vdefining_symbol),
-			     Vearly_lambda_lists);
-		  Fsetcar (lambda_form, Fbare_symbol (Fcar (lambda_form)));
-		}
+		Vearly_lambda_lists
+		  = Fcons (list3 (lambda_pointer, Fcar (lambda_form),
+				  Vdefining_symbol), Vearly_lambda_lists);
+	      /* Assume byte_compile_in_progress is false.  Strip the
+		 position from `lambda'.  */
+	      lambda_form = Fcons (Qlambda, Fcdr (lambda_form));
+
+	      if (macro)
+		val = CALLN (Fnconc, Ftake (make_fixnum (2), val),
+			     Fcons (list2 (Qcons, list2 (Qquote, Qmacro)),
+				    list1 (list2 (Fcar (function_form),
+						  lambda_form))));
+	      else
+		val = CALLN (Fnconc, Ftake (make_fixnum (2), val),
+			     list1 (list2 (Fcar (function_form), lambda_form)));
 	    }
 	}
     }

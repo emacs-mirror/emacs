@@ -860,7 +860,7 @@ signal a `cyclic-function-indirection' error.  */)
   eassert (valid_lisp_object_p (definition));
 
   /* Ensure non-circularity.  */
-  for (Lisp_Object s = definition; SYMBOLP (s) && !NILP (s);,
+  for (Lisp_Object s = definition; SYMBOLP (s) && !NILP (s);
        s = XSYMBOL (s)->u.s.function)
     if (EQ (s, symbol))
       xsignal1 (Qcyclic_function_indirection, symbol);

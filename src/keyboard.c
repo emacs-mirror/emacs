@@ -720,6 +720,7 @@ recursive_edit_1 (void)
       specbind (Qstandard_input, Qt);
       specbind (Qsymbols_with_pos_enabled, Qnil);
       specbind (Qprint_symbols_bare, Qnil);
+      specbind (Qbyte_compile_in_progress, Qnil);
     }
 
 #ifdef HAVE_WINDOW_SYSTEM

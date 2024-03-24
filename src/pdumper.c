@@ -3067,6 +3067,7 @@ dump_vectorlike (struct dump_context *ctx,
         error_unsupported_dump_object(ctx, lv, "font");
       FALLTHROUGH;
     case PVEC_NORMAL_VECTOR:
+    case PVEC_SYMBOL_WITH_POS:
     case PVEC_COMPILED:
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
@@ -3117,7 +3118,6 @@ dump_vectorlike (struct dump_context *ctx,
     case PVEC_CONDVAR:
     case PVEC_SQLITE:
     case PVEC_MODULE_FUNCTION:
-    case PVEC_SYMBOL_WITH_POS:
     case PVEC_FREE:
     case PVEC_TS_PARSER:
     case PVEC_TS_NODE:
