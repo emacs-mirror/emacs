@@ -3510,7 +3510,7 @@ the completions."
 
     ;; Read the next key, to process SPC.
     (let (key first)
-      (if (with-current-buffer (get-buffer "*Completions*")
+      (if (with-current-buffer "*Completions*"
 	    (setq-local comint-displayed-dynamic-completions
                         completions)
 	    (setq key (read-key-sequence nil)

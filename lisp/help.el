@@ -301,6 +301,8 @@ Do not call this in the scope of `with-help-window'."
        (let ((first-message
 	      (cond ((or
 		      pop-up-frames
+		      ;; FIXME: `special-display-p' is obsolete since
+		      ;; the vars on which it depends are obsolete!
 		      (special-display-p (buffer-name standard-output)))
 		     (setq help-return-method (cons (selected-window) t))
 		     ;; If the help output buffer is a special display buffer,
@@ -382,9 +384,9 @@ Do not call this in the scope of `with-help-window'."
         (propertize title 'face 'help-for-help-header)
         "\n\n"
         (help--for-help-make-commands commands))))
-   sections ""))
+   sections))
 
-(defalias 'help 'help-for-help)
+(defalias 'help #'help-for-help)
 (make-help-screen help-for-help
   (purecopy "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?")
   (concat
@@ -876,7 +878,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 	  (format "%s (translated from %s)" string otherstring))))))
 
 (defun help--binding-undefined-p (defn)
-  (or (null defn) (integerp defn) (equal defn 'undefined)))
+  (or (null defn) (integerp defn) (equal defn #'undefined)))
 
 (defun help--analyze-key (key untranslated &optional buffer)
   "Get information about KEY its corresponding UNTRANSLATED events.
@@ -924,7 +926,9 @@ in the selected window."
      (let ((key-desc (help-key-description key untranslated)))
        (if (help--binding-undefined-p defn)
            (format "%s%s is undefined" key-desc mouse-msg)
-         (format "%s%s runs the command %S" key-desc mouse-msg defn)))
+         (format "%s%s runs the command %s" key-desc mouse-msg
+                 (if (symbolp defn) (prin1-to-string defn)
+                   (help-fns-function-name defn)))))
      defn event mouse-msg)))
 
 (defun help--filter-info-list (info-list i)
@@ -1221,7 +1225,7 @@ appeared on the mode-line."
 (defun describe-minor-mode-completion-table-for-symbol ()
   ;; In order to list up all minor modes, minor-mode-list
   ;; is used here instead of minor-mode-alist.
-  (delq nil (mapcar 'symbol-name minor-mode-list)))
+  (delq nil (mapcar #'symbol-name minor-mode-list)))
 
 (defun describe-minor-mode-from-symbol (symbol)
   "Display documentation of a minor mode given as a symbol, SYMBOL."
@@ -1663,34 +1667,14 @@ Return nil if the key sequence is too long."
           (t value))))
 
 (defun help--describe-command (definition &optional translation)
-  (cond ((symbolp definition)
-         (if (and (fboundp definition)
-                  help-buffer-under-preparation)
-             (insert-text-button (symbol-name definition)
-                                 'type 'help-function
-                                 'help-args (list definition))
-           (insert (symbol-name definition)))
-         (insert "\n"))
-        ((or (stringp definition) (vectorp definition))
+  (cond ((or (stringp definition) (vectorp definition))
          (if translation
              (insert (key-description definition nil) "\n")
+           ;; These should be rare nowadays, replaced by `kmacro's.
            (insert "Keyboard Macro\n")))
         ((keymapp definition)
          (insert "Prefix Command\n"))
-        ((byte-code-function-p definition)
-         (insert (format "[%s]\n"
-                         (buttonize "byte-code" #'disassemble definition))))
-        ((and (consp definition)
-              (memq (car definition) '(closure lambda)))
-         (insert (format "[%s]\n"
-                         (buttonize
-                          (symbol-name (car definition))
-                          (lambda (_)
-                            (pp-display-expression
-                             definition "*Help Source*" t))
-                          nil "View definition"))))
-        (t
-         (insert "??\n"))))
+        (t (insert (help-fns-function-name definition) "\n"))))
 
 (define-obsolete-function-alias 'help--describe-translation
   #'help--describe-command "29.1")
@@ -2030,8 +2014,8 @@ and some others."
   (if temp-buffer-resize-mode
       ;; `help-make-xrefs' may add a `back' button and thus increase the
       ;; text size, so `resize-temp-buffer-window' must be run *after* it.
-      (add-hook 'temp-buffer-show-hook 'resize-temp-buffer-window 'append)
-    (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window)))
+      (add-hook 'temp-buffer-show-hook #'resize-temp-buffer-window 'append)
+    (remove-hook 'temp-buffer-show-hook #'resize-temp-buffer-window)))
 
 (defvar resize-temp-buffer-window-inhibit nil
   "Non-nil means `resize-temp-buffer-window' should not resize.")
@@ -2275,7 +2259,7 @@ The `temp-buffer-window-setup-hook' hook is called."
 ;; Don't print to *Help*; that would clobber Help history.
 (defun help-form-show ()
   "Display the output of a non-nil `help-form'."
-  (let ((msg (eval help-form)))
+  (let ((msg (eval help-form t)))
     (if (stringp msg)
 	(with-output-to-temp-buffer " *Char Help*"
 	  (princ msg)))))
@@ -2446,7 +2430,7 @@ the same names as used in the original source code, when possible."
                    (t arg)))
 		arglist)))
 
-(define-obsolete-function-alias 'help-make-usage 'help--make-usage "25.1")
+(define-obsolete-function-alias 'help-make-usage #'help--make-usage "25.1")
 
 (defun help--make-usage-docstring (fn arglist)
   (let ((print-escape-newlines t))

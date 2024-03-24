@@ -346,6 +346,16 @@ only match against the non-directory part of the file name.  Set it to
 match the file name relative to the buffer's top-level directory.
 @end defvar
 
+@defvar dired-omit-size-limit
+If non-@code{nil}, @code{dired-omit-mode} will be effectively disabled
+in directories whose listing has size (in bytes) larger than the value
+of this option.  Since omitting can be slow for very large directories,
+this avoids having to wait before seeing the directory.  This variable
+is ignored when @code{dired-omit-mode} is called interactively, such as
+by @kbd{C-x M-o}, so you can still enable omitting in the directory
+after the initial display.
+@end defvar
+
 @cindex omitting additional files
 @defvar dired-omit-marker-char
 Temporary marker used by Dired to implement omitting.  Should never be used

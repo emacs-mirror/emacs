@@ -48,12 +48,12 @@ Return first line of the output of (describe-function-1 FUNC)."
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-built-in ()
-  (let ((regexp "a built-in function in .C source code")
+  (let ((regexp "a primitive-function in .C source code")
         (result (help-fns-tests--describe-function 'mapcar)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-interactive-built-in ()
-  (let ((regexp "an interactive built-in function in .C source code")
+  (let ((regexp "an interactive primitive-function in .C source code")
         (result (help-fns-tests--describe-function 're-search-forward)))
     (should (string-match regexp result))))
 
@@ -64,13 +64,13 @@ Return first line of the output of (describe-function-1 FUNC)."
 
 (ert-deftest help-fns-test-lisp-defun ()
   (let ((regexp (if (featurep 'native-compile)
-                    "a native-compiled Lisp function in .+subr\\.el"
-                  "a byte-compiled Lisp function in .+subr\\.el"))
+                    "a subr-native-elisp in .+subr\\.el"
+                  "a compiled-function in .+subr\\.el"))
         (result (help-fns-tests--describe-function 'last)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-defsubst ()
-  (let ((regexp "a byte-compiled Lisp function in .+subr\\.el")
+  (let ((regexp "a compiled-function in .+subr\\.el")
         (result (help-fns-tests--describe-function 'posn-window)))
     (should (string-match regexp result))))
 

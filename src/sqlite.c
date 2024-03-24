@@ -349,9 +349,7 @@ bind_values (sqlite3 *db, sqlite3_stmt *stmt, Lisp_Object values)
 	  value = XCAR (values);
 	  values = XCDR (values);
 	}
-      Lisp_Object type = Ftype_of (value);
-
-      if (EQ (type, Qstring))
+      if (STRINGP (value))
 	{
 	  Lisp_Object encoded;
 	  bool blob = false;
@@ -385,14 +383,11 @@ bind_values (sqlite3 *db, sqlite3_stmt *stmt, Lisp_Object values)
 				       SSDATA (encoded), SBYTES (encoded),
 				       NULL);
 	}
-      else if (EQ (type, Qinteger))
-	{
-	  if (BIGNUMP (value))
-	    ret = sqlite3_bind_int64 (stmt, i + 1, bignum_to_intmax (value));
-	  else
-	    ret = sqlite3_bind_int64 (stmt, i + 1, XFIXNUM (value));
-	}
-      else if (EQ (type, Qfloat))
+      else if (FIXNUMP (value))
+	ret = sqlite3_bind_int64 (stmt, i + 1, XFIXNUM (value));
+      else if (BIGNUMP (value))
+	ret = sqlite3_bind_int64 (stmt, i + 1, bignum_to_intmax (value));
+      else if (FLOATP (value))
 	ret = sqlite3_bind_double (stmt, i + 1, XFLOAT_DATA (value));
       else if (NILP (value))
 	ret = sqlite3_bind_null (stmt, i + 1);

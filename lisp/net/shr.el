@@ -784,8 +784,9 @@ size, and full-buffer size."
 			       (or shr-current-font 'shr-text)))))))))
 
 (defun shr-fill-lines (start end)
-  (if (or (not shr-fill-text) (<= shr-internal-width 0))
-      nil
+  "Indent and fill text from START to END.
+When `shr-fill-text' is nil, only indent."
+  (unless (<= shr-internal-width 0)
     (save-restriction
       (narrow-to-region start end)
       (goto-char start)
@@ -807,6 +808,8 @@ size, and full-buffer size."
       (forward-char 1))))
 
 (defun shr-fill-line ()
+  "Indent and fill the current line.
+When `shr-fill-text' is nil, only indent."
   (let ((shr-indentation (or (get-text-property (point) 'shr-indentation)
                              shr-indentation))
 	(continuation (get-text-property
@@ -821,9 +824,11 @@ size, and full-buffer size."
 			   `,(shr-face-background face))))
     (setq start (point))
     (setq shr-indentation (or continuation shr-indentation))
-    ;; If we have an indentation that's wider than the width we're
-    ;; trying to fill to, then just give up and don't do any filling.
-    (when (< shr-indentation shr-internal-width)
+    ;; Fill the current line, unless `shr-fill-text' is unset, or we
+    ;; have an indentation that's wider than the width we're trying to
+    ;; fill to.
+    (when (and shr-fill-text
+               (< shr-indentation shr-internal-width))
       (shr-vertical-motion shr-internal-width)
       (when (looking-at " $")
         (delete-region (point) (line-end-position)))

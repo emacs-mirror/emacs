@@ -166,25 +166,21 @@ than a compressed package for a newer version of Android.
 
 BUILDING C++ DEPENDENCIES
 
-With a new version of the NDK, dependencies containing C++ code should
-build without any further configuration.  However, older versions
-require that you use the ``make_standalone_toolchain.py'' script in
-the NDK distribution to create a ``standalone toolchain'', and use
-that instead, in order for C++ headers to be found.
+In normal circumstances, Emacs should automatically detect and configure
+one of the C++ standard libraries part of the NDK when such a library is
+required to build a dependency specified under `--with-ndk-path'.
 
-See https://developer.android.com/ndk/guides/standalone_toolchain for
-more details; when a ``standalone toolchain'' is specified, the
-configure script will try to determine the location of the C++
-compiler based on the C compiler specified.  If that automatic
-detection does not work, you can specify a C++ compiler yourself, like
-so:
+Nevertheless, this process is not infalliable, and with certain versions
+of the NDK is liable to fail to locate a C++ compiler, requiring that
+you run the `make_standalone_toolchain.py' script in the NDK
+distribution to create a ``standalone toolchain'' and substitute the
+same for the regular compiler toolchain.  See
+https://developer.android.com/ndk/guides/standalone_toolchain for
+further details.
 
-  ./configure --with-ndk-cxx=/path/to/toolchain/bin/i686-linux-android-g++
-
-Some versions of the NDK have a bug, where GCC fails to locate
-``stddef.h'' after being copied to a standalone toolchain.  To work
-around this problem (which normally exhibits itself when building C++
-code), add:
+Some versions of the NDK that ship GCC 4.9.x exhibit a bug where the
+compiler cannot locate `stddef.h' after being copied to a standalone
+toolchain.  To work around this problem, add:
 
    -isystem /path/to/toolchain/include/c++/4.9.x
 

@@ -260,7 +260,7 @@
 (cl-defstruct (cl--class
                (:constructor nil)
                (:copier nil))
-  "Type of descriptors for any kind of structure-like data."
+  "Abstract supertype of all type descriptors."
   ;; Intended to be shared between defstruct and defclass.
   (name nil :type symbol)               ;The type name.
   (docstring nil :type string)
@@ -306,9 +306,11 @@
                (:constructor nil)
                (:constructor built-in-class--make (name docstring parents))
                (:copier nil))
+  "Type descriptors for built-in types.
+The `slots' (and hence `index-table') are currently unused."
   )
 
-(defmacro cl--define-built-in-type (name parents &optional docstring &rest _slots)
+(defmacro cl--define-built-in-type (name parents &optional docstring &rest slots)
   ;; `slots' is currently unused, but we could make it take
   ;; a list of "slot like properties" together with the corresponding
   ;; accessor, and then we could maybe even make `slot-value' work
@@ -317,32 +319,49 @@
   (unless (listp parents) (setq parents (list parents)))
   (unless (or parents (eq name t))
     (error "Missing parents for %S: %S" name parents))
-  `(progn
-     (put ',name 'cl--class
-          (built-in-class--make ',name ,docstring
-                                (mapcar (lambda (type)
-                                          (let ((class (get type 'cl--class)))
-                                            (unless class
-                                              (error "Unknown type: %S" type))
-                                            class))
-                                        ',parents)))))
+  (let ((predicate (intern-soft (format
+                                 (if (string-match "-" (symbol-name name))
+                                     "%s-p" "%sp")
+                                 name))))
+    (unless (fboundp predicate) (setq predicate nil))
+    (while (keywordp (car slots))
+      (let ((kw (pop slots)) (val (pop slots)))
+        (pcase kw
+          (:predicate (setq predicate val))
+          (_ (error "Unknown keyword arg: %S" kw)))))
+    `(progn
+       ,(if predicate `(put ',name 'cl-deftype-satisfies #',predicate)
+          ;; (message "Missing predicate for: %S" name)
+          nil)
+       (put ',name 'cl--class
+            (built-in-class--make ',name ,docstring
+                                  (mapcar (lambda (type)
+                                            (let ((class (get type 'cl--class)))
+                                              (unless class
+                                                (error "Unknown type: %S" type))
+                                              class))
+                                          ',parents))))))
 
 ;; FIXME: Our type DAG has various quirks:
-;; - `subr' says it's a `compiled-function' but that's not true
-;;   for those subrs that are special forms!
 ;; - Some `keyword's are also `symbol-with-pos' but that's not reflected
 ;;   in the DAG.
 ;; - An OClosure can be an interpreted function or a `byte-code-function',
 ;;   so the DAG of OClosure types is "orthogonal" to the distinction
 ;;   between interpreted and compiled functions.
 
-(cl--define-built-in-type t nil "The type of everything.")
-(cl--define-built-in-type atom t "The type of anything but cons cells.")
+(cl--define-built-in-type t nil "Abstract supertype of everything.")
+(cl--define-built-in-type atom t "Abstract supertype of anything but cons cells."
+                          :predicate atom)
 
 (cl--define-built-in-type tree-sitter-compiled-query atom)
 (cl--define-built-in-type tree-sitter-node atom)
 (cl--define-built-in-type tree-sitter-parser atom)
-(cl--define-built-in-type user-ptr atom)
+(declare-function user-ptrp "data.c")
+(when (fboundp 'user-ptrp)
+  (cl--define-built-in-type user-ptr atom nil
+                            ;; FIXME: Shouldn't it be called
+                            ;; `user-ptr-p'?
+                            :predicate user-ptrp))
 (cl--define-built-in-type font-object atom)
 (cl--define-built-in-type font-entity atom)
 (cl--define-built-in-type font-spec atom)
@@ -355,10 +374,11 @@
 (cl--define-built-in-type buffer atom)
 (cl--define-built-in-type window atom)
 (cl--define-built-in-type process atom)
+(cl--define-built-in-type finalizer atom)
 (cl--define-built-in-type window-configuration atom)
 (cl--define-built-in-type overlay atom)
 (cl--define-built-in-type number-or-marker atom
-  "Abstract super type of both `number's and `marker's.")
+  "Abstract supertype of both `number's and `marker's.")
 (cl--define-built-in-type symbol atom
   "Type of symbols."
   ;; Example of slots we could document.  It would be desirable to
@@ -373,14 +393,14 @@
 (cl--define-built-in-type obarray atom)
 (cl--define-built-in-type native-comp-unit atom)
 
-(cl--define-built-in-type sequence t "Abstract super type of sequences.")
+(cl--define-built-in-type sequence t "Abstract supertype of sequences.")
 (cl--define-built-in-type list sequence)
-(cl--define-built-in-type array (sequence atom) "Abstract super type of arrays.")
+(cl--define-built-in-type array (sequence atom) "Abstract supertype of arrays.")
 (cl--define-built-in-type number (number-or-marker)
-  "Abstract super type of numbers.")
+  "Abstract supertype of numbers.")
 (cl--define-built-in-type float (number))
 (cl--define-built-in-type integer-or-marker (number-or-marker)
-  "Abstract super type of both `integer's and `marker's.")
+  "Abstract supertype of both `integer's and `marker's.")
 (cl--define-built-in-type integer (number integer-or-marker))
 (cl--define-built-in-type marker (integer-or-marker))
 (cl--define-built-in-type bignum (integer)
@@ -404,26 +424,29 @@ For this build of Emacs it's %dbit."
   "Type of special arrays that are indexed by characters.")
 (cl--define-built-in-type string (array))
 (cl--define-built-in-type null (boolean list) ;FIXME: `atom' comes before `list'?
-  "Type of the nil value.")
+  "Type of the nil value."
+  :predicate null)
 (cl--define-built-in-type cons (list)
   "Type of cons cells."
   ;; Example of slots we could document.
   (car car) (cdr cdr))
 (cl--define-built-in-type function (atom)
-  "Abstract super type of function values.")
+  "Abstract supertype of function values.")
 (cl--define-built-in-type compiled-function (function)
   "Abstract type of functions that have been compiled.")
 (cl--define-built-in-type byte-code-function (compiled-function)
   "Type of functions that have been byte-compiled.")
-(cl--define-built-in-type subr (compiled-function)
+(cl--define-built-in-type subr (atom)
   "Abstract type of functions compiled to machine code.")
 (cl--define-built-in-type module-function (function)
   "Type of functions provided via the module API.")
 (cl--define-built-in-type interpreted-function (function)
   "Type of functions that have not been compiled.")
-(cl--define-built-in-type subr-native-elisp (subr)
-  "Type of function that have been compiled by the native compiler.")
-(cl--define-built-in-type subr-primitive (subr)
+(cl--define-built-in-type special-form (subr)
+  "Type of the core syntactic elements of the Emacs Lisp language.")
+(cl--define-built-in-type subr-native-elisp (subr compiled-function)
+  "Type of functions that have been compiled by the native compiler.")
+(cl--define-built-in-type primitive-function (subr compiled-function)
   "Type of functions hand written in C.")
 
 (unless (cl--class-parents (cl--find-class 'cl-structure-object))

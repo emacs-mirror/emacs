@@ -332,7 +332,7 @@ Assumes the anchor is (point-min), i.e., the 0th column.
 This function basically counts the number of block nodes (i.e.,
 brackets) (see `c-ts-common-indent-type-regexp-alist')
 between NODE and the root node (not counting NODE itself), and
-multiply that by `c-ts-common-indent-offset'.
+multiplies that by `c-ts-common-indent-offset'.
 
 To support GNU style, on each block level, this function also
 checks whether the opening bracket { is on its own line, if so,

@@ -108,6 +108,12 @@ to your init:
 
 * Changes in Emacs 30.1
 
+** 'describe-function' now shows the type of the function object.
+The text used to say things like "car is is a built-in function"
+whereas it now says "car is a primitive-function" where "primitive-function"
+is the symbol returned by `cl-type-of` and you can click on it to get
+information about that type.
+
 ** 'advice-remove' is now an interactive command.
 When called interactively, 'advice-remove' now prompts for an advised
 function to the advice to remove.
@@ -283,7 +289,20 @@ right-aligned to is controlled by the new user option
 It specifies whether the window of the displayed buffer should be
 selected or deselected at the end of executing the current command.
 
++++
+*** New variable 'window-restore-killed-buffer-windows'.
+It specifies how 'set-window-configuration' and 'window-state-put'
+should proceed with windows whose buffer was killed after the
+corresponding configuration or state was recorded.
+
 ** Tab Bars and Tab Lines
+
+---
+*** New user option 'tab-bar-select-restore-windows'.
+It defines what to do with windows whose buffer was killed
+since the tab was last selected.  By default it displays
+a placeholder buffer that provides information about the name
+of the killed buffer that was displayed in that window.
 
 ---
 *** New user option 'tab-bar-tab-name-format-functions'.
@@ -686,6 +705,12 @@ marked or clicked on files according to the OS conventions.  For
 example, on systems supporting XDG, this runs 'xdg-open' on the
 files.
 
+*** The default value of 'dired-omit-size-limit' was increased.
+After performance improvements to omitting in large directories, the new
+default value is 300k, up from 100k.  This means 'dired-omit-mode' will
+omit files in directories whose directory listing is up to 300 kilobytes
+in size.
+
 +++
 *** 'dired-listing-switches' handles connection-local values if exist.
 This allows to customize different switches for different remote machines.
@@ -1041,6 +1066,24 @@ entries newer than the current page.  To change the behavior when
 browsing from "historical" pages, you can customize
 'eww-before-browse-history-function'.
 
++++
+*** 'eww-readable' now toggles display of the readable parts of a web page.
+When called interactively, 'eww-readable' toggles whether to display
+only the readable parts of a page or the full page.  With a positive
+prefix argument, it always displays the readable parts, and with a zero
+or negative prefix, it always displays the full page.
+
++++
+*** New option 'eww-readable-urls'.
+This is a list of regular expressions matching the URLs where EWW should
+display only the readable parts by default.  For more details, see
+"(eww) Basics" in the EWW manual.
+
+---
+*** New option 'eww-readable-adds-to-history'.
+When non-nil (the default), calling 'eww-readable' adds a new entry to
+the EWW page history.
+
 ** go-ts-mode
 
 +++
@@ -1128,6 +1171,12 @@ the end of the line.  Depending on your preference, this can either be
 distracting and easily confused with actual code, or a significant
 early aid that relieves you from moving the buffer or reaching for the
 mouse to consult an error message.
+
+** Flyspell
+
+*** New user option 'flyspell-check-changes'.
+When non-nil, Flyspell mode spell-checks only words that you edited; it
+does not check unedited words just because you move point across them.
 
 ** JS mode.
 The binding 'M-.' has been removed from the major mode keymaps in
@@ -1319,6 +1368,18 @@ without specifying a file, like this:
     (notifications-notify
       :title "I am playing music" :app-icon 'multimedia-player)
 
+** Image
+
++++
+*** Image :map property is now recomputed when image is transformed.
+Now images with clickable maps work as expected after you run commands
+such as `image-increase-size', `image-decrease-size', `image-rotate',
+`image-flip-horizontally', and `image-flip-vertically'.
+
++++
+*** New user option 'image-recompute-map-p'
+Set this option to nil to prevent Emacs from recomputing image maps.
+
 ** Image Dired
 
 *** New user option 'image-dired-thumb-naming'.
@@ -1436,6 +1497,12 @@ to the old behavior of not remembering input history between sessions.
 This allows the user to customize the key selection method, which can be
 either by using a pop-up buffer or from the minibuffer.  The pop-up
 buffer method is the default, which preserves previous behavior.
+
+** Xwidget Webkit
+
++++
+*** New user option 'xwidget-webkit-disable-javascript'.
+This allows disabling JavaScript in xwidget Webkit sessions.
 
 
 * New Modes and Packages in Emacs 30.1
@@ -1622,6 +1689,21 @@ values.
 
 * Lisp Changes in Emacs 30.1
 
+** New function 'help-fns-function-name'.
+For named functions, it just returns the name and otherwise
+it returns a short "unique" string that identifies the function.
+In either case, the string is propertized so clicking on it gives
+further details.
+
+** New function 'cl-type-of'.
+This function is like 'type-of' except that it sometimes returns
+a more precise type.  For example, for nil and t it returns 'null'
+and 'boolean' respectively, instead of just 'symbol'.
+
+** New function `primitive-function-p`.
+This is like `subr-primitive-p` except that it returns t only if the
+argument is a function rather than a special-form.
+
 ** Built-in types have now corresponding classes.
 At the Lisp level, this means that things like (cl-find-class 'integer)
 will now return a class object, and at the UI level it means that
@@ -1793,6 +1875,16 @@ variable non-nil around calls to functions such as
 styles to skip eager fontification of completion candidates, which
 improves performance.  Such a Lisp program can then use the
 'completion-lazy-hilit' function to fontify candidates just in time.
+
+** New primitive 'buffer-last-name'.
+It returns the name of a buffer before the last time it was renamed or
+killed.
+
+** New primitive 'marker-last-position'.
+It returns the last position of a marker in its buffer even if that
+buffer has been killed.  ('marker-position' would return nil in that
+case.)
+
 
 ** Functions and variables to transpose sexps
 
@@ -2152,6 +2244,15 @@ aforementioned functions:
 
     (and (arrayp executing-kbd-macro)
          (>= executing-kbd-macro-index (length executing-kbd-macro))))
+
++++
+** 'vtable-update-object' updates an existing object with just two arguments.
+It is now possible to update the representation of an object in a vtable
+by calling 'vtable-update-object' with just the vtable and the object as
+arguments.  (Previously the 'old-object' argument was required which, in
+this case, would mean repeating the object in the argument list.)  When
+replacing an object with a different one, passing both the new and old
+objects is still necessary.
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems

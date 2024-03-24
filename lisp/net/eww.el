@@ -275,6 +275,27 @@ parameter, and should return the (possibly) transformed URL."
   :type '(repeat function)
   :version "29.1")
 
+(defcustom eww-readable-urls nil
+  "A list of regexps matching URLs to display in readable mode by default.
+EWW will display matching URLs using `eww-readable' (which see).
+
+Each element can be one of the following forms: a regular expression in
+string form or a cons cell of the form (REGEXP . READABILITY).  If
+READABILITY is non-nil, this behaves the same as the string form;
+otherwise, URLs matching REGEXP will never be displayed in readable mode
+by default."
+  :type '(repeat (choice (string :tag "Readable URL")
+                         (cons :tag "URL and Readability"
+                               (string :tag "URL")
+                               (radio (const :tag "Readable" t)
+                                      (const :tag "Non-readable" nil)))))
+  :version "30.1")
+
+(defcustom eww-readable-adds-to-history t
+  "If non-nil, calling `eww-readable' adds a new entry to the history."
+  :type 'boolean
+  :version "30.1")
+
 (defface eww-form-submit
   '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
@@ -464,11 +485,11 @@ For more information, see Info node `(eww) Top'."
 (defun eww-retrieve (url callback cbargs)
   (cond
    ((null eww-retrieve-command)
-    (url-retrieve url #'eww-render cbargs))
+    (url-retrieve url callback cbargs))
    ((eq eww-retrieve-command 'sync)
     (let ((data-buffer (url-retrieve-synchronously url)))
       (with-current-buffer data-buffer
-        (apply #'eww-render nil cbargs))))
+        (apply callback nil cbargs))))
    (t
     (let ((buffer (generate-new-buffer " *eww retrieve*"))
           (error-buffer (generate-new-buffer " *eww error*")))
@@ -673,9 +694,9 @@ The renaming scheme is performed in accordance with
               (insert (format "<a href=%S>Direct link to the document</a>"
                               url))
               (goto-char (point-min))
-	      (eww-display-html charset url nil point buffer encode))
+              (eww-display-html (or encode charset) url nil point buffer))
 	     ((eww-html-p (car content-type))
-	      (eww-display-html charset url nil point buffer encode))
+              (eww-display-html (or encode charset) url nil point buffer))
 	     ((equal (car content-type) "application/pdf")
 	      (eww-display-pdf))
 	     ((string-match-p "\\`image/" (car content-type))
@@ -726,34 +747,40 @@ The renaming scheme is performed in accordance with
 (declare-function libxml-parse-html-region "xml.c"
 		  (start end &optional base-url discard-comments))
 
-(defun eww-display-html (charset url &optional document point buffer encode)
+(defun eww--parse-html-region (start end &optional coding-system)
+  "Parse the HTML between START and END, returning the DOM as an S-expression.
+Use CODING-SYSTEM to decode the region; if nil, decode as UTF-8.
+
+This replaces the region with the preprocessed HTML."
+  (setq coding-system (or coding-system 'utf-8))
+  (with-restriction start end
+    (condition-case nil
+        (decode-coding-region (point-min) (point-max) coding-system)
+      (coding-system-error nil))
+    ;; Remove CRLF and replace NUL with &#0; before parsing.
+    (while (re-search-forward "\\(\r$\\)\\|\0" nil t)
+      (replace-match (if (match-beginning 1) "" "&#0;") t t))
+    (eww--preprocess-html (point-min) (point-max))
+    (libxml-parse-html-region (point-min) (point-max))))
+
+(defsubst eww-document-base (url dom)
+  `(base ((href . ,url)) ,dom))
+
+(defun eww-display-document (document &optional point buffer)
   (unless (fboundp 'libxml-parse-html-region)
     (error "This function requires Emacs to be compiled with libxml2"))
+  (setq buffer (or buffer (current-buffer)))
   (unless (buffer-live-p buffer)
     (error "Buffer %s doesn't exist" buffer))
   ;; There should be a better way to abort loading images
   ;; asynchronously.
   (setq url-queue nil)
-  (let ((document
-	 (or document
-	     (list
-	      'base (list (cons 'href url))
-	      (progn
-		(setq encode (or encode charset 'utf-8))
-		(condition-case nil
-		    (decode-coding-region (point) (point-max) encode)
-		  (coding-system-error nil))
-		(save-excursion
-		  ;; Remove CRLF and replace NUL with &#0; before parsing.
-		  (while (re-search-forward "\\(\r$\\)\\|\0" nil t)
-		    (replace-match (if (match-beginning 1) "" "&#0;") t t)))
-                (eww--preprocess-html (point) (point-max))
-		(libxml-parse-html-region (point) (point-max))))))
-	(source (and (null document)
-		     (buffer-substring (point) (point-max)))))
+  (let ((url (when (eq (car document) 'base)
+               (alist-get 'href (cadr document)))))
+    (unless url
+      (error "Document is missing base URL"))
     (with-current-buffer buffer
       (setq bidi-paragraph-direction nil)
-      (plist-put eww-data :source source)
       (plist-put eww-data :dom document)
       (let ((inhibit-read-only t)
 	    (inhibit-modification-hooks t)
@@ -793,6 +820,20 @@ The renaming scheme is performed in accordance with
 		      (get-text-property (point) 'eww-form))
 	    (forward-line 1)))))
       (eww-size-text-inputs))))
+
+(defun eww-display-html (charset url &optional document point buffer)
+  (let ((source (buffer-substring (point) (point-max))))
+    (with-current-buffer buffer
+      (plist-put eww-data :source source)))
+  (unless document
+    (let ((dom (eww--parse-html-region (point) (point-max) charset)))
+      (when (eww-default-readable-p url)
+        (eww-score-readability dom)
+        (setq dom (eww-highest-readability dom))
+        (with-current-buffer buffer
+          (plist-put eww-data :readable t)))
+      (setq document (eww-document-base url dom))))
+  (eww-display-document document point buffer))
 
 (defun eww-handle-link (dom)
   (let* ((rel (dom-attr dom 'rel))
@@ -1055,30 +1096,47 @@ The renaming scheme is performed in accordance with
                "automatic"
              bidi-paragraph-direction)))
 
-(defun eww-readable ()
-  "View the main \"readable\" parts of the current web page.
+(defun eww-readable (&optional arg)
+  "Toggle display of only the main \"readable\" parts of the current web page.
 This command uses heuristics to find the parts of the web page that
-contains the main textual portion, leaving out navigation menus and
-the like."
-  (interactive nil eww-mode)
+contain the main textual portion, leaving out navigation menus and the
+like.
+
+If called interactively, toggle the display of the readable parts.  If
+the prefix argument is positive, display the readable parts, and if it
+is zero or negative, display the full page.
+
+If called from Lisp, toggle the display of the readable parts if ARG is
+`toggle'.  Display the readable parts if ARG is nil, omitted, or is a
+positive number.  Display the full page if ARG is a negative number.
+
+When `eww-readable-adds-to-history' is non-nil, calling this function
+adds a new entry to `eww-history'."
+  (interactive (list (if current-prefix-arg
+                         (prefix-numeric-value current-prefix-arg)
+                       'toggle))
+               eww-mode)
   (let* ((old-data eww-data)
-	 (dom (with-temp-buffer
+	 (make-readable (cond
+                         ((eq arg 'toggle)
+                          (not (plist-get old-data :readable)))
+                         ((and (numberp arg) (< arg 1))
+                          nil)
+                         (t t)))
+         (dom (with-temp-buffer
 		(insert (plist-get old-data :source))
-		(condition-case nil
-		    (decode-coding-region (point-min) (point-max) 'utf-8)
-		  (coding-system-error nil))
-                (eww--preprocess-html (point-min) (point-max))
-		(libxml-parse-html-region (point-min) (point-max))))
+                (eww--parse-html-region (point-min) (point-max))))
          (base (plist-get eww-data :url)))
-    (eww-score-readability dom)
-    (eww-save-history)
-    (eww--before-browse)
-    (eww-display-html nil nil
-                      (list 'base (list (cons 'href base))
-                            (eww-highest-readability dom))
-		      nil (current-buffer))
-    (dolist (elem '(:source :url :title :next :previous :up :peer))
-      (plist-put eww-data elem (plist-get old-data elem)))
+    (when make-readable
+      (eww-score-readability dom)
+      (setq dom (eww-highest-readability dom)))
+    (when eww-readable-adds-to-history
+      (eww-save-history)
+      (eww--before-browse)
+      (dolist (elem '(:source :url :title :next :previous :up :peer))
+        (plist-put eww-data elem (plist-get old-data elem))))
+    (eww-display-document (eww-document-base base dom))
+    (plist-put eww-data :readable make-readable)
     (eww--after-page-change)))
 
 (defun eww-score-readability (node)
@@ -1120,6 +1178,19 @@ the like."
         (when (> (length (split-string (dom-texts highest))) 100)
 	  (setq result highest))))
     result))
+
+(defun eww-default-readable-p (url)
+  "Return non-nil if URL should be displayed in readable mode by default.
+This consults the entries in `eww-readable-urls' (which see)."
+  (catch 'found
+    (let (result)
+      (dolist (regexp eww-readable-urls)
+        (if (consp regexp)
+            (setq result (cdr regexp)
+                  regexp (car regexp))
+          (setq result t))
+        (when (string-match regexp url)
+          (throw 'found result))))))
 
 (defvar-keymap eww-mode-map
   "g" #'eww-reload             ;FIXME: revert-buffer-function instead!
@@ -1398,8 +1469,7 @@ just re-display the HTML already fetched."
     (if local
 	(if (null (plist-get eww-data :dom))
 	    (error "No current HTML data")
-	  (eww-display-html 'utf-8 url (plist-get eww-data :dom)
-			    (point) (current-buffer)))
+	  (eww-display-document (plist-get eww-data :dom) (point)))
       (let ((parsed (url-generic-parse-url url)))
         (if (equal (url-type parsed) "file")
             ;; Use Tramp instead of url.el for files (since url.el
@@ -2267,7 +2337,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
       (setq first t)
       (eww-read-bookmarks t)
       (eww-bookmark-prepare))
-    (with-current-buffer (get-buffer "*eww bookmarks*")
+    (with-current-buffer "*eww bookmarks*"
       (when (and (not first)
 		 (not (eobp)))
 	(forward-line 1))
@@ -2286,7 +2356,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
       (setq first t)
       (eww-read-bookmarks t)
       (eww-bookmark-prepare))
-    (with-current-buffer (get-buffer "*eww bookmarks*")
+    (with-current-buffer "*eww bookmarks*"
       (if first
 	  (goto-char (point-max))
 	(beginning-of-line))

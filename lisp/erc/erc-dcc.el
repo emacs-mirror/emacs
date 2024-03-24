@@ -619,7 +619,7 @@ It lists the current state of `erc-dcc-list' in an easy to read manner."
                            (buffer-live-p (get-buffer (plist-get elt :file)))
                            (plist-member elt :size))
                       (let ((byte-count (with-current-buffer
-                                            (get-buffer (plist-get elt :file))
+                                            (plist-get elt :file)
                                           (+ (buffer-size) 0.0
                                              erc-dcc-byte-count))))
                         (format " (%d%%)"

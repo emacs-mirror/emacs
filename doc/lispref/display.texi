@@ -6056,6 +6056,30 @@ to make things match up, you should either specify @code{:scale 1.0}
 when creating the image, or use the result of
 @code{image-compute-scaling-factor} to compute the elements of the
 map.
+
+When an image's @code{:scale}, @code{:rotation}, or @code{:flip} is
+changed, @code{:map} will be recomputed based on the value of
+@code{:original-map} and the values of those transformation.
+
+@item :original-map @var{original-map}
+@cindex original image map
+This specifies the untransformed image map which will be used to
+recompute @code{:map} after the image's @code{:scale}, @code{:rotation},
+or @code{:flip} is changed.
+
+If @code{:original-map} is not specified when creating an image with
+@code{create-image}, it will be computed based on the supplied
+@code{:map}, as well as any of @code{:scale}, @code{:rotation}, or
+@code{:flip} which are non-nil.
+
+Conversely, if @code{:original-map} is specified but @code{:map} is not,
+@code{:map} will be computed based on @code{:original-map},
+@code{:scale}, @code{:rotation}, and @code{:flip}.
+
+@defopt image-recompute-map-p
+Set this user option to nil to prevent Emacs from automatically
+recomputing an image @code{:map} based on its @code{:original-map}.
+@end defopt
 @end table
 
 @defun image-mask-p spec &optional frame

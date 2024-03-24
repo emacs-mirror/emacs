@@ -3009,6 +3009,15 @@ buffer, and lets you navigate to those pages by hitting @kbd{RET}.
 
 It is bound to @kbd{H}.
 
+@vindex xwidget-webkit-disable-javascript
+@cindex disabling javascript in webkit buffers
+  JavaScript is enabled by default inside WebKit buffers, which could be
+undesirable, as Web sites often use it to track your online activity.
+You can disable JavaScript in WebKit buffers by customizing the variable
+@code{xwidget-webkit-disable-javascript} to a non-@code{nil} value.
+You must kill all WebKit buffers for this setting to take effect, after
+it is changed.
+
 @node Browse-URL
 @subsection  Following URLs
 @cindex World Wide Web

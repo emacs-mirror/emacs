@@ -554,12 +554,19 @@ the object after this object; otherwise append to @var{table}.  This
 also updates the displayed table.
 @end defun
 
-@defun vtable-update-object table object old-object
-Change @var{old-object} into @var{object} in @var{table}.  This also
-updates the displayed table.
+@defun vtable-update-object table object &optional old-object
+Update @var{object}'s representation in @var{table}.  Optional argument
+@var{old-object}, if non-@code{nil}, means to replace @var{old-object}
+with @var{object} and redisplay the associated row in the table.  In
+either case, if the existing object is not found in the table (being
+compared with @code{equal}), signal an error.
 
 This has the same effect as calling @code{vtable-remove-object} and
 then @code{vtable-insert-object}, but is more efficient.
+
+Note a limitation: if the table's buffer is not in a visible window, or
+if its window has changed width since it was updated, updating the table
+is not possible, and an error is signaled.
 @end defun
 
 @defun vtable-column table index

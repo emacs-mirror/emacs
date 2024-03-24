@@ -1349,7 +1349,7 @@
         (should-not
          (erc-server-process-alive
           (should (get-buffer "#chan/irc.foonet.org"))))
-        (with-current-buffer (get-buffer "#chan/irc.foonet.org")
+        (with-current-buffer "#chan/irc.foonet.org"
           (should-not erc-server-connected)
           (should (eq erc-server-process old-proc))
           (erc-with-server-buffer

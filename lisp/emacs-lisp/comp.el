@@ -165,6 +165,7 @@ Can be one of: `d-default', `d-impure' or `d-ephemeral'.  See `comp-ctxt'.")
                         comp--tco
                         comp--fwprop
                         comp--remove-type-hints
+                        comp--sanitizer
                         comp--compute-function-types
                         comp--final)
   "Passes to be executed in order.")
@@ -202,7 +203,7 @@ Useful to hook into pass checkers.")
     (consp               . cons)
     (floatp              . float)
     (framep              . frame)
-    (functionp           . (or function symbol))
+    (functionp           . (or function symbol cons))
     (hash-table-p	 . hash-table)
     (integer-or-marker-p . integer-or-marker)
     (integerp            . integer)
@@ -244,6 +245,7 @@ Useful to hook into pass checkers.")
 
 (defun comp--pred-to-cstr (predicate)
   "Given PREDICATE, return the corresponding constraint."
+  ;; FIXME: Unify those two hash tables?
   (or (gethash predicate comp-known-predicates-h)
       (gethash predicate (comp-cstr-ctxt-pred-type-h comp-ctxt))))
 
@@ -1786,7 +1788,9 @@ into the C code forwarding the compilation unit."
        for insn in (comp-block-insns b)
        for (op . args) = insn
        if (comp--assign-op-p op)
-         do (comp--collect-mvars (cdr args))
+         do (comp--collect-mvars (if (eq op 'setimm)
+                                     (cl-first args)
+                                   (cdr args)))
        else
          do (comp--collect-mvars args))))
 
@@ -2440,6 +2444,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                  (setf (comp-vec-aref frame slot-n) mvar
                        (cadr insn) mvar))))
      (pcase insn
+       (`(setimm ,(pred targetp) ,_imm)
+        (new-lvalue))
        (`(,(pred comp--assign-op-p) ,(pred targetp) . ,_)
         (let ((mvar (comp-vec-aref frame slot-n)))
           (setf (cddr insn) (cl-nsubst-if mvar #'targetp (cddr insn))))
@@ -2543,7 +2549,7 @@ Return t when one or more block was removed, nil otherwise."
   ;; native compiling all Emacs code-base.
   "Max number of scanned insn before giving-up.")
 
-(defun comp--copy-insn (insn)
+(defun comp--copy-insn-rec (insn)
   "Deep copy INSN."
   ;; Adapted from `copy-tree'.
   (if (consp insn)
@@ -2559,6 +2565,13 @@ Return t when one or more block was removed, nil otherwise."
     (if (comp-mvar-p insn)
         (copy-comp-mvar insn)
       insn)))
+
+(defun comp--copy-insn (insn)
+  "Deep copy INSN."
+  (pcase insn
+    (`(setimm ,mvar ,imm)
+     `(setimm ,(copy-comp-mvar mvar) ,imm))
+    (_ (comp--copy-insn-rec insn))))
 
 (defmacro comp--apply-in-env (func &rest args)
   "Apply FUNC to ARGS in the current compilation environment."
@@ -2901,7 +2914,8 @@ Return the list of m-var ids nuked."
          for (op arg0 . rest) = insn
          if (comp--assign-op-p op)
            do (push (comp-mvar-id arg0) l-vals)
-              (setf r-vals (nconc (comp--collect-mvar-ids rest) r-vals))
+              (unless (eq op 'setimm)
+                (setf r-vals (nconc (comp--collect-mvar-ids rest) r-vals)))
          else
            do (setf r-vals (nconc (comp--collect-mvar-ids insn) r-vals))))
     ;; Every l-value appearing that does not appear as r-value has no right to
@@ -3004,6 +3018,65 @@ These are substituted with a normal `set' op."
                  (comp--remove-type-hints-func)
                  (comp--log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
+
+
+;;; Sanitizer pass specific code.
+
+;; This pass aims to verify compile-time value-type predictions during
+;; execution of the code.
+;; The sanitizer pass injects a call to 'helper_sanitizer_assert' before
+;; each conditional branch.  'helper_sanitizer_assert' will verify that
+;; the variable tested by the conditional branch is of the predicted
+;; value type, or signal an error otherwise.
+
+;;; Example:
+
+;; Assume we want to compile 'test.el' and test the function `foo'
+;; defined in it.  Then:
+
+;;  - Native-compile 'test.el' instrumenting it for sanitizer usage:
+;;      (let ((comp-sanitizer-emit t))
+;;        (load (native-compile "test.el")))
+
+;;  - Run `foo' with the sanitizer active:
+;;      (let ((comp-sanitizer-active t))
+;;        (foo))
+
+(defvar comp-sanitizer-emit nil
+  "Gates the sanitizer pass.
+This is intended to be used only for development and verification of
+the native compiler.")
+
+(defun comp--sanitizer (_)
+  (when comp-sanitizer-emit
+    (cl-loop
+     for f being each hash-value of (comp-ctxt-funcs-h comp-ctxt)
+     for comp-func = f
+     unless (comp-func-has-non-local comp-func)
+     do
+     (cl-loop
+      for b being each hash-value of (comp-func-blocks f)
+      do
+      (cl-loop
+       named in-the-basic-block
+       for insns-seq on (comp-block-insns b)
+       do (pcase insns-seq
+            (`((cond-jump ,(and (pred comp-mvar-p) mvar-tested)
+                          ,(pred comp-mvar-p) ,_bb1 ,_bb2))
+             (let ((type (comp-cstr-to-type-spec mvar-tested))
+                   (insn (car insns-seq)))
+               ;; No need to check if type is t.
+               (unless (eq type t)
+                 (comp--add-const-to-relocs type)
+                 (setcar
+                  insns-seq
+                  (comp--call 'helper_sanitizer_assert
+                              mvar-tested
+                              (make--comp-mvar :constant type)))
+                 (setcdr insns-seq (list insn)))
+               ;; (setf (comp-func-ssa-status comp-func) 'dirty)
+               (cl-return-from in-the-basic-block))))))
+     do (comp--log-func comp-func 3))))
 
 
 ;;; Function types pass specific code.

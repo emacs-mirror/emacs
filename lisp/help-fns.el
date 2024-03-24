@@ -1061,10 +1061,10 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                         (concat
                          "an autoloaded " (if (commandp def)
                                               "interactive "))
-                      (if (commandp def) "an interactive " "a "))))
-
-    ;; Print what kind of function-like object FUNCTION is.
-    (princ (cond ((or (stringp def) (vectorp def))
+                      (if (commandp def) "an interactive " "a ")))
+               ;; Print what kind of function-like object FUNCTION is.
+               (description
+		(cond ((or (stringp def) (vectorp def))
 		  "a keyboard macro")
 		 ((and (symbolp function)
                        (get function 'reader-construct))
@@ -1073,12 +1073,6 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		 ;; aliases before functions.
 		 (aliased
 		  (format-message "an alias for `%s'" real-def))
-                 ((subr-native-elisp-p def)
-                  (concat beg "native-compiled Lisp function"))
-		 ((subrp def)
-		  (concat beg (if (eq 'unevalled (cdr (subr-arity def)))
-		                  "special form"
-                                "built-in function")))
 		 ((autoloadp def)
 		  (format "an autoloaded %s"
                           (cond
@@ -1092,12 +1086,13 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		      ;; need to check macros before functions.
 		      (macrop function))
 		  (concat beg "Lisp macro"))
-		 ((byte-code-function-p def)
-		  (concat beg "byte-compiled Lisp function"))
-                 ((module-function-p def)
-                  (concat beg "module function"))
-		 ((memq (car-safe def) '(lambda closure))
-		  (concat beg "Lisp function"))
+		 ((atom def)
+		  (let ((type (or (oclosure-type def) (cl-type-of def))))
+		    (concat beg (format "%s"
+		                        (make-text-button
+		                         (symbol-name type) nil
+		                         'type 'help-type
+		                         'help-args (list type))))))
 		 ((keymapp def)
 		  (let ((is-full nil)
 			(elts (cdr-safe def)))
@@ -1107,7 +1102,9 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 				elts nil))
 		      (setq elts (cdr-safe elts)))
 		    (concat beg (if is-full "keymap" "sparse keymap"))))
-		 (t "")))
+		 (t ""))))
+    (with-current-buffer standard-output
+      (insert description))
 
     (if (and aliased (not (fboundp real-def)))
 	(princ ",\nwhich is not defined.")
@@ -2447,6 +2444,81 @@ one of them returns non-nil."
             "@bye\n")
     (setq buffer-undo-list nil)
     (texinfo-mode)))
+
+(defconst help-fns--function-numbers
+  (make-hash-table :test 'equal :weakness 'value))
+(defconst help-fns--function-names (make-hash-table :weakness 'key))
+
+(defun help-fns--display-function (function)
+  (cond
+   ((subr-primitive-p function)
+    (describe-function function))
+   ((and (compiled-function-p function)
+         (not (and (fboundp 'kmacro-p) (kmacro-p function))))
+    (disassemble function))
+   (t
+    ;; FIXME: Use cl-print!
+    (pp-display-expression function "*Help Source*" (consp function)))))
+
+;;;###autoload
+(defun help-fns-function-name (function)
+  "Return a short buttonized string representing FUNCTION.
+The string is propertized with a button; clicking on that
+provides further details about FUNCTION.
+FUNCTION can be a function, a built-in, a keyboard macro,
+or a compile function.
+This function is intended to be used to display various
+callable symbols in buffers in a way that allows the user
+to find out more details about the symbols."
+  ;; FIXME: For kmacros, should we print the key-sequence?
+  (cond
+   ((symbolp function)
+    (let ((name (if (eq (intern-soft (symbol-name function)) function)
+                    (symbol-name function)
+                  (concat "#:" (symbol-name function)))))
+      (if (not (fboundp function))
+          name
+        (make-text-button name nil
+                          'type 'help-function
+                          'help-args (list function)))))
+   ((gethash function help-fns--function-names))
+   ((subrp function)
+    (let ((name (subr-name function)))
+      ;; FIXME: For native-elisp-functions, should we use `help-function'
+      ;; or `disassemble'?
+      (format "#<%s %s>"
+              (cl-type-of function)
+              (make-text-button name nil
+                                'type 'help-function
+                                ;; Let's hope the subr hasn't been redefined!
+                                'help-args (list (intern name))))))
+   (t
+    (let ((type (or (oclosure-type function)
+                    (if (consp function)
+                        (car function) (cl-type-of function))))
+          (hash (sxhash-eq function))
+          ;; Use 3 digits minimum.
+          (mask #xfff)
+          name)
+      (while
+          (let* ((hex (format (concat "%0"
+                                      (number-to-string (1+ (/ (logb mask) 4)))
+                                      "X")
+                              (logand mask hash)))
+                 ;; FIXME: For kmacros, we don't want to `disassemble'!
+                 (button (buttonize
+                          hex #'help-fns--display-function function
+                          ;; FIXME: Shouldn't `buttonize' add
+                          ;; the "mouse-2, RET:" prefix?
+                          "mouse-2, RET: Display the function's body")))
+            (setq name (format "#<%s %s>" type button))
+            (and (< mask (abs hash))    ; We can add more digits.
+                 (gethash name help-fns--function-numbers)))
+        ;; Add a digit.
+        (setq mask (+ (ash mask 4) #x0f)))
+      (puthash name function help-fns--function-numbers)
+      (puthash function name help-fns--function-names)
+      name))))
 
 (provide 'help-fns)
 

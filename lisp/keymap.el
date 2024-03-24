@@ -260,7 +260,7 @@ returned by \\[describe-key] (`describe-key')."
                         (setq word (concat (match-string 1 word)
                                            (match-string 3 word)))
                         (not (string-match
-                              "\\<\\(NUL\\|RET\\|LFD\\|ESC\\|SPC\\|DEL\\)$"
+                              "\\<\\(NUL\\|RET\\|LFD\\|TAB\\|ESC\\|SPC\\|DEL\\)$"
                               word))))
                  (setq key (list (intern word))))
                 ((or (equal word "REM") (string-match "^;;" word))

@@ -20,7 +20,7 @@
 # which actually builds targets.
 
 # List of system libraries to ignore.
-NDK_SYSTEM_LIBRARIES = z libz libc c libdl dl stdc++ libstdc++ log liblog android libandroid
+NDK_SYSTEM_LIBRARIES = z libz libc c libdl dl stdc++ libstdc++ stlport libstlport gnustl libgnustl c++ libc++ log liblog android libandroid
 
 # Save information.
 NDK_LOCAL_PATH_$(LOCAL_MODULE) := $(LOCAL_PATH)
@@ -90,11 +90,35 @@ endif
 
 # Likewise for libstdc++.
 ifeq ($(strip $(1)),libstdc++)
-NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lstdc++
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
 endif
 
-ifeq ($(strip $(1)),dl)
-NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lstdc++
+ifeq ($(strip $(1)),stdc++)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),libstlport)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),stlport)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),libgnustl)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),gnustl)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),libc++)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),c++)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
 endif
 
 # Likewise for liblog.

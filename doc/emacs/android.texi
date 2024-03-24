@@ -143,11 +143,13 @@ that if that Emacs in turn does not start the Emacs server, subsequent
 attempts to open the file with the wrapper will fail.
 
 @cindex /content/by-authority directory, android
+@cindex /content/by-authority-named directory, android
   Some files are given to Emacs as ``content identifiers'' that the
 system provides access to outside the normal filesystem APIs.  Emacs
-uses a pseudo-directory named @file{/content/by-authority} to access
-those files.  Do not make any assumptions about the contents of this
-directory, or try to open files in it yourself.
+uses pseudo-directories named @file{/content/by-authority} and
+@file{/content/by-authority-named} to access those files.  Do not make
+any assumptions about the contents of this directory, or try to open
+files in it yourself.
 
   This feature is not provided on Android 4.3 and earlier, in which
 case such files are copied to a temporary directory before being
@@ -861,6 +863,12 @@ When the user or the system closes any window created by Emacs on
 behalf of a specific frame, Emacs deletes the frame displayed within
 that window.
 @end itemize
+
+  When the system predates Android 5.0, the window manager will not
+accept more than one user-created Emacs window.  If frame creation gives
+rise to windows in excess of this limit, the window manager will
+arbitrarily select one of their number to display, with the rest
+remaining invisible until that window is destroyed with its frame.
 
 @cindex windowing limitations, android
 @cindex frame parameters, android

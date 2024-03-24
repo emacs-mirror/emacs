@@ -654,8 +654,9 @@ Key bindings:
   (unless (display-images-p)
     (error "Display does not support images"))
 
-  (major-mode-suspend)
-  (setq major-mode 'image-mode)
+  (unless (eq major-mode 'image-mode)
+    (major-mode-suspend)
+    (setq major-mode 'image-mode))
   (setq image-transform-resize image-auto-resize)
 
   ;; Bail out early if we have no image data.

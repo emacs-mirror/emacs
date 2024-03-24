@@ -3601,6 +3601,7 @@ The coding cookie regexp is specified in PEP 263.")
           (python-shell-send-string-no-output python-shell-eval-file-setup-code))
         (with-current-buffer (current-buffer)
           (let ((inhibit-quit nil))
+            (python-shell-readline-detect)
             (run-hooks 'python-shell-first-prompt-hook))))))
   output)
 
@@ -4361,7 +4362,23 @@ When a match is found, native completion is disabled."
 
 (defvar python-shell-readline-completer-delims nil
   "Word delimiters used by the readline completer.
-It is automatically set by Python shell.")
+It is automatically set by Python shell.  An empty string means no
+characters are considered delimiters and the readline completion
+considers the entire line of input.  A value of nil means the Python
+shell has no readline support.")
+
+(defun python-shell-readline-detect ()
+  "Detect the readline support for Python shell completion."
+  (let* ((process (python-shell-get-process))
+         (output (python-shell-send-string-no-output "
+try:
+    import readline
+    print(readline.get_completer_delims())
+except:
+    print('No readline support')" process)))
+    (setq-local python-shell-readline-completer-delims
+                (unless (string-search "No readline support" output)
+                  (string-trim-right output)))))
 
 (defvar python-shell-completion-native-redirect-buffer
   " *Python completions redirect*"
@@ -4501,10 +4518,6 @@ def __PYTHON_EL_native_completion_setup():
 __PYTHON_EL_native_completion_setup()" process)))
     (when (string-match-p "python\\.el: native completion setup loaded"
                           output)
-      (setq-local python-shell-readline-completer-delims
-                  (string-trim-right
-                   (python-shell-send-string-no-output
-                    "import readline; print(readline.get_completer_delims())")))
       (python-shell-completion-native-try))))
 
 (defun python-shell-completion-native-turn-off (&optional msg)
@@ -4533,7 +4546,8 @@ With argument MSG show activation/deactivation message."
       (cond
        ((python-shell-completion-native-interpreter-disabled-p)
         (python-shell-completion-native-turn-off msg))
-       ((python-shell-completion-native-setup)
+       ((and python-shell-readline-completer-delims
+             (python-shell-completion-native-setup))
         (when msg
           (message "Shell native completion is enabled.")))
        (t
@@ -4705,7 +4719,8 @@ using that one instead of current buffer's process."
                (with-current-buffer (process-buffer process)
                  (if python-shell-completion-native-enable
                      (string= python-shell-readline-completer-delims "")
-                   (string-match-p "ipython[23]?\\'" python-shell-interpreter)))))
+                   (or (string-match-p "ipython[23]?\\'" python-shell-interpreter)
+                       (equal python-shell-readline-completer-delims ""))))))
          (start
           (if (< (point) line-start)
               (point)

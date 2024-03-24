@@ -33,12 +33,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/mman.h>
 
 #include <stat-time.h>
+#include <md5.h>
 
 #include <linux/ashmem.h>
 
 #include "android.h"
+#include "androidterm.h"
 #include "systime.h"
 #include "blockinput.h"
+#include "coding.h"
 
 #if __ANDROID_API__ >= 9
 #include <android/asset_manager.h>
@@ -247,7 +250,13 @@ struct android_special_vnode
   /* Function called to create the initial vnode from the rest of the
      component.  */
   struct android_vnode *(*initial) (char *, size_t);
+
+  /* If non-nil, an encoding system into which file name buffers are to
+     be re-encoded before being handed to VFS functions.  */
+  Lisp_Object special_coding_system;
 };
+
+verify (NIL_IS_ZERO); /* special_coding_system above.  */
 
 enum android_vnode_type
   {
@@ -255,6 +264,7 @@ enum android_vnode_type
     ANDROID_VNODE_AFS,
     ANDROID_VNODE_CONTENT,
     ANDROID_VNODE_CONTENT_AUTHORITY,
+    ANDROID_VNODE_CONTENT_AUTHORITY_NAMED,
     ANDROID_VNODE_SAF_ROOT,
     ANDROID_VNODE_SAF_TREE,
     ANDROID_VNODE_SAF_FILE,
@@ -2435,6 +2445,7 @@ struct android_content_vdir
 };
 
 static struct android_vnode *android_authority_initial (char *, size_t);
+static struct android_vnode *android_authority_initial_name (char *, size_t);
 static struct android_vnode *android_saf_root_initial (char *, size_t);
 
 /* Content provider meta-interface.  This implements a vnode at
@@ -2445,9 +2456,9 @@ static struct android_vnode *android_saf_root_initial (char *, size_t);
    a list of each directory tree Emacs has been granted permanent
    access to through the Storage Access Framework.
 
-   /content/by-authority exists on Android 4.4 and later; it contains
-   no directories, but provides a `name' function that converts
-   children into content URIs.  */
+   /content/by-authority and /content/by-authority-named exists on
+   Android 4.4 and later; it contains no directories, but provides a
+   `name' function that converts children into content URIs.  */
 
 static struct android_vnode *android_content_name (struct android_vnode *,
 						   char *, size_t);
@@ -2490,7 +2501,7 @@ static struct android_vops content_vfs_ops =
 
 static const char *content_directory_contents[] =
   {
-    "storage", "by-authority",
+    "storage", "by-authority", "by-authority-named",
   };
 
 /* Chain consisting of all open content directory streams.  */
@@ -2508,8 +2519,9 @@ android_content_name (struct android_vnode *vnode, char *name,
   int api;
 
   static struct android_special_vnode content_vnodes[] = {
-    { "storage", 7, android_saf_root_initial,        },
-    { "by-authority", 12, android_authority_initial, },
+    { "storage", 7, android_saf_root_initial,			},
+    { "by-authority", 12, android_authority_initial,		},
+    { "by-authority-named", 18, android_authority_initial_name,	},
   };
 
   /* Canonicalize NAME.  */
@@ -2551,7 +2563,7 @@ android_content_name (struct android_vnode *vnode, char *name,
      call its root lookup function with the rest of NAME there.  */
 
   if (api < 19)
-    i = 2;
+    i = 3;
   else if (api < 21)
     i = 1;
   else
@@ -2855,18 +2867,59 @@ android_content_initial (char *name, size_t length)
 
 
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#else /* GNUC */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+#endif /* __clang__ */
+
 /* Content URI management functions.  */
+
+JNIEXPORT jstring JNICALL
+NATIVE_NAME (displayNameHash) (JNIEnv *env, jobject object,
+			       jbyteArray display_name)
+{
+  char checksum[9], block[MD5_DIGEST_SIZE];
+  jbyte *data;
+
+  data = (*env)->GetByteArrayElements (env, display_name, NULL);
+  if (!data)
+    return NULL;
+
+  /* Hash the buffer.  */
+  md5_buffer ((char *) data, (*env)->GetArrayLength (env, display_name),
+	      block);
+  (*env)->ReleaseByteArrayElements (env, display_name, data, JNI_ABORT);
+
+  /* Generate the digest string.  */
+  hexbuf_digest (checksum, (char *) block, 4);
+  checksum[8] = '\0';
+  return (*env)->NewStringUTF (env, checksum);
+}
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /* GNUC */
+#pragma GCC diagnostic pop
+#endif /* __clang__ */
 
 /* Return the content URI corresponding to a `/content/by-authority'
    file name, or NULL if it is invalid for some reason.  FILENAME
    should be relative to /content/by-authority, with no leading
-   directory separator character.  */
+   directory separator character.
+
+   WITH_CHECKSUM should be true if FILENAME contains a display name and
+   a checksum for that display name.  */
 
 static char *
-android_get_content_name (const char *filename)
+android_get_content_name (const char *filename, bool with_checksum)
 {
   char *fill, *buffer;
   size_t length;
+  char checksum[9], new_checksum[9], block[MD5_DIGEST_SIZE];
+  const char *p2, *p1;
 
   /* Make sure FILENAME isn't obviously invalid: it must contain an
      authority name and a file name component.  */
@@ -2888,11 +2941,55 @@ android_get_content_name (const char *filename)
       return NULL;
     }
 
+  if (!with_checksum)
+    goto no_checksum;
+
+  /* Content file names hold two components providing a display name and
+     a short checksum that protects against files being opened under
+     display names besides those provided in the content file name at
+     the time of generation.  */
+
+  p1 = strrchr (filename, '/'); /* Display name.  */
+  p2 = memrchr (filename, '/', p1 - filename); /* Start of checksum.  */
+
+  /* If the name be excessively short or the checksum of an invalid
+     length, return.  */
+  if (!p2 || (p1 - p2) != 9)
+    {
+      errno = ENOENT;
+      return NULL;
+    }
+
+  /* Copy the checksum into CHECKSUM.  */
+  memcpy (checksum, p2 + 1, 8);
+  new_checksum[8] = checksum[8] = '\0';
+
+  /* Hash this string and store 8 bytes of the resulting digest into
+     new_checksum.  */
+  md5_buffer (p1 + 1, strlen (p1 + 1), block);
+  hexbuf_digest (new_checksum, (char *) block, 4);
+
+  /* Compare both checksums.  */
+  if (strcmp (new_checksum, checksum))
+    {
+      errno = ENOENT;
+      return NULL;
+    }
+
+  /* Remove the checksum and file display name from the URI.  */
+  length = p2 - filename;
+
+ no_checksum:
+  if (length > INT_MAX)
+    {
+      errno = ENOMEM;
+      return NULL;
+    }
+
   /* Prefix FILENAME with content:// and return the buffer containing
      that URI.  */
-
-  buffer = xmalloc (sizeof "content://" + length);
-  sprintf (buffer, "content://%s", filename);
+  buffer = xmalloc (sizeof "content://" + length + 1);
+  sprintf (buffer, "content://%.*s", (int) length, filename);
   return buffer;
 }
 
@@ -2932,7 +3029,7 @@ android_check_content_access (const char *uri, int mode)
 
 /* Content authority-based vnode implementation.
 
-   /contents/by-authority is a simple vnode implementation that converts
+   /content/by-authority is a simple vnode implementation that converts
    components to content:// URIs.
 
    It does not canonicalize file names by removing parent directory
@@ -3039,7 +3136,14 @@ android_authority_name (struct android_vnode *vnode, char *name,
       if (android_verify_jni_string (name))
 	goto no_entry;
 
-      uri_name = android_get_content_name (name);
+      if (vp->vnode.type == ANDROID_VNODE_CONTENT_AUTHORITY_NAMED)
+	/* This indicates that the two trailing components of NAME
+	   provide a checksum and a file display name, to be verified,
+	   then excluded from the content URI.  */
+	uri_name = android_get_content_name (name, true);
+      else
+	uri_name = android_get_content_name (name, false);
+
       if (!uri_name)
 	goto error;
 
@@ -3327,6 +3431,32 @@ android_authority_initial (char *name, size_t length)
 
   temp.vnode.ops = &authority_vfs_ops;
   temp.vnode.type = ANDROID_VNODE_CONTENT_AUTHORITY;
+  temp.vnode.flags = 0;
+  temp.uri = NULL;
+
+  return android_authority_name (&temp.vnode, name, length);
+}
+
+/* Find the vnode designated by NAME relative to the root of the
+   by-authority-named directory.
+
+   If NAME is empty or a single leading separator character, return
+   a vnode representing the by-authority directory itself.
+
+   Otherwise, represent the remainder of NAME as a URI (without
+   normalizing it) and return a vnode corresponding to that.
+
+   Value may also be NULL with errno set if the designated vnode is
+   not available, such as when Android windowing has not been
+   initialized.  */
+
+static struct android_vnode *
+android_authority_initial_name (char *name, size_t length)
+{
+  struct android_authority_vnode temp;
+
+  temp.vnode.ops = &authority_vfs_ops;
+  temp.vnode.type = ANDROID_VNODE_CONTENT_AUTHORITY_NAMED;
   temp.vnode.flags = 0;
   temp.uri = NULL;
 
@@ -3745,7 +3875,8 @@ android_saf_root_readdir (struct android_vdir *vdir)
 						  NULL);
   android_exception_check_nonnull ((void *) chars, string);
 
-  /* Figure out how large it is, and then resize dirent to fit.  */
+  /* Figure out how large it is, and then resize dirent to fit--this
+     string is always ASCII.  */
   length = strlen (chars) + 1;
   size   = offsetof (struct dirent, d_name) + length;
   dirent = xrealloc (dirent, size);
@@ -5357,6 +5488,7 @@ android_saf_tree_readdir (struct android_vdir *vdir)
   jmethodID method;
   size_t length, size;
   const char *chars;
+  struct coding_system coding;
 
   dir = (struct android_saf_tree_vdir *) vdir;
 
@@ -5404,9 +5536,24 @@ android_saf_tree_readdir (struct android_vdir *vdir)
 						  NULL);
   android_exception_check_nonnull ((void *) chars, d_name);
 
-  /* Figure out how large it is, and then resize dirent to fit.  */
-  length = strlen (chars) + 1;
-  size   = offsetof (struct dirent, d_name) + length;
+  /* Decode this JNI string into utf-8-emacs; see
+     android_vfs_convert_name for considerations regarding coding
+     systems.  */
+  length = strlen (chars);
+  setup_coding_system (Qandroid_jni, &coding);
+  coding.mode |= CODING_MODE_LAST_BLOCK;
+  coding.source = (const unsigned char *) chars;
+  coding.dst_bytes = 0;
+  coding.destination = NULL;
+  decode_coding_object (&coding, Qnil, 0, 0, length, length, Qnil);
+
+  /* Release the string data and the local reference to STRING.  */
+  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+					      (jstring) d_name,
+					      chars);
+
+  /* Resize dirent to accommodate the decoded text.  */
+  size   = offsetof (struct dirent, d_name) + 1 + coding.produced;
   dirent = xrealloc (dirent, size);
 
   /* Clear dirent.  */
@@ -5418,12 +5565,12 @@ android_saf_tree_readdir (struct android_vdir *vdir)
   dirent->d_off = 0;
   dirent->d_reclen = size;
   dirent->d_type = d_type ? DT_DIR : DT_UNKNOWN;
-  strcpy (dirent->d_name, chars);
+  memcpy (dirent->d_name, coding.destination, coding.produced);
+  dirent->d_name[coding.produced] = '\0';
 
-  /* Release the string data and the local reference to STRING.  */
-  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
-					      (jstring) d_name,
-					      chars);
+  /* Free the coding system destination buffer.  */
+  xfree (coding.destination);
+
   ANDROID_DELETE_LOCAL_REF (d_name);
   return dirent;
 }
@@ -6409,8 +6556,30 @@ static struct android_vops root_vfs_ops =
 static struct android_special_vnode special_vnodes[] =
   {
     { "assets",  6, android_afs_initial,	},
-    { "content", 7, android_content_initial,	},
+    { "content", 7, android_content_initial,
+      LISPSYM_INITIALLY (Qandroid_jni),		},
   };
+
+/* Convert the file name NAME from Emacs's internal character encoding
+   to CODING, and return a Lisp string with the data so produced.
+
+   Calling this function creates an implicit assumption that
+   file-name-coding-system is compatible with utf-8-emacs, which is not
+   unacceptable as users with cause to modify file-name-coding-system
+   should be aware and prepared for consequences towards files stored on
+   different filesystems, including virtual ones.  */
+
+static Lisp_Object
+android_vfs_convert_name (const char *name, Lisp_Object coding)
+{
+  Lisp_Object name1;
+
+  /* Convert the contents of the buffer after BUFFER_END from the file
+     name coding system to special->special_coding_system.  */
+  name1 = build_string (name);
+  name1 = code_convert_string (name1, coding, Qt, true, true, true);
+  return name1;
+}
 
 static struct android_vnode *
 android_root_name (struct android_vnode *vnode, char *name,
@@ -6419,6 +6588,8 @@ android_root_name (struct android_vnode *vnode, char *name,
   char *component_end;
   struct android_special_vnode *special;
   size_t i;
+  Lisp_Object file_name;
+  struct android_vnode *vp;
 
   /* Skip any leading separator in NAME.  */
 
@@ -6445,8 +6616,29 @@ android_root_name (struct android_vnode *vnode, char *name,
 
       if (component_end - name == special->length
 	  && !memcmp (special->name, name, special->length))
-	return (*special->initial) (component_end,
-				    length - special->length);
+	{
+	  if (!NILP (special->special_coding_system))
+	    {
+	      USE_SAFE_ALLOCA;
+
+	      file_name
+		= android_vfs_convert_name (component_end,
+					    special->special_coding_system);
+
+	      /* Allocate a buffer and copy file_name into the same.  */
+	      length = SBYTES (file_name) + 1;
+	      name = SAFE_ALLOCA (length);
+
+	      /* Copy the trailing NULL byte also.  */
+	      memcpy (name, SDATA (file_name), length);
+	      vp = (*special->initial) (name, length - 1);
+	      SAFE_FREE ();
+	      return vp;
+	    }
+
+	  return (*special->initial) (component_end,
+				      length - special->length);
+	}
 
       /* Detect the case where a special is named with a trailing
 	 directory separator.  */
@@ -6454,9 +6646,30 @@ android_root_name (struct android_vnode *vnode, char *name,
       if (component_end - name == special->length + 1
 	  && !memcmp (special->name, name, special->length)
 	  && name[special->length] == '/')
-	/* Make sure to include the directory separator.  */
-	return (*special->initial) (component_end - 1,
-				    length - special->length);
+	{
+	  if (!NILP (special->special_coding_system))
+	    {
+	      USE_SAFE_ALLOCA;
+
+	      file_name
+		= android_vfs_convert_name (component_end - 1,
+					    special->special_coding_system);
+
+	      /* Allocate a buffer and copy file_name into the same.  */
+	      length = SBYTES (file_name) + 1;
+	      name = SAFE_ALLOCA (length);
+
+	      /* Copy the trailing NULL byte also.  */
+	      memcpy (name, SDATA (file_name), length);
+	      vp = (*special->initial) (name, length - 1);
+	      SAFE_FREE ();
+	      return vp;
+	    }
+
+	  /* Make sure to include the directory separator.  */
+	  return (*special->initial) (component_end - 1,
+				      length - special->length);
+	}
     }
 
   /* Otherwise, continue searching for a vnode normally.  */
@@ -6467,8 +6680,9 @@ android_root_name (struct android_vnode *vnode, char *name,
 
 /* File system lookup.  */
 
-/* Look up the vnode that designates NAME, a file name that is at
-   least N bytes.
+/* Look up the vnode that designates NAME, a file name that is at least
+   N bytes, converting between different file name coding systems as
+   necessary.
 
    NAME may be either an absolute file name or a name relative to the
    current working directory.  It must not be longer than EMACS_PATH_MAX
@@ -7482,4 +7696,12 @@ void
 android_closedir (struct android_vdir *dirp)
 {
   return (*dirp->closedir) (dirp);
+}
+
+
+
+void
+syms_of_androidvfs (void)
+{
+  DEFSYM (Qandroid_jni, "android-jni");
 }

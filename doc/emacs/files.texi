@@ -779,6 +779,12 @@ operations typically break hard links, disconnecting the file name you
 visited from any alternate names for the same file.  This has nothing
 to do with Emacs---the version control system does it.
 
+  Some file storage services support @dfn{file versioning}: they
+record history of previous versions of files, and allow reverting to
+those previous versions.  If you want to be able to do that with files
+hosted by those services when editing them with Emacs, customize
+@code{backup-by-copying} to a non-@code{nil} value.
+
 @node Customize Save
 @subsection Customizing Saving of Files
 
@@ -2392,7 +2398,7 @@ multiply the size by the factor of @w{@code{1 + @var{n} / 10}}, so
 @findex image-decrease-size
 @kindex i - (Image mode)
 @item i -
-Decrease the image size (@code{image-increase-size}) by 20%.  Prefix
+Decrease the image size (@code{image-decrease-size}) by 20%.  Prefix
 numeric argument controls the decrement; the value of @var{n} means to
 multiply the size by the factor of @w{@code{1 - @var{n} / 10}}, so
 @w{@kbd{C-u 3 i -}} means to decrease the size by 30%.

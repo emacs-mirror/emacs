@@ -1781,7 +1781,7 @@ With prefix numeric argument ARG, do it that many times."
   (interactive)
   (save-excursion
     (goto-char (pos-bol))
-    (when-let* ((re (rx bol "(" (group (+ (not (in " "))))))
+    (when-let* ((re (rx bol "(" (group (+ (not (in " )"))))))
                 (string
                  (and (or (looking-at re)
                           (re-search-backward re nil t))

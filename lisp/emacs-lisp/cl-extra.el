@@ -711,13 +711,6 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 (eval-when-compile (require 'cl-macs))  ;Explicitly, for cl--find-class.
 (require 'help-mode)
 
-;; FIXME: We could go crazy and add another entry so describe-symbol can be
-;; used with the slot names of CL structs (and/or EIEIO objects).
-(add-to-list 'describe-symbol-backends
-             `(nil ,#'cl-find-class ,#'cl-describe-type)
-             ;; Document the `cons` function before the `cons` type.
-             t)
-
 (defconst cl--typedef-regexp
   (concat "(" (regexp-opt '("defclass" "defstruct" "cl-defstruct"
                             "cl-deftype" "deftype"))
@@ -726,11 +719,6 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
   (defvar find-function-regexp-alist)
   (add-to-list 'find-function-regexp-alist
                '(define-type . cl--typedef-regexp)))
-
-(define-button-type 'cl-help-type
-  :supertype 'help-function-def
-  'help-function #'cl-describe-type
-  'help-echo (purecopy "mouse-2, RET: describe this type"))
 
 (define-button-type 'cl-type-definition
   :supertype 'help-function-def
@@ -784,7 +772,7 @@ Call `cl--find-class' to get TYPE's propname `cl--class'"
     (insert (symbol-name type)
             (substitute-command-keys " is a type (of kind `"))
     (help-insert-xref-button (symbol-name metatype)
-                             'cl-help-type metatype)
+                             'help-type metatype)
     (insert (substitute-command-keys "')"))
     (when location
       (insert (substitute-command-keys " in `"))
@@ -803,7 +791,7 @@ Call `cl--find-class' to get TYPE's propname `cl--class'"
           (setq cur (cl--class-name cur))
           (insert (substitute-quotes "`"))
           (help-insert-xref-button (symbol-name cur)
-                                   'cl-help-type cur)
+                                   'help-type cur)
           (insert (substitute-command-keys (if pl "', " "'"))))
         (insert ".\n")))
 
@@ -815,7 +803,7 @@ Call `cl--find-class' to get TYPE's propname `cl--class'"
         (while (setq cur (pop ch))
           (insert (substitute-quotes "`"))
           (help-insert-xref-button (symbol-name cur)
-                                   'cl-help-type cur)
+                                   'help-type cur)
           (insert (substitute-command-keys (if ch "', " "'"))))
         (insert ".\n")))
 

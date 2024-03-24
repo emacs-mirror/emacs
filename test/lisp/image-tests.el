@@ -153,4 +153,148 @@
     (image-rotate -154.5)
     (should (equal image '(image :rotation 91.0)))))
 
+;;;; Transforming maps
+
+(ert-deftest image-create-image-with-map ()
+  "Test that `create-image' correctly adds :map and/or :original-map."
+  (skip-unless (display-images-p))
+  (let ((data "foo")
+        (map '(((circle (1 .  1) .  1) a)))
+        (original-map '(((circle (2 .  2) .  2) a)))
+        (original-map-other '(((circle (3 . 3) . 3) a))))
+    ;; Generate :original-map from :map.
+    (let* ((image (create-image data 'svg t :map map :scale 0.5))
+           (got-original-map (image-property image :original-map)))
+      (should (equal got-original-map original-map)))
+    ;; Generate :map from :original-map.
+    (let* ((image (create-image
+                   data 'svg t :original-map original-map :scale 0.5))
+           (got-map (image-property image :map)))
+      (should (equal got-map map)))
+    ;; Use :original-map if both it and :map are specified.
+    (let* ((image (create-image
+                   data 'svg t :map map
+                   :original-map original-map-other :scale 0.5))
+           (got-original-map (image-property image :original-map)))
+      (should (equal got-original-map original-map-other)))))
+
+(defun image-tests--map-equal (a b &optional tolerance)
+  "Return t if maps A and B have the same coordinates within TOLERANCE.
+Since image sizes calculations vary on different machines, this function
+allows for each image map coordinate in A to be within TOLERANCE to the
+corresponding coordinate in B.  When nil, TOLERANCE defaults to 5."
+  (unless tolerance (setq tolerance 5))
+  (catch 'different
+    (cl-labels ((check-tolerance
+                  (coord-a coord-b)
+                  (unless (>= tolerance (abs (- coord-a coord-b)))
+                    (throw 'different nil))))
+      (dotimes (i (length a))
+        (pcase-let ((`((,type-a . ,coords-a) ,_id ,_plist) (nth i a))
+                    (`((,type-b . ,coords-b) ,_id ,_plist) (nth i b)))
+          (unless (eq type-a type-b)
+            (throw 'different nil))
+          (pcase-exhaustive type-a
+            ('rect
+             (check-tolerance (caar coords-a) (caar coords-b))
+             (check-tolerance (cdar coords-a) (cdar coords-b))
+             (check-tolerance (cadr coords-a) (cadr coords-b))
+             (check-tolerance (cddr coords-a) (cddr coords-b)))
+            ('circle
+             (check-tolerance (caar coords-a) (caar coords-b))
+             (check-tolerance (cdar coords-a) (cdar coords-b))
+             (check-tolerance (cdar coords-a) (cdar coords-b)))
+            ('poly
+             (dotimes (i (length coords-a))
+               (check-tolerance (aref coords-a i) (aref coords-b i))))))))
+    t))
+
+(ert-deftest image--compute-map-and-original-map ()
+  "Test `image--compute-map' and `image--compute-original-map'."
+  (skip-unless (display-images-p))
+  (let* ((svg-string "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><svg width=\"125pt\" height=\"116pt\" viewBox=\"0.00 0.00 125.00 116.00\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><g transform=\"scale(1 1) rotate(0) translate(4 112)\"><polygon fill=\"white\" stroke=\"transparent\" points=\"-4,4 -4,-112 121,-112 121,4 -4,4\"/><a xlink:href=\"a\"><ellipse fill=\"none\" stroke=\"black\" cx=\"27\" cy=\"-90\" rx=\"18\" ry=\"18\"/><text text-anchor=\"middle\" x=\"27\" y=\"-86.3\" fill=\"#000000\">A</text></a><a xlink:href=\"b\"><polygon fill=\"none\" stroke=\"black\" points=\"54,-36 0,-36 0,0 54,0 54,-36\"/><text text-anchor=\"middle\" x=\"27\" y=\"-14.3\" fill=\"#000000\">B</text></a><a xlink:href=\"c\"><ellipse fill=\"none\" stroke=\"black\" cx=\"90\" cy=\"-90\" rx=\"27\" ry=\"18\"/><text text-anchor=\"middle\" x=\"90\" y=\"-86.3\" fill=\"#000000\">C</text></a></g></svg>")
+         (original-map
+          '(((circle (41 . 29) . 24) "a" (help-echo "A"))
+            ((rect (5 . 101) 77 . 149) "b" (help-echo "B"))
+            ((poly . [161 29 160 22 154 15 146 10 136 7 125 5 114 7 104 10 96 15 91 22 89 29 91 37 96 43 104 49 114 52 125 53 136 52 146 49 154 43 160 37]) "c" (help-echo "C"))))
+         (scaled-map
+          '(((circle (82 . 58) . 48) "a" (help-echo "A"))
+            ((rect (10 . 202) 154 . 298) "b" (help-echo "B"))
+            ((poly . [322 58 320 44 308 30 292 20 272 14 250 10 228 14 208 20 192 30 182 44 178 58 182 74 192 86 208 98 228 104 250 106 272 104 292 98 308 86 320 74]) "c" (help-echo "C"))))
+         (flipped-map
+          '(((circle (125 . 29) . 24) "a" (help-echo "A"))
+            ((rect (89 . 101) 161 . 149) "b" (help-echo "B"))
+            ((poly . [5 29 6 22 12 15 20 10 30 7 41 5 52 7 62 10 70 15 75 22 77 29 75 37 70 43 62 49 52 52 41 53 30 52 20 49 12 43 6 37]) "c" (help-echo "C"))))
+         (rotated-map
+          '(((circle (126 . 41) . 24) "a" (help-echo "A"))
+            ((rect (6 . 5) 54 . 77) "b" (help-echo "B"))
+            ((poly . [126 161 133 160 140 154 145 146 148 136 150 125 148 114 145 104 140 96 133 91 126 89 118 91 112 96 106 104 103 114 102 125 103 136 106 146 112 154 118 160]) "c" (help-echo "C"))))
+         (scaled-rotated-flipped-map
+          '(((circle (58 . 82) . 48) "a" (help-echo "A"))
+            ((rect (202 . 10) 298 . 154) "b" (help-echo "B"))
+            ((poly . [58 322 44 320 30 308 20 292 14 272 10 250 14 228 20 208 30 192 44 182 58 178 74 182 86 192 98 208 104 228 106 250 104 272 98 292 86 308 74 320]) "c" (help-echo "C"))))
+         (image (create-image svg-string 'svg t :map scaled-rotated-flipped-map
+                              :scale 2 :rotation 90 :flip t)))
+    ;; Test that `image--compute-original-map' correctly generates
+    ;; original-map when creating an already transformed image.
+    (should (image-tests--map-equal (image-property image :original-map)
+                                    original-map))
+    (setf (image-property image :flip) nil)
+    (setf (image-property image :rotation) 0)
+    (setf (image-property image :scale) 2)
+    (should (image-tests--map-equal (image--compute-map image)
+                                    scaled-map))
+    (setf (image-property image :scale) 1)
+    (setf (image-property image :rotation) 90)
+    (should (image-tests--map-equal (image--compute-map image)
+                                    rotated-map))
+    (setf (image-property image :rotation) 0)
+    (setf (image-property image :flip) t)
+    (should (image-tests--map-equal (image--compute-map image)
+                                    flipped-map))
+    (setf (image-property image :scale) 2)
+    (setf (image-property image :rotation) 90)
+    (should (image-tests--map-equal (image--compute-map image)
+                                    scaled-rotated-flipped-map))
+
+    ;; Uncomment to test manually by interactively transforming the
+    ;; image and checking the map boundaries by hovering them.
+
+    ;; (with-current-buffer (get-buffer-create "*test image map*")
+    ;;   (erase-buffer)
+    ;;   (insert-image image)
+    ;;   (goto-char (point-min))
+    ;;   (pop-to-buffer (current-buffer)))
+    ))
+
+(ert-deftest image-transform-map ()
+  "Test functions related to transforming image maps."
+  (let ((map '(((circle (4 . 3) . 2) "circle")
+               ((rect (3 . 6) 8 . 8) "rect")
+               ((poly . [6 11 7 13 2 14]) "poly")))
+        (width 10)
+        (height 15))
+    (should (equal (image--scale-map (copy-tree map t) 2)
+                   '(((circle (8 . 6) . 4) "circle")
+                     ((rect (6 . 12) 16 . 16) "rect")
+                     ((poly . [12 22 14 26 4 28]) "poly"))))
+    (should (equal (image--rotate-map (copy-tree map t) 90 `(,width . ,height))
+                   '(((circle (12 . 4) . 2) "circle")
+                     ((rect (7 . 3) 9 . 8) "rect")
+                     ((poly . [4 6 2 7 1 2]) "poly"))))
+    (should (equal (image--flip-map (copy-tree map t) t `(,width . ,height))
+                   '(((circle (6 . 3) . 2) "circle")
+                     ((rect (2 . 6) 7 . 8) "rect")
+                     ((poly . [4 11 3 13 8 14]) "poly"))))
+    (let ((copy (copy-tree map t)))
+      (image--scale-map copy 2)
+      ;; Scale size because the map has been scaled.
+      (image--rotate-map copy 90 `(,(* 2 width) . ,(* 2 height)))
+      ;; Swap width and height because the map has been flipped.
+      (image--flip-map copy t `(,(* 2 height) . ,(* 2 width)))
+      (should (equal copy
+                     '(((circle (6 . 8) . 4) "circle")
+                       ((rect (12 . 6) 16 . 16) "rect")
+                       ((poly . [22 12 26 14 28 4]) "poly")))))))
+
 ;;; image-tests.el ends here

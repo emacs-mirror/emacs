@@ -611,7 +611,7 @@ To turn off the world time display, go to the window and type \\[quit-window]."
 (defun world-clock-update (&optional _arg _noconfirm)
   "Update the `world-clock' buffer."
   (if (get-buffer world-clock-buffer-name)
-      (with-current-buffer (get-buffer world-clock-buffer-name)
+      (with-current-buffer world-clock-buffer-name
         (let ((op (point)))
           (world-clock-display (time--display-world-list))
           (goto-char op)))

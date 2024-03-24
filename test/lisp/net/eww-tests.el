@@ -33,7 +33,7 @@ body.")
   "Evaluate BODY with a mock implementation of `eww-retrieve'.
 This avoids network requests during our tests.  Additionally, prepare a
 temporary EWW buffer for our tests."
-  (declare (indent 1))
+  (declare (indent 0))
     `(cl-letf (((symbol-function 'eww-retrieve)
                 (lambda (url callback args)
                   (with-temp-buffer
@@ -47,6 +47,24 @@ temporary EWW buffer for our tests."
   (mapcar (lambda (elem) (plist-get elem :url)) eww-history))
 
 ;;; Tests:
+
+(ert-deftest eww-test/display/html ()
+  "Test displaying a simple HTML page."
+  (eww-test--with-mock-retrieve
+    (let ((eww-test--response-function
+           (lambda (url)
+             (concat "Content-Type: text/html\n\n"
+                     (format "<html><body><h1>Hello</h1>%s</body></html>"
+                             url)))))
+      (eww "example.invalid")
+      ;; Check that the buffer contains the rendered HTML.
+      (should (equal (buffer-string) "Hello\n\n\nhttp://example.invalid/\n"))
+      (should (equal (get-text-property (point-min) 'face)
+                     '(shr-text shr-h1)))
+      ;; Check that the DOM includes the `base'.
+      (should (equal (pcase (plist-get eww-data :dom)
+                       (`(base ((href . ,url)) ,_) url))
+                     "http://example.invalid/")))))
 
 (ert-deftest eww-test/history/new-page ()
   "Test that when visiting a new page, the previous one goes into the history."
@@ -175,6 +193,55 @@ This sets `eww-before-browse-history-function' to
                        "http://two.invalid/"
                        "http://one.invalid/")))
       (should (= eww-history-position 0)))))
+
+(ert-deftest eww-test/readable/toggle-display ()
+  "Test toggling the display of the \"readable\" parts of a web page."
+  (eww-test--with-mock-retrieve
+    (let* ((shr-width most-positive-fixnum)
+           (shr-use-fonts nil)
+           (words (string-join
+                   (make-list
+                    20 "All work and no play makes Jack a dull boy.")
+                   " "))
+           (eww-test--response-function
+            (lambda (_url)
+              (concat "Content-Type: text/html\n\n"
+                      "<html><body>"
+                      "<a>This is an uninteresting sentence.</a>"
+                      "<div>"
+                      words
+                      "</div>"
+                      "</body></html>"))))
+      (eww "example.invalid")
+      ;; Make sure EWW renders the whole document.
+      (should-not (plist-get eww-data :readable))
+      (should (string-prefix-p
+               "This is an uninteresting sentence."
+               (buffer-substring-no-properties (point-min) (point-max))))
+      (eww-readable 'toggle)
+      ;; Now, EWW should render just the "readable" parts.
+      (should (plist-get eww-data :readable))
+      (should (string-match-p
+               (concat "\\`" (regexp-quote words) "\n*\\'")
+               (buffer-substring-no-properties (point-min) (point-max))))
+      (eww-readable 'toggle)
+      ;; Finally, EWW should render the whole document again.
+      (should-not (plist-get eww-data :readable))
+      (should (string-prefix-p
+               "This is an uninteresting sentence."
+               (buffer-substring-no-properties (point-min) (point-max)))))))
+
+(ert-deftest eww-test/readable/default-readable ()
+  "Test that EWW displays readable parts of pages by default when applicable."
+    (eww-test--with-mock-retrieve
+    (let* ((eww-test--response-function
+            (lambda (_url)
+              (concat "Content-Type: text/html\n\n"
+                      "<html><body>Hello there</body></html>")))
+           (eww-readable-urls '("://example\\.invalid/")))
+      (eww "example.invalid")
+      ;; Make sure EWW uses "readable" mode.
+      (should (plist-get eww-data :readable)))))
 
 (provide 'eww-tests)
 ;; eww-tests.el ends here

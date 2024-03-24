@@ -283,6 +283,14 @@ This function returns the position that @var{marker} points to, or
 @code{nil} if it points nowhere.
 @end defun
 
+@defun marker-last-position marker
+This function returns the last known position of @var{marker} in its
+buffer.  It behaves like @code{marker-position} with one exception: if
+the buffer of @var{marker} has been killed, it returns the last position
+of @var{marker} in that buffer before the buffer was killed, instead of
+returning @code{nil}.
+@end defun
+
 @defun marker-buffer marker
 This function returns the buffer that @var{marker} points into, or
 @code{nil} if it points nowhere.

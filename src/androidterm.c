@@ -361,22 +361,52 @@ static int
 android_android_to_emacs_modifiers (struct android_display_info *dpyinfo,
 				    int state)
 {
-  return (((state & ANDROID_CONTROL_MASK) ? ctrl_modifier  : 0)
-	  | ((state & ANDROID_SHIFT_MASK) ? shift_modifier : 0)
-	  | ((state & ANDROID_ALT_MASK)   ? meta_modifier  : 0)
-	  | ((state & ANDROID_SUPER_MASK) ? super_modifier : 0)
-	  | ((state & ANDROID_META_MASK)  ? alt_modifier   : 0));
+  int mod_ctrl = ctrl_modifier;
+  int mod_meta = meta_modifier;
+  int mod_alt  = alt_modifier;
+  int mod_super = super_modifier;
+  Lisp_Object tem;
+
+  tem = Fget (Vx_ctrl_keysym, Qmodifier_value);
+  if (FIXNUMP (tem)) mod_ctrl = XFIXNUM (tem) & INT_MAX;
+  tem = Fget (Vx_alt_keysym, Qmodifier_value);
+  if (FIXNUMP (tem)) mod_alt = XFIXNUM (tem) & INT_MAX;
+  tem = Fget (Vx_meta_keysym, Qmodifier_value);
+  if (FIXNUMP (tem)) mod_meta = XFIXNUM (tem) & INT_MAX;
+  tem = Fget (Vx_super_keysym, Qmodifier_value);
+  if (FIXNUMP (tem)) mod_super = XFIXNUM (tem) & INT_MAX;
+
+  return (((state & ANDROID_CONTROL_MASK) ? mod_ctrl		: 0)
+	  | ((state & ANDROID_SHIFT_MASK) ? shift_modifier	: 0)
+	  | ((state & ANDROID_ALT_MASK)   ? mod_meta		: 0)
+	  | ((state & ANDROID_SUPER_MASK) ? mod_super		: 0)
+	  | ((state & ANDROID_META_MASK)  ? mod_alt		: 0));
 }
 
 static int
 android_emacs_to_android_modifiers (struct android_display_info *dpyinfo,
 				    intmax_t state)
 {
-  return (((state & ctrl_modifier)    ? ANDROID_CONTROL_MASK : 0)
-	  | ((state & shift_modifier) ? ANDROID_SHIFT_MASK   : 0)
-	  | ((state & meta_modifier)  ? ANDROID_ALT_MASK     : 0)
-	  | ((state & super_modifier) ? ANDROID_SUPER_MASK   : 0)
-	  | ((state & alt_modifier)   ? ANDROID_META_MASK    : 0));
+  EMACS_INT mod_ctrl  = ctrl_modifier;
+  EMACS_INT mod_meta  = meta_modifier;
+  EMACS_INT mod_alt   = alt_modifier;
+  EMACS_INT mod_super = super_modifier;
+  Lisp_Object tem;
+
+  tem = Fget (Vx_ctrl_keysym, Qmodifier_value);
+  if (FIXNUMP (tem)) mod_ctrl = XFIXNUM (tem);
+  tem = Fget (Vx_alt_keysym, Qmodifier_value);
+  if (FIXNUMP (tem)) mod_alt = XFIXNUM (tem);
+  tem = Fget (Vx_meta_keysym, Qmodifier_value);
+  if (FIXNUMP (tem)) mod_meta = XFIXNUM (tem);
+  tem = Fget (Vx_super_keysym, Qmodifier_value);
+  if (FIXNUMP (tem)) mod_super = XFIXNUM (tem);
+
+  return (((state & mod_ctrl)		? ANDROID_CONTROL_MASK : 0)
+	  | ((state & shift_modifier)	? ANDROID_SHIFT_MASK   : 0)
+	  | ((state & mod_meta)		? ANDROID_ALT_MASK     : 0)
+	  | ((state & mod_super)	? ANDROID_SUPER_MASK   : 0)
+	  | ((state & mod_alt)		? ANDROID_META_MASK    : 0));
 }
 
 static void android_frame_rehighlight (struct android_display_info *);
@@ -6670,6 +6700,26 @@ Emacs is running on.  */);
     doc: /* Name of the developer of the running version of Android.  */);
   Vandroid_build_manufacturer = Qnil;
 
+  DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
+    doc: /* SKIP: real doc in xterm.c.  */);
+  Vx_ctrl_keysym = Qnil;
+
+  DEFVAR_LISP ("x-alt-keysym", Vx_alt_keysym,
+    doc: /* SKIP: real doc in xterm.c.  */);
+  Vx_alt_keysym = Qnil;
+
+  DEFVAR_LISP ("x-hyper-keysym", Vx_hyper_keysym,
+    doc: /* SKIP: real doc in xterm.c.  */);
+  Vx_hyper_keysym = Qnil;
+
+  DEFVAR_LISP ("x-meta-keysym", Vx_meta_keysym,
+    doc: /* SKIP: real doc in xterm.c.  */);
+  Vx_meta_keysym = Qnil;
+
+  DEFVAR_LISP ("x-super-keysym", Vx_super_keysym,
+    doc: /* SKIP: real doc in xterm.c.  */);
+  Vx_super_keysym = Qnil;
+
   /* Only defined so loadup.el loads scroll-bar.el.  */
   DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
     doc: /* SKIP: real doc in xterm.c.  */);
@@ -6683,6 +6733,17 @@ Emacs is running on.  */);
   /* Symbols defined for DND events.  */
   DEFSYM (Quri, "uri");
   DEFSYM (Qtext, "text");
+
+  /* Symbols defined for modifier value reassignment.  */
+  DEFSYM (Qmodifier_value, "modifier-value");
+  DEFSYM (Qctrl, "ctrl");
+  Fput (Qctrl, Qmodifier_value, make_fixnum (ctrl_modifier));
+  DEFSYM (Qalt, "alt");
+  Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
+  DEFSYM (Qmeta, "meta");
+  Fput (Qmeta, Qmodifier_value, make_fixnum (meta_modifier));
+  DEFSYM (Qsuper, "super");
+  Fput (Qsuper, Qmodifier_value, make_fixnum (super_modifier));
 }
 
 void

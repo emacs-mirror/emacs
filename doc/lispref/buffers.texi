@@ -371,6 +371,12 @@ See the related function @code{generate-new-buffer} in @ref{Creating
 Buffers}.
 @end defun
 
+@defun buffer-last-name &optional buffer
+This function returns the previous name of @var{buffer}, before it was
+killed or before the last time it was renamed.  If nil or omitted,
+@var{buffer} defaults to the current buffer.
+@end defun
+
 @node Buffer File Name
 @section Buffer File Name
 @cindex visited file

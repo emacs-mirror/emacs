@@ -288,13 +288,10 @@ Return them as multiple value."
                             (apply #'append
                                    (mapcar #'comp--direct-supertypes typeset)))
                 for subs = (comp--direct-subtypes sup)
-                when (and (length> subs 1) ;;FIXME: Why?
-                          ;; Every subtype of `sup` is a subtype of
-                          ;; some element of `typeset`?
-                          ;; It's tempting to just check (member x typeset),
-                          ;; but think of the typeset (marker number),
-                          ;; where `sup' is `integer-or-marker' and `sub'
-                          ;; is `integer'.
+                when (and (length> subs 1) ;; If there's only one sub do
+                                           ;; nothing as we want to
+                                           ;; return the most specific
+                                           ;; type.
                           (cl-every (lambda (sub)
                                       (cl-some (lambda (type)
                                                  (comp-subtype-p sub type))
@@ -575,7 +572,7 @@ All SRCS constraints must be homogeneously negated or non-negated."
           ;; We propagate only values those types are not already
           ;; into typeset.
           when (cl-notany (lambda (x)
-                            (comp-subtype-p (type-of v) x))
+                            (comp-subtype-p (cl-type-of v) x))
                           (comp-cstr-typeset dst))
           collect v)))
 
@@ -664,7 +661,7 @@ DST is returned."
 
             ;; Verify disjoint condition between positive types and
             ;; negative types coming from values, in case give-up.
-            (let ((neg-value-types (nconc (mapcar #'type-of (valset neg))
+            (let ((neg-value-types (nconc (mapcar #'cl-type-of (valset neg))
                                           (when (range neg)
                                             '(integer)))))
               (when (cl-some (lambda (x)
@@ -685,7 +682,7 @@ DST is returned."
              ((cl-some (lambda (x)
                          (cl-some (lambda (y)
                                     (comp-subtype-p y x))
-                                  (mapcar #'type-of (valset pos))))
+                                  (mapcar #'cl-type-of (valset pos))))
                        (typeset neg))
               (give-up))
              (t
@@ -1108,7 +1105,7 @@ DST is returned."
         (cl-loop for v in (valset dst)
                  unless (symbolp v)
                    do (push v strip-values)
-                      (push (type-of v) strip-types))
+                      (push (cl-type-of v) strip-types))
         (when strip-values
           (setf (typeset dst) (comp-union-typesets (typeset dst) strip-types)
                 (valset dst) (cl-set-difference (valset dst) strip-values)))

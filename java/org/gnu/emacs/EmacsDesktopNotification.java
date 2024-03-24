@@ -83,11 +83,16 @@ public final class EmacsDesktopNotification
      notification.  */
   public final String[] actions, titles;
 
+  /* Delay in miliseconds after which this notification should be
+     automatically dismissed.  */
+  public final long delay;
+
   public
   EmacsDesktopNotification (String title, String content,
 			    String group, String tag, int icon,
 			    int importance,
-			    String[] actions, String[] titles)
+			    String[] actions, String[] titles,
+			    long delay)
   {
     this.content    = content;
     this.title	    = title;
@@ -97,6 +102,7 @@ public final class EmacsDesktopNotification
     this.importance = importance;
     this.actions    = actions;
     this.titles     = titles;
+    this.delay      = delay;
   }
 
 
@@ -191,6 +197,8 @@ public final class EmacsDesktopNotification
 	builder.setContentTitle (title);
 	builder.setContentText (content);
 	builder.setSmallIcon (icon);
+	builder.setTimeoutAfter (delay);
+
 	insertActions (context, builder);
 	notification = builder.build ();
       }
@@ -200,35 +208,35 @@ public final class EmacsDesktopNotification
 	   distinct categories, but permit an importance to be
 	   assigned to each individual notification.  */
 
-	switch (importance)
-	  {
-	  case 2: /* IMPORTANCE_LOW */
-	  default:
-	    priority = Notification.PRIORITY_LOW;
-	    break;
-
-	  case 3: /* IMPORTANCE_DEFAULT */
-	    priority = Notification.PRIORITY_DEFAULT;
-	    break;
-
-	  case 4: /* IMPORTANCE_HIGH */
-	    priority = Notification.PRIORITY_HIGH;
-	    break;
-	  }
-
 	builder = new Notification.Builder (context);
 	builder.setContentTitle (title);
 	builder.setContentText (content);
 	builder.setSmallIcon (icon);
-	builder.setPriority (priority);
 
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-	  insertActions (context, builder);
+	  {
+	    switch (importance)
+	      {
+	      case 2: /* IMPORTANCE_LOW */
+	      default:
+		priority = Notification.PRIORITY_LOW;
+		break;
 
-	notification = builder.build ();
+	      case 3: /* IMPORTANCE_DEFAULT */
+		priority = Notification.PRIORITY_DEFAULT;
+		break;
 
-	if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN)
-	  notification.priority = priority;
+	      case 4: /* IMPORTANCE_HIGH */
+		priority = Notification.PRIORITY_HIGH;
+		break;
+	      }
+
+	    builder.setPriority (priority);
+	    insertActions (context, builder);
+	    notification = builder.build ();
+	  }
+	else
+	  notification = builder.getNotification ();
       }
     else
       {

@@ -6286,7 +6286,8 @@ value can be also stored on disk and read back in a new session."
       (when state
 	(let* ((old-buffer-or-name (car state))
 	       (buffer (get-buffer old-buffer-or-name))
-	       (state (cdr state)))
+	       (state (cdr state))
+	       (dedicated (cdr (assq 'dedicated state))))
 	  (if (buffer-live-p buffer)
 	      (with-current-buffer buffer
 		(set-window-buffer window buffer)
@@ -6345,7 +6346,7 @@ value can be also stored on disk and read back in a new session."
 				window delta t ignore nil nil nil pixelwise))
 		      (window-resize window delta t ignore pixelwise))))
 		;; Set dedicated status.
-		(set-window-dedicated-p window (cdr (assq 'dedicated state)))
+		(set-window-dedicated-p window dedicated)
 		;; Install positions (maybe we should do this after all
 		;; windows have been created and sized).
 		(ignore-errors
@@ -6388,12 +6389,12 @@ value can be also stored on disk and read back in a new session."
                                                  (set-marker (make-marker) m2
                                                              buffer))))))
                                    prev-buffers))))
-	    ;; We don't want to raise an error in case the buffer does
-	    ;; not exist anymore, so we switch to a previous one and
-	    ;; save the window with the intention of deleting it later
-	    ;; if possible.
-	    (switch-to-prev-buffer window)
-	    (if window-kept-windows-functions
+	    (unless (window-minibuffer-p window)
+	      ;; Preferably show a buffer previously shown in this
+	      ;; window.
+	      (switch-to-prev-buffer window)
+	      (cond
+	       ((functionp window-restore-killed-buffer-windows)
 		(let* ((start (cdr (assq 'start state)))
 		       ;; Handle both - marker positions from writable
 		       ;; states and markers from non-writable states.
@@ -6404,9 +6405,15 @@ value can be also stored on disk and read back in a new session."
 		       (point-pos (if (markerp point)
 				      (marker-last-position point)
 				    point)))
-		  (push (list window old-buffer-or-name start-pos point-pos)
-			window-state-put-kept-windows))
-	      (push window window-state-put-stale-windows))))))))
+		  (push (list window old-buffer-or-name
+			      start-pos point-pos dedicated nil)
+			window-state-put-kept-windows)))
+	       ((or (and dedicated
+			 (eq window-restore-killed-buffer-windows 'dedicated))
+		    (memq window-restore-killed-buffer-windows '(nil delete)))
+		;; Try to delete the window.
+		(push window window-state-put-stale-windows)))
+	      (set-window-dedicated-p window nil))))))))
 
 (defun window-state-put (state &optional window ignore)
   "Put window state STATE into WINDOW.
@@ -6421,16 +6428,9 @@ sizes and fixed size restrictions.  IGNORE equal `safe' means
 windows can get as small as `window-safe-min-height' and
 `window-safe-min-width'.
 
-If the abnormal hook `window-kept-windows-functions' is non-nil,
-do not delete any windows saved by STATE whose buffers were
-deleted since STATE was saved.  Rather, show some live buffer in
-them and call the functions in `window-kept-windows-functions'
-with a list of two arguments: the frame where STATE was put and a
-list of entries for each such window.  Each entry contains four
-elements - the window, its old buffer and the last positions of
-`window-start' and `window-point' for the buffer in that window.
-Always check the window for liveness because another function run
-by this hook may have deleted it."
+If this function tries to restore a non-minibuffer window whose buffer
+was killed since STATE was made, it will consult the variable
+`window-restore-killed-buffer-windows' on how to proceed."
   (setq window-state-put-stale-windows nil)
   (setq window-state-put-kept-windows nil)
 
@@ -6544,10 +6544,9 @@ by this hook may have deleted it."
 	  (when (and (window-valid-p window)
                      (eq (window-deletable-p window) t))
 	    (delete-window window))))
-      (when window-kept-windows-functions
-	(run-hook-with-args
-	 'window-kept-windows-functions
-	 frame window-state-put-kept-windows)
+      (when (functionp window-restore-killed-buffer-windows)
+	(funcall window-restore-killed-buffer-windows
+	 frame window-state-put-kept-windows 'state)
 	(setq window-state-put-kept-windows nil))
       (window--check frame))))
 
@@ -8669,11 +8668,11 @@ buffer.  ALIST is a buffer display action alist as compiled by
   use time is higher than this.
 
 - `window-min-width' specifies a preferred minimum width in
-  canonical frame columns.  If it is the constant `full-width',
+  canonical frame columns.  If it is the symbol `full-width',
   prefer a full-width window.
 
 - `window-min-height' specifies a preferred minimum height in
-  canonical frame lines.  If it is the constant `full-height',
+  canonical frame lines.  If it is the symbol `full-height',
   prefer a full-height window.
 
 If ALIST contains a non-nil `inhibit-same-window' entry, do not
@@ -8800,11 +8799,11 @@ Distinctive features are:
     call.
 
   `window-min-width' specifies a preferred minimum width in
-    canonical frame columns.  If it is the constant `full-width',
+    canonical frame columns.  If it is the symbol `full-width',
     prefer a full-width window.
 
   `window-min-height' specifies a preferred minimum height in
-    canonical frame lines.  If it is the constant `full-height',
+    canonical frame lines.  If it is the symbol `full-height',
     prefer a full-height window.
 
 - If the preceding steps fail, try to pop up a new window on the

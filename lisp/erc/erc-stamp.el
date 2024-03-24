@@ -623,6 +623,7 @@ printed just after each line's text (no alignment)."
         ((guard erc-stamp--display-margin-mode)
          (let ((s (propertize (substring-no-properties string)
                               'invisible erc-stamp--invisible-property)))
+           (insert " ")
            (put-text-property 0 (length string) 'display
                               `((margin right-margin) ,s)
                               string)))

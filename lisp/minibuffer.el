@@ -3163,18 +3163,30 @@ and `RET' accepts the input typed into the minibuffer."
   :type 'boolean
   :version "30.1")
 
+(defvar minibuffer-visible-completions--always-bind nil
+  "If non-nil, force the `minibuffer-visible-completions' bindings on.")
+
+(defun minibuffer-visible-completions--filter (cmd)
+  "Return CMD if `minibuffer-visible-completions' bindings should be active."
+  (if minibuffer-visible-completions--always-bind
+      cmd
+    (when-let ((window (get-buffer-window "*Completions*" 0)))
+      (when (and (eq (buffer-local-value 'completion-reference-buffer
+                                         (window-buffer window))
+                     (window-buffer (active-minibuffer-window)))
+                 (if (eq cmd #'minibuffer-choose-completion-or-exit)
+                     (with-current-buffer (window-buffer window)
+                       (get-text-property (point) 'completion--string))
+                   t))
+        cmd))))
+
 (defun minibuffer-visible-completions-bind (binding)
   "Use BINDING when completions are visible.
 Return an item that is enabled only when a window
 displaying the *Completions* buffer exists."
   `(menu-item
     "" ,binding
-    :filter ,(lambda (cmd)
-               (when-let ((window (get-buffer-window "*Completions*" 0)))
-                 (when (eq (buffer-local-value 'completion-reference-buffer
-                                               (window-buffer window))
-                           (window-buffer (active-minibuffer-window)))
-                   cmd)))))
+    :filter ,#'minibuffer-visible-completions--filter))
 
 (defvar-keymap minibuffer-visible-completions-map
   :doc "Local keymap for minibuffer input with visible completions."

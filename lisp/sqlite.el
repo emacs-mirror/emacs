@@ -32,7 +32,8 @@
 If BODY completes normally, commit the changes and return
 the value of BODY.
 If BODY signals an error, or transaction commit fails, roll
-back the transaction changes."
+back the transaction changes before allowing the signal to
+propagate."
   (declare (indent 1) (debug (form body)))
   (let ((db-var (gensym))
         (func-var (gensym))
@@ -48,8 +49,8 @@ back the transaction changes."
                  (setq ,res-var (funcall ,func-var))
                  (setq ,commit-var (sqlite-commit ,db-var))
                  ,res-var)
-             (or ,commit-var (sqlite-rollback ,db-var))))
-         (funcall ,func-var))))
+             (or ,commit-var (sqlite-rollback ,db-var)))
+         (funcall ,func-var)))))
 
 (provide 'sqlite)
 

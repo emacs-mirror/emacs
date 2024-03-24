@@ -218,6 +218,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 
     <activity android:name="org.gnu.emacs.EmacsActivity"
 	      android:launchMode="singleInstance"
+	      android:taskAffinity="emacs.primary_frame"
 	      android:windowSoftInputMode="adjustResize"
 	      android:exported="true"
 	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|locale|fontScale">
@@ -229,7 +230,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
     </activity>
 
     <activity android:name="org.gnu.emacs.EmacsOpenActivity"
-	      android:taskAffinity="open.dialog"
+	      android:taskAffinity="emacs.open_dialog"
 	      android:excludeFromRecents="true"
 	      android:exported="true">
 
@@ -273,6 +274,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
     </activity>
 
     <activity android:name="org.gnu.emacs.EmacsMultitaskActivity"
+	      android:taskAffinity="emacs.secondary_frame"
 	      android:windowSoftInputMode="adjustResize"
 	      android:exported="true"
 	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|locale|fontScale"/>

@@ -735,20 +735,33 @@ Signal an error if the entire string was not used."
   (let ((thing (thing-at-point 'symbol)))
     (if thing (intern thing))))
 
+(defvar thing-at-point-decimal-regexp
+  "-?[0-9]+\\.?[0-9]*"
+  "A regexp matching a decimal number.")
+
+(defvar thing-at-point-hexadecimal-regexp
+  "\\(0x\\|#x\\)\\([a-fA-F0-9]+\\)"
+  "A regexp matchin a hexadecimal number.")
+
 ;;;###autoload
 (defun number-at-point ()
   "Return the number at point, or nil if none is found.
 Decimal numbers like \"14\" or \"-14.5\", as well as hex numbers
 like \"0xBEEF09\" or \"#xBEEF09\", are recognized."
   (cond
-   ((thing-at-point-looking-at "\\(0x\\|#x\\)\\([a-fA-F0-9]+\\)" 500)
+   ((thing-at-point-looking-at thing-at-point-hexadecimal-regexp 500)
     (string-to-number
      (buffer-substring (match-beginning 2) (match-end 2))
      16))
-   ((thing-at-point-looking-at "-?[0-9]+\\.?[0-9]*" 500)
+   ((thing-at-point-looking-at thing-at-point-decimal-regexp 500)
     (string-to-number
      (buffer-substring (match-beginning 0) (match-end 0))))))
 
+(put 'number 'bounds-of-thing-at-point
+     (lambda ()
+       (and (or (thing-at-point-looking-at thing-at-point-hexadecimal-regexp 500)
+                (thing-at-point-looking-at thing-at-point-decimal-regexp 500))
+            (cons (match-beginning 0) (match-end 0)))))
 (put 'number 'forward-op 'forward-word)
 (put 'number 'thing-at-point 'number-at-point)
 

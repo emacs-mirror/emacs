@@ -4052,8 +4052,8 @@ programs.  It takes two optional arguments, @var{type} and
 
 The @var{data-type} argument specifies the form of data conversion to
 use, to convert the raw data obtained from another program into Lisp
-data.  @xref{X Selections}, for an enumeration of data types valid
-under X, and @xref{Other Selections} for those elsewhere.
+data.  @xref{X Selections}, for an enumeration of data types valid under
+X, and @pxref{Other Selections} for those elsewhere.
 @end defun
 
 @defopt selection-coding-system

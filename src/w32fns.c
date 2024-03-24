@@ -47,8 +47,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32inevt.h"
 
 #ifdef WINDOWSNT
+/* mingw.org's MinGW headers mistakenly omit this enumeration: */
+# ifndef MINGW_W64
+typedef enum _WTS_VIRTUAL_CLASS {
+  WTSVirtualClientData,
+  WTSVirtualFileHandle
+} WTS_VIRTUAL_CLASS;
+# endif
 #include <mbstring.h>
 #include <mbctype.h>	/* for _getmbcp */
+#include <wtsapi32.h>	/* for WTS(Un)RegisterSessionNotification */
 #endif /* WINDOWSNT */
 
 #if CYGWIN
@@ -204,6 +212,10 @@ typedef HRESULT (WINAPI * SetWindowTheme_Proc)
 typedef HRESULT (WINAPI * DwmSetWindowAttribute_Proc)
   (HWND hwnd, DWORD dwAttribute, IN LPCVOID pvAttribute, DWORD cbAttribute);
 
+typedef BOOL (WINAPI * WTSRegisterSessionNotification_Proc)
+  (HWND hwnd, DWORD dwFlags);
+typedef BOOL (WINAPI * WTSUnRegisterSessionNotification_Proc) (HWND hwnd);
+
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
 ImmGetContext_Proc get_ime_context_fn = NULL;
@@ -220,6 +232,8 @@ IsDebuggerPresent_Proc is_debugger_present = NULL;
 SetThreadDescription_Proc set_thread_description = NULL;
 SetWindowTheme_Proc SetWindowTheme_fn = NULL;
 DwmSetWindowAttribute_Proc DwmSetWindowAttribute_fn = NULL;
+WTSUnRegisterSessionNotification_Proc WTSUnRegisterSessionNotification_fn = NULL;
+WTSRegisterSessionNotification_Proc WTSRegisterSessionNotification_fn = NULL;
 
 extern AppendMenuW_Proc unicode_append_menu;
 
@@ -291,10 +305,12 @@ static unsigned int sound_type = 0xFFFFFFFF;
 /* Special virtual key code for indicating "any" key.  */
 #define VK_ANY 0xFF
 
-#ifndef WM_WTSSESSION_CHANGE
+#ifdef WINDOWSNT
+# ifndef WM_WTSSESSION_CHANGE
 /* 32-bit MinGW does not define these constants.  */
-# define WM_WTSSESSION_CHANGE  0x02B1
-# define WTS_SESSION_LOCK      0x7
+#  define WM_WTSSESSION_CHANGE  0x02B1
+#  define WTS_SESSION_LOCK      0x7
+# endif
 #endif
 
 #ifndef WS_EX_NOACTIVATE
@@ -307,6 +323,7 @@ static struct
   int hook_count; /* counter, if several windows are created */
   HHOOK hook;     /* hook handle */
   HWND console;   /* console window handle */
+  HWND notified_wnd; /* window that receives session notifications */
 
   int lwindown;      /* Left Windows key currently pressed (and hooked) */
   int rwindown;      /* Right Windows key currently pressed (and hooked) */
@@ -2744,7 +2761,7 @@ funhook (int code, WPARAM w, LPARAM l)
 /* Set up the hook; can be called several times, with matching
    remove_w32_kbdhook calls.  */
 void
-setup_w32_kbdhook (void)
+setup_w32_kbdhook (HWND hwnd)
 {
   kbdhook.hook_count++;
 
@@ -2800,6 +2817,15 @@ setup_w32_kbdhook (void)
       /* Set the hook.  */
       kbdhook.hook = SetWindowsHookEx (WH_KEYBOARD_LL, funhook,
 				       GetModuleHandle (NULL), 0);
+
+      /* Register session notifications so we get notified about the
+	 computer being locked.  */
+      kbdhook.notified_wnd = NULL;
+      if (hwnd != NULL && WTSRegisterSessionNotification_fn != NULL)
+	{
+	  WTSRegisterSessionNotification_fn (hwnd, NOTIFY_FOR_THIS_SESSION);
+	  kbdhook.notified_wnd = hwnd;
+	}
     }
 }
 
@@ -2811,7 +2837,11 @@ remove_w32_kbdhook (void)
   if (kbdhook.hook_count == 0 && w32_kbdhook_active)
     {
       UnhookWindowsHookEx (kbdhook.hook);
+      if (kbdhook.notified_wnd != NULL
+	  && WTSUnRegisterSessionNotification_fn != NULL)
+	  WTSUnRegisterSessionNotification_fn (kbdhook.notified_wnd);
       kbdhook.hook = NULL;
+      kbdhook.notified_wnd = NULL;
     }
 }
 #endif	/* WINDOWSNT */
@@ -2884,13 +2914,12 @@ check_w32_winkey_state (int vkey)
     }
   return 0;
 }
-#endif	/* WINDOWSNT */
 
 /* Reset the keyboard hook state.  Locking the workstation with Win-L
    leaves the Win key(s) "down" from the hook's point of view - the
    keyup event is never seen.  Thus, this function must be called when
    the system is locked.  */
-static void
+void
 reset_w32_kbdhook_state (void)
 {
   kbdhook.lwindown = 0;
@@ -2900,6 +2929,7 @@ reset_w32_kbdhook_state (void)
   kbdhook.suppress_lone = 0;
   kbdhook.winseen = 0;
 }
+#endif	/* WINDOWSNT */
 
 /* GetKeyState and MapVirtualKey on Windows 95 do not actually distinguish
    between left and right keys as advertised.  We test for this
@@ -4129,6 +4159,47 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
   return 0;
 }
 
+/* Maybe pass session notification registration to another frame.  If
+   the frame with window handle HWND is deleted, we must pass the
+   notifications to some other frame, if they have been sent to this
+   frame before and have not already been passed on.  If there is no
+   other frame, do nothing.  */
+
+#ifdef WINDOWSNT
+static void
+maybe_pass_notification (HWND hwnd)
+{
+  if (hwnd == kbdhook.notified_wnd
+      && kbdhook.hook_count > 0 && w32_kbdhook_active)
+    {
+      Lisp_Object tail, frame;
+      struct frame *f;
+      bool found_frame = false;
+
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  f = XFRAME (frame);
+	  if (FRAME_W32_P (f) && FRAME_OUTPUT_DATA (f) != NULL
+	      && FRAME_W32_WINDOW (f) != hwnd)
+	    {
+	      found_frame = true;
+	      break;
+	    }
+	}
+
+      if (found_frame && WTSUnRegisterSessionNotification_fn != NULL
+	  && WTSRegisterSessionNotification_fn != NULL)
+	{
+	  /* There is another frame, pass on the session notification.  */
+	  HWND next_wnd = FRAME_W32_WINDOW (f);
+	  WTSUnRegisterSessionNotification_fn (hwnd);
+	  WTSRegisterSessionNotification_fn (next_wnd, NOTIFY_FOR_THIS_SESSION);
+	  kbdhook.notified_wnd = next_wnd;
+	}
+    }
+}
+#endif	/* WINDOWSNT */
+
 /* Main window procedure */
 
 static LRESULT CALLBACK
@@ -5301,23 +5372,29 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 #ifdef WINDOWSNT
     case WM_CREATE:
-      setup_w32_kbdhook ();
+      setup_w32_kbdhook (hwnd);
       goto dflt;
 #endif
 
     case WM_DESTROY:
 #ifdef WINDOWSNT
+      maybe_pass_notification (hwnd);
       remove_w32_kbdhook ();
 #endif
       CoUninitialize ();
       return 0;
 
+#ifdef WINDOWSNT
     case WM_WTSSESSION_CHANGE:
       if (wParam == WTS_SESSION_LOCK)
         reset_w32_kbdhook_state ();
       goto dflt;
+#endif
 
     case WM_CLOSE:
+#ifdef WINDOWSNT
+      maybe_pass_notification (hwnd);
+#endif
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       return 0;
@@ -11334,6 +11411,14 @@ globals_of_w32fns (void)
     get_proc_addr (hm_kernel32, "IsDebuggerPresent");
   set_thread_description = (SetThreadDescription_Proc)
     get_proc_addr (hm_kernel32, "SetThreadDescription");
+
+#ifdef WINDOWSNT
+  HMODULE wtsapi32_lib = LoadLibrary ("wtsapi32.dll");
+  WTSRegisterSessionNotification_fn = (WTSRegisterSessionNotification_Proc)
+    get_proc_addr (wtsapi32_lib, "WTSRegisterSessionNotification");
+  WTSUnRegisterSessionNotification_fn = (WTSUnRegisterSessionNotification_Proc)
+    get_proc_addr (wtsapi32_lib, "WTSUnRegisterSessionNotification");
+#endif
 
   /* Support OS dark mode on Windows 10 version 1809 and higher.
      See `w32_applytheme' which uses appropriate APIs per version of Windows.

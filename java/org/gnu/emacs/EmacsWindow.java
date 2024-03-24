@@ -23,7 +23,6 @@ import java.lang.IllegalStateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -31,6 +30,7 @@ import android.app.Activity;
 
 import android.content.ClipData;
 import android.content.ClipDescription;
+import android.content.ContentResolver;
 import android.content.Context;
 
 import android.graphics.Rect;
@@ -49,6 +49,7 @@ import android.view.View;
 import android.view.ViewManager;
 import android.view.WindowManager;
 
+import android.util.SparseArray;
 import android.util.Log;
 
 import android.os.Build;
@@ -108,7 +109,7 @@ public final class EmacsWindow extends EmacsHandleObject
 
   /* Map between pointer identifiers and last known position.  Used to
      compute which pointer changed upon a touch event.  */
-  private HashMap<Integer, Coordinate> pointerMap;
+  private SparseArray<Coordinate> pointerMap;
 
   /* The window consumer currently attached, if it exists.  */
   private EmacsWindowAttachmentManager.WindowConsumer attached;
@@ -165,7 +166,7 @@ public final class EmacsWindow extends EmacsHandleObject
     super (handle);
 
     rect = new Rect (x, y, x + width, y + height);
-    pointerMap = new HashMap<Integer, Coordinate> ();
+    pointerMap = new SparseArray<Coordinate> ();
 
     /* Create the view from the context's UI thread.  The window is
        unmapped, so the view is GONE.  */
@@ -1000,7 +1001,8 @@ public final class EmacsWindow extends EmacsHandleObject
       case MotionEvent.ACTION_CANCEL:
 	/* Primary pointer released with index 0.  */
 	pointerID = event.getPointerId (0);
-	coordinate = pointerMap.remove (pointerID);
+	coordinate = pointerMap.get (pointerID);
+	pointerMap.delete (pointerID);
 	break;
 
       case MotionEvent.ACTION_POINTER_DOWN:
@@ -1019,7 +1021,8 @@ public final class EmacsWindow extends EmacsHandleObject
 	/* Pointer removed.  Remove it from the map.  */
 	pointerIndex = event.getActionIndex ();
 	pointerID = event.getPointerId (pointerIndex);
-	coordinate = pointerMap.remove (pointerID);
+	coordinate = pointerMap.get (pointerID);
+	pointerMap.delete (pointerID);
 	break;
 
       default:
@@ -1699,10 +1702,11 @@ public final class EmacsWindow extends EmacsHandleObject
     ClipData data;
     ClipDescription description;
     int i, j, x, y, itemCount;
-    String type;
+    String type, uriString;
     Uri uri;
     EmacsActivity activity;
     StringBuilder builder;
+    ContentResolver resolver;
 
     x = (int) event.getX ();
     y = (int) event.getY ();
@@ -1799,6 +1803,20 @@ public final class EmacsWindow extends EmacsHandleObject
 	      {
 		if ((activity.requestDragAndDropPermissions (event) == null))
 		  uri = null;
+		else
+		  {
+		    resolver = activity.getContentResolver ();
+
+		    /* Substitute a content file name for the URI, if
+		       possible.  */
+		    uriString = EmacsService.buildContentName (uri, resolver);
+
+		    if (uriString != null)
+		      {
+			builder.append (uriString).append ("\n");
+			continue;
+		      }
+		  }
 	      }
 
 	    if (uri != null)

@@ -865,7 +865,7 @@ insert_args (struct exec_tracee *tracee, USER_REGS_STRUCT *regs,
    result in *IN, and return a pointer to the byte after the
    result.  REM should be NULL.  */
 
-static char *
+char *
 format_pid (char *in, unsigned int pid)
 {
   unsigned int digits[32], *fill;

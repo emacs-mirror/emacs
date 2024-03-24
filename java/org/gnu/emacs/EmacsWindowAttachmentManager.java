@@ -124,9 +124,14 @@ public final class EmacsWindowAttachmentManager
 
     intent = new Intent (EmacsService.SERVICE,
 			 EmacsMultitaskActivity.class);
-    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_DOCUMENT
-		     | Intent.FLAG_ACTIVITY_NEW_TASK
+
+    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
 		     | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+
+    /* Intent.FLAG_ACTIVITY_NEW_DOCUMENT is lamentably unavailable on
+       older systems than Lolipop.  */
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+      intent.addFlags (Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
       EmacsService.SERVICE.startActivity (intent);

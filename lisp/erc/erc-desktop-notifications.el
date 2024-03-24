@@ -54,6 +54,9 @@
 
 (defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
 
+(declare-function haiku-notifications-notify "haikuselect.c")
+(declare-function android-notifications-notify "androidselect.c")
+
 (defun erc-notifications-notify (nick msg &optional privp)
   "Notify that NICK send some MSG, where PRIVP should be non-nil for PRIVMSGs.
 This will replace the last notification sent with this function."
@@ -64,14 +67,19 @@ This will replace the last notification sent with this function."
           (let* ((channel (if privp (erc-get-buffer nick) (current-buffer)))
                  (title (format "%s in %s" (xml-escape-string nick t) channel))
                  (body (xml-escape-string (erc-controls-strip msg) t)))
-            (notifications-notify :bus erc-notifications-bus
-                                  :title title
-                                  :body body
-                                  :replaces-id erc-notifications-last-notification
-                                  :app-icon erc-notifications-icon
-                                  :actions '("default" "Switch to buffer")
-                                  :on-action (lambda (&rest _)
-                                               (pop-to-buffer channel)))))))
+            (funcall (cond ((featurep 'android)
+                            #'android-notifications-notify)
+                           ((featurep 'haiku)
+                            #'haiku-notifications-notify)
+                           (t #'notifications-notify))
+                     :bus erc-notifications-bus
+                     :title title
+                     :body body
+                     :replaces-id erc-notifications-last-notification
+                     :app-icon erc-notifications-icon
+                     :actions '("default" "Switch to buffer")
+                     :on-action (lambda (&rest _)
+                                  (pop-to-buffer channel)))))))
 
 (defun erc-notifications-PRIVMSG (_proc parsed)
   (let ((nick (car (erc-parse-user (erc-response.sender parsed))))

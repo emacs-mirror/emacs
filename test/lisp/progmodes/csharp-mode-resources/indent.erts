@@ -1,0 +1,19 @@
+Code:
+  (lambda ()
+    (csharp-mode)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: |
+
+Name: Don't consider closed statements as object initializers. (bug#69571)
+
+=-=
+public class Foo {
+    void Bar () {
+        var x = new X();            // [1]
+        for (;;) {
+            x();
+        }  // [2]
+    }
+}
+=-=-=

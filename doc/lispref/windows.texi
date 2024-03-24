@@ -6264,15 +6264,10 @@ this function does is to restore the value of the variable
 @code{minibuffer-selected-window}.  In this case, the function returns
 @code{nil}.  Otherwise, it returns @code{t}.
 
-If the buffer of a window of @var{configuration} has been killed since
-@var{configuration} was made, that window is, as a rule, removed from
-the restored configuration.  However, if that window is the last window
-remaining in the restored configuration, another live buffer is shown in
-it.  Also, if the variable @var{window-kept-windows-functions} is
-non-@code{nil}, any window whose buffer is now dead is not deleted.
-Rather, this function will show another live buffer in that window and
-include an entry for that window when calling any function in
-@var{window-kept-windows-functions} (@pxref{Window Hooks}).
+This function consults the variable
+@code{window-restore-killed-buffer-windows} (see below) when it tries to
+restore a window whose buffer was killed after @var{configuration} was
+recorded.
 
 Here is a way of using this function to get the same effect as
 @code{save-window-excursion}:
@@ -6361,20 +6356,87 @@ a live window, it is replaced by a new live window created on the same
 frame before putting @var{state} into it.  If @var{window} is @code{nil},
 it puts the window state into a new window.
 
-If the buffer of any window recorded in @var{state} has been killed
-since @var{state} was made, that window is, as a rule, not restored.
-However, if that window is the only window in @var{state}, another live
-buffer will be shown in it.  Also, if the variable
-@var{window-kept-windows-functions} is non-@code{nil}, any window whose
-buffer is now dead is restored.  This function will show another live
-buffer in it and include an entry for that window when calling a
-function in @var{window-kept-windows-functions} (@pxref{Window Hooks}).
+This function consults the variable
+@code{window-restore-killed-buffer-windows} (see below) when it tries to
+restore a window whose buffer was killed after @var{state} was recorded.
 
 If the optional argument @var{ignore} is non-@code{nil}, it means to ignore
 minimum window sizes and fixed-size restrictions.  If @var{ignore}
 is @code{safe}, this means windows can get as small as one line
 and/or two columns.
 @end defun
+
+By default, @code{set-window-configuration} and @code{window-state-put}
+may delete a window from the restored configuration when they find out
+that its buffer was killed since the corresponding configuration or
+state has been recorded.  The variable described next can be used to
+fine-tune that behavior.
+
+@cindex restoring windows whose buffers have been killed
+@defvar window-restore-killed-buffer-windows
+This variable specifies how @code{set-window-configuration} and
+@code{window-state-put} shall handle a window whose buffer has been
+killed since the corresponding configuration or state was recorded.  Any
+such window may be live---in which case it shows some other buffer---or
+dead at the time one of these functions is called.  Usually,
+@code{set-window-configuration} leaves the window alone if it is live
+while @code{window-state-put} deletes it.
+
+The following values can be used to override the default behavior for
+dead windows in the case of @code{set-window-configuration} and for dead
+and live windows in the case of @code{window-state-put}.
+
+@table @asis
+@item @code{t}
+This value means to unconditionally restore the window and show some
+other buffer in it.
+
+@item @code{delete}
+This means to unconditionally try to delete the window.
+
+@item @code{dedicated}
+This means to try to delete the window if and only if it is dedicated to
+its buffer.
+
+@item @code{nil}
+This is the default, and it means that @code{set-window-configuration}
+will try to delete the window if and only if it is dedicated to its
+buffer, and @code{window-state-put} will unconditionally try to delete
+it.
+
+@item a function
+This means to restore the window and show some other buffer in it, like
+if the value is @code{t}, and also add an entry for that window to a
+list that will be later passed as the second argument to that function.
+@end table
+
+If a window cannot be deleted (typically, because it is the last window
+on its frame), @code{set-window-configuration} and
+@code{window-state-put} will show another buffer in it.
+
+If the value of this variable is a function, that function should take
+three arguments.  The first argument specifies the frame whose windows
+have been restored.  The third argument is either the symbol
+@code{configuration} if the windows are restored by
+@code{set-window-configuration}, or the symbol @code{state} if the
+windows are restored by @code{window-state-put}.
+
+The second argument specifies a list of entries for @emph{all} windows
+whose previous buffers have been found dead at the time
+@code{set-window-configuration} or @code{window-state-put} tried to
+restore them (minibuffer windows are excluded).  This means that the
+function may also delete windows which were found live by
+@code{set-window-configuration}.
+
+Each entry in the list that is passed as the second argument to the
+function is itself a list of six values: the window whose buffer was
+found dead, the dead buffer or its name, the positions of window-start
+(@pxref{Window Start and End}) and window-point (@pxref{Window Point})
+of the buffer in that window, the dedicated state of the window as
+previously reported by @code{window-dedicated-p} and a flag that is
+@code{t} if the window has been found to be alive by
+@code{set-window-configuration} and @code{nil} otherwise.
+@end defvar
 
 The functions @code{window-state-get} and @code{window-state-put} also
 allow exchanging the contents of two live windows.  The following
@@ -6635,27 +6697,6 @@ In addition, you can use @code{jit-lock-register} to register a Font
 Lock fontification function, which will be called whenever parts of a
 buffer are (re)fontified because a window was scrolled or its size
 changed.  @xref{Other Font Lock Variables}.
-
-@cindex window kept windows functions
-@defvar window-kept-windows-functions
-   This variable holds a list of functions that Emacs will call after
-restoring a window configuration via @code{set-window-configuration} or
-state via @code{window-state-put} (@pxref{Window Configurations}).  When
-the value of this variable is non-@code{nil}, these functions will not
-delete any window whose buffer has been killed since the corresponding
-configuration or state was saved, but show some live buffer in it.
-
-The value should be a list of functions that take two arguments.  The
-first argument specifies the frame whose windows have been restored.
-The second argument specifies a list of entries for each window whose
-buffer has been found dead at the time @code{set-window-configuration}
-or @code{window-state-put} tried to restore it.  Each entry is a list of
-four values - the window whose buffer was found dead, the dead buffer,
-and the last known positions of start and point of the buffer in that
-window.  Any function run by this hook should check that the window is
-live since another function run by this hook may have deleted it in the
-meantime.
-@end defvar
 
 @cindex window change functions
    The remainder of this section covers six hooks that are called

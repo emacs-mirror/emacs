@@ -168,11 +168,11 @@
            (put-text-property 0 (length msg) 'wrap-prefix 10 msg)
            (erc-display-message nil nil (current-buffer) msg)))
        (goto-char (point-min))
-       ;; Space not added (treated as opaque string).
-       (should (search-forward "msg one[" nil t))
-       ;; Field covers stamp alone
+       ;; Leading space added as part of the stamp's field.
+       (should (search-forward "msg one [" nil t))
+       ;; Field covers stamp and space.
        (should (eql ?e (char-before (field-beginning (point)))))
-       ;; Vanity props extended
+       ;; Vanity props extended.
        (should (get-text-property (field-beginning (point)) 'wrap-prefix))
        (should (get-text-property (1+ (field-beginning (point))) 'wrap-prefix))
        (should (get-text-property (1- (field-end (point))) 'wrap-prefix))
@@ -183,10 +183,10 @@
              (erc-timestamp-right-column 20))
          (let ((msg (erc-format-privmessage "bob" "tttt wwww oooo" nil t)))
            (erc-display-message nil nil (current-buffer) msg)))
-       ;; No hard wrap
-       (should (search-forward "oooo[" nil t))
-       ;; Field starts at format string (right bracket)
-       (should (eql ?\[ (char-after (field-beginning (point)))))
+       ;; No hard wrap.
+       (should (search-forward "oooo [" nil t))
+       ;; Field starts at managed space before format string.
+       (should (eql ?\s (char-after (field-beginning (point)))))
        (should (eql ?\n (char-after (field-end (point)))))))))
 
 ;; This concerns a proposed partial reversal of the changes resulting

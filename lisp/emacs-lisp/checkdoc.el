@@ -2794,7 +2794,7 @@ function called to create the messages."
                     ": " msg)))
     (if (string= checkdoc-diagnostic-buffer "*warn*")
         (warn (apply #'concat text))
-      (with-current-buffer (get-buffer checkdoc-diagnostic-buffer)
+      (with-current-buffer checkdoc-diagnostic-buffer
           (let ((inhibit-read-only t)
                 (pt (point-max)))
             (goto-char pt)

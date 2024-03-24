@@ -315,7 +315,7 @@ local reference."
         (replace-match "`src/emacs-module-resources/"))
       (should (equal
                (buffer-substring-no-properties 1 (point-max))
-               (format "a module function in `src/emacs-module-resources/mod-test%s'.
+               (format "a module-function in `src/emacs-module-resources/mod-test%s'.
 
 (mod-test-sum a b)
 

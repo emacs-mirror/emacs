@@ -93,7 +93,7 @@
      (mapcar #'org-trim
 	     (split-string (org-babel-expand-body:calc body params) "[\n\r]"))))
   (save-excursion
-    (with-current-buffer (get-buffer "*Calculator*")
+    (with-current-buffer "*Calculator*"
       (prog1
           (calc-eval (calc-top 1))
         (calc-pop 1)))))

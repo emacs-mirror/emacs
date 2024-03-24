@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "coding.h"
 #include "xwidget.h"
-
 #include "lisp.h"
 #include "blockinput.h"
 #include "dispextern.h"
@@ -379,6 +378,8 @@ fails.  */)
 	  /* Enable the developer extras.  */
 	  settings = webkit_web_view_get_settings (WEBKIT_WEB_VIEW (xw->widget_osr));
 	  g_object_set (G_OBJECT (settings), "enable-developer-extras", TRUE, NULL);
+	  g_object_set (G_OBJECT (settings), "enable-javascript",
+		        (gboolean) (!xwidget_webkit_disable_javascript), NULL);
 	}
 
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width,
@@ -3971,6 +3972,13 @@ syms_of_xwidget (void)
   DEFVAR_LISP ("xwidget-view-list", Vxwidget_view_list,
 	       doc: /* List of all xwidget views.  */);
   Vxwidget_view_list = Qnil;
+
+  DEFVAR_BOOL ("xwidget-webkit-disable-javascript", xwidget_webkit_disable_javascript,
+    doc: /* If non-nil, disable execution of JavaScript in xwidget WebKit widgets.
+Modifications to this setting do not take effect in existing WebKit
+widgets; kill all xwidget-webkit buffers for changes in this setting
+to take effect.  */);
+  xwidget_webkit_disable_javascript = false;
 
   Fprovide (intern ("xwidget-internal"), Qnil);
 

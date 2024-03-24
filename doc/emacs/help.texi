@@ -310,6 +310,13 @@ name is defined as a Lisp function.  Type @kbd{C-g} to cancel the
 @kbd{C-h f} command if you don't really want to view the
 documentation.
 
+  The function's documentation displayed by @code{describe-function}
+includes more than just the documentation string and the signature of
+the function.  It also shows auxiliary information such as its type, the
+file where it was defined, whether it has been declared obsolete, and
+yet further information is often reachable by clicking or typing
+@key{RET} on emphasized parts of the text.
+
 @vindex help-enable-symbol-autoload
   If you request help for an autoloaded function whose @code{autoload}
 form (@pxref{Autoload,,, elisp, The Emacs Lisp Reference Manual})

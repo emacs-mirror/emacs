@@ -754,6 +754,19 @@ bidi_cache_find_level_change (int level, int dir, bool before)
   return -1;
 }
 
+/* Find the previous character position where LEVEL changes to a lower
+   one.  Return -1 if not found (which really shouldn't happen if this
+   function is called on a backward scan).  */
+ptrdiff_t
+bidi_level_start (int level)
+{
+  ptrdiff_t slot = bidi_cache_find_level_change (level, -1, true);
+
+  if (slot >= 0)
+    return bidi_cache[slot].charpos;
+  return -1;
+}
+
 static void
 bidi_cache_ensure_space (ptrdiff_t idx)
 {

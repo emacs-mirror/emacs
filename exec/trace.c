@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include "exec.h"
 
@@ -894,6 +895,98 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
   return 3;
 }
 
+
+
+/* Define replacements for required string functions.  */
+
+#if !defined HAVE_STPCPY || !defined HAVE_DECL_STPCPY
+
+/* Copy SRC to DEST, returning the address of the terminating '\0' in
+   DEST.  */
+
+static char *
+rpl_stpcpy (char *dest, const char *src)
+{
+  register char *d;
+  register const char *s;
+
+  d = dest;
+  s = src;
+
+  do
+    *d++ = *s;
+  while (*s++ != '\0');
+
+  return d - 1;
+}
+
+#define stpcpy rpl_stpcpy
+#endif /* !defined HAVE_STPCPY || !defined HAVE_DECL_STPCPY */
+
+
+
+/* Modify BUFFER, of size SIZE, so that it holds the absolute name of
+   the file identified by BUFFER, relative to the current working
+   directory of TRACEE if FD be AT_FDCWD, or the file referenced by FD
+   otherwise.
+
+   Value is 1 if this information is unavailable (of which there are
+   variety of causes), and 0 on success.  */
+
+static int
+canon_path (struct exec_tracee *tracee, int fd, char *buffer,
+	    ptrdiff_t size)
+{
+  char link[sizeof "/proc//fd/" + 48], *p; /* Or /proc/pid/cwd.  */
+  char target[PATH_MAX];
+  ssize_t rc, length;
+
+  if (buffer[0] == '/')
+    /* Absolute file name; return immediately.  */
+    return 0;
+  else if (fd == AT_FDCWD)
+    {
+      p = stpcpy (link, "/proc/");
+      p = format_pid (p, tracee->pid);
+      stpcpy (p, "/cwd");
+    }
+  else if (fd < 0)
+    /* Invalid file descriptor.  */
+    return 1;
+  else
+    {
+      p = stpcpy (link, "/proc/");
+      p = format_pid (p, tracee->pid);
+      p = stpcpy (p, "/fd/");
+      format_pid (p, fd);
+    }
+
+  /* Read LINK's target, and should it be oversized, punt.  */
+  rc = readlink (link, target, PATH_MAX);
+  if (rc < 0 || rc >= PATH_MAX)
+    return 1;
+
+  /* Consider the amount by which BUFFER's existing contents should be
+     displaced.  */
+
+  length = strlen (buffer) + 1;
+  if ((length + rc + (target[rc - 1] != '/')) > size)
+    /* Punt if this would overflow.  */
+    return 1;
+
+  memmove ((buffer + rc + (target[rc - 1] != '/')),
+	   buffer, length);
+
+  /* Copy the new file name into BUFFER.  */
+  memcpy (buffer, target, rc);
+
+  /* Insert separator in between if need be.  */
+  if (target[rc - 1] != '/')
+    buffer[rc] = '/';
+
+  return 0;
+}
+
 /* Handle a `readlink' or `readlinkat' system call.
 
    CALLNO is the system call number, and REGS are the current user
@@ -924,22 +1017,26 @@ handle_readlinkat (USER_WORD callno, USER_REGS_STRUCT *regs,
   char buffer[PATH_MAX + 1];
   USER_WORD address, return_buffer, size;
   size_t length;
+  char proc_pid_exe[sizeof "/proc//exe" + 24], *p;
+  int dirfd;
 
   /* Read the file name.  */
 
 #ifdef READLINK_SYSCALL
   if (callno == READLINK_SYSCALL)
     {
-      address = regs->SYSCALL_ARG_REG;
+      dirfd	    = AT_FDCWD;
+      address	    = regs->SYSCALL_ARG_REG;
       return_buffer = regs->SYSCALL_ARG1_REG;
-      size = regs->SYSCALL_ARG2_REG;
+      size	    = regs->SYSCALL_ARG2_REG;
     }
   else
 #endif /* READLINK_SYSCALL */
     {
-      address = regs->SYSCALL_ARG1_REG;
+      dirfd	    = (USER_SWORD) regs->SYSCALL_ARG_REG;
+      address	    = regs->SYSCALL_ARG1_REG;
       return_buffer = regs->SYSCALL_ARG2_REG;
-      size = regs->SYSCALL_ARG3_REG;
+      size	    = regs->SYSCALL_ARG3_REG;
     }
 
   read_memory (tracee, buffer, PATH_MAX, address);
@@ -952,12 +1049,25 @@ handle_readlinkat (USER_WORD callno, USER_REGS_STRUCT *regs,
       return 1;
     }
 
-  /* Now check if the caller is looking for /proc/self/exe.
+  /* Expand BUFFER into an absolute file name.  TODO:
+     AT_SYMLINK_FOLLOW? */
+
+  if (canon_path (tracee, dirfd, buffer, sizeof buffer))
+    return 0;
+
+  /* Now check if the caller is looking for /proc/self/exe or its
+     equivalent with the PID made explicit.
 
      dirfd can be ignored, as for now only absolute file names are
      handled.  FIXME.  */
 
-  if (strcmp (buffer, "/proc/self/exe") || !tracee->exec_file)
+  p = stpcpy (proc_pid_exe, "/proc/");
+  p = format_pid (p, tracee->pid);
+  stpcpy (p, "/exe");
+
+  if ((strcmp (buffer, "/proc/self/exe")
+       && strcmp (buffer, proc_pid_exe))
+      || !tracee->exec_file)
     return 0;
 
   /* Copy over tracee->exec_file.  Truncate it to PATH_MAX, length, or
@@ -1004,15 +1114,23 @@ handle_openat (USER_WORD callno, USER_REGS_STRUCT *regs,
   USER_WORD address;
   size_t length;
   USER_REGS_STRUCT original;
+  char proc_pid_exe[sizeof "/proc//exe" + 24], *p;
+  int dirfd;
 
   /* Read the file name.  */
 
 #ifdef OPEN_SYSCALL
   if (callno == OPEN_SYSCALL)
-    address = regs->SYSCALL_ARG_REG;
+    {
+      dirfd   = AT_FDCWD;
+      address = regs->SYSCALL_ARG_REG;
+    }
   else
 #endif /* OPEN_SYSCALL */
-    address = regs->SYSCALL_ARG1_REG;
+    {
+      dirfd   = (USER_SWORD) regs->SYSCALL_ARG_REG;
+      address = regs->SYSCALL_ARG1_REG;
+    }
 
   /* Read the file name into the buffer and verify that it is NULL
      terminated.  */
@@ -1024,12 +1142,25 @@ handle_openat (USER_WORD callno, USER_REGS_STRUCT *regs,
       return 1;
     }
 
-  /* Now check if the caller is looking for /proc/self/exe.
+  /* Expand BUFFER into an absolute file name.  TODO:
+     AT_SYMLINK_FOLLOW? */
+
+  if (canon_path (tracee, dirfd, buffer, sizeof buffer))
+    return 0;
+
+  /* Now check if the caller is looking for /proc/self/exe or its
+     equivalent with the PID made explicit.
 
      dirfd can be ignored, as for now only absolute file names are
      handled.  FIXME.  */
 
-  if (strcmp (buffer, "/proc/self/exe") || !tracee->exec_file)
+  p = stpcpy (proc_pid_exe, "/proc/");
+  p = format_pid (p, tracee->pid);
+  stpcpy (p, "/exe");
+
+  if ((strcmp (buffer, "/proc/self/exe")
+       && strcmp (buffer, proc_pid_exe))
+      || !tracee->exec_file)
     return 0;
 
   /* Copy over tracee->exec_file.  This doesn't correctly handle the

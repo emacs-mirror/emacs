@@ -817,27 +817,31 @@ or an empty string if none."
     cmds))
 
 (defun vc-git-dir-extra-headers (dir)
-  (let ((str (with-output-to-string
-               (with-current-buffer standard-output
-                 (vc-git--out-ok "symbolic-ref" "HEAD"))))
+  (let ((str (vc-git--out-str "symbolic-ref" "HEAD"))
 	(stash-list (vc-git-stash-list))
         (default-directory dir)
         (in-progress (vc-git--cmds-in-progress))
 
-	branch remote remote-url stash-button stash-string)
+	branch remote-url stash-button stash-string tracking-branch)
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
 	(progn
 	  (setq branch (match-string 2 str))
-	  (setq remote
-		(with-output-to-string
-		  (with-current-buffer standard-output
-		    (vc-git--out-ok "config"
-                                    (concat "branch." branch ".remote")))))
-	  (when (string-match "\\([^\n]+\\)" remote)
-	    (setq remote (match-string 1 remote)))
-          (when (> (length remote) 0)
-	    (setq remote-url (vc-git-repository-url dir remote))))
-      (setq branch "not (detached HEAD)"))
+          (let ((remote (vc-git--out-str
+                         "config" (concat "branch." branch ".remote")))
+                (merge (vc-git--out-str
+                        "config" (concat "branch." branch ".merge"))))
+            (when (string-match "\\([^\n]+\\)" remote)
+	      (setq remote (match-string 1 remote)))
+            (when (string-match "^\\(refs/heads/\\)?\\(.+\\)$" merge)
+              (setq tracking-branch (match-string 2 merge)))
+            (pcase remote
+              ("."
+               (setq remote-url "none (tracking local branch)"))
+              ((pred (not string-empty-p))
+               (setq
+                remote-url (vc-git-repository-url dir remote)
+                tracking-branch (concat remote "/" tracking-branch))))))
+      (setq branch "none (detached HEAD)"))
     (when stash-list
       (let* ((len (length stash-list))
              (limit
@@ -890,6 +894,11 @@ or an empty string if none."
      (propertize "Branch     : " 'face 'vc-dir-header)
      (propertize branch
 		 'face 'vc-dir-header-value)
+     (when tracking-branch
+       (concat
+        "\n"
+        (propertize "Tracking   : " 'face 'vc-dir-header)
+        (propertize tracking-branch 'face 'vc-dir-header-value)))
      (when remote-url
        (concat
 	"\n"
@@ -2226,7 +2235,16 @@ The difference to vc-do-command is that this function always invokes
     (apply #'process-file vc-git-program nil buffer nil "--no-pager" command args)))
 
 (defun vc-git--out-ok (command &rest args)
+  "Run `git COMMAND ARGS...' and insert standard output in current buffer.
+Return whether the process exited with status zero."
   (zerop (apply #'vc-git--call '(t nil) command args)))
+
+(defun vc-git--out-str (command &rest args)
+  "Run `git COMMAND ARGS...' and return standard output as a string.
+The exit status is ignored."
+  (with-output-to-string
+    (with-current-buffer standard-output
+      (apply #'vc-git--out-ok command args))))
 
 (defun vc-git--run-command-string (file &rest args)
   "Run a git command on FILE and return its output as string.

@@ -1140,7 +1140,7 @@ Typing SPC flushes the help buffer."
   (let (event)
     (prog1
         (catch 'done
-          (while (with-current-buffer (get-buffer "*Completions*")
+          (while (with-current-buffer "*Completions*"
                    (setq event (read-event)))
             (cond
              ((eq event ?\s)

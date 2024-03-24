@@ -97,7 +97,7 @@
   "Toggle the comment style between block and line comments.
 Optional numeric ARG, if supplied, switches to block comment
 style when positive, to line comment style when negative, and
-just toggles it when zero or left out."
+just toggles it when zero or omitted."
   (interactive "P")
   (let ((prevstate-line (string= comment-start "// ")))
     (when (or (not arg)
@@ -147,9 +147,9 @@ symbol."
   "Style used for indentation.
 
 The selected style could be one of GNU, K&R, LINUX or BSD.  If
-one of the supplied styles doesn't suffice, a function could be
-set instead.  This function is expected to return a list that
-follows the form of `treesit-simple-indent-rules'."
+one of the supplied styles doesn't suffice, the value could be
+a function instead.  This function is expected to return a list
+that follows the form of `treesit-simple-indent-rules'."
   :version "29.1"
   :type '(choice (symbol :tag "Gnu" gnu)
                  (symbol :tag "K&R" k&r)
@@ -202,8 +202,8 @@ To set the default indent style globally, use
             (if (derived-mode-p 'c-ts-mode) 'c 'cpp))))))
 
 (defcustom c-ts-mode-emacs-sources-support t
-  "Whether to enable Emacs source-specific features.
-This enables detection of definitions of Lisp function using
+  "Whether to enable Emacs source-specific C features.
+This enables detection of definitions of Lisp functions via
 the DEFUN macro.
 This needs to be set before enabling `c-ts-mode'; if you change
 the value after enabling `c-ts-mode', toggle the mode off and on
@@ -243,7 +243,7 @@ again."
 < and > are usually punctuation, e.g., in ->.  But when used for
 templates, they should be considered pairs.
 
-This function checks for < and > in the changed RANGES and apply
+This function checks for < and > in the changed RANGES and applies
 appropriate text property to alter the syntax of template
 delimiters < and >'s."
   (goto-char beg)
@@ -284,9 +284,9 @@ is actually the parent of point at the moment of indentation."
   "Return the start of the previous named sibling of NODE.
 
 This anchor handles the special case where the previous sibling
-is a labeled_statement, in that case, return the child of the
+is a labeled_statement; in that case, return the child of the
 labeled statement instead.  (Actually, recursively go down until
-the node isn't a labeled_statement.)  Eg,
+the node isn't a labeled_statement.)  E.g.,
 
 label:
   int x = 1;
@@ -295,10 +295,11 @@ label:
 The anchor of \"int y = 2;\" should be \"int x = 1;\" rather than
 the labeled_statement.
 
-Return nil if a) there is no prev-sibling, or 2) prev-sibling
+Return nil if a) there is no prev-sibling, or b) prev-sibling
 doesn't have a child.
 
-PARENT and BOL are like other anchor functions."
+PARENT is NODE's parent, BOL is the beginning of non-whitespace
+characters of the current line."
   (when-let ((prev-sibling
               (or (treesit-node-prev-sibling node t)
                   (treesit-node-prev-sibling
@@ -336,7 +337,7 @@ PARENT and BOL are like other anchor functions."
 
 (defun c-ts-mode--standalone-parent-skip-preproc (_n parent &rest _)
   "Like the standalone-parent anchor but skips preproc nodes.
-PARENT is the same as other anchor functions."
+PARENT is the parent of the current node."
   (save-excursion
     (treesit-node-start
      (treesit-parent-until
@@ -353,13 +354,15 @@ PARENT is the same as other anchor functions."
 
 (defun c-ts-mode--standalone-grandparent (_node parent bol &rest args)
   "Like the standalone-parent anchor but pass it the grandparent.
-PARENT, BOL, ARGS are the same as other anchor functions."
+PARENT is NODE's parent, BOL is the beginning of non-whitespace
+characters of the current line."
   (apply (alist-get 'standalone-parent treesit-simple-indent-presets)
          parent (treesit-node-parent parent) bol args))
 
 (defun c-ts-mode--else-heuristic (node parent bol &rest _)
   "Heuristic matcher for when \"else\" is followed by a closing bracket.
-NODE, PARENT, and BOL are the same as in other matchers."
+PARENT is NODE's parent, BOL is the beginning of non-whitespace
+characters of the current line."
   (and (null node)
        (save-excursion
          (forward-line -1)
@@ -757,7 +760,7 @@ MODE is either `c' or `cpp'."
 (defun c-ts-mode--declarator-identifier (node &optional qualified)
   "Return the identifier of the declarator node NODE.
 
-If QUALIFIED is non-nil, include the names space part of the
+If QUALIFIED is non-nil, include the namespace part of the
 identifier and return a qualified_identifier."
   (pcase (treesit-node-type node)
     ;; Recurse.
@@ -782,7 +785,7 @@ identifier and return a qualified_identifier."
      node)))
 
 (defun c-ts-mode--fontify-declarator (node override start end &rest _args)
-  "Fontify a declarator (whatever under the \"declarator\" field).
+  "Fontify a declarator (whatever is under the \"declarator\" field).
 For NODE, OVERRIDE, START, END, and ARGS, see
 `treesit-font-lock-rules'."
   (let* ((identifier (c-ts-mode--declarator-identifier node))
@@ -817,7 +820,7 @@ For NODE, OVERRIDE, START, END, and ARGS, see
 
 (defun c-ts-mode--fontify-variable (node override start end &rest _)
   "Fontify an identifier node if it is a variable.
-Don't fontify if it is a function identifier.  For NODE,
+Don't fontify it if it is a function identifier.  For NODE,
 OVERRIDE, START, END, and ARGS, see `treesit-font-lock-rules'."
   (when (not (equal (treesit-node-type
                      (treesit-node-parent node))
@@ -911,7 +914,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
        t))
      ((or "struct_specifier" "enum_specifier"
           "union_specifier" "class_specifier"
-          "namespace_definition")
+          "namespace_definition"
+          "preproc_def" "preproc_function_def")
       (treesit-node-child-by-field-name node "name"))
      ;; DEFUNs in Emacs sources.
      ("expression_statement"
@@ -937,7 +941,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
 (defun c-ts-mode--defun-valid-p (node)
   "Return non-nil if NODE is a valid defun node.
-Ie, NODE is not nested."
+That is, NODE is not nested."
   (let ((top-level-p (lambda (node)
                        (not (treesit-node-top-level
                              node (rx (or "function_definition"
@@ -976,8 +980,7 @@ Basically, if NODE is a class, return non-nil; if NODE is a
 function but is under a class, return non-nil; if NODE is a
 top-level function, return nil.
 
-This is for the Class subindex in
-`treesit-simple-imenu-settings'."
+This is for the Class subindex in `treesit-simple-imenu-settings'."
   (pcase (treesit-node-type node)
     ;; The Class subindex only has class_specifier and
     ;; function_definition.
@@ -988,7 +991,7 @@ This is for the Class subindex in
 
 (defun c-ts-mode--defun-skipper ()
   "Custom defun skipper for `c-ts-mode' and friends.
-Structs in C ends with a semicolon, but the semicolon is not
+Structs in C end with a semicolon, but the semicolon is not
 considered part of the struct node, so point would stop before
 the semicolon.  This function skips the semicolon."
   (when (looking-at (rx (* (or " " "\t")) ";"))
@@ -1008,7 +1011,7 @@ the semicolon.  This function skips the semicolon."
     (list node parent bol)))
 
 (defun c-ts-mode--emacs-defun-p (node)
-  "Return non-nil if NODE is a Lisp function defined using DEFUN.
+  "Return non-nil if NODE is a Lisp function defined via DEFUN.
 This function detects Lisp primitives defined in Emacs source
 files using the DEFUN macro."
   (and (equal (treesit-node-type node) "expression_statement")
@@ -1029,15 +1032,15 @@ files using the DEFUN macro."
   "Return the defun node at point.
 
 In addition to regular C functions, this function recognizes
-definitions of Lisp primitrives in Emacs source files using DEFUN,
-if `c-ts-mode-emacs-sources-support' is non-nil.
+definitions of Lisp primitrives in Emacs source files defined
+via DEFUN, if `c-ts-mode-emacs-sources-support' is non-nil.
 
 Note that DEFUN is parsed by tree-sitter as two separate
 nodes, one for the declaration and one for the body; this
 function returns the declaration node.
 
 If RANGE is non-nil, return (BEG . END) where BEG end END
-encloses the whole defun.  This is for when the entire defun
+enclose the whole defun.  This is for when the entire defun
 is required, not just the declaration part for DEFUN."
   (when-let* ((node (treesit-defun-at-point))
               (defun-range (cons (treesit-node-start node)
@@ -1066,7 +1069,7 @@ is required, not just the declaration part for DEFUN."
   "Return the name of the current defun.
 This is used for `add-log-current-defun-function'.
 In addition to regular C functions, this function also recognizes
-Emacs primitives defined using DEFUN in Emacs sources,
+Emacs primitives defined via DEFUN in Emacs sources,
 if `c-ts-mode-emacs-sources-support' is non-nil."
   (or (treesit-add-log-current-defun)
       (c-ts-mode--defun-name (c-ts-mode--emacs-defun-at-point))))
@@ -1144,7 +1147,7 @@ For BOL see `treesit-simple-indent-rules'."
 
 (defun c-ts-mode--reverse-ranges (ranges beg end)
   "Reverse RANGES and return the new ranges between BEG and END.
-Positions that were included RANGES are not in the returned
+Positions that were included in RANGES are not in the returned
 ranges, and vice versa.
 
 Return nil if RANGES is nil.  This way, passing the returned
@@ -1205,7 +1208,9 @@ BEG and END are described in `treesit-range-rules'."
                                    "enum_specifier"
                                    "union_specifier"
                                    "class_specifier"
-                                   "namespace_definition")
+                                   "namespace_definition"
+                                   "preproc_def"
+                                   "preproc_function_def")
                                  (and c-ts-mode-emacs-sources-support
                                       '(;; DEFUN.
                                         "expression_statement"
@@ -1284,7 +1289,7 @@ BEG and END are described in `treesit-range-rules'."
 
 This mode is independent from the classic cc-mode.el based
 `c-mode', so configuration variables of that mode, like
-`c-basic-offset', doesn't affect this mode.
+`c-basic-offset', don't affect this mode.
 
 To use tree-sitter C/C++ modes by default, evaluate
 
@@ -1293,7 +1298,7 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your configuration."
+in your init files."
   :group 'c
   :after-hook (c-ts-mode-set-modeline)
 
@@ -1345,7 +1350,7 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your configuration.
+in your init files.
 
 Since this mode uses a parser, unbalanced brackets might cause
 some breakage in indentation/fontification.  Therefore, it's
@@ -1440,7 +1445,7 @@ matching on file name insufficient for detecting major mode that
 should be used.
 
 This function attempts to use file contents to determine whether
-the code is C or C++ and based on that chooses whether to enable
+the code is C or C++, and based on that chooses whether to enable
 `c-ts-mode' or `c++-ts-mode'."
   (declare (obsolete c-or-c++-mode "30.1"))
   (interactive)

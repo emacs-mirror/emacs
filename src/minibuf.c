@@ -1701,11 +1701,12 @@ or from one of the possible completions.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else
 		{
-		  tem = (type == hash_table
-			 ? call2 (predicate, elt,
-				  HASH_VALUE (XHASH_TABLE (collection),
-					      idx - 1))
-			 : call1 (predicate, elt));
+		  if (type == hash_table)
+		    tem = call2 (predicate, elt,
+				 HASH_VALUE (XHASH_TABLE (collection),
+					     idx - 1));
+		  else
+		    tem = call1 (predicate, elt);
 		}
 	      if (NILP (tem)) continue;
 	    }
@@ -1845,9 +1846,12 @@ with a space are ignored unless STRING itself starts with a space.  */)
   Lisp_Object allmatches;
   if (VECTORP (collection))
     collection = check_obarray (collection);
-  int type = HASH_TABLE_P (collection) ? 3
-    : OBARRAYP (collection) ? 2
-    : NILP (collection) || (CONSP (collection) && !FUNCTIONP (collection));
+  int type = (HASH_TABLE_P (collection)
+	      ? 3 : (OBARRAYP (collection)
+		     ? 2 : ((NILP (collection)
+			     || (CONSP (collection)
+				 && !FUNCTIONP (collection)))
+			    ? 1 : 0)));
   ptrdiff_t idx = 0;
   Lisp_Object bucket, tem, zero;
 
@@ -1931,10 +1935,12 @@ with a space are ignored unless STRING itself starts with a space.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else
 		{
-		  tem = type == 3
-		    ? call2 (predicate, elt,
-			     HASH_VALUE (XHASH_TABLE (collection), idx - 1))
-		    : call1 (predicate, elt);
+		  if (type == 3)
+		    tem = call2 (predicate, elt,
+				 HASH_VALUE (XHASH_TABLE (collection),
+					     idx - 1));
+		  else
+		    tem = call1 (predicate, elt);
 		}
 	      if (NILP (tem)) continue;
 	    }

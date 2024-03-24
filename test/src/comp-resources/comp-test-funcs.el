@@ -559,6 +559,9 @@
   (let ((time (make-comp-test-time :unix (time-convert (current-time) 'integer))))
     (comp-test-67239-0-f "%F" time)))
 
+(defun comp-test-67883-1-f ()
+  '#1=(1 . #1#))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

@@ -625,6 +625,48 @@ Do nothing if the variable `erc-command-indicator' is nil."
                                 erc--msg-props))))
       (erc--refresh-prompt))))
 
+;;;###autoload
+(defun erc-load-irc-script-lines (lines &optional force noexpand)
+  "Process a list of LINES as prompt input submissions.
+If optional NOEXPAND is non-nil, do not expand script-specific
+substitution sequences via `erc-process-script-line' and instead
+process LINES as literal prompt input.  With FORCE, bypass flood
+protection."
+  ;; The various erc-cmd-CMDs were designed to return non-nil when
+  ;; their command line should be echoed.  But at some point, these
+  ;; handlers began displaying their own output, which naturally
+  ;; appeared *above* the echoed command.  This tries to intercept
+  ;; these insertions, deferring them until the command has returned
+  ;; and its command line has been printed.
+  (cl-assert (eq 'erc-mode major-mode))
+  (let ((args (and erc-script-args
+                   (if (string-match "^ " erc-script-args)
+                       (substring erc-script-args 1)
+                     erc-script-args))))
+    (with-silent-modifications
+      (dolist (line lines)
+        (erc-log (concat "erc-load-script: CMD: " line))
+        (unless (string-match (rx bot (* (syntax whitespace)) eot) line)
+          (unless noexpand
+            (setq line (erc-process-script-line line args)))
+          (let ((erc--current-line-input-split (erc--make-input-split line))
+                calls insertp)
+            (add-function :around (local 'erc--send-message-nested-function)
+                          (lambda (&rest args) (push args calls))
+                          '((name . erc-script-lines-fn) (depth . -80)))
+            (add-function :around (local 'erc--send-action-function)
+                          (lambda (&rest args) (push args calls))
+                          '((name . erc-script-lines-fn) (depth . -80)))
+            (setq insertp
+                  (unwind-protect (erc-process-input-line line force)
+                    (remove-function (local 'erc--send-action-function)
+                                     'erc-script-lines-fn)
+                    (remove-function (local 'erc--send-message-nested-function)
+                                     'erc-script-lines-fn)))
+            (when (and insertp erc-script-echo)
+              (erc--command-indicator-display line)
+              (dolist (call calls)
+                (apply (car call) (cdr call))))))))))
 
 ;;; IRC control character processing.
 (defgroup erc-control-characters nil
@@ -671,14 +713,6 @@ The value `erc-interpret-controls-p' must also be t for this to work."
 
 (defface erc-underline-face '((t :underline t))
   "ERC underline face."
-  :group 'erc-faces)
-
-(defface erc-control-default-fg '((t :inherit default))
-  "ERC foreground face for the \"default\" color code."
-  :group 'erc-faces)
-
-(defface erc-control-default-bg '((t :inherit default))
-  "ERC background face for the \"default\" color code."
   :group 'erc-faces)
 
 ;; FIXME rename these to something like `erc-control-color-N-fg',
@@ -812,7 +846,7 @@ The value `erc-interpret-controls-p' must also be t for this to work."
       (intern (concat "bg:erc-color-face" (number-to-string n))))
      ((< 15 n 99)
       (list :background (aref erc--controls-additional-colors (- n 16))))
-     (t (erc-log (format "   Wrong color: %s" n)) 'erc-control-default-fg))))
+     (t (erc-log (format "   Wrong color: %s" n)) nil))))
 
 (defun erc-get-fg-color-face (n)
   "Fetches the right face for foreground color N (0-15)."
@@ -828,7 +862,7 @@ The value `erc-interpret-controls-p' must also be t for this to work."
       (intern (concat "fg:erc-color-face" (number-to-string n))))
      ((< 15 n 99)
       (list :foreground (aref erc--controls-additional-colors (- n 16))))
-     (t (erc-log (format "   Wrong color: %s" n)) 'erc-control-default-bg))))
+     (t (erc-log (format "   Wrong color: %s" n)) nil))))
 
 ;;;###autoload(autoload 'erc-irccontrols-mode "erc-goodies" nil t)
 (define-erc-module irccontrols nil
@@ -883,7 +917,7 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
                     (setq s (replace-match "" nil nil s 1))
                     (cond ((and erc-interpret-mirc-color (or fg-color bg-color))
                            (setq fg fg-color)
-                           (setq bg bg-color))
+                           (when bg-color (setq bg bg-color)))
                           ((string= control "\C-b")
                            (setq boldp (not boldp)))
                           ((string= control "\C-]")
@@ -944,7 +978,7 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
                (replace-match "" nil nil nil 1)
                (cond ((and erc-interpret-mirc-color (or fg-color bg-color))
                       (setq fg fg-color)
-                      (setq bg bg-color))
+                      (when bg-color (setq bg bg-color)))
                      ((string= control "\C-b")
                       (setq boldp (not boldp)))
                      ((string= control "\C-]")

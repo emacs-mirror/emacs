@@ -495,9 +495,12 @@ compilation and evaluation time conflicts."
        (unless (eq (char-after) ?{)
          (ignore-errors (backward-up-list 1 t t)))
        (save-excursion
-         ;; 'new' should be part of the line
+         ;; 'new' should be part of the line, but should not trigger if
+         ;; statement has already ended, like for 'var x = new X();'.
+         ;; Also, deal with the possible end of line obscured by a
+         ;; trailing comment.
          (goto-char (c-point 'iopl))
-         (looking-at ".*new.*")))
+         (looking-at "^[^//]*new[^//]*;$")))
      ;; Line should not already be terminated
      (save-excursion
        (goto-char (c-point 'eopl))

@@ -283,8 +283,16 @@ If it can't be found, return nil and don't move point."
       (goto-char (prop-match-beginning match))
     (end-of-line)))
 
-(defun vtable-update-object (table object old-object)
-  "Replace OLD-OBJECT in TABLE with OBJECT."
+(defun vtable-update-object (table object &optional old-object)
+  "Update OBJECT's representation in TABLE.
+If OLD-OBJECT is non-nil, replace OLD-OBJECT with OBJECT and display it.
+In either case, if the existing object is not found in the table (being
+compared with `equal'), signal an error.  Note a limitation: if TABLE's
+buffer is not in a visible window, or if its window has changed width
+since it was updated, updating the TABLE is not possible, and an error
+is signaled."
+  (unless old-object
+    (setq old-object object))
   (let* ((objects (vtable-objects table))
          (inhibit-read-only t))
     ;; First replace the object in the object storage.
@@ -300,26 +308,31 @@ If it can't be found, return nil and don't move point."
         (error "Can't find the old object"))
       (setcar (cdr objects) object))
     ;; Then update the cache...
-    (let* ((line-number (seq-position old-object (car (vtable--cache table))))
-           (line (elt (car (vtable--cache table)) line-number)))
-      (unless line
-        (error "Can't find cached object"))
-      (setcar line object)
-      (setcdr line (vtable--compute-cached-line table object))
-      ;; ... and redisplay the line in question.
-      (save-excursion
-        (vtable-goto-object old-object)
-        (let ((keymap (get-text-property (point) 'keymap))
-              (start (point)))
-          (delete-line)
-          (vtable--insert-line table line line-number
-                               (nth 1 (vtable--cache table))
-                               (vtable--spacer table))
-          (add-text-properties start (point) (list 'keymap keymap
-                                                   'vtable table))))
-      ;; We may have inserted a non-numerical value into a previously
-      ;; all-numerical table, so recompute.
-      (vtable--recompute-numerical table (cdr line)))))
+    ;; FIXME: If the table's buffer has no visible window, or if its
+    ;; width has changed since the table was updated, the cache key will
+    ;; not match and the object can't be updated.  (Bug #69837).
+    (if-let ((line-number (seq-position (car (vtable--cache table)) old-object
+                                        (lambda (a b)
+                                          (equal (car a) b))))
+             (line (elt (car (vtable--cache table)) line-number)))
+        (progn
+          (setcar line object)
+          (setcdr line (vtable--compute-cached-line table object))
+          ;; ... and redisplay the line in question.
+          (save-excursion
+            (vtable-goto-object old-object)
+            (let ((keymap (get-text-property (point) 'keymap))
+                  (start (point)))
+              (delete-line)
+              (vtable--insert-line table line line-number
+                                   (nth 1 (vtable--cache table))
+                                   (vtable--spacer table))
+              (add-text-properties start (point) (list 'keymap keymap
+                                                       'vtable table))))
+          ;; We may have inserted a non-numerical value into a previously
+          ;; all-numerical table, so recompute.
+          (vtable--recompute-numerical table (cdr line)))
+      (error "Can't find cached object in vtable"))))
 
 (defun vtable-remove-object (table object)
   "Remove OBJECT from TABLE.
@@ -741,7 +754,7 @@ If NEXT, do the next column."
     (seq-do-indexed
      (lambda (elem index)
        (when (and (vtable-column--numerical (elt columns index))
-                  (not (numberp elem)))
+                  (not (numberp (car elem))))
          (setq recompute t)))
      line)
     (when recompute

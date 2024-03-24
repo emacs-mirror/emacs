@@ -288,6 +288,15 @@ If this variable is nil, all regions are treated as small."
   "The key binding for flyspell auto correction."
   :type 'key-sequence)
 
+(defcustom flyspell-check-changes nil
+  "If non-nil, spell-check only words that were edited.
+By default, this is nil, and Flyspell checks every word across which
+you move point, even if you haven't edited the word.  Customizing this
+option to a non-nil value will not flag mis-spelled words across which
+you move point without editing them."
+  :type 'boolean
+  :version "30.1")
+
 ;;*---------------------------------------------------------------------*/
 ;;*    Mode specific options                                            */
 ;;*    -------------------------------------------------------------    */
@@ -610,7 +619,9 @@ are both non-nil."
   (flyspell-accept-buffer-local-defs 'force)
   (flyspell-delay-commands)
   (flyspell-deplacement-commands)
-  (add-hook 'post-command-hook (function flyspell-post-command-hook) t t)
+  (if flyspell-check-changes
+      (add-hook 'post-command-hook (function flyspell-check-changes) t t)
+    (add-hook 'post-command-hook (function flyspell-post-command-hook) t t))
   (add-hook 'pre-command-hook (function flyspell-pre-command-hook) t t)
   (add-hook 'after-change-functions 'flyspell-after-change-function nil t)
   (add-hook 'hack-local-variables-hook
@@ -709,6 +720,7 @@ has been used, the current word is not checked."
 ;;;###autoload
 (defun flyspell--mode-off ()
   "Turn Flyspell mode off."
+  (remove-hook 'post-command-hook (function flyspell-check-changes) t)
   (remove-hook 'post-command-hook (function flyspell-post-command-hook) t)
   (remove-hook 'pre-command-hook (function flyspell-pre-command-hook) t)
   (remove-hook 'after-change-functions 'flyspell-after-change-function t)
@@ -989,6 +1001,23 @@ Mostly we check word delimiters."
                   (flyspell-word)))
             (setq flyspell-changes (cdr flyspell-changes))))
         (setq flyspell-previous-command command)))))
+
+(defun flyspell-check-changes ()
+  "Function to spell-check only edited words when point moves off the word.
+This is installed by flyspell as `post-command-hook' when the user
+option `flyspell-check-changes' is non-nil.  It spell-checks a word
+on moving point from the word only if the word was edited before the move."
+  (when flyspell-mode
+    (with-local-quit
+      (when (consp flyspell-changes)
+        (let ((start (car (car flyspell-changes)))
+              (stop  (cdr (car flyspell-changes)))
+              (word (save-excursion (flyspell-get-word))))
+          (unless (and word (<= (nth 1 word) start) (>= (nth 2 word) stop))
+            (save-excursion
+              (goto-char start)
+              (flyspell-word))
+            (setq flyspell-changes nil)))))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-notify-misspell ...                                     */

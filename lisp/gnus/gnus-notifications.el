@@ -75,35 +75,55 @@ not get notifications."
     (when group-article
       (let ((group (cadr group-article))
             (article (nth 2 group-article)))
-        (cond ((string= key "read")
+        (cond ((or (equal key "read")
+                   (equal key "default"))
                (gnus-fetch-group group (list article))
                (select-frame-set-input-focus (selected-frame)))
-              ((string= key "mark-read")
+              ((equal key "mark-read")
                (gnus-update-read-articles
                 group
                 (delq article (gnus-list-of-unread-articles group)))
                ;; gnus-group-refresh-group
-               (gnus-group-update-group group)))))))
+               (gnus-group-update-group group))))))
+  ;; Notifications are removed unless otherwise specified once they (or
+  ;; an action of theirs) are selected
+  (assoc-delete-all id gnus-notifications-id-to-msg))
+
+(defun gnus-notifications-close (id _reason)
+  "Remove ID from the alist of notification identifiers to messages.
+REASON is ignored."
+  (assoc-delete-all id gnus-notifications-id-to-msg))
 
 (defun gnus-notifications-notify (from subject photo-file)
   "Send a notification about a new mail.
 Return a notification id if any, or t on success."
-  (if (fboundp 'notifications-notify)
+  (if (featurep 'android)
       (gnus-funcall-no-warning
-       'notifications-notify
+       'android-notifications-notify
        :title from
        :body subject
        :actions '("read" "Read" "mark-read" "Mark As Read")
        :on-action 'gnus-notifications-action
-       :app-icon (gnus-funcall-no-warning
-                  'image-search-load-path "gnus/gnus.png")
-       :image-path photo-file
-       :app-name "Gnus"
-       :category "email.arrived"
+       :on-close 'gnus-notifications-close
+       :group "Email arrivals"
        :timeout gnus-notifications-timeout)
-    (message "New message from %s: %s" from subject)
-    ;; Don't return an id
-    t))
+    (if (fboundp 'notifications-notify)
+        (gnus-funcall-no-warning
+         'notifications-notify
+         :title from
+         :body subject
+         :actions '("read" "Read" "mark-read" "Mark As Read")
+         :on-action 'gnus-notifications-action
+         :on-close 'gnus-notifications-close
+         :app-icon (gnus-funcall-no-warning
+                    'image-search-load-path "gnus/gnus.png")
+         :image-path photo-file
+         :app-name "Gnus"
+         :category "email.arrived"
+         :timeout gnus-notifications-timeout)
+      (message "New message from %s: %s" from subject)
+      ;; Don't return an id
+      t)))
 
 (declare-function gravatar-retrieve-synchronously "gravatar.el"
 		  (mail-address))

@@ -10392,10 +10392,15 @@ check_windows_init_file (void)
     }
 }
 
+/* from w32fns.c */
+extern void remove_w32_kbdhook (void);
+
 void
 term_ntproc (int ignored)
 {
   (void)ignored;
+
+  remove_w32_kbdhook ();
 
   term_timers ();
 

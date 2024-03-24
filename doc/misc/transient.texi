@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.5.2
+@subtitle for version 0.6.0
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.5.2.
+This manual is for Transient version 0.6.0.
 
 @insertcopying
 @end ifnottex
@@ -554,7 +554,7 @@ state, you have to make sure that that state is currently active.
 @item @kbd{C-x a} (@code{transient-toggle-level-limit})
 @kindex C-x a
 @findex transient-toggle-level-limit
-This command toggle whether suffixes that are on levels lower than
+This command toggle whether suffixes that are on levels higher than
 the level specified by @code{transient-default-level} are temporarily
 available anyway.
 @end table
@@ -1206,8 +1206,18 @@ The returned children must have the same form as stored in the
 prefix's @code{transient--layout} property, but it is often more convenient
 to use the same form as understood by @code{transient-define-prefix},
 described below.  If you use the latter approach, you can use the
-@code{transient-parse-child} and @code{transient-parse-children} functions to
+@code{transient-parse-suffixes} and @code{transient-parse-suffix} functions to
 transform them from the convenient to the expected form.
+
+If you explicitly specify children and then transform them using
+@code{:setup-chilren}, then the class of the group is determined as usual,
+based on explicitly specified children.
+
+If you do not explicitly specify children and thus rely solely on
+@code{:setup-children}, then you must specify the class using @code{:class}.
+For backward compatibility, if you fail to do so, @code{transient-column}
+is used and a warning is displayed.  This warning will eventually
+be replaced with an error.
 
 @item
 The boolean @code{:pad-keys} argument controls whether keys of all suffixes
@@ -1220,11 +1230,11 @@ The @var{ELEMENT}s are either all subgroups, or all suffixes and strings.
 subgroups with commands at the same level, though in principle there
 is nothing that prevents that.)
 
-If the @var{ELEMENT}s are not subgroups, then they can be a mixture of lists
-that specify commands and strings.  Strings are inserted verbatim into
-the buffer.  The empty string can be used to insert gaps between
-suffixes, which is particularly useful if the suffixes are outlined as
-a table.
+If the @var{ELEMENT}s are not subgroups, then they can be a mixture of
+lists, which specify commands, and strings.  Strings are inserted
+verbatim into the buffer.  The empty string can be used to insert gaps
+between suffixes, which is particularly useful if the suffixes are
+outlined as a table.
 
 Inside group specifications, including inside contained suffix
 specifications, nothing has to be quoted and quoting anyway is

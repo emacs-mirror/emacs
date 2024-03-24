@@ -1367,6 +1367,11 @@ These match if the argument is `eql' to VAL."
 
 ;;; Dispatch on "normal types".
 
+(defconst cl--generic--unreachable-types
+  ;; FIXME: Try to make that list empty?
+  '(keyword)
+  "Built-in classes on which we cannot dispatch for technical reasons.")
+
 (defun cl--generic-type-specializers (tag &rest _)
   (and (symbolp tag)
        (let ((class (cl--find-class tag)))
@@ -1374,8 +1379,7 @@ These match if the argument is `eql' to VAL."
            (cl--class-allparents class)))))
 
 (cl-generic-define-generalizer cl--generic-typeof-generalizer
-  ;; FIXME: We could also change `type-of' to return `null' for nil.
-  10 (lambda (name &rest _) `(if ,name (type-of ,name) 'null))
+  10 (lambda (name &rest _) `(cl-type-of ,name))
   #'cl--generic-type-specializers)
 
 (cl-defmethod cl-generic-generalizers :extra "typeof" (type)
@@ -1387,6 +1391,8 @@ This currently works for built-in types and types built on top of records."
    (and (symbolp type)
         (not (eq type t)) ;; Handled by the `t-generalizer'.
         (let ((class (cl--find-class type)))
+          (when (memq type cl--generic--unreachable-types)
+            (error "Dispatch on %S is currently not supported" type))
           (memq (type-of class)
                 '(built-in-class cl-structure-class eieio--class)))
         (list cl--generic-typeof-generalizer))

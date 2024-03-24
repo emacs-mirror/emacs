@@ -659,6 +659,24 @@ w32_face_attributes (struct frame *f, int face_id)
   return char_attr;
 }
 
+/* The IME window is needed to receive the session notifications
+   required to reset the low level keyboard hook state.  */
+
+static BOOL CALLBACK
+find_ime_window (HWND hwnd, LPARAM arg)
+{
+  char window_class[32];
+
+  GetClassName (hwnd, window_class, sizeof (window_class));
+  if (strcmp (window_class, "IME") == 0)
+    {
+      *(HWND *) arg = hwnd;
+      return FALSE;
+    }
+  /* keep looking */
+  return TRUE;
+}
+
 void
 initialize_w32_display (struct terminal *term, int *width, int *height)
 {
@@ -818,11 +836,14 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
   else
     w32_console_unicode_input = 0;
 
-  /* Setup w32_display_info structure for this frame. */
+  /* Setup w32_display_info structure for this frame.  */
   w32_initialize_display_info (build_string ("Console"));
 
+  HWND hwnd = NULL;
+  EnumThreadWindows (GetCurrentThreadId (), find_ime_window, (LPARAM) &hwnd);
+
   /* Set up the keyboard hook.  */
-  setup_w32_kbdhook ();
+  setup_w32_kbdhook (hwnd);
 }
 
 
