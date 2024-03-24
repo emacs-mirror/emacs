@@ -1510,6 +1510,16 @@ macros with many lines, such as from 'kmacro-edit-lossage'.
 The user option 'proced-auto-update-flag' can now be set to 2 additional
 values, which control automatic updates of Proced buffers that are not
 displayed in some window.
+** Kmacro Menu Mode
+
++++
+*** New mode 'kmacro-menu-mode' and new command 'list-keyboard-macros'.
+The new command 'list-keyboard-macros' is the keyboard-macro version
+of commands like 'list-buffers' and 'list-processes', creating a listing
+of the currently existing keyboards macros using the new mode
+'kmacro-menu-mode'.  It allows rearranging the macros in the ring,
+duplicating them, deleting them, and editing their counters, formats,
+and keys.
 
 ** Miscellaneous
 
