@@ -444,7 +444,7 @@ primitives such as `prin1'.")
 
 (defun cl-print--preprocess (object)
   (let ((print-number-table (make-hash-table :test 'eq :rehash-size 2.0)))
-    (if (fboundp 'print--preprocess)
+    (if (fboundp 'print--preprocess)    ;Emacs≥26
         ;; Use the predefined C version if available.
         (print--preprocess object)           ;Fill print-number-table!
       (let ((cl-print--number-index 0))

@@ -260,7 +260,7 @@
 (cl-defstruct (cl--class
                (:constructor nil)
                (:copier nil))
-  "Type of descriptors for any kind of structure-like data."
+  "Abstract supertype of all type descriptors."
   ;; Intended to be shared between defstruct and defclass.
   (name nil :type symbol)               ;The type name.
   (docstring nil :type string)
@@ -306,6 +306,8 @@
                (:constructor nil)
                (:constructor built-in-class--make (name docstring parents))
                (:copier nil))
+  "Type descriptors for built-in types.
+The `slots' (and hence `index-table') are currently unused."
   )
 
 (defmacro cl--define-built-in-type (name parents &optional docstring &rest slots)

@@ -189,7 +189,7 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
         if
       (cl-assert (eq 'interactive (car if)))
       (let ((form (cadr if)))
-        (if (macroexp-const-p form)
+        (if (macroexp-const-p form)     ;Common case: a string.
             if
           ;; The interactive is expected to be run in the static context
           ;; that the function captured.
