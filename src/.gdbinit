@@ -822,15 +822,22 @@ Print $ as a frame pointer.
 This command assumes $ is an Emacs Lisp frame value.
 end
 
-define xcompiled
+define xclosure
   xgetptr $
   print (struct Lisp_Vector *) $ptr
   output ($->contents[0])@($->header.size & 0xff)
   echo \n
 end
+document xclosure
+Print $ as a function pointer.
+This command assumes that $ is an Emacs Lisp byte-code or interpreted function value.
+end
+
+define xcompiled
+  xclosure
+end
 document xcompiled
-Print $ as a compiled function pointer.
-This command assumes that $ is an Emacs Lisp compiled value.
+Obsolete alias for "xclosure".
 end
 
 define xwindow
@@ -1038,8 +1045,8 @@ define xpr
       if $vec == PVEC_FRAME
 	xframe
       end
-      if $vec == PVEC_COMPILED
-	xcompiled
+      if $vec == PVEC_CLOSURE
+	xclosure
       end
       if $vec == PVEC_WINDOW
 	xwindow

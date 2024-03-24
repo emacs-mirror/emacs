@@ -152,7 +152,7 @@ efficient.  */)
     val = MAX_CHAR;
   else if (BOOL_VECTOR_P (sequence))
     val = bool_vector_size (sequence);
-  else if (COMPILEDP (sequence) || RECORDP (sequence))
+  else if (CLOSUREP (sequence) || RECORDP (sequence))
     val = PVSIZE (sequence);
   else
     wrong_type_argument (Qsequencep, sequence);
@@ -1054,7 +1054,7 @@ concat_to_list (ptrdiff_t nargs, Lisp_Object *args, Lisp_Object last_tail)
       else if (NILP (arg))
 	;
       else if (VECTORP (arg) || STRINGP (arg)
-	       || BOOL_VECTOR_P (arg) || COMPILEDP (arg))
+	       || BOOL_VECTOR_P (arg) || CLOSUREP (arg))
 	{
 	  ptrdiff_t arglen = XFIXNUM (Flength (arg));
 	  ptrdiff_t argindex_byte = 0;
@@ -1114,7 +1114,7 @@ concat_to_vector (ptrdiff_t nargs, Lisp_Object *args)
     {
       Lisp_Object arg = args[i];
       if (!(VECTORP (arg) || CONSP (arg) || NILP (arg) || STRINGP (arg)
-	    || BOOL_VECTOR_P (arg) || COMPILEDP (arg)))
+	    || BOOL_VECTOR_P (arg) || CLOSUREP (arg)))
 	wrong_type_argument (Qsequencep, arg);
       EMACS_INT len = XFIXNAT (Flength (arg));
       result_len += len;
@@ -1170,7 +1170,7 @@ concat_to_vector (ptrdiff_t nargs, Lisp_Object *args)
 	}
       else
 	{
-	  eassert (COMPILEDP (arg));
+	  eassert (CLOSUREP (arg));
 	  ptrdiff_t size = PVSIZE (arg);
 	  memcpy (dst, XVECTOR (arg)->contents, size * sizeof *dst);
 	  dst += size;
@@ -2949,7 +2949,7 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
 	    if (((size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
-		< PVEC_COMPILED)
+		< PVEC_CLOSURE)
 	      return false;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
@@ -3346,7 +3346,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 	  tail = XCDR (tail);
 	}
     }
-  else if (VECTORP (seq) || COMPILEDP (seq))
+  else if (VECTORP (seq) || CLOSUREP (seq))
     {
       for (ptrdiff_t i = 0; i < leni; i++)
 	{
@@ -5512,7 +5512,7 @@ sxhash_obj (Lisp_Object obj, int depth)
     case Lisp_Vectorlike:
       {
 	enum pvec_type pvec_type = PSEUDOVECTOR_TYPE (XVECTOR (obj));
-	if (! (PVEC_NORMAL_VECTOR < pvec_type && pvec_type < PVEC_COMPILED))
+	if (! (PVEC_NORMAL_VECTOR < pvec_type && pvec_type < PVEC_CLOSURE))
 	  {
 	    /* According to the CL HyperSpec, two arrays are equal only if
 	       they are 'eq', except for strings and bit-vectors.  In

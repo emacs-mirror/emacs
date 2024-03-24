@@ -5199,7 +5199,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
   if (!native_comp_jit_compilation
       || noninteractive
       || !NILP (Vpurify_flag)
-      || !COMPILEDP (definition)
+      || !CLOSUREP (definition)
       || !STRINGP (Vload_true_file_name)
       || !suffix_p (Vload_true_file_name, ".elc")
       || !NILP (Fgethash (Vload_true_file_name, V_comp_no_native_file_h, Qnil)))

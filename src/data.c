@@ -248,7 +248,7 @@ a fixed set of types.  */)
           return XSUBR (object)->max_args == UNEVALLED ? Qspecial_form
                  : SUBR_NATIVE_COMPILEDP (object) ? Qsubr_native_elisp
                  : Qprimitive_function;
-        case PVEC_COMPILED: return Qcompiled_function;
+        case PVEC_CLOSURE: return Qcompiled_function;
         case PVEC_BUFFER: return Qbuffer;
         case PVEC_CHAR_TABLE: return Qchar_table;
         case PVEC_BOOL_VECTOR: return Qbool_vector;
@@ -523,7 +523,7 @@ DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
        doc: /* Return t if OBJECT is a byte-compiled function object.  */)
   (Lisp_Object object)
 {
-  if (COMPILEDP (object))
+  if (CLOSUREP (object))
     return Qt;
   return Qnil;
 }
@@ -1143,19 +1143,19 @@ Value, if non-nil, is a list (interactive SPEC).  */)
 		      (*spec != '(') ? build_string (spec) :
 		      Fcar (Fread_from_string (build_string (spec), Qnil, Qnil)));
     }
-  else if (COMPILEDP (fun))
+  else if (CLOSUREP (fun))
     {
-      if (PVSIZE (fun) > COMPILED_INTERACTIVE)
+      if (PVSIZE (fun) > CLOSURE_INTERACTIVE)
 	{
-	  Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
+	  Lisp_Object form = AREF (fun, CLOSURE_INTERACTIVE);
 	  /* The vector form is the new form, where the first
 	     element is the interactive spec, and the second is the
 	     command modes. */
 	  return list2 (Qinteractive, VECTORP (form) ? AREF (form, 0) : form);
 	}
-      else if (PVSIZE (fun) > COMPILED_DOC_STRING)
+      else if (PVSIZE (fun) > CLOSURE_DOC_STRING)
         {
-          Lisp_Object doc = AREF (fun, COMPILED_DOC_STRING);
+          Lisp_Object doc = AREF (fun, CLOSURE_DOC_STRING);
           /* An invalid "docstring" is a sign that we have an OClosure.  */
           genfun = !(NILP (doc) || VALID_DOCSTRING_P (doc));
         }
@@ -1225,11 +1225,11 @@ The value, if non-nil, is a list of mode name symbols.  */)
     {
       return XSUBR (fun)->command_modes;
     }
-  else if (COMPILEDP (fun))
+  else if (CLOSUREP (fun))
     {
-      if (PVSIZE (fun) <= COMPILED_INTERACTIVE)
+      if (PVSIZE (fun) <= CLOSURE_INTERACTIVE)
 	return Qnil;
-      Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
+      Lisp_Object form = AREF (fun, CLOSURE_INTERACTIVE);
       if (VECTORP (form))
 	/* New form -- the second element is the command modes. */
 	return AREF (form, 1);
@@ -2546,7 +2546,7 @@ or a byte-code object.  IDX starts at 0.  */)
       ptrdiff_t size = 0;
       if (VECTORP (array))
 	size = ASIZE (array);
-      else if (COMPILEDP (array) || RECORDP (array))
+      else if (CLOSUREP (array) || RECORDP (array))
 	size = PVSIZE (array);
       else
 	wrong_type_argument (Qarrayp, array);
