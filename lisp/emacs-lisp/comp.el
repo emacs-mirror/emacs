@@ -1788,7 +1788,9 @@ into the C code forwarding the compilation unit."
        for insn in (comp-block-insns b)
        for (op . args) = insn
        if (comp--assign-op-p op)
-         do (comp--collect-mvars (cdr args))
+         do (comp--collect-mvars (if (eq op 'setimm)
+                                     (cl-first args)
+                                   (cdr args)))
        else
          do (comp--collect-mvars args))))
 
@@ -2442,6 +2444,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                  (setf (comp-vec-aref frame slot-n) mvar
                        (cadr insn) mvar))))
      (pcase insn
+       (`(setimm ,(pred targetp) ,_imm)
+        (new-lvalue))
        (`(,(pred comp--assign-op-p) ,(pred targetp) . ,_)
         (let ((mvar (comp-vec-aref frame slot-n)))
           (setf (cddr insn) (cl-nsubst-if mvar #'targetp (cddr insn))))
@@ -2545,7 +2549,7 @@ Return t when one or more block was removed, nil otherwise."
   ;; native compiling all Emacs code-base.
   "Max number of scanned insn before giving-up.")
 
-(defun comp--copy-insn (insn)
+(defun comp--copy-insn-rec (insn)
   "Deep copy INSN."
   ;; Adapted from `copy-tree'.
   (if (consp insn)
@@ -2561,6 +2565,13 @@ Return t when one or more block was removed, nil otherwise."
     (if (comp-mvar-p insn)
         (copy-comp-mvar insn)
       insn)))
+
+(defun comp--copy-insn (insn)
+  "Deep copy INSN."
+  (pcase insn
+    (`(setimm ,mvar ,imm)
+     `(setimm ,(copy-comp-mvar mvar) ,imm))
+    (_ (comp--copy-insn-rec insn))))
 
 (defmacro comp--apply-in-env (func &rest args)
   "Apply FUNC to ARGS in the current compilation environment."
@@ -2903,7 +2914,8 @@ Return the list of m-var ids nuked."
          for (op arg0 . rest) = insn
          if (comp--assign-op-p op)
            do (push (comp-mvar-id arg0) l-vals)
-              (setf r-vals (nconc (comp--collect-mvar-ids rest) r-vals))
+              (unless (eq op 'setimm)
+                (setf r-vals (nconc (comp--collect-mvar-ids rest) r-vals)))
          else
            do (setf r-vals (nconc (comp--collect-mvar-ids insn) r-vals))))
     ;; Every l-value appearing that does not appear as r-value has no right to
