@@ -357,9 +357,11 @@ The `slots' (and hence `index-table') are currently unused."
 (cl--define-built-in-type tree-sitter-node atom)
 (cl--define-built-in-type tree-sitter-parser atom)
 (declare-function user-ptrp "data.c")
-(unless (fboundp 'user-ptrp)
+(when (fboundp 'user-ptrp)
   (cl--define-built-in-type user-ptr atom nil
-                            :predicate user-ptrp)) ;; FIXME: Shouldn't it be called `user-ptr-p'?
+                            ;; FIXME: Shouldn't it be called
+                            ;; `user-ptr-p'?
+                            :predicate user-ptrp))
 (cl--define-built-in-type font-object atom)
 (cl--define-built-in-type font-entity atom)
 (cl--define-built-in-type font-spec atom)
