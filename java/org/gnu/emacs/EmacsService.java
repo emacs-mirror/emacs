@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -1041,17 +1042,46 @@ public final class EmacsService extends Service
   getDisplayNameHash (String string)
   {
     byte[] encoded;
+    ByteArrayOutputStream stream;
+    int i, ch;
 
-    try
+    /* Much of the VFS code expects file names to be encoded as modified
+       UTF-8 data, but Android's JNI implementation produces (while not
+       accepting!) regular UTF-8 sequences for all characters, even
+       non-Emoji ones.  With no documentation to this effect, save for
+       two comments nestled in the source code of the Java virtual
+       machine, it is not sound to assume that this behavior will not be
+       revised in future or modified releases of Android, and as such,
+       encode STRING into modified UTF-8 by hand, to protect against
+       future changes in this respect.  */
+
+    stream = new ByteArrayOutputStream ();
+
+    for (i = 0; i < string.length (); ++i)
       {
-	encoded = string.getBytes ("UTF-8");
-	return EmacsNative.displayNameHash (encoded);
+	ch = string.charAt (i);
+
+	if (ch != 0 && ch <= 127)
+	  stream.write (ch);
+	else if (ch <= 2047)
+	  {
+	    stream.write (0xc0 | (0x1f & (ch >> 6)));
+	    stream.write (0x80 | (0x3f & ch));
+	  }
+	else
+	  {
+	    stream.write (0xe0 | (0x0f & (ch >> 12)));
+	    stream.write (0x80 | (0x3f & (ch >> 6)));
+	    stream.write (0x80 | (0x3f & ch));
+	  }
       }
-    catch (UnsupportedEncodingException exception)
-      {
-	/* This should be impossible.  */
-	return "error";
-      }
+
+    encoded = stream.toByteArray ();
+
+    /* Closing a ByteArrayOutputStream has no effect.
+       encoded.close ();  */
+
+    return EmacsNative.displayNameHash (encoded);
   }
 
   /* Build a content file name for URI.
