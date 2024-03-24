@@ -6961,13 +6961,22 @@ or call the function `desktop-save-mode'.")
 (autoload 'desktop-save-mode "desktop" "\
 Toggle desktop saving (Desktop Save mode).
 
-When Desktop Save mode is enabled, the state of Emacs is saved from
-one session to another.  In particular, Emacs will save the desktop when
-it exits (this may prompt you; see the option `desktop-save').  The next
-time Emacs starts, if this mode is active it will restore the desktop.
+When Desktop Save mode is enabled, the state of Emacs is saved from one
+session to another.  The saved Emacs \"desktop configuration\" includes the
+buffers, their file names, major modes, buffer positions, window and frame
+configuration, and some important global variables.
 
-To manually save the desktop at any time, use the command `\\[desktop-save]'.
-To load it, use `\\[desktop-read]'.
+To enable this feature for future sessions, customize `desktop-save-mode'
+to t, or add this line in your init file:
+
+    (desktop-save-mode 1)
+
+When this mode is enabled, Emacs will save the desktop when it exits
+(this may prompt you, see the option `desktop-save').  The next time
+Emacs starts, if this mode is active it will restore the desktop.
+
+To manually save the desktop at any time, use the command \\[desktop-save].
+To load it, use \\[desktop-read].
 
 Once a desktop file exists, Emacs will auto-save it according to the
 option `desktop-auto-save-timeout'.
@@ -13023,7 +13032,7 @@ For instance:
                  (?l . \"ls\")))
 
 Each %-spec may contain optional flag, width, and precision
-modifiers, as follows:
+specifiers, as follows:
 
   %<flags><width><precision>character
 
@@ -13036,7 +13045,7 @@ The following flags are allowed:
 * ^: Convert to upper case.
 * _: Convert to lower case.
 
-The width and truncation modifiers behave like the corresponding
+The width and precision specifiers behave like the corresponding
 ones in `format' when applied to %s.
 
 For example, \"%<010b\" means \"substitute into the output the
@@ -17261,9 +17270,13 @@ use its file extension as image type.
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
 
 Optional PROPS are additional image attributes to assign to the image,
-like, e.g. `:mask MASK'.  If the property `:scale' is not given and the
-display has a high resolution (more exactly, when the average width of a
-character in the default font is more than 10 pixels), the image is
+like, e.g. `:mask MASK'.  See Info node `(elisp)Image Descriptors' for
+the list of supported properties; see the nodes following that node
+for properties specific to certain image types.
+
+If the property `:scale' is not given and the display has a high
+resolution (more exactly, when the average width of a character
+in the default font is more than 10 pixels), the image is
 automatically scaled up in proportion to the default font.
 
 Value is the image created, or nil if images of type TYPE are not supported.
@@ -23870,8 +23883,8 @@ As with `pcase-let', BINDINGS are of the form (PATTERN EXP), but the
 EXP in each binding in BINDINGS can use the results of the destructuring
 bindings that precede it in BINDINGS' order.
 
-Each EXP should match (i.e. be of compatible structure) to its
-respective PATTERN; a mismatch may signal an error or may go
+Each EXP should match its respective PATTERN (i.e. be of structure
+compatible to PATTERN); a mismatch may signal an error or may go
 undetected, binding variables to arbitrary values, such as nil.
 
 (fn BINDINGS &rest BODY)" nil t)
@@ -23884,8 +23897,8 @@ All EXPs are evaluated first, and then used to perform destructuring
 bindings by matching each EXP against its respective PATTERN.  Then
 BODY is evaluated with those bindings in effect.
 
-Each EXP should match (i.e. be of compatible structure) to its
-respective PATTERN; a mismatch may signal an error or may go
+Each EXP should match its respective PATTERN (i.e. be of structure
+compatible to PATTERN); a mismatch may signal an error or may go
 undetected, binding variables to arbitrary values, such as nil.
 
 (fn BINDINGS &rest BODY)" nil t)
@@ -32878,7 +32891,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from net/trampver.el
 
-(push (purecopy '(tramp 2 6 2 29 2)) package--builtin-versions)
+(push (purecopy '(tramp 2 6 3 -1)) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
