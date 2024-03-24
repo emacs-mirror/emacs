@@ -409,12 +409,12 @@ See `run-hooks'."
 
 (defun scheme-syntax-propertize (beg end)
   (goto-char beg)
-  (scheme-syntax-propertize-sexp-comment (point) end)
+  (scheme-syntax-propertize-sexp-comment end)
   (scheme-syntax-propertize-regexp end)
   (funcall
    (syntax-propertize-rules
     ("\\(#\\);" (1 (prog1 "< cn"
-                     (scheme-syntax-propertize-sexp-comment (point) end))))
+                     (scheme-syntax-propertize-sexp-comment end))))
     ("\\(#\\)/" (1 (when (null (nth 8 (save-excursion
                                         (syntax-ppss (match-beginning 0)))))
                      (put-text-property
@@ -425,7 +425,7 @@ See `run-hooks'."
                      nil))))
    (point) end))
 
-(defun scheme-syntax-propertize-sexp-comment (_ end)
+(defun scheme-syntax-propertize-sexp-comment (end)
   (let ((state (syntax-ppss)))
     (when (eq 2 (nth 7 state))
       ;; It's a sexp-comment.  Tell parse-partial-sexp where it ends.
