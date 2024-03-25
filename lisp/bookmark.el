@@ -515,10 +515,11 @@ See user option `bookmark-fringe-mark'."
         (non-essential t)
         overlays found temp)
     (when (and pos filename)
-      (setq filename (expand-file-name filename))
+      (setq filename (abbreviate-file-name (expand-file-name filename)))
       (dolist (buf (buffer-list))
         (with-current-buffer buf
-          (when (equal filename buffer-file-name)
+          (when (equal filename
+                       (ignore-errors (bookmark-buffer-file-name)))
             (setq overlays
                   (save-excursion
                     (goto-char pos)
@@ -1192,6 +1193,8 @@ it to the name of the bookmark currently being set, advancing
      (if (stringp dired-directory)
          dired-directory
        (car dired-directory)))
+    ((and (boundp 'Info-current-file) (stringp Info-current-file))
+     Info-current-file)
     (t (error "Buffer not visiting a file or directory")))))
 
 (defvar bookmark--watch-already-asked-mtime nil
