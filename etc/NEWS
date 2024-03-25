@@ -1453,7 +1453,7 @@ chat buffers use by default.
 It controls how buffers are divided into groups that are displayed with
 headings using Outline minor mode.
 
----
++++
 *** New command 'Buffer-menu-toggle-internal'.
 This command toggles the display of internal buffers in Buffer Menu mode;
 that is, buffers not visiting a file and whose names start with a space.
