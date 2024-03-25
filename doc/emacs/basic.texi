@@ -406,8 +406,8 @@ Delete the character before point, or the region if it is active
 (@code{delete-backward-char}).
 
 @item @key{Delete}
-Delete the character after point, or the region if it is active
-(@code{delete-forward-char}).
+Delete the character or grapheme cluster after point, or the region if
+it is active (@code{delete-forward-char}).
 
 @item C-d
 Delete the character after point (@code{delete-char}).
@@ -438,11 +438,18 @@ with the @key{Delete} key; we will discuss @key{Delete} momentarily.)
 On some text terminals, Emacs may not recognize the @key{DEL} key
 properly.  @xref{DEL Does Not Delete}, if you encounter this problem.
 
+@cindex grapheme cluster, deletion
+@cindex delete entire grapheme cluster
   The @key{Delete} (@code{delete-forward-char}) command deletes in the
 opposite direction: it deletes the character after point, i.e., the
 character under the cursor.  If point was at the end of a line, this
 joins the following line onto this one.  Like @kbd{@key{DEL}}, it
 deletes the text in the region if the region is active (@pxref{Mark}).
+If the character after point is composed with following characters and
+displayed as a single display unit, a so-called @dfn{grapheme cluster}
+representing the entire sequence, @key{Delete} deletes the entire
+sequence in one go.  This is in contrast to @key{DEL} which always
+deletes a single character, even if the character is composed.
 
   @kbd{C-d} (@code{delete-char}) deletes the character after point,
 similar to @key{Delete}, but regardless of whether the region is
