@@ -6452,13 +6452,16 @@ When calling from a program, supply as argument a number, nil, or `-'.  */)
 }
 
 DEFUN ("other-window-for-scrolling", Fother_window_for_scrolling, Sother_window_for_scrolling, 0, 0, 0,
-       doc: /* Return the other window for \"other window scroll\" commands.
-If in the minibuffer, `minibuffer-scroll-window' if non-nil
-specifies the window.
-Otherwise, if `other-window-scroll-buffer' is non-nil, a window
-showing that buffer is used, popping the buffer up if necessary.
-Finally, look for a neighboring window on the selected frame,
-followed by all visible frames on the current terminal.  */)
+       doc: /* Return \"the other\" window for \"other window scroll\" commands.
+If in the minibuffer, and `minibuffer-scroll-window' is non-nil,
+it specifies the window to use.
+Otherwise, if `other-window-scroll-buffer' is a buffer, a window
+showing that buffer is the window to use, popping it up if necessary.
+Otherwise, if `other-window-scroll-default' is a function, call it,
+and the window it returns is the window to use.
+Finally, the function looks for a neighboring window on the selected
+frame, followed by windows on all the visible frames on the current
+terminal.  */)
   (void)
 {
   Lisp_Object window;
