@@ -42,6 +42,33 @@
   "Depth of recursion within cl-print functions.
 Compared to `print-level' to determine when to stop recursing.")
 
+(defun cl-print-pos-info (doc-string stream)
+  "Print the position info contained in DOC-STRING.
+STREAM is the output stream to write to.
+
+The info is written enclosed in braces.  Currently (2024-03), the
+defining symbol is printed, if present.  Otherwise, the buffer name
+together with an offset (the lambda offset, if present) are printed.
+
+If DOC-STRING contains no position info, this fuction does nothing."
+  (let ((pos-info (byte-run-position-vec doc-string)))
+      (when (vectorp pos-info)
+        (let ((defsym (aref pos-info 0))
+              (posbuf (aref pos-info 1))
+              (pos-ds-pos (aref pos-info 2))
+              (pos-lambda-pos (aref pos-info 3)))
+          (princ "{" stream)
+          (if defsym
+              (prin1 defsym stream)
+            (when posbuf
+              (prin1 posbuf stream)
+              (princ " " stream))
+            (cond
+             (pos-lambda-pos
+              (prin1 pos-lambda-pos stream))
+             (pos-ds-pos
+              (prin1 pos-ds-pos stream))))
+          (princ "} " stream)))))
 
 ;;;###autoload
 (cl-defgeneric cl-print-object (object stream)
@@ -67,14 +94,8 @@ Print the contents hidden by the ellipsis to STREAM."
 
 (cl-defmethod cl-print-object ((object cons) stream)
   (when (memq (car object) '(lambda closure))
-    (let* ((doc-string (documentation object 'also-pos))
-           (pos-info (byte-run-position-vec doc-string))
-           (defsym (and (vectorp pos-info)
-                        (aref pos-info 0))))
-      (when defsym
-        (princ "{" stream)
-        (prin1 defsym stream)
-        (princ "} " stream))))
+    (let ((doc-string (documentation object 'also-pos)))
+      (cl-print-pos-info doc-string stream)))
   (if (and cl-print--depth (natnump print-level)
            (> cl-print--depth print-level))
       (cl-print-insert-ellipsis object nil stream)
@@ -193,14 +214,8 @@ into a button whose action shows the function's disassembly.")
   (unless stream (setq stream standard-output))
   ;; We use "#f(...)" rather than "#<...>" so that pp.el gives better results.
   (let* ((args (help-function-arglist object 'preserve-names))
-         (doc-string (documentation object 'also-pos))
-         (pos-info (byte-run-position-vec doc-string))
-         (defsym (and (vectorp pos-info)
-                      (aref pos-info 0))))
-    (when defsym
-      (princ "{" stream)
-      (prin1 defsym stream)
-      (princ "} " stream))
+         (doc-string (documentation object 'also-pos)))
+    (cl-print-pos-info doc-string stream)
     (princ "#f(compiled-function " stream)
     (if args
         (prin1 args stream)

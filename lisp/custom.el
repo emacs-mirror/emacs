@@ -385,6 +385,7 @@ call that function directly.
 See Info node `(elisp) Customization' in the Emacs Lisp manual
 for more information."
   (declare (doc-string 3) (debug (name body))
+           (defining-symbol symbol doc t)
            (indent defun))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
