@@ -46,9 +46,11 @@ import android.view.KeyEvent;
 import android.view.inputmethod.CursorAnchorInfo;
 import android.view.inputmethod.ExtractedText;
 
+import android.app.AlarmManager;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 
 import android.content.ClipboardManager;
@@ -724,11 +726,29 @@ public final class EmacsService extends Service
   restartEmacs ()
   {
     Intent intent;
+    PendingIntent pending;
+    AlarmManager manager;
 
     intent = new Intent (this, EmacsActivity.class);
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
 		     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-    startActivity (intent);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+      startActivity (intent);
+    else
+      {
+	/* Experimentation has established that Android 4.3 and earlier
+	   versions do not attempt to recreate a process when it crashes
+	   immediately after requesting that an intent for itself be
+	   started.  Schedule an intent to start some time after Emacs
+	   exits instead.  */
+
+	pending = PendingIntent.getActivity (this, 0, intent, 0);
+	manager = (AlarmManager) getSystemService (Context.ALARM_SERVICE);
+	manager.set (AlarmManager.RTC, System.currentTimeMillis () + 100,
+		     pending);
+      }
+
     System.exit (0);
   }
 
