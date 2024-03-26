@@ -618,9 +618,10 @@ enum android_lookup_status
 
 enum android_ic_mode
   {
-    ANDROID_IC_MODE_NULL   = 0,
-    ANDROID_IC_MODE_ACTION = 1,
-    ANDROID_IC_MODE_TEXT   = 2,
+    ANDROID_IC_MODE_NULL     = 0,
+    ANDROID_IC_MODE_ACTION   = 1,
+    ANDROID_IC_MODE_TEXT     = 2,
+    ANDROID_IC_MODE_PASSWORD = 3,
   };
 
 enum android_stack_mode

@@ -3405,6 +3405,10 @@ with Emacs.  Do not call it directly in your own packages."
        (+ i beg) (+ 1 i beg)
        'help-echo "C-u: Clear password\nTAB: Toggle password visibility"))))
 
+;; Actually in textconv.c.
+(defvar overriding-text-conversion-style)
+(declare-function set-text-conversion-style "textconv.c")
+
 (defun read-passwd (prompt &optional confirm default)
   "Read a password, prompting with PROMPT, and return it.
 If optional CONFIRM is non-nil, read the password twice to make sure.
@@ -3445,7 +3449,8 @@ by doing (clear-string STRING)."
             (add-hook 'post-command-hook #'read-passwd--hide-password nil t))
         (unwind-protect
             (let ((enable-recursive-minibuffers t)
-		  (read-hide-char (or read-hide-char ?*)))
+		  (read-hide-char (or read-hide-char ?*))
+                  (overriding-text-conversion-style 'password))
               (read-string prompt nil t default)) ; t = "no history"
           (when (buffer-live-p minibuf)
             (with-current-buffer minibuf
@@ -3457,7 +3462,10 @@ by doing (clear-string STRING)."
                            #'read-passwd--hide-password 'local)
               (kill-local-variable 'post-self-insert-hook)
               ;; And of course, don't keep the sensitive data around.
-              (erase-buffer))))))))
+              (erase-buffer)
+              ;; Then restore the previous text conversion style.
+              (when (fboundp 'set-text-conversion-style)
+                (set-text-conversion-style text-conversion-style)))))))))
 
 (defvar read-number-history nil
   "The default history for the `read-number' function.")
@@ -3866,10 +3874,6 @@ confusing to some users.")
                                                      ; connected.
                from--tty-menu-p)            ; invoked via TTY menu
            use-dialog-box)))
-
-;; Actually in textconv.c.
-(defvar overriding-text-conversion-style)
-(declare-function set-text-conversion-style "textconv.c")
 
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.

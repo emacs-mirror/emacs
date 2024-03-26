@@ -2318,6 +2318,7 @@ void
 syms_of_textconv (void)
 {
   DEFSYM (Qaction, "action");
+  DEFSYM (Qpassword, "password");
   DEFSYM (Qtext_conversion, "text-conversion");
   DEFSYM (Qpush_mark, "push-mark");
   DEFSYM (Qunderline, "underline");
@@ -2325,7 +2326,7 @@ syms_of_textconv (void)
 	  "overriding-text-conversion-style");
 
   DEFVAR_LISP ("text-conversion-edits", Vtext_conversion_edits,
-    doc: /* List of buffers that were last edited as result of text conversion.
+    doc: /* List of buffers last edited as a result of text conversion.
 
 This list can be used while handling a `text-conversion' event to
 determine which changes have taken place.

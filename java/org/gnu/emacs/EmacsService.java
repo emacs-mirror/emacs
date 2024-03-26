@@ -114,9 +114,10 @@ public final class EmacsService extends Service
   private ContentResolver resolver;
 
   /* Keep this in synch with androidgui.h.  */
-  public static final int IC_MODE_NULL   = 0;
-  public static final int IC_MODE_ACTION = 1;
-  public static final int IC_MODE_TEXT   = 2;
+  public static final int IC_MODE_NULL     = 0;
+  public static final int IC_MODE_ACTION   = 1;
+  public static final int IC_MODE_TEXT     = 2;
+  public static final int IC_MODE_PASSWORD = 3;
 
   /* Display metrics used by font backends.  */
   public DisplayMetrics metrics;

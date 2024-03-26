@@ -6276,6 +6276,8 @@ android_reset_conversion (struct frame *f)
 
   if (NILP (style) || conversion_disabled_p ())
     mode = ANDROID_IC_MODE_NULL;
+  else if (EQ (style, Qpassword))
+    mode = ANDROID_IC_MODE_PASSWORD;
   else if (EQ (style, Qaction) || EQ (f->selected_window,
 				      f->minibuffer_window))
     mode = ANDROID_IC_MODE_ACTION;

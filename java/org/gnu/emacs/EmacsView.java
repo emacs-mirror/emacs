@@ -838,8 +838,15 @@ public final class EmacsView extends ViewGroup
 	EmacsNative.requestSelectionUpdate (window.handle);
       }
 
-    if (mode == EmacsService.IC_MODE_ACTION)
+    if (mode == EmacsService.IC_MODE_ACTION
+	|| mode == EmacsService.IC_MODE_PASSWORD)
       info.imeOptions |= EditorInfo.IME_ACTION_DONE;
+
+    if (mode == EmacsService.IC_MODE_PASSWORD)
+      {
+	info.imeOptions |= EditorInfo.IME_FLAG_FORCE_ASCII;
+	info.inputType  |= InputType.TYPE_TEXT_VARIATION_PASSWORD;
+      }
 
     /* Set the initial selection fields.  */
     info.initialSelStart = selection[0];

@@ -2464,7 +2464,7 @@ buffer-local variable @code{text-conversion-style}, which determines
 how an input method that wishes to make edits to buffer contents will
 behave.
 
-This variable can have one of three values:
+This variable can have one of four values:
 
 @table @code
 @item nil
@@ -2474,6 +2474,13 @@ events will be sent instead of text conversion events.
 @item action
 This means that the input method will be enabled, but @key{RET} will
 be sent whenever the input method wants to insert a new line.
+
+@item password
+This is largely identical to @code{action}, but also requests an input
+method capable of inserting ASCII characters and instructs it not to
+save input in locations from whence it might be subsequently retrieved
+by features of the input method unfit to handle sensitive information,
+such as text suggestions.
 
 @item t
 This, or any other value, means that the input method will be enabled
