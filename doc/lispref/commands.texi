@@ -2477,10 +2477,10 @@ be sent whenever the input method wants to insert a new line.
 
 @item password
 This is largely identical to @code{action}, but also requests an input
-method capable of inserting ASCII characters and instructs it not to
-save input in locations from whence it might be subsequently retrieved
-by features of the input method unfit to handle sensitive information,
-such as text suggestions.
+method capable of inserting ASCII characters, and instructs it not to
+save input in locations from which it might be subsequently retrieved
+by features of the input method that cannot handle sensitive
+information, such as text suggestions.
 
 @item t
 This, or any other value, means that the input method will be enabled
