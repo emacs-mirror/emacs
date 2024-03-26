@@ -870,7 +870,9 @@ comparing the subr with a much slower Lisp implementation."
                                    native-comp-unit interpreted-function
                                    tree-sitter-compiled-query
                                    tree-sitter-node tree-sitter-parser))))
-            (should-not (cl-typep val subtype))))))))
+            (cond
+             ((eq subtype 'function) (cl-functionp val))
+             (t (should-not (cl-typep val subtype))))))))))
 
 
 ;;; data-tests.el ends here

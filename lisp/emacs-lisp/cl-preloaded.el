@@ -436,7 +436,11 @@ For this build of Emacs it's %dbit."
   (car car) (cdr cdr))
 (cl--define-built-in-type function (atom)
   "Abstract supertype of function values."
-  :predicate cl-functionp)
+  ;; FIXME: Historically, (cl-typep FOO 'function) called `functionp',
+  ;; so while `cl-functionp' would be the more correct predicate, it
+  ;; would breaks existing code :-(
+  ;; :predicate cl-functionp
+  )
 (cl--define-built-in-type compiled-function (function)
   "Abstract type of functions that have been compiled.")
 (cl--define-built-in-type byte-code-function (compiled-function)
