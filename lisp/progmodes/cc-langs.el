@@ -1599,6 +1599,12 @@ operators."
 (c-lang-defvar c-assignment-op-regexp
   (c-lang-const c-assignment-op-regexp))
 
+(c-lang-defconst c-negation-op-re
+  ;; Regexp matching the negation operator.
+  t "!\\([^=]\\|$\\)")
+
+(c-lang-defvar c-negation-op-re (c-lang-const c-negation-op-re))
+
 (c-lang-defconst c-arithmetic-operators
   "List of all arithmetic operators, including \"+=\", etc."
   ;; Note: in the following, there are too many operators for AWK and IDL.
@@ -3162,6 +3168,30 @@ Keywords here should also be in `c-block-stmt-1-kwds'."
 	  (append (c-lang-const c-block-stmt-1-kwds)
 		  (c-lang-const c-block-stmt-2-kwds)))))
 (c-lang-defvar c-opt-block-stmt-key (c-lang-const c-opt-block-stmt-key))
+
+(c-lang-defconst c-paren-clause-kwds
+  "Keywords which can stand in the place of paren sexps in conditionals.
+This applies only to conditionals in `c-block-stmt-with-kwds'."
+  t nil
+  c++ '("consteval"))
+
+(c-lang-defconst c-paren-clause-key
+  ;; Regexp matching a keyword in `c-paren-clause-kwds'.
+  t (c-make-keywords-re t
+      (c-lang-const c-paren-clause-kwds)))
+(c-lang-defvar c-paren-clause-key (c-lang-const c-paren-clause-key))
+
+(c-lang-defconst c-block-stmt-with-kwds
+  "Statement keywords which can be followed by a keyword instead of a parens.
+Such a keyword is a member of `c-paren-clause-kwds."
+  t nil
+  c++ '("if"))
+
+(c-lang-defconst c-block-stmt-with-key
+  ;; Regexp matching a keyword in `c-block-stmt-with-kwds'.
+  t (c-make-keywords-re t
+      (c-lang-const c-block-stmt-with-kwds)))
+(c-lang-defvar c-block-stmt-with-key (c-lang-const c-block-stmt-with-key))
 
 (c-lang-defconst c-simple-stmt-kwds
   "Statement keywords followed by an expression or nothing."
