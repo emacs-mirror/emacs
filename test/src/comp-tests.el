@@ -1496,7 +1496,14 @@ Return a list of results."
          (if (comp-foo-p x)
              x
            (error "")))
-       'comp-foo)))
+       'comp-foo)
+
+      ;; 80
+      ((defun comp-tests-ret-type-spec-f (x)
+         (if (functionp x)
+             (error "")
+           x))
+       '(not function))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

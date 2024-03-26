@@ -193,49 +193,52 @@ Useful to hook into pass checkers.")
 ;; cl-macs.el. We can't use `cl-deftype-satisfies' directly as the
 ;; relation type <-> predicate is not bijective (bug#45576).
 (defconst comp-known-predicates
-  '((arrayp              . array)
-    (atom		 . atom)
-    (bool-vector-p       . bool-vector)
-    (booleanp            . boolean)
-    (bufferp             . buffer)
-    (char-table-p	 . char-table)
-    (characterp          . fixnum)
-    (consp               . cons)
-    (floatp              . float)
-    (framep              . frame)
-    (functionp           . (or function symbol cons))
-    (hash-table-p	 . hash-table)
-    (integer-or-marker-p . integer-or-marker)
-    (integerp            . integer)
-    (keywordp            . keyword)
-    (listp               . list)
-    (markerp             . marker)
-    (natnump             . (integer 0 *))
-    (null		 . null)
-    (number-or-marker-p  . number-or-marker)
-    (numberp             . number)
-    (numberp             . number)
-    (obarrayp            . obarray)
-    (overlayp            . overlay)
-    (processp            . process)
-    (sequencep           . sequence)
-    (stringp             . string)
-    (subrp               . subr)
-    (symbol-with-pos-p   . symbol-with-pos)
-    (symbolp             . symbol)
-    (vectorp             . vector)
-    (windowp             . window))
-  "Alist predicate -> matched type specifier.")
+  '((arrayp              array)
+    (atom		 atom)
+    (bool-vector-p       bool-vector)
+    (booleanp            boolean)
+    (bufferp             buffer)
+    (char-table-p	 char-table)
+    (characterp          fixnum)
+    (consp               cons)
+    (floatp              float)
+    (framep              frame)
+    (functionp           (or function symbol cons) (not function))
+    (hash-table-p	 hash-table)
+    (integer-or-marker-p integer-or-marker)
+    (integerp            integer)
+    (keywordp            keyword)
+    (listp               list)
+    (markerp             marker)
+    (natnump             (integer 0 *))
+    (null		 null)
+    (number-or-marker-p  number-or-marker)
+    (numberp             number)
+    (numberp             number)
+    (obarrayp            obarray)
+    (overlayp            overlay)
+    (processp            process)
+    (sequencep           sequence)
+    (stringp             string)
+    (subrp               subr)
+    (symbol-with-pos-p   symbol-with-pos)
+    (symbolp             symbol)
+    (vectorp             vector)
+    (windowp             window))
+  "(PREDICATE TYPE-IF-SATISFIED ?TYPE-IF-NOT-SATISFIED).")
 
 (defconst comp-known-predicates-h
   (cl-loop
    with comp-ctxt = (make-comp-cstr-ctxt)
    with h = (make-hash-table :test #'eq)
-   for (pred . type-spec) in comp-known-predicates
-   for cstr = (comp-type-spec-to-cstr type-spec)
-   do (puthash pred cstr h)
+   for (pred . type-specs) in comp-known-predicates
+   for pos-cstr = (comp-type-spec-to-cstr (car type-specs))
+   for neg-cstr = (if (length> type-specs 1)
+                      (comp-type-spec-to-cstr (cl-second type-specs))
+                    (comp-cstr-negation-make pos-cstr))
+   do (puthash pred (cons pos-cstr neg-cstr) h)
    finally return h)
-  "Hash table function -> `comp-constraint'.")
+  "Hash table FUNCTION -> (POS-CSTR . NEG-CSTR).")
 
 (defun comp--known-predicate-p (predicate)
   "Return t if PREDICATE is known."
@@ -243,10 +246,14 @@ Useful to hook into pass checkers.")
             (gethash predicate (comp-cstr-ctxt-pred-type-h comp-ctxt)))
     t))
 
-(defun comp--pred-to-cstr (predicate)
-  "Given PREDICATE, return the corresponding constraint."
-  ;; FIXME: Unify those two hash tables?
-  (or (gethash predicate comp-known-predicates-h)
+(defun comp--pred-to-pos-cstr (predicate)
+  "Given PREDICATE, return the corresponding positive constraint."
+  (or (car-safe (gethash predicate comp-known-predicates-h))
+      (gethash predicate (comp-cstr-ctxt-pred-type-h comp-ctxt))))
+
+(defun comp--pred-to-neg-cstr (predicate)
+  "Given PREDICATE, return the corresponding negative constraint."
+  (or (cdr-safe (gethash predicate comp-known-predicates-h))
       (gethash predicate (comp-cstr-ctxt-pred-type-h comp-ctxt))))
 
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
@@ -2033,7 +2040,6 @@ TARGET-BB-SYM is the symbol name of the target block."
 	 (cond-jump ,cmp-res ,(pred comp-mvar-p) . ,blocks))
        (cl-loop
         with target-mvar = (comp--cond-cstrs-target-mvar op (car insns-seq) b)
-        with cstr = (comp--pred-to-cstr fun)
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
         for negated in '(t nil)
@@ -2041,7 +2047,10 @@ TARGET-BB-SYM is the symbol name of the target block."
         do
         (let ((block-target (comp--add-cond-cstrs-target-block b branch-target)))
           (setf (car branch-target-cell) (comp-block-name block-target))
-          (comp--emit-assume 'and target-mvar cstr block-target negated))
+          (comp--emit-assume 'and target-mvar (if negated
+                                                  (comp--pred-to-neg-cstr fun)
+                                                (comp--pred-to-pos-cstr fun))
+                             block-target nil))
         finally (cl-return-from in-the-basic-block)))
       ;; Match predicate on the negated branch (unless).
       (`((set ,(and (pred comp-mvar-p) cmp-res)
@@ -2052,7 +2061,6 @@ TARGET-BB-SYM is the symbol name of the target block."
 	 (cond-jump ,neg-cmp-res ,(pred comp-mvar-p) . ,blocks))
        (cl-loop
         with target-mvar = (comp--cond-cstrs-target-mvar op (car insns-seq) b)
-        with cstr = (comp--pred-to-cstr fun)
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
         for negated in '(nil t)
@@ -2060,7 +2068,10 @@ TARGET-BB-SYM is the symbol name of the target block."
         do
         (let ((block-target (comp--add-cond-cstrs-target-block b branch-target)))
           (setf (car branch-target-cell) (comp-block-name block-target))
-          (comp--emit-assume 'and target-mvar cstr block-target negated))
+          (comp--emit-assume 'and target-mvar (if negated
+                                                  (comp--pred-to-neg-cstr fun)
+                                                (comp--pred-to-pos-cstr fun))
+                             block-target nil))
         finally (cl-return-from in-the-basic-block))))
     (setf prev-insns-seq insns-seq))))
 
