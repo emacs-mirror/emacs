@@ -2176,7 +2176,7 @@ Such as the current syntax table and the applied syntax properties."
                  (or
                   (buffer-modified-p buf)
                   (unless xref--hits-remote-id
-                    (not (verify-visited-file-modtime (current-buffer))))))
+                    (not (verify-visited-file-modtime buf)))))
         ;; We can't use buffers whose contents diverge from disk (bug#54025).
         (setq buf nil))
       (setq xref--last-file-buffer (cons file buf))))
