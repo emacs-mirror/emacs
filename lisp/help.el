@@ -2353,7 +2353,7 @@ the same names as used in the original source code, when possible."
    ((or (and (byte-code-function-p def) (integerp (aref def 0)))
         (subrp def) (module-function-p def))
     (or (when preserve-names
-          (let* ((doc (condition-case nil (documentation def) (error nil)))
+          (let* ((doc (condition-case nil (documentation def 'raw) (error nil)))
                  (docargs (if doc (car (help-split-fundoc doc nil))))
                  (arglist (if docargs
                               (cdar (read-from-string (downcase docargs)))))
