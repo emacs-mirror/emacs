@@ -415,5 +415,9 @@ cycles backward."
     (remove-hook 'post-command-hook #'completion-preview--post-command t)
     (completion-preview-active-mode -1)))
 
+(define-globalized-minor-mode global-completion-preview-mode
+  completion-preview-mode completion-preview-mode
+  :predicate '((not minibuffer-mode special-mode) t))
+
 (provide 'completion-preview)
 ;;; completion-preview.el ends here

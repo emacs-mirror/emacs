@@ -1559,6 +1559,8 @@ sexp navigation more intuitive.
 This minor mode shows you symbol completion suggestions as you type,
 using an inline preview.  New user options in the 'completion-preview'
 customization group control exactly when Emacs displays this preview.
+'completion-preview-mode' is buffer-local, to enable it globally use
+'global-completion-preview-mode'.
 
 ---
 ** The highly accessible Modus themes collection has eight items.

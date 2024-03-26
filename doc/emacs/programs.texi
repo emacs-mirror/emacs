@@ -1706,11 +1706,14 @@ based on the spell-checker's dictionary.  @xref{Spelling}.
 @cindex suggestion preview
 @cindex Completion Preview mode
 @findex completion-preview-mode
+@findex global-completion-preview-mode
   Completion Preview mode is a minor mode that shows completion
-suggestions as you type.  When you enable this mode (with @kbd{M-x
-completion-preview-mode}), Emacs automatically displays the
-suggested completion for text around point as an in-line preview
-right after point; type @key{TAB} to accept the suggestion.
+suggestions as you type.  You can enable it for the current buffer with
+@kbd{M-x completion-preview-mode}, or globally with @w{@kbd{M-x
+global-completion-preview-mode}}.  When Completion Preview mode is on,
+Emacs automatically displays the suggested completion for text around
+point as an in-line preview right after point; type @key{TAB} to accept
+the suggestion.
 
 @node MixedCase Words
 @section MixedCase Words
