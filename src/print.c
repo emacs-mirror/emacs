@@ -2859,6 +2859,7 @@ decimal point.  0 is not allowed with `e' or `g'.
 A value of nil means to use the shortest notation
 that represents the number without losing information.  */);
   Vfloat_output_format = Qnil;
+  DEFSYM (Qfloat_output_format, "float-output-format");
 
   DEFVAR_BOOL ("print-integers-as-characters", print_integers_as_characters,
 	       doc: /* Non-nil means integers are printed using characters syntax.

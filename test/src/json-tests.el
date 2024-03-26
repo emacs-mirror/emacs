@@ -126,11 +126,38 @@
 
 (ert-deftest json-serialize/object-with-duplicate-keys ()
   (skip-unless (fboundp 'json-serialize))
-  (let ((table (make-hash-table :test #'eq)))
-    (puthash (copy-sequence "abc") [1 2 t] table)
-    (puthash (copy-sequence "abc") :null table)
-    (should (equal (hash-table-count table) 2))
-    (should-error (json-serialize table) :type 'wrong-type-argument)))
+
+  (dolist (n '(1 5 20 100))
+    (let ((symbols (mapcar (lambda (i) (make-symbol (format "s%d" i)))
+                           (number-sequence 1 n)))
+          (expected (concat "{"
+                            (mapconcat (lambda (i) (format "\"s%d\":%d" i i))
+                                       (number-sequence 1 n) ",")
+                            "}")))
+      ;; alist
+      (should (equal (json-serialize
+                      (append
+                       (cl-mapcar #'cons
+                                  symbols (number-sequence 1 n))
+                       (cl-mapcar #'cons
+                                  symbols (number-sequence 1001 (+ 1000 n)))))
+                     expected))
+      ;; plist
+      (should (equal (json-serialize
+                      (append
+                       (cl-mapcan #'list
+                                  symbols (number-sequence 1 n))
+                       (cl-mapcan #'list
+                                  symbols (number-sequence 1001 (+ 1000 n)))))
+                     expected))))
+
+  ;; We don't check for duplicated keys in hash tables.
+  ;; (let ((table (make-hash-table :test #'eq)))
+  ;;   (puthash (copy-sequence "abc") [1 2 t] table)
+  ;;   (puthash (copy-sequence "abc") :null table)
+  ;;   (should (equal (hash-table-count table) 2))
+  ;;   (should-error (json-serialize table) :type 'wrong-type-argument))
+  )
 
 (ert-deftest json-parse-string/object ()
   (skip-unless (fboundp 'json-parse-string))
@@ -173,8 +200,8 @@
   (should (equal (json-serialize ["\nasdфыв\u001f\u007ffgh\t"])
                  "[\"\\nasdфыв\\u001F\u007ffgh\\t\"]"))
   (should (equal (json-serialize ["a\0b"]) "[\"a\\u0000b\"]"))
-  ;; FIXME: Is this the right behavior?
-  (should (equal (json-serialize ["\u00C4\xC3\x84"]) "[\"\u00C4\u00C4\"]")))
+  (should-error (json-serialize ["\xC3\x84"]))
+  (should-error (json-serialize ["\u00C4\xC3\x84"])))
 
 (ert-deftest json-serialize/invalid-unicode ()
   (skip-unless (fboundp 'json-serialize))

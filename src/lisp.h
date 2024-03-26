@@ -4327,7 +4327,6 @@ extern void syms_of_image (void);
 
 #ifdef HAVE_JSON
 /* Defined in json.c.  */
-extern void init_json (void);
 extern void syms_of_json (void);
 #endif
 
