@@ -124,6 +124,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "object_type") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "enum_body") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "class_body") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "interface_body") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "arrow_function") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "parenthesized_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "binary_expression") parent-bol typescript-ts-mode-indent-offset)
