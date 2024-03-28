@@ -66,4 +66,23 @@
     (while (search-forward "." nil t)
       (should (not (eolp))))))
 
+(ert-deftest pp-tests--sanity ()
+  (with-temp-buffer
+    (lisp-data-mode)
+    (let ((testdata "(a b c #1=#[0 \"\" [] 0] #s(foo #1# bar))"))
+      (let ((res (car (read-from-string testdata))))
+      (dotimes (i (length testdata))
+        (erase-buffer)
+        (insert testdata)
+        (let ((fill-column i))
+          (pp-fill (point-min) (point-max))
+          (goto-char (point-min))
+          (condition-case err
+              (should (equal (read (current-buffer)) res))
+            (invalid-read-syntax
+             (message "Invalid fill result with i=%d:\n%s"
+                      i (buffer-string))
+             (signal (car err) (cdr err))
+             ))))))))
+
 ;;; pp-tests.el ends here.

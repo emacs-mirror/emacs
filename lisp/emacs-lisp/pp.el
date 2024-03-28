@@ -166,12 +166,19 @@ it inserts and pretty-prints that arg at point."
   (interactive "r")
   (if (null end) (pp--object beg #'pp-fill)
     (goto-char beg)
-    (let ((end (copy-marker end t))
-          (newline (lambda ()
-                     (skip-chars-forward ")]}")
-                     (unless (save-excursion (skip-chars-forward " \t") (eolp))
-                       (insert "\n")
-                       (indent-according-to-mode)))))
+    (let* ((end (copy-marker end t))
+           (avoid-unbreakable
+            (lambda ()
+              (and (memq (char-before) '(?# ?s ?f))
+                   (memq (char-after) '(?\[ ?\())
+                   (looking-back "#[sf]?" (- (point) 2))
+                   (goto-char (match-beginning 0)))))
+           (newline (lambda ()
+                      (skip-chars-forward ")]}")
+                      (unless (save-excursion (skip-chars-forward " \t") (eolp))
+                        (funcall avoid-unbreakable)
+                        (insert "\n")
+                        (indent-according-to-mode)))))
       (while (progn (forward-comment (point-max))
                     (< (point) end))
         (let ((beg (point))
@@ -198,10 +205,10 @@ it inserts and pretty-prints that arg at point."
                       ;; reduce the indentation depth.
                       ;; Similarly, we prefer to cut before a "." than after
                       ;; it because it reduces the indentation depth.
-                      (while (not (zerop (skip-chars-backward " \t({[',.")))
-                        (and (memq (char-before) '(?# ?s ?f))
-                             (looking-back "#[sf]?" (- (point) 2))
-                             (goto-char (match-beginning 0))))
+                      (while
+                          (progn
+                            (funcall avoid-unbreakable)
+                            (not (zerop (skip-chars-backward " \t({[',.")))))
                       (if (bolp)
                           ;; The sexp already starts on its own line.
                           (progn (goto-char beg) nil)
