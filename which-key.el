@@ -127,7 +127,7 @@ of the which-key popup."
 (defcustom which-key-dont-use-unicode nil
   "If non-nil, don't use any unicode characters in default setup.
 For affected settings, see `which-key-replacement-alist', `which-key-ellipsis'
-'which-key-separator'."
+`which-key-separator'."
   :type 'boolean
   :version "1.0")
 
@@ -794,11 +794,11 @@ should be formatted as an input for `kbd'."
       (setq this-command-keys (this-single-command-raw-keys)))
     this-command-keys))
 
-(defcustom which-key-this-command-keys-function 'which-key--this-command-keys
+(defcustom which-key-this-command-keys-function #'which-key--this-command-keys
   "Function used to retrieve current key sequence.
 The purpose of allowing this variable to be customized is to
 allow which-key to support packages that insert non-standard
-'keys' into the key sequence being read by emacs."
+`keys' into the key sequence being read by emacs."
   :group 'which-key
   :type 'function
   :version "1.0")
@@ -832,7 +832,7 @@ invalid keys."
        (bound-and-true-p evil-this-operator)))
 
 (add-hook 'which-key-inhibit-display-hook
-          'which-key-evil-this-operator-p)
+          #'which-key-evil-this-operator-p)
 
 ;;;; God-mode
 
@@ -875,16 +875,16 @@ disable support."
       (progn
         (advice-remove 'god-mode-lookup-command
                        #'which-key--god-mode-lookup-command-advice)
-        (setq which-key-this-command-keys-function
-              'which-key--this-command-keys)
+        (remove-function which-key-this-command-keys-function
+                         #'which-key--god-mode-this-command-keys)
         (remove-hook 'which-key-inhibit-display-hook
-                     'which-key-god-mode-self-insert-p))
+                     #'which-key-god-mode-self-insert-p))
     (advice-add 'god-mode-lookup-command :around
                 #'which-key--god-mode-lookup-command-advice)
-    (setq which-key-this-command-keys-function
-          'which-key--god-mode-this-command-keys)
+    (add-function :override which-key-this-command-keys-function
+                  #'which-key--god-mode-this-command-keys)
     (add-hook 'which-key-inhibit-display-hook
-              'which-key-god-mode-self-insert-p)))
+              #'which-key-god-mode-self-insert-p)))
 
 ;;; Mode
 
@@ -1849,11 +1849,10 @@ alists. Returns a list (key separator description)."
 (defun which-key--compute-binding (binding)
   "Replace BINDING with remapped binding if it exists.
 Requires `which-key-compute-remaps' to be non-nil."
-  (let (remap)
-    (if (and which-key-compute-remaps
-             (setq remap (command-remapping binding)))
-        (copy-sequence (symbol-name remap))
-      (copy-sequence (symbol-name binding)))))
+  (copy-sequence (symbol-name
+                  (or (and which-key-compute-remaps
+                           (command-remapping binding))
+                      binding))))
 
 (defun which-key--get-menu-item-binding (def)
   "Retrieve binding for menu-item"
@@ -1898,8 +1897,11 @@ Requires `which-key-compute-remaps' to be non-nil."
                            (cond
                             ((symbolp def) (which-key--compute-binding def))
                             ((keymapp def) "prefix")
-                            ((eq 'lambda (car-safe def)) "lambda")
-                            ((eq 'closure (car-safe def)) "closure")
+                            ((functionp def)
+                             (cond
+                              ((eq 'lambda (car-safe def)) "lambda")
+                              ((eq 'closure (car-safe def)) "closure")
+                              (t "function")))
                             ((stringp def) def)
                             ((vectorp def) (key-description def))
                             ((and (consp def)
