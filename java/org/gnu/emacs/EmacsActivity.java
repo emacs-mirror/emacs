@@ -297,7 +297,7 @@ public class EmacsActivity extends Activity
     long atime, dtime;
     int hours;
 
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.NOUGAT)
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
       return isFinishing ();
 
     /* When the number of tasks retained in the recents list exceeds a
