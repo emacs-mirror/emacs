@@ -744,7 +744,7 @@ associated `flymake-category' return DEFAULT."
 
 (defun flymake--update-eol-overlays ()
   "Update the `before-string' property of end-of-line overlays."
-  (save-excursion
+  (save-restriction
     (widen)
     (dolist (o (overlays-in (point-min) (point-max)))
       (when (overlay-get o 'flymake--eol-overlay)
