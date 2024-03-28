@@ -3470,6 +3470,10 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  (keyword	. keywordp)   ;Would need `keyword-with-pos`.
                  (natnum	. natnump)    ;Subtype of fixnum & bignum.
                  (real		. numberp)    ;Not clear where it would fit.
+                 ;; This one is redundant, but we keep it to silence a
+                 ;; warning during the early bootstrap when `cl-seq.el' gets
+                 ;; loaded before `cl-preloaded.el' is defined.
+                 (list		. listp)
                  ))
   (put type 'cl-deftype-satisfies pred))
 
