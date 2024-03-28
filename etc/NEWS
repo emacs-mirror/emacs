@@ -1430,6 +1430,14 @@ When this is non-nil, the lines of key sequences are displayed with
 the most recent line first.  This is can be useful when working with
 macros with many lines, such as from 'kmacro-edit-lossage'.
 
+** Proced
+
+---
+*** More control on automatic update of Proced buffers.
+The user option 'proced-auto-update-flag' can now be set to 2 additional
+values, which control automatic updates of Proced buffers that are not
+displayed in some window.
+
 ** Miscellaneous
 
 ---
