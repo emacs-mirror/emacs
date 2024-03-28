@@ -858,6 +858,18 @@ When the user closes the window created during application startup,
 and the window was not previously closed by the system in order to
 save resources, Emacs deletes any frame displayed within that window.
 
+However, on Android 7.0 and later, such frames are not deleted if the
+window is closed four or more hours after the window moves into the
+background, as the system automatically removes open windows once a
+certain period of inactivity elapses when the number of windows retained
+by the window manager surpasses a specific threshold, and window
+deletion by this mechanism is indistinguishable from window deletion by
+the user.  Emacs begins to ignore window deletion after two hours less
+than the default value of this threshold both to err on the side of
+caution, in case the system's record of inactivity and Emacs's differ,
+and for the reason that this threshold is open to customization by OS
+distributors.
+
 @item
 When the user or the system closes any window created by Emacs on
 behalf of a specific frame, Emacs deletes the frame displayed within
