@@ -623,62 +623,83 @@ recording whether the var has been referenced by earlier parts of the match."
 (defun pcase--and (match matches)
   (if matches `(and ,match ,@matches) match))
 
-(defconst pcase-mutually-exclusive-predicates
-  '((symbolp . integerp)
-    (symbolp . numberp)
-    (symbolp . consp)
-    (symbolp . arrayp)
-    (symbolp . vectorp)
-    (symbolp . stringp)
-    (symbolp . byte-code-function-p)
-    (symbolp . compiled-function-p)
-    (symbolp . recordp)
-    (null . integerp)
-    (null . numberp)
-    (null . numberp)
-    (null . consp)
-    (null . arrayp)
-    (null . vectorp)
-    (null . stringp)
-    (null . byte-code-function-p)
-    (null . compiled-function-p)
-    (null . recordp)
-    (integerp . consp)
-    (integerp . arrayp)
-    (integerp . vectorp)
-    (integerp . stringp)
-    (integerp . byte-code-function-p)
-    (integerp . compiled-function-p)
-    (integerp . recordp)
-    (numberp . consp)
-    (numberp . arrayp)
-    (numberp . vectorp)
-    (numberp . stringp)
-    (numberp . byte-code-function-p)
-    (numberp . compiled-function-p)
-    (numberp . recordp)
-    (consp . arrayp)
-    (consp . atom)
-    (consp . vectorp)
-    (consp . stringp)
-    (consp . byte-code-function-p)
-    (consp . compiled-function-p)
-    (consp . recordp)
-    (arrayp . byte-code-function-p)
-    (arrayp . compiled-function-p)
-    (vectorp . byte-code-function-p)
-    (vectorp . compiled-function-p)
-    (vectorp . recordp)
-    (stringp . vectorp)
-    (stringp . recordp)
-    (stringp . byte-code-function-p)
-    (stringp . compiled-function-p)))
+(defun pcase--subtype-bitsets ()
+  (let ((built-in-types ()))
+    (mapatoms (lambda (sym)
+                (let ((class (get sym 'cl--class)))
+                  (when (and (built-in-class-p class)
+                             (get sym 'cl-deftype-satisfies))
+                    (push (list sym
+                                (get sym 'cl-deftype-satisfies)
+                                (cl--class-allparents class))
+                          built-in-types)))))
+    ;; The "true" predicate for `function' type is `cl-functionp'.
+    (setcar (nthcdr 1 (assq 'function built-in-types)) 'cl-functionp)
+    ;; Sort the types from deepest in the hierarchy so all children
+    ;; are processed before their parent.  It also gives lowest
+    ;; numbers to those types that are subtypes of the largest number
+    ;; of types, which minimize the need to use bignums.
+    (setq built-in-types (sort built-in-types
+                               (lambda (x y)
+                                 (> (length (nth 2 x)) (length (nth 2 y))))))
 
+    (let ((bitsets (make-hash-table))
+          (i 1))
+      (dolist (x built-in-types)
+        ;; Don't dedicate any bit to those predicates which already
+        ;; have a bitset, since it means they're already represented
+        ;; by their subtypes.
+        (unless (and (nth 1 x) (gethash (nth 1 x) bitsets))
+          (dolist (parent (nth 2 x))
+            (let ((pred (nth 1 (assq parent built-in-types))))
+              (unless (or (eq parent t) (null pred))
+                (puthash pred (+ i (gethash pred bitsets 0))
+                         bitsets))))
+          (setq i (+ i i))))
+
+      ;; Extra predicates that don't have matching types.
+      (dolist (pred-types '((functionp cl-functionp consp symbolp)
+                            (keywordp symbolp)
+                            (characterp fixnump)
+                            (natnump integerp)
+                            (facep symbolp stringp)
+                            (plistp listp)
+                            (cl-struct-p recordp)
+                            ;; ;; FIXME: These aren't quite in the same
+                            ;; ;; category since they'll signal errors.
+                            (fboundp symbolp)
+                            ))
+        (puthash (car pred-types)
+                 (apply #'logior
+                        (mapcar (lambda (pred)
+                                  (gethash pred bitsets))
+                                (cdr pred-types)))
+                 bitsets))
+      bitsets)))
+
+(defconst pcase--subtype-bitsets
+  (if (fboundp 'built-in-class-p)
+      (pcase--subtype-bitsets)
+    ;; Early bootstrap: we don't have the built-in classes yet, so just
+    ;; use an empty table for now.
+    (prog1 (make-hash-table)
+      ;; The empty table leads to significantly worse code, so upgrade
+      ;; to the real table as soon as possible (most importantly: before we
+      ;; start compiling code, and hence baking the result into files).
+      (with-eval-after-load 'cl-preloaded
+        (defconst pcase--subtype-bitsets (pcase--subtype-bitsets)))))
+  "Table mapping predicates to their set of types.
+These are the set of built-in types for which they may return non-nil.
+The sets are represented as bitsets (integers) where each bit represents
+a specific leaf type.  Which bit represents which type is unspecified.")
+
+;; Extra predicates
 (defun pcase--mutually-exclusive-p (pred1 pred2)
-  (or (member (cons pred1 pred2)
-              pcase-mutually-exclusive-predicates)
-      (member (cons pred2 pred1)
-              pcase-mutually-exclusive-predicates)))
+  (let ((subtypes1 (gethash pred1 pcase--subtype-bitsets)))
+    (when subtypes1
+      (let ((subtypes2 (gethash pred2 pcase--subtype-bitsets)))
+        (when subtypes2
+          (zerop (logand subtypes1 subtypes2)))))))
 
 (defun pcase--split-match (sym splitter match)
   (cond
@@ -814,7 +835,8 @@ A and B can be one of:
                    ((vectorp (cadr pat)) #'vectorp)
                    ((compiled-function-p (cadr pat))
                     #'compiled-function-p))))
-        (pcase--mutually-exclusive-p (cadr upat) otherpred))
+        (and otherpred
+             (pcase--mutually-exclusive-p (cadr upat) otherpred)))
       '(:pcase--fail . nil))
      ;; Since we turn (or 'a 'b 'c) into (pred (memq _ '(a b c)))
      ;; try and preserve the info we get from that memq test.

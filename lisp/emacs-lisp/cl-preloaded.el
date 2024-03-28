@@ -303,6 +303,7 @@
 
 (cl-defstruct (built-in-class
                (:include cl--class)
+               (:noinline t)
                (:constructor nil)
                (:constructor built-in-class--make (name docstring parents))
                (:copier nil))
