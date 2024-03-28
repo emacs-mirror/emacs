@@ -229,7 +229,8 @@ See the doc string of `project-find-functions' for the general form
 of the project instance object."
   (unless directory (setq directory (or project-current-directory-override
                                         default-directory)))
-  (let ((pr (project--find-in-directory directory)))
+  (let ((pr (project--find-in-directory directory))
+        (non-essential (not maybe-prompt)))
     (cond
      (pr)
      ((unless project-current-directory-override
