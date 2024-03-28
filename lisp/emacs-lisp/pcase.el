@@ -688,8 +688,9 @@ recording whether the var has been referenced by earlier parts of the match."
       ;; start compiling code, and hence baking the result into files).
       (with-eval-after-load 'cl-preloaded
         (defconst pcase--subtype-bitsets (pcase--subtype-bitsets)))))
-  "Table mapping predicates to their set of types.
-These are the set of built-in types for which they may return non-nil.
+  "Hash table mapping type predicates to their sets of types.
+The table maps each type predicate, such as `numberp' and `stringp',
+to the set of built-in types for which the predicate may return non-nil.
 The sets are represented as bitsets (integers) where each bit represents
 a specific leaf type.  Which bit represents which type is unspecified.")
 
