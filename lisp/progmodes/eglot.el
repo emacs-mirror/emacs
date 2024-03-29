@@ -1064,7 +1064,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
 
 (declare-function w32-long-file-name "w32proc.c" (fn))
 (defun eglot-uri-to-path (uri)
-  "Convert URI to file path, helped by `eglot--current-server'."
+  "Convert URI to file path, helped by `eglot-current-server'."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
   (let* ((server (eglot-current-server))
          (remote-prefix (and server (eglot--trampish-p server)))
