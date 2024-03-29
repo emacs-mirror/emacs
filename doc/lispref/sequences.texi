@@ -359,7 +359,7 @@ returns a sorted sequence of the same type.
 The sort is stable, which means that elements with equal sort keys maintain
 their relative order.  It takes the following optional keyword arguments:
 
-@table @asis
+@table @code
 @item :key @var{keyfunc}
 Use @var{keyfunc}, a function that takes a single element from
 @var{sequence} and returns its key value, to generate the keys used in
@@ -373,7 +373,7 @@ that takes two sort keys as arguments and returns non-@code{nil} if the
 first should come before the second.  If this argument is absent or
 @var{predicate} is @code{nil}, then @code{value<} is used, which
 is applicable to many different Lisp types and generally sorts in
-ascending order (@pxref{definition of value<}).
+ascending order (@pxref{definition of value<}, below).
 
 For consistency, any predicate must obey the following rules:
 @itemize @bullet
@@ -402,19 +402,24 @@ easier and faster to supply a new @code{:key} function than a different
 @code{:lessp} predicate.  For example, consider sorting these strings:
 
 @example
+@group
 (setq numbers '("one" "two" "three" "four" "five" "six"))
 (sort numbers)
      @result{} ("five" "four" "one" "six" "three" "two")
+@end group
 @end example
 
 You can sort the strings by length instead by supplying a different key
 function:
 
 @example
+@group
 (sort numbers :key #'length)
      @result{} ("one" "two" "six" "four" "five" "three")
+@end group
 @end example
 
+@noindent
 Note how strings of the same length keep their original order, thanks to
 the sorting stability.  Now suppose you want to sort by length, but use
 the string contents to break ties.  The easiest way is to specify a key
@@ -423,19 +428,23 @@ Since @code{value<} orders compound objects (conses, lists,
 vectors and records) lexicographically, you could do:
 
 @example
+@group
 (sort numbers :key (lambda (x) (cons (length x) x)))
      @result{} ("one" "six" "two" "five" "four" "three")
+@end group
 @end example
 
+@noindent
 because @code{(3 . "six")} is ordered before @code{(3 . "two")} and so on.
 
-For compatibility with old versions of Emacs, the @code{sort} function
-can also be called using the fixed two-argument form
+For compatibility with previous versions of Emacs, the @code{sort}
+function can also be called using the fixed two-argument form:
 
 @example
 (@code{sort} @var{sequence} @var{predicate})
 @end example
 
+@noindent
 where @var{predicate} is the @code{:lessp} argument.  When using this
 form, sorting is always done in-place.
 @end defun
@@ -452,22 +461,26 @@ This function returns non-@code{nil} if @var{a} comes before @var{b} in
 the standard sorting order; this means that it returns @code{nil} when
 @var{b} comes before @var{a}, or if they are equal or unordered.
 
-@var{a} and @var{b} must have the same type.  Specifically:
+the arguments @var{a} and @var{b} must have the same type.
+Specifically:
 
 @itemize @bullet
 @item
 Numbers are compared using @code{<} (@pxref{definition of <}).
 @item
-Strings and symbols are compared using @code{string<}
-(@pxref{definition of string<}).
+Strings are compared using @code{string<} (@pxref{definition of
+string<}) and symbols are compared by comparing their names as strings.
 @item
 Conses, lists, vectors and records are compared lexicographically.
 @item
 Markers are compared first by buffer, then by position.
 @item
-Buffers and processes are compared by name.
+Buffers and processes are compared by comparing their names as strings.
+Dead buffers (whose name is @code{nil}) will compare before any live
+buffer.
 @item
-Other types are considered unordered and the return value will be @code{nil}.
+Other types are considered unordered and the return value will be
+@code{nil}.
 @end itemize
 
 Examples:
