@@ -3201,7 +3201,7 @@ Buffers and processes are compared by name.
 Other types are considered unordered and the return value will be `nil'.  */)
   (Lisp_Object a, Lisp_Object b)
 {
-  int maxdepth = 20;		  /* FIXME: arbitrary value */
+  int maxdepth = 200;		  /* FIXME: arbitrary value */
   return value_cmp (a, b, maxdepth) < 0 ? Qt : Qnil;
 }
 
