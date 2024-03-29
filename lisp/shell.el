@@ -606,7 +606,7 @@ Shell buffers.  It implements `shell-completion-execonly' for
 
 (defvar sh-shell-file)
 
-(declare-function w32-application-type nil ; "src/w32proc.c"
+(declare-function w32-application-type "w32proc.c"
                   (program) t)
 
 (define-derived-mode shell-mode comint-mode "Shell"
