@@ -91,7 +91,7 @@ will be bound to that directory's file name.  Once BODY exits, the
 directory will be deleted.
 
 Some dummy environment variables will be set for the duration of BODY to
-allow 'git commit' to determine identities for authors and committers."
+allow `git commit' to determine identities for authors and committers."
   (declare (indent 1))
   `(ert-with-temp-directory ,name
      (let ((default-directory ,name)
