@@ -461,7 +461,7 @@ This function returns non-@code{nil} if @var{a} comes before @var{b} in
 the standard sorting order; this means that it returns @code{nil} when
 @var{b} comes before @var{a}, or if they are equal or unordered.
 
-the arguments @var{a} and @var{b} must have the same type.
+The arguments @var{a} and @var{b} must have the same type.
 Specifically:
 
 @itemize @bullet
@@ -471,7 +471,11 @@ Numbers are compared using @code{<} (@pxref{definition of <}).
 Strings are compared using @code{string<} (@pxref{definition of
 string<}) and symbols are compared by comparing their names as strings.
 @item
-Conses, lists, vectors and records are compared lexicographically.
+Conses, lists, vectors and records are compared lexicographically.  This
+means that the two sequences are compared element-wise from left to
+right until they differ, and the result is then that of @code{value<} on
+the first pair of differing elements.  If one sequence runs out of
+elements before the other, the shorter sequence comes before the longer.
 @item
 Markers are compared first by buffer, then by position.
 @item
@@ -489,8 +493,22 @@ Examples:
 (value< "dog" "cat") @result{} nil
 (value< 'yip 'yip) @result{} nil
 (value< '(3 2) '(3 2 0)) @result{} t
-(value< [3 2 1] [3 2 0]) @result{} nil
+(value< [3 2 "a"] [3 2 "b"]) @result{} t
 @end example
+
+@noindent
+Note that @code{nil} is treated as either a symbol or an empty list,
+depending on what it is compared against:
+
+@example
+(value< nil '(0)) @result{} t
+(value< 'nib nil) @result{} t
+@end example
+
+@noindent
+There is no limit to the length of sequences (lists, vectors and so on)
+that can be compared, but @code{value<} may fail with an error if used
+to compare circular or deeply nested data structures.
 @end defun
 
 @cindex sequence functions in seq
