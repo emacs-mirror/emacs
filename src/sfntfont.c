@@ -2029,7 +2029,7 @@ sfntfont_list (struct frame *f, Lisp_Object font_spec)
      caller) ordered first.  */
 
   XSETSUBR (compare_font_entities, &Scompare_font_entities.s);
-  matching = Fsort (matching, compare_font_entities);
+  matching = CALLN (Fsort, matching, compare_font_entities);
   return matching;
 }
 
@@ -3779,7 +3779,7 @@ sfntfont_list_family (struct frame *f)
     families = Fcons (desc->family, families);
 
   /* Sort families in preparation for removing duplicates.  */
-  families = Fsort (families, Qstring_lessp);
+  families = CALLN (Fsort, families, Qstring_lessp);
 
   /* Remove each duplicate within families.  */
 
