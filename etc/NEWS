@@ -1218,6 +1218,11 @@ interactive Python interpreter specified by 'python-interpreter'.
 *** New ':vc' keyword.
 This keyword enables the user to install packages using 'package-vc'.
 
++++
+*** New user option 'use-package-vc-prefer-newest'.
+This allows the user to always install the newest commit of a package
+when using the ':vc' keyword.
+
 ** Gnus
 
 *** The 'nnweb-type' option 'gmane' has been removed.

@@ -346,6 +346,20 @@ undefined variables."
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-vc-prefer-newest nil
+  "Prefer the newest commit over the latest release.
+By default, much like GNU ELPA and NonGNU ELPA, the `:vc' keyword
+tracks the latest stable release of a package.  If this option is
+non-nil, the latest commit is preferred instead.  This has the
+same effect as specifying `:rev :newest' in every invocation of
+`:vc'.
+
+Note that always tracking a package's latest commit might lead to
+stability issues."
+  :type 'boolean
+  :version "30.1"
+  :group 'use-package)
+
 (defvar use-package-statistics (make-hash-table))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1649,9 +1663,11 @@ indicating the latest commit) revision."
                (if (and s (stringp s)) (intern s) s))
              (normalize (k v)
                (pcase k
-                 (:rev (cond ((or (eq v :last-release) (not v)) :last-release)
-                             ((eq v :newest) nil)
-                             (t (ensure-string v))))
+                 (:rev (pcase v
+                         ('nil (if use-package-vc-prefer-newest nil :last-release))
+                         (:last-release :last-release)
+                         (:newest nil)
+                         (_ (ensure-string v))))
                  (:vc-backend (ensure-symbol v))
                  (_ (ensure-string v)))))
     (pcase-let ((valid-kws '(:url :branch :lisp-dir :main-file :vc-backend :rev))
