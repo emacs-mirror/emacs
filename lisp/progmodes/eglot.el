@@ -1053,8 +1053,8 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
     :documentation "Map (DIR -> (WATCH ID1 ID2...)) for `didChangeWatchedFiles'."
     :initform (make-hash-table :test #'equal) :accessor eglot--file-watches)
    (managed-buffers
-    :initform nil
-    :documentation "List of buffers managed by server."
+    :documentation "Map (PATH -> BUFFER) for buffers managed by server."
+    :initform (make-hash-table :test #'equal)
     :accessor eglot--managed-buffers)
    (saved-initargs
     :documentation "Saved initargs for reconnection purposes."
@@ -1085,12 +1085,12 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
 
 (defun eglot-path-to-uri (path)
   "Convert PATH, a file name, to LSP URI string and return it."
-  (let ((truepath (file-truename path)))
+  (let ((expanded-path (expand-file-name path)))
     (if (and (url-type (url-generic-parse-url path))
              ;; It might be MS Windows path which includes a drive
              ;; letter that looks like a URL scheme (bug#59338)
              (not (and (eq system-type 'windows-nt)
-                       (file-name-absolute-p truepath))))
+                       (file-name-absolute-p expanded-path))))
         ;; Path is already a URI, so forward it to the LSP server
         ;; untouched.  The server should be able to handle it, since
         ;; it provided this URI to clients in the first place.
@@ -1098,11 +1098,11 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
       (concat "file://"
               ;; Add a leading "/" for local MS Windows-style paths.
               (if (and (eq system-type 'windows-nt)
-                       (not (file-remote-p truepath)))
+                       (not (file-remote-p expanded-path)))
                   "/")
               (url-hexify-string
                ;; Again watch out for trampy paths.
-               (directory-file-name (file-local-name truepath))
+               (directory-file-name (file-local-name expanded-path))
                eglot--uri-path-allowed-chars)))))
 
 (defun eglot-range-region (range &optional markers)
@@ -1187,7 +1187,7 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
   ;; Turn off `eglot--managed-mode' where appropriate.
-  (dolist (buffer (eglot--managed-buffers server))
+  (dolist (buffer (map-values (eglot--managed-buffers server)))
     (let (;; Avoid duplicate shutdowns (github#389)
           (eglot-autoshutdown nil))
       (eglot--when-live-buffer buffer (eglot--managed-mode-off))))
@@ -1992,7 +1992,11 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
       (add-hook 'eldoc-documentation-functions #'eglot-signature-eldoc-function
                 nil t)
       (eldoc-mode 1))
-    (cl-pushnew (current-buffer) (eglot--managed-buffers (eglot-current-server))))
+
+    (let ((buffer (current-buffer)))
+      (puthash (expand-file-name (buffer-file-name buffer))
+               buffer
+               (eglot--managed-buffers (eglot-current-server)))))
    (t
     (remove-hook 'after-change-functions #'eglot--after-change t)
     (remove-hook 'before-change-functions #'eglot--before-change t)
@@ -2020,10 +2024,10 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (let ((server eglot--cached-server))
       (setq eglot--cached-server nil)
       (when server
-        (setf (eglot--managed-buffers server)
-              (delq (current-buffer) (eglot--managed-buffers server)))
+        (remhash (expand-file-name (buffer-file-name (current-buffer)))
+                 (eglot--managed-buffers server))
         (when (and eglot-autoshutdown
-                   (null (eglot--managed-buffers server)))
+                   (null (map-values (eglot--managed-buffers server))))
           (eglot-shutdown server)))))))
 
 (defun eglot--managed-mode-off ()
@@ -2346,7 +2350,7 @@ still unanswered LSP requests to the server\n")))
                           (remhash token (eglot--progress-reporters server))))))))))
 
 (cl-defmethod eglot-handle-notification
-  (_server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
+  (server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
            &allow-other-keys) ; FIXME: doesn't respect `eglot-strict-mode'
   "Handle notification publishDiagnostics."
   (cl-flet ((eglot--diag-type (sev)
@@ -2357,7 +2361,7 @@ still unanswered LSP requests to the server\n")))
             (mess (source code message)
               (concat source (and code (format " [%s]" code)) ": " message)))
     (if-let* ((path (expand-file-name (eglot-uri-to-path uri)))
-              (buffer (find-buffer-visiting path)))
+              (buffer (gethash path (eglot--managed-buffers server))))
         (with-current-buffer buffer
           (cl-loop
            initially
@@ -2842,7 +2846,7 @@ may be called multiple times (respecting the protocol of
 Try to visit the target file for a richer summary line."
   (pcase-let*
       ((file (eglot-uri-to-path uri))
-       (visiting (or (find-buffer-visiting file)
+       (visiting (or (gethash file (eglot--managed-buffers (eglot-current-server)))
                      (gethash uri eglot--temp-location-buffers)))
        (collect (lambda ()
                   (eglot--widening
@@ -3542,13 +3546,14 @@ list ((FILENAME EDITS VERSION)...)."
   (with-current-buffer (get-buffer-create "*EGLOT proposed server changes*")
     (buffer-disable-undo (current-buffer))
     (let ((inhibit-read-only t)
-          (target (current-buffer)))
+          (target (current-buffer))
+          (managed-buffers (eglot--managed-buffers (eglot-current-server))))
       (diff-mode)
       (erase-buffer)
       (pcase-dolist (`(,path ,edits ,_) prepared)
         (with-temp-buffer
           (let* ((diff (current-buffer))
-                 (existing-buf (find-buffer-visiting path))
+                 (existing-buf (gethash path (gethash path managed-buffers)))
                  (existing-buf-label (prin1-to-string existing-buf)))
             (with-temp-buffer
               (if existing-buf
@@ -3583,7 +3588,8 @@ edit proposed by the server."
                      (eglot--dbind ((VersionedTextDocumentIdentifier) uri version)
                          textDocument
                        (list (eglot-uri-to-path uri) edits version)))
-                   documentChanges)))
+                   documentChanges))
+          (managed-buffers (eglot--managed-buffers (eglot-current-server))))
       (unless (and changes documentChanges)
         ;; We don't want double edits, and some servers send both
         ;; changes and documentChanges.  This unless ensures that we
@@ -3591,7 +3597,7 @@ edit proposed by the server."
         (cl-loop for (uri edits) on changes by #'cddr
                  do (push (list (eglot-uri-to-path uri) edits) prepared)))
       (cl-flet ((notevery-visited-p ()
-                  (cl-notevery #'find-buffer-visiting
+                  (cl-notevery (lambda (p) (gethash p managed-buffers))
                                (mapcar #'car prepared)))
                 (accept-p ()
                   (y-or-n-p
