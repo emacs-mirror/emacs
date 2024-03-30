@@ -568,13 +568,17 @@ static void
 json_serialize (json_out_t *jo, Lisp_Object object,
 		ptrdiff_t nargs, Lisp_Object *args)
 {
-  *jo = (json_out_t) {
-    /* The maximum nesting depth allowed should be sufficient for most
-       uses but could be raised if necessary.  (The default maximum
-       depth for JSON_checker is 20.)  */
-    .maxdepth = 50,
-    .conf = {json_object_hashtable, json_array_array, QCnull, QCfalse}
-  };
+  jo->maxdepth = 50;
+  jo->size = 0;
+  jo->capacity = 0;
+  jo->chars_delta = 0;
+  jo->buf = NULL;
+  jo->ss_table = NULL;
+  jo->conf.object_type = json_object_hashtable;
+  jo->conf.array_type = json_array_array;
+  jo->conf.null_object = QCnull;
+  jo->conf.false_object = QCfalse;
+
   json_parse_args (nargs, args, &jo->conf, false);
   record_unwind_protect_ptr (cleanup_json_out, jo);
 
