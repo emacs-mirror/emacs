@@ -60,7 +60,9 @@ https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
     (let* ((event (xterm-mouse-event extension))
 	   (ev-command (nth 0 event))
 	   (ev-data    (nth 1 event))
+	   (ev-window  (nth 0 ev-data))
 	   (ev-where   (nth 1 ev-data))
+	   (last-window (terminal-parameter nil 'xterm-mouse-last-window))
 	   (vec (vector event))
 	   (is-move (eq 'mouse-movement ev-command))
 	   (is-down (string-match "down-" (symbol-name ev-command))))
@@ -73,6 +75,9 @@ https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
                                 'mouse-movement
                               'mouse-click)))
 
+      ;; remember window of current mouse position
+      (set-terminal-parameter nil 'xterm-mouse-last-window ev-window)
+
       (cond
        ((null event) nil)		;Unknown/bogus byte sequence!
        (is-down
@@ -84,10 +89,22 @@ https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	vec)
        (is-move
         (xterm-mouse--handle-mouse-movement)
-        (if track-mouse vec
-          ;; Mouse movement events are currently supposed to be
-          ;; suppressed.  Return no event.
-          []))
+        ;; after mouse movement autoselect the mouse window, but ...
+	(cond ((and mouse-autoselect-window
+                    ;; ignore modeline, tab-bar, menu-bar and so forth ...
+		    (windowp ev-window)
+                    ;; and don't deselect the minibuffer ...
+                    (not (window-minibuffer-p (selected-window)))
+                    ;; and select only, if mouse is over a new window ...
+                    (not (eq ev-window last-window))
+                    ;; which is different from the selected window
+		    (not (eq ev-window (selected-window))))
+	       (put 'select-window 'event-kind 'switch-frame)
+	       (push `(select-window (,ev-window)) unread-command-events)
+               [])
+	       ;;(vector `(select-window (,ev-window))))
+              (track-mouse vec)
+              (t [])))
        (t
 	(let* ((down (terminal-parameter nil 'xterm-mouse-last-down))
 	       (down-data (nth 1 down))
