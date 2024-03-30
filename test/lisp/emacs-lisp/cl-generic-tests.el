@@ -331,7 +331,6 @@ Edebug symbols (Bug#42672)."
     (goto-char (point-min))
     ;; But we don't want (eql '4) to turn into (eql (quote 4)) either.
     (should (re-search-forward "(eql '4)" nil t))))
-    
 
 (provide 'cl-generic-tests)
 ;;; cl-generic-tests.el ends here

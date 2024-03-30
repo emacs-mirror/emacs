@@ -698,6 +698,14 @@ Also see the `permanently-enabled-local-variables' and
 Some modes may wish to set this to nil to prevent directory-local
 settings being applied, but still respect file-local ones.")
 
+(defvar-local untrusted-content nil
+  "Non-nil means that current buffer originated from an untrusted source.
+Email clients and some other modes may set this non-nil to mark the
+buffer contents as untrusted.
+
+This variable might be subject to change without notice.")
+(put 'untrusted-content 'permanent-local t)
+
 ;; This is an odd variable IMO.
 ;; You might wonder why it is needed, when we could just do:
 ;; (setq-local enable-local-variables nil)
