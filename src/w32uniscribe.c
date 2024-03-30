@@ -33,11 +33,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_HARFBUZZ
 # include <hb.h>
 # include <hb-ot.h>	/* for hb_ot_font_set_funcs */
-# if GNUC_PREREQ (4, 3, 0)
-#  define bswap_32(v)  __builtin_bswap32(v)
-# else
-#  include <byteswap.h>
-# endif
 #endif
 
 #include "lisp.h"
@@ -1270,7 +1265,11 @@ w32hb_get_font_table (hb_face_t *face, hb_tag_t tag, void *data)
   HFONT old_font = SelectObject (context, (HFONT) data);
   char *font_data = NULL;
   DWORD font_data_size = 0, val;
+#if GNUC_PREREQ (4, 3, 0)
+  DWORD table = __builtin_bswap32 (tag);
+#else
   DWORD table = bswap_32 (tag);
+#endif
   hb_blob_t *blob = NULL;
 
   val = GetFontData (context, table, 0, font_data, font_data_size);
