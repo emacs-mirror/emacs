@@ -158,7 +158,7 @@
 (ert-deftest image-create-image-with-map ()
   "Test that `create-image' correctly adds :map and/or :original-map."
   (skip-unless (display-images-p))
-  (let ((data "foo")
+  (let ((data "<svg width=\"30\" height=\"30\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"></svg>")
         (map '(((circle (1 .  1) .  1) a)))
         (original-map '(((circle (2 .  2) .  2) a)))
         (original-map-other '(((circle (3 . 3) . 3) a))))
@@ -282,7 +282,7 @@ corresponding coordinate in B.  When nil, TOLERANCE defaults to 5."
                    '(((circle (12 . 4) . 2) "circle")
                      ((rect (7 . 3) 9 . 8) "rect")
                      ((poly . [4 6 2 7 1 2]) "poly"))))
-    (should (equal (image--flip-map (copy-tree map t) t `(,width . ,height))
+    (should (equal (image--flip-map (copy-tree map t) `(,width . ,height))
                    '(((circle (6 . 3) . 2) "circle")
                      ((rect (2 . 6) 7 . 8) "rect")
                      ((poly . [4 11 3 13 8 14]) "poly"))))
@@ -291,7 +291,7 @@ corresponding coordinate in B.  When nil, TOLERANCE defaults to 5."
       ;; Scale size because the map has been scaled.
       (image--rotate-map copy 90 `(,(* 2 width) . ,(* 2 height)))
       ;; Swap width and height because the map has been flipped.
-      (image--flip-map copy t `(,(* 2 height) . ,(* 2 width)))
+      (image--flip-map copy `(,(* 2 height) . ,(* 2 width)))
       (should (equal copy
                      '(((circle (6 . 8) . 4) "circle")
                        ((rect (12 . 6) 16 . 16) "rect")

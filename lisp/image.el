@@ -1423,115 +1423,142 @@ is recomputed to fit the newly transformed image."
   :type 'boolean
   :version "30.1")
 
+(defsubst image--compute-rotation (image)
+  "Return the current rotation of IMAGE, or 0 if no rotation.
+Also return nil if rotation is not a multiples of 90 degrees (0, 90,
+180[-180] and 270[-90])."
+  (let ((degrees (or (image-property image :rotation) 0)))
+    (and (= 0 (mod degrees 1))
+         (car (memql (truncate (mod degrees 360)) '(0 90 180 270))))))
+
 (defun image--compute-map (image)
   "Compute map for IMAGE suitable to be used as its :map property.
-Return a copy of :original-image transformed based on IMAGE's :scale,
+Return a copy of :original-map transformed based on IMAGE's :scale,
 :rotation, and :flip.  When IMAGE's :original-map is nil, return nil.
 When :rotation is not a multiple of 90, return copy of :original-map."
-  (pcase-let* ((original-map (image-property image :original-map))
-               (map (copy-tree original-map t))
-               (scale (or (image-property image :scale) 1))
-               (rotation (or (image-property image :rotation) 0))
-               (flip (image-property image :flip))
-               ((and size `(,width . ,height)) (image-size image t)))
-    (when (and ; Handle only 90-degree rotations
-           (zerop (mod rotation 1))
-           (zerop (% (truncate rotation) 90)))
-      ;; SIZE fits MAP after transformations.  Scale MAP before
-      ;; flip and rotate operations, since both need MAP to fit SIZE.
-      (image--scale-map map scale)
+  (when-let ((map (image-property image :original-map)))
+    (setq map (copy-tree map t))
+    (let* ((size (image-size image t))
+           ;; The image can be scaled for many reasons (:scale,
+           ;; :max-width, etc), so using `image--current-scaling' to
+           ;; calculate the current scaling is the correct method.  But,
+           ;; since each call to `image_size' is expensive, the code is
+           ;; duplicated here to save the a call to `image-size'.
+           (scale (/ (float (car size))
+                     (car (image-size
+                           (image--image-without-parameters image) t))))
+           (rotation (image--compute-rotation image))
+           ;; Image is flipped only if rotation is a multiple of 90,
+           ;; including 0.
+           (flip (and rotation (image-property image :flip))))
+      ;; SIZE fits MAP after transformations.  Scale MAP before flip and
+      ;; rotate operations, since both need MAP to fit SIZE.
+      (unless (= scale 1)
+        (image--scale-map map scale))
       ;; In rendered images, rotation is always applied before flip.
-      (image--rotate-map
-       map rotation (if (or (= 90 rotation) (= 270 rotation))
+      (when (memql rotation '(90 180 270))
+        (image--rotate-map
+         map rotation (if (= rotation 180)
+                          size
                         ;; If rotated ±90°, swap width and height.
-                        (cons height width)
-                      size))
+                        (cons (cdr size) (car size)))))
       ;; After rotation, there's no need to swap width and height.
-      (image--flip-map map flip size))
+      (when flip
+        (image--flip-map map size)))
     map))
 
 (defun image--compute-original-map (image)
   "Return original map for IMAGE.
 If IMAGE lacks :map property, return nil.
-When :rotation is not a multiple of 90, return copy of :map."
-  (when (image-property image :map)
-    (let* ((original-map (copy-tree (image-property image :map) t))
-           (scale (or (image-property image :scale) 1))
-           (rotation (or (image-property image :rotation) 0))
-           (flip (image-property image :flip))
-           (size (image-size image t)))
-      (when (and ; Handle only 90-degree rotations
-             (zerop (mod rotation 1))
-             (zerop (% (truncate rotation) 90)))
-        ;; In rendered images, rotation is always applied before flip.
-        ;; To undo the transformation, flip before rotating.  SIZE fits
-        ;; ORIGINAL-MAP before transformations are applied.  Therefore,
-        ;; scale ORIGINAL-MAP after flip and rotate operations, since
-        ;; both need ORIGINAL-MAP to fit SIZE.
-        (image--flip-map original-map flip size)
-        (image--rotate-map original-map (- rotation) size)
-        (image--scale-map original-map (/ 1.0 scale)))
-      original-map)))
+When there is no transformation, return copy of :map."
+  (when-let ((original-map (image-property image :map)))
+    (setq original-map (copy-tree original-map t))
+    (let* ((size (image-size image t))
+           ;; The image can be scaled for many reasons (:scale,
+           ;; :max-width, etc), so using `image--current-scaling' to
+           ;; calculate the current scaling is the correct method.  But,
+           ;; since each call to `image_size' is expensive, the code is
+           ;; duplicated here to save the a call to `image-size'.
+           (scale (/ (float (car size))
+                     (car (image-size
+                           (image--image-without-parameters image) t))))
+           (rotation (image--compute-rotation image))
+           ;; Image is flipped only if rotation is a multiple of 90
+           ;; including 0.
+           (flip (and rotation (image-property image :flip))))
+      ;; In rendered images, rotation is always applied before flip.
+      ;; To undo the transformation, flip before rotating.  SIZE fits
+      ;; ORIGINAL-MAP before transformations are applied.  Therefore,
+      ;; scale ORIGINAL-MAP after flip and rotate operations, since
+      ;; both need ORIGINAL-MAP to fit SIZE.
+      ;; In rendered images, rotation is always applied before flip.
+      (when flip
+        (image--flip-map original-map size))
+      (when (memql rotation '(90 180 270))
+        (image--rotate-map original-map (- rotation) size))
+      (unless (= scale 1)
+        (image--scale-map original-map (/ 1.0 scale))))
+    original-map))
 
 (defun image--scale-map (map scale)
   "Scale MAP according to SCALE.
 Destructively modifies and returns MAP."
-  (unless (= 1 scale)
-    (pcase-dolist (`(,`(,type . ,coords) ,_id ,_plist) map)
-      (pcase-exhaustive type
-        ('rect
-         (setf (caar coords) (round (* (caar coords) scale)))
-         (setf (cdar coords) (round (* (cdar coords) scale)))
-         (setf (cadr coords) (round (* (cadr coords) scale)))
-         (setf (cddr coords) (round (* (cddr coords) scale))))
-        ('circle
-         (setf (caar coords) (round (* (caar coords) scale)))
-         (setf (cdar coords) (round (* (cdar coords) scale)))
-         (setcdr coords (round (* (cdr coords) scale))))
-        ('poly
-         (dotimes (i (length coords))
-           (aset coords i
-                 (round (* (aref coords i) scale))))))))
+  (pcase-dolist (`(,`(,type . ,coords) ,_id ,_plist) map)
+    (pcase-exhaustive type
+      ('rect
+       (setf (caar coords) (round (* (caar coords) scale)))
+       (setf (cdar coords) (round (* (cdar coords) scale)))
+       (setf (cadr coords) (round (* (cadr coords) scale)))
+       (setf (cddr coords) (round (* (cddr coords) scale))))
+      ('circle
+       (setf (caar coords) (round (* (caar coords) scale)))
+       (setf (cdar coords) (round (* (cdar coords) scale)))
+       (setcdr coords (round (* (cdr coords) scale))))
+      ('poly
+       (dotimes (i (length coords))
+         (aset coords i
+               (round (* (aref coords i) scale)))))))
   map)
 
 (defun image--rotate-map (map rotation size)
   "Rotate MAP according to ROTATION and SIZE.
+ROTATION must be a non-zero multiple of 90.
 Destructively modifies and returns MAP."
-  (unless (zerop rotation)
-    (pcase-dolist (`(,`(,type . ,coords) ,_id ,_plist) map)
-      (pcase-exhaustive type
-        ('rect
-         (let ( x0 y0  ; New upper left corner
-                x1 y1) ; New bottom right corner
-           (pcase (truncate (mod rotation 360)) ; Set new corners to...
-             (90 ; ...old bottom left and upper right
-              (setq x0 (caar coords) y0 (cddr coords)
-                    x1 (cadr coords) y1 (cdar coords)))
-             (180 ; ...old bottom right and upper left
-              (setq x0 (cadr coords) y0 (cddr coords)
-                    x1 (caar coords) y1 (cdar coords)))
-             (270 ; ...old upper right and bottom left
-              (setq x0 (cadr coords) y0 (cdar coords)
-                    x1 (caar coords) y1 (cddr coords))))
-           (setcar coords (image--rotate-coord x0 y0 rotation size))
-           (setcdr coords (image--rotate-coord x1 y1 rotation size))))
-        ('circle
-         (setcar coords (image--rotate-coord
-                         (caar coords) (cdar coords) rotation size)))
-        ('poly
-         (dotimes (i (length coords))
-           (when (= 0 (% i 2))
-             (pcase-let ((`(,x . ,y)
-                          (image--rotate-coord
-                           (aref coords i) (aref coords (1+ i)) rotation size)))
-               (aset coords i x)
-               (aset coords (1+ i) y))))))))
+  (setq rotation (mod rotation 360))
+  (pcase-dolist (`(,`(,type . ,coords) ,_id ,_plist) map)
+    (pcase-exhaustive type
+      ('rect
+       (let ( x0 y0  ; New upper left corner
+              x1 y1) ; New bottom right corner
+         (pcase rotation ; Set new corners to...
+           (90 ; ...old bottom left and upper right
+            (setq x0 (caar coords) y0 (cddr coords)
+                  x1 (cadr coords) y1 (cdar coords)))
+           (180 ; ...old bottom right and upper left
+            (setq x0 (cadr coords) y0 (cddr coords)
+                  x1 (caar coords) y1 (cdar coords)))
+           (270 ; ...old upper right and bottom left
+            (setq x0 (cadr coords) y0 (cdar coords)
+                  x1 (caar coords) y1 (cddr coords))))
+         (setcar coords (image--rotate-coord x0 y0 rotation size))
+         (setcdr coords (image--rotate-coord x1 y1 rotation size))))
+      ('circle
+       (setcar coords (image--rotate-coord
+                       (caar coords) (cdar coords) rotation size)))
+      ('poly
+       (dotimes (i (length coords))
+         (when (= 0 (% i 2))
+           (pcase-let ((`(,x . ,y)
+                        (image--rotate-coord
+                         (aref coords i) (aref coords (1+ i)) rotation size)))
+             (aset coords i x)
+             (aset coords (1+ i) y)))))))
   map)
 
 (defun image--rotate-coord (x y angle size)
   "Rotate coordinates X and Y by ANGLE in image of SIZE.
-ANGLE must be a multiple of 90.  Returns a cons cell of rounded
-coordinates (X1 Y1)."
+ANGLE must be a multiple of 90 in [90 180 270].  Returns a cons cell of
+rounded coordinates (X1 Y1)."
   (pcase-let* ((radian (* (/ angle 180.0) float-pi))
                (`(,width . ,height) size)
                ;; y is positive, but we are in the bottom-right quadrant
@@ -1552,25 +1579,24 @@ coordinates (X1 Y1)."
                (y1 (- y1)))
     (cons (round x1) (round y1))))
 
-(defun image--flip-map (map flip size)
-  "Horizontally flip MAP according to FLIP and SIZE.
+(defun image--flip-map (map size)
+  "Horizontally flip MAP according to SIZE.
 Destructively modifies and returns MAP."
-  (when flip
-    (pcase-dolist (`(,`(,type . ,coords) ,_id ,_plist) map)
-      (pcase-exhaustive type
-        ('rect
-         (let ((x0 (- (car size) (cadr coords)))
-               (y0 (cdar coords))
-               (x1 (- (car size) (caar coords)))
-               (y1 (cddr coords)))
-           (setcar coords (cons x0 y0))
-           (setcdr coords (cons x1 y1))))
-        ('circle
-         (setf (caar coords) (- (car size) (caar coords))))
-        ('poly
-         (dotimes (i (length coords))
-           (when (= 0 (% i 2))
-             (aset coords i (- (car size) (aref coords i)))))))))
+  (pcase-dolist (`(,`(,type . ,coords) ,_id ,_plist) map)
+    (pcase-exhaustive type
+      ('rect
+       (let ((x0 (- (car size) (cadr coords)))
+             (y0 (cdar coords))
+             (x1 (- (car size) (caar coords)))
+             (y1 (cddr coords)))
+         (setcar coords (cons x0 y0))
+         (setcdr coords (cons x1 y1))))
+      ('circle
+       (setf (caar coords) (- (car size) (caar coords))))
+      ('poly
+       (dotimes (i (length coords))
+         (when (= 0 (% i 2))
+           (aset coords i (- (car size) (aref coords i))))))))
   map)
 
 (provide 'image)
