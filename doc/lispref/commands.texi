@@ -2303,15 +2303,34 @@ touch sequence after it is called.
 @subsection Focus Events
 @cindex focus event
 
-Window systems provide general ways for the user to control which window
-gets keyboard input.  This choice of window is called the @dfn{focus}.
-When the user does something to switch between Emacs frames, that
-generates a @dfn{focus event}.  The normal definition of a focus event,
-in the global keymap, is to select a new frame within Emacs, as the user
-would expect.  @xref{Input Focus}, which also describes hooks related
-to focus events.
+This section talks about both window systems and Emacs frames.  When
+talking about just ``frames'' or ``windows'', it refers to Emacs frames
+and Emacs windows.  When talking about window system windows, which are
+also Emacs frames, this section always says ``window system window''.
 
-Focus events are represented in Lisp as lists that look like this:
+@noindent
+Window systems provide general ways for the user to control which window
+system window, or Emacs frame, gets keyboard input.  This choice of
+window system window is called the @dfn{focus}.  When the user does
+something to switch between Emacs frames, that generates a @dfn{focus
+event}.  Emacs also generates focus events when using
+@var{mouse-autoselect-window} to switch between Emacs windows within
+Emacs frames.
+
+A focus event in the middle of a key sequence would garble the
+sequence.  So Emacs never generates a focus event in the middle of a key
+sequence.  If the user changes focus in the middle of a key
+sequence---that is, after a prefix key---then Emacs reorders the events
+so that the focus event comes either before or after the multi-event key
+sequence, and not within it.
+
+@heading Focus events for frames
+
+The normal definition of a focus event that switches frames, in the
+global keymap, is to select that new frame within Emacs, as the user
+would expect.  @xref{Input Focus}, which also describes hooks related to
+focus events for frames.  Focus events for frames are represented in
+Lisp as lists that look like this:
 
 @example
 (switch-frame @var{new-frame})
@@ -2321,19 +2340,28 @@ Focus events are represented in Lisp as lists that look like this:
 where @var{new-frame} is the frame switched to.
 
 Some X window managers are set up so that just moving the mouse into a
-window is enough to set the focus there.  Usually, there is no need
-for a Lisp program to know about the focus change until some other
-kind of input arrives.  Emacs generates a focus event only when the
-user actually types a keyboard key or presses a mouse button in the
-new frame; just moving the mouse between frames does not generate a
-focus event.
+frame is enough to set the focus there.  Usually, there is no need for a
+Lisp program to know about the focus change until some other kind of
+input arrives.  Emacs generates a focus event only when the user
+actually types a keyboard key or presses a mouse button in the new
+frame; just moving the mouse between frames does not generate a focus
+event.
 
-A focus event in the middle of a key sequence would garble the
-sequence.  So Emacs never generates a focus event in the middle of a key
-sequence.  If the user changes focus in the middle of a key
-sequence---that is, after a prefix key---then Emacs reorders the events
-so that the focus event comes either before or after the multi-event key
-sequence, and not within it.
+@heading Focus events for windows
+
+When @var{mouse-autoselect-window} is set, moving the mouse over a new
+window within a frame can also switch the selected window.  @xref{Mouse
+Window Auto-selection}, which describes the behavior for different
+values.  When the mouse is moved over a new window, a focus event for
+switching windows is generated.  Focus events for windows are
+reperesented in Lisp as lists that look like this:
+
+@example
+(select-window @var{new-window})
+@end example
+
+@noindent
+where @var{new-window} is the window switched to.
 
 @node Xwidget Events
 @subsection Xwidget events

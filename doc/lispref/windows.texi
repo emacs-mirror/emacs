@@ -6207,7 +6207,7 @@ The following option enables automatically selecting the window under
 the mouse pointer.  This accomplishes a policy similar to that of
 window managers that give focus to a frame (and thus trigger its
 subsequent selection) whenever the mouse pointer enters its
-window-system window (@pxref{Input Focus}).
+window-system window (@pxref{Input Focus}, @pxref{Focus Events}).
 
 @defopt mouse-autoselect-window
 If this variable is non-@code{nil}, Emacs will try to automatically
