@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #include <attribute.h>
+#include <byteswap.h>
 #include <count-leading-zeros.h>
 #include <intprops.h>
 #include <verify.h>
