@@ -337,7 +337,7 @@ public final class EmacsNative
 				 "gnutls_emacs", "gmp_emacs",
 				 "nettle_emacs", "p11-kit_emacs",
 				 "tasn1_emacs", "hogweed_emacs",
-				 "jansson_emacs", "jpeg_emacs",
+				 "jpeg_emacs",
 				 "tiff_emacs", "xml2_emacs",
 				 "icuuc_emacs", "harfbuzz_emacs",
 				 "tree-sitter_emacs", };

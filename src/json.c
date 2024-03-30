@@ -98,14 +98,6 @@ json_parse_args (ptrdiff_t nargs,
   }
 }
 
-/* FIXME: Remove completely.  */
-DEFUN ("json--available-p", Fjson__available_p, Sjson__available_p, 0, 0, NULL,
-       doc: /* Return non-nil if libjansson is available (internal use only).  */)
-  (void)
-{
-  return Qt;
-}
-
 /* JSON encoding context.  */
 typedef struct {
   char *buf;
@@ -1966,7 +1958,6 @@ syms_of_json (void)
   DEFSYM (Qplist, "plist");
   DEFSYM (Qarray, "array");
 
-  defsubr (&Sjson__available_p);
   defsubr (&Sjson_serialize);
   defsubr (&Sjson_insert);
   defsubr (&Sjson_parse_string);

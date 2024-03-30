@@ -5752,10 +5752,10 @@ non-@code{nil}, indent the @acronym{HTML}/@acronym{XML} logically.
 @cindex JSON
 @cindex JavaScript Object Notation
 
-  When Emacs is compiled with @acronym{JSON} (@dfn{JavaScript Object
-Notation}) support, it provides several functions to convert
-between Lisp objects and JSON values.  Any JSON value can be converted
-to a Lisp object, but not vice versa.  Specifically:
+  The Emacs @acronym{JSON} (@dfn{JavaScript Object Notation}) support
+provides several functions to convert between Lisp objects and JSON
+values.  Any JSON value can be converted to a Lisp object, but not vice
+versa.  Specifically:
 
 @itemize
 @item
@@ -5789,12 +5789,6 @@ Note that @code{nil}, being both a valid alist and a valid plist,
 represents @code{@{@}}, the empty JSON object; not @code{null},
 @code{false}, or an empty array, all of which are different JSON
 values.
-
-@defun json-available-p
-This predicate returns non-@code{nil} if Emacs has been built with
-@acronym{JSON} support, and the library is available on the current
-system.
-@end defun
 
   If some Lisp object can't be represented in JSON, the serialization
 functions will signal an error of type @code{wrong-type-argument}.

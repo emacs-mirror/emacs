@@ -508,7 +508,6 @@ build should run on Windows 9X and newer systems).
        Does Emacs use -lotf?                                   no
        Does Emacs use -lxft?                                   no
        Does Emacs use -lsystemd?                               no
-       Does Emacs use -ljansson?                               yes
        Does Emacs use the GMP library?                         yes
        Does Emacs directly use zlib?                           yes
        Does Emacs have dynamic modules support?                yes
@@ -829,13 +828,6 @@ build should run on Windows 9X and newer systems).
   management engine to Lisp programs using the lcms2 library.
   Prebuilt binaries of lcms2 DLL (for 32-bit builds of Emacs) are
   available from the ezwinports site and from the MSYS2 project.
-
-* Optional support for JSON
-
-  Emacs can provide built-in support for JSON parsing and
-  serialization using the libjansson library.  Prebuilt binaries of
-  the libjansson DLL (for 32-bit builds of Emacs) are available from
-  the ezwinports site and from the MSYS2 project.
 
 * Optional support for HarfBuzzz shaping library
 

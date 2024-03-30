@@ -307,14 +307,6 @@ Many of these dependencies have been migrated over to the
 However, the old ``Android.mk'' Makefiles are still present in older
 branches, and can be easily adapted to newer versions.
 
-In addition, some Emacs dependencies provide `ndk-build' support
-themselves:
-
-  libjansson	- https://github.com/akheron/jansson
-    (You must add LOCAL_EXPORT_INCLUDES := $(LOCAL_C_INCLUDES) before
-     its Android.mk includes $(BUILD_SHARED_LIBRARY), then copy
-     android/jansson_config.h to android/jansson_private_config.h.)
-
 Emacs developers have ported the following dependencies to ARM Android
 systems:
 

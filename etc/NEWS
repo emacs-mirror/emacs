@@ -43,6 +43,12 @@ external packages and to resolve potential incompatibilities between
 Linux and BSD versions of ALSA.  Use '--with-sound=alsa' to build with
 ALSA on these operating systems instead.
 
+---
+** Native JSON support is now always available; libjansson is no longer used.
+No external library is required.  The '--with-json' configure option has
+been removed.  'json-available-p' now always returns non-nil and is only
+kept for compatibility.
+
 
 * Startup Changes in Emacs 30.1
 
