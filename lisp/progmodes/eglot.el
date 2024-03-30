@@ -1004,7 +1004,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
                                          [,@(mapcar
                                              #'car eglot--tag-faces)])))
             :window `(:showDocument (:support t)
-                      :workDoneProgress t)
+                      :workDoneProgress ,(if eglot-report-progress t :json-false))
             :general (list :positionEncodings ["utf-32" "utf-8" "utf-16"])
             :experimental eglot--{})))
 
