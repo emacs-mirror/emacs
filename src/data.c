@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <stdio.h>
 
-#include <byteswap.h>
 #include <count-one-bits.h>
 #include <count-trailing-zeros.h>
 #include <intprops.h>
