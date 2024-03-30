@@ -2056,7 +2056,7 @@ If DIRECTION is `backward', search in the reverse direction."
                       (re-search-forward regexp nil t))
               (signal 'user-search-failed (list regexp))))))
 
-      (if (and bound (not found))
+      (if (and (or bound (not Info-current-subfile)) (not found))
           (signal 'user-search-failed (list regexp)))
 
       (unless (or found bound)
