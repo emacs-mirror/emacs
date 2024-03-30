@@ -256,15 +256,15 @@ install_temp/assets/build_info: install_temp
 
 emacs.apk-in: install_temp install_temp/assets/directory-tree  \
   AndroidManifest.xml install_temp/assets/version	       \
-  install_temp/assets/build_info
-# Package everything.  Specifying the assets on this command line is
-# necessary for AAssetManager_getNextFileName to work on old versions
-# of Android.  Make sure not to generate R.java, as it's already been
-# generated.
+  install_temp/assets/build_info classes.dex
+# Package everything.  Redirect the generated R.java to install_temp, as
+# it must already have been generated as a prerequisite of
+# classes.dex's.
 	$(AM_V_AAPT) $(AAPT) p -I "$(ANDROID_JAR)" -F $@   \
 	  -f -M AndroidManifest.xml $(AAPT_ASSET_ARGS)	   \
 	  -A install_temp/assets			   \
 	  -S $(top_srcdir)/java/res -J install_temp
+	$(AM_V_SILENT) $(AAPT) a $@ classes.dex
 	$(AM_V_SILENT) pushd install_temp &> /dev/null;	\
 	  $(AAPT) add ../$@ `find lib -type f`;		\
 	popd &> /dev/null
@@ -311,10 +311,9 @@ classes.dex: $(CLASS_FILES)
 
 .PHONY: clean maintainer-clean
 
-$(APK_NAME): classes.dex emacs.apk-in $(srcdir)/emacs.keystore
+$(APK_NAME): emacs.apk-in $(srcdir)/emacs.keystore
 	$(AM_V_GEN)
 	$(AM_V_SILENT) cp -f emacs.apk-in $@.unaligned
-	$(AM_V_SILENT) $(AAPT) add $@.unaligned classes.dex
 	$(AM_V_SILENT) $(JARSIGNER) $(SIGN_EMACS) $@.unaligned "Emacs keystore"
 	$(AM_V_SILENT) $(ZIPALIGN) -f 4 $@.unaligned $@
 # Signing must happen after alignment!
