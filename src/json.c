@@ -31,8 +31,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "coding.h"
 
-#define JSON_HAS_ERROR_CODE (JANSSON_VERSION_HEX >= 0x020B00)
-
 #ifdef WINDOWSNT
 # include <windows.h>
 # include "w32common.h"
@@ -57,23 +55,7 @@ DEF_DLL_FN (char *, json_dumps, (const json_t *json, size_t flags));
 DEF_DLL_FN (int, json_dump_callback,
 	    (const json_t *json, json_dump_callback_t callback, void *data,
 	     size_t flags));
-DEF_DLL_FN (json_int_t, json_integer_value, (const json_t *integer));
-DEF_DLL_FN (double, json_real_value, (const json_t *real));
-DEF_DLL_FN (const char *, json_string_value, (const json_t *string));
-DEF_DLL_FN (size_t, json_string_length, (const json_t *string));
-DEF_DLL_FN (json_t *, json_array_get, (const json_t *array, size_t index));
 DEF_DLL_FN (json_t *, json_object_get, (const json_t *object, const char *key));
-DEF_DLL_FN (size_t, json_object_size, (const json_t *object));
-DEF_DLL_FN (const char *, json_object_iter_key, (void *iter));
-DEF_DLL_FN (void *, json_object_iter, (json_t *object));
-DEF_DLL_FN (json_t *, json_object_iter_value, (void *iter));
-DEF_DLL_FN (void *, json_object_key_to_iter, (const char *key));
-DEF_DLL_FN (void *, json_object_iter_next, (json_t *object, void *iter));
-DEF_DLL_FN (json_t *, json_loads,
-	    (const char *input, size_t flags, json_error_t *error));
-DEF_DLL_FN (json_t *, json_load_callback,
-	    (json_load_callback_t callback, void *data, size_t flags,
-	     json_error_t *error));
 
 /* This is called by json_decref, which is an inline function.  */
 void json_delete(json_t *json)
@@ -106,20 +88,7 @@ init_json_functions (void)
   LOAD_DLL_FN (library, json_stringn);
   LOAD_DLL_FN (library, json_dumps);
   LOAD_DLL_FN (library, json_dump_callback);
-  LOAD_DLL_FN (library, json_integer_value);
-  LOAD_DLL_FN (library, json_real_value);
-  LOAD_DLL_FN (library, json_string_value);
-  LOAD_DLL_FN (library, json_string_length);
-  LOAD_DLL_FN (library, json_array_get);
   LOAD_DLL_FN (library, json_object_get);
-  LOAD_DLL_FN (library, json_object_size);
-  LOAD_DLL_FN (library, json_object_iter_key);
-  LOAD_DLL_FN (library, json_object_iter);
-  LOAD_DLL_FN (library, json_object_iter_value);
-  LOAD_DLL_FN (library, json_object_key_to_iter);
-  LOAD_DLL_FN (library, json_object_iter_next);
-  LOAD_DLL_FN (library, json_loads);
-  LOAD_DLL_FN (library, json_load_callback);
 
   init_json ();
 
@@ -140,20 +109,7 @@ init_json_functions (void)
 #define json_stringn fn_json_stringn
 #define json_dumps fn_json_dumps
 #define json_dump_callback fn_json_dump_callback
-#define json_integer_value fn_json_integer_value
-#define json_real_value fn_json_real_value
-#define json_string_value fn_json_string_value
-#define json_string_length fn_json_string_length
-#define json_array_get fn_json_array_get
 #define json_object_get fn_json_object_get
-#define json_object_size fn_json_object_size
-#define json_object_iter_key fn_json_object_iter_key
-#define json_object_iter fn_json_object_iter
-#define json_object_iter_value fn_json_object_iter_value
-#define json_object_key_to_iter fn_json_object_key_to_iter
-#define json_object_iter_next fn_json_object_iter_next
-#define json_loads fn_json_loads
-#define json_load_callback fn_json_load_callback
 
 #endif	/* WINDOWSNT */
 
@@ -190,29 +146,6 @@ init_json (void)
 {
   json_set_alloc_funcs (json_malloc, json_free);
 }
-
-#if !JSON_HAS_ERROR_CODE
-
-/* Return whether STRING starts with PREFIX.  */
-
-static bool
-json_has_prefix (const char *string, const char *prefix)
-{
-  return strncmp (string, prefix, strlen (prefix)) == 0;
-}
-
-/* Return whether STRING ends with SUFFIX.  */
-
-static bool
-json_has_suffix (const char *string, const char *suffix)
-{
-  size_t string_len = strlen (string);
-  size_t suffix_len = strlen (suffix);
-  return string_len >= suffix_len
-    && memcmp (string + string_len - suffix_len, suffix, suffix_len) == 0;
-}
-
-#endif
 
 /* Note that all callers of make_string_from_utf8 and build_string_from_utf8
    below either pass only value UTF-8 strings or use the functionf for
