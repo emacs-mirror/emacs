@@ -25,6 +25,7 @@
 
 (require 'cl-lib)
 (require 'map)
+(require 'subr-x)
 
 (declare-function json-serialize "json.c" (object &rest args))
 (declare-function json-insert "json.c" (object &rest args))
@@ -155,6 +156,9 @@
   )
 
 (ert-deftest json-parse-string/object ()
+  :expected-result :failed
+  ;; FIXME: This currently fails. Should the parser deduplicate keys?
+  ;; Never, always, or for alist and plist only?
   (let ((input
          "{ \"abc\" : [1, 2, true], \"def\" : null, \"abc\" : [9, false] }\n"))
     (let ((actual (json-parse-string input)))
@@ -166,6 +170,15 @@
                    '((abc . [9 :false]) (def . :null))))
     (should (equal (json-parse-string input :object-type 'plist)
                    '(:abc [9 :false] :def :null)))))
+
+(ert-deftest json-parse-string/object-unicode-keys ()
+  (let ((input "{\"é\":1,\"☃\":2,\"𐌐\":3}"))
+    (let ((actual (json-parse-string input)))
+      (should (equal (sort (hash-table-keys actual)) '("é" "☃" "𐌐"))))
+    (should (equal (json-parse-string input :object-type 'alist)
+                   '((é . 1) (☃ . 2) (𐌐 . 3))))
+    (should (equal (json-parse-string input :object-type 'plist)
+                   '(:é 1 :☃ 2 :𐌐 3)))))
 
 (ert-deftest json-parse-string/array ()
   (let ((input "[\"a\", 1, [\"b\", 2]]"))
@@ -182,8 +195,8 @@
                  ["\nasdфывfgh\t"]))
   (should (equal (json-parse-string "[\"\\uD834\\uDD1E\"]") ["\U0001D11E"]))
   (should-error (json-parse-string "foo") :type 'json-parse-error)
-  ;; FIXME: Is this the right behavior?
-  (should (equal (json-parse-string "[\"\u00C4\xC3\x84\"]") ["\u00C4\u00C4"])))
+  (should-error (json-parse-string "[\"\u00C4\xC3\x84\"]")
+                :type 'json-utf8-decode-error))
 
 (ert-deftest json-serialize/string ()
   (should (equal (json-serialize ["foo"]) "[\"foo\"]"))
@@ -201,9 +214,23 @@
   (should-error (json-serialize ["u\xCCv"]) :type 'wrong-type-argument)
   (should-error (json-serialize ["u\u00C4\xCCv"]) :type 'wrong-type-argument))
 
+(ert-deftest json-parse-string/short ()
+  :expected-result :failed
+  (should-error (json-parse-string "") :type 'json-end-of-file)
+  (should-error (json-parse-string " ") :type 'json-end-of-file)
+  ;; BUG: currently results in `json-end-of-file' for short non-empty inputs.
+  (dolist (s '("a" "ab" "abc" "abcd"
+               "t" "tr" "tru" "truE" "truee"
+               "n" "nu" "nul" "nulL" "nulll"
+               "f" "fa" "fal" "fals" "falsE" "falsee"))
+    (condition-case err
+        (json-parse-string s)
+      (error
+       (should (eq (car err) 'json-parse-error)))
+      (:success (error "parsing %S should fail" s)))))
+
 (ert-deftest json-parse-string/null ()
-  (should-error (json-parse-string "\x00") :type 'wrong-type-argument)
-  (should (json-parse-string "[\"a\\u0000b\"]"))
+  (should (equal (json-parse-string "[\"a\\u0000b\"]") ["a\0b"]))
   (let* ((string "{\"foo\":\"this is a string including a literal \\u0000\"}")
          (data (json-parse-string string)))
     (should (hash-table-p data))
@@ -214,30 +241,34 @@
 https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt.
 Test with both unibyte and multibyte strings."
   ;; Invalid UTF-8 code unit sequences.
-  (should-error (json-parse-string "[\"\x80\"]") :type 'json-parse-error)
-  (should-error (json-parse-string "[\"\u00C4\x80\"]") :type 'json-parse-error)
-  (should-error (json-parse-string "[\"\xBF\"]") :type 'json-parse-error)
-  (should-error (json-parse-string "[\"\u00C4\xBF\"]") :type 'json-parse-error)
-  (should-error (json-parse-string "[\"\xFE\"]") :type 'json-parse-error)
-  (should-error (json-parse-string "[\"\u00C4\xFE\"]") :type 'json-parse-error)
-  (should-error (json-parse-string "[\"\xC0\xAF\"]") :type 'json-parse-error)
+  (should-error (json-parse-string "[\"\x80\"]") :type 'json-utf8-decode-error)
+  (should-error (json-parse-string "[\"\u00C4\x80\"]")
+                :type 'json-utf8-decode-error)
+  (should-error (json-parse-string "[\"\xBF\"]") :type 'json-utf8-decode-error)
+  (should-error (json-parse-string "[\"\u00C4\xBF\"]")
+                :type 'json-utf8-decode-error)
+  (should-error (json-parse-string "[\"\xFE\"]") :type 'json-utf8-decode-error)
+  (should-error (json-parse-string "[\"\u00C4\xFE\"]")
+                :type 'json-utf8-decode-error)
+  (should-error (json-parse-string "[\"\xC0\xAF\"]")
+                :type 'json-utf8-decode-error)
   (should-error (json-parse-string "[\"\u00C4\xC0\xAF\"]")
-                :type 'json-parse-error)
+                :type 'json-utf8-decode-error)
   (should-error (json-parse-string "[\"\u00C4\xC0\x80\"]")
-                :type 'json-parse-error)
+                :type 'json-utf8-decode-error)
   ;; Surrogates.
   (should-error (json-parse-string "[\"\uDB7F\"]")
-                :type 'json-parse-error)
+                :type 'json-utf8-decode-error)
   (should-error (json-parse-string "[\"\xED\xAD\xBF\"]")
-                :type 'json-parse-error)
+                :type 'json-utf8-decode-error)
   (should-error (json-parse-string "[\"\u00C4\xED\xAD\xBF\"]")
-                :type 'json-parse-error)
+                :type 'json-utf8-decode-error)
   (should-error (json-parse-string "[\"\uDB7F\uDFFF\"]")
-                :type 'json-parse-error)
+                :type 'json-utf8-decode-error)
   (should-error (json-parse-string "[\"\xED\xAD\xBF\xED\xBF\xBF\"]")
-                :type 'json-parse-error)
+                :type 'json-utf8-decode-error)
   (should-error (json-parse-string "[\"\u00C4\xED\xAD\xBF\xED\xBF\xBF\"]")
-                :type 'json-parse-error))
+                :type 'json-utf8-decode-error))
 
 (ert-deftest json-parse-string/incomplete ()
   (should-error (json-parse-string "[123") :type 'json-end-of-file))

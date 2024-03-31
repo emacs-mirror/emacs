@@ -699,24 +699,6 @@ usage: (json-insert OBJECT &rest ARGS)  */)
 }
 
 
-/* Note that all callers of make_string_from_utf8 and build_string_from_utf8
-   below either pass only value UTF-8 strings or use the function for
-   formatting error messages; in the latter case correctness isn't
-   critical.  */
-
-/* Return a unibyte string containing the sequence of UTF-8 encoding
-   units of the UTF-8 representation of STRING.  If STRING does not
-   represent a sequence of Unicode scalar values, return a string with
-   unspecified contents.  */
-
-static Lisp_Object
-json_encode (Lisp_Object string)
-{
-  /* FIXME: Raise an error if STRING is not a scalar value
-     sequence.  */
-  return encode_string_utf_8 (string, Qnil, false, Qt, Qt);
-}
-
 #define JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE 64
 #define JSON_PARSER_INTERNAL_BYTE_WORKSPACE_SIZE 512
 
@@ -1081,52 +1063,21 @@ json_parse_unicode (struct json_parser *parser)
   return v[0] << 12 | v[1] << 8 | v[2] << 4 | v[3];
 }
 
-/* Parses an utf-8 code-point encoding (except the first byte), and
-   returns the numeric value of the code-point (without considering
-   the first byte) */
-static int
-json_handle_utf8_tail_bytes (struct json_parser *parser, int n)
+static AVOID
+utf8_error (struct json_parser *parser)
 {
-  int v = 0;
-  for (int i = 0; i < n; i++)
-    {
-      int c = json_input_get (parser);
-      json_byte_workspace_put (parser, c);
-      if ((c & 0xc0) != 0x80)
-	json_signal_error (parser, Qjson_utf8_decode_error);
-      v = (v << 6) | (c & 0x3f);
-    }
-  return v;
+  json_signal_error (parser, Qjson_utf8_decode_error);
 }
 
-/* Reads a JSON string, and puts the result into the byte workspace */
-static void
-json_parse_string (struct json_parser *parser)
+/* Parse a string literal.  Optionally prepend a ':'.
+   Return the string or an interned symbol.  */
+static Lisp_Object
+json_parse_string (struct json_parser *parser, bool intern, bool leading_colon)
 {
-  /* a single_uninteresting byte can be simply copied from the input
-     to output, it doesn't need any extra care.  This means all the
-     characters between [0x20;0x7f], except the double quote and
-     the backslash */
-  static const char is_single_uninteresting[256] = {
-    /*      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f */
-    /* 0 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 1 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 2 */ 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    /* 3 */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    /* 4 */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    /* 5 */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1,
-    /* 6 */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    /* 7 */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    /* 8 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 9 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* a */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* b */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* c */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* d */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* e */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* f */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  };
-
+  json_byte_workspace_reset (parser);
+  if (leading_colon)
+    json_byte_workspace_put (parser, ':');
+  ptrdiff_t chars_delta = 0;	/* nchars - nbytes */
   for (;;)
     {
       /* This if is only here for a possible speedup.  If there are 4
@@ -1138,10 +1089,10 @@ json_parse_string (struct json_parser *parser)
 	  int c1 = parser->input_current[1];
 	  int c2 = parser->input_current[2];
 	  int c3 = parser->input_current[3];
-	  bool v0 = is_single_uninteresting[c0];
-	  bool v1 = is_single_uninteresting[c1];
-	  bool v2 = is_single_uninteresting[c2];
-	  bool v3 = is_single_uninteresting[c3];
+	  bool v0 = json_plain_char[c0];
+	  bool v1 = json_plain_char[c1];
+	  bool v2 = json_plain_char[c2];
+	  bool v3 = json_plain_char[c3];
 	  if (v0 && v1 && v2 && v3)
 	    {
 	      json_byte_workspace_put (parser, c0);
@@ -1156,43 +1107,62 @@ json_parse_string (struct json_parser *parser)
 
       int c = json_input_get (parser);
       parser->current_column++;
-      if (is_single_uninteresting[c])
+      if (json_plain_char[c])
 	{
 	  json_byte_workspace_put (parser, c);
 	  continue;
 	}
 
       if (c == '"')
-	return;
-      else if (c & 0x80)
 	{
-	  /* Handle utf-8 encoding */
+	  ptrdiff_t nbytes
+	    = parser->byte_workspace_current - parser->byte_workspace;
+	  ptrdiff_t nchars = nbytes - chars_delta;
+	  const char *str = (const char *)parser->byte_workspace;
+	  return intern ? intern_c_multibyte (str, nchars, nbytes)
+	                : make_multibyte_string (str, nchars, nbytes);
+	}
+
+      if (c & 0x80)
+	{
+	  /* Parse UTF-8, strictly.  This is the correct thing to do
+	     whether or not the input is a unibyte or multibyte string.  */
 	  json_byte_workspace_put (parser, c);
-	  if (c < 0xc0)
-	    json_signal_error (parser, Qjson_utf8_decode_error);
-	  else if (c < 0xe0)
+	  unsigned char c1 = json_input_get (parser);
+	  if ((c1 & 0xc0) != 0x80)
+	    utf8_error (parser);
+	  json_byte_workspace_put (parser, c1);
+	  if (c <= 0xc1)
+	    utf8_error (parser);
+	  else if (c <= 0xdf)
+	    chars_delta += 1;
+	  else if (c <= 0xef)
 	    {
-	      int n = ((c & 0x1f) << 6
-		       | json_handle_utf8_tail_bytes (parser, 1));
-	      if (n < 0x80)
-		json_signal_error (parser, Qjson_utf8_decode_error);
+	      unsigned char c2 = json_input_get (parser);
+	      if ((c2 & 0xc0) != 0x80)
+		utf8_error (parser);
+	      int v = ((c & 0x0f) << 12) + ((c1 & 0x3f) << 6) + (c2 & 0x3f);
+	      if (v < 0x800 || (v >= 0xd800 && v <= 0xdfff))
+		utf8_error (parser);
+	      json_byte_workspace_put (parser, c2);
+	      chars_delta += 2;
 	    }
-	  else if (c < 0xf0)
+	  else if (c <= 0xf7)
 	    {
-	      int n = ((c & 0xf) << 12
-		       | json_handle_utf8_tail_bytes (parser, 2));
-	      if (n < 0x800 || (n >= 0xd800 && n < 0xe000))
-		json_signal_error (parser, Qjson_utf8_decode_error);
-	    }
-	  else if (c < 0xf8)
-	    {
-	      int n = ((c & 0x7) << 18
-		       | json_handle_utf8_tail_bytes (parser, 3));
-	      if (n < 0x10000 || n > 0x10ffff)
-		json_signal_error (parser, Qjson_utf8_decode_error);
+	      unsigned char c2 = json_input_get (parser);
+	      unsigned char c3 = json_input_get (parser);
+	      if ((c2 & 0xc0) != 0x80 || (c3 & 0xc0) != 0x80)
+		utf8_error (parser);
+	      int v = (((c & 0x07) << 18) + ((c1 & 0x3f) << 12)
+		       + ((c2 & 0x3f) << 6) + (c3 & 0x3f));
+	      if (v < 0x10000 || v > 0x10ffff)
+		utf8_error (parser);
+	      json_byte_workspace_put (parser, c2);
+	      json_byte_workspace_put (parser, c3);
+	      chars_delta += 3;
 	    }
 	  else
-	    json_signal_error (parser, Qjson_utf8_decode_error);
+	    utf8_error (parser);
 	}
       else if (c == '\\')
 	{
@@ -1249,6 +1219,7 @@ json_parse_string (struct json_parser *parser)
 		  json_byte_workspace_put (parser, 0xc0 | num >> 6);
 		  json_byte_workspace_put (parser,
 					   0x80 | (num & 0x3f));
+		  chars_delta += 1;
 		}
 	      else if (num < 0x10000)
 		{
@@ -1258,6 +1229,7 @@ json_parse_string (struct json_parser *parser)
 					    | ((num >> 6) & 0x3f)));
 		  json_byte_workspace_put (parser,
 					   0x80 | (num & 0x3f));
+		  chars_delta += 2;
 		}
 	      else
 		{
@@ -1270,6 +1242,7 @@ json_parse_string (struct json_parser *parser)
 					    | ((num >> 6) & 0x3f)));
 		  json_byte_workspace_put (parser,
 					   0x80 | (num & 0x3f));
+		  chars_delta += 3;
 		}
 	    }
 	  else
@@ -1566,16 +1539,11 @@ json_parse_object (struct json_parser *parser)
 	  if (c != '"')
 	    json_signal_error (parser, Qjson_parse_error);
 
-	  json_byte_workspace_reset (parser);
 	  switch (parser->conf.object_type)
 	    {
 	    case json_object_hashtable:
 	      {
-		json_parse_string (parser);
-		Lisp_Object key
-		  = make_string_from_utf8 ((char *) parser->byte_workspace,
-					   (parser->byte_workspace_current
-					    - parser->byte_workspace));
+		Lisp_Object key = json_parse_string (parser, false, false);
 		Lisp_Object value = json_parse_object_member_value (parser);
 		json_make_object_workspace_for (parser, 2);
 		parser->object_workspace[parser->object_workspace_current] = key;
@@ -1586,13 +1554,7 @@ json_parse_object (struct json_parser *parser)
 	      }
 	    case json_object_alist:
 	      {
-		json_parse_string (parser);
-		char *workspace = (char *) parser->byte_workspace;
-		ptrdiff_t nbytes
-		  = parser->byte_workspace_current - parser->byte_workspace;
-		Lisp_Object key = Fintern (make_string_from_utf8 (workspace,
-								  nbytes),
-					   Qnil);
+		Lisp_Object key = json_parse_string (parser, true, false);
 		Lisp_Object value = json_parse_object_member_value (parser);
 		Lisp_Object nc = Fcons (Fcons (key, value), Qnil);
 		*cdr = nc;
@@ -1601,11 +1563,7 @@ json_parse_object (struct json_parser *parser)
 	      }
 	    case json_object_plist:
 	      {
-		json_byte_workspace_put (parser, ':');
-		json_parse_string (parser);
-		Lisp_Object key = intern_1 ((char *) parser->byte_workspace,
-					    (parser->byte_workspace_current
-					     - parser->byte_workspace));
+		Lisp_Object key = json_parse_string (parser, true, true);
 		Lisp_Object value = json_parse_object_member_value (parser);
 		Lisp_Object nc = Fcons (key, Qnil);
 		*cdr = nc;
@@ -1692,15 +1650,7 @@ json_parse_value (struct json_parser *parser, int c)
   else if (c == '[')
     return json_parse_array (parser);
   else if (c == '"')
-    {
-      json_byte_workspace_reset (parser);
-      json_parse_string (parser);
-      Lisp_Object result
-	= make_string_from_utf8 ((const char *) parser->byte_workspace,
-				 (parser->byte_workspace_current
-				  - parser->byte_workspace));
-      return result;
-    }
+    return json_parse_string (parser, false, false);
   else if ((c >= '0' && c <= '9') || (c == '-'))
     return json_parse_number (parser, c);
   else
@@ -1816,14 +1766,13 @@ usage: (json-parse-string STRING &rest ARGS) */)
 
   Lisp_Object string = args[0];
   CHECK_STRING (string);
-  Lisp_Object encoded = json_encode (string);
   struct json_configuration conf
     = { json_object_hashtable, json_array_array, QCnull, QCfalse };
   json_parse_args (nargs - 1, args + 1, &conf, true);
 
   struct json_parser p;
-  const unsigned char *begin = (const unsigned char *) SSDATA (encoded);
-  json_parser_init (&p, conf, begin, begin + SBYTES (encoded), NULL, NULL);
+  const unsigned char *begin = SDATA (string);
+  json_parser_init (&p, conf, begin, begin + SBYTES (string), NULL, NULL);
   record_unwind_protect_ptr (json_parser_done, &p);
 
   return unbind_to (count,
