@@ -772,9 +772,9 @@ static AVOID
 json_signal_error (struct json_parser *parser, Lisp_Object error)
 {
   xsignal3 (error, INT_TO_INTEGER (parser->current_line),
-            INT_TO_INTEGER (parser->current_column),
-            INT_TO_INTEGER (parser->point_of_current_line
-                            + parser->current_column));
+	    INT_TO_INTEGER (parser->current_column),
+	    INT_TO_INTEGER (parser->point_of_current_line
+			    + parser->current_column));
 }
 
 static void
@@ -825,8 +825,8 @@ json_parser_init (struct json_parser *parser,
 
   parser->byte_workspace = parser->internal_byte_workspace;
   parser->byte_workspace_end
-          = (parser->byte_workspace
-             + JSON_PARSER_INTERNAL_BYTE_WORKSPACE_SIZE);
+    = (parser->byte_workspace
+       + JSON_PARSER_INTERNAL_BYTE_WORKSPACE_SIZE);
 }
 
 static void
@@ -1579,7 +1579,7 @@ json_parse_object (struct json_parser *parser)
 		json_parse_string (parser);
 		Lisp_Object key
 		  = make_string_from_utf8 ((char *)
-                                           parser->byte_workspace,
+					   parser->byte_workspace,
 					   (parser->byte_workspace_current
 					    - parser->byte_workspace));
 		Lisp_Object value
@@ -1595,12 +1595,16 @@ json_parse_object (struct json_parser *parser)
 	      }
 	    case json_object_alist:
 	      {
+		ptrdiff_t nbytes;
+		char *workspace;
+
 		json_parse_string (parser);
+		workspace = (char *) parser->byte_workspace;
+		nbytes = (parser->byte_workspace_current
+			  - parser->byte_workspace);
+
 		Lisp_Object key
-		  = Fintern (make_string_from_utf8 (
-                                                    (char *) parser->byte_workspace,
-                                                    (parser->byte_workspace_current
-                                                     - parser->byte_workspace)),
+		  = Fintern (make_string_from_utf8 (workspace, nbytes),
 			     Qnil);
 		Lisp_Object value
 		  = json_parse_object_member_value (parser);
@@ -1651,10 +1655,13 @@ json_parse_object (struct json_parser *parser)
     {
     case json_object_hashtable:
       {
+	EMACS_INT value;
+
+	value
+	  = (parser->object_workspace_current - first) / 2;
 	result
 	  = CALLN (Fmake_hash_table, QCtest, Qequal, QCsize,
-		   make_fixed_natnum (
-                                      (parser->object_workspace_current - first) / 2));
+		   make_fixed_natnum (value));
 	struct Lisp_Hash_Table *h = XHASH_TABLE (result);
 	for (size_t i = first; i < parser->object_workspace_current;
 	     i += 2)
@@ -1711,7 +1718,7 @@ json_parse_value (struct json_parser *parser, int c)
       json_parse_string (parser);
       Lisp_Object result
 	= make_string_from_utf8 ((const char *)
-                                 parser->byte_workspace,
+				 parser->byte_workspace,
 				 (parser->byte_workspace_current
 				  - parser->byte_workspace));
       return result;
@@ -1925,28 +1932,28 @@ syms_of_json (void)
   DEFSYM (Qjson_end_of_file, "json-end-of-file");
   DEFSYM (Qjson_trailing_content, "json-trailing-content");
   DEFSYM (Qjson_object_too_deep, "json-object-too-deep");
-  DEFSYM (Qjson_utf8_decode_error, "json-utf8-decode-error")
-  DEFSYM (Qjson_invalid_surrogate_error, "json-invalid-surrogate-error")
-  DEFSYM (Qjson_number_out_of_range, "json-number-out-of-range-error")
-  DEFSYM (Qjson_escape_sequence_error, "json-escape-sequence-error")
+  DEFSYM (Qjson_utf8_decode_error, "json-utf8-decode-error");
+  DEFSYM (Qjson_invalid_surrogate_error, "json-invalid-surrogate-error");
+  DEFSYM (Qjson_number_out_of_range, "json-number-out-of-range-error");
+  DEFSYM (Qjson_escape_sequence_error, "json-escape-sequence-error");
   define_error (Qjson_error, "generic JSON error", Qerror);
   define_error (Qjson_out_of_memory,
-                "not enough memory for creating JSON object", Qjson_error);
+		"not enough memory for creating JSON object", Qjson_error);
   define_error (Qjson_parse_error, "could not parse JSON stream",
-                Qjson_error);
+		Qjson_error);
   define_error (Qjson_end_of_file, "end of JSON stream", Qjson_parse_error);
   define_error (Qjson_trailing_content, "trailing content after JSON stream",
-                Qjson_parse_error);
+		Qjson_parse_error);
   define_error (Qjson_object_too_deep,
-                "object cyclic or Lisp evaluation too deep", Qjson_error);
+		"object cyclic or Lisp evaluation too deep", Qjson_error);
   define_error (Qjson_utf8_decode_error,
-                "invalid utf-8 encoding", Qjson_error);
+		"invalid utf-8 encoding", Qjson_error);
   define_error (Qjson_invalid_surrogate_error,
-                "invalid surrogate pair", Qjson_error);
+		"invalid surrogate pair", Qjson_error);
   define_error (Qjson_number_out_of_range,
-                "number out of range", Qjson_error);
+		"number out of range", Qjson_error);
   define_error (Qjson_escape_sequence_error,
-                "invalid escape sequence", Qjson_parse_error);
+		"invalid escape sequence", Qjson_parse_error);
 
   DEFSYM (Qpure, "pure");
   DEFSYM (Qside_effect_free, "side-effect-free");
