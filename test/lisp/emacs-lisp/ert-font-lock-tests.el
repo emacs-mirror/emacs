@@ -44,13 +44,56 @@
      (goto-char (point-min))
      ,@body))
 
+(defun ert-font-lock--wrap-begin-end (re)
+  (concat "^" re "$"))
+
+;;; Regexp tests
+;;;
+
+(ert-deftest test-regexp--face-symbol-re ()
+  (let ((re (ert-font-lock--wrap-begin-end
+             ert-font-lock--face-symbol-re)))
+    (should (string-match-p re "font-lock-keyword-face"))
+    (should (string-match-p re "-face"))
+    (should (string-match-p re "weird-package/-face"))
+    (should (string-match-p re "-"))
+    (should (string-match-p re "font-lock.face"))
+    (should-not (string-match-p re "face suffix-with"))
+    (should-not (string-match-p re "("))))
+
+(ert-deftest test-regexp--face-symbol-list-re ()
+  (let ((re (ert-font-lock--wrap-begin-end
+             ert-font-lock--face-symbol-list-re)))
+    (should (string-match-p re "(face1 face2)"))
+    (should (string-match-p re "(face1)"))
+    (should (string-match-p re "()"))
+    (should-not (string-match-p re ")"))
+    (should-not (string-match-p re "("))))
+
+(ert-deftest test-regexp--assertion-line-re ()
+  (let ((re (ert-font-lock--wrap-begin-end
+             ert-font-lock--assertion-line-re)))
+    (should (string-match-p re "^   something-face"))
+    (should (string-match-p re "^   !something-face"))
+    (should (string-match-p re "^   (face1 face2)"))
+    (should (string-match-p re "^   !(face1 face2)"))
+    (should (string-match-p re "^   ()"))
+    (should (string-match-p re "^   !()"))
+    (should (string-match-p re "^   nil"))
+    (should (string-match-p re "^   !nil"))
+    (should (string-match-p re "<-   something-face"))
+    (should (string-match-p re "<- ^  something-face"))
+    (should (string-match-p re "^^ ^  something-face"))
+    (should (string-match-p re "^     ^something-face"))
+    (should-not (string-match-p re "^   <-  ^something-face"))))
+
 ;;; Comment parsing tests
 ;;
 
 (ert-deftest test-line-comment-p--fundamental ()
   (with-temp-buffer-str-mode fundamental-mode
-                             "// comment\n"
-                             (should-not (ert-font-lock--line-comment-p))))
+    "// comment\n"
+    (should-not (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-line-comment-p--emacs-lisp ()
   (with-temp-buffer-str-mode emacs-lisp-mode
