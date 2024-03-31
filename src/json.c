@@ -29,18 +29,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "coding.h"
 
-enum json_object_type {
-  json_object_hashtable,
-  json_object_alist,
-  json_object_plist
-};
+enum json_object_type
+  {
+    json_object_hashtable,
+    json_object_alist,
+    json_object_plist,
+  };
 
-enum json_array_type {
-  json_array_array,
-  json_array_list
-};
+enum json_array_type
+  {
+    json_array_array,
+    json_array_list,
+  };
 
-struct json_configuration {
+struct json_configuration
+{
   enum json_object_type object_type;
   enum json_array_type array_type;
   Lisp_Object null_object;
@@ -48,38 +51,37 @@ struct json_configuration {
 };
 
 static void
-json_parse_args (ptrdiff_t nargs,
-                 Lisp_Object *args,
-                 struct json_configuration *conf,
-                 bool parse_object_types)
+json_parse_args (ptrdiff_t nargs, Lisp_Object *args,
+		 struct json_configuration *conf,
+		 bool parse_object_types)
 {
   if ((nargs % 2) != 0)
     wrong_type_argument (Qplistp, Flist (nargs, args));
 
-  /* Start from the back so keyword values appearing
-     first take precedence. */
+  /* Start from the back so keyword values appearing first take
+     precedence.  */
   for (ptrdiff_t i = nargs; i > 0; i -= 2) {
     Lisp_Object key = args[i - 2];
     Lisp_Object value = args[i - 1];
     if (parse_object_types && EQ (key, QCobject_type))
       {
-        if (EQ (value, Qhash_table))
-          conf->object_type = json_object_hashtable;
-        else if (EQ (value, Qalist))
-          conf->object_type = json_object_alist;
-        else if (EQ (value, Qplist))
-          conf->object_type = json_object_plist;
-        else
-          wrong_choice (list3 (Qhash_table, Qalist, Qplist), value);
+	if (EQ (value, Qhash_table))
+	  conf->object_type = json_object_hashtable;
+	else if (EQ (value, Qalist))
+	  conf->object_type = json_object_alist;
+	else if (EQ (value, Qplist))
+	  conf->object_type = json_object_plist;
+	else
+	  wrong_choice (list3 (Qhash_table, Qalist, Qplist), value);
       }
     else if (parse_object_types && EQ (key, QCarray_type))
       {
-        if (EQ (value, Qarray))
-          conf->array_type = json_array_array;
-        else if (EQ (value, Qlist))
-          conf->array_type = json_array_list;
-        else
-          wrong_choice (list2 (Qarray, Qlist), value);
+	if (EQ (value, Qarray))
+	  conf->array_type = json_array_array;
+	else if (EQ (value, Qlist))
+	  conf->array_type = json_array_list;
+	else
+	  wrong_choice (list2 (Qarray, Qlist), value);
       }
     else if (EQ (key, QCnull_object))
       conf->null_object = value;
@@ -87,19 +89,20 @@ json_parse_args (ptrdiff_t nargs,
       conf->false_object = value;
     else if (parse_object_types)
       wrong_choice (list4 (QCobject_type,
-                           QCarray_type,
-                           QCnull_object,
-                           QCfalse_object),
-                    value);
+			   QCarray_type,
+			   QCnull_object,
+			   QCfalse_object),
+		    value);
     else
       wrong_choice (list2 (QCnull_object,
-                           QCfalse_object),
-                    value);
+			   QCfalse_object),
+		    value);
   }
 }
 
 /* JSON encoding context.  */
-typedef struct {
+typedef struct
+{
   char *buf;
   ptrdiff_t size;	      /* number of bytes in buf */
   ptrdiff_t capacity;	      /* allocated size of buf */
@@ -111,7 +114,8 @@ typedef struct {
 } json_out_t;
 
 /* Set of symbols.  */
-typedef struct {
+typedef struct
+{
   ptrdiff_t count;		/* symbols in table */
   int bits;			/* log2(table size) */
   struct symset_tbl *table;	/* heap-allocated table */
@@ -129,7 +133,7 @@ struct symset_tbl
 static inline ptrdiff_t
 symset_size (int bits)
 {
-  return (ptrdiff_t)1 << bits;
+  return (ptrdiff_t) 1 << bits;
 }
 
 static struct symset_tbl *
@@ -615,7 +619,7 @@ In you specify the same value for `:null-object' and `:false-object',
 a potentially ambiguous situation, the JSON output will not contain
 any JSON false values.
 usage: (json-serialize OBJECT &rest ARGS)  */)
-     (ptrdiff_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   specpdl_ref count = SPECPDL_INDEX ();
   json_out_t jo;
@@ -630,7 +634,7 @@ This is the same as (insert (json-serialize OBJECT)), but potentially
 faster.  See the function `json-serialize' for allowed values of
 OBJECT.
 usage: (json-insert OBJECT &rest ARGS)  */)
-     (ptrdiff_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   specpdl_ref count = SPECPDL_INDEX ();
   json_out_t jo;
