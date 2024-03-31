@@ -215,11 +215,9 @@
   (should-error (json-serialize ["u\u00C4\xCCv"]) :type 'wrong-type-argument))
 
 (ert-deftest json-parse-string/short ()
-  :expected-result :failed
   (should-error (json-parse-string "") :type 'json-end-of-file)
   (should-error (json-parse-string " ") :type 'json-end-of-file)
-  ;; BUG: currently results in `json-end-of-file' for short non-empty inputs.
-  (dolist (s '("a" "ab" "abc" "abcd"
+  (dolist (s '("a" "ab" "abc" "abcd" "\0" "\1"
                "t" "tr" "tru" "truE" "truee"
                "n" "nu" "nul" "nulL" "nulll"
                "f" "fa" "fal" "fals" "falsE" "falsee"))

@@ -1655,9 +1655,9 @@ json_parse_value (struct json_parser *parser, int c)
     return json_parse_number (parser, c);
   else
     {
-      int c2 = json_input_get (parser);
-      int c3 = json_input_get (parser);
-      int c4 = json_input_get (parser);
+      int c2 = json_input_get_if_possible (parser);
+      int c3 = json_input_get_if_possible (parser);
+      int c4 = json_input_get_if_possible (parser);
       int c5 = json_input_get_if_possible (parser);
 
       if (c == 't' && c2 == 'r' && c3 == 'u' && c4 == 'e'
