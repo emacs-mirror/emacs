@@ -566,9 +566,8 @@ The INDENT level is ignored."
 (defun erc-speedbar--reset-last-ran-on-timer ()
   "Reset `erc-speedbar--last-ran'."
   (when speedbar-buffer
-    (with-suppressed-warnings ((obsolete buffer-local-value)) ; <=29
-      (setf (buffer-local-value 'erc-speedbar--last-ran speedbar-buffer)
-            (current-time)))))
+    (with-current-buffer speedbar-buffer
+      (setq erc-speedbar--last-ran (current-time)))))
 
 ;;;###autoload(autoload 'erc-nickbar-mode "erc-speedbar" nil t)
 (define-erc-module nickbar nil
@@ -578,10 +577,12 @@ show its buffer in an `erc-status-sidebar' window instead of a
 separate frame.  When disabling, close the window or, with a
 negative prefix arg, destroy the session.
 
-WARNING: this module may produce unwanted side effects, like the
-raising of frames or the stealing of input focus.  If you witness
-such a thing and can reproduce it, please file a bug report with
-\\[erc-bug]."
+For controlling whether the speedbar window is selectable with
+`other-window', see `erc-nickbar-toggle-nicknames-window-lock'.
+Note that during initialization, this module may produce unwanted
+side effects, like the raising of frames or the stealing of input
+focus.  If you witness such a thing and can reproduce it, please
+file a bug report with \\[erc-bug]."
   ((add-hook 'erc--setup-buffer-hook #'erc-speedbar--ensure)
    (add-hook 'erc-insert-post-hook #'erc-speedbar--run-timer-on-post-insert)
    (add-hook 'speedbar-timer-hook #'erc-speedbar--reset-last-ran-on-timer)
@@ -638,8 +639,8 @@ such a thing and can reproduce it, please file a bug report with
 
 (defun erc-speedbar-toggle-nicknames-window-lock (arg)
   "Toggle whether nicknames window is selectable with \\[other-window].
-When arg is a number, lock the window if non-negative, otherwise
-unlock."
+When ARG is a number, lock the window if non-negative.  Otherwise,
+unlock the window."
   (interactive "P")
   (unless erc-nickbar-mode
     (user-error "`erc-nickbar-mode' inactive"))
@@ -648,10 +649,14 @@ unlock."
                      ((integerp arg) nil)
                      (t (not (window-parameter window
                                                'no-other-window))))))
+      (with-current-buffer speedbar-buffer
+        (setq cursor-type (not val)))
       (set-window-parameter window 'no-other-window val)
       (unless (numberp arg)
         (message "nick-window: %s" (if val "protected" "selectable"))))))
 
+(defalias 'erc-nickbar-toggle-nicknames-window-lock
+  #'erc-speedbar-toggle-nicknames-window-lock)
 
 ;;;; Nicks integration
 
