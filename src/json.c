@@ -60,44 +60,45 @@ json_parse_args (ptrdiff_t nargs, Lisp_Object *args,
 
   /* Start from the back so keyword values appearing first take
      precedence.  */
-  for (ptrdiff_t i = nargs; i > 0; i -= 2) {
-    Lisp_Object key = args[i - 2];
-    Lisp_Object value = args[i - 1];
-    if (parse_object_types && EQ (key, QCobject_type))
-      {
-	if (EQ (value, Qhash_table))
-	  conf->object_type = json_object_hashtable;
-	else if (EQ (value, Qalist))
-	  conf->object_type = json_object_alist;
-	else if (EQ (value, Qplist))
-	  conf->object_type = json_object_plist;
-	else
-	  wrong_choice (list3 (Qhash_table, Qalist, Qplist), value);
-      }
-    else if (parse_object_types && EQ (key, QCarray_type))
-      {
-	if (EQ (value, Qarray))
-	  conf->array_type = json_array_array;
-	else if (EQ (value, Qlist))
-	  conf->array_type = json_array_list;
-	else
-	  wrong_choice (list2 (Qarray, Qlist), value);
-      }
-    else if (EQ (key, QCnull_object))
-      conf->null_object = value;
-    else if (EQ (key, QCfalse_object))
-      conf->false_object = value;
-    else if (parse_object_types)
-      wrong_choice (list4 (QCobject_type,
-			   QCarray_type,
-			   QCnull_object,
-			   QCfalse_object),
-		    value);
-    else
-      wrong_choice (list2 (QCnull_object,
-			   QCfalse_object),
-		    value);
-  }
+  for (ptrdiff_t i = nargs; i > 0; i -= 2)
+    {
+      Lisp_Object key = args[i - 2];
+      Lisp_Object value = args[i - 1];
+      if (parse_object_types && EQ (key, QCobject_type))
+	{
+	  if (EQ (value, Qhash_table))
+	    conf->object_type = json_object_hashtable;
+	  else if (EQ (value, Qalist))
+	    conf->object_type = json_object_alist;
+	  else if (EQ (value, Qplist))
+	    conf->object_type = json_object_plist;
+	  else
+	    wrong_choice (list3 (Qhash_table, Qalist, Qplist), value);
+	}
+      else if (parse_object_types && EQ (key, QCarray_type))
+	{
+	  if (EQ (value, Qarray))
+	    conf->array_type = json_array_array;
+	  else if (EQ (value, Qlist))
+	    conf->array_type = json_array_list;
+	  else
+	    wrong_choice (list2 (Qarray, Qlist), value);
+	}
+      else if (EQ (key, QCnull_object))
+	conf->null_object = value;
+      else if (EQ (key, QCfalse_object))
+	conf->false_object = value;
+      else if (parse_object_types)
+	wrong_choice (list4 (QCobject_type,
+			     QCarray_type,
+			     QCnull_object,
+			     QCfalse_object),
+		      value);
+      else
+	wrong_choice (list2 (QCnull_object,
+			     QCfalse_object),
+		      value);
+    }
 }
 
 /* JSON encoding context.  */
@@ -824,9 +825,8 @@ json_parser_init (struct json_parser *parser,
   parser->object_workspace_current = 0;
 
   parser->byte_workspace = parser->internal_byte_workspace;
-  parser->byte_workspace_end
-    = (parser->byte_workspace
-       + JSON_PARSER_INTERNAL_BYTE_WORKSPACE_SIZE);
+  parser->byte_workspace_end = (parser->byte_workspace
+				+ JSON_PARSER_INTERNAL_BYTE_WORKSPACE_SIZE);
 }
 
 static void
@@ -1233,8 +1233,7 @@ json_parse_string (struct json_parser *parser)
 		  if (num2 < 0xdc00 || num2 >= 0xe000)
 		    json_signal_error (parser,
 				       Qjson_invalid_surrogate_error);
-		  num = (0x10000
-			 + ((num - 0xd800) << 10 | (num2 - 0xdc00)));
+		  num = (0x10000 + ((num - 0xd800) << 10 | (num2 - 0xdc00)));
 		}
 	      else if (num >= 0xdc00 && num < 0xe000)
 		/* is the second half of the surrogate pair without
@@ -1307,10 +1306,8 @@ json_create_integer (struct json_parser *parser,
   json_byte_workspace_put (parser, 0);
   ptrdiff_t len;
   Lisp_Object result
-    = string_to_number ((const char *) parser->byte_workspace, 10,
-			&len);
-  if (len
-      != parser->byte_workspace_current - parser->byte_workspace - 1)
+    = string_to_number ((const char *) parser->byte_workspace, 10, &len);
+  if (len != parser->byte_workspace_current - parser->byte_workspace - 1)
     json_signal_error (parser, Qjson_error);
   return result;
 }
@@ -1323,12 +1320,10 @@ json_create_float (struct json_parser *parser)
   errno = 0;
   char *e;
   double value = strtod ((const char *) parser->byte_workspace, &e);
-  bool out_of_range
-    = (errno != 0 && (value == HUGE_VAL || value == -HUGE_VAL));
+  bool out_of_range = (errno != 0 && (value == HUGE_VAL || value == -HUGE_VAL));
   if (out_of_range)
     json_signal_error (parser, Qjson_number_out_of_range);
-  else if ((const unsigned char *) e
-	   != parser->byte_workspace_current - 1)
+  else if ((const unsigned char *) e != parser->byte_workspace_current - 1)
     json_signal_error (parser, Qjson_error);
   else
     return make_float (value);
@@ -1578,36 +1573,27 @@ json_parse_object (struct json_parser *parser)
 	      {
 		json_parse_string (parser);
 		Lisp_Object key
-		  = make_string_from_utf8 ((char *)
-					   parser->byte_workspace,
+		  = make_string_from_utf8 ((char *) parser->byte_workspace,
 					   (parser->byte_workspace_current
 					    - parser->byte_workspace));
-		Lisp_Object value
-		  = json_parse_object_member_value (parser);
+		Lisp_Object value = json_parse_object_member_value (parser);
 		json_make_object_workspace_for (parser, 2);
-		parser->object_workspace[parser->object_workspace_current]
-		  = key;
+		parser->object_workspace[parser->object_workspace_current] = key;
 		parser->object_workspace_current++;
-		parser->object_workspace[parser->object_workspace_current]
-		  = value;
+		parser->object_workspace[parser->object_workspace_current] = value;
 		parser->object_workspace_current++;
 		break;
 	      }
 	    case json_object_alist:
 	      {
-		ptrdiff_t nbytes;
-		char *workspace;
-
 		json_parse_string (parser);
-		workspace = (char *) parser->byte_workspace;
-		nbytes = (parser->byte_workspace_current
-			  - parser->byte_workspace);
-
-		Lisp_Object key
-		  = Fintern (make_string_from_utf8 (workspace, nbytes),
-			     Qnil);
-		Lisp_Object value
-		  = json_parse_object_member_value (parser);
+		char *workspace = (char *) parser->byte_workspace;
+		ptrdiff_t nbytes
+		  = parser->byte_workspace_current - parser->byte_workspace;
+		Lisp_Object key = Fintern (make_string_from_utf8 (workspace,
+								  nbytes),
+					   Qnil);
+		Lisp_Object value = json_parse_object_member_value (parser);
 		Lisp_Object nc = Fcons (Fcons (key, value), Qnil);
 		*cdr = nc;
 		cdr = xcdr_addr (nc);
@@ -1617,12 +1603,10 @@ json_parse_object (struct json_parser *parser)
 	      {
 		json_byte_workspace_put (parser, ':');
 		json_parse_string (parser);
-		Lisp_Object key
-		  = intern_1 ((char *) parser->byte_workspace,
-			      (parser->byte_workspace_current
-			       - parser->byte_workspace));
-		Lisp_Object value
-		  = json_parse_object_member_value (parser);
+		Lisp_Object key = intern_1 ((char *) parser->byte_workspace,
+					    (parser->byte_workspace_current
+					     - parser->byte_workspace));
+		Lisp_Object value = json_parse_object_member_value (parser);
 		Lisp_Object nc = Fcons (key, Qnil);
 		*cdr = nc;
 		cdr = xcdr_addr (nc);
@@ -1655,16 +1639,11 @@ json_parse_object (struct json_parser *parser)
     {
     case json_object_hashtable:
       {
-	EMACS_INT value;
-
-	value
-	  = (parser->object_workspace_current - first) / 2;
-	result
-	  = CALLN (Fmake_hash_table, QCtest, Qequal, QCsize,
-		   make_fixed_natnum (value));
+	EMACS_INT value = (parser->object_workspace_current - first) / 2;
+	result = CALLN (Fmake_hash_table, QCtest, Qequal, QCsize,
+			make_fixed_natnum (value));
 	struct Lisp_Hash_Table *h = XHASH_TABLE (result);
-	for (size_t i = first; i < parser->object_workspace_current;
-	     i += 2)
+	for (size_t i = first; i < parser->object_workspace_current; i += 2)
 	  {
 	    hash_hash_t hash;
 	    Lisp_Object key = parser->object_workspace[i];
@@ -1717,8 +1696,7 @@ json_parse_value (struct json_parser *parser, int c)
       json_byte_workspace_reset (parser);
       json_parse_string (parser);
       Lisp_Object result
-	= make_string_from_utf8 ((const char *)
-				 parser->byte_workspace,
+	= make_string_from_utf8 ((const char *) parser->byte_workspace,
 				 (parser->byte_workspace_current
 				  - parser->byte_workspace));
       return result;
@@ -1788,15 +1766,13 @@ json_parse (struct json_parser *parser,
       break;
     case PARSEENDBEHAVIOR_MovePoint:
       {
-	ptrdiff_t byte
-	  = (PT_BYTE + parser->input_current - parser->input_begin
-	     + parser->additional_bytes_count);
+	ptrdiff_t byte = (PT_BYTE + parser->input_current - parser->input_begin
+			  + parser->additional_bytes_count);
 	ptrdiff_t position;
 	if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	  position = byte;
 	else
-	  position
-	    = PT + parser->point_of_current_line + parser->current_column;
+	  position = PT + parser->point_of_current_line + parser->current_column;
 
 	SET_PT_BOTH (position, byte);
 	break;
@@ -1846,10 +1822,8 @@ usage: (json-parse-string STRING &rest ARGS) */)
   json_parse_args (nargs - 1, args + 1, &conf, true);
 
   struct json_parser p;
-  const unsigned char *begin
-    = (const unsigned char *) SSDATA (encoded);
-  json_parser_init (&p, conf, begin, begin + SBYTES (encoded), NULL,
-		    NULL);
+  const unsigned char *begin = (const unsigned char *) SSDATA (encoded);
+  json_parser_init (&p, conf, begin, begin + SBYTES (encoded), NULL, NULL);
   record_unwind_protect_ptr (json_parser_done, &p);
 
   return unbind_to (count,
