@@ -1587,8 +1587,8 @@ preventing the installation of Compat if unnecessary.
 
 +++
 ** New package PEG.
-Emacs now includes a library for writing (P)arsing (E)xpression
-(G)rammars, an approach to text parsing that provides more structure
+Emacs now includes a library for writing Parsing Expression
+Grammars (PEG), an approach to text parsing that provides more structure
 than regular expressions, but less complexity than context-free
 grammars.  The Info manual "(elisp) Parsing Expression Grammars" has
 documentation and examples.
