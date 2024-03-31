@@ -16,4 +16,82 @@ public class Foo {
         }  // [2]
     }
 }
+
+public class Foo {
+    void Bar () {
+        var x = new X();
+        for (;;) {
+            x();
+        }  // [2]
+    }
+}
+
+public class Foo {
+    void Bar () {
+        var x = new X()
+        {
+            var b = 3;
+        };
+        for (;;) {
+            x();
+        }  // [2]
+    }
+}
+
+public class Foo {
+    void Bar () {
+        var x = new X()              // Hello
+        {
+            var b = 3;
+        };
+        for (;;) {
+            x();
+        }  // [2]
+    }
+}
+
+public class Foo {
+    void Bar () {
+        var x = new X()              // Hello ;
+        {
+            var b = 3;
+        };
+        for (;;) {
+            x();
+        }  // [2]
+    }
+}
+
+public class Foo {
+    void Bar () {
+        var x = new X                // Hello ;
+        {
+            var b = 3;
+        };
+        for (;;) {
+            x();
+        }  // [2]
+    }
+}
+
+public class Foo {
+    void Bar () {
+        var x = new X();             // Hello ;
+        for (;;) {
+            x();
+        }  // [2]
+    }
+}
+
+public class Foo
+{
+    void Bar ()
+    {
+        var x = new X();             // Hello ;
+        for (;;)
+        {
+            x();
+        }  // [2]
+    }
+}
 =-=-=
