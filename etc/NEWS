@@ -2326,6 +2326,10 @@ this case, would mean repeating the object in the argument list.)  When
 replacing an object with a different one, passing both the new and old
 objects is still necessary.
 
+---
+** The JSON encoder and decoder now accept arbitarily large integers.
+Previously, they were limited to the range of signed 64-bit integers.
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 
