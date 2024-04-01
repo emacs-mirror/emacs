@@ -1118,9 +1118,10 @@ json_parse_string (struct json_parser *parser, bool intern, bool leading_colon)
 	  ptrdiff_t nbytes
 	    = parser->byte_workspace_current - parser->byte_workspace;
 	  ptrdiff_t nchars = nbytes - chars_delta;
-	  const char *str = (const char *)parser->byte_workspace;
-	  return intern ? intern_c_multibyte (str, nchars, nbytes)
-	                : make_multibyte_string (str, nchars, nbytes);
+	  const char *str = (const char *) parser->byte_workspace;
+	  return (intern
+		  ? intern_c_multibyte (str, nchars, nbytes)
+		  : make_multibyte_string (str, nchars, nbytes));
 	}
 
       if (c & 0x80)
