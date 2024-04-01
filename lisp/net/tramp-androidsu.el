@@ -366,13 +366,19 @@ FUNCTION."
           ;; suitable options for specifying the mount namespace and
           ;; suchlike.
 	  (setq
-	   p (make-process
-	      :name name :buffer buffer
-	      :command (if (tramp-get-connection-property v "remote-namespace")
-                           (append (list "su" "-mm" "-" user "-c") command)
-                         (append (list "su" "-" user "-c") command))
-	      :coding coding :noquery noquery :connection-type connection-type
-	      :sentinel sentinel :stderr stderr))
+	   p (let ((android-use-exec-loader nil))
+               (make-process
+	        :name name
+                :buffer buffer
+	        :command
+                (if (tramp-get-connection-property v "remote-namespace")
+                    (append (list "su" "-mm" "-" user "-c") command)
+                  (append (list "su" "-" user "-c") command))
+	        :coding coding
+                :noquery noquery
+                :connection-type connection-type
+	        :sentinel sentinel
+                :stderr stderr)))
 	  ;; Set filter.  Prior Emacs 29.1, it doesn't work reliably
 	  ;; to provide it as `make-process' argument when filter is
 	  ;; t.  See Bug#51177.
