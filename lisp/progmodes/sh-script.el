@@ -3194,12 +3194,6 @@ shell command and conveniently use this command."
 
 (defvar-local sh--shellcheck-process nil)
 
-(defalias 'sh--json-read
-  (if (fboundp 'json-parse-buffer)
-      (lambda () (json-parse-buffer :object-type 'alist))
-    (require 'json)
-    'json-read))
-
 (defun sh-shellcheck-flymake (report-fn &rest _args)
   "Flymake backend using the shellcheck program.
 Takes a Flymake callback REPORT-FN as argument, as expected of a
@@ -3223,7 +3217,7 @@ member of `flymake-diagnostic-functions'."
                     (with-current-buffer (process-buffer proc)
                       (goto-char (point-min))
                       (thread-last
-                        (sh--json-read)
+                        (json-parse-buffer :object-type 'alist)
                         (alist-get 'comments)
                         (seq-filter
                          (lambda (item)

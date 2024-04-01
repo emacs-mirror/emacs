@@ -40,31 +40,34 @@
 (require 'pcase)
 
 (defconst ert-font-lock--face-symbol-re
-  (rx (one-or-more (or alphanumeric "-" "_" ".")))
-  "A face symbol matching regex.")
+  (rx (+ (or alphanumeric "-" "_" "." "/")))
+  "A face symbol matching regex.
+The regexp cannot use character classes as these can be redefined by the
+major mode of the host language.")
 
 (defconst ert-font-lock--face-symbol-list-re
   (rx "("
       (* whitespace)
-      (one-or-more
-       (seq (regexp ert-font-lock--face-symbol-re)
-            (* whitespace)))
+      (? (regexp ert-font-lock--face-symbol-re))
+      (* (+ whitespace)
+         (regexp ert-font-lock--face-symbol-re))
+      (* whitespace)
       ")")
   "A face symbol list matching regex.")
 
 (defconst ert-font-lock--assertion-line-re
   (rx
    ;; leading column assertion (arrow/caret)
-   (group (or "^" "<-"))
-   (zero-or-more whitespace)
+   (group-n 1 (or "^" "<-"))
+   (* whitespace)
    ;; possible to have many carets on an assertion line
-   (group (zero-or-more (seq "^" (zero-or-more whitespace))))
+   (group-n 2 (* "^" (* whitespace)))
    ;; optional negation of the face specification
-   (group (optional "!"))
-   (zero-or-more whitespace)
+   (group-n 3 (optional "!"))
+   (* whitespace)
    ;; face symbol name or a list of symbols
-   (group (or (regexp ert-font-lock--face-symbol-re)
-              (regexp ert-font-lock--face-symbol-list-re))))
+   (group-n 4 (or (regexp ert-font-lock--face-symbol-re)
+                  (regexp ert-font-lock--face-symbol-list-re))))
   "An ert-font-lock assertion line regex.")
 
 (defun ert-font-lock--validate-major-mode (mode)

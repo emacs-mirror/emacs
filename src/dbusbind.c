@@ -1689,6 +1689,22 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 		   bus, build_string (interface), build_string (member));
       value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
 
+      /* A signal could be registered with a nil interface or member.  */
+      if (mtype == DBUS_MESSAGE_TYPE_SIGNAL)
+	{
+	  key = list4 (QCsignal, bus, Qnil, build_string (member));
+	  value = CALLN (Fappend, value,
+			 Fgethash (key, Vdbus_registered_objects_table, Qnil));
+
+	  key = list4 (QCsignal, bus, build_string (interface), Qnil);
+	  value = CALLN (Fappend, value,
+			 Fgethash (key, Vdbus_registered_objects_table, Qnil));
+
+	  key = list4 (QCsignal, bus, Qnil, Qnil);
+	  value = CALLN (Fappend, value,
+			 Fgethash (key, Vdbus_registered_objects_table, Qnil));
+	}
+
       /* Loop over the registered functions.  Construct an event.  */
       for (; !NILP (value); value = CDR_SAFE (value))
 	{
