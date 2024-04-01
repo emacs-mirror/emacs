@@ -1599,8 +1599,7 @@ json_parse_object (struct json_parser *parser)
     case json_object_hashtable:
       {
 	EMACS_INT value = (parser->object_workspace_current - first) / 2;
-	result = CALLN (Fmake_hash_table, QCtest, Qequal, QCsize,
-			make_fixed_natnum (value));
+	result = make_hash_table (&hashtest_equal, value, Weak_None, false);
 	struct Lisp_Hash_Table *h = XHASH_TABLE (result);
 	for (size_t i = first; i < parser->object_workspace_current; i += 2)
 	  {
