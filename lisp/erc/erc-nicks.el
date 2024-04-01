@@ -59,7 +59,7 @@
 ;; 2008/12 - erc-highlight-nicknames.el
 ;;           First release from Andy Stewart
 ;; 2007/09 - erc-highlight-nicknames.el
-;;           Initial release by by André Riemann
+;;           Initial release by André Riemann
 
 ;; [1] <https://www.github.com/leathekd/erc-hl-nicks>
 ;; [2] <https://www.emacswiki.org/emacs/ErcHighlightNicknames>
