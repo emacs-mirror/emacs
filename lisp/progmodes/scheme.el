@@ -50,6 +50,7 @@
 ;;; Code:
 
 (require 'lisp-mode)
+(eval-when-compile 'subr-x)             ;For `named-let'.
 
 (defvar scheme-mode-syntax-table
   (let ((st (make-syntax-table))
@@ -426,18 +427,40 @@ See `run-hooks'."
    (point) end))
 
 (defun scheme-syntax-propertize-sexp-comment (end)
-  (let ((state (syntax-ppss)))
+  (let ((state (syntax-ppss))
+        (checked (point)))
     (when (eq 2 (nth 7 state))
       ;; It's a sexp-comment.  Tell parse-partial-sexp where it ends.
-      (condition-case nil
-          (progn
-            (goto-char (+ 2 (nth 8 state)))
-            ;; FIXME: this doesn't handle the case where the sexp
-            ;; itself contains a #; comment.
-            (forward-sexp 1)
-            (put-text-property (1- (point)) (point)
-                               'syntax-table (string-to-syntax "> cn")))
-        (scan-error (goto-char end))))))
+      (named-let loop ((startpos (+ 2 (nth 8 state))))
+        (let ((found nil))
+          (while
+              (progn
+                (setq found nil)
+                (condition-case nil
+                    (progn
+                      (goto-char startpos)
+                      (forward-sexp 1)
+                      (setq found (point)))
+                  (scan-error (goto-char end)))
+                ;; If there's a nested `#;', the syntax-tables will normally
+                ;; consider the `;' to start a normal comment, so the
+                ;; (forward-sexp 1) above may have landed at the wrong place.
+                ;; So look for `#;' in the text over which we jumped, and
+                ;; mark those we found as nested sexp-comments.
+                (let ((limit (or found end)))
+                  (when (< checked limit)
+                    (goto-char checked)
+                    (when (re-search-forward "\\(#\\);" limit 'move)
+                      (setq checked (point))
+                      (put-text-property (match-beginning 1) (match-end 1)
+                                         'syntax-table
+                                         (string-to-syntax "< cn"))
+                      (loop (point)))
+                    (< (point) limit)))))
+          (when found
+            (goto-char found)
+            (put-text-property (1- found) found
+                               'syntax-table (string-to-syntax "> cn"))))))))
 
 (defun scheme-syntax-propertize-regexp (end)
   (let* ((state (syntax-ppss))

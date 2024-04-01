@@ -1222,6 +1222,7 @@ interactive Python interpreter specified by 'python-interpreter'.
 
 Scheme mode now handles regular expression literal #/regexp/ that is
 available in some Scheme implementations.
+Also, it should now handle nested sexp-comments.
 
 ** use-package
 
