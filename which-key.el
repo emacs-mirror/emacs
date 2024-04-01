@@ -1170,7 +1170,7 @@ If WIDTH-OR-PERCENTAGE is a whole number, return it unchanged.  Otherwise, it
 should be a percentage (a number between 0 and 1) out of the frame's width.
 More precisely, it should be a percentage out of the frame's root window's
 total width."
-  (if (wholenump width-or-percentage)
+  (if (natnump width-or-percentage)
       width-or-percentage
     (round (* width-or-percentage (window-total-width (frame-root-window))))))
 
@@ -1180,7 +1180,7 @@ If HEIGHT-OR-PERCENTAGE is a whole number, return it unchanged.  Otherwise, it
 should be a percentage (a number between 0 and 1) out of the frame's height.
 More precisely, it should be a percentage out of the frame's root window's
 total height."
-  (if (wholenump height-or-percentage)
+  (if (natnump height-or-percentage)
       height-or-percentage
     (round (* height-or-percentage (window-total-height (frame-root-window))))))
 
