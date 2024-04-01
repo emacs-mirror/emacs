@@ -50,6 +50,34 @@
   (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "1d")))
     (should (equal (erc--read-time-period "foo: ") 86400))))
 
+(ert-deftest erc--format-time-period ()
+  (should (equal (erc--format-time-period 59) "59s"))
+  (should (equal (erc--format-time-period 59.9) "59s"))
+  (should (equal (erc--format-time-period 60) "1m0s"))
+  (should (equal (erc--format-time-period 119) "1m59s"))
+  (should (equal (erc--format-time-period 119.9) "1m59s"))
+  (should (equal (erc--format-time-period 120.9) "2m0s"))
+  (should (equal (erc--format-time-period 3599.9) "59m59s"))
+  (should (equal (erc--format-time-period 3600) "1h0m0s")))
+
+;; This asserts that the first pattern on file matching a supplied
+;; `user' parameter will be removed after confirmation.
+(ert-deftest erc-cmd-UNIGNORE ()
+  ;; XXX these functions mutate `erc-ignore-list' via `delete'.
+  (should (local-variable-if-set-p 'erc-ignore-list))
+  (erc-tests-common-make-server-buf)
+
+  (setq erc-ignore-list (list ".")) ; match anything
+  (ert-simulate-keys (list ?\r)
+    (erc-cmd-IGNORE "abc"))
+  (should (equal erc-ignore-list (list "abc" ".")))
+
+  (cl-letf (((symbol-function 'y-or-n-p) #'always))
+    (erc-cmd-UNIGNORE "abcdef")
+    (should (equal erc-ignore-list (list ".")))
+    (erc-cmd-UNIGNORE "foo"))
+  (should-not erc-ignore-list))
+
 (ert-deftest erc-with-all-buffers-of-server ()
   (let (proc-exnet
         proc-onet
