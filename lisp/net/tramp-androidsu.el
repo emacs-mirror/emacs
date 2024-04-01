@@ -63,7 +63,7 @@ may edit files belonging to any and all applications."
   "Directories in which to search for transfer programs and the like."
   :group 'tramp
   :version "30.1"
-  :type '(list string))
+  :type '(repeat string))
 
 (defvar tramp-androidsu-su-mm-supported 'unknown
   "Whether `su -mm' is supported on this system.")
