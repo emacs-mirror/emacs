@@ -1085,7 +1085,7 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
   (declare (indent defun))
   ;; TODO: Make interactive
   (when (not (symbolp mode))
-    (error "MODE should be a symbol corresponding to a value of major-mode"))
+    (error "`%S' should be a symbol corresponding to a value of major-mode" mode))
   (let ((mode-alist
          (or (cdr-safe (assq mode which-key-replacement-alist)) (list)))
         (title-mode-alist
