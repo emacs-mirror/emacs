@@ -6730,7 +6730,8 @@ android_root_closedir (struct android_vdir *vdir)
 
   if (dir->directory)
     closedir (dir->directory);
-  else if (root_fd_references--)
+
+  if (root_fd_references--)
     ;
   else
     {
@@ -6745,13 +6746,7 @@ android_root_closedir (struct android_vdir *vdir)
 static int
 android_root_dirfd (struct android_vdir *vdir)
 {
-  struct android_unix_vdir *dir;
-
-  dir = (struct android_unix_vdir *) vdir;
-
-  if (dir->directory)
-    return dirfd (dir->directory);
-
+  eassert (root_fd != -1);
   return root_fd;
 }
 
@@ -6778,13 +6773,13 @@ android_root_opendir (struct android_vnode *vnode)
   dir->directory = directory;
   dir->index = 0;
 
-  if (!directory)
-    {
-      /* Allocate a temporary file descriptor for this ersatz root.  */
-      if (root_fd < 0)
-	root_fd = open ("/dev/null", O_RDONLY | O_CLOEXEC);
-      root_fd_references++;
-    }
+  /* Allocate a temporary file descriptor for this ersatz root.  This is
+     required regardless of the value of DIRECTORY, as android_fstatat
+     and co. will not defer to the VFS layer if a directory file
+     descriptor is not known to be special.  */
+  if (root_fd < 0)
+    root_fd = open ("/dev/null", O_RDONLY | O_CLOEXEC);
+  root_fd_references++;
 
   return &dir->vdir;
 }
