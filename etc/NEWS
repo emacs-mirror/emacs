@@ -1721,8 +1721,16 @@ Use a float value for the first argument instead.
 Instead, use 'eshell-process-wait-time', which supports floating-point
 values.
 
+** JSON
+
 ---
-** The JSON parser sometimes signals different types of errors.
+*** The parser keeps duplicated object keys in alist and plist output.
+A JSON object such as '{"a":1,"a":2}' will now be translated into the
+Lisp values '((a . 1) (a . 2))' or '(:a 1 :a 2)' if alist or plist
+object types are requested.
+
+---
+*** The parser sometimes signals different types of errors.
 It will now signal 'json-utf8-decode-error' for inputs that are not
 correctly UTF-8 encoded.
 

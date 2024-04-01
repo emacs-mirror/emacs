@@ -156,9 +156,6 @@
   )
 
 (ert-deftest json-parse-string/object ()
-  :expected-result :failed
-  ;; FIXME: This currently fails. Should the parser deduplicate keys?
-  ;; Never, always, or for alist and plist only?
   (let ((input
          "{ \"abc\" : [1, 2, true], \"def\" : null, \"abc\" : [9, false] }\n"))
     (let ((actual (json-parse-string input)))
@@ -167,9 +164,9 @@
       (should (equal (cl-sort (map-pairs actual) #'string< :key #'car)
                      '(("abc" . [9 :false]) ("def" . :null)))))
     (should (equal (json-parse-string input :object-type 'alist)
-                   '((abc . [9 :false]) (def . :null))))
+                   '((abc . [1 2 t]) (def . :null) (abc . [9 :false]))))
     (should (equal (json-parse-string input :object-type 'plist)
-                   '(:abc [9 :false] :def :null)))))
+                   '(:abc [1 2 t]  :def :null :abc [9 :false])))))
 
 (ert-deftest json-parse-string/object-unicode-keys ()
   (let ((input "{\"é\":1,\"☃\":2,\"𐌐\":3}"))
