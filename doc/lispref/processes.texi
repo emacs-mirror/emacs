@@ -687,7 +687,7 @@ The arguments @var{args} are a list of keyword/argument pairs.
 Omitting a keyword is always equivalent to specifying it with value
 @code{nil}.  Here are the meaningful keywords:
 
-@table @asis
+@table @code
 @item :name @var{name}
 Use the string @var{name} as the process name; if a process with this
 name already exists, then @var{name} is modified (by appending
@@ -817,7 +817,7 @@ Omitting a keyword is always equivalent to specifying it with value
 
 Here are the meaningful keywords:
 
-@table @asis
+@table @code
 @item :name @var{name}
 Use the string @var{name} as the process name.  As with
 @code{make-process}, it is modified if necessary to make it unique.
@@ -2828,7 +2828,7 @@ equivalent to specifying it with value @code{nil}, except for
 are the meaningful keywords (those corresponding to network options
 are listed in the following section):
 
-@table @asis
+@table @code
 @item :name @var{name}
 Use the string @var{name} as the process name.  It is modified if
 necessary to make it unique.
@@ -3017,7 +3017,7 @@ modify these options later, using @code{set-network-process-option}.
 connections, so you will need to set the necessary options for each
 child connection as it is created.
 
-@table @asis
+@table @code
 @item :bindtodevice @var{device-name}
 If @var{device-name} is a non-empty string identifying a network
 interface name (see @code{network-interface-list}), only handle
