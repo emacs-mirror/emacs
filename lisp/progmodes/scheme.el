@@ -387,12 +387,12 @@ See `run-hooks'."
 (defvar scheme-font-lock-keywords scheme-font-lock-keywords-1
   "Default expressions to highlight in Scheme modes.")
 
-(defconst scheme-sexp-comment-syntax-table
-  (let ((st (make-syntax-table scheme-mode-syntax-table)))
-    (modify-syntax-entry ?\; "." st)
-    (modify-syntax-entry ?\n " " st)
-    (modify-syntax-entry ?#  "'" st)
-    st))
+;; (defconst scheme-sexp-comment-syntax-table
+;;   (let ((st (make-syntax-table scheme-mode-syntax-table)))
+;;     (modify-syntax-entry ?\; "." st)
+;;     (modify-syntax-entry ?\n " " st)
+;;     (modify-syntax-entry ?#  "'" st)
+;;     st))
 
 (put 'lambda 'scheme-doc-string-elt 2)
 (put 'lambda* 'scheme-doc-string-elt 2)
@@ -428,6 +428,7 @@ See `run-hooks'."
 
 (defun scheme-syntax-propertize-sexp-comment (end)
   (let ((state (syntax-ppss))
+        ;; (beg (point))
         (checked (point)))
     (when (eq 2 (nth 7 state))
       ;; It's a sexp-comment.  Tell parse-partial-sexp where it ends.
@@ -437,9 +438,11 @@ See `run-hooks'."
               (progn
                 (setq found nil)
                 (condition-case nil
-                    (progn
+                    (save-restriction
+                      (narrow-to-region (point-min) end)
                       (goto-char startpos)
                       (forward-sexp 1)
+                      ;; (cl-assert (> (point) beg))
                       (setq found (point)))
                   (scan-error (goto-char end)))
                 ;; If there's a nested `#;', the syntax-tables will normally
@@ -447,16 +450,22 @@ See `run-hooks'."
                 ;; (forward-sexp 1) above may have landed at the wrong place.
                 ;; So look for `#;' in the text over which we jumped, and
                 ;; mark those we found as nested sexp-comments.
-                (let ((limit (or found end)))
+                (let ((limit (min end (or found end))))
                   (when (< checked limit)
                     (goto-char checked)
-                    (when (re-search-forward "\\(#\\);" limit 'move)
-                      (setq checked (point))
+                    (while (and (re-search-forward "\\(#\\);" limit 'move)
+                                ;; Skip those #; inside comments and strings.
+                                (nth 8 (save-excursion
+                                         (parse-partial-sexp
+                                          startpos (match-beginning 0))))))
+                    (setq checked (point))
+                    (when (< (point) limit)
                       (put-text-property (match-beginning 1) (match-end 1)
                                          'syntax-table
                                          (string-to-syntax "< cn"))
-                      (loop (point)))
-                    (< (point) limit)))))
+                      (loop (point))
+                      ;; Try the `forward-sexp' with the new text state.
+                      t)))))
           (when found
             (goto-char found)
             (put-text-property (1- found) found
