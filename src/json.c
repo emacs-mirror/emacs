@@ -637,7 +637,8 @@ DEFUN ("json-insert", Fjson_insert, Sjson_insert, 1, MANY,
        doc: /* Insert the JSON representation of OBJECT before point.
 This is the same as (insert (json-serialize OBJECT ...)), but potentially
 faster, and with the difference that Unicode characters are inserted as
-themselves into multibyte buffers, as UTF-8 bytes into unibyte buffers.
+themselves into multibyte buffers, and as UTF-8 byte sequencess into
+unibyte buffers.
 See the function `json-serialize' for allowed values of OBJECT and ARGS.
 usage: (json-insert OBJECT &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
