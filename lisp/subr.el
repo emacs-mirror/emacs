@@ -7475,6 +7475,9 @@ CONDITION is either:
   * `major-mode': the buffer matches if the buffer's major mode
     is eq to the cons-cell's cdr.  Prefer using `derived-mode'
     instead when both can work.
+  * `category': the buffer matches a category as a symbol if
+    the caller of `display-buffer' provides `(category . symbol)'
+    in its action argument.
   * `not': the cadr is interpreted as a negation of a condition.
   * `and': the cdr is a list of recursive conditions, that all have
     to be met.
@@ -7503,6 +7506,8 @@ CONDITION is either:
                               (push condition buffer-match-p--past-warnings))
                             (apply condition buffer-or-name
                                    (if args nil '(nil)))))))
+                      (`(category . ,category)
+                       (eq (alist-get 'category (cdar args)) category))
                       (`(major-mode . ,mode)
                        (eq
                         (buffer-local-value 'major-mode buffer)

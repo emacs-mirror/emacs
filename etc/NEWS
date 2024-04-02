@@ -291,6 +291,14 @@ right-aligned to is controlled by the new user option
 
 ** Windows
 
++++
+*** New action alist entry 'category' for 'display-buffer'.
+If the caller of 'display-buffer' passes '(category . symbol)'
+in its 'action' argument, you can match the displayed buffer
+by adding '(category . symbol)' to the condition part of
+'display-buffer-alist' entries.
+
++++
 *** New action alist entry 'post-command-select-window' for 'display-buffer'.
 It specifies whether the window of the displayed buffer should be
 selected or deselected at the end of executing the current command.

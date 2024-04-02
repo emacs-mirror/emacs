@@ -2638,6 +2638,29 @@ use @code{derived-mode} or @code{major-mode} as condition,
 @code{buffer-match-p} could fail to report a match if
 @code{display-buffer} is called before the major mode of the buffer is
 set.
+
+If the caller of @code{display-buffer} passes a category as a symbol
+in its @var{action} argument, then you can use the same category in
+@code{display-buffer-alist} to match buffers with different names,
+for example:
+
+@example
+@group
+(setopt
+ display-buffer-alist
+ (cons '((category . comint) (display-buffer-same-window))
+        display-buffer-alist))
+
+(display-buffer (get-buffer-create "*my-shell*")
+		'(nil (category . comint)))
+@end group
+@end example
+
+Regardless of the displayed buffer's name the caller defines a category
+as a symbol @code{comint}.  Then @code{display-buffer-alist} matches
+this category for all buffers displayed with the same category.
+This avoids the need to construct a complex regular expression
+that matches a buffer name.
 @end defopt
 
 @defopt display-buffer-base-action
@@ -3354,6 +3377,13 @@ If the value is @code{nil}, the buffer selected by such functions as
 @code{pop-to-buffer} is deselected, and the window that was selected
 before calling this function will remain selected regardless of which
 windows were selected afterwards within this command.
+
+@vindex category@r{, a buffer display action alist entry}
+@item category
+If the caller of @code{display-buffer} passes an alist entry
+@code{(category . symbol)} in its @var{action} argument, then you can
+match the displayed buffer by using the same category in the condition
+part of @code{display-buffer-alist} entries.
 @end table
 
 By convention, the entries @code{window-height}, @code{window-width}

@@ -7856,6 +7856,10 @@ Action alist entries are:
     window that was selected before calling this function will remain
     selected regardless of which windows were selected afterwards within
     this command.
+ `category' -- If the caller of `display-buffer' passes an alist entry
+   `(category . symbol)' in its action argument, then you can match
+   the displayed buffer by using the same category in the condition
+   part of `display-buffer-alist' entries.
 
 The entries `window-height', `window-width', `window-size' and
 `preserve-size' are applied only when the window used for
