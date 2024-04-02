@@ -2234,7 +2234,8 @@ See also `emacs-lisp-byte-compile-and-load'."
         (setq buffer-read-only nil
               filename buffer-file-name))
       ;; Don't inherit lexical-binding from caller (bug#12938).
-      (unless (local-variable-p 'lexical-binding)
+      (unless (or (local-variable-p 'lexical-binding)
+                  (null lexical-binding))
         (let ((byte-compile-current-buffer (current-buffer)))
           (displaying-byte-compile-warnings
            (byte-compile-warn-x
