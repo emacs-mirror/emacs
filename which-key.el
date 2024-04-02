@@ -1366,7 +1366,7 @@ Dimension functions should return the maximum possible (height
 . width) of the intended popup. SELECTED-WINDOW-WIDTH is the
 width of currently active window, not the which-key buffer
 window."
-  (cl-case which-key-popup-type
+  (cl-ecase which-key-popup-type
     (minibuffer (which-key--minibuffer-max-dimensions))
     (side-window (which-key--side-window-max-dimensions))
     (frame (which-key--frame-max-dimensions))
