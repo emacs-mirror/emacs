@@ -1362,7 +1362,7 @@ call signature in different emacs versions"
 
 (defun which-key--popup-max-dimensions ()
   "Return maximum dimension available for popup.
-Dimesion functions should return the maximum possible (height
+Dimension functions should return the maximum possible (height
 . width) of the intended popup. SELECTED-WINDOW-WIDTH is the
 width of currently active window, not the which-key buffer
 window."
