@@ -5833,7 +5833,7 @@ keyword @code{false}.  It defaults to the symbol @code{:false}.
 @defun json-insert object &rest args
 This function inserts the JSON representation of @var{object} into the
 current buffer before point.  The argument @var{args} are interpreted
-as in @code{json-parse-string}.
+as in @code{json-serialize}.
 @end defun
 
 @defun json-parse-string string &rest args
