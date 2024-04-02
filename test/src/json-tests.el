@@ -27,28 +27,44 @@
 (require 'map)
 (require 'subr-x)
 
-(declare-function json-serialize "json.c" (object &rest args))
-(declare-function json-insert "json.c" (object &rest args))
-(declare-function json-parse-string "json.c" (string &rest args))
-(declare-function json-parse-buffer "json.c" (&rest args))
-
 (define-error 'json-tests--error "JSON test error")
 
 (ert-deftest json-serialize/roundtrip ()
   ;; The noncharacter U+FFFF should be passed through,
   ;; cf. https://www.unicode.org/faq/private_use.html#noncharacters.
-  (let ((lisp [:null :false t 0 123 -456 3.75 "abc\uFFFFαβγ𝔸𝐁𝖢\"\\"])
-        (json "[null,false,true,0,123,-456,3.75,\"abc\uFFFFαβγ𝔸𝐁𝖢\\\"\\\\\"]"))
-    (should (equal (json-serialize lisp) json))
+  (let* ((lisp [:null :false t 0 123 -456 3.75 "abc\uFFFFαβγ𝔸𝐁𝖢\"\\"])
+         (json
+          "[null,false,true,0,123,-456,3.75,\"abc\uFFFFαβγ𝔸𝐁𝖢\\\"\\\\\"]")
+         (json-bytes (encode-coding-string json 'utf-8)))
+    (should (equal (json-serialize lisp) json))  ; or `json-bytes'?
     (with-temp-buffer
+      ;; multibyte buffer
       (json-insert lisp)
       (should (equal (buffer-string) json))
+      (should (equal (point) (1+ (length json))))
+      (should (eobp)))
+    (with-temp-buffer
+      ;; unibyte buffer
+      (set-buffer-multibyte nil)
+      (json-insert lisp)
+      (should (equal (buffer-string) json-bytes))
+      (should (equal (point) (1+ (length json-bytes))))
       (should (eobp)))
     (should (equal (json-parse-string json) lisp))
     (with-temp-buffer
+      ;; multibyte buffer
       (insert json)
       (goto-char 1)
       (should (equal (json-parse-buffer) lisp))
+      (should (equal (point) (1+ (length json))))
+      (should (eobp)))
+    (with-temp-buffer
+      ;; unibyte buffer
+      (set-buffer-multibyte nil)
+      (insert json-bytes)
+      (goto-char 1)
+      (should (equal (json-parse-buffer) lisp))
+      (should (equal (point) (1+ (length json-bytes))))
       (should (eobp)))))
 
 (ert-deftest json-serialize/roundtrip-scalars ()
@@ -71,9 +87,20 @@
           (json-insert lisp)
           (should (equal (buffer-string) json))
           (should (eobp)))
+        (with-temp-buffer
+          (set-buffer-multibyte nil)
+          (json-insert lisp)
+          (should (equal (buffer-string) (encode-coding-string json 'utf-8)))
+          (should (eobp)))
         (should (equal (json-parse-string json) lisp))
         (with-temp-buffer
           (insert json)
+          (goto-char 1)
+          (should (equal (json-parse-buffer) lisp))
+          (should (eobp)))
+        (with-temp-buffer
+          (set-buffer-multibyte nil)
+          (insert (encode-coding-string json 'utf-8))
           (goto-char 1)
           (should (equal (json-parse-buffer) lisp))
           (should (eobp)))))))
