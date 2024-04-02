@@ -10838,6 +10838,78 @@ displaying that processes's buffer."
                 (set-process-window-size process (cdr size) (car size))))))))))
 
 (add-hook 'window-configuration-change-hook 'window--adjust-process-windows)
+
+
+;;; Window point context
+
+(defun window-point-context-set ()
+  "Set context near the window point.
+Call function specified by `window-point-context-set-function' for every
+live window on the selected frame with that window as sole argument.
+The function called is supposed to return a context of the window's point
+that can be later used as argument for `window-point-context-use-function'.
+Remember the returned context in the window parameter `context'."
+  (walk-windows
+   (lambda (w)
+     (when-let ((fn (buffer-local-value 'window-point-context-set-function
+                                        (window-buffer w)))
+                ((functionp fn))
+                (context (funcall fn w)))
+       (set-window-parameter w 'context (cons (buffer-name) context))))
+   'nomini))
+
+(defun window-point-context-use ()
+  "Use context to relocate the window point.
+Call function specified by `window-point-context-use-function' to move the
+window point according to the previously saved context.  For every live
+window on the selected frame this function is called with two arguments:
+the window and the context data structure saved by
+`window-point-context-set-function' in the window parameter `context'.
+The function called is supposed to set the window point to the location
+found by the provided context."
+  (walk-windows
+   (lambda (w)
+     (when-let ((fn (buffer-local-value 'window-point-context-use-function
+                                        (window-buffer w)))
+                ((functionp fn))
+                (context (window-parameter w 'context))
+                ((equal (buffer-name) (car context))))
+       (funcall fn w (cdr context))
+       (set-window-parameter w 'context nil)))
+   'nomini))
+
+(add-to-list 'window-persistent-parameters '(context . writable))
+
+(defun window-point-context-set-default-function (w)
+  "Set context of file buffers to the front and rear strings."
+  (with-current-buffer (window-buffer w)
+    (when buffer-file-name
+      (let ((point (window-point w)))
+        `((front-context-string
+           . ,(buffer-substring-no-properties
+               point (min (+ point 16) (point-max))))
+          (rear-context-string
+           . ,(buffer-substring-no-properties
+               point (max (- point 16) (point-min)))))))))
+
+(defun window-point-context-use-default-function (w context)
+  "Restore context of file buffers by the front and rear strings."
+  (with-current-buffer (window-buffer w)
+    (let ((point (window-point w)))
+      (save-excursion
+        (goto-char point)
+        (when-let ((f (alist-get 'front-context-string context))
+                   ((search-forward f (point-max) t)))
+          (goto-char (match-beginning 0))
+          (when-let ((r (alist-get 'rear-context-string context))
+                     ((search-backward r (point-min) t)))
+            (goto-char (match-end 0))
+            (setq point (point)))))
+      (set-window-point w point))))
+
+(defvar window-point-context-set-function 'window-point-context-set-default-function)
+(defvar window-point-context-use-function 'window-point-context-use-default-function)
+
 
 ;; Some of these are in tutorial--default-keys, so update that if you
 ;; change these.

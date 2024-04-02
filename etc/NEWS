@@ -309,7 +309,23 @@ It specifies how 'set-window-configuration' and 'window-state-put'
 should proceed with windows whose buffer was killed after the
 corresponding configuration or state was recorded.
 
+*** New variable 'window-point-context-set-function'.
+It can be used to set a context for window point in all windows by
+'window-point-context-set' before calling 'current-window-configuration'
+and 'window-state-get'.  Then later another new variable
+'window-point-context-use-function' can be used by
+'window-point-context-use' after 'set-window-configuration' and
+'window-state-put' to restore positions of window points
+according to the context stored in a window parameter.
+
 ** Tab Bars and Tab Lines
+
+---
+*** New user option 'tab-bar-select-restore-context'.
+It uses 'window-point-context-set' to save contexts where
+window points were located before switching away from the tab,
+and 'window-point-context-use' to restore positions of window
+points after switching back to that tab.
 
 ---
 *** New user option 'tab-bar-select-restore-windows'.

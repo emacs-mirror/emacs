@@ -1292,6 +1292,9 @@ tab bar might wrap to the second line when it shouldn't.")
                                            frame 'buffer-list)))
          (bbl (seq-filter #'buffer-live-p (frame-parameter
                                            frame 'buried-buffer-list))))
+    (when tab-bar-select-restore-context
+      (window-point-context-set))
+
     `(tab
       (name . ,(if tab-explicit-name
                    (alist-get 'name tab)
@@ -1442,6 +1445,16 @@ if it was visiting a file."
           (setq buffer-read-only t)
           (set-window-buffer window new-buffer))))))
 
+(defcustom tab-bar-select-restore-context t
+  "If this is non-nil, try to restore window points from their contexts.
+This will try to find the same position in every window where point was
+before switching away from this tab.  After selecting this tab,
+point in every window will be moved to its previous position
+in the buffer even when the buffer was modified."
+  :type 'boolean
+  :group 'tab-bar
+  :version "30.1")
+
 (defvar tab-bar-minibuffer-restore-tab nil
   "Tab number for `tab-bar-minibuffer-restore-tab'.")
 
@@ -1538,6 +1551,9 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
           (when (window-minibuffer-p)
             (select-window (get-mru-window)))
           (window-state-put ws nil 'safe)))
+
+        (when tab-bar-select-restore-context
+          (window-point-context-use))
 
         ;; Select the minibuffer when it was active before switching tabs
         (when (and minibuffer-was-active (active-minibuffer-window))
