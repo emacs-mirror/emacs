@@ -1348,12 +1348,14 @@ byte-compiled.  Run with dynamic binding."
               (string-search
                "file has no `lexical-binding' directive on its first line"
                (bytecomp-tests--log-from-compilation source))))
-    (let ((some-code "(defun my-fun () 12)\n"))
-      (should-not (cookie-warning
-                   (concat ";;; -*-lexical-binding:t-*-\n" some-code)))
-      (should-not (cookie-warning
-                   (concat ";;; -*-lexical-binding:nil-*-\n" some-code)))
-      (should (cookie-warning some-code)))))
+    (dolist (lb '(t nil))
+      (let ((lexical-binding lb)
+            (some-code "(defun my-fun () 12)\n"))
+        (should-not (cookie-warning
+                     (concat ";;; -*-lexical-binding:t-*-\n" some-code)))
+        (should-not (cookie-warning
+                     (concat ";;; -*-lexical-binding:nil-*-\n" some-code)))
+        (should (cookie-warning some-code))))))
 
 (ert-deftest bytecomp-tests--unescaped-char-literals ()
   "Check that byte compiling warns about unescaped character
