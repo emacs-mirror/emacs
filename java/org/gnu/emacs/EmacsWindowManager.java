@@ -246,8 +246,8 @@ public final class EmacsWindowManager
 	consumer.destroy ();
       }
 
-    pruneWindows ();
     windows.remove (window);
+    pruneWindows ();
   }
 
   public void
