@@ -866,14 +866,16 @@ by the window manager surpasses a specific threshold, and window
 deletion by this mechanism is indistinguishable from window deletion by
 the user.  Emacs begins to ignore window deletion after two hours less
 than the default value of this threshold both to err on the side of
-caution, in case the system's record of inactivity and Emacs's differ,
+caution, in case the system's record of inactivity and Emacs's disagree,
 and for the reason that this threshold is open to customization by OS
 distributors.
 
 @item
-When the user or the system closes any window created by Emacs on
-behalf of a specific frame, Emacs deletes the frame displayed within
-that window.
+When the user or the system closes any window created by Emacs on behalf
+of a specific frame, Emacs deletes the frame displayed within that
+window, unless the system is Android 10.0 or later, where such windows
+are treated identically to the window created at startup, albeit with no
+proviso regarding window inactivity.
 @end itemize
 
   When the system predates Android 5.0, the window manager will not
