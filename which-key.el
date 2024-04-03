@@ -2672,7 +2672,7 @@ KEYMAP is selected interactively by mode in
                           nil "evil operator/motion keys"))
                    (which-key--show-page)))))
       (let ((key (read-key)))
-        (when (member key '(?f ?F ?t ?T ?`))
+        (when (memq key '(?f ?F ?t ?T ?`))
           ;; these keys trigger commands that read the next char manually
           (setq which-key--inhibit-next-operator-popup t))
         (cond ((and which-key-use-C-h-commands (numberp key) (= key help-char))
