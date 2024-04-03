@@ -112,7 +112,7 @@ public final class EmacsWindow extends EmacsHandleObject
   private SparseArray<Coordinate> pointerMap;
 
   /* The window consumer currently attached, if it exists.  */
-  private EmacsWindowAttachmentManager.WindowConsumer attached;
+  private EmacsWindowManager.WindowConsumer attached;
 
   /* The window background scratch GC.  foreground is always the
      window background.  */
@@ -158,6 +158,16 @@ public final class EmacsWindow extends EmacsHandleObject
   /* The position of the last drag and drop event received; both
      values are -1 if no drag and drop operation is under way.  */
   private int dndXPosition, dndYPosition;
+
+  /* Identifier binding this window to the activity created for it, or
+     -1 if the window should be attached to system-created activities
+     (i.e. the activity launched by the system at startup).  Value is
+     meaningless under API level 29 and earlier.  */
+  public long attachmentToken;
+
+  /* Whether this window should be preserved during window pruning,
+     and whether this window has previously been attached to a task.  */
+  public boolean preserve, previouslyAttached;
 
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
@@ -255,12 +265,12 @@ public final class EmacsWindow extends EmacsHandleObject
 	run ()
 	{
 	  ViewManager parent;
-	  EmacsWindowAttachmentManager manager;
+	  EmacsWindowManager manager;
 
 	  if (EmacsActivity.focusedWindow == EmacsWindow.this)
 	    EmacsActivity.focusedWindow = null;
 
-	  manager = EmacsWindowAttachmentManager.MANAGER;
+	  manager = EmacsWindowManager.MANAGER;
 	  view.setVisibility (View.GONE);
 
 	  /* If the window manager is set, use that instead.  */
@@ -281,12 +291,12 @@ public final class EmacsWindow extends EmacsHandleObject
   }
 
   public void
-  setConsumer (EmacsWindowAttachmentManager.WindowConsumer consumer)
+  setConsumer (EmacsWindowManager.WindowConsumer consumer)
   {
     attached = consumer;
   }
 
-  public EmacsWindowAttachmentManager.WindowConsumer
+  public EmacsWindowManager.WindowConsumer
   getAttachedConsumer ()
   {
     return attached;
@@ -420,7 +430,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	    public void
 	    run ()
 	    {
-	      EmacsWindowAttachmentManager manager;
+	      EmacsWindowManager manager;
 	      WindowManager windowManager;
 	      Activity ctx;
 	      Object tem;
@@ -431,7 +441,7 @@ public final class EmacsWindow extends EmacsHandleObject
 
 	      if (!overrideRedirect)
 		{
-		  manager = EmacsWindowAttachmentManager.MANAGER;
+		  manager = EmacsWindowManager.MANAGER;
 
 		  /* If parent is the root window, notice that there are new
 		     children available for interested activities to pick
@@ -527,9 +537,9 @@ public final class EmacsWindow extends EmacsHandleObject
 	public void
 	run ()
 	{
-	  EmacsWindowAttachmentManager manager;
+	  EmacsWindowManager manager;
 
-	  manager = EmacsWindowAttachmentManager.MANAGER;
+	  manager = EmacsWindowManager.MANAGER;
 
 	  view.setVisibility (View.GONE);
 
@@ -809,20 +819,13 @@ public final class EmacsWindow extends EmacsHandleObject
     EmacsActivity.invalidateFocus (gainFocus ? 6 : 5);
   }
 
-  /* Notice that the activity has been detached or destroyed.
-
-     ISFINISHING is set if the activity is not the main activity, or
-     if the activity was not destroyed in response to explicit user
-     action.  */
+  /* Notice that the activity (or its task) has been detached or
+     destroyed by explicit user action.  */
 
   public void
-  onActivityDetached (boolean isFinishing)
+  onActivityDetached ()
   {
-    /* Destroy the associated frame when the activity is detached in
-       response to explicit user action.  */
-
-    if (isFinishing)
-      EmacsNative.sendWindowAction (this.handle, 0);
+    EmacsNative.sendWindowAction (this.handle, 0);
   }
 
 
@@ -1312,12 +1315,16 @@ public final class EmacsWindow extends EmacsHandleObject
 	public void
 	run ()
 	{
-	  EmacsWindowAttachmentManager manager;
+	  EmacsWindowManager manager;
 	  ViewManager parent;
 
 	  /* First, detach this window if necessary.  */
-	  manager = EmacsWindowAttachmentManager.MANAGER;
+	  manager = EmacsWindowManager.MANAGER;
 	  manager.detachWindow (EmacsWindow.this);
+
+	  /* Reset window management state.  */
+	  previouslyAttached = false;
+	  attachmentToken = false;
 
 	  /* Also unparent this view.  */
 
@@ -1858,7 +1865,7 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   recreateActivity ()
   {
-    final EmacsWindowAttachmentManager.WindowConsumer attached;
+    final EmacsWindowManager.WindowConsumer attached;
 
     attached = this.attached;
 

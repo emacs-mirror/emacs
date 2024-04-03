@@ -511,6 +511,8 @@ public final class EmacsView extends ViewGroup
 	&& !EmacsNative.shouldForwardMultimediaButtons ())
       return false;
 
+    Log.d (TAG, "onKeyDown: " + event.toString ());
+
     window.onKeyDown (keyCode, event);
     return true;
   }
@@ -708,12 +710,12 @@ public final class EmacsView extends ViewGroup
     contextMenu = null;
     popupActive = false;
 
-    /* It is not possible to know with 100% certainty which activity
-       is currently displaying the context menu.  Loop through each
-       activity and call `closeContextMenu' instead.  */
+    /* It is not possible to know with 100% certainty which activity is
+       currently displaying the context menu.  Loop over each activity
+       and call `closeContextMenu' instead.  */
 
-    for (EmacsWindowAttachmentManager.WindowConsumer consumer
-	   : EmacsWindowAttachmentManager.MANAGER.consumers)
+    for (EmacsWindowManager.WindowConsumer consumer
+	   : EmacsWindowManager.MANAGER.consumers)
       {
 	if (consumer instanceof EmacsActivity)
 	  ((EmacsActivity) consumer).closeContextMenu ();

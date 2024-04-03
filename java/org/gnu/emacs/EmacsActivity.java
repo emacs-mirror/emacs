@@ -50,7 +50,7 @@ import android.view.WindowInsetsController;
 import android.widget.FrameLayout;
 
 public class EmacsActivity extends Activity
-  implements EmacsWindowAttachmentManager.WindowConsumer,
+  implements EmacsWindowManager.WindowConsumer,
   ViewTreeObserver.OnGlobalLayoutListener
 {
   public static final String TAG = "EmacsActivity";
@@ -218,7 +218,7 @@ public class EmacsActivity extends Activity
   }
 
   @Override
-  public final void
+  public void
   onCreate (Bundle savedInstanceState)
   {
     FrameLayout.LayoutParams params;
@@ -249,7 +249,7 @@ public class EmacsActivity extends Activity
     EmacsService.startEmacsService (this);
 
     /* Add this activity to the list of available activities.  */
-    EmacsWindowAttachmentManager.MANAGER.registerWindowConsumer (this);
+    EmacsWindowManager.MANAGER.registerWindowConsumer (this);
 
     /* Start observing global layout changes between Jelly Bean and Q.
        This is required to restore the fullscreen state whenever the
@@ -326,16 +326,16 @@ public class EmacsActivity extends Activity
   public final void
   onDestroy ()
   {
-    EmacsWindowAttachmentManager manager;
-    boolean isMultitask;
+    EmacsWindowManager manager;
+    boolean isMultitask, reallyFinishing;
 
-    manager = EmacsWindowAttachmentManager.MANAGER;
+    manager = EmacsWindowManager.MANAGER;
 
     /* The activity will die shortly hereafter.  If there is a window
        attached, close it now.  */
     isMultitask = this instanceof EmacsMultitaskActivity;
-    manager.removeWindowConsumer (this, (isMultitask
-					 || isReallyFinishing ()));
+    reallyFinishing = isReallyFinishing ();
+    manager.removeWindowConsumer (this, isMultitask || reallyFinishing);
     focusedActivities.remove (this);
     invalidateFocus (2);
 
@@ -383,7 +383,7 @@ public class EmacsActivity extends Activity
   {
     isPaused = true;
 
-    EmacsWindowAttachmentManager.MANAGER.noticeIconified (this);
+    EmacsWindowManager.MANAGER.noticeIconified (this);
     super.onPause ();
   }
 
@@ -394,7 +394,7 @@ public class EmacsActivity extends Activity
     isPaused = false;
     timeOfLastInteraction = 0;
 
-    EmacsWindowAttachmentManager.MANAGER.noticeDeiconified (this);
+    EmacsWindowManager.MANAGER.noticeDeiconified (this);
     super.onResume ();
   }
 
@@ -538,6 +538,14 @@ public class EmacsActivity extends Activity
 
     EmacsNative.sendNotificationAction (tag, action);
   }
+
+  @Override
+  public long
+  getAttachmentToken ()
+  {
+    return -1; /* This is overridden by EmacsMultitaskActivity.  */
+  }
+
 
 
   @Override

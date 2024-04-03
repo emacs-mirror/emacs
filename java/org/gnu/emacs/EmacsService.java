@@ -494,7 +494,7 @@ public final class EmacsService extends Service
 
     if (window == null)
       /* Just return all the windows without a parent.  */
-      windowList = EmacsWindowAttachmentManager.MANAGER.copyWindows ();
+      windowList = EmacsWindowManager.MANAGER.copyWindows ();
     else
       windowList = window.children;
 
