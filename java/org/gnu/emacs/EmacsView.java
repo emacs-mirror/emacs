@@ -511,8 +511,6 @@ public final class EmacsView extends ViewGroup
 	&& !EmacsNative.shouldForwardMultimediaButtons ())
       return false;
 
-    Log.d (TAG, "onKeyDown: " + event.toString ());
-
     window.onKeyDown (keyCode, event);
     return true;
   }
