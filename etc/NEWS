@@ -1916,6 +1916,11 @@ The new function 'haiku-notifications-notify' provides a subset of the
 capabilities of the 'notifications-notify' function in a manner
 analogous to 'w32-notification-notify'.
 
+** New variable 'haiku-pass-control-tab-to-system'.
+This sets whether Emacs should pass C-TAB on to the system instead of
+handling it, fixing a problem where window switching would not activate
+if an Emacs frame had focus on the Haiku operation system.
+
 +++
 ** New value 'if-regular' for the REPLACE argument to 'insert-file-contents'.
 It results in 'insert-file-contents' erasing the buffer instead of
