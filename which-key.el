@@ -2013,7 +2013,7 @@ that width."
   "Partition LIST into N-sized sublists."
   (let (res)
     (while list
-      (setq res (cons (cl-subseq list 0 (min n (length list))) res)
+      (setq res (cons (take (min n (length list)) list) res)
             list (nthcdr n list)))
     (nreverse res)))
 
