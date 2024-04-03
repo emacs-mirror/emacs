@@ -1415,7 +1415,6 @@ json_parse_array (struct json_parser *parser)
       if (parser->available_depth < 0)
 	json_signal_error (parser, Qjson_object_too_deep);
 
-      size_t number_of_elements = 0;
       Lisp_Object *cdr = &result;
       /* This loop collects the array elements in the object workspace
        */
@@ -1442,8 +1441,6 @@ json_parse_array (struct json_parser *parser)
 	    }
 
 	  c = json_skip_whitespace (parser);
-
-	  number_of_elements++;
 	  if (c == ']')
 	    {
 	      parser->available_depth++;
