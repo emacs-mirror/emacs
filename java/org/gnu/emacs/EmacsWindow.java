@@ -1324,7 +1324,7 @@ public final class EmacsWindow extends EmacsHandleObject
 
 	  /* Reset window management state.  */
 	  previouslyAttached = false;
-	  attachmentToken = false;
+	  attachmentToken = 0;
 
 	  /* Also unparent this view.  */
 
