@@ -853,20 +853,15 @@ Its effect is the same as using the `previous-buffer' command
     (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
         (switch-to-prev-buffer window)
       (with-selected-window (or window (selected-window))
-        (let* ((tabs (seq-filter
-                      (lambda (tab) (or (bufferp tab) (assq 'buffer tab)))
-                      (funcall tab-line-tabs-function)))
-               (pos (seq-position
-                     tabs (current-buffer)
-                     (lambda (tab buffer)
-                       (if (bufferp tab)
-                           (eq buffer tab)
-                         (eq buffer (cdr (assq 'buffer tab)))))))
-               (tab (if pos
-                        (if (and tab-line-switch-cycling (<= pos 0))
-                            (nth (1- (length tabs)) tabs)
-                          (nth (1- pos) tabs))))
-               (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
+        (let* ((buffers (seq-keep
+                         (lambda (tab) (or (and (bufferp tab) tab)
+                                           (alist-get 'buffer tab)))
+                         (funcall tab-line-tabs-function)))
+               (pos (seq-position buffers (current-buffer)))
+               (buffer (when pos
+                         (if (and tab-line-switch-cycling (<= pos 0))
+                             (nth (1- (length buffers)) buffers)
+                           (nth (1- pos) buffers)))))
           (when (bufferp buffer)
             (switch-to-buffer buffer)))))))
 
@@ -879,20 +874,16 @@ Its effect is the same as using the `next-buffer' command
     (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
         (switch-to-next-buffer window)
       (with-selected-window (or window (selected-window))
-        (let* ((tabs (seq-filter
-                      (lambda (tab) (or (bufferp tab) (assq 'buffer tab)))
-                      (funcall tab-line-tabs-function)))
-               (pos (seq-position
-                     tabs (current-buffer)
-                     (lambda (tab buffer)
-                       (if (bufferp tab)
-                           (eq buffer tab)
-                         (eq buffer (cdr (assq 'buffer tab)))))))
-               (tab (if pos
-                        (if (and tab-line-switch-cycling (<= (length tabs) (1+ pos)))
-                            (car tabs)
-                          (nth (1+ pos) tabs))))
-               (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
+        (let* ((buffers (seq-keep
+                         (lambda (tab) (or (and (bufferp tab) tab)
+                                           (alist-get 'buffer tab)))
+                         (funcall tab-line-tabs-function)))
+               (pos (seq-position buffers (current-buffer)))
+               (buffer (when pos
+                         (if (and tab-line-switch-cycling
+                                  (<= (length buffers) (1+ pos)))
+                             (car buffers)
+                           (nth (1+ pos) buffers)))))
           (when (bufferp buffer)
             (switch-to-buffer buffer)))))))
 
