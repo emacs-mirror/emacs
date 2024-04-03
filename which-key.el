@@ -2077,7 +2077,7 @@ should be minimized."
       ;; simple search for a fitting page
       (while (and (> available-lines min-lines)
                   (not found))
-        (setq available-lines (- available-lines 1)
+        (setq available-lines (cl-decf available-lines)
               prev-result result
               result (which-key--list-to-pages
                       keys available-lines available-width)
