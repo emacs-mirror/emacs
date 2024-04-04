@@ -2546,6 +2546,9 @@ Adapt also mode line."
   (when read-passwd-mode
     (read-passwd-toggle-visibility)))
 
+(defvar overriding-text-conversion-style)
+(declare-function set-text-conversion-style "textconv.c")
+
 ;;;###autoload
 (defun read-passwd (prompt &optional confirm default)
   "Read a password, prompting with PROMPT, and return it.
