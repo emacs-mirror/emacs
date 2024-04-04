@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2019-2022  Free Software Foundation, Inc.
 
-;; Author: Andrea Corallo <akrl@sdf.org>
-;; Maintainer: Andrea Corallo <akrl@sdf.org>
+;; Author: Andrea Corallo <acorallo@gnu.org>
+;; Maintainer: Andrea Corallo <acorallo@gnu.org>
 ;; Version: 1.14
 ;; Keywords: languages, lisp
 ;; Package-Type: multi
