@@ -27,6 +27,13 @@ Steps to take before starting on the first pretest in any release sequence:
     file against the previously released Emacs version to see what has
     changed.
 
+5. If this is an emergency release without a prior pretest, inform the
+   maintainers of the bundled packages which are developed separately
+   to make sure they install adjustments required for an official
+   release.  Currently, these packages include:
+
+    . Tramp
+
 General steps (for each step, check for possible errors):
 
 1.    git pull     # fetch from the repository
