@@ -834,13 +834,15 @@ it substitutes whatever key is currently bound to @code{forward-char}.
 user has moved key bindings.)  @xref{Keys in Documentation}.
 
 @item
-In documentation strings for a major mode, you will want to refer to the
-key bindings of that mode's local map, rather than global ones.
+In documentation strings for a major mode, you will want to refer to
+the key bindings of that mode's local map, rather than global ones.
 Therefore, use the construct @samp{\\<@dots{}>} once in the
 documentation string to specify which key map to use.  Do this before
-the first use of @samp{\\[@dots{}]}.  The text inside the
-@samp{\\<@dots{}>} should be the name of the variable containing the
-local keymap for the major mode.
+the first use of @samp{\\[@dots{}]}, and not in the middle of a
+sentence (since if the map is not loaded, the reference to the map
+will be replaced with a sentence saying the map is not currently
+defined).  The text inside the @samp{\\<@dots{}>} should be the name
+of the variable containing the local keymap for the major mode.
 
 Each use of @samp{\\[@dots{}]} slows the display of the documentation
 string by a tiny amount.  If you use a lot of them, these tiny
