@@ -238,15 +238,19 @@ public final class EmacsWindowManager
   {
     WindowConsumer consumer;
 
-    if (window.getAttachedConsumer () != null)
-      {
-	consumer = window.getAttachedConsumer ();
+    /* Reset window management state.  */
+    window.previouslyAttached = false;
+    window.attachmentToken = 0;
 
+    /* Remove WINDOW from the list of active windows.  */
+    windows.remove (window);
+
+    if ((consumer = window.getAttachedConsumer ()) != null)
+      {
 	consumers.remove (consumer);
 	consumer.destroy ();
       }
 
-    windows.remove (window);
     pruneWindows ();
   }
 

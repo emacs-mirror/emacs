@@ -1322,10 +1322,6 @@ public final class EmacsWindow extends EmacsHandleObject
 	  manager = EmacsWindowManager.MANAGER;
 	  manager.detachWindow (EmacsWindow.this);
 
-	  /* Reset window management state.  */
-	  previouslyAttached = false;
-	  attachmentToken = 0;
-
 	  /* Also unparent this view.  */
 
 	  /* If the window manager is set, use that instead.  */

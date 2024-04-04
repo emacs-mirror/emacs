@@ -207,6 +207,18 @@ public class EmacsActivity extends Activity
   public final void
   destroy ()
   {
+    if (window != null)
+      {
+	/* Clear the window's pointer to this activity and remove the
+	   window's view.  */
+	window.setConsumer (null);
+
+	/* The window can't be iconified any longer.  */
+	window.noticeDeiconified ();
+	layout.removeView (window.view);
+	window = null;
+      }
+
     finish ();
   }
 
