@@ -10863,86 +10863,6 @@ and setting it to nil."
     (setq buffer-invisibility-spec nil)))
 
 
-(defvar read-passwd--mode-line-buffer nil
-  "Buffer to modify `mode-line-format' for showing/hiding passwords.")
-
-(defvar read-passwd--mode-line-icon nil
-  "Propertized mode line icon for showing/hiding passwords.")
-
-(defun read-passwd-toggle-visibility ()
-  "Toggle minibuffer contents visibility.
-Adapt also mode line."
-  (interactive)
-  (setq read-passwd--hide-password (not read-passwd--hide-password))
-  (with-current-buffer read-passwd--mode-line-buffer
-    (setq read-passwd--mode-line-icon
-          `(:propertize
-            ,(if icon-preference
-                 (icon-string
-                  (if read-passwd--hide-password
-                      'read-passwd--show-password-icon
-                    'read-passwd--hide-password-icon))
-               "")
-            mouse-face mode-line-highlight
-            local-map
-            (keymap
-             (mode-line keymap (mouse-1 . read-passwd-toggle-visibility)))))
-    (force-mode-line-update))
-  (read-passwd--hide-password))
-
-(define-minor-mode read-passwd-mode
-  "Toggle visibility of password in minibuffer."
-  :group 'mode-line
-  :group 'minibuffer
-  :keymap read-passwd-map
-  :version "30.1"
-
-  (require 'icons)
-  ;; It would be preferable to use "👁" ("\N{EYE}").  However, there is
-  ;; no corresponding Unicode char with a slash.  So we use symbols as
-  ;; fallback only, with "⦵" ("\N{CIRCLE WITH HORIZONTAL BAR}") for
-  ;; hiding the password.
-  (define-icon read-passwd--show-password-icon nil
-    '((image "reveal.svg" "reveal.pbm" :height (0.8 . em))
-      (symbol "👁")
-      (text "<o>"))
-    "Mode line icon to show a hidden password."
-    :group mode-line-faces
-    :version "30.1"
-    :help-echo "mouse-1: Toggle password visibility")
-  (define-icon read-passwd--hide-password-icon nil
-    '((image "conceal.svg" "conceal.pbm" :height (0.8 . em))
-      (symbol "⦵")
-      (text "<\\>"))
-    "Mode line icon to hide a visible password."
-    :group mode-line-faces
-    :version "30.1"
-    :help-echo "mouse-1: Toggle password visibility")
-
-  (setq read-passwd--hide-password nil
-        ;; Stolen from `eldoc-minibuffer-message'.
-        read-passwd--mode-line-buffer
-        (window-buffer
-         (or (window-in-direction 'above (minibuffer-window))
-	     (minibuffer-selected-window)
-	     (get-largest-window))))
-
-  (if read-passwd-mode
-      (with-current-buffer read-passwd--mode-line-buffer
-        ;; Add `read-passwd--mode-line-icon'.
-        (when (listp mode-line-format)
-          (setq mode-line-format
-                (cons '(:eval read-passwd--mode-line-icon)
-	              mode-line-format))))
-    (with-current-buffer read-passwd--mode-line-buffer
-      ;; Remove `read-passwd--mode-line-icon'.
-      (when (listp mode-line-format)
-        (setq mode-line-format (cdr mode-line-format)))))
-
-  (when read-passwd-mode
-    (read-passwd-toggle-visibility)))
-
-
 (defvar messages-buffer-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map special-mode-map)
