@@ -832,7 +832,8 @@ using the `previous-buffer' command."
         (switch-to-prev-buffer window)))
      (t
       (with-selected-window window
-        (switch-to-buffer buffer))))))
+        (let ((switch-to-buffer-obey-display-actions nil))
+          (switch-to-buffer buffer)))))))
 
 (defcustom tab-line-switch-cycling nil
   "Enable cycling tab switch.
@@ -863,7 +864,8 @@ Its effect is the same as using the `previous-buffer' command
                              (nth (1- (length buffers)) buffers)
                            (nth (1- pos) buffers)))))
           (when (bufferp buffer)
-            (switch-to-buffer buffer)))))))
+            (let ((switch-to-buffer-obey-display-actions nil))
+              (switch-to-buffer buffer))))))))
 
 (defun tab-line-switch-to-next-tab (&optional event)
   "Switch to the next tab's buffer.
@@ -885,7 +887,8 @@ Its effect is the same as using the `next-buffer' command
                              (car buffers)
                            (nth (1+ pos) buffers)))))
           (when (bufferp buffer)
-            (switch-to-buffer buffer)))))))
+            (let ((switch-to-buffer-obey-display-actions nil))
+              (switch-to-buffer buffer))))))))
 
 
 (defcustom tab-line-close-tab-function 'bury-buffer
