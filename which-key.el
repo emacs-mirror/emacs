@@ -2659,7 +2659,7 @@ KEYMAP is selected interactively by mode in
         (let ((formatted-keys
                (which-key--get-bindings
                 nil keymap #'which-key--evil-operator-filter)))
-          (cond ((= (length formatted-keys) 0)
+          (cond ((null formatted-keys)
                  (message "which-key: Keymap empty"))
                 ((listp which-key-side-window-location)
                  (setq which-key--last-try-2-loc
