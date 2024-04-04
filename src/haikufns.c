@@ -3309,8 +3309,8 @@ syms_of_haikufns (void)
   Vx_sensitive_text_pointer_shape = Qnil;
 
   DEFVAR_BOOL ("haiku-pass-control-tab-to-system",
-	      haiku_pass_control_tab_to_system,
-	      doc: /* Whether or not to pass C-TAB to the system.
+	       haiku_pass_control_tab_to_system,
+	       doc: /* Whether or not to pass C-TAB to the system.
 Setting this variable will cause Emacs to pass C-TAB to the system
 (allowing window switching on the Haiku operating system), rather than
 intercepting it.  */);
