@@ -1426,7 +1426,7 @@ the function bindings can be recursive.  The scoping is lexical,
 but you can only capture functions in closures if
 @code{lexical-binding} is @code{t}.
 @xref{Closures,,,elisp,GNU Emacs Lisp Reference Manual}, and
-@ref{Using Lexical Binding,,,elisp,GNU Emacs Lisp Reference Manual}.
+@ref{Selecting Lisp Dialect,,,elisp,GNU Emacs Lisp Reference Manual}.
 
 Lexical scoping means that all references to the named
 functions must appear physically within the body of the
