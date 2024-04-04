@@ -572,6 +572,7 @@ test-src-inotify:
     target: emacs-inotify
     make_params: "-k -C test check-src"
 
+# js-tests.el and python-tests.el don't follow test file name convention.
 .tree-sitter-files-template:
   variables:
     tree_sitter_files: >-
@@ -580,7 +581,9 @@ test-src-inotify:
       lisp/progmodes/go-ts-mode-tests.log
       lisp/progmodes/heex-ts-mode-tests.log
       lisp/progmodes/java-ts-mode-tests.log
+      lisp/progmodes/js-tests.log
       lisp/progmodes/lua-ts-mode-tests.log
+      lisp/progmodes/python-tests.log
       lisp/progmodes/ruby-ts-mode-tests.log
       lisp/progmodes/typescript-ts-mode-tests.log
       src/treesit-tests.log
