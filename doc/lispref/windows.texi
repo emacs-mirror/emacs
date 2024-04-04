@@ -2652,7 +2652,7 @@ for example:
         display-buffer-alist))
 
 (display-buffer (get-buffer-create "*my-shell*")
-		'(nil (category . comint)))
+                '(nil (category . comint)))
 @end group
 @end example
 
