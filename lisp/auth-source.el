@@ -2547,7 +2547,6 @@ Adapt also mode line."
     (read-passwd-toggle-visibility)))
 
 (defvar overriding-text-conversion-style)
-(declare-function set-text-conversion-style "textconv.c")
 
 ;;;###autoload
 (defun read-passwd (prompt &optional confirm default)
@@ -2605,7 +2604,8 @@ by doing (clear-string STRING)."
               ;; And of course, don't keep the sensitive data around.
               (erase-buffer)
               ;; Then restore the previous text conversion style.
-              (set-text-conversion-style text-conversion-style))))))))
+              (when (fboundp 'set-text-conversion-style)
+                (set-text-conversion-style text-conversion-style)))))))))
 
 (provide 'auth-source)
 
