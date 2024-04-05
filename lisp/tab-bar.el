@@ -104,10 +104,11 @@ For easier selection of tabs by their numbers, consider customizing
               (const alt))
   :initialize #'custom-initialize-default
   :set (lambda (sym val)
+         (when tab-bar-mode
+           (tab-bar--undefine-keys))
          (set-default sym val)
          ;; Reenable the tab-bar with new keybindings
          (when tab-bar-mode
-           (tab-bar--undefine-keys)
            (tab-bar--define-keys)))
   :group 'tab-bar
   :version "27.1")
@@ -115,21 +116,17 @@ For easier selection of tabs by their numbers, consider customizing
 (defun tab-bar--define-keys ()
   "Install key bindings to switch between tabs if so configured."
   (when tab-bar-select-tab-modifiers
-    (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?0)))
-                    #'tab-recent)
+    (define-key tab-bar-mode-map
+                (vector (append tab-bar-select-tab-modifiers (list ?0)))
+                #'tab-recent)
     (dotimes (i 8)
-      (global-set-key (vector (append tab-bar-select-tab-modifiers
-                                      (list (+ i 1 ?0))))
-                      #'tab-bar-select-tab))
-    (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?9)))
-                    #'tab-last))
-  ;; Don't override user customized key bindings
-  (unless (global-key-binding [(control tab)])
-    (global-set-key [(control tab)] #'tab-next))
-  (unless (global-key-binding [(control shift tab)])
-    (global-set-key [(control shift tab)] #'tab-previous))
-  (unless (global-key-binding [(control shift iso-lefttab)])
-    (global-set-key [(control shift iso-lefttab)] #'tab-previous))
+      (define-key tab-bar-mode-map
+                  (vector (append tab-bar-select-tab-modifiers
+                                  (list (+ i 1 ?0))))
+                  #'tab-bar-select-tab))
+    (define-key tab-bar-mode-map
+                (vector (append tab-bar-select-tab-modifiers (list ?9)))
+                #'tab-last))
 
   ;; Replace default value with a condition that supports displaying
   ;; global-mode-string in the tab bar instead of the mode line.
@@ -144,12 +141,18 @@ For easier selection of tabs by their numbers, consider customizing
 
 (defun tab-bar--undefine-keys ()
   "Uninstall key bindings previously bound by `tab-bar--define-keys'."
-  (when (eq (global-key-binding [(control tab)]) 'tab-next)
-    (global-unset-key [(control tab)]))
-  (when (eq (global-key-binding [(control shift tab)]) 'tab-previous)
-    (global-unset-key [(control shift tab)]))
-  (when (eq (global-key-binding [(control shift iso-lefttab)]) 'tab-previous)
-    (global-unset-key [(control shift iso-lefttab)])))
+  (when tab-bar-select-tab-modifiers
+    (define-key tab-bar-mode-map
+                (vector (append tab-bar-select-tab-modifiers (list ?0)))
+                nil t)
+    (dotimes (i 8)
+      (define-key tab-bar-mode-map
+                  (vector (append tab-bar-select-tab-modifiers
+                                  (list (+ i 1 ?0))))
+                  nil t))
+    (define-key tab-bar-mode-map
+                (vector (append tab-bar-select-tab-modifiers (list ?9)))
+                nil t)))
 
 (defun tab-bar--load-buttons ()
   "Load the icons for the tab buttons."
@@ -238,6 +241,20 @@ a list of frames to update."
           (cons (cons 'tab-bar-lines
                       (if (and tab-bar-mode (eq tab-bar-show t)) 1 0))
                 (assq-delete-all 'tab-bar-lines default-frame-alist)))))
+
+(defun tab-bar-mode--tab-key-bind (map key binding)
+  ;; Don't override user customized global key bindings
+  (define-key map key
+    `(menu-item "" ,binding
+      :filter ,(lambda (cmd) (unless (global-key-binding key) cmd)))))
+
+(defvar tab-bar-mode-map
+  (let ((map (make-sparse-keymap)))
+    (tab-bar-mode--tab-key-bind map [(control tab)] #'tab-next)
+    (tab-bar-mode--tab-key-bind map [(control shift tab)] #'tab-previous)
+    (tab-bar-mode--tab-key-bind map [(control shift iso-lefttab)] #'tab-previous)
+    map)
+  "Tab Bar mode map.")
 
 (define-minor-mode tab-bar-mode
   "Toggle the tab bar in all graphical frames (Tab Bar mode)."
