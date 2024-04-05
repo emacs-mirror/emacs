@@ -256,10 +256,10 @@ as that will override any bit grouping options set here."
 
 ;;;###autoload
 (defun hexl-mode (&optional arg)
-  "\\<hexl-mode-map>A mode for editing binary files in hex dump format.
-This is not an ordinary major mode; it alters some aspects
+  "A mode for editing binary files in hex dump format.
+\\<hexl-mode-map>This is not an ordinary major mode; it alters some aspects
 of the current mode's behavior, but not all; also, you can exit
-Hexl mode and return to the previous mode using `hexl-mode-exit'.
+Hexl mode and return to the previous mode using \\[hexl-mode-exit].
 
 This function automatically converts a buffer into the hexl format
 using the function `hexlify-buffer'.
