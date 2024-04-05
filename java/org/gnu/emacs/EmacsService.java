@@ -1973,6 +1973,21 @@ public final class EmacsService extends Service
     return false;
   }
 
+  /* Relinquish authorization for read and write access to the provided
+     URI, which is generally a reference to a directory tree.  */
+
+  public void
+  relinquishUriRights (String uri)
+  {
+    Uri uri1;
+    int flags;
+
+    uri1 = Uri.parse (uri);
+    flags = (Intent.FLAG_GRANT_READ_URI_PERMISSION
+	     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+    resolver.releasePersistableUriPermission (uri1, flags);
+  }
+
 
 
   /* Functions for detecting and requesting storage permissions.  */

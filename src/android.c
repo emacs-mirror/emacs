@@ -1690,6 +1690,8 @@ android_init_emacs_service (void)
 	       "requestStorageAccess", "()V");
   FIND_METHOD (cancel_notification,
 	       "cancelNotification", "(Ljava/lang/String;)V");
+  FIND_METHOD (relinquish_uri_rights,
+	       "relinquishUriRights", "(Ljava/lang/String;)V");
 #undef FIND_METHOD
 }
 

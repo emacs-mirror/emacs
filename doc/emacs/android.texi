@@ -299,8 +299,8 @@ on some proprietary versions of Android.
 @cindex /content/storage directory, Android
 
   Android 5.0 introduces a new sort of program, the ``document
-provider'': these programs are small programs that provide access to
-their own files outside both the asset manager and the Unix
+provider'': these programs are small services that provide access to
+their own files independently of the asset manager and the Unix
 filesystem.  Emacs supports accessing files and directories they
 provide, placing their files within the directory
 @file{/content/storage}.
@@ -311,12 +311,15 @@ first request the right to access it.  This is done by running the
 command (@pxref{M-x}) @code{android-request-directory-access}, which
 displays a file selection dialog.
 
-  If a directory is selected within this dialog, its contents are
+  If a directory is selected from this dialog, its contents are
 subsequently made available within a new directory named
-@file{/content/storage/@var{authority}/@var{id}}, where
-@var{authority} is the name of the document provider, and @var{id} is
-a unique identifier assigned to the directory by the document
-provider.
+@file{/content/storage/@var{authority}/@var{id}}, where @var{authority}
+is the name of the document provider, and @var{id} is a unique
+identifier assigned to the directory by the document provider.
+
+@findex android-relinquish-directory-access
+  Such a directory can be deleted once no longer required by providing
+its name to the command @code{android-relinquish-directory-access}.
 
   The same limitations applied to the @file{/assets} directory
 (@pxref{Android File System}) are applied when creating sub-processes

@@ -494,7 +494,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   w16select.o widget.o xfont.o ftfont.o xftfont.o gtkutil.o \
   xsettings.o xgselect.o termcap.o hbfont.o \
   haikuterm.o haikufns.o haikumenu.o haikufont.o androidterm.o androidfns.o \
-  androidfont.o androidselect.c sfntfont-android.c sfntfont.c
+  androidfont.o androidselect.c androidvfs.c sfntfont-android.c sfntfont.c
 
 ## gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.
 GMALLOC_OBJ=@GMALLOC_OBJ@

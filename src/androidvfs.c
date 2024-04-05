@@ -4997,7 +4997,7 @@ android_saf_tree_name (struct android_vnode *vnode, char *name,
       root.vnode.type = ANDROID_VNODE_SAF_ROOT;
       root.vnode.flags = 0;
 
-      /* Find the authority from the URI.  */
+      /* Derive the authority from the URI.  */
 
       fill = (char *) vp->tree_uri;
 
@@ -5647,7 +5647,7 @@ android_saf_tree_opendir (struct android_vnode *vnode)
   dir->vdir.closedir = android_saf_tree_closedir;
   dir->vdir.dirfd = android_saf_tree_dirfd;
 
-  /* Find the authority from the URI.  */
+  /* Derive the authority from the URI.  */
 
   fill = (char *) vp->tree_uri;
 
@@ -7816,8 +7816,58 @@ android_closedir (struct android_vdir *dirp)
 
 
 
+DEFUN ("android-relinquish-directory-access",
+       Fandroid_relinquish_directory_access,
+       Sandroid_relinquish_directory_access, 1, 1,
+       "DDirectory: ",
+       doc: /* Relinquish access to the provided directory.
+DIRECTORY must be an inferior directory to a subdirectory of
+/content/storage.  Once the command completes, the parent of DIRECTORY
+below that subdirectory from will cease to appear there, but no files
+will be removed.  */)
+  (Lisp_Object file)
+{
+  struct android_vnode *vp;
+  struct android_saf_tree_vnode *saf_tree;
+  jstring string;
+  jmethodID method;
+
+  if (android_get_current_api_level () < 21)
+    error ("Emacs can only access or relinquish application storage on"
+	   " Android 5.0 and later");
+
+  if (!android_init_gui)
+    return Qnil;
+
+  file = ENCODE_FILE (Fexpand_file_name (file, Qnil));
+  vp   = android_name_file (SSDATA (file));
+
+  if (vp->type != ANDROID_VNODE_SAF_TREE)
+    {
+      (*vp->ops->close) (vp);
+      signal_error ("Access to this directory cannot be relinquished",
+		    file);
+    }
+
+  saf_tree = (struct android_saf_tree_vnode *) vp;
+  string   = android_build_jstring (saf_tree->tree_uri);
+  method   = service_class.relinquish_uri_rights;
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 method, string);
+  (*vp->ops->close) (vp);
+  android_exception_check_1 (string);
+  ANDROID_DELETE_LOCAL_REF (string);
+  return Qnil;
+}
+
+
+
 void
 syms_of_androidvfs (void)
 {
   DEFSYM (Qandroid_jni, "android-jni");
+
+  defsubr (&Sandroid_relinquish_directory_access);
 }

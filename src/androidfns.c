@@ -3146,7 +3146,7 @@ for more details about these values.  */)
 
 
 
-/* Directory access requests.  */
+/* SAF directory access management.  */
 
 DEFUN ("android-request-directory-access", Fandroid_request_directory_access,
        Sandroid_request_directory_access, 0, 0, "",

@@ -303,6 +303,7 @@ struct android_emacs_service
   jmethodID external_storage_available;
   jmethodID request_storage_access;
   jmethodID cancel_notification;
+  jmethodID relinquish_uri_rights;
 };
 
 extern JNIEnv *android_java_env;
