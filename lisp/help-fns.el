@@ -1096,15 +1096,15 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		      (setq elts (cdr-safe elts)))
 		    (concat beg (if is-full "keymap" "sparse keymap"))))
 		 (t
-		  (let ((type
-		         (if (and (consp def) (symbolp (car def)))
-		             (car def)
-		           (or (oclosure-type def) (cl-type-of def)))))
-		    (concat beg (format "%s"
-		                        (make-text-button
-		                         (symbol-name type) nil
-		                         'type 'help-type
-		                         'help-args (list type)))))))))
+		  (concat beg (format "%s"
+		                      (if (and (consp def) (symbolp (car def)))
+		                          (car def)
+		                        (let ((type (or (oclosure-type def)
+		                                        (cl-type-of def))))
+		                          (make-text-button
+		                           (symbol-name type) nil
+		                           'type 'help-type
+		                           'help-args (list type))))))))))
     (with-current-buffer standard-output
       (insert description))
 
