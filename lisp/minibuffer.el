@@ -3180,7 +3180,7 @@ and `RET' accepts the input typed into the minibuffer."
                    t))
         cmd))))
 
-(defun minibuffer-visible-completions-bind (binding)
+(defun minibuffer-visible-completions--bind (binding)
   "Use BINDING when completions are visible.
 Return an item that is enabled only when a window
 displaying the *Completions* buffer exists."
@@ -3190,12 +3190,12 @@ displaying the *Completions* buffer exists."
 
 (defvar-keymap minibuffer-visible-completions-map
   :doc "Local keymap for minibuffer input with visible completions."
-  "<left>"  (minibuffer-visible-completions-bind #'minibuffer-previous-completion)
-  "<right>" (minibuffer-visible-completions-bind #'minibuffer-next-completion)
-  "<up>"    (minibuffer-visible-completions-bind #'minibuffer-previous-line-completion)
-  "<down>"  (minibuffer-visible-completions-bind #'minibuffer-next-line-completion)
-  "RET"     (minibuffer-visible-completions-bind #'minibuffer-choose-completion-or-exit)
-  "C-g"     (minibuffer-visible-completions-bind #'minibuffer-hide-completions))
+  "<left>"  (minibuffer-visible-completions--bind #'minibuffer-previous-completion)
+  "<right>" (minibuffer-visible-completions--bind #'minibuffer-next-completion)
+  "<up>"    (minibuffer-visible-completions--bind #'minibuffer-previous-line-completion)
+  "<down>"  (minibuffer-visible-completions--bind #'minibuffer-next-line-completion)
+  "RET"     (minibuffer-visible-completions--bind #'minibuffer-choose-completion-or-exit)
+  "C-g"     (minibuffer-visible-completions--bind #'minibuffer-hide-completions))
 
 ;;; Completion tables.
 
