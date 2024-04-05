@@ -30,6 +30,7 @@
     (insert "relative-path/to/configure --prefix=$prefix\\
              --with-x")
     (shell-script-mode)
+    (skip-unless sh-indent-supported-here)
     (goto-char (point-min))
     (forward-line 1)
     (indent-for-tab-command)
@@ -42,6 +43,7 @@
   (with-temp-buffer
     (insert "myecho () {\necho foo\n}\n")
     (shell-script-mode)
+    (skip-unless sh-indent-supported-here)
     (indent-region (point-min) (point-max))
     (should (equal (buffer-string)
   "myecho () {
@@ -56,6 +58,7 @@
   (with-temp-buffer
     (insert "for f \\\nin a; do \\\ntoto; \\\ndone\n")
     (shell-script-mode)
+    (skip-unless sh-indent-supported-here)
     (let ((sh-indent-for-continuation '++))
       (let ((sh-indent-after-continuation t))
         (indent-region (point-min) (point-max))

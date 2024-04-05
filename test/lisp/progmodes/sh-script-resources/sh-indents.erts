@@ -1,6 +1,10 @@
 Code:
   (lambda ()
     (shell-script-mode)
+    (unless sh-indent-supported-here
+      (ert-skip
+       '((skip-unless sh-indent-supported-here)
+	 :form sh-indent-supported-here :value nil)))
     (indent-region (point-min) (point-max)))
 
 Name: sh-indents1
