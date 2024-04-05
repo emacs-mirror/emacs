@@ -1086,13 +1086,6 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		      ;; need to check macros before functions.
 		      (macrop function))
 		  (concat beg "Lisp macro"))
-		 ((atom def)
-		  (let ((type (or (oclosure-type def) (cl-type-of def))))
-		    (concat beg (format "%s"
-		                        (make-text-button
-		                         (symbol-name type) nil
-		                         'type 'help-type
-		                         'help-args (list type))))))
 		 ((keymapp def)
 		  (let ((is-full nil)
 			(elts (cdr-safe def)))
@@ -1102,7 +1095,16 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 				elts nil))
 		      (setq elts (cdr-safe elts)))
 		    (concat beg (if is-full "keymap" "sparse keymap"))))
-		 (t ""))))
+		 (t
+		  (let ((type
+		         (if (and (consp def) (symbolp (car def)))
+		             (car def)
+		           (or (oclosure-type def) (cl-type-of def)))))
+		    (concat beg (format "%s"
+		                        (make-text-button
+		                         (symbol-name type) nil
+		                         'type 'help-type
+		                         'help-args (list type)))))))))
     (with-current-buffer standard-output
       (insert description))
 
