@@ -110,6 +110,7 @@
 (require 'text-property-search nil t)
 (require 'diff-mode)
 (require 'diff)
+(require 'track-changes nil t)
 
 ;; These dependencies are also GNU ELPA core packages.  Because of
 ;; bug#62576, since there is a risk that M-x package-install, despite
@@ -1732,6 +1733,9 @@ return value is fed through the corresponding inverse function
   "Calculate number of UTF-16 code units from position given by LBP.
 LBP defaults to `eglot--bol'."
   (/ (- (length (encode-coding-region (or lbp (eglot--bol))
+                                      ;; FIXME: How could `point' ever be
+                                      ;; larger than `point-max' (sounds like
+                                      ;; a bug in Emacs).
                                       ;; Fix github#860
                                       (min (point) (point-max)) 'utf-16 t))
         2)
@@ -1748,6 +1752,24 @@ LBP defaults to `eglot--bol'."
    (list :line (1- (line-number-at-pos pos t))
          :character (progn (when pos (goto-char pos))
                            (funcall eglot-current-linepos-function)))))
+
+(defun eglot--virtual-pos-to-lsp-position (pos string)
+  "Return the LSP position at the end of STRING if it were inserted at POS."
+  (eglot--widening
+   (goto-char pos)
+   (forward-line 0)
+   ;; LSP line is zero-origin; Emacs is one-origin.
+   (let ((posline (1- (line-number-at-pos nil t)))
+         (linebeg (buffer-substring (point) pos))
+         (colfun eglot-current-linepos-function))
+     ;; Use a temp buffer because:
+     ;; - I don't know of a fast way to count newlines in a string.
+     ;; - We currently don't have `eglot-current-linepos-function' for strings.
+     (with-temp-buffer
+       (insert linebeg string)
+       (goto-char (point-max))
+       (list :line (+ posline (1- (line-number-at-pos nil t)))
+             :character (funcall colfun))))))
 
 (defvar eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos
   "Function to move to a position within a line reported by the LSP server.
@@ -1946,6 +1968,8 @@ For example, to keep your Company customization, add the symbol
   "A hook run by Eglot after it started/stopped managing a buffer.
 Use `eglot-managed-p' to determine if current buffer is managed.")
 
+(defvar-local eglot--track-changes nil)
+
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some Eglot project."
   :init-value nil :lighter nil :keymap eglot-mode-map
@@ -1959,8 +1983,13 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
       ("utf-8"
        (eglot--setq-saving eglot-current-linepos-function #'eglot-utf-8-linepos)
        (eglot--setq-saving eglot-move-to-linepos-function #'eglot-move-to-utf-8-linepos)))
-    (add-hook 'after-change-functions #'eglot--after-change nil t)
-    (add-hook 'before-change-functions #'eglot--before-change nil t)
+    (if (fboundp 'track-changes-register)
+        (unless eglot--track-changes
+          (setq eglot--track-changes
+           (track-changes-register
+            #'eglot--track-changes-signal :disjoint t)))
+      (add-hook 'after-change-functions #'eglot--after-change nil t)
+      (add-hook 'before-change-functions #'eglot--before-change nil t))
     (add-hook 'kill-buffer-hook #'eglot--managed-mode-off nil t)
     ;; Prepend "didClose" to the hook after the "nonoff", so it will run first
     (add-hook 'kill-buffer-hook #'eglot--signal-textDocument/didClose nil t)
@@ -1998,6 +2027,9 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
                buffer
                (eglot--managed-buffers (eglot-current-server)))))
    (t
+    (when eglot--track-changes
+      (track-changes-unregister eglot--track-changes)
+      (setq eglot--track-changes nil))
     (remove-hook 'after-change-functions #'eglot--after-change t)
     (remove-hook 'before-change-functions #'eglot--before-change t)
     (remove-hook 'kill-buffer-hook #'eglot--managed-mode-off t)
@@ -2588,7 +2620,6 @@ buffer."
 (defun eglot--after-change (beg end pre-change-length)
   "Hook onto `after-change-functions'.
 Records BEG, END and PRE-CHANGE-LENGTH locally."
-  (cl-incf eglot--versioned-identifier)
   (pcase (car-safe eglot--recent-changes)
     (`(,lsp-beg ,lsp-end
                 (,b-beg . ,b-beg-marker)
@@ -2616,6 +2647,29 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
                `(,lsp-beg ,lsp-end ,pre-change-length
                           ,(buffer-substring-no-properties beg end)))))
     (_ (setf eglot--recent-changes :emacs-messup)))
+  (eglot--track-changes-signal nil))
+
+(defun eglot--track-changes-fetch (id)
+  (if (eq eglot--recent-changes :pending) (setq eglot--recent-changes nil))
+  (track-changes-fetch
+   id (lambda (beg end before)
+        (cond
+         ((eq eglot--recent-changes :emacs-messup) nil)
+         ((eq before 'error) (setf eglot--recent-changes :emacs-messup))
+         (t (push `(,(eglot--pos-to-lsp-position beg)
+                    ,(eglot--virtual-pos-to-lsp-position beg before)
+                    ,(length before)
+                    ,(buffer-substring-no-properties beg end))
+                  eglot--recent-changes))))))
+
+(defun eglot--track-changes-signal (id &optional distance)
+  (cl-incf eglot--versioned-identifier)
+  (cond
+   (distance (eglot--track-changes-fetch id))
+   (eglot--recent-changes nil)
+   ;; Note that there are pending changes, for the benefit of those
+   ;; who check it as a boolean.
+   (t (setq eglot--recent-changes :pending)))
   (when eglot--change-idle-timer (cancel-timer eglot--change-idle-timer))
   (let ((buf (current-buffer)))
     (setq eglot--change-idle-timer
@@ -2729,6 +2783,8 @@ When called interactively, use the currently active server"
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
   (when eglot--recent-changes
+    (when eglot--track-changes
+      (eglot--track-changes-fetch eglot--track-changes))
     (let* ((server (eglot--current-server-or-lose))
            (sync-capability (eglot-server-capable :textDocumentSync))
            (sync-kind (if (numberp sync-capability) sync-capability
@@ -2750,7 +2806,7 @@ When called interactively, use the currently active server"
                    ;; empty entries in `eglot--before-change' calls
                    ;; without an `eglot--after-change' reciprocal.
                    ;; Weed them out here.
-                   when (numberp len)
+                   when (numberp len) ;FIXME: Not needed with `track-changes'.
                    vconcat `[,(list :range `(:start ,beg :end ,end)
                                     :rangeLength len :text text)]))))
       (setq eglot--recent-changes nil)
