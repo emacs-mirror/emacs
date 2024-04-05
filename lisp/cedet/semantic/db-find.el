@@ -928,6 +928,9 @@ but should be good enough for debugging assertions."
 	    (semanticdb-find-result-length result)
 	    (length result))))
 
+(cl-deftype semanticdb-find-result-with-nil ()
+  '(satisfies semanticdb-find-result-with-nil-p))
+
 (defun semanticdb-find-result-with-nil-p (resultp)
   "Non-nil if RESULTP is in the form of a semanticdb search result.
 The value nil is valid where a TABLE usually is, but only if the TAG
