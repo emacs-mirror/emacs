@@ -303,6 +303,13 @@ by adding '(category . symbol)' to the condition part of
 It specifies whether the window of the displayed buffer should be
 selected or deselected at the end of executing the current command.
 
+---
+*** User option 'display-comint-buffer-action' is now obsolete.
+You can use a '(category . comint)' condition in 'display-buffer-alist'
+to match buffers displayed by comint-related commands.  Another
+user option 'display-tex-shell-buffer-action' is obsolete too
+for which you can use '(category . tex-shell)'.
+
 +++
 *** New variable 'window-restore-killed-buffer-windows'.
 It specifies how 'set-window-configuration' and 'window-state-put'
