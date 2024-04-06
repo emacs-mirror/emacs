@@ -537,10 +537,8 @@ The possible settings for `align-region-separate' are:
      (regexp   . ,(lambda (end reverse)
                     (align-match-tex-pattern "\\\\[=>]" end reverse)))
      (group    . (1 2))
-     (modes    . align-tex-modes)
-     (repeat   . t)
-     (run-if   . ,(lambda ()
-                    (eq major-mode 'latex-mode))))
+     (modes    . '(latex-mode))
+     (repeat   . t))
 
     (tex-record-break
      (regexp   . "\\(\\s-*\\)\\\\\\\\")
