@@ -2069,6 +2069,16 @@ For such programs to function again, Emacs must be run on an X server
 where the input extension is disabled, or alternatively be configured
 with the "--without-xinput2" option.
 
+*** Scrolling with mouse-wheel lags in GTK3 builds.
+
+We don't know why this happens, but one workaround is to build Emacs
+with a different toolkit.  For example:
+
+  ./configure --without-toolkit-scroll-bars --with-x-toolkit=athena
+
+This produces a build which uses Athena toolkit, and disables toolkit
+scroll bars which could sometimes be slow.
+
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.
