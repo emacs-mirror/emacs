@@ -221,11 +221,14 @@ public final class EmacsWindowManager
       {
 	consumer.detachWindow ();
 
-	/* Though pruneWindows will likely remove the same windows, call
-	   onActivityDetached anyway if isFinishing is set, as in
-	   obscure circumstances pruneWindows will not remove frames
-	   bound to the system-started task.  */
-	if (isFinishing)
+	/* Though pruneWindows will likely remove the same window(s),
+	   call onActivityDetached anyway if isFinishing is set, if
+	   CONSUMER not be a multitasking activity, as in obscure
+	   circumstances pruneWindows will not remove frames bound to
+	   the system-started task.  */
+	if (isFinishing
+	    && (!(consumer instanceof EmacsMultitaskActivity)
+		|| Build.VERSION.SDK_INT < Build.VERSION_CODES.Q))
 	  window.onActivityDetached ();
       }
 
