@@ -59,6 +59,15 @@ sections if you need to.
 
       where SOURCE-DIR is the top-level Emacs source directory.
 
+  2c. If you don't have write access to the default directory where
+      Emacs and its data files will be installed, specify an alternative
+      installation directory:
+
+		 ./configure --prefix=/SOME/OTHER/DIRECTORY
+
+      where /SOME/OTHER/DIRECTORY is a directory writeable by your user,
+      for example, a subdirectory of your home directory.
+
   3. When 'configure' finishes, it prints several lines of details
      about the system configuration.  Read those details carefully
      looking for anything suspicious, such as wrong CPU and operating
@@ -439,6 +448,12 @@ should put emacs and its data files.  This defaults to '/usr/local'.
   PREFIXDIR/libexec/emacs/VERSION/CONFIGURATION
   (where CONFIGURATION is the configuration name, like
   i686-pc-linux-gnu), unless the '--exec-prefix' option says otherwise.
+
+If you don't have write access to the default '/usr/local' tree, and
+cannot have root access (without which "make install" will fail),
+specify '--prefix=PREFIXDIR' where PREFIXDIR is a directyory writeable
+by your user, for example your HOME directory or some subdirectory of
+it.
 
 The '--exec-prefix=EXECDIR' option allows you to specify a separate
 portion of the directory tree for installing architecture-specific
