@@ -460,8 +460,8 @@ of a line, that final line is excluded."
     (goto-char final-position)))
 
 (defun edmacro-mode ()
-  "\\<edmacro-mode-map>Keyboard Macro Editing mode.  Press \
-\\[edmacro-finish-edit] to save and exit.
+  "Keyboard Macro Editing mode.
+\\<edmacro-mode-map>Press \\[edmacro-finish-edit] to save and exit.
 To abort the edit, just kill this buffer with \\[kill-buffer] \\`RET'.
 
 Press \\[edmacro-insert-key] to insert the name of any key by typing the key.

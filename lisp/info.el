@@ -4063,8 +4063,8 @@ ERRORSTRING optional fourth argument, controls action on no match:
 		 (error "No %s around position %d" errorstring pos))))))))
 
 (defun Info-mouse-follow-nearest-node (click)
-  "\\<Info-mode-map>Follow a node reference near point.
-Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
+  "Follow a node reference near point.
+\\<Info-mode-map>Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
 At end of the node's text, moves to the next node, or up if none."
   (interactive "e" Info-mode)
   (mouse-set-point click)
