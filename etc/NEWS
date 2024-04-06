@@ -349,6 +349,12 @@ the appearance of every tab on the tab bar.
 ---
 *** New hook 'tab-bar-tab-post-select-functions'.
 
+---
+*** New keymap 'tab-bar-mode-map'.
+By default it contains a keybinding 'C-TAB' to switch tabs,
+but only when 'C-TAB' is not bound globally.  You can unbind it
+if it conflicts with 'C-TAB' in other modes.
+
 +++
 ** New optional argument for modifying directory-local variables.
 The commands 'add-dir-local-variable', 'delete-dir-local-variable' and
