@@ -1453,7 +1453,19 @@ point is moved into the passwords (see `authinfo-hide-elements').
 \\{authinfo-mode-map}
 
 (fn)" t)
-(register-definition-prefixes "auth-source" '("auth"))
+(autoload 'read-passwd "auth-source" "\
+Read a password, prompting with PROMPT, and return it.
+If optional CONFIRM is non-nil, read the password twice to make sure.
+Optional DEFAULT is a default password to use instead of empty input.
+
+This function echoes `*' for each character that the user types.
+You could let-bind `read-hide-char' to another hiding character, though.
+
+Once the caller uses the password, it can erase the password
+by doing (clear-string STRING).
+
+(fn PROMPT &optional CONFIRM DEFAULT)")
+(register-definition-prefixes "auth-source" '("auth" "read-passwd-"))
 
 
 ;;; Generated autoloads from auth-source-pass.el
@@ -2452,8 +2464,8 @@ The variables `browse-url-browser-function',
 `browse-url-handlers', and `browse-url-default-handlers'
 determine which browser function to use.
 
-This command prompts for a URL, defaulting to the URL at or
-before point.
+Interactively, this command prompts for a URL, defaulting to the
+URL at or before point.
 
 The additional ARGS are passed to the browser function.  See the
 doc strings of the actual functions, starting with
@@ -2461,7 +2473,9 @@ doc strings of the actual functions, starting with
 significance of ARGS (most of the functions ignore it).
 
 If ARGS are omitted, the default is to pass
-`browse-url-new-window-flag' as ARGS.
+`browse-url-new-window-flag' as ARGS.  Interactively, pass the
+prefix arg as ARGS; if `browse-url-new-window-flag' is non-nil,
+invert the prefix arg instead.
 
 (fn URL &rest ARGS)" t)
 (autoload 'browse-url-at-point "browse-url" "\
@@ -2945,7 +2959,7 @@ Major mode for editing C, powered by tree-sitter.
 
 This mode is independent from the classic cc-mode.el based
 `c-mode', so configuration variables of that mode, like
-`c-basic-offset', doesn't affect this mode.
+`c-basic-offset', don't affect this mode.
 
 To use tree-sitter C/C++ modes by default, evaluate
 
@@ -2954,7 +2968,7 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your configuration.
+in your init files.
 
 (fn)" t)
 (autoload 'c++-ts-mode "c-ts-mode" "\
@@ -2971,7 +2985,7 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your configuration.
+in your init files.
 
 Since this mode uses a parser, unbalanced brackets might cause
 some breakage in indentation/fontification.  Therefore, it's
@@ -2987,7 +3001,7 @@ matching on file name insufficient for detecting major mode that
 should be used.
 
 This function attempts to use file contents to determine whether
-the code is C or C++ and based on that chooses whether to enable
+the code is C or C++, and based on that chooses whether to enable
 `c-ts-mode' or `c++-ts-mode'." t)
 (make-obsolete 'c-or-c++-ts-mode 'c-or-c++-mode "30.1")
 (register-definition-prefixes "c-ts-mode" '("c-ts-"))
@@ -5320,6 +5334,48 @@ The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
 (fn &optional ARG)" t)
+(put 'global-completion-preview-mode 'globalized-minor-mode t)
+(defvar global-completion-preview-mode nil "\
+Non-nil if Global Completion-Preview mode is enabled.
+See the `global-completion-preview-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `global-completion-preview-mode'.")
+(custom-autoload 'global-completion-preview-mode "completion-preview" nil)
+(autoload 'global-completion-preview-mode "completion-preview" "\
+Toggle Completion-Preview mode in all buffers.
+With prefix ARG, enable Global Completion-Preview mode if ARG is
+positive; otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
+
+Completion-Preview mode is enabled in all buffers where
+`completion-preview-mode' would do it.
+
+See `completion-preview-mode' for more information on
+Completion-Preview mode.
+
+`global-completion-preview-modes' is used to control which modes this
+minor mode is used in.
+
+(fn &optional ARG)" t)
+(defvar global-completion-preview-modes '((not minibuffer-mode special-mode) t) "\
+Which major modes `completion-preview-mode' is switched on in.
+This variable can be either t (all major modes), nil (no major modes),
+or a list of modes and (not modes) to switch use this minor mode or
+not.  For instance
+
+  (c-mode (not message-mode mail-mode) text-mode)
+
+means \"use this mode in all modes derived from `c-mode', don't use in
+modes derived from `message-mode' or `mail-mode', but do use in other
+modes derived from `text-mode'\".  An element with value t means \"use\"
+and nil means \"don't use\".  There's an implicit nil at the end of the
+list.")
+(custom-autoload 'global-completion-preview-modes "completion-preview" t)
 (register-definition-prefixes "completion-preview" '("completion-preview-"))
 
 
@@ -13270,7 +13326,7 @@ For instance:
                  (?l . \"ls\")))
 
 Each %-spec may contain optional flag, width, and precision
-modifiers, as follows:
+specifiers, as follows:
 
   %<flags><width><precision>character
 
@@ -13283,7 +13339,7 @@ The following flags are allowed:
 * ^: Convert to upper case.
 * _: Convert to lower case.
 
-The width and truncation modifiers behave like the corresponding
+The width and precision specifiers behave like the corresponding
 ones in `format' when applied to %s.
 
 For example, \"%<010b\" means \"substitute into the output the
@@ -15684,6 +15740,17 @@ Produce an nroff buffer containing the doc-strings from the DOC file.
 Produce a texinfo buffer with sorted doc-strings from the DOC file.
 
 (fn FILE)" t)
+(autoload 'help-fns-function-name "help-fns" "\
+Return a short buttonized string representing FUNCTION.
+The string is propertized with a button; clicking on that
+provides further details about FUNCTION.
+FUNCTION can be a function, a built-in, a keyboard macro,
+or a compile function.
+This function is intended to be used to display various
+callable symbols in buffers in a way that allows the user
+to find out more details about the symbols.
+
+(fn FUNCTION)")
 (register-definition-prefixes "help-fns" '("describe-" "help-" "keymap-name-history"))
 
 
@@ -15696,6 +15763,10 @@ window listing and describing the options.
 A value of nil means skip the middle step, so that \\[help-command] \\[help-command]
 gives the window that lists the options.")
 (custom-autoload 'three-step-help "help-macro" t)
+(autoload 'help--help-screen "help-macro" "\
+
+
+(fn HELP-LINE HELP-TEXT HELPED-MAP BUFFER-NAME)")
 (register-definition-prefixes "help-macro" '("make-help-screen"))
 
 
@@ -15810,10 +15881,10 @@ Provide help for current mode." t)
 ;;; Generated autoloads from hexl.el
 
 (autoload 'hexl-mode "hexl" "\
-\\<hexl-mode-map>A mode for editing binary files in hex dump format.
-This is not an ordinary major mode; it alters some aspects
+A mode for editing binary files in hex dump format.
+\\<hexl-mode-map>This is not an ordinary major mode; it alters some aspects
 of the current mode's behavior, but not all; also, you can exit
-Hexl mode and return to the previous mode using `hexl-mode-exit'.
+Hexl mode and return to the previous mode using \\[hexl-mode-exit].
 
 This function automatically converts a buffer into the hexl format
 using the function `hexlify-buffer'.
@@ -19132,7 +19203,7 @@ Major mode for editing JSON, powered by tree-sitter.
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push (purecopy '(jsonrpc 1 0 24)) package--builtin-versions)
+(push (purecopy '(jsonrpc 1 0 25)) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -29970,24 +30041,6 @@ For example: to sort lines in the region by the first word on each line
  RECORD-REGEXP would be \"^.*$\" and KEY would be \"\\\\=\\<f\\\\w*\\\\>\"
 
 (fn REVERSE RECORD-REGEXP KEY-REGEXP BEG END)" t)
-(autoload 'sort-on "sort" "\
-Sort SEQUENCE by calling PREDICATE on sort keys produced by ACCESSOR.
-SEQUENCE should be the input sequence to sort.
-Elements of SEQUENCE are sorted by keys which are obtained by
-calling ACCESSOR on each element.  ACCESSOR should be a function of
-one argument, an element of SEQUENCE, and should return the key
-value to be compared by PREDICATE for sorting the element.
-PREDICATE is the function for comparing keys; it is called with two
-arguments, the keys to compare, and should return non-nil if the
-first key should sort before the second key.
-The return value is always a new list.
-This function has the performance advantage of evaluating
-ACCESSOR only once for each element in the input SEQUENCE, and is
-therefore appropriate when computing the key by ACCESSOR is an
-expensive operation.  This is known as the \"decorate-sort-undecorate\"
-paradigm, or the Schwartzian transform.
-
-(fn SEQUENCE PREDICATE ACCESSOR)")
 (autoload 'sort-columns "sort" "\
 Sort lines in region alphabetically by a certain range of columns.
 For the purpose of this command, the region BEG...END includes
@@ -33382,7 +33435,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from transient.el
 
-(push (purecopy '(transient 0 5 2)) package--builtin-versions)
+(push (purecopy '(transient 0 6 0)) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient" "\
 Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -37831,6 +37884,11 @@ run a specific program.  The program must be a member of
 (register-definition-prefixes "tramp-androidsu" '("tramp-androidsu-"))
 
 
+;;; Generated autoloads from progmodes/peg.el
+
+(push (purecopy '(peg 1 0 1)) package--builtin-versions)
+(register-definition-prefixes "peg" '("bob" "bol" "bos" "bow" "define-peg-rule" "eob" "eol" "eos" "eow" "fail" "null" "peg" "with-peg-rules"))
+
 ;;; End of scraped data
 
 (provide 'loaddefs)
@@ -37838,8 +37896,8 @@ run a specific program.  The program must be a member of
 ;; Local Variables:
 ;; version-control: never
 ;; no-update-autoloads: t
-;; no-native-compile: t
 ;; no-byte-compile: t
+;; no-native-compile: t
 ;; coding: utf-8-emacs-unix
 ;; End:
 
