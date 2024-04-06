@@ -807,30 +807,28 @@ Select the window used, if it has been made."
 		  (get-buffer-create "*info*")))))
     (with-current-buffer buffer
       (unless (derived-mode-p 'Info-mode)
-	(Info-mode)))
+	(Info-mode))
 
-    (let* ((window
-	    (display-buffer buffer
-			    (if other-window
-				'(nil (inhibit-same-window . t))
-			      '(display-buffer-same-window)))))
-      (with-current-buffer buffer
-	(if file-or-node
-	    ;; If argument already contains parentheses, don't add another set
-	    ;; since the argument will then be parsed improperly.  This also
-	    ;; has the added benefit of allowing node names to be included
-	    ;; following the parenthesized filename.
-	    (Info-goto-node
-	     (if (and (stringp file-or-node) (string-match "(.*)" file-or-node))
-		 file-or-node
-               (concat "(" file-or-node ")")))
-	  (if (and (zerop (buffer-size))
-		   (null Info-history))
-	      ;; If we just created the Info buffer, go to the directory.
-	      (Info-directory))))
+      (if file-or-node
+	  ;; If argument already contains parentheses, don't add another set
+	  ;; since the argument will then be parsed improperly.  This also
+	  ;; has the added benefit of allowing node names to be included
+	  ;; following the parenthesized filename.
+	  (Info-goto-node
+	   (if (and (stringp file-or-node) (string-match "(.*)" file-or-node))
+	       file-or-node
+             (concat "(" file-or-node ")")))
+	(if (and (zerop (buffer-size))
+		 (null Info-history))
+	    ;; If we just created the Info buffer, go to the directory.
+	    (Info-directory))))
 
-      (when window
-	(select-window window)))))
+    (when-let ((window (display-buffer buffer
+			               (if other-window
+				           '(nil (inhibit-same-window . t))
+			                 '(display-buffer-same-window)))))
+      (select-window window))))
+
 
 ;;;###autoload (put 'info 'info-file (purecopy "emacs"))
 ;;;###autoload
