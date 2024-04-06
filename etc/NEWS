@@ -1249,6 +1249,28 @@ in a clean environment.
 ** Flymake
 
 +++
+*** New user option 'flymake-indicator-type'.
+This user option controls which error indicator type Flymake should use
+in current buffer.  Depending on your preference, this can either use
+fringes or margins for indicating errors.
+
++++
+*** New user option 'flymake-margin-indicators-string'.
+It controls, for each error type, the string and its face to display as
+the margin indicator.
+
++++
+*** New user option 'flymake-autoresize-margins'.
+If non-nil, Flymake will resize the margins when 'flymake-mode' is
+turned on or off.
+Only relevant if `flymake-indicator-type` is set to `margins`.
+
++++
+*** New user option 'flymake-margin-indicator-position'.
+It controls which margin (left or right) is used for margin
+indicators.
+
++++
 *** New user option 'flymake-show-diagnostics-at-end-of-line'.
 When non-nil, Flymake shows summarized descriptions of diagnostics at
 the end of the line.  Depending on your preference, this can either be

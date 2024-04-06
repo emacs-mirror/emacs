@@ -309,6 +309,12 @@ reported.
 A custom face for highlighting regions for which a note has been
 reported.
 
+@item flymake-indicator-type
+The indicator type which Flymake should use to indicate lines with
+errors or warnings.
+Depending on your preference, this can either use @code{fringes} or
+@code{margins} for indicating errors.
+
 @item flymake-error-bitmap
 A bitmap used in the fringe to mark lines for which an error has
 been reported.
@@ -319,6 +325,18 @@ been reported.
 
 @item flymake-fringe-indicator-position
 Which fringe (if any) should show the warning/error bitmaps.
+
+@item flymake-margin-indicators-string
+Specifies the string and face to use for the margin indicators, for
+each error type.
+
+@item flymake-margin-indicator-position
+Which margin (if any) should show the warning/error strings.
+
+@item flymake-autoresize-margins
+If non-@code{nil}, Flymake will resize the margins when
+@code{flymake-mode} is turned on or off.
+Only relevant if @code{flymake-indicator-type} is set to @code{margins}.
 
 @item flymake-wrap-around
 If non-@code{nil}, moving to errors with @code{flymake-goto-next-error} and
@@ -386,6 +404,14 @@ The following properties can be set:
 the syntax of @code{flymake-error-bitmap} (@pxref{Customizable
 variables}).  It is overridden by any @code{before-string} overlay
 property.
+
+@item
+@cindex margin of diagnostic
+@code{flymake-margin-string}, a string displayed in the margin
+according to @code{flymake-margin-indicator-position}.
+The value actually follows the syntax of @code{flymake-margin-indicators-string}
+(@pxref{Customizable variables}).  It is overridden by any
+@code{before-string} overlay property.
 
 @item
 @code{flymake-overlay-control}, an alist ((@var{OVPROP} . @var{VALUE})
