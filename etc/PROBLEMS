@@ -178,6 +178,32 @@ The relevant bug report is here:
 A workaround is to set XLIB_SKIP_ARGB_VISUALS=1 in the environment
 before starting Emacs, or run Emacs as root.
 
+** Emacs built with xwidgets aborts when displaying WebKit xwidgets
+
+This happens, for example, when 'M-x xwidget-webkit-browse-url'
+prompts for a URL and you type the URL at the prompt.
+
+The error message might look like this:
+
+  X protocol error: GLXBadWindow on protocol request 151
+  Serial no: 4286
+  Failing resource ID (if any): 0x3c001c5
+  Minor code: 32
+
+This happens because starting from version 2.42.1, the WebKitGTK
+developers discontinued support for off-screen windows, by presuming
+that every window holding a WebView widget is an X server window
+eligible for an OpenGL context.  Emacs requires placing these widgets
+within offscreen windows managed by GTK, for each xwidget might be
+displayed in multiple distinct windows, and its contents must be
+captured and reproduced within all of them if that be the case.
+
+To put this another way, WebKitGTK doesn't support displaying a single
+widget more than once anymore.
+
+A possible workaround is to make sure xwidgets are not shown in more
+than one window.
+
 ** Emacs crashes with SIGTRAP when trying to start a WebKit xwidget.
 
 This could happen if the version of WebKitGTK installed on your system
@@ -2062,6 +2088,16 @@ intercepted by the X server when sent to input extension clients.
 For such programs to function again, Emacs must be run on an X server
 where the input extension is disabled, or alternatively be configured
 with the "--without-xinput2" option.
+
+*** Scrolling with mouse-wheel lags in GTK3 builds.
+
+We don't know why this happens, but one workaround is to build Emacs
+with a different toolkit.  For example:
+
+  ./configure --without-toolkit-scroll-bars --with-x-toolkit=athena
+
+This produces a build which uses Athena toolkit, and disables toolkit
+scroll bars which could sometimes be slow.
 
 * Runtime problems on character terminals
 
