@@ -2324,7 +2324,7 @@ sequence---that is, after a prefix key---then Emacs reorders the events
 so that the focus event comes either before or after the multi-event key
 sequence, and not within it.
 
-@heading Focus events for frames
+@subsubheading Focus events for frames
 
 The normal definition of a focus event that switches frames, in the
 global keymap, is to select that new frame within Emacs, as the user
@@ -2347,7 +2347,7 @@ actually types a keyboard key or presses a mouse button in the new
 frame; just moving the mouse between frames does not generate a focus
 event.
 
-@heading Focus events for windows
+@subsubheading Focus events for windows
 
 When @var{mouse-autoselect-window} is set, moving the mouse over a new
 window within a frame can also switch the selected window.  @xref{Mouse
