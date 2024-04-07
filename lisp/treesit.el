@@ -2152,7 +2152,7 @@ return nil without moving point."
         ;; the obstacle, like `forward-sexp' does.  If we couldn't
         ;; find a parent, we simply return nil without moving point,
         ;; then functions like `up-list' will signal "at top level".
-        (when-let* ((parent (treesit--thing-at (point) pred t))
+        (when-let* ((parent (treesit-thing-at (point) pred t))
                     (boundary (if (> arg 0)
                                   (treesit-node-child parent -1)
                                 (treesit-node-child parent 0))))
@@ -2206,18 +2206,14 @@ friends."
 ;; - treesit-thing/defun-at-point
 ;;
 ;; And more generic functions like:
-;; - treesit--thing-prev/next
-;; - treesit--thing-at
-;; - treesit--top-level-thing
-;; - treesit--navigate-thing
+;; - treesit-thing-prev/next
+;; - treesit-thing-at
+;; - treesit-top-level-thing
+;; - treesit-navigate-thing
 ;;
 ;; There are also some defun-specific functions, like
 ;; treesit-defun-name, treesit-add-log-current-defun.
 ;;
-;; TODO: I'm not entirely sure how would this go, so I only documented
-;; the "defun" functions and didn't document any "thing" functions.
-;; We should also document `treesit-thing-settings'.
-
 ;; TODO: Integration with thing-at-point: once our thing interface is
 ;; stable.
 ;;
@@ -2295,7 +2291,7 @@ should there be one.  If omitted, TACTIC is considered to be
 
 Return non-nil if successfully moved, nil otherwise."
   (pcase-let* ((arg (or arg 1))
-               (dest (treesit--navigate-thing
+               (dest (treesit-navigate-thing
                       (point) (- arg) 'beg thing tactic)))
     (when dest
       (goto-char dest))))
@@ -2318,7 +2314,7 @@ should there be one.  If omitted, TACTIC is considered to be
 
 Return non-nil if successfully moved, nil otherwise."
   (pcase-let* ((arg (or arg 1))
-               (dest (treesit--navigate-thing
+               (dest (treesit-navigate-thing
                       (point) arg 'end thing tactic)))
     (when dest
       (goto-char dest))))
@@ -2451,68 +2447,6 @@ the current line if the beginning of the defun is indented."
                        (line-beginning-position))
          (beginning-of-line))))
 
-(make-obsolete 'treesit--things-around
-               "`treesit--things-around' will be removed soon, use `treesit--thing-prev', `treesit--thing-next', `treesit--thing-at' instead." "30.1")
-(defun treesit--things-around (pos thing)
-  "Return the previous, next, and parent thing around POS.
-
-Return a list of (PREV NEXT PARENT), where PREV and NEXT are
-previous and next sibling things around POS, and PARENT is the
-parent thing surrounding POS.  All of three could be nil if no
-sound things exists.
-
-THING should be a thing defined in `treesit-thing-settings',
-which see; it can also be a predicate."
-  (let* ((node (treesit-node-at pos))
-         (result (list nil nil nil)))
-    ;; 1. Find previous and next sibling defuns.
-    (cl-loop
-     for idx from 0 to 1
-     for backward in '(t nil)
-     ;; Make sure we go in the right direction, and the defun we find
-     ;; doesn't cover POS.
-     for pos-pred in (list (lambda (n) (<= (treesit-node-end n) pos))
-                           (lambda (n) (>= (treesit-node-start n) pos)))
-     ;; We repeatedly find next defun candidate with
-     ;; `treesit-search-forward', and check if it is a valid defun,
-     ;; until the node we find covers POS, meaning we've gone through
-     ;; every possible sibling defuns.  But there is a catch:
-     ;; `treesit-search-forward' searches bottom-up, so for each
-     ;; candidate we need to go up the tree and find the top-most
-     ;; valid sibling, this defun will be at the same level as POS.
-     ;; Don't use `treesit-search-forward-goto', it skips nodes in
-     ;; order to enforce progress.
-     when node
-     do (let ((cursor node)
-              (iter-pred (lambda (node)
-                           (and (treesit-node-match-p node thing t)
-                                (funcall pos-pred node)))))
-          ;; Find the node just before/after POS to start searching.
-          (save-excursion
-            (while (and cursor (not (funcall pos-pred cursor)))
-              (setq cursor (treesit-search-forward-goto
-                            cursor "" backward backward t))))
-          ;; Keep searching until we run out of candidates.
-          (while (and cursor
-                      (funcall pos-pred cursor)
-                      (null (nth idx result)))
-            (setf (nth idx result)
-                  (treesit-node-top-level cursor iter-pred t))
-            (setq cursor (treesit-search-forward
-                          cursor thing backward backward)))))
-    ;; 2. Find the parent defun.
-    (let ((cursor (or (nth 0 result) (nth 1 result) node))
-          (iter-pred (lambda (node)
-                       (and (treesit-node-match-p node thing t)
-                            (not (treesit-node-eq node (nth 0 result)))
-                            (not (treesit-node-eq node (nth 1 result)))
-                            (< (treesit-node-start node)
-                               pos
-                               (treesit-node-end node))))))
-      (setf (nth 2 result)
-            (treesit-parent-until cursor iter-pred)))
-    result))
-
 (defun treesit--thing-sibling (pos thing prev)
   "Return the next or previous THING at POS.
 
@@ -2546,7 +2480,7 @@ in `treesit-thing-settings'."
         (setq cursor (treesit-search-forward cursor thing prev prev)))
       sibling)))
 
-(defun treesit--thing-prev (pos thing)
+(defun treesit-thing-prev (pos thing)
   "Return the previous THING at POS.
 
 The returned node, if non-nil, must be before POS, i.e., its end
@@ -2556,7 +2490,7 @@ THING should be a thing defined in `treesit-thing-settings', or a
 predicate as described in `treesit-thing-settings'."
   (treesit--thing-sibling pos thing t))
 
-(defun treesit--thing-next (pos thing)
+(defun treesit-thing-next (pos thing)
   "Return the next THING at POS.
 
 The returned node, if non-nil, must be after POS, i.e., its
@@ -2566,7 +2500,7 @@ THING should be a thing defined in `treesit-thing-settings', or a
 predicate as described in `treesit-thing-settings'."
   (treesit--thing-sibling pos thing nil))
 
-(defun treesit--thing-at (pos thing &optional strict)
+(defun treesit-thing-at (pos thing &optional strict)
   "Return the smallest THING enclosing POS.
 
 The returned node, if non-nil, must enclose POS, i.e., its start
@@ -2611,7 +2545,7 @@ it can be a predicate described in `treesit-thing-settings'."
 ;;    -> Obviously we don't want to go to parent's end, instead, we
 ;;       want to go to parent's prev-sibling's end.  Again, we recurse
 ;;       in the function to do that.
-(defun treesit--navigate-thing (pos arg side thing &optional tactic recursing)
+(defun treesit-navigate-thing (pos arg side thing &optional tactic recursing)
   "Navigate thing ARG steps from POS.
 
 If ARG is positive, move forward that many steps, if negative,
@@ -2650,9 +2584,9 @@ function is called recursively."
                       dest)))))
     (catch 'term
       (while (> counter 0)
-        (let ((prev (treesit--thing-prev pos thing))
-              (next (treesit--thing-next pos thing))
-              (parent (treesit--thing-at pos thing t)))
+        (let ((prev (treesit-thing-prev pos thing))
+              (next (treesit-thing-next pos thing))
+              (parent (treesit-thing-at pos thing t)))
           (when (and parent prev
                      (not (treesit-node-enclosed-p prev parent)))
             (setq prev nil))
@@ -2702,7 +2636,7 @@ function is called recursively."
                     ;; recurring, that doesn't count as special case,
                     ;; because we have already made progress (by moving
                     ;; the end of next before recurring.)
-                    (setq pos (or (treesit--navigate-thing
+                    (setq pos (or (treesit-navigate-thing
                                    (treesit-node-end (or next parent))
                                    1 'beg thing tactic t)
                                   (throw 'term nil)))
@@ -2714,7 +2648,7 @@ function is called recursively."
                                         (eq pos (funcall advance prev))))
                              (parent t)))
                   ;; Special case: go to prev end-of-defun.
-                  (setq pos (or (treesit--navigate-thing
+                  (setq pos (or (treesit-navigate-thing
                                  (treesit-node-start (or prev parent))
                                  -1 'end thing tactic t)
                                 (throw 'term nil)))
@@ -2735,7 +2669,7 @@ see `treesit-thing-settings' for details.
 Return the top-level THING if TACTIC is `top-level'; return the
 smallest enclosing THING as POS if TACTIC is `nested'."
 
-  (let ((node (treesit--thing-at (point) thing)))
+  (let ((node (treesit-thing-at (point) thing)))
     (if (eq tactic 'top-level)
         (treesit-node-top-level node thing t)
       node)))
@@ -2897,8 +2831,8 @@ when a major mode sets it.")
   "Search for the next outline heading in the syntax tree.
 See the descriptions of arguments in `outline-search-function'."
   (if looking-at
-      (when-let* ((node (or (treesit--thing-at (pos-eol) treesit-outline-predicate)
-                            (treesit--thing-at (pos-bol) treesit-outline-predicate)))
+      (when-let* ((node (or (treesit-thing-at (pos-eol) treesit-outline-predicate)
+                            (treesit-thing-at (pos-bol) treesit-outline-predicate)))
                   (start (treesit-node-start node)))
         (eq (pos-bol) (save-excursion (goto-char start) (pos-bol))))
 
@@ -2909,8 +2843,8 @@ See the descriptions of arguments in `outline-search-function'."
             (if (eq (point) (pos-bol))
                 (if (bobp) (point) (1- (point)))
               (pos-eol)))
-           (found (treesit--navigate-thing pos (if backward -1 1) 'beg
-                                           treesit-outline-predicate)))
+           (found (treesit-navigate-thing pos (if backward -1 1) 'beg
+                                          treesit-outline-predicate)))
       (if found
           (if (or (not bound) (if backward (>= found bound) (<= found bound)))
               (progn
