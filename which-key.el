@@ -729,9 +729,8 @@ Used when `which-key-popup-type' is frame.")
 
 (defun which-key--rotate (list n)
   (let* ((len (length list))
-         (n (if (< n 0) (+ len n) n))
-         (n (mod n len)))
-    (append (last list (- len n)) (butlast list (- len n)))))
+         (n (- len (mod n len))))
+    (append (last list n) (butlast list n))))
 
 (defun which-key--pages-set-current-page (pages-obj n)
   (setf (which-key--pages-pages pages-obj)
