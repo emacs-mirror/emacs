@@ -1002,10 +1002,11 @@ Responsible for handling and, or, and parenthetical expressions.")
 
 (defsubst gnus-search-single-p (query)
   "Return t if QUERY is a search for a single message."
-  (let ((q (alist-get 'parsed-query query)))
-    (and (= (length q ) 1)
-	 (consp (car-safe q))
-	 (eq (caar q) 'id))))
+  (unless (alist-get 'thread query)
+    (let ((q (alist-get 'parsed-query query)))
+      (and (= (length q ) 1)
+	   (consp (car-safe q))
+	   (eq (caar q) 'id)))))
 
 (cl-defmethod gnus-search-transform ((engine gnus-search-engine)
 				     (query list))
