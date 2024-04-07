@@ -1551,10 +1551,11 @@ public final class EmacsWindow extends EmacsHandleObject
   {
     int[] array;
 
-    /* This is supposed to translate coordinates to the root
-       window.  */
+    /* This is supposed to translate coordinates to the root window,
+       whose origin point, in this context, is that of the toplevel
+       activity host to this view.  */
     array = new int[2];
-    EmacsService.SERVICE.getLocationOnScreen (view, array);
+    EmacsService.SERVICE.getLocationInWindow (view, array);
 
     /* Now, the coordinates of the view should be in array.  Offset X
        and Y by them.  */

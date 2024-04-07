@@ -387,6 +387,23 @@ public final class EmacsService extends Service
     EmacsService.<Void>syncRunnable (task);
   }
 
+  public void
+  getLocationInWindow (final EmacsView view, final int[] coordinates)
+  {
+    FutureTask<Void> task;
+
+    task = new FutureTask<Void> (new Callable<Void> () {
+	public Void
+	call ()
+	{
+	  view.getLocationInWindow (coordinates);
+	  return null;
+	}
+      });
+
+    EmacsService.<Void>syncRunnable (task);
+  }
+
 
 
   public static void
