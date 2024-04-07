@@ -2548,26 +2548,29 @@ Return t when one or more block was removed, nil otherwise."
               ret t)
    finally return ret))
 
+(defun comp--ssa-function (function)
+  "Port into minimal SSA FUNCTION."
+  (let* ((comp-func function)
+         (ssa-status (comp-func-ssa-status function)))
+    (unless (eq ssa-status t)
+      (cl-loop
+       when (eq ssa-status 'dirty)
+         do (comp--clean-ssa function)
+       do (comp--compute-edges)
+          (comp--compute-dominator-tree)
+       until (null (comp--remove-unreachable-blocks)))
+      (comp--compute-dominator-frontiers)
+      (comp--log-block-info)
+      (comp--place-phis)
+      (comp--ssa-rename)
+      (comp--finalize-phis)
+      (comp--log-func comp-func 3)
+      (setf (comp-func-ssa-status function) t))))
+
 (defun comp--ssa ()
-  "Port all functions into minimal SSA form."
-  (maphash (lambda (_ f)
-             (let* ((comp-func f)
-                    (ssa-status (comp-func-ssa-status f)))
-               (unless (eq ssa-status t)
-                 (cl-loop
-                  when (eq ssa-status 'dirty)
-                    do (comp--clean-ssa f)
-                  do (comp--compute-edges)
-                     (comp--compute-dominator-tree)
-                 until (null (comp--remove-unreachable-blocks)))
-                 (comp--compute-dominator-frontiers)
-                 (comp--log-block-info)
-                 (comp--place-phis)
-                 (comp--ssa-rename)
-                 (comp--finalize-phis)
-                 (comp--log-func comp-func 3)
-                 (setf (comp-func-ssa-status f) t))))
-           (comp-ctxt-funcs-h comp-ctxt)))
+  "Port all functions into minimal SSA all functions."
+  (cl-loop for f being the hash-value in (comp-ctxt-funcs-h comp-ctxt)
+           do (comp--ssa-function f)))
 
 
 ;;; propagate pass specific code.
