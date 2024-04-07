@@ -2380,6 +2380,35 @@ objects is still necessary.
 ** The JSON encoder and decoder now accept arbitarily large integers.
 Previously, they were limited to the range of signed 64-bit integers.
 
+** New tree-sitter functions and variables for defining and using "things"
+
++++
+*** New variable 'treesit-thing-settings'.
+
+New variable that allows users to define "things" like 'defun', 'text',
+'sexp', for navigation commands and tree-traversal functions.
+
++++
+*** New navigation functions 'treesit-thing-prev', 'treesit-thing-next', 'treesit-navigate-thing', 'treesit-beginning-of-thing', 'treesit-end-of-thing'.
+
++++
+*** New functions 'treesit-thing-at', 'treesit-thing-at-point'.
+
++++
+*** Tree-tarversing functions 'treesit-search-subtree', 'treesit-search-forward', 'treesit-search-forward-goto', 'treesit-induce-sparse-tree' now accepts more kinds of predicates.
+
+Now users can use thing symbols (defined in 'treesit-thing-settings'),
+and any thing definitions for the predicate argument.
+
+** Other tree-sitter function and variable changes
+
++++
+*** 'treesit-parser-list' now takes additional optional arguments, LANGUAGE and TAG.
+
+If LANGUAGE is given, only return parsers for that language.  If TAG is
+given, only return parsers with that tag.  Note that passing nil as tag
+doesn't mean return all parsers, but rather "all parsers with no tags".
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 

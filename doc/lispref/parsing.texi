@@ -743,12 +743,17 @@ is non-@code{nil}, it looks for the smallest named child.
 @heading Searching for node
 
 @defun treesit-search-subtree node predicate &optional backward all depth
-This function traverses the subtree of @var{node} (including
-@var{node} itself), looking for a node for which @var{predicate}
-returns non-@code{nil}.  @var{predicate} is a regexp that is matched
-against each node's type, or a predicate function that takes a node
-and returns non-@code{nil} if the node matches.  The function returns
-the first node that matches, or @code{nil} if none does.
+This function traverses the subtree of @var{node} (including @var{node}
+itself), looking for a node for which @var{predicate} returns
+non-@code{nil}.  @var{predicate} is a regexp that is matched against
+each node's type, or a predicate function that takes a node and returns
+non-@code{nil} if the node matches.  @var{predicate} can also be a thing
+symbol or thing definition (@pxref{User-defined Things}).  Using an
+undefined thing doesn't raise an error, the function simply returns
+@code{nil}.
+
+This function returns the first node that matches, or @code{nil} if node
+matches @var{predicate}.
 
 By default, this function only traverses named nodes, but if @var{all}
 is non-@code{nil}, it traverses all the nodes.  If @var{backward} is
@@ -762,9 +767,13 @@ defaults to 1000.
 @defun treesit-search-forward start predicate &optional backward all
 Like @code{treesit-search-subtree}, this function also traverses the
 parse tree and matches each node with @var{predicate} (except for
-@var{start}), where @var{predicate} can be a regexp or a function.
-For a tree like the one below where @var{start} is marked @samp{S},
-this function traverses as numbered from 1 to 12:
+@var{start}), where @var{predicate} can be a regexp or a predicate
+function.  @var{predicate} can also be a thing symbol or thing
+definition (@pxref{User-defined Things}).  Using an undefined thing
+doesn't raise an error, the function simply returns @code{nil}.
+
+For a tree like the one below where @var{start} is marked @samp{S}, this
+function traverses as numbered from 1 to 12:
 
 @example
 @group
@@ -818,9 +827,11 @@ This function creates a sparse tree from @var{root}'s subtree.
 
 It takes the subtree under @var{root}, and combs it so only the nodes
 that match @var{predicate} are left.  Like previous functions, the
-@var{predicate} can be a regexp string that matches against each
-node's type, or a function that takes a node and returns
-non-@code{nil} if it matches.
+@var{predicate} can be a regexp string that matches against each node's
+type, or a function that takes a node and returns non-@code{nil} if it
+matches.  @var{predicate} can also be a thing symbol or thing definition
+(@pxref{User-defined Things}).  Using an undefined thing doesn't raise
+an error, the function simply returns @code{nil}.
 
 For example, given the subtree on the left that consists of both
 numbers and letters, if @var{predicate} is ``letter only'', the
@@ -1507,6 +1518,149 @@ format.
 For more details, read the tree-sitter project's documentation about
 pattern-matching, which can be found at
 @uref{https://tree-sitter.github.io/tree-sitter/using-parsers#pattern-matching-with-queries}.
+
+@node User-defined Things
+@section User-defined ``Things'' and Navigation
+It's often useful to be able to identify and find certain ``things'' in
+a buffer, like function and class definitions, statements, code blocks,
+strings, comments, etc.  Emacs allows users to define what kind of
+tree-sitter node are what ``thing''.  This enables handy features like
+jumping to the next function, marking the code block at point, or
+transposing two function arguments.
+
+The ``things'' feature in Emacs is independent of the pattern matching
+feature of tree-sitter, comparatively less powerful, but more suitable
+for navigation and traversing the parse tree.
+
+Users can define things with @var{treesit-thing-settings}.
+
+@defvar treesit-thing-settings
+This is an alist of thing definitions for each language.  The key of
+each entry is a language symbol, and the value is a list of thing
+definitions of the form @w{@code{(@var{thing} @var{pred})}}.
+
+@var{thing} is a symbol representing the thing, like @code{defun},
+@code{sexp}, or @code{sentence}; @var{pred} specifies what kind of
+tree-sitter node is the @var{thing}.
+
+@var{pred} can be a regexp string that matches the type of the node; it
+can be a function that takes a node as the argument and returns a
+boolean that indicates whether the node qualifies as the thing; it can
+be a cons @w{@code{(@var{regexp} . @var{fn})}}, which is a combination
+of a regexp and a function---the node has to match both to qualify as the
+thing.
+
+@var{pred} can also be recursively defined.  It can be @w{@code{(or
+@var{pred}...)}}, meaning satisfying any one of the @var{pred}s
+qualifies the node as the thing.  It can be @w{@code{(not @var{pred})}},
+meaning not satisfying @var{pred} qualifies the node.
+
+Finally, @var{pred} can refer to other @var{thing}s defined in this
+list.  For example, @w{@code{(or sexp sentence)}} defines something
+that's either a @code{sexp} or a @code{sentence}.
+
+Here's an example @var{treesit-thing-settings} for C and C++:
+
+@example
+@group
+((c
+  (defun "function_definition")
+  (sexp (not "[](),[@{@}]"))
+  (comment "comment")
+  (string "raw_string_literal")
+  (text (or comment string)))
+ (cpp
+  (defun ("function_definition" . cpp-ts-mode-defun-valid-p))
+  (defclass "class_specifier")
+  (comment "comment")))
+@end group
+@end example
+
+Note that this example is modified for demonstration and isn't exactly
+how C and C++ mode define things.
+@end defvar
+
+The next section lists a few functions that take advantage of the thing
+definitions.  Besides these functions, some other functions listed
+elsewhere also utilizes the thing feature, e.g., tree-traversing
+functions like @code{treesit-search-forward},
+@code{treesit-induce-sparse-tree}, etc.
+
+@defun treesit-thing-prev pos thing
+This function returns the first node before @var{pos} that's a
+@var{thing}.  If no such node exists, it returns @code{nil}.  It's
+guaranteed that, if a node is returned, the node's end position is less
+or equal to @var{pos}.  In other words, this function never return a
+node that encloses @var{pos}.
+
+@var{thing} can be either a thing symbol like @code{defun}, or simply a
+thing definition like @code{"function_definition"}.
+@end defun
+
+@defun treesit-thing-next pos thing
+This function is similar to @code{treesit-thing-prev}, only that it
+returns the first node @emph{after} @var{pos} that's a @var{thing}.  And
+it guarantees that if a node is returned, the node's start position is
+be greater or equal to @var{pos}.
+@end defun
+
+@defun treesit-navigate-thing pos arg side thing &optional tactic
+This function builds upon @code{treesit-thing-prev} and
+@code{treesit-thing-next} and provides functionality that a navigation
+command would find useful.
+
+It returns the position after navigating @var{arg} steps from @var{pos},
+without actually moving point.  If there aren't enough things to
+navigate across, it returns nil.
+
+A positive @var{arg} means moving forward that many steps; negative
+means moving backward.  If @var{side} is @code{beg}, this function stops
+at the beginning of the thing; if @code{end}, stop at the end.
+
+Like in @code{treesit-thing-prev}, @var{thing} can be a thing symbol
+defined in @var{treesit-thing-settings}, or a thing definition.
+
+@var{tactic} determines how does this function move between things.
+@var{tactic} can be @code{nested}, @code{top-level}, @code{restricted},
+or @code{nil}.  @code{nested} or @code{nil} means normal nested
+navigation: first try to move across siblings; if there aren't any
+siblings left in the current level, move to the parent, then it's
+siblings, and so on.  @code{top-level} means only navigate across
+top-level things and ignore nested things.  @code{restricted} means
+movement is restricted within the thing that encloses @var{pos}, if
+there is one such thing.  This tactic is useful for the commands that
+want to stop at the current nest level and not move up.
+@end defun
+
+@defun treesit-thing-at pos thing &optional strict
+This function returns the smallest node that's a @var{thing} and
+encloses @var{pos}; if there's no such node, return nil.
+
+The returned node must enclose @var{pos}, i.e., its start position is
+less or equal to @var{pos}, and it's end position is greater or equal to
+@var{pos}.
+
+If @var{strict} is non-@code{nil}, this function uses strict comparison,
+i.e., start position must be strictly greater than @var{pos}, and end
+position must be strictly less than @var{pos}.
+
+@var{thing} can be either a thing symbol defined in
+@var{treesit-thing-settings}, or a thing definition.
+@end defun
+
+@findex treesit-beginning-of-thing
+@findex treesit-end-of-thing
+@findex treesit-thing-at-point
+There are also some convenient wrapper functions.
+@code{treesit-beginning-of-thing} moves point to the beginning of a
+thing, @code{treesit-beginning-of-thing} to the end of a thing.
+@code{treesit-thing-at-point} returns the thing at point.
+
+There are defun commands that specifically use the @code{defun}
+definition, like @code{treesit-beginning-of-defun},
+@code{treesit-end-of-defun}, and @code{treesit-defun-at-point}.  In
+addition, these functions use @var{treesit-defun-tactic} as the
+navigation tactic.  They are described in more detail in other sections.
 
 @node Multiple Languages
 @section Parsing Text in Multiple Languages
