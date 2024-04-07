@@ -876,7 +876,7 @@ distributors.
 @item
 When the user or the system closes any window created by Emacs on behalf
 of a specific frame, Emacs deletes the frame displayed within that
-window, unless the system is Android 10.0 or later, where such windows
+window, unless the system is Android 5.0 or later, where such windows
 are treated identically to the window created at startup, albeit with no
 proviso regarding window inactivity.
 @end itemize
