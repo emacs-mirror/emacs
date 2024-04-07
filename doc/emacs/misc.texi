@@ -2157,7 +2157,7 @@ running on a text terminal, it creates a new frame in the current text
 terminal.
 
 @item -T @var{tramp-prefix}
-@itemx --tramp-prefix=@var{tramp-prefix}
+@itemx --tramp=@var{tramp-prefix}
 Set the prefix to add to filenames for Emacs to locate files on remote
 machines (@pxref{Remote Files}) using TRAMP (@pxref{Top, The Tramp
 Manual,, tramp, The Tramp Manual}).  This is mostly useful in
