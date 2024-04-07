@@ -426,4 +426,78 @@
     (should (= (field-beginning) 7))
     (should (= (field-end) (point-max)))))
 
+;;; Try and catch `*-changes-functions' bugs!
+
+(defvar sanity-check--verbose nil)
+(defun sanity-check--message (&rest args)
+  (if sanity-check--verbose (apply #'message args)))
+
+(defvar-local sanity-check-change-functions-beg 0)
+(defvar-local sanity-check-change-functions-end 0)
+(defvar-local sanity-check-change-functions-buffer-size nil)
+(defvar sanity-check-change-functions-errors nil)
+
+(defun sanity-check-change-functions-error (description &rest args)
+  (push (apply #'format description args)
+        sanity-check-change-functions-errors))
+
+(defun sanity-check-change-functions-check-size ()
+  (sanity-check--message "Size  : %S == %S"
+                         sanity-check-change-functions-buffer-size
+                         (buffer-size))
+  (cond
+   ((null sanity-check-change-functions-buffer-size)
+    (setq sanity-check-change-functions-buffer-size (buffer-size)))
+   ((equal sanity-check-change-functions-buffer-size (buffer-size)) nil)
+   (t
+    (sanity-check-change-functions-error
+     "buffer-size %S == %S"
+     (buffer-size) sanity-check-change-functions-buffer-size)
+    (setq sanity-check-change-functions-buffer-size (buffer-size)))))
+
+(defun sanity-check-change-functions-before (beg end)
+  (sanity-check--message "Before: %S %S" beg end)
+  (unless (<= (point-min) beg end (point-max))
+    (sanity-check-change-functions-error
+     "Position bounds: %S <= %S <= %S <= %S"
+     (point-min) beg end (point-max)))
+  (sanity-check-change-functions-check-size)
+  (setq sanity-check-change-functions-beg beg)
+  (setq sanity-check-change-functions-end end))
+
+(defun sanity-check-change-functions-after (beg end len)
+  (sanity-check--message "After : %S %S (%S)" beg end len)
+  (unless (<= (point-min) beg end (point-max))
+    (sanity-check-change-functions-error
+     "Position bounds: %S <= %S <= %S <= %S"
+     (point-min) beg end (point-max)))
+  (unless (>= len 0)
+    (sanity-check-change-functions-error "len: %S >= 0" len))
+  (let ((bend (+ beg len)))
+    (unless (<= sanity-check-change-functions-beg
+                beg bend
+                sanity-check-change-functions-end)
+      (sanity-check-change-functions-error
+       "After covered by before: %S <= %S <= %S <= %S"
+       sanity-check-change-functions-beg beg bend
+       sanity-check-change-functions-end)))
+  (let ((offset (- end beg len)))
+    (setq sanity-check-change-functions-end
+          (+ sanity-check-change-functions-end offset))
+    (setq sanity-check-change-functions-buffer-size
+          (+ sanity-check-change-functions-buffer-size offset)))
+  (sanity-check-change-functions-check-size))
+
+(ert-deftest editfns-tests--before/after-change-functions ()
+  (with-temp-buffer
+    (add-hook 'before-change-functions
+              #'sanity-check-change-functions-before nil t)
+    (add-hook 'after-change-functions
+              #'sanity-check-change-functions-after nil t)
+
+    ;; Bug#65451
+    (insert "utf-8-unix\n\nUTF")
+    (call-interactively 'dabbrev-expand)
+    (should (null sanity-check-change-functions-errors))))
+
 ;;; editfns-tests.el ends here
