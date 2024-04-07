@@ -1618,9 +1618,9 @@ history to be cleared.
 *** XFCE: Selected frame loses focus
 
 This can happen, e.g., in Ediff: when you move between the differences
-by typing into the control frame, input focus unexpectedly switches to
-the buffers where Emacs shows the differences, instead of being left
-in the Ediff control frame.
+by typing 'n' or 'p' into the control frame, input focus unexpectedly
+switches to the buffers where Emacs shows the differences, instead of
+being left in the Ediff control frame.
 
 The reason is a bug in the window manager: it shifts input focus when
 raising a frame.  A workaround is to activate the "focus stealing
