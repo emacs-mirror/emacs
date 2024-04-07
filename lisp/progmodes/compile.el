@@ -2644,24 +2644,29 @@ and runs `compilation-filter-hook'."
          (text-properties-at (1- beg))))
     (insert string)
     ;; If we exceeded the limit, hide the last portion of the line.
-    (when (> (current-column) width)
-      (let ((start (save-excursion
-                     (move-to-column width)
-                     (point))))
-        (buttonize-region
-         start (point)
-         (lambda (start)
-           (let ((inhibit-read-only t))
-             (remove-text-properties start (save-excursion
-                                             (goto-char start)
-                                             (line-end-position))
-                                     (text-properties-at start)))))
-        (put-text-property
-         start (if (= (aref string (1- (length string))) ?\n)
-                   ;; Don't hide the final newline.
-                   (1- (point))
-                 (point))
-         'display (if (char-displayable-p ?…) "[…]" "[...]"))))))
+    (let* ((ends-in-nl (= (aref string (1- (length string))) ?\n))
+           (curcol (if ends-in-nl
+                       (progn (backward-char) (current-column))
+                     (current-column))))
+      (when (> curcol width)
+        (let ((start (save-excursion
+                       (move-to-column width)
+                       (point))))
+          (buttonize-region
+           start (point)
+           (lambda (start)
+             (let ((inhibit-read-only t))
+               (remove-text-properties start (save-excursion
+                                               (goto-char start)
+                                               (line-end-position))
+                                       (text-properties-at start)))))
+          (put-text-property
+           start (if ends-in-nl
+                     ;; Don't hide the final newline.
+                     (1- (point))
+                   (point))
+           'display (if (char-displayable-p ?…) "[…]" "[...]"))))
+      (if ends-in-nl (forward-char)))))
 
 (defsubst compilation-buffer-internal-p ()
   "Test if inside a compilation buffer."
