@@ -1551,7 +1551,7 @@ Within these categories order using `which-key-key-order'."
   (when (and (consp key-binding) (not (symbolp (car replacement))))
     (let ((key-regexp (caar replacement))
           (binding-regexp (cdar replacement))
-          case-fold-search)
+          (case-fold-search nil))
       (and (or (null key-regexp)
                (string-match-p key-regexp
                                (car key-binding)))
@@ -1684,7 +1684,7 @@ If KEY contains any \"special keys\" defined in
                         (mapconcat #'identity which-key-special-keys
                                    "\\|")
                         "\\)"))
-        case-fold-search)
+        (case-fold-search nil))
     (save-match-data
       (if (and which-key-special-keys
                (string-match regexp key))
