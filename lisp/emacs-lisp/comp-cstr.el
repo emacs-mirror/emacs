@@ -89,7 +89,10 @@ Integer values are handled in the `range' slot.")
   "Return all non built-in type names currently defined."
   (let (res)
     (mapatoms (lambda (x)
-                (when (cl-find-class x)
+                (when-let ((class (cl-find-class x))
+                           ;; Ignore EIEIO classes as they can be
+                           ;; redefined at runtime.
+                           (gate (not (eq 'eieio--class (type-of class)))))
                   (push x res)))
               obarray)
     res))
