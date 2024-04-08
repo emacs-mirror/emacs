@@ -39,7 +39,7 @@
 ;;; Code:
 (require 'ert-x)
 (require 'erc)
-
+(eval-when-compile (require 'erc-stamp))
 
 (defmacro erc-tests-common-equal-with-props (a b)
   "Compare strings A and B for equality including text props.
@@ -196,6 +196,25 @@ For simplicity, assume string evaluates to itself."
     (erc-readonly-mode +1)
     (funcall assert-fn test-fn)))
 
+(defun erc-tests--common-display-message (orig &rest args)
+  (require 'erc-stamp)
+  (defvar erc-stamp--deferred-date-stamp)
+  (let (erc-stamp--deferred-date-stamp)
+    (prog1 (apply orig args)
+      (when-let ((inst erc-stamp--deferred-date-stamp)
+                 (fn (erc-stamp--date-fn inst)))
+        (funcall fn)))))
+
+(defun erc-tests-common-display-message (&rest args)
+  (apply #'erc-tests--common-display-message #'erc-display-message args))
+
+(defmacro erc-tests-common-with-date-aware-display-message (&rest body)
+  `(progn
+     (advice-add 'erc-display-message
+                 :around #'erc-tests--common-display-message)
+     (unwind-protect (progn ,@body)
+       (advice-remove 'erc-display-message
+                      #'erc-tests--common-display-message))))
 
 ;;;; Buffer snapshots
 
@@ -223,12 +242,19 @@ string."
          (print-escape-nonascii t)
          (got (erc--remove-text-properties
                (buffer-substring (point-min) erc-insert-marker)))
-         (repr (funcall (or trans-fn #'identity) (prin1-to-string got))))
+         (repr (funcall (or trans-fn #'identity) (prin1-to-string got)))
+         (xstr (read (with-temp-buffer
+                       (insert-file-contents-literally expect-file)
+                       (buffer-string)))))
     (with-current-buffer (generate-new-buffer name)
       (with-silent-modifications
         (insert (setq got (read repr))))
       (when buf-init-fn (funcall buf-init-fn))
       (erc-mode))
+    (unless noninteractive
+      (with-current-buffer (generate-new-buffer (format "%s-xpt" name))
+        (insert xstr)
+        (erc-mode)))
     ;; LHS is a string, RHS is a symbol.
     (if (string= erc-tests-common-snapshot-save-p
                  (ert-test-name (ert-running-test)))
@@ -242,9 +268,7 @@ string."
           ;; recursive (signals `max-lisp-eval-depth' exceeded).
           (named-let assert-equal
               ((latest (read repr))
-               (expect (read (with-temp-buffer
-                               (insert-file-contents-literally expect-file)
-                               (buffer-string)))))
+               (expect xstr))
             (pcase latest
               ((or "" 'nil) t)
               ((pred stringp)

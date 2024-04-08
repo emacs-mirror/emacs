@@ -486,16 +486,14 @@ these areas without inflicting collateral damage.
 Despite the rationale, this move admittedly ushers in a heightened
 potential for disruption because third-party members of ERC's
 modification hooks may not take kindly to encountering stamp-only
-messages.  They may also expect members of 'erc-insert-pre-hook' and
-'erc-insert-done-hook' to run unconditionally, even though ERC
-suppresses those hooks when inserting date stamps.  Third parties may
-also not appreciate that 'erc-timestamp-last-inserted-left' no longer
-records the final trailing newline in 'erc-timestamp-format-left'.  If
-these inconveniences prove too encumbering to deal with right away,
-see the escape hatch 'erc-stamp-prepend-date-stamps-p', which should
-help ease the transition.  As for detecting these new stamp-only
-messages from members of 'erc-insert-modify-hook' and friends, see the
-function 'erc-stamp-inserting-date-stamp-p'.
+messages or the new behavior of 'erc-timestamp-last-inserted-left',
+which no longer records the final trailing newline in the variable
+'erc-timestamp-format-left'.  If these inconveniences prove too
+encumbering to deal with right away, see the escape hatch
+'erc-stamp-prepend-date-stamps-p', which should help ease the
+transition.  As for detecting these new stamp-only messages from
+members of 'erc-insert-modify-hook' and friends, see the function
+'erc-stamp-inserting-date-stamp-p'.
 
 *** The role of a module's Custom group is now more clearly defined.
 Associating built-in modules with Custom groups and "provided" library

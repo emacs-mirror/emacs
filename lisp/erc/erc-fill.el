@@ -674,8 +674,6 @@ See `erc-fill-wrap-mode' for details."
                      (skip-syntax-forward "^-")
                      (forward-char)
                      (cond ((eq msg-prop 'datestamp)
-                            (when erc-fill--wrap-last-msg
-                              (set-marker erc-fill--wrap-last-msg (point-min)))
                             (save-excursion
                               (goto-char (point-max))
                               (skip-chars-backward "\n")

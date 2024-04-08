@@ -202,7 +202,8 @@ from entering them and instead jump over them."
   (when-let ((priors (or erc--server-reconnecting erc--target-priors)))
     (dolist (var '(erc-timestamp-last-inserted
                    erc-timestamp-last-inserted-left
-                   erc-timestamp-last-inserted-right))
+                   erc-timestamp-last-inserted-right
+                   erc-stamp--date-stamps))
       (when-let (existing (alist-get var priors))
         (set var existing)))))
 
@@ -652,7 +653,7 @@ printed just after each line's text (no alignment)."
 	(erc-put-text-property from (1+ (point)) 'cursor-intangible t)))))
 
 (defvar erc-stamp--insert-date-hook nil
-  "Functions appended to send and modify hooks when inserting date stamp.")
+  "Hook run when inserting a date stamp.")
 
 (defvar-local erc-stamp--date-format-end nil
   "Tristate value indicating how and whether date stamps have been set up.
@@ -661,9 +662,27 @@ stamps.  An integer marks the `substring' TO parameter for
 truncating `erc-timestamp-format-left' prior to rendering.  A
 value of t means the option's value doesn't require trimming.")
 
-(defun erc-stamp--propertize-left-date-stamp ()
+;; This struct and its namesake variable exist to assist in testing.
+(cl-defstruct erc-stamp--date
+  "Data relevant to life cycle of date-stamp insertion."
+  ( ts (error "Missing `ts' field") :type (or cons integer)
+    :documentation "Time recorded by `erc-insert-timestamp-left-and-right'.")
+  ( str (error "Missing `str' field") :type string
+    :documentation "Stamp rendered by `erc-insert-timestamp-left-and-right'.")
+  ( fn nil :type (or null function)
+    :documentation "Deferred insertion function created by post-modify hook.")
+  ( marker (make-marker) :type marker
+    :documentation "Insertion marker."))
+
+(defvar-local erc-stamp--deferred-date-stamp nil
+  "Active `erc-stamp--date' instance.
+Non-nil between insertion-modification and \"done\" (or timer) hook.")
+
+(defvar-local erc-stamp--date-stamps nil
+  "List of stamps in the current buffer.")
+
+(defun erc-stamp--propertize-left-date-stamp (&rest _)
   (add-text-properties (point-min) (1- (point-max)) '(field erc-timestamp))
-  (erc--hide-message 'timestamp)
   (run-hooks 'erc-stamp--insert-date-hook))
 
 (defun erc-stamp--format-date-stamp (ct)
@@ -680,6 +699,16 @@ value of t means the option's value doesn't require trimming.")
                                             0 erc-stamp--date-format-end)
                                erc-timestamp-format-left))))
 
+(defun erc-stamp--find-insertion-point (p target-time)
+  "Scan buffer backwards from P looking for TARGET-TIME.
+Return P or, if found, a position less than P."
+  (while-let ((q (previous-single-property-change (1- p) 'erc--ts))
+              (qq (erc--get-inserted-msg-beg q))
+              (ts (get-text-property qq 'erc--ts))
+              ((not (time-less-p ts target-time))))
+    (setq p qq))
+  p)
+
 (defun erc-stamp-inserting-date-stamp-p ()
   "Return non-nil if the narrowed buffer contains a date stamp.
 Expect to be called by members of `erc-insert-modify-hook' and
@@ -687,75 +716,77 @@ Expect to be called by members of `erc-insert-modify-hook' and
 inserted is a date stamp."
   (erc--check-msg-prop 'erc--msg 'datestamp))
 
-;; Calling `erc-display-message' from within a hook it's currently
-;; running is roundabout, but it's a definite means of ensuring hooks
-;; can act on the date stamp as a standalone message to do things like
-;; adjust invisibility props.
-(defun erc-stamp--insert-date-stamp-as-phony-message (string)
-  (cl-assert (string-empty-p string))
-  (setq string erc-timestamp-last-inserted-left)
-  (let ((erc-stamp--skip t)
-        (erc-insert-modify-hook `(,@erc-insert-modify-hook
-                                  erc-stamp--propertize-left-date-stamp))
-        (erc--insert-line-function #'insert-before-markers)
-        ;; Don't run hooks that aren't expecting a narrowed buffer.
-        (erc-insert-pre-hook nil)
-        (erc-insert-done-hook nil))
-    (erc-display-message nil nil (current-buffer) string)))
+(defun erc-stamp--defer-date-insertion-on-post-modify (hook-var)
+  "Schedule a date stamp to be inserted via HOOK-VAR.
+Do so when `erc-stamp--deferred-date-stamp' and its `fn' slot are
+non-nil."
+  (when-let ((data erc-stamp--deferred-date-stamp)
+             ((null (erc-stamp--date-fn data)))
+             (ct (erc-stamp--date-ts data))
+             (rendered (erc-stamp--date-str data))
+             (buffer (current-buffer))
+             (symbol (make-symbol "erc-stamp--insert-date"))
+             (marker (setf (erc-stamp--date-marker data) (point-min-marker))))
+    (setf (erc-stamp--date-fn data) symbol)
+    (fset symbol
+          (lambda (&rest _)
+            (remove-hook hook-var symbol)
+            (when (buffer-live-p buffer)
+              (with-current-buffer buffer
+                (setq erc-stamp--date-stamps
+                      (cl-sort (cons data erc-stamp--date-stamps) #'time-less-p
+                               :key #'erc-stamp--date-ts))
+                (setq erc-stamp--deferred-date-stamp nil)
+                (let* ((aligned (erc-stamp--time-as-day ct))
+                       (erc-stamp--current-time aligned)
+                       (erc--msg-props (map-into '((erc--msg . datestamp))
+                                                 'hash-table))
+                       (erc-insert-post-hook
+                        `(,(lambda ()
+                             (set-marker marker (point-min))
+                             (set-marker-insertion-type marker t)
+                             (erc--hide-message 'timestamp))
+                          ,@erc-insert-post-hook))
+                       (erc-insert-timestamp-function
+                        #'erc-stamp--propertize-left-date-stamp)
+                       (pos (erc-stamp--find-insertion-point marker aligned))
+                       ;;
+                       erc-timestamp-format erc-away-timestamp-format)
+                  (erc--with-spliced-insertion pos
+                    (erc-display-message nil nil (current-buffer) rendered))
+                  (setf (erc-stamp--date-ts data) aligned))
+                (setq erc-timestamp-last-inserted-left rendered)))))
+    (add-hook hook-var symbol -90)))
 
-(defun erc-stamp--lr-date-on-pre-modify (_)
-  (when-let (((not erc-stamp--skip))
-             (ct (erc-stamp--current-time))
-             (rendered (erc-stamp--format-date-stamp ct))
-             ((not (string-equal rendered erc-timestamp-last-inserted-left)))
-             (erc-insert-timestamp-function
-              #'erc-stamp--insert-date-stamp-as-phony-message))
-    (save-excursion
-      (save-restriction
-        (narrow-to-region (or erc--insert-marker erc-insert-marker)
-                          (or erc--insert-marker erc-insert-marker))
-        ;; Ensure all hooks, like `erc-stamp--insert-date-hook', only
-        ;; see the let-bound value below during `erc-add-timestamp'.
-        (setq erc-timestamp-last-inserted-left nil)
-        (let* ((aligned (erc-stamp--time-as-day ct))
-               (erc-stamp--current-time aligned)
-               ;; Forget current `erc--cmd', etc.
-               (erc--msg-props (map-into `((erc--msg . datestamp))
-                                         'hash-table))
-               (erc-timestamp-last-inserted-left rendered)
-               erc-timestamp-format erc-away-timestamp-format)
-          (erc-add-timestamp))
-        (setq erc-timestamp-last-inserted-left rendered)))))
+(defun erc-stamp--defer-date-insertion-on-post-insert ()
+  (erc-stamp--defer-date-insertion-on-post-modify 'erc-timer-hook))
 
-;; This minor mode is just a placeholder and currently unhelpful for
-;; managing complexity.  A useful version would leave a marker during
-;; post-modify hooks and then perform insertions (before markers)
-;; during "done" hooks.  This would enable completely decoupling from
-;; and possibly deprecating `erc-insert-timestamp-left-and-right'.
-;; However, doing this would require expanding the internal API to
-;; include insertion and deletion handlers for twiddling and massaging
-;; text properties based on context immediately after modifying text
-;; earlier in a buffer (away from `erc-insert-marker').  Without such
-;; handlers, things like "merged" `fill-wrap' speakers and invisible
-;; messages may be damaged by buffer modifications.
+(defun erc-stamp--defer-date-insertion-on-post-send ()
+  (erc-stamp--defer-date-insertion-on-post-modify 'erc-send-completed-hook))
+
+;; This minor mode is hopefully just a placeholder because it's quite
+;; unhelpful for managing complexity.  A useful version would exist as
+;; a standalone module to allow completely decoupling from and
+;; possibly deprecating `erc-insert-timestamp-left-and-right'.
 (define-minor-mode erc-stamp--date-mode
   "Insert date stamps as standalone messages."
   :interactive nil
   (if erc-stamp--date-mode
-      (progn (add-hook 'erc-insert-pre-hook
-                       #'erc-stamp--lr-date-on-pre-modify 10 t)
-             (add-hook 'erc-pre-send-functions
-                       #'erc-stamp--lr-date-on-pre-modify 10 t))
+      (progn
+        (add-hook 'erc-insert-post-hook
+                  #'erc-stamp--defer-date-insertion-on-post-insert 0 t)
+        (add-hook 'erc-send-post-hook
+                  #'erc-stamp--defer-date-insertion-on-post-send 0 t))
     (kill-local-variable 'erc-timestamp-last-inserted-left)
-    (remove-hook 'erc-insert-pre-hook
-                 #'erc-stamp--lr-date-on-pre-modify t)
-    (remove-hook 'erc-pre-send-functions
-                 #'erc-stamp--lr-date-on-pre-modify t)))
+    (remove-hook 'erc-insert-post-hook
+                 #'erc-stamp--defer-date-insertion-on-post-insert t)
+    (remove-hook 'erc-send-post-hook
+                 #'erc-stamp--defer-date-insertion-on-post-send t)))
 
 (defvar erc-stamp-prepend-date-stamps-p nil
   "When non-nil, date stamps are not independent messages.
-This flag restores pre-5.6 behavior in which date stamps formed
-the leading portion of affected messages.  Beware that enabling
+This flag restores pre-5.6 behavior in which date stamps were
+prepended to normal chat messages.  Beware that enabling
 this degrades the user experience by causing 5.6+ features, like
 `fill-wrap', dynamic invisibility, etc., to malfunction.  When
 non-nil, none of the newline twiddling mentioned in the doc
@@ -775,26 +806,17 @@ in the latter (if any) as part of the `erc-timestamp' field.
 Allow the stamp's `invisible' property to span that same interval
 but also cover the previous newline, in order to satisfy folding
 requirements related to `erc-legacy-invisible-bounds-p'.
-Additionally, ensure every date stamp is identifiable as such so
-that internal modules can easily distinguish between other
-left-sided stamps and date stamps inserted by this function."
+Additionally, ensure every date stamp is identifiable as such via
+the function `erc-stamp-inserting-date-stamp-p' so that internal
+modules can easily distinguish between other left-sided stamps
+and date stamps inserted by this function."
   (unless (or erc-stamp--date-format-end erc-stamp-prepend-date-stamps-p
               (and (or (null erc-timestamp-format-left)
                        (string-empty-p ; compat
                         (string-trim erc-timestamp-format-left "\n")))
                    (always (erc-stamp--date-mode -1))
                    (setq erc-stamp-prepend-date-stamps-p t)))
-    (erc-stamp--date-mode +1)
-    ;; Hooks used by ^ are the preferred means of inserting date
-    ;; stamps.  But they'll never see this inaugural message, so it
-    ;; must be handled specially.
-    (let ((erc--insert-marker (point-min-marker))
-          (end-marker (point-max-marker)))
-      (set-marker-insertion-type erc--insert-marker t)
-      (erc-stamp--lr-date-on-pre-modify nil)
-      (narrow-to-region erc--insert-marker end-marker)
-      (set-marker end-marker nil)
-      (set-marker erc--insert-marker nil)))
+    (erc-stamp--date-mode +1))
   (let* ((ct (erc-stamp--current-time))
          (ts-right (with-suppressed-warnings
                        ((obsolete erc-timestamp-format-right))
@@ -805,12 +827,22 @@ left-sided stamps and date stamps inserted by this function."
     ;; "prepended" date stamps as well.  However, since this is a
     ;; compatibility oriented code path, and pre-5.6 did no such
     ;; thing, better to punt.
-    (when-let ((erc-stamp-prepend-date-stamps-p)
-               (ts-left (erc-format-timestamp ct erc-timestamp-format-left))
-               ((not (string= ts-left erc-timestamp-last-inserted-left))))
-      (goto-char (point-min))
-      (erc-put-text-property 0 (length ts-left) 'field 'erc-timestamp ts-left)
-      (insert (setq erc-timestamp-last-inserted-left ts-left)))
+    (if-let ((erc-stamp-prepend-date-stamps-p)
+             (ts-left (erc-format-timestamp ct erc-timestamp-format-left))
+             ((not (string= ts-left erc-timestamp-last-inserted-left))))
+        (progn
+          (goto-char (point-min))
+          (erc-put-text-property 0 (length ts-left) 'field 'erc-timestamp
+                                 ts-left)
+          (insert (setq erc-timestamp-last-inserted-left ts-left)))
+      (when-let
+          (((null erc-stamp--deferred-date-stamp))
+           (rendered (erc-stamp--format-date-stamp ct))
+           ((not (string-equal rendered erc-timestamp-last-inserted-left)))
+           ((null (cl-find rendered erc-stamp--date-stamps
+                           :test #'string= :key #'erc-stamp--date-str))))
+        (setq erc-stamp--deferred-date-stamp
+              (make-erc-stamp--date :ts ct :str rendered))))
     ;; insert right timestamp
     (let ((erc-timestamp-only-if-changed-flag t)
 	  (erc-timestamp-last-inserted erc-timestamp-last-inserted-right))
@@ -924,6 +956,8 @@ For `erc-hide-timestamps, modify `buffer-invisibility-spec'."
     (kill-local-variable 'erc-stamp--last-stamp)
     (kill-local-variable 'erc-timestamp-last-inserted)
     (kill-local-variable 'erc-timestamp-last-inserted-right)
+    (kill-local-variable 'erc-stamp--deferred-date-stamp)
+    (kill-local-variable 'erc-stamp--date-stamps)
     (kill-local-variable 'erc-stamp--date-format-end)))
 
 (defun erc-hide-timestamps ()
@@ -992,7 +1026,12 @@ with the option `erc-echo-timestamps', see the companion option
   (move-marker erc-last-saved-position (1- (point-max))))
 
 (defun erc-stamp--reset-on-clear (pos)
-  "Forget last-inserted stamps when POS is at insert marker."
+  "Forget last-inserted stamps when POS is at insert marker.
+And discard stale references in `erc-stamp--date-stamps'."
+  (when erc-stamp--date-stamps
+    (setq erc-stamp--date-stamps
+          (seq-filter (lambda (o) (> (erc-stamp--date-marker o) pos))
+                      erc-stamp--date-stamps)))
   (when (= pos (1- erc-insert-marker))
     (when erc-stamp--date-mode
       (add-hook 'erc-stamp--insert-date-hook

@@ -48,7 +48,7 @@
                                     :command "PRIVMSG"
                                     :command-args (list "#chan" msg)
                                     :contents msg)))
-    (erc-display-message parsed nil (current-buffer) msg)))
+    (erc-tests-common-display-message parsed nil (current-buffer) msg)))
 
 (defun erc-fill-tests--wrap-populate (test)
   (let ((original-window-buffer (window-buffer (selected-window)))
@@ -79,7 +79,7 @@
           (erc-update-channel-member
            "#chan" "bob" "bob" t nil nil nil nil nil "fake" "~u" nil nil t)
 
-          (erc-display-message
+          (erc-tests-common-display-message
            nil 'notice (current-buffer)
            (concat "This server is in debug mode and is logging all user I/O. "
                    "If you do not wish for everything you send to be readable "
@@ -260,29 +260,31 @@
        (erc-fill-tests--insert-privmsg "bob" "zero.")
        (erc-fill-tests--insert-privmsg "bob" "0.5")
 
-       (erc-process-ctcp-query
-        erc-server-process
-        (make-erc-response
-         :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION one.\1"
-         :sender "bob!~u@fake"
-         :command "PRIVMSG"
-         :command-args '("#chan" "\1ACTION one.\1")
-         :contents "\1ACTION one.\1")
-        "bob" "~u" "fake")
+       (erc-tests-common-with-date-aware-display-message
+        (erc-process-ctcp-query
+         erc-server-process
+         (make-erc-response
+          :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION one.\1"
+          :sender "bob!~u@fake"
+          :command "PRIVMSG"
+          :command-args '("#chan" "\1ACTION one.\1")
+          :contents "\1ACTION one.\1")
+         "bob" "~u" "fake"))
 
        (erc-fill-tests--insert-privmsg "bob" "two.")
        (erc-fill-tests--insert-privmsg "bob" "2.5")
 
        ;; Compat switch to opt out of overhanging speaker.
-       (let (erc-fill--wrap-action-dedent-p)
-         (erc-process-ctcp-query
-          erc-server-process
-          (make-erc-response
-           :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION three\1"
-           :sender "bob!~u@fake" :command "PRIVMSG"
-           :command-args '("#chan" "\1ACTION three\1")
-           :contents "\1ACTION three\1")
-          "bob" "~u" "fake"))
+       (erc-tests-common-with-date-aware-display-message
+        (let (erc-fill--wrap-action-dedent-p)
+          (erc-process-ctcp-query
+           erc-server-process
+           (make-erc-response
+            :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION three\1"
+            :sender "bob!~u@fake" :command "PRIVMSG"
+            :command-args '("#chan" "\1ACTION three\1")
+            :contents "\1ACTION three\1")
+           "bob" "~u" "fake")))
 
        (erc-fill-tests--insert-privmsg "bob" "four."))
 
@@ -312,8 +314,10 @@
     (erc-fill-tests--wrap-populate
      (lambda ()
        (erc-fill-tests--insert-privmsg "bob" "This buffer is for text.")
-       (erc-display-message nil 'notice (current-buffer) "one two three")
-       (erc-display-message nil 'notice (current-buffer) "four five six")
+       (erc-tests-common-display-message nil 'notice
+                                         (current-buffer) "one two three")
+       (erc-tests-common-display-message nil 'notice
+                                         (current-buffer) "four five six")
        (erc-fill-tests--insert-privmsg "bob" "Somebody stop me")
        (erc-fill-tests--compare "spacing-01-mono")))))
 
