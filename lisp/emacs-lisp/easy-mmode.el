@@ -493,6 +493,8 @@ on if the hook has explicitly disabled it.
 	 (extra-keywords nil)
          (MODE-variable mode)
 	 (MODE-buffers (intern (concat global-mode-name "-buffers")))
+	 (MODE-enable-in-buffer
+	  (intern (concat global-mode-name "-enable-in-buffer")))
 	 (MODE-enable-in-buffers
 	  (intern (concat global-mode-name "-enable-in-buffers")))
 	 (MODE-check-buffers
@@ -559,10 +561,10 @@ Disable the mode if ARG is a negative number.\n\n"
 	 (if ,global-mode
 	     (progn
 	       (add-hook 'after-change-major-mode-hook
-			 #',MODE-enable-in-buffers)
+			 #',MODE-enable-in-buffer)
 	       (add-hook 'find-file-hook #',MODE-check-buffers)
 	       (add-hook 'change-major-mode-hook #',MODE-cmhh))
-	   (remove-hook 'after-change-major-mode-hook #',MODE-enable-in-buffers)
+	   (remove-hook 'after-change-major-mode-hook #',MODE-enable-in-buffer)
 	   (remove-hook 'find-file-hook #',MODE-check-buffers)
 	   (remove-hook 'change-major-mode-hook #',MODE-cmhh))
 
@@ -609,6 +611,36 @@ list."
        ;; List of buffers left to process.
        (defvar ,MODE-buffers nil)
 
+       ;; The function that calls TURN-ON in the current buffer.
+       (defun ,MODE-enable-in-buffer ()
+         ;; Remove ourselves from the list of pending buffers.
+         (setq ,MODE-buffers (delq (current-buffer) ,MODE-buffers))
+         (unless ,MODE-set-explicitly
+           (unless (eq ,MODE-major-mode major-mode)
+             (if ,MODE-variable
+                 (progn
+                   (,mode -1)
+                   (funcall ,turn-on-function))
+               (funcall ,turn-on-function))))
+         (setq ,MODE-major-mode major-mode))
+       (put ',MODE-enable-in-buffer 'definition-name ',global-mode)
+
+       ;; In the normal case, major modes run `after-change-major-mode-hook'
+       ;; which will have called `MODE-enable-in-buffer' for us.  But some
+       ;; major modes don't use `run-mode-hooks' (customarily used via
+       ;; `define-derived-mode') and thus fail to run
+       ;; `after-change-major-mode-hook'.
+       ;; The functions below try to handle those major modes, with
+       ;; a combination of ugly hacks to try and catch those corner
+       ;; cases by listening to `change-major-mode-hook' to discover
+       ;; potential candidates and then checking in `post-command-hook'
+       ;; and `find-file-hook' if some of those still haven't run
+       ;; `after-change-major-mode-hook'.  FIXME: We should try and get
+       ;; rid of this ugly hack and rely purely on
+       ;; `after-change-major-mode-hook' because they can (and do) end
+       ;; up running `MODE-enable-in-buffer' too early (when the major
+       ;; isn't yet fully setup) in some cases (see bug#58888).
+
        ;; The function that calls TURN-ON in each buffer.
        (defun ,MODE-enable-in-buffers ()
          (let ((buffers ,MODE-buffers))
@@ -618,15 +650,8 @@ list."
            (setq ,MODE-buffers nil)
            (dolist (buf buffers)
              (when (buffer-live-p buf)
-               (with-current-buffer buf
-                 (unless ,MODE-set-explicitly
-                   (unless (eq ,MODE-major-mode major-mode)
-                     (if ,MODE-variable
-                         (progn
-                           (,mode -1)
-                           (funcall ,turn-on-function))
-                       (funcall ,turn-on-function))))
-                 (setq ,MODE-major-mode major-mode))))))
+              (with-current-buffer buf
+                (,MODE-enable-in-buffer))))))
        (put ',MODE-enable-in-buffers 'definition-name ',global-mode)
 
        (defun ,MODE-check-buffers ()
