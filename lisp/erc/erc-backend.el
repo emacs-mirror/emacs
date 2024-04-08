@@ -1536,6 +1536,8 @@ Finds hooks by looking in the `erc-server-responses' hash table."
   (let ((hook (or (erc-get-hook (erc-response.command message))
                   'erc-default-server-functions)))
     (run-hook-with-args-until-success hook process message)
+    ;; Some handlers, like `erc-cmd-JOIN', open new targets without
+    ;; saving excursion, and `erc-open' sets the current buffer.
     (erc-with-server-buffer
       (run-hook-with-args 'erc-timer-hook (erc-current-time)))))
 

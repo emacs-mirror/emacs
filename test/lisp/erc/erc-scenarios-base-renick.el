@@ -253,7 +253,7 @@
     (ert-info ("Joined by bouncer to #chan@barnet, pal persent")
       (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan@barnet"))
         (funcall expect 1 "rando")
-        (funcall expect 2 "come, sir, I am")))
+        (funcall expect 5 "come, sir, I am")))
 
     (ert-info ("Query buffer exists for rando@foonet")
       (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "rando@foonet"))
