@@ -2149,6 +2149,8 @@ If compilation is needed, this functions returns the result of
                 (cons tempfile target-file))
         (rename-file tempfile target-file t)))))
 
+(defvar bytecomp--inhibit-lexical-cookie-warning nil)
+
 ;;;###autoload
 (defun byte-compile-file (filename &optional load)
   "Compile a file of Lisp code named FILENAME into a file of byte code.
@@ -2234,7 +2236,8 @@ See also `emacs-lisp-byte-compile-and-load'."
         (setq buffer-read-only nil
               filename buffer-file-name))
       ;; Don't inherit lexical-binding from caller (bug#12938).
-      (unless (local-variable-p 'lexical-binding)
+      (unless (or (local-variable-p 'lexical-binding)
+                  bytecomp--inhibit-lexical-cookie-warning)
         (let ((byte-compile-current-buffer (current-buffer)))
           (displaying-byte-compile-warnings
            (byte-compile-warn-x
