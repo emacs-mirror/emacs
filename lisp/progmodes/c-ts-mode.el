@@ -1155,7 +1155,9 @@ BEG and END are described in `treesit-range-rules'."
                                    "struct_specifier"
                                    "enum_specifier"
                                    "union_specifier"
-                                   "class_specifier"
+                                   ;; Make sure this doesn't match
+                                   ;; storage_class_specifier.
+                                   "^class_specifier$"
                                    "namespace_definition")
                                  (and c-ts-mode-emacs-sources-support
                                       '(;; DEFUN.
