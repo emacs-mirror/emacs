@@ -294,6 +294,7 @@ A nil value means don't show the file in the list."
 				       (border-width . 0)
 				       (menu-bar-lines . 0)
 				       (tool-bar-lines . 0)
+				       (tab-bar-lines . 0)
 				       (unsplittable . t)
 				       (left-fringe . 0)
 				       )
@@ -304,7 +305,8 @@ attached to and added to this list before the new frame is initialized."
   :group 'speedbar
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
-		       (sexp :tag "Value"))))
+		       (sexp :tag "Value")))
+  :version "30.1")
 
 (defcustom speedbar-use-imenu-flag t
   "Non-nil means use imenu for file parsing, nil to use etags.
