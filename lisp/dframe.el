@@ -684,6 +684,8 @@ Must be bound to event E."
     (sit-for 0)
     (popup-menu (mouse-menu-major-mode-map) e)))
 
+(put 'dframe-popup-kludge 'mouse-1-menu-command t)
+
 ;;; Interactive user functions for the mouse
 ;;
 (defun dframe-mouse-event-p (event)
