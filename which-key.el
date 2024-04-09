@@ -2194,32 +2194,13 @@ Actual lines: %s"
       (which-key--propertize (format "[%s paging/help]" key)
                              'face 'which-key-note-face))))
 
-(eval-and-compile
-  (if (fboundp 'universal-argument--description)
-      (defalias 'which-key--universal-argument--description
-        #'universal-argument--description)
-    (defun which-key--universal-argument--description ()
-      ;; Backport of the definition of universal-argument--description in
-      ;; emacs25 on 2015-12-04
-      (when prefix-arg
-        (concat "C-u"
-                (pcase prefix-arg
-                  (`(-) " -")
-                  (`(,(and (pred integerp) n))
-                   (let ((str ""))
-                     (while (and (> n 4) (= (mod n 4) 0))
-                       (setq str (concat str " C-u"))
-                       (setq n (/ n 4)))
-                     (if (= n 4) str (format " %s" prefix-arg))))
-                  (_ (format " %s" prefix-arg))))))))
-
 (defun which-key--full-prefix (prefix-keys &optional -prefix-arg dont-prop-keys)
   "Return a description of the full key sequence up to now.
 Include prefix arguments."
   (let* ((left (eq which-key-show-prefix 'left))
          (prefix-arg (if -prefix-arg -prefix-arg prefix-arg))
          (str (concat
-               (which-key--universal-argument--description)
+               (universal-argument--description)
                (when prefix-arg " ")
                prefix-keys))
          (dash (if (and (not (string= prefix-keys ""))
