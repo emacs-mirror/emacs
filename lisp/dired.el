@@ -1740,8 +1740,16 @@ see `dired-use-ls-dired' for more details.")
 	                      (file-expand-wildcards (cdr dir-wildcard))))
 	         (let ((beg (point)))
 	           (insert-directory f switches nil nil)
-	           ;; Re-align fields, if necessary.
-	           (dired-align-file beg (point))))))
+		   ;; `dired-align-file' doesn't fare well with dired
+		   ;; implementations that don't indent entries by one
+		   ;; column, which in all known implementations is
+		   ;; equivalent to not supporting `--dired'.
+		   (save-excursion
+		     (goto-char beg)
+		     (unless (looking-at " ")
+		       (insert " ")))
+		   ;; Re-align fields, if necessary.
+		   (dired-align-file beg (point))))))
 	    (t
              (insert-directory dir switches wildcard (not wildcard))))
       ;; Quote certain characters, unless ls quoted them for us.
