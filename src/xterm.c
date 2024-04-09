@@ -14551,18 +14551,19 @@ x_query_pointer (Display *dpy, Window w, Window *root_return,
    `x', `y', `x_root' and `y_root'.  This function should not access
    any other fields in EVENT without also initializing the
    corresponding fields in `bv' under the XI_ButtonPress and
-   XI_ButtonRelease labels inside `handle_one_xevent'.  */
+   XI_ButtonRelease labels inside `handle_one_xevent'.
+
+   XI2 indicates that this click comes from XInput2 rather than core
+   event.   */
 
 static Lisp_Object
 x_construct_mouse_click (struct input_event *result,
                          const XButtonEvent *event,
-                         struct frame *f)
+                         struct frame *f, bool xi2)
 {
   int x = event->x;
   int y = event->y;
 
-  /* Make the event type NO_EVENT; we'll change that when we decide
-     otherwise.  */
   result->kind = MOUSE_CLICK_EVENT;
   result->code = event->button - Button1;
   result->timestamp = event->time;
@@ -14571,6 +14572,29 @@ x_construct_mouse_click (struct input_event *result,
 		       | (event->type == ButtonRelease
 			  ? up_modifier
 			  : down_modifier));
+
+  /* Convert pre-XInput2 wheel events represented as mouse-clicks.  */
+  if (!xi2)
+    {
+      Lisp_Object base
+        = Fcdr_safe (Fassq (make_fixnum (result->code + 1),
+                            Fsymbol_value (Qmouse_wheel_buttons)));
+      int wheel
+        = (NILP (base) ? -1
+           : BASE_EQ (base, Qwheel_down)  ? 0
+           : BASE_EQ (base, Qwheel_up)    ? 1
+           : BASE_EQ (base, Qwheel_left)  ? 2
+           : BASE_EQ (base, Qwheel_right) ? 3
+           : -1);
+      if (wheel >= 0)
+        {
+          result->kind = (event->type != ButtonRelease ? NO_EVENT
+		          : wheel & 2 ? HORIZ_WHEEL_EVENT : WHEEL_EVENT);
+          result->code = 0;         /* Not used.  */
+          result->modifiers &= ~(up_modifier || down_modifier);
+          result->modifiers |= wheel & 1 ? up_modifier : down_modifier;
+        }
+    }
 
   /* If result->window is not the frame's edit widget (which can
      happen with GTK+ scroll bars, for example), translate the
@@ -21881,13 +21905,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			&& event->xbutton.time > ignore_next_mouse_click_timeout)
 		      {
 			ignore_next_mouse_click_timeout = 0;
-			x_construct_mouse_click (&inev.ie, &event->xbutton, f);
+			x_construct_mouse_click (&inev.ie, &event->xbutton,
+			                         f, false);
 		      }
 		    if (event->type == ButtonRelease)
 		      ignore_next_mouse_click_timeout = 0;
 		  }
 		else
-		  x_construct_mouse_click (&inev.ie, &event->xbutton, f);
+		  x_construct_mouse_click (&inev.ie, &event->xbutton, f, false);
 
 		*finish = X_EVENT_DROP;
 		goto OTHER;
@@ -21957,13 +21982,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                           && event->xbutton.time > ignore_next_mouse_click_timeout)
                         {
                           ignore_next_mouse_click_timeout = 0;
-                          x_construct_mouse_click (&inev.ie, &event->xbutton, f);
+                          x_construct_mouse_click (&inev.ie, &event->xbutton,
+                                                   f, false);
                         }
                       if (event->type == ButtonRelease)
                         ignore_next_mouse_click_timeout = 0;
                     }
                   else
-                    x_construct_mouse_click (&inev.ie, &event->xbutton, f);
+                    x_construct_mouse_click (&inev.ie, &event->xbutton,
+                                             f, false);
 
 		  if (!NILP (tab_bar_arg))
 		    inev.ie.arg = tab_bar_arg;
@@ -23740,13 +23767,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				&& xev->time > ignore_next_mouse_click_timeout)
 			      {
 				ignore_next_mouse_click_timeout = 0;
-				x_construct_mouse_click (&inev.ie, &bv, f);
+				x_construct_mouse_click (&inev.ie, &bv, f, true);
 			      }
 			    if (xev->evtype == XI_ButtonRelease)
 			      ignore_next_mouse_click_timeout = 0;
 			  }
 			else
-			  x_construct_mouse_click (&inev.ie, &bv, f);
+			  x_construct_mouse_click (&inev.ie, &bv, f, true);
 
 			if (!NILP (tab_bar_arg))
 			  inev.ie.arg = tab_bar_arg;
@@ -32451,6 +32478,12 @@ syms_of_xterm (void)
   DEFSYM (Qx_auto_preserve_selections, "x-auto-preserve-selections");
   DEFSYM (Qexpose, "expose");
   DEFSYM (Qdont_save, "dont-save");
+
+  DEFSYM (Qmouse_wheel_buttons, "mouse-wheel-buttons");
+  DEFSYM (Qwheel_up,    "wheel-up");
+  DEFSYM (Qwheel_down,  "wheel-down");
+  DEFSYM (Qwheel_left,  "wheel-left");
+  DEFSYM (Qwheel_right, "wheel-right");
 
 #ifdef USE_GTK
   xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");

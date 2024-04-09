@@ -133,6 +133,19 @@ or macOS)."
   :type 'boolean
   :version "29.1")
 
+(defcustom mouse-wheel-buttons
+  '((4 . wheel-up) (5 . wheel-down) (6 . wheel-left) (7 . wheel-right))
+  "How to remap mouse button numbers to wheel events.
+This is an alist of (NUMBER . SYMBOL) used to remap old-style mouse wheel
+events represented as mouse button events.  It remaps mouse button
+NUMBER to the event SYMBOL.  SYMBOL must be one of `wheel-up', `wheel-down',
+`wheel-left', or `wheel-right'.
+This is used only for events that come from sources known to generate such
+events, such as X11 events when XInput2 is not used, or events coming from
+a text terminal."
+  :type '(alist)
+  :version "30.1")
+
 (defvar mouse--last-down nil)
 
 (defun mouse--down-1-maybe-follows-link (&optional _prompt)

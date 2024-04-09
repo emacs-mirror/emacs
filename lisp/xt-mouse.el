@@ -40,8 +40,6 @@
 
 ;;; Code:
 
-(require 'mwheel)
-
 (defvar xterm-mouse-debug-buffer nil)
 
 (defun xterm-mouse-translate (_event)
@@ -212,12 +210,6 @@ single byte."
           (cons n c))
       (cons (- (setq c (xterm-mouse--read-coordinate)) 32) c))))
 
-(defun xterm-mouse--button-p (event btn)
-  (and (symbolp event)
-       (string-prefix-p "mouse-" (symbol-name event))
-       (eq btn (car (read-from-string (symbol-name event)
-                                      (length "mouse-"))))))
-
 ;; XTerm reports mouse events as
 ;; <EVENT-CODE> <X> <Y> in default mode, and
 ;; <EVENT-CODE> ";" <X> ";" <Y> <"M" or "m"> in extended mode.
@@ -263,14 +255,10 @@ single byte."
             (if meta "M-" "")
             (if shift "S-" "")
             (if down "down-" "")
-            (cond
-             ;; BEWARE: `mouse-wheel-UP-event' corresponds to
-             ;; `wheel-DOWN' events and vice versa!!
-             ((xterm-mouse--button-p mouse-wheel-down-event btn)  "wheel-up")
-             ((xterm-mouse--button-p mouse-wheel-up-event btn)    "wheel-down")
-             ((xterm-mouse--button-p mouse-wheel-left-event btn)  "wheel-left")
-             ((xterm-mouse--button-p mouse-wheel-right-event btn) "wheel-right")
-             (t (format "mouse-%d" btn))))))))
+            (let ((remap (alist-get btn mouse-wheel-buttons)))
+              (if remap
+                  (symbol-name remap)
+                (format "mouse-%d" btn))))))))
     (list sym (1- x) (1- y))))
 
 (defun xterm-mouse--set-click-count (event click-count)
