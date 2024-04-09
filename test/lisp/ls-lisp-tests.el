@@ -29,6 +29,7 @@
 (require 'ls-lisp)
 (require 'dired)
 
+(defvar dired-find-subdir)
 (ert-deftest ls-lisp-test-bug70271 ()
   "Test for https://debbugs.gnu.org/70271 ."
   (ert-with-temp-file
@@ -37,7 +38,7 @@
    (let* ((dir (file-name-directory fpath))
           (attributes (file-attributes fpath))
           (dired-find-subdir t)
-          ls-lisp-use-insert-directory-program buf ts)
+          ls-lisp-use-insert-directory-program buf ts str)
      (unwind-protect
          (progn
            (setq ts (file-attribute-access-time attributes))
