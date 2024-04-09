@@ -917,11 +917,13 @@ Outputs to the current buffer."
                (lambda (slot)
                  (list (cl-prin1-to-string (cl--slot-descriptor-name slot))
                        (let ((type (cl--slot-descriptor-type slot)))
-                         (if (and type (symbolp type) (cl--find-class type))
-                             (make-text-button (symbol-name type) nil
-		                               'type 'help-type
-		                               'help-args (list type))
-                           (cl-prin1-to-string type)))
+                         (cond
+                          ((eq type t) "")
+                          ((and type (symbolp type) (cl--find-class type))
+                           (make-text-button (symbol-name type) nil
+		                             'type 'help-type
+		                             'help-args (list type)))
+                          (t (cl-prin1-to-string type))))
                        (cl-prin1-to-string (cl--slot-descriptor-initform slot))
                        (let ((doc (alist-get :documentation
                                              (cl--slot-descriptor-props slot))))

@@ -224,8 +224,8 @@
   (index-table nil :type hash-table)
   (tag nil :type symbol) ;Placed in cl-tag-slot.  Holds the struct-class object.
   (type nil :type (memq (vector list)))
-  (named nil :type bool)
-  (print nil :type bool)
+  (named nil :type boolean)
+  (print nil :type boolean)
   (children-sym nil :type symbol) ;This sym's value holds the tags of children.
   )
 
