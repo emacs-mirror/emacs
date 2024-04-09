@@ -801,17 +801,17 @@ if the information is exact (t) or approximate (nil)."
   )
 
 (defsubst reftex-move-to-previous-arg (&optional bound)
-  "Assuming that we are in front of a macro argument,
-move backward to the closing parenthesis of the previous argument.
-This function understands the splitting of macros over several lines
-in TeX."
+  "Move backward to the closing parenthesis of the previous argument.
+This happens under the assumption that we are in front of a macro
+argument.  This function understands the splitting of macros over
+several lines in TeX."
   (cond
    ;; Just to be quick:
-   ((memq (preceding-char) '(?\] ?\})))
+   ((memq (preceding-char) '(?\] ?\) ?\})))
    ;; Do a search
    ((and reftex-allow-detached-macro-args
          (re-search-backward
-          "[]}][ \t]*[\n\r]?\\([ \t]*%[^\n\r]*[\n\r]\\)*[ \t]*\\=" bound t))
+          "[])}][ \t]*[\n\r]?\\([ \t]*%[^\n\r]*[\n\r]\\)*[ \t]*\\=" bound t))
     (goto-char (1+ (match-beginning 0)))
     t)
    (t nil)))
@@ -860,13 +860,25 @@ considered an argument of macro \\macro."
             (while (and (reftex-move-to-previous-arg bound)
                         (condition-case nil
                             (let ((forward-sexp-function nil))
-                              (backward-sexp) t)
+                              (if (eq (preceding-char) ?\))
+                                  ;; '?\(' and '?\)' receive the
+                                  ;; punctuation syntax "." in
+                                  ;; `reftex-syntax-table', so we have
+                                  ;; to change it in order move back
+                                  ;; over the optional arg in
+                                  ;; parentheses correctly:
+                                  (let ((temp-table (make-syntax-table)))
+                                    (modify-syntax-entry ?\( "()" temp-table)
+                                    (modify-syntax-entry ?\) ")(" temp-table)
+                                    (with-syntax-table temp-table
+                                      (backward-sexp)))
+                                (backward-sexp))
+                              t)
                           (error nil)))
-              (if (eq (following-char) ?\[) (cl-incf cnt-opt))
+              (if (memq (following-char) '(?\( ?\[)) (cl-incf cnt-opt))
               (cl-incf cnt))
             (setq pos (point))
-            (when (and (or (= (following-char) ?\[)
-                           (= (following-char) ?\{))
+            (when (and (memq (following-char) '(?\[ ?\( ?\{))
                        (re-search-backward "\\\\[*a-zA-Z]+\\=" nil t))
               (setq cmd (reftex-match-string 0))
               (when (looking-at "\\\\begin{[^}]*}")
