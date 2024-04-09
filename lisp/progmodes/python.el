@@ -6610,7 +6610,7 @@ returned as is."
 
 (defcustom python-flymake-command '("pyflakes")
   "The external tool that will be used to perform the syntax check.
-This is a non empty list of strings, the checker tool possibly followed by
+This is a non-empty list of strings: the checker tool possibly followed by
 required arguments.  Once launched it will receive the Python source to be
 checked as its standard input.
 To use `flake8' you would set this to (\"flake8\" \"-\").
