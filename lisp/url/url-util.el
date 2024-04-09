@@ -268,7 +268,8 @@ instead of just \"key\" as in the example above."
    (lambda (key-vals)
      (let ((escaped
             (mapcar (lambda (sym)
-                      (url-hexify-string (format "%s" sym))) key-vals)))
+                      (url-hexify-string (format "%s" sym) url-query-key-value-allowed-chars))
+                    key-vals)))
        (mapconcat (lambda (val)
                     (let ((vprint (format "%s" val))
                           (eprint (format "%s" (car escaped))))
@@ -409,6 +410,15 @@ These characters are specified in RFC 3986, Appendix A.")
     vec)
   "Allowed-character byte mask for the query segment of a URI.
 These characters are specified in RFC 3986, Appendix A.")
+
+(defconst url-query-key-value-allowed-chars
+  (let ((vec (copy-sequence url-query-allowed-chars)))
+    (aset vec ?= nil)
+    (aset vec ?& nil)
+    (aset vec ?\; nil)
+    vec)
+  "Allowed-charcter byte mask for keys and values in the query segment of a URI.
+url-query-allowed-chars minus '=', '&', and ';'.")
 
 ;;;###autoload
 (defun url-encode-url (url)
