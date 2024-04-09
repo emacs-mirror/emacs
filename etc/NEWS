@@ -1566,6 +1566,14 @@ buffer method is the default, which preserves previous behavior.
 *** New user option 'xwidget-webkit-disable-javascript'.
 This allows disabling JavaScript in xwidget Webkit sessions.
 
+** ls-lisp
+
+---
+*** 'ls-lisp--insert-directory' supports more long options of 'ls'.
+'ls-lisp--insert-directory', the ls-lisp implementation of
+'insert-directory', now supports the '--time=TIME' and '--sort=time'
+options of GNU 'ls'.
+
 
 * New Modes and Packages in Emacs 30.1
 
