@@ -98,6 +98,12 @@ JAVA_FILES := $(filter-out $(RESOURCE_FILE),$(JAVA_FILES))
 ANDROID_MIN_SDK := @ANDROID_MIN_SDK@
 APK_NAME := emacs-$(version)-$(ANDROID_MIN_SDK)-$(ANDROID_ABI).apk
 
+# Whether or not the bundle is to be debuggable.
+ANDROID_DEBUGGABLE := @ANDROID_DEBUGGABLE@
+
+# Whether or not $(D8) is in fact the name of the `r8' optimizer binary.
+IS_D8_R8 := @IS_D8_R8@
+
 # How this stuff works.
 
 # emacs.apk depends on emacs.apk-in, which is simply a ZIP archive
@@ -299,10 +305,14 @@ $(CLASS_FILES) &: $(JAVA_FILES)
 # N.B. that find must be called all over again in case javac generated
 # nested classes.
 
-classes.dex: $(CLASS_FILES)
+classes.dex: $(CLASS_FILES) $(if $(IS_D8_R8), proguard.conf)
 	$(AM_V_D8) $(D8) --classpath $(ANDROID_JAR)		\
 	  $(subst $$,\$$,$(shell find $(srcdir) -type f		\
-	    -name *.class)) --output $(builddir)
+	    -name *.class)) --output $(builddir)		\
+	  --min-api $(ANDROID_MIN_SDK)				\
+	  $(if $(filter false,$(ANDROID_DEBUGGABLE)),--release, \
+                --debug) \
+	  $(if $(IS_D8_R8),--pg-conf proguard.conf)
 
 # When emacs.keystore expires, regenerate it with:
 #
