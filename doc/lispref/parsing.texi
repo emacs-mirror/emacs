@@ -44,6 +44,7 @@ source files that mix multiple programming languages.
 * Retrieving Nodes::         Retrieving nodes from a syntax tree.
 * Accessing Node Information:: Accessing node information.
 * Pattern Matching::         Pattern matching with query patterns.
+* User-defined Things::      User-defined ``Things'' and Navigation.
 * Multiple Languages::       Parse text written in multiple languages.
 * Tree-sitter Major Modes::  Develop major modes using tree-sitter.
 * Tree-sitter C API::        Compare the C API and the ELisp API.
