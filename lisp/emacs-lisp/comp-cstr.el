@@ -941,16 +941,27 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
          (null (neg cstr))
          (equal (typeset cstr) '(cons)))))
 
-(define-inline comp-cstr-type-p (cstr type)
+(defun comp-cstr-type-p (cstr type)
   "Return t if CSTR is certainly of type TYPE."
-  (if-let ((pred (get type 'cl-deftype-satisfies)))
+  (when
       (with-comp-cstr-accessors
-        (and (null (range cstr))
-             (null (neg cstr))
-             (and (or (null (typeset cstr))
-                      (equal (typeset cstr) `(,type)))
-                  (cl-every pred (valset cstr)))))
-    (error "Unknown predicate for type %s" type)))
+        (cl-case type
+          (integer
+           (if (or (valset cstr) (neg cstr))
+               nil
+             (or (equal (typeset cstr) '(integer))
+                 (and (range cstr)
+                      (or (null (typeset cstr))
+                          (equal (typeset cstr) '(integer)))))))
+          (t
+           (if-let ((pred (get type 'cl-deftype-satisfies)))
+               (and (null (range cstr))
+                    (null (neg cstr))
+                    (and (or (null (typeset cstr))
+                             (equal (typeset cstr) `(,type)))
+                         (cl-every pred (valset cstr))))
+             (error "Unknown predicate for type %s" type)))))
+    t))
 
 ;; Move to comp.el?
 (defsubst comp-cstr-cl-tag-p (cstr)
