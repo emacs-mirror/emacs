@@ -452,7 +452,11 @@ Each element has the form (TIMEZONE LABEL).
 TIMEZONE should be a string of the form AREA/LOCATION, where AREA is
 the name of a region -- a continent or ocean, and LOCATION is the name
 of a specific location, e.g., a city, within that region.
-LABEL is a string to display as the label of that TIMEZONE's time."
+LABEL is a string to display as the label of that TIMEZONE's time.
+
+This option has effect only on systems that support Posix-style
+zoneinfo files specified as CONTINENT/CITY.  In particular,
+MS-Windows doesn't support that; use `legacy-style-world-list' instead."
   :type '(repeat (list string string))
   :version "23.1")
 
@@ -471,7 +475,10 @@ TIMEZONE should be a string of the form:
 
 See the documentation of the TZ environment variable on your system,
 for more details about the format of TIMEZONE.
-LABEL is a string to display as the label of that TIMEZONE's time."
+LABEL is a string to display as the label of that TIMEZONE's time
+
+This is the only option that has effect on MS-Windows, where you also
+cannot specify the [offset][,date[/time],date[/time]] part."
   :type '(repeat (list string string))
   :version "23.1")
 
