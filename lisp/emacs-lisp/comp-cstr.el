@@ -929,11 +929,9 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
   (with-comp-cstr-accessors
     (and (null (range cstr))
          (null (neg cstr))
-         (or (and (null (valset cstr))
+         (and (or (null (typeset cstr))
                   (equal (typeset cstr) '(symbol)))
-             (and (or (null (typeset cstr))
-                      (equal (typeset cstr) '(symbol)))
-                  (cl-every #'symbolp (valset cstr)))))))
+              (cl-every #'symbolp (valset cstr))))))
 
 (defsubst comp-cstr-cons-p (cstr)
   "Return t if CSTR is certainly a cons."
