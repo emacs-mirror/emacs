@@ -52,8 +52,6 @@
 
 ;;; Code:
 
-(require 'mwheel)
-
 (defgroup completion-preview nil
   "In-buffer completion preview."
   :group 'completion)
@@ -135,18 +133,8 @@ If this option is nil, these commands do not display any message."
   "<down-mouse-1>" #'completion-preview-insert
   "C-<down-mouse-1>" #'completion-at-point
   "<down-mouse-2>" #'completion-at-point
-  ;; BEWARE: `mouse-wheel-UP-event' corresponds to `wheel-DOWN' events
-  ;; and vice versa!!
   "<wheel-up>"     #'completion-preview-prev-candidate
-  "<wheel-down>"   #'completion-preview-next-candidate
-  (key-description (with-suppressed-warnings
-                       ((obsolete mouse-wheel-up-event))
-                     (vector mouse-wheel-up-event)))
-  #'completion-preview-next-candidate
-  (key-description (with-suppressed-warnings
-                       ((obsolete mouse-wheel-down-event))
-                     (vector mouse-wheel-down-event)))
-  #'completion-preview-prev-candidate)
+  "<wheel-down>"   #'completion-preview-next-candidate)
 
 (defvar-local completion-preview--overlay nil)
 
