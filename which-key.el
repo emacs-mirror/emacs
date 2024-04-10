@@ -162,12 +162,11 @@ currently active keymaps."
   :version "1.0")
 
 (defcustom which-key-replacement-alist
-  (delq nil
-        `(((nil . "which-key-show-next-page-no-cycle") . (nil . "wk next pg"))
-          ,@(unless which-key-dont-use-unicode
-              '((("<left>") . ("←"))
-                (("<right>") . ("→"))))
-          (("<\\([[:alnum:]-]+\\)>") . ("\\1"))))
+  `(((nil . "which-key-show-next-page-no-cycle") . (nil . "wk next pg"))
+    ,@(unless which-key-dont-use-unicode
+        '((("<left>") . ("←"))
+          (("<right>") . ("→"))))
+    (("<\\([[:alnum:]-]+\\)>") . ("\\1")))
   "ALIST for manipulating display of binding descriptions.
 Each element of the list is a nested cons cell with the format
 
