@@ -569,9 +569,10 @@ Emacs carefully copies the old contents to another file, called the
 @dfn{backup} file, before actually saving.
 
   Emacs makes a backup for a file only the first time the file is
-saved from a buffer.  No matter how many times you subsequently save
-the file, its backup remains unchanged.  However, if you kill the
-buffer and then visit the file again, a new backup file will be made.
+saved from the buffer that visits it.  No matter how many times you
+subsequently save the file, its backup remains unchanged.  However, if
+you kill the buffer and then visit the file again, a new backup file
+will be made.
 
   For most files, the variable @code{make-backup-files} determines
 whether to make backup files.  On most operating systems, its default
