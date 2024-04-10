@@ -912,7 +912,9 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
 (defun comp-cstr-fixnum-p (cstr)
   "Return t if CSTR is certainly a fixnum."
   (with-comp-cstr-accessors
-    (when (null (neg cstr))
+    (when (and (null (neg cstr))
+               (null (valset cstr))
+               (null (typeset cstr)))
       (when-let (range (range cstr))
         (let* ((low (caar range))
                (high (cdar (last range))))
