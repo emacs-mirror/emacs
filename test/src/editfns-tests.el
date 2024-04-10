@@ -428,9 +428,17 @@
 
 ;;; Try and catch `*-changes-functions' bugs!
 
-(defvar sanity-check--verbose nil)
+(defvar sanity-check-change-functions-verbose nil)
+(defvar sanity-check-change-functions-op nil)
+(defmacro sanity-check-change-functions-with-op (op &rest body)
+  (declare (debug t) (indent 1))
+  `(let ((sanity-check-change-functions-op ,op))
+     (sanity-check--message "%S..." sanity-check-change-functions-op)
+     ,@body
+     (sanity-check--message "%S...done" sanity-check-change-functions-op)))
+
 (defun sanity-check--message (&rest args)
-  (if sanity-check--verbose (apply #'message args)))
+  (if sanity-check-change-functions-verbose (apply #'message args)))
 
 (defvar-local sanity-check-change-functions-beg 0)
 (defvar-local sanity-check-change-functions-end 0)
@@ -488,6 +496,12 @@
           (+ sanity-check-change-functions-buffer-size offset)))
   (sanity-check-change-functions-check-size))
 
+(defun sanity-check-change-functions-errors ()
+  (sanity-check-change-functions-check-size)
+  (if sanity-check-change-functions-errors
+      (cons sanity-check-change-functions-op
+            sanity-check-change-functions-errors)))
+
 (ert-deftest editfns-tests--before/after-change-functions ()
   (with-temp-buffer
     (add-hook 'before-change-functions
@@ -496,8 +510,28 @@
               #'sanity-check-change-functions-after nil t)
 
     ;; Bug#65451
-    (insert "utf-8-unix\n\nUTF")
-    (call-interactively 'dabbrev-expand)
-    (should (null sanity-check-change-functions-errors))))
+    (sanity-check-change-functions-with-op 'DABBREV-EXPAND
+      (insert "utf-8-unix\n\nUTF")
+      (call-interactively 'dabbrev-expand)
+      (should (null (sanity-check-change-functions-errors))))
+
+    (let ((beg (point)))
+      (sanity-check-change-functions-with-op 'ENCODE-CODING-REGION
+        (insert "ééé")
+        (encode-coding-region beg (point) 'utf-8)
+        (should (null (sanity-check-change-functions-errors))))
+      
+      (sanity-check-change-functions-with-op 'DECODE-CODING-REGION
+        (decode-coding-region beg (point) 'utf-8)
+        (should (null (sanity-check-change-functions-errors)))))
+
+    (sanity-check-change-functions-with-op 'ENCODE-CODING-STRING
+      (encode-coding-string "ééé" 'utf-8 nil (current-buffer))
+      (should (null (sanity-check-change-functions-errors))))
+
+    (sanity-check-change-functions-with-op 'DECODE-CODING-STRING
+      (decode-coding-string "\303\251\303\251\303\251"
+                            'utf-8 nil (current-buffer))
+      (should (null (sanity-check-change-functions-errors))))))
 
 ;;; editfns-tests.el ends here
