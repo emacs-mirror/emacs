@@ -305,14 +305,14 @@ $(CLASS_FILES) &: $(JAVA_FILES)
 # N.B. that find must be called all over again in case javac generated
 # nested classes.
 
-classes.dex: $(CLASS_FILES) $(if $(IS_D8_R8), proguard.conf)
+classes.dex: $(CLASS_FILES) $(if $(IS_D8_R8), $(srcdir)/proguard.conf)
 	$(AM_V_D8) $(D8) --classpath $(ANDROID_JAR)		\
 	  $(subst $$,\$$,$(shell find $(srcdir) -type f		\
 	    -name *.class)) --output $(builddir)		\
 	  --min-api $(ANDROID_MIN_SDK)				\
 	  $(if $(filter false,$(ANDROID_DEBUGGABLE)),--release, \
                 --debug) \
-	  $(if $(IS_D8_R8),--pg-conf proguard.conf)
+	  $(if $(IS_D8_R8),--pg-conf $(srcdir)/proguard.conf)
 
 # When emacs.keystore expires, regenerate it with:
 #
