@@ -112,15 +112,17 @@ the closest directory separators."
     (cons (or (cadr boundaries) 0)
           (or (cddr boundaries) (length suffix)))))
 
-(defun completion-base-suffix (start end table predicate)
-  "Return the completion boundary suffix as substring.
-START and END are the beginning and end of the entity being completed.
-TABLE and PREDICATE are completion table and predicate."
+(defun completion-base-suffix (start end collection predicate)
+  "Return suffix of completion of buffer text between START and END.
+COLLECTION and PREDICATE are, respectively, the completion's
+completion table and predicate, as in `completion-boundaries' (which see).
+Value is a substring of buffer text between point and END.  It is
+the completion suffix that follows the completion boundary."
   (let ((suffix (buffer-substring (point) end)))
     (substring
      suffix
      (cdr (completion-boundaries (buffer-substring start (point))
-                                 table
+                                 collection
                                  predicate
                                  suffix)))))
 
