@@ -112,6 +112,18 @@ the closest directory separators."
     (cons (or (cadr boundaries) 0)
           (or (cddr boundaries) (length suffix)))))
 
+(defun completion-base-suffix (start end table predicate)
+  "Return the completion boundary suffix as substring.
+START and END are the beginning and end of the entity being completed.
+TABLE and PREDICATE are completion table and predicate."
+  (let ((suffix (buffer-substring (point) end)))
+    (substring
+     suffix
+     (cdr (completion-boundaries (buffer-substring start (point))
+                                 table
+                                 predicate
+                                 suffix)))))
+
 (defun completion-metadata (string table pred)
   "Return the metadata of elements to complete at the end of STRING.
 This metadata is an alist.  Currently understood keys are:
@@ -2586,16 +2598,9 @@ The candidate will still be chosen by `choose-completion' unless
              (minibuffer-completion-base (substring string 0 base-size))
              (base-prefix (buffer-substring (minibuffer--completion-prompt-end)
                                             (+ start base-size)))
-             (base-suffix
-              (if (or (eq (alist-get 'category (cdr md)) 'file)
-                      completion-in-region-mode-predicate)
-                  (buffer-substring
-                   (save-excursion
-                     (if completion-in-region-mode-predicate
-                         (point)
-                       (or (search-forward "/" nil t) (point-max))))
-                   (point-max))
-                ""))
+             (base-suffix (completion-base-suffix start end
+                                                  minibuffer-completion-table
+                                                  minibuffer-completion-predicate))
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))
                                            base-size md
@@ -2697,7 +2702,11 @@ The candidate will still be chosen by `choose-completion' unless
                                        (delete-minibuffer-contents)
                                        (insert start choice)
                                        ;; Keep point after completion before suffix
-                                       (save-excursion (insert end)))
+                                       (save-excursion (insert
+                                                        (completion--merge-suffix
+                                                         choice
+                                                         (1- (length choice))
+                                                         end))))
                                    (unless (or (zerop (length prefix))
                                                (equal prefix
                                                       (buffer-substring-no-properties
