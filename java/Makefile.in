@@ -277,10 +277,10 @@ emacs.apk-in: install_temp install_temp/assets/directory-tree  \
 	$(AM_V_SILENT) rm -rf install_temp
 
 # Makefile itself.
-.PRECIOUS: $(top_srcdir)/config.status Makefile
-$(top_srcdir)/config.status: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
+.PRECIOUS: $(top_builddir)/config.status Makefile
+$(top_builddir)/config.status: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
 	$(MAKE) -C $(dir $@) $(notdir $@)
-Makefile: $(top_srcdir)/config.status $(top_srcdir)/java/Makefile.in
+Makefile: $(top_builddir)/config.status $(top_srcdir)/java/Makefile.in
 	$(MAKE) -C .. java/$@
 
 # AndroidManifest.xml:
