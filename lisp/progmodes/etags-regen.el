@@ -279,7 +279,7 @@ File extensions to generate the tags for."
                                      " ")
                           ;; ctags's etags requires '-L' for stdin input.
                           (if ctags-p "-L" "")
-                          tags-file)))
+                          (shell-quote-argument tags-file))))
     (with-temp-buffer
       (mapc (lambda (f)
               (insert f "\n"))
