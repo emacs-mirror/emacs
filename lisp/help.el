@@ -173,7 +173,7 @@ Value should be a list of elements, each element should of the form
 
 where GROUP-NAME is the name of the group of the commands,
 COMMAND is the symbol of a command and DESCRIPTION is its short
-description, 10 to 15 char5acters at most.")
+description, 10 to 15 characters at most.")
 
 (declare-function prop-match-value "text-property-search" (match))
 
