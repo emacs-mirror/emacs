@@ -2151,8 +2151,13 @@ Calls REPORT-FN directly."
                                  (point-max)))
                   collect (flymake-make-diagnostic
                            (current-buffer)
-                           (if (= beg end) (1- beg) beg)
-                           end
+                           (if (= beg end)
+                               (max (1- beg) (point-min))
+                             beg)
+                           (if (= beg end)
+                               (min (max beg (1+ (point-min)))
+                                    (point-max))
+                             end)
                            level
                            string)))))))
 
