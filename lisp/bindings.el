@@ -803,6 +803,11 @@ meaningful if it refers to a lexically bound variable."
   '(menu-item "Flyspell (Fly)" flyspell-mode
 	      :help "Spell checking on the fly"
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
+(bindings--define-key mode-line-mode-menu [completion-preview-mode]
+  '(menu-item "Completion Preview (CP)" completion-preview-mode
+              :help "Show preview of completion suggestions as you type"
+              :enable completion-at-point-functions
+              :button (:toggle . (bound-and-true-p completion-preview-mode))))
 (bindings--define-key mode-line-mode-menu [auto-revert-tail-mode]
   '(menu-item "Auto revert tail (Tail)" auto-revert-tail-mode
 	      :help "Revert the tail of the buffer when the file on disk grows"
