@@ -84,7 +84,7 @@ public final class EmacsWindowManager
     MANAGER = new EmacsWindowManager ();
   };
 
-  public interface WindowConsumer
+  interface WindowConsumer
   {
     public void attachWindow (EmacsWindow window);
     public EmacsWindow getAttachedWindow ();
