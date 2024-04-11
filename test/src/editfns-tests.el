@@ -520,7 +520,7 @@
         (insert "ééé")
         (encode-coding-region beg (point) 'utf-8)
         (should (null (sanity-check-change-functions-errors))))
-      
+
       (sanity-check-change-functions-with-op 'DECODE-CODING-REGION
         (decode-coding-region beg (point) 'utf-8)
         (should (null (sanity-check-change-functions-errors)))))
