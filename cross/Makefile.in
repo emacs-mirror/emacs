@@ -143,12 +143,15 @@ src/Makefile: $(top_builddir)/src/Makefile.android
 	    -e 's/-I\$$(top_srcdir)\/lib/-I..\/$(subst /,\/,$(srcdir))\/lib/g' \
 	    < $(top_builddir)/src/Makefile.android > $@
 
+src/epaths.h: $(top_builddir)/src/epaths.h
+	$(AM_V_GEN) cp -f -p $< $@
+
 src/config.h: $(top_builddir)/src/config.h.android
 	$(AM_V_GEN) cp -f -p $< $@
 
 .PHONY: src/android-emacs src/libemacs.so
 
-src/libemacs.so: src/Makefile src/config.h src/verbose.mk \
+src/libemacs.so: src/Makefile src/config.h src/epaths.h src/verbose.mk \
   lib/libgnu.a $(PRE_BUILD_DEPS)
 	$(MAKE) -C src libemacs.so
 
