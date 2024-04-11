@@ -353,7 +353,8 @@ arguments that often include spaces, such as file names.
 Submit the text in the minibuffer as the argument, possibly completing
 first (@code{minibuffer-complete-and-exit}).  @xref{Completion Exit}.
 @item ?
-Display a list of completions (@code{minibuffer-completion-help}).
+Display a list of completions and a few useful key bindings
+(@code{minibuffer-completion-help}).
 @end table
 
 @kindex TAB @r{(completion)}
@@ -375,11 +376,12 @@ all the way to @samp{auto-fill-mode}.
 
 @kindex ? @r{(completion)}
 @cindex completion list
-  If @key{TAB} or @key{SPC} is unable to complete, it displays a list
-of matching completion alternatives (if there are any) in another
-window.  You can display the same list with @kbd{?}
-(@code{minibuffer-completion-help}).  The following commands can be
-used with the completion list:
+  If @key{TAB} or @key{SPC} is unable to complete, it displays in
+another window a list of matching completion alternatives (if there are
+any) and a few useful commands to select a completion candidate.  You
+can display the same completion list and help with @kbd{?}
+(@code{minibuffer-completion-help}).  The following commands can be used
+with the completion list:
 
 @table @kbd
 @vindex minibuffer-completion-auto-choose
