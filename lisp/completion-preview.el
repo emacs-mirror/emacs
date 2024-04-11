@@ -206,6 +206,15 @@ Completion Preview mode adds this function to
                  #'completion-preview--window-selection-change t)
     (completion-preview-hide)))
 
+(defvar completion-preview-completion-styles '(basic)
+  "List of completion styles that Completion Preview mode uses.
+
+Since Completion Preview mode shows prefix completion candidates, this
+list should normally only include completion styles that perform prefix
+completion, but other candidates are filtered out and cause no harm.
+
+See also `completion-styles'.")
+
 (defun completion-preview--try-table (table beg end props)
   "Check TABLE for a completion matching the text between BEG and END.
 
@@ -228,7 +237,11 @@ non-nil, return nil instead."
          (sort-fn (or (completion-metadata-get md 'cycle-sort-function)
                       (completion-metadata-get md 'display-sort-function)
                       completion-preview-sort-function))
-         (all (let ((completion-lazy-hilit t))
+         (all (let ((completion-lazy-hilit t)
+                    ;; FIXME: This does not override styles prescribed
+                    ;; by the completion category via
+                    ;; e.g. `completion-category-defaults'.
+                    (completion-styles completion-preview-completion-styles))
                 (completion-all-completions string table pred
                                             (- (point) beg) md)))
          (last (last all))
