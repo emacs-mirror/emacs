@@ -299,16 +299,8 @@
 (ert-deftest erc-fill-wrap--merge-action/indicator-pre ()
   :tags `(:unstable
           ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
-  (let ((erc-fill-wrap-merge-indicator '(pre ?> shadow)))
+  (let ((erc-fill-wrap-merge-indicator '(?> . shadow)))
     (erc-fill-wrap-tests--merge-action "merge-wrap-indicator-pre-01")))
-
-;; One crucial thing this test asserts is that the indicator is
-;; omitted when the previous line ends in a stamp.
-(ert-deftest erc-fill-wrap--merge-action/indicator-post ()
-  :tags `(:unstable
-          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
-  (let ((erc-fill-wrap-merge-indicator '(post ?~ shadow)))
-    (erc-fill-wrap-tests--merge-action "merge-wrap-indicator-post-01")))
 
 (ert-deftest erc-fill-line-spacing ()
   :tags `(:unstable
@@ -449,5 +441,35 @@
                                   erc-prompt t
                                   rear-nonsticky t
                                   font-lock-face erc-prompt-face))))))))))
+
+(ert-deftest erc-fill--wrap-massage-legacy-indicator-type ()
+  (let (calls
+        erc-fill-wrap-merge-indicator)
+    (cl-letf (((symbol-function 'erc--warn-once-before-connect)
+               (lambda (_ &rest args) (push args calls))))
+      ;; List of (pre CHAR FACE) becomes (CHAR . FACE).
+      (let ((erc-fill-wrap-merge-indicator
+             '(pre #xb7 erc-fill-wrap-merge-indicator-face)))
+        (erc-fill--wrap-massage-legacy-indicator-type)
+        (should (equal erc-fill-wrap-merge-indicator
+                       '(#xb7 . erc-fill-wrap-merge-indicator-face)))
+        (should (string-search "(pre CHAR FACE)" (nth 1 (pop calls)))))
+
+      ;; Cons of (CHAR . STRING) becomes STRING.
+      (let ((erc-fill-wrap-merge-indicator '(pre . "\u00b7")))
+        (erc-fill--wrap-massage-legacy-indicator-type)
+        (should (equal erc-fill-wrap-merge-indicator "\u00b7"))
+        (should (string-search "(pre . STRING)" (nth 1 (pop calls)))))
+
+      ;; Anything with a CAR of `post' becomes nil.
+      (let ((erc-fill-wrap-merge-indicator
+             '(post #xb6 erc-fill-wrap-merge-indicator-face)))
+        (erc-fill--wrap-massage-legacy-indicator-type)
+        (should-not erc-fill-wrap-merge-indicator)
+        (should (string-search "no longer available" (nth 1 (pop calls)))))
+      (let ((erc-fill-wrap-merge-indicator '(post . "\u00b7")))
+        (erc-fill--wrap-massage-legacy-indicator-type)
+        (should-not erc-fill-wrap-merge-indicator)
+        (should (string-search "no longer available" (nth 1 (pop calls))))))))
 
 ;;; erc-fill-tests.el ends here
