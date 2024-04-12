@@ -242,7 +242,7 @@ automatically)."
          '("pylsp" "pyls" ("basedpyright-langserver" "--stdio")
            ("pyright-langserver" "--stdio")
            "jedi-language-server" "ruff-lsp")))
-    ((js-json-mode json-mode json-ts-mode)
+    ((js-json-mode json-mode json-ts-mode jsonc-mode)
      . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
                               ("vscode-json-languageserver" "--stdio")
                               ("json-languageserver" "--stdio"))))
@@ -302,6 +302,7 @@ automatically)."
     (futhark-mode . ("futhark" "lsp"))
     ((lua-mode lua-ts-mode) . ,(eglot-alternatives
                                 '("lua-language-server" "lua-lsp")))
+    (yang-mode . ("yang-language-server"))
     (zig-mode . ("zls"))
     ((css-mode css-ts-mode)
      . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio")
