@@ -1154,11 +1154,10 @@ The signal @code{PropertyModified}, discussed as an example in
 (@var{integer} ((@var{string} @var{bool} @var{bool}) (@var{string} @var{bool} @var{bool}) @dots{}))
 @end lisp
 
-@defun dbus-byte-array-to-string byte-array &optional multibyte
+@defun dbus-byte-array-to-string byte-array
 If a D-Bus method or signal returns an array of bytes, which are known
 to represent a UTF-8 string, this function converts @var{byte-array}
-to the corresponding string.  The string is unibyte encoded, unless
-@var{multibyte} is non-@code{nil}.  Example:
+to the corresponding UTF-8 string.  Example:
 
 @lisp
 (dbus-byte-array-to-string '(47 101 116 99 47 104 111 115 116 115))
