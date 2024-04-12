@@ -40,9 +40,10 @@ It has `lisp-mode-abbrev-table' as its parent."
 
 (defvar emacs-lisp-mode-syntax-table
   (let ((table (make-syntax-table lisp-data-mode-syntax-table)))
-    ;; These are redundant, now.
-    ;;(modify-syntax-entry ?\[ "(]  " table)
-    ;;(modify-syntax-entry ?\] ")[  " table)
+    ;; Remove the "p" flag from the entry of `@' because we use instead
+    ;; `syntax-propertize' to take care of `,@', which is more precise.
+    ;; FIXME: We should maybe do the same in other Lisp modes?  (bug#24542)
+    (modify-syntax-entry ?@ "_" table)
     table)
   "Syntax table used in `emacs-lisp-mode'.")
 
