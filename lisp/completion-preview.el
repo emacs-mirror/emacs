@@ -489,16 +489,18 @@ completions list."
                              'keymap completion-preview--mouse-map))
                        'completion-preview-end pos))))))
 
-(defun completion-preview-prev-candidate ()
-  "Cycle the candidate that the preview is showing to the previous suggestion."
-  (interactive)
-  (completion-preview-next-candidate -1))
+(defun completion-preview-prev-candidate (n)
+  "Cycle the candidate the preview is showing N candidates backward.
 
-(defun completion-preview-next-candidate (direction)
-  "Cycle the candidate that the preview is showing in direction DIRECTION.
+If N is negative, cycle -N candidates forward.  Interactively, N is the
+prefix argument and defaults to 1."
+  (interactive "p")
+  (completion-preview-next-candidate (- n)))
 
-DIRECTION should be either 1 which means cycle forward, or -1
-which means cycle backward.  Interactively, DIRECTION is the
+(defun completion-preview-next-candidate (n)
+  "Cycle the candidate the preview is showing N candidates forward.
+
+If N is negative, cycle -N candidates backward.  Interactively, N is the
 prefix argument and defaults to 1."
   (interactive "p")
   (when completion-preview-active-mode
@@ -508,7 +510,7 @@ prefix argument and defaults to 1."
            (com (completion-preview--get 'completion-preview-common))
            (cur (completion-preview--get 'completion-preview-index))
            (len (length all))
-           (new (mod (+ cur direction) len))
+           (new (mod (+ cur n) len))
            (suf (nth new all))
            (lencom (length com)))
       ;; Skip suffixes that are no longer applicable.  This may happen
@@ -519,7 +521,7 @@ prefix argument and defaults to 1."
       (while (or (<= (+ beg lencom (length suf)) end)
                  (not (string-prefix-p (buffer-substring beg end)
                                        (concat com suf))))
-        (setq new (mod (+ new direction) len)
+        (setq new (mod (+ new n) len)
               suf (nth new all)))
       (set-text-properties 0 (length suf)
                            (list 'face (if (cdr all)
