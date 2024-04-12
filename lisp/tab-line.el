@@ -342,8 +342,7 @@ returns a list of buffers associated with the selected window.
 When `tab-line-tabs-mode-buffers', return a list of buffers
 with the same major mode as the current buffer.
 When `tab-line-tabs-buffer-groups', return a list of buffers
-grouped either by `tab-line-tabs-buffer-group-function', when set,
-or by `tab-line-tabs-buffer-groups'."
+grouped by `tab-line-tabs-buffer-group-function'."
   :type '(choice (const :tag "Window buffers"
                         tab-line-tabs-window-buffers)
                  (const :tag "Same mode buffers"
@@ -377,10 +376,29 @@ Used only for `tab-line-tabs-mode-buffers' and `tab-line-tabs-buffer-groups'.")
                                            (derived-mode-p mode)))
                              (funcall tab-line-tabs-buffer-list-function)))))
 
-(defvar tab-line-tabs-buffer-group-function nil
+(defcustom tab-line-tabs-buffer-group-function
+  #'tab-line-tabs-buffer-group-by-mode
   "Function to add a buffer to the appropriate group of tabs.
 Takes a buffer as arg and should return a group name as a string.
-If the return value is nil, the buffer should be filtered out.")
+If the return value is nil, the buffer has no group, so \"No group\"
+is displayed instead of a group name and the buffer is not grouped
+together with other buffers.
+If the value is `tab-line-tabs-buffer-group-by-mode',
+use mode-to-group mappings in `tab-line-tabs-buffer-groups'
+to group by major mode.  If the value is
+`tab-line-tabs-buffer-group-by-project' use the project name
+as a group name."
+  :type '(choice (const :tag "Group by mode"
+                        tab-line-tabs-buffer-group-by-mode)
+                 (const :tag "Group by project name"
+                        tab-line-tabs-buffer-group-by-project)
+                 (function :tag "Custom function"))
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-line
+  :version "30.1")
 
 (defvar tab-line-tabs-buffer-group-sort-function nil
   "Function to sort buffers in a group.")
@@ -395,16 +413,27 @@ If the major mode's name matches REGEXP, it belongs to GROUPNAME.
 The default is for each major mode to have a separate group
 named the same as the mode.")
 
+(defun tab-line-tabs-buffer-group-by-mode (&optional buffer)
+  "Group tab buffers by major mode."
+  (let ((mode (if buffer (with-current-buffer buffer
+                           (format-mode-line mode-name))
+                (format-mode-line mode-name))))
+    (or (cdr (seq-find (lambda (group)
+                         (string-match-p (car group) mode))
+                       tab-line-tabs-buffer-groups))
+        mode)))
+
+(declare-function project-name "project" (project))
+(defun tab-line-tabs-buffer-group-by-project (&optional buffer)
+  "Group tab buffers by project name."
+  (with-current-buffer buffer
+    (if-let ((project (project-current)))
+        (project-name project)
+      "No project")))
+
 (defun tab-line-tabs-buffer-group-name (&optional buffer)
   (if (functionp tab-line-tabs-buffer-group-function)
-      (funcall tab-line-tabs-buffer-group-function buffer)
-    (let ((mode (if buffer (with-current-buffer buffer
-                             (format-mode-line mode-name))
-                  (format-mode-line mode-name))))
-      (or (cdr (seq-find (lambda (group)
-                           (string-match-p (car group) mode))
-                         tab-line-tabs-buffer-groups))
-          mode))))
+      (funcall tab-line-tabs-buffer-group-function buffer)))
 
 (defun tab-line-tabs-buffer-groups ()
   "Return a list of tabs that should be displayed in the tab line.
@@ -436,7 +465,7 @@ generate the group name."
 
     (let* ((window-parameter (window-parameter nil 'tab-line-group))
            (group-name (tab-line-tabs-buffer-group-name (current-buffer)))
-           (group (prog1 (or window-parameter group-name "All")
+           (group (prog1 (or window-parameter group-name "No group")
                     (when (equal window-parameter group-name)
                       (set-window-parameter nil 'tab-line-group nil))))
            (group-tab `(tab
