@@ -1777,7 +1777,7 @@ values.
 +++
 ** Conversion of strings to and from byte-arrays works with multibyte strings.
 The functions 'dbus-string-to-byte-array' and
-'dbus-byte-array-to-string}' now accept and return multibyte Lisp
+'dbus-byte-array-to-string' now accept and return multibyte Lisp
 strings, encoding to UTF-8 and decoding from UTF-8 internally.  This
 means that the argument to 'dbus-byte-array-to-string' must be a valid
 UTF-8 byte sequence, and the optional parameter MULTIBYTE of
