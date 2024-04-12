@@ -1775,9 +1775,15 @@ Instead, use 'eshell-process-wait-time', which supports floating-point
 values.
 
 +++
-** 'dbus-{string-to-byte-array,byte-array-to-string}' are strict UTF-8 conform.
-Both work over UTF-8 raw bytes only.  The optional parameter MULTIBYTE
-of 'dbus-byte-array-to-string' is obsolete now.
+** Conversion of strings to and from byte-arrays works with multibyte strings.
+The functions 'dbus-string-to-byte-array' and
+'dbus-byte-array-to-string}' now accept and return multibyte Lisp
+strings, encoding to UTF-8 and decoding from UTF-8 internally.  This
+means that the argument to 'dbus-byte-array-to-string' must be a valid
+UTF-8 byte sequence, and the optional parameter MULTIBYTE of
+'dbus-byte-array-to-string' is now obsolete and unused.  The argument of
+'dbus-string-to-byte-array' should be a regular Lisp string, not a
+unibyte string.
 
 
 * Lisp Changes in Emacs 30.1

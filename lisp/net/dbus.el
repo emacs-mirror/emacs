@@ -995,7 +995,7 @@ association to the service from D-Bus."
 (defun dbus-string-to-byte-array (string)
   "Transform STRING to list (:array :byte C1 :byte C2 ...).
 The resulting byte array contains the raw bytes of the UTF-8 encoded
-STRING.."
+STRING."
   (if (length= string 0)
       '(:array :signature "y")
     (cons :array
@@ -1004,9 +1004,10 @@ STRING.."
                     (encode-coding-string string 'utf-8 'nocopy))))))
 
 (defun dbus-byte-array-to-string (byte-array &optional _multibyte)
-  "Transform BYTE-ARRAY into UTF-8 coded string.
+  "Transform BYTE-ARRAY with UTF-8 byte sequence into a string.
 BYTE-ARRAY must be a list of structure (c1 c2 ...), or a byte array as
-produced by `dbus-string-to-byte-array'."
+produced by `dbus-string-to-byte-array', and the individual bytes must
+be a valid UTF-8 byte sequence."
   (declare (advertised-calling-convention (byte-array) "30.1"))
   (if-let ((bytes (seq-filter #'characterp byte-array))
            (string (apply #'unibyte-string bytes)))
