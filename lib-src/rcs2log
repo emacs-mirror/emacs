@@ -261,10 +261,10 @@ case $rlogfile in
 	if test -s "$changelog"
 	then
 		extractTZ='
-			/^.*change-log-time-zone-rule['"$tab"' ]*:['"$tab"' ]*"\([^"]*\)".*/{
+			/^.*-log-time-zone-rule['"$tab"' ]*:['"$tab"' ]*"\([^"]*\)".*/{
 				s//\1/; p; q
 			}
-			/^.*change-log-time-zone-rule['"$tab"' ]*:['"$tab"' ]*t.*/{
+			/^.*-log-time-zone-rule['"$tab"' ]*:['"$tab"' ]*t.*/{
 				s//UTC0/; p; q
 			}
 		'
