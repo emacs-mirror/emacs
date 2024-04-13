@@ -1850,8 +1850,9 @@ the Info node "(elisp) Handling Errors".
 +++
 ** Tooltips on fringes.
 It is now possible to provide tooltips on fringes by adding special text
-properties.  See the "Special Properties" Info node in the Emacs Lisp
-Reference Manual.
+properties 'left-fringe-help' and 'right-fringe-help'.  See the "Special
+Properties" Info node in the Emacs Lisp Reference Manual for more
+details.
 
 +++
 ** New 'pop-up-frames' action alist entry for 'display-buffer'.

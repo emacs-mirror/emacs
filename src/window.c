@@ -5407,13 +5407,13 @@ shrink_mini_window (struct window *w)
 
   eassert (MINI_WINDOW_P (w));
 
+  FRAME_WINDOWS_FROZEN (f) = false;
   if (delta > 0)
     {
       Lisp_Object root = FRAME_ROOT_WINDOW (f);
       struct window *r = XWINDOW (root);
       Lisp_Object grow;
 
-      FRAME_WINDOWS_FROZEN (f) = false;
       grow = call3 (Qwindow__resize_root_window_vertically,
 		    root, make_fixnum (delta), Qt);
 

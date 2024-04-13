@@ -5502,7 +5502,7 @@ colors are to be used for the bitmap display.  @xref{Fringe Bitmaps},
 for the details.
 
 It also possible to add context help for fringe bitmaps through the
-@code{show-help-function} mechanism by using @code{left-fringe-help} or
+@code{show-help-function} mechanism by using @code{left-fringe-help} and
 @code{right-fringe-help} text properties (@pxref{Special Properties}).
 
 @item (space-width @var{factor})
