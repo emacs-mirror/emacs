@@ -1680,6 +1680,14 @@ documentation and examples.
 
 * Incompatible Lisp Changes in Emacs 30.1
 
++++
+** 'define-globalized-minor-mode' requires that modes use 'run-mode-hooks'.
+Minor modes defined with 'define-globalized-minor-mode', such as
+'global-font-lock-mode', will not be enabled any more in those buffers
+whose major modes fails to use 'run-mode-hooks'.  Major modes defined
+with 'define-derived-mode' are not affected.  `run-mode-hooks` has been the
+recommended way to run major mode hooks since Emacs-22.
+
 ---
 ** Old derived.el functions removed.
 The following functions have been deleted because they were only used

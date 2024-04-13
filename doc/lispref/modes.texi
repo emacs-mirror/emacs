@@ -1109,7 +1109,10 @@ Versions before 24 did not have @code{change-major-mode-after-body-hook}.
 When user-implemented major modes do not use @code{run-mode-hooks} and
 have not been updated to use these newer features, they won't entirely
 follow these conventions: they may run the parent's mode hook too early,
-or fail to run @code{after-change-major-mode-hook}.  If you encounter
+or fail to run @code{after-change-major-mode-hook}.  This will
+have undesirable effects such as preventing minor modes defined
+with @code{define-globalized-minor-mode} from being enabled in
+buffers using these major modes.  If you encounter
 such a major mode, please correct it to follow these conventions.
 
   When you define a major mode using @code{define-derived-mode}, it
@@ -1985,10 +1988,10 @@ turn on the minor mode in a buffer, it uses the function
 function so it could determine whether to enable the minor mode or not
 when it is not a priori clear that it should always be enabled.)
 
-Globally enabling the mode also affects buffers subsequently created
-by visiting files, and buffers that use a major mode other than
-Fundamental mode; but it does not detect the creation of a new buffer
-in Fundamental mode.
+Globally enabling the mode affects only those buffers subsequently
+created that use a major mode which follows the convention to run
+@code{run-mode-hooks}.  The minor mode will not be enabled in those
+major modes which fail to follow this convention.
 
 This macro defines the customization option @var{global-mode}
 (@pxref{Customization}), which can be toggled via the Customize
