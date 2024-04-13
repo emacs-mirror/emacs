@@ -143,6 +143,10 @@
    '((["," "." ";" ":"]) @font-lock-delimiter-face)
 
    :language 'go
+   :feature 'operator
+   `([,@go-ts-mode--operators] @font-lock-operator-face)
+
+   :language 'go
    :feature 'definition
    `((function_declaration
       name: (identifier) @font-lock-function-name-face)
