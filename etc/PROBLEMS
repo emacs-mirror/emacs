@@ -1629,6 +1629,18 @@ underlying functionality in plasmashell gets fully disabled as well.
 At least a restart of plasmashell is required for the clipboard
 history to be cleared.
 
+*** XFCE: Selected frame loses focus
+
+This can happen, e.g., in Ediff: when you move between the differences
+by typing 'n' or 'p' into the control frame, input focus unexpectedly
+switches to the buffers where Emacs shows the differences, instead of
+being left in the Ediff control frame.
+
+The reason is a bug in the window manager: it shifts input focus when
+raising a frame.  A workaround is to activate the "focus stealing
+prevention" option of the window manager (in XFCE settings, under
+"window manager tweaks", in the "focus" tab).
+
 *** CDE: Frames may cover dialogs they created when using CDE.
 
 This can happen if you have "Allow Primary Windows On Top" enabled which

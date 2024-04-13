@@ -3374,29 +3374,30 @@ merge requests resulting in different URLs.
 
 @vindex bug-reference-auto-setup-functions
 If @code{bug-reference-mode} is activated,
-@code{bug-reference-mode-hook} has been run and still
-@code{bug-reference-bug-regexp}, and @code{bug-reference-url-format}
-aren't both set, it'll try to setup suitable values for these two
-variables itself by calling the functions in
-@code{bug-reference-auto-setup-functions} one after the other until
-one is able to set the variables.
+@code{bug-reference-mode-hook} has been run, and either
+@code{bug-reference-bug-regexp} or @code{bug-reference-url-format} is
+still @code{nil}, the mode will try to automatically find a suitable
+value for these two variables by calling the functions in
+@code{bug-reference-auto-setup-functions} one by one until one
+succeeds.
 
 @vindex bug-reference-setup-from-vc-alist
 @vindex bug-reference-forge-alist
 @vindex bug-reference-setup-from-mail-alist
 @vindex bug-reference-setup-from-irc-alist
-  Right now, there are three types of setup functions.
+Right now, there are three types of setup functions.
+
 @enumerate
 @item
 Setup for version-controlled files configurable by the variables
 @code{bug-reference-forge-alist}, and
 @code{bug-reference-setup-from-vc-alist}.  The defaults are able to
-setup GNU projects where @url{https://debbugs.gnu.org} is used as
+set up GNU projects where @url{https://debbugs.gnu.org} is used as
 issue tracker and issues are usually referenced as @code{bug#13} (but
-many different notations are considered, too), and several kinds of
-modern software forges such as GitLab, Gitea, SourceHut, or GitHub.
-If you deploy a self-hosted instance of such a forge, the easiest way
-to tell bug-reference about it is through
+many different notations are considered, too), as well as several
+other kinds of software forges such as GitLab, Gitea, SourceHut, and
+GitHub.  If you deploy a self-hosted instance of such a forge, the
+easiest way to tell bug-reference about it is through
 @code{bug-reference-forge-alist}.
 
 @item
@@ -3413,7 +3414,7 @@ Rcirc, @xref{Top, Rcirc,, rcirc, The Rcirc Manual}, and ERC,
 @end enumerate
 
 For almost all of those modes, it's enough to simply enable
-@code{bug-reference-mode}, only Rmail requires a slightly different
+@code{bug-reference-mode}; only Rmail requires a slightly different
 setup.
 
 @smallexample
@@ -3444,33 +3445,35 @@ to be performed whenever another messages is displayed.
 @heading Adding support for third-party packages
 
 @vindex bug-reference-auto-setup-functions
-Adding support for bug-reference' auto-setup is usually quite
-straight-forward: write a setup function of zero arguments which
+Adding support for bug-reference auto-setup is usually quite
+straightforward: write a setup function of zero arguments which
 gathers the required information (e.g., List-Id/To/From/Cc mail header
 values in the case of a MUA), and then calls one of the following
 helper functions:
+
 @itemize @bullet
 @item
-@code{bug-reference-maybe-setup-from-vc} which does the setup
-according to @code{bug-reference-setup-from-vc-alist},
+@code{bug-reference-maybe-setup-from-vc}, which does the setup
+according to @code{bug-reference-setup-from-vc-alist};
 
 @item
-@code{bug-reference-maybe-setup-from-mail} which does the setup
-according to @code{bug-reference-setup-from-mail-alist},
+@code{bug-reference-maybe-setup-from-mail}, which does the setup
+according to @code{bug-reference-setup-from-mail-alist}; and
 
 @item
-and @code{bug-reference-maybe-setup-from-irc} which does the setup
+@code{bug-reference-maybe-setup-from-irc}, which does the setup
 according to @code{bug-reference-setup-from-irc-alist}.
 @end itemize
-A setup function should return non-@code{nil} if it could setup bug-reference
-mode which is the case if the last thing the function does is calling
-one of the helper functions above.
+
+A setup function should return non-@code{nil} if it could set up
+bug-reference mode, which is the case if the last thing the function
+does is call one of the helper functions above.
 
 Finally, the setup function has to be added to
 @code{bug-reference-auto-setup-functions}.
 
 Note that these auto-setup functions should check as a first step if
-they are applicable, e.g., by checking the @code{major-mode} value.
+they are applicable, e.g., by checking the value of @code{major-mode}.
 
 
 @heading Integration with the debbugs package

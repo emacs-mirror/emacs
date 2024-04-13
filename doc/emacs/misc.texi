@@ -2166,12 +2166,13 @@ running on a text terminal, it creates a new frame in the current text
 terminal.
 
 @item -T @var{tramp-prefix}
-@itemx --tramp-prefix=@var{tramp-prefix}
+@itemx --tramp=@var{tramp-prefix}
 Set the prefix to add to filenames for Emacs to locate files on remote
 machines (@pxref{Remote Files}) using TRAMP (@pxref{Top, The Tramp
 Manual,, tramp, The Tramp Manual}).  This is mostly useful in
-combination with using the Emacs server over TCP (@pxref{TCP Emacs
-server}).  By ssh-forwarding the listening port and making the
+combination with using the Emacs server from a remote host.  By
+ssh-forwarding the listening socket, or ssh-forwarding the listening
+port @pxref{TCP Emacs server} and making the
 @var{server-file} available on a remote machine, programs on the
 remote machine can use @command{emacsclient} as the value for the
 @env{EDITOR} and similar environment variables, but instead of talking
@@ -2183,16 +2184,29 @@ Setting the environment variable @env{EMACSCLIENT_TRAMP} has the same
 effect as using the @samp{-T} option.  If both are specified, the
 command-line option takes precedence.
 
-For example, assume two hosts, @samp{local} and @samp{remote}, and
-that the local Emacs listens on tcp port 12345.  Assume further that
+For example, assume two hosts, @samp{local} and @samp{remote}.
+
+@example
+local$ ssh -R "/home/%r/.emacs.socket":"$@{XDG_RUNTIME_DIR:-$@{TMPDIR:-/tmp@}/emacs%i@}$@{XDG_RUNTIME_DIR:+/emacs@}/server" remote
+remote$ export EMACS_SOCKET_NAME=$HOME/.emacs.socket
+remote$ export EMACSCLIENT_TRAMP=/ssh:remote:
+remote$ export EDITOR=emacsclient
+remote$ $EDITOR /tmp/foo.txt #Should open in local emacs.
+@end example
+
+If you are using a platform where @command{emacsclient} does not use
+Unix domain sockets (i.e., MS-Windows), or your SSH implementation is
+not able to forward them (e.g., OpenSSH before version 6.7), you can
+forward a TCP port instead.  In this example, assume that the local
+Emacs listens on tcp port 12345.  Assume further that
 @file{/home} is on a shared file system, so that the server file
 @file{~/.emacs.d/server/server} is readable on both hosts.
 
 @example
 local$ ssh -R12345:localhost:12345 remote
-remote$ export EDITOR="emacsclient \
-        --server-file=server \
-        --tramp=/ssh:remote:"
+remote$ export EMACS_SERVER_FILE=server
+remote$ export EMACSCLIENT_TRAMP=/ssh:remote:
+remote$ export EDITOR=emacsclient
 remote$ $EDITOR /tmp/foo.txt #Should open in local emacs.
 @end example
 

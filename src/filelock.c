@@ -638,8 +638,11 @@ unlock_all_files (void)
 }
 
 DEFUN ("lock-file", Flock_file, Slock_file, 1, 1, 0,
-       doc: /* Lock FILE.
-If the option `create-lockfiles' is nil, this does nothing.  */)
+       doc: /* Check whether FILE was modified since it was visited, and lock it.
+If user option `create-lockfiles' is nil, this does not create
+a lock file for FILE, but it still checks whether FILE was modified
+outside of the current Emacs session, and if so, asks the user
+whether to modify FILE.  */)
   (Lisp_Object file)
 {
 #ifndef MSDOS
