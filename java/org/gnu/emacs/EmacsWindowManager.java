@@ -176,14 +176,20 @@ public final class EmacsWindowManager
     intent = new Intent (EmacsService.SERVICE,
 			 EmacsMultitaskActivity.class);
 
-    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
-		     | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+    /* FLAG_ACTIVITY_MULTIPLE_TASK would appear appropriate, but that
+       is not so: on Android 2.3 and earlier, this flag combined with
+       FLAG_ACTIVITY_NEW_TASK prompts the task switcher to create a
+       new instance of EmacsMultitaskActivity, rather than return to
+       an existing instance, and is entirely redundant, inasmuch as
+       only one multitasking task can exist at any given moment.  */
+    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
 
     /* Intent.FLAG_ACTIVITY_NEW_DOCUMENT is lamentably unavailable on
        older systems than Lolipop.  */
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
       {
-	intent.addFlags (Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+	intent.addFlags (Intent.FLAG_ACTIVITY_NEW_DOCUMENT
+			 | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
 
 	/* Bind this window to the activity in advance, i.e., before its
 	   creation, so that its ID will be recorded in the RecentTasks
