@@ -1699,14 +1699,26 @@ free_image (struct frame *f, struct image *img)
       c->images[img->id] = NULL;
 
 #if !defined USE_CAIRO && defined HAVE_XRENDER
-      if (img->picture)
-        XRenderFreePicture (FRAME_X_DISPLAY (f), img->picture);
-      if (img->mask_picture)
-        XRenderFreePicture (FRAME_X_DISPLAY (f), img->mask_picture);
-#endif
+      /* FRAME_X_DISPLAY (f) could be NULL if this is being called from
+	 the display IO error handler.*/
 
-      /* Free resources, then free IMG.  */
-      img->type->free_img (f, img);
+      if (FRAME_X_DISPLAY (f))
+	{
+	  if (img->picture)
+	    XRenderFreePicture (FRAME_X_DISPLAY (f),
+				img->picture);
+	  if (img->mask_picture)
+	    XRenderFreePicture (FRAME_X_DISPLAY (f),
+				img->mask_picture);
+	}
+#endif /* !USE_CAIRO && HAVE_XRENDER */
+
+#ifdef HAVE_X_WINDOWS
+      if (FRAME_X_DISPLAY (f))
+#endif /* HAVE_X_WINDOWS */
+	/* Free resources, then free IMG.  */
+	img->type->free_img (f, img);
+
       xfree (img->face_font_family);
       xfree (img);
     }
