@@ -1,6 +1,6 @@
 ;;; peg.el --- Parsing Expression Grammars in Emacs Lisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024  Free Software Foundation, Inc.
 ;;
 ;; Author: Helmut Eller <eller.helmut@gmail.com>
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -320,7 +320,8 @@ moving point along the way.
 PEXS can also be a list of PEG rules, in which case the first rule is used."
   (if (and (consp (car pexs))
            (symbolp (caar pexs))
-           (not (ignore-errors (peg-normalize (car pexs)))))
+           (not (ignore-errors
+                  (not (eq 'call (car (peg-normalize (car pexs))))))))
       ;; `pexs' is a list of rules: use the first rule as entry point.
       `(with-peg-rules ,pexs (peg-run (peg ,(caar pexs)) #'peg-signal-failure))
     `(peg-run (peg ,@pexs) #'peg-signal-failure)))
@@ -544,7 +545,8 @@ rulesets defined previously with `define-peg-ruleset'."
   (let ((args (cdr (member '-- (reverse form))))
 	(values (cdr (member '-- form))))
     (let ((form `(let ,(mapcar (lambda (var) `(,var (pop peg--stack))) args)
-		   ,@(mapcar (lambda (val) `(push ,val peg--stack)) values))))
+		   ,@(or (mapcar (lambda (val) `(push ,val peg--stack)) values)
+		         '(nil)))))
       `(action ,form))))
 
 (defvar peg-char-classes
@@ -642,11 +644,7 @@ rulesets defined previously with `define-peg-ruleset'."
         (code (peg-translate-exp exp)))
     (cond
      ((null msg) code)
-     ((fboundp 'macroexp--warn-and-return)
-      (macroexp--warn-and-return msg code))
-     (t
-      (message "%s" msg)
-      code))))
+     (t (macroexp-warn-and-return msg code)))))
 
 ;; This is the main translation function.
 (defun peg-translate-exp (exp)

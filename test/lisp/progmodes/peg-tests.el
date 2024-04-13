@@ -1,6 +1,6 @@
 ;;; peg-tests.el --- Tests of PEG parsers            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2023  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024  Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
   "Parse STRING according to PEX.
 If NOERROR is non-nil, push nil resp. t if the parse failed
 resp. succeeded instead of signaling an error."
+  (declare (indent 1))
   (let ((oldstyle (consp (car-safe pex)))) ;PEX is really a list of rules.
     `(with-temp-buffer
        (insert ,string)
@@ -105,15 +106,33 @@ resp. succeeded instead of signaling an error."
 					   (substring [0-9]))))
 				   "ab0cd1ef2gh")
 		 '("2")))
-  ;; The PEG rule `other' doesn't exist, which will cause a byte-compiler
+  ;; The PEG rule `doesntexist' doesn't exist, which will cause a byte-compiler
   ;; warning, but not an error at run time because the rule is not actually
   ;; used in this particular case.
-  (should (equal (peg-parse-string ((s (substring (or "a" other)))
-                                    ;; Unused left-recursive rule, should
-                                    ;; cause a byte-compiler warning.
-                                    (r (* "a") r))
-                                   "af")
-                 '("a")))
+  (let* ((testfun '(lambda ()
+                     (peg-parse-string ((s (substring (or "a" doesntexist)))
+                                        ;; Unused left-recursive rule, should
+                                        ;; cause a byte-compiler warning.
+                                        (r (* "a") r))
+                       "af")))
+         (compiledfun
+          (progn
+            (with-current-buffer (get-buffer-create "*Compile-Log*")
+             (let ((inhibit-read-only t)) (erase-buffer)))
+            (let ((lexical-binding t)) (byte-compile testfun)))))
+    (with-current-buffer (get-buffer-create "*Compile-Log*")
+      (goto-char (point-min))
+      (should
+       ;; FIXME: The byte-compiler emits "not known to be defined"
+       ;; warnings when compiling a file but not from `byte-compile'.
+       ;; Instead, we have to dig it out of the mess it leaves behind.  🙂
+       (or (assq 'peg-rule\ doesntexist byte-compile-unresolved-functions)
+           (should (re-search-forward
+                    "peg-rule.? doesntexist.*not known to be defined" nil t))))
+      (goto-char (point-min))
+      (should (re-search-forward "left recursion.*r -> r" nil t)))
+
+    (should (equal (funcall compiledfun) '("a"))))
   (should (equal (peg-parse-string ((s (list x y))
 				    (x `(-- 1))
 				    (y `(-- 2)))
