@@ -7421,7 +7421,9 @@ process_mark_stack (ptrdiff_t base_sp)
 		/* If the value is forwarded to a buffer or keyboard field,
 		   these are marked when we see the corresponding object.
 		   And if it's forwarded to a C variable, either it's not
-		   a Lisp_Object var, or it's staticpro'd already.  */
+		   a Lisp_Object var, or it's staticpro'd already, or it's
+		   reachable from font_style_table which is also
+		   staticpro'd.  */
 		break;
 	      default: emacs_abort ();
 	      }
