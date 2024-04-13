@@ -35759,21 +35759,22 @@ note_fringe_highlight (Lisp_Object window, int x, int y,
 
   /* Get to the first glyph of a text row based on the vertical position
      of the fringe.  */
-  struct glyph *glyph = MATRIX_ROW_GLYPH_START(w->current_matrix, vpos);
-  int glyph_num = MATRIX_ROW_USED(w->current_matrix, vpos);
+  struct glyph *glyph = MATRIX_ROW_GLYPH_START (w->current_matrix, vpos);
+  int glyph_num = MATRIX_ROW_USED (w->current_matrix, vpos);
 
   /* Check all glyphs while looking for fringe tooltips.  */
 
   /* NOTE: iterating over glyphs can only find text properties coming
      from visible text.  This means that zero-length overlays and
      invisibile text are NOT inspected.  */
-  for (;glyph_num; glyph_num--, glyph++)
+  for (; glyph_num; glyph_num--, glyph++)
     {
-      Lisp_Object pos = make_fixnum(glyph->charpos);
+      Lisp_Object pos = make_fixnum (glyph->charpos);
       Lisp_Object help_echo = Qnil;
 
-      if (STRINGP(glyph->object) || BUFFERP(glyph->object))
-	help_echo = get_char_property_and_overlay (pos, sym, glyph->object, NULL);
+      if (STRINGP (glyph->object) || BUFFERP (glyph->object))
+	help_echo = get_char_property_and_overlay (pos, sym,
+						   glyph->object, NULL);
 
       if (STRINGP (help_echo))
 	{
