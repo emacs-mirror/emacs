@@ -1227,6 +1227,35 @@
 
   (erc-tests-common-kill-buffers))
 
+(ert-deftest erc-query-buffer-p ()
+  ;; Nil in a non-ERC buffer.
+  (should-not (erc-query-buffer-p))
+  (should-not (erc-query-buffer-p (current-buffer)))
+  (should-not (erc-query-buffer-p (buffer-name)))
+
+  (erc-tests-common-make-server-buf)
+  ;; Nil in a server buffer.
+  (should-not (erc-query-buffer-p))
+  (should-not (erc-query-buffer-p (current-buffer)))
+  (should-not (erc-query-buffer-p (buffer-name)))
+
+  ;; Nil in a channel buffer.
+  (with-current-buffer (erc--open-target "#chan")
+    (should-not (erc-query-buffer-p))
+    (should-not (erc-query-buffer-p (current-buffer)))
+    (should-not (erc-query-buffer-p (buffer-name))))
+
+  ;; Non-nil in a query buffer.
+  (with-current-buffer (erc--open-target "alice")
+    (should (erc-query-buffer-p))
+    (should (erc-query-buffer-p (current-buffer)))
+    (should (erc-query-buffer-p (buffer-name))))
+
+  (should (erc-query-buffer-p (get-buffer "alice")))
+  (should (erc-query-buffer-p "alice"))
+
+  (erc-tests-common-kill-buffers))
+
 (ert-deftest erc--valid-local-channel-p ()
   (ert-info ("Local channels not supported")
     (let ((erc--isupport-params (make-hash-table)))

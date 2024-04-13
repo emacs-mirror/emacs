@@ -1647,7 +1647,7 @@ the process buffer."
   "Return non-nil if argument BUFFER is an ERC server buffer.
 If BUFFER is nil, use the current buffer.  For historical
 reasons, also return non-nil for channel buffers the client has
-parted or from which it's been kicked."
+parted or been kicked from."
   (with-current-buffer (or buffer (current-buffer))
     (and (eq major-mode 'erc-mode)
          (null (erc-default-target)))))
@@ -1669,8 +1669,13 @@ If BUFFER is nil, the current buffer is used."
 
 (defun erc-query-buffer-p (&optional buffer)
   "Return non-nil if BUFFER is an ERC query buffer.
-If BUFFER is nil, the current buffer is used."
-  (not (erc-channel-p (or buffer (current-buffer)))))
+If BUFFER is nil, use the current buffer."
+  (and-let* ((target (if buffer
+                         (progn (when (stringp buffer)
+                                  (setq buffer (get-buffer buffer)))
+                                (buffer-local-value 'erc--target buffer))
+                       erc--target)))
+    (not (erc--target-channel-p target))))
 
 (defun erc-ison-p (nick)
   "Return non-nil if NICK is online."
