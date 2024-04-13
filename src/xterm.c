@@ -29428,6 +29428,17 @@ x_free_frame_resources (struct frame *f)
   xi_unlink_touch_points (f);
 #endif
 
+  /* We must free faces before destroying windows because some
+     font-driver (e.g. xft) access a window while finishing a face.
+
+     This function must be called to remove this frame's fontsets from
+     Vfontset_list, and is itself responsible for not issuing X requests
+     if the connection has already been terminated.  Otherwise, a future
+     call to a function that iterates over all existing fontsets might
+     crash, as they are not prepared to receive dead frames.
+     (bug#66151) */
+  free_frame_faces (f);
+
   /* If a display connection is dead, don't try sending more
      commands to the X server.  */
   if (dpyinfo->display)
@@ -29437,10 +29448,6 @@ x_free_frame_resources (struct frame *f)
       if (f->pointer_invisible)
 	XTtoggle_invisible_pointer (f, 0);
 
-      /* We must free faces before destroying windows because some
-	 font-driver (e.g. xft) access a window while finishing a
-	 face.  */
-      free_frame_faces (f);
       tear_down_x_back_buffer (f);
 
       if (f->output_data.x->icon_desc)

@@ -4569,6 +4569,15 @@ free_realized_face (struct frame *f, struct face *face)
 	  /* Free fontset of FACE if it is ASCII face.  */
 	  if (face->fontset >= 0 && face == face->ascii_face)
 	    free_face_fontset (f, face);
+
+#ifdef HAVE_X_WINDOWS
+	  /* This function might be called with the frame's display
+	     connection deleted, in which event the callbacks below
+	     should not be executed, as they generate X requests.  */
+	  if (FRAME_X_DISPLAY (f))
+	    return;
+#endif /* HAVE_X_WINDOWS */
+
 	  if (face->gc)
 	    {
 	      block_input ();
