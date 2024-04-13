@@ -2124,11 +2124,36 @@ is the width of the live window."
         ;; `which-key-allow-imprecise-window-fit' is non-nil.
         (setf (which-key--pages-height result) which-key-min-display-lines))
       (which-key--debug-message "Frame height: %s
+Frame pixel width: %s
+Frame char width: %s
+Frame width: %s
+Which-key initial width: %s
+Which-key adjusted width: %s
 Minibuffer height: %s
-Max dimensions: (%s,%s)
-Available for bindings: (%s,%s)
-Actual lines: %s" (frame-height) (window-text-height (minibuffer-window))
-max-lines max-width avl-lines avl-width (which-key--pages-height result))
+Max dimensions: (%s, %s)
+Available for bindings: (%s, %s)
+Popup type info: (%s, %s, %s)
+Computed page widths: %s
+Actual lines: %s"
+                                (frame-height)
+                                (frame-pixel-width)
+                                (frame-char-width)
+                                (window-total-width (frame-root-window))
+                                (which-key--width-or-percentage-to-width
+                                  which-key-side-window-max-width)
+                                (which-key--total-width-to-text
+                                 (which-key--width-or-percentage-to-width
+                                  which-key-side-window-max-width))
+                                (window-text-height (minibuffer-window))
+                                max-lines
+                                max-width
+                                avl-lines
+                                avl-width
+                                which-key-popup-type
+                                which-key-side-window-location
+                                which-key-side-window-max-width
+                                (which-key--pages-widths result)
+                                (which-key--pages-height result))
       result)))
 
 (defun which-key--lighter-status ()
