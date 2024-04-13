@@ -53,9 +53,10 @@
 ;; - Handle `diff -b' output in context->unified.
 
 ;;; Code:
+(require 'easy-mmode)
+(require 'track-changes)
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))
-(require 'easy-mmode)
 
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-find-revision-no-save "vc")
@@ -1431,38 +1432,23 @@ else cover the whole buffer."
   (if (buffer-modified-p) (diff-fixup-modifs (point-min) (point-max)))
   nil)
 
-;; It turns out that making changes in the buffer from within an
-;; *-change-function is asking for trouble, whereas making them
-;; from a post-command-hook doesn't pose much problems
-(defvar diff-unhandled-changes nil)
-(defun diff-after-change-function (beg end _len)
-  "Remember to fixup the hunk header.
-See `after-change-functions' for the meaning of BEG, END and LEN."
-  ;; Ignoring changes when inhibit-read-only is set is strictly speaking
-  ;; incorrect, but it turns out that inhibit-read-only is normally not set
-  ;; inside editing commands, while it tends to be set when the buffer gets
-  ;; updated by an async process or by a conversion function, both of which
-  ;; would rather not be uselessly slowed down by this hook.
-  (when (and (not undo-in-progress) (not inhibit-read-only))
-    (if diff-unhandled-changes
-	(setq diff-unhandled-changes
-	      (cons (min beg (car diff-unhandled-changes))
-		    (max end (cdr diff-unhandled-changes))))
-      (setq diff-unhandled-changes (cons beg end)))))
+(defvar-local diff--track-changes nil)
 
-(defun diff-post-command-hook ()
-  "Fixup hunk headers if necessary."
-  (when (consp diff-unhandled-changes)
-    (ignore-errors
-      (save-excursion
-	(goto-char (car diff-unhandled-changes))
-	;; Maybe we've cut the end of the hunk before point.
-	(if (and (bolp) (not (bobp))) (backward-char 1))
-	;; We used to fixup modifs on all the changes, but it turns out that
-	;; it's safer not to do it on big changes, e.g. when yanking a big
-	;; diff, or when the user edits the header, since we might then
-	;; screw up perfectly correct values.  --Stef
-	(diff-beginning-of-hunk t)
+(defun diff--track-changes-signal (tracker)
+  (cl-assert (eq tracker diff--track-changes))
+  (track-changes-fetch tracker #'diff--track-changes-function))
+
+(defun diff--track-changes-function (beg end _before)
+  (with-demoted-errors "%S"
+    (save-excursion
+      (goto-char beg)
+      ;; Maybe we've cut the end of the hunk before point.
+      (if (and (bolp) (not (bobp))) (backward-char 1))
+      ;; We used to fixup modifs on all the changes, but it turns out that
+      ;; it's safer not to do it on big changes, e.g. when yanking a big
+      ;; diff, or when the user edits the header, since we might then
+      ;; screw up perfectly correct values.  --Stef
+      (when (ignore-errors (diff-beginning-of-hunk t))
         (let* ((style (if (looking-at "\\*\\*\\*") 'context))
                (start (line-beginning-position (if (eq style 'context) 3 2)))
                (mid (if (eq style 'context)
@@ -1470,17 +1456,20 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
                           (re-search-forward diff-context-mid-hunk-header-re
                                              nil t)))))
           (when (and ;; Don't try to fixup changes in the hunk header.
-                 (>= (car diff-unhandled-changes) start)
+                 (>= beg start)
                  ;; Don't try to fixup changes in the mid-hunk header either.
                  (or (not mid)
-                     (< (cdr diff-unhandled-changes) (match-beginning 0))
-                     (> (car diff-unhandled-changes) (match-end 0)))
+                     (< end (match-beginning 0))
+                     (> beg (match-end 0)))
                  (save-excursion
-		(diff-end-of-hunk nil 'donttrustheader)
+		   (diff-end-of-hunk nil 'donttrustheader)
                    ;; Don't try to fixup changes past the end of the hunk.
-                   (>= (point) (cdr diff-unhandled-changes))))
-	  (diff-fixup-modifs (point) (cdr diff-unhandled-changes)))))
-      (setq diff-unhandled-changes nil))))
+                   (>= (point) end)))
+	   (diff-fixup-modifs (point) end)
+	   ;; Ignore the changes we just made ourselves.
+	   ;; This is not indispensable since the above `when' skips
+	   ;; changes like the ones we make anyway, but it's good practice.
+	   (track-changes-fetch diff--track-changes #'ignore)))))))
 
 (defun diff-next-error (arg reset)
   ;; Select a window that displays the current buffer so that point
@@ -1560,9 +1549,8 @@ a diff with \\[diff-reverse-direction].
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
       (add-hook 'write-contents-functions #'diff-write-contents-hooks nil t)
-    (make-local-variable 'diff-unhandled-changes)
-    (add-hook 'after-change-functions #'diff-after-change-function nil t)
-    (add-hook 'post-command-hook #'diff-post-command-hook nil t))
+    (setq diff--track-changes
+          (track-changes-register #'diff--track-changes-signal :nobefore t)))
 
   ;; add-log support
   (setq-local add-log-current-defun-function #'diff-current-defun)
@@ -1581,12 +1569,15 @@ a diff with \\[diff-reverse-direction].
 \\{diff-minor-mode-map}"
   :group 'diff-mode :lighter " Diff"
   ;; FIXME: setup font-lock
-  ;; setup change hooks
-  (if (not diff-update-on-the-fly)
-      (add-hook 'write-contents-functions #'diff-write-contents-hooks nil t)
-    (make-local-variable 'diff-unhandled-changes)
-    (add-hook 'after-change-functions #'diff-after-change-function nil t)
-    (add-hook 'post-command-hook #'diff-post-command-hook nil t)))
+  (when diff--track-changes (track-changes-unregister diff--track-changes))
+  (remove-hook 'write-contents-functions #'diff-write-contents-hooks t)
+  (when diff-minor-mode
+    (if (not diff-update-on-the-fly)
+        (add-hook 'write-contents-functions #'diff-write-contents-hooks nil t)
+      (unless diff--track-changes
+        (setq diff--track-changes
+              (track-changes-register #'diff--track-changes-signal
+                                      :nobefore t))))))
 
 ;;; Handy hook functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

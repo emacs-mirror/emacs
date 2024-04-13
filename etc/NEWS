@@ -15,6 +15,12 @@ in older Emacs versions.
 You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing 'C-u C-h C-n'.
 
+Temporary note:
++++ indicates that all relevant manuals in doc/ have been updated.
+--- means no change in the manuals is needed.
+When you add a new item, use the appropriate mark if you are sure it
+applies, and please also update docstrings as needed.
+
 
 * Installation Changes in Emacs 30.1
 
@@ -1589,6 +1595,18 @@ options of GNU 'ls'.
 
 
 * New Modes and Packages in Emacs 30.1
+
++++
+** New package Track-Changes.
+This library is a layer of abstraction above 'before-change-functions'
+and 'after-change-functions' which provides a superset of
+the functionality of 'after-change-functions':
+- It provides the actual previous text rather than only its length.
+- It takes care of accumulating and bundling changes until a time when
+  its client finds it convenient to react to them.
+- It detects most cases where some changes were not properly
+  reported (calls to 'before/after-change-functions' that are
+  incorrectly paired, missing, etc...) and reports them adequately.
 
 ** New major modes based on the tree-sitter library
 
