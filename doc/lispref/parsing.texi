@@ -1522,43 +1522,46 @@ pattern-matching, which can be found at
 
 @node User-defined Things
 @section User-defined ``Things'' and Navigation
-It's often useful to be able to identify and find certain ``things'' in
+@cindex user-defined things, with tree-sitter parsing
+
+It's often useful to be able to identify and find certain @dfn{things} in
 a buffer, like function and class definitions, statements, code blocks,
 strings, comments, etc.  Emacs allows users to define what kind of
-tree-sitter node are what ``thing''.  This enables handy features like
-jumping to the next function, marking the code block at point, or
-transposing two function arguments.
+tree-sitter node corresponds to a ``thing''.  This enables handy
+features like jumping to the next function, marking the code block at
+point, or transposing two function arguments.
 
 The ``things'' feature in Emacs is independent of the pattern matching
-feature of tree-sitter, comparatively less powerful, but more suitable
-for navigation and traversing the parse tree.
+feature of tree-sitter, and comparatively less powerful, but more
+suitable for navigation and traversing the parse tree.
 
-Users can define things with @var{treesit-thing-settings}.
+You can define things with @var{treesit-thing-settings}.
 
 @defvar treesit-thing-settings
 This is an alist of thing definitions for each language.  The key of
 each entry is a language symbol, and the value is a list of thing
-definitions of the form @w{@code{(@var{thing} @var{pred})}}.
-
+definitions of the form @w{@code{(@var{thing} @var{pred})}}, where
 @var{thing} is a symbol representing the thing, like @code{defun},
-@code{sexp}, or @code{sentence}; @var{pred} specifies what kind of
-tree-sitter node is the @var{thing}.
+@code{sexp}, or @code{sentence}; and @var{pred} specifies what kind of
+tree-sitter node is this @var{thing}.
 
 @var{pred} can be a regexp string that matches the type of the node; it
 can be a function that takes a node as the argument and returns a
-boolean that indicates whether the node qualifies as the thing; it can
+boolean that indicates whether the node qualifies as the thing; or it can
 be a cons @w{@code{(@var{regexp} . @var{fn})}}, which is a combination
-of a regexp and a function---the node has to match both to qualify as the
-thing.
+of a regular expression @var{regexp} and a function @var{fn}---the node
+has to match both the @var{regexp} and to satisfy @var{fn} to qualify as
+the thing.
 
 @var{pred} can also be recursively defined.  It can be @w{@code{(or
-@var{pred}...)}}, meaning satisfying any one of the @var{pred}s
+@var{pred}@dots{})}}, meaning that satisfying any one of the @var{pred}s
 qualifies the node as the thing.  It can be @w{@code{(not @var{pred})}},
-meaning not satisfying @var{pred} qualifies the node.
+meaning that not satisfying @var{pred} qualifies the node.
 
 Finally, @var{pred} can refer to other @var{thing}s defined in this
 list.  For example, @w{@code{(or sexp sentence)}} defines something
-that's either a @code{sexp} or a @code{sentence}.
+that's either a @code{sexp} thing or a @code{sentence} thing, as defined
+by some other rule in the alist.
 
 Here's an example @var{treesit-thing-settings} for C and C++:
 
@@ -1577,73 +1580,74 @@ Here's an example @var{treesit-thing-settings} for C and C++:
 @end group
 @end example
 
-Note that this example is modified for demonstration and isn't exactly
-how C and C++ mode define things.
+@noindent
+Note that this example is modified for didactical purposes, and isn't
+exactly how C and C@t{++} modes define things.
 @end defvar
 
-The next section lists a few functions that take advantage of the thing
-definitions.  Besides these functions, some other functions listed
-elsewhere also utilizes the thing feature, e.g., tree-traversing
-functions like @code{treesit-search-forward},
-@code{treesit-induce-sparse-tree}, etc.
+The rest of this section lists a few functions that take advantage of
+the thing definitions.  Besides the functions below, some other
+functions listed elsewhere also utilize the thing feature, e.g.,
+tree-traversing functions like @code{treesit-search-forward},
+@code{treesit-induce-sparse-tree}, etc.  @xref{Retrieving Nodes}.
 
-@defun treesit-thing-prev pos thing
-This function returns the first node before @var{pos} that's a
-@var{thing}.  If no such node exists, it returns @code{nil}.  It's
-guaranteed that, if a node is returned, the node's end position is less
-or equal to @var{pos}.  In other words, this function never return a
-node that encloses @var{pos}.
+@defun treesit-thing-prev position thing
+This function returns the first node before @var{position} that is the
+specified @var{thing}.  If no such node exists, it returns @code{nil}.
+It's guaranteed that, if a node is returned, the node's end position is
+less or equal to @var{position}.  In other words, this function never
+returns a node that encloses @var{position}.
 
 @var{thing} can be either a thing symbol like @code{defun}, or simply a
 thing definition like @code{"function_definition"}.
 @end defun
 
-@defun treesit-thing-next pos thing
-This function is similar to @code{treesit-thing-prev}, only that it
-returns the first node @emph{after} @var{pos} that's a @var{thing}.  And
-it guarantees that if a node is returned, the node's start position is
-be greater or equal to @var{pos}.
+@defun treesit-thing-next position thing
+This function is similar to @code{treesit-thing-prev}, only it returns
+the first node @emph{after} @var{position} that's the @var{thing}.  It
+also guarantees that if a node is returned, the node's start position is
+greater or equal to @var{position}.
 @end defun
 
-@defun treesit-navigate-thing pos arg side thing &optional tactic
+@defun treesit-navigate-thing position arg side thing &optional tactic
 This function builds upon @code{treesit-thing-prev} and
 @code{treesit-thing-next} and provides functionality that a navigation
-command would find useful.
+command would find useful.  It returns the position after moving across
+@var{arg} instances of @var{thing} from @var{position}.  If
+there aren't enough things to navigate across, it returns nil.  The
+function doesn't move point.
 
-It returns the position after navigating @var{arg} steps from @var{pos},
-without actually moving point.  If there aren't enough things to
-navigate across, it returns nil.
-
-A positive @var{arg} means moving forward that many steps; negative
-means moving backward.  If @var{side} is @code{beg}, this function stops
-at the beginning of the thing; if @code{end}, stop at the end.
+A positive @var{arg} means moving forward that many instances of
+@var{thing}; negative @var{arg} means moving backward.  If @var{side} is
+@code{beg}, this function stops at the beginning of @var{thing}; if
+@code{end}, stop at the end of @var{thing}.
 
 Like in @code{treesit-thing-prev}, @var{thing} can be a thing symbol
 defined in @var{treesit-thing-settings}, or a thing definition.
 
-@var{tactic} determines how does this function move between things.
-@var{tactic} can be @code{nested}, @code{top-level}, @code{restricted},
-or @code{nil}.  @code{nested} or @code{nil} means normal nested
-navigation: first try to move across siblings; if there aren't any
-siblings left in the current level, move to the parent, then it's
-siblings, and so on.  @code{top-level} means only navigate across
-top-level things and ignore nested things.  @code{restricted} means
-movement is restricted within the thing that encloses @var{pos}, if
-there is one such thing.  This tactic is useful for the commands that
-want to stop at the current nest level and not move up.
+@var{tactic} determines how this function moves between things.  It can
+be @code{nested}, @code{top-level}, @code{restricted}, or @code{nil}.
+@code{nested} or @code{nil} means normal nested navigation: first try to
+move across siblings; if there aren't any siblings left in the current
+level, move to the parent, then its siblings, and so on.
+@code{top-level} means only navigate across top-level things and ignore
+nested things.  @code{restricted} means movement is restricted within
+the thing that encloses @var{position}, if there is such a thing.  This
+tactic is useful for commands that want to stop at the current nesting
+level and not move up.
 @end defun
 
-@defun treesit-thing-at pos thing &optional strict
-This function returns the smallest node that's a @var{thing} and
-encloses @var{pos}; if there's no such node, return nil.
+@defun treesit-thing-at position thing &optional strict
+This function returns the smallest node that's the @var{thing} and
+encloses @var{position}; if there's no such node, it returns @code{nil}.
 
-The returned node must enclose @var{pos}, i.e., its start position is
-less or equal to @var{pos}, and it's end position is greater or equal to
-@var{pos}.
+The returned node must enclose @var{position}, i.e., its start position is
+less or equal to @var{position}, and it's end position is greater or equal to
+@var{position}.
 
 If @var{strict} is non-@code{nil}, this function uses strict comparison,
-i.e., start position must be strictly greater than @var{pos}, and end
-position must be strictly less than @var{pos}.
+i.e., start position must be strictly greater than @var{position}, and end
+position must be strictly less than @var{position}.
 
 @var{thing} can be either a thing symbol defined in
 @var{treesit-thing-settings}, or a thing definition.
@@ -1654,14 +1658,15 @@ position must be strictly less than @var{pos}.
 @findex treesit-thing-at-point
 There are also some convenient wrapper functions.
 @code{treesit-beginning-of-thing} moves point to the beginning of a
-thing, @code{treesit-beginning-of-thing} to the end of a thing.
+thing, @code{treesit-end-of-thing} moves to the end of a thing, and
 @code{treesit-thing-at-point} returns the thing at point.
 
-There are defun commands that specifically use the @code{defun}
+There are also defun commands that specifically use the @code{defun}
 definition, like @code{treesit-beginning-of-defun},
 @code{treesit-end-of-defun}, and @code{treesit-defun-at-point}.  In
 addition, these functions use @var{treesit-defun-tactic} as the
-navigation tactic.  They are described in more detail in other sections.
+navigation tactic.  They are described in more detail in other sections
+(@pxref{Tree-sitter Major Modes}).
 
 @node Multiple Languages
 @section Parsing Text in Multiple Languages
@@ -2056,6 +2061,13 @@ non-@code{nil}, it sets up Imenu.
 @item
 If @code{treesit-outline-predicate} (@pxref{Outline Minor Mode}) is
 non-@code{nil}, it sets up Outline minor mode.
+
+@item
+If @code{sexp} and/or @code{sentence} are defined in
+@code{treesit-thing-settings} (@pxref{User-defined Things}), it enables
+navigation commands that move, respectively, by sexps and sentences by
+defining variables such as @code{forward-sexp-function} and
+@code{forward-sentence-function}.
 @end itemize
 
 @c TODO: Add treesit-thing-settings stuff once we finalize it.
