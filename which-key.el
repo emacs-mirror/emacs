@@ -1284,6 +1284,10 @@ call signature in different emacs versions"
               (window-height . (lambda (w) (fit-window-to-buffer w nil 1)))
               (side . ,which-key-side-window-location)
               (slot . ,which-key-side-window-slot)))))
+    (which-key--debug-message "Allow imprecise fit: %s
+Display window alist: %s"
+                              which-key-allow-imprecise-window-fit
+                              alist)
     ;; Previously used `display-buffer-in-major-side-window' here, but
     ;; apparently that is meant to be an internal function. See emacs bug #24828
     ;; and advice given there.
