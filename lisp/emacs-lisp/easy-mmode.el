@@ -661,8 +661,12 @@ list."
 
        ;; The function that catches kill-all-local-variables.
        (defun ,MODE-cmhh ()
-	 (add-to-list ',MODE-buffers (current-buffer))
-	 (add-hook 'post-command-hook #',MODE-check-buffers))
+         ;; If `delay-mode-hooks' is set, it indicates that the current
+         ;; buffer's mode will run `run-mode-hooks' afterwards anyway,
+         ;; so we don't need to keep this buffer in MODE-buffers.
+	 (unless delay-mode-hooks
+	   (add-to-list ',MODE-buffers (current-buffer))
+	   (add-hook 'post-command-hook #',MODE-check-buffers)))
        (put ',MODE-cmhh 'definition-name ',global-mode))))
 
 (defun easy-mmode--globalized-predicate-p (predicate)
