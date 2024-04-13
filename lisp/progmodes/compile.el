@@ -2661,10 +2661,7 @@ and runs `compilation-filter-hook'."
                                                (line-end-position))
                                        (text-properties-at start)))))
           (put-text-property
-           start (if ends-in-nl
-                     ;; Don't hide the final newline.
-                     (1- (point))
-                   (point))
+           start (point)
            'display (if (char-displayable-p ?…) "[…]" "[...]"))))
       (if ends-in-nl (forward-char)))))
 
