@@ -368,6 +368,9 @@ END:VTIMEZONE
 		     (icalendar--datestring-to-isodate "2008 05 31")))
     (should (string= "20080602"
 		     (icalendar--datestring-to-isodate "2008 05 31" 2)))
+    ;; Bug#69894
+    (should (string= "20240319"
+		     (icalendar--datestring-to-isodate "2024-03-19")))
 
     ;; numeric european
     (setq calendar-date-style 'european)
