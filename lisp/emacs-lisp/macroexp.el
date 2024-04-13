@@ -351,7 +351,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
              (let ((default-tail nil)
                    (n 0)
                    (rest clauses))
-               (while rest
+               (while (cdr rest)
                  (let ((c (car-safe (car rest))))
                    (when (cond ((consp c) (and (memq (car c) '(quote function))
                                                (cadr c)))
