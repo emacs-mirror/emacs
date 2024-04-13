@@ -285,6 +285,20 @@ Natbib compatibility commands:
 \\Citep[pre][pos]{Citep:2022}
 \\Citep*[pre][pos]{Citep*:2022}
 
+Qualified Citation Lists:
+\\cites(Global Prenote)(Global Postnote)[pre][post]{cites:1}[pre][post]{cites:2}
+\\Cites(Global Prenote)(Global Postnote)[pre][post]{Cites:1}[pre][post]{Cites:2}
+\\parencites(Global Prenote)(Global Postnote)[pre][post]{parencites:1}
+  [pre][post]{parencites:2}
+\\Parencites(Global Prenote)(Global Postnote)[pre][post]{Parencites:1}{Parencites:2}
+\\footcites[pre][post]{footcites:1}[pre][post]{footcites:2}
+\\footcitetexts{footcitetexts:1}{footcitetexts:2}
+\\smartcites{smartcites:1}
+% This is comment about \\smartcites{smartcites:2}
+[pre][post]{smartcites:2}
+% And this should be ignored \\smartcites{smartcites:3}{smartcites:4}
+
+
 Test for bug#56655:
 There was a few \\% of increase in budget \\Citep*{bug:56655}.
 
@@ -331,6 +345,14 @@ And this should be % \\cite{ignored}.
                              "citealp:2022" "citealp*:2022"
                              "Citet:2022"   "Citet*:2022"
                              "Citep:2022"   "Citep*:2022"
+                             ;; Qualified Citation Lists
+                             "cites:1"         "cites:2"
+                             "Cites:1"         "Cites:2"
+                             "parencites:1"    "parencites:2"
+                             "Parencites:1"    "Parencites:2"
+                             "footcites:1"     "footcites:2"
+                             "footcitetexts:1" "footcitetexts:2"
+                             "smartcites:1"    "smartcites:2"
                              "bug:56655")
                            #'string<)))
       (kill-buffer (file-name-nondirectory tex-file)))))
