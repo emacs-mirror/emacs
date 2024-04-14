@@ -2463,7 +2463,7 @@ with // and /*, not more generic line and block comments."
 			   (backward-char)
 			   (setq pseudo (c-cheap-inside-bracelist-p (c-parse-state)))))))
 	       (goto-char pseudo))
-	     t)
+	     (or pseudo (> (point) bod-lim)))
 	   ;; Move forward to the start of the next declaration.
 	   (progn (c-forward-syntactic-ws)
 		  ;; Have we got stuck in a comment at EOB?
