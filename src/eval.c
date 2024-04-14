@@ -3158,13 +3158,9 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, specpdl_ref count)
    or a module function.  */
 
 static Lisp_Object
-funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
-		register Lisp_Object *arg_vector)
+funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
 {
-  Lisp_Object val, syms_left, next, lexenv;
-  specpdl_ref count = SPECPDL_INDEX ();
-  ptrdiff_t i;
-  bool optional, rest;
+  Lisp_Object syms_left, lexenv;
 
   if (CONSP (fun))
     {
@@ -3211,13 +3207,16 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
   else
     emacs_abort ();
 
-  i = optional = rest = 0;
+  specpdl_ref count = SPECPDL_INDEX ();
+  ptrdiff_t i = 0;
+  bool optional = false;
+  bool rest = false;
   bool previous_rest = false;
   for (; CONSP (syms_left); syms_left = XCDR (syms_left))
     {
       maybe_quit ();
 
-      next = XCAR (syms_left);
+      Lisp_Object next = XCAR (syms_left);
       if (!SYMBOLP (next))
 	xsignal1 (Qinvalid_function, fun);
 
@@ -3269,6 +3268,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
     /* Instantiate a new lexical environment.  */
     specbind (Qinternal_interpreter_environment, lexenv);
 
+  Lisp_Object val;
   if (CONSP (fun))
     val = Fprogn (XCDR (XCDR (fun)));
   else if (SUBR_NATIVE_COMPILEDP (fun))
