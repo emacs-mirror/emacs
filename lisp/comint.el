@@ -3961,18 +3961,22 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;;; OSC escape sequences (Operating System Commands)
 ;;============================================================================
 ;; Adding `comint-osc-process-output' to
-;; `comint-output-filter-functions' enables the interpretation of OSC
-;; escape sequences.  By default, OSC 7 and 8 (for current directory
-;; and hyperlinks respectively) are acted upon.  Adding more entries
-;; to `comint-osc-handlers' allows a customized treatment of further
-;; sequences.
+;; `comint-output-filter-functions' enables the interpreting of OSC
+;; escape sequences.  See `ansi-osc-handlers' for a list of OSC
+;; sequences which are interpreted by default and information on how to
+;; handle new sequences.
 
 ;; Aliases defined for reverse compatibility
-(defvaralias 'comint-osc-handlers 'ansi-osc-handlers)
-(defalias 'comint-osc-directory-tracker 'ansi-osc-directory-tracker)
-(defalias 'comint-osc-hyperlink-handler 'ansi-osc-hyperlink-handler)
-(defalias 'comint-osc-hyperlink 'ansi-osc-hyperlink)
-(defvaralias 'comint-osc-hyperlink-map 'ansi-osc-hyperlink-map)
+(define-obsolete-variable-alias
+  'comint-osc-handlers 'ansi-osc-handlers "30.1")
+(define-obsolete-function-alias
+  'comint-osc-directory-tracker 'ansi-osc-directory-tracker "30.1")
+(define-obsolete-function-alias
+  'comint-osc-hyperlink-handler 'ansi-osc-hyperlink-handler "30.1")
+(define-obsolete-function-alias
+  'comint-osc-hyperlink 'ansi-osc-hyperlink "30.1")
+(define-obsolete-variable-alias
+  'comint-osc-hyperlink-map 'ansi-osc-hyperlink-map "30.1")
 
 (defun comint-osc-process-output (_)
   "Interpret OSC escape sequences in comint output.
@@ -3985,7 +3989,7 @@ sequences of the forms
 
 Specifically, every occurrence of such escape sequences is
 removed from the buffer.  Then, if `command' is a key of the
-`comint-osc-handlers' alist, the corresponding value, which
+`ansi-osc-handlers' alist, the corresponding value, which
 should be a function, is called with `command' and `text' as
 arguments, with point where the escape sequence was located."
   (let ((start (1- comint-last-output-start))
