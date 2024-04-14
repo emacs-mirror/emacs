@@ -147,19 +147,34 @@ If this option is nil, these commands do not display any message."
   ;; "M-p" #'completion-preview-prev-candidate
   )
 
+(defun completion-preview--ignore ()
+  "Do nothing, including updating the completion preview.
+
+This is the same as `ignore', except that Completion Preview mode skips
+hiding or updating the completion preview after this command runs."
+  (interactive)
+  nil)
+
+(put 'completion-preview--ignore 'completion-predicate #'ignore)
+
 (defvar-keymap completion-preview--mouse-map
   :doc "Keymap for mouse clicks on the completion preview."
-  "<down-mouse-1>" #'completion-preview-insert
-  "C-<down-mouse-1>" #'completion-preview-complete
-  "<down-mouse-2>" #'completion-preview-complete
-  "<wheel-up>"     #'completion-preview-prev-candidate
-  "<wheel-down>"   #'completion-preview-next-candidate)
+  "<mouse-1>"        #'completion-preview-insert
+  ;; Ignore the corresponding button-down event.
+  "<down-mouse-1>"   #'completion-preview--ignore
+  "C-<mouse-1>"      #'completion-preview-complete
+  "C-<down-mouse-1>" #'completion-preview--ignore
+  "<mouse-2>"        #'completion-preview-complete
+  "<down-mouse-2>"   #'completion-preview--ignore
+  "<wheel-up>"       #'completion-preview-prev-candidate
+  "<wheel-down>"     #'completion-preview-next-candidate)
 
 (defvar-local completion-preview--overlay nil)
 
 (defvar completion-preview--internal-commands
   '(completion-preview-next-candidate
     completion-preview-prev-candidate
+    completion-preview--ignore
     ;; Don't dismiss or update the preview when the user scrolls.
     mwheel-scroll)
   "List of commands that manipulate the completion preview.
