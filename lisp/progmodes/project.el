@@ -291,7 +291,7 @@ headers search path, load path, class path, and so on."
   nil)
 
 (cl-defgeneric project-name (project)
-  "A human-readable name for the project.
+  "A human-readable name for the PROJECT.
 Nominally unique, but not enforced."
   (file-name-nondirectory (directory-file-name (project-root project))))
 
