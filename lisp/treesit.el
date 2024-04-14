@@ -2138,14 +2138,24 @@ however, smaller in scope than sentences.  This is used by
 (defun treesit-forward-sexp (&optional arg)
   "Tree-sitter implementation for `forward-sexp-function'.
 
-ARG is described in the docstring of `forward-sexp-function'.  If
-there are no further sexps to move across, signal `scan-error'
-like `forward-sexp' does.  If point is already at top-level,
-return nil without moving point."
+ARG is described in the docstring of `forward-sexp-function'.
+
+If point is inside a text environment where tree-sitter is not
+supported, go forward a sexp using `forward-sexp-default-function'.
+If point is inside code, use tree-sitter functions with the
+following behavior.  If there are no further sexps to move across,
+signal `scan-error' like `forward-sexp' does.  If point is already
+at top-level, return nil without moving point.
+
+What constitutes as text and source code sexp is determined
+by `text' and `sexp' in `treesit-thing-settings'."
   (interactive "^p")
   (let ((arg (or arg 1))
         (pred (or treesit-sexp-type-regexp 'sexp)))
-    (or (if (> arg 0)
+    (or (when (treesit-node-match-p (treesit-node-at (point)) 'text t)
+          (funcall #'forward-sexp-default-function arg)
+          t)
+        (if (> arg 0)
             (treesit-end-of-thing pred (abs arg) 'restricted)
           (treesit-beginning-of-thing pred (abs arg) 'restricted))
         ;; If we couldn't move, we should signal an error and report

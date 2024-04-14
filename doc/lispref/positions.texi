@@ -892,8 +892,8 @@ parser information to move across syntax constructs.  Since what
 exactly is considered a sexp varies between languages, a major mode
 should set @code{treesit-thing-settings} to determine that.  Then
 the mode can get navigation-by-sexp functionality for free, by using
-@code{forward-sexp} and @code{backward-sexp}(@pxref{Moving by
-Sentences,,, emacs, The extensible self-documenting text editor}).
+@code{forward-sexp} and @code{backward-sexp}(@pxref{Expressions,
+,, emacs, The extensible self-documenting text editor}).
 
 @node Skipping Characters
 @subsection Skipping Characters

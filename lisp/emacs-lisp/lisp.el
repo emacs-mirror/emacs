@@ -45,7 +45,12 @@ This affects `insert-parentheses' and `insert-pair'."
   :type 'boolean
   :group 'lisp)
 
-(defvar forward-sexp-function nil
+(defun forward-sexp-default-function (&optional arg)
+  "Default function for `forward-sexp-function'."
+  (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
+  (if (< arg 0) (backward-prefix-chars)))
+
+(defvar forward-sexp-function #'forward-sexp-default-function
   ;; FIXME:
   ;; - for some uses, we may want a "sexp-only" version, which only
   ;;   jumps over a well-formed sexp, rather than some dwimish thing
@@ -74,10 +79,9 @@ report errors as appropriate for this kind of usage."
                                     "No next sexp"
                                   "No previous sexp"))))
     (or arg (setq arg 1))
-    (if forward-sexp-function
-        (funcall forward-sexp-function arg)
-      (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
-      (if (< arg 0) (backward-prefix-chars)))))
+    (funcall (or forward-sexp-function
+                 #'forward-sexp-default-function)
+             arg)))
 
 (defun backward-sexp (&optional arg interactive)
   "Move backward across one balanced expression (sexp).
