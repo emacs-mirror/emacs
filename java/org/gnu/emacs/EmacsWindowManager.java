@@ -27,6 +27,7 @@ import android.app.ActivityManager.RecentTaskInfo;
 import android.app.ActivityManager;
 import android.app.ActivityOptions;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
@@ -383,6 +384,46 @@ public final class EmacsWindowManager
 	  continue;
 
 	window.onActivityDetached ();
+      }
+  }
+
+  /* Iterate over each of Emacs's tasks to delete such as belong to a
+     previous Emacs session, i.e., tasks created for a previous
+     session's non-initial frames.  CONTEXT should be a context from
+     which to obtain a reference to the activity manager.  */
+
+  public void
+  removeOldTasks (Context context)
+  {
+    List<AppTask> appTasks;
+    RecentTaskInfo info;
+    ComponentName name;
+    String target;
+    Object object;
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+      return;
+
+    if (activityManager == null)
+      {
+	object = context.getSystemService (Context.ACTIVITY_SERVICE);
+	activityManager = (ActivityManager) object;
+      }
+
+    appTasks = activityManager.getAppTasks ();
+    target   = ".EmacsMultitaskActivity";
+
+    for (AppTask task : appTasks)
+      {
+	info = task.getTaskInfo ();
+
+	/* Test whether info is a reference to
+	   EmacsMultitaskActivity.  */
+	if (info.baseIntent != null
+	    && (name = info.baseIntent.getComponent ()) != null
+	    && name.getShortClassName ().equals (target))
+	  /* Delete the task.  */
+	  task.finishAndRemoveTask ();
       }
   }
 };
