@@ -418,6 +418,27 @@
                     (should-not (and (> size 0) (eq res seq)))
                     (should (equal seq input))))))))))))
 
+(ert-deftest fns-tests-sort-gc ()
+  ;; Make sure our temporary storage is traversed by the GC.
+  (let* ((n 1000)
+         (a (mapcar #'number-to-string (number-sequence 1 n)))
+         (i 0)
+         ;; Force frequent GCs in both the :key and :lessp functions.
+         (s (sort a
+                  :key (lambda (x)
+                         (setq i (1+ i))
+                         (when (> i 300)
+                           (garbage-collect)
+                           (setq i 0))
+                         (copy-sequence x))
+                  :lessp (lambda (a b)
+                           (setq i (1+ i))
+                           (when (> i 300)
+                             (garbage-collect)
+                             (setq i 0))
+                           (string< a b)))))
+    (should (equal (length s) (length a)))))
+
 (defvar w32-collate-ignore-punctuation)
 
 (ert-deftest fns-tests-collate-sort ()

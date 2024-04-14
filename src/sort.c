@@ -532,6 +532,9 @@ merge_markmem (void *arg)
   merge_state *ms = arg;
   eassume (ms != NULL);
 
+  if (ms->allocated_keys != NULL)
+    mark_objects (ms->allocated_keys, ms->listlen);
+
   if (ms->reloc.size != NULL && *ms->reloc.size > 0)
     {
       Lisp_Object *src = (ms->reloc.src->values
@@ -1107,20 +1110,28 @@ tim_sort (Lisp_Object predicate, Lisp_Object keyfunc,
       if (length < MERGESTATE_TEMP_SIZE / 2)
 	keys = &ms.temparray[length + 1];
       else
-	keys = allocated_keys = xmalloc (length * word_size);
-
-      for (ptrdiff_t i = 0; i < length; i++)
-	keys[i] = call1 (keyfunc, seq[i]);
+	{
+	  /* Fill with valid Lisp values in case a GC occurs before all
+	     keys have been computed.  */
+	  verify (NIL_IS_ZERO);
+	  keys = allocated_keys = xzalloc (length * word_size);
+	}
 
       lo.keys = keys;
       lo.values = seq;
     }
 
+  merge_init (&ms, length, allocated_keys, &lo, predicate);
+
+  /* Compute keys after merge_markmem has been registered by merge_init
+     (any call to keyfunc might trigger a GC).  */
+  if (!NILP (keyfunc))
+    for (ptrdiff_t i = 0; i < length; i++)
+      keys[i] = call1 (keyfunc, seq[i]);
+
   /* FIXME: This is where we would check the keys for interesting
      properties for more optimised comparison (such as all being fixnums
      etc).  */
-
-  merge_init (&ms, length, allocated_keys, &lo, predicate);
 
   /* March over the array once, left to right, finding natural runs,
      and extending short natural runs to minrun elements.  */
