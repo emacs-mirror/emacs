@@ -6386,8 +6386,12 @@ use @code{combine-change-calls} or @code{combine-after-change-calls}
 instead.
 @end defvar
 
+@menu
+* Tracking changes::       Keeping track of buffer modifications.
+@end menu
+
 @node Tracking changes
-@subsection Tracking changes
+@subsection Keeping track of buffer modifications
 @cindex track-changes
 @cindex change tracker
 
