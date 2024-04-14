@@ -327,7 +327,8 @@ If LISP, format with `pp-emacs-lisp-code'; use `pp' otherwise.
 
 If a temporary buffer is needed for representation, it will be named
 after OUT-BUFFER-NAME."
-  (let* ((old-show-function temp-buffer-show-function)
+  (let* ((lexical lexical-binding)
+         (old-show-function temp-buffer-show-function)
 	 ;; Use this function to display the buffer.
 	 ;; This function either decides not to display it at all
 	 ;; or displays it in the usual way.
@@ -357,6 +358,7 @@ after OUT-BUFFER-NAME."
         (pp expression))
       (with-current-buffer standard-output
 	(emacs-lisp-mode)
+        (setq lexical-binding lexical)
 	(setq buffer-read-only nil)
         (setq-local font-lock-verbose nil)))))
 
