@@ -35731,15 +35731,27 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 
 
 /* Take proper action when mouse has moved to the window WINDOW, with
-   window-local x-position X and y-position Y. This is only used for
+   window-local x-position X and y-position Y.  This is only used for
    displaying user-defined fringe indicator help-echo messages.  */
 
 static void
-note_fringe_highlight (Lisp_Object window, int x, int y,
+note_fringe_highlight (struct frame *f, Lisp_Object window, int x, int y,
 		       enum window_part part)
 {
-  if (!NILP (help_echo_string))
+  if (!NILP (help_echo_string) || !f->glyphs_initialized_p)
     return;
+
+  /* When a menu is active, don't highlight because this looks odd.  */
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS) || defined (MSDOS) \
+  || defined (HAVE_ANDROID)
+  if (popup_activated ())
+    return;
+#endif /* HAVE_X_WINDOWS || HAVE_NS || MSDOS || HAVE_ANDROID */
+
+#if defined HAVE_HAIKU
+  if (popup_activated_p)
+    return;
+#endif /* HAVE_HAIKU */
 
   /* Find a message to display through the help-echo mechanism whenever
      the mouse hovers over a fringe indicator.  Both text properties and
@@ -35756,6 +35768,13 @@ note_fringe_highlight (Lisp_Object window, int x, int y,
   int hpos, vpos, area;
   struct window *w = XWINDOW (window);
   x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0, 0, &area);
+
+  /* Don't access the TEXT_AREA of a row that does not display text, or
+     when the window is outdated.  (bug#70385) */
+  if (window_outdated (w)
+      || !MATRIX_ROW_DISPLAYS_TEXT_P (MATRIX_ROW (w->current_matrix,
+						  vpos)))
+    return;
 
   /* Get to the first glyph of a text row based on the vertical position
      of the fringe.  */
@@ -36014,7 +36033,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
   else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
     {
       cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
-      note_fringe_highlight (window, x, y, part);
+      note_fringe_highlight (f, window, x, y, part);
     }
   else if (part == ON_VERTICAL_SCROLL_BAR
 	   || part == ON_HORIZONTAL_SCROLL_BAR)
