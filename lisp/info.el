@@ -4876,6 +4876,19 @@ first line or header line, and for breadcrumb links.")
     ;; 				    'font-lock-face 'header-line line)
     line))
 
+(defvar Info--dont-hide-references
+  '(("texinfo" "Cross Reference Commands"))
+  "Manuals and nodes where `Info-hide-note-references' should be ignored.
+This is an alist whose elements should be of the form
+
+      (MANUAL NODE...)
+
+where MANUAL is the basename of an Info manual's main file, and NODEs
+are one or more nodes in MANUAL where info.el should not hide
+cross-references even in `Info-hide-note-references' is non-nil.
+This is because some rare nodes describe how cross-references work,
+and so should be rendered as makeinfo produced them.")
+
 (defun Info-fontify-node ()
   "Fontify the node."
   (save-excursion
@@ -4893,6 +4906,16 @@ first line or header line, and for breadcrumb links.")
                  (or (eq Info-fontify-maximum-menu-size t)
 		     (< (- (point-max) (point-min))
 			Info-fontify-maximum-menu-size))))
+           ;; Disable Info-hide-note-references in nodes that are
+           ;; incompatible with that feature.
+           (Info-hide-note-references
+            (if (member Info-current-node
+                        (assoc-string
+                         (file-name-sans-extension
+                          (file-name-nondirectory Info-current-file))
+                         Info--dont-hide-references))
+                nil
+              Info-hide-note-references))
            rbeg rend)
 
       ;; Fontify header line
