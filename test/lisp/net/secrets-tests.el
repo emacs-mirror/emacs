@@ -175,7 +175,7 @@
 
 	;; Create another item with a non-latin password.  (Bug#70301)
 	(should (secrets-create-item "session" "parola" "парола"))
-        (string-equal (secrets-get-secret "session" "parola") "парола")
+        (should (string-equal (secrets-get-secret "session" "parola") "парола"))
 
 	;; Create an item with attributes.
 	(should
