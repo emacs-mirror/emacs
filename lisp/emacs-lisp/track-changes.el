@@ -335,23 +335,27 @@ and re-enable the TRACKER corresponding to ID."
                             (substring before (- (length before)
                                                  (- endb prevend)))))
               (setq lenbefore (length before)))))))
-    (if (null beg)
-        (progn
-          (cl-assert (null states))
-          (cl-assert (memq id track-changes--clean-trackers))
-          (cl-assert (eq (track-changes--tracker-state id)
-                         track-changes--state))
-          ;; Nothing to do.
-          nil)
-      (cl-assert (not (memq id track-changes--clean-trackers)))
-      (cl-assert (<= (point-min) beg end (point-max)))
-      ;; Update the tracker's state *before* running `func' so we don't risk
-      ;; mistakenly replaying the changes in case `func' exits non-locally.
-      (setf (track-changes--tracker-state id) track-changes--state)
-      (unwind-protect (funcall func beg end (or before lenbefore))
-        ;; Re-enable the tracker's signal only after running `func', so
-        ;; as to avoid recursive invocations.
-        (cl-pushnew id track-changes--clean-trackers)))))
+    (unwind-protect
+        (if (null beg)
+            (progn
+              (cl-assert (null states))
+              ;; We may have been called in the middle of another
+              ;; `track-changes-fetch', in which case we may be in a clean
+              ;; state but not yet on `track-changes--clean-trackers'
+              ;;(cl-assert (memq id track-changes--clean-trackers))
+              (cl-assert (eq (track-changes--tracker-state id)
+                             track-changes--state))
+              ;; Nothing to do.
+              nil)
+          (cl-assert (not (memq id track-changes--clean-trackers)))
+          (cl-assert (<= (point-min) beg end (point-max)))
+          ;; Update the tracker's state *before* running `func' so we don't risk
+          ;; mistakenly replaying the changes in case `func' exits non-locally.
+          (setf (track-changes--tracker-state id) track-changes--state)
+          (funcall func beg end (or before lenbefore)))
+      ;; Re-enable the tracker's signal only after running `func', so
+      ;; as to avoid recursive invocations.
+      (cl-pushnew id track-changes--clean-trackers))))
 
 ;;;; Auxiliary functions.
 
