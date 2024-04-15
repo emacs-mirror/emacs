@@ -823,69 +823,73 @@ example, the permission to access contacts may be useful for EUDC.
 @node Android Windowing
 @section The Android Window System
 
-  Android's window system is unusual, in that all windows are
-maximized or full-screen, and only one window can be displayed at a
-time.  On larger devices, the system permits simultaneously tiling up
-to four windows on the screen.
+  Android's window system is unusual in that all windows are reported to
+applications as maximized or full-screen, and, in the general case, only
+one window can be displayed at a time.  On larger devices, the system
+permits simultaneously tiling up to four windows on the screen, though
+in emulators or installations configured for ``desktop'' system stacks
+freely resizable windows as other desktop window managers do.
 
-  Windows on Android do not exist indefinitely after they are created.
-Instead, the system may choose to close windows that are not on screen
-in order to conserve memory, with the assumption that the program will
-save its contents to disk and restore them later, when the user asks
-for it to be opened again.  As this is obviously not possible with
-Emacs, Emacs separates the resources associated with a frame from its
-system window.
+  Windows, or, in system nomenclature, activities, do not exist
+indefinitely after creation, as the system may choose to pause windows
+that are not visible in order to conserve memory, on the assumption that
+the program will save its contents to disk, to be restored when the user
+selects those windows from the task switcher.  Furthermore, a window is
+created by the operating system at Emacs startup that is afforded
+special treatment, which Emacs is expected to adopt.
 
-  Each system window created (including the initial window created
-during Emacs startup) is appended to a list of windows that do not
-have associated frames.  When a frame is created, Emacs looks up any
-window within that list, and displays the contents of the frame
-within; if there is no window at all, then one is created.  Likewise,
-when a new window is created by the system, Emacs places the contents
-of any frame that is not already displayed within a window inside.
-When a frame is closed, the corresponding system window is also
-closed.  Upon startup, the system creates a window itself (within
-which Emacs displays the first window system frame shortly
-thereafter.)  Emacs differentiates between that window and windows
-created on behalf of other frames to determine what to do when the
-system window associated with a frame is closed:
+  Emacs approaches window management with the general objective of
+minimizing differences in frame behavior exposed to Lisp from that of
+frames on ordinary window systems, such as X Windows; the degree to
+which this goal is actually attained varies by the availability of
+facilities for window management in the version of Android where it is
+installed, and operating system policy towards inactive windows.  When
+it is unavoidable that concessions should be made to such policy, Emacs
+prefers destroying frames to retaining ones with no activities to
+display them, unless such a frame is the initial frame and therefore
+displayed in the activity created at startup, which it is possible to
+open and identify so long as Emacs is yet executing.
+
+@cindex frames and windows, Android 5.0
+  Android 5.0 and later support an accurate implementation of window
+management where frames hold a one-to-one relation to the activities in
+which they are displayed, enabling deletion of activities in the task
+switcher to directly affect the frames concerned, and vice versa.  There
+are just two exceptions:
 
 @itemize @bullet
 @item
-When the system closes the window created during application startup
-in order to save memory, Emacs retains the frame for when that window
-is created later.
+After the system pauses an activity that remains in the task switcher in
+response to inactivity, removing it from the task switcher while it
+remains in its inactive state will not delete the frame inside, as Emacs
+is not notified of the deletion of its activities in such circumstances.
+The frame will be deleted upon the next window management operation that
+prompts an examination of the list of live windows.  Likewise, an
+inactive activity displaying a frame will not be immediately deleted
+with its frame, but will be if it is selected from the window list or
+upon another examination of the window list.
 
 @item
-When the user closes the window created during application startup,
-and the window was not previously closed by the system in order to
-save resources, Emacs deletes any frame displayed within that window.
-
-However, on Android 7.0 and later, such frames are not deleted if the
-window is closed four or more hours after the window moves into the
-background, as the system automatically removes open windows once a
-certain period of inactivity elapses when the number of windows retained
-by the window manager surpasses a specific threshold, and window
-deletion by this mechanism is indistinguishable from window deletion by
-the user.  Emacs begins to ignore window deletion after two hours less
-than the default value of this threshold both to err on the side of
-caution, in case the system's record of inactivity and Emacs's disagree,
-and for the reason that this threshold is open to customization by OS
-distributors.
-
-@item
-When the user or the system closes any window created by Emacs on behalf
-of a specific frame, Emacs deletes the frame displayed within that
-window, unless the system is Android 5.0 or later, where such windows
-are treated identically to the window created at startup, albeit with no
-proviso regarding window inactivity.
+Any frame besides the initial frame might be deleted after 4 to 6 hours
+of inactivity in the background, if it is removed by the system in
+``trimming'' the task switcher of excess, and presumably unwanted,
+tasks; the initial frame is exempt from this treatment because it can be
+reopened otherwise than from the task switcher, but as deletion by this
+mechanism is indistinguishable from legitimate user action to remove
+activities from the task switcher, the latter will also be ignored by
+the initial frame after a 4-hour interval elapses from the time of last
+activity.
 @end itemize
 
-  When the system predates Android 5.0, the window manager will not
-accept more than one user-created Emacs window.  If frame creation gives
-rise to windows in excess of this limit, the window manager will
-arbitrarily select one of their number to display, with the rest
-remaining invisible until that window is destroyed with its frame.
+@cindex frames and windows, Android 4.4
+@cindex frames and windows, Android 2.2
+  Android 4.4 and earlier provide considerably inferior interfaces
+inadequate for a complete implementation of window management.  On such
+systems, Emacs substitutes a fairly primitive mechanism where all but
+the initial frame are deleted when their activities are paused, only a
+single activity (not counting the activity created at startup) is
+visible at a time, and unattached frames are displayed in the first
+unoccupied activity available.
 
 @cindex windowing limitations, android
 @cindex frame parameters, android
