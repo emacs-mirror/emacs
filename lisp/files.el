@@ -2113,6 +2113,15 @@ killed."
 	(rename-buffer oname)))
     (unless (eq (current-buffer) obuf)
       (with-current-buffer obuf
+	(unless (get-buffer oname)
+	  ;; Restore original's buffer name so 'kill-buffer' can use it
+	  ;; to assign its last name (Bug#68235).
+	  (rename-buffer oname))
+	;; Restore original buffer's file names so they can be still
+	;; used when referencing the now defunct buffer (Bug#68235).
+	(setq buffer-file-name ofile)
+	(setq buffer-file-number onum)
+	(setq buffer-file-truename otrue)
 	;; We already ran these; don't run them again.
 	(let (kill-buffer-query-functions kill-buffer-hook)
 	  (kill-buffer obuf))))))
