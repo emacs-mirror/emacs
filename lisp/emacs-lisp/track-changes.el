@@ -481,42 +481,42 @@ Details logged to `track-changes--error-log'")
                 (funcall signal-if-disjoint end track-changes--before-beg)
               (funcall signal-if-disjoint track-changes--before-end beg)))
           (funcall reset))
-      (cl-assert (save-restriction
-                   (widen)
-                   (<= (point-min)
+      (save-restriction
+        (widen)
+        (cl-assert (<= (point-min)
                        track-changes--before-beg
                        track-changes--before-end
-                       (point-max))))
-      (when (< beg track-changes--before-beg)
-        (if (and track-changes--disjoint-trackers
-                 (funcall signal-if-disjoint end track-changes--before-beg))
-            (funcall reset)
-          (let* ((old-bbeg track-changes--before-beg)
-                 ;; To avoid O(N²) behavior when faced with many small changes,
-                 ;; we copy more than needed.
-                 (new-bbeg (min (max (point-min)
-                                     (- old-bbeg
-                                        (length track-changes--before-string)))
-                                beg)))
-            (setf track-changes--before-beg new-bbeg)
-            (cl-callf (lambda (old new) (concat new old))
-                track-changes--before-string
-              (buffer-substring-no-properties new-bbeg old-bbeg)))))
+                       (point-max)))
+        (when (< beg track-changes--before-beg)
+          (if (and track-changes--disjoint-trackers
+                   (funcall signal-if-disjoint end track-changes--before-beg))
+              (funcall reset)
+            (let* ((old-bbeg track-changes--before-beg)
+                   ;; To avoid O(N²) behavior when faced with many small
+                   ;; changes, we copy more than needed.
+                   (new-bbeg
+                    (min beg (max (point-min)
+                                  (- old-bbeg
+                                     (length track-changes--before-string))))))
+              (setf track-changes--before-beg new-bbeg)
+              (cl-callf (lambda (old new) (concat new old))
+                  track-changes--before-string
+                (buffer-substring-no-properties new-bbeg old-bbeg)))))
 
-      (when (< track-changes--before-end end)
-        (if (and track-changes--disjoint-trackers
-                 (funcall signal-if-disjoint track-changes--before-end beg))
-            (funcall reset)
-          (let* ((old-bend track-changes--before-end)
-                 ;; To avoid O(N²) behavior when faced with many small changes,
-                 ;; we copy more than needed.
-                 (new-bend (max (min (point-max)
-                                     (+ old-bend
-                                        (length track-changes--before-string)))
-                                end)))
-            (setf track-changes--before-end new-bend)
-            (cl-callf concat track-changes--before-string
-              (buffer-substring-no-properties old-bend new-bend))))))))
+        (when (< track-changes--before-end end)
+          (if (and track-changes--disjoint-trackers
+                   (funcall signal-if-disjoint track-changes--before-end beg))
+              (funcall reset)
+            (let* ((old-bend track-changes--before-end)
+                   ;; To avoid O(N²) behavior when faced with many small
+                   ;; changes, we copy more than needed.
+                   (new-bend
+                    (max end (min (point-max)
+                                  (+ old-bend
+                                     (length track-changes--before-string))))))
+              (setf track-changes--before-end new-bend)
+              (cl-callf concat track-changes--before-string
+                (buffer-substring-no-properties old-bend new-bend)))))))))
 
 (defun track-changes--after (beg end len)
   (cl-assert track-changes--state)
