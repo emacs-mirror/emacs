@@ -35775,7 +35775,8 @@ note_fringe_highlight (struct frame *f, Lisp_Object window, int x, int y,
   /* Don't access the TEXT_AREA of a row that does not display text,
      when the window is outdated, or when vpos overflows the current
      matrix.  (bug#70385) */
-  if (window_outdated (w)
+  if (!w->window_end_valid
+      || window_outdated (w)
       || (vpos >= w->current_matrix->nrows)
       || !MATRIX_ROW_DISPLAYS_TEXT_P (MATRIX_ROW (w->current_matrix,
 						  vpos)))
