@@ -1,78 +1,31 @@
-@c -*-texinfo-*-
-@c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
-@c Foundation, Inc.
-@c See the file elisp.texi for copying conditions.
-@node Parsing Expression Grammars
-@chapter Parsing Expression Grammars
-@cindex text parsing
-@cindex parsing expression grammar
-@cindex PEG
+struct makes a set of rules available within its
+body.  The actual parsing is initiated with @code{peg-run}:
 
-  Emacs Lisp provides several tools for parsing and matching text,
-from regular expressions (@pxref{Regular Expressions}) to full
-left-to-right (a.k.a.@: @acronym{LL}) grammar parsers (@pxref{Top,,
-Bovine parser development,bovine}).  @dfn{Parsing Expression Grammars}
-(@acronym{PEG}) are another approach to text parsing that offer more
-structure and composibility than regular expressions, but less
-complexity than context-free grammars.
+@defun peg-run peg-matcher &optional failure-function success-function
+This function accepts a single @var{peg-matcher}, which is the result of
+calling @code{peg} (see below) on a named rule, usually the entry-point
+of a larger grammar.
 
-A Parsing Expression Grammar (@acronym{PEG}) describes a formal language
-in terms of a set of rules for recognizing strings in the language.  In
-Emacs, a @acronym{PEG} parser is defined as a list of named rules, each
-of which matches text patterns and/or contains references to other
-rules.  Parsing is initiated with the function @code{peg-run} or the
-macro @code{peg-parse} (see below), and parses text after point in the
-current buffer, using a given set of rules.
+At the end of parsing, one of @var{failure-function} or
+@var{success-function} is called, depending on whether the parsing
+succeeded or not.  If @var{success-function} is called, it is passed a
+lambda form that runs all the actions collected on the stack during
+parsing -- by default this lambda form is simply executed.  If parsing
+fails, the @var{failure-function} is called with a list of @acronym{PEG}
+expressions that failed during parsing; by default this list is
+discarded.
+@end defun
 
-@cindex parsing expression
-@cindex root, of parsing expression grammar
-@cindex entry-point, of parsing expression grammar
-Each rule in a @acronym{PEG} is referred to as a @dfn{parsing
-expression} (@acronym{PEX}), and can be specified a a literal string, a
-regexp-like character range or set, a peg-specific construct resembling
-an Emacs Lisp function call, a reference to another rule, or a
-combination of any of these.  A grammar is expressed as a tree of rules
-in which one rule is typically treated as a ``root'' or ``entry-point''
-rule.  For instance:
+The @var{peg-matcher} passed to @code{peg-run} is produced by a call to
+@code{peg}:
 
-@example
-@group
-((number sign digit (* digit))
- (sign   (or "+" "-" ""))
- (digit  [0-9]))
-@end group
-@end example
-
-Once defined, grammars can be used to parse text after point in the
-current buffer, in the following ways:
-
-@defmac peg-parse &rest pexs
-Match @var{pexs} at point.  If @var{pexs} is a list of PEG rules, the
-first rule is considered the ``entry-point'':
+@defmac peg &rest pexs
+Convert @var{pexs} into a single peg-matcher suitable for passing to
+@code{peg-run}.
 @end defmac
 
-@example
-@group
-(peg-parse
-  ((number sign digit (* digit))
-   (sign   (or "+" "-" ""))
-   (digit  [0-9])))
-@end group
-@end example
-
-@c FIXME: These two should be formally defined using @defmac and @defun.
-@findex with-peg-rules
-@findex peg-run
-The @code{peg-parse} macro represents the simplest use of the
-@acronym{PEG} library, but also the least flexible, as the rules must be
-written directly into the source code.  A more flexible approach
-involves use of three macros in conjunction: @code{with-peg-rules}, a
-@code{let}-like construct that makes a set of rules available within the
-macro body; @code{peg-run}, which initiates parsing given a single rule;
-and @code{peg}, which is used to wrap the entry-point rule name.  In
-fact, a call to @code{peg-parse} expands to just this set of calls.  The
-above example could be written as:
+The @code{peg-parse} example above expands to just this set of calls,
+and could be written as:
 
 @example
 @group
@@ -84,13 +37,18 @@ above example could be written as:
 @end group
 @end example
 
-This allows more explicit control over the ``entry-point'' of parsing,
-and allows the combination of rules from different sources.
+This approach allows more explicit control over the ``entry-point'' of
+parsing, and allows the combination of rules from different sources.
 
-@c FIXME: Use @defmac.
-@findex define-peg-rule
 Individual rules can also be defined using a more @code{defun}-like
 syntax, using the macro @code{define-peg-rule}:
+
+@defmac define-peg-rule name args &rest pexs
+Define @var{name} as a PEG rule that accepts @var{args} and matches
+@var{pexs} at point.
+@end defmac
+
+For instance:
 
 @example
 @group
@@ -99,13 +57,15 @@ syntax, using the macro @code{define-peg-rule}:
 @end group
 @end example
 
-This also allows for rules that accept an argument (supplied by the
-@code{funcall} PEG rule, @pxref{PEX Definitions}).
+Arguments can be supplied to rules by the @code{funcall} PEG rule
+(@pxref{PEX Definitions}).
 
-@c FIXME: Use @defmac.
-@findex define-peg-ruleset
 Another possibility is to define a named set of rules with
 @code{define-peg-ruleset}:
+
+@defmac define-peg-ruleset name &rest rules
+Define @var{name} as an identifier for @var{rules}.
+@end defmac
 
 @example
 @group
@@ -240,10 +200,10 @@ Returns non-@code{nil} if parsing @acronym{PEX} @var{e} from point fails
 Treats the value of the Lisp expression @var{exp} as a boolean.
 @end table
 
-@c FIXME: peg-char-classes should be mentioned in the text below.
 @vindex peg-char-classes
-Character class matching can use the same named character classes as
-in regular expressions (@pxref{Top,, Character Classes,elisp})
+Character-class matching can refer to the classes named in
+@code{peg-char-classes}, equivalent to character classes in regular
+expressions (@pxref{Top,, Character Classes,elisp})
 
 @node Parsing Actions
 @section Parsing Actions
