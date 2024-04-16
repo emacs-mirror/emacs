@@ -35769,9 +35769,11 @@ note_fringe_highlight (struct frame *f, Lisp_Object window, int x, int y,
   struct window *w = XWINDOW (window);
   x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0, 0, &area);
 
-  /* Don't access the TEXT_AREA of a row that does not display text, or
-     when the window is outdated.  (bug#70385) */
+  /* Don't access the TEXT_AREA of a row that does not display text,
+     when the window is outdated, or when vpos overflows the current
+     matrix.  (bug#70385) */
   if (window_outdated (w)
+      || (vpos >= w->current_matrix->nrows)
       || !MATRIX_ROW_DISPLAYS_TEXT_P (MATRIX_ROW (w->current_matrix,
 						  vpos)))
     return;
