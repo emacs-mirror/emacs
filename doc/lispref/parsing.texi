@@ -1662,11 +1662,11 @@ thing, @code{treesit-end-of-thing} moves to the end of a thing, and
 @code{treesit-thing-at-point} returns the thing at point.
 
 There are also defun commands that specifically use the @code{defun}
-definition, like @code{treesit-beginning-of-defun},
-@code{treesit-end-of-defun}, and @code{treesit-defun-at-point}.  In
-addition, these functions use @var{treesit-defun-tactic} as the
-navigation tactic.  They are described in more detail in other sections
-(@pxref{Tree-sitter Major Modes}).
+definition (as a fallback of @var{treesit-defun-type-regexp}), like
+@code{treesit-beginning-of-defun}, @code{treesit-end-of-defun}, and
+@code{treesit-defun-at-point}.  In addition, these functions use
+@var{treesit-defun-tactic} as the navigation tactic.  They are described
+in more detail in other sections (@pxref{Tree-sitter Major Modes}).
 
 @node Multiple Languages
 @section Parsing Text in Multiple Languages
