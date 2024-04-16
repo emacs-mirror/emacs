@@ -183,9 +183,15 @@ default:
       changes:
         - "**.in"
         - lisp/progmodes/*-ts-mode.el
+        - lisp/progmodes/js.el
+        - lisp/progmodes/python.el
+        - src/treesit.{h,c}
         - test/infra/*
         - test/lisp/progmodes/*-ts-mode-resources/**
         - test/lisp/progmodes/*-ts-mode-tests.el
+        - test/lisp/progmodes/js-tests.el
+        - test/lisp/progmodes/python-tests.el
+        - test/src/treesit-tests.el
 
 .native-comp-template:
   rules:
@@ -282,7 +288,7 @@ test-tree-sitter:
   variables:
     target: emacs-tree-sitter
     # This is needed in order to get a JUnit test report.
-    make_params: '-k -C test check-expensive TEST_HOME=/root LOGFILES="$tree_sitter_files"'
+    make_params: '-k -C test SELECTOR=\(and\ \$\{SELECTOR_EXPENSIVE\}\ \\\"-ts-\\\"\) TEST_HOME=/root LOGFILES="$tree_sitter_files"'
 
 build-image-gnustep:
   stage: platform-images
