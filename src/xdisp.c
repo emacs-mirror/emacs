@@ -16863,6 +16863,13 @@ redisplay_internal (void)
 
   redisplay_trace ("redisplay_internal %d\n", redisplaying_p);
 
+  /* I don't think this happens but let's be paranoid.  In particular,
+     this was observed happening when Emacs shuits down to to losing X
+     connection, in which case accessing SELECTED_FRAME and the frame
+     structure is likely to barf.  */
+  if (redisplaying_p)
+    return;
+
   /* No redisplay if running in batch mode or frame is not yet fully
      initialized, or redisplay is explicitly turned off by setting
      Vinhibit_redisplay.  */
@@ -16889,10 +16896,6 @@ redisplay_internal (void)
   if (popup_activated_p)
     return;
 #endif
-
-  /* I don't think this happens but let's be paranoid.  */
-  if (redisplaying_p)
-    return;
 
   /* Record a function that clears redisplaying_p
      when we leave this function.  */
