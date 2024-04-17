@@ -2665,7 +2665,9 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
 (defun eglot--track-changes-signal (id &optional distance)
   (cl-incf eglot--versioned-identifier)
   (cond
-   (distance (eglot--track-changes-fetch id))
+   (distance
+    ;; When distance is <100, we may as well coalesce the changes.
+    (when (> distance 100) (eglot--track-changes-fetch id)))
    (eglot--recent-changes nil)
    ;; Note that there are pending changes, for the benefit of those
    ;; who check it as a boolean.
@@ -2796,6 +2798,7 @@ When called interactively, use the currently active server"
        (list
         :textDocument (eglot--VersionedTextDocumentIdentifier)
         :contentChanges
+        (let ((changes
         (if full-sync-p
             (vector `(:text ,(eglot--widening
                               (buffer-substring-no-properties (point-min)
@@ -2809,6 +2812,8 @@ When called interactively, use the currently active server"
                    when (numberp len) ;FIXME: Not needed with `track-changes'.
                    vconcat `[,(list :range `(:start ,beg :end ,end)
                                     :rangeLength len :text text)]))))
+         (message "Sending changes: %S" changes)
+         changes)))
       (setq eglot--recent-changes nil)
       (jsonrpc--call-deferred server))))
 

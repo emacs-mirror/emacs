@@ -3,6 +3,8 @@
 ;; Copyright (C) 2024  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
+;; Version: 1.0
+;; Package-Requires: ((emacs "24"))
 
 ;; This file is part of GNU Emacs.
 
@@ -92,7 +94,7 @@
 ;;;; Internal types and variables.
 
 (cl-defstruct (track-changes--tracker
-               (:noinline t)
+               ;; (:noinline t) ;Requires Emacs≥27
                (:constructor nil)
                (:constructor track-changes--tracker ( signal state
                                                       &optional
@@ -100,7 +102,7 @@
   signal state nobefore immediate)
 
 (cl-defstruct (track-changes--state
-               (:noinline t)
+               ;; (:noinline t) ;Requires Emacs≥27
                (:constructor nil)
                (:constructor track-changes--state ()))
   "Object holding a description of a buffer state.
@@ -163,6 +165,14 @@ More specifically it indicates which \"before\" they hold.
 This is used to try and detect cases where buffer modifications are \"lost\".")
 
 ;;;; Exposed API.
+
+(defvar track-changes-record-errors
+  ;; By default, record errors only for non-release versions, because we
+  ;; presume that these might be too old to receive fixes, so better not
+  ;; annoy the user too much about errors.
+  (string-match "\\..*\\." emacs-version)
+  "If non-nil, keep track of errors in `before/after-chage-functions' calls.
+The errors are kept in `track-changes--error-log'.")
 
 (cl-defun track-changes-register ( signal &key nobefore disjoint immediate)
   "Register a new tracker whose change-tracking function is SIGNAL.
@@ -412,9 +422,6 @@ and re-enable the TRACKER corresponding to ID."
       (setf (track-changes--state-next track-changes--state) new)
       (setq track-changes--state new)))))
 
-(defvar track-changes--disjoint-threshold 100
-  "Number of chars below which changes are not considered disjoint.")
-
 (defvar track-changes--error-log ()
   "List of errors encountered.
 Each element is a triplet (BUFFER-NAME BACKTRACE RECENT-KEYS).")
@@ -424,12 +431,19 @@ Each element is a triplet (BUFFER-NAME BACKTRACE RECENT-KEYS).")
   ;; elsewhere that causes the before-c-f and after-c-f to be improperly
   ;; paired, or to be skipped altogether.
   ;; Not much we can do, other than force a full re-synchronization.
-  (warn "Missing/incorrect calls to `before/after-change-functions'!!
+  (if (not track-changes-record-errors)
+      (message "Recovering from confusing calls to `before/after-change-functions'!")
+    (warn "Missing/incorrect calls to `before/after-change-functions'!!
 Details logged to `track-changes--error-log'")
-  (push (list (buffer-name)
-              (backtrace-frames 'track-changes--recover-from-error)
-              (recent-keys 'include-cmds))
-        track-changes--error-log)
+    (push (list (buffer-name)
+                (let* ((bf (backtrace-frames
+                            #'track-changes--recover-from-error))
+                       (tail (nthcdr 50 bf)))
+                  (when tail (setcdr tail '...))
+                  bf)
+                (let ((rk (recent-keys 'include-cmds)))
+                  (substring rk -20)))
+          track-changes--error-log))
   (setq track-changes--before-clean 'unset)
   (setq track-changes--buffer-size (buffer-size))
   ;; Create a new state disconnected from the previous ones!
@@ -453,11 +467,10 @@ Details logged to `track-changes--error-log'")
           (lambda (pos1 pos2)
             (let ((distance (- pos2 pos1)))
               (when (> distance
-                       (max track-changes--disjoint-threshold
-                            ;; If the distance is smaller than the size of the
-                            ;; current change, then we may as well consider it
-                            ;; as "near".
-                            (length track-changes--before-string)
+                       ;; If the distance is smaller than the size of the
+                       ;; current change, then we may as well consider it
+                       ;; as "near".
+                       (max (length track-changes--before-string)
                             size
                             (- track-changes--before-end
                                track-changes--before-beg)))
