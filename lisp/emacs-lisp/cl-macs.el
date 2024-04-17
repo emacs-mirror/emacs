@@ -3010,6 +3010,7 @@ To see the documentation for a defined struct type, use
              ;; All the above is for the following def-form.
              &rest &or symbolp (symbolp &optional def-form &rest sexp))))
   (let* ((name (if (consp struct) (car struct) struct))
+	 (warning nil)
 	 (opts (cdr-safe struct))
 	 (slots nil)
 	 (defaults nil)
@@ -3094,7 +3095,10 @@ To see the documentation for a defined struct type, use
 	       (setq descs (nconc (make-list (car args) '(cl-skip-slot))
 				  descs)))
 	      (t
-	       (error "Structure option %s unrecognized" opt)))))
+	       (setq warning
+	             (macroexp-warn-and-return
+	              (format "Structure option %S unrecognized" opt)
+	              warning nil nil (list opt struct)))))))
     (unless (or include-name type
                 ;; Don't create a bogus parent to `cl-structure-object'
                 ;; while compiling the (cl-defstruct cl-structure-object ..)
@@ -3333,6 +3337,7 @@ To see the documentation for a defined struct type, use
          (cl-struct-define ',name ,docstring ',include-name
                            ',(or type 'record) ,(eq named t) ',descs
                            ',tag-symbol ',tag ',print-auto))
+       ,warning
        ',name)))
 
 ;;; Add cl-struct support to pcase
