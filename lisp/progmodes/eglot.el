@@ -517,7 +517,10 @@ ACTION is the default value for commands not in the alist."
 (defcustom eglot-report-progress t
   "If non-nil, show progress of long running LSP server work.
 If set to `messages', use *Messages* buffer, else use Eglot's
-mode line indicator."
+mode line indicator.
+
+For changes on this variable to take effect, you need to restart
+the LSP connection.  That can be done by `eglot-reconnect'."
   :type '(choice (const :tag "Don't show progress" nil)
                  (const :tag "Show progress in *Messages*" messages)
                  (const :tag "Show progress in Eglot's mode line indicator" t))

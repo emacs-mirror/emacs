@@ -20,6 +20,12 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes in upcoming Eglot
 
+** Disable workDoneProgress if eglot-report-progress is nil
+
+Eglot will now try to not register $/progress messages from the server
+when the defcustom is set to nil.  This requires a restart of the server
+for the change to take effect.
+
 
 * Changes in Eglot 1.17 (25/1/2024)
 
