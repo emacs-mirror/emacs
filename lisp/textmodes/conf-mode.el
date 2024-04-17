@@ -613,27 +613,26 @@ For details see `conf-mode'.  Example:
   "Font-lock helper function for `conf-toml-mode'.
 Handles recognizing TOML section names, like [section],
 \[[section]], or [something.\"else\".section]."
-  (save-excursion
-    ;; Skip any number of "[" to handle things like [[section]].
-    (when (re-search-forward "^\\s-*\\[+" limit t)
-      (let ((start (point)))
-        (backward-char)
-        (let ((end (min limit
-                        (condition-case nil
-                            (progn
-                              (forward-list)
-                              (1- (point)))
-                          (scan-error
-                           (end-of-line)
-                           (point))))))
-          ;; If there is a comma in the text, then we assume this is
-          ;; an array and not a section.  (This could be refined to
-          ;; look only for unquoted commas if necessary.)
-          (save-excursion
-            (goto-char start)
-            (unless (search-forward "," end t)
-              (set-match-data (list start end))
-              t)))))))
+  ;; Skip any number of "[" to handle things like [[section]].
+  (when (re-search-forward "^\\s-*\\[+" limit t)
+    (let ((start (point)))
+      (backward-char)
+      (let ((end (min limit
+                      (condition-case nil
+                          (progn
+                            (forward-list)
+                            (1- (point)))
+                        (scan-error
+                         (end-of-line)
+                         (point))))))
+        ;; If there is a comma in the text, then we assume this is
+        ;; an array and not a section.  (This could be refined to
+        ;; look only for unquoted commas if necessary.)
+        (save-excursion
+          (goto-char start)
+          (unless (search-forward "," end t)
+            (set-match-data (list start end))
+            t))))))
 
 ;;;###autoload
 (define-derived-mode conf-toml-mode conf-mode "Conf[TOML]"
