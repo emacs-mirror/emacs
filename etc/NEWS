@@ -2538,6 +2538,9 @@ only return parsers for that language.  If TAG is given, only return
 parsers with that tag.  Note that passing nil as tag doesn't mean return
 all parsers, but rather "all parsers with no tags".
 
++++
+*** New function 'treesit-parser-changed-ranges' which returns buffer regions that are affected by the last buffer edits
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 
