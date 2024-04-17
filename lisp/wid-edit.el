@@ -1234,11 +1234,20 @@ If nothing was called, return non-nil."
 	(when (commandp command)
 	  (call-interactively command))))))
 
+(defcustom widget-skip-inactive nil
+  "If non-nil, skip inactive widgets when tabbing through buffer."
+  :version "30.1"
+  :group 'widgets
+  :type 'boolean)
+
 (defun widget-tabable-at (&optional pos)
   "Return the tabable widget at POS, or nil.
-POS defaults to the value of (point)."
+POS defaults to the value of (point).  If user option
+`widget-skip-inactive' is non-nil, inactive widgets are not tabable."
   (let ((widget (widget-at pos)))
-    (if widget
+    (if (and widget (if widget-skip-inactive
+                        (widget-apply widget :active)
+                      t))
 	(let ((order (widget-get widget :tab-order)))
 	  (if order
 	      (if (>= order 0)

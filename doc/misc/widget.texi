@@ -795,6 +795,11 @@ Move point @var{count} buttons or editing fields backward.
 @end deffn
 @end table
 
+@noindent
+By default, tabbing can put point on an inactive widget.  To skip over
+inactive widgets when tabbing, set the user option
+@code{widget-skip-inactive} to a non-@code{nil} value.
+@xref{Customization}.
 
 When editing an @code{editable-field} widget, the following commands
 are available:
@@ -3319,6 +3324,15 @@ String to suffix links.
 If non-@code{nil}, toggle when there are just two options.
 
 By default, its value is @code{nil}.
+@end defopt
+
+@defopt widget-skip-inactive
+If non-@code{nil}, skip over inactive widgets when using @kbd{@key{TAB}}
+(@code{widget-forward}) or @kbd{S-@key{TAB}} (@code{widget-backward},
+also bound to @kbd{M-@key{TAB}}) to navigate between widgets.
+
+By default, its value is @code{nil} and tabbing does not skip over
+inactive widgets.
 @end defopt
 
 @defopt widget-documentation-links

@@ -1603,6 +1603,13 @@ This allows disabling JavaScript in xwidget Webkit sessions.
 'insert-directory', now supports the '--time=TIME' and '--sort=time'
 options of GNU 'ls'.
 
+** Widget
+
++++
+*** New user option 'widget-skip-inactive'.
+If non-nil, moving point forward or backward between widgets by typing
+TAB or S-TAB skips over inactive widgets.  The default value is nil.
+
 
 * New Modes and Packages in Emacs 30.1
 
