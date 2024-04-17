@@ -16864,7 +16864,7 @@ redisplay_internal (void)
   redisplay_trace ("redisplay_internal %d\n", redisplaying_p);
 
   /* I don't think this happens but let's be paranoid.  In particular,
-     this was observed happening when Emacs shuits down to to losing X
+     this was observed happening when Emacs shuts down due to losing X
      connection, in which case accessing SELECTED_FRAME and the frame
      structure is likely to barf.  */
   if (redisplaying_p)
