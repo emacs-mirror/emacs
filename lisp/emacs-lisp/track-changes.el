@@ -3,7 +3,7 @@
 ;; Copyright (C) 2024  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 1.0
+;; Version: 1.1
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is part of GNU Emacs.
@@ -638,4 +638,4 @@ Re-arms ID's signal."
   `(track-changes-fetch ,id (lambda ,vars ,@body)))
 
 (provide 'track-changes)
-;;; track-changes.el end here.
+;;; track-changes.el ends here
