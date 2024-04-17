@@ -2103,10 +2103,6 @@ All tree-sitter enabled modes that define 'sentence' in
 
 ** Functions and variables to move by program sexps
 
-*** New function 'forward-sexp-default-function'.
-The previous implementation of 'forward-sexp' is moved into its
-own function, to be bound by 'forward-sexp-function'.
-
 *** New function 'treesit-forward-sexp'.
 Tree-sitter conditionally sets 'forward-sexp-function' for major modes
 that have defined 'sexp' in 'treesit-thing-settings' to enable

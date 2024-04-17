@@ -2153,7 +2153,7 @@ by `text' and `sexp' in `treesit-thing-settings'."
   (let ((arg (or arg 1))
         (pred (or treesit-sexp-type-regexp 'sexp)))
     (or (when (treesit-node-match-p (treesit-node-at (point)) 'text t)
-          (funcall #'forward-sexp-default-function arg)
+          (forward-sexp-default-function arg)
           t)
         (if (> arg 0)
             (treesit-end-of-thing pred (abs arg) 'restricted)
