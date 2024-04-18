@@ -532,15 +532,15 @@ variable `tab-line-tabs-function'."
 This means that switching to a buffer previously shown in the same
 window will keep the same order of tabs that was before switching.
 And newly displayed buffers are added to the end of the tab line."
-  (let* ((old-buffers (window-parameter nil 'tab-line-fixed-window-buffers))
+  (let* ((old-buffers (window-parameter nil 'tab-line-buffers))
          (new-buffers (sort (tab-line-tabs-window-buffers)
-                            (lambda (a b)
-                              (< (or (seq-position old-buffers a)
-                                     most-positive-fixnum)
-                                 (or (seq-position old-buffers b)
-                                     most-positive-fixnum))))))
-    (set-window-parameter nil 'tab-line-fixed-window-buffers new-buffers)
+                            :key (lambda (buffer)
+                                   (or (seq-position old-buffers buffer)
+                                       most-positive-fixnum)))))
+    (set-window-parameter nil 'tab-line-buffers new-buffers)
     new-buffers))
+
+(add-to-list 'window-persistent-parameters '(tab-line-buffers . writable))
 
 
 (defcustom tab-line-tab-name-format-function #'tab-line-tab-name-format-default
