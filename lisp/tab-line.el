@@ -959,6 +959,31 @@ is possible when `tab-line-switch-cycling' is non-nil."
             (let ((switch-to-buffer-obey-display-actions nil))
               (switch-to-buffer buffer))))))))
 
+(defun tab-line-mouse-move-tab (event)
+  "Move a tab to a different position on the tab line.
+This command should be bound to a drag event.  It moves the tab
+at the mouse-down event to the position at mouse-up event.
+It can be used only when `tab-line-tabs-function' is
+customized to `tab-line-tabs-fixed-window-buffers'."
+  (interactive "e")
+  (when (eq tab-line-tabs-function #'tab-line-tabs-fixed-window-buffers)
+    (let* ((posnp1 (tab-line-event-start event))
+           (posnp2 (event-end event))
+           (string1 (car (posn-string posnp1)))
+           (string2 (car (posn-string posnp2)))
+           (buffer1 (when string1 (tab-line--get-tab-property 'tab string1)))
+           (buffer2 (when string2 (tab-line--get-tab-property 'tab string2)))
+           (window1 (posn-window posnp1))
+           (window2 (posn-window posnp2))
+           (buffers (window-parameter window1 'tab-line-buffers))
+           (pos2 (when buffer2 (seq-position buffers buffer2))))
+      (when (and (eq window1 window2) buffer1 pos2)
+        (setq buffers (delq buffer1 buffers))
+        (cl-pushnew buffer1 (nthcdr pos2 buffers))
+        (set-window-parameter window1 'tab-line-buffers buffers)
+        (set-window-parameter window1 'tab-line-cache nil)
+        (with-selected-window window1 (force-mode-line-update))))))
+
 
 (defcustom tab-line-close-tab-function 'bury-buffer
   "What to do upon closing a tab on the tab line.
@@ -1120,6 +1145,7 @@ of `tab-line-exclude', are exempt from `tab-line-mode'."
 
 
 (global-set-key [tab-line down-mouse-3] 'tab-line-context-menu)
+(global-set-key [tab-line drag-mouse-1] 'tab-line-mouse-move-tab)
 
 (global-set-key [tab-line mouse-4]    'tab-line-hscroll-left)
 (global-set-key [tab-line mouse-5]    'tab-line-hscroll-right)

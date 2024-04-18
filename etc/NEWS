@@ -384,7 +384,8 @@ tabs function, is like the previous 'tab-line-tabs-window-buffers' where
 both of them show only buffers that were previously displayed in the
 window.  But the difference is that the new function always keeps the
 original order of buffers on the tab line, even after switching between
-these buffers.
+these buffers.  You can drag the tabs and release at a new position
+to manually reorder the buffers on the tab line.
 
 ---
 *** New user option 'tab-line-tabs-buffer-group-function'.
