@@ -2493,7 +2493,9 @@ dump_symbol (struct dump_context *ctx,
   struct Lisp_Symbol *symbol = XSYMBOL (object);
   struct Lisp_Symbol out;
   dump_object_start (ctx, &out, sizeof (out));
+#ifndef HAVE_MPS
   eassert (symbol->u.s.gcmarkbit == 0);
+#endif
   DUMP_FIELD_COPY (&out, symbol, u.s.redirect);
   DUMP_FIELD_COPY (&out, symbol, u.s.trapped_write);
   DUMP_FIELD_COPY (&out, symbol, u.s.interned);

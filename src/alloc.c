@@ -405,7 +405,7 @@ static ptrdiff_t pure_bytes_used_before_overflow;
 
 /* Index in pure at which next pure Lisp object will be allocated..  */
 
-static ptrdiff_t pure_bytes_used_lisp;
+ptrdiff_t pure_bytes_used_lisp;
 
 /* Number of bytes allocated for non-Lisp objects in pure storage.  */
 

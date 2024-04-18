@@ -4976,6 +4976,7 @@ XMODULE_FUNCTION (Lisp_Object o)
 typedef void (*module_funcptr) (void);
 
 /* Defined in alloc.c.  */
+extern ptrdiff_t pure_bytes_used_lisp;
 void set_string_marked (struct Lisp_String *s);
 void mark_interval_tree (INTERVAL i);
 

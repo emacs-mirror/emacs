@@ -65,14 +65,9 @@ b die
 #process handle -p true -s false SIGSEGV
 #process handle -p true -s false SIGBUS
 
-#target create emacs
-#settings set -- target.run-args -batch --no-site-file --no-site-lisp --eval '(setq load-prefer-newer t)' -l ox-texinfo --eval '(setq gc-cons-threshold 50000000)' -f org-texinfo-export-to-texinfo-batch modus-themes.org modus-themes.texi
-#command alias go process launch --working-dir ../doc/misc
+target create temacs
+settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest  --eln-dest
+command alias go process launch --working-dir .
 
-#target create temacs
-#settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest /Users/gerd/emacs/github/igc/nextstep/Emacs.app/Contents/MacOS/ --eln-dest /Users/gerd/emacs/github/igc/nextstep/Emacs.app/Contents/Frameworks/
-#command alias go process launch --working-dir .
-
-target create emacs
 
 # end.

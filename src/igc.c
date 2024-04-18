@@ -43,6 +43,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include "termhooks.h"
 #include "thread.h"
 #include "treesit.h"
+#include "puresize.h"
 
 #ifndef USE_LSB_TAG
 # error "USE_LSB_TAG required"
@@ -94,10 +95,16 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 static mps_addr_t min_addr, max_addr;
 
 static bool
+is_pure (const mps_addr_t addr)
+{
+  return PURE_P (addr);
+}
+
+static bool
 is_mps (const mps_addr_t addr)
 {
   return addr >= min_addr && addr < max_addr && !pdumper_object_p (addr)
-	 && !c_symbol_p (addr);
+    && !c_symbol_p (addr) && !is_pure (addr);
 }
 
 enum
@@ -783,6 +790,20 @@ scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
 	    break;
 	  }
       }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
+scan_pure (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    igc_assert (start == (void *) pure);
+    end = (char *) pure + pure_bytes_used_lisp;
+    if (end > start)
+      IGC_FIX_CALL (ss, scan_ambig (ss, start, end, NULL));
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1650,6 +1671,14 @@ static void
 root_create_igc (struct igc *gc)
 {
   root_create (gc, gc, gc + 1, mps_rank_exact (), scan_igc, false);
+}
+
+static void
+root_create_pure (struct igc *gc)
+{
+  void *start = &pure[0];
+  void *end = &pure[PURESIZE];
+  root_create (gc, start, end, mps_rank_ambig (), scan_pure, true);
 }
 
 static void
@@ -2657,6 +2686,7 @@ make_igc (void)
   gc->weak_pool = make_pool_awl (gc, gc->weak_fmt);
 
   root_create_igc (gc);
+  root_create_pure (gc);
   root_create_buffer (gc, &buffer_defaults);
   root_create_buffer (gc, &buffer_local_symbols);
   root_create_staticvec (gc);
