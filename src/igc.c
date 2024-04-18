@@ -2352,7 +2352,8 @@ igc_hash (Lisp_Object key)
 
   if (is_mps (client))
     {
-      igc_assert (mps_arena_has_addr (global_igc->arena, client));
+      // The following assertion is very expensive.
+      // igc_assert (mps_arena_has_addr (global_igc->arena, client));
       struct igc_header *h = client_to_base (client);
       return h->hash;
     }
