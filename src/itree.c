@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <math.h>
+#include "igc.h"
 
 #include "itree.h"
 
@@ -468,7 +469,11 @@ itree_node_end (struct itree_tree *tree,
 struct itree_tree *
 itree_create (void)
 {
+#ifdef HAVE_MPS
+  struct itree_tree *tree = igc_make_itree_tree ();
+#else
   struct itree_tree *tree = xmalloc (sizeof (*tree));
+#endif
   itree_clear (tree);
   return tree;
 }
@@ -498,7 +503,9 @@ void
 itree_destroy (struct itree_tree *tree)
 {
   eassert (tree->root == NULL);
+#ifndef HAVE_MPS
   xfree (tree);
+#endif
 }
 
 /* Return the number of nodes in TREE.  */

@@ -2163,7 +2163,9 @@ of the way buffer text is examined for matching one of the rules.  */)
   return rules;
 }
 
-
+
+#ifndef HAVE_MPS
+
 /* Not strictly necessary, because all those "keys" are also
    reachable from `composition_hash_table`.  */
 void
@@ -2172,6 +2174,8 @@ mark_composite (void)
   for (int i = 0; i < n_compositions; i++)
     mark_object (composition_table[i]->key);
 }
+
+#endif // not HAVE_MPS
 
 
 void

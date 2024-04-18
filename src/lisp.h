@@ -1016,7 +1016,7 @@ DEFINE_GDB_SYMBOL_END (PSEUDOVECTOR_FLAG)
    with PVEC_TYPE_MASK to indicate the actual type.  */
 enum pvec_type
 {
-  PVEC_NORMAL_VECTOR,	/* Should be first, for sxhash_obj.  */
+  PVEC_NORMAL_VECTOR, /* Should be first, for sxhash_obj.  */
   PVEC_FREE,
   PVEC_BIGNUM,
   PVEC_MARKER,
@@ -2530,6 +2530,7 @@ obarray_iter_symbol (obarray_iter_t *it)
 /* The structure of a Lisp hash table.  */
 
 struct Lisp_Hash_Table;
+struct hash_impl;
 
 /* The type of a hash value stored in the table.
    It's unsigned and a subtype of EMACS_UINT.  */
@@ -2617,12 +2618,11 @@ struct Lisp_Hash_Table
      This vector is table_size entries long.  */
   hash_hash_t *hash;
 
-  /* Vector of keys and values.  The key of item I is found at index
-     2 * I, the value is found at index 2 * I + 1.
-     If the key is HASH_UNUSED_ENTRY_KEY, then this slot is unused.
-     This is gc_marked specially if the table is weak.
-     This vector is 2 * table_size entries long.  */
-  Lisp_Object *key_and_value;
+  /* Vectors of keys and values.  If the key is HASH_UNUSED_ENTRY_KEY,
+     then this slot is unused.  This is gc_marked specially if the table
+     is weak.  */
+  Lisp_Object *key;
+  Lisp_Object *value;
 
   /* The comparison and hash functions.  */
   const struct hash_table_test *test;
@@ -2705,7 +2705,7 @@ INLINE Lisp_Object
 HASH_KEY (const struct Lisp_Hash_Table *h, ptrdiff_t idx)
 {
   eassert (idx >= 0 && idx < h->table_size);
-  return h->key_and_value[2 * idx];
+  return h->key[idx];
 }
 
 /* Value is the value part of entry IDX in hash table H.  */
@@ -2713,7 +2713,7 @@ INLINE Lisp_Object
 HASH_VALUE (const struct Lisp_Hash_Table *h, ptrdiff_t idx)
 {
   eassert (idx >= 0 && idx < h->table_size);
-  return h->key_and_value[2 * idx + 1];
+  return h->value[idx];
 }
 
 /* Value is the hash code computed for entry IDX in hash table H.  */
@@ -2748,21 +2748,22 @@ hash_from_key (struct Lisp_Hash_Table *h, Lisp_Object key)
 /* Iterate K and V as key and value of valid entries in hash table H.
    The body may remove the current entry or alter its value slot, but not
    mutate TABLE in any other way.  */
-#define DOHASH(h, k, v)							\
-  for (Lisp_Object *dohash_##k##_##v##_kv = (h)->key_and_value,		\
-                   *dohash_##k##_##v##_end = dohash_##k##_##v##_kv	\
-                                             + 2 * HASH_TABLE_SIZE (h),	\
-	           *dohash_##k##_##v##_base = dohash_##k##_##v##_kv,	\
+# define DOHASH(h, k, v)						\
+  for (Lisp_Object *dohash_##k##_##v##_k = (h)->key,			\
+		   *dohash_##k##_##v##_v = (h)->value,			\
+                   *dohash_##k##_##v##_end = dohash_##k##_##v##_k	\
+                                             + HASH_TABLE_SIZE (h),	\
+	           *dohash_##k##_##v##_base = dohash_##k##_##v##_k,	\
                    k, v;						\
-       dohash_##k##_##v##_kv < dohash_##k##_##v##_end			\
-       && (k = dohash_##k##_##v##_kv[0],				\
-           v = dohash_##k##_##v##_kv[1], /*maybe unused*/ (void)v,      \
+       dohash_##k##_##v##_k < dohash_##k##_##v##_end			\
+	 && (k = dohash_##k##_##v##_k[0],				\
+	     v = dohash_##k##_##v##_v[0], /*maybe unused*/ (void)v,	\
            true);			                                \
-       eassert (dohash_##k##_##v##_base == (h)->key_and_value		\
+       eassert (dohash_##k##_##v##_base == (h)->key			\
 		&& dohash_##k##_##v##_end				\
 		   == dohash_##k##_##v##_base				\
-	              + 2 * HASH_TABLE_SIZE (h)),			\
-       dohash_##k##_##v##_kv += 2)					\
+		+ HASH_TABLE_SIZE (h)),					\
+	 ++dohash_##k##_##v##_k, ++dohash_##k##_##v##_v)		\
     if (hash_unused_entry_key_p (k))					\
       ;									\
     else
@@ -2962,6 +2963,7 @@ struct Lisp_Finalizer
 
 extern struct Lisp_Finalizer finalizers;
 extern struct Lisp_Finalizer doomed_finalizers;
+void unchain_finalizer (struct Lisp_Finalizer *finalizer);
 
 INLINE bool
 FINALIZERP (Lisp_Object x)
@@ -3182,14 +3184,15 @@ XBUFFER_OBJFWD (lispfwd a)
 
 /* Lisp floating point type.  */
 struct Lisp_Float
+{
+  int type;
+  union
   {
-    union
-    {
-      double data;
-      struct Lisp_Float *chain;
-      GCALIGNED_UNION_MEMBER
-    } u;
-  };
+    double data;
+    struct Lisp_Float *chain;
+    GCALIGNED_UNION_MEMBER
+  } u;
+};
 verify (GCALIGNED (struct Lisp_Float));
 
 INLINE bool
@@ -3578,7 +3581,8 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd const *, char const *);
    used all over the place, needs to be fast, and needs to know the size of
    union specbinding.  But only eval.c should access it.  */
 
-enum specbind_tag {
+enum specbind_tag
+{
   SPECPDL_UNWIND,		/* An unwind_protect function on Lisp_Object.  */
   SPECPDL_UNWIND_ARRAY,		/* Likewise, on an array that needs freeing.
 				   Its elements are potential Lisp_Objects.  */
@@ -3997,14 +4001,14 @@ INLINE void
 set_hash_key_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (idx >= 0 && idx < h->table_size);
-  h->key_and_value[2 * idx] = val;
+  h->key[idx] = val;
 }
 
 INLINE void
 set_hash_value_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (idx >= 0 && idx < h->table_size);
-  h->key_and_value[2 * idx + 1] = val;;
+  h->value[idx] = val;;
 }
 
 /* Use these functions to set Lisp_Object
@@ -4434,6 +4438,8 @@ extern void parse_str_as_multibyte (const unsigned char *, ptrdiff_t,
 				    ptrdiff_t *, ptrdiff_t *);
 
 /* Defined in alloc.c.  */
+struct Lisp_Vector *allocate_vectorlike (ptrdiff_t len, bool clearit);
+extern void run_finalizer_function (Lisp_Object function);
 extern void *my_heap_start (void);
 extern void check_pure_size (void);
 unsigned char *resize_string_data (Lisp_Object, ptrdiff_t, int, int);
@@ -4670,7 +4676,9 @@ extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern specpdl_ref inhibit_garbage_collection (void);
 extern Lisp_Object build_symbol_with_pos (Lisp_Object, Lisp_Object);
+#ifndef HAVE_MPS
 extern void free_cons (struct Lisp_Cons *);
+#endif
 extern void init_alloc_once (void);
 extern void init_alloc (void);
 extern void syms_of_alloc (void);
@@ -4679,6 +4687,8 @@ extern int valid_lisp_object_p (Lisp_Object);
 
 void *hash_table_alloc_bytes (ptrdiff_t nbytes) ATTRIBUTE_MALLOC_SIZE ((1));
 void hash_table_free_bytes (void *p, ptrdiff_t nbytes);
+Lisp_Object *hash_table_alloc_kv (struct Lisp_Hash_Table *h, ptrdiff_t nobjs);
+void hash_table_free_kv (struct Lisp_Hash_Table *h, Lisp_Object *p);
 
 /* Defined in gmalloc.c.  */
 #if !defined DOUG_LEA_MALLOC && !defined HYBRID_MALLOC && !defined SYSTEM_MALLOC
@@ -4741,6 +4751,67 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char *, ptrdiff_t,
   ATTRIBUTE_FORMAT_PRINTF (5, 0);
 
 /* Defined in lread.c.  */
+/* When an object is read, the type of the top read stack entry indicates
+   the syntactic context.  */
+enum read_entry_type
+{
+				/* preceding syntactic context */
+  RE_list_start,		/* "(" */
+
+  RE_list,			/* "(" (+ OBJECT) */
+  RE_list_dot,			/* "(" (+ OBJECT) "." */
+
+  RE_vector,			/* "[" (* OBJECT) */
+  RE_record,			/* "#s(" (* OBJECT) */
+  RE_char_table,		/* "#^[" (* OBJECT) */
+  RE_sub_char_table,		/* "#^^[" (* OBJECT) */
+  RE_byte_code,			/* "#[" (* OBJECT) */
+  RE_string_props,		/* "#(" (* OBJECT) */
+
+  RE_special,			/* "'" | "#'" | "`" | "," | ",@" */
+
+  RE_numbered,			/* "#" (+ DIGIT) "=" */
+};
+
+struct read_stack_entry
+{
+  enum read_entry_type type;
+  union {
+    /* RE_list, RE_list_dot */
+    struct {
+      Lisp_Object head;		/* first cons of list */
+      Lisp_Object tail;		/* last cons of list */
+    } list;
+
+    /* RE_vector, RE_record, RE_char_table, RE_sub_char_table,
+       RE_byte_code, RE_string_props */
+    struct {
+      Lisp_Object elems;	/* list of elements in reverse order */
+      bool old_locate_syms;	/* old value of locate_syms */
+    } vector;
+
+    /* RE_special */
+    struct {
+      Lisp_Object symbol;	/* symbol from special syntax */
+    } special;
+
+    /* RE_numbered */
+    struct {
+      Lisp_Object number;	/* number as a fixnum */
+      Lisp_Object placeholder;	/* placeholder object */
+    } numbered;
+  } u;
+};
+
+struct read_stack
+{
+  struct read_stack_entry *stack;  /* base of stack */
+  ptrdiff_t size;		   /* allocated size in entries */
+  ptrdiff_t sp;			   /* current number of entries */
+};
+
+extern struct read_stack rdstack;
+
 extern Lisp_Object intern_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_c_string_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_driver (Lisp_Object, Lisp_Object, Lisp_Object);
@@ -4905,6 +4976,9 @@ XMODULE_FUNCTION (Lisp_Object o)
 typedef void (*module_funcptr) (void);
 
 /* Defined in alloc.c.  */
+void set_string_marked (struct Lisp_String *s);
+void mark_interval_tree (INTERVAL i);
+
 extern Lisp_Object make_user_ptr (void (*finalizer) (void *), void *p);
 
 /* Defined in emacs-module.c.  */
@@ -5249,6 +5323,9 @@ extern Lisp_Object get_byte_code_arity (Lisp_Object);
 extern void init_bc_thread (struct bc_thread_state *bc);
 extern void free_bc_thread (struct bc_thread_state *bc);
 extern void mark_bytecode (struct bc_thread_state *bc);
+#ifdef HAVE_MPS
+extern void *bc_next_frame (struct bc_frame *bc);
+# endif
 
 INLINE struct bc_frame *
 get_act_rec (struct thread_state *th)
@@ -5745,7 +5822,13 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
 #endif
 #ifndef USE_STACK_LISP_OBJECTS
 # define USE_STACK_LISP_OBJECTS true
-#endif
+# endif
+
+# ifdef HAVE_MPS
+# undef USE_STACK_LISP_OBJECTS
+# define USE_STACK_LISP_OBJECTS false
+# endif
+
 
 #ifdef GC_CHECK_STRING_BYTES
 enum { defined_GC_CHECK_STRING_BYTES = true };

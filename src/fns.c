@@ -19,7 +19,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <stddef.h>
 #include <stdlib.h>
+#include <sys/_types/_size_t.h>
 #include <sys/random.h>
 #include <unistd.h>
 #include <filevercmp.h>
@@ -35,7 +37,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "composite.h"
 #include "buffer.h"
+#include "igc.h"
 #include "intervals.h"
+#include "pdumper.h"
 #include "window.h"
 #include "puresize.h"
 #include "gnutls.h"
@@ -4751,7 +4755,11 @@ static EMACS_INT
 sxhash_eq (Lisp_Object key)
 {
   Lisp_Object k = maybe_remove_pos_from_symbol (key);
+#ifdef HAVE_MPS
+  return igc_hash (k);
+#else
   return XHASH (k) ^ XTYPE (k);
+#endif
 }
 
 static EMACS_INT
@@ -4861,7 +4869,8 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
 
   if (size == 0)
     {
-      h->key_and_value = NULL;
+      h->key = NULL;
+      h->value = NULL;
       h->hash = NULL;
       h->next = NULL;
       h->index_bits = 0;
@@ -4870,10 +4879,17 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
     }
   else
     {
-      h->key_and_value = hash_table_alloc_bytes (2 * size
-						 * sizeof *h->key_and_value);
-      for (ptrdiff_t i = 0; i < 2 * size; i++)
-	h->key_and_value[i] = HASH_UNUSED_ENTRY_KEY;
+      Lisp_Object *key = hash_table_alloc_kv (h, size);
+      Lisp_Object *value = hash_table_alloc_kv (h, size);
+      for (ptrdiff_t i = 0; i < size; i++)
+	{
+	  key[i] = HASH_UNUSED_ENTRY_KEY;
+	  value[i] = Qnil;
+	}
+
+      /* Initialize, then set. */
+      h->key = key;
+      h->value = value;
 
       h->hash = hash_table_alloc_bytes (size * sizeof *h->hash);
 
@@ -4913,9 +4929,13 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 
   if (h1->table_size > 0)
     {
-      ptrdiff_t kv_bytes = 2 * h1->table_size * sizeof *h1->key_and_value;
-      h2->key_and_value = hash_table_alloc_bytes (kv_bytes);
-      memcpy (h2->key_and_value, h1->key_and_value, kv_bytes);
+      ptrdiff_t kv_bytes = h1->table_size * sizeof *h1->key;
+      Lisp_Object *key = hash_table_alloc_kv (h2, h1->table_size);
+      Lisp_Object *value = hash_table_alloc_kv (h2, h1->table_size);
+      memcpy (key, h1->key, kv_bytes);
+      memcpy (value, h1->value, kv_bytes);
+      h2->key = key;
+      h2->value = value;
 
       ptrdiff_t hash_bytes = h1->table_size * sizeof *h1->hash;
       h2->hash = hash_table_alloc_bytes (hash_bytes);
@@ -4963,12 +4983,15 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	next[i] = i + 1;
       next[new_size - 1] = -1;
 
-      Lisp_Object *key_and_value
-	= hash_table_alloc_bytes (2 * new_size * sizeof *key_and_value);
-      memcpy (key_and_value, h->key_and_value,
-	      2 * old_size * sizeof *key_and_value);
-      for (ptrdiff_t i = 2 * old_size; i < 2 * new_size; i++)
-        key_and_value[i] = HASH_UNUSED_ENTRY_KEY;
+      Lisp_Object *key = hash_table_alloc_kv (h, new_size);
+      Lisp_Object *value = hash_table_alloc_kv (h, new_size);
+      memcpy (key, h->key, old_size * sizeof *key);
+      memcpy (value, h->value, old_size * sizeof *value);
+      for (ptrdiff_t i = old_size; i < new_size; i++)
+	{
+	  key[i] = HASH_UNUSED_ENTRY_KEY;
+	  value[i] = Qnil;
+	}
 
       hash_hash_t *hash = hash_table_alloc_bytes (new_size * sizeof *hash);
       memcpy (hash, h->hash, old_size * sizeof *hash);
@@ -4988,17 +5011,18 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	hash_table_free_bytes (h->index, old_index_size * sizeof *h->index);
       h->index = index;
 
-      hash_table_free_bytes (h->key_and_value,
-			     2 * old_size * sizeof *h->key_and_value);
-      h->key_and_value = key_and_value;
+      Lisp_Object *old = h->key;
+      h->key = key;
+      hash_table_free_kv (h, old);
+      old = h->value;
+      h->value = value;
+      hash_table_free_kv (h, old);
 
       hash_table_free_bytes (h->hash, old_size * sizeof *h->hash);
       h->hash = hash;
 
       hash_table_free_bytes (h->next, old_size * sizeof *h->next);
       h->next = next;
-
-      h->key_and_value = key_and_value;
 
       /* Rehash: all data occupy entries 0..old_size-1.  */
       for (ptrdiff_t i = 0; i < old_size; i++)
@@ -5043,7 +5067,8 @@ hash_table_thaw (Lisp_Object hash_table)
 
   if (size == 0)
     {
-      h->key_and_value = NULL;
+      h->key = NULL;
+      h->value = NULL;
       h->hash = NULL;
       h->next = NULL;
       h->index_bits = 0;
@@ -5053,6 +5078,11 @@ hash_table_thaw (Lisp_Object hash_table)
     {
       ptrdiff_t index_bits = compute_hash_index_bits (size);
       h->index_bits = index_bits;
+
+#ifdef HAVE_MPS
+      eassert (pdumper_object_p (h->key));
+      eassert (pdumper_object_p (h->value));
+#endif
 
       h->hash = hash_table_alloc_bytes (size * sizeof *h->hash);
 
@@ -5215,11 +5245,11 @@ hash_clear (struct Lisp_Hash_Table *h)
     }
 }
 
-
 
 /************************************************************************
 			   Weak Hash Tables
  ************************************************************************/
+#ifndef HAVE_MPS
 
 /* Whether to keep an entry whose key and value are known to be retained
    if STRONG_KEY and STRONG_VALUE, respectively, are true.  */
@@ -5316,6 +5346,8 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 
   return marked;
 }
+
+#endif // not HAVE_MPS
 
 
 /***********************************************************************
@@ -5504,7 +5536,11 @@ sxhash_obj (Lisp_Object obj, int depth)
       return XUFIXNUM (obj);
 
     case Lisp_Symbol:
+#ifdef HAVE_MPS
+      return igc_hash (obj);
+#else
       return XHASH (obj);
+#endif
 
     case Lisp_String:
       return hash_string (SSDATA (obj), SBYTES (obj));
@@ -5532,8 +5568,15 @@ sxhash_obj (Lisp_Object obj, int depth)
 	  {
 	    ptrdiff_t bytepos
 	      = XMARKER (obj)->buffer ? XMARKER (obj)->bytepos : 0;
-	    EMACS_UINT hash
-	      = sxhash_combine ((intptr_t) XMARKER (obj)->buffer, bytepos);
+	    EMACS_UINT hash;
+#ifdef HAVE_MPS
+	    Lisp_Object buf;
+	    XSETBUFFER (buf, XMARKER (obj)->buffer);
+	    hash = igc_hash (buf);
+#else
+	    hash = (intptr_t) XMARKER (obj)->buffer;
+#endif
+	    hash = sxhash_combine (hash, bytepos);
 	    return hash;
 	  }
 	else if (pvec_type == PVEC_BOOL_VECTOR)
@@ -5552,7 +5595,11 @@ sxhash_obj (Lisp_Object obj, int depth)
 
 	    /* Others are 'equal' if they are 'eq', so take their
 	       address as hash.  */
+#ifdef HAVE_MPS
+	    return igc_hash (obj);
+#else
 	    return XHASH (obj);
+#endif
 	  }
       }
 
@@ -5663,6 +5710,7 @@ struct hash_table_user_test
 
 static struct hash_table_user_test *hash_table_user_tests = NULL;
 
+#ifndef HAVE_MPS
 void
 mark_fns (void)
 {
@@ -5674,6 +5722,7 @@ mark_fns (void)
       mark_object (ut->test.user_hash_function);
     }
 }
+#endif // not HAVE_MPS
 
 /* Find the hash_table_test object corresponding to the (bare) symbol TEST,
    creating one if none existed.  */

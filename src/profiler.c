@@ -51,6 +51,7 @@ typedef struct {
   int next_free;		/* next free entry, -1 if all taken */
 } log_t;
 
+#ifndef HAVE_MPS
 static void
 mark_log (log_t *log)
 {
@@ -62,6 +63,7 @@ mark_log (log_t *log)
     if (log->counts[i] > 0)	/* Only mark valid keys.  */
       mark_objects (log->keys + i * depth, depth);
 }
+#endif // not HAVE_MPS
 
 static log_t *
 make_log (int size, int depth)
@@ -686,6 +688,7 @@ the same lambda expression, or are really unrelated function.  */)
   return res ? Qt : Qnil;
 }
 
+#ifndef HAVE_MPS
 void
 mark_profiler (void)
 {
@@ -694,6 +697,7 @@ mark_profiler (void)
 #endif
   mark_log (memory.log);
 }
+#endif // not HAVE_MPS
 
 void
 syms_of_profiler (void)

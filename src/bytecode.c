@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "blockinput.h"
+#include "igc.h"
 #include "sysstdio.h"
 #include "character.h"
 #include "buffer.h"
@@ -386,6 +387,14 @@ struct bc_frame {
   Lisp_Object next_stack[];	    /* data stack of next frame */
 };
 
+#ifdef HAVE_MPS
+void *
+bc_next_frame (struct bc_frame *bc)
+{
+  return bc->next_stack;
+}
+#endif
+
 void
 init_bc_thread (struct bc_thread_state *bc)
 {
@@ -402,6 +411,7 @@ free_bc_thread (struct bc_thread_state *bc)
   xfree (bc->stack);
 }
 
+#ifndef HAVE_MPS
 void
 mark_bytecode (struct bc_thread_state *bc)
 {
@@ -432,6 +442,7 @@ mark_bytecode (struct bc_thread_state *bc)
       fp = next_fp;
     }
 }
+#endif // not HAVE_MPS
 
 DEFUN ("internal-stack-stats", Finternal_stack_stats, Sinternal_stack_stats,
        0, 0, 0,
@@ -483,7 +494,11 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 
  setup_frame: ;
   eassert (!STRING_MULTIBYTE (bytestr));
+#ifndef HAVE_MPS
+  // With MPS, references from the stack pin string data (also interior
+  // pointers).
   eassert (string_immovable_p (bytestr));
+#endif
   /* FIXME: in debug mode (!NDEBUG, BYTE_CODE_SAFE or enabled checking),
      save the specpdl index on function entry and check that it is the same
      when returning, to detect unwind imbalances.  This would require adding

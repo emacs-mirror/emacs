@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <setjmp.h>
 #include "lisp.h"
+#include "igc.h"
 #include "character.h"
 #include "buffer.h"
 #include "process.h"
@@ -38,14 +39,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define release_select_lock() do { } while (0)
 #endif
 
-union aligned_thread_state
-{
-  struct thread_state s;
-  GCALIGNED_UNION_MEMBER
-};
-verify (GCALIGNED (union aligned_thread_state));
-
-static union aligned_thread_state main_thread
+union aligned_thread_state main_thread
   = {{
       .header.size = PVECHEADERSIZE (PVEC_THREAD,
 				     PSEUDOVECSIZE (struct thread_state,
@@ -658,7 +652,7 @@ thread_select (select_func *func, int max_fds, fd_set *rfds,
 }
 
 
-
+#ifndef HAVE_MPS
 static void
 mark_one_thread (struct thread_state *thread)
 {
@@ -716,6 +710,7 @@ unmark_main_thread (void)
   main_thread.s.header.size &= ~ARRAY_MARK_FLAG;
 }
 
+#endif // not HAVE_MPS
 
 
 static void
@@ -811,6 +806,10 @@ run_thread (void *state)
   handlerlist_sentinel->nextfree = NULL;
   handlerlist_sentinel->next = NULL;
 
+#ifdef HAVE_MPS
+  self->gc_info = igc_thread_add (self);
+#endif
+
   /* It might be nice to do something with errors here.  */
   internal_condition_case (invoke_thread_function, Qt, record_thread_error);
 
@@ -854,6 +853,10 @@ run_thread (void *state)
   for (iter = &all_threads; *iter != self; iter = &(*iter)->next_thread)
     ;
   *iter = (*iter)->next_thread;
+
+#ifdef HAVE_MPS
+  igc_thread_remove (self->gc_info);
+#endif
 
   release_global_lock ();
 
@@ -907,7 +910,6 @@ If NAME is given, it must be a string; it names the new thread.  */)
   new_thread->m_specpdl_ptr = new_thread->m_specpdl;
 
   init_bc_thread (&new_thread->bc);
-
   sys_cond_init (&new_thread->thread_condvar);
 
   /* We'll need locking here eventually.  */
@@ -1172,6 +1174,9 @@ init_threads (void)
 
   main_thread.s.thread_id = sys_thread_self ();
   init_bc_thread (&main_thread.s.bc);
+#ifdef HAVE_MPS
+  igc_on_alloc_main_thread_bc ();
+#endif
 }
 
 void

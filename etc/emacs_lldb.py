@@ -182,6 +182,10 @@ class Lisp_Object:
 #                           LLDB Commands
 ########################################################################
 
+def xpostmortem(debugger, command, ctx, result, internal_dict):
+    """Call igc_postmortem to set MPS arena to postmortem state"""
+    debugger.HandleCommand(f"expr igc_postmortem()")
+
 def xbacktrace(debugger, command, ctx, result, internal_dict):
     """Print Emacs Lisp backtrace"""
     frame = ctx.GetFrame()
@@ -237,8 +241,8 @@ class Lisp_Object_Provider:
                 self.children["cdr"] = cdr
             else:
                 self.children["untagged"] = lisp_obj.untagged
-        except:
-            print(f"*** exception in child provider update for {lisp_type}")
+        except Exception as ex:
+            print(f"*** exception {ex} in Lisp_Object_Provider::update for {lisp_type}")
             pass
 
     def num_children(self):
@@ -306,10 +310,11 @@ def enable_type_category(debugger, category):
 
 # This function is called by LLDB to initialize the module.
 def __lldb_init_module(debugger, internal_dict):
+    define_command(debugger, xpostmortem)
     define_command(debugger, xbacktrace)
     define_command(debugger, xdebug_print)
     define_type_summary(debugger, "Lisp_Object", type_summary_Lisp_Object)
-    define_type_synthetic(debugger, "Lisp_Object", Lisp_Object_Provider)
+    #define_type_synthetic(debugger, "Lisp_Object", Lisp_Object_Provider)
     enable_type_category(debugger, "Emacs")
     print('Emacs debugging support has been installed.')
 

@@ -276,6 +276,7 @@ extern void pdumper_record_wd (const char *);
 
 void init_pdumper_once (void);
 void syms_of_pdumper (void);
+bool dump_loaded_p (void);
 
 INLINE_HEADER_END
 #endif

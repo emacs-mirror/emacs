@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 
 #include "lisp.h"
+#include "igc.h"
 #include "coding.h"
 #include "termchar.h"
 #include "termopts.h"
@@ -4685,6 +4686,10 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 		      ? timespec_sub (now, timer_idleness_start_time)
 		      : make_timespec (0, 0));
     }
+
+#ifdef HAVE_MPS
+  igc_on_idle ();
+#endif
 
   while (CONSP (timers) || CONSP (idle_timers))
     {
@@ -12581,7 +12586,11 @@ init_kboard (KBOARD *kb, Lisp_Object type)
 KBOARD *
 allocate_kboard (Lisp_Object type)
 {
+#ifdef HAVE_MPS
+  KBOARD *kb = igc_xzalloc_ambig (sizeof *kb);
+#else
   KBOARD *kb = xmalloc (sizeof *kb);
+#endif
 
   init_kboard (kb, type);
   kb->next_kboard = all_kboards;
@@ -12597,7 +12606,11 @@ allocate_kboard (Lisp_Object type)
 static void
 wipe_kboard (KBOARD *kb)
 {
+#ifdef HAVE_MPS
+  igc_xfree (kb->kbd_macro_buffer);
+#else
   xfree (kb->kbd_macro_buffer);
+#endif
 }
 
 /* Free KB and memory referenced from it.  */
@@ -12624,12 +12637,19 @@ delete_kboard (KBOARD *kb)
     }
 
   wipe_kboard (kb);
+#ifdef HAVE_MPS
+  igc_xfree (kb);
+#else
   xfree (kb);
+#endif
 }
 
 void
 init_keyboard (void)
 {
+#ifdef HAVE_MPS
+  igc_root_create_ambig (kbd_buffer, (char *) kbd_buffer + ARRAYELTS (kbd_buffer));
+#endif
   /* This is correct before outermost invocation of the editor loop.  */
   command_loop_level = -1;
   quit_char = Ctl ('g');
@@ -13965,6 +13985,7 @@ keys_of_keyboard (void)
 			    "handle-move-frame");
 }
 
+#ifndef HAVE_MPS
 /* Mark the pointers in the kboard objects.
    Called by Fgarbage_collect.  */
 void
@@ -14018,3 +14039,4 @@ mark_kboards (void)
 	}
     }
 }
+#endif // not HAVE_MPS

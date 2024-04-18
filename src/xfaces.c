@@ -224,6 +224,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 
 #include "lisp.h"
+#include "igc.h"
 #include "character.h"
 #include "frame.h"
 
@@ -302,11 +303,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* True if face attribute ATTR is `reset'.  */
 
 #define RESET_P(ATTR) EQ (ATTR, Qreset)
-
-/* Size of hash table of realized faces in face caches (should be a
-   prime number).  */
-
-#define FACE_CACHE_BUCKETS_SIZE 1009
 
 char unspecified_fg[] = "unspecified-fg", unspecified_bg[] = "unspecified-bg";
 
@@ -4545,8 +4541,11 @@ static struct face *
 make_realized_face (Lisp_Object *attr)
 {
   enum { off = offsetof (struct face, id) };
+#ifdef HAVE_MPS
+  struct face *face = igc_make_face ();
+#else
   struct face *face = xmalloc (sizeof *face);
-
+#endif
   memcpy (face->lface, attr, sizeof face->lface);
   memset (&face->id, 0, sizeof *face - off);
   face->ascii_face = face;
@@ -4594,7 +4593,9 @@ free_realized_face (struct frame *f, struct face *face)
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
 
+#ifndef HAVE_MPS
       xfree (face);
+#endif
     }
 }
 
@@ -4724,12 +4725,17 @@ the triangle inequality.  */)
 static struct face_cache *
 make_face_cache (struct frame *f)
 {
-  struct face_cache *c = xmalloc (sizeof *c);
+  struct face_cache *c;
+#ifdef HAVE_MPS
+  c = igc_make_face_cache ();
+#else
+  c = xmalloc (sizeof *c);
+#endif
 
   c->buckets = xzalloc (FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets);
   c->size = 50;
   c->used = 0;
-  c->faces_by_id = xmalloc (c->size * sizeof *c->faces_by_id);
+  c->faces_by_id = xzalloc (c->size * sizeof *c->faces_by_id);
   c->f = f;
   c->menu_face_changed_p = menu_face_changed_default;
   return c;
@@ -4837,9 +4843,15 @@ free_face_cache (struct face_cache *c)
   if (c)
     {
       free_realized_faces (c);
-      xfree (c->buckets);
-      xfree (c->faces_by_id);
+      struct face **p = c->buckets;
+      c->buckets = NULL;
+      xfree (p);
+      p = c->faces_by_id;
+      c->faces_by_id = NULL;
+      xfree (p);
+#ifndef HAVE_MPS
       xfree (c);
+#endif
     }
 }
 
@@ -4910,8 +4922,9 @@ cache_face (struct face_cache *c, struct face *face, uintptr_t hash)
   if (i == c->used)
     {
       if (c->used == c->size)
-	c->faces_by_id = xpalloc (c->faces_by_id, &c->size, 1, MAX_FACE_ID,
-				  sizeof *c->faces_by_id);
+	c->faces_by_id
+	  = xpalloc (c->faces_by_id, &c->size, 1, MAX_FACE_ID,
+		     sizeof *c->faces_by_id);
       c->used++;
     }
 

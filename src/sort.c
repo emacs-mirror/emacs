@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "lisp.h"
+#include "igc.h"
 
 
 /* Reverse a slice of a vector in place, from lo up to (exclusive) hi. */
@@ -529,6 +530,8 @@ merge_init (merge_state *ms, const ptrdiff_t list_size,
 static void
 merge_markmem (void *arg)
 {
+#ifndef HAVE_MPS
+
   merge_state *ms = arg;
   eassume (ms != NULL);
 
@@ -542,6 +545,7 @@ merge_markmem (void *arg)
       eassume (src != NULL);
       mark_objects (src, *ms->reloc.size);
     }
+#endif
 }
 
 
@@ -576,13 +580,21 @@ cleanup_mem (void *arg)
   /* Free any remaining temp storage.  */
   if (ms->a.keys != ms->temparray)
     {
+#ifdef HAVE_MPS
+      igc_xfree (ms->a.keys);
+# else
       xfree (ms->a.keys);
+#endif
       ms->a.keys = NULL;
     }
 
   if (ms->allocated_keys != NULL)
     {
+#ifdef HAVE_MPS
+      igc_xfree (ms->allocated_keys);
+#else
       xfree (ms->allocated_keys);
+#endif
       ms->allocated_keys = NULL;
     }
 }
@@ -621,7 +633,11 @@ merge_getmem (merge_state *ms, const ptrdiff_t need)
       xfree (ms->a.keys);
     }
   ptrdiff_t bytes = (need * word_size) << (ms->a.values != NULL ? 1 : 0);
+# ifdef HAVE_MPS
+  ms->a.keys = igc_xzalloc_ambig (bytes);
+#else
   ms->a.keys = xmalloc (bytes);
+#endif
   ms->alloced = need;
   if (ms->a.values != NULL)
     ms->a.values = &ms->a.keys[need];

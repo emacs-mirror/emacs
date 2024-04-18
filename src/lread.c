@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <stat-time.h>
 #include "lisp.h"
+#include "igc.h"
 #include "dispextern.h"
 #include "intervals.h"
 #include "character.h"
@@ -305,7 +306,7 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
 
       ptrdiff_t pt_byte = BUF_PT_BYTE (inbuffer);
 
-      if (! BUFFER_LIVE_P (inbuffer))
+      if (!BUFFER_LIVE_P (inbuffer))
 	return -1;
 
       if (pt_byte >= BUF_ZV_BYTE (inbuffer))
@@ -2391,6 +2392,7 @@ readevalloop_1 (int old)
 static AVOID
 end_of_file_error (void)
 {
+  igc_break ();
   if (STRINGP (Vload_true_file_name))
     xsignal1 (Qend_of_file, Vload_true_file_name);
 
@@ -3483,7 +3485,9 @@ vector_from_rev_list (Lisp_Object elems)
     {
       vec[i] = XCAR (elems);
       Lisp_Object next = XCDR (elems);
+#ifndef HAVE_MPS
       free_cons (XCONS (elems));
+#endif
       elems = next;
     }
   return obj;
@@ -3540,8 +3544,10 @@ bytecode_from_rev_list (Lisp_Object elems, Lisp_Object readcharfun)
        Convert them back to the original unibyte form.  */
     vec[COMPILED_BYTECODE] = Fstring_as_unibyte (vec[COMPILED_BYTECODE]);
 
+#ifndef HAVE_MPS
   /* Bytecode must be immovable.  */
   pin_string (vec[COMPILED_BYTECODE]);
+#endif
 
   XSETPVECTYPE (XVECTOR (obj), PVEC_COMPILED);
   return obj;
@@ -3814,67 +3820,9 @@ skip_space_and_comments (Lisp_Object readcharfun)
   UNREAD (c);
 }
 
-/* When an object is read, the type of the top read stack entry indicates
-   the syntactic context.  */
-enum read_entry_type
-{
-				/* preceding syntactic context */
-  RE_list_start,		/* "(" */
+struct read_stack rdstack = {NULL, 0, 0};
 
-  RE_list,			/* "(" (+ OBJECT) */
-  RE_list_dot,			/* "(" (+ OBJECT) "." */
-
-  RE_vector,			/* "[" (* OBJECT) */
-  RE_record,			/* "#s(" (* OBJECT) */
-  RE_char_table,		/* "#^[" (* OBJECT) */
-  RE_sub_char_table,		/* "#^^[" (* OBJECT) */
-  RE_byte_code,			/* "#[" (* OBJECT) */
-  RE_string_props,		/* "#(" (* OBJECT) */
-
-  RE_special,			/* "'" | "#'" | "`" | "," | ",@" */
-
-  RE_numbered,			/* "#" (+ DIGIT) "=" */
-};
-
-struct read_stack_entry
-{
-  enum read_entry_type type;
-  union {
-    /* RE_list, RE_list_dot */
-    struct {
-      Lisp_Object head;		/* first cons of list */
-      Lisp_Object tail;		/* last cons of list */
-    } list;
-
-    /* RE_vector, RE_record, RE_char_table, RE_sub_char_table,
-       RE_byte_code, RE_string_props */
-    struct {
-      Lisp_Object elems;	/* list of elements in reverse order */
-      bool old_locate_syms;	/* old value of locate_syms */
-    } vector;
-
-    /* RE_special */
-    struct {
-      Lisp_Object symbol;	/* symbol from special syntax */
-    } special;
-
-    /* RE_numbered */
-    struct {
-      Lisp_Object number;	/* number as a fixnum */
-      Lisp_Object placeholder;	/* placeholder object */
-    } numbered;
-  } u;
-};
-
-struct read_stack
-{
-  struct read_stack_entry *stack;  /* base of stack */
-  ptrdiff_t size;		   /* allocated size in entries */
-  ptrdiff_t sp;			   /* current number of entries */
-};
-
-static struct read_stack rdstack = {NULL, 0, 0};
-
+#ifndef HAVE_MPS
 void
 mark_lread (void)
 {
@@ -3909,6 +3857,7 @@ mark_lread (void)
 	}
     }
 }
+#endif // not HAVE_MPS
 
 static inline struct read_stack_entry *
 read_stack_top (void)

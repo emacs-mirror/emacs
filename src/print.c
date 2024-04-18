@@ -1452,10 +1452,11 @@ print_preprocess (Lisp_Object obj)
 		    if (HASH_TABLE_P (obj))
 		      {
 			struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
-			/* The values pushed here may include
-			   HASH_UNUSED_ENTRY_KEY; see top of this function.  */
-			pp_stack_push_values (h->key_and_value,
-					      2 * h->table_size);
+			DOHASH (h, k, v)
+			  {
+			    pp_stack_push_value (k);
+			    pp_stack_push_value (v);
+			  }
 		      }
 		    break;
 		  }

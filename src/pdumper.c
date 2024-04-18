@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "intervals.h"
 #include "lisp.h"
+#include "igc.h"
 #include "pdumper.h"
 #include "window.h"
 #include "sysstdio.h"
@@ -1355,11 +1356,21 @@ dump_enqueue_object (struct dump_context *ctx,
           /* Note that we call dump_queue_enqueue even if the object
              is already on the normal queue: multiple enqueue calls
              can increase the object's weight.  */
-          if (state == DUMP_OBJECT_ON_NORMAL_QUEUE)
-            dump_queue_enqueue (&ctx->dump_queue,
-                                object,
-                                ctx->offset,
-                                weight);
+	  if (state == DUMP_OBJECT_ON_NORMAL_QUEUE)
+	    {
+#if 0
+	      if (XTYPE (object) == Lisp_Vectorlike)
+		{
+		  struct Lisp_Vector *v = XVECTOR (object);
+		  void *p = v;
+		  if (p == (void *) 0x000000017362d8a8)
+		    igc_break ();
+		}
+#endif
+
+	      dump_queue_enqueue (&ctx->dump_queue, object, ctx->offset,
+				  weight);
+	    }
         }
     }
   /* Always remember the path to this object.  */
@@ -2640,21 +2651,21 @@ dump_vectorlike_generic (struct dump_context *ctx,
 
 /* Return a vector of KEY, VALUE pairs in the given hash table H.
    No room for growth is included.  */
-static Lisp_Object *
-hash_table_contents (struct Lisp_Hash_Table *h)
+static void
+hash_table_contents (struct Lisp_Hash_Table *h, Lisp_Object **key,
+		     Lisp_Object **value)
 {
   ptrdiff_t size = h->count;
-  Lisp_Object *key_and_value = hash_table_alloc_bytes (2 * size
-						       * sizeof *key_and_value);
+  *key = hash_table_alloc_kv (h, size);
+  *value = hash_table_alloc_kv (h, size);
   ptrdiff_t n = 0;
 
   DOHASH (h, k, v)
     {
-      key_and_value[n++] = k;
-      key_and_value[n++] = v;
+      (*key)[n] = k;
+      (*value)[n] = v;
+      ++n;
     }
-
-  return key_and_value;
 }
 
 static void
@@ -2683,7 +2694,10 @@ hash_table_std_test (const struct hash_table_test *t)
 static void
 hash_table_freeze (struct Lisp_Hash_Table *h)
 {
-  h->key_and_value = hash_table_contents (h);
+  Lisp_Object *key, *value;
+  hash_table_contents (h, &key, &value);
+  h->key = key;
+  h->value = value;
   h->next = NULL;
   h->hash = NULL;
   h->index = NULL;
@@ -2694,11 +2708,11 @@ hash_table_freeze (struct Lisp_Hash_Table *h)
 }
 
 static dump_off
-dump_hash_table_contents (struct dump_context *ctx, struct Lisp_Hash_Table *h)
+dump_hash_table_key (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 {
   dump_align_output (ctx, DUMP_ALIGNMENT);
   dump_off start_offset = ctx->offset;
-  ptrdiff_t n = 2 * h->count;
+  ptrdiff_t n = h->count;
 
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
@@ -2706,7 +2720,30 @@ dump_hash_table_contents (struct dump_context *ctx, struct Lisp_Hash_Table *h)
   for (ptrdiff_t i = 0; i < n; i++)
     {
       Lisp_Object out;
-      const Lisp_Object *slot = &h->key_and_value[i];
+      const Lisp_Object *slot = &h->key[i];
+      dump_object_start (ctx, &out, sizeof out);
+      dump_field_lv (ctx, &out, slot, slot, WEIGHT_STRONG);
+      dump_object_finish (ctx, &out, sizeof out);
+    }
+
+  ctx->flags = old_flags;
+  return start_offset;
+}
+
+static dump_off
+dump_hash_table_value (struct dump_context *ctx, struct Lisp_Hash_Table *h)
+{
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+  dump_off start_offset = ctx->offset;
+  ptrdiff_t n = h->count;
+
+  struct dump_flags old_flags = ctx->flags;
+  ctx->flags.pack_objects = true;
+
+  for (ptrdiff_t i = 0; i < n; i++)
+    {
+      Lisp_Object out;
+      const Lisp_Object *slot = &h->value[i];
       dump_object_start (ctx, &out, sizeof out);
       dump_field_lv (ctx, &out, slot, slot, WEIGHT_STRONG);
       dump_object_finish (ctx, &out, sizeof out);
@@ -2736,15 +2773,22 @@ dump_hash_table (struct dump_context *ctx, Lisp_Object object)
   DUMP_FIELD_COPY (out, hash, purecopy);
   DUMP_FIELD_COPY (out, hash, mutable);
   DUMP_FIELD_COPY (out, hash, frozen_test);
-  if (hash->key_and_value)
-    dump_field_fixup_later (ctx, out, hash, &hash->key_and_value);
+  if (hash->key)
+    dump_field_fixup_later (ctx, out, hash, &hash->key);
+  if (hash->value)
+    dump_field_fixup_later (ctx, out, hash, &hash->value);
   eassert (hash->next_weak == NULL);
   dump_off offset = finish_dump_pvec (ctx, &out->header);
-  if (hash->key_and_value)
+  if (hash->key)
     dump_remember_fixup_ptr_raw
       (ctx,
-       offset + dump_offsetof (struct Lisp_Hash_Table, key_and_value),
-       dump_hash_table_contents (ctx, hash));
+       offset + dump_offsetof (struct Lisp_Hash_Table, key),
+       dump_hash_table_key (ctx, hash));
+  if (hash->value)
+    dump_remember_fixup_ptr_raw
+      (ctx,
+       offset + dump_offsetof (struct Lisp_Hash_Table, value),
+       dump_hash_table_value (ctx, hash));
   return offset;
 }
 
@@ -4141,8 +4185,13 @@ types.  */)
   CALLN (Ffuncall, intern_c_string ("load--fixup-all-elns"));
 #endif
 
+#ifndef HAVE_MPS
   check_pure_size ();
+# endif
 
+# ifndef HAVE_MPS
+  /* I don't think this can be guaranteed to work with MPS.
+     Finalizers may be kept alive unpredictably. */
   /* Clear out any detritus in memory.  */
   do
     {
@@ -4150,8 +4199,14 @@ types.  */)
       garbage_collect ();
     }
   while (number_finalizers_run);
+#endif
 
   specpdl_ref count = SPECPDL_INDEX ();
+  Lisp_Object start_time = Ffloat_time (Qnil);
+# ifdef HAVE_MPS
+  /* Turn off GC while dumping. This turns out to be the fastest option. */
+  igc_park_arena ();
+#endif
 
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
@@ -4379,19 +4434,21 @@ types.  */)
   ctx->buf_size = 0;
   ctx->max_offset = 0;
 
+  Lisp_Object end_time = Ffloat_time (Qnil);
   dump_off
     header_bytes = header_end - header_start,
     hot_bytes = hot_end - hot_start,
     discardable_bytes = discardable_end - ctx->header.discardable_start,
     cold_bytes = cold_end - ctx->header.cold_start;
   fprintf (stderr,
-	   ("Dump complete\n"
-	    "Byte counts: header=%"PRIdDUMP_OFF" hot=%"PRIdDUMP_OFF
-	    " discardable=%"PRIdDUMP_OFF" cold=%"PRIdDUMP_OFF"\n"
-	    "Reloc counts: hot=%"PRIdDUMP_OFF" discardable=%"PRIdDUMP_OFF"\n"),
+	   ("Dump complete (%.2f seconds)\n"
+	    "Byte counts: header=%" PRIdDUMP_OFF " hot=%" PRIdDUMP_OFF
+	    " discardable=%" PRIdDUMP_OFF " cold=%" PRIdDUMP_OFF "\n"
+	    "Reloc counts: hot=%" PRIdDUMP_OFF
+	    " discardable=%" PRIdDUMP_OFF "\n"),
+	   XFLOAT_DATA (end_time) - XFLOAT_DATA (start_time),
 	   header_bytes, hot_bytes, discardable_bytes, cold_bytes,
-           number_hot_relocations,
-           number_discardable_relocations);
+	   number_hot_relocations, number_discardable_relocations);
 
   unblock_input ();
   return unbind_to (count, Qnil);
@@ -5225,7 +5282,7 @@ dump_find_relocation (const struct dump_table_locator *const table,
   return found;
 }
 
-static bool
+bool
 dump_loaded_p (void)
 {
   return dump_public.start != 0;
@@ -5763,6 +5820,11 @@ pdumper_load (const char *dump_filename, char *argv0)
   dump_public.start = dump_base;
   dump_public.end = dump_public.start + dump_size;
 
+#ifdef HAVE_MPS
+  void *hot_start = (void *) dump_base;
+  void *hot_end = (void *) (dump_base + adj_discardable_start);
+#endif
+
   dump_do_all_dump_reloc_for_phase (header, dump_base, EARLY_RELOCS);
   dump_do_all_emacs_relocations (header, dump_base);
 
@@ -5804,6 +5866,10 @@ pdumper_load (const char *dump_filename, char *argv0)
     timespec_sub (current_timespec (), start_time);
   dump_private.load_time = timespectod (load_timespec);
   dump_private.dump_filename = dump_filename_copy;
+
+# ifdef HAVE_MPS
+  igc_on_pdump_loaded (hot_start, hot_end);
+# endif
 
  out:
   for (int i = 0; i < ARRAYELTS (sections); ++i)

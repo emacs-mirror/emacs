@@ -585,6 +585,7 @@ OPTION_DEFAULT_ON([xinput2],[don't use version 2 of the X Input Extension for in
 OPTION_DEFAULT_OFF([small-ja-dic],[generate a smaller-size Japanese dictionary])
 OPTION_DEFAULT_OFF([android],[cross-compile Android application package])
 OPTION_DEFAULT_ON([android-debug],[don't build Emacs as a debug package on Android])
+OPTION_DEFAULT_OFF([mps],[use MPS for garbage collection])
 
 # Find out of Android support is enabled and mailutils has defaulted
 # to `yes-unless-android'.  Disable it if so.
@@ -5498,6 +5499,29 @@ if test "${with_gpm}" != "no"; then
 fi
 AC_SUBST([LIBGPM])
 
+### Use -lmps if available, unless '--with-mps=no'.
+HAVE_MPS=no
+LIBMPS=
+IGCOBJ=
+if test "${with_mps}" != "no"; then
+  AC_CHECK_HEADER([mps.h],
+    [AC_CHECK_LIB([mps], [mps_arena_create], [HAVE_MPS=yes])])
+
+  if test "${HAVE_MPS}" = "yes"; then
+    IGCOBJ="igc.o"
+    AC_DEFINE([HAVE_MPS], [1],
+      [Define to 1 if you have the mps library (-lmps).])
+    if test "${with_mps}" = "debug"; then
+      LIBMPS=-lmps-debug
+    else
+      LIBMPS=-lmps
+    fi
+  fi
+fi
+AC_SUBST([LIBMPS])
+AC_SUBST([IGCOBJ])
+
+
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADERS_ONCE([malloc/malloc.h])
 
@@ -7644,7 +7668,7 @@ optsep=
 emacs_config_features=
 for opt in ACL BE_APP CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
  HARFBUZZ IMAGEMAGICK JPEG LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
- M17N_FLT MODULES NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PGTK PNG RSVG SECCOMP \
+ M17N_FLT MODULES MPS NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PGTK PNG RSVG SECCOMP \
  SOUND SQLITE3 THREADS TIFF TOOLKIT_SCROLL_BARS TREE_SITTER \
  UNEXEC WEBP X11 XAW3D XDBE XFT XIM XINPUT2 XPM XWIDGETS X_TOOLKIT \
  ZLIB; do
@@ -7705,6 +7729,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use native APIs for images?                  ${NATIVE_IMAGE_API}
   Does Emacs support sound?                               ${HAVE_SOUND}
   Does Emacs use -lgpm?                                   ${HAVE_GPM}
+  Does Emacs use -lmps?                                   ${HAVE_MPS}
   Does Emacs use -ldbus?                                  ${HAVE_DBUS}
   Does Emacs use -lgconf?                                 ${HAVE_GCONF}
   Does Emacs use GSettings?                               ${HAVE_GSETTINGS}

@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "frame.h"
 #include "keymap.h"
+#include "igc.h"
 
 static void swap_in_symval_forwarding (struct Lisp_Symbol *,
 				       struct Lisp_Buffer_Local_Value *);
@@ -2090,7 +2091,12 @@ static struct Lisp_Buffer_Local_Value *
 make_blv (struct Lisp_Symbol *sym, bool forwarded,
 	  union Lisp_Val_Fwd valcontents)
 {
-  struct Lisp_Buffer_Local_Value *blv = xmalloc (sizeof *blv);
+  struct Lisp_Buffer_Local_Value *blv;
+#ifdef HAVE_MPS
+  blv = igc_alloc_blv ();
+#else
+  blv = xmalloc (sizeof *blv);
+#endif
   Lisp_Object symbol;
   Lisp_Object tem;
 

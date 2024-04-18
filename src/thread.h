@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef THREAD_H
 #define THREAD_H
 
+#include "config.h"
 #include "regex-emacs.h"
 
 #ifdef WINDOWSNT
@@ -214,6 +215,11 @@ struct thread_state
   struct thread_state *next_thread;
 
   struct bc_thread_state bc;
+
+# ifdef HAVE_MPS
+  void *gc_info;
+# endif
+
 } GCALIGNED_STRUCT;
 
 INLINE bool
@@ -336,6 +342,15 @@ int thread_select  (select_func *func, int max_fds, fd_set *rfds,
 		    sigset_t *sigmask);
 
 bool thread_check_current_buffer (struct buffer *);
+
+union aligned_thread_state
+{
+  struct thread_state s;
+  GCALIGNED_UNION_MEMBER
+};
+verify (GCALIGNED (union aligned_thread_state));
+
+extern union aligned_thread_state main_thread;
 
 INLINE_HEADER_END
 

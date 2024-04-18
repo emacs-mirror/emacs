@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "macros.h"
+#include "igc.h"
 #include "window.h"
 #include "keyboard.h"
 
@@ -55,7 +56,11 @@ macro before appending to it.  */)
 
   if (!current_kboard->kbd_macro_buffer)
     {
+#ifdef HAVE_MPS
+      current_kboard->kbd_macro_buffer = igc_xzalloc_ambig (30 * word_size);
+#else
       current_kboard->kbd_macro_buffer = xmalloc (30 * word_size);
+#endif
       current_kboard->kbd_macro_bufsize = 30;
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
       current_kboard->kbd_macro_end = current_kboard->kbd_macro_buffer;
@@ -65,9 +70,13 @@ macro before appending to it.  */)
     {
       if (current_kboard->kbd_macro_bufsize > 200)
 	{
+#ifdef HAVE_MPS
+	  current_kboard->kbd_macro_buffer = igc_xnrealloc_ambig
+	    (current_kboard->kbd_macro_buffer, 30, word_size);
+#else
 	  current_kboard->kbd_macro_buffer
-	    = xrealloc (current_kboard->kbd_macro_buffer,
-			30 * word_size);
+	    = xrealloc (current_kboard->kbd_macro_buffer, 30 * word_size);
+#endif
 	  current_kboard->kbd_macro_bufsize = 30;
 	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
@@ -86,11 +95,21 @@ macro before appending to it.  */)
       /* Copy last-kbd-macro into the buffer, in case the Lisp code
 	 has put another macro there.  */
       if (current_kboard->kbd_macro_bufsize - incr < len)
-	current_kboard->kbd_macro_buffer =
-	  xpalloc (current_kboard->kbd_macro_buffer,
-		   &current_kboard->kbd_macro_bufsize,
-		   len - current_kboard->kbd_macro_bufsize + incr, -1,
-		   sizeof *current_kboard->kbd_macro_buffer);
+	{
+#ifdef HAVE_MPS
+	  current_kboard->kbd_macro_buffer
+	    = igc_xpalloc_ambig (current_kboard->kbd_macro_buffer,
+				 &current_kboard->kbd_macro_bufsize,
+				 len - current_kboard->kbd_macro_bufsize + incr, -1,
+				 sizeof *current_kboard->kbd_macro_buffer);
+#else
+	  current_kboard->kbd_macro_buffer
+	    = xpalloc (current_kboard->kbd_macro_buffer,
+		       &current_kboard->kbd_macro_bufsize,
+		       len - current_kboard->kbd_macro_bufsize + incr, -1,
+		       sizeof *current_kboard->kbd_macro_buffer);
+#endif
+	}
 
       /* Must convert meta modifier when copying string to vector.  */
       cvt = STRINGP (KVAR (current_kboard, Vlast_kbd_macro));

@@ -50,6 +50,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "font.h"
 #include "pdumper.h"
+#include "igc.h"
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -1662,7 +1663,11 @@ or omitted means use the selected frame.  */)
 static struct image *
 make_image (Lisp_Object spec, EMACS_UINT hash)
 {
+#ifdef HAVE_MPS
+  struct image *img = igc_make_image ();
+#else
   struct image *img = xzalloc (sizeof *img);
+#endif
   Lisp_Object file = image_spec_value (spec, QCfile, NULL);
 
   eassert (valid_image_p (spec));
@@ -1720,7 +1725,9 @@ free_image (struct frame *f, struct image *img)
 	img->type->free_img (f, img);
 
       xfree (img->face_font_family);
+#ifndef HAVE_MPS
       xfree (img);
+#endif
     }
 }
 
@@ -2110,7 +2117,11 @@ make_image_cache (void)
 
   c->size = 50;
   c->used = c->refcount = 0;
+#ifdef HAVE_MPS
+  c->images = igc_xzalloc_ambig (c->size * sizeof *c->images);
+#else
   c->images = xmalloc (c->size * sizeof *c->images);
+#endif
   c->buckets = xzalloc (IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets);
   return c;
 }
@@ -2228,7 +2239,11 @@ free_image_cache (struct frame *f)
 
       for (i = 0; i < c->used; ++i)
 	free_image (f, c->images[i]);
+#ifdef HAVE_MPS
+      igc_xfree (c->images);
+#else
       xfree (c->images);
+#endif
       xfree (c->buckets);
       xfree (c);
       FRAME_IMAGE_CACHE (f) = NULL;
@@ -3632,6 +3647,7 @@ anim_get_animation_cache (Lisp_Object spec)
    Lisp Objects in the image cache.  */
 
 /* Mark Lisp objects in image IMG.  */
+#ifndef HAVE_MPS
 
 static void
 mark_image (struct image *img)
@@ -3642,7 +3658,6 @@ mark_image (struct image *img)
   if (!NILP (img->lisp_data))
     mark_object (img->lisp_data);
 }
-
 
 void
 mark_image_cache (struct image_cache *c)
@@ -3661,6 +3676,7 @@ mark_image_cache (struct image_cache *c)
 #endif
 }
 
+#endif // not HAVE_MPS
 
 
 /***********************************************************************

@@ -1781,6 +1781,7 @@ If nil, also continue lines which are exactly as wide as the window.  */);
   Vfringe_bitmaps = Qnil;
 }
 
+#ifndef HAVE_MPS
 /* Garbage collection hook */
 
 void
@@ -1788,6 +1789,8 @@ mark_fringe_data (void)
 {
   mark_objects (fringe_faces, max_fringe_bitmaps);
 }
+#endif // not HAVE_MPS
+
 
 /* Initialize this module when Emacs starts.  */
 

@@ -1515,6 +1515,7 @@ allocate_emacs_value (emacs_env *env, Lisp_Object obj)
   return value;
 }
 
+#ifndef HAVE_MPS
 /* Mark all objects allocated from local environments so that they
    don't get garbage-collected.  */
 void
@@ -1527,6 +1528,7 @@ mark_module_environment (void *ptr)
     for (int i = 0; i < frame->offset; ++i)
       mark_object (frame->objects[i].v);
 }
+#endif // not HAVE_MPS
 
 
 /* Environment lifetime management.  */

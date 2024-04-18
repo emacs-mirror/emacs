@@ -351,6 +351,8 @@ FONT_OBJ=@FONT_OBJ@
 CM_OBJ=@CM_OBJ@
 
 LIBGPM = @LIBGPM@
+LIBMPS = @LIBMPS@
+IGCOBJ = @IGCOBJ@
 
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 LIBSELINUX_CFLAGS = @LIBSELINUX_CFLAGS@
@@ -470,7 +472,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o     \
 	region-cache.o sound.o timefns.o atimer.o 			       \
 	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
 	$(XWIDGETS_OBJ) 						       \
-	profiler.o decompress.o 					       \
+	profiler.o decompress.o $(IGCOBJ) 				       \
 	thread.o systhread.o sqlite.o  treesit.o			       \
 	itree.o json.o 							       \
 	$(if $(HYBRID_MALLOC),sheap.o) 					       \
@@ -602,7 +604,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(PGTK_LIBS) $(LIBX_BASE) $(LIBIMAGE
    $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
    $(LIBGMP) $(LIBGCCJIT_LIBS) $(XINPUT_LIBS) $(HAIKU_LIBS) \
    $(TREE_SITTER_LIBS) $(SQLITE3_LIBS) $(XCOMPOSITE_LIBS) $(XSHAPE_LIBS) \
-   $(ANDROID_LIBS)
+   $(ANDROID_LIBS) $(LIBMPS)
 
 ## FORCE it so that admin/unidata can decide whether this file is
 ## up-to-date.  Although since charprop depends on bootstrap-emacs,

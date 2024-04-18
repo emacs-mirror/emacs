@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <stdlib.h>
 #include "lisp.h"
+#include "igc.h"
 #include "blockinput.h"
 #include "commands.h"
 #include "keyboard.h"
@@ -30,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "pdumper.h"
 #include "atimer.h"
+#include "igc.h"
 
 /* CACHEABLE is ordinarily nothing, except it is 'volatile' if
    necessary to cajole GCC into not warning incorrectly that a
@@ -103,12 +105,14 @@ specpdl_where (union specbinding *pdl)
   return pdl->let.where;
 }
 
+#ifndef HAVE_MPS
 static Lisp_Object
 specpdl_arg (union specbinding *pdl)
 {
   eassert (pdl->kind == SPECPDL_UNWIND);
   return pdl->unwind.arg;
 }
+#endif
 
 Lisp_Object
 backtrace_function (union specbinding *pdl)
@@ -217,6 +221,9 @@ init_eval_once_for_pdumper (void)
   union specbinding *pdlvec = malloc ((size + 1) * sizeof *specpdl);
   specpdl = specpdl_ptr = pdlvec + 1;
   specpdl_end = specpdl + size;
+#ifdef HAVE_MPS
+  igc_on_alloc_main_thread_specpdl ();
+#endif
 }
 
 void
@@ -2404,6 +2411,9 @@ grow_specpdl_allocation (void)
   specpdl = pdlvec + 1;
   specpdl_end = specpdl + pdlvecsize - 1;
   specpdl_ptr = specpdl_ref_to_ptr (count);
+#ifdef HAVE_MPS
+  igc_on_grow_specpdl ();
+#endif
 }
 
 /* Eval a sub-expression of the current expression (i.e. in the same
@@ -3757,7 +3767,6 @@ unbind_to (specpdl_ref count, Lisp_Object value)
 
       union specbinding this_binding;
       this_binding = *--specpdl_ptr;
-
       do_one_unbind (&this_binding, true, SET_INTERNAL_UNBIND);
     }
 
@@ -4127,10 +4136,12 @@ NFRAMES and BASE specify the activation frame to use, as in `backtrace-frame'.  
   return result;
 }
 
-
+
+#ifndef HAVE_MPS
 void
 mark_specpdl (union specbinding *first, union specbinding *ptr)
 {
+  eassert_not_mps ();
   union specbinding *pdl;
   for (pdl = first; pdl != ptr; pdl++)
     {
@@ -4195,6 +4206,8 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 	}
     }
 }
+#endif // not HAVE_MPS
+
 
 /* Fill ARRAY of size SIZE with backtrace entries, most recent call first.
    Truncate the backtrace if longer than SIZE; pad with nil if shorter.  */
