@@ -1424,8 +1424,7 @@ fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, o, fix_vectorlike);
-    igc_assert (!"obarray");
+    IGC_FIX12_NOBJS (ss, o->buckets, obarray_size (o));
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
