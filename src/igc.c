@@ -557,7 +557,7 @@ fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
     IGC_FIX12_OBJ (ss, &sym->u.s.name);
     IGC_FIX12_OBJ (ss, &sym->u.s.function);
     IGC_FIX12_OBJ (ss, &sym->u.s.plist);
-    IGC_FIX12_OBJ (ss, &sym->u.s.package);
+    IGC_FIX12_RAW (ss, &sym->u.s.next);
     switch (sym->u.s.redirect)
       {
       case SYMBOL_PLAINVAL:
@@ -1419,6 +1419,18 @@ fix_other (mps_ss_t ss, void *o)
   return MPS_RES_OK;
 }
 
+static mps_res_t
+fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, o, fix_vectorlike);
+    igc_assert (!"obarray");
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 /* Note that there is a small window after committing a vectorlike
    allocation where the object is zeroed, and so the vector header is
    also zero.  This doesn't have an adverse effect. */
@@ -1430,6 +1442,10 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
   {
     switch (pseudo_vector_type (v))
       {
+      case PVEC_OBARRAY:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Obarray, v, fix_obarray);
+	break;
+
       case PVEC_BUFFER:
 	IGC_FIX_CALL_FN (ss, struct buffer, v, fix_buffer);
 	break;
@@ -1510,7 +1526,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_BIGNUM:
 	break;
 
-      case PVEC_PACKAGE:
       case PVEC_NORMAL_VECTOR:
       case PVEC_SYMBOL_WITH_POS:
       case PVEC_PROCESS:
@@ -2050,7 +2065,7 @@ finalize_vector (mps_addr_t v)
     case PVEC_SQLITE:
     case PVEC_TS_NODE:
     case PVEC_NORMAL_VECTOR:
-    case PVEC_PACKAGE:
+    case PVEC_OBARRAY:
     case PVEC_WINDOW_CONFIGURATION:
     case PVEC_BUFFER:
     case PVEC_FRAME:

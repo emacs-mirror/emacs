@@ -391,7 +391,6 @@ static char *spare_memory[7];
    nowadays than in the days of small memories and timesharing.  */
 EMACS_INT pure[(PURESIZE + sizeof (EMACS_INT) - 1) / sizeof (EMACS_INT)] = {1,};
 
-#ifndef HAVE_MPS
 #define PUREBEG (char *) pure
 
 /* Pointer to the pure area, and its size.  */
@@ -411,8 +410,6 @@ static ptrdiff_t pure_bytes_used_lisp;
 /* Number of bytes allocated for non-Lisp objects in pure storage.  */
 
 static ptrdiff_t pure_bytes_used_non_lisp;
-
-#endif // not HAVE_MPS
 
 /* If positive, garbage collection is inhibited.  Otherwise, zero.  */
 
@@ -463,7 +460,6 @@ no_sanitize_memcpy (void *dest, void const *src, size_t size)
 #ifndef HAVE_MPS
  static void mark_terminals (void);
 static void gc_sweep (void);
-static Lisp_Object make_pure_vector (ptrdiff_t);
 static void mark_buffer (struct buffer *);
 
 static void compact_small_strings (void);
@@ -475,6 +471,8 @@ static void set_vectorlike_marked (union vectorlike_header *);
 static bool interval_marked_p (INTERVAL);
 static void set_interval_marked (INTERVAL);
 #endif
+
+static Lisp_Object make_pure_vector (ptrdiff_t);
 
 #if !defined REL_ALLOC || defined SYSTEM_MALLOC || defined HYBRID_MALLOC
 static void refill_memory_reserve (void);
@@ -594,8 +592,6 @@ Lisp_Object const *staticvec[NSTATICS]
 /* Index of next unused slot in staticvec.  */
 
 int staticidx;
-
-#ifndef HAVE_MPS
 static void *pure_alloc (size_t, int);
 
 /* Return PTR rounded up to the next multiple of ALIGNMENT.  */
@@ -605,8 +601,6 @@ pointer_align (void *ptr, int alignment)
 {
   return (void *) ROUNDUP ((uintptr_t) ptr, alignment);
 }
-
-#endif // not HAVE_MPS
 
 /* Extract the pointer hidden within O.  */
 
@@ -618,13 +612,11 @@ XPNTR (Lisp_Object a)
 	  : (char *) XLP (a) - (XLI (a) & ~VALMASK));
 }
 
-#ifndef HAVE_MPS
 static void
 XFLOAT_INIT (Lisp_Object f, double n)
 {
   XFLOAT (f)->u.data = n;
 }
-#endif
 
 /* Account for allocation of NBYTES in the heap.  This is a separate
    function to avoid hassles with implementation-defined conversion
@@ -3276,13 +3268,8 @@ allocate_vector_block (void)
 static void
 init_vectors (void)
 {
-#ifndef HAVE_MPS
   zero_vector = make_pure_vector (0);
   staticpro (&zero_vector);
-#else
-  struct Lisp_Vector *v = igc_alloc_vector (0);
-  zero_vector = make_lisp_ptr (v, Lisp_Vectorlike);
-#endif
 }
 
 /* Memory footprint in bytes of a pseudovector other than a bool-vector.  */
@@ -5846,7 +5833,6 @@ hash_table_free_kv (struct Lisp_Hash_Table *h, Lisp_Object *p)
 		       Pure Storage Management
  ***********************************************************************/
 
-#ifndef HAVE_MPS
 /* Allocate room for SIZE bytes from pure Lisp storage and return a
    pointer to it.  TYPE is the Lisp type for which the memory is
    allocated.  TYPE < 0 means it's not used for a Lisp object,
@@ -6001,8 +5987,6 @@ find_string_data_in_pure (const char *data, ptrdiff_t nbytes)
 
   return NULL;
 }
-
-#endif // not HAVE_MPS
 
 /* Return a string allocated in pure space.  DATA is a buffer holding
    NCHARS characters, and NBYTES bytes of string data.  MULTIBYTE
@@ -6241,20 +6225,24 @@ purecopy (Lisp_Object obj)
       memcpy (vec, objp, nbytes);
       for (i = 0; i < size; i++)
 	vec->contents[i] = purecopy (vec->contents[i]);
+#ifndef HAVE_MPS
       /* Byte code strings must be pinned.  */
       if (COMPILEDP (obj) && size >= 2 && STRINGP (vec->contents[1])
 	  && !STRING_MULTIBYTE (vec->contents[1]))
 	pin_string (vec->contents[1]);
+#endif
       XSETVECTOR (obj, vec);
     }
   else if (BARE_SYMBOL_P (obj))
     {
+#ifndef HAVE_MPS
       if (!XBARE_SYMBOL (obj)->u.s.pinned && !c_symbol_p (XBARE_SYMBOL (obj)))
 	{ /* We can't purify them, but they appear in many pure objects.
 	     Mark them as `pinned' so we know to mark them at every GC cycle.  */
 	  XBARE_SYMBOL (obj)->u.s.pinned = true;
 	  symbol_block_pinned = symbol_block;
 	}
+#endif
       /* Don't hash-cons it.  */
       return obj;
     }
