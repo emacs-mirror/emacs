@@ -351,51 +351,50 @@ points after switching back to that tab.
 
 ---
 *** New user option 'tab-bar-select-restore-windows'.
-It defines what to do with windows whose buffer was killed
-since the tab was last selected.  By default it displays
-a placeholder buffer that provides information about the name
-of the killed buffer that was displayed in that window.
+It defines what to do with windows whose buffer was killed since the tab
+was last selected.  By default it displays a placeholder buffer that
+provides information about the name of the killed buffer that was
+displayed in that window.
 
 ---
 *** New user option 'tab-bar-tab-name-format-functions'.
-It can be used to add, remove and reorder functions that change
-the appearance of every tab on the tab bar.
+It can be used to add, remove and reorder functions that change the
+appearance of every tab on the tab bar.
 
 ---
 *** New hook 'tab-bar-tab-post-select-functions'.
 
 ---
 *** New keymap 'tab-bar-mode-map'.
-By default it contains a keybinding 'C-TAB' to switch tabs,
-but only when 'C-TAB' is not bound globally.  You can unbind it
-if it conflicts with 'C-TAB' in other modes.
+By default it contains a keybinding 'C-TAB' to switch tabs, but only
+when 'C-TAB' is not bound globally.  You can unbind it if it conflicts
+with 'C-TAB' in other modes.
 
 ---
 *** New keymap 'tab-line-mode-map'.
-By default it contains keybindings for switching tabs:
-'C-x <left>', 'C-x <right>', 'C-x C-<left>', 'C-x C-<right>'.
-You can unbind them if you want to use these keys for the
-commands 'previous-buffer' and 'next-buffer'.
+By default it contains keybindings for switching tabs: 'C-x <left>',
+'C-x <right>', 'C-x C-<left>', 'C-x C-<right>'.  You can unbind them if
+you want to use these keys for the commands 'previous-buffer' and
+'next-buffer'.
 
 ---
 *** Default list of tabs is changed to support a fixed order.
-This means that the new default tabs function
-'tab-line-tabs-fixed-window-buffers' is like the previous
-'tab-line-tabs-window-buffers' where both of them show
-only buffers that were previously displayed in the window.
-But the difference is that the new function always keeps
-the original order of buffers on the tab line, even after
-switching between these buffers.
+This means that 'tab-line-tabs-fixed-window-buffers', the new default
+tabs function, is like the previous 'tab-line-tabs-window-buffers' where
+both of them show only buffers that were previously displayed in the
+window.  But the difference is that the new function always keeps the
+original order of buffers on the tab line, even after switching between
+these buffers.
 
 ---
 *** New user option 'tab-line-tabs-buffer-group-function'.
-It provides two choices to group tab buffers by major mode
-and by project name.
+It provides two choices to group tab buffers by major mode and by
+project name.
 
 ---
-*** Now buffers on group tabs are sorted alphabetically.
-This will keep the fixed order of tabs, even after
-switching between them.
+*** Buffers on group tabs are now sorted alphabetically.
+This will keep the fixed order of tabs, even after switching between
+them.
 
 +++
 ** New optional argument for modifying directory-local variables.
