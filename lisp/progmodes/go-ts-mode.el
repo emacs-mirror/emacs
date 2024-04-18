@@ -136,6 +136,16 @@
    '((comment) @font-lock-comment-face)
 
    :language 'go
+   :feature 'builtin
+   `((call_expression
+      function: ((identifier) @font-lock-builtin-face
+                 (:match ,(rx-to-string
+                           `(seq bol
+                                 (or ,@go-ts-mode--builtin-functions)
+                                 eol))
+                         @font-lock-builtin-face))))
+
+   :language 'go
    :feature 'constant
    `([(false) (nil) (true)] @font-lock-constant-face
      ,@(when (go-ts-mode--iota-query-supported-p)
@@ -171,16 +181,6 @@
              ("," (identifier) @font-lock-variable-name-face)*))
      (var_spec name: (identifier) @font-lock-variable-name-face
                ("," name: (identifier) @font-lock-variable-name-face)*))
-
-   :language 'go
-   :feature 'builtin
-   `((call_expression
-      function: ((identifier) @font-lock-builtin-face
-                 (:match ,(rx-to-string
-                           `(seq bol
-                                 (or ,@go-ts-mode--builtin-functions)
-                                 eol))
-                         @font-lock-builtin-face))))
 
    :language 'go
    :feature 'function
