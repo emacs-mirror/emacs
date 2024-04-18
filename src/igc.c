@@ -1445,7 +1445,8 @@ fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_NOBJS (ss, o->buckets, obarray_size (o));
+    if (o->buckets)
+      IGC_FIX12_NOBJS (ss, o->buckets, obarray_size (o));
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1920,6 +1921,17 @@ finalize_hash_table (struct Lisp_Hash_Table *h)
 }
 
 static void
+finalize_obarray (struct Lisp_Obarray *o)
+{
+  if (o->buckets)
+    {
+      void *b = o->buckets;
+      o->buckets = NULL;
+      xfree (b);
+    }
+}
+
+static void
 finalize_bignum (struct Lisp_Bignum *n)
 {
   mpz_clear (n->value);
@@ -2086,6 +2098,10 @@ finalize_vector (mps_addr_t v)
       finalize_finalizer (v);
       break;
 
+    case PVEC_OBARRAY:
+      finalize_obarray (v);
+      break;
+
     case PVEC_SYMBOL_WITH_POS:
     case PVEC_PROCESS:
     case PVEC_RECORD:
@@ -2093,7 +2109,6 @@ finalize_vector (mps_addr_t v)
     case PVEC_SQLITE:
     case PVEC_TS_NODE:
     case PVEC_NORMAL_VECTOR:
-    case PVEC_OBARRAY:
     case PVEC_WINDOW_CONFIGURATION:
     case PVEC_BUFFER:
     case PVEC_FRAME:
@@ -2139,7 +2154,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_WEAK:
     case IGC_OBJ_BLV:
     case IGC_OBJ_LAST:
-      igc_assert (!"not implemented");
+      igc_assert (!"finalize not implemented");
       break;
 
     case IGC_OBJ_VECTOR:
@@ -2167,10 +2182,32 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
     case PVEC_NATIVE_COMP_UNIT:
     case PVEC_SUBR:
     case PVEC_FINALIZER:
+    case PVEC_OBARRAY:
       mps_finalize (global_igc->arena, &ref);
       break;
 
-    default:
+    case PVEC_NORMAL_VECTOR:
+    case PVEC_FREE:
+    case PVEC_MARKER:
+    case PVEC_OVERLAY:
+    case PVEC_SYMBOL_WITH_POS:
+    case PVEC_MISC_PTR:
+    case PVEC_PROCESS:
+    case PVEC_FRAME:
+    case PVEC_WINDOW:
+    case PVEC_BOOL_VECTOR:
+    case PVEC_BUFFER:
+    case PVEC_TERMINAL:
+    case PVEC_XWIDGET:
+    case PVEC_XWIDGET_VIEW:
+    case PVEC_OTHER:
+    case PVEC_WINDOW_CONFIGURATION:
+    case PVEC_TS_NODE:
+    case PVEC_SQLITE:
+    case PVEC_COMPILED:
+    case PVEC_CHAR_TABLE:
+    case PVEC_SUB_CHAR_TABLE:
+    case PVEC_RECORD:
       break;
     }
 }

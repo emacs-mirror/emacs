@@ -65,9 +65,12 @@ b die
 #process handle -p true -s false SIGSEGV
 #process handle -p true -s false SIGBUS
 
-target create temacs
-settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest  --eln-dest
-command alias go process launch --working-dir .
+#target create temacs
+#settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest  --eln-dest
+#command alias go process launch --working-dir .
 
+target create bootstrap-emacs
+settings set -- target.run-args -batch --no-site-file --no-site-lisp -l ./emacs-lisp/loaddefs-gen.elc -f loaddefs-generate--emacs-batch . ./calc ./calendar ./cedet ./cedet/ede ./cedet/semantic ./cedet/semantic/analyze ./cedet/semantic/bovine ./cedet/semantic/decorate ./cedet/semantic/symref ./cedet/semantic/wisent ./cedet/srecode ./emacs-lisp ./emulation ./erc ./eshell ./gnus ./image ./international ./language ./leim ./leim/quail ./mail ./mh-e ./net ./nxml ./org ./play ./progmodes ./textmodes ./url ./use-package ./vc
+command alias go process launch --working-dir ../lisp
 
 # end.
