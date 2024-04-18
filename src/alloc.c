@@ -5884,7 +5884,11 @@ pure_alloc (size_t size, int type)
      might not be usable.  */
   int small_amount = 10000;
   eassert (size <= small_amount - LISP_ALIGNMENT);
+#ifdef HAVE_MPS
+  purebeg = igc_xzalloc_ambig (small_amount);
+#else
   purebeg = xzalloc (small_amount);
+#endif
   pure_size = small_amount;
   pure_bytes_used_before_overflow += pure_bytes_used - size;
   pure_bytes_used = 0;
@@ -8379,9 +8383,9 @@ init_alloc_once (void)
 static void
 init_alloc_once_for_pdumper (void)
 {
-#ifndef HAVE_MPS
   purebeg = PUREBEG;
   pure_size = PURESIZE;
+#ifndef HAVE_MPS
   mem_init ();
 #endif
 #ifdef DOUG_LEA_MALLOC
