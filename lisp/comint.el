@@ -3961,7 +3961,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;;; OSC escape sequences (Operating System Commands)
 ;;============================================================================
 ;; Adding `comint-osc-process-output' to
-;; `comint-output-filter-functions' enables the interpreting of OSC
+;; `comint-output-filter-functions' enables interpreting of OSC
 ;; escape sequences.  See `ansi-osc-handlers' for a list of OSC
 ;; sequences which are interpreted by default and information on how to
 ;; handle new sequences.
