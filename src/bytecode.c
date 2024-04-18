@@ -625,8 +625,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	varref:
 	  {
 	    Lisp_Object v1 = vectorp[op], v2;
-	    if (!BARE_SYMBOL_P (v1)
-		|| XBARE_SYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
+	    if (XBARE_SYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
 		|| (v2 = XBARE_SYMBOL (v1)->u.s.val.value,
 		    BASE_EQ (v2, Qunbound)))
 	      v2 = Fsymbol_value (v1);
@@ -700,8 +699,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object val = POP;
 
 	    /* Inline the most common case.  */
-	    if (BARE_SYMBOL_P (sym)
-		&& !BASE_EQ (val, Qunbound)
+	    if (!BASE_EQ (val, Qunbound)
 		&& XBARE_SYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL
 		&& !XBARE_SYMBOL (sym)->u.s.trapped_write)
 	      SET_SYMBOL_VAL (XBARE_SYMBOL (sym), val);
