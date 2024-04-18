@@ -284,7 +284,7 @@
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)
                   ( keyword string type)
-                  ( constant escape-sequence label number builtin)
+                  ( builtin constant escape-sequence label number)
                   ( bracket delimiter error function operator property variable)))
 
     (treesit-major-mode-setup)))
