@@ -5306,7 +5306,7 @@ grow_obarray (struct Lisp_Obarray *o)
 	}
     }
 
-  hash_table_free_bytes (old_buckets, old_size * sizeof *old_buckets);
+  hash_table_free_kv (o, old_buckets);
 }
 
 DEFUN ("obarray-make", Fobarray_make, Sobarray_make, 0, 1, 0,

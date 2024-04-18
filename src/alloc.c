@@ -5817,7 +5817,7 @@ hash_table_alloc_kv (void *h, ptrdiff_t nobjs)
 }
 
 void
-hash_table_free_kv (struct Lisp_Hash_Table *h, Lisp_Object *p)
+hash_table_free_kv (void *h, Lisp_Object *p)
 {
 #ifdef HAVE_MPS
   /* Make sure to remove roots we creates. */
