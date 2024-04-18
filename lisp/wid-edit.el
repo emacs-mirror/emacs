@@ -1300,9 +1300,9 @@ nothing is shown in the echo area."
 	  (unless (eq new old)
 	    (setq arg (1+ arg))))))
     (let ((new (widget-tabable-at)))
-      (while (eq (widget-tabable-at) new)
+      (while (and (eq (widget-tabable-at) new) (not (bobp)))
 	(backward-char)))
-    (forward-char))
+    (unless (bobp) (forward-char)))
   (unless suppress-echo
     (widget-echo-help (point)))
   (run-hooks 'widget-move-hook))
