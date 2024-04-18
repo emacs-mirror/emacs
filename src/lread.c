@@ -5245,7 +5245,11 @@ make_obarray (unsigned bits)
   o->count = 0;
   o->size_bits = bits;
   ptrdiff_t size = (ptrdiff_t)1 << bits;
+#ifdef HAVE_MPS
+  o->buckets = hash_table_alloc_kv (o, size);
+#else
   o->buckets = hash_table_alloc_bytes (size * sizeof *o->buckets);
+#endif
   for (ptrdiff_t i = 0; i < size; i++)
     o->buckets[i] = make_fixnum (0);
   return make_lisp_obarray (o);
@@ -5268,8 +5272,12 @@ grow_obarray (struct Lisp_Obarray *o)
   int new_bits = o->size_bits + 1;
   if (new_bits > obarray_max_bits)
     error ("Obarray too big");
-  ptrdiff_t new_size = (ptrdiff_t)1 << new_bits;
+  ptrdiff_t new_size = (ptrdiff_t) 1 << new_bits;
+#ifdef HAVE_MPS
+  o->buckets = hash_table_alloc_kv (o, new_size);
+#else
   o->buckets = hash_table_alloc_bytes (new_size * sizeof *o->buckets);
+#endif
   for (ptrdiff_t i = 0; i < new_size; i++)
     o->buckets[i] = make_fixnum (0);
   o->size_bits = new_bits;

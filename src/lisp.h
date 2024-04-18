@@ -4687,7 +4687,7 @@ extern int valid_lisp_object_p (Lisp_Object);
 
 void *hash_table_alloc_bytes (ptrdiff_t nbytes) ATTRIBUTE_MALLOC_SIZE ((1));
 void hash_table_free_bytes (void *p, ptrdiff_t nbytes);
-Lisp_Object *hash_table_alloc_kv (struct Lisp_Hash_Table *h, ptrdiff_t nobjs);
+Lisp_Object *hash_table_alloc_kv (void *h, ptrdiff_t nobjs);
 void hash_table_free_kv (struct Lisp_Hash_Table *h, Lisp_Object *p);
 
 /* Defined in gmalloc.c.  */
