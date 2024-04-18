@@ -2518,12 +2518,17 @@ THINGS are either registrations or unregisterations (sic)."
      (t (setq success :json-false)))
     `(:success ,success)))
 
+(defvar-local eglot--cached-tdi nil
+  "A cached LSP TextDocumentIdentifier URI string.")
+
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."
-  `(:uri ,(eglot-path-to-uri (or buffer-file-name
-                                  (ignore-errors
-                                    (buffer-file-name
-                                     (buffer-base-buffer)))))))
+  `(:uri ,(or eglot--cached-tdi
+              (setq eglot--cached-tdi
+                    (eglot-path-to-uri (or buffer-file-name
+                                           (ignore-errors
+                                             (buffer-file-name
+                                              (buffer-base-buffer)))))))))
 
 (defvar-local eglot--versioned-identifier 0)
 
@@ -2816,7 +2821,9 @@ When called interactively, use the currently active server"
 
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
-  (setq eglot--recent-changes nil eglot--versioned-identifier 0)
+  (setq eglot--recent-changes nil
+        eglot--versioned-identifier 0
+        eglot--cached-tdi nil)
   (jsonrpc-notify
    (eglot--current-server-or-lose)
    :textDocument/didOpen `(:textDocument ,(eglot--TextDocumentItem))))
