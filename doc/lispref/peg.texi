@@ -78,12 +78,13 @@ of a larger grammar.
 
 At the end of parsing, one of @var{failure-function} or
 @var{success-function} is called, depending on whether the parsing
-succeeded or not.  If @var{success-function} is called, it is passed a
-lambda form that runs all the actions collected on the stack during
-parsing -- by default this lambda form is simply executed.  If parsing
-fails, the @var{failure-function} is called with a list of @acronym{PEG}
-expressions that failed during parsing; by default this list is
-discarded.
+succeeded or not.  If @var{success-function} is provided, it should be a
+function that receives as its only argument an anonymous function that
+runs all the actions collected on the stack during parsing.  By default
+this anonymous function is simply executed.  If parsing fails, a
+function provided as @var{failure-function} will be called with a list
+of @acronym{PEG} expressions that failed during parsing.  By default
+this list is discarded.
 @end defun
 
 The @var{peg-matcher} passed to @code{peg-run} is produced by a call to
