@@ -179,6 +179,8 @@ to be checked as its standard input."
      (function_signature_item name: (identifier) @font-lock-function-name-face)
      (macro_definition "macro_rules!" @font-lock-constant-face)
      (macro_definition (identifier) @font-lock-preprocessor-face)
+     (token_binding_pattern
+      name: (metavariable) @font-lock-variable-name-face)
      (field_declaration name: (field_identifier) @font-lock-property-name-face)
      (parameter pattern: (_) @rust-ts-mode--fontify-pattern)
      (closure_parameters (_) @rust-ts-mode--fontify-pattern)
@@ -219,7 +221,9 @@ to be checked as its standard input."
 
    :language 'rust
    :feature 'operator
-   `([,@rust-ts-mode--operators] @font-lock-operator-face)
+   `([,@rust-ts-mode--operators] @font-lock-operator-face
+     (token_repetition_pattern ["$" "*" "+"] @font-lock-operator-face)
+     (token_repetition ["$" "*" "+"] @font-lock-operator-face))
 
    :language 'rust
    :feature 'string
@@ -249,8 +253,7 @@ to be checked as its standard input."
                 (_ type: (scoped_identifier
                           path: (identifier) @font-lock-type-face))))
      (mod_item name: (identifier) @font-lock-constant-face)
-     (primitive_type) @font-lock-type-face
-     (type_identifier) @font-lock-type-face
+     [(fragment_specifier) (primitive_type) (type_identifier)] @font-lock-type-face
      ((scoped_identifier name: (identifier) @rust-ts-mode--fontify-tail))
      ((scoped_identifier path: (identifier) @font-lock-type-face)
       (:match ,(rx bos
@@ -260,8 +263,7 @@ to be checked as its standard input."
                    eos)
               @font-lock-type-face))
      ((scoped_identifier path: (identifier) @rust-ts-mode--fontify-scope))
-     ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope))
-     (type_identifier) @font-lock-type-face)
+     ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope)))
 
    :language 'rust
    :feature 'property
@@ -295,7 +297,8 @@ to be checked as its standard input."
      (return_expression (identifier) @font-lock-variable-use-face)
      (tuple_expression (identifier) @font-lock-variable-use-face)
      (unary_expression (identifier) @font-lock-variable-use-face)
-     (while_expression condition: (identifier) @font-lock-variable-use-face))
+     (while_expression condition: (identifier) @font-lock-variable-use-face)
+     (metavariable) @font-lock-variable-use-face)
 
    :language 'rust
    :feature 'escape-sequence
