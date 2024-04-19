@@ -821,6 +821,12 @@ int main() {
         (should (looking-back "\"foo.bar\": \""))
         (should (looking-at "fb\"$"))))))
 
+(defun eglot-tests--get (object path)
+  (dolist (op path)
+    (setq object (if (natnump op) (aref object op)
+                  (plist-get object op))))
+  object)
+
 (defun eglot-tests--lsp-abiding-column-1 ()
   (eglot--with-fixture
       '(("project" .
@@ -837,7 +843,11 @@ int main() {
           (insert "p ")
           (eglot--signal-textDocument/didChange)
           (eglot--wait-for (c-notifs 2) (&key params &allow-other-keys)
-            (should (equal 71 (cadddr (cadadr (aref (cadddr params) 0))))))
+            (message "PARAMS=%S" params)
+            (should (equal 71 (eglot-tests--get
+                               params
+                               '(:contentChanges 0
+                                 :range :start :character)))))
           (beginning-of-line)
           (should (eq eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos))
           (funcall eglot-move-to-linepos-function 71)

@@ -2625,6 +2625,7 @@ buffer."
 (defun eglot--after-change (beg end pre-change-length)
   "Hook onto `after-change-functions'.
 Records BEG, END and PRE-CHANGE-LENGTH locally."
+  (cl-incf eglot--versioned-identifier)
   (pcase (car-safe eglot--recent-changes)
     (`(,lsp-beg ,lsp-end
                 (,b-beg . ,b-beg-marker)
@@ -2658,6 +2659,7 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
   (if (eq eglot--recent-changes :pending) (setq eglot--recent-changes nil))
   (track-changes-fetch
    id (lambda (beg end before)
+        (cl-incf eglot--versioned-identifier)
         (cond
          ((eq eglot--recent-changes :emacs-messup) nil)
          ((eq before 'error) (setf eglot--recent-changes :emacs-messup))
@@ -2668,7 +2670,6 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
                   eglot--recent-changes))))))
 
 (defun eglot--track-changes-signal (id &optional distance)
-  (cl-incf eglot--versioned-identifier)
   (cond
    (distance
     ;; When distance is <100, we may as well coalesce the changes.
@@ -2789,9 +2790,9 @@ When called interactively, use the currently active server"
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
+  (when eglot--track-changes
+    (eglot--track-changes-fetch eglot--track-changes))
   (when eglot--recent-changes
-    (when eglot--track-changes
-      (eglot--track-changes-fetch eglot--track-changes))
     (let* ((server (eglot--current-server-or-lose))
            (sync-capability (eglot-server-capable :textDocumentSync))
            (sync-kind (if (numberp sync-capability) sync-capability
