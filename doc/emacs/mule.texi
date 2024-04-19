@@ -1671,6 +1671,10 @@ used.  Some examples are:
                   nil 'append)
 @end example
 
+When modifying the fontset for the @code{symbol} script, the value of
+@code{use-default-font-for-symbols} will affect whether the fontset is
+actually used.
+
 @noindent
 @xref{Fontsets, , , elisp, GNU Emacs Lisp Reference Manual}, for more
 details about using the @code{set-fontset-font} function.

@@ -1501,7 +1501,8 @@ CHARACTERS may be a script symbol.  In that case, use FONT-SPEC for
 all the characters that belong to the script.  See the variable
 `script-representative-chars' for the list of known scripts, and
 see the variable `char-script-table' for the script of any specific
-character.
+character.  Note: for the `symbol' script only, whether the FONTSET
+is actually used depends on the value of `use-default-font-for-symbols'.
 
 CHARACTERS may be a charset symbol.  In that case, use FONT-SPEC for
 all the characters in the charset.  See `list-character-sets' and
