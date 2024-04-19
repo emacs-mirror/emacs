@@ -50,6 +50,7 @@ temporary EWW buffer for our tests."
 
 (ert-deftest eww-test/display/html ()
   "Test displaying a simple HTML page."
+  (skip-unless (libxml-available-p))
   (eww-test--with-mock-retrieve
     (let ((eww-test--response-function
            (lambda (url)
