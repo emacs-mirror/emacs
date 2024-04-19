@@ -2082,6 +2082,13 @@
     (let ((v '(42 y)))
       (should-not (erc--check-msg-prop 'b v)))))
 
+(ert-deftest erc--memq-msg-prop ()
+  (let ((erc--msg-props (map-into '((a . 1) (b x y)) 'hash-table)))
+    (should-not (erc--memq-msg-prop 'a 1))
+    (should-not (erc--memq-msg-prop 'b 'z))
+    (should (erc--memq-msg-prop 'b 'x))
+    (should (erc--memq-msg-prop 'b 'y))))
+
 (ert-deftest erc--merge-prop ()
   (with-current-buffer (get-buffer-create "*erc-test*")
     ;; Baseline.

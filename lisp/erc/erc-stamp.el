@@ -220,10 +220,7 @@ This becomes the message's `erc--ts' text property."
 (cl-defmethod erc-stamp--current-time :around ()
   (or erc-stamp--current-time (cl-call-next-method)))
 
-(defvar erc-stamp--skip nil
-  "Non-nil means inhibit `erc-add-timestamp' completely.")
-
-(defvar erc-stamp--allow-unmanaged nil
+(defvar erc-stamp--allow-unmanaged-p nil
   "Non-nil means run `erc-add-timestamp' almost unconditionally.
 This is an unofficial escape hatch for code wanting to use
 lower-level message-insertion functions, like `erc-insert-line',
@@ -243,8 +240,9 @@ known via \\[erc-bug].")
 
 This function is meant to be called from `erc-insert-modify-hook'
 or `erc-send-modify-hook'."
-  (unless (or erc-stamp--skip (and (not erc-stamp--allow-unmanaged)
-                                   (null erc--msg-props)))
+  (unless (and (not erc-stamp--allow-unmanaged-p)
+               (or (null erc--msg-props)
+                   (erc--memq-msg-prop 'erc--skip 'stamp)))
     (let* ((ct (erc-stamp--current-time))
            (invisible (get-text-property (point-min) 'invisible))
            (erc-stamp--invisible-property

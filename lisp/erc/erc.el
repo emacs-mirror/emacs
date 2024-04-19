@@ -181,6 +181,9 @@ as of ERC 5.6:
     5.6, a ticks/hertz pair on Emacs 29 and above, and a \"list\"
     type otherwise; managed by the `stamp' module
 
+ - `erc--skip': list of symbols known to modules that indicate an
+    intent to skip or simplify module-specific processing
+
  - `erc--ephemeral': a symbol prefixed by or matching a module
     name; indicates to other modules and members of modification
     hooks that the current message should not affect stateful
@@ -3234,12 +3237,19 @@ a full refresh."
 
 (defun erc--check-msg-prop (prop &optional val)
   "Return PROP's value in `erc--msg-props' when populated.
-If VAL is a list, return non-nil if PROP appears in VAL.  If VAL
-is otherwise non-nil, return non-nil if VAL compares `eq' to the
-stored value.  Otherwise, return the stored value."
+If VAL is a list, return non-nil if PROP's value appears in VAL.  If VAL
+is otherwise non-nil, return non-nil if VAL compares `eq' to the stored
+value.  Otherwise, return the stored value."
   (and-let* ((erc--msg-props)
              (v (gethash prop erc--msg-props)))
     (if (consp val) (memq v val) (if val (eq v val) v))))
+
+(defun erc--memq-msg-prop (prop needle)
+  "Return non-nil if msg PROP's value is a list containing NEEDLE."
+  (and-let* ((erc--msg-props)
+             (haystack (gethash prop erc--msg-props))
+             ((consp haystack)))
+    (memq needle haystack)))
 
 (defmacro erc--get-inserted-msg-beg-at (point at-start-p)
   (macroexp-let2* nil ((point point)
@@ -3684,7 +3694,8 @@ subsequent message."
                         -1))))))))
 
 (defvar erc--ranked-properties
-  '(erc--msg erc--spkr erc--ts erc--cmd erc--hide erc--ctcp erc--ephemeral))
+  '( erc--msg erc--spkr erc--ts erc--skip
+     erc--cmd erc--hide erc--ctcp erc--ephemeral))
 
 (defun erc--order-text-properties-from-hash (table)
   "Return a plist of text props from items in TABLE.
