@@ -2381,8 +2381,11 @@ still unanswered LSP requests to the server\n")))
                         (lambda ()
                           (remhash token (eglot--progress-reporters server))))))))))
 
+(defvar-local eglot--cached-tdi nil
+  "A cached LSP TextDocumentIdentifier URI string.")
+
 (cl-defmethod eglot-handle-notification
-  (_server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
+  (server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
            &allow-other-keys) ; FIXME: doesn't respect `eglot-strict-mode'
   "Handle notification publishDiagnostics."
   (cl-flet ((eglot--diag-type (sev)
@@ -2391,9 +2394,18 @@ still unanswered LSP requests to the server\n")))
                     ((= sev 2)  'eglot-warning)
                     (t          'eglot-note)))
             (mess (source code message)
-              (concat source (and code (format " [%s]" code)) ": " message)))
+              (concat source (and code (format " [%s]" code)) ": " message))
+            (find-it (uri)
+              ;; Search the managed buffers for a buffer with the
+              ;; provided diagnostic from the server.  We do this to
+              ;; avoid calling `file-truename' too often, gaining an
+              ;; increase in performance.
+              (cl-loop for b in (eglot--managed-buffers server)
+                       when (with-current-buffer b
+                              (equal eglot--cached-tdi uri))
+                       return b)))
     (if-let* ((path (expand-file-name (eglot-uri-to-path uri)))
-              (buffer (find-buffer-visiting path)))
+              (buffer (find-it uri)))
         (with-current-buffer buffer
           (cl-loop
            initially
@@ -2517,9 +2529,6 @@ THINGS are either registrations or unregisterations (sic)."
                (pulse-momentary-highlight-region beg end 'highlight)))))))
      (t (setq success :json-false)))
     `(:success ,success)))
-
-(defvar-local eglot--cached-tdi nil
-  "A cached LSP TextDocumentIdentifier URI string.")
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."

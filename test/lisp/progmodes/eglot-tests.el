@@ -436,6 +436,28 @@ directory hierarchy."
         (flymake-goto-next-error 1 '() t)
         (should (eq 'flymake-error (face-at-point)))))))
 
+(ert-deftest eglot-test-basic-symlink ()
+  "Test basic symlink support."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("symlink-project" .
+         (("main.cpp" . "#include\"foo.h\"\nint main() { return foo(); }")
+          ("foo.h" . "int foo();"))))
+    (with-current-buffer
+        (find-file-noselect "symlink-project/main.cpp")
+      (make-symbolic-link "main.cpp" "mainlink.cpp")
+      (eglot--tests-connect)
+      (find-file-noselect "mainlink.cpp")
+      (with-current-buffer
+          (find-file-noselect "foo.h")
+        (goto-char 5)
+        (xref-find-references "foo")
+        (with-current-buffer (get-buffer "*xref*")
+          (end-of-buffer)
+          ;; Expect the xref buffer to not contain duplicate references to
+          ;; main.c and mainlink.c.  If it did total lines would be 7.
+          (should (= (line-number-at-pos (point)) 5)))))))
+
 (ert-deftest eglot-test-diagnostic-tags-unnecessary-code ()
   "Test rendering of diagnostics tagged \"unnecessary\"."
   (skip-unless (executable-find "clangd"))
