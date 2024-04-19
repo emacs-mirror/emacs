@@ -268,14 +268,13 @@ When building for Intel systems, some ``ndk-build'' modules require
 the Netwide Assembler, usually installed under ``nasm'', to be present
 on the system that is building Emacs.
 
-Google, Inc. has adapted many common Emacs dependencies to use the
-`ndk-build' system.  Here is a non-exhaustive list of what is known to
-work, along with what has to be patched to make them work:
+Google has adapted several Emacs dependencies to use the `ndk-build'
+system, many of which require patches to function under an Emacs
+environment.  As such, it is generally the wiser choice to use our ports
+in their place, but the following list and patches are still provided
+for reference.
 
   libpng	- https://android.googlesource.com/platform/external/libpng
-  libwebp	- https://android.googlesource.com/platform/external/webp
-     (You must apply the patch at the end of this file for the resulting
-      binary to work on armv7 devices.)
   giflib	- https://android.googlesource.com/platform/external/giflib
      (You must add LOCAL_EXPORT_CFLAGS := -I$(LOCAL_PATH) before
       its Android.mk includes $(BUILD_STATIC_LIBRARY))
@@ -307,6 +306,13 @@ Many of these dependencies have been migrated over to the
 However, the old ``Android.mk'' Makefiles are still present in older
 branches, and can be easily adapted to newer versions.
 
+In addition, some Emacs dependencies provide `ndk-build' support
+themselves:
+
+  libwebp	- https://android.googlesource.com/platform/external/webp
+     (You must apply the patch at the end of this file for the resulting
+      binary to work on armv7 devices.)
+
 Emacs developers have ported the following dependencies to ARM Android
 systems:
 
@@ -318,6 +324,15 @@ systems:
     (Please see the section TREE-SITTER near the end of this file.)
   harfbuzz  	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
     (Please see the section HARFBUZZ near the end of this file.)
+  libxml2       - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section LIBXML2 near the end of this file.)
+  libjpeg-turbo - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+  giflib        - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+  libtiff       - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+  libpng        - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section IMAGE LIBRARIES near the end of this file.)
+  libselinux - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section SELINUX near the end of this file.)
 
 And other developers have ported the following dependencies to Android
 systems:
@@ -345,14 +360,67 @@ To build Emacs with GnuTLS, you must unpack each of the following tar
 archives in that site:
 
   gmp-6.2.1-emacs.tgz
-  gnutls-3.7.8-emacs.tar.gz
+  gnutls-3.8.5-emacs.tar.gz
+    (or gnutls-3.8.5-emacs-armv7a.tar.gz on 32-bit systems)
   libtasn1-4.19.0-emacs.tar.gz
   p11-kit-0.24.1-emacs.tar.gz
   nettle-3.8-emacs.tar.gz
 
-and add the resulting folders to ``--with-ndk-path''.  Note that you
-should not try to build these packages separately using any
-`configure' script or Makefiles inside.
+and add the resulting folders to ``--with-ndk-path''.  Do not attempt to
+build these packages separately by means of `configure' scripts or
+Makefiles inside.
+
+
+LIBXML2
+
+A copy of libxml2 adapted for the same build system is provided under
+the name:
+
+  libxml2-2.12.4-emacs.tar.gz
+
+In contrast to the version distributed by Google, internationalization
+is disabled, which eliminates the dependency on icu4c (and by extension
+a C++ compiler).
+
+
+IMAGE LIBRARIES
+
+ndk-build enabled versions of image libraries required by Emacs are also
+provided as:
+
+  giflib-5.2.1-emacs.tar.gz
+  libjpeg-turbo-3.0.2-emacs.tar.gz
+  libpng-1.6.41-emacs.tar.gz
+  tiff-4.5.0-emacs.tar.gz
+
+Of which all but libjpeg-turbo-3.0.2-emacs.tar.gz should compile on
+every supported Android system and toolchain; where the latter does not
+compile, i.e. old armeabi toolchains, Google's version is a suitable
+substitute.
+
+Of the three remaining image-related dependencies, libwebp provides
+upstream support for ndk-build, ImageMagick has been ported by
+interested third-party developers, while librsvg2, with its numerous and
+unnavigable web of dependencies and toolchains for non-C languages,
+would be such a great undertaking to port that we do not anticipate its
+ever becoming available.
+
+We are actively searching for alternatives to librsvg2 that are feasible
+to port, or better yet, natively support Android.  Please send
+suggestions or patches to emacs-devel@gnu.org.
+
+
+SELINUX
+
+The upstream version of libselinux is available as:
+
+  libselinux-3.6-emacs.tar.gz
+
+and compiles on toolchains configured for Android 4.3 and later, which
+are the earliest Android releases to support SELinux.  Its principal
+advantage over Google's edition is the absence of Android-specific
+modifications that create dependencies on libpackagelistparser and
+libcrypto; Google's pcre remains a requirement.
 
 
 TREE-SITTER
@@ -372,7 +440,9 @@ A copy of HarfBuzz modified to build with the ndk-build system can
 also be found at that URL.  To build Emacs with HarfBuzz, you must
 unpack the following tar archive in that site:
 
-  harfbuzz-7.1.0-emacs.tar.gz
+  harfbuzz-7.1.0-emacs.tar.gz (when building for Android >4.3
+  			       with 21.0.x or later of the NDK)
+  harfbuzz-1.7.7.tar.gz	      (earlier NDK or platform releases)
 
 and add the resulting folder to ``--with-ndk-build''.
 
