@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "coding.h"
+#include "igc.h"
 
 enum json_object_type
   {
@@ -143,7 +144,11 @@ make_symset_table (int bits, struct symset_tbl *up)
   int maxbits = min (SIZE_WIDTH - 2 - (word_size < 8 ? 2 : 3), 32);
   if (bits > maxbits)
     memory_full (PTRDIFF_MAX);	/* Will never happen in practice.  */
+#ifdef HAVE_MPS
+  struct symset_tbl *st = igc_xzalloc_ambig (sizeof *st + (sizeof *st->entries << bits));
+#else
   struct symset_tbl *st = xmalloc (sizeof *st + (sizeof *st->entries << bits));
+#endif
   st->up = up;
   ptrdiff_t size = symset_size (bits);
   for (ptrdiff_t i = 0; i < size; i++)
@@ -166,7 +171,11 @@ static void
 pop_symset (json_out_t *jo, symset_t *ss)
 {
   jo->ss_table = ss->table->up;
+#ifdef HAVE_MPS
+  igc_xfree (ss->table);
+#else
   xfree (ss->table);
+#endif
 }
 
 /* Remove all heap-allocated symset tables, in case an error occurred.  */
@@ -176,7 +185,11 @@ cleanup_symset_tables (struct symset_tbl *st)
   while (st)
     {
       struct symset_tbl *up = st->up;
+#ifdef HAVE_MPS
+      igc_xfree (st);
+#else
       xfree (st);
+#endif
       st = up;
     }
 }
@@ -211,7 +224,11 @@ symset_expand (symset_t *ss)
 	  tbl->entries[j] = sym;
 	}
     }
+#ifdef HAVE_MPS
+  igc_xfree (old_table);
+#else
   xfree (old_table);
+#endif
 }
 
 /* If sym is in ss, return false; otherwise add it and return true.
