@@ -1638,6 +1638,12 @@ igc_root_create_ambig (void *start, void *end)
   root_create_ambig (global_igc, start, end);
 }
 
+void
+igc_root_create_exact (Lisp_Object *start, Lisp_Object *end)
+{
+  root_create_exact (global_igc, start, end, scan_exact);
+}
+
 static void
 root_create_specpdl (struct igc_thread_list *t)
 {

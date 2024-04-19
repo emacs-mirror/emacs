@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 
 #include "lisp.h"
+#include "igc.h"
 
 /* Only MS-DOS does not define `subprocesses'.  */
 #ifdef subprocesses
@@ -8612,6 +8613,10 @@ init_process_emacs (int sockfd)
 
 #endif	/* subprocesses */
   kbd_is_on_hold = 0;
+
+#ifdef HAVE_MPS
+  igc_root_create_exact (chan_process, chan_process + ARRAYELTS (chan_process));
+#endif
 }
 
 void

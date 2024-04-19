@@ -69,8 +69,9 @@ b die
 #settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest  --eln-dest
 #command alias go process launch --working-dir .
 
-target create bootstrap-emacs
-settings set -- target.run-args -batch --no-site-file --no-site-lisp -l ./emacs-lisp/loaddefs-gen.elc -f loaddefs-generate--emacs-batch . ./calc ./calendar ./cedet ./cedet/ede ./cedet/semantic ./cedet/semantic/analyze ./cedet/semantic/bovine ./cedet/semantic/decorate ./cedet/semantic/symref ./cedet/semantic/wisent ./cedet/srecode ./emacs-lisp ./emulation ./erc ./eshell ./gnus ./image ./international ./language ./leim ./leim/quail ./mail ./mh-e ./net ./nxml ./org ./play ./progmodes ./textmodes ./url ./use-package ./vc
-command alias go process launch --working-dir ../lisp
+target create emacs
+env EMACS_TEST_DIRECTORY=/Users/gerd/emacs/github/igc/test
+command alias go process launch --working-dir ../test
+settings set -- target.run-args --module-assertions --no-init-file --no-site-file --no-site-lisp -L ":." -l ert --eval "(setq treesit-extra-load-path '(\"/Users/gerd/.emacs.d/tree-sitter\"))" -l lisp/net/tramp-tests --batch --eval '(ert-run-tests-batch-and-exit (quote (not (or (tag :expensive-test) (tag :unstable) (tag :nativecomp)))))'
 
 # end.
