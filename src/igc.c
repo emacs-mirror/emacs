@@ -838,6 +838,19 @@ scan_exact (mps_ss_t ss, void *start, void *end, void *closure)
   return MPS_RES_OK;
 }
 
+static mps_res_t
+scan_ptr_exact (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (void **p = start; (void *) p < end; ++p)
+      if (*p)
+	IGC_FIX12_RAW (ss, p);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 /***********************************************************************
 			 Default pad, fwd, ...
  ***********************************************************************/
@@ -1642,6 +1655,14 @@ void
 igc_root_create_exact (Lisp_Object *start, Lisp_Object *end)
 {
   root_create_exact (global_igc, start, end, scan_exact);
+}
+
+void
+igc_root_create_exact_ptr (void *var_addr)
+{
+  void *start = var_addr;
+  void *end = (char *) start + sizeof (void *);
+  root_create_exact (global_igc, start, end, scan_ptr_exact);
 }
 
 static void

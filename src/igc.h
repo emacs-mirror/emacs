@@ -92,6 +92,7 @@ void igc_check_symbol (void *p);
 void igc_collect (void);
 void igc_root_create_ambig (void *start, void *end);
 void igc_root_create_exact (Lisp_Object *start, Lisp_Object *end);
+void igc_root_create_exact_ptr (void *var_addr);
 
 # define eassert_not_mps() eassert (false)
 #else
