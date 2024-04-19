@@ -5888,6 +5888,17 @@ as above in your @file{~/.emacs}:
 
 
 @item
+How to ignore errors when changing file attributes?
+
+@vindex tramp-inhibit-errors-if-setting-file-attributes-fail
+Sometimes, for example while saving remote files, errors appear when
+changing file attributes like permissions, time stamps, or ownership.
+If these errors can be ignored, set user option
+@code{tramp-inhibit-errors-if-setting-file-attributes-fail} to a
+non-@code{nil} value.  This transforms the error into a warning.
+
+
+@item
 How to disable other packages from calling @value{tramp}?
 
 There are packages that call @value{tramp} without the user ever

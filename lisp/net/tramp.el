@@ -3533,6 +3533,11 @@ on the same host.  Otherwise, TARGET is quoted."
 
        ,@body)))
 
+(defcustom tramp-inhibit-errors-if-setting-file-attributes-fail nil
+  "Whether to warn only if `tramp-*-set-file-{modes,times,uid-gid}' fails."
+  :version "30.1"
+  :type 'boolean)
+
 (defmacro tramp-skeleton-set-file-modes-times-uid-gid
     (filename &rest body)
   "Skeleton for `tramp-*-set-file-{modes,times,uid-gid}'.
@@ -3548,7 +3553,11 @@ BODY is the backend specific code."
 	 ;; "file-writable-p".
 	 '("file-directory-p" "file-exists-p" "file-symlinkp" "file-truename")
        (tramp-flush-file-properties v localname))
-     ,@body))
+     (condition-case err
+	 (progn ,@body)
+       (error (if tramp-inhibit-errors-if-setting-file-attributes-fail
+		  (display-warning 'tramp (error-message-string err))
+		(signal (car err) (cdr err)))))))
 
 (defmacro tramp-skeleton-write-region
   (start end filename append visit lockname mustbenew &rest body)
