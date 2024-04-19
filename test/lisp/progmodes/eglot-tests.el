@@ -453,9 +453,10 @@ directory hierarchy."
         (goto-char 5)
         (xref-find-references "foo")
         (with-current-buffer (get-buffer "*xref*")
-          (end-of-buffer)
-          ;; Expect the xref buffer to not contain duplicate references to
-          ;; main.c and mainlink.c.  If it did total lines would be 7.
+          (goto-char (point-max))
+          ;; Expect xref buffer to not contain duplicate references to
+          ;; main.c and mainlink.c.  If it did, total lines would be 7.
+          ;; FIXME: make less brittle by counting actual references.
           (should (= (line-number-at-pos (point)) 5)))))))
 
 (ert-deftest eglot-test-diagnostic-tags-unnecessary-code ()
