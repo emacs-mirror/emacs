@@ -91,6 +91,17 @@ Check if a node type is available, then return the right indent rules."
      `(((match "<" "jsx_text") parent 0)
        ((parent-is "jsx_text") parent typescript-ts-mode-indent-offset)))))
 
+(defun typescript-ts-mode--anchor-decl (_n parent &rest _)
+  "Return the position after the declaration keyword before PARENT.
+
+This anchor allows aligning variable_declarators in variable and lexical
+declarations, accounting for the length of keyword (var, let, or const)."
+  (let* ((declaration (treesit-parent-until
+                       parent (rx (or "variable" "lexical") "_declaration") t))
+         (decl (treesit-node-child declaration 0)))
+    (+ (treesit-node-start declaration)
+       (- (treesit-node-end decl) (treesit-node-start decl)))))
+
 (defun typescript-ts-mode--indent-rules (language)
   "Rules used for indentation.
 Argument LANGUAGE is either `typescript' or `tsx'."
@@ -113,7 +124,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "switch_case") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "switch_default") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "type_arguments") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "variable_declarator") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is ,(rx (or "variable" "lexical") "_" (or "declaration" "declarator")))
+      typescript-ts-mode--anchor-decl 1)
      ((parent-is "arguments") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "array") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "formal_parameters") parent-bol typescript-ts-mode-indent-offset)
