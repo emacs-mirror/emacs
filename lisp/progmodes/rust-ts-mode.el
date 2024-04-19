@@ -129,7 +129,7 @@ to be checked as its standard input."
   "Rust built-in macros for tree-sitter font-locking.")
 
 (defvar rust-ts-mode--keywords
-  '("as" "async" "await" "break" "const" "continue" "dyn" "else"
+  '("as" "async" "await" "break" "const" "continue" "default" "dyn" "else"
     "enum" "extern" "fn" "for" "if" "impl" "in" "let" "loop" "match"
     "mod" "move" "pub" "ref" "return" "static" "struct" "trait" "type"
     "union" "unsafe" "use" "where" "while" (crate) (self) (super)
@@ -176,6 +176,7 @@ to be checked as its standard input."
    :language 'rust
    :feature 'definition
    '((function_item name: (identifier) @font-lock-function-name-face)
+     (function_signature_item name: (identifier) @font-lock-function-name-face)
      (macro_definition "macro_rules!" @font-lock-constant-face)
      (macro_definition (identifier) @font-lock-preprocessor-face)
      (field_declaration name: (field_identifier) @font-lock-property-name-face)
