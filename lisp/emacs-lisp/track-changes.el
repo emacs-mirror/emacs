@@ -364,7 +364,7 @@ and re-enable the TRACKER corresponding to ID."
           (setf (track-changes--tracker-state id) track-changes--state)
           (funcall func beg end (or before lenbefore)))
       ;; Re-enable the tracker's signal only after running `func', so
-      ;; as to avoid recursive invocations.
+      ;; as to avoid nested invocations.
       (cl-pushnew id track-changes--clean-trackers))))
 
 ;;;; Auxiliary functions.
@@ -578,8 +578,10 @@ Details logged to `track-changes--error-log'")
 (defun track-changes--call-signal (buf tracker)
   (when (buffer-live-p buf)
     (with-current-buffer buf
-      ;; Silence ourselves if `track-changes-fetch' was called in the mean time.
-      (unless (memq tracker track-changes--clean-trackers)
+      ;; Silence ourselves if `track-changes-fetch' was called
+      ;; or the tracker was unregistered in the mean time.
+      (when (and (not (memq tracker track-changes--clean-trackers))
+                 (memq tracker track-changes--trackers))
         (funcall (track-changes--tracker-signal tracker) tracker)))))
 
 ;;;; Extra candidates for the API.
