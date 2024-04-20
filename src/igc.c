@@ -1194,6 +1194,7 @@ fix_frame (mps_ss_t ss, struct frame *f)
 {
   MPS_SCAN_BEGIN (ss)
   {
+    // FIXME
     // output_data;
     // terminal
     // glyph_pool
@@ -1214,7 +1215,15 @@ fix_window (mps_ss_t ss, struct window *w)
 {
   MPS_SCAN_BEGIN (ss)
   {
+    /* FIXME: matrices... */
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, w, fix_vectorlike);
+
+    /* FIXME: window.h syas the following two are "marked specially", so
+       they are not seen by fix_vectorlike. That's of course a no-go
+       with MPS. What ever is special about these, we have to find
+       another way to accomplish that with MPS. */
+    IGC_FIX12_OBJ (ss, &w->prev_buffers);
+    IGC_FIX12_OBJ (ss, &w->next_buffers);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
