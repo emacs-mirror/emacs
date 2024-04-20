@@ -2496,7 +2496,7 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
   s->u.s.size_byte = nbytes_needed;
   unsigned char *insertion_addr = s->u.s.data + at_byte_pos;
   memmove (insertion_addr + new_char_len, insertion_addr + old_char_len,
-	   new_char_len - old_char_len);
+	   eabs (new_char_len - old_char_len));
   return insertion_addr;
 }
 
