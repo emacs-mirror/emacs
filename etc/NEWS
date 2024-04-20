@@ -1231,6 +1231,9 @@ runs its body, and removes the current buffer from
 
 ** New major modes based on the tree-sitter library
 
+*** New major mode 'markdown-ts-mode'.
+A major mode based on the tree-sitter library for editing Markdown files.
+
 *** New major mode 'mhtml-ts-mode'.
 An optional major mode based on the tree-sitter library for editing HTML
 files.  This mode handles indentation, fontification, and commenting for
