@@ -3130,8 +3130,10 @@ android_authority_name (struct android_vnode *vnode, char *name,
 	  return NULL;
 	}
 
-      /* NAME must be a valid JNI string, so that it can be encoded
-	 properly.  */
+      /* If the URI is not a valid JNI string, return immediately.  This
+	 should not be possible, since /content file names are encoded
+	 into JNI strings at the naming stage; the check is performed
+	 only out of an abundance of caution.  */
 
       if (android_verify_jni_string (name))
 	goto no_entry;
@@ -3169,7 +3171,6 @@ android_authority_open (struct android_vnode *vnode, int flags,
 			AAsset **asset)
 {
   struct android_authority_vnode *vp;
-  size_t length;
   jobject string;
   int fd;
   JNIEnv *env;
@@ -3189,22 +3190,11 @@ android_authority_open (struct android_vnode *vnode, int flags,
      feasible.  */
   env = android_java_env;
 
-  /* Allocate a buffer to hold the file name.  */
-  length = strlen (vp->uri);
-  string = (*env)->NewByteArray (env, length);
-  if (!string)
-    {
-      (*env)->ExceptionClear (env);
-      errno = ENOMEM;
-      return -1;
-    }
-
-  /* Copy the URI into this byte array.  */
-  (*env)->SetByteArrayRegion (env, string, 0, length,
-			      (jbyte *) vp->uri);
+  /* Allocate a JNI string to hold VP->uri.  */
+  string = (*env)->NewStringUTF (env, vp->uri);
+  android_exception_check ();
 
   /* Try to open the file descriptor.  */
-
   fd = (*env)->CallNonvirtualIntMethod (env, emacs_service,
 					service_class.class,
 					service_class.open_content_uri,
@@ -3215,13 +3205,7 @@ android_authority_open (struct android_vnode *vnode, int flags,
 					(jboolean) !(mode & O_WRONLY),
 					(jboolean) ((mode & O_TRUNC)
 						    != 0));
-  if ((*env)->ExceptionCheck (env))
-    {
-      (*env)->ExceptionClear (env);
-      errno = ENOMEM;
-      ANDROID_DELETE_LOCAL_REF (string);
-      return -1;
-    }
+  android_exception_check_1 (string);
 
   /* If fd is -1, just assume that the file does not exist,
      and return -1 with errno set to ENOENT.  */

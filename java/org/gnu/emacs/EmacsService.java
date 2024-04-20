@@ -962,11 +962,13 @@ public final class EmacsService extends Service
      string; make it writable if WRITABLE, and readable if READABLE.
      Truncate the file if TRUNCATE.
 
-     Value is the resulting file descriptor or -1 upon failure.  */
+     Value is the resulting file descriptor or an exception will be
+     raised.  */
 
   public int
-  openContentUri (byte[] bytes, boolean writable, boolean readable,
+  openContentUri (String uri, boolean writable, boolean readable,
 		  boolean truncate)
+    throws FileNotFoundException, IOException
   {
     String name, mode;
     ParcelFileDescriptor fd;
@@ -985,39 +987,16 @@ public final class EmacsService extends Service
     if (truncate)
       mode += "t";
 
-    /* Try to open an associated ParcelFileDescriptor.  */
+    /* Try to open a corresponding ParcelFileDescriptor.  Though
+       `fd.detachFd' is exclusive to Honeycomb and up, this function is
+       never called on systems older than KitKat, which is Emacs's
+       minimum requirement for access to /content/by-authority.  */
 
-    try
-      {
-	/* The usual file name encoding question rears its ugly head
-	   again.  */
+    fd = resolver.openFileDescriptor (Uri.parse (uri), mode);
+    i = fd.detachFd ();
+    fd.close ();
 
-	name = new String (bytes, "UTF-8");
-	fd = resolver.openFileDescriptor (Uri.parse (name), mode);
-
-	/* Use detachFd on newer versions of Android or plain old
-	   dup.  */
-
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1)
-	  {
-	    i = fd.detachFd ();
-	    fd.close ();
-
-	    return i;
-	  }
-	else
-	  {
-	    i = EmacsNative.dup (fd.getFd ());
-	    fd.close ();
-
-	    return i;
-	  }
-      }
-    catch (Exception exception)
-      {
-	exception.printStackTrace ();
-	return -1;
-      }
+    return i;
   }
 
   /* Return whether Emacs is directly permitted to access the

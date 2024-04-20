@@ -1632,7 +1632,7 @@ android_init_emacs_service (void)
   FIND_METHOD (reset_ic, "resetIC",
 	       "(Lorg/gnu/emacs/EmacsWindow;I)V");
   FIND_METHOD (open_content_uri, "openContentUri",
-	       "([BZZZ)I");
+	       "(Ljava/lang/String;ZZZ)I");
   FIND_METHOD (check_content_uri, "checkContentUri",
 	       "(Ljava/lang/String;ZZ)Z");
   FIND_METHOD (query_battery, "queryBattery", "()[J");
