@@ -254,7 +254,10 @@ test-filenotify-gio:
   variables:
     target: emacs-filenotify-gio
     # This is needed in order to get a JUnit test report.
-    make_params: '-k -C test check-expensive LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"'
+    make_params: >-
+      '-k -C test check-expensive
+        TEST_HOME=/root
+        LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"'
 
 build-image-eglot:
   stage: platform-images
@@ -271,7 +274,9 @@ test-eglot:
   variables:
     target: emacs-eglot
     # This is needed in order to get a JUnit test report.
-    make_params: '-k -C test check-expensive LOGFILES="lisp/progmodes/eglot-tests.log"'
+    make_params: >-
+      '-k -C test check-expensive
+        TEST_HOME=/root LOGFILES="lisp/progmodes/eglot-tests.log"'
 
 build-image-tree-sitter:
   stage: platform-images
@@ -287,8 +292,12 @@ test-tree-sitter:
       optional: true
   variables:
     target: emacs-tree-sitter
+    selector: >-
+      \(and\ \$\{SELECTOR_EXPENSIVE\}\ \(or\ \\\"^treesit\\\"\ \\\"-ts-\\\"\)\)
     # This is needed in order to get a JUnit test report.
-    make_params: '-k -C test SELECTOR=\(and\ \$\{SELECTOR_EXPENSIVE\}\ \\\"-ts-\\\"\) TEST_HOME=/root LOGFILES="$tree_sitter_files"'
+    make_params: >-
+      '-k -C test check SELECTOR=$selector
+        TEST_HOME=/root LOGFILES="$tree_sitter_files"'
 
 build-image-gnustep:
   stage: platform-images
