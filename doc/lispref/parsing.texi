@@ -539,10 +539,10 @@ symbol, rather than a lambda function.
 This function returns the list of @var{parser}'s notifier functions.
 @end defun
 
-Sometimes a user might want to synchronously get the changed ranges of
-the last reparse, and @code{treesit-parser-changed-ranges} is just for
-it.  This function basically returns the @var{ranges} that the notifier
-functions were passed.
+Sometimes a Lisp program might need to synchronously get the changed
+ranges of the last reparse.  The function
+@code{treesit-parser-changed-ranges} exists for this purpose.  It
+returns the ranges which were passed to the notifier functions.
 
 @defun treesit-parser-changed-ranges parser &optional quiet
 This function returns the ranges that has been changed since last
@@ -552,8 +552,8 @@ mark the start and the end positions of a range.
 
 This function should almost always be called immediately after
 reparsing.  If it's called when there are new buffer edits that hasn't
-been reparsed, Emacs signals @code{treesit-unparsed-edits}, unless
-@var{quiet} is non-nil.
+been reparsed, Emacs signals the @code{treesit-unparsed-edits} error,
+unless the optional argument @var{quiet} is non-nil.
 
 Calling this function multiple times consecutively doesn't change its
 return value; it always returns the ranges affected by the last reparse.

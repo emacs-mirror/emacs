@@ -1833,13 +1833,13 @@ DEFUN ("treesit-parser-changed-ranges", Ftreesit_parser_changed_ranges,
        1, 2, 0,
        doc: /* Return the buffer regions affected by the last reparse of PARSER.
 
-Returns a list of cons (BEG . END), where each cons represents a region
-in which the buffer content was affected by the last reparse.
+Returns a list of cons cells (BEG . END), where each cons cell represents
+a region in which changes in buffer contents affected the last reparse.
 
 This function should almost always be called immediately after
 reparsing.  If it's called when there are new buffer edits that hasn't
-been reparsed, Emacs signals `treesit-unparsed-edits', unless QUIET is
-non-nil.
+been reparsed, Emacs signals the `treesit-unparsed-edits' error, unless
+optional argument QUIET is non-nil.
 
 Calling this function multiple times consecutively doesn't change its
 return value; it always returns the ranges affected by the last
