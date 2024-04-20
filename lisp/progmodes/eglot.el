@@ -1090,13 +1090,15 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
 
 (defun eglot-path-to-uri (path)
   "Convert PATH, a file name, to LSP URI string and return it."
+  ;; Some LSP servers don't resolve symlinks, so we must do that
+  ;; for them by calling 'file-truename below'.
   (let ((truepath (file-truename path)))
     (if (and (url-type (url-generic-parse-url path))
-             ;; It might be MS Windows path which includes a drive
-             ;; letter that looks like a URL scheme (bug#59338)
+             ;; PATH might be MS Windows file name which includes a
+             ;; drive letter that looks like a URL scheme (bug#59338).
              (not (and (eq system-type 'windows-nt)
                        (file-name-absolute-p truepath))))
-        ;; Path is already a URI, so forward it to the LSP server
+        ;; PATH is already a URI, so forward it to the LSP server
         ;; untouched.  The server should be able to handle it, since
         ;; it provided this URI to clients in the first place.
         path
