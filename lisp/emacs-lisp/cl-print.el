@@ -180,7 +180,7 @@ into a button whose action shows the function's disassembly.")
 ;; FIXME: Don't degenerate to `prin1' for the contents of char-tables
 ;; and records!
 
-(cl-defmethod cl-print-object ((object compiled-function) stream)
+(cl-defmethod cl-print-object ((object byte-code-function) stream)
   (unless stream (setq stream standard-output))
   ;; We use "#f(...)" rather than "#<...>" so that pp.el gives better results.
   (princ "#f(compiled-function " stream)
