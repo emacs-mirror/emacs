@@ -4794,7 +4794,15 @@ Interactively, if the binding is `execute-extended-command', a command is read.
 The command is found by looking up in Emacs manual's indices
 or in another manual found via COMMAND's `info-file' property or
 the variable `Info-file-list-for-emacs'."
-  (interactive "kFind documentation for key: ")
+  (interactive
+   (let ((enable-disabled-menus-and-buttons t)
+         (cursor-in-echo-area t)
+         ;; Showing the list of key sequences makes no sense when they
+         ;; asked about a key sequence.
+         (echo-keystrokes-help nil)
+         (prompt (propertize "Find documentation for key: "
+                              'face 'minibuffer-prompt)))
+     (list (read-key-sequence prompt nil nil 'can-return-switch-frame))))
   (let ((command (key-binding key)))
     (cond ((null command)
 	   (message "%s is undefined" (key-description key)))
