@@ -236,8 +236,8 @@ igc_static_assert (sizeof (struct igc_header) == 8);
 static mps_word_t
 to_words (mps_word_t nbytes)
 {
-  igc_assert ((nbytes & 7) == 0);
-  return nbytes >> 3;
+  igc_assert (nbytes % sizeof (mps_word_t) == 0);
+  return nbytes / sizeof (mps_word_t);
 }
 
 static mps_word_t
@@ -2421,16 +2421,6 @@ igc_make_cons (Lisp_Object car, Lisp_Object cdr)
   cons->u.s.car = car;
   cons->u.s.u.cdr = cdr;
   return make_lisp_ptr (cons, Lisp_Cons);
-}
-
-void
-igc_check_symbol (void *p)
-{
-  if (is_mps (p))
-    {
-      struct igc_header *h = client_to_base (p);
-      igc_assert (h->obj_type == IGC_OBJ_SYMBOL);
-    }
 }
 
 Lisp_Object

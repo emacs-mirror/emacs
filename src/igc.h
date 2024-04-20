@@ -88,7 +88,6 @@ void igc_postmortem (void);
 void igc_on_grow_specpdl (void);
 void igc_on_alloc_main_thread_specpdl (void);
 void igc_on_alloc_main_thread_bc (void);
-void igc_check_symbol (void *p);
 void igc_collect (void);
 void igc_root_create_ambig (void *start, void *end);
 void igc_root_create_exact (Lisp_Object *start, Lisp_Object *end);

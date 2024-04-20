@@ -2392,7 +2392,6 @@ readevalloop_1 (int old)
 static AVOID
 end_of_file_error (void)
 {
-  igc_break ();
   if (STRINGP (Vload_true_file_name))
     xsignal1 (Qend_of_file, Vload_true_file_name);
 
