@@ -2804,6 +2804,18 @@ direction.
   See also @code{next-window} and @code{previous-window}, in @ref{Cyclic
 Window Ordering}.
 
+  Some Lisp programs need to find one or more frames that satisfy a
+given criteria.  The function @code{filtered-frame-list} is provided for
+this purpose.
+
+@defun filtered-frame-list predicate
+This function returns the list of all the live frames which satisfy the
+specified @var{predicate}.  The argument @var{predicate} must be a
+function of one argument, a frame to be tested against the filtering
+criteria, and should return non-@code{nil} if the frame satisfies the
+criteria.
+@end defun
+
 @node Minibuffers and Frames
 @section Minibuffers and Frames
 
