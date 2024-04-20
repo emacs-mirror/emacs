@@ -143,9 +143,9 @@ This function is the opposite of @code{listp}: it returns @code{t} if
 @defun null object
 This function returns @code{t} if @var{object} is @code{nil}, and
 returns @code{nil} otherwise.  This function is identical to @code{not},
-but as a matter of clarity we use @code{null} when @var{object} is
-considered a list and @code{not} when it is considered a truth value
-(see @code{not} in @ref{Combining Conditions}).
+but as a matter of clarity we use @code{not} when @var{object} is
+considered a truth value (see @code{not} in @ref{Combining
+Conditions}) and @code{null} otherwise.
 
 @example
 @group

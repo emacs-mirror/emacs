@@ -350,7 +350,8 @@ kinds of multiple conditional constructs.
 This function tests for the falsehood of @var{condition}.  It returns
 @code{t} if @var{condition} is @code{nil}, and @code{nil} otherwise.
 The function @code{not} is identical to @code{null}, and we recommend
-using the name @code{null} if you are testing for an empty list.
+using the name @code{null} if you are testing for an empty list or
+@code{nil} value.
 @end defun
 
 @defspec and conditions@dots{}
