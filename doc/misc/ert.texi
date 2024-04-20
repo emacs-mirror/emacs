@@ -766,7 +766,6 @@ Here's a more complicated test:
 @end lisp
 
 @findex make-ert-test
-@findex ert-equal-including-properties
 This test creates a test object using @code{make-ert-test} whose body
 will immediately signal failure.  It then runs that test and asserts
 that it fails.  Then, it creates a temporary buffer and invokes
@@ -775,7 +774,7 @@ to the current buffer.  Finally, it extracts the first line from the
 buffer and asserts that it matches what we expect.  It uses
 @code{buffer-substring-no-properties} and @code{equal} to ignore text
 properties; for a test that takes properties into account,
-@code{buffer-substring} and @code{ert-equal-including-properties}
+@code{buffer-substring} and @code{equal-including-properties}
 could be used instead.
 
 The reason why this test only checks the first line of the backtrace
