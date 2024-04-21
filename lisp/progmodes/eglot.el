@@ -1977,7 +1977,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
 
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some Eglot project."
-  :init-value nil :lighter nil :keymap eglot-mode-map
+  :init-value nil :lighter nil :keymap eglot-mode-map :interactive nil
   (cond
    (eglot--managed-mode
     (pcase (plist-get (eglot--capabilities (eglot-current-server))
@@ -3954,6 +3954,7 @@ If NOERROR, return predicate, else erroring function."
 (define-derived-mode eglot-list-connections-mode  tabulated-list-mode
   "" "Eglot mode for listing server connections
 \\{eglot-list-connections-mode-map}"
+  :interactive nil
   (setq-local tabulated-list-format
               `[("Language server" 16) ("Project name" 16) ("Modes handled" 16)])
   (tabulated-list-init-header))
@@ -4142,6 +4143,27 @@ If NOERROR, return predicate, else erroring function."
                 "https://github.com/joaotavora/eglot/issues/%s"
               "https://debbugs.gnu.org/%s")
             (match-string 3))))
+
+;; Add command-mode property manually for compatibility with Emacs < 28.
+(dolist (sym '(eglot-clear-status
+               eglot-code-action-inline
+               eglot-code-action-organize-imports
+               eglot-code-action-quickfix
+               eglot-code-action-rewrite
+               eglot-code-action-rewrite
+               eglot-code-actions
+               eglot-find-declaration
+               eglot-find-implementation
+               eglot-find-typeDefinition
+               eglot-forget-pending-continuations
+               eglot-format
+               eglot-format-buffer
+               eglot-inlay-hints-mode
+               eglot-reconnect
+               eglot-rename
+               eglot-signal-didChangeConfiguration
+               eglot-stderr-buffer))
+  (function-put sym 'command-modes '(eglot--managed-mode)))
 
 (provide 'eglot)
 
