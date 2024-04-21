@@ -2373,7 +2373,9 @@ struct it
   bool_bf string_from_display_prop_p : 1;
 
   /* True means `string' comes from a `line-prefix' or `wrap-prefix'
-     property.  */
+     property, and that these properties were already handled, even if
+     their value is not a string.  This is used to avoid processing
+     the same line/wrap prefix more than once for the same glyph row.  */
   bool_bf string_from_prefix_prop_p : 1;
 
   /* True means we are iterating an object that came from a value of a
