@@ -216,12 +216,13 @@ struct igc_stats
 enum
 {
   IGC_TYPE_BITS = 5,
-  IGC_PVEC_BITS = 5,
-  IGC_HASH_BITS = 22,
+  IGC_PVEC_BITS = 6,
+  IGC_HASH_BITS = 21,
   IGC_SIZE_BITS = 32
 };
 
 igc_static_assert (IGC_OBJ_LAST - 1 < (1 << IGC_TYPE_BITS));
+igc_static_assert (PVEC_TAG_MAX < (1 << IGC_PVEC_BITS));
 
 struct igc_header
 {
