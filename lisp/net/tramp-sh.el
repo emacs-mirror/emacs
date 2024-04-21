@@ -2653,6 +2653,18 @@ The method used must be an out-of-band method."
       (let ((dired (tramp-get-ls-command-with v "--dired")))
 	(when (stringp switches)
           (setq switches (split-string switches)))
+        ;; Newer coreutil versions of ls (9.5 and up) imply long format
+        ;; output when "--dired" is given.  Suppress this implicit rule.
+        (when dired
+          (let ((tem switches)
+                case-fold-search)
+            (catch 'long
+              (while tem
+                (when (and (not (string-match-p "--" (car tem)))
+                           (string-match-p "l" (car tem)))
+                  (throw 'long nil))
+                (setq tem (cdr tem)))
+              (setq dired nil))))
 	(setq switches
 	      (append switches (split-string (tramp-sh--quoting-style-options v))
 		      (when dired `(,dired))))
