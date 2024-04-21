@@ -155,6 +155,7 @@ extern char *get_surrounding_text (struct frame *, ptrdiff_t,
 extern bool conversion_disabled_p (void);
 extern void check_postponed_buffers (void);
 
+extern void get_conversion_field (struct frame *, ptrdiff_t *, ptrdiff_t *);
 extern void register_textconv_interface (struct textconv_interface *);
 
 #endif /* _TEXTCONV_H_ */

@@ -5400,6 +5400,7 @@ if that value is non-nil."
   (setq-local custom--invocation-options nil
               custom--hidden-state 'hidden)
   (setq-local revert-buffer-function #'custom--revert-buffer)
+  (setq-local text-conversion-style 'action)
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)
   (custom--initialize-widget-variables)

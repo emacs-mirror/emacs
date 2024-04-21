@@ -370,7 +370,7 @@ at POSITION.  */)
    Either BEG or END may be 0, in which case the corresponding value
    is not stored.  */
 
-static void
+void
 find_field (Lisp_Object pos, Lisp_Object merge_at_boundary,
 	    Lisp_Object beg_limit,
 	    ptrdiff_t *beg, Lisp_Object end_limit, ptrdiff_t *end)

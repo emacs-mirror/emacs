@@ -1001,6 +1001,7 @@ make_frame (bool mini_p)
   f->conversion.compose_region_start = Qnil;
   f->conversion.compose_region_end = Qnil;
   f->conversion.compose_region_overlay = Qnil;
+  f->conversion.field = Qnil;
   f->conversion.batch_edit_count = 0;
   f->conversion.batch_edit_flags = 0;
   f->conversion.actions = NULL;

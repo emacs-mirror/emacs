@@ -6265,14 +6265,24 @@ android_update_selection (struct frame *f, struct window *w)
   jobject extracted;
   jstring string;
   bool mark_active;
+  ptrdiff_t field_start, field_end;
+
+  /* Offset these values by the start offset of the field.  */
+  get_conversion_field (f, &field_start, &field_end);
 
   if (MARKERP (f->conversion.compose_region_start))
     {
       eassert (MARKERP (f->conversion.compose_region_end));
 
       /* Indexing in android starts from 0 instead of 1.  */
-      start = marker_position (f->conversion.compose_region_start) - 1;
-      end = marker_position (f->conversion.compose_region_end) - 1;
+      start = marker_position (f->conversion.compose_region_start);
+      end = marker_position (f->conversion.compose_region_end);
+
+      /* Offset and detect underflow.  */
+      start = max (start, field_start) - field_start - 1;
+      end = min (end, field_end) - field_start - 1;
+      if (end < 0 || start < 0)
+	end = start = -1;
     }
   else
     start = -1, end = -1;
@@ -6288,24 +6298,27 @@ android_update_selection (struct frame *f, struct window *w)
   /* Figure out where the point and mark are.  If the mark is not
      active, then point is set to equal mark.  */
   b = XBUFFER (w->contents);
-  point = min (w->ephemeral_last_point,
+  point = min (min (max (w->ephemeral_last_point,
+			 field_start),
+		    field_end) - field_start,
 	       TYPE_MAXIMUM (jint));
   mark = ((!NILP (BVAR (b, mark_active))
 	   && w->last_mark != -1)
-	  ? min (w->last_mark, TYPE_MAXIMUM (jint))
+	  ? min (min (max (w->last_mark, field_start),
+		      field_end) - field_start,
+		 TYPE_MAXIMUM (jint))
 	  : point);
 
-  /* Send the update.  Android doesn't employ a concept of ``point''
-     and ``mark''; instead, it only has a selection, where the start
-     of the selection is less than or equal to the end, and the region
-     is ``active'' when those two values differ.  Also, convert the
-     indices from 1-based Emacs indices to 0-based Android ones.  */
-  android_update_ic (FRAME_ANDROID_WINDOW (f), min (point, mark) - 1,
-		     max (point, mark) - 1, start, end);
+  /* Send the update.  Android doesn't employ a concept of "point" and
+     "mark"; instead, it only has a selection, where the start of the
+     selection is less than or equal to the end, and the region is
+     "active" when those two values differ.  The indices will have been
+     converted from 1-based Emacs indices to 0-based Android ones.  */
+  android_update_ic (FRAME_ANDROID_WINDOW (f), min (point, mark),
+		     max (point, mark), start, end);
 
   /* Update the extracted text as well, if the input method has asked
-     for updates.  1 is
-     InputConnection.GET_EXTRACTED_TEXT_MONITOR.  */
+     for updates.  1 is InputConnection.GET_EXTRACTED_TEXT_MONITOR.  */
 
   if (FRAME_ANDROID_OUTPUT (f)->extracted_text_flags & 1)
     {

@@ -1367,6 +1367,20 @@ and some related functions, which use zero-indexing for POSITION.  */)
   if (NILP (histpos))
     XSETFASTINT (histpos, 0);
 
+#ifdef HAVE_TEXT_CONVERSION
+  /* If overriding-text-conversion-style is set, assume that it was
+     changed prior to this call and force text conversion to be reset,
+     since redisplay might conclude that the value was retained
+     unmodified from a previous call to Fread_from_minibuffer as the
+     selected window will not have changed.  */
+  if (!EQ (Voverriding_text_conversion_style, Qlambda)
+      /* Separate minibuffer frames are not material here, since they
+         will already be selected if the situation that this is meant to
+         prevent is possible.  */
+      && FRAME_WINDOW_P (SELECTED_FRAME ()))
+    reset_frame_conversion (SELECTED_FRAME ());
+#endif /* HAVE_TEXT_CONVERSION */
+
   val = read_minibuf (keymap, initial_contents, prompt,
 		      !NILP (read),
 		      histvar, histpos, default_value,

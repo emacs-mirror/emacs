@@ -7050,6 +7050,7 @@ mark_frame (struct Lisp_Vector *ptr)
   mark_object (f->conversion.compose_region_start);
   mark_object (f->conversion.compose_region_end);
   mark_object (f->conversion.compose_region_overlay);
+  mark_object (f->conversion.field);
 
   for (tem = f->conversion.actions; tem; tem = tem->next)
     mark_object (tem->data);

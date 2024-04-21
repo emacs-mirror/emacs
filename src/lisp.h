@@ -4933,6 +4933,8 @@ extern void unmark_main_thread (void);
 
 /* Defined in editfns.c.  */
 extern void insert1 (Lisp_Object);
+extern void find_field (Lisp_Object, Lisp_Object, Lisp_Object,
+			ptrdiff_t *, Lisp_Object, ptrdiff_t *);
 extern void save_excursion_save (union specbinding *);
 extern void save_excursion_restore (Lisp_Object, Lisp_Object);
 extern Lisp_Object save_restriction_save (void);
@@ -5496,6 +5498,7 @@ extern char *emacs_root_dir (void);
 #ifdef HAVE_TEXT_CONVERSION
 /* Defined in textconv.c.  */
 extern void reset_frame_state (struct frame *);
+extern void reset_frame_conversion (struct frame *);
 extern void report_selected_window_change (struct frame *);
 extern void report_point_change (struct frame *, struct window *,
 				 struct buffer *);
