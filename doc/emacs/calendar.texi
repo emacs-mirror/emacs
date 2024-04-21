@@ -627,7 +627,8 @@ for how daylight saving time is determined.
 
 @vindex calendar-time-zone-style
   If you want to display numerical time zones (like @samp{"+0100"})
-instead of symbolic ones (like @samp{"CET"}), set this to @code{numeric}.
+instead of symbolic ones (like @samp{"CET"}), set
+@code{calendar-time-zone-style} to @code{numeric}.
 
   As a user, you might find it convenient to set the calendar location
 variables for your usual physical location in your @file{.emacs} file.
