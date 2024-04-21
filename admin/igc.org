@@ -92,6 +92,7 @@ special vectors allocated from the AWL pool.
 
 ** Handling of a loaded pdump
 
+
 The hot part of a loaded pdump (ca. 18 MB) is currently used as an
 ambiguous root for MPS. A number of things could be investigated
 
@@ -108,6 +109,10 @@ ambiguous root for MPS. A number of things could be investigated
   longer be used.
 
   Costs some load time, though.
+
+- Store objects in the dump with igc_header, so that we can make the
+  dump an exact root. This would simplify things enormously. My
+  favourite.
 
 There is also a slight problem currently that's a consequence of Emacs
 mixing GC'd objects and malloc'd ones. The loaded dump is scanned
