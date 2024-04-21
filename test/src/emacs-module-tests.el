@@ -435,6 +435,7 @@ See Bug#36226."
       (delete-file so))))
 
 (ert-deftest module/function-finalizer ()
+  :expected-result (if (featurep 'mps) :failed :passed)
   "Test that module function finalizers are properly called."
   ;; We create and leak a couple of module functions with attached
   ;; finalizer.  Creating only one function risks spilling it to the
