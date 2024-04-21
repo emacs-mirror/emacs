@@ -5768,8 +5768,10 @@ The result is a fixnum."
       (with-temp-buffer
 	(insert-buffer-substring buf)
 	(message-clone-locals buf)
-	;; Avoid re-doing things like GPG-encoding secret parts.
-	(if (not encoded-cache)
+	;; Avoid re-doing things like GPG-encoding secret parts, unless
+	;; the user has requested that attachments be externalized, in
+	;; which case we have to re-encode the message body.
+	(if (or mml-externalize-attachments (not encoded-cache))
 	    (message-encode-message-body)
 	  (erase-buffer)
 	  (insert encoded-cache))
