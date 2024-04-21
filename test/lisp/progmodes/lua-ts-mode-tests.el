@@ -23,6 +23,7 @@
 (require 'ert-font-lock)
 (require 'ert-x)
 (require 'treesit)
+(require 'which-func)
 
 (ert-deftest lua-ts-test-indentation ()
   (skip-unless (treesit-ready-p 'lua))
@@ -36,6 +37,16 @@
   (skip-unless (treesit-ready-p 'lua))
   (let ((treesit-font-lock-level 4))
     (ert-font-lock-test-file (ert-resource-file "font-lock.lua") 'lua-ts-mode)))
+
+(ert-deftest lua-ts-test-which-function ()
+  (skip-unless (treesit-ready-p 'lua))
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "which-function.lua"))
+    (lua-ts-mode)
+    (which-function-mode)
+    (goto-char (point-min))
+    (should (equal "f" (which-function)))
+    (which-function-mode -1)))
 
 (provide 'lua-ts-mode-tests)
 

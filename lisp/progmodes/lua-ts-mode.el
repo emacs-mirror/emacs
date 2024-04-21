@@ -764,7 +764,7 @@ Calls REPORT-FN directly."
                                       "vararg_expression"))))
                    (text "comment"))))
 
-    ;; Imenu/Outline.
+    ;; Imenu/Outline/Which-function.
     (setq-local treesit-simple-imenu-settings
                 `(("Requires"
                    "\\`function_call\\'"
@@ -775,9 +775,6 @@ Calls REPORT-FN directly."
                    "\\`\\(?:f\\(?:ield\\|unction_declaration\\)\\)\\'"
                    lua-ts--named-function-p
                    nil)))
-
-    ;; Which-function.
-    (setq-local which-func-functions (treesit-defun-at-point))
 
     ;; Align.
     (setq-local align-indent-before-aligning t)
