@@ -7805,10 +7805,10 @@ DEFUN ("android-relinquish-directory-access",
        Sandroid_relinquish_directory_access, 1, 1,
        "DDirectory: ",
        doc: /* Relinquish access to the provided directory.
-DIRECTORY must be an inferior directory to a subdirectory of
-/content/storage.  Once the command completes, the parent of DIRECTORY
-below that subdirectory from will cease to appear there, but no files
-will be removed.  */)
+DIRECTORY must be the toplevel directory of an open SAF volume (i.e., a
+file under /content/storage), or one of its inferiors.  Once the command
+completes, the SAF directory holding this directory will vanish, but no
+files will be removed.  */)
   (Lisp_Object file)
 {
   struct android_vnode *vp;
@@ -7824,7 +7824,14 @@ will be removed.  */)
     return Qnil;
 
   file = ENCODE_FILE (Fexpand_file_name (file, Qnil));
-  vp   = android_name_file (SSDATA (file));
+
+  if (!NILP (call1 (Qfile_remote_p, file)))
+    signal_error ("Cannot relinquish access to remote file", file);
+
+  vp = android_name_file (SSDATA (file));
+
+  if (!vp)
+    report_file_error ("Relinquishing directory", file);
 
   if (vp->type != ANDROID_VNODE_SAF_TREE)
     {
