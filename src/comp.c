@@ -5832,6 +5832,17 @@ natively-compiled one.  */);
   staticpro (&comp.func_blocks_h);
   staticpro (&comp.emitter_dispatcher);
   comp.emitter_dispatcher = Qnil;
+  staticpro (&comp.compiler_options);
+  comp.compiler_options = Qnil;
+  staticpro (&comp.driver_options);
+  comp.driver_options = Qnil;
+  staticpro (&comp.d_default_idx);
+  comp.d_default_idx = Qnil;
+  staticpro (&comp.d_impure_idx);
+  comp.d_impure_idx = Qnil;
+  staticpro (&comp.d_ephemeral_idx);
+  comp.d_ephemeral_idx = Qnil;
+
   staticpro (&loadsearch_re_list);
   loadsearch_re_list = Qnil;
 
