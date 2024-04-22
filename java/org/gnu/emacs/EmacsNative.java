@@ -321,39 +321,35 @@ public final class EmacsNative
 
   static
   {
-    /* Older versions of Android cannot link correctly with shared
-       libraries that link with other shared libraries built along
-       Emacs unless all requisite shared libraries are explicitly
-       loaded from Java.
+    /* A library search path misconfiguration prevents older versions of
+       Android from successfully loading application shared libraries
+       unless all requisite shared libraries provided by the application
+       are explicitly loaded from Java.  The build process arranges that
+       EmacsConfig.EMACS_SHARED_LIBRARIES hold the names of each of
+       these libraries in the correct order, so load them now.  */
 
-       Every time you add a new shared library dependency to Emacs,
-       please insert it here as well, before other shared libraries of
-       which it might be a dependency.  */
-
-    libraryDeps = new String[] { "c++_shared", "gnustl_shared",
-				 "stlport_shared", "gabi++_shared",
-				 "png_emacs", "pcre_emacs",
-				 "selinux_emacs", "crypto_emacs",
-				 "packagelistparser_emacs",
-				 "gmp_emacs", "nettle_emacs",
-				 "p11-kit_emacs", "tasn1_emacs",
-				 "hogweed_emacs", "gnutls_emacs",
-				 "jpeg_emacs", "tiff_emacs",
-				 "icuuc_emacs", "xml2_emacs",
-				 "harfbuzz_emacs", "tree-sitter_emacs", };
+    libraryDeps = EmacsConfig.EMACS_SHARED_LIBRARIES;
 
     for (String dependency : libraryDeps)
       {
-	try
-	  {
-	    System.loadLibrary (dependency);
-	  }
-	catch (UnsatisfiedLinkError exception)
-	  {
-	    /* Ignore this exception.  */
-	  }
+	/* Remove the "lib" prefix, if any.  */
+	if (dependency.startsWith ("lib"))
+	  dependency = dependency.substring (3);
+
+	/* If this library is provided by the operating system, don't
+	   link to it.  */
+	if (dependency.equals ("z")
+	    || dependency.equals ("c")
+	    || dependency.equals ("m")
+	    || dependency.equals ("dl")
+	    || dependency.equals ("log")
+	    || dependency.equals ("android"))
+	  continue;
+
+	System.loadLibrary (dependency);
       }
 
+    /* At this point, it should be alright to load Emacs.  */
     System.loadLibrary ("emacs");
   };
 };

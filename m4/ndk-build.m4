@@ -339,6 +339,16 @@ NDK_BUILD_NASM=
 AS_IF([test "$ndk_ARCH" = "x86" || test "$ndk_ARCH" = "x86_64"],
   [AC_CHECK_PROGS([NDK_BUILD_NASM], [nasm])])
 
+# Search for a suitable readelf binary, which is required to generate
+# the shared library list loaded on old Android systems.
+AC_PATH_PROGS([READELF], [readelf llvm-readelf $host_alias-readelf],
+  [], [$ndk_ranlib_search_path:$PATH])
+AS_IF([test -z "$READELF"],
+  [AC_MSG_ERROR([A suitable `readelf' utility cannot be located.
+Please verify that the Android NDK has been installed correctly,
+or install a functioning `readelf' yourself.])])
+NDK_BUILD_READELF="$READELF"
+
 # Search for a C++ compiler.  Upon failure, pretend the C compiler is a
 # C++ compiler and use that instead.
 
@@ -644,6 +654,7 @@ AC_DEFUN_ONCE([ndk_CONFIG_FILES],
     AC_SUBST([NDK_BUILD_CXX_LDFLAGS])
     AC_SUBST([NDK_BUILD_ANY_CXX_MODULE])
     AC_SUBST([NDK_BUILD_CFLAGS])
+    AC_SUBST([NDK_BUILD_READELF])
 
     AC_CONFIG_FILES([$ndk_DIR/Makefile])
     AC_CONFIG_FILES([$ndk_DIR/ndk-build.mk])

@@ -140,7 +140,7 @@ src/Makefile: $(top_builddir)/src/Makefile.android
 	    -e 's/\.\.\/admin\/charsets/..\/..\/admin\/charsets/g' \
 	    -e 's/^libsrc =.*$$/libsrc = \.\.\/\.\.\/lib-src/g' \
 	    -e 's/libsrc =.*$$/libsrc = \.\.\/\.\.\/lib-src/g' \
-	    -e 's/-I\$$(top_srcdir)\/lib/-I..\/$(subst /,\/,$(srcdir))\/lib/g' \
+	    -e 's/-I\$$(top_srcdir)\/lib//g' \
 	    < $(top_builddir)/src/Makefile.android > $@
 
 src/epaths.h: $(top_builddir)/src/epaths.h
