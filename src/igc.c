@@ -73,15 +73,19 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 static void
 igc_assert_fail (const char *file, unsigned line, const char *msg)
 {
-  extern void die (const char *, const char *, int);
   die (msg, file, line);
 }
 
 #ifdef IGC_DEBUG
-# define igc_assert(expr)                         \
-   if (!(expr))                                   \
-     igc_assert_fail (__FILE__, __LINE__, #expr); \
-   else
+
+#define igc_assert(expr)				\
+  do							\
+    {							\
+      if (!(expr))					\
+	igc_assert_fail (__FILE__, __LINE__, #expr);	\
+    }							\
+  while (0)						\
+
 #else
 # define igc_assert(expr) (void) 9
 #endif
@@ -119,10 +123,13 @@ is_aligned (const mps_addr_t addr)
   return ((mps_word_t) addr & IGC_TAG_MASK) == 0;
 }
 
-#define IGC_CHECK_RES(res) \
-  if ((res) != MPS_RES_OK) \
-    emacs_abort ();        \
-  else
+#define IGC_CHECK_RES(res)			\
+  do						\
+    {						\
+      if ((res) != MPS_RES_OK)			\
+	emacs_abort ();				\
+    }						\
+  while (0)					\
 
 #define IGC_WITH_PARKED(gc)                        \
   for (int i = (mps_arena_park (gc->arena), 1); i; \
@@ -802,6 +809,7 @@ scan_pure (mps_ss_t ss, void *start, void *end, void *closure)
   MPS_SCAN_BEGIN (ss)
   {
     igc_assert (start == (void *) pure);
+    extern ptrdiff_t pure_bytes_used_lisp;
     end = (char *) pure + pure_bytes_used_lisp;
     if (end > start)
       IGC_FIX_CALL (ss, scan_ambig (ss, start, end, NULL));
@@ -957,11 +965,13 @@ fix_image (mps_ss_t ss, struct image *i)
 {
   MPS_SCAN_BEGIN (ss)
   {
+#ifdef HAVE_WINDOW_SYSTEM
     IGC_FIX12_OBJ (ss, &i->spec);
     IGC_FIX12_OBJ (ss, &i->dependencies);
     IGC_FIX12_OBJ (ss, &i->lisp_data);
     IGC_FIX12_RAW (ss, &i->next);
     IGC_FIX12_RAW (ss, &i->prev);
+#endif
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2343,6 +2353,7 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_FLOAT:
       return t->d.leaf_ap;
     }
+  emacs_abort ();
 }
 
 /* Conditional breakpoints can be so slow that it is often more
@@ -2573,12 +2584,14 @@ igc_make_itree_node (void)
   return n;
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 struct image *
 igc_make_image (void)
 {
   struct image *img = alloc (sizeof *img, IGC_OBJ_IMAGE, PVEC_FREE);
   return img;
 }
+#endif
 
 struct face *
 igc_make_face (void)

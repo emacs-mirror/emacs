@@ -1425,6 +1425,8 @@ main (int argc, char **argv)
   ns_init_pool ();
 #endif
 
+  init_signals ();
+
 #ifdef HAVE_MPS
   init_igc ();
 #endif
@@ -1945,8 +1947,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   if (!noninteractive || !will_dump_p ())
     malloc_enable_thread ();
 #endif
-
-  init_signals ();
 
   noninteractive1 = noninteractive;
 

@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stddef.h>
 #include <stdlib.h>
-#include <sys/_types/_size_t.h>
 #include <sys/random.h>
 #include <unistd.h>
 #include <filevercmp.h>
