@@ -292,10 +292,10 @@ and /* */ comments.  SOFT works the same as in
   ;; line is in a /* comment, insert a newline and a * prefix.  No
   ;; auto-fill or other smart features.
   (cond
-   ;; Line starts with //
+   ;; Line starts with //, or ///, or ////...
    ((save-excursion
       (beginning-of-line)
-      (looking-at (rx "//" (group (* " ")))))
+      (looking-at (rx "//" (group (* "/") (* " ")))))
     (let ((whitespaces (match-string 1)))
       (if soft (insert-and-inherit ?\n) (newline 1))
       (delete-region (line-beginning-position) (point))
