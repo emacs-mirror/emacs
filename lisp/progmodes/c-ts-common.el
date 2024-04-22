@@ -221,7 +221,9 @@ Set up:
  - `adaptive-fill-first-line-regexp'
  - `paragraph-start'
  - `paragraph-separate'
- - `fill-paragraph-function'"
+ - `fill-paragraph-function'
+ - `comment-line-break-function'
+ - `comment-multi-line'"
   (setq-local comment-start "// ")
   (setq-local comment-end "")
   (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
@@ -267,7 +269,51 @@ Set up:
                            eol)
                       "\f")))
   (setq-local paragraph-separate paragraph-start)
-  (setq-local fill-paragraph-function #'c-ts-common--fill-paragraph))
+  (setq-local fill-paragraph-function #'c-ts-common--fill-paragraph)
+
+  (setq-local comment-line-break-function
+              #'c-ts-common-comment-indent-new-line)
+  (setq-local comment-multi-line t))
+
+(defun c-ts-common-comment-indent-new-line (&optional soft)
+  "Break line at point and indent, continuing comment if within one.
+
+This is like `comment-indent-new-line', but specialized for C-style //
+and /* */ comments.  SOFT works the same as in
+`comment-indent-new-line'."
+  ;; I want to experiment with explicitly listing out all each cases and
+  ;; handle them separately, as opposed to fiddling with `comment-start'
+  ;; and friends.  This will have more duplicate code and will be less
+  ;; generic, but in the same time might save us from writting cryptic
+  ;; code to handle all sorts of edge cases.
+  ;;
+  ;; For this command, let's try to make it basic: if the current line
+  ;; is a // comment, insert a newline and a // prefix; if the current
+  ;; line is in a /* comment, insert a newline and a * prefix.  No
+  ;; auto-fill or other smart features.
+  (cond
+   ((save-excursion
+      (beginning-of-line)
+      (looking-at (rx "//" (group (* " ")))))
+    (let ((whitespaces (match-string 1)))
+      (if soft (insert-and-inherit ?\n) (newline 1))
+      (delete-region (point) (line-end-position))
+      (insert "//" whitespaces)))
+
+   ((save-excursion
+      (beginning-of-line)
+      (looking-at (rx "/*")))
+    (if soft (insert-and-inherit ?\n) (newline 1))
+    (delete-region (point) (line-end-position))
+    (insert " *"))
+
+   ((save-excursion
+      (beginning-of-line)
+      (looking-at (rx (group (* " ") (or "*" "|") (* " ")))))
+    (let ((prefix (match-string 1)))
+      (if soft (insert-and-inherit ?\n) (newline 1))
+      (delete-region (point) (line-end-position))
+      (insert prefix)))))
 
 ;;; Statement indent
 
