@@ -317,7 +317,16 @@ and /* */ comments.  SOFT works the same as in
     (let ((prefix (match-string 1)))
       (if soft (insert-and-inherit ?\n) (newline 1))
       (delete-region (line-beginning-position) (point))
-      (insert prefix)))))
+      (insert prefix)))
+
+   ;; Line starts with whitespaces
+   ((save-excursion
+      (beginning-of-line)
+      (looking-at (rx (* " "))))
+    (let ((whitespaces (match-string 0)))
+      (if soft (insert-and-inherit ?\n) (newline 1))
+      (delete-region (line-beginning-position) (point))
+      (insert whitespaces)))))
 
 ;;; Statement indent
 
