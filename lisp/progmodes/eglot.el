@@ -1088,11 +1088,12 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
           (concat remote-prefix normalized))
       uri)))
 
-(defun eglot-path-to-uri (path)
-  "Convert PATH, a file name, to LSP URI string and return it."
-  ;; Some LSP servers don't resolve symlinks, so we must do that
-  ;; for them by calling 'file-truename below'.
-  (let ((truepath (file-truename path)))
+(cl-defun eglot-path-to-uri (path &key truenamep)
+  "Convert PATH, a file name, to LSP URI string and return it.
+TRUENAMEP indicated PATH is already a truename."
+  ;; LSP assumes little of filesystems, servers being potentially
+  ;; physically detached from it.  Make sure we hand them true names.
+  (let ((truepath (if truenamep path (file-truename path))))
     (if (and (url-type (url-generic-parse-url path))
              ;; PATH might be MS Windows file name which includes a
              ;; drive letter that looks like a URL scheme (bug#59338).
@@ -2383,8 +2384,11 @@ still unanswered LSP requests to the server\n")))
                         (lambda ()
                           (remhash token (eglot--progress-reporters server))))))))))
 
-(defvar-local eglot--TextDocumentIdentifier-uri nil
-  "A cached LSP TextDocumentIdentifier URI string.")
+(defvar-local eglot--TextDocumentIdentifier-cache nil
+  "LSP TextDocumentIdentifier-related cached info for current buffer.
+Value is (TRUENAME . (:uri STR)), where STR is what is sent to the
+server on textDocument/didOpen and similar calls.  TRUENAME is the
+expensive cached value of `file-truename'.")
 
 (cl-defmethod eglot-handle-notification
   (server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
@@ -2397,17 +2401,16 @@ still unanswered LSP requests to the server\n")))
                     (t          'eglot-note)))
             (mess (source code message)
               (concat source (and code (format " [%s]" code)) ": " message))
-            (find-it (uri)
-              ;; Search managed buffers with server-provided URIs since
-              ;; that's what we give them in the "didOpen" notification
-              ;; `find-buffer-visiting' would be nicer, but it calls the
-              ;; the potentially slow `file-truename' (bug#70036).
+            (find-it (abspath)
+              ;; `find-buffer-visiting' would be natural, but calls the
+              ;; potentially slow `file-truename' (bug#70036).
               (cl-loop for b in (eglot--managed-buffers server)
                        when (with-current-buffer b
-                              (equal eglot--TextDocumentIdentifier-uri uri))
+                              (equal (car eglot--TextDocumentIdentifier-cache)
+                                     abspath))
                        return b)))
     (if-let* ((path (expand-file-name (eglot-uri-to-path uri)))
-              (buffer (find-it uri)))
+              (buffer (find-it path)))
         (with-current-buffer buffer
           (cl-loop
            initially
@@ -2535,12 +2538,14 @@ THINGS are either registrations or unregisterations (sic)."
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer.
 Sets `eglot--TextDocumentIdentifier-uri' (which see) as a side effect."
-  `(:uri ,(or eglot--TextDocumentIdentifier-uri
-              (setq eglot--TextDocumentIdentifier-uri
-                    (eglot-path-to-uri (or buffer-file-name
-                                           (ignore-errors
-                                             (buffer-file-name
-                                              (buffer-base-buffer)))))))))
+  (unless eglot--TextDocumentIdentifier-cache
+    (let ((truename (file-truename (or buffer-file-name
+                                       (ignore-errors
+                                         (buffer-file-name
+                                          (buffer-base-buffer)))))))
+      (setq eglot--TextDocumentIdentifier-cache
+            `(,truename . (:uri ,(eglot-path-to-uri truename :truenamep t))))))
+  (cdr eglot--TextDocumentIdentifier-cache))
 
 (defvar-local eglot--versioned-identifier 0)
 
@@ -2836,7 +2841,7 @@ When called interactively, use the currently active server"
   "Send textDocument/didOpen to server."
   (setq eglot--recent-changes nil
         eglot--versioned-identifier 0
-        eglot--TextDocumentIdentifier-uri nil)
+        eglot--TextDocumentIdentifier-cache nil)
   (jsonrpc-notify
    (eglot--current-server-or-lose)
    :textDocument/didOpen `(:textDocument ,(eglot--TextDocumentItem))))
