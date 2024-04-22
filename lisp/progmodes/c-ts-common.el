@@ -292,27 +292,31 @@ and /* */ comments.  SOFT works the same as in
   ;; line is in a /* comment, insert a newline and a * prefix.  No
   ;; auto-fill or other smart features.
   (cond
+   ;; Line starts with //
    ((save-excursion
       (beginning-of-line)
       (looking-at (rx "//" (group (* " ")))))
     (let ((whitespaces (match-string 1)))
       (if soft (insert-and-inherit ?\n) (newline 1))
-      (delete-region (point) (line-end-position))
+      (delete-region (line-beginning-position) (point))
       (insert "//" whitespaces)))
 
+   ;; Line starts with /* or /**
    ((save-excursion
       (beginning-of-line)
-      (looking-at (rx "/*")))
-    (if soft (insert-and-inherit ?\n) (newline 1))
-    (delete-region (point) (line-end-position))
-    (insert " *"))
+      (looking-at (rx "/*" (group (? "*") (* " ")))))
+    (let ((whitespace-and-star-len (length (match-string 1))))
+      (if soft (insert-and-inherit ?\n) (newline 1))
+      (delete-region (line-beginning-position) (point))
+      (insert " *" (make-string whitespace-and-star-len ?\s))))
 
+   ;; Line starts with *
    ((save-excursion
       (beginning-of-line)
       (looking-at (rx (group (* " ") (or "*" "|") (* " ")))))
     (let ((prefix (match-string 1)))
       (if soft (insert-and-inherit ?\n) (newline 1))
-      (delete-region (point) (line-end-position))
+      (delete-region (line-beginning-position) (point))
       (insert prefix)))))
 
 ;;; Statement indent
