@@ -337,8 +337,19 @@ Save all the current bookmark values in the default bookmark file.
 @kbd{C-x r m}, which sets a bookmark using the visited file name as
 the default for the bookmark name.  If you name each bookmark after
 the file it points to, then you can conveniently revisit any of those
-files with @kbd{C-x r b}, and move to the position of the bookmark at
-the same time.
+files with @kbd{C-x r b} (@code{bookmark-jump}), and move to the
+position of the bookmark at the same time.
+
+@vindex bookmark-fringe-mark
+  In addition to recording the current position, on graphical displays
+@kbd{C-x r m} places a special image on the left fringe
+(@pxref{Fringes}) of the screen line corresponding to the recorded
+position, to indicate that there's a bookmark there.  This can be
+controlled by the user option @code{bookmark-fringe-mark}: customize
+it to @code{nil} to disable the fringe mark.  The default value is
+@code{bookmark-mark}, which is the bitmap used for this purpose.  When
+you later use @kbd{C-x r b} to jump back to the bookmark, the fringe
+mark will be again shown on the fringe.
 
 @kindex C-x r M
 @findex bookmark-set-no-overwrite
