@@ -367,7 +367,7 @@ $(CLASS_FILES): $(RESOURCE_FILE) $(CONFIG_FILE)
 
 .SUFFIXES: .java .class
 $(CLASS_FILES) &: $(JAVA_FILES)
-	$(AM_V_JAVAC) $(JAVAC) $(JAVAFLAGS) $(JAVA_FILES)
+	$(AM_V_JAVAC) $(JAVAC) $(JAVAFLAGS) $(JAVA_FILES) $(CONFIG_FILE)
 	$(AM_V_SILENT) touch $(CLASS_FILES)
 
 # N.B. that find must be called all over again in case javac generated
@@ -375,17 +375,18 @@ $(CLASS_FILES) &: $(JAVA_FILES)
 
 ALL_CLASS_FILES =				\
   $(subst $$,\$$,$(shell find $(srcdir) -type f -name *.class))
+ALL_CLASS_FILES_1 =
 
 ifneq ($(builddir),$(srcdir))
 # If the build directory is distinct from the source directory, also
 # include generated class files located there.
-ALL_CLASS_FILES	= $(ALL_CLASS_FILES) \
+ALL_CLASS_FILES_1 = \
   $(subst $$,\$$,$(shell find $(builddir) -type f -name *.class))
 endif
 
 classes.dex: $(CLASS_FILES) $(if $(IS_D8_R8), $(srcdir)/proguard.conf)
 	$(AM_V_D8) $(D8) --classpath $(ANDROID_JAR)		\
-	  $(ALL_CLASS_FILES)					\
+	  $(ALL_CLASS_FILES) $(ALL_CLASS_FILES_1)		\
 	  --output $(builddir)					\
 	  --min-api $(ANDROID_MIN_SDK)				\
 	  $(if $(filter false,$(ANDROID_DEBUGGABLE)),--release, \
