@@ -327,20 +327,20 @@ public final class EmacsNative
        loaded from Java.
 
        Every time you add a new shared library dependency to Emacs,
-       please add it here as well.  */
+       please insert it here as well, before other shared libraries of
+       which it might be a dependency.  */
 
     libraryDeps = new String[] { "c++_shared", "gnustl_shared",
 				 "stlport_shared", "gabi++_shared",
-				 "png_emacs", "selinux_emacs",
-				 "crypto_emacs", "pcre_emacs",
+				 "png_emacs", "pcre_emacs",
+				 "selinux_emacs", "crypto_emacs",
 				 "packagelistparser_emacs",
-				 "gnutls_emacs", "gmp_emacs",
-				 "nettle_emacs", "p11-kit_emacs",
-				 "tasn1_emacs", "hogweed_emacs",
-				 "jpeg_emacs",
-				 "tiff_emacs", "xml2_emacs",
-				 "icuuc_emacs", "harfbuzz_emacs",
-				 "tree-sitter_emacs", };
+				 "gmp_emacs", "nettle_emacs",
+				 "p11-kit_emacs", "tasn1_emacs",
+				 "hogweed_emacs", "gnutls_emacs",
+				 "jpeg_emacs", "tiff_emacs",
+				 "icuuc_emacs", "xml2_emacs",
+				 "harfbuzz_emacs", "tree-sitter_emacs", };
 
     for (String dependency : libraryDeps)
       {
