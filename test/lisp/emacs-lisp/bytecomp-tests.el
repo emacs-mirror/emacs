@@ -1135,7 +1135,7 @@ byte-compiled.  Run with dynamic binding."
                             "var.*foo.*lacks a prefix")
 
 (bytecomp--define-warning-file-test "warn-format.el"
-                            "called with 2 args to fill 1 format field")
+                            "called with 2 arguments to fill 1 format field")
 
 (bytecomp--define-warning-file-test "warn-free-setq.el"
                             "free.*foo")

@@ -1596,24 +1596,39 @@ extra args."
   (when (and (symbolp (car form))
 	     (stringp (nth 1 form))
 	     (get (car form) 'byte-compile-format-like))
-    (let ((nfields (with-temp-buffer
-		     (insert (nth 1 form))
-		     (goto-char (point-min))
-		     (let ((i 0) (n 0))
-		       (while (re-search-forward "%." nil t)
-                         (backward-char)
-			 (unless (eq ?% (char-after))
-                           (setq i (if (looking-at "\\([0-9]+\\)\\$")
-                                       (string-to-number (match-string 1) 10)
-                                     (1+ i))
-                                 n (max n i)))
-                         (forward-char))
-		       n)))
-	  (nargs (- (length form) 2)))
+    (let* ((nargs (length (cddr form)))
+           (nfields 0)
+           (format-str (nth 1 form))
+           (len (length format-str))
+           (start 0))
+      (while (and (< start len)
+                  (string-match
+                   (rx "%"
+                       (? (group (+ digit)) "$")         ; field
+                       (* (in "+ #0-"))                  ; flags
+                       (* digit)                         ; width
+                       (? "." (* digit))                 ; precision
+                       (? (group (in "sdioxXefgcS%"))))  ; spec
+                   format-str start))
+        (let ((field (if (match-beginning 1)
+                         (string-to-number (match-string 1 format-str))
+                       (1+ nfields)))
+              (spec (and (match-beginning 2)
+                         (aref format-str (match-beginning 2)))))
+          (setq start (match-end 0))
+          (cond
+           ((not spec)
+            (byte-compile-warn-x
+             form "Bad format sequence in call to `%s' at string offset %d"
+             (car form) (match-beginning 0)))
+           ((not (eq spec ?%))
+            (setq nfields (max field nfields))))))
       (unless (= nargs nfields)
-	(byte-compile-warn-x (car form)
-	 "`%s' called with %d args to fill %d format field(s)" (car form)
-	 nargs nfields)))))
+	(byte-compile-warn-x
+         (car form) "`%s' called with %d argument%s to fill %d format field%s"
+         (car form)
+         nargs (if (= nargs 1) "" "s")
+         nfields (if (= nfields 1) "" "s"))))))
 
 (dolist (elt '(format message format-message error))
   (put elt 'byte-compile-format-like t))
