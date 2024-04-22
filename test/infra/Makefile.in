@@ -103,7 +103,7 @@ define subdir_template
 	@echo '        - test/$(1)/*.el' >>$(FILE)
 	@echo '  variables:' >>$(FILE)
 	@echo '    target: emacs-inotify' >>$(FILE)
-	@echo '    make_params: "-C test $(target)"' >>$(FILE)
+	@echo '    make_params: -C test $(target)' >>$(FILE)
 endef
 
 $(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
