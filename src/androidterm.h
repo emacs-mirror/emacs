@@ -77,8 +77,9 @@ struct android_display_info
   /* Mouse highlight information.  */
   Mouse_HLInfo mouse_highlight;
 
-  /* Number of planes on this screen.  Always 24.  */
-  int n_planes;
+  /* Number of planes on this screen, and the same for the purposes of
+     image processing.  */
+  int n_planes, n_image_planes;
 
   /* Mask of things causing the mouse to be grabbed.  */
   int grabbed;

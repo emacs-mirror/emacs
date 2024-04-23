@@ -198,6 +198,9 @@ typedef android_pixmap Pixmap;
 #define GREEN16_FROM_ULONG(color)	(GREEN_FROM_ULONG (color) * 0x101)
 #define BLUE16_FROM_ULONG(color)	(BLUE_FROM_ULONG (color) * 0x101)
 
+/* DPYINFO->n_planes is unsuitable for this file, because it accepts
+   values that may not be supported for pixmap creation.  */
+#define n_planes n_image_planes
 #endif
 
 static void image_disable_image (struct frame *, struct image *);

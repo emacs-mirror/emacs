@@ -1964,10 +1964,33 @@ android_parse_color (struct frame *f, const char *color_name,
 bool
 android_alloc_nearest_color (struct frame *f, Emacs_Color *color)
 {
+  unsigned int ntsc;
+
   gamma_correct (f, color);
-  color->pixel = RGB_TO_ULONG (color->red / 256,
-			       color->green / 256,
-			       color->blue / 256);
+
+  if (FRAME_DISPLAY_INFO (f)->n_planes == 1)
+    {
+      /* Black and white.  I think this is the luminance formula applied
+	 by the X server on generic monochrome framebuffers.  */
+      color->pixel = ((((30l * color->red
+			 + 59l * color->green
+			 + 11l * color->blue) >> 8)
+		       >= (((1 << 8) -1) * 50))
+		      ? 0xffffff : 0);
+    }
+  else if (FRAME_DISPLAY_INFO (f)->n_planes <= 8)
+    {
+      /* 256 grays.  */
+      ntsc = min (255, ((color->red * 0.299
+			 + color->green * 0.587
+			 + color->blue * 0.114)
+			/ 256));
+      color->pixel = RGB_TO_ULONG (ntsc, ntsc, ntsc);
+    }
+  else
+    color->pixel = RGB_TO_ULONG (color->red / 256,
+				 color->green / 256,
+				 color->blue / 256);
 
   return true;
 }
@@ -1980,8 +2003,8 @@ android_query_colors (struct frame *f, Emacs_Color *colors, int ncolors)
   for (i = 0; i < ncolors; ++i)
     {
       colors[i].red = RED_FROM_ULONG (colors[i].pixel) * 257;
-      colors[i].green = RED_FROM_ULONG (colors[i].pixel) * 257;
-      colors[i].blue = RED_FROM_ULONG (colors[i].pixel) * 257;
+      colors[i].green = GREEN_FROM_ULONG (colors[i].pixel) * 257;
+      colors[i].blue = BLUE_FROM_ULONG (colors[i].pixel) * 257;
     }
 }
 
@@ -2630,7 +2653,7 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       clipmask = ANDROID_NONE;
       background = face->background;
       cursor_pixel = f->output_data.android->cursor_pixel;
-      depth = FRAME_DISPLAY_INFO (f)->n_planes;
+      depth = FRAME_DISPLAY_INFO (f)->n_image_planes;
 
       /* Intersect the destination rectangle with that of the row.
 	 Setting a clip mask overrides the clip rectangles provided by
@@ -6504,8 +6527,8 @@ android_term_init (void)
   terminal = android_create_terminal (dpyinfo);
   terminal->kboard = allocate_kboard (Qandroid);
   terminal->kboard->reference_count++;
-
   dpyinfo->n_planes = 24;
+  dpyinfo->n_image_planes = 24;
 
   /* This function should only be called once at startup.  */
   eassert (!x_display_list);
@@ -6701,6 +6724,17 @@ Emacs is running on.  */);
   DEFVAR_LISP ("android-build-manufacturer", Vandroid_build_manufacturer,
     doc: /* Name of the developer of the running version of Android.  */);
   Vandroid_build_manufacturer = Qnil;
+
+  DEFVAR_INT ("android-display-planes", android_display_planes,
+    doc: /* Depth and visual class of the display.
+This variable controls the visual class and depth of the display, which
+cannot be detected on Android.  The default value of 24, and values from
+there to 8 represent a TrueColor display providing 24 planes, values
+between 8 and 1 StaticGray displays providing that many planes, and 1 or
+lower monochrome displays with a single plane.  Modifications to this
+variable must be completed before the window system is initialized, in,
+for instance, `early-init.el', or they will be of no effect.  */);
+  android_display_planes = 24;
 
   DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
     doc: /* SKIP: real doc in xterm.c.  */);
