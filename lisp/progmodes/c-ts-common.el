@@ -301,7 +301,7 @@ and /* */ comments.  SOFT works the same as in
       (delete-region (line-beginning-position) (point))
       (insert "//" whitespaces)))
 
-   ;; Line starts with /* or /**
+   ;; Line starts with /* or /**.
    ((save-excursion
       (beginning-of-line)
       (looking-at (rx "/*" (group (? "*") (* " ")))))
@@ -310,14 +310,24 @@ and /* */ comments.  SOFT works the same as in
       (delete-region (line-beginning-position) (point))
       (insert " *" (make-string whitespace-and-star-len ?\s))))
 
-   ;; Line starts with *
+   ;; Line starts with *.
    ((save-excursion
       (beginning-of-line)
       (looking-at (rx (group (* " ") (or "*" "|") (* " ")))))
     (let ((prefix (match-string 1)))
       (if soft (insert-and-inherit ?\n) (newline 1))
       (delete-region (line-beginning-position) (point))
-      (insert prefix)))))
+      (insert prefix)))
+
+   ;; Line starts with whitespaces or no space.  This is basically the
+   ;; default case since (rx (* " ")) matches anything.
+   ((save-excursion
+      (beginning-of-line)
+      (looking-at (rx (* " "))))
+    (let ((whitespaces (match-string 0)))
+      (if soft (insert-and-inherit ?\n) (newline 1))
+      (delete-region (line-beginning-position) (point))
+      (insert whitespaces)))))
 
 ;;; Statement indent
 
