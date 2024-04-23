@@ -2334,19 +2334,33 @@ documentation for details.
 @vindex xref-auto-jump-to-first-definition
   If any of the above commands finds more than one matching
 definition, it by default pops up the @file{*xref*} buffer showing the
-matching candidates.  (@kbd{C-M-.}@: @emph{always} pops up the
-@file{*xref*} buffer if it finds at least one match.)  The candidates
-are normally shown in that buffer as the name of a file and the
-matching identifier(s) in that file.  In that buffer, you can select
-any of the candidates for display, and you have several additional
-commands, described in @ref{Xref Commands}.  However, if the value of
-the variable @code{xref-auto-jump-to-first-definition} is @code{move},
-the first of these candidates is automatically selected in the
-@file{*xref*} buffer, and if it's @code{t} or @code{show}, the first
-candidate is automatically shown in its own window; @code{t} also
-selects the window showing the first candidate.  The default value is
-@code{nil}, which just shows the candidates in the @file{*xref*}
-buffer, but doesn't select any of them.
+matching candidates and selects that buffer's window.  (@kbd{C-M-.}@:
+@emph{always} pops up the @file{*xref*} buffer if it finds at least
+one match.)  Each candidate is normally shown in that buffer as the
+name of a file and the matching identifier(s) in that file.  In that
+buffer, you can select any of the candidates for display, and you have
+several additional commands, described in @ref{Xref Commands}.
+However, if the value of the variable
+@code{xref-auto-jump-to-first-definition} is @code{move}, Emacs
+automatically moves point to the first of these candidates in the
+@file{*xref*} buffer, so just typing @key{RET} will display the
+definition of that candidate.  If the value of the variable is
+@code{t} or @code{show}, the first candidate is automatically shown in
+its own window; @code{t} also selects the window showing the first
+candidate's definition, while @code{show} leaves the window of the
+@file{*xfer*} buffer selected.  The default value is @code{nil}, which
+just shows the candidates in the @file{*xref*} buffer, but neither
+selects any of them nor shows their definition, until you select a
+candidate in the @file{*xref*} buffer.
+
+@findex next-error, in @file{*xref*} buffer
+@findex previous-error, in @file{*xref*} buffer
+@kindex M-g M-n, for navigation in @file{*xref*} buffer
+@kindex M-g M-p, for navigation in @file{*xref*} buffer
+  If you switch away of the window showing the @file{*xref*} buffer
+which displays several candidates, you can move from one candidate to
+another using the commands @w{@kbd{M-g M-n}} (@code{next-error}) and
+@w{@kbd{M-g M-p}} (@code{previous-error}).  @xref{Compilation Mode}.
 
 @kindex M-,
 @findex xref-go-back
@@ -2509,12 +2523,17 @@ referenced.  The XREF mode commands are available in this buffer, see
 @vindex xref-auto-jump-to-first-xref
   If the value of the variable @code{xref-auto-jump-to-first-xref} is
 @code{t}, @code{xref-find-references} automatically jumps to the first
-result and selects the window where it is displayed.  If the value is
-@code{show}, the first result is shown, but the window showing the
+result in the @file{*xref*} buffer and selects the window where that
+reference is displayed; you can select the other results with
+@w{@kbd{M-g M-n}} (@code{next-error}) and @w{@kbd{M-g M-p}}
+(@code{previous-error}) (@pxref{Compilation Mode}).  If the value is
+@code{show}, the first result is displayed, but the window showing the
 @file{*xref*} buffer is left selected.  If the value is @code{move},
 the first result is selected in the @file{*xref*} buffer, but is not
-shown.  The default value is @code{nil}, which just shows the results
-in the @file{*xref*} buffer, but doesn't select any of them.
+displayed; you can then use @key{RET} to actually display the
+reference.  The default value is @code{nil}, which just shows the
+results in the @file{*xref*} buffer, but doesn't select any of them,
+and doesn't display the reference itself.
 
 @findex xref-query-replace-in-results
   @kbd{r} (@code{xref-query-replace-in-results}) reads a @var{replacement}
