@@ -93,6 +93,7 @@ default:
     # - test -n "$(docker ps -aq -f name=${test_name})" && ( docker export ${test_name} | tar -tvf - )
     # Prepare test artifacts.
     - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
+    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/configure.log ${test_name}
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
     - find ${test_name} ! \( -name "*.log" -o -name ${EMACS_TEST_JUNIT_REPORT} \) -type f -delete
     # BusyBox find does not know -empty.
