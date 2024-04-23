@@ -125,6 +125,9 @@ ARG is passed to `fill-paragraph'."
                             (treesit-node-type node))
         (if (save-excursion
               (goto-char (treesit-node-start node))
+              ;; In rust, NODE will be the body of a comment excluding
+              ;; the //, so we need to go to BOL to check for //.
+              (back-to-indentation)
               (looking-at "//"))
             (fill-comment-paragraph arg)
           (c-ts-common--fill-block-comment arg)))
