@@ -69,12 +69,6 @@ typedef struct
   unsigned width, height;
 } Emacs_Rectangle;
 
-#else
-
-typedef struct android_rectangle Emacs_Rectangle;
-
-#endif
-
 /* XGCValues-like struct used by non-X GUI code.  */
 typedef struct
 {
@@ -87,6 +81,19 @@ typedef struct
    need these.  */
 #define GCForeground 0x01
 #define GCBackground 0x02
+
+#else
+
+typedef struct android_rectangle Emacs_Rectangle;
+typedef struct android_gc_values Emacs_GC;
+
+#define GCForeground		ANDROID_GC_FOREGROUND
+#define GCBackground		ANDROID_GC_BACKGROUND
+#define GCFillStyle		ANDROID_GC_FILL_STYLE
+#define GCStipple		ANDROID_GC_STIPPLE
+#define FillOpaqueStippled	ANDROID_FILL_OPAQUE_STIPPLED
+
+#endif
 
 #endif /* HAVE_X_WINDOWS */
 

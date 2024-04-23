@@ -40,22 +40,23 @@ public final class EmacsFillRectangle
     Canvas canvas;
     Bitmap clipBitmap;
 
-    /* TODO implement stippling.  */
-    if (gc.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
-      return;
-
     canvas = drawable.lockCanvas (gc);
 
     if (canvas == null)
       return;
 
-    paint = gc.gcPaint;
     rect = new Rect (x, y, x + width, y + height);
 
+    paint = gc.gcPaint;
     paint.setStyle (Paint.Style.FILL);
 
     if (gc.clip_mask == null)
-      canvas.drawRect (rect, paint);
+      {
+	if (gc.fill_style != EmacsGC.GC_FILL_OPAQUE_STIPPLED)
+	  canvas.drawRect (rect, paint);
+	else
+	  gc.blitOpaqueStipple (canvas, rect);
+      }
     else
       {
 	/* Drawing with a clip mask involves calculating the
@@ -113,4 +114,4 @@ public final class EmacsFillRectangle
 
     drawable.damageRect (rect);
   }
-}
+};

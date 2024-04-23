@@ -95,7 +95,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
  # define  PATH_DOC			"/assets/etc/"
  # define  PATH_INFO			"/assets/info/"
  # define  PATH_GAME			""
- # define  PATH_BITMAPS			""
+ # define  PATH_BITMAPS			"/assets/bitmaps/"
 
 extern char *android_site_load_path;
 extern char *android_lib_dir;

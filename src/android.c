@@ -4882,8 +4882,8 @@ android_pixmap
 android_create_bitmap_from_data (char *bits, unsigned int width,
 				 unsigned int height)
 {
-  return android_create_pixmap_from_bitmap_data (bits, 1, 0,
-						 width, height, 1);
+  return android_create_pixmap_from_bitmap_data (bits, width, height,
+						 1, 0, 1);
 }
 
 struct android_image *
@@ -5994,40 +5994,22 @@ android_toggle_on_screen_keyboard (android_window window, bool show)
 
 
 
-#if defined __clang_major__ && __clang_major__ < 5
-# define HAS_BUILTIN_TRAP 0
-#elif 3 < __GNUC__ + (3 < __GNUC_MINOR__ + (4 <= __GNUC_PATCHLEVEL__))
-# define HAS_BUILTIN_TRAP 1
-#elif defined __has_builtin
-# define HAS_BUILTIN_TRAP __has_builtin (__builtin_trap)
-#else /* !__has_builtin */
-# define HAS_BUILTIN_TRAP 0
-#endif /* defined __clang_major__ && __clang_major__ < 5 */
-
 /* emacs_abort implementation for Android.  This logs a stack
    trace.  */
 
 void
 emacs_abort (void)
 {
-#ifndef HAS_BUILTIN_TRAP
   volatile char *foo;
-#endif /* !HAS_BUILTIN_TRAP */
 
   __android_log_print (ANDROID_LOG_FATAL, __func__,
 		       "emacs_abort called, please review the following"
 		       " stack trace");
 
-#ifndef HAS_BUILTIN_TRAP
   /* Induce a NULL pointer dereference to make debuggerd generate a
      tombstone.  */
   foo = NULL;
   *foo = '\0';
-#else /* HAS_BUILTIN_TRAP */
-  /* Crash through __builtin_trap instead.  This appears to more
-     uniformly elicit crash reports from debuggerd.  */
-  __builtin_trap ();
-#endif /* !HAS_BUILTIN_TRAP */
 
   abort ();
 }

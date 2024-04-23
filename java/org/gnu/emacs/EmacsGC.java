@@ -22,9 +22,18 @@ package org.gnu.emacs;
 import android.graphics.Rect;
 import android.graphics.Paint;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
 import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Shader.TileMode;
 import android.graphics.Xfermode;
+
+import android.graphics.drawable.BitmapDrawable;
+
+import android.os.Build;
 
 /* X like graphics context structures.  Keep the enums in synch with
    androidgui.h! */
@@ -46,6 +55,9 @@ public final class EmacsGC extends EmacsHandleObject
   public Rect clip_rects[], real_clip_rects[];
   public EmacsPixmap clip_mask, stipple;
   public Paint gcPaint;
+
+  /* Drawable object for rendering the stiple bitmap.  */
+  public BitmapDrawable tileObject;
 
   /* ID incremented every time the clipping rectangles of any GC
      changes.  */
@@ -86,6 +98,7 @@ public final class EmacsGC extends EmacsHandleObject
   markDirty (boolean clipRectsChanged)
   {
     int i;
+    Bitmap stippleBitmap;
 
     if (clipRectsChanged)
       {
@@ -110,12 +123,85 @@ public final class EmacsGC extends EmacsHandleObject
     gcPaint.setColor (foreground | 0xff000000);
     gcPaint.setXfermode (function == GC_XOR
 			 ? xorAlu : srcInAlu);
+
+    /* Update the stipple object with the new stipple bitmap, or delete
+       it if the stipple has been cleared on systems too old to support
+       modifying such objects.  */
+
+    if (stipple != null)
+      {
+	stippleBitmap = stipple.getBitmap ();
+
+	/* Allocate a new tile object if none is already present or it
+	   cannot be reconfigured.  */
+	if ((tileObject == null)
+	    || (Build.VERSION.SDK_INT < Build.VERSION_CODES.S))
+	  {
+	    tileObject = new BitmapDrawable (EmacsService.resources,
+					     stippleBitmap);
+	    tileObject.setTileModeXY (TileMode.MIRROR, TileMode.MIRROR);
+	  }
+	else
+	  /* Otherwise, update the existing tile object with the new
+	     bitmap.  */
+	  tileObject.setBitmap (stippleBitmap);
+      }
+    else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+	     && tileObject != null)
+      tileObject.setBitmap (null);
+    else if (tileObject != null)
+      tileObject = null;
   }
 
-  public void
-  resetXfermode ()
+  /* Prepare the tile object to draw a stippled image onto a section of
+     a drawable defined by RECT.  It is an error to call this function
+     unless the `stipple' field of the GContext is set.  */
+
+  private void
+  prepareStipple (Rect rect)
   {
-    gcPaint.setXfermode (function == GC_XOR
-			 ? xorAlu : srcInAlu);
+    int sx, sy; /* Stipple origin.  */
+    int bw, bh; /* Stipple size.  */
+    Bitmap bitmap;
+    Rect boundsRect;
+
+    /* Retrieve the dimensions of the stipple bitmap, which doubles as
+       the unit of advance for this stipple.  */
+    bitmap = tileObject.getBitmap ();
+    bw     = bitmap.getWidth ();
+    bh     = bitmap.getHeight ();
+
+    /* Align the lower left corner of the bounds rectangle to the
+       initial position of the stipple.  */
+    sx = (rect.left % bw) * -1 + (-ts_origin_x % bw) * -1;
+    sy = (rect.top  % bh) * -1 + (-ts_origin_y % bh) * -1;
+    boundsRect = new Rect (rect.left + sx, rect.top + sy,
+			   rect.right, rect.bottom);
+    tileObject.setBounds (boundsRect);
+  }
+
+  /* Fill the rectangle BOUNDS in the provided CANVAS with the stipple
+     pattern defined for this GContext, in the foreground color where
+     the pattern is on, and in the background color where off.  */
+
+  protected void
+  blitOpaqueStipple (Canvas canvas, Rect rect)
+  {
+    ColorFilter filter;
+
+    prepareStipple (rect);
+    filter = new PorterDuffColorFilter (foreground | 0xff000000,
+					Mode.SRC_IN);
+    tileObject.setColorFilter (filter);
+
+    canvas.save ();
+    canvas.clipRect (rect);
+
+    tileObject.draw (canvas);
+    filter = new PorterDuffColorFilter (background | 0xff000000,
+					Mode.SRC_OUT);
+    tileObject.setColorFilter (filter);
+    tileObject.draw (canvas);
+    canvas.restore ();
   }
 };

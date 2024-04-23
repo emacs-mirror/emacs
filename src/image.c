@@ -419,7 +419,7 @@ x_bitmap_stipple (struct frame *f, Pixmap pixmap)
 #endif	/* USE_CAIRO */
 #endif
 
-#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI) || defined (HAVE_ANDROID)
 ptrdiff_t
 image_bitmap_pixmap (struct frame *f, ptrdiff_t id)
 {

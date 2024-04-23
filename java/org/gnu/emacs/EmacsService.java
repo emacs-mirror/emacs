@@ -64,6 +64,7 @@ import android.content.pm.PackageManager;
 
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 
 import android.hardware.input.InputManager;
 
@@ -145,6 +146,9 @@ public final class EmacsService extends Service
   /* The Thread object representing the Android user interface
      thread.  */
   private Thread mainThread;
+
+  /* "Resources" object required by GContext bookkeeping.  */
+  public static Resources resources;
 
   static
   {
@@ -238,10 +242,11 @@ public final class EmacsService extends Service
     super.onCreate ();
 
     SERVICE = this;
+    resources = getResources ();
     handler = new Handler (Looper.getMainLooper ());
     manager = getAssets ();
     app_context = getApplicationContext ();
-    metrics = getResources ().getDisplayMetrics ();
+    metrics = resources.getDisplayMetrics ();
     pixelDensityX = metrics.xdpi;
     pixelDensityY = metrics.ydpi;
     tempScaledDensity = ((getScaledDensity (metrics)
