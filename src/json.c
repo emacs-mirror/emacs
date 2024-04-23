@@ -197,7 +197,13 @@ cleanup_symset_tables (struct symset_tbl *st)
 static inline uint32_t
 symset_hash (Lisp_Object sym, int bits)
 {
-  return knuth_hash (reduce_emacs_uint_to_hash_hash (XHASH (sym)), bits);
+  EMACS_UINT hash;
+#ifdef HAVE_MPS
+  hash = igc_hash (sym);
+#else
+  hash = XHASH (sym);
+#endif
+  return knuth_hash (reduce_emacs_uint_to_hash_hash (hash), bits);
 }
 
 /* Enlarge the table used by a symset.  */
