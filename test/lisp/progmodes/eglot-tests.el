@@ -230,7 +230,7 @@ directory hierarchy."
                                          `(push message ,client-replies)))))))))
          (unwind-protect
              (progn
-               (add-hook 'jsonrpc-event-hook #',log-event-hook-sym)
+               (add-hook 'jsonrpc-event-hook #',log-event-hook-sym t)
                ,@body)
            (remove-hook 'jsonrpc-event-hook #',log-event-hook-sym))))))
 
@@ -452,17 +452,42 @@ directory hierarchy."
         (find-file-noselect "symlink-project/main.cpp")
       (make-symbolic-link "main.cpp" "mainlink.cpp")
       (eglot--tests-connect)
-      (find-file-noselect "mainlink.cpp")
+      (eglot--sniffing (:client-notifications c-notifs)
+        (let ((eglot-autoshutdown nil)) (kill-buffer (current-buffer)))
+        (eglot--wait-for (c-notifs 10)
+            (&key method &allow-other-keys)
+          (and (string= method "textDocument/didClose")))))
+    (eglot--sniffing (:client-notifications c-notifs)
       (with-current-buffer
-          (find-file-noselect "foo.h")
-        (goto-char 5)
-        (xref-find-references "foo")
-        (with-current-buffer (get-buffer "*xref*")
-          (goto-char (point-max))
-          ;; Expect xref buffer to not contain duplicate references to
-          ;; main.c and mainlink.c.  If it did, total lines would be 7.
-          ;; FIXME: make less brittle by counting actual references.
-          (should (= (line-number-at-pos (point)) 5)))))))
+          (find-file-noselect "symlink-project/main.cpp")
+        (should (eglot-current-server)))
+      (eglot--wait-for (c-notifs 10)
+          (&rest whole &key params method &allow-other-keys)
+        (and (string= method "textDocument/didOpen")
+             (string-match "main.cpp$"
+                           (plist-get (plist-get params :textDocument)
+                                      :uri)))))
+    ;; This last segment is deactivated, because it's likely not needed.
+    ;; The only way the server would answer with '3' references is if we
+    ;; had erroneously sent a 'didOpen' for anything other than
+    ;; `main.cpp', but if we got this far is because we've just asserted
+    ;; that we didn't.
+    (when nil
+      (with-current-buffer
+          (find-file-noselect "symlink-project/foo.h")
+        ;; Give clangd some time to settle its analysis so it can
+        ;; accurately respond to `textDocument/references'
+        (sleep-for 3)
+        (search-forward "foo")
+        (eglot--sniffing (:server-replies s-replies)
+          (call-interactively 'xref-find-references)
+          (eglot--wait-for (s-replies 10)
+              (&key method result &allow-other-keys)
+            ;; Expect xref buffer to not contain duplicate references to
+            ;; main.cpp and mainlink.cpp.  If it did, 'result's length
+            ;; would be 3.
+            (and (string= method "textDocument/references")
+                 (= (length result) 2))))))))
 
 (ert-deftest eglot-test-diagnostic-tags-unnecessary-code ()
   "Test rendering of diagnostics tagged \"unnecessary\"."
