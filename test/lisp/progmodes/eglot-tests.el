@@ -439,6 +439,9 @@ directory hierarchy."
 (ert-deftest eglot-test-basic-symlink ()
   "Test basic symlink support."
   (skip-unless (executable-find "clangd"))
+  ;; This test is said to fail due to bug#70408.  So we skip it at least
+  ;; on EMBA, because it poisons the test jobs.
+  (skip-when (getenv "EMACS_EMBA_CI"))
   ;; MS-Windows either fails symlink creation or pops up UAC prompts.
   (skip-when (eq system-type 'windows-nt))
   (eglot--with-fixture
