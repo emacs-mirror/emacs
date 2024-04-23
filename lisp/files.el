@@ -8812,9 +8812,10 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
   ;; If `system-move-file-to-trash' is defined, use it.
   (cond ((fboundp 'system-move-file-to-trash)
 	 (system-move-file-to-trash filename))
-        (trash-directory
+        ((connection-local-value trash-directory)
 	 ;; If `trash-directory' is non-nil, move the file there.
-	 (let* ((trash-dir   (expand-file-name trash-directory))
+	 (let* ((trash-dir   (expand-file-name
+                              (connection-local-value trash-directory)))
 		(fn          (directory-file-name (expand-file-name filename)))
 		(new-fn      (concat (file-name-as-directory trash-dir)
 				     (file-name-nondirectory fn))))

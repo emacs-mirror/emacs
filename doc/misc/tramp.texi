@@ -5444,7 +5444,7 @@ HISTFILE=/dev/null
 Where are remote files trashed to?
 
 @vindex remote-file-name-inhibit-delete-by-moving-to-trash
-Emacs can trash file instead of deleting
+Emacs can trash files instead of deleting
 @ifinfo
 them, @ref{Misc File Ops, Trashing , , emacs}.
 @end ifinfo
@@ -5455,6 +5455,29 @@ Remote files are always trashed to the local trash, except the user
 option @code{remote-file-name-inhibit-delete-by-moving-to-trash} is
 non-@code{nil}, or it is a remote encrypted file (@pxref{Keeping files
 encrypted}), which are deleted anyway.
+
+@c Since Emacs 30.
+@vindex trash-directory
+If you want to trash a remote file into a remote trash directory, you
+could configure the user option @code{trash-directory} to a
+connection-local value.
+@ifinfo
+@xref{Connection Variables, , , emacs}.
+@end ifinfo
+
+@lisp
+@group
+(connection-local-set-profile-variables
+ 'remote-trash-directory
+ '((trash-directory . "/sudo::~/.local/share/Trash")))
+@end group
+
+@group
+(connection-local-set-profiles
+ `(:application tramp :protocol "sudo" :machine ,system-name)
+ 'remote-trash-directory)
+@end group
+@end lisp
 
 If Emacs is configured to use the XDG conventions for the trash
 directory, remote files cannot be restored with the respective tools,
@@ -5885,6 +5908,17 @@ as above in your @file{~/.emacs}:
       (cons 'remote-file-error debug-ignored-errors))
 @end group
 @end lisp
+
+
+@item
+How to ignore errors when changing file attributes?
+
+@vindex tramp-inhibit-errors-if-setting-file-attributes-fail
+Sometimes, for example while saving remote files, errors appear when
+changing file attributes like permissions, time stamps, or ownership.
+If these errors can be ignored, set user option
+@code{tramp-inhibit-errors-if-setting-file-attributes-fail} to a
+non-@code{nil} value.  This transforms the error into a warning.
 
 
 @item
