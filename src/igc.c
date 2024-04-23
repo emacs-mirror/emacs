@@ -101,7 +101,11 @@ static mps_addr_t min_addr, max_addr;
 static bool
 is_pure (const mps_addr_t addr)
 {
+#ifdef IN_MY_FORK
+  return false;
+#else
   return PURE_P (addr);
+#endif
 }
 
 static bool
@@ -572,7 +576,11 @@ fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
     IGC_FIX12_OBJ (ss, &sym->u.s.name);
     IGC_FIX12_OBJ (ss, &sym->u.s.function);
     IGC_FIX12_OBJ (ss, &sym->u.s.plist);
+#ifdef IN_MY_FORK
+    IGC_FIX12_OBJ (ss, &sym->u.s.package);
+#else
     IGC_FIX12_RAW (ss, &sym->u.s.next);
+#endif
     switch (sym->u.s.redirect)
       {
       case SYMBOL_PLAINVAL:
@@ -803,6 +811,7 @@ scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
   return MPS_RES_OK;
 }
 
+#ifndef IN_MY_FORK
 static mps_res_t
 scan_pure (mps_ss_t ss, void *start, void *end, void *closure)
 {
@@ -817,6 +826,7 @@ scan_pure (mps_ss_t ss, void *start, void *end, void *closure)
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
 }
+#endif
 
 static mps_res_t
 scan_bc (mps_ss_t ss, void *start, void *end, void *closure)
@@ -1474,6 +1484,7 @@ fix_other (mps_ss_t ss, void *o)
   return MPS_RES_OK;
 }
 
+#ifndef IN_MY_FORK
 static mps_res_t
 fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
 {
@@ -1485,6 +1496,7 @@ fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
 }
+#endif
 
 /* Note that there is a small window after committing a vectorlike
    allocation where the object is zeroed, and so the vector header is
@@ -1497,9 +1509,11 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
   {
     switch (pseudo_vector_type (v))
       {
+#ifndef IN_MY_FORK
       case PVEC_OBARRAY:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Obarray, v, fix_obarray);
 	break;
+#endif
 
       case PVEC_BUFFER:
 	IGC_FIX_CALL_FN (ss, struct buffer, v, fix_buffer);
@@ -1597,6 +1611,9 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_COMPILED:
       case PVEC_RECORD:
       case PVEC_FONT:
+#ifdef IN_MY_FORK
+      case PVEC_PACKAGE:
+#endif
 	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
 	break;
       }
@@ -1722,6 +1739,7 @@ root_create_igc (struct igc *gc)
   root_create (gc, gc, gc + 1, mps_rank_exact (), scan_igc, false);
 }
 
+#ifndef IN_MY_FORK
 static void
 root_create_pure (struct igc *gc)
 {
@@ -1729,6 +1747,7 @@ root_create_pure (struct igc *gc)
   void *end = &pure[PURESIZE];
   root_create (gc, start, end, mps_rank_ambig (), scan_pure, true);
 }
+#endif
 
 static void
 root_create_thread (struct igc_thread_list *t)
@@ -1979,6 +1998,7 @@ finalize_hash_table (struct Lisp_Hash_Table *h)
     }
 }
 
+#ifndef IN_MY_FORK
 static void
 finalize_obarray (struct Lisp_Obarray *o)
 {
@@ -1989,6 +2009,7 @@ finalize_obarray (struct Lisp_Obarray *o)
       xfree (b);
     }
 }
+#endif
 
 static void
 finalize_bignum (struct Lisp_Bignum *n)
@@ -2157,9 +2178,11 @@ finalize_vector (mps_addr_t v)
       finalize_finalizer (v);
       break;
 
+#ifndef IN_MY_FORK
     case PVEC_OBARRAY:
       finalize_obarray (v);
       break;
+#endif
 
     case PVEC_SYMBOL_WITH_POS:
     case PVEC_PROCESS:
@@ -2168,6 +2191,9 @@ finalize_vector (mps_addr_t v)
     case PVEC_SQLITE:
     case PVEC_TS_NODE:
     case PVEC_NORMAL_VECTOR:
+#ifdef IN_MY_FORK
+    case PVEC_PACKAGE:
+#endif
     case PVEC_WINDOW_CONFIGURATION:
     case PVEC_BUFFER:
     case PVEC_FRAME:
@@ -2241,7 +2267,9 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
     case PVEC_NATIVE_COMP_UNIT:
     case PVEC_SUBR:
     case PVEC_FINALIZER:
+#ifndef IN_MY_FORK
     case PVEC_OBARRAY:
+#endif
       mps_finalize (global_igc->arena, &ref);
       break;
 
@@ -2267,6 +2295,9 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
+#ifdef IN_MY_FORK
+    case PVEC_PACKAGE:
+#endif
       break;
     }
 }
@@ -2776,7 +2807,9 @@ make_igc (void)
   gc->weak_pool = make_pool_awl (gc, gc->weak_fmt);
 
   root_create_igc (gc);
+#ifndef IN_MY_FORK
   root_create_pure (gc);
+#endif
   root_create_buffer (gc, &buffer_defaults);
   root_create_buffer (gc, &buffer_local_symbols);
   root_create_staticvec (gc);
