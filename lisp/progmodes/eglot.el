@@ -1091,8 +1091,11 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
 (cl-defun eglot-path-to-uri (path &key truenamep)
   "Convert PATH, a file name, to LSP URI string and return it.
 TRUENAMEP indicated PATH is already a truename."
-  ;; LSP assumes little of filesystems, servers being potentially
-  ;; physically detached from it.  Make sure we hand them true names.
+  ;; LSP servers should not be expected to access the filesystem, and
+  ;; therefore are generally oblivious that some filenames are
+  ;; different, but point to the same file, like a symlink and its
+  ;; target.  Make sure we hand the server the true name of a file by
+  ;; calling file-truename.
   (let ((truepath (if truenamep path (file-truename path))))
     (if (and (url-type (url-generic-parse-url path))
              ;; PATH might be MS Windows file name which includes a
