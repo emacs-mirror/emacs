@@ -58,7 +58,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # error "HAVE_PDUMPER required"
 #endif
 #ifdef HAVE_TEXT_CONVERSION
-# error "HAVE_TEXT_CONVERSION not supported"
+//# error "HAVE_TEXT_CONVERSION not supported"
+# warning "HAVE_TEXT_CONVERSION not supported"
 #endif
 
 /* Note: Emacs will call allocation functions whlle aborting. This leads
@@ -2678,7 +2679,7 @@ DEFUN ("igc-roots", Figc_roots, Sigc_roots, 0, 0, 0, doc : /* */)
 (void)
 {
   struct igc *gc = global_igc;
-  Lisp_Object roots;
+  Lisp_Object roots = Qnil;
 
   for (igc_root_list *r = gc->roots; r; r = r->next)
     {

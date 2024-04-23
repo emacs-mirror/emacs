@@ -3025,6 +3025,7 @@ unref_cl_data (xg_menu_cb_data *cl_data)
 
 /* Function that marks all lisp data during GC.  */
 
+#ifndef HAVE_MPS
 void
 xg_mark_data (void)
 {
@@ -3069,6 +3070,7 @@ xg_mark_data (void)
     }
 #endif
 }
+#endif
 
 /* Callback called when a menu item is destroyed.  Used to free data.
    W is the widget that is being destroyed (not used).

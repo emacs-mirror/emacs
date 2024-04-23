@@ -32212,6 +32212,7 @@ init_xterm (void)
 #endif
 }
 
+#ifndef HAVE_MPS
 void
 mark_xterm (void)
 {
@@ -32263,6 +32264,7 @@ mark_xterm (void)
     }
 #endif
 }
+#endif
 
 /* Error handling functions for Lisp functions that expose X protocol
    requests.  They are mostly like `x_catch_errors' and friends, but
