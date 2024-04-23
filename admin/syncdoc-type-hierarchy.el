@@ -35,6 +35,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'org)
 
 (defconst syncdoc-file (or (macroexp-file-name) buffer-file-name))
 
