@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 // clang-format on
 
 #include <config.h>
-#include "igc.h"
 #include <limits.h>
 #include <mps.h>
 #include <mpsavm.h>
@@ -30,6 +29,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include <mpslib.h>
 #include <stdlib.h>
 #include "lisp.h"
+#include "comp.h"
+#include "igc.h"
 #include "bignum.h"
 #include "buffer.h"
 #include "coding.h"
@@ -1444,6 +1445,19 @@ fix_finalizer (mps_ss_t ss, struct Lisp_Finalizer *f)
   return MPS_RES_OK;
 }
 
+static mps_res_t
+fix_native_cu (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, u, fix_vectorlike);
+    size_t n = XFIXNUM (Flength (u->data_impure_vec));
+    IGC_FIX12_NOBJS (ss, u->data_imp_relocs, n);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 #ifdef HAVE_XWIDGETS
 
 static mps_res_t
@@ -1596,6 +1610,10 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_BIGNUM:
 	break;
 
+      case PVEC_NATIVE_COMP_UNIT:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Native_Comp_Unit, v, fix_native_cu);
+	break;
+
       case PVEC_NORMAL_VECTOR:
       case PVEC_SYMBOL_WITH_POS:
       case PVEC_PROCESS:
@@ -1604,7 +1622,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_XWIDGET_VIEW:
       case PVEC_MODULE_FUNCTION:
       case PVEC_CONDVAR:
-      case PVEC_NATIVE_COMP_UNIT:
       case PVEC_TS_COMPILED_QUERY:
       case PVEC_TS_NODE:
       case PVEC_TS_PARSER:
