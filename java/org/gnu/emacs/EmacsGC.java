@@ -139,7 +139,7 @@ public final class EmacsGC extends EmacsHandleObject
 	  {
 	    tileObject = new BitmapDrawable (EmacsService.resources,
 					     stippleBitmap);
-	    tileObject.setTileModeXY (TileMode.MIRROR, TileMode.MIRROR);
+	    tileObject.setTileModeXY (TileMode.REPEAT, TileMode.REPEAT);
 	  }
 	else
 	  /* Otherwise, update the existing tile object with the new
