@@ -1662,6 +1662,7 @@ Would expand to:
                                   ([&or integerp symbolp]
                                    &rest [&or integerp symbolp])]
                            &optional sexp sexp def-body))
+           (doc-string 2)
            (indent defun))
   (if (numberp name) (setq name (intern (format "%03i" name))))
   (setq aliases (mapcar (lambda (a)

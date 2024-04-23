@@ -410,4 +410,41 @@ faces in the reverse order they appear in an inserted message."
 
     (funcall test (lambda (arg) (setq faces arg)))))
 
+;; To use this function, add something like
+;;
+;;   ("lisp/erc"
+;;    (emacs-lisp-mode (eval erc-tests-common-add-imenu-expressions)))
+;;
+;; to your ~/emacs/master/.dir-locals-2.el.  Optionally, add the sexp
+;;
+;;   (erc-tests-common-add-imenu-expressions)
+;;
+;; to the user option `safe-local-eval-forms', and load this file before
+;; hacking, possibly by autoloading this function in your init.el.
+(defun erc-tests-common-add-imenu-expressions (&optional removep)
+  "Tell `imenu' about ERC-defined macros.  With REMOVEP, do the opposite."
+  (interactive "P")
+  ;; This currently produces results like "ERC response FOO BAR", but it
+  ;; would be preferable to end up with "erc-response-FOO" and
+  ;; "erc-response-BAR" instead, possibly as separate items.  Likewise
+  ;; for modules: "erc-foo-mode" instead of "ERC module foo".
+  (dolist (item `(("ERC response"
+                   ,(rx bol (* (syntax whitespace))
+                        "(define-erc-response-handler (" (group (+ nonl)) ")")
+                   1)
+                  ("ERC module"
+                   ,(rx bol (* (syntax whitespace))
+                        ;; No `lisp-mode-symbol' in < Emacs 29.
+                        "(define-erc-module " (group (+ (| (syntax word)
+                                                           (syntax symbol)
+                                                           (: "\\" nonl)))))
+                   1)))
+    ;; This should only run in `emacs-lisp-mode' buffers, which have
+    ;; this variable set locally.
+    (cl-assert (local-variable-p 'imenu-generic-expression))
+    (if removep
+        (setq imenu-generic-expression
+              (remove item imenu-generic-expression))
+      (cl-pushnew item imenu-generic-expression :test #'equal))))
+
 (provide 'erc-tests-common)
