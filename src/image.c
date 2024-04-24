@@ -6237,6 +6237,8 @@ xpm_load_image (struct frame *f,
   expect (',');
 
   XSETFRAME (frame, f);
+
+#ifndef HAVE_ANDROID
   if (!NILP (Fxw_display_color_p (frame)))
     best_key = XPM_COLOR_KEY_C;
   else if (!NILP (Fx_display_grayscale_p (frame)))
@@ -6244,6 +6246,14 @@ xpm_load_image (struct frame *f,
 		? XPM_COLOR_KEY_G : XPM_COLOR_KEY_G4);
   else
     best_key = XPM_COLOR_KEY_M;
+#else /* HAVE_ANDROID */
+  /* The color-loading loop has not been taught to progressively settle
+     for less optimal color keys if no colors are defined for best_key,
+     and since libXpm is not available on Android, there is no better
+     option than delegating the task of mapping whatever color values
+     are provided to B/W or grayscale to the display driver.  */
+  best_key = XPM_COLOR_KEY_C;
+#endif /* !HAVE_ANDROID */
 
   color_symbols = image_spec_value (img->spec, QCcolor_symbols, NULL);
   if (chars_per_pixel == 1)
