@@ -296,9 +296,10 @@ and /* */ comments.  SOFT works the same as in
   ;; auto-fill or other smart features.
   (cond
    ;; Line starts with //, or ///, or ////...
+   ;; Or //! (used in rust).
    ((save-excursion
       (beginning-of-line)
-      (looking-at (rx "//" (group (* "/") (* " ")))))
+      (looking-at (rx "//" (group (* (any "/!")) (* " ")))))
     (let ((whitespaces (match-string 1)))
       (if soft (insert-and-inherit ?\n) (newline 1))
       (delete-region (line-beginning-position) (point))
@@ -316,7 +317,7 @@ and /* */ comments.  SOFT works the same as in
    ;; Line starts with *.
    ((save-excursion
       (beginning-of-line)
-      (looking-at (rx (group (* " ") (or "*" "|") (* " ")))))
+      (looking-at (rx (group (* " ") (any "*|") (* " ")))))
     (let ((prefix (match-string 1)))
       (if soft (insert-and-inherit ?\n) (newline 1))
       (delete-region (line-beginning-position) (point))
