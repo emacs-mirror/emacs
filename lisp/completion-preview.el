@@ -570,7 +570,14 @@ backward."
 ;;;###autoload
 (define-globalized-minor-mode global-completion-preview-mode
   completion-preview-mode completion-preview-mode
-  :predicate '((not minibuffer-mode special-mode) t))
+  :predicate '((not compilation-mode
+                    diff-mode
+                    dired-mode
+                    minibuffer-mode
+                    minibuffer-inactive-mode
+                    special-mode
+                    wdired-mode)
+               t))
 
 (provide 'completion-preview)
 ;;; completion-preview.el ends here
