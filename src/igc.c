@@ -1450,7 +1450,7 @@ fix_native_cu (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, u, fix_vectorlike);
-    size_t n = XFIXNUM (Flength (u->data_impure_vec));
+    size_t n = ASIZE (u->data_impure_vec);
     IGC_FIX12_NOBJS (ss, u->data_imp_relocs, n);
   }
   MPS_SCAN_END (ss);
