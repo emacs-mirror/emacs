@@ -351,7 +351,8 @@ word around EVENT; otherwise, set point to the location of EVENT."
                   touch-screen-word-select-bounds nil)
             (push-mark point)
             (goto-char point)
-            (activate-mark))
+            (activate-mark)
+            (setq deactivate-mark nil))
         ;; Start word selection by trying to obtain the position
         ;; around point.
         (let ((word-start nil)
@@ -381,7 +382,8 @@ word around EVENT; otherwise, set point to the location of EVENT."
                       touch-screen-word-select-initial-word nil)
                 (push-mark point)
                 (goto-char point)
-                (activate-mark))
+                (activate-mark)
+                (setq deactivate-mark nil))
             ;; Otherwise, select the word.  Move point to either the
             ;; end or the start of the word, depending on which is
             ;; closer to EVENT.
@@ -420,10 +422,12 @@ word around EVENT; otherwise, set point to the location of EVENT."
                   (progn
                     (push-mark word-start)
                     (activate-mark)
+                    (setq deactivate-mark nil)
                     (goto-char word-end))
                 (progn
                     (push-mark word-end)
                     (activate-mark)
+                    (setq deactivate-mark nil)
                     (goto-char word-start)))
               ;; Record the bounds of the selected word.
               (setq touch-screen-word-select-bounds
@@ -837,7 +841,8 @@ area."
                       ;; Display a preview of the line now around
                       ;; point if requested by the user.
                       (when touch-screen-preview-select
-                        (touch-screen-preview-select))))))))))))))
+                        (touch-screen-preview-select)))))))))))
+      (setq deactivate-mark nil))))
 
 (defun touch-screen-restart-drag (event)
   "Restart dragging to select text.

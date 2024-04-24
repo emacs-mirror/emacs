@@ -957,10 +957,17 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 	}
     }
 
-  /* Search bitmap-file-path for the file, if appropriate.  */
-  if (openp (Vx_bitmap_file_path, file, Qnil, &found,
-	     make_fixnum (R_OK), false, false, NULL)
-      < 0)
+  /* Search bitmap-file-path for the file, if appropriate.  If no file
+     extension or directory is specified and no file by this name
+     exists, append the extension ".xbm" and retry.  */
+  if ((openp (Vx_bitmap_file_path, file, Qnil, &found,
+	      make_fixnum (R_OK), false, false, NULL) < 0)
+      && (NILP (Fequal (Ffile_name_nondirectory (file), file))
+	  || strrchr (SSDATA (file), '.')
+	  || (openp (Vx_bitmap_file_path,
+		     CALLN (Fconcat, file, build_string (".xbm")),
+		     Qnil, &found, make_fixnum (R_OK), false, false,
+		     NULL) < 0)))
     return -1;
 
   if (!STRINGP (image_find_image_fd (file, &fd))

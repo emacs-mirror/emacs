@@ -1202,7 +1202,10 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
-  return Qt;
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = check_android_display_info (terminal);
+  return dpyinfo->n_planes > 8 ? Qt : Qnil;
 }
 
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
@@ -1210,7 +1213,11 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
-  return Qnil;
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = check_android_display_info (terminal);
+  return (dpyinfo->n_planes > 1 && dpyinfo->n_planes <= 8
+	  ? Qt : Qnil);
 }
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width,
