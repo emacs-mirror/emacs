@@ -296,7 +296,10 @@ a fixed set of types.  */)
           return Qsqlite;
         case PVEC_SUB_CHAR_TABLE:
           return Qsub_char_table;
-        /* "Impossible" cases.  */
+	case PVEC_WEAK_REF:
+	  return Qweak_ref;
+
+	/* "Impossible" cases.  */
 	case PVEC_MISC_PTR:
         case PVEC_OTHER:
         case PVEC_FREE: ;

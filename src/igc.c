@@ -63,6 +63,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # warning "HAVE_TEXT_CONVERSION not supported"
 #endif
 
+struct Lisp_Weak_Ref
+{
+  union vectorlike_header header;
+  Lisp_Object ref;
+} GCALIGNED_STRUCT;
+
 /* Note: Emacs will call allocation functions whlle aborting. This leads
    to all sorts of interesting phenomena when an assertion fails inside
    a function called from MPS.
@@ -1024,9 +1030,92 @@ fix_face_cache (mps_ss_t ss, struct face_cache *c)
 }
 
 static mps_res_t
-fix_weak (mps_ss_t ss, mps_addr_t base)
+fix_weak_ref (mps_ss_t ss, struct Lisp_Weak_Ref *wref)
 {
-  MPS_SCAN_BEGIN (ss) { igc_assert (!"fix_weak"); }
+  MPS_SCAN_BEGIN (ss)
+  {
+    const mps_word_t tagged_word = *(mps_word_t *)&wref->ref;
+    const enum Lisp_Type tag = tagged_word & IGC_TAG_MASK;
+
+    switch (tag)
+      {
+      case Lisp_Int0:
+      case Lisp_Int1:
+	return MPS_RES_OK;
+
+      case Lisp_Type_Unused0:
+	emacs_abort ();
+
+      case Lisp_Symbol:
+	{
+	  ptrdiff_t off = tagged_word ^ Lisp_Symbol;
+	  mps_addr_t client = (mps_addr_t)((char *)lispsym + off);
+	  if (is_mps (client))
+	    {
+	      mps_addr_t base = client_to_base (client);
+	      if (MPS_FIX1 (ss, base))
+		{
+		  mps_res_t res = MPS_FIX2 (ss, &base);
+		  if (res != MPS_RES_OK)
+		    return res;
+		  if (base == NULL)
+		    {
+		      wref->ref = Qnil;
+		    }
+		  else
+		    {
+		      client = base_to_client (base);
+		      ptrdiff_t new_off = (char *)client - (char *)lispsym;
+		      wref->ref = (Lisp_Object)(new_off | tag);
+		    }
+		}
+	    }
+	}
+	break;
+
+      default:
+	{
+	  const mps_addr_t client = (mps_addr_t)(tagged_word ^ tag);
+	  if (is_mps (client))
+	    {
+	      mps_addr_t base = client_to_base (client);
+	      if (MPS_FIX1 (ss, base))
+		{
+		  const mps_res_t res = MPS_FIX2 (ss, &base);
+		  if (res != MPS_RES_OK)
+		    return res;
+		  if (base == NULL)
+		    {
+		      wref->ref = Qnil;
+		    }
+		  else
+		    {
+		      const mps_addr_t client2 = base_to_client (base);
+		      wref->ref = (Lisp_Object)((mps_word_t)client2 | tag);
+		    }
+		}
+	    }
+	}
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_weak (mps_ss_t ss, struct igc_header* base)
+{
+  MPS_SCAN_BEGIN (ss) {
+    const mps_addr_t client = base_to_client(base);
+    switch (base->pvec_type)
+      {
+      case PVEC_WEAK_REF:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Ref, client, fix_weak_ref);
+	break;
+      default:
+	igc_assert (!"fix_weak");
+      }
+  }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
 }
@@ -1139,7 +1228,7 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	    break;
 
 	  case IGC_OBJ_WEAK:
-	    IGC_FIX_CALL_FN (ss, mps_word_t, client, fix_weak);
+	    IGC_FIX_CALL_FN (ss, struct igc_header, base, fix_weak);
 	    break;
 	  }
       }
@@ -1633,6 +1722,9 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 #endif
 	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
 	break;
+
+      case PVEC_WEAK_REF:
+	emacs_abort ();
       }
   }
   MPS_SCAN_END (ss);
@@ -2231,6 +2323,7 @@ finalize_vector (mps_addr_t v)
     case PVEC_XWIDGET_VIEW:
     case PVEC_TERMINAL:
     case PVEC_MARKER:
+    case PVEC_WEAK_REF:
       igc_assert (!"not implemented");
       break;
     }
@@ -2321,6 +2414,7 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
 #ifdef IN_MY_FORK
     case PVEC_PACKAGE:
 #endif
+    case PVEC_WEAK_REF:
       break;
     }
 }
@@ -2387,8 +2481,10 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
     case IGC_OBJ_LAST:
-    case IGC_OBJ_WEAK:
       emacs_abort ();
+
+    case IGC_OBJ_WEAK:
+      return t->d.weak_weak_ap;
 
     case IGC_OBJ_CONS:
     case IGC_OBJ_SYMBOL:
@@ -2423,6 +2519,14 @@ igc_collect (void)
   struct igc *gc = global_igc;
   mps_arena_collect (gc->arena);
   mps_arena_release (gc->arena);
+}
+
+DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 0, 0, doc
+       : /* */)
+(void)
+{
+  igc_collect ();
+  return Qnil;
 }
 
 static unsigned
@@ -2665,11 +2769,46 @@ igc_make_face_cache (void)
   return c;
 }
 
-struct Lisp_Buffer_Local_Value *
-igc_alloc_blv (void)
+DEFUN ("igc-make-weak-ref", Figc_make_weak_ref, Sigc_make_weak_ref, 1, 1, 0,
+       doc
+       : /* todo */)
+(Lisp_Object target)
+{
+  const enum pvec_type type = PVEC_WEAK_REF;
+  struct Lisp_Weak_Ref *wref = alloc (sizeof *wref, IGC_OBJ_WEAK, type);
+  int nwords_lisp = VECSIZE(struct Lisp_Weak_Ref);
+  XSETPVECTYPESIZE (wref, type, nwords_lisp, 0);
+  maybe_finalize (wref, type);
+  wref->ref = target;
+  Lisp_Object obj = make_lisp_ptr (wref, Lisp_Vectorlike);
+  return obj;
+}
+
+static void
+CHECK_WEAK_REF_P (Lisp_Object x)
+{
+  CHECK_TYPE (WEAK_REF_P (x), Qweak_ref_p, x);
+}
+
+Lisp_Object
+igc_weak_ref_deref (struct Lisp_Weak_Ref *wref)
+{
+  return wref->ref;
+}
+
+DEFUN ("igc-weak-ref-deref", Figc_weak_reaf_deref, Sigc_weak_ref_deref, 1, 1,
+       0, doc
+       : /* todo */)
+(Lisp_Object obj)
+{
+  CHECK_WEAK_REF_P (obj);
+  return igc_weak_ref_deref (XWEAK_REF (obj));
+}
+
+struct Lisp_Buffer_Local_Value *igc_alloc_blv (void)
 {
   struct Lisp_Buffer_Local_Value *blv
-    = alloc (sizeof *blv, IGC_OBJ_BLV, PVEC_FREE);
+      = alloc (sizeof *blv, IGC_OBJ_BLV, PVEC_FREE);
   return blv;
 }
 
@@ -2871,7 +3010,12 @@ syms_of_igc (void)
 {
   defsubr (&Sigc_info);
   defsubr (&Sigc_roots);
+  defsubr (&Sigc_make_weak_ref);
+  defsubr (&Sigc_weak_ref_deref);
+  defsubr (&Sigc__collect);
   DEFSYM (Qambig, "ambig");
   DEFSYM (Qexact, "exact");
+  DEFSYM (Qweak_ref_p, "weak-ref-p");
+  DEFSYM (Qweak_ref, "weak-ref");
   Fprovide (intern_c_string ("mps"), Qnil);
 }

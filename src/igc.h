@@ -93,6 +93,22 @@ void igc_root_create_ambig (void *start, void *end);
 void igc_root_create_exact (Lisp_Object *start, Lisp_Object *end);
 void igc_root_create_exact_ptr (void *var_addr);
 
+struct Lisp_Weak_Ref;
+Lisp_Object igc_weak_ref_deref (struct Lisp_Weak_Ref *);
+
+INLINE bool
+WEAK_REF_P (Lisp_Object x)
+{
+  return PSEUDOVECTORP (x, PVEC_WEAK_REF);
+}
+
+INLINE struct Lisp_Weak_Ref *
+XWEAK_REF (Lisp_Object a)
+{
+  eassert (WEAK_REF_P (a));
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Weak_Ref);
+}
+
 # define eassert_not_mps() eassert (false)
 #else
 # define igc_break() (void) 0

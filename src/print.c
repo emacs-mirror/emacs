@@ -33,6 +33,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "xwidget.h"
 #include "dynlib.h"
+#include "igc.h"
 
 #include <c-ctype.h>
 #include <float.h>
@@ -2086,6 +2087,15 @@ print_vectorlike_unreadable (Lisp_Object obj, Lisp_Object printcharfun,
 	   a limit)?  */
 	int i = sprintf (buf, "#<obarray n=%u>", o->count);
 	strout (buf, i, i, printcharfun);
+	return;
+      }
+
+    case PVEC_WEAK_REF:
+      {
+	Lisp_Object target = igc_weak_ref_deref (XWEAK_REF(obj));
+	print_c_string ("#<weak-ref ", printcharfun);
+	print_object (target, printcharfun, escapeflag);
+	print_c_string (">", printcharfun);
 	return;
       }
 
