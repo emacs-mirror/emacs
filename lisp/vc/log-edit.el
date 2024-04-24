@@ -698,7 +698,15 @@ according to `fill-column'."
                     (save-excursion
                       (goto-char beg)
                       (when (re-search-forward
-                             "^[[:blank:]]*(.*\\([[:space:]]\\).*):"
+                             ;; Also replace spaces within defun lists
+                             ;; prefixed by a file name so that
+                             ;; fill-region never attempts to break
+                             ;; them, even if multiple items combine
+                             ;; with symbols to exceed the fill column
+                             ;; by the expressly permitted margin of 1
+                             ;; character.
+                             (concat "^\\([[:blank:]]*\\|\\* .*[[:blank:]]"
+                                     "\\)(.*\\([[:space:]]\\).*):")
                              end t)
                         (replace-regexp-in-region "[[:space:]]" " "
                                                   (setq space-beg
