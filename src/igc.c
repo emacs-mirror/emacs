@@ -820,7 +820,6 @@ scan_pure (mps_ss_t ss, void *start, void *end, void *closure)
   MPS_SCAN_BEGIN (ss)
   {
     igc_assert (start == (void *) pure);
-    extern ptrdiff_t pure_bytes_used_lisp;
     end = (char *) pure + pure_bytes_used_lisp;
     if (end > start)
       IGC_FIX_CALL (ss, scan_ambig (ss, start, end, NULL));
@@ -877,7 +876,7 @@ scan_ptr_exact (mps_ss_t ss, void *start, void *end, void *closure)
  ***********************************************************************/
 
 static void
-dflt_pad (mps_addr_t base_addr, mps_word_t nbytes)
+dflt_pad (mps_addr_t base_addr, size_t nbytes)
 {
   igc_assert (nbytes >= sizeof (struct igc_header));
   struct igc_header *h = base_addr;
@@ -2068,50 +2067,46 @@ finalize_user_ptr (struct Lisp_User_Ptr *p)
     p->finalizer (p->p);
 }
 
+#ifdef HAVE_TREE_SITTER
 static void
 finalize_ts_parser (struct Lisp_TS_Parser *p)
 {
-#ifdef HAVE_TREE_SITTER
   treesit_delete_parser (p);
-#endif
 }
 
 static void
 finalize_ts_query (struct Lisp_TS_Query *q)
 {
-#ifdef HAVE_TREE_SITTER
   treesit_delete_query (q);
-#endif
 }
+#endif	/* HAVE_TREE_SITTER */
 
+#ifdef HAVE_MODULES
 static void
 finalize_module_function (struct Lisp_Module_Function *f)
 {
-#ifdef HAVE_MODULES
   module_finalize_function (f);
-#endif
 }
+#endif
 
+#ifdef HAVE_NATIVE_COMP
 static void
 finalize_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
-#ifdef HAVE_NATIVE_COMP
   unload_comp_unit (u);
-#endif
 }
 
 static void
 finalize_subr (struct Lisp_Subr *subr)
 {
-#ifdef HAVE_NATIVE_COMP
   if (!NILP (subr->native_comp_u))
     {
       subr->native_comp_u = Qnil;
       xfree ((char *) subr->symbol_name);
       xfree (subr->native_c_name);
     }
-#endif
 }
+#endif
 
 static Lisp_Object
 finalizer_handler (Lisp_Object args)
@@ -2173,23 +2168,33 @@ finalize_vector (mps_addr_t v)
       break;
 
     case PVEC_TS_PARSER:
+#ifdef HAVE_TREE_SITTER
       finalize_ts_parser (v);
+#endif
       break;
 
     case PVEC_TS_COMPILED_QUERY:
+#ifdef HAVE_TREE_SITTER
       finalize_ts_query (v);
+#endif
       break;
 
     case PVEC_MODULE_FUNCTION:
+#ifdef HAVE_MODULES
       finalize_module_function (v);
+#endif
       break;
 
     case PVEC_NATIVE_COMP_UNIT:
+#ifdef HAVE_NATIVE_COMP
       finalize_comp_unit (v);
+#endif
       break;
 
     case PVEC_SUBR:
+#ifdef HAVE_NATIVE_COMP
       finalize_subr (v);
+#endif
       break;
 
     case PVEC_FINALIZER:
@@ -2487,7 +2492,11 @@ alloc (size_t size, enum igc_obj_type type, enum pvec_type pvec_type)
       h->obj_type = type;
       h->pvec_type = pvec_type;
       h->hash = obj_hash ();
+#if IGC_SIZE_BITS >= 32 && INTPTR_MAX > INT_MAX
+      /* On 32-bit architecture the assertion below is redudnant and
+         causes compiler warnings.  */
       igc_assert (size < ((size_t) 1 << IGC_SIZE_BITS));
+#endif
       h->nwords = to_words (size);
       obj = base_to_client (p);
     }
@@ -2701,8 +2710,9 @@ DEFUN ("igc-roots", Figc_roots, Sigc_roots, 0, 0, 0, doc : /* */)
   for (igc_root_list *r = gc->roots; r; r = r->next)
     {
       Lisp_Object type = r->d.ambig ? Qambig : Qexact;
-      Lisp_Object e = list3 (type, make_int ((intmax_t) r->d.start),
-			     make_int ((intmax_t) r->d.end));
+      Lisp_Object e = list3 (type,
+			     make_int ((intmax_t) (ptrdiff_t) r->d.start),
+			     make_int ((intmax_t) (ptrdiff_t) r->d.end));
       roots = Fcons (e, roots);
     }
 

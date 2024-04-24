@@ -185,6 +185,11 @@ union emacs_align_type
 #endif
 };
 
+#ifdef HAVE_MPS
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wunused-macros"
+#endif	/* HAVE_MPS */
+
 /* MALLOC_SIZE_NEAR (N) is a good number to pass to malloc when
    allocating a block of memory with size close to N bytes.
    For best results N should be a power of 2.
@@ -8567,6 +8572,10 @@ N should be nonnegative.  */);
   Fadd_variable_watcher (Qgc_cons_percentage, watcher);
 #endif
 }
+
+#ifdef HAVE_MPS
+# pragma GCC diagnostic pop
+#endif
 
 #ifdef HAVE_X_WINDOWS
 enum defined_HAVE_X_WINDOWS { defined_HAVE_X_WINDOWS = true };

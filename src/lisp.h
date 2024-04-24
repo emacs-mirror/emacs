@@ -4438,6 +4438,7 @@ extern void parse_str_as_multibyte (const unsigned char *, ptrdiff_t,
 				    ptrdiff_t *, ptrdiff_t *);
 
 /* Defined in alloc.c.  */
+extern ptrdiff_t pure_bytes_used_lisp;
 struct Lisp_Vector *allocate_vectorlike (ptrdiff_t len, bool clearit);
 extern void run_finalizer_function (Lisp_Object function);
 extern void *my_heap_start (void);
@@ -4976,7 +4977,6 @@ XMODULE_FUNCTION (Lisp_Object o)
 typedef void (*module_funcptr) (void);
 
 /* Defined in alloc.c.  */
-extern ptrdiff_t pure_bytes_used_lisp;
 void set_string_marked (struct Lisp_String *s);
 void mark_interval_tree (INTERVAL i);
 
