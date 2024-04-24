@@ -4074,7 +4074,7 @@ This command runs functions from `lldb-mode-hook'."
            "\C-b"
            "Set breakpoint at current line.")
   (gud-def gud-tbreak
-           "_regexp-break %f:%l"
+           "_regexp-tbreak %f:%l"
            "\C-t"
 	   "Set temporary breakpoint at current line.")
   (gud-def gud-remove
