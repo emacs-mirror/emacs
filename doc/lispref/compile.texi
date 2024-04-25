@@ -334,8 +334,8 @@ If you have a constant that needs some calculation to produce,
 @code{eval-when-compile} can do that at compile-time.  For example,
 
 @lisp
-(defvar my-regexp
-  (eval-when-compile (regexp-opt '("aaa" "aba" "abb"))))
+(defvar gauss-schoolboy-problem
+  (eval-when-compile (apply #'+ (number-sequence 1 100))))
 @end lisp
 
 @cindex macros, at compile time
