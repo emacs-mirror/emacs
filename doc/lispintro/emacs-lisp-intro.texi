@@ -19428,7 +19428,7 @@ There is more, but that is the hardest part.
 @appendixsec The @file{ring.el} File
 @cindex @file{ring.el} file
 
-Interestingly, GNU Emacs posses a file called @file{ring.el} that
+Interestingly, GNU Emacs possesses a file called @file{ring.el} that
 provides many of the features we just discussed.  But functions such
 as @code{kill-ring-yank-pointer} do not use this library, possibly
 because they were written earlier.
