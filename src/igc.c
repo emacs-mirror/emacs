@@ -3,7 +3,7 @@
 
 This file is part of GNU Emacs.
 
-Author: Gerd Möllmann <gerd@gnu.org>
+Author: Gerd Moellmann <gerd@gnu.org>
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -780,7 +780,7 @@ scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
 
 	/* If the references in the object being scanned are
 	   ambiguous then MPS_FIX2() does not update the
-	   reference (because it can’t know if it’s a
+	   reference (because it can't know if it's a
 	   genuine reference). The MPS handles an ambiguous
 	   reference by pinning the block pointed to so that
 	   it cannot move. */
