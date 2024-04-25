@@ -263,7 +263,7 @@ to_words (mps_word_t nbytes)
 static mps_word_t
 to_bytes (mps_word_t nwords)
 {
-  return nwords << 3;
+  return nwords * sizeof (mps_word_t);
 }
 
 struct igc_fwd
