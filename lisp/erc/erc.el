@@ -1595,7 +1595,7 @@ capabilities."
                   (remove-hook hook fun t))
                 (fmakunbound fun)
                 (funcall f proc parsed)))
-    (add-hook hook fun nil t)
+    (add-hook hook fun -95 t)
     fun))
 
 (defun erc--warn-once-before-connect (mode-var &rest args)
