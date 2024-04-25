@@ -2251,24 +2251,33 @@ and `face'."
 ;;; The `custom' Widget.
 
 (defface custom-button
-  '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk android) (class color)
+      (min-colors 88))	; Like default mode line
      :box (:line-width 2 :style released-button)
-     :background "lightgrey" :foreground "black"))
+     :background "lightgrey" :foreground "black")
+    (((type x w32 ns haiku pgtk android))
+     :box (:line-width 2 :style released-button)
+     :background "white" :foreground "black"))
   "Face for custom buffer buttons if `custom-raised-buttons' is non-nil."
-  :version "21.1"
+  :version "30.1"
   :group 'custom-faces)
 
 (defface custom-button-mouse
-  '((((type x w32 ns haiku pgtk android) (class color))
+  '((((type x w32 ns haiku pgtk android) (class color)
+      (min-colors 88))
      :box (:line-width 2 :style released-button)
      :background "grey90" :foreground "black")
+    (((type x w32 ns haiku pgtk android))
+     :box (:line-width 2 :style released-button)
+     ;; Either light gray or a stipple pattern.
+     :background "gray20" :foreground "black")
     (t
      ;; This is for text terminals that support mouse, like GPM mouse
      ;; or the MS-DOS terminal: inverse-video makes the button stand
      ;; out on mouse-over.
      :inverse-video t))
   "Mouse face for custom buffer buttons if `custom-raised-buttons' is non-nil."
-  :version "22.1"
+  :version "30.1"
   :group 'custom-faces)
 
 (defface custom-button-unraised
@@ -2284,12 +2293,16 @@ and `face'."
       (if custom-raised-buttons 'custom-button-mouse 'highlight))
 
 (defface custom-button-pressed
-  '((((type x w32 ns haiku pgtk android) (class color))
+  '((((type x w32 ns haiku pgtk android) (class color grayscale))
      :box (:line-width 2 :style pressed-button)
      :background "lightgrey" :foreground "black")
+    (((type x w32 ns haiku pgtk android))
+     :box (:line-width 2 :style pressed-button)
+     ;; Either light gray or a stipple pattern.
+     :background "gray20" :foreground "black")
     (t :inverse-video t))
   "Face for pressed custom buttons if `custom-raised-buttons' is non-nil."
-  :version "21.1"
+  :version "30.1"
   :group 'custom-faces)
 
 (defface custom-button-pressed-unraised
