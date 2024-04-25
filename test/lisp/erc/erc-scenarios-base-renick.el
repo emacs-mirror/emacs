@@ -185,21 +185,43 @@
       (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "Lal"))
         (funcall expect 10 "<Lal> hello")
         (erc-scenarios-common-say "hi")
+        (should-not (erc-get-channel-member "tester"))
         (funcall expect 10 "is now known as Linguo")
         ;; No duplicate message.
         (funcall expect -0.1 "is now known as Linguo")
         ;; No duplicate buffer.
         (erc-d-t-wait-for 1 (equal (buffer-name) "Linguo"))
         (should-not (get-buffer "Lal"))
+        ;; Channel member has been updated
+        (should-not (erc-get-channel-member "Lal"))
+        (should-not (erc-get-server-user "Lal"))
+        (should (erc-get-channel-member "Linguo"))
         (erc-scenarios-common-say "howdy Linguo")))
 
     (with-current-buffer "#foo"
       (funcall expect 10 "is now known as Linguo")
       (funcall expect -0.1 "is now known as Linguo")
+      (funcall expect 10 "has left"))
+
+    ;; User parting a common channel removes them from queries.
+    (with-current-buffer "Linguo"
+      (should-not (erc-get-channel-member "tester"))
+      (erc-d-t-wait-for 10 (null (erc-get-channel-member "Linguo")))
+      (should-not (erc-get-server-user "Linguo")))
+
+    ;; Leaving the client's only channel doesn't remove its user data
+    ;; from the server table (see below, after "get along ...").
+    (with-current-buffer "#foo"
       (erc-scenarios-common-say "/part"))
 
+    ;; Server and "channel" user are *not* (re)created upon receiving
+    ;; a direct message for a user we already have an open query with
+    ;; but with whom we no longer share a channel.
     (with-current-buffer "Linguo"
-      (funcall expect 10 "get along"))))
+      (funcall expect 10 "get along")
+      (should-not (erc-get-channel-member "Linguo"))
+      (should-not (erc-get-channel-member "tester"))
+      (should (erc-get-server-user "tester")))))
 
 ;; Someone you have a query with disconnects and reconnects under a
 ;; new nick (perhaps due to their client appending a backtick or

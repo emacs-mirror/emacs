@@ -560,6 +560,18 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
 (defun erc--get-server-user (nick)
   (erc-get-server-user nick))
 
+(define-inline erc--remove-user-from-targets (downcased-nick buffers)
+  "Remove DOWNCASED-NICK from `erc-channel-members' in BUFFERS."
+  (inline-quote
+   (progn
+     (defvar erc-channel-members-changed-hook)
+     (dolist (buffer ,buffers)
+       (when (buffer-live-p buffer)
+         (with-current-buffer buffer
+           (remhash ,downcased-nick erc-channel-users)
+           (when erc-channel-members-changed-hook
+             (run-hooks 'erc-channel-members-changed-hook))))))))
+
 (defmacro erc--with-dependent-type-match (type &rest features)
   "Massage Custom :type TYPE with :match function that pre-loads FEATURES."
   `(backquote-list* ',(car type)

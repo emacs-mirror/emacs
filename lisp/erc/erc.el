@@ -581,13 +581,7 @@ Ensure targets with an entry in `erc-server-users' are present in
     erc-server-process))
 
 (defun erc-remove-server-user (nick)
-  "This function is for internal use only.
-
-Removes the user with nickname NICK from the `erc-server-users'
-hash table.  This user is not removed from the
-`erc-channel-users' lists of other buffers.
-
-See also: `erc-remove-user'."
+  "Remove NICK from the session's `erc-server-users' table."
   (erc-with-server-buffer
     (remhash (erc-downcase nick) erc-server-users)))
 
@@ -610,15 +604,29 @@ other buffers are also changed."
               (puthash (erc-downcase new-nick) cdata
                        erc-channel-users)))))))
 
+(defvar erc--forget-server-user-function
+  #'erc--forget-server-user-ignoring-queries
+  "Function to conditionally remove a user from `erc-server-users'.
+Called with a nick and its `erc-server-user' object.")
+
+(defun erc--forget-server-user (nick user)
+  "Remove NICK's USER from server table if they're not in any target buffers."
+  (unless (erc-server-user-buffers user)
+    (erc-remove-server-user nick)))
+
+(defun erc--forget-server-user-ignoring-queries (nick user)
+  "Remove NICK's USER from `erc-server-users' if they've parted all channels."
+  (let ((buffers (erc-server-user-buffers user)))
+    (when (or (null buffers)
+              (and (not erc--decouple-query-and-channel-membership-p)
+                   (cl-every #'erc-query-buffer-p buffers)))
+      (when buffers
+        (erc--remove-user-from-targets (erc-downcase nick) buffers))
+      (erc-remove-server-user nick))))
+
 (defun erc-remove-channel-user (nick)
-  "This function is for internal use only.
-
-Removes the user with nickname NICK from the `erc-channel-users'
-list for this channel.  If this user is not in the
-`erc-channel-users' list of any other buffers, the user is also
-removed from the server's `erc-server-users' list.
-
-See also: `erc-remove-server-user' and `erc-remove-user'."
+  "Remove NICK from the current target buffer's `erc-channel-members'.
+If this was their only target, also remove them from `erc-server-users'."
   (let ((channel-data (erc-get-channel-user nick)))
     (when channel-data
       (let ((user (car channel-data)))
@@ -626,32 +634,19 @@ See also: `erc-remove-server-user' and `erc-remove-user'."
               (delq (current-buffer)
                     (erc-server-user-buffers user)))
         (remhash (erc-downcase nick) erc-channel-users)
-        (if (null (erc-server-user-buffers user))
-            (erc-remove-server-user nick))))))
+        (funcall erc--forget-server-user-function nick user)))))
 
 (defun erc-remove-user (nick)
-  "This function is for internal use only.
-
-Removes the user with nickname NICK from the `erc-server-users'
-list as well as from all `erc-channel-users' lists.
-
-See also: `erc-remove-server-user' and
-`erc-remove-channel-user'."
+  "Remove NICK from the server and all relevant channels tables."
   (let ((user (erc-get-server-user nick)))
     (when user
-      (let ((buffers (erc-server-user-buffers user)))
-        (dolist (buf buffers)
-          (if (buffer-live-p buf)
-              (with-current-buffer buf
-                (remhash (erc-downcase nick) erc-channel-users)
-                (run-hooks 'erc-channel-members-changed-hook)))))
+      (erc--remove-user-from-targets (erc-downcase nick)
+                                     (erc-server-user-buffers user))
       (erc-remove-server-user nick))))
 
 (defun erc-remove-channel-users ()
-  "This function is for internal use only.
-
-Removes all users in the current channel.  This is called by
-`erc-server-PART' and `erc-server-QUIT'."
+  "Drain current buffer's `erc-channel-members' table.
+Also remove members from the server table if this was their only buffer."
   (when (erc--target-channel-p erc--target)
     (setf (erc--target-channel-joined-p erc--target) nil))
   (when (and erc-server-connected
@@ -661,6 +656,19 @@ Removes all users in the current channel.  This is called by
                (erc-remove-channel-user nick))
              erc-channel-users)
     (clrhash erc-channel-users)))
+
+(defun erc--remove-channel-users-but (nick)
+  "Drain channel users and remove from server, sparing NICK."
+  (when-let ((users (erc-with-server-buffer erc-server-users))
+             (my-user (gethash (erc-downcase nick) users))
+             (original-function erc--forget-server-user-function)
+             (erc--forget-server-user-function
+              (if erc--decouple-query-and-channel-membership-p
+                  erc--forget-server-user-function
+                (lambda (nick user)
+                  (unless (eq user my-user)
+                    (funcall original-function nick user))))))
+    (erc-remove-channel-users)))
 
 (defmacro erc--define-channel-user-status-compat-getter (name c d)
   "Define a gv getter for historical `erc-channel-user' status slot NAME.
@@ -9691,7 +9699,9 @@ one of the following hooks:
 `erc-kill-channel-hook' if a channel buffer was killed,
 or `erc-kill-buffer-hook' if any other buffer."
   (when (eq major-mode 'erc-mode)
-    (erc-remove-channel-users)
+    (when-let ((erc--target)
+               (nick (erc-current-nick)))
+      (erc--remove-channel-users-but nick))
     (cond
      ((eq (erc-server-buffer) (current-buffer))
       (run-hooks 'erc-kill-server-hook))

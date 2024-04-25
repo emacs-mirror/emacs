@@ -124,6 +124,7 @@
 (declare-function erc--open-target "erc" (target))
 (declare-function erc--parse-nuh "erc" (string))
 (declare-function erc--query-list "erc" ())
+(declare-function erc--remove-channel-users-but "erc" (nick))
 (declare-function erc--target-from-string "erc" (string))
 (declare-function erc--update-modes "erc" (raw-args))
 (declare-function erc-active-buffer "erc" nil)
@@ -1797,7 +1798,6 @@ add things to `%s' instead."
          (buffer (erc-get-buffer ch proc)))
     (pcase-let ((`(,nick ,login ,host)
                  (erc-parse-user (erc-response.sender parsed))))
-      (erc-remove-channel-member buffer tgt)
       (cond
        ((string= tgt (erc-current-nick))
         (erc-display-message
@@ -1806,17 +1806,20 @@ add things to `%s' instead."
         (run-hook-with-args 'erc-kick-hook buffer)
         (erc-with-buffer
             (buffer)
-          (erc-remove-channel-users))
+          (erc--remove-channel-users-but tgt))
         (with-suppressed-warnings ((obsolete erc-delete-default-channel))
           (erc-delete-default-channel ch buffer))
         (erc-update-mode-line buffer))
        ((string= nick (erc-current-nick))
         (erc-display-message
          parsed 'notice buffer
-         'KICK-by-you ?k tgt ?c ch ?r reason))
+         'KICK-by-you ?k tgt ?c ch ?r reason)
+        (erc-remove-channel-member buffer tgt))
        (t (erc-display-message
-             parsed 'notice buffer
-             'KICK ?k tgt ?n nick ?u login ?h host ?c ch ?r reason))))))
+           parsed 'notice buffer
+           'KICK ?k tgt ?n nick ?u login ?h host ?c ch ?r reason)
+          (erc-remove-channel-member buffer tgt)))))
+  nil)
 
 (define-erc-response-handler (MODE)
   "Handle server mode changes." nil
@@ -1926,15 +1929,15 @@ Return a list of buffers in which to announce the change."
       ;; When `buffer' is nil, `erc-remove-channel-member' and
       ;; `erc-remove-channel-users' do almost nothing, and the message
       ;; is displayed in the server buffer.
-      (erc-remove-channel-member buffer nick)
       (erc-display-message parsed 'notice buffer
                            'PART ?n nick ?u login
                            ?h host ?c chnl ?r (or reason ""))
-      (when (string= nick (erc-current-nick))
+      (cond
+       ((string= nick (erc-current-nick))
         (run-hook-with-args 'erc-part-hook buffer)
         (erc-with-buffer
             (buffer)
-          (erc-remove-channel-users))
+          (erc--remove-channel-users-but nick))
         (with-suppressed-warnings ((obsolete erc-delete-default-channel))
           (erc-delete-default-channel chnl buffer))
         (erc-update-mode-line buffer)
@@ -1942,7 +1945,8 @@ Return a list of buffers in which to announce the change."
         (when (and erc-kill-buffer-on-part buffer)
           (defvar erc-killing-buffer-on-part-p)
           (let ((erc-killing-buffer-on-part-p t))
-            (kill-buffer buffer))))))
+            (kill-buffer buffer))))
+       (t (erc-remove-channel-member buffer nick)))))
   nil)
 
 (define-erc-response-handler (PING)
