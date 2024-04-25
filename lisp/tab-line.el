@@ -540,7 +540,7 @@ And newly displayed buffers are added to the end of the tab line."
     (set-window-parameter nil 'tab-line-buffers new-buffers)
     new-buffers))
 
-(add-to-list 'window-persistent-parameters '(tab-line-buffers . writable))
+(add-to-list 'window-persistent-parameters '(tab-line-buffers . t))
 
 
 (defcustom tab-line-tab-name-format-function #'tab-line-tab-name-format-default
