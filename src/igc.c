@@ -1594,8 +1594,12 @@ fix_other (mps_ss_t ss, void *o)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, o, fix_vectorlike);
-    // Not used on macOS. Some scroll bar stuff in w32?
-    igc_assert (!"other");
+    /* FIXME: PVEC_OTHER is also used on w32 for struct scroll_bar,
+       and there seems to be no way to discern both uses. */
+#ifdef HAVE_MODULES
+    struct module_global_reference *r = o;
+    IGC_FIX12_OBJ (ss, &r->value.v);
+#endif
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;

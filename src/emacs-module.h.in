@@ -203,6 +203,26 @@ extern int emacs_module_init (struct emacs_runtime *runtime)
   EMACS_NOEXCEPT
   EMACS_ATTRIBUTE_NONNULL (1);
 
+/* An `emacs_value' is just a pointer to a structure holding an
+   internal Lisp object.  */
+struct emacs_value_tag { Lisp_Object v; };
+
+/* Pseudovector type for global references.  The pseudovector tag is
+   PVEC_OTHER since these values are never printed and don't need to
+   be special-cased for garbage collection.  */
+
+struct module_global_reference {
+  /* Pseudovector header, must come first. */
+  union vectorlike_header header;
+
+  /* Holds the emacs_value for the object.  The Lisp_Object stored
+     therein must be the same as the hash key.  */
+  struct emacs_value_tag value;
+
+  /* Reference count, always positive.  */
+  ptrdiff_t refcount;
+};
+
 #ifdef __cplusplus
 }
 #endif

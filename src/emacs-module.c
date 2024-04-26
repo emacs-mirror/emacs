@@ -75,6 +75,7 @@ To add a new module function, proceed as follows:
 
 #include <config.h>
 
+#include "lisp.h"
 #include "emacs-module.h"
 
 #include <stdarg.h>
@@ -83,7 +84,6 @@ To add a new module function, proceed as follows:
 #include <stdlib.h>
 #include <time.h>
 
-#include "lisp.h"
 #include "bignum.h"
 #include "dynlib.h"
 #include "coding.h"
@@ -125,10 +125,6 @@ typedef int (*emacs_init_function) (struct emacs_runtime *);
 
 
 /* Memory management.  */
-
-/* An `emacs_value' is just a pointer to a structure holding an
-   internal Lisp object.  */
-struct emacs_value_tag { Lisp_Object v; };
 
 /* Local value objects use a simple fixed-sized block allocation
    scheme without explicit deallocation.  All local values are
@@ -376,22 +372,6 @@ module_get_environment (struct emacs_runtime *runtime)
    is automatically garbage-collected (Bug#42482).  */
 
 static Lisp_Object Vmodule_refs_hash;
-
-/* Pseudovector type for global references.  The pseudovector tag is
-   PVEC_OTHER since these values are never printed and don't need to
-   be special-cased for garbage collection.  */
-
-struct module_global_reference {
-  /* Pseudovector header, must come first. */
-  union vectorlike_header header;
-
-  /* Holds the emacs_value for the object.  The Lisp_Object stored
-     therein must be the same as the hash key.  */
-  struct emacs_value_tag value;
-
-  /* Reference count, always positive.  */
-  ptrdiff_t refcount;
-};
 
 static struct module_global_reference *
 XMODULE_GLOBAL_REFERENCE (Lisp_Object o)
