@@ -2092,9 +2092,13 @@ print_vectorlike_unreadable (Lisp_Object obj, Lisp_Object printcharfun,
 
     case PVEC_WEAK_REF:
       {
-	Lisp_Object target = igc_weak_ref_deref (XWEAK_REF(obj));
 	print_c_string ("#<weak-ref ", printcharfun);
+#ifdef HAVE_MPS
+	Lisp_Object target = igc_weak_ref_deref (XWEAK_REF(obj));
 	print_object (target, printcharfun, escapeflag);
+#else
+# warning "PVEC_WEAK_REF not implemented"
+#endif
 	print_c_string (">", printcharfun);
 	return;
       }

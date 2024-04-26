@@ -4255,6 +4255,7 @@ syms_of_data (void)
   DEFSYM (Qtreesit_node, "treesit-node");
   DEFSYM (Qtreesit_compiled_query, "treesit-compiled-query");
   DEFSYM (Qobarray, "obarray");
+  DEFSYM (Qweak_ref, "weak-ref");
 
   DEFSYM (Qdefun, "defun");
 

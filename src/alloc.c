@@ -3558,6 +3558,7 @@ cleanup_vector (struct Lisp_Vector *vector)
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
+    case PVEC_WEAK_REF:
       break;
     }
 }
