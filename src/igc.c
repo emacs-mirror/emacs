@@ -1324,9 +1324,9 @@ fix_frame (mps_ss_t ss, struct frame *f)
 #ifdef HAVE_WINDOW_SYSTEM
     if (FRAME_WINDOW_P (f) && FRAME_OUTPUT_DATA (f))
       {
-	struct font *font = FRAME_FONT (f);
-	if (font)
-	  IGC_FIX12_RAW(ss, &FRAME_FONT (f));
+	struct font **font_ptr = &FRAME_FONT (f);
+	if (*font_ptr)
+	  IGC_FIX12_RAW(ss, font_ptr);
       }
 #endif
 
