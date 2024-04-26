@@ -1034,7 +1034,9 @@ fix_weak_ref (mps_ss_t ss, struct Lisp_Weak_Ref *wref)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    const mps_word_t tagged_word = *(mps_word_t *)&wref->ref;
+    /* FIXME: The below explicitly assumes Lisp_Object is of the same
+       width as mps_word_t!  */
+    const mps_word_t tagged_word = (ptrdiff_t) igc_weak_ref_deref (wref);
     const enum Lisp_Type tag = tagged_word & IGC_TAG_MASK;
 
     switch (tag)
