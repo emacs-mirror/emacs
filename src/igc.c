@@ -45,6 +45,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include "thread.h"
 #include "treesit.h"
 #include "puresize.h"
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #ifndef USE_LSB_TAG
 # error "USE_LSB_TAG required"
@@ -1318,6 +1321,15 @@ fix_frame (mps_ss_t ss, struct frame *f)
     IGC_FIX12_RAW (ss, &f->face_cache);
     if (f->terminal)
       IGC_FIX12_RAW (ss, &f->terminal);
+#ifdef HAVE_WINDOW_SYSTEM
+    if (FRAME_WINDOW_P (f) && FRAME_OUTPUT_DATA (f))
+      {
+	struct font *font = FRAME_FONT (f);
+	if (font)
+	  IGC_FIX12_RAW(ss, &FRAME_FONT (f));
+      }
+#endif
+
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
