@@ -1588,22 +1588,19 @@ fix_xwidget_view (mps_ss_t ss, struct xwidget_view *v)
 
 #endif // HAVE_XWIDGETS
 
+#ifdef HAVE_MODULES
 static mps_res_t
-fix_other (mps_ss_t ss, void *o)
+fix_global_ref (mps_ss_t ss, struct module_global_reference *r)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, o, fix_vectorlike);
-    /* FIXME: PVEC_OTHER is also used on w32 for struct scroll_bar,
-       and there seems to be no way to discern both uses. */
-#ifdef HAVE_MODULES
-    struct module_global_reference *r = o;
+    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, r, fix_vectorlike);
     IGC_FIX12_OBJ (ss, &r->value.v);
-#endif
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
 }
+#endif
 
 #ifndef IN_MY_FORK
 static mps_res_t
@@ -1675,10 +1672,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 	IGC_FIX_CALL_FN (ss, struct Lisp_Finalizer, v, fix_finalizer);
 	break;
 
-      case PVEC_OTHER:
-	IGC_FIX_CALL_FN (ss, void, v, fix_other);
-	break;
-
       case PVEC_MISC_PTR:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Misc_Ptr, v, fix_misc_ptr);
 	break;
@@ -1720,6 +1713,12 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 	IGC_FIX_CALL_FN (ss, struct Lisp_Native_Comp_Unit, v, fix_native_cu);
 	break;
 
+      case PVEC_MODULE_GLOBAL_REFERENCE:
+#ifdef HAVE_MODULES
+	IGC_FIX_CALL_FN (ss, struct module_global_reference, v, fix_global_ref);
+#endif
+	break;
+
       case PVEC_NORMAL_VECTOR:
       case PVEC_SYMBOL_WITH_POS:
       case PVEC_PROCESS:
@@ -1735,6 +1734,7 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_COMPILED:
       case PVEC_RECORD:
       case PVEC_FONT:
+      case PVEC_OTHER:
 #ifdef IN_MY_FORK
       case PVEC_PACKAGE:
 #endif
@@ -2342,7 +2342,8 @@ finalize_vector (mps_addr_t v)
     case PVEC_TERMINAL:
     case PVEC_MARKER:
     case PVEC_WEAK_REF:
-      igc_assert (!"not implemented");
+    case PVEC_MODULE_GLOBAL_REFERENCE:
+      igc_assert (!"finalization not implemented");
       break;
     }
 }
@@ -2433,6 +2434,7 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
     case PVEC_PACKAGE:
 #endif
     case PVEC_WEAK_REF:
+    case PVEC_MODULE_GLOBAL_REFERENCE:
       break;
     }
 }

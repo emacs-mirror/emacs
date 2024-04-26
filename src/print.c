@@ -2115,6 +2115,7 @@ print_vectorlike_unreadable (Lisp_Object obj, Lisp_Object printcharfun,
     /* Impossible cases.  */
     case PVEC_FREE:
     case PVEC_OTHER:
+    case PVEC_MODULE_GLOBAL_REFERENCE:
       break;
     }
   emacs_abort ();

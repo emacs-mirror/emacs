@@ -3486,7 +3486,9 @@ cleanup_vector (struct Lisp_Vector *vector)
 	  = (struct Lisp_Module_Function *) vector;
 	module_finalize_function (function);
       }
-#endif
+# endif
+      break;
+    case PVEC_MODULE_GLOBAL_REFERENCE:
       break;
     case PVEC_NATIVE_COMP_UNIT:
 #ifdef HAVE_NATIVE_COMP

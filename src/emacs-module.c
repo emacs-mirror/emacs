@@ -376,7 +376,7 @@ static Lisp_Object Vmodule_refs_hash;
 static struct module_global_reference *
 XMODULE_GLOBAL_REFERENCE (Lisp_Object o)
 {
-  eassert (PSEUDOVECTORP (o, PVEC_OTHER));
+  eassert (PSEUDOVECTORP (o, PVEC_MODULE_GLOBAL_REFERENCE));
   return XUNTAG (o, Lisp_Vectorlike, struct module_global_reference);
 }
 
@@ -425,11 +425,11 @@ module_make_global_ref (emacs_env *env, emacs_value value)
     {
       struct module_global_reference *ref
         = ALLOCATE_PLAIN_PSEUDOVECTOR (struct module_global_reference,
-                                       PVEC_OTHER);
+                                       PVEC_MODULE_GLOBAL_REFERENCE);
       ref->value.v = new_obj;
       ref->refcount = 1;
       Lisp_Object value;
-      XSETPSEUDOVECTOR (value, ref, PVEC_OTHER);
+      XSETPSEUDOVECTOR (value, ref, PVEC_MODULE_GLOBAL_REFERENCE);
       hash_put (h, new_obj, value, hashcode);
       MODULE_INTERNAL_CLEANUP ();
       return &ref->value;
