@@ -123,12 +123,16 @@ ARG is passed to `fill-paragraph'."
     (let ((node (treesit-node-at (point))))
       (when (string-match-p c-ts-common--comment-regexp
                             (treesit-node-type node))
-        (if (save-excursion
-              (goto-char (treesit-node-start node))
-              ;; In rust, NODE will be the body of a comment excluding
-              ;; the //, so we need to go to BOL to check for //.
-              (back-to-indentation)
-              (looking-at "//"))
+        (if (or (save-excursion
+                  (goto-char (treesit-node-start node))
+                  (looking-at "//"))
+                ;; In rust, NODE will be the body of a comment, and the
+                ;; parent will be the whole comment.
+                (if-let ((start (treesit-node-start
+                                 (treesit-node-parent node))))
+                    (save-excursion
+                      (goto-char start)
+                      (looking-at "//"))))
             (fill-comment-paragraph arg)
           (c-ts-common--fill-block-comment arg)))
       ;; Return t so `fill-paragraph' doesn't attempt to fill by
