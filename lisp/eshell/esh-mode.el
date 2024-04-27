@@ -418,8 +418,10 @@ and the hook `eshell-exit-hook'."
 
   (add-hook 'kill-buffer-hook #'eshell-kill-buffer-function t t)
 
-  (if eshell-first-time-p
-      (run-hooks 'eshell-first-time-mode-hook))
+  (when eshell-first-time-p
+    (setq eshell-first-time-p nil)
+    (run-hooks 'eshell-first-time-mode-hook))
+
   (run-hooks 'eshell-post-command-hook))
 
 (put 'eshell-mode 'mode-class 'special)
