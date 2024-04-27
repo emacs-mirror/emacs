@@ -5142,6 +5142,24 @@ Insertion Types}) of @code{window-point}.  The default is @code{nil},
 so @code{window-point} will stay behind text inserted there.
 @end defvar
 
+@defun set-window-cursor-type window type
+This function sets the cursor shape for @var{window}.  This setting
+takes precedence over the @code{cursor-type} variable, and @var{type}
+has the same format as the value of that variable.  @xref{Cursor
+Parameters}.  If @var{window} is @code{nil}, it means to set the cursor
+type for the selected window.
+
+The initial value for new windows is @code{t}, which says to respect the
+buffer-local value of @code{cursor-type}.  The value set by this
+function persists across buffers shown in @var{window}, so
+@code{set-window-buffer} does not reset it.  @xref{Buffers and Windows}.
+@end defun
+
+@defun window-cursor-type &optional window
+This function returns the cursor type of @var{window}, defaulting to the
+selected window.
+@end defun
+
 @node Window Start and End
 @section The Window Start and End Positions
 @cindex window start position

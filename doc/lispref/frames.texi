@@ -2341,9 +2341,9 @@ Display a horizontal bar @var{height} pixels high.
 @end table
 
 @vindex cursor-type
-The @code{cursor-type} frame parameter may be overridden by the
-variables @code{cursor-type} and
-@code{cursor-in-non-selected-windows}:
+The @code{cursor-type} frame parameter may be overridden by
+@code{set-window-cursor-type} (@pxref{Window Point}), and by the
+variables @code{cursor-type} and @code{cursor-in-non-selected-windows}:
 
 @defopt cursor-type
 This buffer-local variable controls how the cursor looks in a selected

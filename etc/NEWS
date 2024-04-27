@@ -340,6 +340,13 @@ and 'window-state-get'.  Then later another new variable
 'window-state-put' to restore positions of window points
 according to the context stored in a window parameter.
 
++++
+*** New functions 'set-window-cursor-type' and 'window-cursor-type'.
+'set-window-cursor-type' sets a per-window cursor type, and
+'window-cursor-type' queries this setting for a given window.  Windows
+are always created with a 'window-cursor-type' of t, which means to
+consult the variable 'cursor-type' as before.
+
 ** Tab Bars and Tab Lines
 
 ---

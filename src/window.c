@@ -4425,6 +4425,7 @@ make_window (void)
   wset_old_pointm (w, Fmake_marker ());
   wset_vertical_scroll_bar_type (w, Qt);
   wset_horizontal_scroll_bar_type (w, Qt);
+  wset_cursor_type (w, Qt);
   /* These Lisp fields are marked specially so they're not set to nil by
      allocate_window.  */
   wset_prev_buffers (w, Qnil);
@@ -8050,6 +8051,52 @@ PERSISTENT), see `set-window-fringes'.  */)
 		w->fringes_persistent ? Qt : Qnil);
 }
 
+DEFUN ("set-window-cursor-type", Fset_window_cursor_type,
+       Sset_window_cursor_type, 2, 2, 0,
+       doc: /* Set the `cursor-type' of WINDOW to TYPE.
+
+This setting takes precedence over the variable `cursor-type', and TYPE
+has the same format as the value of that variable.  The initial value
+for new windows is t, which says to respect the buffer-local value of
+`cursor-type'.
+
+WINDOW nil means use the selected window.  This setting persists across
+buffers shown in WINDOW, so `set-window-buffer' does not reset it.  */)
+  (Lisp_Object window, Lisp_Object type)
+{
+  struct window *w = decode_live_window (window);
+
+  if (!(NILP (type)
+	|| EQ (type, Qt)
+	|| EQ (type, Qbox)
+	|| EQ (type, Qhollow)
+	|| EQ (type, Qbar)
+	|| EQ (type, Qhbar)
+	|| (CONSP (type)
+	    && (EQ (XCAR (type), Qbox)
+		|| EQ (XCAR (type), Qbar)
+		|| EQ (XCAR (type), Qhbar))
+	    && INTEGERP (XCDR (type)))))
+    error ("Invalid cursor type");
+
+  wset_cursor_type (w, type);
+
+  /* Redisplay with updated cursor type.  */
+  wset_redisplay (w);
+
+  return type;
+}
+
+/* FIXME: Add a way to get the _effective_ cursor type, possibly by
+   extending this function with an additional optional argument.  */
+DEFUN ("window-cursor-type", Fwindow_cursor_type, Swindow_cursor_type,
+       0, 1, 0,
+       doc: /* Return the `cursor-type' of WINDOW.
+WINDOW must be a live window and defaults to the selected one.  */)
+  (Lisp_Object window)
+{
+  return decode_live_window (window)->cursor_type;
+}
 
 
 /***********************************************************************
@@ -8985,4 +9032,6 @@ displayed after a scrolling operation to be somewhat inaccurate.  */);
   defsubr (&Swindow_parameters);
   defsubr (&Swindow_parameter);
   defsubr (&Sset_window_parameter);
+  defsubr (&Swindow_cursor_type);
+  defsubr (&Sset_window_cursor_type);
 }
