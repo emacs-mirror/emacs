@@ -7812,6 +7812,9 @@ w32_initialize (void)
 void
 syms_of_w32term (void)
 {
+  one_w32_display_info.name_list_element = Qnil;
+  staticpro (&one_w32_display_info.name_list_element);
+
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
 
   DEFSYM (Qadded, "added");
