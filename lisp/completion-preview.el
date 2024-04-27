@@ -129,7 +129,7 @@ If this option is nil, these commands do not display any message."
 
 (defface completion-preview-exact
   ;; An exact match is also the longest common prefix of all matches.
-  '((t :underline "gray25" :inherit completion-preview-common))
+  '((t :underline "#00aa00" :inherit completion-preview-common))
   "Face for matches in the completion preview overlay."
   :version "30.1")
 
