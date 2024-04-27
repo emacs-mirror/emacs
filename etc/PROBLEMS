@@ -216,6 +216,28 @@ arguments you intend to pass to Emacs):
 
   $ SNAP=1 SNAP_NAME=1 SNAP_REVISION=1 emacs ...
 
+** Emacs built with tree-sitter crashes when some *-ts-mode is turned on.
+
+The crash is in many cases an abort due to run-time detection of stack
+smashing, and it happens when one of the *-ts-mode modes is turned on
+in a buffer.
+
+The reason is that the tree-sitter library changed its Application
+Binary Interface (ABI) between version 0.22.2 and 0.22.4, but did not
+increment the ABI version number.  Therefore, Emacs compiled with
+tree-sitter versions before the change will try to use the shared
+library after the change, and crash due to incompatibilities in the
+ABI.
+
+Until and unless the tree-sitter developers release a library with an
+updated ABI version, the solution is to rebuild Emacs with the actual
+library with which it will be used.  If you cannot rebuild Emacs,
+downgrade your tree-sitter library to version 0.22.2 or older.
+
+The relevant tree-sitter issue is here:
+
+  https://github.com/tree-sitter/tree-sitter/issues/3296
+
 ** Emacs crashes when you try to view a file with complex characters.
 
 One possible reason for this could be a bug in the libotf or the

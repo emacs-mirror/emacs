@@ -760,14 +760,14 @@ This chapter describes commands that are specific to buffers that
 contain widgets.
 
 @cindex widget keybindings
-@defvr Const widget-keymap
+@defvar widget-keymap
 Keymap containing useful bindings for buffers containing widgets.
 
-Binds @key{TAB} and @kbd{C-@key{TAB}} to @code{widget-forward} and
-@code{widget-backward}, respectively.  It also binds @key{RET} to
-@code{widget-button-press} and @kbd{down-mouse-1} and
+Binds @key{TAB} to @code{widget-forward} and both @kbd{S-@key{TAB}} and
+@kbd{M-@key{TAB}} to @code{widget-backward}.  It also binds @key{RET} to
+@code{widget-button-press} and both @kbd{down-mouse-1} and
 @kbd{down-mouse-2} to @code{widget-button-click}.
-@end defvr
+@end defvar
 
 There's also a keymap for events that the Widget library doesn't need
 to handle.
@@ -788,8 +788,8 @@ The following navigation commands are available:
 @deffn Command widget-forward &optional count
 Move point @var{count} buttons or editing fields forward.
 @end deffn
-@item @kbd{M-@key{TAB}}
-@itemx @kbd{S-@key{TAB}}
+@item M-@key{TAB}
+@itemx S-@key{TAB}
 @deffn Command widget-backward &optional count
 Move point @var{count} buttons or editing fields backward.
 @end deffn
@@ -805,30 +805,35 @@ When editing an @code{editable-field} widget, the following commands
 are available:
 
 @table @kbd
-@item @key{C-e}
+@item C-e
 @deffn Command widget-end-of-line
 Move point to the end of field or end of line, whichever is first.
 @end deffn
 
-@item @kbd{C-k}
+@item C-k
 @deffn Command widget-kill-line
 Kill to end of field or end of line, whichever is first.
 @end deffn
 
-@item @kbd{M-TAB}
+@item M-@key{TAB}
+@itemx C-M-i
 @deffn Command widget-complete
 Complete the content of the editable field at point.
 @end deffn
 
-@item @kbd{C-m}
+@item C-m
+@itemx @key{RET}
 @deffn Command widget-field-activate
 Invoke the editable field at point.
 @end deffn
 @end table
 
-The following two are commands that can execute widget actions.
+The following two commands can execute the action associated with a
+button widget (e.g., a radio button or checkbox):
+
 @table @kbd
 @item @key{RET}
+@itemx C-m
 @findex widget-button-press
 @deffn Command widget-button-press @var{pos} &optional @var{event}
 Invoke the button at @var{pos}, defaulting to point.
@@ -3262,12 +3267,24 @@ to get a string.  Otherwise, it @code{eval}s it.
 This chapter is about the customization options for the Widget
 library, for the end user.
 
-@deffn Face widget-field-face
-Face used for other editing fields.
+@deffn Face widget-documentation
+Face used for documentation text.
 @end deffn
 
-@deffn Face widget-button-face
+@deffn Face widget-field
+Face used for editable fields.
+@end deffn
+
+@deffn Face widget-button
 Face used for buttons.
+@end deffn
+
+@deffn Face widget-button-pressed
+Face used for pressed buttons.
+@end deffn
+
+@deffn Face widget-inactive
+Face used for inactive widgets.
 @end deffn
 
 @defopt widget-mouse-face

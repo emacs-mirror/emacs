@@ -1206,13 +1206,15 @@ fontified."
 
    :feature 'builtin
    :language 'python
-   `(((identifier) @font-lock-builtin-face
-      (:match ,(rx-to-string
-                `(seq bol
-                      (or ,@python--treesit-builtins
-                          ,@python--treesit-special-attributes)
-                      eol))
-              @font-lock-builtin-face)))
+   `((call function: (identifier) @font-lock-builtin-face
+           (:match ,(rx-to-string
+                     `(seq bol (or ,@python--treesit-builtins) eol))
+                   @font-lock-builtin-face))
+     (attribute attribute: (identifier) @font-lock-builtin-face
+                (:match ,(rx-to-string
+                          `(seq bol
+                                (or ,@python--treesit-special-attributes) eol))
+                        @font-lock-builtin-face)))
 
    :feature 'decorator
    :language 'python

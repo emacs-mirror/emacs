@@ -24415,6 +24415,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
     {
       it->method = GET_FROM_STRETCH;
       it->object = prop;
+      it->string_from_prefix_prop_p = true;
     }
 #ifdef HAVE_WINDOW_SYSTEM
   else if (IMAGEP (prop))
@@ -24422,6 +24423,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
       it->what = IT_IMAGE;
       it->image_id = lookup_image (it->f, prop, it->face_id);
       it->method = GET_FROM_IMAGE;
+      it->string_from_prefix_prop_p = true;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
   else
