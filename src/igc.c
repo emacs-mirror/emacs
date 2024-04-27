@@ -1006,6 +1006,10 @@ fix_face (mps_ss_t ss, struct face *f)
     IGC_FIX12_RAW (ss, &f->font);
     IGC_FIX12_RAW (ss, &f->next);
     IGC_FIX12_RAW (ss, &f->prev);
+    IGC_FIX12_RAW (ss, &f->ascii_face);
+#if defined HAVE_XFT || defined HAVE_FREETYPE
+    IGC_FIX12_RAW (ss, &f->extra);
+#endif
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
