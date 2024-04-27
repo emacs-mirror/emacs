@@ -592,8 +592,8 @@ connection object, called when the process dies.")
                                 &optional cleanup)
   "Wait for JSONRPC connection CONN to shutdown.
 With optional CLEANUP, kill any associated buffers.
-If CONN is not shutdown within an reasonable amount of time, warn
-and delete process."
+If CONN is not shutdown within a reasonable amount of time, warn
+and delete the network process."
   (unwind-protect
       (cl-loop
        with proc = (jsonrpc--process conn) for i from 0
