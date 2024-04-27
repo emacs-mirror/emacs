@@ -37397,26 +37397,23 @@ doesn't exist, it will be created and put into
 #ifdef HAVE_MPS
   this_line_buffer = NULL;
   igc_root_create_exact_ptr (&this_line_buffer);
-  {
-    size_t len = (sizeof default_invis_vector
-		  / sizeof (default_invis_vector[0]));
-    for (size_t i = 0; i < len; i++)
-      {
-	default_invis_vector[i] = Qnil;
-	staticpro (&default_invis_vector[i]);
-      }
-  }
+
+  for (size_t i = 0; i < ARRAYELTS (default_invis_vector); i++)
+    {
+      default_invis_vector[i] = Qnil;
+      staticpro (&default_invis_vector[i]);
+    }
+
   echo_area_window = Qnil;
   staticpro (&echo_area_window);
-  {
-    size_t len = sizeof (scratch_glyphs) / sizeof (scratch_glyphs[0]);
-    for (size_t i = 0; i < len; i++)
-      {
-	Lisp_Object *ptr = &scratch_glyphs[i].object;
-	*ptr = Qnil;
-	staticpro (ptr);
-      }
-  }
+
+  for (size_t i = 0; i < ARRAYELTS (scratch_glyphs); i++)
+    {
+      Lisp_Object *ptr = &scratch_glyphs[i].object;
+      *ptr = Qnil;
+      staticpro (ptr);
+    }
+
   displayed_buffer = NULL;
   igc_root_create_exact_ptr (&displayed_buffer);
   last_escape_glyph_frame = NULL;
