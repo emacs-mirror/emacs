@@ -52,7 +52,7 @@
 (autoload 'treesit-ready-p "treesit")
 
 (ert-deftest align-lua ()
-  (skip-unless (treesit-ready-p 'lua))
+  (skip-unless (treesit-ready-p 'lua t))
   (let ((comment-column 20)
         (indent-tabs-mode nil))
     (ert-test-erts-file (ert-resource-file "lua-ts-mode.erts")
