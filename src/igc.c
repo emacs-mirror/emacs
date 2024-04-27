@@ -1606,6 +1606,20 @@ fix_global_ref (mps_ss_t ss, struct module_global_reference *r)
 }
 #endif
 
+static mps_res_t
+fix_font (mps_ss_t ss, struct font *f)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, f, fix_vectorlike);
+    // FIXME: f->driver is const.
+    struct font_driver *driver = (void *) f->driver;
+    IGC_FIX12_OBJ (ss, &driver->type);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 #ifndef IN_MY_FORK
 static mps_res_t
 fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
@@ -1723,6 +1737,10 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 #endif
 	break;
 
+      case PVEC_FONT:
+	IGC_FIX_CALL_FN (ss, struct font, v, fix_font);
+	break;
+
       case PVEC_NORMAL_VECTOR:
       case PVEC_SYMBOL_WITH_POS:
       case PVEC_PROCESS:
@@ -1737,7 +1755,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_SQLITE:
       case PVEC_COMPILED:
       case PVEC_RECORD:
-      case PVEC_FONT:
       case PVEC_OTHER:
 #ifdef IN_MY_FORK
       case PVEC_PACKAGE:
