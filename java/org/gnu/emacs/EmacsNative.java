@@ -228,6 +228,10 @@ public final class EmacsNative
      be prevented from reaching the system input method.  */
   public static native boolean shouldForwardCtrlSpace ();
 
+  /* Return the keycode repeated activation of which should signal
+     quit.  */
+  public static native int getQuitKeycode ();
+
   /* Initialize the current thread, by blocking signals that do not
      interest it.  */
   public static native void setupSystemThread ();

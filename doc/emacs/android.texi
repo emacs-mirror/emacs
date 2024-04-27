@@ -948,13 +948,16 @@ application via cut-and-paste.
 
 @vindex android-pass-multimedia-buttons-to-system
 @cindex volume/multimedia buttons, Android
-  The volume keys are normally reserved by Emacs and used to provide
-the ability to quit Emacs without a physical keyboard
-(@pxref{On-Screen Keyboards}.)  However, if you want them to adjust
-the volume instead, you can set the variable
+  The volume keys are normally reserved by Emacs and used to provide the
+ability to quit Emacs without a physical keyboard (@pxref{On-Screen
+Keyboards}).  However, if you want them to adjust the volume instead,
+you can set the variable
 @code{android-pass-multimedia-buttons-to-system} to a non-@code{nil}
 value; note that you will no longer be able to quit Emacs using the
-volume buttons in that case.
+volume buttons in that case, and that it is generally easier to activate
+the notification shade or another interface that momentarily deprives
+Emacs of the keyboard focus while the volume buttons are being
+depressed.
 
 @cindex dialog boxes, android
   Emacs is unable to display dialog boxes (@pxref{Dialog Boxes}) while

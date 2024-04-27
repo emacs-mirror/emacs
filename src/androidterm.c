@@ -6703,6 +6703,22 @@ so it is important to limit the wait.
 If set to a non-float value, there will be no wait at all.  */);
   Vandroid_wait_for_event_timeout = make_float (0.1);
 
+  DEFVAR_INT ("android-quit-keycode", android_quit_keycode,
+    doc: /* Keycode that signals quit when typed twice in rapid succession.
+
+This is the key code of a key whose repeated activation should prompt
+Emacs to quit, enabling quitting on systems where a keyboard capable of
+typing C-g is unavailable, when set to a key that does exist on the
+device.  Its value must be a keycode defined by the operating system,
+and defaults to 25 (KEYCODE_VOLUME_DOWN), though one of the following
+values might be desired on those devices where this default is also
+unavailable, or if another key must otherwise serve this function
+instead:
+
+  - 4  (KEYCODE_BACK)
+  - 24 (KEYCODE_VOLUME_UP)  */);
+  android_quit_keycode = 25;
+
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       x_use_underline_position_properties,
      doc: /* SKIP: real doc in xterm.c.  */);

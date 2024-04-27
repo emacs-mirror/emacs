@@ -2645,6 +2645,13 @@ NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
   return !android_pass_multimedia_buttons_to_system;
 }
 
+JNIEXPORT jint JNICALL
+NATIVE_NAME (getQuitKeycode) (JNIEnv *env, jobject object)
+{
+  /* Likewise.  */
+  return (jint) android_quit_keycode;
+}
+
 JNIEXPORT jboolean JNICALL
 NATIVE_NAME (shouldForwardCtrlSpace) (JNIEnv *env, jobject object)
 {

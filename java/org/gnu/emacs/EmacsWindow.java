@@ -136,10 +136,10 @@ public final class EmacsWindow extends EmacsHandleObject
      there is no such window manager.  */
   private WindowManager windowManager;
 
-  /* The time of the last KEYCODE_VOLUME_DOWN release.  This is used
-     to quit Emacs upon two rapid clicks of the volume down
-     button.  */
-  private long lastVolumeButtonRelease;
+  /* The time of the last release of the quit keycode, generally
+     KEYCODE_VOLUME_DOWN.  This is used to signal quit upon two rapid
+     presses of such key.  */
+  private long lastQuitKeyRelease;
 
   /* Linked list of character strings which were recently sent as
      events.  */
@@ -790,15 +790,12 @@ public final class EmacsWindow extends EmacsHandleObject
 
 	if ((event.getFlags () & KeyEvent.FLAG_CANCELED) != 0)
 	  return;
-
-	EmacsNative.sendKeyPress (this.handle, event.getEventTime (),
-				  state, keyCode, unicode_char);
       }
 
     EmacsNative.sendKeyRelease (this.handle, event.getEventTime (),
 				state, keyCode, unicode_char);
 
-    if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+    if (keyCode == EmacsNative.getQuitKeycode ())
       {
 	/* Check if this volume down press should quit Emacs.
 	   Most Android devices have no physical keyboard, so it
@@ -806,10 +803,10 @@ public final class EmacsWindow extends EmacsHandleObject
 
 	time = event.getEventTime ();
 
-	if (time - lastVolumeButtonRelease < 350)
+	if (time - lastQuitKeyRelease < 350)
 	  EmacsNative.quit ();
 
-	lastVolumeButtonRelease = time;
+        lastQuitKeyRelease = time;
       }
   }
 

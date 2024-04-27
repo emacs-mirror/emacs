@@ -156,9 +156,11 @@ which two rapid clicks of a hardware button that is always present on
 the device induces a quit.  @xref{Quitting}.
 
 @vindex x-quit-keysym
-  No such button is enabled on X, but one can be configured through
-the variable @code{x-quit-keysym}.  On Android this button is always
-the volume down button.
+@vindex android-quit-keycode
+  No such button is enabled on X, but one can be configured through the
+variable @code{x-quit-keysym}, whereas the default key is the volume
+down button on Android, which is also configurable through a variable,
+@code{android-quit-keycode}.
 
 @cindex text conversion, keyboards
   Most input methods designed to work with virtual keyboards edit text
