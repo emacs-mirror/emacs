@@ -1330,7 +1330,13 @@ fix_frame (mps_ss_t ss, struct frame *f)
       {
 	struct font **font_ptr = &FRAME_FONT (f);
 	if (*font_ptr)
-	  IGC_FIX12_RAW(ss, font_ptr);
+	  IGC_FIX12_RAW (ss, font_ptr);
+
+# ifdef HAVE_NS
+	font_ptr = &f->output_data.ns->font;
+	if (*font_ptr)
+	  IGC_FIX12_RAW (ss, font_ptr);
+# endif
       }
 #endif
 
