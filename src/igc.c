@@ -2482,12 +2482,8 @@ process_messages (struct igc *gc)
 	}
       else if (type == mps_message_type_gc_start ())
 	{
-	  if (garbage_collection_messages)
-	    {
-	      message1_nolog ("Garbage collecting...");
-	      const char *why = mps_message_gc_start_why (gc->arena, msg);
-	      message1_nolog (why);
-	    }
+	  const char *why = mps_message_gc_start_why (gc->arena, msg);
+	  fprintf (stderr, "*** MPS GC start: %s\n", why);
 	}
 
       mps_message_discard (gc->arena, msg);
