@@ -3514,6 +3514,10 @@ window-start value is reasonable when this function is called.  */)
 	     get called.  */
 	  w->optional_new_start = true;
 
+	  /* Reset the vscroll, as redisplay will not.  */
+	  w->vscroll = 0;
+	  w->preserve_vscroll_p = false;
+
 	  set_buffer_internal (obuf);
 	}
     }
@@ -5751,6 +5755,11 @@ window_scroll_for_long_lines (struct window *w, int n, bool noerror)
       else if (n < 0)
 	pos = *vmotion (PT, PT_BYTE, - (ht / 2), w);
       SET_PT_BOTH (pos.bufpos, pos.bytepos);
+
+      /* Since `vmotion' computes coordinates after vscroll is applied,
+         it is taken into account in POS, and vscroll must be reset by
+         `force_start' in `redisplay_internal'.  */
+      w->preserve_vscroll_p = false;
     }
   else
     {
@@ -6894,8 +6903,14 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
   /* Set the new window start.  */
   set_marker_both (w->start, w->contents, charpos, bytepos);
-  w->window_end_valid = false;
 
+  /* The window start was calculated with an iterator already adjusted
+     by the existing vscroll, so w->start must not be combined with
+     retaining the existing vscroll, which redisplay will not reset if
+     w->preserve_vscroll_p is enabled.  (bug#70386) */
+  w->vscroll = 0;
+  w->preserve_vscroll_p = false;
+  w->window_end_valid = false;
   w->optional_new_start = true;
 
   w->start_at_line_beg = (bytepos == BEGV_BYTE
@@ -6983,6 +6998,11 @@ from the top of the window.  */)
       set_marker_both (w->start, w->contents, PT, PT_BYTE);
       w->start_at_line_beg = !NILP (Fbolp ());
       w->force_start = true;
+
+      /* Since `Fvertical_motion' computes coordinates after vscroll is
+         applied, it is taken into account in POS, and vscroll must be
+         reset by `force_start' in `redisplay_internal'.  */
+      w->preserve_vscroll_p = false;
     }
   else
     Fgoto_char (w->start);
