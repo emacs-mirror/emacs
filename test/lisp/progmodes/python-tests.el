@@ -7466,6 +7466,33 @@ buffer with overlapping strings."
                          "Unused import a.b.c (unused-import)"
                        "W0611: Unused import a.b.c (unused-import)"))))))
 
+(ert-deftest python-test--shell-send-block ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+    "print('current 0')
+for x in range(1,3):
+    print('current %s' % x)
+print('current 3')"
+    (goto-line 1)
+    (should-error (python-shell-send-block) :type 'user-error)
+    (goto-line 2)
+    (python-shell-send-block)
+    (python-tests-shell-wait-for-prompt)
+    (python-shell-with-shell-buffer
+      (goto-char (point-min))
+      (should-not (re-search-forward "current 0" nil t))
+      (should (re-search-forward "current 1" nil t))
+      (should (re-search-forward "current 2" nil t))
+      (should-not (re-search-forward "current 3" nil t)))
+    (goto-line 3)
+    (python-shell-send-block t) ;; send block body only
+    (python-tests-shell-wait-for-prompt)
+    (python-shell-with-shell-buffer
+      ;; should only 1 line output from the block body
+      (should (re-search-forward "current"))
+      (should (looking-at " 2"))
+      (should-not (re-search-forward "current" nil t)))))
+
 ;;; python-ts-mode font-lock tests
 
 (defmacro python-ts-tests-with-temp-buffer (contents &rest body)
