@@ -8939,7 +8939,8 @@ The difference between N and the number of articles fetched is returned."
     (while (and (> n 0)
 		(not error))
       (setq header (gnus-summary-article-header))
-      (if (and (eq (mail-header-number header)
+      (if (and (null gnus-alter-header-function)
+               (eq (mail-header-number header)
 		   (cdr gnus-article-current))
 	       (equal gnus-newsgroup-name
 		      (car gnus-article-current)))
@@ -8947,7 +8948,8 @@ The difference between N and the number of articles fetched is returned."
 	  ;; displayed article, then we take a look at the actual
 	  ;; References header, since this is slightly more
 	  ;; reliable than the References field we got from the
-	  ;; server.
+          ;; server. But if we altered the header, we should prefer
+          ;; the version from the header vector.
 	  (with-current-buffer gnus-original-article-buffer
 	    (nnheader-narrow-to-headers)
 	    (unless (setq ref (message-fetch-field "references"))
@@ -8955,8 +8957,8 @@ The difference between N and the number of articles fetched is returned."
 		(setq ref (gnus-extract-message-id-from-in-reply-to ref))))
 	    (widen))
 	(setq ref
-	      ;; It's not the current article, so we take a bet on
-	      ;; the value we got from the server.
+              ;; It's not the current article, or we altered the header,
+              ;; so we use whats in the header vector.
 	      (mail-header-references header)))
       (if (and ref
 	       (not (equal ref "")))
