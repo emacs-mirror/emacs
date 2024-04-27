@@ -1723,6 +1723,9 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 #endif
 	break;
 
+	/* NB: PVEC_FONT objects come in different varieties having different
+	   sizes. The only part they have in common are the Lisp_Object members. */
+      case PVEC_FONT:
       case PVEC_NORMAL_VECTOR:
       case PVEC_SYMBOL_WITH_POS:
       case PVEC_PROCESS:
@@ -1737,7 +1740,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_SQLITE:
       case PVEC_COMPILED:
       case PVEC_RECORD:
-      case PVEC_FONT:
       case PVEC_OTHER:
 #ifdef IN_MY_FORK
       case PVEC_PACKAGE:
