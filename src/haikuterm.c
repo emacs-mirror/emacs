@@ -827,15 +827,15 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
       else
 	BView_SetHighColor (view, face->foreground);
 
-      if (face->underline == FACE_UNDER_WAVE)
+      if (face->underline == FACE_UNDERLINE_WAVE)
 	haiku_draw_underwave (s, width, x);
-      else if (face->underline == FACE_UNDER_LINE)
+      else if (face->underline == FACE_UNDERLINE_SINGLE)
 	{
 	  unsigned long thickness, position;
 	  int y;
 
 	  if (s->prev
-	      && s->prev->face->underline == FACE_UNDER_LINE
+	      && s->prev->face->underline == FACE_UNDERLINE_SINGLE
 	      && (s->prev->face->underline_at_descent_line_p
 		  == s->face->underline_at_descent_line_p)
 	      && (s->prev->face->underline_pixels_above_descent_line

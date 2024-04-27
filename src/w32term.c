@@ -2641,7 +2641,7 @@ w32_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline)
         {
-          if (s->face->underline == FACE_UNDER_WAVE)
+          if (s->face->underline == FACE_UNDERLINE_WAVE)
             {
               COLORREF color;
 
@@ -2652,13 +2652,13 @@ w32_draw_glyph_string (struct glyph_string *s)
 
               w32_draw_underwave (s, color);
             }
-          else if (s->face->underline == FACE_UNDER_LINE)
+          else if (s->face->underline == FACE_UNDERLINE_SINGLE)
             {
               unsigned long thickness, position;
               int y;
 
               if (s->prev
-		  && s->prev->face->underline == FACE_UNDER_LINE
+		  && s->prev->face->underline == FACE_UNDERLINE_SINGLE
 		  && (s->prev->face->underline_at_descent_line_p
 		      == s->face->underline_at_descent_line_p)
 		  && (s->prev->face->underline_pixels_above_descent_line
