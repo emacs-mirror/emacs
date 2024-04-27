@@ -174,7 +174,13 @@ with \"-q\").
 
 Even if the value is nil, you can type \\[package-initialize] to
 make installed packages available at any time, or you can
-call (package-activate-all) in your init-file."
+call (package-activate-all) in your init-file.
+
+Note that this variable must be set to a non-default value in
+your early-init file, as the variable's value is used before
+loading the regular init file.  Therefore, if you customize it
+via Customize, you should save your customized setting into
+your `early-init-file'."
   :type 'boolean
   :version "24.1")
 

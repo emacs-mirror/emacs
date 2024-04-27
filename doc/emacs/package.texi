@@ -490,8 +490,12 @@ startup if invoked with the @samp{-q} or @samp{--no-init-file} options
   To keep Emacs from automatically making packages available at
 startup, change the variable @code{package-enable-at-startup} to
 @code{nil}.  You must do this in the early init file, as the variable
-is read before loading the regular init file.  Currently this variable
-cannot be set via Customize.
+is read before loading the regular init file.  Therefore, if you
+customize this variable via Customize, you should save your customized
+setting into your early init file.  To do this, set or change the value
+of the variable @code{custom-file} (@pxref{Saving Customizations}) to
+point to your early init file before saving the customized value of
+@code{package-enable-at-startup}.
 
 @findex package-quickstart-refresh
 @vindex package-quickstart
