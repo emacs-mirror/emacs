@@ -744,7 +744,7 @@ static Lisp_Object
 comp_hash_string (Lisp_Object string)
 {
   Lisp_Object digest = make_uninit_string (MD5_DIGEST_SIZE * 2);
-  md5_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
+  md5_buffer (SSDATA (string), SBYTES (string), SSDATA (digest));
   hexbuf_digest (SSDATA (digest), SDATA (digest), MD5_DIGEST_SIZE);
 
   return Fsubstring (digest, Qnil, make_fixnum (HASH_LENGTH));
