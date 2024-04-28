@@ -1719,7 +1719,7 @@ extern ptrdiff_t string_bytes (struct Lisp_String *);
 INLINE ptrdiff_t
 STRING_BYTES (struct Lisp_String *s)
 {
-#ifdef GC_CHECK_STRING_BYTES
+#if defined GC_CHECK_STRING_BYTES && !defined HAVE_MPS
   ptrdiff_t nbytes = string_bytes (s);
 #else
   ptrdiff_t nbytes = s->u.s.size_byte < 0 ? s->u.s.size : s->u.s.size_byte;
