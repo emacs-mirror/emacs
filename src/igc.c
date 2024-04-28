@@ -1336,6 +1336,9 @@ fix_frame (mps_ss_t ss, struct frame *f)
 	font_ptr = &f->output_data.ns->font;
 	if (*font_ptr)
 	  IGC_FIX12_RAW (ss, font_ptr);
+
+	struct ns_display_info *d = f->output_data.ns->display_info;
+	IGC_FIX12_OBJ (ss, &d->name_list_element);
 # endif
       }
 #endif
