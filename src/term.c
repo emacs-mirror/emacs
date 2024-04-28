@@ -2056,9 +2056,9 @@ turn_on_face (struct frame *f, int face_id)
 	ts = tty->TF_set_underline_color;
 	if (ts && face->underline_color)
 	  {
-		p = tparam (ts, NULL, 0, face->underline_color, 0, 0, 0);
-		OUTPUT (tty, p);
-		xfree (p);
+	    p = tparam (ts, NULL, 0, face->underline_color, 0, 0, 0);
+	    OUTPUT (tty, p);
+	    xfree (p);
 	  }
     }
 }
