@@ -766,7 +766,6 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   ptrdiff_t id, size;
   int fd, width, height, rc;
   char *contents, *data;
-  void *bitmap;
 
   if (!STRINGP (image_find_image_fd (file, &fd)))
     return -1;
