@@ -10851,7 +10851,6 @@ x_draw_dash (struct frame *f, struct glyph_string *s, int width,
   gc = s->gc;
   display = FRAME_X_DISPLAY (f);
 
-  XGetGCValues (display, s->gc, GCLineStyle, &gcv);
   gcv.line_style = LineOnOffDash;
   gcv.line_width = thickness;
   XChangeGC (display, s->gc, GCLineStyle | GCLineWidth, &gcv);

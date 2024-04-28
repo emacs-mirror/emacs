@@ -71,12 +71,22 @@ enum android_gc_value_mask
     ANDROID_GC_FILL_STYLE	  = (1 << 7),
     ANDROID_GC_TILE_STIP_X_ORIGIN = (1 << 8),
     ANDROID_GC_TILE_STIP_Y_ORIGIN = (1 << 9),
+    ANDROID_GC_LINE_STYLE	  = (1 << 10),
+    ANDROID_GC_LINE_WIDTH	  = (1 << 11),
+    ANDROID_GC_DASH_LIST	  = (1 << 12),
+    ANDROID_GC_DASH_OFFSET	  = (1 << 13),
   };
 
 enum android_fill_style
   {
     ANDROID_FILL_SOLID		 = 0,
     ANDROID_FILL_OPAQUE_STIPPLED = 1,
+  };
+
+enum android_line_style
+  {
+    ANDROID_LINE_SOLID		 = 0,
+    ANDROID_LINE_ON_OFF_DASH	 = 1,
   };
 
 enum android_window_value_mask
@@ -114,6 +124,18 @@ struct android_gc_values
 
   /* The tile-stipple X and Y origins.  */
   int ts_x_origin, ts_y_origin;
+
+  /* The line style.  */
+  enum android_line_style line_style;
+
+  /* The line width.  */
+  int line_width;
+
+  /* Offset in pixels into the dash pattern specified below.  */
+  int dash_offset;
+
+  /* One integer providing both segments of a even-odd dash pattern.  */
+  int dash;
 };
 
 /* X-like graphics context structure.  This is implemented in
@@ -152,6 +174,18 @@ struct android_gc
 
   /* The tile-stipple X and Y origins.  */
   int ts_x_origin, ts_y_origin;
+
+  /* The line style.  */
+  enum android_line_style line_style;
+
+  /* The line width.  */
+  int line_width;
+
+  /* Offset in pixels into the dash pattern specified below.  */
+  int dash_offset;
+
+  /* The segments of an even/odd dash pattern.  */
+  int *dashes, n_segments;
 };
 
 enum android_swap_action
@@ -675,6 +709,7 @@ extern void android_set_clip_rectangles (struct android_gc *,
 					 int, int,
 					 struct android_rectangle *,
 					 int);
+extern void android_set_dashes (struct android_gc *, int, int *, int);
 extern void android_change_gc (struct android_gc *,
 			       enum android_gc_value_mask,
 			       struct android_gc_values *);

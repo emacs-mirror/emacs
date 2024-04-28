@@ -46,12 +46,17 @@ public final class EmacsGC extends EmacsHandleObject
   public static final int GC_FILL_SOLID			= 0;
   public static final int GC_FILL_OPAQUE_STIPPLED	= 1;
 
+  public static final int GC_LINE_SOLID			= 0;
+  public static final int GC_LINE_ON_OFF_DASH		= 1;
+
   public static final Xfermode xorAlu, srcInAlu;
 
   public int function, fill_style;
   public int foreground, background;
   public int clip_x_origin, clip_y_origin;
   public int ts_origin_x, ts_origin_y;
+  public int line_style, line_width;
+  public int dashes[], dash_offset;
   public Rect clip_rects[], real_clip_rects[];
   public EmacsPixmap clip_mask, stipple;
   public Paint gcPaint;
@@ -89,6 +94,10 @@ public final class EmacsGC extends EmacsHandleObject
     foreground = 0;
     background = 0xffffff;
     gcPaint = new Paint ();
+
+    /* Android S and above enable anti-aliasing unless explicitly told
+       otherwise.  */
+    gcPaint.setAntiAlias (false);
   }
 
   /* Mark this GC as dirty.  Apply parameters to the paint and
@@ -119,7 +128,8 @@ public final class EmacsGC extends EmacsHandleObject
 	clipRectID = ++clip_serial;
       }
 
-    gcPaint.setStrokeWidth (1f);
+    /* A line_width of 0 is equivalent to that of 1.  */
+    gcPaint.setStrokeWidth (line_width < 1 ? 1 : line_width);
     gcPaint.setColor (foreground | 0xff000000);
     gcPaint.setXfermode (function == GC_XOR
 			 ? xorAlu : srcInAlu);

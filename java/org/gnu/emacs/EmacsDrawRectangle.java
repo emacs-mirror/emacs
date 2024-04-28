@@ -52,6 +52,9 @@ public final class EmacsDrawRectangle
     paint = gc.gcPaint;
     paint.setStyle (Paint.Style.STROKE);
 
+    /* This graphics request, in contrast to X, does not presently
+       respect the GC's line style.  */
+
     if (gc.clip_mask == null)
       /* Use canvas.drawRect with a RectF.  That seems to reliably
 	 get PostScript behavior.  */

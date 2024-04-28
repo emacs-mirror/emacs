@@ -4031,6 +4031,80 @@ android_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
   s->char2b = NULL;
 }
 
+/* Draw a dashed underline of thickness THICKNESS and width WIDTH onto F
+   at a vertical offset of OFFSET from the position of the glyph string
+   S, with each segment SEGMENT pixels in length.  */
+
+static void
+android_draw_dash (struct frame *f, struct glyph_string *s, int width,
+		   int segment, int offset, int thickness)
+{
+  struct android_gc *gc;
+  struct android_gc_values gcv;
+  int y_center;
+
+  /* Configure the GC, the dash pattern and a suitable offset.  */
+  gc = s->gc;
+
+  gcv.line_style = ANDROID_LINE_ON_OFF_DASH;
+  gcv.line_width = thickness;
+  android_change_gc (s->gc, (ANDROID_GC_LINE_STYLE
+			     | ANDROID_GC_LINE_WIDTH), &gcv);
+  android_set_dashes (s->gc, s->x, &segment, 1);
+
+  /* Offset the origin of the line by half the line width. */
+  y_center = s->ybase + offset + thickness / 2;
+  android_draw_line (FRAME_ANDROID_WINDOW (f), gc,
+		     s->x, y_center, s->x + width, y_center);
+
+  /* Restore the initial line style.  */
+  gcv.line_style = ANDROID_LINE_SOLID;
+  gcv.line_width = 1;
+  android_change_gc (s->gc, (ANDROID_GC_LINE_STYLE
+			     | ANDROID_GC_LINE_WIDTH), &gcv);
+}
+
+/* Draw an underline of STYLE onto F at an offset of POSITION from the
+   baseline of the glyph string S, DECORATION_WIDTH in length, and
+   THICKNESS in height.  */
+
+static void
+android_fill_underline (struct frame *f, struct glyph_string *s,
+			enum face_underline_type style, int position,
+			int decoration_width, int thickness)
+{
+  int segment;
+
+  segment = thickness * 3;
+
+  switch (style)
+    {
+      /* FACE_UNDERLINE_DOUBLE_LINE is treated identically to SINGLE, as
+	 the second line will be filled by another invocation of this
+	 function.  */
+    case FACE_UNDERLINE_SINGLE:
+    case FACE_UNDERLINE_DOUBLE_LINE:
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f),
+			      s->gc, s->x, s->ybase + position,
+			      decoration_width, thickness);
+      break;
+
+    case FACE_UNDERLINE_DOTS:
+      segment = thickness;
+      FALLTHROUGH;
+
+    case FACE_UNDERLINE_DASHES:
+      android_draw_dash (f, s, decoration_width, segment, position,
+			 thickness);
+      break;
+
+    case FACE_NO_UNDERLINE:
+    case FACE_UNDERLINE_WAVE:
+    default:
+      emacs_abort ();
+    }
+}
+
 static void
 android_draw_glyph_string (struct glyph_string *s)
 {
@@ -4167,16 +4241,13 @@ android_draw_glyph_string (struct glyph_string *s)
                   android_set_foreground (s->gc, xgcv.foreground);
                 }
             }
-          else if (s->face->underline == FACE_UNDERLINE_SINGLE
-		   || s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
+          else if (s->face->underline >= FACE_UNDERLINE_SINGLE)
             {
               unsigned long thickness, position;
-              int y;
 
               if (s->prev
-		  && ((s->prev->face->underline == FACE_UNDERLINE_SINGLE)
-		      || (s->prev->face->underline
-			  == FACE_UNDERLINE_DOUBLE_LINE))
+		  && (s->prev->face->underline != FACE_UNDERLINE_WAVE
+		      && s->prev->face->underline >= FACE_UNDERLINE_SINGLE)
 		  && (s->prev->face->underline_at_descent_line_p
 		      == s->face->underline_at_descent_line_p)
 		  && (s->prev->face->underline_pixels_above_descent_line
@@ -4257,17 +4328,15 @@ android_draw_glyph_string (struct glyph_string *s)
 	      {
 		struct android_gc_values xgcv;
 
-		y = s->ybase + position;
-		if (s->face->underline_defaulted_p)
-		  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
-					  s->x, y, decoration_width, thickness);
-		else
+		if (!s->face->underline_defaulted_p)
 		  {
 		    android_get_gc_values (s->gc, ANDROID_GC_FOREGROUND, &xgcv);
 		    android_set_foreground (s->gc, s->face->underline_color);
-		    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
-					    s->x, y, decoration_width, thickness);
 		  }
+
+	        android_fill_underline (s->f, s, s->face->underline,
+					position, decoration_width,
+					thickness);
 
 		/* Place a second underline above the first if this was
 		   requested in the face specification.  */
@@ -4276,9 +4345,8 @@ android_draw_glyph_string (struct glyph_string *s)
 		  {
 		    /* Compute the position of the second underline.  */
 		    position = position - thickness - 1;
-		    y        = s->ybase + position;
-		    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f),
-					    s->gc, s->x, y, decoration_width,
+		    android_fill_underline (s->f, s, s->face->underline,
+					    position, decoration_width,
 					    thickness);
 		  }
 
