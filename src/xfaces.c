@@ -4489,14 +4489,20 @@ hash_string_case_insensitive (Lisp_Object string)
 static uintptr_t
 lface_hash (Lisp_Object *v)
 {
+#ifdef HAVE_MPS
+#define xhash(x) igc_hash (x)
+#else
+#define xhash(x) XHASH (x)
+#endif
   return (hash_string_case_insensitive (v[LFACE_FAMILY_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_FOUNDRY_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_FOREGROUND_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_BACKGROUND_INDEX])
-	  ^ XHASH (v[LFACE_WEIGHT_INDEX])
-	  ^ XHASH (v[LFACE_SLANT_INDEX])
-	  ^ XHASH (v[LFACE_SWIDTH_INDEX])
-	  ^ XHASH (v[LFACE_HEIGHT_INDEX]));
+	  ^ xhash (v[LFACE_WEIGHT_INDEX])
+	  ^ xhash (v[LFACE_SLANT_INDEX])
+	  ^ xhash (v[LFACE_SWIDTH_INDEX])
+	  ^ xhash (v[LFACE_HEIGHT_INDEX]));
+#undef xhash
 }
 
 #ifdef HAVE_WINDOW_SYSTEM
