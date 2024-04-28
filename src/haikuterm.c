@@ -830,7 +830,7 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
       if (face->underline == FACE_UNDERLINE_WAVE)
 	haiku_draw_underwave (s, width, x);
       else if (face->underline == FACE_UNDERLINE_SINGLE
-	       || face->underline == FACE_UNDERLINE_DOUBLE_LINE))
+	       || face->underline == FACE_UNDERLINE_DOUBLE_LINE)
 	{
 	  unsigned long thickness, position;
 	  int y;
