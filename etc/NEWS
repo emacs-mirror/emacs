@@ -2014,6 +2014,9 @@ Mostly used internally to do a kind of topological sort of
 inheritance hierarchies.
 
 +++
+** 'drop' is now an alias for the function 'nthcdr'.
+
++++
 ** New polymorphic comparison function 'value<'.
 This function returns non-nil if the first argument is less than the
 second.  It works for any two values of the same type with reasonable

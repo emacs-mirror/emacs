@@ -2036,6 +2036,7 @@ instead; it will indirectly limit the specpdl stack size as well.")
 
 ;;;; Alternate names for functions - these are not being phased out.
 
+(defalias 'drop #'nthcdr)
 (defalias 'send-string #'process-send-string)
 (defalias 'send-region #'process-send-region)
 (defalias 'string= #'string-equal)
