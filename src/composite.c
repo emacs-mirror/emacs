@@ -35,7 +35,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "dispextern.h"
 #include "termhooks.h"
-
+#ifdef HAVE_MPS
+#include "igc.h"
+#endif
 
 /* Emacs uses special text property `composition' to support character
    composition.  A sequence of characters that have the same (i.e. eq)
@@ -318,7 +320,12 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     memory_full (SIZE_MAX);
 
   /* Register the composition in composition_table.  */
+#ifdef HAS_MPC
+  /* FIXME: maybe trace exactly? */
+  cmp = igc_xzalloc_ambig (sizeof *cmp);
+#else
   cmp = xmalloc (sizeof *cmp);
+#endif
 
   cmp->method = method;
   cmp->key = key;
