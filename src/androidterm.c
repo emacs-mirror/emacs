@@ -4279,7 +4279,7 @@ android_draw_glyph_string (struct glyph_string *s)
 		    y        = s->ybase + position;
 		    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f),
 					    s->gc, s->x, y, decoration_width,
-					    thickness, false);
+					    thickness);
 		  }
 
 		if (!s->face->underline_defaulted_p)
