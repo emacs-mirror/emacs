@@ -517,11 +517,27 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);
   /* Lisp_Subrs have a slot for it.  */
-  if (SUBRP (fun) && !SUBR_NATIVE_COMPILEDP (fun))
+  if (SUBRP (fun))
     XSUBR (fun)->doc = offset;
+  else if (COMPILEDP (fun))
+    {
+      /* This bytecode object must have a slot for the docstring, since
+	 we've found a docstring for it.  */
+      if (PVSIZE (fun) > COMPILED_DOC_STRING
+	  /* Don't overwrite a non-docstring value placed there, such as
+             the symbols used for Oclosures.  */
+	  && VALID_DOCSTRING_P (AREF (fun, COMPILED_DOC_STRING)))
+	ASET (fun, COMPILED_DOC_STRING, make_fixnum (offset));
+      else
+	{
+	  AUTO_STRING (format, "No doc string slot for compiled: %S");
+	  CALLN (Fmessage, format, obj);
+	}
+    }
   else
     {
-      AUTO_STRING (format, "Ignoring DOC string on non-subr: %S");
+      AUTO_STRING (format, "Ignoring DOC string on non-compiled"
+		   "non-subr: %S");
       CALLN (Fmessage, format, obj);
     }
 }
