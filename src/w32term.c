@@ -2657,6 +2657,7 @@ w32_draw_glyph_string (struct glyph_string *s)
             {
               unsigned long thickness, position;
               int y;
+	      COLORREF foreground;
 
               if (s->prev
 		  && ((s->prev->face->underline == FACE_UNDERLINE_SINGLE)
@@ -2679,7 +2680,6 @@ w32_draw_glyph_string (struct glyph_string *s)
 		  BOOL use_underline_position_properties;
 		  Lisp_Object val = (WINDOW_BUFFER_LOCAL_VALUE
 				     (Qunderline_minimum_offset, s->w));
-		  COLORREF foreground;
 
 		  if (FIXNUMP (val))
 		    minimum_offset = max (0, XFIXNUM (val));
