@@ -6086,7 +6086,11 @@ realize_non_ascii_face (struct frame *f, Lisp_Object font_object,
   struct face_cache *cache = FRAME_FACE_CACHE (f);
   struct face *face;
 
+#ifdef HAVE_MPS
+  face = igc_make_face ();
+#else
   face = xmalloc (sizeof *face);
+#endif
   *face = *base_face;
   face->gc = 0;
   face->overstrike
