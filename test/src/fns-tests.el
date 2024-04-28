@@ -1614,6 +1614,12 @@
                    ;; strings
                    ("" . "a") ("a" . "b") ("A" . "a") ("abc" . "abd")
                    ("b" . "ba")
+                   ;; strings again, but in a context where 3-way comparison
+                   ;; matters
+                   (("" . 2) . ("a" . 1))
+                   (("å" . 2) . ("åü" . 1))
+                   (("a" . 2) . ("aå" . 1))
+                   (("\x80" . 2) . ("\x80å" . 1))
 
                    ;; lists
                    ((1 2 3) . (2 3 4)) ((2) . (2 1)) (() . (0))

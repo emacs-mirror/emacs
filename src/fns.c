@@ -481,7 +481,7 @@ string_cmp (Lisp_Object string1, Lisp_Object string2)
       int d = memcmp (SSDATA (string1), SSDATA (string2), n);
       if (d)
 	return d;
-      return n < SCHARS (string2) ? -1 : n > SCHARS (string2);
+      return n < SCHARS (string2) ? -1 : n < SCHARS (string1);
     }
   else if (STRING_MULTIBYTE (string1) && STRING_MULTIBYTE (string2))
     {
@@ -515,7 +515,7 @@ string_cmp (Lisp_Object string1, Lisp_Object string2)
 
       if (b >= nb)
 	/* One string is a prefix of the other.  */
-	return b < nb2 ? -1 : b > nb2;
+	return b < nb2 ? -1 : b < nb1;
 
       /* Now back up to the start of the differing characters:
 	 it's the last byte not having the bit pattern 10xxxxxx.  */
@@ -540,7 +540,7 @@ string_cmp (Lisp_Object string1, Lisp_Object string2)
 	  if (c1 != c2)
 	    return c1 < c2 ? -1 : 1;
 	}
-      return i1 < SCHARS (string2) ? -1 : i1 > SCHARS (string2);
+      return i1 < SCHARS (string2) ? -1 : i1 < SCHARS (string1);
     }
   else
     {
@@ -553,7 +553,7 @@ string_cmp (Lisp_Object string1, Lisp_Object string2)
 	  if (c1 != c2)
 	    return c1 < c2 ? -1 : 1;
 	}
-      return i1 < SCHARS (string2) ? -1 : i1 > SCHARS (string2);
+      return i1 < SCHARS (string2) ? -1 : i1 < SCHARS (string1);
     }
 }
 
