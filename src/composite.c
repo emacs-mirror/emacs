@@ -320,7 +320,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     memory_full (SIZE_MAX);
 
   /* Register the composition in composition_table.  */
-#ifdef HAS_MPS
+#ifdef HAVE_MPS
   /* FIXME: maybe trace exactly?  */
   cmp = igc_xzalloc_ambig (sizeof *cmp);
 #else
