@@ -1120,6 +1120,20 @@ for setting the remote PATH environment variable.
 
 ** EWW
 
+---
+*** New mouse bindings in EWW buffers.
+Certain form elements that were displayed as buttons, yet could only be
+activated by keyboard input, are now operable using 'mouse-2'.  With
+"Submit" buttons, this triggers submission of the form, while clicks on
+other classes of buttons either toggle their values or prompt for user
+input, as the case may be.
+
+---
+*** EWW text input fields and areas are now fields.
+In consequence, movement commands and OS input method features now
+recognize and confine their activities to the text input field around
+point.  See also (elisp)Fields.
+
 +++
 *** 'eww-open-file' can now display the file in a new buffer.
 By default, the command reuses the "*eww*" buffer, but if called with
@@ -1153,7 +1167,7 @@ This is useful for continuing reading the URL in the current buffer
 when the new URL is fetched.
 
 ---
-*** History navigation in EWW now works like other browsers.
+*** History navigation in EWW now behaves as in other browsers.
 Previously, when navigating back and forward through page history, EWW
 would add a duplicate entry to the end of the history list each time.
 This made it impossible to navigate to the "end" of the history list.
