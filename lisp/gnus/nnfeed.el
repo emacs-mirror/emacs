@@ -46,7 +46,7 @@
 ;;    (defvoo nnfoo-read-feed-function #'nnfoo--read-feed
 ;;     nil nnfeed-read-feed-function)
 ;;    ...
-;;    (gnus-declare-backend (symbol-name nnfeed-backend) 'address)
+;;    (gnus-declare-backend (symbol-name nnfeed-backend) 'none 'address)
 ;;
 ;;    (provide 'nnfoo)
 ;;
