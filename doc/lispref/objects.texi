@@ -2036,7 +2036,7 @@ with references to further information.
 @xref{Array Functions, arrayp}.
 
 @item bignump
-@xref{Predicates on Numbers, floatp}.
+@xref{Predicates on Numbers, bignump}.
 
 @item bool-vector-p
 @xref{Bool-Vectors, bool-vector-p}.
@@ -2078,7 +2078,7 @@ with references to further information.
 @xref{Variable Definitions, custom-variable-p}.
 
 @item fixnump
-@xref{Predicates on Numbers, floatp}.
+@xref{Predicates on Numbers, fixnump}.
 
 @item floatp
 @xref{Predicates on Numbers, floatp}.
