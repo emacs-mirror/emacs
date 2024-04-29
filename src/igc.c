@@ -1332,6 +1332,7 @@ fix_glyph_matrix (mps_ss_t ss, struct glyph_matrix *matrix)
 		}
 	    }
 	}
+    IGC_FIX12_RAW (ss, &matrix->buffer);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
