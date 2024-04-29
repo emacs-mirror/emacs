@@ -2962,8 +2962,10 @@ If FORM is a lambda or a macro, byte-compile it as a function."
         (when (or (symbolp form) (interpreted-function-p fun))
           ;; `fun' is a function *value*, so try to recover its
           ;; corresponding source code.
-          (setq lexical-binding (not (null (aref fun 2))))
-          (setq fun (byte-compile--reify-function fun))
+          (if (not (interpreted-function-p fun))
+              (setq lexical-binding nil)
+            (setq lexical-binding (not (null (aref fun 2))))
+            (setq fun (byte-compile--reify-function fun)))
           (setq need-a-value t))
         ;; Expand macros.
         (setq fun (byte-compile-preprocess fun))
