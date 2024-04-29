@@ -2687,12 +2687,14 @@ meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
 @var{style} is a symbol which sets the line-style to of the underline.
 It should be one of @code{line}, @code{double-line}, @code{wave},
-@code{dots}, or @code{dashes}.  GUI frames only support @code{line} and
-@code{wave}.  Terminal frames can support all aforementioned underline
-styles.  Omitting the attribute @code{:style} means to use a straight
-line.  @var{position}, if non-@code{nil}, means to display the underline
-at the descent of the text, instead of at the baseline level.  If it is
-a number, then it specifies the amount of pixels above the descent to
+@code{dots}, or @code{dashes}.  GUI frames under most window systems
+support all the aforementioned underline styles, while on text terminals
+@code{double-line}, @code{wave} and @code{dots} are contingent on the
+availability of the @code{Smulx} or @code{Su} terminfo capabilities.
+Omitting the attribute @code{:style} means to use a straight line.
+@var{position}, if non-@code{nil}, means to display the underline at the
+descent of the text, instead of at the baseline level.  If it is a
+number, then it specifies the amount of pixels above the descent to
 display the underline.
 @end table
 
