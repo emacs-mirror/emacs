@@ -269,7 +269,7 @@ return the subject.  Otherwise, return nil."
 (defvoo nnatom-read-parts-function #'nnatom--read-parts
   nil nnfeed-read-parts-function)
 
-(gnus-declare-backend (symbol-name nnatom-backend) 'address)
+(gnus-declare-backend (symbol-name nnatom-backend) 'none 'address)
 
 (provide 'nnatom)
 
