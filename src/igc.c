@@ -1310,6 +1310,34 @@ fix_buffer (mps_ss_t ss, struct buffer *b)
 }
 
 static mps_res_t
+fix_glyph_matrix (mps_ss_t ss, struct glyph_matrix *matrix)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    struct glyph_row *row = matrix->rows;
+    struct glyph_row *end = row + matrix->nrows;
+
+    for (; row < end; ++row)
+      if (row->enabled_p)
+	{
+	  for (int area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
+	    {
+	      struct glyph *glyph = row->glyphs[area];
+	      struct glyph *end_glyph = glyph + row->used[area];
+	      for (; glyph < end_glyph; ++glyph)
+		{
+		  Lisp_Object *obj_ptr = &glyph->object;
+		  if (STRINGP (*obj_ptr))
+		    IGC_FIX12_OBJ (ss, obj_ptr);
+		}
+	    }
+	}
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
 fix_frame (mps_ss_t ss, struct frame *f)
 {
   MPS_SCAN_BEGIN (ss)
@@ -1335,7 +1363,6 @@ fix_frame (mps_ss_t ss, struct frame *f)
 	IGC_FIX12_OBJ (ss, nle);
       }
 #endif
-
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1346,8 +1373,11 @@ fix_window (mps_ss_t ss, struct window *w)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    /* FIXME: matrices... */
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, w, fix_vectorlike);
+    if (w->current_matrix)
+      IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->current_matrix));
+    if (w->desired_matrix)
+      IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->desired_matrix));
 
     /* FIXME: window.h syas the following two are "marked specially", so
        they are not seen by fix_vectorlike. That's of course a no-go
