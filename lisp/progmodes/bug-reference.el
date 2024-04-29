@@ -658,19 +658,39 @@ have been run, the auto-setup is inhibited.")
 
 (defun bug-reference--url-at-point ()
   "`thing-at-point' provider function."
-  (get-char-property (point) 'bug-reference-url))
+  (thing-at-point-for-text-property 'bug-reference-url))
+
+(defun bug-reference--forward-url (n)
+  "`forward-thing' provider function."
+  (forward-thing-for-text-property 'bug-reference-url n))
+
+(defun bug-reference--bounds-of-url-at-point ()
+  "`bounds-of-thing-at-point' provider function."
+  (bounds-of-thing-at-point-for-text-property 'bug-reference-url))
 
 (defun bug-reference--init (enable)
   (if enable
       (progn
         (jit-lock-register #'bug-reference-fontify)
         (setq-local thing-at-point-provider-alist
-                    (append thing-at-point-provider-alist
-                            '((url . bug-reference--url-at-point)))))
+                    (cons '(url . bug-reference--url-at-point)
+                          thing-at-point-provider-alist))
+        (setq-local forward-thing-provider-alist
+                    (cons '(url . bug-reference--forward-url)
+                          forward-thing-provider-alist))
+        (setq-local bounds-of-thing-at-point-provider-alist
+                    (cons '(url . bug-reference--bounds-of-url-at-point)
+                          bounds-of-thing-at-point-provider-alist)))
     (jit-lock-unregister #'bug-reference-fontify)
     (setq thing-at-point-provider-alist
           (delete '((url . bug-reference--url-at-point))
                   thing-at-point-provider-alist))
+    (setq forward-thing-provider-alist
+          (delete '((url . bug-reference--forward-url))
+                  forward-thing-provider-alist))
+    (setq bounds-of-thing-at-point-provider-alist
+          (delete '((url . bug-reference--bounds-of-url-at-point))
+                  bounds-of-thing-at-point-provider-alist))
     (save-restriction
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))

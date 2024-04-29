@@ -258,4 +258,63 @@ position to retrieve THING.")
   (should (equal (test--number "0xf00" 2) 3840))
   (should (equal (test--number "0xf00" 3) 3840)))
 
+(ert-deftest thing-at-point-providers ()
+  (with-temp-buffer
+    (setq-local
+     thing-at-point-provider-alist
+     `((url . ,(lambda () (thing-at-point-for-text-property 'foo-url)))
+       (url . ,(lambda () (thing-at-point-for-text-property 'bar-url)))))
+    (insert (propertize "hello" 'foo-url "foo.com") "\n"
+            (propertize "goodbye" 'bar-url "bar.com"))
+    (goto-char (point-min))
+    ;; Get the URL using the first provider.
+    (should (equal (thing-at-point 'url) "foo.com"))
+    (should (equal (thing-at-point 'word) "hello"))
+    (goto-char (point-max))
+    ;; Get the URL using the second provider.
+    (should (equal (thing-at-point 'url) "bar.com"))))
+
+(ert-deftest forward-thing-providers ()
+  (with-temp-buffer
+    (setq-local
+     forward-thing-provider-alist
+     `((url . ,(lambda (n) (forward-thing-for-text-property 'foo-url n)))
+       (url . ,(lambda (n) (forward-thing-for-text-property 'bar-url n)))))
+    (insert (propertize "hello" 'foo-url "foo.com") "there\n"
+            (propertize "goodbye" 'bar-url "bar.com"))
+    (goto-char (point-min))
+    (save-excursion
+      (forward-thing 'url)              ; Move past the first URL.
+      (should (= (point) 6))
+      (forward-thing 'url)              ; Move past the second URL.
+      (should (= (point) 19)))
+    (goto-char (point-min))             ; Go back to the beginning...
+    (forward-thing 'word)               ; ... and move past the first word.
+    (should (= (point) 11))))
+
+(ert-deftest bounds-of-thing-at-point-providers ()
+  (with-temp-buffer
+    (setq-local
+     bounds-of-thing-at-point-provider-alist
+     `((url . ,(lambda ()
+                 (bounds-of-thing-at-point-for-text-property 'foo-url)))
+       (url . ,(lambda ()
+                 (bounds-of-thing-at-point-for-text-property 'bar-url)))))
+    (insert (propertize "hello" 'foo-url "foo.com") "there\n"
+            (propertize "goodbye" 'bar-url "bar.com"))
+    (goto-char (point-min))
+    ;; Look for a URL, using the first provider above.
+    (should (equal (bounds-of-thing-at-point 'url) '(1 . 6)))
+    (should (eq (save-excursion (beginning-of-thing 'url)) 1))
+    (should (eq (save-excursion (end-of-thing 'url)) 6))
+    ;; Look for a word, which should *not* use our provider above.
+    (should (equal (bounds-of-thing-at-point 'word) '(1 . 11)))
+    (should (eq (save-excursion (beginning-of-thing 'word)) 1))
+    (should (eq (save-excursion (end-of-thing 'word)) 11))
+    (goto-char (point-max))
+    ;; Look for a URL, using the second provider above.
+    (should (equal (bounds-of-thing-at-point 'url) '(12 . 19)))
+    (should (eq (save-excursion (beginning-of-thing 'url)) 12))
+    (should (eq (save-excursion (end-of-thing 'url)) 19))))
+
 ;;; thingatpt-tests.el ends here

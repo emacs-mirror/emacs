@@ -1735,6 +1735,26 @@ By default it retains the previous behavior: read the contents of
 Gemfile and act accordingly.  But you can also set it to t or nil to
 skip the check.
 
+** Thingatpt
+
+---
+*** New variables for providing custom thingatpt implementations.
+The new variables 'bounds-of-thing-at-point-provider-alist' and
+'forward-thing-provider-alist' now allow defining custom implementations
+of 'bounds-of-thing-at-point' and 'forward-thing', respectively.
+
+---
+*** New helper functions for text property-based thingatpt providers.
+The new helper functions 'thing-at-point-for-text-property',
+'bounds-of-thing-at-point-for-text-property', and
+'forward-thing-for-text-property' can help to help implement custom
+thingatpt providers for "things" that are defined by a text property.
+
+---
+*** 'bug-reference-mode' now supports 'thing-at-point'.
+Now, calling '(thing-at-point 'url)' when point is on a bug reference
+will return the URL for that bug.
+
 ** Miscellaneous
 
 ---
@@ -1742,11 +1762,6 @@ skip the check.
 For links in 'webjump-sites' without an explicit URI scheme, it was
 previously assumed that they should be prefixed with "http://".  Such
 URIs are now prefixed with "https://" instead.
-
----
-*** 'bug-reference-mode' now supports 'thing-at-point'.
-Now, calling '(thing-at-point 'url)' when point is on a bug reference
-will return the URL for that bug.
 
 +++
 *** New user option 'rcirc-log-time-format'.

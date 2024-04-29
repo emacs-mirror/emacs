@@ -75,6 +75,27 @@ question.
 `existing-filename', `url', `email', `uuid', `word', `sentence',
 `whitespace', `line', `face' and `page'.")
 
+(defvar forward-thing-provider-alist nil
+  "Alist of providers for moving forward to the end of a \"thing\".
+This variable can be set globally, or appended to buffer-locally by
+modes, to provide functions that will move forward to the end of a
+\"thing\" at point.  Each function should take a single argument N, the
+number of \"things\" to move forward past.  The first provider for the
+\"thing\" that returns a non-nil value wins.
+
+You can use this variable in much the same way as
+`thing-at-point-provider-alist' (which see).")
+
+(defvar bounds-of-thing-at-point-provider-alist nil
+  "Alist of providers to return the bounds of a \"thing\" at point.
+This variable can be set globally, or appended to buffer-locally by
+modes, to provide functions that will return the bounds of a \"thing\"
+at point.  The first provider for the \"thing\" that returns a non-nil
+value wins.
+
+You can use this variable in much the same way as
+`thing-at-point-provider-alist' (which see).")
+
 ;; Basic movement
 
 ;;;###autoload
@@ -84,11 +105,16 @@ THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun', `number',
 `filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'."
-  (let ((forward-op (or (get thing 'forward-op)
-			(intern-soft (format "forward-%s" thing)))))
-    (if (functionp forward-op)
-	(funcall forward-op (or n 1))
-      (error "Can't determine how to move over a %s" thing))))
+  (setq n (or n 1))
+  (or (seq-some (lambda (elt)
+                  (and (eq (car elt) thing)
+                       (funcall (cdr elt) n)))
+                forward-thing-provider-alist)
+      (let ((forward-op (or (get thing 'forward-op)
+			    (intern-soft (format "forward-%s" thing)))))
+        (if (functionp forward-op)
+	    (funcall forward-op n)
+          (error "Can't determine how to move over a %s" thing)))))
 
 ;; General routines
 
@@ -106,6 +132,10 @@ valid THING.
 Return a cons cell (START . END) giving the start and end
 positions of the thing found."
   (cond
+   ((seq-some (lambda (elt)
+                (and (eq (car elt) thing)
+                     (funcall (cdr elt))))
+                bounds-of-thing-at-point-provider-alist))
    ((get thing 'bounds-of-thing-at-point)
     (funcall (get thing 'bounds-of-thing-at-point)))
    ;; If the buffer is totally empty, give up.
@@ -774,5 +804,48 @@ treated as white space."
     (save-excursion
       (goto-char (or (nth 8 ppss) (point)))
       (form-at-point 'list 'listp))))
+
+;; Provider helper functions
+
+(defun thing-at-point-for-text-property (property)
+  "Return the \"thing\" at point.
+Each \"thing\" is a region of text with the specified text PROPERTY set."
+  (or (get-text-property (point) property)
+      (and (> (point) (point-min))
+           (get-text-property (1- (point)) property))))
+
+(autoload 'text-property-search-forward "text-property-search")
+(autoload 'text-property-search-backward "text-property-search")
+(autoload 'prop-match-beginning "text-property-search")
+(autoload 'prop-match-end "text-property-search")
+
+(defun forward-thing-for-text-property (property n)
+  "Move forward to the end of the Nth next \"thing\".
+Each \"thing\" is a region of text with the specified text PROPERTY set."
+  (let ((search-func (if (> n 0) #'text-property-search-forward
+                       #'text-property-search-backward))
+        (pos-func (if (> n 0) #'prop-match-end #'prop-match-beginning))
+        (limit (if (> n 0) (point-max) (point-min))))
+    (catch 'done
+      (dotimes (_ (abs n))
+        (if-let ((match (funcall search-func property)))
+            (goto-char (funcall pos-func match))
+          (goto-char limit)
+          (throw 'done t))))
+    ;; Return non-nil.
+    t))
+
+(defun bounds-of-thing-at-point-for-text-property (property)
+  "Determine the start and end buffer locations for the \"thing\" at point.
+The \"thing\" is a region of text with the specified text PROPERTY set."
+  (let ((pos (point)))
+    (when (or (get-text-property pos property)
+              (and (> pos (point-min))
+                   (get-text-property (setq pos (1- pos)) property)))
+      (cons (or (previous-single-property-change
+                 (min (1+ pos) (point-max)) property)
+                (point-min))
+            (or (next-single-property-change pos property)
+                (point-max))))))
 
 ;;; thingatpt.el ends here
