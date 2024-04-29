@@ -2709,6 +2709,13 @@ native code emitted for the function.  In particular, if @var{n} is
 @minus{}1, native compilation of the function will emit bytecode
 instead of native code for the function.
 
+@item (type @var{type})
+Declare @var{type} to be the type of this function.  This is used for
+documentation by @code{describe-function}.  Also it can be used by the
+native compiler (@pxref{Native-Compilation}) for improving code
+generation and for deriving more precisely the type of other functions
+without type declaration.
+
 @item no-font-lock-keyword
 This is valid for macros only.  Macros with this declaration are
 highlighted by font-lock (@pxref{Font Lock Mode}) as normal functions,
