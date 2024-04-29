@@ -1304,10 +1304,11 @@ This consults the entries in `eww-readable-urls' (which see)."
 
 (defun eww-check-text-conversion ()
   "Check if point is within a field and toggle text conversion.
-If `text-conversion-style' is not `action' if point is within the
-prompt or `nil' otherwise, set it to such a value, so as to
-guarantee that the input method functions properly for the
-purpose of typing within the ERC prompt."
+Set `text-conversion-style' to the value `action' if it isn't
+already and point is within the prompt field, or if
+`text-conversion-style' is `nil', so as to guarantee that
+the input method functions properly for the purpose of typing
+within the ERC prompt."
   (when (and (eq major-mode 'eww-mode)
              (fboundp 'set-text-conversion-style))
     (if (eq (car-safe (get-text-property (point) 'field))
@@ -1649,7 +1650,8 @@ just re-display the HTML already fetched."
 
 (defun eww-select-file (&optional event)
   "Change the value of the upload file menu under point.
-EVENT, if non-nil, is the mouse event that preceded this command."
+EVENT, if non-nil, is the mouse event that preceded this command.
+Interactively, EVENT is the value of `last-nonmenu-event'."
   (interactive (list last-nonmenu-event) eww-mode)
   (when (and event (setq event (event-start event)))
     (goto-char (posn-point event)))
@@ -1904,7 +1906,8 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 
 (defun eww-toggle-checkbox (&optional event)
   "Toggle the value of the checkbox under point.
-EVENT, if non-nil, is the mouse event that preceded this command."
+EVENT, if non-nil, is the mouse event that preceded this command.
+Interactively, EVENT is the value of `last-nonmenu-event'."
   (interactive (list last-nonmenu-event) eww-mode)
   (when (and event (setq event (event-start event)))
     (goto-char (posn-point event)))
@@ -1977,7 +1980,8 @@ EVENT, if non-nil, is the mouse event that preceded this command."
 
 (defun eww-submit (&optional event)
   "Submit the form under point or EVENT.
-EVENT, if non-nil, is the mouse event that preceded this command."
+EVENT, if non-nil, is the mouse event that preceded this command.
+Interactively, EVENT is the value of `last-nonmenu-event'."
   (interactive (list last-nonmenu-event) eww-mode)
   (when (and event (setq event (event-start event)))
     (goto-char (posn-point event)))

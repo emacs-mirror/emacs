@@ -1360,18 +1360,19 @@ is not read-only."
                    (when command
                      (if (or (memq command touch-screen-set-point-commands)
                              ;; Users of packages that redefine
-                             ;; mouse-set-point, or other commands
+                             ;; `mouse-set-point', or other commands
                              ;; recognized as defining the point, should
                              ;; not find the on screen keyboard
-                             ;; inaccessible even with t-s-d-k enabled.
+                             ;; inaccessible even with
+                             ;; `touch-screen-display-keyboard' enabled.
                              touch-screen-display-keyboard)
                          (if touch-screen-translate-prompt
                              ;; Forgo displaying the virtual keyboard
-                             ;; should touch-screen-translate-prompt be
+                             ;; should `touch-screen-translate-prompt' be
                              ;; set, for then the key won't be delivered
                              ;; to the command loop, but rather to a
-                             ;; caller of read-key-sequence such as
-                             ;; describe-key.
+                             ;; caller of `read-key-sequence' such as
+                             ;; `describe-key'.
                              (throw 'input-event event)
                            (if (and (or (not buffer-read-only)
                                         ;; Display the on screen

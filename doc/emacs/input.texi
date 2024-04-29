@@ -127,9 +127,9 @@ minibuffer being brought into use (@pxref{Minibuffer}).
 @vindex touch-screen-set-point-commands
   When a ``tap'' gesture results in a command being executed, Emacs
 checks whether the command is meant to set the point by searching for it
-in the list @code{touch-screen-set-point-commands}.  If it is and the
+in the list @code{touch-screen-set-point-commands}.  If it is, and the
 text beneath the new point is not read-only, the virtual keyboard is
-activated, in anticipation of the user entering text there.
+activated, in anticipation of the user input there.
 
   The default value of @code{touch-screen-set-point-commands} holds only
 the command @code{mouse-set-point} (@pxref{Mouse Commands}), which is
