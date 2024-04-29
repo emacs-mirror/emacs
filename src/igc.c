@@ -1625,6 +1625,31 @@ fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
 }
 #endif
 
+static mps_res_t
+fix_font (mps_ss_t ss, struct Lisp_Vector *v)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
+    /* See font.h for the magic numbers. */
+    switch (v->header.size & PSEUDOVECTOR_SIZE_MASK)
+      {
+      case FONT_SPEC_MAX:
+      case FONT_ENTITY_MAX:
+	break;
+      case FONT_OBJECT_MAX:
+	struct font *f = (struct font *)v;
+	Lisp_Object const *type = &f->driver->type;
+	IGC_FIX12_OBJ (ss, (Lisp_Object *)type);
+	break;
+      default:
+	emacs_abort ();
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 /* Note that there is a small window after committing a vectorlike
    allocation where the object is zeroed, and so the vector header is
    also zero.  This doesn't have an adverse effect. */
@@ -1728,9 +1753,10 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 #endif
 	break;
 
-	/* NB: PVEC_FONT objects come in different varieties having different
-	   sizes. The only part they have in common are the Lisp_Object members. */
       case PVEC_FONT:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_font);
+	break;
+
       case PVEC_NORMAL_VECTOR:
       case PVEC_SYMBOL_WITH_POS:
       case PVEC_PROCESS:
