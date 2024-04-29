@@ -149,6 +149,13 @@ If DEF is a list on the form (FUN MIN-ARGS MAX-ARGS PRED), then
    If PRED is non-nil, it is a predicate that all actual arguments must
    satisfy.")
 
+(make-obsolete-variable
+ 'rx-constituents
+ "use `rx-let', `rx-let-eval', or `rx-define' instead."
+ ;; Effectively obsolete since Emacs 27 but only formally declared
+ ;; obsolete in Emacs 30.
+ "30.1")
+
 (defvar rx--local-definitions nil
   "Alist of dynamic local rx definitions.
 Each entry is:

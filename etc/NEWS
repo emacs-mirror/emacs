@@ -2615,6 +2615,10 @@ buffer edits.
 This function helps user to add custom font-lock rules to a tree-sitter
 major mode.
 
+---
+** The variable 'rx-constituents' is now obsolete.
+Use 'rx-define', 'rx-let' and 'rx-let-eval' instead.
+
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
