@@ -1585,7 +1585,7 @@ fix_finalizer (mps_ss_t ss, struct Lisp_Finalizer *f)
 }
 
 static mps_res_t
-fix_native_cu (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
+fix_comp_unit (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
 {
   MPS_SCAN_BEGIN (ss)
   {
@@ -1782,7 +1782,7 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 	break;
 
       case PVEC_NATIVE_COMP_UNIT:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Native_Comp_Unit, v, fix_native_cu);
+	IGC_FIX_CALL_FN (ss, struct Lisp_Native_Comp_Unit, v, fix_comp_unit);
 	break;
 
       case PVEC_MODULE_GLOBAL_REFERENCE:
@@ -2279,6 +2279,8 @@ static void
 finalize_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
   unload_comp_unit (u);
+  u->data_imp_relocs = NULL;
+  u->data_relocs = NULL;
 }
 
 static void
