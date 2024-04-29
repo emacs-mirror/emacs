@@ -2811,9 +2811,8 @@ DEFUN ("igc-make-weak-ref", Figc_make_weak_ref, Sigc_make_weak_ref, 1, 1, 0,
 {
   const enum pvec_type type = PVEC_WEAK_REF;
   struct Lisp_Weak_Ref *wref = alloc (sizeof *wref, IGC_OBJ_WEAK, type);
-  int nwords_lisp = VECSIZE(struct Lisp_Weak_Ref);
+  int nwords_lisp = VECSIZE (struct Lisp_Weak_Ref);
   XSETPVECTYPESIZE (wref, type, nwords_lisp, 0);
-  maybe_finalize (wref, type);
   wref->ref = target;
   Lisp_Object obj = make_lisp_ptr (wref, Lisp_Vectorlike);
   return obj;
