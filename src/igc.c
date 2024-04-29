@@ -1668,9 +1668,11 @@ fix_font (mps_ss_t ss, struct Lisp_Vector *v)
       case FONT_ENTITY_MAX:
 	break;
       case FONT_OBJECT_MAX:
-	struct font *f = (struct font *)v;
-	Lisp_Object const *type = &f->driver->type;
-	IGC_FIX12_OBJ (ss, (Lisp_Object *)type);
+	{
+	  struct font *f = (struct font *)v;
+	  Lisp_Object const *type = &f->driver->type;
+	  IGC_FIX12_OBJ (ss, (Lisp_Object *)type);
+	}
 	break;
       default:
 	emacs_abort ();
