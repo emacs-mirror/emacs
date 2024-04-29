@@ -1595,6 +1595,11 @@ fix_native_cu (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
 	size_t n = ASIZE (u->data_impure_vec);
 	IGC_FIX12_NOBJS (ss, u->data_imp_relocs, n);
       }
+    if (u->data_relocs)
+      {
+	size_t n = ASIZE (u->data_vec);
+	IGC_FIX12_NOBJS (ss, u->data_relocs, n);
+      }
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;

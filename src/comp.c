@@ -5363,6 +5363,9 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   /* Always set data_imp_relocs pointer in the compilation unit (in can be
      used in 'dump_do_dump_relocation').  */
   comp_u->data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
+#ifdef HAVE_MPS
+  comp_u->data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+#endif
 
   if (!comp_u->loaded_once)
     {

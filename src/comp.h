@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define COMP_H
 
 #include <dynlib.h>
+#include "lisp.h"
 
 struct Lisp_Native_Comp_Unit
 {
@@ -46,6 +47,9 @@ struct Lisp_Native_Comp_Unit
   Lisp_Object data_impure_vec;
   /* STUFFS WE DO NOT DUMP!!  */
   Lisp_Object *data_imp_relocs;
+# ifdef HAVE_MPS
+  Lisp_Object *data_relocs;
+# endif
   bool loaded_once;
   bool load_ongoing;
   dynlib_handle_ptr handle;
