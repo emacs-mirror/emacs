@@ -143,12 +143,6 @@ public final class EmacsDrawLine
     if (canvas == null)
       return;
 
-    /* Since drawLine has PostScript style behavior, adjust the
-       coordinates appropriately.
-
-       The leftmost pixel of a straight line is always partially filled.
-       Patch it in manually.  */
-
     if (gc.clip_mask == null)
       {
 	if (gc.line_style != EmacsGC.GC_LINE_ON_OFF_DASH)
