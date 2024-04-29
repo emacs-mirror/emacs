@@ -194,7 +194,7 @@ Useful to hook into pass checkers.")
   (when (symbolp function)
     (let ((f (symbol-function function)))
       (or (gethash f comp-primitive-func-cstr-h)
-          (when-let ((res (function-get function 'declared-type)))
+          (when-let ((res (function-get function 'function-type)))
             (comp-type-spec-to-cstr (car res)))))))
 
 ;; Keep it in sync with the `cl-deftype-satisfies' property set in

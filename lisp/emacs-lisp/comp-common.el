@@ -515,7 +515,7 @@ itself."
     (let ((f (and (symbolp function)
                   (symbol-function function))))
       (when (and f (null type-spec))
-        (if-let ((delc-type (function-get function 'declared-type)))
+        (if-let ((delc-type (function-get function 'function-type)))
             ;; Declared Lisp function
             (setf type-spec (car delc-type))
           (when (subr-native-elisp-p f)
