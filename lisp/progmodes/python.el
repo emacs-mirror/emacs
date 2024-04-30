@@ -1022,9 +1022,9 @@ It makes underscores and dots word constituent chars.")
     "copyright" "credits" "exit" "license" "quit"))
 
 (defvar python--treesit-operators
-  '("-" "-=" "!=" "*" "**" "**=" "*=" "/" "//" "//=" "/=" "&" "%" "%="
-    "^" "+" "->" "+=" "<" "<<" "<=" "<>" "=" ":=" "==" ">" ">=" ">>" "|"
-    "~" "@" "@="))
+  '("-" "-=" "!=" "*" "**" "**=" "*=" "/" "//" "//=" "/=" "&" "&=" "%" "%="
+    "^" "^=" "+" "->" "+=" "<" "<<" "<<=" "<=" "<>" "=" ":=" "==" ">" ">="
+    ">>" ">>=" "|" "|=" "~" "@" "@="))
 
 (defvar python--treesit-special-attributes
   '("__annotations__" "__closure__" "__code__"
