@@ -4778,9 +4778,11 @@ syms_of_editfns (void)
   DEFSYM (Qwall, "wall");
   DEFSYM (Qpropertize, "propertize");
 
+#ifdef HAVE_MPS
   cached_system_name = Qnil;
   staticpro (&cached_system_name);
   labeled_restrictions = Qnil;
+#endif
   staticpro (&labeled_restrictions);
 
   DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,
