@@ -141,6 +141,10 @@ select_window (Lisp_Object window, Lisp_Object norecord)
 
   w = XWINDOW (window);
 
+  /* Work around GCC bug 114893
+     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114893>.  */
+  eassume (w);
+
   if (MINI_WINDOW_P (w)
       && WINDOW_LIVE_P (window)
       && !EQ (window, Factive_minibuffer_window ()))
