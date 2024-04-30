@@ -1,6 +1,6 @@
 This file contains mentions of functions and variables whose
 version of introduction would otherwise be guessed incorrectly
-by M-x describe-function.
+by 'M-x describe-function'.
 
 Since much of early Emacs source history is lost, these versions are
 conservative estimates: the actual version of first appearance may very
