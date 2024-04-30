@@ -2373,8 +2373,10 @@ syms_of_charset (void)
   staticpro (&Vcharset_ordered_list);
   Vcharset_ordered_list = Qnil;
 
+#ifdef HAVE_MPS
   staticpro (&Vcharset_non_preferred_head);
   Vcharset_non_preferred_head = Qnil;
+#endif
 
   staticpro (&Viso_2022_charset_list);
   Viso_2022_charset_list = Qnil;
