@@ -7545,6 +7545,9 @@ always located at the beginning of buffer."
 (ert-deftest python-ts-mode-types-face-1 ()
   (python-ts-tests-with-temp-buffer
    "def f(val: Callable[[Type0], (Type1, Type2)]):"
+   (search-forward "val")
+   (goto-char (match-beginning 0))
+   (should (eq (face-at-point) font-lock-variable-name-face))
    (dolist (test '("Callable" "Type0" "Type1" "Type2"))
      (search-forward test)
      (goto-char (match-beginning 0))
