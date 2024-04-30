@@ -676,9 +676,11 @@ using this.
   In this chapter we have described the usual Emacs mode for editing
 and sending mail---Message mode.  This is only one of several
 available modes.  Prior to Emacs 23.2, the default mode was Mail mode,
-which is similar to Message mode in many respects but lacks features
-such as MIME support.  Another available mode is MH-E
-(@pxref{Top,,MH-E,mh-e, The Emacs Interface to MH}).
+which is similar to Message mode in many respects but is less
+feature-rich; for example, it supports only basic MIME: it allows you
+to add attachments, but lacks more sophisticated MIME features.
+Another available mode is MH-E (@pxref{Top,,MH-E,mh-e, The Emacs
+Interface to MH}).
 
 @vindex mail-user-agent
 @findex define-mail-user-agent
