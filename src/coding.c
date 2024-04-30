@@ -11849,7 +11849,7 @@ syms_of_coding (void)
   Vcoding_category_table = make_nil_vector (coding_category_max);
   staticpro (&Vcoding_category_table);
 #ifdef HAVE_MPS
-  for (size_t i; i < ARRAYELTS (coding_categories); i++)
+  for (size_t i = 0; i < ARRAYELTS (coding_categories); i++)
     {
       struct coding_system* cs = &coding_categories[i];
       Lisp_Object *src = &cs->src_object;
