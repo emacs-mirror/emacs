@@ -75,8 +75,12 @@ b die
 #settings set -- target.run-args --module-assertions --no-init-file --no-site-file --no-site-lisp -L ":." -l ert --eval "(setq treesit-extra-load-path '(\"/Users/gerd/.emacs.d/tree-sitter\"))" -l lisp/emacs-lisp/package-tests --batch --eval '(ert-run-tests-batch-and-exit (quote (not (or (tag :expensive-test) (tag :unstable) (tag :nativecomp)))))'
 
 # Von Helmut:
-target create emacs
-command alias go process launch --tty --working-dir .
-settings set -- target.run-args -Q --eval '(progn (view-hello-file) (redisplay) (igc--collect) (forward-line))'
+#target create emacs
+#command alias go process launch --tty --working-dir .
+#settings set -- target.run-args -Q --eval '(progn (view-hello-file) (redisplay) (igc--collect) (forward-line))'
+
+target create temacs
+settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest /Users/gerd/emacs/savannah/igc/nextstep/Emacs.app/Contents/MacOS/ --eln-dest /Users/gerd/emacs/savannah/igc/nextstep/Emacs.app/Contents/Frameworks/
+command alias go process launch --working-dir .
 
 # end.

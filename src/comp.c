@@ -5412,10 +5412,16 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	}
 
       EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
+#ifdef HAVE_MPS
+      comp_u->n_data_relocs = d_vec_len;
+#endif
       for (EMACS_INT i = 0; i < d_vec_len; i++)
 	data_relocs[i] = AREF (comp_u->data_vec, i);
 
       d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
+#ifdef HAVE_MPS
+      comp_u->n_data_imp_relocs = d_vec_len;
+#endif
       for (EMACS_INT i = 0; i < d_vec_len; i++)
 	data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
     }
@@ -5444,6 +5450,10 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	  EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));
 	  for (EMACS_INT i = 0; i < d_vec_len; i++)
 	    data_eph_relocs[i] = AREF (data_ephemeral_vec, i);
+# ifdef HAVE_MPS
+	  comp_u->data_eph_relocs = data_eph_relocs;
+	  comp_u->n_data_eph_relocs = d_vec_len;
+# endif
 	}
       /* Executing this will perform all the expected environment
 	 modifications.  */

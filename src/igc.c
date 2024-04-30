@@ -1592,13 +1592,18 @@ fix_comp_unit (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, u, fix_vectorlike);
     if (u->data_imp_relocs)
       {
-	size_t n = ASIZE (u->data_impure_vec);
+	size_t n = u->n_data_imp_relocs;
 	IGC_FIX12_NOBJS (ss, u->data_imp_relocs, n);
       }
     if (u->data_relocs)
       {
-	size_t n = ASIZE (u->data_vec);
+	size_t n = u->n_data_relocs;
 	IGC_FIX12_NOBJS (ss, u->data_relocs, n);
+      }
+    if (u->data_eph_relocs)
+      {
+	size_t n = u->n_data_eph_relocs;
+	IGC_FIX12_NOBJS (ss, u->data_eph_relocs, n);
       }
   }
   MPS_SCAN_END (ss);
@@ -2279,8 +2284,9 @@ static void
 finalize_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
   unload_comp_unit (u);
+  u->data_eph_relocs = NULL;
   u->data_imp_relocs = NULL;
-  u->data_relocs = NULL;
+  u->data_imp_relocs = NULL;
 }
 
 static void

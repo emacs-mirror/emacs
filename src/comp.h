@@ -48,7 +48,11 @@ struct Lisp_Native_Comp_Unit
   /* STUFFS WE DO NOT DUMP!!  */
   Lisp_Object *data_imp_relocs;
 # ifdef HAVE_MPS
+  size_t n_data_imp_relocs;
   Lisp_Object *data_relocs;
+  size_t n_data_relocs;
+  Lisp_Object *data_eph_relocs;
+  size_t n_data_eph_relocs;
 # endif
   bool loaded_once;
   bool load_ongoing;
