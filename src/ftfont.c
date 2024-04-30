@@ -2030,7 +2030,6 @@ ftfont_drive_otf (MFLTFont *font,
   int i, j, gidx;
   OTF_Glyph *otfg;
   char script[5], *langsys = NULL;
-  char *gsub_features = NULL, *gpos_features = NULL;
   OTF_Feature *features;
 
   if (len == 0)
@@ -2044,6 +2043,7 @@ ftfont_drive_otf (MFLTFont *font,
       OTF_tag_name (spec->langsys, langsys);
     }
 
+  char *gfeatures[2] = {NULL, NULL};
   USE_SAFE_ALLOCA;
   for (i = 0; i < 2; i++)
     {
@@ -2052,11 +2052,10 @@ ftfont_drive_otf (MFLTFont *font,
       if (spec->features[i] && spec->features[i][1] != 0xFFFFFFFF)
 	{
 	  for (j = 0; spec->features[i][j]; j++);
+	  if (j == 0)
+	    continue;
 	  SAFE_NALLOCA (p, 6, j);
-	  if (i == 0)
-	    gsub_features = p;
-	  else
-	    gpos_features = p;
+	  gfeatures[i] = p;
 	  for (j = 0; spec->features[i][j]; j++)
 	    {
 	      if (spec->features[i][j] == 0xFFFFFFFF)
@@ -2071,6 +2070,7 @@ ftfont_drive_otf (MFLTFont *font,
 	  *--p = '\0';
 	}
     }
+  char *gsub_features = gfeatures[0], *gpos_features = gfeatures[1];
 
   setup_otf_gstring (len);
   for (i = 0; i < len; i++)
