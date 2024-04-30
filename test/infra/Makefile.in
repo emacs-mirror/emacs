@@ -76,6 +76,15 @@ define subdir_template
     define changes
 	@echo '        - lisp/so-long*.el' >>$(FILE)
     endef
+    else ifeq ($(findstring textmodes, $(1)), textmodes)
+    define changes
+	@echo '        - $(1)/*-ts-mode.el' >>$(FILE)
+	@echo '        - test/$(1)/*-ts-mode-resources/**' >>$(FILE)
+	@echo '        - test/$(1)/*-ts-mode-tests.el' >>$(FILE)
+	@echo '      when: never' >>$(FILE)
+	@echo '    - changes:' >>$(FILE)
+	@echo '        - $(1)/*.el' >>$(FILE)
+    endef
     else ifeq ($(findstring misc, $(1)), misc)
     define changes
 	@echo '        - admin/*.el' >>$(FILE)

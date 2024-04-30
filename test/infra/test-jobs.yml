@@ -476,6 +476,11 @@ test-lisp-textmodes-inotify:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
+        - lisp/textmodes/*-ts-mode.el
+        - test/lisp/textmodes/*-ts-mode-resources/**
+        - test/lisp/textmodes/*-ts-mode-tests.el
+      when: never
+    - changes:
         - lisp/textmodes/*.el
         - test/lisp/textmodes/*resources/**
         - test/lisp/textmodes/*.el
