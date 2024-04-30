@@ -785,6 +785,7 @@ sign in chained assignment."
            "InterruptedError" "IsADirectoryError" "NotADirectoryError"
            "PermissionError" "ProcessLookupError" "RecursionError"
            "ResourceWarning" "StopAsyncIteration" "TimeoutError"
+           "ExceptionGroup"
            ;; OS specific
            "VMSError" "WindowsError"
            )
@@ -1052,6 +1053,7 @@ It makes underscores and dots word constituent chars.")
     "InterruptedError" "IsADirectoryError" "NotADirectoryError"
     "PermissionError" "ProcessLookupError" "RecursionError"
     "ResourceWarning" "StopAsyncIteration" "TimeoutError"
+    "ExceptionGroup"
     ;; OS specific
     "VMSError" "WindowsError"
     ))
