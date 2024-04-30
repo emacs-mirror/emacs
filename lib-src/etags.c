@@ -7375,26 +7375,26 @@ readline (linebuffer *lbp, FILE *stream)
       /* Check whether this is a #line directive. */
       if (result > 12 && strneq (lbp->buffer, "#line ", 6))
 	{
-	  intmax_t lno;
-	  int start = 0;
+	  char *lno_start = lbp->buffer + 6;
+	  char *lno_end;
+	  intmax_t lno = strtoimax (lno_start, &lno_end, 10);
+	  char *quoted_filename
+	    = lno_start < lno_end ? skip_spaces (lno_end) : NULL;
 
-	  if (sscanf (lbp->buffer, "#line %"SCNdMAX" \"%n", &lno, &start) >= 1
-	      && start > 0)	/* double quote character found */
+	  if (quoted_filename && *quoted_filename == '"')
 	    {
-	      char *endp = lbp->buffer + start;
+	      char *endp = quoted_filename;
+	      while (*++endp && *endp != '"')
+		endp += *endp == '\\' && endp[1];
 
-	      while ((endp = strchr (endp, '"')) != NULL
-		     && endp[-1] == '\\')
-		endp++;
-	      if (endp != NULL)
+	      if (*endp)
 		/* Ok, this is a real #line directive.  Let's deal with it. */
 		{
 		  char *taggedabsname;	/* absolute name of original file */
 		  char *taggedfname;	/* name of original file as given */
-		  char *name;		/* temp var */
+		  char *name = quoted_filename + 1;
 
 		  discard_until_line_directive = false; /* found it */
-		  name = lbp->buffer + start;
 		  *endp = '\0';
 		  canonicalize_filename (name);
 		  taggedabsname = absolute_filename (name, tagfiledir);
