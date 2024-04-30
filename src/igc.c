@@ -2286,7 +2286,7 @@ finalize_comp_unit (struct Lisp_Native_Comp_Unit *u)
   unload_comp_unit (u);
   u->data_eph_relocs = NULL;
   u->data_imp_relocs = NULL;
-  u->data_imp_relocs = NULL;
+  u->data_relocs = NULL;
 }
 
 static void
