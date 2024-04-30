@@ -1237,6 +1237,12 @@ usage: (catch TAG BODY...)  */)
   return internal_catch (tag, Fprogn, XCDR (args));
 }
 
+/* Work around GCC bug 61118
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61118>.  */
+#if GNUC_PREREQ (4, 9, 0)
+# pragma GCC diagnostic ignored "-Wclobbered"
+#endif
+
 /* Assert that E is true, but do not evaluate E.  Use this instead of
    eassert (E) when E contains variables that might be clobbered by a
    longjmp.  */
