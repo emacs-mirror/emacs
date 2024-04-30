@@ -2373,6 +2373,9 @@ syms_of_charset (void)
   staticpro (&Vcharset_ordered_list);
   Vcharset_ordered_list = Qnil;
 
+  staticpro (&Vcharset_non_preferred_head);
+  Vcharset_non_preferred_head = Qnil;
+
   staticpro (&Viso_2022_charset_list);
   Viso_2022_charset_list = Qnil;
 
