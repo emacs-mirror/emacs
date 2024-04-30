@@ -143,6 +143,12 @@ University of California, as described above. */
 # define MERCURY_HEURISTICS_RATIO 0.5
 #endif
 
+/* Work around GCC bug 114882
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114882>.  */
+#if GNUC_PREREQ (14, 0, 0)
+# pragma GCC diagnostic ignored "-Wanalyzer-use-of-uninitialized-value"
+#endif
+
 /* COPY to DEST from SRC (containing LEN bytes), and append a NUL byte.  */
 static void
 memcpyz (void *dest, void const *src, ptrdiff_t len)
