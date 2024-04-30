@@ -4191,16 +4191,13 @@ This function is never called when `lexical-binding' is nil."
          ;; Nontrivial doc string expression: create a bytecode object
          ;; from small pieces at run time.
          `(make-byte-code
-           ',(aref fun 0)         ; 15-bit form of arglist descriptor.
-           ',(aref fun 1)         ; The byte-code.
-           (vconcat (vector . ,env) ',(aref fun 2)) ; constant vector.
-           ,@(let ((rest (nthcdr 3 (mapcar (lambda (x) `',x) fun))))
-               (if docstring-exp
-                   `(,(car rest)
-                     ,(byte-run-strip-symbol-positions docstring-exp)
-                     ,@(cddr rest))
-                 rest))))
-         ))))
+           ,(aref fun 0)         ; 15-bit form of arglist descriptor.
+           ,(aref fun 1)         ; The byte-code.
+           (vconcat (vector . ,env) ,(aref fun 2))  ; constant vector
+           ,(aref fun 3)         ; max stack depth
+           ,(byte-run-strip-symbol-positions docstring-exp)
+           ;; optional interactive spec and anything else, all quoted
+           ,@(mapcar (lambda (x) `',x) (drop 5 (append fun nil)))))))))
 
 (defun byte-compile-get-closed-var (form)
   "Byte-compile the special `internal-get-closed-var' form."
