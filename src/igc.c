@@ -366,7 +366,7 @@ deregister_root (struct igc_root_list *r)
 }
 
 static void
-root_destroy (struct igc_root_list **r)
+destroy_root (struct igc_root_list **r)
 {
   mps_root_destroy (deregister_root (*r));
   *r = NULL;
@@ -1980,7 +1980,7 @@ igc_on_grow_specpdl (void)
   struct igc_thread_list *t = current_thread->gc_info;
   IGC_WITH_PARKED (t->d.gc)
   {
-    root_destroy (&t->d.specpdl_root);
+    destroy_root (&t->d.specpdl_root);
     root_create_specpdl (t);
   }
 }
@@ -2066,8 +2066,8 @@ igc_thread_remove (void *info)
   mps_ap_destroy (t->d.weak_strong_ap);
   mps_ap_destroy (t->d.weak_weak_ap);
   mps_thread_dereg (t->d.thr);
-  root_destroy (&t->d.specpdl_root);
-  root_destroy (&t->d.bc_root);
+  destroy_root (&t->d.specpdl_root);
+  destroy_root (&t->d.bc_root);
   deregister_thread (t);
 }
 
@@ -2136,7 +2136,7 @@ igc_xfree (void *p)
     return;
   struct igc_root_list *r = root_find (p);
   igc_assert (r != NULL);
-  root_destroy (&r);
+  destroy_root (&r);
   xfree (p);
 }
 
@@ -2150,7 +2150,7 @@ igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
       {
 	struct igc_root_list *r = root_find (pa);
 	igc_assert (r != NULL);
-	root_destroy (&r);
+	destroy_root (&r);
       }
     pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
     char *end = (char *) pa + *nitems * item_size;
@@ -2168,7 +2168,7 @@ igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
       {
 	struct igc_root_list *r = root_find (pa);
 	igc_assert (r != NULL);
-	root_destroy (&r);
+	destroy_root (&r);
       }
     pa = xnrealloc (pa, nitems, item_size);
     char *end = (char *) pa + nitems * item_size;
@@ -2278,15 +2278,9 @@ finalize_module_function (struct Lisp_Module_Function *f)
 static void
 finalize_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
-  void *roots[] = { u->data_imp_relocs, u->data_relocs };
-  for (int i = 0; i < ARRAYELTS (roots); ++i)
-    if (roots[i])
-      {
-	struct igc_root_list *r = root_find (roots[i]);
-	if (r)
-	  root_destroy (&r);
-      }
   unload_comp_unit (u);
+  u->data_imp_relocs = NULL;
+  u->data_relocs = NULL;
 }
 
 static void

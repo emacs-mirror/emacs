@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "lisp.h"
-#include "igc.h"
 
 #ifdef HAVE_NATIVE_COMP
 
@@ -5415,19 +5414,10 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
       for (EMACS_INT i = 0; i < d_vec_len; i++)
 	data_relocs[i] = AREF (comp_u->data_vec, i);
-# ifdef HAVE_MPS
-      /* FOXME: rather use exact tracing (fix_comp_unit).  */
-      igc_root_create_ambig (data_relocs, &data_relocs[d_vec_len]);
-# endif
 
       d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
       for (EMACS_INT i = 0; i < d_vec_len; i++)
 	data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
-# ifdef HAVE_MPS
-      /* FOXME: rather use exact tracing (fix_comp_unit).  */
-      igc_root_create_ambig (data_imp_relocs, &data_imp_relocs[d_vec_len]);
-# endif
-
     }
 
   if (!loading_dump)
@@ -5485,9 +5475,6 @@ unload_comp_unit (struct Lisp_Native_Comp_Unit *cu)
   if (EQ (this_cu, *saved_cu))
     *saved_cu = Qnil;
   dynlib_close (cu->handle);
-#ifdef HAVE_MPS
-  cu->data_relocs = cu->data_imp_relocs = NULL;
-#endif
 }
 
 Lisp_Object
