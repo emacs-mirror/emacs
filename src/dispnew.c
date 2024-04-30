@@ -6841,6 +6841,8 @@ syms_of_display (void)
   defsubr (&Sdump_redisplay_history);
 #endif
 
+  space_glyph.object = Qnil;
+  staticpro (&space_glyph.object);
   frame_and_buffer_state = make_vector (20, Qlambda);
   staticpro (&frame_and_buffer_state);
 
