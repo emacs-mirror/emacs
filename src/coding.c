@@ -11848,6 +11848,7 @@ syms_of_coding (void)
 
   Vcoding_category_table = make_nil_vector (coding_category_max);
   staticpro (&Vcoding_category_table);
+#ifdef HAVE_MPS
   for (size_t i; i < ARRAYELTS (coding_categories); i++)
     {
       struct coding_system* cs = &coding_categories[i];
@@ -11858,6 +11859,7 @@ syms_of_coding (void)
       *dst = Qnil;
       staticpro (dst);
     }
+#endif
   /* Followings are target of code detection.  */
   ASET (Vcoding_category_table, coding_category_iso_7,
 	intern_c_string ("coding-category-iso-7"));
