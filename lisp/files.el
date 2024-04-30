@@ -1504,27 +1504,28 @@ containing it, until no links are left at any level.
 			(new (file-name-as-directory (file-truename dirfile counter prev-dirs))))
 		    (setcar prev-dirs (cons (cons old new) (car prev-dirs)))
 		    (setq dir new))))
-	    (if (equal ".." (file-name-nondirectory filename))
-		(setq filename
-		      (directory-file-name (file-name-directory (directory-file-name dir)))
-		      done t)
-	      (if (equal "." (file-name-nondirectory filename))
-		  (setq filename (directory-file-name dir)
-			done t)
-		;; Put it back on the file name.
-		(setq filename (concat dir (file-name-nondirectory filename)))
-		;; Is the file name the name of a link?
-		(setq target (file-symlink-p filename))
-		(if target
-		    ;; Yes => chase that link, then start all over
-		    ;; since the link may point to a directory name that uses links.
-		    ;; We can't safely use expand-file-name here
-		    ;; since target might look like foo/../bar where foo
-		    ;; is itself a link.  Instead, we handle . and .. above.
-		    (setq filename (files--splice-dirname-file dir target)
-			  done nil)
-		  ;; No, we are done!
-		  (setq done t))))))))
+            (let ((filename-no-dir (file-name-nondirectory filename)))
+	      (if (equal ".." filename-no-dir)
+		  (setq filename
+		        (directory-file-name (file-name-directory (directory-file-name dir)))
+		        done t)
+	        (if (equal "." filename-no-dir)
+		    (setq filename (directory-file-name dir)
+			  done t)
+		  ;; Put it back on the file name.
+		  (setq filename (concat dir filename-no-dir))
+		  ;; Is the file name the name of a link?
+		  (setq target (file-symlink-p filename))
+		  (if target
+		      ;; Yes => chase that link, then start all over
+		      ;; since the link may point to a directory name that uses links.
+		      ;; We can't safely use expand-file-name here
+		      ;; since target might look like foo/../bar where foo
+		      ;; is itself a link.  Instead, we handle . and .. above.
+		      (setq filename (files--splice-dirname-file dir target)
+			    done nil)
+		    ;; No, we are done!
+		    (setq done t)))))))))
     filename))
 
 (defun file-chase-links (filename &optional limit)
