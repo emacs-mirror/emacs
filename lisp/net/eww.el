@@ -1308,7 +1308,7 @@ Set `text-conversion-style' to the value `action' if it isn't
 already and point is within the prompt field, or if
 `text-conversion-style' is `nil', so as to guarantee that
 the input method functions properly for the purpose of typing
-within the ERC prompt."
+within text input fields."
   (when (and (eq major-mode 'eww-mode)
              (fboundp 'set-text-conversion-style))
     (if (eq (car-safe (get-text-property (point) 'field))
@@ -1347,7 +1347,11 @@ within the ERC prompt."
   (setq-local outline-search-function 'shr-outline-search
               outline-level 'shr-outline-level)
   (add-hook 'post-command-hook #'eww-check-text-conversion nil t)
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  ;; Insertion at the first character of a field should inherit the
+  ;; field's face, form and field, not the previous character's.
+  (setq text-property-default-nonsticky '((face . t) (eww-form . t)
+                                          (field . t))))
 
 (defvar text-scale-mode)
 (defvar text-scale-mode-amount)
@@ -1685,6 +1689,7 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
     (put-text-property start (point) readonly-property t)
     (put-text-property start (point) 'eww-form form)
     (put-text-property start (point) 'field form)
+    (put-text-property start (point) 'front-sticky t)
     (insert " ")))
 
 (defconst eww-text-input-types '("text" "password" "textarea"
@@ -1695,13 +1700,7 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
 See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 
 (defun eww-process-text-input (beg end replace-length)
-  (when-let* ((pos (and (< (1+ end) (point-max))
-		        (> (1- end) (point-min))
-		        (cond
-		         ((get-text-property (1+ end) 'eww-form)
-			  (1+ end))
-		         ((get-text-property (1- end) 'eww-form)
-			  (1- end))))))
+  (when-let* ((pos (field-beginning (point))))
     (let* ((form (get-text-property pos 'eww-form))
 	   (properties (text-properties-at pos))
            (buffer-undo-list t)
@@ -1719,7 +1718,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 		 (1- (line-end-position))
 	       (eww-end-of-field)))
 	    (while (and (> length 0)
-			(eql (char-after (1- (point))) ? ))
+			(eq (char-after (1- (point))) ? ))
 	      (delete-region (1- (point)) (point))
 	      (cl-decf length))))
 	 ((< length 0)
@@ -1743,6 +1742,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	  (when (string-match " +\\'" value)
 	    (setq value (substring value 0 (match-beginning 0))))
 	  (plist-put form :value value)
+          (plist-put form :type type)
 	  (when (equal type "password")
 	    ;; Display passwords as asterisks.
 	    (let ((start (eww-beginning-of-field)))
@@ -1780,6 +1780,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 		     :type "textarea"
 		     :name (dom-attr dom 'name)))
     (put-text-property start (point) 'eww-form form)
+    (put-text-property start (point) 'front-sticky t)
     (put-text-property start (point) 'field form)
     (put-text-property start (1+ start) 'shr-tab-stop t)))
 
