@@ -4778,6 +4778,9 @@ syms_of_editfns (void)
   DEFSYM (Qwall, "wall");
   DEFSYM (Qpropertize, "propertize");
 
+  cached_system_name = Qnil;
+  staticpro (&cached_system_name);
+  labeled_restrictions = Qnil;
   staticpro (&labeled_restrictions);
 
   DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,
