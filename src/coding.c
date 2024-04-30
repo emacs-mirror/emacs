@@ -11848,6 +11848,16 @@ syms_of_coding (void)
 
   Vcoding_category_table = make_nil_vector (coding_category_max);
   staticpro (&Vcoding_category_table);
+  for (size_t i; i < ARRAYELTS (coding_categories); i++)
+    {
+      struct coding_system* cs = &coding_categories[i];
+      Lisp_Object *src = &cs->src_object;
+      *src = Qnil;
+      staticpro (src);
+      Lisp_Object *dst = &cs->dst_object;
+      *dst = Qnil;
+      staticpro (dst);
+    }
   /* Followings are target of code detection.  */
   ASET (Vcoding_category_table, coding_category_iso_7,
 	intern_c_string ("coding-category-iso-7"));
