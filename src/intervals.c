@@ -2388,17 +2388,18 @@ set_intervals_multibyte_1 (INTERVAL i, bool multi_flag,
      to this interval.  */
   if (LEFT_TOTAL_LENGTH (i) + RIGHT_TOTAL_LENGTH (i) >= TOTAL_LENGTH (i))
     {
-      if ((i)->left)
+      if (i->left)
 	{
 	  set_interval_plist (i, i->left->plist);
-	  (i)->left->total_length = 0;
+	  i->left->total_length = 0;
 	  delete_interval ((i)->left);
 	}
       else
 	{
+	  eassume (i->right);
 	  set_interval_plist (i, i->right->plist);
-	  (i)->right->total_length = 0;
-	  delete_interval ((i)->right);
+	  i->right->total_length = 0;
+	  delete_interval (i->right);
 	}
     }
 }
