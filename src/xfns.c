@@ -6547,10 +6547,7 @@ void
 xlw_monitor_dimensions_at_pos (Display *dpy, Screen *screen, int src_x,
 			       int src_y, int *x, int *y, int *width, int *height)
 {
-  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
-
-  if (!dpyinfo)
-    emacs_abort ();
+  struct x_display_info *dpyinfo = x_dpyinfo (dpy);
 
   block_input ();
   xlw_monitor_dimensions_at_pos_1 (dpyinfo, screen, src_x, src_y,
@@ -10214,10 +10211,7 @@ XkbFreeNames (XkbDescPtr xkb, unsigned int which, Bool free_map)
 int
 XDisplayCells (Display *dpy, int screen_number)
 {
-  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
-
-  if (!dpyinfo)
-    emacs_abort ();
+  struct x_display_info *dpyinfo = x_dpyinfo (dpy);
 
   /* Not strictly correct, since the display could be using a
      non-default visual, but it satisfies the callers we need to care

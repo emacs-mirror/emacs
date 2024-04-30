@@ -236,7 +236,7 @@ x_menu_translate_generic_event (XEvent *event)
   XEvent copy;
   XIDeviceEvent *xev;
 
-  dpyinfo = x_display_info_for_display (event->xgeneric.display);
+  dpyinfo = x_dpyinfo (event->xgeneric.display);
 
   if (event->xgeneric.extension == dpyinfo->xi2_opcode)
     {

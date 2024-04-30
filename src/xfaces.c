@@ -504,7 +504,7 @@ void
 x_free_dpy_colors (Display *dpy, Screen *screen, Colormap cmap,
 		   unsigned long *pixels, int npixels)
 {
-  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
+  struct x_display_info *dpyinfo = x_dpyinfo (dpy);
 
   /* If display has an immutable color map, freeing colors is not
      necessary and some servers don't allow it.  So don't do it.  */
