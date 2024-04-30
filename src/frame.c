@@ -6266,6 +6266,11 @@ init_frame_once_for_pdumper (void)
 void
 syms_of_frame (void)
 {
+#ifdef HAVE_MPS
+  old_selected_frame = Qnil;
+  staticpro (&old_selected_frame);
+#endif
+
   DEFSYM (Qframep, "framep");
   DEFSYM (Qframe_live_p, "frame-live-p");
   DEFSYM (Qframe_windows_min_size, "frame-windows-min-size");
