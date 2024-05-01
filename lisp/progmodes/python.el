@@ -4738,6 +4738,8 @@ as one line, which is required by native completion."
 Optional argument PROCESS forces completions to be retrieved
 using that one instead of current buffer's process."
   (setq process (or process (get-buffer-process (current-buffer))))
+  (unless process
+    (user-error "No active python inferior process"))
   (let* ((is-shell-buffer (derived-mode-p 'inferior-python-mode))
          (line-start (if is-shell-buffer
                          ;; Working on a shell buffer: use prompt end.
