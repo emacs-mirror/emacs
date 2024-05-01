@@ -856,7 +856,7 @@ haiku_fill_underline (struct frame *f, struct glyph_string *s,
   void *view;
 
   segment = thickness * 3;
-  view = FRAME_HAIKU_VIEW (s->f);
+  view = FRAME_HAIKU_VIEW (f);
 
   switch (style)
     {
@@ -989,7 +989,7 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 	  s->underline_thickness = thickness;
 	  s->underline_position = position;
 
-	  haiku_fill_underline (view, s, s->face->underline,
+	  haiku_fill_underline (s->f, s, s->face->underline,
 				position, thickness);
 
 	  /* Place a second underline above the first if this was
@@ -999,7 +999,7 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 	    {
 	      /* Compute the position of the second underline.  */
 	      position = position - thickness - 1;
-	      haiku_fill_underline (view, s, s->face->underline,
+	      haiku_fill_underline (s->f, s, s->face->underline,
 				    position, thickness);
 	    }
 	}
