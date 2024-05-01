@@ -1153,7 +1153,7 @@ If nothing was called, return non-nil."
                                 (when (and mouse-1 (mouse-movement-p event))
                                   (push event unread-command-events)
                                   (setq event oevent)
-                                  (throw 'button-press-cancelled t))
+                                  (throw 'button-press-cancelled nil))
                                 (unless (or (integerp event)
                                             (memq (car event)
                                                   '(switch-frame select-window))
