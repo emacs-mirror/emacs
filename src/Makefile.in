@@ -417,7 +417,8 @@ pdmp :=
 endif
 
 # Flags that might be in WARN_CFLAGS but are not valid for Objective C.
-NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd -Wnested-externs
+NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd \
+  -Wnested-externs -Wstrict-flex-arrays
 # Ditto, but for C++.
 NON_CXX_CFLAGS = -Wmissing-prototypes -Wnested-externs -Wold-style-definition \
   -Wstrict-prototypes -Wno-override-init

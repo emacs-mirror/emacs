@@ -3310,7 +3310,66 @@ ns_draw_underwave (struct glyph_string *s, EmacsCGFloat width, EmacsCGFloat x)
   [[NSGraphicsContext currentContext] restoreGraphicsState];
 }
 
+/* Draw a dashed underline of thickness THICKNESS and width WIDTH onto
+   the focused frame at a vertical offset of OFFSET from the position of
+   the glyph string S, with each segment SEGMENT pixels in length.  */
 
+static void
+ns_draw_dash (struct glyph_string *s, int width, int segment,
+	      int offset, int thickness)
+{
+  CGFloat pattern[2], y_center = s->ybase + offset + thickness / 2.0;
+  NSBezierPath *path = [[NSBezierPath alloc] init];
+
+  pattern[0] = segment;
+  pattern[1] = segment;
+
+  [path setLineDash: pattern count: 2 phase: (CGFloat) s->x];
+  [path setLineWidth: thickness];
+  [path moveToPoint: NSMakePoint (s->x, y_center)];
+  [path lineToPoint: NSMakePoint (s->x + width, y_center)];
+  [path stroke];
+  [path release];
+}
+
+/* Draw an underline of STYLE onto the focused frame at an offset of
+   POSITION from the baseline of the glyph string S, S->WIDTH in length,
+   and THICKNESS in height.  */
+
+static void
+ns_fill_underline (struct glyph_string *s, enum face_underline_type style,
+		   int position, int thickness)
+{
+  int segment;
+  NSRect rect;
+
+  segment = thickness * 3;
+
+  switch (style)
+    {
+      /* FACE_UNDERLINE_DOUBLE_LINE is treated identically to SINGLE, as
+	 the second line will be filled by another invocation of this
+	 function.  */
+    case FACE_UNDERLINE_SINGLE:
+    case FACE_UNDERLINE_DOUBLE_LINE:
+      rect = NSMakeRect (s->x, s->ybase + position, s->width, thickness);
+      NSRectFill (rect);
+      break;
+
+    case FACE_UNDERLINE_DOTS:
+      segment = thickness;
+      FALLTHROUGH;
+
+    case FACE_UNDERLINE_DASHES:
+      ns_draw_dash (s, s->width, segment, position, thickness);
+      break;
+
+    case FACE_NO_UNDERLINE:
+    case FACE_UNDERLINE_WAVE:
+    default:
+      emacs_abort ();
+    }
+}
 
 static void
 ns_draw_text_decoration (struct glyph_string *s, struct face *face,
@@ -3337,18 +3396,14 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
           ns_draw_underwave (s, width, x);
         }
-      else if (s->face->underline == FACE_UNDERLINE_SINGLE
-	       || s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
+      else if (face->underline >= FACE_UNDERLINE_SINGLE)
         {
-
-          NSRect r;
           unsigned long thickness, position;
 
           /* If the prev was underlined, match its appearance.  */
           if (s->prev
-	      && ((s->prev->face->underline == FACE_UNDERLINE_SINGLE)
-		  || (s->prev->face->underline
-		      == FACE_UNDERLINE_DOUBLE_LINE))
+	      && (s->prev->face->underline != FACE_UNDERLINE_WAVE
+		  && s->prev->face->underline >= FACE_UNDERLINE_SINGLE)
               && s->prev->underline_thickness > 0
 	      && (s->prev->face->underline_at_descent_line_p
 		  == s->face->underline_at_descent_line_p)
@@ -3414,12 +3469,11 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
           s->underline_thickness = thickness;
           s->underline_position = position;
 
-          r = NSMakeRect (x, s->ybase + position, width, thickness);
-
           if (!face->underline_defaulted_p)
             [[NSColor colorWithUnsignedLong:face->underline_color] set];
 
-          NSRectFill (r);
+	  ns_fill_underline (s, s->face->underline, position,
+			     thickness);
 
 	  /* Place a second underline above the first if this was
 	     requested in the face specification.  */
@@ -3428,8 +3482,8 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 	    {
 	      /* Compute the position of the second underline.  */
 	      position = position - thickness - 1;
-	      r = NSMakeRect (x, s->ybase + position, width, thickness);
-	      NSRectFill (r);
+	      ns_fill_underline (s, s->face->underline, position,
+				 thickness);
 	    }
         }
     }
