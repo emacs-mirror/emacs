@@ -154,6 +154,17 @@ selected.")
 Used in an attempt to keep this word selected during later
 dragging.")
 
+;; Should this variable be documented?
+(defvar-local touch-screen-keyboard-function nil
+  "Function that decides whether to display the on screen keyboard.
+If set, this function is called with point set to the position of the
+tap involved when a command listed in `touch-screen-set-point-commands'
+is about to be invoked in response to a tap, the current buffer, or the
+text beneath point (in the case of an `inhibit-read-only' text
+property), is not read only, and `touch-screen-display-keyboard' is nil,
+and should return non-nil if it is appropriate to display the on-screen
+keyboard afterwards.")
+
 
 
 ;;; Scroll gesture.
@@ -1374,18 +1385,22 @@ is not read-only."
                              ;; caller of `read-key-sequence' such as
                              ;; `describe-key'.
                              (throw 'input-event event)
-                           (if (and (or (not buffer-read-only)
-                                        ;; Display the on screen
-                                        ;; keyboard even if just the
-                                        ;; text under point is not
-                                        ;; read-only.
-                                        (get-text-property point
-                                                           'inhibit-read-only)
-                                        touch-screen-display-keyboard)
-                                    ;; Detect the splash screen and
-                                    ;; avoid displaying the on screen
-                                    ;; keyboard there.
-                                    (not (equal (buffer-name) "*GNU Emacs*")))
+                           (if (or touch-screen-display-keyboard
+                                   (and (or (not buffer-read-only)
+                                            inhibit-read-only
+                                            ;; Display the on screen
+                                            ;; keyboard even if just the
+                                            ;; text under point is not
+                                            ;; read-only.
+                                            (get-text-property
+                                             point 'inhibit-read-only))
+                                        ;; If the major mode has defined
+                                        ;; bespoke criteria for
+                                        ;; displaying the on screen
+                                        ;; keyboard, consult it here.
+                                        (or (not touch-screen-keyboard-function)
+                                            (funcall
+                                             touch-screen-keyboard-function))))
                                ;; Once the on-screen keyboard has been
                                ;; opened, add
                                ;; `touch-screen-window-selection-changed'
