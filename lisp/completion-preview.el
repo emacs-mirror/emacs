@@ -570,11 +570,15 @@ backward."
 ;;;###autoload
 (define-globalized-minor-mode global-completion-preview-mode
   completion-preview-mode completion-preview-mode
-  :predicate '((not compilation-mode
+  :predicate '((not archive-mode
+                    calc-mode
+                    compilation-mode
                     diff-mode
                     dired-mode
+                    image-mode
                     minibuffer-mode
                     minibuffer-inactive-mode
+                    org-agenda-mode
                     special-mode
                     wdired-mode)
                t))
