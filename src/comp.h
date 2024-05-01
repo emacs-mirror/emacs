@@ -53,6 +53,7 @@ struct Lisp_Native_Comp_Unit
   size_t n_data_relocs;
   Lisp_Object *data_eph_relocs;
   size_t n_data_eph_relocs;
+  Lisp_Object *comp_unit;
 # endif
   bool loaded_once;
   bool load_ongoing;

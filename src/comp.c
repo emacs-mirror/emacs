@@ -5365,6 +5365,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   comp_u->data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
 #ifdef HAVE_MPS
   comp_u->data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+  comp_u->comp_unit = dynlib_sym (handle, COMP_UNIT_SYM);
 #endif
 
   if (!comp_u->loaded_once)
