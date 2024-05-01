@@ -16,6 +16,12 @@ GNU Emacs since Emacs version 22.1.
 
 ** Changes in the library API.
 
+*** Module setup runs in query buffers on reconnect.
+A module's setup would always run in channel buffers on reconnect, due
+to channels being rejoined, but query buffers lacked a similar
+opportunity to reinitialize their state for the new session.  This is no
+longer the case.
+
 *** Local modules activate in preferred order instead of in reverse.
 In recent versions, ERC has enabled local modules in the reverse order
 of that produced by the "set" function used by 'setopt' and the Custom

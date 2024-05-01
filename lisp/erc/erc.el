@@ -6840,9 +6840,16 @@ See also: `erc-echo-notice-in-user-buffers',
         (erc-update-mode-line)
         (erc-set-initial-user-mode nick buffer)
         (erc-server-setup-periodical-ping buffer)
-        (when erc-unhide-query-prompt
-          (erc-with-all-buffers-of-server erc-server-process nil
-            (when (and erc--target (not (erc--target-channel-p erc--target)))
+        ;; Run mode hooks on all reclaimed query buffers.
+        (let ((buffer (current-buffer))
+              (erc-join-buffer 'bury)
+              erc-active-buffer)
+          (erc-with-all-buffers-of-server erc-server-process
+              #'erc-query-buffer-p
+            (let ((target (erc-target)))
+              (with-current-buffer buffer
+                (erc--open-target target)))
+            (when erc-unhide-query-prompt
               (erc--unhide-prompt))))
         (run-hook-with-args 'erc-after-connect server nick)))))
 
