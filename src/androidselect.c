@@ -457,9 +457,9 @@ extract_fd_offsets (jobject afd, int *fd, jlong *offset, jlong *length)
 			   RTLD_LAZY | RTLD_GLOBAL);
 	  if (!handle)
 	    goto failure;
-	  jniGetFdFromFileDescriptor = dlsym (handle,
+	  jniGetFDFromFileDescriptor = dlsym (handle,
 					      "jniGetFDFromFileDescriptor");
-	  if (!jniGetFdFromFileDescriptor)
+	  if (!jniGetFDFromFileDescriptor)
 	    goto failure;
 	}
 
