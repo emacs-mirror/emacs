@@ -5452,6 +5452,8 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	  for (EMACS_INT i = 0; i < d_vec_len; i++)
 	    data_eph_relocs[i] = AREF (data_ephemeral_vec, i);
 # ifdef HAVE_MPS
+	  /* FIXME: If we want to get rid of these objects, stop tracing
+	     these references at some point.  */
 	  comp_u->data_eph_relocs = data_eph_relocs;
 	  comp_u->n_data_eph_relocs = d_vec_len;
 # endif
