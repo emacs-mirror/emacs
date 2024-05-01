@@ -290,17 +290,6 @@ struct emacs_directory_entry_class
   jfieldID d_name;
 };
 
-/* Structure describing the android.os.ParcelFileDescriptor class used
-   to wrap file descriptors sent over IPC.  */
-
-struct android_parcel_file_descriptor_class
-{
-  jclass class;
-  jmethodID close;
-  jmethodID get_fd;
-  jmethodID detach_fd;
-};
-
 /* The java.lang.String class.  */
 jclass java_string_class;
 
@@ -313,7 +302,7 @@ static struct emacs_directory_entry_class entry_class;
 
 /* Fields and methods associated with the ParcelFileDescriptor
    class.  */
-static struct android_parcel_file_descriptor_class fd_class;
+struct android_parcel_file_descriptor_class fd_class;
 
 /* Global references to several exception classes.  */
 static jclass file_not_found_exception, security_exception;
@@ -380,13 +369,18 @@ android_init_entry_class (JNIEnv *env)
 }
 
 
-/* Initialize `fd_class' using the given JNI environment ENV.  Calling
-   this function is not necessary on Android 4.4 and earlier.  */
+/* Initialize `fd_class' using the given JNI environment ENV.  Called on
+   API 12 (Android 3.1) and later by androidselect.c and on 5.0 and
+   later in this file.  */
 
-static void
+void
 android_init_fd_class (JNIEnv *env)
 {
   jclass old;
+  static bool fd_class_initialized;
+
+  if (fd_class_initialized)
+    return;
 
   fd_class.class
     = (*env)->FindClass (env, "android/os/ParcelFileDescriptor");
@@ -409,6 +403,8 @@ android_init_fd_class (JNIEnv *env)
   FIND_METHOD (get_fd, "getFd", "()I");
   FIND_METHOD (detach_fd, "detachFd", "()I");
 #undef FIND_METHOD
+
+  fd_class_initialized = true;
 }
 
 

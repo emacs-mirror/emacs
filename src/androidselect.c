@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <assert.h>
 #include <minmax.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
 #include <boot-time.h>
 #include <sys/types.h>
@@ -100,7 +101,7 @@ android_init_emacs_clipboard (void)
   FIND_METHOD (get_clipboard_targets, "getClipboardTargets",
 	       "()[[B");
   FIND_METHOD (get_clipboard_data, "getClipboardData",
-	       "([B)[J");
+	       "([B)Landroid/content/res/AssetFileDescriptor;");
 
   clipboard_class.make_clipboard
     = (*android_java_env)->GetStaticMethodID (android_java_env,
@@ -340,12 +341,187 @@ data type available from the clipboard.  */)
   return Qnil;
 }
 
+
+
+struct android_asset_file_descriptor
+{
+  jclass class;
+  jmethodID close;
+  jmethodID get_length;
+  jmethodID get_start_offset;
+  jmethodID get_file_descriptor;
+  jmethodID get_parcel_file_descriptor;
+  jmethodID get_fd;
+};
+
+/* Methods associated with the AssetFileDescriptor class.  */
+static struct android_asset_file_descriptor asset_fd_class;
+
+/* Initialize virtual function IDs and class pointers in connection with
+   the AssetFileDescriptor class.  */
+
+static void
+android_init_asset_file_descriptor (void)
+{
+  jclass old;
+
+  asset_fd_class.class
+    = (*android_java_env)->FindClass (android_java_env,
+				      "android/content/res/"
+				      "AssetFileDescriptor");
+  eassert (asset_fd_class.class);
+
+  old = asset_fd_class.class;
+  asset_fd_class.class
+    = (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
+						  old);
+  ANDROID_DELETE_LOCAL_REF (old);
+
+  if (!asset_fd_class.class)
+    emacs_abort ();
+
+#define FIND_METHOD(c_name, name, signature)			\
+  asset_fd_class.c_name						\
+    = (*android_java_env)->GetMethodID (android_java_env,	\
+				        asset_fd_class.class,	\
+					name, signature);	\
+  eassert (asset_fd_class.c_name);
+
+  FIND_METHOD (close, "close", "()V");
+  FIND_METHOD (get_length, "getLength", "()J");
+  FIND_METHOD (get_start_offset, "getStartOffset", "()J");
+  FIND_METHOD (get_file_descriptor, "getFileDescriptor",
+	       "()Ljava/io/FileDescriptor;");
+  FIND_METHOD (get_parcel_file_descriptor, "getParcelFileDescriptor",
+	       "()Landroid/os/ParcelFileDescriptor;");
+#undef FIND_METHOD
+}
+
 /* Free the memory inside PTR, a pointer to a char pointer.  */
 
 static void
 android_xfree_inside (void *ptr)
 {
   xfree (*(char **) ptr);
+}
+
+/* Close the referent of, then delete, the local reference to an asset
+   file descriptor referenced by AFD.  */
+
+static void
+close_asset_fd (void *afd)
+{
+  jobject *afd_1;
+
+  afd_1 = afd;
+  (*android_java_env)->CallVoidMethod (android_java_env, *afd_1,
+				       asset_fd_class.close);
+  (*android_java_env)->ExceptionClear (android_java_env);
+  ANDROID_DELETE_LOCAL_REF (*afd_1);
+}
+
+/* Return the offset, file descriptor and length of the data contained
+   in the asset file descriptor AFD, in *FD, *OFFSET, and *LENGTH.
+   Value is 0 upon success, 1 otherwise.  */
+
+static int
+extract_fd_offsets (jobject afd, int *fd, jlong *offset, jlong *length)
+{
+  jobject java_fd;
+  void *handle;
+#if __ANDROID_API__ <= 11
+  static int (*jniGetFDFromFileDescriptor) (JNIEnv *, jobject);
+#endif /* __ANDROID_API__ <= 11 */
+  static int (*AFileDescriptor_getFd) (JNIEnv *, jobject);;
+  jmethodID method;
+
+  method  = asset_fd_class.get_start_offset;
+  *offset = (*android_java_env)->CallLongMethod (android_java_env,
+						 afd, method);
+  android_exception_check ();
+  method  = asset_fd_class.get_length;
+  *length = (*android_java_env)->CallLongMethod (android_java_env,
+						 afd, method);
+  android_exception_check ();
+
+#if __ANDROID_API__ <= 11
+  if (android_get_current_api_level () <= 11)
+    {
+      /* Load libnativehelper and link to a private interface that is
+	 the only means of retrieving the file descriptor from an asset
+	 file descriptor on these systems.  */
+
+      if (!jniGetFDFromFileDescriptor)
+	{
+	  handle = dlopen ("libnativehelper.so",
+			   RTLD_LAZY | RTLD_GLOBAL);
+	  if (!handle)
+	    goto failure;
+	  jniGetFdFromFileDescriptor = dlsym (handle,
+					      "jniGetFDFromFileDescriptor");
+	  if (!jniGetFdFromFileDescriptor)
+	    goto failure;
+	}
+
+      method  = asset_fd_class.get_file_descriptor;
+      java_fd = (*android_java_env)->CallObjectMethod (android_java_env,
+						       afd, method);
+      android_exception_check ();
+      *fd = (*jniGetFDFromFileDescriptor) (android_java_env, java_fd);
+      ANDROID_DELETE_LOCAL_REF (java_fd);
+
+      if (*fd >= 0)
+	return 0;
+    }
+  else
+#endif /* __ANDROID_API__ <= 11 */
+#if __ANDROID_API__ <= 30
+  if (android_get_current_api_level () <= 30)
+    {
+      /* Convert this AssetFileDescriptor into a ParcelFileDescriptor,
+	 whose getFd method will return its native file descriptor.  */
+      method  = asset_fd_class.get_parcel_file_descriptor;
+      java_fd = (*android_java_env)->CallObjectMethod (android_java_env,
+						       afd, method);
+      android_exception_check ();
+
+      /* Initialize fd_class if not already complete.  */
+      android_init_fd_class (android_java_env);
+      *fd = (*android_java_env)->CallIntMethod (android_java_env,
+						java_fd,
+						fd_class.get_fd);
+      if (*fd >= 0)
+	return 0;
+    }
+  else
+#endif /* __ANDROID_API__ <= 30 */
+    {
+      /* Load libnativehelper (now a public interface) and link to
+	 AFileDescriptor_getFd.  */
+      if (!AFileDescriptor_getFd)
+	{
+	  handle = dlopen ("libnativehelper.so",
+			   RTLD_LAZY | RTLD_GLOBAL);
+	  if (!handle)
+	    goto failure;
+	  AFileDescriptor_getFd = dlsym (handle, "AFileDescriptor_getFd");
+	  if (!AFileDescriptor_getFd)
+	    goto failure;
+	}
+
+      method  = asset_fd_class.get_file_descriptor;
+      java_fd = (*android_java_env)->CallObjectMethod (android_java_env,
+						       afd, method);
+      android_exception_check ();
+      *fd = (*AFileDescriptor_getFd) (android_java_env, java_fd);
+      ANDROID_DELETE_LOCAL_REF (java_fd);
+
+      if (*fd >= 0)
+	return 0;
+    }
+
+ failure:
+  return 1;
 }
 
 DEFUN ("android-get-clipboard-data", Fandroid_get_clipboard_data,
@@ -361,12 +537,12 @@ does not have any corresponding data.  In that case, use
 `android-get-clipboard' instead.  */)
   (Lisp_Object type)
 {
-  jlongArray array;
+  jobject afd;
   jbyteArray bytes;
   jmethodID method;
   int fd;
   ptrdiff_t rc;
-  jlong offset, length, *longs;
+  jlong offset, length;
   specpdl_ref ref;
   char *buffer, *start;
 
@@ -387,36 +563,25 @@ does not have any corresponding data.  In that case, use
   android_exception_check ();
 
   method = clipboard_class.get_clipboard_data;
-  array = (*android_java_env)->CallObjectMethod (android_java_env,
-						 clipboard, method,
-						 bytes);
+  afd = (*android_java_env)->CallObjectMethod (android_java_env,
+					       clipboard, method,
+					       bytes);
   android_exception_check_1 (bytes);
   ANDROID_DELETE_LOCAL_REF (bytes);
 
-  if (!array)
+  if (!afd)
     goto fail;
 
-  longs = (*android_java_env)->GetLongArrayElements (android_java_env,
-						     array, NULL);
-  android_exception_check_nonnull (longs, array);
+  /* Extract the file descriptor from the AssetFileDescriptor
+     object.  */
+  ref = SPECPDL_INDEX ();
+  record_unwind_protect_ptr (close_asset_fd, &afd);
 
-  /* longs[0] is the file descriptor.
-     longs[1] is an offset to apply to the file.
-     longs[2] is either -1, or the number of bytes to read from the
-     file.  */
-  fd = longs[0];
-  offset = longs[1];
-  length = longs[2];
-
-  (*android_java_env)->ReleaseLongArrayElements (android_java_env,
-						 array, longs,
-						 JNI_ABORT);
-  ANDROID_DELETE_LOCAL_REF (array);
+  if (extract_fd_offsets (afd, &fd, &offset, &length))
+    return unbind_to (ref, Qnil);
   unblock_input ();
 
-  /* Now begin reading from longs[0].  */
-  ref = SPECPDL_INDEX ();
-  record_unwind_protect_int (close_file_unwind, fd);
+  /* Now begin reading from fd.  */
 
   if (length != -1)
     {
@@ -1004,6 +1169,7 @@ init_androidselect (void)
     return;
 
   android_init_emacs_clipboard ();
+  android_init_asset_file_descriptor ();
   android_init_emacs_desktop_notification ();
 
   make_clipboard = clipboard_class.make_clipboard;

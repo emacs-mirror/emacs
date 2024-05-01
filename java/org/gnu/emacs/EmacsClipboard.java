@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
+import android.content.res.AssetFileDescriptor;
 import android.os.Build;
 
 /* This class provides helper code for accessing the clipboard,
@@ -32,7 +33,7 @@ public abstract class EmacsClipboard
   public abstract byte[] getClipboard ();
 
   public abstract byte[][] getClipboardTargets ();
-  public abstract long[] getClipboardData (byte[] target);
+  public abstract AssetFileDescriptor getClipboardData (byte[] target);
 
   /* Create the correct kind of clipboard for this system.  */
 

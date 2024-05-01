@@ -53,6 +53,22 @@ extern char *android_user_full_name (struct passwd *);
 
 
 
+/* Structure describing the android.os.ParcelFileDescriptor class used
+   to wrap file descriptors sent over IPC.  */
+
+struct android_parcel_file_descriptor_class
+{
+  jclass class;
+  jmethodID close;
+  jmethodID get_fd;
+  jmethodID detach_fd;
+};
+
+/* The ParcelFileDescriptor class.  */
+extern struct android_parcel_file_descriptor_class fd_class;
+
+extern void android_init_fd_class (JNIEnv *);
+
 /* File I/O operations.  Many of these are defined in
    androidvfs.c.  */
 

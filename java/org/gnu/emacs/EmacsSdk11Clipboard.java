@@ -207,8 +207,9 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
   /* Return the clipboard data for the given target, or NULL if it
      does not exist.
 
-     Value is normally an array of three longs: the file descriptor,
-     the start offset of the data, and its length; length may be
+     Value is normally an asset file descriptor, which in turn holds
+     three important values: the file descriptor, the start offset of
+     the data, and its length; length may be
      AssetFileDescriptor.UNKNOWN_LENGTH, meaning that the data extends
      from that offset to the end of the file.
 
@@ -217,15 +218,13 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
      solely of a URI.  */
 
   @Override
-  public long[]
+  public AssetFileDescriptor
   getClipboardData (byte[] target)
   {
     ClipData data;
     String mimeType;
-    int fd;
     AssetFileDescriptor assetFd;
     Uri uri;
-    long[] value;
 
     /* Decode the target given by Emacs.  */
     try
@@ -245,8 +244,6 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
     if (data == null || data.getItemCount () < 1)
       return null;
 
-    fd = -1;
-
     try
       {
 	uri = data.getItemAt (0).getUri ();
@@ -257,52 +254,15 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
 	/* Now open the file descriptor.  */
 	assetFd = resolver.openTypedAssetFileDescriptor (uri, mimeType,
 							 null);
-
-	/* Duplicate the file descriptor.  */
-	fd = assetFd.getParcelFileDescriptor ().getFd ();
-	fd = EmacsNative.dup (fd);
-
-	/* Return the relevant information.  */
-	value = new long[] { fd, assetFd.getStartOffset (),
-			     assetFd.getLength (), };
-
-	/* Close the original offset.  */
-	assetFd.close ();
+	return assetFd;
       }
     catch (SecurityException e)
       {
-	/* Guarantee a file descriptor duplicated or detached is
-	   ultimately closed if an error arises.  */
-
-	if (fd != -1)
-	  EmacsNative.close (fd);
-
 	return null;
       }
     catch (FileNotFoundException e)
       {
-	/* Guarantee a file descriptor duplicated or detached is
-	   ultimately closed if an error arises.  */
-
-	if (fd != -1)
-	  EmacsNative.close (fd);
-
 	return null;
       }
-    catch (IOException e)
-      {
-	/* Guarantee a file descriptor duplicated or detached is
-	   ultimately closed if an error arises.  */
-
-	if (fd != -1)
-	  EmacsNative.close (fd);
-
-	return null;
-      }
-
-    /* Don't return value if the file descriptor couldn't be
-       created.  */
-
-    return fd != -1 ? value : null;
   }
 };
