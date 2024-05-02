@@ -186,12 +186,21 @@ Warning near line 10 file arrayclash.f: Module contains no executable
 Nonportable usage near line 31 col 9 file assign.f: mixed default and explicit
 
 
-* Gradle with kotlin-gradle-plugin
+* Gradle with Kotlin plugin
 
-symbol: gradle-kotlin
+symbol: grade-kotlin
+
+e: file:///src/Test.kt:267:5 foo: bar
+w: file:///src/Test.kt:267:5 foo: bar
+
+
+* Gradle with Kotlin plugin (legacy)
+
+symbol: gradle-kotlin-legacy
 
 e: /src/Test.kt: (34, 15): foo: bar
 w: /src/Test.kt: (34, 15): foo: bar
+
 
 * Gradle Android resource linking
 

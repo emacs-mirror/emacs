@@ -263,10 +263,28 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "\\(^Warning .*\\)? line[ \n]\\([0-9]+\\)[ \n]\\(?:col \\([0-9]+\\)[ \n]\\)?file \\([^ :;\n]+\\)"
      4 2 3 (1))
 
-    ;; Gradle with kotlin-gradle-plugin (see
-    ;; GradleStyleMessagerRenderer.kt in kotlin sources, see
-    ;; https://youtrack.jetbrains.com/issue/KT-34683).
+    ;; Introduced in Kotlin 1.8 and current as of Kotlin 2.0.
+    ;; Emitted by `GradleStyleMessagerRenderer' in Kotlin sources.
     (gradle-kotlin
+     ,(rx bol
+          (| (group "w")                ; 1: warning
+             (group (in "iv"))          ; 2: info
+             "e")                       ; error
+          ": "
+          "file://"
+          (group                        ; 3: file
+           (? (in "A-Za-z") ":")
+           (+ (not (in "\n:"))))
+          ":"
+          (group (+ digit))             ; 4: line
+          ":"
+          (group (+ digit))             ; 5: column
+          " ")
+     3 4 5 (1 . 2))
+
+    ;; Obsoleted in Kotlin 1.8 Beta, released on Nov 15, 2022.
+    ;; See commit `93a0cdbf973' in Kotlin Git repository.
+    (gradle-kotlin-legacy
      ,(rx bol
           (| (group "w")                ; 1: warning
              (group (in "iv"))          ; 2: info
