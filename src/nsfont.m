@@ -1180,21 +1180,12 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     {
       NSRect br = NSMakeRect (x, y - FONT_BASE (s->font),
 			      s->width, FONT_HEIGHT (s->font));
-
-      if (!s->face->stipple)
-	{
-	  if (s->hl != DRAW_CURSOR)
-	    [(NS_FACE_BACKGROUND (face) != 0
-	      ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
-	      : FRAME_BACKGROUND_COLOR (s->f)) set];
-	  else
-	    [FRAME_CURSOR_COLOR (s->f) set];
-	}
+      if (s->hl != DRAW_CURSOR)
+	[(NS_FACE_BACKGROUND (face) != 0
+	  ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
+	  : FRAME_BACKGROUND_COLOR (s->f)) set];
       else
-        {
-          struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
-          [[dpyinfo->bitmaps[face->stipple-1].img stippleMask] set];
-        }
+	[FRAME_CURSOR_COLOR (s->f) set];
       NSRectFill (br);
     }
 
