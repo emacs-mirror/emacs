@@ -2750,9 +2750,10 @@ argument of type @var{string} and return one of the symbols
 
 More types are described in @pxref{Lisp Data Types}.
 
-Declaring a function with an incorrect type produces undefined behavior.
-Note also that when redefining (or advising) a type declared function
-the replacement should respect the original signature to avoid undefined
+Declaring a function with an incorrect type produces undefined behavior
+and could lead to unexpected results or might even crash Emacs.  Note
+also that when redefining (or advising) a type declared function the
+replacement should respect the original signature to avoid undefined
 behavior.
 
 @item no-font-lock-keyword
