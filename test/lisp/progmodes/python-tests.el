@@ -7473,9 +7473,9 @@ buffer with overlapping strings."
 for x in range(1,3):
     print('current %s' % x)
 print('current 3')"
-    (goto-line 1)
+    (goto-char (point-min))
     (should-error (python-shell-send-block) :type 'user-error)
-    (goto-line 2)
+    (forward-line)
     (python-shell-send-block)
     (python-tests-shell-wait-for-prompt)
     (python-shell-with-shell-buffer
@@ -7484,7 +7484,7 @@ print('current 3')"
       (should (re-search-forward "current 1" nil t))
       (should (re-search-forward "current 2" nil t))
       (should-not (re-search-forward "current 3" nil t)))
-    (goto-line 3)
+    (forward-line)
     (python-shell-send-block t) ;; send block body only
     (python-tests-shell-wait-for-prompt)
     (python-shell-with-shell-buffer

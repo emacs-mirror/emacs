@@ -4147,10 +4147,11 @@ interactively."
 (defun python-shell-send-block (&optional arg msg)
   "Send the block at point to inferior Python process.
 The block is delimited by `python-nav-beginning-of-block' and
-`python-nav-end-of-block'.  When optional argument ARG is non-nil, send
-the block body without its header.  When optional argument MSG is
-non-nil, forces display of a user-friendly message if there's no process
-running; defaults to t when called interactively."
+`python-nav-end-of-block'.  If optional argument ARG is non-nil
+(interactively, the prefix argument), send the block body without
+its header.  If optional argument MSG is non-nil, force display
+of a user-friendly message if there's no process running; this
+always happens interactively."
   (interactive (list current-prefix-arg t))
   (let ((beg (save-excursion
                (when (python-nav-beginning-of-block)
