@@ -2515,7 +2515,8 @@ have special meanings:
 
 Any other value of ALL-FRAMES means consider all windows on the
 selected frame and no others."
-  (declare (side-effect-free error-free))
+  (declare (type (function (&optional t t t) (or window null)))
+           (side-effect-free error-free))
   (let ((windows (window-list-1 nil 'nomini all-frames))
         best-window best-time second-best-window second-best-time time)
     (dolist (window windows)
@@ -2594,7 +2595,8 @@ have special meanings:
 
 Any other value of ALL-FRAMES means consider all windows on the
 selected frame and no others."
-  (declare (side-effect-free error-free))
+  (declare (type (function (&optional t t t) (or window null)))
+           (side-effect-free error-free))
   (let ((best-size 0)
 	best-window size)
     (dolist (window (window-list-1 nil 'nomini all-frames))
@@ -4089,7 +4091,8 @@ with a special meaning are:
 
 Anything else means consider all windows on the selected frame
 and no others."
-  (declare (side-effect-free error-free))
+  (declare (type (function (&optional t t) boolean))
+           (side-effect-free error-free))
   (let ((base-window (selected-window)))
     (if (and nomini (eq base-window (minibuffer-window)))
 	(setq base-window (next-window base-window)))

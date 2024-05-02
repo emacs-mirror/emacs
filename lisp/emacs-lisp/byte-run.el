@@ -217,6 +217,11 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
                  (cadr elem)))
               val)))))
 
+(defalias 'byte-run--set-function-type
+  #'(lambda (f _args &rest val)
+      (list 'function-put (list 'quote f)
+            ''function-type (list 'quote val))))
+
 ;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
   (list
@@ -239,7 +244,8 @@ If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
    (list 'speed #'byte-run--set-speed)
    (list 'completion #'byte-run--set-completion)
    (list 'modes #'byte-run--set-modes)
-   (list 'interactive-args #'byte-run--set-interactive-args))
+   (list 'interactive-args #'byte-run--set-interactive-args)
+   (list 'type #'byte-run--set-function-type))
   "List associating function properties to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is
 a function.  For each (PROP . VALUES) in a function's declaration,

@@ -1939,6 +1939,11 @@ unibyte string.
 
 * Lisp Changes in Emacs 30.1
 
++++
+** Function type declaration
+It is now possible, using the 'declare' macro, to declare expected types
+of function arguments and return type.
+
 ** New types 'closure' and 'interpreted-function'.
 'interpreted-function' is the new type used for interpreted functions,
 and 'closure' is the common parent type of 'interpreted-function'

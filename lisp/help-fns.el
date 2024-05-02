@@ -732,7 +732,7 @@ the C sources, too."
               (insert (format
                        (if (eq kind 'inferred)
                            "\nInferred type: %s\n"
-                         "\nType: %s\n")
+                         "\nDeclared type: %s\n")
                        type-spec))))
           (fill-region fill-begin (point))
           high-doc)))))
