@@ -298,9 +298,13 @@ It returns a list of the form (KEY KEY-BINDING CLOSE-P), where:
    nil otherwise."
   (setq tab-bar--dragging-in-progress nil)
   (if (posn-window posn)
-      (let ((caption (car (posn-string posn))))
-        (when caption
-          (get-text-property 0 'menu-item caption)))
+      (let* ((caption (car (posn-string posn)))
+             (menu-item (when caption
+                          (get-text-property 0 'menu-item caption))))
+        (when (equal menu-item '(global ignore nil))
+          (setf (nth 1 menu-item)
+                (key-binding (vector 'tab-bar last-nonmenu-event) t)))
+        menu-item)
     ;; Text-mode emulation of switching tabs on the tab bar.
     ;; This code is used when you click the mouse in the tab bar
     ;; on a console which has no window system but does have a mouse.
@@ -332,7 +336,7 @@ existing tab."
     (setq tab-bar--dragging-in-progress t)
     ;; Don't close the tab when clicked on the close button.  Also
     ;; don't add new tab on down-mouse.  Let `tab-bar-mouse-1' do this.
-    (unless (or (memq (car item) '(add-tab history-back history-forward))
+    (unless (or (memq (car item) '(add-tab history-back history-forward global))
                 (nth 2 item))
       (if (functionp (nth 1 item))
           (call-interactively (nth 1 item))
@@ -347,7 +351,7 @@ regardless of where you click on it.  Also add a new tab."
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
     (cond
-     ((and (memq (car item) '(add-tab history-back history-forward))
+     ((and (memq (car item) '(add-tab history-back history-forward global))
            (functionp (nth 1 item)))
       (call-interactively (nth 1 item)))
      ((and (nth 2 item) (not (eq tab-number t)))
@@ -468,8 +472,8 @@ appropriate."
                                  (tab-bar-select-tab number))))
                          ;; Cancel the timer.
                          (cancel-timer timer)))
-                      ((and (memq (car item) '(add-tab history-back
-                                                       history-forward))
+                      ((and (memq (car item) '( add-tab history-back
+                                                history-forward global))
                             (functionp (cadr item)))
                        ;; This is some kind of button.  Wait for the
                        ;; tap to complete and press it.
