@@ -217,7 +217,7 @@ to be checked as its standard input."
      ;; If these keyword are in a macro body, they're marked as
      ;; identifiers.
      ((identifier) @font-lock-keyword-face
-      (:match ,(rx (or "else" "in" "move")) @font-lock-keyword-face)))
+      (:match ,(rx bos (or "else" "in" "move") eos) @font-lock-keyword-face)))
 
    :language 'rust
    :feature 'number
