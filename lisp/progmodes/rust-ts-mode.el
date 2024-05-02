@@ -213,7 +213,11 @@ to be checked as its standard input."
 
    :language 'rust
    :feature 'keyword
-   `([,@rust-ts-mode--keywords] @font-lock-keyword-face)
+   `([,@rust-ts-mode--keywords] @font-lock-keyword-face
+     ;; If these keyword are in a macro body, they're marked as
+     ;; identifiers.
+     ((identifier) @font-lock-keyword-face
+      (:match ,(rx (or "else" "in" "move")) @font-lock-keyword-face)))
 
    :language 'rust
    :feature 'number
