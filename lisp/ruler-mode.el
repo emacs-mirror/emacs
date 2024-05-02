@@ -667,27 +667,24 @@ Optional argument PROPS specifies other text properties to apply."
          (sbvt (car (window-current-scroll-bars)))
          ;; Create an "clean" ruler.
          (ruler
-          (propertize
-           ;; Make the part of header-line corresponding to the
-           ;; line-number display be blank, not filled with
-           ;; ruler-mode-basic-graduation-char.
-           (if display-line-numbers
-               (let* ((lndw (round (line-number-display-width 'columns)))
-                      ;; We need a multibyte string here so we could
-                      ;; later use aset to insert multibyte characters
-                      ;; into that string.
-                      (s (make-string lndw ?\s t)))
-                 (concat s (make-string (- w lndw)
-                                        ruler-mode-basic-graduation-char t)))
-             (make-string w ruler-mode-basic-graduation-char t))
-           'face 'ruler-mode-default
-           'local-map ruler-mode-map
-           'help-echo (cond
-                       (ruler-mode-show-tab-stops
-                        ruler-mode-ruler-help-echo-when-tab-stops)
-                       (goal-column
-                        ruler-mode-ruler-help-echo-when-goal-column)
-                       (ruler-mode-ruler-help-echo))))
+          ;; Make the part of header-line corresponding to the
+          ;; line-number display be blank, not filled with
+          ;; ruler-mode-basic-graduation-char.
+          (if display-line-numbers
+              (let ((lndw (round (line-number-display-width 'columns))))
+                (vconcat (make-vector lndw ?\s)
+                         (make-vector (- w lndw)
+                                      ruler-mode-basic-graduation-char)))
+             (make-vector w ruler-mode-basic-graduation-char)))
+         (ruler-wide-props
+          `((face . ruler-mode-default)
+            (local-map . ruler-mode-map)
+            (help-echo . ,(cond (ruler-mode-show-tab-stops
+                                 ruler-mode-ruler-help-echo-when-tab-stops)
+                                (goal-column
+                                 ruler-mode-ruler-help-echo-when-goal-column)
+                                (ruler-mode-ruler-help-echo)))))
+         (props nil)
          k c)
     ;; Setup the active area.
     (while (< i w)
@@ -698,9 +695,7 @@ Optional argument PROPS specifies other text properties to apply."
         (setq c (number-to-string (/ j 10))
               m (length c)
               k i)
-        (put-text-property
-         i (1+ i) 'face 'ruler-mode-column-number
-         ruler)
+        (push (list i (1+ i) 'face 'ruler-mode-column-number) props)
         (while (and (> m 0) (>= k 0))
           (aset ruler k (aref c (setq m (1- m))))
           (setq k (1- k))))
@@ -712,62 +707,53 @@ Optional argument PROPS specifies other text properties to apply."
        ;; Show the `current-column' marker.
        ((= j (current-column))
         (aset ruler i ruler-mode-current-column-char)
-        (put-text-property
-         i (1+ i) 'face 'ruler-mode-current-column
-         ruler))
+        (push (list i (1+ i) 'face 'ruler-mode-current-column) props))
        ;; Show the `goal-column' marker.
        ((and goal-column (= j goal-column))
         (aset ruler i ruler-mode-goal-column-char)
-        (put-text-property
-         i (1+ i) 'face 'ruler-mode-goal-column
-         ruler)
-	(put-text-property
-         i (1+ i) 'mouse-face 'mode-line-highlight
-         ruler)
-        (put-text-property
-         i (1+ i) 'help-echo ruler-mode-goal-column-help-echo
-         ruler))
+        (push (list i (1+ i) 'face 'ruler-mode-goal-column) props)
+	(push (list i (1+ i) 'mouse-face 'mode-line-highlight) props)
+        (push (list i (1+ i) 'help-echo ruler-mode-goal-column-help-echo)
+              props))
        ;; Show the `comment-column' marker.
        ((= j comment-column)
         (aset ruler i ruler-mode-comment-column-char)
-        (put-text-property
-         i (1+ i) 'face 'ruler-mode-comment-column
-         ruler)
-	(put-text-property
-         i (1+ i) 'mouse-face 'mode-line-highlight
-         ruler)
-        (put-text-property
-         i (1+ i) 'help-echo ruler-mode-comment-column-help-echo
-         ruler))
+        (push (list i (1+ i) 'face 'ruler-mode-comment-column)
+              props)
+	(push (list i (1+ i) 'mouse-face 'mode-line-highlight)
+              props)
+        (push (list i (1+ i) 'help-echo ruler-mode-comment-column-help-echo)
+              props))
        ;; Show the `fill-column' marker.
        ((= j fill-column)
         (aset ruler i ruler-mode-fill-column-char)
-        (put-text-property
-         i (1+ i) 'face 'ruler-mode-fill-column
-         ruler)
-	(put-text-property
-         i (1+ i) 'mouse-face 'mode-line-highlight
-         ruler)
-        (put-text-property
-         i (1+ i) 'help-echo ruler-mode-fill-column-help-echo
-         ruler))
+        (push (list i (1+ i) 'face 'ruler-mode-fill-column) props)
+	(push (list i (1+ i) 'mouse-face 'mode-line-highlight) props)
+        (push (list i (1+ i) 'help-echo ruler-mode-fill-column-help-echo)
+              props))
        ;; Show the `tab-stop-list' markers.
        ((and ruler-mode-show-tab-stops (= j (indent-next-tab-stop (1- j))))
         (aset ruler i ruler-mode-tab-stop-char)
-        (put-text-property
-         i (1+ i) 'face 'ruler-mode-tab-stop
-         ruler)))
+        (push (list i (1+ i) 'face 'ruler-mode-tab-stop) props)))
       (setq i (1+ i)
             j (1+ j)))
-    ;; Return the ruler propertized string.  Using list here,
-    ;; instead of concat visually separate the different areas.
-    (if (nth 2 (window-fringes))
-        ;; fringes outside margins.
-        (list "" (and (eq 'left sbvt) sb) lf lm
-              ruler rm rf (and (eq 'right sbvt) sb))
-      ;; fringes inside margins.
-      (list "" (and (eq 'left sbvt) sb) lm lf
-            ruler rf rm (and (eq 'right sbvt) sb)))))
+
+    (let ((ruler-str (concat ruler))
+          (len (length ruler)))
+      (dolist (c ruler-wide-props)
+        (put-text-property 0 len (car c) (cdr c) ruler-str))
+      (dolist (p (nreverse props))
+        (put-text-property (nth 0 p) (nth 1 p) (nth 2 p) (nth 3 p) ruler-str))
+
+      ;; Return the ruler propertized string.  Using list here,
+      ;; instead of concat visually separate the different areas.
+      (if (nth 2 (window-fringes))
+          ;; fringes outside margins.
+          (list "" (and (eq 'left sbvt) sb) lf lm
+                ruler-str rm rf (and (eq 'right sbvt) sb))
+        ;; fringes inside margins.
+        (list "" (and (eq 'left sbvt) sb) lm lf
+              ruler-str rf rm (and (eq 'right sbvt) sb))))))
 
 (provide 'ruler-mode)
 
