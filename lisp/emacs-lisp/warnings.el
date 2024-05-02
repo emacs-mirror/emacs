@@ -383,7 +383,7 @@ entirely by setting `warning-suppress-types' or
 		       (when warning-display-at-bottom
 			 (with-selected-window window
 			   (goto-char (point-max))
-			   (set-window-point window (1- (point-max)))
+			   (forward-line -1)
 			   (recenter -1)))
 		       (sit-for 0)))))))))
 
