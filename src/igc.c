@@ -84,7 +84,9 @@ struct Lisp_Weak_Ref
 static void
 igc_assert_fail (const char *file, unsigned line, const char *msg)
 {
-  die (msg, file, line);
+  fprintf (stderr, "\r\n%s:%u: Emacs fatal error: assertion failed: %s\r\n",
+	   file, line, msg);
+  terminate_due_to_signal (SIGABRT, INT_MAX);
 }
 
 #ifdef IGC_DEBUG
