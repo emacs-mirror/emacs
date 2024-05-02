@@ -754,13 +754,15 @@ associated `flymake-category' return DEFAULT."
          (indicator-cdr (if (listp value)
                             (cdr value))))
     (cond
-     ((symbolp indicator-car)
+     ((and (symbolp indicator-car)
+           flymake-fringe-indicator-position)
       (propertize "!" 'display
                   (cons flymake-fringe-indicator-position
                         (if (listp value)
                             value
                           (list value)))))
-     ((stringp indicator-car)
+     ((and (stringp indicator-car)
+           flymake-margin-indicator-position)
       (propertize "!"
                   'display
                   `((margin ,flymake-margin-indicator-position)
