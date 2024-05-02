@@ -4971,6 +4971,8 @@ if only the first line of the docstring is shown."))
             ;; readably.  (Bug#52554)
             (print-escape-control-characters t))
         (atomic-change-group
+          (when (eobp)
+            (insert ";;; -*- lexical-binding: t -*-\n"))
 	  (custom-save-variables)
 	  (custom-save-faces)
           (custom-save-icons)))
