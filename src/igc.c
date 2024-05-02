@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 #include <config.h>
 #include <limits.h>
+#include <signal.h>
 #include <mps.h>
 #include <mpsavm.h>
 #include <mpscamc.h>
