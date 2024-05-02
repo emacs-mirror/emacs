@@ -467,12 +467,10 @@ described in this section.  @xref{Mutability}.
   The most basic way to alter the contents of an existing string is with
 @code{aset} (@pxref{Array Functions}).  @w{@code{(aset @var{string}
 @var{idx} @var{char})}} stores @var{char} into @var{string} at character
-index @var{idx}.  It will automatically convert a pure-@acronym{ASCII}
-@var{string} to a multibyte string (@pxref{Text Representations}) if
-needed, but we recommend to always make sure @var{string} is multibyte
-(e.g., by using @code{string-to-multibyte}, @pxref{Converting
-Representations}), if @var{char} is a non-@acronym{ASCII} character, not
-a raw byte.
+index @var{idx}.  When @var{string} is a unibyte string (@pxref{Text
+Representations}), @var{char} must be a single byte (0--255); when
+@var{string} is multibyte, both @var{char} and the previous character at
+@var{idx} must be ASCII (0--127).
 
   To clear out a string that contained a password, use
 @code{clear-string}:

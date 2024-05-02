@@ -4289,7 +4289,6 @@ extern Lisp_Object nconc2 (Lisp_Object, Lisp_Object);
 extern Lisp_Object assq_no_quit (Lisp_Object, Lisp_Object);
 extern Lisp_Object assq_no_signal (Lisp_Object, Lisp_Object);
 extern Lisp_Object assoc_no_quit (Lisp_Object, Lisp_Object);
-extern void clear_string_char_byte_cache (void);
 extern ptrdiff_t string_char_to_byte (Lisp_Object, ptrdiff_t);
 extern ptrdiff_t string_byte_to_char (Lisp_Object, ptrdiff_t);
 extern Lisp_Object string_to_multibyte (Lisp_Object);
@@ -4444,7 +4443,6 @@ extern void parse_str_as_multibyte (const unsigned char *, ptrdiff_t,
 
 /* Defined in alloc.c.  */
 extern intptr_t garbage_collection_inhibited;
-unsigned char *resize_string_data (Lisp_Object, ptrdiff_t, int, int);
 extern void malloc_warning (const char *);
 extern AVOID memory_full (size_t);
 extern AVOID buffer_memory_full (ptrdiff_t);

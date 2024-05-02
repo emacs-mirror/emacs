@@ -2574,7 +2574,10 @@ or a byte-code object.  IDX starts at 0.  */)
 DEFUN ("aset", Faset, Saset, 3, 3, 0,
        doc: /* Store into the element of ARRAY at index IDX the value NEWELT.
 Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
-bool-vector.  IDX starts at 0.  */)
+bool-vector.  IDX starts at 0.
+If ARRAY is a unibyte string, NEWELT must be a single byte (0-255).
+If ARRAY is a multibyte string, NEWELT and the previous character at
+index IDX must both be ASCII (0-127).  */)
   (register Lisp_Object array, Lisp_Object idx, Lisp_Object newelt)
 {
   register EMACS_INT idxval;
@@ -2613,42 +2616,24 @@ bool-vector.  IDX starts at 0.  */)
 	args_out_of_range (array, idx);
       CHECK_CHARACTER (newelt);
       int c = XFIXNAT (newelt);
-      ptrdiff_t idxval_byte;
-      int prev_bytes;
-      unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
       if (STRING_MULTIBYTE (array))
 	{
-	  idxval_byte = string_char_to_byte (array, idxval);
-	  p1 = SDATA (array) + idxval_byte;
-	  prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
-	}
-      else if (SINGLE_BYTE_CHAR_P (c))
-	{
-	  SSET (array, idxval, c);
-	  return newelt;
+	  if (c > 0x7f)
+	    error ("Attempt to store non-ASCII char into multibyte string");
+	  ptrdiff_t idxval_byte = string_char_to_byte (array, idxval);
+	  unsigned char *p = SDATA (array) + idxval_byte;
+	  if (*p > 0x7f)
+	    error ("Attempt to replace non-ASCII char in multibyte string");
+	  *p = c;
 	}
       else
 	{
-	  for (ptrdiff_t i = SBYTES (array) - 1; i >= 0; i--)
-	    if (!ASCII_CHAR_P (SREF (array, i)))
-	      args_out_of_range (array, newelt);
-	  /* ARRAY is an ASCII string.  Convert it to a multibyte string.  */
-	  STRING_SET_MULTIBYTE (array);
-	  idxval_byte = idxval;
-	  p1 = SDATA (array) + idxval_byte;
-	  prev_bytes = 1;
+	  if (c > 0xff)
+	    error ("Attempt to store non-byte value into unibyte string");
+	  SSET (array, idxval, c);
 	}
-
-      int new_bytes = CHAR_STRING (c, p0);
-      if (prev_bytes != new_bytes)
-	p1 = resize_string_data (array, idxval_byte, prev_bytes, new_bytes);
-
-      do
-	*p1++ = *p0++;
-      while (--new_bytes != 0);
     }
-
   return newelt;
 }
 
