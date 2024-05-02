@@ -3420,7 +3420,10 @@ character as far as keyboard translation is concerned, but it has the
 same usual meaning.
 
   @xref{Translation Keymaps}, for mechanisms that translate event sequences
-at the level of @code{read-key-sequence}.
+at the level of @code{read-key-sequence}.  If you need to translate
+input events that are not characters (i.e., @code{characterp} returns
+@code{nil} for them), you must use the event translation mechanism
+described there.
 
 @node Invoking the Input Method
 @subsection Invoking the Input Method
