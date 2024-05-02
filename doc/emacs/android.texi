@@ -148,7 +148,7 @@ attempts to open the file with the wrapper will fail.
 system provides access to outside the normal filesystem APIs.  Emacs
 uses pseudo-directories named @file{/content/by-authority} and
 @file{/content/by-authority-named} to access those files.  Do not make
-any assumptions about the contents of this directory, or try to open
+any assumptions about the contents of these directories, or try to open
 files in it yourself.
 
   This feature is not provided on Android 4.3 and earlier, in which
