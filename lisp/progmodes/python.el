@@ -1251,6 +1251,7 @@ fontified."
                            @font-lock-variable-name-face)
      (named_expression name: (identifier)
                        @font-lock-variable-name-face)
+     (for_statement left: (identifier) @font-lock-variable-name-face)
      (pattern_list [(identifier)
                     (list_splat_pattern (identifier))]
                    @font-lock-variable-name-face)
