@@ -11550,19 +11550,9 @@ XTflash (struct frame *f)
   int fd, rc;
 
   block_input ();
-
-  if (FRAME_X_VISUAL_INFO (f)->class == TrueColor)
-    {
-      values.function = GXxor;
-      values.foreground = (FRAME_FOREGROUND_PIXEL (f)
-			   ^ FRAME_BACKGROUND_PIXEL (f));
-
-      gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      GCFunction | GCForeground, &values);
-    }
-  else
-    gc = FRAME_X_OUTPUT (f)->normal_gc;
-
+  values.function = GXinvert;
+  gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  GCFunction, &values);
 
   /* Get the height not including a menu bar widget.  */
   int height = FRAME_PIXEL_HEIGHT (f);
@@ -11649,8 +11639,7 @@ XTflash (struct frame *f)
 		    flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
 		    width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
 
-  if (FRAME_X_VISUAL_INFO (f)->class == TrueColor)
-    XFreeGC (FRAME_X_DISPLAY (f), gc);
+  XFreeGC (FRAME_X_DISPLAY (f), gc);
   x_flush (f);
 
   unblock_input ();
