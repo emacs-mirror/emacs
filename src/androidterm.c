@@ -151,14 +151,8 @@ android_flash (struct frame *f)
   fd_set fds;
 
   block_input ();
-
-  values.function = ANDROID_GC_XOR;
-  values.foreground = (FRAME_FOREGROUND_PIXEL (f)
-		       ^ FRAME_BACKGROUND_PIXEL (f));
-
-  gc = android_create_gc ((ANDROID_GC_FUNCTION
-			   | ANDROID_GC_FOREGROUND),
-			  &values);
+  values.function = ANDROID_GC_INVERT;
+  gc = android_create_gc (ANDROID_GC_FUNCTION, &values);
 
   /* Get the height not including a menu bar widget.  */
   int height = FRAME_PIXEL_HEIGHT (f);

@@ -27,9 +27,7 @@ import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffColorFilter;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Shader.TileMode;
-import android.graphics.Xfermode;
 
 import android.graphics.drawable.BitmapDrawable;
 
@@ -40,16 +38,14 @@ import android.os.Build;
 
 public final class EmacsGC extends EmacsHandleObject
 {
-  public static final int GC_COPY = 0;
-  public static final int GC_XOR  = 1;
+  public static final int GC_COPY    = 0;
+  public static final int GC_INVERT  = 1;
 
   public static final int GC_FILL_SOLID			= 0;
   public static final int GC_FILL_OPAQUE_STIPPLED	= 1;
 
   public static final int GC_LINE_SOLID			= 0;
   public static final int GC_LINE_ON_OFF_DASH		= 1;
-
-  public static final Xfermode xorAlu, srcInAlu;
 
   public int function, fill_style;
   public int foreground, background;
@@ -71,12 +67,6 @@ public final class EmacsGC extends EmacsHandleObject
   /* The value of clipRectID after the last time this GCs clip
      rectangles changed.  0 if there are no clip rectangles.  */
   public long clipRectID;
-
-  static
-  {
-    xorAlu = new PorterDuffXfermode (Mode.XOR);
-    srcInAlu = new PorterDuffXfermode (Mode.SRC_IN);
-  }
 
   /* The following fields are only set on immutable GCs.  */
 
@@ -131,8 +121,6 @@ public final class EmacsGC extends EmacsHandleObject
     /* A line_width of 0 is equivalent to that of 1.  */
     gcPaint.setStrokeWidth (line_width < 1 ? 1 : line_width);
     gcPaint.setColor (foreground | 0xff000000);
-    gcPaint.setXfermode (function == GC_XOR
-			 ? xorAlu : srcInAlu);
 
     /* Update the stipple object with the new stipple bitmap, or delete
        it if the stipple has been cleared on systems too old to support

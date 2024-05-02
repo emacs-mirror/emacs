@@ -1623,10 +1623,10 @@ public final class EmacsSafThread extends HandlerThread
        mode is merely w.
 
        This may be ascribed to a mix-up in Android's documentation
-       regardin DocumentsProvider: the `openDocument' function is only
-       documented to accept r or rw, whereas the default
-       implementation of the `openFile' function (which documents rwt)
-       delegates to `openDocument'.  */
+       regarding DocumentsProvider: the `openDocument' function is only
+       documented to accept r or rw, whereas the default implementation
+       of the `openFile' function (which documents rwt) delegates to
+       `openDocument'.  */
 
     if (read && write && truncate && fileDescriptor != null
 	&& !EmacsNative.ftruncate (fileDescriptor.getFd ()))

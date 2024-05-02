@@ -56,7 +56,7 @@ struct android_point
 enum android_gc_function
   {
     ANDROID_GC_COPY	= 0,
-    ANDROID_GC_XOR	= 1,
+    ANDROID_GC_INVERT	= 1,
   };
 
 enum android_gc_value_mask
