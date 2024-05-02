@@ -2725,22 +2725,22 @@ Here's an example of using @code{type} inside @code{declare} to declare
 a function @code{positive-p} that takes an argument of type @var{number}
 and return a @var{boolean}:
 
-@group
 @lisp
+@group
 (defun positive-p (x)
   (declare (type (function (number) boolean)))
   (when (> x 0)
     t))
-@end lisp
 @end group
+@end lisp
 
 Similarly this declares a function @code{cons-or-number} that: expects a
 first argument being a @var{cons} or a @var{number}, a second optional
 argument of type @var{string} and return one of the symbols
 @code{is-cons} or @code{is-number}:
 
-@group
 @lisp
+@group
 (defun cons-or-number (x &optional err-msg)
   (declare (type (function ((or cons number) &optional string)
 			   (member is-cons is-number))))
@@ -2749,11 +2749,10 @@ argument of type @var{string} and return one of the symbols
     (if (numberp x)
 	'is-number
       (error (or err-msg "Unexpected input")))))
-@end lisp
 @end group
+@end lisp
 
-More types are described in the Lisp Data Types chapter (@ref{Lisp Data
-Types}).
+For description of additional types, see @ref{Lisp Data Types}).
 
 Declaring a function with an incorrect type produces undefined behavior
 and could lead to unexpected results or might even crash Emacs when code
