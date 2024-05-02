@@ -1440,11 +1440,10 @@ if it was visiting a file."
                      (buffer-file-name old-buffer)))
              (name (or file
                        (and (bufferp old-buffer)
-                            (fboundp 'buffer-last-name)
                             (buffer-last-name old-buffer))
                        old-buffer))
              (new-buffer (generate-new-buffer
-                          (format "*Old buffer %s*" name))))
+                          (format " *Old buffer %s*" name))))
         (with-current-buffer new-buffer
           (set-auto-mode)
           (insert (format-message "This window displayed the %s `%s'.\n"
@@ -1511,7 +1510,7 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
     (when (and read-minibuffer-restore-windows minibuffer-was-active
                (not tab-bar-minibuffer-restore-tab))
       (setq-local tab-bar-minibuffer-restore-tab (1+ from-index))
-      (add-hook 'minibuffer-exit-hook 'tab-bar-minibuffer-restore-tab nil t))
+      (add-hook 'minibuffer-exit-hook #'tab-bar-minibuffer-restore-tab nil t))
 
     (unless (eq from-index to-index)
       (let* ((from-tab (tab-bar--tab))

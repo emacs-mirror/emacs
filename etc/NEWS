@@ -352,9 +352,9 @@ points after switching back to that tab.
 ---
 *** New user option 'tab-bar-select-restore-windows'.
 It defines what to do with windows whose buffer was killed since the tab
-was last selected.  By default it displays a placeholder buffer that
-provides information about the name of the killed buffer that was
-displayed in that window.
+was last selected.  By default it displays a placeholder buffer
+with the name " *Old buffer <name>*" that provides information about
+the name of the killed buffer that was displayed in that window.
 
 ---
 *** New user option 'tab-bar-tab-name-format-functions'.
