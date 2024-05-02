@@ -11849,6 +11849,14 @@ syms_of_coding (void)
   Vcoding_category_table = make_nil_vector (coding_category_max);
   staticpro (&Vcoding_category_table);
 #ifdef HAVE_MPS
+  /* FIXME: Do we really need this?  coding_categories[] are not real
+     coding-systems, and are not used for actual encoding/decoding of
+     text.  They are coding categories; we use 'struct coding_system'
+     here because it's convenient: it allows us to call
+     'setup_coding_system' to fill the categories with relevant data.
+     Thus, the 'src_object' and 'dst_object' members of these
+     "coding-systems" are never set and never used, and therefore do not
+     need to be protected.  */
   for (size_t i = 0; i < ARRAYELTS (coding_categories); i++)
     {
       struct coding_system* cs = &coding_categories[i];
