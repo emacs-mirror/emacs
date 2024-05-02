@@ -603,10 +603,11 @@ non-nil, all commands in the map will have the `repeat-map'
 symbol property.
 
 More control is available over which commands are repeatable; the
-value can also be a property list with properties `:enter' and
-`:exit', for example:
+value can also be a property list with properties `:enter',
+`:exit' and `:hints', for example:
 
-     :repeat (:enter (commands ...) :exit (commands ...))
+     :repeat (:enter (commands ...) :exit (commands ...)
+              :hints ((command . \"hint\") ...))
 
 `:enter' specifies the list of additional commands that only
 enter `repeat-mode'.  When the list is empty, then only the
@@ -620,6 +621,10 @@ list is empty, no commands in the map exit `repeat-mode'.
 Specifying a list of commands is useful when those commands exist
 in this specific map, but should not have the `repeat-map' symbol
 property.
+
+`:hints' is a list of cons pairs where car is a command and
+cdr is a string that is displayed alongside of the repeatable key
+in the echo area.
 
 \(fn VARIABLE-NAME &key DOC FULL PARENT SUPPRESS NAME PREFIX KEYMAP REPEAT &rest [KEY DEFINITION]...)"
   (declare (indent 1))
@@ -660,7 +665,9 @@ property.
           (setq def (pop defs))
           (when (and (memq (car def) '(function quote))
                      (not (memq (cadr def) (plist-get repeat :exit))))
-            (push `(put ,def 'repeat-map ',variable-name) props)))))
+            (push `(put ,def 'repeat-map ',variable-name) props)))
+        (dolist (def (plist-get repeat :hints))
+          (push `(put ',(car def) 'repeat-hint ',(cdr def)) props))))
 
     (let ((defvar-form
            `(defvar ,variable-name

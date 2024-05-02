@@ -2619,6 +2619,10 @@ major mode.
 ** The variable 'rx-constituents' is now obsolete.
 Use 'rx-define', 'rx-let' and 'rx-let-eval' instead.
 
+---
+** 'defvar-keymap' can specify hints for 'repeat-mode'.
+Using ':repeat (:hints ((command . "hint") ...))' will show
+the hint string in the echo area together with repeatable keys.
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
