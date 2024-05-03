@@ -137,6 +137,12 @@
   "Emacs Lisp byte-compiler."
   :group 'lisp)
 
+(defcustom compilation-safety 1
+  "Safety level."
+  :type 'integer
+  :safe #'integerp
+  :version "30.1")
+
 (defcustom emacs-lisp-file-regexp "\\.el\\'"
   "Regexp which matches Emacs Lisp source files.
 If you change this, you might want to set `byte-compile-dest-file-function'.
