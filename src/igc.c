@@ -1042,6 +1042,15 @@ fix_face (mps_ss_t ss, struct face *f)
   return MPS_RES_OK;
 }
 
+/* FIXME: Bot image_cache and face_cache are hash tables containing
+   malloc'd vectors. Tracing these here and in fix_image_cache is
+   strictly speaking not safe 100% safe, because MPS only guarantess
+   exclusive access to the face_cache itself, not its malloc'd vectors.
+
+   Introduce a new IGC_OBJ_PTR_VECTOR. That object is an array of
+   pointers that are guaranteed to point to MPS objects if non-null. Use
+   these objects for the four vectors in face_cache and image_cache.  */
+
 static mps_res_t
 fix_face_cache (mps_ss_t ss, struct face_cache *c)
 {
