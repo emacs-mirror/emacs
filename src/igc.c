@@ -1047,6 +1047,7 @@ fix_face_cache (mps_ss_t ss, struct face_cache *c)
 {
   MPS_SCAN_BEGIN (ss)
   {
+    IGC_FIX12_RAW (ss, &c->f);
     if (c->faces_by_id)
       for (int i = 0; i < c->used; ++i)
 	{
