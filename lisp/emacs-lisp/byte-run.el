@@ -193,6 +193,11 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
       (list 'function-put (list 'quote f)
             ''speed (list 'quote val))))
 
+(defalias 'byte-run--set-safety
+  #'(lambda (f _args val)
+      (list 'function-put (list 'quote f)
+            ''safety (list 'quote val))))
+
 (defalias 'byte-run--set-completion
   #'(lambda (f _args val)
       (list 'function-put (list 'quote f)
@@ -242,6 +247,7 @@ If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
    (list 'doc-string #'byte-run--set-doc-string)
    (list 'indent #'byte-run--set-indent)
    (list 'speed #'byte-run--set-speed)
+   (list 'safety #'byte-run--set-safety)
    (list 'completion #'byte-run--set-completion)
    (list 'modes #'byte-run--set-modes)
    (list 'interactive-args #'byte-run--set-interactive-args)

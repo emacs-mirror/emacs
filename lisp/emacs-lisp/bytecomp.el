@@ -2449,6 +2449,7 @@ With argument ARG, insert value in current buffer after the form."
         (when byte-native-compiling
           (defvar native-comp-speed)
           (push `(native-comp-speed . ,native-comp-speed) byte-native-qualities)
+          (push `(compilation-safety . ,compilation-safety) byte-native-qualities)
           (defvar native-comp-debug)
           (push `(native-comp-debug . ,native-comp-debug) byte-native-qualities)
           (defvar native-comp-compiler-options)

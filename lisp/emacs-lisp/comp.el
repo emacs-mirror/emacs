@@ -368,6 +368,8 @@ Returns ELT."
           :documentation "Target output file-name for the compilation.")
   (speed native-comp-speed :type number
          :documentation "Default speed for this compilation unit.")
+  (safety compilation-safety :type number
+         :documentation "Default safety level for this compilation unit.")
   (debug native-comp-debug :type number
          :documentation "Default debug level for this compilation unit.")
   (compiler-options native-comp-compiler-options :type list
@@ -527,6 +529,8 @@ CFG is mutated by a pass.")
                  :documentation "t if non local jumps are present.")
   (speed nil :type number
          :documentation "Optimization level (see `native-comp-speed').")
+  (safety nil :type number
+         :documentation "Safety level (see `safety').")
   (pure nil :type boolean
         :documentation "t if pure nil otherwise.")
   (declared-type nil :type list
@@ -698,6 +702,11 @@ current instruction or its cell."
   (or (comp--spill-decl-spec function-name 'speed)
       (comp-ctxt-speed comp-ctxt)))
 
+(defun comp--spill-safety (function-name)
+  "Return the safety level for FUNCTION-NAME."
+  (or (comp--spill-decl-spec function-name 'safety)
+      (comp-ctxt-safety comp-ctxt)))
+
 ;; Autoloaded as might be used by `disassemble-internal'.
 ;;;###autoload
 (defun comp-c-func-name (name prefix &optional first)
@@ -824,6 +833,7 @@ clashes."
             (comp-func-lap func) lap
             (comp-func-frame-size func) (comp--byte-frame-size byte-func)
             (comp-func-speed func) (comp--spill-speed name)
+            (comp-func-safety func) (comp--spill-safety name)
             (comp-func-declared-type func) (comp--spill-decl-spec name 'function-type)
             (comp-func-pure func) (comp--spill-decl-spec name 'pure))
 
@@ -850,6 +860,8 @@ clashes."
           (comp-el-to-eln-filename filename native-compile-target-directory)))
   (setf (comp-ctxt-speed comp-ctxt) (alist-get 'native-comp-speed
                                                byte-native-qualities)
+        (comp-ctxt-safety comp-ctxt) (alist-get 'compilation-safety
+                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'native-comp-debug
                                                byte-native-qualities)
         (comp-ctxt-compiler-options comp-ctxt) (alist-get 'native-comp-compiler-options
