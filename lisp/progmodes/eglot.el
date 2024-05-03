@@ -2694,14 +2694,26 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
    ;; who check it as a boolean.
    (t (setq eglot--recent-changes :pending)))
   (when eglot--change-idle-timer (cancel-timer eglot--change-idle-timer))
-  (let ((buf (current-buffer)))
-    (setq eglot--change-idle-timer
-          (run-with-idle-timer
-           eglot-send-changes-idle-time
-           nil (lambda () (eglot--when-live-buffer buf
-                            (when eglot--managed-mode
-                              (run-hooks 'eglot--document-changed-hook)
-                              (setq eglot--change-idle-timer nil))))))))
+  (setq eglot--change-idle-timer
+        (run-with-idle-timer
+         eglot-send-changes-idle-time nil
+         (lambda (buf)
+           (eglot--when-live-buffer buf
+             (when eglot--managed-mode
+               (if (and (fboundp 'track-changes-inconsistent-state-p)
+                        (track-changes-inconsistent-state-p))
+                   ;; Not a good time (e.g. in the middle of Quail
+                   ;; thingy, bug#70541), let's reschedule.
+                   ;; Ideally, we'd `run-with-idle-timer' to call
+                   ;; ourselves again but it's kind of a pain to do that
+                   ;; right (because we first have to wait for the
+                   ;; current idle period to end), so we just do
+                   ;; nothing and wait for the next buffer change to
+                   ;; reschedule us.
+                   nil
+                 (run-hooks 'eglot--document-changed-hook)
+                 (setq eglot--change-idle-timer nil))))
+           (current-buffer)))))
 
 (defvar-local eglot-workspace-configuration ()
   "Configure LSP servers specifically for a given project.

@@ -367,6 +367,17 @@ and re-enable the TRACKER corresponding to ID."
       ;; as to avoid nested invocations.
       (cl-pushnew id track-changes--clean-trackers))))
 
+(defun track-changes-inconsistent-state-p ()
+  "Return whether the current buffer is in an inconsistent state.
+Ideally `before/after-change-functions' should be called for each and every
+buffer change, but some packages make transient changes without
+running those hooks.
+This function tries to detect those situations so clients can decide
+to postpone their work to a later time when the buffer is hopefully
+returned to a consistent state."
+  (or (equal track-changes--buffer-size (buffer-size))
+      inhibit-modification-hooks))
+
 ;;;; Auxiliary functions.
 
 (defun track-changes--clean-state ()
