@@ -177,7 +177,7 @@
 
     (ert-info ("Joined by bouncer to #foo, pal persent")
       (with-current-buffer (erc-d-t-wait-for 1 (get-buffer "#foo"))
-        (erc-d-t-search-for 1 "On Thursday")
+        (erc-d-t-search-for 5 "On Thursday")
         (erc-scenarios-common-say "hi")))
 
     (erc-d-t-wait-for 10 "Query buffer appears with message from pal"

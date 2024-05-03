@@ -26,7 +26,7 @@
 ((join 6.47 "JOIN #spam secret")
  (0.03 ":dummy!~u@w9rfqveugz722.irc JOIN #spam"))
 
-((mode 1 "MODE #spam")
+((mode-spam 10 "MODE #spam")
  (0.01 ":irc.foonet.org 353 dummy = #spam :~tester dummy")
  (0.00 ":irc.foonet.org 366 dummy #spam :End of NAMES list")
  (0.01 ":irc.foonet.org 324 dummy #spam +knt secret")

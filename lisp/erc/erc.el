@@ -7473,7 +7473,7 @@ complement relevant letters in STRING."
                t))
             ((not fallbackp)
              (erc-display-message nil '(notice error) (erc-server-buffer)
-                                  (format "Unknown channel mode: %S" c)))))
+                                  'channel-mode-unknown ?c (string c)))))
     (setq erc-channel-modes (sort erc-channel-modes #'string<))
     (setq erc--mode-line-mode-string
           (concat "+" (erc--channel-modes erc--mode-line-chanmodes-arg-len)))
@@ -9404,6 +9404,7 @@ SOFTP, only do so when defined as a variable."
    (incorrect-args . "Incorrect arguments. Usage:\n%c %u\n%d")
    (cannot-find-file . "Cannot find file %f")
    (cannot-read-file . "Cannot read file %f")
+   (channel-mode-unknown . "Unknown channel mode: %c")
    (connect . "Connecting to %S:%p... ")
    (country . "%c")
    (country-unknown . "%d: No such domain")

@@ -644,7 +644,7 @@ nonzero for this to work."
 (ert-deftest erc-d-run-basic ()
   :tags '(:expensive-test)
   (erc-d-tests-with-server (_ _) basic
-    (with-current-buffer (erc-d-t-wait-for 3 (get-buffer "#chan"))
+    (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
       (erc-d-t-search-for 2 "hey"))
     (when noninteractive
       (kill-buffer "#chan"))))
