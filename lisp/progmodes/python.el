@@ -2860,7 +2860,7 @@ virtualenv."
   :type '(repeat symbol))
 
 (defcustom python-shell-compilation-regexp-alist
-  `((,(rx line-start (1+ (any " \t")) "File \""
+  `((,(rx line-start (1+ (any " \t")) (? ?| (1+ (any " \t"))) "File \""
           (group (1+ (not (any "\"<")))) ; avoid `<stdin>' &c
           "\", line " (group (1+ digit)))
      1 2)
