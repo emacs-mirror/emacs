@@ -2935,7 +2935,7 @@ nil default-directory" name)
        ;; buffer is empty.
        (when (looking-at "#!")
          (delete-line))
-       (eval-buffer buffer nil file nil t)))))
+       (eval-buffer buffer nil file nil t t)))))
 
 (defun command-line--eval-script (file)
   (load-with-code-conversion
