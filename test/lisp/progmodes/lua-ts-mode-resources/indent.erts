@@ -66,6 +66,10 @@ end
 return f
 end
 
+f6(function()
+print'ok'
+end)
+
 ;(function ()
  return true
  end)()
@@ -117,6 +121,10 @@ function f6(...)
   end
   return f
 end
+
+f6(function()
+  print'ok'
+end)
 
 ;(function ()
   return true
@@ -406,6 +414,15 @@ a = 1,
 b = 2,
 },
 nil)
+
+Test(nil, {
+            a = 1,
+            b = 2,
+          })
+
+fn( -- comment
+    1,
+    2)
 =-=
 h(
   "string",
@@ -443,6 +460,15 @@ Test({
        b = 2,
      },
      nil)
+
+Test(nil, {
+  a = 1,
+  b = 2,
+})
+
+fn( -- comment
+  1,
+  2)
 =-=-=
 
 Name: Parameter Indent
@@ -464,6 +490,9 @@ local f3 = function( a, b,
                 c, d )
 print(a,b,c,d)
 end
+
+local f4 = function(-- comment
+a, b, c)
 =-=
 function f1(
   a,
@@ -481,6 +510,9 @@ local f3 = function( a, b,
                      c, d )
   print(a,b,c,d)
 end
+
+local f4 = function(-- comment
+  a, b, c)
 =-=-=
 
 Name: Table Indent
@@ -506,6 +538,10 @@ a = 1,
  b = 2,
   c = 3,
 }
+
+local a = { -- hello world!
+            b = 10
+}
 =-=
 local Other = {
   First={up={Step=true,Jump=true},
@@ -526,6 +562,10 @@ local Other = {
   a = 1,
   b = 2,
   c = 3,
+}
+
+local a = { -- hello world!
+  b = 10
 }
 =-=-=
 
