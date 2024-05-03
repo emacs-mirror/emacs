@@ -1007,6 +1007,8 @@ fix_image_cache (mps_ss_t ss, struct image_cache *c)
   MPS_SCAN_BEGIN (ss)
   {
 #ifdef HAVE_WINDOW_SYSTEM
+    /* FIXME: the malloc'd buckets and images are not included in
+       the exclusive access granted to the image cache by MPS.  */
     if (c->images)
       for (ptrdiff_t i = 0; i < c->used; ++i)
 	if (c->images[i])
