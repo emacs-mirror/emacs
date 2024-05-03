@@ -359,7 +359,7 @@ the rules from `css-mode'."
   (add-hook 'before-change-functions #'c-foreign-truncate-lit-pos-cache nil t)
 
   ;; This is sort of a prog-mode as well as a text mode.
-  (run-hooks 'prog-mode-hook))
+  (run-mode-hooks 'prog-mode-hook))
 
 (put 'mhtml-mode 'flyspell-mode-predicate #'mhtml--flyspell-check-word)
 
