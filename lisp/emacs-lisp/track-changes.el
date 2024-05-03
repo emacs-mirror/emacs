@@ -375,7 +375,7 @@ running those hooks.
 This function tries to detect those situations so clients can decide
 to postpone their work to a later time when the buffer is hopefully
 returned to a consistent state."
-  (or (equal track-changes--buffer-size (buffer-size))
+  (or (not (equal track-changes--buffer-size (buffer-size)))
       inhibit-modification-hooks))
 
 ;;;; Auxiliary functions.
