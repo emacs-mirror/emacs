@@ -11089,3 +11089,9 @@ respectively.  */);
   last_known_monitors = Qnil;
   staticpro (&last_known_monitors);
 }
+
+struct frame **
+ns_emacs_view_emacs_frame (struct frame *f)
+{
+  return &FRAME_NS_VIEW (f)->emacsframe;
+}

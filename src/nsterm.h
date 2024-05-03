@@ -1394,5 +1394,6 @@ enum NSWindowTabbingMode
 #endif
 
 extern void mark_nsterm (void);
+struct frame **ns_emacs_view_emacs_frame (struct frame *f);
 
 #endif	/* HAVE_NS */

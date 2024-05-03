@@ -79,8 +79,11 @@ b die
 #command alias go process launch --tty --working-dir .
 #settings set -- target.run-args -Q --eval '(progn (view-hello-file) (redisplay) (igc--collect) (forward-line))'
 
-target create temacs
-settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest /Users/gerd/emacs/savannah/igc/nextstep/Emacs.app/Contents/MacOS/ --eln-dest /Users/gerd/emacs/savannah/igc/nextstep/Emacs.app/Contents/Frameworks/
-command alias go process launch --working-dir .
+# target create temacs
+# settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest /Users/gerd/emacs/savannah/igc/nextstep/Emacs.app/Contents/MacOS/ --eln-dest /Users/gerd/emacs/savannah/igc/nextstep/Emacs.app/Contents/Frameworks/
+# command alias go process launch --working-dir .
+# settings set target.disable-aslr false
 
+target create emacs
+settings set target.disable-aslr false
 # end.

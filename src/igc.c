@@ -1401,6 +1401,8 @@ fix_frame (mps_ss_t ss, struct frame *f)
 	IGC_FIX12_RAW (ss, &i->highlight_frame);
 	IGC_FIX12_RAW (ss, &i->ns_focus_frame);
 	IGC_FIX12_RAW (ss, &i->last_mouse_motion_frame);
+	struct frame **pf = ns_emacs_view_emacs_frame (f);
+	IGC_FIX12_RAW (ss, pf);
 #endif
       }
 #endif
