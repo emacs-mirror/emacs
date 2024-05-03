@@ -2999,6 +2999,21 @@ killed.  */
 #ifdef HAVE_NATIVE_COMP
   eln_load_path_final_clean_up ();
 #endif
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  if (android_init_gui)
+    {
+      /* Calls to exit may be followed by illegal accesses from
+	 toolkit-managed threads as the thread group is destroyed, which
+	 are inconsequential when the process is being terminated, but
+	 which must be suppressed to inhibit reporting of superfluous
+	 crashes by the system.
+
+         Execution won't return to Emacs whatever the value of RESTART,
+         as `android_restart_emacs' will only ever abort or succeed.  */
+      signal (SIGBUS, SIG_IGN);
+      signal (SIGSEGV, SIG_IGN);
+    }
+#endif /* HAVE_ANDROID && !ANDROID_STUBIFY */
 
   if (!NILP (restart))
     {
