@@ -787,6 +787,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_XKB
 #include <X11/XKBlib.h>
 #endif
+#ifdef HAVE_MPS
+#include "igc.h"
+#endif
 
 /* Although X11/Xlib.h commonly defines the types XErrorHandler and
    XIOErrorHandler, they are not in the Xlib spec, so for portability
@@ -5744,7 +5747,11 @@ x_cache_xi_devices (struct x_display_info *dpyinfo)
       return;
     }
 
+#ifdef HAVE_MPS
+  dpyinfo->devices = igc_xzalloc_ambig (sizeof *dpyinfo->devices * ndevices);
+#else
   dpyinfo->devices = xzalloc (sizeof *dpyinfo->devices * ndevices);
+#endif
 
   for (i = 0; i < ndevices; ++i)
     {
@@ -13774,7 +13781,11 @@ xi_disable_devices (struct x_display_info *dpyinfo,
     return;
 
   ndevices = 0;
+#ifdef HAVE_MPS
+  devices = igc_xzalloc_ambig (sizeof *devices * dpyinfo->num_devices);
+#else
   devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
+#endif
 
   /* Loop through every device currently in DPYINFO, and copy it to
      DEVICES if it is not in TO_DISABLE.  Note that this function
@@ -24600,10 +24611,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			  if (info && info->enabled)
 			    {
-			      dpyinfo->devices
-				= xrealloc (dpyinfo->devices,
-					    (sizeof *dpyinfo->devices
-					     * ++dpyinfo->num_devices));
+			      size_t new_size = (sizeof *dpyinfo->devices
+						 * ++dpyinfo->num_devices);
+#ifdef HAVE_MPS
+			      dpyinfo->devices =
+				igc_realloc_ambig (dpyinfo->devices, new_size);
+#else
+			      dpyinfo->devices =
+				xrealloc (dpyinfo->devices, new_size);
+#endif
 			      memset (dpyinfo->devices + dpyinfo->num_devices - 1,
 				      0, sizeof *dpyinfo->devices);
 			      device = &dpyinfo->devices[dpyinfo->num_devices - 1];
@@ -30676,7 +30692,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   /* We have definitely succeeded.  Record the new connection.  */
 
+#ifdef HAVE_MPS
+  dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo);
+#else
   dpyinfo = xzalloc (sizeof *dpyinfo);
+#endif
+
   terminal = x_create_terminal (dpyinfo);
 
   if (!NILP (Vx_detect_server_trust))

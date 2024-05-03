@@ -1401,7 +1401,7 @@ fix_frame (mps_ss_t ss, struct frame *f)
 	struct font **font_ptr = &FRAME_FONT (f);
 	if (*font_ptr)
 	  IGC_FIX12_RAW (ss, font_ptr);
-	Lisp_Object *nle = &FRAME_DISPLAY_INFO(f)->name_list_element;
+	Lisp_Object *nle = &FRAME_DISPLAY_INFO (f)->name_list_element;
 	IGC_FIX12_OBJ (ss, nle);
 
 #ifdef HAVE_NS
@@ -1415,7 +1415,7 @@ fix_frame (mps_ss_t ss, struct frame *f)
 	IGC_FIX12_RAW (ss, pf);
 #endif
       }
-#endif
+#endif // HAVE_WINDOW_SYSTEM
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2186,6 +2186,26 @@ igc_xzalloc_ambig (size_t size)
   root_create_ambig (global_igc, p, end);
   return p;
 }
+
+void *
+igc_realloc_ambig (void *block, size_t size)
+{
+#if 0 // non tested code:
+  struct igc_root_list *r = root_find (block);
+  igc_assert (r != NULL);
+  destroy_root (&r);
+
+  /* Can't make a root that has zero length. Want one to be able to
+     detect calling igc_free on something not having a root. */
+  size_t new_size = (size == 0 ? IGC_ALIGN_DFLT : size);
+  void *p = xrealloc (block, new_size);
+  void *end = (char *)p + new_size;
+  root_create_ambig (global_igc, p, end);
+  return p;
+#endif
+  emacs_abort ();
+}
+
 
 void
 igc_xfree (void *p)
