@@ -2707,8 +2707,8 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
                    ;; reschedule us.
                    nil
                  (run-hooks 'eglot--document-changed-hook)
-                 (setq eglot--change-idle-timer nil))))
-           (current-buffer)))))
+                 (setq eglot--change-idle-timer nil)))))
+         (current-buffer))))
 
 (defvar-local eglot-workspace-configuration ()
   "Configure LSP servers specifically for a given project.
