@@ -68,6 +68,7 @@ struct itree_tree *igc_make_itree_tree (void);
 struct image *igc_make_image (void);
 struct face *igc_make_face (void);
 struct face_cache *igc_make_face_cache (void);
+struct image_cache *igc_make_image_cache (void);
 struct interval *igc_make_interval (void);
 
 Lisp_Object igc_make_string (size_t nchars, size_t nbytes, bool unibyte,

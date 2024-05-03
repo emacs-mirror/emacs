@@ -198,6 +198,7 @@ enum igc_obj_type
   IGC_OBJ_ITREE_TREE,
   IGC_OBJ_ITREE_NODE,
   IGC_OBJ_IMAGE,
+  IGC_OBJ_IMAGE_CACHE,
   IGC_OBJ_FACE,
   IGC_OBJ_FACE_CACHE,
   IGC_OBJ_FLOAT,
@@ -207,12 +208,12 @@ enum igc_obj_type
 };
 
 static const char *obj_type_names[] = {
-  "IGC_OBJ_INVALID",	"IGC_OBJ_PAD",	       "IGC_OBJ_FWD",
-  "IGC_OBJ_CONS",	"IGC_OBJ_SYMBOL",      "IGC_OBJ_INTERVAL",
-  "IGC_OBJ_STRING",	"IGC_OBJ_STRING_DATA", "IGC_OBJ_VECTOR",
-  "IGC_OBJ_ITREE_TREE", "IGC_OBJ_ITREE_NODE",  "IGC_OBJ_IMAGE",
-  "IGC_OBJ_FACE",	"IGC_OBJ_FACE_CACHE",  "IGC_OBJ_FLOAT",
-  "IGC_OBJ_BLV",	"IGC_OBJ_WEAK",
+  "IGC_OBJ_INVALID",	 "IGC_OBJ_PAD",		"IGC_OBJ_FWD",
+  "IGC_OBJ_CONS",	 "IGC_OBJ_SYMBOL",	"IGC_OBJ_INTERVAL",
+  "IGC_OBJ_STRING",	 "IGC_OBJ_STRING_DATA", "IGC_OBJ_VECTOR",
+  "IGC_OBJ_ITREE_TREE",	 "IGC_OBJ_ITREE_NODE",	"IGC_OBJ_IMAGE",
+  "IGC_OBJ_IMAGE_CACHE", "IGC_OBJ_FACE",	"IGC_OBJ_FACE_CACHE",
+  "IGC_OBJ_FLOAT",	 "IGC_OBJ_BLV",		"IGC_OBJ_WEAK",
 };
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_LAST);
@@ -1001,6 +1002,27 @@ fix_image (mps_ss_t ss, struct image *i)
 }
 
 static mps_res_t
+fix_image_cache (mps_ss_t ss, struct image_cache *c)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+#ifdef HAVE_WINDOW_SYSTEM
+    if (c->images)
+      for (ptrdiff_t i = 0; i < c->used; ++i)
+	if (c->images[i])
+	  IGC_FIX12_RAW (ss, &c->images[i]);
+
+    if (c->buckets)
+      for (ptrdiff_t i = 0; i < IMAGE_CACHE_BUCKETS_SIZE; ++i)
+	if (c->buckets[i])
+	  IGC_FIX12_RAW (ss, &c->buckets[i]);
+#endif
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
 fix_face (mps_ss_t ss, struct face *f)
 {
   MPS_SCAN_BEGIN (ss)
@@ -1224,6 +1246,10 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 
 	  case IGC_OBJ_IMAGE:
 	    IGC_FIX_CALL_FN (ss, struct image, client, fix_image);
+	    break;
+
+	  case IGC_OBJ_IMAGE_CACHE:
+	    IGC_FIX_CALL_FN (ss, struct image_cache, client, fix_image_cache);
 	    break;
 
 	  case IGC_OBJ_FACE:
@@ -1554,6 +1580,7 @@ fix_terminal (mps_ss_t ss, struct terminal *t)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, t, fix_vectorlike);
     IGC_FIX12_RAW (ss, &t->next_terminal);
+    IGC_FIX12_RAW (ss, &t->image_cache);
     // These are malloc'd, so they can be accessed.
     IGC_FIX_CALL_FN (ss, struct coding_system, t->keyboard_coding, fix_coding);
     IGC_FIX_CALL_FN (ss, struct coding_system, t->terminal_coding, fix_coding);
@@ -2448,6 +2475,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_ITREE_TREE:
     case IGC_OBJ_ITREE_NODE:
     case IGC_OBJ_IMAGE:
+    case IGC_OBJ_IMAGE_CACHE:
     case IGC_OBJ_FACE:
     case IGC_OBJ_FACE_CACHE:
     case IGC_OBJ_FLOAT:
@@ -2598,6 +2626,7 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_ITREE_TREE:
     case IGC_OBJ_ITREE_NODE:
     case IGC_OBJ_IMAGE:
+    case IGC_OBJ_IMAGE_CACHE:
     case IGC_OBJ_FACE:
     case IGC_OBJ_FACE_CACHE:
     case IGC_OBJ_BLV:
@@ -2870,6 +2899,13 @@ struct face_cache *
 igc_make_face_cache (void)
 {
   struct face_cache *c = alloc (sizeof *c, IGC_OBJ_FACE_CACHE, PVEC_FREE);
+  return c;
+}
+
+struct image_cache *
+igc_make_image_cache (void)
+{
+  struct image_cache *c = alloc (sizeof *c, IGC_OBJ_IMAGE_CACHE, PVEC_FREE);
   return c;
 }
 

@@ -2113,15 +2113,15 @@ static void cache_image (struct frame *f, struct image *img);
 struct image_cache *
 make_image_cache (void)
 {
+#ifdef HAVE_MPS
+  struct image_cache *c = igc_make_image_cache ();
+#else
   struct image_cache *c = xmalloc (sizeof *c);
+#endif
 
   c->size = 50;
   c->used = c->refcount = 0;
-#ifdef HAVE_MPS
-  c->images = igc_xzalloc_ambig (c->size * sizeof *c->images);
-#else
   c->images = xmalloc (c->size * sizeof *c->images);
-#endif
   c->buckets = xzalloc (IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets);
   return c;
 }
@@ -2239,13 +2239,13 @@ free_image_cache (struct frame *f)
 
       for (i = 0; i < c->used; ++i)
 	free_image (f, c->images[i]);
-#ifdef HAVE_MPS
-      igc_xfree (c->images);
-#else
       xfree (c->images);
-#endif
+      c->images = NULL;
       xfree (c->buckets);
+      c->buckets = NULL;
+#ifndef HAVE_MPS
       xfree (c);
+#endif
       FRAME_IMAGE_CACHE (f) = NULL;
     }
 }
