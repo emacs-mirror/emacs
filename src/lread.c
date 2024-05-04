@@ -1345,10 +1345,17 @@ close_file_unwind_android_fd (void *ptr)
 static void
 warn_missing_cookie (Lisp_Object file)
 {
-  Lisp_Object msg = CALLN (Fformat,
-			   build_string ("File %s lacks `lexical-binding'"
-					 " directive on its first line"),
-			   file);
+  Lisp_Object msg;
+
+  /* The user init file should not be subject to these warnings, as
+     Emacs doesn't insert cookies into generated init files.  */
+  if (!NILP (Fequal (file, Vuser_init_file)))
+    return;
+
+  file = CALLN (Fformat,
+		build_string ("File %s lacks `lexical-binding'"
+			      " directive on its first line"),
+		file);
   Vdelayed_warnings_list = Fcons (list2 (Qlexical_binding, msg),
 				  Vdelayed_warnings_list);
 }
