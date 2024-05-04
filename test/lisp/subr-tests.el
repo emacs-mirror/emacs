@@ -744,7 +744,14 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
                                  (+ subr-tests-var1 subr-tests-var2)))
                  '(let* ((subr-tests-var1 1)
                          (subr-tests-var2 subr-tests-var1))
-                    (+ subr-tests-var1 subr-tests-var2)))))
+                    (+ subr-tests-var1 subr-tests-var2))))
+  ;; Check that the init expression can be omitted, as in `let'/`let*'.
+  (should (equal (letrec ((a (lambda () (funcall c)))
+                          (b)
+                          (c (lambda () b)))
+                   (setq b 'ok)
+                   (funcall a))
+                 'ok)))
 
 (defvar subr-tests--hook nil)
 
