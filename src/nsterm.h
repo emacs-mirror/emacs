@@ -703,9 +703,7 @@ enum ns_return_frame_mode
    ========================================================================== */
 
 @interface EmacsScroller : NSScroller
-  {
-   struct window *window;
-   struct frame *frame;
+{
    NSResponder *prevResponder;
 
    /* offset to the bottom of knob of last mouse down */
@@ -722,6 +720,9 @@ enum ns_return_frame_mode
    int em_position;
    int em_portion;
    int em_whole;
+  @public
+   struct window *window;
+   struct frame *frame;
    }
 
 - (void) mark;
@@ -1395,5 +1396,6 @@ enum NSWindowTabbingMode
 
 extern void mark_nsterm (void);
 struct frame **ns_emacs_view_emacs_frame (struct frame *f);
+int ns_emacs_scroller_refs (struct window *w, void **refs, size_t n);
 
 #endif	/* HAVE_NS */

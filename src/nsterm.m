@@ -11095,3 +11095,27 @@ ns_emacs_view_emacs_frame (struct frame *f)
 {
   return &FRAME_NS_VIEW (f)->emacsframe;
 }
+
+int
+ns_emacs_scroller_refs (struct window *w, void **refs, size_t n)
+{
+  eassert (n >= 4);
+  int i = 0;
+  if (!NILP (w->vertical_scroll_bar)
+      && WINDOW_HAS_VERTICAL_SCROLL_BAR (w))
+    {
+      EmacsScroller *bar = XNS_SCROLL_BAR (w->vertical_scroll_bar);
+      refs[i++] = &bar->window;
+      refs[i++] = &bar->frame;
+    }
+
+  if (!NILP (w->horizontal_scroll_bar)
+      && WINDOW_HAS_HORIZONTAL_SCROLL_BAR (w))
+    {
+      EmacsScroller *bar = XNS_SCROLL_BAR (w->horizontal_scroll_bar);
+      refs[i++] = &bar->window;
+      refs[i++] = &bar->frame;
+    }
+
+  return i;
+}
