@@ -1342,20 +1342,33 @@ close_file_unwind_android_fd (void *ptr)
 
 #endif
 
+static bool
+string_suffix_p (const char *string, ptrdiff_t string_len,
+		 const char *suffix, ptrdiff_t suffix_len)
+{
+  return string_len >= suffix_len && memcmp (string + string_len - suffix_len,
+					     suffix, suffix_len) == 0;
+}
+
 static void
 warn_missing_cookie (Lisp_Object file)
 {
-  Lisp_Object msg;
-
-  /* The user init file should not be subject to these warnings, as
-     Emacs doesn't insert cookies into generated init files.  */
-  if (!NILP (Fequal (file, Vuser_init_file)))
+  /* Only warn for files whose name end in .el, to suppress loading of
+     data-as-code.  ".emacs" is an exception, since it does tend to contain
+     actual hand-written code.  */
+  if (!STRINGP (file))
+    return;
+  const char *name = SSDATA (file);
+  ptrdiff_t nb = SBYTES (file);
+  if (!(string_suffix_p (name, nb, ".el", 3)
+	|| (string_suffix_p (name, nb, ".emacs", 6)
+	    && (nb == 6 || SREF (file, nb - 7) == '/'))))
     return;
 
-  msg = CALLN (Fformat,
-	       build_string ("File %s lacks `lexical-binding'"
-			     " directive on its first line"),
-	       file);
+  Lisp_Object msg = CALLN (Fformat,
+			   build_string ("File %s lacks `lexical-binding'"
+					 " directive on its first line"),
+			   file);
   Vdelayed_warnings_list = Fcons (list2 (Qlexical_binding, msg),
 				  Vdelayed_warnings_list);
 }
