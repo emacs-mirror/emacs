@@ -223,13 +223,15 @@ To define items in any other map, use `tool-bar-local-item'."
 	 (pbm-spec (append (list :type 'pbm :file
                                  (concat icon ".pbm")) colors))
 	 (xbm-spec (append (list :type 'xbm :file
-                                 (concat icon ".xbm")) colors)))
+                                 (concat icon ".xbm")) colors))
+         (png-spec (append (list :type 'png :file
+                                 (concat icon ".png")) colors)))
     `(find-image (cond ((not (display-color-p))
 			',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
 		       ((< (display-color-cells) 256)
 			',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
 		       (t
-			',(list xpm-spec pbm-spec xbm-spec)))
+			',(list png-spec xpm-spec pbm-spec xbm-spec)))
                  t)))
 
 ;;;###autoload
