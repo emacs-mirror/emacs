@@ -2312,7 +2312,7 @@ TERMINAL is not on a tty device.  */)
 {
   struct terminal *t = decode_tty_terminal (terminal);
 
-  return (t && !strcmp (t->display_info.tty->name, DEV_TTY) ? Qt : Qnil);
+  return (t && !strcmp (t->display_info.tty->name, dev_tty) ? Qt : Qnil);
 }
 
 DEFUN ("tty-no-underline", Ftty_no_underline, Stty_no_underline, 0, 1, 0,
@@ -2467,7 +2467,7 @@ frame's terminal). */)
 			     open_errno);
 	}
 
-      if (!O_IGNORE_CTTY && strcmp (t->display_info.tty->name, DEV_TTY) != 0)
+      if (!O_IGNORE_CTTY && strcmp (t->display_info.tty->name, dev_tty) != 0)
         dissociate_if_controlling_tty (fd);
 #endif /* MSDOS */
 
@@ -4075,7 +4075,7 @@ dissociate_if_controlling_tty (int fd)
 /* Create a termcap display on the tty device with the given name and
    type.
 
-   If NAME is NULL, then use the controlling tty, i.e., DEV_TTY.
+   If NAME is NULL, then use the controlling tty, i.e., dev_tty.
    Otherwise NAME should be a path to the tty device file,
    e.g. "/dev/pts/7".
 
@@ -4114,9 +4114,9 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
                  "Unknown terminal type");
 
   if (name == NULL)
-    name = DEV_TTY;
+    name = dev_tty;
 #ifndef DOS_NT
-  if (!strcmp (name, DEV_TTY))
+  if (!strcmp (name, dev_tty))
     ctty = 1;
 #endif
 

@@ -521,6 +521,9 @@ extern void mark_kboards (void);
 extern const char *const lispy_function_keys[];
 #endif
 
+/* Terminal device used by Emacs for terminal I/O.  */
+extern char *dev_tty;
+/* Initial value for dev_tty.  */
 extern char const DEV_TTY[];
 
 INLINE_HEADER_END

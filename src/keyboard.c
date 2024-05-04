@@ -98,6 +98,7 @@ char const DEV_TTY[] = "CONOUT$";
 #else
 char const DEV_TTY[] = "/dev/tty";
 #endif
+char *dev_tty;	/* set by init_keyboard */
 
 /* Variables for blockinput.h:  */
 
@@ -12003,7 +12004,7 @@ static void
 handle_interrupt_signal (int sig)
 {
   /* See if we have an active terminal on our controlling tty.  */
-  struct terminal *terminal = get_named_terminal (DEV_TTY);
+  struct terminal *terminal = get_named_terminal (dev_tty);
   if (!terminal)
     {
       /* If there are no frames there, let's pretend that we are a
@@ -12072,7 +12073,7 @@ handle_interrupt (bool in_signal_handler)
   cancel_echoing ();
 
   /* XXX This code needs to be revised for multi-tty support.  */
-  if (!NILP (Vquit_flag) && get_named_terminal (DEV_TTY))
+  if (!NILP (Vquit_flag) && get_named_terminal (dev_tty))
     {
       if (! in_signal_handler)
 	{
@@ -12365,7 +12366,7 @@ process.
 See also `current-input-mode'.  */)
   (Lisp_Object quit)
 {
-  struct terminal *t = get_named_terminal (DEV_TTY);
+  struct terminal *t = get_named_terminal (dev_tty);
   struct tty_display_info *tty;
 
   if (!t)

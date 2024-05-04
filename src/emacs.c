@@ -1653,6 +1653,7 @@ main (int argc, char **argv)
   inhibit_window_system = 0;
 
   /* Handle the -t switch, which specifies filename to use as terminal.  */
+  dev_tty = xstrdup (DEV_TTY);	/* the default terminal */
   while (!only_version)
     {
       char *term;
@@ -1675,6 +1676,8 @@ main (int argc, char **argv)
 	      exit (EXIT_FAILURE);
 	    }
 	  fprintf (stderr, "Using %s\n", term);
+	  xfree (dev_tty);
+	  dev_tty = xstrdup (term);
 #ifdef HAVE_WINDOW_SYSTEM
 	  inhibit_window_system = true; /* -t => -nw */
 #endif
