@@ -33,14 +33,9 @@ public abstract class EmacsHandleObject
   /* Whether or not this handle has been destroyed.  */
   volatile boolean destroyed;
 
-  /* The handle associated with this object.  */
-  public short handle;
-
-  public
-  EmacsHandleObject (short handle)
-  {
-    this.handle = handle;
-  }
+  /* The handle associated with this object, set in
+     android_globalize_reference.  */
+  public long handle;
 
   public void
   destroyHandle () throws IllegalStateException

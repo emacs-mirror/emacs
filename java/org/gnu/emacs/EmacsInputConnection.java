@@ -48,7 +48,7 @@ public final class EmacsInputConnection implements InputConnection
   private EmacsView view;
 
   /* The handle ID associated with that view's window.  */
-  private short windowHandle;
+  private long windowHandle;
 
   /* Number of batch edits currently underway.  Used to avoid
      synchronizing with the Emacs thread after each

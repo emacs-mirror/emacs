@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef _ANDROID_GUI_H_
 #define _ANDROID_GUI_H_
 
+#include <stdint.h>
+
 struct android_char_struct
 {
   int rbearing;
@@ -30,7 +32,8 @@ struct android_char_struct
 
 typedef struct android_char_struct XCharStruct;
 
-typedef unsigned short android_handle;
+/* Handles are but JNI handles cast to intptr_t.  */
+typedef intptr_t android_handle;
 
 typedef android_handle android_pixmap, Emacs_Pixmap;
 typedef android_handle android_window, Emacs_Window;

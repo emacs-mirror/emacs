@@ -101,16 +101,9 @@ extern ssize_t android_readlinkat (int, const char *restrict, char *restrict,
 extern double android_pixel_density_x, android_pixel_density_y;
 extern double android_scaled_pixel_density;
 
-enum android_handle_type
-  {
-    ANDROID_HANDLE_WINDOW,
-    ANDROID_HANDLE_GCONTEXT,
-    ANDROID_HANDLE_PIXMAP,
-    ANDROID_HANDLE_CURSOR,
-  };
+verify (sizeof (android_handle) == sizeof (jobject));
+#define android_resolve_handle(handle) ((jobject) (handle))
 
-extern jobject android_resolve_handle (android_handle,
-				       enum android_handle_type);
 extern unsigned char *android_lock_bitmap (android_drawable,
 					   AndroidBitmapInfo *,
 					   jobject *);

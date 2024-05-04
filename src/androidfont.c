@@ -657,10 +657,8 @@ androidfont_draw (struct glyph_string *s, int from, int to,
   verify (sizeof (unsigned int) == sizeof (jint));
   info = (struct androidfont_info *) s->font;
 
-  gcontext = android_resolve_handle (s->gc->gcontext,
-				     ANDROID_HANDLE_GCONTEXT);
-  drawable = android_resolve_handle (FRAME_ANDROID_DRAWABLE (s->f),
-				     ANDROID_HANDLE_WINDOW);
+  gcontext = android_resolve_handle (s->gc->gcontext);
+  drawable = android_resolve_handle (FRAME_ANDROID_DRAWABLE (s->f));
   chars = (*android_java_env)->NewIntArray (android_java_env,
 					    to - from);
   android_exception_check ();

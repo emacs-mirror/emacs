@@ -440,8 +440,7 @@ public class EmacsActivity extends Activity
     if (!EmacsContextMenu.itemAlreadySelected)
       {
 	serial = EmacsContextMenu.lastMenuEventSerial;
-	EmacsNative.sendContextMenu ((short) 0, 0,
-				     serial);
+	EmacsNative.sendContextMenu (0, 0, serial);
       }
 
     super.onContextMenuClosed (menu);

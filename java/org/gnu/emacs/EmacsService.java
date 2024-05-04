@@ -514,10 +514,10 @@ public final class EmacsService extends Service
       vibrator.vibrate (duration);
   }
 
-  public short[]
+  public long[]
   queryTree (EmacsWindow window)
   {
-    short[] array;
+    long[] array;
     List<EmacsWindow> windowList;
     int i;
 
@@ -529,7 +529,7 @@ public final class EmacsService extends Service
 
     synchronized (windowList)
       {
-	array = new short[windowList.size () + 1];
+	array = new long[windowList.size () + 1];
 	i = 1;
 
 	array[0] = (window == null
@@ -846,7 +846,7 @@ public final class EmacsService extends Service
   }
 
   public static int[]
-  viewGetSelection (short window)
+  viewGetSelection (long window)
   {
     int[] selection;
 

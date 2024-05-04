@@ -71,13 +71,13 @@ public final class EmacsGC extends EmacsHandleObject
   /* The following fields are only set on immutable GCs.  */
 
   public
-  EmacsGC (short handle)
+  EmacsGC ()
   {
     /* For historical reasons the C code has an extra layer of
        indirection above this GC handle.  struct android_gc is the GC
        used by Emacs code, while android_gcontext is the type of the
        handle.  */
-    super (handle);
+    super ();
 
     fill_style = GC_FILL_SOLID;
     function = GC_COPY;

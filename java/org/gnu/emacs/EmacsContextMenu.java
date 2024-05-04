@@ -121,8 +121,7 @@ public final class EmacsContextMenu
 	}
 
       /* Send a context menu event.  */
-      EmacsNative.sendContextMenu ((short) 0, itemID,
-				   lastMenuEventSerial);
+      EmacsNative.sendContextMenu (0, itemID, lastMenuEventSerial);
 
       /* Say that an item has already been selected.  */
       itemAlreadySelected = true;

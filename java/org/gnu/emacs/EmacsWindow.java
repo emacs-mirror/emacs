@@ -170,11 +170,9 @@ public final class EmacsWindow extends EmacsHandleObject
   public boolean preserve, previouslyAttached;
 
   public
-  EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
+  EmacsWindow (final EmacsWindow parent, int x, int y,
 	       int width, int height, boolean overrideRedirect)
   {
-    super (handle);
-
     rect = new Rect (x, y, x + width, y + height);
     pointerMap = new SparseArray<Coordinate> ();
 
@@ -205,7 +203,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	  });
       }
 
-    scratchGC = new EmacsGC ((short) 0);
+    scratchGC = new EmacsGC ();
 
     /* Create the map of input method-committed strings.  Keep at most
        ten strings in the map.  */

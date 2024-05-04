@@ -93,7 +93,7 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     onClick (View view)
     {
       wasButtonClicked = true;
-      EmacsNative.sendContextMenu ((short) 0, id, menuEventSerial);
+      EmacsNative.sendContextMenu (0, id, menuEventSerial);
       dismissDialog.dismiss ();
     }
 
@@ -102,7 +102,7 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     onClick (DialogInterface dialog, int which)
     {
       wasButtonClicked = true;
-      EmacsNative.sendContextMenu ((short) 0, id, menuEventSerial);
+      EmacsNative.sendContextMenu (0, id, menuEventSerial);
     }
   };
 
@@ -414,6 +414,6 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     if (wasButtonClicked)
       return;
 
-    EmacsNative.sendContextMenu ((short) 0, 0, menuEventSerial);
+    EmacsNative.sendContextMenu (0, 0, menuEventSerial);
   }
 };
