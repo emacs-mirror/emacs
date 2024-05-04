@@ -1342,37 +1342,6 @@ close_file_unwind_android_fd (void *ptr)
 
 #endif
 
-static bool
-string_suffix_p (const char *string, ptrdiff_t string_len,
-		 const char *suffix, ptrdiff_t suffix_len)
-{
-  return string_len >= suffix_len && memcmp (string + string_len - suffix_len,
-					     suffix, suffix_len) == 0;
-}
-
-static void
-warn_missing_cookie (Lisp_Object file)
-{
-  /* Only warn for files whose name end in .el, to suppress loading of
-     data-as-code.  ".emacs" is an exception, since it does tend to contain
-     actual hand-written code.  */
-  if (!STRINGP (file))
-    return;
-  const char *name = SSDATA (file);
-  ptrdiff_t nb = SBYTES (file);
-  if (!(string_suffix_p (name, nb, ".el", 3)
-	|| (string_suffix_p (name, nb, ".emacs", 6)
-	    && (nb == 6 || SREF (file, nb - 7) == '/'))))
-    return;
-
-  Lisp_Object msg = CALLN (Fformat,
-			   build_string ("File %s lacks `lexical-binding'"
-					 " directive on its first line"),
-			   file);
-  Vdelayed_warnings_list = Fcons (list2 (Qlexical_binding, msg),
-				  Vdelayed_warnings_list);
-}
-
 DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el', then try
@@ -1822,10 +1791,7 @@ Return t if the file exists and loads successfully.  */)
     }
   else
     {
-      lexical_cookie_t lc = lisp_file_lexical_cookie (Qget_file_char);
-      if (lc == Cookie_None && !compiled)
-	warn_missing_cookie (file);
-      if (lc == Cookie_Lex)
+      if (lisp_file_lexical_cookie (Qget_file_char) == Cookie_Lex)
         Fset (Qlexical_binding, Qt);
 
       if (! version || version >= 22)
@@ -2658,7 +2624,7 @@ readevalloop (Lisp_Object readcharfun,
   unbind_to (count, Qnil);
 }
 
-DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0,6, "",
+DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 5, "",
        doc: /* Execute the accessible portion of current buffer as Lisp code.
 You can use \\[narrow-to-region] to limit the part of buffer to be evaluated.
 When called from a Lisp program (i.e., not interactively), this
@@ -2675,8 +2641,6 @@ UNIBYTE, if non-nil, specifies `load-convert-to-unibyte' for this
 DO-ALLOW-PRINT, if non-nil, specifies that output functions in the
  evaluated code should work normally even if PRINTFLAG is nil, in
  which case the output is displayed in the echo area.
-LOADING, if non-nil, indicates that this call is part of loading a
-Lisp source file.
 
 This function ignores the current value of the `lexical-binding'
 variable.  Instead it will heed any
@@ -2686,7 +2650,7 @@ will be evaluated without lexical binding.
 
 This function preserves the position of point.  */)
   (Lisp_Object buffer, Lisp_Object printflag, Lisp_Object filename,
-   Lisp_Object unibyte, Lisp_Object do_allow_print, Lisp_Object loading)
+   Lisp_Object unibyte, Lisp_Object do_allow_print)
 {
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object tem, buf;
@@ -2710,10 +2674,8 @@ This function preserves the position of point.  */)
   specbind (Qstandard_output, tem);
   record_unwind_protect_excursion ();
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  lexical_cookie_t lc = lisp_file_lexical_cookie (buf);
-  if (!NILP (loading) && lc == Cookie_None)
-    warn_missing_cookie (filename);
-  specbind (Qlexical_binding, lc == Cookie_Lex ? Qt : Qnil);
+  specbind (Qlexical_binding,
+	    lisp_file_lexical_cookie (buf) == Cookie_Lex ? Qt : Qnil);
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   readevalloop (buf, 0, filename,
 		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);

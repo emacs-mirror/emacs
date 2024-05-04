@@ -2437,15 +2437,6 @@ The warning name is 'docstrings-control-chars'.
 Its warning name is 'docstrings-wide'.
 
 ---
-** Warn about missing 'lexical-binding' directive when loading .el files.
-Emacs now emits a run-time warning if an Elisp source file being loaded
-lacks the '-*- lexical-binding: ... -*-' cookie on the first line.
-See the lexical-binding compiler warning described above for how to make
-the warning go away by adding a declaration to the file.  You can also
-suppress the warning by adding an entry for the warning type
-'lexical-warning' to 'warning-suppress-types'.
-
----
 ** New user option 'native-comp-async-warnings-errors-kind'.
 It allows control of what kinds of warnings and errors from asynchronous
 native compilation are reported to the parent Emacs process.  The

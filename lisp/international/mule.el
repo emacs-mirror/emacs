@@ -367,7 +367,7 @@ Return t if file exists."
                 (eval-buffer buffer nil
 			     ;; This is compatible with what `load' does.
                              (if dump-mode file fullname)
-			     nil t t))))
+			     nil t))))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (do-after-load-evaluation fullname)
