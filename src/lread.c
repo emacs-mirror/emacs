@@ -1352,10 +1352,10 @@ warn_missing_cookie (Lisp_Object file)
   if (!NILP (Fequal (file, Vuser_init_file)))
     return;
 
-  file = CALLN (Fformat,
-		build_string ("File %s lacks `lexical-binding'"
-			      " directive on its first line"),
-		file);
+  msg = CALLN (Fformat,
+	       build_string ("File %s lacks `lexical-binding'"
+			     " directive on its first line"),
+	       file);
   Vdelayed_warnings_list = Fcons (list2 (Qlexical_binding, msg),
 				  Vdelayed_warnings_list);
 }
