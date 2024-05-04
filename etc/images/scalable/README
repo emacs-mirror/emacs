@@ -1,0 +1,46 @@
+Here are the scalable icons that I took from Tango icon theme and the
+old Adwaita icon theme.  The goal is to cover all existing Emacs
+icons.  I was able to find equivalent or similar icons for half of the
+existing icons.  For the rest, I had to create new ones by modify or
+combine the icons from Tango and Adwaita.  For a handful or icons I
+was unable to find or create new ones for.
+
+Ones that I "created" by modifying/combining other icons:
+- bookmark_add
+- contact
+- data-save
+- down
+- index
+- left-arrow
+- letter
+- lock-broken
+- lock-ok
+- lock
+- new
+- next-node
+- next-page
+- prev-node
+- right-arrow
+- saveas
+- show
+- up-arrow
+- up-node
+- zoom-in
+- zoom-out
+
+I can't find or create new icons for these icons:
+
+- mh-logo
+- sort-ascending
+- sort-column-ascending
+- sort-criteria
+- sort-descending
+- sort-row-ascending
+
+The following icons didn't need new scalable icons, because they
+already have:
+
+- checked
+- unchecked
+
+Others are took straight from Tango or Adwaita.
