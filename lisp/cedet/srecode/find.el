@@ -233,8 +233,8 @@ templates."
 		     (when (or (not predicate)
 			       (funcall predicate temp))
 		       (puthash key temp mhash)))
-		   (oref tab namehash))))
-      mhash))))
+		   (oref tab namehash))))))
+      mhash))
 
 (defun srecode-calculate-default-template-string (hash)
   "Calculate the name of the template to use as a DEFAULT.
