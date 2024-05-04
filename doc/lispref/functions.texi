@@ -2709,6 +2709,12 @@ native code emitted for the function.  In particular, if @var{n} is
 @minus{}1, native compilation of the function will emit bytecode
 instead of native code for the function.
 
+@item (safety @var{n})
+Specify the value of @code{compilation-safety} in effect for this
+function.  This allows function-level control of the safety level used
+for the code emitted for the function (@pxref{Native-Compilation
+Variables}).
+
 @item (type @var{type})
 Declare @var{type} to be the type of this function.  This is used for
 documentation by @code{describe-function}.  Also it can be used by the
@@ -2756,9 +2762,10 @@ For description of additional types, see @ref{Lisp Data Types}).
 
 Declaring a function with an incorrect type produces undefined behavior
 and could lead to unexpected results or might even crash Emacs when code
-is native-compiled and loaded.  Note also that when redefining (or
-advising) a type declared function the replacement should respect the
-original signature to avoid undefined behavior.
+is native-compiled and loaded if compiled with @ref{compilation-safety}
+0.  Note also that when redefining (or advising) a type declared
+function the replacement should respect the original signature to avoid
+undefined behavior.
 
 @item no-font-lock-keyword
 This is valid for macros only.  Macros with this declaration are

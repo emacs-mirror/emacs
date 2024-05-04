@@ -987,6 +987,24 @@ form, @pxref{Declare Form}.)
 The default value is 2.
 @end defopt
 
+@defopt compilation-safety
+This variable specifies the safetyness level used for the code emitted
+native code.  The value of compilation-safety should be a number between
+zero and one with the following meaning:
+
+@table @asis
+@item 0
+Emitted code can misbehave or crash Emacs if function declarations are
+not correct and the function is native compiled.
+@item 1
+Emitted code is generated in a safe matter even if function are
+miss-declared."
+@end table
+
+This can be controlled at function granularity as well by using the
+@code{safety} @code{declare} form, @pxref{Declare Form}.
+@end defopt
+
 @defopt native-comp-debug
 This variable specifies the level of debugging information produced by
 native-compilation.  Its value should be a number between zero and 3,
