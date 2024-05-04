@@ -1584,6 +1584,10 @@ AC_DEFUN([gt_TYPE_WINT_T],
 AC_DEFUN_ONCE([gl_STDLIB_H],
   [AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
    gl_NEXT_HEADERS([stdlib.h])])
+# Emacs does not need to check for off64_t.
+AC_DEFUN([gl_TYPE_OFF64_T],
+  [HAVE_OFF64_T=1
+   AC_SUBST([HAVE_OFF64_T])])
 
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
