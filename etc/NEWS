@@ -2427,7 +2427,8 @@ Its warning name is 'docstrings-wide'.
 Emacs now emits a run-time warning if an Elisp source file being loaded
 lacks the '-*- lexical-binding: ... -*-' cookie on the first line.
 See the lexical-binding compiler warning described above for how to make
-the warning go away.
+the warning go away.  User init file (whose name is the value of
+'user-init-file') is exempt from this warning.
 
 ---
 ** New user option 'native-comp-async-warnings-errors-kind'.
