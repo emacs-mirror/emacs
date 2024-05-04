@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -102,9 +103,9 @@ public final class EmacsService extends Service
   /* The started Emacs service object.  */
   public static EmacsService SERVICE;
 
-  /* If non-NULL, an extra argument to pass to
+  /* If non-NULL, an array of extra arguments to pass to
      `android_emacs_init'.  */
-  public static String extraStartupArgument;
+  public static String[] extraStartupArguments;
 
   /* The thread running Emacs C code.  */
   private EmacsThread thread;
@@ -289,7 +290,9 @@ public final class EmacsService extends Service
 
 	Log.d (TAG, "Initializing Emacs, where filesDir = " + filesDir
 	       + ", libDir = " + libDir + ", and classPath = " + classPath
-	       + "; fileToOpen = " + EmacsOpenActivity.fileToOpen
+	       + "; args = " + (extraStartupArguments != null
+				? Arrays.toString (extraStartupArguments)
+				: "(none)")
 	       + "; display density: " + pixelDensityX + " by "
 	       + pixelDensityY + " scaled to " + scaledDensity);
 
@@ -306,9 +309,7 @@ public final class EmacsService extends Service
 					  classPath, EmacsService.this,
 					  Build.VERSION.SDK_INT);
 	    }
-	  }, extraStartupArgument,
-	  /* If any file needs to be opened, open it now.  */
-	  EmacsOpenActivity.fileToOpen);
+	  }, extraStartupArguments);
 	thread.start ();
       }
     catch (IOException exception)

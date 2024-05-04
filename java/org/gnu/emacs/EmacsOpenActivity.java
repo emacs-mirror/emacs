@@ -70,11 +70,6 @@ public final class EmacsOpenActivity extends Activity
 {
   private static final String TAG = "EmacsOpenActivity";
 
-  /* The name of any file that should be opened as EmacsThread starts
-     Emacs.  This is never cleared, even if EmacsOpenActivity is
-     started a second time, as EmacsThread only starts once.  */
-  public static String fileToOpen;
-
   /* Any currently focused EmacsOpenActivity.  Used to show pop ups
      while the activity is active and Emacs doesn't have permission to
      display over other programs.  */
@@ -697,9 +692,10 @@ public final class EmacsOpenActivity extends Activity
 
 	if (EmacsService.SERVICE == null)
 	  {
-	    fileToOpen = fileName;
 	    intent = new Intent (EmacsOpenActivity.this,
 				 EmacsActivity.class);
+	    intent.putExtra (EmacsActivity.EXTRA_STARTUP_ARGUMENTS,
+			     new String [] { fileName, });
 	    finish ();
 	    startActivity (intent);
 	    return;

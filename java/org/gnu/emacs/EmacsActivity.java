@@ -55,6 +55,9 @@ public class EmacsActivity extends Activity
 {
   public static final String TAG = "EmacsActivity";
 
+  /* Key of intent value providing extra startup argument.  */
+  public static final String EXTRA_STARTUP_ARGUMENTS;
+
   /* ID for URIs from a granted document tree.  */
   public static final int ACCEPT_DOCUMENT_TREE = 1;
 
@@ -88,6 +91,7 @@ public class EmacsActivity extends Activity
   static
   {
     focusedActivities = new ArrayList<EmacsActivity> ();
+    EXTRA_STARTUP_ARGUMENTS = "org.gnu.emacs.STARTUP_ARGUMENTS";
   };
 
   public static void
@@ -242,8 +246,8 @@ public class EmacsActivity extends Activity
     /* See if Emacs should be started with any extra arguments, such
        as `--quick'.  */
     intent = getIntent ();
-    EmacsService.extraStartupArgument
-      = intent.getStringExtra ("org.gnu.emacs.STARTUP_ARGUMENT");
+    EmacsService.extraStartupArguments
+      = intent.getStringArrayExtra (EXTRA_STARTUP_ARGUMENTS);
 
     matchParent = FrameLayout.LayoutParams.MATCH_PARENT;
     params
