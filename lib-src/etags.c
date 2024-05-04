@@ -705,7 +705,7 @@ and optionally Prolog-like definitions (first rule for a predicate or \
 function).\n\
 To enable this behavior, run etags using --declarations.";
 static bool with_mercury_definitions = false;
-float mercury_heuristics_ratio = MERCURY_HEURISTICS_RATIO;
+static float mercury_heuristics_ratio = MERCURY_HEURISTICS_RATIO;
 
 static const char *Objc_suffixes [] =
   { "lm",			/* Objective lex file  */

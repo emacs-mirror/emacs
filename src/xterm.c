@@ -971,7 +971,7 @@ struct x_selection_request_event
    selection requests inside long-lasting modal event loops, such as
    the drag-and-drop loop.  */
 
-struct x_selection_request_event *pending_selection_requests;
+static struct x_selection_request_event *pending_selection_requests;
 
 struct x_atom_ref
 {
@@ -1274,7 +1274,7 @@ static int x_dnd_waiting_for_motif_finish;
 
 /* The display the Motif drag receiver will send response data
    from.  */
-struct x_display_info *x_dnd_waiting_for_motif_finish_display;
+static struct x_display_info *x_dnd_waiting_for_motif_finish_display;
 
 /* Whether or not F1 was pressed during the drag-and-drop operation.
 
@@ -31920,8 +31920,6 @@ x_activate_timeout_atimer (void)
 
 
 /* Set up use of X before we make the first connection.  */
-
-extern frame_parm_handler x_frame_parm_handlers[];
 
 static struct redisplay_interface x_redisplay_interface =
   {

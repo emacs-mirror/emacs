@@ -55,7 +55,8 @@ INLINE_HEADER_BEGIN
 
 #define DECLARE_GDB_SYM(type, id) type const id EXTERNALLY_VISIBLE
 #ifdef MAIN_PROGRAM
-# define DEFINE_GDB_SYMBOL_BEGIN(type, id) DECLARE_GDB_SYM (type, id)
+# define DEFINE_GDB_SYMBOL_BEGIN(type, id) \
+   extern DECLARE_GDB_SYM (type, id); DECLARE_GDB_SYM (type, id)
 # define DEFINE_GDB_SYMBOL_END(id) = id;
 #else
 # define DEFINE_GDB_SYMBOL_BEGIN(type, id) extern DECLARE_GDB_SYM (type, id)
@@ -4435,6 +4436,7 @@ extern void parse_str_as_multibyte (const unsigned char *, ptrdiff_t,
 				    ptrdiff_t *, ptrdiff_t *);
 
 /* Defined in alloc.c.  */
+extern intptr_t garbage_collection_inhibited;
 extern void *my_heap_start (void);
 extern void check_pure_size (void);
 unsigned char *resize_string_data (Lisp_Object, ptrdiff_t, int, int);

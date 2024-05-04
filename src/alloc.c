@@ -8338,7 +8338,7 @@ enum defined_HAVE_PGTK { defined_HAVE_PGTK = false };
    then xbacktrace could fail.  Similarly for the other enums and
    their values.  Some non-GCC compilers don't like these constructs.  */
 #ifdef __GNUC__
-union
+extern union enums_for_gdb
 {
   enum CHARTAB_SIZE_BITS CHARTAB_SIZE_BITS;
   enum char_table_specials char_table_specials;
@@ -8353,5 +8353,6 @@ union
   enum pvec_type pvec_type;
   enum defined_HAVE_X_WINDOWS defined_HAVE_X_WINDOWS;
   enum defined_HAVE_PGTK defined_HAVE_PGTK;
-} const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
+} const gdb_make_enums_visible;
+union enums_for_gdb const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
 #endif	/* __GNUC__ */

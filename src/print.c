@@ -90,6 +90,7 @@ static ptrdiff_t print_number_index;
 static void print_interval (INTERVAL interval, void *pprintcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
+extern bool print_output_debug_flag;
 bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 
 

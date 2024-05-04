@@ -13195,8 +13195,6 @@ truncate_message_1 (void *a1, Lisp_Object a2)
   return false;
 }
 
-extern intptr_t garbage_collection_inhibited;
-
 /* Set the current message to STRING.  */
 
 static void

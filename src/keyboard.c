@@ -3650,6 +3650,7 @@ readable_events (int flags)
 }
 
 /* Set this for debugging, to have a way to get out */
+extern int stop_character;
 int stop_character EXTERNALLY_VISIBLE;
 
 static KBOARD *
