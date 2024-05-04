@@ -2679,6 +2679,15 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
                     ,(buffer-substring-no-properties beg end))
                   eglot--recent-changes))))))
 
+(defun eglot--add-one-shot-hook (hook function &optional append local)
+  "Like `add-hook' but calls FUNCTION only once."
+  (let* ((fname (make-symbol (format "eglot--%s-once" function)))
+         (fun (lambda (&rest args)
+                (remove-hook hook fname local)
+                (apply function args))))
+    (fset fname fun)
+    (add-hook hook fname append local)))
+
 (defun eglot--track-changes-signal (id &optional distance)
   (cond
    (distance
@@ -2697,15 +2706,13 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
              (when eglot--managed-mode
                (if (and (fboundp 'track-changes-inconsistent-state-p)
                         (track-changes-inconsistent-state-p))
-                   ;; Not a good time (e.g. in the middle of Quail
-                   ;; thingy, bug#70541), let's reschedule.
-                   ;; Ideally, we'd `run-with-idle-timer' to call
-                   ;; ourselves again but it's kind of a pain to do that
-                   ;; right (because we first have to wait for the
-                   ;; current idle period to end), so we just do
-                   ;; nothing and wait for the next buffer change to
-                   ;; reschedule us.
-                   nil
+                   ;; Not a good time (e.g. in the middle of Quail thingy,
+                   ;; bug#70541): reschedule for the next idle period.
+                (eglot--add-one-shot-hook
+                 'post-command-hook
+                 (lambda ()
+                   (eglot--when-live-buffer buf
+                     (eglot--track-changes-signal id))))
                  (run-hooks 'eglot--document-changed-hook)
                  (setq eglot--change-idle-timer nil)))))
          (current-buffer))))
