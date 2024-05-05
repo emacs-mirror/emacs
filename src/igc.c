@@ -1082,7 +1082,9 @@ fix_ptr_vec (mps_ss_t ss, void *client)
   {
     struct igc_header *h = client_to_base (client);
     void **v = client;
-    for (size_t i = 0; i < h->nwords - 1; ++i)
+    igc_assert (sizeof (struct igc_header) % sizeof (void *) == 0);
+    size_t imax = h->nwords - sizeof (struct igc_header) / sizeof (void *);
+    for (size_t i = 0; i < imax; ++i)
       IGC_FIX12_RAW (ss, &v[i]);
   }
   MPS_SCAN_END (ss);
@@ -2977,8 +2979,7 @@ igc_make_face_cache (void)
 void *
 igc_make_ptr_vec (size_t n)
 {
-  return alloc (sizeof (struct igc_header) + (n - 1) * sizeof (void *),
-		IGC_OBJ_PTR_VEC, PVEC_FREE);
+  return alloc (n * sizeof (void *), IGC_OBJ_PTR_VEC, PVEC_FREE);
 }
 
 struct image_cache *
