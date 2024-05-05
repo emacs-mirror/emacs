@@ -4545,7 +4545,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
   (rx bos (group (+ nonl))
       "@" (group (+ nonl))
       "." (group (+ digit))
-      (? ":" (+ digit)) eos)
+      (? ":" (? "-") (+ digit)) eos)
   "The format of a lock file.")
 
 (defun tramp-handle-file-locked-p (file)
