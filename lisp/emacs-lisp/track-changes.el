@@ -3,7 +3,7 @@
 ;; Copyright (C) 2024  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 1.1
+;; Version: 1.2
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is part of GNU Emacs.
@@ -73,6 +73,12 @@
 ;;                    (track-changes-fetch
 ;;                     id (lambda (beg end before)
 ;;                          ..DO THE THING..))))))))
+
+;;; News:
+
+;; Since v1.1:
+;;
+;; - New function `track-changes-inconsistent-state-p'.
 
 ;;; Code:
 
