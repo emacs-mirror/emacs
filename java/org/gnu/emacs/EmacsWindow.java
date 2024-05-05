@@ -788,6 +788,10 @@ public final class EmacsWindow extends EmacsHandleObject
 
 	if ((event.getFlags () & KeyEvent.FLAG_CANCELED) != 0)
 	  return;
+
+	/* Dispatch the key press event that was deferred till now.  */
+	EmacsNative.sendKeyPress (this.handle, event.getEventTime (),
+				  state, keyCode, unicode_char);
       }
 
     EmacsNative.sendKeyRelease (this.handle, event.getEventTime (),
