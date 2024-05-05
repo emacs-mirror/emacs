@@ -5496,7 +5496,12 @@ xg_create_tool_bar (struct frame *f)
                          TB_INFO_KEY);
   if (! tbinfo)
     {
+#ifdef HAVE_MPS
+      // FIXME: use exact references
+      tbinfo = igc_xzalloc_ambig (sizeof (*tbinfo));
+#else
       tbinfo = xmalloc (sizeof (*tbinfo));
+#endif
       tbinfo->last_tool_bar = Qnil;
       tbinfo->style = Qnil;
       tbinfo->hmargin = tbinfo->vmargin = 0;
@@ -6162,7 +6167,11 @@ free_frame_tool_bar (struct frame *f)
                                   TB_INFO_KEY);
       if (tbinfo)
         {
+#ifdef HAVE_MPS
+	  igc_xfree (tbinfo);
+#else
           xfree (tbinfo);
+#endif
           g_object_set_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
                              TB_INFO_KEY,
                              NULL);
