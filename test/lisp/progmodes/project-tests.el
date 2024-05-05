@@ -170,6 +170,7 @@ When `project-ignores' includes a name matching project dir."
   (skip-unless (executable-find "grep"))
   (let* ((directory (ert-resource-directory))
          (project-find-functions nil)
+         (project-list-file (expand-file-name "emacs-projects" temporary-file-directory))
          (project (cons 'transient directory)))
     (add-hook 'project-find-functions (lambda (_dir) project))
     (should (eq (project-current) project))
