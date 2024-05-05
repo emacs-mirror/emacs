@@ -648,7 +648,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
        (list (project-root project)))))
 
 (declare-function vc-git--program-version "vc-git")
-(declare-function vc-git--run-command-string "vc-git")
+(declare-function vc-git-command "vc-git")
 (declare-function vc-hg-command "vc-hg")
 
 (defun project--vc-list-files (dir backend extra-ignores)
@@ -701,7 +701,8 @@ See `project-vc-extra-root-markers' for the marker value format.")
                             file
                           (concat default-directory file))))
                     (split-string
-                     (apply #'vc-git--run-command-string nil "ls-files" args)
+                     (with-output-to-string
+                       (apply #'vc-git-command standard-output 0 nil "ls-files" args))
                      "\0" t))))
        (when (project--vc-merge-submodules-p default-directory)
          ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
