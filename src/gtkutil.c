@@ -44,6 +44,9 @@ typedef struct pgtk_output xp_output;
 #include "termhooks.h"
 #include "keyboard.h"
 #include "coding.h"
+#ifdef HAVE_MPS
+#include "igc.h"
+#endif
 
 #include <gdk/gdkkeysyms.h>
 
@@ -4524,6 +4527,13 @@ xg_scroll_bar_size_allocate_cb (GtkWidget *widget,
 #endif
 
 static void
+xg_gtk_scroll_free_scroll_bar_cell (GtkWidget *widget, gpointer data)
+{
+  struct scroll_bar **bar_cell = data;
+  igc_xfree (bar_cell);
+}
+
+static void
 xg_finish_scroll_bar_creation (struct frame *f,
                                GtkWidget *wscroll,
                                struct scroll_bar *bar,
@@ -4558,14 +4568,37 @@ xg_finish_scroll_bar_creation (struct frame *f,
                     (gpointer) scroll_id);
 #endif
 
+#ifdef HAVE_MPS
+  // FIXME: can use exact reference
+  struct scroll_bar **bar_cell =
+    igc_xzalloc_ambig (sizeof (struct scroll_bar*));
+  bar_cell[0] = bar;
+#endif
   g_signal_connect (G_OBJECT (wscroll),
                     "change-value",
                     scroll_callback,
-                    (gpointer) bar);
+#ifdef HAVE_MPS
+                    (gpointer) bar_cell
+#else
+		    (gpointer) bar
+#endif
+		    );
   g_signal_connect (G_OBJECT (wscroll),
                     "button-release-event",
                     end_callback,
-                    (gpointer) bar);
+#ifdef HAVE_MPS
+                    (gpointer) bar_cell
+#else
+		    (gpointer) bar
+#endif
+		    );
+
+#ifdef HAVE_MPS
+    g_signal_connect (G_OBJECT (wscroll),
+		      "destroy",
+		      G_CALLBACK (xg_gtk_scroll_free_scroll_bar_cell),
+		      (gpointer) bar_cell);
+#endif
 
   /* The scroll bar widget does not draw on a window of its own.  Instead
      it draws on the parent window, in this case the edit widget.  So

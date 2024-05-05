@@ -5748,6 +5748,7 @@ x_cache_xi_devices (struct x_display_info *dpyinfo)
     }
 
 #ifdef HAVE_MPS
+  // FIXME: use exact references
   dpyinfo->devices = igc_xzalloc_ambig (sizeof *dpyinfo->devices * ndevices);
 #else
   dpyinfo->devices = xzalloc (sizeof *dpyinfo->devices * ndevices);
@@ -13782,6 +13783,7 @@ xi_disable_devices (struct x_display_info *dpyinfo,
 
   ndevices = 0;
 #ifdef HAVE_MPS
+  // FIXME: use exact references
   devices = igc_xzalloc_ambig (sizeof *devices * dpyinfo->num_devices);
 #else
   devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
@@ -15480,6 +15482,10 @@ x_unprotect_window_for_callback (struct x_display_info *dpyinfo)
     memmove (dpyinfo->protected_windows, &dpyinfo->protected_windows[1],
 	     sizeof (Lisp_Object) * dpyinfo->n_protected_windows);
 
+#ifdef HAVE_MPS
+  dpyinfo->protected_windows[dpyinfo->n_protected_windows] = Qnil;
+#endif
+
   return window;
 }
 
@@ -15718,7 +15724,12 @@ xg_scroll_callback (GtkRange *range, GtkScrollType scroll,
 
   whole = 0;
   portion = 0;
+#ifdef HAVE_MPS
+  struct scroll_bar** bar_cell = user_data;
+  bar = *bar_cell;
+#else
   bar = user_data;
+#endif
   part = scroll_bar_nowhere;
   adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (range));
   f = g_object_get_data (G_OBJECT (range), XG_FRAME_DATA);
@@ -15795,9 +15806,14 @@ xg_end_scroll_callback (GtkWidget *widget,
                         GdkEventButton *event,
                         gpointer user_data)
 {
+#ifdef HAVE_MPS
+  struct scroll_bar **bar_cell = user_data;
+  struct scroll_bar *bar = *bar_cell;
+#else
   struct scroll_bar *bar;
 
   bar = user_data;
+#endif
   bar->dragging = -1;
 
   if (WINDOWP (window_being_scrolled))
@@ -16936,6 +16952,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 	 Redraw the scroll bar manually.  */
       x_scroll_bar_redraw (bar);
 #endif
+
     }
   else
     {
@@ -30693,6 +30710,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   /* We have definitely succeeded.  Record the new connection.  */
 
 #ifdef HAVE_MPS
+  // FIXME: use exact references
   dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo);
 #else
   dpyinfo = xzalloc (sizeof *dpyinfo);
@@ -32497,6 +32515,9 @@ syms_of_xterm (void)
 
   x_dnd_unsupported_drop_data = Qnil;
   staticpro (&x_dnd_unsupported_drop_data);
+
+  window_being_scrolled = Qnil;
+  staticpro (&window_being_scrolled);
 
   /* Used by x_cr_export_frames.  */
   DEFSYM (Qconcat, "concat");
