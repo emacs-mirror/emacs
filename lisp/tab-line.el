@@ -408,15 +408,34 @@ as a group name."
   :group 'tab-line
   :version "30.1")
 
-(defvar tab-line-tabs-buffer-group-sort-function
+(defcustom tab-line-tabs-buffer-group-sort-function
   #'tab-line-tabs-buffer-group-sort-by-name
-  "Function to sort buffers in a group.")
+  "Function to sort buffers in a group."
+  :type '(choice (const :tag "Don't sort" nil)
+                 (const :tag "Sort by name alphabetically"
+                        tab-line-tabs-buffer-group-sort-by-name)
+                 (function :tag "Custom function"))
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-line
+  :version "30.1")
 
 (defun tab-line-tabs-buffer-group-sort-by-name (a b)
   (string< (buffer-name a) (buffer-name b)))
 
-(defvar tab-line-tabs-buffer-groups-sort-function #'string<
-  "Function to sort group names.")
+(defcustom tab-line-tabs-buffer-groups-sort-function #'string<
+  "Function to sort group names."
+  :type '(choice (const :tag "Don't sort" nil)
+                 (const :tag "Sort alphabetically" string<)
+                 (function :tag "Custom function"))
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-line
+  :version "30.1")
 
 (defvar tab-line-tabs-buffer-groups mouse-buffer-menu-mode-groups
   "How to group various major modes together in the tab line.
@@ -445,7 +464,8 @@ named the same as the mode.")
 
 (defun tab-line-tabs-buffer-group-name (&optional buffer)
   (if (functionp tab-line-tabs-buffer-group-function)
-      (funcall tab-line-tabs-buffer-group-function buffer)))
+      (funcall tab-line-tabs-buffer-group-function buffer)
+    (tab-line-tabs-buffer-group-by-mode buffer)))
 
 (defun tab-line-tabs-buffer-groups ()
   "Return a list of tabs that should be displayed in the tab line.
