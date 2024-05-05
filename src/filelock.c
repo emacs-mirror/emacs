@@ -419,7 +419,9 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
       boot += 2;
       FALLTHROUGH;
     case ':':
-      if (! c_isdigit (boot[0]))
+      if (!(c_isdigit (boot[0])
+	    /* A negative number.  */
+	    || (boot[0] == '-' && c_isdigit (boot[1]))))
 	return EINVAL;
       boot_time = strtoimax (boot, &lfinfo_end, 10);
       break;
