@@ -204,6 +204,7 @@ enum igc_obj_type
   IGC_OBJ_FLOAT,
   IGC_OBJ_BLV,
   IGC_OBJ_WEAK,
+  IGC_OBJ_PTR_VEC,
   IGC_OBJ_LAST
 };
 
@@ -214,6 +215,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_ITREE_TREE",	 "IGC_OBJ_ITREE_NODE",	"IGC_OBJ_IMAGE",
   "IGC_OBJ_IMAGE_CACHE", "IGC_OBJ_FACE",	"IGC_OBJ_FACE_CACHE",
   "IGC_OBJ_FLOAT",	 "IGC_OBJ_BLV",		"IGC_OBJ_WEAK",
+  "IGC_OBJ_PTR_VEC,"
 };
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_LAST);
@@ -1074,6 +1076,21 @@ fix_face_cache (mps_ss_t ss, struct face_cache *c)
 }
 
 static mps_res_t
+fix_ptr_vec (mps_ss_t ss, void *client)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    struct igc_header *h = client_to_base (client);
+    void **v = client;
+    igc_static_assert (sizeof *h == sizeof *v);
+    for (size_t i = 0; i < h->nwords - 1; ++i)
+      IGC_FIX12_RAW (ss, &v[i]);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
 fix_weak_ref (mps_ss_t ss, struct Lisp_Weak_Ref *wref)
 {
   MPS_SCAN_BEGIN (ss)
@@ -1222,6 +1239,10 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	  case IGC_OBJ_PAD:
 	  case IGC_OBJ_FWD:
 	    continue;
+
+	  case IGC_OBJ_PTR_VEC:
+	    IGC_FIX_CALL_FN (ss, mps_word_t, client, fix_ptr_vec);
+	    break;
 
 	  case IGC_OBJ_CONS:
 	    IGC_FIX_CALL_FN (ss, struct Lisp_Cons, client, fix_cons);
@@ -2515,6 +2536,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
+    case IGC_OBJ_LAST:
       emacs_abort ();
 
     case IGC_OBJ_CONS:
@@ -2531,7 +2553,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_FLOAT:
     case IGC_OBJ_WEAK:
     case IGC_OBJ_BLV:
-    case IGC_OBJ_LAST:
+    case IGC_OBJ_PTR_VEC:
       igc_assert (!"finalize not implemented");
       break;
 
@@ -2680,6 +2702,7 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_FACE:
     case IGC_OBJ_FACE_CACHE:
     case IGC_OBJ_BLV:
+    case IGC_OBJ_PTR_VEC:
       return t->d.dflt_ap;
 
     case IGC_OBJ_STRING_DATA:
@@ -2950,6 +2973,12 @@ igc_make_face_cache (void)
 {
   struct face_cache *c = alloc (sizeof *c, IGC_OBJ_FACE_CACHE, PVEC_FREE);
   return c;
+}
+
+void *
+igc_make_ptr_vec (size_t n)
+{
+  return alloc (n * sizeof (void *), IGC_OBJ_PTR_VEC, PVEC_FREE);
 }
 
 struct image_cache *

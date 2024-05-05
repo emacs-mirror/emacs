@@ -41,7 +41,7 @@ b pkg_break
 #b pkg_error
 #b Fpkg_read
 b igc_break
-b wrong_type_argument
+#b wrong_type_argument
 b malloc_error_break
 # When an assertion in MPS fails
 b mps_lib_assert_fail
