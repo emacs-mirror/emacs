@@ -2800,8 +2800,8 @@ With argument, add COUNT copies of the character."
        (let ((string (if (and (integerp count) (> count 1))
 			 (make-string count char)
 		       (char-to-string char))))
-	 (setq isearch-new-string (concat isearch-string string)
-	       isearch-new-message (concat isearch-message
+	 (setq isearch-new-string (concat isearch-new-string string)
+	       isearch-new-message (concat isearch-new-message
 					   (mapconcat 'isearch-text-char-description
 						      string ""))))))))
 
@@ -2822,8 +2822,8 @@ The command accepts Unicode names like \"smiling face\" or
      (when (and (integerp count) (> count 1))
        (setq emoji (apply 'concat (make-list count emoji))))
      (when emoji
-       (setq isearch-new-string (concat isearch-string emoji)
-             isearch-new-message (concat isearch-message
+       (setq isearch-new-string (concat isearch-new-string emoji)
+             isearch-new-message (concat isearch-new-message
 					   (mapconcat 'isearch-text-char-description
 						      emoji "")))))))
 
