@@ -517,7 +517,7 @@ itself."
       (when (and f (null type-spec))
         (if-let ((delc-type (function-get function 'function-type)))
             ;; Declared Lisp function
-            (setf type-spec (car delc-type))
+            (setf type-spec delc-type)
           (when (subr-native-elisp-p f)
             ;; Native compiled inferred
             (setf kind 'inferred

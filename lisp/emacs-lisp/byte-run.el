@@ -218,7 +218,7 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
               val)))))
 
 (defalias 'byte-run--set-function-type
-  #'(lambda (f _args &rest val)
+  #'(lambda (f _args val)
       (list 'function-put (list 'quote f)
             ''function-type (list 'quote val))))
 

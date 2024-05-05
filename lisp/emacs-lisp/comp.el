@@ -825,7 +825,7 @@ clashes."
             (comp-func-lap func) lap
             (comp-func-frame-size func) (comp--byte-frame-size byte-func)
             (comp-func-speed func) (comp--spill-speed name)
-            (comp-func-declared-type func) (car (comp--spill-decl-spec name 'function-type))
+            (comp-func-declared-type func) (comp--spill-decl-spec name 'function-type)
             (comp-func-pure func) (comp--spill-decl-spec name 'pure))
 
       ;; Store the c-name to have it retrievable from
