@@ -18182,7 +18182,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	    --glyph;
 	  /* By default, in reversed rows we put the cursor on the
 	     rightmost (first in the reading order) glyph.  */
-	  for (x = 0, g = end + 1; g < glyph; g++)
+	  for (x = row->x, g = end + 1; g < glyph; g++)
 	    x += g->pixel_width;
 	  while (end < glyph
 		 && NILP ((end + 1)->object)
