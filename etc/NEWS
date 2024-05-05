@@ -696,6 +696,10 @@ you can add this to your init script:
 
     (setopt project-switch-commands #'project-prefix-or-any-command)
 
+*** New variable 'project-files-relative-names'.
+Project backends can support it to improve the performance of their
+'project-files' implementation when this variable is non-nil.
+
 ** VC
 
 ---

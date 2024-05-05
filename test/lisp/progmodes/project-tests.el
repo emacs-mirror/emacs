@@ -163,4 +163,28 @@ When `project-ignores' includes a name matching project dir."
     (should-not (null project))
     (should (string-match-p "/test/lisp/progmodes/project-resources/\\'" (project-root project)))))
 
+(ert-deftest project-find-regexp ()
+  "Check the happy path."
+  (skip-unless (executable-find find-program))
+  (skip-unless (executable-find "xargs"))
+  (skip-unless (executable-find "grep"))
+  (let* ((directory (ert-resource-directory))
+         (project-find-functions nil)
+         (project (cons 'transient directory)))
+    (add-hook 'project-find-functions (lambda (_dir) project))
+    (should (eq (project-current) project))
+    (let* ((matches nil)
+           (xref-search-program 'grep)
+           (xref-show-xrefs-function
+            (lambda (fetcher _display)
+              (setq matches (funcall fetcher)))))
+      (project-find-regexp "etc")
+      (should (equal (mapcar (lambda (item)
+                               (file-name-base
+                                (xref-location-group (xref-item-location item))))
+                             matches)
+                     '(".dir-locals" "etc")))
+      (should (equal (sort (mapcar #'xref-item-summary matches) #'string<)
+                     '("((nil . ((project-vc-ignores . (\"etc\")))))" "etc"))))))
+
 ;;; project-tests.el ends here
