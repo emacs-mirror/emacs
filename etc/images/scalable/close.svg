@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;">
-    <g id="g32" transform="matrix(0.445177,0,0,0.445177,0,7.37446)">
+    <g id="g32" transform="matrix(0.445177,0,0,0.445177,0,9.37446)">
         <g id="g2423">
             <path id="path60" d="M143.763,90.302C143.763,97.384 111.58,103.126 71.881,103.126C32.182,103.126 0,97.384 0,90.302C0,83.22 32.182,77.478 71.881,77.478C111.58,77.478 143.763,83.22 143.763,90.302Z" style="fill:url(#_Radial1);fill-rule:nonzero;"/>
             <path id="path62" d="M65.384,94.888C65.384,102.432 52.294,108.549 36.146,108.549C19.999,108.549 6.908,102.432 6.908,94.888C6.908,87.343 19.999,81.226 36.146,81.226C52.294,81.226 65.384,87.343 65.384,94.888Z" style="fill:url(#_Radial2);fill-rule:nonzero;"/>
