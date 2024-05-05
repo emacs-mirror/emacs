@@ -324,10 +324,11 @@ end it with `/'.  DIR must be either `project-root' or one of
   (cdr project))
 
 (defvar project-files-relative-names nil
-  "When non-nil, `project-files' is allowed to return relative names.
-The names will be relative to the project root.  And this can only
-happen when all returned files are in the same directory. Meaning, the
-DIRS argument has to be nil or have only one element.")
+  "If non-nil, `project-files' is allowed to return relative file names.
+The file names should be relative to the project root.  And this can
+only happen when all returned files are in the same directory.
+In other words, the DIRS argument of `project-files' has to be nil or a
+list of only one element.")
 
 (cl-defgeneric project-files (project &optional dirs)
   "Return a list of files in directories DIRS in PROJECT.
