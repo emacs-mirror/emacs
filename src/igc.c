@@ -1085,7 +1085,7 @@ fix_ptr_vec (mps_ss_t ss, void *client)
     igc_assert (sizeof (struct igc_header) % sizeof (void *) == 0);
     /* The below should yield 'h->nwords - 1' for 64-bit builds, and
        'h->nwords - 2' for 32-bit.  */
-    size_t imax = h->nwords - sizeof (struct igc_header) / sizeof (void *);
+    size_t imax = h->nwords - to_words (sizeof (struct igc_header));
     for (size_t i = 0; i < imax; ++i)
       IGC_FIX12_RAW (ss, &v[i]);
   }
