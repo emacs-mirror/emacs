@@ -317,7 +317,7 @@ The result is a list of three elements:
                   result)
           ;; We haven't seen a glob yet, so instead append to the start
           ;; directory.
-          (setq start-dir (file-name-concat start-dir (car globs))))
+          (setq start-dir (concat start-dir (car globs))))
         (setq last-saw-recursion nil))
       (setq globs (cdr globs)))
     (list start-dir
@@ -341,16 +341,24 @@ Mainly they are not supported because file matching is done with Emacs
 regular expressions, and these cannot support the above constructs."
   (let ((globs (eshell-glob-convert glob))
         eshell-glob-matches message-shown)
-    (unwind-protect
-        (apply #'eshell-glob-entries globs)
-      (if message-shown
-	  (message nil)))
-    (or (and eshell-glob-matches (sort eshell-glob-matches #'string<))
-	(if eshell-error-if-no-glob
-	    (error "No matches found: %s" glob)
-          (if eshell-glob-splice-results
-              (list glob)
-            glob)))))
+    (if (null (cadr globs))
+        ;; If, after examining GLOB, there are no actual globs, just
+        ;; bail out.  This can happen for remote file names using "~",
+        ;; like "/ssh:remote:~/file.txt".  During parsing, we can't
+        ;; always be sure if the "~" is a home directory reference or
+        ;; part of a glob (e.g. if the argument was assembled from
+        ;; variables).
+        glob
+      (unwind-protect
+          (apply #'eshell-glob-entries globs)
+        (if message-shown
+            (message nil)))
+      (or (and eshell-glob-matches (sort eshell-glob-matches #'string<))
+          (if eshell-error-if-no-glob
+              (error "No matches found: %s" glob)
+            (if eshell-glob-splice-results
+                (list glob)
+              glob))))))
 
 ;; FIXME does this really need to abuse eshell-glob-matches, message-shown?
 (defun eshell-glob-entries (path globs only-dirs)

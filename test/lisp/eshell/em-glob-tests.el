@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+(require 'tramp)
 (require 'ert)
 (require 'em-glob)
 
@@ -138,9 +139,12 @@ value of `eshell-glob-splice-results'."
 
 (ert-deftest em-glob-test/convert/remote-start-directory ()
   "Test converting a glob starting in a remote directory."
-  (should (equal (eshell-glob-convert "/ssh:nowhere.invalid:some/where/*.el")
-                 '("/ssh:nowhere.invalid:/some/where/"
-                   (("\\`.*\\.el\\'" . "\\`\\.")) nil))))
+  (skip-unless (eshell-tests-remote-accessible-p))
+  (let* ((default-directory ert-remote-temporary-file-directory)
+         (remote (file-remote-p default-directory)))
+    (should (equal (eshell-glob-convert (format "%s/some/where/*.el" remote))
+                 `(,(format "%s/some/where/" remote)
+                   (("\\`.*\\.el\\'" . "\\`\\.")) nil)))))
 
 
 ;; Glob matching
@@ -287,5 +291,14 @@ value of `eshell-glob-splice-results'."
                      '("*.txt"))))
     (let ((eshell-error-if-no-glob t))
       (should-error (eshell-extended-glob "*.txt")))))
+
+(ert-deftest em-glob-test/remote-user-directory ()
+  "Test that remote directories using \"~\" pass through unchanged."
+  (skip-unless (eshell-tests-remote-accessible-p))
+  (let* ((default-directory ert-remote-temporary-file-directory)
+         (remote (file-remote-p default-directory))
+         (eshell-error-if-no-glob t))
+    (should (equal (eshell-extended-glob (format "%s~/file.txt" remote))
+                   (format "%s~/file.txt" remote)))))
 
 ;; em-glob-tests.el ends here
