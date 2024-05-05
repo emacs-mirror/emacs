@@ -194,8 +194,10 @@ Useful to hook into pass checkers.")
   (when (symbolp function)
     (let ((f (symbol-function function)))
       (or (gethash f comp-primitive-func-cstr-h)
-          (when-let ((res (function-get function 'function-type)))
-            (comp-type-spec-to-cstr (car res)))))))
+          (when-let ((type (or (when-let ((f (comp--symbol-func-to-fun function)))
+                                 (comp-func-declared-type f))
+                               (function-get function 'function-type))))
+            (comp-type-spec-to-cstr type))))))
 
 ;; Keep it in sync with the `cl-deftype-satisfies' property set in
 ;; cl-macs.el. We can't use `cl-deftype-satisfies' directly as the
@@ -523,6 +525,8 @@ CFG is mutated by a pass.")
          :documentation "Optimization level (see `native-comp-speed').")
   (pure nil :type boolean
         :documentation "t if pure nil otherwise.")
+  (declared-type nil :type list
+        :documentation "Declared function type.")
   (type nil :type (or null comp-mvar)
         :documentation "Mvar holding the derived return type."))
 
@@ -821,6 +825,7 @@ clashes."
             (comp-func-lap func) lap
             (comp-func-frame-size func) (comp--byte-frame-size byte-func)
             (comp-func-speed func) (comp--spill-speed name)
+            (comp-func-declared-type func) (car (comp--spill-decl-spec name 'function-type))
             (comp-func-pure func) (comp--spill-decl-spec name 'pure))
 
       ;; Store the c-name to have it retrievable from
