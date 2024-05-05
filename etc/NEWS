@@ -403,19 +403,6 @@ The commands 'add-dir-local-variable', 'delete-dir-local-variable' and
 'copy-file-locals-to-dir-locals' now take an optional prefix argument,
 to enter the file you want to modify.
 
-** Miscellaneous
-
----
-*** New face 'appt-notification' for 'appt-display-mode-line'.
-It can be used to customize the look of the appointment notification
-displayed on the mode line when 'appt-display-mode-line' is non-nil.
-
----
-*** Emacs now recognizes shebang lines that pass '-S'/'--split-string' to 'env'.
-When visiting a script that invokes 'env -S INTERPRETER ARGS...' in
-its shebang line, Emacs will now skip over 'env -S' and deduce the
-major mode based on the interpreter after 'env -S'.
-
 ** Emacs Server and Client
 
 ---
@@ -459,6 +446,19 @@ TTY frames.
 ** Support for underline colors on TTY frames.
 Colors specified in face underlines will now also be displayed in TTY
 frames with the previously mentioned capabilities.
+
+** Miscellaneous
+
+---
+*** New face 'appt-notification' for 'appt-display-mode-line'.
+It can be used to customize the look of the appointment notification
+displayed on the mode line when 'appt-display-mode-line' is non-nil.
+
+---
+*** Emacs now recognizes shebang lines that pass '-S'/'--split-string' to 'env'.
+When visiting a script that invokes 'env -S INTERPRETER ARGS...' in
+its shebang line, Emacs will now skip over 'env -S' and deduce the
+major mode based on the interpreter after 'env -S'.
 
 
 * Editing Changes in Emacs 30.1
@@ -1621,36 +1621,6 @@ of the currently existing keyboards macros using the new mode
 duplicating them, deleting them, and editing their counters, formats,
 and keys.
 
-** Miscellaneous
-
----
-*** Webjump now assumes URIs are HTTPS instead of HTTP.
-For links in 'webjump-sites' without an explicit URI scheme, it was
-previously assumed that they should be prefixed with "http://".  Such
-URIs are now prefixed with "https://" instead.
-
----
-*** 'bug-reference-mode' now supports 'thing-at-point'.
-Now, calling '(thing-at-point 'url)' when point is on a bug reference
-will return the URL for that bug.
-
-+++
-*** New user option 'rcirc-log-time-format'
-This allows for rcirc logs to use a custom timestamp format, than the
-chat buffers use by default.
-
----
-*** New user option 'Buffer-menu-group-by'.
-It controls how buffers are divided into groups that are displayed with
-headings using Outline minor mode.
-
-+++
-*** New command 'Buffer-menu-toggle-internal'.
-This command toggles the display of internal buffers in Buffer Menu mode;
-that is, buffers not visiting a file and whose names start with a space.
-Previously, such buffers were never shown.  This command is bound to 'I'
-in Buffer Menu mode.
-
 ** Customize
 
 +++
@@ -1709,6 +1679,36 @@ options of GNU 'ls'.
 *** New user option 'widget-skip-inactive'.
 If non-nil, moving point forward or backward between widgets by typing
 TAB or S-TAB skips over inactive widgets.  The default value is nil.
+
+** Miscellaneous
+
+---
+*** Webjump now assumes URIs are HTTPS instead of HTTP.
+For links in 'webjump-sites' without an explicit URI scheme, it was
+previously assumed that they should be prefixed with "http://".  Such
+URIs are now prefixed with "https://" instead.
+
+---
+*** 'bug-reference-mode' now supports 'thing-at-point'.
+Now, calling '(thing-at-point 'url)' when point is on a bug reference
+will return the URL for that bug.
+
++++
+*** New user option 'rcirc-log-time-format'
+This allows for rcirc logs to use a custom timestamp format, than the
+chat buffers use by default.
+
+---
+*** New user option 'Buffer-menu-group-by'.
+It controls how buffers are divided into groups that are displayed with
+headings using Outline minor mode.
+
++++
+*** New command 'Buffer-menu-toggle-internal'.
+This command toggles the display of internal buffers in Buffer Menu mode;
+that is, buffers not visiting a file and whose names start with a space.
+Previously, such buffers were never shown.  This command is bound to 'I'
+in Buffer Menu mode.
 
 
 * New Modes and Packages in Emacs 30.1
