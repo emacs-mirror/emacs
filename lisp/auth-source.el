@@ -2489,22 +2489,30 @@ point is moved into the passwords (see `authinfo-hide-elements').
   "Toggle minibuffer contents visibility.
 Adapt also mode line."
   (interactive)
-  (setq read-passwd--hide-password (not read-passwd--hide-password))
-  (with-current-buffer read-passwd--mode-line-buffer
-    (setq read-passwd--mode-line-icon
-          `(:propertize
-            ,(if icon-preference
-                 (icon-string
-                  (if read-passwd--hide-password
-                      'read-passwd--show-password-icon
-                    'read-passwd--hide-password-icon))
-               "")
-            mouse-face mode-line-highlight
-            local-map
-            (keymap
-             (mode-line keymap (mouse-1 . read-passwd-toggle-visibility)))))
-    (force-mode-line-update))
-  (read-passwd--hide-password))
+  (let ((win (active-minibuffer-window)))
+    (unless win (error "No active minibuffer"))
+    ;; FIXME: In case of a recursive minibuffer, this may select the wrong
+    ;; mini-buffer.
+    (with-current-buffer (window-buffer win)
+      (setq read-passwd--hide-password (not read-passwd--hide-password))
+      (with-current-buffer read-passwd--mode-line-buffer
+        (setq read-passwd--mode-line-icon
+              `(:propertize
+                ,(if icon-preference
+                     (icon-string
+                      (if read-passwd--hide-password
+                          'read-passwd--show-password-icon
+                        'read-passwd--hide-password-icon))
+                   "")
+                mouse-face mode-line-highlight
+                keymap
+                ,(eval-when-compile
+                   (let ((map (make-sparse-keymap)))
+                     (define-key map [mode-line mouse-1]
+                                 #'read-passwd-toggle-visibility)
+                     map))))
+        (force-mode-line-update))
+      (read-passwd--hide-password))))
 
 (defvar read-passwd-map
   ;; BEWARE: `defconst' would purecopy it, breaking the sharing with
