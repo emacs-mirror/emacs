@@ -2646,9 +2646,9 @@ process_messages (struct igc *gc)
 	{
 	  if (garbage_collection_messages)
 	    {
-	      message1_nolog ("Garbage collecting...");
+	      message1 ("Garbage collecting...");
 	      const char *why = mps_message_gc_start_why (gc->arena, msg);
-	      message1_nolog (why);
+	      message1 (why);
 	    }
 	}
 
