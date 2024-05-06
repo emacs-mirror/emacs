@@ -84,6 +84,8 @@ b die
 # command alias go process launch --working-dir .
 # settings set target.disable-aslr false
 
-target create emacs
-settings set target.disable-aslr false
+target create /Users/gerd/Desktop/igc.app/Contents/MacOS/Emacs
+command alias go process launch --working-dir /Users/gerd/emacs/savannah/igc/
+#settings set target.disable-aslr false
+
 # end.
