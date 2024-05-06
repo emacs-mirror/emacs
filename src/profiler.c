@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "syssignal.h"
 #include "systime.h"
 #include "pdumper.h"
+#include "igc.h"
 
 /* Return A + B, but return the maximum fixnum if the result would overflow.
    Assume A and B are nonnegative and in fixnum range.  */
@@ -77,7 +78,11 @@ make_log (int size, int depth)
   int index_size = size * 2 + 1;
   log->index_size = index_size;
 
+#ifdef HAVE_MPS
+  log->trace = igc_xzalloc_ambig (depth * sizeof *log->trace);
+#else
   log->trace = xmalloc (depth * sizeof *log->trace);
+#endif
 
   log->index = xmalloc (index_size * sizeof *log->index);
   for (int i = 0; i < index_size; i++)
@@ -90,7 +95,11 @@ make_log (int size, int depth)
   log->next_free = 0;
 
   log->hash = xmalloc (size * sizeof *log->hash);
+#ifdef HAVE_MPS
+  log->keys = igc_xzalloc_ambig (size * depth * sizeof *log->keys);
+#else
   log->keys = xzalloc (size * depth * sizeof *log->keys);
+#endif
   log->counts = xzalloc (size * sizeof *log->counts);
 
   return log;
@@ -99,11 +108,16 @@ make_log (int size, int depth)
 static void
 free_log (log_t *log)
 {
+#ifdef HAVE_MPS
+  igc_xfree (log->trace);
+  igc_xfree (log->keys);
+#else
   xfree (log->trace);
+  xfree (log->keys);
+#endif
   xfree (log->index);
   xfree (log->next);
   xfree (log->hash);
-  xfree (log->keys);
   xfree (log->counts);
   xfree (log);
 }
