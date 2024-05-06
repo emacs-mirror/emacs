@@ -1119,7 +1119,9 @@ When `tab-bar-format-global' is added to `tab-bar-format'
 then modes that display information on the mode line
 using `global-mode-string' will display the same text
 on the tab bar instead."
-  `((global menu-item ,(format-mode-line global-mode-string) ignore)))
+  (mapcar (lambda (string)
+            `(global menu-item ,(format-mode-line string) ignore))
+          global-mode-string))
 
 (defun tab-bar-format-list (format-list)
   (let ((i 0))
