@@ -3969,6 +3969,27 @@ read_stack_reset (intmax_t sp)
   rdstack.sp = sp;
 }
 
+#define READ_AND_BUFFER(c)			\
+  c = READCHAR;					\
+  if (multibyte)				\
+    p += CHAR_STRING (c, (unsigned char *) p);	\
+  else						\
+    *p++ = c;					\
+  if (end - p < MAX_MULTIBYTE_LENGTH + 1)	\
+    {						\
+       offset = p - read_buffer;		\
+       read_buffer = grow_read_buffer (read_buffer, offset, \
+				       &heapbuf, &read_buffer_size, count); \
+       p = read_buffer + offset;					\
+       end = read_buffer + read_buffer_size;				\
+    }
+
+#define INVALID_SYNTAX_WITH_BUFFER()		\
+  {						\
+    *p = 0;					\
+    invalid_syntax (read_buffer, readcharfun);	\
+  }
+
 /* Read a Lisp object.
    If LOCATE_SYMS is true, symbols are read with position.  */
 static Lisp_Object
@@ -3977,6 +3998,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
   char stackbuf[64];
   char *read_buffer = stackbuf;
   ptrdiff_t read_buffer_size = sizeof stackbuf;
+  ptrdiff_t offset;
   char *heapbuf = NULL;
 
   specpdl_ref base_pdl = SPECPDL_INDEX ();
@@ -4078,7 +4100,13 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
     case '#':
       {
-	int ch = READCHAR;
+	char *p = read_buffer;
+	char *end = read_buffer + read_buffer_size;
+
+	*p++ = '#';
+	int ch;
+	READ_AND_BUFFER (ch);
+
 	switch (ch)
 	  {
 	  case '\'':
@@ -4096,11 +4124,11 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 	  case 's':
 	    /* #s(...) -- a record or hash-table */
-	    ch = READCHAR;
+	    READ_AND_BUFFER (ch);
 	    if (ch != '(')
 	      {
 		UNREAD (ch);
-		invalid_syntax ("#s", readcharfun);
+		INVALID_SYNTAX_WITH_BUFFER ();
 	      }
 	    read_stack_push ((struct read_stack_entry) {
 		.type = RE_record,
@@ -4113,7 +4141,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	  case '^':
 	    /* #^[...]  -- char-table
 	       #^^[...] -- sub-char-table */
-	    ch = READCHAR;
+	    READ_AND_BUFFER (ch);
 	    if (ch == '^')
 	      {
 		ch = READCHAR;
@@ -4130,7 +4158,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		else
 		  {
 		    UNREAD (ch);
-		    invalid_syntax ("#^^", readcharfun);
+		    INVALID_SYNTAX_WITH_BUFFER ();
 		  }
 	      }
 	    else if (ch == '[')
@@ -4146,7 +4174,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	    else
 	      {
 		UNREAD (ch);
-		invalid_syntax ("#^", readcharfun);
+		INVALID_SYNTAX_WITH_BUFFER ();
 	      }
 
 	  case '(':
@@ -4256,12 +4284,12 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		int c;
 		for (;;)
 		  {
-		    c = READCHAR;
+		    READ_AND_BUFFER (c);
 		    if (c < '0' || c > '9')
 		      break;
 		    if (ckd_mul (&n, n, 10)
 			|| ckd_add (&n, n, c - '0'))
-		      invalid_syntax ("#", readcharfun);
+		      INVALID_SYNTAX_WITH_BUFFER ();
 		  }
 		if (c == 'r' || c == 'R')
 		  {
@@ -4302,18 +4330,18 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 			  = XHASH_TABLE (read_objects_map);
 			ptrdiff_t i = hash_lookup (h, make_fixnum (n));
 			if (i < 0)
-			  invalid_syntax ("#", readcharfun);
+			  INVALID_SYNTAX_WITH_BUFFER ();
 			obj = HASH_VALUE (h, i);
 			break;
 		      }
 		    else
-		      invalid_syntax ("#", readcharfun);
+		      INVALID_SYNTAX_WITH_BUFFER ();
 		  }
 		else
-		  invalid_syntax ("#", readcharfun);
+		  INVALID_SYNTAX_WITH_BUFFER ();
 	      }
 	    else
-	      invalid_syntax ("#", readcharfun);
+	      INVALID_SYNTAX_WITH_BUFFER ();
 	  }
 	break;
       }
