@@ -849,25 +849,8 @@ scan_bc (mps_ss_t ss, void *start, void *end, void *closure)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    struct igc_thread_list *t = closure;
-    struct bc_thread_state *bc = &t->d.ts->bc;
-    igc_assert (start == (void *) bc->stack);
-    igc_assert (end == (void *) bc->stack_end);
-    /* FIXME: AFAIU the current top frame starts at bc->fp->next_stack
-       and has a maximum length that is given by the bytecode being
-       executed (COMPILED_STACK_DEPTH). So, we need to scan upto
-       bc->fo->next_stack + that max depth to be safe.  Since I don't
-       have that number ATM, I'm using an arbitrary estimate for
-       now.
-
-       This must be changed to something better. Note that Mattias said
-       the bc stack marking will be changed in the future.  */
-    const size_t HORRIBLE_ESTIMATE = 1024;
-    char *scan_end = bc_next_frame (bc->fp);
-    scan_end += HORRIBLE_ESTIMATE;
-    end = min (end, (void *) scan_end);
-    if (end > start)
-      IGC_FIX_CALL (ss, scan_ambig (ss, start, end, NULL));
+    /* FIXME: maybe optimze this by using MPS_RM_PROT for the root. */
+    IGC_FIX_CALL (ss, scan_ambig (ss, start, end, NULL));
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
