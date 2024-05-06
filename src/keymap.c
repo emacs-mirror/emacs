@@ -2125,7 +2125,7 @@ For an approximate inverse of this, see `kbd'.  */)
 	  if (STRINGP (list))
 	    {
 	      int c = fetch_string_char_advance (list, &i, &i_byte);
-	      if (SINGLE_BYTE_CHAR_P (c) && (c & 0200))
+	      if (!STRING_MULTIBYTE (list) && (c & 0200))
 		c ^= 0200 | meta_modifier;
 	      key = make_fixnum (c);
 	    }
