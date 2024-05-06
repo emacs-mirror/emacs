@@ -377,10 +377,10 @@ entirely by setting `warning-suppress-types' or
 					(window-height . (lambda (window)
 					  (fit-window-to-buffer window 10)))
 					(category . warning))))))
-		       (when (and (markerp warning-series)
+		       (when (and window (markerp warning-series)
 				  (eq (marker-buffer warning-series) buffer))
 			 (set-window-start window warning-series))
-		       (when warning-display-at-bottom
+		       (when (and window warning-display-at-bottom)
 			 (with-selected-window window
 			   (goto-char (point-max))
 			   (forward-line -1)
