@@ -342,7 +342,7 @@ information."
     (setq kmacro-last-counter kmacro-counter
 	  kmacro-counter (if (and current-prefix-arg (listp current-prefix-arg))
 			     last
-			   kmacro-counter (+ kmacro-counter arg))))
+			   (+ kmacro-counter arg))))
   (unless executing-kbd-macro
     (kmacro-display-counter)))
 
