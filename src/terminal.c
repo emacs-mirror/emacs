@@ -24,6 +24,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termchar.h"
 #include "termhooks.h"
 #include "keyboard.h"
+#ifdef HAVE_MPS
+#include "igc.h"
+#endif
 
 #if HAVE_STRUCT_UNIPAIR_UNICODE
 # include <errno.h>
@@ -281,8 +284,13 @@ create_terminal (enum output_method type, struct redisplay_interface *rif)
   terminal->rif = rif;
   terminal->id = next_terminal_id++;
 
+#ifdef HAVE_MPS
+  terminal->keyboard_coding = xzalloc (sizeof (struct coding_system));
+  terminal->terminal_coding = xzalloc (sizeof (struct coding_system));
+#else
   terminal->keyboard_coding = xmalloc (sizeof (struct coding_system));
   terminal->terminal_coding = xmalloc (sizeof (struct coding_system));
+#endif
 
   /* If default coding systems for the terminal and the keyboard are
      already defined, use them in preference to the defaults.  This is
