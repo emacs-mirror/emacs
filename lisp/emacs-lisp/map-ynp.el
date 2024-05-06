@@ -168,7 +168,7 @@ The function's value is the number of actions taken."
 				(key-description (vector help-char)))
 		       (if minibuffer-auto-raise
 			   (raise-frame (window-frame (minibuffer-window))))
-		       (setq char (read-event))
+		       (setq char (read-key))
 		       ;; Show the answer to the question.
 		       (message "%s(y, n, !, ., q, %sor %s) %s"
 				prompt user-keys
