@@ -1451,7 +1451,6 @@ if it was visiting a file."
              (new-buffer (generate-new-buffer
                           (format " *Old buffer %s*" name))))
         (with-current-buffer new-buffer
-          (set-auto-mode)
           (insert (format-message "This window displayed the %s `%s'.\n"
                                   (if file "file" "buffer")
                                   name))
@@ -1464,7 +1463,7 @@ if it was visiting a file."
                (set-window-point window (nth 3 quad))))
             (insert "\n"))
           (goto-char (point-min))
-          (setq buffer-read-only t)
+          (special-mode)
           (set-window-buffer window new-buffer))))))
 
 (defcustom tab-bar-select-restore-context t
