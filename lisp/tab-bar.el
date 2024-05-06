@@ -352,6 +352,7 @@ regardless of where you click on it.  Also add a new tab."
          (tab-number (tab-bar--key-to-number (nth 0 item))))
     (cond
      ((and (memq (car item) '(add-tab history-back history-forward global))
+           (not (eq (nth 1 item) 'tab-bar-mouse-1))
            (functionp (nth 1 item)))
       (call-interactively (nth 1 item)))
      ((and (nth 2 item) (not (eq tab-number t)))
