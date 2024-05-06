@@ -40,7 +40,13 @@ if test "$XCONFIGURE" = "android"; then
   CFLAGS="$ANDROID_CFLAGS -Werror=implicit-function-declaration"
   # Don't explicitly enable support for large files unless Emacs is
   # being built for API 21 or later.  Otherwise, mmap does not work.
+  #
+  # Moreover, 64-bit variants of file IO functions in the C library are
+  # liable to fail with ENOSYS or EINVAL on earlier API versions, and as
+  # such their definitions must be explicitly disabled on NDK releases
+  # that enable them by default.
   AS_IF([test "$ANDROID_SDK" -lt "21"], [
+    CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
 fi
