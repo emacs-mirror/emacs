@@ -189,6 +189,11 @@ Useful to hook into pass checkers.")
    finally return h)
   "Hash table function -> `comp-constraint'.")
 
+(defsubst comp--symbol-func-to-fun (symbol-func)
+  "Given a function called SYMBOL-FUNC return its `comp-func'."
+  (gethash (gethash symbol-func (comp-ctxt-sym-to-c-name-h comp-ctxt))
+           (comp-ctxt-funcs-h comp-ctxt)))
+
 (defun comp--get-function-cstr (function)
   "Given FUNCTION return the corresponding `comp-constraint'."
   (when (symbolp function)
@@ -602,11 +607,6 @@ In use by the back-end."
                do (puthash name t h)
                finally return t)
     t))
-
-(defsubst comp--symbol-func-to-fun (symbol-func)
-  "Given a function called SYMBOL-FUNC return its `comp-func'."
-  (gethash (gethash symbol-func (comp-ctxt-sym-to-c-name-h comp-ctxt))
-           (comp-ctxt-funcs-h comp-ctxt)))
 
 (defun comp--function-pure-p (f)
   "Return t if F is pure."
