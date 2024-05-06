@@ -787,6 +787,10 @@ Parameters for @samp{sign=smime}:
 @item keyfile
 File containing key and certificate for signer.
 
+@item chainfile
+File containing an additional certificate to be included with the
+message.
+
 @end table
 
 Parameters for @samp{encrypt=smime}:
