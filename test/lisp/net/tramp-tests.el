@@ -7064,7 +7064,7 @@ This is used in tests which we don't want to tag
   "Check, whether a container method is used.
 This does not support some special file names."
   (string-match-p
-   (rx bol (| "docker" "podman"))
+   (rx bol (| "docker" "podman" "apptainer"))
    (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-container-oob-p ()
@@ -7233,8 +7233,14 @@ This requires restrictions of file name syntax."
 
 (defun tramp--test-supports-processes-p ()
   "Return whether the method under test supports external processes."
-  (and (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p))
-       (not (tramp--test-crypt-p))))
+  ;; We use it to enable/disable tests in a given test run, for
+  ;; example for remote processes on MS Windows.
+  (if (tramp-connection-property-p
+       tramp-test-vec "tramp--test-supports-processes-p")
+      (tramp-get-connection-property
+       tramp-test-vec "tramp--test-supports-processes-p")
+    (and (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p))
+	 (not (tramp--test-crypt-p)))))
 
 (defun tramp--test-supports-set-file-modes-p ()
   "Return whether the method under test supports setting file modes."

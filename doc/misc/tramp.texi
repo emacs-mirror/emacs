@@ -119,6 +119,7 @@ Installing @value{tramp} with your Emacs
 
 Configuring @value{tramp} for use
 
+* Optional methods::            Optional methods which must be enabled first.
 * Connection types::            Types of connections to remote hosts.
 * Inline methods::              Inline methods.
 * External methods::            External methods.
@@ -685,6 +686,7 @@ to non-@code{nil}, @xref{Directory Variables, , , emacs}.
 
 
 @menu
+* Optional methods::            Optional methods which must be enabled first.
 * Connection types::            Types of connections to remote hosts.
 * Inline methods::              Inline methods.
 * External methods::            External methods.
@@ -716,6 +718,30 @@ on the remote host.
                                 Auto-save, File Lock and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
 @end menu
+
+
+@node Optional methods
+@section Optional methods which must be enabled first
+@cindex optional methods
+
+Not all methods are enabled by default after loading @value{tramp}.
+Some of them don't work on the local host.  Some of them are optional,
+and must be enabled if it is intended to use them.  For all methods
+described in this manual, it is indicated when the method is optional.
+
+@deffn Command tramp-enable-method method
+This command enables the optional method @var{method}, a string.  The
+command can be invoked interactively like @kbd{M-x tramp-enable-method
+@key{RET} toolbox @key{RET}}, with @option{toolbox} being an optional
+method.
+@end deffn
+
+If you want to enable an optional method permanently, add something
+like this to your @file{.emacs} file:
+
+@lisp
+(with-eval-after-load 'tramp (tramp-enable-method "toolbox"))
+@end lisp
 
 
 @node Connection types
@@ -833,6 +859,9 @@ command-line utilities distributed with that system, a largely
 equivalent @option{androidsu} method is provided for that system with
 workarounds for its many idiosyncrasies, with the exception that
 multi-hops are unsupported.
+
+This is an optional method, @ref{Optional methods}.  It is enabled by
+default on @code{android} systems only.
 
 @item @option{sudo}
 @cindex method @option{sudo}
@@ -960,7 +989,8 @@ a container's name or ID, as returned by @samp{toolbox list -c}.
 Without a host name, the default Toolbox container for the host will
 be used.
 
-This method does not support user names.
+This is an optional method, @ref{Optional methods}.  It does not
+support user names.
 
 @item @option{flatpak}
 @cindex method @option{flatpak}
@@ -970,7 +1000,18 @@ Integration of Flatpak sandboxes.  The host name may be either an
 application ID, a sandbox instance ID, or a PID, as returned by
 @samp{flatpak ps}.
 
-This method does not support user names.
+This is an optional method, @ref{Optional methods}.  It does not
+support user names.
+
+@item @option{apptainer}
+@cindex method @option{apptainer}
+@cindex @option{apptainer} method
+
+Integration of Apptainer instances.  The host name is the instance
+name, as returned by @samp{apptainer instance list}.
+
+This is an optional method, @ref{Optional methods}.  It does not
+support user names.
 
 @end table
 

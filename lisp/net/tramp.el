@@ -1460,6 +1460,15 @@ calling HANDLER.")
 
 ;;; Internal functions which must come first:
 
+(defun tramp-enable-method (method)
+  "Enable optional METHOD if possible."
+  (interactive "Mmethod: ")
+  (when-let (((not (assoc method tramp-methods)))
+	     (fn (intern (format "tramp-enable-%s-method" method)))
+	     ((functionp fn)))
+    (funcall fn)
+    (message "Tramp method \"%s\" enabled" method)))
+
 ;; Conversion functions between external representation and
 ;; internal data structure.  Convenience functions for internal
 ;; data structure.

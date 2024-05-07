@@ -83,6 +83,15 @@
 ;; Where:
 ;;     SANDBOX	is the running sandbox to connect to.
 ;;		It could be an application ID, an instance ID, or a PID.
+;;
+;;
+;;
+;; Open a file on a running Apptainer instance:
+;;
+;;     C-x C-f /apptainer:INSTANCE:/path/to/file
+;;
+;; Where:
+;;     INSTANCE	is the running instance to connect to.
 
 ;;; Code:
 
@@ -143,6 +152,14 @@ If it is nil, the default context will be used."
                  (string)))
 
 ;;;###tramp-autoload
+(defcustom tramp-apptainer-program "apptainer"
+  "Name of the Apptainer client program."
+  :group 'tramp
+  :version "30.1"
+  :type '(choice (const "apptainer")
+                 (string)))
+
+;;;###tramp-autoload
 (defconst tramp-docker-method "docker"
   "Tramp method name to use to connect to Docker containers.")
 
@@ -171,6 +188,10 @@ This is for out-of-band connections.")
 ;;;###tramp-autoload
 (defconst tramp-flatpak-method "flatpak"
   "Tramp method name to use to connect to Flatpak sandboxes.")
+
+;;;###tramp-autoload
+(defconst tramp-apptainer-method "apptainer"
+  "Tramp method name to use to connect to Apptainer instances.")
 
 ;;;###tramp-autoload
 (defmacro tramp-skeleton-completion-function (method &rest body)
@@ -374,6 +395,28 @@ see its function help for a description of the format."
       (mapcar (lambda (name) (list nil name)) (delq nil names)))))
 
 ;;;###tramp-autoload
+(defun tramp-apptainer--completion-function (method)
+  "List Apptainer instances available for connection.
+
+This function is used by `tramp-set-completion-function', please
+see its function help for a description of the format."
+  (tramp-skeleton-completion-function method
+    (when-let ((raw-list
+		(shell-command-to-string (concat program " instance list")))
+	       ;; Ignore header line.
+               (lines (cdr (split-string raw-list "\n" 'omit)))
+               (names (mapcar
+		       (lambda (line)
+			 (when (string-match
+				(rx bol (group (1+ (not space)))
+				    (1+ space) (1+ (not space))
+				    (1+ space) (1+ (not space)))
+				line)
+			   (match-string 1 line)))
+                       lines)))
+      (mapcar (lambda (name) (list nil name)) (delq nil names)))))
+
+;;;###tramp-autoload
 (defvar tramp-default-remote-shell) ;; Silence byte compiler.
 
 ;;;###tramp-autoload
@@ -453,29 +496,9 @@ see its function help for a description of the format."
                 (tramp-remote-shell-login ("-l"))
                 (tramp-remote-shell-args ("-i" "-c"))))
 
- (add-to-list 'tramp-methods
-	      `(,tramp-toolbox-method
-		(tramp-login-program ,tramp-toolbox-program)
-		(tramp-login-args (("run")
-				   ("-c" "%h")
-				   ("%l")))
-		(tramp-direct-async (,tramp-default-remote-shell "-c"))
-		(tramp-remote-shell ,tramp-default-remote-shell)
-		(tramp-remote-shell-login ("-l"))
-		(tramp-remote-shell-args ("-c"))))
-
- (add-to-list 'tramp-default-host-alist `(,tramp-toolbox-method nil ""))
-
- (add-to-list 'tramp-methods
-	      `(,tramp-flatpak-method
-		(tramp-login-program ,tramp-flatpak-program)
-		(tramp-login-args (("enter")
-				   ("%h")
-				   ("%l")))
-		(tramp-direct-async (,tramp-default-remote-shell "-c"))
-		(tramp-remote-shell ,tramp-default-remote-shell)
-		(tramp-remote-shell-login ("-l"))
-		(tramp-remote-shell-args ("-c"))))
+ (add-to-list 'tramp-completion-multi-hop-methods tramp-docker-method)
+ (add-to-list 'tramp-completion-multi-hop-methods tramp-podman-method)
+ (add-to-list 'tramp-completion-multi-hop-methods tramp-kubernetes-method)
 
  (tramp-set-completion-function
   tramp-docker-method
@@ -495,53 +518,99 @@ see its function help for a description of the format."
 
  (tramp-set-completion-function
   tramp-kubernetes-method
-  `((tramp-kubernetes--completion-function ,tramp-kubernetes-method)))
+  `((tramp-kubernetes--completion-function ,tramp-kubernetes-method))))
 
- (tramp-set-completion-function
-  tramp-toolbox-method
-  `((tramp-toolbox--completion-function ,tramp-toolbox-method)))
+;;;###tramp-autoload
+(defun tramp-enable-toolbox-method ()
+  "Enable connection to Toolbox containers."
+  (add-to-list 'tramp-methods
+	       `(,tramp-toolbox-method
+		 (tramp-login-program ,tramp-toolbox-program)
+		 (tramp-login-args (("run")
+				    ("-c" "%h")
+				    ("%l")))
+		 (tramp-direct-async (,tramp-default-remote-shell "-c"))
+		 (tramp-remote-shell ,tramp-default-remote-shell)
+		 (tramp-remote-shell-login ("-l"))
+		 (tramp-remote-shell-args ("-c"))))
 
- (tramp-set-completion-function
-  tramp-flatpak-method
-  `((tramp-flatpak--completion-function ,tramp-flatpak-method)))
+  (add-to-list 'tramp-default-host-alist `(,tramp-toolbox-method nil ""))
+  (add-to-list 'tramp-completion-multi-hop-methods tramp-toolbox-method)
 
- (add-to-list 'tramp-completion-multi-hop-methods tramp-docker-method)
- (add-to-list 'tramp-completion-multi-hop-methods tramp-podman-method)
- (add-to-list 'tramp-completion-multi-hop-methods tramp-kubernetes-method)
- (add-to-list 'tramp-completion-multi-hop-methods tramp-toolbox-method)
- (add-to-list 'tramp-completion-multi-hop-methods tramp-flatpak-method)
+  (tramp-set-completion-function
+   tramp-toolbox-method
+   `((tramp-toolbox--completion-function ,tramp-toolbox-method))))
 
- ;; Default connection-local variables for Tramp.
+;;;###tramp-autoload
+(defun tramp-enable-flatpak-method ()
+  "Enable connection to Flatpak sandboxes."
+  (add-to-list 'tramp-methods
+	       `(,tramp-flatpak-method
+		 (tramp-login-program ,tramp-flatpak-program)
+		 (tramp-login-args (("enter")
+				    ("%h")
+				    ("%l")))
+		 (tramp-direct-async (,tramp-default-remote-shell "-c"))
+		 (tramp-remote-shell ,tramp-default-remote-shell)
+		 (tramp-remote-shell-login ("-l"))
+		 (tramp-remote-shell-args ("-c"))))
 
- (defconst tramp-kubernetes-connection-local-default-variables
-   '((tramp-config-check . tramp-kubernetes--current-context-data)
-     ;; This variable will be eval'ed in `tramp-expand-args'.
-     (tramp-extra-expand-args
-      . (?a (tramp-kubernetes--container (car tramp-current-connection))
-	 ?h (tramp-kubernetes--pod (car tramp-current-connection))
-	 ?x (tramp-kubernetes--context-namespace
-	     (car tramp-current-connection)))))
-   "Default connection-local variables for remote kubernetes connections.")
+  (add-to-list 'tramp-completion-multi-hop-methods tramp-flatpak-method)
 
- (connection-local-set-profile-variables
-  'tramp-kubernetes-connection-local-default-profile
-  tramp-kubernetes-connection-local-default-variables)
+  (tramp-set-completion-function
+   tramp-flatpak-method
+   `((tramp-flatpak--completion-function ,tramp-flatpak-method))))
 
- (connection-local-set-profiles
-  `(:application tramp :protocol ,tramp-kubernetes-method)
-  'tramp-kubernetes-connection-local-default-profile)
+;;;###tramp-autoload
+(defun tramp-enable-apptainer-method ()
+  "Enable connection to Apptainer instances."
+  (add-to-list 'tramp-methods
+	       `(,tramp-apptainer-method
+		 (tramp-login-program ,tramp-apptainer-program)
+		 (tramp-login-args (("shell")
+				    ("instance://%h")
+				    ("%h"))) ; Needed for multi-hop check.
+		 (tramp-remote-shell ,tramp-default-remote-shell)
+		 (tramp-remote-shell-login ("-l"))
+		 (tramp-remote-shell-args ("-c"))))
 
- (defconst tramp-flatpak-connection-local-default-variables
-   `((tramp-remote-path  . ,(cons "/app/bin" tramp-remote-path)))
-   "Default connection-local variables for remote flatpak connections.")
+  (add-to-list 'tramp-completion-multi-hop-methods tramp-apptainer-method)
 
- (connection-local-set-profile-variables
-  'tramp-flatpak-connection-local-default-profile
-  tramp-flatpak-connection-local-default-variables)
+  (tramp-set-completion-function
+   tramp-apptainer-method
+   `((tramp-apptainer--completion-function ,tramp-apptainer-method))))
 
- (connection-local-set-profiles
-  `(:application tramp :protocol ,tramp-flatpak-method)
-  'tramp-flatpak-connection-local-default-profile))
+;; Default connection-local variables for Tramp.
+
+(defconst tramp-kubernetes-connection-local-default-variables
+  '((tramp-config-check . tramp-kubernetes--current-context-data)
+    ;; This variable will be eval'ed in `tramp-expand-args'.
+    (tramp-extra-expand-args
+     . (?a (tramp-kubernetes--container (car tramp-current-connection))
+	?h (tramp-kubernetes--pod (car tramp-current-connection))
+	?x (tramp-kubernetes--context-namespace
+	    (car tramp-current-connection)))))
+  "Default connection-local variables for remote kubernetes connections.")
+
+(connection-local-set-profile-variables
+ 'tramp-kubernetes-connection-local-default-profile
+ tramp-kubernetes-connection-local-default-variables)
+
+(connection-local-set-profiles
+ `(:application tramp :protocol ,tramp-kubernetes-method)
+ 'tramp-kubernetes-connection-local-default-profile)
+
+(defconst tramp-flatpak-connection-local-default-variables
+  `((tramp-remote-path  . ,(cons "/app/bin" tramp-remote-path)))
+  "Default connection-local variables for remote flatpak connections.")
+
+(connection-local-set-profile-variables
+ 'tramp-flatpak-connection-local-default-profile
+ tramp-flatpak-connection-local-default-variables)
+
+(connection-local-set-profiles
+ `(:application tramp :protocol ,tramp-flatpak-method)
+ 'tramp-flatpak-connection-local-default-profile)
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

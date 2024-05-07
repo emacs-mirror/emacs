@@ -171,7 +171,7 @@ This user option controls outline visibility in the output buffer of
 *** 'C-h m' ('describe-mode') uses outlining by default.
 Set 'describe-mode-outline' to nil to get back the old behavior.
 
-** Outline Mode
+** Outline mode
 
 +++
 *** 'outline-minor-mode' is supported in tree-sitter major modes.
@@ -401,7 +401,7 @@ them.
 ** New optional argument for modifying directory-local variables.
 The commands 'add-dir-local-variable', 'delete-dir-local-variable' and
 'copy-file-locals-to-dir-locals' now take an optional prefix argument,
-to enter the file you want to modify.
+to enter the file name you want to modify.
 
 ** Emacs Server and Client
 
@@ -1051,7 +1051,12 @@ mode line.  'header' will display in the header line;
 ** Tramp
 
 +++
-*** New connection method "androidsu".
+*** Tramp methods can be optional.
+An optional connection method is not enabled by default.  The user must
+enable it explicitly by the 'tramp-enable-method' command.
+
++++
+*** New optional connection method "androidsu".
 This provides access to system files with elevated privileges granted by
 the idiosyncratic 'su' implementations and system utilities customary on
 Android.
@@ -1061,9 +1066,9 @@ Android.
 These are the external methods counterparts of "docker" and "podman".
 
 +++
-*** New connection methods "toolbox" and "flatpak".
-They allow accessing system containers provided by Toolbox or
-sandboxes provided by Flatpak.
+*** New optional connection methods "toolbox", "flatpak" and "apptainer".
+They allow accessing system containers provided by Toolbox, sandboxes
+provided by Flatpak, or instances managed by Apptainer.
 
 +++
 *** Connection method "kubernetes" supports now optional container name.
@@ -1138,7 +1143,7 @@ input, as the case may be.
 *** EWW text input fields and areas are now fields.
 In consequence, movement commands and OS input method features now
 recognize and confine their activities to the text input field around
-point.  See also (elisp)Fields.
+point.  See also the Info node "(elisp) Fields".
 
 +++
 *** 'eww-open-file' can now display the file in a new buffer.
@@ -1298,7 +1303,7 @@ the margin indicator.
 *** New user option 'flymake-autoresize-margins'.
 If non-nil, Flymake will resize the margins when 'flymake-mode' is
 turned on or off.
-Only relevant if `flymake-indicator-type` is set to `margins`.
+Only relevant if 'flymake-indicator-type' is set to 'margins'.
 
 +++
 *** New user option 'flymake-margin-indicator-position'.
@@ -1384,12 +1389,12 @@ when using the ':vc' keyword.
 ** Gnus
 
 +++
-*** New back end 'nnfeed'.
-This allows back end developers to easily create new back ends for web
-feeds, as inheriting back ends of 'nnfeed'.
+*** New backend 'nnfeed'.
+This allows backend developers to easily create new backends for web
+feeds, as inheriting backends of 'nnfeed'.
 
 +++
-*** New back end 'nnatom'.
+*** New backend 'nnatom'.
 This allow users to add Atom Syndication Format feeds to Gnus as
 servers.
 
@@ -1610,7 +1615,8 @@ macros with many lines, such as from 'kmacro-edit-lossage'.
 The user option 'proced-auto-update-flag' can now be set to 2 additional
 values, which control automatic updates of Proced buffers that are not
 displayed in some window.
-** Kmacro Menu Mode
+
+** Kmacro Menu mode
 
 +++
 *** New mode 'kmacro-menu-mode' and new command 'list-keyboard-macros'.
@@ -1678,7 +1684,7 @@ options of GNU 'ls'.
 +++
 *** New user option 'widget-skip-inactive'.
 If non-nil, moving point forward or backward between widgets by typing
-TAB or S-TAB skips over inactive widgets.  The default value is nil.
+'TAB' or 'S-TAB' skips over inactive widgets.  The default value is nil.
 
 ** Miscellaneous
 
@@ -1694,7 +1700,7 @@ Now, calling '(thing-at-point 'url)' when point is on a bug reference
 will return the URL for that bug.
 
 +++
-*** New user option 'rcirc-log-time-format'
+*** New user option 'rcirc-log-time-format'.
 This allows for rcirc logs to use a custom timestamp format, than the
 chat buffers use by default.
 
@@ -1818,9 +1824,9 @@ various subparts (when 'interactive-form', 'documentation', and
 ** 'define-globalized-minor-mode' requires that modes use 'run-mode-hooks'.
 Minor modes defined with 'define-globalized-minor-mode', such as
 'global-font-lock-mode', will not be enabled any more in those buffers
-whose major modes fails to use 'run-mode-hooks'.  Major modes defined
-with 'define-derived-mode' are not affected.  `run-mode-hooks` has been the
-recommended way to run major mode hooks since Emacs-22.
+whose major modes fail to use 'run-mode-hooks'.  Major modes defined
+with 'define-derived-mode' are not affected.  'run-mode-hooks' has been the
+recommended way to run major mode hooks since Emacs 22.
 
 ---
 ** Old derived.el functions removed.
@@ -1962,8 +1968,9 @@ arguments and its return type using the 'declare' macro.
 'interpreted-function' is the new type used for interpreted functions,
 and 'closure' is the common parent type of 'interpreted-function'
 and 'byte-code-function'.
-Those new types come with the associated new predicates
-'closurep' and `interpreted-function-p' as well as a new constructor
+
+Those new types come with the associated new predicates 'closurep' and
+`interpreted-function-p' as well as a new constructor
 'make-interpreted-closure'.
 
 ** New function 'help-fns-function-name'.
@@ -2023,9 +2030,9 @@ the Info node "(elisp) Handling Errors".
 +++
 ** Tooltips on fringes.
 It is now possible to provide tooltips on fringes by adding special text
-properties 'left-fringe-help' and 'right-fringe-help'.  See the "Special
-Properties" Info node in the Emacs Lisp Reference Manual for more
-details.
+properties 'left-fringe-help' and 'right-fringe-help'.  See the "(elisp)
+Special Properties" Info node in the Emacs Lisp Reference Manual for
+more details.
 
 +++
 ** New 'pop-up-frames' action alist entry for 'display-buffer'.
@@ -2594,7 +2601,7 @@ correctly UTF-8 encoded.
 *** The parser and encoder now accept arbitrarily large integers.
 Previously, they were limited to the range of signed 64-bit integers.
 
-** New tree-sitter functions and variables for defining and using "things".
+** New tree-sitter functions and variables for defining and using "things"
 
 +++
 *** New variable 'treesit-thing-settings'.
@@ -2618,7 +2625,7 @@ accept more kinds of predicates.  Lisp programs can now use thing
 symbols (defined in 'treesit-thing-settings') and any thing definitions
 for the predicate argument.
 
-** Other tree-sitter function and variable changes.
+** Other tree-sitter function and variable changes
 
 +++
 *** 'treesit-parser-list' now takes additional optional arguments.
@@ -2629,13 +2636,11 @@ all parsers, but rather "all parsers with no tags".
 
 +++
 *** New function 'treesit-parser-changed-ranges'.
-
 This function returns buffer regions that are affected by the last
 buffer edits.
 
 *** New function 'treesit-add-font-lock-rules'.
-
-This function helps user to add custom font-lock rules to a tree-sitter
+This function helps users to add custom font-lock rules to a tree-sitter
 major mode.
 
 ---

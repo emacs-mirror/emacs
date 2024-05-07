@@ -77,19 +77,25 @@ may edit files belonging to any and all applications."
   "Name of the local temporary directory on Android.")
 
 ;;;###tramp-autoload
-(tramp--with-startup
- (add-to-list 'tramp-methods
-	      `(,tramp-androidsu-method
-                (tramp-login-program       "su")
-                (tramp-login-args          (("-") ("%u")))
-                (tramp-remote-shell        ,tramp-androidsu-local-shell-name)
-                (tramp-remote-shell-login  ("-l"))
-                (tramp-remote-shell-args   ("-c"))
-                (tramp-tmpdir              ,tramp-androidsu-local-tmp-directory)
-                (tramp-connection-timeout  10)
-                (tramp-shell-name	   ,tramp-androidsu-local-shell-name)))
- (add-to-list 'tramp-default-user-alist
-              `(,tramp-androidsu-method nil ,tramp-root-id-string)))
+(defun tramp-enable-androidsu-method ()
+  "Enable \"androidsu\" method."
+  (add-to-list 'tramp-methods
+	       `(,tramp-androidsu-method
+                 (tramp-login-program       "su")
+                 (tramp-login-args          (("-") ("%u")))
+                 (tramp-remote-shell        ,tramp-androidsu-local-shell-name)
+                 (tramp-remote-shell-login  ("-l"))
+                 (tramp-remote-shell-args   ("-c"))
+                 (tramp-tmpdir              ,tramp-androidsu-local-tmp-directory)
+                 (tramp-connection-timeout  10)
+                 (tramp-shell-name	   ,tramp-androidsu-local-shell-name)))
+
+  (add-to-list 'tramp-default-user-alist
+               `(,tramp-androidsu-method nil ,tramp-root-id-string)))
+
+;;;###tramp-autoload
+(when (eq system-type 'android)
+  (tramp-enable-androidsu-method))
 
 (defvar android-use-exec-loader) ; androidfns.c.
 
