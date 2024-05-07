@@ -94,8 +94,9 @@ may edit files belonging to any and all applications."
                `(,tramp-androidsu-method nil ,tramp-root-id-string)))
 
 ;;;###tramp-autoload
-(when (eq system-type 'android)
-  (tramp-enable-androidsu-method))
+(tramp--with-startup
+ (when (eq system-type 'android)
+   (tramp-enable-androidsu-method)))
 
 (defvar android-use-exec-loader) ; androidfns.c.
 
