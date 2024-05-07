@@ -1461,7 +1461,7 @@ local_sockname (int s, char sockname[socknamesize], int tmpdirlen,
      fends off some symlink attacks.  To avoid races, keep the parent
      directory open while checking.  */
   char *emacsdirend = (sockname + tmpdirlen + suffixlen
-		       - strlen(server_name) - 1);
+		       - strlen (server_name) - 1);
   *emacsdirend = '\0';
   int dir = open (sockname, O_PATH | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
   *emacsdirend = '/';
