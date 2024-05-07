@@ -2635,6 +2635,19 @@ this case, would mean repeating the object in the argument list.)  When
 replacing an object with a different one, passing both the new and old
 objects is still necessary.
 
+** 'vtable-insert-object' can insert "before" or at an index.
+The signature of 'vtable-insert-object' has changed and is now:
+
+(vtable-insert-object table object &optional location before)
+
+'location' corresponds to the old 'after-object' argument; if 'before'
+is non-nil, the new object is inserted before the 'location' object,
+making it possible to insert a new object at the top of the
+table. (Before, this was not possible.)  In addition, 'location' can be
+an integer, a (zero-based) index into the table at which the new object
+is inserted ('before' is ignored in this case).
+
+
 ** JSON
 
 ---
