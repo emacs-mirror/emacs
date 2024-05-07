@@ -17850,6 +17850,7 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
       if ((prev_point != w->last_point
 	   || prev_mark != w->last_mark)
 	  && FRAME_WINDOW_P (WINDOW_XFRAME (w))
+	  && !FRAME_TOOLTIP_P (WINDOW_XFRAME (w))
 	  && w == XWINDOW (WINDOW_XFRAME (w)->selected_window))
 	report_point_change (WINDOW_XFRAME (w), w, b);
 #endif /* HAVE_TEXT_CONVERSION */
