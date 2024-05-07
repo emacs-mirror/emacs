@@ -4678,7 +4678,7 @@ network_lookup_address_info_1 (Lisp_Object host, const char *service,
   int ret;
 
   if (STRING_MULTIBYTE (host) && SBYTES (host) != SCHARS (host))
-    error ("Non-ASCII hostname %s detected, please use puny-encode-domain",
+    error ("Non-ASCII hostname %s detected, please use `puny-encode-domain'",
            SSDATA (host));
 
 #ifdef WINDOWSNT
