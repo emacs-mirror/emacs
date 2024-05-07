@@ -243,7 +243,8 @@ or `erc-send-modify-hook'."
   (unless (and (not erc-stamp--allow-unmanaged-p)
                (or (null erc--msg-props)
                    (erc--memq-msg-prop 'erc--skip 'stamp)))
-    (let* ((ct (erc-stamp--current-time))
+    (let* ((ct (or (erc--check-msg-prop 'erc--ts)
+                   (erc-stamp--current-time)))
            (invisible (get-text-property (point-min) 'invisible))
            (erc-stamp--invisible-property
             ;; FIXME on major version bump, make this `erc-' prefixed.
@@ -737,7 +738,8 @@ non-nil."
                 (setq erc-stamp--deferred-date-stamp nil)
                 (let* ((aligned (erc-stamp--time-as-day ct))
                        (erc-stamp--current-time aligned)
-                       (erc--msg-props (map-into '((erc--msg . datestamp))
+                       (erc--msg-props (map-into '((erc--msg . datestamp)
+                                                   (erc--skip track))
                                                  'hash-table))
                        (erc-insert-post-hook
                         `(,(lambda ()
