@@ -172,6 +172,11 @@ The function's value is the number of actions taken."
 		       (if minibuffer-auto-raise
 			   (raise-frame (window-frame (minibuffer-window))))
                        (unwind-protect
+                           ;; We want to inhibit text conversion here,
+                           ;; because it gets in the way when system
+                           ;; input methods are installed.  See
+                           ;; https://lists.gnu.org/archive/html/emacs-devel/2024-05/msg00441.html
+                           ;; for the details.
                            (let ((overriding-text-conversion-style nil))
                              (set-text-conversion-style text-conversion-style)
 		             (setq char (read-event)))
