@@ -1959,11 +1959,6 @@ unibyte string.
 
 * Lisp Changes in Emacs 30.1
 
-+++
-** Function type declaration.
-It is now possible to declare the expected type of a function's
-arguments and its return type using the 'declare' macro.
-
 ** New types 'closure' and 'interpreted-function'.
 'interpreted-function' is the new type used for interpreted functions,
 and 'closure' is the common parent type of 'interpreted-function'
@@ -2452,8 +2447,25 @@ were used to customizing 'native-comp-async-report-warnings-errors' to
 nil or 'silent', we suggest that you now leave it at its default value,
 and see if you get only warnings that matter.
 
+** Function 'declare' forms
+
 +++
-** New function declaration and property 'important-return-value'.
+*** New 'type' function declaration.
+The declaration '(type TYPE)' specifies the type of a function.
+Example:
+
+    (defun hello (x y)
+      (declare (type (function (integer boolean) string)))
+      ...)
+
+specifies that the function takes two arguments, an integer and a
+boolean, and returns a string.  This information can be used by the
+native compiler to produce better code, but specifying an incorrect type
+may lead to Emacs crashing.  See the Info node "(elisp) Declare Form"
+for further information.
+
++++
+*** New 'important-return-value' function declaration and property.
 The declaration '(important-return-value t)' sets the
 'important-return-value' property which indicates that the function
 return value should probably not be thrown away implicitly.
