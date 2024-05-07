@@ -1922,8 +1922,9 @@ to control which program to use when looking for matches."
        (hits nil)
        ;; Support for remote files.  The assumption is that, if the
        ;; first file is remote, they all are, and on the same host.
-       (dir (or (file-name-directory (car files))
-                default-directory))
+       (dir (if (file-name-absolute-p (car files))
+                (file-name-directory (car files))
+              default-directory))
        (remote-id (file-remote-p dir))
        ;; The 'auto' default would be fine too, but ripgrep can't handle
        ;; the options we pass in that case.
