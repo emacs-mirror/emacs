@@ -1366,10 +1366,11 @@ free_realized_fontsets (Lisp_Object base)
       if (CHAR_TABLE_P (this) && EQ (FONTSET_BASE (this), base))
 	{
 	  Fclear_face_cache (Qt);
-	  /* This is in case some Lisp calls this function and then
-	     proceeds with calling some other function, like font-at,
-	     which needs the basic faces.  */
-	  recompute_basic_faces (XFRAME (FONTSET_FRAME (this)));
+	  if (FRAME_LIVE_P (XFRAME (FONTSET_FRAME (this))))
+	    /* This is in case some Lisp calls this function and then
+	       proceeds with calling some other function, like font-at,
+	       which needs the basic faces.  */
+	    recompute_basic_faces (XFRAME (FONTSET_FRAME (this)));
 	  break;
 	}
     }
