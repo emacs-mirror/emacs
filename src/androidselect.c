@@ -99,9 +99,10 @@ android_init_emacs_clipboard (void)
   FIND_METHOD (clipboard_exists, "clipboardExists", "()Z");
   FIND_METHOD (get_clipboard, "getClipboard", "()[B");
   FIND_METHOD (get_clipboard_targets, "getClipboardTargets",
-	       "()[[B");
+	       "()[Ljava/lang/String;");
   FIND_METHOD (get_clipboard_data, "getClipboardData",
-	       "([B)Landroid/content/res/AssetFileDescriptor;");
+	       "(Ljava/lang/String;)Landroid/content/res/"
+	       "AssetFileDescriptor;");
 
   clipboard_class.make_clipboard
     = (*android_java_env)->GetStaticMethodID (android_java_env,
@@ -283,11 +284,11 @@ Value is a list of MIME types as strings, each defining a single extra
 data type available from the clipboard.  */)
   (void)
 {
-  jarray bytes_array;
-  jbyteArray bytes;
+  jarray all_targets;
+  jstring string;
   jmethodID method;
-  size_t length, length1, i;
-  jbyte *data;
+  size_t length, i;
+  const char *data;
   Lisp_Object targets, tem;
 
   if (!android_init_gui)
@@ -296,44 +297,42 @@ data type available from the clipboard.  */)
   targets = Qnil;
   block_input ();
   method = clipboard_class.get_clipboard_targets;
-  bytes_array = (*android_java_env)->CallObjectMethod (android_java_env,
+  all_targets = (*android_java_env)->CallObjectMethod (android_java_env,
 						       clipboard, method);
   android_exception_check ();
 
-  if (!bytes_array)
+  if (!all_targets)
     goto fail;
 
   length = (*android_java_env)->GetArrayLength (android_java_env,
-						bytes_array);
+					        all_targets);
   for (i = 0; i < length; ++i)
     {
       /* Retrieve the MIME type.  */
-      bytes
+      string
 	= (*android_java_env)->GetObjectArrayElement (android_java_env,
-						      bytes_array, i);
-      android_exception_check_nonnull (bytes, bytes_array);
+						      all_targets, i);
+      android_exception_check_nonnull (string, all_targets);
 
       /* Cons it onto the list of targets.  */
-      length1 = (*android_java_env)->GetArrayLength (android_java_env,
-						     bytes);
-      data = (*android_java_env)->GetByteArrayElements (android_java_env,
-							bytes, NULL);
-      android_exception_check_nonnull_1 (data, bytes, bytes_array);
+      data = (*android_java_env)->GetStringUTFChars (android_java_env,
+						     string, NULL);
+      android_exception_check_nonnull_1 ((void *) data, string,
+					 all_targets);
 
       /* Decode the string.  */
-      tem = make_unibyte_string ((char *) data, length1);
-      tem = code_convert_string_norecord (tem, Qutf_8, false);
+      tem = build_unibyte_string ((char *) data);
+      tem = code_convert_string_norecord (tem, Qandroid_jni, false);
       targets = Fcons (tem, targets);
 
       /* Delete the retrieved data.  */
-      (*android_java_env)->ReleaseByteArrayElements (android_java_env,
-						     bytes, data,
-						     JNI_ABORT);
-      ANDROID_DELETE_LOCAL_REF (bytes);
+      (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						  string, data);
+      ANDROID_DELETE_LOCAL_REF (string);
     }
   unblock_input ();
 
-  ANDROID_DELETE_LOCAL_REF (bytes_array);
+  ANDROID_DELETE_LOCAL_REF (all_targets);
   return Fnreverse (targets);
 
  fail:
@@ -432,7 +431,7 @@ extract_fd_offsets (jobject afd, int *fd, jlong *offset, jlong *length)
 #if __ANDROID_API__ <= 11
   static int (*jniGetFDFromFileDescriptor) (JNIEnv *, jobject);
 #endif /* __ANDROID_API__ <= 11 */
-  static int (*AFileDescriptor_getFd) (JNIEnv *, jobject);;
+  static int (*AFileDescriptor_getFd) (JNIEnv *, jobject);
   jmethodID method;
 
   method  = asset_fd_class.get_start_offset;
@@ -538,7 +537,7 @@ does not have any corresponding data.  In that case, use
   (Lisp_Object type)
 {
   jobject afd;
-  jbyteArray bytes;
+  jstring mime_type;
   jmethodID method;
   int fd;
   ptrdiff_t rc;
@@ -549,25 +548,17 @@ does not have any corresponding data.  In that case, use
   if (!android_init_gui)
     error ("No Android display connection!");
 
-  /* Encode the string as UTF-8.  */
   CHECK_STRING (type);
-  type = ENCODE_UTF_8 (type);
 
-  /* Then give it to the selection code.  */
+  /* Convert TYPE into a Java string.  */
   block_input ();
-  bytes = (*android_java_env)->NewByteArray (android_java_env,
-					     SBYTES (type));
-  (*android_java_env)->SetByteArrayRegion (android_java_env, bytes,
-					   0, SBYTES (type),
-					   (jbyte *) SDATA (type));
-  android_exception_check ();
-
+  mime_type = android_build_string (type, NULL);
   method = clipboard_class.get_clipboard_data;
   afd = (*android_java_env)->CallObjectMethod (android_java_env,
 					       clipboard, method,
-					       bytes);
-  android_exception_check_1 (bytes);
-  ANDROID_DELETE_LOCAL_REF (bytes);
+					       mime_type);
+  android_exception_check_1 (mime_type);
+  ANDROID_DELETE_LOCAL_REF (mime_type);
 
   if (!afd)
     goto fail;
@@ -578,7 +569,10 @@ does not have any corresponding data.  In that case, use
   record_unwind_protect_ptr (close_asset_fd, &afd);
 
   if (extract_fd_offsets (afd, &fd, &offset, &length))
-    return unbind_to (ref, Qnil);
+    {
+      unblock_input ();
+      return unbind_to (ref, Qnil);
+    }
   unblock_input ();
 
   /* Now begin reading from fd.  */

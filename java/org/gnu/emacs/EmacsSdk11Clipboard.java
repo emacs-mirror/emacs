@@ -172,12 +172,12 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
      clipboard, or NULL if there are none.  */
 
   @Override
-  public byte[][]
+  public String[]
   getClipboardTargets ()
   {
     ClipData clip;
     ClipDescription description;
-    byte[][] typeArray;
+    String[] typeArray;
     int i;
 
     /* N.B. that Android calls the clipboard the ``primary clip''; it
@@ -189,17 +189,10 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
 
     description = clip.getDescription ();
     i = description.getMimeTypeCount ();
-    typeArray = new byte[i][i];
+    typeArray = new String[i];
 
-    try
-      {
-	for (i = 0; i < description.getMimeTypeCount (); ++i)
-	  typeArray[i] = description.getMimeType (i).getBytes ("UTF-8");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	return null;
-      }
+    for (i = 0; i < description.getMimeTypeCount (); ++i)
+      typeArray[i] = description.getMimeType (i);
 
     return typeArray;
   }
@@ -219,26 +212,17 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
 
   @Override
   public AssetFileDescriptor
-  getClipboardData (byte[] target)
+  getClipboardData (String target)
   {
     ClipData data;
     String mimeType;
     AssetFileDescriptor assetFd;
     Uri uri;
 
-    /* Decode the target given by Emacs.  */
-    try
-      {
-	mimeType = new String (target, "UTF-8");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	return null;
-      }
-
     /* Now obtain the clipboard data and the data corresponding to
        that MIME type.  */
 
+    mimeType = target;
     data = manager.getPrimaryClip ();
 
     if (data == null || data.getItemCount () < 1)

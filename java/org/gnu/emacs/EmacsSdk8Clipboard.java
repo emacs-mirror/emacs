@@ -122,7 +122,7 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
      clipboard, or NULL if there are none.  */
 
   @Override
-  public byte[][]
+  public String[]
   getClipboardTargets ()
   {
     return null;
@@ -143,7 +143,7 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
 
   @Override
   public AssetFileDescriptor
-  getClipboardData (byte[] target)
+  getClipboardData (String target)
   {
     return null;
   }
