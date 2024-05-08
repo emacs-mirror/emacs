@@ -2103,14 +2103,18 @@ is greater than 10.
        (string-equal (file-remote-p (format "/-:%s@:" u) 'method) "ftp"))))
   ;; Default values in tramp-sh.el and tramp-sudoedit.el.
   (when (assoc "su" tramp-methods)
-    (dolist (h `("127.0.0.1" "[::1]" "localhost" "localhost6" ,(system-name)))
+    (dolist
+	(h `("127.0.0.1" "[::1]" "localhost" "localhost4" "localhost6"
+	     "ip6-localhost" "ip6-loopback" ,(system-name)))
       (should
-       (string-equal (file-remote-p (format "/-:root@%s:" h) 'method) "su")))
-    (dolist (m '("su" "sudo" "ksu" "doas" "sudoedit"))
+       (string-equal (file-remote-p (format "/-:root@%s:" h) 'method) "su"))))
+  (dolist (m '("su" "sudo" "ksu" "doas" "sudoedit"))
+    (when (assoc m tramp-methods)
       (should (string-equal (file-remote-p (format "/%s::" m) 'user) "root"))
       (should
-       (string-equal (file-remote-p (format "/%s::" m) 'host) (system-name))))
-    (dolist (m '("rcp" "remcp" "rsh" "telnet" "krlogin" "fcp" "nc"))
+       (string-equal (file-remote-p (format "/%s::" m) 'host) (system-name)))))
+  (dolist (m '("rcp" "remcp" "rsh" "telnet" "krlogin" "fcp" "nc"))
+    (when (assoc m tramp-methods)
       (should
        (string-equal
 	(file-remote-p (format "/%s::" m) 'user) (user-login-name)))))
@@ -2128,21 +2132,22 @@ is greater than 10.
   ;; Host names must match rules in case the command template of a
   ;; method doesn't use them.
   (dolist (m '("su" "sg" "sudo" "doas" "ksu"))
-    (let (tramp-connection-properties tramp-default-proxies-alist)
-      (ignore-errors
-	(tramp-cleanup-connection tramp-test-vec nil 'keep-password))
-      ;; Single hop.  The host name must match `tramp-local-host-regexp'.
-      (should-error
-       (find-file (format "/%s:foo:" m))
-       :type 'user-error)
-      ;; Multi hop.  The host name must match the previous hop.
-      (should-error
-       (find-file
-	(format
-	 "%s|%s:foo:"
-	 (substring (file-remote-p ert-remote-temporary-file-directory) 0 -1)
-	 m))
-       :type 'user-error))))
+    (when (assoc m tramp-methods)
+      (let (tramp-connection-properties tramp-default-proxies-alist)
+	(ignore-errors
+	  (tramp-cleanup-connection tramp-test-vec nil 'keep-password))
+	;; Single hop.  The host name must match `tramp-local-host-regexp'.
+	(should-error
+	 (find-file (format "/%s:foo:" m))
+	 :type 'user-error)
+	;; Multi hop.  The host name must match the previous hop.
+	(should-error
+	 (find-file
+	  (format
+	   "%s|%s:foo:"
+	   (substring (file-remote-p ert-remote-temporary-file-directory) 0 -1)
+	   m))
+	 :type 'user-error)))))
 
 (ert-deftest tramp-test03-file-name-method-rules ()
   "Check file name rules for some methods."

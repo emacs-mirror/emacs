@@ -1053,7 +1053,8 @@ mode line.  'header' will display in the header line;
 +++
 *** Tramp methods can be optional.
 An optional connection method is not enabled by default.  The user must
-enable it explicitly by the 'tramp-enable-method' command.
+enable it explicitly by the 'tramp-enable-method' command.  The existing
+methods "fcp", "krlogin", " ksu" and "nc" are optional now.
 
 +++
 *** New optional connection method "androidsu".

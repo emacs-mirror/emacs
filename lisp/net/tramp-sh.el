@@ -273,22 +273,6 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))))
  (add-to-list 'tramp-methods
-              `("nc"
-                (tramp-login-program        "telnet")
-                (tramp-login-args           (("%h") ("%p") ("%n")))
-                (tramp-remote-shell         ,tramp-default-remote-shell)
-                (tramp-remote-shell-login   ("-l"))
-                (tramp-remote-shell-args    ("-c"))
-                (tramp-copy-program         "nc")
-                ;; We use "-v" for better error tracking.
-                (tramp-copy-args            (("-w" "1") ("-v") ("%h") ("%r")))
-                (tramp-copy-file-name       (("%f")))
-                (tramp-remote-copy-program  "nc")
-                ;; We use "-p" as required for newer busyboxes.  For older
-                ;; busybox/nc versions, the value must be (("-l") ("%r")).  This
-                ;; can be achieved by tweaking `tramp-connection-properties'.
-                (tramp-remote-copy-args     (("-l") ("-p" "%r") ("%n")))))
- (add-to-list 'tramp-methods
               `("su"
                 (tramp-login-program        "su")
                 (tramp-login-args           (("-") ("%u")))
@@ -328,21 +312,6 @@ The string is used in `tramp-methods'.")
                 (tramp-connection-timeout   10)
                 (tramp-session-timeout      300)
 		(tramp-password-previous-hop t)))
- (add-to-list 'tramp-methods
-              `("ksu"
-                (tramp-login-program        "ksu")
-                (tramp-login-args           (("%u") ("-q")))
-                (tramp-remote-shell         ,tramp-default-remote-shell)
-                (tramp-remote-shell-login   ("-l"))
-                (tramp-remote-shell-args    ("-c"))
-                (tramp-connection-timeout   10)))
- (add-to-list 'tramp-methods
-              `("krlogin"
-                (tramp-login-program        "krlogin")
-                (tramp-login-args           (("%h") ("-l" "%u") ("-x")))
-                (tramp-remote-shell         ,tramp-default-remote-shell)
-                (tramp-remote-shell-login   ("-l"))
-                (tramp-remote-shell-args    ("-c"))))
  (add-to-list 'tramp-methods
               `("plink"
                 (tramp-login-program        "plink")
@@ -403,30 +372,18 @@ The string is used in `tramp-methods'.")
                 (tramp-copy-args            (("-l" "%u") ("-P" "%p") ("-sftp")
 					     ("-p" "%k")))
                 (tramp-copy-keep-date       t)))
- (add-to-list 'tramp-methods
-              `("fcp"
-                (tramp-login-program        "fsh")
-                (tramp-login-args           (("%h") ("-l" "%u") ("sh" "-i")))
-                (tramp-remote-shell         ,tramp-default-remote-shell)
-                (tramp-remote-shell-login   ("-l"))
-                (tramp-remote-shell-args    ("-i") ("-c"))
-                (tramp-copy-program         "fcp")
-                (tramp-copy-args            (("-p" "%k")))
-                (tramp-copy-keep-date       t)))
 
  (add-to-list 'tramp-default-method-alist
 	      `(,tramp-local-host-regexp
 		,(rx bos (literal tramp-root-id-string) eos) "su"))
 
  (add-to-list 'tramp-default-user-alist
-	      `(,(rx bos (| "su" "sudo" "doas" "ksu") eos)
+	      `(,(rx bos (| "su" "sudo" "doas") eos)
 	        nil ,tramp-root-id-string))
  ;; Do not add "ssh" based methods, otherwise ~/.ssh/config would be ignored.
  ;; Do not add "plink" based methods, they ask interactively for the user.
  (add-to-list 'tramp-default-user-alist
-	      `(,(rx bos
-		     (| "rcp" "remcp" "rsh" "telnet" "nc" "krlogin" "fcp")
-		     eos)
+	      `(,(rx bos (| "rcp" "remcp" "rsh" "telnet") eos)
 	        nil ,(user-login-name))))
 
 (defconst tramp-default-copy-file-name '(("%u" "@") ("%h" ":") ("%f"))
@@ -508,20 +465,94 @@ The string is used in `tramp-methods'.")
  (tramp-set-completion-function "sshx" tramp-completion-function-alist-ssh)
  (tramp-set-completion-function
   "telnet" tramp-completion-function-alist-telnet)
- (tramp-set-completion-function "nc" tramp-completion-function-alist-telnet)
  (tramp-set-completion-function "su" tramp-completion-function-alist-su)
  (tramp-set-completion-function "sudo" tramp-completion-function-alist-su)
  (tramp-set-completion-function "doas" tramp-completion-function-alist-su)
- (tramp-set-completion-function "ksu" tramp-completion-function-alist-su)
  (tramp-set-completion-function "sg" tramp-completion-function-alist-sg)
- (tramp-set-completion-function
-  "krlogin" tramp-completion-function-alist-rsh)
  (tramp-set-completion-function "plink" tramp-completion-function-alist-ssh)
  (tramp-set-completion-function
   "plinkx" tramp-completion-function-alist-putty)
  (tramp-set-completion-function "pscp" tramp-completion-function-alist-ssh)
- (tramp-set-completion-function "psftp" tramp-completion-function-alist-ssh)
- (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh))
+ (tramp-set-completion-function "psftp" tramp-completion-function-alist-ssh))
+
+;;;###tramp-autoload
+(defun tramp-enable-nc-method ()
+  "Enable \"ksu\" method."
+  (add-to-list 'tramp-methods
+               `("nc"
+                 (tramp-login-program        "telnet")
+                 (tramp-login-args           (("%h") ("%p") ("%n")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))
+                 (tramp-copy-program         "nc")
+                 ;; We use "-v" for better error tracking.
+                 (tramp-copy-args            (("-w" "1") ("-v") ("%h") ("%r")))
+                 (tramp-copy-file-name       (("%f")))
+                 (tramp-remote-copy-program  "nc")
+                 ;; We use "-p" as required for newer busyboxes.  For
+                 ;; older busybox/nc versions, the value must be
+                 ;; (("-l") ("%r")).  This can be achieved by tweaking
+                 ;; `tramp-connection-properties'.
+                 (tramp-remote-copy-args     (("-l") ("-p" "%r") ("%n")))))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "nc" eos) nil ,(user-login-name)))
+
+  (tramp-set-completion-function "nc" tramp-completion-function-alist-telnet))
+
+;;;###tramp-autoload
+(defun tramp-enable-ksu-method ()
+  "Enable \"ksu\" method."
+  (add-to-list 'tramp-methods
+               `("ksu"
+                 (tramp-login-program        "ksu")
+                 (tramp-login-args           (("%u") ("-q")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))
+                 (tramp-connection-timeout   10)))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "ksu" eos) nil ,tramp-root-id-string))
+
+  (tramp-set-completion-function "ksu" tramp-completion-function-alist-su))
+
+;;;###tramp-autoload
+(defun tramp-enable-krlogin-method ()
+  "Enable \"krlogin\" method."
+  (add-to-list 'tramp-methods
+               `("krlogin"
+                 (tramp-login-program        "krlogin")
+                 (tramp-login-args           (("%h") ("-l" "%u") ("-x")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "krlogin" eos) nil ,(user-login-name)))
+
+  (tramp-set-completion-function
+   "krlogin" tramp-completion-function-alist-rsh))
+
+;;;###tramp-autoload
+(defun tramp-enable-fcp-method ()
+  "Enable \"fcp\" method."
+  (add-to-list 'tramp-methods
+               `("fcp"
+                 (tramp-login-program        "fsh")
+                 (tramp-login-args           (("%h") ("-l" "%u") ("sh" "-i")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-i") ("-c"))
+                 (tramp-copy-program         "fcp")
+                 (tramp-copy-args            (("-p" "%k")))
+                 (tramp-copy-keep-date       t)))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "fcp" eos) nil ,(user-login-name)))
+
+  (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh))
 
 (defcustom tramp-sh-extra-args
   `((,(rx (| bos "/") "bash" eos) . "-noediting -norc -noprofile")

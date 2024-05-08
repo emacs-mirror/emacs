@@ -923,12 +923,15 @@ missing shell prompts that confuses @value{tramp}.
 This method is also similar to @option{ssh}.  It uses the
 @command{krlogin -x} command only for remote host login.
 
+This method is an optional method, @ref{Optional methods}.
+
 @item @option{ksu}
 @cindex method @option{ksu}
 @cindex @option{ksu} method
 @cindex kerberos (with @option{ksu} method)
 
-This is another method from the Kerberos suite.  It behaves like @option{su}.
+This is another method from the Kerberos suite.  It behaves like
+@option{su}.  It is an optional method, @ref{Optional methods}.
 
 @item @option{plink}
 @cindex method @option{plink}
@@ -1151,6 +1154,8 @@ The command used for this connection is: @samp{fsh @var{host} -l
 not useful for @value{tramp}.  @command{fsh} connects to remote host
 and @value{tramp} keeps that one connection open.
 
+This is an optional method, @ref{Optional methods}.
+
 @item @option{nc}
 @cindex method @option{nc}
 @cindex @option{nc} method
@@ -1161,6 +1166,8 @@ is sometimes the only combination suitable for accessing routers or
 NAS hosts.  These dumb devices have severely restricted local shells,
 such as the @command{busybox} and do not host any other encode or
 decode programs.
+
+This is an optional method, @ref{Optional methods}.
 
 @item @option{sudoedit}
 @cindex method @option{sudoedit}

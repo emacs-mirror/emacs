@@ -91,7 +91,8 @@ may edit files belonging to any and all applications."
                  (tramp-shell-name	   ,tramp-androidsu-local-shell-name)))
 
   (add-to-list 'tramp-default-user-alist
-               `(,tramp-androidsu-method nil ,tramp-root-id-string)))
+	       `(,(rx bos (literal tramp-androidsu-method) eos)
+		 nil ,tramp-root-id-string)))
 
 ;;;###tramp-autoload
 (tramp--with-startup
