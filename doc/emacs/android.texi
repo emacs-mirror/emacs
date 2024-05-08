@@ -904,9 +904,9 @@ devices.
 @item
 The @code{alpha}, @code{alpha-background}, @code{z-group},
 @code{override-redirect}, @code{mouse-color}, @code{title},
-@code{wait-for-wm}, @code{sticky}, @code{undecorated} and
-@code{tool-bar-position} frame parameters (@pxref{Frame Parameters,,,
-elisp, the Emacs Lisp Reference Manual}) are unsupported.
+@code{wait-for-wm}, @code{sticky}, and @code{undecorated} frame
+parameters (@pxref{Frame Parameters,,, elisp, the Emacs Lisp Reference
+Manual}) are unsupported.
 
 @item
 On Android 4.0 and earlier, the @code{fullscreen} frame parameter is
