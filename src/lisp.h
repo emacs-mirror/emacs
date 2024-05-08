@@ -43,6 +43,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 INLINE_HEADER_BEGIN
 
+# ifdef HAVE_MPS
+void igc_check_fwd (void *);
+# endif
+
 /* Define a TYPE constant ID as an externally visible name.  Use like this:
 
       DEFINE_GDB_SYMBOL_BEGIN (TYPE, ID)
@@ -1152,6 +1156,9 @@ XBARE_SYMBOL (Lisp_Object a)
   eassert (BARE_SYMBOL_P (a));
   intptr_t i = (intptr_t) XUNTAG (a, Lisp_Symbol, struct Lisp_Symbol);
   void *p = (char *) lispsym + i;
+#if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (p);
+#endif
   return p;
 }
 
