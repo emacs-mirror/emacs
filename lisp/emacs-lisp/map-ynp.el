@@ -178,9 +178,11 @@ The function's value is the number of actions taken."
                            ;; https://lists.gnu.org/archive/html/emacs-devel/2024-05/msg00441.html
                            ;; for the details.
                            (let ((overriding-text-conversion-style nil))
-                             (set-text-conversion-style text-conversion-style)
+                             (when (fboundp 'set-text-conversion-style)
+                               (set-text-conversion-style text-conversion-style))
 		             (setq char (read-event)))
-                         (set-text-conversion-style text-conversion-style))
+                         (when (fboundp 'set-text-conversion-style)
+                           (set-text-conversion-style text-conversion-style)))
 		       ;; Show the answer to the question.
 		       (message "%s(y, n, !, ., q, %sor %s) %s"
 				prompt user-keys
