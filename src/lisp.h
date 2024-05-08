@@ -1125,8 +1125,14 @@ SYMBOLP (Lisp_Object x)
 INLINE struct Lisp_Symbol_With_Pos *
 XSYMBOL_WITH_POS (Lisp_Object a)
 {
-    eassert (SYMBOL_WITH_POS_P (a));
-    return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
+  eassert (SYMBOL_WITH_POS_P (a));
+
+  struct Lisp_Symbol_With_Pos *s
+    = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
+  # if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (s);
+# endif
+  return s;
 }
 
 INLINE Lisp_Object
@@ -1512,7 +1518,11 @@ INLINE struct Lisp_Cons *
 XCONS (Lisp_Object a)
 {
   eassert (CONSP (a));
-  return XUNTAG (a, Lisp_Cons, struct Lisp_Cons);
+  struct Lisp_Cons *c = XUNTAG (a, Lisp_Cons, struct Lisp_Cons);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (c);
+# endif
+  return c;
 }
 
 /* Take the car or cdr of something known to be a cons cell.  */
@@ -1636,7 +1646,11 @@ INLINE struct Lisp_String *
 XSTRING (Lisp_Object a)
 {
   eassert (STRINGP (a));
-  return XUNTAG (a, Lisp_String, struct Lisp_String);
+  struct Lisp_String *s = XUNTAG (a, Lisp_String, struct Lisp_String);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (s);
+# endif
+  return s;
 }
 
 /* True if STR is a multibyte string.  */
@@ -1783,7 +1797,11 @@ INLINE struct Lisp_Vector *
 XVECTOR (Lisp_Object a)
 {
   eassert (VECTORLIKEP (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Vector);
+  struct Lisp_Vector *v = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Vector);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (v);
+# endif
+  return v;
 }
 
 INLINE ptrdiff_t
@@ -1932,7 +1950,12 @@ INLINE struct Lisp_Bool_Vector *
 XBOOL_VECTOR (Lisp_Object a)
 {
   eassert (BOOL_VECTOR_P (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Bool_Vector);
+  struct Lisp_Bool_Vector *v
+    = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Bool_Vector);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (v);
+# endif
+  return v;
 }
 
 INLINE EMACS_INT
@@ -2120,7 +2143,11 @@ INLINE struct Lisp_Char_Table *
 XCHAR_TABLE (Lisp_Object a)
 {
   eassert (CHAR_TABLE_P (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Char_Table);
+  struct Lisp_Char_Table *t = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Char_Table);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (t);
+# endif
+  return t;
 }
 
 struct Lisp_Sub_Char_Table
@@ -2443,7 +2470,11 @@ INLINE struct Lisp_Obarray *
 XOBARRAY (Lisp_Object a)
 {
   eassert (OBARRAYP (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Obarray);
+  struct Lisp_Obarray *o = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Obarray);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (o);
+# endif
+  return o;
 }
 
 INLINE void
@@ -2699,7 +2730,12 @@ INLINE struct Lisp_Hash_Table *
 XHASH_TABLE (Lisp_Object a)
 {
   eassert (HASH_TABLE_P (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Hash_Table);
+  struct Lisp_Hash_Table *h
+    = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Hash_Table);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (h);
+# endif
+  return h;
 }
 
 INLINE Lisp_Object
@@ -2997,7 +3033,11 @@ INLINE struct Lisp_Marker *
 XMARKER (Lisp_Object a)
 {
   eassert (MARKERP (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Marker);
+  struct Lisp_Marker *m = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Marker);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (m);
+# endif
+  return m;
 }
 
 INLINE bool
@@ -3010,7 +3050,11 @@ INLINE struct Lisp_Overlay *
 XOVERLAY (Lisp_Object a)
 {
   eassert (OVERLAYP (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Overlay);
+  struct Lisp_Overlay *o = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Overlay);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (o);
+# endif
+  return o;
 }
 
 INLINE bool
@@ -3214,7 +3258,11 @@ INLINE struct Lisp_Float *
 XFLOAT (Lisp_Object a)
 {
   eassert (FLOATP (a));
-  return XUNTAG (a, Lisp_Float, struct Lisp_Float);
+  struct Lisp_Float *f = XUNTAG (a, Lisp_Float, struct Lisp_Float);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (f);
+# endif
+  return f;
 }
 
 INLINE double
@@ -4976,7 +5024,12 @@ INLINE struct Lisp_Module_Function *
 XMODULE_FUNCTION (Lisp_Object o)
 {
   eassert (MODULE_FUNCTIONP (o));
-  return XUNTAG (o, Lisp_Vectorlike, struct Lisp_Module_Function);
+  struct Lisp_Module_Function *f
+    = XUNTAG (o, Lisp_Vectorlike, struct Lisp_Module_Function);
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  igc_check_fwd (f);
+# endif
+  return f;
 }
 
 #ifdef HAVE_MODULES
