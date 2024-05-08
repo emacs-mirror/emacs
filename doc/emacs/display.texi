@@ -175,6 +175,9 @@ scroll the current window by one line at a time.  If you intend to use
 any of these commands, you might want to give them key bindings
 (@pxref{Init Rebinding}).
 
+  On graphical displays, you can also scroll a window using the scroll
+bar; @pxref{Scroll Bars}.
+
 @node Recentering
 @section Recentering
 
@@ -404,6 +407,10 @@ than the amount you previously set by @code{scroll-left}.  When
 @code{auto-hscroll-mode} is set to @code{current-line}, all the lines
 other than the one showing the cursor will be scrolled by that minimal
 amount.
+
+  On graphical displays, you can scroll a window horizontally using
+the horizontal scroll bar, if you turn on the optional
+@code{horizontal-scroll-bar-mode}; @pxref{Scroll Bars}.
 
 @node Narrowing
 @section Narrowing
