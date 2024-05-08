@@ -6135,7 +6135,8 @@ NUH, and the current `erc-response' object.")
 
 ;; The format strings in the following `-speaker' catalog shouldn't
 ;; contain any non-protocol words, so they make sense in any language.
-
+;; Note that the following definitions generally avoid `propertize'
+;; because it reverses the order of the text properties it's given.
 (defvar erc--message-speaker-statusmsg
   #("(%p%n%s) %m"
     0 1 (font-lock-face erc-default-face)
@@ -6227,11 +6228,11 @@ NUH, and the current `erc-response' object.")
   "Message template for a CTCP ACTION from another user.")
 
 (defvar erc--message-speaker-ctcp-action-input
-  #("* %p%n %m"
-    0 2 (font-lock-face #1=(erc-input-face erc-action-face))
-    2 4 (font-lock-face (erc-my-nick-prefix-face . #1#))
-    4 6 (font-lock-face (erc-my-nick-face . #1#))
-    6 9 (font-lock-face #1#))
+  (let ((base '(erc-input-face erc-action-face))) ; shared
+    (concat (propertize "* " 'font-lock-face base)
+            (propertize "%p" 'font-lock-face `(erc-my-nick-prefix-face ,@base))
+            (propertize "%n" 'font-lock-face `(erc-my-nick-face ,@base))
+            (propertize " %m" 'font-lock-face base)))
   "Message template for a CTCP ACTION from current client.")
 
 (defvar erc--message-speaker-ctcp-action-statusmsg
@@ -6244,12 +6245,12 @@ NUH, and the current `erc-response' object.")
   "Template for a CTCP ACTION status message from another chan op.")
 
 (defvar erc--message-speaker-ctcp-action-statusmsg-input
-  #("* (%p%n%s) %m"
-    0 3 (font-lock-face #1=(erc-input-face erc-action-face))
-    3 5 (font-lock-face (erc-my-nick-prefix-face . #1#))
-    5 7 (font-lock-face (erc-my-nick-face . #1#))
-    7 9 (font-lock-face (erc-notice-face . #1#))
-    9 13 (font-lock-face #1#))
+  (let ((base '(erc-input-face erc-action-face))) ; shared
+    (concat (propertize "* (" 'font-lock-face base)
+            (propertize "%p" 'font-lock-face `(erc-my-nick-prefix-face ,@base))
+            (propertize "%n" 'font-lock-face `(erc-my-nick-face ,@base))
+            (propertize "%s" 'font-lock-face `(erc-notice-face ,@base))
+            (propertize ") %m" 'font-lock-face base)))
   "Template for a CTCP ACTION status message from current client.")
 
 (defun erc--speakerize-nick (nick &optional disp)
