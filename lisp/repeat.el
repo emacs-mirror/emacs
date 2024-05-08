@@ -558,14 +558,14 @@ This function can be used to force exit of repetition while it's active."
     (format-message
      "Repeat with %s%s"
      (mapconcat (lambda (key-cmd)
-                  (let* ((key (car key-cmd))
-                         (cmd (cdr key-cmd))
-                         (hint (when (symbolp cmd)
-                                 (get cmd 'repeat-hint))))
-                    (substitute-command-keys
-                     (format "\\`%s'%s"
-                             (key-description (vector key))
-                             (if hint (format ":%s" hint) "")))))
+                  (let ((key (car key-cmd))
+                        (cmd (cdr key-cmd)))
+                    (if-let ((hint (and (symbolp cmd)
+                                        (get cmd 'repeat-hint))))
+                        ;; Reuse `read-multiple-choice' formatting.
+                        (cdr (rmc--add-key-description (list key hint)))
+                      (propertize (key-description (vector key))
+                                  'face 'read-multiple-choice-face))))
                 keys ", ")
      (if repeat-exit-key
          (substitute-command-keys
