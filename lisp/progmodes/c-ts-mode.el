@@ -617,8 +617,11 @@ MODE is either `c' or `cpp'."
      (preproc_params
       (identifier) @font-lock-variable-name-face)
 
-     (preproc_defined) @font-lock-preprocessor-face
-     (preproc_defined (identifier) @font-lock-variable-name-face)
+     (preproc_defined
+      "defined" @font-lock-preprocessor-face
+      "(" @font-lock-preprocessor-face
+      (identifier) @font-lock-variable-name-face
+      ")" @font-lock-preprocessor-face)
      [,@c-ts-mode--preproc-keywords] @font-lock-preprocessor-face)
 
    :language mode
