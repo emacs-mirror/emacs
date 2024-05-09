@@ -2884,15 +2884,21 @@ See the descriptions of arguments in `outline-search-function'."
                   (start (treesit-node-start node)))
         (eq (pos-bol) (save-excursion (goto-char start) (pos-bol))))
 
-    (let* ((pos
+    (let* ((bob-pos
+            ;; `treesit-navigate-thing' can't find a thing at bobp,
+            ;; so use `looking-at' to match at bobp.
+            (and (bobp) (treesit-outline-search bound move backward t) (point)))
+           (pos
             ;; When function wants to find the current outline, point
             ;; is at the beginning of the current line.  When it wants
             ;; to find the next outline, point is at the second column.
-            (if (eq (point) (pos-bol))
-                (if (bobp) (point) (1- (point)))
-              (pos-eol)))
-           (found (treesit-navigate-thing pos (if backward -1 1) 'beg
-                                          treesit-outline-predicate)))
+            (unless bob-pos
+              (if (eq (point) (pos-bol))
+                  (if (bobp) (point) (1- (point)))
+                (pos-eol))))
+           (found (or bob-pos
+                      (treesit-navigate-thing pos (if backward -1 1) 'beg
+                                              treesit-outline-predicate))))
       (if found
           (if (or (not bound) (if backward (>= found bound) (<= found bound)))
               (progn
