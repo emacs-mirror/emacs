@@ -665,7 +665,9 @@ MODE is either `c' or `cpp'."
            (qualified_identifier
             scope: (namespace_identifier) @font-lock-type-face)
 
-           (operator_cast) type: (type_identifier) @font-lock-type-face))
+           (operator_cast) type: (type_identifier) @font-lock-type-face
+
+           (namespace_identifier) @font-lock-constant-face))
      [,@c-ts-mode--type-keywords] @font-lock-type-face)
 
    :language mode
