@@ -360,6 +360,8 @@ struct igc
   mps_pool_t weak_pool;
   struct igc_root_list *roots;
   struct igc_thread_list *threads;
+  Lisp_Object *cu;
+  ptrdiff_t cu_capacity, ncu;
 };
 
 static struct igc *global_igc;
@@ -1696,6 +1698,7 @@ fix_comp_unit (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, u, fix_vectorlike);
+    //fprintf (stderr, "+++ %p %zu\n", u->data_relocs, u->n_data_relocs);
     if (u->data_imp_relocs)
       IGC_FIX12_NOBJS (ss, u->data_imp_relocs, u->n_data_imp_relocs);
     if (u->data_relocs)
@@ -1704,6 +1707,22 @@ fix_comp_unit (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
       IGC_FIX12_NOBJS (ss, u->data_eph_relocs, u->n_data_eph_relocs);
     if (u->comp_unit)
       IGC_FIX12_OBJ (ss, u->comp_unit);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
+scan_comp_units (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (Lisp_Object *p = start; (void *) p < end; ++p)
+      if (*p)
+	{
+	  struct Lisp_Native_Comp_Unit *u = XNATIVE_COMP_UNIT (*p);
+	  IGC_FIX_CALL (ss, fix_comp_unit (ss, u));
+	}
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2299,6 +2318,34 @@ igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
     root_create_ambig (global_igc, pa, end);
   }
   return pa;
+}
+
+void
+igc_register_cu (Lisp_Object cu)
+{
+  igc_assert (pdumper_object_p (XNATIVE_COMP_UNIT (cu)));
+  struct igc *gc = global_igc;
+  if (gc->ncu == gc->cu_capacity)
+    {
+      IGC_WITH_PARKED (global_igc)
+	{
+	  if (gc->cu)
+	    {
+	      struct igc_root_list *r = root_find (gc->cu);
+	      igc_assert (r != NULL);
+	      destroy_root (&r);
+	    }
+
+	  gc->cu = xpalloc (gc->cu, &gc->cu_capacity, 10, 2 * gc->cu_capacity,
+			    sizeof *gc->cu);
+	  for (int i = gc->ncu; i < gc->cu_capacity; ++i)
+	    gc->cu[i] = Qnil;
+	  root_create (gc, gc->cu, gc->cu + gc->cu_capacity, mps_rank_exact (),
+		       scan_comp_units, false);
+	}
+    }
+
+  gc->cu[gc->ncu++] = cu;
 }
 
 void

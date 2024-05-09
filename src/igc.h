@@ -95,6 +95,7 @@ void igc_collect (void);
 void igc_root_create_ambig (void *start, void *end);
 void igc_root_create_exact (Lisp_Object *start, Lisp_Object *end);
 void igc_root_create_exact_ptr (void *var_addr);
+void igc_register_cu (Lisp_Object cu);
 
 struct Lisp_Weak_Ref;
 Lisp_Object igc_weak_ref_deref (struct Lisp_Weak_Ref *);
