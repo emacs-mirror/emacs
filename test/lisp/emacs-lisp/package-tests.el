@@ -634,14 +634,15 @@ but with a different end of line convention (bug#48137)."
 (ert-deftest package-test-update-archives-async ()
   "Test updating package archives asynchronously."
   :tags '(:expensive-test)
-  (skip-unless (executable-find "python2"))
   (let* ((package-menu-async t)
          (default-directory package-test-data-dir)
-         (process (start-process
+         (python-interpreter (seq-some #'executable-find '("python" "python3" "python2")))
+         process addr)
+    (skip-unless python-interpreter)
+    (setq process (start-process
                    "package-server" "package-server-buffer"
-                   (executable-find "python2")
+                   python-interpreter
                    "package-test-server.py"))
-         (addr nil))
     (unwind-protect
         (progn
           (with-current-buffer "package-server-buffer"
