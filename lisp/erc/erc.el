@@ -1990,7 +1990,7 @@ either SERVER or PORT (but not both) to be nil to accommodate oddball
 `erc-server-connect-function's.
 
 When TGT-INFO is non-nil, expect its string field to match the redundant
-param TARGET (retained for compatibility).  Whenever possibly, prefer
+param TARGET (retained for compatibility).  Whenever possible, prefer
 returning TGT-INFO's string unmodified.  But when a case-insensitive
 collision prevents that, return target@ID when ID is non-nil or
 target@network otherwise after renaming the conflicting buffer in the
@@ -2150,6 +2150,10 @@ all channel buffers on all servers."
       (if user
           (erc-server-user-buffers user)
         nil))))
+
+(defun erc--query-list ()
+  "Return all query buffers for the current connection."
+  (erc-buffer-list #'erc-query-buffer-p erc-server-process))
 
 ;; Some local variables
 

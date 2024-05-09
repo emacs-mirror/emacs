@@ -121,6 +121,7 @@
 (declare-function erc--init-channel-modes "erc" (channel raw-args))
 (declare-function erc--open-target "erc" (target))
 (declare-function erc--parse-nuh "erc" (string))
+(declare-function erc--query-list "erc" ())
 (declare-function erc--target-from-string "erc" (string))
 (declare-function erc--update-modes "erc" (raw-args))
 (declare-function erc-active-buffer "erc" nil)
@@ -1839,6 +1840,37 @@ add things to `%s' instead."
                                  ?h host ?t tgt ?m mode)))
       (erc-banlist-update proc parsed))))
 
+(defun erc--wrangle-query-buffers-on-nick-change (old new)
+  "Create or reuse a query buffer for NEW nick after considering OLD nick.
+Return a list of buffers in which to announce the change."
+  ;; Note that `new-buffer' may be older than `old-buffer', e.g., if
+  ;; the query target is switching to a previously used nick.
+  (let ((new-buffer (erc-get-buffer new erc-server-process))
+        (old-buffer (erc-get-buffer old erc-server-process))
+        (selfp (erc-current-nick-p old)) ; e.g., for note taking, etc.
+        buffers)
+    (when new-buffer
+      (push new-buffer buffers))
+    (when old-buffer
+      (push old-buffer buffers)
+      ;; Ensure the new nick is absent from the old query.
+      (unless selfp
+        (erc-remove-channel-member old-buffer old))
+      (when (or selfp (null new-buffer))
+        (let ((target (erc--target-from-string new))
+              (id (erc-networks--id-given erc-networks--id)))
+          (with-current-buffer old-buffer
+            (setq erc-default-recipients (cons new
+                                               (cdr erc-default-recipients))
+                  erc--target target))
+          (setq new-buffer (erc-get-buffer-create erc-session-server
+                                                  erc-session-port
+                                                  nil target id)))))
+    (when new-buffer
+      (with-current-buffer new-buffer
+        (erc-update-mode-line)))
+    buffers))
+
 (define-erc-response-handler (NICK)
   "Handle nick change messages." nil
   (let ((nn (erc-response.contents parsed))
@@ -1853,21 +1885,14 @@ add things to `%s' instead."
       ;; erc-channel-users won't contain it
       ;;
       ;; Possibly still relevant: bug#12002
-      (when-let ((buf (erc-get-buffer nick erc-server-process))
-                 (tgt (erc--target-from-string nn)))
-        (with-current-buffer buf
-          (setq erc-default-recipients (cons nn (cdr erc-default-recipients))
-                erc--target tgt))
-        (with-current-buffer (erc-get-buffer-create erc-session-server
-                                                    erc-session-port nil tgt
-                                                    (erc-networks--id-given
-                                                     erc-networks--id))
-          ;; Current buffer is among bufs
-          (erc-update-mode-line)))
-      (erc-update-user-nick nick nn host nil nil login)
+      (dolist (buf (erc--wrangle-query-buffers-on-nick-change nick nn))
+        (cl-pushnew buf bufs))
+      (erc-update-user-nick nick nn host login)
       (cond
        ((string= nick (erc-current-nick))
         (cl-pushnew (erc-server-buffer) bufs)
+        ;; Show message in all query buffers.
+        (setq bufs (append (erc--query-list) bufs))
         (erc-set-current-nick nn)
         ;; Rename session, possibly rename server buf and all targets
         (when erc-server-connected
@@ -2103,15 +2128,20 @@ like `erc-insert-modify-hook'.")
 (define-erc-response-handler (QUIT)
   "Another user has quit IRC." nil
   (let ((reason (erc-response.contents parsed))
+        (erc--msg-prop-overrides erc--msg-prop-overrides)
         bufs)
     (pcase-let ((`(,nick ,login ,host)
                  (erc-parse-user (erc-response.sender parsed))))
       (setq bufs (erc-buffer-list-with-nick nick proc))
-      (erc-remove-user nick)
+      (when (erc-current-nick-p nick)
+        (setq bufs (append (erc--query-list) bufs))
+        (push '(erc--skip . (track)) erc--msg-prop-overrides))
       (setq reason (erc-wash-quit-reason reason nick login host))
       (erc-display-message parsed 'notice bufs
                            'QUIT ?n nick ?u login
-                           ?h host ?r reason))))
+                           ?h host ?r reason)
+      (erc-remove-user nick)))
+  nil)
 
 (define-erc-response-handler (TOPIC)
   "The channel topic has changed." nil
