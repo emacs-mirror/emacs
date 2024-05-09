@@ -2813,7 +2813,7 @@ android_content_opendir (struct android_vnode *vnode)
   /* Android 4.3 and earlier don't support /content/by-authority.  */
 
   if (api < 19)
-    dir->next_name++;
+    dir->next_name += 2;
 
   /* Link this stream onto the list of all content directory
      streams.  */
