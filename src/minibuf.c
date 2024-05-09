@@ -1538,7 +1538,7 @@ function, instead of the usual behavior.  */)
 					      STRING_MULTIBYTE (prompt));
 	    }
 
-	  prompt = CALLN (Ffuncall, intern("format-prompt"),
+	  prompt = CALLN (Ffuncall, Qformat_prompt,
 			  prompt,
 			  CONSP (def) ? XCAR (def) : def);
 	}
@@ -2533,4 +2533,5 @@ showing the *Completions* buffer, if any.  */);
   DEFSYM (Qminibuffer_quit_recursive_edit, "minibuffer-quit-recursive-edit");
   DEFSYM (Qinternal_complete_buffer, "internal-complete-buffer");
   DEFSYM (Qcompleting_read_function, "completing-read-function");
+  DEFSYM (Qformat_prompt, "format-prompt");
 }

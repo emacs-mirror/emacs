@@ -2953,22 +2953,22 @@ Any GnuTLS extension with ID up to 100
     return Qnil;
 # endif /* WINDOWSNT */
 
-  capabilities = Fcons (intern("gnutls"), capabilities);
+  capabilities = Fcons (Qgnutls, capabilities);
 
 #  ifdef HAVE_GNUTLS_EXT__DUMBFW
-  capabilities = Fcons (intern("ClientHello Padding"), capabilities);
+  capabilities = Fcons (QClientHello_Padding, capabilities);
 #  endif
 
 # ifdef HAVE_GNUTLS3
-  capabilities = Fcons (intern("gnutls3"), capabilities);
-  capabilities = Fcons (intern("digests"), capabilities);
-  capabilities = Fcons (intern("ciphers"), capabilities);
+  capabilities = Fcons (Qgnutls3, capabilities);
+  capabilities = Fcons (Qdigests, capabilities);
+  capabilities = Fcons (Qciphers, capabilities);
 
 #  ifdef HAVE_GNUTLS_AEAD
-  capabilities = Fcons (intern("AEAD-ciphers"), capabilities);
+  capabilities = Fcons (QAEAD_ciphers, capabilities);
 #  endif
 
-  capabilities = Fcons (intern("macs"), capabilities);
+  capabilities = Fcons (Qmacs, capabilities);
 
 #  ifdef HAVE_GNUTLS_EXT_GET_NAME
   for (unsigned int ext=0; ext < 100; ext++)
@@ -3120,6 +3120,7 @@ are as per the GnuTLS logging conventions.  */);
 
   defsubr (&Sgnutls_available_p);
 
+  DEFSYM (QAEAD_ciphers, "AEAD-ciphers");
   DEFSYM (QCcertificate, ":certificate");
   DEFSYM (QCcertificate_id, ":certificate-id");
   DEFSYM (QCcertificate_security_level, ":certificate-security-level");
@@ -3135,6 +3136,7 @@ are as per the GnuTLS logging conventions.  */);
   DEFSYM (QCissuer, ":issuer");
   DEFSYM (QCissuer_unique_id, ":issuer-unique-id");
   DEFSYM (QCkey_exchange, ":key-exchange");
+  DEFSYM (QClientHello_Padding, "ClientHello Padding");
   DEFSYM (QCmac, ":mac");
   DEFSYM (QCmissing_ocsp_status, ":missing-ocsp-status");
   DEFSYM (QCno_host_match, ":no-host-match");
@@ -3163,4 +3165,9 @@ are as per the GnuTLS logging conventions.  */);
   DEFSYM (QCvalid_to, ":valid-to");
   DEFSYM (QCversion, ":version");
   DEFSYM (QCwarnings, ":warnings");
+  DEFSYM (Qciphers, "ciphers");
+  DEFSYM (Qdigests, "digests");
+  DEFSYM (Qgnutls, "gnutls");
+  DEFSYM (Qgnutls3, "gnutls3");
+  DEFSYM (Qmacs, "macs");
 }
