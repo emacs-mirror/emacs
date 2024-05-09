@@ -339,6 +339,13 @@ Also available as the library functions 'erc-cmd-AME', 'erc-cmd-GME',
 and 'erc-cmd-GMSG', these new slash commands can prove handy in test
 environments.
 
+** New face 'erc-information' for local administrative messages.
+Messages not originating from a server have historically been shown in
+'erc-notice-face', sometimes in combination with 'erc-error-face'.
+Neither are well suited for local messages of moderate importance.
+From now on, such messages will appear in a more muted color but
+retain the familiar 'erc-notice-prefix' stars.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, fool visibility has become togglable with the new

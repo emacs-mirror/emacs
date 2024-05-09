@@ -730,6 +730,7 @@ non-nil."
     (fset symbol
           (lambda (&rest _)
             (remove-hook hook-var symbol)
+            (setf (erc-stamp--date-fn data) #'ignore)
             (when (buffer-live-p buffer)
               (with-current-buffer buffer
                 (setq erc-stamp--date-stamps
@@ -773,11 +774,20 @@ non-nil."
   :interactive nil
   (if erc-stamp--date-mode
       (progn
+        (add-function :around
+                      (local 'erc-networks--transplant-target-buffer-function)
+                      #'erc-stamp--dedupe-date-stamps-from-target-buffer)
+        (add-hook 'erc-networks--copy-server-buffer-functions
+                  #'erc-stamp--dedupe-date-stamps-from-buffer 0 t)
         (add-hook 'erc-insert-post-hook
                   #'erc-stamp--defer-date-insertion-on-post-insert 0 t)
         (add-hook 'erc-send-post-hook
                   #'erc-stamp--defer-date-insertion-on-post-send 0 t))
     (kill-local-variable 'erc-timestamp-last-inserted-left)
+    (remove-function (local 'erc-networks--transplant-target-buffer-function)
+                     #'erc-stamp--dedupe-date-stamps-from-target-buffer)
+    (remove-hook 'erc-networks--copy-server-buffer-functions
+                 #'erc-stamp--dedupe-date-stamps-from-buffer t)
     (remove-hook 'erc-insert-post-hook
                  #'erc-stamp--defer-date-insertion-on-post-insert t)
     (remove-hook 'erc-send-post-hook
@@ -841,6 +851,8 @@ and date stamps inserted by this function."
            ((not (string-equal rendered erc-timestamp-last-inserted-left)))
            ((null (cl-find rendered erc-stamp--date-stamps
                            :test #'string= :key #'erc-stamp--date-str))))
+        ;; Force `erc-insert-timestamp-right' to stamp this message.
+        (setq erc-timestamp-last-inserted-right nil)
         (setq erc-stamp--deferred-date-stamp
               (make-erc-stamp--date :ts ct :str rendered))))
     ;; insert right timestamp
@@ -1039,6 +1051,47 @@ And discard stale references in `erc-stamp--date-stamps'."
     (setq erc-timestamp-last-inserted nil
           erc-timestamp-last-inserted-left nil
           erc-timestamp-last-inserted-right nil)))
+
+(defun erc-stamp--dedupe-date-stamps (old-stamps)
+  "Update `erc-stamp--date-stamps' from its counterpart OLD-STAMPS.
+Assume the contents of the buffer for OLD-STAMPS have just been inserted
+above the current buffer's and that the old buffer still exists so that
+markers still point somewhere.  For each duplicate, update the existing
+marker to match the transplanted timestamp with the same date.  Also
+copy non-duplicate `erc-stamp--date' objects from OLD-STAMPS to the
+current buffer's, maintaining order."
+  (let (need)
+    (dolist (old old-stamps)
+      (if-let ((new (cl-find (erc-stamp--date-str old) erc-stamp--date-stamps
+                             :test #'string= :key #'erc-stamp--date-str))
+               (new-marker (erc-stamp--date-marker new)))
+          ;; The new buffer now has a duplicate stamp, so remove the
+          ;; "newer" one from the buffer.
+          (progn
+            (erc--delete-inserted-message-naively new-marker)
+            (set-marker new-marker (erc-stamp--date-marker old)))
+        ;; The new buffer doesn't have this stamp, so add its data
+        ;; object to the sorted list.
+        (push old need)
+        ;; Update the old marker position to point to the new buffer.
+        (set-marker (erc-stamp--date-marker old)
+                    (erc-stamp--date-marker old))))
+    ;; These *should* already be sorted.
+    (setq erc-stamp--date-stamps
+          (nconc (nreverse need) erc-stamp--date-stamps))))
+
+(defun erc-stamp--dedupe-date-stamps-from-buffer (old-buffer)
+  "Merge date stamps from OLD-BUFFER into in the current buffer."
+  (let ((old-stamps (buffer-local-value 'erc-stamp--date-stamps old-buffer)))
+    (erc-stamp--dedupe-date-stamps old-stamps)))
+
+(defun erc-stamp--dedupe-date-stamps-from-target-buffer (orig old-buffer
+                                                              new-buffer)
+  "Merge date stamps from OLD-BUFFER into NEW-BUFFER after calling ORIG."
+  (let ((old-stamps (buffer-local-value 'erc-stamp--date-stamps old-buffer)))
+    (prog1 (funcall orig old-buffer new-buffer)
+      (with-current-buffer new-buffer
+        (erc-stamp--dedupe-date-stamps old-stamps)))))
 
 (provide 'erc-stamp)
 

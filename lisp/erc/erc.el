@@ -1521,6 +1521,10 @@ This will only be used if `erc-header-line-face-method' is non-nil."
   "ERC face for errors."
   :group 'erc-faces)
 
+(defface erc-information '((t :inherit shadow))
+  "Face for local administrative messages of low to moderate importance."
+  :group 'erc-faces)
+
 ;; same default color as `erc-input-face'
 (defface erc-my-nick-face '((t :weight bold :foreground "brown"))
   "ERC face for your current nickname in messages sent by you.
@@ -3526,6 +3530,14 @@ being equivalent to a `erc-display-message' TYPE of `notice'."
         (push '(erc--msg . notice) erc--msg-prop-overrides)))
     (erc-display-message nil nil buffer string)))
 
+(defun erc--insert-admin-message (msg &rest args)
+  "Print MSG with ARGS as a local notice.
+Inhibit all stamps and buttonizing."
+  (let ((erc--msg-prop-overrides `((erc--skip . (stamp track button))
+                                   ,@erc--msg-prop-overrides)))
+    (apply #'erc-display-message nil '(notice information)
+           (current-buffer) msg args)))
+
 (defvar erc--merge-text-properties-p nil
   "Non-nil when `erc-put-text-property' defers to `erc--merge-prop'.")
 
@@ -3732,9 +3744,12 @@ See also `erc-make-notice'."
         (t
          (erc-put-text-property
           0 (length string)
-          'font-lock-face (or (intern-soft
-			       (concat "erc-" (symbol-name type) "-face"))
-                              'erc-default-face)
+          'font-lock-face
+          (let* ((name (symbol-name type))
+                 (symbol (or (intern-soft (concat "erc-" name "-face"))
+                             (intern-soft (concat "erc-" name))
+                             type)))
+            (or (and (facep symbol) symbol) 'erc-default-face))
           string)
          string)))
 
@@ -9434,6 +9449,7 @@ SOFTP, only do so when defined as a variable."
    (finished . "\n\n*** ERC finished ***\n")
    (terminated . "\n\n*** ERC terminated: %e\n")
    (login . "Logging in as `%n'...")
+   (graft . "Grafting buffer `%n' onto `%o'...") ; {new} onto {old}
    (nick-in-use . "%n is in use. Choose new nickname: ")
    (nick-too-long
     . "WARNING: Nick length (%i) exceeds max NICKLEN(%l) defined by server")
@@ -9672,6 +9688,7 @@ This function should be on `erc-kill-server-hook'."
 (defun erc-part-channel-on-kill ()
   "Send a \"PART\" when killing a channel buffer."
   (when (and (not erc-killing-buffer-on-part-p)
+             (not erc-networks--target-transplant-in-progress-p)
              (erc-server-process-alive))
     (let ((tgt (erc-default-target)))
       (if tgt

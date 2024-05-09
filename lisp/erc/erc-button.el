@@ -309,7 +309,9 @@ specified by `erc-button-alist'."
             regexp)
         (erc-button-remove-old-buttons)
         (unless (or erc-button--has-nickname-entry
-                    (not erc-button-buttonize-nicks))
+                    (not erc-button-buttonize-nicks)
+                    (and (erc--memq-msg-prop 'erc--skip 'button)
+                         (not (setq alist nil))))
           (erc-button-add-nickname-buttons
            `(_ _ erc-button--modify-nick-function
                ,erc-button-nickname-callback-function)))
