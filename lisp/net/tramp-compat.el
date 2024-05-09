@@ -294,6 +294,13 @@ Also see `ignore'."
       (autoload 'netrc-parse "netrc")
       (netrc-parse file))))
 
+;; Function `seq-keep' is new in Emacs 29.1.
+(defalias 'tramp-compat-seq-keep
+  (if (fboundp 'seq-keep)
+      #'seq-keep
+    (lambda (function sequence)
+      (delq nil (seq-map function sequence)))))
+
 ;; User option `password-colon-equivalents' is new in Emacs 30.1.
 (if (boundp 'password-colon-equivalents)
     (defvaralias

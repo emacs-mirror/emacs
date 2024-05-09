@@ -691,25 +691,25 @@ This is needed if there are compatibility problems."
      (format "tramp (%s %s/%s)" ; package name and version
 	     tramp-version tramp-repository-branch tramp-repository-version)
      (sort
-      (delq nil (mapcar
-	(lambda (x)
-	  (and x (boundp x) (not (get x 'tramp-suppress-trace))
-	       (cons x 'tramp-reporter-dump-variable)))
-	(append
-	 (mapcar #'intern (all-completions "tramp-" obarray #'boundp))
-	 ;; Non-Tramp variables of interest.
-	 '(shell-prompt-pattern
-	   backup-by-copying
-	   backup-by-copying-when-linked
-	   backup-by-copying-when-mismatch
-	   backup-by-copying-when-privileged-mismatch
-	   backup-directory-alist
-	   password-cache
-	   password-cache-expiry
-	   remote-file-name-inhibit-cache
-	   connection-local-profile-alist
-	   connection-local-criteria-alist
-	   file-name-handler-alist))))
+      (tramp-compat-seq-keep
+       (lambda (x)
+	 (and x (boundp x) (not (get x 'tramp-suppress-trace))
+	      (cons x 'tramp-reporter-dump-variable)))
+       (append
+	(mapcar #'intern (all-completions "tramp-" obarray #'boundp))
+	;; Non-Tramp variables of interest.
+	'(shell-prompt-pattern
+	  backup-by-copying
+	  backup-by-copying-when-linked
+	  backup-by-copying-when-mismatch
+	  backup-by-copying-when-privileged-mismatch
+	  backup-directory-alist
+	  password-cache
+	  password-cache-expiry
+	  remote-file-name-inhibit-cache
+	  connection-local-profile-alist
+	  connection-local-criteria-alist
+	  file-name-handler-alist)))
       (lambda (x y) (string< (symbol-name (car x)) (symbol-name (car y)))))
 
      'tramp-load-report-modules	; pre-hook
@@ -792,12 +792,10 @@ buffer in your bug report.
 
   ;; Dump buffer local variables.
   (insert "\nlocal variables:\n================")
-  (dolist (buffer
-	   (delq nil
-		 (mapcar
-		  (lambda (b)
-                    (when (string-match-p "\\*tramp/" (buffer-name b)) b))
-		  (buffer-list))))
+  (dolist (buffer (tramp-compat-seq-keep
+		   (lambda (b)
+		     (when (string-match-p "\\*tramp/" (buffer-name b)) b))
+		   (buffer-list)))
     (let ((reporter-eval-buffer buffer)
 	  (elbuf (get-buffer-create " *tmp-reporter-buffer*")))
       (with-current-buffer elbuf

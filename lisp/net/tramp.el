@@ -1466,7 +1466,7 @@ calling HANDLER.")
    (list
     (completing-read
      "method: "
-     (seq-keep
+     (tramp-compat-seq-keep
       (lambda (x)
 	(when-let ((name (symbol-name x))
 		   ;; It must match `tramp-enable-METHOD-method'.

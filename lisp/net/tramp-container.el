@@ -230,7 +230,7 @@ see its function help for a description of the format."
 		 (concat program " ps --format '{{.ID}}\t{{.Names}}'")))
 	       (lines (split-string raw-list "\n" 'omit))
 	       (names
-		(mapcar
+		(tramp-compat-seq-keep
 		 (lambda (line)
 		   (when (string-match
 			  (rx bol (group (1+ nonl))
@@ -238,7 +238,7 @@ see its function help for a description of the format."
 			  line)
 		     (or (match-string 2 line) (match-string 1 line))))
 		 lines)))
-      (mapcar (lambda (name) (list nil name)) (delq nil names)))))
+      (mapcar (lambda (name) (list nil name)) names))))
 
 ;;;###tramp-autoload
 (defun tramp-kubernetes--completion-function (method)
@@ -360,7 +360,7 @@ see its function help for a description of the format."
     (when-let ((raw-list (shell-command-to-string (concat program " list -c")))
 	       ;; Ignore header line.
                (lines (cdr (split-string raw-list "\n" 'omit)))
-               (names (mapcar
+               (names (tramp-compat-seq-keep
 		       (lambda (line)
 			 (when (string-match
 				(rx bol (1+ (not space))
@@ -368,7 +368,7 @@ see its function help for a description of the format."
 				line)
 			   (match-string 1 line)))
                        lines)))
-      (mapcar (lambda (name) (list nil name)) (delq nil names)))))
+      (mapcar (lambda (name) (list nil name)) names))))
 
 ;;;###tramp-autoload
 (defun tramp-flatpak--completion-function (method)
@@ -384,7 +384,7 @@ see its function help for a description of the format."
 		 ;; Ignore header line.
 		 (concat program " ps --columns=instance,application | cat -")))
                (lines (split-string raw-list "\n" 'omit))
-               (names (mapcar
+               (names (tramp-compat-seq-keep
 		       (lambda (line)
 			 (when (string-match
 				(rx bol (* space) (group (+ (not space)))
@@ -392,7 +392,7 @@ see its function help for a description of the format."
 				line)
 			   (or (match-string 2 line) (match-string 1 line))))
                        lines)))
-      (mapcar (lambda (name) (list nil name)) (delq nil names)))))
+      (mapcar (lambda (name) (list nil name)) names))))
 
 ;;;###tramp-autoload
 (defun tramp-apptainer--completion-function (method)
@@ -405,7 +405,7 @@ see its function help for a description of the format."
 		(shell-command-to-string (concat program " instance list")))
 	       ;; Ignore header line.
                (lines (cdr (split-string raw-list "\n" 'omit)))
-               (names (mapcar
+               (names (tramp-compat-seq-keep
 		       (lambda (line)
 			 (when (string-match
 				(rx bol (group (1+ (not space)))
@@ -414,7 +414,7 @@ see its function help for a description of the format."
 				line)
 			   (match-string 1 line)))
                        lines)))
-      (mapcar (lambda (name) (list nil name)) (delq nil names)))))
+      (mapcar (lambda (name) (list nil name)) names))))
 
 ;;;###tramp-autoload
 (defvar tramp-default-remote-shell) ;; Silence byte compiler.
