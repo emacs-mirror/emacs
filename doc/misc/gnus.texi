@@ -7423,6 +7423,22 @@ meaningful.  Here's one example:
        header))))
 @end lisp
 
+And another example:  the protonmail bridge adds fake message-ids to
+@code{References} in message headers, which can confuse threading. To
+remove these spurious ids
+
+@lisp
+(setq gnus-alter-header-function 'fix-protonmail-references)
+
+(defun fix-protonmail-references (header)
+  (setf (mail-header-references header)
+        (mapconcat
+         #'(lambda (x) (if (string-search "protonmail.internalid" x) "" x))
+         (gnus-split-references (mail-header-references header)) " "))
+  header)
+
+ @end lisp
+
 @end table
 
 
