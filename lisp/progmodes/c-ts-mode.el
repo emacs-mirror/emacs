@@ -597,8 +597,9 @@ MODE is either `c' or `cpp'."
   (treesit-font-lock-rules
    :language mode
    :feature 'comment
-   `((comment) @font-lock-comment-face
-     (comment) @contextual)
+   `(((comment) @font-lock-doc-face
+      (:match ,(rx bos "/**") @font-lock-doc-face))
+     (comment) @font-lock-comment-face)
 
    :language mode
    :feature 'preprocessor
