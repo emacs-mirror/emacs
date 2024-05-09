@@ -1712,6 +1712,7 @@ fix_comp_unit (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
   return MPS_RES_OK;
 }
 
+#ifdef HAVE_NATIVE_COMP
 static mps_res_t
 scan_comp_units (mps_ss_t ss, void *start, void *end, void *closure)
 {
@@ -1727,6 +1728,7 @@ scan_comp_units (mps_ss_t ss, void *start, void *end, void *closure)
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
 }
+#endif
 
 #ifdef HAVE_XWIDGETS
 
@@ -2320,6 +2322,7 @@ igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
   return pa;
 }
 
+#ifdef HAVE_NATIVE_COMP
 void
 igc_register_cu (Lisp_Object cu)
 {
@@ -2347,6 +2350,7 @@ igc_register_cu (Lisp_Object cu)
 
   gc->cu[gc->ncu++] = cu;
 }
+#endif
 
 void
 igc_create_charset_root (void *table, size_t size)
