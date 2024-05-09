@@ -2100,6 +2100,8 @@ Such as the current syntax table and the applied syntax properties."
   (pcase-let* ((`(,line ,file ,text) hit)
                (file (and file (concat xref--hits-remote-id file)))
                (buf (xref--find-file-buffer file))
+               ;; This is fairly dangerouns, but improves performance
+               ;; for large lists, see https://debbugs.gnu.org/53749#227
                (inhibit-modification-hooks t))
     (if buf
         (with-current-buffer buf
@@ -2131,6 +2133,8 @@ Such as the current syntax table and the applied syntax properties."
           (erase-buffer))
         (insert text)
         (goto-char (point-min))
+        (when syntax-needed
+          (syntax-ppss-flush-cache (point)))
         (xref--collect-matches-1 regexp file line
                                  (point)
                                  (point-max)
