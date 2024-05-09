@@ -509,7 +509,7 @@ Functions are passed a buffer as the first argument."
 
 (defvaralias 'erc-channel-users 'erc-channel-members)
 (defvar-local erc-channel-members nil
-  "Hash table of members in the current channel.
+  "Hash table of members in the current channel or query buffer.
 It associates nicknames with cons cells of the form
 \(SERVER-USER . MEMBER-DATA), where SERVER-USER is a
 `erc-server-user' object and MEMBER-DATA is a `erc-channel-user'
@@ -548,6 +548,37 @@ It associates nicknames with `erc-server-user' struct instances.")
 Adds USER with nickname NICK to the `erc-server-users' hash table."
   (erc-with-server-buffer
     (puthash (erc-downcase nick) user erc-server-users)))
+
+(defvar erc--decouple-query-and-channel-membership-p nil
+  "When non-nil, don't tether query participation to channel membership.
+Specifically, add users to query tables when they speak, don't remove
+them when they leave all channels, and allow removing the client's own
+user from `erc-server-users'.  Note that enabling this compatibility
+flag degrades the user experience and isn't guaranteed to correctly
+restore the described historical behavior.")
+
+(defun erc--ensure-query-member (nick)
+  "Populate membership table in query buffer for online NICK."
+  (erc-with-buffer (nick)
+    (when-let (((not erc--decouple-query-and-channel-membership-p))
+               ((zerop (hash-table-count erc-channel-users)))
+               (user (erc-get-server-user nick)))
+      (erc-update-current-channel-member nick nil t)
+      (erc--unhide-prompt)
+      t)))
+
+(defun erc--ensure-query-members ()
+  "Update membership tables in all query buffers.
+Ensure targets with an entry in `erc-server-users' are present in
+`erc-channel-members'."
+  (erc-with-all-buffers-of-server erc-server-process #'erc-query-buffer-p
+    (when-let (((not erc--decouple-query-and-channel-membership-p))
+               ((zerop (hash-table-count erc-channel-users)))
+               (target (erc-target))
+               ((erc-get-server-user target)))
+      (erc-update-current-channel-member target nil t)
+      (erc--unhide-prompt))
+    erc-server-process))
 
 (defun erc-remove-server-user (nick)
   "This function is for internal use only.
@@ -5155,8 +5186,7 @@ just as you provided it.  Use this command with care!"
 
 (defun erc-cmd-QUERY (&optional user)
   "Open a query with USER.
-How the query is displayed (in a new window, frame, etc.) depends
-on the value of `erc-interactive-display'."
+Display the query buffer in accordance with `erc-interactive-display'."
   ;; FIXME: The doc string used to say at the end:
   ;; "If USER is omitted, close the current query buffer if one exists
   ;; - except this is broken now ;-)"
@@ -5172,7 +5202,11 @@ on the value of `erc-interactive-display'."
         (erc--display-context `((erc-interactive-display . /QUERY)
                                 ,@erc--display-context)))
     (erc-with-server-buffer
-     (erc--open-target user))))
+      (if-let ((buffer (erc-get-buffer user erc-server-process)))
+          (prog1 buffer
+            (erc-setup-buffer buffer))
+        (prog1 (erc--open-target user) ; becomes current buffer
+          (erc--ensure-query-member user))))))
 
 (defalias 'erc-cmd-Q #'erc-cmd-QUERY)
 
@@ -9525,6 +9559,7 @@ SOFTP, only do so when defined as a variable."
    (s333   . "%c: topic set by %n, %t")
    (s341   . "Inviting %n to channel %c")
    (s352   . "%-11c %-10n %-4a %u@%h (%f)")
+   (s352-you . "%n %a %u@%h (%f)")
    (s353   . "Users on %c: %u")
    (s367   . "Ban for %b on %c")
    (s367-set-by . "Ban for %b on %c set by %s on %t")

@@ -557,6 +557,9 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
      (gethash (erc-downcase ,nick)
               (erc-with-server-buffer erc-server-users)))))
 
+(defun erc--get-server-user (nick)
+  (erc-get-server-user nick))
+
 (defmacro erc--with-dependent-type-match (type &rest features)
   "Massage Custom :type TYPE with :match function that pre-loads FEATURES."
   `(backquote-list* ',(car type)
