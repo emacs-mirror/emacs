@@ -1646,7 +1646,7 @@ command_loop_1 (void)
 		}
 
 	      if (current_buffer != prev_buffer || MODIFF != prev_modiff)
-		run_hook (intern ("activate-mark-hook"));
+		run_hook (Qactivate_mark_hook);
 	    }
 
 	  Vsaved_region_selection = Qnil;
@@ -3077,7 +3077,7 @@ read_char (int commandflag, Lisp_Object map,
 
 #ifdef HAVE_NS
       if (CONSP (c)
-          && (EQ (XCAR (c), intern ("ns-unput-working-text"))))
+          && (EQ (XCAR (c), Qns_unput_working_text)))
         input_was_pending = input_pending;
 #endif
 
@@ -4603,7 +4603,7 @@ timer_start_idle (void)
   timer_last_idleness_start_time = timer_idleness_start_time;
 
   /* Mark all idle-time timers as once again candidates for running.  */
-  call0 (intern ("internal-timer-start-idle"));
+  call0 (Qinternal_timer_start_idle);
 }
 
 /* Record that Emacs is no longer idle, so stop running idle-time timers.  */
@@ -10129,7 +10129,7 @@ read_char_minibuf_menu_prompt (int commandflag,
 	}
 
       /* Prompt with that and read response.  */
-      message3_nolog (apply1 (intern ("concat"), Fnreverse (menu_strings)));
+      message3_nolog (apply1 (Qconcat, Fnreverse (menu_strings)));
 
       /* Make believe it's not a keyboard macro in case the help char
 	 is pressed.  Help characters are not recorded because menu prompting
@@ -11906,7 +11906,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   if (!NILP (stuffstring))
     CHECK_STRING (stuffstring);
 
-  run_hook (intern ("suspend-hook"));
+  run_hook (Qsuspend_hook);
 
   get_tty_size (fileno (CURTTY ()->input), &old_width, &old_height);
   reset_all_sys_modes ();
@@ -11927,7 +11927,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   if (width != old_width || height != old_height)
     change_frame_size (SELECTED_FRAME (), width, height, false, false, false);
 
-  run_hook (intern ("suspend-resume-hook"));
+  run_hook (Qsuspend_resume_hook);
 
   return Qnil;
 }
@@ -13702,7 +13702,7 @@ you could say something like:
 
 Also see `set-message-function' (which controls how non-error messages
 are displayed).  */);
-  Vcommand_error_function = intern ("command-error-default-function");
+  Vcommand_error_function = Qcommand_error_default_function;
 
   DEFVAR_LISP ("enable-disabled-menus-and-buttons",
 	       Venable_disabled_menus_and_buttons,
@@ -13752,7 +13752,7 @@ of processing the event normally through `special-event-map'.
 
 Currently, the only supported values for this
 variable are `sigusr1' and `sigusr2'.  */);
-  Vdebug_on_event = intern_c_string ("sigusr2");
+  Vdebug_on_event = Qsigusr2;
 
   DEFVAR_BOOL ("attempt-stack-overflow-recovery",
                attempt_stack_overflow_recovery,
@@ -13854,6 +13854,15 @@ function is called to remap that sequence.  */);
   DEFSYM (Qcurrent_key_remap_sequence, "current-key-remap-sequence");
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
+
+  DEFSYM (Qactivate_mark_hook, "activate-mark-hook");
+  DEFSYM (Qns_unput_working_text, "ns-unput-working-text");
+  DEFSYM (Qinternal_timer_start_idle, "internal-timer-start-idle");
+  DEFSYM (Qconcat, "concat");
+  DEFSYM (Qsuspend_hook, "suspend-hook");
+  DEFSYM (Qsuspend_resume_hook, "suspend-resume-hook");
+  DEFSYM (Qcommand_error_default_function, "command-error-default-function");
+  DEFSYM (Qsigusr2, "sigusr2");
 }
 
 static void

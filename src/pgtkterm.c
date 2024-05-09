@@ -7182,6 +7182,9 @@ syms_of_pgtkterm (void)
   DEFSYM (Qsuper, "super");
   DEFSYM (Qcontrol, "control");
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
+  /* Referenced in gtkutil.c.  */
+  DEFSYM (Qtheme_name, "theme-name");
+  DEFSYM (Qfile_name_sans_extension, "file-name-sans-extension");
 
   DEFSYM (Qfile, "file");
   DEFSYM (Qurl, "url");
@@ -7198,7 +7201,6 @@ syms_of_pgtkterm (void)
   DEFSYM (Qmove, "move");
   DEFSYM (Qlink, "link");
   DEFSYM (Qprivate, "private");
-
 
   Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_fixnum (hyper_modifier));
@@ -7479,5 +7481,5 @@ pgtk_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 
   unbind_to (count, Qnil);
 
-  return CALLN (Fapply, intern ("concat"), Fnreverse (acc));
+  return CALLN (Fapply, Qconcat, Fnreverse (acc));
 }

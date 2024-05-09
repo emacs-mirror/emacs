@@ -1084,7 +1084,7 @@ tty_lookup_color (struct frame *f, Lisp_Object color, Emacs_Color *tty_color,
 
       return true;
     }
-  else if (NILP (Fsymbol_value (intern ("tty-defined-color-alist"))))
+  else if (NILP (Fsymbol_value (Qtty_defined_color_alist)))
     /* We were called early during startup, and the colors are not
        yet set up in tty-defined-color-alist.  Don't return a failure
        indication, since this produces the annoying "Unable to
@@ -7408,6 +7408,7 @@ syms_of_xfaces (void)
 
   /* The name of the function used to compute colors on TTYs.  */
   DEFSYM (Qtty_color_alist, "tty-color-alist");
+  DEFSYM (Qtty_defined_color_alist, "tty-defined-color-alist");
 
   Vface_alternative_font_family_alist = Qnil;
   staticpro (&Vface_alternative_font_family_alist);

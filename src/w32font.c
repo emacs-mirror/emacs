@@ -1196,15 +1196,15 @@ w32_enumfont_pattern_entity (Lisp_Object frame,
   if (EQ (backend, Quniscribe) && (full_type & NTMFLAGS_OPENTYPE))
     tem = Qopentype;
   else if (font_type & TRUETYPE_FONTTYPE)
-    tem = intern ("truetype");
+    tem = Qtruetype;
   else if (full_type & NTM_PS_OPENTYPE)
     tem = Qpostscript;
   else if (full_type & NTM_TYPE1)
-    tem = intern ("type1");
+    tem = Qtype1;
   else if (font_type & RASTER_FONTTYPE)
-    tem = intern ("w32bitmap");
+    tem = Qw32bitmap;
   else
-    tem = intern ("w32vector");
+    tem = Qw32vector;
 
   font_put_extra (entity, QCformat, tem);
 
@@ -2772,6 +2772,12 @@ syms_of_w32font (void)
   DEFSYM (Qstandard, "standard");
   DEFSYM (Qsubpixel, "subpixel");
   DEFSYM (Qnatural, "natural");
+
+  /* Font formats.  */
+  DEFSYM (Qtruetype, "truetype");
+  DEFSYM (Qtype1, "type1");
+  DEFSYM (Qw32bitmap, "w32bitmap");
+  DEFSYM (Qw32vector, "w32vector");
 
   /* Languages  */
   DEFSYM (Qzh, "zh");

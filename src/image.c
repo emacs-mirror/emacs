@@ -10721,14 +10721,14 @@ imagemagick_error (MagickWand *wand)
 static char *
 imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
 {
-  Lisp_Object symbol = intern ("image-format-suffixes");
+  Lisp_Object symbol = Qimage_format_suffixes;
   Lisp_Object val = find_symbol_value (symbol);
   Lisp_Object format;
 
   if (! CONSP (val))
     return NULL;
 
-  format = image_spec_value (spec, intern (":format"), NULL);
+  format = image_spec_value (spec, QCformat, NULL);
   val = Fcar_safe (Fcdr_safe (Fassq (format, val)));
   if (! STRINGP (val))
     return NULL;
@@ -12477,7 +12477,7 @@ gs_load (struct frame *f, struct image *img)
   XSETFRAME (frame, f);
   loader = image_spec_value (img->spec, QCloader, NULL);
   if (NILP (loader))
-    loader = intern ("gs-load-image");
+    loader = Qgs_load_image;
 
   img->lisp_data = call6 (loader, frame, img->spec,
 			  make_fixnum (img->width),
@@ -12853,6 +12853,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (QCloader, ":loader");
   DEFSYM (QCpt_width, ":pt-width");
   DEFSYM (QCpt_height, ":pt-height");
+  DEFSYM (Qgs_load_image, "gs-load-image");
 #endif /* HAVE_GHOSTSCRIPT */
 
 #ifdef HAVE_NTGUI
@@ -13032,5 +13033,8 @@ The options are:
 */);
   /* MagickExportImagePixels is in 6.4.6-9, but not 6.4.4-10.  */
   imagemagick_render_type = 0;
-#endif
+
+  DEFSYM (Qimage_format_suffixes, "image-format-suffixes");
+  DEFSYM (QCformat, ":format");
+#endif /* HAVE_IMAGEMAGICK */
 }

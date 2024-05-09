@@ -668,10 +668,10 @@ malloc_warning (const char *str)
 void
 display_malloc_warning (void)
 {
-  call3 (intern ("display-warning"),
-	 intern ("alloc"),
+  call3 (Qdisplay_warning,
+	 Qalloc,
 	 build_string (pending_malloc_warning),
-	 intern (":emergency"));
+	 QCemergency);
   pending_malloc_warning = 0;
 }
 
@@ -8317,6 +8317,8 @@ N should be nonnegative.  */);
        4, 4, "watch_gc_cons_percentage", {0}, lisp_h_Qnil}};
   XSETSUBR (watcher, &Swatch_gc_cons_percentage.s);
   Fadd_variable_watcher (Qgc_cons_percentage, watcher);
+  DEFSYM (Qalloc, "alloc");
+  DEFSYM (QCemergency, ":emergency");
 }
 
 #ifdef HAVE_X_WINDOWS

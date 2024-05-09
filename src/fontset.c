@@ -1823,7 +1823,7 @@ fontset_from_font (Lisp_Object font_object)
   if (CONSP (val))
     return XFIXNUM (FONTSET_ID (XCDR (val)));
   if (num_auto_fontsets++ == 0)
-    alias = intern ("fontset-startup");
+    alias = Qfontset_startup;
   else
     {
       char temp[sizeof "fontset-auto" + INT_STRLEN_BOUND (ptrdiff_t)];
@@ -2174,6 +2174,7 @@ syms_of_fontset (void)
   Fput (Qfontset, Qchar_table_extra_slots, make_fixnum (8));
   DEFSYM (Qfontset_info, "fontset-info");
   Fput (Qfontset_info, Qchar_table_extra_slots, make_fixnum (1));
+  DEFSYM (Qfontset_startup, "fontset-startup");
 
   DEFSYM (Qappend, "append");
   DEFSYM (Qlatin, "latin");

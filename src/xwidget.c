@@ -2286,7 +2286,7 @@ store_xwidget_download_callback_event (struct xwidget *xw,
   EVENT_INIT (event);
   event.kind = XWIDGET_EVENT;
   event.frame_or_window = Qnil;
-  event.arg = list5 (intern ("download-callback"),
+  event.arg = list5 (Qdownload_callback,
                      xwl,
                      build_string (url),
                      build_string (mimetype),
@@ -2305,7 +2305,7 @@ store_xwidget_js_callback_event (struct xwidget *xw,
   EVENT_INIT (event);
   event.kind = XWIDGET_EVENT;
   event.frame_or_window = Qnil;
-  event.arg = list4 (intern ("javascript-callback"), xwl, proc, argument);
+  event.arg = list4 (Qjavascript_callback, xwl, proc, argument);
   kbd_buffer_store_event (&event);
 }
 
@@ -4001,6 +4001,8 @@ to take effect.  */);
   staticpro (&dummy_tooltip_string);
 #endif
 #endif
+  DEFSYM (Qdownload_callback, "download-callback");
+  DEFSYM (Qjavascript_callback, "javascript-callback");
 }
 
 

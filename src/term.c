@@ -1416,9 +1416,9 @@ term_get_fkeys_1 (void)
 	  /* Define f0 first, so that f10 takes precedence in case the
 	     key sequences happens to be the same.  */
 	  Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
-		       make_vector (1, intern ("f0")), Qnil);
+		       make_vector (1, Qf0), Qnil);
 	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k_semi),
-		     make_vector (1, intern ("f10")), Qnil);
+		     make_vector (1, Qf10), Qnil);
       }
     else if (k0)
       Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
@@ -2275,7 +2275,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
       tty->previous_color_mode = mode;
       tty_setup_colors (tty , mode);
       /*  This recomputes all the faces given the new color definitions.  */
-      safe_calln (intern ("tty-set-up-initial-frame-faces"));
+      safe_calln (Qtty_set_up_initial_frame_faces);
     }
 }
 
@@ -2387,7 +2387,7 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
 	 the tty state.  */
       Lisp_Object term;
       XSETTERMINAL (term, t);
-      CALLN (Frun_hook_with_args, intern ("suspend-tty-functions"), term);
+      CALLN (Frun_hook_with_args, Qsuspend_tty_functions, term);
 
       reset_sys_modes (t->display_info.tty);
       delete_keyboard_wait_descriptor (fileno (f));
@@ -2494,7 +2494,7 @@ frame's terminal). */)
       /* Run `resume-tty-functions'.  */
       Lisp_Object term;
       XSETTERMINAL (term, t);
-      CALLN (Frun_hook_with_args, intern ("resume-tty-functions"), term);
+      CALLN (Frun_hook_with_args, Qresume_tty_functions, term);
     }
 
   set_tty_hooks (t);
@@ -3277,10 +3277,10 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   SAFE_NALLOCA (state, 1, menu->panecount);
   memset (state, 0, sizeof (*state));
   faces[0]
-    = lookup_derived_face (NULL, sf, intern ("tty-menu-disabled-face"),
+    = lookup_derived_face (NULL, sf, Qtty_menu_disabled_face,
 			   DEFAULT_FACE_ID, 1);
   faces[1]
-    = lookup_derived_face (NULL, sf, intern ("tty-menu-enabled-face"),
+    = lookup_derived_face (NULL, sf, Qtty_menu_enabled_face,
 			   DEFAULT_FACE_ID, 1);
   selectface = intern ("tty-menu-selected-face");
   faces[2] = lookup_derived_face (NULL, sf, selectface,
@@ -4798,4 +4798,12 @@ trigger redisplay.  */);
   DEFSYM (Qtty_menu_mouse_movement, "tty-menu-mouse-movement");
   DEFSYM (Qtty_menu_navigation_map, "tty-menu-navigation-map");
 #endif
+  DEFSYM (Qf0, "f0");
+  DEFSYM (Qf10, "f10");
+  DEFSYM (Qtty_set_up_initial_frame_faces,
+	  "tty-set-up-initial-frame-faces");
+  DEFSYM (Qsuspend_tty_functions, "suspend-tty-functions");
+  DEFSYM (Qresume_tty_functions, "resume-tty-functions");
+  DEFSYM (Qtty_menu_disabled_face, "tty-menu-disabled-face");
+  DEFSYM (Qtty_menu_enabled_face, "tty-menu-enabled-face");
 }

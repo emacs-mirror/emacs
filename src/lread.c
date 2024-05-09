@@ -2741,7 +2741,7 @@ STREAM or the value of `standard-input' may be:
        minibuffer without a stream, as in (read).  But is this feature
        ever used, and if so, why?  IOW, will anything break if this
        feature is removed !?  */
-    return call1 (intern ("read-minibuffer"),
+    return call1 (Qread_minibuffer,
 		  build_string ("Lisp expression: "));
 
   return read_internal_start (stream, Qnil, Qnil, false);
@@ -2769,7 +2769,7 @@ STREAM or the value of `standard-input' may be:
     stream = Qread_char;
   if (EQ (stream, Qread_char))
     /* FIXME: ?! When is this used !?  */
-    return call1 (intern ("read-minibuffer"),
+    return call1 (Qread_minibuffer,
 		  build_string ("Lisp expression: "));
 
   return read_internal_start (stream, Qnil, Qnil, true);
@@ -6218,4 +6218,5 @@ Only valid during macro-expansion.  Internal use only. */);
 
   DEFSYM (Qinternal_macroexpand_for_load,
 	  "internal-macroexpand-for-load");
+  DEFSYM (Qread_minibuffer, "read-minibuffer");
 }

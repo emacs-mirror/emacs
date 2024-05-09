@@ -862,7 +862,7 @@ usage: (define-charset-internal ...)  */)
 
   if (nargs != charset_arg_max)
     Fsignal (Qwrong_number_of_arguments,
-	     Fcons (intern ("define-charset-internal"),
+	     Fcons (Qdefine_charset_internal,
 		    make_fixnum (nargs)));
 
   attrs = make_nil_vector (charset_attr_max);
@@ -2354,6 +2354,7 @@ void
 syms_of_charset (void)
 {
   DEFSYM (Qcharsetp, "charsetp");
+  DEFSYM (Qdefine_charset_internal, "define-charset-internal");
 
   /* Special charset symbols.  */
   DEFSYM (Qascii, "ascii");

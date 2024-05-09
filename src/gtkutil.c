@@ -1471,8 +1471,7 @@ style_changed_cb (GObject *go,
   EVENT_INIT (event);
   event.kind = CONFIG_CHANGED_EVENT;
   event.frame_or_window = build_string (display_name);
-  /* Theme doesn't change often, so intern is called seldom.  */
-  event.arg = intern ("theme-name");
+  event.arg = Qtheme_name;
   kbd_buffer_store_event (&event);
 
   update_theme_scrollbar_width ();
@@ -5506,8 +5505,8 @@ find_rtl_image (struct frame *f, Lisp_Object image, Lisp_Object rtl)
       Lisp_Object rtl_image = PROP (TOOL_BAR_ITEM_IMAGES);
       if (!NILP (file = file_for_image (rtl_image)))
         {
-          file = call1 (intern ("file-name-sans-extension"),
-                       Ffile_name_nondirectory (file));
+          file = call1 (Qfile_name_sans_extension,
+			Ffile_name_nondirectory (file));
           if (! NILP (Fequal (file, rtl_name)))
             {
               image = rtl_image;

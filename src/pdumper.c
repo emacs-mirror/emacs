@@ -4156,7 +4156,7 @@ types.  */)
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
      and set up to work with X windows if appropriate.  */
-  Lisp_Object symbol = intern ("command-line-processed");
+  Lisp_Object symbol = Qcommand_line_processed;
   specbind (symbol, Qnil);
 
   CHECK_STRING (filename);

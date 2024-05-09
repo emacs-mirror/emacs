@@ -564,8 +564,8 @@ the same file name is found in the `doc-directory'.  */)
   ptrdiff_t dirlen;
   /* Preloaded defcustoms using custom-initialize-delay are added to
      this list, but kept unbound.  See https://debbugs.gnu.org/11565  */
-  Lisp_Object delayed_init =
-    find_symbol_value (intern ("custom-delayed-init-variables"));
+  Lisp_Object delayed_init
+    = find_symbol_value (Qcustom_delayed_init_variables);
 
   if (!CONSP (delayed_init)) delayed_init = Qnil;
 
@@ -779,4 +779,5 @@ compute the correct value for the current terminal in the nil case.  */);
   defsubr (&Sdocumentation_property);
   defsubr (&Ssnarf_documentation);
   defsubr (&Stext_quoting_style);
+  DEFSYM (Qcustom_delayed_init_variables, "custom-delayed-init-variables");
 }

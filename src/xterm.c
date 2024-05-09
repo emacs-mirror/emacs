@@ -32569,9 +32569,6 @@ syms_of_xterm (void)
   x_dnd_unsupported_drop_data = Qnil;
   staticpro (&x_dnd_unsupported_drop_data);
 
-  /* Used by x_cr_export_frames.  */
-  DEFSYM (Qconcat, "concat");
-
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");
   DEFSYM (Qnow, "now");
@@ -32676,6 +32673,10 @@ Android does not support scroll bars at all.  */);
   DEFSYM (Qnewer_time, "newer-time");
   DEFSYM (Qraise_and_focus, "raise-and-focus");
   DEFSYM (Qreally_fast, "really-fast");
+
+  /* Referenced in gtkutil.c.  */
+  DEFSYM (Qtheme_name, "theme-name");
+  DEFSYM (Qfile_name_sans_extension, "file-name-sans-extension");
 
   DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
     doc: /* Which modifer value Emacs reports when Ctrl is depressed.

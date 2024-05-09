@@ -1114,12 +1114,12 @@ make_frame_without_minibuffer (Lisp_Object mini_window, KBOARD *kb,
       if (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
 	  || ! FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame))))
 	{
-          Lisp_Object frame_dummy;
+	  Lisp_Object initial_frame;
 
-          XSETFRAME (frame_dummy, f);
 	  /* If there's no minibuffer frame to use, create one.  */
-	  kset_default_minibuffer_frame
-	    (kb, call1 (intern ("make-initial-minibuffer-frame"), display));
+	  initial_frame = call1 (Qmake_initial_minibuffer_frame,
+				 display);
+	  kset_default_minibuffer_frame (kb, initial_frame);
 	}
 
       mini_window
@@ -6268,6 +6268,7 @@ syms_of_frame (void)
   DEFSYM (Qframe_windows_min_size, "frame-windows-min-size");
   DEFSYM (Qframe_monitor_attributes, "frame-monitor-attributes");
   DEFSYM (Qwindow__pixel_to_total, "window--pixel-to-total");
+  DEFSYM (Qmake_initial_minibuffer_frame, "make-initial-minibuffer-frame");
   DEFSYM (Qexplicit_name, "explicit-name");
   DEFSYM (Qheight, "height");
   DEFSYM (Qicon, "icon");

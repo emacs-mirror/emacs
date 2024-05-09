@@ -292,7 +292,7 @@ call_debugger (Lisp_Object arg)
      displayed if the debugger is invoked during redisplay.  */
   debug_while_redisplaying = redisplaying_p;
   redisplaying_p = 0;
-  specbind (intern ("debugger-may-continue"),
+  specbind (Qdebugger_may_continue,
 	    debug_while_redisplaying ? Qnil : Qt);
   specbind (Qinhibit_redisplay, Qnil);
   specbind (Qinhibit_debugger, Qt);
@@ -668,8 +668,8 @@ signal a `cyclic-variable-indirection' error.  */)
   else if (!NILP (Fboundp (new_alias))
            && !EQ (find_symbol_value (new_alias),
                    find_symbol_value (base_variable)))
-    call2 (intern ("display-warning"),
-           list3 (Qdefvaralias, intern ("losing-value"), new_alias),
+    call2 (Qdisplay_warning,
+           list3 (Qdefvaralias, Qlosing_value, new_alias),
            CALLN (Fformat_message,
                   build_string
                   ("Overwriting value of `%s' by aliasing to `%s'"),
@@ -4313,6 +4313,9 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qdebug, "debug");
   DEFSYM (Qdebug_early, "debug-early");
   DEFSYM (Qdebug_early__handler, "debug-early--handler");
+  DEFSYM (Qdebugger_may_continue, "debugger-may-continue");
+  DEFSYM (Qdisplay_warning, "display-warning");
+  DEFSYM (Qlosing_value, "losing-value");
 
   DEFVAR_LISP ("inhibit-debugger", Vinhibit_debugger,
 	       doc: /* Non-nil means never enter the debugger.

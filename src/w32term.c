@@ -6417,17 +6417,17 @@ w32_bitmap_icon (struct frame *f, Lisp_Object icon)
     {
       LPCTSTR name;
 
-      if (EQ (icon, intern ("application")))
+      if (EQ (icon, Qapplication))
 	name = (LPCTSTR) IDI_APPLICATION;
-      else if (EQ (icon, intern ("hand")))
+      else if (EQ (icon, Qhand))
 	name = (LPCTSTR) IDI_HAND;
-      else if (EQ (icon, intern ("question")))
+      else if (EQ (icon, Qquestion))
 	name = (LPCTSTR) IDI_QUESTION;
-      else if (EQ (icon, intern ("exclamation")))
+      else if (EQ (icon, Qexclamation))
 	name = (LPCTSTR) IDI_EXCLAMATION;
-      else if (EQ (icon, intern ("asterisk")))
+      else if (EQ (icon, Qasterisk))
 	name = (LPCTSTR) IDI_ASTERISK;
-      else if (EQ (icon, intern ("winlogo")))
+      else if (EQ (icon, Qwinlogo))
 	name = (LPCTSTR) IDI_WINLOGO;
       else
 	return 1;
@@ -7833,6 +7833,10 @@ syms_of_w32term (void)
   DEFSYM (Qmodified, "modified");
   DEFSYM (Qrenamed_from, "renamed-from");
   DEFSYM (Qrenamed_to, "renamed-to");
+
+  /* Bitmap icon constants.  */
+  DEFSYM (Qapplication, "application");
+  DEFSYM (Qwinlogo, "winlogo");
 
   DEFVAR_LISP ("x-wait-for-event-timeout", Vx_wait_for_event_timeout,
     doc: /* SKIP: real doc in xterm.c.  */);

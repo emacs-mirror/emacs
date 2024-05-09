@@ -494,12 +494,11 @@ confirm the aborting of the current minibuffer and all contained ones.  */)
 	     to abort any extra non-minibuffer recursive edits.  Thus,
 	     the number of recursive edits we have to abort equals the
 	     number of minibuffers we have to abort.  */
-	  CALLN (Ffuncall, intern ("minibuffer-quit-recursive-edit"),
-		 array[1]);
+	  call1 (Qminibuffer_quit_recursive_edit, array[1]);
 	}
     }
   else
-    CALLN (Ffuncall, intern ("minibuffer-quit-recursive-edit"));
+    call0 (Qminibuffer_quit_recursive_edit);
   return Qnil;
 }
 
@@ -1544,7 +1543,7 @@ function, instead of the usual behavior.  */)
 			  CONSP (def) ? XCAR (def) : def);
 	}
 
-      result = Fcompleting_read (prompt, intern ("internal-complete-buffer"),
+      result = Fcompleting_read (prompt, Qinternal_complete_buffer,
 				 predicate, require_match, Qnil,
 				 Qbuffer_name_history, def, Qnil);
     }
@@ -2032,7 +2031,7 @@ See also `completing-read-function'.  */)
   (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
 {
   return CALLN (Ffuncall,
-		Fsymbol_value (intern ("completing-read-function")),
+		Fsymbol_value (Qcompleting_read_function),
 		prompt, collection, predicate, require_match, initial_input,
 		hist, def, inherit_input_method);
 }
@@ -2531,4 +2530,7 @@ showing the *Completions* buffer, if any.  */);
   defsubr (&Stest_completion);
   defsubr (&Sassoc_string);
   defsubr (&Scompleting_read);
+  DEFSYM (Qminibuffer_quit_recursive_edit, "minibuffer-quit-recursive-edit");
+  DEFSYM (Qinternal_complete_buffer, "internal-complete-buffer");
+  DEFSYM (Qcompleting_read_function, "completing-read-function");
 }
