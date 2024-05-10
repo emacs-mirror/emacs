@@ -1401,21 +1401,11 @@ public final class EmacsService extends Service
      otherwise.  */
 
   public String[]
-  getDocumentTrees (byte provider[])
+  getDocumentTrees (String provider)
   {
-    String providerName;
     List<String> treeList;
     List<UriPermission> permissions;
     Uri uri;
-
-    try
-      {
-	providerName = new String (provider, "US-ASCII");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	return null;
-      }
 
     permissions = resolver.getPersistedUriPermissions ();
     treeList = new ArrayList<String> ();
@@ -1425,7 +1415,7 @@ public final class EmacsService extends Service
 	uri = permission.getUri ();
 
 	if (DocumentsContract.isTreeUri (uri)
-	    && uri.getAuthority ().equals (providerName)
+	    && uri.getAuthority ().equals (provider)
 	    && permission.isReadPermission ())
 	  /* Make sure the tree document ID is encoded.  Refrain from
 	     encoding characters such as +:&?#, since they don't
@@ -1435,6 +1425,9 @@ public final class EmacsService extends Service
 				    " +:&?#"));
       }
 
+    /* The empty string array that is ostensibly allocated to provide
+       the first argument provides just the type of the array to be
+       returned.  */
     return treeList.toArray (new String[0]);
   }
 

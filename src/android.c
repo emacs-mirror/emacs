@@ -1659,7 +1659,7 @@ android_init_emacs_service (void)
   FIND_METHOD (request_directory_access, "requestDirectoryAccess",
 	       "()I");
   FIND_METHOD (get_document_trees, "getDocumentTrees",
-	       "([B)[Ljava/lang/String;");
+	       "(Ljava/lang/String;)[Ljava/lang/String;");
   FIND_METHOD (document_id_from_name, "documentIdFromName",
 	       "(Ljava/lang/String;Ljava/lang/String;"
 	       "[Ljava/lang/String;)I");

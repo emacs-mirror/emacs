@@ -4033,7 +4033,7 @@ android_saf_root_opendir (struct android_vnode *vnode)
   struct android_saf_root_vnode *vp;
   jobjectArray array;
   jmethodID method;
-  jbyteArray authority;
+  jstring authority;
   struct android_saf_root_vdir *dir;
   size_t length;
 
@@ -4043,14 +4043,9 @@ android_saf_root_opendir (struct android_vnode *vnode)
     {
       /* Build a string containing the authority.  */
       length = strlen (vp->authority);
-      authority = (*android_java_env)->NewByteArray (android_java_env,
-						     length);
+      authority = (*android_java_env)->NewStringUTF (android_java_env,
+						     vp->authority);
       android_exception_check ();
-
-      /* Copy the authority name to that byte array.  */
-      (*android_java_env)->SetByteArrayRegion (android_java_env,
-					       authority, 0, length,
-					       (jbyte *) vp->authority);
 
       /* Acquire a list of every tree provided by this authority.  */
 
@@ -6566,10 +6561,11 @@ static struct android_special_vnode special_vnodes[] =
    to CODING, and return a Lisp string with the data so produced.
 
    Calling this function creates an implicit assumption that
-   file-name-coding-system is compatible with utf-8-emacs, which is not
-   unacceptable as users with cause to modify file-name-coding-system
-   should be aware and prepared for consequences towards files stored on
-   different filesystems, including virtual ones.  */
+   `file-name-coding-system' is compatible with `utf-8-emacs', which is
+   not unacceptable as users with cause to modify
+   file-name-coding-system should be aware and prepared for adverse
+   consequences affecting files stored on different filesystems,
+   including virtual ones.  */
 
 static Lisp_Object
 android_vfs_convert_name (const char *name, Lisp_Object coding)
