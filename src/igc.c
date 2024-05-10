@@ -1242,10 +1242,17 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	if (closure)
 	  {
 	    struct igc_stats *st = closure;
-	    st->obj[header->obj_type].nwords += header->nwords;
-	    st->obj[header->obj_type].nobjs += 1;
-	    st->obj[header->pvec_type].nwords += header->nwords;
-	    st->obj[header->pvec_type].nobjs += 1;
+	    mps_word_t obj_type = header->obj_type;
+	    igc_assert (obj_type < IGC_OBJ_LAST);
+	    st->obj[obj_type].nwords += header->nwords;
+	    st->obj[obj_type].nobjs += 1;
+	    if (obj_type != IGC_OBJ_PAD)
+	      {
+		mps_word_t pvec_type = header->pvec_type;
+		igc_assert (pvec_type <= PVEC_TAG_MAX);
+		st->obj[pvec_type].nwords += header->nwords;
+		st->obj[pvec_type].nobjs += 1;
+	      }
 	  }
 
 	switch (header->obj_type)
@@ -3100,7 +3107,9 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   struct igc *gc = global_igc;
   struct igc_stats st = { 0 };
   mps_res_t res;
-  IGC_WITH_PARKED (gc) { res = mps_pool_walk (gc->dflt_pool, dflt_scanx, &st); }
+  IGC_WITH_PARKED (gc) {
+     res = mps_pool_walk (gc->dflt_pool, dflt_scanx, &st);
+  }
   if (res != MPS_RES_OK)
     error ("Error %d walking memory", res);
 
