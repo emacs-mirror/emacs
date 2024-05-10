@@ -2535,6 +2535,89 @@ w32_draw_stretch_glyph_string (struct glyph_string *s)
   s->background_filled_p = true;
 }
 
+/* Draw a dashed underline of thickness THICKNESS and width WIDTH onto F
+   at a vertical offset of OFFSET from the position of the glyph string
+   S, with each segment SEGMENT pixels in length, and in the color
+   FOREGROUND.  */
+
+static void
+w32_draw_dash (struct frame *f, struct glyph_string *s,
+	       COLORREF foreground, int width, char segment,
+	       int offset, int thickness)
+{
+  int y_base, which, length, x, doffset;
+  HDC hdc = s->hdc;
+
+  /* A pen with PS_DASH (or PS_DOT) is unsuitable for two reasons: first
+     that PS_DASH does not accept width values greater than 1, with
+     itself considered equivalent to PS_SOLID if such a value be
+     specified, and second that it does not provide for an offset to be
+     applied to the pattern, absent which Emacs cannot align dashes that
+     are displayed at locations not multiples of each other.  I can't be
+     bothered to research this matter further, so, for want of a better
+     option, draw the specified pattern manually.  */
+
+  y_base = s->ybase + offset;
+
+  /* Remove redundant portions of OFFSET.  */
+  doffset = s->x % (segment * 2);
+
+  /* Set which to the phase of the first dash that ought to be drawn and
+     length to its length.  */
+  which = doffset < segment;
+  length = segment - (s->x % segment);
+
+  /* Begin drawing this dash.  */
+  for (x = s->x; x < s->x + width; x += length, length = segment)
+    {
+      if (which)
+	w32_fill_area (f, hdc, foreground, x, y_base, length,
+		       thickness);
+
+      which = !which;
+    }
+}
+
+/* Draw an underline of STYLE onto F at an offset of POSITION from the
+   baseline of the glyph string S, in the color FOREGROUND that is
+   THICKNESS in height.  */
+
+static void
+w32_fill_underline (struct frame *f, struct glyph_string *s,
+		    COLORREF foreground,
+		    enum face_underline_type style, int position,
+		    int thickness)
+{
+  int segment;
+
+  segment = thickness * 3;
+
+  switch (style)
+    {
+      /* FACE_UNDERLINE_DOUBLE_LINE is treated identically to SINGLE, as
+	 the second line will be filled by another invocation of this
+	 function.  */
+    case FACE_UNDERLINE_SINGLE:
+    case FACE_UNDERLINE_DOUBLE_LINE:
+      w32_fill_area (s->f, s->hdc, foreground, s->x,
+		     s->ybase + position, s->width, thickness);
+      break;
+
+    case FACE_UNDERLINE_DOTS:
+      segment = thickness;
+      FALLTHROUGH;
+
+    case FACE_UNDERLINE_DASHES:
+      w32_draw_dash (f, s, foreground, s->width, segment, position,
+		     thickness);
+      break;
+
+    case FACE_NO_UNDERLINE:
+    case FACE_UNDERLINE_WAVE:
+    default:
+      emacs_abort ();
+    }
+}
 
 /* Draw glyph string S.  */
 
@@ -2652,17 +2735,14 @@ w32_draw_glyph_string (struct glyph_string *s)
 
               w32_draw_underwave (s, color);
             }
-          else if (s->face->underline == FACE_UNDERLINE_SINGLE
-		   || s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
+          else if (s->face->underline >= FACE_UNDERLINE_SINGLE)
             {
               unsigned long thickness, position;
-              int y;
 	      COLORREF foreground;
 
               if (s->prev
-		  && ((s->prev->face->underline == FACE_UNDERLINE_SINGLE)
-		      || (s->prev->face->underline
-			  == FACE_UNDERLINE_DOUBLE_LINE))
+		  && (s->prev->face->underline != FACE_UNDERLINE_WAVE
+		      && s->prev->face->underline >= FACE_UNDERLINE_SINGLE)
 		  && (s->prev->face->underline_at_descent_line_p
 		      == s->face->underline_at_descent_line_p)
 		  && (s->prev->face->underline_pixels_above_descent_line
@@ -2739,15 +2819,14 @@ w32_draw_glyph_string (struct glyph_string *s)
                 thickness = (s->y + s->height) - (s->ybase + position);
               s->underline_thickness = thickness;
               s->underline_position = position;
-              y = s->ybase + position;
 
               if (s->face->underline_defaulted_p)
 		foreground = s->gc->foreground;
 	      else
 		foreground = s->face->underline_color;
 
-	      w32_fill_area (s->f, s->hdc, foreground, s->x, y,
-			     s->width, thickness);
+	      w32_fill_underline (s->f, s, foreground, s->face->underline,
+				  position, thickness);
 
 	      /* Place a second underline above the first if this was
 		 requested in the face specification.  */
@@ -2756,9 +2835,8 @@ w32_draw_glyph_string (struct glyph_string *s)
 		{
 		  /* Compute the position of the second underline.  */
 		  position = position - thickness - 1;
-		  y        = s->ybase + position;
-		  w32_fill_area (s->f, s->hdc, foreground, s->x, y,
-				 s->width, thickness);
+		  w32_fill_underline (s->f, s, foreground, s->face->underline,
+				      position, thickness);
 		}
             }
         }

@@ -839,7 +839,7 @@ haiku_draw_dash (struct frame *f, struct glyph_string *s, int width,
 			       s->x + width - 1),
 			  y_center);
 
-      which  = !which;
+      which = !which;
     }
 }
 
