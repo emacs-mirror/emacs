@@ -1471,6 +1471,13 @@ name as a string.  The new function
 'dictionary-completing-read-dictionary' can be used to prompt with
 completion based on dictionaries that the server supports.
 
+---
+*** The default value of 'dictionary-tooltip-dictionary' has changed.
+The new default value is t, which means use the same dictionary as the
+value of 'dictionary-default-dictionary'.  The previous default value
+was nil, which effectively disabled 'dictionary-tooltip-mode', even if
+the mode was turned on.
+
 ** Pp
 
 *** New 'pp-default-function' user option replaces 'pp-use-max-width'.
