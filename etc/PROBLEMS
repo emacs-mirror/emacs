@@ -3623,6 +3623,17 @@ The organization of the Settings app might disagree with that
 illustrated above, which if true you should consult the documentation
 or any search mechanism for it.
 
+** Emacs is not compatible with the "Microsoft SwiftKey" input method.
+
+When enabled, windows are repeatedly recentered around earlier buffer
+positions as they are scrolled.  The underlying cause is that Microsoft
+SwiftKey aggressively forces point towards word boundaries, which motion
+is sometimes received and duly processed by Emacs after the window in
+question has already been scrolled past its target position, with the
+result that the next redisplay recenters the window around this outdated
+position.  There is no solution but installing a more
+cooperative--and preferably free--input method.
+
 * Build-time problems
 
 ** Configuration
