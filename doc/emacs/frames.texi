@@ -1146,11 +1146,11 @@ text or moving point with a keyboard command will usually bring it back
 into view.
 
 @findex horizontal-scroll-bar-mode
-  To toggle the use of horizontal scroll bars, type @kbd{M-x
-horizontal-scroll-bar-mode}.  This command applies to all frames,
+  To toggle the use of horizontal scroll bars, type @w{@kbd{M-x
+horizontal-scroll-bar-mode}}.  This command applies to all frames,
 including frames yet to be created.  To toggle horizontal scroll bars
-for just the selected frame, use the command @kbd{M-x
-toggle-horizontal-scroll-bar}.
+for just the selected frame, use the command @w{@kbd{M-x
+toggle-horizontal-scroll-bar}}.
 
 @vindex horizontal-scroll-bar-mode
   To control the use of horizontal scroll bars at startup, customize the
