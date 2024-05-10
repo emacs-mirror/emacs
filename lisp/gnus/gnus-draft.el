@@ -262,8 +262,7 @@ If DONT-POP is nil, display the buffer after setting it up."
             (setq ga
                   (message-fetch-field gnus-draft-meta-information-header)))
           (insert mail-header-separator)
-          (forward-line 1)
-          (message-set-auto-save-file-name))))
+          (forward-line 1))))
     (gnus-backlog-remove-article group narticle)
     (when (and ga
                (ignore-errors (setq ga (car (read-from-string ga)))))
