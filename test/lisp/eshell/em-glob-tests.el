@@ -146,6 +146,12 @@ value of `eshell-glob-splice-results'."
                  `(,(format "%s/some/where/" remote)
                    (("\\`.*\\.el\\'" . "\\`\\.")) nil)))))
 
+(ert-deftest em-glob-test/convert/quoted-start-directory ()
+  "Test converting a glob starting in a quoted directory name."
+  (should (equal (eshell-glob-convert
+                  (concat (eshell-escape-arg "some where/") "*.el"))
+                 '("./some where/" (("\\`.*\\.el\\'" . "\\`\\.")) nil))))
+
 
 ;; Glob matching
 
