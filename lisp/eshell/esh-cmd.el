@@ -101,20 +101,18 @@
 ;;; Code:
 
 (require 'esh-util)
-(require 'eldoc)
 (require 'esh-arg)
 (require 'esh-proc)
 (require 'esh-module)
 (require 'esh-io)
 (require 'esh-ext)
+
+(require 'eldoc)
 (require 'generator)
+(require 'pcomplete)
 
 (eval-when-compile
-  (require 'cl-lib)
-  (require 'pcomplete))
-
-(declare-function pcomplete--here "pcomplete"
-		  (&optional form stub paring form-only))
+  (require 'cl-lib))
 
 (defgroup eshell-cmd nil
   "Executing an Eshell command is as simple as typing it in and \

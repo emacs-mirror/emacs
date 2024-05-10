@@ -31,12 +31,12 @@
 
 ;;; Code:
 
-(require 'esh-util)
-
 (eval-when-compile (require 'cl-lib))
 (require 'esh-io)
 (require 'esh-arg)
 (require 'esh-opt)
+(require 'esh-proc)
+(require 'esh-util)
 
 (defgroup eshell-ext nil
   "External commands are invoked when operating system executables are
@@ -89,10 +89,6 @@ but Eshell will be able to understand
 	  (setq suffixes (cdr suffixes)))
 	(setq list (cdr list)))
       file)))
-
-;; This file provides itself then eval-when-compile loads files that require it.
-;; This causes spurious "might not be defined at runtime" warnings.
-(declare-function eshell-search-path "esh-ext" (name))
 
 (defcustom eshell-windows-shell-file
   (if (eshell-under-windows-p)
@@ -244,8 +240,6 @@ An external command simply means external to Emacs."
     (cl-assert interp)
     (if (functionp (car interp))
 	(apply (car interp) (append (cdr interp) args))
-      (require 'esh-proc)
-      (declare-function eshell-gather-process-output "esh-proc" (command args))
       (eshell-gather-process-output
        (car interp) (append (cdr interp) args)))))
 

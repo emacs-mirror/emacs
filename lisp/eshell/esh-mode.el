@@ -694,9 +694,6 @@ newline."
 (defun eshell-send-eof-to-process ()
   "Send EOF to the currently-running \"head\" process."
   (interactive)
-  (require 'esh-mode)
-  (declare-function eshell-send-input "esh-mode"
-                    (&optional use-region queue-p no-newline))
   (eshell-send-input nil nil t)
   (when (eshell-head-process)
     (process-send-eof (eshell-head-process))))

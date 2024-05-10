@@ -293,7 +293,6 @@ instead."
             (eshell-do-ls (nconc switches (list target)))))))))
 
 
-(declare-function eshell-extended-glob "em-glob" (glob))
 (declare-function dired-read-dir-and-switches "dired" (str))
 (declare-function dired-goto-next-file "dired" ())
 
