@@ -3023,6 +3023,104 @@ android_check_content_access (const char *uri, int mode)
 
 
 
+/* Functions shared by authority and SAF nodes.  */
+
+/* Check for JNI exceptions, clear them, and set errno accordingly.
+   Also, free each of the N local references given as arguments if an
+   exception takes place.
+
+   Value is 1 if an exception has taken place, 0 otherwise.
+
+   If the exception thrown derives from FileNotFoundException, set
+   errno to ENOENT.
+
+   If the exception thrown derives from SecurityException, set errno
+   to EACCES.
+
+   If the exception thrown derives from OperationCanceledException,
+   set errno to EINTR.
+
+   If the exception thrown derives from UnsupportedOperationException,
+   set errno to ENOSYS.
+
+   If the exception thrown derives from OutOfMemoryException, call
+   `memory_full'.
+
+   If the exception thrown is anything else, set errno to EIO.  */
+
+static int
+android_saf_exception_check (int n, ...)
+{
+  jthrowable exception;
+  JNIEnv *env;
+  va_list ap;
+  int new_errno;
+
+  env = android_java_env;
+  va_start (ap, n);
+
+  /* First, check for an exception.  */
+
+  if (!(*env)->ExceptionCheck (env))
+    {
+      /* No exception has taken place.  Return 0.  */
+      va_end (ap);
+      return 0;
+    }
+
+  /* Print the exception.  */
+  (*env)->ExceptionDescribe (env);
+
+  exception = (*env)->ExceptionOccurred (env);
+
+  if (!exception)
+    /* JNI couldn't return a local reference to the exception.  */
+    memory_full (0);
+
+  /* Clear the exception, making it safe to subsequently call other
+     JNI functions.  */
+  (*env)->ExceptionClear (env);
+
+  /* Delete each of the N arguments.  */
+
+  while (n > 0)
+    {
+      ANDROID_DELETE_LOCAL_REF (va_arg (ap, jobject));
+      n--;
+    }
+
+  /* Now set errno or signal memory_full as required.  */
+
+  if ((*env)->IsInstanceOf (env, (jobject) exception,
+			    file_not_found_exception))
+    new_errno = ENOENT;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 security_exception))
+    new_errno = EACCES;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 operation_canceled_exception))
+    new_errno = EINTR;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 unsupported_operation_exception))
+    new_errno = ENOSYS;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 out_of_memory_error))
+    {
+      ANDROID_DELETE_LOCAL_REF ((jobject) exception);
+      memory_full (0);
+    }
+  else
+    new_errno = EIO;
+
+  /* expression is still a local reference! */
+  ANDROID_DELETE_LOCAL_REF ((jobject) exception);
+  errno = new_errno;
+  va_end (ap);
+  return 1;
+}
+
+
+
 /* Content authority-based vnode implementation.
 
    /content/by-authority is a simple vnode implementation that converts
@@ -3201,7 +3299,9 @@ android_authority_open (struct android_vnode *vnode, int flags,
 					(jboolean) !(mode & O_WRONLY),
 					(jboolean) ((mode & O_TRUNC)
 						    != 0));
-  android_exception_check_1 (string);
+  if (android_saf_exception_check (1, string))
+    return -1;
+  ANDROID_DELETE_LOCAL_REF (string);
 
   /* If fd is -1, just assume that the file does not exist,
      and return -1 with errno set to ENOENT.  */
@@ -3209,17 +3309,11 @@ android_authority_open (struct android_vnode *vnode, int flags,
   if (fd == -1)
     {
       errno = ENOENT;
-      goto skip;
+      return -1;
     }
 
   if (mode & O_CLOEXEC)
     android_close_on_exec (fd);
-
- skip:
-  ANDROID_DELETE_LOCAL_REF (string);
-
-  if (fd == -1)
-    return -1;
 
   *fd_return = fd;
   return 0;
@@ -4088,100 +4182,6 @@ android_saf_root_get_directory (int dirfd)
 /* Whether or not Emacs is within an operation running from the SAF
    thread.  */
 static bool inside_saf_critical_section;
-
-/* Check for JNI exceptions, clear them, and set errno accordingly.
-   Also, free each of the N local references given as arguments if an
-   exception takes place.
-
-   Value is 1 if an exception has taken place, 0 otherwise.
-
-   If the exception thrown derives from FileNotFoundException, set
-   errno to ENOENT.
-
-   If the exception thrown derives from SecurityException, set errno
-   to EACCES.
-
-   If the exception thrown derives from OperationCanceledException,
-   set errno to EINTR.
-
-   If the exception thrown derives from UnsupportedOperationException,
-   set errno to ENOSYS.
-
-   If the exception thrown derives from OutOfMemoryException, call
-   `memory_full'.
-
-   If the exception thrown is anything else, set errno to EIO.  */
-
-static int
-android_saf_exception_check (int n, ...)
-{
-  jthrowable exception;
-  JNIEnv *env;
-  va_list ap;
-  int new_errno;
-
-  env = android_java_env;
-  va_start (ap, n);
-
-  /* First, check for an exception.  */
-
-  if (!(*env)->ExceptionCheck (env))
-    {
-      /* No exception has taken place.  Return 0.  */
-      va_end (ap);
-      return 0;
-    }
-
-  /* Print the exception.  */
-  (*env)->ExceptionDescribe (env);
-
-  exception = (*env)->ExceptionOccurred (env);
-
-  if (!exception)
-    /* JNI couldn't return a local reference to the exception.  */
-    memory_full (0);
-
-  /* Clear the exception, making it safe to subsequently call other
-     JNI functions.  */
-  (*env)->ExceptionClear (env);
-
-  /* Delete each of the N arguments.  */
-
-  while (n > 0)
-    {
-      ANDROID_DELETE_LOCAL_REF (va_arg (ap, jobject));
-      n--;
-    }
-
-  /* Now set errno or signal memory_full as required.  */
-
-  if ((*env)->IsInstanceOf (env, (jobject) exception,
-			    file_not_found_exception))
-    new_errno = ENOENT;
-  else if ((*env)->IsInstanceOf (env, (jobject) exception,
-				 security_exception))
-    new_errno = EACCES;
-  else if ((*env)->IsInstanceOf (env, (jobject) exception,
-				 operation_canceled_exception))
-    new_errno = EINTR;
-  else if ((*env)->IsInstanceOf (env, (jobject) exception,
-				 unsupported_operation_exception))
-    new_errno = ENOSYS;
-  else if ((*env)->IsInstanceOf (env, (jobject) exception,
-				 out_of_memory_error))
-    {
-      ANDROID_DELETE_LOCAL_REF ((jobject) exception);
-      memory_full (0);
-    }
-  else
-    new_errno = EIO;
-
-  /* expression is still a local reference! */
-  ANDROID_DELETE_LOCAL_REF ((jobject) exception);
-  errno = new_errno;
-  va_end (ap);
-  return 1;
-}
 
 /* Return file status for the document designated by ID_NAME within
    the document tree identified by URI_NAME.
@@ -6883,14 +6883,8 @@ android_vfs_init (JNIEnv *env, jobject manager)
   eassert (java_string_class);
   (*env)->DeleteLocalRef (env, old);
 
-  /* And initialize those used on Android 5.0 and later.  */
-
-  if (android_get_current_api_level () < 21)
+  if (android_get_current_api_level () < 19)
     return;
-
-  android_init_cursor_class (env);
-  android_init_entry_class (env);
-  android_init_fd_class (env);
 
   /* Initialize each of the exception classes used by
      `android_saf_exception_check'.  */
@@ -6919,6 +6913,15 @@ android_vfs_init (JNIEnv *env, jobject manager)
   out_of_memory_error = (*env)->NewGlobalRef (env, old);
   (*env)->DeleteLocalRef (env, old);
   eassert (out_of_memory_error);
+
+  /* And initialize those used on Android 5.0 and later.  */
+
+  if (android_get_current_api_level () < 21)
+    return;
+
+  android_init_cursor_class (env);
+  android_init_entry_class (env);
+  android_init_fd_class (env);
 
   /* Initialize the semaphore used to wait for SAF operations to
      complete.  */

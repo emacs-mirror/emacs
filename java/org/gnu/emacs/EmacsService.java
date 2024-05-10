@@ -968,7 +968,7 @@ public final class EmacsService extends Service
      string; make it writable if WRITABLE, and readable if READABLE.
      Truncate the file if TRUNCATE.
 
-     Value is the resulting file descriptor or an exception will be
+     Value is the resulting file descriptor, -1, or an exception will be
      raised.  */
 
   public int
@@ -999,6 +999,9 @@ public final class EmacsService extends Service
        minimum requirement for access to /content/by-authority.  */
 
     fd = resolver.openFileDescriptor (Uri.parse (uri), mode);
+    if (fd == null)
+      return -1;
+
     i = fd.detachFd ();
     fd.close ();
 
