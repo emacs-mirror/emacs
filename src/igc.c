@@ -2241,7 +2241,6 @@ igc_xzalloc_ambig (size_t size)
 void *
 igc_realloc_ambig (void *block, size_t size)
 {
-#if 0 // non tested code:
   struct igc_root_list *r = root_find (block);
   igc_assert (r != NULL);
   destroy_root (&r);
@@ -2253,8 +2252,6 @@ igc_realloc_ambig (void *block, size_t size)
   void *end = (char *)p + new_size;
   root_create_ambig (global_igc, p, end);
   return p;
-#endif
-  emacs_abort ();
 }
 
 
