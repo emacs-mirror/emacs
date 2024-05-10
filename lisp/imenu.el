@@ -740,10 +740,12 @@ Return one of the entries in index-alist or nil."
                          (imenu--in-alist name prepared-index-alist)
                          ;; Default to `name' if it's in the alist.
                          name))))
-    (let ((minibuffer-setup-hook minibuffer-setup-hook))
-      ;; Display the completion buffer.
-      (if (not imenu-eager-completion-buffer)
-	  (add-hook 'minibuffer-setup-hook 'minibuffer-completion-help))
+    ;; Display the completion buffer.
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (setq-local completion-extra-properties '(:category imenu))
+          (unless imenu-eager-completion-buffer
+            (minibuffer-completion-help)))
       (setq name (completing-read prompt
 				  prepared-index-alist
 				  nil t nil 'imenu--history-list name)))
@@ -784,7 +786,7 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
 				 (concat prefix imenu-level-separator name)
 			       name))))
        (cond
-	((or (markerp pos) (numberp pos))
+	((not (imenu--subalist-p item))
 	 (list (cons new-prefix pos)))
 	(t
 	 (imenu--flatten-index-alist pos concat-names new-prefix)))))
