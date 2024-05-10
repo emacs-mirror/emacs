@@ -167,23 +167,23 @@ external version."
 (defcustom eshell-explicit-remote-commands t
   "If non-nil, support explicitly-remote commands.
 These are commands with a full remote file name, such as
-\"/ssh:host:whoami\".  If this is enabled, you can also run
-explicitly-local commands by using a quoted file name, like
-\"/:whoami\"."
+\"/ssh:host:whoami\".  If this is enabled, you can also explicitly run
+commands on your local host by using the \"/local:\" prefix, like
+\"/local:whoami\"."
   :type 'boolean
   :group 'eshell-ext)
 
 ;;; Functions:
 
+(defconst eshell--local-prefix "/local:")
+
 (defun eshell-ext-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the external command handling code."
-  (add-hook 'eshell-named-command-hook #'eshell-explicit-command nil t)
-  (when eshell-explicit-remote-commands
-    (add-hook 'eshell-named-command-hook
-              #'eshell-handle-remote-command nil t)))
+  (add-hook 'eshell-named-command-hook #'eshell-quoted-file-command nil t)
+  (add-hook 'eshell-named-command-hook #'eshell-explicit-command nil t))
 
 (defun eshell-explicit-command (command args)
-  "If a command name begins with `*', call it externally always.
+  "If a command name begins with \"*\", always call it externally.
 This bypasses all Lisp functions and aliases."
   (when (and (> (length command) 1)
 	     (eq (aref command 0) eshell-explicit-command-char))
@@ -194,39 +194,35 @@ This bypasses all Lisp functions and aliases."
 	(error "%s: external command not found"
 	       (substring command 1))))))
 
-(defun eshell-handle-remote-command (command args)
-  "Handle remote (or quoted) COMMAND names, using ARGS.
-This calls the appropriate function for commands that aren't on
-the connection associated with `default-directory'.  (See
-`eshell-explicit-remote-commands'.)"
-  (if (file-name-quoted-p command)
-      (let ((default-directory (if (file-remote-p default-directory)
-                                   (expand-file-name "~")
-                                 default-directory)))
-        (eshell-external-command (file-name-unquote command) args))
-    (when (file-remote-p command)
-      (eshell-remote-command command args))))
+(defun eshell-quoted-file-command (command args)
+  "If a command name begins with \"/:\", always call it externally.
+Similar to `eshell-explicit-command', this bypasses all Lisp functions
+and aliases, but it also ignores file name handlers."
+  (when (file-name-quoted-p command)
+    (eshell-external-command (file-name-unquote command) args)))
 
 (defun eshell-remote-command (command args)
   "Insert output from a remote COMMAND, using ARGS.
-A remote command is something that executes on a different machine.
-An external command simply means external to Emacs."
+A \"remote\" command in Eshell is something that executes on a different
+machine.  If COMMAND is a remote file name, run it on the host for that
+file; if COMMAND is a local file name, run it locally."
   (let* ((cwd-connection (file-remote-p default-directory))
          (command-connection (file-remote-p command))
          (default-directory (if (equal cwd-connection command-connection)
                                 default-directory
-                              command-connection))
+                              (or command-connection (expand-file-name "~"))))
          ;; Never use the remote connection here.  We don't want to
          ;; expand the local name!  Instead, we want it as the user
          ;; typed, so that if COMMAND is "/ssh:host:cat", we just get
          ;; "cat" as the result.
-         (command-localname (file-remote-p command 'localname 'never)))
-    (unless command-connection
-      (error "%s: not a remote command" command))
+         (command-localname (or (file-remote-p command 'localname 'never)
+                                command)))
     (eshell-external-command command-localname args)))
 
-(defun eshell-external-command (command args)
-  "Insert output from an external COMMAND, using ARGS."
+(defun eshell-connection-local-command (command args)
+  "Insert output from an external COMMAND, using ARGS.
+This always runs COMMAND using the connection associated with the
+current working directory."
   (setq args (eshell-stringify-list (flatten-tree args)))
   (let ((interp (eshell-find-interpreter
 		 command
@@ -242,6 +238,19 @@ An external command simply means external to Emacs."
 	(apply (car interp) (append (cdr interp) args))
       (eshell-gather-process-output
        (car interp) (append (cdr interp) args)))))
+
+(defun eshell-external-command (command args)
+  "Insert output from an external COMMAND, using ARGS."
+  (cond
+   ((and eshell-explicit-remote-commands
+         (file-remote-p command))
+    (eshell-remote-command command args))
+   ((and eshell-explicit-remote-commands
+         (string-prefix-p eshell--local-prefix command))
+    (eshell-remote-command
+     (substring command (length eshell--local-prefix)) args))
+   (t
+    (eshell-connection-local-command command args))))
 
 (defun eshell/addpath (&rest args)
   "Add a set of paths to PATH."

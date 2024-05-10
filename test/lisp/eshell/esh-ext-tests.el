@@ -102,7 +102,7 @@
          ;; Check the value of $INSIDE_EMACS using `sh' in order to
          ;; delay variable expansion.
          (eshell-match-command-output
-          (format "/:%s -c 'echo $INSIDE_EMACS'" cmd)
+          (format "/local:%s -c 'echo $INSIDE_EMACS'" cmd)
           "eshell\n"))))))
 
 ;; esh-ext-tests.el ends here

@@ -915,7 +915,7 @@ By prefixing a command name in Eshell with a remote identifier, like
 "/ssh:user@remote:whoami", you can now run commands on a particular
 host no matter your current directory.  Likewise, you can run a
 command on your local system no matter your current directory via
-"/:whoami".  For more information, see the "(eshell) Remote Access"
+"/local:whoami".  For more information, see the "(eshell) Remote Access"
 node in the Eshell manual.
 
 +++
