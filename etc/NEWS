@@ -1039,6 +1039,13 @@ docstring, or a comment, or (re)indents the surrounding defun if
 point is not in a comment or a string.  It is by default bound to
 'M-q' in 'prog-mode' and all its descendants.
 
+** Imenu
+
++++
+*** New user option 'imenu-flatten'.
+It defines whether to flatten the list of sections in an imenu
+or show it nested.
+
 ** Which Function mode
 
 +++

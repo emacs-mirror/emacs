@@ -338,10 +338,13 @@ where it treats each chapter, section, etc., as a definition.
 together.)
 
 @findex imenu
+@vindex imenu-flatten
   If you type @kbd{M-g i} (@code{imenu}), it reads the name of a
 definition using the minibuffer, then moves point to that definition.
 You can use completion to specify the name; the command always
-displays the whole list of valid names.
+displays the whole list of valid names.  If you set @code{imenu-flatten}
+to a non-@code{nil} value, then instead of the nested menu
+you can select a completion candidate from the flat list.
 
 @findex imenu-add-menubar-index
   Alternatively, you can bind the command @code{imenu} to a mouse
