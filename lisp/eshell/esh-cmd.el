@@ -785,9 +785,6 @@ this grossness will be made to disappear by using `call/cc'..."
       (eshell-errorn (error-message-string err))
       (eshell-close-handles 1))))
 
-(defvar eshell-output-handle)           ;Defined in esh-io.el.
-(defvar eshell-error-handle)            ;Defined in esh-io.el.
-
 (defmacro eshell-with-copied-handles (object &optional steal-p)
   "Duplicate current I/O handles, so OBJECT works with its own copy.
 If STEAL-P is non-nil, these new handles will be stolen from the
