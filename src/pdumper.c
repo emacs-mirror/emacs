@@ -1396,20 +1396,8 @@ dump_enqueue_object (struct dump_context *ctx,
              is already on the normal queue: multiple enqueue calls
              can increase the object's weight.  */
 	  if (state == DUMP_OBJECT_ON_NORMAL_QUEUE)
-	    {
-#if 0
-	      if (XTYPE (object) == Lisp_Vectorlike)
-		{
-		  struct Lisp_Vector *v = XVECTOR (object);
-		  void *p = v;
-		  if (p == (void *) 0x000000017362d8a8)
-		    igc_break ();
-		}
-#endif
-
-	      dump_queue_enqueue (&ctx->dump_queue, object, ctx->offset,
-				  weight);
-	    }
+	    dump_queue_enqueue (&ctx->dump_queue, object, ctx->offset,
+				weight);
         }
     }
   /* Always remember the path to this object.  */

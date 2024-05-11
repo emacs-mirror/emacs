@@ -3334,6 +3334,10 @@ igc_finish_obj (void *client, char *base, char *end)
       return base + to_bytes (h->nwords);
     }
 
+  /* Some object in Emacs, e.g. built-in symbol, buffer_defaults,
+     main_thread.  These all will be memcpy'd to Emacs when a dump is
+     loaded, and are no longer useful. Make them padding. */
+  igc_assert (!pdumper_object_p (client));
   size_t client_size = end - base - sizeof *out;
   size_t nbytes = obj_size (client_size);
   size_t nwords = to_words (nbytes);
