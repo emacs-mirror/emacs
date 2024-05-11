@@ -58,6 +58,7 @@ struct w32_bitmap_record
 {
   Emacs_Pixmap pixmap;
   char *file;
+  Emacs_Pixmap stipple;
   HINSTANCE hinst; /* Used to load the file */
   int refcount;
   /* Record some info about this pixmap.  */

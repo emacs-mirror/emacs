@@ -1248,6 +1248,34 @@ w32_clear_glyph_string_rect (struct glyph_string *s,
                  real_w, real_h);
 }
 
+/* Fill background with bitmap pattern from S at specified position
+   given by X and Y.  WIDTH and HEIGHT specifies bitmap size, GC is
+   used to get foreground and background color context and HDC where
+   fill it.  */
+
+static void
+w32_fill_stipple_pattern (HDC hdc, struct glyph_string *s, Emacs_GC *gc,
+			  int x, int y, unsigned int width, unsigned int height)
+{
+  SetTextColor (hdc, gc->foreground);
+  SetBkColor (hdc, gc->background);
+
+  RECT r;
+  Emacs_Pixmap bm;
+  HBRUSH hb;
+
+  r.left = x;
+  r.top = y;
+  r.right = x + width;
+  r.bottom = y + height;
+
+  bm = FRAME_DISPLAY_INFO (s->f)->bitmaps[s->face->stipple - 1].stipple;
+
+  hb = CreatePatternBrush (bm);
+  FillRect (hdc, &r, hb);
+
+  DeleteObject (hb);
+}
 
 /* Draw the background of glyph_string S.  If S->background_filled_p
    is non-zero don't draw it.  FORCE_P non-zero means draw the
@@ -1264,21 +1292,16 @@ w32_draw_glyph_string_background (struct glyph_string *s, bool force_p)
     {
       int box_line_width = max (s->face->box_horizontal_line_width, 0);
 
-#if 0 /* TODO: stipple */
       if (s->stippled_p)
 	{
 	  /* Fill background with a stipple pattern.  */
-	  XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-	  XFillRectangle (s->display, FRAME_W32_WINDOW (s->f), s->gc, s->x,
-			  s->y + box_line_width,
-			  s->background_width,
-			  s->height - 2 * box_line_width);
-	  XSetFillStyle (s->display, s->gc, FillSolid);
+	  w32_fill_stipple_pattern (s->hdc, s, s->gc, s->x,
+				    s->y + box_line_width,
+				    s->background_width,
+				    s->height - 2 * box_line_width);
 	  s->background_filled_p = true;
 	}
-      else
-#endif
-           if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
+      else if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       /* When xdisp.c ignores FONT_HEIGHT, we cannot trust
 		  font dimensions, since the actual glyphs might be
 		  much smaller.  So in that case we always clear the
@@ -2286,16 +2309,12 @@ w32_draw_image_foreground_1 (struct glyph_string *s, HBITMAP pixmap)
 static void
 w32_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w, int h)
 {
-#if 0 /* TODO: stipple */
   if (s->stippled_p)
     {
       /* Fill background with a stipple pattern.  */
-      XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-      XFillRectangle (s->display, FRAME_W32_WINDOW (s->f), s->gc, x, y, w, h);
-      XSetFillStyle (s->display, s->gc, FillSolid);
+      w32_fill_stipple_pattern (s->hdc, s, s->gc, x, y, w, h);
     }
   else
-#endif
     w32_clear_glyph_string_rect (s, x, y, w, h);
 }
 
@@ -2500,16 +2519,12 @@ w32_draw_stretch_glyph_string (struct glyph_string *s)
 	  get_glyph_string_clip_rect (s, &r);
 	  w32_set_clip_rectangle (hdc, &r);
 
-#if 0 /* TODO: stipple */
 	  if (s->face->stipple)
 	    {
 	      /* Fill background with a stipple pattern.  */
-	      XSetFillStyle (s->display, gc, FillOpaqueStippled);
-	      XFillRectangle (s->display, FRAME_W32_WINDOW (s->f), gc, x, y, w, h);
-	      XSetFillStyle (s->display, gc, FillSolid);
+	      w32_fill_stipple_pattern (s->hdc, s, gc, x, y, w, h);
 	    }
 	  else
-#endif
             {
               w32_fill_area (s->f, s->hdc, gc->background, x, y, w, h);
             }

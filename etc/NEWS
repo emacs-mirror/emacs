@@ -2852,6 +2852,9 @@ thumbnail images and show them in the thumbnail buffer.  Unlike with
 using 'convert', this fallback method is synchronous, so Emacs will wait
 until all the thumbnails are created and displayed, before showing them.
 
+---
+*** Emacs on MS-Windows now supports the ':stipple' face attribute.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
