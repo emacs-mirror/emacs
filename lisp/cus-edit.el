@@ -4970,13 +4970,10 @@ if only the first line of the docstring is shown."))
             ;; can cause problems when read back, so print them
             ;; readably.  (Bug#52554)
             (print-escape-control-characters t))
+        ;; Insert lexical cookie, but only if the buffer is empty.
         (save-restriction
           (widen)
           (atomic-change-group
-            ;; The previous test `eobp' was written with an appalling
-            ;; lack of forethought or testing, being easily misled if
-            ;; the user should have left point at eob in a buffer
-            ;; visiting the custom file.
             (when (eq (point-min) (point-max))
               (save-excursion
                 (goto-char (point-min))
