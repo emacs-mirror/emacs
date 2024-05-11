@@ -786,7 +786,7 @@ dump_igc_header (struct dump_context *ctx, const void *in)
   if (in)
     {
       EMACS_INT buf[1];
-      dump_off nbytes = igc_dump_header (in, buf, sizeof buf);
+      dump_off nbytes = igc_dump_header ((void *) in, buf, sizeof buf);
       if (nbytes)
 	dump_write (ctx, buf, nbytes);
     }

@@ -3315,10 +3315,20 @@ igc_postmortem (void)
 }
 
 size_t
-igc_dump_header (const void *client, void *buf, size_t buf_size)
+igc_dump_header (void *client, void *buf, size_t buf_size)
 {
   igc_assert (buf_size >= sizeof (struct igc_header));
   igc_assert (!pdumper_object_p (client));
+  if (is_mps (client))
+    {
+      struct igc_header *h = client_to_base (client);
+      struct igc_header *o = buf;
+      *o = *h;
+      return sizeof *h;
+    }
+
+  fprintf (stderr, "+++ non-mps obj\n");
+  igc_break ();
   return 0;
 }
 
