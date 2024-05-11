@@ -4970,12 +4970,20 @@ if only the first line of the docstring is shown."))
             ;; can cause problems when read back, so print them
             ;; readably.  (Bug#52554)
             (print-escape-control-characters t))
-        (atomic-change-group
-          (when (eobp)
-            (insert ";;; -*- lexical-binding: t -*-\n"))
-	  (custom-save-variables)
-	  (custom-save-faces)
-          (custom-save-icons)))
+        (save-restriction
+          (widen)
+          (atomic-change-group
+            ;; The previous test `eobp' was written with an appalling
+            ;; lack of forethought or testing, being easily misled if
+            ;; the user should have left point at eob in a buffer
+            ;; visiting the custom file.
+            (when (eq (point-min) (point-max))
+              (save-excursion
+                (goto-char (point-min))
+                (insert ";;; -*- lexical-binding: t -*-\n")))
+	    (custom-save-variables)
+	    (custom-save-faces)
+            (custom-save-icons))))
       (let ((file-precious-flag t))
 	(save-buffer))
       (if old-buffer
