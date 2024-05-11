@@ -115,7 +115,15 @@ via `dictionary-dictionaries'."
 
 (defcustom dictionary-default-strategy
   "."
-  "The default strategy for listing matching words."
+  "The default strategy for listing matching words.
+The value should be a string.  The special value \".\" means
+the default search strategy for `dictionary-server' in use.
+Other values are specific to servers and dictionaries.
+In a `dictionary-mode' buffer, you can use
+\\[dictionary-select-strategy] to change the buffer-local value;
+it will show the available strategies from which you can choose.
+To change the value for other buffers, customize this option
+using \\[customize-option]."
   :group 'dictionary
   :type 'string
   :version "28.1")
