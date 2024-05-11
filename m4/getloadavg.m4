@@ -1,13 +1,12 @@
+# getloadavg.m4
+# serial 13
+dnl Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2024 Free Software
+dnl Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
+
 # Check for getloadavg.
-
-# Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2024 Free Software
-# Foundation, Inc.
-
-# This file is free software; the Free Software Foundation
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
-
-#serial 13
 
 # Autoconf defines AC_FUNC_GETLOADAVG, but that is obsolescent.
 # New applications should use gl_GETLOADAVG instead.

@@ -77,7 +77,8 @@
 
 /* Get off_t and ssize_t.  Needed on many systems, including glibc 2.8
    and eglibc 2.11.2.
-   May also define off_t to a 64-bit type on native Windows.  */
+   May also define off_t to a 64-bit type on native Windows.
+   Also defines off64_t on macOS, NetBSD, OpenBSD, MSVC, Cygwin, Haiku.  */
 #include <sys/types.h>
 
 /* Solaris 10 and NetBSD 7.0 declare renameat in <unistd.h>, not in <stdio.h>.  */
@@ -907,14 +908,14 @@ _GL_CXXALIAS_SYS (fwrite, size_t,
        && !defined __cplusplus)
 #   undef fwrite
 #   undef fwrite_unlocked
-extern size_t __REDIRECT (rpl_fwrite,
-                          (const void *__restrict, size_t, size_t,
-                           FILE *__restrict),
-                          fwrite);
-extern size_t __REDIRECT (rpl_fwrite_unlocked,
-                          (const void *__restrict, size_t, size_t,
-                           FILE *__restrict),
-                          fwrite_unlocked);
+_GL_EXTERN_C size_t __REDIRECT (rpl_fwrite,
+                                (const void *__restrict, size_t, size_t,
+                                 FILE *__restrict),
+                                fwrite);
+_GL_EXTERN_C size_t __REDIRECT (rpl_fwrite_unlocked,
+                                (const void *__restrict, size_t, size_t,
+                                 FILE *__restrict),
+                                fwrite_unlocked);
 #   define fwrite rpl_fwrite
 #   define fwrite_unlocked rpl_fwrite_unlocked
 #  endif

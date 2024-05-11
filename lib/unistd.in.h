@@ -159,8 +159,9 @@
 #endif
 
 /* MSVC defines off_t in <sys/types.h>.
-   May also define off_t to a 64-bit type on native Windows.  */
-/* Get off_t, ssize_t, mode_t.  */
+   May also define off_t to a 64-bit type on native Windows.
+   Also defines off64_t on macOS, NetBSD, OpenBSD, MSVC, Cygwin, Haiku.  */
+/* Get off_t, off64_t, ssize_t, mode_t.  */
 #include <sys/types.h>
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */

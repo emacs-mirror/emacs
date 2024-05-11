@@ -1,4 +1,5 @@
-# gnulib-common.m4 serial 92
+# gnulib-common.m4
+# serial 93
 dnl Copyright (C) 2007-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -504,8 +505,10 @@ AC_DEFUN([gl_COMMON_BODY], [
    minimizing the memory required.  */
 /* Applies to: struct members, struct, union,
    in C++ also: class.  */
+/* Oracle Studio 12.6 miscompiles code with __attribute__ ((__packed__)) despite
+   __has_attribute OK.  */
 #ifndef _GL_ATTRIBUTE_PACKED
-# if _GL_HAS_ATTRIBUTE (packed)
+# if _GL_HAS_ATTRIBUTE (packed) && !defined __SUNPRO_C
 #  define _GL_ATTRIBUTE_PACKED __attribute__ ((__packed__))
 # else
 #  define _GL_ATTRIBUTE_PACKED

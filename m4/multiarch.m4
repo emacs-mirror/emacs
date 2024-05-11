@@ -1,4 +1,5 @@
-# multiarch.m4 serial 9
+# multiarch.m4
+# serial 9
 dnl Copyright (C) 2008-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,

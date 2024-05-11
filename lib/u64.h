@@ -29,6 +29,11 @@ _GL_INLINE_HEADER_BEGIN
 # define _GL_U64_INLINE _GL_INLINE
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /* Return X rotated left by N bits, where 0 < N < 64.  */
 #define u64rol(x, n) u64or (u64shl (x, n), u64shr (x, 64 - n))
 
@@ -176,6 +181,11 @@ u64shr (u64 x, int n)
   return r;
 }
 
+#endif
+
+
+#ifdef __cplusplus
+}
 #endif
 
 _GL_INLINE_HEADER_END

@@ -2809,6 +2809,7 @@ mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, const mpz_t u, const mpz_t v)
   mpz_t tu, tv, s0, s1, t0, t1;
   mp_bitcnt_t uz, vz, gz;
   mp_bitcnt_t power;
+  int cmp;
 
   if (u->_mp_size == 0)
     {
@@ -2960,12 +2961,21 @@ mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, const mpz_t u, const mpz_t v)
       mpz_tdiv_q_2exp (t0, t0, 1);
     }
 
-  /* Arrange so that |s| < |u| / 2g */
+  /* Choose small cofactors (they should generally satify
+
+       |s| < |u| / 2g and |t| < |v| / 2g,
+
+     with some documented exceptions). Always choose the smallest s,
+     if there are two choices for s with same absolute value, choose
+     the one with smallest corresponding t (this asymmetric condition
+     is needed to prefer s = 0, |t| = 1 when g = |a| = |b|). */
   mpz_add (s1, s0, s1);
-  if (mpz_cmpabs (s0, s1) > 0)
+  mpz_sub (t1, t0, t1);
+  cmp = mpz_cmpabs (s0, s1);
+  if (cmp > 0 || (cmp == 0 && mpz_cmpabs (t0, t1) > 0))
     {
       mpz_swap (s0, s1);
-      mpz_sub (t0, t0, t1);
+      mpz_swap (t0, t1);
     }
   if (u->_mp_size < 0)
     mpz_neg (s0, s0);

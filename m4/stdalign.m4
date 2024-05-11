@@ -1,9 +1,11 @@
-# Check for alignas and alignof that conform to C23.
-
+# stdalign.m4
+# serial 1
 dnl Copyright 2011-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+
+# Check for alignas and alignof that conform to C23.
 
 dnl Written by Paul Eggert and Bruno Haible.
 

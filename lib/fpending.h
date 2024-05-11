@@ -30,6 +30,16 @@
 # include <stdio_ext.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #if !HAVE_DECL___FPENDING
 size_t __fpending (FILE *) _GL_ATTRIBUTE_PURE;
+#endif
+
+
+#ifdef __cplusplus
+}
 #endif

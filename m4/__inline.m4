@@ -1,8 +1,11 @@
-# Test for __inline keyword
+# __inline.m4
+# serial 1
 dnl Copyright 2017-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+
+# Test for __inline keyword
 
 AC_DEFUN([gl___INLINE],
 [

@@ -16,11 +16,7 @@
 
 #include <config.h>
 
-/* memset_s need this define */
-#if HAVE_MEMSET_S
-# define __STDC_WANT_LIB_EXT1__ 1
-#endif
-
+/* Specification.  */
 #include <string.h>
 
 /* Set S's bytes to C, where S has LEN bytes.  The compiler will not

@@ -192,6 +192,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_stat:
   # Code from module sys_time:
   # Code from module sys_types:
+  AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
   # Code from module tempname:
   # Code from module time-h:
   # Code from module time_r:
@@ -1538,6 +1539,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/nocrash.m4
   m4/nproc.m4
   m4/nstrftime.m4
+  m4/off64_t.m4
   m4/off_t.m4
   m4/open-cloexec.m4
   m4/open-slash.m4

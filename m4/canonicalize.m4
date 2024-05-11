@@ -1,4 +1,5 @@
-# canonicalize.m4 serial 39
+# canonicalize.m4
+# serial 39
 
 dnl Copyright (C) 2003-2007, 2009-2024 Free Software Foundation, Inc.
 

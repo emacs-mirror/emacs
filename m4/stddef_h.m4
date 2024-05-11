@@ -1,4 +1,5 @@
-# stddef_h.m4 serial 14
+# stddef_h.m4
+# serial 16
 dnl Copyright (C) 2009-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -83,6 +84,36 @@ AC_DEFUN_ONCE([gl_STDDEF_H],
     GL_GENERATE_STDDEF_H=true
   fi
 
+  dnl https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114869
+  AC_CACHE_CHECK([whether nullptr_t needs <stddef.h>],
+    [gl_cv_nullptr_t_needs_stddef],
+    [AC_COMPILE_IFELSE([AC_LANG_DEFINES_PROVIDED[nullptr_t x;]],
+       [gl_cv_nullptr_t_needs_stddef=no],
+       [gl_cv_nullptr_t_needs_stddef=yes])])
+  if test "$gl_cv_nullptr_t_needs_stddef" = no; then
+    NULLPTR_T_NEEDS_STDDEF=0
+    GL_GENERATE_STDDEF_H=true
+  fi
+
+  AC_CACHE_CHECK([for clean definition of __STDC_VERSION_STDDEF_H__],
+    [gl_cv_clean_version_stddef],
+    [AC_PREPROC_IFELSE(
+       [AC_LANG_SOURCE(
+          [[/* https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114870 */
+            #include <stddef.h>
+            #undef __STDC_VERSION_STDDEF_H__
+            #include <time.h>
+            #ifdef __STDC_VERSION_STDDEF_H__
+            # error "<time.h> defines __STDC_VERSION_STDDEF_H__"
+            #endif
+          ]])],
+        [gl_cv_clean_version_stddef=yes],
+        [gl_cv_clean_version_stddef=no])])
+  if test "$gl_cv_clean_version_stddef" = no; then
+    STDDEF_NOT_IDEMPOTENT=1
+    GL_GENERATE_STDDEF_H=true
+  fi
+
   if $GL_GENERATE_STDDEF_H; then
     gl_NEXT_HEADERS([stddef.h])
   fi
@@ -113,6 +144,8 @@ AC_DEFUN([gl_STDDEF_H_REQUIRE_DEFAULTS],
 AC_DEFUN([gl_STDDEF_H_DEFAULTS],
 [
   dnl Assume proper GNU behavior unless another module says otherwise.
+  NULLPTR_T_NEEDS_STDDEF=1;      AC_SUBST([NULLPTR_T_NEEDS_STDDEF])
+  STDDEF_NOT_IDEMPOTENT=0;       AC_SUBST([STDDEF_NOT_IDEMPOTENT])
   REPLACE_NULL=0;                AC_SUBST([REPLACE_NULL])
   HAVE_MAX_ALIGN_T=1;            AC_SUBST([HAVE_MAX_ALIGN_T])
   HAVE_WCHAR_T=1;                AC_SUBST([HAVE_WCHAR_T])
