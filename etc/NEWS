@@ -1070,6 +1070,11 @@ the idiosyncratic 'su' implementations and system utilities customary on
 Android.
 
 +++
+*** New optional connection method "run0".
+This connection method is similar to "sudo", but it uses the
+'systemd-run' program internally.
+
++++
 *** New connection methods "dockercp" and "podmancp".
 These are the external methods counterparts of "docker" and "podman".
 

@@ -502,6 +502,24 @@ The string is used in `tramp-methods'.")
   (tramp-set-completion-function "nc" tramp-completion-function-alist-telnet))
 
 ;;;###tramp-autoload
+(defun tramp-enable-run0-method ()
+  "Enable \"run0\" method."
+ (add-to-list 'tramp-methods
+              `("run0"
+                (tramp-login-program        "systemd-run")
+                (tramp-login-args           (("--uid" "%u") ("-t") ("%l")))
+                (tramp-remote-shell         ,tramp-default-remote-shell)
+                (tramp-remote-shell-args    ("-c"))
+                (tramp-connection-timeout   10)
+                (tramp-session-timeout      300)
+		(tramp-password-previous-hop t)))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "run0" eos) nil ,tramp-root-id-string))
+
+  (tramp-set-completion-function "run0" tramp-completion-function-alist-su))
+
+;;;###tramp-autoload
 (defun tramp-enable-ksu-method ()
   "Enable \"ksu\" method."
   (add-to-list 'tramp-methods
@@ -2902,7 +2920,7 @@ the result will be a local, non-Tramp, file name."
 	    ;; use a user name from the config file.
 	    (when (and (tramp-string-empty-or-nil-p uname)
 		       (string-match-p
-			(rx bos (| "su" "sudo" "doas" "ksu") eos) method))
+			(rx bos (| "su" "sudo" "doas" "run0" "ksu") eos) method))
 	      (setq uname user))
 	    (when (setq hname (tramp-get-home-directory v uname))
 	      (setq localname (concat hname fname)))))
@@ -5377,12 +5395,11 @@ connection if a previous connection has died for some reason."
 			  :host l-host :port l-port)))
 
 		      ;; Set session timeout.
-		      (when (tramp-get-method-parameter
-			     hop 'tramp-session-timeout)
+		      (when-let ((timeout
+				  (tramp-get-method-parameter
+				   hop 'tramp-session-timeout)))
 			(tramp-set-connection-property
-			 p "session-timeout"
-			 (tramp-get-method-parameter
-			  hop 'tramp-session-timeout)))
+			 p "session-timeout" timeout))
 
 		      ;; Replace `login-args' place holders.
 		      (setq

@@ -70,12 +70,10 @@ SYNTAX can be one of the symbols `default' (default),
 ;;;###tramp-autoload
 (defun tramp-list-remote-buffers ()
   "Return a list of all buffers with remote `default-directory'."
-  (delq
-   nil
-   (mapcar
-    (lambda (x)
-      (when (tramp-tramp-file-p (tramp-get-default-directory x)) x))
-    (buffer-list))))
+  (tramp-compat-seq-keep
+   (lambda (x)
+     (when (tramp-tramp-file-p (tramp-get-default-directory x)) x))
+   (buffer-list)))
 
 ;;; Cleanup
 
@@ -567,6 +565,7 @@ For details, see `tramp-rename-files'."
   :type '(choice (const "su")
 		 (const "sudo")
 		 (const "doas")
+		 (const "run0")
 		 (const "ksu")))
 
 (defun tramp-file-name-with-sudo (filename)

@@ -489,14 +489,16 @@ an @command{ssh} server:
 @file{@trampfn{plink,user@@host,/path/to/file}}.
 
 
-@anchor{Quick Start Guide su, sudo, doas, androidsu and sg methods}
-@section Using @option{su}, @option{sudo}, @option{doas}, @option{androidsu} and @option{sg}
+@anchor{Quick Start Guide su, sudo, doas, run0, androidsu and sg methods}
+@section Using @option{su}, @option{sudo}, @option{doas}, @option{run0}, @option{androidsu} and @option{sg}
 @cindex method @option{su}
 @cindex @option{su} method
 @cindex method @option{sudo}
 @cindex @option{sudo} method
 @cindex method @option{doas}
 @cindex @option{doas} method
+@cindex method @option{run0}
+@cindex @option{run0} method
 @cindex method @option{androidsu}
 @cindex @option{androidsu} method
 @cindex method @option{sg}
@@ -504,9 +506,11 @@ an @command{ssh} server:
 
 Sometimes, it is necessary to work on your local host under different
 permissions.  For this, you can use the @option{su} or @option{sudo}
-connection method.  On OpenBSD systems, the @option{doas} connection
-method offers the same functionality.  If your local system is
-Android, use the method @option{androidsu} instead of @option{su}.
+connection method.  If your system is @code{systemd}-based, there is
+the @option{run0} connection method.  On OpenBSD systems, the
+@option{doas} connection method offers the same functionality.  If
+your local system is Android, use the method @option{androidsu}
+instead of @option{su}.
 
 These methods use @samp{root} as default user name and the return
 value of @code{(system-name)} as default host name.  Therefore, it is
@@ -516,8 +520,8 @@ The method @option{sg} stands for ``switch group''; here the user name
 is used as the group to change to.  The default host name is the same.
 
 
-@anchor{Quick Start Guide Combining ssh, plink, su, sudo and doas methods}
-@section Combining @option{ssh} or @option{plink} with @option{su}, @option{sudo} or @option{doas}
+@anchor{Quick Start Guide Combining ssh, plink, su, sudo, doas and run0 methods}
+@section Combining @option{ssh} or @option{plink} with @option{su}, @option{sudo}, @option{doas} or @option{run0}
 @cindex method @option{ssh}
 @cindex @option{ssh} method
 @cindex method @option{plink}
@@ -528,13 +532,15 @@ is used as the group to change to.  The default host name is the same.
 @cindex @option{sudo} method
 @cindex method @option{doas}
 @cindex @option{doas} method
+@cindex method @option{run0}
+@cindex @option{run0} method
 
-If the @option{su}, @option{sudo} or @option{doas} option should be
-performed on another host, it can be combined with a leading
-@option{ssh} or @option{plink} option.  That means that @value{tramp}
-connects first to the other host with non-administrative credentials,
-and changes to administrative credentials on that host afterwards.  In
-a simple case, the syntax looks like
+If the @option{su}, @option{sudo}, @option{doas} or @option{run0}
+method should be performed on another host, it can be combined with a
+leading @option{ssh} or @option{plink} method.  That means that
+@value{tramp} connects first to the other host with non-administrative
+credentials, and changes to administrative credentials on that host
+afterwards.  In a simple case, the syntax looks like
 @file{@trampfn{ssh@value{postfixhop}user@@host|sudo,,/path/to/file}}.
 @xref{Ad-hoc multi-hops}.
 
@@ -881,6 +887,16 @@ predefined timeout (5 minutes by default).  This can be changed, see
 This method is used on OpenBSD like the @command{sudo} command.  Like
 the @option{sudo} method, a @option{doas} connection is disabled after
 a predefined timeout.
+
+@item @option{run0}
+@cindex method @option{run0}
+@cindex @option{run0} method
+
+This method is used on @code{systemd}-based hosts.  Internally, it
+uses the @code{systemd-run} command.  A @option{run0} connection is
+disabled after a predefined timeout as well.
+
+This is an optional method, @ref{Optional methods}.
 
 @item @option{sg}
 @cindex method @option{sg}
@@ -2104,8 +2120,9 @@ machine melancholia#4711 port davs login daniel%BIZARRE password geheim
 
 For the methods @option{doas}, @option{sudo} and @option{sudoedit} the
 password of the user requesting the connection is needed, and not the
-password of the target user.  If these connections happen on the local
-host, an entry with the local user and local host is used:
+password of the target user@footnote{On the local host, @code{run0}
+uses a graphical password agent.}.  If these connections happen on the
+local host, an entry with the local user and local host is used:
 
 @example
 machine @var{host} port sudo login @var{user} password secret
@@ -2278,8 +2295,8 @@ All @file{tramp-sh.el} based methods accept the property
 @t{"session-timeout"}.  This is the time (in seconds) after a
 connection is disabled for security reasons, and must be
 reestablished.  A value of @code{nil} disables this feature.  Most of
-the methods do not set this property except the @option{sudo} and
-@option{doas} methods, which use predefined values.
+the methods do not set this property except the @option{sudo},
+@option{doas} and @option{run0} methods, which use predefined values.
 
 @item @t{"~"}@*
 @t{"~user"}
@@ -3815,7 +3832,7 @@ The buffer must either visit a file, or a directory
 @defopt tramp-file-name-with-method
 The method @code{tramp-revert-buffer-with-sudo} shows an alternate
 buffer.  It defaults to @code{sudo}, other valid methods are
-@code{su}, @code{doas}, and @code{ksu}.
+@code{su}, @code{doas}, @code{run0}, and @code{ksu}.
 
 @lisp
 (customize-set-variable 'tramp-file-name-with-method "doas")
@@ -4056,7 +4073,9 @@ here will not work as expected.
 @vindex ForwardX11Trusted@r{, ssh option}
 An alternate approach is specify @option{ForwardX11 yes} or
 @option{ForwardX11Trusted yes} in @file{~/.ssh/config} on the local
-host.
+host.  Furthermore, set @code{tramp-use-connection-share} to
+@code{nil} (@pxref{Using ssh connection sharing}), in order to avoid
+unwanted side effects.
 
 
 @subsection Running @code{shell} on a remote host
