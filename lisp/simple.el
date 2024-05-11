@@ -2876,11 +2876,13 @@ Normally, history elements are matched case-insensitively if
 makes the search case-sensitive.
 See also `minibuffer-history-case-insensitive-variables'."
   (interactive
-   (let* ((enable-recursive-minibuffers t)
+   (let* ((n (prefix-numeric-value current-prefix-arg))
+          (enable-recursive-minibuffers t)
 	  (regexp (read-from-minibuffer
-                   (format-prompt "Previous element matching regexp"
+                   (format-prompt "%s element matching regexp"
                                   (and minibuffer-history-search-history
-                                       (car minibuffer-history-search-history)))
+                                       (car minibuffer-history-search-history))
+                                  (if (>= n 0) "Previous" "Next"))
 		   nil minibuffer-local-map nil
 		   'minibuffer-history-search-history
 		   (car minibuffer-history-search-history))))
@@ -2888,9 +2890,9 @@ See also `minibuffer-history-case-insensitive-variables'."
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
 		   (car minibuffer-history-search-history)
-		 (user-error "No previous history search regexp"))
+                 (user-error "No history search regexp"))
 	     regexp)
-	   (prefix-numeric-value current-prefix-arg))))
+           n)))
   (unless (zerop n)
     (if (and (zerop minibuffer-history-position)
 	     (null minibuffer-text-before-history))
@@ -2948,20 +2950,23 @@ Normally, history elements are matched case-insensitively if
 `case-fold-search' is non-nil, but an uppercase letter in REGEXP
 makes the search case-sensitive."
   (interactive
-   (let* ((enable-recursive-minibuffers t)
-	  (regexp (read-from-minibuffer "Next element matching (regexp): "
-					nil
-					minibuffer-local-map
-					nil
-					'minibuffer-history-search-history
- 					(car minibuffer-history-search-history))))
+   (let* ((n (prefix-numeric-value current-prefix-arg))
+          (enable-recursive-minibuffers t)
+          (regexp (read-from-minibuffer
+                   (format-prompt "%s element matching regexp"
+                                  (and minibuffer-history-search-history
+                                       (car minibuffer-history-search-history))
+                                  (if (>= n 0) "Next" "Previous"))
+                   nil minibuffer-local-map nil
+                   'minibuffer-history-search-history
+                   (car minibuffer-history-search-history))))
      ;; Use the last regexp specified, by default, if input is empty.
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
 		   (car minibuffer-history-search-history)
-		 (user-error "No previous history search regexp"))
+                 (user-error "No history search regexp"))
 	     regexp)
-	   (prefix-numeric-value current-prefix-arg))))
+           n)))
   (previous-matching-history-element regexp (- n)))
 
 (defvar minibuffer-temporary-goal-position nil)
