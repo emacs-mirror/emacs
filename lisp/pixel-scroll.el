@@ -502,7 +502,7 @@ Otherwise, redisplay will reset the window's vscroll."
 (defun pixel-scroll-precision-scroll-down-page (delta)
   "Scroll the current window down by DELTA pixels.
 Note that this function doesn't work if DELTA is larger than or
-equal to the height of the current window."
+equal to the text height of the current window in pixels."
   (let* ((desired-pos (posn-at-x-y 0 (+ delta
 					(window-tab-line-height)
 					(window-header-line-height))))
