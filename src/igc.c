@@ -3314,6 +3314,21 @@ igc_postmortem (void)
   mps_arena_postmortem (global_igc->arena);
 }
 
+size_t
+igc_dump_header (const void *client, void *buf, size_t buf_size)
+{
+  igc_assert (buf_size >= sizeof (struct igc_header));
+  igc_assert (!pdumper_object_p (client));
+  return 0;
+}
+
+DEFUN ("igc--walk-dump", Figc__walk_dump, Sigc__walk_dump,
+       0, 0, 0, doc: /* */)
+  (void)
+{
+  return Qnil;
+}
+
 void
 init_igc (void)
 {
@@ -3331,16 +3346,10 @@ syms_of_igc (void)
   defsubr (&Sigc_weak_ref_deref);
   defsubr (&Sigc__collect);
   defsubr (&Sigc__alloc_vectors);
+  defsubr (&Sigc__walk_dump);
   DEFSYM (Qambig, "ambig");
   DEFSYM (Qexact, "exact");
   DEFSYM (Qweak_ref_p, "weak-ref-p");
   DEFSYM (Qweak_ref, "weak-ref");
   Fprovide (intern_c_string ("mps"), Qnil);
-}
-
-size_t
-igc_dump_header (const void *client, void *buf, size_t buf_size)
-{
-  igc_assert (buf_size >= sizeof (struct igc_header));
-  return 0;
 }
