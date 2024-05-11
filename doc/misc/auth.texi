@@ -527,7 +527,7 @@ while searching for an entry matching the @code{rms} user on host
 @code{gnu.org} and port @code{22}, then the entry
 @file{gnu.org:22/rms.gpg} is preferred over @file{gnu.org.gpg}.
 However, such processing is not applied when the option
-@code{auth-source-pass-extra-parameters} is set to @code{t}.
+@code{auth-source-pass-extra-query-keywords} is set to @code{t}.
 
 Users of @code{pass} may also be interested in functionality provided
 by other Emacs packages:
