@@ -1052,9 +1052,9 @@ merge_compute_minrun (ptrdiff_t n)
 static void
 reverse_sortslice (sortslice *s, const ptrdiff_t n)
 {
-  reverse_slice(s->keys, &s->keys[n]);
+  reverse_slice (s->keys, &s->keys[n]);
   if (s->values != NULL)
-    reverse_slice(s->values, &s->values[n]);
+    reverse_slice (s->values, &s->values[n]);
 }
 
 static Lisp_Object
@@ -1161,7 +1161,7 @@ tim_sort (Lisp_Object predicate, Lisp_Object keyfunc,
     ms.pending[ms.n].len = n;
     ++ms.n;
     /* Advance to find the next run.  */
-    sortslice_advance(&lo, n);
+    sortslice_advance (&lo, n);
     nremaining -= n;
   } while (nremaining);
 
