@@ -115,7 +115,8 @@ XWEAK_REF (Lisp_Object a)
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Weak_Ref);
 }
 
-size_t igc_dump_header (void *client, void *buf, size_t buf_size);
+size_t igc_header_size (void);
+char *igc_finish_obj (void *client, char *base, char *end);
 
 # define eassert_not_mps() eassert (false)
 #else

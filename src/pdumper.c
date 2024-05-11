@@ -566,6 +566,11 @@ struct dump_context
 
   dump_off number_hot_relocations;
   dump_off number_discardable_relocations;
+
+# ifdef HAVE_MPS
+  dump_off igc_base_offset;
+  const void *igc_obj;
+# endif
 };
 
 /* These special values for use as offsets in dump_remember_object and
@@ -779,20 +784,6 @@ dump_write (struct dump_context *ctx, const void *buf, dump_off nbyte)
   ctx->offset += nbyte;
 }
 
-# ifdef HAVE_MPS
-static void
-dump_igc_header (struct dump_context *ctx, const void *in)
-{
-  if (in)
-    {
-      EMACS_INT buf[1];
-      dump_off nbytes = igc_dump_header ((void *) in, buf, sizeof buf);
-      if (nbytes)
-	dump_write (ctx, buf, nbytes);
-    }
-}
-# endif
-
 static Lisp_Object
 make_eq_hash_table (void)
 {
@@ -878,6 +869,32 @@ dump_align_output (struct dump_context *ctx, int alignment)
     dump_write_zero (ctx, alignment - (ctx->offset % alignment));
 }
 
+# ifdef HAVE_MPS
+
+static void
+dump_igc_start_obj (struct dump_context *ctx, const void *in)
+{
+  ctx->igc_obj = in;
+  ctx->igc_base_offset = ctx->offset;
+  if (in)
+    dump_write_zero (ctx, igc_header_size ());
+}
+
+static void
+dump_igc_finish_obj (struct dump_context *ctx)
+{
+  char *base = (char *) ctx->buf + ctx->igc_base_offset;
+  char *end = (char *) ctx->buf + ctx->offset;
+  eassert (end > base);
+  char *should_end = igc_finish_obj ((void *) ctx->igc_obj, base, end);
+  eassert (should_end >= end);
+  dump_write_zero (ctx, should_end - end);
+  ctx->igc_obj = NULL;
+  ctx->igc_base_offset = -1;
+}
+
+# endif // HAVE_MPS
+
 static dump_off
 dump_object_start (struct dump_context *ctx,
 		   const void *in,
@@ -891,7 +908,7 @@ dump_object_start (struct dump_context *ctx,
   if (ctx->flags.dump_object_contents)
     dump_align_output (ctx, alignment);
 # ifdef HAVE_MPS
-  dump_igc_header (ctx, in);
+  dump_igc_start_obj (ctx, in);
 # endif
   ctx->obj_offset = ctx->offset;
   memset (out, 0, outsz);
@@ -908,7 +925,12 @@ dump_object_finish (struct dump_context *ctx,
   eassert (offset == ctx->offset); /* No intervening writes.  */
   ctx->obj_offset = 0;
   if (ctx->flags.dump_object_contents)
-    dump_write (ctx, out, sz);
+    {
+      dump_write (ctx, out, sz);
+# ifdef HAVE_MPS
+      dump_igc_finish_obj (ctx);
+# endif
+    }
   return offset;
 }
 
@@ -3003,7 +3025,7 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
   /* No relocation needed, so we don't need dump_object_start.  */
   dump_align_output (ctx, DUMP_ALIGNMENT);
 # ifdef HAVE_MPS
-  dump_igc_header (ctx, v);
+  dump_igc_start_obj (ctx, v);
 # endif
   eassert (ctx->offset >= ctx->header.cold_start);
   dump_off offset = ctx->offset;
@@ -3011,6 +3033,9 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
   if (nbytes > DUMP_OFF_MAX)
     error ("vector too large");
   dump_write (ctx, v, ptrdiff_t_to_dump_off (nbytes));
+# ifdef HAVE_MPS
+  dump_igc_finish_obj (ctx);
+# endif
   return offset;
 }
 

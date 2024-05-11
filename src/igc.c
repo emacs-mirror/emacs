@@ -3315,21 +3315,31 @@ igc_postmortem (void)
 }
 
 size_t
-igc_dump_header (void *client, void *buf, size_t buf_size)
+igc_header_size (void)
 {
-  igc_assert (buf_size >= sizeof (struct igc_header));
-  igc_assert (!pdumper_object_p (client));
+  return sizeof (struct igc_header);
+}
+
+char *
+igc_finish_obj (void *client, char *base, char *end)
+{
+  if (client == NULL)
+    return end;
+
+  struct igc_header *out = (struct igc_header *) base;
   if (is_mps (client))
     {
       struct igc_header *h = client_to_base (client);
-      struct igc_header *o = buf;
-      *o = *h;
-      return sizeof *h;
+      *out = *h;
+      return base + to_bytes (h->nwords);
     }
 
-  fprintf (stderr, "+++ non-mps obj\n");
-  igc_break ();
-  return 0;
+  size_t client_size = end - base - sizeof *out;
+  size_t nbytes = obj_size (client_size);
+  size_t nwords = to_words (nbytes);
+  *out = (struct igc_header)
+    { .obj_type = IGC_OBJ_PAD, .pvec_type = PVEC_FREE, .nwords = nwords };
+  return base + nbytes;
 }
 
 DEFUN ("igc--walk-dump", Figc__walk_dump, Sigc__walk_dump,
