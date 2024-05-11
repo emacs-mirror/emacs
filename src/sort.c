@@ -36,15 +36,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Reverse a slice of a vector in place, from lo up to (exclusive) hi. */
 static void
-reverse_slice(Lisp_Object *lo, Lisp_Object *hi)
+reverse_slice (Lisp_Object *lo, Lisp_Object *hi)
 {
-    --hi;
-    while (lo < hi) {
-        Lisp_Object t = *lo;
-        *lo = *hi;
-        *hi = t;
-        ++lo;
-        --hi;
+  --hi;
+  while (lo < hi)
+    {
+      Lisp_Object t = *lo;
+      *lo = *hi;
+      *hi = t;
+      ++lo;
+      --hi;
     }
 }
 
@@ -56,7 +57,8 @@ reverse_slice(Lisp_Object *lo, Lisp_Object *hi)
    Several convenience routines are provided here, so that keys and
    values are always moved in sync.  */
 
-typedef struct {
+typedef struct
+{
   Lisp_Object *keys;
   Lisp_Object *values;
 } sortslice;
