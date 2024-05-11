@@ -3337,3 +3337,10 @@ syms_of_igc (void)
   DEFSYM (Qweak_ref, "weak-ref");
   Fprovide (intern_c_string ("mps"), Qnil);
 }
+
+size_t
+igc_dump_header (const void *client, void *buf, size_t buf_size)
+{
+  igc_assert (buf_size >= sizeof (struct igc_header));
+  return 0;
+}

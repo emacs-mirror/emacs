@@ -317,7 +317,7 @@ gnustmp*
 .#*
 \#*\#
 ChangeLog
-[0-9]*.patch
+#[0-9]*.patch
 [0-9]*.txt
 /vc-dwim-log-*
 
