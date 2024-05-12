@@ -881,19 +881,28 @@ dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
   ctx->igc_obj_dumped = (void *) in;
   ctx->igc_type = type;
   ctx->igc_base_offset = ctx->offset;
-  if (in)
-    dump_write_zero (ctx, igc_header_size ());
+  if (ctx->flags.dump_object_contents)
+    {
+      /* FIXME: Nonsense because of an assertion in dump_write. */
+      dump_off obj_offset = ctx->obj_offset;
+      ctx->obj_offset = 0;
+      dump_write_zero (ctx, igc_header_size ());
+      ctx->obj_offset = obj_offset;
+    }
 }
 
 static void
 dump_igc_finish_obj (struct dump_context *ctx)
 {
-  char *base = (char *) ctx->buf + ctx->igc_base_offset;
-  char *end = (char *) ctx->buf + ctx->offset;
-  eassert (end > base);
-  char *should_end = igc_finish_obj (ctx->igc_obj_dumped, ctx->igc_type, base, end);
-  eassert (should_end >= end);
-  dump_write_zero (ctx, should_end - end);
+  if (ctx->flags.dump_object_contents)
+    {
+      char *base = (char *) ctx->buf + ctx->igc_base_offset;
+      char *end = (char *) ctx->buf + ctx->offset;
+      eassert (end > base);
+      char *should_end = igc_finish_obj (ctx->igc_obj_dumped, ctx->igc_type, base, end);
+      eassert (should_end >= end);
+      dump_write_zero (ctx, should_end - end);
+    }
   ctx->igc_obj_dumped = NULL;
   ctx->igc_type = IGC_OBJ_INVALID;
   ctx->igc_base_offset = -1;
@@ -924,6 +933,8 @@ dump_object_start (struct dump_context *ctx, const void *in, enum igc_obj_type t
   dump_off offset = dump_object_start_1 (ctx, out, outsz);
 # ifdef HAVE_MPS
   dump_igc_start_obj (ctx, type, in);
+  ctx->obj_offset = ctx->offset;
+  offset = ctx->offset;
 # endif
   return offset;
 }
@@ -949,8 +960,7 @@ dump_object_finish (struct dump_context *ctx,
 {
   dump_off offset = dump_object_finish_1 (ctx, out, sz);
 # ifdef HAVE_MPS
-  if (ctx->flags.dump_object_contents)
-    dump_igc_finish_obj (ctx);
+  dump_igc_finish_obj (ctx);
 # endif
   return offset;
 }
@@ -2633,7 +2643,7 @@ dump_vectorlike_generic (struct dump_context *ctx,
     }
 
   dump_align_output (ctx, DUMP_ALIGNMENT);
-  dump_off prefix_start_offset = ctx->offset;
+  dump_off prefix_start_offset;
 
   dump_off skip;
   if (pvectype == PVEC_SUB_CHAR_TABLE)
@@ -2650,19 +2660,19 @@ dump_vectorlike_generic (struct dump_context *ctx,
          field.  */
       size_t sz = (char *)&out.min_char + sizeof (out.min_char) - (char *)&out;
       eassert (sz < DUMP_OFF_MAX);
-      dump_object_start (ctx, sct, IGC_OBJ_VECTOR, &out, (dump_off) sz);
+      prefix_start_offset = dump_object_start (ctx, sct, IGC_OBJ_VECTOR, &out, (dump_off) sz);
       DUMP_FIELD_COPY (&out, sct, header.size);
       DUMP_FIELD_COPY (&out, sct, depth);
       DUMP_FIELD_COPY (&out, sct, min_char);
-      offset = dump_object_finish (ctx, &out, (dump_off) sz);
+      offset = dump_object_finish_1 (ctx, &out, (dump_off) sz);
       skip = SUB_CHAR_TABLE_OFFSET;
     }
   else
     {
       union vectorlike_header out;
-      dump_object_start (ctx, header, IGC_OBJ_VECTOR, &out, sizeof (out));
+      prefix_start_offset = dump_object_start (ctx, header, IGC_OBJ_VECTOR, &out, sizeof (out));
       DUMP_FIELD_COPY (&out, header, size);
-      offset = dump_object_finish (ctx, &out, sizeof (out));
+      offset = dump_object_finish_1 (ctx, &out, sizeof (out));
       skip = 0;
     }
 
@@ -2696,6 +2706,9 @@ dump_vectorlike_generic (struct dump_context *ctx,
     }
   ctx->flags = old_flags;
   dump_align_output (ctx, DUMP_ALIGNMENT);
+# ifdef HAVE_MPS
+  dump_igc_finish_obj (ctx);
+# endif
   return offset;
 }
 
@@ -3261,6 +3274,9 @@ dump_object (struct dump_context *ctx, Lisp_Object object)
 # error "Lisp_Type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   eassert (!EQ (object, dead_object ()));
+# ifdef HAVE_MPS
+  eassert (ctx->igc_type == IGC_OBJ_INVALID);
+# endif
 
   dump_off offset = dump_recall_object (ctx, object);
   if (offset > 0)
