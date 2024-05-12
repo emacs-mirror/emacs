@@ -3124,10 +3124,12 @@ value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
 		  return pa < pb ? -1 : pa > pb;
 		}
 
+#ifndef MSDOS
 	      case PVEC_PROCESS:
 		a = Fprocess_name (a);
 		b = Fprocess_name (b);
 		goto tail_recurse;
+#endif /* MSDOS */
 
 	      case PVEC_BUFFER:
 		{
