@@ -5438,7 +5438,6 @@ ns_flush_display (struct frame *f)
    redisplay interface.  In addition, many of the ns_ methods have
    code that is shared with all terms, indicating need for further
    refactoring.  */
-extern frame_parm_handler ns_frame_parm_handlers[];
 static struct redisplay_interface ns_redisplay_interface =
 {
   ns_frame_parm_handlers,

@@ -12744,7 +12744,7 @@ static struct image_type const image_types[] =
 };
 
 #if HAVE_NATIVE_IMAGE_API
-struct image_type native_image_type =
+static struct image_type native_image_type =
   { SYMBOL_INDEX (Qnative_image), native_image_p, native_image_load,
     image_clear_image };
 #endif

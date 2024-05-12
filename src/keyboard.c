@@ -5396,6 +5396,10 @@ static const char *const lispy_kana_keys[] =
 
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
+#ifdef HAVE_NS
+/* FIXME: Why are we using X11 keysym values for NS?  */
+static
+#endif
 const char *const lispy_function_keys[] =
   {
     /* X Keysym value */
