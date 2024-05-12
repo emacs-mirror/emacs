@@ -691,13 +691,10 @@ public final class EmacsWindow extends EmacsHandleObject
 
     state = eventModifiers (event);
 
-    /* Num Lock, Scroll Lock and Meta aren't supported by systems older
-       than Android 3.0. */
+    /* Meta isn't supported by systems older than Android 3.0.  */
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-      extra_ignored = (KeyEvent.META_NUM_LOCK_ON
-		       | KeyEvent.META_SCROLL_LOCK_ON
-		       | KeyEvent.META_META_MASK);
+      extra_ignored = KeyEvent.META_META_MASK;
     else
       extra_ignored = 0;
 
@@ -748,13 +745,10 @@ public final class EmacsWindow extends EmacsHandleObject
     /* Compute the event's modifier mask.  */
     state = eventModifiers (event);
 
-    /* Num Lock, Scroll Lock and Meta aren't supported by systems older
-       than Android 3.0. */
+    /* Meta isn't supported by systems older than Android 3.0.  */
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-      extra_ignored = (KeyEvent.META_NUM_LOCK_ON
-		       | KeyEvent.META_SCROLL_LOCK_ON
-		       | KeyEvent.META_META_MASK);
+      extra_ignored = KeyEvent.META_META_MASK;
     else
       extra_ignored = 0;
 
