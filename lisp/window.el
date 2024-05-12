@@ -9906,8 +9906,8 @@ accessible position."
 			       ;; the bottom is wider than the window.
 			       (* (window-body-height window pixelwise)
 				  (if pixelwise 1 char-height))))
-                         (- total-width
-                            (window-body-width window pixelwise)))))
+                         (- (* total-width (if pixelwise 1 char-width))
+                            (window-body-width window t)))))
 	  (unless pixelwise
 	    (setq width (/ (+ width char-width -1) char-width)))
           (setq width (max min-width (min max-width width)))
