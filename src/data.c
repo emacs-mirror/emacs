@@ -23,8 +23,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <stdio.h>
 
-#include <count-one-bits.h>
-#include <count-trailing-zeros.h>
 #include <intprops.h>
 
 #include "lisp.h"
@@ -3500,12 +3498,8 @@ representation.  */)
     }
 
   eassume (FIXNUMP (value));
-  EMACS_INT v = XFIXNUM (value) < 0 ? -1 - XFIXNUM (value) : XFIXNUM (value);
-  return make_fixnum (EMACS_UINT_WIDTH <= UINT_WIDTH
-		      ? count_one_bits (v)
-		      : EMACS_UINT_WIDTH <= ULONG_WIDTH
-		      ? count_one_bits_l (v)
-		      : count_one_bits_ll (v));
+  EMACS_UINT v = XFIXNUM (value) < 0 ? -1 - XFIXNUM (value) : XFIXNUM (value);
+  return make_fixnum (stdc_count_ones (v));
 }
 
 DEFUN ("ash", Fash, Sash, 2, 2, 0,
@@ -3662,36 +3656,6 @@ bool_vector_spare_mask (EMACS_INT nr_bits)
   return (((bits_word) 1) << (nr_bits % BITS_PER_BITS_WORD)) - 1;
 }
 
-/* Shift VAL right by the width of an unsigned long long.
-   ULLONG_WIDTH must be less than BITS_PER_BITS_WORD.  */
-
-static bits_word
-shift_right_ull (bits_word w)
-{
-  /* Pacify bogus GCC warning about shift count exceeding type width.  */
-  int shift = ULLONG_WIDTH - BITS_PER_BITS_WORD < 0 ? ULLONG_WIDTH : 0;
-  return w >> shift;
-}
-
-/* Return the number of 1 bits in W.  */
-
-static int
-count_one_bits_word (bits_word w)
-{
-  if (BITS_WORD_MAX <= UINT_MAX)
-    return count_one_bits (w);
-  else if (BITS_WORD_MAX <= ULONG_MAX)
-    return count_one_bits_l (w);
-  else
-    {
-      int i = 0, count = 0;
-      while (count += count_one_bits_ll (w),
-	     (i += ULLONG_WIDTH) < BITS_PER_BITS_WORD)
-	w = shift_right_ull (w);
-      return count;
-    }
-}
-
 enum bool_vector_op { bool_vector_exclusive_or,
                       bool_vector_union,
                       bool_vector_intersection,
@@ -3796,55 +3760,6 @@ bool_vector_binop_driver (Lisp_Object a,
     }
 
   return dest;
-}
-
-/* PRECONDITION must be true.  Return VALUE.  This odd construction
-   works around a bogus GCC diagnostic "shift count >= width of type".  */
-
-static int
-pre_value (bool precondition, int value)
-{
-  eassume (precondition);
-  return precondition ? value : 0;
-}
-
-/* Compute the number of trailing zero bits in val.  If val is zero,
-   return the number of bits in val.  */
-static int
-count_trailing_zero_bits (bits_word val)
-{
-  if (BITS_WORD_MAX == UINT_MAX)
-    return count_trailing_zeros (val);
-  if (BITS_WORD_MAX == ULONG_MAX)
-    return count_trailing_zeros_l (val);
-  if (BITS_WORD_MAX == ULLONG_MAX)
-    return count_trailing_zeros_ll (val);
-
-  /* The rest of this code is for the unlikely platform where bits_word differs
-     in width from unsigned int, unsigned long, and unsigned long long.  */
-  val |= ~ BITS_WORD_MAX;
-  if (BITS_WORD_MAX <= UINT_MAX)
-    return count_trailing_zeros (val);
-  if (BITS_WORD_MAX <= ULONG_MAX)
-    return count_trailing_zeros_l (val);
-  else
-    {
-      int count;
-      for (count = 0;
-	   count < BITS_PER_BITS_WORD - ULLONG_WIDTH;
-	   count += ULLONG_WIDTH)
-	{
-	  if (val & ULLONG_MAX)
-	    return count + count_trailing_zeros_ll (val);
-	  val = shift_right_ull (val);
-	}
-
-      if (BITS_PER_BITS_WORD % ULLONG_WIDTH != 0
-	  && BITS_WORD_MAX == (bits_word) -1)
-	val |= (bits_word) 1 << pre_value (ULONG_MAX < BITS_WORD_MAX,
-					   BITS_PER_BITS_WORD % ULLONG_WIDTH);
-      return count + count_trailing_zeros_ll (val);
-    }
 }
 
 DEFUN ("bool-vector-exclusive-or", Fbool_vector_exclusive_or,
@@ -3961,7 +3876,7 @@ value from A's length.  */)
   adata = bool_vector_data (a);
 
   for (i = 0; i < nwords; i++)
-    count += count_one_bits_word (adata[i]);
+    count += stdc_count_ones (adata[i]);
 
   return make_fixnum (count);
 }
@@ -4009,7 +3924,7 @@ A is a bool vector, B is t or nil, and I is an index into A.  */)
       /* Do not count the pad bits.  */
       mword |= (bits_word) 1 << (BITS_PER_BITS_WORD - offset);
 
-      count = count_trailing_zero_bits (mword);
+      count = stdc_trailing_zeros (mword);
       pos++;
       if (count + offset < BITS_PER_BITS_WORD)
         return make_fixnum (count);
@@ -4029,7 +3944,7 @@ A is a bool vector, B is t or nil, and I is an index into A.  */)
          in the current mword.  */
       mword = bits_word_to_host_endian (adata[pos]);
       mword ^= twiddle;
-      count += count_trailing_zero_bits (mword);
+      count += stdc_trailing_zeros (mword);
     }
   else if (nr_bits % BITS_PER_BITS_WORD != 0)
     {

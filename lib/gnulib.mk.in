@@ -86,9 +86,6 @@
 #  careadlinkat \
 #  close-stream \
 #  copy-file-range \
-#  count-leading-zeros \
-#  count-one-bits \
-#  count-trailing-zeros \
 #  crypto/md5 \
 #  crypto/md5-buffer \
 #  crypto/sha1-buffer \
@@ -156,6 +153,9 @@
 #  stat-time \
 #  std-gnu11 \
 #  stdbool \
+#  stdc_bit_width \
+#  stdc_count_ones \
+#  stdc_trailing_zeros \
 #  stdckdint \
 #  stddef \
 #  stdio \
@@ -358,6 +358,7 @@ GL_GENERATE_GMP_H_CONDITION = @GL_GENERATE_GMP_H_CONDITION@
 GL_GENERATE_IEEE754_H_CONDITION = @GL_GENERATE_IEEE754_H_CONDITION@
 GL_GENERATE_LIMITS_H_CONDITION = @GL_GENERATE_LIMITS_H_CONDITION@
 GL_GENERATE_MINI_GMP_H_CONDITION = @GL_GENERATE_MINI_GMP_H_CONDITION@
+GL_GENERATE_STDBIT_H_CONDITION = @GL_GENERATE_STDBIT_H_CONDITION@
 GL_GENERATE_STDCKDINT_H_CONDITION = @GL_GENERATE_STDCKDINT_H_CONDITION@
 GL_GENERATE_STDDEF_H_CONDITION = @GL_GENERATE_STDDEF_H_CONDITION@
 GL_GENERATE_STDINT_H_CONDITION = @GL_GENERATE_STDINT_H_CONDITION@
@@ -664,6 +665,20 @@ GL_GNULIB_VSPRINTF_POSIX = @GL_GNULIB_VSPRINTF_POSIX@
 GL_GNULIB_WCTOMB = @GL_GNULIB_WCTOMB@
 GL_GNULIB_WRITE = @GL_GNULIB_WRITE@
 GL_GNULIB__EXIT = @GL_GNULIB__EXIT@
+GL_STDC_BIT_CEIL = @GL_STDC_BIT_CEIL@
+GL_STDC_BIT_FLOOR = @GL_STDC_BIT_FLOOR@
+GL_STDC_BIT_WIDTH = @GL_STDC_BIT_WIDTH@
+GL_STDC_COUNT_ONES = @GL_STDC_COUNT_ONES@
+GL_STDC_COUNT_ZEROS = @GL_STDC_COUNT_ZEROS@
+GL_STDC_FIRST_LEADING_ONE = @GL_STDC_FIRST_LEADING_ONE@
+GL_STDC_FIRST_LEADING_ZERO = @GL_STDC_FIRST_LEADING_ZERO@
+GL_STDC_FIRST_TRAILING_ONE = @GL_STDC_FIRST_TRAILING_ONE@
+GL_STDC_FIRST_TRAILING_ZERO = @GL_STDC_FIRST_TRAILING_ZERO@
+GL_STDC_HAS_SINGLE_BIT = @GL_STDC_HAS_SINGLE_BIT@
+GL_STDC_LEADING_ONES = @GL_STDC_LEADING_ONES@
+GL_STDC_LEADING_ZEROS = @GL_STDC_LEADING_ZEROS@
+GL_STDC_TRAILING_ONES = @GL_STDC_TRAILING_ONES@
+GL_STDC_TRAILING_ZEROS = @GL_STDC_TRAILING_ZEROS@
 GMALLOC_OBJ = @GMALLOC_OBJ@
 GMP_H = @GMP_H@
 GNULIBHEADERS_OVERRIDE_WINT_T = @GNULIBHEADERS_OVERRIDE_WINT_T@
@@ -1315,6 +1330,7 @@ SIZE_T_SUFFIX = @SIZE_T_SUFFIX@
 SMALL_JA_DIC = @SMALL_JA_DIC@
 SQLITE3_CFLAGS = @SQLITE3_CFLAGS@
 SQLITE3_LIBS = @SQLITE3_LIBS@
+STDBIT_H = @STDBIT_H@
 STDCKDINT_H = @STDCKDINT_H@
 STDDEF_H = @STDDEF_H@
 STDDEF_NOT_IDEMPOTENT = @STDDEF_NOT_IDEMPOTENT@
@@ -1444,6 +1460,7 @@ gl_GNULIB_ENABLED_open_CONDITION = @gl_GNULIB_ENABLED_open_CONDITION@
 gl_GNULIB_ENABLED_rawmemchr_CONDITION = @gl_GNULIB_ENABLED_rawmemchr_CONDITION@
 gl_GNULIB_ENABLED_strtoll_CONDITION = @gl_GNULIB_ENABLED_strtoll_CONDITION@
 gl_GNULIB_ENABLED_utimens_CONDITION = @gl_GNULIB_ENABLED_utimens_CONDITION@
+gl_GNULIB_ENABLED_verify_CONDITION = @gl_GNULIB_ENABLED_verify_CONDITION@
 gl_LIBOBJDEPS = @gl_LIBOBJDEPS@
 gl_LIBOBJS = @gl_LIBOBJS@
 gl_LTLIBOBJS = @gl_LTLIBOBJS@
@@ -1720,36 +1737,6 @@ endif
 
 endif
 ## end   gnulib module copy-file-range
-
-## begin gnulib module count-leading-zeros
-ifeq (,$(OMIT_GNULIB_MODULE_count-leading-zeros))
-
-libgnu_a_SOURCES += count-leading-zeros.c
-
-EXTRA_DIST += count-leading-zeros.h
-
-endif
-## end   gnulib module count-leading-zeros
-
-## begin gnulib module count-one-bits
-ifeq (,$(OMIT_GNULIB_MODULE_count-one-bits))
-
-libgnu_a_SOURCES += count-one-bits.c
-
-EXTRA_DIST += count-one-bits.h
-
-endif
-## end   gnulib module count-one-bits
-
-## begin gnulib module count-trailing-zeros
-ifeq (,$(OMIT_GNULIB_MODULE_count-trailing-zeros))
-
-libgnu_a_SOURCES += count-trailing-zeros.c
-
-EXTRA_DIST += count-trailing-zeros.h
-
-endif
-## end   gnulib module count-trailing-zeros
 
 ## begin gnulib module crypto/md5
 ifeq (,$(OMIT_GNULIB_MODULE_crypto/md5))
@@ -3052,6 +3039,84 @@ EXTRA_DIST += stat-time.h
 endif
 ## end   gnulib module stat-time
 
+## begin gnulib module stdbit-h
+ifeq (,$(OMIT_GNULIB_MODULE_stdbit-h))
+
+BUILT_SOURCES += $(STDBIT_H)
+
+# We need the following in order to create <stdbit.h> when the system
+# doesn't have one that works with the given compiler.
+ifneq (,$(GL_GENERATE_STDBIT_H_CONDITION))
+stdbit.h: stdbit.in.h $(top_builddir)/config.status
+	$(gl_V_at)$(SED_HEADER_STDOUT) \
+	  -e 's/@''GL_STDC_LEADING_ZEROS''@/$(GL_STDC_LEADING_ZEROS)/g' \
+	  -e 's/@''GL_STDC_LEADING_ONES''@/$(GL_STDC_LEADING_ONES)/g' \
+	  -e 's/@''GL_STDC_TRAILING_ZEROS''@/$(GL_STDC_TRAILING_ZEROS)/g' \
+	  -e 's/@''GL_STDC_TRAILING_ONES''@/$(GL_STDC_TRAILING_ONES)/g' \
+	  -e 's/@''GL_STDC_FIRST_LEADING_ZERO''@/$(GL_STDC_FIRST_LEADING_ZERO)/g' \
+	  -e 's/@''GL_STDC_FIRST_LEADING_ONE''@/$(GL_STDC_FIRST_LEADING_ONE)/g' \
+	  -e 's/@''GL_STDC_FIRST_TRAILING_ZERO''@/$(GL_STDC_FIRST_TRAILING_ZERO)/g' \
+	  -e 's/@''GL_STDC_FIRST_TRAILING_ONE''@/$(GL_STDC_FIRST_TRAILING_ONE)/g' \
+	  -e 's/@''GL_STDC_COUNT_ZEROS''@/$(GL_STDC_COUNT_ZEROS)/g' \
+	  -e 's/@''GL_STDC_COUNT_ONES''@/$(GL_STDC_COUNT_ONES)/g' \
+	  -e 's/@''GL_STDC_HAS_SINGLE_BIT''@/$(GL_STDC_HAS_SINGLE_BIT)/g' \
+	  -e 's/@''GL_STDC_BIT_WIDTH''@/$(GL_STDC_BIT_WIDTH)/g' \
+	  -e 's/@''GL_STDC_BIT_FLOOR''@/$(GL_STDC_BIT_FLOOR)/g' \
+	  -e 's/@''GL_STDC_BIT_CEIL''@/$(GL_STDC_BIT_CEIL)/g' \
+	  $(srcdir)/stdbit.in.h > $@-t
+	$(AM_V_at)mv $@-t $@
+libgnu_a_SOURCES += stdbit.c
+else
+stdbit.h: $(top_builddir)/config.status
+	rm -f $@
+endif
+MOSTLYCLEANFILES += stdbit.h stdbit.h-t
+
+EXTRA_DIST += stdbit.in.h
+
+endif
+## end   gnulib module stdbit-h
+
+## begin gnulib module stdc_bit_width
+ifeq (,$(OMIT_GNULIB_MODULE_stdc_bit_width))
+
+ifneq (,$(GL_GENERATE_STDBIT_H_CONDITION))
+libgnu_a_SOURCES += stdc_bit_width.c
+endif
+
+endif
+## end   gnulib module stdc_bit_width
+
+## begin gnulib module stdc_count_ones
+ifeq (,$(OMIT_GNULIB_MODULE_stdc_count_ones))
+
+ifneq (,$(GL_GENERATE_STDBIT_H_CONDITION))
+libgnu_a_SOURCES += stdc_count_ones.c
+endif
+
+endif
+## end   gnulib module stdc_count_ones
+
+## begin gnulib module stdc_leading_zeros
+ifeq (,$(OMIT_GNULIB_MODULE_stdc_leading_zeros))
+
+ifneq (,$(GL_GENERATE_STDBIT_H_CONDITION))
+libgnu_a_SOURCES += stdc_leading_zeros.c
+endif
+
+endif
+## end   gnulib module stdc_leading_zeros
+
+## begin gnulib module stdc_trailing_zeros
+ifeq (,$(OMIT_GNULIB_MODULE_stdc_trailing_zeros))
+
+ifneq (,$(GL_GENERATE_STDBIT_H_CONDITION))
+libgnu_a_SOURCES += stdc_trailing_zeros.c
+endif
+
+endif
+## end   gnulib module stdc_trailing_zeros
+
 ## begin gnulib module stdckdint
 ifeq (,$(OMIT_GNULIB_MODULE_stdckdint))
 
@@ -4274,7 +4339,9 @@ endif
 ## begin gnulib module verify
 ifeq (,$(OMIT_GNULIB_MODULE_verify))
 
+ifneq (,$(gl_GNULIB_ENABLED_verify_CONDITION))
 
+endif
 EXTRA_DIST += verify.h
 
 endif

@@ -1,6 +1,5 @@
-/* Count the number of trailing 0 bits in a word.
-
-   Copyright 2013-2024 Free Software Foundation, Inc.
+/* stdc_count_ones_* functions.
+   Copyright (C) 2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -17,5 +16,9 @@
 
 #include <config.h>
 
-#define COUNT_TRAILING_ZEROS_INLINE _GL_EXTERN_INLINE
-#include "count-trailing-zeros.h"
+#define _GL_STDC_COUNT_ONES_INLINE _GL_EXTERN_INLINE
+#include <stdbit.h>
+
+#if 1500 <= _MSC_VER && (defined _M_IX86 || defined _M_X64)
+signed char __gl_stdbit_popcount_support;
+#endif
