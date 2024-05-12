@@ -505,42 +505,45 @@ public final class EmacsView extends ViewGroup
   public boolean
   onKeyDown (int keyCode, KeyEvent event)
   {
-    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
-	&& !EmacsNative.shouldForwardMultimediaButtons ())
-      return false;
+    if (((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	 && !EmacsNative.shouldForwardMultimediaButtons ())
+	|| keyCode == KeyEvent.KEYCODE_SCROLL_LOCK
+	|| keyCode == KeyEvent.KEYCODE_NUM_LOCK)
+      return super.onKeyDown (keyCode, event);
 
-    window.onKeyDown (keyCode, event);
-    return true;
+    return window.onKeyDown (keyCode, event);
   }
 
   @Override
   public boolean
   onKeyMultiple (int keyCode, int repeatCount, KeyEvent event)
   {
-    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
-	&& !EmacsNative.shouldForwardMultimediaButtons ())
-      return false;
+    if (((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	 && !EmacsNative.shouldForwardMultimediaButtons ())
+	|| keyCode == KeyEvent.KEYCODE_SCROLL_LOCK
+	|| keyCode == KeyEvent.KEYCODE_NUM_LOCK)
+      return super.onKeyMultiple (keyCode, repeatCount, event);
 
-    window.onKeyDown (keyCode, event);
-    return true;
+    return window.onKeyDown (keyCode, event);
   }
 
   @Override
   public boolean
   onKeyUp (int keyCode, KeyEvent event)
   {
-    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
-	&& !EmacsNative.shouldForwardMultimediaButtons ())
-      return false;
+    if (((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	 && !EmacsNative.shouldForwardMultimediaButtons ())
+	|| keyCode == KeyEvent.KEYCODE_SCROLL_LOCK
+	|| keyCode == KeyEvent.KEYCODE_NUM_LOCK)
+      return super.onKeyUp (keyCode, event);
 
-    window.onKeyUp (keyCode, event);
-    return true;
+    return window.onKeyUp (keyCode, event);
   }
 
   @Override

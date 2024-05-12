@@ -633,8 +633,8 @@ public final class EmacsWindow extends EmacsHandleObject
 
 
   /* Return the modifier mask associated with the specified keyboard
-     input EVENT.  Replace bits corresponding to Left or Right keys
-     with their corresponding general modifier bits.  */
+     input EVENT.  Replace bits representing Left or Right keys with
+     their corresponding general modifier bits.  */
 
   public static int
   eventModifiers (KeyEvent event)
@@ -642,7 +642,7 @@ public final class EmacsWindow extends EmacsHandleObject
     int state;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2)
-      state = event.getModifiers ();
+      state = KeyEvent.normalizeMetaState (event.getMetaState ());
     else
       {
 	/* Replace this with getMetaState and manual
@@ -667,10 +667,10 @@ public final class EmacsWindow extends EmacsHandleObject
   /* event.getCharacters is used because older input methods still
      require it.  */
   @SuppressWarnings ("deprecation")
-  public void
+  public boolean
   onKeyDown (int keyCode, KeyEvent event)
   {
-    int state, state_1, extra_ignored;
+    int state, state_1, extra_ignored, unicode_char;
     long serial;
     String characters;
 
@@ -686,7 +686,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	   Deliver onKeyDown events in onKeyUp instead, so as not to
 	   navigate backwards during gesture navigation.  */
 
-	return;
+	return true;
       }
 
     state = eventModifiers (event);
@@ -720,23 +720,36 @@ public final class EmacsWindow extends EmacsHandleObject
 	  state &= ~KeyEvent.META_ALT_MASK;
       }
 
+    unicode_char = getEventUnicodeChar (event, state_1);
+
+    /* If a NUMPAD_ key is detected for which no character is returned,
+       return false without sending the key event, as this will prompt
+       the system to send an event with the corresponding action
+       key.  */
+
+    if (keyCode >= KeyEvent.KEYCODE_NUMPAD_0
+	&& keyCode <= KeyEvent.KEYCODE_NUMPAD_RIGHT_PAREN
+	&& unicode_char == 0)
+      return false;
+
     synchronized (eventStrings)
       {
 	serial
 	  = EmacsNative.sendKeyPress (this.handle,
 				      event.getEventTime (),
 				      state, keyCode,
-				      getEventUnicodeChar (event,
-							   state_1));
+				      unicode_char);
 
 	characters = event.getCharacters ();
 
 	if (characters != null && characters.length () > 1)
 	  saveUnicodeString ((int) serial, characters);
       }
+
+    return true;
   }
 
-  public void
+  public boolean
   onKeyUp (int keyCode, KeyEvent event)
   {
     int state, state_1, unicode_char, extra_ignored;
@@ -781,12 +794,20 @@ public final class EmacsWindow extends EmacsHandleObject
 	/* If the key press's been canceled, return immediately.  */
 
 	if ((event.getFlags () & KeyEvent.FLAG_CANCELED) != 0)
-	  return;
+	  return true;
 
 	/* Dispatch the key press event that was deferred till now.  */
 	EmacsNative.sendKeyPress (this.handle, event.getEventTime (),
 				  state, keyCode, unicode_char);
       }
+    /* If a NUMPAD_ key is detected for which no character is returned,
+       return false without sending the key event, as this will prompt
+       the system to send an event with the corresponding action
+       key.  */
+    else if (keyCode >= KeyEvent.KEYCODE_NUMPAD_0
+	     && keyCode <= KeyEvent.KEYCODE_NUMPAD_RIGHT_PAREN
+	     && unicode_char == 0)
+      return false;
 
     EmacsNative.sendKeyRelease (this.handle, event.getEventTime (),
 				state, keyCode, unicode_char);
@@ -804,6 +825,8 @@ public final class EmacsWindow extends EmacsHandleObject
 
         lastQuitKeyRelease = time;
       }
+
+    return true;
   }
 
   public void
