@@ -668,7 +668,10 @@ This is a destructive function; it reuses the storage of SEQ if possible.
 \nKeywords supported:  :key
 \n(fn SEQ PREDICATE [KEYWORD VALUE]...)"
   (if (nlistp cl-seq)
-      (cl-replace cl-seq (apply 'cl-sort (append cl-seq nil) cl-pred cl-keys))
+      (if (stringp cl-seq)
+          (concat (apply #'cl-sort (vconcat cl-seq) cl-pred cl-keys))
+        (cl-replace cl-seq
+                    (apply #'cl-sort (append cl-seq nil) cl-pred cl-keys)))
     (cl--parsing-keywords (:key) ()
       (if (memq cl-key '(nil identity))
 	  (sort cl-seq cl-pred)
