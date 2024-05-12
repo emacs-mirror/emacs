@@ -25,6 +25,41 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_MPS
 
+enum igc_obj_type
+{
+  IGC_OBJ_INVALID,
+  IGC_OBJ_PAD,
+  IGC_OBJ_FWD,
+  IGC_OBJ_CONS,
+  IGC_OBJ_SYMBOL,
+  IGC_OBJ_INTERVAL,
+  IGC_OBJ_STRING,
+  IGC_OBJ_STRING_DATA,
+  IGC_OBJ_VECTOR,
+  IGC_OBJ_ITREE_TREE,
+  IGC_OBJ_ITREE_NODE,
+  IGC_OBJ_IMAGE,
+  IGC_OBJ_IMAGE_CACHE,
+  IGC_OBJ_FACE,
+  IGC_OBJ_FACE_CACHE,
+  IGC_OBJ_FLOAT,
+  IGC_OBJ_BLV,
+  IGC_OBJ_WEAK,
+  IGC_OBJ_PTR_VEC,
+
+  /* The following are only used in the dump for objects that are not
+     allocated from MPS memory. */
+  IGC_OBJ_DUMPED_CHARSET,
+  IGC_OBJ_DUMPED_INTFWD,
+  IGC_OBJ_DUMPED_BOOLFWD,
+  IGC_OBJ_DUMPED_OBJFWD,
+  IGC_OBJ_DUMPED_BUFFER_OBJFWD,
+  IGC_OBJ_DUMPED_KBOARD_OBJFWD,
+  IGC_OBJ_DUMPED_BLV,
+
+  IGC_OBJ_LAST
+};
+
 /* Assertions.  */
 # define IGC_DEBUG 1
 
@@ -116,7 +151,7 @@ XWEAK_REF (Lisp_Object a)
 }
 
 size_t igc_header_size (void);
-char *igc_finish_obj (void *client, char *base, char *end);
+char *igc_finish_obj (void *client, enum igc_obj_type type, char *base, char *end);
 
 # define eassert_not_mps() eassert (false)
 #else
