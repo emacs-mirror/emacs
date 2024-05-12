@@ -251,6 +251,7 @@ s/@PACKAGE@/emacs/
 /^HAVE_STRPBRK *=/s/@HAVE_STRPBRK@/1/
 /^HAVE_STRSEP *=/s/@HAVE_STRSEP@/1/
 /^HAVE_STRTOD *=/s/@HAVE_STRTOD@/1/
+/^HAVE_STRTOF *=/s/@HAVE_STRTOF@/1/
 /^HAVE_STRTOLL *=/s/@HAVE_STRTOLL@/1/
 /^HAVE_STRTOULL *=/s/@HAVE_STRTOULL@/1/
 /^HAVE_STRUCT_TIMEVAL *=/s/@HAVE_STRUCT_TIMEVAL@/1/
@@ -321,6 +322,7 @@ s/@PACKAGE@/emacs/
 /^NEXT_TIME_H *=/s/@[^@\n]*@/<time.h>/
 /^NEXT_INTTYPES_H *=/s/@[^@\n]*@//
 /^NEXT_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
+/^NULLPTR_T_NEEDS_STDDEF *=/s/@[^@\n]*@/1/
 /^OBJEXT *=/s/@[^@\n]*@/o/
 /^PRAGMA_COLUMNS *=/s/@[^@\n]*@//
 /^PRAGMA_SYSTEM_HEADER *=/s/@[^@\n]*@/\\\#pragma GCC system_header/
