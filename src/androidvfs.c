@@ -5562,6 +5562,10 @@ android_saf_tree_closedir (struct android_vdir *vdir)
   free (dir->name);
 
   /* Yes, DIR->cursor is a local reference.  */
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       dir->cursor,
+				       cursor_class.close);
+  (*android_java_env)->ExceptionClear (android_java_env);
   ANDROID_DELETE_LOCAL_REF (dir->cursor);
 
   /* If the ``directory file descriptor'' has been opened, close
