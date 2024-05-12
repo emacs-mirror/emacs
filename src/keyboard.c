@@ -5022,7 +5022,7 @@ static const char *const lispy_accent_keys[] =
    merely abstruse terminology for the ``select'' key frequently
    located in certain physical keyboards.  */
 
-const char *const lispy_function_keys[] =
+static const char *const lispy_function_keys[] =
   {
     /* All elements in this array default to 0, except for the few
        function keys that Emacs recognizes.  */
