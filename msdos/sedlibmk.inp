@@ -349,6 +349,7 @@ s/@PACKAGE@/emacs/
 /^STDALIGN_H *=/s/@[^@\n]*@/stdalign.h/
 /^STDCKDINT_H *=/s/@[^@\n]*@/stdckdint.h/
 /^STDDEF_H *=/s/@[^@\n]*@/stddef.h/
+/^STDDEF_NOT_IDEMPOTENT *=/s/@[^@\n]*@/1/
 /^STDINT_H *=/s/@[^@\n]*@/stdint.h/
 /^SYS_TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
 /^TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
