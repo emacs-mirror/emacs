@@ -1079,9 +1079,11 @@ This connection method is similar to "sudo", but it uses the
 These are the external methods counterparts of "docker" and "podman".
 
 +++
-*** New optional connection methods "toolbox", "flatpak" and "apptainer".
-They allow accessing system containers provided by Toolbox, sandboxes
-provided by Flatpak, or instances managed by Apptainer.
+*** New optional connection methods for containers.
+Tere are new optional connection methods "toolbox", "flatpak",
+"apptainer" and "nspawn".  They allow accessing system containers
+provided by Toolbox, sandboxes provided by Flatpak, instances managed by
+Apptainer, or accessing systemd-based light-weight containers..
 
 +++
 *** Connection method "kubernetes" supports now optional container name.

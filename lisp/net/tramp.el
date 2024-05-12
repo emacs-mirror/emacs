@@ -562,11 +562,13 @@ host runs a restricted shell, it shall be added to this list, too."
 	    ;; Fedora.
 	    "localhost4" "localhost6"
 	    ;; Ubuntu.
-	    "ip6-localhost" "ip6-loopback"))
+	    "ip6-localhost" "ip6-loopback"
+	    ;; OpenSUSE.
+	    "ipv6-localhost" "ipv6-loopback"))
       eos)
   "Host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
-  :version "29.3"
+  :version "30.1"
   :type '(choice (const :tag "Chrooted environment" nil)
 		 (regexp :tag "Host regexp")))
 

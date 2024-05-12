@@ -81,8 +81,8 @@
 ;;     C-x C-f /flatpak:SANDBOX:/path/to/file
 ;;
 ;; Where:
-;;     SANDBOX	is the running sandbox to connect to.
-;;		It could be an application ID, an instance ID, or a PID.
+;;     SANDBOX	     is the running sandbox to connect to.
+;;		     It could be an application ID, an instance ID, or a PID.
 ;;
 ;;
 ;;
@@ -91,7 +91,17 @@
 ;;     C-x C-f /apptainer:INSTANCE:/path/to/file
 ;;
 ;; Where:
-;;     INSTANCE	is the running instance to connect to.
+;;     INSTANCE	     is the running instance to connect to.
+;;
+;;
+;;
+;; Open a file on a running systemd-nspawn container:
+;;
+;;     C-x C-f /nspawn:USER@CONTAINER:/path/to/file
+;;
+;; Where:
+;;     USER          is the user on the container to connect as (optional)
+;;     CONTAINER     is the container to connect to
 
 ;;; Code:
 
@@ -159,6 +169,13 @@ If it is nil, the default context will be used."
   :type '(choice (const "apptainer")
                  (string)))
 
+(defcustom tramp-nspawn-program "machinectl"
+  "Name of the machinectl program."
+  :group 'tramp
+  :version "30.1"
+  :type '(choice (const "machinectl")
+                 (string)))
+
 ;;;###tramp-autoload
 (defconst tramp-docker-method "docker"
   "Tramp method name to use to connect to Docker containers.")
@@ -192,6 +209,10 @@ This is for out-of-band connections.")
 ;;;###tramp-autoload
 (defconst tramp-apptainer-method "apptainer"
   "Tramp method name to use to connect to Apptainer instances.")
+
+;;;###tramp-autoload
+(defconst tramp-nspawn-method "nspawn"
+  "Tramp method name to use to connect to systemd-nspawn containers.")
 
 ;;;###tramp-autoload
 (defmacro tramp-skeleton-completion-function (method &rest body)
@@ -416,6 +437,21 @@ see its function help for a description of the format."
                        lines)))
       (mapcar (lambda (name) (list nil name)) names))))
 
+(defun tramp-nspawn--completion-function (method)
+  "List systemd-nspawn containers available for connection.
+
+This function is used by `tramp-set-completion-function', please
+see its function help for a description of the format."
+  (tramp-skeleton-completion-function method
+    (when-let ((raw-list
+		(shell-command-to-string (concat program " list --all -q")))
+	       ;; Ignore header line.
+               (lines (cdr (split-string raw-list "\n")))
+               (first-words (mapcar (lambda (line) (car (split-string line)))
+				    lines))
+               (machines (seq-take-while (lambda (name) name) first-words)))
+      (mapcar (lambda (m) (list nil m)) machines))))
+
 ;;;###tramp-autoload
 (defvar tramp-default-remote-shell) ;; Silence byte compiler.
 
@@ -579,6 +615,28 @@ see its function help for a description of the format."
   (tramp-set-completion-function
    tramp-apptainer-method
    `((tramp-apptainer--completion-function ,tramp-apptainer-method))))
+
+;; todo: check tramp-async-args and tramp-direct-async
+;;;###tramp-autoload
+(defun tramp-enable-nspawn-method ()
+  "Enable connection to nspawn containers."
+  (add-to-list 'tramp-methods
+	       `(,tramp-nspawn-method
+		 (tramp-login-program ,tramp-nspawn-program)
+		 (tramp-login-args (("shell")
+				    ("-q")
+				    ("--uid" "%u")
+				    ("%h")))
+		 (tramp-remote-shell ,tramp-default-remote-shell)
+		 (tramp-remote-shell-login ("-l"))
+		 (tramp-remote-shell-args ("-i" "-c"))))
+
+  (add-to-list 'tramp-default-host-alist `(,tramp-nspawn-method nil ".host"))
+  (add-to-list 'tramp-completion-multi-hop-methods tramp-nspawn-method)
+
+  (tramp-set-completion-function
+   tramp-nspawn-method
+   `((tramp-nspawn--completion-function ,tramp-nspawn-method))))
 
 ;; Default connection-local variables for Tramp.
 

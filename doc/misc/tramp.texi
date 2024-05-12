@@ -973,7 +973,12 @@ supports changing the remote login shell @command{/bin/sh}.
 
 Check the @samp{Share SSH connections if possible} control for that
 session.
+@end table
 
+@noindent
+The following methods allow to access containers in different ways:
+
+@table @asis
 @item @option{docker}
 @cindex method @option{docker}
 @cindex @option{docker} method
@@ -1032,6 +1037,14 @@ name, as returned by @samp{apptainer instance list}.
 This is an optional method, @ref{Optional methods}.  It does not
 support user names.
 
+@item @option{nspawn}
+@cindex method @option{nspawn}
+@cindex @option{nspawn} method
+
+Integration of @code{systemd-nspawn} instances.  The host name is the
+instance name, as returned by @samp{machinectl list --all}.
+
+This is an optional method, @ref{Optional methods}.
 @end table
 
 
@@ -1256,9 +1269,9 @@ domain name).  An example:
 @trampfn{smb,daniel%BIZARRE@@melancholia,/daniel$$/.emacs}
 @end example
 
-where user @code{daniel} connects as a domain user to the SMB host
-@code{melancholia} in the MS Windows domain @code{BIZARRE} to edit
-@file{.emacs} located in the home directory (share @code{daniel$}).
+where user @samp{daniel} connects as a domain user to the SMB host
+@samp{melancholia} in the MS Windows domain @samp{BIZARRE} to edit
+@file{.emacs} located in the home directory (share @samp{daniel$}).
 
 Alternatively, for local WINS users (as opposed to domain users),
 substitute the domain name with the name of the local host in
@@ -1268,9 +1281,9 @@ UPPERCASE as shown here:
 @trampfn{smb,daniel%MELANCHOLIA@@melancholia,/daniel$$/.emacs}
 @end example
 
-where user @code{daniel} connects as local user to the SMB host
-@code{melancholia} in the local domain @code{MELANCHOLIA} to edit
-@file{.emacs} located in the home directory (share @code{daniel$}).
+where user @samp{daniel} connects as local user to the SMB host
+@samp{melancholia} in the local domain @samp{MELANCHOLIA} to edit
+@file{.emacs} located in the home directory (share @samp{daniel$}).
 
 The domain name and user name are optional for @command{smbclient}
 authentication.  When user name is not specified, @command{smbclient}
@@ -1702,8 +1715,8 @@ follows:
 @end group
 @end lisp
 
-With all defaults set, @samp{@trampfn{-,,}} will connect @value{tramp}
-to John's home directory on @code{target} via @code{ssh}.
+With all defaults set, @file{@trampfn{-,,}} will connect @value{tramp}
+to John's home directory on @samp{target} via method @option{ssh}.
 @end defopt
 
 @defopt tramp-default-host-alist
@@ -1712,6 +1725,10 @@ allows multiple default host values based on access method or user
 name combinations.  The alist can hold multiple values.  While
 @code{tramp-default-host} is sufficient in most cases, some methods,
 like @option{adb}, require defaults overwritten.
+
+The default host name for @option{nspawn} is @samp{.host}.  Therefore,
+@file{@trampfn{nspawn,,}} and @file{@trampfn{sudo,,}} have the same
+effect.
 @end defopt
 
 
@@ -1938,17 +1955,6 @@ Access of a hadoop/hdfs file system.  A file is accessed via
 the user that you want to use, and @samp{node} is the name of the
 hadoop server.
 
-@item tramp-nspawn
-@cindex method @option{nspawn}
-@cindex @option{nspawn} method
-Access to environments provided by systemd-nspawn.  A file is accessed
-via @file{@trampfn{nspawn,user@@container,/path/to/file}}, where
-@samp{user} is the (optional) user that you want to use, and
-@samp{container} is the container to connect to.  systemd-nspawn and
-its container utilities often require super user access to run, use
-multi-hop file names with @option{doas} or @option{sudo} to raise your
-privileges.
-
 @item vagrant-tramp
 @cindex method @option{vagrant}
 @cindex @option{vagrant} method
@@ -2118,11 +2124,12 @@ file name syntax, must be appended to the machine and login items:
 machine melancholia#4711 port davs login daniel%BIZARRE password geheim
 @end example
 
-For the methods @option{doas}, @option{sudo} and @option{sudoedit} the
-password of the user requesting the connection is needed, and not the
-password of the target user@footnote{On the local host, @code{run0}
-uses a graphical password agent.}.  If these connections happen on the
-local host, an entry with the local user and local host is used:
+For the methods @option{doas}, @option{sudo}, @option{sudoedit} and
+@option{nspawn} the password of the user requesting the connection is
+needed, and not the password of the target user@footnote{On the local
+host, @code{run0} uses a graphical password agent.}.  If these
+connections happen on the local host, an entry with the local user and
+local host is used:
 
 @example
 machine @var{host} port sudo login @var{user} password secret
@@ -2701,8 +2708,8 @@ its execution of @command{/bin/sh} on the remote host because Bourne
 shell does not recognize the export command as entered in
 @file{.profile}.
 
-Likewise, (@code{~}) character in paths will cause errors because
-Bourne shell does not do (@code{~}) character expansions.
+Likewise, (@samp{~}) character in paths will cause errors because
+Bourne shell does not do (@samp{~}) character expansions.
 
 One approach to avoiding these incompatibilities is to make all
 commands in @file{~/.shrc} and @file{~/.profile} Bourne shell
@@ -3417,7 +3424,7 @@ configuration option will be selected, it can be @t{"--standard"}
 or @t{"--paranoia"}.  See the @samp{encfs(1)} man page for details.
 
 However, @value{tramp} must adapt these configuration sets.  The
-@code{chainedNameIV} configuration option must be disabled; otherwise
+@option{chainedNameIV} configuration option must be disabled; otherwise
 @value{tramp} couldn't handle file name encryption transparently.
 @end defopt
 
@@ -3536,7 +3543,7 @@ on the remote host @var{host}, using the method @var{method}.
 @table @file
 @item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}.emacs
 For the file @file{.emacs} located in the home directory, on the host
-@code{melancholia}, using method @code{ssh}.
+@samp{melancholia}, using method @option{ssh}.
 
 @item @value{prefix}ssh@value{postfixhop}melancholia.danann.net@value{postfix}.emacs
 For the file @file{.emacs} specified using the fully qualified domain name of
@@ -3546,12 +3553,12 @@ the host.
 For the file @file{.emacs} specified using the @file{~}, which is expanded.
 
 @item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}~daniel/.emacs
-For the file @file{.emacs} located in @code{daniel}'s home directory
-on the host, @code{melancholia}.  The @file{~<user>} construct is
+For the file @file{.emacs} located in @samp{daniel}'s home directory
+on the host, @samp{melancholia}.  The @file{~<user>} construct is
 expanded to the home directory of that user on the remote host.
 
 @item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}/etc/squid.conf
-For the file @file{/etc/squid.conf} on the host @code{melancholia}.
+For the file @file{/etc/squid.conf} on the host @samp{melancholia}.
 
 @end table
 
@@ -3569,8 +3576,8 @@ different name using the proper syntax will override this default
 behavior: @file{@trampfn{method,user@@host,path/to/file}}.
 
 @file{@trampfn{ssh,daniel@@melancholia,.emacs}} is for file
-@file{.emacs} in @code{daniel}'s home directory on the host,
-@code{melancholia}, accessing via method @code{ssh}.
+@file{.emacs} in @samp{daniel}'s home directory on the host,
+@samp{melancholia}, accessing via method @option{ssh}.
 
 For specifying port numbers, affix @file{#<port>} to the host
 name.  For example: @file{@trampfn{ssh,daniel@@melancholia#42,.emacs}}.
@@ -3603,8 +3610,8 @@ names.  Beside the @code{default} value, @var{syntax} can be
 
 This remote file name syntax is similar to the syntax used by Ange FTP@.
 A remote file name has the form
-@code{@value{prefix}user@@host@value{postfix}path/to/file}.  The
-@code{user@@} part is optional, and the method is determined by
+@file{@value{prefix}user@@host@value{postfix}path/to/file}.  The
+@samp{user@@} part is optional, and the method is determined by
 @ref{Default Method}.
 
 @item @code{separate}
@@ -3615,8 +3622,8 @@ A remote file name has the form
 @include trampver.texi
 This remote file name syntax originated in the XEmacs text editor.
 A remote file name has the form
-@code{@trampfn{method,user@@host,path/to/file}}.  The @code{method}
-and @code{user@@} parts are optional.
+@file{@trampfn{method,user@@host,path/to/file}}.  The @samp{method}
+and @samp{user@@} parts are optional.
 @clear separate
 @set unified
 @include trampver.texi
@@ -3799,12 +3806,12 @@ Ad-hoc proxies can take patterns @code{%h} or @code{%u} like in
 @code{tramp-default-proxies-alist}.  The following file name expands
 to user @samp{root} on host @samp{remotehost}, starting with an
 @option{ssh} session on host @samp{remotehost}:
-@samp{@trampfn{ssh@value{postfixhop}%h|su,remotehost,}}.
+@file{@trampfn{ssh@value{postfixhop}%h|su,remotehost,}}.
 
 On the other hand, if a trailing hop does not specify a host name, the
 host name of the previous hop is reused.  Therefore, the following
 file name is equivalent to the previous example:
-@samp{@trampfn{ssh@value{postfixhop}remotehost|su,,}}.
+@file{@trampfn{ssh@value{postfixhop}remotehost|su,,}}.
 
 @defopt tramp-completion-multi-hop-methods
 When this list includes the last method in a multi-hop connection, the
@@ -3831,8 +3838,8 @@ The buffer must either visit a file, or a directory
 
 @defopt tramp-file-name-with-method
 The method @code{tramp-revert-buffer-with-sudo} shows an alternate
-buffer.  It defaults to @code{sudo}, other valid methods are
-@code{su}, @code{doas}, @code{run0}, and @code{ksu}.
+buffer.  It defaults to @option{sudo}, other valid methods are
+@option{su}, @option{doas}, @option{run0}, and @option{ksu}.
 
 @lisp
 (customize-set-variable 'tramp-file-name-with-method "doas")
@@ -4066,7 +4073,7 @@ follows in the local @file{.emacs} file:
 local host that the remote host can redirect X11 window
 interactions.  If querying for a recognizable name is not possible for
 whatever reason, then replace @code{(getenv "DISPLAY")} with a
-hard-coded, fixed name.  Note that using @code{:0} for X11 display name
+hard-coded, fixed name.  Note that using @samp{:0} for X11 display name
 here will not work as expected.
 
 @vindex ForwardX11@r{, ssh option}
@@ -4638,7 +4645,7 @@ specifies the target to be applied for renaming buffer file names from
 source via @code{tramp-rename-files}.  @code{source} is a regular
 expressions, which matches a remote file name.  @code{target} must be
 a directory name, which could be remote (including remote directories
-@value{tramp} infers by default, such as @samp{@trampfn{method,user@@host,}}).
+@value{tramp} infers by default, such as @file{@trampfn{method,user@@host,}}).
 
 @code{target} can contain the patterns @code{%m}, @code{%u} or
 @code{%h}, which are replaced by the method name, user name or host
@@ -4667,7 +4674,7 @@ ssh@value{postfixhop}%h@value{postfix}")
 @end lisp
 
 routes all connections to a host in @samp{company.org} via
-@samp{@trampfn{ssh,multi.hop,}}, which might be useful when using
+@file{@trampfn{ssh,multi.hop,}}, which might be useful when using
 Emacs outside the company network.
 
 @lisp

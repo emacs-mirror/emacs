@@ -55,6 +55,9 @@
 (with-eval-after-load 'kubernetes-tramp
   (warn (concat "Package `kubernetes-tramp' has been obsoleted, "
 		"please use integrated package `tramp-container'")))
+(with-eval-after-load 'tramp-nspawn
+  (warn (concat "Package `tramp-nspawn' has been obsoleted, "
+		"please use integrated package `tramp-container'")))
 
 ;; For not existing functions, obsolete functions, or functions with a
 ;; changed argument list, there are compiler warnings.  We want to
