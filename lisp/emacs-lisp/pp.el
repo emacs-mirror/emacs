@@ -495,15 +495,12 @@ the bounds of a region containing Lisp code to pretty-print."
     ;; Print some of the smaller integers as characters, perhaps?
     (integer
      (if (<= ?0 sexp ?z)
-         (let ((print-integers-as-characters t))
-           (princ sexp (current-buffer)))
-       (princ sexp (current-buffer))))
+         (princ (prin1-char sexp) (current-buffer))
+       (prin1 sexp (current-buffer))))
     (string
      (let ((print-escape-newlines t))
        (prin1 sexp (current-buffer))))
-    (symbol
-     (prin1 sexp (current-buffer)))
-    (otherwise (princ sexp (current-buffer)))))
+    (otherwise (prin1 sexp (current-buffer)))))
 
 (defun pp--format-vector (sexp)
   (insert "[")
