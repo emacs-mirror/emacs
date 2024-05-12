@@ -569,7 +569,8 @@ struct dump_context
 
 # ifdef HAVE_MPS
   dump_off igc_base_offset;
-  const void *igc_obj;
+  void *igc_obj_dumped;
+  enum igc_obj_type igc_type;
 # endif
 };
 
@@ -872,9 +873,13 @@ dump_align_output (struct dump_context *ctx, int alignment)
 # ifdef HAVE_MPS
 
 static void
-dump_igc_start_obj (struct dump_context *ctx, const void *in)
+dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
+		    const void *in)
 {
-  ctx->igc_obj = in;
+  eassert (ctx->igc_type == IGC_OBJ_INVALID);
+  eassert (ctx->igc_obj_dumped == IGC_OBJ_INVALID);
+  ctx->igc_obj_dumped = (void *) in;
+  ctx->igc_type = type;
   ctx->igc_base_offset = ctx->offset;
   if (in)
     dump_write_zero (ctx, igc_header_size ());
@@ -886,20 +891,20 @@ dump_igc_finish_obj (struct dump_context *ctx)
   char *base = (char *) ctx->buf + ctx->igc_base_offset;
   char *end = (char *) ctx->buf + ctx->offset;
   eassert (end > base);
-  char *should_end = igc_finish_obj ((void *) ctx->igc_obj, base, end);
+  char *should_end = igc_finish_obj (ctx->igc_obj_dumped, ctx->igc_type, base, end);
   eassert (should_end >= end);
   dump_write_zero (ctx, should_end - end);
-  ctx->igc_obj = NULL;
+  ctx->igc_obj_dumped = NULL;
+  ctx->igc_type = IGC_OBJ_INVALID;
   ctx->igc_base_offset = -1;
 }
 
 # endif // HAVE_MPS
 
 static dump_off
-dump_object_start (struct dump_context *ctx,
-		   const void *in,
-                   void *out,
-                   dump_off outsz)
+dump_object_start_1 (struct dump_context *ctx,
+		     void *out,
+		     dump_off outsz)
 {
   /* We dump only one object at a time, so obj_offset should be
      invalid on entry to this function.  */
@@ -907,16 +912,24 @@ dump_object_start (struct dump_context *ctx,
   int alignment = ctx->flags.pack_objects ? 1 : DUMP_ALIGNMENT;
   if (ctx->flags.dump_object_contents)
     dump_align_output (ctx, alignment);
-# ifdef HAVE_MPS
-  dump_igc_start_obj (ctx, in);
-# endif
   ctx->obj_offset = ctx->offset;
   memset (out, 0, outsz);
   return ctx->offset;
 }
 
 static dump_off
-dump_object_finish (struct dump_context *ctx,
+dump_object_start (struct dump_context *ctx, const void *in, enum igc_obj_type type,
+		   void *out, dump_off outsz)
+{
+  dump_off offset = dump_object_start_1 (ctx, out, outsz);
+# ifdef HAVE_MPS
+  dump_igc_start_obj (ctx, type, in);
+# endif
+  return offset;
+}
+
+static dump_off
+dump_object_finish_1 (struct dump_context *ctx,
                     const void *out,
                     dump_off sz)
 {
@@ -925,12 +938,20 @@ dump_object_finish (struct dump_context *ctx,
   eassert (offset == ctx->offset); /* No intervening writes.  */
   ctx->obj_offset = 0;
   if (ctx->flags.dump_object_contents)
-    {
-      dump_write (ctx, out, sz);
+    dump_write (ctx, out, sz);
+  return offset;
+}
+
+static dump_off
+dump_object_finish (struct dump_context *ctx,
+                    const void *out,
+                    dump_off sz)
+{
+  dump_off offset = dump_object_finish_1 (ctx, out, sz);
 # ifdef HAVE_MPS
-      dump_igc_finish_obj (ctx);
+  if (ctx->flags.dump_object_contents)
+    dump_igc_finish_obj (ctx);
 # endif
-    }
   return offset;
 }
 
@@ -2003,7 +2024,7 @@ _dump_object_start_pseudovector (struct dump_context *ctx,
 {
   eassert (in_hdr->size & PSEUDOVECTOR_FLAG);
   ptrdiff_t vec_size = vectorlike_nbytes (in_hdr);
-  dump_object_start (ctx, in_hdr, out_hdr, (dump_off) vec_size);
+  dump_object_start (ctx, in_hdr, IGC_OBJ_VECTOR, out_hdr, (dump_off) vec_size);
   *out_hdr = *in_hdr;
 }
 
@@ -2041,7 +2062,7 @@ dump_cons (struct dump_context *ctx, const struct Lisp_Cons *cons)
 # error "Lisp_Cons changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Cons out;
-  dump_object_start (ctx, cons, &out, sizeof (out));
+  dump_object_start (ctx, cons, IGC_OBJ_CONS, &out, sizeof (out));
   dump_field_lv (ctx, &out, cons, &cons->u.s.car, WEIGHT_STRONG);
   dump_field_lv (ctx, &out, cons, &cons->u.s.u.cdr, WEIGHT_NORMAL);
   return dump_object_finish (ctx, &out, sizeof (out));
@@ -2057,7 +2078,7 @@ dump_interval_tree (struct dump_context *ctx,
 #endif
   /* TODO: output tree breadth-first?  */
   struct interval out;
-  dump_object_start (ctx, tree, &out, sizeof (out));
+  dump_object_start (ctx, tree, IGC_OBJ_INTERVAL, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, tree, total_length);
   DUMP_FIELD_COPY (&out, tree, position);
   if (tree->left)
@@ -2112,7 +2133,7 @@ dump_string (struct dump_context *ctx, const struct Lisp_String *string)
      better by emitting a relocation instead of bothering to copy the
      string data.  */
   struct Lisp_String out;
-  dump_object_start (ctx, string, &out, sizeof (out));
+  dump_object_start (ctx, string, IGC_OBJ_STRING, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, string, u.s.size);
   DUMP_FIELD_COPY (&out, string, u.s.size_byte);
   if (string->u.s.intervals)
@@ -2170,7 +2191,7 @@ dump_interval_node (struct dump_context *ctx, struct itree_node *node,
 # error "itree_node changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct itree_node out;
-  dump_object_start (ctx, node, &out, sizeof (out));
+  dump_object_start (ctx, node, IGC_OBJ_ITREE_NODE, &out, sizeof (out));
   if (node->parent)
     dump_field_fixup_later (ctx, &out, node, &node->parent);
   if (node->left)
@@ -2305,7 +2326,7 @@ dump_float (struct dump_context *ctx, const struct Lisp_Float *lfloat)
 #endif
   eassert (ctx->header.cold_start);
   struct Lisp_Float out;
-  dump_object_start (ctx, lfloat, &out, sizeof (out));
+  dump_object_start (ctx, lfloat, IGC_OBJ_FLOAT, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, lfloat, u.data);
   return dump_object_finish (ctx, &out, sizeof (out));
 }
@@ -2318,7 +2339,7 @@ dump_fwd_int (struct dump_context *ctx, const struct Lisp_Intfwd *intfwd)
 #endif
   dump_emacs_reloc_immediate_intmax_t (ctx, intfwd->intvar, *intfwd->intvar);
   struct Lisp_Intfwd out;
-  dump_object_start (ctx, intfwd, &out, sizeof (out));
+  dump_object_start (ctx, intfwd, IGC_OBJ_DUMPED_INTFWD, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, intfwd, type);
   dump_field_emacs_ptr (ctx, &out, intfwd, &intfwd->intvar);
   return dump_object_finish (ctx, &out, sizeof (out));
@@ -2332,7 +2353,7 @@ dump_fwd_bool (struct dump_context *ctx, const struct Lisp_Boolfwd *boolfwd)
 #endif
   dump_emacs_reloc_immediate_bool (ctx, boolfwd->boolvar, *boolfwd->boolvar);
   struct Lisp_Boolfwd out;
-  dump_object_start (ctx, boolfwd, &out, sizeof (out));
+  dump_object_start (ctx, boolfwd, IGC_OBJ_DUMPED_BOOLFWD, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, boolfwd, type);
   dump_field_emacs_ptr (ctx, &out, boolfwd, &boolfwd->boolvar);
   return dump_object_finish (ctx, &out, sizeof (out));
@@ -2349,7 +2370,7 @@ dump_fwd_obj (struct dump_context *ctx, const struct Lisp_Objfwd *objfwd)
                       Qnil)))
     dump_emacs_reloc_to_lv (ctx, objfwd->objvar, *objfwd->objvar);
   struct Lisp_Objfwd out;
-  dump_object_start (ctx, objfwd, &out, sizeof (out));
+  dump_object_start (ctx, objfwd, IGC_OBJ_DUMPED_OBJFWD, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, objfwd, type);
   dump_field_emacs_ptr (ctx, &out, objfwd, &objfwd->objvar);
   return dump_object_finish (ctx, &out, sizeof (out));
@@ -2363,7 +2384,7 @@ dump_fwd_buffer_obj (struct dump_context *ctx,
 # error "Lisp_Buffer_Objfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Buffer_Objfwd out;
-  dump_object_start (ctx, buffer_objfwd, &out, sizeof (out));
+  dump_object_start (ctx, buffer_objfwd, IGC_OBJ_DUMPED_BUFFER_OBJFWD, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, buffer_objfwd, type);
   DUMP_FIELD_COPY (&out, buffer_objfwd, offset);
   dump_field_lv (ctx, &out, buffer_objfwd, &buffer_objfwd->predicate,
@@ -2379,7 +2400,7 @@ dump_fwd_kboard_obj (struct dump_context *ctx,
 # error "Lisp_Intfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Kboard_Objfwd out;
-  dump_object_start (ctx, kboard_objfwd, &out, sizeof (out));
+  dump_object_start (ctx, kboard_objfwd, IGC_OBJ_DUMPED_KBOARD_OBJFWD, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, kboard_objfwd, type);
   DUMP_FIELD_COPY (&out, kboard_objfwd, offset);
   return dump_object_finish (ctx, &out, sizeof (out));
@@ -2426,7 +2447,7 @@ dump_blv (struct dump_context *ctx,
 # error "Lisp_Buffer_Local_Value changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Buffer_Local_Value out;
-  dump_object_start (ctx, blv, &out, sizeof (out));
+  dump_object_start (ctx, blv, IGC_OBJ_DUMPED_BLV, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, blv, local_if_set);
   DUMP_FIELD_COPY (&out, blv, found);
   if (blv->fwd.fwdptr)
@@ -2519,7 +2540,7 @@ dump_symbol (struct dump_context *ctx,
 
   struct Lisp_Symbol *symbol = XSYMBOL (object);
   struct Lisp_Symbol out;
-  dump_object_start (ctx, symbol, &out, sizeof (out));
+  dump_object_start (ctx, symbol, IGC_OBJ_SYMBOL, &out, sizeof (out));
 #ifndef HAVE_MPS
   eassert (symbol->u.s.gcmarkbit == 0);
 #endif
@@ -2629,7 +2650,7 @@ dump_vectorlike_generic (struct dump_context *ctx,
          field.  */
       size_t sz = (char *)&out.min_char + sizeof (out.min_char) - (char *)&out;
       eassert (sz < DUMP_OFF_MAX);
-      dump_object_start (ctx, sct, &out, (dump_off) sz);
+      dump_object_start (ctx, sct, IGC_OBJ_VECTOR, &out, (dump_off) sz);
       DUMP_FIELD_COPY (&out, sct, header.size);
       DUMP_FIELD_COPY (&out, sct, depth);
       DUMP_FIELD_COPY (&out, sct, min_char);
@@ -2639,7 +2660,7 @@ dump_vectorlike_generic (struct dump_context *ctx,
   else
     {
       union vectorlike_header out;
-      dump_object_start (ctx, header, &out, sizeof (out));
+      dump_object_start (ctx, header, IGC_OBJ_VECTOR, &out, sizeof (out));
       DUMP_FIELD_COPY (&out, header, size);
       offset = dump_object_finish (ctx, &out, sizeof (out));
       skip = 0;
@@ -2669,9 +2690,9 @@ dump_vectorlike_generic (struct dump_context *ctx,
 #if INTPTR_MAX == EMACS_INT_MAX
       eassert (ctx->offset % sizeof (out) == 0);
 #endif
-      dump_object_start (ctx, NULL, &out, sizeof (out));
+      dump_object_start_1 (ctx, &out, sizeof (out));
       dump_field_lv (ctx, &out, vslot, vslot, WEIGHT_STRONG);
-      dump_object_finish (ctx, &out, sizeof (out));
+      dump_object_finish_1 (ctx, &out, sizeof (out));
     }
   ctx->flags = old_flags;
   dump_align_output (ctx, DUMP_ALIGNMENT);
@@ -2750,9 +2771,9 @@ dump_hash_table_key (struct dump_context *ctx, struct Lisp_Hash_Table *h)
     {
       Lisp_Object out;
       const Lisp_Object *slot = &h->key[i];
-      dump_object_start (ctx, NULL, &out, sizeof out);
+      dump_object_start_1 (ctx, &out, sizeof out);
       dump_field_lv (ctx, &out, slot, slot, WEIGHT_STRONG);
-      dump_object_finish (ctx, &out, sizeof out);
+      dump_object_finish_1 (ctx, &out, sizeof out);
     }
 
   ctx->flags = old_flags;
@@ -2773,9 +2794,9 @@ dump_hash_table_value (struct dump_context *ctx, struct Lisp_Hash_Table *h)
     {
       Lisp_Object out;
       const Lisp_Object *slot = &h->value[i];
-      dump_object_start (ctx, NULL, &out, sizeof out);
+      dump_object_start_1 (ctx, &out, sizeof out);
       dump_field_lv (ctx, &out, slot, slot, WEIGHT_STRONG);
-      dump_object_finish (ctx, &out, sizeof out);
+      dump_object_finish_1 (ctx, &out, sizeof out);
     }
 
   ctx->flags = old_flags;
@@ -3013,7 +3034,7 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
   /* No relocation needed, so we don't need dump_object_start.  */
   dump_align_output (ctx, DUMP_ALIGNMENT);
 # ifdef HAVE_MPS
-  dump_igc_start_obj (ctx, v);
+  dump_igc_start_obj (ctx, IGC_OBJ_VECTOR, v);
 # endif
   eassert (ctx->offset >= ctx->header.cold_start);
   dump_off offset = ctx->offset;
@@ -3034,7 +3055,7 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Subr out;
-  dump_object_start (ctx, subr, &out, sizeof (out));
+  dump_object_start (ctx, subr, IGC_OBJ_VECTOR, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, subr, header.size);
 #ifdef HAVE_NATIVE_COMP
   bool non_primitive = !NILP (subr->native_comp_u);
@@ -3347,7 +3368,7 @@ dump_charset (struct dump_context *ctx, int cs_i)
   eassert (ctx->offset % alignof (struct charset) == 0);
   const struct charset *cs = charset_table + cs_i;
   struct charset out;
-  dump_object_start (ctx, cs, &out, sizeof (out));
+  dump_object_start (ctx, cs, IGC_OBJ_DUMPED_CHARSET, &out, sizeof (out));
   if (cs_i < charset_table_used) /* Don't look at uninitialized data.  */
     {
       DUMP_FIELD_COPY (&out, cs, id);
@@ -3842,10 +3863,10 @@ dump_emit_dump_reloc (struct dump_context *ctx, Lisp_Object lreloc)
 {
   eassert (ctx->flags.pack_objects);
   struct dump_reloc reloc;
-  dump_object_start (ctx, NULL, &reloc, sizeof (reloc));
+  dump_object_start_1 (ctx, &reloc, sizeof (reloc));
   reloc = dump_decode_dump_reloc (lreloc);
   dump_check_dump_off (ctx, dump_reloc_get_offset (reloc));
-  dump_object_finish (ctx, &reloc, sizeof (reloc));
+  dump_object_finish_1 (ctx, &reloc, sizeof (reloc));
   if (dump_reloc_get_offset (reloc) < ctx->header.discardable_start)
     ctx->number_hot_relocations += 1;
   else
@@ -3958,9 +3979,9 @@ dump_emit_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
 {
   eassert (ctx->flags.pack_objects);
   struct emacs_reloc reloc;
-  dump_object_start (ctx, NULL, &reloc, sizeof (reloc));
+  dump_object_start_1 (ctx, &reloc, sizeof (reloc));
   reloc = decode_emacs_reloc (ctx, lreloc);
-  dump_object_finish (ctx, &reloc, sizeof (reloc));
+  dump_object_finish_1 (ctx, &reloc, sizeof (reloc));
 }
 
 static Lisp_Object
