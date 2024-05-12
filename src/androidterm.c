@@ -5707,10 +5707,10 @@ struct android_extracted_text_class
 
 /* Fields and methods associated with the `ExtractedTextRequest'
    class.  */
-struct android_extracted_text_request_class request_class;
+static struct android_extracted_text_request_class request_class;
 
 /* Fields and methods associated with the `ExtractedText' class.  */
-struct android_extracted_text_class text_class;
+static struct android_extracted_text_class text_class;
 
 /* Return an ExtractedText object corresponding to the extracted text
    TEXT.  START is a character position describing the offset of the
@@ -6273,8 +6273,8 @@ android_update_selection (struct frame *f, struct window *w)
       end = marker_position (f->conversion.compose_region_end);
 
       /* Offset and detect underflow.  */
-      start = max (start, field_start) - field_start - 1;
-      end = min (end, field_end) - field_start - 1;
+      start = max (start, field_start) - field_start;
+      end = min (end, field_end) - field_start;
       if (end < 0 || start < 0)
 	end = start = -1;
     }
