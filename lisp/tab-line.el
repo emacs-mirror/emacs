@@ -1124,11 +1124,17 @@ However, return the correct mouse position list if EVENT is a
   (let ((default-value '(:eval (tab-line-format))))
     (if tab-line-mode
         ;; Preserve the existing tab-line set outside of this mode
-        (unless tab-line-format
-          (setq tab-line-format default-value))
+        (if (null tab-line-format)
+            (setq tab-line-format default-value)
+          (message
+           "tab-line-format set outside of tab-line-mode, currently `%S'"
+           tab-line-format))
       ;; Reset only values set by this mode
-      (when (equal tab-line-format default-value)
-        (setq tab-line-format nil)))))
+      (if (equal tab-line-format default-value)
+          (setq tab-line-format nil)
+        (message
+         "tab-line-format set outside of tab-line-mode, currently `%S'"
+         tab-line-format)))))
 
 (defcustom tab-line-exclude-modes
   '(completion-list-mode)
