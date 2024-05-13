@@ -23,8 +23,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "config.h"
 #include "lisp.h"
 
-#ifdef HAVE_MPS
-
 enum igc_obj_type
 {
   IGC_OBJ_INVALID,
@@ -59,6 +57,8 @@ enum igc_obj_type
 
   IGC_OBJ_LAST
 };
+
+#ifdef HAVE_MPS
 
 /* Assertions.  */
 # define IGC_DEBUG 1
