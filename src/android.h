@@ -118,6 +118,7 @@ extern bool android_detect_keyboard (void);
 
 extern void android_set_dont_focus_on_map (android_window, bool);
 extern void android_set_dont_accept_focus (android_window, bool);
+extern void android_set_wm_name (android_window, jstring);
 
 extern int android_verify_jni_string (const char *);
 extern jstring android_build_string (Lisp_Object, ...);
@@ -275,8 +276,6 @@ struct android_emacs_service
   jmethodID draw_rectangle;
   jmethodID draw_line;
   jmethodID draw_point;
-  jmethodID clear_window;
-  jmethodID clear_area;
   jmethodID ring_bell;
   jmethodID query_tree;
   jmethodID get_screen_width;

@@ -147,10 +147,16 @@ Used for flattening nested indexes with name concatenation."
 
 (defcustom imenu-flatten nil
   "Whether to flatten the list of sections in an imenu or show it nested.
-If non-nil, popup the completion buffer with a flattened menu.
+If nil, use nested indexes.
+If t, popup the completion buffer with a flattened menu.
+If `annotation', use completion annotation as a suffix
+to append section names after the index names.
+
 The string from `imenu-level-separator' is used to separate names of
 nested levels while flattening nested indexes with name concatenation."
-  :type 'boolean
+  :type '(choice (const :tag "Nested" nil)
+                 (const :tag "By prefix" t)
+                 (const :tag "By suffix" annotation))
   :version "30.1")
 
 (defcustom imenu-generic-skip-comments-and-strings t
@@ -743,7 +749,12 @@ Return one of the entries in index-alist or nil."
     ;; Display the completion buffer.
     (minibuffer-with-setup-hook
         (lambda ()
-          (setq-local completion-extra-properties '(:category imenu))
+          (setq-local completion-extra-properties
+                      `( :category imenu
+                         ,@(when (eq imenu-flatten 'annotation)
+                             `(:annotation-function
+                               ,(lambda (s) (get-text-property
+                                             0 'imenu-section s))))))
           (unless imenu-eager-completion-buffer
             (minibuffer-completion-help)))
       (setq name (completing-read prompt
@@ -787,7 +798,11 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
 			       name))))
        (cond
 	((not (imenu--subalist-p item))
-	 (list (cons new-prefix pos)))
+	 (list (cons (if (and (eq imenu-flatten 'annotation) prefix)
+			 (propertize name 'imenu-section
+				     (format " (%s)" prefix))
+		       new-prefix)
+		     pos)))
 	(t
 	 (imenu--flatten-index-alist pos concat-names new-prefix)))))
    index-alist))
