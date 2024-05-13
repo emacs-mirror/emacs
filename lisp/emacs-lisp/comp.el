@@ -197,12 +197,11 @@ Useful to hook into pass checkers.")
 (defun comp--get-function-cstr (function)
   "Given FUNCTION return the corresponding `comp-constraint'."
   (when (symbolp function)
-    (let ((f (symbol-function function)))
-      (or (gethash f comp-primitive-func-cstr-h)
-          (when-let ((type (or (when-let ((f (comp--symbol-func-to-fun function)))
-                                 (comp-func-declared-type f))
-                               (function-get function 'function-type))))
-            (comp-type-spec-to-cstr type))))))
+    (or (gethash function comp-primitive-func-cstr-h)
+        (when-let ((type (or (when-let ((f (comp--symbol-func-to-fun function)))
+                               (comp-func-declared-type f))
+                             (function-get function 'function-type))))
+          (comp-type-spec-to-cstr type)))))
 
 ;; Keep it in sync with the `cl-deftype-satisfies' property set in
 ;; cl-macs.el. We can't use `cl-deftype-satisfies' directly as the
