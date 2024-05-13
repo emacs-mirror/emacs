@@ -6649,6 +6649,26 @@ android_term_init (void)
 
   terminal->name = xstrdup ("android");
 
+  {
+    Lisp_Object system_name = Fsystem_name ();
+    static char const title[] = "GNU Emacs";
+    if (STRINGP (system_name))
+      {
+	static char const at[] = " at ";
+	ptrdiff_t nbytes = sizeof (title) + sizeof (at);
+	if (ckd_add (&nbytes, nbytes, SBYTES (system_name)))
+	  memory_full (SIZE_MAX);
+	dpyinfo->x_id_name = xmalloc (nbytes);
+	sprintf (dpyinfo->x_id_name, "%s%s%s", title, at,
+		 SDATA (system_name));
+      }
+    else
+      {
+	dpyinfo->x_id_name = xmalloc (sizeof (title));
+	strcpy (dpyinfo->x_id_name, title);
+      }
+  }
+
   /* The display "connection" is now set up, and it must never go
      away.  */
   terminal->reference_count = 30000;

@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
+import android.app.ActivityManager.TaskDescription;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -166,6 +167,10 @@ public class EmacsActivity extends Activity
 	layout.removeView (window.view);
 	window = null;
 
+	/* Reset the WM name.  */
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+	  updateWmName ();
+
 	invalidateFocus (0);
       }
   }
@@ -205,6 +210,11 @@ public class EmacsActivity extends Activity
 	  invalidateFocus (1);
 	}
       });
+
+    /* Synchronize the window's window manager name with this activity's
+       task in the recents list.  */
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+      updateWmName ();
   }
 
   @Override
@@ -520,6 +530,29 @@ public class EmacsActivity extends Activity
 	else
 	  view.setSystemUiVisibility (View.SYSTEM_UI_FLAG_VISIBLE);
       }
+  }
+
+  /* Update the name of this activity's task description from the
+     current window, or reset the same if no window is attached.  */
+
+  @SuppressWarnings ("deprecation")
+  public final void
+  updateWmName ()
+  {
+    String wmName;
+    TaskDescription description;
+
+    if (window == null || window.wmName == null)
+      wmName = "Emacs";
+    else
+      wmName = window.wmName;
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+      description = new TaskDescription (wmName);
+    else
+      description = (new TaskDescription.Builder ()
+		     .setLabel (wmName).build ());
+    setTaskDescription (description);
   }
 
   @Override

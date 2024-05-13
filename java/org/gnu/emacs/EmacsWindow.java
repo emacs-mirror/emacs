@@ -169,6 +169,11 @@ public final class EmacsWindow extends EmacsHandleObject
      and whether this window has previously been attached to a task.  */
   public boolean preserve, previouslyAttached;
 
+  /* The window manager name of this window, which supplies the name of
+     activities in which it is displayed as a toplevel window, or
+     NULL.  */
+  public String wmName;
+
   public
   EmacsWindow (final EmacsWindow parent, int x, int y,
 	       int width, int height, boolean overrideRedirect)
@@ -1562,6 +1567,36 @@ public final class EmacsWindow extends EmacsHandleObject
     return dontFocusOnMap;
   }
 
+  public void
+  setWmName (final String wmName)
+  {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+      return;
+
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  EmacsActivity activity;
+	  Object tem;
+
+	  EmacsWindow.this.wmName = wmName;
+
+	  /* If an activity is already attached, replace its task
+	     description.  */
+
+	  tem = getAttachedConsumer ();
+
+	  if (tem != null && tem instanceof EmacsActivity)
+	    {
+	      activity = (EmacsActivity) tem;
+	      activity.updateWmName ();
+	    }
+	}
+      });
+  }
+
   public int[]
   translateCoordinates (int x, int y)
   {
@@ -1631,7 +1666,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	  fullscreen = isFullscreen;
 	  tem = getAttachedConsumer ();
 
-	  if (tem != null)
+	  if (tem != null && tem instanceof EmacsActivity)
 	    {
 	      activity = (EmacsActivity) tem;
 	      activity.syncFullscreenWith (EmacsWindow.this);

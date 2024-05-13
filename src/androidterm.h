@@ -90,6 +90,9 @@ struct android_display_info
   /* Minimum font height over all fonts in font_table.  */
   int smallest_font_height;
 
+  /* Default name for all frames on this display.  */
+  char *x_id_name;
+
   /* The number of fonts opened for this display.  */
   int n_fonts;
 
