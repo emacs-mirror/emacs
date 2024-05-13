@@ -877,7 +877,7 @@ dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
 		    const void *in)
 {
   eassert (ctx->igc_type == IGC_OBJ_INVALID);
-  eassert (ctx->igc_obj_dumped == IGC_OBJ_INVALID);
+  eassert (ctx->igc_obj_dumped == NULL);
   ctx->igc_obj_dumped = (void *) in;
   ctx->igc_type = type;
   ctx->igc_base_offset = ctx->offset;
@@ -2731,11 +2731,13 @@ hash_table_contents (struct Lisp_Hash_Table *h, Lisp_Object **key,
     }
 }
 
-static void
+static dump_off
 dump_hash_table_list (struct dump_context *ctx)
 {
+  dump_off offset = ctx->offset;
   if (!NILP (ctx->hash_tables))
-    dump_object (ctx, CALLN (Fvconcat, ctx->hash_tables));
+    offset = dump_object (ctx, CALLN (Fvconcat, ctx->hash_tables));
+  return offset;
 }
 
 static hash_table_std_test_t
@@ -2823,13 +2825,20 @@ dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
-  struct Lisp_Hash_Table hash_munged = *hash_in;
-  struct Lisp_Hash_Table *hash = &hash_munged;
 
-  hash_table_freeze (hash);
+  START_DUMP_PVEC (ctx, &hash_in->header, struct Lisp_Hash_Table, out);
   dump_push (&ctx->hash_tables, object);
 
-  START_DUMP_PVEC (ctx, &hash->header, struct Lisp_Hash_Table, out);
+  /* Idea here is to dump a "frozen" hash table which consists of the
+     hash table pseudo vector object plus 2 vectors of Lisp_Objects for
+     keys and values. Everything else is removed.
+
+     When loading a dump, the hash table is "thawed". This allocs index
+     and next vectors, and rehashes all keys. */
+  struct Lisp_Hash_Table hash_munged = *hash_in;
+  struct Lisp_Hash_Table *hash = &hash_munged;
+  hash_table_freeze (hash);
+
   dump_pseudovector_lisp_fields (ctx, &out->header, &hash->header);
   DUMP_FIELD_COPY (out, hash, count);
   DUMP_FIELD_COPY (out, hash, weakness);
@@ -4406,8 +4415,7 @@ types.  */)
 	   && NILP (ctx->deferred_hash_tables)
 	   && NILP (ctx->deferred_symbols)));
 
-  ctx->header.hash_list = ctx->offset;
-  dump_hash_table_list (ctx);
+  ctx->header.hash_list = dump_hash_table_list (ctx);
 
   /* dump_hash_table_list just adds a new vector to the dump but all
      its content should already have been in the dump, so it doesn't

@@ -79,13 +79,23 @@ b die
 #command alias go process launch --tty --working-dir .
 #settings set -- target.run-args -Q --eval '(progn (view-hello-file) (redisplay) (igc--collect) (forward-line))'
 
-target create temacs
-settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest not-set --eln-dest not-set
-command alias go process launch --working-dir .
-settings set target.disable-aslr false
+#target create temacs
+#settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest not-set --eln-dest not-set
+#command alias go process launch --working-dir .
+#settings set target.disable-aslr false
+#b dump_hash_table
 
 #target create /Users/gerd/Desktop/igc.app/Contents/MacOS/Emacs
 #command alias go process launch --working-dir /Users/gerd/emacs/savannah/igc/
 #settings set target.disable-aslr false
+
+target create bootstrap-emacs
+settings set -- target.run-args -batch --no-site-file --no-site-lisp  -f batch-byte-compile emacs-lisp/macroexp.el
+command alias go process launch --working-dir ../lisp
+
+#settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest not-set --eln-dest not-set
+#command alias go process launch --working-dir .
+#settings set target.disable-aslr false
+#b dump_hash_table
 
 # end.
