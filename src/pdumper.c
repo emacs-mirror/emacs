@@ -5365,6 +5365,20 @@ dump_find_relocation (const struct dump_table_locator *const table,
   return found;
 }
 
+void
+dump_visit_object_starts (dump_visit_fn fn)
+{
+  const struct dump_table_locator *table = &dump_private.header.object_starts;
+  const struct dump_reloc *const relocs
+    = dump_ptr (dump_public.start, table->offset);
+  for (dump_off i = 0; i < table->nr_entries; ++i)
+    {
+      void *start
+	= dump_ptr (dump_public.start, dump_reloc_get_offset (relocs[i]));
+      fn (start);
+    }
+}
+
 bool
 dump_loaded_p (void)
 {

@@ -278,5 +278,17 @@ void init_pdumper_once (void);
 void syms_of_pdumper (void);
 bool dump_loaded_p (void);
 
+typedef void (* dump_visit_fn) (void *start);
+extern void dump_visit_object_starts (dump_visit_fn fn);
+
+INLINE void
+pdumper_visit_object_starts (dump_visit_fn fn)
+{
+#ifdef HAVE_PDUMPER
+  dump_visit_object_starts (fn);
+#endif
+}
+
+
 INLINE_HEADER_END
 #endif
