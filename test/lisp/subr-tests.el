@@ -1330,5 +1330,53 @@ final or penultimate step during initialization."))
                      (t x) (:success (1+ x)))
                    '(error "")))))
 
+(ert-deftest subr--subst-char-in-string ()
+  ;; Cross-validate `subst-char-in-string' with `string-replace',
+  ;; which should produce the same results when there are no properties.
+  (dolist (str '("ananas" "na\x80ma\x80s" "hétérogénéité"
+                 "Ω, Ω, Ω" "é-\x80-\x80"))
+    (dolist (mb '(nil t))
+      (unless (and (not mb) (multibyte-string-p str))
+        (let ((str (if (and mb (not (multibyte-string-p str)))
+                       (string-to-multibyte str)
+                     str)))
+          (dolist (inplace '(nil t))
+            (dolist (from '(?a ?é ?Ω #x80 #x3fff80))
+              (dolist (to '(?o ?á ?ƒ ?☃ #x1313f #xff #x3fffc9))
+                ;; Can't put a non-byte value in a non-ASCII unibyte string.
+                (unless (and (not mb) (> to #xff)
+                             (not (string-match-p (rx bos (* ascii) eos) str)))
+                  (let* ((in (copy-sequence str))
+                         (ref (if (and (not mb) (> from #xff))
+                                  in    ; nothing to replace
+                                (string-replace
+                                 (if (and (not mb) (<= from #xff))
+                                     (unibyte-string from)
+                                   (string from))
+                                 (if (and (not mb) (<= to #xff))
+                                     (unibyte-string to)
+                                   (string to))
+                                 in)))
+                         (out (subst-char-in-string from to in inplace)))
+                    (should (equal out ref))
+                    (if inplace
+                        (should (eq out in))
+                      (should (equal in str))))))))))))
+
+  ;; Verify that properties are preserved.
+  (dolist (str (list "cocoa" (string-to-multibyte "cocoa") "écalé"))
+    (dolist (from '(?a ?o ?c ?é))
+      (dolist (to '(?i ?à ?☃))
+        (let ((in (copy-sequence str)))
+          (put-text-property 0 5 'alpha 1 in)
+          (put-text-property 1 4 'beta 2 in)
+          (put-text-property 0 2 'gamma 3 in)
+          (put-text-property 1 4 'delta 4 in)
+          (put-text-property 2 3 'epsilon 5 in)
+          (let* ((props-in (copy-tree (object-intervals in)))
+                 (out (subst-char-in-string from to in))
+                 (props-out (object-intervals out)))
+            (should (equal props-out props-in))))))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

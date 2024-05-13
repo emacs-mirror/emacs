@@ -5690,13 +5690,25 @@ The SEPARATOR regexp defaults to \"\\s-+\"."
 (defun subst-char-in-string (fromchar tochar string &optional inplace)
   "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
 Unless optional argument INPLACE is non-nil, return a new string."
-  (let ((i (length string))
-	(newstr (if inplace string (copy-sequence string))))
-    (while (> i 0)
-      (setq i (1- i))
-      (if (eq (aref newstr i) fromchar)
-	  (aset newstr i tochar)))
-    newstr))
+  (if (and (not inplace)
+           (if (multibyte-string-p string)
+               (> (max fromchar tochar) 127)
+             (> tochar 255)))
+      ;; Avoid quadratic behaviour from resizing replacement.
+      (let ((res (string-replace (string fromchar) (string tochar) string)))
+        (unless (eq res string)
+          ;; Mend properties broken by the replacement.
+          ;; Not fast, but this case never was.
+          (dolist (p (object-intervals string))
+            (set-text-properties (nth 0 p) (nth 1 p) (nth 2 p) res)))
+        res)
+    (let ((i (length string))
+	  (newstr (if inplace string (copy-sequence string))))
+      (while (> i 0)
+        (setq i (1- i))
+        (if (eq (aref newstr i) fromchar)
+	    (aset newstr i tochar)))
+      newstr)))
 
 (defun string-replace (from-string to-string in-string)
   "Replace FROM-STRING with TO-STRING in IN-STRING each time it occurs."
