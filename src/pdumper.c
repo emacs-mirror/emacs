@@ -568,6 +568,9 @@ struct dump_context
   dump_off number_discardable_relocations;
 
 # ifdef HAVE_MPS
+#  ifdef ENABLE_CHECKING
+  Lisp_Object igc_object_starts;
+#  endif
   dump_off igc_base_offset;
   void *igc_obj_dumped;
   enum igc_obj_type igc_type;
@@ -902,7 +905,14 @@ dump_igc_finish_obj (struct dump_context *ctx)
       char *should_end = igc_finish_obj (ctx->igc_obj_dumped, ctx->igc_type, base, end);
       eassert (should_end >= end);
       dump_write_zero (ctx, should_end - end);
+#  ifdef ENABLE_CHECKING
+      if (ctx->flags.record_object_starts)
+	dump_push (&ctx->igc_object_starts,
+		   list2 (dump_off_to_lisp (ctx->igc_base_offset),
+			  dump_off_to_lisp (ctx->offset)));
+#  endif
     }
+
   ctx->igc_obj_dumped = NULL;
   ctx->igc_type = IGC_OBJ_INVALID;
   ctx->igc_base_offset = -1;
@@ -4319,6 +4329,9 @@ types.  */)
   for (int i = 0; i < RELOC_NUM_PHASES; ++i)
     ctx->dump_relocs[i] = Qnil;
   ctx->object_starts = Qnil;
+# if defined HAVE_MPS && defined ENABLE_CHECKING
+  ctx->igc_object_starts = Qnil;
+# endif
   ctx->emacs_relocs = Qnil;
   ctx->bignum_data = make_eq_hash_table ();
 
