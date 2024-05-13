@@ -100,6 +100,25 @@ Advanced" node in the EWW manual.
 By customizing 'shr-image-zoom-levels', you can change the list of zoom
 levels that SHR cycles through when calling 'shr-zoom-image'.
 
+** Go-ts mode
+
++++
+*** New unit test commands.
+Three new commands are now available to run unit tests.
+
+The 'go-ts-mode-test-function-at-point' command runs the unit test at
+point.  If a region is active, it runs all the unit tests under the
+region.  It is bound to 'C-c C-t t' in 'go-ts-mode'.
+
+The 'go-ts-mode-test-this-file' command runs all unit tests in the current
+file. It is bound to 'C-c C-t f' in 'go-ts-mode'.
+
+The 'go-ts-mode-test-this-package' command runs all unit tests under the
+package of the current buffer.  It is bound to 'C-c C-t p' in 'go-ts-mode'.
+
+The 'go-ts-mode-build-tags' variable is available to set a list of build
+tags for the test commands.
+
 ** Emacs Lisp mode
 
 ---
