@@ -2553,6 +2553,16 @@ If there is no Rubocop config file, Rubocop will be passed a flag
   :type 'string
   :safe 'stringp)
 
+(defcustom ruby-rubocop-use-bundler 'check
+  "Non-nil with allow `ruby-flymake-rubocop' to use `bundle exec'.
+When the value is `check', it will first see whether Gemfile exists in
+the same directory as the configuration file, and whether it mentions
+the gem \"rubocop\".  When t, it's used unconditionally.  "
+  :type '(choice (const :tag "Always" t)
+                 (const :tag "No" nil)
+                 (const :tag "If rubocop is in Gemfile" check))
+  :safe 'booleanp)
+
 (defun ruby-flymake-rubocop (report-fn &rest _args)
   "RuboCop backend for Flymake."
   (unless (executable-find "rubocop")
@@ -2614,11 +2624,17 @@ If there is no Rubocop config file, Rubocop will be passed a flag
           finally (funcall report-fn diags)))))))
 
 (defun ruby-flymake-rubocop--use-bundler-p (dir)
-  (let ((file (expand-file-name "Gemfile" dir)))
-    (and (file-exists-p file)
-         (with-temp-buffer
-           (insert-file-contents file)
-           (re-search-forward "^ *gem ['\"]rubocop['\"]" nil t)))))
+  (cond
+   ((eq t ruby-rubocop-use-bundler)
+    t)
+   ((null ruby-rubocop-use-bundler)
+    nil)
+   (t
+    (let ((file (expand-file-name "Gemfile" dir)))
+      (and (file-exists-p file)
+           (with-temp-buffer
+             (insert-file-contents file)
+             (re-search-forward "^ *gem ['\"]rubocop['\"]" nil t)))))))
 
 (defun ruby-flymake-auto (report-fn &rest args)
   (apply

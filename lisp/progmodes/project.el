@@ -347,7 +347,8 @@ to find the list of ignores for each directory."
 (defun project--files-in-directory (dir ignores &optional files)
   (require 'find-dired)
   (require 'xref)
-  (let* ((default-directory dir)
+  (let* ((dir (file-name-as-directory dir))
+         (default-directory dir)
          ;; Make sure ~/ etc. in local directory name is
          ;; expanded and not left for the shell command
          ;; to interpret.
@@ -989,8 +990,9 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
          (files
           (if (not current-prefix-arg)
               (project-files pr)
-            (let ((dir (read-directory-name "Base directory: "
-                                            caller-dir nil t)))
+            (let* ((dir (read-directory-name "Base directory: "
+                                             caller-dir nil t)))
+              (setq default-directory dir)
               (project--files-in-directory dir
                                            nil
                                            (grep-read-files regexp))))))

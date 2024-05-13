@@ -136,26 +136,26 @@ struct androidfont_entity
 /* Method and class identifiers associated with the EmacsFontDriver
    class.  */
 
-struct android_emacs_font_driver font_driver_class;
+static struct android_emacs_font_driver font_driver_class;
 
 /* Field and class identifiers associated with the
    EmacsFontDriver$FontSpec class.  */
 
-struct android_emacs_font_spec font_spec_class;
+static struct android_emacs_font_spec font_spec_class;
 
 /* Method and class identifiers associated with the Integer class.  */
 
-struct android_integer integer_class;
+static struct android_integer integer_class;
 
 /* Field and class identifiers associated with the
    EmacsFontDriver$FontMetrics class.  */
 
-struct android_emacs_font_metrics font_metrics_class;
+static struct android_emacs_font_metrics font_metrics_class;
 
 /* Field and class identifiers associated with the
    EmacsFontDriver$FontObject class.  */
 
-struct android_emacs_font_object font_object_class;
+static struct android_emacs_font_object font_object_class;
 
 /* The font cache.  */
 
