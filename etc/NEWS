@@ -1706,6 +1706,11 @@ options of GNU 'ls'.
 If non-nil, moving point forward or backward between widgets by typing
 'TAB' or 'S-TAB' skips over inactive widgets.  The default value is nil.
 
+** Ruby mode
+New user option 'ruby-rubocop-use-bundler'. By default it retains the
+previous behavior: read the contens of Gemfile and act accordingly. But
+you can also set it to t or nil to skip the check.
+
 ** Miscellaneous
 
 ---
