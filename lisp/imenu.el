@@ -100,7 +100,7 @@ If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
                  (other :tag "Always" t)))
 
 (defcustom imenu-eager-completion-buffer t
-  "If non-nil, eagerly popup the completion buffer."
+  "If non-nil, eagerly pop up the completion buffer."
   :type 'boolean
   :version "22.1")
 
@@ -148,7 +148,7 @@ Used for flattening nested indexes with name concatenation."
 (defcustom imenu-flatten nil
   "Whether to flatten the list of sections in an imenu or show it nested.
 If nil, use nested indexes.
-If t, popup the completion buffer with a flattened menu.
+If t, pop up the completion buffer with a flattened menu.
 If `annotation', use completion annotation as a suffix
 to append section names after the index names.
 
