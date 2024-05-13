@@ -153,7 +153,7 @@ char *android_cache_dir;
 
 /* The list of archive files within which the Java virtual macine
    looks for class files.  */
-char *android_class_path;
+static char *android_class_path;
 
 /* The display's pixel densities.  */
 double android_pixel_density_x, android_pixel_density_y;

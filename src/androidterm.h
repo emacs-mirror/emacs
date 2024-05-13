@@ -392,6 +392,7 @@ extern struct android_display_info *x_display_list;
 
 /* From androidfns.c.  */
 
+extern frame_parm_handler android_frame_parm_handlers[];
 extern void android_free_gcs (struct frame *);
 extern void android_default_font_parameter (struct frame *, Lisp_Object);
 extern void android_set_preeditarea (struct window *, int, int);

@@ -6479,8 +6479,6 @@ static struct textconv_interface text_conversion_interface =
 
 
 
-extern frame_parm_handler android_frame_parm_handlers[];
-
 #endif /* !ANDROID_STUBIFY */
 
 static struct redisplay_interface android_redisplay_interface =
