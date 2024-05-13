@@ -8086,9 +8086,18 @@ DEFUN ("window-scroll-bars", Fwindow_scroll_bars, Swindow_scroll_bars,
 WINDOW must be a live window and defaults to the selected one.
 
 Value is a list of the form (WIDTH COLUMNS VERTICAL-TYPE HEIGHT LINES
-HORIZONTAL-TYPE PERSISTENT), see `set-window-scroll-bars'.  If WIDTH
-or HEIGHT is nil or VERTICAL-TYPE or HORIZONTAL-TYPE is t, WINDOW is
-using the frame's corresponding value.  */)
+HORIZONTAL-TYPE PERSISTENT).  WIDTH reports the pixel width of the
+vertical scroll bar; COLUMNS is the equivalent number of columns.
+Similarly, HEIGHT and LINES are the height of the horizontal scroll
+bar in pixels and the equivalent number of lines.  VERTICAL-TYPE
+reports the type of the vertical scroll bar, either left, right, nil,
+or t.  HORIZONTAL-TYPE reports the type of the horizontal scroll bar,
+either bottom, nil or t.  PERSISTENT reports the value specified by
+the last successful call to `set-window-scroll-bars', or nil if there
+was none.
+
+If WIDTH or HEIGHT is nil or VERTICAL-TYPE or HORIZONTAL-TYPE is t,
+WINDOW is using the corresponding value specified for the frame.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_live_window (window);
