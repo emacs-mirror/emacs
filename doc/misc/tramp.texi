@@ -454,7 +454,7 @@ optional, in case of a missing part a default value is assumed.  The
 default value for an empty local file name part is the remote user's
 home directory.  The shortest remote file name is thus
 @file{@trampfn{-,,}}.  The @samp{-} notation for the default method is
-used for syntactical reasons, @ref{Default Method}.
+used for syntactical reasons, @pxref{Default Method}.
 
 The @code{method} part describes the connection method used to reach
 the remote host, see below.
@@ -465,7 +465,7 @@ which case it is written as @code{user%domain}.
 
 The @code{host} part must be a host name which can be resolved on
 your local host.  It could be a short host name, a fully qualified
-domain name, an IPv4 or IPv6 address, @ref{File name syntax}.  Some
+domain name, an IPv4 or IPv6 address, @pxref{File name syntax}.  Some
 connection methods also support a notation for the port to be used, in
 which case it is written as @code{host#port}.
 
@@ -802,7 +802,7 @@ files between different @emph{user identities} on the same host.
 usability of one of the commands defined in
 @code{tramp-remote-coding-commands}.  @value{tramp} uses the first
 reliable command it finds.  @value{tramp}'s search path can be
-customized, see @ref{Remote programs}.
+customized, @pxref{Remote programs}.
 
 In case none of the commands are available, @value{tramp} first
 transfers a small Perl program to the remote host, and then tries to
@@ -866,7 +866,7 @@ equivalent @option{androidsu} method is provided for that system with
 workarounds for its many idiosyncrasies, with the exception that
 multi-hops are unsupported.
 
-This is an optional method, @ref{Optional methods}.  It is enabled by
+This is an optional method, @pxref{Optional methods}.  It is enabled by
 default on @code{android} systems only.
 
 @item @option{sudo}
@@ -877,8 +877,8 @@ Similar to @option{su} method, @option{sudo} uses @command{sudo}.
 @command{sudo} must have sufficient rights to start a shell.
 
 For security reasons, a @option{sudo} connection is disabled after a
-predefined timeout (5 minutes by default).  This can be changed, see
-@ref{Predefined connection information}.
+predefined timeout (5 minutes by default).  This can be changed,
+@pxref{Predefined connection information}.
 
 @item @option{doas}
 @cindex method @option{doas}
@@ -896,7 +896,7 @@ This method is used on @code{systemd}-based hosts.  Internally, it
 uses the @code{systemd-run} command.  A @option{run0} connection is
 disabled after a predefined timeout as well.
 
-This is an optional method, @ref{Optional methods}.
+This is an optional method, @pxref{Optional methods}.
 
 @item @option{sg}
 @cindex method @option{sg}
@@ -939,7 +939,7 @@ missing shell prompts that confuses @value{tramp}.
 This method is also similar to @option{ssh}.  It uses the
 @command{krlogin -x} command only for remote host login.
 
-This method is an optional method, @ref{Optional methods}.
+This method is an optional method, @pxref{Optional methods}.
 
 @item @option{ksu}
 @cindex method @option{ksu}
@@ -947,7 +947,7 @@ This method is an optional method, @ref{Optional methods}.
 @cindex kerberos (with @option{ksu} method)
 
 This is another method from the Kerberos suite.  It behaves like
-@option{su}.  It is an optional method, @ref{Optional methods}.
+@option{su}.  It is an optional method, @pxref{Optional methods}.
 
 @item @option{plink}
 @cindex method @option{plink}
@@ -1013,7 +1013,7 @@ a container's name or ID, as returned by @samp{toolbox list -c}.
 Without a host name, the default Toolbox container for the host will
 be used.
 
-This is an optional method, @ref{Optional methods}.  It does not
+This is an optional method, @pxref{Optional methods}.  It does not
 support user names.
 
 @item @option{flatpak}
@@ -1024,7 +1024,7 @@ Integration of Flatpak sandboxes.  The host name may be either an
 application ID, a sandbox instance ID, or a PID, as returned by
 @samp{flatpak ps}.
 
-This is an optional method, @ref{Optional methods}.  It does not
+This is an optional method, @pxref{Optional methods}.  It does not
 support user names.
 
 @item @option{apptainer}
@@ -1034,7 +1034,7 @@ support user names.
 Integration of Apptainer instances.  The host name is the instance
 name, as returned by @samp{apptainer instance list}.
 
-This is an optional method, @ref{Optional methods}.  It does not
+This is an optional method, @pxref{Optional methods}.  It does not
 support user names.
 
 @item @option{nspawn}
@@ -1044,7 +1044,7 @@ support user names.
 Integration of @code{systemd-nspawn} instances.  The host name is the
 instance name, as returned by @samp{machinectl list --all}.
 
-This is an optional method, @ref{Optional methods}.
+This is an optional method, @pxref{Optional methods}.
 @end table
 
 
@@ -1183,7 +1183,7 @@ The command used for this connection is: @samp{fsh @var{host} -l
 not useful for @value{tramp}.  @command{fsh} connects to remote host
 and @value{tramp} keeps that one connection open.
 
-This is an optional method, @ref{Optional methods}.
+This is an optional method, @pxref{Optional methods}.
 
 @item @option{nc}
 @cindex method @option{nc}
@@ -1196,7 +1196,7 @@ NAS hosts.  These dumb devices have severely restricted local shells,
 such as the @command{busybox} and do not host any other encode or
 decode programs.
 
-This is an optional method, @ref{Optional methods}.
+This is an optional method, @pxref{Optional methods}.
 
 @item @option{sudoedit}
 @cindex method @option{sudoedit}
@@ -1414,7 +1414,7 @@ Media devices, like cell phones, tablets, cameras, can be accessed via
 the @option{mtp} method.  Just the device name is needed in order to
 specify the host in the file name.  However, the device must already
 be connected via USB, before accessing it.  Possible device names are
-visible via host name completion, @ref{File name completion}.
+visible via host name completion, @pxref{File name completion}.
 
 Depending on the device type, the access could be read-only.  Some
 devices are accessible under different names in parallel, offering
@@ -1551,7 +1551,7 @@ properties, @xref{Setup of sshfs method}.
 @cindex default method
 
 In a remote file name, the use of a default method is indicated by the
-pseudo method @option{-}, @ref{File name syntax}.
+pseudo method @option{-}, @pxref{File name syntax}.
 
 @defopt tramp-default-method
 Default method is for transferring files.  The user option
@@ -2457,7 +2457,7 @@ be recomputed.  To force @value{tramp} to recompute afresh, call
 
 By default, @value{tramp} uses the command @command{/bin/sh} for
 starting a shell on the remote host.  This can be changed by setting
-the connection property @t{"remote-shell"}; see @ref{Predefined
+the connection property @t{"remote-shell"}; @pxref{Predefined
 connection information}.  If you want, for example, use
 @command{/usr/bin/zsh} on a remote host, you might apply
 
@@ -3064,7 +3064,7 @@ mounted, it will be used as it is.  If the mount point does not exist
 yet, @value{tramp} creates this directory.
 
 The mount point can be overwritten by the connection property
-@t{"mount-point"}, @ref{Predefined connection information}.
+@t{"mount-point"}, @pxref{Predefined connection information}.
 Example:
 
 @lisp
@@ -3453,7 +3453,7 @@ users.
 The command @command{encfsctl}, the workhorse for encryption /
 decryption, needs the configuration file password every call.
 Therefore, it is recommend to cache this password in Emacs.  This can
-be done using @code{auth-sources}, @ref{Using an authentication file}.
+be done using @code{auth-sources}, @pxref{Using an authentication file}.
 An entry needs the url-encoded directory name as machine, your local
 user name as user, and the password.  The port is optional, if given
 it must be the string @t{"crypt"}.  The example above would require
@@ -4518,7 +4518,7 @@ In order to gain even more performance, it is recommended to bind
 @code{start-file-process}.  Furthermore, you might set
 @code{tramp-use-connection-share} to @code{nil} in order to bypass
 @value{tramp}'s handling of the @option{ControlMaster} options, and
-use your own settings in @file{~/.ssh/config}, @ref{Using ssh
+use your own settings in @file{~/.ssh/config}, @pxref{Using ssh
 connection sharing}.
 
 
@@ -4700,7 +4700,7 @@ Whether renaming a buffer file name by @code{tramp-rename-files} or
 
 @value{tramp} offers also transparent access to files inside file
 archives.  This is possible only on hosts which have installed
-@acronym{GVFS, the GNOME Virtual File System}, @ref{GVFS-based
+@acronym{GVFS, the GNOME Virtual File System}, @pxref{GVFS-based
 methods}.  Internally, file archives are mounted via the
 @acronym{GVFS} @option{archive} method.
 
@@ -4996,7 +4996,7 @@ help the development team find the best solution and avoid unrelated
 detours.
 
 To exclude cache-related problems, flush all caches before running the
-test, @ref{Cleanup remote connections}.  Alternatively, and often
+test, @pxref{Cleanup remote connections}.  Alternatively, and often
 better for analysis, reproduce the problem in a clean Emacs session
 started with @command{emacs -Q}.  Then, @value{tramp} does not load
 the persistency file (@pxref{Connection caching}), and it does not use
@@ -5520,7 +5520,7 @@ Where are remote files trashed to?
 @vindex remote-file-name-inhibit-delete-by-moving-to-trash
 Emacs can trash files instead of deleting
 @ifinfo
-them, @ref{Misc File Ops, Trashing , , emacs}.
+them, @pxref{Misc File Ops, Trashing , , emacs}.
 @end ifinfo
 @ifnotinfo
 them.
@@ -6089,7 +6089,7 @@ can use the @code{without-remote-files} macro.
 @end lisp
 
 This improves performance, because many primitive file name operations
-don't check any longer for Tramp file name regexps then.
+don't check any longer for @value{tramp} file name regexps then.
 
 @item
 @findex tramp-unload-tramp
