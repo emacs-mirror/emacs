@@ -371,6 +371,10 @@ struct dump_header
      correctness.  */
   struct dump_table_locator object_starts;
 
+# ifdef HAVE_MPS
+  struct dump_table_locator igc_object_starts;
+# endif
+
   /* Relocation table for Emacs; each entry is a struct
      emacs_reloc.  */
   struct dump_table_locator emacs_relocs;
@@ -3908,6 +3912,28 @@ dump_emit_dump_reloc (struct dump_context *ctx, Lisp_Object lreloc)
     ctx->number_discardable_relocations += 1;
 }
 
+#ifdef HAVE_MPS
+static struct dump_reloc
+dump_decode_igc_dump_reloc (Lisp_Object lreloc)
+{
+  struct dump_reloc reloc;
+  dump_reloc_set_offset (&reloc, dump_off_from_lisp (dump_pop (&lreloc)));
+  dump_reloc_set_type (&reloc, (enum dump_reloc_type) 0);
+  return reloc;
+}
+
+static void
+dump_emit_igc_dump_reloc (struct dump_context *ctx, Lisp_Object lreloc)
+{
+  eassert (ctx->flags.pack_objects);
+  struct dump_reloc reloc;
+  dump_object_start_1 (ctx, &reloc, sizeof (reloc));
+  reloc = dump_decode_igc_dump_reloc (lreloc);
+  dump_check_dump_off (ctx, dump_reloc_get_offset (reloc));
+  dump_object_finish_1 (ctx, &reloc, sizeof (reloc));
+}
+#endif
+
 #ifdef ENABLE_CHECKING
 static Lisp_Object
 dump_check_overlap_dump_reloc (Lisp_Object lreloc_a,
@@ -4329,7 +4355,7 @@ types.  */)
   for (int i = 0; i < RELOC_NUM_PHASES; ++i)
     ctx->dump_relocs[i] = Qnil;
   ctx->object_starts = Qnil;
-# if defined HAVE_MPS && defined ENABLE_CHECKING
+# ifdef HAVE_MPS
   ctx->igc_object_starts = Qnil;
 # endif
   ctx->emacs_relocs = Qnil;
@@ -4501,6 +4527,10 @@ types.  */)
   ctx->number_hot_relocations = 0;
   dump_off number_discardable_relocations = ctx->number_discardable_relocations;
   ctx->number_discardable_relocations = 0;
+# ifdef HAVE_MPS
+  drain_reloc_list (ctx, dump_emit_igc_dump_reloc, NULL,
+		    &ctx->igc_object_starts, &ctx->header.igc_object_starts);
+# endif
   drain_reloc_list (ctx, dump_emit_dump_reloc, emacs_reloc_merger,
 		    &ctx->object_starts, &ctx->header.object_starts);
   drain_reloc_list (ctx, dump_emit_emacs_reloc, dump_merge_emacs_relocs,
