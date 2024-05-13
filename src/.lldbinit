@@ -82,8 +82,7 @@ b die
 #target create temacs
 #settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest not-set --eln-dest not-set
 #command alias go process launch --working-dir .
-#settings set target.disable-aslr false
-#b dump_hash_table
+##settings set target.disable-aslr false
 
 #target create /Users/gerd/Desktop/igc.app/Contents/MacOS/Emacs
 #command alias go process launch --working-dir /Users/gerd/emacs/savannah/igc/

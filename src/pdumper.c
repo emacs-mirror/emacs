@@ -3393,7 +3393,7 @@ dump_charset (struct dump_context *ctx, int cs_i)
   eassert (ctx->offset % alignof (struct charset) == 0);
   const struct charset *cs = charset_table + cs_i;
   struct charset out;
-  dump_object_start (ctx, cs, IGC_OBJ_DUMPED_CHARSET, &out, sizeof (out));
+  dump_object_start_1 (ctx, &out, sizeof (out));
   if (cs_i < charset_table_used) /* Don't look at uninitialized data.  */
     {
       DUMP_FIELD_COPY (&out, cs, id);
@@ -3421,7 +3421,7 @@ dump_charset (struct dump_context *ctx, int cs_i)
       memcpy (out.fast_map, &cs->fast_map, sizeof (cs->fast_map));
       DUMP_FIELD_COPY (&out, cs, code_offset);
     }
-  dump_off offset = dump_object_finish (ctx, &out, sizeof (out));
+  dump_off offset = dump_object_finish_1 (ctx, &out, sizeof (out));
   if (cs_i < charset_table_used && cs->code_space_mask)
     dump_remember_cold_op (ctx, COLD_OP_CHARSET,
                            Fcons (dump_off_to_lisp (cs_i),

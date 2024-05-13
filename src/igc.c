@@ -205,7 +205,6 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_WEAK",
   "IGC_OBJ_PTR_VEC",
 
-  "IGC_OBJ_DUMPED_CHARSET",
   "IGC_OBJ_DUMPED_INTFWD",
   "IGC_OBJ_DUMPED_BOOLFWD",
   "IGC_OBJ_DUMPED_OBJFWD",
@@ -1256,7 +1255,6 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 
 	switch (header->obj_type)
 	  {
-	  case IGC_OBJ_DUMPED_CHARSET:
 	  case IGC_OBJ_DUMPED_INTFWD:
 	  case IGC_OBJ_DUMPED_BOOLFWD:
 	  case IGC_OBJ_DUMPED_OBJFWD:
@@ -2614,7 +2612,6 @@ finalize (struct igc *gc, mps_addr_t base)
   struct igc_header *h = base;
   switch (h->obj_type)
     {
-    case IGC_OBJ_DUMPED_CHARSET:
     case IGC_OBJ_DUMPED_INTFWD:
     case IGC_OBJ_DUMPED_BOOLFWD:
     case IGC_OBJ_DUMPED_OBJFWD:
@@ -2769,7 +2766,6 @@ thread_ap (enum igc_obj_type type)
   struct igc_thread_list *t = current_thread->gc_info;
   switch (type)
     {
-    case IGC_OBJ_DUMPED_CHARSET:
     case IGC_OBJ_DUMPED_INTFWD:
     case IGC_OBJ_DUMPED_BOOLFWD:
     case IGC_OBJ_DUMPED_OBJFWD:
@@ -3350,6 +3346,7 @@ igc_finish_obj (void *client, enum igc_obj_type type, char *base, char *end)
     {
       struct igc_header *h = client_to_base (client);
       *out = *h;
+      igc_assert (base	+ to_bytes (h->nwords) >= end);
       return base + to_bytes (h->nwords);
     }
 

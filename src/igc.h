@@ -47,7 +47,6 @@ enum igc_obj_type
 
   /* The following are only used in the dump for objects that are not
      allocated from MPS memory. */
-  IGC_OBJ_DUMPED_CHARSET,
   IGC_OBJ_DUMPED_INTFWD,
   IGC_OBJ_DUMPED_BOOLFWD,
   IGC_OBJ_DUMPED_OBJFWD,
