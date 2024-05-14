@@ -3325,12 +3325,12 @@ Prepare every function for final compilation and drive the C back-end."
 ;; are assumed just to be true. Use with extreme caution...
 
 (defun comp-hint-fixnum (x)
-  (declare (type (function (t) fixnum))
+  (declare (ftype (function (t) fixnum))
            (gv-setter (lambda (val) `(setf ,x ,val))))
   x)
 
 (defun comp-hint-cons (x)
-  (declare (type (function (t) cons))
+  (declare (ftype (function (t) cons))
            (gv-setter (lambda (val) `(setf ,x ,val))))
   x)
 

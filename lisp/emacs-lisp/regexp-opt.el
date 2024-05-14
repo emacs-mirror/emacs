@@ -130,7 +130,7 @@ usually more efficient than that of a simplified version:
      (concat (car parens)
              (mapconcat \\='regexp-quote strings \"\\\\|\")
              (cdr parens))))"
-  (declare (type (function (list &optional t) string))
+  (declare (ftype (function (list &optional t) string))
            (pure t) (side-effect-free t))
   (save-match-data
     ;; Recurse on the sorted list.

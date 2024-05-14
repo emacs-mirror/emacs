@@ -1762,7 +1762,7 @@ not at the start of a line.
 
 When IGNORE-INVISIBLE-LINES is non-nil, invisible lines are not
 included in the count."
-  (declare (type (function ((or integer marker) (or integer marker) &optional t)
+  (declare (ftype (function ((or integer marker) (or integer marker) &optional t)
                            integer))
            (side-effect-free t))
   (save-excursion
@@ -6884,7 +6884,7 @@ is active, and returns an integer or nil in the usual way.
 
 If you are using this in an editing command, you are most likely making
 a mistake; see the documentation of `set-mark'."
-  (declare (type (function (&optional t) (or integer null)))
+  (declare (ftype (function (&optional t) (or integer null)))
            (side-effect-free t))
   (if (or force (not transient-mark-mode) mark-active mark-even-if-inactive)
       (marker-position (mark-marker))
@@ -11147,7 +11147,7 @@ killed."
 
 (defun lax-plist-get (plist prop)
   "Extract a value from a property list, comparing with `equal'."
-  (declare (type (function (list t) t))
+  (declare (ftype (function (list t) t))
            (pure t) (side-effect-free t) (obsolete plist-get "29.1"))
   (plist-get plist prop #'equal))
 
