@@ -2465,7 +2465,7 @@ dump_blv (struct dump_context *ctx,
 # error "Lisp_Buffer_Local_Value changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Buffer_Local_Value out;
-  dump_object_start (ctx, blv, IGC_OBJ_DUMPED_BLV, &out, sizeof (out));
+  dump_object_start (ctx, blv, IGC_OBJ_BLV, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, blv, local_if_set);
   DUMP_FIELD_COPY (&out, blv, found);
   if (blv->fwd.fwdptr)
@@ -2886,9 +2886,9 @@ dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
     {
       Lisp_Object out;
       const Lisp_Object *slot = &o->buckets[i];
-      dump_object_start (ctx, &out, sizeof out);
+      dump_object_start_1 (ctx, &out, sizeof out);
       dump_field_lv (ctx, &out, slot, slot, WEIGHT_STRONG);
-      dump_object_finish (ctx, &out, sizeof out);
+      dump_object_finish_1 (ctx, &out, sizeof out);
     }
 
   ctx->flags = old_flags;
@@ -2904,6 +2904,7 @@ dump_obarray (struct dump_context *ctx, Lisp_Object object)
   const struct Lisp_Obarray *in_oa = XOBARRAY (object);
   struct Lisp_Obarray munged_oa = *in_oa;
   struct Lisp_Obarray *oa = &munged_oa;
+  /* FIXME: make sure igc_header is output */
   START_DUMP_PVEC (ctx, &oa->header, struct Lisp_Obarray, out);
   dump_pseudovector_lisp_fields (ctx, &out->header, &oa->header);
   DUMP_FIELD_COPY (out, oa, count);
