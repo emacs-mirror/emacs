@@ -1282,7 +1282,7 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
     (erase-buffer)
     (setq overlay-arrow-position nil)
     (xref--insert-xrefs xref-alist)
-    (add-hook 'post-command-hook 'xref--apply-truncation nil t)
+    (add-hook 'post-command-hook #'xref--apply-truncation nil t)
     (goto-char (point-min))
     (setq xref--original-window (assoc-default 'window alist)
           xref--original-window-intent (assoc-default 'display-action alist))
@@ -2112,10 +2112,7 @@ Such as the current syntax table and the applied syntax properties."
 (defun xref--collect-matches (hit regexp tmp-buffer syntax-needed)
   (pcase-let* ((`(,line ,file ,text) hit)
                (file (and file (concat xref--hits-remote-id file)))
-               (buf (xref--find-file-buffer file))
-               ;; This is fairly dangerouns, but improves performance
-               ;; for large lists, see https://debbugs.gnu.org/53749#227
-               (inhibit-modification-hooks t))
+               (buf (xref--find-file-buffer file)))
     (if buf
         (with-current-buffer buf
           (save-excursion
@@ -2130,6 +2127,9 @@ Such as the current syntax table and the applied syntax properties."
       ;; Using the temporary buffer is both a performance and a buffer
       ;; management optimization.
       (with-current-buffer tmp-buffer
+        ;; This let is fairly dangerouns, but improves performance
+        ;; for large lists, see https://debbugs.gnu.org/53749#227
+        (let ((inhibit-modification-hooks t))
         (erase-buffer)
         (when (and syntax-needed
                    (not (equal file xref--temp-buffer-file-name)))
@@ -2144,7 +2144,7 @@ Such as the current syntax table and the applied syntax properties."
           (setq-local xref--temp-buffer-file-name file)
           (setq-local inhibit-read-only t)
           (erase-buffer))
-        (insert text)
+        (insert text))
         (goto-char (point-min))
         (when syntax-needed
           (syntax-ppss-flush-cache (point)))
