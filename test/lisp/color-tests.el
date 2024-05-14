@@ -247,5 +247,38 @@
   (should (equal (color-darken-name "red" 0) "#ffff00000000"))
   (should (equal (color-darken-name "red" 10) "#e66500000000")))
 
+(ert-deftest color-tests-oklab-to-xyz ()
+  (should (color-tests--approx-equal (color-oklab-to-xyz 0 0 0) '(0.0 0.0 0.0)))
+  (should (color-tests--approx-equal (color-oklab-to-xyz 1.0 0.0 0.0)
+                                     '(0.95047005 1.0 1.0883001)))
+  (should (color-tests--approx-equal (color-oklab-to-xyz 0.450 1.236 -0.019) '(1.000604 -0.000008 -0.000038)))
+  (should (color-tests--approx-equal (color-oklab-to-xyz 0.922 -0.671 0.263) '(0.000305 1.000504 0.000898)))
+  (should (color-tests--approx-equal (color-oklab-to-xyz 0.153 -1.415 -0.449) '(0.000590 0.000057 1.001650))))
+
+(ert-deftest color-tests-xyz-to-oklab ()
+  (should (color-tests--approx-equal (color-xyz-to-oklab 0 0 0) '(0.0 0.0 0.0)))
+  (should (color-tests--approx-equal (color-xyz-to-oklab 0.95 1.0 1.089)
+                                     '(0.999969 -0.000258 -0.000115)))
+  (should (color-tests--approx-equal (color-xyz-to-oklab 1.0 0.0 0.0)
+                                     '(0.449932 1.235710 -0.019028)))
+  (should (color-tests--approx-equal (color-xyz-to-oklab 0.0 1.0 0.0)
+                                     '(0.921817 -0.671238 0.263324)))
+  (should (color-tests--approx-equal (color-xyz-to-oklab 0.0 0.0 1.0)
+                                     '(0.152603 -1.414997 -0.448927))))
+
+(ert-deftest color-tests-srgb-to-oklab ()
+  (should (equal (color-srgb-to-oklab 0 0 0) '(0.0 0.0 0.0)))
+  (should
+   (color-tests--approx-equal (color-srgb-to-oklab 0 0 1) '(0.451978 -0.032430 -0.311611)))
+  (should
+   (color-tests--approx-equal (color-srgb-to-oklab 0.1 0.2 0.3) '(0.313828 -0.019091 -0.052561))))
+
+(ert-deftest color-tests-oklab-to-srgb ()
+  (should (equal (color-oklab-to-srgb 0 0 0) '(0.0 0.0 0.0)))
+  (should
+   (color-tests--approx-equal (color-oklab-to-srgb 0.451978 -0.032430 -0.311611) '(0.0 0.0 1.0)))
+  (should
+   (color-tests--approx-equal (color-oklab-to-srgb 0.313828 -0.019091 -0.052561) '(0.1 0.2 0.3))))
+
 (provide 'color-tests)
 ;;; color-tests.el ends here
