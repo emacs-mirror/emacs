@@ -5399,19 +5399,22 @@ dump_find_relocation (const struct dump_table_locator *const table,
   return found;
 }
 
+#ifdef HAVE_MPS
 void
-dump_visit_object_starts (dump_visit_fn fn)
+dump_visit_igc_objects (dump_visit_fn fn, void *closure)
 {
-  const struct dump_table_locator *table = &dump_private.header.object_starts;
+  const struct dump_table_locator *table
+    = &dump_private.header.igc_object_starts;
   const struct dump_reloc *const relocs
     = dump_ptr (dump_public.start, table->offset);
   for (dump_off i = 0; i < table->nr_entries; ++i)
     {
       void *start
 	= dump_ptr (dump_public.start, dump_reloc_get_offset (relocs[i]));
-      fn (start);
+      fn (start, closure);
     }
 }
+# endif
 
 bool
 dump_loaded_p (void)

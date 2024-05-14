@@ -278,14 +278,14 @@ void init_pdumper_once (void);
 void syms_of_pdumper (void);
 bool dump_loaded_p (void);
 
-typedef void (* dump_visit_fn) (void *start);
-extern void dump_visit_object_starts (dump_visit_fn fn);
+typedef void (* dump_visit_fn) (void *start, void *closure);
+extern void dump_visit_igc_objects (dump_visit_fn fn, void *closure);
 
 INLINE void
-pdumper_visit_object_starts (dump_visit_fn fn)
+pdumper_visit_object_starts (dump_visit_fn fn, void *closure)
 {
-#ifdef HAVE_PDUMPER
-  dump_visit_object_starts (fn);
+#if defined HAVE_PDUMPER && defined HAVE_MPS
+  dump_visit_igc_objects (fn, closure);
 #endif
 }
 
