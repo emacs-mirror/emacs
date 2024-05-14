@@ -156,7 +156,8 @@ multibyte mode and waits for the shell prompt to appear."
                       su-binary
                       (shell-quote-argument
                        (or (executable-find "su")
-                           (user-error
+                           (tramp-user-error
+			    vec
                             "No su binary is available in any of `exec-path'")))
                       command (format "PATH=%s exec %s - %s || exit"
                                       path su-binary user))
