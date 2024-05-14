@@ -210,7 +210,6 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_DUMPED_OBJFWD",
   "IGC_OBJ_DUMPED_BUFFER_OBJFWD",
   "IGC_OBJ_DUMPED_KBOARD_OBJFWD",
-  "IGC_OBJ_DUMPED_BLV",
 };
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_LAST);
@@ -1262,7 +1261,6 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	  case IGC_OBJ_DUMPED_OBJFWD:
 	  case IGC_OBJ_DUMPED_BUFFER_OBJFWD:
 	  case IGC_OBJ_DUMPED_KBOARD_OBJFWD:
-	  case IGC_OBJ_DUMPED_BLV:
 	    break;
 
 	  case IGC_OBJ_INVALID:
@@ -2619,7 +2617,6 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_DUMPED_OBJFWD:
     case IGC_OBJ_DUMPED_BUFFER_OBJFWD:
     case IGC_OBJ_DUMPED_KBOARD_OBJFWD:
-    case IGC_OBJ_DUMPED_BLV:
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
@@ -2773,7 +2770,6 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_DUMPED_OBJFWD:
     case IGC_OBJ_DUMPED_BUFFER_OBJFWD:
     case IGC_OBJ_DUMPED_KBOARD_OBJFWD:
-    case IGC_OBJ_DUMPED_BLV:
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
