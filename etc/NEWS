@@ -1046,6 +1046,11 @@ point is not in a comment or a string.  It is by default bound to
 It defines whether to flatten the list of sections in an imenu
 or show it nested.
 
++++
+*** Imenu completions now can be sorted.
+You can customize the option 'completion-category-overrides'
+and set 'display-sort-function' for the category 'imenu'.
+
 ** Which Function mode
 
 +++

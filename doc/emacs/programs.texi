@@ -378,6 +378,10 @@ they occur in the buffer; if you want alphabetic sorting, use the
 symbol @code{imenu--sort-by-name} as the value.  You can also
 define your own comparison function by writing Lisp code.
 
+  You can also customize how Imenu completions are sorted by changing
+the variable @code{completion-category-overrides} and setting its
+@code{display-sort-function} for the category @code{imenu}.
+
   If Eglot is activated for the current buffer's project
 (@pxref{Projects}) and the current buffer's major mode, Eglot provides
 its own facility for producing the buffer's index based on the

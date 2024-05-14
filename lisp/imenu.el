@@ -115,7 +115,10 @@ Useful things to use here include `reposition-window', `recenter', and
 (defcustom imenu-sort-function nil
   "The function to use for sorting the index mouse-menu.
 
-Affects only the mouse index menu.
+Affects only the mouse index menu.  If you want to change
+the sorting order of completions, you can customize
+the option `completion-category-overrides' and set
+`display-sort-function' for the category `imenu'.
 
 Set this to nil if you don't want any sorting (faster).
 The items in the menu are then presented in the order they were found
