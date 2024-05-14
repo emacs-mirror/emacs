@@ -1047,7 +1047,7 @@ It defines whether to flatten the list of sections in an imenu
 or show it nested.
 
 +++
-*** Imenu completions now can be sorted.
+*** Imenu completions can now be sorted.
 You can customize the option 'completion-category-overrides'
 and set 'display-sort-function' for the category 'imenu'.
 
