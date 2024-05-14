@@ -1353,6 +1353,7 @@ within text input fields."
   (setq text-property-default-nonsticky '((face . t) (eww-form . t)
                                           (field . t))))
 
+(declare-function imagep "image.c")
 (defvar text-scale-mode)
 (defvar text-scale-mode-amount)
 (defun eww--rescale-images ()
