@@ -43,6 +43,7 @@
 
 ;;;; Atom feed parser:
 
+(declare-function libxml-parse-xml-region "xml.c")
 (defun nnatom--read-feed (feed _)
   "Return a list structure representing FEED, or nil."
   (if (string-match-p "\\`https?://" feed)
