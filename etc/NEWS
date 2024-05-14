@@ -2488,16 +2488,17 @@ and see if you get only warnings that matter.
 ** Function 'declare' forms
 
 +++
-*** New 'type' function declaration.
-The declaration '(type TYPE)' specifies the type of a function.
+*** New 'ftype' function declaration.
+The declaration '(ftype TYPE)' specifies the type of a function.
 Example:
 
     (defun hello (x y)
-      (declare (type (function (integer boolean) string)))
+      (declare (ftype (function (integer boolean) string)))
       ...)
 
 specifies that the function takes two arguments, an integer and a
-boolean, and returns a string.  This information can be used by the
+boolean, and returns a string.  If the compilation happens with
+'compilation-safety' set to zero, this information can be used by the
 native compiler to produce better code, but specifying an incorrect type
 may lead to Emacs crashing.  See the Info node "(elisp) Declare Form"
 for further information.
