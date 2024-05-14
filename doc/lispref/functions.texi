@@ -2761,10 +2761,11 @@ argument of type @var{string} and return one of the symbols
 For description of additional types, see @ref{Lisp Data Types}).
 
 Declaring a function with an incorrect type produces undefined behavior
-and could lead to unexpected results or might even crash Emacs when code
-is native-compiled and loaded if compiled with @ref{compilation-safety}
-0.  Note also that when redefining (or advising) a type declared
-function the replacement should respect the original signature to avoid
+and could lead to unexpected results or might even crash Emacs when
+natively-compiled code is loaded, if it was compiled with
+@code{compilation-safety} level of zero (@pxref{compilation-safety}).
+Note also that when redefining (or advising) a type-declared function,
+the replacement should respect the original signature to avoid such
 undefined behavior.
 
 @item no-font-lock-keyword

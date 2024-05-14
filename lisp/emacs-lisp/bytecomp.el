@@ -138,11 +138,14 @@
   :group 'lisp)
 
 (defcustom compilation-safety 1
-  "Safety level for compilation.
+  "Safety level for generated compiled code.
 Possible values are:
-0 emitted code can misbehave or crash Emacs if function declarations are not
-correct.
-1 emitted code is generated in a safe matter even if function are miss-declared."
+  0 - emitted code can misbehave, even crash Emacs, if declarations of
+      functions do not correctly describe their actual behavior;
+  1 - emitted code is to be generated in a safe manner, even if functions
+      are mis-declared.
+
+This currently affects only code produced by native-compilation."
   :type 'integer
   :safe #'integerp
   :version "30.1")
