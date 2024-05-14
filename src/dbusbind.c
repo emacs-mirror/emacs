@@ -493,8 +493,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
 
       if (!NILP (CDR_SAFE (XD_NEXT_VALUE (elt))))
-	wrong_type_argument (QD_Bus,
-			     CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
+	wrong_type_argument (QD_Bus, CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
 
       sprintf (signature, "%c", dtype);
       break;
@@ -552,8 +551,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       xd_signature_cat (signature, x);
 
       if (!NILP (CDR_SAFE (XD_NEXT_VALUE (elt))))
-	wrong_type_argument (QD_Bus,
-			     CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
+	wrong_type_argument (QD_Bus, CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
 
       /* Closing signature.  */
       xd_signature_cat (signature, DBUS_DICT_ENTRY_END_CHAR_AS_STRING);
