@@ -572,9 +572,7 @@ struct dump_context
   dump_off number_discardable_relocations;
 
 # ifdef HAVE_MPS
-#  ifdef ENABLE_CHECKING
   Lisp_Object igc_object_starts;
-#  endif
   dump_off igc_base_offset;
   void *igc_obj_dumped;
   enum igc_obj_type igc_type;
@@ -878,7 +876,6 @@ dump_align_output (struct dump_context *ctx, int alignment)
 }
 
 # ifdef HAVE_MPS
-
 static void
 dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
 		    const void *in)
@@ -890,7 +887,7 @@ dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
   ctx->igc_base_offset = ctx->offset;
   if (ctx->flags.dump_object_contents)
     {
-      /* FIXME: Nonsense because of an assertion in dump_write. */
+      /* FIXME: Because of an assertion in dump_write. */
       dump_off obj_offset = ctx->obj_offset;
       ctx->obj_offset = 0;
       dump_write_zero (ctx, igc_header_size ());
@@ -909,19 +906,16 @@ dump_igc_finish_obj (struct dump_context *ctx)
       char *should_end = igc_finish_obj (ctx->igc_obj_dumped, ctx->igc_type, base, end);
       eassert (should_end >= end);
       dump_write_zero (ctx, should_end - end);
-#  ifdef ENABLE_CHECKING
       if (ctx->flags.record_object_starts)
 	dump_push (&ctx->igc_object_starts,
 		   list2 (dump_off_to_lisp (ctx->igc_base_offset),
 			  dump_off_to_lisp (ctx->offset)));
-#  endif
     }
 
   ctx->igc_obj_dumped = NULL;
   ctx->igc_type = IGC_OBJ_INVALID;
   ctx->igc_base_offset = -1;
 }
-
 # endif // HAVE_MPS
 
 static dump_off
@@ -3297,9 +3291,6 @@ dump_object (struct dump_context *ctx, Lisp_Object object)
 # error "Lisp_Type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   eassert (!EQ (object, dead_object ()));
-# ifdef HAVE_MPS
-  eassert (ctx->igc_type == IGC_OBJ_INVALID);
-# endif
 
   dump_off offset = dump_recall_object (ctx, object);
   if (offset > 0)

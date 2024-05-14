@@ -45,8 +45,9 @@ enum igc_obj_type
   IGC_OBJ_WEAK,
   IGC_OBJ_PTR_VEC,
 
-  /* The following are only used in the dump for objects that are not
-     allocated from MPS memory. */
+  /* FIXME: The following are currently only used in the dump for
+     objects that are not allocated from MPS memory. Make them real MPS
+     objects. */
   IGC_OBJ_DUMPED_INTFWD,
   IGC_OBJ_DUMPED_BOOLFWD,
   IGC_OBJ_DUMPED_OBJFWD,
@@ -61,14 +62,6 @@ enum igc_obj_type
 
 /* Assertions.  */
 # define IGC_DEBUG 1
-
-/* If defined, allocate conses from MPS.  */
-# define IGC_MANAGE_CONS 1
-# define IGC_MANAGE_SYMBOLS 1
-
-/* If defined, use a debug AMS pool, and check fenceposts etc.
-   See MPS docs.  Can be slow.  */
-# define IGC_DEBUG_POOL 1
 
 void igc_break (void);
 void init_igc (void);

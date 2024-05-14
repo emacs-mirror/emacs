@@ -250,6 +250,8 @@ igc_static_assert (PVEC_TAG_MAX < (1 << IGC_PVEC_BITS));
 struct igc_header
 {
   enum igc_obj_type obj_type : IGC_TYPE_BITS;
+  /* FIXME: This was originally a debug aid only, but it now
+     used for something. Remove. */
   enum pvec_type pvec_type : IGC_PVEC_BITS;
   mps_word_t hash : IGC_HASH_BITS;
   mps_word_t nwords : IGC_SIZE_BITS;
