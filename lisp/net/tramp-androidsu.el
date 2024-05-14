@@ -401,7 +401,7 @@ FUNCTION."
                     ;; that starting inferior shells on systems with
                     ;; such implementations does not needlessly fail.
                     (if (tramp-get-connection-property v "remote-namespace")
-                        (append (list "su" "-mm" user "-c") command)
+                        (append (list "su" "-mm" "-c") command)
                       (append (list "su" "-c") command))
                   (if (tramp-get-connection-property v "remote-namespace")
                       (append (list "su" "-mm" "-" user "-c") command)
