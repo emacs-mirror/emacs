@@ -2715,7 +2715,7 @@ function.  This allows function-level control of the safety level used
 for the code emitted for the function (@pxref{Native-Compilation
 Variables}).
 
-@item (type @var{type})
+@item (ftype @var{type} &optional @var{function})
 Declare @var{type} to be the type of this function.  This is used for
 documentation by @code{describe-function}.  Also it can be used by the
 native compiler (@pxref{Native Compilation}) for improving code
@@ -2727,14 +2727,16 @@ without type declaration.
 interleaved with symbols @code{&optional} and @code{&rest} to match the
 function's arguments (@pxref{Argument List}).
 
-Here's an example of using @code{type} inside @code{declare} to declare
+@var{function} if present should be the name of function being defined.
+
+Here's an example of using @code{ftype} inside @code{declare} to declare
 a function @code{positive-p} that takes an argument of type @var{number}
 and return a @var{boolean}:
 
 @lisp
 @group
 (defun positive-p (x)
-  (declare (type (function (number) boolean)))
+  (declare (ftype (function (number) boolean)))
   (when (> x 0)
     t))
 @end group
@@ -2748,8 +2750,8 @@ argument of type @var{string} and return one of the symbols
 @lisp
 @group
 (defun cons-or-number (x &optional err-msg)
-  (declare (type (function ((or cons number) &optional string)
-			   (member is-cons is-number))))
+  (declare (ftype (function ((or cons number) &optional string)
+			    (member is-cons is-number))))
   (if (consp x)
       'is-cons
     (if (numberp x)
