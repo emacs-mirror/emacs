@@ -142,12 +142,24 @@ multibyte mode and waits for the shell prompt to appear."
                                        ;; `android-use-exec-loader' off.
 			               tramp-androidsu-local-shell-name "-i"))
 		     (user (tramp-file-name-user vec))
-                     command)
+                     su-binary path command)
                 ;; Set sentinel.  Initialize variables.
 	        (set-process-sentinel p #'tramp-process-sentinel)
 	        (tramp-post-process-creation p vec)
-                ;; Replace `login-args' place holders.
-		(setq command (format "exec su - %s || exit" user))
+                ;; Replace `login-args' place holders.  `PATH' must be
+                ;; set to `tramp-androidsu-remote-path', as some `su'
+                ;; implementations propagate their callers' environments
+                ;; to the root session, which might be contaminated with
+                ;; incompatible `ls' binaries or similar.
+		(setq path (tramp-shell-quote-argument
+                            (string-join tramp-androidsu-remote-path ":"))
+                      su-binary
+                      (shell-quote-argument
+                       (or (executable-find "su")
+                           (user-error
+                            "No su binary is available in any of `exec-path'")))
+                      command (format "PATH=%s exec %s - %s || exit"
+                                      path su-binary user))
                 ;; Attempt to execute the shell inside the global mount
                 ;; namespace if requested.
                 (when tramp-androidsu-mount-global-namespace
@@ -163,12 +175,13 @@ multibyte mode and waits for the shell prompt to appear."
                       (setq tramp-androidsu-su-mm-supported
                             ;; Detect support for `su -mm'.
                             (tramp-adb-send-command-and-check
-                             vec "su -mm -c 'exit 24'" 24)))
+                             vec (format "%s -mm -c 'exit 24'" su-binary)
+                             24)))
                     (when tramp-androidsu-su-mm-supported
                       (tramp-set-connection-property
                        vec "remote-namespace" t)
-		      (setq command (format "exec su -mm - %s || exit"
-				            user)))))
+		      (setq command (format "PATH=%s exec %s -mm - %s || exit"
+				            path su-binary user)))))
 	        ;; Send the command.
 		(tramp-message vec 3 "Sending command `%s'" command)
 		(tramp-adb-send-command vec command t t)
@@ -379,9 +392,19 @@ FUNCTION."
 	        :name name
                 :buffer buffer
 	        :command
-                (if (tramp-get-connection-property v "remote-namespace")
-                    (append (list "su" "-mm" "-" user "-c") command)
-                  (append (list "su" "-" user "-c") command))
+                (if (equal user "root")
+                    ;; Invoke su in the simplest manner possible, that
+                    ;; is to say, without specifying the user, which
+                    ;; certain implementations cannot parse when a
+                    ;; command is also present, if it may be omitted, so
+                    ;; that starting inferior shells on systems with
+                    ;; such implementations does not needlessly fail.
+                    (if (tramp-get-connection-property v "remote-namespace")
+                        (append (list "su" "-mm" user "-c") command)
+                      (append (list "su" "-c") command))
+                  (if (tramp-get-connection-property v "remote-namespace")
+                      (append (list "su" "-mm" "-" user "-c") command)
+                    (append (list "su" "-" user "-c") command)))
 	        :coding coding
                 :noquery noquery
                 :connection-type connection-type
