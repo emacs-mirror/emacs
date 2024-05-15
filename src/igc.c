@@ -3343,13 +3343,9 @@ igc_finish_obj (void *client, enum igc_obj_type type, char *base, char *end)
   if (is_mps (client))
     {
       struct igc_header *h = client_to_base (client);
+      igc_assert (type == h->obj_type);
+      igc_assert (base + to_bytes (h->nwords) >= end);
       *out = *h;
-      if (base + to_bytes (h->nwords) < end)
-	{
-	  fprintf (stderr, "type %d nwords %u\n", h->obj_type, h->nwords);
-	  fprintf (stderr, "base %p end %p\n", base, end);
-	  igc_assert (base + to_bytes (h->nwords) >= end);
-	}
       return base + to_bytes (h->nwords);
     }
 
