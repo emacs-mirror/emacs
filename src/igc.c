@@ -3393,3 +3393,73 @@ syms_of_igc (void)
   DEFSYM (Qweak_ref, "weak-ref");
   Fprovide (intern_c_string ("mps"), Qnil);
 }
+
+/***********************************************************************
+			    Copying the dump
+ ***********************************************************************/
+
+#pragma GCC diagnostic ignored "-Wunused-function"
+
+static mps_addr_t
+copy (mps_addr_t base)
+{
+  struct igc_header *h = base;
+  mps_ap_t ap = thread_ap (h->obj_type);
+  size_t nbytes = to_bytes (h->nwords);
+  mps_addr_t p;
+  do
+    {
+      mps_res_t res = mps_reserve (&p, ap, nbytes);
+      if (res != MPS_RES_OK)
+	memory_full (0);
+      memcpy (p, base, nbytes);
+      struct igc_header *nh = p;
+      nh->hash = obj_hash ();
+    }
+  while (!mps_commit (ap, p, nbytes));
+  return p;
+}
+
+struct igc_closure
+{
+  Lisp_Object dumped_to_obj;
+};
+
+static void
+record_copy (struct igc_closure *c, void *dumped, void *copy)
+{
+  Lisp_Object key = make_fixnum ((EMACS_INT) dumped);
+  Lisp_Object val = make_fixnum ((EMACS_INT) copy);
+  Fputhash (key, val, c->dumped_to_obj);
+}
+
+static void *
+lookup_ptr (struct igc_closure *c, void *dumped)
+{
+  Lisp_Object key = make_fixnum ((EMACS_INT) dumped);
+  Lisp_Object found = Fgethash (key, c->dumped_to_obj, Qnil);
+  igc_assert (FIXNUMP (found));
+  return (void *) XFIXNUM (found);
+}
+
+static void
+resolve_lisp_obj (struct igc_closure *c, Lisp_Object *ref)
+{
+}
+
+static void
+visit_dumped (void *dumped, void *closure)
+{
+  struct igc_closure *c = closure;
+  void *obj = copy (dumped);
+  record_copy (c, dumped, obj);
+}
+
+static void
+graph_copy (void)
+{
+  Lisp_Object nobj = make_fixnum (500000);
+  Lisp_Object ht = CALLN (Fmake_hash_table, QCtest, Qeq, QCsize, nobj);
+  struct igc_closure closure = { .dumped_to_obj = ht };
+  pdumper_visit_object_starts (visit_dumped, &closure);
+}
