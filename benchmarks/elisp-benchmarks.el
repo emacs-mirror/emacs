@@ -46,9 +46,12 @@
 (require 'benchmark)
 (require 'outline)
 (require 'org)
+(require 'bytecomp)
 (if (featurep 'native-compile)
     (require 'comp)
   (defvar native-comp-speed))
+(unless (boundp 'compilation-safety)
+  (defvar compilation-safety))
 
 (defgroup elb nil
   "Emacs Lisp benchmarks."
@@ -60,6 +63,10 @@
 
 (defcustom elb-speed 3
   "Default `native-comp-speed' to be used for native compiling the benchmarks."
+  :type 'number)
+
+(defcustom elb-safety 0
+  "Default `compilation-safety' to be used for native compiling the benchmarks."
   :type 'number)
 
 (defconst elb-bench-directory
@@ -93,6 +100,7 @@ RECOMPILE all the benchmark folder when non nil."
    (when current-prefix-arg
      (list (read-regexp "Run benchmark matching: "))))
   (let* ((native-comp-speed elb-speed)
+	 (compilation-safety elb-safety)
 	 (compile-function (if (featurep 'native-compile)
 			       #'native-compile
 			     #'byte-compile-file))
