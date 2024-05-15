@@ -3425,21 +3425,33 @@ struct igc_closure
   Lisp_Object dumped_to_obj;
 };
 
+static Lisp_Object
+ptr_to_lisp (void *p)
+{
+  return make_fixnum ((EMACS_INT) p);
+}
+
+static void *
+lisp_to_ptr (Lisp_Object obj)
+{
+  igc_assert (FIXNUMP (obj));
+  return (void *) XFIXNUM (obj);
+}
+
 static void
 record_copy (struct igc_closure *c, void *dumped, void *copy)
 {
-  Lisp_Object key = make_fixnum ((EMACS_INT) dumped);
-  Lisp_Object val = make_fixnum ((EMACS_INT) copy);
+  Lisp_Object key = ptr_to_lisp (dumped);
+  Lisp_Object val = ptr_to_lisp (copy);
   Fputhash (key, val, c->dumped_to_obj);
 }
 
 static void *
 lookup_ptr (struct igc_closure *c, void *dumped)
 {
-  Lisp_Object key = make_fixnum ((EMACS_INT) dumped);
+  Lisp_Object key = ptr_to_lisp (dumped);
   Lisp_Object found = Fgethash (key, c->dumped_to_obj, Qnil);
-  igc_assert (FIXNUMP (found));
-  return (void *) XFIXNUM (found);
+  return lisp_to_ptr (found);
 }
 
 static void
@@ -3448,7 +3460,7 @@ resolve_lisp_obj (struct igc_closure *c, Lisp_Object *ref)
 }
 
 static void
-visit_dumped (void *dumped, void *closure)
+copy_to_mps (void *dumped, void *closure)
 {
   struct igc_closure *c = closure;
   void *obj = copy (dumped);
@@ -3456,10 +3468,23 @@ visit_dumped (void *dumped, void *closure)
 }
 
 static void
-graph_copy (void)
+graft (struct igc_closure *c, void *base)
+{
+}
+
+static void
+graft_refs (struct igc_closure *c)
+{
+  DOHASH (XHASH_TABLE (c->dumped_to_obj), dumped, obj)
+    graft (c, lisp_to_ptr (obj));
+}
+
+static void
+copy_graph (void)
 {
   Lisp_Object nobj = make_fixnum (500000);
   Lisp_Object ht = CALLN (Fmake_hash_table, QCtest, Qeq, QCsize, nobj);
   struct igc_closure closure = { .dumped_to_obj = ht };
-  pdumper_visit_object_starts (visit_dumped, &closure);
+  pdumper_visit_object_starts (copy_to_mps, &closure);
+  graft_refs (&closure);
 }
