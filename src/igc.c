@@ -3413,6 +3413,9 @@ copy (mps_addr_t base)
 
 struct igc_closure
 {
+  Lisp_Object start_time;
+  Lisp_Object end_copy_time;
+  Lisp_Object end_time;
   Lisp_Object dumped_to_obj;
   struct {
     size_t n;
@@ -3435,6 +3438,11 @@ print_copy_stats (struct igc_closure *c)
     }
   fprintf (stderr, "--------------------------------------------------\n");
   fprintf (stderr, "%30s %8zu %10zu\n", "Total", ntotal, nbytes_total);
+  fprintf (stderr, "Copy time %.4fs\n",
+	   XFLOAT_DATA (c->end_copy_time) - XFLOAT_DATA (c->start_time));
+  if (!NILP (c->end_time))
+    fprintf (stderr, "Total time %.4fs\n",
+	     XFLOAT_DATA (c->end_time) - XFLOAT_DATA (c->start_time));
 }
 
 static Lisp_Object
@@ -3952,8 +3960,10 @@ copy_dump_to_mps (void)
   Lisp_Object nobj = make_fixnum (500000);
   Lisp_Object ht = CALLN (Fmake_hash_table, QCtest, Qeq, QCsize, nobj);
   struct igc_closure c = { .dumped_to_obj = ht };
+  c.start_time = Ffloat_time (Qnil);
   pdumper_visit_object_starts (copy_to_mps, &c);
-  //print_copy_stats (&c);
+  c.end_copy_time = Ffloat_time (Qnil);
+  print_copy_stats (&c);
   //mirror_refs (&closure);
 }
 
