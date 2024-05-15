@@ -2952,7 +2952,7 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   eassert ((base_offset == 0 && buffer->text == &in_buffer->own_text)
 	   || (base_offset > 0 && buffer->text != &in_buffer->own_text));
 
-  START_DUMP_PVEC (ctx, &buffer->header, struct buffer, out);
+  START_DUMP_PVEC (ctx, &in_buffer->header, struct buffer, out);
   dump_pseudovector_lisp_fields (ctx, &out->header, &buffer->header);
   if (base_offset == 0)
     base_offset = ctx->obj_offset;
