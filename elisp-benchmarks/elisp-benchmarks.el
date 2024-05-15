@@ -47,11 +47,8 @@
 (require 'outline)
 (require 'org)
 (require 'bytecomp)
-(if (featurep 'native-compile)
-    (require 'comp)
-  (defvar native-comp-speed))
-(unless (boundp 'compilation-safety)
-  (defvar compilation-safety))
+(defvar native-comp-speed)
+(defvar compilation-safety)
 
 (defgroup elb nil
   "Emacs Lisp benchmarks."
