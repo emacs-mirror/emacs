@@ -2022,9 +2022,6 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
       (eldoc-mode 1))
     (cl-pushnew (current-buffer) (eglot--managed-buffers (eglot-current-server))))
    (t
-    (when eglot--track-changes
-      (track-changes-unregister eglot--track-changes)
-      (setq eglot--track-changes nil))
     (remove-hook 'kill-buffer-hook #'eglot--managed-mode-off t)
     (remove-hook 'kill-buffer-hook #'eglot--signal-textDocument/didClose t)
     (remove-hook 'before-revert-hook #'eglot--signal-textDocument/didClose t)
@@ -2053,7 +2050,10 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
               (delq (current-buffer) (eglot--managed-buffers server)))
         (when (and eglot-autoshutdown
                    (null (eglot--managed-buffers server)))
-          (eglot-shutdown server)))))))
+          (eglot-shutdown server))))
+    (when eglot--track-changes
+      (track-changes-unregister eglot--track-changes)
+      (setq eglot--track-changes nil)))))
 
 (defun eglot--managed-mode-off ()
   "Turn off `eglot--managed-mode' unconditionally."
