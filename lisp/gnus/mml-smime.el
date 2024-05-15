@@ -24,8 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
+(require 'cl-lib)
 (require 'smime)
 (require 'mm-decode)
 (require 'mml-sec)
