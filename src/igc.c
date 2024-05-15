@@ -2214,12 +2214,6 @@ igc_park_arena (void)
   return count;
 }
 
-void
-igc_on_pdump_loaded (void *start, void *end)
-{
-  root_create_ambig (global_igc, start, end);
-}
-
 static igc_root_list *
 root_find (void *start)
 {
@@ -3112,10 +3106,11 @@ DEFUN ("igc-weak-ref-deref", Figc_weak_reaf_deref, Sigc_weak_ref_deref, 1, 1,
   return igc_weak_ref_deref (XWEAK_REF (obj));
 }
 
-struct Lisp_Buffer_Local_Value *igc_alloc_blv (void)
+struct Lisp_Buffer_Local_Value *
+igc_alloc_blv (void)
 {
   struct Lisp_Buffer_Local_Value *blv
-      = alloc (sizeof *blv, IGC_OBJ_BLV, PVEC_FREE);
+    = alloc (sizeof *blv, IGC_OBJ_BLV, PVEC_FREE);
   return blv;
 }
 
@@ -3419,6 +3414,8 @@ copy (mps_addr_t base)
 struct igc_closure
 {
   Lisp_Object dumped_to_obj;
+  size_t nobjs;
+  size_t nbytes;
 };
 
 static Lisp_Object
@@ -3440,6 +3437,9 @@ record_copy (struct igc_closure *c, void *dumped, void *copy)
   Lisp_Object key = ptr_to_lisp (dumped);
   Lisp_Object val = ptr_to_lisp (copy);
   Fputhash (key, val, c->dumped_to_obj);
+  struct igc_header *h = copy;
+  c->nbytes += to_bytes (h->nwords);
+  c->nobjs += 1;
 }
 
 static void *
@@ -3458,9 +3458,23 @@ resolve_lisp_obj (struct igc_closure *c, Lisp_Object *ref)
 static void
 copy_to_mps (void *dumped, void *closure)
 {
-  struct igc_closure *c = closure;
-  void *obj = copy (dumped);
-  record_copy (c, dumped, obj);
+  struct igc_header *h = dumped;
+  switch (h->obj_type)
+    {
+    case IGC_OBJ_DUMPED_INTFWD:
+    case IGC_OBJ_DUMPED_BOOLFWD:
+    case IGC_OBJ_DUMPED_OBJFWD:
+    case IGC_OBJ_DUMPED_BUFFER_OBJFWD:
+    case IGC_OBJ_DUMPED_KBOARD_OBJFWD:
+      return;
+
+    default:
+      {
+	struct igc_closure *c = closure;
+	void *obj = copy (dumped);
+	record_copy (c, dumped, obj);
+      }
+    }
 }
 
 static void
@@ -3914,11 +3928,21 @@ mirror_refs (struct igc_closure *c)
 }
 
 static void
-copy_graph (void)
+copy_dump_to_mps (void)
 {
   Lisp_Object nobj = make_fixnum (500000);
   Lisp_Object ht = CALLN (Fmake_hash_table, QCtest, Qeq, QCsize, nobj);
-  struct igc_closure closure = { .dumped_to_obj = ht };
-  pdumper_visit_object_starts (copy_to_mps, &closure);
-  mirror_refs (&closure);
+  struct igc_closure c = { .dumped_to_obj = ht };
+  pdumper_visit_object_starts (copy_to_mps, &c);
+  fprintf (stderr, "%zu objects %zu bytes -> MPS\n", c.nobjs, c.nbytes);
+  //mirror_refs (&closure);
+}
+
+void
+igc_on_pdump_loaded (void *start, void *end)
+{
+  root_create_ambig (global_igc, start, end);
+  specpdl_ref count = igc_park_arena ();
+  copy_dump_to_mps ();
+  unbind_to (count, Qnil);
 }

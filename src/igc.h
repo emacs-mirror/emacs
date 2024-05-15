@@ -46,8 +46,8 @@ enum igc_obj_type
   IGC_OBJ_PTR_VEC,
 
   /* FIXME: The following are currently only used in the dump for
-     objects that are not allocated from MPS memory. Make them real MPS
-     objects. */
+     objects that are not allocated from MPS memory. Maybe use
+     something simpler than explicitly saying what they are? */
   IGC_OBJ_DUMPED_INTFWD,
   IGC_OBJ_DUMPED_BOOLFWD,
   IGC_OBJ_DUMPED_OBJFWD,
