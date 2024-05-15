@@ -4,7 +4,7 @@
 
 ;; Author: Andrea Corallo <acorallo@gnu.org>
 ;; Maintainer: Andrea Corallo <acorallo@gnu.org>
-;; Version: 1.14
+;; Version: 1.15
 ;; Keywords: languages, lisp
 ;; Package-Type: multi
 ;; Created: 2019-01-12
