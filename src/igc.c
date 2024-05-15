@@ -3414,9 +3414,28 @@ copy (mps_addr_t base)
 struct igc_closure
 {
   Lisp_Object dumped_to_obj;
-  size_t nobjs;
-  size_t nbytes;
+  struct {
+    size_t n;
+    size_t nbytes;
+  } objs[IGC_OBJ_LAST];
 };
+
+static void
+print_copy_stats (struct igc_closure *c)
+{
+  size_t ntotal = 0, nbytes_total = 0;
+  fprintf (stderr, "%30s %8s %10s\n", "Type", "N", "Bytes");
+  fprintf (stderr, "--------------------------------------------------\n");
+  for (int i = 0; i < ARRAYELTS (c->objs); ++i)
+    {
+      fprintf (stderr, "%30s %8zu %10zu\n", obj_type_names[i],
+	       c->objs[i].n, c->objs[i].nbytes);
+      ntotal += c->objs[i].n;
+      nbytes_total += c->objs[i].nbytes;
+    }
+  fprintf (stderr, "--------------------------------------------------\n");
+  fprintf (stderr, "%30s %8zu %10zu\n", "Total", ntotal, nbytes_total);
+}
 
 static Lisp_Object
 ptr_to_lisp (void *p)
@@ -3438,8 +3457,8 @@ record_copy (struct igc_closure *c, void *dumped, void *copy)
   Lisp_Object val = ptr_to_lisp (copy);
   Fputhash (key, val, c->dumped_to_obj);
   struct igc_header *h = copy;
-  c->nbytes += to_bytes (h->nwords);
-  c->nobjs += 1;
+  c->objs[h->obj_type].nbytes += to_bytes (h->nwords);
+  c->objs[h->obj_type].n += 1;
 }
 
 static void *
@@ -3934,7 +3953,7 @@ copy_dump_to_mps (void)
   Lisp_Object ht = CALLN (Fmake_hash_table, QCtest, Qeq, QCsize, nobj);
   struct igc_closure c = { .dumped_to_obj = ht };
   pdumper_visit_object_starts (copy_to_mps, &c);
-  fprintf (stderr, "%zu objects %zu bytes -> MPS\n", c.nobjs, c.nbytes);
+  //print_copy_stats (&c);
   //mirror_refs (&closure);
 }
 
