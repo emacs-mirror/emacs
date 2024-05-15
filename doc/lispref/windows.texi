@@ -2809,7 +2809,7 @@ Windows}).
 
 @defun display-buffer-use-least-recent-window buffer alist
 This function is similar to @code{display-buffer-use-some-window}, but
-will try harder to not use the a recently used window.  In particular,
+will try harder to not use a recently used window.  In particular,
 it does not use the selected window.  In addition, it will first try to
 reuse a window that shows @var{buffer} already, base the decision
 whether it should use a window showing another buffer on that window's
