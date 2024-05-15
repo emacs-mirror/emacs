@@ -470,12 +470,21 @@ See also `erc-server-QUIT-functions' and `erc-disconnected-hook'."
 
 (defcustom erc-part-hook nil
   "Hook run when processing a PART message directed at our nick.
-
-The hook receives one argument, the current BUFFER.
-See also `erc-server-QUIT-functions', `erc-quit-hook' and
-`erc-disconnected-hook'."
+Called in the server buffer with a single argument: the channel buffer
+being parted.  For historical reasons, the buffer argument may be nil if
+it's been killed or otherwise can't be found.  This typically happens
+when the \"PART\" response being handled comes by way of a channel
+buffer being killed, which, by default, tells `erc-part-channel-on-kill'
+to emit a \"PART\".  Users needing to operate on a parted channel buffer
+before it's killed in this manner should use `erc-kill-channel-hook' and
+condition their code on `erc-killing-buffer-on-part-p' being nil."
   :group 'erc-hooks
   :type 'hook)
+
+(defvar erc-killing-buffer-on-part-p nil
+  "Non-nil when killing a target buffer while handling a \"PART\" response.
+Useful for preventing the redundant execution of code designed to run
+once when parting a channel.")
 
 (defcustom erc-kick-hook nil
   "Hook run when processing a KICK message directed at our nick.
@@ -1114,8 +1123,7 @@ directory in the list."
 
 (defcustom erc-kill-buffer-on-part nil
   "Kill the channel buffer on PART.
-This variable should probably stay nil, as ERC can reuse buffers if
-you rejoin them later."
+Nil by default because ERC can reuse buffers later re-joined."
   :group 'erc-quit-and-part
   :type 'boolean)
 
@@ -9598,7 +9606,7 @@ See also `format-spec'."
   :type 'hook)
 
 (defcustom erc-kill-channel-hook
-  '(erc-kill-channel
+  '(erc-part-channel-on-kill
     erc-networks-shrink-ids-and-buffer-names
     erc-networks-rename-surviving-target-buffer)
   "Invoked whenever a channel-buffer is killed via `kill-buffer'."
@@ -9659,10 +9667,12 @@ This function should be on `erc-kill-server-hook'."
     (setq erc-server-quitting t)
     (erc-server-send (format "QUIT :%s" (funcall erc-quit-reason nil)))))
 
-(defun erc-kill-channel ()
-  "Sends a PART command to the server when the channel buffer is killed.
-This function should be on `erc-kill-channel-hook'."
-  (when (erc-server-process-alive)
+(define-obsolete-function-alias 'erc-kill-channel #'erc-part-channel-on-kill
+  "30.1")
+(defun erc-part-channel-on-kill ()
+  "Send a \"PART\" when killing a channel buffer."
+  (when (and (not erc-killing-buffer-on-part-p)
+             (erc-server-process-alive))
     (let ((tgt (erc-default-target)))
       (if tgt
          (erc-server-send (format "PART %s :%s" tgt
