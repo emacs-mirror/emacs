@@ -1318,11 +1318,18 @@ example:
 does the same as the previous example, except that it directly tries
 to extract @code{x} and @code{y} from @code{my-list} without first
 verifying if @code{my-list} is a list which has the right number of
-elements and has @code{add} as its first element.  The precise
-behavior when the object does not actually match the pattern is
-undefined, although the body will not be silently skipped: either an
-error is signaled or the body is run with some of the variables
-potentially bound to arbitrary values like @code{nil}.
+elements and has @code{add} as its first element.
+
+The precise behavior when the object does not actually match the pattern
+depends on the types, although the body will not be silently skipped:
+either an error is signaled or the body is run with some of the
+variables bound to arbitrary values like @code{nil}.
+For example, the above pattern will result in @var{x} and @var{y}
+being extracted with operations like @code{car} or @code{nth}, so they
+will get value @code{nil} when @var{my-list} is too short.  In contrast,
+with a pattern like @code{`[add ,x ,y]}, those same variables would
+be extracted using @code{aref} which would signal an error if
+@var{my-list} is not an array or is too short.
 
 The pcase patterns that are useful for destructuring bindings are
 generally those described in @ref{Backquote Patterns}, since they
