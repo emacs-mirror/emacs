@@ -3438,7 +3438,7 @@ make_igc_mirror (void)
 }
 
 static void
-print_copy_stats (struct igc_mirror *m)
+print_mirror_stats (struct igc_mirror *m)
 {
   size_t ntotal = 0, nbytes_total = 0;
   fprintf (stderr, "--------------------------------------------------\n");
@@ -3455,7 +3455,8 @@ print_copy_stats (struct igc_mirror *m)
   fprintf (stderr, "%30s %8zu %10zu\n", "Total", ntotal, nbytes_total);
   fprintf (stderr, "%30s %8.4fs\n", "Copy time",
 	   XFLOAT_DATA (m->end_copy_time) - XFLOAT_DATA (m->start_time));
-  if (!NILP (m->end_time))
+  fprintf (stderr, "%30s %8.4fs\n", "Mirror time",
+	   XFLOAT_DATA (m->end_time) - XFLOAT_DATA (m->end_copy_time));
   fprintf (stderr, "%30s %8.4fs\n", "Total time",
 	   XFLOAT_DATA (m->end_time) - XFLOAT_DATA (m->start_time));
   fprintf (stderr, "--------------------------------------------------\n");
@@ -3490,7 +3491,7 @@ lookup_ptr (struct igc_mirror *m, void *dumped)
 {
   Lisp_Object key = ptr_to_lisp (dumped);
   Lisp_Object found = Fgethash (key, m->dumped_to_obj, Qnil);
-  return lisp_to_ptr (found);
+  return NILP (found) ? NULL : lisp_to_ptr (found);
 }
 
 static void
@@ -3986,6 +3987,9 @@ mirror_objects (struct igc_mirror *m)
   DOHASH (XHASH_TABLE (m->dumped_to_obj), dumped, obj)
     mirror_obj (m, lisp_to_ptr (obj));
 #endif
+  for (int i = 0; i < 1000000; ++i)
+    lookup_ptr (m, (void *) 0x12345678);
+  m->end_time = Ffloat_time (Qnil);
 }
 
 static void
@@ -3993,8 +3997,6 @@ copy_dump_to_mps (struct igc_mirror *m)
 {
   pdumper_visit_object_starts (copy_to_mps, m);
   m->end_copy_time = Ffloat_time (Qnil);
-  if (getenv ("IGC_COPY_STATS"))
-    print_copy_stats (m);
 }
 
 static void
@@ -4003,6 +4005,8 @@ mirror_dump (void)
   struct igc_mirror m = make_igc_mirror ();
   copy_dump_to_mps (&m);
   mirror_objects (&m);
+  if (getenv ("IGC_MIRROR_STATS"))
+    print_mirror_stats (&m);
 }
 
 struct register_pdump_roots_ctx
