@@ -2947,7 +2947,7 @@ Helper function for `describe-package'."
         (insert " "))
       (insert "\n"))
     (when maintainers
-      (when (stringp (car maintainers))
+      (unless (and (listp (car maintainers)) (listp (cdr maintainers)))
         (setq maintainers (list maintainers)))
       (package--print-help-section
           (if (cdr maintainers) "Maintainers" "Maintainer"))
