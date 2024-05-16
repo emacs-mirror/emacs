@@ -3160,29 +3160,6 @@ DEFUN ("igc-roots", Figc_roots, Sigc_roots, 0, 0, 0, doc : /* */)
   return roots;
 }
 
-DEFUN ("igc--alloc-vectors", Figc__alloc_vectors, Sigc__alloc_vectors,
-       1, 1, 0, doc: /* Allocate vectors from MPS according to SPEC.
-SPEC is a list of conses (N . SIZE).  N is the number of vectors and
-SIZE is the SIZE of the vectors to allocate. Allocations happen with
-MPS arena in parked state. */)
-  (Lisp_Object specs)
-{
-  specpdl_ref count = igc_park_arena ();
-  CHECK_LIST (specs);
-  FOR_EACH_TAIL_SAFE (specs)
-    {
-      Lisp_Object s = Fcar (specs);
-      CHECK_FIXNAT (Fcar (s));
-      CHECK_FIXNAT (Fcdr (s));
-      int n = XFIXNAT (Fcar (s));
-      int size = XFIXNAT (Fcdr (s));
-
-      for (int i = 0; i < n; ++i)
-	igc_alloc_vector (size);
-    }
-  return unbind_to (count, Qnil);
-}
-
 static void
 arena_extended (mps_arena_t arena, void *base, size_t size)
 {
@@ -3353,13 +3330,6 @@ igc_finish_obj (void *client, enum igc_obj_type type, char *base, char *end)
   return base + nbytes;
 }
 
-DEFUN ("igc--walk-dump", Figc__walk_dump, Sigc__walk_dump,
-       0, 0, 0, doc: /* */)
-  (void)
-{
-  return Qnil;
-}
-
 void
 init_igc (void)
 {
@@ -3376,8 +3346,6 @@ syms_of_igc (void)
   defsubr (&Sigc_make_weak_ref);
   defsubr (&Sigc_weak_ref_deref);
   defsubr (&Sigc__collect);
-  defsubr (&Sigc__alloc_vectors);
-  defsubr (&Sigc__walk_dump);
   DEFSYM (Qambig, "ambig");
   DEFSYM (Qexact, "exact");
   DEFSYM (Qweak_ref_p, "weak-ref-p");
