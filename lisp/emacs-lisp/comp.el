@@ -1669,7 +1669,8 @@ into the C code forwarding the compilation unit."
                                  ;; the last function being
                                  ;; registered.
                                  :frame-size 2
-                                 :speed (comp-ctxt-speed comp-ctxt)))
+                                 :speed (comp-ctxt-speed comp-ctxt)
+                                 :safety (comp-ctxt-safety comp-ctxt)))
          (comp-func func)
          (comp-pass (make-comp-limplify
                      :curr-block (make--comp-block-lap -1 0 'top-level)
