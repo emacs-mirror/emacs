@@ -5956,8 +5956,11 @@ pdumper_load (const char *dump_filename, char *argv0)
   dump_public.end = dump_public.start + dump_size;
 
 #ifdef HAVE_MPS
-  void *hot_start = (void *) dump_base;
-  void *hot_end = (void *) (dump_base + adj_discardable_start);
+  size_t aligned_header_size
+    = ((sizeof (struct dump_header) + DUMP_ALIGNMENT - 1)
+       & ~(DUMP_ALIGNMENT - 1));
+  void *hot_start = (void *) (dump_base + aligned_header_size);
+  void *hot_end = (void *) (dump_base + header->discardable_start);
 #endif
 
   dump_do_all_dump_reloc_for_phase (header, dump_base, EARLY_RELOCS);
