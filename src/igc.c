@@ -3626,7 +3626,13 @@ mirror_string (struct igc_mirror *m, struct Lisp_String *s)
 static void
 mirror_interval (struct igc_mirror *m, struct interval *iv)
 {
-  emacs_abort ();
+  IGC_MIRROR_RAW (m, &iv->left);
+  IGC_MIRROR_RAW (m, &iv->right);
+  if (iv->up_obj)
+    IGC_MIRROR_OBJ (m, &iv->up.obj);
+  else if (iv->up.interval)
+    IGC_MIRROR_RAW (m, &iv->up.interval);
+  IGC_MIRROR_OBJ (m, &iv->plist);
 }
 
 static void
