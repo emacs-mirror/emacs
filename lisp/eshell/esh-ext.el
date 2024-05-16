@@ -217,7 +217,7 @@ file; if COMMAND is a local file name, run it locally."
          ;; "cat" as the result.
          (command-localname (or (file-remote-p command 'localname 'never)
                                 command)))
-    (eshell-external-command command-localname args)))
+    (eshell-connection-local-command command-localname args)))
 
 (defun eshell-connection-local-command (command args)
   "Insert output from an external COMMAND, using ARGS.
