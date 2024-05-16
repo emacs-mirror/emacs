@@ -3694,7 +3694,7 @@ Passwords are stored in `rcirc-authinfo' (which see)."
   "Notify user of an invitation from SENDER.
 ARGS should have the form (TARGET CHANNEL).  PROCESS is the
 process object for the current connection."
-  (let ((self (buffer-local-value 'rcirc-nick rcirc-process))
+  (let ((self (with-rcirc-process-buffer process rcirc-nick))
         (target (car args))
         (chan (cadr args)))
     ;; `rcirc-channel-filter' is not used here because joining
