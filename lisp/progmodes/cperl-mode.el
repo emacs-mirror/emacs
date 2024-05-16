@@ -1934,7 +1934,8 @@ or as help on variables `cperl-tips', `cperl-problems',
   ;; Setup Flymake
   (add-hook 'flymake-diagnostic-functions #'perl-flymake nil t))
 
-(derived-mode-add-parents 'cperl-mode '(perl-mode))
+(when (fboundp 'derived-mode-add-parents) ; to run under Emacs <30
+  (derived-mode-add-parents 'cperl-mode '(perl-mode)))
 
 (defun cperl--set-file-style ()
   (when cperl-file-style
