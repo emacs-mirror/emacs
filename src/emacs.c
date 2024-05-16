@@ -1431,6 +1431,13 @@ main (int argc, char **argv)
   init_igc ();
 #endif
 
+  /* This is needed early because load_pdump can call 'float-time' (via
+     igc_on_pdump_loaded -> mirror_dump), and that might need bignums.
+     So we must make sure GMP uses our memory-allocation routines, which
+     is especially important in the MS-Windows build, where malloc and
+     friends are replaced by w32heap.c.  */
+  init_bignum ();
+
 #ifdef HAVE_PDUMPER
   if (attempt_load_pdump)
     initial_emacs_executable = load_pdump (argc, argv, dump_file);
@@ -2014,7 +2021,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
   init_alloc ();
-  init_bignum ();
   init_threads ();
   init_eval ();
   running_asynch_code = 0;
