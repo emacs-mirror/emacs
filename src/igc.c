@@ -204,12 +204,6 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_BLV",
   "IGC_OBJ_WEAK",
   "IGC_OBJ_PTR_VEC",
-
-  "IGC_OBJ_DUMPED_INTFWD",
-  "IGC_OBJ_DUMPED_BOOLFWD",
-  "IGC_OBJ_DUMPED_OBJFWD",
-  "IGC_OBJ_DUMPED_BUFFER_OBJFWD",
-  "IGC_OBJ_DUMPED_KBOARD_OBJFWD",
 };
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_LAST);
@@ -1256,13 +1250,6 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 
 	switch (header->obj_type)
 	  {
-	  case IGC_OBJ_DUMPED_INTFWD:
-	  case IGC_OBJ_DUMPED_BOOLFWD:
-	  case IGC_OBJ_DUMPED_OBJFWD:
-	  case IGC_OBJ_DUMPED_BUFFER_OBJFWD:
-	  case IGC_OBJ_DUMPED_KBOARD_OBJFWD:
-	    break;
-
 	  case IGC_OBJ_INVALID:
 	    emacs_abort ();
 
@@ -2606,11 +2593,6 @@ finalize (struct igc *gc, mps_addr_t base)
   struct igc_header *h = base;
   switch (h->obj_type)
     {
-    case IGC_OBJ_DUMPED_INTFWD:
-    case IGC_OBJ_DUMPED_BOOLFWD:
-    case IGC_OBJ_DUMPED_OBJFWD:
-    case IGC_OBJ_DUMPED_BUFFER_OBJFWD:
-    case IGC_OBJ_DUMPED_KBOARD_OBJFWD:
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
@@ -2759,11 +2741,6 @@ thread_ap (enum igc_obj_type type)
   struct igc_thread_list *t = current_thread->gc_info;
   switch (type)
     {
-    case IGC_OBJ_DUMPED_INTFWD:
-    case IGC_OBJ_DUMPED_BOOLFWD:
-    case IGC_OBJ_DUMPED_OBJFWD:
-    case IGC_OBJ_DUMPED_BUFFER_OBJFWD:
-    case IGC_OBJ_DUMPED_KBOARD_OBJFWD:
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
@@ -3464,23 +3441,9 @@ resolve_lisp_obj (struct igc_mirror *m, Lisp_Object *ref)
 static void
 copy_to_mps (void *dumped, void *closure)
 {
-  struct igc_header *h = dumped;
-  switch (h->obj_type)
-    {
-    case IGC_OBJ_DUMPED_INTFWD:
-    case IGC_OBJ_DUMPED_BOOLFWD:
-    case IGC_OBJ_DUMPED_OBJFWD:
-    case IGC_OBJ_DUMPED_BUFFER_OBJFWD:
-    case IGC_OBJ_DUMPED_KBOARD_OBJFWD:
-      return;
-
-    default:
-      {
-	struct igc_mirror *m = closure;
-	void *obj = copy (dumped);
-	record_copy (m, dumped, obj);
-      }
-    }
+  struct igc_mirror *m = closure;
+  void *obj = copy (dumped);
+  record_copy (m, dumped, obj);
 }
 
 static void
@@ -3852,11 +3815,6 @@ mirror_obj (struct igc_mirror *m, void *base)
   void *client = base_to_client (header);
   switch (header->obj_type)
     {
-    case IGC_OBJ_DUMPED_INTFWD:
-    case IGC_OBJ_DUMPED_BOOLFWD:
-    case IGC_OBJ_DUMPED_OBJFWD:
-    case IGC_OBJ_DUMPED_BUFFER_OBJFWD:
-    case IGC_OBJ_DUMPED_KBOARD_OBJFWD:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
     case IGC_OBJ_INVALID:

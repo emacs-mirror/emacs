@@ -44,16 +44,6 @@ enum igc_obj_type
   IGC_OBJ_BLV,
   IGC_OBJ_WEAK,
   IGC_OBJ_PTR_VEC,
-
-  /* FIXME: The following are currently only used in the dump for
-     objects that are not allocated from MPS memory. Maybe use something
-     simpler than explicitly saying what they are? Or remove them. */
-  IGC_OBJ_DUMPED_INTFWD,
-  IGC_OBJ_DUMPED_BOOLFWD,
-  IGC_OBJ_DUMPED_OBJFWD,
-  IGC_OBJ_DUMPED_BUFFER_OBJFWD,
-  IGC_OBJ_DUMPED_KBOARD_OBJFWD,
-
   IGC_OBJ_LAST
 };
 

@@ -2357,10 +2357,10 @@ dump_fwd_int (struct dump_context *ctx, const struct Lisp_Intfwd *intfwd)
 #endif
   dump_emacs_reloc_immediate_intmax_t (ctx, intfwd->intvar, *intfwd->intvar);
   struct Lisp_Intfwd out;
-  dump_object_start (ctx, intfwd, IGC_OBJ_DUMPED_INTFWD, &out, sizeof (out));
+  dump_object_start_1 (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, intfwd, type);
   dump_field_emacs_ptr (ctx, &out, intfwd, &intfwd->intvar);
-  return dump_object_finish (ctx, &out, sizeof (out));
+  return dump_object_finish_1 (ctx, &out, sizeof (out));
 }
 
 static dump_off
@@ -2371,10 +2371,10 @@ dump_fwd_bool (struct dump_context *ctx, const struct Lisp_Boolfwd *boolfwd)
 #endif
   dump_emacs_reloc_immediate_bool (ctx, boolfwd->boolvar, *boolfwd->boolvar);
   struct Lisp_Boolfwd out;
-  dump_object_start (ctx, boolfwd, IGC_OBJ_DUMPED_BOOLFWD, &out, sizeof (out));
+  dump_object_start_1 (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, boolfwd, type);
   dump_field_emacs_ptr (ctx, &out, boolfwd, &boolfwd->boolvar);
-  return dump_object_finish (ctx, &out, sizeof (out));
+  return dump_object_finish_1 (ctx, &out, sizeof (out));
 }
 
 static dump_off
@@ -2388,10 +2388,10 @@ dump_fwd_obj (struct dump_context *ctx, const struct Lisp_Objfwd *objfwd)
                       Qnil)))
     dump_emacs_reloc_to_lv (ctx, objfwd->objvar, *objfwd->objvar);
   struct Lisp_Objfwd out;
-  dump_object_start (ctx, objfwd, IGC_OBJ_DUMPED_OBJFWD, &out, sizeof (out));
+  dump_object_start_1 (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, objfwd, type);
   dump_field_emacs_ptr (ctx, &out, objfwd, &objfwd->objvar);
-  return dump_object_finish (ctx, &out, sizeof (out));
+  return dump_object_finish_1 (ctx, &out, sizeof (out));
 }
 
 static dump_off
@@ -2402,12 +2402,12 @@ dump_fwd_buffer_obj (struct dump_context *ctx,
 # error "Lisp_Buffer_Objfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Buffer_Objfwd out;
-  dump_object_start (ctx, buffer_objfwd, IGC_OBJ_DUMPED_BUFFER_OBJFWD, &out, sizeof (out));
+  dump_object_start_1 (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, buffer_objfwd, type);
   DUMP_FIELD_COPY (&out, buffer_objfwd, offset);
   dump_field_lv (ctx, &out, buffer_objfwd, &buffer_objfwd->predicate,
                  WEIGHT_NORMAL);
-  return dump_object_finish (ctx, &out, sizeof (out));
+  return dump_object_finish_1 (ctx, &out, sizeof (out));
 }
 
 static dump_off
@@ -2418,10 +2418,10 @@ dump_fwd_kboard_obj (struct dump_context *ctx,
 # error "Lisp_Intfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Kboard_Objfwd out;
-  dump_object_start (ctx, kboard_objfwd, IGC_OBJ_DUMPED_KBOARD_OBJFWD, &out, sizeof (out));
+  dump_object_start_1 (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, kboard_objfwd, type);
   DUMP_FIELD_COPY (&out, kboard_objfwd, offset);
-  return dump_object_finish (ctx, &out, sizeof (out));
+  return dump_object_finish_1 (ctx, &out, sizeof (out));
 }
 
 static dump_off
