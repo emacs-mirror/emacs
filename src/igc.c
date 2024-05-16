@@ -3756,7 +3756,7 @@ mirror_vector (struct igc_mirror *m, struct Lisp_Vector *v)
     {
 #ifndef IN_MY_FORK
     case PVEC_OBARRAY:
-      mirror_obarray (c, client);
+      mirror_obarray (m, client);
       break;
 #endif
 
