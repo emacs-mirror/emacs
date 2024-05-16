@@ -784,6 +784,7 @@ matching}) has no effect on them.
 @vindex eww-search-prefix
 @cindex Internet search
 @cindex search Internet for keywords
+@cindex web search
   To search the Web for the text in region, type @kbd{M-s M-w}.  This
 command performs an Internet search for the words in region using the
 search engine whose @acronym{URL} is specified by the variable
