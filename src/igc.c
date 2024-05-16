@@ -1462,11 +1462,7 @@ fix_glyph_matrix (mps_ss_t ss, struct glyph_matrix *matrix)
 	      struct glyph *glyph = row->glyphs[area];
 	      struct glyph *end_glyph = glyph + row->used[area];
 	      for (; glyph < end_glyph; ++glyph)
-		{
-		  Lisp_Object *obj_ptr = &glyph->object;
-		  if (STRINGP (*obj_ptr))
-		    IGC_FIX12_OBJ (ss, obj_ptr);
-		}
+		IGC_FIX12_OBJ (ss, &glyph->object);
 	    }
 	}
     IGC_FIX12_RAW (ss, &matrix->buffer);
