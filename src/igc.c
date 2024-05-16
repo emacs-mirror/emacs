@@ -3411,7 +3411,7 @@ copy (mps_addr_t base)
   return p;
 }
 
-struct igc_closure
+struct igc_mirror
 {
   Lisp_Object start_time;
   Lisp_Object end_copy_time;
@@ -3423,26 +3423,37 @@ struct igc_closure
   } objs[IGC_OBJ_LAST];
 };
 
+static struct igc_mirror
+make_igc_mirror (void)
+{
+  Lisp_Object nobj = make_fixnum (500000);
+  Lisp_Object ht = CALLN (Fmake_hash_table, QCtest, Qeq, QCsize, nobj);
+  return (struct igc_mirror){ .dumped_to_obj = ht,
+			      .start_time = Ffloat_time (Qnil) };
+}
+
 static void
-print_copy_stats (struct igc_closure *c)
+print_copy_stats (struct igc_mirror *m)
 {
   size_t ntotal = 0, nbytes_total = 0;
+  fprintf (stderr, "--------------------------------------------------\n");
   fprintf (stderr, "%30s %8s %10s\n", "Type", "N", "Bytes");
   fprintf (stderr, "--------------------------------------------------\n");
-  for (int i = 0; i < ARRAYELTS (c->objs); ++i)
+  for (int i = 0; i < ARRAYELTS (m->objs); ++i)
     {
-      fprintf (stderr, "%30s %8zu %10zu\n", obj_type_names[i],
-	       c->objs[i].n, c->objs[i].nbytes);
-      ntotal += c->objs[i].n;
-      nbytes_total += c->objs[i].nbytes;
+      fprintf (stderr, "%30s %8zu %10zu\n", obj_type_names[i], m->objs[i].n,
+	       m->objs[i].nbytes);
+      ntotal += m->objs[i].n;
+      nbytes_total += m->objs[i].nbytes;
     }
   fprintf (stderr, "--------------------------------------------------\n");
   fprintf (stderr, "%30s %8zu %10zu\n", "Total", ntotal, nbytes_total);
-  fprintf (stderr, "Copy time %.4fs\n",
-	   XFLOAT_DATA (c->end_copy_time) - XFLOAT_DATA (c->start_time));
-  if (!NILP (c->end_time))
-    fprintf (stderr, "Total time %.4fs\n",
-	     XFLOAT_DATA (c->end_time) - XFLOAT_DATA (c->start_time));
+  fprintf (stderr, "%30s %8.4fs\n", "Copy time",
+	   XFLOAT_DATA (m->end_copy_time) - XFLOAT_DATA (m->start_time));
+  if (!NILP (m->end_time))
+  fprintf (stderr, "%30s %8.4fs\n", "Total time",
+	   XFLOAT_DATA (m->end_time) - XFLOAT_DATA (m->start_time));
+  fprintf (stderr, "--------------------------------------------------\n");
 }
 
 static Lisp_Object
@@ -3459,26 +3470,26 @@ lisp_to_ptr (Lisp_Object obj)
 }
 
 static void
-record_copy (struct igc_closure *c, void *dumped, void *copy)
+record_copy (struct igc_mirror *m, void *dumped, void *copy)
 {
   Lisp_Object key = ptr_to_lisp (dumped);
   Lisp_Object val = ptr_to_lisp (copy);
-  Fputhash (key, val, c->dumped_to_obj);
+  Fputhash (key, val, m->dumped_to_obj);
   struct igc_header *h = copy;
-  c->objs[h->obj_type].nbytes += to_bytes (h->nwords);
-  c->objs[h->obj_type].n += 1;
+  m->objs[h->obj_type].nbytes += to_bytes (h->nwords);
+  m->objs[h->obj_type].n += 1;
 }
 
 static void *
-lookup_ptr (struct igc_closure *c, void *dumped)
+lookup_ptr (struct igc_mirror *m, void *dumped)
 {
   Lisp_Object key = ptr_to_lisp (dumped);
-  Lisp_Object found = Fgethash (key, c->dumped_to_obj, Qnil);
+  Lisp_Object found = Fgethash (key, m->dumped_to_obj, Qnil);
   return lisp_to_ptr (found);
 }
 
 static void
-resolve_lisp_obj (struct igc_closure *c, Lisp_Object *ref)
+resolve_lisp_obj (struct igc_mirror *m, Lisp_Object *ref)
 {
 }
 
@@ -3497,233 +3508,233 @@ copy_to_mps (void *dumped, void *closure)
 
     default:
       {
-	struct igc_closure *c = closure;
+	struct igc_mirror *m = closure;
 	void *obj = copy (dumped);
-	record_copy (c, dumped, obj);
+	record_copy (m, dumped, obj);
       }
     }
 }
 
 static void
-mirror_symbol (struct igc_closure *c, struct Lisp_Symbol *sym)
+mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *sym)
 {
   emacs_abort ();
 }
 
 static void
-mirror_string (struct igc_closure *c, struct Lisp_String *s)
+mirror_string (struct igc_mirror *m, struct Lisp_String *s)
 {
   emacs_abort ();
 }
 
 static void
-mirror_interval (struct igc_closure *c, struct interval *iv)
+mirror_interval (struct igc_mirror *m, struct interval *iv)
 {
   emacs_abort ();
 }
 
 static void
-mirror_itree_tree (struct igc_closure *c, struct itree_tree *t)
+mirror_itree_tree (struct igc_mirror *m, struct itree_tree *t)
 {
   emacs_abort ();
 }
 
 static void
-mirror_itree_node (struct igc_closure *c, struct itree_node *n)
+mirror_itree_node (struct igc_mirror *m, struct itree_node *n)
 {
   emacs_abort ();
 }
 
 static void
-mirror_image (struct igc_closure *c, struct image *i)
+mirror_image (struct igc_mirror *m, struct image *i)
 {
   emacs_abort ();
 }
 
 static void
-mirror_image_cache (struct igc_closure *c, struct image_cache *ca)
+mirror_image_cache (struct igc_mirror *m, struct image_cache *ca)
 {
   emacs_abort ();
 }
 
 static void
-mirror_face (struct igc_closure *c, struct face *f)
+mirror_face (struct igc_mirror *m, struct face *f)
 {
   emacs_abort ();
 }
 
 static void
-mirror_face_cache (struct igc_closure *c, struct face_cache *ca)
+mirror_face_cache (struct igc_mirror *m, struct face_cache *ca)
 {
   emacs_abort ();
 }
 
 static void
-mirror_ptr_vec (struct igc_closure *c, void *client)
+mirror_ptr_vec (struct igc_mirror *m, void *client)
 {
   emacs_abort ();
 }
 
 static void
-mirror_weak_ref (struct igc_closure *c, struct Lisp_Weak_Ref *wref)
+mirror_weak_ref (struct igc_mirror *m, struct Lisp_Weak_Ref *wref)
 {
   emacs_abort ();
 }
 
 static void
-mirror_weak (struct igc_closure *c, struct igc_header* base)
+mirror_weak (struct igc_mirror *m, struct igc_header *base)
 {
   emacs_abort ();
 }
 
 static void
-mirror_cons (struct igc_closure *c, struct Lisp_Cons *cons)
+mirror_cons (struct igc_mirror *m, struct Lisp_Cons *cons)
 {
   emacs_abort ();
 }
 
 static void
-mirror_blv (struct igc_closure *c, struct Lisp_Buffer_Local_Value *blv)
+mirror_blv (struct igc_mirror *m, struct Lisp_Buffer_Local_Value *blv)
 {
   emacs_abort ();
 }
 
 static void
-mirror_vectorlike (struct igc_closure *c, struct Lisp_Vector *v)
+mirror_vectorlike (struct igc_mirror *m, struct Lisp_Vector *v)
 {
   emacs_abort ();
 }
 
 #ifndef IN_MY_FORK
 static void
-mirror_obarray (struct igc_closure *c, struct Lisp_Obarray *o)
+mirror_obarray (struct igc_mirror *m, struct Lisp_Obarray *o)
 {
   emacs_abort ();
 }
 #endif
 
 static void
-mirror_font (struct igc_closure *c, struct Lisp_Vector *v)
+mirror_font (struct igc_mirror *m, struct Lisp_Vector *v)
 {
   emacs_abort ();
 }
 
 static void
-mirror_mutex (struct igc_closure *c, struct Lisp_Mutex *m)
+mirror_mutex (struct igc_mirror *m, struct Lisp_Mutex *mx)
 {
   emacs_abort ();
 }
 
 static void
-mirror_coding (struct igc_closure *c, struct coding_system *cs)
+mirror_coding (struct igc_mirror *m, struct coding_system *cs)
 {
   emacs_abort ();
 }
 
 static void
-mirror_buffer (struct igc_closure *c, struct buffer *b)
+mirror_buffer (struct igc_mirror *m, struct buffer *b)
 {
   emacs_abort ();
 }
 
 static void
-mirror_göyph_matrix (struct igc_closure *c, struct glyph_matrix *m)
+mirror_göyph_matrix (struct igc_mirror *m, struct glyph_matrix *g)
 {
   emacs_abort ();
 }
 
 static void
-mirror_frame (struct igc_closure *c, struct frame *b)
+mirror_frame (struct igc_mirror *m, struct frame *b)
 {
   emacs_abort ();
 }
 
 static void
-mirror_window (struct igc_closure *c, struct window *w)
+mirror_window (struct igc_mirror *m, struct window *w)
 {
   emacs_abort ();
 }
 
 static void
-mirror_hash_table (struct igc_closure *c, struct Lisp_Hash_Table *h)
+mirror_hash_table (struct igc_mirror *m, struct Lisp_Hash_Table *h)
 {
   emacs_abort ();
 }
 
 static void
-mirror_char_table (struct igc_closure *c, struct Lisp_Vector *v)
+mirror_char_table (struct igc_mirror *m, struct Lisp_Vector *v)
 {
   emacs_abort ();
 }
 
 static void
-mirror_overlay (struct igc_closure *c, struct Lisp_Overlay *o)
+mirror_overlay (struct igc_mirror *m, struct Lisp_Overlay *o)
 {
   emacs_abort ();
 }
 
 static void
-mirror_subr (struct igc_closure *c, struct Lisp_Subr *s)
+mirror_subr (struct igc_mirror *m, struct Lisp_Subr *s)
 {
   emacs_abort ();
 }
 
 static void
-mirror_misc_ptr (struct igc_closure *c, struct Lisp_Misc_Ptr *p)
+mirror_misc_ptr (struct igc_mirror *m, struct Lisp_Misc_Ptr *p)
 {
   emacs_abort ();
 }
 
 static void
-mirror_user_ptr (struct igc_closure *c, struct Lisp_User_Ptr *p)
+mirror_user_ptr (struct igc_mirror *m, struct Lisp_User_Ptr *p)
 {
   emacs_abort ();
 }
 
 static void
-mirror_handler (struct igc_closure *c, struct handler *h)
+mirror_handler (struct igc_mirror *m, struct handler *h)
 {
   emacs_abort ();
 }
 
 static void
-mirror_thread (struct igc_closure *c, struct thread_state *s)
+mirror_thread (struct igc_mirror *m, struct thread_state *s)
 {
   emacs_abort ();
 }
 
 static void
-mirror_terminal (struct igc_closure *c, struct terminal *t)
+mirror_terminal (struct igc_mirror *m, struct terminal *t)
 {
   emacs_abort ();
 }
 
 static void
-mirror_marker (struct igc_closure *c, struct Lisp_Marker *m)
+mirror_marker (struct igc_mirror *m, struct Lisp_Marker *ma)
 {
 }
 
 static void
-mirror_finalizer (struct igc_closure *c, struct Lisp_Finalizer *f)
+mirror_finalizer (struct igc_mirror *m, struct Lisp_Finalizer *f)
 {
   emacs_abort ();
 }
 
 static void
-mirror_comp_unit (struct igc_closure *c, struct Lisp_Native_Comp_Unit *u)
+mirror_comp_unit (struct igc_mirror *m, struct Lisp_Native_Comp_Unit *u)
 {
   emacs_abort ();
 }
 
 #ifdef HAVE_XWIDGETS
 static void
-mirror_xwidget (struct igc_closure *c, struct xwidget *w)
+mirror_xwidget (struct igc_mirror *m, struct xwidget *w)
 {
   emacs_abort ();
 }
 
 static void
-mirror_xwidget_view (struct igc_closure *c, struct xwidget_view *w)
+mirror_xwidget_view (struct igc_mirror *m, struct xwidget_view *w)
 {
   emacs_abort ();
 }
@@ -3731,15 +3742,14 @@ mirror_xwidget_view (struct igc_closure *c, struct xwidget_view *w)
 
 #ifdef HAVE_MODULES
 static void
-mirror_global_ref (struct igc_closure *c, struct module_global_reference *r)
+mirror_global_ref (struct igc_mirror *m, struct module_global_reference *r)
 {
   emacs_abort ();
 }
 #endif
 
-
 static void
-mirror_vector (struct igc_closure *c, struct Lisp_Vector *v)
+mirror_vector (struct igc_mirror *m, struct Lisp_Vector *v)
 {
   void *client = v;
   switch (pseudo_vector_type (v))
@@ -3751,50 +3761,50 @@ mirror_vector (struct igc_closure *c, struct Lisp_Vector *v)
 #endif
 
     case PVEC_BUFFER:
-      mirror_buffer (c, client);
+      mirror_buffer (m, client);
       break;
 
     case PVEC_FRAME:
-      mirror_frame (c, client);
+      mirror_frame (m, client);
       break;
 
     case PVEC_WINDOW:
-      mirror_window (c, client);
+      mirror_window (m, client);
       break;
 
     case PVEC_HASH_TABLE:
-      mirror_hash_table (c, client);
+      mirror_hash_table (m, client);
       break;
 
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
-      mirror_char_table (c, client);
+      mirror_char_table (m, client);
       break;
 
     case PVEC_BOOL_VECTOR:
       break;
 
     case PVEC_OVERLAY:
-      mirror_overlay (c, client);
+      mirror_overlay (m, client);
       break;
 
     case PVEC_SUBR:
-      mirror_subr (c, client);
+      mirror_subr (m, client);
       break;
 
     case PVEC_FREE:
       emacs_abort ();
 
     case PVEC_FINALIZER:
-      mirror_finalizer (c, client);
+      mirror_finalizer (m, client);
       break;
 
     case PVEC_MISC_PTR:
-      mirror_misc_ptr (c, client);
+      mirror_misc_ptr (m, client);
       break;
 
     case PVEC_USER_PTR:
-      mirror_user_ptr (c, client);
+      mirror_user_ptr (m, client);
       break;
 
 #ifdef HAVE_XWIDGETS
@@ -3808,36 +3818,36 @@ mirror_vector (struct igc_closure *c, struct Lisp_Vector *v)
 #endif
 
     case PVEC_THREAD:
-      mirror_thread (c, client);
+      mirror_thread (m, client);
       break;
 
     case PVEC_MUTEX:
-      mirror_mutex (c, client);
+      mirror_mutex (m, client);
       break;
 
     case PVEC_TERMINAL:
-      mirror_terminal (c, client);
+      mirror_terminal (m, client);
       break;
 
     case PVEC_MARKER:
-      mirror_marker (c, client);
+      mirror_marker (m, client);
       break;
 
     case PVEC_BIGNUM:
       break;
 
     case PVEC_NATIVE_COMP_UNIT:
-      mirror_comp_unit (c, client);
+      mirror_comp_unit (m, client);
       break;
 
     case PVEC_MODULE_GLOBAL_REFERENCE:
 #ifdef HAVE_MODULES
-      mirror_global_ref (c, client);
+      mirror_global_ref (m, client);
 #endif
       break;
 
     case PVEC_FONT:
-      mirror_font (c, client);
+      mirror_font (m, client);
       break;
 
     case PVEC_NORMAL_VECTOR:
@@ -3858,7 +3868,7 @@ mirror_vector (struct igc_closure *c, struct Lisp_Vector *v)
 #ifdef IN_MY_FORK
     case PVEC_PACKAGE:
 #endif
-      mirror_vectorlike (c, client);
+      mirror_vectorlike (m, client);
       break;
 
     case PVEC_WEAK_REF:
@@ -3868,7 +3878,7 @@ mirror_vector (struct igc_closure *c, struct Lisp_Vector *v)
 }
 
 static void
-mirror_obj (struct igc_closure *c, void *base)
+mirror_obj (struct igc_mirror *m, void *base)
 {
   struct igc_header *header = base;
   void *client = base_to_client (header);
@@ -3885,11 +3895,11 @@ mirror_obj (struct igc_closure *c, void *base)
       emacs_abort ();
 
     case IGC_OBJ_PTR_VEC:
-      mirror_ptr_vec (c, client);
+      mirror_ptr_vec (m, client);
       break;
 
     case IGC_OBJ_CONS:
-      mirror_cons (c, client);
+      mirror_cons (m, client);
       break;
 
     case IGC_OBJ_STRING_DATA:
@@ -3898,73 +3908,78 @@ mirror_obj (struct igc_closure *c, void *base)
       break;
 
     case IGC_OBJ_SYMBOL:
-      mirror_symbol (c, client);
+      mirror_symbol (m, client);
       break;
 
     case IGC_OBJ_INTERVAL:
-      mirror_interval (c, client);
+      mirror_interval (m, client);
       break;
 
     case IGC_OBJ_STRING:
-      mirror_string (c, client);
+      mirror_string (m, client);
       break;
 
     case IGC_OBJ_VECTOR:
-      mirror_vector (c, client);
+      mirror_vector (m, client);
       break;
 
     case IGC_OBJ_ITREE_TREE:
-      mirror_itree_tree (c, client);
+      mirror_itree_tree (m, client);
       break;
 
     case IGC_OBJ_ITREE_NODE:
-      mirror_itree_node (c, client);
+      mirror_itree_node (m, client);
       break;
 
     case IGC_OBJ_IMAGE:
-      mirror_image (c, client);
+      mirror_image (m, client);
       break;
 
     case IGC_OBJ_IMAGE_CACHE:
-      mirror_image_cache (c, client);
+      mirror_image_cache (m, client);
       break;
 
     case IGC_OBJ_FACE:
-      mirror_face (c, client);
+      mirror_face (m, client);
       break;
 
     case IGC_OBJ_FACE_CACHE:
-      mirror_face_cache (c, client);
+      mirror_face_cache (m, client);
       break;
 
     case IGC_OBJ_BLV:
-      mirror_blv (c, client);
+      mirror_blv (m, client);
       break;
 
     case IGC_OBJ_WEAK:
-      mirror_weak (c, client);
+      mirror_weak (m, client);
       break;
     }
 }
 
 static void
-mirror_refs (struct igc_closure *c)
+mirror_objects (struct igc_mirror *m)
 {
-  DOHASH (XHASH_TABLE (c->dumped_to_obj), dumped, obj)
-    mirror_obj (c, lisp_to_ptr (obj));
+#if 1
+  DOHASH (XHASH_TABLE (m->dumped_to_obj), dumped, obj)
+    mirror_obj (m, lisp_to_ptr (obj));
+#endif
 }
 
 static void
-copy_dump_to_mps (void)
+copy_dump_to_mps (struct igc_mirror *m)
 {
-  Lisp_Object nobj = make_fixnum (500000);
-  Lisp_Object ht = CALLN (Fmake_hash_table, QCtest, Qeq, QCsize, nobj);
-  struct igc_closure c = { .dumped_to_obj = ht };
-  c.start_time = Ffloat_time (Qnil);
-  pdumper_visit_object_starts (copy_to_mps, &c);
-  c.end_copy_time = Ffloat_time (Qnil);
-  print_copy_stats (&c);
-  //mirror_refs (&closure);
+  pdumper_visit_object_starts (copy_to_mps, m);
+  m->end_copy_time = Ffloat_time (Qnil);
+  print_copy_stats (m);
+}
+
+static void
+mirror_dump (void)
+{
+  struct igc_mirror m = make_igc_mirror ();
+  copy_dump_to_mps (&m);
+  mirror_objects (&m);
 }
 
 void
@@ -3972,6 +3987,6 @@ igc_on_pdump_loaded (void *start, void *end)
 {
   root_create_ambig (global_igc, start, end);
   specpdl_ref count = igc_park_arena ();
-  copy_dump_to_mps ();
+  mirror_dump ();
   unbind_to (count, Qnil);
 }
