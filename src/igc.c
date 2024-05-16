@@ -3497,42 +3497,58 @@ lookup_ptr (struct igc_mirror *m, void *dumped)
 static void
 mirror_lisp_obj (struct igc_mirror *m, Lisp_Object *pobj)
 {
-    mps_word_t *p = (mps_word_t *) pobj;
-    mps_word_t word = *p;
-    mps_word_t tag = word & IGC_TAG_MASK;
+  mps_word_t *p = (mps_word_t *) pobj;
+  mps_word_t word = *p;
+  mps_word_t tag = word & IGC_TAG_MASK;
 
-    if (tag == Lisp_Int0 || tag == Lisp_Int1)
-      return;
-    else if (tag == Lisp_Type_Unused0)
-      emacs_abort ();
+  if (tag == Lisp_Int0 || tag == Lisp_Int1)
+    return;
+  else if (tag == Lisp_Type_Unused0)
+    emacs_abort ();
 
-    if (tag == Lisp_Symbol)
-      {
-	ptrdiff_t off = word ^ tag;
-	mps_addr_t client = (mps_addr_t) ((char *) lispsym + off);
-	if (pdumper_object_p (client))
-	  {
-	    mps_addr_t base = client_to_base (client);
-	    mps_addr_t mirror = lookup_ptr (m, base);
-	    igc_assert (mirror != NULL);
-	    client = base_to_client (mirror);
-	    ptrdiff_t new_off = (char *) client - (char *) lispsym;
-	    *p = new_off | tag;
-	  }
-      }
-    else
-      {
-	mps_addr_t client = (mps_addr_t) (word ^ tag);
-	if (pdumper_object_p (client))
-	  {
-	    mps_addr_t base = client_to_base (client);
-	    mps_addr_t mirror = lookup_ptr (m, base);
-	    igc_assert (mirror != NULL);
-	    client = base_to_client (mirror);
-	    *p = (mps_word_t) client | tag;
-	  }
-      }
+  if (tag == Lisp_Symbol)
+    {
+      ptrdiff_t off = word ^ tag;
+      mps_addr_t client = (mps_addr_t) ((char *) lispsym + off);
+      if (pdumper_object_p (client))
+	{
+	  mps_addr_t base = client_to_base (client);
+	  mps_addr_t mirror = lookup_ptr (m, base);
+	  igc_assert (mirror != NULL);
+	  client = base_to_client (mirror);
+	  ptrdiff_t new_off = (char *) client - (char *) lispsym;
+	  *p = new_off | tag;
+	}
+    }
+  else
+    {
+      mps_addr_t client = (mps_addr_t) (word ^ tag);
+      if (pdumper_object_p (client))
+	{
+	  mps_addr_t base = client_to_base (client);
+	  mps_addr_t mirror = lookup_ptr (m, base);
+	  igc_assert (mirror != NULL);
+	  client = base_to_client (mirror);
+	  *p = (mps_word_t) client | tag;
+	}
+    }
 }
+
+static void
+mirror_raw (struct igc_mirror *m, mps_addr_t *p)
+{
+  mps_addr_t client = *p;
+  if (pdumper_object_p (client))
+    {
+      mps_addr_t base = client_to_base (client);
+      mps_addr_t mirror = lookup_ptr (m, base);
+      igc_assert (mirror != NULL);
+      *p = base_to_client (base);
+    }
+}
+
+#define IGC_MIRROR_OBJ(m, obj) mirror_lisp_obj ((m), (obj))
+#define IGC_MIRROR_RAW(m, pp)  mirror_raw ((m), (mps_addr_t *) (pp))
 
 static void
 copy_to_mps (void *dumped, void *closure)
@@ -3543,9 +3559,62 @@ copy_to_mps (void *dumped, void *closure)
 }
 
 static void
+mirror_fwd (struct igc_mirror *m, lispfwd fwd)
+{
+  switch (XFWDTYPE (fwd))
+    {
+    case Lisp_Fwd_Int:
+    case Lisp_Fwd_Bool:
+    case Lisp_Fwd_Kboard_Obj:
+      break;
+
+    case Lisp_Fwd_Obj:
+      {
+	/* It is not guaranteed that we see all of these when
+	   scanning staticvec because of DEFVAR_LISP_NOPRO.  */
+	struct Lisp_Objfwd *o = (void *) fwd.fwdptr;
+	IGC_MIRROR_OBJ (m, o->objvar);
+      }
+      break;
+
+    case Lisp_Fwd_Buffer_Obj:
+      {
+	struct Lisp_Buffer_Objfwd *b = (void *) fwd.fwdptr;
+	IGC_MIRROR_OBJ (m, &b->predicate);
+      }
+      break;
+    }
+}
+
+static void
 mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *sym)
 {
-  emacs_abort ();
+  IGC_MIRROR_OBJ (m, &sym->u.s.name);
+  IGC_MIRROR_OBJ (m, &sym->u.s.function);
+  IGC_MIRROR_OBJ (m, &sym->u.s.plist);
+#ifdef IN_MY_FORK
+  IGC_MIRROR_OBJ (m, &sym->u.s.package);
+#else
+  IGC_MIRROR_RAW (ss, &sym->u.s.next);
+#endif
+  switch (sym->u.s.redirect)
+    {
+    case SYMBOL_PLAINVAL:
+      IGC_MIRROR_OBJ (m, &sym->u.s.val.value);
+      break;
+
+    case SYMBOL_VARALIAS:
+      IGC_MIRROR_RAW (m, &sym->u.s.val.alias);
+      break;
+
+    case SYMBOL_LOCALIZED:
+      IGC_MIRROR_RAW (m, &sym->u.s.val.blv);
+      break;
+
+    case SYMBOL_FORWARDED:
+      mirror_fwd (m, sym->u.s.val.fwd);
+      break;
+    }
 }
 
 static void
