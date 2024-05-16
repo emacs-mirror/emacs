@@ -3686,8 +3686,8 @@ mirror_weak (struct igc_mirror *m, struct igc_header *base)
 static void
 mirror_cons (struct igc_mirror *m, struct Lisp_Cons *cons)
 {
-  mirror_lisp_obj (m, &cons->u.s.car);
-  mirror_lisp_obj (m, &cons->u.s.u.cdr);
+  IGC_MIRROR_OBJ (m, &cons->u.s.car);
+  IGC_MIRROR_OBJ (m, &cons->u.s.u.cdr);
 }
 
 static void
