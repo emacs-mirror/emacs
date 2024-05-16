@@ -3498,8 +3498,43 @@ lookup_ptr (struct igc_mirror *m, void *dumped)
 }
 
 static void
-resolve_lisp_obj (struct igc_mirror *m, Lisp_Object *ref)
+mirror_lisp_obj (struct igc_mirror *m, Lisp_Object *pobj)
 {
+    mps_word_t *p = (mps_word_t *) pobj;
+    mps_word_t word = *p;
+    mps_word_t tag = word & IGC_TAG_MASK;
+
+    if (tag == Lisp_Int0 || tag == Lisp_Int1)
+      return;
+    else if (tag == Lisp_Type_Unused0)
+      emacs_abort ();
+
+    if (tag == Lisp_Symbol)
+      {
+	ptrdiff_t off = word ^ tag;
+	mps_addr_t client = (mps_addr_t) ((char *) lispsym + off);
+	if (pdumper_object_p (client))
+	  {
+	    mps_addr_t base = client_to_base (client);
+	    mps_addr_t mirror = lookup_ptr (m, base);
+	    igc_assert (mirror != NULL);
+	    client = base_to_client (mirror);
+	    ptrdiff_t new_off = (char *) client - (char *) lispsym;
+	    *p = new_off | tag;
+	  }
+      }
+    else
+      {
+	mps_addr_t client = (mps_addr_t) (word ^ tag);
+	if (pdumper_object_p (client))
+	  {
+	    mps_addr_t base = client_to_base (client);
+	    mps_addr_t mirror = lookup_ptr (m, base);
+	    igc_assert (mirror != NULL);
+	    client = base_to_client (mirror);
+	    *p = (mps_word_t) client | tag;
+	  }
+      }
 }
 
 static void
@@ -3585,7 +3620,8 @@ mirror_weak (struct igc_mirror *m, struct igc_header *base)
 static void
 mirror_cons (struct igc_mirror *m, struct Lisp_Cons *cons)
 {
-  emacs_abort ();
+  mirror_lisp_obj (m, &cons->u.s.car);
+  mirror_lisp_obj (m, &cons->u.s.u.cdr);
 }
 
 static void
