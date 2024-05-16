@@ -3973,10 +3973,63 @@ mirror_dump (void)
   mirror_objects (&m);
 }
 
+struct register_pdump_roots_ctx
+{
+  void *hot_start;  /* start of hot section in pdump */
+  void *hot_end;    /* end of hot section in pdump */
+  void *root_start; /* start (or NULL) of current root */
+  void *root_end;   /* end (or NULL) of current root */
+};
+
+/* Try to combine adjacent objects into one root.  Naively creating a
+   separate root for each object seems to run into serious efficiency
+   problems. */
+static void
+register_pdump_roots_1 (void *start, void *closure)
+{
+  struct igc_header *h = start;
+  void *end = (char *)start + to_bytes (h->nwords);
+  struct register_pdump_roots_ctx *ctx = closure;
+  if (start < ctx->hot_start || ctx->hot_end <= start)
+    return;
+  if (ctx->root_end == start) /* adjacent objects? */
+    {
+      ctx->root_end = end; /* combine them */
+    }
+  else
+    {
+      if (ctx->root_start != NULL)
+	{
+	  root_create_exact (global_igc, ctx->root_start, ctx->root_end,
+			     dflt_scanx);
+	}
+      ctx->root_start = start;
+      ctx->root_end = end;
+    }
+}
+
+static void
+register_pdump_roots (void *start, void *end)
+{
+  struct register_pdump_roots_ctx ctx = {
+    .hot_start = start,
+    .hot_end = end,
+    .root_start = NULL,
+    .root_end = NULL,
+  };
+  pdumper_visit_object_starts (register_pdump_roots_1, &ctx);
+  if (ctx.root_start != NULL)
+    {
+      root_create_exact (global_igc, ctx.root_start, ctx.root_end,
+			 dflt_scanx);
+    }
+}
+
 void
 igc_on_pdump_loaded (void *start, void *end)
 {
-  root_create_ambig (global_igc, start, end);
+  // root_create_ambig (global_igc, start, end);
+  register_pdump_roots (start, end);
   specpdl_ref count = igc_park_arena ();
   mirror_dump ();
   unbind_to (count, Qnil);
