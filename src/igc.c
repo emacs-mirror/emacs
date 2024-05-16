@@ -3886,7 +3886,7 @@ mirror_obj (struct igc_mirror *m, void *base)
 static void
 mirror_objects (struct igc_mirror *m)
 {
-#if 1
+#if 0
   DOHASH (XHASH_TABLE (m->dumped_to_obj), dumped, obj)
     mirror_obj (m, lisp_to_ptr (obj));
 #endif
@@ -3897,7 +3897,8 @@ copy_dump_to_mps (struct igc_mirror *m)
 {
   pdumper_visit_object_starts (copy_to_mps, m);
   m->end_copy_time = Ffloat_time (Qnil);
-  print_copy_stats (m);
+  if (getenv ("IGC_COPY_STATS"))
+    print_copy_stats (m);
 }
 
 static void

@@ -97,9 +97,14 @@ b die
 #settings set target.disable-aslr false
 #b dump_hash_table
 
-target create ./bootstrap-emacs
-settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest /Users/gerd/emacs/github/igc-copy/nextstep/Emacs.app/Contents/MacOS/ --eln-dest /Users/gerd/emacs/github/igc-copy/nextstep/Emacs.app/Contents/Frameworks/
+# target create ./bootstrap-emacs
+# settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest /Users/gerd/emacs/github/igc-copy/nextstep/Emacs.app/Contents/MacOS/ --eln-dest /Users/gerd/emacs/github/igc-copy/nextstep/Emacs.app/Contents/Frameworks/
+# settings set target.disable-aslr false
+# command alias go process launch --working-dir .
+#
+target create emacs
+settings set -- target.run-args -batch --no-site-file --no-site-lisp --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" --eval "(setq org--inhibit-version-check t)"  -f batch-byte-compile leim/ja-dic/ja-dic.el
 settings set target.disable-aslr false
-command alias go process launch --working-dir .
+command alias go process launch --working-dir ../lisp
 
 # end.
