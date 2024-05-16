@@ -208,6 +208,56 @@ static const char *obj_type_names[] = {
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_LAST);
 
+static const char *pvec_type_names[] = {
+  "PVEC_NORMAL_VECTOR",
+  "PVEC_FREE",
+  "PVEC_BIGNUM",
+  "PVEC_MARKER",
+  "PVEC_OVERLAY",
+  "PVEC_FINALIZER",
+  "PVEC_SYMBOL_WITH_POS",
+  "PVEC_MISC_PTR",
+  "PVEC_USER_PTR",
+  "PVEC_PROCESS",
+  "PVEC_FRAME",
+  "PVEC_WINDOW",
+  "PVEC_BOOL_VECTOR",
+  "PVEC_BUFFER",
+  "PVEC_HASH_TABLE",
+  "PVEC_OBARRAY",
+  "PVEC_TERMINAL",
+  "PVEC_WINDOW_CONFIGURATION",
+  "PVEC_SUBR",
+  "PVEC_OTHER",
+  "PVEC_XWIDGET",
+  "PVEC_XWIDGET_VIEW",
+  "PVEC_THREAD",
+  "PVEC_MUTEX",
+  "PVEC_CONDVAR",
+  "PVEC_MODULE_FUNCTION",
+  "PVEC_MODULE_GLOBAL_REFERENCE",
+  "PVEC_NATIVE_COMP_UNIT",
+  "PVEC_TS_PARSER",
+  "PVEC_TS_NODE",
+  "PVEC_TS_COMPILED_QUERY",
+  "PVEC_SQLITE",
+  "PVEC_WEAK_REF",
+  "PVEC_COMPILED",
+  "PVEC_CHAR_TABLE",
+  "PVEC_SUB_CHAR_TABLE",
+  "PVEC_RECORD",
+  "PVEC_FONT",
+};
+
+igc_static_assert (ARRAYELTS (pvec_type_names) == PVEC_TAG_MAX + 1);
+
+static const char *
+pvec_type_name (enum pvec_type type)
+{
+  igc_assert (0 <= type && type <= PVEC_TAG_MAX);
+  return pvec_type_names[type];
+}
+
 struct igc_stats
 {
   struct
@@ -1246,12 +1296,13 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	    igc_assert (obj_type < IGC_OBJ_LAST);
 	    st->obj[obj_type].nwords += header->nwords;
 	    st->obj[obj_type].nobjs += 1;
-	    if (obj_type != IGC_OBJ_PAD)
+	    if (obj_type == IGC_OBJ_VECTOR)
 	      {
-		mps_word_t pvec_type = header->pvec_type;
-		igc_assert (pvec_type <= PVEC_TAG_MAX);
-		st->obj[pvec_type].nwords += header->nwords;
-		st->obj[pvec_type].nobjs += 1;
+		struct Lisp_Vector* v = (struct Lisp_Vector*)client;
+		enum pvec_type pvec_type = PSEUDOVECTOR_TYPE (v);
+		igc_assert (0 <= pvec_type && pvec_type <= PVEC_TAG_MAX);
+		st->pvec[pvec_type].nwords += header->nwords;
+		st->pvec[pvec_type].nobjs += 1;
 	      }
 	  }
 
@@ -3107,8 +3158,9 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   struct igc *gc = global_igc;
   struct igc_stats st = { 0 };
   mps_res_t res;
-  IGC_WITH_PARKED (gc) {
-     res = mps_pool_walk (gc->dflt_pool, dflt_scanx, &st);
+  IGC_WITH_PARKED (gc)
+  {
+    res = mps_pool_walk (gc->dflt_pool, dflt_scanx, &st);
   }
   if (res != MPS_RES_OK)
     error ("Error %d walking memory", res);
@@ -3117,11 +3169,17 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   for (int i = 0; i < IGC_OBJ_LAST; ++i)
     {
       Lisp_Object e
-	= list3 (build_string (obj_type_names[i]), make_int (st.obj[i].nobjs),
-		 make_int (st.obj[i].nwords));
+	  = list3 (build_string (obj_type_names[i]),
+		   make_int (st.obj[i].nobjs), make_int (st.obj[i].nwords));
       result = Fcons (e, result);
     }
-
+  for (enum pvec_type i = 0; i <= PVEC_TAG_MAX; i++)
+    {
+      Lisp_Object e
+	  = list3 (build_string (pvec_type_name (i)),
+		   make_int (st.pvec[i].nobjs), make_int (st.pvec[i].nwords));
+      result = Fcons (e, result);
+    }
   return result;
 }
 
