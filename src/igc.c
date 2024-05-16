@@ -3569,7 +3569,7 @@ mirror_buffer (struct igc_mirror *m, struct buffer *b)
 }
 
 static void
-mirror_göyph_matrix (struct igc_mirror *m, struct glyph_matrix *g)
+mirror_glyph_matrix (struct igc_mirror *m, struct glyph_matrix *g)
 {
   emacs_abort ();
 }
