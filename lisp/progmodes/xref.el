@@ -2101,7 +2101,10 @@ Such as the current syntax table and the applied syntax properties."
 (defun xref--convert-hits (hits regexp)
   (let (xref--last-file-buffer
         (tmp-buffer (generate-new-buffer " *xref-temp*"))
-        (xref--hits-remote-id (file-remote-p default-directory))
+        (xref--hits-remote-id (if (file-name-absolute-p (cadar hits))
+                                  ;; TODO: Add some test for this.
+                                  (file-remote-p default-directory)
+                                default-directory))
         (syntax-needed (xref--regexp-syntax-dependent-p regexp)))
     (unwind-protect
         (mapcan (lambda (hit)
