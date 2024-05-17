@@ -3787,9 +3787,41 @@ mirror_glyph_matrix (struct igc_mirror *m, struct glyph_matrix *g)
 }
 
 static void
-mirror_frame (struct igc_mirror *m, struct frame *b)
+mirror_frame (struct igc_mirror *m, struct frame *f)
 {
-  emacs_abort ();
+  // FIXME
+  // output_data;
+  // terminal
+  // glyph_pool
+  // glyph matrices
+  // struct font_driver_list *font_driver_list;
+  // struct text_conversion_state conversion;
+  mirror_vectorlike (m, (struct Lisp_Vector *) f);
+
+  IGC_MIRROR_RAW (m, &f->face_cache);
+  if (f->terminal)
+    IGC_MIRROR_RAW (m, &f->terminal);
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f) && FRAME_OUTPUT_DATA (f))
+    {
+      struct font **font_ptr = &FRAME_FONT (f);
+      if (*font_ptr)
+	IGC_MIRROR_RAW (m, font_ptr);
+      Lisp_Object *nle = &FRAME_DISPLAY_INFO (f)->name_list_element;
+      IGC_MIRROR_OBJ (m, nle);
+
+#ifdef HAVE_NS
+      struct ns_display_info *i = FRAME_DISPLAY_INFO (f);
+      IGC_MIRROR_RAW (m, &i->terminal);
+      IGC_MIRROR_OBJ (m, &i->rdb);
+      IGC_MIRROR_RAW (m, &i->highlight_frame);
+      IGC_MIRROR_RAW (m, &i->ns_focus_frame);
+      IGC_MIRROR_RAW (m, &i->last_mouse_motion_frame);
+      struct frame **pf = ns_emacs_view_emacs_frame (f);
+      IGC_MIRROR_RAW (m, pf);
+#endif
+    }
+#endif // HAVE_WINDOW_SYSTEM
 }
 
 static void
