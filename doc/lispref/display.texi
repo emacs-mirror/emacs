@@ -4015,6 +4015,14 @@ the charset @code{japanese-jisx0208}:
 (set-fontset-font t 'japanese-jisx0208
                   (font-spec :family "Kochi Gothic"))
 @end smallexample
+
+Note that this function should generally be called from the user's
+init files, and more generally before any of @var{characters} were
+displayed in the current Emacs session.  That's because for some
+scripts, Emacs caches the way they are displayed, and the cached
+information includes the font used for them -- once these characters
+are displayed once, the cached font will continue to be used
+regardless of changes in the fontsets.
 @end defun
 
 @defun char-displayable-p char
