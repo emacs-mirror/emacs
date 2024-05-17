@@ -4,6 +4,7 @@
 @c See the file elisp.texi for copying conditions.
 @node Parsing Program Source
 @chapter Parsing Program Source
+@cindex parsing program source
 
 @cindex syntax tree, from parsing program source
 Emacs provides various ways to parse program source text and produce a
