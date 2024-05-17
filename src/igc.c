@@ -3631,6 +3631,12 @@ mirror_string (struct igc_mirror *m, struct Lisp_String *s)
 }
 
 static void
+mirror_float (struct igc_mirror *m, struct Lisp_Float *f)
+{
+  igc_assert (pdumper_cold_object_p (f));
+}
+
+static void
 mirror_interval (struct igc_mirror *m, struct interval *iv)
 {
   IGC_MIRROR_RAW (m, &iv->left);
@@ -3706,7 +3712,9 @@ mirror_cons (struct igc_mirror *m, struct Lisp_Cons *cons)
 static void
 mirror_blv (struct igc_mirror *m, struct Lisp_Buffer_Local_Value *blv)
 {
-  emacs_abort ();
+  IGC_MIRROR_OBJ (m, &blv->where);
+  IGC_MIRROR_OBJ (m, &blv->defcell);
+  IGC_MIRROR_OBJ (m, &blv->valcell);
 }
 
 static void
@@ -4009,7 +4017,10 @@ mirror_obj (struct igc_mirror *m, void *base)
       break;
 
     case IGC_OBJ_STRING_DATA:
+      break;
+
     case IGC_OBJ_FLOAT:
+      mirror_float (m, client);
       break;
 
     case IGC_OBJ_SYMBOL:
