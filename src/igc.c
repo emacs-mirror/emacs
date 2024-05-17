@@ -3604,7 +3604,7 @@ mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *sym)
 #ifdef IN_MY_FORK
   IGC_MIRROR_OBJ (m, &sym->u.s.package);
 #else
-  IGC_MIRROR_RAW (ss, &sym->u.s.next);
+  IGC_MIRROR_RAW (m, &sym->u.s.next);
 #endif
   switch (sym->u.s.redirect)
     {
