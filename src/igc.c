@@ -3548,7 +3548,16 @@ mirror_raw (struct igc_mirror *m, mps_addr_t *p)
 }
 
 #define IGC_MIRROR_OBJ(m, obj) mirror_lisp_obj ((m), (obj))
-#define IGC_MIRROR_RAW(m, pp)  mirror_raw ((m), (mps_addr_t *) (pp))
+#define IGC_MIRROR_RAW(m, pp) mirror_raw ((m), (mps_addr_t *) (pp))
+
+static void
+mirror_array (struct igc_mirror *m, Lisp_Object *array, size_t n)
+{
+  for (size_t i = 0; i < n; ++i)
+    IGC_MIRROR_OBJ (m, &array[i]);
+}
+
+#define IGC_MIRROR_NOBJS(m, a, n) mirror_array (m, a, n)
 
 static void
 copy_to_mps (void *dumped, void *closure)
@@ -3628,12 +3637,6 @@ mirror_string (struct igc_mirror *m, struct Lisp_String *s)
   s->u.s.data = data;
 
   IGC_MIRROR_RAW (m, &s->u.s.intervals);
-}
-
-static void
-mirror_float (struct igc_mirror *m, struct Lisp_Float *f)
-{
-  igc_assert (pdumper_cold_object_p (f));
 }
 
 static void
@@ -3720,7 +3723,10 @@ mirror_blv (struct igc_mirror *m, struct Lisp_Buffer_Local_Value *blv)
 static void
 mirror_vectorlike (struct igc_mirror *m, struct Lisp_Vector *v)
 {
-  emacs_abort ();
+  ptrdiff_t size = v->header.size;
+  if (size & PSEUDOVECTOR_FLAG)
+    size &= PSEUDOVECTOR_SIZE_MASK;
+  IGC_MIRROR_NOBJS (m, v->contents, size);
 }
 
 #ifndef IN_MY_FORK
@@ -4017,10 +4023,7 @@ mirror_obj (struct igc_mirror *m, void *base)
       break;
 
     case IGC_OBJ_STRING_DATA:
-      break;
-
     case IGC_OBJ_FLOAT:
-      mirror_float (m, client);
       break;
 
     case IGC_OBJ_SYMBOL:
