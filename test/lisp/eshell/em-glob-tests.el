@@ -72,9 +72,9 @@ component ending in \"symlink\" is treated as a symbolic link."
         (eshell-glob-splice-results t))
     (with-fake-files '("a.el" "b.el" "c.txt")
       ;; Ensure the default expansion splices the glob.
-      (eshell-command-result-equal "list *.el" '("a.el" "b.el"))
-      (eshell-command-result-equal "list *.txt" '("c.txt"))
-      (eshell-command-result-equal "list *.no" '("*.no")))))
+      (eshell-command-result-equal "funcall list *.el" '("a.el" "b.el"))
+      (eshell-command-result-equal "funcall list *.txt" '("c.txt"))
+      (eshell-command-result-equal "funcall list *.no" '("*.no")))))
 
 (ert-deftest em-glob-test/expand/no-splice-results ()
   "Test that globs are treated as lists when
@@ -83,11 +83,11 @@ component ending in \"symlink\" is treated as a symbolic link."
         (eshell-glob-splice-results nil))
     (with-fake-files '("a.el" "b.el" "c.txt")
       ;; Ensure the default expansion splices the glob.
-      (eshell-command-result-equal "list *.el" '(("a.el" "b.el")))
-      (eshell-command-result-equal "list *.txt" '(("c.txt")))
+      (eshell-command-result-equal "funcall list *.el" '(("a.el" "b.el")))
+      (eshell-command-result-equal "funcall list *.txt" '(("c.txt")))
       ;; The no-matches case is special here: the glob is just the
       ;; string, not the list of results.
-      (eshell-command-result-equal "list *.no" '("*.no")))))
+      (eshell-command-result-equal "funcall list *.no" '("*.no")))))
 
 (ert-deftest em-glob-test/expand/explicitly-splice-results ()
   "Test explicitly splicing globs works the same no matter the
@@ -97,11 +97,11 @@ value of `eshell-glob-splice-results'."
       (ert-info ((format "eshell-glob-splice-results: %s"
                          eshell-glob-splice-results))
         (with-fake-files '("a.el" "b.el" "c.txt")
-          (eshell-command-result-equal "list $@{listify *.el}"
+          (eshell-command-result-equal "funcall list $@{listify *.el}"
                                        '("a.el" "b.el"))
-          (eshell-command-result-equal "list $@{listify *.txt}"
+          (eshell-command-result-equal "funcall list $@{listify *.txt}"
                                        '("c.txt"))
-          (eshell-command-result-equal "list $@{listify *.no}"
+          (eshell-command-result-equal "funcall list $@{listify *.no}"
                                        '("*.no")))))))
 
 (ert-deftest em-glob-test/expand/explicitly-listify-results ()
@@ -112,11 +112,11 @@ value of `eshell-glob-splice-results'."
       (ert-info ((format "eshell-glob-splice-results: %s"
                          eshell-glob-splice-results))
         (with-fake-files '("a.el" "b.el" "c.txt")
-          (eshell-command-result-equal "list ${listify *.el}"
+          (eshell-command-result-equal "funcall list ${listify *.el}"
                                        '(("a.el" "b.el")))
-          (eshell-command-result-equal "list ${listify *.txt}"
+          (eshell-command-result-equal "funcall list ${listify *.txt}"
                                        '(("c.txt")))
-          (eshell-command-result-equal "list ${listify *.no}"
+          (eshell-command-result-equal "funcall list ${listify *.no}"
                                        '(("*.no"))))))))
 
 

@@ -782,6 +782,14 @@ the buffer is merely buried instead.
 Set environment variables using input like Bash's @command{export}, as
 in @samp{export @var{var1}=@var{val1} @var{var2}=@var{val2} @dots{}}.
 
+@cmindex funcall
+@item funcall @var{function} [@var{arg}]@dots{}
+Call @var{function} with the specified arguments (@var{function} may be
+a symbol or a string naming a Lisp function).  This command is useful
+when you want to call an ordinary Lisp function using Eshell's command
+form (@pxref{Invocation}), even if there may be an external program of
+the same name.
+
 @cmindex grep
 @item grep [@var{arg}]@dots{}
 @cmindex agrep

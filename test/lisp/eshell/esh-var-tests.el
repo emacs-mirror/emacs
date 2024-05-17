@@ -436,7 +436,7 @@ nil, use FUNCTION instead."
 
 (ert-deftest esh-var-test/quoted-interp-lisp-indices ()
   "Interpolate Lisp form evaluation with index."
-  (eshell-command-result-equal "concat \"$(list 1 2)[1]\" cool"
+  (eshell-command-result-equal "funcall concat \"$(list 1 2)[1]\" cool"
                                "2cool"))
 
 (ert-deftest esh-var-test/quoted-interp-cmd ()
@@ -446,7 +446,7 @@ nil, use FUNCTION instead."
 
 (ert-deftest esh-var-test/quoted-interp-cmd-indices ()
   "Interpolate command result with index inside double-quotes."
-  (eshell-command-result-equal "concat \"${listify 1 2}[1]\" cool"
+  (eshell-command-result-equal "funcall concat \"${listify 1 2}[1]\" cool"
                                "2cool"))
 
 (ert-deftest esh-var-test/quoted-interp-temp-cmd ()
@@ -504,9 +504,9 @@ nil, use FUNCTION instead."
 (ert-deftest esh-var-test/interp-convert-quoted-var-number ()
   "Interpolate numeric quoted numeric variable."
   (let ((eshell-test-value 123))
-    (eshell-command-result-equal "type-of $'eshell-test-value'"
+    (eshell-command-result-equal "funcall type-of $'eshell-test-value'"
                                  'integer)
-    (eshell-command-result-equal "type-of $\"eshell-test-value\""
+    (eshell-command-result-equal "funcall type-of $\"eshell-test-value\""
                                  'integer)))
 
 (ert-deftest esh-var-test/interp-convert-quoted-var-split-indices ()
@@ -546,7 +546,7 @@ nil, use FUNCTION instead."
 (ert-deftest esh-var-test/quoted-interp-convert-var-number ()
   "Interpolate numeric variable inside double-quotes."
   (let ((eshell-test-value 123))
-    (eshell-command-result-equal "type-of \"$eshell-test-value\""
+    (eshell-command-result-equal "funcall type-of \"$eshell-test-value\""
                                  'string)))
 
 (ert-deftest esh-var-test/quoted-interp-convert-var-split-indices ()
@@ -560,10 +560,11 @@ nil, use FUNCTION instead."
 (ert-deftest esh-var-test/quoted-interp-convert-quoted-var-number ()
   "Interpolate numeric quoted variable inside double-quotes."
   (let ((eshell-test-value 123))
-    (eshell-command-result-equal "type-of \"$'eshell-test-value'\""
+    (eshell-command-result-equal "funcall type-of \"$'eshell-test-value'\""
                                  'string)
-    (eshell-command-result-equal "type-of \"$\\\"eshell-test-value\\\"\""
-                                 'string)))
+    (eshell-command-result-equal
+     "funcall type-of \"$\\\"eshell-test-value\\\"\""
+     'string)))
 
 (ert-deftest esh-var-test/quoted-interp-convert-quoted-var-split-indices ()
   "Interpolate quoted string variable with indices inside double-quotes."
@@ -905,11 +906,11 @@ the value of the $PAGER env var."
 (ert-deftest esh-var-test/last-status-var-lisp-command ()
   "Test using the \"last exit status\" ($?) variable with a Lisp command."
   (with-temp-eshell
-   (eshell-match-command-output "zerop 0; echo $?"
+   (eshell-match-command-output "funcall zerop 0; echo $?"
                                 "t\n0\n")
-   (eshell-match-command-output "zerop 1; echo $?"
+   (eshell-match-command-output "funcall zerop 1; echo $?"
                                 "0\n")
-   (eshell-match-command-output "zerop foo; echo $?"
+   (eshell-match-command-output "funcall zerop foo; echo $?"
                                 "1\n" nil t)))
 
 (ert-deftest esh-var-test/last-status-var-lisp-form ()
@@ -972,10 +973,10 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
   "Test using the \"last result\" ($$) variable with split indices."
   (with-temp-eshell
    (eshell-match-command-output
-    "string-join (list \"01\" \"02\") :; + $$[: 1] 3"
+    "funcall string-join (list \"01\" \"02\") :; + $$[: 1] 3"
     "01:02\n5\n")
    (eshell-match-command-output
-    "string-join (list \"01\" \"02\") :; echo \"$$[: 1]\""
+    "funcall string-join (list \"01\" \"02\") :; echo \"$$[: 1]\""
     "01:02\n02\n")))
 
 (ert-deftest esh-var-test/last-arg-var ()
@@ -995,9 +996,11 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
 (ert-deftest esh-var-test/last-arg-var-split-indices ()
   "Test using the \"last arg\" ($_) variable with split indices."
   (with-temp-eshell
-   (eshell-match-command-output "concat 01:02 03:04; + $_[0][: 1] 5"
-                                "01:0203:04\n7\n")
-   (eshell-match-command-output "concat 01:02 03:04; echo \"$_[0][: 1]\""
-                                "01:0203:04\n02\n")))
+   (eshell-match-command-output
+    "funcall concat 01:02 03:04; + $_[1][: 1] 5"
+    "01:0203:04\n7\n")
+   (eshell-match-command-output
+    "funcall concat 01:02 03:04; echo \"$_[1][: 1]\""
+    "01:0203:04\n02\n")))
 
 ;; esh-var-tests.el ends here

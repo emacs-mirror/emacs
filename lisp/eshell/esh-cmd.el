@@ -1480,6 +1480,14 @@ Print the result using `eshell-printn'; if an error occurs, print it
 via `eshell-errorn'."
   (eshell-eval* #'eshell-printn #'eshell-errorn form))
 
+(defun eshell/funcall (func &rest args)
+  "Eshell built-in command for `funcall' (which see).
+This simply calls FUNC with the specified ARGS.  FUNC may be a symbol or
+a string naming a Lisp function."
+  (when (stringp func)
+    (setq func (intern func)))
+  (apply func args))
+
 (defvar eshell-last-output-end)         ;Defined in esh-mode.el.
 
 (defun eshell-lisp-command (object &optional args)
