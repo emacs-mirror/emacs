@@ -3659,7 +3659,13 @@ mirror_itree_tree (struct igc_mirror *m, struct itree_tree *t)
 static void
 mirror_itree_node (struct igc_mirror *m, struct itree_node *n)
 {
-  emacs_abort ();
+  if (n->parent)
+    IGC_MIRROR_RAW (m, &n->parent);
+  if (n->left)
+    IGC_MIRROR_RAW (m, &n->left);
+  if (n->right)
+    IGC_MIRROR_RAW (m, &n->right);
+  IGC_MIRROR_OBJ (m, &n->data);
 }
 
 static void
