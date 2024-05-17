@@ -3764,7 +3764,20 @@ mirror_coding (struct igc_mirror *m, struct coding_system *cs)
 static void
 mirror_buffer (struct igc_mirror *m, struct buffer *b)
 {
-  emacs_abort ();
+  mirror_vectorlike (m, (struct Lisp_Vector *) b);
+  IGC_MIRROR_RAW (m, &b->own_text.intervals);
+  IGC_MIRROR_RAW (m, &b->own_text.markers);
+  IGC_MIRROR_RAW (m, &b->overlays);
+  IGC_MIRROR_RAW (m, &b->own_text.markers);
+
+  IGC_MIRROR_RAW (m, &b->base_buffer);
+  if (b->base_buffer)
+    b->text = &b->base_buffer->own_text;
+  else
+    b->text = &b->own_text;
+
+  // FIXME: special handling of undo_list?
+  IGC_MIRROR_OBJ (m, &b->undo_list_);
 }
 
 static void
