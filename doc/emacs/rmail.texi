@@ -1428,7 +1428,7 @@ encrypted/decrypted text.
 your Rmail file (@pxref{Rmail Inbox}).  When loaded for the first time,
 Rmail attempts to locate the @command{movemail} program and determine its
 version.  There are two versions of the @command{movemail} program: the
-GNU Mailutils version (@pxref{movemail,,,mailutils,GNU mailutils}),
+GNU Mailutils version (@pxref{movemail,,,mailutils,GNU Mailutils}),
 and an Emacs-specific version that is built and installed unless Emacs
 was configured @option{--with-mailutils} in effect.
 The two @command{movemail} versions support the same
@@ -1446,8 +1446,7 @@ mailboxes, etc.  It is able to access remote mailboxes using the POP3
 or IMAP4 protocol, and can retrieve mail from them using a TLS
 encrypted channel.  It also accepts mailbox arguments in @acronym{URL}
 form.  The detailed description of mailbox @acronym{URL}s can be found
-@c Note this node seems to be missing in some versions of mailutils.info?
-in @ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a
+in @ref{Mailbox,,,mailutils,GNU Mailutils}.  In short, a
 @acronym{URL} is:
 
 @smallexample
