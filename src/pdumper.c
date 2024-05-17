@@ -5388,6 +5388,28 @@ dump_visit_igc_objects (dump_visit_fn fn, void *closure)
       fn (start, closure);
     }
 }
+
+void *
+pdumper_next_object (struct pdumper_object_it *it)
+{
+  if (it->relocs == NULL)
+    {
+      const struct dump_table_locator *table
+	= &dump_private.header.igc_object_starts;
+      it->nrelocs = table->nr_entries;
+      it->relocs = dump_ptr (dump_public.start, table->offset);
+      it->i = 0;
+    }
+
+  if (it->i < it->nrelocs)
+    {
+      const struct dump_reloc *const relocs = it->relocs;
+      return dump_ptr (dump_public.start, dump_reloc_get_offset (relocs[it->i]));
+    }
+
+  return NULL;
+}
+
 # endif
 
 bool

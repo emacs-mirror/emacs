@@ -289,6 +289,18 @@ pdumper_visit_object_starts (dump_visit_fn fn, void *closure)
 #endif
 }
 
+#ifdef HAVE_MPS
+struct pdumper_object_it
+{
+  size_t i;
+  size_t nrelocs;
+  void *relocs;
+};
+
+/* Usage: struct pdumper_object_it it = {0};
+   while (p = pdumper_next_object (&it)) ... */
+void *pdumper_next_object (struct pdumper_object_it *it);
+#endif
 
 INLINE_HEADER_END
 #endif
