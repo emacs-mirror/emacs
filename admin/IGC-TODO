@@ -1,0 +1,16 @@
+Todo list for scratch/igc
+
+- Complete the code to mirror the object graph in a loaded dump in MPS.
+
+- Write the code that replaces references to the loaded dump with
+  references to the mirrored graph in all roots.
+
+- Implement weak hash tables.
+
+- Write the code to handle marker lists, undo list etc.
+
+- Maybe implement weak-ptr for the old GC.
+
+- Make native compilation work on macOS. (Might be fixed with Helmut's
+  exact root approach, but can't check because Homebrew libgccjit 14.1
+  makes problems when configuring (libgcc_s.dylib not found)).
