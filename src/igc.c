@@ -3630,10 +3630,9 @@ static void
 mirror_string (struct igc_mirror *m, struct Lisp_String *s)
 {
   igc_assert (pdumper_cold_object_p (s->u.s.data));
-  ptrdiff_t nbytes = STRING_BYTES (s) + 1;
+  ptrdiff_t nbytes = STRING_BYTES (s);
   unsigned char *data = alloc_string_data (nbytes, false);
-  data[nbytes] = 0;
-  memcpy (data, s->u.s.data, nbytes);
+  memcpy (data, s->u.s.data, nbytes + 1);
   s->u.s.data = data;
 
   IGC_MIRROR_RAW (m, &s->u.s.intervals);
@@ -3733,7 +3732,8 @@ mirror_vectorlike (struct igc_mirror *m, struct Lisp_Vector *v)
 static void
 mirror_obarray (struct igc_mirror *m, struct Lisp_Obarray *o)
 {
-  emacs_abort ();
+  if (o->buckets)
+    IGC_MIRROR_NOBJS (m, o->buckets, obarray_size (o));
 }
 #endif
 
