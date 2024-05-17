@@ -3827,7 +3827,23 @@ mirror_frame (struct igc_mirror *m, struct frame *f)
 static void
 mirror_window (struct igc_mirror *m, struct window *w)
 {
-  emacs_abort ();
+  mirror_vectorlike (m, (struct Lisp_Vector *) w);
+  igc_assert (w->current_matrix == NULL);
+  igc_assert (w->desired_matrix == NULL);
+
+  /* FIXME: window.h syas the following two are "marked specially", so
+     they are not seen by fix_vectorlike. That's of course a no-go
+     with MPS. What ever is special about these, we have to find
+     another way to accomplish that with MPS. */
+  IGC_MIRROR_OBJ (m, &w->prev_buffers);
+  IGC_MIRROR_OBJ (m, &w->next_buffers);
+
+#ifdef HAVE_NS
+  void *pr[4];
+  int n = ns_emacs_scroller_refs (w, pr, ARRAYELTS (pr));
+  for (int i = 0; i < n; ++i)
+    IGC_MIRROR_RAW (m, pr[i]);
+#endif
 }
 
 static void
