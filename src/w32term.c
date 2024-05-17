@@ -1455,7 +1455,7 @@ static void
 w32_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 {
   struct glyph *glyph = s->first_glyph;
-  unsigned char2b[8];
+  static unsigned char2b[8];
   int x, i, j;
   bool with_background;
 
