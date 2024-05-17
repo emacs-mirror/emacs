@@ -2464,11 +2464,6 @@ AC_DEFINE_UNQUOTED([SYSTEM_TYPE], ["$SYSTEM_TYPE"],
   [The type of system you are compiling for; sets 'system-type'.])
 AC_SUBST([SYSTEM_TYPE])
 
-# Check for pw_gecos in struct passwd; this is known to be missing on
-# Android.
-
-AC_CHECK_MEMBERS([struct passwd.pw_gecos], [], [], [#include <pwd.h>])
-
 pre_PKG_CONFIG_CFLAGS=$CFLAGS
 pre_PKG_CONFIG_LIBS=$LIBS
 
@@ -2753,6 +2748,17 @@ AC_SUBST([ANDROID_LDFLAGS])
 AC_SUBST([ANDROID_BUILD_CFLAGS])
 AC_SUBST([ANDROID_SHARED_USER_ID])
 AC_SUBST([ANDROID_SHARED_USER_NAME])
+
+# Check for pw_gecos in struct passwd; this is known to be missing on
+# Android.
+
+AH_TEMPLATE([USER_FULL_NAME], [How to get a user's full name.])
+AC_CHECK_MEMBERS([struct passwd.pw_gecos], [], [], [#include <pwd.h>])
+AS_IF([test x"$REALLY_ANDROID" = "xyes"],
+  [AC_DEFINE([USER_FULL_NAME], [android_user_full_name (pw)])],
+  [AS_IF([test x"$ac_cv_member_struct_passwd_pw_gecos" = "xyes"],
+    [AC_DEFINE([USER_FULL_NAME], [pw->pw_gecos])],
+    [AC_DEFINE([USER_FULL_NAME], [NULL])])])
 
 if test "${with_pgtk}" = "yes"; then
   window_system=pgtk
@@ -6459,9 +6465,6 @@ AC_SUBST([SEPCHAR])
 
 dnl Everybody supports this, except MS-DOS.
 AC_DEFINE([subprocesses], [1], [Define to enable asynchronous subprocesses.])
-
-AC_DEFINE([USER_FULL_NAME], [pw->pw_gecos], [How to get a user's full name.])
-
 
 AC_DEFINE([DIRECTORY_SEP], ['/'],
   [Character that separates directories in a file name.])
