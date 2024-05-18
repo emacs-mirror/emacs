@@ -1557,13 +1557,16 @@ character)."
   (pcase-let*
       ((`(,insert-value ,no-truncate ,char-print-limit)
         (eval-expression-get-print-arguments eval-last-sexp-arg-internal)))
-    ;; Setup the lexical environment if lexical-binding is enabled.
-    (elisp--eval-last-sexp-print-value
-     (eval (macroexpand-all
-            (eval-sexp-add-defvars
-             (elisp--eval-defun-1 (macroexpand (elisp--preceding-sexp)))))
-           lexical-binding)
-     (if insert-value (current-buffer) t) no-truncate char-print-limit)))
+    ;; The expression might change to a different buffer, so record the
+    ;; desired output stream now.
+    (let ((output (if insert-value (current-buffer) t)))
+      ;; Setup the lexical environment if lexical-binding is enabled.
+      (elisp--eval-last-sexp-print-value
+       (eval (macroexpand-all
+              (eval-sexp-add-defvars
+               (elisp--eval-defun-1 (macroexpand (elisp--preceding-sexp)))))
+             lexical-binding)
+       output no-truncate char-print-limit))))
 
 (defun elisp--eval-last-sexp-print-value
     (value output &optional no-truncate char-print-limit)
