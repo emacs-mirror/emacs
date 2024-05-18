@@ -2082,15 +2082,17 @@ Such as the current syntax table and the applied syntax properties."
 (defvar xref--last-file-buffer nil)
 (defvar xref--temp-buffer-file-name nil)
 (defvar xref--hits-remote-id nil)
+(defvar xref--hits-file-prefix nil)
 
 (defun xref--convert-hits (hits regexp)
-  (let (xref--last-file-buffer
-        (tmp-buffer (generate-new-buffer " *xref-temp*"))
-        (xref--hits-remote-id (if (file-name-absolute-p (cadar hits))
-                                  ;; TODO: Add some test for this.
-                                  (file-remote-p default-directory)
-                                default-directory))
-        (syntax-needed (xref--regexp-syntax-dependent-p regexp)))
+  (let* (xref--last-file-buffer
+         (tmp-buffer (generate-new-buffer " *xref-temp*"))
+         (xref--hits-remote-id (file-remote-p default-directory))
+         (xref--hits-file-prefix (if (and hits (file-name-absolute-p (cadar hits)))
+                                     ;; TODO: Add some test for this.
+                                     xref--hits-remote-id
+                                   (expand-file-name default-directory)))
+         (syntax-needed (xref--regexp-syntax-dependent-p regexp)))
     (unwind-protect
         (mapcan (lambda (hit)
                   (xref--collect-matches hit regexp tmp-buffer syntax-needed))
@@ -2099,7 +2101,7 @@ Such as the current syntax table and the applied syntax properties."
 
 (defun xref--collect-matches (hit regexp tmp-buffer syntax-needed)
   (pcase-let* ((`(,line ,file ,text) hit)
-               (file (and file (concat xref--hits-remote-id file)))
+               (file (and file (concat xref--hits-file-prefix file)))
                (buf (xref--find-file-buffer file)))
     (if buf
         (with-current-buffer buf
