@@ -1,9 +1,6 @@
 Todo list for scratch/igc
 
-- Complete the code to mirror the object graph in a loaded dump in MPS.
-
-- Write the code that replaces references to the loaded dump with
-  references to the mirrored graph in all roots.
+- Generate the code to mirror the object graph in a loaded dump in MPS.
 
 - Implement weak hash tables.
 
