@@ -1755,6 +1755,17 @@ that is, buffers not visiting a file and whose names start with a space.
 Previously, such buffers were never shown.  This command is bound to 'I'
 in Buffer Menu mode.
 
+---
+*** nXML Mode now comes with schemas for Mono/.NET development.
+The following new XML schemas are now supported:
+- MSBuild project files
+- Dotnet package properties files
+- Dotnet resource extension files
+- Dotnet Application config files
+- Nuget config file
+- Nuget package specification file
+- Nuget packages config file
+
 
 * New Modes and Packages in Emacs 30.1
 
