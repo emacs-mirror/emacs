@@ -110,7 +110,7 @@
                            do (cl-incf x (1+ child-len)) )
                do (insert "\n")))
     (require 'org-table)
-    (declare-function 'org-table-align "org")
+    (declare-function org-table-align "org")
     (org-table-align)))
 
 (defun syncdoc-update-type-hierarchy0 ()
