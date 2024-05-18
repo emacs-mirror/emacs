@@ -1073,17 +1073,8 @@ fix_image_cache (mps_ss_t ss, struct image_cache *c)
   MPS_SCAN_BEGIN (ss)
   {
 #ifdef HAVE_WINDOW_SYSTEM
-    /* FIXME: the malloc'd buckets and images are not included in
-       the exclusive access granted to the image cache by MPS.  */
-    if (c->images)
-      for (ptrdiff_t i = 0; i < c->used; ++i)
-	if (c->images[i])
-	  IGC_FIX12_RAW (ss, &c->images[i]);
-
-    if (c->buckets)
-      for (ptrdiff_t i = 0; i < IMAGE_CACHE_BUCKETS_SIZE; ++i)
-	if (c->buckets[i])
-	  IGC_FIX12_RAW (ss, &c->buckets[i]);
+    IGC_FIX12_RAW (ss, &c->images);
+    IGC_FIX12_RAW (ss, &c->buckets);
 #endif
   }
   MPS_SCAN_END (ss);
@@ -1108,32 +1099,14 @@ fix_face (mps_ss_t ss, struct face *f)
   return MPS_RES_OK;
 }
 
-/* FIXME: Bot image_cache and face_cache are hash tables containing
-   malloc'd vectors. Tracing these here and in fix_image_cache is
-   strictly speaking not safe 100% safe, because MPS only guarantess
-   exclusive access to the face_cache itself, not its malloc'd vectors.
-
-   Introduce a new IGC_OBJ_PTR_VECTOR. That object is an array of
-   pointers that are guaranteed to point to MPS objects if non-null. Use
-   these objects for the four vectors in face_cache and image_cache.  */
-
 static mps_res_t
 fix_face_cache (mps_ss_t ss, struct face_cache *c)
 {
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX12_RAW (ss, &c->f);
-    if (c->faces_by_id)
-      for (int i = 0; i < c->used; ++i)
-	{
-	  igc_assert (c->faces_by_id[i] != NULL);
-	  IGC_FIX12_RAW (ss, &c->faces_by_id[i]);
-	}
-
-    if (c->buckets)
-      for (int i = 0; i < FACE_CACHE_BUCKETS_SIZE; ++i)
-	if (c->buckets[i])
-	  IGC_FIX12_RAW (ss, &c->buckets[i]);
+    IGC_FIX12_RAW (ss, &c->faces_by_id);
+    IGC_FIX12_RAW (ss, &c->buckets);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;

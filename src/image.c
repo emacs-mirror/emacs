@@ -2121,8 +2121,13 @@ make_image_cache (void)
 
   c->size = 50;
   c->used = c->refcount = 0;
+#ifdef HAVE_MPS
+  c->images = igc_make_ptr_vec (c->size);
+  c->buckets = igc_make_ptr_vec (IMAGE_CACHE_BUCKETS_SIZE);
+#else
   c->images = xmalloc (c->size * sizeof *c->images);
   c->buckets = xzalloc (IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets);
+#endif
   return c;
 }
 
@@ -2239,9 +2244,13 @@ free_image_cache (struct frame *f)
 
       for (i = 0; i < c->used; ++i)
 	free_image (f, c->images[i]);
+#ifndef HAVE_MPS
       xfree (c->images);
+#endif
       c->images = NULL;
+#ifndef HAVE_MPS
       xfree (c->buckets);
+#endif
       c->buckets = NULL;
 #ifndef HAVE_MPS
       xfree (c);
