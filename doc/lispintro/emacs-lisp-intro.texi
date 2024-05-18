@@ -7193,7 +7193,7 @@ the @samp{@result{}} shows what is returned.
 @smallexample
 @group
 (cdr '(pine fir oak maple))
-     @result{}(fir oak maple)
+     @result{} (fir oak maple)
 @end group
 
 @group
@@ -7203,7 +7203,7 @@ the @samp{@result{}} shows what is returned.
 
 @group
 (cdr '(oak maple))
-     @result{}(maple)
+     @result{} (maple)
 @end group
 
 @group
