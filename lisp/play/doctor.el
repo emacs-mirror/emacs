@@ -1522,7 +1522,7 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
 
 (defun doctor-symptoms ()
   (doctor-type '((doc$ doctor--maybe) you should consult a medical doctor\;
-		 i am a psychotherapist. \.)))
+                 i am a psychotherapist \.)))
 
 (defun doctor-hates ()
   (doctor-svo doctor-sent doctor-found 1 t)
