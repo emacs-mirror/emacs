@@ -774,7 +774,7 @@ symbol or thing definition (@pxref{User-defined Things}).  Using an
 undefined thing doesn't raise an error, the function simply returns
 @code{nil}.
 
-This function returns the first node that matches, or @code{nil} if node
+This function returns the first node that matches, or @code{nil} if none
 matches @var{predicate}.
 
 By default, this function only traverses named nodes, but if @var{all}
