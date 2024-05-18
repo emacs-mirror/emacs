@@ -86,32 +86,23 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
       }
   }
 
-  /* Set the clipboard text to CLIPBOARD, a string in UTF-8
-     encoding.  */
+  /* Save the STRING into the clipboard by way of text copied by the
+     user.  */
 
   @Override
   public synchronized void
-  setClipboard (byte[] bytes)
+  setClipboard (String string)
   {
     ClipData data;
-    String string;
 
-    try
-      {
-	string = new String (bytes, "UTF-8");
-	data = ClipData.newPlainText ("Emacs", string);
-	manager.setPrimaryClip (data);
-	ownsClipboard = true;
+    data = ClipData.newPlainText ("Emacs", string);
+    manager.setPrimaryClip (data);
+    ownsClipboard = true;
 
-	/* onPrimaryClipChanged will be called again.  Use this
-	   variable to keep track of how many times the clipboard has
-	   been changed.  */
-	++clipboardChangedCount;
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	Log.w (TAG, "setClipboard: " + exception);
-      }
+    /* onPrimaryClipChanged will be called again.  Use this
+       variable to keep track of how many times the clipboard has
+       been changed.  */
+    ++clipboardChangedCount;
   }
 
   /* Return whether or not Emacs owns the clipboard.  Value is 1 if
@@ -141,7 +132,7 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
      NULL if no content is available.  */
 
   @Override
-  public byte[]
+  public String
   getClipboard ()
   {
     ClipData clip;
@@ -154,18 +145,8 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
       return null;
 
     context = EmacsService.SERVICE;
-
-    try
-      {
-	text = clip.getItemAt (0).coerceToText (context);
-	return text.toString ().getBytes ("UTF-8");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	Log.w (TAG, "getClipboard: " + exception);
-      }
-
-    return null;
+    text = clip.getItemAt (0).coerceToText (context);
+    return text.toString ();
   }
 
   /* Return an array of targets currently provided by the

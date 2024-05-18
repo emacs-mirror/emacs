@@ -94,10 +94,10 @@ android_init_emacs_clipboard (void)
 					name, signature);	\
   eassert (clipboard_class.c_name);
 
-  FIND_METHOD (set_clipboard, "setClipboard", "([B)V");
+  FIND_METHOD (set_clipboard, "setClipboard", "(Ljava/lang/String;)V");
   FIND_METHOD (owns_clipboard, "ownsClipboard", "()I");
   FIND_METHOD (clipboard_exists, "clipboardExists", "()Z");
-  FIND_METHOD (get_clipboard, "getClipboard", "()[B");
+  FIND_METHOD (get_clipboard, "getClipboard", "()Ljava/lang/String;");
   FIND_METHOD (get_clipboard_targets, "getClipboardTargets",
 	       "()[Ljava/lang/String;");
   FIND_METHOD (get_clipboard_data, "getClipboardData",
@@ -151,28 +151,26 @@ DEFUN ("android-set-clipboard", Fandroid_set_clipboard,
        doc: /* Set the clipboard text to STRING.  */)
   (Lisp_Object string)
 {
-  jarray bytes;
+  jstring text;
 
   if (!android_init_gui)
     error ("Accessing clipboard without display connection");
 
   CHECK_STRING (string);
-  string = ENCODE_UTF_8 (string);
+  string = code_convert_string_norecord (string, Qandroid_jni,
+					 true);
 
-  bytes = (*android_java_env)->NewByteArray (android_java_env,
-					     SBYTES (string));
+  text = (*android_java_env)->NewStringUTF (android_java_env,
+					    SSDATA (string));
   android_exception_check ();
 
-  (*android_java_env)->SetByteArrayRegion (android_java_env, bytes,
-					   0, SBYTES (string),
-					   (jbyte *) SDATA (string));
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       clipboard,
 				       clipboard_class.set_clipboard,
-				       bytes);
-  android_exception_check_1 (bytes);
+				       text);
+  android_exception_check_1 (text);
+  ANDROID_DELETE_LOCAL_REF (text);
 
-  ANDROID_DELETE_LOCAL_REF (bytes);
   return Qnil;
 }
 
@@ -185,39 +183,39 @@ Alternatively, return nil if the clipboard is empty.  */)
   (void)
 {
   Lisp_Object string;
-  jarray bytes;
+  jstring text;
   jmethodID method;
-  size_t length;
-  jbyte *data;
+  jsize length;
+  const char *data;
 
   if (!android_init_gui)
     error ("No Android display connection!");
 
   method = clipboard_class.get_clipboard;
-  bytes
+  text
     = (*android_java_env)->CallObjectMethod (android_java_env,
 					     clipboard,
 					     method);
   android_exception_check ();
 
-  if (!bytes)
+  if (!text)
     return Qnil;
 
-  length = (*android_java_env)->GetArrayLength (android_java_env,
-						bytes);
-  data = (*android_java_env)->GetByteArrayElements (android_java_env,
-						    bytes, NULL);
-  android_exception_check_nonnull (data, bytes);
+  /* Retrieve a pointer to the raw JNI-encoded bytes of the string.  */
+  length = (*android_java_env)->GetStringUTFLength (android_java_env,
+						    text);
+  data = (*android_java_env)->GetStringUTFChars (android_java_env, text,
+						 NULL);
+  android_exception_check_nonnull ((void *) data, text);
 
-  string = make_unibyte_string ((char *) data, length);
-
-  (*android_java_env)->ReleaseByteArrayElements (android_java_env,
-						 bytes, data,
-						 JNI_ABORT);
-  ANDROID_DELETE_LOCAL_REF (bytes);
+  /* Copy them into a unibyte string for decoding.  */
+  string = make_unibyte_string (data, length);
+  (*android_java_env)->ReleaseStringUTFChars (android_java_env, text,
+					      data);
+  ANDROID_DELETE_LOCAL_REF (text);
 
   /* Now decode the resulting string.  */
-  return code_convert_string_norecord (string, Qutf_8, false);
+  return code_convert_string_norecord (string, Qandroid_jni, false);
 }
 
 DEFUN ("android-clipboard-exists-p", Fandroid_clipboard_exists_p,

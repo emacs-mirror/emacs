@@ -52,21 +52,14 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
       = (ClipboardManager) context.getSystemService (what);
   }
 
-  /* Set the clipboard text to CLIPBOARD, a string in UTF-8
-     encoding.  */
+  /* Save the STRING into the clipboard by way of text copied by the
+     user.  */
 
   @Override
   public void
-  setClipboard (byte[] bytes)
+  setClipboard (String string)
   {
-    try
-      {
-	manager.setText (new String (bytes, "UTF-8"));
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	Log.w (TAG, "setClipboard: " + exception);
-      }
+    manager.setText (string);
   }
 
   /* Return whether or not Emacs owns the clipboard.  Value is 1 if
@@ -93,7 +86,7 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
      NULL if no content is available.  */
 
   @Override
-  public byte[]
+  public String
   getClipboard ()
   {
     String string;
@@ -105,17 +98,7 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
       return null;
 
     string = text.toString ();
-
-    try
-      {
-	return string.getBytes ("UTF-8");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	Log.w (TAG, "getClipboard: " + exception);
-      }
-
-    return null;
+    return string;
   }
 
   /* Return an array of targets currently provided by the

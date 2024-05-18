@@ -27,10 +27,10 @@ import android.os.Build;
 
 public abstract class EmacsClipboard
 {
-  public abstract void setClipboard (byte[] bytes);
+  public abstract void setClipboard (String string);
   public abstract int ownsClipboard ();
   public abstract boolean clipboardExists ();
-  public abstract byte[] getClipboard ();
+  public abstract String getClipboard ();
 
   public abstract String[] getClipboardTargets ();
   public abstract AssetFileDescriptor getClipboardData (String target);
