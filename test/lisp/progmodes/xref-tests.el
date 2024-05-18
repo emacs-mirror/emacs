@@ -132,7 +132,6 @@
                (lambda (loc)
                  (xref--group-name-for-display
                   (xref-location-group loc)
-                  nil
                   nil))
                (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
              (list
@@ -146,7 +145,6 @@
                      (lambda (loc)
                        (xref--group-name-for-display
                         (xref-location-group loc)
-                        nil
                         nil))
                      (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
                    (list
@@ -163,8 +161,7 @@
                (lambda (loc)
                  (xref--group-name-for-display
                   (xref-location-group loc)
-                  data-parent-dir
-                  nil))
+                  data-parent-dir))
                (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
              (list
               "xref-resources/file1.txt"
