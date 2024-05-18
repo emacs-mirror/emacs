@@ -3065,6 +3065,36 @@ igc_make_ptr_vec (size_t n)
   return alloc (n * sizeof (void *), IGC_OBJ_PTR_VEC, PVEC_FREE);
 }
 
+/* Like xpalloc, but uses 'alloc' instead of xrealloc, and should only
+   be used for growing a vector of pointers whose current size is N
+   pointers.  */
+void *
+igc_grow_ptr_vec (ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max)
+{
+  const ptrdiff_t min_items = 16;
+  ptrdiff_t nitems0 = *n;
+  ptrdiff_t half_nitems0 = nitems0 / 2;
+  ptrdiff_t max_items = n_max < 0 ? PTRDIFF_MAX : n_max;
+  ptrdiff_t new_nitems;
+
+  if (half_nitems0 < n_incr_min)
+    half_nitems0 = n_incr_min;
+
+  if (nitems0 < min_items)
+    new_nitems = min_items;
+  else if (nitems0 < max_items - half_nitems0)
+    new_nitems = nitems0 + half_nitems0;
+  else
+    new_nitems = max_items;
+
+  if (new_nitems <= nitems0)
+    memory_full (0);
+
+  void *new_vec = igc_make_ptr_vec (new_nitems);
+  *n = new_nitems;
+  return new_vec;
+}
+
 struct image_cache *
 igc_make_image_cache (void)
 {

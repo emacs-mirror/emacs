@@ -4936,9 +4936,8 @@ cache_face (struct face_cache *c, struct face *face, uintptr_t hash)
 	{
 #ifdef HAVE_MPS
 	  struct face **old = c->faces_by_id;
-	  c->faces_by_id = igc_make_ptr_vec (2 * c->size);
+	  c->faces_by_id = igc_grow_ptr_vec (&c->size, 1, MAX_FACE_ID);
 	  memcpy (c->faces_by_id, old, c->size * sizeof *old);
-	  c->size *= 2;
 #else
 	c->faces_by_id
 	  = xpalloc (c->faces_by_id, &c->size, 1, MAX_FACE_ID,

@@ -86,6 +86,7 @@ struct image *igc_make_image (void);
 struct face *igc_make_face (void);
 struct face_cache *igc_make_face_cache (void);
 void *igc_make_ptr_vec (size_t n);
+void *igc_grow_ptr_vec (ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max);
 struct image_cache *igc_make_image_cache (void);
 struct interval *igc_make_interval (void);
 
