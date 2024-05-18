@@ -3537,7 +3537,16 @@ cache_image (struct frame *f, struct image *img)
 
   /* If no free slot found, maybe enlarge c->images.  */
   if (i == c->used && c->used == c->size)
-    c->images = xpalloc (c->images, &c->size, 1, -1, sizeof *c->images);
+    {
+#ifdef HAVE_MPS
+      struct image **old = c->images;
+      c->images = igc_make_ptr_vec (2 * c->size);
+      memcpy (c->images, old, c->size * sizeof *old);
+      c->size *= 2;
+#else
+      c->images = xpalloc (c->images, &c->size, 1, -1, sizeof *c->images);
+#endif
+    }
 
   /* Add IMG to c->images, and assign IMG an id.  */
   c->images[i] = img;
