@@ -1259,6 +1259,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/boot-time-aux.h
   lib/boot-time.c
   lib/boot-time.h
+  lib/byteswap.c
   lib/byteswap.in.h
   lib/c++defs.h
   lib/c-ctype.c

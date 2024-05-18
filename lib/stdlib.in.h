@@ -216,6 +216,23 @@ _GL_WARN_ON_USE (_Exit, "_Exit is unportable - "
 #endif
 
 
+#if @GNULIB_ABORT_DEBUG@
+# if @REPLACE_ABORT@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef abort
+#   define abort rpl_abort
+#  endif
+_GL_FUNCDECL_RPL (abort, _Noreturn void, (void));
+_GL_CXXALIAS_RPL (abort, void, (void));
+# else
+_GL_CXXALIAS_SYS (abort, void, (void));
+# endif
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (abort);
+# endif
+#endif
+
+
 #if @GNULIB_FREE_POSIX@
 # if @REPLACE_FREE@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)

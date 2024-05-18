@@ -45,8 +45,10 @@ extern "C" {
 # define COUNT_LEADING_ZEROS(BUILTIN, MSC_BUILTIN, TYPE)                \
   return x ? BUILTIN (x) : CHAR_BIT * sizeof x;
 #elif _MSC_VER
+extern unsigned char _BitScanReverse (unsigned long *, unsigned long);
 # pragma intrinsic (_BitScanReverse)
 # if defined _M_X64
+extern unsigned char _BitScanReverse64 (unsigned long *, unsigned long long);
 #  pragma intrinsic (_BitScanReverse64)
 # endif
 # define COUNT_LEADING_ZEROS(BUILTIN, MSC_BUILTIN, TYPE)                \

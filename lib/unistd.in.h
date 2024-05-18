@@ -1934,11 +1934,7 @@ _GL_CXXALIASWARN (read);
 #   undef read
 #   define read _read
 #  endif
-#  ifdef __MINGW32__
-_GL_CXXALIAS_MDA (read, int, (int fd, void *buf, unsigned int count));
-#  else
-_GL_CXXALIAS_MDA (read, ssize_t, (int fd, void *buf, unsigned int count));
-#  endif
+_GL_CXXALIAS_MDA_CAST (read, ssize_t, (int fd, void *buf, unsigned int count));
 # else
 _GL_CXXALIAS_SYS (read, ssize_t, (int fd, void *buf, size_t count));
 # endif
@@ -2402,11 +2398,7 @@ _GL_CXXALIASWARN (write);
 #   undef write
 #   define write _write
 #  endif
-#  ifdef __MINGW32__
-_GL_CXXALIAS_MDA (write, int, (int fd, const void *buf, unsigned int count));
-#  else
-_GL_CXXALIAS_MDA (write, ssize_t, (int fd, const void *buf, unsigned int count));
-#  endif
+_GL_CXXALIAS_MDA_CAST (write, ssize_t, (int fd, const void *buf, unsigned int count));
 # else
 _GL_CXXALIAS_SYS (write, ssize_t, (int fd, const void *buf, size_t count));
 # endif

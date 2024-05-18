@@ -143,11 +143,11 @@ extern char *tzname[];
 
 enum pad_style
 {
-  ZERO_PAD,	  /* (default) Pad with 0 unless format says otherwise.  */
-  ALWAYS_ZERO_PAD,	/* '0' Always pad with 0.  */
-  SIGN_PAD,		/* '+' Always output a sign.  */
-  SPACE_PAD,		/* '_' Pad with space.  */
-  NO_PAD		/* '-' Do not pad.  */
+  ZERO_PAD,         /* (default) Pad with 0 unless format says otherwise.  */
+  ALWAYS_ZERO_PAD,  /* '0'       Always pad with 0.  */
+  SIGN_PAD,         /* '+'       Always output a sign.  */
+  SPACE_PAD,        /* '_'       Pad with space.  */
+  NO_PAD            /* '-'       Do not pad.  */
 };
 
 #define TM_YEAR_BASE 1900
