@@ -4479,6 +4479,12 @@ flush_stack_call_func (void (*func) (void *arg), void *arg)
 {
   __builtin_unwind_init ();
   flush_stack_call_func1 (func, arg);
+  /* Work around GCC sibling call optimization making
+     '__builtin_unwind_init' ineffective (bug#65727).
+     See <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=115132>.  */
+#if defined __GNUC__ && !defined __clang__
+  asm ("");
+#endif
 }
 
 extern void garbage_collect (void);
