@@ -2596,6 +2596,7 @@ The candidate will still be chosen by `choose-completion' unless
                                              (buffer-substring (point) end))))
                 (point)))
              (field-char (and (< field-end end) (char-after field-end)))
+             (base-position (list (+ start base-size) field-end))
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))
                                            base-size md
@@ -2678,8 +2679,7 @@ The candidate will still be chosen by `choose-completion' unless
                                       completions))))
 
                       (with-current-buffer standard-output
-                        (setq-local completion-base-position
-                                    (list (+ start base-size) field-end))
+                        (setq-local completion-base-position base-position)
                         (setq-local completion-list-insert-choice-function
                                (lambda (start end choice)
                                  (unless (or (zerop (length prefix))
@@ -2702,9 +2702,12 @@ The candidate will still be chosen by `choose-completion' unless
                                             (= (aref choice (1- (length choice)))
                                                field-char))
                                    (setq end (1+ end)))
-                                 (cl-decf field-end (- end start (length choice)))
+                                 ;; Tried to use a marker to track buffer changes
+                                 ;; but that clashed with another existing marker.
+                                 (cl-decf (nth 1 base-position)
+                                          (- end start (length choice)))
                                  ;; FIXME: Use `md' to do quoting&terminator here.
-                                 (completion--replace start end choice)
+                                 (completion--replace start (min end (point-max)) choice)
                                  (let* ((minibuffer-completion-table ctable)
                                         (minibuffer-completion-predicate cpred)
                                         (completion-extra-properties cprops)
