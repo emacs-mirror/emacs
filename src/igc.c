@@ -282,20 +282,15 @@ struct igc_stats
 enum
 {
   IGC_TYPE_BITS = 5,
-  IGC_PVEC_BITS = 6,
-  IGC_HASH_BITS = 21,
+  IGC_HASH_BITS = 27,
   IGC_SIZE_BITS = 32
 };
 
 igc_static_assert (IGC_OBJ_LAST - 1 < (1 << IGC_TYPE_BITS));
-igc_static_assert (PVEC_TAG_MAX < (1 << IGC_PVEC_BITS));
 
 struct igc_header
 {
   enum igc_obj_type obj_type : IGC_TYPE_BITS;
-  /* FIXME: This was originally a debug aid only, but it now
-     used for something. Remove. */
-  enum pvec_type pvec_type : IGC_PVEC_BITS;
   mps_word_t hash : IGC_HASH_BITS;
   mps_word_t nwords : IGC_SIZE_BITS;
 };
@@ -1205,15 +1200,21 @@ fix_weak_ref (mps_ss_t ss, struct Lisp_Weak_Ref *wref)
   return MPS_RES_OK;
 }
 
-static mps_res_t
-fix_weak (mps_ss_t ss, struct igc_header* base)
+static enum pvec_type
+pseudo_vector_type (const struct Lisp_Vector *v)
 {
-  MPS_SCAN_BEGIN (ss) {
-    const mps_addr_t client = base_to_client(base);
-    switch (base->pvec_type)
+  return PSEUDOVECTOR_TYPE (v);
+}
+
+static mps_res_t
+fix_weak (mps_ss_t ss, struct Lisp_Vector* v)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    switch (pseudo_vector_type (v))
       {
       case PVEC_WEAK_REF:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Ref, client, fix_weak_ref);
+	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Ref, v, fix_weak_ref);
 	break;
       default:
 	igc_assert (!"fix_weak");
@@ -1347,7 +1348,7 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	    break;
 
 	  case IGC_OBJ_WEAK:
-	    IGC_FIX_CALL_FN (ss, struct igc_header, base, fix_weak);
+	    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_weak);
 	    break;
 	  }
       }
@@ -1365,12 +1366,6 @@ dflt_scan (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit)
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
-}
-
-static enum pvec_type
-pseudo_vector_type (const struct Lisp_Vector *v)
-{
-  return PSEUDOVECTOR_TYPE (v);
 }
 
 static mps_res_t
@@ -2870,7 +2865,7 @@ igc_hash (Lisp_Object key)
 }
 
 static mps_addr_t
-alloc (size_t size, enum igc_obj_type type, enum pvec_type pvec_type)
+alloc (size_t size, enum igc_obj_type type)
 {
   mps_ap_t ap = thread_ap (type);
   mps_addr_t p, obj;
@@ -2884,7 +2879,6 @@ alloc (size_t size, enum igc_obj_type type, enum pvec_type pvec_type)
       memclear (p, size);
       struct igc_header *h = p;
       h->obj_type = type;
-      h->pvec_type = pvec_type;
       h->hash = obj_hash ();
 #if IGC_SIZE_BITS >= 32 && INTPTR_MAX > INT_MAX
       /* On 32-bit architecture the assertion below is redudnant and
@@ -2901,7 +2895,7 @@ alloc (size_t size, enum igc_obj_type type, enum pvec_type pvec_type)
 Lisp_Object
 igc_make_cons (Lisp_Object car, Lisp_Object cdr)
 {
-  struct Lisp_Cons *cons = alloc (sizeof *cons, IGC_OBJ_CONS, PVEC_FREE);
+  struct Lisp_Cons *cons = alloc (sizeof *cons, IGC_OBJ_CONS);
   cons->u.s.car = car;
   cons->u.s.u.cdr = cdr;
   return make_lisp_ptr (cons, Lisp_Cons);
@@ -2910,14 +2904,14 @@ igc_make_cons (Lisp_Object car, Lisp_Object cdr)
 Lisp_Object
 igc_alloc_symbol (void)
 {
-  struct Lisp_Symbol *sym = alloc (sizeof *sym, IGC_OBJ_SYMBOL, PVEC_FREE);
+  struct Lisp_Symbol *sym = alloc (sizeof *sym, IGC_OBJ_SYMBOL);
   return make_lisp_symbol (sym);
 }
 
 Lisp_Object
 igc_make_float (double val)
 {
-  struct Lisp_Float *f = alloc (sizeof *f, IGC_OBJ_FLOAT, PVEC_FREE);
+  struct Lisp_Float *f = alloc (sizeof *f, IGC_OBJ_FLOAT);
   f->u.data = val;
   return make_lisp_ptr (f, Lisp_Float);
 }
@@ -2925,7 +2919,7 @@ igc_make_float (double val)
 static unsigned char *
 alloc_string_data (size_t nbytes, bool clear)
 {
-  unsigned char *data = alloc (nbytes + 1, IGC_OBJ_STRING_DATA, PVEC_FREE);
+  unsigned char *data = alloc (nbytes + 1, IGC_OBJ_STRING_DATA);
   data[nbytes] = 0;
   return data;
 }
@@ -2967,7 +2961,7 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
 Lisp_Object
 igc_make_string (size_t nchars, size_t nbytes, bool unibyte, bool clear)
 {
-  struct Lisp_String *s = alloc (sizeof *s, IGC_OBJ_STRING, PVEC_FREE);
+  struct Lisp_String *s = alloc (sizeof *s, IGC_OBJ_STRING);
   s->u.s.size = nchars;
   s->u.s.size_byte = unibyte ? -1 : nbytes;
   s->u.s.data = alloc_string_data (nbytes, clear);
@@ -2989,7 +2983,7 @@ igc_make_unibyte_string (size_t nchars, size_t nbytes, bool clear)
 struct interval *
 igc_make_interval (void)
 {
-  return alloc (sizeof (struct interval), IGC_OBJ_INTERVAL, PVEC_FREE);
+  return alloc (sizeof (struct interval), IGC_OBJ_INTERVAL);
 }
 
 struct Lisp_Vector *
@@ -2997,7 +2991,7 @@ igc_alloc_pseudovector (size_t nwords_mem, size_t nwords_lisp,
 			size_t nwords_zero, enum pvec_type tag)
 {
   struct Lisp_Vector *v
-    = alloc (header_size + nwords_mem * word_size, IGC_OBJ_VECTOR, tag);
+    = alloc (header_size + nwords_mem * word_size, IGC_OBJ_VECTOR);
   XSETPVECTYPESIZE (v, tag, nwords_lisp, nwords_mem - nwords_lisp);
   maybe_finalize (v, tag);
   return v;
@@ -3007,7 +3001,7 @@ struct Lisp_Vector *
 igc_alloc_vector (ptrdiff_t len)
 {
   struct Lisp_Vector *v
-    = alloc (header_size + len * word_size, IGC_OBJ_VECTOR, PVEC_NORMAL_VECTOR);
+    = alloc (header_size + len * word_size, IGC_OBJ_VECTOR);
   v->header.size = len;
   return v;
 }
@@ -3016,7 +3010,7 @@ struct Lisp_Vector *
 igc_alloc_record (ptrdiff_t len)
 {
   struct Lisp_Vector *v
-    = alloc (header_size + len * word_size, IGC_OBJ_VECTOR, PVEC_RECORD);
+    = alloc (header_size + len * word_size, IGC_OBJ_VECTOR);
   v->header.size = len;
   XSETPVECTYPE (v, PVEC_RECORD);
   return v;
@@ -3025,14 +3019,14 @@ igc_alloc_record (ptrdiff_t len)
 struct itree_tree *
 igc_make_itree_tree (void)
 {
-  struct itree_tree *t = alloc (sizeof *t, IGC_OBJ_ITREE_TREE, PVEC_FREE);
+  struct itree_tree *t = alloc (sizeof *t, IGC_OBJ_ITREE_TREE);
   return t;
 }
 
 struct itree_node *
 igc_make_itree_node (void)
 {
-  struct itree_node *n = alloc (sizeof *n, IGC_OBJ_ITREE_NODE, PVEC_FREE);
+  struct itree_node *n = alloc (sizeof *n, IGC_OBJ_ITREE_NODE);
   return n;
 }
 
@@ -3040,7 +3034,7 @@ igc_make_itree_node (void)
 struct image *
 igc_make_image (void)
 {
-  struct image *img = alloc (sizeof *img, IGC_OBJ_IMAGE, PVEC_FREE);
+  struct image *img = alloc (sizeof *img, IGC_OBJ_IMAGE);
   return img;
 }
 #endif
@@ -3048,21 +3042,21 @@ igc_make_image (void)
 struct face *
 igc_make_face (void)
 {
-  struct face *face = alloc (sizeof *face, IGC_OBJ_FACE, PVEC_FREE);
+  struct face *face = alloc (sizeof *face, IGC_OBJ_FACE);
   return face;
 }
 
 struct face_cache *
 igc_make_face_cache (void)
 {
-  struct face_cache *c = alloc (sizeof *c, IGC_OBJ_FACE_CACHE, PVEC_FREE);
+  struct face_cache *c = alloc (sizeof *c, IGC_OBJ_FACE_CACHE);
   return c;
 }
 
 void *
 igc_make_ptr_vec (size_t n)
 {
-  return alloc (n * sizeof (void *), IGC_OBJ_PTR_VEC, PVEC_FREE);
+  return alloc (n * sizeof (void *), IGC_OBJ_PTR_VEC);
 }
 
 /* Like xpalloc, but uses 'alloc' instead of xrealloc, and should only
@@ -3098,7 +3092,7 @@ igc_grow_ptr_vec (ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max)
 struct image_cache *
 igc_make_image_cache (void)
 {
-  struct image_cache *c = alloc (sizeof *c, IGC_OBJ_IMAGE_CACHE, PVEC_FREE);
+  struct image_cache *c = alloc (sizeof *c, IGC_OBJ_IMAGE_CACHE);
   return c;
 }
 
@@ -3108,7 +3102,7 @@ DEFUN ("igc-make-weak-ref", Figc_make_weak_ref, Sigc_make_weak_ref, 1, 1, 0,
 (Lisp_Object target)
 {
   const enum pvec_type type = PVEC_WEAK_REF;
-  struct Lisp_Weak_Ref *wref = alloc (sizeof *wref, IGC_OBJ_WEAK, type);
+  struct Lisp_Weak_Ref *wref = alloc (sizeof *wref, IGC_OBJ_WEAK);
   int nwords_lisp = VECSIZE (struct Lisp_Weak_Ref);
   XSETPVECTYPESIZE (wref, type, nwords_lisp, 0);
   wref->ref = target;
@@ -3141,7 +3135,7 @@ struct Lisp_Buffer_Local_Value *
 igc_alloc_blv (void)
 {
   struct Lisp_Buffer_Local_Value *blv
-    = alloc (sizeof *blv, IGC_OBJ_BLV, PVEC_FREE);
+    = alloc (sizeof *blv, IGC_OBJ_BLV);
   return blv;
 }
 
@@ -3365,8 +3359,7 @@ igc_finish_obj (void *client, enum igc_obj_type type, char *base, char *end)
   size_t client_size = end - base - sizeof *out;
   size_t nbytes = obj_size (client_size);
   size_t nwords = to_words (nbytes);
-  *out = (struct igc_header)
-    { .obj_type = type, .pvec_type = PVEC_FREE, .nwords = nwords };
+  *out = (struct igc_header) { .obj_type = type, .nwords = nwords };
   return base + nbytes;
 }
 
