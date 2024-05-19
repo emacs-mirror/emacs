@@ -2751,7 +2751,15 @@ void
 igc_on_idle (void)
 {
   process_messages (global_igc);
-  mps_arena_step (global_igc->arena, XFLOAT_DATA (Vigc_step_interval), 0);
+
+  double interval = 0.05;
+  if (NUMBERP (Vigc_step_interval))
+    {
+      interval = XFLOATINT (Vigc_step_interval);
+      if (interval < 0)
+	interval = 0.05;
+    }
+  mps_arena_step (global_igc->arena, interval, 0);
 }
 
 static mps_ap_t
@@ -3385,7 +3393,14 @@ syms_of_igc (void)
   DEFSYM (Qweak_ref, "weak-ref");
   Fprovide (intern_c_string ("mps"), Qnil);
 
-  DEFVAR_LISP ("igc-step-interval", Vigc_step_interval, doc: /* */);
+  /* FIXME: What is the meaning of zero here? diallow igc on idle?  The
+     doc string should say that.  */
+  DEFVAR_LISP ("igc-step-interval", Vigc_step_interval,
+    doc: /* How much time is MPS allowed to spend in GC when Emacs is idle.
+The value is in seconds, and should be a non-negative number.  It can
+be either an integer or a float.  The default value is 0.05, i.e.
+50 milliseconds.  Negative values and values that are not numbers
+are handled as if they were the default value.  */);
   Vigc_step_interval = make_float (0.05);
 }
 
