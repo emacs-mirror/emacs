@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include <mps.h>
 #include <mpsavm.h>
 #include <mpscamc.h>
+#include "mpscams.h"
 #include <mpscawl.h>
 #include <mpslib.h>
 #include <stdlib.h>
@@ -3315,7 +3316,6 @@ make_pool_with_class (struct igc *gc, mps_fmt_t fmt, mps_class_t cls)
   {
     MPS_ARGS_ADD (args, MPS_KEY_FORMAT, fmt);
     MPS_ARGS_ADD (args, MPS_KEY_CHAIN, gc->chain);
-    // Must use interior pointers, bc we hand out client pointers.
     MPS_ARGS_ADD (args, MPS_KEY_INTERIOR, true);
     res = mps_pool_create_k (&pool, gc->arena, cls, args);
   }
@@ -3328,6 +3328,12 @@ static mps_pool_t
 make_pool_amc (struct igc *gc, mps_fmt_t fmt)
 {
   return make_pool_with_class (gc, fmt, mps_class_amc ());
+}
+
+static mps_pool_t
+make_pool_ams (struct igc *gc, mps_fmt_t fmt)
+{
+  return make_pool_with_class (gc, fmt, mps_class_ams ());
 }
 
 static mps_pool_t
@@ -3355,7 +3361,7 @@ make_igc (void)
   gc->weak_fmt = make_dflt_fmt (gc);
   gc->weak_pool = make_pool_awl (gc, gc->weak_fmt);
   gc->ams_fmt = make_dflt_fmt (gc);
-  gc->ams_pool = make_pool_awl (gc, gc->ams_fmt);
+  gc->ams_pool = make_pool_ams (gc, gc->ams_fmt);
 
   root_create_igc (gc);
 #ifndef IN_MY_FORK
