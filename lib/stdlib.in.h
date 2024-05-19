@@ -231,6 +231,14 @@ _GL_CXXALIAS_SYS (abort, void, (void));
 _GL_CXXALIASWARN (abort);
 # endif
 #endif
+#if @GNULIB_ABORT_DEBUG@ && @REPLACE_ABORT@
+_GL_EXTERN_C void _gl_pre_abort (void);
+#else
+# if !GNULIB_defined_gl_pre_abort
+#  define _gl_pre_abort() /* nothing */
+#  define GNULIB_defined_gl_pre_abort 1
+# endif
+#endif
 
 
 #if @GNULIB_FREE_POSIX@
