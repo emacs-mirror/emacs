@@ -5812,29 +5812,13 @@ hash_table_alloc_kv (void *h, ptrdiff_t nobjs)
 {
   if (nobjs == 0)
     return NULL;
-#ifdef HAVE_MPS
-  /* As long as the hash table implementation uses malloc'd vectors for
-     keys/values, we have a problem with dumped hash tables because we
-     can scan the dump, but don't see the malloc'd parts. So, we have to
-     create additional roots for that. This will go away when
-     implementing weak tables. Similar for obarrays. */
-  if (pdumper_object_p (h))
-    return igc_xalloc_lisp_objs_exact (nobjs);
-#endif
   return xmalloc (nobjs * sizeof (Lisp_Object));
 }
 
 void
 hash_table_free_kv (void *h, Lisp_Object *p)
 {
-#ifdef HAVE_MPS
-  /* Make sure to remove roots we creates. */
-  if (pdumper_object_p (h))
-    igc_xfree (p);
-#else
   xfree (p);
-#endif
-
 }
 
 /***********************************************************************

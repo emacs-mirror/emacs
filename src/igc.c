@@ -3444,6 +3444,5 @@ register_pdump_roots (void *start, void *end)
 void
 igc_on_pdump_loaded (void *start, void *end)
 {
-  // root_create_ambig (global_igc, start, end);
   register_pdump_roots (start, end);
 }
