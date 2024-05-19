@@ -1493,7 +1493,11 @@ case "${canonical}" in
       *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
-		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		# Also, GCC 14 turns on implicit-function-declaration
+		# error by default, which fails configure tests where our
+		# emulation of Posix headers defines only the minimal
+		# stuff we actually need.
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc -Wno-error=implicit-function-declaration"
 		;;
       *-sysv4.2uw* )		opsys=unixware ;;
       *-sysv5uw* )		opsys=unixware ;;
@@ -1508,7 +1512,7 @@ case "${canonical}" in
       *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
-		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc -Wno-error=implicit-function-declaration"
 		;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
