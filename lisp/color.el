@@ -372,7 +372,7 @@ returned by `color-srgb-to-lab' or `color-xyz-to-lab'."
 (defun color-oklab-to-xyz (l a b)
   "Convert the OkLab color represented by L A B to CIE XYZ.
 Oklab is a perceptual color space created by Björn Ottosson
-<https://bottosson.github.io/posts/oklab/>. It has the property that
+<https://bottosson.github.io/posts/oklab/>.  It has the property that
 changes in the hue and saturation of a color can be made while maintaining
 the same perceived lightness."
   (let ((ll (expt (+ (* 1.0 l) (* 0.39633779 a) (* 0.21580376 b)) 3))
