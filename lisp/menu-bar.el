@@ -2241,7 +2241,7 @@ using `abort-recursive-edit'.
 This command can be reliably invoked only from the menu bar,
 otherwise it could decide to silently do nothing."
   (interactive "e")
-  ;; This clossus of a conditional is necessary to account for the wide
+  ;; This colossus of a conditional is necessary to account for the wide
   ;; variety of this command's callers.
   (if (let* ((window (or (and event (event-start event)
                               (posn-window (event-start event)))
