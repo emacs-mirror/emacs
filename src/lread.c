@@ -5346,13 +5346,21 @@ DEFUN ("obarray-clear", Fobarray_clear, Sobarray_clear, 1, 1, 0,
      to uninterned.  It doesn't matter very much.  */
   int new_bits = obarray_default_bits;
   int new_size = (ptrdiff_t)1 << new_bits;
+#ifdef HAVE_MPS
+  Lisp_Object *new_buckets = hash_table_alloc_kv (o, new_size);
+#else
   Lisp_Object *new_buckets
     = hash_table_alloc_bytes (new_size * sizeof *new_buckets);
+#endif
   for (ptrdiff_t i = 0; i < new_size; i++)
     new_buckets[i] = make_fixnum (0);
 
+#ifdef HAVE_MPS
+  hash_table_free_kv (o, o->buckets);
+#else
   int old_size = obarray_size (o);
   hash_table_free_bytes (o->buckets, old_size * sizeof *o->buckets);
+#endif
   o->buckets = new_buckets;
   o->size_bits = new_bits;
   o->count = 0;

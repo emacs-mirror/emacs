@@ -2785,10 +2785,11 @@ dump_object_array (struct dump_context *ctx,
 		   const Lisp_Object array[], size_t len)
 {
   dump_align_output (ctx, DUMP_ALIGNMENT);
-  dump_off start_offset = ctx->offset;
-
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
+
+  dump_igc_start_obj (ctx, IGC_OBJ_OBJ_VEC, array);
+  dump_off start_offset = ctx->offset;
 
   for (size_t i = 0; i < len; i++)
     {
@@ -2800,6 +2801,7 @@ dump_object_array (struct dump_context *ctx,
     }
 
   ctx->flags = old_flags;
+  dump_igc_finish_obj (ctx);
 
   return start_offset;
 }
@@ -2878,7 +2880,7 @@ dump_obarray (struct dump_context *ctx, Lisp_Object object)
   struct Lisp_Obarray munged_oa = *in_oa;
   struct Lisp_Obarray *oa = &munged_oa;
   /* FIXME: make sure igc_header is output */
-  START_DUMP_PVEC (ctx, &oa->header, struct Lisp_Obarray, out);
+  START_DUMP_PVEC (ctx, &in_oa->header, struct Lisp_Obarray, out);
   dump_pseudovector_lisp_fields (ctx, &out->header, &oa->header);
   DUMP_FIELD_COPY (out, oa, count);
   DUMP_FIELD_COPY (out, oa, size_bits);

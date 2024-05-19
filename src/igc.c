@@ -204,6 +204,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_BLV",
   "IGC_OBJ_WEAK",
   "IGC_OBJ_PTR_VEC",
+  "IGC_OBJ_OBJ_VEC",
 };
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_LAST);
@@ -1126,6 +1127,23 @@ fix_ptr_vec (mps_ss_t ss, void *client)
 }
 
 static mps_res_t
+fix_obj_vec (mps_ss_t ss, Lisp_Object *v)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    struct igc_header *h = client_to_base (v);
+    igc_assert (sizeof (struct igc_header) % sizeof (Lisp_Object) == 0);
+    /* The below should yield 'h->nwords - 1' for 64-bit builds, and
+       'h->nwords - 2' for 32-bit.  */
+    size_t imax = h->nwords - to_words (sizeof (struct igc_header));
+    for (size_t i = 0; i < imax; ++i)
+      IGC_FIX12_OBJ (ss, &v[i]);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
 fix_weak_ref (mps_ss_t ss, struct Lisp_Weak_Ref *wref)
 {
   MPS_SCAN_BEGIN (ss)
@@ -1291,6 +1309,10 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 
 	  case IGC_OBJ_PTR_VEC:
 	    IGC_FIX_CALL_FN (ss, mps_word_t, client, fix_ptr_vec);
+	    break;
+
+	  case IGC_OBJ_OBJ_VEC:
+	    IGC_FIX_CALL_FN (ss, Lisp_Object, client, fix_obj_vec);
 	    break;
 
 	  case IGC_OBJ_CONS:
@@ -1516,8 +1538,8 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
   MPS_SCAN_BEGIN (ss)
   {
     // FIXME: weak
-    IGC_FIX12_NOBJS (ss, h->key, h->table_size);
-    IGC_FIX12_NOBJS (ss, h->value, h->table_size);
+    IGC_FIX12_RAW (ss, &h->key);
+    IGC_FIX12_RAW (ss, &h->value);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1790,8 +1812,7 @@ fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    if (o->buckets)
-      IGC_FIX12_NOBJS (ss, o->buckets, obarray_size (o));
+    IGC_FIX12_RAW (ss, &o->buckets);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2371,25 +2392,10 @@ finalize_hash_table (struct Lisp_Hash_Table *h)
 	 xfree works with objects in a loaded dump. */
       h->table_size = 0;
       xfree (h->index);
-      xfree (h->key);
-      xfree (h->value);
       xfree (h->next);
       xfree (h->hash);
     }
 }
-
-#ifndef IN_MY_FORK
-static void
-finalize_obarray (struct Lisp_Obarray *o)
-{
-  if (o->buckets)
-    {
-      void *b = o->buckets;
-      o->buckets = NULL;
-      xfree (b);
-    }
-}
-#endif
 
 static void
 finalize_bignum (struct Lisp_Bignum *n)
@@ -2570,10 +2576,7 @@ finalize_vector (mps_addr_t v)
 
 #ifndef IN_MY_FORK
     case PVEC_OBARRAY:
-      finalize_obarray (v);
-      break;
 #endif
-
     case PVEC_SYMBOL_WITH_POS:
     case PVEC_PROCESS:
     case PVEC_RECORD:
@@ -2633,6 +2636,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_WEAK:
     case IGC_OBJ_BLV:
     case IGC_OBJ_PTR_VEC:
+    case IGC_OBJ_OBJ_VEC:
       igc_assert (!"finalize not implemented");
       break;
 
@@ -2661,12 +2665,12 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
     case PVEC_NATIVE_COMP_UNIT:
     case PVEC_SUBR:
     case PVEC_FINALIZER:
-#ifndef IN_MY_FORK
-    case PVEC_OBARRAY:
-#endif
       mps_finalize (global_igc->arena, &ref);
       break;
 
+#ifndef IN_MY_FORK
+    case PVEC_OBARRAY:
+#endif
     case PVEC_NORMAL_VECTOR:
     case PVEC_FREE:
     case PVEC_MARKER:
@@ -2790,6 +2794,7 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_FACE_CACHE:
     case IGC_OBJ_BLV:
     case IGC_OBJ_PTR_VEC:
+    case IGC_OBJ_OBJ_VEC:
       return t->d.dflt_ap;
 
     case IGC_OBJ_STRING_DATA:
@@ -3065,6 +3070,12 @@ void *
 igc_make_ptr_vec (size_t n)
 {
   return alloc (n * sizeof (void *), IGC_OBJ_PTR_VEC);
+}
+
+Lisp_Object *
+igc_make_hash_table_vec (size_t n)
+{
+  return alloc (n * sizeof (Lisp_Object), IGC_OBJ_OBJ_VEC);
 }
 
 /* Like xpalloc, but uses 'alloc' instead of xrealloc, and should only
