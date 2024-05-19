@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "lisp.h"
 #include "android.h"
