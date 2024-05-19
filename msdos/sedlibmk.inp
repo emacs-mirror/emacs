@@ -198,6 +198,9 @@ s/@PACKAGE@/emacs/
 # we get warnings building canonicalize-lgpl.o
 /^GL_GNULIB_RAWMEMCHR *=/s/@GL_GNULIB_RAWMEMCHR@/1/
 /^GL_GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
+# These variables control whether ISO C23 features are generated,
+# e.g. those in stdbit.h.
+/^GL_STDC_[^ =]* *= *@/s/@[^@\n]*@/1/
 /^GL_GSETTINGS_CFLAGS *=/s/@[^@\n]*@//
 /^GL_GSETTINGS_LIBS *=/s/@[^@\n]*@//
 # Miscellaneous variables.
@@ -347,6 +350,7 @@ s/@PACKAGE@/emacs/
 /^LIMITS_H *=/s/@[^@\n]*@/limits.h/
 /^IEEE754_H *=/s/@[^@\n]*@/ieee754.h/
 /^STDALIGN_H *=/s/@[^@\n]*@/stdalign.h/
+/^STDBIT_H *=/s/@[^@\n]*@/stdbit.h/
 /^STDCKDINT_H *=/s/@[^@\n]*@/stdckdint.h/
 /^STDDEF_H *=/s/@[^@\n]*@/stddef.h/
 /^STDDEF_NOT_IDEMPOTENT *=/s/@[^@\n]*@/1/
@@ -445,6 +449,7 @@ s/= @GL_GENERATE_GMP_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GMP_GMP_H_CONDITION@/= /
 s/= @GL_GENERATE_MINI_GMP_H_CONDITION@/= 1/
 s/= @GL_GENERATE_STDCKDINT_H_CONDITION@/= 1/
+s/= @GL_GENERATE_STDBIT_H_CONDITION@/= 1/
 s/= @GL_COND_OBJ_STDIO_READ_CONDITION@/= /
 s/= @GL_COND_OBJ_STDIO_WRITE_CONDITION@/= /
 s/= @GL_COND_OBJ_STPNCPY_CONDITION@/= /
