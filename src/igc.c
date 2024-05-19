@@ -376,6 +376,7 @@ struct igc_thread
   mps_ap_t leaf_ap;
   mps_ap_t weak_strong_ap;
   mps_ap_t weak_weak_ap;
+  mps_ap_t ams_ap;
   igc_root_list *specpdl_root;
   igc_root_list *bc_root;
   struct thread_state *ts;
@@ -394,6 +395,8 @@ struct igc
   mps_pool_t leaf_pool;
   mps_fmt_t weak_fmt;
   mps_pool_t weak_pool;
+  mps_fmt_t ams_fmt;
+  mps_pool_t ams_pool;
   struct igc_root_list *roots;
   struct igc_thread_list *threads;
   Lisp_Object *cu;
@@ -2168,6 +2171,8 @@ create_thread_aps (struct igc_thread *t)
   IGC_CHECK_RES (res);
   res = mps_ap_create_k (&t->leaf_ap, gc->leaf_pool, mps_args_none);
   IGC_CHECK_RES (res);
+  res = mps_ap_create_k (&t->ams_ap, gc->ams_pool, mps_args_none);
+  IGC_CHECK_RES (res);
   res = create_weak_ap (&t->weak_strong_ap, t, false);
   IGC_CHECK_RES (res);
   res = create_weak_ap (&t->weak_weak_ap, t, true);
@@ -3327,6 +3332,8 @@ make_igc (void)
   gc->leaf_pool = make_pool_amcz (gc, gc->leaf_fmt);
   gc->weak_fmt = make_dflt_fmt (gc);
   gc->weak_pool = make_pool_awl (gc, gc->weak_fmt);
+  gc->ams_fmt = make_dflt_fmt (gc);
+  gc->ams_pool = make_pool_awl (gc, gc->ams_fmt);
 
   root_create_igc (gc);
 #ifndef IN_MY_FORK
