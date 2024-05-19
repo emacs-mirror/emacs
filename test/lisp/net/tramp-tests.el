@@ -5372,11 +5372,18 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
      :tags (append '(:expensive-test :tramp-asynchronous-processes)
 		   (and ,unstable '(:unstable)))
      (skip-unless (tramp--test-enabled))
-     (let ((default-directory ert-remote-temporary-file-directory)
-	   (ert-test (ert-get-test ',test))
-	   (tramp-connection-properties
-	    (cons '(nil "direct-async-process" t)
-		  tramp-connection-properties)))
+     (let* ((default-directory ert-remote-temporary-file-directory)
+	    (ert-test (ert-get-test ',test))
+	    (connection-local-profile-alist
+	     (cons
+	      '(direct-async-process-profile (tramp-direct-async-process . t))
+	      connection-local-profile-alist))
+	    (connection-local-criteria-alist
+	     (cons
+	      `((:application tramp
+		 :machine ,(file-remote-p default-directory 'host))
+		direct-async-process-profile)
+	      connection-local-criteria-alist)))
        (skip-unless (tramp-direct-async-process-p))
        ;; We do expect an established connection already,
        ;; `file-truename' does it by side-effect.  Suppress

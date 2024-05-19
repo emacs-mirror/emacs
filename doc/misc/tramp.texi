@@ -2320,15 +2320,6 @@ default value is @t{"/data/local/tmp"} for the @option{adb} method,
 @t{"/C$/Temp"} for the @option{smb} method, and @t{"/tmp"} otherwise.
 @ref{Temporary directory}.
 
-@item @t{"direct-async-process"}
-
-When this property is non-@code{nil}, an alternative, more performant
-implementation of @code{make-process} and @code{start-file-process} is
-applied.  The connection method must also be marked with a
-non-@code{nil} @code{tramp-direct-async} parameter in
-@code{tramp-methods}.  @ref{Improving performance of asynchronous
-remote processes} for a discussion of constraints.
-
 @item @t{"posix"}
 
 Connections using the @option{smb} method check, whether the remote
@@ -4468,15 +4459,24 @@ Sometimes, this is not needed.  Instead of starting a remote shell and
 running the command afterwards, it is sufficient to run the command
 directly.  @value{tramp} supports this by an alternative
 implementation of @code{make-process} and @code{start-file-process}.
-This is triggered by the connection property
-@t{"direct-async-process"}, @xref{Predefined connection information},
+This is triggered by the connection-local variable
+@code{tramp-direct-async-process},
+@ifinfo
+@xref{Connection Variables, , , emacs},
+@end ifinfo
 which must be set to a non-@code{nil} value.  Example:
 
 @lisp
 @group
-(add-to-list 'tramp-connection-properties
-             (list (regexp-quote "@trampfn{ssh,user@@host,}")
-                   "direct-async-process" t))
+(connection-local-set-profile-variables
+  'remote-direct-async-process
+  '((tramp-direct-async-process . t)))
+@end group
+
+@group
+(connection-local-set-profiles
+ '(:application tramp :machine "remotehost")
+ 'remote-direct-async-process)
 @end group
 @end lisp
 
@@ -4520,6 +4520,12 @@ In order to gain even more performance, it is recommended to bind
 @value{tramp}'s handling of the @option{ControlMaster} options, and
 use your own settings in @file{~/.ssh/config}, @pxref{Using ssh
 connection sharing}.
+
+@c Since Emacs 30.
+@strong{Note}: In previous @value{tramp} versions this was triggered
+by the connection property @t{"direct-async-process"}.  This is still
+supported but deprecated, and it will be removed in a future
+@value{tramp} version.
 
 
 @node Cleanup remote connections

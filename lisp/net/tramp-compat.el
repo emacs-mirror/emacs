@@ -317,15 +317,46 @@ Also see `ignore'."
       ?\N{KHMER SIGN CAMNUC PII KUUH})
     "List of characters equivalent to trailing colon in \"password\" prompts."))
 
-;; Macro `connection-local-p' is new in Emacs 30.1.
+;; Macros `connection-local-p' and `connection-local-value' are new in
+;; Emacs 30.1.
 (if (macrop 'connection-local-p)
     (defalias 'tramp-compat-connection-local-p 'connection-local-p)
-  (defmacro tramp-compat-connection-local-p (variable)
-    "Non-nil if VARIABLE has a connection-local binding in `default-directory'."
-    `(let (connection-local-variables-alist file-local-variables-alist)
-       (hack-connection-local-variables
-	(connection-local-criteria-for-default-directory))
-       (and (assq ',variable connection-local-variables-alist) t))))
+  (defmacro tramp-compat-connection-local-p (variable &optional application)
+    "Non-nil if VARIABLE has a connection-local binding in `default-directory'.
+`default-directory' must be a remote file name.
+If APPLICATION is nil, the value of
+`connection-local-default-application' is used."
+    (declare (debug (symbolp &optional form)))
+    (unless (symbolp variable)
+      (signal 'wrong-type-argument (list 'symbolp variable)))
+    `(let ((criteria
+            (connection-local-criteria-for-default-directory ,application))
+           connection-local-variables-alist file-local-variables-alist)
+       (when criteria
+	 (hack-connection-local-variables criteria)
+	 (and (assq ',variable connection-local-variables-alist) t)))))
+
+(if (macrop 'connection-local-value)
+    (defalias 'tramp-compat-connection-local-value 'connection-local-value)
+  (defmacro tramp-compat-connection-local-value (variable &optional application)
+    "Return connection-local VARIABLE for APPLICATION in `default-directory'.
+`default-directory' must be a remote file name.
+If APPLICATION is nil, the value of
+`connection-local-default-application' is used.
+If VARIABLE does not have a connection-local binding, the return
+value is the default binding of the variable."
+    (declare (debug (symbolp &optional form)))
+    (unless (symbolp variable)
+      (signal 'wrong-type-argument (list 'symbolp variable)))
+    `(let ((criteria
+            (connection-local-criteria-for-default-directory ,application))
+           connection-local-variables-alist file-local-variables-alist)
+       (if (not criteria)
+           ,variable
+	 (hack-connection-local-variables criteria)
+	 (if-let ((result (assq ',variable connection-local-variables-alist)))
+             (cdr result)
+           ,variable)))))
 
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (function-put (intern elt) 'tramp-suppress-trace t))

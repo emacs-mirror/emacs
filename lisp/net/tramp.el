@@ -4847,15 +4847,41 @@ a connection-local variable."
   (when (process-command proc)
     (tramp-message vec 6 "%s" (string-join (process-command proc) " "))))
 
+(defvar tramp-direct-async-process nil
+  "Whether direct asynchronous processes should be used.
+It is not recommended to change this variable globally.  Instead, it
+should be set conmnection-local.")
+
 (defun tramp-direct-async-process-p (&rest args)
   "Whether direct async `make-process' can be called."
   (let ((v (tramp-dissect-file-name default-directory))
 	(buffer (plist-get args :buffer))
 	(stderr (plist-get args :stderr)))
+    ;; Since Tramp 2.7.1.  In a future release, we'll ignore this
+    ;; connection property.
+    (when (and (not (tramp-compat-connection-local-p
+		     tramp-direct-async-process))
+	       (tramp-connection-property-p v "direct-async-process"))
+      (let ((msg (concat "Connection property \"direct-async-process\" is deprecated, "
+			 "use connection-local variable `tramp-direct-async-process'\n"
+			 "See (info \"(tramp) Improving performance of "
+			 "asynchronous remote processes\")")))
+	(if (tramp-get-connection-property
+	     tramp-null-hop "direct-async-process-warned")
+	    (tramp-message v 2 msg)
+	  (tramp-set-connection-property
+	   tramp-null-hop "direct-async-process-warned" t)
+	  (tramp-warning v msg))))
+
     (and ;; The method supports it.
          (tramp-get-method-parameter v 'tramp-direct-async)
-	 ;; It has been indicated.
-         (tramp-get-connection-property v "direct-async-process")
+	 ;; It has been indicated.  We don't use the global value of
+	 ;; `tramp-direct-async-process'.
+	 (or (and (tramp-compat-connection-local-p tramp-direct-async-process)
+		  (tramp-compat-connection-local-value
+		   tramp-direct-async-process))
+	     ;; Deprecated setting.
+             (tramp-get-connection-property v "direct-async-process"))
 	 ;; There's no multi-hop.
 	 (or (not (tramp-multi-hop-p v))
 	     (null (cdr (tramp-compute-multi-hops v))))
