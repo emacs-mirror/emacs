@@ -76,6 +76,7 @@ To add a new module function, proceed as follows:
 #include <config.h>
 
 #include "lisp.h"
+#include "igc.h"
 #include "emacs-module.h"
 
 #include <stdarg.h>
@@ -423,9 +424,13 @@ module_make_global_ref (emacs_env *env, emacs_value value)
     }
   else
     {
+#ifdef HAVE_MPS
+      struct module_global_reference *ref = igc_alloc_global_ref ();
+#else
       struct module_global_reference *ref
         = ALLOCATE_PLAIN_PSEUDOVECTOR (struct module_global_reference,
                                        PVEC_MODULE_GLOBAL_REFERENCE);
+#endif
       ref->value.v = new_obj;
       ref->refcount = 1;
       Lisp_Object value;

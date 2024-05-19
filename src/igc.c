@@ -2786,11 +2786,11 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_WEAK:
       return t->d.weak_weak_ap;
 
+    case IGC_OBJ_VECTOR:
     case IGC_OBJ_CONS:
     case IGC_OBJ_SYMBOL:
     case IGC_OBJ_INTERVAL:
     case IGC_OBJ_STRING:
-    case IGC_OBJ_VECTOR:
     case IGC_OBJ_ITREE_TREE:
     case IGC_OBJ_ITREE_NODE:
     case IGC_OBJ_IMAGE:
@@ -2883,9 +2883,8 @@ igc_hash (Lisp_Object key)
 }
 
 static mps_addr_t
-alloc (size_t size, enum igc_obj_type type)
+alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 {
-  mps_ap_t ap = thread_ap (type);
   mps_addr_t p, obj;
   size = obj_size (size);
   do
@@ -2908,6 +2907,29 @@ alloc (size_t size, enum igc_obj_type type)
     }
   while (!mps_commit (ap, p, size));
   return obj;
+}
+
+static mps_addr_t
+alloc (size_t size, enum igc_obj_type type)
+{
+  return alloc_impl (size, type, thread_ap (type));
+}
+
+static mps_addr_t
+alloc_immovable (size_t size, enum igc_obj_type type)
+{
+  struct igc_thread_list *t = current_thread->gc_info;
+  return alloc_impl (size, type, t->d.ams_ap);
+}
+
+void *
+igc_alloc_global_ref (void)
+{
+  size_t nwords_mem = VECSIZE (struct module_global_reference);
+  struct Lisp_Vector *v
+    = alloc_immovable (header_size + nwords_mem * word_size, IGC_OBJ_VECTOR);
+  XSETPVECTYPESIZE (v, PVEC_MODULE_GLOBAL_REFERENCE, 0, nwords_mem);
+  return v;
 }
 
 Lisp_Object
