@@ -335,15 +335,34 @@ MENU-ITEM is a menu item to convert.  See info node (elisp)Tool Bar."
   (interactive)
   nil)
 
+;; static-if was added in Emacs 30, but this packages supports earlier
+;; versions.
+(defmacro window-tool-bar--static-if (condition then-form &rest else-forms)
+  "A conditional compilation macro.
+Evaluate CONDITION at macro-expansion time.  If it is non-nil,
+expand the macro to THEN-FORM.  Otherwise expand it to ELSE-FORMS
+enclosed in a `progn' form.  ELSE-FORMS may be empty."
+  (declare (indent 2)
+           (debug (sexp sexp &rest sexp)))
+  (if (eval condition lexical-binding)
+      then-form
+    (cons 'progn else-forms)))
+
 (defvar window-tool-bar--ignored-event-types
-  (let ((list (list 'mouse-movement 'pinch
-                    'wheel-down 'wheel-up 'wheel-left 'wheel-right
+  (let ((list (append
+               '(mouse-movement pinch
+                 wheel-down wheel-up wheel-left wheel-right)
+               ;; Prior to emacs 30, wheel events could also surface as
+               ;; mouse-<NUM> buttons.
+               (window-tool-bar--static-if (version< emacs-version "30")
+                   (list
                     mouse-wheel-down-event mouse-wheel-up-event
                     mouse-wheel-left-event mouse-wheel-right-event
                     (bound-and-true-p mouse-wheel-down-alternate-event)
                     (bound-and-true-p mouse-wheel-up-alternate-event)
                     (bound-and-true-p mouse-wheel-left-alternate-event)
-                    (bound-and-true-p mouse-wheel-right-alternate-event))))
+                    (bound-and-true-p mouse-wheel-right-alternate-event))
+                 nil))))
     (delete-dups (delete nil list)))
   "Cache for `window-tool-bar--last-command-triggers-refresh-p'.")
 
