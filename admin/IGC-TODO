@@ -11,3 +11,27 @@ Todo list for scratch/igc
 - Make native compilation work on macOS. (Might be fixed with Helmut's
   exact root approach, but can't check because Homebrew libgccjit 14.1
   makes problems when configuring (libgcc_s.dylib not found)).
+
+- Find a solution for dynamic modules.
+
+  Example: vterm.
+
+  Its emacs_module_init uses module_make_global_ref to get handles to
+  functions in Emacs that it can call. One example
+
+    emacs_value Fapply;
+
+    int emacs_module_init(struct emacs_runtime *ert) {
+      emacs_env *env = ert->get_environment(ert);
+    {
+      Fapply = env->make_global_ref(env, env->intern(env, "apply"));
+    }
+
+  Fapply here is a variable in the shared lib for vterm.
+
+  module_make_global_ref creates a module_global_reference, say R, a
+  pseudo-vector and remembers it in a hash table. Its return value is
+  &R->value,
+
+  As a pseudo-vector, R moves, and &R->value changes when it does. And so,
+  Fapply in the vterm modules becomes invalid.
