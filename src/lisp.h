@@ -2534,7 +2534,7 @@ struct Lisp_Hash_Table;
 
 /* The type of a hash value stored in the table.
    It's unsigned and a subtype of EMACS_UINT.  */
-typedef uint32_t hash_hash_t;
+typedef unsigned int hash_hash_t;
 
 typedef enum {
   Test_eql,
@@ -2818,10 +2818,14 @@ INLINE ptrdiff_t
 knuth_hash (hash_hash_t hash, unsigned bits)
 {
   /* Knuth multiplicative hashing, tailored for 32-bit indices
-     (avoiding a 64-bit multiply).  */
-  uint32_t alpha = 2654435769;	/* 2**32/phi */
-  /* Note the cast to uint64_t, to make it work for bits=0.  */
-  return (uint64_t)((uint32_t)hash * alpha) >> (32 - bits);
+     (avoiding a 64-bit multiply on typical platforms).  */
+  unsigned int h = hash;
+  unsigned int alpha = 2654435769;	/* 2**32/phi */
+  /* Multiply with unsigned int, ANDing in case UINT_WIDTH exceeds 32.  */
+  unsigned int product = (h * alpha) & 0xffffffffu;
+  /* Convert to a wider type, so that the shift works when BITS == 0.  */
+  unsigned long long int wide_product = product;
+  return wide_product >> (32 - bits);
 }
 
 
