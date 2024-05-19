@@ -1820,6 +1820,7 @@ This takes effect when first loading the library.")
     (define-key map "\C-c\C-c#" #'html-id-anchor)
     (define-key map "\C-c\C-ci" #'html-image)
     (when html-quick-keys
+      (define-key map "\C-cp" #'html-paragraph)
       (define-key map "\C-c-" #'html-horizontal-rule)
       (define-key map "\C-cd" #'html-div)
       (define-key map "\C-co" #'html-ordered-list)
