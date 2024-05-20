@@ -2001,15 +2001,28 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
   return MPS_RES_OK;
 }
 
+static igc_scan_result_t
+scan_cell_callback (struct igc_opaque *op, Lisp_Object *addr)
+{
+  mps_ss_t ss = (mps_ss_t)op;
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX12_OBJ (ss, addr);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 #pragma GCC diagnostic pop
 
 static igc_root_list *
 root_create (struct igc *gc, void *start, void *end, mps_rank_t rank,
-	     mps_area_scan_t scan, bool ambig)
+	     mps_area_scan_t scan, void *closure, bool ambig)
 {
   mps_root_t root;
   mps_res_t res
-    = mps_root_create_area (&root, gc->arena, rank, 0, start, end, scan, 0);
+    = mps_root_create_area (&root, gc->arena, rank, 0, start, end, scan,
+			    closure);
   IGC_CHECK_RES (res);
   return register_root (gc, root, start, end, ambig);
 }
@@ -2017,13 +2030,15 @@ root_create (struct igc *gc, void *start, void *end, mps_rank_t rank,
 static igc_root_list *
 root_create_ambig (struct igc *gc, void *start, void *end)
 {
-  return root_create (gc, start, end, mps_rank_ambig (), scan_ambig, true);
+  return root_create (gc, start, end, mps_rank_ambig (), scan_ambig, NULL,
+		      true);
 }
 
 static igc_root_list *
-root_create_exact (struct igc *gc, void *start, void *end, mps_area_scan_t scan)
+root_create_exact (struct igc *gc, void *start, void *end,
+		   mps_area_scan_t scan)
 {
-  return root_create (gc, start, end, mps_rank_exact (), scan, false);
+  return root_create (gc, start, end, mps_rank_exact (), scan, NULL, false);
 }
 
 static void
@@ -2115,7 +2130,7 @@ root_create_bc (struct igc_thread_list *t)
 static void
 root_create_igc (struct igc *gc)
 {
-  root_create (gc, gc, gc + 1, mps_rank_exact (), scan_igc, false);
+  root_create (gc, gc, gc + 1, mps_rank_exact (), scan_igc, NULL, false);
 }
 
 #ifndef IN_MY_FORK
@@ -2124,7 +2139,7 @@ root_create_pure (struct igc *gc)
 {
   void *start = &pure[0];
   void *end = &pure[PURESIZE];
-  root_create (gc, start, end, mps_rank_ambig (), scan_pure, true);
+  root_create (gc, start, end, mps_rank_ambig (), scan_pure, NULL, true);
 }
 #endif
 
@@ -2351,6 +2366,35 @@ igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
     pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
     char *end = (char *) pa + *nitems * item_size;
     root_create_ambig (global_igc, pa, end);
+  }
+  return pa;
+}
+
+static mps_res_t
+scan_xpalloced (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  igc_scan_area_t scan_area = closure;
+  igc_scan_cell_t scan_cell = (igc_scan_cell_t)scan_cell_callback;
+  return scan_area ((struct igc_opaque *)ss, start, end, scan_cell);
+}
+
+void *
+igc_xpalloc_exact (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
+		   ptrdiff_t nitems_max, ptrdiff_t item_size,
+		   igc_scan_area_t scan_area)
+{
+  IGC_WITH_PARKED (global_igc)
+  {
+    if (pa)
+      {
+	struct igc_root_list *r = root_find (pa);
+	igc_assert (r != NULL);
+	destroy_root (&r);
+      }
+    pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
+    char *end = (char *)pa + *nitems * item_size;
+    root_create (global_igc, pa, end, mps_rank_exact (),
+		 scan_xpalloced, scan_area, false);
   }
   return pa;
 }

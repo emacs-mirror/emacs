@@ -72,8 +72,22 @@ void *igc_xzalloc_ambig (size_t size);
 void *igc_realloc_ambig (void *block, size_t size);
 void igc_xfree (void *p);
 Lisp_Object *igc_xalloc_lisp_objs_exact (size_t n);
-void *igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
-		   ptrdiff_t nitems_max, ptrdiff_t item_size);
+
+void *igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems,
+			 ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
+			 ptrdiff_t item_size);
+
+typedef uintptr_t igc_scan_result_t; /* zero means success */
+struct igc_opaque;
+typedef igc_scan_result_t (*igc_scan_cell_t) (struct igc_opaque *,
+					      Lisp_Object *addr);
+typedef igc_scan_result_t (*igc_scan_area_t) (struct igc_opaque *,
+					      void *start, void *end,
+					      igc_scan_cell_t fun);
+void *igc_xpalloc_exact (void *pa, ptrdiff_t *nitems,
+			 ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
+			 ptrdiff_t item_size, igc_scan_area_t scan);
+
 void *igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size);
 
 struct Lisp_Vector *igc_alloc_pseudovector (size_t nwords_mem,
