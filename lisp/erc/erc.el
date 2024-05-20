@@ -3987,7 +3987,9 @@ As of ERC 5.6, assume third-party code will use this function
 instead of lower-level ones, like `erc-insert-line', to insert
 arbitrary informative messages as if sent by the server.  That
 is, tell modules to treat a \"local\" message for which PARSED is
-nil like any other server-sent message."
+nil like any other server-sent message.  Finally, expect users to
+treat the return value of this function as undefined even though
+various default response handlers may appear to presume nil."
   (let* ((erc--msg-props
           (or erc--msg-props
               (let ((table (make-hash-table))
@@ -9626,7 +9628,7 @@ See also `format-spec'."
     erc-networks-shrink-ids-and-buffer-names
     erc-networks-rename-surviving-target-buffer)
   "Invoked whenever a channel-buffer is killed via `kill-buffer'."
-  :package-version '(ERC . "5.5")
+  :package-version '(ERC . "5.6") ; FIXME sync on release
   :group 'erc-hooks
   :type 'hook)
 

@@ -1566,13 +1566,23 @@ This creates:
    `erc-server-NAME'.
  - a function `erc-server-NAME' with body FN-BODY.
 
+\(Note that here, NAME merely refers to the parameter NAME rather than
+an actual IRC response or server-sent command.)
+
 If ALIASES is non-nil, each alias in ALIASES is `defalias'ed to
 `erc-server-NAME'.
 Alias hook variables are created as `erc-server-ALIAS-functions' and
 initialized to the same default value as `erc-server-NAME-functions'.
 
-FN-BODY is the body of `erc-server-NAME' it may refer to the two
-function arguments PROC and PARSED.
+ERC uses FN-BODY as the body of the default response handler
+`erc-server-NAME', which handles all incoming IRC \"NAME\" responses,
+unless overridden (see below).  ERC calls the function with two
+arguments, PROC and PARSED, whose symbols (lowercase) are bound to the
+current `erc-server-process' and `erc-response' instance within FN-BODY.
+Implementers should take care not to shadow them inadvertently.  In all
+cases, FN-BODY should return nil to allow third parties to run code
+after `erc-server-NAME' returns.  For historical reasons, ERC does not
+currently enforce this, however future versions very well may.
 
 If EXTRA-FN-DOC is non-nil, it is inserted at the beginning of the
 defined function's docstring.
@@ -1902,7 +1912,8 @@ add things to `%s' instead."
         (when (and erc-kill-buffer-on-part buffer)
           (defvar erc-killing-buffer-on-part-p)
           (let ((erc-killing-buffer-on-part-p t))
-            (kill-buffer buffer)))))))
+            (kill-buffer buffer))))))
+  nil)
 
 (define-erc-response-handler (PING)
   "Handle ping messages." nil
@@ -1914,7 +1925,8 @@ add things to `%s' instead."
       (erc-display-message
        parsed 'error proc
        'PING ?s (erc-time-diff erc-server-last-ping-time (erc-current-time))))
-    (setq erc-server-last-ping-time (erc-current-time))))
+    (setq erc-server-last-ping-time (erc-current-time)))
+  nil)
 
 (define-erc-response-handler (PONG)
   "Handle pong messages." nil

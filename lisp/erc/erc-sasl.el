@@ -373,7 +373,8 @@ This doesn't solicit or validate a suite of supported mechanisms."
   "Destroy process PROC and warn user that their settings are likely faulty."
   (delete-process proc)
   (erc--lwarn 'erc-sasl :error
-              "Disconnected from %s; please review SASL settings" proc))
+              "Disconnected from %s; please review SASL settings" proc)
+  nil)
 
 (define-erc-response-handler (902)
   "Handle an ERR_NICKLOCKED response." nil

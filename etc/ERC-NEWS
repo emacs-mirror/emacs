@@ -685,6 +685,14 @@ The option 'erc-format-nick-function' has been renamed to
 actual role.  So too has the related function 'erc-format-nick', which
 is now 'erc-determine-speaker-from user'.
 
+*** All default response handlers return nil.
+Actually, this isn't yet true, but ERC is moving in this direction.
+The goal is to guarantee that trailing members of response hooks, like
+'erc-server-005-functions', have an opportunity to run after the
+default handler.  For now, certain default handlers that may have
+previously returned non-nil, like 'erc-server-PONG' and
+'erc-server-904', have been updated to return nil in all cases.
+
 *** A template-based approach to formatting inserted chat messages.
 Predicting and influencing how ERC formats messages containing a
 leading "<speaker>" has never been straightforward.  The characters
