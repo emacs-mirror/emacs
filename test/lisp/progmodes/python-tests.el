@@ -7524,7 +7524,7 @@ print('current 3')"
     (goto-char (point-min))
     (should-error (python-shell-send-block) :type 'user-error)
     (forward-line)
-    (python-shell-send-block)
+    (python-shell-send-block t) ;; send block with header
     (python-tests-shell-wait-for-prompt)
     (python-shell-with-shell-buffer
       (goto-char (point-min))
@@ -7533,7 +7533,7 @@ print('current 3')"
       (should (re-search-forward "current 2" nil t))
       (should-not (re-search-forward "current 3" nil t)))
     (forward-line)
-    (python-shell-send-block t) ;; send block body only
+    (python-shell-send-block) ;; send block body only
     (python-tests-shell-wait-for-prompt)
     (python-shell-with-shell-buffer
       ;; should only 1 line output from the block body
