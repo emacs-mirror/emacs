@@ -4862,10 +4862,11 @@ should be set conmnection-local.")
     (when (and (not (tramp-compat-connection-local-p
 		     tramp-direct-async-process))
 	       (tramp-connection-property-p v "direct-async-process"))
-      (let ((msg (concat "Connection property \"direct-async-process\" is deprecated, "
-			 "use connection-local variable `tramp-direct-async-process'\n"
-			 "See (info \"(tramp) Improving performance of "
-			 "asynchronous remote processes\")")))
+      (let ((msg (concat
+		  "Connection property \"direct-async-process\" is deprecated, "
+		  "use connection-local variable `tramp-direct-async-process'\n"
+		  "See (info \"(tramp) Improving performance of "
+		  "asynchronous remote processes\")")))
 	(if (tramp-get-connection-property
 	     tramp-null-hop "direct-async-process-warned")
 	    (tramp-message v 2 msg)

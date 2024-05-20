@@ -7076,7 +7076,7 @@ This is used in tests which we don't want to tag
   "Check, whether a container method is used.
 This does not support some special file names."
   (string-match-p
-   (rx bol (| "docker" "podman" "apptainer"))
+   (rx bol (| "docker" "podman" "kubernetes" "apptainer" "run0" "nspawn"))
    (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-container-oob-p ()
@@ -7221,6 +7221,12 @@ This requires restrictions of file name syntax."
 This does not support special file names."
   (string-equal
    "telnet" (file-remote-p ert-remote-temporary-file-directory 'method)))
+
+(defun tramp--test-toolbox-p ()
+  "Check, whether the toolbox method is used.
+This does not support `tramp-test45-asynchronous-requests'."
+  (string-equal
+   "toolbox" (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-windows-nt-p ()
   "Check, whether the locale host runs MS Windows."
@@ -7437,7 +7443,9 @@ This requires restrictions of file name syntax."
 				   '(tramp--test-async-shell-command))))
 		      (with-temp-buffer
 			(funcall this-shell-command "cat -- *" (current-buffer))
-			(should (string-equal elt (buffer-string)))))))
+			(should
+			 (string-match-p
+			  (rx (literal elt) eol) (buffer-string)))))))
 
 		(delete-file file2)
 		(should-not (file-exists-p file2))
@@ -7706,8 +7714,9 @@ process sentinels.  They shall not disturb each other."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
   (skip-unless (not (tramp--test-container-p)))
-  (skip-unless (not (tramp--test-telnet-p)))
   (skip-unless (not (tramp--test-sshfs-p)))
+  (skip-unless (not (tramp--test-telnet-p)))
+  (skip-unless (not (tramp--test-toolbox-p)))
   (skip-unless (not (tramp--test-windows-nt-p)))
 
   (with-timeout

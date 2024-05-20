@@ -4468,8 +4468,8 @@ file exists and nonzero exit status otherwise."
 			;; Maybe it works at least for some other commands.
 			(prog1
 			    default-shell
-			  (tramp-message
-			   vec 2
+			  (tramp-warning
+			   vec
 			   (concat
 			    "Couldn't find a remote shell which groks tilde "
 			    "expansion, using `%s'")
@@ -5003,8 +5003,8 @@ Goes through the list `tramp-inline-compress-commands'."
 
 	(tramp-set-connection-property p "inline-compress" nil)
 	(tramp-set-connection-property p "inline-decompress" nil)
-	(tramp-message
-	 vec 2 "Couldn't find an inline transfer compress command")))))
+	(tramp-warning
+	 vec "Couldn't find an inline transfer compress command")))))
 
 (defun tramp-ssh-option-exists-p (vec option)
   "Check, whether local ssh OPTION is applicable."
@@ -5714,8 +5714,8 @@ Nonexistent directories are removed from spec."
 		   (tramp-shell-quote-argument tramp-end-of-heredoc))
 		  'noerror (rx (literal tramp-end-of-heredoc)))
 		 (progn
-		   (tramp-message
-		    vec 2 "Could not retrieve `tramp-own-remote-path'")
+		   (tramp-warning
+		    vec "Could not retrieve `tramp-own-remote-path'")
 		   nil)))))
 
 	;; Replace place holder `tramp-default-remote-path'.
