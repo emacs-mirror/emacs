@@ -1323,6 +1323,9 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 
       case IGC_OBJ_STRING_DATA:
       case IGC_OBJ_FLOAT:
+	/* Can occur in the dump. */
+	break;
+
       case IGC_OBJ_LAST:
 	emacs_abort ();
 
@@ -1400,6 +1403,20 @@ dflt_scan (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL (ss, dflt_scanx (ss, base_start, base_limit, NULL));
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
+scan_dump (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    struct pdumper_object_it it = { 0 };
+    void *base;
+    while ((base = pdumper_next_object (&it)) != NULL)
+      IGC_FIX_CALL (ss, dflt_scan_obj (ss, base, end, NULL));
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2123,6 +2140,12 @@ static void
 root_create_rdstack (struct igc *gc)
 {
   root_create_exact (gc, &rdstack, &rdstack + 1, scan_rdstack);
+}
+
+void
+igc_on_pdump_loaded (void *start, void *end)
+{
+  root_create_exact (global_igc, start, end, scan_dump);
 }
 
 void
@@ -3411,62 +3434,4 @@ be either an integer or a float.  The default value is 0.05, i.e.
 50 milliseconds.  Negative values and values that are not numbers
 are handled as if they were the default value.  */);
   Vigc_step_interval = make_float (0.05);
-}
-
-struct register_pdump_roots_ctx
-{
-  void *hot_start;  /* start of hot section in pdump */
-  void *hot_end;    /* end of hot section in pdump */
-  void *root_start; /* start (or NULL) of current root */
-  void *root_end;   /* end (or NULL) of current root */
-};
-
-/* Try to combine adjacent objects into one root.  Naively creating a
-   separate root for each object seems to run into serious efficiency
-   problems. */
-static void
-register_pdump_roots_1 (void *start, void *closure)
-{
-  struct igc_header *h = start;
-  void *end = (char *)start + to_bytes (h->nwords);
-  struct register_pdump_roots_ctx *ctx = closure;
-  if (start < ctx->hot_start || ctx->hot_end <= start)
-    return;
-  if (ctx->root_end == start) /* adjacent objects? */
-    {
-      ctx->root_end = end; /* combine them */
-    }
-  else
-    {
-      if (ctx->root_start != NULL)
-	{
-	  root_create_exact (global_igc, ctx->root_start, ctx->root_end,
-			     dflt_scanx);
-	}
-      ctx->root_start = start;
-      ctx->root_end = end;
-    }
-}
-
-static void
-register_pdump_roots (void *start, void *end)
-{
-  struct register_pdump_roots_ctx ctx = {
-    .hot_start = start,
-    .hot_end = end,
-    .root_start = NULL,
-    .root_end = NULL,
-  };
-  pdumper_visit_object_starts (register_pdump_roots_1, &ctx);
-  if (ctx.root_start != NULL)
-    {
-      root_create_exact (global_igc, ctx.root_start, ctx.root_end,
-			 dflt_scanx);
-    }
-}
-
-void
-igc_on_pdump_loaded (void *start, void *end)
-{
-  register_pdump_roots (start, end);
 }
