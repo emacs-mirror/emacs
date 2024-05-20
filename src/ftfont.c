@@ -149,7 +149,8 @@ static Lisp_Object
 get_adstyle_property (FcPattern *p)
 {
   FcChar8 *fcstr;
-  char *str, *end;
+  char *str, *end, *tmp;
+  size_t i;
   Lisp_Object adstyle;
 
 #ifdef FC_FONTFORMAT
@@ -168,7 +169,18 @@ get_adstyle_property (FcPattern *p)
       || matching_prefix (str, end - str, "Oblique")
       || matching_prefix (str, end - str, "Italic"))
     return Qnil;
-  adstyle = font_intern_prop (str, end - str, 1);
+  /* The characters `-', `?', `*', and `"' are not representable in XLFDs
+     and therefore must be replaced by substitutes.  (bug#70989) */
+  USE_SAFE_ALLOCA;
+  tmp = SAFE_ALLOCA (end - str);
+  for (i = 0; i < end - str; ++i)
+    tmp[i] = ((end[i] != '?'
+	       && end[i] != '*'
+	       && end[i] != '"'
+	       && end[i] != '-')
+	      ? end[i] : ' ');
+  adstyle = font_intern_prop (tmp, end - str, 1);
+  SAFE_FREE ();
   if (font_style_to_value (FONT_WIDTH_INDEX, adstyle, 0) >= 0)
     return Qnil;
   return adstyle;
