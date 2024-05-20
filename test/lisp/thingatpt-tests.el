@@ -270,6 +270,8 @@ position to retrieve THING.")
     ;; Get the URL using the first provider.
     (should (equal (thing-at-point 'url) "foo.com"))
     (should (equal (thing-at-point 'word) "hello"))
+    (goto-char 6)                       ; Go to the end of "hello".
+    (should (equal (thing-at-point 'url) "foo.com"))
     (goto-char (point-max))
     ;; Get the URL using the second provider.
     (should (equal (thing-at-point 'url) "bar.com"))))
@@ -283,13 +285,15 @@ position to retrieve THING.")
     (insert (propertize "hello" 'foo-url "foo.com") "there\n"
             (propertize "goodbye" 'bar-url "bar.com"))
     (goto-char (point-min))
-    (save-excursion
-      (forward-thing 'url)              ; Move past the first URL.
-      (should (= (point) 6))
-      (forward-thing 'url)              ; Move past the second URL.
-      (should (= (point) 19)))
-    (goto-char (point-min))             ; Go back to the beginning...
-    (forward-thing 'word)               ; ... and move past the first word.
+    (forward-thing 'url)                ; Move past the first URL.
+    (should (= (point) 6))
+    (forward-thing 'url)                ; Move past the second URL.
+    (should (= (point) 19))
+    (forward-thing 'url -1)             ; Move backwards past the second URL.
+    (should (= (point) 12))
+    (forward-thing 'url -1)             ; Move backwards past the first URL.
+    (should (= (point) 1))
+    (forward-thing 'word)               ; Move past the first word.
     (should (= (point) 11))))
 
 (ert-deftest bounds-of-thing-at-point-providers ()
@@ -316,5 +320,31 @@ position to retrieve THING.")
     (should (equal (bounds-of-thing-at-point 'url) '(12 . 19)))
     (should (eq (save-excursion (beginning-of-thing 'url)) 12))
     (should (eq (save-excursion (end-of-thing 'url)) 19))))
+
+(ert-deftest consecutive-things-at-point ()
+  (with-temp-buffer
+    (setq-local
+     thing-at-point-provider-alist
+     `((url . ,(lambda () (thing-at-point-for-text-property 'url))))
+     forward-thing-provider-alist
+     `((url . ,(lambda (n) (forward-thing-for-text-property 'url n))))
+     bounds-of-thing-at-point-provider-alist
+     `((url . ,(lambda () (bounds-of-thing-at-point-for-text-property 'url)))))
+    (insert (propertize "one" 'url "foo.com")
+            (propertize "two" 'url "bar.com")
+            (propertize "three" 'url "baz.com"))
+    (goto-char 4)                       ; Go to the end of "one".
+    (should (equal (thing-at-point 'url) "bar.com"))
+    (should (equal (bounds-of-thing-at-point 'url) '(4 . 7)))
+    (forward-thing 'url)
+    (should (= (point) 7))
+    (should (equal (thing-at-point 'url) "baz.com"))
+    (should (equal (bounds-of-thing-at-point 'url) '(7 . 12)))
+    (forward-thing 'url)
+    (should (= (point) 12))
+    (forward-thing 'url -2)
+    (should (= (point) 4))
+    (should (equal (thing-at-point 'url) "bar.com"))
+    (should (equal (bounds-of-thing-at-point 'url) '(4 . 7)))))
 
 ;;; thingatpt-tests.el ends here

@@ -76,12 +76,13 @@ question.
 `whitespace', `line', `face' and `page'.")
 
 (defvar forward-thing-provider-alist nil
-  "Alist of providers for moving forward to the end of a \"thing\".
+  "Alist of providers for moving forward to the end of the next \"thing\".
 This variable can be set globally, or appended to buffer-locally by
 modes, to provide functions that will move forward to the end of a
-\"thing\" at point.  Each function should take a single argument N, the
-number of \"things\" to move forward past.  The first provider for the
-\"thing\" that returns a non-nil value wins.
+\"thing\" at point.  Each function should take a single argument
+BACKWARD, which is non-nil if the function should instead move to the
+beginning of the previous thing.  The provider for \"thing\" that moves
+point by the smallest non-zero distance wins.
 
 You can use this variable in much the same way as
 `thing-at-point-provider-alist' (which see).")
@@ -106,15 +107,35 @@ Possibilities include `symbol', `list', `sexp', `defun', `number',
 `filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'."
   (setq n (or n 1))
-  (or (seq-some (lambda (elt)
-                  (and (eq (car elt) thing)
-                       (funcall (cdr elt) n)))
-                forward-thing-provider-alist)
-      (let ((forward-op (or (get thing 'forward-op)
-			    (intern-soft (format "forward-%s" thing)))))
-        (if (functionp forward-op)
-	    (funcall forward-op n)
-          (error "Can't determine how to move over a %s" thing)))))
+  (if (assq thing forward-thing-provider-alist)
+      (let* ((backward (< n 0))
+             (reducer (if backward #'max #'min))
+             (limit (if backward (point-min) (point-max))))
+        (catch 'done
+          (dotimes (_ (abs n))
+            ;; Find the provider that moves point the smallest non-zero
+            ;; amount, and use that to update point.
+            (let ((new-point (seq-reduce
+                              (lambda (value elt)
+                                (if (eq (car elt) thing)
+                                    (save-excursion
+                                      (funcall (cdr elt) backward)
+                                      (if value
+                                          (funcall reducer value (point))
+                                        (point)))
+                                  value))
+                              forward-thing-provider-alist nil)))
+            (if (and new-point (/= new-point (point)))
+                (goto-char new-point)
+              ;; If we didn't move point, move to our limit (min or max
+              ;; point), and terminate.
+              (goto-char limit)
+              (throw 'done t))))))
+    (let ((forward-op (or (get thing 'forward-op)
+                          (intern-soft (format "forward-%s" thing)))))
+      (if (functionp forward-op)
+          (funcall forward-op n)
+        (error "Can't determine how to move over a %s" thing)))))
 
 ;; General routines
 
@@ -819,21 +840,16 @@ Each \"thing\" is a region of text with the specified text PROPERTY set."
 (autoload 'prop-match-beginning "text-property-search")
 (autoload 'prop-match-end "text-property-search")
 
-(defun forward-thing-for-text-property (property n)
-  "Move forward to the end of the Nth next \"thing\".
-Each \"thing\" is a region of text with the specified text PROPERTY set."
-  (let ((search-func (if (> n 0) #'text-property-search-forward
-                       #'text-property-search-backward))
-        (pos-func (if (> n 0) #'prop-match-end #'prop-match-beginning))
-        (limit (if (> n 0) (point-max) (point-min))))
-    (catch 'done
-      (dotimes (_ (abs n))
-        (if-let ((match (funcall search-func property)))
-            (goto-char (funcall pos-func match))
-          (goto-char limit)
-          (throw 'done t))))
-    ;; Return non-nil.
-    t))
+(defun forward-thing-for-text-property (property &optional backward)
+  "Move forward to the end of the next \"thing\".
+If BACKWARD is non-nil, move backward to the beginning of the previous
+\"thing\" instead.  Each \"thing\" is a region of text with the
+specified text PROPERTY set."
+  (let ((search-func (if backward #'text-property-search-backward
+                       #'text-property-search-forward))
+        (pos-func (if backward #'prop-match-beginning #'prop-match-end)))
+    (when-let ((match (funcall search-func property)))
+      (goto-char (funcall pos-func match)))))
 
 (defun bounds-of-thing-at-point-for-text-property (property)
   "Determine the start and end buffer locations for the \"thing\" at point.

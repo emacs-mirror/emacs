@@ -660,9 +660,9 @@ have been run, the auto-setup is inhibited.")
   "`thing-at-point' provider function."
   (thing-at-point-for-text-property 'bug-reference-url))
 
-(defun bug-reference--forward-url (n)
+(defun bug-reference--forward-url (backward)
   "`forward-thing' provider function."
-  (forward-thing-for-text-property 'bug-reference-url n))
+  (forward-thing-for-text-property 'bug-reference-url backward))
 
 (defun bug-reference--bounds-of-url-at-point ()
   "`bounds-of-thing-at-point' provider function."
