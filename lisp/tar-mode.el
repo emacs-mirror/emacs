@@ -135,6 +135,10 @@ This information is useful, but it takes screen space away from file names."
 (put 'tar-superior-buffer 'permanent-local t)
 (put 'tar-superior-descriptor 'permanent-local t)
 
+(defvar tar-archive-from-tar nil
+  "Non-nil if an arc-mode archive file is a member of a tar archive.")
+(put tar-archive-from-tar 'permanent-local t)
+
 ;; The Tar data is made up of bytes and better manipulated as bytes
 ;; and can be very large, so insert/delete can be costly.  The summary we
 ;; want to display may contain non-ascii chars, of course, so we'd like it
@@ -1124,6 +1128,8 @@ return nil.  Otherwise point is returned."
                 default-directory))
         (set-buffer-modified-p nil)
         (normal-mode)                   ; pick a mode.
+        (when (derived-mode-p 'archive-mode)
+          (setq-local tar-archive-from-tar t))
         (setq-local tar-superior-buffer tar-buffer)
         (setq-local tar-superior-descriptor descriptor)
         (setq buffer-read-only read-only-p)
