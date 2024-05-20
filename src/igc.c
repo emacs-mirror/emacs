@@ -1750,24 +1750,6 @@ fix_comp_unit (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
   return MPS_RES_OK;
 }
 
-#ifdef HAVE_NATIVE_COMP
-static mps_res_t
-scan_comp_units (mps_ss_t ss, void *start, void *end, void *closure)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    for (Lisp_Object *p = start; (void *) p < end; ++p)
-      if (*p)
-	{
-	  struct Lisp_Native_Comp_Unit *u = XNATIVE_COMP_UNIT (*p);
-	  IGC_FIX_CALL (ss, fix_comp_unit (ss, u));
-	}
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-#endif
-
 #ifdef HAVE_XWIDGETS
 
 static mps_res_t
@@ -2351,36 +2333,6 @@ igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
   }
   return pa;
 }
-
-#ifdef HAVE_NATIVE_COMP
-void
-igc_register_cu (Lisp_Object cu)
-{
-  igc_assert (pdumper_object_p (XNATIVE_COMP_UNIT (cu)));
-  struct igc *gc = global_igc;
-  if (gc->ncu == gc->cu_capacity)
-    {
-      IGC_WITH_PARKED (global_igc)
-	{
-	  if (gc->cu)
-	    {
-	      struct igc_root_list *r = root_find (gc->cu);
-	      igc_assert (r != NULL);
-	      destroy_root (&r);
-	    }
-
-	  gc->cu = xpalloc (gc->cu, &gc->cu_capacity, 10, 2 * gc->cu_capacity,
-			    sizeof *gc->cu);
-	  for (int i = gc->ncu; i < gc->cu_capacity; ++i)
-	    gc->cu[i] = Qnil;
-	  root_create (gc, gc->cu, gc->cu + gc->cu_capacity, mps_rank_exact (),
-		       scan_comp_units, false);
-	}
-    }
-
-  gc->cu[gc->ncu++] = cu;
-}
-#endif
 
 void
 igc_create_charset_root (void *table, size_t size)

@@ -5157,10 +5157,6 @@ register_native_comp_unit (Lisp_Object comp_u)
 {
   Fputhash (XNATIVE_COMP_UNIT (comp_u)->file, comp_u,
 	    Vcomp_loaded_comp_units_h);
-# ifdef HAVE_MPS
-  if (pdumper_object_p (XNATIVE_COMP_UNIT (comp_u)))
-    igc_register_cu (comp_u);
-#endif
 }
 
 
