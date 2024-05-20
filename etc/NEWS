@@ -871,6 +871,13 @@ using this new option.  (Or set 'display-buffer-alist' directly.)
 ** Eshell
 
 +++
+*** You can now run Eshell scripts in batch mode.
+By adding the following interpreter directive to an Eshell script, you
+can make it executable like other shell scripts:
+
+    #!/usr/bin/env -S emacs --batch -f eshell-batch-file
+
++++
 *** New builtin Eshell command 'compile'.
 This command runs another command, sending its output to a compilation
 buffer when the command would output interactively.  This can be useful

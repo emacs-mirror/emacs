@@ -47,24 +47,30 @@ beginning of the test file."
      (file-directory-p ert-remote-temporary-file-directory)
      (file-writable-p ert-remote-temporary-file-directory))))
 
+(defmacro with-temp-eshell-settings (&rest body)
+  "Configure Eshell to leave no trace behind, and then evaluate BODY."
+  (declare (indent 0))
+  `(ert-with-temp-directory eshell-directory-name
+     (let (;; We want no history file, so prevent Eshell from falling
+           ;; back on $HISTFILE.
+           (process-environment (cons "HISTFILE" process-environment))
+           ;; Enable process debug instrumentation.  We may be able to
+           ;; remove this eventually once we're confident that all the
+           ;; process bugs have been worked out.  (At that point, we can
+           ;; just enable this selectively when needed.)  See also
+           ;; `eshell-test-command-result' below.
+           (eshell-debug-command (cons 'process eshell-debug-command))
+           (eshell-history-file-name nil)
+           (eshell-last-dir-ring-file-name nil)
+           (eshell-module-loading-messages nil))
+       ,@body)))
+
 (defmacro with-temp-eshell (&rest body)
   "Evaluate BODY in a temporary Eshell buffer."
+  (declare (indent 0))
   `(save-current-buffer
-     (ert-with-temp-directory eshell-directory-name
-       (let* (;; We want no history file, so prevent Eshell from falling
-              ;; back on $HISTFILE.
-              (process-environment (cons "HISTFILE" process-environment))
-              ;; Enable process debug instrumentation.  We may be able
-              ;; to remove this eventually once we're confident that
-              ;; all the process bugs have been worked out.  (At that
-              ;; point, we can just enable this selectively when
-              ;; needed.)  See also `eshell-test-command-result'
-              ;; below.
-              (eshell-debug-command (cons 'process eshell-debug-command))
-              (eshell-history-file-name nil)
-              (eshell-last-dir-ring-file-name nil)
-              (eshell-module-loading-messages nil)
-              (eshell-buffer (eshell t)))
+     (with-temp-eshell-settings
+       (let ((eshell-buffer (eshell t)))
          (unwind-protect
              (with-current-buffer eshell-buffer
                ,@body)

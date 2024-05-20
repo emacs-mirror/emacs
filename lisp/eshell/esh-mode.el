@@ -376,7 +376,8 @@ and the hook `eshell-exit-hook'."
   (eshell-load-modules eshell-modules-list)
 
   (unless (file-exists-p eshell-directory-name)
-    (eshell-make-private-directory eshell-directory-name t))
+    (with-demoted-errors "Error creating Eshell directory: %s"
+      (eshell-make-private-directory eshell-directory-name t)))
 
   ;; Initialize core Eshell modules, then extension modules, for this session.
   (eshell-initialize-modules (eshell-subgroups 'eshell))
