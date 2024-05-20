@@ -60,7 +60,7 @@
 (require 'esh-opt)
 (require 'esh-mode)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-hist nil
   "This module provides command history management."
@@ -1067,9 +1067,4 @@ If N is negative, search backwards for the -Nth previous match."
   (remove-hook 'kill-emacs-hook 'eshell-save-some-history))
 
 (provide 'em-hist)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-hist.el ends here

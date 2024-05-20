@@ -47,7 +47,7 @@
 (require 'ring)
 (require 'esh-opt)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-dirs nil
   "Directory navigation involves changing directories, examining the
@@ -599,9 +599,4 @@ in the minibuffer:
 			 'no-message))))))))
 
 (provide 'em-dirs)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-dirs.el ends here

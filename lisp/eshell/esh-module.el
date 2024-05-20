@@ -38,7 +38,7 @@ customizing the variable `eshell-modules-list'."
 ;; `eshell-modules-list'.  We use "(progn (defgroup ..." in each file
 ;; to force the autoloader into including the entire defgroup, rather
 ;; than an abbreviated version.
-(load "esh-groups" nil 'nomessage)
+(load "esh-module-loaddefs" nil 'nomessage)
 
 ;;; User Variables:
 

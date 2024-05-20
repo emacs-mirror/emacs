@@ -36,7 +36,7 @@
 
 (eval-when-compile (require 'files-x))
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-extpipe nil
   "Native shell pipelines.

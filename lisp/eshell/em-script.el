@@ -25,7 +25,7 @@
 
 (require 'esh-mode)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-script nil
   "This module allows for the execution of files containing Eshell
@@ -115,9 +115,4 @@ Comments begin with `#'."
 (put 'eshell/. 'eshell-no-numeric-conversions t)
 
 (provide 'em-script)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-script.el ends here

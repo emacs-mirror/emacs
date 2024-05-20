@@ -29,7 +29,7 @@
 (require 'esh-mode)
 (require 'text-property-search)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-prompt nil
   "This module provides command prompts, and navigation between them,
@@ -231,9 +231,4 @@ first (see `move-beginning-of-line' for more information)."
     (move-beginning-of-line arg)))
 
 (provide 'em-prompt)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-prompt.el ends here

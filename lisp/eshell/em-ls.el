@@ -32,7 +32,7 @@
 (require 'esh-proc)
 (require 'esh-cmd)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-ls nil
   "This module implements the \"ls\" utility fully in Lisp.
@@ -956,9 +956,4 @@ to use, and each member of which is the width of that column
   (eshell-ls-disable-in-dired))
 
 (provide 'em-ls)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-ls.el ends here

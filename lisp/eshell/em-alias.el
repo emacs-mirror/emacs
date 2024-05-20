@@ -92,7 +92,7 @@
 
 (require 'esh-mode)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-alias nil
   "Command aliases allow for easy definition of alternate commands."
@@ -268,9 +268,4 @@ These are all the command aliases which begin with NAME."
 		     (eshell-parse-command alias))))))))))
 
 (provide 'em-alias)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-alias.el ends here

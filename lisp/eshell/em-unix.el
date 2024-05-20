@@ -38,7 +38,7 @@
 (require 'esh-mode)
 (require 'pcomplete)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-unix nil
   "This module defines many of the more common UNIX utilities as
@@ -1096,9 +1096,4 @@ Show wall-clock time elapsed during execution of COMMAND.")
 (define-obsolete-function-alias 'eshell-diff-quit #'ignore "30.1")
 
 (provide 'em-unix)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-unix.el ends here
