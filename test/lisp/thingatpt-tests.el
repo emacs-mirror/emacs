@@ -262,10 +262,10 @@ position to retrieve THING.")
   (with-temp-buffer
     (setq-local
      thing-at-point-provider-alist
-     `((url . ,(lambda () (thing-at-point-for-text-property 'foo-url)))
-       (url . ,(lambda () (thing-at-point-for-text-property 'bar-url)))))
-    (insert (propertize "hello" 'foo-url "foo.com") "\n"
-            (propertize "goodbye" 'bar-url "bar.com"))
+     `((url . ,(lambda () (thing-at-point-for-char-property 'foo-url)))
+       (url . ,(lambda () (thing-at-point-for-char-property 'bar-url)))))
+    (insert (propertize "hello" 'foo-url "foo.com") "\ngoodbye")
+    (overlay-put (make-overlay 7 14) 'bar-url "bar.com")
     (goto-char (point-min))
     ;; Get the URL using the first provider.
     (should (equal (thing-at-point 'url) "foo.com"))
@@ -280,10 +280,10 @@ position to retrieve THING.")
   (with-temp-buffer
     (setq-local
      forward-thing-provider-alist
-     `((url . ,(lambda (n) (forward-thing-for-text-property 'foo-url n)))
-       (url . ,(lambda (n) (forward-thing-for-text-property 'bar-url n)))))
-    (insert (propertize "hello" 'foo-url "foo.com") "there\n"
-            (propertize "goodbye" 'bar-url "bar.com"))
+     `((url . ,(lambda (n) (forward-thing-for-char-property 'foo-url n)))
+       (url . ,(lambda (n) (forward-thing-for-char-property 'bar-url n)))))
+    (insert (propertize "hello" 'foo-url "foo.com") "there\ngoodbye")
+    (overlay-put (make-overlay 12 19) 'bar-url "bar.com")
     (goto-char (point-min))
     (forward-thing 'url)                ; Move past the first URL.
     (should (= (point) 6))
@@ -301,11 +301,11 @@ position to retrieve THING.")
     (setq-local
      bounds-of-thing-at-point-provider-alist
      `((url . ,(lambda ()
-                 (bounds-of-thing-at-point-for-text-property 'foo-url)))
+                 (bounds-of-thing-at-point-for-char-property 'foo-url)))
        (url . ,(lambda ()
-                 (bounds-of-thing-at-point-for-text-property 'bar-url)))))
-    (insert (propertize "hello" 'foo-url "foo.com") "there\n"
-            (propertize "goodbye" 'bar-url "bar.com"))
+                 (bounds-of-thing-at-point-for-char-property 'bar-url)))))
+    (insert (propertize "hello" 'foo-url "foo.com") "there\ngoodbye")
+    (overlay-put (make-overlay 12 19) 'bar-url "bar.com")
     (goto-char (point-min))
     ;; Look for a URL, using the first provider above.
     (should (equal (bounds-of-thing-at-point 'url) '(1 . 6)))
@@ -325,11 +325,11 @@ position to retrieve THING.")
   (with-temp-buffer
     (setq-local
      thing-at-point-provider-alist
-     `((url . ,(lambda () (thing-at-point-for-text-property 'url))))
+     `((url . ,(lambda () (thing-at-point-for-char-property 'url))))
      forward-thing-provider-alist
-     `((url . ,(lambda (n) (forward-thing-for-text-property 'url n))))
+     `((url . ,(lambda (n) (forward-thing-for-char-property 'url n))))
      bounds-of-thing-at-point-provider-alist
-     `((url . ,(lambda () (bounds-of-thing-at-point-for-text-property 'url)))))
+     `((url . ,(lambda () (bounds-of-thing-at-point-for-char-property 'url)))))
     (insert (propertize "one" 'url "foo.com")
             (propertize "two" 'url "bar.com")
             (propertize "three" 'url "baz.com"))

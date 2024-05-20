@@ -1380,15 +1380,15 @@ within text input fields."
 
 (defun eww--url-at-point ()
   "`thing-at-point' provider function."
-  (thing-at-point-for-text-property 'shr-url))
+  (thing-at-point-for-char-property 'shr-url))
 
 (defun eww--forward-url (backward)
   "`forward-thing' provider function."
-  (forward-thing-for-text-property 'shr-url backward))
+  (forward-thing-for-char-property 'shr-url backward))
 
 (defun eww--bounds-of-url-at-point ()
   "`bounds-of-thing-at-point' provider function."
-  (bounds-of-thing-at-point-for-text-property 'shr-url))
+  (bounds-of-thing-at-point-for-char-property 'shr-url))
 
 ;;;###autoload
 (defun eww-browse-url (url &optional new-window)

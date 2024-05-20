@@ -658,15 +658,15 @@ have been run, the auto-setup is inhibited.")
 
 (defun bug-reference--url-at-point ()
   "`thing-at-point' provider function."
-  (thing-at-point-for-text-property 'bug-reference-url))
+  (thing-at-point-for-char-property 'bug-reference-url))
 
 (defun bug-reference--forward-url (backward)
   "`forward-thing' provider function."
-  (forward-thing-for-text-property 'bug-reference-url backward))
+  (forward-thing-for-char-property 'bug-reference-url backward))
 
 (defun bug-reference--bounds-of-url-at-point ()
   "`bounds-of-thing-at-point' provider function."
-  (bounds-of-thing-at-point-for-text-property 'bug-reference-url))
+  (bounds-of-thing-at-point-for-char-property 'bug-reference-url))
 
 (defun bug-reference--init (enable)
   (if enable

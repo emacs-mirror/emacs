@@ -1745,9 +1745,9 @@ of 'bounds-of-thing-at-point' and 'forward-thing', respectively.
 
 ---
 *** New helper functions for text property-based thingatpt providers.
-The new helper functions 'thing-at-point-for-text-property',
-'bounds-of-thing-at-point-for-text-property', and
-'forward-thing-for-text-property' can help to help implement custom
+The new helper functions 'thing-at-point-for-char-property',
+'bounds-of-thing-at-point-for-char-property', and
+'forward-thing-for-char-property' can help to help implement custom
 thingatpt providers for "things" that are defined by a text property.
 
 ---

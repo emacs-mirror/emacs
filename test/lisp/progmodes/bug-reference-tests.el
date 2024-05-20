@@ -136,8 +136,11 @@
     (goto-char (point-min))
     ;; Make sure we get the URL when `bug-reference-mode' is active...
     (should (equal (thing-at-point 'url) "https://debbugs.gnu.org/1234"))
+    (should (equal (bounds-of-thing-at-point 'url) '(1 . 9)))
+    (should (= (save-excursion (forward-thing 'url) (point)) 9))
     (bug-reference-mode -1)
     ;; ... and get nil when `bug-reference-mode' is inactive.
-    (should-not (thing-at-point 'url))))
+    (should-not (thing-at-point 'url))
+    (should-not (bounds-of-thing-at-point 'url))))
 
 ;;; bug-reference-tests.el ends here

@@ -828,40 +828,48 @@ treated as white space."
 
 ;; Provider helper functions
 
-(defun thing-at-point-for-text-property (property)
+(defun thing-at-point-for-char-property (property)
   "Return the \"thing\" at point.
-Each \"thing\" is a region of text with the specified text PROPERTY set."
-  (or (get-text-property (point) property)
+Each \"thing\" is a region of text with the specified text PROPERTY (or
+overlay) set."
+  (or (get-char-property (point) property)
       (and (> (point) (point-min))
-           (get-text-property (1- (point)) property))))
+           (get-char-property (1- (point)) property))))
 
 (autoload 'text-property-search-forward "text-property-search")
 (autoload 'text-property-search-backward "text-property-search")
 (autoload 'prop-match-beginning "text-property-search")
 (autoload 'prop-match-end "text-property-search")
 
-(defun forward-thing-for-text-property (property &optional backward)
+(defun forward-thing-for-char-property (property &optional backward)
   "Move forward to the end of the next \"thing\".
 If BACKWARD is non-nil, move backward to the beginning of the previous
 \"thing\" instead.  Each \"thing\" is a region of text with the
-specified text PROPERTY set."
-  (let ((search-func (if backward #'text-property-search-backward
-                       #'text-property-search-forward))
-        (pos-func (if backward #'prop-match-beginning #'prop-match-end)))
-    (when-let ((match (funcall search-func property)))
-      (goto-char (funcall pos-func match)))))
+specified text PROPERTY (or overlay) set."
+  (let ((bounds (bounds-of-thing-at-point-for-char-property property)))
+    (if backward
+        (if (and bounds (> (point) (car bounds)))
+            (goto-char (car bounds))
+          (goto-char (previous-single-char-property-change (point) property))
+          (unless (get-char-property (point) property)
+            (goto-char (previous-single-char-property-change
+                        (point) property))))
+      (if (and bounds (< (point) (cdr bounds)))
+          (goto-char (cdr bounds))
+        (unless (get-char-property (point) property)
+          (goto-char (next-single-char-property-change (point) property)))
+        (goto-char (next-single-char-property-change (point) property))))))
 
-(defun bounds-of-thing-at-point-for-text-property (property)
+(defun bounds-of-thing-at-point-for-char-property (property)
   "Determine the start and end buffer locations for the \"thing\" at point.
-The \"thing\" is a region of text with the specified text PROPERTY set."
+The \"thing\" is a region of text with the specified text PROPERTY (or
+overlay) set."
   (let ((pos (point)))
-    (when (or (get-text-property pos property)
+    (when (or (get-char-property pos property)
               (and (> pos (point-min))
-                   (get-text-property (setq pos (1- pos)) property)))
-      (cons (or (previous-single-property-change
-                 (min (1+ pos) (point-max)) property)
-                (point-min))
-            (or (next-single-property-change pos property)
-                (point-max))))))
+                   (get-char-property (setq pos (1- pos)) property)))
+      (cons (previous-single-char-property-change
+             (min (1+ pos) (point-max)) property)
+            (next-single-char-property-change pos property)))))
 
 ;;; thingatpt.el ends here
