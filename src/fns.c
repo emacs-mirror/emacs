@@ -5741,7 +5741,11 @@ get_hash_table_user_test (Lisp_Object test)
     ut = ut->next;
   if (!ut)
     {
+#ifdef HAVE_MPS
+      ut = igc_xzalloc_ambig (sizeof *ut);
+#else
       ut = xmalloc (sizeof *ut);
+#endif
       ut->test.name = test;
       ut->test.user_cmp_function = equal_fn;
       ut->test.user_hash_function = hash_fn;
