@@ -14085,10 +14085,11 @@ sfnt_map_table (int fd, struct sfnt_offset_subtable *subtable,
   struct sfnt_table_directory *directory;
   size_t offset, page, map_offset;
   void *data;
+  int i;
 
   /* Find the table in the directory.  */
 
-  for (int i = 0; ; i++)
+  for (i = 0; ; i++)
     {
       if (! (i < subtable->num_tables))
 	return 1;
@@ -14148,10 +14149,11 @@ sfnt_read_table (int fd, struct sfnt_offset_subtable *subtable,
 {
   struct sfnt_table_directory *directory;
   void *data;
+  int i;
 
   /* Find the table in the directory.  */
 
-  for (int i = 0; ; i++)
+  for (i = 0; ; i++)
     {
       if (! (i < subtable->num_tables))
 	return NULL;
