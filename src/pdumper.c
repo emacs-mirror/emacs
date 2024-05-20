@@ -5406,7 +5406,7 @@ pdumper_next_object (struct pdumper_object_it *it)
   if (it->i < it->nrelocs)
     {
       const struct dump_reloc *const relocs = it->relocs;
-      return dump_ptr (dump_public.start, dump_reloc_get_offset (relocs[it->i]));
+      return dump_ptr (dump_public.start, dump_reloc_get_offset (relocs[it->i++]));
     }
 
   return NULL;
