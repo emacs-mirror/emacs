@@ -2200,12 +2200,52 @@ struct print_stack
 
 static struct print_stack prstack = {NULL, 0, 0};
 
+static igc_scan_result_t
+scan_prstack (struct igc_opaque *op, void *start, void *end,
+	      igc_scan_cell_t scan1)
+{
+  eassert (start == (void *)prstack.stack);
+  eassert (end == (void *)(prstack.stack + prstack.size));
+  struct print_stack_entry *p = start;
+  struct print_stack_entry *q = p + prstack.sp;
+  for (; p < q; p++)
+    {
+      igc_scan_result_t err = 0;
+      switch (p->type)
+	{
+	case PE_list:
+	  if (err = scan1 (op, &p->u.list.last), err != 0)
+	    return err;
+	  if (err = scan1 (op, &p->u.list.tortoise), err != 0)
+	    return err;
+	  continue;
+	case PE_rbrac:
+	  continue;
+	case PE_vector:
+	  if (err = scan1 (op, &p->u.vector.obj), err != 0)
+	    return err;
+	  continue;
+	case PE_hash:
+	  if (err = scan1 (op, &p->u.hash.obj), err != 0)
+	    return err;
+	  continue;
+	}
+      eassert (!"not yet implemented");
+    }
+  return 0;
+}
+
 NO_INLINE static void
 grow_print_stack (void)
 {
   struct print_stack *ps = &prstack;
   eassert (ps->sp == ps->size);
+#ifdef HAVE_MPS
+  ps->stack = igc_xpalloc_exact (ps->stack, &ps->size, 1, -1,
+				 sizeof *ps->stack, scan_prstack);
+#else
   ps->stack = xpalloc (ps->stack, &ps->size, 1, -1, sizeof *ps->stack);
+#endif
   eassert (ps->sp < ps->size);
 }
 
