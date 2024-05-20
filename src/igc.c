@@ -1274,6 +1274,113 @@ fix_blv (mps_ss_t ss, struct Lisp_Buffer_Local_Value *blv)
 static mps_res_t fix_vector (mps_ss_t ss, struct Lisp_Vector *v);
 
 static mps_res_t
+dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
+	       void *closure)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    mps_addr_t base = base_start;
+    mps_addr_t client = base_to_client (base);
+    struct igc_header *header = base;
+
+    if (closure)
+      {
+	struct igc_stats *st = closure;
+	mps_word_t obj_type = header->obj_type;
+	igc_assert (obj_type < IGC_OBJ_LAST);
+	st->obj[obj_type].nwords += header->nwords;
+	st->obj[obj_type].nobjs += 1;
+	if (obj_type == IGC_OBJ_VECTOR)
+	  {
+	    struct Lisp_Vector* v = (struct Lisp_Vector*)client;
+	    enum pvec_type pvec_type = PSEUDOVECTOR_TYPE (v);
+	    igc_assert (0 <= pvec_type && pvec_type <= PVEC_TAG_MAX);
+	    st->pvec[pvec_type].nwords += header->nwords;
+	    st->pvec[pvec_type].nobjs += 1;
+	  }
+      }
+
+    switch (header->obj_type)
+      {
+      case IGC_OBJ_INVALID:
+	emacs_abort ();
+
+      case IGC_OBJ_PAD:
+      case IGC_OBJ_FWD:
+	continue;
+
+      case IGC_OBJ_PTR_VEC:
+	IGC_FIX_CALL_FN (ss, mps_word_t, client, fix_ptr_vec);
+	break;
+
+      case IGC_OBJ_OBJ_VEC:
+	IGC_FIX_CALL_FN (ss, Lisp_Object, client, fix_obj_vec);
+	break;
+
+      case IGC_OBJ_CONS:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Cons, client, fix_cons);
+	break;
+
+      case IGC_OBJ_STRING_DATA:
+      case IGC_OBJ_FLOAT:
+      case IGC_OBJ_LAST:
+	emacs_abort ();
+
+      case IGC_OBJ_SYMBOL:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Symbol, client, fix_symbol);
+	break;
+
+      case IGC_OBJ_INTERVAL:
+	IGC_FIX_CALL_FN (ss, struct interval, client, fix_interval);
+	break;
+
+      case IGC_OBJ_STRING:
+	IGC_FIX_CALL_FN (ss, struct Lisp_String, client, fix_string);
+	break;
+
+      case IGC_OBJ_VECTOR:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_vector);
+	break;
+
+      case IGC_OBJ_ITREE_TREE:
+	IGC_FIX_CALL_FN (ss, struct itree_tree, client, fix_itree_tree);
+	break;
+
+      case IGC_OBJ_ITREE_NODE:
+	IGC_FIX_CALL_FN (ss, struct itree_node, client, fix_itree_node);
+	break;
+
+      case IGC_OBJ_IMAGE:
+	IGC_FIX_CALL_FN (ss, struct image, client, fix_image);
+	break;
+
+      case IGC_OBJ_IMAGE_CACHE:
+	IGC_FIX_CALL_FN (ss, struct image_cache, client, fix_image_cache);
+	break;
+
+      case IGC_OBJ_FACE:
+	IGC_FIX_CALL_FN (ss, struct face, client, fix_face);
+	break;
+
+      case IGC_OBJ_FACE_CACHE:
+	IGC_FIX_CALL_FN (ss, struct face_cache, client, fix_face_cache);
+	break;
+
+      case IGC_OBJ_BLV:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Buffer_Local_Value, client,
+			 fix_blv);
+	break;
+
+      case IGC_OBJ_WEAK:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_weak);
+	break;
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
 dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	    void *closure)
 {
@@ -1281,103 +1388,7 @@ dflt_scanx (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
   {
     for (mps_addr_t base = base_start; base < base_limit;
 	 base = dflt_skip (base))
-      {
-	mps_addr_t client = base_to_client (base);
-	struct igc_header *header = base;
-
-	if (closure)
-	  {
-	    struct igc_stats *st = closure;
-	    mps_word_t obj_type = header->obj_type;
-	    igc_assert (obj_type < IGC_OBJ_LAST);
-	    st->obj[obj_type].nwords += header->nwords;
-	    st->obj[obj_type].nobjs += 1;
-	    if (obj_type == IGC_OBJ_VECTOR)
-	      {
-		struct Lisp_Vector* v = (struct Lisp_Vector*)client;
-		enum pvec_type pvec_type = PSEUDOVECTOR_TYPE (v);
-		igc_assert (0 <= pvec_type && pvec_type <= PVEC_TAG_MAX);
-		st->pvec[pvec_type].nwords += header->nwords;
-		st->pvec[pvec_type].nobjs += 1;
-	      }
-	  }
-
-	switch (header->obj_type)
-	  {
-	  case IGC_OBJ_INVALID:
-	    emacs_abort ();
-
-	  case IGC_OBJ_PAD:
-	  case IGC_OBJ_FWD:
-	    continue;
-
-	  case IGC_OBJ_PTR_VEC:
-	    IGC_FIX_CALL_FN (ss, mps_word_t, client, fix_ptr_vec);
-	    break;
-
-	  case IGC_OBJ_OBJ_VEC:
-	    IGC_FIX_CALL_FN (ss, Lisp_Object, client, fix_obj_vec);
-	    break;
-
-	  case IGC_OBJ_CONS:
-	    IGC_FIX_CALL_FN (ss, struct Lisp_Cons, client, fix_cons);
-	    break;
-
-	  case IGC_OBJ_STRING_DATA:
-	  case IGC_OBJ_FLOAT:
-	  case IGC_OBJ_LAST:
-	    emacs_abort ();
-
-	  case IGC_OBJ_SYMBOL:
-	    IGC_FIX_CALL_FN (ss, struct Lisp_Symbol, client, fix_symbol);
-	    break;
-
-	  case IGC_OBJ_INTERVAL:
-	    IGC_FIX_CALL_FN (ss, struct interval, client, fix_interval);
-	    break;
-
-	  case IGC_OBJ_STRING:
-	    IGC_FIX_CALL_FN (ss, struct Lisp_String, client, fix_string);
-	    break;
-
-	  case IGC_OBJ_VECTOR:
-	    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_vector);
-	    break;
-
-	  case IGC_OBJ_ITREE_TREE:
-	    IGC_FIX_CALL_FN (ss, struct itree_tree, client, fix_itree_tree);
-	    break;
-
-	  case IGC_OBJ_ITREE_NODE:
-	    IGC_FIX_CALL_FN (ss, struct itree_node, client, fix_itree_node);
-	    break;
-
-	  case IGC_OBJ_IMAGE:
-	    IGC_FIX_CALL_FN (ss, struct image, client, fix_image);
-	    break;
-
-	  case IGC_OBJ_IMAGE_CACHE:
-	    IGC_FIX_CALL_FN (ss, struct image_cache, client, fix_image_cache);
-	    break;
-
-	  case IGC_OBJ_FACE:
-	    IGC_FIX_CALL_FN (ss, struct face, client, fix_face);
-	    break;
-
-	  case IGC_OBJ_FACE_CACHE:
-	    IGC_FIX_CALL_FN (ss, struct face_cache, client, fix_face_cache);
-	    break;
-
-	  case IGC_OBJ_BLV:
-	    IGC_FIX_CALL_FN (ss, struct Lisp_Buffer_Local_Value, client,
-			     fix_blv);
-	    break;
-
-	  case IGC_OBJ_WEAK:
-	    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_weak);
-	    break;
-	  }
-      }
+      IGC_FIX_CALL (ss, dflt_scan_obj (ss, base, base_limit, closure));
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
