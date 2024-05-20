@@ -46,6 +46,20 @@
       (when (buffer-live-p tar-buffer) (kill-buffer tar-buffer))
       (when (buffer-live-p gz-buffer) (kill-buffer gz-buffer)))))
 
+(ert-deftest tar-mode-test-tar-extract-zip-and-gz ()
+  (skip-unless (executable-find "gzip"))
+  (require 'arc-mode)
+  (let* ((tar-file (expand-file-name "tzg.tar.gz" tar-mode-tests-data-directory))
+         tar-buffer zip-buffer gz-buffer)
+    (unwind-protect
+        (with-current-buffer (setq tar-buffer (find-file-noselect tar-file))
+          (with-current-buffer (setq zip-buffer (tar-extract))
+            (setq gz-buffer (archive-extract))
+            (should (equal (char-after) ?\N{SNOWFLAKE}))))
+      (when (buffer-live-p tar-buffer) (kill-buffer tar-buffer))
+      (when (buffer-live-p zip-buffer) (kill-buffer zip-buffer))
+      (when (buffer-live-p gz-buffer) (kill-buffer gz-buffer)))))
+
 (provide 'tar-mode-tests)
 
 ;;; tar-mode-tests.el ends here
