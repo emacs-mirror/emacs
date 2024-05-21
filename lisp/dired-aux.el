@@ -660,10 +660,10 @@ Optional arg COLLECTION is a collection of possible completions,
 passed as the second arg to `completing-read'."
   (apply #'dired-mark-pop-up
          nil op-symbol files
-         (if (eq op-symbol 'touch) 'read-string 'completing-read)
+         (if (eq op-symbol 'touch) 'read-from-minibuffer 'completing-read)
          (format prompt (dired-mark-prompt arg files))
          (if (eq op-symbol 'touch)
-             `(,initial nil ,default-value nil)
+             `(,initial nil nil nil ,default-value)
            `(,collection nil nil ,initial nil ,default-value nil))))
 
 
