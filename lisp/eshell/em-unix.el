@@ -815,8 +815,8 @@ external command."
   (if (and maybe-use-occur eshell-no-grep-available)
       (eshell-poor-mans-grep args)
     (eshell-compile command (cons "-n" args)
-                    (and eshell-plain-grep-behavior
-                         'interactive)
+                    (when eshell-plain-grep-behavior
+                      'plain)
                      #'grep-mode)))
 
 (defun eshell/grep (&rest args)
