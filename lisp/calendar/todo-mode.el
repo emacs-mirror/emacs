@@ -5794,7 +5794,24 @@ keys already entered and those still available."
               (apply #'todo-insert-item--basic (nconc arg parlist)))))
          ;; Operate on a copy of the parameter list so the original is
          ;; not consumed, thus available for the next key typed.
-         (params0 params))
+         (params0 params)
+         (tm-keys (let (l)
+                    (map-keymap (lambda (key _binding)
+                                  (push key l))
+                                todo-mode-map)
+                    l)))
+    ;; Initially assign each key in todo-mode-map a function identifying
+    ;; it as invalid for item insertion, thus preventing mistakenly
+    ;; pressing a key from executing an unwanted different todo-mode
+    ;; command (bug#70937); the actual item insertion keys are redefined
+    ;; when looping over the item insertion parameters.
+    (dolist (k tm-keys)
+      (when (characterp k)
+        (define-key map (string k)
+          (lambda ()
+            (interactive)
+            (message (concat "`%s' is not a valid remaining item insertion key")
+                     (string k))))))
     (when last
       (if (memq last '(default copy))
 	  (progn
