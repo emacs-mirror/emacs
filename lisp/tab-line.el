@@ -1122,19 +1122,14 @@ However, return the correct mouse position list if EVENT is a
   "Toggle display of tab line in the windows displaying the current buffer."
   :lighter nil
   (let ((default-value '(:eval (tab-line-format))))
-    (if tab-line-mode
-        ;; Preserve the existing tab-line set outside of this mode
-        (if (null tab-line-format)
+    ;; Preserve the existing tab-line set outside of this mode
+    (if (or (null tab-line-format)
+            (equal tab-line-format default-value))
+        (if tab-line-mode
             (setq tab-line-format default-value)
-          (message
-           "tab-line-format set outside of tab-line-mode, currently `%S'"
-           tab-line-format))
-      ;; Reset only values set by this mode
-      (if (equal tab-line-format default-value)
-          (setq tab-line-format nil)
-        (message
-         "tab-line-format set outside of tab-line-mode, currently `%S'"
-         tab-line-format)))))
+          (setq tab-line-format nil))
+      (message "tab-line-format set outside of tab-line-mode, currently `%S'"
+               tab-line-format))))
 
 (defcustom tab-line-exclude-modes
   '(completion-list-mode)
