@@ -658,10 +658,13 @@ values, passed as the seventh arg to `completing-read'.
 
 Optional arg COLLECTION is a collection of possible completions,
 passed as the second arg to `completing-read'."
-  (dired-mark-pop-up nil op-symbol files
-		     'completing-read
-		     (format prompt (dired-mark-prompt arg files))
-		     collection nil nil initial nil default-value nil))
+  (apply #'dired-mark-pop-up
+         nil op-symbol files
+         (if (eq op-symbol 'touch) 'read-string 'completing-read)
+         (format prompt (dired-mark-prompt arg files))
+         (if (eq op-symbol 'touch)
+             `(,initial nil ,default-value nil)
+           `(,collection nil nil ,initial nil ,default-value nil))))
 
 
 ;;; Cleaning a directory: flagging some backups for deletion
