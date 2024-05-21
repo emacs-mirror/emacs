@@ -1572,11 +1572,6 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
     // FIXME: weak
     IGC_FIX12_RAW (ss, &h->key);
     IGC_FIX12_RAW (ss, &h->value);
-    const struct hash_table_test *p = h->test;
-    struct hash_table_test *test = (struct hash_table_test *)p;
-    IGC_FIX12_OBJ (ss, &test->user_hash_function);
-    IGC_FIX12_OBJ (ss, &test->user_cmp_function);
-    IGC_FIX12_OBJ (ss, &test->name);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
