@@ -5702,6 +5702,155 @@ of each other."
 Passed by `todo-insert-item' to `todo-insert-item--next-param' to
 dynamically create item insertion commands.")
 
+;; As the following function uses this variable, define it here without
+;; a value to avoid a byte-compiler warning.  The real definition with
+;; value is provided below with the other todo-mode key bindings.
+(defvar todo-mode-map)
+
+(defun todo-insert-item--next-param (args params last keys-so-far)
+  "Generate and invoke an item insertion command.
+Dynamically generate the command, its arguments ARGS and its key
+binding by recursing through the list of parameters PARAMS,
+taking the LAST from a sublist and prompting with KEYS-SO-FAR
+keys already entered and those still available."
+  (cl-assert params)
+  (let* ((map (make-sparse-keymap))
+         (param-key-alist '((default    . "i")
+                            (copy       . "p")
+                            (diary      . "y")
+                            (nonmarking . "k")
+                            (calendar   . "c")
+                            (date       . "d")
+                            (dayname    . "n")
+                            (time       . "t")
+                            (here       . "h")
+                            (region     . "r")))
+         ;; Return key paired with given item insertion parameter.
+         (key-of (lambda (param) (cdr (assoc param param-key-alist))))
+         ;; The key just typed.
+         (this-key (lambda () (char-to-string last-command-event)))
+         (prompt nil)
+         ;; Add successively entered keys to the prompt and show what
+         ;; possibilities remain.
+         (add-to-prompt
+	  (lambda (key name)
+	    (setq prompt
+		  (concat prompt
+			  (format
+			   (concat
+			    (if (memq name '(default diary calendar here))
+				" { " " ")
+			    "%s=>%s"
+			    (when (memq name '(copy nonmarking dayname region))
+			      " }"))
+			   (propertize key 'face 'todo-key-prompt)
+			   name)))))
+         ;; Return the sublist of the given list of parameters whose
+         ;; first member is paired with the given key.
+         (get-params
+          (lambda (key lst)
+            (setq lst (if (consp lst) lst (list lst)))
+            (let (l sym)
+              (mapc (lambda (m)
+                      (when (consp m)
+                        (catch 'found1
+                          (dolist (s m)
+                            (when (equal key (funcall key-of s))
+                              (throw 'found1 (setq sym s))))))
+                      (if sym
+                          (progn
+                            (push sym l)
+                            (setq sym nil))
+                        (push m l)))
+                    lst)
+              (setq lst (reverse l)))
+            (memq (catch 'found2
+                    (dolist (e param-key-alist)
+                      (when (equal key (cdr e))
+                        (throw 'found2 (car e)))))
+                  lst)))
+         ;; Build list of arguments for item insertion and then
+         ;; execute the basic insertion function. The list consists of
+         ;; item insertion parameters that can be passed as insertion
+         ;; command arguments in fixed positions.  If a position in
+         ;; the list is not occupied by the corresponding parameter,
+         ;; it is occupied by nil.
+         (gen-and-exec
+          (lambda ()
+            (let* ((arg (list (car args))) ; Possible prefix argument.
+	           (rest (nconc (cdr args)
+	                        (list (car (funcall get-params
+                                                    (funcall this-key)
+                                                    params)))))
+	           (parlist (if (= 4 (length rest))
+                                rest
+                              (let ((v (make-vector 4 nil)) elt)
+                                (while rest
+                                  (setq elt (pop rest))
+                                  (cond ((memq elt '(diary nonmarking))
+                                         (aset v 0 elt))
+                                        ((memq elt '(calendar date dayname))
+                                         (aset v 1 elt))
+                                        ((eq elt 'time)
+                                         (aset v 2 elt))
+                                        ((memq elt '(copy here region))
+                                         (aset v 3 elt))))
+                                (append v nil)))))
+              (apply #'todo-insert-item--basic (nconc arg parlist)))))
+         ;; Operate on a copy of the parameter list so the original is
+         ;; not consumed, thus available for the next key typed.
+         (params0 params)
+         (tm-keys (let (l)
+                    (map-keymap (lambda (key _binding)
+                                  (push key l))
+                                todo-mode-map)
+                    l)))
+    ;; Initially assign each key in todo-mode-map a function identifying
+    ;; it as invalid for item insertion, thus preventing mistakenly
+    ;; pressing a key from executing an unwanted different todo-mode
+    ;; command (bug#70937); the actual item insertion keys are redefined
+    ;; when looping over the item insertion parameters.
+    (dolist (k tm-keys)
+      (when (characterp k)
+        (define-key map (string k)
+          (lambda ()
+            (interactive)
+            (message (concat "`%s' is not a valid remaining item insertion key")
+                     (string k))))))
+    (when last
+      (if (memq last '(default copy))
+	  (progn
+	    (setq params0 nil)
+            (funcall gen-and-exec))
+        (let ((key (funcall key-of last)))
+	  (funcall add-to-prompt key (make-symbol
+                                      (concat (symbol-name last) ":GO!")))
+	  (define-key map (funcall key-of last)
+	    (lambda () (interactive)
+	      (funcall gen-and-exec))))))
+    (while params0
+      (let* ((x (car params0))
+             (restparams (cdr params0)))
+        (dolist (param (if (consp x) x (list x)))
+          (let ((key (funcall key-of param)))
+            (funcall add-to-prompt key param)
+            (define-key map key
+              (if (null restparams)
+                  (lambda () (interactive)
+                    (funcall gen-and-exec))
+                (lambda () (interactive)
+                  (setq keys-so-far (concat keys-so-far " " (funcall this-key)))
+                  (todo-insert-item--next-param
+                   (nconc args (list (car (funcall get-params
+                                                   (funcall this-key) param))))
+                   (cdr (funcall get-params (funcall this-key) params))
+                   (car (funcall get-params (funcall this-key) param))
+                   keys-so-far))))))
+        (setq params0 restparams)))
+    (set-transient-map map)
+    (when prompt (message "Press a key (so far `%s'): %s" keys-so-far prompt))
+    (setq params0 params)))
+
 (defun todo-edit-item--next-key (type &optional arg)
   (let* ((todo-param-key-alist '((edit       . "e")
                                  (header     . "h")
@@ -6625,150 +6774,6 @@ Filtered Items mode following todo (not done) items."
     ["Save Todo File" todo-save t]
     ["Quit Todo Mode" todo-quit t]
     ))
-
-(defun todo-insert-item--next-param (args params last keys-so-far)
-  "Generate and invoke an item insertion command.
-Dynamically generate the command, its arguments ARGS and its key
-binding by recursing through the list of parameters PARAMS,
-taking the LAST from a sublist and prompting with KEYS-SO-FAR
-keys already entered and those still available."
-  (cl-assert params)
-  (let* ((map (make-sparse-keymap))
-         (param-key-alist '((default    . "i")
-                            (copy       . "p")
-                            (diary      . "y")
-                            (nonmarking . "k")
-                            (calendar   . "c")
-                            (date       . "d")
-                            (dayname    . "n")
-                            (time       . "t")
-                            (here       . "h")
-                            (region     . "r")))
-         ;; Return key paired with given item insertion parameter.
-         (key-of (lambda (param) (cdr (assoc param param-key-alist))))
-         ;; The key just typed.
-         (this-key (lambda () (char-to-string last-command-event)))
-         (prompt nil)
-         ;; Add successively entered keys to the prompt and show what
-         ;; possibilities remain.
-         (add-to-prompt
-	  (lambda (key name)
-	    (setq prompt
-		  (concat prompt
-			  (format
-			   (concat
-			    (if (memq name '(default diary calendar here))
-				" { " " ")
-			    "%s=>%s"
-			    (when (memq name '(copy nonmarking dayname region))
-			      " }"))
-			   (propertize key 'face 'todo-key-prompt)
-			   name)))))
-         ;; Return the sublist of the given list of parameters whose
-         ;; first member is paired with the given key.
-         (get-params
-          (lambda (key lst)
-            (setq lst (if (consp lst) lst (list lst)))
-            (let (l sym)
-              (mapc (lambda (m)
-                      (when (consp m)
-                        (catch 'found1
-                          (dolist (s m)
-                            (when (equal key (funcall key-of s))
-                              (throw 'found1 (setq sym s))))))
-                      (if sym
-                          (progn
-                            (push sym l)
-                            (setq sym nil))
-                        (push m l)))
-                    lst)
-              (setq lst (reverse l)))
-            (memq (catch 'found2
-                    (dolist (e param-key-alist)
-                      (when (equal key (cdr e))
-                        (throw 'found2 (car e)))))
-                  lst)))
-         ;; Build list of arguments for item insertion and then
-         ;; execute the basic insertion function. The list consists of
-         ;; item insertion parameters that can be passed as insertion
-         ;; command arguments in fixed positions.  If a position in
-         ;; the list is not occupied by the corresponding parameter,
-         ;; it is occupied by nil.
-         (gen-and-exec
-          (lambda ()
-            (let* ((arg (list (car args))) ; Possible prefix argument.
-	           (rest (nconc (cdr args)
-	                        (list (car (funcall get-params
-                                                    (funcall this-key)
-                                                    params)))))
-	           (parlist (if (= 4 (length rest))
-                                rest
-                              (let ((v (make-vector 4 nil)) elt)
-                                (while rest
-                                  (setq elt (pop rest))
-                                  (cond ((memq elt '(diary nonmarking))
-                                         (aset v 0 elt))
-                                        ((memq elt '(calendar date dayname))
-                                         (aset v 1 elt))
-                                        ((eq elt 'time)
-                                         (aset v 2 elt))
-                                        ((memq elt '(copy here region))
-                                         (aset v 3 elt))))
-                                (append v nil)))))
-              (apply #'todo-insert-item--basic (nconc arg parlist)))))
-         ;; Operate on a copy of the parameter list so the original is
-         ;; not consumed, thus available for the next key typed.
-         (params0 params)
-         (tm-keys (let (l)
-                    (map-keymap (lambda (key _binding)
-                                  (push key l))
-                                todo-mode-map)
-                    l)))
-    ;; Initially assign each key in todo-mode-map a function identifying
-    ;; it as invalid for item insertion, thus preventing mistakenly
-    ;; pressing a key from executing an unwanted different todo-mode
-    ;; command (bug#70937); the actual item insertion keys are redefined
-    ;; when looping over the item insertion parameters.
-    (dolist (k tm-keys)
-      (when (characterp k)
-        (define-key map (string k)
-          (lambda ()
-            (interactive)
-            (message (concat "`%s' is not a valid remaining item insertion key")
-                     (string k))))))
-    (when last
-      (if (memq last '(default copy))
-	  (progn
-	    (setq params0 nil)
-            (funcall gen-and-exec))
-        (let ((key (funcall key-of last)))
-	  (funcall add-to-prompt key (make-symbol
-                                      (concat (symbol-name last) ":GO!")))
-	  (define-key map (funcall key-of last)
-	    (lambda () (interactive)
-	      (funcall gen-and-exec))))))
-    (while params0
-      (let* ((x (car params0))
-             (restparams (cdr params0)))
-        (dolist (param (if (consp x) x (list x)))
-          (let ((key (funcall key-of param)))
-            (funcall add-to-prompt key param)
-            (define-key map key
-              (if (null restparams)
-                  (lambda () (interactive)
-                    (funcall gen-and-exec))
-                (lambda () (interactive)
-                  (setq keys-so-far (concat keys-so-far " " (funcall this-key)))
-                  (todo-insert-item--next-param
-                   (nconc args (list (car (funcall get-params
-                                                   (funcall this-key) param))))
-                   (cdr (funcall get-params (funcall this-key) params))
-                   (car (funcall get-params (funcall this-key) param))
-                   keys-so-far))))))
-        (setq params0 restparams)))
-    (set-transient-map map)
-    (when prompt (message "Press a key (so far `%s'): %s" keys-so-far prompt))
-    (setq params0 params)))
 
 ;; -----------------------------------------------------------------------------
 ;;; Hook functions and mode definitions
