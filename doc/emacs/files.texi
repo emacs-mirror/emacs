@@ -786,6 +786,14 @@ those previous versions.  If you want to be able to do that with files
 hosted by those services when editing them with Emacs, customize
 @code{backup-by-copying} to a non-@code{nil} value.
 
+@vindex file-precious-flag
+  Copying the old file for backup is also useful when editing precious
+files, because it makes sure the old file keeps its name if something
+fails between the backup and the saving of your edits.  Alternatively,
+you can customize @code{file-precious-flag} to a non-@code{nil} value,
+which implies backups by copying and also protects against I/O errors
+while saving your edits.
+
 @node Customize Save
 @subsection Customizing Saving of Files
 
