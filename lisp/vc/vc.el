@@ -3547,6 +3547,8 @@ prepared sequentially."
   :safe #'booleanp
   :version "29.1")
 
+;; This is used in .dir-locals.el in the Emacs source tree.
+;;;###autoload (put 'vc-default-patch-addressee 'safe-local-variable 'stringp)
 (defcustom vc-default-patch-addressee nil
   "Default addressee for `vc-prepare-patch'.
 If nil, no default will be used.  This option may be set locally."
