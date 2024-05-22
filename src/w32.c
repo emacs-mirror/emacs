@@ -2572,7 +2572,7 @@ parse_root (const char * name, const char ** pPath)
       name += 2;
       do
         {
-	  if (IS_DIRECTORY_SEP (*name) && --slashes == 0)
+	  if (!*name || (IS_DIRECTORY_SEP (*name) && --slashes == 0))
 	    break;
 	  name++;
 	}

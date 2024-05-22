@@ -218,4 +218,10 @@ Also check that an encoding error can appear in a symlink."
     (should (equal (expand-file-name file nil) file))
     (file-name-case-insensitive-p file)))
 
+(ert-deftest fileio-tests-invalid-UNC ()
+  (skip-unless (eq system-type 'windows-nt))
+  ;; These should not crash, see bug#70914.
+  (should-not (file-exists-p "//"))
+  (should (file-attributes "//")))
+
 ;;; fileio-tests.el ends here
