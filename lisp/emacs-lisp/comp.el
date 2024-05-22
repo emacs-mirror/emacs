@@ -2847,7 +2847,7 @@ FUNCTION can be a function-name or byte compiled function."
              (subrp (subrp f))
              (comp-func-callee (comp--func-in-unit callee)))
         (cond
-         ((and subrp (not (subr-native-elisp-p f)))
+         ((and subrp (not (native-comp-function-p f)))
           ;; Trampoline removal.
           (let* ((callee (intern (subr-name f))) ; Fix aliased names.
                  (maxarg (cdr (subr-arity f)))

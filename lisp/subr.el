@@ -316,14 +316,14 @@ value of last one, or nil if there are none."
 Such objects can be functions or special forms."
   (declare (side-effect-free error-free))
   (and (subrp object)
-       (not (subr-native-elisp-p object))))
+       (not (native-comp-function-p object))))
 
 (defsubst primitive-function-p (object)
   "Return t if OBJECT is a built-in primitive function.
 This excludes special forms, since they are not functions."
   (declare (side-effect-free error-free))
   (and (subrp object)
-       (not (or (subr-native-elisp-p object)
+       (not (or (native-comp-function-p object)
                 (eq (cdr (subr-arity object)) 'unevalled)))))
 
 (defsubst xor (cond1 cond2)
@@ -3022,7 +3022,7 @@ This is to `put' what `defalias' is to `fset'."
 
 (defvar comp-native-version-dir)
 (defvar native-comp-eln-load-path)
-(declare-function subr-native-elisp-p "data.c")
+(declare-function native-comp-function-p "data.c")
 (declare-function native-comp-unit-file "data.c")
 (declare-function subr-native-comp-unit "data.c")
 (declare-function comp-el-to-eln-rel-filename "comp.c")
@@ -3071,7 +3071,7 @@ instead."
 	     (symbolp symbol)
 	     (native-comp-available-p)
 	     ;; If it's a defun, we have a shortcut.
-	     (subr-native-elisp-p (symbol-function symbol)))
+	     (native-comp-function-p (symbol-function symbol)))
 	;; native-comp-unit-file returns unnormalized file names.
 	(expand-file-name (native-comp-unit-file (subr-native-comp-unit
 						  (symbol-function symbol))))

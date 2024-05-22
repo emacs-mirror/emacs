@@ -85,13 +85,13 @@ Check that the resulting binaries do not differ."
         (copy-file comp-src comp2-src t)
         (let ((load-no-native t))
           (load (concat comp-src "c") nil nil t t))
-        (should-not (subr-native-elisp-p (symbol-function 'native-compile)))
+        (should-not (native-comp-function-p (symbol-function 'native-compile)))
         (message "Compiling stage1...")
         (let* ((t0 (current-time))
                (comp1-eln (native-compile comp1-src)))
           (message "Done in %d secs" (float-time (time-since t0)))
           (load comp1-eln nil nil t t)
-          (should (subr-native-elisp-p (symbol-function 'native-compile)))
+          (should (native-comp-function-p (symbol-function 'native-compile)))
           (message "Compiling stage2...")
           (let ((t0 (current-time))
                 (comp2-eln (native-compile comp2-src)))
@@ -325,15 +325,15 @@ Check that the resulting binaries do not differ."
 
 (comp-deftest lambda-return ()
   (let ((f (comp-tests-lambda-return-f)))
-    (should (subr-native-elisp-p f))
+    (should (native-comp-function-p f))
     (should (= (funcall f 3) 4))))
 
 (comp-deftest lambda-return2 ()
   "Check a nested lambda function gets native compiled."
   (let ((f (comp-tests-lambda-return-f2)))
-    (should (subr-native-elisp-p f))
+    (should (native-comp-function-p f))
     (let ((f2 (funcall f)))
-      (should (subr-native-elisp-p f2))
+      (should (native-comp-function-p f2))
       (should (= (funcall f2 3) 4)))))
 
 (comp-deftest recursive ()
@@ -391,7 +391,7 @@ Check that the resulting binaries do not differ."
         t)
   (native-compile #'comp-tests-free-fun-f)
 
-  (should (subr-native-elisp-p (symbol-function 'comp-tests-free-fun-f)))
+  (should (native-comp-function-p (symbol-function 'comp-tests-free-fun-f)))
   (should (= (comp-tests-free-fun-f) 3))
   (should (string= (documentation #'comp-tests-free-fun-f)
                    "Some doc."))
@@ -412,8 +412,8 @@ Check that the resulting binaries do not differ."
 
   (let* ((f (symbol-function 'comp-tests-free-fun-f2))
          (f2 (funcall f)))
-    (should (subr-native-elisp-p f))
-    (should (subr-native-elisp-p f2))
+    (should (native-comp-function-p f))
+    (should (native-comp-function-p f2))
     (should (string= (documentation f2) "Some doc."))
     (should (commandp f2))
     (should (equal (interactive-form f2) '(interactive nil)))
@@ -425,7 +425,7 @@ Check that the resulting binaries do not differ."
   "Check we are able to compile a single function."
   (eval '(defun comp-tests/free\fun-f ()) t)
   (native-compile #'comp-tests/free\fun-f)
-  (should (subr-native-elisp-p (symbol-function 'comp-tests/free\fun-f))))
+  (should (native-comp-function-p (symbol-function 'comp-tests/free\fun-f))))
 
 (comp-deftest bug-40187 ()
   "Check function name shadowing.
@@ -436,7 +436,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 (comp-deftest speed--1 ()
   "Check that at speed -1 we do not native compile."
   (should (= (comp-test-speed--1-f) 3))
-  (should-not (subr-native-elisp-p (symbol-function 'comp-test-speed--1-f))))
+  (should-not (native-comp-function-p (symbol-function 'comp-test-speed--1-f))))
 
 (comp-deftest bug-42360 ()
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-07/msg00418.html>."
@@ -497,22 +497,22 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should-error (native-compile '(+ 1 foo)))
   (let ((lexical-binding t)
         (f (native-compile '(lambda (x) (1+ x)))))
-    (should (subr-native-elisp-p f))
+    (should (native-comp-function-p f))
     (should (= (funcall f 2) 3)))
   (let* ((lexical-binding nil)
          (f (native-compile '(lambda (x) (1+ x)))))
-    (should (subr-native-elisp-p f))
+    (should (native-comp-function-p f))
     (should (= (funcall f 2) 3))))
 
 (comp-deftest comp-test-defsubst ()
   ;; Bug#42664, Bug#43280, Bug#44209.
-  (should-not (subr-native-elisp-p (symbol-function 'comp-test-defsubst-f))))
+  (should-not (native-comp-function-p (symbol-function 'comp-test-defsubst-f))))
 
 (comp-deftest primitive-redefine-compile-44221 ()
   "Test the compiler still works while primitives are redefined (bug#44221)."
   (cl-letf (((symbol-function 'delete-region)
              (lambda (_ _))))
-    (should (subr-native-elisp-p
+    (should (native-comp-function-p
              (native-compile
               '(lambda ()
                  (delete-region (point-min) (point-max))))))))
@@ -564,7 +564,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 
 (comp-deftest 48029-1 ()
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2022-07/msg00666.html>"
-  (should (subr-native-elisp-p
+  (should (native-comp-function-p
            (symbol-function 'comp-test-48029-nonascii-žžž-f))))
 
 (comp-deftest 61917-1 ()
@@ -578,7 +578,7 @@ dedicated byte-op code."
         (setf x (native-compile
                  '(lambda ()
                     (delete-region 1 2))))
-      (should (subr-native-elisp-p x))
+      (should (native-comp-function-p x))
       (funcall x)
       (advice-remove #'delete-region f)
       (should (equal comp-test-primitive-redefine-args '(1 2))))))
@@ -874,7 +874,7 @@ Return a list of results."
                (comp-tests-tco-f (+ a b) a (- count 1))))
           t)
     (native-compile #'comp-tests-tco-f)
-    (should (subr-native-elisp-p (symbol-function 'comp-tests-tco-f)))
+    (should (native-comp-function-p (symbol-function 'comp-tests-tco-f)))
     (should (= (comp-tests-tco-f 1 0 10) 55))))
 
 (defun comp-tests-fw-prop-checker-1 (_)
@@ -901,7 +901,7 @@ Return a list of results."
                (length c))) ; <= has to optimize
           t)
     (native-compile #'comp-tests-fw-prop-1-f)
-    (should (subr-native-elisp-p (symbol-function 'comp-tests-fw-prop-1-f)))
+    (should (native-comp-function-p (symbol-function 'comp-tests-fw-prop-1-f)))
     (should (= (comp-tests-fw-prop-1-f) 6))))
 
 (defun comp-tests--type-lists-equal (l1 l2)
@@ -1556,10 +1556,10 @@ folded."
     (declare-function comp-tests-pure-caller-f nil)
     (declare-function comp-tests-pure-fibn-entry-f nil)
 
-    (should (subr-native-elisp-p (symbol-function 'comp-tests-pure-caller-f)))
+    (should (native-comp-function-p (symbol-function 'comp-tests-pure-caller-f)))
     (should (= (comp-tests-pure-caller-f) 4))
 
-    (should (subr-native-elisp-p (symbol-function 'comp-tests-pure-fibn-entry-f)))
+    (should (native-comp-function-p (symbol-function 'comp-tests-pure-fibn-entry-f)))
     (should (= (comp-tests-pure-fibn-entry-f) 6765))))
 
 (defvar comp-tests-cond-rw-checked-function nil

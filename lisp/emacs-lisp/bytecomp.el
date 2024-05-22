@@ -6028,7 +6028,7 @@ and corresponding effects."
       (let ((byte-optimize nil)		; do it fast
 	    (byte-compile-warnings nil))
 	(mapc (lambda (x)
-                (unless (subr-native-elisp-p x)
+                (unless (native-comp-function-p x)
 		  (or noninteractive (message "compiling %s..." x))
 		  (byte-compile x)
 		  (or noninteractive (message "compiling %s...done" x))))

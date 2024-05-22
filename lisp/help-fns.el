@@ -478,7 +478,7 @@ the C sources, too."
     (cond
      ((and (not file-name)
            (subrp type)
-           (not (subr-native-elisp-p type)))
+           (not (native-comp-function-p type)))
       ;; A built-in function.  The form is from `describe-function-1'.
       (if (or (get-buffer " *DOC*")
               (and also-c-source
