@@ -3008,7 +3008,12 @@ before calling this function."
   (when treesit-simple-indent-rules
     (setq-local treesit-simple-indent-rules
                 (treesit--indent-rules-optimize
-                 treesit-simple-indent-rules))
+                 treesit-simple-indent-rules)))
+  ;; Enable indent if simple indent rules are set, or the major mode
+  ;; sets a custom indent function.
+  (when (or treesit-simple-indent-rules
+            (and (not (eq treesit-indent-function #'treesit-simple-indent))
+                 treesit-indent-function))
     (setq-local indent-line-function #'treesit-indent)
     (setq-local indent-region-function #'treesit-indent-region))
   ;; Navigation.
