@@ -722,10 +722,10 @@ Calls REPORT-FN directly."
 
 (defvar lua-ts-mode-map
   (let ((map (make-sparse-keymap "Lua")))
-    (define-key map "\C-c\C-n" 'lua-ts-inferior-lua)
-    (define-key map "\C-c\C-c" 'lua-ts-send-buffer)
-    (define-key map "\C-c\C-l" 'lua-ts-send-file)
-    (define-key map "\C-c\C-r" 'lua-ts-send-region)
+    (keymap-set map "C-c C-n" 'lua-ts-inferior-lua)
+    (keymap-set map "C-c C-c" 'lua-ts-send-buffer)
+    (keymap-set map "C-c C-l" 'lua-ts-send-file)
+    (keymap-set map "C-c C-r" 'lua-ts-send-region)
     map)
   "Keymap for `lua-ts-mode' buffers.")
 
