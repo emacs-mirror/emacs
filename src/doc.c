@@ -392,7 +392,7 @@ DEFUN ("internal-subr-documentation", Fsubr_documentation, Ssubr_documentation, 
   (Lisp_Object function)
 {
 #ifdef HAVE_NATIVE_COMP
-  if (!NILP (Fsubr_native_elisp_p (function)))
+  if (!NILP (Fnative_comp_function_p (function)))
     return native_function_doc (function);
   else
 #endif

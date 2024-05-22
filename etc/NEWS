@@ -1891,6 +1891,10 @@ documentation and examples.
 
 * Incompatible Lisp Changes in Emacs 30.1
 
+---
+** 'subr-native-elisp-p' is renamed to 'native-comp-function-p'.
+The previous name still exists but is marked as obsolete.
+
 +++
 ** Evaluating a 'lambda' returns an object of type 'interpreted-function'.
 Instead of representing interpreted functions as lists that start with

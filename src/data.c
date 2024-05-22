@@ -239,7 +239,7 @@ a fixed set of types.  */)
         case PVEC_WINDOW: return Qwindow;
         case PVEC_SUBR:
           return XSUBR (object)->max_args == UNEVALLED ? Qspecial_form
-                 : SUBR_NATIVE_COMPILEDP (object) ? Qsubr_native_elisp
+                 : SUBR_NATIVE_COMPILEDP (object) ? Qnative_comp_function
                  : Qprimitive_function;
         case PVEC_CLOSURE:
           return CONSP (AREF (object, CLOSURE_CODE))
@@ -1055,9 +1055,8 @@ SUBR must be a built-in function.  */)
   return build_string (name);
 }
 
-DEFUN ("subr-native-elisp-p", Fsubr_native_elisp_p, Ssubr_native_elisp_p, 1, 1,
-       0, doc: /* Return t if the object is native compiled lisp
-function, nil otherwise.  */)
+DEFUN ("native-comp-function-p", Fnative_comp_function_p, Snative_comp_function_p, 1, 1,
+       0, doc: /* Return t if the object is native compiled Lisp function, nil otherwise.  */)
   (Lisp_Object object)
 {
   return SUBR_NATIVE_COMPILEDP (object) ? Qt : Qnil;
@@ -4163,7 +4162,8 @@ syms_of_data (void)
   DEFSYM (Qsubr, "subr");
   DEFSYM (Qspecial_form, "special-form");
   DEFSYM (Qprimitive_function, "primitive-function");
-  DEFSYM (Qsubr_native_elisp, "subr-native-elisp");
+  DEFSYM (Qsubr_native_elisp, "subr-native-elisp"); /* Deprecated name.  */
+  DEFSYM (Qnative_comp_function, "native-comp-function");
   DEFSYM (Qbyte_code_function, "byte-code-function");
   DEFSYM (Qinterpreted_function, "interpreted-function");
   DEFSYM (Qbuffer, "buffer");
@@ -4298,7 +4298,7 @@ syms_of_data (void)
   defsubr (&Sbyteorder);
   defsubr (&Ssubr_arity);
   defsubr (&Ssubr_name);
-  defsubr (&Ssubr_native_elisp_p);
+  defsubr (&Snative_comp_function_p);
   defsubr (&Ssubr_native_lambda_list);
   defsubr (&Ssubr_type);
 #ifdef HAVE_NATIVE_COMP
