@@ -1894,11 +1894,28 @@ directly translate into operations shown above.
        :host 'html
        '((script_element (raw_text) @@capture))
 @end group
-
 @group
        :embed 'css
        :host 'html
        '((style_element (raw_text) @@capture))))
+@end group
+@group
+;; Major modes with multiple languages should always set
+`treesit-language-at-point-function' (which see).
+(setq treesit-language-at-point-function
+      (lambda (pos)
+        (let* ((node (treesit-node-at pos 'html))
+               (parent (treesit-node-parent node)))
+          (cond
+           ((and node parent
+                 (equal (treesit-node-type node) "raw_text")
+                 (equal (treesit-node-type parent) "script_element"))
+            'javascript)
+           ((and node parent
+                 (equal (treesit-node-type node) "raw_text")
+                 (equal (treesit-node-type parent) "style_element"))
+            'css)
+           (t 'html)))))
 @end group
 @end example
 
