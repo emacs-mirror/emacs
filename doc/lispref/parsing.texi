@@ -2081,8 +2081,9 @@ If @code{treesit-font-lock-settings} (@pxref{Parser-based Font Lock})
 is non-@code{nil}, it sets up fontification.
 
 @item
-If @code{treesit-simple-indent-rules} (@pxref{Parser-based Indentation})
-is non-@code{nil}, it sets up indentation.
+If either @code{treesit-simple-indent-rules} or
+@code{treesit-indent-function} (@pxref{Parser-based Indentation}) is
+non-@code{nil}, it sets up indentation.
 
 @item
 If @code{treesit-defun-type-regexp} is non-@code{nil}, it sets up
