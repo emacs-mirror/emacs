@@ -678,7 +678,8 @@ recording whether the var has been referenced by earlier parts of the match."
       bitsets)))
 
 (defconst pcase--subtype-bitsets
-  (if (fboundp 'built-in-class-p)
+  (if (and (fboundp 'built-in-class-p)
+           (built-in-class-p (get 'function 'cl--class)))
       (pcase--subtype-bitsets)
     ;; Early bootstrap: we don't have the built-in classes yet, so just
     ;; use an empty table for now.
