@@ -295,7 +295,7 @@ headers search path, load path, class path, and so on."
 Nominally unique, but not enforced."
   (file-name-nondirectory (directory-file-name (project-root project))))
 
-(cl-defgeneric project-ignores (_project _dir)
+(cl-defgeneric project-ignores (_project dir)
   "Return the list of glob patterns to ignore inside DIR.
 Patterns can match both regular files and directories.
 To root an entry, start it with `./'.  To match directories only,
@@ -305,12 +305,15 @@ end it with `/'.  DIR must be either `project-root' or one of
   ;; TODO: Support whitelist entries.
   (require 'grep)
   (defvar grep-find-ignored-files)
+  (declare-function grep-find-ignored-files "grep" (dir))
   (nconc
    (mapcar
     (lambda (dir)
       (concat dir "/"))
     vc-directory-exclusion-list)
-   grep-find-ignored-files))
+   (if (fboundp 'grep-find-ignored-files)
+       (grep-find-ignored-files dir)
+     grep-find-ignored-files)))
 
 (defun project--file-completion-table (all-files)
   (lambda (string pred action)
