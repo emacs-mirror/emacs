@@ -1326,12 +1326,44 @@ struct print_pp_stack {
 
 static struct print_pp_stack ppstack = {NULL, 0, 0};
 
+static igc_scan_result_t
+scan_ppstack (struct igc_opaque *op, void *start, void *end,
+	      igc_scan_cell_t scan1)
+{
+  eassert (start == (void *)ppstack.stack);
+  eassert (end == (void *)(ppstack.stack + ppstack.size));
+  struct print_pp_entry *p = start;
+  struct print_pp_entry *q = p + ppstack.sp;
+  for (; p < q; p++)
+    {
+      igc_scan_result_t err = 0;
+      if (p->n == 0)
+	{
+	  if (err = scan1 (op, &p->u.value), err != 0)
+	    return err;
+	}
+      else
+	{
+	  eassert (p->n > 0);
+	  for (size_t i = 0; i < p->n; i++)
+	    if (err = scan1 (op, &p->u.values[i]), err != 0)
+	      return err;
+	}
+    }
+  return 0;
+}
+
 NO_INLINE static void
 grow_pp_stack (void)
 {
   struct print_pp_stack *ps = &ppstack;
   eassert (ps->sp == ps->size);
+#ifdef HAVE_MPS
+  ps->stack = igc_xpalloc_exact (ps->stack, &ps->size, 1, -1,
+				 sizeof *ps->stack, scan_ppstack);
+#else
   ps->stack = xpalloc (ps->stack, &ps->size, 1, -1, sizeof *ps->stack);
+#endif
   eassert (ps->sp < ps->size);
 }
 
