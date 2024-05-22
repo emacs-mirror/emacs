@@ -663,7 +663,7 @@ MODE is either `c' or `cpp'."
          '((type_qualifier) @font-lock-type-face
 
            (qualified_identifier
-            scope: (namespace_identifier) @font-lock-type-face)
+            scope: (namespace_identifier) @font-lock-constant-face)
 
            (operator_cast) type: (type_identifier) @font-lock-type-face
 
