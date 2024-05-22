@@ -228,7 +228,7 @@ This is used for displaying the time and date components of
 ---
 ** New icon images for general use.
 Several symbolic icons are added to "etc/images/symbols", including
-plus, minus, check-mark, start, etc.
+plus, minus, check-mark, star, etc.
 
 +++
 ** Tool bars can now be placed on the bottom on more systems.
