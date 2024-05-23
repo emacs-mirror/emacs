@@ -2234,6 +2234,11 @@ It is bound to the key sequence that caused a call to a function bound
 within 'function-key-map' or 'input-decode-map' around those calls.
 
 +++
+** The function 'key-translate' can now remove translations.
+If the second argument TO is nil, the existing key translation is
+removed.
+
++++
 ** New variables describing the names of built in programs.
 The new variables 'ctags-program-name', 'ebrowse-program-name',
 'etags-program-name', 'hexl-program-name', 'emacsclient-program-name'
