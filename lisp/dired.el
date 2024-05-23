@@ -2642,7 +2642,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
            :help "Edit file at mouse click in other window"]
           ,@(when shell-command-guess-open
               '(["Open" dired-do-open
-                 :help "Open externally"]))
+                 :help "Open this file with the default application"]))
           ,@(when commands
               (list (cons "Open With"
                           (append
@@ -2653,7 +2653,13 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
                                          (interactive)
                                          (dired-do-async-shell-command
                                           ,command nil (list ,filename)))])
-                                   commands)))))))
+                                   commands)))))
+          ,@(when (eq system-type 'windows-nt)
+              `(["Select system app"
+                 (lambda ()
+                   (interactive)
+                   (w32-shell-execute "openas" ,filename))
+                 :help "Choose one of the apps available on your system"]))))
       (dolist (item (reverse (lookup-key easy-menu [menu-bar immediate])))
         (when (consp item)
           (define-key menu (vector (car item)) (cdr item))))))
