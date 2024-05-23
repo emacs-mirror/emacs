@@ -683,9 +683,7 @@ Concatenate FILE(s), or standard input, to standard output.")
 	       (with-current-buffer curbuf
 		 (eshell-buffered-print str)))
 	     (forward-line)))))
-     (eshell-flush)
-     ;; if the file does not end in a newline, do not emit one
-     (setq eshell-ensure-newline-p nil))))
+     (eshell-flush))))
 
 (put 'eshell/cat 'eshell-no-numeric-conversions t)
 (put 'eshell/cat 'eshell-filename-arguments t)

@@ -254,11 +254,6 @@ the command."
   :type 'sexp
   :risky t)
 
-(defvar eshell-ensure-newline-p nil
-  "If non-nil, ensure that a newline is emitted after a Lisp form.
-This can be changed by Lisp forms that are evaluated from the Eshell
-command line.")
-
 ;;; Internal Variables:
 
 ;; These variables have been merged into `eshell-foreground-command'.
@@ -1499,7 +1494,7 @@ a string naming a Lisp function."
   (catch 'eshell-external               ; deferred to an external command
     (setq eshell-last-command-status 0
           eshell-last-arguments args)
-    (let* ((eshell-ensure-newline-p (eshell-interactive-output-p))
+    (let* ((eshell-ensure-newline-p t)
            (command-form-p (functionp object))
            (result
             (if command-form-p
@@ -1526,14 +1521,13 @@ a string naming a Lisp function."
                       (setq args (cdr args))))
                   (setq eshell-last-command-name
                         (concat "#<function " (symbol-name object) ">"))
-                  (eshell-apply object eshell-last-arguments))
+                  (eshell-apply* #'eshell-print-maybe-n
+                                 #'eshell-error-maybe-n
+                                 object eshell-last-arguments))
               (setq eshell-last-command-name "#<Lisp object>")
-              (eshell-eval object))))
-      (if (and eshell-ensure-newline-p
-	       (save-excursion
-		 (goto-char eshell-last-output-end)
-		 (not (bolp))))
-	  (eshell-print "\n"))
+              (eshell-eval* #'eshell-print-maybe-n
+                            #'eshell-error-maybe-n
+                            object))))
       (eshell-close-handles
        ;; If `eshell-lisp-form-nil-is-failure' is non-nil, Lisp forms
        ;; that succeeded but have a nil result should have an exit

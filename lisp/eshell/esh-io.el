@@ -162,6 +162,12 @@ ordinary function or `eshell-generic-target' as desribed above)."
 
 (define-error 'eshell-pipe-broken "Pipe broken")
 
+(defvar eshell-ensure-newline-p nil
+  "If non-nil, ensure that a newline is emitted after a Lisp form.
+This can be changed by Lisp forms that are evaluated from the
+Eshell command line.  This behavior only applies to line-oriented
+output targets (see `eshell-target-line-oriented-p'.")
+
 ;;; Internal Variables:
 
 (defconst eshell-redirection-operators-alist
@@ -493,15 +499,37 @@ after all printing is over with no argument."
   "Output OBJECT to the standard error handle."
   (eshell-output-object object eshell-error-handle))
 
+(defsubst eshell-printn (object)
+  "Output OBJECT followed by a newline to the standard output handle."
+  (eshell-print object)
+  (eshell-print "\n"))
+
 (defsubst eshell-errorn (object)
   "Output OBJECT followed by a newline to the standard error handle."
   (eshell-error object)
   (eshell-error "\n"))
 
-(defsubst eshell-printn (object)
-  "Output OBJECT followed by a newline to the standard output handle."
-  (eshell-print object)
-  (eshell-print "\n"))
+(defun eshell--output-maybe-n (object handle)
+  "Output OBJECT to HANDLE.
+For any line-oriented output targets on HANDLE, ensure the output
+ends in a newline."
+  (eshell-output-object object handle)
+  (when (and eshell-ensure-newline-p
+             (not (and (stringp object)
+                       (string-suffix-p object "\n"))))
+    (eshell-maybe-output-newline handle)))
+
+(defsubst eshell-print-maybe-n (object)
+  "Output OBJECT to the standard output handle.
+For any line-oriented output targets, ensure the output ends in a
+newline."
+  (eshell--output-maybe-n object eshell-output-handle))
+
+(defsubst eshell-error-maybe-n (object)
+  "Output OBJECT to the standard error handle.
+For any line-oriented output targets, ensure the output ends in a
+newline."
+  (eshell--output-maybe-n object eshell-error-handle))
 
 (cl-defstruct (eshell-generic-target (:constructor nil))
   "An Eshell target.
@@ -678,6 +706,16 @@ Returns what was actually sent, or nil if nothing was sent.")
   "Output OBJECT to the Eshell function TARGET."
   (funcall (eshell-function-target-output-function target) object))
 
+(cl-defgeneric eshell-target-line-oriented-p (_target)
+  "Return non-nil if the specified TARGET is line-oriented.
+Line-oriented targets are those that expect a newline after
+command output when `eshell-ensure-newline-p' is non-nil."
+  nil)
+
+(cl-defmethod eshell-target-line-oriented-p ((_target (eql t)))
+  "Return non-nil to indicate that the display is line-oriented."
+  t)
+
 (defun eshell-output-object (object &optional handle-index handles)
   "Insert OBJECT, using HANDLE-INDEX specifically.
 If HANDLE-INDEX is nil, output to `eshell-output-handle'.
@@ -687,6 +725,19 @@ HANDLES is the set of file handles to use; if nil, use
                              (or handle-index eshell-output-handle)))))
     (dolist (target targets)
       (eshell-output-object-to-target object target))))
+
+(defun eshell-maybe-output-newline (&optional handle-index handles)
+  "Maybe insert a newline, using HANDLE-INDEX specifically.
+This inserts a newline for all line-oriented output targets.
+
+If HANDLE-INDEX is nil, output to `eshell-output-handle'.
+HANDLES is the set of file handles to use; if nil, use
+`eshell-current-handles'."
+  (let ((targets (caar (aref (or handles eshell-current-handles)
+                             (or handle-index eshell-output-handle)))))
+    (dolist (target targets)
+      (when (eshell-target-line-oriented-p target)
+        (eshell-output-object-to-target "\n" target)))))
 
 (provide 'esh-io)
 ;;; esh-io.el ends here
