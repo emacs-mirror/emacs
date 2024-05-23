@@ -49,11 +49,6 @@ INTFWDP (lispfwd a)
   return XFWDTYPE (a) == Lisp_Fwd_Int;
 }
 static bool
-KBOARD_OBJFWDP (lispfwd a)
-{
-  return XFWDTYPE (a) == Lisp_Fwd_Kboard_Obj;
-}
-static bool
 OBJFWDP (lispfwd a)
 {
   return XFWDTYPE (a) == Lisp_Fwd_Obj;
@@ -1304,6 +1299,26 @@ If OBJECT is not a symbol, just return it.  */)
   return object;
 }
 
+/* Return the KBOARD to which bindings currently established and values
+   set should apply.  */
+
+KBOARD *
+kboard_for_bindings (void)
+{
+  /* We used to simply use current_kboard here, but from Lisp code, its
+     value is often unexpected.  It seems nicer to allow constructions
+     like this to work as intuitively expected:
+
+     (with-selected-frame frame
+     (define-key local-function-map "\eOP" [f1]))
+
+     On the other hand, this affects the semantics of last-command and
+     real-last-command, and people may rely on that.  I took a quick
+     look at the Lisp codebase, and I don't think anything will break.
+     --lorentey */
+
+  return FRAME_KBOARD (SELECTED_FRAME ());
+}
 
 /* Given the raw contents of a symbol value cell,
    return the Lisp value of the symbol.
@@ -1329,19 +1344,8 @@ do_symval_forwarding (lispfwd valcontents)
 			       XBUFFER_OBJFWD (valcontents)->offset);
 
     case Lisp_Fwd_Kboard_Obj:
-      /* We used to simply use current_kboard here, but from Lisp
-	 code, its value is often unexpected.  It seems nicer to
-	 allow constructions like this to work as intuitively expected:
-
-	 (with-selected-frame frame
-	 (define-key local-function-map "\eOP" [f1]))
-
-	 On the other hand, this affects the semantics of
-	 last-command and real-last-command, and people may rely on
-	 that.  I took a quick look at the Lisp codebase, and I
-	 don't think anything will break.  --lorentey  */
-      return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
-			      + (char *)FRAME_KBOARD (SELECTED_FRAME ()));
+      return *(Lisp_Object *) (XKBOARD_OBJFWD (valcontents)->offset
+			       + (char *) kboard_for_bindings ());
     default: emacs_abort ();
     }
 }
@@ -1489,7 +1493,7 @@ store_symval_forwarding (lispfwd valcontents, Lisp_Object newval,
 
     case Lisp_Fwd_Kboard_Obj:
       {
-	char *base = (char *) FRAME_KBOARD (SELECTED_FRAME ());
+	char *base = (char *) kboard_for_bindings ();
 	char *p = base + XKBOARD_OBJFWD (valcontents)->offset;
 	*(Lisp_Object *) p = newval;
       }
@@ -1768,7 +1772,8 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	        && !PER_BUFFER_VALUE_P (buf, idx))
 	      {
 		if (let_shadows_buffer_binding_p (sym))
-		  set_default_internal (symbol, newval, bindflag);
+		  set_default_internal (symbol, newval, bindflag,
+					NULL);
 		else
 		  SET_PER_BUFFER_VALUE_P (buf, idx, 1);
 	      }
@@ -1991,7 +1996,7 @@ local bindings in certain buffers.  */)
 
 void
 set_default_internal (Lisp_Object symbol, Lisp_Object value,
-                      enum Set_Internal_Bind bindflag)
+                      enum Set_Internal_Bind bindflag, KBOARD *where)
 {
   CHECK_SYMBOL (symbol);
   struct Lisp_Symbol *sym = XSYMBOL (symbol);
@@ -2071,6 +2076,13 @@ set_default_internal (Lisp_Object symbol, Lisp_Object value,
 		  }
 	      }
 	  }
+	else if (KBOARD_OBJFWDP (valcontents))
+	  {
+	    char *base = (char *) (where ? where
+				   : kboard_for_bindings ());
+	    char *p = base + XKBOARD_OBJFWD (valcontents)->offset;
+	    *(Lisp_Object *) p = value;
+	  }
 	else
           set_internal (symbol, value, Qnil, bindflag);
         return;
@@ -2085,7 +2097,7 @@ The default value is seen in buffers that do not have their own values
 for this variable.  */)
   (Lisp_Object symbol, Lisp_Object value)
 {
-  set_default_internal (symbol, value, SET_INTERNAL_SET);
+  set_default_internal (symbol, value, SET_INTERNAL_SET, NULL);
   return value;
 }
 

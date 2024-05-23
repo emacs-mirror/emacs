@@ -3184,6 +3184,13 @@ XBUFFER_OBJFWD (lispfwd a)
   eassert (BUFFER_OBJFWDP (a));
   return a.fwdptr;
 }
+
+INLINE bool
+KBOARD_OBJFWDP (lispfwd a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Kboard_Obj;
+}
+
 
 /* Lisp floating point type.  */
 struct Lisp_Float
@@ -3597,12 +3604,15 @@ enum specbind_tag {
 #ifdef HAVE_MODULES
   SPECPDL_MODULE_RUNTIME,       /* A live module runtime.  */
   SPECPDL_MODULE_ENVIRONMENT,   /* A live module environment.  */
-#endif
+#endif /* !HAVE_MODULES */
   SPECPDL_LET,			/* A plain and simple dynamic let-binding.  */
   /* Tags greater than SPECPDL_LET must be "subkinds" of LET.  */
   SPECPDL_LET_LOCAL,		/* A buffer-local let-binding.  */
   SPECPDL_LET_DEFAULT		/* A global binding for a localized var.  */
 };
+
+/* struct kboard is defined in keyboard.h.  */
+typedef struct kboard KBOARD;
 
 union specbinding
   {
@@ -3646,8 +3656,17 @@ union specbinding
     } unwind_void;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
-      /* `where' is not used in the case of SPECPDL_LET.  */
-      Lisp_Object symbol, old_value, where;
+      /* `where' is not used in the case of SPECPDL_LET,
+	 unless the symbol is forwarded to a KBOARD.  */
+      Lisp_Object symbol, old_value;
+      union {
+	/* KBOARD object to which SYMBOL forwards, in the case of
+	   SPECPDL_LET.  */
+	KBOARD *kbd;
+
+	/* Buffer otherwise.  */
+	Lisp_Object buf;
+      } where;
     } let;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
@@ -4216,17 +4235,19 @@ extern uintmax_t cons_to_unsigned (Lisp_Object, uintmax_t);
 
 extern AVOID args_out_of_range (Lisp_Object, Lisp_Object);
 extern AVOID circular_list (Lisp_Object);
+extern KBOARD *kboard_for_bindings (void);
 extern Lisp_Object do_symval_forwarding (lispfwd);
-enum Set_Internal_Bind {
-  SET_INTERNAL_SET,
-  SET_INTERNAL_BIND,
-  SET_INTERNAL_UNBIND,
-  SET_INTERNAL_THREAD_SWITCH
-};
+enum Set_Internal_Bind
+  {
+    SET_INTERNAL_SET,
+    SET_INTERNAL_BIND,
+    SET_INTERNAL_UNBIND,
+    SET_INTERNAL_THREAD_SWITCH,
+  };
 extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object,
                           enum Set_Internal_Bind);
 extern void set_default_internal (Lisp_Object, Lisp_Object,
-                                  enum Set_Internal_Bind bindflag);
+                                  enum Set_Internal_Bind, KBOARD *);
 extern Lisp_Object expt_integer (Lisp_Object, Lisp_Object);
 extern void syms_of_data (void);
 extern void swap_in_global_binding (struct Lisp_Symbol *);

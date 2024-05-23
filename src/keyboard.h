@@ -78,7 +78,6 @@ INLINE_HEADER_BEGIN
    When Emacs goes back to the any-kboard state, it looks at all the KBOARDs
    to find those; and it tries processing their input right away.  */
 
-typedef struct kboard KBOARD;
 struct kboard
   {
     KBOARD *next_kboard;

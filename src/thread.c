@@ -63,7 +63,7 @@ static union aligned_thread_state main_thread
 
 struct thread_state *current_thread = &main_thread.s;
 
-static struct thread_state *all_threads = &main_thread.s;
+struct thread_state *all_threads = &main_thread.s;
 
 static sys_mutex_t global_lock;
 
