@@ -131,6 +131,9 @@ void igc_root_create_exact (Lisp_Object *start, Lisp_Object *end);
 void igc_root_create_exact_ptr (void *var_addr);
 void igc_root_create_comp_unit (struct Lisp_Native_Comp_Unit *u);
 void igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u);
+struct igc_root;
+struct igc_root *igc_root_create_n (Lisp_Object start[], size_t n);
+void igc_root_destroy (struct igc_root **);
 
 struct Lisp_Weak_Ref;
 Lisp_Object igc_weak_ref_deref (struct Lisp_Weak_Ref *);

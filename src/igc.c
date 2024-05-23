@@ -1724,7 +1724,9 @@ fix_terminal (mps_ss_t ss, struct terminal *t)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, t, fix_vectorlike);
     IGC_FIX12_RAW (ss, &t->next_terminal);
+#ifdef HAVE_WINDOW_SYSTEM
     IGC_FIX12_RAW (ss, &t->image_cache);
+#endif
     // These are malloc'd, so they can be accessed.
     IGC_FIX_CALL_FN (ss, struct coding_system, t->keyboard_coding, fix_coding);
     IGC_FIX_CALL_FN (ss, struct coding_system, t->terminal_coding, fix_coding);
@@ -2190,37 +2192,33 @@ root_create_exact_n (Lisp_Object *start, size_t n)
   return root_create_exact (global_igc, start, start + n, scan_exact);
 }
 
+struct igc_root *
+igc_root_create_n (Lisp_Object start[], size_t n)
+{
+  return (struct igc_root *)root_create_exact_n (start, n);
+}
+
+void
+igc_root_destroy (struct igc_root **root)
+{
+  destroy_root ((struct igc_root_list **)root);
+}
+
 void
 igc_root_create_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
-  struct igc_cu_roots *r = xzalloc (sizeof *r);
-  if (u->n_data_relocs)
-    r->data_relocs = root_create_exact_n (u->data_relocs, u->n_data_relocs);
-  if (u->n_data_imp_relocs)
-    r->data_imp_relocs
-      = root_create_exact_n (u->data_imp_relocs, u->n_data_imp_relocs);
-  if (u->n_data_eph_relocs)
-    r->data_eph_relocs
-      = root_create_exact_n (u->data_eph_relocs, u->n_data_eph_relocs);
-  r->comp_unit = root_create_exact_n (u->comp_unit, 1);
-  igc_assert (u->igc_info == NULL);
-  u->igc_info = r;
 }
 
 void
 igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
-  igc_assert (u->igc_info != NULL);
-  struct igc_cu_roots *r = u->igc_info;
-  if (r->data_relocs)
-    destroy_root (&r->data_relocs);
-  if (r->data_imp_relocs)
-    destroy_root (&r->data_imp_relocs);
-  if (r->data_eph_relocs)
-    destroy_root (&r->data_eph_relocs);
-  destroy_root (&r->comp_unit);
-  xfree (r);
-  u->igc_info = NULL;
+  if (u->data_relocs_root)
+    igc_root_destroy (&u->data_relocs_root);
+  if (u->data_imp_relocs_root)
+    igc_root_destroy (&u->data_imp_relocs_root);
+  if (u->data_eph_relocs_root)
+    igc_root_destroy (&u->data_eph_relocs_root);
+  igc_root_destroy (&u->comp_unit_root);
 }
 
 static mps_res_t
@@ -3211,12 +3209,14 @@ igc_grow_ptr_vec (ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max)
   return new_vec;
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 struct image_cache *
 igc_make_image_cache (void)
 {
   struct image_cache *c = alloc (sizeof *c, IGC_OBJ_IMAGE_CACHE);
   return c;
 }
+#endif
 
 DEFUN ("igc-make-weak-ref", Figc_make_weak_ref, Sigc_make_weak_ref, 1, 1, 0,
        doc

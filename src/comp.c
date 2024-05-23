@@ -5369,6 +5369,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 #ifdef HAVE_MPS
   comp_u->data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
   comp_u->comp_unit = dynlib_sym (handle, COMP_UNIT_SYM);
+  comp_u->comp_unit_root = igc_root_create_n (saved_cu, 1);
 #endif
 
   if (!comp_u->loaded_once)
@@ -5418,6 +5419,8 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
 #ifdef HAVE_MPS
       comp_u->n_data_relocs = d_vec_len;
+      if (d_vec_len > 0)
+	comp_u->data_relocs_root = igc_root_create_n (data_relocs, d_vec_len);
 #endif
       for (EMACS_INT i = 0; i < d_vec_len; i++)
 	data_relocs[i] = AREF (comp_u->data_vec, i);
@@ -5425,6 +5428,9 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
 #ifdef HAVE_MPS
       comp_u->n_data_imp_relocs = d_vec_len;
+      if (d_vec_len > 0)
+	comp_u->data_imp_relocs_root
+	  = igc_root_create_n (data_imp_relocs, d_vec_len);
 #endif
       for (EMACS_INT i = 0; i < d_vec_len; i++)
 	data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
@@ -5452,21 +5458,18 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	    load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
 
 	  EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));
-	  for (EMACS_INT i = 0; i < d_vec_len; i++)
-	    data_eph_relocs[i] = AREF (data_ephemeral_vec, i);
 # ifdef HAVE_MPS
 	  /* FIXME: If we want to get rid of these objects, stop tracing
 	     these references at some point.  */
 	  comp_u->data_eph_relocs = data_eph_relocs;
 	  comp_u->n_data_eph_relocs = d_vec_len;
+	  if (d_vec_len > 0)
+	    comp_u->data_eph_relocs_root
+	      = igc_root_create_n (data_eph_relocs, d_vec_len);
 # endif
+	  for (EMACS_INT i = 0; i < d_vec_len; i++)
+	    data_eph_relocs[i] = AREF (data_ephemeral_vec, i);
 	}
-
-      /* FIXME: Remvoe eph root once it is no longer needed. */
-# ifdef HAVE_MPS
-      if (comp_u->igc_info == NULL)
-	igc_root_create_comp_unit (comp_u);
-# endif
 
       /* Executing this will perform all the expected environment
 	 modifications.  */
@@ -5477,10 +5480,6 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       eassert (check_comp_unit_relocs (comp_u));
     }
 
-# ifdef HAVE_MPS
-  if (comp_u->igc_info == NULL)
-    igc_root_create_comp_unit (comp_u);
-# endif
 
   if (!recursive_load)
     /* Clean-up the load ongoing flag in case.  */

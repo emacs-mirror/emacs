@@ -54,7 +54,10 @@ struct Lisp_Native_Comp_Unit
   Lisp_Object *data_eph_relocs;
   size_t n_data_eph_relocs;
   Lisp_Object *comp_unit;
-  void *igc_info;
+  struct igc_root *data_relocs_root;
+  struct igc_root *data_imp_relocs_root;
+  struct igc_root *data_eph_relocs_root;
+  struct igc_root *comp_unit_root;
 # endif
   bool loaded_once;
   bool load_ongoing;
