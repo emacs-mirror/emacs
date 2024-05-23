@@ -133,7 +133,7 @@ This will add a speedbar major display mode."
 (defun erc-speedbar-buttons (buffer)
   "Create buttons for speedbar in BUFFER."
   (erase-buffer)
-  (let (serverp chanp queryp)
+  (let (serverp chanp queryp queries-current-p)
     (with-current-buffer buffer
       ;; The function `dframe-help-echo' checks the default value of
       ;; `dframe-help-echo-function' when deciding whether to visit
@@ -145,13 +145,14 @@ This will add a speedbar major display mode."
       (setq-local dframe-help-echo-function #'ignore)
       (setq serverp (erc--server-buffer-p))
       (setq chanp (erc-channel-p (erc-default-target)))
-      (setq queryp (erc-query-buffer-p)))
+      (setq queryp (erc-query-buffer-p)
+            queries-current-p (erc--queries-current-p)))
     (defvar erc-nickbar-mode)
     (cond ((and erc-nickbar-mode (null (get-buffer-window speedbar-buffer)))
            (run-at-time 0 nil #'erc-nickbar-mode -1))
           (serverp
 	   (erc-speedbar-channel-buttons nil 0 buffer))
-	  (chanp
+          ((or chanp (and queryp queries-current-p))
 	   (erc-speedbar-insert-target buffer 0)
 	   (forward-line -1)
 	   (erc-speedbar-expand-channel "+" buffer 0))
@@ -205,7 +206,8 @@ This will add a speedbar major display mode."
 	  t)))))
 
 (defun erc-speedbar-insert-target (buffer depth)
-  (if (erc--target-channel-p (buffer-local-value 'erc--target buffer))
+  (if (with-current-buffer buffer
+        (or (erc--target-channel-p erc--target) (erc--queries-current-p)))
       (progn
         (speedbar-make-tag-line
          'bracket ?+ 'erc-speedbar-expand-channel buffer
@@ -218,8 +220,9 @@ This will add a speedbar major display mode."
             (speedbar-add-indicator (format "(%d)" (hash-table-count table)))
             (rx "(" (+ (any "0-9")) ")"))))
     ;; Query target
+    (cl-assert (erc-query-buffer-p buffer))
     (speedbar-make-tag-line
-     nil nil nil nil
+     'bracket ?? nil nil
      (buffer-name buffer) 'erc-speedbar-goto-buffer buffer nil
      depth)))
 

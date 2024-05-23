@@ -100,6 +100,18 @@ one's optionally accessible from the keyboard, just like any other
 side window.  Hit '<RET>' over a nick to spawn a "/QUERY" or a
 "Lastlog" (Occur) session.  See 'erc-nickbar-mode' for more.
 
+** New module to keep tabs on query pals who aren't in your channels.
+ERC has gotten a bit pickier about managing participants in query
+buffers.  "Untracked" correspondents no longer appear automatically in
+membership tables, even if you respond or initiate contact.  Instead,
+ERC only adds and removes participant data when these same users join
+and leave channels.  Anyone uncomfortable with the apparent
+uncertainty this brings can look to the new 'querypoll' module, which
+periodically sends WHO requests to keep track of correspondents.
+Those familiar with the IRCv3 Monitor extension can think of this as
+"fallback code" and a temporary placeholder for the real thing.
+Add 'querypoll' (and 'nickbar') to 'erc-modules' to try it out.
+
 ** Option 'erc-timestamp-use-align-to' more versatile.
 While this option has always offered to right-align stamps via the
 'display' text property, it's now more effective at doing so when set
@@ -562,6 +574,22 @@ things sane, 'erc-channel-users' (plural) is now officially being
 redubbed 'erc-channel-members'.  Similarly, the utility function
 'erc-get-channel-user' has been renamed to 'erc-get-channel-member'.
 Expect deprecations of the old names to follow in a future release.
+
+*** Query participant tables now depend on channel membership.
+ERC has always been inconsistent and difficult to predict in its
+handling of records describing other IRC users.  This has made simple
+things like detecting the online status of query peers and the
+presence of one's own user in 'erc-server-users' especially
+unreliable.  From now on, ERC resolves to be more sensible and
+conservative in such areas.  For example, it now retains its own user
+info, once discovered, for the remainder of a session.  It also relies
+solely on channel membership to "drive" query participant information.
+That is, when another IRC user departs their last known channel, any
+queries with them will consider them absent, even if they're likely
+still online.  Anyone with difficulty adapting to this new paradigm
+should contact the mailing list to inquire about associated
+compatibility flags, which can be made public on request.  Also see
+the related news item announcing the module 'querypoll'.
 
 *** The 'erc-channel-user' struct has a changed internally.
 The five boolean slots for membership prefixes have been folded

@@ -557,6 +557,11 @@ user from `erc-server-users'.  Note that enabling this compatibility
 flag degrades the user experience and isn't guaranteed to correctly
 restore the described historical behavior.")
 
+(cl-defmethod erc--queries-current-p ()
+  "Return non-nil if ERC actively updates query manifests."
+  (and (not erc--decouple-query-and-channel-membership-p)
+       (erc-query-buffer-p) (erc-get-channel-member (erc-target))))
+
 (defun erc--ensure-query-member (nick)
   "Populate membership table in query buffer for online NICK."
   (erc-with-buffer (nick)
