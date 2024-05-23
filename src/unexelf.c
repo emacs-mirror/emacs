@@ -306,6 +306,8 @@ unexec (const char *new_name, const char *old_name)
 	old_bss_seg = seg;
     }
   eassume (old_bss_seg);
+  if (!old_bss_seg)
+    emacs_abort ();
 
   /* Note that old_bss_addr may be lower than the first bss section
      address, since the section may need aligning.  */
