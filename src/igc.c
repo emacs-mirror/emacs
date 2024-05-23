@@ -2197,8 +2197,9 @@ igc_root_create_comp_unit (struct Lisp_Native_Comp_Unit *u)
   r->data_relocs = root_create_exact_n (u->data_relocs, u->n_data_relocs);
   r->data_imp_relocs
     = root_create_exact_n (u->data_imp_relocs, u->n_data_imp_relocs);
-  r->data_eph_relocs
-    = root_create_exact_n (u->data_eph_relocs, u->n_data_eph_relocs);
+  if (u->n_data_eph_relocs)
+    r->data_eph_relocs
+      = root_create_exact_n (u->data_eph_relocs, u->n_data_eph_relocs);
   r->comp_unit = root_create_exact_n (u->comp_unit, 1);
   igc_assert (u->igc_info == NULL);
   u->igc_info = r;
@@ -2211,7 +2212,8 @@ igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u)
   struct igc_cu_roots *r = u->igc_info;
   destroy_root (&r->data_relocs);
   destroy_root (&r->data_imp_relocs);
-  destroy_root (&r->data_eph_relocs);
+  if (r->data_eph_relocs)
+    destroy_root (&r->data_eph_relocs);
   destroy_root (&r->comp_unit);
   xfree (r);
   u->igc_info = NULL;
