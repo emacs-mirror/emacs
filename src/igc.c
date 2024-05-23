@@ -1764,15 +1764,11 @@ fix_comp_unit (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, u, fix_vectorlike);
-    //fprintf (stderr, "+++ %p %zu\n", u->data_relocs, u->n_data_relocs);
-    if (u->data_imp_relocs)
-      IGC_FIX12_NOBJS (ss, u->data_imp_relocs, u->n_data_imp_relocs);
-    if (u->data_relocs)
-      IGC_FIX12_NOBJS (ss, u->data_relocs, u->n_data_relocs);
-    if (u->data_eph_relocs)
-      IGC_FIX12_NOBJS (ss, u->data_eph_relocs, u->n_data_eph_relocs);
-    if (u->comp_unit)
-      IGC_FIX12_OBJ (ss, u->comp_unit);
+    /* FIXME: Cannot scan things within the shared object because we
+       don't have exclusive (synchronized) access to them.  Instead of
+       storing Lisp_Object references in vectors in the dylib data
+       segment it would be much nicer to store them in MPS and give
+       the dylib a pointer to them. */
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2176,6 +2172,49 @@ igc_on_grow_specpdl (void)
     destroy_root (&t->d.specpdl_root);
     root_create_specpdl (t);
   }
+}
+
+struct igc_cu_roots
+{
+  struct igc_root_list *data_relocs;
+  struct igc_root_list *data_imp_relocs;
+  struct igc_root_list *data_eph_relocs;
+  struct igc_root_list *comp_unit;
+};
+
+static igc_root_list *
+root_create_exact_n (Lisp_Object *start, size_t n)
+{
+  igc_assert (start != NULL);
+  igc_assert (n > 0);
+  return root_create_exact (global_igc, start, start + n, scan_exact);
+}
+
+void
+igc_root_create_comp_unit (struct Lisp_Native_Comp_Unit *u)
+{
+  struct igc_cu_roots *r = xzalloc (sizeof *r);
+  r->data_relocs = root_create_exact_n (u->data_relocs, u->n_data_relocs);
+  r->data_imp_relocs
+    = root_create_exact_n (u->data_imp_relocs, u->n_data_imp_relocs);
+  r->data_eph_relocs
+    = root_create_exact_n (u->data_eph_relocs, u->n_data_eph_relocs);
+  r->comp_unit = root_create_exact_n (u->comp_unit, 1);
+  igc_assert (u->igc_info == NULL);
+  u->igc_info = r;
+}
+
+void
+igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u)
+{
+  igc_assert (u->igc_info != NULL);
+  struct igc_cu_roots *r = u->igc_info;
+  destroy_root (&r->data_relocs);
+  destroy_root (&r->data_imp_relocs);
+  destroy_root (&r->data_eph_relocs);
+  destroy_root (&r->comp_unit);
+  xfree (r);
+  u->igc_info = NULL;
 }
 
 static mps_res_t

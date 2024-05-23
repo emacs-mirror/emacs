@@ -5470,6 +5470,10 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       eassert (check_comp_unit_relocs (comp_u));
     }
 
+# ifdef HAVE_MPS
+  igc_root_create_comp_unit (comp_u);
+# endif
+
   if (!recursive_load)
     /* Clean-up the load ongoing flag in case.  */
     unbind_to (count, Qnil);
@@ -5484,6 +5488,10 @@ unload_comp_unit (struct Lisp_Native_Comp_Unit *cu)
 {
   if (cu->handle == NULL)
     return;
+
+# ifdef HAVE_MPS
+  igc_root_destroy_comp_unit (cu);
+# endif
 
   Lisp_Object *saved_cu = dynlib_sym (cu->handle, COMP_UNIT_SYM);
   Lisp_Object this_cu;
