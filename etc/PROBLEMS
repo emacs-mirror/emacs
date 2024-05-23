@@ -3650,6 +3650,20 @@ result that the next redisplay recenters the window around this outdated
 position.  There is no solution but installing a more
 cooperative--and preferably free--input method.
 
+** The default input method sometimes performs edits out of place in large buffers.
+
+When first reactivated in a window after having been dismissed, certain
+heuristics applied by the "Android Keyboard (AOSP)" input method to
+detect unresponsive text editors, which are ill-adapted to buffers
+greater than a few thousand characters in length, conclude that Emacs is
+misbehaving, so that the input method ignores updates to the position of
+point reported around the time of its activation, and edits suggested by
+the input method are inserted in a previously reported location that
+might be wildly removed from the current insertion point.  This is a bug
+in the input method that can be easily reproduced by inserting lengthy
+documents into any text editor, with no real solution except avoiding
+edit suggestions from recently-reactivated input methods.
+
 * Build-time problems
 
 ** Configuration

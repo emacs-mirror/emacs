@@ -777,15 +777,6 @@ public final class EmacsView extends ViewGroup
 
     imManager.showSoftInput (this, 0);
     isCurrentlyTextEditor = true;
-
-    /* The OS text editing widget unconditionally reports the current
-       values of the selection to the input method after calls to
-       showSoftInput, which is redundant if inputConnection exists but
-       is now relied upon in such circumstances by the OS's default
-       input method, and must therefore be faithfully reproduced on our
-       part.  */
-    if (inputConnection != null)
-      EmacsNative.requestSelectionUpdate (window.handle);
   }
 
   public void
