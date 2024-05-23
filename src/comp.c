@@ -5461,6 +5461,13 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	  comp_u->n_data_eph_relocs = d_vec_len;
 # endif
 	}
+
+      /* FIXME: Remvoe eph root once it is no longer needed. */
+# ifdef HAVE_MPS
+      if (comp_u->igc_info == NULL)
+	igc_root_create_comp_unit (comp_u);
+# endif
+
       /* Executing this will perform all the expected environment
 	 modifications.  */
       res = top_level_run (comp_u_lisp_obj);
@@ -5471,7 +5478,8 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     }
 
 # ifdef HAVE_MPS
-  igc_root_create_comp_unit (comp_u);
+  if (comp_u->igc_info == NULL)
+    igc_root_create_comp_unit (comp_u);
 # endif
 
   if (!recursive_load)
