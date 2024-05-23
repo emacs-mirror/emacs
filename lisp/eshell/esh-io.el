@@ -135,18 +135,22 @@ from executing while Emacs is redisplaying."
                    #'eshell-clipboard-append)
      t))
   "Map virtual devices name to Emacs Lisp functions.
-If the user specifies any of the filenames above as a redirection
-target, the function in the second element will be called.
+Each member is of the following form:
 
-If the third element is non-nil, the redirection mode is passed as an
-argument (which is the symbol `overwrite', `append' or `insert'), and
-the function is expected to return another function -- which is the
-output function.  Otherwise, the second element itself is the output
-function.
+  (FILENAME OUTPUT-FUNCTION [PASS-MODE])
 
-The output function is then called repeatedly with single strings,
-which represents successive pieces of the output of the command, until nil
-is passed, meaning EOF."
+When the user specifies FILENAME as a redirection target, Eshell will
+repeatedly call the OUTPUT-FUNCTION with the redirected output as
+strings.  OUTPUT-FUNCTION can also be an `eshell-generic-target'
+instance.  In this case, Eshell will repeatedly call the function in the
+`output-function' slot with the string output; once the redirection has
+completed, Eshell will then call the function in the `close-function'
+slot, passing the exit status of the redirected command.
+
+If PASS-MODE is non-nil, Eshell will pass the redirection mode as an
+argument (which is the symbol `overwrite', `append' or `insert') to
+OUTPUT-FUNCTION, which should return the real output function (either an
+ordinary function or `eshell-generic-target' as desribed above)."
   :version "30.1"
   :type '(repeat
 	  (list (string :tag "Target")
@@ -499,11 +503,18 @@ after all printing is over with no argument."
   (eshell-print object)
   (eshell-print "\n"))
 
-(cl-defstruct (eshell-virtual-target
+(cl-defstruct (eshell-generic-target (:constructor nil))
+  "An Eshell target.
+This is mainly useful for creating virtual targets (see
+`eshell-virtual-targets').")
+
+(cl-defstruct (eshell-function-target
+               (:include eshell-generic-target)
                (:constructor nil)
-               (:constructor eshell-virtual-target-create (output-function)))
-  "A virtual target (see `eshell-virtual-targets')."
-  output-function)
+               (:constructor eshell-function-target-create
+                             (output-function &optional close-function)))
+  "An Eshell target that calls an OUTPUT-FUNCTION."
+  output-function close-function)
 
 (cl-defgeneric eshell-get-target (raw-target &optional _mode)
   "Convert RAW-TARGET, which is a raw argument, into a valid output target.
@@ -514,14 +525,16 @@ it defaults to `insert'."
 (cl-defmethod eshell-get-target ((raw-target string) &optional mode)
   "Convert a string RAW-TARGET into a valid output target using MODE.
 If TARGET is a virtual target (see `eshell-virtual-targets'),
-return an `eshell-virtual-target' instance; otherwise, return a
+return an `eshell-generic-target' instance; otherwise, return a
 marker for a file named TARGET."
   (setq mode (or mode 'insert))
   (if-let ((redir (assoc raw-target eshell-virtual-targets)))
-      (eshell-virtual-target-create
-       (if (nth 2 redir)
-           (funcall (nth 1 redir) mode)
-         (nth 1 redir)))
+      (let ((target (if (nth 2 redir)
+                        (funcall (nth 1 redir) mode)
+                      (nth 1 redir))))
+        (unless (eshell-generic-target-p target)
+          (setq target (eshell-function-target-create target)))
+        target)
     (let ((exists (get-file-buffer raw-target))
           (buf (find-file-noselect raw-target t)))
       (with-current-buffer buf
@@ -602,9 +615,10 @@ If status is nil, prompt before killing."
         (throw 'done nil))
       (process-send-eof target))))
 
-(cl-defmethod eshell-close-target ((_target eshell-virtual-target) _status)
-  "Close a virtual TARGET."
-  nil)
+(cl-defmethod eshell-close-target ((target eshell-function-target) status)
+  "Close an Eshell function TARGET."
+  (when-let ((close-function (eshell-function-target-close-function target)))
+    (funcall close-function status)))
 
 (cl-defgeneric eshell-output-object-to-target (object target)
   "Output OBJECT to TARGET.
@@ -660,9 +674,9 @@ Returns what was actually sent, or nil if nothing was sent.")
   object)
 
 (cl-defmethod eshell-output-object-to-target (object
-                                              (target eshell-virtual-target))
-  "Output OBJECT to the virtual TARGET."
-  (funcall (eshell-virtual-target-output-function target) object))
+                                              (target eshell-function-target))
+  "Output OBJECT to the Eshell function TARGET."
+  (funcall (eshell-function-target-output-function target) object))
 
 (defun eshell-output-object (object &optional handle-index handles)
   "Insert OBJECT, using HANDLE-INDEX specifically.

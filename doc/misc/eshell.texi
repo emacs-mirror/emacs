@@ -2392,18 +2392,35 @@ Adds the text passed to it to the clipboard.
 @end table
 
 @vindex eshell-virtual-targets
-You can, of course, define your own virtual targets.  They are defined
-by adding a list of the form @samp{("/dev/name" @var{function}
-@var{mode})} to @code{eshell-virtual-targets}.  The first element is
-the device name; @var{function} may be either a lambda or a function
-name.  If @var{mode} is @code{nil}, then the function is the output
-function; if it is non-@code{nil}, then the function is passed the
-redirection mode as a symbol--@code{overwrite} for @code{>},
-@code{append} for @code{>>}, or @code{insert} for @code{>>>}--and the
-function is expected to return the output function.
+@vindex eshell-generic-target
+@findex eshell-output-object-to-target
+@findex eshell-close-target
+You can, of course, define your own virtual targets.  These are entries
+in @code{eshell-virtual-targets} with the form @samp{(@var{filename}
+@var{output-function} @var{pass-mode})}. The first element,
+@var{filename}, is the device name, usually of the form
+@samp{"/dev/@var{name}"}. The second, @var{output-function}, should be a
+function: Eshell will repeatedly call it with the redirected output.
+This argument can also be an @code{eshell-generic-target} instance.  In
+this case, Eshell will repeatedly call the generic function
+@code{eshell-output-object-to-target} with the output; once the
+redirection has completed, Eshell will then call the generic function
+@code{eshell-close-target}, passing non-@code{nil} if the redirected
+command succeeded.
 
-The output function is called once on each line of output until
-@code{nil} is passed, indicating end of output.
+If @var{pass-mode} is non-@code{nil}, then Eshell will pass the
+redirection mode as an argument to @code{output-function} as a
+symbol: @code{overwrite} for @code{>}, @code{append} for @code{>>}, or
+@code{insert} for @code{>>>}.  In this case, @code{output-function}
+should return the real output function (either an ordinary function or
+an @code{eshell-generic-target} as described above).
+
+@defun eshell-function-target-create output-function &optional close-function
+Create a new virtual target for Eshell that repeatedly calls
+@var{output-function} with the redirected output, as described above.
+If @var{close-function} is non-nil, Eshell will call it when closing the
+target, passing non-@code{nil} if the redirected command succeeded.
+@end defun
 
 @node Pipelines
 @section Pipelines
