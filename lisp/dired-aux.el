@@ -1522,14 +1522,23 @@ A FMT of \"\" will suppress the messaging."
 	  ;; Remove any preexisting entry for the name NEW-FILE.
 	  (ignore-errors (dired-remove-entry new-file))
 	  (goto-char start)
-	  ;; Now replace the current line with an entry for NEW-FILE.
-	  ;; But don't remove the current line if either FROM-FILE or
-	  ;; NEW-FILE is a directory, because compressing/uncompressing
-          ;; directories doesn't remove the original.
-          (if (or (file-directory-p from-file)
-                  (file-directory-p new-file))
-              (dired-add-entry new-file nil t)
-            (dired-update-file-line new-file))
+	  ;; Now replace the current line with an entry for NEW-FILE,
+	  ;; if it exists.  But don't remove the current line if
+	  ;; either FROM-FILE or NEW-FILE is a directory, because
+	  ;; compressing/uncompressing directories doesn't remove the
+	  ;; original.  If NEW-FILE doesn't exist, assume that we are
+	  ;; out of sync with the current directory, and revert it.
+	  ;; This can happen, for example, when unpacking a .tar.gz
+	  ;; archive which adds files to the current directory (as
+	  ;; opposed to adding them to a directory whose name is
+	  ;; NEW-FILE).
+          (if (file-exists-p new-file)
+              (if (or (file-directory-p from-file)
+                      (file-directory-p new-file))
+                  (dired-add-entry new-file nil t)
+                (dired-update-file-line new-file))
+            (dired-fun-in-all-buffers (dired-current-directory)
+                                      nil #'revert-buffer))
           nil)
       (dired-log (concat "Failed to (un)compress " from-file))
       from-file)))
