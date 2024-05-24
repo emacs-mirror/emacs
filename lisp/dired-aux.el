@@ -1448,6 +1448,7 @@ This excludes `dired-guess-shell-alist-user' and
 
 (declare-function w32-shell-execute "w32fns.c")
 
+;;;###autoload
 (defun dired-do-open (&optional arg)
   "Open all marked (or next ARG) files using an external program.
 This \"opens\" the file(s) using the external command that is most

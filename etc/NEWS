@@ -812,10 +812,10 @@ and a universal command such as "open" or "start"
 that delegates to the OS.
 
 *** New command 'dired-do-open'.
-This command is bound to "Open" in the context menu; it "opens" the
-marked or clicked on files according to the OS conventions.  For
-example, on systems supporting XDG, this runs 'xdg-open' on the
-files.
+This command is bound to 'E' (mnemonics "External").  Also it can be
+used by clicking "Open" in the context menu; it "opens" the marked or
+clicked on files according to the OS conventions.  For example, on
+systems supporting XDG, this runs 'xdg-open' on the files.
 
 *** New variable 'dired-guess-shell-alist-optional'.
 It contains commands for external viewers and players for various media
