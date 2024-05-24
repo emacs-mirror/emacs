@@ -2416,13 +2416,14 @@ scan_xpalloced (mps_ss_t ss, void *start, void *end, void *closure)
   return scan_area ((struct igc_opaque *)ss, start, end, scan_cell);
 }
 
-void *
-igc_xpalloc_exact (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
-		   ptrdiff_t nitems_max, ptrdiff_t item_size,
-		   igc_scan_area_t scan_area)
+void
+igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
+		   ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
+		   ptrdiff_t item_size, igc_scan_area_t scan_area)
 {
   IGC_WITH_PARKED (global_igc)
   {
+    void *pa = *pa_cell;
     if (pa)
       {
 	struct igc_root_list *r = root_find (pa);
@@ -2433,8 +2434,8 @@ igc_xpalloc_exact (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
     char *end = (char *)pa + *nitems * item_size;
     root_create (global_igc, pa, end, mps_rank_exact (),
 		 scan_xpalloced, scan_area, false);
+    *pa_cell = pa;
   }
-  return pa;
 }
 
 void *

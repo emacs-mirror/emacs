@@ -84,9 +84,9 @@ typedef igc_scan_result_t (*igc_scan_cell_t) (struct igc_opaque *,
 typedef igc_scan_result_t (*igc_scan_area_t) (struct igc_opaque *,
 					      void *start, void *end,
 					      igc_scan_cell_t fun);
-void *igc_xpalloc_exact (void *pa, ptrdiff_t *nitems,
-			 ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-			 ptrdiff_t item_size, igc_scan_area_t scan);
+void igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
+			ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
+			ptrdiff_t item_size, igc_scan_area_t scan);
 
 void *igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size);
 
