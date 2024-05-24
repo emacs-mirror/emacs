@@ -196,7 +196,10 @@ subexpression 10."
                              (funcall bug-reference-url-format)))))))
       ;; Delete remaining but unused overlays.
       (dolist (ov overlays)
-        (delete-overlay ov)))))
+        (delete-overlay ov)))
+    ;; Signal the bounds we actually fontified to jit-lock to allow for
+    ;; optimizations (bug#70796).
+    `(jit-lock-bounds ,beg-line . ,end-line)))
 
 ;; Taken from button.el.
 (defun bug-reference-push-button (&optional pos _use-mouse-action)
