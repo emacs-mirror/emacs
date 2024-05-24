@@ -817,6 +817,10 @@ marked or clicked on files according to the OS conventions.  For
 example, on systems supporting XDG, this runs 'xdg-open' on the
 files.
 
+*** New variable 'dired-guess-shell-alist-optional'.
+It contains commands for external viewers and players for various media
+formats, moved to this list from 'dired-guess-shell-alist-default'.
+
 *** The default value of 'dired-omit-size-limit' was increased.
 After performance improvements to omitting in large directories, the new
 default value is 300k, up from 100k.  This means 'dired-omit-mode' will

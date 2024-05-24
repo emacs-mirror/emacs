@@ -443,8 +443,9 @@ is anywhere on its Dired line, except the beginning of the line."
 
 (defcustom dired-guess-shell-alist-user nil
   "User-defined alist of rules for suggested commands.
-These rules take precedence over the predefined rules in the variable
-`dired-guess-shell-alist-default' (to which they are prepended).
+These rules take precedence over the predefined rules in the variables
+`dired-guess-shell-alist-default' and `dired-guess-shell-alist-optional'
+\(to which they are prepended).
 
 Each element of this list looks like
 
