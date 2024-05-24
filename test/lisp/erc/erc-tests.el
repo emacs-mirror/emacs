@@ -3667,9 +3667,9 @@
 
                       (define-minor-mode erc-mname-mode
                         "Toggle ERC mname mode.
-With a prefix argument ARG, enable mname if ARG is positive, and
-disable it otherwise.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+If called interactively, enable `erc-mname-mode' if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 Some docstring."
                         :global t
@@ -3724,10 +3724,10 @@ Some docstring."
     (should (equal got
                    `(progn
                       (define-minor-mode erc-mname-mode
-                        "Toggle ERC mname mode.
-With a prefix argument ARG, enable mname if ARG is positive, and
-disable it otherwise.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+                        "Toggle ERC mname mode locally.
+If called interactively, enable `erc-mname-mode' if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 Some docstring."
                         :global nil
@@ -3738,7 +3738,7 @@ Some docstring."
                             (erc-mname-disable))))
 
                       (defun erc-mname-enable (&optional ,arg-en)
-                        "Enable ERC mname mode.
+                        "Enable ERC mname mode locally.
 When called interactively, do so in all buffers for the current
 connection."
                         (interactive "p")
@@ -3751,7 +3751,7 @@ connection."
                             (ignore a) (ignore b))))
 
                       (defun erc-mname-disable (&optional ,arg-dis)
-                        "Disable ERC mname mode.
+                        "Disable ERC mname mode locally.
 When called interactively, do so in all buffers for the current
 connection."
                         (interactive "p")
