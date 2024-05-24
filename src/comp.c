@@ -5302,7 +5302,7 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
 	  if (NILP (Fgethash (x, comp_u->lambda_gc_guard_h, Qnil)))
 	    return false;
 	}
-      else if (!EQ (data_imp_relocs[i], AREF (comp_u->data_impure_vec, i)))
+      else if (!EQ (x, AREF (comp_u->data_impure_vec, i)))
 	return false;
     }
   return true;
