@@ -812,8 +812,7 @@ sign in chained assignment."
     ;;   c: Collection = {1, 2, 3}
     ;;   d: Mapping[int, str] = {1: 'bar', 2: 'baz'}
     (,(python-font-lock-assignment-matcher
-       (python-rx (or line-start ?\;) (* space)
-                  grouped-assignment-target (* space)
+       (python-rx grouped-assignment-target (* space)
                   (? ?: (* space) (+ not-simple-operator) (* space))
                   (group assignment-operator)))
      (1 font-lock-variable-name-face)
