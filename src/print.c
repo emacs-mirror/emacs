@@ -1314,7 +1314,11 @@ struct print_pp_entry {
   ptrdiff_t n;			/* number of values, or 0 if a single value */
   union {
     Lisp_Object value;		/* when n = 0 */
+#ifdef HAVE_MPS
+    Lisp_Object vectorlike;	/* when n > 0 */
+#else
     Lisp_Object *values;	/* when n > 0 */
+#endif
   } u;
 };
 
@@ -1345,9 +1349,8 @@ scan_ppstack (struct igc_opaque *op, void *start, void *end,
       else
 	{
 	  eassert (p->n > 0);
-	  for (size_t i = 0; i < p->n; i++)
-	    if (err = scan1 (op, &p->u.values[i]), err != 0)
-	      return err;
+	  if (err = scan1 (op, &p->u.vectorlike), err != 0)
+	    return err;
 	}
     }
   return 0;
@@ -1376,6 +1379,20 @@ pp_stack_push_value (Lisp_Object value)
 							.u.value = value};
 }
 
+#ifdef HAVE_MPS
+static inline void
+pp_stack_push_values (Lisp_Object vectorlike, ptrdiff_t n)
+{
+  eassert (VECTORLIKEP (vectorlike));
+  eassume (n >= 0);
+  if (n == 0)
+    return;
+  if (ppstack.sp >= ppstack.size)
+    grow_pp_stack ();
+  ppstack.stack[ppstack.sp++]
+      = (struct print_pp_entry){ .n = n, .u.vectorlike = vectorlike };
+}
+#else
 static inline void
 pp_stack_push_values (Lisp_Object *values, ptrdiff_t n)
 {
@@ -1387,6 +1404,7 @@ pp_stack_push_values (Lisp_Object *values, ptrdiff_t n)
   ppstack.stack[ppstack.sp++] = (struct print_pp_entry){.n = n,
 							.u.values = values};
 }
+#endif
 
 static inline bool
 pp_stack_empty_p (void)
@@ -1409,7 +1427,11 @@ pp_stack_pop (void)
   e->n--;
   if (e->n == 0)
     --ppstack.sp;		/* last value consumed */
+#ifdef HAVE_MPS
+  return AREF (e->u.vectorlike, e->n);
+#else
   return (++e->u.values)[-1];
+#endif
 }
 
 /* Construct Vprint_number_table for the print-circle feature
@@ -1475,13 +1497,17 @@ print_preprocess (Lisp_Object obj)
 
 		case Lisp_Vectorlike:
 		  {
-		    struct Lisp_Vector *vec = XVECTOR (obj);
 		    ptrdiff_t size = ASIZE (obj);
 		    if (size & PSEUDOVECTOR_FLAG)
 		      size &= PSEUDOVECTOR_SIZE_MASK;
 		    ptrdiff_t start = (SUB_CHAR_TABLE_P (obj)
 				       ? SUB_CHAR_TABLE_OFFSET : 0);
+#ifdef HAVE_MPS
+		    pp_stack_push_values (obj, size - start);
+#else
+		    struct Lisp_Vector *vec = XVECTOR (obj);
 		    pp_stack_push_values (vec->contents + start, size - start);
+#endif
 		    if (HASH_TABLE_P (obj))
 		      {
 			struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
