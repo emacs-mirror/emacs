@@ -34,6 +34,11 @@ top_builddir = @top_builddir@
 abs_top_srcdir=@abs_top_srcdir@
 VPATH = $(srcdir)
 
+# Set these to 'not-set' when they are not set from top-level to please
+# 'load--fixup-all-elns' (bug#70842).
+ELN_DESTDIR=not-set
+BIN_DESTDIR=not-set
+
 # This is not empty if this is a Makefile that will be copied to
 # cross/src.
 XCONFIGURE = @XCONFIGURE@
