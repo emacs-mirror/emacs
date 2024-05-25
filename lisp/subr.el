@@ -4782,7 +4782,14 @@ t (mix it with ordinary output), or a file name string.
 If BUFFER is 0, `call-shell-region' returns immediately with value nil.
 Otherwise it waits for COMMAND to terminate
 and returns a numeric exit status or a signal description string.
-If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
+
+If COMMAND names a shell (e.g., via `shell-file-name'), keep in mind
+that behavior of various shells when commands are piped to their
+standard input is shell- and system-dependent, and thus non-portable.
+The differences are especially prominent when the region includes
+more than one line, i.e. when piping to a shell commands with embedded
+newlines."
   (call-process-region start end
                        shell-file-name delete buffer nil
                        shell-command-switch command))

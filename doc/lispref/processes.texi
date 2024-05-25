@@ -616,11 +616,24 @@ is similar than @code{call-process-region}, with process being a shell.
 The arguments @code{delete}, @code{destination} and the return value
 are like in @code{call-process-region}.
 Note that this function doesn't accept additional arguments.
+
+If @var{command} names a shell (e.g., via @code{shell-file-name}), keep
+in mind that behavior of various shells when commands are piped to their
+standard input is shell- and system-dependent, and thus non-portable.
+The differences are especially prominent when the region includes more
+than one line, i.e.@: when piping to a shell commands with embedded
+newlines.  Lisp programs using this technique will therefore need to
+format the text in the region differently, according to the expectations
+of the shell.
 @end defun
 
 @defun shell-command-to-string command
 This function executes @var{command} (a string) as a shell command,
-then returns the command's output as a string.
+then returns the command's output as a string.  If @var{command}
+actually includes more than one command, the behavior depends on the
+shell to be invoked (determined by @code{shell-file-name} for local
+commands).  In particular, the separator between the commands cannot be
+a newline on MS-Windows; use @samp{&&} instead.
 @end defun
 
 @c There is also shell-command-on-region, but that is more of a user
@@ -944,6 +957,7 @@ example the function @code{ange-ftp-hook-function}).  In such cases,
 this function does nothing and returns @code{nil}.
 @end defun
 
+@vindex shell-file-name
 @defun start-process-shell-command name buffer-or-name command
 This function is like @code{start-process}, except that it uses a
 shell to execute the specified @var{command}.  The argument
