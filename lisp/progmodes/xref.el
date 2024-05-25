@@ -1277,11 +1277,11 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
   "Refresh the search results in the current buffer."
   (interactive)
   (let ((inhibit-read-only t)
-        (buffer-undo-list t)
-        (inhibit-modification-hooks t))
+        (buffer-undo-list t))
     (save-excursion
       (condition-case err
-          (let ((alist (xref--analyze (funcall xref--fetcher))))
+          (let ((alist (xref--analyze (funcall xref--fetcher)))
+                (inhibit-modification-hooks t))
             (erase-buffer)
             (xref--insert-xrefs alist))
         (user-error
