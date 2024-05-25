@@ -3876,7 +3876,7 @@ init_from_display_pos (struct it *it, struct window *w, struct display_pos *pos)
   if (in_ellipses_for_invisible_text_p (pos, w))
     {
       --charpos;
-      bytepos = 0;
+      bytepos = BYTE_TO_CHAR (charpos);
     }
 
   /* Keep in mind: the call to reseat in init_iterator skips invisible
