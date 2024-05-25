@@ -1287,13 +1287,15 @@ have been replaced by constants."
 		    (setcdr form (cdr new-form)))
 		  (eshell-do-eval form synchronous-p))
               (if-let (((memq (car form) eshell-deferrable-commands))
-                       (procs (eshell-make-process-list result)))
+                       (procs (eshell-make-process-list result))
+                       (active (seq-some #'eshell-process-active-p procs)))
                   (if synchronous-p
 		      (apply #'eshell/wait procs)
 		    (eshell-manipulate form "inserting ignore form"
 		      (setcar form 'ignore)
 		      (setcdr form nil))
-		    (throw 'eshell-defer procs))
+                    (when active
+                      (throw 'eshell-defer procs)))
                 (list 'quote result))))))))))))
 
 ;; command invocation
