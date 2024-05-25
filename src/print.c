@@ -1312,6 +1312,9 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
 struct print_pp_entry {
   ptrdiff_t n;			/* number of values, or 0 if a single value */
+#ifdef HAVE_MPS
+  ptrdiff_t start;
+#endif
   union {
     Lisp_Object value;		/* when n = 0 */
 #ifdef HAVE_MPS
@@ -1381,7 +1384,7 @@ pp_stack_push_value (Lisp_Object value)
 
 #ifdef HAVE_MPS
 static inline void
-pp_stack_push_values (Lisp_Object vectorlike, ptrdiff_t n)
+pp_stack_push_values (Lisp_Object vectorlike, ptrdiff_t start, ptrdiff_t n)
 {
   eassert (VECTORLIKEP (vectorlike));
   eassume (n >= 0);
@@ -1390,7 +1393,7 @@ pp_stack_push_values (Lisp_Object vectorlike, ptrdiff_t n)
   if (ppstack.sp >= ppstack.size)
     grow_pp_stack ();
   ppstack.stack[ppstack.sp++]
-      = (struct print_pp_entry){ .n = n, .u.vectorlike = vectorlike };
+    = (struct print_pp_entry){ .start = start, .n = n, .u.vectorlike = vectorlike };
 }
 #else
 static inline void
@@ -1428,7 +1431,7 @@ pp_stack_pop (void)
   if (e->n == 0)
     --ppstack.sp;		/* last value consumed */
 #ifdef HAVE_MPS
-  return AREF (e->u.vectorlike, e->n);
+  return AREF (e->u.vectorlike, e->start + e->n);
 #else
   return (++e->u.values)[-1];
 #endif
@@ -1503,7 +1506,7 @@ print_preprocess (Lisp_Object obj)
 		    ptrdiff_t start = (SUB_CHAR_TABLE_P (obj)
 				       ? SUB_CHAR_TABLE_OFFSET : 0);
 #ifdef HAVE_MPS
-		    pp_stack_push_values (obj, size - start);
+		    pp_stack_push_values (obj, start, size - start);
 #else
 		    struct Lisp_Vector *vec = XVECTOR (obj);
 		    pp_stack_push_values (vec->contents + start, size - start);
