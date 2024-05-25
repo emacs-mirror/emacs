@@ -5390,10 +5390,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
        ;; We do expect an established connection already,
        ;; `file-truename' does it by side-effect.  Suppress
        ;; `tramp--test-enabled', in order to keep the connection.
-       ;; Suppress "Process ... finished" messages.
-       (cl-letf (((symbol-function #'tramp--test-enabled) #'tramp-compat-always)
-		 ((symbol-function #'internal-default-process-sentinel)
-		  #'ignore))
+       (cl-letf (((symbol-function #'tramp--test-enabled) #'tramp-compat-always))
 	 (file-truename ert-remote-temporary-file-directory)
 	 (funcall (ert-test-body ert-test))))))
 
@@ -5936,7 +5933,7 @@ INPUT, if non-nil, is a string sent to the process."
       (when (natnump cols)
 	(should (= cols async-shell-command-width))))))
 
-(tramp--test-deftest-direct-async-process tramp-test32-shell-command 'unstable)
+(tramp--test-deftest-direct-async-process tramp-test32-shell-command)
 
 ;; This test is inspired by Bug#39067.
 (ert-deftest tramp-test32-shell-command-dont-erase-buffer ()

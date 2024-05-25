@@ -385,6 +385,8 @@ FUNCTION."
           ;; Generate a command to start the process using `su' with
           ;; suitable options for specifying the mount namespace and
           ;; suchlike.
+	  ;; Suppress `internal-default-process-sentinel', which is
+	  ;; set when :sentinel is nil.  (Bug#71049)
 	  (setq
 	   p (let ((android-use-exec-loader nil))
                (make-process
@@ -407,7 +409,7 @@ FUNCTION."
 	        :coding coding
                 :noquery noquery
                 :connection-type connection-type
-	        :sentinel sentinel
+	        :sentinel (or sentinel #'ignore)
                 :stderr stderr)))
 	  ;; Set filter.  Prior Emacs 29.1, it doesn't work reliably
 	  ;; to provide it as `make-process' argument when filter is

@@ -5011,9 +5011,9 @@ should be set conmnection-local.")
 		      (string-join command) (tramp-get-remote-pipe-buf v)))
 	    (signal 'error (cons "Command too long:" command)))
 
-	  ;; Replace `login-args' place holders.  Split ControlMaster
-	  ;; options.
 	  (setq
+	   ;; Replace `login-args' place holders.  Split ControlMaster
+	   ;; options.
 	   login-args
 	   (append
 	    (flatten-tree (tramp-get-method-parameter v 'tramp-async-args))
@@ -5025,11 +5025,13 @@ should be set conmnection-local.")
 	       ?h (or host "") ?u (or user "") ?p (or port "")
 	       ?c (format-spec (or options "") (format-spec-make ?t tmpfile))
 	       ?d (or device "") ?a (or pta "") ?l ""))))
+	   ;; Suppress `internal-default-process-sentinel', which is
+	   ;; set when :sentinel is nil.  (Bug#71049)
 	   p (make-process
 	      :name name :buffer buffer
 	      :command (append `(,login-program) login-args command)
 	      :coding coding :noquery noquery :connection-type connection-type
-	      :sentinel sentinel :stderr stderr))
+	      :sentinel (or sentinel #'ignore) :stderr stderr))
 	  ;; Set filter.  Prior Emacs 29.1, it doesn't work reliably
 	  ;; to provide it as `make-process' argument when filter is
 	  ;; t.  See Bug#51177.

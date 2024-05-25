@@ -4863,11 +4863,14 @@ and are used only if a pop-up buffer is displayed."
 ;; We have a sentinel to prevent insertion of a termination message
 ;; in the buffer itself, and to set the point in the buffer when
 ;; `shell-command-dont-erase-buffer' is non-nil.
+;; For remote shells, `process-command' does not serve the proper shell
+;; command.  We use process property `remote-command' instead.  (Bug#71049)
 (defun shell-command-sentinel (process signal)
   (when (memq (process-status process) '(exit signal))
     (shell-command-set-point-after-cmd (process-buffer process))
     (message "%s: %s."
-             (car (cdr (cdr (process-command process))))
+             (car (cdr (cdr (or (process-get process 'remote-command)
+                                (process-command process)))))
              (substring signal 0 -1))))
 
 (defun shell-command-on-region (start end command
