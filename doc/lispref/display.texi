@@ -148,7 +148,8 @@ boundary.  @xref{Filling}.
 
    On a graphical display, tiny arrow images in the window fringes
 indicate truncated and continued lines (@pxref{Fringes}).  On a text
-terminal, a @samp{$} in the rightmost column of the window indicates
+terminal, and on a graphical display when @code{fringe-mode} was
+turned off, a @samp{$} in the rightmost column of the window indicates
 truncation; a @samp{\} on the rightmost column indicates a line that
 wraps.  (The display table can specify alternate characters to use
 for this; @pxref{Display Tables}).
