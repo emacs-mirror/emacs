@@ -502,6 +502,16 @@ def f(x: CustomInt) -> CustomInt:
      (31 . font-lock-type-face) (40)
      (43 . font-lock-operator-face) (44))))
 
+(ert-deftest python-font-lock-assignment-statement-20 ()
+  (python-tests-assert-faces
+   "a = b = c = 1"
+   '((1 . font-lock-variable-name-face) (2)
+     (3 . font-lock-operator-face) (4)
+     (5 . font-lock-variable-name-face) (6)
+     (7 . font-lock-operator-face) (8)
+     (9 . font-lock-variable-name-face) (10)
+     (11 . font-lock-operator-face) (12))))
+
 (ert-deftest python-font-lock-operator-1 ()
   (python-tests-assert-faces
    "1 << 2 ** 3 == +4%-5|~6&7^8%9"

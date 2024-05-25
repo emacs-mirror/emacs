@@ -32501,9 +32501,9 @@ decreases the precision.
 (put 'calc-define 'inc-prec '(progn
 
 (define-key calc-mode-map (format "Y%sI" inc-prec-base-key)
-            'increase-precision)
+            'calc-increase-precision)
 (define-key calc-mode-map (format "Y%sD" inc-prec-base-key)
-            'decrease-precision)
+            'calc-decrease-precision)
 
 (setq calc-Y-help-msgs
       (cons (format "%s + Inc-prec, Dec-prec" inc-prec-base-key)

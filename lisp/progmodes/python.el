@@ -845,6 +845,17 @@ sign in chained assignment."
         (match-beginning 2))            ; limit the search until the assignment
       nil
       (1 font-lock-variable-name-face)))
+    ;; single assignment with type hints, e.g.
+    ;;   a: int = 5
+    ;;   b: Tuple[Optional[int], Union[Sequence[str], str]] = (None, 'foo')
+    ;;   c: Collection = {1, 2, 3}
+    ;;   d: Mapping[int, str] = {1: 'bar', 2: 'baz'}
+    (,(python-font-lock-assignment-matcher
+       (python-rx grouped-assignment-target (* space)
+                  (? ?: (* space) (+ not-simple-operator) (* space))
+                  (group assignment-operator)))
+     (1 font-lock-variable-name-face)
+     (2 'font-lock-operator-face))
     ;; special cases
     ;;   (a) = 5
     ;;   [a] = 5,
