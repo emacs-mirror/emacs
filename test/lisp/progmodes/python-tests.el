@@ -7421,6 +7421,24 @@ def f():
 "))))
 
 
+(ert-deftest python-hideshow-hide-block-2 ()
+  "Should hide the comment at the end of the block."
+  (python-tests-with-temp-buffer
+   "
+def f():
+    a = 1  # Comment
+"
+   (hs-minor-mode 1)
+   (python-tests-look-at "def")
+   (hs-hide-block)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+def f():
+"))))
+
+
 (ert-deftest python-tests--python-nav-end-of-statement--infloop ()
   "Checks that `python-nav-end-of-statement' doesn't infloop in a
 buffer with overlapping strings."

@@ -5722,7 +5722,8 @@ Interactively, prompt for symbol."
 (defun python-hideshow-forward-sexp-function (_arg)
   "Python specific `forward-sexp' function for `hs-minor-mode'.
 Argument ARG is ignored."
-  (python-nav-end-of-block))
+  (python-nav-end-of-block)
+  (end-of-line))
 
 (defun python-hideshow-find-next-block (regexp maxp comments)
   "Python specific `hs-find-next-block' function for `hs-minor-mode'.
