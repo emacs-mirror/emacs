@@ -5273,10 +5273,8 @@ extern void set_initial_environment (void);
 extern void syms_of_callproc (void);
 
 /* Defined in doc.c.  */
-extern Lisp_Object read_doc_string (Lisp_Object);
-extern Lisp_Object get_doc_string (Lisp_Object, bool, bool);
+extern Lisp_Object get_doc_string (Lisp_Object, bool);
 extern void syms_of_doc (void);
-extern int read_bytecode_char (bool);
 
 /* Defined in bytecode.c.  */
 extern void syms_of_bytecode (void);
