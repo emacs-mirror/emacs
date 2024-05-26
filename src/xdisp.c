@@ -13377,8 +13377,10 @@ echo_area_display (bool update_frame_p)
   w = XWINDOW (mini_window);
   f = XFRAME (WINDOW_FRAME (w));
 
-  /* Don't display if frame is invisible or not yet initialized.  */
-  if (!FRAME_REDISPLAY_P (f) || !f->glyphs_initialized_p)
+  /* Don't display if frame is invisible or not yet initialized or
+     if redisplay is inhibited.  */
+  if (!FRAME_REDISPLAY_P (f) || !f->glyphs_initialized_p
+      || !NILP (Vinhibit_redisplay))
     return;
 
 #ifdef HAVE_WINDOW_SYSTEM
