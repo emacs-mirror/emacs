@@ -1334,6 +1334,7 @@ struct print_pp_stack {
 
 static struct print_pp_stack ppstack = {NULL, 0, 0};
 
+#ifdef HAVE_MPS
 static igc_scan_result_t
 scan_ppstack (struct igc_opaque *op, void *start, void *end,
 	      igc_scan_cell_t scan1)
@@ -1359,6 +1360,7 @@ scan_ppstack (struct igc_opaque *op, void *start, void *end,
     }
   return 0;
 }
+#endif
 
 NO_INLINE static void
 grow_pp_stack (void)
@@ -2262,6 +2264,7 @@ struct print_stack
 
 static struct print_stack prstack = {NULL, 0, 0};
 
+#ifdef HAVE_MPS
 static igc_scan_result_t
 scan_prstack (struct igc_opaque *op, void *start, void *end,
 	      igc_scan_cell_t scan1)
@@ -2296,6 +2299,7 @@ scan_prstack (struct igc_opaque *op, void *start, void *end,
     }
   return 0;
 }
+#endif
 
 NO_INLINE static void
 grow_print_stack (void)
