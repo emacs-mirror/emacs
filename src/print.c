@@ -3142,4 +3142,10 @@ be printed.  */);
 
   /* Initialized in print_create_variable_mapping.  */
   staticpro (&Vprint_variable_mapping);
+
+#ifdef HAVE_MPS
+  /* FIXME: Make it a Lisp vector and staticpro. */
+  igc_root_create_exact (being_printed,
+			 being_printed + ARRAYELTS (being_printed));
+#endif
 }
