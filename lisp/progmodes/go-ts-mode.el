@@ -180,7 +180,10 @@
              (identifier) @font-lock-variable-name-face
              ("," (identifier) @font-lock-variable-name-face)*))
      (var_spec name: (identifier) @font-lock-variable-name-face
-               ("," name: (identifier) @font-lock-variable-name-face)*))
+               ("," name: (identifier) @font-lock-variable-name-face)*)
+     (range_clause
+      left: (expression_list
+             (identifier) @font-lock-variable-name-face)))
 
    :language 'go
    :feature 'function
