@@ -527,14 +527,22 @@ IFORM if non-nil should be of the form (interactive ...).  */)
   (Lisp_Object args, Lisp_Object body, Lisp_Object env,
    Lisp_Object docstring, Lisp_Object iform)
 {
+  Lisp_Object ifcdr, value, slots[6];
+
   CHECK_CONS (body);          /* Make sure it's not confused with byte-code! */
   CHECK_LIST (args);
   CHECK_LIST (iform);
-  Lisp_Object ifcdr = Fcdr (iform);
-  Lisp_Object slots[] = { args,  body, env, Qnil, docstring,
-			  NILP (Fcdr (ifcdr))
-			  ? Fcar (ifcdr)
-			  : CALLN (Fvector, XCAR (ifcdr), XCDR (ifcdr)) };
+  ifcdr = CDR (iform);
+  if (NILP (CDR (ifcdr)))
+    value = CAR (ifcdr);
+  else
+    value = CALLN (Fvector, XCAR (ifcdr), XCDR (ifcdr));
+  slots[0] = args;
+  slots[1] = body;
+  slots[2] = env;
+  slots[3] = Qnil;
+  slots[4] = docstring;
+  slots[5] = value;
   /* Adjusting the size is indispensable since, as for byte-code objects,
      we distinguish interactive functions by the presence or absence of the
      iform slot.  */
@@ -675,12 +683,17 @@ signal a `cyclic-variable-indirection' error.  */)
   else if (!NILP (Fboundp (new_alias))
            && !EQ (find_symbol_value (new_alias),
                    find_symbol_value (base_variable)))
-    call2 (Qdisplay_warning,
-           list3 (Qdefvaralias, Qlosing_value, new_alias),
-           CALLN (Fformat_message,
-                  build_string
-                  ("Overwriting value of `%s' by aliasing to `%s'"),
-                  new_alias, base_variable));
+    {
+      Lisp_Object message, formatted;
+
+      message = build_string ("Overwriting value of `%s' by aliasing"
+			      " to `%s'");
+      formatted = CALLN (Fformat_message, message,
+			 new_alias, base_variable);
+      call2 (Qdisplay_warning,
+	     list3 (Qdefvaralias, Qlosing_value, new_alias),
+	     formatted);
+    }
 
   {
     union specbinding *p;

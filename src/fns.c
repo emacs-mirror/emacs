@@ -2006,11 +2006,12 @@ TESTFN is called with 2 arguments: a car of an alist element and KEY.  */)
   FOR_EACH_TAIL (tail)
     {
       Lisp_Object car = XCAR (tail);
-      if (CONSP (car)
-	  && (NILP (testfn)
-	      ? (EQ (XCAR (car), key) || !NILP (Fequal
-						(XCAR (car), key)))
-	      : !NILP (call2 (testfn, XCAR (car), key))))
+      if (!CONSP (car))
+	continue;
+      if ((NILP (testfn)
+	   ? (EQ (XCAR (car), key) || !NILP (Fequal
+					     (XCAR (car), key)))
+	   : !NILP (call2 (testfn, XCAR (car), key))))
 	return car;
     }
   CHECK_LIST_END (tail, alist);

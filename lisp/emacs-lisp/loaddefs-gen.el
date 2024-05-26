@@ -601,7 +601,6 @@ instead of just updating them with the new/changed autoloads."
 			       (if (consp dir) dir (list dir)))))
          (updating (and (file-exists-p output-file) (not generate-full)))
          (defs nil))
-
     ;; Allow the excluded files to be relative.
     (setq excluded-files
           (mapcar (lambda (file) (expand-file-name file dir))
@@ -610,7 +609,8 @@ instead of just updating them with the new/changed autoloads."
     ;; Collect all the autoload data.
     (let ((progress (make-progress-reporter
                      (byte-compile-info
-                      (concat "Scraping files for loaddefs"))
+                      (format "Scraping %s files for loaddefs"
+                              (length files)))
                      0 (length files) nil 10))
           (output-time
            (file-attribute-modification-time (file-attributes output-file)))
