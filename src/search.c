@@ -21,6 +21,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
