@@ -244,7 +244,7 @@ static const char *pvec_type_names[] = {
   "PVEC_TS_COMPILED_QUERY",
   "PVEC_SQLITE",
   "PVEC_WEAK_REF",
-  "PVEC_COMPILED",
+  "PVEC_CLOSURE",
   "PVEC_CHAR_TABLE",
   "PVEC_SUB_CHAR_TABLE",
   "PVEC_RECORD",
@@ -797,7 +797,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 
 	  case SPECPDL_LET_DEFAULT:
 	  case SPECPDL_LET_LOCAL:
-	    IGC_FIX12_OBJ (ss, &pdl->let.where);
+	    IGC_FIX12_OBJ (ss, &pdl->let.where.buf);
 	    FALLTHROUGH;
 	  case SPECPDL_LET:
 	    IGC_FIX12_OBJ (ss, &pdl->let.symbol);
@@ -1977,7 +1977,7 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_TS_NODE:
       case PVEC_TS_PARSER:
       case PVEC_SQLITE:
-      case PVEC_COMPILED:
+      case PVEC_CLOSURE:
       case PVEC_RECORD:
       case PVEC_OTHER:
 #ifdef IN_MY_FORK
@@ -2660,7 +2660,7 @@ finalize_vector (mps_addr_t v)
     case PVEC_SYMBOL_WITH_POS:
     case PVEC_PROCESS:
     case PVEC_RECORD:
-    case PVEC_COMPILED:
+    case PVEC_CLOSURE:
     case PVEC_SQLITE:
     case PVEC_TS_NODE:
     case PVEC_NORMAL_VECTOR:
@@ -2769,7 +2769,7 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
     case PVEC_WINDOW_CONFIGURATION:
     case PVEC_TS_NODE:
     case PVEC_SQLITE:
-    case PVEC_COMPILED:
+    case PVEC_CLOSURE:
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
