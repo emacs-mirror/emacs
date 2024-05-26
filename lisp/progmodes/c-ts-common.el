@@ -303,20 +303,31 @@ and /* */ comments.  SOFT works the same as in
    ;; Or //! (used in rust).
    ((save-excursion
       (beginning-of-line)
-      (looking-at (rx "//" (group (* (any "/!")) (* " ")))))
-    (let ((whitespaces (match-string 1)))
+      (re-search-forward
+       (rx "//" (group (* (any "/!")) (* " ")))
+       (line-end-position)
+       t nil))
+    (let ((offset (- (match-beginning 0) (line-beginning-position)))
+          (whitespaces (match-string 1)))
       (if soft (insert-and-inherit ?\n) (newline 1))
       (delete-region (line-beginning-position) (point))
-      (insert "//" whitespaces)))
+      (insert (make-string offset ?\s) "//" whitespaces)))
 
    ;; Line starts with /* or /**.
    ((save-excursion
       (beginning-of-line)
-      (looking-at (rx "/*" (group (? "*") (* " ")))))
-    (let ((whitespace-and-star-len (length (match-string 1))))
+      (re-search-forward
+       (rx "/*" (group (? "*") (* " ")))
+       (line-end-position)
+       t nil))
+    (let ((offset (- (match-beginning 0) (line-beginning-position)))
+          (whitespace-and-star-len (length (match-string 1))))
       (if soft (insert-and-inherit ?\n) (newline 1))
       (delete-region (line-beginning-position) (point))
-      (insert " *" (make-string whitespace-and-star-len ?\s))))
+      (insert
+       (make-string offset ?\s)
+       " *"
+       (make-string whitespace-and-star-len ?\s))))
 
    ;; Line starts with *.
    ((save-excursion
