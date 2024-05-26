@@ -491,7 +491,7 @@ the bounds of a region containing Lisp code to pretty-print."
                     (pp--insert-lisp (cadr sexp)))
                 (pp--format-list sexp))))
            (t
-            (prin1 sexp (current-buffer)))))
+            (pp--format-list sexp))))
     ;; Print some of the smaller integers as characters, perhaps?
     (integer
      (if (<= ?0 sexp ?z)
