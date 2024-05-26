@@ -123,9 +123,16 @@ ARG is passed to `fill-paragraph'."
     (let ((node (treesit-node-at (point))))
       (when (string-match-p c-ts-common--comment-regexp
                             (treesit-node-type node))
-        (if (save-excursion
-              (goto-char (treesit-node-start node))
-              (looking-at "//"))
+        (if (or (save-excursion
+                  (goto-char (treesit-node-start node))
+                  (looking-at "//"))
+                ;; In rust, NODE will be the body of a comment, and the
+                ;; parent will be the whole comment.
+                (if-let ((start (treesit-node-start
+                                 (treesit-node-parent node))))
+                    (save-excursion
+                      (goto-char start)
+                      (looking-at "//"))))
             (fill-comment-paragraph arg)
           (c-ts-common--fill-block-comment arg)))
       ;; Return t so `fill-paragraph' doesn't attempt to fill by
@@ -221,7 +228,9 @@ Set up:
  - `adaptive-fill-first-line-regexp'
  - `paragraph-start'
  - `paragraph-separate'
- - `fill-paragraph-function'"
+ - `fill-paragraph-function'
+ - `comment-line-break-function'
+ - `comment-multi-line'"
   (setq-local comment-start "// ")
   (setq-local comment-end "")
   (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
@@ -267,7 +276,66 @@ Set up:
                            eol)
                       "\f")))
   (setq-local paragraph-separate paragraph-start)
-  (setq-local fill-paragraph-function #'c-ts-common--fill-paragraph))
+  (setq-local fill-paragraph-function #'c-ts-common--fill-paragraph)
+
+  (setq-local comment-line-break-function
+              #'c-ts-common-comment-indent-new-line)
+  (setq-local comment-multi-line t))
+
+(defun c-ts-common-comment-indent-new-line (&optional soft)
+  "Break line at point and indent, continuing comment if within one.
+
+This is like `comment-indent-new-line', but specialized for C-style //
+and /* */ comments.  SOFT works the same as in
+`comment-indent-new-line'."
+  ;; I want to experiment with explicitly listing out all each cases and
+  ;; handle them separately, as opposed to fiddling with `comment-start'
+  ;; and friends.  This will have more duplicate code and will be less
+  ;; generic, but in the same time might save us from writting cryptic
+  ;; code to handle all sorts of edge cases.
+  ;;
+  ;; For this command, let's try to make it basic: if the current line
+  ;; is a // comment, insert a newline and a // prefix; if the current
+  ;; line is in a /* comment, insert a newline and a * prefix.  No
+  ;; auto-fill or other smart features.
+  (cond
+   ;; Line starts with //, or ///, or ////...
+   ;; Or //! (used in rust).
+   ((save-excursion
+      (beginning-of-line)
+      (looking-at (rx "//" (group (* (any "/!")) (* " ")))))
+    (let ((whitespaces (match-string 1)))
+      (if soft (insert-and-inherit ?\n) (newline 1))
+      (delete-region (line-beginning-position) (point))
+      (insert "//" whitespaces)))
+
+   ;; Line starts with /* or /**.
+   ((save-excursion
+      (beginning-of-line)
+      (looking-at (rx "/*" (group (? "*") (* " ")))))
+    (let ((whitespace-and-star-len (length (match-string 1))))
+      (if soft (insert-and-inherit ?\n) (newline 1))
+      (delete-region (line-beginning-position) (point))
+      (insert " *" (make-string whitespace-and-star-len ?\s))))
+
+   ;; Line starts with *.
+   ((save-excursion
+      (beginning-of-line)
+      (looking-at (rx (group (* " ") (any "*|") (* " ")))))
+    (let ((prefix (match-string 1)))
+      (if soft (insert-and-inherit ?\n) (newline 1))
+      (delete-region (line-beginning-position) (point))
+      (insert prefix)))
+
+   ;; Line starts with whitespaces or no space.  This is basically the
+   ;; default case since (rx (* " ")) matches anything.
+   ((save-excursion
+      (beginning-of-line)
+      (looking-at (rx (* " "))))
+    (let ((whitespaces (match-string 0)))
+      (if soft (insert-and-inherit ?\n) (newline 1))
+      (delete-region (line-beginning-position) (point))
+      (insert whitespaces)))))
 
 ;;; Statement indent
 

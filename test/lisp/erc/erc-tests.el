@@ -1227,6 +1227,35 @@
 
   (erc-tests-common-kill-buffers))
 
+(ert-deftest erc-query-buffer-p ()
+  ;; Nil in a non-ERC buffer.
+  (should-not (erc-query-buffer-p))
+  (should-not (erc-query-buffer-p (current-buffer)))
+  (should-not (erc-query-buffer-p (buffer-name)))
+
+  (erc-tests-common-make-server-buf)
+  ;; Nil in a server buffer.
+  (should-not (erc-query-buffer-p))
+  (should-not (erc-query-buffer-p (current-buffer)))
+  (should-not (erc-query-buffer-p (buffer-name)))
+
+  ;; Nil in a channel buffer.
+  (with-current-buffer (erc--open-target "#chan")
+    (should-not (erc-query-buffer-p))
+    (should-not (erc-query-buffer-p (current-buffer)))
+    (should-not (erc-query-buffer-p (buffer-name))))
+
+  ;; Non-nil in a query buffer.
+  (with-current-buffer (erc--open-target "alice")
+    (should (erc-query-buffer-p))
+    (should (erc-query-buffer-p (current-buffer)))
+    (should (erc-query-buffer-p (buffer-name))))
+
+  (should (erc-query-buffer-p (get-buffer "alice")))
+  (should (erc-query-buffer-p "alice"))
+
+  (erc-tests-common-kill-buffers))
+
 (ert-deftest erc--valid-local-channel-p ()
   (ert-info ("Local channels not supported")
     (let ((erc--isupport-params (make-hash-table)))
@@ -1927,7 +1956,48 @@
    (lambda (arg)
      (should (equal '(3 . 11) (erc--get-inserted-msg-bounds arg))))))
 
-(ert-deftest erc--delete-inserted-message ()
+(ert-deftest erc--insert-before-markers-transplanting-hidden ()
+  (with-current-buffer (get-buffer-create "*erc-test*")
+    (erc-mode)
+    (erc-tests-common-prep-for-insertion)
+
+    ;; Create a message that has a foreign invisibility property on
+    ;; its trailing newline that's not claimed by the next message.
+    (let ((erc-insert-post-hook
+           (lambda ()
+             (put-text-property (point-min) (point-max) 'invisible 'b))))
+      (erc-display-message nil 'notice (current-buffer) "before"))
+    (should (eq 'b (get-text-property (1- erc-insert-marker) 'invisible)))
+
+    ;; Insert a message that's hidden with `erc--hide-message'.  It
+    ;; advertises `invisible' value `a', applied on the trailing
+    ;; newline of the previous message.
+    (let ((erc-insert-post-hook (lambda () (erc--hide-message 'a))))
+      (erc-display-message nil 'notice (current-buffer) "after"))
+
+    (goto-char (point-min))
+    (should (search-forward "*** before\n" nil t))
+    (should (equal '(a b) (get-text-property (1- (point)) 'invisible)))
+
+    ;;  Splice in a new message.
+    (let ((erc--insert-line-function
+           #'erc--insert-before-markers-transplanting-hidden)
+          (erc--insert-marker (copy-marker (point))))
+      (goto-char (point-max))
+      (erc-display-message nil 'notice (current-buffer) "middle"))
+
+    (goto-char (point-min))
+    (should (search-forward "*** before\n" nil t))
+    (should (eq 'b (get-text-property (1- (point)) 'invisible)))
+    (should (looking-at (rx "*** middle\n")))
+    (should (eq 'a (get-text-property (pos-eol) 'invisible)))
+    (forward-line)
+    (should (looking-at (rx "*** after\n")))
+
+    (setq buffer-invisibility-spec nil)
+    (when noninteractive (kill-buffer))))
+
+(ert-deftest erc--delete-inserted-message-naively ()
   (erc-mode)
   (erc--initialize-markers (point) nil)
   ;; Put unique invisible properties on the line endings.
@@ -1945,7 +2015,7 @@
     (should (eq 'datestamp (get-text-property (point) 'erc--msg)))
     (should (eq (point) (field-beginning (1+ (point)))))
 
-    (erc--delete-inserted-message (point))
+    (erc--delete-inserted-message-naively (point))
 
     ;; Preceding line ending clobbered, replaced by trailing.
     (should (looking-back (rx "*** one\n")))
@@ -1961,7 +2031,7 @@
           (p (point)))
       (set-marker-insertion-type m t)
       (goto-char (point-max))
-      (erc--delete-inserted-message p)
+      (erc--delete-inserted-message-naively p)
       (should (= (marker-position n) p))
       (should (= (marker-position m) p))
       (goto-char p)
@@ -1975,7 +2045,7 @@
     (should (looking-at (rx "*** three\n")))
     (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
       (let ((erc-legacy-invisible-bounds-p t))
-        (erc--delete-inserted-message (point))))
+        (erc--delete-inserted-message-naively (point))))
     (should (looking-at (rx "*** four\n"))))
 
   (ert-info ("Deleting most recent message preserves markers")
@@ -1985,7 +2055,7 @@
       (should (equal "*** four\n" (buffer-substring p erc-insert-marker)))
       (set-marker-insertion-type m t)
       (goto-char (point-max))
-      (erc--delete-inserted-message p)
+      (erc--delete-inserted-message-naively p)
       (should (= (marker-position m) p))
       (should (= (marker-position n) p))
       (goto-char p)
@@ -2040,6 +2110,13 @@
       (should (erc--check-msg-prop 'b props)))
     (let ((v '(42 y)))
       (should-not (erc--check-msg-prop 'b v)))))
+
+(ert-deftest erc--memq-msg-prop ()
+  (let ((erc--msg-props (map-into '((a . 1) (b x y)) 'hash-table)))
+    (should-not (erc--memq-msg-prop 'a 1))
+    (should-not (erc--memq-msg-prop 'b 'z))
+    (should (erc--memq-msg-prop 'b 'x))
+    (should (erc--memq-msg-prop 'b 'y))))
 
 (ert-deftest erc--merge-prop ()
   (with-current-buffer (get-buffer-create "*erc-test*")

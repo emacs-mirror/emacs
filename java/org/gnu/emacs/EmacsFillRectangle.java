@@ -21,6 +21,8 @@ package org.gnu.emacs;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
@@ -28,89 +30,62 @@ import android.util.Log;
 
 public final class EmacsFillRectangle
 {
+  /* Color filter that inverts colors from the source.  */
+  private static final ColorFilter invertFilter;
+
+  static
+  {
+    invertFilter = new ColorMatrixColorFilter (new float[] {
+	-1f, 0f, 0f, 0f, 255f,
+	0f, -1f, 0f, 0f, 255f,
+	0f, 0f, -1f, 0f, 255f,
+	0f, 0f, 0f, 1f, 0f,
+      });
+  };
+
   public static void
   perform (EmacsDrawable drawable, EmacsGC gc,
 	   int x, int y, int width, int height)
   {
-    Paint maskPaint, paint;
-    Canvas maskCanvas;
-    Bitmap maskBitmap;
+    Paint paint;
     Rect rect;
-    Rect maskRect, dstRect;
     Canvas canvas;
-    Bitmap clipBitmap;
-
-    /* TODO implement stippling.  */
-    if (gc.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
-      return;
+    Bitmap invertBitmap;
 
     canvas = drawable.lockCanvas (gc);
 
-    if (canvas == null)
+    /* Clip masks are not respected or implemented when specified with
+       this request.  */
+    if (canvas == null || gc.clip_mask != null)
       return;
 
-    paint = gc.gcPaint;
     rect = new Rect (x, y, x + width, y + height);
 
-    paint.setStyle (Paint.Style.FILL);
+    if (gc.function != EmacsGC.GC_INVERT)
+      {
+	paint = gc.gcPaint;
+	paint.setStyle (Paint.Style.FILL);
 
-    if (gc.clip_mask == null)
-      canvas.drawRect (rect, paint);
+	if (gc.fill_style != EmacsGC.GC_FILL_OPAQUE_STIPPLED)
+	  canvas.drawRect (rect, paint);
+	else
+	  gc.blitOpaqueStipple (canvas, rect);
+      }
     else
       {
-	/* Drawing with a clip mask involves calculating the
-	   intersection of the clip mask with the dst rect, and
-	   extrapolating the corresponding part of the src rect.  */
+	paint = new Paint ();
 
-	clipBitmap = gc.clip_mask.bitmap;
-	dstRect = new Rect (x, y, x + width, y + height);
-	maskRect = new Rect (gc.clip_x_origin,
-			     gc.clip_y_origin,
-			     (gc.clip_x_origin
-			      + clipBitmap.getWidth ()),
-			     (gc.clip_y_origin
-			      + clipBitmap.getHeight ()));
-
-	if (!maskRect.setIntersect (dstRect, maskRect))
-	  /* There is no intersection between the clip mask and the
-	     dest rect.  */
-	  return;
-
-	/* Finally, create a temporary bitmap that is the size of
-	   maskRect.  */
-
-	maskBitmap
-	  = Bitmap.createBitmap (maskRect.width (), maskRect.height (),
-				 Bitmap.Config.ARGB_8888);
-
-	/* Draw the mask onto the maskBitmap.  */
-	maskCanvas = new Canvas (maskBitmap);
-	maskRect.offset (-gc.clip_x_origin,
-			 -gc.clip_y_origin);
-	maskCanvas.drawBitmap (gc.clip_mask.bitmap,
-			       maskRect, new Rect (0, 0,
-						   maskRect.width (),
-						   maskRect.height ()),
-			       paint);
-	maskRect.offset (gc.clip_x_origin,
-			 gc.clip_y_origin);
-
-	/* Set the transfer mode to SRC_IN to preserve only the parts
-	   of the source that overlap with the mask.  */
-	maskPaint = new Paint ();
-	maskPaint.setXfermode (EmacsGC.srcInAlu);
-
-	/* Draw the source.  */
-	maskCanvas.drawRect (maskRect, maskPaint);
-
-	/* Finally, draw the mask bitmap to the destination.  */
-	paint.setXfermode (null);
-	canvas.drawBitmap (maskBitmap, null, maskRect, paint);
-
-	/* Recycle this unused bitmap.  */
-	maskBitmap.recycle ();
+	/* Simply invert the destination, which is only implemented for
+	   this request.  As Android doesn't permit copying a bitmap to
+	   itself, a copy of the source must be procured beforehand.  */
+	invertBitmap = Bitmap.createBitmap (drawable.getBitmap (),
+					    x, y, width, height);
+        paint.setColorFilter (invertFilter);
+	canvas.drawBitmap (invertBitmap, null, rect, paint);
+        paint.setColorFilter (null);
+	invertBitmap.recycle ();
       }
 
     drawable.damageRect (rect);
   }
-}
+};

@@ -1049,6 +1049,9 @@ with `mouse-movement' events."
   (let ((enable-disabled-menus-and-buttons t)
         (cursor-in-echo-area t)
         (side-event nil)
+        ;; Showing the list of key sequences makes no sense when they
+        ;; asked about a key sequence.
+        (echo-keystrokes-help nil)
         saved-yank-menu)
     (unwind-protect
         (let (last-modifiers key-list)
@@ -1066,8 +1069,11 @@ with `mouse-movement' events."
                   ;; After a click, see if a double click is on the way.
                   (and (memq 'click last-modifiers)
                        (not (sit-for (/ (mouse-double-click-time) 1000.0) t))))
-            (let* ((seq (read-key-sequence "\
+            (let* ((prompt
+                    (propertize "\
 Describe the following key, mouse click, or menu item: "
+                                'face 'minibuffer-prompt))
+                   (seq (read-key-sequence prompt
                                            nil nil 'can-return-switch-frame))
                    (raw-seq (this-single-command-raw-keys))
                    (keyn (when (> (length seq) 0)
@@ -2349,9 +2355,8 @@ the same names as used in the original source code, when possible."
   ;; If definition is a macro, find the function inside it.
   (if (eq (car-safe def) 'macro) (setq def (cdr def)))
   (cond
-   ((and (byte-code-function-p def) (listp (aref def 0))) (aref def 0))
+   ((and (closurep def) (listp (aref def 0))) (aref def 0))
    ((eq (car-safe def) 'lambda) (nth 1 def))
-   ((eq (car-safe def) 'closure) (nth 2 def))
    ((and (featurep 'native-compile)
          (subrp def)
          (listp (subr-native-lambda-list def)))

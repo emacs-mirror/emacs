@@ -230,7 +230,7 @@ directory hierarchy."
                                          `(push message ,client-replies)))))))))
          (unwind-protect
              (progn
-               (add-hook 'jsonrpc-event-hook #',log-event-hook-sym)
+               (add-hook 'jsonrpc-event-hook #',log-event-hook-sym t)
                ,@body)
            (remove-hook 'jsonrpc-event-hook #',log-event-hook-sym))))))
 
@@ -435,6 +435,56 @@ directory hierarchy."
         (goto-char (point-min))
         (flymake-goto-next-error 1 '() t)
         (should (eq 'flymake-error (face-at-point)))))))
+
+(ert-deftest eglot-test-basic-symlink ()
+  "Test basic symlink support."
+  (skip-unless (executable-find "clangd"))
+  ;; MS-Windows either fails symlink creation or pops up UAC prompts.
+  (skip-when (eq system-type 'windows-nt))
+  (eglot--with-fixture
+      `(("symlink-project" .
+         (("main.cpp" . "#include\"foo.h\"\nint main() { return foo(); }")
+          ("foo.h" . "int foo();"))))
+    (with-current-buffer
+        (find-file-noselect "symlink-project/main.cpp")
+      (make-symbolic-link "main.cpp" "mainlink.cpp")
+      (eglot--tests-connect)
+      (eglot--sniffing (:client-notifications c-notifs)
+        (let ((eglot-autoshutdown nil)) (kill-buffer (current-buffer)))
+        (eglot--wait-for (c-notifs 10)
+            (&key method &allow-other-keys)
+          (and (string= method "textDocument/didClose")))))
+    (eglot--sniffing (:client-notifications c-notifs)
+      (with-current-buffer
+          (find-file-noselect "symlink-project/main.cpp")
+        (should (eglot-current-server)))
+      (eglot--wait-for (c-notifs 10)
+          (&rest whole &key params method &allow-other-keys)
+        (and (string= method "textDocument/didOpen")
+             (string-match "main.cpp$"
+                           (plist-get (plist-get params :textDocument)
+                                      :uri)))))
+    ;; This last segment is deactivated, because it's likely not needed.
+    ;; The only way the server would answer with '3' references is if we
+    ;; had erroneously sent a 'didOpen' for anything other than
+    ;; `main.cpp', but if we got this far is because we've just asserted
+    ;; that we didn't.
+    (when nil
+      (with-current-buffer
+          (find-file-noselect "symlink-project/foo.h")
+        ;; Give clangd some time to settle its analysis so it can
+        ;; accurately respond to `textDocument/references'
+        (sleep-for 3)
+        (search-forward "foo")
+        (eglot--sniffing (:server-replies s-replies)
+          (call-interactively 'xref-find-references)
+          (eglot--wait-for (s-replies 10)
+              (&key method result &allow-other-keys)
+            ;; Expect xref buffer to not contain duplicate references to
+            ;; main.cpp and mainlink.cpp.  If it did, 'result's length
+            ;; would be 3.
+            (and (string= method "textDocument/references")
+                 (= (length result) 2))))))))
 
 (ert-deftest eglot-test-diagnostic-tags-unnecessary-code ()
   "Test rendering of diagnostics tagged \"unnecessary\"."
@@ -821,6 +871,12 @@ int main() {
         (should (looking-back "\"foo.bar\": \""))
         (should (looking-at "fb\"$"))))))
 
+(defun eglot-tests--get (object path)
+  (dolist (op path)
+    (setq object (if (natnump op) (aref object op)
+                  (plist-get object op))))
+  object)
+
 (defun eglot-tests--lsp-abiding-column-1 ()
   (eglot--with-fixture
       '(("project" .
@@ -837,7 +893,11 @@ int main() {
           (insert "p ")
           (eglot--signal-textDocument/didChange)
           (eglot--wait-for (c-notifs 2) (&key params &allow-other-keys)
-            (should (equal 71 (cadddr (cadadr (aref (cadddr params) 0))))))
+            (message "PARAMS=%S" params)
+            (should (equal 71 (eglot-tests--get
+                               params
+                               '(:contentChanges 0
+                                 :range :start :character)))))
           (beginning-of-line)
           (should (eq eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos))
           (funcall eglot-move-to-linepos-function 71)

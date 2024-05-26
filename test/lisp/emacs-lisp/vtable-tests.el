@@ -39,4 +39,34 @@
                          :insert nil)))
           '(left right left))))
 
+(ert-deftest test-vtable-insert-object ()
+  (should
+   (equal (let ((buffer (get-buffer-create " *vtable-test*")))
+            (pop-to-buffer buffer)
+            (erase-buffer)
+            (let* ((object1 '("Foo" 3))
+                   (object2 '("Gazonk" 8))
+                   (table (make-vtable
+                           :columns '("Name" (:name "Rank" :width 5))
+                           :objects (list object1 object2))))
+              (mapc (lambda (args)
+                      (pcase-let ((`(,object ,location ,before) args))
+                        (vtable-insert-object table object location before)))
+                    `( ; Some correct inputs.
+                      ;; object    location        before
+                      (("Fizz" 4)  ,object1        nil)
+                      (("Bop"  7)  ,object2        t)
+                      (("Zat"  5)  2               nil)
+                      (("Dib"  6)  3               t)
+                      (("Wup"  9)  nil             nil)
+                      (("Quam" 2)  nil             t)
+                      ;; And some faulty inputs.
+                      (("Yat"  1)  -1              nil) ; non-existing index, `before' is ignored.
+                      (("Vop"  10) 100             t)   ; non-existing index, `before' is ignored.
+                      (("Jib"  11) ("Bleh"  0)     nil) ; non-existing object.
+                      (("Nix"  0)  ("Ugh"   0)     t)   ; non-existing object.
+                      ))
+              (mapcar #'cadr (vtable-objects table))))
+          (number-sequence 0 11))))
+
 ;;; vtable-tests.el ends here

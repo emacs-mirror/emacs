@@ -148,7 +148,8 @@ boundary.  @xref{Filling}.
 
    On a graphical display, tiny arrow images in the window fringes
 indicate truncated and continued lines (@pxref{Fringes}).  On a text
-terminal, a @samp{$} in the rightmost column of the window indicates
+terminal, and on a graphical display when @code{fringe-mode} was
+turned off, a @samp{$} in the rightmost column of the window indicates
 truncation; a @samp{\} on the rightmost column indicates a line that
 wraps.  (The display table can specify alternate characters to use
 for this; @pxref{Display Tables}).
@@ -2685,12 +2686,17 @@ Underline in color @var{color}, a string specifying a color.
 @var{color} is either a string, or the symbol @code{foreground-color},
 meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
-@var{style} should be a symbol @code{line} or @code{wave}, meaning to
-use a straight or wavy line.  Omitting the attribute @code{:style}
-means to use a straight line.  @var{position}, if non-@code{nil}, means to
-display the underline at the descent of the text, instead of at the
-baseline level.  If it is a number, then it specifies the amount of
-pixels above the descent to display the underline.
+@var{style} is a symbol which sets the line-style to of the underline.
+It should be one of @code{line}, @code{double-line}, @code{wave},
+@code{dots}, or @code{dashes}.  GUI frames under most window systems
+support all the aforementioned underline styles, while on text terminals
+@code{double-line}, @code{wave} and @code{dots} are contingent on the
+availability of the @code{Smulx} or @code{Su} terminfo capabilities.
+Omitting the attribute @code{:style} means to use a straight line.
+@var{position}, if non-@code{nil}, means to display the underline at the
+descent of the text, instead of at the baseline level.  If it is a
+number, then it specifies the amount of pixels above the descent to
+display the underline.
 @end table
 
 @cindex overlined text
@@ -2746,6 +2752,11 @@ being pressed.  If it is @code{pressed-button}, the box looks like a
 3D button that is being pressed.  If it is @code{nil},
 @code{flat-button} or omitted, a plain 2D box is used.
 @end table
+
+If you use the @code{:box} face attribute on strings displayed instead
+of buffer text via the @code{display} text property, special
+considerations might apply if the surrounding buffer text also has the
+@code{:box} face attribute.  @xref{Replacing Specs}.
 
 @item :inverse-video
 Whether or not characters should be displayed in inverse video.  The
@@ -3978,7 +3989,9 @@ that case, use @var{font-spec} for all the characters in the charset.
 
 @var{characters} may be a script symbol (@pxref{Character Properties,
 char-script-table}).  In that case, use @var{font-spec} for all the
-characters belonging to the script.
+characters belonging to the script.  See also
+@code{use-default-font-for-symbols}, which affects font selection
+when @var{fontset} is @code{symbol}.
 
 @var{characters} may be @code{nil}, which means to use @var{font-spec}
 for any character in @var{fontset} for which no font-spec is
@@ -4016,6 +4029,14 @@ the charset @code{japanese-jisx0208}:
 (set-fontset-font t 'japanese-jisx0208
                   (font-spec :family "Kochi Gothic"))
 @end smallexample
+
+Note that this function should generally be called from the user's
+init files, and more generally before any of @var{characters} were
+displayed in the current Emacs session.  That's because for some
+scripts, Emacs caches the way they are displayed, and the cached
+information includes the font used for them -- once these characters
+are displayed once, the cached font will continue to be used
+regardless of changes in the fontsets.
 @end defun
 
 @defun char-displayable-p char
@@ -5264,6 +5285,34 @@ the display property was assigned in two separate calls to
 characters get a second string (@code{concat} creates a new string
 object), so they are replaced with one @samp{A}; and so on.  Thus, the
 ten characters appear as five A's.
+
+@cindex box face attribute, and @code{display} properties
+Note: Using @code{:box} face attribute (@pxref{Face Attributes}) on a
+replacing @code{display} string that is adjacent to normal text with
+the same @code{:box} style can lead to display artifacts when moving
+the cursor across the text with this face attribute.  These can be
+avoided by applying the @code{:box} attribute directly to the text
+being replaced, rather than (or in addition to) the @code{display}
+string itself.  Here's an example:
+
+@smallexample
+@group
+;; Causes display artifacts when moving the cursor across text
+(progn
+  (put-text-property 1 2 'display (propertize "  [" 'face '(:box t)))
+  (put-text-property 2 3 'face '(:box t))
+  (put-text-property 3 4 'display (propertize "]  " 'face '(:box t))))
+@end group
+
+@group
+;; No display artifacts due to `:box'
+(progn
+  (add-text-properties 1 2 '(face (:box t) display "  ["))
+  (put-text-property 2 3 'face '(:box t))
+  (add-text-properties 3 4 '(face (:box t) display "]  ")))
+@end group
+@end smallexample
+
 
 @node Specified Space
 @subsection Specified Spaces

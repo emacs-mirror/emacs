@@ -101,20 +101,18 @@
 ;;; Code:
 
 (require 'esh-util)
-(require 'eldoc)
 (require 'esh-arg)
 (require 'esh-proc)
 (require 'esh-module)
 (require 'esh-io)
 (require 'esh-ext)
+
+(require 'eldoc)
 (require 'generator)
+(require 'pcomplete)
 
 (eval-when-compile
-  (require 'cl-lib)
-  (require 'pcomplete))
-
-(declare-function pcomplete--here "pcomplete"
-		  (&optional form stub paring form-only))
+  (require 'cl-lib))
 
 (defgroup eshell-cmd nil
   "Executing an Eshell command is as simple as typing it in and \
@@ -785,9 +783,6 @@ this grossness will be made to disappear by using `call/cc'..."
       (eshell-errorn (error-message-string err))
       (eshell-close-handles 1))))
 
-(defvar eshell-output-handle)           ;Defined in esh-io.el.
-(defvar eshell-error-handle)            ;Defined in esh-io.el.
-
 (defmacro eshell-with-copied-handles (object &optional steal-p)
   "Duplicate current I/O handles, so OBJECT works with its own copy.
 If STEAL-P is non-nil, these new handles will be stolen from the
@@ -1292,13 +1287,15 @@ have been replaced by constants."
 		    (setcdr form (cdr new-form)))
 		  (eshell-do-eval form synchronous-p))
               (if-let (((memq (car form) eshell-deferrable-commands))
-                       (procs (eshell-make-process-list result)))
+                       (procs (eshell-make-process-list result))
+                       (active (seq-some #'eshell-process-active-p procs)))
                   (if synchronous-p
 		      (apply #'eshell/wait procs)
 		    (eshell-manipulate form "inserting ignore form"
 		      (setcar form 'ignore)
 		      (setcdr form nil))
-		    (throw 'eshell-defer procs))
+                    (when active
+                      (throw 'eshell-defer procs)))
                 (list 'quote result))))))))))))
 
 ;; command invocation
@@ -1484,6 +1481,14 @@ via `eshell-errorn'."
 Print the result using `eshell-printn'; if an error occurs, print it
 via `eshell-errorn'."
   (eshell-eval* #'eshell-printn #'eshell-errorn form))
+
+(defun eshell/funcall (func &rest args)
+  "Eshell built-in command for `funcall' (which see).
+This simply calls FUNC with the specified ARGS.  FUNC may be a symbol or
+a string naming a Lisp function."
+  (when (stringp func)
+    (setq func (intern func)))
+  (apply func args))
 
 (defvar eshell-last-output-end)         ;Defined in esh-mode.el.
 

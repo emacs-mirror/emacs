@@ -553,20 +553,27 @@ This function can be used to force exit of repetition while it's active."
 (defun repeat-echo-message-string (keymap)
   "Return a string with the list of repeating keys in KEYMAP."
   (let (keys)
-    (map-keymap (lambda (key cmd) (and cmd (push key keys))) keymap)
-    (format-message "Repeat with %s%s"
-                    (mapconcat (lambda (key)
-                                 (substitute-command-keys
-                                  (format "\\`%s'"
-                                          (key-description (vector key)))))
-                               keys ", ")
-                    (if repeat-exit-key
-                        (substitute-command-keys
-                         (format ", or exit with \\`%s'"
-                                 (if (key-valid-p repeat-exit-key)
-                                     repeat-exit-key
-                                   (key-description repeat-exit-key))))
-                      ""))))
+    (map-keymap (lambda (key cmd) (and cmd (push (cons key cmd) keys)))
+                keymap)
+    (format-message
+     "Repeat with %s%s"
+     (mapconcat (lambda (key-cmd)
+                  (let ((key (car key-cmd))
+                        (cmd (cdr key-cmd)))
+                    (if-let ((hint (and (symbolp cmd)
+                                        (get cmd 'repeat-hint))))
+                        ;; Reuse `read-multiple-choice' formatting.
+                        (cdr (rmc--add-key-description (list key hint)))
+                      (propertize (key-description (vector key))
+                                  'face 'read-multiple-choice-face))))
+                keys ", ")
+     (if repeat-exit-key
+         (substitute-command-keys
+          (format ", or exit with \\`%s'"
+                  (if (key-valid-p repeat-exit-key)
+                      repeat-exit-key
+                    (key-description repeat-exit-key))))
+       ""))))
 
 (defun repeat-echo-message (keymap)
   "Display in the echo area the repeating keys defined by KEYMAP.

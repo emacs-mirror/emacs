@@ -298,9 +298,13 @@ It returns a list of the form (KEY KEY-BINDING CLOSE-P), where:
    nil otherwise."
   (setq tab-bar--dragging-in-progress nil)
   (if (posn-window posn)
-      (let ((caption (car (posn-string posn))))
-        (when caption
-          (get-text-property 0 'menu-item caption)))
+      (let* ((caption (car (posn-string posn)))
+             (menu-item (when caption
+                          (get-text-property 0 'menu-item caption))))
+        (when (equal menu-item '(global ignore nil))
+          (setf (nth 1 menu-item)
+                (key-binding (vector 'tab-bar last-nonmenu-event) t)))
+        menu-item)
     ;; Text-mode emulation of switching tabs on the tab bar.
     ;; This code is used when you click the mouse in the tab bar
     ;; on a console which has no window system but does have a mouse.
@@ -332,7 +336,7 @@ existing tab."
     (setq tab-bar--dragging-in-progress t)
     ;; Don't close the tab when clicked on the close button.  Also
     ;; don't add new tab on down-mouse.  Let `tab-bar-mouse-1' do this.
-    (unless (or (memq (car item) '(add-tab history-back history-forward))
+    (unless (or (memq (car item) '(add-tab history-back history-forward global))
                 (nth 2 item))
       (if (functionp (nth 1 item))
           (call-interactively (nth 1 item))
@@ -347,7 +351,8 @@ regardless of where you click on it.  Also add a new tab."
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
     (cond
-     ((and (memq (car item) '(add-tab history-back history-forward))
+     ((and (memq (car item) '(add-tab history-back history-forward global))
+           (not (eq (nth 1 item) 'tab-bar-mouse-1))
            (functionp (nth 1 item)))
       (call-interactively (nth 1 item)))
      ((and (nth 2 item) (not (eq tab-number t)))
@@ -468,8 +473,8 @@ appropriate."
                                  (tab-bar-select-tab number))))
                          ;; Cancel the timer.
                          (cancel-timer timer)))
-                      ((and (memq (car item) '(add-tab history-back
-                                                       history-forward))
+                      ((and (memq (car item) '( add-tab history-back
+                                                history-forward global))
                             (functionp (cadr item)))
                        ;; This is some kind of button.  Wait for the
                        ;; tap to complete and press it.
@@ -1115,7 +1120,9 @@ When `tab-bar-format-global' is added to `tab-bar-format'
 then modes that display information on the mode line
 using `global-mode-string' will display the same text
 on the tab bar instead."
-  `((global menu-item ,(format-mode-line global-mode-string) ignore)))
+  (mapcar (lambda (string)
+            `(global menu-item ,(format-mode-line string) ignore))
+          global-mode-string))
 
 (defun tab-bar-format-list (format-list)
   (let ((i 0))
@@ -1440,13 +1447,11 @@ if it was visiting a file."
                      (buffer-file-name old-buffer)))
              (name (or file
                        (and (bufferp old-buffer)
-                            (fboundp 'buffer-last-name)
                             (buffer-last-name old-buffer))
                        old-buffer))
              (new-buffer (generate-new-buffer
-                          (format "*Old buffer %s*" name))))
+                          (format " *Old buffer %s*" name))))
         (with-current-buffer new-buffer
-          (set-auto-mode)
           (insert (format-message "This window displayed the %s `%s'.\n"
                                   (if file "file" "buffer")
                                   name))
@@ -1459,7 +1464,7 @@ if it was visiting a file."
                (set-window-point window (nth 3 quad))))
             (insert "\n"))
           (goto-char (point-min))
-          (setq buffer-read-only t)
+          (special-mode)
           (set-window-buffer window new-buffer))))))
 
 (defcustom tab-bar-select-restore-context t
@@ -1511,7 +1516,7 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
     (when (and read-minibuffer-restore-windows minibuffer-was-active
                (not tab-bar-minibuffer-restore-tab))
       (setq-local tab-bar-minibuffer-restore-tab (1+ from-index))
-      (add-hook 'minibuffer-exit-hook 'tab-bar-minibuffer-restore-tab nil t))
+      (add-hook 'minibuffer-exit-hook #'tab-bar-minibuffer-restore-tab nil t))
 
     (unless (eq from-index to-index)
       (let* ((from-tab (tab-bar--tab))

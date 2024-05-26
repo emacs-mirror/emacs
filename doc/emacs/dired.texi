@@ -1167,11 +1167,20 @@ guessing off.  The elements of @code{dired-guess-shell-alist-user}
 (defined by the user) will override these rules.
 @end defvar
 
+@defvar dired-guess-shell-alist-optional
+This variable is like @code{dired-guess-shell-alist-default} but
+contains external viewers and players for various media formats.
+Setting this to @code{nil} turns guessing off.  The variables
+@code{dired-guess-shell-alist-user} and
+@code{dired-guess-shell-alist-default} will override these rules.
+@end defvar
+
 @defvar dired-guess-shell-alist-user
 If non-@code{nil}, this variable specifies the user-defined alist of
 file regexps and their suggested commands.  These rules take
-precedence over the predefined rules in the variable
-@code{dired-guess-shell-alist-default} when
+precedence over the predefined rules in the variables
+@code{dired-guess-shell-alist-default} and
+@code{dired-guess-shell-alist-optional} when
 @code{dired-do-shell-command} is run).  The default is @code{nil}.
 
 Each element of the alist looks like

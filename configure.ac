@@ -40,7 +40,13 @@ if test "$XCONFIGURE" = "android"; then
   CFLAGS="$ANDROID_CFLAGS -Werror=implicit-function-declaration"
   # Don't explicitly enable support for large files unless Emacs is
   # being built for API 21 or later.  Otherwise, mmap does not work.
+  #
+  # Moreover, 64-bit variants of file IO functions in the C library are
+  # liable to fail with ENOSYS or EINVAL on earlier API versions, and as
+  # such their definitions must be explicitly disabled on NDK releases
+  # that enable them by default.
   AS_IF([test "$ANDROID_SDK" -lt "21"], [
+    CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
 fi
@@ -1488,7 +1494,11 @@ case "${canonical}" in
       *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
-		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		# Also, GCC 14 turns on implicit-function-declaration
+		# error by default, which fails configure tests where our
+		# emulation of Posix headers defines only the minimal
+		# stuff we actually need.
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc -Wno-error=implicit-function-declaration"
 		;;
       *-sysv4.2uw* )		opsys=unixware ;;
       *-sysv5uw* )		opsys=unixware ;;
@@ -1503,7 +1513,7 @@ case "${canonical}" in
       *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
-		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc -Wno-error=implicit-function-declaration"
 		;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
@@ -1579,6 +1589,10 @@ AC_DEFUN([gt_TYPE_WINT_T],
 AC_DEFUN_ONCE([gl_STDLIB_H],
   [AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
    gl_NEXT_HEADERS([stdlib.h])])
+# Emacs does not need to check for off64_t.
+AC_DEFUN([gl_TYPE_OFF64_T],
+  [HAVE_OFF64_T=1
+   AC_SUBST([HAVE_OFF64_T])])
 
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
@@ -2455,11 +2469,6 @@ AC_DEFINE_UNQUOTED([SYSTEM_TYPE], ["$SYSTEM_TYPE"],
   [The type of system you are compiling for; sets 'system-type'.])
 AC_SUBST([SYSTEM_TYPE])
 
-# Check for pw_gecos in struct passwd; this is known to be missing on
-# Android.
-
-AC_CHECK_MEMBERS([struct passwd.pw_gecos], [], [], [#include <pwd.h>])
-
 pre_PKG_CONFIG_CFLAGS=$CFLAGS
 pre_PKG_CONFIG_LIBS=$LIBS
 
@@ -2744,6 +2753,17 @@ AC_SUBST([ANDROID_LDFLAGS])
 AC_SUBST([ANDROID_BUILD_CFLAGS])
 AC_SUBST([ANDROID_SHARED_USER_ID])
 AC_SUBST([ANDROID_SHARED_USER_NAME])
+
+# Check for pw_gecos in struct passwd; this is known to be missing on
+# Android.
+
+AH_TEMPLATE([USER_FULL_NAME], [How to get a user's full name.])
+AC_CHECK_MEMBERS([struct passwd.pw_gecos], [], [], [#include <pwd.h>])
+AS_IF([test x"$REALLY_ANDROID" = "xyes"],
+  [AC_DEFINE([USER_FULL_NAME], [android_user_full_name (pw)])],
+  [AS_IF([test x"$ac_cv_member_struct_passwd_pw_gecos" = "xyes"],
+    [AC_DEFINE([USER_FULL_NAME], [pw->pw_gecos])],
+    [AC_DEFINE([USER_FULL_NAME], [NULL])])])
 
 if test "${with_pgtk}" = "yes"; then
   window_system=pgtk
@@ -6473,9 +6493,6 @@ AC_SUBST([SEPCHAR])
 
 dnl Everybody supports this, except MS-DOS.
 AC_DEFINE([subprocesses], [1], [Define to enable asynchronous subprocesses.])
-
-AC_DEFINE([USER_FULL_NAME], [pw->pw_gecos], [How to get a user's full name.])
-
 
 AC_DEFINE([DIRECTORY_SEP], ['/'],
   [Character that separates directories in a file name.])

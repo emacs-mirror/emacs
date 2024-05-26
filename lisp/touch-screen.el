@@ -154,6 +154,17 @@ selected.")
 Used in an attempt to keep this word selected during later
 dragging.")
 
+;; Should this variable be documented?
+(defvar-local touch-screen-keyboard-function nil
+  "Function that decides whether to display the on screen keyboard.
+If set, this function is called with point set to the position of the
+tap involved when a command listed in `touch-screen-set-point-commands'
+is about to be invoked in response to a tap, the current buffer, or the
+text beneath point (in the case of an `inhibit-read-only' text
+property), is not read only, and `touch-screen-display-keyboard' is nil,
+and should return non-nil if it is appropriate to display the on-screen
+keyboard afterwards.")
+
 
 
 ;;; Scroll gesture.
@@ -351,7 +362,8 @@ word around EVENT; otherwise, set point to the location of EVENT."
                   touch-screen-word-select-bounds nil)
             (push-mark point)
             (goto-char point)
-            (activate-mark))
+            (activate-mark)
+            (setq deactivate-mark nil))
         ;; Start word selection by trying to obtain the position
         ;; around point.
         (let ((word-start nil)
@@ -381,7 +393,8 @@ word around EVENT; otherwise, set point to the location of EVENT."
                       touch-screen-word-select-initial-word nil)
                 (push-mark point)
                 (goto-char point)
-                (activate-mark))
+                (activate-mark)
+                (setq deactivate-mark nil))
             ;; Otherwise, select the word.  Move point to either the
             ;; end or the start of the word, depending on which is
             ;; closer to EVENT.
@@ -420,10 +433,12 @@ word around EVENT; otherwise, set point to the location of EVENT."
                   (progn
                     (push-mark word-start)
                     (activate-mark)
+                    (setq deactivate-mark nil)
                     (goto-char word-end))
                 (progn
                     (push-mark word-end)
                     (activate-mark)
+                    (setq deactivate-mark nil)
                     (goto-char word-start)))
               ;; Record the bounds of the selected word.
               (setq touch-screen-word-select-bounds
@@ -837,7 +852,8 @@ area."
                       ;; Display a preview of the line now around
                       ;; point if requested by the user.
                       (when touch-screen-preview-select
-                        (touch-screen-preview-select))))))))))))))
+                        (touch-screen-preview-select)))))))))))
+      (setq deactivate-mark nil))))
 
 (defun touch-screen-restart-drag (event)
   "Restart dragging to select text.
@@ -1334,7 +1350,9 @@ is not read-only."
                  ;; Now simulate a mouse click there.  If there is a
                  ;; link or a button, use mouse-2 to push it.
                  (let* ((event (list (if (or (mouse-on-link-p posn)
-                                             (and point (button-at point)))
+                                             (and point
+                                                  (get-char-property
+                                                   point 'button)))
                                          'mouse-2
                                        'mouse-1)
                                      posn))
@@ -1351,21 +1369,38 @@ is not read-only."
                    ;; Figure out if the on screen keyboard needs to be
                    ;; displayed.
                    (when command
-                     (if (memq command touch-screen-set-point-commands)
+                     (if (or (memq command touch-screen-set-point-commands)
+                             ;; Users of packages that redefine
+                             ;; `mouse-set-point', or other commands
+                             ;; recognized as defining the point, should
+                             ;; not find the on screen keyboard
+                             ;; inaccessible even with
+                             ;; `touch-screen-display-keyboard' enabled.
+                             touch-screen-display-keyboard)
                          (if touch-screen-translate-prompt
                              ;; Forgo displaying the virtual keyboard
-                             ;; should touch-screen-translate-prompt be
+                             ;; should `touch-screen-translate-prompt' be
                              ;; set, for then the key won't be delivered
                              ;; to the command loop, but rather to a
-                             ;; caller of read-key-sequence such as
-                             ;; describe-key.
+                             ;; caller of `read-key-sequence' such as
+                             ;; `describe-key'.
                              (throw 'input-event event)
-                           (if (and (or (not buffer-read-only)
-                                        touch-screen-display-keyboard)
-                                    ;; Detect the splash screen and
-                                    ;; avoid displaying the on screen
-                                    ;; keyboard there.
-                                    (not (equal (buffer-name) "*GNU Emacs*")))
+                           (if (or touch-screen-display-keyboard
+                                   (and (or (not buffer-read-only)
+                                            inhibit-read-only
+                                            ;; Display the on screen
+                                            ;; keyboard even if just the
+                                            ;; text under point is not
+                                            ;; read-only.
+                                            (get-text-property
+                                             point 'inhibit-read-only))
+                                        ;; If the major mode has defined
+                                        ;; bespoke criteria for
+                                        ;; displaying the on screen
+                                        ;; keyboard, consult it here.
+                                        (or (not touch-screen-keyboard-function)
+                                            (funcall
+                                             touch-screen-keyboard-function))))
                                ;; Once the on-screen keyboard has been
                                ;; opened, add
                                ;; `touch-screen-window-selection-changed'

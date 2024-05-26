@@ -97,7 +97,7 @@ Uses the same syntax as `nnmail-split-methods'.")
 (defvoo nnimap-authenticator nil
   "How nnimap authenticate itself to the server.
 Possible choices are nil (use default methods), `anonymous',
-`login', `plain' and `cram-md5'.")
+`login', `plain', `cram-md5' and `xoauth2'.")
 
 (defvoo nnimap-expunge 'on-exit
   "When to expunge deleted messages.

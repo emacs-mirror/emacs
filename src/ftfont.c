@@ -149,7 +149,8 @@ static Lisp_Object
 get_adstyle_property (FcPattern *p)
 {
   FcChar8 *fcstr;
-  char *str, *end;
+  char *str, *end, *tmp;
+  size_t i;
   Lisp_Object adstyle;
 
 #ifdef FC_FONTFORMAT
@@ -168,7 +169,18 @@ get_adstyle_property (FcPattern *p)
       || matching_prefix (str, end - str, "Oblique")
       || matching_prefix (str, end - str, "Italic"))
     return Qnil;
-  adstyle = font_intern_prop (str, end - str, 1);
+  /* The characters `-', `?', `*', and `"' are not representable in XLFDs
+     and therefore must be replaced by substitutes.  (bug#70989) */
+  USE_SAFE_ALLOCA;
+  tmp = SAFE_ALLOCA (end - str);
+  for (i = 0; i < end - str; ++i)
+    tmp[i] = ((end[i] != '?'
+	       && end[i] != '*'
+	       && end[i] != '"'
+	       && end[i] != '-')
+	      ? end[i] : ' ');
+  adstyle = font_intern_prop (tmp, end - str, 1);
+  SAFE_FREE ();
   if (font_style_to_value (FONT_WIDTH_INDEX, adstyle, 0) >= 0)
     return Qnil;
   return adstyle;
@@ -2030,7 +2042,6 @@ ftfont_drive_otf (MFLTFont *font,
   int i, j, gidx;
   OTF_Glyph *otfg;
   char script[5], *langsys = NULL;
-  char *gsub_features = NULL, *gpos_features = NULL;
   OTF_Feature *features;
 
   if (len == 0)
@@ -2044,6 +2055,7 @@ ftfont_drive_otf (MFLTFont *font,
       OTF_tag_name (spec->langsys, langsys);
     }
 
+  char *gfeatures[2] = {NULL, NULL};
   USE_SAFE_ALLOCA;
   for (i = 0; i < 2; i++)
     {
@@ -2052,11 +2064,10 @@ ftfont_drive_otf (MFLTFont *font,
       if (spec->features[i] && spec->features[i][1] != 0xFFFFFFFF)
 	{
 	  for (j = 0; spec->features[i][j]; j++);
+	  if (j == 0)
+	    continue;
 	  SAFE_NALLOCA (p, 6, j);
-	  if (i == 0)
-	    gsub_features = p;
-	  else
-	    gpos_features = p;
+	  gfeatures[i] = p;
 	  for (j = 0; spec->features[i][j]; j++)
 	    {
 	      if (spec->features[i][j] == 0xFFFFFFFF)
@@ -2071,6 +2082,7 @@ ftfont_drive_otf (MFLTFont *font,
 	  *--p = '\0';
 	}
     }
+  char *gsub_features = gfeatures[0], *gpos_features = gfeatures[1];
 
   setup_otf_gstring (len);
   for (i = 0; i < len; i++)

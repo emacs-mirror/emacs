@@ -126,27 +126,26 @@ minibuffer being brought into use (@pxref{Minibuffer}).
 
 @vindex touch-screen-set-point-commands
   When a ``tap'' gesture results in a command being executed, Emacs
-checks whether the command is meant to set the point by searching for
-it in the list @code{touch-screen-set-point-commands}.  If it is and
-the text beneath the new point is not read-only, it activates the
-virtual keyboard, in anticipation that the user is about to enter text
-there.
+checks whether the command is meant to set the point by searching for it
+in the list @code{touch-screen-set-point-commands}.  If it is, and the
+text beneath the new point is not read-only, the virtual keyboard is
+activated, in anticipation of the user input there.
 
-  The default value of @code{touch-screen-set-point-commands} holds
-only the command @code{mouse-set-point} (@pxref{Mouse Commands}),
-which is the default binding of @code{mouse-1}, and thus of
-touchscreen tap gestures as well.
+  The default value of @code{touch-screen-set-point-commands} holds only
+the command @code{mouse-set-point} (@pxref{Mouse Commands}), which is
+the default binding of @code{mouse-1}, and therefore of touchscreen tap
+gestures as well.
 
 @vindex touch-screen-display-keyboard
-  The user option @code{touch-screen-display-keyboard} compels Emacs
-to display the virtual keyboard on such taps even if the text is read
-only; it may also be set buffer locally, in which case Emacs will
-always display the keyboard in response to a tap on a window
-displaying the buffer it is set in.
+  The user option @code{touch-screen-display-keyboard} compels Emacs to
+display the virtual keyboard on all tap gestures even if the text is
+read only; it may also be set buffer locally, in which case Emacs will
+always display the keyboard in response to a tap on a window displaying
+the buffer it is set in.
 
-  There are moreover several functions to show or hide the on-screen
-keyboard.  For more details, @xref{On-Screen Keyboards,,, elisp, The
-Emacs Lisp Reference Manual}.
+  There are moreover several functions that display or hide the
+on-screen keyboard.  For more details, @xref{On-Screen Keyboards,,,
+elisp, The Emacs Lisp Reference Manual}.
 
 @cindex quitting, without a keyboard
   Since it may not be possible for Emacs to display the virtual
@@ -156,9 +155,11 @@ which two rapid clicks of a hardware button that is always present on
 the device induces a quit.  @xref{Quitting}.
 
 @vindex x-quit-keysym
-  No such button is enabled on X, but one can be configured through
-the variable @code{x-quit-keysym}.  On Android this button is always
-the volume down button.
+@vindex android-quit-keycode
+  No such button is enabled on X, but one can be configured through the
+variable @code{x-quit-keysym}, whereas the default key is the volume
+down button on Android, which is also configurable through a variable,
+@code{android-quit-keycode}.
 
 @cindex text conversion, keyboards
   Most input methods designed to work with virtual keyboards edit text

@@ -678,12 +678,10 @@ characters with appropriate settings of `print-level' and
 (defun backtrace--print-to-string (sexp &optional limit)
   ;; This is for use by callers who wrap the call with
   ;; backtrace--with-output-variables.
-  (setq limit (or limit backtrace-line-length))
-  (with-temp-buffer
-    (insert (cl-print-to-string-with-limit #'backtrace--print sexp limit))
-    ;; Add a unique backtrace-form property.
-    (put-text-property (point-min) (point) 'backtrace-form (gensym))
-    (buffer-string)))
+  (propertize (cl-print-to-string-with-limit #'backtrace--print sexp
+                                             (or limit backtrace-line-length))
+              ;; Add a unique backtrace-form property.
+              'backtrace-form (gensym)))
 
 (defun backtrace-print-frame (frame view)
   "Insert a backtrace FRAME at point formatted according to VIEW.
@@ -722,9 +720,10 @@ Format it according to VIEW."
          (def   (find-function-advised-original fun))
          (fun-file (or (symbol-file fun 'defun)
                        (and (subrp def)
-                            (not (eq 'unevalled (cdr (subr-arity def))))
+                            (not (special-form-p def))
                             (find-lisp-object-file-name fun def))))
-         (fun-pt (point)))
+         (fun-beg (point))
+         (fun-end nil))
     (cond
      ((and evald (not debugger-stack-frame-as-list))
       (if (atom fun)
@@ -734,6 +733,7 @@ Format it according to VIEW."
           fun
           (when (and args (backtrace--line-length-or-nil))
             (/ backtrace-line-length 2)))))
+      (setq fun-end (point))
       (if args
           (insert (backtrace--print-to-string
                    args
@@ -749,10 +749,16 @@ Format it according to VIEW."
      (t
       (let ((fun-and-args (cons fun args)))
         (insert (backtrace--print-to-string fun-and-args)))
-      (cl-incf fun-pt)))
+      ;; Skip the open-paren.
+      (cl-incf fun-beg)))
     (when fun-file
-      (make-text-button fun-pt (+ fun-pt
-                                  (length (backtrace--print-to-string fun)))
+      (make-text-button fun-beg
+                        (or fun-end
+                            (+ fun-beg
+                               ;; FIXME: `backtrace--print-to-string' will
+                               ;; not necessarily print FUN in the same way
+                               ;; as it did when it was in FUN-AND-ARGS!
+                               (length (backtrace--print-to-string fun))))
                         :type 'help-function-def
                         'help-args (list fun fun-file)))
     ;; After any frame that uses eval-buffer, insert a comment that

@@ -548,10 +548,20 @@ Remove @var{object} from @var{table}.  This also updates the displayed
 table.
 @end defun
 
-@defun vtable-insert-object table object &optional after-object
-Insert @var{object} into @var{table}.  If @var{after-object}, insert
-the object after this object; otherwise append to @var{table}.  This
-also updates the displayed table.
+@defun vtable-insert-object table object &optional location before
+Insert @var{object} into @var{table}.  @var{location} should be an
+object in the table, the new object is inserted after this object, or
+before it if @var{before} is non-nil.  If @var{location} is @code{nil},
+@var{object} is appended to @var{table}, or prepended if @var{before} is
+non-@code{nil}.
+
+@var{location} can also be an integer, a zero-based index into the
+table.  In this case, @var{object} is inserted at that index.  If the
+index is out of range, @var{object} is prepended to @var{table} if the
+index is too small, or appended if it is too large.  In this case,
+@var{before} is ignored.
+
+This also updates the displayed table.
 @end defun
 
 @defun vtable-update-object table object &optional old-object

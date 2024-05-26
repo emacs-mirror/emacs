@@ -207,7 +207,8 @@ parameter.
 Otherwise, this function searches `process-environment' for
 VARIABLE.  If it is not found there, then it continues the search
 in the environment list of the selected frame."
-  (declare (side-effect-free t))
+  (declare (ftype (function (string &optional frame) (or null string)))
+           (side-effect-free t))
   (interactive (list (read-envvar-name "Get environment variable: " t)))
   (let ((value (getenv-internal (if (multibyte-string-p variable)
 				    (encode-coding-string

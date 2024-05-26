@@ -105,14 +105,25 @@ This port is probably always 2628 so there should be no need to modify it."
   "*"
   "The dictionary which is used for searching definitions and matching.
 * and ! have a special meaning, * search all dictionaries, ! search until
-one dictionary yields matches."
+one dictionary yields matches.
+Otherwise, the value should be a string, the name of the dictionary to use.
+Dictionary names are generally specific to the servers, and are obtained
+via `dictionary-dictionaries'."
   :group 'dictionary
   :type 'string
   :version "28.1")
 
 (defcustom dictionary-default-strategy
   "."
-  "The default strategy for listing matching words."
+  "The default strategy for listing matching words.
+The value should be a string.  The special value \".\" means
+the default search strategy for `dictionary-server' in use.
+Other values are specific to servers and dictionaries.
+In a `dictionary-mode' buffer, you can use
+\\[dictionary-select-strategy] to change the buffer-local value;
+it will show the available strategies from which you can choose.
+To change the value for other buffers, customize this option
+using \\[customize-option]."
   :group 'dictionary
   :type 'string
   :version "28.1")
@@ -784,10 +795,10 @@ FUNCTION is the callback which is called for each search result."
 
 (defun dictionary-do-search (word dictionary function &optional nomatching)
   "Search for WORD in DICTIONARY and call FUNCTION for each result.
-Optional argument NOMATCHING controls whether to suppress the display
-of matching words."
-
-  (insert (format-message "Searching for `%s' in `%s'\n" word dictionary))
+Optional argument NOMATCHING, if non-nil, means suppress the display
+of the \"Searching\" report and of the matching words."
+  (unless nomatching
+    (insert (format-message "Searching for `%s' in `%s'\n" word dictionary)))
   (dictionary-send-command (concat "define "
 				   (dictionary-encode-charset dictionary "")
 				   " \""
@@ -1356,11 +1367,22 @@ prompt for DICTIONARY."
 (nconc minor-mode-alist '((dictionary-tooltip-mode " Dict")))
 
 (defcustom dictionary-tooltip-dictionary
-  nil
-  "This dictionary to lookup words for tooltips."
+  t
+  "The dictionary to lookup words for `dictionary-tooltip-mode'.
+If this is nil, `dictionary-tooltip-mode' is effectively disabled: no tooltips
+will be shown.
+If the value is t, `dictionary-tooltip-mode' will use the same dictionary as
+specified by `dictionary-default-dictionary'.
+Otherwise, the value should be a string, the name of a dictionary to use, and
+can use the same special values * and ! as for `dictionary-default-dictionary',
+with the same meanings.
+Dictionary names are generally specific to the servers, and are obtained
+via `dictionary-dictionaries'."
   :group 'dictionary
-  :type '(choice (const :tag "None" nil) string)
-  :version "28.1")
+  :type '(choice (const :tag "None (disables Dictionary tooltips)" nil)
+                 (const :tag "Same as `dictionary-default-dictionary'" t)
+                 string)
+  :version "30.1")
 
 (defun dictionary-definition (word &optional dictionary)
   (unwind-protect
@@ -1377,14 +1399,20 @@ prompt for DICTIONARY."
   nil)
 
 (defun dictionary-word-at-mouse-event (event)
-  (with-current-buffer (tooltip-event-buffer event)
-    (let ((point (posn-point (event-end event))))
-      (if (use-region-p)
-	  (when (and (<= (region-beginning) point) (<= point (region-end)))
-	    (buffer-substring (region-beginning) (region-end)))
-        (save-excursion
-          (goto-char point)
-        (current-word))))))
+  (let ((buf (tooltip-event-buffer event)))
+    (when (bufferp buf)
+      (with-current-buffer buf
+        (let ((point (posn-point (event-end event))))
+          ;; posn-point can return something other than buffer position when
+          ;; the mouse pointer is over the menu bar or tool bar or tab-bar.
+          (when (number-or-marker-p point)
+            (if (use-region-p)
+	        (when (and (<= (region-beginning) point)
+                           (<= point (region-end)))
+	          (buffer-substring (region-beginning) (region-end)))
+              (save-excursion
+                (goto-char point)
+                (current-word)))))))))
 
 (defvar dictionary-tooltip-mouse-event nil
   "Event that triggered the tooltip mode.")
@@ -1393,15 +1421,24 @@ prompt for DICTIONARY."
   "Search the current word in the `dictionary-tooltip-dictionary'."
   (interactive "e")
   (if (and dictionary-tooltip-mode dictionary-tooltip-dictionary)
-      (let ((word (dictionary-word-at-mouse-event dictionary-tooltip-mouse-event)))
-        (if word
-            (let ((definition
-                    (dictionary-definition word dictionary-tooltip-dictionary)))
-              (if definition
-                  (tooltip-show (dictionary-decode-charset definition
-                                                           dictionary-tooltip-dictionary)))))
-        t)
-    nil))
+      ;; This function runs from the tooltip timer.  We don't want to
+      ;; signal errors from the timer due to "Unknown server answers",
+      ;; we prefer not to show anything in that case.  FIXME: Perhaps
+      ;; use with-demoted-errors, to show the unknonw answers in the
+      ;; echo-area?
+      (ignore-errors
+        (let* ((word (dictionary-word-at-mouse-event
+                      dictionary-tooltip-mouse-event))
+               (dict (if (eq dictionary-tooltip-dictionary t)
+                         dictionary-default-dictionary
+                       dictionary-tooltip-dictionary)))
+          (if word
+              (let ((definition (dictionary-definition word dict)))
+                (if definition
+                    (tooltip-show (dictionary-decode-charset
+                                   definition dict)))))
+          t)
+        nil)))
 
 (defun dictionary-tooltip-track-mouse (event)
   "Called whenever a dictionary tooltip display is about to be triggered."
@@ -1443,6 +1480,11 @@ active it will overwrite that mode for the current buffer."
     (if on
         (local-set-key [mouse-movement] 'dictionary-tooltip-track-mouse)
       (local-set-key [mouse-movement] 'ignore))
+    ;; Unconditionally ignore mouse-movement events on the tool bar and
+    ;; tab-bar, since these are unrelated to the current buffer.
+    ;; FIXME: This disables help-echo for tab-bar and tool-bar buttons.
+    (local-set-key [tool-bar mouse-movement] 'ignore)
+    (local-set-key [tab-bar mouse-movement] 'ignore)
     on))
 
 ;;;###autoload
@@ -1536,11 +1578,18 @@ Further arguments are currently ignored."
                      nil t nil 'dictionary-word-history default t)))
 
 (defun dictionary-dictionaries ()
-  "Return the list of dictionaries the server supports."
+  "Return the list of dictionaries the server supports.
+The elements of the list have the form (NAME . DESCRIPTION),
+where NAME is the string that identifies the dictionary for
+the server, and DESCRIPTION is its more detailed description,
+which usually includes the languages it supports."
   (dictionary-send-command "show db")
   (when (and (= (read (dictionary-read-reply)) 110))
     (with-temp-buffer
       (insert (dictionary-read-answer))
+      ;; We query the server using 'raw-text', so decode now to present
+      ;; human-readable names to the user.
+      (decode-coding-region (point-min) (point-max) 'utf-8)
       (goto-char (point-min))
       (let ((result '(("!" . "First matching dictionary")
                       ("*" . "All dictionaries"))))

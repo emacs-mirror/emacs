@@ -120,7 +120,8 @@ them for `find-ls-option'."
   :group 'find-dired)
 
 (defcustom find-grep-options
-  (if (or (eq system-type 'berkeley-unix)
+  (if (or (and (eq system-type 'berkeley-unix)
+               (not (string-match "openbsd" system-configuration)))
 	  (string-match "solaris2" system-configuration))
       "-s" "-q")
   "Option to grep to be as silent as possible.

@@ -1460,8 +1460,8 @@ local_sockname (int s, char sockname[socknamesize], int tmpdirlen,
      this user's directory and does not let others write to it; this
      fends off some symlink attacks.  To avoid races, keep the parent
      directory open while checking.  */
-  char *emacsdirend = sockname + tmpdirlen + suffixlen -
-    strlen(server_name) - 1;
+  char *emacsdirend = (sockname + tmpdirlen + suffixlen
+		       - strlen (server_name) - 1);
   *emacsdirend = '\0';
   int dir = open (sockname, O_PATH | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
   *emacsdirend = '/';
@@ -1505,6 +1505,7 @@ set_local_socket (char const *server_name)
     }
   else
     {
+#ifndef HAVE_ANDROID
       /* socket_name is a file name component.  */
       char const *xdg_runtime_dir = egetenv ("XDG_RUNTIME_DIR");
       if (xdg_runtime_dir)
@@ -1534,10 +1535,35 @@ set_local_socket (char const *server_name)
 	      if (tmpdirlen < 0)
 		tmpdirlen = snprintf (sockname, socknamesize, "/tmp");
 	    }
+
 	  sock_status = local_sockname (s, sockname, tmpdirlen,
 					uid, server_name);
 	  tmpdir_used = true;
 	}
+#else /* HAVE_ANDROID */
+      char const *tmpdir;
+      int socknamelen;
+      uintmax_t uidmax;
+
+      /* The TMPDIR of any process to which this binary is
+	 accessible must be reserved for Emacs, so the checks in
+	 local_sockname and the like are redundant.  */
+      tmpdir = egetenv ("TMPDIR");
+
+      /* Resort to the usual location of the cache directory, though
+	 this location is not guaranteed to remain stable over
+	 future releases of Android.  */
+      if (!tmpdir)
+	tmpdir = "/data/data/org.gnu.emacs/cache";
+
+      uidmax = uid;
+      socknamelen = snprintf (sockname, socknamesize,
+			      "%s/emacs%"PRIuMAX"/%s",
+			      tmpdir, uidmax, server_name);
+      sock_status = (0 <= socknamelen && socknamelen < socknamesize
+		     ? connect_socket (AT_FDCWD, sockname, s, 0)
+		     : ENAMETOOLONG);
+#endif /* !HAVE_ANDROID */
     }
 
   if (sock_status == 0)

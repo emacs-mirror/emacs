@@ -80,7 +80,7 @@ handle.  The most thorough cleaning can be achieved by 'git clean -fdx'
 which will leave you with only files from the git repository.  Here
 are some faster methods for a couple of particular error cases:
 
-    /usr/bin/m4:aclocal.m4:9: cannot open `m4/count-leading-zeros.m4': No such file or directory
+    /usr/bin/m4:aclocal.m4:9: cannot open `m4/stdbit_h.m4': No such file or directory
 
 This can be fixed with 'rm aclocal.m4'.
 

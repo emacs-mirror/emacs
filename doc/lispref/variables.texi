@@ -1079,7 +1079,7 @@ Here is an example:
 (let ((x 0))             ; @r{@code{x} is lexically bound.}
   (setq my-ticker (lambda ()
                     (setq x (1+ x)))))
-    @result{} (closure ((x . 0)) ()
+    @result{} #f(lambda () [(x 0)]
           (setq x (1+ x)))
 
 (funcall my-ticker)
@@ -1523,7 +1523,7 @@ buffer-local binding of buffer @samp{b}.
 values when you visit the file.  @xref{File Variables,,, emacs, The
 GNU Emacs Manual}.
 
-  A buffer-local variable cannot be made terminal-local
+  A terminal-local variable cannot be made buffer-local
 (@pxref{Multiple Terminals}).
 
 @node Creating Buffer-Local

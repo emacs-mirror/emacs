@@ -338,10 +338,13 @@ where it treats each chapter, section, etc., as a definition.
 together.)
 
 @findex imenu
+@vindex imenu-flatten
   If you type @kbd{M-g i} (@code{imenu}), it reads the name of a
 definition using the minibuffer, then moves point to that definition.
 You can use completion to specify the name; the command always
-displays the whole list of valid names.
+displays the whole list of valid names.  If you set @code{imenu-flatten}
+to a non-@code{nil} value, then instead of the nested menu
+you can select a completion candidate from the flat list.
 
 @findex imenu-add-menubar-index
   Alternatively, you can bind the command @code{imenu} to a mouse
@@ -374,6 +377,10 @@ variable @code{imenu-sort-function}.  By default, names are ordered as
 they occur in the buffer; if you want alphabetic sorting, use the
 symbol @code{imenu--sort-by-name} as the value.  You can also
 define your own comparison function by writing Lisp code.
+
+  You can also customize how Imenu completions are sorted by changing
+the variable @code{completion-category-overrides} and setting its
+@code{display-sort-function} for the category @code{imenu}.
 
   If Eglot is activated for the current buffer's project
 (@pxref{Projects}) and the current buffer's major mode, Eglot provides

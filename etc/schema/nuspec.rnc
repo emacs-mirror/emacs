@@ -1,0 +1,100 @@
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+default namespace mstns = "http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"
+namespace rng = "http://relaxng.org/ns/structure/1.0"
+
+dependency =
+  attribute id { xsd:string },
+  attribute version { xsd:string }?,
+  attribute include { xsd:string }?,
+  attribute exclude { xsd:string }?
+dependencyGroup =
+  element dependency { dependency }*,
+  attribute targetFramework { xsd:string }?
+reference = attribute file { xsd:string }
+contentFileEntries =
+  attribute include { xsd:string },
+  attribute exclude { xsd:string }?,
+  attribute buildAction { xsd:string }?,
+  attribute copyToOutput { xsd:boolean }?,
+  attribute flatten { xsd:boolean }?
+referenceGroup =
+  element reference { reference }+,
+  attribute targetFramework { xsd:string }?
+frameworkReference = attribute name { xsd:string }
+frameworkReferenceGroup =
+  element frameworkReference { frameworkReference }*,
+  attribute targetFramework { xsd:string }
+start |= starting_package
+starting_package =
+  element package {
+    element metadata {
+      (element id { xsd:string }
+       & element version { xsd:string }
+       & element title { xsd:string }?
+       & element authors { xsd:string }
+       & element owners { xsd:string }?
+       & element licenseUrl { xsd:anyURI }?
+       & element projectUrl { xsd:anyURI }?
+       & element iconUrl { xsd:anyURI }?
+       & element requireLicenseAcceptance { xsd:boolean }?
+       & element developmentDependency { xsd:boolean }?
+       & element description { xsd:string }
+       & element summary { xsd:string }?
+       & element releaseNotes { xsd:string }?
+       & (element copyright { xsd:string }?)
+         >> a:documentation [
+              "\x{a}" ~
+              "            default value is : en-US"
+            ]
+       & element language { xsd:string }?
+       & element tags { xsd:string }?
+       & element serviceable { xsd:boolean }?
+       & element icon { xsd:string }?
+       & element readme { xsd:string }?
+       & element repository {
+           attribute type { xsd:string }?,
+           attribute url { xsd:anyURI }?,
+           attribute branch { xsd:string }?,
+           attribute commit { xsd:string }?
+         }?
+       & element license {
+           xsd:string,
+           attribute type { xsd:string },
+           attribute version { xsd:string }?
+         }?
+       & element packageTypes {
+           element packageType {
+             attribute name { xsd:string },
+             attribute version { xsd:string }?
+           }*
+         }?
+       & element dependencies {
+           (element dependency { dependency }
+            | element group { dependencyGroup })*
+         }?
+       & element frameworkAssemblies {
+           element frameworkAssembly {
+             attribute assemblyName { xsd:string },
+             attribute targetFramework { xsd:string }?
+           }*
+         }?
+       & element frameworkReferences {
+           element group { frameworkReferenceGroup }*
+         }?
+       & element references {
+           (element reference { reference }
+            | element group { referenceGroup })*
+         }?
+       & element contentFiles {
+           (element files { contentFileEntries })*
+         }?),
+      attribute minClientVersion { xsd:string }?
+    },
+    element files {
+      element file {
+        attribute src { xsd:string },
+        attribute target { xsd:string }?,
+        attribute exclude { xsd:string }?
+      }*
+    }?
+  }

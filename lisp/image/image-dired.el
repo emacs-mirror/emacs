@@ -1757,6 +1757,28 @@ Dired."
                   (cons (list tag file) (cdr image-dired-tag-file-list))))
       (setq image-dired-tag-file-list (list (list tag file))))))
 
+(defun image-dired-tag-thumbnail-remove ()
+  "Remove tag from current or marked thumbnails."
+  (interactive nil image-dired-thumbnail-mode)
+  (let ((tag (completing-read "Tag to remove: " image-dired-tag-history
+                              nil nil nil 'image-dired-tag-history)))
+    (image-dired--with-marked
+     (image-dired-remove-tag (image-dired-original-file-name) tag)
+     (image-dired-update-property
+      'tags (image-dired-list-tags (image-dired-original-file-name))))))
+
+(defun image-dired-tag-thumbnail ()
+  "Tag current or marked thumbnails."
+  (interactive nil image-dired-thumbnail-mode)
+  (let ((tag (completing-read
+              "Tags to add (separate tags with a semicolon): "
+              image-dired-tag-history nil nil nil 'image-dired-tag-history)))
+    (image-dired--with-marked
+     (image-dired-write-tags
+      (list (cons (image-dired-original-file-name) tag)))
+     (image-dired-update-property
+      'tags (image-dired-list-tags (image-dired-original-file-name))))))
+
 (defvar image-dired-slideshow-count 0
   "Keeping track on number of images in slideshow.")
 (make-obsolete-variable 'image-dired-slideshow-count "no longer used." "29.1")

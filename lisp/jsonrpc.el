@@ -591,15 +591,18 @@ connection object, called when the process dies.")
 (cl-defmethod jsonrpc-shutdown ((conn jsonrpc-process-connection)
                                 &optional cleanup)
   "Wait for JSONRPC connection CONN to shutdown.
-With optional CLEANUP, kill any associated buffers."
+With optional CLEANUP, kill any associated buffers.
+If CONN is not shutdown within a reasonable amount of time, warn
+and delete the network process."
   (unwind-protect
       (cl-loop
        with proc = (jsonrpc--process conn) for i from 0
        while (not (process-get proc 'jsonrpc-sentinel-cleanup-started))
        unless (zerop i) do
        (jsonrpc--warn "Sentinel for %s still hasn't run, deleting it!" proc)
-       do
        (delete-process proc)
+       do
+       ;; Let sentinel have a chance to run
        (accept-process-output nil 0.1))
     (when cleanup
       (kill-buffer (process-buffer (jsonrpc--process conn)))

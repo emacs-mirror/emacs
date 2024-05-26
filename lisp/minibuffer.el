@@ -112,20 +112,6 @@ the closest directory separators."
     (cons (or (cadr boundaries) 0)
           (or (cddr boundaries) (length suffix)))))
 
-(defun completion-base-suffix (start end collection predicate)
-  "Return suffix of completion of buffer text between START and END.
-COLLECTION and PREDICATE are, respectively, the completion's
-completion table and predicate, as in `completion-boundaries' (which see).
-Value is a substring of buffer text between point and END.  It is
-the completion suffix that follows the completion boundary."
-  (let ((suffix (buffer-substring (point) end)))
-    (substring
-     suffix
-     (cdr (completion-boundaries (buffer-substring start (point))
-                                 collection
-                                 predicate
-                                 suffix)))))
-
 (defun completion-metadata (string table pred)
   "Return the metadata of elements to complete at the end of STRING.
 This metadata is an alist.  Currently understood keys are:
@@ -2598,17 +2584,24 @@ The candidate will still be chosen by `choose-completion' unless
              (base-size (or (cdr last) 0))
              (prefix (unless (zerop base-size) (substring string 0 base-size)))
              (minibuffer-completion-base (substring string 0 base-size))
-             (base-prefix (buffer-substring (minibuffer--completion-prompt-end)
-                                            (+ start base-size)))
-             (base-suffix (concat (completion-base-suffix start end
-                                                          minibuffer-completion-table
-                                                          minibuffer-completion-predicate)
-                                  (buffer-substring end (point-max))))
+             (ctable minibuffer-completion-table)
+             (cpred minibuffer-completion-predicate)
+             (cprops completion-extra-properties)
+             (field-end
+              (save-excursion
+                (forward-char
+                 (cdr (completion-boundaries (buffer-substring start (point))
+                                             ctable
+                                             cpred
+                                             (buffer-substring (point) end))))
+                (point)))
+             (field-char (and (< field-end end) (char-after field-end)))
+             (base-position (list (+ start base-size) field-end))
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))
                                            base-size md
-                                           minibuffer-completion-table
-                                           minibuffer-completion-predicate))
+                                           ctable
+                                           cpred))
              (ann-fun (completion-metadata-get all-md 'annotation-function))
              (aff-fun (completion-metadata-get all-md 'affixation-function))
              (sort-fun (completion-metadata-get all-md 'display-sort-function))
@@ -2686,39 +2679,35 @@ The candidate will still be chosen by `choose-completion' unless
                                       completions))))
 
                       (with-current-buffer standard-output
-                        (setq-local completion-base-position
-                             (list (+ start base-size)
-                                   ;; FIXME: We should pay attention to completion
-                                   ;; boundaries here, but currently
-                                   ;; completion-all-completions does not give us the
-                                   ;; necessary information.
-                                   end))
-                        (setq-local completion-base-affixes
-                                    (list base-prefix base-suffix))
+                        (setq-local completion-base-position base-position)
                         (setq-local completion-list-insert-choice-function
-                             (let ((ctable minibuffer-completion-table)
-                                   (cpred minibuffer-completion-predicate)
-                                   (cprops completion-extra-properties))
                                (lambda (start end choice)
-                                 (if (and (stringp start) (stringp end))
-                                     (progn
-                                       (delete-minibuffer-contents)
-                                       (insert start choice)
-                                       ;; Keep point after completion before suffix
-                                       (save-excursion (insert
-                                                        (completion--merge-suffix
-                                                         choice
-                                                         (1- (length choice))
-                                                         end))))
-                                   (unless (or (zerop (length prefix))
-                                               (equal prefix
-                                                      (buffer-substring-no-properties
-                                                       (max (point-min)
-                                                            (- start (length prefix)))
-                                                       start)))
-                                     (message "*Completions* out of date"))
-                                   ;; FIXME: Use `md' to do quoting&terminator here.
-                                   (completion--replace start end choice))
+                                 (unless (or (zerop (length prefix))
+                                             (equal prefix
+                                                    (buffer-substring-no-properties
+                                                     (max (point-min)
+                                                          (- start (length prefix)))
+                                                     start)))
+                                   (message "*Completions* out of date"))
+                                 (when (> (point) end)
+                                   ;; Completion suffix has changed, have to adapt.
+                                   (setq end (+ end
+                                                (cdr (completion-boundaries
+                                                      (concat prefix choice) ctable cpred
+                                                      (buffer-substring end (point))))))
+                                   ;; Stopped before some field boundary.
+                                   (when (> (point) end)
+                                     (setq field-char (char-after end))))
+                                 (when (and field-char
+                                            (= (aref choice (1- (length choice)))
+                                               field-char))
+                                   (setq end (1+ end)))
+                                 ;; Tried to use a marker to track buffer changes
+                                 ;; but that clashed with another existing marker.
+                                 (cl-decf (nth 1 base-position)
+                                          (- end start (length choice)))
+                                 ;; FIXME: Use `md' to do quoting&terminator here.
+                                 (completion--replace start (min end (point-max)) choice)
                                  (let* ((minibuffer-completion-table ctable)
                                         (minibuffer-completion-predicate cpred)
                                         (completion-extra-properties cprops)
@@ -2729,7 +2718,7 @@ The candidate will still be chosen by `choose-completion' unless
                                    ;; completion is not finished.
                                    (completion--done result
                                                      (if (eq (car bounds) (length result))
-                                                         'exact 'finished)))))))
+                                                         'exact 'finished))))))
 
                       (display-completion-list completions nil group-fun)))))
           nil)))
@@ -4877,8 +4866,7 @@ insert the selected completion candidate to the minibuffer."
           (next-line-completion (or n 1))
         (next-completion (or n 1)))
       (when auto-choose
-        (let ((completion-use-base-affixes t)
-              (completion-auto-deselect nil))
+        (let ((completion-auto-deselect nil))
           (choose-completion nil t t))))))
 
 (defun minibuffer-previous-completion (&optional n)
@@ -4916,8 +4904,7 @@ If NO-QUIT is non-nil, insert the completion candidate at point to the
 minibuffer, but don't quit the completions window."
   (interactive "P")
   (with-minibuffer-completions-window
-    (let ((completion-use-base-affixes t))
-      (choose-completion nil no-exit no-quit))))
+    (choose-completion nil no-exit no-quit)))
 
 (defun minibuffer-choose-completion-or-exit (&optional no-exit no-quit)
   "Choose the completion from the minibuffer or exit the minibuffer.

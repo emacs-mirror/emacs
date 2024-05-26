@@ -181,10 +181,17 @@ as of ERC 5.6:
     5.6, a ticks/hertz pair on Emacs 29 and above, and a \"list\"
     type otherwise; managed by the `stamp' module
 
+ - `erc--skip': list of symbols known to modules that indicate an
+    intent to skip or simplify module-specific processing
+
  - `erc--ephemeral': a symbol prefixed by or matching a module
     name; indicates to other modules and members of modification
     hooks that the current message should not affect stateful
     operations, such as recording a channel's most recent speaker
+
+ - `erc--hide': a symbol or list of symbols added as an `invisible'
+    prop value to the entire message, starting *before* the preceding
+    newline and ending before the trailing newline
 
 This is an internal API, and the selection of related helper
 utilities is fluid and provisional.  As of ERC 5.6, see the
@@ -463,12 +470,21 @@ See also `erc-server-QUIT-functions' and `erc-disconnected-hook'."
 
 (defcustom erc-part-hook nil
   "Hook run when processing a PART message directed at our nick.
-
-The hook receives one argument, the current BUFFER.
-See also `erc-server-QUIT-functions', `erc-quit-hook' and
-`erc-disconnected-hook'."
+Called in the server buffer with a single argument: the channel buffer
+being parted.  For historical reasons, the buffer argument may be nil if
+it's been killed or otherwise can't be found.  This typically happens
+when the \"PART\" response being handled comes by way of a channel
+buffer being killed, which, by default, tells `erc-part-channel-on-kill'
+to emit a \"PART\".  Users needing to operate on a parted channel buffer
+before it's killed in this manner should use `erc-kill-channel-hook' and
+condition their code on `erc-killing-buffer-on-part-p' being nil."
   :group 'erc-hooks
   :type 'hook)
+
+(defvar erc-killing-buffer-on-part-p nil
+  "Non-nil when killing a target buffer while handling a \"PART\" response.
+Useful for preventing the redundant execution of code designed to run
+once when parting a channel.")
 
 (defcustom erc-kick-hook nil
   "Hook run when processing a KICK message directed at our nick.
@@ -1107,8 +1123,7 @@ directory in the list."
 
 (defcustom erc-kill-buffer-on-part nil
   "Kill the channel buffer on PART.
-This variable should probably stay nil, as ERC can reuse buffers if
-you rejoin them later."
+Nil by default because ERC can reuse buffers later re-joined."
   :group 'erc-quit-and-part
   :type 'boolean)
 
@@ -1506,6 +1521,10 @@ This will only be used if `erc-header-line-face-method' is non-nil."
   "ERC face for errors."
   :group 'erc-faces)
 
+(defface erc-information '((t :inherit shadow))
+  "Face for local administrative messages of low to moderate importance."
+  :group 'erc-faces)
+
 ;; same default color as `erc-input-face'
 (defface erc-my-nick-face '((t :weight bold :foreground "brown"))
   "ERC face for your current nickname in messages sent by you.
@@ -1588,7 +1607,7 @@ capabilities."
                   (remove-hook hook fun t))
                 (fmakunbound fun)
                 (funcall f proc parsed)))
-    (add-hook hook fun nil t)
+    (add-hook hook fun -95 t)
     fun))
 
 (defun erc--warn-once-before-connect (mode-var &rest args)
@@ -1640,7 +1659,7 @@ the process buffer."
   "Return non-nil if argument BUFFER is an ERC server buffer.
 If BUFFER is nil, use the current buffer.  For historical
 reasons, also return non-nil for channel buffers the client has
-parted or from which it's been kicked."
+parted or been kicked from."
   (with-current-buffer (or buffer (current-buffer))
     (and (eq major-mode 'erc-mode)
          (null (erc-default-target)))))
@@ -1662,8 +1681,13 @@ If BUFFER is nil, the current buffer is used."
 
 (defun erc-query-buffer-p (&optional buffer)
   "Return non-nil if BUFFER is an ERC query buffer.
-If BUFFER is nil, the current buffer is used."
-  (not (erc-channel-p (or buffer (current-buffer)))))
+If BUFFER is nil, use the current buffer."
+  (and-let* ((target (if buffer
+                         (progn (when (stringp buffer)
+                                  (setq buffer (get-buffer buffer)))
+                                (buffer-local-value 'erc--target buffer))
+                       erc--target)))
+    (not (erc--target-channel-p target))))
 
 (defun erc-ison-p (nick)
   "Return non-nil if NICK is online."
@@ -3230,12 +3254,19 @@ a full refresh."
 
 (defun erc--check-msg-prop (prop &optional val)
   "Return PROP's value in `erc--msg-props' when populated.
-If VAL is a list, return non-nil if PROP appears in VAL.  If VAL
-is otherwise non-nil, return non-nil if VAL compares `eq' to the
-stored value.  Otherwise, return the stored value."
+If VAL is a list, return non-nil if PROP's value appears in VAL.  If VAL
+is otherwise non-nil, return non-nil if VAL compares `eq' to the stored
+value.  Otherwise, return the stored value."
   (and-let* ((erc--msg-props)
              (v (gethash prop erc--msg-props)))
     (if (consp val) (memq v val) (if val (eq v val) v))))
+
+(defun erc--memq-msg-prop (prop needle)
+  "Return non-nil if msg PROP's value is a list containing NEEDLE."
+  (and-let* ((erc--msg-props)
+             (haystack (gethash prop erc--msg-props))
+             ((consp haystack)))
+    (memq needle haystack)))
 
 (defmacro erc--get-inserted-msg-beg-at (point at-start-p)
   (macroexp-let2* nil ((point point)
@@ -3278,14 +3309,36 @@ if not found."
   (and-let* ((stack-pos (erc--get-inserted-msg-beg (point))))
     (get-text-property stack-pos prop)))
 
-(defmacro erc--with-inserted-msg (&rest body)
-  "Simulate narrowing performed for send and insert hooks, and run BODY.
-Expect callers to know that this doesn't wrap BODY in
-`with-silent-modifications' or bind a temporary `erc--msg-props'."
-  `(when-let ((bounds (erc--get-inserted-msg-bounds)))
-     (save-restriction
-       (narrow-to-region (car bounds) (1+ (cdr bounds)))
-       ,@body)))
+;; FIXME improve this nascent "message splicing" facility to include a
+;; means for modules to adjust inserted messages on either side of the
+;; splice position as well as to modify the spliced-in message itself
+;; before and after each insertion-related hook runs.  Also add a
+;; counterpart to `erc--with-spliced-insertion' for deletions.
+(defvar erc--insert-line-splice-function
+  #'erc--insert-before-markers-transplanting-hidden
+  "Function to handle in-place insertions away from prompt.
+Modules that display \"stateful\" messages, where one message's content
+depends on prior messages, should advise this locally as needed.")
+
+(defmacro erc--with-spliced-insertion (marker-or-pos &rest body)
+  "In BODY, ensure `erc-insert-line' inserts messages at MARKER-OR-POS.
+If MARKER-OR-POS is a marker, let it advance normally (and permanently)
+with each insertion.  Allow modules to influence insertion by binding
+`erc--insert-line-function' to `erc--insert-line-splice-function' around
+BODY.  Note that as of ERC 5.6, this macro cannot handle multiple
+successive calls to `erc-insert-line' in BODY, such as when replaying
+a history backlog."
+  (declare (indent 1))
+  (let ((marker (make-symbol "marker")))
+    `(progn
+       (cl-assert (= ?\n (char-before ,marker-or-pos)))
+       (cl-assert (null erc--insert-line-function))
+       (let* ((,marker (and (not (markerp ,marker-or-pos))
+                            (copy-marker ,marker-or-pos)))
+              (erc--insert-marker (or ,marker ,marker-or-pos))
+              (erc--insert-line-function erc--insert-line-splice-function))
+         (prog1 (progn ,@body)
+           (when ,marker (set-marker ,marker nil)))))))
 
 (defun erc--traverse-inserted (beg end fn)
   "Visit messages between BEG and END and run FN in narrowed buffer.
@@ -3325,7 +3378,11 @@ that this flag and the behavior it restores may disappear at any
 time, so if you need them, please let ERC know with \\[erc-bug].")
 
 (defvar erc--insert-line-function nil
-  "When non-nil, an alterntive to `insert' for inserting messages.")
+  "When non-nil, an `insert'-like function for inserting messages.
+Modules, like `fill-wrap', that leave a marker at the beginning of an
+inserted message clearly want that marker to advance along with text
+inserted at that position.  This can be addressed by binding this
+variable to `insert-before-markers' around calls to `display-message'.")
 
 (defvar erc--insert-marker nil
   "Internal override for `erc-insert-marker'.")
@@ -3473,6 +3530,14 @@ being equivalent to a `erc-display-message' TYPE of `notice'."
         (push '(erc--msg . notice) erc--msg-prop-overrides)))
     (erc-display-message nil nil buffer string)))
 
+(defun erc--insert-admin-message (msg &rest args)
+  "Print MSG with ARGS as a local notice.
+Inhibit all stamps and buttonizing."
+  (let ((erc--msg-prop-overrides `((erc--skip . (stamp track button))
+                                   ,@erc--msg-prop-overrides)))
+    (apply #'erc-display-message nil '(notice information)
+           (current-buffer) msg args)))
+
 (defvar erc--merge-text-properties-p nil
   "Non-nil when `erc-put-text-property' defers to `erc--merge-prop'.")
 
@@ -3509,7 +3574,7 @@ also `erc-button-add-face'."
             end (next-single-property-change pos prop object to)))))
 
 (defun erc--remove-from-prop-value-list (from to prop val &optional object)
-  "Remove VAL from text prop value between FROM and TO.
+  "Remove VAL from text PROP value between FROM and TO.
 If current value is VAL itself, remove the property entirely.
 When VAL is a list, act as if this function were called
 repeatedly with VAL set to each of VAL's members."
@@ -3573,19 +3638,45 @@ preceding newline to its last non-newline character.")
 (make-obsolete-variable 'erc-legacy-invisible-bounds-p
                         "decremented interval now permanent" "30.1")
 
+(defun erc--insert-before-markers-transplanting-hidden (string)
+  "Insert STRING before markers and migrate any `invisible' props.
+Expect to be called with `point' at the start of an inserted message,
+i.e., one with an `erc--msg' property.  Check the message prop header
+for invisibility props advertised via `erc--hide'.  When found, remove
+them from the previous newline, and add them to the newline suffixing
+the inserted version of STRING."
+  (let* ((after (and (not erc-legacy-invisible-bounds-p)
+                     (get-text-property (point) 'erc--hide)))
+         (before (and after (get-text-property (1- (point)) 'invisible)))
+         (a (and after (ensure-list after)))
+         (b (and before (ensure-list before)))
+         (new (and before (erc--solo (cl-intersection b a)))))
+    (when new
+      (erc--remove-from-prop-value-list (1- (point)) (point) 'invisible a))
+    (prog1 (insert-before-markers string)
+      (when new
+        (erc--merge-prop (1- (point)) (point) 'invisible new)))))
+
 (defun erc--hide-message (value)
   "Apply `invisible' text-property with VALUE to current message.
 Expect to run in a narrowed buffer during message insertion.
 Begin the invisible interval at the previous message's trailing
 newline and end before the current message's.  If the preceding
 message ends in a double newline or there is no previous message,
-don't bother including the preceding newline."
+don't bother including the preceding newline.  Additionally,
+record VALUE as part of the `erc--hide' property in the
+\"msg-props\" header."
   (if erc-legacy-invisible-bounds-p
       ;; Before ERC 5.6, this also used to add an `intangible'
       ;; property, but the docs say it's now obsolete.
       (erc--merge-prop (point-min) (point-max) 'invisible value)
-    (let ((beg (point-min))
+    (let ((old-hide (erc--check-msg-prop 'erc--hide))
+          (beg (point-min))
           (end (point-max)))
+      (puthash 'erc--hide (if old-hide
+                              `(,value . ,(ensure-list old-hide))
+                            value)
+               erc--msg-props)
       (save-restriction
         (widen)
         (when (or (<= beg 4) (= ?\n (char-before (- beg 2))))
@@ -3604,9 +3695,11 @@ Treat ARG in a manner similar to mode toggles defined by
     (when (or (not arg) (natnump arg))
       (add-to-invisibility-spec prop))))
 
-(defun erc--delete-inserted-message (beg-or-point &optional end)
+(defun erc--delete-inserted-message-naively (beg-or-point &optional end)
   "Remove message between BEG and END.
-Expect BEG and END to match bounds as returned by the macro
+Do this without updating messages on either side even if their
+appearance was somehow influenced by the newly absent message.
+Expect BEG and END to match bounds as returned by the function
 `erc--get-inserted-msg-bounds'.  Ensure all markers residing at
 the start of the deleted message end up at the beginning of the
 subsequent message."
@@ -3626,7 +3719,8 @@ subsequent message."
                         -1))))))))
 
 (defvar erc--ranked-properties
-  '(erc--msg erc--spkr erc--ts erc--cmd erc--ctcp erc--ephemeral))
+  '( erc--msg erc--spkr erc--ts erc--skip
+     erc--cmd erc--hide erc--ctcp erc--ephemeral))
 
 (defun erc--order-text-properties-from-hash (table)
   "Return a plist of text props from items in TABLE.
@@ -3650,9 +3744,12 @@ See also `erc-make-notice'."
         (t
          (erc-put-text-property
           0 (length string)
-          'font-lock-face (or (intern-soft
-			       (concat "erc-" (symbol-name type) "-face"))
-                              'erc-default-face)
+          'font-lock-face
+          (let* ((name (symbol-name type))
+                 (symbol (or (intern-soft (concat "erc-" name "-face"))
+                             (intern-soft (concat "erc-" name))
+                             type)))
+            (or (and (facep symbol) symbol) 'erc-default-face))
           string)
          string)))
 
@@ -6061,7 +6158,8 @@ NUH, and the current `erc-response' object.")
 
 ;; The format strings in the following `-speaker' catalog shouldn't
 ;; contain any non-protocol words, so they make sense in any language.
-
+;; Note that the following definitions generally avoid `propertize'
+;; because it reverses the order of the text properties it's given.
 (defvar erc--message-speaker-statusmsg
   #("(%p%n%s) %m"
     0 1 (font-lock-face erc-default-face)
@@ -6153,11 +6251,11 @@ NUH, and the current `erc-response' object.")
   "Message template for a CTCP ACTION from another user.")
 
 (defvar erc--message-speaker-ctcp-action-input
-  #("* %p%n %m"
-    0 2 (font-lock-face #1=(erc-input-face erc-action-face))
-    2 4 (font-lock-face (erc-my-nick-prefix-face . #1#))
-    4 6 (font-lock-face (erc-my-nick-face . #1#))
-    6 9 (font-lock-face #1#))
+  (let ((base '(erc-input-face erc-action-face))) ; shared
+    (concat (propertize "* " 'font-lock-face base)
+            (propertize "%p" 'font-lock-face `(erc-my-nick-prefix-face ,@base))
+            (propertize "%n" 'font-lock-face `(erc-my-nick-face ,@base))
+            (propertize " %m" 'font-lock-face base)))
   "Message template for a CTCP ACTION from current client.")
 
 (defvar erc--message-speaker-ctcp-action-statusmsg
@@ -6170,12 +6268,12 @@ NUH, and the current `erc-response' object.")
   "Template for a CTCP ACTION status message from another chan op.")
 
 (defvar erc--message-speaker-ctcp-action-statusmsg-input
-  #("* (%p%n%s) %m"
-    0 3 (font-lock-face #1=(erc-input-face erc-action-face))
-    3 5 (font-lock-face (erc-my-nick-prefix-face . #1#))
-    5 7 (font-lock-face (erc-my-nick-face . #1#))
-    7 9 (font-lock-face (erc-notice-face . #1#))
-    9 13 (font-lock-face #1#))
+  (let ((base '(erc-input-face erc-action-face))) ; shared
+    (concat (propertize "* (" 'font-lock-face base)
+            (propertize "%p" 'font-lock-face `(erc-my-nick-prefix-face ,@base))
+            (propertize "%n" 'font-lock-face `(erc-my-nick-face ,@base))
+            (propertize "%s" 'font-lock-face `(erc-notice-face ,@base))
+            (propertize ") %m" 'font-lock-face base)))
   "Template for a CTCP ACTION status message from current client.")
 
 (defun erc--speakerize-nick (nick &optional disp)
@@ -7399,7 +7497,7 @@ complement relevant letters in STRING."
                t))
             ((not fallbackp)
              (erc-display-message nil '(notice error) (erc-server-buffer)
-                                  (format "Unknown channel mode: %S" c)))))
+                                  'channel-mode-unknown ?c (string c)))))
     (setq erc-channel-modes (sort erc-channel-modes #'string<))
     (setq erc--mode-line-mode-string
           (concat "+" (erc--channel-modes erc--mode-line-chanmodes-arg-len)))
@@ -9330,6 +9428,7 @@ SOFTP, only do so when defined as a variable."
    (incorrect-args . "Incorrect arguments. Usage:\n%c %u\n%d")
    (cannot-find-file . "Cannot find file %f")
    (cannot-read-file . "Cannot read file %f")
+   (channel-mode-unknown . "Unknown channel mode: %c")
    (connect . "Connecting to %S:%p... ")
    (country . "%c")
    (country-unknown . "%d: No such domain")
@@ -9350,6 +9449,7 @@ SOFTP, only do so when defined as a variable."
    (finished . "\n\n*** ERC finished ***\n")
    (terminated . "\n\n*** ERC terminated: %e\n")
    (login . "Logging in as `%n'...")
+   (graft . "Grafting buffer `%n' onto `%o'...") ; {new} onto {old}
    (nick-in-use . "%n is in use. Choose new nickname: ")
    (nick-too-long
     . "WARNING: Nick length (%i) exceeds max NICKLEN(%l) defined by server")
@@ -9522,7 +9622,7 @@ See also `format-spec'."
   :type 'hook)
 
 (defcustom erc-kill-channel-hook
-  '(erc-kill-channel
+  '(erc-part-channel-on-kill
     erc-networks-shrink-ids-and-buffer-names
     erc-networks-rename-surviving-target-buffer)
   "Invoked whenever a channel-buffer is killed via `kill-buffer'."
@@ -9583,10 +9683,13 @@ This function should be on `erc-kill-server-hook'."
     (setq erc-server-quitting t)
     (erc-server-send (format "QUIT :%s" (funcall erc-quit-reason nil)))))
 
-(defun erc-kill-channel ()
-  "Sends a PART command to the server when the channel buffer is killed.
-This function should be on `erc-kill-channel-hook'."
-  (when (erc-server-process-alive)
+(define-obsolete-function-alias 'erc-kill-channel #'erc-part-channel-on-kill
+  "30.1")
+(defun erc-part-channel-on-kill ()
+  "Send a \"PART\" when killing a channel buffer."
+  (when (and (not erc-killing-buffer-on-part-p)
+             (not erc-networks--target-transplant-in-progress-p)
+             (erc-server-process-alive))
     (let ((tgt (erc-default-target)))
       (if tgt
          (erc-server-send (format "PART %s :%s" tgt

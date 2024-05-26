@@ -1068,17 +1068,15 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
 	  ;; Filter entries.
 	  (setq entries
-		(delq
-		 nil
 		 (if (or wildcard (string-empty-p base))
 		     ;; Check for matching entries.
-		     (mapcar
+		     (tramp-compat-seq-keep
 		      (lambda (x)
 			(when (string-match-p (rx bol (literal base)) (nth 0 x))
 			  x))
 		      entries)
 		   ;; We just need the only and only entry FILENAME.
-		   (list (assoc base entries)))))
+		   (list (assoc base entries))))
 
 	  ;; Sort entries.
 	  (setq entries
@@ -1233,7 +1231,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	 ((car destination)
 	  (setq outbuf (current-buffer))))
 	;; stderr.
-	(tramp-message v 2 "%s" "STDERR not supported"))
+	(tramp-warning v "%s" "STDERR not supported"))
        ;; 't
        (destination
 	(setq outbuf (current-buffer))))

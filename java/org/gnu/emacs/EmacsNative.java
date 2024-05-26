@@ -36,12 +36,6 @@ public final class EmacsNative
   private static final String[] libraryDeps;
 
 
-  /* Like `dup' in C.  */
-  public static native int dup (int fd);
-
-  /* Like `close' in C.  */
-  public static native int close (int fd);
-
   /* Obtain the fingerprint of this build of Emacs.  The fingerprint
      can be used to determine the dump file name.  */
   public static native String getFingerprint ();
@@ -108,92 +102,92 @@ public final class EmacsNative
 
   /* Send an ANDROID_CONFIGURE_NOTIFY event.  The values of all the
      functions below are the serials of the events sent.  */
-  public static native long sendConfigureNotify (short window, long time,
+  public static native long sendConfigureNotify (long window, long time,
 						 int x, int y, int width,
 						 int height);
 
   /* Send an ANDROID_KEY_PRESS event.  */
-  public static native long sendKeyPress (short window, long time, int state,
+  public static native long sendKeyPress (long window, long time, int state,
 					  int keyCode, int unicodeChar);
 
   /* Send an ANDROID_KEY_RELEASE event.  */
-  public static native long sendKeyRelease (short window, long time, int state,
+  public static native long sendKeyRelease (long window, long time, int state,
 					    int keyCode, int unicodeChar);
 
   /* Send an ANDROID_FOCUS_IN event.  */
-  public static native long sendFocusIn (short window, long time);
+  public static native long sendFocusIn (long window, long time);
 
   /* Send an ANDROID_FOCUS_OUT event.  */
-  public static native long sendFocusOut (short window, long time);
+  public static native long sendFocusOut (long window, long time);
 
   /* Send an ANDROID_WINDOW_ACTION event.  */
-  public static native long sendWindowAction (short window, int action);
+  public static native long sendWindowAction (long window, int action);
 
   /* Send an ANDROID_ENTER_NOTIFY event.  */
-  public static native long sendEnterNotify (short window, int x, int y,
+  public static native long sendEnterNotify (long window, int x, int y,
 					     long time);
 
   /* Send an ANDROID_LEAVE_NOTIFY event.  */
-  public static native long sendLeaveNotify (short window, int x, int y,
+  public static native long sendLeaveNotify (long window, int x, int y,
 					     long time);
 
   /* Send an ANDROID_MOTION_NOTIFY event.  */
-  public static native long sendMotionNotify (short window, int x, int y,
+  public static native long sendMotionNotify (long window, int x, int y,
 					      long time);
 
   /* Send an ANDROID_BUTTON_PRESS event.  */
-  public static native long sendButtonPress (short window, int x, int y,
+  public static native long sendButtonPress (long window, int x, int y,
 					     long time, int state,
 					     int button);
 
   /* Send an ANDROID_BUTTON_RELEASE event.  */
-  public static native long sendButtonRelease (short window, int x, int y,
+  public static native long sendButtonRelease (long window, int x, int y,
 					       long time, int state,
 					       int button);
 
   /* Send an ANDROID_TOUCH_DOWN event.  */
-  public static native long sendTouchDown (short window, int x, int y,
+  public static native long sendTouchDown (long window, int x, int y,
 					   long time, int pointerID,
 					   int flags);
 
   /* Send an ANDROID_TOUCH_UP event.  */
-  public static native long sendTouchUp (short window, int x, int y,
+  public static native long sendTouchUp (long window, int x, int y,
 					 long time, int pointerID,
 					 int flags);
 
   /* Send an ANDROID_TOUCH_MOVE event.  */
-  public static native long sendTouchMove (short window, int x, int y,
+  public static native long sendTouchMove (long window, int x, int y,
 					   long time, int pointerID,
 					   int flags);
 
   /* Send an ANDROID_WHEEL event.  */
-  public static native long sendWheel (short window, int x, int y,
+  public static native long sendWheel (long window, int x, int y,
 				       long time, int state,
 				       float xDelta, float yDelta);
 
   /* Send an ANDROID_ICONIFIED event.  */
-  public static native long sendIconified (short window);
+  public static native long sendIconified (long window);
 
   /* Send an ANDROID_DEICONIFIED event.  */
-  public static native long sendDeiconified (short window);
+  public static native long sendDeiconified (long window);
 
   /* Send an ANDROID_CONTEXT_MENU event.  */
-  public static native long sendContextMenu (short window, int menuEventID,
+  public static native long sendContextMenu (long window, int menuEventID,
 					     int menuEventSerial);
 
   /* Send an ANDROID_EXPOSE event.  */
-  public static native long sendExpose (short window, int x, int y,
+  public static native long sendExpose (long window, int x, int y,
 					int width, int height);
 
   /* Send an ANDROID_DND_DRAG event.  */
-  public static native long sendDndDrag (short window, int x, int y);
+  public static native long sendDndDrag (long window, int x, int y);
 
   /* Send an ANDROID_DND_URI event.  */
-  public static native long sendDndUri (short window, int x, int y,
+  public static native long sendDndUri (long window, int x, int y,
 					String text);
 
   /* Send an ANDROID_DND_TEXT event.  */
-  public static native long sendDndText (short window, int x, int y,
+  public static native long sendDndText (long window, int x, int y,
 					 String text);
 
   /* Send an ANDROID_NOTIFICATION_CANCELED event.  */
@@ -228,6 +222,10 @@ public final class EmacsNative
      be prevented from reaching the system input method.  */
   public static native boolean shouldForwardCtrlSpace ();
 
+  /* Return the keycode repeated activation of which should signal
+     quit.  */
+  public static native int getQuitKeycode ();
+
   /* Initialize the current thread, by blocking signals that do not
      interest it.  */
   public static native void setupSystemThread ();
@@ -237,48 +235,48 @@ public final class EmacsNative
   /* Input connection functions.  These mostly correspond to their
      counterparts in Android's InputConnection.  */
 
-  public static native void beginBatchEdit (short window);
-  public static native void endBatchEdit (short window);
-  public static native void commitCompletion (short window, String text,
+  public static native void beginBatchEdit (long window);
+  public static native void endBatchEdit (long window);
+  public static native void commitCompletion (long window, String text,
 					      int position);
-  public static native void commitText (short window, String text,
+  public static native void commitText (long window, String text,
 					int position);
-  public static native void deleteSurroundingText (short window,
+  public static native void deleteSurroundingText (long window,
 						   int leftLength,
 						   int rightLength);
-  public static native void finishComposingText (short window);
-  public static native void replaceText (short window, int start, int end,
+  public static native void finishComposingText (long window);
+  public static native void replaceText (long window, int start, int end,
 					 String text, int newCursorPosition,
 					 TextAttribute attributes);
-  public static native String getSelectedText (short window, int flags);
-  public static native String getTextAfterCursor (short window, int length,
+  public static native String getSelectedText (long window, int flags);
+  public static native String getTextAfterCursor (long window, int length,
 						  int flags);
-  public static native String getTextBeforeCursor (short window, int length,
+  public static native String getTextBeforeCursor (long window, int length,
 						   int flags);
-  public static native void setComposingText (short window, String text,
+  public static native void setComposingText (long window, String text,
 					      int newCursorPosition);
-  public static native void setComposingRegion (short window, int start,
+  public static native void setComposingRegion (long window, int start,
 						int end);
-  public static native void setSelection (short window, int start, int end);
-  public static native void performEditorAction (short window,
+  public static native void setSelection (long window, int start, int end);
+  public static native void performEditorAction (long window,
 						 int editorAction);
-  public static native void performContextMenuAction (short window,
+  public static native void performContextMenuAction (long window,
 						      int contextMenuAction);
-  public static native ExtractedText getExtractedText (short window,
+  public static native ExtractedText getExtractedText (long window,
 						       ExtractedTextRequest req,
 						       int flags);
-  public static native void requestSelectionUpdate (short window);
-  public static native void requestCursorUpdates (short window, int mode);
-  public static native void clearInputFlags (short window);
-  public static native SurroundingText getSurroundingText (short window,
+  public static native void requestSelectionUpdate (long window);
+  public static native void requestCursorUpdates (long window, int mode);
+  public static native void clearInputFlags (long window);
+  public static native SurroundingText getSurroundingText (long window,
 							   int left, int right,
 							   int flags);
-  public static native TextSnapshot takeSnapshot (short window);
+  public static native TextSnapshot takeSnapshot (long window);
 
 
   /* Return the current value of the selection, or -1 upon
      failure.  */
-  public static native int[] getSelection (short window);
+  public static native int[] getSelection (long window);
 
 
   /* Graphics functions used as replacements for potentially buggy
@@ -321,39 +319,35 @@ public final class EmacsNative
 
   static
   {
-    /* Older versions of Android cannot link correctly with shared
-       libraries that link with other shared libraries built along
-       Emacs unless all requisite shared libraries are explicitly
-       loaded from Java.
+    /* A library search path misconfiguration prevents older versions of
+       Android from successfully loading application shared libraries
+       unless all requisite shared libraries provided by the application
+       are explicitly loaded from Java.  The build process arranges that
+       EmacsConfig.EMACS_SHARED_LIBRARIES hold the names of each of
+       these libraries in the correct order, so load them now.  */
 
-       Every time you add a new shared library dependency to Emacs,
-       please add it here as well.  */
-
-    libraryDeps = new String[] { "c++_shared", "gnustl_shared",
-				 "stlport_shared", "gabi++_shared",
-				 "png_emacs", "selinux_emacs",
-				 "crypto_emacs", "pcre_emacs",
-				 "packagelistparser_emacs",
-				 "gnutls_emacs", "gmp_emacs",
-				 "nettle_emacs", "p11-kit_emacs",
-				 "tasn1_emacs", "hogweed_emacs",
-				 "jpeg_emacs",
-				 "tiff_emacs", "xml2_emacs",
-				 "icuuc_emacs", "harfbuzz_emacs",
-				 "tree-sitter_emacs", };
+    libraryDeps = EmacsConfig.EMACS_SHARED_LIBRARIES;
 
     for (String dependency : libraryDeps)
       {
-	try
-	  {
-	    System.loadLibrary (dependency);
-	  }
-	catch (UnsatisfiedLinkError exception)
-	  {
-	    /* Ignore this exception.  */
-	  }
+	/* Remove the "lib" prefix, if any.  */
+	if (dependency.startsWith ("lib"))
+	  dependency = dependency.substring (3);
+
+	/* If this library is provided by the operating system, don't
+	   link to it.  */
+	if (dependency.equals ("z")
+	    || dependency.equals ("c")
+	    || dependency.equals ("m")
+	    || dependency.equals ("dl")
+	    || dependency.equals ("log")
+	    || dependency.equals ("android"))
+	  continue;
+
+	System.loadLibrary (dependency);
       }
 
+    /* At this point, it should be alright to load Emacs.  */
     System.loadLibrary ("emacs");
   };
 };

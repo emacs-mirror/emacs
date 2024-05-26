@@ -105,7 +105,7 @@ This is only used if `mm-inline-large-images' is set to
      (lambda ()
        (let ((inhibit-read-only t))
 	 (remove-images b b)
-	 (delete-region b (1+ b)))))))
+	 (delete-region b (+ b 2)))))))
 
 (defvar mm-w3m-setup nil
   "Whether gnus-article-mode has been setup to use emacs-w3m.")

@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "lisp.h"
 #include "android.h"
@@ -211,18 +212,90 @@ android_set_parent_frame (struct frame *f, Lisp_Object new_value,
   FRAME_TERMINAL (f)->fullscreen_hook (f);
 }
 
+/* Set the WM name to NAME for frame F. Also set the icon name.
+   If the frame already has an icon name, use that, otherwise set the
+   icon name to NAME.  */
+
+static void
+android_set_name_internal (struct frame *f, Lisp_Object name)
+{
+  jstring java_name;
+
+  if (FRAME_ANDROID_WINDOW (f))
+    {
+      java_name = android_build_string (name, NULL);
+      android_set_wm_name (FRAME_ANDROID_WINDOW (f), java_name);
+      ANDROID_DELETE_LOCAL_REF (java_name);
+    }
+}
+
+/* Change the name of frame F to NAME.  If NAME is nil, set F's name to
+       x_id_name.
+
+   If EXPLICIT is true, that indicates that lisp code is setting the
+       name; if NAME is a string, set F's name to NAME and set
+       F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
+
+   If EXPLICIT is false, that indicates that Emacs redisplay code is
+       suggesting a new name, which lisp code should override; if
+       F->explicit_name is set, ignore the new name; otherwise, set it.  */
+
+static void
+android_set_name (struct frame *f, Lisp_Object name, bool explicit)
+{
+  /* Make sure that requests from lisp code override requests from
+     Emacs redisplay code.  */
+  if (explicit)
+    {
+      /* If we're switching from explicit to implicit, we had better
+	 update the mode lines and thereby update the title.  */
+      if (f->explicit_name && NILP (name))
+	update_mode_lines = 37;
+
+      f->explicit_name = ! NILP (name);
+    }
+  else if (f->explicit_name)
+    return;
+
+  /* If NAME is nil, set the name to the x_id_name.  */
+  if (NILP (name))
+    {
+      /* Check for no change needed in this very common case
+	 before we do any consing.  */
+      if (!strcmp (FRAME_DISPLAY_INFO (f)->x_id_name,
+		   SSDATA (f->name)))
+	return;
+      name = build_string (FRAME_DISPLAY_INFO (f)->x_id_name);
+    }
+  else
+    CHECK_STRING (name);
+
+  /* Don't change the name if it's already NAME.  */
+  if (! NILP (Fstring_equal (name, f->name)))
+    return;
+
+  fset_name (f, name);
+
+  /* For setting the frame title, the title parameter should override
+     the name parameter.  */
+  if (! NILP (f->title))
+    name = f->title;
+
+  android_set_name_internal (f, name);
+}
+
 void
 android_implicitly_set_name (struct frame *f, Lisp_Object arg,
 			     Lisp_Object oldval)
 {
-
+  android_set_name (f, arg, false);
 }
 
 void
 android_explicitly_set_name (struct frame *f, Lisp_Object arg,
 			     Lisp_Object oldval)
 {
-
+  android_set_name (f, arg, true);
 }
 
 /* Set the number of lines used for the tool bar of frame F to VALUE.
@@ -1202,7 +1275,10 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
-  return Qt;
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = check_android_display_info (terminal);
+  return dpyinfo->n_planes > 8 ? Qt : Qnil;
 }
 
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
@@ -1210,7 +1286,11 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
-  return Qnil;
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = check_android_display_info (terminal);
+  return (dpyinfo->n_planes > 1 && dpyinfo->n_planes <= 8
+	  ? Qt : Qnil);
 }
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width,
@@ -1345,7 +1425,12 @@ DEFUN ("x-display-visual-class", Fx_display_visual_class,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
-  check_android_display_info (terminal);
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = check_android_display_info (terminal);
+
+  if (dpyinfo->n_planes < 24)
+    return Qstatic_gray;
 
   return Qtrue_color;
 }
@@ -1805,7 +1890,16 @@ Android, so there is no equivalent of `x-open-connection'.  */)
   terminal = Qnil;
 
   if (x_display_list)
-    XSETTERMINAL (terminal, x_display_list->terminal);
+    {
+      XSETTERMINAL (terminal, x_display_list->terminal);
+
+      /* Update the display's bit depth from
+	 `android_display_planes'.  */
+      x_display_list->n_planes
+	= (android_display_planes > 8
+	   ? 24 : (android_display_planes > 1
+		   ? android_display_planes : 1));
+    }
 
   return terminal;
 #endif
@@ -2967,6 +3061,8 @@ android_set_title (struct frame *f, Lisp_Object name,
     name = f->name;
   else
     CHECK_STRING (name);
+
+  android_set_name_internal (f, name);
 }
 
 static void
@@ -3479,6 +3575,7 @@ syms_of_androidfns (void)
 {
   /* Miscellaneous symbols used by some functions here.  */
   DEFSYM (Qtrue_color, "true-color");
+  DEFSYM (Qstatic_gray, "static-color");
   DEFSYM (Qwhen_mapped, "when-mapped");
 
   DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,

@@ -141,12 +141,21 @@ This exists as a variable so it can be set locally in certain buffers.")
 			 :background "dim gray"
                          :box (:line-width (1 . -1) :color "gray46")
 			 :extend t)
+                        ;; Monochrome displays.
+                        (((background light))
+                         :background "white"
+                         :box (:line-width (1 . -1) :color "black")
+			 :extend t)
+                        (((background dark))
+                         :background "black"
+                         :box (:line-width (1 . -1) :color "white")
+			 :extend t)
 			(t
 			 :slant italic
 			 :extend t))
   "Face used for editable fields."
   :group 'widget-faces
-  :version "28.1")
+  :version "30.1")
 
 (defface widget-single-line-field '((((type tty))
 				     :background "green3"
@@ -157,6 +166,10 @@ This exists as a variable so it can be set locally in certain buffers.")
 				    (((class grayscale color)
 				      (background dark))
 				     :background "dim gray")
+                                    ;; Monochrome displays.
+                                    (((background light))
+                                     :stipple "gray3"
+			             :extend t)
 				    (t
 				     :slant italic))
   "Face used for editable fields spanning only a single line."
@@ -1140,7 +1153,7 @@ If nothing was called, return non-nil."
                                 (when (and mouse-1 (mouse-movement-p event))
                                   (push event unread-command-events)
                                   (setq event oevent)
-                                  (throw 'button-press-cancelled t))
+                                  (throw 'button-press-cancelled nil))
                                 (unless (or (integerp event)
                                             (memq (car event)
                                                   '(switch-frame select-window))
@@ -1300,9 +1313,9 @@ nothing is shown in the echo area."
 	  (unless (eq new old)
 	    (setq arg (1+ arg))))))
     (let ((new (widget-tabable-at)))
-      (while (eq (widget-tabable-at) new)
+      (while (and (eq (widget-tabable-at) new) (not (bobp)))
 	(backward-char)))
-    (forward-char))
+    (unless (bobp) (forward-char)))
   (unless suppress-echo
     (widget-echo-help (point)))
   (run-hooks 'widget-move-hook))

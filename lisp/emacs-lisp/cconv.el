@@ -902,7 +902,7 @@ lexically and dynamically bound symbols actually used by FORM."
                                     (delete-dups cconv--dynbindings)))))
         (cons fvs dyns)))))
 
-(defun cconv-make-interpreted-closure (fun env)
+(defun cconv-make-interpreted-closure (args body env docstring iform)
   "Make a closure for the interpreter.
 This is intended to be called at runtime by the ELisp interpreter (when
 the code has not been compiled).
@@ -911,22 +911,27 @@ ENV is the runtime representation of the lexical environment,
 i.e. a list whose elements can be either plain symbols (which indicate
 that this symbol should use dynamic scoping) or pairs (SYMBOL . VALUE)
 for the lexical bindings."
-  (cl-assert (eq (car-safe fun) 'lambda))
+  (cl-assert (consp body))
+  (cl-assert (listp args))
   (let ((lexvars (delq nil (mapcar #'car-safe env))))
-    (if (or (null lexvars)
-            ;; Functions with a `:closure-dont-trim-context' marker
-            ;; should keep their whole context untrimmed (bug#59213).
-            (and (eq :closure-dont-trim-context (nth 2 fun))
-                 ;; Check the function doesn't just return the magic keyword.
-                 (nthcdr 3 fun)))
+    (if (or
+         ;; Functions with a `:closure-dont-trim-context' marker
+         ;; should keep their whole context untrimmed (bug#59213).
+         (and (eq :closure-dont-trim-context (car body))
+              ;; Check the function doesn't just return the magic keyword.
+              (cdr body)
+              ;; Drop the magic marker from the closure.
+              (setq body (cdr body)))
+         ;; There's no var to capture, so skip the analysis.
+         (null lexvars))
         ;; The lexical environment is empty, or needs to be preserved,
         ;; so there's no need to look for free variables.
-        ;; Attempting to replace ,(cdr fun) by a macroexpanded version
-        ;; causes bootstrap to fail.
-        `(closure ,env . ,(cdr fun))
+        ;; Attempting to replace body by a macroexpanded version
+        ;; caused bootstrap to fail.
+        (make-interpreted-closure args body env docstring iform)
       ;; We could try and cache the result of the macroexpansion and
       ;; `cconv-fv' analysis.  Not sure it's worth the trouble.
-      (let* ((form `#',fun)
+      (let* ((form `#'(lambda ,args ,iform . ,body))
              (expanded-form
               (let ((lexical-binding t) ;; Tell macros which dialect is in use.
 	            ;; Make the macro aware of any defvar declarations in scope.
@@ -935,10 +940,10 @@ for the lexical bindings."
                          (append env macroexp--dynvars) env)))
                 (macroexpand-all form macroexpand-all-environment)))
              ;; Since we macroexpanded the body, we may as well use that.
-             (expanded-fun-cdr
+             (expanded-fun-body
               (pcase expanded-form
-                (`#'(lambda . ,cdr) cdr)
-                (_ (cdr fun))))
+                (`#'(lambda ,_args ,_iform . ,newbody) newbody)
+                (_ body)))
 
              (dynvars (delq nil (mapcar (lambda (b) (if (symbolp b) b)) env)))
              (fvs (cconv-fv expanded-form lexvars dynvars))
@@ -946,7 +951,8 @@ for the lexical bindings."
                             (cdr fvs))))
         ;; Never return a nil env, since nil means to use the dynbind
         ;; dialect of ELisp.
-        `(closure ,(or newenv '(t)) . ,expanded-fun-cdr)))))
+        (make-interpreted-closure args expanded-fun-body (or newenv '(t))
+                                  docstring iform)))))
 
 
 (provide 'cconv)

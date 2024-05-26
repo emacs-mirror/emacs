@@ -1,4 +1,5 @@
-# mbstate_t.m4 serial 14
+# mbstate_t.m4
+# serial 14
 dnl Copyright (C) 2000-2002, 2008-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,

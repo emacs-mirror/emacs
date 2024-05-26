@@ -682,10 +682,10 @@ malloc_warning (const char *str)
 void
 display_malloc_warning (void)
 {
-  call3 (intern ("display-warning"),
-	 intern ("alloc"),
+  call3 (Qdisplay_warning,
+	 Qalloc,
 	 build_string (pending_malloc_warning),
-	 intern (":emergency"));
+	 QCemergency);
   pending_malloc_warning = 0;
 }
 
@@ -3556,7 +3556,7 @@ cleanup_vector (struct Lisp_Vector *vector)
     case PVEC_XWIDGET_VIEW:
     case PVEC_TS_NODE:
     case PVEC_SQLITE:
-    case PVEC_COMPILED:
+    case PVEC_CLOSURE:
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
@@ -3909,18 +3909,18 @@ stack before executing the byte-code.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  if (! ((FIXNUMP (args[COMPILED_ARGLIST])
-	  || CONSP (args[COMPILED_ARGLIST])
-	  || NILP (args[COMPILED_ARGLIST]))
-	 && STRINGP (args[COMPILED_BYTECODE])
-	 && !STRING_MULTIBYTE (args[COMPILED_BYTECODE])
-	 && VECTORP (args[COMPILED_CONSTANTS])
-	 && FIXNATP (args[COMPILED_STACK_DEPTH])))
+  if (! ((FIXNUMP (args[CLOSURE_ARGLIST])
+	  || CONSP (args[CLOSURE_ARGLIST])
+	  || NILP (args[CLOSURE_ARGLIST]))
+	 && STRINGP (args[CLOSURE_CODE])
+	 && !STRING_MULTIBYTE (args[CLOSURE_CODE])
+	 && VECTORP (args[CLOSURE_CONSTANTS])
+	 && FIXNATP (args[CLOSURE_STACK_DEPTH])))
     error ("Invalid byte-code object");
 
 #ifndef HAVE_MPS
   /* Bytecode must be immovable.  */
-  pin_string (args[COMPILED_BYTECODE]);
+  pin_string (args[CLOSURE_CODE]);
 #endif
 
   /* We used to purecopy everything here, if purify-flag was set.  This worked
@@ -3931,7 +3931,7 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
      just wasteful and other times plainly wrong (e.g. those free vars may want
      to be setcar'd).  */
   Lisp_Object val = Fvector (nargs, args);
-  XSETPVECTYPE (XVECTOR (val), PVEC_COMPILED);
+  XSETPVECTYPE (XVECTOR (val), PVEC_CLOSURE);
   return val;
 }
 
@@ -3943,12 +3943,12 @@ usage: (make-closure PROTOTYPE &rest CLOSURE-VARS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object protofun = args[0];
-  CHECK_TYPE (COMPILEDP (protofun), Qbyte_code_function_p, protofun);
+  CHECK_TYPE (CLOSUREP (protofun), Qbyte_code_function_p, protofun);
 
   /* Create a copy of the constant vector, filling it with the closure
      variables in the beginning.  (The overwritten part should just
      contain placeholder values.) */
-  Lisp_Object proto_constvec = AREF (protofun, COMPILED_CONSTANTS);
+  Lisp_Object proto_constvec = AREF (protofun, CLOSURE_CONSTANTS);
   ptrdiff_t constsize = ASIZE (proto_constvec);
   ptrdiff_t nvars = nargs - 1;
   if (nvars > constsize)
@@ -3968,7 +3968,7 @@ usage: (make-closure PROTOTYPE &rest CLOSURE-VARS) */)
 #endif
   v->header = XVECTOR (protofun)->header;
   memcpy (v->contents, XVECTOR (protofun)->contents, protosize * word_size);
-  v->contents[COMPILED_CONSTANTS] = constvec;
+  v->contents[CLOSURE_CONSTANTS] = constvec;
   return make_lisp_ptr (v, Lisp_Vectorlike);
 }
 
@@ -6215,7 +6215,7 @@ purecopy (Lisp_Object obj)
 
       obj = make_lisp_hash_table (purecopy_hash_table (table));
     }
-  else if (COMPILEDP (obj) || VECTORP (obj) || RECORDP (obj))
+  else if (CLOSUREP (obj) || VECTORP (obj) || RECORDP (obj))
     {
       struct Lisp_Vector *objp = XVECTOR (obj);
       ptrdiff_t nbytes = vector_nbytes (objp);
@@ -6229,7 +6229,7 @@ purecopy (Lisp_Object obj)
 	vec->contents[i] = purecopy (vec->contents[i]);
 #ifndef HAVE_MPS
       /* Byte code strings must be pinned.  */
-      if (COMPILEDP (obj) && size >= 2 && STRINGP (vec->contents[1])
+      if (CLOSUREP (obj) && size >= 2 && STRINGP (vec->contents[1])
 	  && !STRING_MULTIBYTE (vec->contents[1]))
 	pin_string (vec->contents[1]);
 #endif
@@ -7280,6 +7280,7 @@ mark_frame (struct Lisp_Vector *ptr)
   mark_object (f->conversion.compose_region_start);
   mark_object (f->conversion.compose_region_end);
   mark_object (f->conversion.compose_region_overlay);
+  mark_object (f->conversion.field);
 
   for (tem = f->conversion.actions; tem; tem = tem->next)
     mark_object (tem->data);
@@ -8254,11 +8255,11 @@ symbol_uses_obj (Lisp_Object symbol, Lisp_Object obj)
   return (EQ (val, obj)
 	  || EQ (sym->u.s.function, obj)
 	  || (!NILP (sym->u.s.function)
-	      && COMPILEDP (sym->u.s.function)
-	      && EQ (AREF (sym->u.s.function, COMPILED_BYTECODE), obj))
+	      && CLOSUREP (sym->u.s.function)
+	      && EQ (AREF (sym->u.s.function, CLOSURE_CODE), obj))
 	  || (!NILP (val)
-	      && COMPILEDP (val)
-	      && EQ (AREF (val, COMPILED_BYTECODE), obj)));
+	      && CLOSUREP (val)
+	      && EQ (AREF (val, CLOSURE_CODE), obj)));
 }
 #endif
 
@@ -8564,6 +8565,8 @@ N should be nonnegative.  */);
   XSETSUBR (watcher, &Swatch_gc_cons_percentage.s);
   Fadd_variable_watcher (Qgc_cons_percentage, watcher);
 #endif
+  DEFSYM (Qalloc, "alloc");
+  DEFSYM (QCemergency, ":emergency");
 }
 
 #ifdef HAVE_MPS
@@ -8587,7 +8590,7 @@ enum defined_HAVE_PGTK { defined_HAVE_PGTK = false };
    then xbacktrace could fail.  Similarly for the other enums and
    their values.  Some non-GCC compilers don't like these constructs.  */
 #ifdef __GNUC__
-union
+extern union enums_for_gdb
 {
   enum CHARTAB_SIZE_BITS CHARTAB_SIZE_BITS;
   enum char_table_specials char_table_specials;
@@ -8595,12 +8598,13 @@ union
   enum CHECK_LISP_OBJECT_TYPE CHECK_LISP_OBJECT_TYPE;
   enum DEFAULT_HASH_SIZE DEFAULT_HASH_SIZE;
   enum Lisp_Bits Lisp_Bits;
-  enum Lisp_Compiled Lisp_Compiled;
+  enum Lisp_Closure Lisp_Closure;
   enum maxargs maxargs;
   enum MAX_ALLOCA MAX_ALLOCA;
   enum More_Lisp_Bits More_Lisp_Bits;
   enum pvec_type pvec_type;
   enum defined_HAVE_X_WINDOWS defined_HAVE_X_WINDOWS;
   enum defined_HAVE_PGTK defined_HAVE_PGTK;
-} const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
+} const gdb_make_enums_visible;
+union enums_for_gdb const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
 #endif	/* __GNUC__ */

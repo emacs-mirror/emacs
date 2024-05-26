@@ -47,7 +47,6 @@ Carbon version by Yamamoto Mitsuharu. */
 #endif
 
 
-extern long context_menu_value;
 EmacsMenu *svcsMenu;
 /* Nonzero means a menu is currently active.  */
 static int popup_activated_flag;

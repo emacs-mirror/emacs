@@ -353,7 +353,7 @@ struct pgtk_selection_request
 /* Stack of selections currently being processed.
    NULL if all requests have been fully processed.  */
 
-struct pgtk_selection_request *selection_request_stack;
+static struct pgtk_selection_request *selection_request_stack;
 
 static void
 pgtk_push_current_selection_request (struct selection_input_event *se,

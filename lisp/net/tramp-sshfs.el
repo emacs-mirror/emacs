@@ -67,9 +67,6 @@
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))))
 
- (add-to-list 'tramp-connection-properties
-	      `(,(format "/%s:" tramp-sshfs-method) "direct-async-process" t))
-
  (tramp-set-completion-function
   tramp-sshfs-method tramp-completion-function-alist-ssh))
 
@@ -444,6 +441,16 @@ connection if a previous connection has died for some reason."
 	vec "uid-string" (tramp-get-local-uid 'string))
     (with-tramp-connection-property
 	vec "gid-string" (tramp-get-local-gid 'string))))
+
+;; Default connection-local variables for Tramp.
+
+(connection-local-set-profile-variables
+ 'tramp-sshfs-connection-local-default-profile
+ '((tramp-direct-async-process t)))
+
+(connection-local-set-profiles
+ `(:application tramp :protocol ,tramp-sshfs-method)
+ 'tramp-sshfs-connection-local-default-profile)
 
 ;; `shell-mode' tries to open remote files like "/sshfs:user@host:~/.history".
 ;; This fails, because the tilde cannot be expanded.  Tell

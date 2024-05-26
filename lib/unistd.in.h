@@ -159,8 +159,9 @@
 #endif
 
 /* MSVC defines off_t in <sys/types.h>.
-   May also define off_t to a 64-bit type on native Windows.  */
-/* Get off_t, ssize_t, mode_t.  */
+   May also define off_t to a 64-bit type on native Windows.
+   Also defines off64_t on macOS, NetBSD, OpenBSD, MSVC, Cygwin, Haiku.  */
+/* Get off_t, off64_t, ssize_t, mode_t.  */
 #include <sys/types.h>
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
@@ -1933,11 +1934,7 @@ _GL_CXXALIASWARN (read);
 #   undef read
 #   define read _read
 #  endif
-#  ifdef __MINGW32__
-_GL_CXXALIAS_MDA (read, int, (int fd, void *buf, unsigned int count));
-#  else
-_GL_CXXALIAS_MDA (read, ssize_t, (int fd, void *buf, unsigned int count));
-#  endif
+_GL_CXXALIAS_MDA_CAST (read, ssize_t, (int fd, void *buf, unsigned int count));
 # else
 _GL_CXXALIAS_SYS (read, ssize_t, (int fd, void *buf, size_t count));
 # endif
@@ -2401,11 +2398,7 @@ _GL_CXXALIASWARN (write);
 #   undef write
 #   define write _write
 #  endif
-#  ifdef __MINGW32__
-_GL_CXXALIAS_MDA (write, int, (int fd, const void *buf, unsigned int count));
-#  else
-_GL_CXXALIAS_MDA (write, ssize_t, (int fd, const void *buf, unsigned int count));
-#  endif
+_GL_CXXALIAS_MDA_CAST (write, ssize_t, (int fd, const void *buf, unsigned int count));
 # else
 _GL_CXXALIAS_SYS (write, ssize_t, (int fd, const void *buf, size_t count));
 # endif

@@ -165,7 +165,7 @@ make_dom (xmlNode *node)
   else if (node->type == XML_COMMENT_NODE)
     {
       if (node->content)
-	return list3 (intern ("comment"), Qnil,
+	return list3 (Qcomment, Qnil,
 		      build_string ((char *) node->content));
       else
 	return Qnil;
@@ -353,4 +353,6 @@ syms_of_xml (void)
   defsubr (&Slibxml_parse_xml_region);
 #endif
   defsubr (&Slibxml_available_p);
+
+  DEFSYM (Qcomment, "comment");
 }

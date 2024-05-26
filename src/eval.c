@@ -102,7 +102,14 @@ static Lisp_Object
 specpdl_where (union specbinding *pdl)
 {
   eassert (pdl->kind > SPECPDL_LET);
-  return pdl->let.where;
+  return pdl->let.where.buf;
+}
+
+static KBOARD *
+specpdl_kboard (union specbinding *pdl)
+{
+  eassert (pdl->kind == SPECPDL_LET);
+  return pdl->let.where.kbd;
 }
 
 #ifndef HAVE_MPS
@@ -299,7 +306,7 @@ call_debugger (Lisp_Object arg)
      displayed if the debugger is invoked during redisplay.  */
   debug_while_redisplaying = redisplaying_p;
   redisplaying_p = 0;
-  specbind (intern ("debugger-may-continue"),
+  specbind (Qdebugger_may_continue,
 	    debug_while_redisplaying ? Qnil : Qt);
   specbind (Qinhibit_redisplay, Qnil);
   specbind (Qinhibit_debugger, Qt);
@@ -517,6 +524,41 @@ usage: (quote ARG)  */)
   return XCAR (args);
 }
 
+DEFUN ("make-interpreted-closure", Fmake_interpreted_closure,
+       Smake_interpreted_closure, 3, 5, 0,
+       doc: /* Make an interpreted closure.
+ARGS should be the list of formal arguments.
+BODY should be a non-empty list of forms.
+ENV should be a lexical environment, like the second argument of `eval'.
+IFORM if non-nil should be of the form (interactive ...).  */)
+  (Lisp_Object args, Lisp_Object body, Lisp_Object env,
+   Lisp_Object docstring, Lisp_Object iform)
+{
+  Lisp_Object ifcdr, value, slots[6];
+
+  CHECK_CONS (body);          /* Make sure it's not confused with byte-code! */
+  CHECK_LIST (args);
+  CHECK_LIST (iform);
+  ifcdr = CDR (iform);
+  if (NILP (CDR (ifcdr)))
+    value = CAR (ifcdr);
+  else
+    value = CALLN (Fvector, XCAR (ifcdr), XCDR (ifcdr));
+  slots[0] = args;
+  slots[1] = body;
+  slots[2] = env;
+  slots[3] = Qnil;
+  slots[4] = docstring;
+  slots[5] = value;
+  /* Adjusting the size is indispensable since, as for byte-code objects,
+     we distinguish interactive functions by the presence or absence of the
+     iform slot.  */
+  Lisp_Object val
+    = Fvector (!NILP (iform) ? 6 : !NILP (docstring) ? 5 : 3, slots);
+  XSETPVECTYPE (XVECTOR (val), PVEC_CLOSURE);
+  return val;
+}
+
 DEFUN ("function", Ffunction, Sfunction, 1, UNEVALLED, 0,
        doc: /* Like `quote', but preferred for objects which are functions.
 In byte compilation, `function' causes its argument to be handled by
@@ -532,33 +574,55 @@ usage: (function ARG)  */)
   if (!NILP (XCDR (args)))
     xsignal2 (Qwrong_number_of_arguments, Qfunction, Flength (args));
 
-  if (!NILP (Vinternal_interpreter_environment)
-      && CONSP (quoted)
+  if (CONSP (quoted)
       && EQ (XCAR (quoted), Qlambda))
     { /* This is a lambda expression within a lexical environment;
 	 return an interpreted closure instead of a simple lambda.  */
       Lisp_Object cdr = XCDR (quoted);
-      Lisp_Object tmp = cdr;
-      if (CONSP (tmp)
-	  && (tmp = XCDR (tmp), CONSP (tmp))
-	  && (tmp = XCAR (tmp), CONSP (tmp))
-	  && (EQ (QCdocumentation, XCAR (tmp))))
-	{ /* Handle the special (:documentation <form>) to build the docstring
+      Lisp_Object args = Fcar (cdr);
+      cdr = Fcdr (cdr);
+      Lisp_Object docstring = Qnil, iform = Qnil;
+      if (CONSP (cdr))
+        {
+          docstring = XCAR (cdr);
+          if (STRINGP (docstring))
+            {
+              Lisp_Object tmp = XCDR (cdr);
+              if (!NILP (tmp))
+                cdr = tmp;
+              else     /* It's not a docstring, it's a return value.  */
+                docstring = Qnil;
+            }
+          /* Handle the special (:documentation <form>) to build the docstring
 	     dynamically.  */
-	  Lisp_Object docstring = eval_sub (Fcar (XCDR (tmp)));
-	  if (SYMBOLP (docstring) && !NILP (docstring))
-	    /* Hack for OClosures: Allow the docstring to be a symbol
-             * (the OClosure's type).  */
-	    docstring = Fsymbol_name (docstring);
-	  CHECK_STRING (docstring);
-	  cdr = Fcons (XCAR (cdr), Fcons (docstring, XCDR (XCDR (cdr))));
-	}
-      if (NILP (Vinternal_make_interpreted_closure_function))
-        return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, cdr));
+          else if (CONSP (docstring)
+                   && EQ (QCdocumentation, XCAR (docstring))
+                   && (docstring = eval_sub (Fcar (XCDR (docstring))),
+                       true))
+            cdr = XCDR (cdr);
+          else
+            docstring = Qnil;   /* Not a docstring after all.  */
+        }
+      if (CONSP (cdr))
+        {
+          iform = XCAR (cdr);
+          if (CONSP (iform)
+              && EQ (Qinteractive, XCAR (iform)))
+            cdr = XCDR (cdr);
+          else
+            iform = Qnil;   /* Not an interactive-form after all.  */
+        }
+      if (NILP (cdr))
+        cdr = Fcons (Qnil, Qnil); /* Make sure the body is never empty! */
+
+      if (NILP (Vinternal_interpreter_environment)
+          || NILP (Vinternal_make_interpreted_closure_function))
+        return Fmake_interpreted_closure
+            (args, cdr, Vinternal_interpreter_environment, docstring, iform);
       else
-        return call2 (Vinternal_make_interpreted_closure_function,
-                      Fcons (Qlambda, cdr),
-                      Vinternal_interpreter_environment);
+        return call5 (Vinternal_make_interpreted_closure_function,
+                      args, cdr, Vinternal_interpreter_environment,
+                      docstring, iform);
     }
   else
     /* Simply quote the argument.  */
@@ -626,12 +690,17 @@ signal a `cyclic-variable-indirection' error.  */)
   else if (!NILP (Fboundp (new_alias))
            && !EQ (find_symbol_value (new_alias),
                    find_symbol_value (base_variable)))
-    call2 (intern ("display-warning"),
-           list3 (Qdefvaralias, intern ("losing-value"), new_alias),
-           CALLN (Fformat_message,
-                  build_string
-                  ("Overwriting value of `%s' by aliasing to `%s'"),
-                  new_alias, base_variable));
+    {
+      Lisp_Object message, formatted;
+
+      message = build_string ("Overwriting value of `%s' by aliasing"
+			      " to `%s'");
+      formatted = CALLN (Fformat_message, message,
+			 new_alias, base_variable);
+      call2 (Qdisplay_warning,
+	     list3 (Qdefvaralias, Qlosing_value, new_alias),
+	     formatted);
+    }
 
   {
     union specbinding *p;
@@ -955,8 +1024,9 @@ usage: (let* VARLIST BODY...)  */)
 	  val = eval_sub (Fcar (XCDR (elt)));
 	}
 
-      if (!NILP (lexenv) && SYMBOLP (var)
-	  && !XSYMBOL (var)->u.s.declared_special
+      var = maybe_remove_pos_from_symbol (var);
+      if (!NILP (lexenv) && BARE_SYMBOL_P (var)
+	  && !XBARE_SYMBOL (var)->u.s.declared_special
 	  && NILP (Fmemq (var, Vinternal_interpreter_environment)))
 	/* Lexically bind VAR by adding it to the interpreter's binding
 	   alist.  */
@@ -1023,11 +1093,10 @@ usage: (let VARLIST BODY...)  */)
   varlist = XCAR (args);
   for (argnum = 0; argnum < nvars && CONSP (varlist); argnum++)
     {
-      Lisp_Object var;
-
       elt = XCAR (varlist);
       varlist = XCDR (varlist);
-      var = SYMBOLP (elt) ? elt : Fcar (elt);
+      Lisp_Object var = maybe_remove_pos_from_symbol (SYMBOLP (elt) ? elt
+						      : Fcar (elt));
       tem = temps[argnum];
 
       if (!NILP (lexenv) && SYMBOLP (var)
@@ -1194,6 +1263,12 @@ usage: (catch TAG BODY...)  */)
   Lisp_Object tag = eval_sub (XCAR (args));
   return internal_catch (tag, Fprogn, XCDR (args));
 }
+
+/* Work around GCC bug 61118
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61118>.  */
+#if GNUC_PREREQ (4, 9, 0)
+# pragma GCC diagnostic ignored "-Wclobbered"
+#endif
 
 /* Assert that E is true, but do not evaluate E.  Use this instead of
    eassert (E) when E contains variables that might be clobbered by a
@@ -1423,6 +1498,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
   struct handler *oldhandlerlist = handlerlist;
   ptrdiff_t CACHEABLE clausenb = 0;
 
+  var = maybe_remove_pos_from_symbol (var);
   CHECK_SYMBOL (var);
 
   Lisp_Object success_handler = Qnil;
@@ -2157,15 +2233,15 @@ then strings and vectors are not accepted.  */)
         return Qt;
     }
   /* Bytecode objects are interactive if they are long enough to
-     have an element whose index is COMPILED_INTERACTIVE, which is
+     have an element whose index is CLOSURE_INTERACTIVE, which is
      where the interactive spec is stored.  */
-  else if (COMPILEDP (fun))
+  else if (CLOSUREP (fun))
     {
-      if (PVSIZE (fun) > COMPILED_INTERACTIVE)
+      if (PVSIZE (fun) > CLOSURE_INTERACTIVE)
         return Qt;
-      else if (PVSIZE (fun) > COMPILED_DOC_STRING)
+      else if (PVSIZE (fun) > CLOSURE_DOC_STRING)
         {
-          Lisp_Object doc = AREF (fun, COMPILED_DOC_STRING);
+          Lisp_Object doc = AREF (fun, CLOSURE_DOC_STRING);
           /* An invalid "docstring" is a sign that we have an OClosure.  */
           genfun = !(NILP (doc) || VALID_DOCSTRING_P (doc));
         }
@@ -2199,15 +2275,12 @@ then strings and vectors are not accepted.  */)
       else
         {
           Lisp_Object body = CDR_SAFE (XCDR (fun));
-          if (EQ (funcar, Qclosure))
-            body = CDR_SAFE (body);
-          else if (!EQ (funcar, Qlambda))
+          if (!EQ (funcar, Qlambda))
 	    return Qnil;
 	  if (!NILP (Fassq (Qinteractive, body)))
 	    return Qt;
-	  else if (VALID_DOCSTRING_P (CAR_SAFE (body)))
-            /* A "docstring" is a sign that we may have an OClosure.  */
-	    genfun = true;
+	  else
+	    return Qnil;
 	}
     }
 
@@ -2576,7 +2649,7 @@ eval_sub (Lisp_Object form)
 	    }
 	}
     }
-  else if (COMPILEDP (fun)
+  else if (CLOSUREP (fun)
 	   || SUBR_NATIVE_COMPILED_DYNP (fun)
 	   || MODULE_FUNCTIONP (fun))
     return apply_lambda (fun, original_args, count);
@@ -2620,8 +2693,7 @@ eval_sub (Lisp_Object form)
 	  exp = unbind_to (count1, exp);
 	  val = eval_sub (exp);
 	}
-      else if (EQ (funcar, Qlambda)
-	       || EQ (funcar, Qclosure))
+      else if (EQ (funcar, Qlambda))
 	return apply_lambda (fun, original_args, count);
       else
 	xsignal1 (Qinvalid_function, original_fun);
@@ -2954,12 +3026,12 @@ FUNCTIONP (Lisp_Object object)
 
   if (SUBRP (object))
     return XSUBR (object)->max_args != UNEVALLED;
-  else if (COMPILEDP (object) || MODULE_FUNCTIONP (object))
+  else if (CLOSUREP (object) || MODULE_FUNCTIONP (object))
     return true;
   else if (CONSP (object))
     {
       Lisp_Object car = XCAR (object);
-      return EQ (car, Qlambda) || EQ (car, Qclosure);
+      return EQ (car, Qlambda);
     }
   else
     return false;
@@ -2976,7 +3048,7 @@ funcall_general (Lisp_Object fun, ptrdiff_t numargs, Lisp_Object *args)
 
   if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
     return funcall_subr (XSUBR (fun), numargs, args);
-  else if (COMPILEDP (fun)
+  else if (CLOSUREP (fun)
 	   || SUBR_NATIVE_COMPILED_DYNP (fun)
 	   || MODULE_FUNCTIONP (fun))
     return funcall_lambda (fun, numargs, args);
@@ -2989,8 +3061,7 @@ funcall_general (Lisp_Object fun, ptrdiff_t numargs, Lisp_Object *args)
       Lisp_Object funcar = XCAR (fun);
       if (!SYMBOLP (funcar))
 	xsignal1 (Qinvalid_function, original_fun);
-      if (EQ (funcar, Qlambda)
-	  || EQ (funcar, Qclosure))
+      if (EQ (funcar, Qlambda))
 	return funcall_lambda (fun, numargs, args);
       else if (EQ (funcar, Qautoload))
 	{
@@ -3174,34 +3245,27 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
 
   if (CONSP (fun))
     {
-      if (EQ (XCAR (fun), Qclosure))
-	{
-	  Lisp_Object cdr = XCDR (fun);	/* Drop `closure'.  */
-	  if (! CONSP (cdr))
-	    xsignal1 (Qinvalid_function, fun);
-	  fun = cdr;
-	  lexenv = XCAR (fun);
-	}
-      else
-	lexenv = Qnil;
+      lexenv = Qnil;
       syms_left = XCDR (fun);
       if (CONSP (syms_left))
 	syms_left = XCAR (syms_left);
       else
 	xsignal1 (Qinvalid_function, fun);
     }
-  else if (COMPILEDP (fun))
+  else if (CLOSUREP (fun))
     {
-      syms_left = AREF (fun, COMPILED_ARGLIST);
+      syms_left = AREF (fun, CLOSURE_ARGLIST);
       /* Bytecode objects using lexical binding have an integral
 	 ARGLIST slot value: pass the arguments to the byte-code
 	 engine directly.  */
       if (FIXNUMP (syms_left))
 	return exec_byte_code (fun, XFIXNUM (syms_left), nargs, arg_vector);
-      /* Otherwise the bytecode object uses dynamic binding and the
-	 ARGLIST slot contains a standard formal argument list whose
-	 variables are bound dynamically below.  */
-      lexenv = Qnil;
+      /* Otherwise the closure either is interpreted
+	 or uses dynamic binding and the ARGLIST slot contains a standard
+	 formal argument list whose variables are bound dynamically below.  */
+      lexenv = CONSP (AREF (fun, CLOSURE_CODE))
+               ? AREF (fun, CLOSURE_CONSTANTS)
+               : Qnil;
     }
 #ifdef HAVE_MODULES
   else if (MODULE_FUNCTIONP (fun))
@@ -3264,7 +3328,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
 	    lexenv = Fcons (Fcons (next, arg), lexenv);
 	  else
 	    /* Dynamically bind NEXT.  */
-	    specbind (next, arg);
+	    specbind (maybe_remove_pos_from_symbol (next), arg);
 	  previous_rest = false;
 	}
     }
@@ -3289,7 +3353,14 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
       val = XSUBR (fun)->function.a0 ();
     }
   else
-    val = exec_byte_code (fun, 0, 0, NULL);
+    {
+      eassert (CLOSUREP (fun));
+      val = CONSP (AREF (fun, CLOSURE_CODE))
+            /* Interpreted function.  */
+            ? Fprogn (AREF (fun, CLOSURE_CODE))
+            /* Dynbound bytecode.  */
+            : exec_byte_code (fun, 0, 0, NULL);
+    }
 
   return unbind_to (count, val);
 }
@@ -3324,7 +3395,7 @@ function with `&rest' args, or `unevalled' for a special form.  */)
 
   if (SUBRP (function))
     result = Fsubr_arity (function);
-  else if (COMPILEDP (function))
+  else if (CLOSUREP (function))
     result = lambda_arity (function);
 #ifdef HAVE_MODULES
   else if (MODULE_FUNCTIONP (function))
@@ -3339,8 +3410,7 @@ function with `&rest' args, or `unevalled' for a special form.  */)
       funcar = XCAR (function);
       if (!SYMBOLP (funcar))
 	xsignal1 (Qinvalid_function, original);
-      if (EQ (funcar, Qlambda)
-	  || EQ (funcar, Qclosure))
+      if (EQ (funcar, Qlambda))
 	result = lambda_arity (function);
       else if (EQ (funcar, Qautoload))
 	{
@@ -3361,20 +3431,15 @@ lambda_arity (Lisp_Object fun)
 
   if (CONSP (fun))
     {
-      if (EQ (XCAR (fun), Qclosure))
-	{
-	  fun = XCDR (fun);	/* Drop `closure'.  */
-	  CHECK_CONS (fun);
-	}
       syms_left = XCDR (fun);
       if (CONSP (syms_left))
 	syms_left = XCAR (syms_left);
       else
 	xsignal1 (Qinvalid_function, fun);
     }
-  else if (COMPILEDP (fun))
+  else if (CLOSUREP (fun))
     {
-      syms_left = AREF (fun, COMPILED_ARGLIST);
+      syms_left = AREF (fun, CLOSURE_ARGLIST);
       if (FIXNUMP (syms_left))
         return get_byte_code_arity (syms_left);
     }
@@ -3448,7 +3513,8 @@ do_specbind (struct Lisp_Symbol *sym, union specbinding *bind,
       if (BUFFER_OBJFWDP (SYMBOL_FWD (sym))
 	  && specpdl_kind (bind) == SPECPDL_LET_DEFAULT)
 	{
-          set_default_internal (specpdl_symbol (bind), value, bindflag);
+          set_default_internal (specpdl_symbol (bind), value, bindflag,
+				NULL);
 	  return;
 	}
       FALLTHROUGH;
@@ -3476,10 +3542,8 @@ do_specbind (struct Lisp_Symbol *sym, union specbinding *bind,
 void
 specbind (Lisp_Object symbol, Lisp_Object value)
 {
-  struct Lisp_Symbol *sym;
-
-  CHECK_SYMBOL (symbol);
-  sym = XSYMBOL (symbol);
+  /* The caller must ensure that the SYMBOL argument is a bare symbol.  */
+  struct Lisp_Symbol *sym = XBARE_SYMBOL (symbol);
 
  start:
   switch (sym->u.s.redirect)
@@ -3492,6 +3556,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
       specpdl_ptr->let.kind = SPECPDL_LET;
       specpdl_ptr->let.symbol = symbol;
       specpdl_ptr->let.old_value = SYMBOL_VAL (sym);
+      specpdl_ptr->let.where.kbd = NULL;
       break;
     case SYMBOL_LOCALIZED:
     case SYMBOL_FORWARDED:
@@ -3500,7 +3565,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	specpdl_ptr->let.kind = SPECPDL_LET_LOCAL;
 	specpdl_ptr->let.symbol = symbol;
 	specpdl_ptr->let.old_value = ovalue;
-	specpdl_ptr->let.where = Fcurrent_buffer ();
+	specpdl_ptr->let.where.buf = Fcurrent_buffer ();
 
 	eassert (sym->u.s.redirect != SYMBOL_LOCALIZED
 		 || (BASE_EQ (SYMBOL_BLV (sym)->where, Fcurrent_buffer ())));
@@ -3519,6 +3584,11 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	       happens with other buffer-local variables.  */
 	    if (NILP (Flocal_variable_p (symbol, Qnil)))
 	      specpdl_ptr->let.kind = SPECPDL_LET_DEFAULT;
+	  }
+	else if (KBOARD_OBJFWDP (SYMBOL_FWD (sym)))
+	  {
+	    specpdl_ptr->let.where.kbd = kboard_for_bindings ();
+	    specpdl_ptr->let.kind = SPECPDL_LET;
 	  }
 	else
 	  specpdl_ptr->let.kind = SPECPDL_LET;
@@ -3623,6 +3693,8 @@ static void
 do_one_unbind (union specbinding *this_binding, bool unwinding,
                enum Set_Internal_Bind bindflag)
 {
+  KBOARD *kbdwhere = NULL;
+
   eassert (unwinding || this_binding->kind >= SPECPDL_LET);
   switch (this_binding->kind)
     {
@@ -3675,12 +3747,13 @@ do_one_unbind (union specbinding *this_binding, bool unwinding,
 	  }
       }
       /* Come here only if make_local_foo was used for the first time
-	 on this var within this let.  */
+	 on this var within this let or the symbol is not a plainval.  */
+      kbdwhere = specpdl_kboard (this_binding);
       FALLTHROUGH;
     case SPECPDL_LET_DEFAULT:
       set_default_internal (specpdl_symbol (this_binding),
                             specpdl_old_value (this_binding),
-                            bindflag);
+                            bindflag, kbdwhere);
       break;
     case SPECPDL_LET_LOCAL:
       {
@@ -3948,6 +4021,8 @@ specpdl_unrewind (union specbinding *pdl, int distance, bool vars_only)
 {
   union specbinding *tmp = pdl;
   int step = -1;
+  KBOARD *kbdwhere;
+
   if (distance < 0)
     { /* It's a rewind rather than unwind.  */
       tmp += distance - 1;
@@ -3958,6 +4033,8 @@ specpdl_unrewind (union specbinding *pdl, int distance, bool vars_only)
   for (; distance > 0; distance--)
     {
       tmp += step;
+      kbdwhere = NULL;
+
       switch (tmp->kind)
 	{
 	  /* FIXME: Ideally we'd like to "temporarily unwind" (some of) those
@@ -3998,14 +4075,16 @@ specpdl_unrewind (union specbinding *pdl, int distance, bool vars_only)
 	      }
 	  }
 	  /* Come here only if make_local_foo was used for the first
-	     time on this var within this let.  */
+	     time on this var within this let or the symbol is forwarded.  */
+	  kbdwhere = specpdl_kboard (tmp);
 	  FALLTHROUGH;
 	case SPECPDL_LET_DEFAULT:
 	  {
 	    Lisp_Object sym = specpdl_symbol (tmp);
 	    Lisp_Object old_value = specpdl_old_value (tmp);
 	    set_specpdl_old_value (tmp, default_value (sym));
-	    set_default_internal (sym, old_value, SET_INTERNAL_THREAD_SWITCH);
+	    set_default_internal (sym, old_value, SET_INTERNAL_THREAD_SWITCH,
+				  kbdwhere);
 	  }
 	  break;
 	case SPECPDL_LET_LOCAL:
@@ -4279,11 +4358,13 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qcommandp, "commandp");
   DEFSYM (Qand_rest, "&rest");
   DEFSYM (Qand_optional, "&optional");
-  DEFSYM (Qclosure, "closure");
   DEFSYM (QCdocumentation, ":documentation");
   DEFSYM (Qdebug, "debug");
   DEFSYM (Qdebug_early, "debug-early");
   DEFSYM (Qdebug_early__handler, "debug-early--handler");
+  DEFSYM (Qdebugger_may_continue, "debugger-may-continue");
+  DEFSYM (Qdisplay_warning, "display-warning");
+  DEFSYM (Qlosing_value, "losing-value");
 
   DEFVAR_LISP ("inhibit-debugger", Vinhibit_debugger,
 	       doc: /* Non-nil means never enter the debugger.
@@ -4437,6 +4518,7 @@ alist of active lexical bindings.  */);
   defsubr (&Ssetq);
   defsubr (&Squote);
   defsubr (&Sfunction);
+  defsubr (&Smake_interpreted_closure);
   defsubr (&Sdefault_toplevel_value);
   defsubr (&Sset_default_toplevel_value);
   defsubr (&Sdefvar);

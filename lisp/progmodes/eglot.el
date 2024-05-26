@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.24") (flymake "1.2.1") (project "0.9.8") (xref "1.6.2") (eldoc "1.14.0") (seq "2.23") (external-completion "0.1"))
+;; Package-Requires: ((emacs "26.3") (compat "27.1") (eldoc "1.14.0") (external-completion "0.1") (flymake "1.2.1") (jsonrpc "1.0.24") (project "0.9.8") (seq "2.23") (track-changes "1.2") (xref "1.6.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -103,14 +103,13 @@
 (require 'pcase)
 (require 'compile) ; for some faces
 (require 'warnings)
-(eval-when-compile
-  (require 'subr-x))
 (require 'filenotify)
 (require 'ert)
 (require 'text-property-search nil t)
 (require 'diff-mode)
 (require 'diff)
-(require 'track-changes nil t)
+(require 'track-changes)
+(require 'compat)
 
 ;; These dependencies are also GNU ELPA core packages.  Because of
 ;; bug#62576, since there is a risk that M-x package-install, despite
@@ -133,6 +132,10 @@
     ;; For those packages which are not preloaded OTOH, signal an error if
     ;; the loaded file is not the one that should have been loaded.
     (mapc reload '(project flymake xref jsonrpc external-completion))))
+
+;; Keep the eval-when-compile requires at the end, in case it's already been
+;; required unconditionally by some earlier `require'.
+(eval-when-compile (require 'subr-x))
 
 ;; forward-declare, but don't require (Emacs 28 doesn't seem to care)
 (defvar markdown-fontify-code-blocks-natively)
@@ -190,8 +193,8 @@ path of the PROGRAM that was chosen (interactively or
 automatically)."
   (lambda (&optional interactive _project)
     ;; JT@2021-06-13: This function is way more complicated than it
-    ;; could be because it accounts for the fact that
-    ;; `eglot--executable-find' may take much longer to execute on
+    ;; could be because it accounts for the fact that Compat's
+    ;; `executable-find' may take much longer to execute on
     ;; remote files.
     (let* ((listified (cl-loop for a in alternatives
                                collect (if (listp a) a (list a))))
@@ -203,7 +206,7 @@ automatically)."
              nil)
             (interactive
              (let* ((augmented (mapcar (lambda (a)
-                                         (let ((found (eglot--executable-find
+                                         (let ((found (compat-call executable-find
                                                        (car a) t)))
                                            (and found
                                                 (cons (car a) (cons found (cdr a))))))
@@ -223,7 +226,7 @@ automatically)."
                       nil))))
             (t
              (cl-loop for (p . args) in listified
-                      for probe = (eglot--executable-find p t)
+                      for probe = (compat-call executable-find p t)
                       when probe return (cons probe args)
                       finally (funcall err)))))))
 
@@ -242,7 +245,7 @@ automatically)."
          '("pylsp" "pyls" ("basedpyright-langserver" "--stdio")
            ("pyright-langserver" "--stdio")
            "jedi-language-server" "ruff-lsp")))
-    ((js-json-mode json-mode json-ts-mode)
+    ((js-json-mode json-mode json-ts-mode jsonc-mode)
      . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
                               ("vscode-json-languageserver" "--stdio")
                               ("json-languageserver" "--stdio"))))
@@ -302,6 +305,7 @@ automatically)."
     (futhark-mode . ("futhark" "lsp"))
     ((lua-mode lua-ts-mode) . ,(eglot-alternatives
                                 '("lua-language-server" "lua-lsp")))
+    (yang-mode . ("yang-language-server"))
     (zig-mode . ("zls"))
     ((css-mode css-ts-mode)
      . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio")
@@ -328,7 +332,8 @@ automatically)."
     ((uiua-ts-mode uiua-mode) . ("uiua" "lsp"))
     (sml-mode
      . ,(lambda (_interactive project)
-          (list "millet-ls" (project-root project)))))
+          (list "millet-ls" (project-root project))))
+    ((blueprint-mode blueprint-ts-mode) . ("blueprint-compiler" "lsp")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 identifies the buffers that are to be managed by a specific
@@ -563,13 +568,6 @@ This can be useful when using docker to run a language server.")
 
 ;;; Constants
 ;;;
-(defconst eglot--version
-  (eval-when-compile
-    (when byte-compile-current-file
-      (require 'lisp-mnt)
-      (lm-version byte-compile-current-file)))
-  "The version as a string of this version of Eglot.
-It is nil if Eglot is not byte-complied.")
 
 (defconst eglot--symbol-kind-names
   `((1 . "File") (2 . "Module")
@@ -598,11 +596,6 @@ It is nil if Eglot is not byte-complied.")
 (defvaralias 'eglot-{} 'eglot--{})
 
 (defconst eglot--{} (make-hash-table :size 0) "The empty JSON object.")
-
-(defun eglot--executable-find (command &optional remote)
-  "Like Emacs 27's `executable-find', ignore REMOTE on Emacs 26."
-  (if (>= emacs-major-version 27) (executable-find command remote)
-    (executable-find command)))
 
 (defun eglot--accepted-formats ()
   (if (and (not eglot-prefer-plaintext) (fboundp 'gfm-view-mode))
@@ -1057,8 +1050,8 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
     :documentation "Map (DIR -> (WATCH ID1 ID2...)) for `didChangeWatchedFiles'."
     :initform (make-hash-table :test #'equal) :accessor eglot--file-watches)
    (managed-buffers
-    :documentation "Map (PATH -> BUFFER) for buffers managed by server."
-    :initform (make-hash-table :test #'equal)
+    :initform nil
+    :documentation "List of buffers managed by server."
     :accessor eglot--managed-buffers)
    (saved-initargs
     :documentation "Saved initargs for reconnection purposes."
@@ -1087,26 +1080,32 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
           (concat remote-prefix normalized))
       uri)))
 
-(defun eglot-path-to-uri (path)
-  "Convert PATH, a file name, to LSP URI string and return it."
-  (let ((expanded-path (expand-file-name path)))
+(cl-defun eglot-path-to-uri (path &key truenamep)
+  "Convert PATH, a file name, to LSP URI string and return it.
+TRUENAMEP indicated PATH is already a truename."
+  ;; LSP servers should not be expected to access the filesystem, and
+  ;; therefore are generally oblivious that some filenames are
+  ;; different, but point to the same file, like a symlink and its
+  ;; target.  Make sure we hand the server the true name of a file by
+  ;; calling file-truename.
+  (let ((truepath (if truenamep path (file-truename path))))
     (if (and (url-type (url-generic-parse-url path))
-             ;; It might be MS Windows path which includes a drive
-             ;; letter that looks like a URL scheme (bug#59338)
+             ;; PATH might be MS Windows file name which includes a
+             ;; drive letter that looks like a URL scheme (bug#59338).
              (not (and (eq system-type 'windows-nt)
-                       (file-name-absolute-p expanded-path))))
-        ;; Path is already a URI, so forward it to the LSP server
+                       (file-name-absolute-p truepath))))
+        ;; PATH is already a URI, so forward it to the LSP server
         ;; untouched.  The server should be able to handle it, since
         ;; it provided this URI to clients in the first place.
         path
       (concat "file://"
               ;; Add a leading "/" for local MS Windows-style paths.
               (if (and (eq system-type 'windows-nt)
-                       (not (file-remote-p expanded-path)))
+                       (not (file-remote-p truepath)))
                   "/")
               (url-hexify-string
                ;; Again watch out for trampy paths.
-               (directory-file-name (file-local-name expanded-path))
+               (directory-file-name (file-local-name truepath))
                eglot--uri-path-allowed-chars)))))
 
 (defun eglot-range-region (range &optional markers)
@@ -1191,7 +1190,7 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
   ;; Turn off `eglot--managed-mode' where appropriate.
-  (dolist (buffer (map-values (eglot--managed-buffers server)))
+  (dolist (buffer (eglot--managed-buffers server))
     (let (;; Avoid duplicate shutdowns (github#389)
           (eglot-autoshutdown nil))
       (eglot--when-live-buffer buffer (eglot--managed-mode-off))))
@@ -1317,7 +1316,7 @@ be guessed."
                               main-mode base-prompt))
                      ((and program
                            (not (file-name-absolute-p program))
-                           (not (eglot--executable-find program t)))
+                           (not (compat-call executable-find program t)))
                       (if full-program-invocation
                           (concat (format "[eglot] I guess you want to run `%s'"
                                           full-program-invocation)
@@ -1603,8 +1602,10 @@ This docstring appeases checkdoc, that's all."
                                             'network))
                               (emacs-pid))
                             :clientInfo
-                            `(:name "Eglot" ,@(when eglot--version
-                                                `(:version ,eglot--version)))
+                            (append
+                             '(:name "Eglot")
+                             (let ((v (package-get-version)))
+                               (and v (list :version v))))
                             ;; Maybe turn trampy `/ssh:foo@bar:/path/to/baz.py'
                             ;; into `/path/to/baz.py', so LSP groks it.
                             :rootPath (file-local-name
@@ -1874,10 +1875,9 @@ Doubles as an indicator of snippet support."
         (font-lock-ensure)
         (goto-char (point-min))
         (let ((inhibit-read-only t))
-          (when (fboundp 'text-property-search-forward) ;; FIXME: use compat
-            (while (setq match (text-property-search-forward 'invisible))
-              (delete-region (prop-match-beginning match)
-                             (prop-match-end match)))))
+          (while (setq match (text-property-search-forward 'invisible))
+            (delete-region (prop-match-beginning match)
+                           (prop-match-end match))))
         (string-trim (buffer-string))))))
 
 (defun eglot--read-server (prompt &optional dont-if-just-the-one)
@@ -1975,7 +1975,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
 
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some Eglot project."
-  :init-value nil :lighter nil :keymap eglot-mode-map
+  :init-value nil :lighter nil :keymap eglot-mode-map :interactive nil
   (cond
    (eglot--managed-mode
     (pcase (plist-get (eglot--capabilities (eglot-current-server))
@@ -1986,13 +1986,10 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
       ("utf-8"
        (eglot--setq-saving eglot-current-linepos-function #'eglot-utf-8-linepos)
        (eglot--setq-saving eglot-move-to-linepos-function #'eglot-move-to-utf-8-linepos)))
-    (if (fboundp 'track-changes-register)
-        (unless eglot--track-changes
-          (setq eglot--track-changes
-           (track-changes-register
-            #'eglot--track-changes-signal :disjoint t)))
-      (add-hook 'after-change-functions #'eglot--after-change nil t)
-      (add-hook 'before-change-functions #'eglot--before-change nil t))
+    (unless eglot--track-changes
+      (setq eglot--track-changes
+            (track-changes-register
+             #'eglot--track-changes-signal :disjoint t)))
     (add-hook 'kill-buffer-hook #'eglot--managed-mode-off nil t)
     ;; Prepend "didClose" to the hook after the "nonoff", so it will run first
     (add-hook 'kill-buffer-hook #'eglot--signal-textDocument/didClose nil t)
@@ -2024,17 +2021,8 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
       (add-hook 'eldoc-documentation-functions #'eglot-signature-eldoc-function
                 nil t)
       (eldoc-mode 1))
-
-    (let ((buffer (current-buffer)))
-      (puthash (expand-file-name (buffer-file-name buffer))
-               buffer
-               (eglot--managed-buffers (eglot-current-server)))))
+    (cl-pushnew (current-buffer) (eglot--managed-buffers (eglot-current-server))))
    (t
-    (when eglot--track-changes
-      (track-changes-unregister eglot--track-changes)
-      (setq eglot--track-changes nil))
-    (remove-hook 'after-change-functions #'eglot--after-change t)
-    (remove-hook 'before-change-functions #'eglot--before-change t)
     (remove-hook 'kill-buffer-hook #'eglot--managed-mode-off t)
     (remove-hook 'kill-buffer-hook #'eglot--signal-textDocument/didClose t)
     (remove-hook 'before-revert-hook #'eglot--signal-textDocument/didClose t)
@@ -2059,11 +2047,14 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (let ((server eglot--cached-server))
       (setq eglot--cached-server nil)
       (when server
-        (remhash (expand-file-name (buffer-file-name (current-buffer)))
-                 (eglot--managed-buffers server))
+        (setf (eglot--managed-buffers server)
+              (delq (current-buffer) (eglot--managed-buffers server)))
         (when (and eglot-autoshutdown
-                   (null (map-values (eglot--managed-buffers server))))
-          (eglot-shutdown server)))))))
+                   (null (eglot--managed-buffers server)))
+          (eglot-shutdown server))))
+    (when eglot--track-changes
+      (track-changes-unregister eglot--track-changes)
+      (setq eglot--track-changes nil)))))
 
 (defun eglot--managed-mode-off ()
   "Turn off `eglot--managed-mode' unconditionally."
@@ -2384,6 +2375,12 @@ still unanswered LSP requests to the server\n")))
                         (lambda ()
                           (remhash token (eglot--progress-reporters server))))))))))
 
+(defvar-local eglot--TextDocumentIdentifier-cache nil
+  "LSP TextDocumentIdentifier-related cached info for current buffer.
+Value is (TRUENAME . (:uri STR)), where STR is what is sent to the
+server on textDocument/didOpen and similar calls.  TRUENAME is the
+expensive cached value of `file-truename'.")
+
 (cl-defmethod eglot-handle-notification
   (server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
            &allow-other-keys) ; FIXME: doesn't respect `eglot-strict-mode'
@@ -2394,9 +2391,17 @@ still unanswered LSP requests to the server\n")))
                     ((= sev 2)  'eglot-warning)
                     (t          'eglot-note)))
             (mess (source code message)
-              (concat source (and code (format " [%s]" code)) ": " message)))
+              (concat source (and code (format " [%s]" code)) ": " message))
+            (find-it (abspath)
+              ;; `find-buffer-visiting' would be natural, but calls the
+              ;; potentially slow `file-truename' (bug#70036).
+              (cl-loop for b in (eglot--managed-buffers server)
+                       when (with-current-buffer b
+                              (equal (car eglot--TextDocumentIdentifier-cache)
+                                     abspath))
+                       return b)))
     (if-let* ((path (expand-file-name (eglot-uri-to-path uri)))
-              (buffer (gethash path (eglot--managed-buffers server))))
+              (buffer (find-it path)))
         (with-current-buffer buffer
           (cl-loop
            initially
@@ -2522,11 +2527,16 @@ THINGS are either registrations or unregisterations (sic)."
     `(:success ,success)))
 
 (defun eglot--TextDocumentIdentifier ()
-  "Compute TextDocumentIdentifier object for current buffer."
-  `(:uri ,(eglot-path-to-uri (or buffer-file-name
-                                  (ignore-errors
-                                    (buffer-file-name
-                                     (buffer-base-buffer)))))))
+  "Compute TextDocumentIdentifier object for current buffer.
+Sets `eglot--TextDocumentIdentifier-uri' (which see) as a side effect."
+  (unless eglot--TextDocumentIdentifier-cache
+    (let ((truename (file-truename (or buffer-file-name
+                                       (ignore-errors
+                                         (buffer-file-name
+                                          (buffer-base-buffer)))))))
+      (setq eglot--TextDocumentIdentifier-cache
+            `(,truename . (:uri ,(eglot-path-to-uri truename :truenamep t))))))
+  (cdr eglot--TextDocumentIdentifier-cache))
 
 (defvar-local eglot--versioned-identifier 0)
 
@@ -2595,7 +2605,7 @@ buffer."
           `(:triggerKind 2 :triggerCharacter ,trigger) `(:triggerKind 1)))))
 
 (defvar-local eglot--recent-changes nil
-  "Recent buffer changes as collected by `eglot--before-change'.")
+  "Recent buffer changes as collected by `eglot--track-changes-fetch'.")
 
 (cl-defmethod jsonrpc-connection-ready-p ((_server eglot-lsp-server) _what)
   "Tell if SERVER is ready for WHAT in current buffer."
@@ -2603,59 +2613,14 @@ buffer."
 
 (defvar-local eglot--change-idle-timer nil "Idle timer for didChange signals.")
 
-(defun eglot--before-change (beg end)
-  "Hook onto `before-change-functions' with BEG and END."
-  (when (listp eglot--recent-changes)
-    ;; Records BEG and END, crucially convert them into LSP
-    ;; (line/char) positions before that information is lost (because
-    ;; the after-change thingy doesn't know if newlines were
-    ;; deleted/added).  Also record markers of BEG and END
-    ;; (github#259)
-    (push `(,(eglot--pos-to-lsp-position beg)
-            ,(eglot--pos-to-lsp-position end)
-            (,beg . ,(copy-marker beg nil))
-            (,end . ,(copy-marker end t)))
-          eglot--recent-changes)))
-
 (defvar eglot--document-changed-hook '(eglot--signal-textDocument/didChange)
   "Internal hook for doing things when the document changes.")
-
-(defun eglot--after-change (beg end pre-change-length)
-  "Hook onto `after-change-functions'.
-Records BEG, END and PRE-CHANGE-LENGTH locally."
-  (pcase (car-safe eglot--recent-changes)
-    (`(,lsp-beg ,lsp-end
-                (,b-beg . ,b-beg-marker)
-                (,b-end . ,b-end-marker))
-     ;; github#259 and github#367: with `capitalize-word' & friends,
-     ;; `before-change-functions' records the whole word's `b-beg' and
-     ;; `b-end'.  Similarly, when `fill-paragraph' coalesces two
-     ;; lines, `b-beg' and `b-end' mark end of first line and end of
-     ;; second line, resp.  In both situations, `beg' and `end'
-     ;; received here seemingly contradict that: they will differ by 1
-     ;; and encompass the capitalized character or, in the coalescing
-     ;; case, the replacement of the newline with a space.  We keep
-     ;; both markers and positions to detect and correct this.  In
-     ;; this specific case, we ignore `beg', `len' and
-     ;; `pre-change-len' and send richer information about the region
-     ;; from the markers.  I've also experimented with doing this
-     ;; unconditionally but it seems to break when newlines are added.
-     (if (and (= b-end b-end-marker) (= b-beg b-beg-marker)
-              (or (/= beg b-beg) (/= end b-end)))
-         (setcar eglot--recent-changes
-                 `(,lsp-beg ,lsp-end ,(- b-end-marker b-beg-marker)
-                            ,(buffer-substring-no-properties b-beg-marker
-                                                             b-end-marker)))
-       (setcar eglot--recent-changes
-               `(,lsp-beg ,lsp-end ,pre-change-length
-                          ,(buffer-substring-no-properties beg end)))))
-    (_ (setf eglot--recent-changes :emacs-messup)))
-  (eglot--track-changes-signal nil))
 
 (defun eglot--track-changes-fetch (id)
   (if (eq eglot--recent-changes :pending) (setq eglot--recent-changes nil))
   (track-changes-fetch
    id (lambda (beg end before)
+        (cl-incf eglot--versioned-identifier)
         (cond
          ((eq eglot--recent-changes :emacs-messup) nil)
          ((eq before 'error) (setf eglot--recent-changes :emacs-messup))
@@ -2665,8 +2630,16 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
                     ,(buffer-substring-no-properties beg end))
                   eglot--recent-changes))))))
 
+(defun eglot--add-one-shot-hook (hook function &optional append local)
+  "Like `add-hook' but calls FUNCTION only once."
+  (let* ((fname (make-symbol (format "eglot--%s-once" function)))
+         (fun (lambda (&rest args)
+                (remove-hook hook fname local)
+                (apply function args))))
+    (fset fname fun)
+    (add-hook hook fname append local)))
+
 (defun eglot--track-changes-signal (id &optional distance)
-  (cl-incf eglot--versioned-identifier)
   (cond
    (distance
     ;; When distance is <100, we may as well coalesce the changes.
@@ -2676,14 +2649,23 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
    ;; who check it as a boolean.
    (t (setq eglot--recent-changes :pending)))
   (when eglot--change-idle-timer (cancel-timer eglot--change-idle-timer))
-  (let ((buf (current-buffer)))
-    (setq eglot--change-idle-timer
-          (run-with-idle-timer
-           eglot-send-changes-idle-time
-           nil (lambda () (eglot--when-live-buffer buf
-                            (when eglot--managed-mode
-                              (run-hooks 'eglot--document-changed-hook)
-                              (setq eglot--change-idle-timer nil))))))))
+  (setq eglot--change-idle-timer
+        (run-with-idle-timer
+         eglot-send-changes-idle-time nil
+         (lambda (buf)
+           (eglot--when-live-buffer buf
+             (when eglot--managed-mode
+               (if (track-changes-inconsistent-state-p)
+                   ;; Not a good time (e.g. in the middle of Quail thingy,
+                   ;; bug#70541): reschedule for the next idle period.
+                   (eglot--add-one-shot-hook
+                    'post-command-hook
+                    (lambda ()
+                      (eglot--when-live-buffer buf
+                        (eglot--track-changes-signal id))))
+                 (run-hooks 'eglot--document-changed-hook)
+                 (setq eglot--change-idle-timer nil)))))
+         (current-buffer))))
 
 (defvar-local eglot-workspace-configuration ()
   "Configure LSP servers specifically for a given project.
@@ -2787,9 +2769,8 @@ When called interactively, use the currently active server"
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
+  (eglot--track-changes-fetch eglot--track-changes)
   (when eglot--recent-changes
-    (when eglot--track-changes
-      (eglot--track-changes-fetch eglot--track-changes))
     (let* ((server (eglot--current-server-or-lose))
            (sync-capability (eglot-server-capable :textDocumentSync))
            (sync-kind (if (numberp sync-capability) sync-capability
@@ -2806,12 +2787,6 @@ When called interactively, use the currently active server"
                               (buffer-substring-no-properties (point-min)
                                                               (point-max)))))
           (cl-loop for (beg end len text) in (reverse eglot--recent-changes)
-                   ;; github#259: `capitalize-word' and commands based
-                   ;; on `casify_region' will cause multiple duplicate
-                   ;; empty entries in `eglot--before-change' calls
-                   ;; without an `eglot--after-change' reciprocal.
-                   ;; Weed them out here.
-                   when (numberp len) ;FIXME: Not needed with `track-changes'.
                    vconcat `[,(list :range `(:start ,beg :end ,end)
                                     :rangeLength len :text text)]))))
       (setq eglot--recent-changes nil)
@@ -2819,7 +2794,9 @@ When called interactively, use the currently active server"
 
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
-  (setq eglot--recent-changes nil eglot--versioned-identifier 0)
+  (setq eglot--recent-changes nil
+        eglot--versioned-identifier 0
+        eglot--TextDocumentIdentifier-cache nil)
   (jsonrpc-notify
    (eglot--current-server-or-lose)
    :textDocument/didOpen `(:textDocument ,(eglot--TextDocumentItem))))
@@ -2907,7 +2884,7 @@ may be called multiple times (respecting the protocol of
 Try to visit the target file for a richer summary line."
   (pcase-let*
       ((file (eglot-uri-to-path uri))
-       (visiting (or (gethash file (eglot--managed-buffers (eglot-current-server)))
+       (visiting (or (find-buffer-visiting file)
                      (gethash uri eglot--temp-location-buffers)))
        (collect (lambda ()
                   (eglot--widening
@@ -3607,14 +3584,13 @@ list ((FILENAME EDITS VERSION)...)."
   (with-current-buffer (get-buffer-create "*EGLOT proposed server changes*")
     (buffer-disable-undo (current-buffer))
     (let ((inhibit-read-only t)
-          (target (current-buffer))
-          (managed-buffers (eglot--managed-buffers (eglot-current-server))))
+          (target (current-buffer)))
       (diff-mode)
       (erase-buffer)
       (pcase-dolist (`(,path ,edits ,_) prepared)
         (with-temp-buffer
           (let* ((diff (current-buffer))
-                 (existing-buf (gethash path (gethash path managed-buffers)))
+                 (existing-buf (find-buffer-visiting path))
                  (existing-buf-label (prin1-to-string existing-buf)))
             (with-temp-buffer
               (if existing-buf
@@ -3649,8 +3625,7 @@ edit proposed by the server."
                      (eglot--dbind ((VersionedTextDocumentIdentifier) uri version)
                          textDocument
                        (list (eglot-uri-to-path uri) edits version)))
-                   documentChanges))
-          (managed-buffers (eglot--managed-buffers (eglot-current-server))))
+                   documentChanges)))
       (unless (and changes documentChanges)
         ;; We don't want double edits, and some servers send both
         ;; changes and documentChanges.  This unless ensures that we
@@ -3658,7 +3633,7 @@ edit proposed by the server."
         (cl-loop for (uri edits) on changes by #'cddr
                  do (push (list (eglot-uri-to-path uri) edits) prepared)))
       (cl-flet ((notevery-visited-p ()
-                  (cl-notevery (lambda (p) (gethash p managed-buffers))
+                  (cl-notevery #'find-buffer-visiting
                                (mapcar #'car prepared)))
                 (accept-p ()
                   (y-or-n-p
@@ -3936,6 +3911,7 @@ If NOERROR, return predicate, else erroring function."
 (define-derived-mode eglot-list-connections-mode  tabulated-list-mode
   "" "Eglot mode for listing server connections
 \\{eglot-list-connections-mode-map}"
+  :interactive nil
   (setq-local tabulated-list-format
               `[("Language server" 16) ("Project name" 16) ("Modes handled" 16)])
   (tabulated-list-init-header))
@@ -4124,6 +4100,27 @@ If NOERROR, return predicate, else erroring function."
                 "https://github.com/joaotavora/eglot/issues/%s"
               "https://debbugs.gnu.org/%s")
             (match-string 3))))
+
+;; Add command-mode property manually for compatibility with Emacs < 28.
+(dolist (sym '(eglot-clear-status
+               eglot-code-action-inline
+               eglot-code-action-organize-imports
+               eglot-code-action-quickfix
+               eglot-code-action-rewrite
+               eglot-code-action-rewrite
+               eglot-code-actions
+               eglot-find-declaration
+               eglot-find-implementation
+               eglot-find-typeDefinition
+               eglot-forget-pending-continuations
+               eglot-format
+               eglot-format-buffer
+               eglot-inlay-hints-mode
+               eglot-reconnect
+               eglot-rename
+               eglot-signal-didChangeConfiguration
+               eglot-stderr-buffer))
+  (function-put sym 'command-modes '(eglot--managed-mode)))
 
 (provide 'eglot)
 

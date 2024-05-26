@@ -3881,7 +3881,7 @@ init_from_display_pos (struct it *it, struct window *w, struct display_pos *pos)
   if (in_ellipses_for_invisible_text_p (pos, w))
     {
       --charpos;
-      bytepos = 0;
+      bytepos = BYTE_TO_CHAR (charpos);
     }
 
   /* Keep in mind: the call to reseat in init_iterator skips invisible
@@ -12056,8 +12056,8 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       bool newbuffer = NILP (Fget_buffer (Vmessages_buffer_name));
       Fset_buffer (Fget_buffer_create (Vmessages_buffer_name, Qnil));
       if (newbuffer
-	  && !NILP (Ffboundp (intern ("messages-buffer-mode"))))
-	call0 (intern ("messages-buffer-mode"));
+	  && !NILP (Ffboundp (Qmessages_buffer_mode)))
+	call0 (Qmessages_buffer_mode);
 
       bset_undo_list (current_buffer, Qt);
       bset_cache_long_scans (current_buffer, Qnil);
@@ -13197,8 +13197,6 @@ truncate_message_1 (void *a1, Lisp_Object a2)
     echo_area_buffer[0] = Qnil;
   return false;
 }
-
-extern intptr_t garbage_collection_inhibited;
 
 /* Set the current message to STRING.  */
 
@@ -17853,6 +17851,7 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
       if ((prev_point != w->last_point
 	   || prev_mark != w->last_mark)
 	  && FRAME_WINDOW_P (WINDOW_XFRAME (w))
+	  && !FRAME_TOOLTIP_P (WINDOW_XFRAME (w))
 	  && w == XWINDOW (WINDOW_XFRAME (w)->selected_window))
 	report_point_change (WINDOW_XFRAME (w), w, b);
 #endif /* HAVE_TEXT_CONVERSION */
@@ -18185,7 +18184,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	    --glyph;
 	  /* By default, in reversed rows we put the cursor on the
 	     rightmost (first in the reading order) glyph.  */
-	  for (x = 0, g = end + 1; g < glyph; g++)
+	  for (x = row->x, g = end + 1; g < glyph; g++)
 	    x += g->pixel_width;
 	  while (end < glyph
 		 && NILP ((end + 1)->object)
@@ -24418,6 +24417,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
     {
       it->method = GET_FROM_STRETCH;
       it->object = prop;
+      it->string_from_prefix_prop_p = true;
     }
 #ifdef HAVE_WINDOW_SYSTEM
   else if (IMAGEP (prop))
@@ -24425,6 +24425,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
       it->what = IT_IMAGE;
       it->image_id = lookup_image (it->f, prop, it->face_id);
       it->method = GET_FROM_IMAGE;
+      it->string_from_prefix_prop_p = true;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
   else
@@ -28863,7 +28864,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	Lisp_Object val = Qnil;
 
 	if (STRINGP (curdir))
-	  val = dsafe_call1 (intern ("file-remote-p"), curdir);
+	  val = dsafe_call1 (Qfile_remote_p, curdir);
 
 	val = unbind_to (count, val);
 
@@ -33618,7 +33619,9 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
     {
       if (w == XWINDOW (echo_area_window))
 	{
-	  if (EQ (BVAR (b, cursor_type), Qt) || NILP (BVAR (b, cursor_type)))
+	  if (!EQ (Qt, w->cursor_type))
+	      return get_specified_cursor_type (w->cursor_type, width);
+	  else if (EQ (BVAR (b, cursor_type), Qt) || NILP (BVAR (b, cursor_type)))
 	    {
 	      *width = FRAME_CURSOR_WIDTH (f);
 	      return FRAME_DESIRED_CURSOR (f);
@@ -33645,18 +33648,23 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
       non_selected = true;
     }
 
-  /* Never display a cursor in a window in which cursor-type is nil.  */
-  if (NILP (BVAR (b, cursor_type)))
-    return NO_CURSOR;
-
-  /* Get the normal cursor type for this window.  */
-  if (EQ (BVAR (b, cursor_type), Qt))
-    {
-      cursor_type = FRAME_DESIRED_CURSOR (f);
-      *width = FRAME_CURSOR_WIDTH (f);
-    }
+  if (!EQ (Qt, w->cursor_type))
+      cursor_type = get_specified_cursor_type (w->cursor_type, width);
   else
-    cursor_type = get_specified_cursor_type (BVAR (b, cursor_type), width);
+    {
+      /* Never display a cursor in a window in which cursor-type is nil.  */
+      if (NILP (BVAR (b, cursor_type)))
+	return NO_CURSOR;
+
+      /* Get the normal cursor type for this window.  */
+      if (EQ (BVAR (b, cursor_type), Qt))
+	{
+	  cursor_type = FRAME_DESIRED_CURSOR (f);
+	  *width = FRAME_CURSOR_WIDTH (f);
+	}
+      else
+	cursor_type = get_specified_cursor_type (BVAR (b, cursor_type), width);
+    }
 
   /* Use cursor-in-non-selected-windows instead
      for non-selected window or frame.  */
@@ -35379,15 +35387,15 @@ define_frame_cursor1 (struct frame *f, Emacs_Cursor cursor, Lisp_Object pointer)
 	cursor = FRAME_OUTPUT_DATA (f)->hand_cursor;
       else if (EQ (pointer, Qtext))
 	cursor = FRAME_OUTPUT_DATA (f)->text_cursor;
-      else if (EQ (pointer, intern ("hdrag")))
+      else if (EQ (pointer, Qhdrag))
 	cursor = FRAME_OUTPUT_DATA (f)->horizontal_drag_cursor;
-      else if (EQ (pointer, intern ("nhdrag")))
+      else if (EQ (pointer, Qnhdrag))
 	cursor = FRAME_OUTPUT_DATA (f)->vertical_drag_cursor;
 # ifdef HAVE_X_WINDOWS
-      else if (EQ (pointer, intern ("vdrag")))
+      else if (EQ (pointer, Qvdrag))
 	cursor = FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 # endif
-      else if (EQ (pointer, intern ("hourglass")))
+      else if (EQ (pointer, Qhourglass))
 	cursor = FRAME_OUTPUT_DATA (f)->hourglass_cursor;
       else if (EQ (pointer, Qmodeline))
 	cursor = FRAME_OUTPUT_DATA (f)->modeline_cursor;
@@ -35735,6 +35743,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
   define_frame_cursor1 (f, cursor, pointer);
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Take proper action when mouse has moved to the window WINDOW, with
    window-local x-position X and y-position Y.  This is only used for
@@ -35812,6 +35821,8 @@ note_fringe_highlight (struct frame *f, Lisp_Object window, int x, int y,
 	}
     }
 }
+
+#endif	/* HAVE_WINDOW_SYSTEM */
 
 /* EXPORT:
    Take proper action when the mouse has moved to position X, Y on
@@ -38288,6 +38299,16 @@ The default value is zero, which disables this feature.
 The recommended non-zero value is between 100000 and 1000000,
 depending on your patience and the speed of your system.  */);
   max_redisplay_ticks = 0;
+
+  /* Called by decode_mode_spec.  */
+  DEFSYM (Qfile_remote_p, "file-remote-p");
+
+  /* Called or compared against by various functions.  */
+  DEFSYM (Qmessages_buffer_mode, "messages-buffer-mode");
+  DEFSYM (Qhdrag, "hdrag");
+  DEFSYM (Qnhdrag, "nhdrag");
+  DEFSYM (Qvdrag, "vdrag");
+  DEFSYM (Qhourglass, "hourglass");
 }
 
 

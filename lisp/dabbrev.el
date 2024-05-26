@@ -495,7 +495,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	      (save-excursion
 		(save-restriction
 		  (widen)
-		  (if dabbrev--last-buffer
+		  (if (buffer-live-p dabbrev--last-buffer)
 		      (set-buffer dabbrev--last-buffer))
 		  ;; Find the end of the last "expansion" word.
 		  (if (or (eq dabbrev--last-direction 1)
@@ -557,7 +557,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	    (setq dabbrev--last-buffer-found dabbrev--last-buffer))
 	(message nil))
       (if (and (or (eq (current-buffer) dabbrev--last-buffer)
-		   (null dabbrev--last-buffer))
+		   (null dabbrev--last-buffer)
+                   (buffer-live-p dabbrev--last-buffer))
 	       (numberp dabbrev--last-expansion-location)
 	       (and (> dabbrev--last-expansion-location (point))))
 	  (setq dabbrev--last-expansion-location
@@ -731,7 +732,7 @@ of the start of the occurrence."
   (save-excursion
     ;; If we were scanning something other than the current buffer,
     ;; continue scanning there.
-    (when dabbrev--last-buffer
+    (when (buffer-live-p dabbrev--last-buffer)
       (set-buffer dabbrev--last-buffer))
     (or
      ;; ------------------------------------------
@@ -748,7 +749,7 @@ of the start of the occurrence."
      ;; or whatever buffer we were last scanning.
      ;; ------------------------------------------
      (and (or (not dabbrev-search-these-buffers-only)
-	      dabbrev--last-buffer)
+	      (buffer-live-p dabbrev--last-buffer))
 	  (<= direction 0)
 	  (setq dabbrev--last-direction -1)
 	  (dabbrev--try-find abbrev nil
@@ -760,7 +761,7 @@ of the start of the occurrence."
      ;; ------------------------------------------
      (progn
        (setq dabbrev--last-direction -1)
-       (unless dabbrev--last-buffer
+       (unless (buffer-live-p dabbrev--last-buffer)
 	 ;; If we have just now begun to search other buffers,
 	 ;; determine which other buffers we should check.
 	 ;; Put that list in dabbrev--friend-buffer-list.

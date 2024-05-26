@@ -71,7 +71,8 @@
 ;;
 (defun erc-scenarios-match--invisible-stamp (hiddenp visiblep)
   (unless noninteractive
-    (kill-new "erc-match-toggle-hidden-fools"))
+    (push "erc-match-toggle-hidden-fools" extended-command-history)
+    (push "erc-toggle-timestamps" extended-command-history))
 
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "join/legacy")

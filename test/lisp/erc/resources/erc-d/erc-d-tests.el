@@ -367,8 +367,6 @@
       (should (equal (funcall it) "foo3foo")))
 
     (ert-info ("Exits clean")
-      (when (listp (alist-get 'f (erc-d-dialog-vars dialog))) ; may be compiled
-        (should (eq 'closure (car (alist-get 'f (erc-d-dialog-vars dialog))))))
       (should-not (funcall it))
       (should (equal (erc-d-dialog-vars dialog)
                      `((:a . 1)
@@ -646,7 +644,7 @@ nonzero for this to work."
 (ert-deftest erc-d-run-basic ()
   :tags '(:expensive-test)
   (erc-d-tests-with-server (_ _) basic
-    (with-current-buffer (erc-d-t-wait-for 3 (get-buffer "#chan"))
+    (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
       (erc-d-t-search-for 2 "hey"))
     (when noninteractive
       (kill-buffer "#chan"))))

@@ -474,7 +474,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 	  subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
 	  xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
 	  if (strcmp (subsig, x) != 0)
-	    wrong_type_argument (intern ("D-Bus"), CAR_SAFE (elt));
+	    wrong_type_argument (QD_Bus, CAR_SAFE (elt));
 	  elt = CDR_SAFE (XD_NEXT_VALUE (elt));
 	}
 
@@ -493,8 +493,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
 
       if (!NILP (CDR_SAFE (XD_NEXT_VALUE (elt))))
-	wrong_type_argument (intern ("D-Bus"),
-			     CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
+	wrong_type_argument (QD_Bus, CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
 
       sprintf (signature, "%c", dtype);
       break;
@@ -528,7 +527,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 
       /* Check the parent object type.  */
       if (parent_type != DBUS_TYPE_ARRAY)
-	wrong_type_argument (intern ("D-Bus"), object);
+	wrong_type_argument (QD_Bus, object);
 
       /* Compose the signature from the elements.  It is enclosed by
 	 curly braces.  */
@@ -542,7 +541,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       xd_signature_cat (signature, x);
 
       if (!XD_BASIC_DBUS_TYPE (subtype))
-	wrong_type_argument (intern ("D-Bus"), CAR_SAFE (XD_NEXT_VALUE (elt)));
+	wrong_type_argument (QD_Bus, CAR_SAFE (XD_NEXT_VALUE (elt)));
 
       /* Second element.  */
       elt = CDR_SAFE (XD_NEXT_VALUE (elt));
@@ -552,15 +551,14 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       xd_signature_cat (signature, x);
 
       if (!NILP (CDR_SAFE (XD_NEXT_VALUE (elt))))
-	wrong_type_argument (intern ("D-Bus"),
-			     CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
+	wrong_type_argument (QD_Bus, CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
 
       /* Closing signature.  */
       xd_signature_cat (signature, DBUS_DICT_ENTRY_END_CHAR_AS_STRING);
       break;
 
     default:
-      wrong_type_argument (intern ("D-Bus"), object);
+      wrong_type_argument (QD_Bus, object);
     }
 
   XD_DEBUG_MESSAGE ("%s", signature);
@@ -1480,7 +1478,7 @@ usage: (dbus-message-internal &rest REST)  */)
 	     bus or an unknown name, we regard it as broadcast message
 	     due to backward compatibility.  */
 	  if (dbus_bus_name_has_owner (connection, SSDATA (service), NULL))
-	    uname = call2 (intern ("dbus-get-name-owner"), bus, service);
+	    uname = call2 (Qdbus_get_name_owner, bus, service);
 	  else
 	    uname = Qnil;
 
@@ -1886,6 +1884,7 @@ syms_of_dbusbind (void)
 	list2 (Qdbus_error, Qerror));
   Fput (Qdbus_error, Qerror_message,
 	build_pure_c_string ("D-Bus error"));
+  DEFSYM (QD_Bus, "D-Bus");
 
   /* Lisp symbols of the system and session buses.  */
   DEFSYM (QCsystem, ":system");
@@ -1923,6 +1922,9 @@ syms_of_dbusbind (void)
   DEFSYM (QCmethod, ":method");
   DEFSYM (QCsignal, ":signal");
   DEFSYM (QCmonitor, ":monitor");
+
+  /* Miscellaneous Lisp symbols.  */
+  DEFSYM (Qdbus_get_name_owner, "dbus-get-name-owner");
 
   DEFVAR_LISP ("dbus-compiled-version",
 	       Vdbus_compiled_version,

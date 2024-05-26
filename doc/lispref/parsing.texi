@@ -4,6 +4,7 @@
 @c See the file elisp.texi for copying conditions.
 @node Parsing Program Source
 @chapter Parsing Program Source
+@cindex parsing program source
 
 @cindex syntax tree, from parsing program source
 Emacs provides various ways to parse program source text and produce a
@@ -539,6 +540,26 @@ symbol, rather than a lambda function.
 This function returns the list of @var{parser}'s notifier functions.
 @end defun
 
+Sometimes a Lisp program might need to synchronously get the changed
+ranges of the last reparse.  The function
+@code{treesit-parser-changed-ranges} exists for this purpose.  It
+returns the ranges which were passed to the notifier functions.
+
+@defun treesit-parser-changed-ranges parser &optional quiet
+This function returns the ranges that has been changed since last
+reparse.  It returns a list of cons cells of the form
+@w{@code{(@var{start} . @var{end})}}, where @var{start} and @var{end}
+mark the start and the end positions of a range.
+
+This function should almost always be called immediately after
+reparsing.  If it's called when there are new buffer edits that hasn't
+been reparsed, Emacs signals the @code{treesit-unparsed-edits} error,
+unless the optional argument @var{quiet} is non-nil.
+
+Calling this function multiple times consecutively doesn't change its
+return value; it always returns the ranges affected by the last reparse.
+@end defun
+
 @node Retrieving Nodes
 @section Retrieving Nodes
 @cindex retrieve node, tree-sitter
@@ -753,7 +774,7 @@ symbol or thing definition (@pxref{User-defined Things}).  Using an
 undefined thing doesn't raise an error, the function simply returns
 @code{nil}.
 
-This function returns the first node that matches, or @code{nil} if node
+This function returns the first node that matches, or @code{nil} if none
 matches @var{predicate}.
 
 By default, this function only traverses named nodes, but if @var{all}
@@ -1662,11 +1683,11 @@ thing, @code{treesit-end-of-thing} moves to the end of a thing, and
 @code{treesit-thing-at-point} returns the thing at point.
 
 There are also defun commands that specifically use the @code{defun}
-definition, like @code{treesit-beginning-of-defun},
-@code{treesit-end-of-defun}, and @code{treesit-defun-at-point}.  In
-addition, these functions use @var{treesit-defun-tactic} as the
-navigation tactic.  They are described in more detail in other sections
-(@pxref{Tree-sitter Major Modes}).
+definition (as a fallback of @var{treesit-defun-type-regexp}), like
+@code{treesit-beginning-of-defun}, @code{treesit-end-of-defun}, and
+@code{treesit-defun-at-point}.  In addition, these functions use
+@var{treesit-defun-tactic} as the navigation tactic.  They are described
+in more detail in other sections (@pxref{Tree-sitter Major Modes}).
 
 @node Multiple Languages
 @section Parsing Text in Multiple Languages
@@ -1873,11 +1894,29 @@ directly translate into operations shown above.
        :host 'html
        '((script_element (raw_text) @@capture))
 @end group
-
 @group
        :embed 'css
        :host 'html
        '((style_element (raw_text) @@capture))))
+@end group
+
+@group
+;; Major modes with multiple languages should always set
+;; `treesit-language-at-point-function' (which see).
+(setq treesit-language-at-point-function
+      (lambda (pos)
+        (let* ((node (treesit-node-at pos 'html))
+               (parent (treesit-node-parent node)))
+          (cond
+           ((and node parent
+                 (equal (treesit-node-type node) "raw_text")
+                 (equal (treesit-node-type parent) "script_element"))
+            'javascript)
+           ((and node parent
+                 (equal (treesit-node-type node) "raw_text")
+                 (equal (treesit-node-type parent) "style_element"))
+            'css)
+           (t 'html)))))
 @end group
 @end example
 
@@ -2042,8 +2081,9 @@ If @code{treesit-font-lock-settings} (@pxref{Parser-based Font Lock})
 is non-@code{nil}, it sets up fontification.
 
 @item
-If @code{treesit-simple-indent-rules} (@pxref{Parser-based Indentation})
-is non-@code{nil}, it sets up indentation.
+If either @code{treesit-simple-indent-rules} or
+@code{treesit-indent-function} (@pxref{Parser-based Indentation}) is
+non-@code{nil}, it sets up indentation.
 
 @item
 If @code{treesit-defun-type-regexp} is non-@code{nil}, it sets up

@@ -715,6 +715,7 @@ Browsing the Web
 
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
+* Atom::                        Reading Atom Syndication Format feeds.
 
 Other Sources
 
@@ -975,6 +976,7 @@ Back End Interface
 * Writing New Back Ends::       Extending old back ends.
 * Hooking New Back Ends Into Gnus::  What has to be done on the Gnus end.
 * Mail-like Back Ends::         Some tips on mail back ends.
+* Web Feed Back Ends::          Easily defining back ends for web feeds.
 
 Various File Formats
 
@@ -7420,6 +7422,22 @@ meaningful.  Here's one example:
        (concat (match-string 1 id) "@@" (match-string 2 id))
        header))))
 @end lisp
+
+And another example:  the protonmail bridge adds fake message-ids to
+@code{References} in message headers, which can confuse threading. To
+remove these spurious ids
+
+@lisp
+(setq gnus-alter-header-function 'fix-protonmail-references)
+
+(defun fix-protonmail-references (header)
+  (setf (mail-header-references header)
+        (mapconcat
+         #'(lambda (x) (if (string-search "protonmail.internalid" x) "" x))
+         (gnus-split-references (mail-header-references header)) " "))
+  header)
+
+ @end lisp
 
 @end table
 
@@ -17252,6 +17270,7 @@ interfaces to these sources.
 @menu
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
+* Atom::                        Reading Atom Syndication Format feeds.
 @end menu
 
 The main caveat with all these web sources is that they probably won't
@@ -17495,6 +17514,42 @@ Parameters}) in order to display @samp{text/html} parts only in
  '("\\`nnrss:" (mm-discouraged-alternatives nil)))
 @end lisp
 
+
+@node Atom
+@subsection Atom
+@cindex nnatom
+@cindex Atom
+
+Some web sites provide an Atom Syndication Format feed.  Atom is a web
+feed format similar in function to RDF Site Summary (@pxref{RSS}).
+
+The @code{nnatom} back end allows you to add HTTP or local Atom feeds as
+Gnus servers, by adding them to @code{gnus-secondary-select-methods} or
+as foreign servers by pressing "B" in the @file{*Group*} buffer, for
+example (@pxref{Finding the News}).  The address of each server is its
+feed's location (though the address shouldn't be prefixed with <http://> or
+<https://>) and each server contains a single group which holds the
+feed's entries.
+
+Features of @code{nnatom} include:
+
+@itemize @bullet
+
+@item
+Server data is saved per-server in the @file{atom} sub-directory of
+@file{gnus-directory}.
+
+@item
+An article part is generated for both the summary and the content for
+each entry in the feed.  Content of all MIME types should be displayed
+correctly through Gnus (as long as they are supported and the feed
+specifies a MIME type).
+
+@item
+Article modification and publish dates are tracked, and articles are
+updated if changed.
+
+@end itemize
 
 @node Other Sources
 @section Other Sources
@@ -29997,6 +30052,7 @@ In the examples and definitions I will refer to the imaginary back end
 * Writing New Back Ends::       Extending old back ends.
 * Hooking New Back Ends Into Gnus::  What has to be done on the Gnus end.
 * Mail-like Back Ends::         Some tips on mail back ends.
+* Web Feed Back Ends::          Easily defining back ends for web feeds.
 @end menu
 
 
@@ -30768,6 +30824,43 @@ this:
 (("a-group" (1 . 10))
  ("some-group" (34 . 39)))
 @end example
+
+
+@node Web Feed Back Ends
+@subsubsection Web Feed Back Ends
+
+If you want to write a back end for a new type of web feed (RSS,
+Atom), or some other type of feed, an ``abstract'' back end
+(@code{nnfeed}) exists to enable the creation of such back ends with
+minimal knowledge of Gnus.
+
+@code{nnfeed} defines a generic parser, which uses functions stored in
+server variables to parse information from a feed (@code{nnfeed}
+itself doesn't actually define any such functions though).
+
+The data parsed from the feed is stored in server variables (and
+stored per-feed in a sub-directory of @option{gnus-directory} whose name
+corresponds to the name of the back end).
+
+A Gnus back end interface is also defined, which uses the data parsed
+from the feed.
+
+Therefore, a new back end only needs to inherit from @code{nnfeed},
+define (fairly) generic parsing functions for the feed type and setup
+the required server variables.
+
+@code{nnfeed} was originally created to support Atom Syndication
+Format feeds (@pxref{Atom}), but is very generic (as of writing this,
+no standard web feed exists which can meaningfully use all the
+features supported): it supports multiple groups contained in a single
+feed, it allows for situations when the entire feed can't (or
+shouldn't) be read ahead of time and it allows for very advanced
+customization of the actual printing of articles from parsed data
+(while providing a reasonably powerful default method).
+
+Further implementation details are available in the documentation
+strings of the various @code{nnfeed-*} server variables and
+the commentary and other comments of @file{nnfeed.el}.
 
 
 @node Score File Syntax

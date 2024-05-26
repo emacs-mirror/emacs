@@ -24,6 +24,11 @@
 #include <float.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /* Store into BUF (of size BUFSIZE) an accurate minimal-precision
    string representation of a floating point number.  FLAGS affect the
    formatting of the number.  Pad the output string with spaces as
@@ -148,5 +153,10 @@ enum
 #define  FLT_BUFSIZE_BOUND ( FLT_STRLEN_BOUND + 1)
 #define  DBL_BUFSIZE_BOUND ( DBL_STRLEN_BOUND + 1)
 #define LDBL_BUFSIZE_BOUND (LDBL_STRLEN_BOUND + 1)
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _GL_FTOASTR_H */

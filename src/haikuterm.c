@@ -804,6 +804,86 @@ haiku_draw_underwave (struct glyph_string *s, int width, int x)
   BView_EndClip (view);
 }
 
+/* Draw a dashed underline of thickness THICKNESS and width WIDTH onto F
+   at a vertical offset of OFFSET from the position of the glyph string
+   S, with each segment SEGMENT pixels in length.  */
+
+static void
+haiku_draw_dash (struct frame *f, struct glyph_string *s, int width,
+		 int segment, int offset, int thickness)
+{
+  int y_center, which, length, x, doffset;
+  void *view;
+
+  /* Configure the thickness of the view's strokes.  */
+  view = FRAME_HAIKU_VIEW (s->f);
+  BView_SetPenSize (view, thickness);
+
+  /* Offset the origin of the line by half the line width. */
+  y_center = s->ybase + offset + thickness / 2;
+
+  /* Remove redundant portions of OFFSET.  */
+  doffset = s->x % (segment * 2);
+
+  /* Set which to the phase of the first dash that ought to be drawn and
+     length to its length.  */
+  which = doffset < segment;
+  length = segment - (s->x % segment);
+
+  /* Begin drawing this dash.  */
+  for (x = s->x; x < s->x + width; x += length, length = segment)
+    {
+      if (which)
+	BView_StrokeLine (view, x, y_center,
+			  min (x + length - 1,
+			       s->x + width - 1),
+			  y_center);
+
+      which = !which;
+    }
+}
+
+/* Draw an underline of STYLE onto F at an offset of POSITION from the
+   baseline of the glyph string S, S->WIDTH in length, and THICKNESS in
+   height.  */
+
+static void
+haiku_fill_underline (struct frame *f, struct glyph_string *s,
+		      enum face_underline_type style, int position,
+		      int thickness)
+{
+  int segment;
+  void *view;
+
+  segment = thickness * 3;
+  view = FRAME_HAIKU_VIEW (f);
+
+  switch (style)
+    {
+      /* FACE_UNDERLINE_DOUBLE_LINE is treated identically to SINGLE, as
+	 the second line will be filled by another invocation of this
+	 function.  */
+    case FACE_UNDERLINE_SINGLE:
+    case FACE_UNDERLINE_DOUBLE_LINE:
+      BView_FillRectangle (view, s->x, s->ybase + position,
+			   s->width, thickness);
+      break;
+
+    case FACE_UNDERLINE_DOTS:
+      segment = thickness;
+      FALLTHROUGH;
+
+    case FACE_UNDERLINE_DASHES:
+      haiku_draw_dash (f, s, s->width, segment, position, thickness);
+      break;
+
+    case FACE_NO_UNDERLINE:
+    case FACE_UNDERLINE_WAVE:
+    default:
+      emacs_abort ();
+    }
+}
+
 static void
 haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 			    int width, int x)
@@ -827,15 +907,15 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
       else
 	BView_SetHighColor (view, face->foreground);
 
-      if (face->underline == FACE_UNDER_WAVE)
+      if (face->underline == FACE_UNDERLINE_WAVE)
 	haiku_draw_underwave (s, width, x);
-      else if (face->underline == FACE_UNDER_LINE)
+      else if (face->underline >= FACE_UNDERLINE_SINGLE)
 	{
 	  unsigned long thickness, position;
-	  int y;
 
 	  if (s->prev
-	      && s->prev->face->underline == FACE_UNDER_LINE
+	      && (s->prev->face->underline != FACE_UNDERLINE_WAVE
+		  && s->prev->face->underline >= FACE_UNDERLINE_SINGLE)
 	      && (s->prev->face->underline_at_descent_line_p
 		  == s->face->underline_at_descent_line_p)
 	      && (s->prev->face->underline_pixels_above_descent_line
@@ -908,9 +988,20 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 	    thickness = (s->y + s->height) - (s->ybase + position);
 	  s->underline_thickness = thickness;
 	  s->underline_position = position;
-	  y = s->ybase + position;
 
-	  BView_FillRectangle (view, s->x, y, s->width, thickness);
+	  haiku_fill_underline (s->f, s, s->face->underline,
+				position, thickness);
+
+	  /* Place a second underline above the first if this was
+	     requested in the face specification.  */
+
+	  if (s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
+	    {
+	      /* Compute the position of the second underline.  */
+	      position = position - thickness - 1;
+	      haiku_fill_underline (s->f, s, s->face->underline,
+				    position, thickness);
+	    }
 	}
     }
 

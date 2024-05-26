@@ -4059,6 +4059,10 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	    (if (re-search-forward "^Subject: *" end-of-headers t)
 		(progn
 		  (goto-char (match-end 0))
+                  ;; Don't spell-check Subject if it comes from a
+                  ;; received message: "Re:" indicates this is a reply
+                  ;; to someone else's message, "[...]" indicates this
+                  ;; is a subject of a forwarded message.
 		  (if (and (not (looking-at ".*\\<Re\\>"))
 			   (not (looking-at "\\[")))
 		      (progn

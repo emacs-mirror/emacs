@@ -344,4 +344,22 @@ next line instead.")
       (let ((fill-column 20)) (log-edit-fill-entry))
       (should (equal (buffer-string) wanted)))))
 
+(ert-deftest log-edit-fill-entry-no-defun-list-wrapping ()
+  ;; This test verifies that the opening defun list of an entry is never
+  ;; broken, even in the event its length in total exceeds the fill
+  ;; column.
+  (let (string wanted)
+    (setq string "
+* src/androidfns.c (Fxw_display_color_p):
+(Fx_display_grayscale_p): Report color and/or grayscale properly.
+"
+          wanted "
+* src/androidfns.c (Fxw_display_color_p, Fx_display_grayscale_p):
+Report color and/or grayscale properly.
+")
+    (with-temp-buffer
+      (insert string)
+      (let ((fill-column 64)) (log-edit-fill-entry))
+      (should (equal (buffer-string) wanted)))))
+
 ;;; log-edit-tests.el ends here

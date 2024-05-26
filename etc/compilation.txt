@@ -523,6 +523,45 @@ NoMethodError: undefined method `not_exists' for nil:NilClass
 
 4 tests, 3 assertions, 3 failures, 1 errors
 
+* Rust
+
+symbol: cargo
+
+The [] part is optional, and the file names are always relative to
+project's root.
+
+error[E0425]: cannot find function `ruun` in module `broot::cli`
+   --> src/main.rs:6:23
+    |
+6  |     match broot::cli::ruun() {
+    |                       ^^^^ help: a function with a similar name exists: `run`
+    |
+   ::: /tmp/broot/src/cli/mod.rs:49:1
+    |
+49 | pub fn run() -> Result<Option<Launchable>, ProgramError> {
+    | -------------------------------------------------------- similarly
+    named function `run` defined here
+
+error: cannot find macro `deebug` in this scope
+    --> src/main.rs:5:5
+     |
+5   |     deebug!("env::args(): {:#?}", std::env::args().collect::<Vec<String>>());
+     |     ^^^^^^ help: a macro with a similar name exists: `debug`
+     |
+    ::: /home/ergo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/log-0.4.21/src/macros.rs:154:1
+     |
+154 | macro_rules! debug {
+     | ------------------ similarly named macro `debug` defined here
+
+warning: crate-level attribute should be an inner attribute: add an exclamation mark: `#![foo]`
+  --> src/main.rs:3:1
+   |
+3 | #[feature(proc_macro_diagnostic)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_attributes)]` on by default
+
+
 * RXP
 
 symbol: rxp

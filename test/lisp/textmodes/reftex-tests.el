@@ -197,10 +197,28 @@
   journal =    {Some Journal},
   year =         2013,
   pages = {1--333}
+}"))
+        (entry2 (reftex-parse-bibtex-entry "\
+@article{Abels:slice,
+author       = {Abels, H.},
+title        = {Parallelizability of proper actions, global
+                {$K$}-slices and maximal compact subgroups},
+journaltitle = {Math. Ann.},
+year         = 1974,
+volume       = 212,
+pages        = {1--19}
 }")))
     (should (string= (reftex-format-citation entry nil) "\\cite{Foo13}"))
     (should (string= (reftex-format-citation entry "%l:%A:%y:%t %j %P %a")
-                     "Foo13:Jane Roe:2013:Some Article Some Journal 1 Jane Roe, John Doe \\& Jane Taxpayer"))))
+                     "Foo13:Jane Roe:2013:Some Article Some Journal 1 Jane Roe, John Doe \\& Jane Taxpayer"))
+    ;; Test for biblatex field journaltitle (bug#38762):
+    (should (string=
+             (reftex-format-citation entry2
+                                     "[%4a, \\textit{%t}, \
+%b %e, %u, %r %h %j \\textbf{%v} (%y), %p %<]")
+             "[Abels, \\textit{Parallelizability of proper actions, \
+global {$K$}-slices and maximal compact subgroups}, \
+Math. Ann. \\textbf{212} (1974), 1--19]"))))
 
 (ert-deftest reftex-all-used-citation-keys ()
   "Test `reftex-all-used-citation-keys'.

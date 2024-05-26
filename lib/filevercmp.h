@@ -27,6 +27,11 @@
 
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /* Compare strings A and B as file names containing version numbers,
    and return an integer that is negative, zero, or positive depending
    on whether A compares less than, equal to, or greater than B.
@@ -79,5 +84,10 @@ int filevercmp (char const *a, char const *b) _GL_ATTRIBUTE_PURE;
    terminated by '\0', and similarly for BLEN.  */
 int filenvercmp (char const *a, ptrdiff_t alen, char const *b, ptrdiff_t blen)
   _GL_ATTRIBUTE_PURE;
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FILEVERCMP_H */

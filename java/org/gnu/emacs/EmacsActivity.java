@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
+import android.app.ActivityManager.TaskDescription;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -54,6 +55,9 @@ public class EmacsActivity extends Activity
   ViewTreeObserver.OnGlobalLayoutListener
 {
   public static final String TAG = "EmacsActivity";
+
+  /* Key of intent value providing extra startup argument.  */
+  public static final String EXTRA_STARTUP_ARGUMENTS;
 
   /* ID for URIs from a granted document tree.  */
   public static final int ACCEPT_DOCUMENT_TREE = 1;
@@ -88,6 +92,7 @@ public class EmacsActivity extends Activity
   static
   {
     focusedActivities = new ArrayList<EmacsActivity> ();
+    EXTRA_STARTUP_ARGUMENTS = "org.gnu.emacs.STARTUP_ARGUMENTS";
   };
 
   public static void
@@ -162,6 +167,10 @@ public class EmacsActivity extends Activity
 	layout.removeView (window.view);
 	window = null;
 
+	/* Reset the WM name.  */
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+	  updateWmName ();
+
 	invalidateFocus (0);
       }
   }
@@ -201,6 +210,11 @@ public class EmacsActivity extends Activity
 	  invalidateFocus (1);
 	}
       });
+
+    /* Synchronize the window's window manager name with this activity's
+       task in the recents list.  */
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+      updateWmName ();
   }
 
   @Override
@@ -242,8 +256,8 @@ public class EmacsActivity extends Activity
     /* See if Emacs should be started with any extra arguments, such
        as `--quick'.  */
     intent = getIntent ();
-    EmacsService.extraStartupArgument
-      = intent.getStringExtra ("org.gnu.emacs.STARTUP_ARGUMENT");
+    EmacsService.extraStartupArguments
+      = intent.getStringArrayExtra (EXTRA_STARTUP_ARGUMENTS);
 
     matchParent = FrameLayout.LayoutParams.MATCH_PARENT;
     params
@@ -440,8 +454,7 @@ public class EmacsActivity extends Activity
     if (!EmacsContextMenu.itemAlreadySelected)
       {
 	serial = EmacsContextMenu.lastMenuEventSerial;
-	EmacsNative.sendContextMenu ((short) 0, 0,
-				     serial);
+	EmacsNative.sendContextMenu (0, 0, serial);
       }
 
     super.onContextMenuClosed (menu);
@@ -517,6 +530,29 @@ public class EmacsActivity extends Activity
 	else
 	  view.setSystemUiVisibility (View.SYSTEM_UI_FLAG_VISIBLE);
       }
+  }
+
+  /* Update the name of this activity's task description from the
+     current window, or reset the same if no window is attached.  */
+
+  @SuppressWarnings ("deprecation")
+  public final void
+  updateWmName ()
+  {
+    String wmName;
+    TaskDescription description;
+
+    if (window == null || window.wmName == null)
+      wmName = "Emacs";
+    else
+      wmName = window.wmName;
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+      description = new TaskDescription (wmName);
+    else
+      description = (new TaskDescription.Builder ()
+		     .setLabel (wmName).build ());
+    setTaskDescription (description);
   }
 
   @Override

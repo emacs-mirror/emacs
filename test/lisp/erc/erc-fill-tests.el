@@ -48,7 +48,7 @@
                                     :command "PRIVMSG"
                                     :command-args (list "#chan" msg)
                                     :contents msg)))
-    (erc-display-message parsed nil (current-buffer) msg)))
+    (erc-tests-common-display-message parsed nil (current-buffer) msg)))
 
 (defun erc-fill-tests--wrap-populate (test)
   (let ((original-window-buffer (window-buffer (selected-window)))
@@ -79,7 +79,7 @@
           (erc-update-channel-member
            "#chan" "bob" "bob" t nil nil nil nil nil "fake" "~u" nil nil t)
 
-          (erc-display-message
+          (erc-tests-common-display-message
            nil 'notice (current-buffer)
            (concat "This server is in debug mode and is logging all user I/O. "
                    "If you do not wish for everything you send to be readable "
@@ -260,29 +260,31 @@
        (erc-fill-tests--insert-privmsg "bob" "zero.")
        (erc-fill-tests--insert-privmsg "bob" "0.5")
 
-       (erc-process-ctcp-query
-        erc-server-process
-        (make-erc-response
-         :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION one.\1"
-         :sender "bob!~u@fake"
-         :command "PRIVMSG"
-         :command-args '("#chan" "\1ACTION one.\1")
-         :contents "\1ACTION one.\1")
-        "bob" "~u" "fake")
+       (erc-tests-common-with-date-aware-display-message
+        (erc-process-ctcp-query
+         erc-server-process
+         (make-erc-response
+          :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION one.\1"
+          :sender "bob!~u@fake"
+          :command "PRIVMSG"
+          :command-args '("#chan" "\1ACTION one.\1")
+          :contents "\1ACTION one.\1")
+         "bob" "~u" "fake"))
 
        (erc-fill-tests--insert-privmsg "bob" "two.")
        (erc-fill-tests--insert-privmsg "bob" "2.5")
 
        ;; Compat switch to opt out of overhanging speaker.
-       (let (erc-fill--wrap-action-dedent-p)
-         (erc-process-ctcp-query
-          erc-server-process
-          (make-erc-response
-           :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION three\1"
-           :sender "bob!~u@fake" :command "PRIVMSG"
-           :command-args '("#chan" "\1ACTION three\1")
-           :contents "\1ACTION three\1")
-          "bob" "~u" "fake"))
+       (erc-tests-common-with-date-aware-display-message
+        (let (erc-fill--wrap-action-dedent-p)
+          (erc-process-ctcp-query
+           erc-server-process
+           (make-erc-response
+            :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION three\1"
+            :sender "bob!~u@fake" :command "PRIVMSG"
+            :command-args '("#chan" "\1ACTION three\1")
+            :contents "\1ACTION three\1")
+           "bob" "~u" "fake")))
 
        (erc-fill-tests--insert-privmsg "bob" "four."))
 
@@ -299,16 +301,8 @@
 (ert-deftest erc-fill-wrap--merge-action/indicator-pre ()
   :tags `(:unstable
           ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
-  (let ((erc-fill-wrap-merge-indicator '(pre ?> shadow)))
+  (let ((erc-fill-wrap-merge-indicator '(?> . shadow)))
     (erc-fill-wrap-tests--merge-action "merge-wrap-indicator-pre-01")))
-
-;; One crucial thing this test asserts is that the indicator is
-;; omitted when the previous line ends in a stamp.
-(ert-deftest erc-fill-wrap--merge-action/indicator-post ()
-  :tags `(:unstable
-          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
-  (let ((erc-fill-wrap-merge-indicator '(post ?~ shadow)))
-    (erc-fill-wrap-tests--merge-action "merge-wrap-indicator-post-01")))
 
 (ert-deftest erc-fill-line-spacing ()
   :tags `(:unstable
@@ -320,8 +314,10 @@
     (erc-fill-tests--wrap-populate
      (lambda ()
        (erc-fill-tests--insert-privmsg "bob" "This buffer is for text.")
-       (erc-display-message nil 'notice (current-buffer) "one two three")
-       (erc-display-message nil 'notice (current-buffer) "four five six")
+       (erc-tests-common-display-message nil 'notice
+                                         (current-buffer) "one two three")
+       (erc-tests-common-display-message nil 'notice
+                                         (current-buffer) "four five six")
        (erc-fill-tests--insert-privmsg "bob" "Somebody stop me")
        (erc-fill-tests--compare "spacing-01-mono")))))
 
@@ -449,5 +445,35 @@
                                   erc-prompt t
                                   rear-nonsticky t
                                   font-lock-face erc-prompt-face))))))))))
+
+(ert-deftest erc-fill--wrap-massage-legacy-indicator-type ()
+  (let (calls
+        erc-fill-wrap-merge-indicator)
+    (cl-letf (((symbol-function 'erc--warn-once-before-connect)
+               (lambda (_ &rest args) (push args calls))))
+      ;; List of (pre CHAR FACE) becomes (CHAR . FACE).
+      (let ((erc-fill-wrap-merge-indicator
+             '(pre #xb7 erc-fill-wrap-merge-indicator-face)))
+        (erc-fill--wrap-massage-legacy-indicator-type)
+        (should (equal erc-fill-wrap-merge-indicator
+                       '(#xb7 . erc-fill-wrap-merge-indicator-face)))
+        (should (string-search "(pre CHAR FACE)" (nth 1 (pop calls)))))
+
+      ;; Cons of (CHAR . STRING) becomes STRING.
+      (let ((erc-fill-wrap-merge-indicator '(pre . "\u00b7")))
+        (erc-fill--wrap-massage-legacy-indicator-type)
+        (should (equal erc-fill-wrap-merge-indicator "\u00b7"))
+        (should (string-search "(pre . STRING)" (nth 1 (pop calls)))))
+
+      ;; Anything with a CAR of `post' becomes nil.
+      (let ((erc-fill-wrap-merge-indicator
+             '(post #xb6 erc-fill-wrap-merge-indicator-face)))
+        (erc-fill--wrap-massage-legacy-indicator-type)
+        (should-not erc-fill-wrap-merge-indicator)
+        (should (string-search "no longer available" (nth 1 (pop calls)))))
+      (let ((erc-fill-wrap-merge-indicator '(post . "\u00b7")))
+        (erc-fill--wrap-massage-legacy-indicator-type)
+        (should-not erc-fill-wrap-merge-indicator)
+        (should (string-search "no longer available" (nth 1 (pop calls))))))))
 
 ;;; erc-fill-tests.el ends here

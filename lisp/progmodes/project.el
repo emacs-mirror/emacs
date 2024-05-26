@@ -295,7 +295,7 @@ headers search path, load path, class path, and so on."
 Nominally unique, but not enforced."
   (file-name-nondirectory (directory-file-name (project-root project))))
 
-(cl-defgeneric project-ignores (_project _dir)
+(cl-defgeneric project-ignores (_project dir)
   "Return the list of glob patterns to ignore inside DIR.
 Patterns can match both regular files and directories.
 To root an entry, start it with `./'.  To match directories only,
@@ -305,12 +305,15 @@ end it with `/'.  DIR must be either `project-root' or one of
   ;; TODO: Support whitelist entries.
   (require 'grep)
   (defvar grep-find-ignored-files)
+  (declare-function grep-find-ignored-files "grep" (dir))
   (nconc
    (mapcar
     (lambda (dir)
       (concat dir "/"))
     vc-directory-exclusion-list)
-   grep-find-ignored-files))
+   (if (fboundp 'grep-find-ignored-files)
+       (grep-find-ignored-files dir)
+     grep-find-ignored-files)))
 
 (defun project--file-completion-table (all-files)
   (lambda (string pred action)
@@ -322,6 +325,13 @@ end it with `/'.  DIR must be either `project-root' or one of
 
 (cl-defmethod project-root ((project (head transient)))
   (cdr project))
+
+(defvar project-files-relative-names nil
+  "If non-nil, `project-files' is allowed to return relative file names.
+The file names should be relative to the project root.  And this can
+only happen when all returned files are in the same directory.
+In other words, the DIRS argument of `project-files' has to be nil or a
+list of only one element.")
 
 (cl-defgeneric project-files (project &optional dirs)
   "Return a list of files in directories DIRS in PROJECT.
@@ -340,12 +350,12 @@ to find the list of ignores for each directory."
 (defun project--files-in-directory (dir ignores &optional files)
   (require 'find-dired)
   (require 'xref)
-  (let* ((default-directory dir)
+  (let* ((dir (file-name-as-directory dir))
+         (default-directory dir)
          ;; Make sure ~/ etc. in local directory name is
          ;; expanded and not left for the shell command
          ;; to interpret.
          (localdir (file-name-unquote (file-local-name (expand-file-name dir))))
-         (dfn (directory-file-name localdir))
          (command (format "%s -H . %s -type f %s -print0"
                           find-program
                           (xref--find-ignores-arguments ignores "./")
@@ -376,12 +386,14 @@ to find the list of ignores for each directory."
             (error "File listing failed: %s" (buffer-string))))
         (goto-char pt)
         (while (search-forward "\0" nil t)
-          (push (buffer-substring-no-properties (1+ pt) (1- (point)))
+          (push (buffer-substring-no-properties (+ pt 2) (1- (point)))
                 res)
           (setq pt (point)))))
-    (project--remote-file-names
-     (mapcar (lambda (s) (concat dfn s))
-             (sort res #'string<)))))
+    (if project-files-relative-names
+        (sort res #'string<)
+      (project--remote-file-names
+       (mapcar (lambda (s) (concat localdir s))
+               (sort res #'string<))))))
 
 (defun project--remote-file-names (local-files)
   "Return LOCAL-FILES as if they were on the system of `default-directory'.
@@ -640,7 +652,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
        (list (project-root project)))))
 
 (declare-function vc-git--program-version "vc-git")
-(declare-function vc-git--run-command-string "vc-git")
+(declare-function vc-git-command "vc-git")
 (declare-function vc-hg-command "vc-hg")
 
 (defun project--vc-list-files (dir backend extra-ignores)
@@ -689,9 +701,12 @@ See `project-vc-extra-root-markers' for the marker value format.")
                    (mapcar
                     (lambda (file)
                       (unless (member file submodules)
-                        (concat default-directory file)))
+                        (if project-files-relative-names
+                            file
+                          (concat default-directory file))))
                     (split-string
-                     (apply #'vc-git--run-command-string nil "ls-files" args)
+                     (with-output-to-string
+                       (apply #'vc-git-command standard-output 0 nil "ls-files" args))
                      "\0" t))))
        (when (project--vc-merge-submodules-p default-directory)
          ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
@@ -716,7 +731,8 @@ See `project-vc-extra-root-markers' for the marker value format.")
                                 dir))
             (args (list (concat "-mcard" (and include-untracked "u"))
                         "--no-status"
-                        "-0")))
+                        "-0"))
+            files)
        (when extra-ignores
          (setq args (nconc args
                            (mapcan
@@ -725,9 +741,12 @@ See `project-vc-extra-root-markers' for the marker value format.")
                             extra-ignores))))
        (with-temp-buffer
          (apply #'vc-hg-command t 0 "." "status" args)
-         (mapcar
-          (lambda (s) (concat default-directory s))
-          (split-string (buffer-string) "\0" t)))))))
+         (setq files (split-string (buffer-string) "\0" t))
+         (unless project-files-relative-names
+           (setq files (mapcar
+                        (lambda (s) (concat default-directory s))
+                        files)))
+         files)))))
 
 (defun project--vc-merge-submodules-p (dir)
   (project--value-in-dir
@@ -970,11 +989,13 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
   (let* ((caller-dir default-directory)
          (pr (project-current t))
          (default-directory (project-root pr))
+         (project-files-relative-names t)
          (files
           (if (not current-prefix-arg)
               (project-files pr)
-            (let ((dir (read-directory-name "Base directory: "
-                                            caller-dir nil t)))
+            (let* ((dir (read-directory-name "Base directory: "
+                                             caller-dir nil t)))
+              (setq default-directory dir)
               (project--files-in-directory dir
                                            nil
                                            (grep-read-files regexp))))))
@@ -1000,6 +1021,8 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
   (require 'xref)
   (let* ((pr (project-current t))
          (default-directory (project-root pr))
+         ;; TODO: Make use of `project-files-relative-names' by
+         ;; searching each root separately (maybe in parallel, too).
          (files
           (project-files pr (cons
                              (project-root pr)
@@ -1054,7 +1077,8 @@ for VCS directories listed in `vc-directory-exclusion-list'."
   (interactive "P")
   (let* ((pr (project-current t))
          (root (project-root pr))
-         (dirs (list root)))
+         (dirs (list root))
+         (project-files-relative-names t))
     (project-find-file-in
      (or (thing-at-point 'filename)
          (and buffer-file-name (project--find-default-from buffer-file-name pr)))
@@ -1130,7 +1154,12 @@ by the user at will."
             (if (> (length common-prefix) 0)
                 (file-name-directory common-prefix))))
          (cpd-length (length common-parent-directory))
-         (prompt (if (zerop cpd-length)
+         (common-parent-directory (if (file-name-absolute-p (car all-files))
+                                      common-parent-directory
+                                    (concat default-directory common-parent-directory)))
+         (prompt (if (and (zerop cpd-length)
+                          all-files
+                          (file-name-absolute-p (car all-files)))
                      prompt
                    (concat prompt (format " in %s" common-parent-directory))))
          (included-cpd (when (member common-parent-directory all-files)
@@ -1167,10 +1196,19 @@ by the user at will."
 (defun project--read-file-absolute (prompt
                                     all-files &optional predicate
                                     hist mb-default)
-  (project--completing-read-strict prompt
-                                   (project--file-completion-table all-files)
-                                   predicate
-                                   hist mb-default))
+  (let* ((new-prompt (if (file-name-absolute-p (car all-files))
+                         prompt
+                       (concat prompt " in " default-directory)))
+         ;; FIXME: Map relative names to absolute?
+         (ct (project--file-completion-table all-files))
+         (file
+          (project--completing-read-strict new-prompt
+                                           ct
+                                           predicate
+                                           hist mb-default)))
+    (unless (file-name-absolute-p file)
+      (setq file (expand-file-name file)))
+    file))
 
 (defun project--read-file-name ( project prompt
                                  all-files &optional predicate
@@ -1215,6 +1253,7 @@ directories listed in `vc-directory-exclusion-list'."
                dirs)
             (project-files project dirs)))
          (completion-ignore-case read-file-name-completion-ignore-case)
+         (default-directory (project-root project))
          (file (project--read-file-name
                 project "Find file"
                 all-files nil 'file-name-history

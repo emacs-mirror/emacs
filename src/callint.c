@@ -228,7 +228,7 @@ static Lisp_Object
 read_file_name (Lisp_Object default_filename, Lisp_Object mustmatch,
 		Lisp_Object initial, Lisp_Object predicate)
 {
-  return CALLN (Ffuncall, intern ("read-file-name"),
+  return CALLN (Ffuncall, Qread_file_name,
 		callint_message, Qnil, default_filename,
 		mustmatch, initial, predicate);
 }
@@ -319,10 +319,10 @@ invoke it (via an `interactive' spec that contains, for instance, an
     {
       Lisp_Object funval = Findirect_function (function, Qt);
       uintmax_t events = num_input_events;
+      Lisp_Object env = CLOSUREP (funval) && CONSP (AREF (funval, CLOSURE_CODE))
+		        ? AREF (funval, CLOSURE_CONSTANTS) : Qnil;
       /* Compute the arg values using the user's expression.  */
-      specs = Feval (specs,
- 		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
-		     ? CAR_SAFE (XCDR (funval)) : Qnil);
+      specs = Feval (specs, env);
       if (events != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.
@@ -330,7 +330,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	     and turn them into things we can eval.  */
 	  Lisp_Object values = quotify_args (Fcopy_sequence (specs));
 	  fix_command (function, values);
-          call4 (intern ("add-to-history"), intern ("command-history"),
+          call4 (Qadd_to_history, Qcommand_history,
                  Fcons (function, values), Qnil, Qt);
 	}
 
@@ -687,12 +687,12 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	  break;
 
 	case 'x':		/* Lisp expression read but not evaluated.  */
-	  args[i] = call1 (intern ("read-minibuffer"), callint_message);
+	  args[i] = call1 (Qread_minibuffer, callint_message);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
 	case 'X':		/* Lisp expression read and evaluated.  */
-	  args[i] = call1 (intern ("eval-minibuffer"), callint_message);
+	  args[i] = call1 (Qeval_minibuffer, callint_message);
 	  visargs[i] = last_minibuf_string;
  	  break;
 
@@ -766,7 +766,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	visargs[i] = (varies[i] > 0
 		      ? list1 (intern (callint_argfuns[varies[i]]))
 		      : quotify_arg (args[i]));
-      call4 (intern ("add-to-history"), intern ("command-history"),
+      call4 (Qadd_to_history, Qcommand_history,
              Flist (nargs - 1, visargs + 1), Qnil, Qt);
     }
 
@@ -912,4 +912,7 @@ use `event-start', `event-end', and `event-click-count'.  */);
   defsubr (&Sprefix_numeric_value);
 
   DEFSYM (Qinteractive_args, "interactive-args");
+  DEFSYM (Qread_file_name, "read-file-name");
+  DEFSYM (Qcommand_history, "command-history");
+  DEFSYM (Qeval_minibuffer, "eval-minibuffer");
 }

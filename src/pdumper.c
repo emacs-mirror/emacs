@@ -3174,7 +3174,7 @@ dump_vectorlike (struct dump_context *ctx,
         error_unsupported_dump_object(ctx, lv, "font");
       FALLTHROUGH;
     case PVEC_NORMAL_VECTOR:
-    case PVEC_COMPILED:
+    case PVEC_CLOSURE:
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
@@ -4298,7 +4298,7 @@ types.  */)
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
      and set up to work with X windows if appropriate.  */
-  Lisp_Object symbol = intern ("command-line-processed");
+  Lisp_Object symbol = Qcommand_line_processed;
   specbind (symbol, Qnil);
 
   CHECK_STRING (filename);

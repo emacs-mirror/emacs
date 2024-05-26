@@ -244,7 +244,7 @@ latter are unique to Emacs Lisp.
 * Macro Type::          A method of expanding an expression into another
                           expression, more fundamental but less pretty.
 * Primitive Function Type::     A function written in C, callable from Lisp.
-* Byte-Code Type::      A function written in Lisp, then compiled.
+* Closure Type::        A function written in Lisp.
 * Record Type::         Compound objects with programmer-defined types.
 * Type Descriptors::    Objects holding information about types.
 * Autoload Type::       A type used for automatically loading seldom-used
@@ -1458,18 +1458,24 @@ with the name of the subroutine.
 @end group
 @end example
 
-@node Byte-Code Type
-@subsection Byte-Code Function Type
+@node Closure Type
+@subsection Closure Function Type
 
-@dfn{Byte-code function objects} are produced by byte-compiling Lisp
-code (@pxref{Byte Compilation}).  Internally, a byte-code function
-object is much like a vector; however, the evaluator handles this data
-type specially when it appears in a function call.  @xref{Byte-Code
-Objects}.
+@dfn{Closures} are function objects produced when turning a function
+definition into a function value.  Closures are used both for
+byte-compiled Lisp functions as well as for interpreted Lisp functions.
+Closures can be produced by byte-compiling Lisp code (@pxref{Byte
+Compilation}) or simply by evaluating a lambda expression without
+compiling it, resulting in an interpreted function.  Internally,
+a closure is much like a vector; however, the evaluator
+handles this data type specially when it appears in a function call.
+@xref{Closure Objects}.
 
 The printed representation and read syntax for a byte-code function
 object is like that for a vector, with an additional @samp{#} before the
-opening @samp{[}.
+opening @samp{[}.  When printed for human consumption, it is printed as
+a special kind of list with an additional @samp{#f} before the opening
+@samp{(}.
 
 @node Record Type
 @subsection Record Type
@@ -2030,7 +2036,7 @@ with references to further information.
 @xref{Array Functions, arrayp}.
 
 @item bignump
-@xref{Predicates on Numbers, floatp}.
+@xref{Predicates on Numbers, bignump}.
 
 @item bool-vector-p
 @xref{Bool-Vectors, bool-vector-p}.
@@ -2042,10 +2048,7 @@ with references to further information.
 @xref{Buffer Basics, bufferp}.
 
 @item byte-code-function-p
-@xref{Byte-Code Type, byte-code-function-p}.
-
-@item compiled-function-p
-@xref{Byte-Code Type, compiled-function-p}.
+@xref{Closure Type, byte-code-function-p}.
 
 @item case-table-p
 @xref{Case Tables, case-table-p}.
@@ -2056,8 +2059,14 @@ with references to further information.
 @item char-table-p
 @xref{Char-Tables, char-table-p}.
 
+@item closurep
+@xref{What Is a Function, closurep}.
+
 @item commandp
 @xref{Interactive Call, commandp}.
+
+@item compiled-function-p
+@xref{Closure Type, compiled-function-p}.
 
 @item condition-variable-p
 @xref{Condition Variables, condition-variable-p}.
@@ -2069,7 +2078,7 @@ with references to further information.
 @xref{Variable Definitions, custom-variable-p}.
 
 @item fixnump
-@xref{Predicates on Numbers, floatp}.
+@xref{Predicates on Numbers, fixnump}.
 
 @item floatp
 @xref{Predicates on Numbers, floatp}.
@@ -2097,6 +2106,9 @@ with references to further information.
 
 @item integerp
 @xref{Predicates on Numbers, integerp}.
+
+@item interpreted-function-p
+@xref{What Is a Function, interpreted-function-p}.
 
 @item keymapp
 @xref{Creating Keymaps, keymapp}.

@@ -563,6 +563,8 @@ Its value is an `archive--file-desc'.")
 (defvar-local archive-files nil
   "Vector of `archive--file-desc' objects.")
 
+(defvar tar-archive-from-tar nil)
+
 ;; -------------------------------------------------------------------------
 ;;; Section: Support functions.
 
@@ -754,7 +756,8 @@ archive.
 	;; on local filesystem.  Treat such archives as remote.
 	(or archive-remote
 	    (setq archive-remote
-		  (or (string-match archive-remote-regexp (buffer-file-name))
+		  (or tar-archive-from-tar ; was included in a tar archive
+                      (string-match archive-remote-regexp (buffer-file-name))
 		      (string-match file-name-invalid-regexp
 				    (buffer-file-name)))))
 
@@ -920,6 +923,9 @@ If FNAME can be uniquely created in DIR, it is returned unaltered.
 If FNAME is something our underlying filesystem can't grok, or if another
 file by that name already exists in DIR, a unique new name is generated
 using `make-temp-file', and the generated name is returned."
+  (if (file-name-absolute-p fname)
+      ;; We need a file name relative to the filesystem root.
+      (setq fname (substring fname (1+ (string-search "/" fname)))))
   (let ((fullname (expand-file-name fname dir))
 	(alien (string-match file-name-invalid-regexp fname))
 	(tmpfile
@@ -1179,6 +1185,9 @@ NEW-NAME."
          (buffer (get-buffer bufname))
          (just-created nil)
 	 (file-name-coding archive-file-name-coding-system))
+      (or archive-remote
+          (and (local-variable-p 'tar-archive-from-tar)
+               (setq archive-remote tar-archive-from-tar)))
       (if (and buffer
 	       (string= (buffer-file-name buffer) arcfilename))
           nil

@@ -30,6 +30,11 @@ _GL_INLINE_HEADER_BEGIN
 # define _GL_EXECINFO_INLINE _GL_INLINE
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 _GL_EXECINFO_INLINE int
 backtrace (void **buffer, int size)
 {
@@ -53,6 +58,11 @@ backtrace_symbols_fd (void *const *buffer, int size, int fd)
   (void) size;
   (void) fd;
 }
+
+
+#ifdef __cplusplus
+}
+#endif
 
 _GL_INLINE_HEADER_END
 

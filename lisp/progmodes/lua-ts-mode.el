@@ -40,8 +40,10 @@
 (declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 (declare-function treesit-node-child-count "treesit.c")
+(declare-function treesit-node-eq "treesit.c")
 (declare-function treesit-node-first-child-for-pos "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-prev-sibling "treesit.c")
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-type "treesit.c")
@@ -292,6 +294,14 @@ values of OVERRIDE."
           (node-is "]]"))
       no-indent 0)
      ((and (n-p-gp "field" "table_constructor" "arguments")
+           lua-ts--multi-arg-function-call-matcher
+           lua-ts--last-arg-function-call-matcher)
+      standalone-parent lua-ts-indent-offset)
+     ((and (n-p-gp "}" "table_constructor" "arguments")
+           lua-ts--multi-arg-function-call-matcher
+           lua-ts--last-arg-function-call-matcher)
+      standalone-parent 0)
+     ((and (n-p-gp "field" "table_constructor" "arguments")
            lua-ts--multi-arg-function-call-matcher)
       parent lua-ts-indent-offset)
      ((and (n-p-gp "}" "table_constructor" "arguments")
@@ -311,10 +321,15 @@ values of OVERRIDE."
           (and (parent-is "parameters") lua-ts--first-child-matcher)
           (and (parent-is "table_constructor") lua-ts--first-child-matcher))
       standalone-parent lua-ts-indent-offset)
+     ((and (not lua-ts--comment-first-sibling-matcher)
+           (or (parent-is "arguments")
+               (parent-is "parameters")
+               (parent-is "table_constructor")))
+      lua-ts--first-real-sibling-anchor 0)
      ((or (parent-is "arguments")
           (parent-is "parameters")
           (parent-is "table_constructor"))
-      (nth-sibling 1) 0)
+      standalone-parent lua-ts-indent-offset)
      ((and (n-p-gp "block" "function_definition" "parenthesized_expression")
            lua-ts--nested-function-block-matcher
            lua-ts--nested-function-block-include-matcher)
@@ -337,6 +352,9 @@ values of OVERRIDE."
            lua-ts--nested-function-end-matcher
            lua-ts--nested-function-last-function-matcher)
       parent 0)
+     ((and (n-p-gp "end" "function_definition" "arguments")
+           lua-ts--top-level-function-call-matcher)
+      standalone-parent 0)
      ((n-p-gp "end" "function_definition" "arguments") parent 0)
      ((or (match "end" "function_definition")
           (node-is "end"))
@@ -385,16 +403,28 @@ values of OVERRIDE."
   "Return t if NODE is a function_definition."
   (equal "function_definition" (treesit-node-type node)))
 
+(defun lua-ts--g-parent (node)
+  "Return the grand-parent of NODE."
+  (let ((parent (treesit-node-parent node)))
+    (treesit-node-parent parent)))
+
+(defun lua-ts--g-g-parent (node)
+  "Return the great-grand-parent of NODE."
+  (treesit-node-parent (lua-ts--g-parent node)))
+
 (defun lua-ts--g-g-g-parent (node)
   "Return the great-great-grand-parent of NODE."
-  (let* ((parent (treesit-node-parent node))
-         (g-parent (treesit-node-parent parent))
-         (g-g-parent (treesit-node-parent g-parent)))
-    (treesit-node-parent g-g-parent)))
+  (treesit-node-parent (lua-ts--g-g-parent node)))
 
 (defun lua-ts--multi-arg-function-call-matcher (_n parent &rest _)
   "Matches if PARENT has multiple arguments."
   (> (treesit-node-child-count (treesit-node-parent parent)) 3))
+
+(defun lua-ts--last-arg-function-call-matcher (node parent &rest _)
+  "Matches if NODE's PARENT is the last argument in a function call."
+  (let* ((g-parent (lua-ts--g-parent node))
+         (last (1- (treesit-node-child-count g-parent t))))
+    (treesit-node-eq parent (seq-elt (treesit-node-children g-parent t) last))))
 
 (defun lua-ts--nested-function-argument-matcher (node &rest _)
   "Matches if NODE is in a nested function argument."
@@ -402,7 +432,10 @@ values of OVERRIDE."
     (goto-char (treesit-node-start node))
     (treesit-beginning-of-defun)
     (backward-char 2)
-    (not (looking-at ")("))))
+    (and (not (looking-at ")("))
+         (not (equal "chunk"
+                     (treesit-node-type
+                      (lua-ts--g-parent (treesit-node-at (point)))))))))
 
 (defun lua-ts--nested-function-block-matcher (node &rest _)
   "Matches if NODE is in a nested function block."
@@ -437,6 +470,26 @@ values of OVERRIDE."
   (let ((sparse-tree
          (treesit-induce-sparse-tree parent #'lua-ts--function-definition-p)))
     (= 1 (length (cadr sparse-tree)))))
+
+(defun lua-ts--comment-first-sibling-matcher (node &rest _)
+  "Matches if NODE if it's previous sibling is a comment."
+  (let ((sibling (treesit-node-prev-sibling node)))
+    (equal "comment" (treesit-node-type sibling))))
+
+(defun lua-ts--top-level-function-call-matcher (node &rest _)
+  "Matches if NODE is within a top-level function call."
+  (let* ((g-g-p (lua-ts--g-g-parent node))
+         (g-g-g-p (lua-ts--g-g-g-parent node)))
+    (and (equal "function_call" (treesit-node-type g-g-p))
+         (equal "chunk" (treesit-node-type g-g-g-p)))))
+
+(defun lua-ts--first-real-sibling-anchor (_n parent _)
+  "Return the start position of the first non-comment child of PARENT."
+  (treesit-node-start
+   (seq-first
+    (seq-filter
+     (lambda (n) (not (equal "comment" (treesit-node-type n))))
+     (treesit-node-children parent t)))))
 
 (defun lua-ts--variable-declaration-continuation (node &rest _)
   "Matches if NODE is part of a multi-line variable declaration."
@@ -764,7 +817,7 @@ Calls REPORT-FN directly."
                                       "vararg_expression"))))
                    (text "comment"))))
 
-    ;; Imenu/Outline.
+    ;; Imenu/Outline/Which-function.
     (setq-local treesit-simple-imenu-settings
                 `(("Requires"
                    "\\`function_call\\'"
@@ -775,9 +828,6 @@ Calls REPORT-FN directly."
                    "\\`\\(?:f\\(?:ield\\|unction_declaration\\)\\)\\'"
                    lua-ts--named-function-p
                    nil)))
-
-    ;; Which-function.
-    (setq-local which-func-functions (treesit-defun-at-point))
 
     ;; Align.
     (setq-local align-indent-before-aligning t)

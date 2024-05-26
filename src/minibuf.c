@@ -494,12 +494,11 @@ confirm the aborting of the current minibuffer and all contained ones.  */)
 	     to abort any extra non-minibuffer recursive edits.  Thus,
 	     the number of recursive edits we have to abort equals the
 	     number of minibuffers we have to abort.  */
-	  CALLN (Ffuncall, intern ("minibuffer-quit-recursive-edit"),
-		 array[1]);
+	  call1 (Qminibuffer_quit_recursive_edit, array[1]);
 	}
     }
   else
-    CALLN (Ffuncall, intern ("minibuffer-quit-recursive-edit"));
+    call0 (Qminibuffer_quit_recursive_edit);
   return Qnil;
 }
 
@@ -1367,6 +1366,20 @@ and some related functions, which use zero-indexing for POSITION.  */)
   if (NILP (histpos))
     XSETFASTINT (histpos, 0);
 
+#ifdef HAVE_TEXT_CONVERSION
+  /* If overriding-text-conversion-style is set, assume that it was
+     changed prior to this call and force text conversion to be reset,
+     since redisplay might conclude that the value was retained
+     unmodified from a previous call to Fread_from_minibuffer as the
+     selected window will not have changed.  */
+  if (!EQ (Voverriding_text_conversion_style, Qlambda)
+      /* Separate minibuffer frames are not material here, since they
+         will already be selected if the situation that this is meant to
+         prevent is possible.  */
+      && FRAME_WINDOW_P (SELECTED_FRAME ()))
+    reset_frame_conversion (SELECTED_FRAME ());
+#endif /* HAVE_TEXT_CONVERSION */
+
   val = read_minibuf (keymap, initial_contents, prompt,
 		      !NILP (read),
 		      histvar, histpos, default_value,
@@ -1525,12 +1538,12 @@ function, instead of the usual behavior.  */)
 					      STRING_MULTIBYTE (prompt));
 	    }
 
-	  prompt = CALLN (Ffuncall, intern("format-prompt"),
+	  prompt = CALLN (Ffuncall, Qformat_prompt,
 			  prompt,
 			  CONSP (def) ? XCAR (def) : def);
 	}
 
-      result = Fcompleting_read (prompt, intern ("internal-complete-buffer"),
+      result = Fcompleting_read (prompt, Qinternal_complete_buffer,
 				 predicate, require_match, Qnil,
 				 Qbuffer_name_history, def, Qnil);
     }
@@ -2018,7 +2031,7 @@ See also `completing-read-function'.  */)
   (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
 {
   return CALLN (Ffuncall,
-		Fsymbol_value (intern ("completing-read-function")),
+		Fsymbol_value (Qcompleting_read_function),
 		prompt, collection, predicate, require_match, initial_input,
 		hist, def, inherit_input_method);
 }
@@ -2517,4 +2530,8 @@ showing the *Completions* buffer, if any.  */);
   defsubr (&Stest_completion);
   defsubr (&Sassoc_string);
   defsubr (&Scompleting_read);
+  DEFSYM (Qminibuffer_quit_recursive_edit, "minibuffer-quit-recursive-edit");
+  DEFSYM (Qinternal_complete_buffer, "internal-complete-buffer");
+  DEFSYM (Qcompleting_read_function, "completing-read-function");
+  DEFSYM (Qformat_prompt, "format-prompt");
 }

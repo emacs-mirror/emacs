@@ -959,9 +959,6 @@ NEW-FACES has a cdr."
                      (throw 'face candidate))))))
         choice)))
 
-(defvar erc-track--skipped-msgs '(datestamp)
-  "Values of `erc--msg' text prop to ignore.")
-
 (defun erc-track-modified-channels ()
   "Hook function for `erc-insert-post-hook'.
 Check if the current buffer should be added to the mode line as a
@@ -980,8 +977,7 @@ the current buffer is in `erc-mode'."
                                                  erc-track-exclude-types)
                         ;; Skip certain non-server-sent messages.
                         (and (not parsed)
-                             (erc--check-msg-prop 'erc--msg
-                                                  erc-track--skipped-msgs))))))
+                             (erc--memq-msg-prop 'erc--skip 'track))))))
 	;; If the active buffer is not visible (not shown in a
 	;; window), and not to be excluded, determine the kinds of
 	;; faces used in the current message, and unless the user

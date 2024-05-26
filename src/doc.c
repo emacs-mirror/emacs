@@ -517,11 +517,27 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);
   /* Lisp_Subrs have a slot for it.  */
-  if (SUBRP (fun) && !SUBR_NATIVE_COMPILEDP (fun))
+  if (SUBRP (fun))
     XSUBR (fun)->doc = offset;
+  else if (CLOSUREP (fun))
+    {
+      /* This bytecode object must have a slot for the docstring, since
+	 we've found a docstring for it.  */
+      if (PVSIZE (fun) > CLOSURE_DOC_STRING
+	  /* Don't overwrite a non-docstring value placed there, such as
+             the symbols used for Oclosures.  */
+	  && VALID_DOCSTRING_P (AREF (fun, CLOSURE_DOC_STRING)))
+	ASET (fun, CLOSURE_DOC_STRING, make_fixnum (offset));
+      else
+	{
+	  AUTO_STRING (format, "No doc string slot for compiled: %S");
+	  CALLN (Fmessage, format, obj);
+	}
+    }
   else
     {
-      AUTO_STRING (format, "Ignoring DOC string on non-subr: %S");
+      AUTO_STRING (format, "Ignoring DOC string on non-compiled"
+		   "non-subr: %S");
       CALLN (Fmessage, format, obj);
     }
 }
@@ -548,8 +564,8 @@ the same file name is found in the `doc-directory'.  */)
   ptrdiff_t dirlen;
   /* Preloaded defcustoms using custom-initialize-delay are added to
      this list, but kept unbound.  See https://debbugs.gnu.org/11565  */
-  Lisp_Object delayed_init =
-    find_symbol_value (intern ("custom-delayed-init-variables"));
+  Lisp_Object delayed_init
+    = find_symbol_value (Qcustom_delayed_init_variables);
 
   if (!CONSP (delayed_init)) delayed_init = Qnil;
 
@@ -763,4 +779,5 @@ compute the correct value for the current terminal in the nil case.  */);
   defsubr (&Sdocumentation_property);
   defsubr (&Ssnarf_documentation);
   defsubr (&Stext_quoting_style);
+  DEFSYM (Qcustom_delayed_init_variables, "custom-delayed-init-variables");
 }

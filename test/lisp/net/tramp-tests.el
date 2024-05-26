@@ -64,6 +64,7 @@
 (declare-function tramp-method-out-of-band-p "tramp-sh")
 (declare-function tramp-smb-get-localname "tramp-smb")
 (defvar ange-ftp-make-backup-files)
+(defvar comp-warn-primitives)
 (defvar tramp-connection-properties)
 (defvar tramp-copy-size-limit)
 (defvar tramp-fuse-remove-hidden-files)
@@ -2103,14 +2104,18 @@ is greater than 10.
        (string-equal (file-remote-p (format "/-:%s@:" u) 'method) "ftp"))))
   ;; Default values in tramp-sh.el and tramp-sudoedit.el.
   (when (assoc "su" tramp-methods)
-    (dolist (h `("127.0.0.1" "[::1]" "localhost" "localhost6" ,(system-name)))
+    (dolist
+	(h `("127.0.0.1" "[::1]" "localhost" "localhost4" "localhost6"
+	     "ip6-localhost" "ip6-loopback" ,(system-name)))
       (should
-       (string-equal (file-remote-p (format "/-:root@%s:" h) 'method) "su")))
-    (dolist (m '("su" "sudo" "ksu" "doas" "sudoedit"))
+       (string-equal (file-remote-p (format "/-:root@%s:" h) 'method) "su"))))
+  (dolist (m '("su" "sudo" "ksu" "doas" "sudoedit"))
+    (when (assoc m tramp-methods)
       (should (string-equal (file-remote-p (format "/%s::" m) 'user) "root"))
       (should
-       (string-equal (file-remote-p (format "/%s::" m) 'host) (system-name))))
-    (dolist (m '("rcp" "remcp" "rsh" "telnet" "krlogin" "fcp" "nc"))
+       (string-equal (file-remote-p (format "/%s::" m) 'host) (system-name)))))
+  (dolist (m '("rcp" "remcp" "rsh" "telnet" "krlogin" "fcp" "nc"))
+    (when (assoc m tramp-methods)
       (should
        (string-equal
 	(file-remote-p (format "/%s::" m) 'user) (user-login-name)))))
@@ -2128,21 +2133,22 @@ is greater than 10.
   ;; Host names must match rules in case the command template of a
   ;; method doesn't use them.
   (dolist (m '("su" "sg" "sudo" "doas" "ksu"))
-    (let (tramp-connection-properties tramp-default-proxies-alist)
-      (ignore-errors
-	(tramp-cleanup-connection tramp-test-vec nil 'keep-password))
-      ;; Single hop.  The host name must match `tramp-local-host-regexp'.
-      (should-error
-       (find-file (format "/%s:foo:" m))
-       :type 'user-error)
-      ;; Multi hop.  The host name must match the previous hop.
-      (should-error
-       (find-file
-	(format
-	 "%s|%s:foo:"
-	 (substring (file-remote-p ert-remote-temporary-file-directory) 0 -1)
-	 m))
-       :type 'user-error))))
+    (when (assoc m tramp-methods)
+      (let (tramp-connection-properties tramp-default-proxies-alist)
+	(ignore-errors
+	  (tramp-cleanup-connection tramp-test-vec nil 'keep-password))
+	;; Single hop.  The host name must match `tramp-local-host-regexp'.
+	(should-error
+	 (find-file (format "/%s:foo:" m))
+	 :type 'user-error)
+	;; Multi hop.  The host name must match the previous hop.
+	(should-error
+	 (find-file
+	  (format
+	   "%s|%s:foo:"
+	   (substring (file-remote-p ert-remote-temporary-file-directory) 0 -1)
+	   m))
+	 :type 'user-error)))))
 
 (ert-deftest tramp-test03-file-name-method-rules ()
   "Check file name rules for some methods."
@@ -3684,7 +3690,8 @@ This tests also `access-file', `file-readable-p',
 	    ;; `access-file' returns nil in case of success.
 	    (should-not (access-file tmp-name1 "error"))
 	    ;; `access-file' could use a timeout.
-	    (let ((remote-file-name-access-timeout 1))
+	    (let ((remote-file-name-access-timeout 1)
+		  comp-warn-primitives)
 	      (cl-letf (((symbol-function #'file-exists-p)
 			 (lambda (_filename) (sleep-for 5))))
 		(should-error
@@ -5367,19 +5374,23 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
      :tags (append '(:expensive-test :tramp-asynchronous-processes)
 		   (and ,unstable '(:unstable)))
      (skip-unless (tramp--test-enabled))
-     (let ((default-directory ert-remote-temporary-file-directory)
-	   (ert-test (ert-get-test ',test))
-	   (tramp-connection-properties
-	    (cons '(nil "direct-async-process" t)
-		  tramp-connection-properties)))
+     (let* ((default-directory ert-remote-temporary-file-directory)
+	    (ert-test (ert-get-test ',test))
+	    (connection-local-profile-alist
+	     (cons
+	      '(direct-async-process-profile (tramp-direct-async-process . t))
+	      connection-local-profile-alist))
+	    (connection-local-criteria-alist
+	     (cons
+	      `((:application tramp
+		 :machine ,(file-remote-p default-directory 'host))
+		direct-async-process-profile)
+	      connection-local-criteria-alist)))
        (skip-unless (tramp-direct-async-process-p))
        ;; We do expect an established connection already,
        ;; `file-truename' does it by side-effect.  Suppress
        ;; `tramp--test-enabled', in order to keep the connection.
-       ;; Suppress "Process ... finished" messages.
-       (cl-letf (((symbol-function #'tramp--test-enabled) #'tramp-compat-always)
-		 ((symbol-function #'internal-default-process-sentinel)
-		  #'ignore))
+       (cl-letf (((symbol-function #'tramp--test-enabled) #'tramp-compat-always))
 	 (file-truename ert-remote-temporary-file-directory)
 	 (funcall (ert-test-body ert-test))))))
 
@@ -5922,7 +5933,7 @@ INPUT, if non-nil, is a string sent to the process."
       (when (natnump cols)
 	(should (= cols async-shell-command-width))))))
 
-(tramp--test-deftest-direct-async-process tramp-test32-shell-command 'unstable)
+(tramp--test-deftest-direct-async-process tramp-test32-shell-command)
 
 ;; This test is inspired by Bug#39067.
 (ert-deftest tramp-test32-shell-command-dont-erase-buffer ()
@@ -7064,7 +7075,7 @@ This is used in tests which we don't want to tag
   "Check, whether a container method is used.
 This does not support some special file names."
   (string-match-p
-   (rx bol (| "docker" "podman"))
+   (rx bol (| "docker" "podman" "kubernetes" "apptainer" "run0" "nspawn"))
    (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-container-oob-p ()
@@ -7210,6 +7221,12 @@ This does not support special file names."
   (string-equal
    "telnet" (file-remote-p ert-remote-temporary-file-directory 'method)))
 
+(defun tramp--test-toolbox-p ()
+  "Check, whether the toolbox method is used.
+This does not support `tramp-test45-asynchronous-requests'."
+  (string-equal
+   "toolbox" (file-remote-p ert-remote-temporary-file-directory 'method)))
+
 (defun tramp--test-windows-nt-p ()
   "Check, whether the locale host runs MS Windows."
   (eq system-type 'windows-nt))
@@ -7233,8 +7250,14 @@ This requires restrictions of file name syntax."
 
 (defun tramp--test-supports-processes-p ()
   "Return whether the method under test supports external processes."
-  (and (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p))
-       (not (tramp--test-crypt-p))))
+  ;; We use it to enable/disable tests in a given test run, for
+  ;; example for remote processes on MS Windows.
+  (if (tramp-connection-property-p
+       tramp-test-vec "tramp--test-supports-processes-p")
+      (tramp-get-connection-property
+       tramp-test-vec "tramp--test-supports-processes-p")
+    (and (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p))
+	 (not (tramp--test-crypt-p)))))
 
 (defun tramp--test-supports-set-file-modes-p ()
   "Return whether the method under test supports setting file modes."
@@ -7419,7 +7442,9 @@ This requires restrictions of file name syntax."
 				   '(tramp--test-async-shell-command))))
 		      (with-temp-buffer
 			(funcall this-shell-command "cat -- *" (current-buffer))
-			(should (string-equal elt (buffer-string)))))))
+			(should
+			 (string-match-p
+			  (rx (literal elt) eol) (buffer-string)))))))
 
 		(delete-file file2)
 		(should-not (file-exists-p file2))
@@ -7688,8 +7713,9 @@ process sentinels.  They shall not disturb each other."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
   (skip-unless (not (tramp--test-container-p)))
-  (skip-unless (not (tramp--test-telnet-p)))
   (skip-unless (not (tramp--test-sshfs-p)))
+  (skip-unless (not (tramp--test-telnet-p)))
+  (skip-unless (not (tramp--test-toolbox-p)))
   (skip-unless (not (tramp--test-windows-nt-p)))
 
   (with-timeout

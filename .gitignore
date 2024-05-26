@@ -66,6 +66,10 @@ java/org/gnu/emacs/*.class
 # Built by `aapt'.
 java/org/gnu/emacs/R.java
 
+# Built by `make'.
+java/org/gnu/emacs/EmacsConfig.java
+java/cf-stamp
+
 # Built by `config.status'.
 java/AndroidManifest.xml
 

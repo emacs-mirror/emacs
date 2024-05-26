@@ -22,13 +22,23 @@ package org.gnu.emacs;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Xfermode;
 
 import android.util.Log;
 
 public final class EmacsDrawRectangle
 {
+  private static final Xfermode srcInAlu;
+
+  static
+  {
+    srcInAlu = new PorterDuffXfermode (Mode.SRC_IN);
+  };
+
   public static void
   perform (EmacsDrawable drawable, EmacsGC gc,
 	   int x, int y, int width, int height)
@@ -40,8 +50,10 @@ public final class EmacsDrawRectangle
     Canvas canvas;
     Bitmap clipBitmap;
 
-    /* TODO implement stippling.  */
-    if (gc.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
+    /* TODO implement stippling for this request.  */
+    if (gc.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED
+	/* And GC_INVERT also.  */
+	|| gc.fill_style == EmacsGC.GC_INVERT)
       return;
 
     canvas = drawable.lockCanvas (gc);
@@ -51,6 +63,9 @@ public final class EmacsDrawRectangle
 
     paint = gc.gcPaint;
     paint.setStyle (Paint.Style.STROKE);
+
+    /* This graphics request, in contrast to X, does not presently
+       respect the GC's line style.  */
 
     if (gc.clip_mask == null)
       /* Use canvas.drawRect with a RectF.  That seems to reliably
@@ -100,7 +115,7 @@ public final class EmacsDrawRectangle
 	/* Set the transfer mode to SRC_IN to preserve only the parts
 	   of the source that overlap with the mask.  */
 	maskPaint = new Paint ();
-	maskPaint.setXfermode (EmacsGC.srcInAlu);
+	maskPaint.setXfermode (srcInAlu);
 	maskPaint.setStyle (Paint.Style.STROKE);
 
 	/* Draw the source.  */

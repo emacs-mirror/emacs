@@ -2014,7 +2014,15 @@
   (should (equal '(foo)
                  (use-package-normalize/:vc 'foo :vc nil)))
   (should (equal '(bar)
-                 (use-package-normalize/:vc 'foo :vc '(bar)))))
+                 (use-package-normalize/:vc 'foo :vc '(bar))))
+  (should (equal
+           '(foo (:ignored-files ("a" "b" "c")) :last-release)
+           (use-package-normalize/:vc 'foo :vc '((:ignored-files "a" "b" "c")))))
+  (should (equal
+           (use-package-normalize/:vc 'foo :vc '((:ignored-files "a")))
+           (use-package-normalize/:vc 'foo :vc '((:ignored-files ("a"))))))
+  (should (equal (use-package-normalize/:vc 'foo :vc '((:ignored-files "a" "b" "c")))
+                 (use-package-normalize/:vc 'foo :vc '((:ignored-files ("a" "b" "c")))))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

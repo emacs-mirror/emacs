@@ -1,6 +1,6 @@
 ;;; etags-regen.el --- Auto-(re)regenerating tags  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dmitry@gutov.dev>
 ;; Keywords: tools
@@ -52,7 +52,7 @@
 (declare-function project-files "project")
 (declare-function dired-glob-regexp "dired")
 
-(defcustom etags-regen-program (executable-find "etags")
+(defcustom etags-regen-program etags-program-name
   "Name of the etags program used by `etags-regen-mode'.
 
 If you only have `ctags' installed, you can also set this to

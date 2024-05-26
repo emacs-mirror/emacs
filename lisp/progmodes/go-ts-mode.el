@@ -108,6 +108,11 @@
     ">>" "%=" ">>=" "--" "!"  "..."  "&^" "&^=" "~")
   "Go operators for tree-sitter font-locking.")
 
+(defvar go-ts-mode--builtin-functions
+  '("append" "cap" "clear" "close" "complex" "copy" "delete" "imag" "len" "make"
+    "max" "min" "new" "panic" "print" "println" "real" "recover")
+  "Go built-in functions for tree-sitter font-locking.")
+
 (defun go-ts-mode--iota-query-supported-p ()
   "Return t if the iota query is supported by the tree-sitter-go grammar."
   (ignore-errors
@@ -129,6 +134,16 @@
    :language 'go
    :feature 'comment
    '((comment) @font-lock-comment-face)
+
+   :language 'go
+   :feature 'builtin
+   `((call_expression
+      function: ((identifier) @font-lock-builtin-face
+                 (:match ,(rx-to-string
+                           `(seq bol
+                                 (or ,@go-ts-mode--builtin-functions)
+                                 eol))
+                         @font-lock-builtin-face))))
 
    :language 'go
    :feature 'constant
@@ -269,7 +284,7 @@
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)
                   ( keyword string type)
-                  ( constant escape-sequence label number)
+                  ( builtin constant escape-sequence label number)
                   ( bracket delimiter error function operator property variable)))
 
     (treesit-major-mode-setup)))

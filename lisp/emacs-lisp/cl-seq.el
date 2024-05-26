@@ -452,14 +452,15 @@ to avoid corrupting the original SEQ.
   (apply 'cl-substitute cl-new nil cl-list :if-not cl-pred cl-keys))
 
 ;;;###autoload
-(defun cl-nsubstitute (cl-new cl-old cl-seq &rest cl-keys)
+(defun cl-nsubstitute (cl-new cl-old seq &rest cl-keys)
   "Substitute NEW for OLD in SEQ.
 This is a destructive function; it reuses the storage of SEQ whenever possible.
 \nKeywords supported:  :test :test-not :key :count :start :end :from-end
 \n(fn NEW OLD SEQ [KEYWORD VALUE]...)"
   (cl--parsing-keywords (:test :test-not :key :if :if-not :count
 			(:start 0) :end :from-end) ()
-    (let ((len (length cl-seq)))
+    (let* ((cl-seq (if (stringp seq) (string-to-vector seq) seq))
+           (len (length cl-seq)))
       (or (eq cl-old cl-new) (<= (or cl-count (setq cl-count len)) 0)
 	  (if (and (listp cl-seq) (or (not cl-from-end) (> cl-count (/ len 2))))
 	    (let ((cl-p (nthcdr cl-start cl-seq)))
@@ -483,8 +484,8 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
 		  (progn
 		    (aset cl-seq cl-start cl-new)
 		    (setq cl-count (1- cl-count))))
-	      (setq cl-start (1+ cl-start)))))))
-    cl-seq))
+	      (setq cl-start (1+ cl-start))))))
+      (if (stringp seq) (concat cl-seq) cl-seq))))
 
 ;;;###autoload
 (defun cl-nsubstitute-if (cl-new cl-pred cl-list &rest cl-keys)
@@ -667,7 +668,10 @@ This is a destructive function; it reuses the storage of SEQ if possible.
 \nKeywords supported:  :key
 \n(fn SEQ PREDICATE [KEYWORD VALUE]...)"
   (if (nlistp cl-seq)
-      (cl-replace cl-seq (apply 'cl-sort (append cl-seq nil) cl-pred cl-keys))
+      (if (stringp cl-seq)
+          (concat (apply #'cl-sort (vconcat cl-seq) cl-pred cl-keys))
+        (cl-replace cl-seq
+                    (apply #'cl-sort (append cl-seq nil) cl-pred cl-keys)))
     (cl--parsing-keywords (:key) ()
       (if (memq cl-key '(nil identity))
 	  (sort cl-seq cl-pred)

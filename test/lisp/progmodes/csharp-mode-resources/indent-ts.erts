@@ -1,0 +1,51 @@
+Code:
+  (lambda ()
+    (csharp-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: |
+
+Name: Indent single statement body for if/else. (bug#70345)
+
+=-=
+
+int x;
+int y;
+
+if (true)
+    x = 2;
+
+if (true)
+{
+    x = 2;
+}
+
+if (true)
+    x = 2;
+else
+    y = 2;
+
+if (true)
+{
+    x = 2;
+}
+else
+{
+    y = 2;
+}
+
+if (true)
+    x = 2;
+else
+{
+    y = 2;
+}
+
+if (true)
+{
+    x = 2;
+}
+else
+    y = 2;
+
+=-=-=

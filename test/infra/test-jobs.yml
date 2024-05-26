@@ -15,7 +15,7 @@ test-lib-src-inotify:
         - test/lib-src/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lib-src"
+    make_params: -C test check-lib-src
 
 test-lisp-inotify:
   stage: normal
@@ -32,7 +32,7 @@ test-lisp-inotify:
         - test/lisp/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp"
+    make_params: -C test check-lisp
 
 test-lisp-calc-inotify:
   stage: normal
@@ -49,7 +49,7 @@ test-lisp-calc-inotify:
         - test/lisp/calc/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-calc"
+    make_params: -C test check-lisp-calc
 
 test-lisp-calendar-inotify:
   stage: normal
@@ -66,7 +66,7 @@ test-lisp-calendar-inotify:
         - test/lisp/calendar/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-calendar"
+    make_params: -C test check-lisp-calendar
 
 test-lisp-cedet-inotify:
   stage: normal
@@ -83,7 +83,7 @@ test-lisp-cedet-inotify:
         - test/lisp/cedet/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-cedet"
+    make_params: -C test check-lisp-cedet
 
 test-lisp-cedet-semantic-inotify:
   stage: normal
@@ -100,7 +100,7 @@ test-lisp-cedet-semantic-inotify:
         - test/lisp/cedet/semantic/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-cedet-semantic"
+    make_params: -C test check-lisp-cedet-semantic
 
 test-lisp-cedet-semantic-bovine-inotify:
   stage: normal
@@ -117,7 +117,7 @@ test-lisp-cedet-semantic-bovine-inotify:
         - test/lisp/cedet/semantic/bovine/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-cedet-semantic-bovine"
+    make_params: -C test check-lisp-cedet-semantic-bovine
 
 test-lisp-cedet-srecode-inotify:
   stage: normal
@@ -134,7 +134,7 @@ test-lisp-cedet-srecode-inotify:
         - test/lisp/cedet/srecode/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-cedet-srecode"
+    make_params: -C test check-lisp-cedet-srecode
 
 test-lisp-emacs-lisp-inotify:
   stage: normal
@@ -151,7 +151,7 @@ test-lisp-emacs-lisp-inotify:
         - test/lisp/emacs-lisp/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-emacs-lisp"
+    make_params: -C test check-lisp-emacs-lisp
 
 test-lisp-emacs-lisp-eieio-tests-inotify:
   stage: normal
@@ -168,7 +168,7 @@ test-lisp-emacs-lisp-eieio-tests-inotify:
         - test/lisp/emacs-lisp/eieio-tests/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-emacs-lisp-eieio-tests"
+    make_params: -C test check-lisp-emacs-lisp-eieio-tests
 
 test-lisp-emacs-lisp-faceup-tests-inotify:
   stage: normal
@@ -185,7 +185,7 @@ test-lisp-emacs-lisp-faceup-tests-inotify:
         - test/lisp/emacs-lisp/faceup-tests/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-emacs-lisp-faceup-tests"
+    make_params: -C test check-lisp-emacs-lisp-faceup-tests
 
 test-lisp-emulation-inotify:
   stage: normal
@@ -202,7 +202,7 @@ test-lisp-emulation-inotify:
         - test/lisp/emulation/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-emulation"
+    make_params: -C test check-lisp-emulation
 
 test-lisp-erc-inotify:
   stage: normal
@@ -219,7 +219,7 @@ test-lisp-erc-inotify:
         - test/lisp/erc/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-erc"
+    make_params: -C test check-lisp-erc
 
 test-lisp-eshell-inotify:
   stage: normal
@@ -236,7 +236,7 @@ test-lisp-eshell-inotify:
         - test/lisp/eshell/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-eshell"
+    make_params: -C test check-lisp-eshell
 
 test-lisp-gnus-inotify:
   stage: normal
@@ -253,7 +253,7 @@ test-lisp-gnus-inotify:
         - test/lisp/gnus/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-gnus"
+    make_params: -C test check-lisp-gnus
 
 test-lisp-image-inotify:
   stage: normal
@@ -270,7 +270,7 @@ test-lisp-image-inotify:
         - test/lisp/image/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-image"
+    make_params: -C test check-lisp-image
 
 test-lisp-international-inotify:
   stage: normal
@@ -287,7 +287,7 @@ test-lisp-international-inotify:
         - test/lisp/international/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-international"
+    make_params: -C test check-lisp-international
 
 test-lisp-mail-inotify:
   stage: normal
@@ -304,7 +304,7 @@ test-lisp-mail-inotify:
         - test/lisp/mail/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-mail"
+    make_params: -C test check-lisp-mail
 
 test-lisp-mh-e-inotify:
   stage: normal
@@ -321,7 +321,7 @@ test-lisp-mh-e-inotify:
         - test/lisp/mh-e/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-mh-e"
+    make_params: -C test check-lisp-mh-e
 
 test-lisp-net-inotify:
   stage: normal
@@ -338,7 +338,7 @@ test-lisp-net-inotify:
         - test/lisp/net/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-net"
+    make_params: -C test check-lisp-net
 
 test-lisp-nxml-inotify:
   stage: normal
@@ -355,7 +355,7 @@ test-lisp-nxml-inotify:
         - test/lisp/nxml/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-nxml"
+    make_params: -C test check-lisp-nxml
 
 test-lisp-obsolete-inotify:
   stage: normal
@@ -372,7 +372,7 @@ test-lisp-obsolete-inotify:
         - test/lisp/obsolete/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-obsolete"
+    make_params: -C test check-lisp-obsolete
 
 test-lisp-org-inotify:
   stage: normal
@@ -389,7 +389,7 @@ test-lisp-org-inotify:
         - test/lisp/org/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-org"
+    make_params: -C test check-lisp-org
 
 test-lisp-play-inotify:
   stage: normal
@@ -406,7 +406,7 @@ test-lisp-play-inotify:
         - test/lisp/play/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-play"
+    make_params: -C test check-lisp-play
 
 test-lisp-progmodes-inotify:
   stage: normal
@@ -430,7 +430,7 @@ test-lisp-progmodes-inotify:
         - test/lisp/progmodes/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-progmodes"
+    make_params: -C test check-lisp-progmodes
 
 test-lisp-so-long-tests-inotify:
   stage: normal
@@ -447,7 +447,7 @@ test-lisp-so-long-tests-inotify:
         - test/lisp/so-long-tests/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-so-long-tests"
+    make_params: -C test check-lisp-so-long-tests
 
 test-lisp-term-inotify:
   stage: normal
@@ -464,7 +464,7 @@ test-lisp-term-inotify:
         - test/lisp/term/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-term"
+    make_params: -C test check-lisp-term
 
 test-lisp-textmodes-inotify:
   stage: normal
@@ -476,12 +476,17 @@ test-lisp-textmodes-inotify:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
+        - lisp/textmodes/*-ts-mode.el
+        - test/lisp/textmodes/*-ts-mode-resources/**
+        - test/lisp/textmodes/*-ts-mode-tests.el
+      when: never
+    - changes:
         - lisp/textmodes/*.el
         - test/lisp/textmodes/*resources/**
         - test/lisp/textmodes/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-textmodes"
+    make_params: -C test check-lisp-textmodes
 
 test-lisp-url-inotify:
   stage: normal
@@ -498,7 +503,7 @@ test-lisp-url-inotify:
         - test/lisp/url/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-url"
+    make_params: -C test check-lisp-url
 
 test-lisp-use-package-inotify:
   stage: normal
@@ -515,7 +520,7 @@ test-lisp-use-package-inotify:
         - test/lisp/use-package/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-use-package"
+    make_params: -C test check-lisp-use-package
 
 test-lisp-vc-inotify:
   stage: normal
@@ -532,7 +537,7 @@ test-lisp-vc-inotify:
         - test/lisp/vc/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-vc"
+    make_params: -C test check-lisp-vc
 
 test-misc-inotify:
   stage: normal
@@ -549,7 +554,7 @@ test-misc-inotify:
         - test/misc/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-misc"
+    make_params: -C test check-misc
 
 test-src-inotify:
   stage: normal
@@ -570,7 +575,7 @@ test-src-inotify:
         - test/src/*.el
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-src"
+    make_params: -C test check-src
 
 # js-tests.el and python-tests.el don't follow test file name convention.
 .tree-sitter-files-template:
@@ -585,5 +590,6 @@ test-src-inotify:
       lisp/progmodes/lua-ts-mode-tests.log
       lisp/progmodes/python-tests.log
       lisp/progmodes/ruby-ts-mode-tests.log
+      lisp/progmodes/rust-ts-mode-tests.log
       lisp/progmodes/typescript-ts-mode-tests.log
       src/treesit-tests.log

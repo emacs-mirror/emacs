@@ -108,8 +108,8 @@ public final class EmacsContextMenu
 	     will normally confuse Emacs into thinking that the
 	     context menu has been dismissed.  Wrong!
 
-	     Setting this flag makes EmacsActivity to only handle
-	     SubMenuBuilder being closed, which always means the menu
+	     Setting this flag prompts EmacsActivity to only handle
+	     SubMenuBuilders being closed, which always means the menu
 	     has actually been dismissed.
 
 	     However, these extraneous events aren't sent on devices
@@ -121,8 +121,7 @@ public final class EmacsContextMenu
 	}
 
       /* Send a context menu event.  */
-      EmacsNative.sendContextMenu ((short) 0, itemID,
-				   lastMenuEventSerial);
+      EmacsNative.sendContextMenu (0, itemID, lastMenuEventSerial);
 
       /* Say that an item has already been selected.  */
       itemAlreadySelected = true;

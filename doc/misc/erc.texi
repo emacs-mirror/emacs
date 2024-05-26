@@ -2123,11 +2123,20 @@ to IRC, and don't forget that you can roll back to the previous
 version by running @kbd{M-x package-delete @key{RET}}.
 @xref{Packages,,,emacs, The Emacs Editor}, for more information.
 
+Note that a bug affecting Emacs' packaging machinery may prevent the
+above method from working on Emacs versions 29 and below.  Users on 29
+can try running @kbd{C-u M-x package-install @key{RET}} instead.
+Users on 28 and below can click on the @emph{installed} @samp{erc}
+line item in the @file{*Packages*} buffer instead of the newest one,
+and then, in the resulting @code{help-mode} buffer, find and activate
+the button for the newest version, which should appear in the summary
+item @samp{Other versions}.
+
 In the rare instance you need an emergency fix or have volunteered to
 test an edge feature between ERC releases, you can try adding
 @samp{("devel" . "https://elpa.gnu.org/devel/")} to
 @code{package-archives} prior to performing the steps above.  For
-this, you'll want to instead select a ``snapshot'' version from the
+this, you'll want to instead select a @dfn{snapshot} version from the
 menu.  Please be aware that when going this route, the latest changes
 may not yet be available and you run the risk of incurring other bugs
 and encountering unstable features.

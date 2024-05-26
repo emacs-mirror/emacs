@@ -143,6 +143,12 @@ University of California, as described above. */
 # define MERCURY_HEURISTICS_RATIO 0.5
 #endif
 
+/* Work around GCC bug 114882
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114882>.  */
+#if GNUC_PREREQ (14, 0, 0)
+# pragma GCC diagnostic ignored "-Wanalyzer-use-of-uninitialized-value"
+#endif
+
 /* COPY to DEST from SRC (containing LEN bytes), and append a NUL byte.  */
 static void
 memcpyz (void *dest, void const *src, ptrdiff_t len)
@@ -243,12 +249,10 @@ endtoken (unsigned char c)
 }
 
 /*
- *	xnew, xrnew -- allocate, reallocate storage
+ *	xrnew -- reallocate storage
  *
- * SYNOPSIS:	Type *xnew (ptrdiff_t n, Type);
- *		void xrnew (OldPointer, ptrdiff_t n, int multiplier);
+ * SYNOPSIS:	void xrnew (OldPointer, ptrdiff_t n, int multiplier);
  */
-#define xnew(n, Type) ((Type *) xnmalloc (n, sizeof (Type)))
 #define xrnew(op, n, m) ((op) = xnrealloc (op, n, (m) * sizeof *(op)))
 
 typedef void Lang_function (FILE *);
@@ -701,7 +705,7 @@ and optionally Prolog-like definitions (first rule for a predicate or \
 function).\n\
 To enable this behavior, run etags using --declarations.";
 static bool with_mercury_definitions = false;
-float mercury_heuristics_ratio = MERCURY_HEURISTICS_RATIO;
+static float mercury_heuristics_ratio = MERCURY_HEURISTICS_RATIO;
 
 static const char *Objc_suffixes [] =
   { "lm",			/* Objective lex file  */
@@ -1125,13 +1129,13 @@ main (int argc, char **argv)
 
   progname = argv[0];
   nincluded_files = 0;
-  included_files = xnew (argc, char *);
+  included_files = xnmalloc (argc, sizeof *included_files);
   current_arg = 0;
   file_count = 0;
 
   /* Allocate enough no matter what happens.  Overkill, but each one
      is small. */
-  argbuffer = xnew (argc, argument);
+  argbuffer = xnmalloc (argc, sizeof *argbuffer);
 
   /*
    * Always find typedefs and structure tags.
@@ -1778,7 +1782,7 @@ process_file (FILE *fh, char *fn, language *lang)
 
   infilename = fn;
   /* Create a new input file description entry. */
-  fdp = xnew (1, fdesc);
+  fdp = xmalloc (sizeof *fdp);
   *fdp = emptyfdesc;
   fdp->next = fdhead;
   fdp->infname = savestr (fn);
@@ -2080,7 +2084,7 @@ pfnote (char *name,		/* tag name, or NULL if unnamed */
       || (!CTAGS && name && name[0] == '\0'))
     return;
 
-  np = xnew (1, node);
+  np = xmalloc (sizeof *np);
 
   /* If ctags mode, change name "main" to M<thisfilename>. */
   if (CTAGS && !cxref_style && streq (name, "main"))
@@ -2135,7 +2139,7 @@ push_node (node *np, stkentry **stack_top)
 {
   if (np)
     {
-      stkentry *new = xnew (1, stkentry);
+      stkentry *new = xmalloc (sizeof *new);
 
       new->np = np;
       new->next = *stack_top;
@@ -3425,8 +3429,8 @@ C_entries (int c_ext,		/* extension of C */
     {
       cstack.size = (DEBUG) ? 1 : 4;
       cstack.nl = 0;
-      cstack.cname = xnew (cstack.size, char *);
-      cstack.bracelev = xnew (cstack.size, ptrdiff_t);
+      cstack.cname = xnmalloc (cstack.size, sizeof *cstack.cname);
+      cstack.bracelev = xnmalloc (cstack.size, sizeof *cstack.bracelev);
     }
 
   tokoff = toklen = typdefbracelev = 0; /* keep compiler quiet */
@@ -5077,7 +5081,7 @@ Ruby_functions (FILE *inf)
 		    if (writer)
 		      {
 			size_t name_len = cp - np + 1;
-			char *wr_name = xnew (name_len + 1, char);
+			char *wr_name = xmalloc (name_len + 1);
 
 			strcpy (mempcpy (wr_name, np, name_len - 1), "=");
 			pfnote (wr_name, true, lb.buffer, cp - lb.buffer + 1,
@@ -5854,7 +5858,7 @@ TEX_decode_env (const char *evarname, const char *defenv)
   for (p = env; (p = strchr (p, ':')); )
     if (*++p)
       len++;
-  TEX_toktab = xnew (len, linebuffer);
+  TEX_toktab = xnmalloc (len, sizeof *TEX_toktab);
 
   /* Unpack environment string into token table. Be careful about */
   /* zero-length strings (leading ':', "::" and trailing ':') */
@@ -7033,7 +7037,7 @@ add_regex (char *regexp_pattern, language *lang)
 	break;
       }
 
-  patbuf = xnew (1, struct re_pattern_buffer);
+  patbuf = xmalloc (sizeof *patbuf);
   *patbuf = zeropattern;
   if (ignore_case)
     {
@@ -7064,7 +7068,7 @@ add_regex (char *regexp_pattern, language *lang)
     }
 
   rp = p_head;
-  p_head = xnew (1, regexp);
+  p_head = xmalloc (sizeof *p_head);
   p_head->pattern = savestr (regexp_pattern);
   p_head->p_next = rp;
   p_head->lang = lang;
@@ -7104,7 +7108,7 @@ substitute (char *in, char *out, struct re_registers *regs)
 
   /* Allocate space and do the substitutions. */
   assert (size >= 0);
-  result = xnew (size + 1, char);
+  result = xmalloc (size + 1);
 
   for (t = result; *out != '\0'; out++)
     if (*out == '\\' && c_isdigit (*++out))
@@ -7377,26 +7381,26 @@ readline (linebuffer *lbp, FILE *stream)
       /* Check whether this is a #line directive. */
       if (result > 12 && strneq (lbp->buffer, "#line ", 6))
 	{
-	  intmax_t lno;
-	  int start = 0;
+	  char *lno_start = lbp->buffer + 6;
+	  char *lno_end;
+	  intmax_t lno = strtoimax (lno_start, &lno_end, 10);
+	  char *quoted_filename
+	    = lno_start < lno_end ? skip_spaces (lno_end) : NULL;
 
-	  if (sscanf (lbp->buffer, "#line %"SCNdMAX" \"%n", &lno, &start) >= 1
-	      && start > 0)	/* double quote character found */
+	  if (quoted_filename && *quoted_filename == '"')
 	    {
-	      char *endp = lbp->buffer + start;
+	      char *endp = quoted_filename;
+	      while (*++endp && *endp != '"')
+		endp += *endp == '\\' && endp[1];
 
-	      while ((endp = strchr (endp, '"')) != NULL
-		     && endp[-1] == '\\')
-		endp++;
-	      if (endp != NULL)
+	      if (*endp)
 		/* Ok, this is a real #line directive.  Let's deal with it. */
 		{
 		  char *taggedabsname;	/* absolute name of original file */
 		  char *taggedfname;	/* name of original file as given */
-		  char *name;		/* temp var */
+		  char *name = quoted_filename + 1;
 
 		  discard_until_line_directive = false; /* found it */
-		  name = lbp->buffer + start;
 		  *endp = '\0';
 		  canonicalize_filename (name);
 		  taggedabsname = absolute_filename (name, tagfiledir);
@@ -7452,7 +7456,7 @@ readline (linebuffer *lbp, FILE *stream)
 		      if (fdp == NULL) /* not found */
 			{
 			  fdp = fdhead;
-			  fdhead = xnew (1, fdesc);
+			  fdhead = xmalloc (sizeof *fdhead);
 			  *fdhead = *curfdp; /* copy curr. file description */
 			  fdhead->next = fdp;
 			  fdhead->infname = savestr (curfdp->infname);
@@ -7552,7 +7556,7 @@ readline (linebuffer *lbp, FILE *stream)
 
 /*
  * Return a pointer to a space of size strlen(cp)+1 allocated
- * with xnew where the string CP has been copied.
+ * with xmalloc where the string CP has been copied.
  */
 static char *
 savestr (const char *cp)
@@ -7561,13 +7565,13 @@ savestr (const char *cp)
 }
 
 /*
- * Return a pointer to a space of size LEN+1 allocated with xnew
+ * Return a pointer to a space of size LEN+1 allocated with xmalloc
  * with a copy of CP (containing LEN bytes) followed by a NUL byte.
  */
 static char *
 savenstr (const char *cp, ptrdiff_t len)
 {
-  char *dp = xnew (len + 1, char);
+  char *dp = xmalloc (len + 1);
   dp[len] = '\0';
   return memcpy (dp, cp, len);
 }
@@ -7650,7 +7654,7 @@ static char *
 concat (const char *s1, const char *s2, const char *s3)
 {
   ptrdiff_t len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
-  char *result = xnew (len1 + len2 + len3 + 1, char);
+  char *result = xmalloc (len1 + len2 + len3 + 1);
   strcpy (stpcpy (stpcpy (result, s1), s2), s3);
   return result;
 }
@@ -7662,7 +7666,7 @@ static char *
 etags_getcwd (void)
 {
   ptrdiff_t bufsize = 200;
-  char *path = xnew (bufsize, char);
+  char *path = xmalloc (bufsize);
 
   while (getcwd (path, bufsize) == NULL)
     {
@@ -7748,7 +7752,7 @@ escape_shell_arg_string (char *str)
       p++;
     }
 
-  char *new_str = xnew (need_space + 1, char);
+  char *new_str = xmalloc (need_space + 1);
   new_str[0] = '\'';
   new_str[need_space-1] = '\'';
 
@@ -7841,7 +7845,7 @@ relative_filename (char *file, char *dir)
   i = 0;
   while ((dp = strchr (dp + 1, '/')) != NULL)
     i += 1;
-  res = xnew (3*i + strlen (fp + 1) + 1, char);
+  res = xmalloc (3*i + strlen (fp + 1) + 1);
   char *z = res;
   while (i-- > 0)
     z = stpcpy (z, "../");
@@ -7996,7 +8000,7 @@ static void
 linebuffer_init (linebuffer *lbp)
 {
   lbp->size = (DEBUG) ? 3 : 200;
-  lbp->buffer = xnew (lbp->size, char);
+  lbp->buffer = xmalloc (lbp->size);
   lbp->buffer[0] = '\0';
   lbp->len = 0;
 }

@@ -1,0 +1,57 @@
+default namespace = ""
+namespace msdata = "urn:schemas-microsoft-com:xml-msdata"
+namespace xsd = "http://www.w3.org/2001/XMLSchema"
+
+start =
+  element root {
+    element xsd:schema {
+      attribute id { xsd:NCName },
+      element xsd:import {
+        attribute namespace { xsd:anyURI }
+      }?,
+      xsd.element
+    },
+    element resheader {
+      attribute name { xsd:NCName },
+      value
+    }+,
+    (element assembly {
+       attribute alias { xsd:NCName },
+       attribute name { text }
+     }
+     | element data {
+         attribute mimetype { text }?,
+         attribute name { text },
+         attribute type { text }?,
+         attribute xml:space { xsd:NCName }?,
+         value
+       }
+     | element metadata {
+         attribute name { xsd:NCName },
+         attribute type { text },
+         value
+       })*
+  }
+xsd.element =
+  element xsd:element {
+    attribute minOccurs { xsd:integer }?,
+    attribute name { xsd:NCName },
+    attribute type { xsd:NMTOKEN }?,
+    attribute msdata:IsDataSet { xsd:boolean }?,
+    attribute msdata:Ordinal { xsd:integer }?,
+    element xsd:complexType {
+      element xsd:choice {
+        attribute maxOccurs { xsd:NCName },
+        xsd.element+
+      }?,
+      element xsd:sequence { xsd.element+ }?,
+      element xsd:attribute {
+        attribute name { xsd:NCName }?,
+        attribute ref { xsd:NMTOKEN }?,
+        attribute type { xsd:NMTOKEN }?,
+        attribute use { xsd:NCName }?,
+        attribute msdata:Ordinal { xsd:integer }?
+      }*
+    }*
+  }
+value = element value { text }

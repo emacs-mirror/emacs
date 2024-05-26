@@ -3310,7 +3310,66 @@ ns_draw_underwave (struct glyph_string *s, EmacsCGFloat width, EmacsCGFloat x)
   [[NSGraphicsContext currentContext] restoreGraphicsState];
 }
 
+/* Draw a dashed underline of thickness THICKNESS and width WIDTH onto
+   the focused frame at a vertical offset of OFFSET from the position of
+   the glyph string S, with each segment SEGMENT pixels in length.  */
 
+static void
+ns_draw_dash (struct glyph_string *s, int width, int segment,
+	      int offset, int thickness)
+{
+  CGFloat pattern[2], y_center = s->ybase + offset + thickness / 2.0;
+  NSBezierPath *path = [[NSBezierPath alloc] init];
+
+  pattern[0] = segment;
+  pattern[1] = segment;
+
+  [path setLineDash: pattern count: 2 phase: (CGFloat) s->x];
+  [path setLineWidth: thickness];
+  [path moveToPoint: NSMakePoint (s->x, y_center)];
+  [path lineToPoint: NSMakePoint (s->x + width, y_center)];
+  [path stroke];
+  [path release];
+}
+
+/* Draw an underline of STYLE onto the focused frame at an offset of
+   POSITION from the baseline of the glyph string S, S->WIDTH in length,
+   and THICKNESS in height.  */
+
+static void
+ns_fill_underline (struct glyph_string *s, enum face_underline_type style,
+		   int position, int thickness)
+{
+  int segment;
+  NSRect rect;
+
+  segment = thickness * 3;
+
+  switch (style)
+    {
+      /* FACE_UNDERLINE_DOUBLE_LINE is treated identically to SINGLE, as
+	 the second line will be filled by another invocation of this
+	 function.  */
+    case FACE_UNDERLINE_SINGLE:
+    case FACE_UNDERLINE_DOUBLE_LINE:
+      rect = NSMakeRect (s->x, s->ybase + position, s->width, thickness);
+      NSRectFill (rect);
+      break;
+
+    case FACE_UNDERLINE_DOTS:
+      segment = thickness;
+      FALLTHROUGH;
+
+    case FACE_UNDERLINE_DASHES:
+      ns_draw_dash (s, s->width, segment, position, thickness);
+      break;
+
+    case FACE_NO_UNDERLINE:
+    case FACE_UNDERLINE_WAVE:
+    default:
+      emacs_abort ();
+    }
+}
 
 static void
 ns_draw_text_decoration (struct glyph_string *s, struct face *face,
@@ -3330,22 +3389,21 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
   /* Do underline.  */
   if (face->underline)
     {
-      if (s->face->underline == FACE_UNDER_WAVE)
+      if (s->face->underline == FACE_UNDERLINE_WAVE)
         {
           if (!face->underline_defaulted_p)
             [[NSColor colorWithUnsignedLong:face->underline_color] set];
 
           ns_draw_underwave (s, width, x);
         }
-      else if (s->face->underline == FACE_UNDER_LINE)
+      else if (face->underline >= FACE_UNDERLINE_SINGLE)
         {
-
-          NSRect r;
           unsigned long thickness, position;
 
           /* If the prev was underlined, match its appearance.  */
           if (s->prev
-	      && s->prev->face->underline == FACE_UNDER_LINE
+	      && (s->prev->face->underline != FACE_UNDERLINE_WAVE
+		  && s->prev->face->underline >= FACE_UNDERLINE_SINGLE)
               && s->prev->underline_thickness > 0
 	      && (s->prev->face->underline_at_descent_line_p
 		  == s->face->underline_at_descent_line_p)
@@ -3411,12 +3469,22 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
           s->underline_thickness = thickness;
           s->underline_position = position;
 
-          r = NSMakeRect (x, s->ybase + position, width, thickness);
-
           if (!face->underline_defaulted_p)
             [[NSColor colorWithUnsignedLong:face->underline_color] set];
 
-          NSRectFill (r);
+	  ns_fill_underline (s, s->face->underline, position,
+			     thickness);
+
+	  /* Place a second underline above the first if this was
+	     requested in the face specification.  */
+
+	  if (s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
+	    {
+	      /* Compute the position of the second underline.  */
+	      position = position - thickness - 1;
+	      ns_fill_underline (s, s->face->underline, position,
+				 thickness);
+	    }
         }
     }
   /* Do overline. We follow other terms in using a thickness of 1
@@ -3740,7 +3808,6 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
     }
 }
 
-
 static void
 ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 /* --------------------------------------------------------------------------
@@ -3748,45 +3815,47 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
       certain cases.  Others are left to the text rendering routine.
    -------------------------------------------------------------------------- */
 {
+  struct face *face = s->face;
+  NSRect r;
+
   NSTRACE ("ns_maybe_dumpglyphs_background");
 
-  if (!s->background_filled_p/* || s->hl == DRAW_MOUSE_FACE*/)
+  if (!s->background_filled_p)
     {
       int box_line_width = max (s->face->box_horizontal_line_width, 0);
 
-      if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
-	  /* When xdisp.c ignores FONT_HEIGHT, we cannot trust font
-	     dimensions, since the actual glyphs might be much
-	     smaller.  So in that case we always clear the rectangle
-	     with background color.  */
-	  || FONT_TOO_HIGH (s->font)
-          || s->font_not_found_p || s->extends_to_end_of_line_p || force_p)
+      if (s->stippled_p)
 	{
-          struct face *face = s->face;
-          if (!face->stipple)
-            {
-              if (s->hl != DRAW_CURSOR)
-                [(NS_FACE_BACKGROUND (face) != 0
-                  ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
-                  : FRAME_BACKGROUND_COLOR (s->f)) set];
-              else if (face && (NS_FACE_BACKGROUND (face)
-                                == [(NSColor *) FRAME_CURSOR_COLOR (s->f)
-                                                unsignedLong]))
-                [[NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)] set];
-              else
-                [FRAME_CURSOR_COLOR (s->f) set];
-            }
-          else
-            {
-              struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
-              [[dpyinfo->bitmaps[face->stipple-1].img stippleMask] set];
-            }
+	  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
+	  [[dpyinfo->bitmaps[face->stipple-1].img stippleMask] set];
+	  goto fill;
+	}
+      else if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
+	       /* When xdisp.c ignores FONT_HEIGHT, we cannot trust font
+		  dimensions, since the actual glyphs might be much
+		  smaller.  So in that case we always clear the
+		  rectangle with background color.  */
+	       || FONT_TOO_HIGH (s->font)
+	       || s->font_not_found_p
+	       || s->extends_to_end_of_line_p
+	       || force_p)
+	{
+	  if (s->hl != DRAW_CURSOR)
+	    [(NS_FACE_BACKGROUND (face) != 0
+	      ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
+	      : FRAME_BACKGROUND_COLOR (s->f)) set];
+	  else if (face && (NS_FACE_BACKGROUND (face)
+			    == [(NSColor *) FRAME_CURSOR_COLOR (s->f)
+					    unsignedLong]))
+	    [[NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)] set];
+	  else
+	    [FRAME_CURSOR_COLOR (s->f) set];
 
-	  NSRect r = NSMakeRect (s->x, s->y + box_line_width,
-				 s->background_width,
-				 s->height - 2 * box_line_width);
+	fill:
+	  r = NSMakeRect (s->x, s->y + box_line_width,
+			  s->background_width,
+			  s->height - 2 * box_line_width);
 	  NSRectFill (r);
-
 	  s->background_filled_p = 1;
 	}
     }
@@ -4015,8 +4084,7 @@ ns_draw_stretch_glyph_string (struct glyph_string *s)
   struct face *face;
   NSColor *fg_color;
 
-  if (s->hl == DRAW_CURSOR
-      && !x_stretch_cursor_p)
+  if (s->hl == DRAW_CURSOR && !x_stretch_cursor_p)
     {
       /* If `x-stretch-cursor' is nil, don't draw a block cursor as
 	 wide as the stretch glyph.  */
@@ -4102,8 +4170,13 @@ ns_draw_stretch_glyph_string (struct glyph_string *s)
 
       if (background_width > 0)
 	{
+	  struct ns_display_info *dpyinfo;
+
+	  dpyinfo = FRAME_DISPLAY_INFO (s->f);
 	  if (s->hl == DRAW_CURSOR)
 	    [FRAME_CURSOR_COLOR (s->f) set];
+	  else if (s->stippled_p)
+	    [[dpyinfo->bitmaps[s->face->stipple - 1].img stippleMask] set];
 	  else
 	    [[NSColor colorWithUnsignedLong: s->face->background] set];
 
@@ -4321,6 +4394,45 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
   s->char2b = NULL;
 }
 
+/* Transfer glyph string parameters from S's face to S itself.
+   Set S->stipple_p as appropriate, taking the draw type into
+   account.  */
+
+static void
+ns_set_glyph_string_gc (struct glyph_string *s)
+{
+  prepare_face_for_display (s->f, s->face);
+
+  if (s->hl == DRAW_NORMAL_TEXT)
+    {
+      /* s->gc = s->face->gc; */
+      s->stippled_p = s->face->stipple != 0;
+    }
+  else if (s->hl == DRAW_INVERSE_VIDEO)
+    {
+      /* x_set_mode_line_face_gc (s); */
+      s->stippled_p = s->face->stipple != 0;
+    }
+  else if (s->hl == DRAW_CURSOR)
+    {
+      /* x_set_cursor_gc (s); */
+      s->stippled_p = false;
+    }
+  else if (s->hl == DRAW_MOUSE_FACE)
+    {
+      /* x_set_mouse_face_gc (s); */
+      s->stippled_p = s->face->stipple != 0;
+    }
+  else if (s->hl == DRAW_IMAGE_RAISED
+	   || s->hl == DRAW_IMAGE_SUNKEN)
+    {
+      /* s->gc = s->face->gc; */
+      s->stippled_p = s->face->stipple != 0;
+    }
+  else
+    emacs_abort ();
+}
+
 static void
 ns_draw_glyph_string (struct glyph_string *s)
 /* --------------------------------------------------------------------------
@@ -4346,6 +4458,7 @@ ns_draw_glyph_string (struct glyph_string *s)
 	   width += next->width, next = next->next)
 	if (next->first_glyph->type != IMAGE_GLYPH)
           {
+	    ns_set_glyph_string_gc (next);
 	    n = ns_get_glyph_string_clip_rect (s->next, r);
 	    ns_focus (s->f, r, n);
             if (next->first_glyph->type != STRETCH_GLYPH)
@@ -4356,6 +4469,8 @@ ns_draw_glyph_string (struct glyph_string *s)
             next->num_clips = 0;
           }
     }
+
+  ns_set_glyph_string_gc (s);
 
   if (!s->for_overlaps && s->face->box != FACE_NO_BOX
         && (s->first_glyph->type == CHAR_GLYPH
@@ -5323,7 +5438,6 @@ ns_flush_display (struct frame *f)
    redisplay interface.  In addition, many of the ns_ methods have
    code that is shared with all terms, indicating need for further
    refactoring.  */
-extern frame_parm_handler ns_frame_parm_handlers[];
 static struct redisplay_interface ns_redisplay_interface =
 {
   ns_frame_parm_handlers,

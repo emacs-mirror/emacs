@@ -295,14 +295,12 @@ create_terminal (enum output_method type, struct redisplay_interface *rif)
   /* If default coding systems for the terminal and the keyboard are
      already defined, use them in preference to the defaults.  This is
      needed when Emacs runs in daemon mode.  */
-  keyboard_coding =
-    find_symbol_value (intern ("default-keyboard-coding-system"));
+  keyboard_coding = find_symbol_value (Qdefault_keyboard_coding_system);
   if (NILP (keyboard_coding)
       || BASE_EQ (keyboard_coding, Qunbound)
       || NILP (Fcoding_system_p (keyboard_coding)))
     keyboard_coding = Qno_conversion;
-  terminal_coding =
-    find_symbol_value (intern ("default-terminal-coding-system"));
+  terminal_coding = find_symbol_value (Qdefault_terminal_coding_system);
   if (NILP (terminal_coding)
       || BASE_EQ (terminal_coding, Qunbound)
       || NILP (Fcoding_system_p (terminal_coding)))
@@ -662,7 +660,6 @@ delete_initial_terminal (struct terminal *terminal)
 void
 syms_of_terminal (void)
 {
-
   DEFVAR_LISP ("ring-bell-function", Vring_bell_function,
     doc: /* Non-nil means call this function to ring the bell.
 The function should accept no arguments.  */);
@@ -689,4 +686,6 @@ or some time later.  */);
   defsubr (&Sset_terminal_parameter);
 
   Fprovide (intern_c_string ("multi-tty"), Qnil);
+  DEFSYM (Qdefault_keyboard_coding_system, "default-keyboard-coding-system");
+  DEFSYM (Qdefault_terminal_coding_system, "default-terminal-coding-system");
 }

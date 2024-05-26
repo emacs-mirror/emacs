@@ -473,28 +473,12 @@ needed, but we recommend to always make sure @var{string} is multibyte
 Representations}), if @var{char} is a non-@acronym{ASCII} character, not
 a raw byte.
 
-  A more powerful function is @code{store-substring}:
-
-@defun store-substring string idx obj
-This function alters part of the contents of the specified @var{string},
-by storing @var{obj} starting at character index @var{idx}.  The
-argument @var{obj} may be either a character (in which case the function
-behaves exactly as @code{aset}) or a (smaller) string.  If @var{obj}
-is a multibyte string, we recommend to make sure @var{string} is also
-multibyte, even if it's pure-@acronym{ASCII}.
-
-Since it is impossible to change the number of characters in an
-existing string, it is an error if @var{obj} consists of more
-characters than would fit in @var{string} starting at character index
-@var{idx}.
-@end defun
-
   To clear out a string that contained a password, use
 @code{clear-string}:
 
 @defun clear-string string
 This makes @var{string} a unibyte string and clears its contents to
-zeros.  It may also change @var{string}'s length.
+null characters.  It may also change @var{string}'s length.
 @end defun
 
 @need 2000

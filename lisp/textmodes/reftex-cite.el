@@ -1048,7 +1048,14 @@ in order to only add another reference in the same cite command."
                ((= l ?E) (car (reftex-get-bib-names "editor" entry)))
                ((= l ?h) (reftex-get-bib-field "howpublished" entry))
                ((= l ?i) (reftex-get-bib-field "institution" entry))
-               ((= l ?j) (reftex-get-bib-field "journal" entry))
+               ((= l ?j) (let ((jr (reftex-get-bib-field "journal" entry)))
+                           (if (string-empty-p jr)
+                               ;; Biblatex prefers the alternative
+                               ;; journaltitle field, so check if that
+                               ;; exists in case journal is empty
+                               (reftex-get-bib-field "journaltitle" entry)
+                             ;; Standard BibTeX
+                             jr)))
                ((= l ?k) (reftex-get-bib-field "key" entry))
                ((= l ?m) (reftex-get-bib-field "month" entry))
                ((= l ?n) (reftex-get-bib-field "number" entry))

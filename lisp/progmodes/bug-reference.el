@@ -196,7 +196,10 @@ subexpression 10."
                              (funcall bug-reference-url-format)))))))
       ;; Delete remaining but unused overlays.
       (dolist (ov overlays)
-        (delete-overlay ov)))))
+        (delete-overlay ov))
+      ;; Signal the bounds we actually fontified to jit-lock to allow for
+      ;; optimizations (bug#70796).
+      `(jit-lock-bounds ,beg-line . ,end-line))))
 
 ;; Taken from button.el.
 (defun bug-reference-push-button (&optional pos _use-mouse-action)
@@ -658,19 +661,39 @@ have been run, the auto-setup is inhibited.")
 
 (defun bug-reference--url-at-point ()
   "`thing-at-point' provider function."
-  (get-char-property (point) 'bug-reference-url))
+  (thing-at-point-for-char-property 'bug-reference-url))
+
+(defun bug-reference--forward-url (backward)
+  "`forward-thing' provider function."
+  (forward-thing-for-char-property 'bug-reference-url backward))
+
+(defun bug-reference--bounds-of-url-at-point ()
+  "`bounds-of-thing-at-point' provider function."
+  (bounds-of-thing-at-point-for-char-property 'bug-reference-url))
 
 (defun bug-reference--init (enable)
   (if enable
       (progn
         (jit-lock-register #'bug-reference-fontify)
         (setq-local thing-at-point-provider-alist
-                    (append thing-at-point-provider-alist
-                            '((url . bug-reference--url-at-point)))))
+                    (cons '(url . bug-reference--url-at-point)
+                          thing-at-point-provider-alist))
+        (setq-local forward-thing-provider-alist
+                    (cons '(url . bug-reference--forward-url)
+                          forward-thing-provider-alist))
+        (setq-local bounds-of-thing-at-point-provider-alist
+                    (cons '(url . bug-reference--bounds-of-url-at-point)
+                          bounds-of-thing-at-point-provider-alist)))
     (jit-lock-unregister #'bug-reference-fontify)
     (setq thing-at-point-provider-alist
           (delete '((url . bug-reference--url-at-point))
                   thing-at-point-provider-alist))
+    (setq forward-thing-provider-alist
+          (delete '((url . bug-reference--forward-url))
+                  forward-thing-provider-alist))
+    (setq bounds-of-thing-at-point-provider-alist
+          (delete '((url . bug-reference--bounds-of-url-at-point))
+                  bounds-of-thing-at-point-provider-alist))
     (save-restriction
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))

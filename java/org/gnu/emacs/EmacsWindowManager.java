@@ -145,7 +145,7 @@ public final class EmacsWindowManager
 	  }
       }
 
-    EmacsNative.sendWindowAction ((short) 0, 0);
+    EmacsNative.sendWindowAction (0, 0);
   }
 
   public synchronized void

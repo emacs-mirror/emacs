@@ -1087,7 +1087,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
      (re-search-forward base-re nil t))))
 
 ;; WORKAROUND: This can't be a defconst due to bug#21237.
-(defvar cl--generic-find-defgeneric-regexp "(\\(?:cl-\\)?defgeneric[ \t]+%s\\>")
+(defvar cl--generic-find-defgeneric-regexp "(\\(?:cl-\\)?defgeneric[ \t]+%s\\_>")
 
 (with-eval-after-load 'find-func
   (defvar find-function-regexp-alist)

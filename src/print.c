@@ -91,6 +91,7 @@ static ptrdiff_t print_number_index;
 static void print_interval (INTERVAL interval, void *pprintcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
+extern bool print_output_debug_flag;
 bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 
 
@@ -1300,7 +1301,7 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
   (STRINGP (obj)                                           \
    || CONSP (obj)					   \
    || (VECTORLIKEP (obj)				   \
-       && (VECTORP (obj) || COMPILEDP (obj)		   \
+       && (VECTORP (obj) || CLOSUREP (obj)		   \
 	   || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj) \
 	   || HASH_TABLE_P (obj) || FONTP (obj)		   \
 	   || RECORDP (obj)))				   \
@@ -2167,7 +2168,7 @@ print_vectorlike_unreadable (Lisp_Object obj, Lisp_Object printcharfun,
     /* Types handled earlier.  */
     case PVEC_NORMAL_VECTOR:
     case PVEC_RECORD:
-    case PVEC_COMPILED:
+    case PVEC_CLOSURE:
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_HASH_TABLE:
@@ -2676,7 +2677,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  print_stack_push_vector ("#s(", ")", obj, 0, PVSIZE (obj),
 				   printcharfun);
 	  goto next_obj;
-	case PVEC_COMPILED:
+	case PVEC_CLOSURE:
 	  print_stack_push_vector ("#[", "]", obj, 0, PVSIZE (obj),
 				   printcharfun);
 	  goto next_obj;

@@ -590,7 +590,7 @@ even when @command{mutool} can be found on your system, customize the
 variable @code{doc-view-imenu-enabled} to the @code{nil} value.  You
 can further customize how @code{imenu} items are formatted and
 displayed using the variables @code{doc-view-imenu-format} and
-@code{doc-view-flatten}.
+@code{doc-view-imenu-flatten}.
 
 @node DocView Searching
 @subsection DocView Searching

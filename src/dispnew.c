@@ -6530,7 +6530,7 @@ init_faces_initial (void)
 
   FRAME_FOREGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_FG_COLOR;
   FRAME_BACKGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_BG_COLOR;
-  call0 (intern ("tty-set-up-initial-frame-faces"));
+  call0 (Qtty_set_up_initial_frame_faces);
 }
 
 /* Initialization done when Emacs fork is started, before doing stty.

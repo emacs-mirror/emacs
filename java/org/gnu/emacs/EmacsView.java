@@ -45,6 +45,8 @@ import android.graphics.Paint;
 import android.os.Build;
 import android.util.Log;
 
+import java.util.Arrays;
+
 /* This is an Android view which has a back and front buffer.  When
    swapBuffers is called, the back buffer is swapped to the front
    buffer, and any damage is invalidated.  frontBitmap and backBitmap
@@ -505,42 +507,45 @@ public final class EmacsView extends ViewGroup
   public boolean
   onKeyDown (int keyCode, KeyEvent event)
   {
-    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
-	&& !EmacsNative.shouldForwardMultimediaButtons ())
-      return false;
+    if (((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	 && !EmacsNative.shouldForwardMultimediaButtons ())
+	|| keyCode == KeyEvent.KEYCODE_SCROLL_LOCK
+	|| keyCode == KeyEvent.KEYCODE_NUM_LOCK)
+      return super.onKeyDown (keyCode, event);
 
-    window.onKeyDown (keyCode, event);
-    return true;
+    return window.onKeyDown (keyCode, event);
   }
 
   @Override
   public boolean
   onKeyMultiple (int keyCode, int repeatCount, KeyEvent event)
   {
-    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
-	&& !EmacsNative.shouldForwardMultimediaButtons ())
-      return false;
+    if (((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	 && !EmacsNative.shouldForwardMultimediaButtons ())
+	|| keyCode == KeyEvent.KEYCODE_SCROLL_LOCK
+	|| keyCode == KeyEvent.KEYCODE_NUM_LOCK)
+      return super.onKeyMultiple (keyCode, repeatCount, event);
 
-    window.onKeyDown (keyCode, event);
-    return true;
+    return window.onKeyDown (keyCode, event);
   }
 
   @Override
   public boolean
   onKeyUp (int keyCode, KeyEvent event)
   {
-    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
-	&& !EmacsNative.shouldForwardMultimediaButtons ())
-      return false;
+    if (((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	 && !EmacsNative.shouldForwardMultimediaButtons ())
+	|| keyCode == KeyEvent.KEYCODE_SCROLL_LOCK
+	|| keyCode == KeyEvent.KEYCODE_NUM_LOCK)
+      return super.onKeyUp (keyCode, event);
 
-    window.onKeyUp (keyCode, event);
-    return true;
+    return window.onKeyUp (keyCode, event);
   }
 
   @Override
@@ -827,6 +832,12 @@ public final class EmacsView extends ViewGroup
        details.  */
 
     selection = EmacsService.viewGetSelection (window.handle);
+
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, ("onCreateInputConnection: "
+		   + (selection != null
+		      ? Arrays.toString (selection)
+		      : "(unavailable)")));
 
     if (selection == null)
       {

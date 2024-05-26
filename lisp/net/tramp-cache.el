@@ -540,13 +540,13 @@ PROPERTIES is a list of file properties (strings)."
 (defun tramp-list-connections ()
   "Return all active `tramp-file-name' structs according to `tramp-cache-data'."
   (let ((tramp-verbose 0))
-    (delq nil (mapcar
-	       (lambda (key)
-		 (and (tramp-file-name-p key)
-		      (null (tramp-file-name-localname key))
-		      (tramp-connection-property-p key "process-buffer")
-		      key))
-	       (hash-table-keys tramp-cache-data)))))
+    (tramp-compat-seq-keep
+     (lambda (key)
+       (and (tramp-file-name-p key)
+	    (null (tramp-file-name-localname key))
+	    (tramp-connection-property-p key "process-buffer")
+	    key))
+     (hash-table-keys tramp-cache-data))))
 
 (defun tramp-dump-connection-properties ()
   "Write persistent connection properties into file \

@@ -126,6 +126,10 @@ struct text_conversion_state
   /* Overlay representing the composing region.  */
   Lisp_Object compose_region_overlay;
 
+  /* Cons of (START END . WINDOW) holding the field to which text
+     conversion should be confined, or nil if no such field exists.  */
+  Lisp_Object field;
+
   /* The number of ongoing ``batch edits'' that are causing point
      reporting to be delayed.  */
   int batch_edit_count;

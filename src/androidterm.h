@@ -77,8 +77,9 @@ struct android_display_info
   /* Mouse highlight information.  */
   Mouse_HLInfo mouse_highlight;
 
-  /* Number of planes on this screen.  Always 24.  */
-  int n_planes;
+  /* Number of planes on this screen, and the same for the purposes of
+     image processing.  */
+  int n_planes, n_image_planes;
 
   /* Mask of things causing the mouse to be grabbed.  */
   int grabbed;
@@ -88,6 +89,9 @@ struct android_display_info
 
   /* Minimum font height over all fonts in font_table.  */
   int smallest_font_height;
+
+  /* Default name for all frames on this display.  */
+  char *x_id_name;
 
   /* The number of fonts opened for this display.  */
   int n_fonts;
@@ -391,6 +395,7 @@ extern struct android_display_info *x_display_list;
 
 /* From androidfns.c.  */
 
+extern frame_parm_handler android_frame_parm_handlers[];
 extern void android_free_gcs (struct frame *);
 extern void android_default_font_parameter (struct frame *, Lisp_Object);
 extern void android_set_preeditarea (struct window *, int, int);

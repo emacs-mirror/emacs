@@ -1313,6 +1313,12 @@ infinite loops when the code/environment contains a circular object.")
            (aref sexp 0) (aref sexp 1)
            (vconcat (mapcar #'edebug-unwrap* (aref sexp 2)))
            (nthcdr 3 (append sexp ()))))
+   ((interpreted-function-p sexp)
+    (make-interpreted-closure
+     (aref sexp 0) (mapcar #'edebug-unwrap* (aref sexp 1))
+     (mapcar (lambda (x) (if (consp x) (cons (car x) (edebug-unwrap* (cdr x))) x))
+             (aref sexp 2))
+     (documentation sexp 'raw) (interactive-form sexp)))
    (t sexp)))
 
 
@@ -4254,7 +4260,7 @@ code location is known."
           ((pred edebug--symbol-prefixed-p) nil)
           (_
            (when (and skip-next-lambda
-                      (not (memq (car-safe fun) '(closure lambda))))
+                      (not (interpreted-function-p fun)))
              (warn "Edebug--strip-instrumentation expected an interpreted function:\n%S" fun))
 	   (unless skip-next-lambda
              (edebug--unwrap-frame new-frame)

@@ -191,6 +191,8 @@ Should be used by commands in `image-dired-thumbnail-mode'."
   "Return non-nil if there is an `image-dired' thumbnail at point."
   (get-text-property (point) 'image-dired-thumbnail))
 
+(declare-function clear-image-cache "image.c" (&optional filter))
+
 (defun image-dired-update-thumbnail-at-point ()
   "Update the thumbnail at point if the original image file has been modified.
 This function uncaches and removes the thumbnail file under the old name."

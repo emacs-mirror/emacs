@@ -398,11 +398,9 @@ input."
              (pcase eshell-hist-ignoredups
                ('nil t)                 ; Always add to history
                ('erase                  ; Add, removing any old occurrences
-                (when-let ((old-index (ring-member eshell-history-ring input)))
-                  ;; Remove the old occurrence of this input so we can
-                  ;; add it to the end.  FIXME: Should we try to
-                  ;; remove multiple old occurrences, e.g. if the user
-                  ;; recently changed to using `erase'?
+                (while-let ((old-index (ring-member eshell-history-ring input)))
+                  ;; Remove the old occurrences of this input so we can
+                  ;; add it to the end.
                   (ring-remove eshell-history-ring old-index))
                 t)
                (_                       ; Add if not already the latest entry

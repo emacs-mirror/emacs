@@ -31,6 +31,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <pwd.h>
 
 #include <sys/stat.h>
+#include <sys/select.h>
+
 #include <dirent.h>
 #include <stdio.h>
 
@@ -52,6 +54,22 @@ extern int android_select (int, fd_set *, fd_set *, fd_set *,
 extern char *android_user_full_name (struct passwd *);
 
 
+
+/* Structure describing the android.os.ParcelFileDescriptor class used
+   to wrap file descriptors sent over IPC.  */
+
+struct android_parcel_file_descriptor_class
+{
+  jclass class;
+  jmethodID close;
+  jmethodID get_fd;
+  jmethodID detach_fd;
+};
+
+/* The ParcelFileDescriptor class.  */
+extern struct android_parcel_file_descriptor_class fd_class;
+
+extern void android_init_fd_class (JNIEnv *);
 
 /* File I/O operations.  Many of these are defined in
    androidvfs.c.  */
@@ -85,16 +103,9 @@ extern ssize_t android_readlinkat (int, const char *restrict, char *restrict,
 extern double android_pixel_density_x, android_pixel_density_y;
 extern double android_scaled_pixel_density;
 
-enum android_handle_type
-  {
-    ANDROID_HANDLE_WINDOW,
-    ANDROID_HANDLE_GCONTEXT,
-    ANDROID_HANDLE_PIXMAP,
-    ANDROID_HANDLE_CURSOR,
-  };
+verify (sizeof (android_handle) == sizeof (jobject));
+#define android_resolve_handle(handle) ((jobject) (handle))
 
-extern jobject android_resolve_handle (android_handle,
-				       enum android_handle_type);
 extern unsigned char *android_lock_bitmap (android_drawable,
 					   AndroidBitmapInfo *,
 					   jobject *);
@@ -109,6 +120,7 @@ extern bool android_detect_keyboard (void);
 
 extern void android_set_dont_focus_on_map (android_window, bool);
 extern void android_set_dont_accept_focus (android_window, bool);
+extern void android_set_wm_name (android_window, jstring);
 
 extern int android_verify_jni_string (const char *);
 extern jstring android_build_string (Lisp_Object, ...);
@@ -266,8 +278,6 @@ struct android_emacs_service
   jmethodID draw_rectangle;
   jmethodID draw_line;
   jmethodID draw_point;
-  jmethodID clear_window;
-  jmethodID clear_area;
   jmethodID ring_bell;
   jmethodID query_tree;
   jmethodID get_screen_width;

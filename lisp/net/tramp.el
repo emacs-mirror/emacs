@@ -562,11 +562,13 @@ host runs a restricted shell, it shall be added to this list, too."
 	    ;; Fedora.
 	    "localhost4" "localhost6"
 	    ;; Ubuntu.
-	    "ip6-localhost" "ip6-loopback"))
+	    "ip6-localhost" "ip6-loopback"
+	    ;; OpenSUSE.
+	    "ipv6-localhost" "ipv6-loopback"))
       eos)
   "Host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
-  :version "29.3"
+  :version "30.1"
   :type '(choice (const :tag "Chrooted environment" nil)
 		 (regexp :tag "Host regexp")))
 
@@ -1459,6 +1461,35 @@ If (FUNCTION FILENAME) returns non-nil, then all I/O on that file is done by
 calling HANDLER.")
 
 ;;; Internal functions which must come first:
+
+(defun tramp-enable-method (method)
+  "Enable optional METHOD if possible."
+  (interactive
+   (list
+    (completing-read
+     "method: "
+     (tramp-compat-seq-keep
+      (lambda (x)
+	(when-let ((name (symbol-name x))
+		   ;; It must match `tramp-enable-METHOD-method'.
+		   ((string-match
+		     (rx "tramp-enable-"
+			 (group (regexp tramp-method-regexp))
+			 "-method")
+		     name))
+		   (method (match-string 1 name))
+		   ;; It must not be enabled yet.
+		   ((not (assoc method tramp-methods))))
+	  method))
+      ;; All method enabling functions.
+      (mapcar
+       #'intern (all-completions "tramp-enable-" obarray #'functionp))))))
+
+  (when-let (((not (assoc method tramp-methods)))
+	     (fn (intern (format "tramp-enable-%s-method" method)))
+	     ((functionp fn)))
+    (funcall fn)
+    (message "Tramp method \"%s\" enabled" method)))
 
 ;; Conversion functions between external representation and
 ;; internal data structure.  Convenience functions for internal
@@ -2949,17 +2980,15 @@ They are collected by `tramp-completion-dissect-file-name1'."
 	   (regexp tramp-prefix-ipv6-regexp)
 	   (group (? (regexp tramp-ipv6-regexp))) eol)
 	  1 2 3 nil)))
-    (delq
-     nil
-     (mapcar
-      (lambda (structure) (tramp-completion-dissect-file-name1 structure name))
-      (list
-       tramp-completion-file-name-structure1
-       tramp-completion-file-name-structure2
-       tramp-completion-file-name-structure3
-       tramp-completion-file-name-structure4
-       tramp-completion-file-name-structure5
-       tramp-completion-file-name-structure6)))))
+    (tramp-compat-seq-keep
+     (lambda (structure) (tramp-completion-dissect-file-name1 structure name))
+     (list
+      tramp-completion-file-name-structure1
+      tramp-completion-file-name-structure2
+      tramp-completion-file-name-structure3
+      tramp-completion-file-name-structure4
+      tramp-completion-file-name-structure5
+      tramp-completion-file-name-structure6))))
 
 (defun tramp-completion-dissect-file-name1 (structure name)
   "Return a `tramp-file-name' structure for NAME matching STRUCTURE.
@@ -3533,6 +3562,11 @@ on the same host.  Otherwise, TARGET is quoted."
 
        ,@body)))
 
+(defcustom tramp-inhibit-errors-if-setting-file-attributes-fail nil
+  "Whether to warn only if `tramp-*-set-file-{modes,times,uid-gid}' fails."
+  :version "30.1"
+  :type 'boolean)
+
 (defmacro tramp-skeleton-set-file-modes-times-uid-gid
     (filename &rest body)
   "Skeleton for `tramp-*-set-file-{modes,times,uid-gid}'.
@@ -3548,7 +3582,11 @@ BODY is the backend specific code."
 	 ;; "file-writable-p".
 	 '("file-directory-p" "file-exists-p" "file-symlinkp" "file-truename")
        (tramp-flush-file-properties v localname))
-     ,@body))
+     (condition-case err
+	 (progn ,@body)
+       (error (if tramp-inhibit-errors-if-setting-file-attributes-fail
+		  (display-warning 'tramp (error-message-string err))
+		(signal (car err) (cdr err)))))))
 
 (defmacro tramp-skeleton-write-region
   (start end filename append visit lockname mustbenew &rest body)
@@ -4536,7 +4574,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
   (rx bos (group (+ nonl))
       "@" (group (+ nonl))
       "." (group (+ digit))
-      (? ":" (+ digit)) eos)
+      (? ":" (? "-") (+ digit)) eos)
   "The format of a lock file.")
 
 (defun tramp-handle-file-locked-p (file)
@@ -4622,8 +4660,11 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	       ((process-live-p (tramp-get-process v)))
 	       (lockname (tramp-compat-make-lock-file-name file)))
           (delete-file lockname)
-	;; Trigger the unlock error.
-	(signal 'file-error `("Cannot remove lock file for" ,file)))
+	;; Trigger the unlock error.  Be quiet if user isn't
+	;; interested in lock files.  See Bug#70900.
+	(unless (or (not create-lockfiles)
+		    (bound-and-true-p remote-file-name-inhibit-locks))
+	  (signal 'file-error `("Cannot remove lock file for" ,file))))
     ;; `userlock--handle-unlock-error' exists since Emacs 28.1.  It
     ;; checks for `create-lockfiles' since Emacs 30.1, we don't need
     ;; this check here, then.
@@ -4739,10 +4780,10 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	   vec "Method `%s' is not supported for multi-hops"
 	   (tramp-file-name-method item)))))
 
-    ;; Some methods ("su", "sg", "sudo", "doas", "ksu") do not use the
-    ;; host name in their command template.  In this case, the remote
-    ;; file name must use either a local host name (first hop), or a
-    ;; host name matching the previous hop.
+    ;; Some methods ("su", "sg", "sudo", "doas", "run0", "ksu") do not
+    ;; use the host name in their command template.  In this case, the
+    ;; remote file name must use either a local host name (first hop),
+    ;; or a host name matching the previous hop.
     (let ((previous-host (or tramp-local-host-regexp "")))
       (setq choices target-alist)
       (while (setq item (pop choices))
@@ -4806,15 +4847,42 @@ a connection-local variable."
   (when (process-command proc)
     (tramp-message vec 6 "%s" (string-join (process-command proc) " "))))
 
+(defvar tramp-direct-async-process nil
+  "Whether direct asynchronous processes should be used.
+It is not recommended to change this variable globally.  Instead, it
+should be set conmnection-local.")
+
 (defun tramp-direct-async-process-p (&rest args)
   "Whether direct async `make-process' can be called."
   (let ((v (tramp-dissect-file-name default-directory))
 	(buffer (plist-get args :buffer))
 	(stderr (plist-get args :stderr)))
+    ;; Since Tramp 2.7.1.  In a future release, we'll ignore this
+    ;; connection property.
+    (when (and (not (tramp-compat-connection-local-p
+		     tramp-direct-async-process))
+	       (tramp-connection-property-p v "direct-async-process"))
+      (let ((msg (concat
+		  "Connection property \"direct-async-process\" is deprecated, "
+		  "use connection-local variable `tramp-direct-async-process'\n"
+		  "See (info \"(tramp) Improving performance of "
+		  "asynchronous remote processes\")")))
+	(if (tramp-get-connection-property
+	     tramp-null-hop "direct-async-process-warned")
+	    (tramp-message v 2 msg)
+	  (tramp-set-connection-property
+	   tramp-null-hop "direct-async-process-warned" t)
+	  (tramp-warning v msg))))
+
     (and ;; The method supports it.
          (tramp-get-method-parameter v 'tramp-direct-async)
-	 ;; It has been indicated.
-         (tramp-get-connection-property v "direct-async-process")
+	 ;; It has been indicated.  We don't use the global value of
+	 ;; `tramp-direct-async-process'.
+	 (or (and (tramp-compat-connection-local-p tramp-direct-async-process)
+		  (tramp-compat-connection-local-value
+		   tramp-direct-async-process))
+	     ;; Deprecated setting.
+             (tramp-get-connection-property v "direct-async-process"))
 	 ;; There's no multi-hop.
 	 (or (not (tramp-multi-hop-p v))
 	     (null (cdr (tramp-compute-multi-hops v))))
@@ -4943,9 +5011,9 @@ a connection-local variable."
 		      (string-join command) (tramp-get-remote-pipe-buf v)))
 	    (signal 'error (cons "Command too long:" command)))
 
-	  ;; Replace `login-args' place holders.  Split ControlMaster
-	  ;; options.
 	  (setq
+	   ;; Replace `login-args' place holders.  Split ControlMaster
+	   ;; options.
 	   login-args
 	   (append
 	    (flatten-tree (tramp-get-method-parameter v 'tramp-async-args))
@@ -4957,11 +5025,13 @@ a connection-local variable."
 	       ?h (or host "") ?u (or user "") ?p (or port "")
 	       ?c (format-spec (or options "") (format-spec-make ?t tmpfile))
 	       ?d (or device "") ?a (or pta "") ?l ""))))
+	   ;; Suppress `internal-default-process-sentinel', which is
+	   ;; set when :sentinel is nil.  (Bug#71049)
 	   p (make-process
 	      :name name :buffer buffer
 	      :command (append `(,login-program) login-args command)
 	      :coding coding :noquery noquery :connection-type connection-type
-	      :sentinel sentinel :stderr stderr))
+	      :sentinel (or sentinel #'ignore) :stderr stderr))
 	  ;; Set filter.  Prior Emacs 29.1, it doesn't work reliably
 	  ;; to provide it as `make-process' argument when filter is
 	  ;; t.  See Bug#51177.

@@ -171,7 +171,7 @@ This user option controls outline visibility in the output buffer of
 *** 'C-h m' ('describe-mode') uses outlining by default.
 Set 'describe-mode-outline' to nil to get back the old behavior.
 
-** Outline Mode
+** Outline mode
 
 +++
 *** 'outline-minor-mode' is supported in tree-sitter major modes.
@@ -228,7 +228,7 @@ This is used for displaying the time and date components of
 ---
 ** New icon images for general use.
 Several symbolic icons are added to "etc/images/symbols", including
-plus, minus, check-mark, start, etc.
+plus, minus, check-mark, star, etc.
 
 +++
 ** Tool bars can now be placed on the bottom on more systems.
@@ -340,6 +340,13 @@ and 'window-state-get'.  Then later another new variable
 'window-state-put' to restore positions of window points
 according to the context stored in a window parameter.
 
++++
+*** New functions 'set-window-cursor-type' and 'window-cursor-type'.
+'set-window-cursor-type' sets a per-window cursor type, and
+'window-cursor-type' queries this setting for a given window.  Windows
+are always created with a 'window-cursor-type' of t, which means to
+consult the variable 'cursor-type' as before.
+
 ** Tab Bars and Tab Lines
 
 ---
@@ -351,70 +358,57 @@ points after switching back to that tab.
 
 ---
 *** New user option 'tab-bar-select-restore-windows'.
-It defines what to do with windows whose buffer was killed
-since the tab was last selected.  By default it displays
-a placeholder buffer that provides information about the name
-of the killed buffer that was displayed in that window.
+It defines what to do with windows whose buffer was killed since the tab
+was last selected.  By default it displays a placeholder buffer
+with the name " *Old buffer <name>*" that provides information about
+the name of the killed buffer that was displayed in that window.
 
 ---
 *** New user option 'tab-bar-tab-name-format-functions'.
-It can be used to add, remove and reorder functions that change
-the appearance of every tab on the tab bar.
+It can be used to add, remove and reorder functions that change the
+appearance of every tab on the tab bar.
 
 ---
 *** New hook 'tab-bar-tab-post-select-functions'.
 
 ---
 *** New keymap 'tab-bar-mode-map'.
-By default it contains a keybinding 'C-TAB' to switch tabs,
-but only when 'C-TAB' is not bound globally.  You can unbind it
-if it conflicts with 'C-TAB' in other modes.
+By default it contains a keybinding 'C-TAB' to switch tabs, but only
+when 'C-TAB' is not bound globally.  You can unbind it if it conflicts
+with 'C-TAB' in other modes.
 
 ---
 *** New keymap 'tab-line-mode-map'.
-By default it contains keybindings for switching tabs:
-'C-x <left>', 'C-x <right>', 'C-x C-<left>', 'C-x C-<right>'.
-You can unbind them if you want to use these keys for the
-commands 'previous-buffer' and 'next-buffer'.
+By default it contains keybindings for switching tabs: 'C-x <left>',
+'C-x <right>', 'C-x C-<left>', 'C-x C-<right>'.  You can unbind them if
+you want to use these keys for the commands 'previous-buffer' and
+'next-buffer'.
 
 ---
 *** Default list of tabs is changed to support a fixed order.
-This means that the new default tabs function
-'tab-line-tabs-fixed-window-buffers' is like the previous
-'tab-line-tabs-window-buffers' where both of them show
-only buffers that were previously displayed in the window.
-But the difference is that the new function always keeps
-the original order of buffers on the tab line, even after
-switching between these buffers.
+This means that 'tab-line-tabs-fixed-window-buffers', the new default
+tabs function, is like the previous 'tab-line-tabs-window-buffers' where
+both of them show only buffers that were previously displayed in the
+window.  But the difference is that the new function always keeps the
+original order of buffers on the tab line, even after switching between
+these buffers.  You can drag the tabs and release at a new position
+to manually reorder the buffers on the tab line.
 
 ---
 *** New user option 'tab-line-tabs-buffer-group-function'.
-It provides two choices to group tab buffers by major mode
-and by project name.
+It provides two choices to group tab buffers by major mode and by
+project name.
 
 ---
-*** Now buffers on group tabs are sorted alphabetically.
-This will keep the fixed order of tabs, even after
-switching between them.
+*** Buffers on group tabs are now sorted alphabetically.
+This will keep the fixed order of tabs, even after switching between
+them.
 
 +++
 ** New optional argument for modifying directory-local variables.
 The commands 'add-dir-local-variable', 'delete-dir-local-variable' and
 'copy-file-locals-to-dir-locals' now take an optional prefix argument,
-to enter the file you want to modify.
-
-** Miscellaneous
-
----
-*** New face 'appt-notification' for 'appt-display-mode-line'.
-It can be used to customize the look of the appointment notification
-displayed on the mode line when 'appt-display-mode-line' is non-nil.
-
----
-*** Emacs now recognizes shebang lines that pass '-S'/'--split-string' to 'env'.
-When visiting a script that invokes 'env -S INTERPRETER ARGS...' in
-its shebang line, Emacs will now skip over 'env -S' and deduce the
-major mode based on the interpreter after 'env -S'.
+to enter the file name you want to modify.
 
 ** Emacs Server and Client
 
@@ -445,6 +439,33 @@ Customize 'echo-keystrokes-help' to nil to prevent that.
 Use 'TAB' in the minibuffer to show or hide the password.  Likewise,
 there is an icon on the mode-line, which toggles the visibility of the
 password when clicking with 'mouse-1'.
+
++++
+** Support for styled underline face attributes.
+These are implemented as new values of the 'style' attribute in a face
+underline specification, 'double-line', 'dots', and 'dashes', and are
+available on GUI systems.  If your terminal's termcap or terminfo
+database entry defines the 'Su' or 'Smulx' capability, Emacs will also
+emit the prescribed escape sequence to render faces with such styles on
+TTY frames.
+
+---
+** Support for underline colors on TTY frames.
+Colors specified in face underlines will now also be displayed in TTY
+frames with the previously mentioned capabilities.
+
+** Miscellaneous
+
+---
+*** New face 'appt-notification' for 'appt-display-mode-line'.
+It can be used to customize the look of the appointment notification
+displayed on the mode line when 'appt-display-mode-line' is non-nil.
+
+---
+*** Emacs now recognizes shebang lines that pass '-S'/'--split-string' to 'env'.
+When visiting a script that invokes 'env -S INTERPRETER ARGS...' in
+its shebang line, Emacs will now skip over 'env -S' and deduce the
+major mode based on the interpreter after 'env -S'.
 
 
 * Editing Changes in Emacs 30.1
@@ -682,6 +703,12 @@ you can add this to your init script:
 
     (setopt project-switch-commands #'project-prefix-or-any-command)
 
+---
+*** New variable 'project-files-relative-names'.
+If it's non-nil, 'project-files' can return file names relative to the
+project root.  Project backends can use this to improve the performance
+of their 'project-files' implementation.
+
 ** VC
 
 ---
@@ -785,10 +812,14 @@ and a universal command such as "open" or "start"
 that delegates to the OS.
 
 *** New command 'dired-do-open'.
-This command is bound to "Open" in the context menu; it "opens" the
-marked or clicked on files according to the OS conventions.  For
-example, on systems supporting XDG, this runs 'xdg-open' on the
-files.
+This command is bound to 'E' (mnemonics "External").  Also it can be
+used by clicking "Open" in the context menu; it "opens" the marked or
+clicked on files according to the OS conventions.  For example, on
+systems supporting XDG, this runs 'xdg-open' on the files.
+
+*** New variable 'dired-guess-shell-alist-optional'.
+It contains commands for external viewers and players for various media
+formats, moved to this list from 'dired-guess-shell-alist-default'.
 
 *** The default value of 'dired-omit-size-limit' was increased.
 After performance improvements to omitting in large directories, the new
@@ -895,7 +926,7 @@ By prefixing a command name in Eshell with a remote identifier, like
 "/ssh:user@remote:whoami", you can now run commands on a particular
 host no matter your current directory.  Likewise, you can run a
 command on your local system no matter your current directory via
-"/:whoami".  For more information, see the "(eshell) Remote Access"
+"/local:whoami".  For more information, see the "(eshell) Remote Access"
 node in the Eshell manual.
 
 +++
@@ -1019,6 +1050,18 @@ docstring, or a comment, or (re)indents the surrounding defun if
 point is not in a comment or a string.  It is by default bound to
 'M-q' in 'prog-mode' and all its descendants.
 
+** Imenu
+
++++
+*** New user option 'imenu-flatten'.
+It defines whether to flatten the list of sections in an imenu
+or show it nested.
+
++++
+*** The sort order of Imenu completions can now be customized.
+You can customize the option 'completion-category-overrides'
+and set 'display-sort-function' for the category 'imenu'.
+
 ** Which Function mode
 
 +++
@@ -1031,19 +1074,32 @@ mode line.  'header' will display in the header line;
 ** Tramp
 
 +++
-*** New connection method "androidsu".
+*** Tramp methods can be optional.
+An optional connection method is not enabled by default.  The user must
+enable it explicitly by the 'tramp-enable-method' command.  The existing
+methods "fcp", "krlogin", " ksu" and "nc" are optional now.
+
++++
+*** New optional connection method "androidsu".
 This provides access to system files with elevated privileges granted by
 the idiosyncratic 'su' implementations and system utilities customary on
 Android.
+
++++
+*** New optional connection method "run0".
+This connection method is similar to "sudo", but it uses the
+'systemd-run' program internally.
 
 +++
 *** New connection methods "dockercp" and "podmancp".
 These are the external methods counterparts of "docker" and "podman".
 
 +++
-*** New connection methods "toolbox" and "flatpak".
-They allow accessing system containers provided by Toolbox or
-sandboxes provided by Flatpak.
+*** New optional connection methods for containers.
+Tere are new optional connection methods "toolbox", "flatpak",
+"apptainer" and "nspawn".  They allow accessing system containers
+provided by Toolbox, sandboxes provided by Flatpak, instances managed by
+Apptainer, or accessing systemd-based light-weight containers..
 
 +++
 *** Connection method "kubernetes" supports now optional container name.
@@ -1094,6 +1150,14 @@ buffer must either visit a file, or it must run 'dired-mode'.  Another
 method but "sudo" can be configured with user option
 'tramp-file-name-with-method'.
 
++++
+*** Direct asynchronous processes are indicated by a connection-local variable.
+If direct asynchronous processes shall be used, set the connection-local
+variable 'tramp-direct-async-process' to a non-nil value.  This has been
+changed, in previous Emacs versions this was indicated by the now
+deprecated connection property "direct-async-process".  See the Tramp
+manual "(tramp) Improving performance of asynchronous remote processes".
+
 ---
 *** Direct asynchronous processes use 'tramp-remote-path'.
 When a direct asynchronous process is invoked, it uses 'tramp-remote-path'
@@ -1105,6 +1169,20 @@ for setting the remote PATH environment variable.
 *** All backends except w32notify detect unmounting of a watched filesystem now.
 
 ** EWW
+
+---
+*** New mouse bindings in EWW buffers.
+Certain form elements that were displayed as buttons, yet could only be
+activated by keyboard input, are now operable using 'mouse-2'.  With
+"Submit" buttons, this triggers submission of the form, while clicks on
+other classes of buttons either toggle their values or prompt for user
+input, as the case may be.
+
+---
+*** EWW text input fields and areas are now fields.
+In consequence, movement commands and OS input method features now
+recognize and confine their activities to the text input field around
+point.  See also the Info node "(elisp) Fields".
 
 +++
 *** 'eww-open-file' can now display the file in a new buffer.
@@ -1139,7 +1217,7 @@ This is useful for continuing reading the URL in the current buffer
 when the new URL is fetched.
 
 ---
-*** History navigation in EWW now works like other browsers.
+*** History navigation in EWW now behaves as in other browsers.
 Previously, when navigating back and forward through page history, EWW
 would add a duplicate entry to the end of the history list each time.
 This made it impossible to navigate to the "end" of the history list.
@@ -1250,6 +1328,28 @@ in a clean environment.
 ** Flymake
 
 +++
+*** New user option 'flymake-indicator-type'.
+This user option controls which error indicator type Flymake should use
+in current buffer.  Depending on your preference, this can either use
+fringes or margins for indicating errors.
+
++++
+*** New user option 'flymake-margin-indicators-string'.
+It controls, for each error type, the string and its face to display as
+the margin indicator.
+
++++
+*** New user option 'flymake-autoresize-margins'.
+If non-nil, Flymake will resize the margins when 'flymake-mode' is
+turned on or off.
+Only relevant if 'flymake-indicator-type' is set to 'margins'.
+
++++
+*** New user option 'flymake-margin-indicator-position'.
+It controls which margin (left or right) is used for margin
+indicators.
+
++++
 *** New user option 'flymake-show-diagnostics-at-end-of-line'.
 When non-nil, Flymake shows summarized descriptions of diagnostics at
 the end of the line.  Depending on your preference, this can either be
@@ -1297,6 +1397,18 @@ instead of:
 This allows the user to specify command line arguments to the non
 interactive Python interpreter specified by 'python-interpreter'.
 
+*** New function 'python-shell-send-block'.
+It sends the python block delimited by 'python-nav-beginning-of-block'
+and 'python-nav-end-of-block' to the inferior Python process.
+
+** Inferior Python mode
+
+---
+*** Default value of 'python-shell-compilation-regexp-alist' is changed.
+Support for Python's ExceptionGroup has been added, so in the Python
+shell, the line indicating the source of error in the error messages
+from ExceptionGroup will be recognized as well.
+
 ** Scheme mode
 Scheme mode now handles regular expression literal '#/regexp/' that is
 available in some Scheme implementations.
@@ -1314,6 +1426,16 @@ This allows the user to always install the newest commit of a package
 when using the ':vc' keyword.
 
 ** Gnus
+
++++
+*** New backend 'nnfeed'.
+This allows backend developers to easily create new backends for web
+feeds, as inheriting backends of 'nnfeed'.
+
++++
+*** New backend 'nnatom'.
+This allow users to add Atom Syndication Format feeds to Gnus as
+servers.
 
 *** The 'nnweb-type' option 'gmane' has been removed.
 The gmane.org website is, sadly, down since a number of years with no
@@ -1379,6 +1501,13 @@ to a function that lets the user select a dictionary and returns its
 name as a string.  The new function
 'dictionary-completing-read-dictionary' can be used to prompt with
 completion based on dictionaries that the server supports.
+
+---
+*** The default value of 'dictionary-tooltip-dictionary' has changed.
+The new default value is t, which means use the same dictionary as the
+value of 'dictionary-default-dictionary'.  The previous default value
+was nil, which effectively disabled 'dictionary-tooltip-mode', even if
+the mode was turned on.
 
 ** Pp
 
@@ -1532,7 +1661,8 @@ macros with many lines, such as from 'kmacro-edit-lossage'.
 The user option 'proced-auto-update-flag' can now be set to 2 additional
 values, which control automatic updates of Proced buffers that are not
 displayed in some window.
-** Kmacro Menu Mode
+
+** Kmacro Menu mode
 
 +++
 *** New mode 'kmacro-menu-mode' and new command 'list-keyboard-macros'.
@@ -1542,36 +1672,6 @@ of the currently existing keyboards macros using the new mode
 'kmacro-menu-mode'.  It allows rearranging the macros in the ring,
 duplicating them, deleting them, and editing their counters, formats,
 and keys.
-
-** Miscellaneous
-
----
-*** Webjump now assumes URIs are HTTPS instead of HTTP.
-For links in 'webjump-sites' without an explicit URI scheme, it was
-previously assumed that they should be prefixed with "http://".  Such
-URIs are now prefixed with "https://" instead.
-
----
-*** 'bug-reference-mode' now supports 'thing-at-point'.
-Now, calling '(thing-at-point 'url)' when point is on a bug reference
-will return the URL for that bug.
-
-+++
-*** New user option 'rcirc-log-time-format'
-This allows for rcirc logs to use a custom timestamp format, than the
-chat buffers use by default.
-
----
-*** New user option 'Buffer-menu-group-by'.
-It controls how buffers are divided into groups that are displayed with
-headings using Outline minor mode.
-
-+++
-*** New command 'Buffer-menu-toggle-internal'.
-This command toggles the display of internal buffers in Buffer Menu mode;
-that is, buffers not visiting a file and whose names start with a space.
-Previously, such buffers were never shown.  This command is bound to 'I'
-in Buffer Menu mode.
 
 ** Customize
 
@@ -1630,7 +1730,72 @@ options of GNU 'ls'.
 +++
 *** New user option 'widget-skip-inactive'.
 If non-nil, moving point forward or backward between widgets by typing
-TAB or S-TAB skips over inactive widgets.  The default value is nil.
+'TAB' or 'S-TAB' skips over inactive widgets.  The default value is nil.
+
+** Ruby mode
+
+*** New user option 'ruby-rubocop-use-bundler'.
+By default it retains the previous behavior: read the contents of
+Gemfile and act accordingly.  But you can also set it to t or nil to
+skip the check.
+
+** Thingatpt
+
+---
+*** New variables for providing custom thingatpt implementations.
+The new variables 'bounds-of-thing-at-point-provider-alist' and
+'forward-thing-provider-alist' now allow defining custom implementations
+of 'bounds-of-thing-at-point' and 'forward-thing', respectively.
+
+---
+*** New helper functions for text property-based thingatpt providers.
+The new helper functions 'thing-at-point-for-char-property',
+'bounds-of-thing-at-point-for-char-property', and
+'forward-thing-for-char-property' can help to help implement custom
+thingatpt providers for "things" that are defined by a text property.
+
+---
+*** 'bug-reference-mode' now supports 'thing-at-point'.
+Now, calling '(thing-at-point 'url)' when point is on a bug reference
+will return the URL for that bug.
+
+** Miscellaneous
+
+---
+*** Webjump now assumes URIs are HTTPS instead of HTTP.
+For links in 'webjump-sites' without an explicit URI scheme, it was
+previously assumed that they should be prefixed with "http://".  Such
+URIs are now prefixed with "https://" instead.
+
++++
+*** New user option 'rcirc-log-time-format'.
+This allows for rcirc logs to use a custom timestamp format, than the
+chat buffers use by default.
+
+---
+*** New user option 'Buffer-menu-group-by'.
+It controls how buffers are divided into groups that are displayed with
+headings using Outline minor mode.
+
++++
+*** New command 'Buffer-menu-toggle-internal'.
+This command toggles the display of internal buffers in Buffer Menu mode;
+that is, buffers not visiting a file and whose names start with a space.
+Previously, such buffers were never shown.  This command is bound to 'I'
+in Buffer Menu mode.
+
+---
+*** nXML Mode now comes with schemas for Mono/.NET development.
+The following new XML schemas are now supported:
+- MSBuild project files
+- Dotnet package properties files
+- Dotnet resource extension files
+- Dotnet Application config files
+- Nuget config file
+- Nuget package specification file
+- Nuget packages config file
+
+** color.el now supports the Oklab color representation.
 
 
 * New Modes and Packages in Emacs 30.1
@@ -1720,12 +1885,29 @@ documentation and examples.
 * Incompatible Lisp Changes in Emacs 30.1
 
 +++
+** Evaluating a 'lambda' returns an object of type 'interpreted-function'.
+Instead of representing interpreted functions as lists that start with
+either 'lambda' or 'closure', Emacs now represents them as objects
+of their own 'interpreted-function' type, which is very similar
+to 'byte-code-function' objects (the argument list, docstring, and
+interactive forms are placed in the same slots).
+Lists that start with 'lambda' are now used only for non-evaluated
+functions (in other words, for source code), but for backward compatibility
+reasons, 'functionp' still recognizes them as functions and you can
+still call them as before.
+Thus code that attempts to "dig" into the internal structure of an
+interpreted function's object with the likes of 'car' or 'cdr' will
+no longer work and will need to use 'aref' instead to extract its
+various subparts (when 'interactive-form', 'documentation', and
+'help-function-arglist' aren't adequate).
+
++++
 ** 'define-globalized-minor-mode' requires that modes use 'run-mode-hooks'.
 Minor modes defined with 'define-globalized-minor-mode', such as
 'global-font-lock-mode', will not be enabled any more in those buffers
-whose major modes fails to use 'run-mode-hooks'.  Major modes defined
-with 'define-derived-mode' are not affected.  `run-mode-hooks` has been the
-recommended way to run major mode hooks since Emacs-22.
+whose major modes fail to use 'run-mode-hooks'.  Major modes defined
+with 'define-derived-mode' are not affected.  'run-mode-hooks' has been the
+recommended way to run major mode hooks since Emacs 22.
 
 ---
 ** Old derived.el functions removed.
@@ -1858,6 +2040,22 @@ unibyte string.
 
 * Lisp Changes in Emacs 30.1
 
++++
+** New user option 'compilation-safety' to control safety of native code.
+It's now possible to control how safe is the code generated by native
+compilation, by customizing this user option.  It is also possible to
+control this at function granularity by using the new 'safety' parameter
+in the function's 'declare' form.
+
+** New types 'closure' and 'interpreted-function'.
+'interpreted-function' is the new type used for interpreted functions,
+and 'closure' is the common parent type of 'interpreted-function'
+and 'byte-code-function'.
+
+Those new types come with the associated new predicates 'closurep' and
+`interpreted-function-p' as well as a new constructor
+'make-interpreted-closure'.
+
 ** New function 'help-fns-function-name'.
 For named functions, it just returns the name and otherwise
 it returns a short "unique" string that identifies the function.
@@ -1915,9 +2113,9 @@ the Info node "(elisp) Handling Errors".
 +++
 ** Tooltips on fringes.
 It is now possible to provide tooltips on fringes by adding special text
-properties 'left-fringe-help' and 'right-fringe-help'.  See the "Special
-Properties" Info node in the Emacs Lisp Reference Manual for more
-details.
+properties 'left-fringe-help' and 'right-fringe-help'.  See the "(elisp)
+Special Properties" Info node in the Emacs Lisp Reference Manual for
+more details.
 
 +++
 ** New 'pop-up-frames' action alist entry for 'display-buffer'.
@@ -1927,6 +2125,9 @@ precedence over the variable when present.
 ** New function 'merge-ordered-lists'.
 Mostly used internally to do a kind of topological sort of
 inheritance hierarchies.
+
++++
+** 'drop' is now an alias for the function 'nthcdr'.
 
 +++
 ** New polymorphic comparison function 'value<'.
@@ -2035,6 +2236,11 @@ rather than signaling an error.
 ** New variable 'current-key-remap-sequence'.
 It is bound to the key sequence that caused a call to a function bound
 within 'function-key-map' or 'input-decode-map' around those calls.
+
++++
+** The function 'key-translate' can now remove translations.
+If the second argument TO is nil, the existing key translation is
+removed.
 
 +++
 ** New variables describing the names of built in programs.
@@ -2334,8 +2540,26 @@ were used to customizing 'native-comp-async-report-warnings-errors' to
 nil or 'silent', we suggest that you now leave it at its default value,
 and see if you get only warnings that matter.
 
+** Function 'declare' forms
+
 +++
-** New function declaration and property 'important-return-value'.
+*** New 'ftype' function declaration.
+The declaration '(ftype TYPE)' specifies the type of a function.
+Example:
+
+    (defun hello (x y)
+      (declare (ftype (function (integer boolean) string)))
+      ...)
+
+specifies that the function takes two arguments, an integer and a
+boolean, and returns a string.  If the compilation happens with
+'compilation-safety' set to zero, this information can be used by the
+native compiler to produce better code, but specifying an incorrect type
+may lead to Emacs crashing.  See the Info node "(elisp) Declare Form"
+for further information.
+
++++
+*** New 'important-return-value' function declaration and property.
 The declaration '(important-return-value t)' sets the
 'important-return-value' property which indicates that the function
 return value should probably not be thrown away implicitly.
@@ -2466,6 +2690,18 @@ this case, would mean repeating the object in the argument list.)  When
 replacing an object with a different one, passing both the new and old
 objects is still necessary.
 
+** 'vtable-insert-object' can insert "before" or at an index.
+The signature of 'vtable-insert-object' has changed and is now:
+
+    (vtable-insert-object TABLE OBJECT &optional LOCATION BEFORE)
+
+LOCATION corresponds to the old AFTER-OBJECT argument; if BEFORE is
+non-nil, the new object is inserted before the LOCATION object, making
+it possible to insert a new object at the top of the table.  (Before,
+this was not possible.)  In addition, LOCATION can be an integer, a
+(zero-based) index into the table at which the new object is inserted
+(BEFORE is ignored in this case).
+
 ** JSON
 
 ---
@@ -2483,7 +2719,7 @@ correctly UTF-8 encoded.
 *** The parser and encoder now accept arbitrarily large integers.
 Previously, they were limited to the range of signed 64-bit integers.
 
-** New tree-sitter functions and variables for defining and using "things".
+** New tree-sitter functions and variables for defining and using "things"
 
 +++
 *** New variable 'treesit-thing-settings'.
@@ -2507,7 +2743,7 @@ accept more kinds of predicates.  Lisp programs can now use thing
 symbols (defined in 'treesit-thing-settings') and any thing definitions
 for the predicate argument.
 
-** Other tree-sitter function and variable changes.
+** Other tree-sitter function and variable changes
 
 +++
 *** 'treesit-parser-list' now takes additional optional arguments.
@@ -2515,6 +2751,24 @@ The additional arguments are LANGUAGE and TAG.  If LANGUAGE is given,
 only return parsers for that language.  If TAG is given, only return
 parsers with that tag.  Note that passing nil as tag doesn't mean return
 all parsers, but rather "all parsers with no tags".
+
++++
+*** New function 'treesit-parser-changed-ranges'.
+This function returns buffer regions that are affected by the last
+buffer edits.
+
+*** New function 'treesit-add-font-lock-rules'.
+This function helps users to add custom font-lock rules to a tree-sitter
+major mode.
+
+---
+** The variable 'rx-constituents' is now obsolete.
+Use 'rx-define', 'rx-let' and 'rx-let-eval' instead.
+
+---
+** 'defvar-keymap' can specify hints for 'repeat-mode'.
+Using ':repeat (:hints ((command . "hint") ...))' will show
+the hint string in the echo area together with repeatable keys.
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems

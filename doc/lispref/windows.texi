@@ -2809,7 +2809,7 @@ Windows}).
 
 @defun display-buffer-use-least-recent-window buffer alist
 This function is similar to @code{display-buffer-use-some-window}, but
-will try harder to not use the a recently used window.  In particular,
+will try harder to not use a recently used window.  In particular,
 it does not use the selected window.  In addition, it will first try to
 reuse a window that shows @var{buffer} already, base the decision
 whether it should use a window showing another buffer on that window's
@@ -5141,6 +5141,24 @@ This variable specifies the marker insertion type (@pxref{Marker
 Insertion Types}) of @code{window-point}.  The default is @code{nil},
 so @code{window-point} will stay behind text inserted there.
 @end defvar
+
+@defun set-window-cursor-type window type
+This function sets the cursor shape for @var{window}.  This setting
+takes precedence over the @code{cursor-type} variable, and @var{type}
+has the same format as the value of that variable.  @xref{Cursor
+Parameters}.  If @var{window} is @code{nil}, it means to set the cursor
+type for the selected window.
+
+The initial value for new windows is @code{t}, which says to respect the
+buffer-local value of @code{cursor-type}.  The value set by this
+function persists across buffers shown in @var{window}, so
+@code{set-window-buffer} does not reset it.  @xref{Buffers and Windows}.
+@end defun
+
+@defun window-cursor-type &optional window
+This function returns the cursor type of @var{window}, defaulting to the
+selected window.
+@end defun
 
 @node Window Start and End
 @section The Window Start and End Positions

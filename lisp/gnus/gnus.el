@@ -1360,6 +1360,7 @@ slower."
     ("nnimap" post-mail address prompt-address physical-address respool
      server-marks cloud)
     ("nnmaildir" mail respool address server-marks)
+    ("nnatom" none address)
     ("nnnil" none))
   "An alist of valid select methods.
 The first element of each list lists should be a string with the name

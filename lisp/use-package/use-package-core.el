@@ -535,6 +535,24 @@ This is in contrast to merely setting it to 0."
        (let ((xs (use-package-split-list (apply-partially #'eq key) lst)))
          (cons (car xs) (use-package-split-list-at-keys key (cddr xs))))))
 
+(defun use-package-split-when (pred xs)
+  "Repeatedly split a list according to PRED.
+Split XS every time PRED returns t.  Keep the delimiters, and
+arrange the result in an alist.  For example:
+
+  (use-package-split-when #\\='keywordp \\='(:a 1 :b 2 3 4 :c 5))
+  ;; => \\='((:a 1) (:b 2 3 4) (:c 5))
+
+  (use-package-split-when (lambda (x) (> x 2)) \\='(10 1 3 2 4 -1 8 9))
+  ;; => \\='((10 1) (3 2) (4 -1) (8) (9))"
+  (unless (seq-empty-p xs)
+    (pcase-let* ((`(,first . ,rest) (if (funcall pred (car xs))
+                                        (cons (car xs) (cdr xs))
+                                      (use-package-split-list pred xs)))
+                 (`(,val . ,recur) (use-package-split-list pred rest)))
+      (cons (cons first val)
+            (use-package-split-when pred recur)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Keywords
@@ -1648,6 +1666,12 @@ Also see the Info node `(use-package) Creating an extension'."
       (push `(use-package-vc-install ',arg ,local-path) body))   ; runtime
     body))
 
+(defconst use-package-vc-valid-keywords
+  '( :url :branch :lisp-dir :main-file :vc-backend :rev
+     :shell-command :make :ignored-files)
+  "Valid keywords for the `:vc' keyword, see the Info
+node `(emacs)Fetching Package Sources'.")
+
 (defun use-package-normalize--vc-arg (arg)
   "Normalize possible arguments to the `:vc' keyword.
 ARG is a cons-cell of approximately the form that
@@ -1669,23 +1693,27 @@ indicating the latest commit) revision."
                          (:newest nil)
                          (_ (ensure-string v))))
                  (:vc-backend (ensure-symbol v))
+                 (:ignored-files (if (listp v) v (list v)))
                  (_ (ensure-string v)))))
-    (pcase-let ((valid-kws '(:url :branch :lisp-dir :main-file :vc-backend :rev))
-                (`(,name . ,opts) arg))
+    (pcase-let* ((`(,name . ,opts) arg))
       (if (stringp opts)                ; (NAME . VERSION-STRING) ?
           (list name opts)
-        ;; Error handling
-        (cl-loop for (k _) on opts by #'cddr
-                 if (not (member k valid-kws))
-                 do (use-package-error
-                     (format "Keyword :vc received unknown argument: %s. Supported keywords are: %s"
-                             k valid-kws)))
-        ;; Actual normalization
-        (list name
-              (cl-loop for (k v) on opts by #'cddr
-                       if (not (eq k :rev))
-                       nconc (list k (normalize k v)))
-              (normalize :rev (plist-get opts :rev)))))))
+        (let ((opts (use-package-split-when
+                     (lambda (el)
+                       (seq-contains-p use-package-vc-valid-keywords el))
+                     opts)))
+          ;; Error handling
+          (cl-loop for (k . _) in opts
+                   if (not (member k use-package-vc-valid-keywords))
+                   do (use-package-error
+                       (format "Keyword :vc received unknown argument: %s. Supported keywords are: %s"
+                               k use-package-vc-valid-keywords)))
+          ;; Actual normalization
+          (list name
+                (cl-loop for (k . v) in opts
+                         if (not (eq k :rev))
+                         nconc (list k (normalize k (if (length= v 1) (car v) v))))
+                (normalize :rev (car (alist-get :rev opts)))))))))
 
 (defun use-package-normalize/:vc (name _keyword args)
   "Normalize possible arguments to the `:vc' keyword.
@@ -1701,9 +1729,9 @@ node `(use-package) Creating an extension'."
       ((or 'nil 't) (list name))                 ; guess name
       ((pred symbolp) (list arg))                ; use this name
       ((pred stringp) (list name arg))           ; version string + guess name
-      ((pred plistp)                             ; plist + guess name
+      (`(,(pred keywordp) . ,(pred listp))       ; list + guess name
        (use-package-normalize--vc-arg (cons name arg)))
-      (`(,(pred symbolp) . ,(or (pred plistp)    ; plist/version string + name
+      (`(,(pred symbolp) . ,(or (pred listp)     ; list/version string + name
                                 (pred stringp)))
        (use-package-normalize--vc-arg arg))
       (_ (use-package-error "Unrecognized argument to :vc.\

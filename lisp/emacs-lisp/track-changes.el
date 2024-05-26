@@ -3,7 +3,7 @@
 ;; Copyright (C) 2024  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 1.1
+;; Version: 1.2
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is part of GNU Emacs.
@@ -73,6 +73,12 @@
 ;;                    (track-changes-fetch
 ;;                     id (lambda (beg end before)
 ;;                          ..DO THE THING..))))))))
+
+;;; News:
+
+;; Since v1.1:
+;;
+;; - New function `track-changes-inconsistent-state-p'.
 
 ;;; Code:
 
@@ -364,8 +370,19 @@ and re-enable the TRACKER corresponding to ID."
           (setf (track-changes--tracker-state id) track-changes--state)
           (funcall func beg end (or before lenbefore)))
       ;; Re-enable the tracker's signal only after running `func', so
-      ;; as to avoid recursive invocations.
+      ;; as to avoid nested invocations.
       (cl-pushnew id track-changes--clean-trackers))))
+
+(defun track-changes-inconsistent-state-p ()
+  "Return whether the current buffer is in an inconsistent state.
+Ideally `before/after-change-functions' should be called for each and every
+buffer change, but some packages make transient changes without
+running those hooks.
+This function tries to detect those situations so clients can decide
+to postpone their work to a later time when the buffer is hopefully
+returned to a consistent state."
+  (or (not (equal track-changes--buffer-size (buffer-size)))
+      inhibit-modification-hooks))
 
 ;;;; Auxiliary functions.
 
@@ -578,8 +595,10 @@ Details logged to `track-changes--error-log'")
 (defun track-changes--call-signal (buf tracker)
   (when (buffer-live-p buf)
     (with-current-buffer buf
-      ;; Silence ourselves if `track-changes-fetch' was called in the mean time.
-      (unless (memq tracker track-changes--clean-trackers)
+      ;; Silence ourselves if `track-changes-fetch' was called
+      ;; or the tracker was unregistered in the mean time.
+      (when (and (not (memq tracker track-changes--clean-trackers))
+                 (memq tracker track-changes--trackers))
         (funcall (track-changes--tracker-signal tracker) tracker)))))
 
 ;;;; Extra candidates for the API.

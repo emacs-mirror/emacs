@@ -1,4 +1,5 @@
-# libgmp.m4 serial 8
+# libgmp.m4
+# serial 8
 # Configure the GMP library or a replacement.
 dnl Copyright 2020-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation

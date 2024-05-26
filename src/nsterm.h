@@ -922,6 +922,8 @@ struct ns_display_info
 /* This is a chain of structures for all the NS displays currently in use.  */
 extern struct ns_display_info *x_display_list;
 
+extern long context_menu_value;
+
 struct ns_output
 {
 #ifdef __OBJC__
@@ -1269,6 +1271,8 @@ extern void ns_init_events (struct input_event *);
 extern void ns_finish_events (void);
 
 extern double ns_frame_scale_factor (struct frame *);
+
+extern frame_parm_handler ns_frame_parm_handlers[];
 
 #ifdef NS_IMPL_GNUSTEP
 extern char gnustep_base_version[];  /* version tracking */

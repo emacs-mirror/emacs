@@ -120,6 +120,14 @@ so only the element (FOO) will match it.
 See also `warning-suppress-log-types'."
   :type '(repeat (repeat symbol))
   :version "22.1")
+
+(defcustom warning-display-at-bottom t
+  "Display the warning buffer at the bottom of the screen.
+The output window will be scrolled to the bottom of the buffer
+to show the last warning message."
+  :type 'boolean
+  :version "30.1")
+
 
 ;; The autoload cookie is so that programs can bind this variable
 ;; safely, testing the existing value, before they call one of the
@@ -362,10 +370,21 @@ entirely by setting `warning-suppress-types' or
 		 (or (< (warning-numeric-level level)
 			(warning-numeric-level warning-minimum-level))
 		     (warning-suppress-p type warning-suppress-types)
-		     (let ((window (display-buffer buffer)))
-		       (when (and (markerp warning-series)
+		     (let ((window (display-buffer
+				    buffer
+				    (when warning-display-at-bottom
+				      '(display-buffer--maybe-at-bottom
+					(window-height . (lambda (window)
+					  (fit-window-to-buffer window 10)))
+					(category . warning))))))
+		       (when (and window (markerp warning-series)
 				  (eq (marker-buffer warning-series) buffer))
 			 (set-window-start window warning-series))
+		       (when (and window warning-display-at-bottom)
+			 (with-selected-window window
+			   (goto-char (point-max))
+			   (forward-line -1)
+			   (recenter -1)))
 		       (sit-for 0)))))))))
 
 ;; Use \\<special-mode-map> so that help-enable-autoload can do its thing.

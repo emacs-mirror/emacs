@@ -22,6 +22,11 @@
 
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /* An object describing a memory allocator family.  */
 
 struct allocator
@@ -54,5 +59,10 @@ struct allocator
 
 /* An allocator using the stdlib functions and a null DIE function.  */
 extern struct allocator const stdlib_allocator;
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _GL_ALLOCATOR_H */

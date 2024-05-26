@@ -1,0 +1,31 @@
+This file contains mentions of functions and variables whose
+version of introduction would otherwise be guessed incorrectly
+by 'M-x describe-function'.
+
+Since much of early Emacs source history is lost, these versions are
+conservative estimates: the actual version of first appearance may very
+well be much earlier.
+
+* Changes in Emacs 19.7
+** 'defsubst'
+
+* Changes in Emacs 18.59
+** 'mark'
+
+* Changes in Emacs 13.8
+This may be the earliest surviving version with source code, although
+damaged.  See
+https://github.com/larsbrinkhoff/emacs-history/decuslib.com/decus/vax85b/gnuemax
+
+** 'nthcdr'
+** 'nreverse
+** 'let*'
+** 'rassq'
+** '>='
+** 'transpose-sexps'
+** 'buffer-modified-p'
+** 'current-column'
+** 'downcase'
+** 'previous-line'
+** 'catch', 'throw'
+** 'count-lines'

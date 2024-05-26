@@ -163,4 +163,58 @@ When `project-ignores' includes a name matching project dir."
     (should-not (null project))
     (should (string-match-p "/test/lisp/progmodes/project-resources/\\'" (project-root project)))))
 
+(ert-deftest project-find-regexp ()
+  "Check the happy path."
+  (skip-unless (executable-find find-program))
+  (skip-unless (executable-find "xargs"))
+  (skip-unless (executable-find "grep"))
+  (let* ((directory (ert-resource-directory))
+         (project-find-functions nil)
+         (project-list-file (expand-file-name "emacs-projects" temporary-file-directory))
+         (project (cons 'transient directory)))
+    (add-hook 'project-find-functions (lambda (_dir) project))
+    (should (eq (project-current) project))
+    (let* ((matches nil)
+           (xref-search-program 'grep)
+           (xref-show-xrefs-function
+            (lambda (fetcher _display)
+              (setq matches (funcall fetcher)))))
+      (project-find-regexp "etc")
+      (should (equal (mapcar (lambda (item)
+                               (file-name-base
+                                (xref-location-group (xref-item-location item))))
+                             matches)
+                     '(".dir-locals" "etc")))
+      (should (equal (sort (mapcar #'xref-item-summary matches) #'string<)
+                     '("((nil . ((project-vc-ignores . (\"etc\")))))" "etc"))))))
+
+(ert-deftest project-find-regexp-with-prefix ()
+  "Check the happy path."
+  (skip-unless (executable-find find-program))
+  (skip-unless (executable-find "xargs"))
+  (skip-unless (executable-find "grep"))
+  (let* ((directory (ert-resource-directory))
+         (project-find-functions nil)
+         (project-list-file (expand-file-name "emacs-projects" temporary-file-directory))
+         (project (cons 'transient (expand-file-name "../elisp-mode-resources/" directory))))
+    (add-hook 'project-find-functions (lambda (_dir) project))
+    (should (eq (project-current) project))
+    (let* ((matches nil)
+           (xref-search-program 'grep)
+           (xref-show-xrefs-function
+            (lambda (fetcher _display)
+              (setq matches (funcall fetcher))))
+           (current-prefix-arg t))
+      (cl-letf (((symbol-function 'read-directory-name)
+                 (lambda (_prompt _default _dirname _mm) directory))
+                ((symbol-function 'grep-read-files) (lambda (_re) "*")))
+        (project-find-regexp "etc"))
+      (should (equal (mapcar (lambda (item)
+                               (file-name-base
+                                (xref-location-group (xref-item-location item))))
+                             matches)
+                     '(".dir-locals" "etc")))
+      (should (equal (sort (mapcar #'xref-item-summary matches) #'string<)
+                     '("((nil . ((project-vc-ignores . (\"etc\")))))" "etc"))))))
+
 ;;; project-tests.el ends here

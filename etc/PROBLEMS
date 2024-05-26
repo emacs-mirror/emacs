@@ -216,6 +216,28 @@ arguments you intend to pass to Emacs):
 
   $ SNAP=1 SNAP_NAME=1 SNAP_REVISION=1 emacs ...
 
+** Emacs built with tree-sitter crashes when some *-ts-mode is turned on.
+
+The crash is in many cases an abort due to run-time detection of stack
+smashing, and it happens when one of the *-ts-mode modes is turned on
+in a buffer.
+
+The reason is that the tree-sitter library changed its Application
+Binary Interface (ABI) between version 0.22.2 and 0.22.4, but did not
+increment the ABI version number.  Therefore, Emacs compiled with
+tree-sitter versions before the change will try to use the shared
+library after the change, and crash due to incompatibilities in the
+ABI.
+
+Until and unless the tree-sitter developers release a library with an
+updated ABI version, the solution is to rebuild Emacs with the actual
+library with which it will be used.  If you cannot rebuild Emacs,
+downgrade your tree-sitter library to version 0.22.2 or older.
+
+The relevant tree-sitter issue is here:
+
+  https://github.com/tree-sitter/tree-sitter/issues/3296
+
 ** Emacs crashes when you try to view a file with complex characters.
 
 One possible reason for this could be a bug in the libotf or the
@@ -3380,7 +3402,7 @@ for further discussion.
 
 * Runtime problems specific to macOS
 
-** Error message when opening Emacs on macOS
+** Error message about malicious software when opening Emacs on macOS
 
 When opening Emacs, you may see an error message saying something like
 this:
@@ -3396,6 +3418,22 @@ To avoid this alert, open Finder, go to Applications, control-click
 the Emacs app icon, and then choose Open.  This adds a security
 exception for Emacs and from now on you should be able to open it by
 double-clicking on its icon, like any other app.
+
+** Error message about color list unarchiver when starting Emacs on macOS
+
+The error message looks like this:
+
+  Failed to initialize color list unarchiver:
+  Error Domain=NSCocoaErrorDomain Code=4864 "*** -[NSKeyedUnarchiver
+  _initForReadingFromData:error:throwLegacyExceptions:]: non-keyed archive cannot be decoded by NSKeyedUnarchiver"
+  UserInfo={NSDebugDescription=*** -[NSKeyedUnarchiver
+  _initForReadingFromData:error:throwLegacyExceptions:]: non-keyed archive cannot be decoded by NSKeyedUnarchiver}
+
+After showing this message, Emacs usually works normally.
+
+The usual reason for this is that the color file,
+~/Library/Colors/Emacs.clr, is stale or corrupted.  The solution is to
+delete that file and restart Emacs.
 
 ** macOS doesn't come with libxpm, so only XPM3 is supported.
 
@@ -3600,6 +3638,31 @@ selecting "Don't Optimize" in the dialog box thus displayed.
 The organization of the Settings app might disagree with that
 illustrated above, which if true you should consult the documentation
 or any search mechanism for it.
+
+** Emacs is not compatible with the "Microsoft SwiftKey" input method.
+
+When enabled, windows are repeatedly recentered around earlier buffer
+positions as they are scrolled.  The underlying cause is that Microsoft
+SwiftKey aggressively forces point towards word boundaries, which motion
+is sometimes received and duly processed by Emacs after the window in
+question has already been scrolled past its target position, with the
+result that the next redisplay recenters the window around this outdated
+position.  There is no solution but installing a more
+cooperative--and preferably free--input method.
+
+** The default input method sometimes performs edits out of place in large buffers.
+
+When first reactivated in a window after having been dismissed, certain
+heuristics applied by the "Android Keyboard (AOSP)" input method to
+detect unresponsive text editors, which are ill-adapted to buffers
+greater than a few thousand characters in length, conclude that Emacs is
+misbehaving, so that the input method ignores updates to the position of
+point reported around the time of its activation, and edits suggested by
+the input method are inserted in a previously reported location that
+might be wildly removed from the current insertion point.  This is a bug
+in the input method that can be easily reproduced by inserting lengthy
+documents into any text editor, with no real solution except avoiding
+edit suggestions from recently-reactivated input methods.
 
 * Build-time problems
 

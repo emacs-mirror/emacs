@@ -177,7 +177,7 @@
 
     (ert-info ("Joined by bouncer to #foo, pal persent")
       (with-current-buffer (erc-d-t-wait-for 1 (get-buffer "#foo"))
-        (erc-d-t-search-for 1 "On Thursday")
+        (erc-d-t-search-for 5 "On Thursday")
         (erc-scenarios-common-say "hi")))
 
     (erc-d-t-wait-for 10 "Query buffer appears with message from pal"
@@ -253,7 +253,7 @@
     (ert-info ("Joined by bouncer to #chan@barnet, pal persent")
       (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan@barnet"))
         (funcall expect 1 "rando")
-        (funcall expect 2 "come, sir, I am")))
+        (funcall expect 5 "come, sir, I am")))
 
     (ert-info ("Query buffer exists for rando@foonet")
       (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "rando@foonet"))

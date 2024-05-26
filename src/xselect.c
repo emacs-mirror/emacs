@@ -562,12 +562,12 @@ struct x_selection_request
 /* Stack of selections currently being processed.
    NULL if all requests have been fully processed.  */
 
-struct x_selection_request *selection_request_stack;
+static struct x_selection_request *selection_request_stack;
 
 /* List of all outstanding selection transfers which are currently
    being processed.  */
 
-struct transfer outstanding_transfers;
+static struct transfer outstanding_transfers;
 
 /* A counter for selection serials.  */
 

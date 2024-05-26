@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <intprops.h>
 #include <inttypes.h>
+#include <stdbit.h>
 #include <stdckdint.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -3678,45 +3679,6 @@ sfnt_multiply_divide_1 (unsigned int a, unsigned int b,
   value->high = hi;
 }
 
-/* Count the number of most significant zero bits in N.  */
-
-static unsigned int
-sfnt_count_leading_zero_bits (unsigned int n)
-{
-  int shift;
-
-  shift = 0;
-
-  if (n & 0xffff0000ul)
-    {
-      n >>= 16;
-      shift += 16;
-    }
-
-  if (n & 0x0000ff00ul)
-    {
-      n >>= 8;
-      shift += 8;
-    }
-
-  if (n & 0x000000f0ul)
-    {
-      n >>= 4;
-      shift += 4;
-    }
-
-  if (n & 0x0000000cul)
-    {
-      n >>= 2;
-      shift += 2;
-    }
-
-  if (n & 0x00000002ul)
-    shift += 1;
-
-  return shift;
-}
-
 /* Calculate AB / C.  Value is a 32 bit unsigned integer.  */
 
 static unsigned int
@@ -3730,7 +3692,7 @@ sfnt_multiply_divide_2 (struct sfnt_large_integer *ab,
   hi = ab->high;
   lo = ab->low;
 
-  i = 31 - sfnt_count_leading_zero_bits (hi);
+  i = stdc_leading_zeros (hi);
   r = (hi << i) | (lo >> (32 - i));
   lo <<= i;
   q = r / c;
@@ -14127,17 +14089,14 @@ sfnt_map_table (int fd, struct sfnt_offset_subtable *subtable,
 
   /* Find the table in the directory.  */
 
-  for (i = 0; i < subtable->num_tables; ++i)
+  for (i = 0; ; i++)
     {
-      if (subtable->subtables[i].tag == tag)
-	{
-	  directory = &subtable->subtables[i];
-	  break;
-	}
+      if (! (i < subtable->num_tables))
+	return 1;
+      directory = &subtable->subtables[i];
+      if (directory->tag == tag)
+	break;
     }
-
-  if (i == subtable->num_tables)
-    return 1;
 
   /* Now try to map the glyph data.  Make sure offset is a multiple of
      the page size.  */
@@ -14194,17 +14153,14 @@ sfnt_read_table (int fd, struct sfnt_offset_subtable *subtable,
 
   /* Find the table in the directory.  */
 
-  for (i = 0; i < subtable->num_tables; ++i)
+  for (i = 0; ; i++)
     {
-      if (subtable->subtables[i].tag == tag)
-	{
-	  directory = &subtable->subtables[i];
-	  break;
-	}
+      if (! (i < subtable->num_tables))
+	return NULL;
+      directory = &subtable->subtables[i];
+      if (directory->tag == tag)
+	break;
     }
-
-  if (i == subtable->num_tables)
-    return NULL;
 
   /* Seek to the table.  */
 
@@ -15198,7 +15154,7 @@ sfnt_read_cvar_table (int fd, struct sfnt_offset_subtable *subtable,
 	  /* Copy in the shared point numbers instead.  */
 	  cvar->variation[i].num_points = npoints;
 
-	  if (npoints != UINT16_MAX)
+	  if (points && npoints != UINT16_MAX)
 	    {
 	      if (cvar->variation[i].num_points > cvt->num_elements)
 		cvar->variation[i].num_points = cvt->num_elements;

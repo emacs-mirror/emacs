@@ -381,7 +381,7 @@ the symbol `mode-line-format-right-align' is processed by
 		  `(space :align-to (,(- (window-pixel-width)
                                          (window-scroll-bar-width)
                                          (window-right-divider-width)
-                                         (* (or (cdr (window-margins)) 1)
+                                         (* (or (car (window-margins)) 0)
                                             (frame-char-width))
                                          ;; Manually account for value of
                                          ;; `mode-line-right-align-edge' even

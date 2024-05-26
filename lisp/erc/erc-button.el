@@ -309,7 +309,9 @@ specified by `erc-button-alist'."
             regexp)
         (erc-button-remove-old-buttons)
         (unless (or erc-button--has-nickname-entry
-                    (not erc-button-buttonize-nicks))
+                    (not erc-button-buttonize-nicks)
+                    (and (erc--memq-msg-prop 'erc--skip 'button)
+                         (not (setq alist nil))))
           (erc-button-add-nickname-buttons
            `(_ _ erc-button--modify-nick-function
                ,erc-button-nickname-callback-function)))
@@ -830,7 +832,6 @@ argument when calling `erc-display-message'.  Otherwise, add it
 to STRINGS.  If STRINGS contains any trailing non-nil
 non-strings, concatenate leading string members before applying
 `format'.  Otherwise, just concatenate everything."
-  (defvar erc-stamp--skip)
   (let* ((buffer (if (bufferp maybe-buffer)
                      maybe-buffer
                    (when (stringp maybe-buffer)
@@ -847,9 +848,11 @@ non-strings, concatenate leading string members before applying
                #'format))
          (string (apply op strings))
          ;; Avoid timestamps unless left-sided.
-         (erc-stamp--skip (or (bound-and-true-p erc-stamp--display-margin-mode)
-                              (not (fboundp 'erc-timestamp-offset))
-                              (zerop (erc-timestamp-offset))))
+         (skipp (or (bound-and-true-p erc-stamp--display-margin-mode)
+                    (not (fboundp 'erc-timestamp-offset))
+                    (zerop (erc-timestamp-offset))))
+         (erc--msg-prop-overrides `(,@(and skipp `((erc--skip stamp)))
+                                    ,@erc--msg-prop-overrides))
          (erc-insert-post-hook
           (cons (lambda ()
                   (setq string (buffer-substring (point-min)

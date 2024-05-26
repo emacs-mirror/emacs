@@ -204,14 +204,21 @@ set_interval_plist (INTERVAL i, Lisp_Object plist)
 #define INTERVAL_VISIBLE_P(i) \
   (i && NILP (textget ((i)->plist, Qinvisible)))
 
-/* Is this interval writable?  Replace later with cache access.  */
-#define INTERVAL_WRITABLE_P(i)					\
-  (NILP (textget ((i)->plist, Qread_only))			\
-   || !NILP (textget ((i)->plist, Qinhibit_read_only))		\
-   || ((CONSP (Vinhibit_read_only)				\
-	? !NILP (Fmemq (textget ((i)->plist, Qread_only),	\
-			Vinhibit_read_only))			\
-	: !NILP (Vinhibit_read_only))))
+/* Is this interval writable by virtue of not being marked read-only
+   by the 'read-only' property (passed via RO), or due to the general
+   value of Vinhibit_read_only?  Replace later with cache access.  */
+#define INTERVAL_GENERALLY_WRITABLE_P(i, ro)			\
+  (NILP (ro) || (!NILP (Vinhibit_read_only)			\
+		 && !CONSP (Vinhibit_read_only)))
+
+/* Is this interval writable by virtue of its explicit
+   'inhibit-read-only' property, or due to the presence of its
+   'read-only' property (passed via RO) in Vinhibit_read_only list?  */
+#define INTERVAL_EXPRESSLY_WRITABLE_P(i, ro)			\
+  (!NILP (textget ((i)->plist, Qinhibit_read_only))		\
+   || (!NILP (ro)						\
+       && CONSP (Vinhibit_read_only)				\
+       && !NILP (Fmemq ((ro), Vinhibit_read_only))))
 
 /* Macros to tell whether insertions before or after this interval
    should stick to it.  Now we have Vtext_property_default_nonsticky,

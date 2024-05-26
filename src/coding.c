@@ -806,7 +806,7 @@ record_conversion_result (struct coding_system *coding,
     case CODING_RESULT_SUCCESS:
       break;
     default:
-      Vlast_code_conversion_error = intern ("Unknown error");
+      Vlast_code_conversion_error = QUnknown_error;
     }
 }
 
@@ -11508,7 +11508,7 @@ usage: (define-coding-system-internal ...)  */)
 
  short_args:
   Fsignal (Qwrong_number_of_arguments,
-	   Fcons (intern ("define-coding-system-internal"),
+	   Fcons (Qdefine_coding_system_internal,
 		  make_fixnum (nargs)));
 }
 
@@ -12311,6 +12311,9 @@ internal character representation.  */);
     Fset (AREF (Vcoding_category_table, i), Qno_conversion);
 
   pdumper_do_now_and_after_load (reset_coding_after_pdumper_load);
+
+  DEFSYM (QUnknown_error, "Unknown error");
+  DEFSYM (Qdefine_coding_system_internal, "define-coding-system-internal");
 }
 
 static void

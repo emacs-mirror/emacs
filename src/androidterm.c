@@ -151,14 +151,8 @@ android_flash (struct frame *f)
   fd_set fds;
 
   block_input ();
-
-  values.function = ANDROID_GC_XOR;
-  values.foreground = (FRAME_FOREGROUND_PIXEL (f)
-		       ^ FRAME_BACKGROUND_PIXEL (f));
-
-  gc = android_create_gc ((ANDROID_GC_FUNCTION
-			   | ANDROID_GC_FOREGROUND),
-			  &values);
+  values.function = ANDROID_GC_INVERT;
+  gc = android_create_gc (ANDROID_GC_FUNCTION, &values);
 
   /* Get the height not including a menu bar widget.  */
   int height = FRAME_PIXEL_HEIGHT (f);
@@ -1964,10 +1958,33 @@ android_parse_color (struct frame *f, const char *color_name,
 bool
 android_alloc_nearest_color (struct frame *f, Emacs_Color *color)
 {
+  unsigned int ntsc;
+
   gamma_correct (f, color);
-  color->pixel = RGB_TO_ULONG (color->red / 256,
-			       color->green / 256,
-			       color->blue / 256);
+
+  if (FRAME_DISPLAY_INFO (f)->n_planes == 1)
+    {
+      /* Black and white.  I think this is the luminance formula applied
+	 by the X server on generic monochrome framebuffers.  */
+      color->pixel = ((((30l * color->red
+			 + 59l * color->green
+			 + 11l * color->blue) >> 8)
+		       >= (((1 << 8) -1) * 50))
+		      ? 0xffffff : 0);
+    }
+  else if (FRAME_DISPLAY_INFO (f)->n_planes <= 8)
+    {
+      /* 256 grays.  */
+      ntsc = min (255, ((color->red * 0.299
+			 + color->green * 0.587
+			 + color->blue * 0.114)
+			/ 256));
+      color->pixel = RGB_TO_ULONG (ntsc, ntsc, ntsc);
+    }
+  else
+    color->pixel = RGB_TO_ULONG (color->red / 256,
+				 color->green / 256,
+				 color->blue / 256);
 
   return true;
 }
@@ -1980,8 +1997,8 @@ android_query_colors (struct frame *f, Emacs_Color *colors, int ncolors)
   for (i = 0; i < ncolors; ++i)
     {
       colors[i].red = RED_FROM_ULONG (colors[i].pixel) * 257;
-      colors[i].green = RED_FROM_ULONG (colors[i].pixel) * 257;
-      colors[i].blue = RED_FROM_ULONG (colors[i].pixel) * 257;
+      colors[i].green = GREEN_FROM_ULONG (colors[i].pixel) * 257;
+      colors[i].blue = BLUE_FROM_ULONG (colors[i].pixel) * 257;
     }
 }
 
@@ -2630,7 +2647,7 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       clipmask = ANDROID_NONE;
       background = face->background;
       cursor_pixel = f->output_data.android->cursor_pixel;
-      depth = FRAME_DISPLAY_INFO (f)->n_planes;
+      depth = FRAME_DISPLAY_INFO (f)->n_image_planes;
 
       /* Intersect the destination rectangle with that of the row.
 	 Setting a clip mask overrides the clip rectangles provided by
@@ -3717,19 +3734,15 @@ static void
 android_get_scale_factor (int *scale_x, int *scale_y)
 {
   /* This is 96 everywhere else, but 160 on Android.  */
-  const int base_res = 160;
-  struct android_display_info *dpyinfo;
+  int base_res = 160;
 
-  dpyinfo = x_display_list;
   *scale_x = *scale_y = 1;
+  eassert (x_display_list);
 
-  if (dpyinfo)
-    {
-      if (dpyinfo->resx > base_res)
-	*scale_x = floor (dpyinfo->resx / base_res);
-      if (dpyinfo->resy > base_res)
-	*scale_y = floor (dpyinfo->resy / base_res);
-    }
+  if (x_display_list->resx > base_res)
+    *scale_x = floor (x_display_list->resx / base_res);
+  if (x_display_list->resy > base_res)
+    *scale_y = floor (x_display_list->resy / base_res);
 }
 
 static void
@@ -4012,6 +4025,80 @@ android_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
   s->char2b = NULL;
 }
 
+/* Draw a dashed underline of thickness THICKNESS and width WIDTH onto F
+   at a vertical offset of OFFSET from the position of the glyph string
+   S, with each segment SEGMENT pixels in length.  */
+
+static void
+android_draw_dash (struct frame *f, struct glyph_string *s, int width,
+		   int segment, int offset, int thickness)
+{
+  struct android_gc *gc;
+  struct android_gc_values gcv;
+  int y_center;
+
+  /* Configure the GC, the dash pattern and a suitable offset.  */
+  gc = s->gc;
+
+  gcv.line_style = ANDROID_LINE_ON_OFF_DASH;
+  gcv.line_width = thickness;
+  android_change_gc (s->gc, (ANDROID_GC_LINE_STYLE
+			     | ANDROID_GC_LINE_WIDTH), &gcv);
+  android_set_dashes (s->gc, s->x, &segment, 1);
+
+  /* Offset the origin of the line by half the line width. */
+  y_center = s->ybase + offset + thickness / 2;
+  android_draw_line (FRAME_ANDROID_WINDOW (f), gc,
+		     s->x, y_center, s->x + width, y_center);
+
+  /* Restore the initial line style.  */
+  gcv.line_style = ANDROID_LINE_SOLID;
+  gcv.line_width = 1;
+  android_change_gc (s->gc, (ANDROID_GC_LINE_STYLE
+			     | ANDROID_GC_LINE_WIDTH), &gcv);
+}
+
+/* Draw an underline of STYLE onto F at an offset of POSITION from the
+   baseline of the glyph string S, DECORATION_WIDTH in length, and
+   THICKNESS in height.  */
+
+static void
+android_fill_underline (struct frame *f, struct glyph_string *s,
+			enum face_underline_type style, int position,
+			int decoration_width, int thickness)
+{
+  int segment;
+
+  segment = thickness * 3;
+
+  switch (style)
+    {
+      /* FACE_UNDERLINE_DOUBLE_LINE is treated identically to SINGLE, as
+	 the second line will be filled by another invocation of this
+	 function.  */
+    case FACE_UNDERLINE_SINGLE:
+    case FACE_UNDERLINE_DOUBLE_LINE:
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f),
+			      s->gc, s->x, s->ybase + position,
+			      decoration_width, thickness);
+      break;
+
+    case FACE_UNDERLINE_DOTS:
+      segment = thickness;
+      FALLTHROUGH;
+
+    case FACE_UNDERLINE_DASHES:
+      android_draw_dash (f, s, decoration_width, segment, position,
+			 thickness);
+      break;
+
+    case FACE_NO_UNDERLINE:
+    case FACE_UNDERLINE_WAVE:
+    default:
+      emacs_abort ();
+    }
+}
+
 static void
 android_draw_glyph_string (struct glyph_string *s)
 {
@@ -4135,7 +4222,7 @@ android_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline)
         {
-          if (s->face->underline == FACE_UNDER_WAVE)
+          if (s->face->underline == FACE_UNDERLINE_WAVE)
             {
               if (s->face->underline_defaulted_p)
                 android_draw_underwave (s, decoration_width);
@@ -4148,13 +4235,13 @@ android_draw_glyph_string (struct glyph_string *s)
                   android_set_foreground (s->gc, xgcv.foreground);
                 }
             }
-          else if (s->face->underline == FACE_UNDER_LINE)
+          else if (s->face->underline >= FACE_UNDERLINE_SINGLE)
             {
               unsigned long thickness, position;
-              int y;
 
               if (s->prev
-		  && s->prev->face->underline == FACE_UNDER_LINE
+		  && (s->prev->face->underline != FACE_UNDERLINE_WAVE
+		      && s->prev->face->underline >= FACE_UNDERLINE_SINGLE)
 		  && (s->prev->face->underline_at_descent_line_p
 		      == s->face->underline_at_descent_line_p)
 		  && (s->prev->face->underline_pixels_above_descent_line
@@ -4231,19 +4318,35 @@ android_draw_glyph_string (struct glyph_string *s)
                 thickness = (s->y + s->height) - (s->ybase + position);
               s->underline_thickness = thickness;
               s->underline_position = position;
-              y = s->ybase + position;
-              if (s->face->underline_defaulted_p)
-                android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
-					s->x, y, decoration_width, thickness);
-              else
-                {
-                  struct android_gc_values xgcv;
-                  android_get_gc_values (s->gc, ANDROID_GC_FOREGROUND, &xgcv);
-                  android_set_foreground (s->gc, s->face->underline_color);
-                  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
-					  s->x, y, decoration_width, thickness);
-                  android_set_foreground (s->gc, xgcv.foreground);
-                }
+
+	      {
+		struct android_gc_values xgcv;
+
+		if (!s->face->underline_defaulted_p)
+		  {
+		    android_get_gc_values (s->gc, ANDROID_GC_FOREGROUND, &xgcv);
+		    android_set_foreground (s->gc, s->face->underline_color);
+		  }
+
+	        android_fill_underline (s->f, s, s->face->underline,
+					position, decoration_width,
+					thickness);
+
+		/* Place a second underline above the first if this was
+		   requested in the face specification.  */
+
+		if (s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
+		  {
+		    /* Compute the position of the second underline.  */
+		    position = position - thickness - 1;
+		    android_fill_underline (s->f, s, s->face->underline,
+					    position, decoration_width,
+					    thickness);
+		  }
+
+		if (!s->face->underline_defaulted_p)
+		  android_set_foreground (s->gc, xgcv.foreground);
+	      }
             }
         }
       /* Draw overline.  */
@@ -4822,7 +4925,7 @@ android_copy_java_string (JNIEnv *env, jstring string, size_t *length)
 }
 
 JNIEXPORT void JNICALL
-NATIVE_NAME (beginBatchEdit) (JNIEnv *env, jobject object, jshort window)
+NATIVE_NAME (beginBatchEdit) (JNIEnv *env, jobject object, jlong window)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -4843,7 +4946,7 @@ NATIVE_NAME (beginBatchEdit) (JNIEnv *env, jobject object, jshort window)
 }
 
 JNIEXPORT void JNICALL
-NATIVE_NAME (endBatchEdit) (JNIEnv *env, jobject object, jshort window)
+NATIVE_NAME (endBatchEdit) (JNIEnv *env, jobject object, jlong window)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -4864,7 +4967,7 @@ NATIVE_NAME (endBatchEdit) (JNIEnv *env, jobject object, jshort window)
 }
 
 JNIEXPORT void JNICALL
-NATIVE_NAME (commitCompletion) (JNIEnv *env, jobject object, jshort window,
+NATIVE_NAME (commitCompletion) (JNIEnv *env, jobject object, jlong window,
 				jstring completion_text, jint position)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
@@ -4898,7 +5001,7 @@ NATIVE_NAME (commitCompletion) (JNIEnv *env, jobject object, jshort window,
 }
 
 JNIEXPORT void JNICALL
-NATIVE_NAME (commitText) (JNIEnv *env, jobject object, jshort window,
+NATIVE_NAME (commitText) (JNIEnv *env, jobject object, jlong window,
 			  jstring commit_text, jint position)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
@@ -4933,7 +5036,7 @@ NATIVE_NAME (commitText) (JNIEnv *env, jobject object, jshort window,
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (deleteSurroundingText) (JNIEnv *env, jobject object,
-				     jshort window, jint left_length,
+				     jlong window, jint left_length,
 				     jint right_length)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
@@ -4956,7 +5059,7 @@ NATIVE_NAME (deleteSurroundingText) (JNIEnv *env, jobject object,
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (finishComposingText) (JNIEnv *env, jobject object,
-				   jshort window)
+				   jlong window)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -4977,7 +5080,7 @@ NATIVE_NAME (finishComposingText) (JNIEnv *env, jobject object,
 }
 
 JNIEXPORT void JNICALL
-NATIVE_NAME (replaceText) (JNIEnv *env, jobject object, jshort window,
+NATIVE_NAME (replaceText) (JNIEnv *env, jobject object, jlong window,
 			   jint start, jint end, jobject text,
 			   int new_cursor_position, jobject attribute)
 {
@@ -5143,7 +5246,7 @@ android_text_to_string (JNIEnv *env, char *buffer, ptrdiff_t n,
 }
 
 JNIEXPORT jstring JNICALL
-NATIVE_NAME (getTextAfterCursor) (JNIEnv *env, jobject object, jshort window,
+NATIVE_NAME (getTextAfterCursor) (JNIEnv *env, jobject object, jlong window,
 				  jint length, jint flags)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
@@ -5187,7 +5290,7 @@ NATIVE_NAME (getTextAfterCursor) (JNIEnv *env, jobject object, jshort window,
 }
 
 JNIEXPORT jstring JNICALL
-NATIVE_NAME (getTextBeforeCursor) (JNIEnv *env, jobject object, jshort window,
+NATIVE_NAME (getTextBeforeCursor) (JNIEnv *env, jobject object, jlong window,
 				   jint length, jint flags)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
@@ -5231,7 +5334,7 @@ NATIVE_NAME (getTextBeforeCursor) (JNIEnv *env, jobject object, jshort window,
 }
 
 JNIEXPORT void JNICALL
-NATIVE_NAME (setComposingText) (JNIEnv *env, jobject object, jshort window,
+NATIVE_NAME (setComposingText) (JNIEnv *env, jobject object, jlong window,
 				jstring composing_text,
 				jint new_cursor_position)
 {
@@ -5266,7 +5369,7 @@ NATIVE_NAME (setComposingText) (JNIEnv *env, jobject object, jshort window,
 }
 
 JNIEXPORT void JNICALL
-NATIVE_NAME (setComposingRegion) (JNIEnv *env, jobject object, jshort window,
+NATIVE_NAME (setComposingRegion) (JNIEnv *env, jobject object, jlong window,
 				  jint start, jint end)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
@@ -5288,7 +5391,7 @@ NATIVE_NAME (setComposingRegion) (JNIEnv *env, jobject object, jshort window,
 }
 
 JNIEXPORT void JNICALL
-NATIVE_NAME (setSelection) (JNIEnv *env, jobject object, jshort window,
+NATIVE_NAME (setSelection) (JNIEnv *env, jobject object, jlong window,
 			    jint start, jint end)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
@@ -5366,7 +5469,7 @@ android_get_selection (void *data)
 }
 
 JNIEXPORT jintArray JNICALL
-NATIVE_NAME (getSelection) (JNIEnv *env, jobject object, jshort window)
+NATIVE_NAME (getSelection) (JNIEnv *env, jobject object, jlong window)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -5405,7 +5508,7 @@ NATIVE_NAME (getSelection) (JNIEnv *env, jobject object, jshort window)
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (performEditorAction) (JNIEnv *env, jobject object,
-				   jshort window, int action)
+				   jlong window, int action)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -5457,7 +5560,7 @@ NATIVE_NAME (performEditorAction) (JNIEnv *env, jobject object,
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (performContextMenuAction) (JNIEnv *env, jobject object,
-					jshort window, int action)
+					jlong window, int action)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -5604,10 +5707,10 @@ struct android_extracted_text_class
 
 /* Fields and methods associated with the `ExtractedTextRequest'
    class.  */
-struct android_extracted_text_request_class request_class;
+static struct android_extracted_text_request_class request_class;
 
 /* Fields and methods associated with the `ExtractedText' class.  */
-struct android_extracted_text_class text_class;
+static struct android_extracted_text_class text_class;
 
 /* Return an ExtractedText object corresponding to the extracted text
    TEXT.  START is a character position describing the offset of the
@@ -5662,7 +5765,7 @@ android_build_extracted_text (jstring text, ptrdiff_t start,
 
 JNIEXPORT jobject JNICALL
 NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
-				jshort window, jobject request,
+				jlong window, jobject request,
 				jint flags)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
@@ -5774,7 +5877,7 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
 
 JNIEXPORT jstring JNICALL
 NATIVE_NAME (getSelectedText) (JNIEnv *env, jobject object,
-			       jshort window)
+			       jlong window)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -5804,7 +5907,7 @@ NATIVE_NAME (getSelectedText) (JNIEnv *env, jobject object,
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (requestSelectionUpdate) (JNIEnv *env, jobject object,
-				      jshort window)
+				      jlong window)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -5826,7 +5929,7 @@ NATIVE_NAME (requestSelectionUpdate) (JNIEnv *env, jobject object,
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (requestCursorUpdates) (JNIEnv *env, jobject object,
-				    jshort window, jint mode)
+				    jlong window, jint mode)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -5855,7 +5958,7 @@ NATIVE_NAME (requestCursorUpdates) (JNIEnv *env, jobject object,
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (clearInputFlags) (JNIEnv *env, jobject object,
-			       jshort window)
+			       jlong window)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -5970,7 +6073,7 @@ android_get_surrounding_text (void *data)
    Value is the object upon success, else NULL.  */
 
 static jobject
-android_get_surrounding_text_internal (JNIEnv *env, jshort window,
+android_get_surrounding_text_internal (JNIEnv *env, jlong window,
 				       jint before_length,
 				       jint after_length,
 				       ptrdiff_t *conversion_start,
@@ -6063,7 +6166,7 @@ android_get_surrounding_text_internal (JNIEnv *env, jshort window,
 
 JNIEXPORT jobject JNICALL
 NATIVE_NAME (getSurroundingText) (JNIEnv *env, jobject object,
-				  jshort window, jint before_length,
+				  jlong window, jint before_length,
 				  jint after_length, jint flags)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
@@ -6073,7 +6176,7 @@ NATIVE_NAME (getSurroundingText) (JNIEnv *env, jobject object,
 }
 
 JNIEXPORT jobject JNICALL
-NATIVE_NAME (takeSnapshot) (JNIEnv *env, jobject object, jshort window)
+NATIVE_NAME (takeSnapshot) (JNIEnv *env, jobject object, jlong window)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -6156,14 +6259,24 @@ android_update_selection (struct frame *f, struct window *w)
   jobject extracted;
   jstring string;
   bool mark_active;
+  ptrdiff_t field_start, field_end;
+
+  /* Offset these values by the start offset of the field.  */
+  get_conversion_field (f, &field_start, &field_end);
 
   if (MARKERP (f->conversion.compose_region_start))
     {
       eassert (MARKERP (f->conversion.compose_region_end));
 
       /* Indexing in android starts from 0 instead of 1.  */
-      start = marker_position (f->conversion.compose_region_start) - 1;
-      end = marker_position (f->conversion.compose_region_end) - 1;
+      start = marker_position (f->conversion.compose_region_start);
+      end = marker_position (f->conversion.compose_region_end);
+
+      /* Offset and detect underflow.  */
+      start = max (start, field_start) - field_start;
+      end = min (end, field_end) - field_start;
+      if (end < 0 || start < 0)
+	end = start = -1;
     }
   else
     start = -1, end = -1;
@@ -6179,24 +6292,27 @@ android_update_selection (struct frame *f, struct window *w)
   /* Figure out where the point and mark are.  If the mark is not
      active, then point is set to equal mark.  */
   b = XBUFFER (w->contents);
-  point = min (w->ephemeral_last_point,
+  point = min (min (max (w->ephemeral_last_point,
+			 field_start),
+		    field_end) - field_start,
 	       TYPE_MAXIMUM (jint));
   mark = ((!NILP (BVAR (b, mark_active))
 	   && w->last_mark != -1)
-	  ? min (w->last_mark, TYPE_MAXIMUM (jint))
+	  ? min (min (max (w->last_mark, field_start),
+		      field_end) - field_start,
+		 TYPE_MAXIMUM (jint))
 	  : point);
 
-  /* Send the update.  Android doesn't employ a concept of ``point''
-     and ``mark''; instead, it only has a selection, where the start
-     of the selection is less than or equal to the end, and the region
-     is ``active'' when those two values differ.  Also, convert the
-     indices from 1-based Emacs indices to 0-based Android ones.  */
-  android_update_ic (FRAME_ANDROID_WINDOW (f), min (point, mark) - 1,
-		     max (point, mark) - 1, start, end);
+  /* Send the update.  Android doesn't employ a concept of "point" and
+     "mark"; instead, it only has a selection, where the start of the
+     selection is less than or equal to the end, and the region is
+     "active" when those two values differ.  The indices will have been
+     converted from 1-based Emacs indices to 0-based Android ones.  */
+  android_update_ic (FRAME_ANDROID_WINDOW (f), min (point, mark),
+		     max (point, mark), start, end);
 
   /* Update the extracted text as well, if the input method has asked
-     for updates.  1 is
-     InputConnection.GET_EXTRACTED_TEXT_MONITOR.  */
+     for updates.  1 is InputConnection.GET_EXTRACTED_TEXT_MONITOR.  */
 
   if (FRAME_ANDROID_OUTPUT (f)->extracted_text_flags & 1)
     {
@@ -6363,8 +6479,6 @@ static struct textconv_interface text_conversion_interface =
 
 
 
-extern frame_parm_handler android_frame_parm_handlers[];
-
 #endif /* !ANDROID_STUBIFY */
 
 static struct redisplay_interface android_redisplay_interface =
@@ -6504,8 +6618,8 @@ android_term_init (void)
   terminal = android_create_terminal (dpyinfo);
   terminal->kboard = allocate_kboard (Qandroid);
   terminal->kboard->reference_count++;
-
   dpyinfo->n_planes = 24;
+  dpyinfo->n_image_planes = 24;
 
   /* This function should only be called once at startup.  */
   eassert (!x_display_list);
@@ -6534,6 +6648,26 @@ android_term_init (void)
   dpyinfo->smallest_char_width = 1;
 
   terminal->name = xstrdup ("android");
+
+  {
+    Lisp_Object system_name = Fsystem_name ();
+    static char const title[] = "GNU Emacs";
+    if (STRINGP (system_name))
+      {
+	static char const at[] = " at ";
+	ptrdiff_t nbytes = sizeof (title) + sizeof (at);
+	if (ckd_add (&nbytes, nbytes, SBYTES (system_name)))
+	  memory_full (SIZE_MAX);
+	dpyinfo->x_id_name = xmalloc (nbytes);
+	sprintf (dpyinfo->x_id_name, "%s%s%s", title, at,
+		 SDATA (system_name));
+      }
+    else
+      {
+	dpyinfo->x_id_name = xmalloc (sizeof (title));
+	strcpy (dpyinfo->x_id_name, title);
+      }
+  }
 
   /* The display "connection" is now set up, and it must never go
      away.  */
@@ -6680,6 +6814,22 @@ so it is important to limit the wait.
 If set to a non-float value, there will be no wait at all.  */);
   Vandroid_wait_for_event_timeout = make_float (0.1);
 
+  DEFVAR_INT ("android-quit-keycode", android_quit_keycode,
+    doc: /* Keycode that signals quit when typed twice in rapid succession.
+
+This is the key code of a key whose repeated activation should prompt
+Emacs to quit, enabling quitting on systems where a keyboard capable of
+typing C-g is unavailable, when set to a key that does exist on the
+device.  Its value must be a keycode defined by the operating system,
+and defaults to 25 (KEYCODE_VOLUME_DOWN), though one of the following
+values might be desired on those devices where this default is also
+unavailable, or if another key must otherwise serve this function
+instead:
+
+  - 4  (KEYCODE_BACK)
+  - 24 (KEYCODE_VOLUME_UP)  */);
+  android_quit_keycode = 25;
+
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       x_use_underline_position_properties,
      doc: /* SKIP: real doc in xterm.c.  */);
@@ -6701,6 +6851,17 @@ Emacs is running on.  */);
   DEFVAR_LISP ("android-build-manufacturer", Vandroid_build_manufacturer,
     doc: /* Name of the developer of the running version of Android.  */);
   Vandroid_build_manufacturer = Qnil;
+
+  DEFVAR_INT ("android-display-planes", android_display_planes,
+    doc: /* Depth and visual class of the display.
+This variable controls the visual class and depth of the display, which
+cannot be detected on Android.  The default value of 24, and values from
+there to 8 represent a TrueColor display providing 24 planes, values
+between 8 and 1 StaticGray displays providing that many planes, and 1 or
+lower monochrome displays with a single plane.  Modifications to this
+variable must be completed before the window system is initialized, in,
+for instance, `early-init.el', or they will be of no effect.  */);
+  android_display_planes = 24;
 
   DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
     doc: /* SKIP: real doc in xterm.c.  */);

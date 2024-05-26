@@ -1944,10 +1944,16 @@ integer).  @xref{Line Height}, for more information.
 @vindex no-special-glyphs@r{, a frame parameter}
 @item no-special-glyphs
 If this is non-@code{nil}, it suppresses the display of any truncation
-and continuation glyphs (@pxref{Truncation}) for all buffers displayed
-by this frame.  This is useful to eliminate such glyphs when fitting a
-frame to its buffer via @code{fit-frame-to-buffer} (@pxref{Resizing
-Windows}).
+(@pxref{Truncation}) and continuation glyphs for all the buffers
+displayed by this frame.  This is useful to eliminate such glyphs when
+fitting a frame to its buffer via @code{fit-frame-to-buffer}
+(@pxref{Resizing Windows}).  This frame parameter has effect only for
+GUI frames shown on graphical displays, and only if the fringes are
+disabled.  This parameter is intended as a purely-presentation
+feature, and in particular should not be used for frames where the
+user can interactively insert text, or more generally where the cursor
+is shown.  A notable example of frames where this is used is tooltip
+frames (@pxref{Tooltips}).
 @end table
 
 
@@ -2341,9 +2347,9 @@ Display a horizontal bar @var{height} pixels high.
 @end table
 
 @vindex cursor-type
-The @code{cursor-type} frame parameter may be overridden by the
-variables @code{cursor-type} and
-@code{cursor-in-non-selected-windows}:
+The @code{cursor-type} frame parameter may be overridden by
+@code{set-window-cursor-type} (@pxref{Window Point}), and by the
+variables @code{cursor-type} and @code{cursor-in-non-selected-windows}:
 
 @defopt cursor-type
 This buffer-local variable controls how the cursor looks in a selected
@@ -2822,6 +2828,18 @@ direction.
 
   See also @code{next-window} and @code{previous-window}, in @ref{Cyclic
 Window Ordering}.
+
+  Some Lisp programs need to find one or more frames that satisfy a
+given criteria.  The function @code{filtered-frame-list} is provided for
+this purpose.
+
+@defun filtered-frame-list predicate
+This function returns the list of all the live frames which satisfy the
+specified @var{predicate}.  The argument @var{predicate} must be a
+function of one argument, a frame to be tested against the filtering
+criteria, and should return non-@code{nil} if the frame satisfies the
+criteria.
+@end defun
 
 @node Minibuffers and Frames
 @section Minibuffers and Frames

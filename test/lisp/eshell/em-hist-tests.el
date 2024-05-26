@@ -163,6 +163,23 @@ elements against that; if t (the default), check against EXPECTED."
      (should (equal (ring-elements eshell-history-ring)
                     '("echo hi" "echo bye"))))))
 
+(ert-deftest em-hist-test/add-to-history/erase-existing-dups ()
+  "Test adding to history, erasing any old dups after switching to 'erase."
+  (let ((eshell-hist-ignoredups nil))
+    (with-temp-eshell
+     (eshell-insert-command "echo hi")
+     (eshell-insert-command "echo bye")
+     (eshell-insert-command "echo bye")
+     (eshell-insert-command "echo hi")
+     (eshell-insert-command "echo bye")
+     (setq eshell-hist-ignoredups 'erase)
+     (eshell-insert-command "echo hi")
+     (should (equal (ring-elements eshell-history-ring)
+                    '("echo hi" "echo bye" "echo bye" "echo bye")))
+     (eshell-insert-command "echo bye")
+     (should (equal (ring-elements eshell-history-ring)
+                    '("echo bye" "echo hi"))))))
+
 (provide 'em-hist-test)
 
 ;;; em-hist-tests.el ends here

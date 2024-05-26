@@ -667,7 +667,8 @@ If NOSET is non-nil, don't bother autoloading LOAD when setting the variable."
 A customizable variable is either (i) a variable whose property
 list contains a non-nil `standard-value' or `custom-autoload'
 property, or (ii) an alias for another customizable variable."
-  (declare (side-effect-free t))
+  (declare (ftype (function (symbol) t))
+           (side-effect-free t))
   (when (symbolp variable)
     (setq variable (indirect-variable variable))
     (or (get variable 'standard-value)

@@ -323,7 +323,7 @@ Programming Types
 * Macro Type::          A method of expanding an expression into another
                           expression, more fundamental but less pretty.
 * Primitive Function Type::     A function written in C, callable from Lisp.
-* Byte-Code Type::      A function written in Lisp, then compiled.
+* Closure Type::        A function written in Lisp, then compiled.
 * Record Type::         Compound objects with programmer-defined types.
 * Type Descriptors::    Objects holding information about types.
 * Autoload Type::       A type used for automatically loading seldom-used
@@ -657,7 +657,7 @@ Byte Compilation
 * Docs and Compilation::    Dynamic loading of documentation strings.
 * Eval During Compile::     Code to be evaluated when you compile.
 * Compiler Errors::         Handling compiler error messages.
-* Byte-Code Objects::       The data type used for byte-compiled functions.
+* Closure Objects::         The data type used for byte-compiled functions.
 * Disassembly::             Disassembling byte-code; how to read byte-code.
 
 Native Compilation

@@ -5185,10 +5185,12 @@ It is more convenient to use the simple indentation engine described
 below: then the major mode needs only write some indentation rules,
 and the engine takes care of the rest.
 
-To enable the parser-based indentation engine, either set
-@code{treesit-simple-indent-rules} and call
-@code{treesit-major-mode-setup}, or equivalently, set the value of
-@code{indent-line-function} to @code{treesit-indent}.
+To enable the parser-based indentation engine, set either
+@code{treesit-simple-indent-rules} or @code{treesit-indent-function},
+then call @code{treesit-major-mode-setup}.  (All that
+@code{treesit-major-mode-setup} does is set the value of
+@code{indent-line-function} to @code{treesit-indent}, and
+@code{indent-region-function} to @code{treesit-indent-region}.)
 
 @defvar treesit-indent-function
 This variable stores the actual function called by

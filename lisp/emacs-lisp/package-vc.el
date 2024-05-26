@@ -774,6 +774,9 @@ conflicts with its remote repository state."
         (package-vc-upgrade pkg-desc))))
   (message "Done upgrading packages."))
 
+(declare-function vc-dir-prepare-status-buffer "vc-dir"
+                  (bname dir backend &optional create-new))
+
 ;;;###autoload
 (defun package-vc-upgrade (pkg-desc)
   "Upgrade the package described by PKG-DESC from package's VC repository.
@@ -810,7 +813,10 @@ with the remote repository state."
                   (remove-hook 'vc-post-command-functions post-upgrade))))))
     (add-hook 'vc-post-command-functions post-upgrade)
     (with-demoted-errors "Failed to fetch: %S"
-      (let ((default-directory pkg-dir))
+      (require 'vc-dir)
+      (with-current-buffer (vc-dir-prepare-status-buffer
+                            (format " *package-vc-dir: %s*" pkg-dir)
+                            pkg-dir (vc-responsible-backend pkg-dir))
         (vc-pull)))))
 
 (defun package-vc--archives-initialize ()

@@ -137,6 +137,9 @@ DOC should be a doc string, and ARGS are keywords as applicable to
 (declare-function sqlite-select "sqlite.c")
 (declare-function sqlite-open "sqlite.c")
 (declare-function sqlite-pragma "sqlite.c")
+(declare-function sqlite-commit "sqlite.c")
+(declare-function sqlite-transaction "sqlite.c")
+(declare-function sqlite-rollback "sqlite.c")
 
 (defvar multisession--db nil)
 

@@ -323,6 +323,7 @@ XCONDVAR (Lisp_Object a)
 }
 
 extern struct thread_state *current_thread;
+extern struct thread_state *all_threads;
 
 extern void finalize_one_thread (struct thread_state *state);
 extern void finalize_one_mutex (struct Lisp_Mutex *);

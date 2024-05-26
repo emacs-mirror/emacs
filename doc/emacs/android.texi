@@ -148,7 +148,7 @@ attempts to open the file with the wrapper will fail.
 system provides access to outside the normal filesystem APIs.  Emacs
 uses pseudo-directories named @file{/content/by-authority} and
 @file{/content/by-authority-named} to access those files.  Do not make
-any assumptions about the contents of this directory, or try to open
+any assumptions about the contents of these directories, or try to open
 files in it yourself.
 
   This feature is not provided on Android 4.3 and earlier, in which
@@ -827,7 +827,7 @@ example, the permission to access contacts may be useful for EUDC.
 applications as maximized or full-screen, and, in the general case, only
 one window can be displayed at a time.  On larger devices, the system
 permits simultaneously tiling up to four windows on the screen, though
-in emulators or installations configured for ``desktop'' system stacks
+in emulators or installations configured for ``desktop'' systems stacks
 freely resizable windows as other desktop window managers do.
 
   Windows, or, in system nomenclature, activities, do not exist
@@ -904,9 +904,9 @@ devices.
 @item
 The @code{alpha}, @code{alpha-background}, @code{z-group},
 @code{override-redirect}, @code{mouse-color}, @code{title},
-@code{wait-for-wm}, @code{sticky}, @code{undecorated} and
-@code{tool-bar-position} frame parameters (@pxref{Frame Parameters,,,
-elisp, the Emacs Lisp Reference Manual}) are unsupported.
+@code{wait-for-wm}, @code{sticky}, and @code{undecorated} frame
+parameters (@pxref{Frame Parameters,,, elisp, the Emacs Lisp Reference
+Manual}) are unsupported.
 
 @item
 On Android 4.0 and earlier, the @code{fullscreen} frame parameter is
@@ -948,13 +948,16 @@ application via cut-and-paste.
 
 @vindex android-pass-multimedia-buttons-to-system
 @cindex volume/multimedia buttons, Android
-  The volume keys are normally reserved by Emacs and used to provide
-the ability to quit Emacs without a physical keyboard
-(@pxref{On-Screen Keyboards}.)  However, if you want them to adjust
-the volume instead, you can set the variable
+  The volume keys are normally reserved by Emacs and used to provide the
+ability to quit Emacs without a physical keyboard (@pxref{On-Screen
+Keyboards}).  However, if you want them to adjust the volume instead,
+you can set the variable
 @code{android-pass-multimedia-buttons-to-system} to a non-@code{nil}
 value; note that you will no longer be able to quit Emacs using the
-volume buttons in that case.
+volume buttons in that case, and that it is generally easier to activate
+the notification shade or another interface that momentarily deprives
+Emacs of the keyboard focus while the volume buttons are being
+depressed.
 
 @cindex dialog boxes, android
   Emacs is unable to display dialog boxes (@pxref{Dialog Boxes}) while
@@ -1002,12 +1005,31 @@ customized through altering the variable
 @code{android-keyboard-bell-duration} to any value between @code{10}
 and @code{1000}.
 
+@vindex android-display-planes
+@cindex visual class, Android
+@cindex display color space, Android
+  Color-related characteristics of the display are not automatically
+detectable on Android, so the variable @code{android-display-planes}
+should be configured to a suitable value if Emacs is to realize faces
+and images in a manner consistent with the true visual attributes of a
+grayscale or monochrome display: to @code{8} for the former class of
+display, and @code{1} for the latter, which will, respectively, force
+all colors to be rendered in 256 grays, or in monochrome.  As this
+variable is processed at the time the display connection is established,
+customizations will not take effect unless they be performed from
+@code{early-init.el} (@pxref{Early Init File}).
+
+  The value of this variable does not affect anti-aliasing in the font
+driver, as monochrome displays nevertheless expect Emacs to provide
+antialiased text, which they receive after it is processed into bitmap
+data by the display driver.
+
 @node Android Fonts
 @section Font Backends and Selection under Android
 @cindex fonts, android
 
-  Emacs supports two font backends under Android: they are
-respectively named @code{sfnt-android} and @code{android}.
+  Emacs supports two font backends under Android: they are respectively
+named @code{sfnt-android} and @code{android}.
 
   Upon startup, Emacs enumerates all the TrueType format fonts in the
 directories @file{/system/fonts} and @file{/product/fonts}, and the

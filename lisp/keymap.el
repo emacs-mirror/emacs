@@ -379,20 +379,35 @@ which is
 
 (defun key-translate (from to)
   "Translate character FROM to TO on the current terminal.
+
 This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it.
 
-Both FROM and TO should be specified by strings that satisfy `key-valid-p'."
+Both FROM and TO should be specified by strings that satisfy `key-valid-p'.
+If TO is nil, remove any existing translation for FROM."
   (declare (compiler-macro
             (lambda (form) (keymap--compile-check from to) form)))
   (keymap--check from)
-  (keymap--check to)
-  (or (char-table-p keyboard-translate-table)
-      (setq keyboard-translate-table
-            (make-char-table 'keyboard-translate-table nil)))
-  (aset keyboard-translate-table
-        (aref (key-parse from) 0)
-        (aref (key-parse to) 0)))
+  (when to
+    (keymap--check to))
+  (let ((from-key (key-parse from))
+        (to-key (and to (key-parse to))))
+    (cond
+     ((= (length from-key) 0)
+      (error "FROM key is empty"))
+     ((> (length from-key) 1)
+      (error "FROM key %s is not a single key" from)))
+    (cond
+     ((and to (= (length to-key) 0))
+      (error "TO key is empty"))
+     ((and to (> (length to-key) 1))
+      (error "TO key %s is not a single key" to)))
+    (or (char-table-p keyboard-translate-table)
+        (setq keyboard-translate-table
+              (make-char-table 'keyboard-translate-table nil)))
+    (aset keyboard-translate-table
+          (aref from-key 0)
+          (and to (aref to-key 0)))))
 
 (defun keymap-lookup (keymap key &optional accept-default no-remap position)
   "Return the binding for command KEY in KEYMAP.
@@ -603,10 +618,11 @@ non-nil, all commands in the map will have the `repeat-map'
 symbol property.
 
 More control is available over which commands are repeatable; the
-value can also be a property list with properties `:enter' and
-`:exit', for example:
+value can also be a property list with properties `:enter',
+`:exit' and `:hints', for example:
 
-     :repeat (:enter (commands ...) :exit (commands ...))
+     :repeat (:enter (commands ...) :exit (commands ...)
+              :hints ((command . \"hint\") ...))
 
 `:enter' specifies the list of additional commands that only
 enter `repeat-mode'.  When the list is empty, then only the
@@ -620,6 +636,10 @@ list is empty, no commands in the map exit `repeat-mode'.
 Specifying a list of commands is useful when those commands exist
 in this specific map, but should not have the `repeat-map' symbol
 property.
+
+`:hints' is a list of cons pairs where car is a command and
+cdr is a string that is displayed alongside of the repeatable key
+in the echo area.
 
 \(fn VARIABLE-NAME &key DOC FULL PARENT SUPPRESS NAME PREFIX KEYMAP REPEAT &rest [KEY DEFINITION]...)"
   (declare (indent 1))
@@ -660,7 +680,9 @@ property.
           (setq def (pop defs))
           (when (and (memq (car def) '(function quote))
                      (not (memq (cadr def) (plist-get repeat :exit))))
-            (push `(put ,def 'repeat-map ',variable-name) props)))))
+            (push `(put ,def 'repeat-map ',variable-name) props)))
+        (dolist (def (plist-get repeat :hints))
+          (push `(put ',(car def) 'repeat-hint ',(cdr def)) props))))
 
     (let ((defvar-form
            `(defvar ,variable-name

@@ -66,4 +66,31 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <typeId id="LibreOffice" uri="OpenDocument-schema-v1.3+libreoffice.rnc"/>
   <typeId id="OpenDocument Manifest" uri="od-manifest-schema-v1.2-os.rnc"/>
 
+  <!-- .net development related schemas -->
+  <uri pattern="nuget.config" typeId="Nuget Config" />
+  <typeId id="Nuget Config" uri="nuget.rnc" />
+
+  <uri pattern="*.nuspec" typeId="Nuget Spec" />
+  <namespace ns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd" typeId="Nuget Spec" />
+  <typeId id="Nuget Spec" uri="nuspec.rnc" />
+
+  <uri pattern="web.config" typeId="Dotnet App Config" />
+  <uri pattern="app.config" typeId="Dotnet App Config" />
+  <namespace ns="http://schemas.microsoft.com/.NetConfiguration/v2.0" typeId="Dotnet App Config" />
+  <typeId id="Dotnet App Config" uri="dotnet-appconfig.rnc" />
+
+  <uri pattern="Directory.Packages.props" typeId="Dotnet Packages Props" />
+  <typeId id="Dotnet Packages Props" uri="dotnet-packages-props.rnc" />
+
+  <uri pattern="packages.config" typeId="Dotnet Packages Config" />
+  <typeId id="Dotnet Packages Config" uri="dotnet-packages-config.rnc" />
+
+  <uri pattern="*.resx" typeId="Dotnet Resx" />
+  <typeId id="Dotnet Resx" uri="dotnet-resx.rnc" />
+
+  <uri pattern="*.*proj" typeId="MSBuild" />
+  <uri pattern="Directory.Build.props" typeId="MSBuild" />
+  <documentElement localName="Project" typeId="MSBuild"/>
+  <typeId id="MSBuild" uri="msbuild.rnc" />
+
 </locatingRules>

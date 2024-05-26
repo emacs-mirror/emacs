@@ -2037,10 +2037,10 @@ init_signals (void)
   main_thread_id = pthread_self ();
 #endif
 
-  /* Don't alter signal handlers if dumping.  On some machines,
-     changing signal handlers sets static data that would make signals
-     fail to work right when the dumped Emacs is run.  */
-  if (will_dump_p ())
+  /* Don't alter signal handlers if dumping with unexec.  On some
+     machines, changing signal handlers sets static data that would make
+     signals fail to work right when the dumped Emacs is run.  */
+  if (will_dump_with_unexec_p ())
     return;
 
   sigfillset (&process_fatal_action.sa_mask);

@@ -328,7 +328,9 @@ _GL_CXXALIAS_SYS (select, int,
                   (int, fd_set *restrict, fd_set *restrict, fd_set *restrict,
                    timeval *restrict));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (select);
+# endif
 #elif @HAVE_WINSOCK2_H@
 # undef select
 # define select select_used_without_requesting_gnulib_module_select
