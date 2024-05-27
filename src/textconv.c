@@ -632,6 +632,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
      otherwise.  */
 
   mark = get_mark ();
+  TEXTCONV_DEBUG ("the mark is: %zd", mark);
   if (MARKERP (f->conversion.compose_region_start) || mark != -1)
     {
       /* Replace its contents.  Set START and END to the start and end
@@ -648,6 +649,9 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	  start = min (mark, PT);
 	  end = max (mark, PT);
 	}
+
+      TEXTCONV_DEBUG ("replacing text in composing region: %zd, %zd",
+		      start, end);
 
       /* If it transpires that the start of the compose region is not
 	 point, move point there.  */
@@ -1204,7 +1208,7 @@ locate_and_save_position_in_field (struct frame *f, struct window *w,
 	    {
 	      TEXTCONV_DEBUG ("confined composing region to %td, %td",
 			      newstart, newend);
-	      Fset_marker (f->conversion.compose_region_end,
+	      Fset_marker (f->conversion.compose_region_start,
 			   make_fixed_natnum (newstart), Qnil);
 	      Fset_marker (f->conversion.compose_region_end,
 			   make_fixed_natnum (newend), Qnil);
