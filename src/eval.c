@@ -1750,11 +1750,15 @@ push_handler_nosignal (Lisp_Object tag_ch_val, enum handlertype handlertype)
   struct handler *CACHEABLE c = handlerlist->nextfree;
   if (!c)
     {
+#ifdef HAVE_MPS
+      c = igc_alloc_handler ();
+#else
       c = malloc (sizeof *c);
       if (!c)
 	return c;
       if (profiler_memory_running)
 	malloc_probe (sizeof *c);
+#endif
       c->nextfree = NULL;
       handlerlist->nextfree = c;
     }

@@ -45,6 +45,7 @@ enum igc_obj_type
   IGC_OBJ_WEAK,
   IGC_OBJ_PTR_VEC,
   IGC_OBJ_OBJ_VEC,
+  IGC_OBJ_HANDLER,
   IGC_OBJ_LAST
 };
 
@@ -68,6 +69,7 @@ Lisp_Object igc_alloc_symbol (void);
 void *igc_alloc_global_ref (void);
 
 struct Lisp_Buffer_Local_Value *igc_alloc_blv (void);
+void *igc_alloc_handler (void);
 void *igc_xzalloc_ambig (size_t size);
 void *igc_realloc_ambig (void *block, size_t size);
 void igc_xfree (void *p);

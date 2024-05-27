@@ -206,6 +206,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_WEAK",
   "IGC_OBJ_PTR_VEC",
   "IGC_OBJ_OBJ_VEC",
+  "IGC_OBJ_HANDLER",
 };
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_LAST);
@@ -1271,6 +1272,21 @@ fix_blv (mps_ss_t ss, struct Lisp_Buffer_Local_Value *blv)
   return MPS_RES_OK;
 }
 
+static mps_res_t
+fix_handler (mps_ss_t ss, struct handler *h)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX12_OBJ (ss, &h->tag_or_ch);
+    IGC_FIX12_OBJ (ss, &h->val);
+    IGC_FIX12_RAW (ss, &h->next);
+    IGC_FIX12_RAW (ss, &h->nextfree);
+    // FIXME: What about bytecode_top?
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 static mps_res_t fix_vector (mps_ss_t ss, struct Lisp_Vector *v);
 
 static mps_res_t
@@ -1308,6 +1324,10 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
       case IGC_OBJ_PAD:
       case IGC_OBJ_FWD:
 	continue;
+
+      case IGC_OBJ_HANDLER:
+	IGC_FIX_CALL_FN (ss, struct handler, client, fix_handler);
+	break;
 
       case IGC_OBJ_PTR_VEC:
 	IGC_FIX_CALL_FN (ss, mps_word_t, client, fix_ptr_vec);
@@ -1648,18 +1668,6 @@ fix_user_ptr (mps_ss_t ss, struct Lisp_User_Ptr *p)
 }
 
 static mps_res_t
-fix_handler (mps_ss_t ss, struct handler *h)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    IGC_FIX12_OBJ (ss, &h->tag_or_ch);
-    IGC_FIX12_OBJ (ss, &h->val);
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
 fix_thread (mps_ss_t ss, struct thread_state *s)
 {
   MPS_SCAN_BEGIN (ss)
@@ -1667,8 +1675,7 @@ fix_thread (mps_ss_t ss, struct thread_state *s)
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, s, fix_vectorlike);
     IGC_FIX12_RAW (ss, &s->m_current_buffer);
     IGC_FIX12_RAW (ss, &s->next_thread);
-    for (struct handler *h = s->m_handlerlist; h; h = h->next)
-      IGC_FIX_CALL_FN (ss, struct handler, h, fix_handler);
+    IGC_FIX12_RAW (ss, &s->m_handlerlist);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2717,6 +2724,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_BLV:
     case IGC_OBJ_PTR_VEC:
     case IGC_OBJ_OBJ_VEC:
+    case IGC_OBJ_HANDLER:
       igc_assert (!"finalize not implemented");
       break;
 
@@ -2875,6 +2883,7 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_BLV:
     case IGC_OBJ_PTR_VEC:
     case IGC_OBJ_OBJ_VEC:
+    case IGC_OBJ_HANDLER:
       return t->d.dflt_ap;
 
     case IGC_OBJ_STRING_DATA:
@@ -3260,6 +3269,13 @@ igc_alloc_blv (void)
   struct Lisp_Buffer_Local_Value *blv
     = alloc (sizeof *blv, IGC_OBJ_BLV);
   return blv;
+}
+
+void *
+igc_alloc_handler (void)
+{
+  struct handler *h = alloc (sizeof *h, IGC_OBJ_HANDLER);
+  return h;
 }
 
 int
