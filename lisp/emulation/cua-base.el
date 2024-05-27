@@ -699,10 +699,25 @@ Repeating prefix key when region is active works as a single prefix key."
   (interactive)
   (cua--prefix-override-replay 0))
 
-;; These aliases are so that we can look up the commands and find the
-;; correct keys when generating menus.
-(defalias 'cua-cut-handler #'cua--prefix-override-handler)
-(defalias 'cua-copy-handler #'cua--prefix-override-handler)
+;; These two functions are so that we can look up the commands and find the
+;; correct keys when generating menus.  Also, when cua--prefix-override-handler
+;; is nil, allow C-x C-c to cut/copy immediately without waiting for
+;; cua--prefix-override-timer to expire.
+(defun cua-cut-handler ()
+  (interactive)
+  (if (or (not (numberp cua-prefix-override-inhibit-delay))
+          (<= cua-prefix-override-inhibit-delay 0))
+      (cond (cua--global-mark-active (cua-cut-to-global-mark))
+            (t (call-interactively 'kill-region)))
+    (cua--prefix-override-handler)))
+
+(defun cua-copy-handler ()
+  (interactive)
+  (if (or (not (numberp cua-prefix-override-inhibit-delay))
+          (<= cua-prefix-override-inhibit-delay 0))
+      (cond (cua--global-mark-active (cua-copy-to-global-mark))
+            (t (call-interactively 'copy-region-as-kill)))
+    (cua--prefix-override-handler)))
 
 (defun cua--prefix-repeat-handler ()
   "Repeating prefix key when region is active works as a single prefix key."
