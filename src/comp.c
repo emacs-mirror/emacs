@@ -633,6 +633,7 @@ typedef struct {
   gcc_jit_function *func; /* Current function being compiled.  */
   bool func_has_non_local; /* From comp-func has-non-local slot.  */
   EMACS_INT func_speed; /* From comp-func speed slot.  */
+  EMACS_INT func_safety; /* From comp-func safety slot.  */
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue *scratch; /* Used as scratch slot for some code sequence (switch).  */
   ptrdiff_t frame_size; /* Size of the following array in elements. */
@@ -744,7 +745,7 @@ static Lisp_Object
 comp_hash_string (Lisp_Object string)
 {
   Lisp_Object digest = make_uninit_string (MD5_DIGEST_SIZE * 2);
-  md5_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
+  md5_buffer (SSDATA (string), SBYTES (string), SSDATA (digest));
   hexbuf_digest (SSDATA (digest), SDATA (digest), MD5_DIGEST_SIZE);
 
   return Fsubstring (digest, Qnil, make_fixnum (HASH_LENGTH));
@@ -2586,7 +2587,8 @@ emit_call_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
 			  Lisp_Object type)
 {
   bool hint_match =
-    !NILP (CALL2I (comp-mvar-type-hint-match-p, SECOND (insn), type));
+    !comp.func_safety
+    && !NILP (CALL2I (comp-mvar-type-hint-match-p, SECOND (insn), type));
   gcc_jit_rvalue *args[] =
     { emit_mvar_rval (SECOND (insn)),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
@@ -2602,7 +2604,8 @@ emit_call2_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
 			   Lisp_Object type)
 {
   bool hint_match =
-    !NILP (CALL2I (comp-mvar-type-hint-match-p, SECOND (insn), type));
+    !comp.func_safety
+    && !NILP (CALL2I (comp-mvar-type-hint-match-p, SECOND (insn), type));
   gcc_jit_rvalue *args[] =
     { emit_mvar_rval (SECOND (insn)),
       emit_mvar_rval (THIRD (insn)),
@@ -4282,6 +4285,7 @@ compile_function (Lisp_Object func)
 
   comp.func_has_non_local = !NILP (CALL1I (comp-func-has-non-local, func));
   comp.func_speed = XFIXNUM (CALL1I (comp-func-speed, func));
+  comp.func_safety = XFIXNUM (CALL1I (comp-func-safety, func));
 
   comp.func_relocs_local =
     gcc_jit_function_new_local (comp.func,
@@ -5199,7 +5203,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
   if (!native_comp_jit_compilation
       || noninteractive
       || !NILP (Vpurify_flag)
-      || !COMPILEDP (definition)
+      || !CLOSUREP (definition)
       || !STRINGP (Vload_true_file_name)
       || !suffix_p (Vload_true_file_name, ".elc")
       || !NILP (Fgethash (Vload_true_file_name, V_comp_no_native_file_h, Qnil)))
@@ -5298,7 +5302,7 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
 	  if (NILP (Fgethash (x, comp_u->lambda_gc_guard_h, Qnil)))
 	    return false;
 	}
-      else if (!EQ (data_imp_relocs[i], AREF (comp_u->data_impure_vec, i)))
+      else if (!EQ (x, AREF (comp_u->data_impure_vec, i)))
 	return false;
     }
   return true;

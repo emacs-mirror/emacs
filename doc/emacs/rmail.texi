@@ -1428,7 +1428,7 @@ encrypted/decrypted text.
 your Rmail file (@pxref{Rmail Inbox}).  When loaded for the first time,
 Rmail attempts to locate the @command{movemail} program and determine its
 version.  There are two versions of the @command{movemail} program: the
-GNU Mailutils version (@pxref{movemail,,,mailutils,GNU mailutils}),
+GNU Mailutils version (@pxref{movemail,,,mailutils,GNU Mailutils Manual}),
 and an Emacs-specific version that is built and installed unless Emacs
 was configured @option{--with-mailutils} in effect.
 The two @command{movemail} versions support the same
@@ -1446,8 +1446,7 @@ mailboxes, etc.  It is able to access remote mailboxes using the POP3
 or IMAP4 protocol, and can retrieve mail from them using a TLS
 encrypted channel.  It also accepts mailbox arguments in @acronym{URL}
 form.  The detailed description of mailbox @acronym{URL}s can be found
-@c Note this node seems to be missing in some versions of mailutils.info?
-in @ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a
+in @ref{Mailbox,,,mailutils,GNU Mailutils Manual}.  In short, a
 @acronym{URL} is:
 
 @smallexample
@@ -1458,6 +1457,8 @@ in @ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a
 where square brackets denote optional elements.
 
 @table @var
+@cindex mailbox protocol, @command{movemail}
+@cindex format, of @command{movemail} mailbox
 @item proto
 Specifies the @dfn{mailbox protocol}, or @dfn{format} to
 use.  The exact semantics of the rest of @acronym{URL} elements depends
@@ -1503,23 +1504,13 @@ automatically by @command{movemail}.
 
 @item pop
 @itemx pops
-A remote mailbox to be accessed via POP3 protocol.  @var{user}
-specifies the remote user name to use, @var{pass} may be used to
-specify the user password, @var{host-or-file-name} is the name or IP
-address of the remote mail server to connect to, and @var{port} is the
-port number; e.g., @code{pop://smith:guessme@@remote.server.net:995}.
-If the server supports it, @command{movemail} tries to use an
-encrypted connection---use the @samp{pops} form to require one.
+A remote mailbox to be accessed via POP3 protocol.  @xref{Remote
+Mailboxes}, for details.
 
 @item imap
 @itemx imaps
-A remote mailbox to be accessed via IMAP4 protocol.  @var{user}
-specifies the remote user name to use, @var{pass} may be used to
-specify the user password, @var{host-or-file-name} is the name or IP
-address of the remote mail server to connect to, and @var{port} is the
-port number; e.g., @code{imap://smith:guessme@@remote.server.net:993}.
-If the server supports it, @command{movemail} tries to use an
-encrypted connection---use the @samp{imaps} form to require one.
+A remote mailbox to be accessed via IMAP4 protocol.  @xref{Remote
+Mailboxes}, for details.
 @end table
 
   Alternatively, you can specify the file name of the mailbox to use.
@@ -1541,6 +1532,7 @@ listed in @code{rmail-movemail-search-path}, then in @code{exec-path}
 @node Remote Mailboxes
 @section Retrieving Mail from Remote Mailboxes
 @pindex movemail
+@cindex remote mailboxes, accessing by @command{movemail}
 
   Some sites use a method called POP3 for accessing users' inbox data
 instead of storing the data in inbox files.  The Mailutils
@@ -1565,8 +1557,9 @@ Additionally, you may specify the password in the mailbox @acronym{URL}:
 case, @var{password} takes preference over the one set by
 @code{rmail-remote-password} (see below).  This is especially useful
 if you have several remote mailboxes with different passwords.
-If using Mailutils @command{movemail}, you may wish to use
-@samp{pops} in place of @samp{pop}.
+If using Mailutils @command{movemail} and the server supports
+encrypted connections, @command{movemail} tries to use it; specify
+@samp{pops:} instead of @samp{pop:} to require such a connection.
 
   For backward compatibility, Rmail also supports an alternative way of
 specifying remote POP3 mailboxes.  Specifying an inbox name in the form
@@ -1576,12 +1569,14 @@ specifying remote POP3 mailboxes.  Specifying an inbox name in the form
 the machine on which to look for the POP3 server.
 
 @cindex IMAP mailboxes
-  Another method for accessing remote mailboxes is IMAP@.  This method is
-supported only by the Mailutils @command{movemail}.  To specify an IMAP
-mailbox in the inbox list, use the following mailbox @acronym{URL}:
-@samp{imap://@var{username}[:@var{password}]@@@var{hostname}:@var{port}}.  The
-@var{password} part is optional, as described above.  You may wish to
-use @samp{imaps} in place of @samp{imap}.
+  Another method for accessing remote mailboxes is IMAP@.  This method
+is supported only by the Mailutils @command{movemail}, and uses the
+IMAP4 protocol.  To specify an IMAP mailbox in the inbox list, use the
+following mailbox @acronym{URL}:
+@samp{imap://@var{username}[:@var{password}]@@@var{hostname}:@var{port}}.
+The @var{password} part is optional, as described above.  If the
+server supports it, @command{movemail} tries to use an encrypted
+connection---use the @samp{imaps:} form to require one.
 
 @vindex rmail-remote-password
 @vindex rmail-remote-password-required

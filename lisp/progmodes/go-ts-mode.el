@@ -108,10 +108,22 @@
     ">>" "%=" ">>=" "--" "!"  "..."  "&^" "&^=" "~")
   "Go operators for tree-sitter font-locking.")
 
+(defvar go-ts-mode--builtin-functions
+  '("append" "cap" "clear" "close" "complex" "copy" "delete" "imag" "len" "make"
+    "max" "min" "new" "panic" "print" "println" "real" "recover")
+  "Go built-in functions for tree-sitter font-locking.")
+
 (defun go-ts-mode--iota-query-supported-p ()
   "Return t if the iota query is supported by the tree-sitter-go grammar."
   (ignore-errors
     (or (treesit-query-string "" '((iota) @font-lock-constant-face) 'go) t)))
+
+;; tree-sitter-go changed method_spec to method_elem in
+;; https://github.com/tree-sitter/tree-sitter-go/commit/b82ab803d887002a0af11f6ce63d72884580bf33
+(defun go-ts-mode--method-elem-supported-p ()
+  "Return t if Go grammar uses `method_elem' instead of `method_spec'."
+  (ignore-errors
+    (or (treesit-query-string "" '((method_elem) @cap) 'go) t)))
 
 (defvar go-ts-mode--font-lock-settings
   (treesit-font-lock-rules
@@ -122,6 +134,16 @@
    :language 'go
    :feature 'comment
    '((comment) @font-lock-comment-face)
+
+   :language 'go
+   :feature 'builtin
+   `((call_expression
+      function: ((identifier) @font-lock-builtin-face
+                 (:match ,(rx-to-string
+                           `(seq bol
+                                 (or ,@go-ts-mode--builtin-functions)
+                                 eol))
+                         @font-lock-builtin-face))))
 
    :language 'go
    :feature 'constant
@@ -136,12 +158,18 @@
    '((["," "." ";" ":"]) @font-lock-delimiter-face)
 
    :language 'go
+   :feature 'operator
+   `([,@go-ts-mode--operators] @font-lock-operator-face)
+
+   :language 'go
    :feature 'definition
-   '((function_declaration
+   `((function_declaration
       name: (identifier) @font-lock-function-name-face)
      (method_declaration
       name: (field_identifier) @font-lock-function-name-face)
-     (method_spec
+     (,(if (go-ts-mode--method-elem-supported-p)
+           'method_elem
+         'method_spec)
       name: (field_identifier) @font-lock-function-name-face)
      (field_declaration
       name: (field_identifier) @font-lock-property-name-face)
@@ -256,7 +284,7 @@
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)
                   ( keyword string type)
-                  ( constant escape-sequence label number)
+                  ( builtin constant escape-sequence label number)
                   ( bracket delimiter error function operator property variable)))
 
     (treesit-major-mode-setup)))

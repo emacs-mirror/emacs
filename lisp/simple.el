@@ -1762,7 +1762,9 @@ not at the start of a line.
 
 When IGNORE-INVISIBLE-LINES is non-nil, invisible lines are not
 included in the count."
-  (declare (side-effect-free t))
+  (declare (ftype (function ((or integer marker) (or integer marker) &optional t)
+                           integer))
+           (side-effect-free t))
   (save-excursion
     (save-restriction
       (narrow-to-region start end)
@@ -2703,15 +2705,14 @@ function as needed."
                        (or (stringp doc)
                            (fixnump doc) (fixnump (cdr-safe doc))))))
     (pcase function
-      ((pred byte-code-function-p)
+      ((pred closurep)
        (when (> (length function) 4)
          (let ((doc (aref function 4)))
            (when (funcall docstring-p doc) doc))))
       ((or (pred stringp) (pred vectorp)) "Keyboard macro.")
       (`(keymap . ,_)
        "Prefix command (definition is a keymap associating keystrokes with commands).")
-      ((or `(lambda ,_args . ,body) `(closure ,_env ,_args . ,body)
-           `(autoload ,_file . ,body))
+      ((or `(lambda ,_args . ,body) `(autoload ,_file . ,body))
        (let ((doc (car body)))
 	 (when (funcall docstring-p doc)
            doc)))
@@ -2875,11 +2876,13 @@ Normally, history elements are matched case-insensitively if
 makes the search case-sensitive.
 See also `minibuffer-history-case-insensitive-variables'."
   (interactive
-   (let* ((enable-recursive-minibuffers t)
+   (let* ((n (prefix-numeric-value current-prefix-arg))
+          (enable-recursive-minibuffers t)
 	  (regexp (read-from-minibuffer
-                   (format-prompt "Previous element matching regexp"
+                   (format-prompt "%s element matching regexp"
                                   (and minibuffer-history-search-history
-                                       (car minibuffer-history-search-history)))
+                                       (car minibuffer-history-search-history))
+                                  (if (>= n 0) "Previous" "Next"))
 		   nil minibuffer-local-map nil
 		   'minibuffer-history-search-history
 		   (car minibuffer-history-search-history))))
@@ -2887,9 +2890,9 @@ See also `minibuffer-history-case-insensitive-variables'."
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
 		   (car minibuffer-history-search-history)
-		 (user-error "No previous history search regexp"))
+                 (user-error "No history search regexp"))
 	     regexp)
-	   (prefix-numeric-value current-prefix-arg))))
+           n)))
   (unless (zerop n)
     (if (and (zerop minibuffer-history-position)
 	     (null minibuffer-text-before-history))
@@ -2947,20 +2950,23 @@ Normally, history elements are matched case-insensitively if
 `case-fold-search' is non-nil, but an uppercase letter in REGEXP
 makes the search case-sensitive."
   (interactive
-   (let* ((enable-recursive-minibuffers t)
-	  (regexp (read-from-minibuffer "Next element matching (regexp): "
-					nil
-					minibuffer-local-map
-					nil
-					'minibuffer-history-search-history
- 					(car minibuffer-history-search-history))))
+   (let* ((n (prefix-numeric-value current-prefix-arg))
+          (enable-recursive-minibuffers t)
+          (regexp (read-from-minibuffer
+                   (format-prompt "%s element matching regexp"
+                                  (and minibuffer-history-search-history
+                                       (car minibuffer-history-search-history))
+                                  (if (>= n 0) "Next" "Previous"))
+                   nil minibuffer-local-map nil
+                   'minibuffer-history-search-history
+                   (car minibuffer-history-search-history))))
      ;; Use the last regexp specified, by default, if input is empty.
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
 		   (car minibuffer-history-search-history)
-		 (user-error "No previous history search regexp"))
+                 (user-error "No history search regexp"))
 	     regexp)
-	   (prefix-numeric-value current-prefix-arg))))
+           n)))
   (previous-matching-history-element regexp (- n)))
 
 (defvar minibuffer-temporary-goal-position nil)
@@ -4857,11 +4863,14 @@ and are used only if a pop-up buffer is displayed."
 ;; We have a sentinel to prevent insertion of a termination message
 ;; in the buffer itself, and to set the point in the buffer when
 ;; `shell-command-dont-erase-buffer' is non-nil.
+;; For remote shells, `process-command' does not serve the proper shell
+;; command.  We use process property `remote-command' instead.  (Bug#71049)
 (defun shell-command-sentinel (process signal)
   (when (memq (process-status process) '(exit signal))
     (shell-command-set-point-after-cmd (process-buffer process))
     (message "%s: %s."
-             (car (cdr (cdr (process-command process))))
+             (car (cdr (cdr (or (process-get process 'remote-command)
+                                (process-command process)))))
              (substring signal 0 -1))))
 
 (defun shell-command-on-region (start end command
@@ -4922,7 +4931,14 @@ interactively, this is t.
 Non-nil REGION-NONCONTIGUOUS-P means that the region is composed of
 noncontiguous pieces.  The most common example of this is a
 rectangular region, where the pieces are separated by newline
-characters."
+characters.
+
+If COMMAND names a shell (e.g., via `shell-file-name'), keep in mind
+that behavior of various shells when commands are piped to their
+standard input is shell- and system-dependent, and thus non-portable.
+The differences are especially prominent when the region includes
+more than one line, i.e. when piping to a shell commands with embedded
+newlines."
   (interactive (let (string)
 		 (unless (mark)
 		   (user-error "The mark is not set now, so there is no region"))
@@ -5104,7 +5120,13 @@ other cases, consider alternatives such as `call-process' or
 `process-lines', which do not invoke the shell.  Consider using
 built-in functions like `rename-file' instead of the external
 command \"mv\".  For more information, see Info node
-`(elisp)Security Considerations'."
+`(elisp)Security Considerations'.
+
+If COMMAND includes several separate commands to run one after
+the other, the separator between the individual commands needs
+to be shell- and system-dependent.  In particular, the MS-Windows
+shell cmd.exe doesn't support commands with embedded newlines;
+use the \"&&\" separator instead."
   (with-output-to-string
     (with-current-buffer standard-output
       (shell-command command t))))
@@ -6883,7 +6905,8 @@ is active, and returns an integer or nil in the usual way.
 
 If you are using this in an editing command, you are most likely making
 a mistake; see the documentation of `set-mark'."
-  (declare (side-effect-free t))
+  (declare (ftype (function (&optional t) (or integer null)))
+           (side-effect-free t))
   (if (or force (not transient-mark-mode) mark-active mark-even-if-inactive)
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
@@ -9856,16 +9879,6 @@ Its value is a list of the form (START END) where START is the place
 where the completion should be inserted and END (if non-nil) is the end
 of the text to replace.  If END is nil, point is used instead.")
 
-(defvar completion-base-affixes nil
-  "Base context of the text corresponding to the shown completions.
-This variable is used in the *Completions* buffer.
-Its value is a list of the form (PREFIX SUFFIX) where PREFIX is the text
-before the place where completion should be inserted, and SUFFIX is the text
-after the completion.")
-
-(defvar completion-use-base-affixes nil
-  "Non-nil means to restore original prefix and suffix in the minibuffer.")
-
 (defvar completion-list-insert-choice-function #'completion--replace
   "Function to use to insert the text chosen in *Completions*.
 Called with three arguments (BEG END TEXT), it should replace the text
@@ -10126,7 +10139,6 @@ minibuffer, but don't quit the completions window."
   (with-current-buffer (window-buffer (posn-window (event-start event)))
     (let ((buffer completion-reference-buffer)
           (base-position completion-base-position)
-          (base-affixes completion-base-affixes)
           (insert-function completion-list-insert-choice-function)
           (completion-no-auto-exit (if no-exit t completion-no-auto-exit))
           (choice
@@ -10159,13 +10171,7 @@ minibuffer, but don't quit the completions window."
       (with-current-buffer buffer
         (choose-completion-string
          choice buffer
-         ;; Don't allow affixes to replace the whole buffer when not
-         ;; in the minibuffer.  Thus check for `completion-in-region-mode'
-         ;; to ignore non-nil value of `completion-use-base-affixes' set by
-         ;; `minibuffer-choose-completion'.
-         (or (and (not completion-in-region-mode)
-                  completion-use-base-affixes base-affixes)
-             base-position
+         (or base-position
              ;; If all else fails, just guess.
              (list (choose-completion-guess-base-position choice)))
          insert-function)))))
@@ -10321,11 +10327,9 @@ Called from `temp-buffer-show-hook'."
                 (buffer-substring (minibuffer-prompt-end) (point)))))))
     (with-current-buffer standard-output
       (let ((base-position completion-base-position)
-            (base-affixes completion-base-affixes)
             (insert-fun completion-list-insert-choice-function))
         (completion-list-mode)
         (setq-local completion-base-position base-position)
-        (setq-local completion-base-affixes base-affixes)
         (setq-local completion-list-insert-choice-function insert-fun))
       (setq-local completion-reference-buffer mainbuf)
       (if base-dir (setq default-directory base-dir))
@@ -10863,86 +10867,6 @@ and setting it to nil."
     (setq buffer-invisibility-spec nil)))
 
 
-(defvar read-passwd--mode-line-buffer nil
-  "Buffer to modify `mode-line-format' for showing/hiding passwords.")
-
-(defvar read-passwd--mode-line-icon nil
-  "Propertized mode line icon for showing/hiding passwords.")
-
-(defun read-passwd-toggle-visibility ()
-  "Toggle minibuffer contents visibility.
-Adapt also mode line."
-  (interactive)
-  (setq read-passwd--hide-password (not read-passwd--hide-password))
-  (with-current-buffer read-passwd--mode-line-buffer
-    (setq read-passwd--mode-line-icon
-          `(:propertize
-            ,(if icon-preference
-                 (icon-string
-                  (if read-passwd--hide-password
-                      'read-passwd--show-password-icon
-                    'read-passwd--hide-password-icon))
-               "")
-            mouse-face mode-line-highlight
-            local-map
-            (keymap
-             (mode-line keymap (mouse-1 . read-passwd-toggle-visibility)))))
-    (force-mode-line-update))
-  (read-passwd--hide-password))
-
-(define-minor-mode read-passwd-mode
-  "Toggle visibility of password in minibuffer."
-  :group 'mode-line
-  :group 'minibuffer
-  :keymap read-passwd-map
-  :version "30.1"
-
-  (require 'icons)
-  ;; It would be preferable to use "👁" ("\N{EYE}").  However, there is
-  ;; no corresponding Unicode char with a slash.  So we use symbols as
-  ;; fallback only, with "⦵" ("\N{CIRCLE WITH HORIZONTAL BAR}") for
-  ;; hiding the password.
-  (define-icon read-passwd--show-password-icon nil
-    '((image "reveal.svg" "reveal.pbm" :height (0.8 . em))
-      (symbol "👁")
-      (text "<o>"))
-    "Mode line icon to show a hidden password."
-    :group mode-line-faces
-    :version "30.1"
-    :help-echo "mouse-1: Toggle password visibility")
-  (define-icon read-passwd--hide-password-icon nil
-    '((image "conceal.svg" "conceal.pbm" :height (0.8 . em))
-      (symbol "⦵")
-      (text "<\\>"))
-    "Mode line icon to hide a visible password."
-    :group mode-line-faces
-    :version "30.1"
-    :help-echo "mouse-1: Toggle password visibility")
-
-  (setq read-passwd--hide-password nil
-        ;; Stolen from `eldoc-minibuffer-message'.
-        read-passwd--mode-line-buffer
-        (window-buffer
-         (or (window-in-direction 'above (minibuffer-window))
-	     (minibuffer-selected-window)
-	     (get-largest-window))))
-
-  (if read-passwd-mode
-      (with-current-buffer read-passwd--mode-line-buffer
-        ;; Add `read-passwd--mode-line-icon'.
-        (when (listp mode-line-format)
-          (setq mode-line-format
-                (cons '(:eval read-passwd--mode-line-icon)
-	              mode-line-format))))
-    (with-current-buffer read-passwd--mode-line-buffer
-      ;; Remove `read-passwd--mode-line-icon'.
-      (when (listp mode-line-format)
-        (setq mode-line-format (cdr mode-line-format)))))
-
-  (when read-passwd-mode
-    (read-passwd-toggle-visibility)))
-
-
 (defvar messages-buffer-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map special-mode-map)
@@ -11244,7 +11168,8 @@ killed."
 
 (defun lax-plist-get (plist prop)
   "Extract a value from a property list, comparing with `equal'."
-  (declare (pure t) (side-effect-free t) (obsolete plist-get "29.1"))
+  (declare (ftype (function (list t) t))
+           (pure t) (side-effect-free t) (obsolete plist-get "29.1"))
   (plist-get plist prop #'equal))
 
 (defun lax-plist-put (plist prop val)

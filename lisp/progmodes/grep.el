@@ -1176,6 +1176,19 @@ REGEXP is used as a string in the prompt."
 
 (defvar grep-use-directories-skip 'auto-detect)
 
+(defun grep--filter-list-by-dir (list dir)
+  "Include elements of LIST which are applicable to DIR."
+  (delq nil (mapcar
+             (lambda (ignore)
+               (cond ((stringp ignore) ignore)
+                     ((consp ignore)
+                      (and (funcall (car ignore) dir) (cdr ignore)))))
+             list)))
+
+(defun grep-find-ignored-files (dir)
+  "Return the list of ignored files applicable to DIR."
+  (grep--filter-list-by-dir grep-find-ignored-files dir))
+
 ;;;###autoload
 (defun lgrep (regexp &optional files dir confirm)
   "Run grep, searching for REGEXP in FILES in directory DIR.
@@ -1236,20 +1249,13 @@ command before it's run."
 		       regexp
 		       files
 		       nil
-		       (and grep-find-ignored-files
-			    (concat " --exclude="
-				    (mapconcat
-                                     (lambda (ignore)
-                                       (cond ((stringp ignore)
-                                              (shell-quote-argument
-                                               ignore grep-quoting-style))
-                                             ((consp ignore)
-                                              (and (funcall (car ignore) dir)
-                                                   (shell-quote-argument
-                                                    (cdr ignore)
-                                                    grep-quoting-style)))))
-				     grep-find-ignored-files
-				     " --exclude=")))
+                       (when-let ((ignores (grep-find-ignored-files dir)))
+			 (concat " --exclude="
+				 (mapconcat
+                                  (lambda (ignore)
+                                    (shell-quote-argument ignore grep-quoting-style))
+                                  ignores
+                                  " --exclude=")))
 		       (and (eq grep-use-directories-skip t)
 			    '("--directories=skip"))))
 	(when command
@@ -1353,13 +1359,8 @@ to indicate whether the grep should be case sensitive or not."
 	      (setq default-directory dir)))))))
 
 (defun rgrep-find-ignored-directories (dir)
-  "Return the list of ignored directories applicable to `dir'."
-  (delq nil (mapcar
-             (lambda (ignore)
-               (cond ((stringp ignore) ignore)
-                     ((consp ignore)
-                      (and (funcall (car ignore) dir) (cdr ignore)))))
-             grep-find-ignored-directories)))
+  "Return the list of ignored directories applicable to DIR."
+  (grep--filter-list-by-dir grep-find-ignored-directories dir))
 
 (defun rgrep-default-command (regexp files dir)
   "Compute the command for \\[rgrep] to use by default."
@@ -1377,37 +1378,31 @@ to indicate whether the grep should be case sensitive or not."
            (shell-quote-argument ")" grep-quoting-style))
    dir
    (concat
-    (and grep-find-ignored-directories
-         (concat "-type d "
-                 (shell-quote-argument "(" grep-quoting-style)
-                 ;; we should use shell-quote-argument here
-                 " -path "
-                 (mapconcat
-                  (lambda (d)
-                    (shell-quote-argument (concat "*/" d) grep-quoting-style))
-                  (rgrep-find-ignored-directories dir)
-                  " -o -path ")
-                 " "
-                 (shell-quote-argument ")" grep-quoting-style)
-                 " -prune -o "))
-    (and grep-find-ignored-files
-         (concat (shell-quote-argument "!" grep-quoting-style) " -type d "
-                 (shell-quote-argument "(" grep-quoting-style)
-                 ;; we should use shell-quote-argument here
-                 " -name "
-                 (mapconcat
-                  (lambda (ignore)
-                    (cond ((stringp ignore)
-                           (shell-quote-argument ignore grep-quoting-style))
-                          ((consp ignore)
-                           (and (funcall (car ignore) dir)
-                                (shell-quote-argument
-                                 (cdr ignore) grep-quoting-style)))))
-                  grep-find-ignored-files
-                  " -o -name ")
-                 " "
-                 (shell-quote-argument ")" grep-quoting-style)
-                 " -prune -o ")))))
+    (when-let ((ignored-dirs (rgrep-find-ignored-directories dir)))
+      (concat "-type d "
+              (shell-quote-argument "(" grep-quoting-style)
+              ;; we should use shell-quote-argument here
+              " -path "
+              (mapconcat
+               (lambda (d)
+                 (shell-quote-argument (concat "*/" d) grep-quoting-style))
+               ignored-dirs
+               " -o -path ")
+              " "
+              (shell-quote-argument ")" grep-quoting-style)
+              " -prune -o "))
+    (when-let ((ignored-files (grep-find-ignored-files dir)))
+      (concat (shell-quote-argument "!" grep-quoting-style) " -type d "
+              (shell-quote-argument "(" grep-quoting-style)
+              ;; we should use shell-quote-argument here
+              " -name "
+              (mapconcat
+               (lambda (ignore) (shell-quote-argument ignore grep-quoting-style))
+               ignored-files
+               " -o -name ")
+              " "
+              (shell-quote-argument ")" grep-quoting-style)
+              " -prune -o ")))))
 
 (defun grep-find-toggle-abbreviation ()
   "Toggle showing the hidden part of rgrep/lgrep/zrgrep command line."

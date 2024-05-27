@@ -273,22 +273,6 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))))
  (add-to-list 'tramp-methods
-              `("nc"
-                (tramp-login-program        "telnet")
-                (tramp-login-args           (("%h") ("%p") ("%n")))
-                (tramp-remote-shell         ,tramp-default-remote-shell)
-                (tramp-remote-shell-login   ("-l"))
-                (tramp-remote-shell-args    ("-c"))
-                (tramp-copy-program         "nc")
-                ;; We use "-v" for better error tracking.
-                (tramp-copy-args            (("-w" "1") ("-v") ("%h") ("%r")))
-                (tramp-copy-file-name       (("%f")))
-                (tramp-remote-copy-program  "nc")
-                ;; We use "-p" as required for newer busyboxes.  For older
-                ;; busybox/nc versions, the value must be (("-l") ("%r")).  This
-                ;; can be achieved by tweaking `tramp-connection-properties'.
-                (tramp-remote-copy-args     (("-l") ("-p" "%r") ("%n")))))
- (add-to-list 'tramp-methods
               `("su"
                 (tramp-login-program        "su")
                 (tramp-login-args           (("-") ("%u")))
@@ -328,21 +312,6 @@ The string is used in `tramp-methods'.")
                 (tramp-connection-timeout   10)
                 (tramp-session-timeout      300)
 		(tramp-password-previous-hop t)))
- (add-to-list 'tramp-methods
-              `("ksu"
-                (tramp-login-program        "ksu")
-                (tramp-login-args           (("%u") ("-q")))
-                (tramp-remote-shell         ,tramp-default-remote-shell)
-                (tramp-remote-shell-login   ("-l"))
-                (tramp-remote-shell-args    ("-c"))
-                (tramp-connection-timeout   10)))
- (add-to-list 'tramp-methods
-              `("krlogin"
-                (tramp-login-program        "krlogin")
-                (tramp-login-args           (("%h") ("-l" "%u") ("-x")))
-                (tramp-remote-shell         ,tramp-default-remote-shell)
-                (tramp-remote-shell-login   ("-l"))
-                (tramp-remote-shell-args    ("-c"))))
  (add-to-list 'tramp-methods
               `("plink"
                 (tramp-login-program        "plink")
@@ -403,30 +372,18 @@ The string is used in `tramp-methods'.")
                 (tramp-copy-args            (("-l" "%u") ("-P" "%p") ("-sftp")
 					     ("-p" "%k")))
                 (tramp-copy-keep-date       t)))
- (add-to-list 'tramp-methods
-              `("fcp"
-                (tramp-login-program        "fsh")
-                (tramp-login-args           (("%h") ("-l" "%u") ("sh" "-i")))
-                (tramp-remote-shell         ,tramp-default-remote-shell)
-                (tramp-remote-shell-login   ("-l"))
-                (tramp-remote-shell-args    ("-i") ("-c"))
-                (tramp-copy-program         "fcp")
-                (tramp-copy-args            (("-p" "%k")))
-                (tramp-copy-keep-date       t)))
 
  (add-to-list 'tramp-default-method-alist
 	      `(,tramp-local-host-regexp
 		,(rx bos (literal tramp-root-id-string) eos) "su"))
 
  (add-to-list 'tramp-default-user-alist
-	      `(,(rx bos (| "su" "sudo" "doas" "ksu") eos)
+	      `(,(rx bos (| "su" "sudo" "doas") eos)
 	        nil ,tramp-root-id-string))
  ;; Do not add "ssh" based methods, otherwise ~/.ssh/config would be ignored.
  ;; Do not add "plink" based methods, they ask interactively for the user.
  (add-to-list 'tramp-default-user-alist
-	      `(,(rx bos
-		     (| "rcp" "remcp" "rsh" "telnet" "nc" "krlogin" "fcp")
-		     eos)
+	      `(,(rx bos (| "rcp" "remcp" "rsh" "telnet") eos)
 	        nil ,(user-login-name))))
 
 (defconst tramp-default-copy-file-name '(("%u" "@") ("%h" ":") ("%f"))
@@ -508,20 +465,112 @@ The string is used in `tramp-methods'.")
  (tramp-set-completion-function "sshx" tramp-completion-function-alist-ssh)
  (tramp-set-completion-function
   "telnet" tramp-completion-function-alist-telnet)
- (tramp-set-completion-function "nc" tramp-completion-function-alist-telnet)
  (tramp-set-completion-function "su" tramp-completion-function-alist-su)
  (tramp-set-completion-function "sudo" tramp-completion-function-alist-su)
  (tramp-set-completion-function "doas" tramp-completion-function-alist-su)
- (tramp-set-completion-function "ksu" tramp-completion-function-alist-su)
  (tramp-set-completion-function "sg" tramp-completion-function-alist-sg)
- (tramp-set-completion-function
-  "krlogin" tramp-completion-function-alist-rsh)
  (tramp-set-completion-function "plink" tramp-completion-function-alist-ssh)
  (tramp-set-completion-function
   "plinkx" tramp-completion-function-alist-putty)
  (tramp-set-completion-function "pscp" tramp-completion-function-alist-ssh)
- (tramp-set-completion-function "psftp" tramp-completion-function-alist-ssh)
- (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh))
+ (tramp-set-completion-function "psftp" tramp-completion-function-alist-ssh))
+
+;;;###tramp-autoload
+(defun tramp-enable-nc-method ()
+  "Enable \"ksu\" method."
+  (add-to-list 'tramp-methods
+               `("nc"
+                 (tramp-login-program        "telnet")
+                 (tramp-login-args           (("%h") ("%p") ("%n")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))
+                 (tramp-copy-program         "nc")
+                 ;; We use "-v" for better error tracking.
+                 (tramp-copy-args            (("-w" "1") ("-v") ("%h") ("%r")))
+                 (tramp-copy-file-name       (("%f")))
+                 (tramp-remote-copy-program  "nc")
+                 ;; We use "-p" as required for newer busyboxes.  For
+                 ;; older busybox/nc versions, the value must be
+                 ;; (("-l") ("%r")).  This can be achieved by tweaking
+                 ;; `tramp-connection-properties'.
+                 (tramp-remote-copy-args     (("-l") ("-p" "%r") ("%n")))))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "nc" eos) nil ,(user-login-name)))
+
+  (tramp-set-completion-function "nc" tramp-completion-function-alist-telnet))
+
+;;;###tramp-autoload
+(defun tramp-enable-run0-method ()
+  "Enable \"run0\" method."
+ (add-to-list 'tramp-methods
+              `("run0"
+                (tramp-login-program        "systemd-run")
+                (tramp-login-args           (("--uid" "%u") ("-t") ("%l")))
+                (tramp-remote-shell         ,tramp-default-remote-shell)
+                (tramp-remote-shell-args    ("-c"))
+                (tramp-connection-timeout   10)
+                (tramp-session-timeout      300)
+		(tramp-password-previous-hop t)))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "run0" eos) nil ,tramp-root-id-string))
+
+  (tramp-set-completion-function "run0" tramp-completion-function-alist-su))
+
+;;;###tramp-autoload
+(defun tramp-enable-ksu-method ()
+  "Enable \"ksu\" method."
+  (add-to-list 'tramp-methods
+               `("ksu"
+                 (tramp-login-program        "ksu")
+                 (tramp-login-args           (("%u") ("-q")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))
+                 (tramp-connection-timeout   10)))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "ksu" eos) nil ,tramp-root-id-string))
+
+  (tramp-set-completion-function "ksu" tramp-completion-function-alist-su))
+
+;;;###tramp-autoload
+(defun tramp-enable-krlogin-method ()
+  "Enable \"krlogin\" method."
+  (add-to-list 'tramp-methods
+               `("krlogin"
+                 (tramp-login-program        "krlogin")
+                 (tramp-login-args           (("%h") ("-l" "%u") ("-x")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "krlogin" eos) nil ,(user-login-name)))
+
+  (tramp-set-completion-function
+   "krlogin" tramp-completion-function-alist-rsh))
+
+;;;###tramp-autoload
+(defun tramp-enable-fcp-method ()
+  "Enable \"fcp\" method."
+  (add-to-list 'tramp-methods
+               `("fcp"
+                 (tramp-login-program        "fsh")
+                 (tramp-login-args           (("%h") ("-l" "%u") ("sh" "-i")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-i") ("-c"))
+                 (tramp-copy-program         "fcp")
+                 (tramp-copy-args            (("-p" "%k")))
+                 (tramp-copy-keep-date       t)))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "fcp" eos) nil ,(user-login-name)))
+
+  (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh))
 
 (defcustom tramp-sh-extra-args
   `((,(rx (| bos "/") "bash" eos) . "-noediting -norc -noprofile")
@@ -2653,6 +2702,18 @@ The method used must be an out-of-band method."
       (let ((dired (tramp-get-ls-command-with v "--dired")))
 	(when (stringp switches)
           (setq switches (split-string switches)))
+        ;; Newer coreutil versions of ls (9.5 and up) imply long format
+        ;; output when "--dired" is given.  Suppress this implicit rule.
+        (when dired
+          (let ((tem switches)
+                case-fold-search)
+            (catch 'long
+              (while tem
+                (when (and (not (string-match-p "--" (car tem)))
+                           (string-match-p "l" (car tem)))
+                  (throw 'long nil))
+                (setq tem (cdr tem)))
+              (setq dired nil))))
 	(setq switches
 	      (append switches (split-string (tramp-sh--quoting-style-options v))
 		      (when dired `(,dired))))
@@ -2859,7 +2920,7 @@ the result will be a local, non-Tramp, file name."
 	    ;; use a user name from the config file.
 	    (when (and (tramp-string-empty-or-nil-p uname)
 		       (string-match-p
-			(rx bos (| "su" "sudo" "doas" "ksu") eos) method))
+			(rx bos (| "su" "sudo" "doas" "run0" "ksu") eos) method))
 	      (setq uname user))
 	    (when (setq hname (tramp-get-home-directory v uname))
 	      (setq localname (concat hname fname)))))
@@ -4407,8 +4468,8 @@ file exists and nonzero exit status otherwise."
 			;; Maybe it works at least for some other commands.
 			(prog1
 			    default-shell
-			  (tramp-message
-			   vec 2
+			  (tramp-warning
+			   vec
 			   (concat
 			    "Couldn't find a remote shell which groks tilde "
 			    "expansion, using `%s'")
@@ -4942,8 +5003,8 @@ Goes through the list `tramp-inline-compress-commands'."
 
 	(tramp-set-connection-property p "inline-compress" nil)
 	(tramp-set-connection-property p "inline-decompress" nil)
-	(tramp-message
-	 vec 2 "Couldn't find an inline transfer compress command")))))
+	(tramp-warning
+	 vec "Couldn't find an inline transfer compress command")))))
 
 (defun tramp-ssh-option-exists-p (vec option)
   "Check, whether local ssh OPTION is applicable."
@@ -5202,194 +5263,194 @@ connection if a previous connection has died for some reason."
       ;; New connection must be opened.
       (condition-case err
 	  (unless (process-live-p p)
-	    (with-tramp-progress-reporter
-		vec 3
-		(if (tramp-string-empty-or-nil-p (tramp-file-name-user vec))
-		    (format "Opening connection %s for %s using %s"
-			    process-name
-			    (tramp-file-name-host vec)
-			    (tramp-file-name-method vec))
-		  (format "Opening connection %s for %s@%s using %s"
-			  process-name
-			  (tramp-file-name-user vec)
-			  (tramp-file-name-host vec)
-			  (tramp-file-name-method vec)))
+	    (catch 'uname-changed
+	      ;; Start new process.
+	      (when (and p (processp p))
+		(delete-process p))
+	      (setenv "TERM" tramp-terminal-type)
+	      (setenv "LC_ALL" (tramp-get-local-locale vec))
+	      (if (stringp tramp-histfile-override)
+		  (setenv "HISTFILE" tramp-histfile-override)
+		(if tramp-histfile-override
+		    (progn
+		      (setenv "HISTFILE")
+		      (setenv "HISTFILESIZE" "0")
+		      (setenv "HISTSIZE" "0"))))
+	      (setenv "PROMPT_COMMAND")
+	      (setenv "PS1" tramp-initial-end-of-output)
+	      (unless (stringp tramp-encoding-shell)
+                (tramp-error vec 'file-error "`tramp-encoding-shell' not set"))
+	      (let* ((current-host tramp-system-name)
+		     (target-alist (tramp-compute-multi-hops vec))
+		     (previous-hop tramp-null-hop)
+		     ;; We will apply `tramp-ssh-controlmaster-options'
+		     ;; only for the first hop.
+		     (options (tramp-ssh-controlmaster-options vec))
+		     (process-connection-type tramp-process-connection-type)
+		     (process-adaptive-read-buffering nil)
+		     ;; There are unfortunate settings for "cmdproxy"
+		     ;; on W32 systems.
+		     (process-coding-system-alist nil)
+		     (coding-system-for-read nil)
+		     (extra-args (tramp-get-sh-extra-args tramp-encoding-shell))
+		     ;; This must be done in order to avoid our file
+		     ;; name handler.
+		     (p (let ((default-directory
+			       tramp-compat-temporary-file-directory))
+			  (apply
+			   #'start-process
+			   (tramp-get-connection-name vec)
+			   (tramp-get-connection-buffer vec)
+			   (append
+			    `(,tramp-encoding-shell)
+			    (and extra-args (split-string extra-args))
+			    (and tramp-encoding-command-interactive
+				 `(,tramp-encoding-command-interactive)))))))
 
-	      (catch 'uname-changed
-		;; Start new process.
-		(when (and p (processp p))
-		  (delete-process p))
-		(setenv "TERM" tramp-terminal-type)
-		(setenv "LC_ALL" (tramp-get-local-locale vec))
-		(if (stringp tramp-histfile-override)
-		    (setenv "HISTFILE" tramp-histfile-override)
-		  (if tramp-histfile-override
-		      (progn
-			(setenv "HISTFILE")
-			(setenv "HISTFILESIZE" "0")
-			(setenv "HISTSIZE" "0"))))
-		(setenv "PROMPT_COMMAND")
-		(setenv "PS1" tramp-initial-end-of-output)
-		(unless (stringp tramp-encoding-shell)
-                  (tramp-error vec 'file-error "`tramp-encoding-shell' not set"))
-		(let* ((current-host tramp-system-name)
-		       (target-alist (tramp-compute-multi-hops vec))
-		       (previous-hop tramp-null-hop)
-		       ;; We will apply `tramp-ssh-controlmaster-options'
-		       ;; only for the first hop.
-		       (options (tramp-ssh-controlmaster-options vec))
-		       (process-connection-type tramp-process-connection-type)
-		       (process-adaptive-read-buffering nil)
-		       ;; There are unfortunate settings for
-		       ;; "cmdproxy" on W32 systems.
-		       (process-coding-system-alist nil)
-		       (coding-system-for-read nil)
-		       (extra-args
-			(tramp-get-sh-extra-args tramp-encoding-shell))
-		       ;; This must be done in order to avoid our file
-		       ;; name handler.
-		       (p (let ((default-directory
-				 tramp-compat-temporary-file-directory))
-			    (apply
-			     #'start-process
-			     (tramp-get-connection-name vec)
-			     (tramp-get-connection-buffer vec)
-			     (append
-			      `(,tramp-encoding-shell)
-			      (and extra-args (split-string extra-args))
-			      (and tramp-encoding-command-interactive
-				   `(,tramp-encoding-command-interactive)))))))
+		;; This is needed for ssh or PuTTY based processes,
+		;; and only if the respective options are set.
+		;; Perhaps, the setting could be more fine-grained.
+		;; (process-put p 'tramp-shared-socket t)
+		;; Set sentinel.  Initialize variables.
+		(set-process-sentinel p #'tramp-process-sentinel)
+		(tramp-post-process-creation p vec)
+		(setq tramp-current-connection (cons vec (current-time)))
 
-		  ;; This is needed for ssh or PuTTY based processes,
-		  ;; and only if the respective options are set.
-		  ;; Perhaps, the setting could be more fine-grained.
-		  ;; (process-put p 'tramp-shared-socket t)
-		  ;; Set sentinel.  Initialize variables.
-		  (set-process-sentinel p #'tramp-process-sentinel)
-		  (tramp-post-process-creation p vec)
-		  (setq tramp-current-connection (cons vec (current-time)))
+		;; Set connection-local variables.
+		(tramp-set-connection-local-variables vec)
 
-		  ;; Set connection-local variables.
-		  (tramp-set-connection-local-variables vec)
+		;; Check whether process is alive.
+		(tramp-barf-if-no-shell-prompt
+		 p 10
+		 "Couldn't find local shell prompt for %s"
+		 tramp-encoding-shell)
 
-		  ;; Check whether process is alive.
-		  (tramp-barf-if-no-shell-prompt
-		   p 10
-		   "Couldn't find local shell prompt for %s"
-		   tramp-encoding-shell)
+		;; Now do all the connections as specified.
+		(while target-alist
+		  (let* ((hop (car target-alist))
+			 (l-method (tramp-file-name-method hop))
+			 (l-user (tramp-file-name-user hop))
+			 (l-domain (tramp-file-name-domain hop))
+			 (l-host (tramp-file-name-host hop))
+			 (l-port (tramp-file-name-port hop))
+			 (remote-shell
+			  (tramp-get-method-parameter hop 'tramp-remote-shell))
+			 (extra-args (tramp-get-sh-extra-args remote-shell))
+			 (async-args
+			  (flatten-tree
+			   (tramp-get-method-parameter hop 'tramp-async-args)))
+			 (connection-timeout
+			  (tramp-get-method-parameter
+			   hop 'tramp-connection-timeout
+			   tramp-connection-timeout))
+			 (command
+			  (tramp-get-method-parameter
+			   hop 'tramp-login-program))
+			 ;; We don't create the temporary file.  In
+			 ;; fact, it is just a prefix for the
+			 ;; ControlPath option of ssh; the real
+			 ;; temporary file has another name, and it is
+			 ;; created and protected by ssh.  It is also
+			 ;; removed by ssh when the connection is
+			 ;; closed.  The temporary file name is cached
+			 ;; in the main connection process, therefore
+			 ;; we cannot use
+			 ;; `tramp-get-connection-process'.
+			 (tmpfile
+			  (with-tramp-connection-property
+			      (tramp-get-process vec) "temp-file"
+			    (tramp-compat-make-temp-name)))
+			 r-shell)
 
-		  ;; Now do all the connections as specified.
-		  (while target-alist
-		    (let* ((hop (car target-alist))
-			   (l-method (tramp-file-name-method hop))
-			   (l-user (tramp-file-name-user hop))
-			   (l-domain (tramp-file-name-domain hop))
-			   (l-host (tramp-file-name-host hop))
-			   (l-port (tramp-file-name-port hop))
-			   (remote-shell
-			    (tramp-get-method-parameter hop 'tramp-remote-shell))
-			   (extra-args (tramp-get-sh-extra-args remote-shell))
-			   (async-args
-			    (flatten-tree
-			     (tramp-get-method-parameter hop 'tramp-async-args)))
-			   (connection-timeout
-			    (tramp-get-method-parameter
-			     hop 'tramp-connection-timeout
-			     tramp-connection-timeout))
-			   (command
-			    (tramp-get-method-parameter
-			     hop 'tramp-login-program))
-			   ;; We don't create the temporary file.  In
-			   ;; fact, it is just a prefix for the
-			   ;; ControlPath option of ssh; the real
-			   ;; temporary file has another name, and it
-			   ;; is created and protected by ssh.  It is
-			   ;; also removed by ssh when the connection
-			   ;; is closed.  The temporary file name is
-			   ;; cached in the main connection process,
-			   ;; therefore we cannot use
-			   ;; `tramp-get-connection-process'.
-			   (tmpfile
-			    (with-tramp-connection-property
-				(tramp-get-process vec) "temp-file"
-			      (tramp-compat-make-temp-name)))
-			   r-shell)
+		    ;; Check, whether there is a restricted shell.
+		    (dolist (elt tramp-restricted-shell-hosts-alist)
+		      (when (string-match-p elt current-host)
+			(setq r-shell t)))
+		    (setq current-host l-host)
 
-		      ;; Check, whether there is a restricted shell.
-		      (dolist (elt tramp-restricted-shell-hosts-alist)
-			(when (string-match-p elt current-host)
-			  (setq r-shell t)))
-		      (setq current-host l-host)
+		    ;; Set password prompt vector.
+		    (tramp-set-connection-property
+		     p "password-vector"
+		     (if (tramp-get-method-parameter
+			  hop 'tramp-password-previous-hop)
+			 (let ((pv (copy-tramp-file-name previous-hop)))
+			   (setf (tramp-file-name-method pv) l-method)
+			   pv)
+		       (make-tramp-file-name
+			:method l-method :user l-user :domain l-domain
+			:host l-host :port l-port)))
 
-		      ;; Set password prompt vector.
+		    ;; Set session timeout.
+		    (when-let ((timeout
+				(tramp-get-method-parameter
+				 hop 'tramp-session-timeout)))
 		      (tramp-set-connection-property
-		       p "password-vector"
-		       (if (tramp-get-method-parameter
-			    hop 'tramp-password-previous-hop)
-			   (let ((pv (copy-tramp-file-name previous-hop)))
-			     (setf (tramp-file-name-method pv) l-method)
-			     pv)
-			 (make-tramp-file-name
-			  :method l-method :user l-user :domain l-domain
-			  :host l-host :port l-port)))
+		       p "session-timeout" timeout))
 
-		      ;; Set session timeout.
-		      (when (tramp-get-method-parameter
-			     hop 'tramp-session-timeout)
-			(tramp-set-connection-property
-			 p "session-timeout"
-			 (tramp-get-method-parameter
-			  hop 'tramp-session-timeout)))
+		    ;; Replace `login-args' place holders.
+		    (setq
+		     command
+		     (string-join
+		      (append
+		       ;; We do not want to see the trailing local
+		       ;; prompt in `start-file-process'.
+		       (unless r-shell '("exec"))
+		       `(,command)
+		       ;; Add arguments for asynchronous processes.
+		       (when process-name async-args)
+		       (tramp-expand-args
+			hop 'tramp-login-args nil
+			?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
+			?c (format-spec options (format-spec-make ?t tmpfile))
+			?n (concat
+			    "2>" (tramp-get-remote-null-device previous-hop))
+			?l (concat remote-shell " " extra-args " -i"))
+		       ;; A restricted shell does not allow "exec".
+		       (when r-shell '("&&" "exit")) '("||" "exit"))
+		      " "))
 
-		      ;; Replace `login-args' place holders.
-		      (setq
-		       command
-		       (string-join
-			(append
-			 ;; We do not want to see the trailing local
-			 ;; prompt in `start-file-process'.
-			 (unless r-shell '("exec"))
-			 `(,command)
-			 ;; Add arguments for asynchronous processes.
-			 (when process-name async-args)
-			 (tramp-expand-args
-			  hop 'tramp-login-args nil
-			  ?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
-			  ?c (format-spec options (format-spec-make ?t tmpfile))
-			  ?n (concat
-			      "2>" (tramp-get-remote-null-device previous-hop))
-			  ?l (concat remote-shell " " extra-args " -i"))
-			 ;; A restricted shell does not allow "exec".
-			 (when r-shell '("&&" "exit")) '("||" "exit"))
-			" "))
-
-		      ;; Send the command.
-		      (tramp-message vec 3 "Sending command `%s'" command)
+		    ;; Send the command.
+		    (with-tramp-progress-reporter
+			vec 3
+			(format "Opening connection%s for %s%s using %s"
+				(if (tramp-string-empty-or-nil-p process-name)
+				    "" (concat " " process-name))
+				(if (tramp-string-empty-or-nil-p l-user)
+				    "" (concat l-user "@"))
+				l-host l-method)
 		      (tramp-send-command vec command t t)
 		      (tramp-process-actions
 		       p vec
 		       (min
 			pos (with-current-buffer (process-buffer p) (point-max)))
-		       tramp-actions-before-shell connection-timeout)
-		      (tramp-message
-		       vec 3 "Found remote shell prompt on `%s'" l-host)
+		       tramp-actions-before-shell connection-timeout))
 
-		      ;; Next hop.
-		      (setq options ""
-			    target-alist (cdr target-alist)
-			    previous-hop hop)))
+		    ;; Next hop.
+		    (setq options ""
+			  target-alist (cdr target-alist)
+			  previous-hop hop)))
 
-		  ;; Activate session timeout.
-		  (when (tramp-get-connection-property p "session-timeout")
-		    (run-at-time
-		     (tramp-get-connection-property p "session-timeout") nil
-		     #'tramp-timeout-session vec))
+		;; Activate session timeout.
+		(when (tramp-get-connection-property p "session-timeout")
+		  (run-at-time
+		   (tramp-get-connection-property p "session-timeout") nil
+		   #'tramp-timeout-session vec))
 
-		  ;; Make initial shell settings.
-		  (tramp-open-connection-setup-interactive-shell p vec)
+		;; Make initial shell settings.
+		(with-tramp-progress-reporter
+		    vec 3
+		    (format "Setup connection%s for %s%s using %s"
+			    (if (tramp-string-empty-or-nil-p process-name)
+				"" (concat " " process-name))
+			    (if (tramp-string-empty-or-nil-p
+				 (tramp-file-name-user vec))
+				"" (concat (tramp-file-name-user vec) "@"))
+			    (tramp-file-name-host vec)
+			    (tramp-file-name-method vec))
+		  (tramp-open-connection-setup-interactive-shell p vec))
 
-		  ;; Mark it as connected.
-		  (tramp-set-connection-property p "connected" t)))))
+		;; Mark it as connected.
+		(tramp-set-connection-property p "connected" t))))
 
 	;; Cleanup, and propagate the signal.
 	((error quit)
@@ -5654,8 +5715,8 @@ Nonexistent directories are removed from spec."
 		   (tramp-shell-quote-argument tramp-end-of-heredoc))
 		  'noerror (rx (literal tramp-end-of-heredoc)))
 		 (progn
-		   (tramp-message
-		    vec 2 "Could not retrieve `tramp-own-remote-path'")
+		   (tramp-warning
+		    vec "Could not retrieve `tramp-own-remote-path'")
 		   nil)))))
 
 	;; Replace place holder `tramp-default-remote-path'.

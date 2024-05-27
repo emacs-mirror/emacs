@@ -112,6 +112,7 @@ srcs = \
   $(srcdir)/os.texi \
   $(srcdir)/package.texi \
   $(srcdir)/parsing.texi \
+  $(srcdir)/peg.texi \
   $(srcdir)/positions.texi \
   $(srcdir)/processes.texi \
   $(srcdir)/records.texi \

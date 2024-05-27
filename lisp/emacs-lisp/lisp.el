@@ -45,6 +45,11 @@ This affects `insert-parentheses' and `insert-pair'."
   :type 'boolean
   :group 'lisp)
 
+(defun forward-sexp-default-function (&optional arg)
+  "Default function for `forward-sexp-function'."
+  (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
+  (if (< arg 0) (backward-prefix-chars)))
+
 (defvar forward-sexp-function nil
   ;; FIXME:
   ;; - for some uses, we may want a "sexp-only" version, which only
@@ -76,8 +81,7 @@ report errors as appropriate for this kind of usage."
     (or arg (setq arg 1))
     (if forward-sexp-function
         (funcall forward-sexp-function arg)
-      (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
-      (if (< arg 0) (backward-prefix-chars)))))
+      (forward-sexp-default-function arg))))
 
 (defun backward-sexp (&optional arg interactive)
   "Move backward across one balanced expression (sexp).
@@ -530,7 +534,8 @@ major mode's decisions about context.")
   "Return the \"far end\" position of the buffer, in direction ARG.
 If ARG is positive, that's the end of the buffer.
 Otherwise, that's the beginning of the buffer."
-  (declare (side-effect-free error-free))
+  (declare (ftype (function ((or number marker)) integer))
+           (side-effect-free error-free))
   (if (> arg 0) (point-max) (point-min)))
 
 (defun end-of-defun (&optional arg interactive)

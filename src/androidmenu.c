@@ -488,8 +488,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   unbind_to (count1, Qnil);
 
   /* Now, display the context menu.  */
-  window = android_resolve_handle (FRAME_ANDROID_WINDOW (f),
-				   ANDROID_HANDLE_WINDOW);
+  window = android_resolve_handle (FRAME_ANDROID_WINDOW (f));
   rc = (*env)->CallNonvirtualBooleanMethod (env, context_menu,
 					    menu_class.class,
 					    menu_class.display,

@@ -3917,11 +3917,12 @@ xic_string_conversion_callback (XIC ic, XPointer client_data,
   return;
 
  failure:
-  /* Return a string of length 0 using the C library malloc.  This
+  /* Return a string of length 0 using the C library malloc (1)
+     (not malloc (0), to pacify gcc -Walloc-size).  This
      assumes XFree is able to free data allocated with our malloc
      wrapper.  */
   call_data->text->length = 0;
-  call_data->text->string.mbs = malloc (0);
+  call_data->text->string.mbs = malloc (1);
 }
 
 #endif /* HAVE_X_I18N */
@@ -6546,10 +6547,7 @@ void
 xlw_monitor_dimensions_at_pos (Display *dpy, Screen *screen, int src_x,
 			       int src_y, int *x, int *y, int *width, int *height)
 {
-  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
-
-  if (!dpyinfo)
-    emacs_abort ();
+  struct x_display_info *dpyinfo = x_dpyinfo (dpy);
 
   block_input ();
   xlw_monitor_dimensions_at_pos_1 (dpyinfo, screen, src_x, src_y,
@@ -10213,10 +10211,7 @@ XkbFreeNames (XkbDescPtr xkb, unsigned int which, Bool free_map)
 int
 XDisplayCells (Display *dpy, int screen_number)
 {
-  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
-
-  if (!dpyinfo)
-    emacs_abort ();
+  struct x_display_info *dpyinfo = x_dpyinfo (dpy);
 
   /* Not strictly correct, since the display could be using a
      non-default visual, but it satisfies the callers we need to care

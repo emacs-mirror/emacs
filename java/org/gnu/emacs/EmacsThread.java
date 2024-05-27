@@ -28,24 +28,20 @@ public final class EmacsThread extends Thread
 {
   private static final String TAG = "EmacsThread";
 
-  /* Whether or not Emacs should be started with an additional
-     argument, and that additional argument if non-NULL.  */
-  private String extraStartupArgument;
+  /* Whether or not Emacs should be started with additional arguments,
+     and those additional arguments if non-NULL.  */
+  private final String[] extraStartupArguments;
 
   /* Runnable run to initialize Emacs.  */
-  private Runnable paramsClosure;
-
-  /* Whether or not to open a file after starting Emacs.  */
-  private String fileToOpen;
+  private final Runnable paramsClosure;
 
   public
   EmacsThread (EmacsService service, Runnable paramsClosure,
-	       String extraStartupArgument, String fileToOpen)
+	       String[] extraStartupArguments)
   {
     super ("Emacs main thread");
-    this.extraStartupArgument = extraStartupArgument;
+    this.extraStartupArguments = extraStartupArguments;
     this.paramsClosure = paramsClosure;
-    this.fileToOpen = fileToOpen;
   }
 
   @Override
@@ -54,23 +50,15 @@ public final class EmacsThread extends Thread
   {
     String args[];
 
-    if (fileToOpen == null)
-      {
-	if (extraStartupArgument == null)
-	  args = new String[] { "libandroid-emacs.so", };
-	else
-	  args = new String[] { "libandroid-emacs.so",
-				extraStartupArgument, };
-      }
+    if (extraStartupArguments == null)
+      args = new String[] { "libandroid-emacs.so", };
     else
       {
-	if (extraStartupArgument == null)
-	  args = new String[] { "libandroid-emacs.so",
-				fileToOpen, };
-	else
-	  args = new String[] { "libandroid-emacs.so",
-				extraStartupArgument,
-				fileToOpen, };
+	/* Prepend "libandroid-emacs.so" to the list of arguments.  */
+	args = new String[extraStartupArguments.length + 1];
+	args[0] = "libandroid-emacs.so";
+	System.arraycopy (extraStartupArguments, 0, args,
+			  1, extraStartupArguments.length);
       }
 
     paramsClosure.run ();

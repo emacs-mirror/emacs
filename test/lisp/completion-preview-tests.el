@@ -27,23 +27,25 @@
     (when-let ((bounds (bounds-of-thing-at-point 'symbol)))
       (append (list (car bounds) (cdr bounds) completions) props))))
 
-(defun completion-preview-tests--check-preview (string &optional exact)
+(defun completion-preview-tests--check-preview
+    (string &optional beg-face end-face)
   "Check that the completion preview is showing STRING.
 
-If EXACT is non-nil, check that STRING has the
-`completion-preview-exact' face.  Otherwise check that STRING has
-the `completion-preview' face.
+BEG-FACE and END-FACE say which faces the beginning and end of STRING
+should have, respectively.  Both BEG-FACE and END-FACE default to
+`completion-preview'.
 
 If STRING is nil, check that there is no completion preview
 instead."
   (if (not string)
-      (should (not completion-preview--overlay))
+      (should-not completion-preview--overlay)
     (should completion-preview--overlay)
     (let ((after-string (completion-preview--get 'after-string)))
       (should (string= after-string string))
       (should (eq (get-text-property 0 'face after-string)
-                  (if exact
-                      'completion-preview-exact
+                  (or beg-face 'completion-preview)))
+      (should (eq (get-text-property (1- (length after-string)) 'face after-string)
+                  (or end-face
                     'completion-preview))))))
 
 (ert-deftest completion-preview ()
@@ -57,7 +59,9 @@ instead."
       (completion-preview--post-command))
 
     ;; Exact match
-    (completion-preview-tests--check-preview "barbaz" 'exact)
+    (completion-preview-tests--check-preview "barbaz"
+                                             'completion-preview-exact
+                                             'completion-preview-exact)
 
     (insert "v")
     (let ((this-command 'self-insert-command))
@@ -71,7 +75,9 @@ instead."
       (completion-preview--post-command))
 
     ;; Exact match again
-    (completion-preview-tests--check-preview "barbaz" 'exact)))
+    (completion-preview-tests--check-preview "barbaz"
+                                             'completion-preview-exact
+                                             'completion-preview-exact)))
 
 (ert-deftest completion-preview-multiple-matches ()
   "Test Completion Preview mode with multiple matching candidates."
@@ -84,12 +90,12 @@ instead."
       (completion-preview--post-command))
 
     ;; Multiple matches, the preview shows the first one
-    (completion-preview-tests--check-preview "bar")
+    (completion-preview-tests--check-preview "bar" 'completion-preview-common)
 
     (completion-preview-next-candidate 1)
 
     ;; Next match
-    (completion-preview-tests--check-preview "baz")))
+    (completion-preview-tests--check-preview "baz" 'completion-preview-common)))
 
 (ert-deftest completion-preview-exact-match-only ()
   "Test `completion-preview-exact-match-only'."
@@ -111,7 +117,9 @@ instead."
       (completion-preview--post-command))
 
     ;; Exact match
-    (completion-preview-tests--check-preview "m" 'exact)))
+    (completion-preview-tests--check-preview "m"
+                                             'completion-preview-exact
+                                             'completion-preview-exact)))
 
 (ert-deftest completion-preview-function-capfs ()
   "Test Completion Preview mode with capfs that return a function."
@@ -124,7 +132,7 @@ instead."
     (insert "foo")
     (let ((this-command 'self-insert-command))
       (completion-preview--post-command))
-    (completion-preview-tests--check-preview "bar")))
+    (completion-preview-tests--check-preview "bar" 'completion-preview-common)))
 
 (ert-deftest completion-preview-non-exclusive-capfs ()
   "Test Completion Preview mode with non-exclusive capfs."
@@ -140,11 +148,13 @@ instead."
     (insert "foo")
     (let ((this-command 'self-insert-command))
       (completion-preview--post-command))
-    (completion-preview-tests--check-preview "bar")
+    (completion-preview-tests--check-preview "bar" 'completion-preview-common)
     (setq-local completion-preview-exact-match-only t)
     (let ((this-command 'self-insert-command))
       (completion-preview--post-command))
-    (completion-preview-tests--check-preview "barbaz" 'exact)))
+    (completion-preview-tests--check-preview "barbaz"
+                                             'completion-preview-exact
+                                             'completion-preview-exact)))
 
 (ert-deftest completion-preview-face-updates ()
   "Test updating the face in completion preview when match is no longer exact."
@@ -160,7 +170,9 @@ instead."
     (insert "b")
     (let ((this-command 'self-insert-command))
       (completion-preview--post-command))
-    (completion-preview-tests--check-preview "arbaz" 'exact)
+    (completion-preview-tests--check-preview "arbaz"
+                                             'completion-preview-exact
+                                             'completion-preview-exact)
     (delete-char -1)
     (let ((this-command 'delete-backward-char))
       (completion-preview--post-command))
@@ -173,13 +185,15 @@ instead."
   (with-temp-buffer
     (setq-local completion-at-point-functions
                 (list
-                 (lambda () (user-error "bad"))
+                 (lambda () (user-error "Bad"))
                  (completion-preview-tests--capf
                   '("foobarbaz"))))
     (insert "foo")
     (let ((this-command 'self-insert-command))
       (completion-preview--post-command))
-    (completion-preview-tests--check-preview "barbaz" 'exact)))
+    (completion-preview-tests--check-preview "barbaz"
+                                             'completion-preview-exact
+                                             'completion-preview-exact)))
 
 (ert-deftest completion-preview-mid-symbol-cycle ()
   "Test cycling the completion preview with point at the middle of a symbol."
@@ -195,5 +209,102 @@ instead."
     (completion-preview-tests--check-preview "r")
     (completion-preview-next-candidate 1)
     (completion-preview-tests--check-preview "z")))
+
+(ert-deftest completion-preview-complete ()
+  "Test `completion-preview-complete'."
+  (with-temp-buffer
+    (let ((exit-fn-called nil)
+          (exit-fn-args nil)
+          (message-args nil)
+          (completion-auto-help nil))
+      (setq-local completion-at-point-functions
+                  (list
+                   (completion-preview-tests--capf
+                    '("foobar" "foobaz" "foobash" "foobash-mode")
+                    :exit-function
+                    (lambda (&rest args)
+                      (setq exit-fn-called t
+                            exit-fn-args args)))))
+      (insert "foo")
+      (let ((this-command 'self-insert-command))
+        (completion-preview--post-command))
+      (message "here")
+
+      (completion-preview-tests--check-preview "bar" 'completion-preview-common)
+
+      ;; Insert the common prefix, "ba".
+      (completion-preview-complete)
+
+      ;; Only "r" should remain.
+      (completion-preview-tests--check-preview "r")
+
+      (cl-letf (((symbol-function #'minibuffer-message)
+                 (lambda (&rest args) (setq message-args args))))
+
+        ;; With `completion-auto-help' set to nil, a second call to
+        ;; `completion-preview-complete' just displays a message.
+        (completion-preview-complete)
+        (setq completion-preview--inhibit-update-p nil)
+
+        (should (equal message-args '("Next char not unique"))))
+
+      ;; The preview should stay put.
+      (completion-preview-tests--check-preview "r")
+      ;; (completion-preview-active-mode -1)
+
+      ;; Narrow further.
+      (insert "s")
+      (let ((this-command 'self-insert-command))
+        (completion-preview--post-command))
+
+      ;; The preview should indicate an exact match.
+      (completion-preview-tests--check-preview "h"
+                                               'completion-preview-common
+                                               'completion-preview-common)
+
+      ;; Insert the entire preview content.
+      (completion-preview-complete)
+      (setq completion-preview--inhibit-update-p nil)
+      (let ((this-command 'completion-preview-complete))
+        (completion-preview--post-command))
+
+      ;; The preview should update to indicate that there's a further
+      ;; possible completion.
+      (completion-preview-tests--check-preview "-mode"
+                                               'completion-preview-exact
+                                               'completion-preview-exact)
+      (should exit-fn-called)
+      (should (equal exit-fn-args '("foobash" exact)))
+      (setq exit-fn-called nil exit-fn-args nil)
+
+      ;; Insert the extra suffix.
+      (completion-preview-complete)
+
+      ;; Nothing more to show, so the preview should now be gone.
+      (should-not completion-preview--overlay)
+      (should exit-fn-called)
+      (should (equal exit-fn-args '("foobash-mode" finished))))))
+
+(ert-deftest completion-preview-insert-calls-exit-function ()
+  "Test that `completion-preview-insert' calls the completion exit function."
+  (let ((exit-fn-called nil) (exit-fn-args nil))
+    (with-temp-buffer
+      (setq-local completion-at-point-functions
+                  (list
+                   (completion-preview-tests--capf
+                    '("foobar" "foobaz")
+                    :exit-function
+                    (lambda (&rest args)
+                      (setq exit-fn-called t
+                            exit-fn-args args)))))
+      (insert "foo")
+      (let ((this-command 'self-insert-command))
+        (completion-preview--post-command))
+      (completion-preview-tests--check-preview "bar" 'completion-preview-common)
+      (completion-preview-insert)
+      (should (string= (buffer-string) "foobar"))
+      (should-not completion-preview--overlay)
+      (should exit-fn-called)
+      (should (equal exit-fn-args '("foobar" finished))))))
 
 ;;; completion-preview-tests.el ends here

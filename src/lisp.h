@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <alloca.h>
 #include <setjmp.h>
 #include <stdarg.h>
+#include <stdbit.h>
 #include <stdckdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -36,7 +37,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #include <attribute.h>
-#include <count-leading-zeros.h>
+#include <byteswap.h>
 #include <intprops.h>
 #include <verify.h>
 
@@ -54,7 +55,8 @@ INLINE_HEADER_BEGIN
 
 #define DECLARE_GDB_SYM(type, id) type const id EXTERNALLY_VISIBLE
 #ifdef MAIN_PROGRAM
-# define DEFINE_GDB_SYMBOL_BEGIN(type, id) DECLARE_GDB_SYM (type, id)
+# define DEFINE_GDB_SYMBOL_BEGIN(type, id) \
+   extern DECLARE_GDB_SYM (type, id); DECLARE_GDB_SYM (type, id)
 # define DEFINE_GDB_SYMBOL_END(id) = id;
 #else
 # define DEFINE_GDB_SYMBOL_BEGIN(type, id) extern DECLARE_GDB_SYM (type, id)
@@ -1048,7 +1050,7 @@ enum pvec_type
   PVEC_SQLITE,
 
   /* These should be last, for internal_equal and sxhash_obj.  */
-  PVEC_COMPILED,
+  PVEC_CLOSURE,
   PVEC_CHAR_TABLE,
   PVEC_SUB_CHAR_TABLE,
   PVEC_RECORD,
@@ -1882,6 +1884,30 @@ bool_vector_bytes (EMACS_INT size)
   return (size + BOOL_VECTOR_BITS_PER_CHAR - 1) / BOOL_VECTOR_BITS_PER_CHAR;
 }
 
+INLINE bits_word
+bits_word_to_host_endian (bits_word val)
+{
+#ifndef WORDS_BIGENDIAN
+  return val;
+#else
+  if (BITS_WORD_MAX >> 31 == 1)
+    return bswap_32 (val);
+  if (BITS_WORD_MAX >> 31 >> 31 >> 1 == 1)
+    return bswap_64 (val);
+  {
+    int i;
+    bits_word r = 0;
+    for (i = 0; i < sizeof val; i++)
+      {
+	r = ((r << 1 << (CHAR_BIT - 1))
+	     | (val & ((1u << 1 << (CHAR_BIT - 1)) - 1)));
+	val = val >> 1 >> (CHAR_BIT - 1);
+      }
+    return r;
+  }
+#endif
+}
+
 INLINE bool
 BOOL_VECTOR_P (Lisp_Object a)
 {
@@ -2508,7 +2534,7 @@ struct Lisp_Hash_Table;
 
 /* The type of a hash value stored in the table.
    It's unsigned and a subtype of EMACS_UINT.  */
-typedef uint32_t hash_hash_t;
+typedef unsigned int hash_hash_t;
 
 typedef enum {
   Test_eql,
@@ -2792,10 +2818,14 @@ INLINE ptrdiff_t
 knuth_hash (hash_hash_t hash, unsigned bits)
 {
   /* Knuth multiplicative hashing, tailored for 32-bit indices
-     (avoiding a 64-bit multiply).  */
-  uint32_t alpha = 2654435769;	/* 2**32/phi */
-  /* Note the cast to uint64_t, to make it work for bits=0.  */
-  return (uint64_t)((uint32_t)hash * alpha) >> (32 - bits);
+     (avoiding a 64-bit multiply on typical platforms).  */
+  unsigned int h = hash;
+  unsigned int alpha = 2654435769;	/* 2**32/phi */
+  /* Multiply with unsigned int, ANDing in case UINT_WIDTH exceeds 32.  */
+  unsigned int product = (h * alpha) & 0xffffffffu;
+  /* Convert to a wider type, so that the shift works when BITS == 0.  */
+  unsigned long long int wide_product = product;
+  return wide_product >> (32 - bits);
 }
 
 
@@ -3154,6 +3184,13 @@ XBUFFER_OBJFWD (lispfwd a)
   eassert (BUFFER_OBJFWDP (a));
   return a.fwdptr;
 }
+
+INLINE bool
+KBOARD_OBJFWDP (lispfwd a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Kboard_Obj;
+}
+
 
 /* Lisp floating point type.  */
 struct Lisp_Float
@@ -3198,16 +3235,16 @@ XFLOAT_DATA (Lisp_Object f)
 #define IEEE_FLOATING_POINT (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
 			     && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
 
-/* Meanings of slots in a Lisp_Compiled:  */
+/* Meanings of slots in a Lisp_Closure:  */
 
-enum Lisp_Compiled
+enum Lisp_Closure
   {
-    COMPILED_ARGLIST = 0,
-    COMPILED_BYTECODE = 1,
-    COMPILED_CONSTANTS = 2,
-    COMPILED_STACK_DEPTH = 3,
-    COMPILED_DOC_STRING = 4,
-    COMPILED_INTERACTIVE = 5
+    CLOSURE_ARGLIST = 0,
+    CLOSURE_CODE = 1,
+    CLOSURE_CONSTANTS = 2,
+    CLOSURE_STACK_DEPTH = 3,
+    CLOSURE_DOC_STRING = 4,
+    CLOSURE_INTERACTIVE = 5
   };
 
 /* Flag bits in a character.  These also get used in termhooks.h.
@@ -3282,9 +3319,9 @@ WINDOW_CONFIGURATIONP (Lisp_Object a)
 }
 
 INLINE bool
-COMPILEDP (Lisp_Object a)
+CLOSUREP (Lisp_Object a)
 {
-  return PSEUDOVECTORP (a, PVEC_COMPILED);
+  return PSEUDOVECTORP (a, PVEC_CLOSURE);
 }
 
 INLINE bool
@@ -3567,12 +3604,15 @@ enum specbind_tag {
 #ifdef HAVE_MODULES
   SPECPDL_MODULE_RUNTIME,       /* A live module runtime.  */
   SPECPDL_MODULE_ENVIRONMENT,   /* A live module environment.  */
-#endif
+#endif /* !HAVE_MODULES */
   SPECPDL_LET,			/* A plain and simple dynamic let-binding.  */
   /* Tags greater than SPECPDL_LET must be "subkinds" of LET.  */
   SPECPDL_LET_LOCAL,		/* A buffer-local let-binding.  */
   SPECPDL_LET_DEFAULT		/* A global binding for a localized var.  */
 };
+
+/* struct kboard is defined in keyboard.h.  */
+typedef struct kboard KBOARD;
 
 union specbinding
   {
@@ -3616,8 +3656,17 @@ union specbinding
     } unwind_void;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
-      /* `where' is not used in the case of SPECPDL_LET.  */
-      Lisp_Object symbol, old_value, where;
+      /* `where' is not used in the case of SPECPDL_LET,
+	 unless the symbol is forwarded to a KBOARD.  */
+      Lisp_Object symbol, old_value;
+      union {
+	/* KBOARD object to which SYMBOL forwards, in the case of
+	   SPECPDL_LET.  */
+	KBOARD *kbd;
+
+	/* Buffer otherwise.  */
+	Lisp_Object buf;
+      } where;
     } let;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
@@ -4116,11 +4165,12 @@ integer_to_uintmax (Lisp_Object num, uintmax_t *n)
     }
 }
 
-/* Return floor (log2 (N)) as an int, where 0 < N <= ULLONG_MAX.  */
+/* Return floor (log2 (N)) as an int.  If N is zero, return -1.  */
 INLINE int
 elogb (unsigned long long int n)
 {
-  return ULLONG_WIDTH - 1 - count_leading_zeros_ll (n);
+  int width = stdc_bit_width (n);
+  return width - 1;
 }
 
 /* A modification count.  These are wide enough, and incremented
@@ -4179,17 +4229,19 @@ extern uintmax_t cons_to_unsigned (Lisp_Object, uintmax_t);
 
 extern AVOID args_out_of_range (Lisp_Object, Lisp_Object);
 extern AVOID circular_list (Lisp_Object);
+extern KBOARD *kboard_for_bindings (void);
 extern Lisp_Object do_symval_forwarding (lispfwd);
-enum Set_Internal_Bind {
-  SET_INTERNAL_SET,
-  SET_INTERNAL_BIND,
-  SET_INTERNAL_UNBIND,
-  SET_INTERNAL_THREAD_SWITCH
-};
+enum Set_Internal_Bind
+  {
+    SET_INTERNAL_SET,
+    SET_INTERNAL_BIND,
+    SET_INTERNAL_UNBIND,
+    SET_INTERNAL_THREAD_SWITCH,
+  };
 extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object,
                           enum Set_Internal_Bind);
 extern void set_default_internal (Lisp_Object, Lisp_Object,
-                                  enum Set_Internal_Bind bindflag);
+                                  enum Set_Internal_Bind, KBOARD *);
 extern Lisp_Object expt_integer (Lisp_Object, Lisp_Object);
 extern void syms_of_data (void);
 extern void swap_in_global_binding (struct Lisp_Symbol *);
@@ -4269,7 +4321,9 @@ extern void syms_of_fns (void);
 extern void mark_fns (void);
 
 /* Defined in sort.c  */
-extern void tim_sort (Lisp_Object, Lisp_Object *, const ptrdiff_t);
+extern void tim_sort (Lisp_Object, Lisp_Object, Lisp_Object *, const ptrdiff_t,
+		      bool)
+  ARG_NONNULL ((3));
 
 /* Defined in floatfns.c.  */
 verify (FLT_RADIX == 2 || FLT_RADIX == 16);
@@ -4293,11 +4347,8 @@ extern void init_fringe_once (void);
 extern int x_bitmap_mask (struct frame *, ptrdiff_t);
 extern void syms_of_image (void);
 
-#ifdef HAVE_JSON
 /* Defined in json.c.  */
-extern void init_json (void);
 extern void syms_of_json (void);
-#endif
 
 /* Defined in insdel.c.  */
 extern void move_gap_both (ptrdiff_t, ptrdiff_t);
@@ -4405,6 +4456,7 @@ extern void parse_str_as_multibyte (const unsigned char *, ptrdiff_t,
 				    ptrdiff_t *, ptrdiff_t *);
 
 /* Defined in alloc.c.  */
+extern intptr_t garbage_collection_inhibited;
 extern void *my_heap_start (void);
 extern void check_pure_size (void);
 unsigned char *resize_string_data (Lisp_Object, ptrdiff_t, int, int);
@@ -4447,6 +4499,12 @@ flush_stack_call_func (void (*func) (void *arg), void *arg)
 {
   __builtin_unwind_init ();
   flush_stack_call_func1 (func, arg);
+  /* Work around GCC sibling call optimization making
+     '__builtin_unwind_init' ineffective (bug#65727).
+     See <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=115132>.  */
+#if defined __GNUC__ && !defined __clang__
+  asm ("");
+#endif
 }
 
 extern void garbage_collect (void);
@@ -4715,6 +4773,8 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char *, ptrdiff_t,
 extern Lisp_Object intern_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_c_string_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_driver (Lisp_Object, Lisp_Object, Lisp_Object);
+extern Lisp_Object intern_c_multibyte (const char *str,
+				       ptrdiff_t nchars, ptrdiff_t nbytes);
 extern void init_symbol (Lisp_Object, Lisp_Object);
 extern Lisp_Object oblookup (Lisp_Object, const char *, ptrdiff_t, ptrdiff_t);
 INLINE void
@@ -4908,6 +4968,8 @@ extern void unmark_main_thread (void);
 
 /* Defined in editfns.c.  */
 extern void insert1 (Lisp_Object);
+extern void find_field (Lisp_Object, Lisp_Object, Lisp_Object,
+			ptrdiff_t *, Lisp_Object, ptrdiff_t *);
 extern void save_excursion_save (union specbinding *);
 extern void save_excursion_restore (Lisp_Object, Lisp_Object);
 extern Lisp_Object save_restriction_save (void);
@@ -5211,10 +5273,8 @@ extern void set_initial_environment (void);
 extern void syms_of_callproc (void);
 
 /* Defined in doc.c.  */
-extern Lisp_Object read_doc_string (Lisp_Object);
-extern Lisp_Object get_doc_string (Lisp_Object, bool, bool);
+extern Lisp_Object get_doc_string (Lisp_Object, bool);
 extern void syms_of_doc (void);
-extern int read_bytecode_char (bool);
 
 /* Defined in bytecode.c.  */
 extern void syms_of_bytecode (void);
@@ -5471,6 +5531,7 @@ extern char *emacs_root_dir (void);
 #ifdef HAVE_TEXT_CONVERSION
 /* Defined in textconv.c.  */
 extern void reset_frame_state (struct frame *);
+extern void reset_frame_conversion (struct frame *);
 extern void report_selected_window_change (struct frame *);
 extern void report_point_change (struct frame *, struct window *,
 				 struct buffer *);
@@ -5672,7 +5733,7 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109577
    which causes GCC to mistakenly complain about the
    memory allocation in SAFE_ALLOCA_LISP_EXTRA.  */
-#if GNUC_PREREQ (13, 0, 0) && !GNUC_PREREQ (14, 0, 0)
+#if __GNUC__ == 13 && __GNUC_MINOR__ < 3
 # pragma GCC diagnostic ignored "-Wanalyzer-allocation-size"
 #endif
 

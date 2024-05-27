@@ -28,6 +28,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 struct allocator;
 
 /* Assuming the current directory is FD, get the symbolic link value
@@ -67,6 +72,11 @@ char *careadlinkat (int fd, char const *filename,
 # ifndef AT_FDCWD
 #  define AT_FDCWD (-3041965)
 # endif
+#endif
+
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* _GL_CAREADLINKAT_H */

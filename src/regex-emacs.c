@@ -341,7 +341,7 @@ typedef enum
 /* Store NUMBER in two contiguous bytes starting at DESTINATION.  */
 
 static void
-STORE_NUMBER (unsigned char *destination, int16_t number)
+STORE_NUMBER (unsigned char *destination, int number)
 {
   (destination)[0] = (number) & 0377;
   (destination)[1] = (number) >> 8;

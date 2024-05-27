@@ -53,7 +53,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "termopts.h"
 #include "termchar.h"
-#include "emacs-icon.h"
 #include "menu.h"
 #include "window.h"
 #include "keyboard.h"
@@ -1239,7 +1238,7 @@ pgtk_set_glyph_string_gc (struct glyph_string *s)
    line or menu if we don't have X toolkit support.  */
 
 static void
-pgtk_set_glyph_string_clipping (struct glyph_string *s, cairo_t * cr)
+pgtk_set_glyph_string_clipping (struct glyph_string *s, cairo_t *cr)
 {
   XRectangle r[2];
   int n = get_glyph_string_clip_rects (s, r, 2);
@@ -1260,7 +1259,7 @@ pgtk_set_glyph_string_clipping (struct glyph_string *s, cairo_t * cr)
 
 static void
 pgtk_set_glyph_string_clipping_exactly (struct glyph_string *src,
-					struct glyph_string *dst, cairo_t * cr)
+					struct glyph_string *dst, cairo_t *cr)
 {
   dst->clip[0].x = src->x;
   dst->clip[0].y = src->y;
@@ -2434,6 +2433,73 @@ pgtk_draw_stretch_glyph_string (struct glyph_string *s)
   s->background_filled_p = true;
 }
 
+
+/* Draw a dashed underline of thickness THICKNESS and width WIDTH onto F
+   at a vertical offset of OFFSET from the position of the glyph string
+   S, with each segment SEGMENT pixels in length.  */
+
+static void
+pgtk_draw_dash (struct frame *f, struct glyph_string *s,
+		unsigned long foreground, int width,
+		char segment, int offset, int thickness)
+{
+  cairo_t *cr;
+  double cr_segment, y_center;
+
+  cr = pgtk_begin_cr_clip (s->f);
+  pgtk_set_cr_source_with_color (f, foreground, false);
+  cr_segment = (double) segment;
+  y_center = s->ybase + offset + (thickness / 2.0);
+
+  cairo_set_dash (cr, &cr_segment, 1, s->x);
+  cairo_set_line_width (cr, thickness);
+  cairo_move_to (cr, s->x, y_center);
+  cairo_line_to (cr, s->x + width, y_center);
+  cairo_stroke (cr);
+  pgtk_end_cr_clip (f);
+}
+
+/* Draw an underline of STYLE onto F at an offset of POSITION from the
+   baseline of the glyph string S in the color provided by FOREGROUND,
+   DECORATION_WIDTH in length, and THICKNESS in height.  */
+
+static void
+pgtk_fill_underline (struct frame *f, struct glyph_string *s,
+		     unsigned long foreground,
+		     enum face_underline_type style, int position,
+		     int decoration_width, int thickness)
+{
+  int segment;
+
+  segment = thickness * 3;
+
+  switch (style)
+    {
+      /* FACE_UNDERLINE_DOUBLE_LINE is treated identically to SINGLE, as
+	 the second line will be filled by another invocation of this
+	 function.  */
+    case FACE_UNDERLINE_SINGLE:
+    case FACE_UNDERLINE_DOUBLE_LINE:
+      pgtk_fill_rectangle (f, foreground, s->x, s->ybase + position,
+			   decoration_width, thickness, false);
+      break;
+
+    case FACE_UNDERLINE_DOTS:
+      segment = thickness;
+      FALLTHROUGH;
+
+    case FACE_UNDERLINE_DASHES:
+      pgtk_draw_dash (f, s, foreground, decoration_width, segment,
+		      position, thickness);
+      break;
+
+    case FACE_NO_UNDERLINE:
+    case FACE_UNDERLINE_WAVE:
+    default:
+      emacs_abort ();
+    }
+}
+
 static void
 pgtk_draw_glyph_string (struct glyph_string *s)
 {
@@ -2546,20 +2612,21 @@ pgtk_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline)
 	{
-	  if (s->face->underline == FACE_UNDER_WAVE)
+	  if (s->face->underline == FACE_UNDERLINE_WAVE)
 	    {
 	      if (s->face->underline_defaulted_p)
 		pgtk_draw_underwave (s, s->xgcv.foreground);
 	      else
 		pgtk_draw_underwave (s, s->face->underline_color);
 	    }
-	  else if (s->face->underline == FACE_UNDER_LINE)
+	  else if (s->face->underline >= FACE_UNDERLINE_SINGLE)
 	    {
 	      unsigned long thickness, position;
-	      int y;
+	      unsigned long foreground;
 
 	      if (s->prev
-		  && s->prev->face->underline == FACE_UNDER_LINE
+		  && (s->prev->face->underline != FACE_UNDERLINE_WAVE
+		      && s->prev->face->underline >= FACE_UNDERLINE_SINGLE)
 		  && (s->prev->face->underline_at_descent_line_p
 		      == s->face->underline_at_descent_line_p)
 		  && (s->prev->face->underline_pixels_above_descent_line
@@ -2615,16 +2682,24 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 		thickness = (s->y + s->height) - (s->ybase + position);
 	      s->underline_thickness = thickness;
 	      s->underline_position = position;
-	      y = s->ybase + position;
+
 	      if (s->face->underline_defaulted_p)
-		pgtk_fill_rectangle (s->f, s->xgcv.foreground,
-				     s->x, y, s->width, thickness,
-				     false);
+		foreground = s->xgcv.foreground;
 	      else
+		foreground = s->face->underline_color;
+
+	      pgtk_fill_underline (s->f, s, foreground, s->face->underline,
+				   position, s->width, thickness);
+
+	      /* Place a second underline above the first if this was
+		 requested in the face specification.  */
+
+	      if (s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
 		{
-		  pgtk_fill_rectangle (s->f, s->face->underline_color,
-				       s->x, y, s->width, thickness,
-				       false);
+		  /* Compute the position of the second underline.  */
+		  position = position - thickness - 1;
+		  pgtk_fill_underline (s->f, s, foreground, s->face->underline,
+				       position, s->width, thickness);
 		}
 	    }
 	}
@@ -7107,6 +7182,9 @@ syms_of_pgtkterm (void)
   DEFSYM (Qsuper, "super");
   DEFSYM (Qcontrol, "control");
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
+  /* Referenced in gtkutil.c.  */
+  DEFSYM (Qtheme_name, "theme-name");
+  DEFSYM (Qfile_name_sans_extension, "file-name-sans-extension");
 
   DEFSYM (Qfile, "file");
   DEFSYM (Qurl, "url");
@@ -7123,7 +7201,6 @@ syms_of_pgtkterm (void)
   DEFSYM (Qmove, "move");
   DEFSYM (Qlink, "link");
   DEFSYM (Qprivate, "private");
-
 
   Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_fixnum (hyper_modifier));
@@ -7404,5 +7481,5 @@ pgtk_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 
   unbind_to (count, Qnil);
 
-  return CALLN (Fapply, intern ("concat"), Fnreverse (acc));
+  return CALLN (Fapply, Qconcat, Fnreverse (acc));
 }

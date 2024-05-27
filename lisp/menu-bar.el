@@ -2233,26 +2233,29 @@ updating the menu."
 	 (not (window-minibuffer-p
 	       (frame-selected-window menu-frame))))))
 
-(defun kill-this-buffer ()	; for the menu bar
+(defun kill-this-buffer (&optional event) ; for the menu bar
   "Kill the current buffer.
 When called in the minibuffer, get out of the minibuffer
 using `abort-recursive-edit'.
 
 This command can be reliably invoked only from the menu bar,
 otherwise it could decide to silently do nothing."
-  (interactive)
-  (cond
-   ;; Don't do anything when `menu-frame' is not alive or visible
-   ;; (Bug#8184).
-   ((not (menu-bar-menu-frame-live-and-visible-p)))
-   ((menu-bar-non-minibuffer-window-p)
-    (kill-buffer (current-buffer))
-    ;; Also close the current window if `menu-bar-close-window' is
-    ;; set.
-    (when menu-bar-close-window
-      (ignore-errors (delete-window))))
-   (t
-    (abort-recursive-edit))))
+  (interactive "e")
+  ;; This colossus of a conditional is necessary to account for the wide
+  ;; variety of this command's callers.
+  (if (let* ((window (or (and event (event-start event)
+                              (posn-window (event-start event)))
+                         last-event-frame
+                         (selected-frame)))
+             (frame (if (framep window) window
+                      (window-frame window))))
+        (not (window-minibuffer-p (frame-selected-window frame))))
+      (progn (kill-buffer (current-buffer))
+             ;; Also close the current window if `menu-bar-close-window' is
+             ;; set.
+             (when menu-bar-close-window
+               (ignore-errors (delete-window))))
+    (abort-recursive-edit)))
 
 (defun kill-this-buffer-enabled-p ()
   "Return non-nil if the `kill-this-buffer' menu item should be enabled.

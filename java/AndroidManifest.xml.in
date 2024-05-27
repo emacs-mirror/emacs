@@ -31,7 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	  android:versionName="@version@">
 
   <!-- Paste in every permission in existence so Emacs can do
-       anything.  -->
+       everything.  -->
 
   <uses-permission android:name="android.permission.READ_CONTACTS" />
   <uses-permission android:name="android.permission.WRITE_CONTACTS" />
@@ -95,8 +95,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
   <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
   <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
-  <uses-permission android:name="android.permission.READ_SMS" />
-  <uses-permission android:name="android.permission.RECEIVE_MMS" />
   <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
   <uses-permission android:name="android.permission.SMS_FINANCIAL_TRANSACTIONS" />
@@ -185,7 +183,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
   <uses-permission android:name="android.permission.USE_FINGERPRINT" />
   <uses-permission android:name="android.permission.WRITE_PROFILE" />
-  <uses-permission android:name="android.permission.WRITE_SMS" />
   <uses-permission android:name="android.permission.WRITE_SOCIAL_STREAM" />
   <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
   <uses-permission android:name="android.permission.WRITE_USER_DICTIONARY" />

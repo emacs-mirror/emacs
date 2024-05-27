@@ -143,9 +143,9 @@ This function is the opposite of @code{listp}: it returns @code{t} if
 @defun null object
 This function returns @code{t} if @var{object} is @code{nil}, and
 returns @code{nil} otherwise.  This function is identical to @code{not},
-but as a matter of clarity we use @code{null} when @var{object} is
-considered a list and @code{not} when it is considered a truth value
-(see @code{not} in @ref{Combining Conditions}).
+but as a matter of clarity we use @code{not} when @var{object} is
+considered a truth value (see @code{not} in @ref{Combining
+Conditions}) and @code{null} otherwise.
 
 @example
 @group
@@ -317,6 +317,7 @@ For historical reasons, it takes its arguments in the opposite order.
 @xref{Sequence Functions}.
 @end defun
 
+@findex drop
 @defun nthcdr n list
 This function returns the @var{n}th @sc{cdr} of @var{list}.  In other
 words, it skips past the first @var{n} links of @var{list} and returns
@@ -326,6 +327,8 @@ what follows.
 If @var{n} is zero, @code{nthcdr} returns all of
 @var{list}.  If the length of @var{list} is @var{n} or less,
 @code{nthcdr} returns @code{nil}.
+
+An alias for @code{nthcdr} is @code{drop}.
 
 @example
 @group
@@ -349,6 +352,9 @@ it returns the part of @var{list} that @code{nthcdr} skips.
 
 @code{take} returns @var{list} if shorter than @var{n} elements;
 it returns @code{nil} if @var{n} is zero or negative.
+
+In general, @code{(append (take @var{n} @var{list}) (drop @var{n} @var{list}))}
+will return a list equal to @var{list}.
 
 @example
 @group
@@ -1249,7 +1255,7 @@ this is not guaranteed to happen):
 
 @group
 (symbol-function 'add-foo)
-     @result{} (lambda (x) (nconc '(foo) x))
+     @result{} #f(lambda (x) [t] (nconc '(foo) x))
 @end group
 
 @group
@@ -1267,7 +1273,7 @@ this is not guaranteed to happen):
 
 @group
 (symbol-function 'add-foo)
-     @result{} (lambda (x) (nconc '(foo 1 2 3 4) x))
+     @result{} #f(lambda (x) [t] (nconc '(foo 1 2 3 4) x))
 @end group
 @end smallexample
 @end defun

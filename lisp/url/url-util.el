@@ -242,45 +242,6 @@ Will not do anything if `url-show-status' is nil."
           (setq retval (cons (list key val) retval)))))
     retval))
 
-;;;###autoload
-(defun url-build-query-string (query &optional semicolons keep-empty)
-  "Build a query-string.
-
-Given a QUERY in the form:
- ((key1 val1)
-  (key2 val2)
-  (key3 val1 val2)
-  (key4)
-  (key5 \"\"))
-
-\(This is the same format as produced by `url-parse-query-string')
-
-This will return a string
-\"key1=val1&key2=val2&key3=val1&key3=val2&key4&key5\".  Keys may
-be strings or symbols; if they are symbols, the symbol name will
-be used.
-
-When SEMICOLONS is given, the separator will be \";\".
-
-When KEEP-EMPTY is given, empty values will show as \"key=\"
-instead of just \"key\" as in the example above."
-  (mapconcat
-   (lambda (key-vals)
-     (let ((escaped
-            (mapcar (lambda (sym)
-                      (url-hexify-string (format "%s" sym))) key-vals)))
-       (mapconcat (lambda (val)
-                    (let ((vprint (format "%s" val))
-                          (eprint (format "%s" (car escaped))))
-                      (concat eprint
-                              (if (or keep-empty
-                                      (and val (not (zerop (length vprint)))))
-                                  "="
-                                "")
-                              vprint)))
-                  (or (cdr escaped) '("")) (if semicolons ";" "&"))))
-   query (if semicolons ";" "&")))
-
 (defun url-unhex (x)
   (if (> x ?9)
       (if (>= x ?a)
@@ -410,6 +371,15 @@ These characters are specified in RFC 3986, Appendix A.")
   "Allowed-character byte mask for the query segment of a URI.
 These characters are specified in RFC 3986, Appendix A.")
 
+(defconst url-query-key-value-allowed-chars
+  (let ((vec (copy-sequence url-query-allowed-chars)))
+    (aset vec ?= nil)
+    (aset vec ?& nil)
+    (aset vec ?\; nil)
+    vec)
+  "Allowed-charcter byte mask for keys and values in the query segment of a URI.
+url-query-allowed-chars minus '=', '&', and ';'.")
+
 ;;;###autoload
 (defun url-encode-url (url)
   "Return a properly URI-encoded version of URL.
@@ -438,6 +408,47 @@ should return it unchanged."
 	(setf (url-target obj)
 	      (url-hexify-string frag url-query-allowed-chars)))
     (url-recreate-url obj)))
+
+;;;###autoload
+(defun url-build-query-string (query &optional semicolons keep-empty)
+  "Build a query-string.
+
+Given a QUERY in the form:
+ ((key1 val1)
+  (key2 val2)
+  (key3 val1 val2)
+  (key4)
+  (key5 \"\"))
+
+\(This is the same format as produced by `url-parse-query-string')
+
+This will return a string
+\"key1=val1&key2=val2&key3=val1&key3=val2&key4&key5\".  Keys may
+be strings or symbols; if they are symbols, the symbol name will
+be used.
+
+When SEMICOLONS is given, the separator will be \";\".
+
+When KEEP-EMPTY is given, empty values will show as \"key=\"
+instead of just \"key\" as in the example above."
+  (mapconcat
+   (lambda (key-vals)
+     (let ((escaped
+            (mapcar (lambda (sym)
+                      (url-hexify-string (format "%s" sym)
+                                         url-query-key-value-allowed-chars))
+                    key-vals)))
+       (mapconcat (lambda (val)
+                    (let ((vprint (format "%s" val))
+                          (eprint (format "%s" (car escaped))))
+                      (concat eprint
+                              (if (or keep-empty
+                                      (and val (not (zerop (length vprint)))))
+                                  "="
+                                "")
+                              vprint)))
+                  (or (cdr escaped) '("")) (if semicolons ";" "&"))))
+   query (if semicolons ";" "&")))
 
 ;;;###autoload
 (defun url-file-extension (fname &optional x)

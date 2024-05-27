@@ -178,7 +178,7 @@ rest are not called.")
   "Return the buffer over which event EVENT occurred.
 This might return nil if the event did not occur over a buffer."
   (let ((window (posn-window (event-end event))))
-    (and window (window-buffer window))))
+    (and (windowp window) (window-buffer window))))
 
 
 ;;; Timeout for tooltip display

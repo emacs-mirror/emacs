@@ -51,9 +51,9 @@ public final class EmacsPixmap extends EmacsHandleObject
   private long gcClipRectID;
 
   public
-  EmacsPixmap (short handle, int width, int height, int depth)
+  EmacsPixmap (int width, int height, int depth)
   {
-    super (handle);
+    super ();
 
     if (depth != 1 && depth != 24)
       throw new IllegalArgumentException ("Invalid depth specified"

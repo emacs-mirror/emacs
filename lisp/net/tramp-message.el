@@ -459,6 +459,16 @@ the resulting error message."
          (progn ,@body)
        (error (tramp-message ,vec-or-proc 3 ,format ,err) nil))))
 
+(defsubst tramp-warning (vec-or-proc fmt-string &rest arguments)
+  "Show a warning.
+VEC-OR-PROC identifies the connection to use, remaining arguments passed
+to `tramp-message'."
+  (declare (tramp-suppress-trace t))
+  (let (signal-hook-function)
+    (apply 'tramp-message vec-or-proc 2 fmt-string arguments)
+    (display-warning
+     'tramp (apply #'format-message fmt-string arguments) :warning)))
+
 (defun tramp-test-message (fmt-string &rest arguments)
   "Emit a Tramp message according `default-directory'."
   (declare (tramp-suppress-trace t))

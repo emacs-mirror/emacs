@@ -101,17 +101,19 @@
                                   :port port
                                   :full-name "tester"
                                   :nick "tester")
-          (funcall expect 5 "Opening connection")
+          (funcall expect 5 "*** Welcome")
           (goto-char (1- (match-beginning 0)))
           (should (eq 'erc-timestamp (field-at-pos (point))))
-          (should (eq 'unknown (erc--get-inserted-msg-prop 'erc--msg)))
+          (should (eq 'notice (erc--get-inserted-msg-prop 'erc--msg)))
           ;; Force redraw of date stamp.
           (setq erc-timestamp-last-inserted-left nil)
 
           (funcall expect 5 "This server is in debug mode")
           (while (and (zerop (forward-line -1))
                       (not (eq 'erc-timestamp (field-at-pos (point))))))
-          (should (erc--get-inserted-msg-prop 'erc--cmd)))))))
+          (should (erc--get-inserted-msg-prop 'erc--cmd))
+          (should-not erc-stamp--date-mode)
+          (should-not erc-stamp--date-stamps))))))
 
 ;; This user-owned hook member places a marker on the first message in
 ;; a buffer.  Inserting a date stamp in front of it shouldn't move the

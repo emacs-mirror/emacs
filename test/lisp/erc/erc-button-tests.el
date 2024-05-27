@@ -74,9 +74,11 @@
            (entry (list (rx "+1") 0 func #'ignore 0))
            (erc-button-alist (cons entry erc-button-alist)))
 
-      (erc-display-message nil 'notice (current-buffer) "Foo bar baz")
-      (erc-display-message nil nil (current-buffer) "+1")
-      (erc-display-message nil 'notice (current-buffer) "Spam")
+      (erc-tests-common-display-message nil 'notice (current-buffer)
+                                        "Foo bar baz")
+      (erc-tests-common-display-message nil nil (current-buffer) "+1")
+      (erc-tests-common-display-message nil 'notice (current-buffer) "Spam")
+
       (should (equal (pop erc-button-tests--form)
                      '(53 55 ignore nil ("+1") "\\+1")))
       (should-not erc-button-tests--form)

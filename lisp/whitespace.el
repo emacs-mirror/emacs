@@ -2474,7 +2474,7 @@ purposes)."
   (let ((i (length vec)))
     (when (> i 0)
       (while (and (>= (setq i (1- i)) 0)
-		  (whitespace-char-valid-p (aref vec i))))
+		  (whitespace-char-valid-p (glyph-char (aref vec i)))))
       (< i 0))))
 
 

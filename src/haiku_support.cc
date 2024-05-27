@@ -1063,6 +1063,13 @@ public:
 
 	uint32_t mods = modifiers ();
 
+        if (haiku_should_pass_control_tab_to_system ()
+            && (mods & B_CONTROL_KEY) && key == 38)
+        {
+          BWindow::DispatchMessage (msg, handler);
+          return;
+        }
+
 	if (mods & B_SHIFT_KEY)
 	  rq.modifiers |= HAIKU_MODIFIER_SHIFT;
 

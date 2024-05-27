@@ -74,23 +74,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 static char *get_doc_string_buffer;
 static ptrdiff_t get_doc_string_buffer_size;
 
-static unsigned char *read_bytecode_pointer;
-
 static char const sibling_etc[] = "../etc/";
-
-/* `readchar' in lread.c calls back here to fetch the next byte.
-   If UNREADFLAG is 1, we unread a byte.  */
-
-int
-read_bytecode_char (bool unreadflag)
-{
-  if (unreadflag)
-    {
-      read_bytecode_pointer--;
-      return 0;
-    }
-  return *read_bytecode_pointer++;
-}
 
 #ifdef USE_ANDROID_ASSETS
 
@@ -120,15 +104,10 @@ close_file_unwind_android_fd (void *ptr)
    (e.g. because the file has been modified and the location is stale),
    return nil.
 
-   If UNIBYTE, always make a unibyte string.
-
-   If DEFINITION, assume this is for reading
-   a dynamic function definition; convert the bytestring
-   and the constants vector with appropriate byte handling,
-   and return a cons cell.  */
+   If UNIBYTE, always make a unibyte string.  */
 
 Lisp_Object
-get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
+get_doc_string (Lisp_Object filepos, bool unibyte)
 {
   char *from, *to, *name, *p, *p1;
   Lisp_Object file, pos;
@@ -312,14 +291,6 @@ Invalid data in documentation file -- %c followed by code %03o",
 	*to++ = *from++;
     }
 
-  /* If DEFINITION, read from this buffer
-     the same way we would read bytes from a file.  */
-  if (definition)
-    {
-      read_bytecode_pointer = (unsigned char *) get_doc_string_buffer + offset;
-      return Fread (Qlambda);
-    }
-
   if (unibyte)
     return make_unibyte_string (get_doc_string_buffer + offset,
 				to - (get_doc_string_buffer + offset));
@@ -334,16 +305,6 @@ Invalid data in documentation file -- %c followed by code %03o",
 				     nchars,
 				     to - (get_doc_string_buffer + offset));
     }
-}
-
-/* Get a string from position FILEPOS and pass it through the Lisp reader.
-   We use this for fetching the bytecode string and constants vector
-   of a compiled function from the .elc file.  */
-
-Lisp_Object
-read_doc_string (Lisp_Object filepos)
-{
-  return get_doc_string (filepos, 0, 1);
 }
 
 static bool
@@ -408,7 +369,7 @@ is removed unless RAW is the symbol `also-pos'.  */)
   if (FIXNUMP (doc) || CONSP (doc))
     {
       Lisp_Object tem;
-      tem = get_doc_string (doc, 0, 0);
+      tem = get_doc_string (doc, 0);
       if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
@@ -489,7 +450,7 @@ aren't strings.  */)
   if (FIXNUMP (tem) || (CONSP (tem) && FIXNUMP (XCDR (tem))))
     {
       Lisp_Object doc = tem;
-      tem = get_doc_string (tem, 0, 0);
+      tem = get_doc_string (tem, 0);
       if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
@@ -525,11 +486,27 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);
   /* Lisp_Subrs have a slot for it.  */
-  if (SUBRP (fun) && !SUBR_NATIVE_COMPILEDP (fun))
+  if (SUBRP (fun))
     XSUBR (fun)->doc = offset;
+  else if (CLOSUREP (fun))
+    {
+      /* This bytecode object must have a slot for the docstring, since
+	 we've found a docstring for it.  */
+      if (PVSIZE (fun) > CLOSURE_DOC_STRING
+	  /* Don't overwrite a non-docstring value placed there, such as
+             the symbols used for Oclosures.  */
+	  && VALID_DOCSTRING_P (AREF (fun, CLOSURE_DOC_STRING)))
+	ASET (fun, CLOSURE_DOC_STRING, make_fixnum (offset));
+      else
+	{
+	  AUTO_STRING (format, "No doc string slot for compiled: %S");
+	  CALLN (Fmessage, format, obj);
+	}
+    }
   else
     {
-      AUTO_STRING (format, "Ignoring DOC string on non-subr: %S");
+      AUTO_STRING (format, "Ignoring DOC string on non-compiled"
+		   "non-subr: %S");
       CALLN (Fmessage, format, obj);
     }
 }
@@ -556,8 +533,8 @@ the same file name is found in the `doc-directory'.  */)
   ptrdiff_t dirlen;
   /* Preloaded defcustoms using custom-initialize-delay are added to
      this list, but kept unbound.  See https://debbugs.gnu.org/11565  */
-  Lisp_Object delayed_init =
-    find_symbol_value (intern ("custom-delayed-init-variables"));
+  Lisp_Object delayed_init
+    = find_symbol_value (Qcustom_delayed_init_variables);
 
   if (!CONSP (delayed_init)) delayed_init = Qnil;
 
@@ -772,4 +749,5 @@ compute the correct value for the current terminal in the nil case.  */);
   defsubr (&Sdocumentation_property);
   defsubr (&Ssnarf_documentation);
   defsubr (&Stext_quoting_style);
+  DEFSYM (Qcustom_delayed_init_variables, "custom-delayed-init-variables");
 }

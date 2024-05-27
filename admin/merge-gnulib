@@ -29,7 +29,6 @@ GNULIB_MODULES='
   alignasof alloca-opt binary-io boot-time byteswap c-ctype c-strcase
   canonicalize-lgpl
   careadlinkat close-stream copy-file-range
-  count-leading-zeros count-one-bits count-trailing-zeros
   crypto/md5 crypto/md5-buffer
   crypto/sha1-buffer crypto/sha256-buffer crypto/sha512-buffer
   d-type diffseq double-slash-root dtoastr dtotimespec dup2
@@ -44,7 +43,9 @@ GNULIB_MODULES='
   nanosleep nproc nstrftime
   pathmax pipe2 pselect pthread_sigmask
   qcopy-acl readlink readlinkat regex
-  sig2str sigdescr_np socklen stat-time std-gnu11 stdbool stdckdint stddef stdio
+  sig2str sigdescr_np socklen stat-time std-gnu11 stdbool
+  stdc_bit_width stdc_count_ones stdc_trailing_zeros
+  stdckdint stddef stdio
   stpcpy strnlen strnlen strtoimax symlink sys_stat sys_time
   tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
   update-copyright unlocked-io utimensat
@@ -126,6 +127,7 @@ rm -- "$src"lib/gl_openssl.h \
       "$src"m4/gnulib-cache.m4 "$src"m4/gnulib-tool.m4 \
       "$src"m4/locale-fr.m4 \
       "$src"m4/manywarnings-c++.m4 \
+      "$src"m4/off64_t.m4 \
       "$src"m4/warn-on-use.m4 "$src"m4/wint_t.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
 cp -- "$gnulib_srcdir"/build-aux/config.guess \

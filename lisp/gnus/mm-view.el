@@ -105,7 +105,7 @@ This is only used if `mm-inline-large-images' is set to
      (lambda ()
        (let ((inhibit-read-only t))
 	 (remove-images b b)
-	 (delete-region b (1+ b)))))))
+	 (delete-region b (+ b 2)))))))
 
 (defvar mm-w3m-setup nil
   "Whether gnus-article-mode has been setup to use emacs-w3m.")
@@ -502,6 +502,7 @@ If MODE is not set, try to find mode automatically."
 	  (setq coding-system (mm-find-buffer-file-coding-system)))
 	(setq text (buffer-string))))
     (with-temp-buffer
+      (setq untrusted-content t)
       (insert (cond ((eq charset 'gnus-decoded)
 		     (with-current-buffer (mm-handle-buffer handle)
 		       (buffer-string)))

@@ -437,7 +437,9 @@ headers of the messages."
 		 (= (length rmail-summary-message-parents-vector)
 		    (1+ rmail-total-messages)))
       (rmail-summary-fill-message-parents-and-descs-vectors)))
-  (let ((enc-msgs (make-bool-vector (1+ rmail-total-messages) nil)))
+  (let ((enc-msgs
+         (with-current-buffer rmail-buffer
+           (make-bool-vector (1+ rmail-total-messages) nil))))
     (rmail-summary--walk-thread-message-recursively msgnum enc-msgs)
     (rmail-new-summary (format "thread containing message %d" msgnum)
 		       (list 'rmail-summary-by-thread msgnum)

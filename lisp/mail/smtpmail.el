@@ -638,7 +638,7 @@ USER and PASSWORD should be non-nil."
    235))
 
 (cl-defmethod smtpmail-try-auth-method
-  (process (_mech (eql xoauth2)) user password)
+  (process (_mech (eql 'xoauth2)) user password)
   (smtpmail-command-or-throw
    process
    (concat "AUTH XOAUTH2 "

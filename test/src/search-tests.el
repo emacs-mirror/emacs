@@ -21,23 +21,25 @@
 
 (require 'ert)
 
-(ert-deftest test-replace-match-modification-hooks ()
-  (let ((ov-set nil))
-    (with-temp-buffer
-      (insert "1 abc")
-      (setq ov-set (make-overlay 3 5))
-      (overlay-put
-       ov-set 'modification-hooks
-       (list (lambda (_o after &rest _args)
-	       (when after
-		 (let ((inhibit-modification-hooks t))
-		   (save-excursion
-		     (goto-char 2)
-		     (insert "234")))))))
-      (goto-char 3)
-      (if (search-forward "bc")
-	  (replace-match "bcd"))
-      (should (= (point) 10)))))
+;; This test was bad: modification hooks should never modify
+;; the buffer text, because it causes problems in too many places.
+;;(ert-deftest test-replace-match-modification-hooks () ;bug#42424
+;;  (let ((ov-set nil))
+;;    (with-temp-buffer
+;;      (insert "1 abc")
+;;      (setq ov-set (make-overlay 3 5))
+;;      (overlay-put
+;;       ov-set 'modification-hooks
+;;       (list (lambda (_o after &rest _args)
+;;               (when after
+;;                 (let ((inhibit-modification-hooks t))
+;;                   (save-excursion
+;;                     (goto-char 2)
+;;                     (insert "234")))))))
+;;      (goto-char 3)
+;;      (if (search-forward "bc")
+;;          (replace-match "bcd"))
+;;      (should (= (point) 10)))))
 
 (ert-deftest search-test--replace-match-update-data ()
   (with-temp-buffer

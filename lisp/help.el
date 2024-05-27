@@ -171,9 +171,15 @@ Value should be a list of elements, each element should of the form
 
   (GROUP-NAME (COMMAND . DESCRIPTION) (COMMAND . DESCRIPTION)...)
 
-where GROUP-NAME is the name of the group of the commands,
-COMMAND is the symbol of a command and DESCRIPTION is its short
-description, 10 to 15 char5acters at most.")
+where GROUP-NAME is the name of the group of the commands, COMMAND is
+the symbol of a command and DESCRIPTION is its short description, 10 to
+15 characters at most.  The bindings for COMMAND are looked up from the
+keymap specified in `help-quick-use-map'.")
+
+(defvar help-quick-use-map global-map
+  "Keymap that `help-quick' should use to lookup bindings.
+Avoid changing the global value of this variable.  Instead bind a
+different map dynamically.")
 
 (declare-function prop-match-value "text-property-search" (match))
 
@@ -193,7 +199,7 @@ the documentation of the command bound to that key sequence."
         (let ((max-key-len 0) (max-cmd-len 0) keys)
           (dolist (ent (reverse (cdr section)))
             (catch 'skip
-              (let* ((bind (where-is-internal (car ent) nil t))
+              (let* ((bind (where-is-internal (car ent) help-quick-use-map t))
                      (key (if bind
                               (propertize
                                (key-description bind)
@@ -1043,6 +1049,9 @@ with `mouse-movement' events."
   (let ((enable-disabled-menus-and-buttons t)
         (cursor-in-echo-area t)
         (side-event nil)
+        ;; Showing the list of key sequences makes no sense when they
+        ;; asked about a key sequence.
+        (echo-keystrokes-help nil)
         saved-yank-menu)
     (unwind-protect
         (let (last-modifiers key-list)
@@ -1060,8 +1069,11 @@ with `mouse-movement' events."
                   ;; After a click, see if a double click is on the way.
                   (and (memq 'click last-modifiers)
                        (not (sit-for (/ (mouse-double-click-time) 1000.0) t))))
-            (let* ((seq (read-key-sequence "\
+            (let* ((prompt
+                    (propertize "\
 Describe the following key, mouse click, or menu item: "
+                                'face 'minibuffer-prompt))
+                   (seq (read-key-sequence prompt
                                            nil nil 'can-return-switch-frame))
                    (raw-seq (this-single-command-raw-keys))
                    (keyn (when (> (length seq) 0)
@@ -2368,9 +2380,8 @@ the same names as used in the original source code, when possible."
   ;; If definition is a macro, find the function inside it.
   (if (eq (car-safe def) 'macro) (setq def (cdr def)))
   (cond
-   ((and (byte-code-function-p def) (listp (aref def 0))) (aref def 0))
+   ((and (closurep def) (listp (aref def 0))) (aref def 0))
    ((eq (car-safe def) 'lambda) (nth 1 def))
-   ((eq (car-safe def) 'closure) (nth 2 def))
    ((and (featurep 'native-compile)
          (subrp def)
          (listp (subr-native-lambda-list def)))
@@ -2378,7 +2389,7 @@ the same names as used in the original source code, when possible."
    ((or (and (byte-code-function-p def) (integerp (aref def 0)))
         (subrp def) (module-function-p def))
     (or (when preserve-names
-          (let* ((doc (condition-case nil (documentation def) (error nil)))
+          (let* ((doc (condition-case nil (documentation def 'raw) (error nil)))
                  (docargs (if doc (car (help-split-fundoc doc nil))))
                  (arglist (if docargs
                               (cdar (read-from-string (downcase docargs)))))

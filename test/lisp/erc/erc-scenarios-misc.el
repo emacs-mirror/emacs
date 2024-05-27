@@ -49,7 +49,7 @@
 
     (ert-info ("#chan@foonet exists")
       (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "#chan/foonet"))
-        (erc-d-t-search-for 2 "<bob/foonet>")
+        (erc-d-t-search-for 10 "<bob/foonet>")
         (erc-d-t-absent-for 0.1 "<joe")
         (funcall expect 3 "was created on")))
 
@@ -58,7 +58,7 @@
         (erc-d-t-search-for 2 "<joe/barnet>")
         (erc-d-t-absent-for 0.1 "<bob")
         (funcall expect 3 "was created on")
-        (funcall expect 5 "To get good guard")))
+        (funcall expect 10 "To get good guard")))
 
     (ert-info ("Message not held in queue limbo")
       (with-current-buffer "#chan/foonet"

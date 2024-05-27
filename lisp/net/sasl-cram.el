@@ -42,7 +42,7 @@
 	(concat (sasl-client-name client) " "
 		(encode-hex-string
 		 (hmac-md5 (sasl-step-data step) passphrase)))
-      (fillarray passphrase 0))))
+      (clear-string passphrase))))
 
 (put 'sasl-cram 'sasl-mechanism
      (sasl-make-mechanism "CRAM-MD5" sasl-cram-md5-steps))

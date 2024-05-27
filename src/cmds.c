@@ -428,7 +428,7 @@ internal_self_insert (int c, EMACS_INT n)
 	  && SYMBOLP (XSYMBOL (sym)->u.s.function))
 	{
 	  Lisp_Object prop;
-	  prop = Fget (XSYMBOL (sym)->u.s.function, intern ("no-self-insert"));
+	  prop = Fget (XSYMBOL (sym)->u.s.function, Qno_self_insert);
 	  if (! NILP (prop))
 	    return 1;
 	}
@@ -507,6 +507,7 @@ syms_of_cmds (void)
   DEFSYM (Qundo_auto_amalgamate, "undo-auto-amalgamate");
   DEFSYM (Qundo_auto__this_command_amalgamating,
           "undo-auto--this-command-amalgamating");
+  DEFSYM (Qno_self_insert, "no-self-insert");
 
   DEFSYM (Qkill_forward_chars, "kill-forward-chars");
 

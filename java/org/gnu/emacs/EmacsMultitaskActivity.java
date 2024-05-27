@@ -19,11 +19,39 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-/* This class only exists because EmacsActivity is already defined as
-   an activity, and the system wants a new class in order to define a
-   new activity.  */
+import android.content.Intent;
+
+import android.os.Bundle;
+
+/* In large measure, this class only exists because EmacsActivity is
+   already defined as an activity, and the system requires that every
+   new activity be defined by a new class.  */
 
 public final class EmacsMultitaskActivity extends EmacsActivity
 {
+  /* Token provided by the creator.  */
+  private long activityToken;
 
-}
+  @Override
+  public final void
+  onCreate (Bundle savedInstanceState)
+  {
+    Intent intent;
+    String token;
+
+    intent = getIntent ();
+    token  = EmacsWindowManager.ACTIVITY_TOKEN;
+
+    if (intent != null)
+      activityToken = intent.getLongExtra (token, -2);
+
+    super.onCreate (savedInstanceState);
+  }
+
+  @Override
+  public final long
+  getAttachmentToken ()
+  {
+    return activityToken;
+  }
+};

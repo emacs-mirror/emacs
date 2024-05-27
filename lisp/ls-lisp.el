@@ -328,11 +328,39 @@ not contain `d', so that a full listing is expected."
           full-directory-p)
       (let* ((dir (file-name-as-directory file))
 	     (default-directory dir)	; so that file-attributes works
+             (id-format (if (memq ?n switches)
+		            'integer
+	                  'string))
 	     (file-alist
-	      (directory-files-and-attributes dir nil wildcard-regexp t
-					      (if (memq ?n switches)
-						  'integer
-						'string)))
+              (catch 'new-list
+                (handler-bind
+                    ((error
+                      (lambda (error)
+                        ;; `directory-files-and-attributes' signals
+                        ;; failure on Unix systems if even a single
+                        ;; file's attributes cannot be accessed.
+                        ;;
+                        ;; Detect errors signaled while retrieving file
+                        ;; attributes and resolve them by creating the
+                        ;; attribute list manually, ignoring the
+                        ;; attributes of files that cannot be accessed
+                        ;; in this sense.
+                        (when (member (cadr error)
+                                      '("Getting attributes"
+                                        "Reading symbolic link"))
+                          (let ((file-list (directory-files dir nil
+                                                            wildcard-regexp
+                                                            t)))
+                            (throw 'new-list
+                                   (mapcar (lambda (file)
+                                             (cons file
+                                                   (or (ignore-errors
+                                                         (file-attributes
+                                                          file id-format))
+                                                       nil)))
+                                           file-list)))))))
+                  (directory-files-and-attributes
+                   dir nil wildcard-regexp t id-format))))
 	     (sum 0)
 	     (max-uid-len 0)
 	     (max-gid-len 0)
@@ -845,6 +873,7 @@ The l switch is assumed to be always present and cannot be turned off."
   (let ((lsflags '(("-a" . "--all")
                    ("-A" . "--almost-all")
                    ("-B" . "--ignore-backups")
+                   ("-c" . "--time=ctime")
                    ("-C" . "--color")
                    ("-F" . "--classify")
                    ("-G" . "--no-group")
@@ -855,7 +884,9 @@ The l switch is assumed to be always present and cannot be turned off."
                    ("-r" . "--reverse")
                    ("-R" . "--recursive")
                    ("-s" . "--size")
+                   ("-t" . "--sort=time")
                    ("-S" . "--sort.*[ \\\t]")
+                   ("-u" . "--time=atime")
                    (""   . "--group-directories-first")
                    (""   . "--author")
                    (""   . "--escape")

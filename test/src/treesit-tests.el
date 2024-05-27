@@ -927,7 +927,7 @@ starting marker position, and the rest are marker positions the
 corresponding navigation should stop at (after running
 `treesit-defun-skipper').
 
-TACTIC is the same as in `treesit--navigate-thing'.
+TACTIC is the same as in `treesit-navigate-thing'.
 
 OPENING and CLOSING are the same as in
 `treesit--ert-insert-and-parse-marker', by default they are \"[\"
@@ -939,7 +939,7 @@ and \"]\"."
          (closing (or closing "]"))
          ;; Insert program and parse marker positions.
          (marker-alist (treesit--ert-insert-and-parse-marker
-                           opening closing program))
+                        opening closing program))
          ;; Translate marker positions into buffer positions.
          (decoded-master
           (cl-loop for record in master
@@ -955,7 +955,7 @@ and \"]\"."
            (mapcar (lambda (conf)
                      (lambda ()
                        (if-let ((pos (funcall
-                                      #'treesit--navigate-thing
+                                      #'treesit-navigate-thing
                                       (point) (car conf) (cdr conf)
                                       treesit-defun-type-regexp tactic)))
                            (save-excursion

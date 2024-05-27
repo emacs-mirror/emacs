@@ -617,6 +617,15 @@ the resulting variables will end up with more useful doc strings."
   "Return position of CHAR in STRING or nil if not found."
   (inline-quote (string-search (string ,char) ,string)))
 
+(define-inline erc--solo (list-or-atom)
+  "If LIST-OR-ATOM is a list of one element, return that element.
+Otherwise, return LIST-OR-ATOM."
+  (inline-letevals (list-or-atom)
+    (inline-quote
+     (if (and (consp ,list-or-atom) (null (cdr ,list-or-atom)))
+         (car ,list-or-atom)
+       ,list-or-atom))))
+
 (defmacro erc--doarray (spec &rest body)
   "Map over ARRAY, running BODY with VAR bound to iteration element.
 Behave more or less like `seq-doseq', but tailor operations for

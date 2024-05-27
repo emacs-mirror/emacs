@@ -40,7 +40,13 @@ if test "$XCONFIGURE" = "android"; then
   CFLAGS="$ANDROID_CFLAGS -Werror=implicit-function-declaration"
   # Don't explicitly enable support for large files unless Emacs is
   # being built for API 21 or later.  Otherwise, mmap does not work.
+  #
+  # Moreover, 64-bit variants of file IO functions in the C library are
+  # liable to fail with ENOSYS or EINVAL on earlier API versions, and as
+  # such their definitions must be explicitly disabled on NDK releases
+  # that enable them by default.
   AS_IF([test "$ANDROID_SDK" -lt "21"], [
+    CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
 fi
@@ -548,7 +554,6 @@ OPTION_DEFAULT_OFF([cairo-xcb], [use XCB surfaces for Cairo support])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
 OPTION_DEFAULT_ON([native-image-api], [don't use native image APIs (GDI+ on Windows)])
-OPTION_DEFAULT_IFAVAILABLE([json], [compile with native JSON support])
 OPTION_DEFAULT_IFAVAILABLE([tree-sitter], [compile with tree-sitter])
 
 OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
@@ -857,6 +862,7 @@ ANDROID_ABI=
 WARN_JAVAFLAGS=
 ANDROID_SHARED_USER_ID=
 ANDROID_SHARED_USER_NAME=
+IS_D8_R8=
 
 # This is a list of Makefiles that have alternative versions for
 # Android.
@@ -1023,6 +1029,21 @@ Please verify that the path to the SDK build tools you specified is correct])
     AC_MSG_ERROR([The Android dexer was not found.
 Please verify that the path to the SDK build tools you specified is correct])
   fi
+
+  # Locate any d8.jar within the SDK build tools directory.  The R8
+  # optimizing compiler is also present in this bundle, and it generates
+  # far superior code.
+  emacs_val=`which $D8`
+  emacs_val=`AS_DIRNAME([$emacs_val])`/lib/d8.jar
+  AS_IF([test -f "$emacs_val"],
+    [AC_CACHE_CHECK([whether d8.jar coresident with d8 binary provides r8],
+       [emacs_cv_d8_provides_r8],
+       [AS_IF([java -cp "$emacs_val" com.android.tools.r8.R8 --help &>/dev/null],
+         [emacs_cv_d8_provides_r8=yes], [emacs_cv_d8_provides_r8=no])])])
+  AS_IF([test "$emacs_cv_d8_provides_r8" = "yes"],
+    # And substitute it for D8 if present.
+    [D8="java -cp $emacs_val com.android.tools.r8.R8"
+     IS_D8_R8=yes])
 
   AC_PATH_PROGS([ZIPALIGN], [zipalign], [], "${SDK_BUILD_TOOLS}:$PATH")
   if test "ZIPALIGN" = ""; then
@@ -1216,7 +1237,6 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-png=$with_png"
   passthrough="$passthrough --with-webp=$with_webp"
   passthrough="$passthrough --with-gif=$with_gif"
-  passthrough="$passthrough --with-json=$with_json"
   passthrough="$passthrough --with-jpeg=$with_jpeg"
   passthrough="$passthrough --with-xml2=$with_xml2"
   passthrough="$passthrough --with-sqlite3=$with_sqlite3"
@@ -1283,6 +1303,7 @@ AC_SUBST([D8])
 AC_SUBST([ZIPALIGN])
 AC_SUBST([ANDROID_JAR])
 AC_SUBST([ANDROID_ABI])
+AC_SUBST([IS_D8_R8])
 
 if test "$XCONFIGURE" = "android"; then
   ANDROID=yes
@@ -1305,7 +1326,6 @@ if test "$ANDROID" = "yes"; then
     with_png=no
     with_webp=no
     with_gif=no
-    with_json=no
     with_jpeg=no
     with_xml2=no
     with_sqlite3=no
@@ -1473,7 +1493,11 @@ case "${canonical}" in
       *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
-		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		# Also, GCC 14 turns on implicit-function-declaration
+		# error by default, which fails configure tests where our
+		# emulation of Posix headers defines only the minimal
+		# stuff we actually need.
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc -Wno-error=implicit-function-declaration"
 		;;
       *-sysv4.2uw* )		opsys=unixware ;;
       *-sysv5uw* )		opsys=unixware ;;
@@ -1488,7 +1512,7 @@ case "${canonical}" in
       *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
-		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc -Wno-error=implicit-function-declaration"
 		;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
@@ -1564,6 +1588,10 @@ AC_DEFUN([gt_TYPE_WINT_T],
 AC_DEFUN_ONCE([gl_STDLIB_H],
   [AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
    gl_NEXT_HEADERS([stdlib.h])])
+# Emacs does not need to check for off64_t.
+AC_DEFUN([gl_TYPE_OFF64_T],
+  [HAVE_OFF64_T=1
+   AC_SUBST([HAVE_OFF64_T])])
 
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
@@ -2440,11 +2468,6 @@ AC_DEFINE_UNQUOTED([SYSTEM_TYPE], ["$SYSTEM_TYPE"],
   [The type of system you are compiling for; sets 'system-type'.])
 AC_SUBST([SYSTEM_TYPE])
 
-# Check for pw_gecos in struct passwd; this is known to be missing on
-# Android.
-
-AC_CHECK_MEMBERS([struct passwd.pw_gecos], [], [], [#include <pwd.h>])
-
 pre_PKG_CONFIG_CFLAGS=$CFLAGS
 pre_PKG_CONFIG_LIBS=$LIBS
 
@@ -2729,6 +2752,17 @@ AC_SUBST([ANDROID_LDFLAGS])
 AC_SUBST([ANDROID_BUILD_CFLAGS])
 AC_SUBST([ANDROID_SHARED_USER_ID])
 AC_SUBST([ANDROID_SHARED_USER_NAME])
+
+# Check for pw_gecos in struct passwd; this is known to be missing on
+# Android.
+
+AH_TEMPLATE([USER_FULL_NAME], [How to get a user's full name.])
+AC_CHECK_MEMBERS([struct passwd.pw_gecos], [], [], [#include <pwd.h>])
+AS_IF([test x"$REALLY_ANDROID" = "xyes"],
+  [AC_DEFINE([USER_FULL_NAME], [android_user_full_name (pw)])],
+  [AS_IF([test x"$ac_cv_member_struct_passwd_pw_gecos" = "xyes"],
+    [AC_DEFINE([USER_FULL_NAME], [pw->pw_gecos])],
+    [AC_DEFINE([USER_FULL_NAME], [NULL])])])
 
 if test "${with_pgtk}" = "yes"; then
   window_system=pgtk
@@ -4004,27 +4038,6 @@ fi
 
 AC_SUBST([LIBSYSTEMD_LIBS])
 AC_SUBST([LIBSYSTEMD_CFLAGS])
-
-HAVE_JSON=no
-JSON_OBJ=
-
-if test "${with_json}" != no; then
-  EMACS_CHECK_MODULES([JSON], [jansson >= 2.7],
-    [HAVE_JSON=yes], [HAVE_JSON=no])
-  if test "${HAVE_JSON}" = yes; then
-    AC_DEFINE([HAVE_JSON], [1], [Define if using Jansson.])
-    JSON_OBJ=json.o
-  fi
-
-  # Windows loads libjansson dynamically
-  if test "${opsys}" = "mingw32"; then
-    JSON_LIBS=
-  fi
-fi
-
-AC_SUBST([JSON_LIBS])
-AC_SUBST([JSON_CFLAGS])
-AC_SUBST([JSON_OBJ])
 
 HAVE_TREE_SITTER=no
 TREE_SITTER_OBJ=
@@ -5470,11 +5483,6 @@ case $with_gnutls,$HAVE_GNUTLS in
   *) MISSING="$MISSING gnutls"
      WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-gnutls=ifavailable";;
 esac
-case $with_json,$HAVE_JSON in
-  no,* | ifavailable,* | *,yes) ;;
-  *) MISSING="$MISSING json"
-     WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-json=ifavailable";;
-esac
 case $with_tree_sitter,$HAVE_TREE_SITTER in
   no,* | ifavailable,* | *,yes) ;;
   *) MISSING="$MISSING tree-sitter"
@@ -6461,9 +6469,6 @@ AC_SUBST([SEPCHAR])
 
 dnl Everybody supports this, except MS-DOS.
 AC_DEFINE([subprocesses], [1], [Define to enable asynchronous subprocesses.])
-
-AC_DEFINE([USER_FULL_NAME], [pw->pw_gecos], [How to get a user's full name.])
-
 
 AC_DEFINE([DIRECTORY_SEP], ['/'],
   [Character that separates directories in a file name.])
@@ -7655,7 +7660,7 @@ Configured for '${canonical}'.
 optsep=
 emacs_config_features=
 for opt in ACL BE_APP CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
- HARFBUZZ IMAGEMAGICK JPEG JSON LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
+ HARFBUZZ IMAGEMAGICK JPEG LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
  M17N_FLT MODULES NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PGTK PNG RSVG SECCOMP \
  SOUND SQLITE3 THREADS TIFF TOOLKIT_SCROLL_BARS TREE_SITTER \
  UNEXEC WEBP X11 XAW3D XDBE XFT XIM XINPUT2 XPM XWIDGETS X_TOOLKIT \
@@ -7731,7 +7736,6 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use -lotf?                                   ${HAVE_LIBOTF}
   Does Emacs use -lxft?                                   ${HAVE_XFT}
   Does Emacs use -lsystemd?                               ${HAVE_LIBSYSTEMD}
-  Does Emacs use -ljansson?                               ${HAVE_JSON}
   Does Emacs use -ltree-sitter?                           ${HAVE_TREE_SITTER}
   Does Emacs use the GMP library?                         ${HAVE_GMP}
   Does Emacs directly use zlib?                           ${HAVE_ZLIB}

@@ -1,12 +1,11 @@
-# Configure a more-standard replacement for <time.h>.
-
-# Copyright (C) 2000-2001, 2003-2007, 2009-2024 Free Software Foundation, Inc.
-
+# time_h.m4
 # serial 25
+dnl Copyright (C) 2000-2001, 2003-2007, 2009-2024 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
 
-# This file is free software; the Free Software Foundation
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
+# Configure a more-standard replacement for <time.h>.
 
 # Written by Paul Eggert and Jim Meyering.
 

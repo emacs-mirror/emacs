@@ -552,6 +552,8 @@ hbfont_shape (Lisp_Object lgstring, Lisp_Object direction)
 	    cluster_offset = to - from;
 	}
 
+      eassume (0 <= from);
+
       /* All the glyphs in a cluster have the same values of FROM and TO.  */
       LGLYPH_SET_FROM (lglyph, from);
       /* This heuristic is for when the Lisp shape-gstring function

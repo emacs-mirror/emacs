@@ -126,15 +126,13 @@
 
 (defcustom align-load-hook nil
   "Hook that gets run after the aligner has been loaded."
-  :type 'hook
-  :group 'align)
+  :type 'hook)
 (make-obsolete-variable 'align-load-hook
                         "use `with-eval-after-load' instead." "28.1")
 
 (defcustom align-indent-before-aligning nil
   "If non-nil, indent the marked region before aligning it."
-  :type 'boolean
-  :group 'align)
+  :type 'boolean)
 
 (defcustom align-default-spacing 1
   "An integer that represents the default amount of padding to use.
@@ -142,14 +140,12 @@ If `align-to-tab-stop' is non-nil, this will represent the number of
 tab stops to use for alignment, rather than the number of spaces.
 Each alignment rule can optionally override both this variable and
 `align-to-tab-stop'.  See `align-rules-list'."
-  :type 'integer
-  :group 'align)
+  :type 'integer)
 
 (defcustom align-to-tab-stop 'indent-tabs-mode
   "If non-nil, alignments will always fall on a tab boundary.
 It may also be a symbol, whose value will be taken."
-  :type '(choice (const nil) symbol)
-  :group 'align)
+  :type '(choice (const nil) symbol))
 
 (defcustom align-region-heuristic 500
   "If non-nil, used as a heuristic by `align-current'.
@@ -160,66 +156,55 @@ point we should search in looking for a region separator.  Larger
 values can mean slower performance in large files, although smaller
 values may cause unexpected behavior at times."
   :type '(choice (const :tag "Don't use heuristic when aligning a region" nil)
-                 integer)
-  :group 'align)
+                 integer))
 
 (defcustom align-highlight-change-face 'highlight
   "The face to highlight with if changes are necessary.
 Used by the `align-highlight-rule' command."
-  :type 'face
-  :group 'align)
+  :type 'face)
 
 (defcustom align-highlight-nochange-face 'secondary-selection
   "The face to highlight with if no changes are necessary.
 Used by the `align-highlight-rule' command."
-  :type 'face
-  :group 'align)
+  :type 'face)
 
 (defcustom align-large-region 10000
   "If an integer, defines what constitutes a \"large\" region.
 If nil, then no messages will ever be printed to the minibuffer."
-  :type '(choice (const :tag "Align a large region silently" nil) integer)
-  :group 'align)
+  :type '(choice (const :tag "Align a large region silently" nil) integer))
 
 (defcustom align-c++-modes '( c++-mode c-mode java-mode)
   "A list of modes whose syntax resembles C/C++."
-  :type '(repeat symbol)
-  :group 'align)
+  :type '(repeat symbol))
 
 (defcustom align-perl-modes '(perl-mode)
   "A list of modes where Perl syntax is to be seen."
-  :type '(repeat symbol)
-  :group 'align)
+  :type '(repeat symbol))
 
 (defcustom align-lisp-modes
   '(emacs-lisp-mode lisp-interaction-mode lisp-mode scheme-mode)
   "A list of modes whose syntax resembles Lisp."
-  :type '(repeat symbol)
-  :group 'align)
+  :type '(repeat symbol))
 
 (defcustom align-tex-modes
   '(tex-mode plain-tex-mode latex-mode slitex-mode)
   "A list of modes whose syntax resembles TeX (and family)."
-  :type '(repeat symbol)
-  :group 'align)
+  :type '(repeat symbol))
 
 (defcustom align-text-modes '(text-mode outline-mode)
   "A list of modes whose content is plain text."
-  :type '(repeat symbol)
-  :group 'align)
+  :type '(repeat symbol))
 
 (defcustom align-dq-string-modes
   (append align-lisp-modes align-c++-modes align-perl-modes
           '(python-base-mode vhdl-mode))
   "A list of modes where double quoted strings should be excluded."
-  :type '(repeat symbol)
-  :group 'align)
+  :type '(repeat symbol))
 
 (defcustom align-sq-string-modes
   (append align-perl-modes '(python-base-mode))
   "A list of modes where single quoted strings should be excluded."
-  :type '(repeat symbol)
-  :group 'align)
+  :type '(repeat symbol))
 
 (defcustom align-open-comment-modes
   (append align-lisp-modes align-c++-modes align-perl-modes
@@ -227,8 +212,7 @@ If nil, then no messages will ever be printed to the minibuffer."
   "A list of modes with a single-line comment syntax.
 These are comments as in Lisp, which have a beginning, but end with
 the line (i.e., `comment-end' is an empty string)."
-  :type '(repeat symbol)
-  :group 'align)
+  :type '(repeat symbol))
 
 (defcustom align-region-separate "^\\s-*[{}]?\\s-*$"
   "Select the method by which alignment sections will be separated.
@@ -317,11 +301,10 @@ The possible settings for `align-region-separate' are:
   :type '(choice
 	  (const :tag "Entire region is one section" entire)
 	  (const :tag "Align by contiguous groups" group)
-;         (const largest)
+          ;; (const largest)
 	  (regexp :tag "Regexp defines section boundaries")
 	  (function :tag "Function defines section boundaries"))
-  :risky t
-  :group 'align)
+  :risky t)
 
 (defvar align-rules-list-type
   '(repeat
@@ -537,10 +520,8 @@ The possible settings for `align-region-separate' are:
      (regexp   . ,(lambda (end reverse)
                     (align-match-tex-pattern "\\\\[=>]" end reverse)))
      (group    . (1 2))
-     (modes    . align-tex-modes)
-     (repeat   . t)
-     (run-if   . ,(lambda ()
-                    (eq major-mode 'latex-mode))))
+     (modes    . '(latex-mode))
+     (repeat   . t))
 
     (tex-record-break
      (regexp   . "\\(\\s-*\\)\\\\\\\\")
@@ -716,8 +697,7 @@ The following attributes are meaningful:
 	    (see the documentation of that variable for possible
 	    values), and any separation argument passed to `align'."
   :type align-rules-list-type
-  :risky t
-  :group 'align)
+  :risky t)
 
 (defvar align-exclude-rules-list-type
   '(repeat
@@ -786,8 +766,7 @@ The following attributes are meaningful:
   "A list describing text that should be excluded from alignment.
 See the documentation for `align-rules-list' for more info."
   :type align-exclude-rules-list-type
-  :risky t
-  :group 'align)
+  :risky t)
 
 ;;; Internal Variables:
 
@@ -838,8 +817,7 @@ See the variable `align-exclude-rules-list' for more details.")
      (regexp   . "\\(\\s-+\\)use\\s-+entity")))
   "Alignment rules for `vhdl-mode'.  See `align-rules-list' for more info."
   :type align-rules-list-type
-  :risky t
-  :group 'align)
+  :risky t)
 (make-obsolete-variable 'align-vhdl-rules-list "no longer used." "27.1")
 
 (defun align-set-vhdl-rules ()

@@ -349,4 +349,122 @@
    (lambda (arg)
      (should (equal '(3 . 19) (erc--get-inserted-msg-bounds arg))))))
 
+(ert-deftest erc-stamp--dedupe-date-stamps-from-target-buffer ()
+  (unless (>= emacs-major-version 29)
+    (ert-skip "Requires hz-ticks lisp time format"))
+  (let ((erc-modules erc-modules)
+        (erc-stamp--tz t))
+    (erc-tests-common-make-server-buf)
+    (erc-stamp-mode +1)
+
+    ;; Create two buffers with an overlapping date stamp.
+    (with-current-buffer (erc--open-target "#chan@old")
+      (let ((erc-stamp--current-time '(1690761600001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-07-31T00:00:00.001Z"))
+      (let ((erc-stamp--current-time '(1690761601001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "0.0"))
+
+      (let ((erc-stamp--current-time '(1690848000001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-08-01T00:00:00.001Z"))
+      (let ((erc-stamp--current-time '(1690848001001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "1.0"))
+      (let ((erc-stamp--current-time '(1690848060001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "1.1"))
+
+      (let ((erc-stamp--current-time '(1690934400001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-08-02T00:00:00.001Z"))
+      (let ((erc-stamp--current-time '(1690934401001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "2.0"))
+      (let ((erc-stamp--current-time '(1690956000001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "2.6")))
+
+    (with-current-buffer (erc--open-target "#chan@new")
+      (let ((erc-stamp--current-time '(1690956001001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-08-02T06:00:01.001Z"))
+      (let ((erc-stamp--current-time '(1690963200001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "2.8"))
+
+      (let ((erc-stamp--current-time '(1691020800001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-08-03T00:00:00.001Z"))
+      (let ((erc-stamp--current-time '(1691020801001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "3.0"))
+      (let ((erc-stamp--current-time '(1691053200001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "3.9"))
+
+      (let ((erc-stamp--current-time '(1691107200001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-08-04T00:00:00.001Z"))
+      (let ((erc-stamp--current-time '(1691107201001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "4.0"))
+      (let ((erc-stamp--current-time '(1691110800001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "4.1")))
+
+    (erc-stamp--dedupe-date-stamps-from-target-buffer
+     #'erc-networks--transplant-buffer-content
+     (get-buffer "#chan@old")
+     (get-buffer "#chan@new"))
+
+    ;; Ensure the "model", `erc-stamp--date-stamps', matches reality
+    ;; in the buffer's contents.
+    (with-current-buffer "#chan@new"
+      (let ((stamps erc-stamp--date-stamps))
+        (goto-char 3)
+        (should (looking-at (rx "\n[Mon Jul 31 2023]")))
+        (should (= (erc--get-inserted-msg-beg (point))
+                   (erc-stamp--date-marker (pop stamps))))
+        (goto-char (1+ (match-end 0)))
+        (should (looking-at (rx "*** 2023-07-31T00:00:00.001Z")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 0.0")))
+        (forward-line 1)
+
+        (should (looking-at (rx "\n[Tue Aug  1 2023]")))
+        (should (= (erc--get-inserted-msg-beg (point))
+                   (erc-stamp--date-marker (pop stamps))))
+        (goto-char (1+ (match-end 0)))
+        (should (looking-at (rx "*** 2023-08-01T00:00:00.001Z")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 1.0")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 1.1")))
+        (forward-line 1)
+
+        (should (looking-at (rx "\n[Wed Aug  2 2023]")))
+        (should (= (erc--get-inserted-msg-beg (point))
+                   (erc-stamp--date-marker (pop stamps))))
+        (goto-char (1+ (match-end 0)))
+        (should (looking-at (rx "*** 2023-08-02T00:00:00.001Z")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 2.0")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 2.6")))
+        (forward-line 1)
+        (should (looking-at
+                 (rx "*** Grafting buffer `#chan@new' onto `#chan@old'")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 2023-08-02T06:00:01.001Z")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 2.8")))
+        (forward-line 1)
+
+        (should (looking-at (rx "\n[Thu Aug  3 2023]")))
+        (should (= (erc--get-inserted-msg-beg (point))
+                   (erc-stamp--date-marker (pop stamps))))
+        (goto-char (1+ (match-end 0)))
+        (should (looking-at (rx "*** 2023-08-03T00:00:00.001Z")))
+        (forward-line 3) ; ...
+
+        (should (looking-at (rx "\n[Fri Aug  4 2023]")))
+        (should (= (erc--get-inserted-msg-beg (point))
+                   (erc-stamp--date-marker (pop stamps))))
+        (should-not stamps))))
+
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
+
 ;;; erc-stamp-tests.el ends here

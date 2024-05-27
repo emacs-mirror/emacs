@@ -37,7 +37,7 @@ variable binding for @code{no-byte-compile} into it, like this:
 * Docs and Compilation::        Dynamic loading of documentation strings.
 * Eval During Compile::         Code to be evaluated when you compile.
 * Compiler Errors::             Handling compiler error messages.
-* Byte-Code Objects::           The data type used for byte-compiled functions.
+* Closure Objects::             The data type used for byte-compiled functions.
 * Disassembly::                 Disassembling byte-code; how to read byte-code.
 @end menu
 
@@ -120,7 +120,7 @@ replacing the previous definition with the compiled one.  The function
 definition of @var{symbol} must be the actual code for the function;
 @code{byte-compile} does not handle function indirection.  The return
 value is the byte-code function object which is the compiled
-definition of @var{symbol} (@pxref{Byte-Code Objects}).
+definition of @var{symbol} (@pxref{Closure Objects}).
 
 @example
 @group
@@ -334,8 +334,8 @@ If you have a constant that needs some calculation to produce,
 @code{eval-when-compile} can do that at compile-time.  For example,
 
 @lisp
-(defvar my-regexp
-  (eval-when-compile (regexp-opt '("aaa" "aba" "abb"))))
+(defvar gauss-schoolboy-problem
+  (eval-when-compile (apply #'+ (number-sequence 1 100))))
 @end lisp
 
 @cindex macros, at compile time
@@ -487,21 +487,22 @@ string for details.
 using @code{error}.  If so, set @code{byte-compile-error-on-warn} to a
 non-@code{nil} value.
 
-@node Byte-Code Objects
-@section Byte-Code Function Objects
+@node Closure Objects
+@section Closure Function Objects
 @cindex compiled function
 @cindex byte-code function
 @cindex byte-code object
 
-  Byte-compiled functions have a special data type: they are
-@dfn{byte-code function objects}.  Whenever such an object appears as
-a function to be called, Emacs uses the byte-code interpreter to
-execute the byte-code.
+  Byte-compiled functions use a special data type: they are closures.
+Closures are used both for byte-compiled Lisp functions as well as for
+interpreted Lisp functions.  Whenever such an object appears as
+a function to be called, Emacs uses the appropriate interpreter to
+execute either the byte-code or the non-compiled Lisp code.
 
-  Internally, a byte-code function object is much like a vector; its
+  Internally, a closure is much like a vector; its
 elements can be accessed using @code{aref}.  Its printed
 representation is like that for a vector, with an additional @samp{#}
-before the opening @samp{[}.  It must have at least four elements;
+before the opening @samp{[}.  It must have at least three elements;
 there is no maximum number, but only the first six elements have any
 normal use.  They are:
 
@@ -515,20 +516,28 @@ zero to 6, and the maximum number of arguments in bits 8 to 14.  If
 the argument list uses @code{&rest}, then bit 7 is set; otherwise it's
 cleared.
 
-If @var{argdesc} is a list, the arguments will be dynamically bound
+When the closure is a byte-code function,
+if @var{argdesc} is a list, the arguments will be dynamically bound
 before executing the byte code.  If @var{argdesc} is an integer, the
 arguments will be instead pushed onto the stack of the byte-code
 interpreter, before executing the code.
 
-@item byte-code
-The string containing the byte-code instructions.
+@item code
+For interpreted functions, this element is the (non-empty) list of Lisp
+forms that make up the function's body.  For byte-compiled functions, it
+is the string containing the byte-code instructions.
 
 @item constants
-The vector of Lisp objects referenced by the byte code.  These include
-symbols used as function names and variable names.
+For byte-compiled functions, this holds the vector of Lisp objects
+referenced by the byte code.  These include symbols used as function
+names and variable names.
+For interpreted functions, this is @code{nil} if the function is using the old
+dynamically scoped dialect of Emacs Lisp, and otherwise it holds the
+function's lexical environment.
 
 @item stacksize
-The maximum stack size this function needs.
+The maximum stack size this function needs.  This element is left unused
+for interpreted functions.
 
 @item docstring
 The documentation string (if any); otherwise, @code{nil}.  The value may
@@ -558,14 +567,28 @@ representation.  It is the definition of the command
 @code{make-byte-code}:
 
 @defun make-byte-code &rest elements
-This function constructs and returns a byte-code function object
-with @var{elements} as its elements.
+This function constructs and returns a closure which represents the
+byte-code function object with @var{elements} as its elements.
 @end defun
 
   You should not try to come up with the elements for a byte-code
 function yourself, because if they are inconsistent, Emacs may crash
 when you call the function.  Always leave it to the byte compiler to
 create these objects; it makes the elements consistent (we hope).
+
+The primitive way to create an interpreted function is with
+@code{make-interpreted-closure}:
+
+@defun make-interpreted-closure args body env &optional docstring iform
+This function constructs and returns a closure representing the
+interpreted function with arguments @var{args} and whose body is made of
+@var{body} which must be a non-@code{nil} list of Lisp forms.  @var{env} is the
+lexical environment in the same form as used with @code{eval}
+(@pxref{Eval}).  The documentation @var{docstring} if non-@code{nil} should be
+a string, and the interactive form @var{iform} if non-@code{nil} should be of
+the form @w{@code{(interactive @var{arg-descriptor})}} (@pxref{Using
+Interactive}).
+@end defun
 
 @node Disassembly
 @section Disassembled Byte-Code
@@ -595,7 +618,7 @@ name of an existing buffer.  Then the output goes there, at point, and
 point is left before the output.
 
 The argument @var{object} can be a function name, a lambda expression
-(@pxref{Lambda Expressions}), or a byte-code object (@pxref{Byte-Code
+(@pxref{Lambda Expressions}), or a byte-code object (@pxref{Closure
 Objects}).  If it is a lambda expression, @code{disassemble} compiles
 it and disassembles the resulting compiled code.
 @end deffn
@@ -962,6 +985,26 @@ contain the compiled code in bytecode form.  (This can be achieved at
 function granularity by using the @w{@code{(declare (speed -1))}}
 form, @pxref{Declare Form}.)
 The default value is 2.
+@end defopt
+
+@anchor{compilation-safety}
+@defopt compilation-safety
+This variable specifies the safety level to be used for the emitted
+native code.  The value should be a number, either 0 or 1 with the
+following meanings:
+
+@table @asis
+@item 0
+Emitted code can misbehave (up to even crashing Emacs) if a function's
+declaration does not describe correctly what the function does or how it
+is called, and the function is natively compiled.
+@item 1
+Emitted code must be generated in a safe manner even if functions are
+mis-declared.
+@end table
+
+This can also be controlled at a function granularity, by using the
+@code{safety} @code{declare} form, @pxref{Declare Form}.
 @end defopt
 
 @defopt native-comp-debug

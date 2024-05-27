@@ -73,7 +73,7 @@ inferred if not present.
 
 `:help-echo': Informational text that explains what happens if
 the icon is used as a button and you click it."
-  (declare (indent 2))
+  (declare (doc-string 4) (indent 2))
   (unless (symbolp name)
     (error "NAME must be a symbol: %S" name))
   (unless (plist-get keywords :version)

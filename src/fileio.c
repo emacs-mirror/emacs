@@ -2205,7 +2205,7 @@ barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
       AUTO_STRING (format, "File %s already exists; %s anyway? ");
       tem = CALLN (Fformat, format, absname, build_string (querystring));
       if (quick)
-	tem = call1 (intern ("y-or-n-p"), tem);
+	tem = call1 (Qy_or_n_p, tem);
       else
 	tem = do_yes_or_no_p (tem);
       if (NILP (tem))
@@ -4550,7 +4550,7 @@ by calling `format-decode', which see.  */)
              current_buffer->modtime earlier, but we could still end up calling
              ask-user-about-supersession-threat if the file is modified while
              we read it, so we bind buffer-file-name instead.  */
-          specbind (intern ("buffer-file-name"), Qnil);
+          specbind (Qbuffer_file_name, Qnil);
 	  del_range_byte (same_at_start, same_at_end);
 	  /* Insert from the file at the proper position.  */
 	  temp = BYTE_TO_CHAR (same_at_start);
@@ -4660,7 +4660,7 @@ by calling `format-decode', which see.  */)
 	  if (same_at_start != same_at_end)
 	    {
               /* See previous specbind for the reason behind this.  */
-              specbind (intern ("buffer-file-name"), Qnil);
+              specbind (Qbuffer_file_name, Qnil);
 	      del_range_byte (same_at_start, same_at_end);
 	    }
 	  inserted = 0;
@@ -4710,7 +4710,7 @@ by calling `format-decode', which see.  */)
       inserted -= (ZV_BYTE - same_at_end) + (same_at_start - BEGV_BYTE);
 
       /* See previous specbind for the reason behind this.  */
-      specbind (intern ("buffer-file-name"), Qnil);
+      specbind (Qbuffer_file_name, Qnil);
       if (same_at_end != same_at_start)
 	{
 	  del_range_byte (same_at_start, same_at_end);
@@ -6107,8 +6107,8 @@ auto_save_error (Lisp_Object error_val)
   AUTO_STRING (format, "Auto-saving %s: %s");
   Lisp_Object msg = CALLN (Fformat, format, BVAR (current_buffer, name),
 			   Ferror_message_string (error_val));
-  call3 (intern ("display-warning"),
-         intern ("auto-save"), msg, intern (":error"));
+  call3 (Qdisplay_warning,
+         Qauto_save, msg, QCerror);
 
   return Qnil;
 }
@@ -6223,7 +6223,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   oquit = Vquit_flag;
   Vquit_flag = Qnil;
 
-  hook = intern ("auto-save-hook");
+  hook = Qauto_save_hook;
   safe_run_hooks (hook);
 
   if (STRINGP (Vauto_save_list_file_name))
@@ -6914,4 +6914,8 @@ This includes interactive calls to `delete-file' and
 #endif /* HAVE_SYNC */
 
   DEFSYM (Qif_regular, "if-regular");
+  DEFSYM (Qbuffer_file_name, "buffer-file-name");
+  DEFSYM (Qauto_save, "auto-save");
+  DEFSYM (QCerror, ":error");
+  DEFSYM (Qauto_save_hook, "auto-save-hook");
 }

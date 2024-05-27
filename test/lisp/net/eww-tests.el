@@ -50,6 +50,7 @@ temporary EWW buffer for our tests."
 
 (ert-deftest eww-test/display/html ()
   "Test displaying a simple HTML page."
+  (skip-unless (libxml-available-p))
   (eww-test--with-mock-retrieve
     (let ((eww-test--response-function
            (lambda (url)
@@ -196,6 +197,7 @@ This sets `eww-before-browse-history-function' to
 
 (ert-deftest eww-test/readable/toggle-display ()
   "Test toggling the display of the \"readable\" parts of a web page."
+  (skip-unless (libxml-available-p))
   (eww-test--with-mock-retrieve
     (let* ((shr-width most-positive-fixnum)
            (shr-use-fonts nil)
@@ -233,7 +235,8 @@ This sets `eww-before-browse-history-function' to
 
 (ert-deftest eww-test/readable/default-readable ()
   "Test that EWW displays readable parts of pages by default when applicable."
-    (eww-test--with-mock-retrieve
+  (skip-unless (libxml-available-p))
+  (eww-test--with-mock-retrieve
     (let* ((eww-test--response-function
             (lambda (_url)
               (concat "Content-Type: text/html\n\n"

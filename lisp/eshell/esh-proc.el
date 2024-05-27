@@ -27,6 +27,8 @@
 (require 'esh-io)
 (require 'esh-util)
 
+(require 'pcomplete)
+
 (defgroup eshell-proc nil
   "When Eshell invokes external commands, it always does so
 asynchronously, so that Emacs isn't tied up waiting for the process to

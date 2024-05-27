@@ -1,0 +1,22 @@
+default namespace = ""
+
+start =
+  element Project {
+    element PropertyGroup {
+      element ManagePackageVersionsCentrally { xsd:boolean },
+      element CentralPackageTransitivePinningEnabled { xsd:boolean },
+      element CentralPackageVersionOverrideEnabled { xsd:boolean }
+    }?,
+    element ItemGroup {
+      attribute Condition { text }?,
+      (element GlobalPackageReference {
+         attribute Condition { text }?,
+         attribute Include { xsd:NCName },
+         attribute Version { xsd:NMTOKEN }
+       }+
+       | element PackageVersion {
+           attribute Include { xsd:NCName },
+           attribute Version { text }
+         }+)
+    }+
+  }

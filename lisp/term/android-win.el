@@ -532,7 +532,7 @@ accessible to other programs."
 ;; Coding systems used by androidvfs.c.
 
 (define-ccl-program android-encode-jni
-  `(2 ((loop
+  '(2 ((loop
 	(read r0)
 	(if (r0 < #x1) ; 0x0 is encoded specially in JNI environments.
 	    ((write #xc0)
@@ -564,7 +564,7 @@ accessible to other programs."
   "Encode characters from the input buffer for Java virtual machines.")
 
 (define-ccl-program android-decode-jni
-  `(1 ((loop
+  '(1 ((loop
         ((read-if (r0 >= #x80) ; More than a one-byte sequence?
 		  ((if (r0 < #xe0)
 		       ;; Two-byte sequence; potentially a NULL

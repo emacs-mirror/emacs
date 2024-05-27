@@ -107,7 +107,7 @@ charset algorithm cipher-opts auth-param)."
 	     (concat "AUTHENTICATE:" digest-uri
 		     (if (member qop '("auth-int" "auth-conf"))
 			 ":00000000000000000000000000000000")))))))
-      (fillarray passphrase 0))))
+      (clear-string passphrase))))
 
 (defun sasl-digest-md5-response (client step)
   (let* ((plist

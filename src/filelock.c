@@ -274,7 +274,7 @@ lock_file_1 (Lisp_Object lfname, bool force)
   /* Protect against the extremely unlikely case of the host name
      containing an @ character.  */
   if (!NILP (lhost_name) && strchr (SSDATA (lhost_name), '@'))
-    lhost_name = CALLN (Ffuncall, intern ("string-replace"),
+    lhost_name = CALLN (Ffuncall, Qstring_replace,
 			build_string ("@"), build_string ("-"),
 			lhost_name);
 
@@ -419,7 +419,9 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
       boot += 2;
       FALLTHROUGH;
     case ':':
-      if (! c_isdigit (boot[0]))
+      if (!(c_isdigit (boot[0])
+	    /* A negative number.  */
+	    || (boot[0] == '-' && c_isdigit (boot[1]))))
 	return EINVAL;
       boot_time = strtoimax (boot, &lfinfo_end, 10);
       break;
@@ -638,8 +640,11 @@ unlock_all_files (void)
 }
 
 DEFUN ("lock-file", Flock_file, Slock_file, 1, 1, 0,
-       doc: /* Lock FILE.
-If the option `create-lockfiles' is nil, this does nothing.  */)
+       doc: /* Check whether FILE was modified since it was visited, and lock it.
+If user option `create-lockfiles' is nil, this does not create
+a lock file for FILE, but it still checks whether FILE was modified
+outside of the current Emacs session, and if so, asks the user
+whether to modify FILE.  */)
   (Lisp_Object file)
 {
 #ifndef MSDOS
@@ -786,6 +791,7 @@ Info node `(emacs)Interlocking'.  */);
   DEFSYM (Qunlock_file, "unlock-file");
   DEFSYM (Qfile_locked_p, "file-locked-p");
   DEFSYM (Qmake_lock_file_name, "make-lock-file-name");
+  DEFSYM (Qstring_replace, "string-replace");
 
   defsubr (&Slock_file);
   defsubr (&Sunlock_file);

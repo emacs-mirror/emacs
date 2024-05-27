@@ -480,7 +480,7 @@ following values are available:
 This means all the commands in the keymap are repeatable, and is the
 most common usage.
 
-@item (:enter (commands ...) :exit (commands ...))
+@item (:enter (commands ...) :exit (commands ...) :hints ((command . "hint") ...))
 This specifies that the commands in the @code{:enter} list enter
 @code{repeat-mode}, and the commands in the @code{:exit} list exit
 repeat mode.
@@ -494,6 +494,10 @@ If the @code{:exit} list is empty then no commands in the map exit
 @code{repeat-mode}.  Specifying one or more commands in this list is
 useful if the keymap being defined contains a command that should not
 have the @code{repeat-map} property.
+
+The @code{:hints} list can contain cons pairs where the @sc{car} is
+a command and the @sc{cdr} is a string that is displayed alongside of
+the repeatable key in the echo area.
 @end table
 
 In order to make e.g.@: @kbd{u} repeat the @code{undo} command, the

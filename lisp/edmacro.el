@@ -460,8 +460,8 @@ of a line, that final line is excluded."
     (goto-char final-position)))
 
 (defun edmacro-mode ()
-  "\\<edmacro-mode-map>Keyboard Macro Editing mode.  Press \
-\\[edmacro-finish-edit] to save and exit.
+  "Keyboard Macro Editing mode.
+\\<edmacro-mode-map>Press \\[edmacro-finish-edit] to save and exit.
 To abort the edit, just kill this buffer with \\[kill-buffer] \\`RET'.
 
 Press \\[edmacro-insert-key] to insert the name of any key by typing the key.
@@ -744,9 +744,13 @@ This function assumes that the events can be stored in a string."
 		;; info is recorded in macros to make this possible.
 		((or (mouse-event-p ev) (mouse-movement-p ev)
 		     (memq (event-basic-type ev)
-			   `( ,mouse-wheel-down-event ,mouse-wheel-up-event
-			      ,mouse-wheel-right-event ,mouse-wheel-left-event
-			      wheel-down wheel-up wheel-left wheel-right)))
+			   (with-suppressed-warnings
+			       ((obsolete
+			         mouse-wheel-down-event mouse-wheel-right-event
+			         mouse-wheel-up-event mouse-wheel-left-event))
+			     `( ,mouse-wheel-down-event ,mouse-wheel-up-event
+			        ,mouse-wheel-right-event ,mouse-wheel-left-event
+			        wheel-down wheel-up wheel-left wheel-right))))
 		 nil)
 		(noerror nil)
 		(t

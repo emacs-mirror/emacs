@@ -370,7 +370,7 @@ at POSITION.  */)
    Either BEG or END may be 0, in which case the corresponding value
    is not stored.  */
 
-static void
+void
 find_field (Lisp_Object pos, Lisp_Object merge_at_boundary,
 	    Lisp_Object beg_limit,
 	    ptrdiff_t *beg, Lisp_Object end_limit, ptrdiff_t *end)
@@ -1247,11 +1247,10 @@ is in general a comma-separated list.  */)
   if (!pw)
     return Qnil;
 
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-  p = android_user_full_name (pw);
-#else
   p = USER_FULL_NAME;
-#endif
+  if (!p)
+    return Qnil;
+
   /* Chop off everything after the first comma, since 'pw_gecos' is a
      comma-separated list. */
   q = strchr (p, ',');

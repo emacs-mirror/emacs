@@ -192,7 +192,7 @@ If NO-CREATION is non-nil, the window is not created."
       (set-window-parameter sidebar-window 'no-delete-other-windows t)
       ;; Don't cycle to this window with `other-window'.
       (set-window-parameter sidebar-window 'no-other-window t)
-      (internal-show-cursor sidebar-window nil)
+      (setq cursor-type nil)
       (set-window-fringes sidebar-window 0 0)
       ;; Set a custom display table so the window doesn't show a
       ;; truncation symbol when a channel name is too big.

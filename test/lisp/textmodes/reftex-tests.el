@@ -197,10 +197,28 @@
   journal =    {Some Journal},
   year =         2013,
   pages = {1--333}
+}"))
+        (entry2 (reftex-parse-bibtex-entry "\
+@article{Abels:slice,
+author       = {Abels, H.},
+title        = {Parallelizability of proper actions, global
+                {$K$}-slices and maximal compact subgroups},
+journaltitle = {Math. Ann.},
+year         = 1974,
+volume       = 212,
+pages        = {1--19}
 }")))
     (should (string= (reftex-format-citation entry nil) "\\cite{Foo13}"))
     (should (string= (reftex-format-citation entry "%l:%A:%y:%t %j %P %a")
-                     "Foo13:Jane Roe:2013:Some Article Some Journal 1 Jane Roe, John Doe \\& Jane Taxpayer"))))
+                     "Foo13:Jane Roe:2013:Some Article Some Journal 1 Jane Roe, John Doe \\& Jane Taxpayer"))
+    ;; Test for biblatex field journaltitle (bug#38762):
+    (should (string=
+             (reftex-format-citation entry2
+                                     "[%4a, \\textit{%t}, \
+%b %e, %u, %r %h %j \\textbf{%v} (%y), %p %<]")
+             "[Abels, \\textit{Parallelizability of proper actions, \
+global {$K$}-slices and maximal compact subgroups}, \
+Math. Ann. \\textbf{212} (1974), 1--19]"))))
 
 (ert-deftest reftex-all-used-citation-keys ()
   "Test `reftex-all-used-citation-keys'.
@@ -285,6 +303,20 @@ Natbib compatibility commands:
 \\Citep[pre][pos]{Citep:2022}
 \\Citep*[pre][pos]{Citep*:2022}
 
+Qualified Citation Lists:
+\\cites(Global Prenote)(Global Postnote)[pre][post]{cites:1}[pre][post]{cites:2}
+\\Cites(Global Prenote)(Global Postnote)[pre][post]{Cites:1}[pre][post]{Cites:2}
+\\parencites(Global Prenote)(Global Postnote)[pre][post]{parencites:1}
+  [pre][post]{parencites:2}
+\\Parencites(Global Prenote)(Global Postnote)[pre][post]{Parencites:1}{Parencites:2}
+\\footcites[pre][post]{footcites:1}[pre][post]{footcites:2}
+\\footcitetexts{footcitetexts:1}{footcitetexts:2}
+\\smartcites{smartcites:1}
+% This is comment about \\smartcites{smartcites:2}
+[pre][post]{smartcites:2}
+% And this should be ignored \\smartcites{smartcites:3}{smartcites:4}
+
+
 Test for bug#56655:
 There was a few \\% of increase in budget \\Citep*{bug:56655}.
 
@@ -331,6 +363,14 @@ And this should be % \\cite{ignored}.
                              "citealp:2022" "citealp*:2022"
                              "Citet:2022"   "Citet*:2022"
                              "Citep:2022"   "Citep*:2022"
+                             ;; Qualified Citation Lists
+                             "cites:1"         "cites:2"
+                             "Cites:1"         "Cites:2"
+                             "parencites:1"    "parencites:2"
+                             "Parencites:1"    "Parencites:2"
+                             "footcites:1"     "footcites:2"
+                             "footcitetexts:1" "footcitetexts:2"
+                             "smartcites:1"    "smartcites:2"
                              "bug:56655")
                            #'string<)))
       (kill-buffer (file-name-nondirectory tex-file)))))

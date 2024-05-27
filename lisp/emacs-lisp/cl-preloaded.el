@@ -224,8 +224,8 @@
   (index-table nil :type hash-table)
   (tag nil :type symbol) ;Placed in cl-tag-slot.  Holds the struct-class object.
   (type nil :type (memq (vector list)))
-  (named nil :type bool)
-  (print nil :type bool)
+  (named nil :type boolean)
+  (print nil :type boolean)
   (children-sym nil :type symbol) ;This sym's value holds the tags of children.
   )
 
@@ -303,6 +303,7 @@
 
 (cl-defstruct (built-in-class
                (:include cl--class)
+               (:noinline t)
                (:constructor nil)
                (:constructor built-in-class--make (name docstring parents))
                (:copier nil))
@@ -349,6 +350,14 @@ The `slots' (and hence `index-table') are currently unused."
 ;;   so the DAG of OClosure types is "orthogonal" to the distinction
 ;;   between interpreted and compiled functions.
 
+(defun cl-functionp (object)
+  "Return non-nil if OBJECT is a member of type `function'.
+This is like `functionp' except that it returns nil for all lists and symbols,
+regardless if `funcall' would accept to call them."
+  (memq (cl-type-of object)
+        '(primitive-function subr-native-elisp module-function
+          interpreted-function byte-code-function)))
+
 (cl--define-built-in-type t nil "Abstract supertype of everything.")
 (cl--define-built-in-type atom t "Abstract supertype of anything but cons cells."
                           :predicate atom)
@@ -356,11 +365,9 @@ The `slots' (and hence `index-table') are currently unused."
 (cl--define-built-in-type tree-sitter-compiled-query atom)
 (cl--define-built-in-type tree-sitter-node atom)
 (cl--define-built-in-type tree-sitter-parser atom)
-(declare-function user-ptrp "data.c")
 (when (fboundp 'user-ptrp)
   (cl--define-built-in-type user-ptr atom nil
-                            ;; FIXME: Shouldn't it be called
-                            ;; `user-ptr-p'?
+                            ;; FIXME: Shouldn't it be called `user-ptr-p'?
                             :predicate user-ptrp))
 (cl--define-built-in-type font-object atom)
 (cl--define-built-in-type font-entity atom)
@@ -410,8 +417,6 @@ The `slots' (and hence `index-table') are currently unused."
 The size depends on the Emacs version and compilation options.
 For this build of Emacs it's %dbit."
           (1+ (logb (1+ most-positive-fixnum)))))
-(cl--define-built-in-type keyword (symbol)
-  "Type of those symbols whose first char is `:'.")
 (cl--define-built-in-type boolean (symbol)
   "Type of the canonical boolean values, i.e. either nil or t.")
 (cl--define-built-in-type symbol-with-pos (symbol)
@@ -431,16 +436,32 @@ For this build of Emacs it's %dbit."
   ;; Example of slots we could document.
   (car car) (cdr cdr))
 (cl--define-built-in-type function (atom)
-  "Abstract supertype of function values.")
+  "Abstract supertype of function values."
+  ;; FIXME: Historically, (cl-typep FOO 'function) called `functionp',
+  ;; so while `cl-functionp' would be the more correct predicate, it
+  ;; would breaks existing code :-(
+  ;; :predicate cl-functionp
+  )
 (cl--define-built-in-type compiled-function (function)
   "Abstract type of functions that have been compiled.")
-(cl--define-built-in-type byte-code-function (compiled-function)
+(cl--define-built-in-type closure (function)
+  "Abstract type of functions represented by a vector-like object.
+You can access the object's internals with `aref'.
+The fields are used as follows:
+
+  0 [args]       Argument list (either a list or an integer)
+  1 [code]       Either a byte-code string or a list of Lisp forms
+  2 [constants]  Either vector of constants or a lexical environment
+  3 [stackdepth] Maximum amount of stack depth used by the byte-code
+  4 [docstring]  The documentation, or a reference to it
+  5 [iform]      The interactive form (if present)")
+(cl--define-built-in-type byte-code-function (compiled-function closure)
   "Type of functions that have been byte-compiled.")
 (cl--define-built-in-type subr (atom)
   "Abstract type of functions compiled to machine code.")
 (cl--define-built-in-type module-function (function)
   "Type of functions provided via the module API.")
-(cl--define-built-in-type interpreted-function (function)
+(cl--define-built-in-type interpreted-function (closure)
   "Type of functions that have not been compiled.")
 (cl--define-built-in-type special-form (subr)
   "Type of the core syntactic elements of the Emacs Lisp language.")

@@ -1,4 +1,5 @@
-# getrandom.m4 serial 13
+# getrandom.m4
+# serial 13
 dnl Copyright 2020-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,

@@ -619,18 +619,19 @@
                    "[^amz]\\S_"))))
 
 (ert-deftest rx-constituents ()
-  (let ((rx-constituents
-         (append '((beta . gamma)
-                   (gamma . "a*b")
-                   (delta . ((lambda (form)
-                               (regexp-quote (format "<%S>" form)))
-                             1 nil symbolp))
-                   (epsilon . delta))
-                 rx-constituents)))
-    (should (equal (rx-to-string '(seq (+ beta) nonl gamma) t)
-                   "\\(?:a*b\\)+.\\(?:a*b\\)"))
-    (should (equal (rx-to-string '(seq (delta a b c) (* (epsilon d e))) t)
-                   "\\(?:<(delta a b c)>\\)\\(?:<(epsilon d e)>\\)*"))))
+  (with-suppressed-warnings ((obsolete rx-constituents))
+    (let ((rx-constituents
+           (append '((beta . gamma)
+                     (gamma . "a*b")
+                     (delta . ((lambda (form)
+                                 (regexp-quote (format "<%S>" form)))
+                               1 nil symbolp))
+                     (epsilon . delta))
+                   rx-constituents)))
+      (should (equal (rx-to-string '(seq (+ beta) nonl gamma) t)
+                     "\\(?:a*b\\)+.\\(?:a*b\\)"))
+      (should (equal (rx-to-string '(seq (delta a b c) (* (epsilon d e))) t)
+                     "\\(?:<(delta a b c)>\\)\\(?:<(epsilon d e)>\\)*")))))
 
 (ert-deftest rx-compat ()
   "Test old symbol retained for compatibility (bug#37517)."

@@ -28,6 +28,6 @@
  (0.21 ":irc.example.org 266 tester 1 1 :Current global users 1, max 1")
  (0.0 ":irc.example.org 422 tester :MOTD File is missing"))
 
-((mode-user 1.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  (0.0 ":irc.example.org 221 tester +Zi")
  (0.0 ":irc.example.org NOTICE tester :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))

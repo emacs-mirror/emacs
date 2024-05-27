@@ -32,8 +32,6 @@
 
 (require 'image-dired-util)
 
-(declare-function image-dired--with-marked "image-dired")
-
 (defvar image-dired-dir)
 (defvar image-dired-thumbnail-storage)
 (defvar image-dired-tags-db-file)
@@ -156,18 +154,6 @@ With prefix ARG, tag the file at point."
         (cons x tag))
       files))))
 
-(defun image-dired-tag-thumbnail ()
-  "Tag current or marked thumbnails."
-  (interactive nil image-dired-thumbnail-mode)
-  (let ((tag (completing-read
-              "Tags to add (separate tags with a semicolon): "
-              image-dired-tag-history nil nil nil 'image-dired-tag-history)))
-    (image-dired--with-marked
-     (image-dired-write-tags
-      (list (cons (image-dired-original-file-name) tag)))
-     (image-dired-update-property
-      'tags (image-dired-list-tags (image-dired-original-file-name))))))
-
 ;;;###autoload
 (defun image-dired-delete-tag (arg)
   "Remove tag for selected file(s).
@@ -180,16 +166,6 @@ With prefix argument ARG, remove tag from file at point."
         (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files)))
     (image-dired-remove-tag files tag)))
-
-(defun image-dired-tag-thumbnail-remove ()
-  "Remove tag from current or marked thumbnails."
-  (interactive nil image-dired-thumbnail-mode)
-  (let ((tag (completing-read "Tag to remove: " image-dired-tag-history
-                              nil nil nil 'image-dired-tag-history)))
-    (image-dired--with-marked
-     (image-dired-remove-tag (image-dired-original-file-name) tag)
-     (image-dired-update-property
-      'tags (image-dired-list-tags (image-dired-original-file-name))))))
 
 (defun image-dired-write-comments (file-comments)
   "Write file comments specified by FILE-COMMENTS comments to database.

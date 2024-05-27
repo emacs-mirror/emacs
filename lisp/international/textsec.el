@@ -44,15 +44,20 @@
   (require 'uni-scripts))
 
 (defun textsec-scripts (string)
-  "Return a list of Unicode scripts used in STRING.
-The scripts returned by this function use the Unicode Script property
-as defined by the Unicode Standard Annex 24 (UAX#24)."
+  "Return a list of Unicode scripts used by characters in STRING.
+The return value is a list where for each character in STRING,
+there is a list of script symbols for that character.  Thus, each
+script's symbol can appear more than once; use `textsec-covering-scripts'
+to obtain a list in which each script appears at most once.
+The script symbols returned by this function follow the Unicode Script
+property of characters as defined by the Unicode Standard Annex 24 (UAX#24).
+See the Unicode UCD file Scripts.txt for the scripts defined by Unicode."
   (seq-map (lambda (char)
              (elt textsec--char-scripts char))
            string))
 
 (defun textsec-single-script-p (string)
-  "Return non-nil if STRING is all in a single Unicode script.
+  "Return non-nil if STRING's characters belong to a single Unicode script.
 
 Note that the concept of \"single script\" used by this function
 isn't obvious -- some mixtures of scripts count as a \"single
@@ -60,8 +65,8 @@ script\".  See
 
   https://www.unicode.org/reports/tr39/#Mixed_Script_Detection
 
-for details.  The Unicode scripts are as defined by the
-Unicode Standard Annex 24 (UAX#24)."
+for details.  The Unicode script property of a characters is defined by
+the Unicode Standard Annex 24 (UAX#24)."
   (let ((scripts (mapcar
                   (lambda (s)
                     (append s
@@ -98,9 +103,11 @@ Unicode Standard Annex 24 (UAX#24)."
     '(korea))))
 
 (defun textsec-covering-scripts (string)
-  "Return a minimal list of scripts used in STRING.
+  "Return a minimal list of scripts used by characters in STRING.
 Note that a string may have several different minimal cover sets.
-The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
+The return value is a list of script symbols.
+The script property of characters is defined by the Unicode Standard
+Annex 24 (UAX#24)."
   (let* ((scripts (textsec-scripts string))
          (set (car scripts)))
     (dolist (s scripts)
@@ -108,7 +115,8 @@ The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
     (sort (delq 'common (delq 'inherited set)) #'string<)))
 
 (defun textsec-restriction-level (string)
-  "Say what restriction level STRING qualifies for.
+  "Return the restriction level for which STRING qualifies.
+The return value is a symbol.
 Levels are (in decreasing order of restrictiveness) `ascii-only',
 `single-script', `highly-restrictive', `moderately-restrictive',
 `minimally-restrictive' and `unrestricted'."
@@ -163,7 +171,14 @@ Levels are (in decreasing order of restrictiveness) `ascii-only',
     'unrestricted))))
 
 (defun textsec-mixed-numbers-p (string)
-  "Return non-nil if STRING includes numbers from different decimal systems."
+  "Return non-nil if STRING includes numbers from different decimal systems.
+
+This function examines only characters in STRING whose Unicode general
+category, as reported by `get-char-code-property' with its second
+argument \\='general-category, is Decimal_Numbers (Nd).  It returns
+non-nil if it finds numerical characters from different numerical
+systems.  For example, ASCII digit characters and ARABIC-INDIC DIGIT
+characters belong to different decimal systems."
   (>
    (length
     (seq-uniq
@@ -199,15 +214,20 @@ This algorithm is described in:
 
 (defun textsec-resolved-script-set (string)
   "Return the resolved script set for STRING.
-This is the minimal covering script set for STRING, but is nil is
-STRING isn't a single script string.
-The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
+The value is a list whose members are symbols of the minimal covering
+script set for STRING; the value is nil if STRING isn't a single-script
+string.
+The script property of characters is defined by the Unicode Standard
+Annex 24 (UAX#24)."
   (and (textsec-single-script-p string)
        (textsec-covering-scripts string)))
 
 (defun textsec-single-script-confusable-p (string1 string2)
   "Say whether STRING1 and STRING2 are single-script confusables.
-The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
+Two strings are said to be confusables if they might look very
+similarly on display.
+The script property of characters is defined by the Unicode Standard
+Annex 24 (UAX#24)."
   (and (equal (textsec-unconfuse-string string1)
               (textsec-unconfuse-string string2))
        ;; And they have to have at least one resolved script in
@@ -217,7 +237,10 @@ The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
 
 (defun textsec-mixed-script-confusable-p (string1 string2)
   "Say whether STRING1 and STRING2 are mixed-script confusables.
-The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
+Two strings are said to be confusables if they might look very
+similarly on display.
+The script property of characters is defined by the Unicode Standard
+Annex 24 (UAX#24)."
   (and (equal (textsec-unconfuse-string string1)
               (textsec-unconfuse-string string2))
        ;; And they have no resolved scripts in common.
@@ -225,8 +248,11 @@ The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
                                (textsec-resolved-script-set string2)))))
 
 (defun textsec-whole-script-confusable-p (string1 string2)
-  "Say whether STRING1 and STRING2 are whole-script confusables.
-The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
+  "Say whether two single-script strings STRING1 and STRING2 are confusables.
+Two strings are said to be confusables if they might look very
+similarly on display.
+The script property of characters is defined by the Unicode Standard
+Annex 24 (UAX#24)."
   (and (textsec-mixed-script-confusable-p string1 string2)
        (textsec-single-script-p string1)
        (textsec-single-script-p string2)))
@@ -287,7 +313,7 @@ or use certain other unusual mixtures of characters."
 
 (defun textsec-local-address-suspicious-p (local)
   "Say whether LOCAL part of an email address looks suspicious.
-LOCAL is the bit before \"@\" in an email address.
+LOCAL is the part before \"@\" in an email address, a string.
 
 If it isn't suspicious, return nil.  If it is, return a string explaining
 the potential problem.
@@ -307,7 +333,7 @@ certain other unusual mixtures of characters."
     (format "`%s' contains invalid dots" local))))
 
 (defun textsec-bidi-controls-suspicious-p (string)
-  "Return non-nil of STRING uses bidi controls in suspicious ways.
+  "Return non-nil of STRING uses bidirectional controls in suspicious ways.
 If STRING doesn't include any suspicious uses of bidirectional
 formatting control characters, return nil.  Otherwise, return the
 index of the first character in STRING affected by such suspicious
@@ -315,8 +341,8 @@ use of bidi controls.  If the returned value is beyond the length
 of STRING, it means any text following STRING on display might be
 affected by bidi controls in STRING."
   (with-temp-buffer
-    ;; We add a string that's representative of some text that could
-    ;; follow STRING, with the purpose of detecting residual bidi
+    ;; We follow STRING with text that's representative of some text
+    ;; that could follow it, with the purpose of detecting residual bidi
     ;; state at end of STRING which could then affect the following
     ;; text.
     (insert string "a1א:!")
@@ -327,8 +353,8 @@ affected by bidi controls in STRING."
 
 (defun textsec-name-suspicious-p (name)
   "Say whether NAME looks suspicious.
-NAME is (for instance) the free-text display name part of an
-email address.
+NAME is a string, for instance, the free-text display name part
+of an email address.
 
 If it isn't suspicious, return nil.  If it is, return a string
 explaining the potential problem.
@@ -360,6 +386,10 @@ other unusual mixtures of characters."
 If it doesn't, return nil.  If it does, return a string explaining
 the potential problem.
 
+Nonspacing characters are those whose general Unicode category is
+Mn (nonspacing mark) or Me (enclosing mark).  Examples include
+diacritics and accents.
+
 Use of nonspacing characters is considered suspicious if there are
 two or more consecutive identical nonspacing characters, or too many
 consecutive nonspacing characters."
@@ -385,21 +415,22 @@ consecutive nonspacing characters."
       nil)))
 
 (defun textsec-email-address-suspicious-p (address)
-  "Say whether EMAIL address looks suspicious.
+  "Say whether email ADDRESS looks suspicious.
 If it isn't, return nil.  If it is, return a string explaining the
 potential problem.
 
+ADDRESS should be a string that specifies an email address.
 An email address is considered suspicious if either of its two
 parts -- the local address name or the domain -- are found to be
 suspicious by, respectively, `textsec-local-address-suspicious-p'
 and `textsec-domain-suspicious-p'."
   (pcase-let ((`(,local ,domain) (split-string address "@")))
     (or
-     (textsec-domain-suspicious-p domain)
+     (if domain (textsec-domain-suspicious-p domain))
      (textsec-local-address-suspicious-p local))))
 
 (defun textsec-email-address-header-suspicious-p (email)
-  "Say whether EMAIL looks suspicious.
+  "Say whether EMAIL address specification looks suspicious.
 If it isn't, return nil.  If it is, return a string explaining the
 potential problem.
 
@@ -417,7 +448,7 @@ and `textsec-name-suspicious-p'."
                      (mail-header-parse-address email t)
                    (error (throw 'end "Email address can't be parsed.")))))
       (or
-       (textsec-email-address-suspicious-p  address)
+       (and address (textsec-email-address-suspicious-p address))
        (and name (textsec-name-suspicious-p name))))))
 
 (defun textsec-url-suspicious-p (url)

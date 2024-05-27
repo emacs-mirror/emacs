@@ -504,7 +504,7 @@ void
 x_free_dpy_colors (Display *dpy, Screen *screen, Colormap cmap,
 		   unsigned long *pixels, int npixels)
 {
-  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
+  struct x_display_info *dpyinfo = x_dpyinfo (dpy);
 
   /* If display has an immutable color map, freeing colors is not
      necessary and some servers don't allow it.  So don't do it.  */
@@ -619,21 +619,7 @@ static struct android_gc *
 x_create_gc (struct frame *f, unsigned long value_mask,
 	     Emacs_GC *xgcv)
 {
-  struct android_gc_values gcv;
-  unsigned long mask;
-
-  gcv.foreground = xgcv->foreground;
-  gcv.background = xgcv->background;
-
-  mask = 0;
-
-  if (value_mask & GCForeground)
-    mask |= ANDROID_GC_FOREGROUND;
-
-  if (value_mask & GCBackground)
-    mask |= ANDROID_GC_BACKGROUND;
-
-  return android_create_gc (mask, &gcv);
+  return android_create_gc (value_mask, xgcv);
 }
 
 static void
@@ -1098,7 +1084,7 @@ tty_lookup_color (struct frame *f, Lisp_Object color, Emacs_Color *tty_color,
 
       return true;
     }
-  else if (NILP (Fsymbol_value (intern ("tty-defined-color-alist"))))
+  else if (NILP (Fsymbol_value (Qtty_defined_color_alist)))
     /* We were called early during startup, and the colors are not
        yet set up in tty-defined-color-alist.  Don't return a failure
        indication, since this produces the annoying "Unable to
@@ -3311,7 +3297,11 @@ FRAME 0 means change the face on all frames, and change the default
                 }
 
               else if (EQ (key, QCstyle)
-                       && !(EQ (val, Qline) || EQ (val, Qwave)))
+                       && !(EQ (val, Qline)
+                            || EQ (val, Qdouble_line)
+                            || EQ (val, Qwave)
+                            || EQ (val, Qdots)
+                            || EQ (val, Qdashes)))
                 {
                   valid_p = false;
                   break;
@@ -4256,6 +4246,12 @@ Default face attributes override any local face attributes.  */)
       /* This can be NULL (e.g., in batch mode).  */
       if (oldface)
 	{
+	  /* In some cases, realize_face below can call Lisp, which could
+             trigger redisplay.  But we are in the process of realizing
+             the default face, and therefore are not ready to do display.  */
+	  specpdl_ref count = SPECPDL_INDEX ();
+	  specbind (Qinhibit_redisplay, Qt);
+
 	  /* Ensure that the face vector is fully specified by merging
 	     the previously-cached vector.  */
 	  memcpy (attrs, oldface->lface, sizeof attrs);
@@ -4301,6 +4297,8 @@ Default face attributes override any local face attributes.  */)
 			      gvec[LFACE_BACKGROUND_INDEX]);
 	      Fmodify_frame_parameters (frame, arg);
 	    }
+
+	  unbind_to (count, Qnil);
 	}
     }
 
@@ -4569,6 +4567,15 @@ free_realized_face (struct frame *f, struct face *face)
 	  /* Free fontset of FACE if it is ASCII face.  */
 	  if (face->fontset >= 0 && face == face->ascii_face)
 	    free_face_fontset (f, face);
+
+#ifdef HAVE_X_WINDOWS
+	  /* This function might be called with the frame's display
+	     connection deleted, in which event the callbacks below
+	     should not be executed, as they generate X requests.  */
+	  if (FRAME_X_DISPLAY (f))
+	    return;
+#endif /* HAVE_X_WINDOWS */
+
 	  if (face->gc)
 	    {
 	      block_input ();
@@ -4621,14 +4628,18 @@ prepare_face_for_display (struct frame *f, struct face *face)
 #endif
 
       block_input ();
-#ifdef HAVE_X_WINDOWS
+#if defined HAVE_X_WINDOWS || defined HAVE_ANDROID
       if (face->stipple)
 	{
 	  egc.fill_style = FillOpaqueStippled;
+#ifndef ANDROID_STUBIFY
 	  egc.stipple = image_bitmap_pixmap (f, face->stipple);
+#else /* !ANDROID_STUBIFY */
+	  emacs_abort ();
+#endif /* !ANDROID_STUBIFY */
 	  mask |= GCFillStyle | GCStipple;
 	}
-#endif
+#endif /* HAVE_X_WINDOWS || HAVE_ANDROID */
       face->gc = x_create_gc (f, mask, &egc);
       if (face->font)
 	font_prepare_for_face (f, face);
@@ -5266,6 +5277,7 @@ gui_supports_face_attributes_p (struct frame *f,
                                 Lisp_Object attrs[LFACE_VECTOR_SIZE],
                                 struct face *def_face)
 {
+  Lisp_Object val;
   Lisp_Object *def_attrs = def_face->lface;
   Lisp_Object lattrs[LFACE_VECTOR_SIZE];
 
@@ -5360,6 +5372,14 @@ gui_supports_face_attributes_p (struct frame *f,
       return false;
     }
 
+  /* Check supported underline styles. */
+  val = attrs[LFACE_UNDERLINE_INDEX];
+  if (!UNSPECIFIEDP (val)
+      && EQ (CAR_SAFE (val), QCstyle)
+      && !(EQ (CAR_SAFE (CDR_SAFE (val)), Qline)
+	   || EQ (CAR_SAFE (CDR_SAFE (val)), Qwave)))
+    return false; /* Unsupported underline style.  */
+
   /* Everything checks out, this face is supported.  */
   return true;
 }
@@ -5453,9 +5473,18 @@ tty_supports_face_attributes_p (struct frame *f,
   if (!UNSPECIFIEDP (val))
     {
       if (STRINGP (val))
-	return false;		/* ttys can't use colored underlines */
-      else if (EQ (CAR_SAFE (val), QCstyle) && EQ (CAR_SAFE (CDR_SAFE (val)), Qwave))
-	return false;		/* ttys can't use wave underlines */
+	test_caps |= TTY_CAP_UNDERLINE_STYLED;
+      else if (EQ (CAR_SAFE (val), QCstyle))
+	{
+	  if (!(EQ (CAR_SAFE (CDR_SAFE (val)), Qline)
+		|| EQ (CAR_SAFE (CDR_SAFE (val)), Qdouble_line)
+		|| EQ (CAR_SAFE (CDR_SAFE (val)), Qwave)
+		|| EQ (CAR_SAFE (CDR_SAFE (val)), Qdots)
+		|| EQ (CAR_SAFE (CDR_SAFE (val)), Qdashes)))
+	    return false; /* Face uses an unsupported underline style.  */
+
+	  test_caps |= TTY_CAP_UNDERLINE_STYLED;
+	}
       else if (face_attr_equal_p (val, def_attrs[LFACE_UNDERLINE_INDEX]))
 	return false;		/* same as default */
       else
@@ -5938,7 +5967,13 @@ realize_default_face (struct frame *f)
   eassert (lface_fully_specified_p (XVECTOR (lface)->contents));
   check_lface (lface);
   memcpy (attrs, xvector_contents (lface), sizeof attrs);
+  /* In some cases, realize_face below can call Lisp, which could
+     trigger redisplay.  But we are in the process of realizing
+     the default face, and therefore are not ready to do display.  */
+  specpdl_ref count = SPECPDL_INDEX ();
+  specbind (Qinhibit_redisplay, Qt);
   struct face *face = realize_face (c, attrs, DEFAULT_FACE_ID);
+  unbind_to (count, Qnil);
 
 #ifndef HAVE_WINDOW_SYSTEM
   (void) face;
@@ -6312,7 +6347,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
   if (EQ (underline, Qt))
     {
       /* Use default color (same as foreground color).  */
-      face->underline = FACE_UNDER_LINE;
+      face->underline = FACE_UNDERLINE_SINGLE;
       face->underline_defaulted_p = true;
       face->underline_color = 0;
       face->underline_at_descent_line_p = false;
@@ -6321,7 +6356,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
   else if (STRINGP (underline))
     {
       /* Use specified color.  */
-      face->underline = FACE_UNDER_LINE;
+      face->underline = FACE_UNDERLINE_SINGLE;
       face->underline_defaulted_p = false;
       face->underline_color
 	= load_color (f, face, underline,
@@ -6341,7 +6376,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
     {
       /* `(:color COLOR :style STYLE)'.
          STYLE being one of `line' or `wave'. */
-      face->underline = FACE_UNDER_LINE;
+      face->underline = FACE_UNDERLINE_SINGLE;
       face->underline_color = 0;
       face->underline_defaulted_p = true;
       face->underline_at_descent_line_p = false;
@@ -6377,11 +6412,19 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
             }
           else if (EQ (keyword, QCstyle))
             {
-              if (EQ (value, Qline))
-                face->underline = FACE_UNDER_LINE;
-              else if (EQ (value, Qwave))
-                face->underline = FACE_UNDER_WAVE;
-            }
+	      if (EQ (value, Qline))
+		face->underline = FACE_UNDERLINE_SINGLE;
+	      else if (EQ (value, Qdouble_line))
+		face->underline = FACE_UNDERLINE_DOUBLE_LINE;
+	      else if (EQ (value, Qwave))
+		face->underline = FACE_UNDERLINE_WAVE;
+	      else if (EQ (value, Qdots))
+		face->underline = FACE_UNDERLINE_DOTS;
+	      else if (EQ (value, Qdashes))
+		face->underline = FACE_UNDERLINE_DASHES;
+	      else
+		face->underline = FACE_UNDERLINE_SINGLE;
+	    }
 	  else if (EQ (keyword, QCposition))
 	    {
 	      face->underline_at_descent_line_p = !NILP (value);
@@ -6431,17 +6474,18 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 }
 
 
-/* Map a specified color of face FACE on frame F to a tty color index.
-   IDX is either LFACE_FOREGROUND_INDEX or LFACE_BACKGROUND_INDEX, and
-   specifies which color to map.  Set *DEFAULTED to true if mapping to the
+/* Map the specified color COLOR of face FACE on frame F to a tty
+   color index.  IDX is one of LFACE_FOREGROUND_INDEX,
+   LFACE_BACKGROUND_INDEX or LFACE_UNDERLINE_INDEX, and specifies
+   which color to map.  Set *DEFAULTED to true if mapping to the
    default foreground/background colors.  */
 
 static void
-map_tty_color (struct frame *f, struct face *face,
-	       enum lface_attribute_index idx, bool *defaulted)
+map_tty_color (struct frame *f, struct face *face, Lisp_Object color,
+               enum lface_attribute_index idx, bool *defaulted)
 {
-  Lisp_Object frame, color, def;
-  bool foreground_p = idx == LFACE_FOREGROUND_INDEX;
+  Lisp_Object frame, def;
+  bool foreground_p = idx != LFACE_BACKGROUND_INDEX;
   unsigned long default_pixel =
     foreground_p ? FACE_TTY_DEFAULT_FG_COLOR : FACE_TTY_DEFAULT_BG_COLOR;
   unsigned long pixel = default_pixel;
@@ -6450,10 +6494,11 @@ map_tty_color (struct frame *f, struct face *face,
     foreground_p ? FACE_TTY_DEFAULT_BG_COLOR : FACE_TTY_DEFAULT_FG_COLOR;
 #endif
 
-  eassert (idx == LFACE_FOREGROUND_INDEX || idx == LFACE_BACKGROUND_INDEX);
+  eassert (idx == LFACE_FOREGROUND_INDEX
+           || idx == LFACE_BACKGROUND_INDEX
+           || idx == LFACE_UNDERLINE_INDEX);
 
   XSETFRAME (frame, f);
-  color = face->lface[idx];
 
   if (STRINGP (color)
       && SCHARS (color)
@@ -6498,12 +6543,20 @@ map_tty_color (struct frame *f, struct face *face,
 #endif /* MSDOS */
     }
 
-  if (foreground_p)
-    face->foreground = pixel;
-  else
-    face->background = pixel;
+  switch (idx)
+    {
+    case LFACE_FOREGROUND_INDEX:
+      face->foreground = pixel;
+      break;
+    case LFACE_UNDERLINE_INDEX:
+      face->underline_color = pixel;
+      break;
+    case LFACE_BACKGROUND_INDEX:
+    default:
+      face->background = pixel;
+      break;
+    }
 }
-
 
 /* Realize the fully-specified face with attributes ATTRS in face
    cache CACHE for ASCII characters.  Do it for TTY frame CACHE->f.
@@ -6515,6 +6568,7 @@ realize_tty_face (struct face_cache *cache,
 {
   struct face *face;
   int weight, slant;
+  Lisp_Object underline;
   bool face_colors_defaulted = false;
   struct frame *f = cache->f;
 
@@ -6534,16 +6588,83 @@ realize_tty_face (struct face_cache *cache,
     face->tty_bold_p = true;
   if (slant != 100)
     face->tty_italic_p = true;
-  if (!NILP (attrs[LFACE_UNDERLINE_INDEX]))
-    face->tty_underline_p = true;
   if (!NILP (attrs[LFACE_INVERSE_INDEX]))
     face->tty_reverse_p = true;
   if (!NILP (attrs[LFACE_STRIKE_THROUGH_INDEX]))
     face->tty_strike_through_p = true;
 
+  /* Text underline.  */
+  underline = attrs[LFACE_UNDERLINE_INDEX];
+  if (NILP (underline))
+    {
+      face->underline = FACE_NO_UNDERLINE;
+      face->underline_color = 0;
+    }
+  else if (EQ (underline, Qt))
+    {
+      face->underline = FACE_UNDERLINE_SINGLE;
+      face->underline_color = 0;
+    }
+  else if (STRINGP (underline))
+    {
+      face->underline = FACE_UNDERLINE_SINGLE;
+      bool underline_color_defaulted;
+      map_tty_color (f, face, underline, LFACE_UNDERLINE_INDEX,
+		     &underline_color_defaulted);
+    }
+  else if (CONSP (underline))
+    {
+      /* `(:color COLOR :style STYLE)'.
+	 STYLE being one of `line', `double-line', `wave', `dots' or `dashes'.  */
+      face->underline = FACE_UNDERLINE_SINGLE;
+      face->underline_color = 0;
+
+      while (CONSP (underline))
+	{
+	  Lisp_Object keyword, value;
+
+	  keyword = XCAR (underline);
+	  underline = XCDR (underline);
+
+	  if (!CONSP (underline))
+	    break;
+	  value = XCAR (underline);
+	  underline = XCDR (underline);
+
+	  if (EQ (keyword, QCcolor))
+	    {
+	      if (EQ (value, Qforeground_color))
+		face->underline_color = 0;
+	      else if (STRINGP (value))
+		{
+		  bool underline_color_defaulted;
+		  map_tty_color (f, face, value, LFACE_UNDERLINE_INDEX,
+				 &underline_color_defaulted);
+		}
+	    }
+	  else if (EQ (keyword, QCstyle))
+	    {
+	      if (EQ (value, Qline))
+		face->underline = FACE_UNDERLINE_SINGLE;
+	      else if (EQ (value, Qdouble_line))
+		face->underline = FACE_UNDERLINE_DOUBLE_LINE;
+	      else if (EQ (value, Qwave))
+		face->underline = FACE_UNDERLINE_WAVE;
+	      else if (EQ (value, Qdots))
+		face->underline = FACE_UNDERLINE_DOTS;
+	      else if (EQ (value, Qdashes))
+		face->underline = FACE_UNDERLINE_DASHES;
+	      else
+		face->underline = FACE_UNDERLINE_SINGLE;
+	    }
+	}
+    }
+
   /* Map color names to color indices.  */
-  map_tty_color (f, face, LFACE_FOREGROUND_INDEX, &face_colors_defaulted);
-  map_tty_color (f, face, LFACE_BACKGROUND_INDEX, &face_colors_defaulted);
+  map_tty_color (f, face, face->lface[LFACE_FOREGROUND_INDEX],
+                 LFACE_FOREGROUND_INDEX, &face_colors_defaulted);
+  map_tty_color (f, face, face->lface[LFACE_BACKGROUND_INDEX],
+                 LFACE_BACKGROUND_INDEX, &face_colors_defaulted);
 
   /* Swap colors if face is inverse-video.  If the colors are taken
      from the frame colors, they are already inverted, since the
@@ -7229,6 +7350,9 @@ syms_of_xfaces (void)
   DEFSYM (QCposition, ":position");
   DEFSYM (Qline, "line");
   DEFSYM (Qwave, "wave");
+  DEFSYM (Qdouble_line, "double-line");
+  DEFSYM (Qdots, "dots");
+  DEFSYM (Qdashes, "dashes");
   DEFSYM (Qreleased_button, "released-button");
   DEFSYM (Qpressed_button, "pressed-button");
   DEFSYM (Qflat_button, "flat-button");
@@ -7298,6 +7422,7 @@ syms_of_xfaces (void)
 
   /* The name of the function used to compute colors on TTYs.  */
   DEFSYM (Qtty_color_alist, "tty-color-alist");
+  DEFSYM (Qtty_defined_color_alist, "tty-defined-color-alist");
 
   Vface_alternative_font_family_alist = Qnil;
   staticpro (&Vface_alternative_font_family_alist);

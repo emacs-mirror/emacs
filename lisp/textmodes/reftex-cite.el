@@ -1048,7 +1048,14 @@ in order to only add another reference in the same cite command."
                ((= l ?E) (car (reftex-get-bib-names "editor" entry)))
                ((= l ?h) (reftex-get-bib-field "howpublished" entry))
                ((= l ?i) (reftex-get-bib-field "institution" entry))
-               ((= l ?j) (reftex-get-bib-field "journal" entry))
+               ((= l ?j) (let ((jr (reftex-get-bib-field "journal" entry)))
+                           (if (string-empty-p jr)
+                               ;; Biblatex prefers the alternative
+                               ;; journaltitle field, so check if that
+                               ;; exists in case journal is empty
+                               (reftex-get-bib-field "journaltitle" entry)
+                             ;; Standard BibTeX
+                             jr)))
                ((= l ?k) (reftex-get-bib-field "key" entry))
                ((= l ?m) (reftex-get-bib-field "month" entry))
                ((= l ?n) (reftex-get-bib-field "number" entry))
@@ -1144,8 +1151,6 @@ recommended for follow mode.  It works OK for individual lookups."
 (defun reftex-all-used-citation-keys ()
   "Return a list of all citation keys used in document."
   (reftex-access-scan-info)
-  ;; FIXME: multicites macros provided by biblatex
-  ;; are not covered in this function.
   (let ((files (reftex-all-document-files))
         (re (concat "\\\\"
                     "\\(?:"
@@ -1170,6 +1175,25 @@ recommended for follow mode.  It works OK for individual lookups."
                     "\\)"
                     ;; Now match the key:
                     "{\\([^}]+\\)}"))
+        ;; Multicites: Match \MACRONAME(Global Pre)(Global Post)
+        (re2 (concat "\\\\"
+                     (regexp-opt '("cites"       "Cites"
+                                   "parencites"  "Parencites"
+                                   "footcites"   "footcitetexts"
+                                   "smartcites"  "Smartcites"
+                                   "textcites"   "Textcites"
+                                   "supercites"
+                                   "autocites"   "Autocites"
+                                   "volcites"    "Volcites"
+                                   "pvolcites"   "Pvolcites"
+                                   "fvolcites"   "Fvolcites"
+                                   "svolcites"   "Svolcites"
+                                   "tvolcites"   "Tvolcites"
+                                   "avolcites"   "Avolcites"))
+                     "\\(?:([^)]*)\\)\\{0,2\\}"))
+        ;; For each key in list [prenote][postnote]{key}
+        (re3 (concat "\\(?:\\[[^]]*\\]\\)\\{0,2\\}"
+                     "{\\([^}]+\\)}"))
         file keys kk k)
     (save-current-buffer
       (while (setq file (pop files))
@@ -1188,7 +1212,29 @@ recommended for follow mode.  It works OK for individual lookups."
                 (setq kk (split-string kk "[, \t\r\n]+"))
                 (while (setq k (pop kk))
                   (or (member k keys)
-                      (setq keys (cons k keys))))))))))
+                      (setq keys (cons k keys))))))
+            ;; And now search for citation lists:
+            (goto-char (point-min))
+            (while (re-search-forward re2 nil t)
+              ;; Make sure we're not inside a comment:
+              (unless (save-match-data
+                        (nth 4 (syntax-ppss)))
+                (while (progn
+                         ;; Ignore the value of
+                         ;; `reftex-allow-detached-macro-args' since we
+                         ;; expect a bigger number of args and detaching
+                         ;; them seems natural for line breaks:
+                         (while (looking-at "[ \t\r\n]+\\|%.*\n")
+                           (goto-char (match-end 0)))
+                         (and (looking-at re3)
+                              (goto-char (match-end 0))))
+                  (setq kk (match-string-no-properties 1))
+                  (while (string-match "%.*\n?" kk)
+                    (setq kk (replace-match "" t t kk)))
+                  (setq kk (split-string kk "[, \t\r\n]+"))
+                  (while (setq k (pop kk))
+                    (or (member k keys)
+                        (setq keys (cons k keys)))))))))))
     (reftex-kill-temporary-buffers)
     keys))
 

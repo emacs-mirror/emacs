@@ -39,16 +39,36 @@
 (require 'newcomment)
 (require 'pcase)
 
-(defconst ert-font-lock--assertion-re
+(defconst ert-font-lock--face-symbol-re
+  (rx (+ (or alphanumeric "-" "_" "." "/")))
+  "A face symbol matching regex.
+The regexp cannot use character classes as these can be redefined by the
+major mode of the host language.")
+
+(defconst ert-font-lock--face-symbol-list-re
+  (rx "("
+      (* whitespace)
+      (? (regexp ert-font-lock--face-symbol-re))
+      (* (+ whitespace)
+         (regexp ert-font-lock--face-symbol-re))
+      (* whitespace)
+      ")")
+  "A face symbol list matching regex.")
+
+(defconst ert-font-lock--assertion-line-re
   (rx
-   ;; column specifiers
-   (group (or "^" "<-"))
-   (one-or-more " ")
+   ;; leading column assertion (arrow/caret)
+   (group-n 1 (or "^" "<-"))
+   (* whitespace)
+   ;; possible to have many carets on an assertion line
+   (group-n 2 (* "^" (* whitespace)))
    ;; optional negation of the face specification
-   (group (optional "!"))
-   ;; face symbol name
-   (group (one-or-more (or alphanumeric "-" "_" "."))))
-  "An ert-font-lock assertion regex.")
+   (group-n 3 (optional "!"))
+   (* whitespace)
+   ;; face symbol name or a list of symbols
+   (group-n 4 (or (regexp ert-font-lock--face-symbol-re)
+                  (regexp ert-font-lock--face-symbol-list-re))))
+  "An ert-font-lock assertion line regex.")
 
 (defun ert-font-lock--validate-major-mode (mode)
   "Validate if MODE is a valid major mode."
@@ -212,7 +232,7 @@ be used through `ert'.
   (save-excursion
     (beginning-of-line)
     (skip-syntax-forward " ")
-    (re-search-forward ert-font-lock--assertion-re
+    (re-search-forward ert-font-lock--assertion-line-re
                        (line-end-position) t 1)))
 
 (defun ert-font-lock--goto-first-char ()
@@ -252,8 +272,8 @@ be used through `ert'.
           (throw 'nextline t))
 
 
-        ;; Collect the assertion
-        (when (re-search-forward ert-font-lock--assertion-re
+        ;; Collect the first line assertion (caret or arrow)
+        (when (re-search-forward ert-font-lock--assertion-line-re
                                  (line-end-position) t 1)
 
           (unless (> linetocheck -1)
@@ -266,20 +286,37 @@ be used through `ert'.
                                      (- (match-beginning 1) (line-beginning-position))
                                    (ert-font-lock--get-first-char-column)))
                  ;; negate the face?
-                 (negation (string-equal (match-string-no-properties 2) "!"))
+                 (negation (string-equal (match-string-no-properties 3) "!"))
                  ;; the face that is supposed to be in the position specified
-                 (face (match-string-no-properties 3)))
+                 (face (read (match-string-no-properties 4))))
 
+            ;; Collect the first assertion on the line
             (push (list :line-checked linetocheck
                         :line-assert curline
                         :column-checked column-checked
                         :face face
                         :negation negation)
-                  tests))))
+                  tests)
+
+            ;; Collect all the other line carets (if present)
+            (goto-char (match-beginning 2))
+            (while (equal (following-char) ?^)
+              (setq column-checked (- (point) (line-beginning-position)))
+              (push (list :line-checked linetocheck
+                          :line-assert curline
+                          :column-checked column-checked
+                          :face face
+                          :negation negation)
+                    tests)
+              (forward-char)
+              (skip-syntax-forward " ")))))
 
       ;; next line
       (setq curline (1+ curline))
       (forward-line 1))
+
+    (unless tests
+      (user-error "No test assertions found"))
 
     (reverse tests)))
 
@@ -307,21 +344,30 @@ The function is meant to be run from within an ERT test."
     (let* ((line-checked (plist-get test :line-checked))
            (line-assert (plist-get test :line-assert))
            (column-checked (plist-get test :column-checked))
-           (expected-face (intern (plist-get test :face)))
+           (expected-face (plist-get test :face))
            (negation (plist-get test :negation))
 
            (actual-face (get-text-property (ert-font-lock--point-at-line-and-column line-checked column-checked) 'face))
            (line-str (ert-font-lock--get-line line-checked))
            (line-assert-str (ert-font-lock--get-line line-assert)))
 
-      (when (not (eq actual-face expected-face))
+      ;; normalize both expected and resulting face - these can be
+      ;; either symbols, nils or lists of symbols
+      (when (not (listp actual-face))
+        (setq actual-face (list actual-face)))
+      (when (not (listp expected-face))
+        (setq expected-face (list expected-face)))
+
+      ;; fail when lists are not 'equal and the assertion is *not negated*
+      (when (and (not negation) (not (equal actual-face expected-face)))
         (ert-fail
          (list (format "Expected face %S, got %S on line %d column %d"
                        expected-face actual-face line-checked column-checked)
                :line line-str
                :assert line-assert-str)))
 
-      (when (and negation (eq actual-face expected-face))
+      ;; fail when lists are 'equal and the assertion is *negated*
+      (when (and negation (equal actual-face expected-face))
         (ert-fail
          (list (format "Did not expect face %S face on line %d, column %d"
                        actual-face line-checked column-checked)

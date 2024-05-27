@@ -223,8 +223,10 @@ the directory @file{~/cvs/emacs/src/}.  You can list only buffers that
 are visiting files by giving the command a prefix argument, as in
 @kbd{C-u C-x C-b}.
 
-  @code{list-buffers} omits buffers whose names begin with a space,
-unless they visit files: such buffers are used internally by Emacs.
+  By default, @code{list-buffers} omits buffers whose names begin with a
+space, unless they visit files: such buffers are used internally by
+Emacs (but the @kbd{I} command countermands that, @pxref{Several
+Buffers}).
 
 @node Misc Buffer
 @section Miscellaneous Buffer Operations
@@ -401,57 +403,57 @@ cursor motion commands can be used in this buffer.  The following
 commands apply to the buffer described on the current line:
 
 @table @kbd
-@item d
 @findex Buffer-menu-delete
 @kindex d @r{(Buffer Menu)}
+@item d
 Flag the buffer for deletion (killing), then move point to the next
 line (@code{Buffer-menu-delete}).  The deletion flag is indicated by
 the character @samp{D} on the line, before the buffer name.  The
 deletion occurs only when you type the @kbd{x} command (see below).
 
-@item C-d
 @findex Buffer-menu-delete-backwards
 @kindex C-d @r{(Buffer Menu)}
+@item C-d
 Like @kbd{d}, but move point up instead of down
 (@code{Buffer-menu-delete-backwards}).
 
-@item s
 @findex Buffer-menu-save
 @kindex s @r{(Buffer Menu)}
+@item s
 Flag the buffer for saving (@code{Buffer-menu-save}).  The save flag
 is indicated by the character @samp{S} on the line, before the buffer
 name.  The saving occurs only when you type @kbd{x}.  You may request
 both saving and deletion for the same buffer.
 
-@item x
 @findex Buffer-menu-execute
 @kindex x @r{(Buffer Menu)}
+@item x
 Perform all flagged deletions and saves (@code{Buffer-menu-execute}).
 
-@item u
 @findex Buffer-menu-unmark
 @kindex u @r{(Buffer Menu)}
+@item u
 Remove all flags from the current line, and move down
 (@code{Buffer-menu-unmark}).  With a prefix argument, moves up after
 removing the flags.
 
-@item @key{DEL}
 @findex Buffer-menu-backup-unmark
 @kindex DEL @r{(Buffer Menu)}
+@item @key{DEL}
 Move to the previous line and remove all flags on that line
 (@code{Buffer-menu-backup-unmark}).
 
-@item M-@key{DEL}
 @findex Buffer-menu-unmark-all-buffers
 @kindex M-DEL @r{(Buffer Menu)}
+@item M-@key{DEL}
 Remove a particular flag from all lines
 (@code{Buffer-menu-unmark-all-buffers}).  This asks for a single
 character, and unmarks buffers marked with that character; typing
 @key{RET} removes all marks.
 
-@item U
 @findex Buffer-menu-unmark-all
 @kindex U @r{(Buffer Menu)}
+@item U
 Remove all flags from all the lines
 (@code{Buffer-menu-unmark-all}).
 @end table
@@ -465,21 +467,21 @@ the current line.  They also accept a numeric argument as a repeat
 count.
 
 @table @kbd
-@item ~
 @findex Buffer-menu-not-modified
 @kindex ~ @r{(Buffer Menu)}
+@item ~
 Mark the buffer as unmodified (@code{Buffer-menu-not-modified}).
 @xref{Save Commands}.
 
-@item %
 @findex Buffer-menu-toggle-read-only
 @kindex % @r{(Buffer Menu)}
+@item %
 Toggle the buffer's read-only status
 (@code{Buffer-menu-toggle-read-only}).  @xref{Misc Buffer}.
 
-@item t
 @findex Buffer-menu-visit-tags-table
 @kindex t @r{(Buffer Menu)}
+@item t
 Visit the buffer as a tags table
 (@code{Buffer-menu-visit-tags-table}).  @xref{Select Tags Table}.
 @end table
@@ -487,63 +489,63 @@ Visit the buffer as a tags table
   The following commands are used to select another buffer or buffers:
 
 @table @kbd
-@item q
 @findex quit-window
 @kindex q @r{(Buffer Menu)}
+@item q
 Quit the Buffer Menu (@code{quit-window}).  The most recent formerly
 visible buffer is displayed in its place.
 
-@item @key{RET}
-@itemx f
 @findex Buffer-menu-this-window
 @kindex f @r{(Buffer Menu)}
 @kindex RET @r{(Buffer Menu)}
+@item @key{RET}
+@itemx f
 Select this line's buffer, replacing the @file{*Buffer List*} buffer
 in its window (@code{Buffer-menu-this-window}).
 
-@item o
 @findex Buffer-menu-other-window
 @kindex o @r{(Buffer Menu)}
+@item o
 Select this line's buffer in another window, as if by @kbd{C-x 4 b},
 leaving @file{*Buffer List*} visible
 (@code{Buffer-menu-other-window}).
 
-@item C-o
 @findex Buffer-menu-switch-other-window
 @kindex C-o @r{(Buffer Menu)}
+@item C-o
 Display this line's buffer in another window, without selecting it
 (@code{Buffer-menu-switch-other-window}).
 
-@item 1
 @findex Buffer-menu-1-window
 @kindex 1 @r{(Buffer Menu)}
+@item 1
 Select this line's buffer in a full-frame window
 (@code{Buffer-menu-1-window}).
 
-@item 2
 @findex Buffer-menu-2-window
 @kindex 2 @r{(Buffer Menu)}
+@item 2
 Set up two windows on the current frame, with this line's buffer
 selected in one, and a previously current buffer (aside from
 @file{*Buffer List*}) in the other (@code{Buffer-menu-2-window}).
 
-@item b
 @findex Buffer-menu-bury
 @kindex b @r{(Buffer Menu)}
+@item b
 Bury this line's buffer (@code{Buffer-menu-bury}) (i.e., move it to
 the end of the buffer list).
 
-@item m
 @findex Buffer-menu-mark
 @kindex m @r{(Buffer Menu)}
+@item m
 Mark this line's buffer to be displayed in another window if you exit
 with the @kbd{v} command (@code{Buffer-menu-mark}).  The display flag
 is indicated by the character @samp{>} at the beginning of the line.
 (A single buffer may not have both deletion and display flags.)
 
-@item v
 @findex Buffer-menu-select
 @kindex v @r{(Buffer Menu)}
+@item v
 Select this line's buffer, and also display in other windows any
 buffers flagged with the @kbd{m} command (@code{Buffer-menu-select}).
 If you have not flagged any buffers, this command is equivalent to
@@ -553,31 +555,37 @@ If you have not flagged any buffers, this command is equivalent to
   The following commands affect the entire buffer list:
 
 @table @kbd
-@item S
 @findex tabulated-list-sort
 @kindex S @r{(Buffer Menu)}
+@item S
 Sort the Buffer Menu entries according to their values in the column
 at point.  With a numeric prefix argument @var{n}, sort according to
 the @var{n}-th column (@code{tabulated-list-sort}).
 
-@item @}
 @kindex @} @r{(Buffer Menu)}
 @findex tabulated-list-widen-current-column
+@item @}
 Widen the current column width by @var{n} (the prefix numeric
 argument) characters.
 
-@item @{
 @kindex @{ @r{(Buffer Menu)}
 @findex tabulated-list-narrow-current-column
+@item @{
 Narrow the current column width by @var{n} (the prefix numeric
 argument) characters.
 
-@item T
 @findex Buffer-menu-toggle-files-only
 @kindex T @r{(Buffer Menu)}
+@item T
 Delete, or reinsert, lines for non-file buffers
 (@code{Buffer-menu-toggle-files-only}).  This command toggles the
 inclusion of such buffers in the buffer list.
+
+@findex Buffer-menu-toggle-internal
+@kindex I @r{(Buffer Menu)}
+@item I
+Toggle display of internal buffers, those whose names begin with a
+space.
 @end table
 
   Normally, the buffer @file{*Buffer List*} is not updated

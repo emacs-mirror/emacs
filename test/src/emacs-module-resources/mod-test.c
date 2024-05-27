@@ -46,6 +46,7 @@ uintptr_t _beginthread (void (__cdecl *) (void *), unsigned, void *);
 #include <gmp.h>
 #include <emacs-module.h>
 
+extern int plugin_is_GPL_compatible;
 int plugin_is_GPL_compatible;
 
 #if INTPTR_MAX <= 0

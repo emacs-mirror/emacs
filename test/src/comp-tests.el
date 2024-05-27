@@ -865,8 +865,8 @@ Return a list of results."
   (let ((native-comp-speed 3)
         ;; Disable ipa-pure otherwise `comp-tests-tco-f' gets
         ;; optimized-out.
-        (comp-disabled-passes '(comp-ipa-pure))
-        (comp-post-pass-hooks '((comp-tco comp-tests-tco-checker)
+        (comp-disabled-passes '(comp--ipa-pure))
+        (comp-post-pass-hooks '((comp--tco comp-tests-tco-checker)
                                 (comp-final comp-tests-tco-checker))))
     (eval '(defun comp-tests-tco-f (a b count)
              (if (= count 0)
@@ -893,7 +893,7 @@ Return a list of results."
 (comp-deftest fw-prop-1 ()
   "Some tests for forward propagation."
   (let ((native-comp-speed 2)
-        (comp-post-pass-hooks '((comp-final comp-tests-fw-prop-checker-1))))
+        (comp-post-pass-hooks '((comp--final comp-tests-fw-prop-checker-1))))
     (eval '(defun comp-tests-fw-prop-1-f ()
              (let* ((a "xxx")
 	            (b "yyy")
@@ -1496,7 +1496,14 @@ Return a list of results."
          (if (comp-foo-p x)
              x
            (error "")))
-       'comp-foo)))
+       'comp-foo)
+
+      ;; 80
+      ((defun comp-tests-ret-type-spec-f (x)
+         (if (functionp x)
+             (error "")
+           x))
+       '(not function))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()
@@ -1543,8 +1550,8 @@ folded."
 (comp-deftest pure ()
   "Some tests for pure functions optimization."
   (let ((native-comp-speed 3)
-        (comp-post-pass-hooks '((comp-final comp-tests-pure-checker-1
-                                            comp-tests-pure-checker-2))))
+        (comp-post-pass-hooks '((comp--final comp-tests-pure-checker-1
+                                             comp-tests-pure-checker-2))))
     (load (native-compile (ert-resource-file "comp-test-pure.el")))
     (declare-function comp-tests-pure-caller-f nil)
     (declare-function comp-tests-pure-fibn-entry-f nil)

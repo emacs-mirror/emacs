@@ -270,7 +270,7 @@ The result will be made available in `dbus-return-values-table'."
          (result (gethash key dbus-return-values-table)))
     (when (consp result)
       (setcar result :complete)
-      (setcdr result (if (= (length args) 1) (car args) args)))))
+      (setcdr result (if (length= args 1) (car args) args)))))
 
 (defun dbus-notice-synchronous-call-errors (ev er)
   "Detect errors resulting from pending synchronous calls."
@@ -773,7 +773,7 @@ Example:
     ;; Signals are sent always with the unique name as sender.  Note:
     ;; the unique name of `dbus-service-dbus' is that string itself.
     (if (and (stringp service)
-	     (not (zerop (length service)))
+	     (length> service 0)
 	     (not (string-equal service dbus-service-dbus))
              (/= (string-to-char service) ?:))
 	(setq uname (dbus-get-name-owner bus service))
@@ -994,20 +994,26 @@ association to the service from D-Bus."
 
 (defun dbus-string-to-byte-array (string)
   "Transform STRING to list (:array :byte C1 :byte C2 ...).
-STRING shall be UTF-8 coded."
-  (if (zerop (length string))
+The resulting byte array contains the raw bytes of the UTF-8 encoded
+STRING."
+  (if (length= string 0)
       '(:array :signature "y")
-    (cons :array (mapcan (lambda (c) (list :byte c)) string))))
+    (cons :array
+          (mapcan (lambda (c) (list :byte c))
+                  (let (last-coding-system-used)
+                    (encode-coding-string string 'utf-8 'nocopy))))))
 
-(defun dbus-byte-array-to-string (byte-array &optional multibyte)
-  "Transform BYTE-ARRAY into UTF-8 coded string.
-BYTE-ARRAY must be a list of structure (c1 c2 ...), or a byte
-array as produced by `dbus-string-to-byte-array'.  The resulting
-string is unibyte encoded, unless MULTIBYTE is non-nil."
-  (apply
-   (if multibyte #'string #'unibyte-string)
-   (unless (equal byte-array '(:array :signature "y"))
-     (seq-filter #'characterp byte-array))))
+(defun dbus-byte-array-to-string (byte-array &optional _multibyte)
+  "Transform BYTE-ARRAY with UTF-8 byte sequence into a string.
+BYTE-ARRAY must be a list of structure (c1 c2 ...), or a byte array as
+produced by `dbus-string-to-byte-array', and the individual bytes must
+be a valid UTF-8 byte sequence."
+  (declare (advertised-calling-convention (byte-array) "30.1"))
+  (if-let ((bytes (seq-filter #'characterp byte-array))
+           (string (apply #'unibyte-string bytes)))
+      (let (last-coding-system-used)
+        (decode-coding-string string 'utf-8 'nocopy))
+    ""))
 
 (defun dbus-escape-as-identifier (string)
   "Escape an arbitrary STRING so it follows the rules for a C identifier.
@@ -1026,7 +1032,7 @@ escaped to \"_\".
 
 Returns the escaped string.  Algorithm taken from
 telepathy-glib's `tp_escape_as_identifier'."
-  (if (zerop (length string))
+  (if (length= string 0)
       "_"
     (replace-regexp-in-string
      "\\`[0-9]\\|[^A-Za-z0-9]"

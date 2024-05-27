@@ -40,9 +40,10 @@ It has `lisp-mode-abbrev-table' as its parent."
 
 (defvar emacs-lisp-mode-syntax-table
   (let ((table (make-syntax-table lisp-data-mode-syntax-table)))
-    ;; These are redundant, now.
-    ;;(modify-syntax-entry ?\[ "(]  " table)
-    ;;(modify-syntax-entry ?\] ")[  " table)
+    ;; Remove the "p" flag from the entry of `@' because we use instead
+    ;; `syntax-propertize' to take care of `,@', which is more precise.
+    ;; FIXME: We should maybe do the same in other Lisp modes?  (bug#24542)
+    (modify-syntax-entry ?@ "_" table)
     table)
   "Syntax table used in `emacs-lisp-mode'.")
 
@@ -1559,13 +1560,16 @@ character)."
       ((defining-symbol nil)
        (`(,insert-value ,no-truncate ,char-print-limit)
         (eval-expression-get-print-arguments eval-last-sexp-arg-internal)))
-    ;; Setup the lexical environment if lexical-binding is enabled.
-    (elisp--eval-last-sexp-print-value
-     (eval (macroexpand-all
-            (eval-sexp-add-defvars
-             (elisp--eval-defun-1 (macroexpand (elisp--preceding-sexp)))))
-           lexical-binding)
-     (if insert-value (current-buffer) t) no-truncate char-print-limit)))
+    ;; The expression might change to a different buffer, so record the
+    ;; desired output stream now.
+    (let ((output (if insert-value (current-buffer) t)))
+      ;; Setup the lexical environment if lexical-binding is enabled.
+      (elisp--eval-last-sexp-print-value
+       (eval (macroexpand-all
+              (eval-sexp-add-defvars
+               (elisp--eval-defun-1 (macroexpand (elisp--preceding-sexp)))))
+             lexical-binding)
+       output no-truncate char-print-limit))))
 
 (defun elisp--eval-last-sexp-print-value
     (value output &optional no-truncate char-print-limit)
@@ -2154,8 +2158,13 @@ Calls REPORT-FN directly."
                                  (point-max)))
                   collect (flymake-make-diagnostic
                            (current-buffer)
-                           (if (= beg end) (1- beg) beg)
-                           end
+                           (if (= beg end)
+                               (max (1- beg) (point-min))
+                             beg)
+                           (if (= beg end)
+                               (min (max beg (1+ (point-min)))
+                                    (point-max))
+                             end)
                            level
                            string)))))))
 
@@ -2172,6 +2181,8 @@ directory of the buffer being compiled, and nothing else.")
                                   (dolist (path x t) (unless (stringp path)
                                                        (throw 'tag nil)))))))
 
+(defvar bytecomp--inhibit-lexical-cookie-warning)
+
 ;;;###autoload
 (defun elisp-flymake-byte-compile (report-fn &rest _args)
   "A Flymake backend for elisp byte compilation.
@@ -2187,7 +2198,13 @@ current buffer state and calls REPORT-FN when done."
     (save-restriction
       (widen)
       (write-region (point-min) (point-max) temp-file nil 'nomessage))
-    (let* ((output-buffer (generate-new-buffer " *elisp-flymake-byte-compile*")))
+    (let* ((output-buffer (generate-new-buffer " *elisp-flymake-byte-compile*"))
+           ;; Hack: suppress warning about missing lexical cookie in
+           ;; *scratch* buffers.
+           (warning-suppression-opt
+            (and (derived-mode-p 'lisp-interaction-mode)
+                 '("--eval"
+                   "(setq bytecomp--inhibit-lexical-cookie-warning t)"))))
       (setq
        elisp-flymake--byte-compile-process
        (make-process
@@ -2199,6 +2216,7 @@ current buffer state and calls REPORT-FN when done."
                    ;; "--eval" "(setq load-prefer-newer t)" ; for testing
                    ,@(mapcan (lambda (path) (list "-L" path))
                              elisp-flymake-byte-compile-load-path)
+                   ,@warning-suppression-opt
                    "-f" "elisp-flymake--batch-compile-for-flymake"
                    ,temp-file)
         :connection-type 'pipe

@@ -130,7 +130,8 @@ usually more efficient than that of a simplified version:
      (concat (car parens)
              (mapconcat \\='regexp-quote strings \"\\\\|\")
              (cdr parens))))"
-  (declare (pure t) (side-effect-free t))
+  (declare (ftype (function (list &optional t) string))
+           (pure t) (side-effect-free t))
   (save-match-data
     ;; Recurse on the sorted list.
     (let* ((max-lisp-eval-depth 10000)

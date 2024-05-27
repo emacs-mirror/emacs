@@ -2817,8 +2817,7 @@ To be used in the ERT results buffer."
               (insert (format-message " defined in `%s'"
                                       (file-name-nondirectory file-name)))
               (save-excursion
-                (re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
-                                    nil t)
+                (re-search-backward (substitute-command-keys "`\\([^`']+\\)'"))
                 (help-xref-button 1 'help-function-def test-name file-name)))
             (insert ".")
             (fill-region-as-paragraph (point-min) (point))

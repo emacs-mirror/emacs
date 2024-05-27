@@ -807,30 +807,28 @@ Select the window used, if it has been made."
 		  (get-buffer-create "*info*")))))
     (with-current-buffer buffer
       (unless (derived-mode-p 'Info-mode)
-	(Info-mode)))
+	(Info-mode))
 
-    (let* ((window
-	    (display-buffer buffer
-			    (if other-window
-				'(nil (inhibit-same-window . t))
-			      '(display-buffer-same-window)))))
-      (with-current-buffer buffer
-	(if file-or-node
-	    ;; If argument already contains parentheses, don't add another set
-	    ;; since the argument will then be parsed improperly.  This also
-	    ;; has the added benefit of allowing node names to be included
-	    ;; following the parenthesized filename.
-	    (Info-goto-node
-	     (if (and (stringp file-or-node) (string-match "(.*)" file-or-node))
-		 file-or-node
-               (concat "(" file-or-node ")")))
-	  (if (and (zerop (buffer-size))
-		   (null Info-history))
-	      ;; If we just created the Info buffer, go to the directory.
-	      (Info-directory))))
+      (if file-or-node
+	  ;; If argument already contains parentheses, don't add another set
+	  ;; since the argument will then be parsed improperly.  This also
+	  ;; has the added benefit of allowing node names to be included
+	  ;; following the parenthesized filename.
+	  (Info-goto-node
+	   (if (and (stringp file-or-node) (string-match "(.*)" file-or-node))
+	       file-or-node
+             (concat "(" file-or-node ")")))
+	(if (and (zerop (buffer-size))
+		 (null Info-history))
+	    ;; If we just created the Info buffer, go to the directory.
+	    (Info-directory))))
 
-      (when window
-	(select-window window)))))
+    (when-let ((window (display-buffer buffer
+			               (if other-window
+				           '(nil (inhibit-same-window . t))
+			                 '(display-buffer-same-window)))))
+      (select-window window))))
+
 
 ;;;###autoload (put 'info 'info-file (purecopy "emacs"))
 ;;;###autoload
@@ -2174,7 +2172,7 @@ If DIRECTION is `backward', search in the reverse direction."
                       (re-search-forward regexp nil t))
               (signal 'user-search-failed (list regexp))))))
 
-      (if (and bound (not found))
+      (if (and (or bound (not Info-current-subfile)) (not found))
           (signal 'user-search-failed (list regexp)))
 
       (unless (or found bound)
@@ -4063,8 +4061,8 @@ ERRORSTRING optional fourth argument, controls action on no match:
 		 (error "No %s around position %d" errorstring pos))))))))
 
 (defun Info-mouse-follow-nearest-node (click)
-  "\\<Info-mode-map>Follow a node reference near point.
-Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
+  "Follow a node reference near point.
+\\<Info-mode-map>Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
 At end of the node's text, moves to the next node, or up if none."
   (interactive "e" Info-mode)
   (mouse-set-point click)
@@ -4796,7 +4794,15 @@ Interactively, if the binding is `execute-extended-command', a command is read.
 The command is found by looking up in Emacs manual's indices
 or in another manual found via COMMAND's `info-file' property or
 the variable `Info-file-list-for-emacs'."
-  (interactive "kFind documentation for key: ")
+  (interactive
+   (let ((enable-disabled-menus-and-buttons t)
+         (cursor-in-echo-area t)
+         ;; Showing the list of key sequences makes no sense when they
+         ;; asked about a key sequence.
+         (echo-keystrokes-help nil)
+         (prompt (propertize "Find documentation for key: "
+                              'face 'minibuffer-prompt)))
+     (list (read-key-sequence prompt nil nil 'can-return-switch-frame))))
   (let ((command (key-binding key)))
     (cond ((null command)
 	   (message "%s is undefined" (key-description key)))
@@ -4878,6 +4884,19 @@ first line or header line, and for breadcrumb links.")
     ;; 				    'font-lock-face 'header-line line)
     line))
 
+(defvar Info--dont-hide-references
+  '(("texinfo" "Cross Reference Commands"))
+  "Manuals and nodes where `Info-hide-note-references' should be ignored.
+This is an alist whose elements should be of the form
+
+      (MANUAL NODE...)
+
+where MANUAL is the basename of an Info manual's main file, and NODEs
+are one or more nodes in MANUAL where info.el should not hide
+cross-references even in `Info-hide-note-references' is non-nil.
+This is because some rare nodes describe how cross-references work,
+and so should be rendered as makeinfo produced them.")
+
 (defun Info-fontify-node ()
   "Fontify the node."
   (save-excursion
@@ -4895,6 +4914,16 @@ first line or header line, and for breadcrumb links.")
                  (or (eq Info-fontify-maximum-menu-size t)
 		     (< (- (point-max) (point-min))
 			Info-fontify-maximum-menu-size))))
+           ;; Disable Info-hide-note-references in nodes that are
+           ;; incompatible with that feature.
+           (Info-hide-note-references
+            (if (member Info-current-node
+                        (assoc-string
+                         (file-name-sans-extension
+                          (file-name-nondirectory Info-current-file))
+                         Info--dont-hide-references))
+                nil
+              Info-hide-note-references))
            rbeg rend)
 
       ;; Fontify header line

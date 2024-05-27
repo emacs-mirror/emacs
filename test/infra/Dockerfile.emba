@@ -29,7 +29,7 @@ FROM debian:bullseye as emacs-base
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libdbus-1-dev libacl1-dev acl git texinfo gdb \
+      libxml2-dev libdbus-1-dev libacl1-dev acl git texinfo gdb \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-base as emacs-inotify
@@ -45,7 +45,7 @@ WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure
 # 'make -j4 bootstrap' does not work reliably.
-RUN make bootstrap
+RUN make -j `nproc` bootstrap
 
 FROM emacs-base as emacs-filenotify-gio
 
@@ -58,7 +58,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
-RUN make bootstrap
+RUN make -j `nproc` bootstrap
 
 # Debian bullseye doesn't provide proper packages.  So we use Debian
 # sid for this.
@@ -68,20 +68,49 @@ FROM debian:sid as emacs-eglot
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libdbus-1-dev libacl1-dev acl git texinfo gdb \
+      libxml2-dev libdbus-1-dev libacl1-dev acl git texinfo gdb \
     && rm -rf /var/lib/apt/lists/*
 
-# Install clangd.
+# Install clangd, tsserver.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      clangd \
+      clangd node-typescript \
     && rm -rf /var/lib/apt/lists/*
+
+# eclipse-jdt-ls is planned as Java language server.
+# See <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1024246>.
+
+# The following LSP servers exist as snap packages.  However, snap
+# cannot be used inside containers.  We keep this here for reference.
+
+# # Install snapd.
+# RUN apt-get update && \
+#     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+#       snapd \
+#     && rm -rf /var/lib/apt/lists/*
+# RUN snap install core
+
+# # Install rust-analyzer.
+# RUN snap install rust-analyzer --beta
+
+# # Install typescript-language-server.
+# RUN snap install typescript-language-server
+
+# # Install vscode-json-languageserver.
+# RUN snap install vscode-json-languageserver
 
 COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure
-RUN make bootstrap
+RUN make -j `nproc` bootstrap
+
+# # Install company and yasnippet.
+# RUN mkdir /root/.emacs.d
+# RUN src/emacs --batch \
+#     --eval '(setq url-debug 0 debug-on-error t)' \
+#     --eval '(package-install (quote company))' \
+#     --eval '(package-install (quote yasnippet))'
 
 # Debian bullseye doesn't provide proper packages.  So we use Debian
 # sid for this.
@@ -91,7 +120,7 @@ FROM debian:sid as emacs-tree-sitter
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libdbus-1-dev libacl1-dev acl git texinfo gdb \
+      libxml2-dev libdbus-1-dev libacl1-dev acl git texinfo gdb \
     && rm -rf /var/lib/apt/lists/*
 
 # Install tree-sitter library.
@@ -104,7 +133,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-tree-sitter
-RUN make bootstrap
+RUN make -j `nproc` bootstrap
 
 # Install language grammars.
 RUN mkdir -p /root/.emacs.d/tree-sitter
@@ -129,6 +158,7 @@ RUN src/emacs -Q --batch \
       (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua") \
       (python "https://github.com/tree-sitter/tree-sitter-python") \
       (ruby "https://github.com/tree-sitter/tree-sitter-ruby") \
+      (rust "https://github.com/tree-sitter/tree-sitter-rust") \
       (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src") \
       (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))))' \
     --eval '(dolist (lang (mapcar (quote car) treesit-language-source-alist)) \
@@ -145,7 +175,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-ns
-RUN make bootstrap
+RUN make -j `nproc` bootstrap
 
 FROM emacs-base as emacs-native-comp
 
@@ -161,7 +191,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-native-compilation
-RUN make bootstrap -j2 \
+RUN make -j `nproc` bootstrap \
       NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"'
 
 FROM emacs-native-comp as emacs-native-comp-speed1
@@ -170,7 +200,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-native-compilation
-RUN make bootstrap -j2 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
+RUN make -j `nproc` bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
 
 FROM emacs-native-comp as emacs-native-comp-speed2
 
@@ -178,4 +208,4 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-native-compilation
-RUN make bootstrap -j2
+RUN make -j `nproc` bootstrap

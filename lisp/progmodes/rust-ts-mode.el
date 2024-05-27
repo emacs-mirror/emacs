@@ -48,6 +48,20 @@
   :safe 'integerp
   :group 'rust)
 
+(defcustom rust-ts-flymake-command '("clippy-driver" "-")
+  "The external tool that will be used to perform the check.
+This is a non-empty list of strings: the checker tool possibly followed
+by required arguments.  Once launched it will receive the Rust source
+to be checked as its standard input."
+  :version "30.1"
+  :type '(choice (const :tag "Clippy standalone" ("clippy-driver" "-"))
+                 ;; TODO: Maybe add diagnostics filtering by file name,
+                 ;; to limit non-project list to the current buffer.
+                 ;; Or annotate them with file names, at least.
+                 (const :tag "Clippy cargo" ("cargo" "clippy"))
+                 (repeat :tag "Custom command" string))
+  :group 'rust)
+
 (defvar rust-ts-mode-prettify-symbols-alist
   '(("&&" . ?∧) ("||" . ?∨)
     ("<=" . ?≤)  (">=" . ?≥) ("!=" . ?≠)
@@ -115,7 +129,7 @@
   "Rust built-in macros for tree-sitter font-locking.")
 
 (defvar rust-ts-mode--keywords
-  '("as" "async" "await" "break" "const" "continue" "dyn" "else"
+  '("as" "async" "await" "break" "const" "continue" "default" "dyn" "else"
     "enum" "extern" "fn" "for" "if" "impl" "in" "let" "loop" "match"
     "mod" "move" "pub" "ref" "return" "static" "struct" "trait" "type"
     "union" "unsafe" "use" "where" "while" (crate) (self) (super)
@@ -162,8 +176,11 @@
    :language 'rust
    :feature 'definition
    '((function_item name: (identifier) @font-lock-function-name-face)
+     (function_signature_item name: (identifier) @font-lock-function-name-face)
      (macro_definition "macro_rules!" @font-lock-constant-face)
      (macro_definition (identifier) @font-lock-preprocessor-face)
+     (token_binding_pattern
+      name: (metavariable) @font-lock-variable-name-face)
      (field_declaration name: (field_identifier) @font-lock-property-name-face)
      (parameter pattern: (_) @rust-ts-mode--fontify-pattern)
      (closure_parameters (_) @rust-ts-mode--fontify-pattern)
@@ -196,7 +213,11 @@
 
    :language 'rust
    :feature 'keyword
-   `([,@rust-ts-mode--keywords] @font-lock-keyword-face)
+   `([,@rust-ts-mode--keywords] @font-lock-keyword-face
+     ;; If these keyword are in a macro body, they're marked as
+     ;; identifiers.
+     ((identifier) @font-lock-keyword-face
+      (:match ,(rx bos (or "else" "in" "move") eos) @font-lock-keyword-face)))
 
    :language 'rust
    :feature 'number
@@ -204,7 +225,9 @@
 
    :language 'rust
    :feature 'operator
-   `([,@rust-ts-mode--operators] @font-lock-operator-face)
+   `([,@rust-ts-mode--operators] @font-lock-operator-face
+     (token_repetition_pattern ["$" "*" "+"] @font-lock-operator-face)
+     (token_repetition ["$" "*" "+"] @font-lock-operator-face))
 
    :language 'rust
    :feature 'string
@@ -234,8 +257,7 @@
                 (_ type: (scoped_identifier
                           path: (identifier) @font-lock-type-face))))
      (mod_item name: (identifier) @font-lock-constant-face)
-     (primitive_type) @font-lock-type-face
-     (type_identifier) @font-lock-type-face
+     [(fragment_specifier) (primitive_type) (type_identifier)] @font-lock-type-face
      ((scoped_identifier name: (identifier) @rust-ts-mode--fontify-tail))
      ((scoped_identifier path: (identifier) @font-lock-type-face)
       (:match ,(rx bos
@@ -245,8 +267,7 @@
                    eos)
               @font-lock-type-face))
      ((scoped_identifier path: (identifier) @rust-ts-mode--fontify-scope))
-     ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope))
-     (type_identifier) @font-lock-type-face)
+     ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope)))
 
    :language 'rust
    :feature 'property
@@ -280,7 +301,8 @@
      (return_expression (identifier) @font-lock-variable-use-face)
      (tuple_expression (identifier) @font-lock-variable-use-face)
      (unary_expression (identifier) @font-lock-variable-use-face)
-     (while_expression condition: (identifier) @font-lock-variable-use-face))
+     (while_expression condition: (identifier) @font-lock-variable-use-face)
+     (metavariable) @font-lock-variable-use-face)
 
    :language 'rust
    :feature 'escape-sequence
@@ -417,6 +439,67 @@ See `prettify-symbols-compose-predicate'."
                    "operator"))
          (_ t))))
 
+(defvar rust-ts--flymake-proc nil)
+
+(defun rust-ts-flymake--helper (process-name command parser-fn)
+  (when (process-live-p rust-ts--flymake-proc)
+    (kill-process rust-ts--flymake-proc))
+
+  (let ((source (current-buffer)))
+    (save-restriction
+      (widen)
+      (setq
+       rust-ts--flymake-proc
+       (make-process
+        :name process-name :noquery t :connection-type 'pipe
+        :buffer (generate-new-buffer (format " *%s*" process-name))
+        :command command
+        :sentinel
+        (lambda (proc _event)
+          (when (and (eq 'exit (process-status proc)) (buffer-live-p source))
+            (unwind-protect
+                (if (with-current-buffer source (eq proc rust-ts--flymake-proc))
+                    (with-current-buffer (process-buffer proc)
+                      (funcall parser-fn proc source))
+                  (flymake-log :debug "Canceling obsolete check %s"
+                               proc))
+              (kill-buffer (process-buffer proc)))))))
+      (process-send-region rust-ts--flymake-proc (point-min) (point-max))
+      (process-send-eof rust-ts--flymake-proc))))
+
+(defun rust-ts-flymake (report-fn &rest _args)
+  "Rust backend for Flymake."
+  (unless (executable-find (car rust-ts-flymake-command))
+    (error "Cannot find the rust flymake program: %s" (car rust-ts-flymake-command)))
+
+  (rust-ts-flymake--helper
+   "rust-ts-flymake"
+   rust-ts-flymake-command
+   (lambda (_proc source)
+     (goto-char (point-min))
+     (cl-loop
+      while (search-forward-regexp
+             (concat
+              "^\\(\\(?:warning\\|error\\|help\\).*\\)\n +--> [^:]+:"
+              "\\([0-9]+\\):\\([0-9]+\\)\\(\\(?:\n[^\n]+\\)*\\)\n\n")
+             nil t)
+      for msg1 = (match-string 1)
+      for msg2 = (match-string 4)
+      for (beg . end) = (flymake-diag-region
+                         source
+                         (string-to-number (match-string 2))
+                         (string-to-number (match-string 3)))
+      for type = (if (string-match "^warning" msg1)
+                     :warning
+                   :error)
+      collect (flymake-make-diagnostic source
+                                       beg
+                                       end
+                                       type
+                                       (concat msg1 msg2))
+      into diags
+      finally (funcall report-fn diags)))))
+
 ;;;###autoload
 (define-derived-mode rust-ts-mode prog-mode "Rust"
   "Major mode for editing Rust, powered by tree-sitter."
@@ -460,9 +543,12 @@ See `prettify-symbols-compose-predicate'."
     (setq-local indent-tabs-mode nil
                 treesit-simple-indent-rules rust-ts-mode--indent-rules)
 
-    ;; Electric
+    ;; Electric.
     (setq-local electric-indent-chars
                 (append "{}():;,#" electric-indent-chars))
+
+    ;; Flymake.
+    (add-hook 'flymake-diagnostic-functions #'rust-ts-flymake nil 'local)
 
     ;; Navigation.
     (setq-local treesit-defun-type-regexp

@@ -7146,7 +7146,7 @@ comment at the start of cc-engine.el for more info."
   ;; FIXME!!!  This routine ignores the possibility of macros entirely.
   ;; 2010-01-29.
 
-  (when (> end beg)
+  (when (or old-len (> end beg))
     ;; Extend the region (BEG END) to deal with any complicating literals.
     (let* ((lit-search-beg (if (memq (char-before beg) '(?/ ?*))
 			       (1- beg) beg))
@@ -7220,7 +7220,8 @@ comment at the start of cc-engine.el for more info."
 		  (c-put-char-properties beg end 'syntax-table '(1))
 		  ;; If an open string's opener has just been neutralized,
 		  ;; do the same to the terminating LF.
-		  (when (and end-literal-end
+		  (when (and (> end beg)
+			     end-literal-end
 			     (eq (char-before end-literal-end) ?\n)
 			     (equal (c-get-char-property
 				     (1- end-literal-end) 'syntax-table)
@@ -12346,13 +12347,21 @@ comment at the start of cc-engine.el for more info."
 	     (zerop (c-backward-token-2 1 t lim))
 	   t)
 	 (or (looking-at c-block-stmt-1-key)
-	     (and (eq (char-after) ?\()
-		  (zerop (c-backward-token-2 1 t lim))
-		  (if (looking-at c-block-stmt-hangon-key)
-		      (zerop (c-backward-token-2 1 t lim))
-		    t)
-		  (or (looking-at c-block-stmt-2-key)
-		      (looking-at c-block-stmt-1-2-key))))
+	     (or
+	      (and
+	       (eq (char-after) ?\()
+	       (zerop (c-backward-token-2 1 t lim))
+	       (if (looking-at c-block-stmt-hangon-key)
+		   (zerop (c-backward-token-2 1 t lim))
+		 t)
+	       (or (looking-at c-block-stmt-2-key)
+		   (looking-at c-block-stmt-1-2-key)))
+	      (and (looking-at c-paren-clause-key)
+		   (zerop (c-backward-token-2 1 t lim))
+		   (if (looking-at c-negation-op-re)
+		       (zerop (c-backward-token-2 1 t lim))
+		     t)
+		   (looking-at c-block-stmt-with-key))))
 	 (point))))
 
 (defun c-after-special-operator-id (&optional lim)

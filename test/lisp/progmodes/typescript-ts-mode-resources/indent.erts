@@ -110,3 +110,17 @@ const foo = (props) => {
   );
 }
 =-=-=
+
+Name: Interface body fields are indented
+
+=-=
+interface Foo {
+foo: string;
+bar?: boolean;
+}
+=-=
+interface Foo {
+  foo: string;
+  bar?: boolean;
+}
+=-=-=

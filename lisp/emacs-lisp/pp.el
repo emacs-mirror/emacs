@@ -166,12 +166,19 @@ it inserts and pretty-prints that arg at point."
   (interactive "r")
   (if (null end) (pp--object beg #'pp-fill)
     (goto-char beg)
-    (let ((end (copy-marker end t))
-          (newline (lambda ()
-                     (skip-chars-forward ")]}")
-                     (unless (save-excursion (skip-chars-forward " \t") (eolp))
-                       (insert "\n")
-                       (indent-according-to-mode)))))
+    (let* ((end (copy-marker end t))
+           (avoid-unbreakable
+            (lambda ()
+              (and (memq (char-before) '(?# ?s ?f))
+                   (memq (char-after) '(?\[ ?\())
+                   (looking-back "#[sf]?" (- (point) 2))
+                   (goto-char (match-beginning 0)))))
+           (newline (lambda ()
+                      (skip-chars-forward ")]}")
+                      (unless (save-excursion (skip-chars-forward " \t") (eolp))
+                        (funcall avoid-unbreakable)
+                        (insert "\n")
+                        (indent-according-to-mode)))))
       (while (progn (forward-comment (point-max))
                     (< (point) end))
         (let ((beg (point))
@@ -198,10 +205,10 @@ it inserts and pretty-prints that arg at point."
                       ;; reduce the indentation depth.
                       ;; Similarly, we prefer to cut before a "." than after
                       ;; it because it reduces the indentation depth.
-                      (while (not (zerop (skip-chars-backward " \t({[',.")))
-                        (and (memq (char-before) '(?# ?s ?f))
-                             (looking-back "#[sf]?" (- (point) 2))
-                             (goto-char (match-beginning 0))))
+                      (while
+                          (progn
+                            (funcall avoid-unbreakable)
+                            (not (zerop (skip-chars-backward " \t({[',.")))))
                       (if (bolp)
                           ;; The sexp already starts on its own line.
                           (progn (goto-char beg) nil)
@@ -320,7 +327,8 @@ If LISP, format with `pp-emacs-lisp-code'; use `pp' otherwise.
 
 If a temporary buffer is needed for representation, it will be named
 after OUT-BUFFER-NAME."
-  (let* ((old-show-function temp-buffer-show-function)
+  (let* ((lexical lexical-binding)
+         (old-show-function temp-buffer-show-function)
 	 ;; Use this function to display the buffer.
 	 ;; This function either decides not to display it at all
 	 ;; or displays it in the usual way.
@@ -350,6 +358,7 @@ after OUT-BUFFER-NAME."
         (pp expression))
       (with-current-buffer standard-output
 	(emacs-lisp-mode)
+        (setq lexical-binding lexical)
 	(setq buffer-read-only nil)
         (setq-local font-lock-verbose nil)))))
 
@@ -486,15 +495,12 @@ the bounds of a region containing Lisp code to pretty-print."
     ;; Print some of the smaller integers as characters, perhaps?
     (integer
      (if (<= ?0 sexp ?z)
-         (let ((print-integers-as-characters t))
-           (princ sexp (current-buffer)))
-       (princ sexp (current-buffer))))
+         (princ (prin1-char sexp) (current-buffer))
+       (prin1 sexp (current-buffer))))
     (string
      (let ((print-escape-newlines t))
        (prin1 sexp (current-buffer))))
-    (symbol
-     (prin1 sexp (current-buffer)))
-    (otherwise (princ sexp (current-buffer)))))
+    (otherwise (prin1 sexp (current-buffer)))))
 
 (defun pp--format-vector (sexp)
   (insert "[")

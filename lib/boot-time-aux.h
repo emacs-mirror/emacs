@@ -304,18 +304,35 @@ get_windows_boot_time (struct timespec *p_boot_time)
      Instead, on Windows, the boot time can be retrieved by looking at the
      time stamp of a file that (normally) gets touched only during the boot
      process, namely C:\pagefile.sys.  */
-  const char * const boot_touched_file =
-    #if defined __CYGWIN__ && !defined _WIN32
-    "/cygdrive/c/pagefile.sys"
-    #else
-    "C:\\pagefile.sys"
-    #endif
-    ;
-  struct stat statbuf;
-  if (stat (boot_touched_file, &statbuf) >= 0)
+  const char * const boot_touched_files[] =
     {
-      *p_boot_time = get_stat_mtime (&statbuf);
-      return 0;
+      #if defined __CYGWIN__ && !defined _WIN32
+      /* It is more portable to use /proc/cygdrive/c than /cygdrive/c.  */
+      "/proc/cygdrive/c/pagefile.sys",
+      /* A fallback, working around a Cygwin 3.5.3 bug.  It has a modification
+         time about 1.5 minutes after the last boot; but that's better than
+         nothing.  */
+      "/proc/cygdrive/c/ProgramData/Microsoft/Windows/DeviceMetadataCache/dmrc.idx"
+      #else
+      "C:\\pagefile.sys"
+      #endif
+    };
+  for (idx_t i = 0; i < SIZEOF (boot_touched_files); i++)
+    {
+      const char *filename = boot_touched_files[i];
+      struct stat statbuf;
+      if (stat (filename, &statbuf) >= 0)
+        {
+# if defined __CYGWIN__ && !defined _WIN32
+          /* Work around a Cygwin 3.5.3 bug.
+             <https://cygwin.com/pipermail/cygwin/2024-May/255931.html>  */
+          if (!S_ISDIR (statbuf.st_mode))
+# endif
+            {
+              *p_boot_time = get_stat_mtime (&statbuf);
+              return 0;
+            }
+        }
     }
   return -1;
 }

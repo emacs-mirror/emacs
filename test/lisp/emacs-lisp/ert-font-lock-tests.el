@@ -44,13 +44,56 @@
      (goto-char (point-min))
      ,@body))
 
+(defun ert-font-lock--wrap-begin-end (re)
+  (concat "^" re "$"))
+
+;;; Regexp tests
+;;;
+
+(ert-deftest test-regexp--face-symbol-re ()
+  (let ((re (ert-font-lock--wrap-begin-end
+             ert-font-lock--face-symbol-re)))
+    (should (string-match-p re "font-lock-keyword-face"))
+    (should (string-match-p re "-face"))
+    (should (string-match-p re "weird-package/-face"))
+    (should (string-match-p re "-"))
+    (should (string-match-p re "font-lock.face"))
+    (should-not (string-match-p re "face suffix-with"))
+    (should-not (string-match-p re "("))))
+
+(ert-deftest test-regexp--face-symbol-list-re ()
+  (let ((re (ert-font-lock--wrap-begin-end
+             ert-font-lock--face-symbol-list-re)))
+    (should (string-match-p re "(face1 face2)"))
+    (should (string-match-p re "(face1)"))
+    (should (string-match-p re "()"))
+    (should-not (string-match-p re ")"))
+    (should-not (string-match-p re "("))))
+
+(ert-deftest test-regexp--assertion-line-re ()
+  (let ((re (ert-font-lock--wrap-begin-end
+             ert-font-lock--assertion-line-re)))
+    (should (string-match-p re "^   something-face"))
+    (should (string-match-p re "^   !something-face"))
+    (should (string-match-p re "^   (face1 face2)"))
+    (should (string-match-p re "^   !(face1 face2)"))
+    (should (string-match-p re "^   ()"))
+    (should (string-match-p re "^   !()"))
+    (should (string-match-p re "^   nil"))
+    (should (string-match-p re "^   !nil"))
+    (should (string-match-p re "<-   something-face"))
+    (should (string-match-p re "<- ^  something-face"))
+    (should (string-match-p re "^^ ^  something-face"))
+    (should (string-match-p re "^     ^something-face"))
+    (should-not (string-match-p re "^   <-  ^something-face"))))
+
 ;;; Comment parsing tests
 ;;
 
 (ert-deftest test-line-comment-p--fundamental ()
   (with-temp-buffer-str-mode fundamental-mode
-                             "// comment\n"
-                             (should-not (ert-font-lock--line-comment-p))))
+    "// comment\n"
+    (should-not (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-line-comment-p--emacs-lisp ()
   (with-temp-buffer-str-mode emacs-lisp-mode
@@ -138,13 +181,24 @@ print(\"Hello, world!\")"
                              (forward-line)
                              (should (ert-font-lock--line-comment-p))))
 
+(ert-deftest test-parse-comments--no-assertion-error ()
+  (let* ((str "
+not_an_assertion
+random_symbol
+"))
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+
+      (should-error (ert-font-lock--parse-comments) :type 'user-error))))
+
 (ert-deftest test-parse-comments--single-line-error ()
   (let* ((str "// ^ face.face1"))
     (with-temp-buffer
       (insert str)
       (javascript-mode)
 
-      (should-error (ert-font-lock--parse-comments)))))
+      (should-error (ert-font-lock--parse-comments) :type 'user-error))))
 
 (ert-deftest test-parse-comments--single-line-single-caret ()
   (let* ((str "
@@ -159,7 +213,46 @@ first
       (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 1))
       (should (equal (car asserts)
-                     '(:line-checked 2 :line-assert 3 :column-checked 3 :face "face.face1" :negation nil))))))
+                     '(:line-checked 2 :line-assert 3 :column-checked 3 :face face.face1 :negation nil))))))
+
+(ert-deftest test-parse-comments--single-line-many-carets ()
+  (let* ((str "
+multiplecarets
+//^^^ ^^ ^ face.face1
+")
+         asserts)
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+
+      (setq asserts (ert-font-lock--parse-comments))
+      (should (eql (length asserts) 6))
+      (should (equal asserts
+                     '((:line-checked 2 :line-assert 3 :column-checked 2 :face face.face1 :negation nil)
+                       (:line-checked 2 :line-assert 3 :column-checked 3 :face face.face1 :negation nil)
+                       (:line-checked 2 :line-assert 3 :column-checked 4 :face face.face1 :negation nil)
+                       (:line-checked 2 :line-assert 3 :column-checked 6 :face face.face1 :negation nil)
+                       (:line-checked 2 :line-assert 3 :column-checked 7 :face face.face1 :negation nil)
+                       (:line-checked 2 :line-assert 3 :column-checked 9 :face face.face1 :negation nil)))))))
+
+(ert-deftest test-parse-comments--face-list ()
+  (let* ((str "
+facelist
+// ^ (face1 face2)
+// ^ !(face3 face4)
+// ^ (face5)
+")
+         asserts)
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+
+      (setq asserts (ert-font-lock--parse-comments))
+      (should (eql (length asserts) 3))
+      (should (equal asserts
+                     '((:line-checked 2 :line-assert 3 :column-checked 3 :face (face1 face2) :negation nil)
+                       (:line-checked 2 :line-assert 4 :column-checked 3 :face (face3 face4) :negation t)
+                       (:line-checked 2 :line-assert 5 :column-checked 3 :face (face5) :negation nil)))))))
 
 (ert-deftest test-parse-comments--caret-negation ()
   (let* ((str "
@@ -175,11 +268,11 @@ first
       (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 2))
       (should (equal asserts
-                     '((:line-checked 2 :line-assert 3 :column-checked 3 :face "face" :negation t)
-                       (:line-checked 2 :line-assert 4 :column-checked 3 :face "face" :negation nil)))))))
+                     '((:line-checked 2 :line-assert 3 :column-checked 3 :face face :negation t)
+                       (:line-checked 2 :line-assert 4 :column-checked 3 :face face :negation nil)))))))
 
 
-(ert-deftest test-parse-comments--single-line-multiple-carets ()
+(ert-deftest test-parse-comments--single-line-multiple-assert-lines ()
   (let* ((str "
 first
 // ^ face1
@@ -196,12 +289,12 @@ first
       (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 4))
       (should (equal asserts
-                     '((:line-checked 2 :line-assert 3 :column-checked 3 :face "face1" :negation nil)
-                       (:line-checked 2 :line-assert 4 :column-checked 7 :face "face.face2" :negation nil)
-                       (:line-checked 2 :line-assert 5 :column-checked 7 :face "face-face.face3" :negation nil)
-                       (:line-checked 2 :line-assert 6 :column-checked 7 :face "face_face.face4" :negation nil)))))))
+                     '((:line-checked 2 :line-assert 3 :column-checked 3 :face face1 :negation nil)
+                       (:line-checked 2 :line-assert 4 :column-checked 7 :face face.face2 :negation nil)
+                       (:line-checked 2 :line-assert 5 :column-checked 7 :face face-face.face3 :negation nil)
+                       (:line-checked 2 :line-assert 6 :column-checked 7 :face face_face.face4 :negation nil)))))))
 
-(ert-deftest test-parse-comments--multiple-line-multiple-carets ()
+(ert-deftest test-parse-comments--multiple-line-multiple-assert-lines ()
   (let* ((str "
 first
 // ^ face1
@@ -218,9 +311,9 @@ third
       (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 3))
       (should (equal asserts
-                     '((:line-checked 2  :line-assert 3 :column-checked 3 :face "face1" :negation nil)
-                       (:line-checked 4  :line-assert 5 :column-checked 3 :face "face2" :negation nil)
-                       (:line-checked 4  :line-assert 6 :column-checked 5 :face "face3" :negation nil)))))))
+                     '((:line-checked 2  :line-assert 3 :column-checked 3 :face face1 :negation nil)
+                       (:line-checked 4  :line-assert 5 :column-checked 3 :face face2 :negation nil)
+                       (:line-checked 4  :line-assert 6 :column-checked 5 :face face3 :negation nil)))))))
 
 
 (ert-deftest test-parse-comments--arrow-single-line-single ()
@@ -236,7 +329,7 @@ first
       (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 1))
       (should (equal (car asserts)
-                     '(:line-checked 2 :line-assert 3 :column-checked 0 :face "face1" :negation nil))))))
+                     '(:line-checked 2 :line-assert 3 :column-checked 0 :face face1 :negation nil))))))
 
 
 (ert-deftest test-parse-comments-arrow-multiple-line-single ()
@@ -254,9 +347,9 @@ first
       (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 3))
       (should (equal asserts
-                     '((:line-checked 2 :line-assert 3 :column-checked 0 :face "face1" :negation nil)
-                       (:line-checked 2 :line-assert 4 :column-checked 2 :face "face2" :negation nil)
-                       (:line-checked 2 :line-assert 5 :column-checked 4 :face "face3" :negation nil)))))))
+                     '((:line-checked 2 :line-assert 3 :column-checked 0 :face face1 :negation nil)
+                       (:line-checked 2 :line-assert 4 :column-checked 2 :face face2 :negation nil)
+                       (:line-checked 2 :line-assert 5 :column-checked 4 :face face3 :negation nil)))))))
 
 (ert-deftest test-parse-comments--non-assert-comment-single ()
   (let* ((str "
@@ -271,7 +364,7 @@ first
       (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 1))
       (should (equal (car asserts)
-                     '(:line-checked 2 :line-assert 3 :column-checked 4 :face "comment-face" :negation nil))))))
+                     '(:line-checked 2 :line-assert 3 :column-checked 4 :face comment-face :negation nil))))))
 
 (ert-deftest test-parse-comments--non-assert-comment-multiple ()
   (let* ((str "
@@ -288,9 +381,9 @@ first
       (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 3))
       (should (equal asserts
-                     '((:line-checked 2 :line-assert 3 :column-checked 4 :face "comment-face" :negation nil)
-                       (:line-checked 2 :line-assert 4 :column-checked 10 :face "comment-face" :negation nil)
-                       (:line-checked 2 :line-assert 5 :column-checked 18 :face "comment-face" :negation nil)))))))
+                     '((:line-checked 2 :line-assert 3 :column-checked 4 :face comment-face :negation nil)
+                       (:line-checked 2 :line-assert 4 :column-checked 10 :face comment-face :negation nil)
+                       (:line-checked 2 :line-assert 5 :column-checked 18 :face comment-face :negation nil)))))))
 
 
 (ert-deftest test-parse-comments--multiline-comment-single ()
@@ -308,7 +401,7 @@ first
       (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 1))
       (should (equal (car asserts)
-                     '(:line-checked 3 :line-assert 4 :column-checked 3 :face "comment-face" :negation nil))))))
+                     '(:line-checked 3 :line-assert 4 :column-checked 3 :face comment-face :negation nil))))))
 
 (ert-deftest test-parse-comments--multiline-comment-multiple ()
   (let* ((str "
@@ -327,13 +420,47 @@ first
       (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 2))
       (should (equal asserts
-                     '((:line-checked 3 :line-assert 4 :column-checked 3 :face "comment-face" :negation nil)
-                       (:line-checked 5 :line-assert 6 :column-checked 4 :face "comment-face" :negation nil)))))))
+                     '((:line-checked 3 :line-assert 4 :column-checked 3 :face comment-face :negation nil)
+                       (:line-checked 5 :line-assert 6 :column-checked 4 :face comment-face :negation nil)))))))
 
 ;;; Syntax highlighting assertion tests
 ;;
 
-(ert-deftest test-syntax-highlight-inline--caret-multiple-faces ()
+(ert-deftest test-syntax-highlight-inline--nil-list ()
+  (let ((str "
+var abc = function(d) {
+// ^ nil
+//   ^ !nil
+};
+
+"))
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+      (font-lock-ensure)
+
+      (ert-font-lock--check-faces
+       (ert-font-lock--parse-comments)))))
+
+(ert-deftest test-syntax-highlight-inline--face-list ()
+  (let ((str "
+var abc = function(d) {
+//   ^ (test-face-2 test-face-1 font-lock-variable-name-face)
+};
+
+"))
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+      (font-lock-ensure)
+
+      (add-face-text-property (point-min) (point-max) 'test-face-1)
+      (add-face-text-property (point-min) (point-max) 'test-face-2)
+
+      (ert-font-lock--check-faces
+       (ert-font-lock--parse-comments)))))
+
+(ert-deftest test-syntax-highlight-inline--caret-multiple-assertions ()
   (let ((str "
 var abc = function(d) {
 //   ^ font-lock-variable-name-face
@@ -364,6 +491,19 @@ var abc = function(d) {
       (should-error (ert-font-lock--check-faces
                      (ert-font-lock--parse-comments))))))
 
+(ert-deftest test-syntax-highlight-inline--caret-negated-wrong-face ()
+  (let* ((str "
+var abc = function(d) {
+//   ^ !not-a-face
+};
+"))
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+      (font-lock-ensure)
+
+      (ert-font-lock--check-faces
+       (ert-font-lock--parse-comments)))))
 
 (ert-deftest test-syntax-highlight-inline--comment-face ()
   (let* ((str "
@@ -454,6 +594,12 @@ var abc = function(d) {
     "Test reading correct assertions from a file"
   javascript-mode
   "correct.js")
+
+(ert-font-lock-deftest-file test-macro-test--file-no-asserts
+    "Check failing on files without assertions"
+  :expected-result :failed
+  javascript-mode
+  "no-asserts.js")
 
 (ert-font-lock-deftest-file test-macro-test--file-failing
     "Test reading wrong assertions from a file"

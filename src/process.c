@@ -2114,7 +2114,7 @@ dissociate_controlling_tty (void)
 	 child that has not execed.
 	 I wonder: would just ioctl (fd, TIOCNOTTY, 0) work here, for
 	 some fd that the caller already has?  */
-      int ttyfd = emacs_open (DEV_TTY, O_RDWR, 0);
+      int ttyfd = emacs_open (dev_tty, O_RDWR, 0);
       if (0 <= ttyfd)
 	{
 	  ioctl (ttyfd, TIOCNOTTY, 0);
@@ -4678,7 +4678,7 @@ network_lookup_address_info_1 (Lisp_Object host, const char *service,
   int ret;
 
   if (STRING_MULTIBYTE (host) && SBYTES (host) != SCHARS (host))
-    error ("Non-ASCII hostname %s detected, please use puny-encode-domain",
+    error ("Non-ASCII hostname %s detected, please use `puny-encode-domain'",
            SSDATA (host));
 
 #ifdef WINDOWSNT

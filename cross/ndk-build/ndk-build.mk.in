@@ -27,6 +27,7 @@ NDK_BUILD_CXX_LDFLAGS = @NDK_BUILD_CXX_LDFLAGS@
 NDK_BUILD_ANY_CXX_MODULE = @NDK_BUILD_ANY_CXX_MODULE@
 NDK_BUILD_SHARED =
 NDK_BUILD_STATIC =
+NDK_BUILD_READELF = @NDK_BUILD_READELF@
 
 define uniqify
 $(if $1,$(firstword $1) $(call uniqify,$(filter-out $(firstword $1),$1)))

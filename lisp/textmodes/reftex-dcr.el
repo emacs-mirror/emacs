@@ -241,9 +241,9 @@ With argument, actually select the window showing the cross reference."
   (reftex-view-crossref current-prefix-arg))
 
 (defun reftex-view-crossref-when-idle ()
-  ;; Display info about crossref at point in echo area or a window.
-  ;; This function was designed to work with an idle timer.
-  ;; We try to get out of here as quickly as possible if the call is useless.
+  "Display info about crossref at point in echo area or a window.
+This function is designed to work with an idle timer and returns quickly
+if the call is useless."
   (and reftex-mode
        ;; Make sure message area is free if we need it.
        (or (eq reftex-auto-view-crossref 'window) (not (current-message)))
@@ -255,7 +255,15 @@ With argument, actually select the window showing the cross reference."
        (save-excursion
          (search-backward "\\" nil t)
          (looking-at "\\\\[a-zA-Z]*\\(cite\\|ref\\|bibentry\\)"))
-
+       ;; Also check if point is inside a mandatory argument where the
+       ;; cite/ref key usually resides: (bug#38258)
+       (save-excursion
+         (condition-case nil
+             (let ((forward-sexp-function nil))
+               (up-list -1)
+               (= (following-char) ?\{))
+           (error nil)))
+       ;; Finally, call `reftex-view-crossref':
        (condition-case nil
            (let ((current-prefix-arg nil))
              (cond

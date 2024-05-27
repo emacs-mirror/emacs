@@ -24,8 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
+(require 'cl-lib)
 (require 'smime)
 (require 'mm-decode)
 (require 'mml-sec)
@@ -129,11 +128,15 @@ Whether the passphrase is cached at all is controlled by
     (if func
 	(funcall func handle ctl))))
 
-(defun mml-smime-openssl-sign (_cont)
-  (when (null smime-keys)
-    (customize-variable 'smime-keys)
-    (error "No S/MIME keys configured, use customize to add your key"))
-  (smime-sign-buffer (cdar smime-keys))
+(defun mml-smime-openssl-sign (cont)
+  (smime-sign-buffer
+   ;; List with key and certificate as its car, and a list of additional
+   ;; certificates to include in its cadr for smime-sign-region
+   (list
+    (cdr (assq 'keyfile cont))
+    (mapcar #'cdr (cl-remove-if-not (apply-partially #'equal 'chainfile)
+                                    cont
+                                    :key #'car-safe))))
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)
     (replace-match "\n" t t))
@@ -167,21 +170,23 @@ Whether the passphrase is cached at all is controlled by
   (when (null smime-keys)
     (customize-variable 'smime-keys)
     (error "No S/MIME keys configured, use customize to add your key"))
-  (list 'keyfile
-	(if (= (length smime-keys) 1)
-	    (cadar smime-keys)
-	  (or (let ((from (cadr (mail-extract-address-components
-				 (or (save-excursion
-				       (save-restriction
-					 (message-narrow-to-headers)
-					 (message-fetch-field "from")))
-				     "")))))
-		(and from (smime-get-key-by-email from)))
-	      (smime-get-key-by-email
-	       (gnus-completing-read "Sign this part with what signature"
-                                     (mapcar #'car smime-keys) nil nil nil
-                                     (and (listp (car-safe smime-keys))
-                                          (caar smime-keys))))))))
+  (let ((key-with-certs
+	 (if (= (length smime-keys) 1)
+	     (cdar smime-keys)
+	   (or (let ((from (cadr (mail-extract-address-components
+				  (or (save-excursion
+				        (save-restriction
+					  (message-narrow-to-headers)
+					  (message-fetch-field "from")))
+				      "")))))
+		 (and from (smime-get-key-with-certs-by-email from)))
+	       (smime-get-key-with-certs-by-email
+	        (gnus-completing-read "Sign this part with what signature"
+                                      (mapcar #'car smime-keys) nil nil nil
+                                      (and (listp (car-safe smime-keys))
+                                           (caar smime-keys))))))))
+    (append (list 'keyfile (car key-with-certs))
+            (mapcan (apply-partially #'list 'chainfile) (cadr key-with-certs)))))
 
 (defun mml-smime-get-file-cert ()
   (ignore-errors

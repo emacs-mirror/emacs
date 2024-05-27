@@ -210,6 +210,11 @@ If the value is a function, call it with no arguments."
               'help-echo "Click to add tab")
   "Button for creating a new tab.")
 
+(defvar tab-line-new-button-functions
+  '(tab-line-tabs-window-buffers
+    tab-line-tabs-fixed-window-buffers)
+  "Functions of `tab-line-tabs-function' for which to show a new button.")
+
 (defcustom tab-line-close-button-show t
   "Defines where to show the close tab button.
 If t, show the close tab button on all tabs.
@@ -333,19 +338,21 @@ If truncated, append ellipsis per `tab-line-tab-name-ellipsis'."
                   'help-echo tab-name))))
 
 
-(defcustom tab-line-tabs-function #'tab-line-tabs-window-buffers
+(defcustom tab-line-tabs-function #'tab-line-tabs-fixed-window-buffers
   "Function to get a list of tabs to display in the tab line.
 This function should return either a list of buffers whose names will
 be displayed, or just a list of strings to display in the tab line.
-By default, use function `tab-line-tabs-window-buffers' that
-returns a list of buffers associated with the selected window.
+By default, use function `tab-line-tabs-fixed-window-buffers' that
+returns a list of buffers associated with the selected window where
+buffers always keep the original order after switching buffers.
 When `tab-line-tabs-mode-buffers', return a list of buffers
 with the same major mode as the current buffer.
 When `tab-line-tabs-buffer-groups', return a list of buffers
-grouped either by `tab-line-tabs-buffer-group-function', when set,
-or by `tab-line-tabs-buffer-groups'."
+grouped by `tab-line-tabs-buffer-group-function'."
   :type '(choice (const :tag "Window buffers"
                         tab-line-tabs-window-buffers)
+                 (const :tag "Window buffers with fixed order"
+                        tab-line-tabs-fixed-window-buffers)
                  (const :tag "Same mode buffers"
                         tab-line-tabs-mode-buffers)
                  (const :tag "Grouped buffers"
@@ -377,16 +384,58 @@ Used only for `tab-line-tabs-mode-buffers' and `tab-line-tabs-buffer-groups'.")
                                            (derived-mode-p mode)))
                              (funcall tab-line-tabs-buffer-list-function)))))
 
-(defvar tab-line-tabs-buffer-group-function nil
+(defcustom tab-line-tabs-buffer-group-function
+  #'tab-line-tabs-buffer-group-by-mode
   "Function to add a buffer to the appropriate group of tabs.
-Takes a buffer as arg and should return a group name as a string.
-If the return value is nil, the buffer should be filtered out.")
+Takes a buffer as argument and should return a group name as a string.
+If the return value is nil, the buffer has no group, so \"No group\"
+is displayed instead of a group name and the buffer is not grouped
+together with other buffers.
+If the value is `tab-line-tabs-buffer-group-by-mode',
+use mode-to-group mappings in `tab-line-tabs-buffer-groups'
+to group by major mode.  If the value is
+`tab-line-tabs-buffer-group-by-project' use the project name
+as a group name."
+  :type '(choice (const :tag "Group by mode"
+                        tab-line-tabs-buffer-group-by-mode)
+                 (const :tag "Group by project name"
+                        tab-line-tabs-buffer-group-by-project)
+                 (function :tag "Custom function"))
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-line
+  :version "30.1")
 
-(defvar tab-line-tabs-buffer-group-sort-function nil
-  "Function to sort buffers in a group.")
+(defcustom tab-line-tabs-buffer-group-sort-function
+  #'tab-line-tabs-buffer-group-sort-by-name
+  "Function to sort buffers in a group."
+  :type '(choice (const :tag "Don't sort" nil)
+                 (const :tag "Sort by name alphabetically"
+                        tab-line-tabs-buffer-group-sort-by-name)
+                 (function :tag "Custom function"))
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-line
+  :version "30.1")
 
-(defvar tab-line-tabs-buffer-groups-sort-function #'string<
-  "Function to sort group names.")
+(defun tab-line-tabs-buffer-group-sort-by-name (a b)
+  (string< (buffer-name a) (buffer-name b)))
+
+(defcustom tab-line-tabs-buffer-groups-sort-function #'string<
+  "Function to sort group names."
+  :type '(choice (const :tag "Don't sort" nil)
+                 (const :tag "Sort alphabetically" string<)
+                 (function :tag "Custom function"))
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-line
+  :version "30.1")
 
 (defvar tab-line-tabs-buffer-groups mouse-buffer-menu-mode-groups
   "How to group various major modes together in the tab line.
@@ -395,16 +444,28 @@ If the major mode's name matches REGEXP, it belongs to GROUPNAME.
 The default is for each major mode to have a separate group
 named the same as the mode.")
 
+(defun tab-line-tabs-buffer-group-by-mode (&optional buffer)
+  "Group tab buffers by major mode."
+  (let ((mode (if buffer (with-current-buffer buffer
+                           (format-mode-line mode-name))
+                (format-mode-line mode-name))))
+    (or (cdr (seq-find (lambda (group)
+                         (string-match-p (car group) mode))
+                       tab-line-tabs-buffer-groups))
+        mode)))
+
+(declare-function project-name "project" (project))
+(defun tab-line-tabs-buffer-group-by-project (&optional buffer)
+  "Group tab buffers by project name."
+  (with-current-buffer buffer
+    (if-let ((project (project-current)))
+        (project-name project)
+      "No project")))
+
 (defun tab-line-tabs-buffer-group-name (&optional buffer)
   (if (functionp tab-line-tabs-buffer-group-function)
       (funcall tab-line-tabs-buffer-group-function buffer)
-    (let ((mode (if buffer (with-current-buffer buffer
-                             (format-mode-line mode-name))
-                  (format-mode-line mode-name))))
-      (or (cdr (seq-find (lambda (group)
-                           (string-match-p (car group) mode))
-                         tab-line-tabs-buffer-groups))
-          mode))))
+    (tab-line-tabs-buffer-group-by-mode buffer)))
 
 (defun tab-line-tabs-buffer-groups ()
   "Return a list of tabs that should be displayed in the tab line.
@@ -414,13 +475,14 @@ If non-nil, `tab-line-tabs-buffer-group-function' is used to
 generate the group name."
   (if (window-parameter nil 'tab-line-groups)
       (let* ((buffers (funcall tab-line-tabs-buffer-list-function))
-             (groups
-              (seq-sort tab-line-tabs-buffer-groups-sort-function
-                        (delq nil (mapcar #'car (seq-group-by
-                                                 (lambda (buffer)
-                                                   (tab-line-tabs-buffer-group-name
-                                                    buffer))
-                                                 buffers)))))
+             (groups (delq nil
+                           (mapcar #'car
+                                   (seq-group-by #'tab-line-tabs-buffer-group-name
+                                                 buffers))))
+             (sorted-groups (if (functionp tab-line-tabs-buffer-groups-sort-function)
+                                (seq-sort tab-line-tabs-buffer-groups-sort-function
+                                          groups)
+                              groups))
              (selected-group (window-parameter nil 'tab-line-group))
              (tabs
               (mapcar (lambda (group)
@@ -431,12 +493,11 @@ generate the group name."
                                        (set-window-parameter nil 'tab-line-groups nil)
                                        (set-window-parameter nil 'tab-line-group group)
                                        (set-window-parameter nil 'tab-line-hscroll nil)))))
-                      groups)))
+                      sorted-groups)))
         tabs)
-
     (let* ((window-parameter (window-parameter nil 'tab-line-group))
            (group-name (tab-line-tabs-buffer-group-name (current-buffer)))
-           (group (prog1 (or window-parameter group-name "All")
+           (group (prog1 (or window-parameter group-name "No group")
                     (when (equal window-parameter group-name)
                       (set-window-parameter nil 'tab-line-group nil))))
            (group-tab `(tab
@@ -446,10 +507,9 @@ generate the group name."
                                      (set-window-parameter nil 'tab-line-groups t)
                                      (set-window-parameter nil 'tab-line-group group)
                                      (set-window-parameter nil 'tab-line-hscroll nil)))))
-           (buffers
-            (seq-filter (lambda (b)
-                          (equal (tab-line-tabs-buffer-group-name b) group))
-                        (funcall tab-line-tabs-buffer-list-function)))
+           (buffers (seq-filter (lambda (b)
+                                  (equal (tab-line-tabs-buffer-group-name b) group))
+                                (funcall tab-line-tabs-buffer-list-function)))
            (sorted-buffers (if (functionp tab-line-tabs-buffer-group-sort-function)
                                (seq-sort tab-line-tabs-buffer-group-sort-function
                                          buffers)
@@ -485,6 +545,21 @@ variable `tab-line-tabs-function'."
     (append (reverse prev-buffers)
             (list buffer)
             next-buffers)))
+
+(defun tab-line-tabs-fixed-window-buffers ()
+  "Like `tab-line-tabs-window-buffers' but keep stable sorting order.
+This means that switching to a buffer previously shown in the same
+window will keep the same order of tabs that was before switching.
+And newly displayed buffers are added to the end of the tab line."
+  (let* ((old-buffers (window-parameter nil 'tab-line-buffers))
+         (new-buffers (sort (tab-line-tabs-window-buffers)
+                            :key (lambda (buffer)
+                                   (or (seq-position old-buffers buffer)
+                                       most-positive-fixnum)))))
+    (set-window-parameter nil 'tab-line-buffers new-buffers)
+    new-buffers))
+
+(add-to-list 'window-persistent-parameters '(tab-line-buffers . t))
 
 
 (defcustom tab-line-tab-name-format-function #'tab-line-tab-name-format-default
@@ -570,7 +645,7 @@ This is used by `tab-line-format'."
                tab-line-right-button)))
      (if hscroll (nthcdr (truncate hscroll) strings) strings)
      (list separator)
-     (when (and (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
+     (when (and (memq tab-line-tabs-function tab-line-new-button-functions)
                 tab-line-new-button-show
                 tab-line-new-button)
        (list tab-line-new-button)))))
@@ -814,28 +889,27 @@ using the `previous-buffer' command."
               (force-mode-line-update))))))))
 
 (defun tab-line-select-tab-buffer (buffer &optional window)
-  (let* ((window-buffer (window-buffer window))
-         (next-buffers (seq-remove (lambda (b) (eq b window-buffer))
-                                   (window-next-buffers window)))
-         (prev-buffers (seq-remove (lambda (b) (eq b window-buffer))
-                                   (mapcar #'car (window-prev-buffers window))))
-         ;; Remove next-buffers from prev-buffers
-         (prev-buffers (seq-difference prev-buffers next-buffers)))
-    (cond
-     ((and (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
-           (memq buffer next-buffers))
-      (dotimes (_ (1+ (seq-position next-buffers buffer)))
-        (switch-to-next-buffer window)))
-     ((and (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
-           (memq buffer prev-buffers))
-      (dotimes (_ (1+ (seq-position prev-buffers buffer)))
-        (switch-to-prev-buffer window)))
-     (t
-      (with-selected-window window
-        (switch-to-buffer buffer))))))
+  (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
+      (let* ((window-buffer (window-buffer window))
+             (next-buffers (seq-remove (lambda (b) (eq b window-buffer))
+                                       (window-next-buffers window)))
+             (prev-buffers (seq-remove (lambda (b) (eq b window-buffer))
+                                       (mapcar #'car (window-prev-buffers window))))
+             ;; Remove next-buffers from prev-buffers
+             (prev-buffers (seq-difference prev-buffers next-buffers)))
+        (cond
+         ((memq buffer next-buffers)
+          (dotimes (_ (1+ (seq-position next-buffers buffer)))
+            (switch-to-next-buffer window)))
+         ((memq buffer prev-buffers)
+          (dotimes (_ (1+ (seq-position prev-buffers buffer)))
+            (switch-to-prev-buffer window)))))
+    (with-selected-window window
+      (let ((switch-to-buffer-obey-display-actions nil))
+        (switch-to-buffer buffer)))))
 
-(defcustom tab-line-switch-cycling nil
-  "Enable cycling tab switch.
+(defcustom tab-line-switch-cycling t
+  "Wrap tabs on tab switch while cycling.
 If non-nil, `tab-line-switch-to-prev-tab' in the first tab
 switches to the last tab and `tab-line-switch-to-next-tab' in the
 last tab switches to the first tab.  This variable is not consulted
@@ -844,57 +918,90 @@ when `tab-line-tabs-function' is `tab-line-tabs-window-buffers'."
   :group 'tab-line
   :version "28.1")
 
-(defun tab-line-switch-to-prev-tab (&optional event)
-  "Switch to the previous tab's buffer.
-Its effect is the same as using the `previous-buffer' command
-(\\[previous-buffer])."
-  (interactive (list last-nonmenu-event))
+(defun tab-line-switch-to-prev-tab (&optional event arg)
+  "Switch to the ARGth previous tab's buffer.
+When `tab-line-tabs-function' is `tab-line-tabs-window-buffers',
+its effect is the same as using the `previous-buffer' command
+\(\\[previous-buffer]).
+For other values of `tab-line-tabs-function' this command
+switches to the previous buffer in the sequence defined by
+`tab-line-tabs-function'.  To wrap buffer cycling in this case
+is possible when `tab-line-switch-cycling' is non-nil."
+  (interactive (list last-nonmenu-event
+                     (prefix-numeric-value current-prefix-arg)))
   (let ((window (and (listp event) (posn-window (event-start event)))))
-    (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
-        (switch-to-prev-buffer window)
-      (with-selected-window (or window (selected-window))
-        (let* ((tabs (seq-filter
-                      (lambda (tab) (or (bufferp tab) (assq 'buffer tab)))
-                      (funcall tab-line-tabs-function)))
-               (pos (seq-position
-                     tabs (current-buffer)
-                     (lambda (tab buffer)
-                       (if (bufferp tab)
-                           (eq buffer tab)
-                         (eq buffer (cdr (assq 'buffer tab)))))))
-               (tab (if pos
-                        (if (and tab-line-switch-cycling (<= pos 0))
-                            (nth (1- (length tabs)) tabs)
-                          (nth (1- pos) tabs))))
-               (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
+    (with-selected-window (or window (selected-window))
+      (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
+          (previous-buffer arg t)
+        (let* ((buffers (seq-keep
+                         (lambda (tab) (or (and (bufferp tab) tab)
+                                           (alist-get 'buffer tab)))
+                         (funcall tab-line-tabs-function)))
+               (old-pos (seq-position buffers (current-buffer)))
+               (new-pos (when old-pos (- old-pos (or arg 1))))
+               (new-pos (when new-pos
+                          (if tab-line-switch-cycling
+                              (mod new-pos (length buffers))
+                            (max new-pos 0))))
+               (buffer (when new-pos (nth new-pos buffers))))
           (when (bufferp buffer)
-            (switch-to-buffer buffer)))))))
+            (let ((switch-to-buffer-obey-display-actions nil))
+              (switch-to-buffer buffer))))))))
 
-(defun tab-line-switch-to-next-tab (&optional event)
-  "Switch to the next tab's buffer.
-Its effect is the same as using the `next-buffer' command
-(\\[next-buffer])."
-  (interactive (list last-nonmenu-event))
+(defun tab-line-switch-to-next-tab (&optional event arg)
+ "Switch to the next ARGth tab's buffer.
+When `tab-line-tabs-function' is `tab-line-tabs-window-buffers',
+its effect is the same as using the `next-buffer' command
+\(\\[next-buffer]).
+For other values of `tab-line-tabs-function' this command
+switches to the next buffer in the sequence defined by
+`tab-line-tabs-function'.  To wrap buffer cycling in this case
+is possible when `tab-line-switch-cycling' is non-nil."
+  (interactive (list last-nonmenu-event
+                     (prefix-numeric-value current-prefix-arg)))
   (let ((window (and (listp event) (posn-window (event-start event)))))
-    (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
-        (switch-to-next-buffer window)
-      (with-selected-window (or window (selected-window))
-        (let* ((tabs (seq-filter
-                      (lambda (tab) (or (bufferp tab) (assq 'buffer tab)))
-                      (funcall tab-line-tabs-function)))
-               (pos (seq-position
-                     tabs (current-buffer)
-                     (lambda (tab buffer)
-                       (if (bufferp tab)
-                           (eq buffer tab)
-                         (eq buffer (cdr (assq 'buffer tab)))))))
-               (tab (if pos
-                        (if (and tab-line-switch-cycling (<= (length tabs) (1+ pos)))
-                            (car tabs)
-                          (nth (1+ pos) tabs))))
-               (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
+    (with-selected-window (or window (selected-window))
+      (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
+          (next-buffer arg t)
+        (let* ((buffers (seq-keep
+                         (lambda (tab) (or (and (bufferp tab) tab)
+                                           (alist-get 'buffer tab)))
+                         (funcall tab-line-tabs-function)))
+               (old-pos (seq-position buffers (current-buffer)))
+               (new-pos (when old-pos (+ old-pos (or arg 1))))
+               (new-pos (when new-pos
+                          (if tab-line-switch-cycling
+                              (mod new-pos (length buffers))
+                            (min new-pos (1- (length buffers))))))
+               (buffer (when new-pos (nth new-pos buffers))))
           (when (bufferp buffer)
-            (switch-to-buffer buffer)))))))
+            (let ((switch-to-buffer-obey-display-actions nil))
+              (switch-to-buffer buffer))))))))
+
+(defun tab-line-mouse-move-tab (event)
+  "Move a tab to a different position on the tab line.
+This command should be bound to a drag event.  It moves the tab
+at the mouse-down event to the position at mouse-up event.
+It can be used only when `tab-line-tabs-function' is
+customized to `tab-line-tabs-fixed-window-buffers'."
+  (interactive "e")
+  (when (eq tab-line-tabs-function #'tab-line-tabs-fixed-window-buffers)
+    (let* ((posnp1 (tab-line-event-start event))
+           (posnp2 (event-end event))
+           (string1 (car (posn-string posnp1)))
+           (string2 (car (posn-string posnp2)))
+           (buffer1 (when string1 (tab-line--get-tab-property 'tab string1)))
+           (buffer2 (when string2 (tab-line--get-tab-property 'tab string2)))
+           (window1 (posn-window posnp1))
+           (window2 (posn-window posnp2))
+           (buffers (window-parameter window1 'tab-line-buffers))
+           (pos2 (when buffer2 (seq-position buffers buffer2))))
+      (when (and (eq window1 window2) buffer1 pos2)
+        (setq buffers (delq buffer1 buffers))
+        (cl-pushnew buffer1 (nthcdr pos2 buffers))
+        (set-window-parameter window1 'tab-line-buffers buffers)
+        (set-window-parameter window1 'tab-line-cache nil)
+        (with-selected-window window1 (force-mode-line-update))))))
 
 
 (defcustom tab-line-close-tab-function 'bury-buffer
@@ -904,7 +1011,7 @@ buffers, which effectively hides the buffer's tab from the tab line.
 If `kill-buffer', kills the tab's buffer.
 When a function, it is called with the tab as its argument.
 This option is useful when `tab-line-tabs-function' has the value
-`tab-line-tabs-window-buffers'."
+`tab-line-tabs-window-buffers' or `tab-line-tabs-fixed-window-buffers'."
   :type '(choice (const :tag "Bury buffer" bury-buffer)
                  (const :tag "Kill buffer" kill-buffer)
                  (function :tag "Function"))
@@ -997,18 +1104,32 @@ However, return the correct mouse position list if EVENT is a
       (event-start event)))
 
 
+(defvar-keymap tab-line-mode-map
+  :doc "Keymap for keys of `tab-line-mode'."
+  "C-x <left>"    #'tab-line-switch-to-prev-tab
+  "C-x C-<left>"  #'tab-line-switch-to-prev-tab
+  "C-x <right>"   #'tab-line-switch-to-next-tab
+  "C-x C-<right>" #'tab-line-switch-to-next-tab)
+
+(defvar-keymap tab-line-switch-repeat-map
+  :doc "Keymap to repeat tab/buffer cycling.  Used in `repeat-mode'."
+  :repeat t
+  "<left>"  #'tab-line-switch-to-prev-tab
+  "<right>" #'tab-line-switch-to-next-tab)
+
 ;;;###autoload
 (define-minor-mode tab-line-mode
   "Toggle display of tab line in the windows displaying the current buffer."
   :lighter nil
   (let ((default-value '(:eval (tab-line-format))))
-    (if tab-line-mode
-        ;; Preserve the existing tab-line set outside of this mode
-        (unless tab-line-format
-          (setq tab-line-format default-value))
-      ;; Reset only values set by this mode
-      (when (equal tab-line-format default-value)
-        (setq tab-line-format nil)))))
+    ;; Preserve the existing tab-line set outside of this mode
+    (if (or (null tab-line-format)
+            (equal tab-line-format default-value))
+        (if tab-line-mode
+            (setq tab-line-format default-value)
+          (setq tab-line-format nil))
+      (message "tab-line-format set outside of tab-line-mode, currently `%S'"
+               tab-line-format))))
 
 (defcustom tab-line-exclude-modes
   '(completion-list-mode)
@@ -1044,6 +1165,7 @@ of `tab-line-exclude', are exempt from `tab-line-mode'."
 
 
 (global-set-key [tab-line down-mouse-3] 'tab-line-context-menu)
+(global-set-key [tab-line drag-mouse-1] 'tab-line-mouse-move-tab)
 
 (global-set-key [tab-line mouse-4]    'tab-line-hscroll-left)
 (global-set-key [tab-line mouse-5]    'tab-line-hscroll-right)

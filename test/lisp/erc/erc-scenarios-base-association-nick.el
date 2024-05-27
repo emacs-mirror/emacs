@@ -28,22 +28,22 @@
 
 ;; You register a new nick in a dedicated query buffer, disconnect,
 ;; and log back in, but your nick is not granted (maybe you just
-;; turned off SASL).  In any case, ERC obtains a backtick'd version.
+;; turned off SASL).  In any case, ERC obtains a backticked version.
 ;; You open a query buffer for NickServ, and ERC gives you the
 ;; existing one.  And after you identify, all buffers retain their
 ;; names, although your net ID has changed internally.
 ;;
-;; If ERC would've instead failed (or intentionally refused) to make
-;; the association, you would've ended up with a new NickServ buffer
-;; named after the new net ID as a suffix (based on the backtick'd
-;; nick), for example, NickServ@foonet/tester`.  And the original
-;; (disconnected) NickServ buffer would've gotten suffixed with *its*
-;; net-ID as well, e.g., NickServ@foonet/tester.  And after
-;; identifying, you would've seen ERC merge the two as well as their
-;; server buffers.  While this alternate behavior may arguably be a
-;; more honest reflection of reality, it's also quite inconvenient.
-;; For a clearer example, see the original version of this file
-;; introduced by "Add user-oriented test scenarios for ERC".
+;; If ERC had instead failed (or intentionally refused) to make the
+;; association, you would find yourself with a new NickServ buffer
+;; named with a suffix reflecting the new net ID (based on the
+;; backticked nick), for example, NickServ@foonet/tester`.  And the
+;; original (disconnected) NickServ buffer would also receive a suffix
+;; with *its* net-ID, e.g., NickServ@foonet/tester.  Upon identifying
+;; yourself, you'd see ERC merge both buffers along with their server
+;; buffers.  While this alternate behavior might more accurately
+;; reflect reality, it introduces significant inconvenience.  For a
+;; clearer example, see the original version of this file introduced
+;; by "Add user-oriented test scenarios for ERC".
 
 (ert-deftest erc-scenarios-base-association-nick-bumped ()
   :tags '(:expensive-test)

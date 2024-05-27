@@ -107,10 +107,10 @@ The default options can group by a mode, and by a root directory of
 a project or just `default-directory'.
 If this is nil, buffers are not divided into groups."
   :type '(choice (const :tag "No grouping" nil)
-                 (function-item :tag "Group by mode"
-                                Buffer-menu-group-by-mode)
-                 (function-item :tag "Group by project root or directory"
-                                Buffer-menu-group-by-root)
+                 (const :tag "Group by mode"
+                        Buffer-menu-group-by-mode)
+                 (const :tag "Group by project root or directory"
+                        Buffer-menu-group-by-root)
                  (function :tag "Custom function"))
   :group 'Buffer-menu
   :version "30.1")
@@ -798,7 +798,11 @@ See more at `Buffer-menu-filter-predicate'."
 	(t "")))
 
 (defun Buffer-menu-group-by-mode (entry)
-  (concat "* " (aref (cadr entry) 5)))
+  (let ((mode (aref (cadr entry) 5)))
+    (concat "* " (or (cdr (seq-find (lambda (group)
+                                      (string-match-p (car group) mode))
+                                    mouse-buffer-menu-mode-groups))
+                     mode))))
 
 (declare-function project-root "project" (project))
 (defun Buffer-menu-group-by-root (entry)

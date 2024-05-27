@@ -33,7 +33,8 @@
 
 ## Header contains non-printing characters, so this is more
 ## reliable than using awk.
-cat <"${1?}" || exit
+test $# -ge 2 || exit 1
+cat <"$1"
 shift
 
 exec "${AWK-awk}" '
@@ -101,4 +102,4 @@ exec "${AWK-awk}" '
       if (data[dircat])
         printf "\n%s\n%s", topic[dircat], data[dircat]
   }
-' "${@?}"
+' "$@"

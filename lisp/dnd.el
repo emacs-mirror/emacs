@@ -151,8 +151,13 @@ Windows."
                 (with-selected-window window
                   (scroll-down 1))))))))
       (when dnd-indicate-insertion-point
-        (ignore-errors
-          (goto-char (posn-point posn)))))))
+        (let ((pos (posn-point posn)))
+          ;; We avoid errors here, since on some systems this runs
+          ;; when waiting_for_input is non-zero, and that aborts on
+          ;; error.
+          (if (and pos (<= (point-min) pos (point-max)))
+              (goto-char pos)
+            pos))))))
 
 (defun dnd-handle-one-url (window action url)
   "Handle one dropped url by calling the appropriate handler.

@@ -205,6 +205,9 @@ struct window
     /* An alist with parameters.  */
     Lisp_Object window_parameters;
 
+    /* `cursor-type' to use in this window.  */
+    Lisp_Object cursor_type;
+
     /* The help echo text for this window.  Qnil if there's none.  */
     Lisp_Object mode_line_help_echo;
 
@@ -540,6 +543,12 @@ INLINE void
 wset_horizontal_scroll_bar_type (struct window *w, Lisp_Object val)
 {
   w->horizontal_scroll_bar_type = val;
+}
+
+INLINE void
+wset_cursor_type (struct window *w, Lisp_Object val)
+{
+  w->cursor_type = val;
 }
 
 INLINE void

@@ -1140,6 +1140,24 @@ the following lines anywhere in the buffer:
   :package-version '(Org . "8.0")
   :type 'boolean)
 
+(defvar untrusted-content) ; defined in files.el
+(defvar org--latex-preview-when-risky nil
+  "If non-nil, enable LaTeX preview in Org buffers from unsafe source.
+
+Some specially designed LaTeX code may generate huge pdf or log files
+that may exhaust disk space.
+
+This variable controls how to handle LaTeX preview when rendering LaTeX
+fragments that originate from incoming email messages.  It has no effect
+when Org mode is unable to determine the origin of the Org buffer.
+
+An Org buffer is considered to be from unsafe source when the
+variable `untrusted-content' has a non-nil value in the buffer.
+
+If this variable is non-nil, LaTeX previews are rendered unconditionally.
+
+This variable may be renamed or changed in the future.")
+
 (defcustom org-insert-mode-line-in-empty-file nil
   "Non-nil means insert the first line setting Org mode in empty files.
 When the function `org-mode' is called interactively in an empty file, this
@@ -4558,12 +4576,16 @@ from file or URL, and return nil.
 If NOCACHE is non-nil, do a fresh fetch of FILE even if cached version
 is available.  This option applies only if FILE is a URL."
   (let* ((is-url (org-url-p file))
+         (is-remote (condition-case nil
+                        (file-remote-p file)
+                      ;; In case of error, be safe.
+                      (t t)))
          (cache (and is-url
                      (not nocache)
                      (gethash file org--file-cache))))
     (cond
      (cache)
-     (is-url
+     ((or is-url is-remote)
       (if (org--should-fetch-remote-resource-p file)
           (condition-case error
               (with-current-buffer (url-retrieve-synchronously file)
@@ -4649,9 +4671,9 @@ returns non-nil if any of them match."
                      (propertize domain 'face '(:inherit org-link :weight normal))
                      ") as safe.\n ")
                   "")
-                (propertize "f" 'face 'success)
                 (if current-file
                     (concat
+                     (propertize "f" 'face 'success)
                      " to download this resource, and permanently mark all resources in "
                      (propertize current-file 'face 'underline)
                      " as safe.\n ")
@@ -15696,6 +15718,7 @@ fragments in the buffer."
   (interactive "P")
   (cond
    ((not (display-graphic-p)) nil)
+   ((and untrusted-content (not org--latex-preview-when-risky)) nil)
    ;; Clear whole buffer.
    ((equal arg '(64))
     (org-clear-latex-preview (point-min) (point-max))

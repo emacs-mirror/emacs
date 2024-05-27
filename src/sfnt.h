@@ -1395,8 +1395,6 @@ struct sfnt_OS_2_table
   /* Microsoft ``panose'' classification.  */
   unsigned char panose[10];
 
-  /* Alignment boundary! */
-
   /* Unicode range specification.  */
   uint32_t ul_unicode_range[4];
 

@@ -117,7 +117,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/keysym.h>
 
 /* For debug, set this to 0 to not grab the keyboard on menu popup */
-int x_menu_grab_keyboard = 1;
+static int x_menu_grab_keyboard = 1;
 
 static Wait_func wait_func;
 static void* wait_data;

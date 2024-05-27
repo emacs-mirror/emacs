@@ -656,7 +656,7 @@ create a new comment."
 ;;; Flymake support
 (defcustom perl-flymake-command '("perl" "-w" "-c")
   "External tool used to check Perl source code.
-This is a non empty list of strings, the checker tool possibly
+This is a non-empty list of strings: the checker tool possibly
 followed by required arguments.  Once launched it will receive
 the Perl source to be checked as its standard input."
   :version "26.1"

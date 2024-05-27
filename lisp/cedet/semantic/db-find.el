@@ -928,6 +928,9 @@ but should be good enough for debugging assertions."
 	    (semanticdb-find-result-length result)
 	    (length result))))
 
+(cl-deftype semanticdb-find-result-with-nil ()
+  '(satisfies semanticdb-find-result-with-nil-p))
+
 (defun semanticdb-find-result-with-nil-p (resultp)
   "Non-nil if RESULTP is in the form of a semanticdb search result.
 The value nil is valid where a TABLE usually is, but only if the TAG
@@ -1307,19 +1310,25 @@ associated with that tag should be loaded into a buffer."
   "In TABLE, find all occurrences of tags with NAME.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
-  (semantic-find-tags-by-name name (or tags (semanticdb-get-tags table))))
+  (semantic-find-tags-by-name name
+                              (or tags (and (slot-boundp table 'tags)
+                                            (semanticdb-get-tags table)))))
 
 (cl-defmethod semanticdb-find-tags-by-name-regexp-method ((table semanticdb-abstract-table) regexp &optional tags)
   "In TABLE, find all occurrences of tags matching REGEXP.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
-  (semantic-find-tags-by-name-regexp regexp (or tags (semanticdb-get-tags table))))
+  (semantic-find-tags-by-name-regexp regexp
+                                     (or tags (and (slot-boundp table 'tags)
+                                                   (semanticdb-get-tags table)))))
 
 (cl-defmethod semanticdb-find-tags-for-completion-method ((table semanticdb-abstract-table) prefix &optional tags)
   "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
-  (semantic-find-tags-for-completion prefix (or tags (semanticdb-get-tags table))))
+  (semantic-find-tags-for-completion prefix
+                                     (or tags (and (slot-boundp table 'tags)
+                                                   (semanticdb-get-tags table)))))
 
 (cl-defmethod semanticdb-find-tags-by-class-method ((table semanticdb-abstract-table) class &optional tags)
   "In TABLE, find all occurrences of tags of CLASS.
@@ -1329,8 +1338,12 @@ Returns a table of all matching tags."
   ;; `semantic-find-tags-included', which by default will just call
   ;; `semantic-find-tags-by-class'.
   (if (eq class 'include)
-      (semantic-find-tags-included (or tags (semanticdb-get-tags table)))
-    (semantic-find-tags-by-class class (or tags (semanticdb-get-tags table)))))
+      (semantic-find-tags-included
+       (or tags (and (slot-boundp table 'tags)
+                     (semanticdb-get-tags table))))
+    (semantic-find-tags-by-class class
+                                 (or tags (and (slot-boundp table 'tags)
+                                               (semanticdb-get-tags table))))))
 
 (declare-function semantic-find-tags-external-children-of-type
 		  "semantic/find" (type &optional table))
@@ -1340,7 +1353,9 @@ Returns a table of all matching tags."
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
    (require 'semantic/find)
-   (semantic-find-tags-external-children-of-type parent (or tags (semanticdb-get-tags table))))
+   (semantic-find-tags-external-children-of-type
+    parent (or tags (and (slot-boundp table 'tags)
+                         (semanticdb-get-tags table)))))
 
 (declare-function semantic-find-tags-subclasses-of-type
 		  "semantic/find" (type &optional table))
@@ -1350,7 +1365,9 @@ Returns a table of all matching tags."
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
    (require 'semantic/find)
-   (semantic-find-tags-subclasses-of-type parent (or tags (semanticdb-get-tags table))))
+   (semantic-find-tags-subclasses-of-type
+    parent (or tags (and (slot-boundp table 'tags)
+                         (semanticdb-get-tags table)))))
 
 ;;; Deep Searches
 (cl-defmethod semanticdb-deep-find-tags-by-name-method ((table semanticdb-abstract-table) name &optional tags)
@@ -1359,7 +1376,10 @@ Search in all tags in TABLE, and all components of top level tags in
 TABLE.
 Optional argument TAGS is a list of tags to search.
 Return a table of all matching tags."
-  (semantic-find-tags-by-name name (semantic-flatten-tags-table (or tags (semanticdb-get-tags table)))))
+  (semantic-find-tags-by-name
+   name (semantic-flatten-tags-table
+         (or tags (and (slot-boundp table 'tags)
+                       (semanticdb-get-tags table))))))
 
 (cl-defmethod semanticdb-deep-find-tags-by-name-regexp-method ((table semanticdb-abstract-table) regexp &optional tags)
   "In TABLE, find all occurrences of tags matching REGEXP.
@@ -1367,7 +1387,10 @@ Search in all tags in TABLE, and all components of top level tags in
 TABLE.
 Optional argument TAGS is a list of tags to search.
 Return a table of all matching tags."
-  (semantic-find-tags-by-name-regexp regexp (semantic-flatten-tags-table (or tags (semanticdb-get-tags table)))))
+  (semantic-find-tags-by-name-regexp
+   regexp (semantic-flatten-tags-table
+           (or tags (and (slot-boundp table 'tags)
+                         (semanticdb-get-tags table))))))
 
 (cl-defmethod semanticdb-deep-find-tags-for-completion-method ((table semanticdb-abstract-table) prefix &optional tags)
   "In TABLE, find all occurrences of tags matching PREFIX.
@@ -1375,7 +1398,11 @@ Search in all tags in TABLE, and all components of top level tags in
 TABLE.
 Optional argument TAGS is a list of tags to search.
 Return a table of all matching tags."
-  (semantic-find-tags-for-completion prefix (semantic-flatten-tags-table (or tags (semanticdb-get-tags table)))))
+  (semantic-find-tags-for-completion
+   prefix
+   (semantic-flatten-tags-table
+           (or tags (and (slot-boundp table 'tags)
+                         (semanticdb-get-tags table))))))
 
 (provide 'semantic/db-find)
 

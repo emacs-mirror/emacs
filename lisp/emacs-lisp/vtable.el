@@ -348,19 +348,57 @@ This will also remove the displayed line."
       (when (vtable-goto-object object)
         (delete-line)))))
 
-(defun vtable-insert-object (table object &optional after-object)
-  "Insert OBJECT into TABLE after AFTER-OBJECT.
-If AFTER-OBJECT is nil (or doesn't exist in the table), insert
-OBJECT at the end.
+;; FIXME: The fact that the `location' argument of
+;; `vtable-insert-object' can be an integer and is then interpreted as
+;; an index precludes the use of integers as objects.  This seems a very
+;; unlikely use-case, so let's just accept this limitation.
+
+(defun vtable-insert-object (table object &optional location before)
+  "Insert OBJECT into TABLE at LOCATION.
+LOCATION is an object in TABLE.  OBJECT is inserted after LOCATION,
+unless BEFORE is non-nil, in which case it is inserted before LOCATION.
+
+If LOCATION is nil, or does not exist in the table, OBJECT is inserted
+at the end of the table, or at the beginning if BEFORE is non-nil.
+
+LOCATION can also be an integer, a (zero-based) index into the table.
+OBJECT is inserted at this location.  If the index is out of range,
+OBJECT is inserted at the beginning (if the index is less than 0) or
+end (if the index is too large) of the table.  BEFORE is ignored in this
+case.
+
 This also updates the displayed table."
+  ;; FIXME: Inserting an object into an empty vtable currently isn't
+  ;; possible. `nconc' fails silently (twice), and `setcar' on the cache
+  ;; raises an error.
+  (if (null (vtable-objects table))
+      (error "[vtable] Cannot insert object into empty vtable"))
   ;; First insert into the objects.
-  (let (pos)
-    (if (and after-object
-             (setq pos (memq after-object (vtable-objects table))))
-        ;; Splice into list.
-        (setcdr pos (cons object (cdr pos)))
-      ;; Append.
-      (nconc (vtable-objects table) (list object))))
+  (let ((pos (if location
+                 (if (integerp location)
+                     (prog1
+                         (nthcdr location (vtable-objects table))
+                       ;; Do not prepend if index is too large:
+                       (setq before nil))
+                   (or (memq location (vtable-objects table))
+                       ;; Prepend if `location' is not found and
+                       ;; `before' is non-nil:
+                       (and before (vtable-objects table))))
+               ;; If `location' is nil and `before' is non-nil, we
+               ;; prepend the new object.
+               (if before (vtable-objects table)))))
+    (if (or before  ; If `before' is non-nil, `pos' should be, as well.
+            (and pos (integerp location)))
+        ;; Add the new object before.
+        (let ((old-object (car pos)))
+          (setcar pos object)
+          (setcdr pos (cons old-object (cdr pos))))
+      ;; Otherwise, add the object after.
+      (if pos
+          ;; Splice the object into the list.
+          (setcdr pos (cons object (cdr pos)))
+        ;; Otherwise, append the object.
+        (nconc (vtable-objects table) (list object)))))
   ;; Then adjust the cache and display.
   (save-excursion
     (vtable-goto-table table)
@@ -372,19 +410,33 @@ This also updates the displayed table."
                                      'face (vtable-face table))
                        ""))
            (ellipsis-width (string-pixel-width ellipsis))
-           (elem (and after-object
-                      (assq after-object (car cache))))
+           (elem (if location  ; This binding mirrors the binding of `pos' above.
+                     (if (integerp location)
+                         (nth location (car cache))
+                       (or (assq location (car cache))
+                           (and before (caar cache))))
+                   (if before (caar cache))))
+           (pos (memq elem (car cache)))
            (line (cons object (vtable--compute-cached-line table object))))
-      (if (not elem)
-          ;; Append.
-          (progn
-            (setcar cache (nconc (car cache) (list line)))
-            (vtable-end-of-table))
-        ;; Splice into list.
-        (let ((pos (memq elem (car cache))))
-          (setcdr pos (cons line (cdr pos)))
-          (unless (vtable-goto-object after-object)
-            (vtable-end-of-table))))
+      (if (or before
+              (and pos (integerp location)))
+          ;; Add the new object before:.
+          (let ((old-line (car pos)))
+            (setcar pos line)
+            (setcdr pos (cons old-line (cdr pos)))
+            (unless (vtable-goto-object (car elem))
+              (vtable-beginning-of-table)))
+        ;; Otherwise, add the object after.
+        (if pos
+            ;; Splice the object into the list.
+            (progn
+              (setcdr pos (cons line (cdr pos)))
+              (if (vtable-goto-object location)
+                  (forward-line 1)  ; Insert *after*.
+                (vtable-end-of-table)))
+          ;; Otherwise, append the object.
+          (setcar cache (nconc (car cache) (list line)))
+          (vtable-end-of-table)))
       (let ((start (point)))
         ;; FIXME: We have to adjust colors in lines below this if we
         ;; have :row-colors.

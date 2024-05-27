@@ -1017,9 +1017,8 @@ treesit_check_buffer_size (struct buffer *buffer)
 
 static Lisp_Object treesit_make_ranges (const TSRange *, uint32_t, struct buffer *);
 
-static void
-treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
-				     Lisp_Object parser)
+static Lisp_Object
+treesit_get_changed_ranges (TSTree *old_tree, TSTree *new_tree, Lisp_Object parser)
 {
   /* If the old_tree is NULL, meaning this is the first parse, the
      changed range is the whole buffer.  */
@@ -1039,7 +1038,13 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
       lisp_ranges = Fcons (Fcons (Fpoint_min (), Fpoint_max ()), Qnil);
       set_buffer_internal (oldbuf);
     }
+  return lisp_ranges;
+}
 
+static void
+treesit_call_after_change_functions (Lisp_Object lisp_ranges,
+				     Lisp_Object parser)
+{
   specpdl_ref count = SPECPDL_INDEX ();
 
   /* let's trust the after change functions and not clone a new ranges
@@ -1091,13 +1096,17 @@ treesit_ensure_parsed (Lisp_Object parser)
   XTS_PARSER (parser)->tree = new_tree;
   XTS_PARSER (parser)->need_reparse = false;
 
+  Lisp_Object changed_ranges;
+  changed_ranges = treesit_get_changed_ranges (tree, new_tree, parser);
+  XTS_PARSER (parser)->last_changed_ranges = changed_ranges;
+
   /* After-change functions should run at the very end, most crucially
      after need_reparse is set to false, this way if the function
      calls some tree-sitter function which invokes
      treesit_ensure_parsed again, it returns early and do not
      recursively call the after change functions again.
      (ref:notifier-inside-ensure-parsed)  */
-  treesit_call_after_change_functions (tree, new_tree, parser);
+  treesit_call_after_change_functions (changed_ranges, parser);
   ts_tree_delete (tree);
 }
 
@@ -1171,6 +1180,7 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->after_change_functions = Qnil;
   lisp_parser->tag = tag;
   lisp_parser->last_set_ranges = Qnil;
+  lisp_parser->last_changed_ranges = Qnil;
   lisp_parser->buffer = buffer;
   lisp_parser->parser = parser;
   lisp_parser->tree = tree;
@@ -1816,6 +1826,32 @@ positions.  PARSER is the parser issuing the notification.   */)
   if (!NILP (Fmemq (function, functions)))
     XTS_PARSER (parser)->after_change_functions = Fdelq (function, functions);
   return Qnil;
+}
+
+DEFUN ("treesit-parser-changed-ranges", Ftreesit_parser_changed_ranges,
+       Streesit_parser_changed_ranges,
+       1, 2, 0,
+       doc: /* Return the buffer regions affected by the last reparse of PARSER.
+
+Returns a list of cons cells (BEG . END), where each cons cell represents
+a region in which changes in buffer contents affected the last reparse.
+
+This function should almost always be called immediately after
+reparsing.  If it's called when there are new buffer edits that hasn't
+been reparsed, Emacs signals the `treesit-unparsed-edits' error, unless
+optional argument QUIET is non-nil.
+
+Calling this function multiple times consecutively doesn't change its
+return value; it always returns the ranges affected by the last
+reparse.  */)
+  (Lisp_Object parser, Lisp_Object quiet)
+{
+  treesit_check_parser (parser);
+
+  if (XTS_PARSER (parser)->need_reparse && NILP (quiet))
+    xsignal1 (Qtreesit_unparsed_edits, parser);
+
+  return XTS_PARSER (parser)->last_changed_ranges;
 }
 
 
@@ -4010,6 +4046,7 @@ syms_of_treesit (void)
   DEFSYM (Qtreesit_query_error, "treesit-query-error");
   DEFSYM (Qtreesit_parse_error, "treesit-parse-error");
   DEFSYM (Qtreesit_range_invalid, "treesit-range-invalid");
+  DEFSYM (Qtreesit_unparsed_edits, "treesit-unparsed_edits");
   DEFSYM (Qtreesit_buffer_too_large,
 	  "treesit-buffer-too-large");
   DEFSYM (Qtreesit_load_language_error,
@@ -4037,6 +4074,8 @@ syms_of_treesit (void)
 		Qtreesit_error);
   define_error (Qtreesit_range_invalid,
 		"RANGES are invalid: they have to be ordered and should not overlap",
+		Qtreesit_error);
+  define_error (Qtreesit_unparsed_edits, "There are unparsed edits in the buffer",
 		Qtreesit_error);
   define_error (Qtreesit_buffer_too_large, "Buffer too large (> 4GiB)",
 		Qtreesit_error);
@@ -4177,6 +4216,8 @@ the symbol of that THING.  For example, (or sexp sentence).  */);
   defsubr (&Streesit_parser_notifiers);
   defsubr (&Streesit_parser_add_notifier);
   defsubr (&Streesit_parser_remove_notifier);
+
+  defsubr (&Streesit_parser_changed_ranges);
 
   defsubr (&Streesit_node_type);
   defsubr (&Streesit_node_start);

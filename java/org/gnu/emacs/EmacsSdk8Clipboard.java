@@ -25,6 +25,8 @@ package org.gnu.emacs;
 import android.text.*;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+
 import android.util.Log;
 
 import java.io.UnsupportedEncodingException;
@@ -50,21 +52,14 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
       = (ClipboardManager) context.getSystemService (what);
   }
 
-  /* Set the clipboard text to CLIPBOARD, a string in UTF-8
-     encoding.  */
+  /* Save the STRING into the clipboard by way of text copied by the
+     user.  */
 
   @Override
   public void
-  setClipboard (byte[] bytes)
+  setClipboard (String string)
   {
-    try
-      {
-	manager.setText (new String (bytes, "UTF-8"));
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	Log.w (TAG, "setClipboard: " + exception);
-      }
+    manager.setText (string);
   }
 
   /* Return whether or not Emacs owns the clipboard.  Value is 1 if
@@ -91,7 +86,7 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
      NULL if no content is available.  */
 
   @Override
-  public byte[]
+  public String
   getClipboard ()
   {
     String string;
@@ -103,24 +98,14 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
       return null;
 
     string = text.toString ();
-
-    try
-      {
-	return string.getBytes ("UTF-8");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	Log.w (TAG, "getClipboard: " + exception);
-      }
-
-    return null;
+    return string;
   }
 
   /* Return an array of targets currently provided by the
      clipboard, or NULL if there are none.  */
 
   @Override
-  public byte[][]
+  public String[]
   getClipboardTargets ()
   {
     return null;
@@ -129,9 +114,10 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
   /* Return the clipboard data for the given target, or NULL if it
      does not exist.
 
-     Value is normally an array of three longs: the file descriptor,
-     the start offset of the data, and its length; length may be
-     AssetFileDescriptor.UNKOWN_LENGTH, meaning that the data extends
+     Value is normally an asset file descriptor, which in turn holds
+     three important values: the file descriptor, the start offset of
+     the data, and its length; length may be
+     AssetFileDescriptor.UNKNOWN_LENGTH, meaning that the data extends
      from that offset to the end of the file.
 
      Do not use this function to open text targets; use `getClipboard'
@@ -139,8 +125,8 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
      solely of a URI.  */
 
   @Override
-  public long[]
-  getClipboardData (byte[] target)
+  public AssetFileDescriptor
+  getClipboardData (String target)
   {
     return null;
   }

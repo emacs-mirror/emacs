@@ -1197,7 +1197,7 @@ bent, contributed ideas and algorithms for a number of Calc features
 including modulo forms, primality testing, and float-to-fraction conversion.
 
 Units were added at the eager insistence of Mass Sivilotti.  Later,
-Ulrich Müller at CERN and Przemek Klosowski at NIST provided invaluable
+Ulrich M@"{u}ller at CERN and Przemek Klosowski at NIST provided invaluable
 expert assistance with the units table.  As far as I can remember, the
 idea of using algebraic formulas and variables to represent units dates
 back to an ancient article in Byte magazine about muMath, an early
@@ -28492,12 +28492,25 @@ B and
 the octave numbered 0 was chosen to correspond to the lowest
 audible frequency.  Using this system, middle C (about 261.625 Hz)
 corresponds to the note @slanted{C} in octave 4 and is denoted
-@slanted{C4}.  Any frequency can be described by giving a note plus an
+@iftex
+@slanted{C@sub{4}}.
+@end iftex
+@ifnottex
+@slanted{C} with subscript @slanted{4}.
+@end ifnottex
+Any frequency can be described by giving a note plus an
 offset in cents (where a cent is a ratio of frequencies so that a
 semitone consists of 100 cents).
 
 The midi note number system assigns numbers to notes so that
-@slanted{C-1} corresponds to the midi note number 0 and @slanted{G9}
+@iftex
+@slanted{C@sub{-1}} corresponds to the midi note number 0, and
+@slanted{G@sub{9}}
+@end iftex
+@ifnottex
+@slanted{C} with subscript @slanted{-1} corresponds to the midi note
+number 0, and @slanted{G} with subscript @slanted{9}
+@end ifnottex
 corresponds to the midi note number 127.   A midi controller can have
 up to 128 keys and each midi note number from  0 to 127 corresponds to
 a possible key.
@@ -31468,6 +31481,7 @@ newline so that mode annotations will appear on lines by themselves.
 @node Programming
 @chapter Programming
 
+@cindex Programming Calc
 @noindent
 There are several ways to ``program'' the Emacs Calculator, depending
 on the nature of the problem you need to solve.
@@ -31596,7 +31610,7 @@ following sections.
 
 @noindent
 @kindex X
-@cindex Programming with keyboard macros
+@cindex Programming Calc, with keyboard macros
 @cindex Keyboard macros
 The easiest way to ``program'' the Emacs Calculator is to use standard
 keyboard macros.  Press @w{@kbd{C-x (}} to begin recording a macro.  From
@@ -31997,7 +32011,7 @@ The @kbd{m m} command saves the last invocation macro defined by
 @noindent
 @kindex Z F
 @pindex calc-user-define-formula
-@cindex Programming with algebraic formulas
+@cindex Programming Calc, with algebraic formulas
 Another way to create a new Calculator command uses algebraic formulas.
 The @kbd{Z F} (@code{calc-user-define-formula}) command stores the
 formula at the top of the stack as the definition for a key.  This
@@ -32106,6 +32120,7 @@ in symbolic form without ever activating the @code{deriv} function.  Press
 @node Lisp Definitions
 @section Programming with Lisp
 
+@section Programming Calc, with Lisp
 @noindent
 The Calculator can be programmed quite extensively in Lisp.  All you
 do is write a normal Lisp function definition, but with @code{defmath}
@@ -32499,9 +32514,9 @@ decreases the precision.
 (put 'calc-define 'inc-prec '(progn
 
 (define-key calc-mode-map (format "Y%sI" inc-prec-base-key)
-            'increase-precision)
+            'calc-increase-precision)
 (define-key calc-mode-map (format "Y%sD" inc-prec-base-key)
-            'decrease-precision)
+            'calc-decrease-precision)
 
 (setq calc-Y-help-msgs
       (cons (format "%s + Inc-prec, Dec-prec" inc-prec-base-key)
@@ -32851,6 +32866,7 @@ a large argument, a simpler program like the first one shown is fine.
 @node Calling Calc from Your Programs
 @subsection Calling Calc from Your Lisp Programs
 
+@cindex Calling Calc from Lisp
 @noindent
 A later section (@pxref{Internals}) gives a full description of
 Calc's internal Lisp functions.  It's not hard to call Calc from

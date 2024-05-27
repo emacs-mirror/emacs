@@ -786,7 +786,6 @@ Here's a more complicated test:
 @end lisp
 
 @findex make-ert-test
-@findex ert-equal-including-properties
 This test creates a test object using @code{make-ert-test} whose body
 will immediately signal failure.  It then runs that test and asserts
 that it fails.  Then, it creates a temporary buffer and invokes
@@ -795,7 +794,7 @@ to the current buffer.  Finally, it extracts the first line from the
 buffer and asserts that it matches what we expect.  It uses
 @code{buffer-substring-no-properties} and @code{equal} to ignore text
 properties; for a test that takes properties into account,
-@code{buffer-substring} and @code{ert-equal-including-properties}
+@code{buffer-substring} and @code{equal-including-properties}
 could be used instead.
 
 The reason why this test only checks the first line of the backtrace
@@ -951,11 +950,13 @@ that assigns face properties to parts of the buffer.  The
 @code{ert-font-lock} package makes it possible to introduce unit tests
 checking face assignment.  Test assertions are included in code-level
 comments directly and can be read either from inline strings or files.
+The parser expects the input string to contain at least one assertion.
 
 Test assertion parser extracts tests from comment-only lines.  Every
-comment assertion line starts either with a caret (@samp{^}) or an
-arrow (@samp{<-}).  A caret/arrow should be followed immediately by the
-name of a face to be checked.
+comment assertion line starts either with a caret (@samp{^}) or an arrow
+(@samp{<-}).  A single caret/arrow or carets should be followed
+immediately by the name of a face or a list of faces to be checked
+against the @code{:face} property at point.
 
 The test then checks if the first non-assertion column above the caret
 contains a face expected by the assertion:
@@ -967,10 +968,43 @@ var variable = 11;
 //               ^ font-lock-punctuation-face
 // this is not an assertion, it's just a comment
 //   ^ font-lock-comment-face
+
+// multiple carets per line
+// ^^^^     ^    ^ font-lock-comment-face
 @end example
 
-The arrow means that the first non-empty column of the assertion line
-will be used for the check:
+Both symbol-only @code{:face} property values and assertion face values
+are normalized to single element lists so assertions below are
+equivalent:
+
+@example
+// single
+// ^ font-lock-comment-face
+// single
+// ^ (font-lock-comment-face)
+@end example
+
+Assertions can be negated:
+
+@example
+var variable = 11;
+//  ^ !font-lock-comment-face
+@end example
+
+It is possible to specify face lists in assertions:
+
+@example
+// TODO
+// ^^^^ (font-lock-comment-face hl-todo)
+     var test = 1;
+// ^    ()
+// ^    nil
+//   negation works as expected
+//   ^  !nil
+@end example
+
+The arrow (@samp{<-}) means that the first non-empty column of the
+assertion line will be used for the check:
 
 @example
 var variable = 1;

@@ -189,12 +189,11 @@ arguments to pass to the OPERATION."
 (defun tramp-rclone-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
   (with-tramp-connection-property nil "rclone-device-names"
-    (delq nil
-	  (mapcar
-	   (lambda (line)
-	     (when (string-match (rx bol (group (+ (not blank))) ":" eol) line)
-	       `(nil ,(match-string 1 line))))
-	   (tramp-process-lines nil tramp-rclone-program "listremotes")))))
+    (tramp-compat-seq-keep
+     (lambda (line)
+       (when (string-match (rx bol (group (+ (not blank))) ":" eol) line)
+	 `(nil ,(match-string 1 line))))
+     (tramp-process-lines nil tramp-rclone-program "listremotes"))))
 
 
 ;; File name primitives.

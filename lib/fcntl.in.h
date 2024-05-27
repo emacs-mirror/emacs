@@ -51,7 +51,8 @@
 #ifndef _@GUARD_PREFIX@_FCNTL_H
 
 /* Needed before <sys/stat.h>.
-   May also define off_t to a 64-bit type on native Windows.  */
+   May also define off_t to a 64-bit type on native Windows.
+   Also defines off64_t on macOS, NetBSD, OpenBSD, MSVC, Cygwin, Haiku.  */
 #include <sys/types.h>
 /* On some systems other than glibc, <sys/stat.h> is a prerequisite of
    <fcntl.h>.  On glibc systems, we would like to avoid namespace pollution.

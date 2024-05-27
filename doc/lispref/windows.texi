@@ -2638,6 +2638,29 @@ use @code{derived-mode} or @code{major-mode} as condition,
 @code{buffer-match-p} could fail to report a match if
 @code{display-buffer} is called before the major mode of the buffer is
 set.
+
+If the caller of @code{display-buffer} passes a category as a symbol
+in its @var{action} argument, then you can use the same category in
+@code{display-buffer-alist} to match buffers with different names,
+for example:
+
+@example
+@group
+(setopt
+ display-buffer-alist
+ (cons '((category . comint) (display-buffer-same-window))
+        display-buffer-alist))
+
+(display-buffer (get-buffer-create "*my-shell*")
+                '(nil (category . comint)))
+@end group
+@end example
+
+Regardless of the displayed buffer's name the caller defines a category
+as a symbol @code{comint}.  Then @code{display-buffer-alist} matches
+this category for all buffers displayed with the same category.
+This avoids the need to construct a complex regular expression
+that matches a buffer name.
 @end defopt
 
 @defopt display-buffer-base-action
@@ -2786,7 +2809,7 @@ Windows}).
 
 @defun display-buffer-use-least-recent-window buffer alist
 This function is similar to @code{display-buffer-use-some-window}, but
-will try harder to not use the a recently used window.  In particular,
+will try harder to not use a recently used window.  In particular,
 it does not use the selected window.  In addition, it will first try to
 reuse a window that shows @var{buffer} already, base the decision
 whether it should use a window showing another buffer on that window's
@@ -3354,6 +3377,13 @@ If the value is @code{nil}, the buffer selected by such functions as
 @code{pop-to-buffer} is deselected, and the window that was selected
 before calling this function will remain selected regardless of which
 windows were selected afterwards within this command.
+
+@vindex category@r{, a buffer display action alist entry}
+@item category
+If the caller of @code{display-buffer} passes an alist entry
+@code{(category . symbol)} in its @var{action} argument, then you can
+match the displayed buffer by using the same category in the condition
+part of @code{display-buffer-alist} entries.
 @end table
 
 By convention, the entries @code{window-height}, @code{window-width}
@@ -5112,6 +5142,24 @@ Insertion Types}) of @code{window-point}.  The default is @code{nil},
 so @code{window-point} will stay behind text inserted there.
 @end defvar
 
+@defun set-window-cursor-type window type
+This function sets the cursor shape for @var{window}.  This setting
+takes precedence over the @code{cursor-type} variable, and @var{type}
+has the same format as the value of that variable.  @xref{Cursor
+Parameters}.  If @var{window} is @code{nil}, it means to set the cursor
+type for the selected window.
+
+The initial value for new windows is @code{t}, which says to respect the
+buffer-local value of @code{cursor-type}.  The value set by this
+function persists across buffers shown in @var{window}, so
+@code{set-window-buffer} does not reset it.  @xref{Buffers and Windows}.
+@end defun
+
+@defun window-cursor-type &optional window
+This function returns the cursor type of @var{window}, defaulting to the
+selected window.
+@end defun
+
 @node Window Start and End
 @section The Window Start and End Positions
 @cindex window start position
@@ -6177,7 +6225,7 @@ The following option enables automatically selecting the window under
 the mouse pointer.  This accomplishes a policy similar to that of
 window managers that give focus to a frame (and thus trigger its
 subsequent selection) whenever the mouse pointer enters its
-window-system window (@pxref{Input Focus}).
+window-system window (@pxref{Input Focus}, @pxref{Focus Events}).
 
 @defopt mouse-autoselect-window
 If this variable is non-@code{nil}, Emacs will try to automatically

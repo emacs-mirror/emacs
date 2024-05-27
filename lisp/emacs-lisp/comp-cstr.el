@@ -89,7 +89,10 @@ Integer values are handled in the `range' slot.")
   "Return all non built-in type names currently defined."
   (let (res)
     (mapatoms (lambda (x)
-                (when (cl-find-class x)
+                (when-let ((class (cl-find-class x))
+                           ;; Ignore EIEIO classes as they can be
+                           ;; redefined at runtime.
+                           (gate (not (eq 'eieio--class (type-of class)))))
                   (push x res)))
               obarray)
     res))
@@ -909,7 +912,9 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
 (defun comp-cstr-fixnum-p (cstr)
   "Return t if CSTR is certainly a fixnum."
   (with-comp-cstr-accessors
-    (when (null (neg cstr))
+    (when (and (null (neg cstr))
+               (null (valset cstr))
+               (null (typeset cstr)))
       (when-let (range (range cstr))
         (let* ((low (caar range))
                (high (cdar (last range))))
@@ -924,11 +929,9 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
   (with-comp-cstr-accessors
     (and (null (range cstr))
          (null (neg cstr))
-         (or (and (null (valset cstr))
+         (and (or (null (typeset cstr))
                   (equal (typeset cstr) '(symbol)))
-             (and (or (null (typeset cstr))
-                      (equal (typeset cstr) '(symbol)))
-                  (cl-every #'symbolp (valset cstr)))))))
+              (cl-every #'symbolp (valset cstr))))))
 
 (defsubst comp-cstr-cons-p (cstr)
   "Return t if CSTR is certainly a cons."
@@ -937,6 +940,28 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
          (null (range cstr))
          (null (neg cstr))
          (equal (typeset cstr) '(cons)))))
+
+(defun comp-cstr-type-p (cstr type)
+  "Return t if CSTR is certainly of type TYPE."
+  (when
+      (with-comp-cstr-accessors
+        (cl-case type
+          (integer
+           (if (or (valset cstr) (neg cstr))
+               nil
+             (or (equal (typeset cstr) '(integer))
+                 (and (range cstr)
+                      (or (null (typeset cstr))
+                          (equal (typeset cstr) '(integer)))))))
+          (t
+           (if-let ((pred (get type 'cl-deftype-satisfies)))
+               (and (null (range cstr))
+                    (null (neg cstr))
+                    (and (or (null (typeset cstr))
+                             (equal (typeset cstr) `(,type)))
+                         (cl-every pred (valset cstr))))
+             (error "Unknown predicate for type %s" type)))))
+    t))
 
 ;; Move to comp.el?
 (defsubst comp-cstr-cl-tag-p (cstr)

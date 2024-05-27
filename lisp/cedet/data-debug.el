@@ -598,6 +598,29 @@ PREBUTTONTEXT is some text between prefix and the stuff vector button."
     )
   )
 
+(defun data-debug-insert-stuff-record-button (stuffvector
+					      prefix
+					      prebuttontext)
+  "Insert a button representing STUFFVECTOR.
+PREFIX is the text that precedes the button.
+PREBUTTONTEXT is some text between prefix and the stuff vector button."
+  (let* ((start (point))
+	 (end nil)
+	 (str (format "#<record o' stuff: %d entries>" (length stuffvector)))
+	 (tip str))
+    (insert prefix prebuttontext str)
+    (setq end (point))
+    (put-text-property (- end (length str)) end 'face 'font-lock-variable-name-face)
+    (put-text-property start end 'ddebug stuffvector)
+    (put-text-property start end 'ddebug-indent (length prefix))
+    (put-text-property start end 'ddebug-prefix prefix)
+    (put-text-property start end 'help-echo tip)
+    (put-text-property start end 'ddebug-function
+		       'data-debug-insert-stuff-vector-from-point)
+    (insert "\n")
+    )
+  )
+
 ;;; Symbol
 ;;
 
@@ -781,6 +804,9 @@ FACE is the face to use."
 
     ;; Vector of stuff
     (vectorp . data-debug-insert-stuff-vector-button)
+
+    ;; Record of stuff
+    (recordp . data-debug-insert-stuff-record-button)
     )
   "Alist of methods used to insert things into an Ddebug buffer.")
 

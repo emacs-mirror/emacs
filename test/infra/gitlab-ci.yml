@@ -86,13 +86,14 @@ default:
     # TODO: with make -j4 several of the tests were failing, for
     # example shadowfile-tests, but passed without it.
     - 'export PWD=$(pwd)'
-    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} -e EMACS_TEST_JUNIT_REPORT=${EMACS_TEST_JUNIT_REPORT} -e EMACS_TEST_TIMEOUT=${EMACS_TEST_TIMEOUT} -e EMACS_TEST_VERBOSE=${EMACS_TEST_VERBOSE} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -xvc "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
+    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} -e EMACS_TEST_JUNIT_REPORT=${EMACS_TEST_JUNIT_REPORT} -e EMACS_TEST_TIMEOUT=${EMACS_TEST_TIMEOUT} -e EMACS_TEST_VERBOSE=${EMACS_TEST_VERBOSE} -e NPROC=`nproc` --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -xvc "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j \$NPROC && make -k -j \$NPROC ${make_params}"'
   after_script:
     # - docker ps -a
     # - printenv
     # - test -n "$(docker ps -aq -f name=${test_name})" && ( docker export ${test_name} | tar -tvf - )
     # Prepare test artifacts.
     - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
+    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/configure.log ${test_name}
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
     - find ${test_name} ! \( -name "*.log" -o -name ${EMACS_TEST_JUNIT_REPORT} \) -type f -delete
     # BusyBox find does not know -empty.
@@ -183,9 +184,18 @@ default:
       changes:
         - "**.in"
         - lisp/progmodes/*-ts-mode.el
+        - lisp/progmodes/js.el
+        - lisp/progmodes/python.el
+        - lisp/textmodes/*-ts-mode.el
+        - src/treesit.{h,c}
         - test/infra/*
         - test/lisp/progmodes/*-ts-mode-resources/**
         - test/lisp/progmodes/*-ts-mode-tests.el
+        - test/lisp/progmodes/js-tests.el
+        - test/lisp/progmodes/python-tests.el
+        - test/lisp/textmodes/*-ts-mode-resources/**
+        - test/lisp/textmodes/*-ts-mode-tests.el
+        - test/src/treesit-tests.el
 
 .native-comp-template:
   rules:
@@ -248,7 +258,10 @@ test-filenotify-gio:
   variables:
     target: emacs-filenotify-gio
     # This is needed in order to get a JUnit test report.
-    make_params: '-k -C test check-expensive LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"'
+    make_params: >-
+      check-expensive
+        TEST_HOME=/root
+        LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"
 
 build-image-eglot:
   stage: platform-images
@@ -265,7 +278,13 @@ test-eglot:
   variables:
     target: emacs-eglot
     # This is needed in order to get a JUnit test report.
-    make_params: '-k -C test check-expensive LOGFILES="lisp/progmodes/eglot-tests.log"'
+    make_params: >-
+      check-expensive
+        TEST_HOME=/root LOGFILES="lisp/progmodes/eglot-tests.log"
+        # EMACS_EXTRAOPT="--eval \(package-reinstall\ \(quote\ company\)\)
+        #                 --eval \(package-reinstall\ \(quote\ yasnippet\)\)
+        #                 --eval \(use-package\ company\)
+        #                 --eval \(use-package\ yasnippet\)"
 
 build-image-tree-sitter:
   stage: platform-images
@@ -281,8 +300,11 @@ test-tree-sitter:
       optional: true
   variables:
     target: emacs-tree-sitter
+    selector: >-
+      \(and\ \$\{SELECTOR_EXPENSIVE\}\ \(or\ \\\"^treesit\\\"\ \\\"-ts-\\\"\)\)
     # This is needed in order to get a JUnit test report.
-    make_params: '-k -C test check-expensive TEST_HOME=/root LOGFILES="$tree_sitter_files"'
+    make_params: >-
+      check SELECTOR=$selector TEST_HOME=/root LOGFILES="$tree_sitter_files"
 
 build-image-gnustep:
   stage: platform-images
@@ -330,7 +352,7 @@ test-native-comp-speed2:
       optional: true
   variables:
     target: emacs-native-comp-speed2
-    make_params: "-k -C test check SELECTOR='(not (tag :unstable))'"
+    make_params: check SELECTOR='(not (tag :unstable))'
 
 # Local Variables:
 # add-log-current-defun-header-regexp: "^\\([-_.[:alnum:]]+\\)[ \t]*:"

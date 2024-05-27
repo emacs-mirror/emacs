@@ -100,7 +100,10 @@
   (should (equal (format-seconds "%hh %z%x%mm %ss" (* 60 2)) "2m"))
   (should (equal (format-seconds "%hh %z%mm %ss" (* 60 2)) "2m 0s"))
   (should (equal (format-seconds "%hh %x%mm %ss" (* 60 2)) "0h 2m"))
-  (should (equal (format-seconds "%hh %x%mm %ss" 0) "0h 0m 0s")))
+  (should (equal (format-seconds "%hh %x%mm %ss" 0) "0h 0m 0s"))
+  ;; Bug#70322
+  (should (equal (format-seconds "%y %z%d %h %m %s %%" 9999999) "115 17 46 39 %"))
+  (should (equal (format-seconds "%Y, %D, %H, %M, %z%S" 0) "0 seconds")))
 
 (ert-deftest test-ordinal ()
   (should (equal (date-ordinal-to-time 2008 271)

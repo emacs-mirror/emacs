@@ -782,6 +782,14 @@ the buffer is merely buried instead.
 Set environment variables using input like Bash's @command{export}, as
 in @samp{export @var{var1}=@var{val1} @var{var2}=@var{val2} @dots{}}.
 
+@cmindex funcall
+@item funcall @var{function} [@var{arg}]@dots{}
+Call @var{function} with the specified arguments (@var{function} may be
+a symbol or a string naming a Lisp function).  This command is useful
+when you want to call an ordinary Lisp function using Eshell's command
+form (@pxref{Invocation}), even if there may be an external program of
+the same name.
+
 @cmindex grep
 @item grep [@var{arg}]@dots{}
 @cmindex agrep
@@ -1535,13 +1543,18 @@ slash module (@pxref{Electric forward slash}).
 When running commands, you can also make them explicitly remote by
 prefixing the command name with a remote identifier, e.g.@:
 @samp{/ssh:user@@remote:whoami}.  This runs the command @code{whoami}
-over the SSH connection for @code{user@@remote}, no matter your
-current directory.  If you want to explicitly run a @emph{local}
-command even when in a remote directory, you can prefix the command
-name with @kbd{/:}, like @samp{/:whoami}.  In either case, you can
+over the SSH connection for @code{user@@remote}, no matter your current
+directory.  If you want to explicitly run a command on your @emph{local}
+machine even when in a remote directory, you can prefix the command name
+with @kbd{/local:}, like @samp{/local:whoami}.  In either case, you can
 also specify the absolute path to the program, e.g.@:
-@samp{/ssh:user@@remote:/usr/bin/whoami}.  To disable this syntax, set
-the option @code{eshell-explicit-remote-commands} to @code{nil}.
+@samp{/ssh:user@@remote:/usr/bin/whoami}.  If you need to refer to a
+program whose file name would be interpreted as an explicitly-remote
+command, you can use @kbd{/:} to quote the name, e.g.@:
+@samp{/:/ssh:user@@remote:whoami} (@pxref{Quoted File Names,,, emacs,
+The GNU Emacs Manual}).  To disable explicity-remote commands entirely,
+you can set the option @code{eshell-explicit-remote-commands} to
+@code{nil}.
 
 @node History
 @section History

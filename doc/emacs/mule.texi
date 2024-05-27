@@ -1671,6 +1671,10 @@ used.  Some examples are:
                   nil 'append)
 @end example
 
+When modifying the fontset for the @code{symbol} script, the value of
+@code{use-default-font-for-symbols} will affect whether the fontset is
+actually used.
+
 @noindent
 @xref{Fontsets, , , elisp, GNU Emacs Lisp Reference Manual}, for more
 details about using the @code{set-fontset-font} function.
@@ -1867,6 +1871,12 @@ they too are defined to compose with the following character, once
 @code{iso-transl} is loaded.
 
 Use @kbd{C-x 8 C-h} to list all the available @kbd{C-x 8} translations.
+
+The set of translations available can be extended with certain
+language-specific characters using the @kbd{M-x iso-transl-set-language}
+command.  Current supported languages are: @samp{French}, @samp{German},
+@samp{Portuguese}, @samp{Spanish}, and @samp{Esperanto}.  See
+@code{iso-transl-language-alist} for details.
 @end itemize
 
 @node Charsets

@@ -50,6 +50,7 @@
 (defvar erc-server-process)
 
 (declare-function erc--get-isupport-entry "erc-backend" (key &optional single))
+(declare-function erc--insert-admin-message "erc" (&rest args))
 (declare-function erc-buffer-filter "erc" (predicate &optional proc))
 (declare-function erc-current-nick "erc" nil)
 (declare-function erc-display-error-notice "erc" (parsed string))
@@ -1345,24 +1346,38 @@ Copy source (prefix) from MOTD-ish message as a last resort."
   (setq erc-network nil)
   nil)
 
-;; TODO add note in Commentary saying that this module is considered a
-;; core module and that it's as much about buffer naming and network
-;; identity as anything else.
+(defun erc-networks--transplant-buffer-content (src dest)
+  "Insert buffer SRC's contents into DEST, above its contents."
+  (with-silent-modifications
+    (let ((content (with-current-buffer src
+                     (cl-assert (not (buffer-narrowed-p)))
+                     (erc--insert-admin-message 'graft ?n dest ?o src)
+                     (buffer-substring (point-min) erc-insert-marker))))
+      (with-current-buffer dest
+        (save-excursion
+          (save-restriction
+            (cl-assert (not (buffer-narrowed-p)))
+            (goto-char (point-min))
+            (while (and (eql ?\n (char-after (point)))
+                        (null (text-properties-at (point))))
+              (delete-char 1))
+            (insert-before-markers content)))))))
 
-(defun erc-networks--insert-transplanted-content (content)
-  (let ((inhibit-read-only t)
-        (buffer-undo-list t))
-    (save-excursion
-      (save-restriction
-        (widen)
-        (goto-char (point-min))
-        (insert-before-markers content)))))
+(defvar erc-networks--transplant-target-buffer-function
+  #'erc-networks--transplant-buffer-content
+  "Function to rename and merge the contents of two target buffers.
+Called with the donating buffer to be killed and buffer to receive the
+transplant.  Consuming modules can leave a marker at the beginning of
+the latter buffer to access the insertion point, if needing to do things
+like adjust invisibility properties, etc.")
+
+(defvar erc-networks--target-transplant-in-progress-p nil
+  "Non-nil when merging target buffers.")
 
 ;; This should run whenever a network identity is updated.
-
 (defun erc-networks--reclaim-orphaned-target-buffers (new-proc nid announced)
   "Visit disowned buffers for same NID and associate with NEW-PROC.
-ANNOUNCED is the server's reported host name."
+Expect ANNOUNCED to be the server's reported host name."
   (erc-buffer-filter
    (lambda ()
      (when (and erc--target
@@ -1372,20 +1387,26 @@ ANNOUNCED is the server's reported host name."
                     (string= erc-server-announced-name announced)))
        ;; If a target buffer exists for the current process, kill this
        ;; stale one after transplanting its content; else reinstate.
-       (if-let ((existing (erc-get-buffer
-                           (erc--target-string erc--target) new-proc)))
+       (if-let ((actual (erc-get-buffer (erc--target-string erc--target)
+                                        new-proc))
+                (erc-networks--target-transplant-in-progress-p t))
            (progn
-             (widen)
-             (let ((content (buffer-substring (point-min)
-                                              erc-insert-marker)))
-               (kill-buffer) ; allow target-buf renaming hook to run
-               (with-current-buffer existing
-                 (erc-networks--ensure-unique-target-buffer-name)
-                 (erc-networks--insert-transplanted-content content))))
+             (funcall erc-networks--transplant-target-buffer-function
+                      (current-buffer) actual)
+             (kill-buffer (current-buffer))
+             (with-current-buffer actual
+               (erc-networks--ensure-unique-target-buffer-name)))
          (setq erc-server-process new-proc
                erc-server-connected t
                erc-networks--id nid))))))
 
+;; For existing buffers, `erc-open' reinitializes a core set of local
+;; variables in addition to some text, such as the prompt.  It expects
+;; module activation functions to do the same for assets they manage.
+;; However, "stateful" modules, whose functionality depends on the
+;; evolution of a buffer's content, may need to reconcile state during
+;; a merge.  An example might be a module that provides consistent
+;; timestamps: it should ensure time values don't decrease.
 (defvar erc-networks--copy-server-buffer-functions nil
   "Abnormal hook run in new server buffers when deduping.
 Passed the existing buffer to be killed, whose contents have
@@ -1393,26 +1414,18 @@ already been copied over to the current, replacement buffer.")
 
 (defun erc-networks--copy-over-server-buffer-contents (existing name)
   "Kill off existing server buffer after copying its contents.
-Must be called from the replacement buffer."
+Expect to be called from the replacement buffer."
   (defvar erc-kill-buffer-hook)
   (defvar erc-kill-server-hook)
-  ;; ERC expects `erc-open' to be idempotent when setting up local
-  ;; vars and other context properties for a new identity.  Thus, it's
-  ;; unlikely we'll have to copy anything else over besides text.  And
-  ;; no reconciling of user tables, etc. happens during a normal
-  ;; reconnect, so we should be fine just sticking to text. (Right?)
-  (let ((text (with-current-buffer existing
-                ;; This `erc-networks--id' should be
-                ;; `erc-networks--id-equal-p' to caller's network
-                ;; identity and older if not eq.
-                ;;
-                ;; `erc-server-process' should be set but dead
-                ;; and eq `get-buffer-process' unless latter nil
-                (delete-process erc-server-process)
-                (buffer-substring (point-min) erc-insert-marker)))
-        erc-kill-server-hook
-        erc-kill-buffer-hook)
-    (erc-networks--insert-transplanted-content text)
+  ;; The following observations from ERC 5.5 regarding the buffer
+  ;; `existing' were thought at the time to be invariants:
+  ;; - `erc-networks--id' is `erc-networks--id-equal-p' to the
+  ;;    caller's network identity and older if not `eq'.
+  ;; - `erc-server-process' should be set (local) but dead and `eq' to
+  ;;    the result of `get-buffer-process' unless the latter is nil.
+  (delete-process (buffer-local-value 'erc-server-process existing))
+  (erc-networks--transplant-buffer-content existing (current-buffer))
+  (let (erc-kill-server-hook erc-kill-buffer-hook)
     (run-hook-with-args 'erc-networks--copy-server-buffer-functions existing)
     (kill-buffer name)))
 

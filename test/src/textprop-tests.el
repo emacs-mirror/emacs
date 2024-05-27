@@ -68,5 +68,56 @@
     (should (and (equal-including-properties (pop stack) string)
 		 (null stack)))))
 
+(ert-deftest textprop-interval-immutability ()
+  "Test modification of text with properties affecting mutability."
+  (let ((template (concat
+                   (propertize "12345" 'inhibit-read-only t) ; 1-5
+                   (propertize "67890" 'read-only 'abcdefg)  ; 6-10
+                   (propertize "ABCDE" 'inhibit-read-only t) ; 11-15
+                   (propertize "FGHIJ" 'inhibit-read-only 'yes) ; 16-20
+                   "KLMNO" ; 21-25
+                   (propertize "PQRST" 'inhibit-read-only 't) ; 26-30
+                   (propertize "UVWXYZ" 'read-only 'not-suppressed)))
+        inhibit-read-only)
+    (with-temp-buffer
+      (insert template)
+      (setq buffer-read-only t)
+      ;; Delete an entire inhibit-read-only region.
+      (progn (should (equal (delete-and-extract-region 1 6)
+                            "12345"))
+             (let ((inhibit-read-only t)) (erase-buffer)
+                  (insert template)))
+      ;; Delete multiple characters inside an inhibit-read-only section.
+      (progn (should (equal (delete-and-extract-region 2 5)
+                            "234"))
+             (let ((inhibit-read-only t)) (erase-buffer)
+                  (insert template)))
+      ;; Attempt to delete characters across both an inhibit-read-only
+      ;; and a read only region.
+      (setq buffer-read-only nil)
+      (should-error (delete-and-extract-region 4 7))
+      (setq inhibit-read-only '(abcdefg))
+      ;; Attempt the same, but with the read-only property of the second
+      ;; section suppressed.
+      (progn (should (equal (delete-and-extract-region 4 7) "456"))
+             (let ((inhibit-read-only t)) (erase-buffer)
+                  (insert template)))
+      (setq buffer-read-only t)
+      ;; Delete text across the suppressed read-only region and two
+      ;; other inhibit-read-only regions each with distinct intervals.
+      (progn (should (equal (delete-and-extract-region 7 17)
+                            "7890ABCDEF"))
+             (let ((inhibit-read-only t)) (erase-buffer)
+                  (insert template)))
+      (setq inhibit-read-only nil)
+      ;; Attempt to delete text spanning two inhibit-read-only sections
+      ;; separated by immutable text.
+      (should-error (delete-and-extract-region 17 27))
+      (setq inhibit-read-only '(abcdefg))
+      ;; Attempt to delete text from the start of an inhibit-read-only
+      ;; section extending into protected text exempt from
+      ;; `inhibit-read-only''s influence towards the end of the buffer.
+      (should-error (delete-and-extract-region 26 37)))))
+
 (provide 'textprop-tests)
 ;;; textprop-tests.el ends here

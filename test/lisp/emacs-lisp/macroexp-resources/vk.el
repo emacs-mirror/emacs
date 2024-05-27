@@ -78,29 +78,31 @@
 
 (defconst vk-val3 (eval-when-compile (vk-f3 0)))
 
-(defconst vk-f4 '(lambda (x)
-                   (defvar vk-v4)
-                   (let ((vk-v4 31)
-                         (y 32))
-                     (ignore vk-v4 x y)
-                     (list
-                      (vk-variable-kind vk-a)   ; dyn
-                      (vk-variable-kind vk-b)   ; dyn
-                      (vk-variable-kind vk-v4)  ; dyn
-                      (vk-variable-kind x)      ; dyn
-                      (vk-variable-kind y)))))  ; dyn
+(defconst vk-f4 (eval '(lambda (x)
+                         (defvar vk-v4)
+                         (let ((vk-v4 31)
+                               (y 32))
+                           (ignore vk-v4 x y)
+                           (list
+                            (vk-variable-kind vk-a) ; dyn
+                            (vk-variable-kind vk-b) ; dyn
+                            (vk-variable-kind vk-v4) ; dyn
+                            (vk-variable-kind x)     ; dyn
+                            (vk-variable-kind y))))  ; dyn
+                      nil))
 
-(defconst vk-f5 '(closure (t) (x)
-                   (defvar vk-v5)
-                   (let ((vk-v5 41)
-                         (y 42))
-                     (ignore vk-v5 x y)
-                     (list
-                      (vk-variable-kind vk-a)   ; dyn
-                      (vk-variable-kind vk-b)   ; dyn
-                      (vk-variable-kind vk-v5)  ; dyn
-                      (vk-variable-kind x)      ; lex
-                      (vk-variable-kind y)))))  ; lex
+(defconst vk-f5 (eval '(lambda (x)
+                         (defvar vk-v5)
+                         (let ((vk-v5 41)
+                               (y 42))
+                           (ignore vk-v5 x y)
+                           (list
+                            (vk-variable-kind vk-a) ; dyn
+                            (vk-variable-kind vk-b) ; dyn
+                            (vk-variable-kind vk-v5) ; dyn
+                            (vk-variable-kind x)     ; lex
+                            (vk-variable-kind y))))  ; lex
+                      t))
 
 (defun vk-f6 ()
   (eval '(progn

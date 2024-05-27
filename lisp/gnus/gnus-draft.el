@@ -262,8 +262,7 @@ If DONT-POP is nil, display the buffer after setting it up."
             (setq ga
                   (message-fetch-field gnus-draft-meta-information-header)))
           (insert mail-header-separator)
-          (forward-line 1)
-          (message-set-auto-save-file-name))))
+          (forward-line 1))))
     (gnus-backlog-remove-article group narticle)
     (when (and ga
                (ignore-errors (setq ga (car (read-from-string ga)))))
@@ -290,30 +289,25 @@ If DONT-POP is nil, display the buffer after setting it up."
 (defun gnus-draft-check-draft-articles (articles)
   "Check whether the draft articles ARTICLES are under edit."
   (when (equal gnus-newsgroup-name "nndraft:drafts")
-    (let ((buffers (buffer-list))
-	  file buffs buff)
-      (save-current-buffer
-	(while (and articles
-		    (not buff))
-	  (setq file (nndraft-article-filename (pop articles))
-		buffs buffers)
-	  (while buffs
-	    (set-buffer (setq buff (pop buffs)))
-	    (if (and buffer-file-name
-		     (equal (file-remote-p file)
-			    (file-remote-p buffer-file-name))
-		     (string-equal (file-truename buffer-file-name)
-				   (file-truename file))
-		     (buffer-modified-p))
-		(setq buffs nil)
-	      (setq buff nil)))))
-      (when buff
-	(let* ((window (get-buffer-window buff t))
-	       (frame (and window (window-frame window))))
-	  (if frame
-	      (select-frame-set-input-focus frame)
-	    (pop-to-buffer buff t)))
-	(error "The draft %s is under edit" file)))))
+    (let* ((files (mapcar #'nndraft-article-filename articles))
+           (buffs (delq nil (mapcar (lambda (f)
+                                      (find-buffer-visiting
+                                       f (lambda (b) (buffer-modified-p b))))
+                                    files))))
+      (when buffs
+        (if (= 1 (length buffs))
+            ;; We might have arrived here via `gnus-draft-edit-message';
+            ;; either way show the user the draft with unsaved changes.
+            (let* ((window (get-buffer-window (car buffs) t))
+	           (frame (and window (window-frame window))))
+	      (if frame
+	          (select-frame-set-input-focus frame)
+	        (pop-to-buffer (car buffs) t))
+              (error "Draft is already under edit"))
+          ;; Otherwise we got here from `gnus-draft-send-message', and
+          ;; the main thing is to interrupt the sending.
+          (display-buffer (list-buffers-noselect t buffs))
+          (error "Some drafts have unsaved changes: %S" buffs))))))
 
 (defun gnus-draft-clear-marks ()
   (setq gnus-newsgroup-reads nil

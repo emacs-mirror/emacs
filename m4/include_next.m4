@@ -1,4 +1,5 @@
-# include_next.m4 serial 27
+# include_next.m4
+# serial 27
 dnl Copyright (C) 2006-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,

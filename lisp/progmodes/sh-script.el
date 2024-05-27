@@ -1435,7 +1435,8 @@ If FORCE is non-nil and no process found, create one."
 (defun sh-show-shell ()
   "Pop the shell interaction buffer."
   (interactive)
-  (pop-to-buffer (process-buffer (sh-shell-process t)) display-comint-buffer-action))
+  (with-suppressed-warnings ((obsolete display-comint-buffer-action))
+    (pop-to-buffer (process-buffer (sh-shell-process t)) display-comint-buffer-action)))
 
 (defun sh-send-text (text)
   "Send TEXT to `sh-shell-process'."
@@ -3194,12 +3195,6 @@ shell command and conveniently use this command."
 
 (defvar-local sh--shellcheck-process nil)
 
-(defalias 'sh--json-read
-  (if (fboundp 'json-parse-buffer)
-      (lambda () (json-parse-buffer :object-type 'alist))
-    (require 'json)
-    'json-read))
-
 (defun sh-shellcheck-flymake (report-fn &rest _args)
   "Flymake backend using the shellcheck program.
 Takes a Flymake callback REPORT-FN as argument, as expected of a
@@ -3223,7 +3218,7 @@ member of `flymake-diagnostic-functions'."
                     (with-current-buffer (process-buffer proc)
                       (goto-char (point-min))
                       (thread-last
-                        (sh--json-read)
+                        (json-parse-buffer :object-type 'alist)
                         (alist-get 'comments)
                         (seq-filter
                          (lambda (item)

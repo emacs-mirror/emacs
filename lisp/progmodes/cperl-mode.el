@@ -1178,7 +1178,12 @@ The expansion is entirely correct because it uses the C preprocessor."
 (eval-and-compile
 
   (defconst cperl--basic-identifier-rx
-    '(sequence (or alpha "_") (* (or word "_")))
+    ;; The rx expression in the following line is a workaround for
+    ;; bug#70948 under Emacs 29
+    '(regex "[_[:alpha:]][_[:word:]]*")
+    ;; The rx expression in the following line is equivalent but
+    ;; inefficient under Emacs 29.3
+    ;; '(sequence (or alpha "_") (* (or word "_")))
     "A regular expression for the name of a \"basic\" Perl variable.
 Neither namespace separators nor sigils are included.  As is,
 this regular expression applies to labels,subroutine calls where
@@ -1934,7 +1939,8 @@ or as help on variables `cperl-tips', `cperl-problems',
   ;; Setup Flymake
   (add-hook 'flymake-diagnostic-functions #'perl-flymake nil t))
 
-(derived-mode-add-parents 'cperl-mode '(perl-mode))
+(when (fboundp 'derived-mode-add-parents) ; to run under Emacs <30
+  (derived-mode-add-parents 'cperl-mode '(perl-mode)))
 
 (defun cperl--set-file-style ()
   (when cperl-file-style

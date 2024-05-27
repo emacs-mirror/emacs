@@ -691,6 +691,8 @@ extern int be_get_display_color_cells (void);
 extern bool be_is_display_grayscale (void);
 extern void be_warp_pointer (int, int);
 
+extern bool haiku_should_pass_control_tab_to_system (void);
+
 extern void EmacsView_set_up_double_buffering (void *);
 extern void EmacsView_disable_double_buffering (void *);
 extern void EmacsView_flip_and_blit (void *);

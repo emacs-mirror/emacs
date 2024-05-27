@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -64,21 +65,23 @@ import android.content.pm.PackageManager;
 
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 
 import android.hardware.input.InputManager;
 
 import android.net.Uri;
 
 import android.os.BatteryManager;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Looper;
-import android.os.IBinder;
 import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
-import android.os.VibrationEffect;
 
 import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
@@ -100,9 +103,9 @@ public final class EmacsService extends Service
   /* The started Emacs service object.  */
   public static EmacsService SERVICE;
 
-  /* If non-NULL, an extra argument to pass to
+  /* If non-NULL, an array of extra arguments to pass to
      `android_emacs_init'.  */
-  public static String extraStartupArgument;
+  public static String[] extraStartupArguments;
 
   /* The thread running Emacs C code.  */
   private EmacsThread thread;
@@ -114,9 +117,10 @@ public final class EmacsService extends Service
   private ContentResolver resolver;
 
   /* Keep this in synch with androidgui.h.  */
-  public static final int IC_MODE_NULL   = 0;
-  public static final int IC_MODE_ACTION = 1;
-  public static final int IC_MODE_TEXT   = 2;
+  public static final int IC_MODE_NULL     = 0;
+  public static final int IC_MODE_ACTION   = 1;
+  public static final int IC_MODE_TEXT     = 2;
+  public static final int IC_MODE_PASSWORD = 3;
 
   /* Display metrics used by font backends.  */
   public DisplayMetrics metrics;
@@ -143,6 +147,9 @@ public final class EmacsService extends Service
   /* The Thread object representing the Android user interface
      thread.  */
   private Thread mainThread;
+
+  /* "Resources" object required by GContext bookkeeping.  */
+  public static Resources resources;
 
   static
   {
@@ -181,11 +188,11 @@ public final class EmacsService extends Service
 	manager = (NotificationManager) tem;
 	infoBlurb = ("This notification is displayed to keep Emacs"
 		     + " running while it is in the background.  You"
-		     + " may disable it if you want;"
+		     + " may disable it if you wish;"
 		     + " see (emacs)Android Environment.");
 	channel
 	  = new NotificationChannel ("emacs", "Emacs Background Service",
-				     NotificationManager.IMPORTANCE_DEFAULT);
+				     NotificationManager.IMPORTANCE_LOW);
 	manager.createNotificationChannel (channel);
 	notification = (new Notification.Builder (this, "emacs")
 			.setContentTitle ("Emacs")
@@ -233,11 +240,14 @@ public final class EmacsService extends Service
     final double scaledDensity;
     double tempScaledDensity;
 
+    super.onCreate ();
+
     SERVICE = this;
+    resources = getResources ();
     handler = new Handler (Looper.getMainLooper ());
     manager = getAssets ();
     app_context = getApplicationContext ();
-    metrics = getResources ().getDisplayMetrics ();
+    metrics = resources.getDisplayMetrics ();
     pixelDensityX = metrics.xdpi;
     pixelDensityY = metrics.ydpi;
     tempScaledDensity = ((getScaledDensity (metrics)
@@ -246,9 +256,9 @@ public final class EmacsService extends Service
     resolver = getContentResolver ();
     mainThread = Thread.currentThread ();
 
-    /* If the density used to compute the text size is lesser than
-       160, there's likely a bug with display density computation.
-       Reset it to 160 in that case.
+    /* If the density used to compute the text size is smaller than 160,
+       there's likely a bug with display density computation.  Reset it
+       to 160 in that case.
 
        Note that Android uses 160 ``dpi'' as the density where 1 point
        corresponds to 1 pixel, not 72 or 96 as used elsewhere.  This
@@ -260,6 +270,10 @@ public final class EmacsService extends Service
     /* scaledDensity is const as required to refer to it from within
        the nested function below.  */
     scaledDensity = tempScaledDensity;
+
+    /* Remove all tasks from previous Emacs sessions but the task
+       created by the system at startup.  */
+    EmacsWindowManager.MANAGER.removeOldTasks (this);
 
     try
       {
@@ -276,7 +290,9 @@ public final class EmacsService extends Service
 
 	Log.d (TAG, "Initializing Emacs, where filesDir = " + filesDir
 	       + ", libDir = " + libDir + ", and classPath = " + classPath
-	       + "; fileToOpen = " + EmacsOpenActivity.fileToOpen
+	       + "; args = " + (extraStartupArguments != null
+				? Arrays.toString (extraStartupArguments)
+				: "(none)")
 	       + "; display density: " + pixelDensityX + " by "
 	       + pixelDensityY + " scaled to " + scaledDensity);
 
@@ -293,9 +309,7 @@ public final class EmacsService extends Service
 					  classPath, EmacsService.this,
 					  Build.VERSION.SDK_INT);
 	    }
-	  }, extraStartupArgument,
-	  /* If any file needs to be opened, open it now.  */
-	  EmacsOpenActivity.fileToOpen);
+	  }, extraStartupArguments);
 	thread.start ();
       }
     catch (IOException exception)
@@ -379,6 +393,23 @@ public final class EmacsService extends Service
 	call ()
 	{
 	  view.getLocationOnScreen (coordinates);
+	  return null;
+	}
+      });
+
+    EmacsService.<Void>syncRunnable (task);
+  }
+
+  public void
+  getLocationInWindow (final EmacsView view, final int[] coordinates)
+  {
+    FutureTask<Void> task;
+
+    task = new FutureTask<Void> (new Callable<Void> () {
+	public Void
+	call ()
+	{
+	  view.getLocationInWindow (coordinates);
 	  return null;
 	}
       });
@@ -484,22 +515,22 @@ public final class EmacsService extends Service
       vibrator.vibrate (duration);
   }
 
-  public short[]
+  public long[]
   queryTree (EmacsWindow window)
   {
-    short[] array;
+    long[] array;
     List<EmacsWindow> windowList;
     int i;
 
     if (window == null)
       /* Just return all the windows without a parent.  */
-      windowList = EmacsWindowAttachmentManager.MANAGER.copyWindows ();
+      windowList = EmacsWindowManager.MANAGER.copyWindows ();
     else
       windowList = window.children;
 
     synchronized (windowList)
       {
-	array = new short[windowList.size () + 1];
+	array = new long[windowList.size () + 1];
 	i = 1;
 
 	array[0] = (window == null
@@ -816,7 +847,7 @@ public final class EmacsService extends Service
   }
 
   public static int[]
-  viewGetSelection (short window)
+  viewGetSelection (long window)
   {
     int[] selection;
 
@@ -937,11 +968,13 @@ public final class EmacsService extends Service
      string; make it writable if WRITABLE, and readable if READABLE.
      Truncate the file if TRUNCATE.
 
-     Value is the resulting file descriptor or -1 upon failure.  */
+     Value is the resulting file descriptor, -1, or an exception will be
+     raised.  */
 
   public int
-  openContentUri (byte[] bytes, boolean writable, boolean readable,
+  openContentUri (String uri, boolean writable, boolean readable,
 		  boolean truncate)
+    throws FileNotFoundException, IOException
   {
     String name, mode;
     ParcelFileDescriptor fd;
@@ -960,39 +993,19 @@ public final class EmacsService extends Service
     if (truncate)
       mode += "t";
 
-    /* Try to open an associated ParcelFileDescriptor.  */
+    /* Try to open a corresponding ParcelFileDescriptor.  Though
+       `fd.detachFd' is exclusive to Honeycomb and up, this function is
+       never called on systems older than KitKat, which is Emacs's
+       minimum requirement for access to /content/by-authority.  */
 
-    try
-      {
-	/* The usual file name encoding question rears its ugly head
-	   again.  */
+    fd = resolver.openFileDescriptor (Uri.parse (uri), mode);
+    if (fd == null)
+      return -1;
 
-	name = new String (bytes, "UTF-8");
-	fd = resolver.openFileDescriptor (Uri.parse (name), mode);
+    i = fd.detachFd ();
+    fd.close ();
 
-	/* Use detachFd on newer versions of Android or plain old
-	   dup.  */
-
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1)
-	  {
-	    i = fd.detachFd ();
-	    fd.close ();
-
-	    return i;
-	  }
-	else
-	  {
-	    i = EmacsNative.dup (fd.getFd ());
-	    fd.close ();
-
-	    return i;
-	  }
-      }
-    catch (Exception exception)
-      {
-	exception.printStackTrace ();
-	return -1;
-      }
+    return i;
   }
 
   /* Return whether Emacs is directly permitted to access the
@@ -1003,11 +1016,8 @@ public final class EmacsService extends Service
   public boolean
   checkContentUri (String name, boolean readable, boolean writable)
   {
-    String mode;
-    ParcelFileDescriptor fd;
     Uri uri;
     int rc, flags;
-    ParcelFileDescriptor descriptor;
 
     uri = Uri.parse (name);
     flags = 0;
@@ -1018,47 +1028,21 @@ public final class EmacsService extends Service
     if (writable)
       flags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 
-    rc = checkCallingUriPermission (uri, flags);
+    /* checkCallingUriPermission deals with permissions held by callers
+       of functions over the Binder IPC mechanism as contrasted with
+       Emacs itself, while getCallingPid and getCallingUid, despite the
+       class where they reside, return the process credentials against
+       which the system will actually test URIs being opened.  */
 
-    if (rc == PackageManager.PERMISSION_GRANTED)
-      return true;
-
-    /* In the event checkCallingUriPermission fails and only read
-       permissions are being verified, attempt to query the URI.  This
-       enables ascertaining whether drag and drop URIs can be
-       accessed, something otherwise not provided for.  */
-
-    descriptor = null;
-
-    try
-      {
-        descriptor = resolver.openFileDescriptor (uri, "r");
-	return true;
-      }
-    catch (Exception exception)
-      {
-	/* Ignored.  */
-      }
-    finally
-      {
-	try
-	  {
-	    if (descriptor != null)
-	      descriptor.close ();
-	  }
-	catch (IOException exception)
-	  {
-	    /* Ignored.  */
-	  }
-      }
-
-    return false;
+    rc = checkUriPermission (uri, Binder.getCallingPid (),
+			     Binder.getCallingUid (), flags);
+    return rc == PackageManager.PERMISSION_GRANTED;
   }
 
   /* Return a 8 character checksum for the string STRING, after encoding
      as UTF-8 data.  */
 
-  public static String
+  private static String
   getDisplayNameHash (String string)
   {
     byte[] encoded;
@@ -1417,21 +1401,11 @@ public final class EmacsService extends Service
      otherwise.  */
 
   public String[]
-  getDocumentTrees (byte provider[])
+  getDocumentTrees (String provider)
   {
-    String providerName;
     List<String> treeList;
     List<UriPermission> permissions;
     Uri uri;
-
-    try
-      {
-	providerName = new String (provider, "US-ASCII");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	return null;
-      }
 
     permissions = resolver.getPersistedUriPermissions ();
     treeList = new ArrayList<String> ();
@@ -1441,7 +1415,7 @@ public final class EmacsService extends Service
 	uri = permission.getUri ();
 
 	if (DocumentsContract.isTreeUri (uri)
-	    && uri.getAuthority ().equals (providerName)
+	    && uri.getAuthority ().equals (provider)
 	    && permission.isReadPermission ())
 	  /* Make sure the tree document ID is encoded.  Refrain from
 	     encoding characters such as +:&?#, since they don't
@@ -1451,6 +1425,9 @@ public final class EmacsService extends Service
 				    " +:&?#"));
       }
 
+    /* The empty string array that is ostensibly allocated to provide
+       the first argument provides just the type of the array to be
+       returned.  */
     return treeList.toArray (new String[0]);
   }
 
@@ -1970,6 +1947,21 @@ public final class EmacsService extends Service
       }
 
     return false;
+  }
+
+  /* Relinquish authorization for read and write access to the provided
+     URI, which is generally a reference to a directory tree.  */
+
+  public void
+  relinquishUriRights (String uri)
+  {
+    Uri uri1;
+    int flags;
+
+    uri1 = Uri.parse (uri);
+    flags = (Intent.FLAG_GRANT_READ_URI_PERMISSION
+	     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+    resolver.releasePersistableUriPermission (uri1, flags);
   }
 
 

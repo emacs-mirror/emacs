@@ -265,7 +265,9 @@ The format is (FUNCTION ARGS...).")
     (require 'find-func)
     (when (eq file 'C-source)
       (setq file
-            (help-C-file-name (indirect-function fun) 'fun)))
+            (if (memq type '(variable defvar))
+                (help-C-file-name fun 'var)
+              (help-C-file-name (indirect-function fun) 'fun))))
     ;; Don't use find-function-noselect because it follows
     ;; aliases (which fails for built-in functions).
     (let* ((location

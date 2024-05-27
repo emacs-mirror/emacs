@@ -336,7 +336,13 @@ return nil, even with a non-nil bubblep argument."
     (widget-forward 2)
     (forward-char)
     (widget-backward 1)
-    (should (string= "Second" (widget-value (widget-at))))))
+    (should (string= "Second" (widget-value (widget-at))))
+    ;; Check that moving to a widget at beginning of buffer does not
+    ;; signal a beginning-of-buffer error (bug#69943).
+    (widget-backward 1)   ; Should not signal beginning-of-buffer error.
+    (widget-forward 2)
+    (should (string= "Third" (widget-value (widget-at))))
+    (widget-forward 1)))  ; Should not signal beginning-of-buffer error.
 
 (ert-deftest widget-test-color-match ()
   "Test that the :match function for the color widget works."

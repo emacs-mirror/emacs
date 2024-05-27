@@ -658,10 +658,13 @@ values, passed as the seventh arg to `completing-read'.
 
 Optional arg COLLECTION is a collection of possible completions,
 passed as the second arg to `completing-read'."
-  (dired-mark-pop-up nil op-symbol files
-		     'completing-read
-		     (format prompt (dired-mark-prompt arg files))
-		     collection nil nil initial nil default-value nil))
+  (apply #'dired-mark-pop-up
+         nil op-symbol files
+         (if (eq op-symbol 'touch) 'read-from-minibuffer 'completing-read)
+         (format prompt (dired-mark-prompt arg files))
+         (if (eq op-symbol 'touch)
+             `(,initial nil nil nil ,default-value)
+           `(,collection nil nil ,initial nil ,default-value nil))))
 
 
 ;;; Cleaning a directory: flagging some backups for deletion
@@ -865,8 +868,8 @@ In a noninteractive call (from Lisp code), you must specify
 the list of file names explicitly with the FILE-LIST argument, which
 can be produced by `dired-get-marked-files', for example.
 
-`dired-guess-shell-alist-default' and
-`dired-guess-shell-alist-user' are consulted when the user is
+`dired-guess-shell-alist-default', `dired-guess-shell-alist-optional'
+and `dired-guess-shell-alist-user' are consulted when the user is
 prompted for the shell command to use interactively.
 
 Also see the `dired-confirm-shell-command' variable."
@@ -1065,8 +1068,8 @@ Return the result of `process-file' - zero for success."
 ;; * `dired-guess-shell-command' calls `dired-guess-default' with list of
 ;;    marked files.
 ;;
-;; * Parse `dired-guess-shell-alist-user' and
-;;   `dired-guess-shell-alist-default' (in that order) for the first REGEXP
+;; * Parse `dired-guess-shell-alist-user', `dired-guess-shell-alist-default',
+;;   `dired-guess-shell-alist-optional' (in that order) for the first REGEXP
 ;;   that matches the first file in the file list.
 ;;
 ;; * If the REGEXP matches all the entries of the file list then evaluate
@@ -1216,28 +1219,10 @@ Return the result of `process-file' - zero for success."
                   " " dired-guess-shell-znew-switches))
    '("\\.pod\\'" "perldoc" "pod2man * | nroff -man")
 
-   '("\\.dvi\\'" "xdvi" "dvips")	; preview and printing
-   '("\\.au\\'" "play")			; play Sun audiofiles
-   '("\\.mpe?g\\'\\|\\.avi\\'" "xine -p")
-   '("\\.ogg\\'" "ogg123")
-   '("\\.mp3\\'" "mpg123")
-   '("\\.wav\\'" "play")
    '("\\.uu\\'" "uudecode")		; for uudecoded files
-   '("\\.hqx\\'" "mcvert")
    '("\\.sh\\'" "sh")			; execute shell scripts
-   '("\\.xbm\\'" "bitmap")		; view X11 bitmaps
-   '("\\.gp\\'" "gnuplot")
-   '("\\.p[bgpn]m\\'" "xloadimage")
-   '("\\.gif\\'" "xloadimage")		; view gif pictures
-   '("\\.tif\\'" "xloadimage")
-   '("\\.png\\'" "display")		; xloadimage 4.1 doesn't grok PNG
-   '("\\.jpe?g\\'" "xloadimage")
-   '("\\.fig\\'" "xfig")		; edit fig pictures
-   '("\\.out\\'" "xgraph")		; for plotting purposes.
    '("\\.tex\\'" "latex" "tex")
    '("\\.texi\\(nfo\\)?\\'" "makeinfo" "texi2dvi")
-   '("\\.pdf\\'" "xpdf")
-   '("\\.doc\\'" "antiword" "strings")
    '("\\.rpm\\'" "rpm -qilp" "rpm -ivh")
    '("\\.dia\\'" "dia")
    '("\\.mgp\\'" "mgp")
@@ -1266,7 +1251,37 @@ Return the result of `process-file' - zero for success."
 
    '("\\.sign?\\'" "gpg --verify"))
   "Default alist used for shell command guessing.
-See `dired-guess-shell-alist-user'.")
+See also `dired-guess-shell-alist-optional' and
+`dired-guess-shell-alist-user'.")
+
+(defvar dired-guess-shell-alist-optional
+  (list
+   '("\\.dvi\\'" "xdvi" "dvips")	; preview and printing
+   '("\\.au\\'" "play")			; play Sun audiofiles
+   '("\\.mpe?g\\'\\|\\.avi\\'" "xine -p")
+   '("\\.ogg\\'" "ogg123")
+   '("\\.mp3\\'" "mpg123")
+   '("\\.wav\\'" "play")
+   '("\\.hqx\\'" "mcvert")
+   '("\\.xbm\\'" "bitmap")		; view X11 bitmaps
+   '("\\.gp\\'" "gnuplot")
+   '("\\.p[bgpn]m\\'" "xloadimage")
+   '("\\.gif\\'" "xloadimage")		; view gif pictures
+   '("\\.tif\\'" "xloadimage")
+   '("\\.png\\'" "display")		; xloadimage 4.1 doesn't grok PNG
+   '("\\.jpe?g\\'" "xloadimage")
+   '("\\.fig\\'" "xfig")		; edit fig pictures
+   '("\\.out\\'" "xgraph")		; for plotting purposes.
+   '("\\.pdf\\'" "xpdf")
+   '("\\.doc\\'" "antiword" "strings"))
+  "Optional alist used for shell command guessing.
+Unlike `dired-guess-shell-alist-default' that contains mostly the
+standard commands that handle the files with corresponding extensions
+such as the `tar' command handling the files with the `.tar' extension,
+this list contains the commands such as media players and viewers
+that don't exist on many systems where other alternatives are available.
+
+See also `dired-guess-shell-alist-user'.")
 
 (defun dired-guess-default (files)
   "Return a shell command, or a list of commands, appropriate for FILES.
@@ -1286,7 +1301,8 @@ See `dired-guess-shell-alist-user'."
                                       (string-match-p (car elem) file))
                                     files))
                                  (append dired-guess-shell-alist-user
-                                         dired-guess-shell-alist-default)))
+                                         dired-guess-shell-alist-default
+                                         dired-guess-shell-alist-optional)))
              nil)))))
     (if (length= programs 1)
         (car programs)
@@ -1320,13 +1336,21 @@ See `dired-guess-shell-alist-user'."
       (if (equal val "") default val))))
 
 (defcustom shell-command-guess-functions
-  '(shell-command-guess-dired)
+  '(shell-command-guess-dired-optional
+    shell-command-guess-mailcap
+    shell-command-guess-xdg
+    shell-command-guess-dired-default
+    shell-command-guess-dired-user)
   "List of functions that guess shell commands for files.
 Each function receives a list of commands and a list of file names
 and should return the same list of commands with changes
-such as added new commands."
+such as new commands added to the beginning of the list.
+In this case the commands from the last entry
+will be at the top of the resulted list."
   :type '(repeat
-          (choice (function-item shell-command-guess-dired)
+          (choice (function-item shell-command-guess-dired-user)
+                  (function-item shell-command-guess-dired-default)
+                  (function-item shell-command-guess-dired-optional)
                   (function-item shell-command-guess-mailcap)
                   (function-item shell-command-guess-xdg)
                   (function-item shell-command-guess-open)
@@ -1347,9 +1371,29 @@ after adding own commands to the composite list."
                         nil))
     commands))
 
-(defun shell-command-guess-dired (commands files)
-  "Populate COMMANDS using `dired-guess-default'."
-  (append (ensure-list (dired-guess-default files)) commands))
+(defun shell-command-guess-dired-user (commands files)
+  "Populate COMMANDS using `dired-guess-shell-alist-user'.
+This excludes `dired-guess-shell-alist-default' and
+`dired-guess-shell-alist-optional'."
+  (let ((dired-guess-shell-alist-default nil)
+        (dired-guess-shell-alist-optional nil))
+    (append (ensure-list (dired-guess-default files)) commands)))
+
+(defun shell-command-guess-dired-default (commands files)
+  "Populate COMMANDS using `dired-guess-shell-alist-default'.
+This excludes `dired-guess-shell-alist-user' and
+`dired-guess-shell-alist-optional'."
+  (let ((dired-guess-shell-alist-user nil)
+        (dired-guess-shell-alist-optional nil))
+    (append (ensure-list (dired-guess-default files)) commands)))
+
+(defun shell-command-guess-dired-optional (commands files)
+  "Populate COMMANDS using `dired-guess-shell-alist-optional'.
+This excludes `dired-guess-shell-alist-user' and
+`dired-guess-shell-alist-default'."
+  (let ((dired-guess-shell-alist-user nil)
+        (dired-guess-shell-alist-default nil))
+    (append (ensure-list (dired-guess-default files)) commands)))
 
 (declare-function mailcap-file-default-commands "mailcap" (files))
 
@@ -1404,6 +1448,7 @@ after adding own commands to the composite list."
 
 (declare-function w32-shell-execute "w32fns.c")
 
+;;;###autoload
 (defun dired-do-open (&optional arg)
   "Open all marked (or next ARG) files using an external program.
 This \"opens\" the file(s) using the external command that is most
@@ -1519,14 +1564,23 @@ A FMT of \"\" will suppress the messaging."
 	  ;; Remove any preexisting entry for the name NEW-FILE.
 	  (ignore-errors (dired-remove-entry new-file))
 	  (goto-char start)
-	  ;; Now replace the current line with an entry for NEW-FILE.
-	  ;; But don't remove the current line if either FROM-FILE or
-	  ;; NEW-FILE is a directory, because compressing/uncompressing
-          ;; directories doesn't remove the original.
-          (if (or (file-directory-p from-file)
-                  (file-directory-p new-file))
-              (dired-add-entry new-file nil t)
-            (dired-update-file-line new-file))
+	  ;; Now replace the current line with an entry for NEW-FILE,
+	  ;; if it exists.  But don't remove the current line if
+	  ;; either FROM-FILE or NEW-FILE is a directory, because
+	  ;; compressing/uncompressing directories doesn't remove the
+	  ;; original.  If NEW-FILE doesn't exist, assume that we are
+	  ;; out of sync with the current directory, and revert it.
+	  ;; This can happen, for example, when unpacking a .tar.gz
+	  ;; archive which adds files to the current directory (as
+	  ;; opposed to adding them to a directory whose name is
+	  ;; NEW-FILE).
+          (if (file-exists-p new-file)
+              (if (or (file-directory-p from-file)
+                      (file-directory-p new-file))
+                  (dired-add-entry new-file nil t)
+                (dired-update-file-line new-file))
+            (dired-fun-in-all-buffers (dired-current-directory)
+                                      nil #'revert-buffer))
           nil)
       (dired-log (concat "Failed to (un)compress " from-file))
       from-file)))
@@ -3797,13 +3851,13 @@ REGEXP should use constructs supported by your local `grep' command."
   (interactive "sSearch marked files (regexp): " dired-mode)
   (require 'grep)
   (require 'xref)
-  (defvar grep-find-ignored-files)
   (declare-function rgrep-find-ignored-directories "grep" (dir))
+  (declare-function grep-find-ignored-files "grep" (dir))
   (let* ((marks (dired-get-marked-files nil nil nil nil t))
          (ignores (nconc (mapcar
                           #'file-name-as-directory
                           (rgrep-find-ignored-directories default-directory))
-                         grep-find-ignored-files))
+                         (grep-find-ignored-files default-directory)))
          (fetcher
           (lambda ()
             (let (files xrefs)

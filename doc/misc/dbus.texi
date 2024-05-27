@@ -1083,8 +1083,8 @@ elements of this array.  Example:
 
 @defun dbus-string-to-byte-array string
 Sometimes, D-Bus methods require as input parameter an array of bytes,
-instead of a string.  If it is guaranteed, that @var{string} is a
-UTF-8 string, this function performs the conversion.  Example:
+instead of a string.  This function converts @var{string} into an array
+of bytes of the UTF-8 encoding of @var{string}.  Example:
 
 @lisp
 (dbus-string-to-byte-array "/etc/hosts")
@@ -1154,11 +1154,11 @@ The signal @code{PropertyModified}, discussed as an example in
 (@var{integer} ((@var{string} @var{bool} @var{bool}) (@var{string} @var{bool} @var{bool}) @dots{}))
 @end lisp
 
-@defun dbus-byte-array-to-string byte-array &optional multibyte
+@defun dbus-byte-array-to-string byte-array
 If a D-Bus method or signal returns an array of bytes, which are known
-to represent a UTF-8 string, this function converts @var{byte-array}
-to the corresponding string.  The string is unibyte encoded, unless
-@var{multibyte} is non-@code{nil}.  Example:
+to represent a UTF-8 string, this function converts @var{byte-array} to
+the corresponding Lisp string.  The contents of @var{byte-array} should
+be the byte sequence of a UTF-8 encoded string.  Example:
 
 @lisp
 (dbus-byte-array-to-string '(47 101 116 99 47 104 111 115 116 115))

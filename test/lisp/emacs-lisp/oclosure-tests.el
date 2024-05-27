@@ -32,7 +32,7 @@
 
 (cl-defmethod oclosure-test-gen ((_x compiled-function)) "#<bytecode>")
 
-(cl-defmethod oclosure-test-gen ((_x cons)) "#<cons>")
+(cl-defmethod oclosure-test-gen ((_x interpreted-function)) "#<interpreted-function>")
 
 (cl-defmethod oclosure-test-gen ((_x oclosure))
   (format "#<oclosure:%s>" (cl-call-next-method)))
@@ -63,7 +63,7 @@
     (should (cl-typep ocl1 'oclosure-test))
     (should (cl-typep ocl1 'oclosure))
     (should (member (oclosure-test-gen ocl1)
-                    '("#<oclosure-test:#<oclosure:#<cons>>>"
+                    '("#<oclosure-test:#<oclosure:#<interpreted-function>>>"
                       "#<oclosure-test:#<oclosure:#<bytecode>>>")))
     (should (stringp (documentation #'oclosure-test--fst)))
     ))

@@ -169,7 +169,9 @@
    /* Work around GCC bug 91450.  */
 #  define _GL_INT_MULTIPLY_WRAPV(a, b, r) \
     ((!_GL_SIGNED_TYPE_OR_EXPR (*(r)) && _GL_EXPR_SIGNED (a) && _GL_EXPR_SIGNED (b) \
-      && _GL_INT_MULTIPLY_RANGE_OVERFLOW (a, b, 0, (__typeof__ (*(r))) -1)) \
+      && _GL_INT_MULTIPLY_RANGE_OVERFLOW (a, b, \
+                                          (__typeof__ (*(r))) 0, \
+                                          (__typeof__ (*(r))) -1)) \
      ? ((void) __builtin_mul_overflow (a, b, r), 1) \
      : __builtin_mul_overflow (a, b, r))
 # endif
@@ -183,10 +185,10 @@
 /* Nonzero if this compiler has GCC bug 68193 or Clang bug 25390.  See:
    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68193
    https://llvm.org/bugs/show_bug.cgi?id=25390
-   For now, assume all versions of GCC-like compilers generate bogus
+   For now, assume GCC < 14 and all Clang versions generate bogus
    warnings for _Generic.  This matters only for compilers that
    lack relevant builtins.  */
-#if __GNUC__ || defined __clang__
+#if (__GNUC__ && __GNUC__ < 14) || defined __clang__
 # define _GL__GENERIC_BOGUS 1
 #else
 # define _GL__GENERIC_BOGUS 0

@@ -289,8 +289,8 @@ Return nil if BUFFER is a server buffer."
 				  (erc-save-buffer-in-logs)))
 
 (defun erc-conditional-save-buffer (buffer)
-  "Save Query BUFFER if `erc-save-queries-on-quit' is t."
-  (when erc-save-buffer-on-part
+  "Save channel BUFFER if it and `erc-save-buffer-on-part' are non-nil."
+  (when (and buffer erc-save-buffer-on-part)
     (erc-save-buffer-in-logs buffer)))
 
 (defun erc-conditional-save-queries (process)

@@ -563,7 +563,7 @@ system_process_attributes (Lisp_Object pid)
       attrs = Fcons (Fcons (Qtime, tem), attrs);
       attrs = Fcons (Fcons (Qthcount, make_fixnum (1)), attrs);
       attrs = Fcons (Fcons (Qstart,
-			    Fsymbol_value (intern ("before-init-time"))),
+			    Fsymbol_value (Qbefore_init_time)),
 		     attrs);
       attrs = Fcons (Fcons (Qvsize,
 			    INT_TO_INTEGER ((unsigned long) sbrk (0) / 1024)),
@@ -794,5 +794,6 @@ If non-zero, this variable contains the character to be returned when the
 decimal point key in the numeric keypad is pressed when Num Lock is on.
 If zero, the decimal point key returns the country code specific value.  */);
   dos_decimal_point = 0;
+  DEFSYM (Qbefore_init_time, "before-init-time");
 }
 #endif /* MSDOS */

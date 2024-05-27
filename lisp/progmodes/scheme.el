@@ -50,6 +50,7 @@
 ;;; Code:
 
 (require 'lisp-mode)
+(eval-when-compile 'subr-x)             ;For `named-let'.
 
 (defvar scheme-mode-syntax-table
   (let ((st (make-syntax-table))
@@ -386,12 +387,12 @@ See `run-hooks'."
 (defvar scheme-font-lock-keywords scheme-font-lock-keywords-1
   "Default expressions to highlight in Scheme modes.")
 
-(defconst scheme-sexp-comment-syntax-table
-  (let ((st (make-syntax-table scheme-mode-syntax-table)))
-    (modify-syntax-entry ?\; "." st)
-    (modify-syntax-entry ?\n " " st)
-    (modify-syntax-entry ?#  "'" st)
-    st))
+;; (defconst scheme-sexp-comment-syntax-table
+;;   (let ((st (make-syntax-table scheme-mode-syntax-table)))
+;;     (modify-syntax-entry ?\; "." st)
+;;     (modify-syntax-entry ?\n " " st)
+;;     (modify-syntax-entry ?#  "'" st)
+;;     st))
 
 (put 'lambda 'scheme-doc-string-elt 2)
 (put 'lambda* 'scheme-doc-string-elt 2)
@@ -409,26 +410,82 @@ See `run-hooks'."
 
 (defun scheme-syntax-propertize (beg end)
   (goto-char beg)
-  (scheme-syntax-propertize-sexp-comment (point) end)
+  (scheme-syntax-propertize-sexp-comment end)
+  (scheme-syntax-propertize-regexp end)
   (funcall
    (syntax-propertize-rules
     ("\\(#\\);" (1 (prog1 "< cn"
-                     (scheme-syntax-propertize-sexp-comment (point) end)))))
+                     (scheme-syntax-propertize-sexp-comment end))))
+    ("\\(#\\)/" (1 (when (null (nth 8 (save-excursion
+                                        (syntax-ppss (match-beginning 0)))))
+                     (put-text-property
+                      (match-beginning 1)
+                      (match-end 1)
+                      'syntax-table (string-to-syntax "|"))
+                     (scheme-syntax-propertize-regexp end)
+                     nil))))
    (point) end))
 
-(defun scheme-syntax-propertize-sexp-comment (_ end)
-  (let ((state (syntax-ppss)))
+(defun scheme-syntax-propertize-sexp-comment (end)
+  (let ((state (syntax-ppss))
+        ;; (beg (point))
+        (checked (point)))
     (when (eq 2 (nth 7 state))
       ;; It's a sexp-comment.  Tell parse-partial-sexp where it ends.
-      (condition-case nil
-          (progn
-            (goto-char (+ 2 (nth 8 state)))
-            ;; FIXME: this doesn't handle the case where the sexp
-            ;; itself contains a #; comment.
-            (forward-sexp 1)
-            (put-text-property (1- (point)) (point)
-                               'syntax-table (string-to-syntax "> cn")))
-        (scan-error (goto-char end))))))
+      (named-let loop ((startpos (+ 2 (nth 8 state))))
+        (let ((found nil))
+          (while
+              (progn
+                (setq found nil)
+                (condition-case nil
+                    (save-restriction
+                      (narrow-to-region (point-min) end)
+                      (goto-char startpos)
+                      (forward-sexp 1)
+                      ;; (cl-assert (> (point) beg))
+                      (setq found (point)))
+                  (scan-error (goto-char end)))
+                ;; If there's a nested `#;', the syntax-tables will normally
+                ;; consider the `;' to start a normal comment, so the
+                ;; (forward-sexp 1) above may have landed at the wrong place.
+                ;; So look for `#;' in the text over which we jumped, and
+                ;; mark those we found as nested sexp-comments.
+                (let ((limit (min end (or found end))))
+                  (when (< checked limit)
+                    (goto-char checked)
+                    (while (and (re-search-forward "\\(#\\);" limit 'move)
+                                ;; Skip those #; inside comments and strings.
+                                (nth 8 (save-excursion
+                                         (parse-partial-sexp
+                                          startpos (match-beginning 0))))))
+                    (setq checked (point))
+                    (when (< (point) limit)
+                      (put-text-property (match-beginning 1) (match-end 1)
+                                         'syntax-table
+                                         (string-to-syntax "< cn"))
+                      (loop (point))
+                      ;; Try the `forward-sexp' with the new text state.
+                      t)))))
+          (when found
+            (goto-char found)
+            (put-text-property (1- found) found
+                               'syntax-table (string-to-syntax "> cn"))))))))
+
+(defun scheme-syntax-propertize-regexp (end)
+  (let* ((state (syntax-ppss))
+         (within-str (nth 3 state))
+         (start-delim-pos (nth 8 state)))
+    (when (and within-str
+               (char-equal ?# (char-after start-delim-pos)))
+      (while (and (re-search-forward "/" end 'move)
+                  (eq -1
+                      (% (save-excursion
+                           (backward-char)
+                           (skip-chars-backward "\\\\"))
+                         2))))
+      (when (< (point) end)
+       (put-text-property (match-beginning 0) (match-end 0)
+                          'syntax-table (string-to-syntax "|"))))))
 
 ;;;###autoload
 (define-derived-mode dsssl-mode scheme-mode "DSSSL"

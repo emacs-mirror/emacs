@@ -4,6 +4,7 @@
 @c See the file elisp.texi for copying conditions.
 @node Parsing Program Source
 @chapter Parsing Program Source
+@cindex parsing program source
 
 @cindex syntax tree, from parsing program source
 Emacs provides various ways to parse program source text and produce a
@@ -44,6 +45,7 @@ source files that mix multiple programming languages.
 * Retrieving Nodes::         Retrieving nodes from a syntax tree.
 * Accessing Node Information:: Accessing node information.
 * Pattern Matching::         Pattern matching with query patterns.
+* User-defined Things::      User-defined ``Things'' and Navigation.
 * Multiple Languages::       Parse text written in multiple languages.
 * Tree-sitter Major Modes::  Develop major modes using tree-sitter.
 * Tree-sitter C API::        Compare the C API and the ELisp API.
@@ -538,6 +540,26 @@ symbol, rather than a lambda function.
 This function returns the list of @var{parser}'s notifier functions.
 @end defun
 
+Sometimes a Lisp program might need to synchronously get the changed
+ranges of the last reparse.  The function
+@code{treesit-parser-changed-ranges} exists for this purpose.  It
+returns the ranges which were passed to the notifier functions.
+
+@defun treesit-parser-changed-ranges parser &optional quiet
+This function returns the ranges that has been changed since last
+reparse.  It returns a list of cons cells of the form
+@w{@code{(@var{start} . @var{end})}}, where @var{start} and @var{end}
+mark the start and the end positions of a range.
+
+This function should almost always be called immediately after
+reparsing.  If it's called when there are new buffer edits that hasn't
+been reparsed, Emacs signals the @code{treesit-unparsed-edits} error,
+unless the optional argument @var{quiet} is non-nil.
+
+Calling this function multiple times consecutively doesn't change its
+return value; it always returns the ranges affected by the last reparse.
+@end defun
+
 @node Retrieving Nodes
 @section Retrieving Nodes
 @cindex retrieve node, tree-sitter
@@ -743,12 +765,17 @@ is non-@code{nil}, it looks for the smallest named child.
 @heading Searching for node
 
 @defun treesit-search-subtree node predicate &optional backward all depth
-This function traverses the subtree of @var{node} (including
-@var{node} itself), looking for a node for which @var{predicate}
-returns non-@code{nil}.  @var{predicate} is a regexp that is matched
-against each node's type, or a predicate function that takes a node
-and returns non-@code{nil} if the node matches.  The function returns
-the first node that matches, or @code{nil} if none does.
+This function traverses the subtree of @var{node} (including @var{node}
+itself), looking for a node for which @var{predicate} returns
+non-@code{nil}.  @var{predicate} is a regexp that is matched against
+each node's type, or a predicate function that takes a node and returns
+non-@code{nil} if the node matches.  @var{predicate} can also be a thing
+symbol or thing definition (@pxref{User-defined Things}).  Using an
+undefined thing doesn't raise an error, the function simply returns
+@code{nil}.
+
+This function returns the first node that matches, or @code{nil} if none
+matches @var{predicate}.
 
 By default, this function only traverses named nodes, but if @var{all}
 is non-@code{nil}, it traverses all the nodes.  If @var{backward} is
@@ -762,9 +789,13 @@ defaults to 1000.
 @defun treesit-search-forward start predicate &optional backward all
 Like @code{treesit-search-subtree}, this function also traverses the
 parse tree and matches each node with @var{predicate} (except for
-@var{start}), where @var{predicate} can be a regexp or a function.
-For a tree like the one below where @var{start} is marked @samp{S},
-this function traverses as numbered from 1 to 12:
+@var{start}), where @var{predicate} can be a regexp or a predicate
+function.  @var{predicate} can also be a thing symbol or thing
+definition (@pxref{User-defined Things}).  Using an undefined thing
+doesn't raise an error, the function simply returns @code{nil}.
+
+For a tree like the one below where @var{start} is marked @samp{S}, this
+function traverses as numbered from 1 to 12:
 
 @example
 @group
@@ -818,9 +849,11 @@ This function creates a sparse tree from @var{root}'s subtree.
 
 It takes the subtree under @var{root}, and combs it so only the nodes
 that match @var{predicate} are left.  Like previous functions, the
-@var{predicate} can be a regexp string that matches against each
-node's type, or a function that takes a node and returns
-non-@code{nil} if it matches.
+@var{predicate} can be a regexp string that matches against each node's
+type, or a function that takes a node and returns non-@code{nil} if it
+matches.  @var{predicate} can also be a thing symbol or thing definition
+(@pxref{User-defined Things}).  Using an undefined thing doesn't raise
+an error, the function simply returns @code{nil}.
 
 For example, given the subtree on the left that consists of both
 numbers and letters, if @var{predicate} is ``letter only'', the
@@ -1508,6 +1541,154 @@ For more details, read the tree-sitter project's documentation about
 pattern-matching, which can be found at
 @uref{https://tree-sitter.github.io/tree-sitter/using-parsers#pattern-matching-with-queries}.
 
+@node User-defined Things
+@section User-defined ``Things'' and Navigation
+@cindex user-defined things, with tree-sitter parsing
+
+It's often useful to be able to identify and find certain @dfn{things} in
+a buffer, like function and class definitions, statements, code blocks,
+strings, comments, etc.  Emacs allows users to define what kind of
+tree-sitter node corresponds to a ``thing''.  This enables handy
+features like jumping to the next function, marking the code block at
+point, or transposing two function arguments.
+
+The ``things'' feature in Emacs is independent of the pattern matching
+feature of tree-sitter, and comparatively less powerful, but more
+suitable for navigation and traversing the parse tree.
+
+You can define things with @var{treesit-thing-settings}.
+
+@defvar treesit-thing-settings
+This is an alist of thing definitions for each language.  The key of
+each entry is a language symbol, and the value is a list of thing
+definitions of the form @w{@code{(@var{thing} @var{pred})}}, where
+@var{thing} is a symbol representing the thing, like @code{defun},
+@code{sexp}, or @code{sentence}; and @var{pred} specifies what kind of
+tree-sitter node is this @var{thing}.
+
+@var{pred} can be a regexp string that matches the type of the node; it
+can be a function that takes a node as the argument and returns a
+boolean that indicates whether the node qualifies as the thing; or it can
+be a cons @w{@code{(@var{regexp} . @var{fn})}}, which is a combination
+of a regular expression @var{regexp} and a function @var{fn}---the node
+has to match both the @var{regexp} and to satisfy @var{fn} to qualify as
+the thing.
+
+@var{pred} can also be recursively defined.  It can be @w{@code{(or
+@var{pred}@dots{})}}, meaning that satisfying any one of the @var{pred}s
+qualifies the node as the thing.  It can be @w{@code{(not @var{pred})}},
+meaning that not satisfying @var{pred} qualifies the node.
+
+Finally, @var{pred} can refer to other @var{thing}s defined in this
+list.  For example, @w{@code{(or sexp sentence)}} defines something
+that's either a @code{sexp} thing or a @code{sentence} thing, as defined
+by some other rule in the alist.
+
+Here's an example @var{treesit-thing-settings} for C and C++:
+
+@example
+@group
+((c
+  (defun "function_definition")
+  (sexp (not "[](),[@{@}]"))
+  (comment "comment")
+  (string "raw_string_literal")
+  (text (or comment string)))
+ (cpp
+  (defun ("function_definition" . cpp-ts-mode-defun-valid-p))
+  (defclass "class_specifier")
+  (comment "comment")))
+@end group
+@end example
+
+@noindent
+Note that this example is modified for didactical purposes, and isn't
+exactly how C and C@t{++} modes define things.
+@end defvar
+
+The rest of this section lists a few functions that take advantage of
+the thing definitions.  Besides the functions below, some other
+functions listed elsewhere also utilize the thing feature, e.g.,
+tree-traversing functions like @code{treesit-search-forward},
+@code{treesit-induce-sparse-tree}, etc.  @xref{Retrieving Nodes}.
+
+@defun treesit-thing-prev position thing
+This function returns the first node before @var{position} that is the
+specified @var{thing}.  If no such node exists, it returns @code{nil}.
+It's guaranteed that, if a node is returned, the node's end position is
+less or equal to @var{position}.  In other words, this function never
+returns a node that encloses @var{position}.
+
+@var{thing} can be either a thing symbol like @code{defun}, or simply a
+thing definition like @code{"function_definition"}.
+@end defun
+
+@defun treesit-thing-next position thing
+This function is similar to @code{treesit-thing-prev}, only it returns
+the first node @emph{after} @var{position} that's the @var{thing}.  It
+also guarantees that if a node is returned, the node's start position is
+greater or equal to @var{position}.
+@end defun
+
+@defun treesit-navigate-thing position arg side thing &optional tactic
+This function builds upon @code{treesit-thing-prev} and
+@code{treesit-thing-next} and provides functionality that a navigation
+command would find useful.  It returns the position after moving across
+@var{arg} instances of @var{thing} from @var{position}.  If
+there aren't enough things to navigate across, it returns nil.  The
+function doesn't move point.
+
+A positive @var{arg} means moving forward that many instances of
+@var{thing}; negative @var{arg} means moving backward.  If @var{side} is
+@code{beg}, this function stops at the beginning of @var{thing}; if
+@code{end}, stop at the end of @var{thing}.
+
+Like in @code{treesit-thing-prev}, @var{thing} can be a thing symbol
+defined in @var{treesit-thing-settings}, or a thing definition.
+
+@var{tactic} determines how this function moves between things.  It can
+be @code{nested}, @code{top-level}, @code{restricted}, or @code{nil}.
+@code{nested} or @code{nil} means normal nested navigation: first try to
+move across siblings; if there aren't any siblings left in the current
+level, move to the parent, then its siblings, and so on.
+@code{top-level} means only navigate across top-level things and ignore
+nested things.  @code{restricted} means movement is restricted within
+the thing that encloses @var{position}, if there is such a thing.  This
+tactic is useful for commands that want to stop at the current nesting
+level and not move up.
+@end defun
+
+@defun treesit-thing-at position thing &optional strict
+This function returns the smallest node that's the @var{thing} and
+encloses @var{position}; if there's no such node, it returns @code{nil}.
+
+The returned node must enclose @var{position}, i.e., its start position is
+less or equal to @var{position}, and it's end position is greater or equal to
+@var{position}.
+
+If @var{strict} is non-@code{nil}, this function uses strict comparison,
+i.e., start position must be strictly greater than @var{position}, and end
+position must be strictly less than @var{position}.
+
+@var{thing} can be either a thing symbol defined in
+@var{treesit-thing-settings}, or a thing definition.
+@end defun
+
+@findex treesit-beginning-of-thing
+@findex treesit-end-of-thing
+@findex treesit-thing-at-point
+There are also some convenient wrapper functions.
+@code{treesit-beginning-of-thing} moves point to the beginning of a
+thing, @code{treesit-end-of-thing} moves to the end of a thing, and
+@code{treesit-thing-at-point} returns the thing at point.
+
+There are also defun commands that specifically use the @code{defun}
+definition (as a fallback of @var{treesit-defun-type-regexp}), like
+@code{treesit-beginning-of-defun}, @code{treesit-end-of-defun}, and
+@code{treesit-defun-at-point}.  In addition, these functions use
+@var{treesit-defun-tactic} as the navigation tactic.  They are described
+in more detail in other sections (@pxref{Tree-sitter Major Modes}).
+
 @node Multiple Languages
 @section Parsing Text in Multiple Languages
 @cindex multiple languages, parsing with tree-sitter
@@ -1713,11 +1894,29 @@ directly translate into operations shown above.
        :host 'html
        '((script_element (raw_text) @@capture))
 @end group
-
 @group
        :embed 'css
        :host 'html
        '((style_element (raw_text) @@capture))))
+@end group
+
+@group
+;; Major modes with multiple languages should always set
+;; `treesit-language-at-point-function' (which see).
+(setq treesit-language-at-point-function
+      (lambda (pos)
+        (let* ((node (treesit-node-at pos 'html))
+               (parent (treesit-node-parent node)))
+          (cond
+           ((and node parent
+                 (equal (treesit-node-type node) "raw_text")
+                 (equal (treesit-node-type parent) "script_element"))
+            'javascript)
+           ((and node parent
+                 (equal (treesit-node-type node) "raw_text")
+                 (equal (treesit-node-type parent) "style_element"))
+            'css)
+           (t 'html)))))
 @end group
 @end example
 
@@ -1882,8 +2081,9 @@ If @code{treesit-font-lock-settings} (@pxref{Parser-based Font Lock})
 is non-@code{nil}, it sets up fontification.
 
 @item
-If @code{treesit-simple-indent-rules} (@pxref{Parser-based Indentation})
-is non-@code{nil}, it sets up indentation.
+If either @code{treesit-simple-indent-rules} or
+@code{treesit-indent-function} (@pxref{Parser-based Indentation}) is
+non-@code{nil}, it sets up indentation.
 
 @item
 If @code{treesit-defun-type-regexp} is non-@code{nil}, it sets up
@@ -1901,6 +2101,13 @@ non-@code{nil}, it sets up Imenu.
 @item
 If @code{treesit-outline-predicate} (@pxref{Outline Minor Mode}) is
 non-@code{nil}, it sets up Outline minor mode.
+
+@item
+If @code{sexp} and/or @code{sentence} are defined in
+@code{treesit-thing-settings} (@pxref{User-defined Things}), it enables
+navigation commands that move, respectively, by sexps and sentences by
+defining variables such as @code{forward-sexp-function} and
+@code{forward-sentence-function}.
 @end itemize
 
 @c TODO: Add treesit-thing-settings stuff once we finalize it.

@@ -399,9 +399,7 @@ non-nil."
   (set-buffer-multibyte nil))
 
 (defun mm-preferred-coding-system (charset)
-  ;; A typo in some Emacs versions.
-  (or (get-charset-property charset 'preferred-coding-system)
-      (get-charset-property charset 'prefered-coding-system)))
+  (get-charset-property charset 'preferred-coding-system))
 
 ;; Mule charsets shouldn't be used.
 (defsubst mm-guess-charset ()

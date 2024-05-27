@@ -2035,7 +2035,8 @@ In the tex shell buffer this command behaves like `comint-send-input'."
 
 (defun tex-display-shell ()
   "Make the TeX shell buffer visible in a window."
-  (display-buffer (tex-shell-buf) display-tex-shell-buffer-action)
+  (with-suppressed-warnings ((obsolete display-tex-shell-buffer-action))
+    (display-buffer (tex-shell-buf) display-tex-shell-buffer-action))
   (tex-recenter-output-buffer nil))
 
 (defun tex-shell-sentinel (proc _msg)
@@ -2692,7 +2693,8 @@ line LINE of the window, or centered if LINE is nil."
     (if (null tex-shell)
 	(message "No TeX output buffer")
       (when-let ((window
-                  (display-buffer tex-shell display-tex-shell-buffer-action)))
+                  (with-suppressed-warnings ((obsolete display-tex-shell-buffer-action))
+                    (display-buffer tex-shell display-tex-shell-buffer-action))))
         (with-selected-window window
 	  (bury-buffer tex-shell)
 	  (goto-char (point-max))

@@ -1142,7 +1142,7 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
     int version = gnutls_x509_crt_get_version (cert);
     check_memory_full (version);
     if (version >= GNUTLS_E_SUCCESS)
-      res = nconc2 (res, list2 (intern (":version"),
+      res = nconc2 (res, list2 (QCversion,
 				make_fixnum (version)));
   }
 
@@ -1156,7 +1156,7 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
       err = gnutls_x509_crt_get_serial (cert, serial, &buf_size);
       check_memory_full (err);
       if (err >= GNUTLS_E_SUCCESS)
-	res = nconc2 (res, list2 (intern (":serial-number"),
+	res = nconc2 (res, list2 (QCserial_number,
 				  gnutls_hex_string (serial, buf_size, "")));
       xfree (serial);
     }
@@ -1171,7 +1171,7 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
       err = gnutls_x509_crt_get_issuer_dn (cert, dn, &buf_size);
       check_memory_full (err);
       if (err >= GNUTLS_E_SUCCESS)
-	res = nconc2 (res, list2 (intern (":issuer"),
+	res = nconc2 (res, list2 (QCissuer,
 				  make_string (dn, buf_size)));
       xfree (dn);
     }
@@ -1185,11 +1185,11 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
     time_t tim = gnutls_x509_crt_get_activation_time (cert);
 
     if (gmtime_r (&tim, &t) && strftime (buf, sizeof buf, "%Y-%m-%d", &t))
-      res = nconc2 (res, list2 (intern (":valid-from"), build_string (buf)));
+      res = nconc2 (res, list2 (QCvalid_from, build_string (buf)));
 
     tim = gnutls_x509_crt_get_expiration_time (cert);
     if (gmtime_r (&tim, &t) && strftime (buf, sizeof buf, "%Y-%m-%d", &t))
-      res = nconc2 (res, list2 (intern (":valid-to"), build_string (buf)));
+      res = nconc2 (res, list2 (QCvalid_to, build_string (buf)));
   }
 
   /* Subject. */
@@ -1202,7 +1202,7 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
       err = gnutls_x509_crt_get_dn (cert, dn, &buf_size);
       check_memory_full (err);
       if (err >= GNUTLS_E_SUCCESS)
-	res = nconc2 (res, list2 (intern (":subject"),
+	res = nconc2 (res, list2 (QCsubject,
 				  make_string (dn, buf_size)));
       xfree (dn);
     }
@@ -1217,12 +1217,12 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
       {
 	const char *name = gnutls_pk_algorithm_get_name (err);
 	if (name)
-	  res = nconc2 (res, list2 (intern (":public-key-algorithm"),
+	  res = nconc2 (res, list2 (QCpublic_key_algorithm,
 				    build_string (name)));
 
 	name = gnutls_sec_param_get_name (gnutls_pk_bits_to_sec_param
 					  (err, bits));
-	res = nconc2 (res, list2 (intern (":certificate-security-level"),
+	res = nconc2 (res, list2 (QCcertificate_security_level,
 				  build_string (name)));
       }
   }
@@ -1237,7 +1237,7 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
       err = gnutls_x509_crt_get_issuer_unique_id (cert, buf, &buf_size);
       check_memory_full (err);
       if (err >= GNUTLS_E_SUCCESS)
-	res = nconc2 (res, list2 (intern (":issuer-unique-id"),
+	res = nconc2 (res, list2 (QCissuer_unique_id,
 				  make_string (buf, buf_size)));
       xfree (buf);
     }
@@ -1251,7 +1251,7 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
       err = gnutls_x509_crt_get_subject_unique_id (cert, buf, &buf_size);
       check_memory_full (err);
       if (err >= GNUTLS_E_SUCCESS)
-	res = nconc2 (res, list2 (intern (":subject-unique-id"),
+	res = nconc2 (res, list2 (QCsubject_unique_id,
 				  make_string (buf, buf_size)));
       xfree (buf);
     }
@@ -1263,7 +1263,7 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
     {
       const char *name = gnutls_sign_get_name (err);
       if (name)
-	res = nconc2 (res, list2 (intern (":signature-algorithm"),
+	res = nconc2 (res, list2 (QCsignature_algorithm,
 				  build_string (name)));
     }
 
@@ -1277,7 +1277,7 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
       err = gnutls_x509_crt_get_key_id (cert, 0, buf, &buf_size);
       check_memory_full (err);
       if (err >= GNUTLS_E_SUCCESS)
-	res = nconc2 (res, list2 (intern (":public-key-id"),
+	res = nconc2 (res, list2 (QCpublic_key_id,
 				  gnutls_hex_string (buf, buf_size, "sha1:")));
       xfree (buf);
     }
@@ -1293,7 +1293,7 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
       err = gnutls_x509_crt_get_key_id (cert, GNUTLS_KEYID_USE_SHA256, buf, &buf_size);
       check_memory_full (err);
       if (err >= GNUTLS_E_SUCCESS)
-	res = nconc2 (res, list2 (intern (":public-key-id-sha256"),
+	res = nconc2 (res, list2 (QCpublic_key_id_sha256,
 				  gnutls_hex_string (buf, buf_size, "sha256:")));
       xfree (buf);
     }
@@ -1311,13 +1311,13 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
 					     buf, &buf_size);
       check_memory_full (err);
       if (err >= GNUTLS_E_SUCCESS)
-	res = nconc2 (res, list2 (intern (":certificate-id"),
+	res = nconc2 (res, list2 (QCcertificate_id,
 				  gnutls_hex_string (buf, buf_size, "sha1:")));
       xfree (buf);
     }
 
   /* PEM */
-  res = nconc2 (res, list2 (intern (":pem"),
+  res = nconc2 (res, list2 (QCpem,
                             emacs_gnutls_certificate_export_pem(cert)));
 
   return res;
@@ -1329,55 +1329,55 @@ DEFUN ("gnutls-peer-status-warning-describe", Fgnutls_peer_status_warning_descri
 {
   CHECK_SYMBOL (status_symbol);
 
-  if (EQ (status_symbol, intern (":invalid")))
+  if (EQ (status_symbol, QCinvalid))
     return build_string ("certificate could not be verified");
 
-  if (EQ (status_symbol, intern (":revoked")))
+  if (EQ (status_symbol, QCrevoked))
     return build_string ("certificate was revoked (CRL)");
 
-  if (EQ (status_symbol, intern (":self-signed")))
+  if (EQ (status_symbol, QCself_signed))
     return build_string ("certificate signer was not found (self-signed)");
 
-  if (EQ (status_symbol, intern (":unknown-ca")))
+  if (EQ (status_symbol, QCunknown_ca))
     return build_string ("the certificate was signed by an unknown "
                          "and therefore untrusted authority");
 
-  if (EQ (status_symbol, intern (":not-ca")))
+  if (EQ (status_symbol, QCnot_ca))
     return build_string ("certificate signer is not a CA");
 
-  if (EQ (status_symbol, intern (":insecure")))
+  if (EQ (status_symbol, QCinsecure))
     return build_string ("certificate was signed with an insecure algorithm");
 
-  if (EQ (status_symbol, intern (":not-activated")))
+  if (EQ (status_symbol, QCnot_activated))
     return build_string ("certificate is not yet activated");
 
-  if (EQ (status_symbol, intern (":expired")))
+  if (EQ (status_symbol, QCexpired))
     return build_string ("certificate has expired");
 
-  if (EQ (status_symbol, intern (":no-host-match")))
+  if (EQ (status_symbol, QCno_host_match))
     return build_string ("certificate host does not match hostname");
 
-  if (EQ (status_symbol, intern (":signature-failure")))
+  if (EQ (status_symbol, QCsignature_failure))
     return build_string ("certificate signature could not be verified");
 
-  if (EQ (status_symbol, intern (":revocation-data-superseded")))
+  if (EQ (status_symbol, QCrevocation_data_superseded))
     return build_string ("certificate revocation data are old and have been "
                          "superseded");
 
-  if (EQ (status_symbol, intern (":revocation-data-issued-in-future")))
+  if (EQ (status_symbol, QCrevocation_data_issued_in_future))
     return build_string ("certificate revocation data have a future issue date");
 
-  if (EQ (status_symbol, intern (":signer-constraints-failure")))
+  if (EQ (status_symbol, QCsigner_constraints_failure))
     return build_string ("certificate signer constraints were violated");
 
-  if (EQ (status_symbol, intern (":purpose-mismatch")))
+  if (EQ (status_symbol, QCpurpose_mismatch))
     return build_string ("certificate does not match the intended purpose");
 
-  if (EQ (status_symbol, intern (":missing-ocsp-status")))
+  if (EQ (status_symbol, QCmissing_ocsp_status))
     return build_string ("certificate requires the server to send a OCSP "
                          "certificate status, but no status was received");
 
-  if (EQ (status_symbol, intern (":invalid-ocsp-status")))
+  if (EQ (status_symbol, QCinvalid_ocsp_status))
     return build_string ("the received OCSP certificate status is invalid");
 
   return Qnil;
@@ -1411,50 +1411,50 @@ returned as the :certificate entry.  */)
   verification = XPROCESS (proc)->gnutls_peer_verification;
 
   if (verification & GNUTLS_CERT_INVALID)
-    warnings = Fcons (intern (":invalid"), warnings);
+    warnings = Fcons (QCinvalid, warnings);
 
   if (verification & GNUTLS_CERT_REVOKED)
-    warnings = Fcons (intern (":revoked"), warnings);
+    warnings = Fcons (QCrevoked, warnings);
 
   if (verification & GNUTLS_CERT_SIGNER_NOT_FOUND)
-    warnings = Fcons (intern (":unknown-ca"), warnings);
+    warnings = Fcons (QCunknown_ca, warnings);
 
   if (verification & GNUTLS_CERT_SIGNER_NOT_CA)
-    warnings = Fcons (intern (":not-ca"), warnings);
+    warnings = Fcons (QCnot_ca, warnings);
 
   if (verification & GNUTLS_CERT_INSECURE_ALGORITHM)
-    warnings = Fcons (intern (":insecure"), warnings);
+    warnings = Fcons (QCinsecure, warnings);
 
   if (verification & GNUTLS_CERT_NOT_ACTIVATED)
-    warnings = Fcons (intern (":not-activated"), warnings);
+    warnings = Fcons (QCnot_activated, warnings);
 
   if (verification & GNUTLS_CERT_EXPIRED)
-    warnings = Fcons (intern (":expired"), warnings);
+    warnings = Fcons (QCexpired, warnings);
 
 # if GNUTLS_VERSION_NUMBER >= 0x030100
   if (verification & GNUTLS_CERT_SIGNATURE_FAILURE)
-    warnings = Fcons (intern (":signature-failure"), warnings);
+    warnings = Fcons (QCsignature_failure, warnings);
 
 #  if GNUTLS_VERSION_NUMBER >= 0x030114
   if (verification & GNUTLS_CERT_REVOCATION_DATA_SUPERSEDED)
-    warnings = Fcons (intern (":revocation-data-superseded"), warnings);
+    warnings = Fcons (QCrevocation_data_superseded, warnings);
 
   if (verification & GNUTLS_CERT_REVOCATION_DATA_ISSUED_IN_FUTURE)
-    warnings = Fcons (intern (":revocation-data-issued-in-future"), warnings);
+    warnings = Fcons (QCrevocation_data_issued_in_future, warnings);
 
   if (verification & GNUTLS_CERT_SIGNER_CONSTRAINTS_FAILURE)
-    warnings = Fcons (intern (":signer-constraints-failure"), warnings);
+    warnings = Fcons (QCsigner_constraints_failure, warnings);
 
 #   if GNUTLS_VERSION_NUMBER >= 0x030400
   if (verification & GNUTLS_CERT_PURPOSE_MISMATCH)
-    warnings = Fcons (intern (":purpose-mismatch"), warnings);
+    warnings = Fcons (QCpurpose_mismatch, warnings);
 
 #    if GNUTLS_VERSION_NUMBER >= 0x030501
   if (verification & GNUTLS_CERT_MISSING_OCSP_STATUS)
-    warnings = Fcons (intern (":missing-ocsp-status"), warnings);
+    warnings = Fcons (QCmissing_ocsp_status, warnings);
 
   if (verification & GNUTLS_CERT_INVALID_OCSP_STATUS)
-    warnings = Fcons (intern (":invalid-ocsp-status"), warnings);
+    warnings = Fcons (QCinvalid_ocsp_status, warnings);
 #    endif
 #   endif
 #  endif
@@ -1462,17 +1462,17 @@ returned as the :certificate entry.  */)
 
   if (XPROCESS (proc)->gnutls_extra_peer_verification &
       CERTIFICATE_NOT_MATCHING)
-    warnings = Fcons (intern (":no-host-match"), warnings);
+    warnings = Fcons (QCno_host_match, warnings);
 
   /* This could get called in the INIT stage, when the certificate is
      not yet set. */
   if (XPROCESS (proc)->gnutls_certificates != NULL &&
       gnutls_x509_crt_check_issuer(XPROCESS (proc)->gnutls_certificates[0],
                                    XPROCESS (proc)->gnutls_certificates[0]))
-    warnings = Fcons (intern (":self-signed"), warnings);
+    warnings = Fcons (QCself_signed, warnings);
 
   if (!NILP (warnings))
-    result = list2 (intern (":warnings"), warnings);
+    result = list2 (QCwarnings, warnings);
 
   /* This could get called in the INIT stage, when the certificate is
      not yet set. */
@@ -1485,11 +1485,11 @@ returned as the :certificate entry.  */)
 	certs = nconc2 (certs, list1 (emacs_gnutls_certificate_details
 				      (XPROCESS (proc)->gnutls_certificates[i])));
 
-      result = nconc2 (result, list2 (intern (":certificates"), certs));
+      result = nconc2 (result, list2 (QCcertificates, certs));
 
       /* Return the host certificate in its own element for
 	 compatibility reasons. */
-      result = nconc2 (result, list2 (intern (":certificate"), Fcar (certs)));
+      result = nconc2 (result, list2 (QCcertificate, Fcar (certs)));
     }
 
   state = XPROCESS (proc)->gnutls_state;
@@ -1499,38 +1499,38 @@ returned as the :certificate entry.  */)
     int bits = gnutls_dh_get_prime_bits (state);
     check_memory_full (bits);
     if (bits > 0)
-      result = nconc2 (result, list2 (intern (":diffie-hellman-prime-bits"),
+      result = nconc2 (result, list2 (QCdiffie_hellman_prime_bits,
 				      make_fixnum (bits)));
   }
 
   /* Key exchange. */
   result = nconc2
-    (result, list2 (intern (":key-exchange"),
+    (result, list2 (QCkey_exchange,
 		    build_string (gnutls_kx_get_name
 				  (gnutls_kx_get (state)))));
 
   /* Protocol name. */
   gnutls_protocol_t proto = gnutls_protocol_get_version (state);
   result = nconc2
-    (result, list2 (intern (":protocol"),
+    (result, list2 (QCprotocol,
 		    build_string (gnutls_protocol_get_name (proto))));
 
   /* Cipher name. */
   result = nconc2
-    (result, list2 (intern (":cipher"),
+    (result, list2 (QCcipher,
 		    build_string (gnutls_cipher_get_name
 				  (gnutls_cipher_get (state)))));
 
   /* MAC name. */
   result = nconc2
-    (result, list2 (intern (":mac"),
+    (result, list2 (QCmac,
 		    build_string (gnutls_mac_get_name
 				  (gnutls_mac_get (state)))));
 
   /* Compression name. */
 # ifdef HAVE_GNUTLS_COMPRESSION_GET
   result = nconc2
-    (result, list2 (intern (":compression"),
+    (result, list2 (QCcompression,
 		    build_string (gnutls_compression_get_name
 				  (gnutls_compression_get (state)))));
 # endif
@@ -1538,14 +1538,14 @@ returned as the :certificate entry.  */)
   /* Encrypt-then-MAC. */
 # ifdef HAVE_GNUTLS_ETM_STATUS
   result = nconc2
-    (result, list2 (intern (":encrypt-then-mac"),
+    (result, list2 (QCencrypt_then_mac,
 		    gnutls_session_etm_status (state) ? Qt : Qnil));
 # endif
 
   /* Renegotiation Indication */
   if (proto <= GNUTLS_TLS1_2)
     result = nconc2
-      (result, list2 (intern (":safe-renegotiation"),
+      (result, list2 (QCsafe_renegotiation,
 		      gnutls_safe_renegotiation_status (state) ? Qt : Qnil));
 
   return result;
@@ -1701,7 +1701,7 @@ gnutls_verify_boot (Lisp_Object proc, Lisp_Object proplist)
 
   p->gnutls_peer_verification = peer_verification;
 
-  warnings = plist_get (Fgnutls_peer_status (proc), intern (":warnings"));
+  warnings = plist_get (Fgnutls_peer_status (proc), QCwarnings);
   if (!NILP (warnings))
     {
       for (Lisp_Object tail = warnings; CONSP (tail); tail = XCDR (tail))
@@ -2953,22 +2953,22 @@ Any GnuTLS extension with ID up to 100
     return Qnil;
 # endif /* WINDOWSNT */
 
-  capabilities = Fcons (intern("gnutls"), capabilities);
+  capabilities = Fcons (Qgnutls, capabilities);
 
 #  ifdef HAVE_GNUTLS_EXT__DUMBFW
-  capabilities = Fcons (intern("ClientHello Padding"), capabilities);
+  capabilities = Fcons (QClientHello_Padding, capabilities);
 #  endif
 
 # ifdef HAVE_GNUTLS3
-  capabilities = Fcons (intern("gnutls3"), capabilities);
-  capabilities = Fcons (intern("digests"), capabilities);
-  capabilities = Fcons (intern("ciphers"), capabilities);
+  capabilities = Fcons (Qgnutls3, capabilities);
+  capabilities = Fcons (Qdigests, capabilities);
+  capabilities = Fcons (Qciphers, capabilities);
 
 #  ifdef HAVE_GNUTLS_AEAD
-  capabilities = Fcons (intern("AEAD-ciphers"), capabilities);
+  capabilities = Fcons (QAEAD_ciphers, capabilities);
 #  endif
 
-  capabilities = Fcons (intern("macs"), capabilities);
+  capabilities = Fcons (Qmacs, capabilities);
 
 #  ifdef HAVE_GNUTLS_EXT_GET_NAME
   for (unsigned int ext=0; ext < 100; ext++)
@@ -3119,4 +3119,55 @@ are as per the GnuTLS logging conventions.  */);
 #endif	/* HAVE_GNUTLS */
 
   defsubr (&Sgnutls_available_p);
+
+  DEFSYM (QAEAD_ciphers, "AEAD-ciphers");
+  DEFSYM (QCcertificate, ":certificate");
+  DEFSYM (QCcertificate_id, ":certificate-id");
+  DEFSYM (QCcertificate_security_level, ":certificate-security-level");
+  DEFSYM (QCcertificates, ":certificates");
+  DEFSYM (QCcipher, ":cipher");
+  DEFSYM (QCcompression, ":compression");
+  DEFSYM (QCdiffie_hellman_prime_bits, ":diffie-hellman-prime-bits");
+  DEFSYM (QCencrypt_then_mac, ":encrypt-then-mac");
+  DEFSYM (QCexpired, ":expired");
+  DEFSYM (QCinsecure, ":insecure");
+  DEFSYM (QCinvalid, ":invalid");
+  DEFSYM (QCinvalid_ocsp_status, ":invalid-ocsp-status");
+  DEFSYM (QCissuer, ":issuer");
+  DEFSYM (QCissuer_unique_id, ":issuer-unique-id");
+  DEFSYM (QCkey_exchange, ":key-exchange");
+  DEFSYM (QClientHello_Padding, "ClientHello Padding");
+  DEFSYM (QCmac, ":mac");
+  DEFSYM (QCmissing_ocsp_status, ":missing-ocsp-status");
+  DEFSYM (QCno_host_match, ":no-host-match");
+  DEFSYM (QCnot_activated, ":not-activated");
+  DEFSYM (QCnot_ca, ":not-ca");
+  DEFSYM (QCpem, ":pem");
+  DEFSYM (QCprotocol, ":protocol");
+  DEFSYM (QCpublic_key_algorithm, ":public-key-algorithm");
+  DEFSYM (QCpublic_key_id, ":public-key-id");
+  DEFSYM (QCpublic_key_id_sha256, ":public-key-id-sha256");
+  DEFSYM (QCpurpose_mismatch, ":purpose-mismatch");
+  DEFSYM (QCrevocation_data_issued_in_future,
+	  ":revocation-data-issued-in-future");
+  DEFSYM (QCrevocation_data_superseded, ":revocation-data-superseded");
+  DEFSYM (QCrevoked, ":revoked");
+  DEFSYM (QCsafe_renegotiation, ":safe-renegotiation");
+  DEFSYM (QCself_signed, ":self-signed");
+  DEFSYM (QCserial_number, ":serial-number");
+  DEFSYM (QCsignature_algorithm, ":signature-algorithm");
+  DEFSYM (QCsignature_failure, ":signature-failure");
+  DEFSYM (QCsigner_constraints_failure, ":signer-constraints-failure");
+  DEFSYM (QCsubject, ":subject");
+  DEFSYM (QCsubject_unique_id, ":subject-unique-id");
+  DEFSYM (QCunknown_ca, ":unknown-ca");
+  DEFSYM (QCvalid_from, ":valid-from");
+  DEFSYM (QCvalid_to, ":valid-to");
+  DEFSYM (QCversion, ":version");
+  DEFSYM (QCwarnings, ":warnings");
+  DEFSYM (Qciphers, "ciphers");
+  DEFSYM (Qdigests, "digests");
+  DEFSYM (Qgnutls, "gnutls");
+  DEFSYM (Qgnutls3, "gnutls3");
+  DEFSYM (Qmacs, "macs");
 }

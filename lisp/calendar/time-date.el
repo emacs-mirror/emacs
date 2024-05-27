@@ -344,8 +344,11 @@ right of \"%x\", trailing zero units are not output."
              string)
         (cond
          ((string-equal spec "z")
-          (setq chop-leading (and leading-zeropos
-                                  (min leading-zeropos (match-beginning 0)))))
+          (setq chop-leading
+                (if leading-zeropos
+                    (min leading-zeropos (match-beginning 0))
+                  ;; The entire spec is zero, get past "%z" to last 0.
+                  (+ 2 (match-beginning 0)))))
          ((string-equal spec "x")
           (setq chop-trailing t))
          (t

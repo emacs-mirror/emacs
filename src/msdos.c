@@ -3070,12 +3070,12 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   state = alloca (menu->panecount * sizeof (struct IT_menu_state));
   screensize = screen_size * 2;
   faces[0]
-    = lookup_derived_face (NULL, sf, intern ("msdos-menu-passive-face"),
+    = lookup_derived_face (NULL, sf, Qmsdos_menu_passive_face,
 			   DEFAULT_FACE_ID, 1);
   faces[1]
-    = lookup_derived_face (NULL, sf, intern ("msdos-menu-active-face"),
+    = lookup_derived_face (NULL, sf, Qmsdos_menu_active_face,
 			   DEFAULT_FACE_ID, 1);
-  selectface = intern ("msdos-menu-select-face");
+  selectface = Qmsdos_menu_select_face;
   faces[2] = lookup_derived_face (NULL, sf, selectface,
 				  faces[0], 1);
   faces[3] = lookup_derived_face (NULL, sf, selectface,
@@ -3740,7 +3740,7 @@ run_msdos_command (char **argv, const char *working_dir,
   *pl = '\0';
 
   cmd = Ffile_name_nondirectory (build_string (lowcase_argv0));
-  msshell = !NILP (Fmember (cmd, Fsymbol_value (intern ("msdos-shells"))))
+  msshell = !NILP (Fmember (cmd, Fsymbol_value (Qmsdos_shells)))
     && !strcmp ("-c", argv[1]);
   if (msshell)
     {
@@ -4324,6 +4324,11 @@ This variable is used only by MS-DOS terminals.  */);
   defsubr (&Smsdos_downcase_filename);
   defsubr (&Smsdos_remember_default_colors);
   defsubr (&Smsdos_set_mouse_buttons);
+
+  DEFSYM (Qmsdos_menu_passive_face, "msdos-menu-passive-face");
+  DEFSYM (Qmsdos_menu_active_face, "msdos-menu-active-face");
+  DEFSYM (Qmsdos_menu_select_face, "msdos-menu-select-face");
+  DEFSYM (Qmsdos_shells, "msdos-shells");
 }
 
 #endif /* MSDOS */

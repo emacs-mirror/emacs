@@ -141,6 +141,15 @@ extern char *tzname[];
    ? (a) >> (b)         \
    : ((a) + ((a) < 0)) / (1 << (b)) - ((a) < 0))
 
+enum pad_style
+{
+  ZERO_PAD,         /* (default) Pad with 0 unless format says otherwise.  */
+  ALWAYS_ZERO_PAD,  /* '0'       Always pad with 0.  */
+  SIGN_PAD,         /* '+'       Always output a sign.  */
+  SPACE_PAD,        /* '_'       Pad with space.  */
+  NO_PAD            /* '-'       Do not pad.  */
+};
+
 #define TM_YEAR_BASE 1900
 
 #ifndef __isleap
@@ -193,7 +202,7 @@ extern char *tzname[];
   do                                                                          \
     {                                                                         \
       size_t _n = (n);                                                        \
-      size_t _w = pad == L_('-') || width < 0 ? 0 : width;                    \
+      size_t _w = pad == NO_PAD || width < 0 ? 0 : width;                    \
       size_t _incr = _n < _w ? _w : _n;                                       \
       if (_incr >= maxsize - i)                                               \
         {                                                                     \
@@ -205,7 +214,7 @@ extern char *tzname[];
           if (_n < _w)                                                        \
             {                                                                 \
               size_t _delta = _w - _n;                                        \
-              if (pad == L_('0') || pad == L_('+'))                           \
+              if (pad == ALWAYS_ZERO_PAD || pad == SIGN_PAD)                  \
                 memset_zero (p, _delta);                                      \
               else                                                            \
                 memset_space (p, _delta);                                     \
@@ -825,7 +834,7 @@ static CHAR_T const c_month_names[][sizeof "September"] =
 
 static size_t __strftime_internal (STREAM_OR_CHAR_T *, STRFTIME_ARG (size_t)
                                    const CHAR_T *, const struct tm *,
-                                   bool, int, int, bool *
+                                   bool, enum pad_style, int, bool *
                                    extra_args_spec LOCALE_PARAM);
 
 /* Write information from TP into S according to the format
@@ -841,7 +850,8 @@ my_strftime (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 {
   bool tzset_called = false;
   return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp, false,
-                              0, -1, &tzset_called extra_args LOCALE_ARG);
+                              ZERO_PAD, -1,
+                              &tzset_called extra_args LOCALE_ARG);
 }
 libc_hidden_def (my_strftime)
 
@@ -853,7 +863,7 @@ static size_t
 __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                      const CHAR_T *format,
                      const struct tm *tp, bool upcase,
-                     int yr_spec, int width, bool *tzset_called
+                     enum pad_style yr_spec, int width, bool *tzset_called
                      extra_args_spec LOCALE_PARAM)
 {
 #if defined _LIBC && defined USE_IN_EXTENDED_LOCALE_MODEL
@@ -977,7 +987,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
   for (f = format; *f != '\0'; width = -1, f++)
     {
-      int pad = 0;  /* Padding for number ('_', '-', '+', '0', or 0).  */
+      enum pad_style pad = ZERO_PAD;
       int modifier;             /* Field modifier ('E', 'O', or 0).  */
       int digits = 0;           /* Max digits for numeric format.  */
       int number_value;         /* Numeric value to be printed.  */
@@ -1095,12 +1105,10 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           switch (*++f)
             {
               /* This influences the number formats.  */
-            case L_('_'):
-            case L_('-'):
-            case L_('+'):
-            case L_('0'):
-              pad = *f;
-              continue;
+            case L_('_'): pad = SPACE_PAD; continue;
+            case L_('-'): pad = NO_PAD; continue;
+            case L_('+'): pad = SIGN_PAD; continue;
+            case L_('0'): pad = ALWAYS_ZERO_PAD; continue;
 
               /* This changes textual output.  */
             case L_('^'):
@@ -1336,7 +1344,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 # endif
             if (len != 0)
               {
-# if defined __NetBSD__ || defined __sun /* NetBSD, Solaris */
+# if (__GLIBC__ == 2 && __GLIBC_MINOR__ < 31) || defined __NetBSD__ || defined __sun /* glibc < 2.31, NetBSD, Solaris */
                 if (format_char == L_('c'))
                   {
                     /* The output of the strftime %c directive consists of the
@@ -1374,7 +1382,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                           }
                       }
                   }
-#  if REQUIRE_GNUISH_STRFTIME_AM_PM
+#  if (defined __NetBSD__ || defined __sun) && REQUIRE_GNUISH_STRFTIME_AM_PM
                 /* The output of the strftime %p and %r directives contains
                    an AM/PM indicator even for locales where it is not
                    suitable, such as French.  Remove this indicator.  */
@@ -1483,17 +1491,17 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           goto do_number_body;
 
         do_yearish:
-          if (pad == 0)
+          if (pad == ZERO_PAD)
             pad = yr_spec;
           always_output_a_sign
-            = (pad == L_('+')
+            = (pad == SIGN_PAD
                && ((digits == 2 ? 99 : 9999) < u_number_value
                    || digits < width));
           goto do_maybe_signed_number;
 
         do_number_spacepad:
-          if (pad == 0)
-            pad = L_('_');
+          if (pad == ZERO_PAD)
+            pad = SPACE_PAD;
 
         do_number:
           /* Format NUMBER_VALUE according to the MODIFIER flag.  */
@@ -1551,8 +1559,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           while (u_number_value != 0 || tz_colon_mask != 0);
 
         do_number_sign_and_padding:
-          if (pad == 0)
-            pad = L_('0');
+          if (pad == ZERO_PAD)
+            pad = ALWAYS_ZERO_PAD;
           if (width < 0)
             width = digits;
 
@@ -1562,11 +1570,11 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                                 : 0);
             int numlen = buf + sizeof buf / sizeof buf[0] - bufp;
             int shortage = width - !!sign_char - numlen;
-            int padding = pad == L_('-') || shortage <= 0 ? 0 : shortage;
+            int padding = pad == NO_PAD || shortage <= 0 ? 0 : shortage;
 
             if (sign_char)
               {
-                if (pad == L_('_'))
+                if (pad == SPACE_PAD)
                   {
                     if (p)
                       memset_space (p, padding);
@@ -1584,9 +1592,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
         case L_('F'):
           if (modifier != 0)
             goto bad_format;
-          if (pad == 0 && width < 0)
+          if (pad == ZERO_PAD && width < 0)
             {
-              pad = L_('+');
+              pad = SIGN_PAD;
               subwidth = 4;
             }
           else
@@ -1653,8 +1661,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               ndigs--, n /= 10;
             for (int j = ndigs; 0 < j; j--)
               buf[j - 1] = n % 10 + L_('0'), n /= 10;
-            if (!pad)
-              pad = L_('0');
+            if (pad == ZERO_PAD)
+              pad = ALWAYS_ZERO_PAD;
             width_cpy (0, ndigs, buf);
             width_add (width - ndigs, 0, (void) 0);
           }
@@ -1864,7 +1872,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 # else
                   subfmt = era->era_format;
 # endif
-                  if (pad == 0)
+                  if (pad == ZERO_PAD)
                     pad = yr_spec;
                   goto subformat;
                 }
@@ -1887,7 +1895,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               if (era)
                 {
                   int delta = tp->tm_year - era->start_date[0];
-                  if (pad == 0)
+                  if (pad == ZERO_PAD)
                     pad = yr_spec;
                   DO_NUMBER (2, (era->offset
                                  + delta * era->absolute_direction));
@@ -1916,7 +1924,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           {
             /* The zone string is always given in multibyte form.  We have
                to convert it to wide character.  */
-            size_t w = pad == L_('-') || width < 0 ? 0 : width;
+            size_t w = pad == NO_PAD || width < 0 ? 0 : width;
             char const *z = zone;
             mbstate_t st = {0};
             size_t len = __mbsrtowcs_l (p, &z, maxsize - i, &st, loc);
@@ -1934,7 +1942,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                   {
                     size_t delta = w - len;
                     __wmemmove (p + delta, p, len);
-                    wchar_t wc = pad == L_('0') || pad == L_('+') ? L'0' : L' ';
+                    wchar_t wc = (pad == ALWAYS_ZERO_PAD || pad == SIGN_PAD
+                                  ? L'0' : L' ');
                     wmemset (p, wc, delta);
                   }
                 p += incr;

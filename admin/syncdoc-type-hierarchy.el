@@ -35,6 +35,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'org)
 
 (defconst syncdoc-file (or (macroexp-file-name) buffer-file-name))
 
@@ -96,7 +97,7 @@
             (lambda (x1 x2)
               (< (length (memq (car x2) syncdoc-all-types))
                  (length (memq (car x1) syncdoc-all-types)))))
-      (cl-loop for (type . children) in subtypes
+      (cl-loop for (type . children) in (reverse subtypes)
                do (insert "|" (symbol-name type) " |")
                do (cl-loop with x = 0
                            for child in children
@@ -109,7 +110,7 @@
                            do (cl-incf x (1+ child-len)) )
                do (insert "\n")))
     (require 'org-table)
-    (declare-function 'org-table-align "org")
+    (declare-function org-table-align "org")
     (org-table-align)))
 
 (defun syncdoc-update-type-hierarchy0 ()

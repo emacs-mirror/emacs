@@ -807,13 +807,19 @@ Call `cl--find-class' to get TYPE's propname `cl--class'"
           (insert (substitute-command-keys (if ch "', " "'"))))
         (insert ".\n")))
 
+    ;; Describe all the slots in this class.
+    ;; Put it before the docstring, since the docstring may want
+    ;; to refer to the slots.
+    (cl--describe-class-slots class)
+
     ;; Type's documentation.
     (let ((doc (cl--class-docstring class)))
       (when doc
-        (insert "\n" doc "\n\n")))
-
-    ;; Describe all the slots in this class.
-    (cl--describe-class-slots class)
+        (insert (if (save-excursion
+                      (or (< (skip-chars-backward "\n") -1) (bobp)))
+                    ""
+                  "\n")
+                doc "\n\n")))
 
     ;; Describe all the methods specific to this class.
     (let ((generics (cl-generic-all-functions type)))
@@ -910,7 +916,14 @@ Outputs to the current buffer."
               (mapcar
                (lambda (slot)
                  (list (cl-prin1-to-string (cl--slot-descriptor-name slot))
-                       (cl-prin1-to-string (cl--slot-descriptor-type slot))
+                       (let ((type (cl--slot-descriptor-type slot)))
+                         (cond
+                          ((eq type t) "")
+                          ((and type (symbolp type) (cl--find-class type))
+                           (make-text-button (symbol-name type) nil
+		                             'type 'help-type
+		                             'help-args (list type)))
+                          (t (cl-prin1-to-string type))))
                        (cl-prin1-to-string (cl--slot-descriptor-initform slot))
                        (let ((doc (alist-get :documentation
                                              (cl--slot-descriptor-props slot))))

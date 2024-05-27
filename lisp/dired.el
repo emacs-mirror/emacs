@@ -443,8 +443,9 @@ is anywhere on its Dired line, except the beginning of the line."
 
 (defcustom dired-guess-shell-alist-user nil
   "User-defined alist of rules for suggested commands.
-These rules take precedence over the predefined rules in the variable
-`dired-guess-shell-alist-default' (to which they are prepended).
+These rules take precedence over the predefined rules in the variables
+`dired-guess-shell-alist-default' and `dired-guess-shell-alist-optional'
+\(to which they are prepended).
 
 Each element of this list looks like
 
@@ -1740,8 +1741,16 @@ see `dired-use-ls-dired' for more details.")
 	                      (file-expand-wildcards (cdr dir-wildcard))))
 	         (let ((beg (point)))
 	           (insert-directory f switches nil nil)
-	           ;; Re-align fields, if necessary.
-	           (dired-align-file beg (point))))))
+		   ;; `dired-align-file' doesn't fare well with dired
+		   ;; implementations that don't indent entries by one
+		   ;; column, which in all known implementations is
+		   ;; equivalent to not supporting `--dired'.
+		   (save-excursion
+		     (goto-char beg)
+		     (unless (looking-at " ")
+		       (insert " ")))
+		   ;; Re-align fields, if necessary.
+		   (dired-align-file beg (point))))))
 	    (t
              (insert-directory dir switches wildcard (not wildcard))))
       ;; Quote certain characters, unless ls quoted them for us.
@@ -2267,9 +2276,10 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   "~"       #'dired-flag-backup-files
   ;; Upper case keys (except !) for operating on the marked files
   "A"       #'dired-do-find-regexp
-  "C"       #'dired-do-copy
   "B"       #'dired-do-byte-compile
+  "C"       #'dired-do-copy
   "D"       #'dired-do-delete
+  "E"       #'dired-do-open
   "G"       #'dired-do-chgrp
   "H"       #'dired-do-hardlink
   "I"       #'dired-do-info
@@ -2474,7 +2484,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ["Display Image" image-dired-dired-display-image
      :help "Display sized image in a separate window"]
     ["Display Image Externally" image-dired-dired-display-external
-     :help "Display image in external viewer"]))
+     :help "Display image in external viewer"]
+    ["Display Externally" dired-do-open
+     :help "Display file in external viewer"]))
 
 (easy-menu-define dired-mode-regexp-menu dired-mode-map
   "Regexp menu for Dired mode."
@@ -2634,7 +2646,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
            :help "Edit file at mouse click in other window"]
           ,@(when shell-command-guess-open
               '(["Open" dired-do-open
-                 :help "Open externally"]))
+                 :help "Open this file with the default application"]))
           ,@(when commands
               (list (cons "Open With"
                           (append
@@ -2645,7 +2657,13 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
                                          (interactive)
                                          (dired-do-async-shell-command
                                           ,command nil (list ,filename)))])
-                                   commands)))))))
+                                   commands)))))
+          ,@(when (eq system-type 'windows-nt)
+              `(["Select system app"
+                 (lambda ()
+                   (interactive)
+                   (w32-shell-execute "openas" ,filename))
+                 :help "Choose one of the apps available on your system"]))))
       (dolist (item (reverse (lookup-key easy-menu [menu-bar immediate])))
         (when (consp item)
           (define-key menu (vector (car item)) (cdr item))))))
@@ -2743,6 +2761,26 @@ Keybindings:
               '(dired-font-lock-keywords t nil nil beginning-of-line))
   (setq-local desktop-save-buffer 'dired-desktop-buffer-misc-data)
   (setq-local grep-read-files-function #'dired-grep-read-files)
+  (setq-local window-point-context-set-function
+              (lambda (w)
+                (with-current-buffer (window-buffer w)
+                  (let ((point (window-point w)))
+                    (save-excursion
+                      (goto-char point)
+                      (if-let ((f (dired-get-filename nil t)))
+                          `((dired-filename . ,f))
+                        `((position . ,(point)))))))))
+  (setq-local window-point-context-use-function
+              (lambda (w context)
+                (with-current-buffer (window-buffer w)
+                  (let ((point (window-point w)))
+                    (save-excursion
+                      (if-let ((f (alist-get 'dired-filename context)))
+                          (dired-goto-file f)
+                        (when-let ((p (alist-get 'position context)))
+                          (goto-char p)))
+                      (setq point (point)))
+                    (set-window-point w point)))))
   (setq dired-switches-alist nil)
   (hack-dir-local-variables-non-file-buffer) ; before sorting
   (dired-sort-other dired-actual-switches t)

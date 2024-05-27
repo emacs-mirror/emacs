@@ -21,6 +21,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -2759,6 +2762,7 @@ since only regular expressions have distinguished subexpressions.  */)
 
   /* Replace the old text with the new in the cleanest possible way.  */
   replace_range (sub_start, sub_end, newtext, 1, 0, 1, true, true);
+  signal_after_change (sub_start, sub_end - sub_start, SCHARS (newtext));
 
   if (case_action == all_caps)
     Fupcase_region (make_fixnum (search_regs.start[sub]),
@@ -2783,7 +2787,6 @@ since only regular expressions have distinguished subexpressions.  */)
   /* Now move point "officially" to the end of the inserted replacement.  */
   move_if_not_intangible (newpoint);
 
-  signal_after_change (sub_start, sub_end - sub_start, SCHARS (newtext));
   update_compositions (sub_start, newpoint, CHECK_BORDER);
 
   return Qnil;

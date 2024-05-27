@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <vla.h>
 #include <errno.h>
 #include <ctype.h>
+#include <math.h>
 
 #include "lisp.h"
 #include "bignum.h"
@@ -151,7 +152,7 @@ efficient.  */)
     val = MAX_CHAR;
   else if (BOOL_VECTOR_P (sequence))
     val = bool_vector_size (sequence);
-  else if (COMPILEDP (sequence) || RECORDP (sequence))
+  else if (CLOSUREP (sequence) || RECORDP (sequence))
     val = PVSIZE (sequence);
   else
     wrong_type_argument (Qsequencep, sequence);
@@ -466,21 +467,10 @@ load_unaligned_size_t (const void *p)
   return x;
 }
 
-DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
-       doc: /* Return non-nil if STRING1 is less than STRING2 in lexicographic order.
-Case is significant.
-Symbols are also allowed; their print names are used instead.  */)
-  (Lisp_Object string1, Lisp_Object string2)
+/* Return -1/0/1 to indicate the relation </=/> between string1 and string2.  */
+static int
+string_cmp (Lisp_Object string1, Lisp_Object string2)
 {
-  if (SYMBOLP (string1))
-    string1 = SYMBOL_NAME (string1);
-  else
-    CHECK_STRING (string1);
-  if (SYMBOLP (string2))
-    string2 = SYMBOL_NAME (string2);
-  else
-    CHECK_STRING (string2);
-
   ptrdiff_t n = min (SCHARS (string1), SCHARS (string2));
 
   if ((!STRING_MULTIBYTE (string1) || SCHARS (string1) == SBYTES (string1))
@@ -489,7 +479,9 @@ Symbols are also allowed; their print names are used instead.  */)
       /* Each argument is either unibyte or all-ASCII multibyte:
 	 we can compare bytewise.  */
       int d = memcmp (SSDATA (string1), SSDATA (string2), n);
-      return d < 0 || (d == 0 && n < SCHARS (string2)) ? Qt : Qnil;
+      if (d)
+	return d;
+      return n < SCHARS (string2) ? -1 : n < SCHARS (string1);
     }
   else if (STRING_MULTIBYTE (string1) && STRING_MULTIBYTE (string2))
     {
@@ -523,7 +515,7 @@ Symbols are also allowed; their print names are used instead.  */)
 
       if (b >= nb)
 	/* One string is a prefix of the other.  */
-	return b < nb2 ? Qt : Qnil;
+	return b < nb2 ? -1 : b < nb1;
 
       /* Now back up to the start of the differing characters:
 	 it's the last byte not having the bit pattern 10xxxxxx.  */
@@ -535,7 +527,7 @@ Symbols are also allowed; their print names are used instead.  */)
       ptrdiff_t i1_byte = b, i2_byte = b;
       int c1 = fetch_string_char_advance_no_check (string1, &i1, &i1_byte);
       int c2 = fetch_string_char_advance_no_check (string2, &i2, &i2_byte);
-      return c1 < c2 ? Qt : Qnil;
+      return c1 < c2 ? -1 : c1 > c2;
     }
   else if (STRING_MULTIBYTE (string1))
     {
@@ -546,9 +538,9 @@ Symbols are also allowed; their print names are used instead.  */)
 	  int c1 = fetch_string_char_advance_no_check (string1, &i1, &i1_byte);
 	  int c2 = SREF (string2, i2++);
 	  if (c1 != c2)
-	    return c1 < c2 ? Qt : Qnil;
+	    return c1 < c2 ? -1 : 1;
 	}
-      return i1 < SCHARS (string2) ? Qt : Qnil;
+      return i1 < SCHARS (string2) ? -1 : i1 < SCHARS (string1);
     }
   else
     {
@@ -559,10 +551,28 @@ Symbols are also allowed; their print names are used instead.  */)
 	  int c1 = SREF (string1, i1++);
 	  int c2 = fetch_string_char_advance_no_check (string2, &i2, &i2_byte);
 	  if (c1 != c2)
-	    return c1 < c2 ? Qt : Qnil;
+	    return c1 < c2 ? -1 : 1;
 	}
-      return i1 < SCHARS (string2) ? Qt : Qnil;
+      return i1 < SCHARS (string2) ? -1 : i1 < SCHARS (string1);
     }
+}
+
+DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
+       doc: /* Return non-nil if STRING1 is less than STRING2 in lexicographic order.
+Case is significant.
+Symbols are also allowed; their print names are used instead.  */)
+  (Lisp_Object string1, Lisp_Object string2)
+{
+  if (SYMBOLP (string1))
+    string1 = SYMBOL_NAME (string1);
+  else
+    CHECK_STRING (string1);
+  if (SYMBOLP (string2))
+    string2 = SYMBOL_NAME (string2);
+  else
+    CHECK_STRING (string2);
+
+  return string_cmp (string1, string2) < 0 ? Qt : Qnil;
 }
 
 DEFUN ("string-version-lessp", Fstring_version_lessp,
@@ -1044,7 +1054,7 @@ concat_to_list (ptrdiff_t nargs, Lisp_Object *args, Lisp_Object last_tail)
       else if (NILP (arg))
 	;
       else if (VECTORP (arg) || STRINGP (arg)
-	       || BOOL_VECTOR_P (arg) || COMPILEDP (arg))
+	       || BOOL_VECTOR_P (arg) || CLOSUREP (arg))
 	{
 	  ptrdiff_t arglen = XFIXNUM (Flength (arg));
 	  ptrdiff_t argindex_byte = 0;
@@ -1104,7 +1114,7 @@ concat_to_vector (ptrdiff_t nargs, Lisp_Object *args)
     {
       Lisp_Object arg = args[i];
       if (!(VECTORP (arg) || CONSP (arg) || NILP (arg) || STRINGP (arg)
-	    || BOOL_VECTOR_P (arg) || COMPILEDP (arg)))
+	    || BOOL_VECTOR_P (arg) || CLOSUREP (arg)))
 	wrong_type_argument (Qsequencep, arg);
       EMACS_INT len = XFIXNAT (Flength (arg));
       result_len += len;
@@ -1160,7 +1170,7 @@ concat_to_vector (ptrdiff_t nargs, Lisp_Object *args)
 	}
       else
 	{
-	  eassert (COMPILEDP (arg));
+	  eassert (CLOSUREP (arg));
 	  ptrdiff_t size = PVSIZE (arg);
 	  memcpy (dst, XVECTOR (arg)->contents, size * sizeof *dst);
 	  dst += size;
@@ -1996,11 +2006,12 @@ TESTFN is called with 2 arguments: a car of an alist element and KEY.  */)
   FOR_EACH_TAIL (tail)
     {
       Lisp_Object car = XCAR (tail);
-      if (CONSP (car)
-	  && (NILP (testfn)
-	      ? (EQ (XCAR (car), key) || !NILP (Fequal
-						(XCAR (car), key)))
-	      : !NILP (call2 (testfn, XCAR (car), key))))
+      if (!CONSP (car))
+	continue;
+      if ((NILP (testfn)
+	   ? (EQ (XCAR (car), key) || !NILP (Fequal
+					     (XCAR (car), key)))
+	   : !NILP (call2 (testfn, XCAR (car), key))))
 	return car;
     }
   CHECK_LIST_END (tail, alist);
@@ -2337,17 +2348,17 @@ See also the function `nreverse', which is used more often.  */)
 }
 
 
-/* Stably sort LIST ordered by PREDICATE using the TIMSORT
-   algorithm.  This converts the list to a vector, sorts the vector,
-   and returns the result converted back to a list.  The input list
-   is destructively reused to hold the sorted result.  */
-
+/* Stably sort LIST ordered by PREDICATE and KEYFUNC, optionally reversed.
+   This converts the list to a vector, sorts the vector, and returns the
+   result converted back to a list.  If INPLACE, the input list is
+   reused to hold the sorted result; otherwise a new list is returned.  */
 static Lisp_Object
-sort_list (Lisp_Object list, Lisp_Object predicate)
+sort_list (Lisp_Object list, Lisp_Object predicate, Lisp_Object keyfunc,
+	   bool reverse, bool inplace)
 {
   ptrdiff_t length = list_length (list);
   if (length < 2)
-    return list;
+    return inplace ? list : list1 (XCAR (list));
   else
     {
       Lisp_Object *result;
@@ -2359,49 +2370,109 @@ sort_list (Lisp_Object list, Lisp_Object predicate)
 	  result[i] = Fcar (tail);
 	  tail = XCDR (tail);
 	}
-      tim_sort (predicate, result, length);
+      tim_sort (predicate, keyfunc, result, length, reverse);
 
-      ptrdiff_t i = 0;
-      tail = list;
-      while (CONSP (tail))
+      if (inplace)
 	{
-	  XSETCAR (tail, result[i]);
-	  tail = XCDR (tail);
-	  i++;
+	  /* Copy sorted vector contents back onto the original list.  */
+	  ptrdiff_t i = 0;
+	  tail = list;
+	  while (CONSP (tail))
+	    {
+	      XSETCAR (tail, result[i]);
+	      tail = XCDR (tail);
+	      i++;
+	    }
+	}
+      else
+	{
+	  /* Create a new list for the sorted vector contents.  */
+	  list = Qnil;
+	  for (ptrdiff_t i = length - 1; i >= 0; i--)
+	    list = Fcons (result[i], list);
 	}
       SAFE_FREE ();
       return list;
     }
 }
 
-/* Stably sort VECTOR ordered by PREDICATE using the TIMSORT
-   algorithm.  */
-
-static void
-sort_vector (Lisp_Object vector, Lisp_Object predicate)
+/* Stably sort VECTOR in-place ordered by PREDICATE and KEYFUNC,
+   optionally reversed.  */
+static Lisp_Object
+sort_vector (Lisp_Object vector, Lisp_Object predicate, Lisp_Object keyfunc,
+	     bool reverse)
 {
   ptrdiff_t length = ASIZE (vector);
-  if (length < 2)
-    return;
-
-  tim_sort (predicate, XVECTOR (vector)->contents, length);
+  if (length >= 2)
+    tim_sort (predicate, keyfunc, XVECTOR (vector)->contents, length, reverse);
+  return vector;
 }
 
-DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
-       doc: /* Sort SEQ, stably, comparing elements using PREDICATE.
-Returns the sorted sequence.  SEQ should be a list or vector.  SEQ is
-modified by side effects.  PREDICATE is called with two elements of
-SEQ, and should return non-nil if the first element should sort before
-the second.  */)
-  (Lisp_Object seq, Lisp_Object predicate)
+DEFUN ("sort", Fsort, Ssort, 1, MANY, 0,
+       doc: /* Sort SEQ, stably, and return the sorted sequence.
+SEQ should be a list or vector.
+Optional arguments are specified as keyword/argument pairs.  The following
+arguments are defined:
+
+:key FUNC -- FUNC is a function that takes a single element from SEQ and
+  returns the key value to be used in comparison.  If absent or nil,
+  `identity' is used.
+
+:lessp FUNC -- FUNC is a function that takes two arguments and returns
+  non-nil if the first element should come before the second.
+  If absent or nil, `value<' is used.
+
+:reverse BOOL -- if BOOL is non-nil, the sorting order implied by FUNC is
+  reversed.  This does not affect stability: equal elements still retain
+  their order in the input sequence.
+
+:in-place BOOL -- if BOOL is non-nil, SEQ is sorted in-place and returned.
+  Otherwise, a sorted copy of SEQ is returned and SEQ remains unmodified;
+  this is the default.
+
+For compatibility, the calling convention (sort SEQ LESSP) can also be used;
+in this case, sorting is always done in-place.
+
+usage: (sort SEQ &key KEY LESSP REVERSE IN-PLACE)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
+  Lisp_Object seq = args[0];
+  Lisp_Object key = Qnil;
+  Lisp_Object lessp = Qnil;
+  bool inplace = false;
+  bool reverse = false;
+  if (nargs == 2)
+    {
+      /* old-style invocation without keywords */
+      lessp = args[1];
+      inplace = true;
+    }
+  else if ((nargs & 1) == 0)
+    error ("Invalid argument list");
+  else
+    for (ptrdiff_t i = 1; i < nargs - 1; i += 2)
+      {
+	if (EQ (args[i], QCkey))
+	  key = args[i + 1];
+	else if (EQ (args[i], QClessp))
+	  lessp = args[i + 1];
+	else if (EQ (args[i], QCin_place))
+	  inplace = !NILP (args[i + 1]);
+	else if (EQ (args[i], QCreverse))
+	  reverse = !NILP (args[i + 1]);
+	else
+	  signal_error ("Invalid keyword argument", args[i]);
+      }
+
   if (CONSP (seq))
-    seq = sort_list (seq, predicate);
+    return sort_list (seq, lessp, key, reverse, inplace);
+  else if (NILP (seq))
+    return seq;
   else if (VECTORP (seq))
-    sort_vector (seq, predicate);
-  else if (!NILP (seq))
+    return sort_vector (inplace ? seq : Fcopy_sequence (seq),
+			lessp, key, reverse);
+  else
     wrong_type_argument (Qlist_or_vector_p, seq);
-  return seq;
 }
 
 Lisp_Object
@@ -2879,7 +2950,7 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
 	    if (((size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
-		< PVEC_COMPILED)
+		< PVEC_CLOSURE)
 	      return false;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
@@ -2908,6 +2979,235 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 
   return false;
 }
+
+/* Return -1/0/1 for the </=/> lexicographic relation between bool-vectors.  */
+static int
+bool_vector_cmp (Lisp_Object a, Lisp_Object b)
+{
+  ptrdiff_t na = bool_vector_size (a);
+  ptrdiff_t nb = bool_vector_size (b);
+  /* Skip equal words.  */
+  ptrdiff_t words_min = min (na, nb) / BITS_PER_BITS_WORD;
+  bits_word *ad = bool_vector_data (a);
+  bits_word *bd = bool_vector_data (b);
+  ptrdiff_t i = 0;
+  while (i < words_min && ad[i] == bd[i])
+    i++;
+  na -= i * BITS_PER_BITS_WORD;
+  nb -= i * BITS_PER_BITS_WORD;
+  eassume (na >= 0 && nb >= 0);
+  if (nb == 0)
+    return na != 0;
+  if (na == 0)
+    return -1;
+
+  bits_word aw = bits_word_to_host_endian (ad[i]);
+  bits_word bw = bits_word_to_host_endian (bd[i]);
+  bits_word xw = aw ^ bw;
+  if (xw == 0)
+    return na < nb ? -1 : na > nb;
+
+  bits_word d = xw & -xw;	/* Isolate first difference.  */
+  eassume (d != 0);
+  return (d & aw) ? 1 : -1;
+}
+
+/* Return -1, 0 or 1 to indicate whether a<b, a=b or a>b in the sense of value<.
+   In particular 0 does not mean equality in the sense of Fequal, only
+   that the arguments cannot be ordered yet they can be compared (same
+   type).  */
+static int
+value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
+{
+  if (maxdepth < 0)
+    error ("Maximum depth exceeded in comparison");
+
+ tail_recurse:
+  /* Shortcut for a common case.  */
+  if (BASE_EQ (a, b))
+    return 0;
+
+  switch (XTYPE (a))
+    {
+    case_Lisp_Int:
+      {
+	EMACS_INT ia = XFIXNUM (a);
+	if (FIXNUMP (b))
+	  return ia < XFIXNUM (b) ? -1 : 1;   /* we know that a≠b */
+	if (FLOATP (b))
+	  return ia < XFLOAT_DATA (b) ? -1 : ia > XFLOAT_DATA (b);
+	if (BIGNUMP (b))
+	  return -mpz_sgn (*xbignum_val (b));
+      }
+      goto type_mismatch;
+
+    case Lisp_Symbol:
+      if (BARE_SYMBOL_P (b))
+	return string_cmp (XBARE_SYMBOL (a)->u.s.name,
+			   XBARE_SYMBOL (b)->u.s.name);
+      if (CONSP (b) && NILP (a))
+	return -1;
+      if (SYMBOLP (b))
+	/* Slow-path branch when B is a symbol-with-pos.  */
+	return string_cmp (XBARE_SYMBOL (a)->u.s.name, XSYMBOL (b)->u.s.name);
+      goto type_mismatch;
+
+    case Lisp_String:
+      if (STRINGP (b))
+	return string_cmp (a, b);
+      goto type_mismatch;
+
+    case Lisp_Cons:
+      /* FIXME: Optimise for difference in the first element? */
+      FOR_EACH_TAIL (b)
+	{
+	  int cmp = value_cmp (XCAR (a), XCAR (b), maxdepth - 1);
+	  if (cmp != 0)
+	    return cmp;
+	  a = XCDR (a);
+	  if (!CONSP (a))
+	    {
+	      b = XCDR (b);
+	      goto tail_recurse;
+	    }
+	}
+      if (NILP (b))
+	return 1;
+      else
+	goto type_mismatch;
+      goto tail_recurse;
+
+    case Lisp_Vectorlike:
+      if (VECTORLIKEP (b))
+	{
+	  enum pvec_type ta = PSEUDOVECTOR_TYPE (XVECTOR (a));
+	  enum pvec_type tb = PSEUDOVECTOR_TYPE (XVECTOR (b));
+	  if (ta == tb)
+	    switch (ta)
+	      {
+	      case PVEC_NORMAL_VECTOR:
+	      case PVEC_RECORD:
+		{
+		  ptrdiff_t len_a = ASIZE (a);
+		  ptrdiff_t len_b = ASIZE (b);
+		  if (ta == PVEC_RECORD)
+		    {
+		      len_a &= PSEUDOVECTOR_SIZE_MASK;
+		      len_b &= PSEUDOVECTOR_SIZE_MASK;
+		    }
+		  ptrdiff_t len_min = min (len_a, len_b);
+		  for (ptrdiff_t i = 0; i < len_min; i++)
+		    {
+		      int cmp = value_cmp (AREF (a, i), AREF (b, i),
+					   maxdepth - 1);
+		      if (cmp != 0)
+			return cmp;
+		    }
+		  return len_a < len_b ? -1 : len_a > len_b;
+		}
+
+	      case PVEC_BOOL_VECTOR:
+		return bool_vector_cmp (a, b);
+
+	      case PVEC_MARKER:
+		{
+		  Lisp_Object buf_a = Fmarker_buffer (a);
+		  Lisp_Object buf_b = Fmarker_buffer (b);
+		  if (NILP (buf_a))
+		    return NILP (buf_b) ? 0 : -1;
+		  if (NILP (buf_b))
+		    return 1;
+		  int cmp = value_cmp (buf_a, buf_b, maxdepth - 1);
+		  if (cmp != 0)
+		    return cmp;
+		  ptrdiff_t pa = XMARKER (a)->charpos;
+		  ptrdiff_t pb = XMARKER (b)->charpos;
+		  return pa < pb ? -1 : pa > pb;
+		}
+
+#ifdef subprocesses
+	      case PVEC_PROCESS:
+		a = Fprocess_name (a);
+		b = Fprocess_name (b);
+		goto tail_recurse;
+#endif /* subprocesses */
+
+	      case PVEC_BUFFER:
+		{
+		  /* Killed buffers lack names and sort before those alive.  */
+		  Lisp_Object na = Fbuffer_name (a);
+		  Lisp_Object nb = Fbuffer_name (b);
+		  if (NILP (na))
+		    return NILP (nb) ? 0 : -1;
+		  if (NILP (nb))
+		    return 1;
+		  a = na;
+		  b = nb;
+		  goto tail_recurse;
+		}
+
+	      case PVEC_BIGNUM:
+		return mpz_cmp (*xbignum_val (a), *xbignum_val (b));
+
+	      case PVEC_SYMBOL_WITH_POS:
+		/* Compare by name, enabled or not.  */
+		a = XSYMBOL_WITH_POS_SYM (a);
+		b = XSYMBOL_WITH_POS_SYM (b);
+		goto tail_recurse;
+
+	      default:
+		/* Treat other types as unordered.  */
+		return 0;
+	      }
+	}
+      else if (BIGNUMP (a))
+	return -value_cmp (b, a, maxdepth);
+      else if (SYMBOL_WITH_POS_P (a) && symbols_with_pos_enabled)
+	{
+	  a = XSYMBOL_WITH_POS_SYM (a);
+	  goto tail_recurse;
+	}
+
+      goto type_mismatch;
+
+    case Lisp_Float:
+      {
+	double fa = XFLOAT_DATA (a);
+	if (FLOATP (b))
+	  return fa < XFLOAT_DATA (b) ? -1 : fa > XFLOAT_DATA (b);
+	if (FIXNUMP (b))
+	  return fa < XFIXNUM (b) ? -1 : fa > XFIXNUM (b);
+	if (BIGNUMP (b))
+	  {
+	    if (isnan (fa))
+	      return 0;
+	    return -mpz_cmp_d (*xbignum_val (b), fa);
+	  }
+      }
+      goto type_mismatch;
+
+    default:
+      eassume (0);
+    }
+ type_mismatch:
+  xsignal2 (Qtype_mismatch, a, b);
+}
+
+DEFUN ("value<", Fvaluelt, Svaluelt, 2, 2, 0,
+       doc: /* Return non-nil if A precedes B in standard value order.
+A and B must have the same basic type.
+Numbers are compared with `<'.
+Strings and symbols are compared with `string-lessp'.
+Lists, vectors, bool-vectors and records are compared lexicographically.
+Markers are compared lexicographically by buffer and position.
+Buffers and processes are compared by name.
+Other types are considered unordered and the return value will be `nil'.  */)
+  (Lisp_Object a, Lisp_Object b)
+{
+  int maxdepth = 200;		  /* FIXME: arbitrary value */
+  return value_cmp (a, b, maxdepth) < 0 ? Qt : Qnil;
+}
+
 
 
 DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
@@ -3049,7 +3349,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 	  tail = XCDR (tail);
 	}
     }
-  else if (VECTORP (seq) || COMPILEDP (seq))
+  else if (VECTORP (seq) || CLOSUREP (seq))
     {
       for (ptrdiff_t i = 0; i < leni; i++)
 	{
@@ -5215,7 +5515,7 @@ sxhash_obj (Lisp_Object obj, int depth)
     case Lisp_Vectorlike:
       {
 	enum pvec_type pvec_type = PSEUDOVECTOR_TYPE (XVECTOR (obj));
-	if (! (PVEC_NORMAL_VECTOR < pvec_type && pvec_type < PVEC_COMPILED))
+	if (! (PVEC_NORMAL_VECTOR < pvec_type && pvec_type < PVEC_CLOSURE))
 	  {
 	    /* According to the CL HyperSpec, two arrays are equal only if
 	       they are 'eq', except for strings and bit-vectors.  In
@@ -6596,6 +6896,7 @@ For best results this should end in a space.  */);
   defsubr (&Seql);
   defsubr (&Sequal);
   defsubr (&Sequal_including_properties);
+  defsubr (&Svaluelt);
   defsubr (&Sfillarray);
   defsubr (&Sclear_string);
   defsubr (&Snconc);
@@ -6629,4 +6930,10 @@ For best results this should end in a space.  */);
   DEFSYM (Qfrom__tty_menu_p, "from--tty-menu-p");
   DEFSYM (Qyes_or_no_p, "yes-or-no-p");
   DEFSYM (Qy_or_n_p, "y-or-n-p");
+
+  DEFSYM (QCkey, ":key");
+  DEFSYM (QClessp, ":lessp");
+  DEFSYM (QCin_place, ":in-place");
+  DEFSYM (QCreverse, ":reverse");
+  DEFSYM (Qvaluelt, "value<");
 }

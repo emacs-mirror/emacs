@@ -451,7 +451,8 @@ This function accepts any number of arguments in ARGUMENTS.
 Also see `always'."
   ;; Not declared `side-effect-free' because we don't want calls to it
   ;; elided; see `byte-compile-ignore'.
-  (declare (pure t) (completion ignore))
+  (declare (ftype (function (&rest t) null))
+           (pure t) (completion ignore))
   (interactive)
   nil)
 
@@ -480,7 +481,8 @@ for the sake of consistency.
 
 To alter the look of the displayed error messages, you can use
 the `command-error-function' variable."
-  (declare (advertised-calling-convention (string &rest args) "23.1"))
+  (declare (ftype (function (string &rest t) nil))
+           (advertised-calling-convention (string &rest args) "23.1"))
   (signal 'error (list (apply #'format-message args))))
 
 (defun user-error (format &rest args)
@@ -545,19 +547,22 @@ was called."
   "Return t if NUMBER is zero."
   ;; Used to be in C, but it's pointless since (= 0 n) is faster anyway because
   ;; = has a byte-code.
-  (declare (pure t) (side-effect-free t)
+  (declare (ftype (function (number) boolean))
+           (pure t) (side-effect-free t)
            (compiler-macro (lambda (_) `(= 0 ,number))))
   (= 0 number))
 
 (defun fixnump (object)
   "Return t if OBJECT is a fixnum."
-  (declare (side-effect-free error-free))
+  (declare (ftype (function (t) boolean))
+           (side-effect-free error-free))
   (and (integerp object)
        (<= most-negative-fixnum object most-positive-fixnum)))
 
 (defun bignump (object)
   "Return t if OBJECT is a bignum."
-  (declare (side-effect-free error-free))
+  (declare (ftype (function (t) boolean))
+           (side-effect-free error-free))
   (and (integerp object) (not (fixnump object))))
 
 (defun lsh (value count)
@@ -570,7 +575,8 @@ Most uses of this function turn out to be mistakes.  We recommend
 to use `ash' instead, unless COUNT could ever be negative, and
 if, when COUNT is negative, your program really needs the special
 treatment of negative COUNT provided by this function."
-  (declare (compiler-macro
+  (declare (ftype (function (integer integer) integer))
+           (compiler-macro
             (lambda (form)
               (macroexp-warn-and-return
                (format-message "avoid `lsh'; use `ash' instead")
@@ -748,7 +754,8 @@ treatment of negative COUNT provided by this function."
 If LIST is nil, return nil.
 If N is non-nil, return the Nth-to-last link of LIST.
 If N is bigger than the length of LIST, return LIST."
-  (declare (pure t) (side-effect-free t))    ; pure up to mutation
+  (declare (ftype (function (list &optional integer) list))
+           (pure t) (side-effect-free t))    ; pure up to mutation
   (if n
       (and (>= n 0)
            (let ((m (safe-length list)))
@@ -1585,7 +1592,8 @@ See also `current-global-map'.")
 
 (defun eventp (object)
   "Return non-nil if OBJECT is an input event or event object."
-  (declare (pure t) (side-effect-free error-free))
+  (declare (ftype (function (t) boolean))
+           (pure t) (side-effect-free error-free))
   (or (integerp object)
       (and (if (consp object)
                (setq object (car object))
@@ -1652,7 +1660,8 @@ in the current Emacs session, then this function may return nil."
 
 (defsubst mouse-movement-p (object)
   "Return non-nil if OBJECT is a mouse movement event."
-  (declare (side-effect-free error-free))
+  (declare (ftype (function (t) boolean))
+           (side-effect-free error-free))
   (eq (car-safe object) 'mouse-movement))
 
 (defun mouse-event-p (object)
@@ -1961,7 +1970,8 @@ be a list of the form returned by `event-start' and `event-end'."
 
 (defun log10 (x)
   "Return (log X 10), the log base 10 of X."
-  (declare (side-effect-free t) (obsolete log "24.4"))
+  (declare (ftype (function (number) float))
+           (side-effect-free t) (obsolete log "24.4"))
   (log x 10))
 
 (set-advertised-calling-convention
@@ -2036,6 +2046,7 @@ instead; it will indirectly limit the specpdl stack size as well.")
 
 ;;;; Alternate names for functions - these are not being phased out.
 
+(defalias 'drop #'nthcdr)
 (defalias 'send-string #'process-send-string)
 (defalias 'send-region #'process-send-region)
 (defalias 'string= #'string-equal)
@@ -2270,7 +2281,9 @@ all symbols are bound before any of the VALUEFORMs are evalled."
     (let ((nbody (if (null binders)
                      (macroexp-progn body)
                    `(let ,(mapcar #'car binders)
-                      ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
+                      ,@(mapcan (lambda (binder)
+                                  (and (cdr binder) (list `(setq ,@binder))))
+                                binders)
                       ,@body))))
       (cond
        ;; All bindings are recursive.
@@ -3244,7 +3257,8 @@ It can be retrieved with `(process-get PROCESS PROPNAME)'."
 
 (defun memory-limit ()
   "Return an estimate of Emacs virtual memory usage, divided by 1024."
-  (declare (side-effect-free error-free))
+  (declare (ftype (function () integer))
+           (side-effect-free error-free))
   (let ((default-directory temporary-file-directory))
     (or (cdr (assq 'vsize (process-attributes (emacs-pid)))) 0)))
 
@@ -3380,84 +3394,6 @@ with Emacs.  Do not call it directly in your own packages."
                 ;; down events.  However, we want them here.
                 t)
     (read-event)))
-
-(defvar read-passwd-map
-  ;; BEWARE: `defconst' would purecopy it, breaking the sharing with
-  ;; minibuffer-local-map along the way!
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\C-u" #'delete-minibuffer-contents) ;bug#12570
-    (define-key map "\t" #'read-passwd-toggle-visibility)
-    map)
-  "Keymap used while reading passwords.")
-
-(defvar read-passwd--hide-password t)
-
-(defun read-passwd--hide-password ()
-  "Make password in minibuffer hidden or visible."
-  (let ((beg (minibuffer-prompt-end)))
-    (dotimes (i (1+ (- (buffer-size) beg)))
-      (if read-passwd--hide-password
-          (put-text-property
-           (+ i beg) (+ 1 i beg) 'display (string (or read-hide-char ?*)))
-        (remove-list-of-text-properties (+ i beg) (+ 1 i beg) '(display)))
-      (put-text-property
-       (+ i beg) (+ 1 i beg)
-       'help-echo "C-u: Clear password\nTAB: Toggle password visibility"))))
-
-(defun read-passwd (prompt &optional confirm default)
-  "Read a password, prompting with PROMPT, and return it.
-If optional CONFIRM is non-nil, read the password twice to make sure.
-Optional DEFAULT is a default password to use instead of empty input.
-
-This function echoes `*' for each character that the user types.
-You could let-bind `read-hide-char' to another hiding character, though.
-
-Once the caller uses the password, it can erase the password
-by doing (clear-string STRING)."
-  (if confirm
-      (let (success)
-        (while (not success)
-          (let ((first (read-passwd prompt nil default))
-                (second (read-passwd "Confirm password: " nil default)))
-            (if (equal first second)
-                (progn
-                  (and (arrayp second) (not (eq first second)) (clear-string second))
-                  (setq success first))
-              (and (arrayp first) (clear-string first))
-              (and (arrayp second) (clear-string second))
-              (message "Password not repeated accurately; please start over")
-              (sit-for 1))))
-        success)
-    (let (minibuf)
-      (minibuffer-with-setup-hook
-          (lambda ()
-            (setq minibuf (current-buffer))
-            ;; Turn off electricity.
-            (setq-local post-self-insert-hook nil)
-            (setq-local buffer-undo-list t)
-            (setq-local select-active-regions nil)
-            (use-local-map read-passwd-map)
-            (setq-local inhibit-modification-hooks nil) ;bug#15501.
-	    (setq-local show-paren-mode nil)		;bug#16091.
-            (setq-local inhibit--record-char t)
-            (read-passwd-mode 1)
-            (add-hook 'post-command-hook #'read-passwd--hide-password nil t))
-        (unwind-protect
-            (let ((enable-recursive-minibuffers t)
-		  (read-hide-char (or read-hide-char ?*)))
-              (read-string prompt nil t default)) ; t = "no history"
-          (when (buffer-live-p minibuf)
-            (with-current-buffer minibuf
-              (read-passwd-mode -1)
-              ;; Not sure why but it seems that there might be cases where the
-              ;; minibuffer is not always properly reset later on, so undo
-              ;; whatever we've done here (bug#11392).
-              (remove-hook 'after-change-functions
-                           #'read-passwd--hide-password 'local)
-              (kill-local-variable 'post-self-insert-hook)
-              ;; And of course, don't keep the sensitive data around.
-              (erase-buffer))))))))
 
 (defvar read-number-history nil
   "The default history for the `read-number' function.")
@@ -3866,10 +3802,6 @@ confusing to some users.")
                                                      ; connected.
                from--tty-menu-p)            ; invoked via TTY menu
            use-dialog-box)))
-
-;; Actually in textconv.c.
-(defvar overriding-text-conversion-style)
-(declare-function set-text-conversion-style "textconv.c")
 
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.
@@ -4850,7 +4782,14 @@ t (mix it with ordinary output), or a file name string.
 If BUFFER is 0, `call-shell-region' returns immediately with value nil.
 Otherwise it waits for COMMAND to terminate
 and returns a numeric exit status or a signal description string.
-If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
+
+If COMMAND names a shell (e.g., via `shell-file-name'), keep in mind
+that behavior of various shells when commands are piped to their
+standard input is shell- and system-dependent, and thus non-portable.
+The differences are especially prominent when the region includes
+more than one line, i.e. when piping to a shell commands with embedded
+newlines."
   (call-process-region start end
                        shell-file-name delete buffer nil
                        shell-command-switch command))
@@ -5758,13 +5697,25 @@ The SEPARATOR regexp defaults to \"\\s-+\"."
 (defun subst-char-in-string (fromchar tochar string &optional inplace)
   "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
 Unless optional argument INPLACE is non-nil, return a new string."
-  (let ((i (length string))
-	(newstr (if inplace string (copy-sequence string))))
-    (while (> i 0)
-      (setq i (1- i))
-      (if (eq (aref newstr i) fromchar)
-	  (aset newstr i tochar)))
-    newstr))
+  (if (and (not inplace)
+           (if (multibyte-string-p string)
+               (> (max fromchar tochar) 127)
+             (> tochar 255)))
+      ;; Avoid quadratic behaviour from resizing replacement.
+      (let ((res (string-replace (string fromchar) (string tochar) string)))
+        (unless (eq res string)
+          ;; Mend properties broken by the replacement.
+          ;; Not fast, but this case never was.
+          (dolist (p (object-intervals string))
+            (set-text-properties (nth 0 p) (nth 1 p) (nth 2 p) res)))
+        res)
+    (let ((i (length string))
+	  (newstr (if inplace string (copy-sequence string))))
+      (while (> i 0)
+        (setq i (1- i))
+        (if (eq (aref newstr i) fromchar)
+	    (aset newstr i tochar)))
+      newstr)))
 
 (defun string-replace (from-string to-string in-string)
   "Replace FROM-STRING with TO-STRING in IN-STRING each time it occurs."
@@ -6548,7 +6499,8 @@ To test whether a function can be called interactively, use
 `commandp'."
   ;; Kept around for now.  See discussion at:
   ;; https://lists.gnu.org/r/emacs-devel/2020-08/msg00564.html
-  (declare (obsolete called-interactively-p "23.2")
+  (declare (ftype (function () boolean))
+           (obsolete called-interactively-p "23.2")
            (side-effect-free error-free))
   (called-interactively-p 'interactive))
 
@@ -7342,9 +7294,8 @@ sentence (see Info node `(elisp) Documentation Tips')."
   (internal--fill-string-single-line (apply #'format string objects)))
 
 (defun json-available-p ()
-  "Return non-nil if Emacs has libjansson support."
-  (and (fboundp 'json--available-p)
-       (json--available-p)))
+  "Return non-nil if Emacs has native JSON support."
+  t)
 
 (defun ensure-list (object)
   "Return OBJECT as a list.
@@ -7472,6 +7423,9 @@ CONDITION is either:
   * `major-mode': the buffer matches if the buffer's major mode
     is eq to the cons-cell's cdr.  Prefer using `derived-mode'
     instead when both can work.
+  * `category': the buffer matches a category as a symbol if
+    the caller of `display-buffer' provides `(category . symbol)'
+    in its action argument.
   * `not': the cadr is interpreted as a negation of a condition.
   * `and': the cdr is a list of recursive conditions, that all have
     to be met.
@@ -7500,6 +7454,8 @@ CONDITION is either:
                               (push condition buffer-match-p--past-warnings))
                             (apply condition buffer-or-name
                                    (if args nil '(nil)))))))
+                      (`(category . ,category)
+                       (eq (alist-get 'category (cdar args)) category))
                       (`(major-mode . ,mode)
                        (eq
                         (buffer-local-value 'major-mode buffer)

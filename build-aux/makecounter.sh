@@ -36,6 +36,7 @@ cat > $1 <<EOF
 #define EXPORT __attribute__ ((visibility ("default")))
 #endif /* HAVE_ANDROID */
 
+extern int emacs_shortlisp_counter;
 #ifdef EXPORT
 EXPORT
 #endif /* EXPORT */

@@ -1,3 +1,6 @@
+# std-gnu11.m4
+# serial 1
+
 # Prefer GNU C11 and C++11 to earlier versions.  -*- coding: utf-8 -*-
 
 # This implementation is taken from GNU Autoconf lib/autoconf/c.m4

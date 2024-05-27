@@ -931,8 +931,8 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
       bset_local_minor_modes (b, Qnil);
       bset_auto_save_file_name (b, Qnil);
       set_buffer_internal_1 (b);
-      Fset (intern ("buffer-save-without-query"), Qnil);
-      Fset (intern ("buffer-file-number"), Qnil);
+      Fset (Qbuffer_save_without_query, Qnil);
+      Fset (Qbuffer_file_number, Qnil);
       if (!NILP (Flocal_variable_p (Qbuffer_stale_function, base_buffer)))
 	Fkill_local_variable (Qbuffer_stale_function);
       /* Cloned buffers need extra setup, to do things such as deep
@@ -1477,7 +1477,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
   }
 
   tem = buffer_local_variables_1 (buf, PER_BUFFER_VAR_OFFSET (undo_list),
-				  intern ("buffer-undo-list"));
+				  Qbuffer_undo_list);
   if (!NILP (tem))
     result = Fcons (tem, result);
 
@@ -1704,11 +1704,11 @@ This does not change the name of the visited file (if any).  */)
   Fsetcar (Frassq (buf, Vbuffer_alist), newname);
   if (NILP (BVAR (current_buffer, filename))
       && !NILP (BVAR (current_buffer, auto_save_file_name)))
-    call0 (intern ("rename-auto-save-file"));
+    call0 (Qrename_auto_save_file);
 
   run_buffer_list_update_hook (current_buffer);
 
-  call2 (intern ("uniquify--rename-buffer-advice"),
+  call2 (Quniquify__rename_buffer_advice,
          requestedname, unique);
 
   /* Refetch since that last call may have done GC.  */
@@ -1956,7 +1956,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       {
 	tem = do_yes_or_no_p (build_string ("Delete auto-save file? "));
 	if (!NILP (tem))
-	  call0 (intern ("delete-auto-save-file-if-necessary"));
+	  call0 (Qdelete_auto_save_file_if_necessary);
       }
 
     /* If the hooks have killed the buffer, exit now.  */
@@ -2251,7 +2251,7 @@ the current buffer's major mode.  */)
     error ("Attempt to set major mode for a dead buffer");
 
   if (strcmp (SSDATA (BVAR (XBUFFER (buffer), name)), "*scratch*") == 0)
-    function = find_symbol_value (intern ("initial-major-mode"));
+    function = find_symbol_value (Qinitial_major_mode);
   else
     {
       function = BVAR (&buffer_defaults, major_mode);
@@ -2936,7 +2936,7 @@ current buffer is cleared.  */)
       /* Represent all the above changes by a special undo entry.  */
       bset_undo_list (current_buffer,
 		      Fcons (list3 (Qapply,
-				    intern ("set-buffer-multibyte"),
+				    Qset_buffer_multibyte,
 				    NILP (flag) ? Qt : Qnil),
 			     old_undo));
     }
@@ -5900,10 +5900,20 @@ Use Custom to set this variable and update the display.  */);
 						     text_conversion_style),
 		     Qnil,
     doc: /* How the on screen keyboard's input method should insert in this buffer.
-When nil, the input method will be disabled and an ordinary keyboard
+
+If nil, the input method will be disabled and an ordinary keyboard
 will be displayed in its place.
-When the symbol `action', the input method will insert text directly, but
-will send `return' key events instead of inserting new line characters.
+
+If the value is the symbol `action', the input method will insert text
+directly, but will send `return' key events instead of inserting new
+line characters.
+
+If the value is the symbol `password', an input method capable of ASCII
+input will be enabled, and will not save the entered text where it will
+be retrieved for text suggestions or other features not suitable for
+handling sensitive information, in addition to reporting `return' as
+when `action'.
+
 Any other value means that the input method will insert text directly.
 
 If you need to make non-buffer local changes to this variable, use
@@ -5911,7 +5921,7 @@ If you need to make non-buffer local changes to this variable, use
 
 This variable does not take immediate effect when set; rather, it
 takes effect upon the next redisplay after the selected window or
-buffer changes.  */);
+its buffer changes.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.
@@ -6102,4 +6112,13 @@ There is no reason to change that value except for debugging purposes.  */);
   DEFSYM (Qbuffer_stale_function, "buffer-stale-function");
 
   Fput (intern_c_string ("erase-buffer"), Qdisabled, Qt);
+
+  DEFSYM (Qbuffer_save_without_query, "buffer-save-without-query");
+  DEFSYM (Qbuffer_file_number, "buffer-file-number");
+  DEFSYM (Qbuffer_undo_list, "buffer-undo-list");
+  DEFSYM (Qrename_auto_save_file, "rename-auto-save-file");
+  DEFSYM (Quniquify__rename_buffer_advice, "uniquify--rename-buffer-advice");
+  DEFSYM (Qdelete_auto_save_file_if_necessary, "delete-auto-save-file-if-necessary");
+  DEFSYM (Qinitial_major_mode, "initial-major-mode");
+  DEFSYM (Qset_buffer_multibyte, "set-buffer-multibyte");
 }

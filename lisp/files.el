@@ -698,6 +698,14 @@ Also see the `permanently-enabled-local-variables' and
 Some modes may wish to set this to nil to prevent directory-local
 settings being applied, but still respect file-local ones.")
 
+(defvar-local untrusted-content nil
+  "Non-nil means that current buffer originated from an untrusted source.
+Email clients and some other modes may set this non-nil to mark the
+buffer contents as untrusted.
+
+This variable might be subject to change without notice.")
+(put 'untrusted-content 'permanent-local t)
+
 ;; This is an odd variable IMO.
 ;; You might wonder why it is needed, when we could just do:
 ;; (setq-local enable-local-variables nil)
@@ -854,6 +862,7 @@ GNU and Unix systems).  Substitute environment variables into the
 resulting list of directory names.  For an empty path element (i.e.,
 a leading or trailing separator, or two adjacent separators), return
 nil (meaning `default-directory') as the associated list element."
+  (declare (ftype (function (string) list)))
   (when (stringp search-path)
     (let ((spath (substitute-env-vars search-path))
           (double-slash-special-p
@@ -1496,27 +1505,28 @@ containing it, until no links are left at any level.
 			(new (file-name-as-directory (file-truename dirfile counter prev-dirs))))
 		    (setcar prev-dirs (cons (cons old new) (car prev-dirs)))
 		    (setq dir new))))
-	    (if (equal ".." (file-name-nondirectory filename))
-		(setq filename
-		      (directory-file-name (file-name-directory (directory-file-name dir)))
-		      done t)
-	      (if (equal "." (file-name-nondirectory filename))
-		  (setq filename (directory-file-name dir)
-			done t)
-		;; Put it back on the file name.
-		(setq filename (concat dir (file-name-nondirectory filename)))
-		;; Is the file name the name of a link?
-		(setq target (file-symlink-p filename))
-		(if target
-		    ;; Yes => chase that link, then start all over
-		    ;; since the link may point to a directory name that uses links.
-		    ;; We can't safely use expand-file-name here
-		    ;; since target might look like foo/../bar where foo
-		    ;; is itself a link.  Instead, we handle . and .. above.
-		    (setq filename (files--splice-dirname-file dir target)
-			  done nil)
-		  ;; No, we are done!
-		  (setq done t))))))))
+            (let ((filename-no-dir (file-name-nondirectory filename)))
+	      (if (equal ".." filename-no-dir)
+		  (setq filename
+		        (directory-file-name (file-name-directory (directory-file-name dir)))
+		        done t)
+	        (if (equal "." filename-no-dir)
+		    (setq filename (directory-file-name dir)
+			  done t)
+		  ;; Put it back on the file name.
+		  (setq filename (concat dir filename-no-dir))
+		  ;; Is the file name the name of a link?
+		  (setq target (file-symlink-p filename))
+		  (if target
+		      ;; Yes => chase that link, then start all over
+		      ;; since the link may point to a directory name that uses links.
+		      ;; We can't safely use expand-file-name here
+		      ;; since target might look like foo/../bar where foo
+		      ;; is itself a link.  Instead, we handle . and .. above.
+		      (setq filename (files--splice-dirname-file dir target)
+			    done nil)
+		    ;; No, we are done!
+		    (setq done t)))))))))
     filename))
 
 (defun file-chase-links (filename &optional limit)
@@ -2105,6 +2115,15 @@ killed."
 	(rename-buffer oname)))
     (unless (eq (current-buffer) obuf)
       (with-current-buffer obuf
+	;; Restore original buffer's file names so they can be still
+	;; used when referencing the now defunct buffer (Bug#68235).
+	(setq buffer-file-name ofile)
+	(setq buffer-file-number onum)
+	(setq buffer-file-truename otrue)
+	(unless (get-buffer oname)
+	  ;; Restore original's buffer name so 'kill-buffer' can use it
+	  ;; to assign its last name (Bug#68235).
+	  (rename-buffer oname))
 	;; We already ran these; don't run them again.
 	(let (kill-buffer-query-functions kill-buffer-hook)
 	  (kill-buffer obuf))))))
@@ -8795,9 +8814,10 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
   ;; If `system-move-file-to-trash' is defined, use it.
   (cond ((fboundp 'system-move-file-to-trash)
 	 (system-move-file-to-trash filename))
-        (trash-directory
+        ((connection-local-value trash-directory)
 	 ;; If `trash-directory' is non-nil, move the file there.
-	 (let* ((trash-dir   (expand-file-name trash-directory))
+	 (let* ((trash-dir   (expand-file-name
+                              (connection-local-value trash-directory)))
 		(fn          (directory-file-name (expand-file-name filename)))
 		(new-fn      (concat (file-name-as-directory trash-dir)
 				     (file-name-nondirectory fn))))

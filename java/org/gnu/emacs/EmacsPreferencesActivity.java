@@ -57,7 +57,8 @@ public class EmacsPreferencesActivity extends PreferenceActivity
     intent = new Intent (this, EmacsActivity.class);
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
 		     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-    intent.putExtra ("org.gnu.emacs.STARTUP_ARGUMENT", "--quick");
+    intent.putExtra (EmacsActivity.EXTRA_STARTUP_ARGUMENTS,
+		     new String[] {"--quick", });
     startActivity (intent);
     System.exit (0);
   }
@@ -74,7 +75,8 @@ public class EmacsPreferencesActivity extends PreferenceActivity
     intent = new Intent (this, EmacsActivity.class);
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
 		     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-    intent.putExtra ("org.gnu.emacs.STARTUP_ARGUMENT", "--debug-init");
+    intent.putExtra (EmacsActivity.EXTRA_STARTUP_ARGUMENTS,
+		     new String[] {"--debug-init", });
     startActivity (intent);
     System.exit (0);
   }

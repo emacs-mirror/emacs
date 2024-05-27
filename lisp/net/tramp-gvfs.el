@@ -2245,10 +2245,10 @@ connection if a previous connection has died for some reason."
 	     (tramp-make-tramp-file-name vec 'noloc))))
 
 	(with-tramp-progress-reporter
-	    vec 3
-	    (if (tramp-string-empty-or-nil-p user)
-		(format "Opening connection for %s using %s" host method)
-	      (format "Opening connection for %s@%s using %s" user host method))
+	    vec 3 (format "Opening connection for %s%s using %s"
+			  (if (tramp-string-empty-or-nil-p user)
+			      "" (concat user "@"))
+			  host method)
 
 	  ;; Enable `auth-source'.
 	  (tramp-set-connection-property

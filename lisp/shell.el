@@ -606,6 +606,9 @@ Shell buffers.  It implements `shell-completion-execonly' for
 
 (defvar sh-shell-file)
 
+(declare-function w32-application-type "w32proc.c"
+                  (program) t)
+
 (define-derived-mode shell-mode comint-mode "Shell"
   "Major mode for interacting with an inferior shell.
 \\<shell-mode-map>
@@ -754,6 +757,11 @@ command."
 		  ((string-equal shell "ksh") "echo $PWD ~-")
 		  ;; Bypass any aliases.  TODO all shells could use this.
 		  ((string-equal shell "bash") "command dirs")
+		  ((and (string-equal shell "bash.exe")
+                        (eq system-type 'windows-nt)
+                        (eq (w32-application-type (executable-find "bash.exe"))
+                            'msys))
+                   "command pwd -W")
 		  ((string-equal shell "zsh") "dirs -l")
 		  (t "dirs")))
       ;; Bypass a bug in certain versions of bash.
@@ -915,7 +923,8 @@ Make the shell buffer the current buffer, and return it.
                  (current-buffer)))
   ;; The buffer's window must be correctly set when we call comint
   ;; (so that comint sets the COLUMNS env var properly).
-  (pop-to-buffer buffer display-comint-buffer-action)
+  (with-suppressed-warnings ((obsolete display-comint-buffer-action))
+    (pop-to-buffer buffer display-comint-buffer-action))
 
   (with-connection-local-variables
    (when file-name

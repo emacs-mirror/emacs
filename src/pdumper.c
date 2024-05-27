@@ -3050,7 +3050,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_2D583AC566
+#if CHECK_STRUCTS && !defined HASH_pvec_type_99104541E2
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
@@ -3069,7 +3069,7 @@ dump_vectorlike (struct dump_context *ctx,
       FALLTHROUGH;
     case PVEC_NORMAL_VECTOR:
     case PVEC_SYMBOL_WITH_POS:
-    case PVEC_COMPILED:
+    case PVEC_CLOSURE:
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
@@ -3368,7 +3368,7 @@ dump_sort_copied_objects (struct dump_context *ctx)
      file and the copy into Emacs in-order, where prefetch will be
      most effective.  */
   ctx->copied_queue =
-    Fsort (Fnreverse (ctx->copied_queue),
+    CALLN (Fsort, Fnreverse (ctx->copied_queue),
            Qdump_emacs_portable__sort_predicate_copied);
 }
 
@@ -3935,7 +3935,7 @@ drain_reloc_list (struct dump_context *ctx,
 {
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
-  Lisp_Object relocs = Fsort (Fnreverse (*reloc_list),
+  Lisp_Object relocs = CALLN (Fsort, Fnreverse (*reloc_list),
                               Qdump_emacs_portable__sort_predicate);
   *reloc_list = Qnil;
   dump_align_output (ctx, max (alignof (struct dump_reloc),
@@ -4057,7 +4057,7 @@ static void
 dump_do_fixups (struct dump_context *ctx)
 {
   dump_off saved_offset = ctx->offset;
-  Lisp_Object fixups = Fsort (Fnreverse (ctx->fixups),
+  Lisp_Object fixups = CALLN (Fsort, Fnreverse (ctx->fixups),
                               Qdump_emacs_portable__sort_predicate);
   Lisp_Object prev_fixup = Qnil;
   ctx->fixups = Qnil;
@@ -4156,7 +4156,7 @@ types.  */)
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
      and set up to work with X windows if appropriate.  */
-  Lisp_Object symbol = intern ("command-line-processed");
+  Lisp_Object symbol = Qcommand_line_processed;
   specbind (symbol, Qnil);
 
   CHECK_STRING (filename);

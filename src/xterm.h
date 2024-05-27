@@ -993,6 +993,8 @@ extern int popup_activated_flag;
 /* This is a chain of structures for all the X displays currently in use.  */
 extern struct x_display_info *x_display_list;
 
+extern struct x_display_info *x_dpyinfo (Display *)
+  ATTRIBUTE_RETURNS_NONNULL;
 extern struct x_display_info *x_display_info_for_display (Display *);
 extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
@@ -1725,6 +1727,7 @@ SELECTION_EVENT_DISPLAY (struct selection_input_event *ev)
 
 /* From xfns.c.  */
 
+extern frame_parm_handler x_frame_parm_handlers[];
 extern void x_free_gcs (struct frame *);
 extern void x_relative_mouse_position (struct frame *, int *, int *);
 extern void x_real_pos_and_offsets (struct frame *, int *, int *, int *,

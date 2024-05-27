@@ -845,10 +845,12 @@ comparing the subr with a much slower Lisp implementation."
   ;; Note: This doesn't work for list/vector structs since those types
   ;; are too difficult/unreliable to detect (so `cl-type-of' only says
   ;; it's a `cons' or a `vector').
-  (dolist (val (list -2 10 (expt 2 128) nil t 'car
+  (dolist (val (list -2 10 (expt 2 128) nil t 'car :car
                      (symbol-function 'car)
                      (symbol-function 'progn)
-                     (position-symbol 'car 7)))
+                     (eval '(lambda (x) (+ x 1)) t)
+                     (position-symbol 'car 7)
+                     (position-symbol :car 7)))
     (let* ((type (cl-type-of val))
            (class (cl-find-class type))
            (alltypes (cl--class-allparents class))
@@ -858,19 +860,19 @@ comparing the subr with a much slower Lisp implementation."
       (dolist (parent alltypes)
         (should (cl-typep val parent))
         (dolist (subtype (cl--class-children (cl-find-class parent)))
-          (unless (memq subtype alltypes)
-            (unless (memq subtype
-                          ;; FIXME: Some types don't have any associated
-                          ;; predicate,
-                          '( font-spec font-entity font-object
-                             finalizer condvar terminal
-                             native-comp-unit interpreted-function
-                             tree-sitter-compiled-query
-                             tree-sitter-node tree-sitter-parser
-                             ;; `functionp' also matches things of type
-                             ;; `symbol' and `cons'.
-                             function))
-              (should-not (cl-typep val subtype)))))))))
+          (when (and (not (memq subtype alltypes))
+                     (built-in-class-p (cl-find-class subtype))
+                     (not (memq subtype
+                                ;; FIXME: Some types don't have any associated
+                                ;; predicate,
+                                '( font-spec font-entity font-object
+                                   finalizer condvar terminal
+                                   native-comp-unit interpreted-function
+                                   tree-sitter-compiled-query
+                                   tree-sitter-node tree-sitter-parser))))
+            (cond
+             ((eq subtype 'function) (cl-functionp val))
+             (t (should-not (cl-typep val subtype))))))))))
 
 
 ;;; data-tests.el ends here

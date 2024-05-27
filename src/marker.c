@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 /* Work around GCC bug 113253.  */
-#if __GNUC__ == 13
+#if __GNUC__ == 13 && __GNUC_MINOR__ < 3
 # pragma GCC diagnostic ignored "-Wanalyzer-deref-before-check"
 #endif
 

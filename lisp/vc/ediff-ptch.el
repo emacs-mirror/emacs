@@ -721,10 +721,11 @@ optional argument, then use it."
 	     nil ; don't redisplay
 	     shell-command-switch   ; usually -c
 	     (format "%s %s %s %s"
-		     ediff-patch-program
+		     (shell-quote-argument ediff-patch-program)
 		     ediff-patch-options
 		     ediff-backup-specs
-		     (ediff--buffer-file-name buf-to-patch))
+                     (shell-quote-argument
+		      (ediff--buffer-file-name buf-to-patch)))
 	     ))
 
       ;; restore environment for gnu patch

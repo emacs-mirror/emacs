@@ -3663,6 +3663,16 @@ non-@code{nil} @code{help-echo-inhibit-substitution} property, then it
 is displayed as-is by @code{show-help-function}, without being passed
 through @code{substitute-command-keys}.
 
+@item left-fringe-help
+@itemx right-fringe-help
+@cindex help-echo text on fringes
+If any visible text of a screen line has the @code{left-fringe-help} or
+@code{right-fringe-help} text property whose value is a string, then
+that string will be displayed when the mouse pointer hovers over the
+corresponding line's fringe through @code{show-help-function}
+(@pxref{Help display}).  This is useful when used together with fringe
+cursors and bitmaps (@pxref{Fringes}).
+
 @item keymap
 @cindex keymap of character
 @kindex keymap @r{(text property)}
@@ -5752,10 +5762,10 @@ non-@code{nil}, indent the @acronym{HTML}/@acronym{XML} logically.
 @cindex JSON
 @cindex JavaScript Object Notation
 
-  When Emacs is compiled with @acronym{JSON} (@dfn{JavaScript Object
-Notation}) support, it provides several functions to convert
-between Lisp objects and JSON values.  Any JSON value can be converted
-to a Lisp object, but not vice versa.  Specifically:
+  The Emacs @acronym{JSON} (@dfn{JavaScript Object Notation}) support
+provides several functions to convert between Lisp objects and JSON
+values.  Any JSON value can be converted to a Lisp object, but not vice
+versa.  Specifically:
 
 @itemize
 @item
@@ -5789,12 +5799,6 @@ Note that @code{nil}, being both a valid alist and a valid plist,
 represents @code{@{@}}, the empty JSON object; not @code{null},
 @code{false}, or an empty array, all of which are different JSON
 values.
-
-@defun json-available-p
-This predicate returns non-@code{nil} if Emacs has been built with
-@acronym{JSON} support, and the library is available on the current
-system.
-@end defun
 
   If some Lisp object can't be represented in JSON, the serialization
 functions will signal an error of type @code{wrong-type-argument}.
@@ -5839,7 +5843,7 @@ keyword @code{false}.  It defaults to the symbol @code{:false}.
 @defun json-insert object &rest args
 This function inserts the JSON representation of @var{object} into the
 current buffer before point.  The argument @var{args} are interpreted
-as in @code{json-parse-string}.
+as in @code{json-serialize}.
 @end defun
 
 @defun json-parse-string string &rest args
@@ -6381,3 +6385,155 @@ hooks during a series of changes (typically for performance reasons),
 use @code{combine-change-calls} or @code{combine-after-change-calls}
 instead.
 @end defvar
+
+@menu
+* Tracking changes::       Keeping track of buffer modifications.
+@end menu
+
+@node Tracking changes
+@subsection Keeping track of buffer modifications
+@cindex track-changes
+@cindex change tracker
+
+Using @code{before-change-functions} and @code{after-change-functions}
+can be difficult in practice because of a number of pitfalls, such as
+the fact that the two calls are not always properly paired, or some
+calls may be missing, either because some Emacs primitives failed to
+properly pair them or because of incorrect use of
+@code{inhibit-modification-hooks}.  Furthermore,
+many restrictions apply to those hook functions, such as the fact that
+they basically should never modify the current buffer, nor use an
+operation that may block, and they proceed quickly because
+some commands may call these hooks a large number of times.
+
+The Track-Changes library fundamentally provides an alternative API,
+built on top of those hooks.  Compared to @code{after-change-functions},
+the first important difference is that, instead of providing the bounds
+of the change and the previous length, it provides the bounds of the
+change and the actual previous content of that region.  The need to
+extract information from the original contents of the buffer is one of
+the main reasons why some packages need to use both
+@code{before-change-functions} and @code{after-change-functions} and
+then try to match them up.
+
+The second difference is that it decouples the notification of a change
+from the act of processing it, and it automatically combines into
+a single change operation all the changes that occur between the first
+change and the actual processing.  This makes it natural and easy to
+process the changes at a larger granularity, such as once per command,
+and eliminates most of the restrictions that apply to the usual change
+hook functions, making it possible to use blocking operations or to
+modify the buffer.
+
+To start tracking changes, you have to call
+@code{track-changes-register}, passing it a @var{signal} function as
+argument.  This returns a tracker @var{id} which is used to identify
+your change tracker to the other functions of the library.
+When the buffer is modified, the library calls the @var{signal}
+function to inform you of that change and immediately starts
+accumulating subsequent changes into a single combined change.
+The @var{signal} function serves only to warn that a modification
+occurred but does not receive a description of the change.  Also the
+library will not call it again until after you retrieved the change.
+
+To retrieve changes, you need to call @code{track-changes-fetch}, which
+provides you with the bounds of the changes accumulated since the
+last call, as well as the previous content of that region.  It also
+``re-arms'' the @var{signal} function so that the library will call it
+again after the next buffer modification.
+
+@defun track-changes-register signal &key nobefore disjoint immediate
+This function creates a new @dfn{change tracker}.  Change trackers are kept
+abstract, so we refer to them as mere identities, and the function thus
+returns the tracker's @var{id}.
+
+@var{signal} is a function that the library will call to notify of
+a change.  It will sometimes call it with a single argument and
+sometimes with two.  Upon the first change to the buffer since this
+tracker last called @code{track-changes-fetch}, the library calls this
+@var{signal} function with a single argument holding the @var{id} of
+the tracker.
+
+By default, the call to the @var{signal} function does not happen
+immediately, but is instead postponed with a 0 seconds timer
+(@pxref{Timers}).  This is usually desired to make sure the @var{signal}
+function is not called too frequently and runs in a permissive context,
+freeing the client from performance concerns or worries about which
+operations might be problematic.  If a client wants to have more
+control, they can provide a non-@code{nil} value as the @var{immediate}
+argument in which case the library calls the @var{signal} function
+directly from @code{after-change-functions}.  Beware that it means that
+the @var{signal} function has to be careful not to modify the buffer or
+use operations that may block.
+
+If you're not interested in the actual previous content of the buffer,
+but are using this library only for its ability to combine many small
+changes into a larger one and to delay the processing to a more
+convenient time, you can specify a non-@code{nil} value for the
+@var{nobefore} argument.  In that case, @code{track-change-fetch}
+provides you only with the length of the previous content, just like
+@code{after-change-functions}.  It also allows the library to save
+some work.
+
+While you may like to accumulate many small changes into larger ones,
+you may not want to do that if the changes are too far apart.  If you
+specify a non-@code{nil} value for the @var{disjoint} argument, the library
+will let you know when a change is about to occur ``far'' from the
+currently pending ones by calling the @var{signal} function right away,
+passing it two arguments this time: the @var{id} of the tracker, and the
+number of characters that separates the upcoming change from the
+already pending changes.  This in itself does not prevent combining this
+new change with the previous ones, so if you think the upcoming change
+is indeed too far, you need to call @code{track-change-fetch}
+right away.
+Beware that when the @var{signal} function is called because of
+a disjoint change, this happens directly from
+@code{before-change-functions}, so the usual restrictions apply about
+modifying the buffer or using operations that may block.
+@end defun
+
+@defun track-changes-fetch id func
+This is the function that lets you find out what has changed in the
+buffer.  By providing the tracker @var{id} you let the library figure
+out which changes have already been seen by your tracker.  Instead of
+returning a description of the changes, @code{track-changes-fetch} calls
+the @var{func} function with that description in the form of
+3 arguments: @var{beg}, @var{end}, and @var{before}, where
+@code{@var{beg}..@var{end}} delimit the region that was modified and
+@var{before} describes the previous content of that region.
+Usually @var{before} is a string containing the previous text of the
+modified region, but if you specified a non-@code{nil} @var{nobefore} argument
+to @code{track-changes-register}, then it is replaced by the number of
+characters of that previous text.
+
+In case no changes occurred since the last call,
+@code{track-changes-fetch} simply does not call @var{func} and returns
+@code{nil}.  If changes did occur, it calls @var{func} and returns the value
+returned by @var{func}.  But note that @var{func} is called just once
+regardless of how many changes occurred: those are summarized into
+a single @var{beg}/@var{end}/@var{before} triplet.
+
+In some cases, the library is not properly notified of all changes,
+for example because of a bug in the low-level C code or because of an
+improper use of @code{inhibit-modification-hooks}.  When it detects such
+a problem, @var{func} receives a @code{@var{beg}..@var{end}} region
+which covers the whole buffer and the @var{before} argument is the
+symbol @code{error} to indicate that the library was unable to determine
+what was changed.
+
+Once @var{func} finishes, @code{track-changes-fetch} re-enables the
+@var{signal} function so that it will be called the next time a change
+occurs.  This is the reason why it calls @var{func} instead of returning
+a description: it lets you process the change without worrying about the
+risk that the @var{signal} function gets triggered in the middle of it,
+because the @var{signal} is re-enabled only after @var{func} finishes.
+@end defun
+
+@defun track-changes-unregister id
+This function tells the library that the tracker @var{id} does not need
+to know about buffer changes any more.  Most clients will never want to
+stop tracking changes, but for clients such as minor modes, it is
+important to call this function when the minor mode is disabled,
+otherwise the tracker will keep accumulating changes and consume more
+and more resources.
+@end defun

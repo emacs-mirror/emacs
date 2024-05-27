@@ -1,10 +1,11 @@
-# xattr.m4 - check for Extended Attributes (Linux)
+# xattr.m4
 # serial 7
+dnl Copyright (C) 2003-2024 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
 
-# Copyright (C) 2003-2024 Free Software Foundation, Inc.
-# This file is free software; the Free Software Foundation
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
+# Check for Extended Attributes (Linux)
 
 AC_DEFUN([gl_FUNC_XATTR],
 [

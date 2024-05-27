@@ -1,6 +1,6 @@
-/* Count the number of trailing 0 bits in a word.
+/* Inline functions for <byteswap.h>.
 
-   Copyright 2013-2024 Free Software Foundation, Inc.
+   Copyright 2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -17,5 +17,5 @@
 
 #include <config.h>
 
-#define COUNT_TRAILING_ZEROS_INLINE _GL_EXTERN_INLINE
-#include "count-trailing-zeros.h"
+#define _GL_BYTESWAP_INLINE _GL_EXTERN_INLINE
+#include <byteswap.h>

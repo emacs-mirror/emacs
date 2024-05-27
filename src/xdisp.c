@@ -3878,7 +3878,7 @@ init_from_display_pos (struct it *it, struct window *w, struct display_pos *pos)
   if (in_ellipses_for_invisible_text_p (pos, w))
     {
       --charpos;
-      bytepos = 0;
+      bytepos = BYTE_TO_CHAR (charpos);
     }
 
   /* Keep in mind: the call to reseat in init_iterator skips invisible
@@ -12053,8 +12053,8 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       bool newbuffer = NILP (Fget_buffer (Vmessages_buffer_name));
       Fset_buffer (Fget_buffer_create (Vmessages_buffer_name, Qnil));
       if (newbuffer
-	  && !NILP (Ffboundp (intern ("messages-buffer-mode"))))
-	call0 (intern ("messages-buffer-mode"));
+	  && !NILP (Ffboundp (Qmessages_buffer_mode)))
+	call0 (Qmessages_buffer_mode);
 
       bset_undo_list (current_buffer, Qt);
       bset_cache_long_scans (current_buffer, Qnil);
@@ -13195,8 +13195,6 @@ truncate_message_1 (void *a1, Lisp_Object a2)
   return false;
 }
 
-extern intptr_t garbage_collection_inhibited;
-
 /* Set the current message to STRING.  */
 
 static void
@@ -13379,8 +13377,10 @@ echo_area_display (bool update_frame_p)
   w = XWINDOW (mini_window);
   f = XFRAME (WINDOW_FRAME (w));
 
-  /* Don't display if frame is invisible or not yet initialized.  */
-  if (!FRAME_REDISPLAY_P (f) || !f->glyphs_initialized_p)
+  /* Don't display if frame is invisible or not yet initialized or
+     if redisplay is inhibited.  */
+  if (!FRAME_REDISPLAY_P (f) || !f->glyphs_initialized_p
+      || !NILP (Vinhibit_redisplay))
     return;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -16863,6 +16863,13 @@ redisplay_internal (void)
 
   redisplay_trace ("redisplay_internal %d\n", redisplaying_p);
 
+  /* I don't think this happens but let's be paranoid.  In particular,
+     this was observed happening when Emacs shuts down due to losing X
+     connection, in which case accessing SELECTED_FRAME and the frame
+     structure is likely to barf.  */
+  if (redisplaying_p)
+    return;
+
   /* No redisplay if running in batch mode or frame is not yet fully
      initialized, or redisplay is explicitly turned off by setting
      Vinhibit_redisplay.  */
@@ -16889,10 +16896,6 @@ redisplay_internal (void)
   if (popup_activated_p)
     return;
 #endif
-
-  /* I don't think this happens but let's be paranoid.  */
-  if (redisplaying_p)
-    return;
 
   /* Record a function that clears redisplaying_p
      when we leave this function.  */
@@ -17847,6 +17850,7 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
       if ((prev_point != w->last_point
 	   || prev_mark != w->last_mark)
 	  && FRAME_WINDOW_P (WINDOW_XFRAME (w))
+	  && !FRAME_TOOLTIP_P (WINDOW_XFRAME (w))
 	  && w == XWINDOW (WINDOW_XFRAME (w)->selected_window))
 	report_point_change (WINDOW_XFRAME (w), w, b);
 #endif /* HAVE_TEXT_CONVERSION */
@@ -18179,7 +18183,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	    --glyph;
 	  /* By default, in reversed rows we put the cursor on the
 	     rightmost (first in the reading order) glyph.  */
-	  for (x = 0, g = end + 1; g < glyph; g++)
+	  for (x = row->x, g = end + 1; g < glyph; g++)
 	    x += g->pixel_width;
 	  while (end < glyph
 		 && NILP ((end + 1)->object)
@@ -20202,7 +20206,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
       /* The vscroll should be preserved in this case, since
 	 `pixel-scroll-precision-mode' must continue working normally
 	 when a mini-window is resized.  (bug#55312) */
-      if (!w->preserve_vscroll_p || !window_frozen_p (w))
+      if (!w->preserve_vscroll_p && !window_frozen_p (w))
 	w->vscroll = 0;
 
       w->preserve_vscroll_p = false;
@@ -24412,6 +24416,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
     {
       it->method = GET_FROM_STRETCH;
       it->object = prop;
+      it->string_from_prefix_prop_p = true;
     }
 #ifdef HAVE_WINDOW_SYSTEM
   else if (IMAGEP (prop))
@@ -24419,6 +24424,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
       it->what = IT_IMAGE;
       it->image_id = lookup_image (it->f, prop, it->face_id);
       it->method = GET_FROM_IMAGE;
+      it->string_from_prefix_prop_p = true;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
   else
@@ -28857,7 +28863,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	Lisp_Object val = Qnil;
 
 	if (STRINGP (curdir))
-	  val = dsafe_call1 (intern ("file-remote-p"), curdir);
+	  val = dsafe_call1 (Qfile_remote_p, curdir);
 
 	val = unbind_to (count, val);
 
@@ -33612,7 +33618,9 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
     {
       if (w == XWINDOW (echo_area_window))
 	{
-	  if (EQ (BVAR (b, cursor_type), Qt) || NILP (BVAR (b, cursor_type)))
+	  if (!EQ (Qt, w->cursor_type))
+	      return get_specified_cursor_type (w->cursor_type, width);
+	  else if (EQ (BVAR (b, cursor_type), Qt) || NILP (BVAR (b, cursor_type)))
 	    {
 	      *width = FRAME_CURSOR_WIDTH (f);
 	      return FRAME_DESIRED_CURSOR (f);
@@ -33639,18 +33647,23 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
       non_selected = true;
     }
 
-  /* Never display a cursor in a window in which cursor-type is nil.  */
-  if (NILP (BVAR (b, cursor_type)))
-    return NO_CURSOR;
-
-  /* Get the normal cursor type for this window.  */
-  if (EQ (BVAR (b, cursor_type), Qt))
-    {
-      cursor_type = FRAME_DESIRED_CURSOR (f);
-      *width = FRAME_CURSOR_WIDTH (f);
-    }
+  if (!EQ (Qt, w->cursor_type))
+      cursor_type = get_specified_cursor_type (w->cursor_type, width);
   else
-    cursor_type = get_specified_cursor_type (BVAR (b, cursor_type), width);
+    {
+      /* Never display a cursor in a window in which cursor-type is nil.  */
+      if (NILP (BVAR (b, cursor_type)))
+	return NO_CURSOR;
+
+      /* Get the normal cursor type for this window.  */
+      if (EQ (BVAR (b, cursor_type), Qt))
+	{
+	  cursor_type = FRAME_DESIRED_CURSOR (f);
+	  *width = FRAME_CURSOR_WIDTH (f);
+	}
+      else
+	cursor_type = get_specified_cursor_type (BVAR (b, cursor_type), width);
+    }
 
   /* Use cursor-in-non-selected-windows instead
      for non-selected window or frame.  */
@@ -35373,15 +35386,15 @@ define_frame_cursor1 (struct frame *f, Emacs_Cursor cursor, Lisp_Object pointer)
 	cursor = FRAME_OUTPUT_DATA (f)->hand_cursor;
       else if (EQ (pointer, Qtext))
 	cursor = FRAME_OUTPUT_DATA (f)->text_cursor;
-      else if (EQ (pointer, intern ("hdrag")))
+      else if (EQ (pointer, Qhdrag))
 	cursor = FRAME_OUTPUT_DATA (f)->horizontal_drag_cursor;
-      else if (EQ (pointer, intern ("nhdrag")))
+      else if (EQ (pointer, Qnhdrag))
 	cursor = FRAME_OUTPUT_DATA (f)->vertical_drag_cursor;
 # ifdef HAVE_X_WINDOWS
-      else if (EQ (pointer, intern ("vdrag")))
+      else if (EQ (pointer, Qvdrag))
 	cursor = FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 # endif
-      else if (EQ (pointer, intern ("hourglass")))
+      else if (EQ (pointer, Qhourglass))
 	cursor = FRAME_OUTPUT_DATA (f)->hourglass_cursor;
       else if (EQ (pointer, Qmodeline))
 	cursor = FRAME_OUTPUT_DATA (f)->modeline_cursor;
@@ -35729,6 +35742,86 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
   define_frame_cursor1 (f, cursor, pointer);
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* Take proper action when mouse has moved to the window WINDOW, with
+   window-local x-position X and y-position Y.  This is only used for
+   displaying user-defined fringe indicator help-echo messages.  */
+
+static void
+note_fringe_highlight (struct frame *f, Lisp_Object window, int x, int y,
+		       enum window_part part)
+{
+  if (!NILP (help_echo_string) || !f->glyphs_initialized_p)
+    return;
+
+  /* When a menu is active, don't highlight because this looks odd.  */
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS) || defined (MSDOS) \
+  || defined (HAVE_ANDROID)
+  if (popup_activated ())
+    return;
+#endif /* HAVE_X_WINDOWS || HAVE_NS || MSDOS || HAVE_ANDROID */
+
+#if defined HAVE_HAIKU
+  if (popup_activated_p)
+    return;
+#endif /* HAVE_HAIKU */
+
+  /* Find a message to display through the help-echo mechanism whenever
+     the mouse hovers over a fringe indicator.  Both text properties and
+     overlays have to be checked.  */
+
+  /* Check the text property symbol to use.  */
+  Lisp_Object sym;
+  if (part == ON_LEFT_FRINGE)
+    sym = Qleft_fringe_help;
+  else
+    sym = Qright_fringe_help;
+
+  /* Translate windows coordinates into a vertical window position.  */
+  int hpos, vpos, area;
+  struct window *w = XWINDOW (window);
+  if (x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0, 0, &area) == NULL)
+    return;	/* not all glyph rows between 0 and Y are enabled */
+
+  /* Don't access the TEXT_AREA of a row that does not display text,
+     when the window is outdated, or when vpos overflows the current
+     matrix.  (bug#70385) */
+  if (!w->window_end_valid
+      || window_outdated (w)
+      || (vpos >= w->current_matrix->nrows)
+      || !MATRIX_ROW_DISPLAYS_TEXT_P (MATRIX_ROW (w->current_matrix,
+						  vpos)))
+    return;
+
+  /* Get to the first glyph of a text row based on the vertical position
+     of the fringe.  */
+  struct glyph *glyph = MATRIX_ROW_GLYPH_START (w->current_matrix, vpos);
+  int glyph_num = MATRIX_ROW_USED (w->current_matrix, vpos);
+
+  /* Check all glyphs while looking for fringe tooltips.  */
+
+  /* NOTE: iterating over glyphs can only find text properties coming
+     from visible text.  This means that zero-length overlays and
+     invisibile text are NOT inspected.  */
+  for (; glyph_num; glyph_num--, glyph++)
+    {
+      Lisp_Object pos = make_fixnum (glyph->charpos);
+      Lisp_Object help_echo = Qnil;
+
+      if (STRINGP (glyph->object) || BUFFERP (glyph->object))
+	help_echo = get_char_property_and_overlay (pos, sym,
+						   glyph->object, NULL);
+
+      if (STRINGP (help_echo))
+	{
+	  help_echo_string = help_echo;
+	  break;
+	}
+    }
+}
+
+#endif	/* HAVE_WINDOW_SYSTEM */
 
 /* EXPORT:
    Take proper action when the mouse has moved to position X, Y on
@@ -35957,8 +36050,12 @@ note_mouse_highlight (struct frame *f, int x, int y)
       }
     else
       cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
-  else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
-	   || part == ON_VERTICAL_SCROLL_BAR
+  else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
+    {
+      cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
+      note_fringe_highlight (f, window, x, y, part);
+    }
+  else if (part == ON_VERTICAL_SCROLL_BAR
 	   || part == ON_HORIZONTAL_SCROLL_BAR)
     cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
   else
@@ -38173,6 +38270,16 @@ The default value is zero, which disables this feature.
 The recommended non-zero value is between 100000 and 1000000,
 depending on your patience and the speed of your system.  */);
   max_redisplay_ticks = 0;
+
+  /* Called by decode_mode_spec.  */
+  DEFSYM (Qfile_remote_p, "file-remote-p");
+
+  /* Called or compared against by various functions.  */
+  DEFSYM (Qmessages_buffer_mode, "messages-buffer-mode");
+  DEFSYM (Qhdrag, "hdrag");
+  DEFSYM (Qnhdrag, "nhdrag");
+  DEFSYM (Qvdrag, "vdrag");
+  DEFSYM (Qhourglass, "hourglass");
 }
 
 

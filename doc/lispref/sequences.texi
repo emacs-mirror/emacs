@@ -350,127 +350,166 @@ encouraged to treat strings as immutable even when they are mutable.
 
 @end defun
 
-@defun sort sequence predicate
+@defun sort sequence &rest keyword-args
 @cindex stable sort
 @cindex sorting lists
 @cindex sorting vectors
-This function sorts @var{sequence} stably.  Note that this function doesn't work
-for all sequences; it may be used only for lists and vectors.  If @var{sequence}
-is a list, it is modified destructively.  This functions returns the sorted
-@var{sequence} and compares elements using @var{predicate}.  A stable sort is
-one in which elements with equal sort keys maintain their relative order before
-and after the sort.  Stability is important when successive sorts are used to
-order elements according to different criteria.
+This function sorts @var{sequence}, which must be a list or vector, and
+returns a sorted sequence of the same type.
+The sort is stable, which means that elements with equal sort keys maintain
+their relative order.  It takes the following optional keyword arguments:
 
-The argument @var{predicate} must be a function that accepts two
-arguments.  It is called with two elements of @var{sequence}.  To get an
-increasing order sort, the @var{predicate} should return non-@code{nil} if the
-first element is ``less'' than the second, or @code{nil} if not.
+@table @code
+@item :key @var{keyfunc}
+Use @var{keyfunc}, a function that takes a single element from
+@var{sequence} and returns its key value, to generate the keys used in
+comparison.  If this argument is absent or if @var{keyfunc} is
+@code{nil} then @code{identity} is assumed; that is, the elements
+themselves are used as sorting keys.
 
-The comparison function @var{predicate} must give reliable results for
-any given pair of arguments, at least within a single call to
-@code{sort}.  It must be @dfn{antisymmetric}; that is, if @var{a} is
-less than @var{b}, @var{b} must not be less than @var{a}.  It must be
-@dfn{transitive}---that is, if @var{a} is less than @var{b}, and @var{b}
-is less than @var{c}, then @var{a} must be less than @var{c}.  If you
-use a comparison function which does not meet these requirements, the
-result of @code{sort} is unpredictable.
+@item :lessp @var{predicate}
+Use @var{predicate} to order the keys.  @var{predicate} is a function
+that takes two sort keys as arguments and returns non-@code{nil} if the
+first should come before the second.  If this argument is absent or
+@var{predicate} is @code{nil}, then @code{value<} is used, which
+is applicable to many different Lisp types and generally sorts in
+ascending order (@pxref{definition of value<}, below).
 
-The destructive aspect of @code{sort} for lists is that it reuses the
-cons cells forming @var{sequence} by changing their contents, possibly
-rearranging them in a different order.  This means that the value of
-the input list is undefined after sorting; only the list returned by
-@code{sort} has a well-defined value.  Example:
+For consistency, any predicate must obey the following rules:
+@itemize @bullet
+@item
+It must be @dfn{antisymmetric}: it cannot both order @var{a} before
+@var{b} and @var{b} before @var{a}.
+@item
+It must be @dfn{transitive}: if it orders @var{a} before @var{b} and
+@var{b} before @var{c}, then it must also order @var{a} before @var{c}.
+@end itemize
 
-@example
-@group
-(setq nums (list 2 1 4 3 0))
-(sort nums #'<)
-     @result{} (0 1 2 3 4)
-     ; nums is unpredictable at this point
-@end group
-@end example
+@item :reverse @var{flag}
+If @var{flag} is non-@code{nil}, the sorting order is reversed.  With
+the default @code{:lessp} predicate this means sorting in descending order.
 
-Most often we store the result back into the variable that held the
-original list:
+@item :in-place @var{flag}
+If @var{flag} is non-@code{nil}, then @var{sequence} is sorted in-place
+(destructively) and returned.  If @code{nil}, or if this argument is not
+given, a sorted copy of the input is returned and @var{sequence} itself
+remains unmodified.  In-place sorting is slightly faster, but the
+original sequence is lost.
+@end table
 
-@example
-(setq nums (sort nums #'<))
-@end example
-
-If you wish to make a sorted copy without destroying the original,
-copy it first and then sort:
-
-@example
-@group
-(setq nums (list 2 1 4 3 0))
-(sort (copy-sequence nums) #'<)
-     @result{} (0 1 2 3 4)
-@end group
-@group
-nums
-     @result{} (2 1 4 3 0)
-@end group
-@end example
-
-For the better understanding of what stable sort is, consider the following
-vector example.  After sorting, all items whose @code{car} is 8 are grouped
-at the beginning of @code{vector}, but their relative order is preserved.
-All items whose @code{car} is 9 are grouped at the end of @code{vector},
-but their relative order is also preserved:
+If the default behaviour is not suitable for your needs, it is usually
+easier and faster to supply a new @code{:key} function than a different
+@code{:lessp} predicate.  For example, consider sorting these strings:
 
 @example
 @group
-(setq
-  vector
-  (vector '(8 . "xxx") '(9 . "aaa") '(8 . "bbb") '(9 . "zzz")
-          '(9 . "ppp") '(8 . "ttt") '(8 . "eee") '(9 . "fff")))
-     @result{} [(8 . "xxx") (9 . "aaa") (8 . "bbb") (9 . "zzz")
-         (9 . "ppp") (8 . "ttt") (8 . "eee") (9 . "fff")]
-@end group
-@group
-(sort vector (lambda (x y) (< (car x) (car y))))
-     @result{} [(8 . "xxx") (8 . "bbb") (8 . "ttt") (8 . "eee")
-         (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")]
+(setq numbers '("one" "two" "three" "four" "five" "six"))
+(sort numbers)
+     @result{} ("five" "four" "one" "six" "three" "two")
 @end group
 @end example
-@end defun
 
-Sometimes, computation of sort keys of list or vector elements is
-expensive, and therefore it is important to perform it the minimum
-number of times.  By contrast, computing the sort keys of elements
-inside the @var{predicate} function passed to @code{sort} will generally
-perform this computation each time @var{predicate} is called with some
-element.  If you can separate the computation of the sort key of an
-element into a function of its own, you can use the following sorting
-function, which guarantees that the key will be computed for each list
-or vector element exactly once.
+You can sort the strings by length instead by supplying a different key
+function:
 
-@cindex decorate-sort-undecorate
-@cindex Schwartzian transform
-@defun sort-on sequence predicate accessor
-This function stably sorts @var{sequence}, which can be a list, a
-vector, a bool-vector, or a string.  It sorts by comparing the sort
-keys of the elements using @var{predicate}.  The comparison function
-@var{predicate} accepts two arguments, the sort keys to compare, and
-should return non-@code{nil} if the element corresponding to the first
-key should sort before the element corresponding to the second key.  The
-function computes a sort key of each element by calling the
-@var{accessor} function on that element; it does so exactly once for
-each element of @var{sequence}.  The @var{accessor} function is called
-with a single argument, an element of @var{sequence}.
+@example
+@group
+(sort numbers :key #'length)
+     @result{} ("one" "two" "six" "four" "five" "three")
+@end group
+@end example
 
-This function implements what is known as @dfn{decorate-sort-undecorate}
-paradigm, or the Schwartzian transform.  It basically trades CPU for
-memory, creating a temporary list with the computed sort keys, then
-mapping @code{car} over the result of sorting that temporary list.
-Unlike with @code{sort}, the return value is always a new list; the
-original @var{sequence} is left intact.
+@noindent
+Note how strings of the same length keep their original order, thanks to
+the sorting stability.  Now suppose you want to sort by length, but use
+the string contents to break ties.  The easiest way is to specify a key
+function that transforms an element to a value that is sorted this way.
+Since @code{value<} orders compound objects (conses, lists,
+vectors and records) lexicographically, you could do:
+
+@example
+@group
+(sort numbers :key (lambda (x) (cons (length x) x)))
+     @result{} ("one" "six" "two" "five" "four" "three")
+@end group
+@end example
+
+@noindent
+because @code{(3 . "six")} is ordered before @code{(3 . "two")} and so on.
+
+For compatibility with previous versions of Emacs, the @code{sort}
+function can also be called using the fixed two-argument form:
+
+@example
+(@code{sort} @var{sequence} @var{predicate})
+@end example
+
+@noindent
+where @var{predicate} is the @code{:lessp} argument.  When using this
+form, sorting is always done in-place.
 @end defun
 
 @xref{Sorting}, for more functions that perform sorting.  See
 @code{documentation} in @ref{Accessing Documentation}, for a useful
 example of @code{sort}.
+
+@cindex comparing values
+@cindex standard sorting order
+@anchor{definition of value<}
+@defun value< a b
+This function returns non-@code{nil} if @var{a} comes before @var{b} in
+the standard sorting order; this means that it returns @code{nil} when
+@var{b} comes before @var{a}, or if they are equal or unordered.
+
+The arguments @var{a} and @var{b} must have the same type.
+Specifically:
+
+@itemize @bullet
+@item
+Numbers are compared using @code{<} (@pxref{definition of <}).
+@item
+Strings are compared using @code{string<} (@pxref{definition of
+string<}) and symbols are compared by comparing their names as strings.
+@item
+Conses, lists, vectors and records are compared lexicographically.  This
+means that the two sequences are compared element-wise from left to
+right until they differ, and the result is then that of @code{value<} on
+the first pair of differing elements.  If one sequence runs out of
+elements before the other, the shorter sequence comes before the longer.
+@item
+Markers are compared first by buffer, then by position.
+@item
+Buffers and processes are compared by comparing their names as strings.
+Dead buffers (whose name is @code{nil}) will compare before any live
+buffer.
+@item
+Other types are considered unordered and the return value will be
+@code{nil}.
+@end itemize
+
+Examples:
+@example
+(value< -4 3.5) @result{} t
+(value< "dog" "cat") @result{} nil
+(value< 'yip 'yip) @result{} nil
+(value< '(3 2) '(3 2 0)) @result{} t
+(value< [3 2 "a"] [3 2 "b"]) @result{} t
+@end example
+
+@noindent
+Note that @code{nil} is treated as either a symbol or an empty list,
+depending on what it is compared against:
+
+@example
+(value< nil '(0)) @result{} t
+(value< 'nib nil) @result{} t
+@end example
+
+@noindent
+There is no limit to the length of sequences (lists, vectors and so on)
+that can be compared, but @code{value<} may fail with an error if used
+to compare circular or deeply nested data structures.
+@end defun
 
 @cindex sequence functions in seq
 @cindex seq library
@@ -1544,7 +1583,7 @@ nonempty vector that is not @code{eq} to any existing vector.
 
 The @code{vconcat} function also allows byte-code function objects as
 arguments.  This is a special feature to make it easy to access the entire
-contents of a byte-code function object.  @xref{Byte-Code Objects}.
+contents of a byte-code function object.  @xref{Closure Objects}.
 
 For other concatenation functions, see @code{mapconcat} in @ref{Mapping
 Functions}, @code{concat} in @ref{Creating Strings}, and @code{append}

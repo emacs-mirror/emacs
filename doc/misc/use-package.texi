@@ -1639,8 +1639,12 @@ For example,
 would try -- by invoking @code{package-vc-install} -- to install the
 latest commit of the package @code{foo} from the specified remote.
 
-This can also be used for local packages, by combining it with the
-@code{:load-path} (@pxref{Load path}) keyword:
+@vindex use-package-vc-prefer-newest
+Alternatively, the @code{use-package-vc-prefer-newest} user option
+exists to always prefer the latest commit.
+
+The @code{:vc} keyword can also be used for local packages, by
+combining it with @code{:load-path} (@pxref{Load path}):
 
 @example
 @group

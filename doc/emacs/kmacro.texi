@@ -42,6 +42,8 @@ intelligent or general.  For such things, Lisp must be used.
 * Edit Keyboard Macro::      Editing keyboard macros.
 * Keyboard Macro Step-Edit:: Interactively executing and editing a keyboard
                                macro.
+* Kmacro Menu::              An interface for listing and editing
+                               keyboard macros and the keyboard macro ring.
 @end menu
 
 @node Basic Keyboard Macro
@@ -616,3 +618,163 @@ including the final @kbd{C-j}), and appends them at the end of the
 keyboard macro; it then terminates the step-editing and replaces the
 original keyboard macro with the edited macro.
 @end itemize
+
+@node Kmacro Menu
+@section Listing and Editing Keyboard Macros
+@cindex Kmacro Menu
+
+@cindex listing current keyboard macros
+@kindex M-x list-keyboard-macros @key{RET}
+@findex kmacro-menu
+@findex list-keyboard-macros
+  To display a list of existing keyboard macros, type @kbd{M-x
+list-keyboard-macros @key{RET}}.  This pops up the @dfn{Kmacro Menu} in
+a buffer named @file{*Keyboard Macro List*}.  Each line in the list
+shows one macro's position, counter value, counter format, that counter
+value using that format, and macro keys.  Here is an example of a macro
+list:
+
+@smallexample
+Position  Counter  Format  Formatted  Keys
+0               8  %02d    08         N : SPC <F3> RET
+1               0  %d      0          l o n g SPC p h r a s e
+@end smallexample
+
+@noindent
+The macros are listed with the current macro at the top in position
+number zero and the older macros in the order in which they are found in
+the keyboard macro ring (@pxref{Keyboard Macro Ring}).  Using the Kmacro
+Menu, you can change the order of the macros and change their counters,
+counter formats, and keys.  The Kmacro Menu is a read-only buffer, and
+can be changed only through the special commands described in this
+section.  After a command is run, the Kmacro Menu displays changes to
+reflect the new values of the macro properties and the macro ring.  You
+can use the usual cursor motion commands in this buffer, as well as
+special motion commands for navigating the table.  To view a list of the
+special commands, type @kbd{C-h m} or @kbd{?} (@code{describe-mode}) in
+the Kmacro Menu.
+
+  You can use the following commands to change a macro's properties:
+
+@table @kbd
+@item #
+@findex kmacro-menu-edit-position
+@kindex # @r{(Kmacro Menu)}
+Change the position of the macro on the current line
+(@pxref{Keyboard Macro Ring}).
+
+@item C-x C-t
+@findex kmacro-menu-transpose
+@kindex C-x C-t @r{(Kmacro Menu)}
+Move the macro on the current line to the line above, like in
+@code{transpose-lines}.
+
+@item c
+@findex kmacro-menu-edit-counter
+@kindex c @r{(Kmacro Menu)}
+Change the counter value of the macro on the current line
+(@pxref{Keyboard Macro Counter}).
+
+@item f
+@findex kmacro-menu-edit-format
+@kindex f @r{(Kmacro Menu)}
+Change the counter format of the macro on the current line.
+
+@item e
+@findex kmacro-menu-edit-keys
+@kindex e @r{(Kmacro Menu)}
+Change the keys of the macro on the current line using
+@code{edit-kbd-macro} (@pxref{Edit Keyboard Macro}).
+
+@item @key{RET}
+@findex kmacro-menu-edit-column
+@kindex @key{RET} @r{(Kmacro Menu)}
+Change the value in the current column of the macro on the current line
+using commands above.
+@end table
+
+  The following commands delete or duplicate macros in the list:
+
+@table @kbd
+@item d
+@findex kmacro-menu-flag-for-deletion
+@item d @r{(Kmacro Menu)}
+Flag the macro on the current line for deletion, then move point to the
+next line (@code{kmacro-menu-flag-for-deletion}).  The deletion flag is
+indicated by the character @samp{D} at the start of line.  The deletion
+occurs only when you type the @kbd{x} command (see below).
+
+  If the region is active, this command flags all of the macros in the
+region.
+
+@item x
+@findex kmacro-menu-do-flagged-delete
+@item x @r{(Kmacro Menu)}
+Delete the macros in the list that have been flagged for deletion
+(@code{kmacro-menu-do-flagged-delete}).
+
+@item m
+@findex kmacro-menu-mark
+@item m @r{(Kmacro Menu)}
+Mark the macro on the current line, then move point to the next line
+(@code{kmacro-menu-mark}).  Marked macros are indicated by the character
+@samp{*} at the start of line.  Marked macros can be operated on by the
+@kbd{C} and @kbd{D} commands (see below).
+
+  If the region is active, this command marks all of the macros in the
+region.
+
+@item C
+@findex kmacro-menu-do-copy
+@item C @r{(Kmacro Menu)}
+This command copies macros by duplicating them at their current
+positions in the list (@code{kmacro-menu-do-copy}).  For example,
+running this command on the macro at position number zero will insert a
+copy of that macro into position number one and move the remaining
+macros down.
+
+  If the region is active, this command duplicates the macros in the
+region.  Otherwise, if there are marked macros, this command duplicates
+the marked macros.  If there is no region nor are there marked macros,
+this command duplicates the macro on the current line.  In the first two
+cases, the command prompts for confirmation before duplication.
+
+@item D
+@findex kmacro-menu-do-delete
+@item D @r{(Kmacro Menu)}
+This command deletes macros, removing them from the ring
+(@code{kmacro-menu-do-delete}).  For example, running this command on
+the macro at position number zero will delete the current macro and then
+make the first macro in the macro ring (previously at position number
+one) the new current macro, popping it from the ring.
+
+  If the region is active, this command deletes the macros in the
+region.  Otherwise, if there are marked macros, this command deletes the
+marked macros.  If there is no region nor are there marked macros, this
+command deletes the macro on the current line.  In all cases, the
+command prompts for confirmation before deletion.
+
+  This command is an alternative to the @kbd{d} and @kbd{x} commands
+(see above).
+
+@item u
+@findex kmacro-menu-unmark
+@item u @r{(Kmacro Menu)}
+Unmark and unflag the macro on the current line, then move point down
+to the next line (@code{kmacro-menu-unmark}).  If there is an active
+region, this command unmarks and unflags all of the macros in the
+region.
+
+@item @key{DEL}
+@findex kmacro-menu-unmark-backward
+@item @key{DEL} @r{(Kmacro Menu)}
+Like the @kbd{u} command (see above), but move point up to the previous
+line when there is no active region
+(@code{kmacro-menu-unmark-backward}).
+
+@item U
+@findex kmacro-menu-unmark-all
+@item U @r{(Kmacro Menu)}
+Unmark and unflag all macros in the list
+(@code{kmacro-menu-unmark-all}).
+@end table

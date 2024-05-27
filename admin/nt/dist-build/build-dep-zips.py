@@ -32,7 +32,6 @@ EMACS_MAJOR_VERSION="28"
 PKG_REQ='''mingw-w64-x86_64-giflib
 mingw-w64-x86_64-gnutls
 mingw-w64-x86_64-harfbuzz
-mingw-w64-x86_64-jansson
 mingw-w64-x86_64-lcms2
 mingw-w64-x86_64-libjpeg-turbo
 mingw-w64-x86_64-libpng
@@ -44,7 +43,6 @@ mingw-w64-x86_64-xpm-nox'''.split()
 DLL_REQ='''libgif
 libgnutls
 libharfbuzz
-libjansson
 liblcms2
 libturbojpeg
 libpng

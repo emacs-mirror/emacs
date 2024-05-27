@@ -198,6 +198,9 @@ typedef android_pixmap Pixmap;
 #define GREEN16_FROM_ULONG(color)	(GREEN_FROM_ULONG (color) * 0x101)
 #define BLUE16_FROM_ULONG(color)	(BLUE_FROM_ULONG (color) * 0x101)
 
+/* DPYINFO->n_planes is unsuitable for this file, because it accepts
+   values that may not be supported for pixmap creation.  */
+#define n_planes n_image_planes
 #endif
 
 static void image_disable_image (struct frame *, struct image *);
@@ -419,7 +422,7 @@ x_bitmap_stipple (struct frame *f, Pixmap pixmap)
 #endif	/* USE_CAIRO */
 #endif
 
-#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI) || defined (HAVE_ANDROID)
 ptrdiff_t
 image_bitmap_pixmap (struct frame *f, ptrdiff_t id)
 {
@@ -763,7 +766,6 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   ptrdiff_t id, size;
   int fd, width, height, rc;
   char *contents, *data;
-  void *bitmap;
 
   if (!STRINGP (image_find_image_fd (file, &fd)))
     return -1;
@@ -954,10 +956,17 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 	}
     }
 
-  /* Search bitmap-file-path for the file, if appropriate.  */
-  if (openp (Vx_bitmap_file_path, file, Qnil, &found,
-	     make_fixnum (R_OK), false, false, NULL)
-      < 0)
+  /* Search bitmap-file-path for the file, if appropriate.  If no file
+     extension or directory is specified and no file by this name
+     exists, append the extension ".xbm" and retry.  */
+  if ((openp (Vx_bitmap_file_path, file, Qnil, &found,
+	      make_fixnum (R_OK), false, false, NULL) < 0)
+      && (NILP (Fequal (Ffile_name_nondirectory (file), file))
+	  || strrchr (SSDATA (file), '.')
+	  || (openp (Vx_bitmap_file_path,
+		     CALLN (Fconcat, file, build_string (".xbm")),
+		     Qnil, &found, make_fixnum (R_OK), false, false,
+		     NULL) < 0)))
     return -1;
 
   if (!STRINGP (image_find_image_fd (file, &fd))
@@ -1699,14 +1708,26 @@ free_image (struct frame *f, struct image *img)
       c->images[img->id] = NULL;
 
 #if !defined USE_CAIRO && defined HAVE_XRENDER
-      if (img->picture)
-        XRenderFreePicture (FRAME_X_DISPLAY (f), img->picture);
-      if (img->mask_picture)
-        XRenderFreePicture (FRAME_X_DISPLAY (f), img->mask_picture);
-#endif
+      /* FRAME_X_DISPLAY (f) could be NULL if this is being called from
+	 the display IO error handler.*/
 
-      /* Free resources, then free IMG.  */
-      img->type->free_img (f, img);
+      if (FRAME_X_DISPLAY (f))
+	{
+	  if (img->picture)
+	    XRenderFreePicture (FRAME_X_DISPLAY (f),
+				img->picture);
+	  if (img->mask_picture)
+	    XRenderFreePicture (FRAME_X_DISPLAY (f),
+				img->mask_picture);
+	}
+#endif /* !USE_CAIRO && HAVE_XRENDER */
+
+#ifdef HAVE_X_WINDOWS
+      if (FRAME_X_DISPLAY (f))
+#endif /* HAVE_X_WINDOWS */
+	/* Free resources, then free IMG.  */
+	img->type->free_img (f, img);
+
       xfree (img->face_font_family);
       xfree (img);
     }
@@ -2558,9 +2579,20 @@ image_get_dimension (struct image *img, Lisp_Object symbol)
 
   if (FIXNATP (value))
     return min (XFIXNAT (value), INT_MAX);
-  if (CONSP (value) && NUMBERP (CAR (value)) && EQ (Qem, CDR (value)))
-    return scale_image_size (img->face_font_size, 1, XFLOATINT (CAR (value)));
+  if (CONSP (value) && NUMBERP (CAR (value)))
+    {
+      Lisp_Object dim = CDR (value);
 
+      if (EQ (Qem, dim))
+        return scale_image_size (img->face_font_size,
+                                 1, XFLOATINT (CAR (value)));
+      if (EQ (Qch, dim))
+        return scale_image_size (img->face_font_height,
+                                 1, XFLOATINT (CAR (value)));
+      if (EQ (Qcw, dim))
+        return scale_image_size (img->face_font_width,
+                                 1, XFLOATINT (CAR (value)));
+    }
   return -1;
 }
 
@@ -3384,6 +3416,8 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
       img->face_foreground = foreground;
       img->face_background = background;
       img->face_font_size = font_size;
+      img->face_font_height = face->font->height;
+      img->face_font_width = face->font->average_width;
       img->face_font_family = xmalloc (strlen (font_family) + 1);
       strcpy (img->face_font_family, font_family);
       img->load_failed_p = ! img->type->load_img (f, img);
@@ -6202,6 +6236,8 @@ xpm_load_image (struct frame *f,
   expect (',');
 
   XSETFRAME (frame, f);
+
+#ifndef HAVE_ANDROID
   if (!NILP (Fxw_display_color_p (frame)))
     best_key = XPM_COLOR_KEY_C;
   else if (!NILP (Fx_display_grayscale_p (frame)))
@@ -6209,6 +6245,14 @@ xpm_load_image (struct frame *f,
 		? XPM_COLOR_KEY_G : XPM_COLOR_KEY_G4);
   else
     best_key = XPM_COLOR_KEY_M;
+#else /* HAVE_ANDROID */
+  /* The color-loading loop has not been taught to progressively settle
+     for less optimal color keys if no colors are defined for best_key,
+     and since libXpm is not available on Android, there is no better
+     option than delegating the task of mapping whatever color values
+     are provided to B/W or grayscale to the display driver.  */
+  best_key = XPM_COLOR_KEY_C;
+#endif /* !HAVE_ANDROID */
 
   color_symbols = image_spec_value (img->spec, QCcolor_symbols, NULL);
   if (chars_per_pixel == 1)
@@ -10677,14 +10721,14 @@ imagemagick_error (MagickWand *wand)
 static char *
 imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
 {
-  Lisp_Object symbol = intern ("image-format-suffixes");
+  Lisp_Object symbol = Qimage_format_suffixes;
   Lisp_Object val = find_symbol_value (symbol);
   Lisp_Object format;
 
   if (! CONSP (val))
     return NULL;
 
-  format = image_spec_value (spec, intern (":format"), NULL);
+  format = image_spec_value (spec, QCformat, NULL);
   val = Fcar_safe (Fcdr_safe (Fassq (format, val)));
   if (! STRINGP (val))
     return NULL;
@@ -12433,7 +12477,7 @@ gs_load (struct frame *f, struct image *img)
   XSETFRAME (frame, f);
   loader = image_spec_value (img->spec, QCloader, NULL);
   if (NILP (loader))
-    loader = intern ("gs-load-image");
+    loader = Qgs_load_image;
 
   img->lisp_data = call6 (loader, frame, img->spec,
 			  make_fixnum (img->width),
@@ -12700,7 +12744,7 @@ static struct image_type const image_types[] =
 };
 
 #if HAVE_NATIVE_IMAGE_API
-struct image_type native_image_type =
+static struct image_type native_image_type =
   { SYMBOL_INDEX (Qnative_image), native_image_p, native_image_load,
     image_clear_image };
 #endif
@@ -12794,6 +12838,8 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (QCmax_height, ":max-height");
 
   DEFSYM (Qem, "em");
+  DEFSYM (Qch, "ch");
+  DEFSYM (Qcw, "cw");
 
 #ifdef HAVE_NATIVE_TRANSFORMS
   DEFSYM (Qscale, "scale");
@@ -12807,6 +12853,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (QCloader, ":loader");
   DEFSYM (QCpt_width, ":pt-width");
   DEFSYM (QCpt_height, ":pt-height");
+  DEFSYM (Qgs_load_image, "gs-load-image");
 #endif /* HAVE_GHOSTSCRIPT */
 
 #ifdef HAVE_NTGUI
@@ -12986,5 +13033,8 @@ The options are:
 */);
   /* MagickExportImagePixels is in 6.4.6-9, but not 6.4.4-10.  */
   imagemagick_render_type = 0;
-#endif
+
+  DEFSYM (Qimage_format_suffixes, "image-format-suffixes");
+  DEFSYM (QCformat, ":format");
+#endif /* HAVE_IMAGEMAGICK */
 }

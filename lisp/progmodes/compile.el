@@ -224,6 +224,13 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 \\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning\\(?: [0-9]+\\)?:\\)?\\)"
      2 (3 . 4) (5 . 6) (7))
 
+    (cargo
+     "\\(?:\\(?4:error\\)\\|\\(?5:warning\\)\\):[^\0]+?--> \\(?1:[^:]+\\):\\(?2:[[:digit:]]+\\):\\(?3:[[:digit:]]+\\)"
+     1 2 3 (5)
+     nil
+     (5 compilation-warning-face)
+     (4 compilation-error-face))
+
     (cmake
      "^CMake \\(?:Error\\|\\(Warning\\)\\) at \\(.*\\):\\([1-9][0-9]*\\) ([^)]+):$"
      2 3 nil (1))
@@ -2644,24 +2651,26 @@ and runs `compilation-filter-hook'."
          (text-properties-at (1- beg))))
     (insert string)
     ;; If we exceeded the limit, hide the last portion of the line.
-    (when (> (current-column) width)
-      (let ((start (save-excursion
-                     (move-to-column width)
-                     (point))))
-        (buttonize-region
-         start (point)
-         (lambda (start)
-           (let ((inhibit-read-only t))
-             (remove-text-properties start (save-excursion
-                                             (goto-char start)
-                                             (line-end-position))
-                                     (text-properties-at start)))))
-        (put-text-property
-         start (if (= (aref string (1- (length string))) ?\n)
-                   ;; Don't hide the final newline.
-                   (1- (point))
-                 (point))
-         'display (if (char-displayable-p ?…) "[…]" "[...]"))))))
+    (let* ((ends-in-nl (= (aref string (1- (length string))) ?\n))
+           (curcol (if ends-in-nl
+                       (progn (backward-char) (current-column))
+                     (current-column))))
+      (when (> curcol width)
+        (let ((start (save-excursion
+                       (move-to-column width)
+                       (point))))
+          (buttonize-region
+           start (point)
+           (lambda (start)
+             (let ((inhibit-read-only t))
+               (remove-text-properties start (save-excursion
+                                               (goto-char start)
+                                               (line-end-position))
+                                       (text-properties-at start)))))
+          (put-text-property
+           start (point)
+           'display (if (char-displayable-p ?…) "[…]" "[...]"))))
+      (if ends-in-nl (forward-char)))))
 
 (defsubst compilation-buffer-internal-p ()
   "Test if inside a compilation buffer."

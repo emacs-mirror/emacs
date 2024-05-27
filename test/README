@@ -109,6 +109,12 @@ debugging.  To do that, use
 
     make TEST_INTERACTIVE=yes ...
 
+Sometimes, some further settings are needed in order to run the batch
+test.  This can be indicated by the $EMACS_EXTRAOPT environment
+variable, like
+
+    make ... EMACS_EXTRAOPT="--eval '(setopt ert-batch-print-length nil ert-batch-print-level nil)'"
+
 By default, ERT test failure summaries are quite brief in batch
 mode--only the names of the failed tests are listed.  If the
 $EMACS_TEST_VERBOSE environment variable is set and non-empty, the

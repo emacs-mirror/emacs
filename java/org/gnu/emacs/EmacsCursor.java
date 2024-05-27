@@ -31,9 +31,9 @@ public final class EmacsCursor extends EmacsHandleObject
   public final PointerIcon icon;
 
   public
-  EmacsCursor (short handle, int glyph)
+  EmacsCursor (int glyph)
   {
-    super (handle);
+    super ();
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
       {

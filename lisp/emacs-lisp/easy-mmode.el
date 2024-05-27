@@ -494,11 +494,8 @@ on if the hook has explicitly disabled it.
 	 (extra-keywords nil)
          (MODE-variable mode)
 	 (MODE-buffers (intern (concat global-mode-name "-buffers")))
-	 (MODE-enable-in-buffers
-	  (intern (concat global-mode-name "-enable-in-buffers")))
-	 (MODE-check-buffers
-	  (intern (concat global-mode-name "-check-buffers")))
-	 (MODE-cmhh (intern (concat global-mode-name "-cmhh")))
+	 (MODE-enable-in-buffer
+	  (intern (concat global-mode-name "-enable-in-buffer")))
 	 (minor-MODE-hook (intern (concat mode-name "-hook")))
 	 (MODE-set-explicitly (intern (concat mode-name "-set-explicitly")))
 	 (MODE-major-mode (intern (concat (symbol-name mode) "-major-mode")))
@@ -558,14 +555,9 @@ Disable the mode if ARG is a negative number.\n\n"
 
 	 ;; Setup hook to handle future mode changes and new buffers.
 	 (if ,global-mode
-	     (progn
-	       (add-hook 'after-change-major-mode-hook
-			 #',MODE-enable-in-buffers)
-	       (add-hook 'find-file-hook #',MODE-check-buffers)
-	       (add-hook 'change-major-mode-hook #',MODE-cmhh))
-	   (remove-hook 'after-change-major-mode-hook #',MODE-enable-in-buffers)
-	   (remove-hook 'find-file-hook #',MODE-check-buffers)
-	   (remove-hook 'change-major-mode-hook #',MODE-cmhh))
+	     (add-hook 'after-change-major-mode-hook
+		       #',MODE-enable-in-buffer)
+	   (remove-hook 'after-change-major-mode-hook #',MODE-enable-in-buffer))
 
 	 ;; Go through existing buffers.
 	 (dolist (buf (buffer-list))
@@ -589,7 +581,20 @@ modes derived from `text-mode'\".  An element with value t means \"use\"
 and nil means \"don't use\".  There's an implicit nil at the end of the
 list."
                       mode)
-             :type '(repeat sexp)
+             :type '(choice
+                     (const :tag "Enable in all major modes" t)
+                     (const :tag "Don't enable in any major mode" nil)
+                     (repeat
+                      :tag "Rules (earlier takes precedence)..."
+                      (choice
+                       (const :tag "Enable in all (other) modes" t)
+                       (const :tag "Don't enable in any (other) mode" nil)
+                       (symbol :value fundamental-mode
+                               :tag "Enable in major mode")
+                       (cons :tag "Don't enable in major modes"
+                             (const :tag "Don't enable in..." not)
+                             (repeat (symbol :value fundamental-mode
+                                             :tag "Major mode"))))))
              ,@group))
 
        ;; Autoloading define-globalized-minor-mode autoloads everything
@@ -610,36 +615,19 @@ list."
        ;; List of buffers left to process.
        (defvar ,MODE-buffers nil)
 
-       ;; The function that calls TURN-ON in each buffer.
-       (defun ,MODE-enable-in-buffers ()
-         (let ((buffers ,MODE-buffers))
-           ;; Clear MODE-buffers to avoid scanning the same list of
-           ;; buffers in recursive calls to MODE-enable-in-buffers.
-           ;; Otherwise it could lead to infinite recursion.
-           (setq ,MODE-buffers nil)
-           (dolist (buf buffers)
-             (when (buffer-live-p buf)
-               (with-current-buffer buf
-                 (unless ,MODE-set-explicitly
-                   (unless (eq ,MODE-major-mode major-mode)
-                     (if ,MODE-variable
-                         (progn
-                           (,mode -1)
-                           (funcall ,turn-on-function))
-                       (funcall ,turn-on-function))))
-                 (setq ,MODE-major-mode major-mode))))))
-       (put ',MODE-enable-in-buffers 'definition-name ',global-mode)
-
-       (defun ,MODE-check-buffers ()
-	 (,MODE-enable-in-buffers)
-	 (remove-hook 'post-command-hook #',MODE-check-buffers))
-       (put ',MODE-check-buffers 'definition-name ',global-mode)
-
-       ;; The function that catches kill-all-local-variables.
-       (defun ,MODE-cmhh ()
-	 (add-to-list ',MODE-buffers (current-buffer))
-	 (add-hook 'post-command-hook #',MODE-check-buffers))
-       (put ',MODE-cmhh 'definition-name ',global-mode))))
+       ;; The function that calls TURN-ON in the current buffer.
+       (defun ,MODE-enable-in-buffer ()
+         ;; Remove ourselves from the list of pending buffers.
+         (setq ,MODE-buffers (delq (current-buffer) ,MODE-buffers))
+         (unless ,MODE-set-explicitly
+           (unless (eq ,MODE-major-mode major-mode)
+             (if ,MODE-variable
+                 (progn
+                   (,mode -1)
+                   (funcall ,turn-on-function))
+               (funcall ,turn-on-function))))
+         (setq ,MODE-major-mode major-mode))
+       (put ',MODE-enable-in-buffer 'definition-name ',global-mode))))
 
 (defun easy-mmode--globalized-predicate-p (predicate)
   (cond

@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+(require 'tramp)
 (require 'ert)
 (require 'em-glob)
 
@@ -71,9 +72,9 @@ component ending in \"symlink\" is treated as a symbolic link."
         (eshell-glob-splice-results t))
     (with-fake-files '("a.el" "b.el" "c.txt")
       ;; Ensure the default expansion splices the glob.
-      (eshell-command-result-equal "list *.el" '("a.el" "b.el"))
-      (eshell-command-result-equal "list *.txt" '("c.txt"))
-      (eshell-command-result-equal "list *.no" '("*.no")))))
+      (eshell-command-result-equal "funcall list *.el" '("a.el" "b.el"))
+      (eshell-command-result-equal "funcall list *.txt" '("c.txt"))
+      (eshell-command-result-equal "funcall list *.no" '("*.no")))))
 
 (ert-deftest em-glob-test/expand/no-splice-results ()
   "Test that globs are treated as lists when
@@ -82,11 +83,11 @@ component ending in \"symlink\" is treated as a symbolic link."
         (eshell-glob-splice-results nil))
     (with-fake-files '("a.el" "b.el" "c.txt")
       ;; Ensure the default expansion splices the glob.
-      (eshell-command-result-equal "list *.el" '(("a.el" "b.el")))
-      (eshell-command-result-equal "list *.txt" '(("c.txt")))
+      (eshell-command-result-equal "funcall list *.el" '(("a.el" "b.el")))
+      (eshell-command-result-equal "funcall list *.txt" '(("c.txt")))
       ;; The no-matches case is special here: the glob is just the
       ;; string, not the list of results.
-      (eshell-command-result-equal "list *.no" '("*.no")))))
+      (eshell-command-result-equal "funcall list *.no" '("*.no")))))
 
 (ert-deftest em-glob-test/expand/explicitly-splice-results ()
   "Test explicitly splicing globs works the same no matter the
@@ -96,11 +97,11 @@ value of `eshell-glob-splice-results'."
       (ert-info ((format "eshell-glob-splice-results: %s"
                          eshell-glob-splice-results))
         (with-fake-files '("a.el" "b.el" "c.txt")
-          (eshell-command-result-equal "list $@{listify *.el}"
+          (eshell-command-result-equal "funcall list $@{listify *.el}"
                                        '("a.el" "b.el"))
-          (eshell-command-result-equal "list $@{listify *.txt}"
+          (eshell-command-result-equal "funcall list $@{listify *.txt}"
                                        '("c.txt"))
-          (eshell-command-result-equal "list $@{listify *.no}"
+          (eshell-command-result-equal "funcall list $@{listify *.no}"
                                        '("*.no")))))))
 
 (ert-deftest em-glob-test/expand/explicitly-listify-results ()
@@ -111,11 +112,11 @@ value of `eshell-glob-splice-results'."
       (ert-info ((format "eshell-glob-splice-results: %s"
                          eshell-glob-splice-results))
         (with-fake-files '("a.el" "b.el" "c.txt")
-          (eshell-command-result-equal "list ${listify *.el}"
+          (eshell-command-result-equal "funcall list ${listify *.el}"
                                        '(("a.el" "b.el")))
-          (eshell-command-result-equal "list ${listify *.txt}"
+          (eshell-command-result-equal "funcall list ${listify *.txt}"
                                        '(("c.txt")))
-          (eshell-command-result-equal "list ${listify *.no}"
+          (eshell-command-result-equal "funcall list ${listify *.no}"
                                        '(("*.no"))))))))
 
 
@@ -138,9 +139,18 @@ value of `eshell-glob-splice-results'."
 
 (ert-deftest em-glob-test/convert/remote-start-directory ()
   "Test converting a glob starting in a remote directory."
-  (should (equal (eshell-glob-convert "/ssh:nowhere.invalid:some/where/*.el")
-                 '("/ssh:nowhere.invalid:/some/where/"
-                   (("\\`.*\\.el\\'" . "\\`\\.")) nil))))
+  (skip-unless (eshell-tests-remote-accessible-p))
+  (let* ((default-directory ert-remote-temporary-file-directory)
+         (remote (file-remote-p default-directory)))
+    (should (equal (eshell-glob-convert (format "%s/some/where/*.el" remote))
+                 `(,(format "%s/some/where/" remote)
+                   (("\\`.*\\.el\\'" . "\\`\\.")) nil)))))
+
+(ert-deftest em-glob-test/convert/quoted-start-directory ()
+  "Test converting a glob starting in a quoted directory name."
+  (should (equal (eshell-glob-convert
+                  (concat (eshell-escape-arg "some where/") "*.el"))
+                 '("./some where/" (("\\`.*\\.el\\'" . "\\`\\.")) nil))))
 
 
 ;; Glob matching
@@ -287,5 +297,14 @@ value of `eshell-glob-splice-results'."
                      '("*.txt"))))
     (let ((eshell-error-if-no-glob t))
       (should-error (eshell-extended-glob "*.txt")))))
+
+(ert-deftest em-glob-test/remote-user-directory ()
+  "Test that remote directories using \"~\" pass through unchanged."
+  (skip-unless (eshell-tests-remote-accessible-p))
+  (let* ((default-directory ert-remote-temporary-file-directory)
+         (remote (file-remote-p default-directory))
+         (eshell-error-if-no-glob t))
+    (should (equal (eshell-extended-glob (format "%s~/file.txt" remote))
+                   (format "%s~/file.txt" remote)))))
 
 ;; em-glob-tests.el ends here

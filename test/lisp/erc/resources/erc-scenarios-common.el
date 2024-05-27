@@ -194,6 +194,7 @@ Dialog resource directories are located by expanding the variable
              (ert-info ("Running extra teardown")
                (funcall erc-scenarios-common-extra-teardown)))
 
+           (erc-buffer-do #'erc-scenarios-common--assert-date-stamps)
            (when (and (boundp 'erc-autojoin-mode)
                       (not (eq erc-autojoin-mode ,orig-autojoin-mode)))
              (erc-autojoin-mode (if ,orig-autojoin-mode +1 -1)))
@@ -324,6 +325,12 @@ See Info node `(emacs) Term Mode' for the various commands."
          (erc-scenarios-common--run-in-term
           erc-scenarios-common-interactive-debug-term-p))
      (erc-scenarios-common-with-cleanup ,@body)))
+
+(defun erc-scenarios-common--assert-date-stamps ()
+  "Ensure all date stamps are accounted for."
+  (dolist (stamp erc-stamp--date-stamps)
+    (should (eq 'datestamp (get-text-property (erc-stamp--date-marker stamp)
+                                              'erc--msg)))))
 
 (defun erc-scenarios-common-assert-initial-buf-name (id port)
   ;; Assert no limbo period when explicit ID given

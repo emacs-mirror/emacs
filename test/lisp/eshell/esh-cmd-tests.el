@@ -213,6 +213,18 @@ This should also wait for the subcommand."
    (eshell-match-command-output "echo ${*echo hi | *cat} | *cat"
                                 "hi")))
 
+(ert-deftest esh-cmd-test/pipeline-wait/nested-pipes ()
+  "Check that piping a subcommand with its own pipe works.
+This should also wait for the subcommand."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")
+                    (executable-find "sh")
+                    (executable-find "sleep")))
+  (with-temp-eshell
+    (eshell-match-command-output
+     "{ sh -c 'sleep 1; echo goodbye 1>&2' | *echo hello } | *cat"
+     "hello\ngoodbye\n")))
+
 (ert-deftest esh-cmd-test/reset-in-pipeline/subcommand ()
   "Check that subcommands reset `eshell-in-pipeline-p'."
   (skip-unless (executable-find "cat"))

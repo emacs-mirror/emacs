@@ -29,6 +29,46 @@
 (require 'ls-lisp)
 (require 'dired)
 
+(defvar dired-find-subdir)
+(ert-deftest ls-lisp-test-bug70271 ()
+  "Test for https://debbugs.gnu.org/70271 ."
+  (ert-with-temp-file
+   fpath
+   :suffix "bug70271"
+   (let* ((dir (file-name-directory fpath))
+          (attributes (file-attributes fpath))
+          (dired-find-subdir t)
+          ls-lisp-use-insert-directory-program buf ts str)
+     (unwind-protect
+         (progn
+           (setq ts (file-attribute-access-time attributes))
+           (with-current-buffer
+               (dired-internal-noselect dir "-la --time=ctime")
+             (setq buf (current-buffer)
+                   str (format-time-string "%H:%M" ts))
+             (goto-char (point-min))
+             (should (search-forward-regexp str nil t))
+             (kill-buffer))
+           (setq ts (- (float-time) 60))
+           (set-file-times fpath ts)
+           (with-current-buffer
+               (dired-internal-noselect dir "-la --sort=time")
+             (setq buf (current-buffer)
+                   str (format-time-string "%H:%M" ts))
+             (goto-char (point-min))
+             (should (search-forward-regexp str nil t))
+             (kill-buffer))
+           (setq ts (- (float-time) 120))
+           (set-file-times fpath ts)
+           (with-current-buffer
+               (dired-internal-noselect dir "-la --time=atime")
+             (setq buf (current-buffer)
+                   str (format-time-string "%H:%M" ts))
+             (goto-char (point-min))
+             (should (search-forward-regexp str nil t))
+             (kill-buffer)))
+       (when (buffer-live-p buf) (kill-buffer buf))))))
+
 (ert-deftest ls-lisp-test-bug27762 ()
   "Test for https://debbugs.gnu.org/27762 ."
   (let* ((dir source-directory)

@@ -34,6 +34,90 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 
 
+/* Reverse a slice of a vector in place, from lo up to (exclusive) hi. */
+static void
+reverse_slice (Lisp_Object *lo, Lisp_Object *hi)
+{
+  --hi;
+  while (lo < hi)
+    {
+      Lisp_Object t = *lo;
+      *lo = *hi;
+      *hi = t;
+      ++lo;
+      --hi;
+    }
+}
+
+/* A sortslice contains a pointer to an array of keys and a pointer to
+   an array of corresponding values.  In other words, keys[i]
+   corresponds with values[i].  If values == NULL, then the keys are
+   also the values.
+
+   Several convenience routines are provided here, so that keys and
+   values are always moved in sync.  */
+
+typedef struct
+{
+  Lisp_Object *keys;
+  Lisp_Object *values;
+} sortslice;
+
+/* FIXME: Instead of values=NULL, can we set values=keys, so that they
+   are both moved in lockstep and we avoid a lot of branches?
+   We may do some useless work but it might be cheaper overall. */
+
+static inline void
+sortslice_copy (sortslice *s1, ptrdiff_t i, sortslice *s2, ptrdiff_t j)
+{
+  s1->keys[i] = s2->keys[j];
+  if (s1->values != NULL)
+    s1->values[i] = s2->values[j];
+}
+
+static inline void
+sortslice_copy_incr (sortslice *dst, sortslice *src)
+{
+  *dst->keys++ = *src->keys++;
+  if (dst->values != NULL)
+    *dst->values++ = *src->values++;
+}
+
+static inline void
+sortslice_copy_decr (sortslice *dst, sortslice *src)
+{
+  *dst->keys-- = *src->keys--;
+  if (dst->values != NULL)
+    *dst->values-- = *src->values--;
+}
+
+
+static inline void
+sortslice_memcpy (sortslice *s1, ptrdiff_t i, sortslice *s2, ptrdiff_t j,
+		  ptrdiff_t n)
+{
+  memcpy (&s1->keys[i], &s2->keys[j], sizeof s1->keys[0] * n);
+  if (s1->values != NULL)
+    memcpy (&s1->values[i], &s2->values[j], sizeof s1->values[0] * n);
+}
+
+static inline void
+sortslice_memmove (sortslice *s1, ptrdiff_t i, sortslice *s2, ptrdiff_t j,
+		   ptrdiff_t n)
+{
+  memmove (&s1->keys[i], &s2->keys[j], sizeof s1->keys[0] * n);
+  if (s1->values != NULL)
+    memmove (&s1->values[i], &s2->values[j], sizeof s1->values[0] * n);
+}
+
+static inline void
+sortslice_advance (sortslice *slice, ptrdiff_t n)
+{
+  slice->keys += n;
+  if (slice->values != NULL)
+    slice->values += n;
+}
+
 /* MAX_MERGE_PENDING is the maximum number of entries in merge_state's
    pending-stretch stack.  For a list with n elements, this needs at most
    floor(log2(n)) + 1 entries even if we didn't force runs to a
@@ -54,23 +138,24 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 struct stretch
 {
-  Lisp_Object *base;
+  sortslice base;
   ptrdiff_t len;
   int power;
 };
 
 struct reloc
 {
-  Lisp_Object **src;
-  Lisp_Object **dst;
+  sortslice *src;
+  sortslice *dst;
   ptrdiff_t *size;
   int order; /* -1 while in merge_lo; +1 while in merg_hi; 0 otherwise.  */
 };
 
 
-typedef struct
+typedef struct merge_state
 {
-  Lisp_Object *listbase;
+  Lisp_Object *basekeys;
+  Lisp_Object *allocated_keys;	/* heap-alloc'ed key array or NULL */
   ptrdiff_t listlen;
 
   /* PENDING is a stack of N pending stretches yet to be merged.
@@ -91,7 +176,7 @@ typedef struct
      with merges.  'A' initially points to TEMPARRAY, and subsequently
      to newly allocated memory if needed.  */
 
-  Lisp_Object *a;
+  sortslice a;
   ptrdiff_t alloced;
   specpdl_ref count;
   Lisp_Object temparray[MERGESTATE_TEMP_SIZE];
@@ -102,20 +187,32 @@ typedef struct
 
   struct reloc reloc;
 
-  /* PREDICATE is the lisp comparison predicate for the sort.  */
+  /* The C ordering (less-than) predicate.  */
+  bool (*pred_fun) (struct merge_state *ms, Lisp_Object a, Lisp_Object b);
 
+  /* The Lisp ordering predicate; Qnil means value<.  */
   Lisp_Object predicate;
 } merge_state;
 
 
-/* Return true iff (PREDICATE A B) is non-nil.  */
-
-static inline bool
-inorder (const Lisp_Object predicate, const Lisp_Object a, const Lisp_Object b)
+static bool
+order_pred_lisp (merge_state *ms, Lisp_Object a, Lisp_Object b)
 {
-  return !NILP (call2 (predicate, a, b));
+  return !NILP (call2 (ms->predicate, a, b));
 }
 
+static bool
+order_pred_valuelt (merge_state *ms, Lisp_Object a, Lisp_Object b)
+{
+  return !NILP (Fvaluelt (a, b));
+}
+
+/* Return true iff A < B according to the order predicate.  */
+static inline bool
+inorder (merge_state *ms, Lisp_Object a, Lisp_Object b)
+{
+  return ms->pred_fun (ms, a, b);
+}
 
 /* Sort the list starting at LO and ending at HI using a stable binary
    insertion sort algorithm. On entry the sublist [LO, START) (with
@@ -124,24 +221,22 @@ inorder (const Lisp_Object predicate, const Lisp_Object a, const Lisp_Object b)
    permutation of the input (nothing is lost or duplicated).  */
 
 static void
-binarysort (merge_state *ms, Lisp_Object *lo, const Lisp_Object *hi,
+binarysort (merge_state *ms, sortslice lo, const Lisp_Object *hi,
 	    Lisp_Object *start)
 {
-  Lisp_Object pred = ms->predicate;
-
-  eassume (lo <= start && start <= hi);
-  if (lo == start)
+  eassume (lo.keys <= start && start <= hi);
+  if (lo.keys == start)
     ++start;
   for (; start < hi; ++start)
     {
-      Lisp_Object *l = lo;
+      Lisp_Object *l = lo.keys;
       Lisp_Object *r = start;
       Lisp_Object pivot = *r;
 
       eassume (l < r);
       do {
 	Lisp_Object *p = l + ((r - l) >> 1);
-	if (inorder (pred, pivot, *p))
+	if (inorder (ms, pivot, *p))
 	  r = p;
 	else
 	  l = p + 1;
@@ -150,6 +245,17 @@ binarysort (merge_state *ms, Lisp_Object *lo, const Lisp_Object *hi,
       for (Lisp_Object *p = start; p > l; --p)
 	p[0] = p[-1];
       *l = pivot;
+
+      if (lo.values != NULL)
+	{
+	  ptrdiff_t offset = lo.values - lo.keys;
+	  Lisp_Object *p = start + offset;
+	  pivot = *p;
+	  l += offset;
+	  for (Lisp_Object *p = start + offset; p > l; --p)
+	    p[0] = p[-1];
+	  *l = pivot;
+	}
     }
 }
 
@@ -167,8 +273,6 @@ static ptrdiff_t
 count_run (merge_state *ms, Lisp_Object *lo, const Lisp_Object *hi,
 	   bool *descending)
 {
-  Lisp_Object pred = ms->predicate;
-
   eassume (lo < hi);
   *descending = 0;
   ++lo;
@@ -177,12 +281,12 @@ count_run (merge_state *ms, Lisp_Object *lo, const Lisp_Object *hi,
     return n;
 
   n = 2;
-  if (inorder (pred, lo[0], lo[-1]))
+  if (inorder (ms, lo[0], lo[-1]))
     {
       *descending = 1;
       for (lo = lo + 1; lo < hi; ++lo, ++n)
 	{
-	  if (!inorder (pred, lo[0], lo[-1]))
+	  if (!inorder (ms, lo[0], lo[-1]))
 	    break;
 	}
     }
@@ -190,7 +294,7 @@ count_run (merge_state *ms, Lisp_Object *lo, const Lisp_Object *hi,
     {
       for (lo = lo + 1; lo < hi; ++lo, ++n)
 	{
-	  if (inorder (pred, lo[0], lo[-1]))
+	  if (inorder (ms, lo[0], lo[-1]))
 	    break;
 	}
     }
@@ -223,21 +327,19 @@ static ptrdiff_t
 gallop_left (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
 	     const ptrdiff_t n, const ptrdiff_t hint)
 {
-  Lisp_Object pred = ms->predicate;
-
   eassume (a && n > 0 && hint >= 0 && hint < n);
 
   a += hint;
   ptrdiff_t lastofs = 0;
   ptrdiff_t ofs = 1;
-  if (inorder (pred, *a, key))
+  if (inorder (ms, *a, key))
     {
       /* When a[hint] < key, gallop right until
 	 a[hint + lastofs] < key <= a[hint + ofs].  */
       const ptrdiff_t maxofs = n - hint; /* This is one after the end of a.  */
       while (ofs < maxofs)
 	{
-	  if (inorder (pred, a[ofs], key))
+	  if (inorder (ms, a[ofs], key))
 	    {
 	      lastofs = ofs;
 	      eassume (ofs <= (PTRDIFF_MAX - 1) / 2);
@@ -259,7 +361,7 @@ gallop_left (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
       const ptrdiff_t maxofs = hint + 1;        /* Here &a[0] is lowest.  */
       while (ofs < maxofs)
 	{
-	  if (inorder (pred, a[-ofs], key))
+	  if (inorder (ms, a[-ofs], key))
 	    break;
 	  /* Here key <= a[hint - ofs].  */
 	  lastofs = ofs;
@@ -284,7 +386,7 @@ gallop_left (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
     {
       ptrdiff_t m = lastofs + ((ofs - lastofs) >> 1);
 
-      if (inorder (pred, a[m], key))
+      if (inorder (ms, a[m], key))
 	lastofs = m + 1;            /* Here a[m] < key.  */
       else
 	ofs = m;                    /* Here key <= a[m].  */
@@ -307,21 +409,19 @@ static ptrdiff_t
 gallop_right (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
 	      const ptrdiff_t n, const ptrdiff_t hint)
 {
-  Lisp_Object pred = ms->predicate;
-
   eassume (a && n > 0 && hint >= 0 && hint < n);
 
   a += hint;
   ptrdiff_t lastofs = 0;
   ptrdiff_t ofs = 1;
-  if (inorder (pred, key, *a))
+  if (inorder (ms, key, *a))
     {
       /* When key < a[hint], gallop left until
 	 a[hint - ofs] <= key < a[hint - lastofs].  */
       const ptrdiff_t maxofs = hint + 1;        /* Here &a[0] is lowest.  */
       while (ofs < maxofs)
 	{
-	  if (inorder (pred, key, a[-ofs]))
+	  if (inorder (ms, key, a[-ofs]))
 	    {
 	      lastofs = ofs;
 	      eassume (ofs <= (PTRDIFF_MAX - 1) / 2);
@@ -344,7 +444,7 @@ gallop_right (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
       const ptrdiff_t maxofs = n - hint;        /* Here &a[n-1] is highest.  */
       while (ofs < maxofs)
 	{
-	  if (inorder (pred, key, a[ofs]))
+	  if (inorder (ms, key, a[ofs]))
 	    break;
 	  /* Here a[hint + ofs] <= key.  */
 	  lastofs = ofs;
@@ -368,7 +468,7 @@ gallop_right (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
     {
       ptrdiff_t m = lastofs + ((ofs - lastofs) >> 1);
 
-      if (inorder (pred, key, a[m]))
+      if (inorder (ms, key, a[m]))
 	ofs = m;                    /* Here key < a[m].  */
       else
 	lastofs = m + 1;            /* Here a[m] <= key.  */
@@ -378,21 +478,47 @@ gallop_right (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
 }
 
 
+static void merge_register_cleanup (merge_state *ms);
+
 static void
-merge_init (merge_state *ms, const ptrdiff_t list_size, Lisp_Object *lo,
-	    const Lisp_Object predicate)
+merge_init (merge_state *ms, const ptrdiff_t list_size,
+	    Lisp_Object *allocated_keys, sortslice *lo, Lisp_Object predicate)
 {
   eassume (ms != NULL);
 
-  ms->a = ms->temparray;
-  ms->alloced = MERGESTATE_TEMP_SIZE;
+  if (lo->values != NULL)
+    {
+      /* The temporary space for merging will need at most half the list
+	 size rounded up.  Use the minimum possible space so we can use the
+	 rest of temparray for other things.  In particular, if there is
+	 enough extra space, if will be used to store the keys.  */
+      ms->alloced = (list_size + 1) / 2;
+
+      /* ms->alloced describes how many keys will be stored at
+	 ms->temparray, but we also need to store the values.  Hence,
+	 ms->alloced is capped at half of MERGESTATE_TEMP_SIZE.  */
+      if (MERGESTATE_TEMP_SIZE / 2 < ms->alloced)
+	ms->alloced = MERGESTATE_TEMP_SIZE / 2;
+      ms->a.values = &ms->temparray[ms->alloced];
+    }
+  else
+    {
+      ms->alloced = MERGESTATE_TEMP_SIZE;
+      ms->a.values = NULL;
+    }
+  ms->a.keys = ms->temparray;
 
   ms->n = 0;
   ms->min_gallop = GALLOP_WIN_MIN;
   ms->listlen = list_size;
-  ms->listbase = lo;
+  ms->basekeys = lo->keys;
+  ms->allocated_keys = allocated_keys;
+  ms->pred_fun = NILP (predicate) ? order_pred_valuelt : order_pred_lisp;
   ms->predicate = predicate;
   ms->reloc = (struct reloc){NULL, NULL, NULL, 0};
+  ms->count = make_invalid_specpdl_ref ();
+  if (allocated_keys != NULL)
+    merge_register_cleanup (ms);
 }
 
 
@@ -406,10 +532,15 @@ merge_markmem (void *arg)
   merge_state *ms = arg;
   eassume (ms != NULL);
 
+  if (ms->allocated_keys != NULL)
+    mark_objects (ms->allocated_keys, ms->listlen);
+
   if (ms->reloc.size != NULL && *ms->reloc.size > 0)
     {
-      eassume (ms->reloc.src != NULL);
-      mark_objects (*ms->reloc.src, *ms->reloc.size);
+      Lisp_Object *src = (ms->reloc.src->values
+			  ? ms->reloc.src->values : ms->reloc.src->keys);
+      eassume (src != NULL);
+      mark_objects (src, *ms->reloc.size);
     }
 }
 
@@ -432,16 +563,37 @@ cleanup_mem (void *arg)
 
   if (ms->reloc.order != 0 && *ms->reloc.size > 0)
     {
-      eassume (*ms->reloc.src != NULL && *ms->reloc.dst != NULL);
+      Lisp_Object *src = (ms->reloc.src->values
+			  ? ms->reloc.src->values : ms->reloc.src->keys);
+      Lisp_Object *dst = (ms->reloc.dst->values
+			  ? ms->reloc.dst->values : ms->reloc.dst->keys);
+      eassume (src != NULL && dst != NULL);
       ptrdiff_t n = *ms->reloc.size;
       ptrdiff_t shift = ms->reloc.order == -1 ? 0 : n - 1;
-      memcpy (*ms->reloc.dst - shift, *ms->reloc.src, n * word_size);
+      memcpy (dst - shift, src, n * word_size);
     }
 
   /* Free any remaining temp storage.  */
-  xfree (ms->a);
+  if (ms->a.keys != ms->temparray)
+    {
+      xfree (ms->a.keys);
+      ms->a.keys = NULL;
+    }
+
+  if (ms->allocated_keys != NULL)
+    {
+      xfree (ms->allocated_keys);
+      ms->allocated_keys = NULL;
+    }
 }
 
+static void
+merge_register_cleanup (merge_state *ms)
+{
+  specpdl_ref count = SPECPDL_INDEX ();
+  record_unwind_protect_ptr_mark (cleanup_mem, ms, merge_markmem);
+  ms->count = count;
+}
 
 /* Allocate enough temp memory for NEED array slots.  Any previously
    allocated memory is first freed, and a cleanup routine is
@@ -453,13 +605,12 @@ merge_getmem (merge_state *ms, const ptrdiff_t need)
 {
   eassume (ms != NULL);
 
-  if (ms->a == ms->temparray)
+  if (ms->a.keys == ms->temparray)
     {
       /* We only get here if alloc is needed and this is the first
 	 time, so we set up the unwind protection.  */
-      specpdl_ref count = SPECPDL_INDEX ();
-      record_unwind_protect_ptr_mark (cleanup_mem, ms, merge_markmem);
-      ms->count = count;
+      if (!specpdl_ref_valid_p (ms->count))
+	merge_register_cleanup (ms);
     }
   else
     {
@@ -467,10 +618,13 @@ merge_getmem (merge_state *ms, const ptrdiff_t need)
          what's in the block we don't use realloc which would waste
          cycles copying the old data.  We just free and alloc
          again.  */
-      xfree (ms->a);
+      xfree (ms->a.keys);
     }
-  ms->a = xmalloc (need * word_size);
+  ptrdiff_t bytes = (need * word_size) << (ms->a.values != NULL ? 1 : 0);
+  ms->a.keys = xmalloc (bytes);
   ms->alloced = need;
+  if (ms->a.values != NULL)
+    ms->a.values = &ms->a.keys[need];
 }
 
 
@@ -488,21 +642,19 @@ needmem (merge_state *ms, ptrdiff_t na)
    NB.  */
 
 static void
-merge_lo (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na, Lisp_Object *ssb,
-	  ptrdiff_t nb)
+merge_lo (merge_state *ms, sortslice ssa, ptrdiff_t na,
+	  sortslice ssb, ptrdiff_t nb)
 {
-  Lisp_Object pred = ms->predicate;
-
-  eassume (ms && ssa && ssb && na > 0 && nb > 0);
-  eassume (ssa + na == ssb);
+  eassume (ms && ssa.keys && ssb.keys && na > 0 && nb > 0);
+  eassume (ssa.keys + na == ssb.keys);
   needmem (ms, na);
-  memcpy (ms->a, ssa, na * word_size);
-  Lisp_Object *dest = ssa;
+  sortslice_memcpy (&ms->a, 0, &ssa, 0, na);
+  sortslice dest = ssa;
   ssa = ms->a;
 
   ms->reloc = (struct reloc){&ssa, &dest, &na, -1};
 
-  *dest++ = *ssb++;
+  sortslice_copy_incr (&dest, &ssb);
   --nb;
   if (nb == 0)
     goto Succeed;
@@ -519,9 +671,9 @@ merge_lo (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na, Lisp_Object *ssb,
       for (;;)
 	{
 	  eassume (na > 1 && nb > 0);
-	  if (inorder (pred, *ssb, *ssa))
+	  if (inorder (ms, ssb.keys[0], ssa.keys[0]))
 	    {
-	      *dest++ = *ssb++ ;
+	      sortslice_copy_incr (&dest, &ssb);
 	      ++bcount;
 	      acount = 0;
 	      --nb;
@@ -532,7 +684,7 @@ merge_lo (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na, Lisp_Object *ssb,
 	    }
 	  else
 	    {
-	      *dest++ = *ssa++;
+	      sortslice_copy_incr (&dest, &ssa);
 	      ++acount;
 	      bcount = 0;
 	      --na;
@@ -552,13 +704,13 @@ merge_lo (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na, Lisp_Object *ssb,
 	eassume (na > 1 && nb > 0);
 	min_gallop -= min_gallop > 1;
 	ms->min_gallop = min_gallop;
-	ptrdiff_t k = gallop_right (ms, ssb[0], ssa, na, 0);
+	ptrdiff_t k = gallop_right (ms, ssb.keys[0], ssa.keys, na, 0);
 	acount = k;
 	if (k)
 	  {
-	    memcpy (dest, ssa, k * word_size);
-	    dest += k;
-	    ssa += k;
+	    sortslice_memcpy (&dest, 0, &ssa, 0, k);
+	    sortslice_advance (&dest, k);
+	    sortslice_advance (&ssa, k);
 	    na -= k;
 	    if (na == 1)
 	      goto CopyB;
@@ -567,23 +719,23 @@ merge_lo (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na, Lisp_Object *ssb,
 	    if (na == 0)
 	      goto Succeed;
 	  }
-	*dest++ = *ssb++ ;
+	sortslice_copy_incr (&dest, &ssb);
 	--nb;
 	if (nb == 0)
 	  goto Succeed;
 
-	k = gallop_left (ms, ssa[0], ssb, nb, 0);
+	k = gallop_left (ms, ssa.keys[0], ssb.keys, nb, 0);
 	bcount = k;
 	if (k)
 	  {
-	    memmove (dest, ssb, k * word_size);
-	    dest += k;
-	    ssb += k;
+	    sortslice_memmove (&dest, 0, &ssb, 0, k);
+	    sortslice_advance (&dest, k);
+	    sortslice_advance (&ssb, k);
 	    nb -= k;
 	    if (nb == 0)
 	      goto Succeed;
 	  }
-	*dest++ = *ssa++;
+	sortslice_copy_incr (&dest, &ssa);
 	--na;
 	if (na == 1)
 	  goto CopyB;
@@ -595,15 +747,15 @@ merge_lo (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na, Lisp_Object *ssb,
   ms->reloc = (struct reloc){NULL, NULL, NULL, 0};
 
   if (na)
-    memcpy (dest, ssa, na * word_size);
+    sortslice_memcpy(&dest, 0, &ssa, 0, na);
   return;
  CopyB:
   eassume (na == 1 && nb > 0);
   ms->reloc = (struct reloc){NULL, NULL, NULL, 0};
 
   /* The last element of ssa belongs at the end of the merge.  */
-  memmove (dest, ssb, nb * word_size);
-  dest[nb] = ssa[0];
+  sortslice_memmove (&dest, 0, &ssb, 0, nb);
+  sortslice_copy (&dest, nb, &ssa, 0);
 }
 
 
@@ -613,25 +765,25 @@ merge_lo (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na, Lisp_Object *ssb,
    NB.  */
 
 static void
-merge_hi (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na,
-	  Lisp_Object *ssb, ptrdiff_t nb)
+merge_hi (merge_state *ms, sortslice ssa, ptrdiff_t na,
+	  sortslice ssb, ptrdiff_t nb)
 {
-  Lisp_Object pred = ms->predicate;
-
-  eassume (ms && ssa && ssb && na > 0 && nb > 0);
-  eassume (ssa + na == ssb);
+  eassume (ms && ssa.keys && ssb.keys && na > 0 && nb > 0);
+  eassume (ssa.keys + na == ssb.keys);
   needmem (ms, nb);
-  Lisp_Object *dest = ssb;
-  dest += nb - 1;
-  memcpy(ms->a, ssb, nb * word_size);
-  Lisp_Object *basea = ssa;
-  Lisp_Object *baseb = ms->a;
-  ssb = ms->a + nb - 1;
-  ssa += na - 1;
+  sortslice dest = ssb;
+  sortslice_advance (&dest, nb-1);
+  sortslice_memcpy (&ms->a, 0, &ssb, 0, nb);
+  sortslice basea = ssa;
+  sortslice baseb = ms->a;
+  ssb.keys = ms->a.keys + nb - 1;
+  if (ssb.values != NULL)
+    ssb.values = ms->a.values + nb - 1;
+  sortslice_advance (&ssa, na - 1);
 
   ms->reloc = (struct reloc){&baseb, &dest, &nb, 1};
 
-  *dest-- = *ssa--;
+  sortslice_copy_decr (&dest, &ssa);
   --na;
   if (na == 0)
     goto Succeed;
@@ -645,9 +797,9 @@ merge_hi (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na,
 
     for (;;) {
       eassume (na > 0 && nb > 1);
-      if (inorder (pred, *ssb, *ssa))
+      if (inorder (ms, ssb.keys[0], ssa.keys[0]))
 	{
-	  *dest-- = *ssa--;
+	  sortslice_copy_decr (&dest, &ssa);
 	  ++acount;
 	  bcount = 0;
 	  --na;
@@ -658,7 +810,7 @@ merge_hi (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na,
 	}
       else
 	{
-	  *dest-- = *ssb--;
+	  sortslice_copy_decr (&dest, &ssb);
 	  ++bcount;
 	  acount = 0;
 	  --nb;
@@ -677,31 +829,31 @@ merge_hi (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na,
       eassume (na > 0 && nb > 1);
       min_gallop -= min_gallop > 1;
       ms->min_gallop = min_gallop;
-      ptrdiff_t k = gallop_right (ms, ssb[0], basea, na, na - 1);
+      ptrdiff_t k = gallop_right (ms, ssb.keys[0], basea.keys, na, na - 1);
       k = na - k;
       acount = k;
       if (k)
 	{
-	  dest += -k;
-	  ssa += -k;
-	  memmove(dest + 1, ssa + 1, k * word_size);
+	  sortslice_advance (&dest, -k);
+	  sortslice_advance (&ssa, -k);
+	  sortslice_memmove (&dest, 1, &ssa, 1, k);
 	  na -= k;
 	  if (na == 0)
 	    goto Succeed;
 	}
-      *dest-- = *ssb--;
+      sortslice_copy_decr(&dest, &ssb);
       --nb;
       if (nb == 1)
 	goto CopyA;
 
-      k = gallop_left (ms, ssa[0], baseb, nb, nb - 1);
+      k = gallop_left (ms, ssa.keys[0], baseb.keys, nb, nb - 1);
       k = nb - k;
       bcount = k;
       if (k)
 	{
-	  dest += -k;
-	  ssb += -k;
-	  memcpy(dest + 1, ssb + 1, k * word_size);
+	  sortslice_advance (&dest, -k);
+	  sortslice_advance (&ssb, -k);
+	  sortslice_memcpy (&dest, 1, &ssb, 1, k);
 	  nb -= k;
 	  if (nb == 1)
 	    goto CopyA;
@@ -710,7 +862,7 @@ merge_hi (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na,
 	  if (nb == 0)
 	    goto Succeed;
 	}
-      *dest-- = *ssa--;
+      sortslice_copy_decr (&dest, &ssa);
       --na;
       if (na == 0)
 	goto Succeed;
@@ -721,16 +873,16 @@ merge_hi (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na,
  Succeed:
   ms->reloc = (struct reloc){NULL, NULL, NULL, 0};
   if (nb)
-    memcpy (dest - nb + 1, baseb, nb * word_size);
+    sortslice_memcpy (&dest, -(nb-1), &baseb, 0, nb);
   return;
  CopyA:
   eassume (nb == 1 && na > 0);
   ms->reloc = (struct reloc){NULL, NULL, NULL, 0};
   /* The first element of ssb belongs at the front of the merge.  */
-  memmove (dest + 1 - na, ssa + 1 - na, na * word_size);
-  dest += -na;
-  ssa += -na;
-  dest[0] = ssb[0];
+  sortslice_memmove (&dest, 1-na, &ssa, 1-na, na);
+  sortslice_advance (&dest, -na);
+  sortslice_advance (&ssa, -na);
+  sortslice_copy (&dest, 0, &ssb, 0);
 }
 
 
@@ -744,12 +896,12 @@ merge_at (merge_state *ms, const ptrdiff_t i)
   eassume (i >= 0);
   eassume (i == ms->n - 2 || i == ms->n - 3);
 
-  Lisp_Object *ssa = ms->pending[i].base;
+  sortslice ssa = ms->pending[i].base;
   ptrdiff_t na = ms->pending[i].len;
-  Lisp_Object *ssb = ms->pending[i + 1].base;
+  sortslice ssb = ms->pending[i + 1].base;
   ptrdiff_t nb = ms->pending[i + 1].len;
   eassume (na > 0 && nb > 0);
-  eassume (ssa + na == ssb);
+  eassume (ssa.keys + na == ssb.keys);
 
   /* Record the length of the combined runs. The current run i+1 goes
      away after the merge.  If i is the 3rd-last run now, slide the
@@ -761,16 +913,16 @@ merge_at (merge_state *ms, const ptrdiff_t i)
 
   /* Where does b start in a?  Elements in a before that can be
      ignored (they are already in place).  */
-  ptrdiff_t k = gallop_right (ms, *ssb, ssa, na, 0);
+  ptrdiff_t k = gallop_right (ms, *ssb.keys, ssa.keys, na, 0);
   eassume (k >= 0);
-  ssa += k;
+  sortslice_advance (&ssa, k);
   na -= k;
   if (na == 0)
     return;
 
   /* Where does a end in b?  Elements in b after that can be ignored
      (they are already in place).  */
-  nb = gallop_left (ms, ssa[na - 1], ssb, nb, nb - 1);
+  nb = gallop_left (ms, ssa.keys[na - 1], ssb.keys, nb, nb - 1);
   if (nb == 0)
     return;
   eassume (nb > 0);
@@ -841,7 +993,7 @@ found_new_run (merge_state *ms, const ptrdiff_t n2)
     {
       eassume (ms->n > 0);
       struct stretch *p = ms->pending;
-      ptrdiff_t s1 = p[ms->n - 1].base - ms->listbase;
+      ptrdiff_t s1 = p[ms->n - 1].base.keys - ms->basekeys;
       ptrdiff_t n1 = p[ms->n - 1].len;
       int power = powerloop (s1, n1, n2, ms->listlen);
       while (ms->n > 1 && p[ms->n - 2].power > power)
@@ -898,39 +1050,88 @@ merge_compute_minrun (ptrdiff_t n)
 
 
 static void
-reverse_vector (Lisp_Object *s, const ptrdiff_t n)
+reverse_sortslice (sortslice *s, const ptrdiff_t n)
 {
-  for (ptrdiff_t i = 0; i < n >> 1; i++)
-    {
-      Lisp_Object tem = s[i];
-      s[i] =  s[n - i - 1];
-      s[n - i - 1] = tem;
-    }
+  reverse_slice (s->keys, &s->keys[n]);
+  if (s->values != NULL)
+    reverse_slice (s->values, &s->values[n]);
 }
 
-/* Sort the array SEQ with LENGTH elements in the order determined by
-   PREDICATE.  */
-
-void
-tim_sort (Lisp_Object predicate, Lisp_Object *seq, const ptrdiff_t length)
+static Lisp_Object
+resolve_fun (Lisp_Object fun)
 {
-  if (SYMBOLP (predicate))
+  if (SYMBOLP (fun))
     {
       /* Attempt to resolve the function as far as possible ahead of time,
 	 to avoid having to do it for each call.  */
-      Lisp_Object fun = XSYMBOL (predicate)->u.s.function;
-      if (SYMBOLP (fun))
+      Lisp_Object f = XSYMBOL (fun)->u.s.function;
+      if (SYMBOLP (f))
 	/* Function was an alias; use slow-path resolution.  */
-	fun = indirect_function (fun);
+	f = indirect_function (f);
       /* Don't resolve to an autoload spec; that would be very slow.  */
-      if (!NILP (fun) && !(CONSP (fun) && EQ (XCAR (fun), Qautoload)))
-	predicate = fun;
+      if (!NILP (f) && !(CONSP (f) && EQ (XCAR (f), Qautoload)))
+	fun = f;
+    }
+  return fun;
+}
+
+/* Sort the array SEQ with LENGTH elements in the order determined by
+   PREDICATE (where Qnil means value<) and KEYFUNC (where Qnil means identity),
+   optionally reversed.  */
+void
+tim_sort (Lisp_Object predicate, Lisp_Object keyfunc,
+	  Lisp_Object *seq, const ptrdiff_t length, bool reverse)
+{
+  /* FIXME: hoist this to the caller? */
+  if (EQ (predicate, Qvaluelt))
+    predicate = Qnil;
+  if (!NILP (predicate))
+    predicate = resolve_fun (predicate);
+  if (EQ (keyfunc, Qidentity))
+    keyfunc = Qnil;
+
+  sortslice lo;
+  Lisp_Object *keys;
+  Lisp_Object *allocated_keys = NULL;
+  merge_state ms;
+
+  if (reverse && 0 < length)
+    reverse_slice (seq, seq + length);    /* preserve stability */
+
+  if (NILP (keyfunc))
+    {
+      keys = NULL;
+      lo.keys = seq;
+      lo.values = NULL;
+    }
+  else
+    {
+      keyfunc = resolve_fun (keyfunc);
+      if (length < MERGESTATE_TEMP_SIZE / 2)
+	keys = &ms.temparray[length + 1];
+      else
+	{
+	  /* Fill with valid Lisp values in case a GC occurs before all
+	     keys have been computed.  */
+	  verify (NIL_IS_ZERO);
+	  keys = allocated_keys = xzalloc (length * word_size);
+	}
+
+      lo.keys = keys;
+      lo.values = seq;
     }
 
-  merge_state ms;
-  Lisp_Object *lo = seq;
+  merge_init (&ms, length, allocated_keys, &lo, predicate);
 
-  merge_init (&ms, length, lo, predicate);
+  /* Compute keys after merge_markmem has been registered by merge_init
+     (any call to keyfunc might trigger a GC).  */
+  if (!NILP (keyfunc))
+    for (ptrdiff_t i = 0; i < length; i++)
+      keys[i] = call1 (keyfunc, seq[i]);
+
+  /* FIXME: This is where we would check the keys for interesting
+     properties for more optimised comparison (such as all being fixnums
+     etc).  */
 
   /* March over the array once, left to right, finding natural runs,
      and extending short natural runs to minrun elements.  */
@@ -940,18 +1141,19 @@ tim_sort (Lisp_Object predicate, Lisp_Object *seq, const ptrdiff_t length)
     bool descending;
 
     /* Identify the next run.  */
-    ptrdiff_t n = count_run (&ms, lo, lo + nremaining, &descending);
+    ptrdiff_t n = count_run (&ms, lo.keys, lo.keys + nremaining, &descending);
     if (descending)
-      reverse_vector (lo, n);
+      reverse_sortslice (&lo, n);
     /* If the run is short, extend it to min(minrun, nremaining).  */
     if (n < minrun)
       {
 	const ptrdiff_t force = min (nremaining, minrun);
-	binarysort (&ms, lo, lo + force, lo + n);
+	binarysort (&ms, lo, lo.keys + force, lo.keys + n);
 	n = force;
       }
-    eassume (ms.n == 0 || ms.pending[ms.n - 1].base +
-	     ms.pending[ms.n - 1].len == lo);
+    eassume (ms.n == 0
+	     || (ms.pending[ms.n - 1].base.keys + ms.pending[ms.n - 1].len
+		 == lo.keys));
     found_new_run (&ms, n);
     /* Push the new run on to the stack.  */
     eassume (ms.n < MAX_MERGE_PENDING);
@@ -959,7 +1161,7 @@ tim_sort (Lisp_Object predicate, Lisp_Object *seq, const ptrdiff_t length)
     ms.pending[ms.n].len = n;
     ++ms.n;
     /* Advance to find the next run.  */
-    lo += n;
+    sortslice_advance (&lo, n);
     nremaining -= n;
   } while (nremaining);
 
@@ -968,6 +1170,9 @@ tim_sort (Lisp_Object predicate, Lisp_Object *seq, const ptrdiff_t length)
   eassume (ms.pending[0].len == length);
   lo = ms.pending[0].base;
 
-  if (ms.a != ms.temparray)
+  if (reverse)
+    reverse_slice (seq, seq + length);
+
+  if (ms.a.keys != ms.temparray || allocated_keys != NULL)
     unbind_to (ms.count, Qnil);
 }

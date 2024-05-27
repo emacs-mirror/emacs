@@ -6539,7 +6539,7 @@ DEFUN ("x-display-backing-store", Fx_display_backing_store,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object display)
 {
-  return intern ("not-useful");
+  return Qnot_useful;
 }
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
@@ -6551,13 +6551,13 @@ DEFUN ("x-display-visual-class", Fx_display_visual_class,
   Lisp_Object result = Qnil;
 
   if (dpyinfo->has_palette)
-      result = intern ("pseudo-color");
+      result = Qpseudo_color;
   else if (dpyinfo->n_planes * dpyinfo->n_cbits == 1)
-      result = intern ("static-gray");
+      result = Qstatic_gray;
   else if (dpyinfo->n_planes * dpyinfo->n_cbits == 4)
-      result = intern ("static-color");
+      result = Qstatic_color;
   else if (dpyinfo->n_planes * dpyinfo->n_cbits > 8)
-      result = intern ("true-color");
+      result = Qtrue_color;
 
   return result;
 }
@@ -6773,17 +6773,17 @@ SOUND is nil to use the normal beep.  */)
 
   if (NILP (sound))
       sound_type = 0xFFFFFFFF;
-  else if (EQ (sound, intern ("asterisk")))
+  else if (EQ (sound, Qasterisk))
       sound_type = MB_ICONASTERISK;
-  else if (EQ (sound, intern ("exclamation")))
+  else if (EQ (sound, Qexclamation))
       sound_type = MB_ICONEXCLAMATION;
-  else if (EQ (sound, intern ("hand")))
+  else if (EQ (sound, Qhand))
       sound_type = MB_ICONHAND;
-  else if (EQ (sound, intern ("question")))
+  else if (EQ (sound, Qquestion))
       sound_type = MB_ICONQUESTION;
-  else if (EQ (sound, intern ("ok")))
+  else if (EQ (sound, Qok))
       sound_type = MB_OK;
-  else if (EQ (sound, intern ("silent")))
+  else if (EQ (sound, Qsilent))
       sound_type = MB_EMACS_SILENT;
   else
       sound_type = 0xFFFFFFFF;
@@ -6854,7 +6854,7 @@ DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
     if (NILP (Ffile_readable_p (color_file)))
       color_file =
 	Fexpand_file_name (build_string ("rgb.txt"),
-			   Fsymbol_value (intern ("data-directory")));
+			   Fsymbol_value (Qdata_directory));
 
     Vw32_color_map = Fx_load_color_file (color_file);
   }
@@ -7749,8 +7749,8 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
  start_timer:
   /* Let the tip disappear after timeout seconds.  */
-  tip_timer = call3 (intern ("run-at-time"), timeout, Qnil,
-		     intern ("x-hide-tip"));
+  tip_timer = call3 (Qrun_at_time, timeout, Qnil,
+		     Qx_hide_tip);
 
   return unbind_to (count, Qnil);
 }
@@ -8188,15 +8188,14 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
       filename = Qnil;
     /* An error occurred, fallback on reading from the mini-buffer.  */
     else
-      filename = Fcompleting_read (
-	orig_prompt,
-	intern ("read-file-name-internal"),
-	orig_dir,
-	mustmatch,
-	orig_dir,
-	Qfile_name_history,
-	default_filename,
-	Qnil);
+      filename = Fcompleting_read (orig_prompt,
+				   Qread_file_name_internal,
+				   orig_dir,
+				   mustmatch,
+				   orig_dir,
+				   Qfile_name_history,
+				   default_filename,
+				   Qnil);
   }
 
   /* Make "Cancel" equivalent to C-g.  */
@@ -8223,7 +8222,7 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
   if (!NILP (Ffile_directory_p (filename))
       && NILP (Ffile_symlink_p (filename)))
     {
-      operation = intern ("delete-directory");
+      operation = Qdelete_directory;
       filename = Fdirectory_file_name (filename);
     }
 
@@ -8927,11 +8926,11 @@ to change the state.  */)
   int vk_code;
   LPARAM lparam;
 
-  if (EQ (key, intern ("capslock")))
+  if (EQ (key, Qcapslock))
     vk_code = VK_CAPITAL;
-  else if (EQ (key, intern ("kp-numlock")))
+  else if (EQ (key, Qkp_numlock))
     vk_code = VK_NUMLOCK;
-  else if (EQ (key, intern ("scroll")))
+  else if (EQ (key, Qscroll))
     vk_code = VK_SCROLL;
   else
     return Qnil;
@@ -10714,6 +10713,7 @@ syms_of_w32fns (void)
   DEFSYM (Qtip_frame, "tip-frame");
   DEFSYM (Qassq_delete_all, "assq-delete-all");
   DEFSYM (Qunicode_sip, "unicode-sip");
+  DEFSYM (Qread_file_name_internal, "read-file-name-internal");
 #if defined WINDOWSNT && !defined HAVE_DBUS
   DEFSYM (QCicon, ":icon");
   DEFSYM (QCtip, ":tip");
@@ -11108,6 +11108,23 @@ keys when IME input is received.  */);
   defsubr (&Ssystem_move_file_to_trash);
   defsubr (&Sw32_set_wallpaper);
 #endif
+
+  DEFSYM (Qnot_useful, "not-useful");
+  DEFSYM (Qpseudo_color, "pseudo-color");
+  DEFSYM (Qstatic_gray, "static-gray");
+  DEFSYM (Qstatic_color, "static-color");
+  DEFSYM (Qtrue_color, "true-color");
+  DEFSYM (Qasterisk, "asterisk");
+  DEFSYM (Qexclamation, "exclamation");
+  DEFSYM (Qquestion, "question");
+  DEFSYM (Qok, "ok");
+  DEFSYM (Qsilent, "silent");
+  DEFSYM (Qdata_directory, "data-directory");
+  DEFSYM (Qrun_at_time, "run-at-time");
+  DEFSYM (Qx_hide_tip, "x-hide-tip");
+  DEFSYM (Qcapslock, "capslock");
+  DEFSYM (Qkp_numlock, "kp-numlock");
+  DEFSYM (Qscroll, "scroll");
 }
 
 

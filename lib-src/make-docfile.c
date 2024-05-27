@@ -660,11 +660,11 @@ close_emacs_globals (ptrdiff_t num_symbols)
   printf (("};\n"
 	   "extern struct emacs_globals globals;\n"
 	   "\n"
-	   "#ifndef DEFINE_SYMBOLS\n"
-	   "extern\n"
-	   "#endif\n"
-	   "struct Lisp_Symbol lispsym[%td];\n"),
-	  num_symbols);
+	   "extern struct Lisp_Symbol lispsym[%td];\n"
+	   "#ifdef DEFINE_SYMBOLS\n"
+	   "struct Lisp_Symbol lispsym[%td];\n"
+	   "#endif\n"),
+	  num_symbols, num_symbols);
 }
 
 static void

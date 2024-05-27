@@ -3015,6 +3015,7 @@ To see the documentation for a defined struct type, use
              ;; All the above is for the following def-form.
              &rest &or symbolp (symbolp &optional def-form &rest sexp))))
   (let* ((name (if (consp struct) (car struct) struct))
+	 (warning nil)
 	 (opts (cdr-safe struct))
 	 (slots nil)
 	 (defaults nil)
@@ -3099,7 +3100,10 @@ To see the documentation for a defined struct type, use
 	       (setq descs (nconc (make-list (car args) '(cl-skip-slot))
 				  descs)))
 	      (t
-	       (error "Structure option %s unrecognized" opt)))))
+	       (setq warning
+	             (macroexp-warn-and-return
+	              (format "Structure option %S unrecognized" opt)
+	              warning nil nil (list opt struct)))))))
     (unless (or include-name type
                 ;; Don't create a bogus parent to `cl-structure-object'
                 ;; while compiling the (cl-defstruct cl-structure-object ..)
@@ -3338,6 +3342,7 @@ To see the documentation for a defined struct type, use
          (cl-struct-define ',name ,docstring ',include-name
                            ',(or type 'record) ,(eq named t) ',descs
                            ',tag-symbol ',tag ',print-auto))
+       ,warning
        ',name)))
 
 ;;; Add cl-struct support to pcase
@@ -3472,13 +3477,19 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                '((base-char	. characterp) ;Could be subtype of `fixnum'.
                  (character	. natnump)    ;Could be subtype of `fixnum'.
                  (command	. commandp)   ;Subtype of closure & subr.
+                 (keyword	. keywordp)   ;Would need `keyword-with-pos`.
                  (natnum	. natnump)    ;Subtype of fixnum & bignum.
                  (real		. numberp)    ;Not clear where it would fit.
+                 ;; This one is redundant, but we keep it to silence a
+                 ;; warning during the early bootstrap when `cl-seq.el' gets
+                 ;; loaded before `cl-preloaded.el' is defined.
+                 (list		. listp)
                  ))
   (put type 'cl-deftype-satisfies pred))
 
 ;;;###autoload
 (define-inline cl-typep (val type)
+  "Return t if VAL is of type TYPE, nil otherwise."
   (inline-letevals (val)
     (pcase (inline-const-val type)
       ((and `(,name . ,args) (guard (get name 'cl-deftype-handler)))

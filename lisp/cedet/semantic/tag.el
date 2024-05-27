@@ -349,6 +349,9 @@ If TAG is unlinked, but has a :filename property, then that is used."
     ;; If an error occurs, then it most certainly is not a tag.
     (error nil)))
 
+;; Used in `semantic-utest-ia.el'.
+(cl-deftype semantic-tag () `(satisfies semantic-tag-p))
+
 (defsubst semantic-tag-of-class-p (tag class)
   "Return non-nil if class of TAG is CLASS."
   (eq (semantic-tag-class tag) class))

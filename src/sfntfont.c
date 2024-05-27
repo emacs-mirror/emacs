@@ -454,8 +454,9 @@ static struct sfnt_style_desc sfnt_width_descriptions[] =
 static void
 sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
 {
-  char *style, *single, *saveptr;
+  char *style, *single, *saveptr, c;
   int i;
+  ptrdiff_t x;
   USE_SAFE_ALLOCA;
 
   /* Fill in default values.  slant seems to not be consistent with
@@ -555,7 +556,19 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
   /* The adstyle must be a symbol, so intern it if it is set.  */
 
   if (!NILP (desc->adstyle))
-    desc->adstyle = Fintern (desc->adstyle, Qnil);
+    {
+      /* Characters that can't be represented in an XLFD must be
+	 replaced.  */
+
+      for (x = 0; x < SBYTES (desc->adstyle); ++x)
+	{
+	  c = SREF (desc->adstyle, x);
+	  if (c == '-' || c == '*' || c == '?' && c == '"')
+	    SSET (desc->adstyle, x, ' ');
+	}
+
+      desc->adstyle = Fintern (desc->adstyle, Qnil);
+    }
 
   SAFE_FREE ();
 }
@@ -2029,7 +2042,7 @@ sfntfont_list (struct frame *f, Lisp_Object font_spec)
      caller) ordered first.  */
 
   XSETSUBR (compare_font_entities, &Scompare_font_entities.s);
-  matching = Fsort (matching, compare_font_entities);
+  matching = CALLN (Fsort, matching, compare_font_entities);
   return matching;
 }
 
@@ -3779,7 +3792,7 @@ sfntfont_list_family (struct frame *f)
     families = Fcons (desc->family, families);
 
   /* Sort families in preparation for removing duplicates.  */
-  families = Fsort (families, Qstring_lessp);
+  families = CALLN (Fsort, families, Qstring_lessp);
 
   /* Remove each duplicate within families.  */
 
