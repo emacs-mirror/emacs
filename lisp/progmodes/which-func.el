@@ -111,7 +111,7 @@ activation of Which Function until Imenu is used for the first time."
   ;; Backwards-compatibility: if users had changed this before
   ;; `idle-update-delay' was declared obsolete, let's respect that.
   (with-suppressed-warnings ((obsolete idle-update-delay))
-    (if (/= idle-update-delay 0.5) idle-update-delay 0.5))
+    idle-update-delay) ; 0.5
   "Idle time delay before `which-function-mode` updates its display.
 When point moves, wait this many seconds after Emacs becomes idle before
 doing an update."
