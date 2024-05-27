@@ -1654,7 +1654,7 @@ Assume MODE (see `filesets-entry-mode'), if provided."
 		  (cons entry (filesets-ingroup-cache-get entry))))
 	       (:tree
                 ;; Warning: ENTRY here could be of at least two
-                ;; differente forms, either
+                ;; different forms, either
                 ;;    (NAME (:tree DIRECTORY PATTERN))
                 ;; or
                 ;;    (DIRECTORY PATTERN)

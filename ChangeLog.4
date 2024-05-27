@@ -1319,7 +1319,7 @@
 
 	Fix c-ts-mode indentation (bug#67357)
 
-	1. In a compund_statement, we indent the first sibling against the
+	1. In a compound_statement, we indent the first sibling against the
 	parent, and the rest siblings against their previous sibling.  But
 	this strategy falls apart when the first sibling is not on its own
 	line.  We should regard the first sibling that is on its own line as
@@ -11284,7 +11284,7 @@
 
 	Add array_initializer to java-ts-mode
 
-	Indent strings inside arrray_initializer one step:
+	Indent strings inside array_initializer one step:
 
 	public class Java {
 	    void foo() {
@@ -16406,7 +16406,7 @@
 	config-format[1] through a new major-mode: toml-ts-mode.
 
 	I've read through the full spec[2], and from what I can see this
-	major-mode should provide correct syntax-highligting for every sort of
+	major-mode should provide correct syntax highlighting for every sort of
 	config-declaration which adheres to the specification.
 
 	Besides that it also adds support for imenu and basic tree-sitter
@@ -26568,7 +26568,7 @@
 	option.
 	(package-vc-archive-spec-alist): Add new variable to store the
 	contents of 'elpa-packages' for each archive.
-	(pacakge-vc-desc->spec): Add function to query package specifications.
+	(package-vc-desc->spec): Add function to query package specifications.
 	(package-vc--read-archive-data): Add a 'package-read-archive-hook'
 	implementation.
 	(package-vc--download-and-read-archives): Add a
@@ -34210,7 +34210,7 @@
 
 2022-09-15  Mattias Engdegård  <mattiase@acm.org>
 
-	Include nil as valid wallpaper-commmand
+	Include nil as valid wallpaper-command
 
 	* lisp/image/wallpaper.el (wallpaper-command):
 	Include nil in the type since that is a valid value for the variable,
@@ -44103,7 +44103,7 @@
 
 	* src/bytecode.c (exec_byte_code):
 	* lisp/emacs-lisp/comp.el (comp-limplify-lap-inst):
-	* lisp/emacs-lisp/bytecomp.el: Restore the statu quo ante.
+	* lisp/emacs-lisp/bytecomp.el: Restore the status quo ante.
 
 	* etc/NEWS: Remove the entry about the new optional argument.
 
@@ -52809,7 +52809,7 @@
 	  /emacs/configure: line 18002: syntax error near unexpected token `;;'
 	  /emacs/configure: line 18002: `  ;;'
 	That is due to under-quoting of AC_CHECK_LIB's second argument, which led to
-	the comma in an embedded string being interpreted as paramater-delimiting.
+	the comma in an embedded string being interpreted as parameter-delimiting.
 	* configure.ac: Quote the second arg of each AC_CHECK_LIB invocation.
 	(Bug#56272)
 
@@ -62459,7 +62459,7 @@
 	up-to-date) until the next invocation of 'eglot-flymake-backend'.
 
 	For now, this doesn't affect Flymake "list-only" diagnostics.  Those
-	are reported via the 'flymake-list-only-diagonstics' variable and
+	are reported via the 'flymake-list-only-diagnostics' variable and
 	are always communicated immediately to it.
 
 	* eglot.el: (eglot-handle-notification
@@ -66876,7 +66876,7 @@
 	(eshell-get-delimited-modifier-argument): New functions...
 	(eshell-pred-user-or-group, eshell-pred-file-time)
 	(eshell-pred-file-links, eshell-pred-file-size)
-	(eshell-pred-substitute, eshell-join-memebers, eshell-split-members):
+	(eshell-pred-substitute, eshell-join-members, eshell-split-members):
 	... and use them here.
 	(eshell-include-members): Pass 'mod-char' and use
 	'eshell-get-delimited-modifier-argument'.
@@ -74587,7 +74587,7 @@
 
 2022-03-24  Jimmy Aguilar Mena  <spacibba@aol.com>
 
-	Merge 'completion-auto-select new value secont-tab'
+	Merge 'completion-auto-select new value second-tab'
 
 	This includes the second-tab value for completion-auto-select and
 	documentation related.
@@ -82366,7 +82366,7 @@
 
 2022-02-06  Wang Chunye  <chunywan@xilinx.com>  (tiny change)
 
-	optimization: constand folding for read-kbd-macro
+	optimization: constant folding for read-kbd-macro
 
 	to boost startup performance, it is better to avoid invoking
 	`read-kbd-macro` at run time which requires 'cl-lib.
@@ -83611,7 +83611,7 @@
 	symbols since the rest is now available from `function-history`.
 	* src/eval.c (un_autoload): Adjust accordingly.
 
-	* src/lread.c (load-history): Udate docstring.
+	* src/lread.c (load-history): Update docstring.
 
 	* lisp/loadhist.el (loadhist-unload-filename): New var.
 	(unload-feature): Bind it.
@@ -102240,7 +102240,7 @@
 
 2021-11-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	Remove too-agressive window refresh in the hourglass code
+	Remove too aggressive window refresh in the hourglass code
 
 	* src/xterm.c (x_show_hourglass): Don't force a spurious refresh
 	(bug#51649).
@@ -110715,7 +110715,7 @@
 
 2020-11-21  Yuuki Harano  <masm+github@masm11.me>
 
-	Implement Scroll-bar-forground and scroll-bar-background
+	Implement scroll-bar-foreground and scroll-bar-background
 
 	* src/pgtkterm.h (struct pgtk_output):
 
@@ -112654,7 +112654,7 @@
 	Rework and correct major part of xref glue code
 
 	See comments of https://github.com/joaotavora/eglot/pull/314.  Up to
-	now, xref-backend-indentifier-completion-table was a gross hack that
+	now, xref-backend-identifier-completion-table was a gross hack that
 	only worked sometimes.  It relied on some fugly gymnastics to cache a
 	response from :textDocument/documentSymbol and somehow used that
 	information to build a completion table.  But it doesn't work well.
@@ -113087,12 +113087,12 @@
 
 	Merge pull request from stribb/master
 
-	Add a line of documentation for (use-pacakage ... :hook).
+	Add a line of documentation for (use-package ... :hook).
 	GitHub-reference: https://github.com/jwiegley/use-package/issues/759
 
 2019-04-04  Andrew Stribblehill  <stribb@gmail.com>  (tiny change)
 
-	Add a line of documentation for (use-pacakage ... :hook)
+	Add a line of documentation for (use-package ... :hook)
 
 2019-02-13  João Távora  <joaotavora@gmail.com>
 
@@ -113770,7 +113770,7 @@
 
 	Fix potential security issue fontifying lsp doc
 
-	Previously, a server could mistankely or maliciously call *-mode
+	Previously, a server could mistakenly or maliciously call *-mode
 	functions by in the response to a completion or hover request,
 	specifically in the :documentation field of the response.
 
@@ -115537,7 +115537,7 @@
 	Also cquery sometimes send 0-length ranges upon which we now fallback
 	to flymake-diag-region.
 
-	Finally, in eglot-eldoc-funciton, the previous hack of calling the
+	Finally, in eglot-eldoc-function, the previous hack of calling the
 	eglot--hover-info outside of the when-buffer-window macrolet contained
 	a bug. It must be called in the correct buffer. Revert the hack and do
 	it by querying from eglot.el if ert is running tests.
@@ -119347,7 +119347,7 @@
 
 	    (use-package foopkg :bind "<some-key>")
 
-	intendes to bind <some-key> to 'foopkg command.
+	intends to bind <some-key> to 'foopkg command.
 
 2016-10-31  Noam Postavsky  <npostavs@gmail.com>
 

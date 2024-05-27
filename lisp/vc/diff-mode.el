@@ -2640,7 +2640,7 @@ fixed, visit it in a buffer."
                 (?- . (left-fringe diff-fringe-del diff-indicator-removed))
                 (?! . (left-fringe diff-fringe-rep diff-indicator-changed))
                 (?\s . (left-fringe diff-fringe-nul fringe)))))))))
-    ;; Mimicks the output of Magit's diff.
+    ;; Mimics the output of Magit's diff.
     ;; FIXME: This has only been tested with Git's diff output.
     ;; FIXME: Add support for Git's "rename from/to"?
     (while (re-search-forward "^diff " limit t)

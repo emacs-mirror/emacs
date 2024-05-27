@@ -37,7 +37,7 @@
 ;; the hooks available for customizing it, see the file comint.el.
 ;; For further information on shell mode, see the comments below.
 
-;; Needs fixin:
+;; Needs fixing:
 ;; When sending text from a source file to a subprocess, the process-mark can
 ;; move off the window, so you can lose sight of the process interactions.
 ;; Maybe I should ensure the process mark is in the window when I send

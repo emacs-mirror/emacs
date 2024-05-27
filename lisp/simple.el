@@ -4505,7 +4505,7 @@ a shell (with its need to quote arguments)."
 				 (dired-get-filename nil t)))))
 			  (and filename (file-relative-name filename))))
     nil
-    ;; FIXME: the following argument is always ignored by 'shell-commnd',
+    ;; FIXME: the following argument is always ignored by 'shell-command',
     ;; when the command is invoked asynchronously, except, perhaps, when
     ;; 'default-directory' is remote.
     shell-command-default-error-buffer))
