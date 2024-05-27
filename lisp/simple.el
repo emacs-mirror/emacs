@@ -37,6 +37,7 @@
 (defvar compilation-current-error)
 (defvar compilation-context-lines)
 
+(make-obsolete-variable 'idle-update-delay 'which-func-update-delay "30.1")
 (defcustom idle-update-delay 0.5
   "Idle time delay before updating various things on the screen.
 Various Emacs features that update auxiliary information when point moves

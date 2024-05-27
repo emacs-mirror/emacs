@@ -1071,6 +1071,13 @@ function name is displayed.  The default is 'mode' to display in the
 mode line.  'header' will display in the header line;
 'mode-and-header' displays in both the header line and mode line.
 
++++
+*** New user option 'which-func-update-delay'.
+This replaces the user option 'idle-update-delay', which was previously
+used to control the delay before `which-function-mode` updated its
+display.  The user option 'idle-update-delay', which was only used by
+Which Function mode, is now obsolete.
+
 ** Tramp
 
 +++
