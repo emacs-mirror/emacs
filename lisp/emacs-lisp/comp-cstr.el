@@ -231,20 +231,22 @@ Return them as multiple value."
 
 (defun comp-normalize-valset (valset)
   "Sort and remove duplicates from VALSET then return it."
-  (cl-sort (cl-remove-duplicates valset :test #'eq)
-           (lambda (x y)
-             (cond
-              ((and (symbolp x) (symbolp y))
-               (string< x y))
-              ((and (symbolp x) (not (symbolp y)))
-               t)
-              ((and (not (symbolp x)) (symbolp y))
-               nil)
-              ((or (consp x) (consp y)
-                   nil))
-              (t
-               (< (sxhash-equal x)
-                  (sxhash-equal y)))))))
+  ;; Sort valset as much as possible (by type and by value for symbols
+  ;; and strings) to increase cache hits.  But refrain to use
+  ;; `sxhash-equal' to be reproducible across on different builds.
+  (cl-loop
+   with vals = (cl-remove-duplicates valset :test #'eq)
+   with type-val = (cl-loop
+                    for type in (cl-remove-duplicates (mapcar #'cl-type-of vals)
+                                                      :test #'eq)
+                    collect (cons type nil))
+   for x in vals
+   do (push x (cdr (assq (cl-type-of x) type-val)))
+   finally return (cl-loop
+                   for (type . values) in (cl-sort type-val #'string< :key #'car)
+                   append (if (memq type '(symbol string))
+                              (cl-sort values #'string<)
+                            values))))
 
 (defun comp-union-valsets (&rest valsets)
   "Union values present into VALSETS."
