@@ -2044,6 +2044,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (when eglot--current-flymake-report-fn
       (eglot--report-to-flymake nil)
       (setq eglot--current-flymake-report-fn nil))
+    (run-hooks 'eglot-managed-mode-hook)
     (let ((server eglot--cached-server))
       (setq eglot--cached-server nil)
       (when server
