@@ -6096,7 +6096,13 @@ that are loaded before your customizations are read!  */);
   load_prefer_newer = 0;
 
   DEFVAR_BOOL ("load-no-native", load_no_native,
-               doc: /* Non-nil means not to load a .eln file when a .elc was requested.  */);
+               doc: /* Non-nil means not to load a native code automatically unless
+explicitly requested.
+
+To load explicitly a `.eln' file use (load FILE) where FILE is the
+filename of the eln file.
+`load-no-native' non-nil will make Emacs not load native code through
+`require'.  */);
   load_no_native = false;
 
   /* Vsource_directory was initialized in init_lread.  */
