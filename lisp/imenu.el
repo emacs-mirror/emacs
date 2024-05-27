@@ -752,6 +752,7 @@ Return one of the entries in index-alist or nil."
     ;; Display the completion buffer.
     (minibuffer-with-setup-hook
         (lambda ()
+          (setq-local minibuffer-allow-text-properties t)
           (setq-local completion-extra-properties
                       `( :category imenu
                          ,@(when (eq imenu-flatten 'annotation)
@@ -765,10 +766,12 @@ Return one of the entries in index-alist or nil."
 				  nil t nil 'imenu--history-list name)))
 
     (when (stringp name)
-      (setq choice (assoc name prepared-index-alist))
-      (if (imenu--subalist-p choice)
-	  (imenu--completion-buffer (cdr choice) prompt)
-	choice))))
+      (or (get-text-property 0 'imenu-choice name)
+	  (progn
+	    (setq choice (assoc name prepared-index-alist))
+	    (if (imenu--subalist-p choice)
+		(imenu--completion-buffer (cdr choice) prompt)
+	      choice))))))
 
 (defun imenu--mouse-menu (index-alist event &optional title)
   "Let the user select from a buffer index from a mouse menu.
@@ -798,7 +801,9 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
 	    (new-prefix (and concat-names
 			     (if prefix
 				 (concat prefix imenu-level-separator name)
-			       name))))
+			       (if (eq imenu-flatten 'annotation)
+                                   (propertize name 'imenu-choice item)
+                                 name)))))
        (cond
 	((not (imenu--subalist-p item))
 	 (list (cons (if (and (eq imenu-flatten 'annotation) prefix)

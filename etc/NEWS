@@ -2044,6 +2044,17 @@ UTF-8 byte sequence, and the optional parameter MULTIBYTE of
 'dbus-string-to-byte-array' should be a regular Lisp string, not a
 unibyte string.
 
++++
+** 'minibuffer-allow-text-properties' now can be set buffer-local.
+'read-from-minibuffer' and functions that use it can take the
+buffer-local value from the minibuffer.
+
++++
+** 'minibuffer-allow-text-properties' also affects completions.
+When it has a non-nil value, then completion functions like
+'completing-read' don't discard text properties from the returned
+completion candidate.
+
 
 * Lisp Changes in Emacs 30.1
 
