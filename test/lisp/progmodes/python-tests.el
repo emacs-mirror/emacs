@@ -3762,7 +3762,9 @@ If env string EMACS_PYTHON_INTERPRETER exists, use it as preferred one."
                 (or (executable-find interpreter)
                     (error "Couldn't find EMACS_PYTHON_INTERPRETER(%s) in path"
                            interpreter)))
-              (cl-some #'executable-find '("python" "python3" "python2"))))))
+              ;; Use the same order as for the default value of
+              ;; `python-shell-interpreter'.
+              (cl-some #'executable-find '("python3" "python" "python2"))))))
 
 (ert-deftest python-shell-get-process-name-1 ()
   "Check process name calculation sans `buffer-file-name'."
