@@ -3548,9 +3548,7 @@ cache_image (struct frame *f, struct image *img)
   if (i == c->used && c->used == c->size)
     {
 #ifdef HAVE_MPS
-      struct image **old = c->images;
-      c->images = igc_grow_ptr_vec (&c->size, 1, -1);
-      memcpy (c->images, old, c->size * sizeof *old);
+      c->images = igc_grow_ptr_vec (c->images, &c->size, 1, -1);
 #else
       c->images = xpalloc (c->images, &c->size, 1, -1, sizeof *c->images);
 #endif

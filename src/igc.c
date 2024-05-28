@@ -3199,7 +3199,7 @@ igc_make_hash_table_vec (size_t n)
    be used for growing a vector of pointers whose current size is N
    pointers.  */
 void *
-igc_grow_ptr_vec (ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max)
+igc_grow_ptr_vec (void *v, ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max)
 {
   const ptrdiff_t min_items = 16;
   ptrdiff_t nitems0 = *n;
@@ -3221,6 +3221,9 @@ igc_grow_ptr_vec (ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max)
     memory_full (0);
 
   void *new_vec = igc_make_ptr_vec (new_nitems);
+  igc_assert (*n <= new_nitems);
+  igc_assert (new_nitems < PTRDIFF_MAX);
+  memcpy (new_vec, v, *n * sizeof (void *));
   *n = new_nitems;
   return new_vec;
 }

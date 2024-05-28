@@ -4929,13 +4929,11 @@ cache_face (struct face_cache *c, struct face *face, uintptr_t hash)
       if (c->used == c->size)
 	{
 #ifdef HAVE_MPS
-	  struct face **old = c->faces_by_id;
-	  c->faces_by_id = igc_grow_ptr_vec (&c->size, 1, MAX_FACE_ID);
-	  memcpy (c->faces_by_id, old, c->size * sizeof *old);
+	  c->faces_by_id = igc_grow_ptr_vec (c->faces_by_id, &c->size, 1, MAX_FACE_ID);
 #else
-	c->faces_by_id
-	  = xpalloc (c->faces_by_id, &c->size, 1, MAX_FACE_ID,
-		     sizeof *c->faces_by_id);
+	  c->faces_by_id
+	    = xpalloc (c->faces_by_id, &c->size, 1, MAX_FACE_ID,
+		       sizeof *c->faces_by_id);
 #endif
 	}
       c->used++;
