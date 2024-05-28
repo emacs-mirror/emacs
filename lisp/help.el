@@ -114,6 +114,7 @@ buffer.")
   "R"    #'info-display-manual
   "s"    #'describe-syntax
   "t"    #'help-with-tutorial
+  "4 s"  #'help-find-source
   "v"    #'describe-variable
   "w"    #'where-is
   "x"    #'describe-command
@@ -418,6 +419,7 @@ Do not call this in the scope of `with-help-window'."
         "Search documentation of functions, variables, and other items")
        ("describe-command" "Show help for command")
        ("describe-function" "Show help for function")
+       ("help-find-source" "Show the source for what's being described in *Help*")
        ("describe-variable" "Show help for variable")
        ("describe-symbol" "Show help for function or variable"))
       ("Manuals"
