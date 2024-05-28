@@ -281,10 +281,7 @@ information on Eshell, see Info node `(eshell)Top'."
     (minibuffer-with-setup-hook (lambda ()
                                   (eshell-mode)
                                   (eshell-command-mode +1))
-      (let ((command (read-from-minibuffer prompt)))
-        (when (eshell-using-module 'eshell-hist)
-          (eshell-add-input-to-history command))
-        command))))
+      (read-from-minibuffer prompt))))
 
 ;;;###autoload
 (defun eshell-command (command &optional to-current-buffer)
