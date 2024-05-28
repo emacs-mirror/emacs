@@ -191,7 +191,7 @@ widget runs its set function.")
   "Be more nuanced in displaying Custom state of `erc-modules'.
 When `customized-value' differs from `saved-value', allow widget
 to behave normally and show \"SET for current session\", as
-though `customize-set-variable' or similar had been applied.
+though `customize-set-variable' or similar has been applied.
 However, when `customized-value' and `standard-value' match but
 differ from `saved-value', prefer showing \"CHANGED outside
 Customize\" to prevent the widget from seeing a `standard'
@@ -207,7 +207,7 @@ instead of a `set' state, which precludes any actual saving."
   (funcall (get 'erc-modules 'custom-set) 'erc-modules
            (funcall op (erc--normalize-module-symbol name) erc-modules))
   (when (equal (pcase (get 'erc-modules 'saved-value)
-                 (`((quote ,saved) saved)))
+                 (`((quote ,saved)) saved))
                erc-modules)
     (customize-mark-as-set 'erc-modules)))
 

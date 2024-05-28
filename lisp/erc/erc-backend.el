@@ -885,7 +885,7 @@ Expect BUFFER to be the server buffer for the current connection."
                                                  (time-convert nil 'integer))))
                            ((or "connection broken by remote peer\n"
                                 (rx bot "failed"))
-                            (funcall reschedule proc)))))
+                            (run-at-time nil nil reschedule proc)))))
              (filter (lambda (proc _)
                        (delete-process proc)
                        (with-current-buffer buffer
