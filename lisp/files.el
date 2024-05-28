@@ -3570,17 +3570,18 @@ we don't actually set it to the same mode the buffer already has."
   "Remember the mode we have set via `set-auto-mode-0'.")
 
 (defcustom major-mode-remap-alist nil
-  "Alist mapping file-specified mode to actual mode.
-Every entry is of the form (MODE . FUNCTION) which means that in order
-to activate the major mode MODE (specified via something like
-`auto-mode-alist', file-local variables, ...) we should actually call
-FUNCTION instead.
-FUNCTION can be nil to hide other entries (either in this var or in
-`major-mode-remap-defaults') and means that we should call MODE."
+  "Alist mapping file-specified modes to alternative modes.
+Each entry is of the form (MODE . FUNCTION) which means that in place
+of activating the major mode MODE (specified via something like
+`auto-mode-alist', file-local variables, ...) we actually call FUNCTION
+instead.
+FUNCTION is typically a major mode which \"does the same thing\" as
+MODE, but can also be nil to hide other entries (either in this var or
+in `major-mode-remap-defaults') and means that we should call MODE."
   :type '(alist (symbol) (function)))
 
 (defvar major-mode-remap-defaults nil
-  "Alist mapping file-specified mode to actual mode.
+  "Alist mapping file-specified modes to alternative modes.
 This works like `major-mode-remap-alist' except it has lower priority
 and it is meant to be modified by packages rather than users.")
 
