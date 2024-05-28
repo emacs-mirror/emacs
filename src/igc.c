@@ -2230,7 +2230,8 @@ igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u)
     igc_root_destroy (&u->data_imp_relocs_root);
   if (u->data_eph_relocs_root)
     igc_root_destroy (&u->data_eph_relocs_root);
-  igc_root_destroy (&u->comp_unit_root);
+  if (u->comp_unit_root)
+    igc_root_destroy (&u->comp_unit_root);
 }
 
 static mps_res_t
