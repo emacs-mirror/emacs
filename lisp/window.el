@@ -3687,7 +3687,9 @@ negative, shrink selected window by -DELTA lines or columns."
 	  (if horizontal 'enlarge-window-horizontally 'enlarge-window))
       ;; For backward compatibility don't signal an error unless this
       ;; command is `enlarge-window(-horizontally)'.
-      (user-error "Cannot enlarge selected window"))
+      (if horizontal
+          (user-error "Cannot enlarge selected window horizontally")
+        (user-error "Cannot enlarge selected window vertically")))
      (t
       (window-resize
        nil (if (> delta 0)
@@ -3730,7 +3732,9 @@ negative, enlarge selected window by -DELTA lines or columns."
 	  (if horizontal 'shrink-window-horizontally 'shrink-window))
       ;; For backward compatibility don't signal an error unless this
       ;; command is `shrink-window(-horizontally)'.
-      (user-error "Cannot shrink selected window"))
+      (if horizontal
+          (user-error "Cannot shrink selected window horizontally")
+        (user-error "Cannot shrink selected window vertically")))
      (t
       (window-resize
        nil (if (> delta 0)
