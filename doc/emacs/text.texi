@@ -839,10 +839,17 @@ range of text to upper case or to lower case.
 @table @kbd
 @item M-l
 Convert following word to lower case (@code{downcase-word}).
+@item M-- M-l
+Convert previous/last word to lower case.  Note: @kbd{Meta--} is
+Meta-minus.
 @item M-u
 Convert following word to upper case (@code{upcase-word}).
+@item M-- M-u
+Convert previous/last last word to all upper case.
 @item M-c
 Capitalize the following word (@code{capitalize-word}).
+@item M-- M-c
+Convert previous/last last word to lower case with capital initial.
 @item C-x C-l
 Convert region to lower case (@code{downcase-region}).
 @item C-x C-u
@@ -869,10 +876,11 @@ from all upper case to mixed case, because you can move through the
 text using @kbd{M-l}, @kbd{M-u} or @kbd{M-c} on each word as
 appropriate, occasionally using @kbd{M-f} instead to skip a word.
 
-  When given a negative argument, the word case conversion commands apply
-to the appropriate number of words before point, but do not move point.
-This is convenient when you have just typed a word in the wrong case: you
-can give the case conversion command and continue typing.
+  When given a negative argument, as in @w{@kbd{C-u - 5 M-c}}, the
+word case-conversion commands apply to the appropriate number of words
+before point, but do not move point.  This is convenient when you have
+just typed a word in the wrong case: you can give the case conversion
+command, like @kbd{M-- M-u}, and continue typing.
 
   If a word case conversion command is given in the middle of a word,
 it applies only to the part of the word which follows point.  (This is
