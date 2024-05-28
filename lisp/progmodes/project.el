@@ -1080,8 +1080,9 @@ for VCS directories listed in `vc-directory-exclusion-list'."
          (dirs (list root))
          (project-files-relative-names t))
     (project-find-file-in
-     (or (thing-at-point 'filename)
-         (and buffer-file-name (project--find-default-from buffer-file-name pr)))
+     (delq nil (list (and buffer-file-name (project--find-default-from
+                                            buffer-file-name pr))
+                     (thing-at-point 'filename)))
      dirs pr include-all)))
 
 ;;;###autoload
@@ -1103,8 +1104,9 @@ for VCS directories listed in `vc-directory-exclusion-list'."
                 (project-external-roots pr)))
          (project-file-history-behavior t))
     (project-find-file-in
-     (or (thing-at-point 'filename)
-         (and buffer-file-name (project--find-default-from buffer-file-name pr)))
+     (delq nil (list (and buffer-file-name (project--find-default-from
+                                            buffer-file-name pr))
+                     (thing-at-point 'filename)))
      dirs pr include-all)))
 
 (defcustom project-read-file-name-function #'project--read-file-cpd-relative
@@ -1166,11 +1168,14 @@ by the user at will."
                          (setq all-files
                                (delete common-parent-directory all-files))
                          t))
-         (mb-default (if (and common-parent-directory
-                              mb-default
-                              (file-name-absolute-p mb-default))
-                         (file-relative-name mb-default common-parent-directory)
-                       mb-default))
+         (mb-default (mapcar (lambda (mb-default)
+                               (if (and common-parent-directory
+                                        mb-default
+                                        (file-name-absolute-p mb-default))
+                                   (file-relative-name
+                                    mb-default common-parent-directory)
+                                 mb-default))
+                             (if (listp mb-default) mb-default (list mb-default))))
          (substrings (mapcar (lambda (s) (substring s cpd-length)) all-files))
          (_ (when included-cpd
               (setq substrings (cons "./" substrings))))
