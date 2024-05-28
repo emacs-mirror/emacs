@@ -6057,7 +6057,8 @@ realize_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE],
     {
       /* Remove the former face.  */
       struct face *former_face = cache->faces_by_id[former_face_id];
-      uncache_face (cache, former_face);
+      if (former_face)
+	uncache_face (cache, former_face);
       free_realized_face (cache->f, former_face);
       SET_FRAME_GARBAGED (cache->f);
     }
