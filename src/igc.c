@@ -751,18 +751,22 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    /* MPS docs say that root scanning functions have exclusive access to
-       what is being scanned, the same way format scanning functions
-       do. That means I can use the thread's specpdl_ptr here. */
+    /* MPS docs say that root scanning functions have exclusive access
+       to what is being scanned, the same way format scanning functions
+       do. That does not mean one can rely on the thread's specpdl_ptr
+       here. It might be off because it may be updated after this
+       scanner runs. */
     struct igc_thread_list *t = closure;
     igc_assert (start == (void *) t->d.ts->m_specpdl);
     igc_assert (end == (void *) t->d.ts->m_specpdl_end);
-    end = t->d.ts->m_specpdl_ptr;
 
     for (union specbinding *pdl = start; (void *) pdl < end; ++pdl)
       {
 	switch (pdl->kind)
 	  {
+	  case SPECPDL_FREE:
+	    goto out;
+
 	  case SPECPDL_UNWIND:
 	    IGC_FIX12_OBJ (ss, &pdl->unwind.arg);
 	    break;
@@ -821,6 +825,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 	    break;
 	  }
       }
+  out:;
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;

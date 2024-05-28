@@ -229,6 +229,8 @@ init_eval_once_for_pdumper (void)
   specpdl = specpdl_ptr = pdlvec + 1;
   specpdl_end = specpdl + size;
 #ifdef HAVE_MPS
+  for (int i = 0; i < size; ++i)
+    specpdl[i].kind = SPECPDL_FREE;
   igc_on_alloc_main_thread_specpdl ();
 #endif
 }
@@ -2489,6 +2491,8 @@ grow_specpdl_allocation (void)
   specpdl_end = specpdl + pdlvecsize - 1;
   specpdl_ptr = specpdl_ref_to_ptr (count);
 #ifdef HAVE_MPS
+  for (int i = size; i < pdlvecsize - 1; ++i)
+    specpdl[i].kind = SPECPDL_FREE;
   igc_on_grow_specpdl ();
 #endif
 }
@@ -3702,6 +3706,10 @@ do_one_unbind (union specbinding *this_binding, bool unwinding,
   eassert (unwinding || this_binding->kind >= SPECPDL_LET);
   switch (this_binding->kind)
     {
+#ifdef HAVE_MPS
+    case SPECPDL_FREE:
+      emacs_abort ();
+#endif
     case SPECPDL_UNWIND:
       lisp_eval_depth = this_binding->unwind.eval_depth;
       this_binding->unwind.func (this_binding->unwind.arg);
@@ -3844,6 +3852,9 @@ unbind_to (specpdl_ref count, Lisp_Object value)
 
       union specbinding this_binding;
       this_binding = *--specpdl_ptr;
+#ifdef HAVE_MPS
+      specpdl_ptr->kind = SPECPDL_FREE;
+#endif
       do_one_unbind (&this_binding, true, SET_INTERNAL_UNBIND);
     }
 

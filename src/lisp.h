@@ -3652,6 +3652,9 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd const *, char const *);
 
 enum specbind_tag
 {
+# ifdef HAVE_MPS
+  SPECPDL_FREE,
+# endif
   SPECPDL_UNWIND,		/* An unwind_protect function on Lisp_Object.  */
   SPECPDL_UNWIND_ARRAY,		/* Likewise, on an array that needs freeing.
 				   Its elements are potential Lisp_Objects.  */
