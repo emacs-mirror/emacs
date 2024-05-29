@@ -3715,7 +3715,7 @@ do_one_unbind (union specbinding *this_binding, bool unwinding,
       this_binding->unwind.func (this_binding->unwind.arg);
       break;
     case SPECPDL_UNWIND_ARRAY:
-      xfree (this_binding->unwind_array.array);
+      SAFE_ALLOCA_XFREE (this_binding->unwind_array.array);
       break;
     case SPECPDL_UNWIND_PTR:
       this_binding->unwind_ptr.func (this_binding->unwind_ptr.arg);

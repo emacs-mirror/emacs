@@ -778,8 +778,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 
 	    /* This is used by SAFE_ALLOCA/malloc. */
 	  case SPECPDL_UNWIND_ARRAY:
-	    IGC_FIX12_NOBJS (ss, pdl->unwind_array.array,
-			     pdl->unwind_array.nelts);
+	    IGC_FIX12_RAW (ss, &pdl->unwind_array.array);
 	    break;
 
 	  case SPECPDL_UNWIND_EXCURSION:
@@ -3198,9 +3197,17 @@ igc_make_ptr_vec (size_t n)
 }
 
 Lisp_Object *
-igc_make_hash_table_vec (size_t n)
+igc_alloc_lisp_obj_vec (size_t n)
 {
   return alloc (n * sizeof (Lisp_Object), IGC_OBJ_OBJ_VEC);
+}
+
+Lisp_Object *
+igc_make_hash_table_vec (size_t n)
+{
+  /* FIXME: Make this return a special vector object suitabke
+     for weak hash tables. */
+  return igc_alloc_lisp_obj_vec (n);
 }
 
 /* Like xpalloc, but uses 'alloc' instead of xrealloc, and should only

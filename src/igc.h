@@ -106,7 +106,8 @@ struct face_cache *igc_make_face_cache (void);
 void *igc_make_ptr_vec (size_t n);
 void *igc_grow_ptr_vec (void *v, ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max);
 void igc_grow_rdstack (struct read_stack *rs);
-Lisp_Object * igc_make_hash_table_vec (size_t n);
+Lisp_Object *igc_make_hash_table_vec (size_t n);
+Lisp_Object *igc_alloc_lisp_obj_vec (size_t n);
 uintptr_t *igc_make_byte_vec (size_t nbytes); /* result is word aligned */
 struct image_cache *igc_make_image_cache (void);
 struct interval *igc_make_interval (void);

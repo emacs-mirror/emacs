@@ -5838,6 +5838,15 @@ extern void *record_xmalloc (size_t)
     memcpy (ptr, SDATA (string), SBYTES (string) + 1);	\
   } while (false)
 
+#ifdef HAVE_MPS
+Lisp_Object *igc_alloc_lisp_obj_vec (size_t n);
+#define SAFE_ALLOCA_XZALLOC(n, nbytes) igc_alloc_lisp_obj_vec (n)
+#define SAFE_ALLOCA_XFREE(p) (void) 0
+#else
+#define SAFE_ALLOCA_XZALLOC(n, nbytes) xzalloc (nbytes)
+#define SAFE_ALLOCA_XFREE(p) xfree (p)
+#endif
+
 /* Free xmalloced memory and enable GC as needed.  */
 
 #define SAFE_FREE() safe_free (sa_count)
@@ -5856,7 +5865,7 @@ safe_free (specpdl_ref sa_count)
       else
 	{
 	  eassert (specpdl_ptr->kind == SPECPDL_UNWIND_ARRAY);
-	  xfree (specpdl_ptr->unwind_array.array);
+	  SAFE_ALLOCA_XFREE (specpdl_ptr->unwind_array.array);
 	}
     }
 }
@@ -5883,7 +5892,7 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
    memory allocation in SAFE_ALLOCA_LISP_EXTRA.  */
 #if __GNUC__ == 13 && __GNUC_MINOR__ < 3
 # pragma GCC diagnostic ignored "-Wanalyzer-allocation-size"
-#endif
+# endif
 
 /* Set BUF to point to an allocated array of NELT Lisp_Objects,
    immediately followed by EXTRA spare bytes.  */
@@ -5902,8 +5911,8 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
 	/* Although only the first nelt words need clearing,   \
 	   typically EXTRA is 0 or small so just use xzalloc;  \
 	   this is simpler and often faster.  */	       \
-	(buf) = xzalloc (alloca_nbytes);		       \
-	record_unwind_protect_array (buf, nelt);	       \
+        (buf) = SAFE_ALLOCA_XZALLOC (nelt, alloca_nbytes);     \
+        record_unwind_protect_array (buf, nelt);	       \
       }							       \
   } while (false)
 
