@@ -4962,6 +4962,18 @@ should be set conmnection-local.")
 			      (string-join (tramp-get-remote-path v) ":")))
 			(setenv-internal env "PATH" remote-path 'keep)
 		      env))
+	       ;; Add HISTFILE if indicated.
+	       (env (if-let ((sh-file-name-handler-p))
+			(cond
+			 ((stringp tramp-histfile-override)
+			  (setenv-internal env "HISTFILE" tramp-histfile-override 'keep))
+			 (tramp-histfile-override
+			  (setq env (setenv-internal env "HISTFILE" "''" 'keep))
+			  (setq env (setenv-internal env "HISTSIZE" "0" 'keep))
+			  (setenv-internal env "HISTFILESIZE" "0" 'keep))
+			 (t env))
+		      env))
+	       ;; Add INSIDE_EMACS.
 	       (env (setenv-internal
 		     env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
 	       (env (mapcar #'tramp-shell-quote-argument (delq nil env)))

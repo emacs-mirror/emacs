@@ -1607,6 +1607,13 @@ matches all buffers with a remote default directory.
 and setting these profiles to criteria which could match in parallel.
 It is unspecified which variable value is used then.
 
+  Be also careful when setting connection-local variables in a buffer,
+which changes its major mode afterwards.  Because all buffer-local
+variables will be killed when changing the major mode, the
+connection-local variable's value would be lost.  You can prevent this
+by setting the respective variable's @code{permanent-local} symbol
+property to non-@code{nil}.
+
 @node Key Bindings
 @section Customizing Key Bindings
 @cindex key bindings
