@@ -151,15 +151,18 @@ Used for flattening nested indexes with name concatenation."
 (defcustom imenu-flatten nil
   "Whether to flatten the list of sections in an imenu or show it nested.
 If nil, use nested indexes.
-If t, pop up the completion buffer with a flattened menu.
+If `prefix', pop up the completion buffer with a flattened menu
+where section names are used as a prefix.
 If `annotation', use completion annotation as a suffix
 to append section names after the index names.
+If `group', split completions into groups.
 
 The string from `imenu-level-separator' is used to separate names of
 nested levels while flattening nested indexes with name concatenation."
   :type '(choice (const :tag "Nested" nil)
-                 (const :tag "By prefix" t)
-                 (const :tag "By suffix" annotation))
+                 (const :tag "By prefix" prefix)
+                 (const :tag "By annotation" annotation)
+                 (const :tag "By group" group))
   :version "30.1")
 
 (defcustom imenu-generic-skip-comments-and-strings t
@@ -758,7 +761,13 @@ Return one of the entries in index-alist or nil."
                          ,@(when (eq imenu-flatten 'annotation)
                              `(:annotation-function
                                ,(lambda (s) (get-text-property
-                                             0 'imenu-section s))))))
+                                             0 'imenu-section s))))
+                         ,@(when (eq imenu-flatten 'group)
+                             `(:group-function
+                               ,(lambda (s transform)
+                                  (if transform s
+                                    (get-text-property
+                                     0 'imenu-section s)))))))
           (unless imenu-eager-completion-buffer
             (minibuffer-completion-help)))
       (setq name (completing-read prompt
@@ -801,15 +810,20 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
 	    (new-prefix (and concat-names
 			     (if prefix
 				 (concat prefix imenu-level-separator name)
-			       (if (eq imenu-flatten 'annotation)
-                                   (propertize name 'imenu-choice item)
-                                 name)))))
+			       name))))
        (cond
 	((not (imenu--subalist-p item))
-	 (list (cons (if (and (eq imenu-flatten 'annotation) prefix)
-			 (propertize name 'imenu-section
-				     (format " (%s)" prefix))
-		       new-prefix)
+	 (list (cons (pcase imenu-flatten
+                       ('annotation
+                        (if prefix
+                            (propertize name
+                                        'imenu-section (format " (%s)" prefix)
+                                        'imenu-choice item)
+                          (propertize new-prefix 'imenu-choice item)))
+                       ('group (propertize name
+                                           'imenu-section (or prefix "*")
+                                           'imenu-choice item))
+                       (_ new-prefix))
 		     pos)))
 	(t
 	 (imenu--flatten-index-alist pos concat-names new-prefix)))))
