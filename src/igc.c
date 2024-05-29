@@ -3054,6 +3054,14 @@ alloc_string_data (size_t nbytes, bool clear)
   return data;
 }
 
+uintptr_t *
+igc_make_byte_vec (size_t nbytes)
+{
+  mps_addr_t addr = alloc (nbytes, IGC_OBJ_STRING_DATA);
+  igc_assert (is_aligned (addr));
+  return (uintptr_t *)addr;
+}
+
 /* Reallocate multibyte STRING data when a single character is
    replaced. The character is at byte offset BYTE_POS in the string.
    The character being replaced is CHAR_LEN bytes long, and the
