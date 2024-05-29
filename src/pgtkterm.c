@@ -336,6 +336,7 @@ evq_flush (struct input_event *hold_quit)
   return n;
 }
 
+#ifndef HAVE_MPS
 void
 mark_pgtkterm (void)
 {
@@ -369,6 +370,7 @@ mark_pgtkterm (void)
 	mark_object (device->name);
     }
 }
+#endif
 
 char *
 get_keysym_name (int keysym)
