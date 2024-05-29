@@ -4851,6 +4851,9 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char *, ptrdiff_t,
    the syntactic context.  */
 enum read_entry_type
 {
+# ifdef HAVE_MPS
+  RE_free,
+# endif
 				/* preceding syntactic context */
   RE_list_start,		/* "(" */
 

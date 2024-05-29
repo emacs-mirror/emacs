@@ -399,6 +399,7 @@ struct igc
   mps_pool_t weak_pool;
   mps_fmt_t ams_fmt;
   mps_pool_t ams_pool;
+  igc_root_list *rdstack_root;
   struct igc_root_list *roots;
   struct igc_thread_list *threads;
   Lisp_Object *cu;
@@ -707,23 +708,24 @@ scan_lispsym (mps_ss_t ss, void *start, void *end, void *closure)
 static mps_res_t
 scan_rdstack (mps_ss_t ss, void *start, void *end, void *closure)
 {
-  if (rdstack.stack == NULL)
-    return MPS_RES_OK;
-
   MPS_SCAN_BEGIN (ss)
   {
-    for (ptrdiff_t i = 0; i < rdstack.sp; i++)
+    for (struct read_stack_entry *e = start; (void *) e < end; ++e)
       {
-	struct read_stack_entry *e = &rdstack.stack[i];
 	switch (e->type)
 	  {
+	  case RE_free:
+	    goto out;
+
 	  case RE_list_start:
 	    break;
+
 	  case RE_list:
 	  case RE_list_dot:
 	    IGC_FIX12_OBJ (ss, &e->u.list.head);
 	    IGC_FIX12_OBJ (ss, &e->u.list.tail);
 	    break;
+
 	  case RE_vector:
 	  case RE_record:
 	  case RE_char_table:
@@ -732,15 +734,18 @@ scan_rdstack (mps_ss_t ss, void *start, void *end, void *closure)
 	  case RE_string_props:
 	    IGC_FIX12_OBJ (ss, &e->u.vector.elems);
 	    break;
+
 	  case RE_special:
 	    IGC_FIX12_OBJ (ss, &e->u.special.symbol);
 	    break;
+
 	  case RE_numbered:
 	    IGC_FIX12_OBJ (ss, &e->u.numbered.number);
 	    IGC_FIX12_OBJ (ss, &e->u.numbered.placeholder);
 	    break;
 	  }
       }
+  out:;
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2163,12 +2168,6 @@ root_create_thread (struct igc_thread_list *t)
   register_root (gc, root, cold, NULL, true);
 }
 
-static void
-root_create_rdstack (struct igc *gc)
-{
-  root_create_exact (gc, &rdstack, &rdstack + 1, scan_rdstack);
-}
-
 void
 igc_on_pdump_loaded (void *start, void *end)
 {
@@ -2187,6 +2186,23 @@ igc_on_grow_specpdl (void)
   {
     destroy_root (&t->d.specpdl_root);
     root_create_specpdl (t);
+  }
+}
+
+void
+igc_grow_rdstack (struct read_stack *rs)
+{
+  struct igc *gc = global_igc;
+  IGC_WITH_PARKED (gc)
+  {
+    if (gc->rdstack_root)
+      destroy_root (&gc->rdstack_root);
+    ptrdiff_t old_nitems = rs->size;
+    rs->stack = xpalloc (rs->stack, &rs->size, 1, -1, sizeof *rs->stack);
+    for (ptrdiff_t i = old_nitems; i < rs->size; ++i)
+      rs->stack[i].type = RE_free;
+    gc->rdstack_root
+      = root_create_exact (gc, rs->stack, rs->stack + rs->size, scan_rdstack);
   }
 }
 
@@ -3490,7 +3506,6 @@ make_igc (void)
   root_create_lispsym (gc);
   root_create_terminal_list (gc);
   root_create_main_thread (gc);
-  root_create_rdstack (gc);
 
   enable_messages (gc, true);
   return gc;
