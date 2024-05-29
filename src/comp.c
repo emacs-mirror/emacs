@@ -5297,7 +5297,7 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
       Lisp_Object x = data_imp_relocs[i];
       if (EQ (x, Qlambda_fixup))
 	return false;
-      else if (SUBR_NATIVE_COMPILEDP (x))
+      else if (NATIVE_COMP_FUNCTIONP (x))
 	{
 	  if (NILP (Fgethash (x, comp_u->lambda_gc_guard_h, Qnil)))
 	    return false;

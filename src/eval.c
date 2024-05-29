@@ -2534,7 +2534,7 @@ eval_sub (Lisp_Object form)
   else if (!NILP (fun) && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
-  if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
+  if (SUBRP (fun) && !NATIVE_COMP_FUNCTION_DYNP (fun))
     {
       Lisp_Object args_left = original_args;
       ptrdiff_t numargs = list_length (args_left);
@@ -2640,7 +2640,7 @@ eval_sub (Lisp_Object form)
 	}
     }
   else if (CLOSUREP (fun)
-	   || SUBR_NATIVE_COMPILED_DYNP (fun)
+	   || NATIVE_COMP_FUNCTION_DYNP (fun)
 	   || MODULE_FUNCTIONP (fun))
     return apply_lambda (fun, original_args, count);
   else
@@ -3036,10 +3036,10 @@ funcall_general (Lisp_Object fun, ptrdiff_t numargs, Lisp_Object *args)
       && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
-  if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
+  if (SUBRP (fun) && !NATIVE_COMP_FUNCTION_DYNP (fun))
     return funcall_subr (XSUBR (fun), numargs, args);
   else if (CLOSUREP (fun)
-	   || SUBR_NATIVE_COMPILED_DYNP (fun)
+	   || NATIVE_COMP_FUNCTION_DYNP (fun)
 	   || MODULE_FUNCTIONP (fun))
     return funcall_lambda (fun, numargs, args);
   else
@@ -3262,7 +3262,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
     return funcall_module (fun, nargs, arg_vector);
 #endif
 #ifdef HAVE_NATIVE_COMP
-  else if (SUBR_NATIVE_COMPILED_DYNP (fun))
+  else if (NATIVE_COMP_FUNCTION_DYNP (fun))
     {
       syms_left = XSUBR (fun)->lambda_list;
       lexenv = Qnil;
@@ -3335,9 +3335,9 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
   Lisp_Object val;
   if (CONSP (fun))
     val = Fprogn (XCDR (XCDR (fun)));
-  else if (SUBR_NATIVE_COMPILEDP (fun))
+  else if (NATIVE_COMP_FUNCTIONP (fun))
     {
-      eassert (SUBR_NATIVE_COMPILED_DYNP (fun));
+      eassert (NATIVE_COMP_FUNCTION_DYNP (fun));
       /* No need to use funcall_subr as we have zero arguments by
 	 construction.  */
       val = XSUBR (fun)->function.a0 ();

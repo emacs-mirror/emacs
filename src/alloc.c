@@ -7350,7 +7350,7 @@ process_mark_stack (ptrdiff_t base_sp)
 
 	      case PVEC_SUBR:
 #ifdef HAVE_NATIVE_COMP
-		if (SUBR_NATIVE_COMPILEDP (obj))
+		if (NATIVE_COMP_FUNCTIONP (obj))
 		  {
 		    set_vector_marked (ptr);
 		    struct Lisp_Subr *subr = XSUBR (obj);
@@ -7550,7 +7550,7 @@ survives_gc_p (Lisp_Object obj)
 
     case Lisp_Vectorlike:
       survives_p =
-	(SUBRP (obj) && !SUBR_NATIVE_COMPILEDP (obj)) ||
+	(SUBRP (obj) && !NATIVE_COMP_FUNCTIONP (obj)) ||
 	vector_marked_p (XVECTOR (obj));
       break;
 

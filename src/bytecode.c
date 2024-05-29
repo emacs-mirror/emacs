@@ -808,7 +808,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	      }
 
 	    Lisp_Object val;
-	    if (SUBRP (call_fun) && !SUBR_NATIVE_COMPILED_DYNP (call_fun))
+	    if (SUBRP (call_fun) && !NATIVE_COMP_FUNCTION_DYNP (call_fun))
 	      val = funcall_subr (XSUBR (call_fun), call_nargs, call_args);
 	    else
 	      val = funcall_general (original_fun, call_nargs, call_args);
