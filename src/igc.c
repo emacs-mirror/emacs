@@ -1478,7 +1478,6 @@ fix_buffer (mps_ss_t ss, struct buffer *b)
     IGC_FIX12_RAW (ss, &b->own_text.intervals);
     IGC_FIX12_RAW (ss, &b->own_text.markers);
     IGC_FIX12_RAW (ss, &b->overlays);
-    IGC_FIX12_RAW (ss, &b->own_text.markers);
 
     IGC_FIX12_RAW (ss, &b->base_buffer);
     if (b->base_buffer)
