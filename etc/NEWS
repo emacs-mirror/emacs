@@ -158,6 +158,11 @@ number has been bumped to 2048 bits.
 
 ** Help
 
++++
+*** New command 'help-find-source'.
+Switch to a buffer visiting the source of what is being described in
+"*Help*".  It is bound to 'C-h 4 s' globally.
+
 *** 'describe-function' shows function inferred type when available.
 For native compiled Lisp functions 'describe-function' prints (after
 the signature) the automatically inferred function type as well.

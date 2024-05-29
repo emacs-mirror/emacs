@@ -367,6 +367,11 @@ variable, or a face.  If the symbol has more than one definition, like
 it has both definition as a function and as a variable, this command
 will show the documentation of all of them, one after the other.
 
+@kindex C-h 4 s
+@findex help-find-source
+  @kbd{C-h 4 s} (@code{help-find-source}) switch to a buffer visiting
+the source definition of what is being described in the help buffer.
+
 @vindex completions-detailed
   If the @code{completions-detailed} user option is non-@code{nil},
 some commands provide details about the possible values when
