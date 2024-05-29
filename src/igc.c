@@ -3297,6 +3297,12 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   }
   if (res != MPS_RES_OK)
     error ("Error %d walking memory", res);
+  IGC_WITH_PARKED (gc)
+  {
+    res = mps_pool_walk (gc->leaf_pool, dflt_scanx, &st);
+  }
+  if (res != MPS_RES_OK)
+    error ("Error %d walking memory", res);
 
   Lisp_Object result = Qnil;
   for (int i = 0; i < IGC_OBJ_LAST; ++i)
