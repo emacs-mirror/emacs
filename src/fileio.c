@@ -4188,7 +4188,7 @@ by calling `format-decode', which see.  */)
      named pipes, and it's probably just not worth it.  So we should
      at least signal an error.  */
 
-  if (!S_ISREG (st.st_mode))
+  if (!(S_ISREG (st.st_mode) || S_ISDIR (st.st_mode)))
     {
       regular = false;
 
