@@ -1597,6 +1597,9 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
     // FIXME: weak
     IGC_FIX12_RAW (ss, &h->key);
     IGC_FIX12_RAW (ss, &h->value);
+    IGC_FIX12_RAW (ss, &h->hash);
+    IGC_FIX12_RAW (ss, &h->next);
+    IGC_FIX12_RAW (ss, &h->index);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2476,21 +2479,6 @@ igc_create_charset_root (void *table, size_t size)
 }
 
 static void
-finalize_hash_table (struct Lisp_Hash_Table *h)
-{
-  if (h->table_size)
-    {
-      /* Set the table size to 0 so that we don't further scan a hash
-	 table after it has been finalized. Also, keep in mind that
-	 xfree works with objects in a loaded dump. */
-      h->table_size = 0;
-      xfree (h->index);
-      xfree (h->next);
-      xfree (h->hash);
-    }
-}
-
-static void
 finalize_bignum (struct Lisp_Bignum *n)
 {
   mpz_clear (n->value);
@@ -2605,10 +2593,6 @@ finalize_vector (mps_addr_t v)
     case PVEC_FREE:
       emacs_abort ();
 
-    case PVEC_HASH_TABLE:
-      finalize_hash_table (v);
-      break;
-
     case PVEC_BIGNUM:
       finalize_bignum (v);
       break;
@@ -2670,6 +2654,7 @@ finalize_vector (mps_addr_t v)
 #ifndef IN_MY_FORK
     case PVEC_OBARRAY:
 #endif
+    case PVEC_HASH_TABLE:
     case PVEC_SYMBOL_WITH_POS:
     case PVEC_PROCESS:
     case PVEC_RECORD:
@@ -2746,7 +2731,6 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
   mps_addr_t ref = client_to_base (client);
   switch (tag)
     {
-    case PVEC_HASH_TABLE:
     case PVEC_BIGNUM:
     case PVEC_FONT:
     case PVEC_THREAD:
@@ -2765,6 +2749,7 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
 #ifndef IN_MY_FORK
     case PVEC_OBARRAY:
 #endif
+    case PVEC_HASH_TABLE:
     case PVEC_NORMAL_VECTOR:
     case PVEC_FREE:
     case PVEC_MARKER:
