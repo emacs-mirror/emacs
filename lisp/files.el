@@ -2931,7 +2931,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.emacs-places\\'" . lisp-data-mode)
      ("\\.el\\'" . emacs-lisp-mode)
      ("Project\\.ede\\'" . emacs-lisp-mode)
-     ("\\.\\(scm\\|sls\\|sld\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
+     ("\\(?:\\.\\(?:scm\\|sls\\|sld\\|stk\\|ss\\|sch\\)\\|/\\.guile\\)\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
      ("\\.li?sp\\'" . lisp-mode)
      ("\\.[fF]\\'" . fortran-mode)
