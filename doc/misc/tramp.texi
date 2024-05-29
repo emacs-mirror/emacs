@@ -1005,15 +1005,19 @@ in a pod is used.
 This method does not support user names.
 
 @item @option{toolbox}
+@item @option{distrobox}
 @cindex method @option{toolbox}
 @cindex @option{toolbox} method
+@cindex method @option{distrobox}
+@cindex @option{distrobox} method
 
-Integration of Toolbox system containers.  The host name may be either
-a container's name or ID, as returned by @samp{toolbox list -c}.
-Without a host name, the default Toolbox container for the host will
-be used.
+Integration of Toolbox or Distrobox system containers, respectively.
+The host name may be either a container's name or ID, as returned by
+@samp{toolbox list -c} or @samp{distrobox list}.  Without a host name,
+the default Toolbox container for the host will be used.  There is no
+such default for Distrobox.
 
-This is an optional method, @pxref{Optional methods}.  It does not
+These are optional methods, @pxref{Optional methods}.  They do not
 support user names.
 
 @item @option{flatpak}

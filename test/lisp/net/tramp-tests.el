@@ -7071,6 +7071,13 @@ This is used in tests which we don't want to tag
    (not (and (tramp--test-adb-p)
 	     (string-match-p (rx multibyte) default-directory)))))
 
+(defun tramp--test-box-p ()
+  "Check, whether the toolbox or distrobox method is used.
+This does not support `tramp-test45-asynchronous-requests'."
+  (string-match-p
+   (rx bol (| "toolbox" "distrobox") eol)
+   (file-remote-p ert-remote-temporary-file-directory 'method)))
+
 (defun tramp--test-container-p ()
   "Check, whether a container method is used.
 This does not support some special file names."
@@ -7220,12 +7227,6 @@ This requires restrictions of file name syntax."
 This does not support special file names."
   (string-equal
    "telnet" (file-remote-p ert-remote-temporary-file-directory 'method)))
-
-(defun tramp--test-toolbox-p ()
-  "Check, whether the toolbox method is used.
-This does not support `tramp-test45-asynchronous-requests'."
-  (string-equal
-   "toolbox" (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-windows-nt-p ()
   "Check, whether the locale host runs MS Windows."
@@ -7715,7 +7716,7 @@ process sentinels.  They shall not disturb each other."
   (skip-unless (not (tramp--test-container-p)))
   (skip-unless (not (tramp--test-sshfs-p)))
   (skip-unless (not (tramp--test-telnet-p)))
-  (skip-unless (not (tramp--test-toolbox-p)))
+  (skip-unless (not (tramp--test-box-p)))
   (skip-unless (not (tramp--test-windows-nt-p)))
 
   (with-timeout

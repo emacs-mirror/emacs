@@ -1079,7 +1079,7 @@ mode line.  'header' will display in the header line;
 +++
 *** New user option 'which-func-update-delay'.
 This replaces the user option 'idle-update-delay', which was previously
-used to control the delay before `which-function-mode` updated its
+used to control the delay before 'which-function-mode' updated its
 display.  The user option 'idle-update-delay', which was only used by
 Which Function mode, is now obsolete.
 
@@ -1108,10 +1108,11 @@ These are the external methods counterparts of "docker" and "podman".
 
 +++
 *** New optional connection methods for containers.
-Tere are new optional connection methods "toolbox", "flatpak",
-"apptainer" and "nspawn".  They allow accessing system containers
-provided by Toolbox, sandboxes provided by Flatpak, instances managed by
-Apptainer, or accessing systemd-based light-weight containers..
+There are new optional connection methods "toolbox", "distrobox",
+"flatpak", "apptainer" and "nspawn".  They allow accessing system
+containers provided by Toolbox or Distrobox, sandboxes provided by
+Flatpak, instances managed by Apptainer, or accessing systemd-based
+light-weight containers..
 
 +++
 *** Connection method "kubernetes" supports now optional container name.
@@ -2080,7 +2081,7 @@ and 'closure' is the common parent type of 'interpreted-function'
 and 'byte-code-function'.
 
 Those new types come with the associated new predicates 'closurep' and
-`interpreted-function-p' as well as a new constructor
+'interpreted-function-p' as well as a new constructor
 'make-interpreted-closure'.
 
 ** New function 'help-fns-function-name'.
