@@ -151,18 +151,22 @@ Used for flattening nested indexes with name concatenation."
 (defcustom imenu-flatten nil
   "Whether to flatten the list of sections in an imenu or show it nested.
 If nil, use nested indexes.
-If `prefix', pop up the completion buffer with a flattened menu
-where section names are used as a prefix.
-If `annotation', use completion annotation as a suffix
-to append section names after the index names.
-If `group', split completions into groups.
+If the value is `prefix', pop up the completion buffer with a
+flattened menu where section names are prepended to completion
+candidates as prefixes.
+If the value is `annotation', annotate each completion candidate
+with a suffix that is the section name to which it belongs.
+If the value is `group', split completion candidates into groups
+according to the sections.
+Any other value is treated as `prefix'.
 
-The string from `imenu-level-separator' is used to separate names of
-nested levels while flattening nested indexes with name concatenation."
-  :type '(choice (const :tag "Nested" nil)
-                 (const :tag "By prefix" prefix)
-                 (const :tag "By annotation" annotation)
-                 (const :tag "By group" group))
+The value of `imenu-level-separator', a string, is used to separate
+names from different flattened levels, such as section names, from the
+names of completion candidates."
+  :type '(choice (const :tag "Show nested list" nil)
+                 (const :tag "Flat list with sections as prefix" prefix)
+                 (const :tag "Flat list annotated with sections" annotation)
+                 (const :tag "Flat list grouped by sections" group))
   :version "30.1")
 
 (defcustom imenu-generic-skip-comments-and-strings t

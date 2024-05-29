@@ -1059,8 +1059,8 @@ point is not in a comment or a string.  It is by default bound to
 
 +++
 *** New user option 'imenu-flatten'.
-It defines whether to flatten the list of sections in an imenu
-or show it nested.
+It controls  whether to flatten the list of sections in an imenu, and
+how to display the sections in the flattened list.
 
 +++
 *** The sort order of Imenu completions can now be customized.
