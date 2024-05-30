@@ -2207,14 +2207,6 @@ igc_grow_rdstack (struct read_stack *rs)
   }
 }
 
-struct igc_cu_roots
-{
-  struct igc_root_list *data_relocs;
-  struct igc_root_list *data_imp_relocs;
-  struct igc_root_list *data_eph_relocs;
-  struct igc_root_list *comp_unit;
-};
-
 static igc_root_list *
 root_create_exact_n (Lisp_Object *start, size_t n)
 {
@@ -2223,34 +2215,30 @@ root_create_exact_n (Lisp_Object *start, size_t n)
   return root_create_exact (global_igc, start, start + n, scan_exact);
 }
 
-struct igc_root *
+void *
 igc_root_create_n (Lisp_Object start[], size_t n)
 {
-  return (struct igc_root *)root_create_exact_n (start, n);
+  return root_create_exact_n (start, n);
 }
 
-void
-igc_root_destroy (struct igc_root **root)
+static void
+maybe_destroy_root (void **root)
 {
-  destroy_root ((struct igc_root_list **)root);
-}
-
-void
-igc_root_create_comp_unit (struct Lisp_Native_Comp_Unit *u)
-{
+  if (*root)
+    {
+      struct igc_root_list *r = *root;
+      *root = NULL;
+      destroy_root (&r);
+    }
 }
 
 void
 igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
-  if (u->data_relocs_root)
-    igc_root_destroy (&u->data_relocs_root);
-  if (u->data_imp_relocs_root)
-    igc_root_destroy (&u->data_imp_relocs_root);
-  if (u->data_eph_relocs_root)
-    igc_root_destroy (&u->data_eph_relocs_root);
-  if (u->comp_unit_root)
-    igc_root_destroy (&u->comp_unit_root);
+  maybe_destroy_root (&u->data_relocs_root);
+  maybe_destroy_root (&u->data_imp_relocs_root);
+  maybe_destroy_root (&u->data_eph_relocs_root);
+  maybe_destroy_root (&u->comp_unit_root);
 }
 
 static mps_res_t
