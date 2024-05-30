@@ -937,8 +937,8 @@ text scale by the ratio therein."
                               (aset touch-screen-aux-tool 7
                                     current-scale)))
         ;; Set the text scale.
-        (text-scale-set (+ start-scale
-                           (round (log scale text-scale-mode-step))))
+        (text-scale-set (floor (+ (round (log scale text-scale-mode-step))
+                                  start-scale)))
         ;; Subsequently move the row which was at the centrum to its Y
         ;; position.
         (if (and (not (eq current-scale
