@@ -1413,7 +1413,8 @@ This excludes `dired-guess-shell-alist-user' and
                       (shell-command-to-string
                        (concat "xdg-mime query filetype "
                                (shell-quote-argument (car files)))))))
-         (xdg-mime-apps (unless (string-empty-p xdg-mime)
+         (xdg-mime-apps (unless (or (null xdg-mime)
+                                    (string-empty-p xdg-mime))
                           (xdg-mime-apps xdg-mime)))
          (xdg-commands
           (mapcar (lambda (desktop)
