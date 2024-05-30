@@ -117,6 +117,21 @@
 ;;; Code:
 
 (require 'tramp)
+(defvar tramp-actions-before-shell)
+(defvar tramp-actions-copy-out-of-band)
+
+;; This does not match all container-based methods.  Both in general,
+;; the command returns with an error; `tramp-process-alive-regexp'
+;; does the check then.
+(defcustom tramp-container-no-container-regexp
+  (rx bol "Error:" (1+ nonl) "no such container" (0+ nonl)
+      ;; Distrobox adds an interactive prompt.
+      (* "\n" (1+ nonl)))
+  "Regexp matching missing container message.
+The regexp should match at end of buffer."
+  :group 'tramp
+  :version "30.1"
+  :type 'regexp)
 
 ;;;###tramp-autoload
 (defcustom tramp-docker-program "docker"
@@ -619,6 +634,14 @@ see its function help for a description of the format."
  (connection-local-set-profiles
   `(:application tramp :protocol ,tramp-kubernetes-method)
   'tramp-kubernetes-connection-local-default-profile))
+
+(add-to-list
+ 'tramp-actions-before-shell
+ '(tramp-container-no-container-regexp tramp-action-permission-denied))
+
+(add-to-list
+ 'tramp-actions-copy-out-of-band
+ '(tramp-container-no-container-regexp tramp-action-permission-denied))
 
 ;;;###tramp-autoload
 (defun tramp-enable-toolbox-method ()
