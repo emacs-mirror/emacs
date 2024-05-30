@@ -45,7 +45,8 @@
   getter
   formatter
   displayer
-  -numerical)
+  -numerical
+  -aligned)
 
 (defclass vtable ()
   ((columns :initarg :columns :accessor vtable-columns)
@@ -473,7 +474,17 @@ This also updates the displayed table."
    (t
     (elt object index))))
 
-(defun vtable--compute-columns (table)
+(defun vtable--compute-columns (table &optional recompute)
+  "Compute column specs for TABLE.
+Set the `align', `-aligned' and `-numerical' properties of each column.
+If the column contains only numerical data, set `-numerical' to t,
+otherwise to nil.  `-aligned' indicates whether the column has an
+`align' property set by the user.  If it does, `align' is not touched,
+otherwise it is set to `right' for numeric columns and to `left' for
+non-numeric columns.
+
+If RECOMPUTE is non-nil, do not set `-aligned'.  This can be used to
+recompute the column specs when the table data has changed."
   (let ((numerical (make-vector (length (vtable-columns table)) t))
         (columns (vtable-columns table)))
     ;; First determine whether there are any all-numerical columns.
@@ -484,11 +495,16 @@ This also updates the displayed table."
                                              table))
            (setf (elt numerical index) nil)))
        (vtable-columns table)))
+    ;; Check if any columns have an explicit `align' property.
+    (unless recompute
+      (dolist (column (vtable-columns table))
+        (when (vtable-column-align column)
+          (setf (vtable-column--aligned column) t))))
     ;; Then fill in defaults.
     (seq-map-indexed
      (lambda (column index)
        ;; This is used when displaying.
-       (unless (vtable-column-align column)
+       (unless (vtable-column--aligned column)
          (setf (vtable-column-align column)
                (if (elt numerical index)
                    'right
@@ -813,7 +829,7 @@ If NEXT, do the next column."
          (setq recompute t)))
      line)
     (when recompute
-      (vtable--compute-columns table))))
+      (vtable--compute-columns table t))))
 
 (defun vtable--set-header-line (table widths spacer)
   (setq header-line-format
