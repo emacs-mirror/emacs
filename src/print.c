@@ -1314,6 +1314,7 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 struct print_pp_entry {
   ptrdiff_t n;			/* number of values, or 0 if a single value */
 #ifdef HAVE_MPS
+  bool is_free;
   ptrdiff_t start;
 #endif
   union {
@@ -1341,10 +1342,10 @@ scan_ppstack (struct igc_opaque *op, void *start, void *end,
 {
   eassert (start == (void *)ppstack.stack);
   eassert (end == (void *)(ppstack.stack + ppstack.size));
-  struct print_pp_entry *p = start;
-  struct print_pp_entry *q = p + ppstack.sp;
-  for (; p < q; p++)
+  for (struct print_pp_entry *p = start; (void *) p < end; ++p)
     {
+      if (p->is_free)
+	break;
       igc_scan_result_t err = 0;
       if (p->n == 0)
 	{
@@ -1368,8 +1369,11 @@ grow_pp_stack (void)
   struct print_pp_stack *ps = &ppstack;
   eassert (ps->sp == ps->size);
 #ifdef HAVE_MPS
-  igc_xpalloc_exact ((void **)&ppstack.stack, &ps->size, 1, -1,
+  ptrdiff_t old_size = ps->size;
+  igc_xpalloc_exact ((void **) &ppstack.stack, &ps->size, 1, -1,
 		     sizeof *ps->stack, scan_ppstack);
+  for (ptrdiff_t i = old_size; i < ps->size; ++i)
+    ppstack.stack[i].is_free = true;
 #else
   ps->stack = xpalloc (ps->stack, &ps->size, 1, -1, sizeof *ps->stack);
 #endif
@@ -1381,8 +1385,11 @@ pp_stack_push_value (Lisp_Object value)
 {
   if (ppstack.sp >= ppstack.size)
     grow_pp_stack ();
-  ppstack.stack[ppstack.sp++] = (struct print_pp_entry){.n = 0,
-							.u.value = value};
+  ppstack.stack[ppstack.sp++]
+    = (struct print_pp_entry){ .n = 0, .u.value = value };
+#ifdef HAVE_MPS
+  ppstack.stack[ppstack.sp - 1].is_free = false;
+#endif
 }
 
 #ifdef HAVE_MPS
@@ -1409,6 +1416,7 @@ pp_stack_push_values (Lisp_Object *values, ptrdiff_t n)
     grow_pp_stack ();
   ppstack.stack[ppstack.sp++] = (struct print_pp_entry){.n = n,
 							.u.values = values};
+  ppstack.stack[ppstack.sp - 1].is_free = false;
 }
 #endif
 
@@ -1426,18 +1434,28 @@ pp_stack_pop (void)
   if (e->n == 0)		/* single value */
     {
       --ppstack.sp;
+#ifdef HAVE_MPS
+      e->is_free = true;
+#endif
       return e->u.value;
     }
   /* Array of values: pop them left to right, which seems to be slightly
      faster than right to left.  */
   e->n--;
-  if (e->n == 0)
-    --ppstack.sp;		/* last value consumed */
+  Lisp_Object result;
 #ifdef HAVE_MPS
-  return AREF (e->u.vectorlike, e->start + e->n);
+  result = AREF (e->u.vectorlike, e->start + e->n);
 #else
-  return (++e->u.values)[-1];
+  result = (++e->u.values)[-1];
 #endif
+  if (e->n == 0)
+    {
+      --ppstack.sp;
+#ifdef HAVE_MPS
+      e->is_free = true;
+#endif
+    }
+  return result;
 }
 
 /* Construct Vprint_number_table for the print-circle feature
