@@ -187,9 +187,40 @@ and %v which is replaced by the tag value."
 
 ;;; Util functions
 
-(defun image-dired--check-executable-exists (executable)
-  (unless (executable-find (symbol-value executable))
-    (error "Executable %S not found" executable)))
+(defun image-dired--probe-thumbnail-cmd (cmd)
+  "Check whether CMD is usable for thumbnail creation."
+  (cond
+   ;; MS-Windows has an incompatible 'convert' command.  Make sure this
+   ;; is the one we expect, from ImageMagick.  FIXME: Should we do this
+   ;; also on systems other than MS-Windows?
+   ((and (memq system-type '(windows-nt cygwin ms-dos))
+         (member (downcase (file-name-nondirectory cmd))
+                 '("convert" "convert.exe")))
+    (with-temp-buffer
+      (let (process-file-side-effects)
+        (and (equal (condition-case nil
+                        ;; Implementation note: 'process-file' below
+                        ;; returns non-zero status when convert.exe is
+                        ;; the Windows command, because we quote the
+                        ;; "/?" argument, and Windows is not smart
+                        ;; enough to process quoted options correctly.
+		        (apply #'process-file cmd nil t nil '("/?"))
+		      (error nil))
+		    0)
+	     (progn
+	       (goto-char (point-min))
+	       (looking-at-p "Version: ImageMagick"))))))
+   (t t)))
+
+(defun image-dired--check-executable-exists (executable &optional func)
+  "If program EXECUTABLE does not exist or cannot be used, signal an error.
+But if optional argument FUNC (which must be a symbol) names a known
+function, consider that function to be an alternative to running EXECUTABLE."
+  (let ((cmd (symbol-value executable)))
+    (or (and (executable-find cmd)
+             (image-dired--probe-thumbnail-cmd cmd))
+        (and func (fboundp func) 'function)
+        (error "Executable %S not found or not pertinent" executable))))
 
 
 ;;; Creating thumbnails
@@ -286,8 +317,6 @@ and remove the cached thumbnail files between each trial run.")
 
 (defun image-dired-create-thumb-1 (original-file thumbnail-file)
   "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE."
-  (image-dired--check-executable-exists
-   'image-dired-cmd-create-thumbnail-program)
   (let* ((size (number-to-string (image-dired--thumb-size)))
          (modif-time (format-time-string
                       "%s" (file-attribute-modification-time
@@ -354,15 +383,51 @@ and remove the cached thumbnail files between each trial run.")
                   (image-dired-optipng-thumb spec)))))))
     process))
 
+(defun image-dired-create-thumb-2 (original-file thumbnail-file)
+  "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE.
+This is like `image-dired-create-thumb-1', but used when the thumbnail
+file is created by Emacs itself."
+  (let ((size (image-dired--thumb-size))
+        (thumbnail-dir (file-name-directory thumbnail-file)))
+    (when (not (file-exists-p thumbnail-dir))
+      (with-file-modes #o700
+        (make-directory thumbnail-dir t))
+      (message "Thumbnail directory created: %s" thumbnail-dir))
+    (image-dired-debug "Creating thumbnail for %s" original-file)
+    (if (null (w32image-create-thumbnail original-file thumbnail-file
+                                         (file-name-extension thumbnail-file)
+                                         size size))
+        (message "Failed to create a thumbnail for %s"
+                 (abbreviate-file-name original-file))
+      (clear-image-cache thumbnail-file)
+      ;; FIXME: Add PNG optimization like image-dired-create-thumb-1 does.
+      )
+    ;; Trigger next in queue once a thumbnail has been created.
+    (image-dired-thumb-queue-run)))
+
 (defun image-dired-thumb-queue-run ()
   "Run a queued job if one exists and not too many jobs are running.
 Queued items live in `image-dired-queue'.
 Number of simultaneous jobs is limited by `image-dired-queue-active-limit'."
-  (while (and image-dired-queue
-              (< image-dired-queue-active-jobs
-                 image-dired-queue-active-limit))
-    (cl-incf image-dired-queue-active-jobs)
-    (apply #'image-dired-create-thumb-1 (pop image-dired-queue))))
+  (if (not (eq (image-dired--check-executable-exists
+                'image-dired-cmd-create-thumbnail-program
+                'w32image-create-thumbnail)
+               'function))
+      ;; We have a usable gm/convert command; queue thethumbnail jobs.
+      (while (and image-dired-queue
+                  (< image-dired-queue-active-jobs
+                     image-dired-queue-active-limit))
+        (cl-incf image-dired-queue-active-jobs)
+        (apply #'image-dired-create-thumb-1 (pop image-dired-queue)))
+    ;; We are on MS-Windows and need to generate thumbnails by our
+    ;; lonesome selves.
+    (if image-dired-queue
+        (let* ((job (pop image-dired-queue))
+               (orig-file (car job))
+               (thumb-file (cadr job)))
+          (run-with-timer 0.05 nil
+                          #'image-dired-create-thumb-2
+                          orig-file thumb-file)))))
 
 (defun image-dired-create-thumb (original-file thumbnail-file)
   "Add a job for generating ORIGINAL-FILE thumbnail to `image-dired-queue'.

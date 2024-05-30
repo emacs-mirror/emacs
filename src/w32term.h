@@ -909,6 +909,9 @@ extern void globals_of_w32menu (void);
 extern void globals_of_w32fns (void);
 extern void globals_of_w32notify (void);
 
+extern void syms_of_w32image (void);
+extern void globals_of_w32image (void);
+
 extern void w32_init_main_thread (void);
 
 #ifdef CYGWIN

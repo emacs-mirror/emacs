@@ -2818,6 +2818,15 @@ title bars' and scroll bars' appearance.  If the new user option
 will disregard the system's Dark mode and will always use the default
 Light mode.
 
+---
+*** You can now use Image-Dired even if 'convert' command is not installed.
+If you don't have GraphicsMagick or ImageMagick installed, and thus the
+'gm convert'/'convert' command is not available, Emacs on MS-Windows
+will now use its own function 'w32image-create-thumbnail' to create
+thumbnail images and show them in the thumbnail buffer.  Unlike with
+using 'convert', this fallback method is synchronous, so Emacs will wait
+until all the thumbnails are created and displayed, before showing them.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

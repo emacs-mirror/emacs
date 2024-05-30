@@ -1248,9 +1248,15 @@ The viewer command is specified by `image-dired-external-viewer'."
         (message "No thumbnail at point")
       (if (not file)
           (message "No original file name found")
-        (apply #'start-process "image-dired-thumb-external" nil
-               (append (string-split image-dired-external-viewer " ")
-                       (list file)))))))
+        (cond
+         ((stringp image-dired-external-viewer)
+          (apply #'start-process "image-dired-thumb-external" nil
+                 (append (string-split image-dired-external-viewer " ")
+                         (list file))))
+         ((eq system-type 'windows-nt)
+          (w32-shell-execute "open" file))
+         (t
+          (error "`image-dired-external-viewer' does not name an image viewer program")))))))
 
 (defun image-dired-display-image (file &optional _ignored)
   "Display image FILE in the image buffer window.
