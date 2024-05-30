@@ -712,10 +712,12 @@ scan_rdstack (mps_ss_t ss, void *start, void *end, void *closure)
   {
     for (struct read_stack_entry *e = start; (void *) e < end; ++e)
       {
+	if (e->type == RE_free)
+	    break;
 	switch (e->type)
 	  {
 	  case RE_free:
-	    goto out;
+	    emacs_abort ();
 
 	  case RE_list_start:
 	    break;
@@ -745,7 +747,6 @@ scan_rdstack (mps_ss_t ss, void *start, void *end, void *closure)
 	    break;
 	  }
       }
-  out:;
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -767,10 +768,12 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 
     for (union specbinding *pdl = start; (void *) pdl < end; ++pdl)
       {
+	if (pdl->kind == SPECPDL_FREE)
+	  break;
 	switch (pdl->kind)
 	  {
 	  case SPECPDL_FREE:
-	    goto out;
+	    emacs_abort ();
 
 	  case SPECPDL_UNWIND:
 	    IGC_FIX12_OBJ (ss, &pdl->unwind.arg);
@@ -829,7 +832,6 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 	    break;
 	  }
       }
-  out:;
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;

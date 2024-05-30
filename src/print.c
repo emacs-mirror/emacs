@@ -2295,31 +2295,34 @@ scan_prstack (struct igc_opaque *op, void *start, void *end,
   for (struct print_stack_entry *p = start; (void *) p < end; p++)
     {
       igc_scan_result_t err = 0;
+      if (p->type == PE_free)
+	break;
       switch (p->type)
 	{
 	case PE_free:
-	  goto out;
+	  emacs_abort ();
 
 	case PE_list:
 	  if (err = scan1 (op, &p->u.list.last), err != 0)
 	    return err;
 	  if (err = scan1 (op, &p->u.list.tortoise), err != 0)
 	    return err;
-	  continue;
+	  break;
+
 	case PE_rbrac:
-	  continue;
+	  break;
+
 	case PE_vector:
 	  if (err = scan1 (op, &p->u.vector.obj), err != 0)
 	    return err;
-	  continue;
+	  break;
+
 	case PE_hash:
 	  if (err = scan1 (op, &p->u.hash.obj), err != 0)
 	    return err;
-	  continue;
+	  break;
 	}
-      eassert (!"not yet implemented");
     }
- out:;
   return 0;
 }
 #endif
