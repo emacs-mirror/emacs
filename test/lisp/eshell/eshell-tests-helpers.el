@@ -30,6 +30,8 @@
 (require 'esh-mode)
 (require 'eshell)
 
+(defvar eshell-aliases-file nil)
+(defvar eshell-command-aliases-list nil)
 (defvar eshell-history-file-name nil)
 (defvar eshell-last-dir-ring-file-name nil)
 
@@ -60,6 +62,8 @@ beginning of the test file."
            ;; just enable this selectively when needed.)  See also
            ;; `eshell-test-command-result' below.
            (eshell-debug-command (cons 'process eshell-debug-command))
+           (eshell-aliases-file nil)
+           (eshell-command-aliases-list nil)
            (eshell-history-file-name nil)
            (eshell-last-dir-ring-file-name nil)
            (eshell-module-loading-messages nil))
@@ -195,6 +199,28 @@ inserting the command."
                command
                (eshell-test-command-result command)
                result)))))
+
+(defun eshell-command-result--match (_command regexp actual)
+  "Compare the ACTUAL result of a COMMAND with REGEXP."
+  (string-match regexp actual))
+
+(defun eshell-command-result--match-explainer (command regexp actual)
+  "Explain the result of `eshell-command-result--match'."
+  `(mismatched-result
+    (command ,command)
+    (result ,actual)
+    (regexp ,regexp)))
+
+(put 'eshell-command-result--match 'ert-explainer
+     #'eshell-command-result--match-explainer)
+
+(defun eshell-command-result-match (command regexp)
+  "Execute COMMAND non-interactively and compare it to REGEXP."
+  (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
+    (let ((eshell-module-loading-messages nil))
+      (should (eshell-command-result--match
+               command regexp
+               (eshell-test-command-result command))))))
 
 (provide 'eshell-tests-helpers)
 

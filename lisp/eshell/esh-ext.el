@@ -182,6 +182,11 @@ commands on your local host by using the \"/local:\" prefix, like
   (add-hook 'eshell-named-command-hook #'eshell-quoted-file-command nil t)
   (add-hook 'eshell-named-command-hook #'eshell-explicit-command nil t))
 
+(defun eshell-explicit-command--which (command)
+  (when (and (> (length command) 1)
+             (eq (aref command 0) eshell-explicit-command-char))
+    (eshell-external-command--which (substring command 1))))
+
 (defun eshell-explicit-command (command args)
   "If a command name begins with \"*\", always call it externally.
 This bypasses all Lisp functions and aliases."
@@ -194,12 +199,22 @@ This bypasses all Lisp functions and aliases."
 	(error "%s: external command not found"
 	       (substring command 1))))))
 
+(put 'eshell-explicit-command 'eshell-which-function
+     #'eshell-explicit-command--which)
+
+(defun eshell-quoted-file-command--which (command)
+  (when (file-name-quoted-p command)
+    (eshell-external-command--which (file-name-unquote command))))
+
 (defun eshell-quoted-file-command (command args)
   "If a command name begins with \"/:\", always call it externally.
 Similar to `eshell-explicit-command', this bypasses all Lisp functions
 and aliases, but it also ignores file name handlers."
   (when (file-name-quoted-p command)
     (eshell-external-command (file-name-unquote command) args)))
+
+(put 'eshell-quoted-file-command 'eshell-which-function
+     #'eshell-quoted-file-command--which)
 
 (defun eshell-remote-command (command args)
   "Insert output from a remote COMMAND, using ARGS.
@@ -238,6 +253,11 @@ current working directory."
 	(apply (car interp) (append (cdr interp) args))
       (eshell-gather-process-output
        (car interp) (append (cdr interp) args)))))
+
+(defun eshell-external-command--which (command)
+  (or (eshell-search-path command)
+      (error "no %s in (%s)" command
+             (string-join (eshell-get-path t) (path-separator)))))
 
 (defun eshell-external-command (command args)
   "Insert output from an external COMMAND, using ARGS."
