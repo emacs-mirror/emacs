@@ -3829,6 +3829,8 @@ See `treesit-thing-settings' for more information.")
 
 (defvar js--treesit-sexp-nodes
   '("expression"
+    "parenthesized_expression"
+    "formal_parameters"
     "pattern"
     "array"
     "function"
@@ -3846,7 +3848,12 @@ See `treesit-thing-settings' for more information.")
     "undefined"
     "arguments"
     "pair"
-    "jsx")
+    "jsx"
+    "statement_block"
+    "object"
+    "object_pattern"
+    "named_imports"
+    "class_body")
   "Nodes that designate sexps in JavaScript.
 See `treesit-thing-settings' for more information.")
 
@@ -3889,10 +3896,10 @@ See `treesit-thing-settings' for more information.")
 
     (setq-local treesit-thing-settings
                 `((javascript
-                   (sexp ,(regexp-opt js--treesit-sexp-nodes))
-                   (sentence ,(regexp-opt js--treesit-sentence-nodes))
-                   (text ,(regexp-opt '("comment"
-                                        "template_string"))))))
+                   (sexp ,(js--regexp-opt-symbol js--treesit-sexp-nodes))
+                   (sentence ,(js--regexp-opt-symbol js--treesit-sentence-nodes))
+                   (text ,(js--regexp-opt-symbol '("comment"
+                                                   "template_string"))))))
 
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
