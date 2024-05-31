@@ -522,8 +522,7 @@ w32_load_image (struct frame *f, struct image *img,
   return 1;
 }
 
-struct cached_encoder
-{
+struct cached_encoder {
   int num;
   char *type;
   CLSID clsid;
@@ -531,8 +530,7 @@ struct cached_encoder
 
 static struct cached_encoder last_encoder;
 
-struct thumb_type_data
-{
+struct thumb_type_data {
   const char *ext;
   const wchar_t *mime;
 };
