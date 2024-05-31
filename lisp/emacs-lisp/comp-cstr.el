@@ -926,15 +926,6 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                       (> high most-positive-fixnum))
             t))))))
 
-(defun comp-cstr-symbol-p (cstr)
-  "Return t if CSTR is certainly a symbol."
-  (with-comp-cstr-accessors
-    (and (null (range cstr))
-         (null (neg cstr))
-         (and (or (null (typeset cstr))
-                  (equal (typeset cstr) '(symbol)))
-              (cl-every #'symbolp (valset cstr))))))
-
 (defsubst comp-cstr-cons-p (cstr)
   "Return t if CSTR is certainly a cons."
   (with-comp-cstr-accessors
@@ -964,6 +955,10 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                          (cl-every pred (valset cstr))))
              (error "Unknown predicate for type %s" type)))))
     t))
+
+(defun comp-cstr-symbol-p (cstr)
+  "Return t if CSTR is certainly a symbol."
+  (comp-cstr-type-p cstr 'symbol))
 
 ;; Move to comp.el?
 (defsubst comp-cstr-cl-tag-p (cstr)
