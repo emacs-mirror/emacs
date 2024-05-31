@@ -118,20 +118,6 @@
 
 (require 'tramp)
 (defvar tramp-actions-before-shell)
-(defvar tramp-actions-copy-out-of-band)
-
-;; This does not match all container-based methods.  Both in general,
-;; the command returns with an error; `tramp-process-alive-regexp'
-;; does the check then.
-(defcustom tramp-container-no-container-regexp
-  (rx bol "Error:" (1+ nonl) "no such container" (0+ nonl)
-      ;; Distrobox adds an interactive prompt.
-      (* "\n" (1+ nonl)))
-  "Regexp matching missing container message.
-The regexp should match at end of buffer."
-  :group 'tramp
-  :version "30.1"
-  :type 'regexp)
 
 ;;;###tramp-autoload
 (defcustom tramp-docker-program "docker"
@@ -251,6 +237,15 @@ This is for out-of-band connections.")
 ;;;###tramp-autoload
 (defconst tramp-nspawn-method "nspawn"
   "Tramp method name to connect to systemd-nspawn containers.")
+
+(defcustom tramp-distrobox-no-container-regexp
+  (rx bol "Error:" (1+ nonl) "no such container" (0+ nonl) "\n"
+      "Create it now, out of image " (+ (not blank)) "? [Y/n]:" (* blank))
+  "Regexp matching missing distrobox error message.
+The regexp should match at end of buffer."
+  :group 'tramp
+  :version "30.1"
+  :type 'regexp)
 
 ;;;###tramp-autoload
 (defmacro tramp-skeleton-completion-function (method &rest body)
@@ -635,14 +630,6 @@ see its function help for a description of the format."
   `(:application tramp :protocol ,tramp-kubernetes-method)
   'tramp-kubernetes-connection-local-default-profile))
 
-(add-to-list
- 'tramp-actions-before-shell
- '(tramp-container-no-container-regexp tramp-action-permission-denied))
-
-(add-to-list
- 'tramp-actions-copy-out-of-band
- '(tramp-container-no-container-regexp tramp-action-permission-denied))
-
 ;;;###tramp-autoload
 (defun tramp-enable-toolbox-method ()
   "Enable connection to Toolbox containers."
@@ -682,7 +669,11 @@ see its function help for a description of the format."
 
   (tramp-set-completion-function
    tramp-distrobox-method
-   `((tramp-distrobox--completion-function ,tramp-distrobox-method))))
+   `((tramp-distrobox--completion-function ,tramp-distrobox-method)))
+
+  (add-to-list
+   'tramp-actions-before-shell
+   '(tramp-distrobox-no-container-regexp tramp-action-permission-denied)))
 
 ;;;###tramp-autoload
 (defun tramp-enable-flatpak-method ()
