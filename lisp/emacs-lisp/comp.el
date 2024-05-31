@@ -3583,6 +3583,8 @@ is a filename, if the compilation was successful return the
 filename of the compiled object.  If FUNCTION-OR-FILE is a
 function symbol or a form, if the compilation was successful
 return the compiled function."
+  (declare (ftype (function ((or string symbol) &optional string)
+                            (or native-comp-function string))))
   (comp--native-compile function-or-file nil output))
 
 ;;;###autoload
