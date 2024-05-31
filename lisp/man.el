@@ -1202,8 +1202,8 @@ Return the buffer in which the manpage will appear."
 	(Man-notify-when-ready buffer)
       (message "Invoking %s %s in the background" manual-program man-args)
       (setq buffer (generate-new-buffer bufname))
+      (Man-notify-when-ready buffer)
       (with-current-buffer buffer
-	(Man-notify-when-ready buffer)
 	(setq buffer-undo-list t)
 	(setq Man-original-frame (selected-frame))
 	(setq Man-arguments man-args)
