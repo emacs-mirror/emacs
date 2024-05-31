@@ -2849,10 +2849,7 @@ Return t if something was changed."
                 (call memq ,(and (pred comp-mvar-p) mvar-1) ,(and (pred comp-mvar-p) mvar-2)))
            (cond-jump ,(and (pred comp-mvar-p) mvar-3) ,(pred comp-mvar-p) ,_bb1 ,bb2))
          (cl-assert (comp-cstr-imm-vld-p mvar-tag))
-         (when (and (length= (comp-mvar-typeset mvar-tested) 1)
-                    (member
-                     (car (comp-mvar-typeset mvar-tested))
-                     (symbol-value (comp-cstr-imm mvar-tag))))
+         (when (comp-cstr-type-p mvar-tested (comp-cstr-cl-tag mvar-tag))
            (comp-log (format "Optimizing conditional branch in function: %s"
                              (comp-func-name comp-func))
                      3)
