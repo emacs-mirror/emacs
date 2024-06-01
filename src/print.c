@@ -2029,6 +2029,11 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 	  print_c_string ("-outdated>", printcharfun);
 	  break;
 	}
+      if (!treesit_node_buffer_live_p (obj))
+	{
+	  print_c_string ("-in-killed-buffer>", printcharfun);
+	  break;
+	}
       printchar (' ', printcharfun);
       /* Now the node must be up-to-date, and calling functions like
 	 Ftreesit_node_start will not signal.  */

@@ -1786,6 +1786,13 @@ treesit_check_node (Lisp_Object obj)
   CHECK_TS_NODE (obj);
   if (!treesit_node_uptodate_p (obj))
     xsignal1 (Qtreesit_node_outdated, obj);
+
+  /* Technically a lot of node functions can work without the
+     associated buffer being alive, but I doubt there're any real
+     use-cases for that; OTOH putting the buffer-liveness check here is
+     simple, clean, and safe.  */
+  if (!treesit_node_buffer_live_p (obj))
+    xsignal1 (Qtreesit_node_buffer_killed, obj);
 }
 
 /* Checks that OBJ is a positive integer and it is within the visible
@@ -1804,6 +1811,14 @@ treesit_node_uptodate_p (Lisp_Object obj)
 {
   Lisp_Object lisp_parser = XTS_NODE (obj)->parser;
   return XTS_NODE (obj)->timestamp == XTS_PARSER (lisp_parser)->timestamp;
+}
+
+bool
+treesit_node_buffer_live_p (Lisp_Object obj)
+{
+  struct buffer *buffer
+    = XBUFFER (XTS_PARSER (XTS_NODE (obj)->parser)->buffer);
+  return BUFFER_LIVE_P (buffer);
 }
 
 DEFUN ("treesit-node-type",
@@ -3549,6 +3564,8 @@ syms_of_treesit (void)
 	  "treesit-load-language-error");
   DEFSYM (Qtreesit_node_outdated,
 	  "treesit-node-outdated");
+  DEFSYM (Qtreesit_node_buffer_killed,
+	  "treesit-node-buffer-killed");
   DEFSYM (Quser_emacs_directory,
 	  "user-emacs-directory");
   DEFSYM (Qtreesit_parser_deleted, "treesit-parser-deleted");
@@ -3576,6 +3593,9 @@ syms_of_treesit (void)
 		Qtreesit_error);
   define_error (Qtreesit_node_outdated,
 		"This node is outdated, please retrieve a new one",
+		Qtreesit_error);
+  define_error (Qtreesit_node_buffer_killed,
+		"The buffer associated with this node is killed",
 		Qtreesit_error);
   define_error (Qtreesit_parser_deleted,
 		"This parser is deleted and cannot be used",
