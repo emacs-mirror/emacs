@@ -34,7 +34,8 @@
 (require 'image-dired-util)
 
 (declare-function image-dired-display-image "image-dired")
-(declare-function clear-image-cache "image.c" (&optional filter))
+(declare-function clear-image-cache "image.c" (&optional flter))
+(declare-function w32image-create-thumbnail "w32image.c")
 
 (defvar image-dired-dir)
 (defvar image-dired-thumb-size)
