@@ -609,13 +609,18 @@ default value at the prompt."
   (if (not (image-dired-image-at-point-p))
       (message "No thumbnail at point")
     (let* ((file (image-dired-original-file-name))
-           (old-value (or (exif-field 'description (exif-parse-file file)) "")))
-      (if (eq 0
-              (image-dired-set-exif-data file "ImageDescription"
-                                         (read-string "Value of ImageDescription: "
-                                                      old-value)))
-          (message "Successfully wrote ImageDescription tag")
-        (error "Could not write ImageDescription tag")))))
+           (old-value (or (exif-field 'description (exif-parse-file file)) ""))
+           (defdir default-directory))
+      (with-temp-buffer
+        (setq default-directory defdir)
+        (if (eq 0
+                (image-dired-set-exif-data file "ImageDescription"
+                                           (read-string
+                                            "Value of ImageDescription: "
+                                            old-value)))
+            (message "Successfully wrote ImageDescription tag")
+          (error "Could not write ImageDescription tag: %s"
+                 (string-replace "\n" "" (buffer-string))))))))
 
 (defun image-dired-set-exif-data (file tag-name tag-value)
   "In FILE, set EXIF tag TAG-NAME to value TAG-VALUE."
@@ -627,7 +632,7 @@ default value at the prompt."
           (cons ?u (image-dired--file-URI (expand-file-name file)))
           (cons ?t tag-name)
           (cons ?v tag-value))))
-    (apply #'call-process image-dired-cmd-write-exif-data-program nil nil nil
+    (apply #'call-process image-dired-cmd-write-exif-data-program nil t nil
            (mapcar (lambda (arg) (format-spec arg spec))
                    image-dired-cmd-write-exif-data-options))))
 
