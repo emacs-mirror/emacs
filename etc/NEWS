@@ -1902,6 +1902,11 @@ than regular expressions, but less complexity than context-free
 grammars.  The Info manual "(elisp) Parsing Expression Grammars" has
 documentation and examples.
 
+** New major mode 'shell-command-mode'.
+This mode is used by default for the output of 'async-shell-command'.
+To revert to the previous behavior, set the (also new) variable
+'async-shell-command-mode' to 'shell-mode'.  Any hooks or mode-specific
+variables used should be adapted appropriately.
 
 * Incompatible Lisp Changes in Emacs 30.1
 

@@ -5259,8 +5259,13 @@ support symbolic links."
 	      ;; Display output.
 	      (with-current-buffer output-buffer
 		(setq mode-line-process '(":%s"))
-		(unless (eq major-mode 'shell-mode)
-		  (shell-mode))
+                (cond
+                 ((boundp 'async-shell-command-mode)
+                  ;; Emacs 30+
+                  (unless (eq major-mode async-shell-command-mode)
+                    (funcall async-shell-command-mode)))
+                 ((not (eq major-mode 'shell-mode))
+                  (shell-mode)))
 		(set-process-filter p #'comint-output-filter)
 		(set-process-sentinel p #'shell-command-sentinel)
 		(when error-file

@@ -31,7 +31,6 @@
 (eval-when-compile (require 'cl-lib))
 
 (declare-function widget-convert "wid-edit" (type &rest args))
-(declare-function shell-mode "shell" ())
 
 ;;; From compile.el
 (defvar compilation-current-error)
@@ -4488,9 +4487,10 @@ to execute it asynchronously.
 
 The output appears in OUTPUT-BUFFER, which could be a buffer or
 the name of a buffer, and defaults to `shell-command-buffer-name-async'
-if nil or omitted.  That buffer is in shell mode.  Note that, unlike
-with `shell-command', OUTPUT-BUFFER can only be a buffer, a buffer's
-name (a string), or nil.
+if nil or omitted.  That buffer is in major mode specified by the
+variable `async-shell-command-mode'.  Note that, unlike with
+`shell-command', OUTPUT-BUFFER can only be a buffer, a buffer's name
+(a string), or nil.
 
 You can customize `async-shell-command-buffer' to specify what to do
 when the buffer specified by `shell-command-buffer-name-async' is
@@ -4534,6 +4534,9 @@ a shell (with its need to quote arguments)."
 (declare-function comint-output-filter "comint" (process string))
 (declare-function comint-term-environment "comint" ())
 
+(defvar async-shell-command-mode 'shell-command-mode
+  "Major mode to use for the output of asynchronous `shell-command'.")
+
 (defun shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
 With prefix argument, insert the COMMAND's output at point.
@@ -4544,9 +4547,9 @@ directory in the prompt.
 
 If COMMAND ends in `&', execute it asynchronously.
 The output appears in the buffer whose name is specified
-by `shell-command-buffer-name-async'.  That buffer is in shell
-mode.  You can also use `async-shell-command' that automatically
-adds `&'.
+by `shell-command-buffer-name-async'.  That buffer is in major mode
+specified by the variable `async-shell-command-mode'.  You can also use
+`async-shell-command' that automatically adds `&'.
 
 Otherwise, COMMAND is executed synchronously.  The output appears in
 the buffer named by `shell-command-buffer-name'.  If the output is
@@ -4722,7 +4725,7 @@ impose the use of a shell (with its need to quote arguments)."
 		  (setq proc
 			(start-process-shell-command "Shell" buffer command)))
 		(setq mode-line-process '(":%s"))
-                (shell-mode)
+                (funcall async-shell-command-mode)
                 (setq-local revert-buffer-function
                             (lambda (&rest _)
                               (async-shell-command command buffer)))

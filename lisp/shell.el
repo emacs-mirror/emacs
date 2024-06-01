@@ -838,6 +838,13 @@ Sentinels will always get the two parameters PROCESS and EVENT."
       (with-current-buffer buf
         (insert (format "\nProcess %s %s\n" process event))))))
 
+(define-derived-mode shell-command-mode comint-mode "Shell"
+  "Major mode for the output of asynchronous `shell-command'."
+  (setq-local font-lock-defaults '(shell-font-lock-keywords t))
+  ;; See comments in `shell-mode'.
+  (setq-local ansi-color-apply-face-function #'shell-apply-ansi-color)
+  (setq list-buffers-directory (expand-file-name default-directory)))
+
 ;;;###autoload
 (defun shell (&optional buffer file-name)
   "Run an inferior shell, with I/O through BUFFER (which defaults to `*shell*').
