@@ -631,7 +631,8 @@ Return non-nil if thumbnail creation succeeds, nil otherwise.  */)
 
   /* Create an image by reading from INPUT_FILE.  */
   wchar_t input_file_w[MAX_PATH];
-  input_file = ENCODE_FILE (Fexpand_file_name (input_file, Qnil));
+  input_file
+    = ENCODE_FILE (Fexpand_file_name (Fcopy_sequence (input_file), Qnil));
   unixtodos_filename (SSDATA (input_file));
   filename_to_utf16 (SSDATA (input_file), input_file_w);
   GpImage *file_image;
@@ -652,7 +653,9 @@ Return non-nil if thumbnail creation succeeds, nil otherwise.  */)
 	{
 	  /* Save the thumbnail image to a file of specified TYPE.  */
 	  wchar_t thumb_file_w[MAX_PATH];
-	  thumb_file = ENCODE_FILE (Fexpand_file_name (thumb_file, Qnil));
+	  thumb_file
+	    = ENCODE_FILE (Fexpand_file_name (Fcopy_sequence (thumb_file),
+					      Qnil));
 	  unixtodos_filename (SSDATA (thumb_file));
 	  filename_to_utf16 (SSDATA (thumb_file), thumb_file_w);
 	  status = GdipSaveImageToFile (thumb_image, thumb_file_w,
