@@ -1239,6 +1239,8 @@ Ask user how many thumbnails should be displayed per row."
 
 ;;; Display image from thumbnail buffer
 
+(declare-function w32-shell-execute "w32fns.c")
+
 (defun image-dired-thumbnail-display-external ()
   "Display original image for thumbnail at point using external viewer.
 The viewer command is specified by `image-dired-external-viewer'."
