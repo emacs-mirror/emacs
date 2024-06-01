@@ -1683,6 +1683,25 @@ The user option 'proced-auto-update-flag' can now be set to 2 additional
 values, which control automatic updates of Proced buffers that are not
 displayed in some window.
 
+** Kmacro
+
++++
+*** New Advanced Macro Counter functions.
+New commands have been added to implement advanced macro counter
+functions.
+
+The commands 'C-x C-k C-r l' and 'C-x C-k C-r s' load and save the
+macro counter from and to a number register, respectively.
+
+The commands 'C-x C-k C-r a =', 'C-x C-k C-r a <', and
+'C-x C-k C-r a >' compare the macro counter with the contents of a
+number register and increment the counter by an optional prefix if the
+comparison succeeds.
+
+The commands 'C-x C-k C-q =', 'C-x C-k C-q <', and 'C-x C-k C-q >'
+compare the macro counter with an optional prefix and terminate the
+macro if the comparison succeeds.
+
 ** Kmacro Menu mode
 
 +++
