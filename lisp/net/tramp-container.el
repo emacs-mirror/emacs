@@ -3,6 +3,7 @@
 ;; Copyright © 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Brian Cully <bjc@kublai.com>
+;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
 
