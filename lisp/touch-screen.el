@@ -1852,10 +1852,17 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
         ;; no key events have been translated.
         (if event (or (and prefix (consp event)
                            ;; Only generate virtual function keys for
-                           ;; mouse events.
+                           ;; mouse events...
                            (memq (car event)
                                  '(down-mouse-1 mouse-1
                                    mouse-2 mouse-movement))
+                           ;; .. and provided that Emacs has never
+                           ;; previously encountered an event of this
+                           ;; description, so that its `event-kind'
+                           ;; property has yet to be initialized and
+                           ;; keyboard.c will not understand whether and
+                           ;; how to append a function key prefix.
+                           (null (get (car event) 'event-kind))
                            ;; If this is a mode line event, then
                            ;; generate the appropriate function key.
                            (vector prefix event))

@@ -224,34 +224,6 @@ pgtk_regenerate_devices (struct pgtk_display_info *dpyinfo)
   pgtk_enumerate_devices (dpyinfo, false);
 }
 
-static void
-pgtk_toolkit_position (struct frame *f, int x, int y,
-		       bool *menu_bar_p, bool *tool_bar_p)
-{
-  GdkRectangle test_rect;
-  int scale;
-
-  y += (FRAME_MENUBAR_HEIGHT (f)
-	+ FRAME_TOOLBAR_TOP_HEIGHT (f));
-  x += FRAME_TOOLBAR_LEFT_WIDTH (f);
-
-  if (FRAME_EXTERNAL_MENU_BAR (f))
-    *menu_bar_p = (x >= 0 && x < FRAME_PIXEL_WIDTH (f)
-		   && y >= 0 && y < FRAME_MENUBAR_HEIGHT (f));
-
-  if (FRAME_X_OUTPUT (f)->toolbar_widget)
-    {
-      scale = xg_get_scale (f);
-      test_rect.x = x / scale;
-      test_rect.y = y / scale;
-      test_rect.width = 1;
-      test_rect.height = 1;
-
-      *tool_bar_p = gtk_widget_intersect (FRAME_X_OUTPUT (f)->toolbar_widget,
-					  &test_rect, NULL);
-    }
-}
-
 static Lisp_Object
 pgtk_get_device_for_event (struct pgtk_display_info *dpyinfo,
 			   GdkEvent *event)
@@ -4042,8 +4014,8 @@ xg_scroll_callback (GtkRange * range,
 /* Callback for button release. Sets dragging to -1 when dragging is done.  */
 
 static gboolean
-xg_end_scroll_callback (GtkWidget * widget,
-			GdkEventButton * event, gpointer user_data)
+xg_end_scroll_callback (GtkWidget *widget,
+			GdkEventButton *event, gpointer user_data)
 {
   struct scroll_bar *bar = user_data;
   bar->dragging = -1;
@@ -4889,7 +4861,6 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->focus_frame_hook = pgtk_focus_frame;
   terminal->set_frame_offset_hook = pgtk_set_offset;
   terminal->free_pixmap = pgtk_free_pixmap;
-  terminal->toolkit_position_hook = pgtk_toolkit_position;
 
   /* Other hooks are NULL by default.  */
 
@@ -5929,6 +5900,17 @@ motion_notify_event (GtkWidget *widget, GdkEvent *event,
   struct frame *f, *frame;
   struct pgtk_display_info *dpyinfo;
   Mouse_HLInfo *hlinfo;
+  GdkDevice *device;
+
+  /* Ignore emulated pointer events generated from a touch screen
+     event.  */
+  if (gdk_event_get_pointer_emulated (event)
+      /* The event must not have emerged from a touch device either, as
+         GDK does not set pointer_emulated in events generated on
+         Wayland as on X, and as the X Input Extension specifies.  */
+      || ((device = gdk_event_get_source_device (event))
+	  && (gdk_device_get_source (device) == GDK_SOURCE_TOUCHSCREEN)))
+    return FALSE;
 
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
@@ -6068,6 +6050,17 @@ button_event (GtkWidget *widget, GdkEvent *event,
   bool tab_bar_p = false;
   bool tool_bar_p = false;
   Lisp_Object tab_bar_arg = Qnil;
+  GdkDevice *device;
+
+  /* Ignore emulated pointer events generated from a touch screen
+     event.  */
+  if (gdk_event_get_pointer_emulated (event)
+      /* The event must not have emerged from a touch device either, as
+         GDK does not set pointer_emulated in events generated on
+         Wayland as on X, and as the X Input Extension specifies.  */
+      || ((device = gdk_event_get_source_device (event))
+	  && (gdk_device_get_source (device) == GDK_SOURCE_TOUCHSCREEN)))
+    return FALSE;
 
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
@@ -6642,7 +6635,7 @@ pgtk_find_touch_point (struct pgtk_display_info *dpyinfo,
   return NULL;
 }
 
-static bool
+static gboolean
 touch_event_cb (GtkWidget *self, GdkEvent *event, gpointer user_data)
 {
   struct pgtk_display_info *dpyinfo;
@@ -6742,6 +6735,15 @@ touch_event_cb (GtkWidget *self, GdkEvent *event, gpointer user_data)
     {
       inev.ie.device = pgtk_get_device_for_event (dpyinfo, event);
       evq_enqueue (&inev);
+
+      /* Next, save this event for future menu activations, unless it is
+	 only an update.  */
+      if (event->type != GDK_TOUCH_UPDATE)
+	{
+	  if (dpyinfo->last_click_event != NULL)
+	    gdk_event_free (dpyinfo->last_click_event);
+	  dpyinfo->last_click_event = gdk_event_copy (event);
+	}
     }
 
   return inev.ie.kind != NO_EVENT;
