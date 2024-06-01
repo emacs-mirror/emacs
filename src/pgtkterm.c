@@ -450,6 +450,8 @@ pgtk_frame_raise_lower (struct frame *f, bool raise_flag)
 
 /* Free X resources of frame F.  */
 
+static void pgtk_unlink_touch_points (struct frame *);
+
 void
 pgtk_free_frame_resources (struct frame *f)
 {
@@ -462,6 +464,7 @@ pgtk_free_frame_resources (struct frame *f)
 
   block_input ();
 
+  pgtk_unlink_touch_points (f);
 #ifdef HAVE_XWIDGETS
   kill_frame_xwidget_views (f);
 #endif
@@ -6524,6 +6527,230 @@ drag_drop (GtkWidget *widget, GdkDragContext *context,
   return TRUE;
 }
 
+
+
+/* Touch screen events.  */
+
+/* Record a touch sequence with the identifier DETAIL from the given
+   FRAME on the specified DPYINFO.  Round X and Y and record them as its
+   current position, assign an identifier to the touch sequence suitable
+   for reporting to Lisp, and return the same.  */
+
+static EMACS_INT
+pgtk_link_touch_point (struct pgtk_display_info *dpyinfo,
+		       GdkEventSequence *detail, gdouble x,
+		       gdouble y, struct frame *frame)
+{
+  struct pgtk_touch_point *touchpoint;
+  static EMACS_INT local_detail;
+
+  /* Assign an identifier suitable for reporting to Lisp.  On builds
+     with 64-bit Lisp_Object, this is largely a theoretical problem, but
+     CARD32s easily overflow 32-bit systems, as they are not specific to
+     X clients (e.g. Emacs) but grow uniformly across all of them.  */
+
+  if (FIXNUM_OVERFLOW_P (local_detail))
+    local_detail = 0;
+
+  touchpoint = xmalloc (sizeof *touchpoint);
+  touchpoint->next = dpyinfo->touchpoints;
+  touchpoint->x = lrint (x);
+  touchpoint->y = lrint (y);
+  touchpoint->number = detail;
+  touchpoint->local_detail = local_detail++;
+  touchpoint->frame = frame;
+  dpyinfo->touchpoints = touchpoint;
+  return touchpoint->local_detail;
+}
+
+/* Free and remove the touch sequence with the identifier DETAIL.
+   DPYINFO is the display in which the touch sequence should be
+   recorded.  If such a touch sequence exists, return its local
+   identifier in *LOCAL_DETAIL.
+
+   Value is 0 if no touch sequence by that identifier exists inside
+   DPYINFO, or 1 if a touch sequence has been found.  */
+
+static int
+pgtk_unlink_touch_point (GdkEventSequence *detail,
+			 struct pgtk_display_info *dpyinfo,
+			 EMACS_INT *local_detail)
+{
+  struct pgtk_touch_point *last, *tem;
+
+  for (last = NULL, tem = dpyinfo->touchpoints; tem;
+       last = tem, tem = tem->next)
+    {
+      if (tem->number == detail)
+	{
+	  if (!last)
+	    dpyinfo->touchpoints = tem->next;
+	  else
+	    last->next = tem->next;
+
+	  *local_detail = tem->local_detail;
+	  xfree (tem);
+
+	  return 1;
+	}
+    }
+
+  return 0;
+}
+
+/* Unlink all touch points associated with the frame F.  This is done
+   upon destroying F's window (or its being destroyed), because touch
+   point delivery after that point is undefined.  */
+
+static void
+pgtk_unlink_touch_points (struct frame *f)
+{
+  struct pgtk_touch_point **next, *last;
+  struct pgtk_display_info *dpyinfo;
+
+  /* Now unlink all touch points on F's display matching F.  */
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+  for (next = &dpyinfo->touchpoints; (last = *next);)
+    {
+      if (last->frame == f)
+	{
+	  *next = last->next;
+	  xfree (last);
+	}
+      else
+	next = &last->next;
+    }
+}
+
+/* Return the data associated with a touch sequence DETAIL recorded by
+   `pgtk_link_touch_point' from DPYINFO, or NULL if it can't be
+   found.  */
+
+static struct pgtk_touch_point *
+pgtk_find_touch_point (struct pgtk_display_info *dpyinfo,
+		       GdkEventSequence *detail)
+{
+  struct pgtk_touch_point *point;
+
+  for (point = dpyinfo->touchpoints; point; point = point->next)
+    {
+      if (point->number == detail)
+	return point;
+    }
+
+  return NULL;
+}
+
+static bool
+touch_event_cb (GtkWidget *self, GdkEvent *event, gpointer user_data)
+{
+  struct pgtk_display_info *dpyinfo;
+  struct frame *f;
+  EMACS_INT local_detail;
+  union buffered_input_event inev;
+  struct pgtk_touch_point *touchpoint;
+  Lisp_Object arg = Qnil;
+  int state;
+
+  EVENT_INIT (inev.ie);
+
+  f = pgtk_any_window_to_frame (gtk_widget_get_window (self));
+  eassert (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+  switch (event->type)
+    {
+    case GDK_TOUCH_BEGIN:
+
+      /* Verify that no touch point with this identifier is already at
+	 large.  */
+      if (pgtk_find_touch_point (dpyinfo, event->touch.sequence))
+	break;
+
+      /* Record this in the display structure.  */
+      local_detail = pgtk_link_touch_point (dpyinfo, event->touch.sequence,
+					    event->touch.x, event->touch.y,
+					    f);
+      /* Generate the input event.  */
+      inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
+      inev.ie.timestamp = event->touch.time;
+      XSETFRAME (inev.ie.frame_or_window, f);
+      XSETINT (inev.ie.x, lrint (event->touch.x));
+      XSETINT (inev.ie.y, lrint (event->touch.y));
+      XSETINT (inev.ie.arg, local_detail);
+      break;
+
+    case GDK_TOUCH_UPDATE:
+      touchpoint = pgtk_find_touch_point (dpyinfo,
+					  event->touch.sequence);
+
+      if (!touchpoint
+	  /* Don't send this event if nothing has changed
+	     either.  */
+	  || (touchpoint->x == lrint (event->touch.x)
+	      && touchpoint->y == lrint (event->touch.y)))
+	break;
+
+      /* Construct the input event.  */
+      touchpoint->x = lrint (event->touch.x);
+      touchpoint->y = lrint (event->touch.y);
+      inev.ie.kind = TOUCHSCREEN_UPDATE_EVENT;
+      inev.ie.timestamp = event->touch.time;
+      XSETFRAME (inev.ie.frame_or_window, f);
+
+      for (touchpoint = dpyinfo->touchpoints;
+	   touchpoint; touchpoint = touchpoint->next)
+	{
+	  if (touchpoint->frame == f)
+	    arg = Fcons (list3i (touchpoint->x, touchpoint->y,
+				 touchpoint->local_detail),
+			 arg);
+	}
+
+      inev.ie.arg = arg;
+      break;
+
+    case GDK_TOUCH_END:
+    case GDK_TOUCH_CANCEL:
+      /* Remove this touch point's record, also establishing its
+	 existence.  */
+      state = pgtk_unlink_touch_point (event->touch.sequence,
+				       dpyinfo, &local_detail);
+      /* If it did exist... */
+      if (state)
+	{
+	  /* ... generate a suitable event.  */
+	  inev.ie.kind = TOUCHSCREEN_END_EVENT;
+	  inev.ie.timestamp = event->touch.time;
+	  inev.ie.modifiers = (event->type != GDK_TOUCH_END);
+
+	  XSETFRAME (inev.ie.frame_or_window, f);
+	  XSETINT (inev.ie.x, lrint (event->touch.x));
+	  XSETINT (inev.ie.y, lrint (event->touch.y));
+	  XSETINT (inev.ie.arg, local_detail);
+	}
+      break;
+
+    default:
+      break;
+    }
+
+  /* If the above produced a workable event, report the name of the
+     device that gave rise to it.  */
+
+  if (inev.ie.kind != NO_EVENT)
+    {
+      inev.ie.device = pgtk_get_device_for_event (dpyinfo, event);
+      evq_enqueue (&inev);
+    }
+
+  return inev.ie.kind != NO_EVENT;
+}
+
+
+
+/* Callbacks for sundries.  */
+
 static void
 pgtk_monitors_changed_cb (GdkScreen *screen, gpointer user_data)
 {
@@ -6539,6 +6766,8 @@ pgtk_monitors_changed_cb (GdkScreen *screen, gpointer user_data)
 }
 
 static gboolean pgtk_selection_event (GtkWidget *, GdkEvent *, gpointer);
+
+
 
 void
 pgtk_set_event_handler (struct frame *f)
@@ -6609,6 +6838,8 @@ pgtk_set_event_handler (struct frame *f)
 		    G_CALLBACK (pgtk_selection_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "selection-notify-event",
 		    G_CALLBACK (pgtk_selection_event), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "touch-event",
+		    G_CALLBACK (touch_event_cb), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "event",
 		    G_CALLBACK (pgtk_handle_event), NULL);
 }
@@ -7028,6 +7259,7 @@ static void
 pgtk_delete_display (struct pgtk_display_info *dpyinfo)
 {
   struct terminal *t;
+  struct pgtk_touch_point *last, *tem;
 
   /* Close all frames and delete the generic struct terminal for this
      X display.  */
@@ -7047,6 +7279,15 @@ pgtk_delete_display (struct pgtk_display_info *dpyinfo)
       for (tail = x_display_list; tail; tail = tail->next)
 	if (tail->next == dpyinfo)
 	  tail->next = tail->next->next;
+    }
+
+  /* Free remaining touchpoints.  */
+  tem = dpyinfo->touchpoints;
+  while (tem)
+    {
+      last = tem;
+      tem = tem->next;
+      xfree (last);
     }
 
   pgtk_free_devices (dpyinfo);

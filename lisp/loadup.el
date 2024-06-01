@@ -369,6 +369,7 @@
 (if (featurep 'pgtk)
     (progn
       (load "pgtk-dnd")
+      (load "touch-screen")
       (load "term/common-win")
       (load "term/pgtk-win")))
 (if (fboundp 'x-create-frame)

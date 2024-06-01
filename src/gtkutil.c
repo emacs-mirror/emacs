@@ -1669,6 +1669,7 @@ xg_create_frame_widgets (struct frame *f)
 #ifdef HAVE_PGTK
                          | GDK_SCROLL_MASK
                          | GDK_SMOOTH_SCROLL_MASK
+			 | GDK_TOUCH_MASK
 #endif
                          | GDK_VISIBILITY_NOTIFY_MASK);
 

@@ -50,11 +50,36 @@ struct pgtk_bitmap_record
 
 struct pgtk_device_t
 {
+  /* Lisp name of the device.  */
+  Lisp_Object name;
+
+  /* Seat to which this device appertains.  */
   GdkSeat *seat;
+
+  /* Pointer to this device's GdkDevice object.  */
   GdkDevice *device;
 
-  Lisp_Object name;
+  /* Next device in this chain.  */
   struct pgtk_device_t *next;
+};
+
+struct pgtk_touch_point
+{
+  /* The detail code reported to Lisp.  */
+  EMACS_INT local_detail;
+
+  /* The frame associated with this touch point.  */
+  struct frame *frame;
+
+  /* The next touch point in this list.  */
+  struct pgtk_touch_point *next;
+
+  /* The touchpoint detail.  This purports to be a pointer, but is a
+     number.  */
+  GdkEventSequence *number;
+
+  /* The last known rounded X and Y positions of the touchpoint.  */
+  int x, y;
 };
 
 #define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
@@ -131,9 +156,12 @@ struct pgtk_display_info
     /* This says how to access this display through GDK.  */
     GdkDisplay *gdpy;
 
-    /* An alias defined to make porting X code easier.  */
+    /* An alias defined to facilitate porting X code.  */
     GdkDisplay *display;
   };
+
+  /* List of active touch-points.  */
+  struct pgtk_touch_point *touchpoints;
 
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).  */
   Lisp_Object name_list_element;

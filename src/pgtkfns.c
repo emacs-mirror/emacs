@@ -945,6 +945,7 @@ unless TYPE is `png'.  */)
   return pgtk_cr_export_frames (frames, surface_type);
 }
 
+extern frame_parm_handler pgtk_frame_parm_handlers[];
 frame_parm_handler pgtk_frame_parm_handlers[] =
   {
     gui_set_autoraise,		/* generic OK */
@@ -2619,7 +2620,7 @@ static Lisp_Object tip_frame;
 
 /* The window-system window corresponding to the frame of the
    currently visible tooltip.  */
-GtkWidget *tip_window;
+static GtkWidget *tip_window;
 
 /* A timer that hides or deletes the currently visible tooltip when it
    fires.  */
