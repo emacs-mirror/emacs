@@ -190,11 +190,38 @@ made obsolete, for example a date or a release number."
 
 ;;;###autoload
 (defsubst gv--expander-defun-declaration (&rest args)
-  (apply #'gv--defun-declaration 'gv-expander args))
+  (let* ((lambda-form (car-safe (cdr-safe (cdr-safe args))))
+         (l (car-safe lambda-form)))
+    (if (eq l 'lambda)
+        (let ((form
+               (byte-run-posify-lambda-form
+                lambda-form
+                (and (symbol-with-pos-p l)
+                     (symbol-with-pos-pos l))
+                (byte-run-pull-lambda-source l))))
+          (apply #'gv--defun-declaration
+                 'gv-expander
+                 (append (take 2 args)
+                         (list form))))
+      (apply #'gv--defun-declaration 'gv-expander args))))
 
 ;;;###autoload
 (defsubst gv--setter-defun-declaration (&rest args)
-  (apply #'gv--defun-declaration 'gv-setter args))
+  (let* ((lambda-form (car-safe (cdr-safe (cdr-safe args))))
+         (l (car-safe lambda-form)))
+    (if (eq l 'lambda)
+        ;; ARGS looks like (cl-fifth (x) (#<symbol lambda at 14529> ...)).
+        (let ((form
+               (byte-run-posify-lambda-form
+                lambda-form
+                (and (symbol-with-pos-p l)
+                     (symbol-with-pos-pos l))
+                (byte-run-pull-lambda-source l))))
+          (apply #'gv--defun-declaration
+                 'gv-setter
+                 (append (take 2 args)
+                         (list form))))
+      (apply #'gv--defun-declaration 'gv-setter args))))
 
 ;;;###autoload
 (or (assq 'gv-expander defun-declarations-alist)

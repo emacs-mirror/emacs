@@ -224,7 +224,7 @@
                t)))))
 (ert-deftest cl-lib-struct-constructors ()
   (should (string-match "\\`Constructor docstring."
-                        (help-strip-pos-info
+                        (byte-run-strip-pos-info
                          (documentation 'cl-lib--con-2 t))))
   (should (mystruct-p (cl-lib--con-1)))
   (should (mystruct-p (cl-lib--con-2))))

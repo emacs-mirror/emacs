@@ -1538,7 +1538,7 @@ If CHAR is not a character, return nil."
 	      (forward-char))
           (when (looking-at ",@?") (goto-char (match-end 0)))
 	  (narrow-to-region (point-min) opoint)
-	  (setq expr (read (current-buffer)))
+	  (setq expr (funcall load-read-function (current-buffer)))
           ;; If it's an (interactive ...) form, it's more useful to show how an
           ;; interactive call would use it.
           ;; FIXME: Is it really the right place for this?
@@ -1699,6 +1699,7 @@ Return the result of evaluation."
   ;; printing, not while evaluating.
   (defvar elisp--eval-defun-result)
   (let ((edebugging edebug-all-defs)
+        (defining-symbol nil)
         elisp--eval-defun-result)
     (save-excursion
       ;; Arrange for eval-region to "read" the (possibly) altered form.
@@ -1721,7 +1722,7 @@ Return the result of evaluation."
                            (print-length ,print-length))
                        ,(eval-sexp-add-defvars
                          (elisp--eval-defun-1
-                          (macroexpand form)))))
+                          (macroexpand-all form)))))
 	      (print-length eval-expression-print-length)
 	      (print-level eval-expression-print-level)
               (should-print (if (not edebugging) standard-output)))

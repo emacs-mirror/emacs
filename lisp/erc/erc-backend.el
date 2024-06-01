@@ -1637,10 +1637,9 @@ Would expand to:
 
 \(fn (NAME &rest ALIASES) &optional EXTRA-FN-DOC EXTRA-VAR-DOC &rest FN-BODY)"
   (declare
-;;;; NEW STOUGH, 2023-12-24
-   ;; (defining-symbol name) ; Not too sure about this.  (ACM,
+   ;; (defining-symbol name extra-fn-doc) ; Not too sure about this.  (ACM,
    ;; 2023-12-24) Commented out, 2024-01-20, because it didn't work.
-;;;; END OF NEW STOUGH
+   ;; (2024-03-28) It's not working because NAME is in parens.  :-(
            (debug (&define [&name "erc-response-handler@"
                                   ;; No `def-edebug-elem-spec' in 27.
                                   ([&or integerp symbolp]

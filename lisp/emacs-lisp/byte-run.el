@@ -223,6 +223,19 @@ record, containing symbols with position."
         (byte-run--report-hash-table name arg))
        (t arg))))
 
+(defalias 'byte-run-pull-lambda-source
+  #'(lambda (lam)
+      "Remove and return the cdr of any entry for LAM in `lambda-source-alist'.
+LAM is typically a positioned lambda symbol.
+If there is no such entry return nil."
+      (let* (symbols-with-pos-enabled   ; Select the correct `lambda'!
+             (lambda-source (assq lam lambda-source-alist)))
+        (if lambda-source
+            (progn
+              (setq lambda-source-alist
+                    (delq lambda-source lambda-source-alist))
+              (cdr lambda-source))))))
+
 (defalias 'byte-run--posify-hash-table
   #'(lambda (form)
       "Posify any lambda forms still unposified in the hash table FORM.
@@ -280,60 +293,148 @@ The original FORM is not changed.  Return a changed copy of FORM, or FORM."
           (if changed new form))
         form)))
 
+(defalias 'byte-run--posify-def-form
+  #'(lambda (form)
+      "Posify FORM, a defining form.
+A defining form is one whose function has a `byte-run-defined-form'
+property.  Examples are `defun', `cl-defmethod'."
+  (let* ((df (get (car form) 'byte-run-defined-form))
+         (mth (car df))
+         (nth (and (integerp mth) (if (> mth 0) mth (- mth))))
+         (posifier (cdr df))
+         defining-symbol       ; Bound for `byte-run-posify-doc-string'.
+         old-ds new-ds new-obj
+         (obj
+          (and nth
+               (condition-case nil
+                   (nth nth form)
+                 (wrong-type-argument nil)
+                 (t nil)))))
+    (if obj
+        (progn
+          (setq new-obj
+                (if (> mth 0)
+                    (if (symbol-with-pos-p obj)
+                        (progn (setq defining-symbol obj)
+                               (bare-symbol obj))
+                      obj)
+                  (if (and (eq (car-safe obj) 'quote)
+                           (symbol-with-pos-p (car-safe (cdr obj))))
+                      (progn (setq defining-symbol (car (cdr obj)))
+                             (list 'quote (bare-symbol (car (cdr obj)))))
+                    obj)))
+          (if (let (symbols-with-pos-enabled)
+                (null (eq new-obj obj)))
+              (progn
+                (if (functionp posifier)
+                    (progn
+                      (setq posifier (funcall posifier form))))
+                (let ((flat-posifier
+                       (if (integerp posifier)
+                           posifier
+                         ;; At this stage the &rest arguments won't have been
+                         ;; gathered into a single list, hence we must treat
+                         ;; them as individual arguments.
+                         (+ (car posifier) (cdr posifier)))))
+                  (setq old-ds (nth flat-posifier form))
+                  (setq new-ds
+                        (byte-run-posify-doc-string (and (stringp old-ds) old-ds)))
+                  (append (take nth form)
+                          (list new-obj)
+                          (take (- flat-posifier (1+ nth))
+                                (nthcdr (1+ nth) form))
+                          (list new-ds)
+                          (nthcdr (if (stringp old-ds)
+                                      (1+ flat-posifier)
+                                    flat-posifier)
+                                  form))))
+            form))
+      form))))
+
 (defalias 'byte-run--posify-list
   #'(lambda (form)
-      "Posify any lambda forms still unposified in the the list FORM.
+      "Posify any lambda or defining forms still unposified in the list FORM.
 This original FORM is not changed.  Return a changed copy of FORM or FORM."
-      (let ((a form) changed elt new)
-        (while (and (null (gethash a byte-run--ssp-seen))
-                    (consp a)
-                    (null (and (symbol-with-pos-p (car a))
-                               (eq (bare-symbol (car a)) 'lambda))))
-          (progn
-            (puthash a t byte-run--ssp-seen)
-            (setq elt (car a))
-            (if (null
-                 (eq elt
-                     (setq elt
-                           (cond
-                            ((consp elt)
-                             (byte-run--posify-list elt))
-                            ((or (vectorp elt) (recordp elt))
-                             (byte-run--posify-vector/record elt))
-                            ((hash-table-p elt)
-                             (byte-run--posify-hash-table elt))
-                            (t elt)))))
-                (setq changed t))
-            (setq new (cons elt new))
-            (setq a (cdr a))))
+      (let ((a form)
+            changed elt new)
+        (while
+            (and (null (gethash a byte-run--ssp-seen))
+                 (consp a))
+          (puthash a t byte-run--ssp-seen)
 
-        (cond
-         ((gethash a byte-run--ssp-seen)
-          (if changed (nconc (nreverse new) a) form))
-         ((null a)
-          (if changed (nreverse new) form))
-         ((or (vectorp a) (recordp a))
-          (if (or (null (eq a (setq a (byte-run--posify-vector/record a))))
-                  changed)
-              (cons (nreverse new) a)
-            form))
-         ((hash-table-p a)
-          (if (or (null (eq a (setq a (byte-run--posify-hash-table a))))
-                  changed)
-              (cons (nreverse new) a)
-            form))
-         ((and (symbol-with-pos-p (car-safe a))
-               (eq (bare-symbol (car a)) 'lambda))
-          (nconc (nreverse new)
-                 (let ((stripped (byte-run-posify-lambda-form
-                                  a (symbol-with-pos-pos (car a)))))
-                   (setcar stripped 'lambda) ; Strip the position.
-                   (byte-run--posify-list stripped))))
-         (t (if changed (cons (nreverse new) a) form))))))
+          ;; Do we need to posify a positioned `lambda'?
+          (if (and (symbol-with-pos-p (car a))
+                   (eq (bare-symbol (car a)) 'lambda))
+              (if (and
+                   (cdr-safe a)
+                   (listp (car-safe (cdr a)))) ; valid param list.
+                (let ((stripped
+                       (byte-run-posify-lambda-form
+                        a (symbol-with-pos-pos (car a))
+                        (byte-run-pull-lambda-source (car a)))))
+                  (setq a stripped)
+                  (setq new (cons (car a) new) ; 'lambda
+                        a (cdr a))
+                  (setq new (cons (car a) new) ; param list.
+                        a (cdr a))
+                  (setq new (cons (car a) new) ; doc string.
+                        a (cdr a))
+                  (setq changed t))
+              (byte-run-pull-lambda-source (car a))
+              (setq new (cons 'lambda new)
+                    a (cdr a))))
 
-(defalias 'byte-run-posify-all-lambdas
+          ;; Do we need to posify a defining form?
+          (if (and (symbolp (car a))
+                   (get (car a) 'byte-run-defined-form))
+              (let ((stripped (byte-run--posify-def-form a)))
+                (if (null (eq stripped a))
+                    (progn
+                      (setq a stripped)
+                      (setq changed t)))))
+
+          ;; Accumulate an element.
+          (if (consp a)
+              (progn
+                (setq elt (car a))
+                (if (null
+                     (eq elt
+                         (setq elt
+                               (cond
+                                ((consp elt)
+                                 (byte-run--posify-list elt))
+                                ((or (vectorp elt) (recordp elt))
+                                 (byte-run--posify-vector/record elt))
+                                ((hash-table-p elt)
+                                 (byte-run--posify-hash-table elt))
+                                (t elt)))))
+                    (setq changed t))
+                (setq new (cons elt new))
+                (setq a (cdr a)))))
+
+        ;; Handle the cdr of a dotted pair we're left with.
+        (if (null
+             (eq a
+                 (setq a
+                       (cond
+                        ;; ((consp elt)) ; Can't happen
+                        ((or (vectorp a) (recordp a))
+                         (byte-run--posify-vector/record a))
+                        ((hash-table-p a)
+                         (byte-run--posify-hash-table a))
+                        (t a)))))
+            (setq changed t))
+
+        (if changed
+            (let ((rev (nreverse new)))
+              (setcdr (nthcdr (1- (length rev)) rev) a) ; No `last', yet.
+              rev)
+          form))))
+
+(defalias 'byte-run-posify-all-lambdas-etc
   #'(lambda (form)
       "Posify any lambda forms still unposified in FORM.
+Also strip the positions of any `lambda' which doesn't open a form.
 
 FORM is any Lisp object, but is usually a list or a vector or a
 record, containing symbols with position.  Return FORM, possibly
@@ -346,6 +447,9 @@ destructively modified."
         (byte-run--posify-vector/record form))
        ((hash-table-p form)
         (byte-run--posify-hash-table form))
+       ((and (symbol-with-pos-p form)
+             (eq (bare-symbol form) 'lambda))
+        'lambda)
        (t form))))
 
 
@@ -452,90 +556,129 @@ run time, return the symbol `var'."
               'var)
           nil))))
 
-(defalias 'byte-run-posify-doc-string
-  #'(lambda (doc-string &optional lambda-pos)
-      "Prefix a doc string with defining position information.
-DOC-STRING is the existing doc string, or if nil, the new doc
-string is created from scratch.  If DOC-STRING is a
-cons, (:documentation ....), the new structure will be `concat'ed
-onto it.  LAMBDA-POS when non-nil is the position of the symbol
-`lambda' for which the new doc string is being created.  It
-should be a fixnum.  Return the new (or unaltered) doc string.
-If DOC-STRING already has position information, return the string
-unchanged."
-      (if (cond
-           ((stringp doc-string)
-            (string-match "\\`;POS\036\001\001\001" doc-string))
-           ((and (consp doc-string)
-                 (eq (car-safe doc-string) ':documentation)
-                 (stringp (car-safe (cdr doc-string))))
-            (string-match "\\`;POS\036\001\001\001" (car (cdr doc-string)))))
-          doc-string
-        (let ((pos-string
-             (concat
-              ";POS"
-              ;; (let ((version ; See comments in `byte-compile-insert-header'.
-              ;; (if (zerop emacs-minor-version)
-              ;;     (1- emacs-major-version)
-              ;; emacs-major-version));)
-              "\036"       ; Hard coded version 30, for now.  FIXME!!!
-              ;; (cl-assert (and (> version 13) (< version 128)))
-              ;; (string version))
-              "\001\001\001 ["
-              (if defining-symbol
-                  (symbol-name (bare-symbol defining-symbol))
-                "nil")
-              " "
-              (cond
-               ((bufferp read-stream)
-                (let ((name (format "%s" (buffer-name read-stream))))
-                  (string-replace " " "\\ " name)))
-               ;; What about reading from Fload, when we don't have a
-               ;; buffer as such?  FIXME!!!  STOUGH, 2023-12-15.
-               ((stringp read-stream)   ; A file name
-                read-stream)
-               (t                       ; ?minibuffer
-                "nil"))                 ;; )
-              " "
-              (if (symbol-with-pos-p defining-symbol)
-                  (format "%d" (symbol-with-pos-pos defining-symbol))
-                "nil")
-              " "
-              (if (numberp lambda-pos)
-                  (format "%d" lambda-pos)
-                "nil")
-              "]\n")))
-        (cond
-         ((null doc-string) pos-string)
-         ((stringp doc-string) (concat pos-string doc-string))
-         ((and (consp doc-string) (eq (car doc-string) ':documentation))
-          (list (car doc-string)
-                (cond ((stringp (car (cdr doc-string)))
-                       (concat pos-string (car (cdr doc-string))))
-                      ((consp (car (cdr doc-string)))
-                       (list 'concat pos-string
-                             (car (cdr doc-string))))
-                      (t (list 'concat pos-string
-                               (car (cdr doc-string)))))))
-         (t ; Oclosure type info in the doc string position.  Deal with this
-            ; sometime (2024-02-26).
-          doc-string
-          ))))))
-
-(defalias 'byte-run-position-vec
+(defalias 'byte-run-get-position-vec
   #'(lambda (doc-string)
       "Extract the position information, if any, from DOC-STRING.
-This will be returned as a four element vector, or nil if there is
-no position information in DOC-STRING."
+This will be returned as a vector, or nil if there is no position
+information in DOC-STRING."
       (and (stringp doc-string)
            (string-match "\\`;POS\036\001\001\001 \\[" doc-string)
            (read (substring doc-string (1- (match-end 0)))))))
 
+(defalias 'byte-run--strip-pos-info
+  #'(lambda (string)
+      "Remove the POS info, if any, from STRING, returning the result.
+STRING may be nil.
+
+If no changes are made, return the original STRING.  If there are
+no characters other than the POS info, return nil instead."
+  (if string
+      (let (start index)
+        (while
+            (and (setq index (string-match ";POS.\001\001\001 " string start))
+                 (string-match "\n" string index))
+          (setq start (match-end 0)))
+        (cond
+         ((and start (< start (length string)))
+          (substring string start))
+         ((and start (eq start (length string)))
+          nil)
+         ((null index) string))))))
+
+(defalias 'byte-run-format-read-stream
+  #'(lambda (stream)
+      "Return, as a string, the name of the read stream STREAM."
+      (cond
+       ((symbolp stream)
+        (symbol-name stream))
+       ((bufferp stream)
+        (let ((name (format "%s" (buffer-name stream))))
+          (string-replace " " "\\ " name)))
+       ((stringp stream)                ; A file name
+        stream)
+       (t                               ; ?mimibuffer
+        "nil"))))
+
+(defalias 'byte-run-posify-doc-string
+  #'(lambda (doc-string &optional lambda-pos lambda-read-stream)
+      "Prefix a doc string with defining position information.
+DOC-STRING is the existing doc string, or if nil, the new doc string is
+created from scratch.  If DOC-STRING is a cons, (:documentation ....),
+the new structure will be `concat'ed onto it.  LAMBDA-POS when non-nil
+is the position of the symbol `lambda' for which the new doc string is
+being created.  It should be a fixnum.  LAMBDA-READ-STREAM is the read
+stream (typically a symbol) in which LAMBDA-POS has meaning.  Return the
+new doc string.  If DOC-STRING already has position information, remove
+it before adding the new information."
+      (let* ((docs
+              (cond
+               ((stringp doc-string) doc-string)
+               ((and (consp doc-string)
+                     (eq (car-safe doc-string) ':documentation)
+                     (stringp (car-safe (cdr doc-string))))
+                (car (cdr doc-string)))))
+             (pos-vec (or (byte-run-get-position-vec docs)
+                          (make-vector 5 nil)))
+             (docs (byte-run--strip-pos-info docs)))
+        (if defining-symbol
+            (aset pos-vec 0 ;; (symbol-name (bare-symbol defining-symbol))
+                  (bare-symbol defining-symbol)
+                  ))
+        (aset pos-vec 1
+              (cond
+               ((and (symbolp read-stream)
+                     (get-buffer (symbol-name read-stream)))
+                read-stream)
+               ((bufferp read-stream)
+                (buffer-name read-stream))
+               ((stringp read-stream)   ; A file name
+                read-stream)
+               (t                       ; ?minibuffer
+                nil)))
+        (if (symbol-with-pos-p defining-symbol)
+            (aset pos-vec 2 (symbol-with-pos-pos defining-symbol)))
+        (if lambda-pos
+            (aset pos-vec 3 lambda-pos))
+        (if lambda-read-stream
+            (aset pos-vec 4 lambda-read-stream))
+
+        (setq docs
+              (concat
+               ";POS"
+               "\036"        ; Hard coded version 30, for now.  FIXME!!!
+               "\001\001\001 ["
+               (prin1-to-string (aref pos-vec 0)) " "
+               (byte-run-format-read-stream (aref pos-vec 1)) " "
+               (prin1-to-string (aref pos-vec 2)) " "
+               (prin1-to-string (aref pos-vec 3)) " "
+               (byte-run-format-read-stream (aref pos-vec 4)) "]\n"
+               docs))
+        (cond
+         ((stringp doc-string) docs)
+         ((and (consp doc-string)
+               (eq (car-safe doc-string) ':documentation))
+          (list (car doc-string)
+                (cond ((stringp (car-safe (cdr doc-string)))
+                       (concat docs (car (cdr doc-string))))
+                      ((consp (car (cdr doc-string)))
+                       (list 'concat docs
+                             (car (cdr doc-string))))
+                      (t (list 'concat docs
+                               (car (cdr doc-string)))))))
+         ((null doc-string) docs)
+                ))
+         ;; (t ; Oclosure type info in the doc string position.  Deal with this
+         ;;    ; sometime (2024-02-26).
+         ;;  doc-string
+         ;;  )
+         ))
+
 (defalias 'byte-run-posify-lambda-form
-  #'(lambda (form position)
+  #'(lambda (form position &optional lambda-read-stream)
       "Put position structure on the lambda form FORM.
 POSITION is one position that will be used, the other coming from
-`defining-symbol'.
+`defining-symbol'.  LAMBDA-READ-STREAM is the name of the
+read-stream (typically as a symbol) where FORM occurred or nil.
 
 The modification of FORM will be done by creating a new list
 form."
@@ -562,15 +705,24 @@ form."
                          (and (null empty-body-allowed)
                               (null (nthcdr 3 form))))))
 
-        (if (and (null already-posified)
-                 (>= (length form) 2))
+        (cond
+         ((and (null already-posified)
+               (>= (length form) 2))
             (let ((new-doc-string (byte-run-posify-doc-string
                                    doc-string
-                                   position)))
-              (nconc (take 2 form)
-                     (list new-doc-string)
-                     (nthcdr (if insert 2 3) form)))
-          form))))
+                                   position
+                                   lambda-read-stream)))
+              (append
+               (if byte-compile-in-progress
+                   (take 1 form)
+                 (list 'lambda))      ; Strip the lambda of its position.
+               (take 1 (cdr form))
+               (list new-doc-string)
+               (nthcdr (if insert 2 3) form))))
+         ((and (null byte-compile-in-progress)
+               (symbol-with-pos-p (car form)))
+          (cons 'lambda (cdr form)))
+         (t form)))))
 
 (defalias 'function-put
   ;; We don't want people to just use `put' because we can't conveniently
@@ -634,6 +786,7 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
               ;; Avoid cadr/cddr so we can use `compiler-macro' before
               ;; defining cadr/cddr.
               (data (cdr compiler-function)))
+          (byte-run-pull-lambda-source (car compiler-function))
           `(progn
              (eval-and-compile
                (function-put ',f 'compiler-macro #',cfname))
@@ -771,7 +924,7 @@ an example of its use."
                      (car (cdr bit-specs)))
                     ((byte-run--doc-n (car (cdr bit-specs)) args)
                      (car (cdr bit-specs)))
-                    (t (error "Invalid arguments to defining-form declare clause in %s" f))))
+                    (t (error "Invalid arguments(1) to defining-form declare clause in %s" f))))
              ;; We want to insert a new doc string if `doc-spec' is an
              ;; &optional parameter just before the &rest arg, and its
              ;; run time value isn't a string (e.g. a keyword in
@@ -794,16 +947,25 @@ an example of its use."
               (let ((i 1) (rest-args args))
                 (while (and rest-args (null (eq (car rest-args) def-arg-sym)))
                   (progn (setq rest-args (cdr rest-args)) (setq i (1+ i))))
+                (and rest-args i)))
+             (doc-index
+              (let ((i 1) (rest-args args))
+                (while (and rest-args (null (eq (car rest-args) doc-arg-sym)))
+                  (if (null (memq (car rest-args) '(&rest &body &optional)))
+                      (setq i (1+ i)))
+                  (setq rest-args (cdr rest-args)))
                 (and rest-args i))))
 
         (if (null (and def-index doc-arg-sym))
-            (error "Invalid arguments to defining-form declare clause in %s"
-                   f))
+            (error "Invalid arguments(2) to defining-form declare clause in %s.  def-index: %s"
+                   f def-index))
 
         (cons
          (list 'function-put (list 'quote f)
                ''byte-run-defined-form
-               def-index)
+               (list 'quote (cons def-index (if doc-n
+                                                (cons doc-index doc-n)
+                                              doc-index))))
          (list
           'progn
           (list 'or 'defining-symbol
@@ -853,7 +1015,7 @@ an example of its use."
                    (list
                     'setq doc-arg-sym
                     (list
-                     'nconc
+                     'append
                      (list 'take doc-n doc-arg-sym)
                      (list
                       'cond
@@ -1069,6 +1231,9 @@ interpreted according to `macro-declarations-alist'.
                 ((stringp (car body)) (list new-ds old-ds))
                 ((null (car body)) (list new-ds 'nil))
                 (t (cons new-ds body)))))
+       (if (and (null byte-compile-in-progress)
+                (symbol-with-pos-p name))
+           (setq name (bare-symbol name)))
        (let* ((parse (byte-run--parse-body body nil))
               (docstring
                  (nth 0 parse))
@@ -1081,9 +1246,6 @@ interpreted according to `macro-declarations-alist'.
                                   name arglist (cdr declare-form) 'macro
                                   macro-declarations-alist))))
          (setq body (nconc warnings body))
-         (if (and (null byte-compile-in-progress)
-                  (symbol-with-pos-p name))
-             (setq name (bare-symbol name)))
          (setq body (nconc (cdr declarations) body))
          (if docstring
              (setq body (cons docstring body)))
@@ -1096,9 +1258,10 @@ interpreted according to `macro-declarations-alist'.
            (if declarations
 	       (cons 'prog1 (cons def (car declarations)))
 	     def))))))
-(function-put 'defmacro 'byte-run-defined-form 1)
+(function-put 'defmacro 'byte-run-defined-form
+              '(1 . (3 . 0)))
 
-;; Now that we defined defmacro we can use it!
+;; Now that we've defined defmacro we can use it!
 (defmacro defun (name arglist &rest body)
   "Define NAME as a function.
 The definition is (lambda ARGLIST [DOCSTRING] [INTERACTIVE] BODY...).
@@ -1287,18 +1450,18 @@ the lambda."
                                ; #<symbol foo at M>))
              (pointer (car elt))           ; ((lambda (..) ...))
              (form-elt (car (cdr elt))) ; #<symbol lambda at N>
-             (defining-symbol (car (cdr (cdr elt)))))
+             (defining-symbol (car (cdr (cdr elt))))
+             (lambda-buffer (byte-run-pull-lambda-source form-elt)))
         (setcar (car pointer) form-elt)
         (if (null defining-symbol)
             (message "byte-run-posify-existing-lambdas: null defining-symbol")
           (let ((form1 (byte-run-posify-lambda-form
                         (car pointer) ;; form
                         (and (symbol-with-pos-p (car pointer))
-                             (symbol-with-pos-pos (car pointer))))))
-               (setcar pointer
-                       form1)
-            (if (null byte-compile-in-progress)
-                (setcar (car pointer) 'lambda))))) ; Strip any position.
+                             (symbol-with-pos-pos (car pointer)))
+                        lambda-buffer)))
+            (setcar pointer
+                    form1))))
       (setq tail (cdr tail)))))
 
 ;; Redefined in byte-opt.el.
@@ -1502,7 +1665,8 @@ constant.  In interpreted code, this is entirely equivalent to
 not necessarily) computed at load time if eager macro expansion
 is enabled."
   (declare (debug (&rest def-form)) (indent 0))
-  (list 'quote (eval (cons 'progn body) lexical-binding)))
+  (list 'quote (eval (cons 'progn (byte-run-posify-all-lambdas-etc body))
+                     lexical-binding)))
 
 (defmacro eval-and-compile (&rest body)
   "Like `progn', but evaluates the body at compile time and at load time.
@@ -1514,7 +1678,8 @@ enabled."
   ;; When the byte-compiler expands code, this macro is not used, so we're
   ;; either about to run `body' (plain interpretation) or we're doing eager
   ;; macroexpansion.
-  (list 'quote (eval (cons 'progn body) lexical-binding)))
+  (list 'quote (eval (cons 'progn (byte-run-posify-all-lambdas-etc body))
+                     lexical-binding)))
 
 (defun with-no-warnings (&rest body)
   "Like `progn', but prevents compiler warnings in the body."

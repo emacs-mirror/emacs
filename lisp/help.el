@@ -1345,25 +1345,6 @@ mode lighter was clicked."
     result))
 
 
-(defun help-strip-pos-info (string)
-  "Remove the POS info, if any, from STRING, returning the result.
-STRING may be nil.
-
-If no changes are made, return the original STRING.  If there are
-no characters other than the POS info, return nil instead."
-  (when string
-    (let (start index)
-      (while
-          (and (setq index (string-match ";POS.\001\001\001 " string start))
-               (string-match "\n" string index))
-        (setq start (match-end 0)))
-      (cond
-       ((and start (< start (length string)))
-        (substring string start))
-       ((and start (eq start (length string)))
-        nil)
-       ((null index) string)))))
-
 (defcustom help-link-key-to-documentation t
   "Non-nil means link keys to their command in *Help* buffers.
 This affects \\\\=\\[command] substitutions in documentation
@@ -2319,7 +2300,7 @@ When SECTION is \\='usage or \\='doc, return only that part."
   ;; In cases where `function' has been fset to a subr we can't search for
   ;; function's name in the doc string so we use `fn' as the anonymous
   ;; function name instead.
-  (let* ((docstring (help-strip-pos-info docstring))
+  (let* ((docstring (byte-run-strip-pos-info docstring))
          (found (and docstring
                      (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring)))
          (doc (if found

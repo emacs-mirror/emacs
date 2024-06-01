@@ -398,7 +398,8 @@ the specializer used will be the one returned by BODY."
 
   (defun cl--generic-lambda (args body)
     "Make the lambda expression for a method with ARGS and BODY."
-    (pcase-let* ((`(,spec-args . ,plain-args)
+    (pcase-let* ((symbols-with-pos-enabled t) ; So that the `pcase' will work.
+                 (`(,spec-args . ,plain-args)
                   (cl--generic-split-args args))
                  (fun `(cl-function (lambda ,plain-args ,@body)))
                  (macroenv (cons `(cl-generic-current-method-specializers
@@ -566,9 +567,9 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
 \(fn NAME [EXTRA] [QUALIFIER] ARGS &rest [DOCSTRING] BODY)"
   (declare (doc-string cl--defmethod-doc-pos) (indent defun)
            ;; Because there are a variable number of parameters
-           ;; preceding any doc string, it is not practiable to code a
+           ;; preceding any doc string, it is not practicable to code a
            ;; defining-symbol clause.  Instead we code the procedure
-           ;; explicitly in this function.  ACM, 2023-03-09.
+           ;; explicitly in this function.  ACM, 2024-03-09.
            (debug
             (&define                    ; this means we are defining something
              [&name [sexp   ;Allow (setf ...) additionally to symbols.
@@ -587,6 +588,8 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       (setq name (gv-setter (cadr name))))
 
     (setq defining-symbol name)
+    (when (not byte-compile-in-progress)
+      (setq name (bare-symbol name)))
     (let* ((old-ds
             (or (and (stringp (car body)) (car body))
                 (and (eq (car-safe (car body)) ':documentation)
@@ -616,7 +619,20 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
          ;; obsolescence warning when applicable.
          (cl-generic-define-method #',name ',(nreverse qualifiers) ',args
                                    ',call-con ,fun)))))
-(put 'cl-defmethod 'byte-run-defined-form 1)
+(put 'cl-defmethod 'byte-run-defined-form
+     `(1 . ,#'(lambda (form)
+                "Determine the position of the cl-defmethod's doc string.
+See `byte-run--posify-def-form' in byte-run.el."
+               (let ((ptr (cdr-safe (cdr-safe form)))
+                     ;; Note that when this lambda gets run, the &rest
+                     ;; parameters have not yet been combined into a
+                     ;; list, but are still separate.
+                     (i 0))
+                 (while (and ptr
+                             (cl-generic--method-qualifier-p (car ptr)))
+                   (setq ptr (cdr ptr))
+                   (setq i (1+ i)))
+                 `(1 . (3 . ,i))))))
 
 (defun cl--generic-member-method (specializers qualifiers methods)
   (while
@@ -1145,7 +1161,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
             (let ((s (prin1-to-string qualifiers)))
               (concat (substring s 1 -1) " "))))
          (doconly
-          (help-strip-pos-info
+          (byte-run-strip-pos-info
            (if docstring
                (let ((split (help-split-fundoc docstring nil)))
                  (if split (cdr split) docstring)))))

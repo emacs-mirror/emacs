@@ -691,7 +691,7 @@ in front of the value of MESSAGE-FORM."
 
 ;;; Facilities for running a single test.
 
-(defvar ert-debug-on-error nil
+(defvar ert-debug-on-error t ;; nil STOUGH, 2024-05-25
   "Non-nil means enter debugger when a test fails or terminates with an error.")
 
 ;; The data structures that represent the result of running a test.

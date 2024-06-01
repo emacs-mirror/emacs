@@ -175,6 +175,9 @@
   (let ((max-lisp-eval-depth (* 2 max-lisp-eval-depth)))
     (load "emacs-lisp/macroexp")))
 (setq base-loaded t)
+;;;; NEW STOUGH, 2024-04-30
+(setq lambda-source-alist nil)
+;;;; END OF NEW STOUGH
 
 (load "emacs-lisp/debug-early")
 (load "emacs-lisp/byte-run")

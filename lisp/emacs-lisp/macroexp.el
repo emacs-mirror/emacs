@@ -135,10 +135,11 @@ The purpose is to delay warnings to bytecomp.el, so they can use things
 like `byte-compile-warn' to get better file-and-line-number data
 and also to avoid outputting the warning during normal execution."
   nil)
-(put 'macroexp--funcall-if-compiled 'byte-compile
-     (lambda (form)
-       (funcall (eval (cadr form)))
-       (byte-compile-constant nil)))
+(let ((symbols-with-pos-enabled t))
+  (put 'macroexp--funcall-if-compiled 'byte-compile
+       (lambda (form)
+         (funcall (eval (cadr form)))
+         (byte-compile-constant nil))))
 
 (defun macroexp-compiling-p ()
   "Return non-nil if we're macroexpanding for the compiler."
@@ -345,24 +346,61 @@ Only valid during macro-expansion."
       (and (boundp 'byte-compile-bound-variables)
            (memq var byte-compile-bound-variables))))
 
+(defun macroexp--strip-lambda (form)
+  "Strip any position from the lambda in the list (lambda ...).
+FORM can be any Lisp Object.  Return the possibly modified FORM."
+  (if (and (eq (car-safe form) 'lambda)
+           (symbol-with-pos-p (car form)))
+      (cons 'lambda (cdr form))
+    form))
+
 (defun macroexp--expand-all (form)
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.
 Assumes the caller has bound `macroexpand-all-environment'."
   (macroexp--with-extended-form-stack form
+    (if (memq (car-safe form) '(backquote-list*  eval-when-compile
+                                                 eval-and-compile))
       (if (eq (car-safe form) 'backquote-list*)
-          ;; Special-case `backquote-list*', as it is normally a macro that
-          ;; generates exceedingly deep expansions from relatively shallow input
-          ;; forms.  We just process it `in reverse' -- first we expand all the
-          ;; arguments, _then_ we expand the top-level definition.
-          (macroexpand (macroexp--all-forms form 1)
-		       macroexpand-all-environment)
-        ;; Normal form; get its expansion, and then expand arguments.
-        (setq form (macroexp-macroexpand form macroexpand-all-environment))
+          ;; Special-case `backquote-list*', as it is normally a macro
+          ;; that generates exceedingly deep expansions from relatively
+          ;; shallow input forms.  We just process it `in reverse' --
+          ;; first we expand all the arguments, _then_ we expand the
+          ;; top-level definition.
+          (progn
+            (setq form (macroexp--all-forms form 1))
+            (let* ((ql (car-safe (cdr form)))
+                   (l (car-safe (cdr-safe ql))))
+              (if (and (equal ql ''lambda)
+                       (symbol-with-pos-p l))
+                  `(byte-run-posify-lambda-form
+                    ,(macroexpand
+                      form
+                      macroexpand-all-environment)
+                    ,(symbol-with-pos-pos l)
+                    ,(let ((lambda-buffer (byte-run-pull-lambda-source l)))
+                       (and lambda-buffer `',lambda-buffer)))
+                (macroexpand form macroexpand-all-environment))))
+
+        ;; `eval-when-compile' and `eval-and-compile' need their args expanded
+        ;; first, in case there are any backquote constructs in them which
+        ;; would otherwise confuse the `byte-run-posify-all-lambdas-etc' calls
+        ;; in those macros.
+        (macroexpand (macroexp--all-forms form 1)
+                     macroexpand-all-environment))
+
+      ;; Normal form; get its expansion, and then expand arguments.
+      (setq form (macroexp-macroexpand form macroexpand-all-environment))
         ;; FIXME: It'd be nice to use `byte-optimize--pcase' here, but when
         ;; I tried it, it broke the bootstrap :-(
         (let ((fn (car-safe form)))
           (pcase form
+            ((pred vectorp)
+             (let* ((in (append form nil))
+                    (res (macroexp--all-forms in)))
+               (if (not (eq res in))
+                   (apply #'vector res)
+                 form)))
             (`(cond . ,clauses)
              ;; Check for rubbish clauses at the end before macro-expansion,
              ;; to avoid nuisance warnings from clauses that become
@@ -413,22 +451,31 @@ Assumes the caller has bound `macroexpand-all-environment'."
                       (symbol-with-pos-p name))
                  (setq defining-symbol name))
              (macroexp--all-forms (cons sf (cons (bare-symbol name) rest)) 2))
-            (`(function ,(and f `(lambda ,_ . ,_)))
+
+            (`(function ,(and f `(lambda ,args . ,rest)))
              (progn
-               (let ((macroexp--dynvars macroexp--dynvars))
+               (let ((macroexp--dynvars macroexp--dynvars)
+                     (lambda-buffer (byte-run-pull-lambda-source (car f))))
+                 ;; If the first arg is called `lambda', strip its position.
+                 (setq f (macroexp--cons
+                          (car f)
+                          (macroexp--cons
+                           (macroexp--strip-lambda args) rest (cdr f))
+                          f))
                  (setq f (macroexp--all-forms f 2))
                  (setq f (byte-run-posify-lambda-form
                           f (and (symbol-with-pos-p (car f))
-                                 (symbol-with-pos-pos (car f)))))
-                 (if (null byte-compile-in-progress)
-                     ;; Strip any position from lambda.  This can be
-                     ;; needed for source in loaddefs.el.
-                     (setq f (cons 'lambda (cdr f))))
+                                 (symbol-with-pos-pos (car f)))
+                          lambda-buffer))
                  (macroexp--cons fn
                                  (macroexp--cons f nil (cdr form))
                                  form))))
 
-            (`(,(or 'function 'quote) . ,_) form)
+            (`(function . ,_) form)
+            (`(quote ,_arg)
+             (if (null byte-compile-in-progress)
+                 (setq form (byte-run-posify-all-lambdas-etc form)))
+             form)
             (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body)
                                                  pcase--dontcare))
              (let ((macroexp--dynvars macroexp--dynvars))
@@ -505,10 +552,6 @@ Assumes the caller has bound `macroexpand-all-environment'."
                        (push assignment assignments))
                      (setq args (cddr args)))
                    (cons 'progn (nreverse assignments))))))
-            (`(,(and fun `(lambda . ,_)) . ,args)
-	     (macroexp--cons (macroexp--all-forms fun 2)
-                             (macroexp--all-forms args)
-                             form))
             (`(funcall ,exp . ,args)
              (let ((eexp (macroexp--expand-all exp))
                    (eargs (macroexp--all-forms args)))
@@ -524,11 +567,22 @@ Assumes the caller has bound `macroexpand-all-environment'."
                   (macroexp--unfold-lambda `(,fn ,eexp . ,eargs)))
                  (_ `(,fn ,eexp . ,eargs)))))
             (`(funcall . ,_) form)      ;bug#53227
+            ;; Usually a lambda in an expanded backquote form.
+            (`(,(and conser (or 'list 'cons 'append))
+               (quote ,(and 'lambda l (pred symbol-with-pos-p)))
+               . ,(and rest `(,_arglist ,_elt . ,_)))
+             (let ((res
+             (list 'byte-run-posify-lambda-form
+                   `(,conser 'lambda ,@(macroexp--all-forms rest))
+                   (symbol-with-pos-pos l)
+                   (let ((lambda-buffer (byte-run-pull-lambda-source l)))
+                     (and lambda-buffer `',lambda-buffer)))))
+               res))
             (`(,func . ,_)
              (let ((handler (function-get func 'compiler-macro)))
-               ;; Macro expand compiler macros.  This cannot be delayed to
-               ;; byte-optimize-form because the output of the compiler-macro can
-               ;; use macros.
+               ;; Macro expand compiler macros.  This cannot be delayed
+               ;; to byte-optimize-form because the output of the
+               ;; compiler-macro can use macros.
                (if (null handler)
                    ;; No compiler macro.  We just expand each argument.
                    (macroexp--all-forms form 1)
@@ -542,16 +596,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
                        ;; The compiler macro did not find anything to do.
                        (if (equal form (setq newform (macroexp--all-forms form 1)))
                            form
-                         ;; Maybe after processing the args, some new opportunities
-                         ;; appeared, so let's try the compiler macro again.
+                         ;; Maybe after processing the args, some new
+                         ;; opportunities appeared, so let's try the
+                         ;; compiler macro again.
                          (setq form (macroexp--compiler-macro handler newform))
                          (if (eq newform form)
                              newform
                            (macroexp--expand-all form)))
                      (macroexp--expand-all newform))))))
-            ((guard (and (not byte-compile-in-progress)
-                         (symbol-with-pos-p form)))
-             (bare-symbol form))
             (_ form))))))
 
 ;;;###autoload
@@ -866,19 +918,18 @@ test of free variables in the following ways:
       form))
    (t
     ;; (condition-case err
-    (let ((macroexp--pending-eager-loads
-           (cons load-file-name macroexp--pending-eager-loads)))
-      (if full-p
-          (macroexpand--all-toplevel form)
-        (macroexpand form)))
+        (let ((macroexp--pending-eager-loads
+               (cons load-file-name macroexp--pending-eager-loads)))
+          (if full-p
+              (macroexpand--all-toplevel form)
+            (macroexpand form)))
       ;; ((debug error)
       ;;  ;; Hopefully this shouldn't happen thanks to the cycle detection,
       ;;  ;; but in case it does happen, let's catch the error and give the
       ;;  ;; code a chance to macro-expand later.
       ;;  (error "Eager macro-expansion failure: %S" err)
-      ;;  form)
-      ;; )
-   )))
+      ;; form;; ))
+    )))
 
 ;; ¡¡¡ Big Ugly Hack !!!
 ;; src/bootstrap-emacs is mostly used to compile .el files, so it needs

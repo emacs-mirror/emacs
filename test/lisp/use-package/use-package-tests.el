@@ -69,7 +69,7 @@
      (macroexpand-1 ',form)))
 
 (defmacro match-expansion (form &rest value)
-  ;; (declare (debug (sexp form)))
+  (declare (debug (sexp form)))
   `(should (pcase
                (byte-run-strip-lambda-doc
                   (expand-minimally ,form))
@@ -120,10 +120,15 @@
   (should (equal (use-package-normalize-function t) t))
   (should (equal (use-package-normalize-function 'sym) 'sym))
   (should (equal (use-package-normalize-function #'sym) 'sym))
-  (should (equal (use-package-normalize-function '(lambda () ...)) '(lambda () ...)))
-  (should (equal (use-package-normalize-function ''(lambda () ...)) '(lambda () ...)))
-  (should (equal (use-package-normalize-function '#'(lambda () ...)) '(lambda () ...)))
-
+  (should (equal (byte-run-strip-lambda-doc
+                  (use-package-normalize-function '(lambda () ...)))
+                 (byte-run-strip-lambda-doc '(lambda () ...))))
+  (should (equal (byte-run-strip-lambda-doc
+                  (use-package-normalize-function ''(lambda () ...)))
+                 (byte-run-strip-lambda-doc '(lambda () ...))))
+  (should (equal (byte-run-strip-lambda-doc
+                  (use-package-normalize-function '#'(lambda () ...)))
+                 (byte-run-strip-lambda-doc '(lambda () ...))))
   (should (equal (use-package-normalize-function 1) 1))
   (should (equal (use-package-normalize-function "Hello") "Hello"))
   (should (equal (use-package-normalize-function '(nil . nil)) '(nil . nil))))
@@ -1064,24 +1069,25 @@
         (add-hook 'hook-special #'fun)))))
 
 (ert-deftest use-package-test/:hook-5 ()
-  (match-expansion
-   (use-package erefactor
-     :load-path "foo"
-     :after elisp-mode
-     :load t
-     :hook (emacs-lisp-mode
-            . (lambda ()
-                (bind-key "\C-c\C-v" erefactor-map emacs-lisp-mode-map))))
-   `(progn
-      (eval-and-compile
-        (add-to-list 'load-path ,(pred stringp)))
-      (eval-after-load 'elisp-mode
-        '(progn
-           (require 'erefactor nil nil)
-           (add-hook
-            'emacs-lisp-mode-hook
-            #'(lambda nil
-                (bind-key "" erefactor-map emacs-lisp-mode-map))))))))
+  (let ((symbols-with-pos-enabled t))
+    (match-expansion
+     (use-package erefactor
+       :load-path "foo"
+       :after elisp-mode
+       :load t
+       :hook (emacs-lisp-mode
+              . (lambda ()
+                  (bind-key "\C-c\C-v" erefactor-map emacs-lisp-mode-map))))
+     `(progn
+        (eval-and-compile
+          (add-to-list 'load-path ,(pred stringp)))
+        (eval-after-load 'elisp-mode
+          '(progn
+             (require 'erefactor nil nil)
+             (add-hook
+              'emacs-lisp-mode-hook
+              #'(lambda nil
+                  (bind-key "" erefactor-map emacs-lisp-mode-map)))))))))
 
 (ert-deftest use-package-test/:hook-6 ()
   (match-expansion
@@ -1099,18 +1105,19 @@
            (add-hook 'emacs-lisp-mode-hook #'function))))))
 
 (ert-deftest use-package-test/:hook-7 ()
-  (match-expansion
-   (use-package erefactor
-     :load-path "foo"
-     :after elisp-mode
-     :hook (emacs-lisp-mode . (lambda () (function))))
-   `(progn
-      (eval-and-compile
-        (add-to-list 'load-path ,(pred stringp)))
-      (eval-after-load 'elisp-mode
-        '(progn
-           (require 'erefactor nil nil)
-           (add-hook 'emacs-lisp-mode-hook #'(lambda nil (function))))))))
+  (let ((symbols-with-pos-enabled t))
+    (match-expansion
+     (use-package erefactor
+       :load-path "foo"
+       :after elisp-mode
+       :hook (emacs-lisp-mode . (lambda () (function))))
+     `(progn
+        (eval-and-compile
+          (add-to-list 'load-path ,(pred stringp)))
+        (eval-after-load 'elisp-mode
+          '(progn
+             (require 'erefactor nil nil)
+             (add-hook 'emacs-lisp-mode-hook #'(lambda nil (function)))))))))
 
 (ert-deftest use-package-test-normalize/:custom ()
   (cl-flet ((norm (&rest args)

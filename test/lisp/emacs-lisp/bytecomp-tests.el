@@ -879,10 +879,11 @@ byte-compiled.  Run with dynamic binding."
     (ert-with-temp-file elcfile
       :suffix ".elc"
       (with-temp-buffer
+        (let ((print-symbols-bare t))
         (insert ";;; -*- lexical-binding: t -*-\n")
         (dolist (form forms)
           (print form (current-buffer)))
-        (write-region (point-min) (point-max) elfile nil 'silent))
+        (write-region (point-min) (point-max) elfile nil 'silent)))
       (if compile
           (let ((byte-compile-dest-file-function
                  (lambda (e) elcfile)))
@@ -1388,20 +1389,22 @@ literals (Bug#20852)."
 
 (ert-deftest bytecomp-tests-function-put ()
   "Check `function-put' operates during compilation."
-  (bytecomp-tests--with-temp-file source
-    (insert  ";;; -*-lexical-binding:t-*-\n")
-    (dolist (form '((function-put 'bytecomp-tests--foo 'foo 1)
-                    (function-put 'bytecomp-tests--foo 'bar 2)
-                    (defmacro bytecomp-tests--foobar ()
-                      `(cons ,(function-get 'bytecomp-tests--foo 'foo)
-                             ,(function-get 'bytecomp-tests--foo 'bar)))
-                    (defvar bytecomp-tests--foobar 1)
-                    (setq bytecomp-tests--foobar (bytecomp-tests--foobar))))
-      (print form (current-buffer)))
-    (write-region (point-min) (point-max) source nil 'silent)
-    (byte-compile-file source)
-    (load source)
-    (should (equal bytecomp-tests--foobar (cons 1 2)))))
+  (bytecomp-tests--with-temp-file
+   source
+   (let ((print-symbols-bare t))
+     (insert  ";;; -*-lexical-binding:t-*-\n")
+     (dolist (form '((function-put 'bytecomp-tests--foo 'foo 1)
+                     (function-put 'bytecomp-tests--foo 'bar 2)
+                     (defmacro bytecomp-tests--foobar ()
+                       `(cons ,(function-get 'bytecomp-tests--foo 'foo)
+                              ,(function-get 'bytecomp-tests--foo 'bar)))
+                     (defvar bytecomp-tests--foobar 1)
+                     (setq bytecomp-tests--foobar (bytecomp-tests--foobar))))
+       (print form (current-buffer)))
+     (write-region (point-min) (point-max) source nil 'silent)
+     (byte-compile-file source)
+     (load source)
+     (should (equal bytecomp-tests--foobar (cons 1 2))))))
 
 (ert-deftest bytecomp-tests--test-no-warnings-with-advice ()
   (defun f ())
@@ -2004,7 +2007,7 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
       (should (equal (aref bc 5) "P"))
       (should (equal (get fname 'pure) t))
       (should (equal (get fname 'lisp-indent-function) 1))
-      (should (equal (help-strip-pos-info (aref bc 4)) "tata\n\n(fn X)")))))
+      (should (equal (byte-run-strip-pos-info (aref bc 4)) "tata\n\n(fn X)")))))
 
 (ert-deftest bytecomp-fun-attr-warn ()
   ;; Check that warnings are emitted when doc strings, `declare' and

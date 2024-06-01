@@ -999,27 +999,41 @@ Internally, this normally uses `fset', but if SYMBOL has a
 The return value is undefined.  */)
   (register Lisp_Object symbol, Lisp_Object definition, Lisp_Object docstring)
 {
+  Lisp_Object sym;
+  specpdl_ref count = SPECPDL_INDEX ();
+
+  specbind (Qsymbols_with_pos_enabled, Qt);
   CHECK_SYMBOL (symbol);
+  sym = Fbare_symbol (symbol);
+  unbind_to (count, Qnil);
   if (!NILP (Vpurify_flag)
       /* If `definition' is a keymap, immutable (and copying) is wrong.  */
       && !KEYMAPP (definition))
     definition = Fpurecopy (definition);
 
-  defalias (symbol, definition);
+  defalias (sym, definition);
 
-  maybe_defer_native_compilation (symbol, definition);
+  maybe_defer_native_compilation (sym, definition);
 
   /* For the first few symbols from early-debug.el and byte-run.el, note the
      symbol for later creation of position information in the doc string.  */
   if (NILP (Ffboundp (Qdefun)))
-    Fput (symbol, Qbyte_run__early_defalias, symbol);
+    Fput (symbol, Qbyte_run__early_defalias, sym);
 
   if (!NILP (docstring))
-    Fput (symbol, Qfunction_documentation, docstring);
+    {
+      if (Ffboundp (Qbyte_run_posify_doc_string))
+	docstring = call3 (Qbyte_run_posify_doc_string,
+			   docstring,
+			   /* The docstring is never for Qlambda, so the
+			      following two arguments are always nil. */
+			   Qnil, Qnil);
+      Fput (sym, Qfunction_documentation, docstring);
+    }
   /* We used to return `definition', but now that `defun' and `defmacro' expand
-     to a call to `defalias', we return `symbol' for backward compatibility
+     to a call to `defalias', we return `sym' for backward compatibility
      (bug#11686).  */
-  return symbol;
+  return sym;
 }
 
 DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
@@ -4263,7 +4277,7 @@ syms_of_data (void)
   defsubr (&Sfboundp);
   defsubr (&Sfset);
   defsubr (&Sdefalias);
-  Fput (Qdefalias, Qbyte_run_defined_form, make_fixnum (1));
+  Fput (Qdefalias, Qbyte_run_defined_form, Fcons (make_fixnum (-1), make_fixnum (3)));
   defsubr (&Ssetplist);
   defsubr (&Ssymbol_value);
   defsubr (&Sset);

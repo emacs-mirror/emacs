@@ -51,7 +51,7 @@ defining symbol is printed, if present.  Otherwise, the buffer name
 together with an offset (the lambda offset, if present) are printed.
 
 If DOC-STRING contains no position info, this fuction does nothing."
-  (let ((pos-info (byte-run-position-vec doc-string)))
+  (let ((pos-info (byte-run-get-position-vec doc-string)))
       (when (vectorp pos-info)
         (let ((defsym (aref pos-info 0))
               (posbuf (aref pos-info 1))

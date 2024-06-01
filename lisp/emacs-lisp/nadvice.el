@@ -293,9 +293,9 @@ On such sameness, ADV is returned, otherwise nil."
           (unwind-protect
               (progn
                 (when (stringp f-doc)
-                  (setcar f-doc-cdr (help-strip-pos-info f-doc)))
+                  (setcar f-doc-cdr (byte-run-strip-pos-info f-doc)))
                 (when (stringp a-doc)
-                  (setcar a-doc-cdr (help-strip-pos-info a-doc)))
+                  (setcar a-doc-cdr (byte-run-strip-pos-info a-doc)))
                 (equal function adv))
             (setcar f-doc-cdr f-doc)
             (setcar a-doc-cdr a-doc))

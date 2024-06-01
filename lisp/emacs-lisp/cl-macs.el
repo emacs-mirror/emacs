@@ -502,7 +502,8 @@ Like normal `function', except that if argument is a lambda form,
 its argument list allows full Common Lisp conventions."
   (declare (debug (&or symbolp cl-lambda-expr)))
   (if (eq (car-safe func) 'lambda)
-      `(function (lambda . ,(cl--transform-lambda (cdr func) 'cl-none)))
+      `(function (,(car func) ; Preserve any symbol position on the lambda.
+                  . ,(cl--transform-lambda (cdr func) 'cl-none)))
     `(function ,func)))
 
 (defun cl--make-usage-var (x)

@@ -494,7 +494,7 @@ Filled in `cconv-analyze-form' but initialized and consulted here.")
 
 (defvar byte-compiler-error-flag)
 
-;; This variable is declared in src/lread.c for convenience in reading
+;; This variable is defined in src/lread.c for convenience in reading
 ;; symbols.
 (defvar byte-compile-in-progress)
 
@@ -735,8 +735,9 @@ Each element is (INDEX . VALUE)")
 		     (get 'byte-code-vector 'tmp-compile-time-value)
 		     'byte-stack+-info
 		     (get 'byte-stack+-info 'tmp-compile-time-value))
-    (put 'byte-code-vector 'tmp-compile-time-value nil)
-    (put 'byte-stack+-info 'tmp-compile-time-value nil)))
+    ;; (put 'byte-code-vector 'tmp-compile-time-value nil)
+    ;; (put 'byte-stack+-info 'tmp-compile-time-value nil)
+    ))
 
 
 ;; The following opcodes (1-47) use the 3 lowest bits for an immediate

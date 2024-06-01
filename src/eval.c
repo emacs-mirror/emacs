@@ -2754,7 +2754,7 @@ eval_sub (Lisp_Object form)
       funcar = XCAR (fun);
       if (!SYMBOLP (funcar))
 	xsignal1 (Qinvalid_function, original_fun);
-      if (EQ (funcar, Qautoload))
+      if (EQ (Fbare_symbol (funcar), Qautoload))
 	{
 	  Fautoload_do_load (fun, original_fun, Qnil);
 	  goto retry;
@@ -4625,9 +4625,9 @@ alist of active lexical bindings.  */);
   defsubr (&Sset_default_toplevel_value);
   defsubr (&Sdefvar);
   DEFSYM (Qdefvar, "defvar");
-  Fput (Qdefvar, Qbyte_run_defined_form, make_fixnum (1));
+  Fput (Qdefvar, Qbyte_run_defined_form, Fcons (make_fixnum (1), make_fixnum (3)));
   DEFSYM (Qdefconst, "defconst");
-  Fput (Qdefconst, Qbyte_run_defined_form, make_fixnum (1));
+  Fput (Qdefconst, Qbyte_run_defined_form, Fcons (make_fixnum (1), make_fixnum (3)));
   defsubr (&Sdefvar_bootstrap);
   defsubr (&Sdefvar_1);
   defsubr (&Sdefvaralias);

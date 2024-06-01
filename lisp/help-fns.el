@@ -1463,7 +1463,7 @@ it is displayed along with the global value."
 
 	      (with-current-buffer standard-output
                 (help-fns--var-obsolete variable)
-		(insert (or (help-strip-pos-info doc)
+		(insert (or (byte-run-strip-pos-info doc)
                             "Not documented as a variable.")))
 
               ;; Output the indented administrative bits.
