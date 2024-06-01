@@ -305,6 +305,15 @@ enum xi_touch_ownership
 
 struct xi_touch_point_t
 {
+  /* The detail code reported to Lisp.  */
+  EMACS_INT local_detail;
+
+  /* The frame associated with this touch point.  */
+  struct frame *frame;
+
+  /* The next touch point in this list.  */
+  struct xi_touch_point_t *next;
+
   /* The touchpoint detail.  */
   int number;
 
@@ -314,12 +323,6 @@ struct xi_touch_point_t
 
   /* The last known rounded X and Y positions of the touchpoint.  */
   int x, y;
-
-  /* The frame associated with this touch point.  */
-  struct frame *frame;
-
-  /* The next touch point in this list.  */
-  struct xi_touch_point_t *next;
 };
 
 #endif
