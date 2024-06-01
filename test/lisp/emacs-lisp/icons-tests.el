@@ -54,7 +54,7 @@
     (enable-theme 'test-icons-theme)
     (should (equal (icon-string 'icon-test1) "<"))))
 
-(ert-deftest test-icon-inheretance ()
+(ert-deftest test-icon-inheritance ()
   (let ((icon-preference '(image emoji symbol text)))
     (should (equal (icon-string 'icon-test2) ">")))
   (let ((icon-preference '(text)))

@@ -4134,7 +4134,7 @@ cache buffer into the designated cell in the table buffer."
 		 (currentp (equal cell-coord current-cell-coordinate)))
 	    (if currentp (table--goto-coordinate current-coordinate)
 	      (table--goto-coordinate (car cell-coord)))
-	    (table-recognize-cell 'froce)
+	    (table-recognize-cell 'force)
 	    (let ((table-inhibit-update t))
 	      (table-with-cache-buffer
 		(let ((sticky (and currentp
@@ -4147,7 +4147,7 @@ cache buffer into the designated cell in the table buffer."
 	    (table--update-cell 'now)
 	    ))
 	(table--goto-coordinate current-coordinate)
-	(table-recognize-cell 'froce)))))
+	(table-recognize-cell 'force)))))
 
 (defun table--update-cell-heightened (&optional now)
   "Update the contents of the cells that are affected by heightening operation."
@@ -4176,7 +4176,7 @@ cache buffer into the designated cell in the table buffer."
 		 (currentp (equal cell-coord current-cell-coordinate)))
 	    (if currentp (table--goto-coordinate current-coordinate)
 	      (table--goto-coordinate (car cell-coord)))
-	    (table-recognize-cell 'froce)
+	    (table-recognize-cell 'force)
 	    (let ((table-inhibit-update t))
 	      (table-with-cache-buffer
 		(let ((sticky (and currentp
@@ -4189,7 +4189,7 @@ cache buffer into the designated cell in the table buffer."
 	    (table--update-cell 'now)
 	    ))
 	(table--goto-coordinate current-coordinate)
-	(table-recognize-cell 'froce)))))
+	(table-recognize-cell 'force)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

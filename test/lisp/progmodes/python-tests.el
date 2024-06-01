@@ -7570,12 +7570,12 @@ always located at the beginning of buffer."
      (forward-to-word 1)
      (should (eq (face-at-point) font-lock-keyword-face)))))
 
-(ert-deftest python-ts-mode-named-assignement-face-1 ()
+(ert-deftest python-ts-mode-named-assignment-face-1 ()
   (python-ts-tests-with-temp-buffer
    "var := 3"
    (should (eq (face-at-point) font-lock-variable-name-face))))
 
-(ert-deftest python-ts-mode-assignement-face-2 ()
+(ert-deftest python-ts-mode-assignment-face-2 ()
   (python-ts-tests-with-temp-buffer
    "var, *rest = call()"
    (dolist (test '("var" "rest"))
