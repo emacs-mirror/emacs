@@ -3585,17 +3585,7 @@ function symbol or a form, if the compilation was successful
 return the compiled function."
   (comp--native-compile function-or-file nil output))
 
-;;;###autoload
-(defun batch-native-compile (&optional for-tarball)
-  "Perform batch native compilation of remaining command-line arguments.
-
-Native compilation equivalent of `batch-byte-compile'.
-Use this from the command line, with `-batch'; it won't work
-in an interactive Emacs session.
-Optional argument FOR-TARBALL non-nil means the file being compiled
-as part of building the source tarball, in which case the .eln file
-will be placed under the native-lisp/ directory (actually, in the
-last directory in `native-comp-eln-load-path')."
+(defun batch-native-compile-1 (&optional for-tarball)
   (comp-ensure-native-compiler)
   (let ((comp-running-batch-compilation t)
         (native-compile-target-directory
@@ -3609,6 +3599,35 @@ last directory in `native-comp-eln-load-path')."
              collect (comp--native-compile file)
              else
              collect (byte-compile-file file))))
+
+;;;###autoload
+(cl-defun batch-native-compile (&optional for-tarball)
+  "Perform batch native compilation of remaining command-line arguments.
+
+Native compilation equivalent of `batch-byte-compile'.
+Use this from the command line, with `-batch'; it won't work
+in an interactive Emacs session.
+Optional argument FOR-TARBALL non-nil means the file being compiled
+as part of building the source tarball, in which case the .eln file
+will be placed under the native-lisp/ directory (actually, in the
+last directory in `native-comp-eln-load-path')."
+  (cl-macrolet
+      ((with-env ((&rest vars) &body body)
+         (let (clauses)
+           (cl-with-gensyms (val)
+             (dolist (var vars)
+	       (let ((env (string-replace
+		           "-" "_"
+                           (upcase (symbol-name var)))))
+	         (push `(,var (let ((,val (getenv ,env)))
+			        (if (and ,val (not (equal "" ,val)))
+			            (car (read-from-string ,val))
+			          ,var)))
+		       clauses))))
+           `(let (,@(nreverse clauses)) ,@body))))
+    (with-env (native-comp-speed native-comp-debug
+                                 native-comp-driver-options)
+      (batch-native-compile-1 for-tarball))))
 
 ;; In use by elisp-mode.el
 (defun comp--write-bytecode-file (eln-file)
