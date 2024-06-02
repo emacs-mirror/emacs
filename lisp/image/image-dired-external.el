@@ -240,7 +240,8 @@ function, consider that function to be an alternative to running EXECUTABLE."
     (or (and (executable-find cmd)
              (image-dired--probe-thumbnail-cmd cmd))
         (and func (fboundp func) 'function)
-        (error "Executable %S not found or not pertinent" executable))))
+        (error "Executable named by `%S' (%s) not found or not pertinent"
+               executable (symbol-value executable)))))
 
 
 ;;; Creating thumbnails
