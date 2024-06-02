@@ -952,7 +952,7 @@ buffer's process if STRING contains a password prompt defined by
 `eshell-password-prompt-regexp'.
 
 This function could be in the list `eshell-output-filter-functions'."
-  (when eshell-foreground-command
+  (when (eshell-head-process)
     (save-excursion
       (let ((case-fold-search t))
 	(goto-char eshell-last-output-block-begin)
