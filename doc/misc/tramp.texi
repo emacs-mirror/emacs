@@ -976,7 +976,8 @@ session.
 @end table
 
 @noindent
-The following methods allow to access containers in different ways:
+The following methods allow to access running containers in different
+ways:
 
 @table @asis
 @item @option{docker}
@@ -1016,6 +1017,9 @@ The host name may be either a container's name or ID, as returned by
 @samp{toolbox list -c} or @samp{distrobox list}.  Without a host name,
 the default Toolbox container for the host will be used.  There is no
 such default for Distrobox.
+
+Contrary to the other container-based methods, these two methods start
+a created container, if it isn't running yet.
 
 These are optional methods, @pxref{Optional methods}.  They do not
 support user names.
@@ -4080,8 +4084,59 @@ host.  Furthermore, set @code{tramp-use-connection-share} to
 unwanted side effects.
 
 
+@anchor{Managing remote shell history}
+@subsection Managing remote shell history
+@cindex shell history
+@vindex tramp-histfile-override
+@vindex HISTFILE@r{, environment variable}
+@vindex HISTFILESIZE@r{, environment variable}
+@vindex HISTSIZE@r{, environment variable}
+
+Due to the remote shell saving tilde expansions triggered by
+@value{tramp}, the shell history file is probably growing rapidly.
+@value{tramp} can suppress this behavior with the user option
+@code{tramp-histfile-override}.  When set to @code{t}, environment
+variable @env{HISTFILE} is unset, and environment variables
+@env{HISTFILESIZE} and @env{HISTSIZE} are set to 0.  Don't use this
+with @command{bash} 5.0.0.  There is a bug in @command{bash} which
+lets @command{bash} die.
+
+Alternatively, @code{tramp-histfile-override} could be a string.
+Environment variable @env{HISTFILE} is set to this file name then.  Be
+careful when setting to @file{/dev/null}; this might result in
+undesired results when using @command{bash} as remote shell.
+
+Another approach is to disable @value{tramp}'s handling of the
+@env{HISTFILE} at all by setting @code{tramp-histfile-override} to
+@code{nil}.  In this case, saving history could be turned off by
+putting this shell code in @file{.bashrc} or @file{.kshrc}:
+
+@example
+@group
+if [ -f $HOME/.sh_history ] ; then
+   /bin/rm $HOME/.sh_history
+fi
+if [ "$@{HISTFILE-unset@}" != "unset" ] ; then
+   unset HISTFILE
+fi
+if [ "$@{HISTSIZE-unset@}" != "unset" ] ; then
+   unset HISTSIZE
+fi
+@end group
+@end example
+
+For @option{ssh}-based method, add the following line to your
+@file{~/.ssh/environment}:
+
+@example
+HISTFILE=/dev/null
+@end example
+
+
 @subsection Running @code{shell} on a remote host
 @cindex @code{shell}
+@vindex explicit-shell-file-name
+@vindex shell-history-file-name
 
 Set @code{explicit-shell-file-name} to the appropriate shell name
 when using @value{tramp} between two hosts with different operating
@@ -4125,6 +4180,14 @@ of @code{explicit-shell-file-name} for different remote hosts.
   'remote-ksh)
 @end group
 @end lisp
+
+The command @code{shell} reads the remote history file in order to to
+initialize the history input ring.  You can set the user option
+@code{shell-history-file-name} in order to specify which remote
+history file is taken, or whether to suppress this at all.  It accepts
+the same values as @code{tramp-histfile-override}, see @pxref{Managing
+remote shell history}. @code{shell-history-file-name} accepts also
+connection-local values in @code{shell} buffers.
 
 
 @subsection Running @code{shell-command} on a remote host
@@ -5171,6 +5234,13 @@ connections, apply the following code.
 @end lisp
 
 @item
+Use direct asynchronous processes if possible.
+
+@item
+Suppress reading the remote history file in @code{shell}.  Set
+@code{shell-history-file-name} to @code{t}.
+
+@item
 Disable excessive traces.  Set @code{tramp-verbose} to 3 or lower,
 default being 3.  Increase trace levels temporarily when hunting for
 bugs.
@@ -5474,54 +5544,6 @@ as follows:
      (setq dired-actual-switches "-ahl"))))
 @end group
 @end lisp
-
-
-@item
-Why is @file{~/.sh_history} on the remote host growing?
-
-@vindex tramp-histfile-override
-@vindex HISTFILE@r{, environment variable}
-@vindex HISTFILESIZE@r{, environment variable}
-@vindex HISTSIZE@r{, environment variable}
-Due to the remote shell saving tilde expansions triggered by
-@value{tramp}, the history file is probably growing rapidly.
-@value{tramp} can suppress this behavior with the user option
-@code{tramp-histfile-override}.  When set to @code{t}, environment
-variable @env{HISTFILE} is unset, and environment variables
-@env{HISTFILESIZE} and @env{HISTSIZE} are set to 0.  Don't use this
-with @command{bash} 5.0.0.  There is a bug in @command{bash} which
-lets @command{bash} die.
-
-Alternatively, @code{tramp-histfile-override} could be a string.
-Environment variable @env{HISTFILE} is set to this file name then.  Be
-careful when setting to @file{/dev/null}; this might result in
-undesired results when using @command{bash} as remote shell.
-
-Another approach is to disable @value{tramp}'s handling of the
-@env{HISTFILE} at all by setting @code{tramp-histfile-override} to
-@code{nil}.  In this case, saving history could be turned off by
-putting this shell code in @file{.bashrc} or @file{.kshrc}:
-
-@example
-@group
-if [ -f $HOME/.sh_history ] ; then
-   /bin/rm $HOME/.sh_history
-fi
-if [ "$@{HISTFILE-unset@}" != "unset" ] ; then
-   unset HISTFILE
-fi
-if [ "$@{HISTSIZE-unset@}" != "unset" ] ; then
-   unset HISTSIZE
-fi
-@end group
-@end example
-
-For @option{ssh}-based method, add the following line to your
-@file{~/.ssh/environment}:
-
-@example
-HISTFILE=/dev/null
-@end example
 
 
 @item

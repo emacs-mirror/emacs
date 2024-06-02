@@ -1047,6 +1047,15 @@ When this user option is non-nil, 'shell-get-old-input' ('C-RET')
 includes multiple shell "\" continuation lines from command output.
 Default is nil.
 
++++
+*** New user option 'shell-history-file-name'.
+When this user option is set to t, 'shell-mode' does not read the shell
+history file.  Setting this user option to a string specifies the name
+of the shell history file to be read.  A nil value triggers reading the
+environment variable 'HISTFILE'.
+
+In a 'shell' buffer, this user option is connection-local.
+
 ** Make mode
 
 *** The Makefile browser is now obsolete.
@@ -1182,7 +1191,7 @@ manual "(tramp) Improving performance of asynchronous remote processes".
 ---
 *** Direct asynchronous processes use 'tramp-remote-path'.
 When a direct asynchronous process is invoked, it uses 'tramp-remote-path'
-for setting the remote PATH environment variable.
+for setting the remote 'PATH' environment variable.
 
 ** File Notifications
 
@@ -1922,10 +1931,11 @@ grammars.  The Info manual "(elisp) Parsing Expression Grammars" has
 documentation and examples.
 
 ** New major mode 'shell-command-mode'.
-This mode is used by default for the output of 'async-shell-command'.
+This mode is used by default for the output of asynchronous 'shell-command'.
 To revert to the previous behavior, set the (also new) variable
 'async-shell-command-mode' to 'shell-mode'.  Any hooks or mode-specific
 variables used should be adapted appropriately.
+
 
 * Incompatible Lisp Changes in Emacs 30.1
 
