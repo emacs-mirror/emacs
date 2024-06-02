@@ -623,7 +623,10 @@ default value at the prompt."
                  (string-replace "\n" "" (buffer-string))))))))
 
 (defun image-dired-set-exif-data (file tag-name tag-value)
-  "In FILE, set EXIF tag TAG-NAME to value TAG-VALUE."
+  "In FILE, set EXIF tag TAG-NAME to value TAG-VALUE.
+This function inserts any output from `exiftool' program into
+the current buffer, so it could be shown to the user.  If that
+is not desirable, wrap the call in `with-temp-buffer'."
   (image-dired--check-executable-exists
    'image-dired-cmd-write-exif-data-program)
   (let ((spec
