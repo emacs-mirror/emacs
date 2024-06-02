@@ -659,15 +659,11 @@ newline."
 				  (eval cmd)
 				(eshell-eval-command cmd input))))
 			   (eshell-life-is-too-much)))))
-	      (quit
-	       (eshell-reset t)
-	       (run-hooks 'eshell-post-command-hook)
-	       (signal 'quit nil))
 	      (error
 	       (eshell-reset t)
 	       (eshell-interactive-print
 		(concat (error-message-string err) "\n"))
-	       (run-hooks 'eshell-post-command-hook)
+               (run-hooks 'eshell-post-command-hook)
 	       (insert-and-inherit input)))))))))
 
 (defun eshell-send-eof-to-process ()
