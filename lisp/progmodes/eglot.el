@@ -287,7 +287,8 @@ automatically)."
             '("language_server.bat")
           (eglot-alternatives
            '("language_server.sh" "start_lexical.sh"))))
-    (ada-mode . ("ada_language_server"))
+    ((ada-mode ada-ts-mode) . ("ada_language_server"))
+    ((gpr-mode gpr-ts-mode) . ("ada_language_server" "--language-gpr"))
     (scala-mode . ,(eglot-alternatives
                     '("metals" "metals-emacs")))
     (racket-mode . ("racket" "-l" "racket-langserver"))
