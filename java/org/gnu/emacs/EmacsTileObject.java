@@ -33,9 +33,6 @@ import android.graphics.Shader.TileMode;
 
 public final class EmacsTileObject
 {
-  /* Color filter object set by EmacsGC.  */
-  private ColorFilter colorFilter;
-
   /* Bitmap object set by EmacsGC.  */
   private Bitmap bitmap;
 
@@ -46,7 +43,7 @@ public final class EmacsTileObject
   private Rect boundsRect;
 
   /* Paint providing graphics properties for drawBitmap.  */
-  private Paint paint;
+  private final Paint paint;
 
 
 
