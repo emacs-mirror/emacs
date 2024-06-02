@@ -327,8 +327,11 @@ string of `info-lookup-alist'.
 If optional argument QUERY is non-nil, query for the help mode."
   (let* ((mode (cond (query
 		      (info-lookup-change-mode topic))
-		     ((info-lookup->mode-value topic (info-lookup-select-mode))
-		      info-lookup-mode)
+		     ((when-let
+                          ((info (info-lookup->mode-value
+                                  topic (info-lookup-select-mode))))
+                        (info-lookup--expand-info info))
+                      info-lookup-mode)
 		     ((info-lookup-change-mode topic))))
 	 (completions (info-lookup->completions topic mode))
 	 (default (info-lookup-guess-default topic mode))
@@ -404,9 +407,6 @@ If SAME-WINDOW, reuse the current window.  If nil, pop to a
 different window."
   (or mode (setq mode (info-lookup-select-mode)))
   (setq mode (info-lookup--item-to-mode item mode))
-  (if-let ((info (info-lookup->mode-value topic mode)))
-      (info-lookup--expand-info info)
-    (error "No %s help available for `%s'" topic mode))
   (let* ((completions (info-lookup->completions topic mode))
          (ignore-case (info-lookup->ignore-case topic mode))
          (entry (or (assoc (if ignore-case (downcase item) item) completions)
