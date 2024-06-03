@@ -141,6 +141,12 @@ function to the advice to remove.
 
 ** Emacs now supports Unicode Standard version 15.1.
 
+** New pre-defined values for 'electric-quote-chars'.
+The available customization options for 'electric-quote-chars' have been
+updated with common pairs of quotation characters, including "‘", "’",
+"“", "”", "«", "»", "‹", "›", "‚", "„", "「", "」", "『", and "』".
+The default is unchanged.
+
 ** Network Security Manager
 
 +++
