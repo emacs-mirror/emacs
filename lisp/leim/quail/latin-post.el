@@ -2302,6 +2302,9 @@ of characters from a single Latin-N charset.
   subscript  |    _    | 0_ -> ₀   1_ -> ₁   +_ -> ₊   -_ -> ₋
   others     |    /    | s/ -> ß   ?/ -> ¿   !/ -> ¡   // -> °   o/ -> œ
              |    /    | 2/ -> ½   3/ -> ¾   4/ -> ?¼
+             |    [    | \\='[ -> ‘  \"[ -> “
+             |    ]    | \\='] -> ’  \"] -> ”
+             |    ,    | \\=', -> ‚  \", -> „
              | various | << -> «   >> -> »   o_ -> º   a_ -> ª
 
 Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
@@ -2309,6 +2312,12 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 
 ;; Fixme: ¦ § ¨ © ¬ ± ´ µ ¶ · ¸ × ÷
 (quail-define-rules
+ ("'[" ?‘)
+ ("']" ?’)
+ ("\"[" ?“)
+ ("\"]" ?”)
+ ("\"," ?„)
+ ("'," ?‚)
  ("2/" ?½)
  ("3/" ?¾)
  ("4/" ?¼)
@@ -2341,6 +2350,8 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("//" ?°)
  ("<<" ?\«)
  (">>" ?\»)
+ ("<~" ?\‹)
+ (">~" ?\›)
  ("?/" ?¿)
  ("$/" ?£)
  ("$/" ?¤)
@@ -2532,6 +2543,12 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("z~" ?ž)
  ("--" ?¯)
 
+ ("'[[" ["'["])
+ ("']]" ["']"])
+ ("\"[[" ["\"["])
+ ("\"]]" ["\"]"])
+ ("\",," ["\","])
+ ("',," ["',"])
  ("2//" ["2/"])
  ("3//" ["3/"])
  ("4//" ["4/"])
@@ -2564,6 +2581,8 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("///" ["//"])
  ("<<<" ["<<"])
  (">>>" [">>"])
+ ("<~~" ["<~"])
+ (">~~" [">~"])
  ("?//" ["?/"])
  ("$//" ["$/"])
  ("A''" ["A'"])
