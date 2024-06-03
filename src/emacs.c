@@ -2630,6 +2630,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 		      list1 (Qandroid_enumerate_fonts));
 #endif
 
+#ifdef HAVE_MPS
+  /* Various sym_of_xy functions contain staticpros, and nothing makes
+     sure that these staticpros have run when things are assigned to the
+     staticpro'd variables. So, let's begin collecting only when we know
+     that it's safe. */
+  igc_begin_collecting ();
+#endif
+
   /* Enter editor command loop.  This never returns.  */
   set_initial_minibuffer_mode ();
   Frecursive_edit ();

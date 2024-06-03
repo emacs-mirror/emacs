@@ -150,9 +150,8 @@ is_aligned (const mps_addr_t addr)
     }						\
   while (0)					\
 
-#define IGC_WITH_PARKED(gc)                        \
-  for (int i = (mps_arena_park (gc->arena), 1); i; \
-       i = (mps_arena_release (gc->arena), 0))
+#define IGC_WITH_PARKED(gc) \
+  for (int i = (arena_park (gc), 1); i; i = (arena_release (gc), 0))
 
 #define IGC_DEFINE_LIST(data)                                                  \
   typedef struct data##_list                                                   \
@@ -389,6 +388,7 @@ IGC_DEFINE_LIST (igc_thread);
 
 struct igc
 {
+  int park_count;
   mps_arena_t arena;
   mps_chain_t chain;
   mps_fmt_t dflt_fmt;
@@ -407,6 +407,23 @@ struct igc
 };
 
 static struct igc *global_igc;
+
+static void
+arena_park (struct igc *gc)
+{
+  if (gc->park_count == 0)
+    mps_arena_park (gc->arena);
+  ++gc->park_count;
+}
+
+static void
+arena_release (struct igc *gc)
+{
+  --gc->park_count;
+  igc_assert (gc->park_count >= 0);
+  if (gc->park_count == 0)
+    mps_arena_release (gc->arena);
+}
 
 static struct igc_root_list *
 register_root (struct igc *gc, mps_root_t root, void *start, void *end,
@@ -2330,17 +2347,17 @@ igc_thread_remove (void *info)
 }
 
 static void
-release_arena (void)
+_release_arena (void)
 {
-  mps_arena_release (global_igc->arena);
+  arena_release (global_igc);
 }
 
 specpdl_ref
 igc_park_arena (void)
 {
   specpdl_ref count = SPECPDL_INDEX ();
-  record_unwind_protect_void (release_arena);
-  mps_arena_park (global_igc->arena);
+  record_unwind_protect_void (_release_arena);
+  arena_park (global_igc);
   return count;
 }
 
@@ -2899,8 +2916,11 @@ void
 igc_collect (void)
 {
   struct igc *gc = global_igc;
-  mps_arena_collect (gc->arena);
-  mps_arena_release (gc->arena);
+  if (gc->park_count == 0)
+    {
+      mps_arena_collect (gc->arena);
+      mps_arena_release (gc->arena);
+    }
 }
 
 DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 0, 0, doc
@@ -3484,6 +3504,11 @@ make_igc (void)
   struct igc *gc = xzalloc (sizeof *gc);
   make_arena (gc);
 
+  /* We cannot let the GC run until at least all staticpros haven been
+     processed. Otherwise we might allocate objects that are not
+     protected by anything. */
+  arena_park (gc);
+
   gc->dflt_fmt = make_dflt_fmt (gc);
   gc->dflt_pool = make_pool_amc (gc, gc->dflt_fmt);
   gc->leaf_fmt = make_dflt_fmt (gc);
@@ -3506,6 +3531,14 @@ make_igc (void)
 
   enable_messages (gc, true);
   return gc;
+}
+
+void
+igc_begin_collecting (void)
+{
+  struct igc *gc = global_igc;
+  arena_release (gc);
+  igc_assert (gc->park_count == 0);
 }
 
 /* To call from LLDB. */
