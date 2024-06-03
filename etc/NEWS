@@ -184,6 +184,12 @@ Set 'describe-mode-outline' to nil to get back the old behavior.
 
 ** Outline mode
 
+*** New commands to show/hide outlines by regexp.
+'/ h' ('outline-hide-by-heading-regexp') asks for a regexp and then
+hides the body lines of all outlines whose heading lines match the
+regexp.  '/ s' ('outline-show-by-heading-regexp') does the same but
+shows the matched outlines.
+
 +++
 *** 'outline-minor-mode' is supported in tree-sitter major modes.
 It can be used in all tree-sitter major modes that set either the
