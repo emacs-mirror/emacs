@@ -5946,12 +5946,12 @@ factor.
 @vindex image-scaling-factor
 Alternatively, the symbol @code{default} may be specified, indicating
 that the image should be scaled according as the value of the
-@code{image-scaling-factor} variable, which by default scales the image
-in proportion to the average widths (@pxref{Low-Level Font}) of the
-default faces of frames on which it happens to be displayed, if such
-widths should exceed @code{10} pixels.  If no other value is provided,
-@code{create-image} will specify this value in image specifications it
-creates.
+@code{image-scaling-factor} variable is the default @code{auto} or a
+number, which by default scales the image in proportion to the average
+widths (@pxref{Low-Level Font}) of the default faces of frames on which
+it happens to be displayed, if such widths should exceed @code{10}
+pixels.  If no other value is provided, @code{create-image} will specify
+this value in image specifications it creates.
 
 @item :rotation @var{angle}
 Specifies a rotation angle in degrees.  Only multiples of 90 degrees
