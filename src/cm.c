@@ -111,6 +111,10 @@ addcol (tty, n) {
 void
 cmcheckmagic (struct tty_display_info *tty)
 {
+  /* If we have unhandled SIGWINCH, we don't really know what are our
+     up-to-date frame diumensions.  */
+  if (frame_size_change_delayed ())
+    return;
   if (curX (tty) == FrameCols (tty))
     {
       if (!MagicWrap (tty) || curY (tty) >= FrameRows (tty) - 1)
