@@ -580,6 +580,14 @@ See the command `outline-mode' for more information on this mode."
 	(add-hook 'change-major-mode-hook
 		  (lambda () (outline-minor-mode -1))
 		  nil t)
+        (add-hook 'revert-buffer-restore-functions
+                  (lambda ()
+                    (when (and outline-minor-mode outline-minor-mode-highlight
+                               (not (and global-font-lock-mode
+                                         (font-lock-specified-p major-mode))))
+                      (lambda ()
+                        (outline-minor-mode-highlight-buffer))))
+                  nil t)
         (setq-local line-move-ignore-invisible t)
 	;; Cause use of ellipses for invisible text.
 	(add-to-invisibility-spec '(outline . t))
