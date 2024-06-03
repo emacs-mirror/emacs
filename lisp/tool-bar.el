@@ -220,8 +220,7 @@ To define items in any other map, use `tool-bar-local-item'."
   (let* ((fg (face-attribute 'tool-bar :foreground))
 	 (bg (face-attribute 'tool-bar :background))
 	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
-			(if (eq bg 'unspecified) nil (list :background bg))
-                        '(:transform-smoothing nil)))
+			(if (eq bg 'unspecified) nil (list :background bg))))
 	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
 	 (xpm-lo-spec (list :type 'xpm :file
 			    (concat "low-color/" icon ".xpm")))

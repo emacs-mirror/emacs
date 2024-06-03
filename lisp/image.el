@@ -520,7 +520,7 @@ Images should not be larger than specified by `max-image-size'."
   (let ((data-format
          ;; Pass the image format, if any, if this is data.
          (and data-p (or (plist-get props :format) t))))
-    ;; It is x_find_image_file in image.c that sets the search path.
+    ;; It is `x_find_image_fd' in image.c that sets the search path.
     (setq type (ignore-error unknown-image-type
                  (image-type file-or-data type data-format)))
     ;; If we have external image conversion switched on (for exotic,
@@ -540,12 +540,13 @@ Images should not be larger than specified by `max-image-size'."
 	           props)))
       ;; Add default smoothing.
       (unless (plist-member props :transform-smoothing)
-        (setq image (nconc image
-                           (list :transform-smoothing
-                                 (pcase image-transform-smoothing
-                                   ('t t)
-                                   ('nil nil)
-                                   (func (funcall func image)))))))
+        (let* ((func image-transform-smoothing)
+               (value (or (eq func t)
+                          (and func (funcall func image)))))
+          (unless (eq value 'lambda)
+            (setq image (nconc image
+                               (list :transform-smoothing
+                                     value))))))
       ;; Add original map from map.
       (when (and (plist-get props :map)
                  (not (plist-get props :original-map)))
@@ -559,13 +560,18 @@ Images should not be larger than specified by `max-image-size'."
       image)))
 
 (defun image--default-smoothing (image)
-  "Say whether IMAGE should be smoothed when transformed."
+  "Say whether IMAGE should be smoothed when transformed.
+Return `lambda' if the decision should be deferred to the time IMAGE is
+loaded."
   (let* ((props (nthcdr 5 image))
          (scaling (plist-get props :scale))
          (rotation (plist-get props :rotation)))
     (cond
+     ;; The scale of the image won't be available until
+     ;; `image_set_transform', and as such, defer to its judgement.
+     ((eq scaling 'default) 'lambda)
      ;; We always smooth when scaling down and small upwards scaling.
-     ((and scaling (numberp scaling) (< scaling 2))
+     ((and scaling (< scaling 2))
       t)
      ;; Smooth when doing non-90-degree rotation
      ((and rotation
