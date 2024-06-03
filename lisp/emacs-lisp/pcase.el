@@ -829,16 +829,8 @@ A and B can be one of:
       (let* ((test (cadr (cadr upat)))
              (res (pcase--split-pred vars `(pred ,test) pat)))
         (cons (cdr res) (car res))))
-     ((let ((otherpred
-             (cond ((eq 'pred (car-safe pat)) (cadr pat))
-                   ((not (eq 'quote (car-safe pat))) nil)
-                   ((consp (cadr pat)) #'consp)
-                   ((stringp (cadr pat)) #'stringp)
-                   ((vectorp (cadr pat)) #'vectorp)
-                   ((compiled-function-p (cadr pat))
-                    #'compiled-function-p))))
-        (and otherpred
-             (pcase--mutually-exclusive-p (cadr upat) otherpred)))
+     ((and (eq 'pred (car-safe pat))
+           (pcase--mutually-exclusive-p (cadr upat) (cadr pat)))
       '(:pcase--fail . nil))
      ;; Since we turn (or 'a 'b 'c) into (pred (memq _ '(a b c)))
      ;; try and preserve the info we get from that memq test.
@@ -852,7 +844,8 @@ A and B can be one of:
           '(:pcase--fail . nil))))
      ((and (eq 'quote (car-safe pat))
            (symbolp (cadr upat))
-           (or (symbolp (cadr pat)) (stringp (cadr pat)) (numberp (cadr pat)))
+           (or (get (cadr upat) 'pure)  ;FIXME: Drop this `or'?
+               (symbolp (cadr pat)) (stringp (cadr pat)) (numberp (cadr pat)))
            (get (cadr upat) 'side-effect-free)
            (ignore-errors
              (setq test (list (funcall (cadr upat) (cadr pat))))))
@@ -1124,21 +1117,36 @@ The predicate is the logical-AND of:
  - True!  (The second element can be anything, and for the sake
    of the body forms, its value is bound to the symbol `forum'.)"
   (declare (debug (pcase-QPAT)))
+  (pcase--expand-\` qpat))
+
+(defun pcase--expand-\` (qpat)
   (cond
    ((eq (car-safe qpat) '\,) (cadr qpat))
-   ((eq (car-safe qpat) '\,@) (error "Unsupported QPAT: %S" qpat))
+   ((or (eq (car-safe qpat) '\,@) (eq qpat '...))
+    (error "Unsupported QPAT: %S" qpat))
    ((vectorp qpat)
-    `(and (pred vectorp)
-          (app length ,(length qpat))
-          ,@(let ((upats nil))
-              (dotimes (i (length qpat))
-                (push `(app (aref _ ,i) ,(list '\` (aref qpat i)))
-                      upats))
-              (nreverse upats))))
+    (let* ((trivial t)
+           (contents nil)
+           (upats nil))
+      (dotimes (i (length qpat))
+        (let* ((upat (pcase--expand-\` (aref qpat i))))
+          (if (eq (car-safe upat) 'quote)
+              (push (cadr upat) contents)
+            (setq trivial nil))
+          (push `(app (aref _ ,i) ,upat) upats)))
+      (if trivial
+          `',(apply #'vector (nreverse contents))
+        `(and (pred vectorp)
+              (app length ,(length qpat))
+              ,@(nreverse upats)))))
    ((consp qpat)
-    `(and (pred consp)
-          (app car-safe ,(list '\` (car qpat)))
-          (app cdr-safe ,(list '\` (cdr qpat)))))
+    (let ((upata (pcase--expand-\` (car qpat)))
+          (upatd (pcase--expand-\` (cdr qpat))))
+      (if (and (eq (car-safe upata) 'quote) (eq (car-safe upatd) 'quote))
+          `'(,(cadr upata) . ,(cadr upatd))
+        `(and (pred consp)
+              (app car-safe ,upata)
+              (app cdr-safe ,upatd)))))
    ((or (stringp qpat) (numberp qpat) (symbolp qpat)) `',qpat)
    ;; In all other cases just raise an error so we can't break
    ;; backward compatibility when adding \` support for other

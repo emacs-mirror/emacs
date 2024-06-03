@@ -73,7 +73,17 @@
     (should-not (pcase-tests-grep 'member exp))))
 
 (ert-deftest pcase-tests-vectors ()
-  (should (equal (pcase [1 2] (`[,x] 1) (`[,x ,y] (+ x y))) 3)))
+  (should (equal (pcase [1 2] (`[,x] 1) (`[,x ,y] (+ x y))) 3))
+  (should (pcase [1 2] (`[1 ,'2] t)))
+  (should (pcase '(1 2) (`(1 ,'2) t))))
+
+(ert-deftest pcase-tests-quote-optimization ()
+  ;; FIXME: We could/should also test that we get a corresponding
+  ;; "shadowed branch" warning.
+  (should-not (pcase-tests-grep
+               'FOO (macroexpand '(pcase EXP
+                                    (`(,_ . ,_) (BAR))
+                                    ('(a b) (FOO)))))))
 
 (ert-deftest pcase-tests-bug14773 ()
   (let ((f (lambda (x)
