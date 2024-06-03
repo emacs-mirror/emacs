@@ -616,6 +616,10 @@ respectively, after activating French language support via
 'iso-transl-set-language'.  Double guillemets were already supported via
 'C-x 8 <' and 'C-x 8 >'
 
+*** Additional 'C-x 8' key translation for Euro "€" currency symbol.
+This can now be entered using 'C-x 8 E' in addition to the existing
+'C-x 8 * E' translation.
+
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
