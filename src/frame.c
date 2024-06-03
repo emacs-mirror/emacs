@@ -4811,6 +4811,10 @@ gui_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
 
+  /* Clean F's image cache of images whose values derive from the font
+     width.  */
+  clear_image_cache (f, Qauto);
+
   /* Ensure we redraw it.  */
   clear_current_matrices (f);
 

@@ -136,18 +136,6 @@ Subdirectories are not automatically included in the search."
   :type '(repeat (choice directory variable))
   :initialize #'custom-initialize-delay)
 
-(defcustom image-scaling-factor 'auto
-  "When displaying images, apply this scaling factor before displaying.
-This is not supported for all image types, and is mostly useful
-when you have a high-resolution monitor.
-The value is either a floating point number (where numbers higher
-than 1 means to increase the size and lower means to shrink the
-size), or the symbol `auto', which will compute a scaling factor
-based on the font pixel size."
-  :type '(choice number
-                 (const :tag "Automatically compute" auto))
-  :version "26.1")
-
 (defcustom image-transform-smoothing #'image--default-smoothing
   "Whether to do smoothing when applying transforms to images.
 Common transforms are rescaling and rotation.
@@ -548,9 +536,7 @@ Images should not be larger than specified by `max-image-size'."
                          file-or-data)
                    (and (not (plist-get props :scale))
                         ;; Add default scaling.
-                        (list :scale
-                              (image-compute-scaling-factor
-                               image-scaling-factor)))
+                        (list :scale 'default))
 	           props)))
       ;; Add default smoothing.
       (unless (plist-member props :transform-smoothing)
@@ -579,7 +565,7 @@ Images should not be larger than specified by `max-image-size'."
          (rotation (plist-get props :rotation)))
     (cond
      ;; We always smooth when scaling down and small upwards scaling.
-     ((and scaling (< scaling 2))
+     ((and scaling (numberp scaling) (< scaling 2))
       t)
      ;; Smooth when doing non-90-degree rotation
      ((and rotation
@@ -619,7 +605,11 @@ properties specific to certain image types."
 (defun image-compute-scaling-factor (&optional scaling)
   "Compute the scaling factor based on SCALING.
 If a number, use that.  If it's `auto', compute the factor.
-If nil, use the `image-scaling-factor' variable."
+If nil, use the `image-scaling-factor' variable.
+
+This function is provided for the benefit of Lisp code that
+must compute this factor; it does not affect Emacs's scaling
+of images."
   (unless scaling
     (setq scaling image-scaling-factor))
   (cond

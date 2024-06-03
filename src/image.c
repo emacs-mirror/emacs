@@ -2327,7 +2327,7 @@ free_image_cache (struct frame *f)
    If image-cache-eviction-delay is non-nil, this frees images in the cache
    which weren't displayed for at least that many seconds.  */
 
-static void
+void
 clear_image_cache (struct frame *f, Lisp_Object filter)
 {
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
@@ -2670,17 +2670,49 @@ image_get_dimension (struct image *img, Lisp_Object symbol)
   return -1;
 }
 
-/* Compute the desired size of an image with native size WIDTH x HEIGHT.
-   Use IMG to deduce the size.  Store the desired size into
-   *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the native size is OK.  */
+/* Compute the desired size of an image with native size WIDTH x HEIGHT,
+   which is to be displayed on F.  Use IMG to deduce the size.  Store
+   the desired size into *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the
+   native size is OK.  */
+
 static void
-compute_image_size (double width, double height,
+compute_image_size (struct frame *f, double width, double height,
 		    struct image *img,
 		    int *d_width, int *d_height)
 {
   double scale = 1;
   Lisp_Object value = image_spec_value (img->spec, QCscale, NULL);
-  if (NUMBERP (value))
+
+  if (EQ (value, Qdefault))
+    {
+      Lisp_Object sval = Vimage_scaling_factor;
+
+      /* Compute the scale from factors specified by the value of
+	 Vimage_scaling_factor.  */
+
+    invalid_value:
+      if (EQ (sval, Qauto))
+	{
+	  /* This is a tag with which callers of `clear_image_cache' can
+	     refer to this image and its likenesses.  */
+	  img->dependencies = Fcons (Qauto, img->dependencies);
+	  scale = (FRAME_COLUMN_WIDTH (f) > 10
+		   ? (FRAME_COLUMN_WIDTH (f) / 10.0f) : 1);
+	}
+      else if (NUMBERP (sval))
+	scale = XFLOATINT (sval);
+      else
+	{
+	  image_error ("Invalid `image-scaling-factor': %s",
+		       Vimage_scaling_factor);
+
+	  /* If Vimage_scaling_factor is set to an invalid value, treat
+	     it as though it were the default.  */
+	  sval = Qauto;
+	  goto invalid_value;
+	}
+    }
+  else if (NUMBERP (value))
     {
       double dval = XFLOATINT (value);
       if (0 <= dval)
@@ -3009,7 +3041,8 @@ image_set_transform (struct frame *f, struct image *img)
     }
   else
 #endif
-    compute_image_size (img->width, img->height, img, &width, &height);
+    compute_image_size (f, img->width, img->height, img, &width,
+			&height);
 
   /* Determine rotation.  */
   double rotation = 0.0;
@@ -11161,7 +11194,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
   }
 
 #ifndef DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE
-  compute_image_size (MagickGetImageWidth (image_wand),
+  compute_image_size (f, MagickGetImageWidth (image_wand),
 		      MagickGetImageHeight (image_wand),
 		      img, &desired_width, &desired_height);
 #else
@@ -12134,7 +12167,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 #endif
 
 #ifdef HAVE_NATIVE_TRANSFORMS
-  compute_image_size (viewbox_width, viewbox_height, img,
+  compute_image_size (f, viewbox_width, viewbox_height, img,
                       &width, &height);
 
   width = scale_image_size (width, 1, FRAME_SCALE_FACTOR (f));
@@ -12877,6 +12910,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qcount, "count");
   DEFSYM (Qextension_data, "extension-data");
   DEFSYM (Qdelay, "delay");
+  DEFSYM (Qauto, "auto");
 
   /* Keywords.  */
   DEFSYM (QCascent, ":ascent");
@@ -13089,6 +13123,17 @@ The value can also be nil, meaning the cache is never cleared.
 
 The function `clear-image-cache' disregards this variable.  */);
   Vimage_cache_eviction_delay = make_fixnum (300);
+
+  DEFVAR_LISP ("image-scaling-factor", Vimage_scaling_factor,
+    doc: /* When displaying images, apply this scaling factor before displaying.
+This is not supported for all image types, and is mostly useful
+when you have a high-resolution monitor.
+The value is either a floating point number (where numbers higher
+than 1 means to increase the size and lower means to shrink the
+size), or the symbol `auto', which will compute a scaling factor
+based on the font pixel size.  */);
+  Vimage_scaling_factor = Qauto;
+
 #ifdef HAVE_IMAGEMAGICK
   DEFVAR_INT ("imagemagick-render-type", imagemagick_render_type,
     doc: /* Integer indicating which ImageMagick rendering method to use.

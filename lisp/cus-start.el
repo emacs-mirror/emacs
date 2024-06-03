@@ -361,6 +361,10 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; image.c
+             (image-scaling-factor image
+                                   (choice number
+                                           (const :tag "Automatically compute" auto))
+                                   "26.1")
 	     (imagemagick-render-type image integer "24.1")
 	     ;; indent.c
 	     (indent-tabs-mode indent boolean)
