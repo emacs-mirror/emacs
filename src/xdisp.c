@@ -22337,6 +22337,13 @@ try_window_id (struct window *w)
       start_pos = it.current.pos;
     }
 
+  /* init_to_row_end and start_display above could have caused the
+     window's window_end_valid flag to be reset (e.g., if init_iterator
+     decides to free all realized faces).  We cannot continue if that
+     happens.  */
+  if (!w->window_end_valid)
+    GIVE_UP (108);
+
   /* Find the first row that is not affected by changes at the end of
      the buffer.  Value will be null if there is no unchanged row, in
      which case we must redisplay to the end of the window.  delta
