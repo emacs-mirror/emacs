@@ -2773,6 +2773,10 @@ treesitter grammar.
 ** New buffer-local variable 'tabulated-list-groups'.
 It controls display and separate sorting of groups of entries.
 
++++
+** New variable 'revert-buffer-restore-functions'.
+It helps to preserve various states after reverting the buffer.
+
 ---
 ** New text property 'context-menu-functions'.
 Like the variable with the same name, it adds menus from the list that

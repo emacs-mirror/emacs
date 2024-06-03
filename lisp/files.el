@@ -6848,6 +6848,24 @@ A customized `revert-buffer-function' need not run this hook.")
 ;; `preserve-modes' argument of `revert-buffer'.
 (defvar revert-buffer-preserve-modes)
 
+(defvar revert-buffer-restore-functions '(revert-buffer-restore-read-only)
+  "Functions to preserve any state during `revert-buffer'.
+The value of this variable is a list of functions that are called before
+reverting the buffer.  Each of these functions are called without
+arguments and should return a lambda that can restore a previous state
+of the buffer.  Then after reverting the buffer each of these lambdas
+will be called one by one in the order of the list to restore previous
+states of the buffer.  An example of the buffer state is keeping the
+buffer read-only, or keeping minor modes, etc.")
+
+(defun revert-buffer-restore-read-only ()
+  "Preserve read-only state for `revert-buffer'."
+  (when-let ((state (and (boundp 'read-only-mode--state)
+                         (list read-only-mode--state))))
+    (lambda ()
+      (setq buffer-read-only (car state))
+      (setq-local read-only-mode--state (car state)))))
+
 (defun revert-buffer (&optional ignore-auto noconfirm preserve-modes)
   "Replace current buffer text with the text of the visited file on disk.
 This undoes all changes since the file was visited or saved.
@@ -6897,14 +6915,13 @@ preserve markers and overlays, at the price of being slower."
   (interactive (list (not current-prefix-arg)))
   (let ((revert-buffer-in-progress-p t)
         (revert-buffer-preserve-modes preserve-modes)
-        (state (and (boundp 'read-only-mode--state)
-                    (list read-only-mode--state))))
+        restore-functions)
+    (run-hook-wrapped 'revert-buffer-restore-functions
+                      (lambda (f) (push (funcall f) restore-functions) nil))
     ;; Return whatever 'revert-buffer-function' returns.
     (prog1 (funcall (or revert-buffer-function #'revert-buffer--default)
                     ignore-auto noconfirm)
-      (when state
-        (setq buffer-read-only (car state))
-        (setq-local read-only-mode--state (car state))))))
+      (mapc #'funcall (delq nil restore-functions)))))
 
 (defun revert-buffer--default (ignore-auto noconfirm)
   "Default function for `revert-buffer'.

@@ -232,6 +232,8 @@ then the buffer will be displayed in the buffer list.")
     ["Quit" quit-window
      :help "Remove the buffer menu from the display"]))
 
+(declare-function outline-minor-mode-highlight-buffer "outline" ())
+
 (define-derived-mode Buffer-menu-mode tabulated-list-mode "Buffer Menu"
   "Major mode for Buffer Menu buffers.
 The Buffer Menu is invoked by the commands \\[list-buffers],
@@ -274,7 +276,13 @@ In Buffer Menu mode, the following commands are defined:
   :interactive nil
   (setq-local buffer-stale-function
               (lambda (&optional _noconfirm) 'fast))
-  (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
+  (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t)
+  (add-hook 'revert-buffer-restore-functions
+            (lambda ()
+              (when (bound-and-true-p outline-minor-mode)
+                (lambda ()
+                  (outline-minor-mode-highlight-buffer))))
+            nil t))
 
 (defun buffer-menu--display-help ()
   (message "%s"
