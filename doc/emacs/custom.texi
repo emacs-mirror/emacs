@@ -1970,8 +1970,39 @@ and mouse events:
 (keymap-global-set "<mouse-2>" 'mouse-save-then-kill)
 @end example
 
-  Language and coding systems may cause problems with key bindings for
-non-@acronym{ASCII} characters.  @xref{Init Non-ASCII}.
+@cindex binding key to string
+  Key sequences can also be bound directly to Lisp strings rather than
+commands.  Such strings are written using the same syntax as key
+sequences.  For example, to bind @kbd{C-c h} to the string
+@samp{hello}:
+
+@example
+(keymap-global-set "C-c h" "h e l l o")
+@end example
+
+  Since this is somewhat cumbersome to write, the convenience function
+@code{key-description} can be used instead:
+
+@example
+(keymap-global-set "C-c h" (key-description "hello"))
+@end example
+
+  Non-@acronym{ASCII} characters can be specified directly in the
+string. To bind to  e.g. @samp{ol@U{00E1}}, use:
+
+@example
+(keymap-global-set "C-c h" (key-description "ol@U{00E1}"))
+@end example
+
+  However, be aware that language and coding systems may cause problems
+with key bindings for non-@acronym{ASCII} characters (@pxref{Init
+Non-ASCII}).  Writing the binding directly with the Unicode codepoint
+avoids these problems (@pxref{International Chars} for how to determine
+the codepoint of a character from within Emacs):
+
+@example
+(keymap-global-set "C-c h" (key-description "ol\u00E1"))
+@end example
 
 @findex global-set-key
 @findex define-key
