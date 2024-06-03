@@ -370,6 +370,7 @@ information."
 
 (defun kmacro-reg-add-counter-equal (&optional arg)
   "Increment counter by one if it is equal to register value.
+Prompt for the register to compare.
 Optional non-nil ARG specifies the increment."
   (interactive "p")
   (let
@@ -378,6 +379,7 @@ Optional non-nil ARG specifies the increment."
 
 (defun kmacro-reg-add-counter-less (&optional arg)
   "Increment counter by one if it is less than register value.
+Prompt for the register to compare.
 Optional non-nil ARG specifies increment."
   (interactive "p")
   (let
@@ -387,6 +389,7 @@ Optional non-nil ARG specifies increment."
 
 (defun kmacro-reg-add-counter-greater (&optional arg)
   "Increment counter by one if it is greater than register value.
+Prompt for the register to compare.
 Optional non-nil ARG specifies increment."
   (interactive "p")
   (let
