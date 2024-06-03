@@ -61,12 +61,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 static widget_info*
 all_widget_info = NULL;
 
-#ifdef USE_MOTIF
-const char *lwlib_toolkit_type = "motif";
-#else
-const char *lwlib_toolkit_type = "lucid";
-#endif
-
 static widget_value *merge_widget_value (widget_value *,
                                          widget_value *,
                                          int, int *);
