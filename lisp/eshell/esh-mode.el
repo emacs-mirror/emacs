@@ -765,30 +765,25 @@ This function should be in the list `eshell-output-filter-functions'."
 	 (current (current-buffer))
 	 (scroll eshell-scroll-to-bottom-on-output))
     (unwind-protect
-	(walk-windows
-         (lambda (window)
-           (if (eq (window-buffer window) current)
-               (progn
-                 (select-window window)
-                 (if (and (< (point) eshell-last-output-end)
-                          (or (eq scroll t) (eq scroll 'all)
-                              ;; Maybe user wants point to jump to end.
-                              (and (eq scroll 'this)
-                                   (eq selected window))
-                              (and (eq scroll 'others)
-                                   (not (eq selected window)))
-                              ;; If point was at the end, keep it at end.
-                              (>= (point) eshell-last-output-start)))
-                     (goto-char eshell-last-output-end))
-                 ;; Optionally scroll so that the text
-                 ;; ends at the bottom of the window.
-                 (if (and eshell-scroll-show-maximum-output
-                          (>= (point) eshell-last-output-end))
-                     (save-excursion
-                       (goto-char (point-max))
-                       (recenter -1)))
-                 (select-window selected))))
-	 nil t)
+        (dolist (window (get-buffer-window-list current nil t))
+          (with-selected-window window
+            (when (and (< (point) eshell-last-output-end)
+                       (or (eq scroll t) (eq scroll 'all)
+                           ;; Maybe user wants point to jump to end.
+                           (and (eq scroll 'this)
+                                (eq selected window))
+                           (and (eq scroll 'others)
+                                (not (eq selected window)))
+                           ;; If point was at the end, keep it at end.
+                           (>= (point) eshell-last-output-start)))
+              (goto-char eshell-last-output-end))
+            ;; Optionally scroll so that the text ends at the bottom of
+            ;; the window.
+            (when (and eshell-scroll-show-maximum-output
+                       (>= (point) eshell-last-output-end))
+              (save-excursion
+                (goto-char (point-max))
+                (recenter -1)))))
       (set-buffer current))))
 
 (defun eshell-beginning-of-input ()
@@ -977,27 +972,24 @@ This function could be in the list `eshell-output-filter-functions'."
     (goto-char eshell-last-output-block-begin)
     (unless (eolp)
       (beginning-of-line))
-    (while (< (point) eshell-last-output-end)
-      (let ((char (char-after)))
+    (while (re-search-forward (rx (any ?\r ?\a ?\C-h))
+                              eshell-last-output-end t)
+      (let ((char (char-before)))
         (cond
          ((eq char ?\r)
-          (if (< (1+ (point)) eshell-last-output-end)
-              (if (memq (char-after (1+ (point)))
-                        '(?\n ?\r))
-                  (delete-char 1)
-                (let ((end (1+ (point))))
+          (if (< (point) eshell-last-output-end)
+              (if (memq (char-after (point)) '(?\n ?\r))
+                  (delete-char -1)
+                (let ((end (point)))
                   (beginning-of-line)
                   (delete-region (point) end)))
-            (add-text-properties (point) (1+ (point))
-                                 '(invisible t))
-            (forward-char)))
+            (add-text-properties (1- (point)) (point)
+                                 '(invisible t))))
          ((eq char ?\a)
-          (delete-char 1)
+          (delete-char -1)
           (beep))
          ((eq char ?\C-h)
-          (delete-region (1- (point)) (1+ (point))))
-         (t
-          (forward-char)))))))
+          (delete-region (- (point) 2) (point))))))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-handle-control-codes)
