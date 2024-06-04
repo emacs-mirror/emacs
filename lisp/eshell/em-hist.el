@@ -333,7 +333,6 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
 
 (defun eshell/history (&rest args)
   "List in help buffer the buffer's input history."
-  (eshell-init-print-buffer)
   (eshell-eval-using-options
    "history" args
    '((?r "read" nil read-history
@@ -370,12 +369,12 @@ unless a different file is specified on the command line.")
        (let* ((index (1- (or length (ring-length eshell-history-ring))))
 	      (ref (- (ring-length eshell-history-ring) index)))
 	 ;; We have to build up a list ourselves from the ring vector.
-	 (while (>= index 0)
-	   (eshell-buffered-print
-	    (format "%5d  %s\n" ref (eshell-get-history index)))
-	   (setq index (1- index)
-		 ref (1+ ref)))))))
-   (eshell-flush)
+         (eshell-with-buffered-print
+           (while (>= index 0)
+             (eshell-buffered-print
+              (format "%5d  %s\n" ref (eshell-get-history index)))
+             (setq index (1- index)
+                   ref (1+ ref))))))))
    nil))
 
 (defun eshell-put-history (input &optional ring at-beginning)

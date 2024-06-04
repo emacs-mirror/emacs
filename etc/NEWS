@@ -963,6 +963,13 @@ files and deny read permission for users who are not members of the
 file's group.  See the Info node "(coreutils) File permissions" for
 more information on this notation.
 
+---
+*** Performance improvements for interactive output in Eshell.
+Interactive output in Eshell should now be significantly faster,
+especially for built-in commands that can print large amounts of output
+(e.g. "cat").  In addition, these commands can now update the display
+periodically to show their progress.
+
 +++
 *** New special reference type '#<marker POSITION BUFFER>'.
 This special reference type returns a marker at 'POSITION' in

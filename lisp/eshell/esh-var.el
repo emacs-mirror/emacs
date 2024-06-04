@@ -437,10 +437,9 @@ the values of nil for each."
    (if args
        (or (eshell-parse-local-variables args)
            (eshell-named-command (car args) (cdr args)))
-     (eshell-init-print-buffer)
-     (dolist (setting (sort (eshell-environment-variables) 'string-lessp))
-       (eshell-buffered-print setting "\n"))
-     (eshell-flush))))
+     (eshell-with-buffered-print
+       (dolist (setting (sort (eshell-environment-variables) 'string-lessp))
+         (eshell-buffered-print setting "\n"))))))
 
 (defun eshell-insert-envvar (envvar-name)
   "Insert ENVVAR-NAME into the current buffer at point."

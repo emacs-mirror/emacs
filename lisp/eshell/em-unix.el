@@ -659,7 +659,6 @@ symlink, then revert to the system's definition of cat."
 	  (if eshell-in-pipeline-p
 	      (error "Eshell's `cat' does not work in pipelines")
 	    (error "Eshell's `cat' cannot display one of the files given"))))
-    (eshell-init-print-buffer)
     (eshell-eval-using-options
      "cat" args
      '((?h "help" nil nil "show this usage screen")
@@ -672,18 +671,18 @@ Concatenate FILE(s), or standard input, to standard output.")
 	   (throw 'eshell-external
 		  (eshell-external-command "cat" args))))
      (let ((curbuf (current-buffer)))
-       (dolist (file args)
-	 (with-temp-buffer
-	   (insert-file-contents file)
-	   (goto-char (point-min))
-	   (while (not (eobp))
-	     (let ((str (buffer-substring
-			 (point) (min (1+ (line-end-position))
-				      (point-max)))))
-	       (with-current-buffer curbuf
-		 (eshell-buffered-print str)))
-	     (forward-line)))))
-     (eshell-flush))))
+       (eshell-with-buffered-print
+         (dolist (file args)
+	   (with-temp-buffer
+	     (insert-file-contents file)
+	     (goto-char (point-min))
+             (while (not (eobp))
+               (let* ((pos (min (+ (point) eshell-buffered-print-size)
+                                (point-max)))
+                      (str (buffer-substring (point) pos)))
+                 (with-current-buffer curbuf
+                   (eshell-buffered-print str))
+                 (goto-char pos))))))))))
 
 (put 'eshell/cat 'eshell-no-numeric-conversions t)
 (put 'eshell/cat 'eshell-filename-arguments t)

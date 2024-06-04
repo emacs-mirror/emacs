@@ -112,10 +112,30 @@ other buffers)."
 
 (defcustom eshell-print-queue-size 5
   "The size of the print queue, for doing buffered printing.
-This is basically a speed enhancement, to avoid blocking the Lisp code
-from executing while Emacs is redisplaying."
+This variable is obsolete.  You should use `eshell-buffered-print-size'
+instead."
   :type 'integer
   :group 'eshell-io)
+(make-obsolete-variable 'eshell-print-queue-size
+                        'eshell-buffered-print-size "30.1")
+
+(defcustom eshell-buffered-print-size 2048
+  "The size of the print queue in characters, for doing buffered printing.
+Larger values for this option will generally result in faster execution
+by reducing the overhead associated with each print operation, but will
+increase the time it takes to see any progress in the output; smaller
+values will do the reverse."
+  :type 'integer
+  :group 'eshell-io
+  :version "30.1")
+
+(defcustom eshell-buffered-print-redisplay-throttle 0.025
+  "The minimum time in seconds between redisplays when using buffered printing.
+If nil, don't redisplay while printing."
+  :type '(choice number
+                 (const :tag "Don't redisplay" nil))
+  :group 'eshell-io
+  :version "30.1")
 
 (defcustom eshell-virtual-targets
   '(;; The literal string "/dev/null" is intentional here.  It just
@@ -460,40 +480,74 @@ INDEX is the handle index to check.  If nil, check
              (equal (caar (aref handles eshell-error-handle)) '(t)))
       (equal (caar (aref handles index)) '(t)))))
 
+(defvar eshell--buffered-print-queue nil)
+(defvar eshell--buffered-print-current-size nil)
+(defvar eshell--buffered-print-next-redisplay nil)
+
 (defvar eshell-print-queue nil)
+(make-obsolete-variable 'eshell-print-queue
+                        'eshell--buffered-print-queue "30.1")
 (defvar eshell-print-queue-count -1)
+(make-obsolete-variable 'eshell-print-queue-count
+                        'eshell--buffered-print-current-size "30.1")
 
 (defsubst eshell-print (object)
   "Output OBJECT to the standard output handle."
   (eshell-output-object object eshell-output-handle))
 
-(defun eshell-flush (&optional reset-p)
-  "Flush out any lines that have been queued for printing.
-Must be called before printing begins with -1 as its argument, and
-after all printing is over with no argument."
-  (ignore
-   (if reset-p
-       (setq eshell-print-queue nil
-	     eshell-print-queue-count reset-p)
-     (if eshell-print-queue
-	 (eshell-print eshell-print-queue))
-     (eshell-flush 0))))
-
 (defun eshell-init-print-buffer ()
   "Initialize the buffered printing queue."
-  (eshell-flush -1))
+  (declare (obsolete #'eshell-with-buffered-print "30.1"))
+  (setq eshell--buffered-print-queue nil
+        eshell--buffered-print-current-size 0))
+
+(defun eshell-flush (&optional redisplay-now)
+  "Flush out any text that has been queued for printing.
+When printing interactively, this will call `redisplay' every
+`eshell-buffered-print-redisplay-throttle' seconds so that the user can
+see the progress.  If REDISPLAY-NOW is non-nil, call `redisplay' for
+interactive output even if the throttle would otherwise prevent it."
+  (ignore
+   (when eshell--buffered-print-queue
+     (eshell-print (apply #'concat eshell--buffered-print-queue))
+     ;; When printing interactively (see `eshell-with-buffered-print'),
+     ;; periodically redisplay so the user can see some progress.
+     (when (and eshell--buffered-print-next-redisplay
+                (or redisplay-now
+                    (time-less-p eshell--buffered-print-next-redisplay
+                                 (current-time))))
+       (redisplay)
+       (setq eshell--buffered-print-next-redisplay
+             (time-add eshell--buffered-print-next-redisplay
+                       eshell-buffered-print-redisplay-throttle)))
+     (setq eshell--buffered-print-queue nil
+           eshell--buffered-print-current-size 0))))
 
 (defun eshell-buffered-print (&rest strings)
-  "A buffered print -- *for strings only*."
-  (if (< eshell-print-queue-count 0)
-      (progn
-	(eshell-print (apply 'concat strings))
-	(setq eshell-print-queue-count 0))
-    (if (= eshell-print-queue-count eshell-print-queue-size)
-	(eshell-flush))
-    (setq eshell-print-queue
-	  (concat eshell-print-queue (apply 'concat strings))
-	  eshell-print-queue-count (1+ eshell-print-queue-count))))
+  "A buffered print -- *for strings only*.
+When the buffer exceeds `eshell-buffered-print-size' in characters, this
+will flush it using `eshell-flush' (which see)."
+  (setq eshell--buffered-print-queue
+        (nconc eshell--buffered-print-queue strings))
+  (cl-incf eshell--buffered-print-current-size
+           (apply #'+ (mapcar #'length strings)))
+  (when (> eshell--buffered-print-current-size eshell-buffered-print-size)
+    (eshell-flush)))
+
+(defmacro eshell-with-buffered-print (&rest body)
+  "Initialize buffered printing for Eshell, and then evaluate BODY.
+Within BODY, call `eshell-buffered-print' to perform output."
+  (declare (indent 0))
+  `(let ((eshell--buffered-print-queue nil)
+         (eshell--buffered-print-current-size 0)
+         (eshell--buffered-print-next-redisplay
+          (when (and eshell-buffered-print-redisplay-throttle
+                     (eshell-interactive-output-p))
+            (time-add (current-time)
+                      eshell-buffered-print-redisplay-throttle))))
+     (unwind-protect
+         ,@body
+       (eshell-flush))))
 
 (defsubst eshell-error (object)
   "Output OBJECT to the standard error handle."
