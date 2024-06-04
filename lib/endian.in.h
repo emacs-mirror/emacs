@@ -69,8 +69,9 @@ _GL_INLINE_HEADER_BEGIN
 # define BYTE_ORDER LITTLE_ENDIAN
 #endif
 
-/* Make sure function-like macros get undefined.  */
 #if @HAVE_ENDIAN_H@
+
+/* Make sure we don't have any system definitions.  */
 # undef be16toh
 # undef be32toh
 # undef be64toh
@@ -83,6 +84,21 @@ _GL_INLINE_HEADER_BEGIN
 # undef htole16
 # undef htole32
 # undef htole64
+
+/* Define our own.  */
+# define be16toh rpl_endian_be16toh
+# define be32toh rpl_endian_be32toh
+# define be64toh rpl_endian_be64toh
+# define htobe16 rpl_endian_htobe16
+# define htobe32 rpl_endian_htobe32
+# define htobe64 rpl_endian_htobe64
+# define le16toh rpl_endian_le16toh
+# define le32toh rpl_endian_le32toh
+# define le64toh rpl_endian_le64toh
+# define htole16 rpl_endian_htole16
+# define htole32 rpl_endian_htole32
+# define htole64 rpl_endian_htole64
+
 #endif
 
 #ifdef __cplusplus
