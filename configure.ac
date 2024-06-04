@@ -49,6 +49,12 @@ if test "$XCONFIGURE" = "android"; then
     CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
+  # Further, endian.h is not guaranteed to define every function that
+  # Gnulib seeks to replace, but Gnulib tests are not prepared for
+  # such versions of endian.h as only define a subset of the functions
+  # whose presence it tests.  Force such tests to succeed as a stopgap
+  # measure.
+  gl_cv_header_working_endian_h=yes
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
