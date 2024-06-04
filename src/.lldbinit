@@ -104,5 +104,9 @@ command alias go process launch --disable-aslr false --working-dir ../lisp
 #settings set -- target.run-args -batch --no-site-file --no-site-lisp --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" --eval "(setq org--inhibit-version-check t)"  -f batch-byte-compile leim/ja-dic/ja-dic.el
 #settings set target.disable-aslr false
 #command alias go process launch --working-dir ../lisp
+#target create bootstrap-emacs
+#settings set -- target.run-args -batch --no-site-file --no-site-lisp --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" --eval "(setq org--inhibit-version-check t)"  -l comp -f byte-compile-refresh-preloaded -f batch-byte+native-compile ../lisp/isearch.el
+#command alias go process launch --disable-aslr false --working-dir .
+#b wrong_type_argument
 
 # end.
