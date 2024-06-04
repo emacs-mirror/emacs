@@ -2277,6 +2277,35 @@ modification times of the associated directory local variables file
 updates this list.
 @end defvar
 
+@defvar hack-dir-local-get-variables-functions
+This special hook holds the functions that gather the directory-local
+variables to use for a given buffer.  By default it contains just the
+function that obeys the other settings described in the present section.
+But it can be used to add support for more sources of directory-local
+variables, such as those used by other text editors.
+
+The functions on this hook are called with no argument, in the buffer to
+which we intend to apply the directory-local variables, after the
+buffer's major mode function has been run, so they can use sources of
+information such as @code{major-mode} or @code{buffer-file-name} to find
+the variables that should be applied.
+
+It should return either a cons cell of the form @code{(@var{directory}
+. @var{alist})} or a list of such cons-cells.  A @code{nil} return value
+means that it found no directory-local variables.  @var{directory}
+should be a string: the name of the directory to which the variables
+apply.  @var{alist} is a list of variables together with their values
+that apply to the current buffer, where every element is of the form
+@code{(@var{varname} . @var{value})}.
+
+The various @var{alist} returned by these functions will be combined,
+and in case of conflicts, the settings coming from deeper directories
+will take precedence over those coming from higher directories in the
+directory hierarchy.  Finally, since this hook is run every time we visit
+a file it is important to try and keep those functions efficient, which
+will usually require some kind of caching.
+@end defvar
+
 @defvar enable-dir-local-variables
 If @code{nil}, directory-local variables are ignored.  This variable
 may be useful for modes that want to ignore directory-locals while

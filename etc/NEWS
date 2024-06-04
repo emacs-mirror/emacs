@@ -2187,6 +2187,11 @@ completion candidate.
 * Lisp Changes in Emacs 30.1
 
 +++
+** New hook 'hack-dir-local-get-variables-functions'.
+This can be used to provide support for other directory-local settings
+beside '.dir-locals.el'.
+
++++
 ** 'auto-coding-functions' can know the name of the file.
 The functions on this hook can now find the name of the file to
 which the text belongs by consulting the variable 'auto-coding-file-name'.
