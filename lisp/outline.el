@@ -581,6 +581,8 @@ See the command `outline-mode' for more information on this mode."
 		  (lambda () (outline-minor-mode -1))
 		  nil t)
         (add-hook 'revert-buffer-restore-functions
+                  #'outline-revert-buffer-restore-visibility nil t)
+        (add-hook 'revert-buffer-restore-functions
                   (lambda ()
                     (when (and outline-minor-mode outline-minor-mode-highlight
                                (not (and global-font-lock-mode
@@ -1712,6 +1714,13 @@ for example, after reverting the buffer."
       (mapconcat (lambda (heading)
                    (concat "\\`" (regexp-quote heading) "\\'"))
                  (nreverse headings) "\\|"))))
+
+(defun outline-revert-buffer-restore-visibility ()
+  "Preserve visibility of outlines in `outline-minor-mode' for `revert-buffer'."
+  (let ((regexp (outline-hidden-headings-regexp)))
+    (when regexp
+      (lambda ()
+        (outline-hide-by-heading-regexp regexp)))))
 
 
 ;;; Visibility cycling
