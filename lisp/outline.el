@@ -1716,7 +1716,9 @@ for example, after reverting the buffer."
                  (nreverse headings) "\\|"))))
 
 (defun outline-revert-buffer-restore-visibility ()
-  "Preserve visibility of outlines in `outline-minor-mode' for `revert-buffer'."
+  "Preserve visibility when reverting buffer under `outline-minor-mode'.
+This function restores the visibility of outlines after the buffer
+under `outline-minor-mode' is reverted by `revert-buffer'."
   (let ((regexp (outline-hidden-headings-regexp)))
     (when regexp
       (lambda ()
