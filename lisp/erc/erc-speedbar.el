@@ -517,7 +517,8 @@ associated with an ERC session."
                                              '(visibility . nil)
                                              '(no-other-frame . t)
                                              speedbar-frame-parameters))
-                 (speedbar-after-create-hook #'erc-speedbar--emulate-sidebar))
+                 (speedbar-after-create-hook #'erc-speedbar--emulate-sidebar)
+                 (original-frame (selected-frame)))
         (erc-install-speedbar-variables)
         ;; Run before toggling mode to prevent timer from being
         ;; created twice.
@@ -527,8 +528,8 @@ associated with an ERC session."
         ;; the frame with `window-main-window' will be raised and
         ;; steal focus if you switch away from Emacs in the meantime.
         (let ((frame speedbar-frame))
-          (cl-assert (not (eq speedbar-frame (selected-frame))))
-          (select-frame (setq speedbar-frame (selected-frame)))
+          (cl-assert (not (eq speedbar-frame original-frame)))
+          (select-frame (setq speedbar-frame original-frame))
           (delete-frame frame))
         ;; Allow deleting (our) `speedbar-frame' with the mouse.
         (with-current-buffer speedbar-buffer
@@ -602,19 +603,21 @@ For controlling whether the speedbar window is selectable with
      (setq erc-track--switch-fallback-blockers
            (remove '(derived-mode . speedbar-mode)
                    erc-track--switch-fallback-blockers)))
-   (cl-assert speedbar-buffer)
-   ;; Close associated windows and stop updating but leave timer.
-   (dolist (window (get-buffer-window-list speedbar-buffer nil t))
-     (unless (frame-root-window-p window)
-       (when erc-speedbar--hidden-speedbar-frame
-         (cl-assert (not (eq (window-frame window)
-                             erc-speedbar--hidden-speedbar-frame))))
-       (delete-window window)))
-   (with-current-buffer speedbar-buffer
-     (setq speedbar-update-flag nil)
-     (speedbar-set-mode-line-format)
-     (unless (eq erc--module-toggle-prefix-arg most-negative-fixnum)
-       (dframe-close-frame)))))
+   ;; `speedbar-buffer' may be nil if the mode was never enabled, such
+   ;; as when disabling the module through Customize after startup.
+   (when speedbar-buffer
+     ;; Close associated windows and stop updating but leave timer.
+     (dolist (window (get-buffer-window-list speedbar-buffer nil t))
+       (unless (frame-root-window-p window)
+         (when erc-speedbar--hidden-speedbar-frame
+           (cl-assert (not (eq (window-frame window)
+                               erc-speedbar--hidden-speedbar-frame))))
+         (delete-window window)))
+     (with-current-buffer speedbar-buffer
+       (setq speedbar-update-flag nil)
+       (speedbar-set-mode-line-format)
+       (unless (eq erc--module-toggle-prefix-arg most-negative-fixnum)
+         (dframe-close-frame))))))
 
 (defun erc-speedbar--get-timers ()
   (cl-remove #'dframe-timer-fn timer-idle-list
