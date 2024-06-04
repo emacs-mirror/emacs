@@ -1,5 +1,5 @@
 # readlinkat.m4
-# serial 8
+# serial 9
 dnl Copyright (C) 2009-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -27,15 +27,26 @@ AC_DEFUN([gl_FUNC_READLINKAT],
          [AC_LANG_PROGRAM(
            [[#include <unistd.h>
              /* Check whether original declaration has correct type.  */
-             ssize_t readlinkat (int, char const *, char *, size_t);]])],
+             ssize_t readlinkat (int, char const *, char *, size_t);
+           ]])
+         ],
          [gl_cv_decl_readlinkat_works=yes],
-         [gl_cv_decl_readlinkat_works=no])])
+         [gl_cv_decl_readlinkat_works=no])
+      ])
     # Assume readlinkat has the same bugs as readlink,
     # as is the case on OS X 10.10 with trailing slashes.
     case $gl_cv_decl_readlinkat_works,$gl_cv_func_readlink_trailing_slash,$gl_cv_func_readlink_truncate in
       *yes,*yes,*yes)
         ;;
       *)
+        REPLACE_READLINKAT=1
+        ;;
+    esac
+
+    dnl On Cygwin 3.3.6, readlinkat(AT_FDCWD,"/dev/null") returns
+    dnl "\\Device\\Null", which is unusable.
+    case "$host_os" in
+      cygwin*)
         REPLACE_READLINKAT=1
         ;;
     esac

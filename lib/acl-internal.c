@@ -23,6 +23,12 @@
 
 #include "acl-internal.h"
 
+#if defined __CYGWIN__
+# include <sys/types.h>
+# include <grp.h>
+# include <string.h>
+#endif
+
 #if USE_ACL && HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
 
 # if HAVE_ACL_TYPE_EXTENDED /* Mac OS X */
@@ -63,8 +69,58 @@ acl_access_nontrivial (acl_t acl)
       acl_tag_t tag;
       if (acl_get_tag_type (ace, &tag) < 0)
         return -1;
-      if (!(tag == ACL_USER_OBJ || tag == ACL_GROUP_OBJ || tag == ACL_OTHER))
-        return 1;
+      switch (tag)
+        {
+        case ACL_USER_OBJ:
+        case ACL_GROUP_OBJ:
+        case ACL_OTHER:
+          break;
+#   ifdef __CYGWIN__
+        /* On Cygwin, a trivial ACL inside the Cygwin file system consists of
+           e.g.
+             user::rwx
+             group::r-x
+             other::r-x
+           but a trivial ACL outside the Cygwin file system has more entries:
+           e.g.
+             user::rwx
+             group::r-x
+             group:SYSTEM:rwx
+             group:Administrators:rwx
+             mask::r-x
+             other::r-x
+         */
+        case ACL_GROUP:
+          {
+            int ignorable = 0;
+            void *qualifier = acl_get_qualifier (ace);
+            if (qualifier != NULL)
+              {
+                gid_t group_id = *(gid_t const *) qualifier;
+                acl_free (qualifier);
+                struct group *group_details = getgrgid (group_id);
+                if (group_details != NULL)
+                  {
+                    const char *group_sid = group_details->gr_passwd;
+                    /* Ignore the ace if the group_sid is one of
+                       - S-1-5-18 (group "SYSTEM")
+                       - S-1-5-32-544 (group "Administrators")
+                       Cf. <https://learn.microsoft.com/en-us/windows/win32/secauthz/well-known-sids>  */
+                    ignorable = (strcmp (group_sid, "S-1-5-18") == 0
+                                 || strcmp (group_sid, "S-1-5-32-544") == 0);
+                  }
+              }
+            if (!ignorable)
+              return 1;
+          }
+          break;
+        case ACL_MASK:
+          /* XXX Is it OK to ignore acl_get_permset (ace, ...) ?  */
+          break;
+#   endif
+        default:
+          return 1;
+        }
     }
   return got_one;
 
