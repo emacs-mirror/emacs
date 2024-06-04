@@ -1806,6 +1806,9 @@ or nil."
 	    (setq alist (cdr alist)))))
       coding-system)))
 
+(defvar auto-coding-file-name nil
+  "Variable holding the name of the file for `auto-coding-functions'.")
+
 ;; See the bottom of this file for built-in auto coding functions.
 (defcustom auto-coding-functions '(sgml-xml-auto-coding-function
 				   sgml-html-meta-auto-coding-function)
@@ -1819,6 +1822,9 @@ should take one argument, SIZE, which says how many characters
 called both when the file is visited and Emacs wants to decode
 its contents, and when the file's buffer is about to be saved
 and Emacs wants to determine how to encode its contents.
+
+The name of the file is provided to the function via the variable
+`auto-coding-file-name'.
 
 If one of these functions succeeds in determining a coding
 system, it should return that coding system.  Otherwise, it
@@ -1847,13 +1853,17 @@ files.")
     coding-system))
 
 (put 'enable-character-translation 'permanent-local t)
-(put 'enable-character-translation 'safe-local-variable	'booleanp)
+(put 'enable-character-translation 'safe-local-variable	#'booleanp)
 
 (defun find-auto-coding (filename size)
+  ;; FIXME: Shouldn't we use nil rather than "" to mean that there's no file?
+  ;; FIXME: Clarify what the SOURCE is for in the return value?
   "Find a coding system for a file FILENAME of which SIZE bytes follow point.
 These bytes should include at least the first 1k of the file
 and the last 3k of the file, but the middle may be omitted.
 
+FILENAME should be an absolute file name
+or \"\" (which means that there is no associated file).
 The function checks FILENAME against the variable `auto-coding-alist'.
 If FILENAME doesn't match any entries in the variable, it checks the
 contents of the current buffer following point against
@@ -1998,7 +2008,8 @@ use \"coding: 'raw-text\" instead." :warning)
 	  (setq coding-system (ignore-errors
 				(save-excursion
 				  (goto-char (point-min))
-				  (funcall (pop funcs) size)))))
+				  (let ((auto-coding-file-name filename))
+				    (funcall (pop funcs) size))))))
 	(if coding-system
 	    (cons coding-system 'auto-coding-functions)))))
 
@@ -2013,7 +2024,7 @@ function by default."
     (if (and found (coding-system-p (car found)))
 	(car found))))
 
-(setq set-auto-coding-function 'set-auto-coding)
+(setq set-auto-coding-function #'set-auto-coding)
 
 (defun after-insert-file-set-coding (inserted &optional visit)
   "Set `buffer-file-coding-system' of current buffer after text is inserted.

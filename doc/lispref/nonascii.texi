@@ -1654,6 +1654,9 @@ argument, @var{size}, which tells it how many characters to look at,
 starting from point.  If the function succeeds in determining a coding
 system for the file, it should return that coding system.  Otherwise,
 it should return @code{nil}.
+Each function can also find the name of the file to which
+the buffer's content belong in the variable
+@code{auto-coding-file-name}.
 
 The functions in this list could be called either when the file is
 visited and Emacs wants to decode its contents, and/or when the file's
