@@ -2643,7 +2643,7 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 #ifdef GLYPH_DEBUG
 	  /* Window row window_y must be a slice of frame row
 	     frame_y.  */
-	  eassert (delayed_size_change
+	  eassert (frame_size_change_delayed (XFRAME (w->frame))
 		   || glyph_row_slice_p (window_row, frame_row));
 
 	  /* If rows are in sync, we don't have to copy glyphs because
@@ -3150,7 +3150,7 @@ window_to_frame_vpos (struct window *w, int vpos)
   eassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
   eassert (vpos >= 0 && vpos <= w->desired_matrix->nrows);
   vpos += WINDOW_TOP_EDGE_LINE (w);
-  eassert (delayed_size_change
+  eassert (frame_size_change_delayed (XFRAME (w->frame))
 	   || (vpos >= 0 && vpos <= FRAME_TOTAL_LINES (XFRAME (w->frame))));
   return vpos;
 }
@@ -6081,13 +6081,13 @@ change_frame_size (struct frame *f, int new_width, int new_height,
     change_frame_size_1 (f, new_width, new_height, pretend, delay, safe);
 }
 
-/* Return non-zero if we delayed size-changes and haven't handled them
-   yet, which means we cannot be sure about the exact dimensions of our
-   frames.  */
+/* Return non-zero if we delayed size-changes of frame F and haven't
+   handled them yet, which means we cannot be sure about the exact
+   dimensions of our frames.  */
 bool
-frame_size_change_delayed (void)
+frame_size_change_delayed (struct frame *f)
 {
-  return delayed_size_change;
+  return (delayed_size_change || f->new_size_p);
 }
 
 /***********************************************************************
