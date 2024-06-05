@@ -3712,6 +3712,21 @@ lookup_ptr (struct igc_mirror *m, void *dumped)
 }
 
 static void
+copy_to_mps (void *dumped, void *closure)
+{
+  struct igc_mirror *m = closure;
+  void *obj = copy (dumped);
+  record_copy (m, dumped, obj);
+}
+
+static void
+copy_dump_to_mps (struct igc_mirror *m)
+{
+  pdumper_visit_object_starts (copy_to_mps, m);
+  m->end_copy_time = Ffloat_time (Qnil);
+}
+
+static void
 mirror_lisp_obj (struct igc_mirror *m, Lisp_Object *pobj)
 {
   mps_word_t *p = (mps_word_t *) pobj;
@@ -3777,14 +3792,6 @@ mirror_array (struct igc_mirror *m, Lisp_Object *array, size_t n)
 #define IGC_MIRROR_NOBJS(m, a, n) mirror_array (m, a, n)
 
 static void
-copy_to_mps (void *dumped, void *closure)
-{
-  struct igc_mirror *m = closure;
-  void *obj = copy (dumped);
-  record_copy (m, dumped, obj);
-}
-
-static void
 mirror_fwd (struct igc_mirror *m, lispfwd fwd)
 {
   switch (XFWDTYPE (fwd))
@@ -3846,7 +3853,7 @@ mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *sym)
 static void
 mirror_string (struct igc_mirror *m, struct Lisp_String *s)
 {
-  igc_assert (pdumper_cold_object_p (s->u.s.data));
+  igc_assert (pdumper_object_p (s->u.s.data));
   ptrdiff_t nbytes = STRING_BYTES (s);
   unsigned char *data = alloc_string_data (nbytes, false);
   memcpy (data, s->u.s.data, nbytes + 1);
@@ -3867,10 +3874,13 @@ mirror_interval (struct igc_mirror *m, struct interval *iv)
   IGC_MIRROR_OBJ (m, &iv->plist);
 }
 
+#define NOT_IMPLEMENTED() igc_assert (!"not implemented")
+
+
 static void
 mirror_itree_tree (struct igc_mirror *m, struct itree_tree *t)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
@@ -3888,55 +3898,55 @@ mirror_itree_node (struct igc_mirror *m, struct itree_node *n)
 static void
 mirror_image (struct igc_mirror *m, struct image *i)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_image_cache (struct igc_mirror *m, struct image_cache *ca)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_face (struct igc_mirror *m, struct face *f)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_face_cache (struct igc_mirror *m, struct face_cache *ca)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_ptr_vec (struct igc_mirror *m, void *client)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_obj_vec (struct igc_mirror *m, void *client)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_handler (struct igc_mirror *m, void *client)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_weak_ref (struct igc_mirror *m, struct Lisp_Weak_Ref *wref)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_weak (struct igc_mirror *m, struct igc_header *base)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
@@ -3975,19 +3985,19 @@ mirror_obarray (struct igc_mirror *m, struct Lisp_Obarray *o)
 static void
 mirror_font (struct igc_mirror *m, struct Lisp_Vector *v)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_mutex (struct igc_mirror *m, struct Lisp_Mutex *mx)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_coding (struct igc_mirror *m, struct coding_system *cs)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
@@ -4012,7 +4022,7 @@ mirror_buffer (struct igc_mirror *m, struct buffer *b)
 static void
 mirror_glyph_matrix (struct igc_mirror *m, struct glyph_matrix *g)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
@@ -4078,79 +4088,80 @@ mirror_window (struct igc_mirror *m, struct window *w)
 static void
 mirror_hash_table (struct igc_mirror *m, struct Lisp_Hash_Table *h)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_char_table (struct igc_mirror *m, struct Lisp_Vector *v)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_overlay (struct igc_mirror *m, struct Lisp_Overlay *o)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_subr (struct igc_mirror *m, struct Lisp_Subr *s)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_misc_ptr (struct igc_mirror *m, struct Lisp_Misc_Ptr *p)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_user_ptr (struct igc_mirror *m, struct Lisp_User_Ptr *p)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_thread (struct igc_mirror *m, struct thread_state *s)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_terminal (struct igc_mirror *m, struct terminal *t)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_marker (struct igc_mirror *m, struct Lisp_Marker *ma)
 {
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_finalizer (struct igc_mirror *m, struct Lisp_Finalizer *f)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_comp_unit (struct igc_mirror *m, struct Lisp_Native_Comp_Unit *u)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 #ifdef HAVE_XWIDGETS
 static void
 mirror_xwidget (struct igc_mirror *m, struct xwidget *w)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_xwidget_view (struct igc_mirror *m, struct xwidget_view *w)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 #endif
 
@@ -4158,7 +4169,7 @@ mirror_xwidget_view (struct igc_mirror *m, struct xwidget_view *w)
 static void
 mirror_global_ref (struct igc_mirror *m, struct module_global_reference *r)
 {
-  emacs_abort ();
+  NOT_IMPLEMENTED ();
 }
 #endif
 
@@ -4377,28 +4388,20 @@ mirror_obj (struct igc_mirror *m, void *base)
 static void
 mirror_objects (struct igc_mirror *m)
 {
-#if 0
   DOHASH (XHASH_TABLE (m->dumped_to_obj), dumped, obj)
     mirror_obj (m, lisp_to_ptr (obj));
-#endif
-  for (int i = 0; i < 1000000; ++i)
-    lookup_ptr (m, (void *) 0x12345678);
   m->end_time = Ffloat_time (Qnil);
-}
-
-static void
-copy_dump_to_mps (struct igc_mirror *m)
-{
-  pdumper_visit_object_starts (copy_to_mps, m);
-  m->end_copy_time = Ffloat_time (Qnil);
 }
 
 static void
 mirror_dump (void)
 {
+  specpdl_ref count = igc_park_arena ();
   struct igc_mirror m = make_igc_mirror ();
   copy_dump_to_mps (&m);
   mirror_objects (&m);
+  unbind_to (count, Qnil);
+
   if (getenv ("IGC_MIRROR_STATS"))
     print_mirror_stats (&m);
 }
@@ -4408,8 +4411,5 @@ igc_on_pdump_loaded (void *start, void *end)
 {
   /* FIXME: Remove root once dump has been copied. */
   root_create_exact (global_igc, start, end, scan_dump);
-
-  specpdl_ref count = igc_park_arena ();
   mirror_dump ();
-  unbind_to (count, Qnil);
 }
