@@ -3706,8 +3706,11 @@ static void
 record_copy (struct igc_mirror *m, void *dumped, void *copy)
 {
   Lisp_Object key = ptr_to_lisp (dumped);
+  igc_assert (lisp_to_ptr (dumped) == dumped);
   Lisp_Object val = ptr_to_lisp (copy);
+  igc_assert (lisp_to_ptr (copy) == copy);
   Fputhash (key, val, m->dumped_to_obj);
+
   struct igc_header *h = copy;
   m->objs[h->obj_type].n += 1;
   m->objs[h->obj_type].nbytes += to_bytes (h->nwords);
@@ -3730,17 +3733,15 @@ lookup_ptr (struct igc_mirror *m, void *dumped)
 }
 
 static void
-copy_to_mps (void *dumped, void *closure)
-{
-  struct igc_mirror *m = closure;
-  void *obj = copy (dumped);
-  record_copy (m, dumped, obj);
-}
-
-static void
 copy_dump_to_mps (struct igc_mirror *m)
 {
-  pdumper_visit_object_starts (copy_to_mps, m);
+  struct pdumper_object_it it = {0};
+  void *dump_base;
+  while ((dump_base = pdumper_next_object (&it)) != NULL)
+    {
+      void *base = copy (dump_base);
+      record_copy (m, dump_base, base);
+    }
   m->end_copy_time = Ffloat_time (Qnil);
 }
 
@@ -4358,9 +4359,9 @@ mirror_vector (struct igc_mirror *m, struct Lisp_Vector *v)
 static void
 mirror_obj (struct igc_mirror *m, void *base)
 {
-  struct igc_header *header = base;
-  void *client = base_to_client (header);
-  switch (header->obj_type)
+  struct igc_header *h = base;
+  void *client = base_to_client (h);
+  switch (h->obj_type)
     {
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
