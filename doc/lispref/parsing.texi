@@ -1683,15 +1683,33 @@ instead to specify regions of buffer text (i.e., ranges) in which a
 parser will operate.  This section describes functions for setting and
 getting ranges for a parser.
 
+@cindex primary parser
+Generally when there are multiple languages at play, there is a
+``primary'', or ``host'' language.  The parser for this language---the
+@dfn{primary parser}, parses the entire buffer.  Parsers for other
+languages are ``embedded'' or ``guest'' parsers, which only work on part
+of the buffer.  The parse tree of the primary parser is usually used to
+determine the ranges in which the embedded parsers operate.
+
+@vindex treesit-primary-parser
+Major modes should set @var{treesit-primary-parser} to the primary
+parser before calling @code{treesit-major-mode-setup}, so that Emacs can
+configure the primary parser correctly for font-lock and other features.
+
 Lisp programs should call @code{treesit-update-ranges} to make sure
 the ranges for each parser are correct before using parsers in a
 buffer, and call @code{treesit-language-at} to figure out the language
 responsible for the text at some position.  These two functions don't
 work by themselves, they need major modes to set
-@code{treesit-range-settings} and
-@code{treesit-language-at-point-function}, which do the actual work.
+@var{treesit-range-settings} and
+@var{treesit-language-at-point-function}, which do the actual work.
 These functions and variables are explained in more detail towards the
 end of the section.
+
+@b{In short}, multi-language major modes should set
+@var{treesit-primary-parser}, @var{treesit-range-settings}, and
+@var{treesit-language-at-point-function} before calling
+@code{treesit-major-mode-setup}.
 
 @heading Getting and setting ranges
 
