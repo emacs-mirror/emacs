@@ -90,8 +90,12 @@ first candidate, and you can cycle between the candidates with
   :version "30.1")
 
 (defcustom completion-preview-minimum-symbol-length 3
-  "Minimum length of the symbol at point for showing completion preview."
-  :type 'natnum
+  "Minimum length of the symbol at point for showing completion preview.
+
+If this is nil rather than a number of characters, show the preview also
+after non-symbol characters, such as punctuation or whitespace."
+  :type '(choice (natnum :tag "Minimum number of symbol characters")
+                 (const :tag "Disable minimum symbol length requirement" nil))
   :version "30.1")
 
 (defcustom completion-preview-message-format
@@ -195,9 +199,10 @@ Completion Preview mode avoids updating the preview after these commands.")
 (defun completion-preview-require-minimum-symbol-length ()
   "Check if the length of symbol at point is at least above a certain threshold.
 `completion-preview-minimum-symbol-length' determines that threshold."
-  (let ((bounds (bounds-of-thing-at-point 'symbol)))
-    (and bounds (<= completion-preview-minimum-symbol-length
-                    (- (cdr bounds) (car bounds))))))
+  (or (null completion-preview-minimum-symbol-length)
+      (let ((bounds (bounds-of-thing-at-point 'symbol)))
+        (and bounds (<= completion-preview-minimum-symbol-length
+                        (- (cdr bounds) (car bounds)))))))
 
 (defun completion-preview-hide ()
   "Hide the completion preview."
