@@ -32,7 +32,7 @@
 
 ;;; Units operations.
 
-;;; Units table last updated 9-Jan-91 by Ulrich Müller (ulm@vsnhd1.cern.ch)
+;;; Units table updated 9-Jan-91 by Ulrich Müller (ulm@vsnhd1.cern.ch)
 ;;; with some additions by Przemek Klosowski (przemek@rrdstrad.nist.gov)
 ;;; Updated April 2002 by Jochen Küpper
 
