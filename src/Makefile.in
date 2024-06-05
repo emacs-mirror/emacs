@@ -423,7 +423,7 @@ endif
 
 # Flags that might be in WARN_CFLAGS but are not valid for Objective C.
 NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd \
-  -Wnested-externs -Wstrict-flex-arrays
+  -Wnested-externs -Wstrict-flex-arrays -Wflex-array-member-not-at-end
 # Ditto, but for C++.
 NON_CXX_CFLAGS = -Wmissing-prototypes -Wnested-externs -Wold-style-definition \
   -Wstrict-prototypes -Wno-override-init
