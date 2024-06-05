@@ -2187,12 +2187,6 @@ root_create_thread (struct igc_thread_list *t)
 }
 
 void
-igc_on_pdump_loaded (void *start, void *end)
-{
-  root_create_exact (global_igc, start, end, scan_dump);
-}
-
-void
 igc_on_grow_specpdl (void)
 {
   /* Note that no two roots may overlap, so we have to temporarily
@@ -3610,6 +3604,9 @@ be either an integer or a float.  The default value is 0.05, i.e.
 50 milliseconds.  Negative values and values that are not numbers
 are handled as if they were the default value.  */);
   Vigc_step_interval = make_float (0.05);
+}
+
+
 /***********************************************************************
 			    Copying the dump
  ***********************************************************************/
@@ -3919,6 +3916,18 @@ mirror_ptr_vec (struct igc_mirror *m, void *client)
 }
 
 static void
+mirror_obj_vec (struct igc_mirror *m, void *client)
+{
+  emacs_abort ();
+}
+
+static void
+mirror_handler (struct igc_mirror *m, void *client)
+{
+  emacs_abort ();
+}
+
+static void
 mirror_weak_ref (struct igc_mirror *m, struct Lisp_Weak_Ref *wref)
 {
   emacs_abort ();
@@ -4103,12 +4112,6 @@ mirror_user_ptr (struct igc_mirror *m, struct Lisp_User_Ptr *p)
 }
 
 static void
-mirror_handler (struct igc_mirror *m, struct handler *h)
-{
-  emacs_abort ();
-}
-
-static void
 mirror_thread (struct igc_mirror *m, struct thread_state *s)
 {
   emacs_abort ();
@@ -4273,7 +4276,7 @@ mirror_vector (struct igc_mirror *m, struct Lisp_Vector *v)
     case PVEC_TS_NODE:
     case PVEC_TS_PARSER:
     case PVEC_SQLITE:
-    case PVEC_COMPILED:
+    case PVEC_CLOSURE:
     case PVEC_RECORD:
     case PVEC_OTHER:
 #ifdef IN_MY_FORK
@@ -4300,6 +4303,14 @@ mirror_obj (struct igc_mirror *m, void *base)
     case IGC_OBJ_INVALID:
     case IGC_OBJ_LAST:
       emacs_abort ();
+
+    case IGC_OBJ_OBJ_VEC:
+      mirror_obj_vec (m, client);
+      break;
+
+    case IGC_OBJ_HANDLER:
+      mirror_handler (m, client);
+      break;
 
     case IGC_OBJ_PTR_VEC:
       mirror_ptr_vec (m, client);
@@ -4392,63 +4403,12 @@ mirror_dump (void)
     print_mirror_stats (&m);
 }
 
-struct register_pdump_roots_ctx
-{
-  void *hot_start;  /* start of hot section in pdump */
-  void *hot_end;    /* end of hot section in pdump */
-  void *root_start; /* start (or NULL) of current root */
-  void *root_end;   /* end (or NULL) of current root */
-};
-
-/* Try to combine adjacent objects into one root.  Naively creating a
-   separate root for each object seems to run into serious efficiency
-   problems. */
-static void
-register_pdump_roots_1 (void *start, void *closure)
-{
-  struct igc_header *h = start;
-  void *end = (char *)start + to_bytes (h->nwords);
-  struct register_pdump_roots_ctx *ctx = closure;
-  if (start < ctx->hot_start || ctx->hot_end <= start)
-    return;
-  if (ctx->root_end == start) /* adjacent objects? */
-    {
-      ctx->root_end = end; /* combine them */
-    }
-  else
-    {
-      if (ctx->root_start != NULL)
-	{
-	  root_create_exact (global_igc, ctx->root_start, ctx->root_end,
-			     dflt_scanx);
-	}
-      ctx->root_start = start;
-      ctx->root_end = end;
-    }
-}
-
-static void
-register_pdump_roots (void *start, void *end)
-{
-  struct register_pdump_roots_ctx ctx = {
-    .hot_start = start,
-    .hot_end = end,
-    .root_start = NULL,
-    .root_end = NULL,
-  };
-  pdumper_visit_object_starts (register_pdump_roots_1, &ctx);
-  if (ctx.root_start != NULL)
-    {
-      root_create_exact (global_igc, ctx.root_start, ctx.root_end,
-			 dflt_scanx);
-    }
-}
-
 void
 igc_on_pdump_loaded (void *start, void *end)
 {
-  // root_create_ambig (global_igc, start, end);
-  register_pdump_roots (start, end);
+  /* FIXME: Remove root once dump has been copied. */
+  root_create_exact (global_igc, start, end, scan_dump);
+
   specpdl_ref count = igc_park_arena ();
   mirror_dump ();
   unbind_to (count, Qnil);
