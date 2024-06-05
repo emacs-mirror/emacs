@@ -1502,60 +1502,19 @@ it is displayed along with the global value."
                      :parent button-map
                      "e" #'help-fns-edit-variable)))))
 
-(defvar help-fns--edit-variable)
-
 (put 'help-fns-edit-variable 'disabled t)
 (defun help-fns-edit-variable ()
   "Edit the variable under point."
   (declare (completion ignore))
   (interactive)
-  (let ((var (get-text-property (point) 'help-fns--edit-variable)))
-    (unless var
+  (let* ((val (thing-at-point 'sexp))
+         (var (get-text-property 0 'help-fns--edit-variable val)))
+    (unless val
       (error "No variable under point"))
-    (pop-to-buffer-same-window (format "*edit %s*" (nth 0 var)))
-    (prin1 (nth 1 var) (current-buffer))
-    (pp-buffer)
-    (goto-char (point-min))
-    (help-fns--edit-value-mode)
-    (insert (format ";; Edit the `%s' variable.\n" (nth 0 var))
-            (substitute-command-keys
-             ";; `\\[help-fns-edit-mode-done]' to update the value and exit; \
-`\\[help-fns-edit-mode-cancel]' to cancel.\n\n"))
-    (setq-local help-fns--edit-variable var)))
-
-(defvar-keymap help-fns--edit-value-mode-map
-  "C-c C-c" #'help-fns-edit-mode-done
-  "C-c C-k" #'help-fns-edit-mode-cancel)
-
-(define-derived-mode help-fns--edit-value-mode emacs-lisp-mode "Elisp"
-  :interactive nil)
-
-(defun help-fns-edit-mode-done (&optional kill)
-  "Update the value of the variable being edited and kill the edit buffer.
-If KILL (the prefix), don't update the value, but just kill the
-current buffer."
-  (interactive "P" help-fns--edit-value-mode)
-  (unless help-fns--edit-variable
-    (error "Invalid buffer"))
-  (goto-char (point-min))
-  (cl-destructuring-bind (variable _ buffer help-buffer)
-      help-fns--edit-variable
-    (unless (buffer-live-p buffer)
-      (error "Original buffer is gone; can't update"))
-    (unless kill
-      (let ((value (read (current-buffer))))
-        (with-current-buffer buffer
-          (set variable value))))
-    (kill-buffer (current-buffer))
-    (when (buffer-live-p help-buffer)
-      (with-current-buffer help-buffer
-        (revert-buffer)))))
-
-(defun help-fns-edit-mode-cancel ()
-  "Kill the edit buffer and cancel editing of the value.
-This cancels value editing without updating the value."
-  (interactive nil help-fns--edit-value-mode)
-  (help-fns-edit-mode-done t))
+    (let ((str (read-string-from-buffer
+                (format ";; Edit the `%s' variable." (nth 0 var))
+                (prin1-to-string (nth 1 var)))))
+      (set (nth 0 var) (read str)))))
 
 (defun help-fns--run-describe-functions (functions &rest args)
   (with-current-buffer standard-output
