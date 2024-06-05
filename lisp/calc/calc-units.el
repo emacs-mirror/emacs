@@ -269,9 +269,7 @@
     ( Nav     "6.02214076*10^(23) / mol"    "Avogadro constant" nil
               "6.02214076 10^23 / mol")
 
-    ;; Other physical quantities
-    ;; Unless otherwise mentioned, the values are from CODATA,
-    ;; and are approximate.
+    ;; Derived physical constants
     ( hbar    "h / (2 pi)"                  "*Reduced Planck constant" )
     ;; After the 2018 SI redefinition, eps0 and mu0 are measured quantities,
     ;; and mu0 no longer has the previous exact value of 4 pi 10^(-7) H/m.
@@ -279,6 +277,14 @@
     ( ε0      "eps0"                        "Permittivity of vacuum" )
     ( mu0     "1 / (eps0 c^2)"              "Permeability of vacuum")
     ( μ0      "mu0"                         "Permeability of vacuum")
+    ( sigma   "2 pi^5 k^4 / (15 h^3 c^2)"   "Stefan-Boltzmann constant")
+    ( σ       "sigma"                       "Stefan-Boltzmann constant")
+    ( R0      "Nav k"                       "Molar gas constant" )
+    ( V0      "R0 273.15 K / 10^5 Pa"       "Standard volume of ideal gas" )
+              ;; IUPAC 1982 standard temperature and pressure
+
+    ;; Other physical quantities
+    ;; Values are from CODATA, and are approximate.
     ( G       "6.67430*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
               "6.67430 10^-11 m^3/(kg s^2) (*)")
     ( me      "9.1093837139*10^(-31) kg"    "Electron rest mass" nil
@@ -293,8 +299,6 @@
               "1.883531627 10^-28 kg (*)")
     ( Ryd     "10973731.568157 /m"          "Rydberg constant" nil
               "10973731.568157 /m (*)")
-    ( sigma   "2 pi^5 k^4 / (15 h^3 c^2)"   "Stefan-Boltzmann constant")
-    ( σ       "sigma"                       "Stefan-Boltzmann constant")
     ( alpha   "7.2973525643*10^(-3)"        "Fine structure constant" nil
               "7.2973525643 10^-3 (*)")
     ( α       "alpha"                       "Fine structure constant" nil
@@ -307,9 +311,6 @@
               "-9.2847646917 10^-24 J/T (*)")
     ( mup     "1.41060679545*10^(-26) J/T"  "Proton magnetic moment" nil
               "1.41060679545 10^-26 J/T (*)")
-    ( R0      "Nav k"                       "Molar gas constant" )
-    ( V0      "R0 273.15 K / 10^5 Pa"       "Standard volume of ideal gas" )
-              ;; IUPAC 1982 standard temperature and pressure
 
     ;; Logarithmic units
     ( Np      nil    "*Neper")
