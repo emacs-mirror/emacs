@@ -3643,6 +3643,10 @@ struct igc_mirror
     size_t n;
     size_t nbytes;
   } objs[IGC_OBJ_LAST];
+  struct {
+    size_t n;
+    size_t nbytes;
+  } pvec[PVEC_TAG_MAX + 1];
 };
 
 static struct igc_mirror
@@ -3668,6 +3672,12 @@ print_mirror_stats (struct igc_mirror *m)
       ntotal += m->objs[i].n;
       nbytes_total += m->objs[i].nbytes;
     }
+  fprintf (stderr, "--------------------------------------------------\n");
+  fprintf (stderr, "%30s %8s %10s\n", "Type", "N", "Bytes");
+  fprintf (stderr, "--------------------------------------------------\n");
+  for (int i = 0; i < ARRAYELTS (m->pvec); ++i)
+    fprintf (stderr, "%30s %8zu %10zu\n", pvec_type_names[i], m->pvec[i].n,
+	     m->pvec[i].nbytes);
   fprintf (stderr, "--------------------------------------------------\n");
   fprintf (stderr, "%30s %8zu %10zu\n", "Total", ntotal, nbytes_total);
   fprintf (stderr, "%30s %8.4fs\n", "Copy time",
@@ -3699,8 +3709,16 @@ record_copy (struct igc_mirror *m, void *dumped, void *copy)
   Lisp_Object val = ptr_to_lisp (copy);
   Fputhash (key, val, m->dumped_to_obj);
   struct igc_header *h = copy;
-  m->objs[h->obj_type].nbytes += to_bytes (h->nwords);
   m->objs[h->obj_type].n += 1;
+  m->objs[h->obj_type].nbytes += to_bytes (h->nwords);
+
+  if (h->obj_type == IGC_OBJ_VECTOR)
+    {
+      struct Lisp_Vector *v = base_to_client (copy);
+      int i = pseudo_vector_type (v);
+      m->pvec[i].n += 1;
+      m->pvec[i].nbytes += to_bytes (h->nwords);
+    }
 }
 
 static void *
@@ -4437,7 +4455,7 @@ mirror_dump (void)
   mirror_objects (&m);
   unbind_to (count, Qnil);
 
-  if (getenv ("IGC_MIRROR_STATS"))
+  if (1 || getenv ("IGC_MIRROR_STATS"))
     print_mirror_stats (&m);
 }
 
