@@ -1643,7 +1643,8 @@ extra args."
          nargs (if (= nargs 1) "" "s")
          nfields (if (= nfields 1) "" "s"))))))
 
-(dolist (elt '(format message format-message error))
+(dolist (elt '( format message format-message message-box message-or-box
+                warn error user-error))
   (put elt 'byte-compile-format-like t))
 
 ;; Warn if the function or macro is being redefined with a different
