@@ -78,6 +78,7 @@ lib/alloca.h
 lib/assert.h
 lib/byteswap.h
 lib/dirent.h
+lib/endian.h
 lib/errno.h
 lib/execinfo.h
 lib/fcntl.h
