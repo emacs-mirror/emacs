@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "cm.h"
+#include "frame.h"
 #include "sysstdio.h"
 #include "termchar.h"
 #include "tparam.h"
