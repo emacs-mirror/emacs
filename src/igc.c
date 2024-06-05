@@ -3926,9 +3926,15 @@ mirror_ptr_vec (struct igc_mirror *m, void *client)
 }
 
 static void
-mirror_obj_vec (struct igc_mirror *m, void *client)
+mirror_obj_vec (struct igc_mirror *m, Lisp_Object *v)
 {
-  NOT_IMPLEMENTED ();
+  struct igc_header *h = client_to_base (v);
+  igc_assert (sizeof (struct igc_header) % sizeof (Lisp_Object) == 0);
+  /* The below should yield 'h->nwords - 1' for 64-bit builds, and
+     'h->nwords - 2' for 32-bit.  */
+  size_t imax = h->nwords - to_words (sizeof (struct igc_header));
+  for (size_t i = 0; i < imax; ++i)
+    IGC_MIRROR_OBJ (m, &v[i]);
 }
 
 static void
@@ -3985,7 +3991,25 @@ mirror_obarray (struct igc_mirror *m, struct Lisp_Obarray *o)
 static void
 mirror_font (struct igc_mirror *m, struct Lisp_Vector *v)
 {
-  NOT_IMPLEMENTED ();
+  mirror_vectorlike (m, v);
+  /* See font.h for the magic numbers. */
+  switch (v->header.size & PSEUDOVECTOR_SIZE_MASK)
+    {
+    case FONT_SPEC_MAX:
+    case FONT_ENTITY_MAX:
+      break;
+
+    case FONT_OBJECT_MAX:
+      {
+	struct font *f = (struct font *) v;
+	Lisp_Object const *type = &f->driver->type;
+	IGC_MIRROR_OBJ (m, (Lisp_Object *) type);
+      }
+      break;
+
+    default:
+      emacs_abort ();
+    }
 }
 
 static void
@@ -4088,19 +4112,29 @@ mirror_window (struct igc_mirror *m, struct window *w)
 static void
 mirror_hash_table (struct igc_mirror *m, struct Lisp_Hash_Table *h)
 {
-  NOT_IMPLEMENTED ();
+  IGC_MIRROR_RAW (m, &h->key);
+  IGC_MIRROR_RAW (m, &h->value);
+  IGC_MIRROR_RAW (m, &h->hash);
+  IGC_MIRROR_RAW (m, &h->next);
+  IGC_MIRROR_RAW (m, &h->index);
 }
 
 static void
 mirror_char_table (struct igc_mirror *m, struct Lisp_Vector *v)
 {
-  NOT_IMPLEMENTED ();
+  int size = v->header.size & PSEUDOVECTOR_SIZE_MASK;
+  enum pvec_type type = pseudo_vector_type (v);
+  int idx = type == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0;
+  for (int i = idx; i < size; ++i)
+    IGC_MIRROR_OBJ (m, &v->contents[i]);
 }
 
 static void
 mirror_overlay (struct igc_mirror *m, struct Lisp_Overlay *o)
 {
-  NOT_IMPLEMENTED ();
+  IGC_MIRROR_RAW (m, &o->buffer);
+  IGC_MIRROR_OBJ (m, &o->plist);
+  IGC_MIRROR_RAW (m, &o->interval);
 }
 
 static void
@@ -4136,7 +4170,8 @@ mirror_terminal (struct igc_mirror *m, struct terminal *t)
 static void
 mirror_marker (struct igc_mirror *m, struct Lisp_Marker *ma)
 {
-  NOT_IMPLEMENTED ();
+  IGC_MIRROR_RAW (m, &ma->buffer);
+  IGC_MIRROR_RAW (m, &ma->next);
 }
 
 static void
