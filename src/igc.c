@@ -3692,23 +3692,26 @@ print_mirror_stats (struct igc_mirror *m)
 static Lisp_Object
 ptr_to_lisp (void *p)
 {
-  return make_fixnum ((EMACS_INT) p);
+  igc_assert (is_aligned (p));
+  uintptr_t w = (uintptr_t) p;
+  return make_fixnum (w >> GCTYPEBITS);
 }
 
 static void *
 lisp_to_ptr (Lisp_Object obj)
 {
   igc_assert (FIXNUMP (obj));
-  return (void *) XFIXNUM (obj);
+  uintptr_t w = XFIXNUM (obj);
+  return (void *) (w << GCTYPEBITS);
 }
 
 static void
 record_copy (struct igc_mirror *m, void *dumped, void *copy)
 {
   Lisp_Object key = ptr_to_lisp (dumped);
-  igc_assert (lisp_to_ptr (dumped) == dumped);
+  igc_assert (lisp_to_ptr (key) == dumped);
   Lisp_Object val = ptr_to_lisp (copy);
-  igc_assert (lisp_to_ptr (copy) == copy);
+  igc_assert (lisp_to_ptr (val) == copy);
   Fputhash (key, val, m->dumped_to_obj);
 
   struct igc_header *h = copy;
