@@ -2463,7 +2463,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-save-history ()
   "Save the current page's data to the history.
-If the current page is a historial one loaded from
+If the current page is a historical one loaded from
 `eww-history' (e.g. by calling `eww-back-url'), this will update the
 page's entry in `eww-history' and return nil.  Otherwise, add a new
 entry to `eww-history' and return t."

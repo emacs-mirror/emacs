@@ -1210,7 +1210,7 @@ described below.  If you use the latter approach, you can use the
 transform them from the convenient to the expected form.
 
 If you explicitly specify children and then transform them using
-@code{:setup-chilren}, then the class of the group is determined as usual,
+@code{:setup-children}, then the class of the group is determined as usual,
 based on explicitly specified children.
 
 If you do not explicitly specify children and thus rely solely on

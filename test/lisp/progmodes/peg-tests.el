@@ -199,7 +199,7 @@ resp. succeeded instead of signaling an error."
 
 ;; peg-ex-parse-int recognizes integers and computes the corresponding
 ;; value.  The grammar is the same as for `peg-ex-recognize-int'
-;; augmented with parsing actions.  Unfortunaletly, the actions add
+;; augmented with parsing actions.  Unfortunately, the actions add
 ;; quite a bit of clutter.
 ;;
 ;; The actions for the sign rule push -1 on the stack for a minus sign

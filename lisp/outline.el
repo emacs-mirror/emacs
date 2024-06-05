@@ -1726,7 +1726,7 @@ under `outline-minor-mode' is reverted by `revert-buffer'."
 
 (defun outline-revert-buffer-rehighlight ()
   "Rehighlight outlines when reverting buffer under `outline-minor-mode'.
-This function rehighlightes outlines after the buffer under
+This function rehighlights outlines after the buffer under
 `outline-minor-mode' is reverted by `revert-buffer' when font-lock
 can't update highlighting for `outline-minor-mode-highlight'."
   (when (and outline-minor-mode-highlight

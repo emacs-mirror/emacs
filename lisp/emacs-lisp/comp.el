@@ -207,7 +207,7 @@ Useful to hook into pass checkers.")
 ;; cl-macs.el. We can't use `cl-deftype-satisfies' directly as the
 ;; relation type <-> predicate is not bijective (bug#45576).
 (defconst comp-known-predicates
-  ;; FIXME: Auto-generate (most of) it from `cl-deftype-satifies'?
+  ;; FIXME: Auto-generate (most of) it from `cl-deftype-satisfies'?
   '((arrayp              array)
     (atom		 atom)
     (bool-vector-p       bool-vector)

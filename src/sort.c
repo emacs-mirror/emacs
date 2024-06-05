@@ -1130,7 +1130,7 @@ tim_sort (Lisp_Object predicate, Lisp_Object keyfunc,
       keys[i] = call1 (keyfunc, seq[i]);
 
   /* FIXME: This is where we would check the keys for interesting
-     properties for more optimised comparison (such as all being fixnums
+     properties for more optimized comparison (such as all being fixnums
      etc).  */
 
   /* March over the array once, left to right, finding natural runs,

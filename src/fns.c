@@ -5359,7 +5359,7 @@ hash_string (char const *ptr, ptrdiff_t len)
 	  hash = sxhash_combine (hash, c);
 	}
       while (p + sizeof hash <= end);
-      /* Hash the last wordful of bytes in the string, because that is
+      /* Hash the last word's worth of bytes in the string, because that is
          is often the part where strings differ.  This may cause some
          bytes to be hashed twice but we assume that's not a big problem.  */
       EMACS_UINT c;

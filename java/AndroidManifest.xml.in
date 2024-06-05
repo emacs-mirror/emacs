@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 <!-- targetSandboxVersion must be 1, for otherwise fascist security
      restrictions prevent Emacs from making HTTP connections.
 
-     Futhermore, versionCode should remain constant, rather than increase
+     Furthermore, versionCode should remain constant, rather than increase
      with each major release, because it is impossible to downgrade an
      installation with a greater value to an older version of Emacs.  -->
 

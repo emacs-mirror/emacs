@@ -66,7 +66,7 @@
 ;; like to also generally make tool bars better.
 ;;
 ;; Targeting 0.3:
-;; * Properly support reamining less frequently used tool bar item specs.  From
+;; * Properly support remaining less frequently used tool bar item specs.  From
 ;;   `parse_tool_bar_item':
 ;;     * :visible
 ;;     * :filter
@@ -102,7 +102,7 @@
 ;; lot of garbage.  So this benchmarking focuses on garbage
 ;; generation.  Since it has to run after most commands, generating
 ;; significantly more garbage will cause noticeable performance
-;; degration.
+;; degradation.
 ;;
 ;; The refresh has two steps:
 ;;
@@ -111,7 +111,7 @@
 ;; bar string.
 ;;
 ;; Additionally, we keep track of the percentage of commands that
-;; acutally created a refresh.
+;; actually created a refresh.
 (defvar window-tool-bar--memory-use-delta-step1 (make-list 7 0)
   "Absolute delta of memory use counters during step 1.
 This is a list in the same structure as `memory-use-counts'.")

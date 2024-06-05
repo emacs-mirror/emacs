@@ -1424,7 +1424,7 @@ via `dictionary-dictionaries'."
       ;; This function runs from the tooltip timer.  We don't want to
       ;; signal errors from the timer due to "Unknown server answers",
       ;; we prefer not to show anything in that case.  FIXME: Perhaps
-      ;; use with-demoted-errors, to show the unknonw answers in the
+      ;; use with-demoted-errors, to show the unknown answers in the
       ;; echo-area?
       (ignore-errors
         (let* ((word (dictionary-word-at-mouse-event

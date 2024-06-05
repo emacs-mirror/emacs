@@ -177,7 +177,7 @@ This is used to try and detect cases where buffer modifications are \"lost\".")
   ;; presume that these might be too old to receive fixes, so better not
   ;; annoy the user too much about errors.
   (string-match "\\..*\\." emacs-version)
-  "If non-nil, keep track of errors in `before/after-chage-functions' calls.
+  "If non-nil, keep track of errors in `before/after-change-functions' calls.
 The errors are kept in `track-changes--error-log'.")
 
 (cl-defun track-changes-register ( signal &key nobefore disjoint immediate)
@@ -500,9 +500,9 @@ Details logged to `track-changes--error-log'")
 
     (if track-changes--before-clean
         (progn
-          ;; Detect disjointness with previous changes here as well,
+          ;; Detect disjointedness with previous changes here as well,
           ;; so that if a client calls `track-changes-fetch' all the time,
-          ;; it doesn't prevent others from getting a disjointness signal.
+          ;; it doesn't prevent others from getting a disjointedness signal.
           (when (and track-changes--before-beg
                      (let ((found nil))
                        (dolist (tracker track-changes--disjoint-trackers)

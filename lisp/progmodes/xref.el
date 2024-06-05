@@ -2117,7 +2117,7 @@ Such as the current syntax table and the applied syntax properties."
       ;; Using the temporary buffer is both a performance and a buffer
       ;; management optimization.
       (with-current-buffer tmp-buffer
-        ;; This let is fairly dangerouns, but improves performance
+        ;; This let is fairly dangerous, but improves performance
         ;; for large lists, see https://debbugs.gnu.org/53749#227
         (let ((inhibit-modification-hooks t))
         (erase-buffer)

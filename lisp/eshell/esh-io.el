@@ -150,7 +150,7 @@ slot, passing the exit status of the redirected command.
 If PASS-MODE is non-nil, Eshell will pass the redirection mode as an
 argument (which is the symbol `overwrite', `append' or `insert') to
 OUTPUT-FUNCTION, which should return the real output function (either an
-ordinary function or `eshell-generic-target' as desribed above)."
+ordinary function or `eshell-generic-target' as described above)."
   :version "30.1"
   :type '(repeat
 	  (list (string :tag "Target")

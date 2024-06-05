@@ -19173,7 +19173,7 @@ try_scrolling (Lisp_Object window, bool just_this_one_p,
       /* Maybe forget recorded base line for line number display.  */
       /* FIXME: Why do we need this?  `try_scrolling` can only be called from
          `redisplay_window` which should have flushed this cache already when
-         eeded.  */
+         needed.  */
       if (!BASE_LINE_NUMBER_VALID_P (w))
 	w->base_line_number = 0;
 
@@ -35810,7 +35810,7 @@ note_fringe_highlight (struct frame *f, Lisp_Object window, int x, int y,
 
   /* NOTE: iterating over glyphs can only find text properties coming
      from visible text.  This means that zero-length overlays and
-     invisibile text are NOT inspected.  */
+     invisible text are NOT inspected.  */
   for (; glyph_num; glyph_num--, glyph++)
     {
       Lisp_Object pos = make_fixnum (glyph->charpos);

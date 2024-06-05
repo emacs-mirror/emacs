@@ -1582,7 +1582,7 @@ Here's an example @var{treesit-thing-settings} for C and C++:
 @end example
 
 @noindent
-Note that this example is modified for didactical purposes, and isn't
+Note that this example is modified for didactic purposes, and isn't
 exactly how C and C@t{++} modes define things.
 @end defvar
 

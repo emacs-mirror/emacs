@@ -4851,7 +4851,7 @@ a connection-local variable."
 (defvar tramp-direct-async-process nil
   "Whether direct asynchronous processes should be used.
 It is not recommended to change this variable globally.  Instead, it
-should be set conmnection-local.")
+should be set connection-local.")
 
 (defun tramp-direct-async-process-p (&rest args)
   "Whether direct async `make-process' can be called."

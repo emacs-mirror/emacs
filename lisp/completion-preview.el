@@ -465,7 +465,7 @@ completions list."
                                      (funcall efn string status)))))
                ;; The predicate is meant for the original completion
                ;; candidates, which may be symbols or cons cells, but
-               ;; now we only have strings, so it might be unapplicable.
+               ;; now we only have strings, so it might not be applicable.
                (props (plist-put props :predicate nil))
                (completion-at-point-functions
                 (list (lambda () `(,beg ,end ,col ,@props)))))

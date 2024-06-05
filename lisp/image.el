@@ -568,7 +568,7 @@ loaded."
          (rotation (plist-get props :rotation)))
     (cond
      ;; The scale of the image won't be available until
-     ;; `image_set_transform', and as such, defer to its judgement.
+     ;; `image_set_transform', and as such, defer to its judgment.
      ((eq scaling 'default) 'lambda)
      ;; We always smooth when scaling down and small upwards scaling.
      ((and scaling (< scaling 2))
@@ -812,7 +812,7 @@ where FILE is the file from which to load the image, and DATA is a
 string containing the actual image data.  If the property `:type TYPE'
 is omitted or nil, try to determine the image type from its first few
 bytes of image data.  If that doesn't work, and the property `:file
-FILE' provide a file name, use its file extension as idication of the
+FILE' provide a file name, use its file extension as indication of the
 image type. If `:type TYPE' is provided, it must match the actual type
 determined for FILE or DATA by `create-image'.
 

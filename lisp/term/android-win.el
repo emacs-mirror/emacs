@@ -305,7 +305,7 @@ names which represent them."
                  (new-uri-list nil)
                  (dnd-unescape-file-uris t))
              (dolist (uri uri-list)
-               ;; If the URI is a preprepared file name, insert it directly.
+               ;; If the URI is a prepared file name, insert it directly.
                (if (string-match-p "^/content/by-authority\\(-named\\)?/" uri)
                    (setq uri (concat "file:" uri)
                          dnd-unescape-file-uris nil)

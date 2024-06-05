@@ -405,7 +405,7 @@ json_out_nest (json_out_t *jo)
 {
   --jo->maxdepth;
   if (jo->maxdepth < 0)
-    error ("Maximum JSON serialisation depth exceeded");
+    error ("Maximum JSON serialization depth exceeded");
 }
 
 static void

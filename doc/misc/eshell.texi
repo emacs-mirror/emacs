@@ -1549,7 +1549,7 @@ also specify the absolute path to the program, e.g.@:
 program whose file name would be interpreted as an explicitly-remote
 command, you can use @kbd{/:} to quote the name, e.g.@:
 @samp{/:/ssh:user@@remote:whoami} (@pxref{Quoted File Names,,, emacs,
-The GNU Emacs Manual}).  To disable explicity-remote commands entirely,
+The GNU Emacs Manual}).  To disable explicitly-remote commands entirely,
 you can set the option @code{eshell-explicit-remote-commands} to
 @code{nil}.
 

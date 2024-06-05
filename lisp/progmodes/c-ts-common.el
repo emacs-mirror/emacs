@@ -291,7 +291,7 @@ and /* */ comments.  SOFT works the same as in
   ;; I want to experiment with explicitly listing out all each cases and
   ;; handle them separately, as opposed to fiddling with `comment-start'
   ;; and friends.  This will have more duplicate code and will be less
-  ;; generic, but in the same time might save us from writting cryptic
+  ;; generic, but in the same time might save us from writing cryptic
   ;; code to handle all sorts of edge cases.
   ;;
   ;; For this command, let's try to make it basic: if the current line

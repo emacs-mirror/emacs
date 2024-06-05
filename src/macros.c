@@ -343,14 +343,14 @@ buffer before the macro is executed.  */)
      restore Vexecuting_kbd_macro and executing_kbd_macro_index, and
      run 'kbd-macro-termination-hook'.
 
-     If read_char happens to be called at the end of a macro interation,
+     If read_char happens to be called at the end of a macro iteration,
      but before read_key_sequence could handle the end (e.g., when lisp
      code calls 'read-event', 'read-char', or 'read-char-exclusive'),
      read_char will simply continue reading other available input
      (Bug#68272).  Vexecuting_kbd_macro and executing_kbd_macro remain
      untouched until the end of the iteration is handled.
 
-     This is similar (in observable behavior) to a posibly simpler
+     This is similar (in observable behavior) to a possibly simpler
      implementation of keyboard macros in which this function pushed all
      characters of the macro into the incoming event queue and returned
      immediately.  Maybe this is the implementation that we ideally

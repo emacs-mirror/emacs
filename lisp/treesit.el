@@ -830,7 +830,7 @@ t, nil, append, prepend, keep.  See more in
 `treesit-font-lock-rules'.")
 
 (defsubst treesit--font-lock-setting-feature (setting)
-  "Reutrn the feature of SETTING.
+  "Return the feature of SETTING.
 SETTING should be a setting in `treesit-font-lock-settings'."
   (nth 2 setting))
 

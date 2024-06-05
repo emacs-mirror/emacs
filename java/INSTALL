@@ -170,7 +170,7 @@ In normal circumstances, Emacs should automatically detect and configure
 one of the C++ standard libraries part of the NDK when such a library is
 required to build a dependency specified under `--with-ndk-path'.
 
-Nevertheless, this process is not infalliable, and with certain versions
+Nevertheless, this process is not infallible, and with certain versions
 of the NDK is liable to fail to locate a C++ compiler, requiring that
 you run the `make_standalone_toolchain.py' script in the NDK
 distribution to create a ``standalone toolchain'' and substitute the

@@ -168,7 +168,7 @@ If it is nil, the default context will be used."
 
 ;;;###tramp-autoload
 (defcustom tramp-distrobox-program "distrobox"
-  "Name of the Distrobxx client program."
+  "Name of the Distrobox client program."
   :group 'tramp
   :version "30.1"
   :type '(choice (const "distrobox")
