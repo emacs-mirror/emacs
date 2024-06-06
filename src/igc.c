@@ -4114,26 +4114,8 @@ mirror_frame (struct igc_mirror *m, struct frame *f)
   if (f->terminal)
     IGC_MIRROR_RAW (m, &f->terminal);
 #ifdef HAVE_WINDOW_SYSTEM
-  if (FRAME_WINDOW_P (f) && FRAME_OUTPUT_DATA (f))
-    {
-      struct font **font_ptr = &FRAME_FONT (f);
-      if (*font_ptr)
-	IGC_MIRROR_RAW (m, font_ptr);
-      Lisp_Object *nle = &FRAME_DISPLAY_INFO (f)->name_list_element;
-      IGC_MIRROR_OBJ (m, nle);
-
-#ifdef HAVE_NS
-      struct ns_display_info *i = FRAME_DISPLAY_INFO (f);
-      IGC_MIRROR_RAW (m, &i->terminal);
-      IGC_MIRROR_OBJ (m, &i->rdb);
-      IGC_MIRROR_RAW (m, &i->highlight_frame);
-      IGC_MIRROR_RAW (m, &i->ns_focus_frame);
-      IGC_MIRROR_RAW (m, &i->last_mouse_motion_frame);
-      struct frame **pf = ns_emacs_view_emacs_frame (f);
-      IGC_MIRROR_RAW (m, pf);
+  igc_assert (!FRAME_WINDOW_P (f));
 #endif
-    }
-#endif // HAVE_WINDOW_SYSTEM
 }
 
 static void
@@ -4144,13 +4126,6 @@ mirror_window (struct igc_mirror *m, struct window *w)
   igc_assert (w->desired_matrix == NULL);
   IGC_MIRROR_OBJ (m, &w->prev_buffers);
   IGC_MIRROR_OBJ (m, &w->next_buffers);
-
-#ifdef HAVE_NS
-  void *pr[4];
-  int n = ns_emacs_scroller_refs (w, pr, ARRAYELTS (pr));
-  for (int i = 0; i < n; ++i)
-    IGC_MIRROR_RAW (m, pr[i]);
-#endif
 }
 
 static void
@@ -4162,6 +4137,8 @@ mirror_hash_table (struct igc_mirror *m, struct Lisp_Hash_Table *h)
   IGC_MIRROR_RAW (m, &h->hash);
   IGC_MIRROR_RAW (m, &h->next);
   IGC_MIRROR_RAW (m, &h->index);
+  igc_assert (!pdumper_object_p (h->key));
+  igc_assert (!pdumper_object_p (h->value));
 }
 
 static void
