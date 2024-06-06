@@ -3651,20 +3651,37 @@ copy (mps_addr_t base)
 struct igc_mirror
 {
   Lisp_Object dump_to_mps;
-  Lisp_Object start_time;
-  Lisp_Object end_copy_time;
-  Lisp_Object end_time;
-  struct {size_t n, nbytes;} objs[IGC_OBJ_NUM_TYPES];
-  struct {size_t n, nbytes;} pvec[PVEC_TAG_MAX + 1];
+  struct
+  {
+    size_t n, nbytes;
+  } objs[IGC_OBJ_NUM_TYPES];
+  struct
+  {
+    size_t n, nbytes;
+  } pvec[PVEC_TAG_MAX + 1];
+  struct
+  {
+    const char *msg;
+    double time;
+  } times[10];
+  int ntimes;
 };
+
+static void
+record_time (struct igc_mirror *m, const char *msg)
+{
+  igc_assert (m->ntimes < ARRAYELTS (m->times));
+  m->times[m->ntimes].msg = msg;
+  m->times[m->ntimes].time = float_time (Qnil);
+  m->ntimes += 1;
+}
 
 static struct igc_mirror
 make_igc_mirror (void)
 {
   Lisp_Object nobj = make_fixnum (1000000);
   Lisp_Object ht = CALLN (Fmake_hash_table, QCtest, Qeq, QCsize, nobj);
-  return (struct igc_mirror){ .dump_to_mps = ht,
-			      .start_time = Ffloat_time (Qnil) };
+  return (struct igc_mirror) { .dump_to_mps = ht };
 }
 
 static void
@@ -3689,13 +3706,15 @@ print_mirror_stats (struct igc_mirror *m)
 	     m->pvec[i].nbytes);
   fprintf (stderr, "--------------------------------------------------\n");
   fprintf (stderr, "%30s %8zu %10zu\n", "Total", ntotal, nbytes_total);
-  fprintf (stderr, "%30s %8.4fs\n", "Copy time",
-	   XFLOAT_DATA (m->end_copy_time) - XFLOAT_DATA (m->start_time));
-  fprintf (stderr, "%30s %8.4fs\n", "Mirror time",
-	   XFLOAT_DATA (m->end_time) - XFLOAT_DATA (m->end_copy_time));
-  fprintf (stderr, "%30s %8.4fs\n", "Total time",
-	   XFLOAT_DATA (m->end_time) - XFLOAT_DATA (m->start_time));
-  fprintf (stderr, "--------------------------------------------------\n");
+  if (m->ntimes > 1)
+    {
+      fprintf (stderr, "--------------------------------------------------\n");
+      for (int i = 1; i < m->ntimes; ++i)
+	fprintf (stderr, "%30s %8.4fs\n", m->times[i].msg,
+		 m->times[i].time - m->times[i - 1].time);
+      fprintf (stderr, "%30s %8.4fs\n", "Total time",
+	       m->times[m->ntimes - 1].time - m->times[0].time);
+    }
 }
 
 static Lisp_Object
@@ -3751,7 +3770,6 @@ copy_dump_to_mps (struct igc_mirror *m)
   void *dump_base;
   while ((dump_base = pdumper_next_object (&it)) != NULL)
     record_copy (m, dump_base, copy (dump_base));
-  m->end_copy_time = Ffloat_time (Qnil);
 }
 
 static void
@@ -4436,12 +4454,19 @@ mirror_references (struct igc_mirror *m)
 {
   DOHASH (XHASH_TABLE (m->dump_to_mps), dump_base, mps_base)
     mirror (m, lisp_to_base (mps_base));
-  m->end_time = Ffloat_time (Qnil);
 }
 
 static void
-refer_roots_to_mps (void)
+refer_roots_to_mps (struct igc_mirror *m)
 {
+  for (int i = 0; i < staticidx; ++i)
+    IGC_MIRROR_OBJ (m, igc_const_cast (Lisp_Object *, staticvec[i]));
+
+  for (int i = 0; i < ARRAYELTS (lispsym); ++i)
+    mirror_symbol (m, &lispsym[i]);
+
+  mirror_buffer (m, &buffer_defaults);
+  mirror_buffer (m, &buffer_local_symbols);
 }
 
 static void
@@ -4449,9 +4474,13 @@ mirror_dump (void)
 {
   specpdl_ref count = igc_park_arena ();
   struct igc_mirror m = make_igc_mirror ();
+  record_time (&m, "Start");
   copy_dump_to_mps (&m);
+  record_time (&m, "Copy objects to MPS");
   mirror_references (&m);
-  refer_roots_to_mps ();
+  record_time (&m, "Mirror references");
+  //refer_roots_to_mps (&m);
+  record_time (&m, "Fix roots");
   unbind_to (count, Qnil);
 
   if (getenv ("IGC_MIRROR_STATS"))
