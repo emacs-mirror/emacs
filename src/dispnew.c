@@ -5263,6 +5263,11 @@ update_frame_line (struct frame *f, int vpos, bool updating_menu_p)
   bool colored_spaces_p = (FACE_FROM_ID (f, DEFAULT_FACE_ID)->background
 			   != FACE_TTY_DEFAULT_BG_COLOR);
 
+  /* This should never happen, but evidently sometimes does if one
+     resizes the frame quickly enough.  Prevent aborts in cmcheckmagic.  */
+  if (vpos >= FRAME_LINES (f))
+    return;
+
   if (colored_spaces_p)
     write_spaces_p = 1;
 
