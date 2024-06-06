@@ -106,6 +106,8 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 #endif
 
 #define igc_static_assert(x) verify (x)
+#define igc_const_cast(type, expr) ((type) (expr))
+
 #define IGC_TAG_MASK (~VALMASK)
 
 /* Using mps_arena_has_addr is expensive. so try to do something that is
@@ -1896,8 +1898,8 @@ fix_font (mps_ss_t ss, struct Lisp_Vector *v)
       case FONT_OBJECT_MAX:
 	{
 	  struct font *f = (struct font *)v;
-	  Lisp_Object const *type = &f->driver->type;
-	  IGC_FIX12_OBJ (ss, (Lisp_Object *)type);
+	  const Lisp_Object *type = &f->driver->type;
+	  IGC_FIX12_OBJ (ss, igc_const_cast (Lisp_Object *, type));
 	}
 	break;
       default:
@@ -4026,7 +4028,7 @@ mirror_font (struct igc_mirror *m, struct Lisp_Vector *v)
       {
 	struct font *f = (struct font *) v;
 	Lisp_Object const *type = &f->driver->type;
-	IGC_MIRROR_OBJ (m, (Lisp_Object *) type);
+	IGC_MIRROR_OBJ (m, igc_const_cast (Lisp_Object *, type));
       }
       break;
 
