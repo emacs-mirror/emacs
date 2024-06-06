@@ -3635,26 +3635,20 @@ copy (mps_addr_t base)
 
 struct igc_mirror
 {
+  Lisp_Object dump_to_mps;
   Lisp_Object start_time;
   Lisp_Object end_copy_time;
   Lisp_Object end_time;
-  Lisp_Object dumped_to_obj;
-  struct {
-    size_t n;
-    size_t nbytes;
-  } objs[IGC_OBJ_LAST];
-  struct {
-    size_t n;
-    size_t nbytes;
-  } pvec[PVEC_TAG_MAX + 1];
+  struct {size_t n, nbytes;} objs[IGC_OBJ_LAST];
+  struct {size_t n, nbytes;} pvec[PVEC_TAG_MAX + 1];
 };
 
 static struct igc_mirror
 make_igc_mirror (void)
 {
-  Lisp_Object nobj = make_fixnum (500000);
+  Lisp_Object nobj = make_fixnum (1000000);
   Lisp_Object ht = CALLN (Fmake_hash_table, QCtest, Qeq, QCsize, nobj);
-  return (struct igc_mirror){ .dumped_to_obj = ht,
+  return (struct igc_mirror){ .dump_to_mps = ht,
 			      .start_time = Ffloat_time (Qnil) };
 }
 
@@ -3690,7 +3684,7 @@ print_mirror_stats (struct igc_mirror *m)
 }
 
 static Lisp_Object
-ptr_to_lisp (void *p)
+base_to_lisp (void *p)
 {
   igc_assert (is_aligned (p));
   uintptr_t w = (uintptr_t) p;
@@ -3698,7 +3692,7 @@ ptr_to_lisp (void *p)
 }
 
 static void *
-lisp_to_ptr (Lisp_Object obj)
+lisp_to_base (Lisp_Object obj)
 {
   igc_assert (FIXNUMP (obj));
   uintptr_t w = XFIXNUM (obj);
@@ -3708,11 +3702,11 @@ lisp_to_ptr (Lisp_Object obj)
 static void
 record_copy (struct igc_mirror *m, void *dumped, void *copy)
 {
-  Lisp_Object key = ptr_to_lisp (dumped);
-  igc_assert (lisp_to_ptr (key) == dumped);
-  Lisp_Object val = ptr_to_lisp (copy);
-  igc_assert (lisp_to_ptr (val) == copy);
-  Fputhash (key, val, m->dumped_to_obj);
+  Lisp_Object key = base_to_lisp (dumped);
+  igc_assert (lisp_to_base (key) == dumped);
+  Lisp_Object val = base_to_lisp (copy);
+  igc_assert (lisp_to_base (val) == copy);
+  Fputhash (key, val, m->dump_to_mps);
 
   struct igc_header *h = copy;
   m->objs[h->obj_type].n += 1;
@@ -3728,11 +3722,11 @@ record_copy (struct igc_mirror *m, void *dumped, void *copy)
 }
 
 static void *
-lookup_ptr (struct igc_mirror *m, void *dumped)
+lookup_base (struct igc_mirror *m, void *base)
 {
-  Lisp_Object key = ptr_to_lisp (dumped);
-  Lisp_Object found = Fgethash (key, m->dumped_to_obj, Qnil);
-  return NILP (found) ? NULL : lisp_to_ptr (found);
+  Lisp_Object key = base_to_lisp (base);
+  Lisp_Object found = Fgethash (key, m->dump_to_mps, Qnil);
+  return NILP (found) ? NULL : lisp_to_base (found);
 }
 
 static void
@@ -3741,10 +3735,7 @@ copy_dump_to_mps (struct igc_mirror *m)
   struct pdumper_object_it it = {0};
   void *dump_base;
   while ((dump_base = pdumper_next_object (&it)) != NULL)
-    {
-      void *base = copy (dump_base);
-      record_copy (m, dump_base, base);
-    }
+    record_copy (m, dump_base, copy (dump_base));
   m->end_copy_time = Ffloat_time (Qnil);
 }
 
@@ -3767,7 +3758,7 @@ mirror_lisp_obj (struct igc_mirror *m, Lisp_Object *pobj)
       if (pdumper_object_p (client))
 	{
 	  mps_addr_t base = client_to_base (client);
-	  mps_addr_t mirror = lookup_ptr (m, base);
+	  mps_addr_t mirror = lookup_base (m, base);
 	  igc_assert (mirror != NULL);
 	  client = base_to_client (mirror);
 	  ptrdiff_t new_off = (char *) client - (char *) lispsym;
@@ -3780,7 +3771,7 @@ mirror_lisp_obj (struct igc_mirror *m, Lisp_Object *pobj)
       if (pdumper_object_p (client))
 	{
 	  mps_addr_t base = client_to_base (client);
-	  mps_addr_t mirror = lookup_ptr (m, base);
+	  mps_addr_t mirror = lookup_base (m, base);
 	  igc_assert (mirror != NULL);
 	  client = base_to_client (mirror);
 	  *p = (mps_word_t) client | tag;
@@ -3795,9 +3786,9 @@ mirror_raw (struct igc_mirror *m, mps_addr_t *p)
   if (pdumper_object_p (client))
     {
       mps_addr_t base = client_to_base (client);
-      mps_addr_t mirror = lookup_ptr (m, base);
+      mps_addr_t mirror = lookup_base (m, base);
       igc_assert (mirror != NULL);
-      *p = base_to_client (base);
+      *p = base_to_client (mirror);
     }
 }
 
@@ -3825,8 +3816,6 @@ mirror_fwd (struct igc_mirror *m, lispfwd fwd)
 
     case Lisp_Fwd_Obj:
       {
-	/* It is not guaranteed that we see all of these when
-	   scanning staticvec because of DEFVAR_LISP_NOPRO.  */
 	struct Lisp_Objfwd *o = (void *) fwd.fwdptr;
 	IGC_MIRROR_OBJ (m, o->objvar);
       }
@@ -3952,8 +3941,6 @@ mirror_obj_vec (struct igc_mirror *m, Lisp_Object *v)
 {
   struct igc_header *h = client_to_base (v);
   igc_assert (sizeof (struct igc_header) % sizeof (Lisp_Object) == 0);
-  /* The below should yield 'h->nwords - 1' for 64-bit builds, and
-     'h->nwords - 2' for 32-bit.  */
   size_t imax = h->nwords - to_words (sizeof (struct igc_header));
   for (size_t i = 0; i < imax; ++i)
     IGC_MIRROR_OBJ (m, &v[i]);
@@ -4014,7 +4001,6 @@ static void
 mirror_font (struct igc_mirror *m, struct Lisp_Vector *v)
 {
   mirror_vectorlike (m, v);
-  /* See font.h for the magic numbers. */
   switch (v->header.size & PSEUDOVECTOR_SIZE_MASK)
     {
     case FONT_SPEC_MAX:
@@ -4061,7 +4047,6 @@ mirror_buffer (struct igc_mirror *m, struct buffer *b)
   else
     b->text = &b->own_text;
 
-  // FIXME: special handling of undo_list?
   IGC_MIRROR_OBJ (m, &b->undo_list_);
 }
 
@@ -4074,13 +4059,6 @@ mirror_glyph_matrix (struct igc_mirror *m, struct glyph_matrix *g)
 static void
 mirror_frame (struct igc_mirror *m, struct frame *f)
 {
-  // FIXME
-  // output_data;
-  // terminal
-  // glyph_pool
-  // glyph matrices
-  // struct font_driver_list *font_driver_list;
-  // struct text_conversion_state conversion;
   mirror_vectorlike (m, (struct Lisp_Vector *) f);
 
   IGC_MIRROR_RAW (m, &f->face_cache);
@@ -4115,11 +4093,6 @@ mirror_window (struct igc_mirror *m, struct window *w)
   mirror_vectorlike (m, (struct Lisp_Vector *) w);
   igc_assert (w->current_matrix == NULL);
   igc_assert (w->desired_matrix == NULL);
-
-  /* FIXME: window.h syas the following two are "marked specially", so
-     they are not seen by fix_vectorlike. That's of course a no-go
-     with MPS. What ever is special about these, we have to find
-     another way to accomplish that with MPS. */
   IGC_MIRROR_OBJ (m, &w->prev_buffers);
   IGC_MIRROR_OBJ (m, &w->next_buffers);
 
@@ -4354,13 +4327,12 @@ mirror_vector (struct igc_mirror *m, struct Lisp_Vector *v)
       break;
 
     case PVEC_WEAK_REF:
-      // FIXME: why is this abort here?
       emacs_abort ();
     }
 }
 
 static void
-mirror_obj (struct igc_mirror *m, void *base)
+mirror (struct igc_mirror *m, void *base)
 {
   struct igc_header *h = base;
   void *client = base_to_client (h);
@@ -4445,8 +4417,8 @@ mirror_obj (struct igc_mirror *m, void *base)
 static void
 mirror_objects (struct igc_mirror *m)
 {
-  DOHASH (XHASH_TABLE (m->dumped_to_obj), dumped, obj)
-    mirror_obj (m, lisp_to_ptr (obj));
+  DOHASH (XHASH_TABLE (m->dump_to_mps), dump_base, mps_base)
+    mirror (m, lisp_to_base (mps_base));
   m->end_time = Ffloat_time (Qnil);
 }
 
