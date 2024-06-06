@@ -1282,6 +1282,13 @@ vector_size (const struct Lisp_Vector *v)
   return size;
 }
 
+static size_t
+vector_start (const struct Lisp_Vector *v)
+{
+  enum pvec_type type = pseudo_vector_type (v);
+  return type == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0;
+}
+
 static mps_res_t
 fix_weak (mps_ss_t ss, struct Lisp_Vector* v)
 {
@@ -1649,10 +1656,7 @@ fix_char_table (mps_ss_t ss, struct Lisp_Vector *v)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    size_t size = vector_size (v);
-    enum pvec_type type = pseudo_vector_type (v);
-    size_t start = type == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0;
-    for (size_t i = start; i < size; ++i)
+    for (size_t i = vector_start (v), n = vector_size (v); i < n; ++i)
       IGC_FIX12_OBJ (ss, &v->contents[i]);
   }
   MPS_SCAN_END (ss);
@@ -3886,7 +3890,6 @@ mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *sym)
 #else
   IGC_MIRROR_RAW (m, &sym->u.s.next);
 #endif
-#if 0
   switch (sym->u.s.redirect)
     {
     case SYMBOL_PLAINVAL:
@@ -3905,7 +3908,6 @@ mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *sym)
       mirror_fwd (m, sym->u.s.val.fwd);
       break;
     }
-#endif
 }
 
 static void
@@ -4154,6 +4156,7 @@ mirror_window (struct igc_mirror *m, struct window *w)
 static void
 mirror_hash_table (struct igc_mirror *m, struct Lisp_Hash_Table *h)
 {
+  /* Thawing a hash table leaves key and value pointing to the dump. */
   IGC_MIRROR_RAW (m, &h->key);
   IGC_MIRROR_RAW (m, &h->value);
   IGC_MIRROR_RAW (m, &h->hash);
@@ -4164,10 +4167,7 @@ mirror_hash_table (struct igc_mirror *m, struct Lisp_Hash_Table *h)
 static void
 mirror_char_table (struct igc_mirror *m, struct Lisp_Vector *v)
 {
-  size_t size = vector_size (v);
-  enum pvec_type type = pseudo_vector_type (v);
-  size_t start = type == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0;
-  for (size_t i = start; i < size; ++i)
+  for (size_t i = vector_start (v), n = vector_size (v); i < n; ++i)
     IGC_MIRROR_OBJ (m, &v->contents[i]);
 }
 
