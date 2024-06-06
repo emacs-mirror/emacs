@@ -208,12 +208,12 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_HANDLER",
 };
 
-igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_LAST);
+igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
 
 static const char *
 obj_type_name (enum igc_obj_type type)
 {
-  igc_assert (0 <= type && type < IGC_OBJ_LAST);
+  igc_assert (0 <= type && type < IGC_OBJ_NUM_TYPES);
   return obj_type_names[type];
 }
 
@@ -278,7 +278,7 @@ struct igc_stats
   {
     size_t nwords;
     size_t nobjs;
-  } obj[IGC_OBJ_LAST];
+  } obj[IGC_OBJ_NUM_TYPES];
 
   struct
   {
@@ -300,7 +300,7 @@ enum
   IGC_SIZE_BITS = 32
 };
 
-igc_static_assert (IGC_OBJ_LAST - 1 < (1 << IGC_TYPE_BITS));
+igc_static_assert (IGC_OBJ_NUM_TYPES - 1 < (1 << IGC_TYPE_BITS));
 
 struct igc_header
 {
@@ -1354,7 +1354,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
       {
 	struct igc_stats *st = closure;
 	mps_word_t obj_type = header->obj_type;
-	igc_assert (obj_type < IGC_OBJ_LAST);
+	igc_assert (obj_type < IGC_OBJ_NUM_TYPES);
 	st->obj[obj_type].nwords += header->nwords;
 	st->obj[obj_type].nobjs += 1;
 	if (obj_type == IGC_OBJ_VECTOR)
@@ -1397,7 +1397,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	/* Can occur in the dump. */
 	break;
 
-      case IGC_OBJ_LAST:
+      case IGC_OBJ_NUM_TYPES:
 	emacs_abort ();
 
       case IGC_OBJ_SYMBOL:
@@ -2724,7 +2724,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
-    case IGC_OBJ_LAST:
+    case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
     case IGC_OBJ_CONS:
@@ -2882,7 +2882,7 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
-    case IGC_OBJ_LAST:
+    case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
     case IGC_OBJ_WEAK:
@@ -3345,7 +3345,7 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
     error ("Error %d walking memory", res);
 
   Lisp_Object result = Qnil;
-  for (int i = 0; i < IGC_OBJ_LAST; ++i)
+  for (int i = 0; i < IGC_OBJ_NUM_TYPES; ++i)
     {
       Lisp_Object e
 	= list3 (build_string (obj_type_name (i)),
@@ -3652,7 +3652,7 @@ struct igc_mirror
   Lisp_Object start_time;
   Lisp_Object end_copy_time;
   Lisp_Object end_time;
-  struct {size_t n, nbytes;} objs[IGC_OBJ_LAST];
+  struct {size_t n, nbytes;} objs[IGC_OBJ_NUM_TYPES];
   struct {size_t n, nbytes;} pvec[PVEC_TAG_MAX + 1];
 };
 
@@ -4356,7 +4356,7 @@ mirror (struct igc_mirror *m, void *base)
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
     case IGC_OBJ_INVALID:
-    case IGC_OBJ_LAST:
+    case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
     case IGC_OBJ_OBJ_VEC:
