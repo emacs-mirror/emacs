@@ -224,7 +224,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	      android:taskAffinity="emacs.primary_frame"
 	      android:windowSoftInputMode="adjustResize"
 	      android:exported="true"
-	      android:stateNotNeeded="true"
 	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|locale|fontScale">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -282,7 +281,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	      android:windowSoftInputMode="adjustResize"
 	      android:exported="true"
 	      android:maxRecents="50"
-	      android:stateNotNeeded="true"
 	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|locale|fontScale"/>
 
     <activity android:autoRemoveFromRecents="true"
