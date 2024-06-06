@@ -4430,11 +4430,16 @@ mirror (struct igc_mirror *m, void *base)
 }
 
 static void
-mirror_objects (struct igc_mirror *m)
+mirror_references (struct igc_mirror *m)
 {
   DOHASH (XHASH_TABLE (m->dump_to_mps), dump_base, mps_base)
     mirror (m, lisp_to_base (mps_base));
   m->end_time = Ffloat_time (Qnil);
+}
+
+static void
+refer_roots_to_mps (void)
+{
 }
 
 static void
@@ -4443,7 +4448,8 @@ mirror_dump (void)
   specpdl_ref count = igc_park_arena ();
   struct igc_mirror m = make_igc_mirror ();
   copy_dump_to_mps (&m);
-  mirror_objects (&m);
+  mirror_references (&m);
+  refer_roots_to_mps ();
   unbind_to (count, Qnil);
 
   if (getenv ("IGC_MIRROR_STATS"))
