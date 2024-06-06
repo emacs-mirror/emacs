@@ -210,6 +210,13 @@ static const char *obj_type_names[] = {
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_LAST);
 
+static const char *
+obj_type_name (enum igc_obj_type type)
+{
+  igc_assert (0 <= type && type < IGC_OBJ_LAST);
+  return obj_type_names[type];
+}
+
 static const char *pvec_type_names[] = {
   "PVEC_NORMAL_VECTOR",
   "PVEC_FREE",
@@ -3340,8 +3347,8 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   for (int i = 0; i < IGC_OBJ_LAST; ++i)
     {
       Lisp_Object e
-	  = list3 (build_string (obj_type_names[i]),
-		   make_int (st.obj[i].nobjs), make_int (st.obj[i].nwords));
+	= list3 (build_string (obj_type_name (i)),
+		 make_int (st.obj[i].nobjs), make_int (st.obj[i].nwords));
       result = Fcons (e, result);
     }
   for (enum pvec_type i = 0; i <= PVEC_TAG_MAX; i++)
@@ -3666,7 +3673,7 @@ print_mirror_stats (struct igc_mirror *m)
   fprintf (stderr, "--------------------------------------------------\n");
   for (int i = 0; i < ARRAYELTS (m->objs); ++i)
     {
-      fprintf (stderr, "%30s %8zu %10zu\n", obj_type_names[i], m->objs[i].n,
+      fprintf (stderr, "%30s %8zu %10zu\n", obj_type_name (i), m->objs[i].n,
 	       m->objs[i].nbytes);
       ntotal += m->objs[i].n;
       nbytes_total += m->objs[i].nbytes;
@@ -3675,7 +3682,7 @@ print_mirror_stats (struct igc_mirror *m)
   fprintf (stderr, "%30s %8s %10s\n", "Type", "N", "Bytes");
   fprintf (stderr, "--------------------------------------------------\n");
   for (int i = 0; i < ARRAYELTS (m->pvec); ++i)
-    fprintf (stderr, "%30s %8zu %10zu\n", pvec_type_names[i], m->pvec[i].n,
+    fprintf (stderr, "%30s %8zu %10zu\n", pvec_type_name (i), m->pvec[i].n,
 	     m->pvec[i].nbytes);
   fprintf (stderr, "--------------------------------------------------\n");
   fprintf (stderr, "%30s %8zu %10zu\n", "Total", ntotal, nbytes_total);
