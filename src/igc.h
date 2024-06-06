@@ -155,7 +155,7 @@ XWEAK_REF (Lisp_Object a)
 }
 
 size_t igc_header_size (void);
-char *igc_finish_obj (void *client, enum igc_obj_type type, char *base, char *end);
+char *igc_dump_finish_obj (void *client, enum igc_obj_type type, char *base, char *end);
 
 # define eassert_not_mps() eassert (false)
 #else

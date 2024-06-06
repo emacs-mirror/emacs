@@ -110,8 +110,7 @@ command alias go process launch --disable-aslr false --working-dir ../lisp
 #b wrong_type_argument
 
 target create bootstrap-emacs
-settings set -- target.run-args  -batch --no-site-file --no-site-lisp -l ./emacs-lisp/loaddefs-gen.elc -f loaddefs-generate--emacs-batch . ./calc ./calendar ./cedet ./cedet/ede ./cedet/semantic ./cedet/semantic/analyze ./cedet/semantic/bovine ./cedet/semantic/decorate ./cedet/semantic/symref ./cedet/semantic/wisent ./cedet/srecode ./emacs-lisp ./emulation ./erc ./eshell ./gnus ./image ./international ./language ./leim ./leim/ja-dic ./leim/quail ./mail ./mh-e ./net ./nxml ./org ./play ./progmodes ./textmodes ./url ./use-package ./vc
+settings set -- target.run-args  -batch --no-site-file --no-site-lisp  -f batch-byte-compile emacs-lisp/macroexp.el
 command alias go process launch --working-dir ../lisp
-
 
 # end.

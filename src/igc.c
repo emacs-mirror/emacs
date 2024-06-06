@@ -294,12 +294,12 @@ struct igc_stats
    location dependencies, and (b) makes it possible to implement sxhash
    variants in a way that works as expected even if GCs happen between
    calls.  */
-
 enum
 {
   IGC_TYPE_BITS = 5,
   IGC_HASH_BITS = 27,
-  IGC_SIZE_BITS = 32
+  IGC_SIZE_BITS = 32,
+  IGC_HASH_MASK = (1 << IGC_HASH_BITS) - 1,
 };
 
 igc_static_assert (IGC_OBJ_NUM_TYPES - 1 < (1 << IGC_TYPE_BITS));
@@ -1481,6 +1481,7 @@ dflt_scan (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit)
   return MPS_RES_OK;
 }
 
+#if 0
 static mps_res_t
 scan_dump (mps_ss_t ss, void *start, void *end, void *closure)
 {
@@ -1494,6 +1495,7 @@ scan_dump (mps_ss_t ss, void *start, void *end, void *closure)
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
 }
+#endif
 
 static mps_res_t
 fix_vectorlike (mps_ss_t ss, struct Lisp_Vector *v)
@@ -2934,7 +2936,7 @@ igc_collect (void)
 
 DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 0, 0, doc
        : /* */)
-(void)
+  (void)
 {
   igc_collect ();
   return Qnil;
@@ -2987,7 +2989,9 @@ igc_hash (Lisp_Object key)
       return h->hash;
     }
 
-  return word;
+  /* Use a hash that would fit into igc_header::hash so that we
+     can keep the hash once a non-MPS object is copied to MPS. */
+  return word & IGC_HASH_MASK;
 }
 
 static mps_addr_t
@@ -3565,7 +3569,7 @@ igc_header_size (void)
 }
 
 char *
-igc_finish_obj (void *client, enum igc_obj_type type, char *base, char *end)
+igc_dump_finish_obj (void *client, enum igc_obj_type type, char *base, char *end)
 {
   if (client == NULL)
     return end;
@@ -3628,24 +3632,30 @@ are handled as if they were the default value.  */);
 
 #pragma GCC diagnostic ignored "-Wunused-function"
 
+/* Copy object with base address BASE to MPS. BASE must be an object in
+   the loaded dump. Ensure that the copy has the same hash as the copied
+   object so that hash tables don't need to be re-hashed.  Value is the
+   base address of the copy. */
 static mps_addr_t
 copy (mps_addr_t base)
 {
+  igc_assert (pdumper_object_p (base));
   struct igc_header *h = base;
   mps_ap_t ap = thread_ap (h->obj_type);
   size_t nbytes = to_bytes (h->nwords);
-  mps_addr_t p;
+  mps_word_t hash = igc_hash (base);
+  mps_addr_t copy;
   do
     {
-      mps_res_t res = mps_reserve (&p, ap, nbytes);
+      mps_res_t res = mps_reserve (&copy, ap, nbytes);
       if (res != MPS_RES_OK)
 	memory_full (0);
-      memcpy (p, base, nbytes);
-      /* Give copies the same hash as the original so that hash tablrs
-	 don't need re-hashing. */
+      memcpy (copy, base, nbytes);
+      struct igc_header *copy_header = copy;
+      copy_header->hash = hash;
     }
-  while (!mps_commit (ap, p, nbytes));
-  return p;
+  while (!mps_commit (ap, copy, nbytes));
+  return copy;
 }
 
 struct igc_mirror
@@ -3807,6 +3817,8 @@ mirror_lisp_obj (struct igc_mirror *m, Lisp_Object *pobj)
 	  mps_addr_t mirror = lookup_base (m, base);
 	  igc_assert (mirror != NULL);
 	  client = base_to_client (mirror);
+	  if (client == (mps_addr_t) 0x0000000105e597c8)
+	    igc_break ();
 	  *p = (mps_word_t) client | tag;
 	}
     }
@@ -4491,6 +4503,6 @@ void
 igc_on_pdump_loaded (void *start, void *end)
 {
   /* FIXME: Remove root once dump has been copied. */
-  root_create_exact (global_igc, start, end, scan_dump);
+  //root_create_exact (global_igc, start, end, scan_dump);
   mirror_dump ();
 }

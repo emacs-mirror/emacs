@@ -903,7 +903,7 @@ dump_igc_finish_obj (struct dump_context *ctx)
       char *base = (char *) ctx->buf + ctx->igc_base_offset;
       char *end = (char *) ctx->buf + ctx->offset;
       eassert (end > base);
-      char *should_end = igc_finish_obj (ctx->igc_obj_dumped, ctx->igc_type, base, end);
+      char *should_end = igc_dump_finish_obj (ctx->igc_obj_dumped, ctx->igc_type, base, end);
       eassert (should_end >= end);
       dump_write_zero (ctx, should_end - end);
       if (ctx->flags.record_object_starts)
