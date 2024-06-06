@@ -3718,7 +3718,7 @@ print_mirror_stats (struct igc_mirror *m)
 }
 
 static Lisp_Object
-base_to_lisp (void *p)
+pointer_to_fixnum (void *p)
 {
   igc_assert (is_aligned (p));
   uintptr_t w = (uintptr_t) p;
@@ -3726,7 +3726,7 @@ base_to_lisp (void *p)
 }
 
 static void *
-lisp_to_base (Lisp_Object obj)
+fixnum_to_pointer (Lisp_Object obj)
 {
   igc_assert (FIXNUMP (obj));
   uintptr_t w = XFIXNUM (obj);
@@ -3736,10 +3736,10 @@ lisp_to_base (Lisp_Object obj)
 static void
 record_copy (struct igc_mirror *m, void *dumped, void *copy)
 {
-  Lisp_Object key = base_to_lisp (dumped);
-  igc_assert (lisp_to_base (key) == dumped);
-  Lisp_Object val = base_to_lisp (copy);
-  igc_assert (lisp_to_base (val) == copy);
+  Lisp_Object key = pointer_to_fixnum (dumped);
+  igc_assert (fixnum_to_pointer (key) == dumped);
+  Lisp_Object val = pointer_to_fixnum (copy);
+  igc_assert (fixnum_to_pointer (val) == copy);
   Fputhash (key, val, m->dump_to_mps);
 
   struct igc_header *h = copy;
@@ -3758,9 +3758,9 @@ record_copy (struct igc_mirror *m, void *dumped, void *copy)
 static void *
 lookup_base (struct igc_mirror *m, void *base)
 {
-  Lisp_Object key = base_to_lisp (base);
+  Lisp_Object key = pointer_to_fixnum (base);
   Lisp_Object found = Fgethash (key, m->dump_to_mps, Qnil);
-  return NILP (found) ? NULL : lisp_to_base (found);
+  return NILP (found) ? NULL : fixnum_to_pointer (found);
 }
 
 static void
@@ -4453,7 +4453,7 @@ static void
 mirror_references (struct igc_mirror *m)
 {
   DOHASH (XHASH_TABLE (m->dump_to_mps), dump_base, mps_base)
-    mirror (m, lisp_to_base (mps_base));
+    mirror (m, fixnum_to_pointer (mps_base));
 }
 
 static void
@@ -4479,7 +4479,7 @@ mirror_dump (void)
   record_time (&m, "Copy objects to MPS");
   mirror_references (&m);
   record_time (&m, "Mirror references");
-  //refer_roots_to_mps (&m);
+  refer_roots_to_mps (&m);
   record_time (&m, "Fix roots");
   unbind_to (count, Qnil);
 
