@@ -226,10 +226,15 @@ static const char *pvec_type_names[] = {
   "PVEC_BOOL_VECTOR",
   "PVEC_BUFFER",
   "PVEC_HASH_TABLE",
+#ifndef IN_MY_FORK
   "PVEC_OBARRAY",
+#endif
   "PVEC_TERMINAL",
   "PVEC_WINDOW_CONFIGURATION",
   "PVEC_SUBR",
+#ifdef IN_MY_FORK
+  "PVEC_PACKAGE",
+#endif
   "PVEC_OTHER",
   "PVEC_XWIDGET",
   "PVEC_XWIDGET_VIEW",
@@ -3841,6 +3846,7 @@ mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *sym)
 #else
   IGC_MIRROR_RAW (m, &sym->u.s.next);
 #endif
+#if 0
   switch (sym->u.s.redirect)
     {
     case SYMBOL_PLAINVAL:
@@ -3859,6 +3865,7 @@ mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *sym)
       mirror_fwd (m, sym->u.s.val.fwd);
       break;
     }
+#endif
 }
 
 static void
@@ -4431,7 +4438,7 @@ mirror_dump (void)
   mirror_objects (&m);
   unbind_to (count, Qnil);
 
-  if (1 || getenv ("IGC_MIRROR_STATS"))
+  if (getenv ("IGC_MIRROR_STATS"))
     print_mirror_stats (&m);
 }
 
