@@ -485,10 +485,10 @@ its shebang line, Emacs will now skip over 'env -S' and deduce the
 major mode based on the interpreter after 'env -S'.
 
 +++
-** New command 'sqlite-execute-batch'.
-This command lets the user execute multiple SQL commands in one
-command.  It is useful when the user wants to evaluate an entire SQL
-file.
+** New function 'sqlite-execute-batch'.
+This function lets the user execute multiple SQL statements in one go.
+It is useful, for example, when a Lisp program needs to evaluate an
+entire SQL file.
 
 +++
 
