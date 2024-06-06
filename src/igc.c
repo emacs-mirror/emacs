@@ -1153,6 +1153,14 @@ fix_face_cache (mps_ss_t ss, struct face_cache *c)
   return MPS_RES_OK;
 }
 
+static size_t
+client_nelems_from_header (struct igc_header *h, size_t elem_size)
+{
+  size_t client_nwords = h->nwords - to_words (sizeof *h);
+  size_t client_nbytes = to_bytes (client_nwords);
+  return client_nbytes / elem_size;
+}
+
 static mps_res_t
 fix_ptr_vec (mps_ss_t ss, void *client)
 {
@@ -1160,11 +1168,8 @@ fix_ptr_vec (mps_ss_t ss, void *client)
   {
     struct igc_header *h = client_to_base (client);
     void **v = client;
-    igc_assert (sizeof (struct igc_header) % sizeof (void *) == 0);
-    /* The below should yield 'h->nwords - 1' for 64-bit builds, and
-       'h->nwords - 2' for 32-bit.  */
-    size_t imax = h->nwords - to_words (sizeof (struct igc_header));
-    for (size_t i = 0; i < imax; ++i)
+    size_t n = client_nelems_from_header (h, sizeof *v);
+    for (size_t i = 0; i < n; ++i)
       IGC_FIX12_RAW (ss, &v[i]);
   }
   MPS_SCAN_END (ss);
@@ -1177,11 +1182,8 @@ fix_obj_vec (mps_ss_t ss, Lisp_Object *v)
   MPS_SCAN_BEGIN (ss)
   {
     struct igc_header *h = client_to_base (v);
-    igc_assert (sizeof (struct igc_header) % sizeof (Lisp_Object) == 0);
-    /* The below should yield 'h->nwords - 1' for 64-bit builds, and
-       'h->nwords - 2' for 32-bit.  */
-    size_t imax = h->nwords - to_words (sizeof (struct igc_header));
-    for (size_t i = 0; i < imax; ++i)
+    size_t n = client_nelems_from_header (h, sizeof *v);
+    for (size_t i = 0; i < n; ++i)
       IGC_FIX12_OBJ (ss, &v[i]);
   }
   MPS_SCAN_END (ss);
@@ -3878,6 +3880,9 @@ mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *sym)
 static void
 mirror_string (struct igc_mirror *m, struct Lisp_String *s)
 {
+  /* FIXME: AFAIR, IGC_OBJ_STRING_DATA is currently not used in the
+     pdumped, which means string data has no igc_header int the dump. We
+     could leave the string data alone. Not sure what's best.  */
   igc_assert (pdumper_object_p (s->u.s.data));
   ptrdiff_t nbytes = STRING_BYTES (s);
   unsigned char *data = alloc_string_data (nbytes, false);
@@ -3900,7 +3905,6 @@ mirror_interval (struct igc_mirror *m, struct interval *iv)
 }
 
 #define NOT_IMPLEMENTED() igc_assert (!"not implemented")
-
 
 static void
 mirror_itree_tree (struct igc_mirror *m, struct itree_tree *t)
@@ -3954,9 +3958,8 @@ static void
 mirror_obj_vec (struct igc_mirror *m, Lisp_Object *v)
 {
   struct igc_header *h = client_to_base (v);
-  igc_assert (sizeof (struct igc_header) % sizeof (Lisp_Object) == 0);
-  size_t imax = h->nwords - to_words (sizeof (struct igc_header));
-  for (size_t i = 0; i < imax; ++i)
+  size_t n = client_nelems_from_header (h, sizeof *v);
+  for (size_t i = 0; i < n; ++i)
     IGC_MIRROR_OBJ (m, &v[i]);
 }
 
