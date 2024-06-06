@@ -1419,15 +1419,11 @@ INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-server-or-lose) t))
   (when (jsonrpc-running-p server)
     (ignore-errors (eglot-shutdown server interactive nil 'preserve-buffers)))
-  (let* ((default-directory (project-root (eglot--project server)))
-         (project (eglot--current-project)))
-    (if (not project)
-        (eglot--error "Project in `%s' is gone!" default-directory)
-      (eglot--connect (eglot--major-modes server)
-                      project
-                      (eieio-object-class-name server)
-                      (eglot--saved-initargs server)
-                      (eglot--language-ids server))))
+  (eglot--connect (eglot--major-modes server)
+                  (eglot--project server)
+                  (eieio-object-class-name server)
+                  (eglot--saved-initargs server)
+                  (eglot--language-ids server))
   (eglot--message "Reconnected!"))
 
 (defvar eglot--managed-mode) ; forward decl
@@ -1518,7 +1514,12 @@ Each function is passed the server as an argument")
 This docstring appeases checkdoc, that's all."
   (let* ((default-directory (project-root project))
          (nickname (project-name project))
-         (readable-name (format "EGLOT (%s/%s)" nickname managed-modes))
+         (readable-name
+          (progn
+            (unless (file-exists-p default-directory)
+              ;; could happen because of bug#70724 or just because
+              (eglot--error "Project '%s' is gone!" nickname))
+            (format "EGLOT (%s/%s)" nickname managed-modes)))
          server-info
          (contact (if (functionp contact) (funcall contact) contact))
          (initargs
