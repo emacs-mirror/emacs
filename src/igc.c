@@ -1271,6 +1271,15 @@ pseudo_vector_type (const struct Lisp_Vector *v)
   return PSEUDOVECTOR_TYPE (v);
 }
 
+static size_t
+vector_size (const struct Lisp_Vector *v)
+{
+  size_t size = v->header.size;
+  if (size & PSEUDOVECTOR_FLAG)
+    size &= PSEUDOVECTOR_SIZE_MASK;
+  return size;
+}
+
 static mps_res_t
 fix_weak (mps_ss_t ss, struct Lisp_Vector* v)
 {
@@ -1350,8 +1359,8 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	st->obj[obj_type].nobjs += 1;
 	if (obj_type == IGC_OBJ_VECTOR)
 	  {
-	    struct Lisp_Vector* v = (struct Lisp_Vector*)client;
-	    enum pvec_type pvec_type = PSEUDOVECTOR_TYPE (v);
+	    struct Lisp_Vector* v = (struct Lisp_Vector*) client;
+	    enum pvec_type pvec_type = pseudo_vector_type (v);
 	    igc_assert (0 <= pvec_type && pvec_type <= PVEC_TAG_MAX);
 	    st->pvec[pvec_type].nwords += header->nwords;
 	    st->pvec[pvec_type].nobjs += 1;
@@ -1489,17 +1498,7 @@ fix_vectorlike (mps_ss_t ss, struct Lisp_Vector *v)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    ptrdiff_t size = v->header.size;
-    if (size & PSEUDOVECTOR_FLAG)
-      size &= PSEUDOVECTOR_SIZE_MASK;
-#ifdef IGC_DEBUG
-    /* V can be something like &main_thread */
-    if (is_mps (v))
-      {
-	struct igc_header *h = client_to_base (v);
-	igc_assert (to_bytes (h->nwords) >= size * word_size);
-      }
-#endif
+    size_t size = vector_size (v);
     IGC_FIX12_NOBJS (ss, v->contents, size);
   }
   MPS_SCAN_END (ss);
@@ -1646,10 +1645,10 @@ fix_char_table (mps_ss_t ss, struct Lisp_Vector *v)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    int size = v->header.size & PSEUDOVECTOR_SIZE_MASK;
+    size_t size = vector_size (v);
     enum pvec_type type = pseudo_vector_type (v);
-    int idx = type == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0;
-    for (int i = idx; i < size; ++i)
+    size_t start = type == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0;
+    for (size_t i = start; i < size; ++i)
       IGC_FIX12_OBJ (ss, &v->contents[i]);
   }
   MPS_SCAN_END (ss);
@@ -1889,7 +1888,7 @@ fix_font (mps_ss_t ss, struct Lisp_Vector *v)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
     /* See font.h for the magic numbers. */
-    switch (v->header.size & PSEUDOVECTOR_SIZE_MASK)
+    switch (vector_size (v))
       {
       case FONT_SPEC_MAX:
       case FONT_ENTITY_MAX:
@@ -2517,7 +2516,7 @@ static void
 finalize_font (struct font *font)
 {
   struct Lisp_Vector *v = (void *) font;
-  if ((v->header.size & PSEUDOVECTOR_SIZE_MASK) == FONT_OBJECT_MAX)
+  if (vector_size (v) == FONT_OBJECT_MAX)
     {
       /* The font driver might sometimes be NULL, e.g. if Emacs was
 	 interrupted before it had time to set it up.  */
@@ -2533,7 +2532,7 @@ finalize_font (struct font *font)
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
   /* The Android font driver needs the ability to associate extra
      information with font entities.  */
-  if (((vector->header.size & PSEUDOVECTOR_SIZE_MASK) == FONT_ENTITY_MAX)
+  if (vector_size (v) == FONT_ENTITY_MAX
       && PSEUDOVEC_STRUCT (vector, font_entity)->is_android)
     android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
 #endif
@@ -3999,9 +3998,7 @@ mirror_blv (struct igc_mirror *m, struct Lisp_Buffer_Local_Value *blv)
 static void
 mirror_vectorlike (struct igc_mirror *m, struct Lisp_Vector *v)
 {
-  ptrdiff_t size = v->header.size;
-  if (size & PSEUDOVECTOR_FLAG)
-    size &= PSEUDOVECTOR_SIZE_MASK;
+  ptrdiff_t size = vector_size (v);
   IGC_MIRROR_NOBJS (m, v->contents, size);
 }
 
@@ -4018,7 +4015,7 @@ static void
 mirror_font (struct igc_mirror *m, struct Lisp_Vector *v)
 {
   mirror_vectorlike (m, v);
-  switch (v->header.size & PSEUDOVECTOR_SIZE_MASK)
+  switch (vector_size (v))
     {
     case FONT_SPEC_MAX:
     case FONT_ENTITY_MAX:
@@ -4134,10 +4131,10 @@ mirror_hash_table (struct igc_mirror *m, struct Lisp_Hash_Table *h)
 static void
 mirror_char_table (struct igc_mirror *m, struct Lisp_Vector *v)
 {
-  int size = v->header.size & PSEUDOVECTOR_SIZE_MASK;
+  size_t size = vector_size (v);
   enum pvec_type type = pseudo_vector_type (v);
-  int idx = type == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0;
-  for (int i = idx; i < size; ++i)
+  size_t start = type == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0;
+  for (size_t i = start; i < size; ++i)
     IGC_MIRROR_OBJ (m, &v->contents[i]);
 }
 
