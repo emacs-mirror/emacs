@@ -3903,7 +3903,8 @@ mirror_interval (struct igc_mirror *m, struct interval *iv)
   IGC_MIRROR_OBJ (m, &iv->plist);
 }
 
-#define NOT_IMPLEMENTED() igc_assert (!"not implemented")
+#define NOT_IMPLEMENTED() \
+  igc_assert_fail (__FILE__, __LINE__, "not implemented")
 
 static void
 mirror_itree_tree (struct igc_mirror *m, struct itree_tree *t)
