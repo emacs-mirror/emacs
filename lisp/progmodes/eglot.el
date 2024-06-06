@@ -1419,11 +1419,15 @@ INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-server-or-lose) t))
   (when (jsonrpc-running-p server)
     (ignore-errors (eglot-shutdown server interactive nil 'preserve-buffers)))
-  (eglot--connect (eglot--major-modes server)
-                  (eglot--project server)
-                  (eieio-object-class-name server)
-                  (eglot--saved-initargs server)
-                  (eglot--language-ids server))
+  (let* ((default-directory (project-root (eglot--project server)))
+         (project (eglot--current-project)))
+    (if (not project)
+        (eglot--error "Project in `%s' is gone!" default-directory)
+      (eglot--connect (eglot--major-modes server)
+                      project
+                      (eieio-object-class-name server)
+                      (eglot--saved-initargs server)
+                      (eglot--language-ids server))))
   (eglot--message "Reconnected!"))
 
 (defvar eglot--managed-mode) ; forward decl
