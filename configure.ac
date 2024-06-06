@@ -1251,6 +1251,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-pop=$with_pop"
   passthrough="$passthrough --with-harfbuzz=$with_harfbuzz"
   passthrough="$passthrough --with-threads=$with_threads"
+  passthrough="$passthrough --with-rsvg=$with_rsvg"
 
   # Now pass through some checking-related options.
   emacs_val="--enable-check-lisp-object-type=$enable_check_lisp_object_type"
@@ -1341,9 +1342,9 @@ if test "$ANDROID" = "yes"; then
     with_harfbuzz=no
     with_native_compilation=no
     with_threads=no
+    with_rsvg=no
   fi
 
-  with_rsvg=no
   with_libsystemd=no
   with_cairo=no
   with_xft=no
@@ -3559,10 +3560,13 @@ fi
 HAVE_RSVG=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" \
    || test "${opsys}" = "mingw32" || test "${HAVE_BE_APP}" = "yes" \
-   || test "${window_system}" = "pgtk"; then
+   || test "${window_system}" = "pgtk" \
+   || test "${REALLY_ANDROID}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.14.0
-    RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
+    AS_IF([test "${REALLY_ANDROID}" = "yes"],
+      [RSVG_MODULE="librsvg"],
+      [RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"])
 
     EMACS_CHECK_MODULES([RSVG], [$RSVG_MODULE])
     AC_SUBST([RSVG_CFLAGS])

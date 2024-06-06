@@ -140,7 +140,7 @@ NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -landroid
 endif
 
 ifeq ($(findstring $(1),$(NDK_SYSTEM_LIBRARIES))$(2)$(3),)
-ifneq ($(findstring lib,$(1)),)
+ifeq ($(filter-out lib%,$(1)),)
 NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE) += $(1)_emacs.so
 else
 NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE) += lib$(1)_emacs.so
@@ -148,7 +148,7 @@ endif
 endif
 
 ifneq ($(2),)
-ifneq ($(findstring lib,$(1)),)
+ifeq ($(filter-out lib%,$(1)),)
 NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) += $(1).a
 else
 NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) += lib$(1).a
@@ -156,7 +156,7 @@ endif
 endif
 
 ifneq ($(3),)
-ifneq ($(findstring lib,$(1)),)
+ifeq ($(filter-out lib%,$(1)),)
 NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) += $(1).a
 else
 NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) += lib$(1).a

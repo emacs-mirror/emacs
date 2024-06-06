@@ -110,7 +110,7 @@ NDK_CFLAGS ::= -mthumb
 endif
 endif
 
-ifeq ($(findstring lib,$(LOCAL_MODULE)),lib)
+ifeq ($(filter-out lib%,$(LOCAL_MODULE)),)
 LOCAL_MODULE_FILENAME := $(LOCAL_MODULE)
 else
 LOCAL_MODULE_FILENAME := lib$(LOCAL_MODULE)
