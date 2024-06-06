@@ -3641,8 +3641,8 @@ copy (mps_addr_t base)
       if (res != MPS_RES_OK)
 	memory_full (0);
       memcpy (p, base, nbytes);
-      struct igc_header *nh = p;
-      nh->hash = obj_hash ();
+      /* Give copies the same hash as the original so that hash tablrs
+	 don't need re-hashing. */
     }
   while (!mps_commit (ap, p, nbytes));
   return p;
