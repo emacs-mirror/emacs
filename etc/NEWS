@@ -324,6 +324,14 @@ right-aligned to is controlled by the new user option
 ** Windows
 
 +++
+*** New action alist entry 'some-window' for 'display-buffer'.
+It defines which window 'display-buffer-use-some-window' should prefer.
+For example, when 'display-buffer-base-action' is customized to
+'(nil . ((some-window . mru)))' then a buffer will be displayed
+in the same most recently used window from the consecutive calls
+display-buffer' (on a configuration with more than two windows).
+
++++
 *** New action alist entry 'category' for 'display-buffer'.
 If the caller of 'display-buffer' passes '(category . symbol)'
 in its 'action' argument, you can match the displayed buffer
