@@ -3784,6 +3784,7 @@ copy_dump_to_mps (struct igc_mirror *m)
   void *dump_base;
   while ((dump_base = pdumper_next_object (&it)) != NULL)
     record_copy (m, dump_base, copy (dump_base));
+  record_time (m, "Copy objects to MPS");
 }
 
 static void
@@ -4443,6 +4444,7 @@ mirror_references (struct igc_mirror *m)
 {
   DOHASH (XHASH_TABLE (m->dump_to_mps), dump_base, mps_base)
     mirror (m, fixnum_to_pointer (mps_base));
+  record_time (m, "Mirror references");
 }
 
 static void
@@ -4456,6 +4458,7 @@ refer_roots_to_mps (struct igc_mirror *m)
 
   mirror_buffer (m, &buffer_defaults);
   mirror_buffer (m, &buffer_local_symbols);
+  record_time (m, "Fix roots");
 }
 
 static void
@@ -4465,11 +4468,8 @@ mirror_dump (void)
   struct igc_mirror m = make_igc_mirror ();
   record_time (&m, "Start");
   copy_dump_to_mps (&m);
-  record_time (&m, "Copy objects to MPS");
   mirror_references (&m);
-  record_time (&m, "Mirror references");
   refer_roots_to_mps (&m);
-  record_time (&m, "Fix roots");
   unbind_to (count, Qnil);
 
   if (getenv ("IGC_MIRROR_STATS"))
